@@ -114,15 +114,26 @@ export class FrontmatterFormatter {
     sortedKeys?: string[],
     comments?: Record<string, string>,
   ) {
-    const { body = '', ...meta } = data;
+    let { body = '', ...meta } = data;
 
     // Stringify to YAML if the format was not set
     const format = this.format || getFormatOpts(Languages.YAML);
+
+    // If body is not a string, include it in the frontmatter to avoid data loss, and log a warning since this is not ideal.
+    if (typeof body !== 'string') {
+      console.warn(
+        'Body content is not a string. Including body content in frontmatter to avoid data loss, but this may cause issues with some formats.',
+        { body },
+      );
+      meta.body = body;
+      body = '';
+    }
 
     // gray-matter always adds a line break at the end which trips our
     // change detection logic
     // https://github.com/jonschlinkert/gray-matter/issues/96
     const trimLastLineBreak = body.slice(-1) !== '\n';
+    console.log('matter.stringify', { body, meta, format, sortedKeys, comments });
     const file = matter.stringify(body, meta, {
       engines: parsers,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
