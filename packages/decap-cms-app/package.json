@@ -60,6 +60,7 @@
     "decap-cms-widget-list": "^3.5.0",
     "decap-cms-widget-map": "^3.2.0",
     "decap-cms-widget-markdown": "^3.6.0",
+    "decap-cms-widget-rtf": "^3.6.0",
     "decap-cms-widget-number": "^3.2.0",
     "decap-cms-widget-object": "^3.4.0",
     "decap-cms-widget-relation": "^3.5.2",
