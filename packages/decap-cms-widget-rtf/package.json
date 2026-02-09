@@ -1,0 +1,62 @@
+{
+  "name": "decap-cms-widget-rtf",
+  "description": "Widget for editing RTF in Decap CMS.",
+  "version": "3.6.0",
+  "homepage": "https://www.decapcms.org/docs/widgets/#rtf",
+  "repository": "https://github.com/decaporg/decap-cms/tree/main/packages/decap-cms-widget-rtf",
+  "bugs": "https://github.com/decaporg/decap-cms/issues",
+  "module": "dist/esm/index.js",
+  "main": "dist/esm/index.js",
+  "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "types": "./dist/types/index.d.ts"
+    }
+  },
+  "license": "MIT",
+  "keywords": [
+    "decap-cms",
+    "widget",
+    "rtf",
+    "editor"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "develop": "npm run build:esm -- --watch",
+    "build": "npm run build:esm && npm run build:types",
+    "build:esm": "cross-env NODE_ENV=esm babel src --out-dir dist/esm --ignore \"**/__tests__\" --root-mode upward --extensions \".ts,.tsx\"",
+    "build:types": "tsc --emitDeclarationOnly --outDir dist/types",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "dompurify": "^3.2.7",
+    "lodash": "^4.17.21",
+    "slate": "^0.118.1",
+    "slate-history": "^0.113.1",
+    "slate-hyperscript": "^0.100.0",
+    "slate-react": "^0.117.4"
+  },
+  "peerDependencies": {
+    "decap-cms-core": "^3.9.0",
+    "decap-cms-widget-markdown": "^3.5.0",
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "decap-cms-ui-default": "^3.0.0",
+    "immutable": "^3.7.6",
+    "prop-types": "^15.7.2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-immutable-proptypes": "^2.1.0"
+  },
+  "devDependencies": {
+    "@types/is-url": "^1.2.0",
+    "@types/lodash": "^4.14.0",
+    "@types/prop-types": "^15.7.15",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "cross-env": "^7.0.0",
+    "esbuild": "^0.25.10",
+    "typescript": "^4.9.4"
+  }
+}
