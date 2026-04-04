@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const axios = require('axios');
+const https = require('https');
 
 const verifySignature = event => {
   const timestamp = Number(event.headers['x-slack-request-timestamp']);
@@ -64,14 +64,25 @@ exports.handler = async function(event) {
     if (expectedCommand && expectedCommand === command) {
       const githubToken = process.env.GITHUB_TOKEN;
       const repo = process.env.GITHUB_REPO;
-      await axios({
-        headers: { Authorization: `token ${githubToken}` },
-        method: 'post',
-        url: `https://api.github.com/repos/${repo}/dispatches`,
-        data: { event_type: 'on-demand-github-action' },
+      // Convert this to native Node HTTPS request
+
+      return await new Promise((resolve, reject) => {
+        const request = https.request({
+          hostname: 'api.github.com',
+          pathname: `/repos/${repo}/dispatches`,
+          method: 'POST',
+          headers: {
+            Authorization: `token ${githubToken}`,
+            'User-Agent': 'Decap CMS Publish Bot',
+            'Content-Type': 'application/json',
+          },
+        }, res => {
+          const message = 'Dispatched event to GitHub';
+          resolve({ status: 200, body: message });
+        })
+        request.end(JSON.stringify({ event_type: 'on-demand-github-action' }));
+        request.on('error', reject)
       });
-      const message = 'Dispatched event to GitHub';
-      return { status: 200, body: message };
     } else {
       throw new Error(`Command is not allowed. Expected: ${expectedCommand}. Actual: ${command}`);
     }
