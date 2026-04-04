@@ -3,7 +3,7 @@ import get from 'lodash/get';
 import trimEnd from 'lodash/trimEnd';
 import truncate from 'lodash/truncate';
 import dayjs from 'dayjs';
-import { basename, dirname, extname } from 'path';
+import { basename, dirname, extname } from 'decap-cms-lib-util';
 
 const filters = [
   { pattern: /^upper$/, transform: (str: string) => str.toUpperCase() },
@@ -56,25 +56,31 @@ export const dateParsers: Record<string, (date: Date) => string> = {
   second: (date: Date) => formatDate(date.getUTCSeconds()),
 };
 
-export function parseDateFromEntry(entry: Map<string, unknown>, dateFieldName?: string | null) {
+export function parseDateFromEntry(entry: Map<string, unknown>, dateFieldName?: string | null): Date | undefined {
   if (!dateFieldName) {
     return;
   }
 
-  const entryData = entry.getIn(['data']);
+  const entryData = entry.getIn(['data']) as Map<string, unknown> | undefined;
+  if (!entryData) {
+    return;
+  }
   return parseDateFromEntryData(entryData, dateFieldName);
 }
 
 export function parseDateFromEntryData(
   entryData: Map<string, unknown>,
   dateFieldName?: string | null,
-) {
+): Date | undefined {
   if (!dateFieldName) {
     return;
   }
-  const dateValue = entryData.getIn([dateFieldName]);
-  const dateDayjs = dateValue && dayjs(dateValue);
-  if (dateDayjs && dateDayjs.isValid()) {
+  const dateValue = entryData.getIn([dateFieldName]) as string | number | Date | undefined;
+  if (!dateValue) {
+    return;
+  }
+  const dateDayjs = dayjs(dateValue);
+  if (dateDayjs.isValid()) {
     return dateDayjs.toDate();
   }
 }
@@ -186,12 +192,12 @@ export function compileStringTemplate(
 
   const compiledString = template.replace(
     RegExp(templateVariablePattern, 'g'),
-    (_full, key: string, _part, filter: string) => {
-      let replacement;
+    (_full: string, key: string, _part: string, filter: string): string => {
+      let replacement: string;
       const explicitFieldReplacement = getExplicitFieldReplacement(key, data);
 
-      if (explicitFieldReplacement) {
-        replacement = explicitFieldReplacement;
+      if (explicitFieldReplacement !== undefined) {
+        replacement = String(explicitFieldReplacement);
       } else if (dateParsers[key] && !date) {
         missingRequiredDate = true;
         return '';
@@ -200,7 +206,7 @@ export function compileStringTemplate(
       } else if (key === 'slug') {
         replacement = identifier;
       } else {
-        replacement = data.getIn(keyToPathArray(key), '') as string;
+        replacement = String(data.getIn(keyToPathArray(key), ''));
       }
 
       if (processor) {

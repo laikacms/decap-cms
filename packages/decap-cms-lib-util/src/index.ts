@@ -3,7 +3,7 @@ import Cursor, { CURSOR_COMPATIBILITY_SYMBOL } from './Cursor';
 import EditorialWorkflowError, { EDITORIAL_WORKFLOW_ERROR } from './EditorialWorkflowError';
 import AccessTokenError from './AccessTokenError';
 import localForage from './localForage';
-import { isAbsolutePath, basename, fileExtensionWithSeparator, fileExtension } from './path';
+import { isAbsolutePath, basename, fileExtensionWithSeparator, fileExtension, extname, dirname } from './path';
 import { onlySuccessfulPromises, flowAsync, then } from './promise';
 import unsentRequest from './unsentRequest';
 import {
@@ -108,6 +108,8 @@ export const DecapCmsLibUtil = {
   EDITORIAL_WORKFLOW_ERROR,
   localForage,
   basename,
+  dirname,
+  extname,
   fileExtensionWithSeparator,
   fileExtension,
   onlySuccessfulPromises,
@@ -162,6 +164,8 @@ export {
   EDITORIAL_WORKFLOW_ERROR,
   localForage,
   basename,
+  dirname,
+  extname,
   fileExtensionWithSeparator,
   fileExtension,
   onlySuccessfulPromises,

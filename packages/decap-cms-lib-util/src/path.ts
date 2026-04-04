@@ -85,3 +85,43 @@ export function fileExtension(p: string) {
   const ext = fileExtensionWithSeparator(p);
   return ext === '' ? ext : ext.slice(1);
 }
+
+/**
+ * Alias for fileExtensionWithSeparator - returns extension with the dot.
+ * @example Usage example
+ *   path.extname('index.html')
+ *   // returns
+ *   '.html'
+ */
+export function extname(p: string) {
+  return fileExtensionWithSeparator(p);
+}
+
+/**
+ * Return the directory name of a path. Similar to the Unix dirname command.
+ * @example Usage example
+ *   path.dirname('/foo/bar/baz/asdf/quux')
+ *   // returns
+ *   '/foo/bar/baz/asdf'
+ */
+export function dirname(p: string) {
+  // Special case: empty string
+  if (p === '') {
+    return '.';
+  }
+  // Normalize the string first to remove any weirdness.
+  p = normalizePath(p);
+  // Remove trailing slash
+  if (p.endsWith('/') && p.length > 1) {
+    p = p.slice(0, -1);
+  }
+  // Find the last slash
+  const lastSlashIndex = p.lastIndexOf('/');
+  if (lastSlashIndex === -1) {
+    return '.';
+  }
+  if (lastSlashIndex === 0) {
+    return '/';
+  }
+  return p.slice(0, lastSlashIndex);
+}

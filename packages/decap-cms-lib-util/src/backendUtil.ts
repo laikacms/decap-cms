@@ -1,7 +1,6 @@
 import flow from 'lodash/flow';
 import fromPairs from 'lodash/fromPairs';
 import { map } from 'lodash/fp';
-import { fromJS } from 'immutable';
 
 import unsentRequest from './unsentRequest';
 import APIError from './APIError';
@@ -17,47 +16,53 @@ function catchFormatErrors(format: string, formatter: Formatter) {
   return (res: Response) => {
     try {
       return formatter(res);
-    } catch (err) {
+    } catch (err: unknown) {
+      const error = err as Error;
       throw new Error(
-        `Response cannot be parsed into the expected format (${format}): ${err.message}`,
+        `Response cannot be parsed into the expected format (${format}): ${error.message}`,
       );
     }
   };
 }
 
-const responseFormatters = fromJS({
-  json: async (res: Response) => {
+const responseFormatters = new Map<string, Formatter>([
+  ['json', async (res: Response) => {
     const contentType = res.headers.get('Content-Type') || '';
     if (!contentType.startsWith('application/json') && !contentType.startsWith('text/json')) {
       throw new Error(`${contentType} is not a valid JSON Content-Type`);
     }
     return res.json();
-  },
-  text: async (res: Response) => res.text(),
-  blob: async (res: Response) => res.blob(),
-}).mapEntries(([format, formatter]: [string, Formatter]) => [
-  format,
-  catchFormatErrors(format, formatter),
+  }],
+  ['text', async (res: Response) => res.text()],
+  ['blob', async (res: Response) => res.blob()],
 ]);
+
+// Wrap formatters with error catching
+const wrappedFormatters = new Map<string, Formatter>();
+responseFormatters.forEach((formatter, format) => {
+  wrappedFormatters.set(format, catchFormatErrors(format, formatter));
+});
 
 export async function parseResponse(
   res: Response,
   { expectingOk = true, format = 'text', apiName = '' },
 ) {
-  let body;
+  let body: unknown;
   try {
-    const formatter = responseFormatters.get(format, false);
+    const formatter = wrappedFormatters.get(format);
     if (!formatter) {
       throw new Error(`${format} is not a supported response format.`);
     }
     body = await formatter(res);
-  } catch (err) {
-    throw new APIError(err.message, res.status, apiName);
+  } catch (err: unknown) {
+    const error = err as Error;
+    throw new APIError(error.message, res.status, apiName);
   }
   if (expectingOk && !res.ok) {
     const isJSON = format === 'json';
-    const message = isJSON ? body.message || body.msg || body.error?.message : body;
-    throw new APIError(isJSON && message ? message : body, res.status, apiName);
+    const jsonBody = body as { message?: string; msg?: string; error?: { message?: string } } | undefined;
+    const message = isJSON ? jsonBody?.message || jsonBody?.msg || jsonBody?.error?.message : body;
+    throw new APIError(isJSON && message ? String(message) : String(body), res.status, apiName);
   }
   return body;
 }

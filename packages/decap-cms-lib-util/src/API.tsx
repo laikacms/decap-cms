@@ -91,17 +91,18 @@ export async function requestWithBackoff(
       response.json = () => Promise.resolve(json);
     }
     return response;
-  } catch (err) {
-    if (attempt > 5 || err.message === "Can't refresh access token when using implicit auth") {
+  } catch (err: unknown) {
+    const error = err as { message?: string; resetSeconds?: number };
+    if (attempt > 5 || error.message === "Can't refresh access token when using implicit auth") {
       throw err;
     } else {
       if (!api.rateLimiter) {
-        const timeout = err.resetSeconds || attempt * attempt;
+        const timeout = error.resetSeconds || attempt * attempt;
         console.log(
           `Pausing requests for ${timeout} ${
             attempt === 1 ? 'second' : 'seconds'
           } due to fetch failures:`,
-          err.message,
+          error.message,
         );
         api.rateLimiter = asyncLock();
         api.rateLimiter.acquire();
@@ -212,8 +213,8 @@ export async function apiRequest(
     responseStatus = response.status;
     const parsedResponse = await parser(response);
     return parsedResponse;
-  } catch (error) {
-    return handleRequestError(error, responseStatus, backend);
+  } catch (error: unknown) {
+    return handleRequestError(error as FetchError, responseStatus, backend);
   }
 }
 
