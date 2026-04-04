@@ -3,7 +3,7 @@ import { fromJS } from 'immutable';
 import { CONFIG_SUCCESS } from '../actions/config';
 
 import type { ConfigAction } from '../actions/config';
-import type { Integrations, CmsConfig } from '../types/redux';
+import type { Integrations, CmsConfig } from '../types/cms';
 
 interface Acc {
   providers: Record<string, {}>;

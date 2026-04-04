@@ -23,7 +23,7 @@ import type {
   DisplayURLState,
   MediaLibraryInstance,
   EntryField,
-} from '../types/redux';
+} from '../types/cms';
 import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
 import type AssetProxy from '../valueObjects/AssetProxy';

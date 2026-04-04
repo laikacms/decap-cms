@@ -33,7 +33,7 @@ import type {
   Collections,
   EntryDraft,
   MediaFile,
-} from '../types/redux';
+} from '../types/cms';
 import type { AnyAction } from 'redux';
 import type { EntryValue } from '../valueObjects/Entry';
 import type { Status } from '../constants/publishModes';

@@ -21,7 +21,7 @@ import type {
   ViewFilter,
   ViewGroup,
   CmsConfig,
-} from '../types/redux';
+} from '../types/cms';
 import type { ConfigAction } from '../actions/config';
 import type { Backend } from '../backend';
 
@@ -358,6 +358,14 @@ export function selectInferredField(collection: Collection, fieldName: string) {
 
   // Coundn't infer the field. Show error and return null.
   if (inferableField.showError) {
+    function consoleError(title: string, description: string) {
+      console.error(
+        `%c ⛔ ${title}\n` + `%c${description}\n\n`,
+        'color: black; font-weight: bold; font-size: 16px; line-height: 50px;',
+        'color: black;',
+      );
+    }
+
     consoleError(
       `The Field ${fieldName} is missing for the collection “${collection.get('name')}”`,
       `Decap CMS tries to infer the entry ${fieldName} automatically, but one couldn't be found for entries of the collection “${collection.get(

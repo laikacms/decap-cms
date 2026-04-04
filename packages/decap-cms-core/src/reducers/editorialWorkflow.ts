@@ -21,7 +21,7 @@ import {
 } from '../actions/editorialWorkflow';
 import { CONFIG_SUCCESS } from '../actions/config';
 
-import type { EditorialWorkflowAction, EditorialWorkflow, Entities } from '../types/redux';
+import type { EditorialWorkflowAction, EditorialWorkflow, Entities } from '../types/cms';
 
 function unpublishedEntries(state = Map(), action: EditorialWorkflowAction) {
   switch (action.type) {

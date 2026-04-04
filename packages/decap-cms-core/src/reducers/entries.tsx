@@ -9,7 +9,7 @@ import orderBy from 'lodash/orderBy';
 import groupBy from 'lodash/groupBy';
 import { stringTemplate } from 'decap-cms-lib-widgets';
 
-import { SortDirection } from '../types/redux';
+import { SortDirection } from '../types/cms';
 import { folderFormatter } from '../lib/formatters';
 import { selectSortDataPath } from './collections';
 import { SEARCH_ENTRIES_SUCCESS } from '../actions/search';
@@ -66,7 +66,7 @@ import type {
   EntriesGroupRequestPayload,
   EntriesGroupFailurePayload,
   GroupOfEntries,
-} from '../types/redux';
+} from '../types/cms';
 
 const { keyToPathArray } = stringTemplate;
 

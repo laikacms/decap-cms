@@ -7,7 +7,7 @@ import { getAsset, ADD_ASSET, LOAD_ASSET_REQUEST } from '../media';
 import { selectMediaFilePath } from '../../reducers/entries';
 import AssetProxy from '../../valueObjects/AssetProxy';
 
-import type { State } from '../../types/redux';
+import type { State } from '../../types/cms';
 import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
 

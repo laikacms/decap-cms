@@ -32,7 +32,7 @@ import type {
   MediaFileMap,
   DisplayURLState,
   EntryField,
-} from '../types/redux';
+} from '../types/cms';
 
 const defaultState: {
   isVisible: boolean;

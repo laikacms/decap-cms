@@ -12,7 +12,7 @@ import { createEntry } from '../valueObjects/Entry';
 import { createAssetProxy } from '../valueObjects/AssetProxy';
 import ValidationErrorTypes from '../constants/validationErrorTypes';
 import { addAssets, getAsset } from './media';
-import { SortDirection } from '../types/redux';
+import { SortDirection } from '../types/cms';
 import { waitForMediaLibraryToLoad, loadMedia } from './mediaLibrary';
 import { waitUntil } from './waitUntil';
 import { selectIsFetching, selectEntriesSortFields, selectEntryByPath } from '../reducers/entries';
@@ -34,7 +34,7 @@ import type {
   ViewFilter,
   ViewGroup,
   Entry,
-} from '../types/redux';
+} from '../types/cms';
 import type { EntryValue } from '../valueObjects/Entry';
 import type { Backend } from '../backend';
 import type AssetProxy from '../valueObjects/AssetProxy';

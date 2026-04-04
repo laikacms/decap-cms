@@ -17,7 +17,7 @@ import status from './status';
 import notifications from './notifications';
 
 import type { Status } from '../constants/publishModes';
-import type { State, Collection } from '../types/redux';
+import type { State, Collection } from '../types/cms';
 
 const reducers = {
   auth,

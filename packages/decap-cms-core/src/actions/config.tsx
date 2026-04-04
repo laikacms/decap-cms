@@ -27,7 +27,7 @@ import type {
   CmsPublishMode,
   CmsLocalBackend,
   State,
-} from '../types/redux';
+} from '../types/cms';
 
 export const CONFIG_REQUEST = 'CONFIG_REQUEST';
 export const CONFIG_SUCCESS = 'CONFIG_SUCCESS';
