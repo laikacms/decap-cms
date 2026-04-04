@@ -1,7 +1,7 @@
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { Map } from 'immutable';
 import configureMockStore from 'redux-mock-store';
 import thunk from 'redux-thunk';
-import { mocked } from 'jest-mock';
 
 import { getAsset, ADD_ASSET, LOAD_ASSET_REQUEST } from '../media';
 import { selectMediaFilePath } from '../../reducers/entries';
@@ -10,15 +10,16 @@ import AssetProxy from '../../valueObjects/AssetProxy';
 import type { State } from '../../types/cms';
 import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
+import type { Mock } from 'vitest';
 
 const middlewares = [thunk];
 const mockStore = configureMockStore<Partial<State>, ThunkDispatch<State, {}, AnyAction>>(
   middlewares,
 );
-const mockedSelectMediaFilePath = mocked(selectMediaFilePath);
+const mockedSelectMediaFilePath = selectMediaFilePath as Mock;
 
-jest.mock('../../reducers/entries');
-jest.mock('../mediaLibrary');
+vi.mock('../../reducers/entries');
+vi.mock('../mediaLibrary');
 
 describe('media', () => {
   const emptyAsset = new AssetProxy({
@@ -31,10 +32,10 @@ describe('media', () => {
   describe('getAsset', () => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    global.URL = { createObjectURL: jest.fn() };
+    global.URL = { createObjectURL: vi.fn() };
 
     beforeEach(() => {
-      jest.resetAllMocks();
+      vi.resetAllMocks();
     });
 
     it('should return empty asset for null path', () => {

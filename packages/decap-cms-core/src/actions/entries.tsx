@@ -161,8 +161,9 @@ export function entriesFailed(collection: Collection, error: Error) {
 export async function getAllEntries(state: State, collection: Collection) {
   const backend = currentBackend(state.config);
   const integration = selectIntegration(state, collection.get('name'), 'listEntries');
-  const provider: Backend = integration
-    ? getIntegrationProvider(state.integrations, backend.getToken, integration)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const provider: any = integration
+    ? getIntegrationProvider(state.integrations, backend.getToken as any, integration)
     : backend;
   const entries = await provider.listAllEntries(collection);
   return entries;
@@ -390,7 +391,8 @@ export function draftDuplicateEntry(entry: EntryMap) {
     payload: createEntry(entry.get('collection'), '', '', {
       data: entry.get('data'),
       i18n: entry.get('i18n'),
-      mediaFiles: entry.get('mediaFiles').toJS(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mediaFiles: entry.get('mediaFiles').toJS() as any,
     }),
   };
 }
@@ -501,7 +503,8 @@ export function retrieveLocalBackup(collection: Collection, slug: string) {
           } else {
             return getAsset({
               collection,
-              entry: fromJS(entry),
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              entry: fromJS(entry) as any,
               path: file.path,
               field: file.field,
             })(dispatch, getState);
@@ -536,18 +539,18 @@ export function loadEntry(collection: Collection, slug: string) {
       const loadedEntry = await tryLoadEntry(getState(), collection, slug);
       dispatch(entryLoaded(collection, loadedEntry));
       dispatch(createDraftFromEntry(loadedEntry));
-    } catch (error) {
+    } catch (error: unknown) {
       dispatch(
         addNotification({
           message: {
-            details: error.message,
+            details: error instanceof Error ? error.message : String(error),
             key: 'ui.toast.onFailToLoadEntries',
           },
           type: 'error',
           dismissAfter: 8000,
         }),
       );
-      dispatch(entryLoadError(error, collection, slug));
+      dispatch(entryLoadError(error instanceof Error ? error : new Error(String(error)), collection, slug));
     }
   };
 }
@@ -558,7 +561,8 @@ export async function tryLoadEntry(state: State, collection: Collection, slug: s
   return loadedEntry;
 }
 
-const appendActions = fromJS({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const appendActions: Map<string, any> = fromJS({
   ['append_next']: { action: 'next', append: true },
 });
 
@@ -566,7 +570,8 @@ function addAppendActionsToCursor(cursor: Cursor) {
   return Cursor.create(cursor).updateStore('actions', (actions: Set<string>) => {
     return actions.union(
       appendActions
-        .filter((v: Map<string, string | boolean>) => actions.has(v.get('action') as string))
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .filter((v: any) => actions.has(v.get('action') as string))
         .keySeq(),
     );
   });
@@ -596,8 +601,9 @@ export function loadEntries(collection: Collection, page = 0) {
 
     const backend = currentBackend(state.config);
     const integration = selectIntegration(state, collection.get('name'), 'listEntries');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const provider = integration
-      ? getIntegrationProvider(state.integrations, backend.getToken, integration)
+      ? getIntegrationProvider(state.integrations, backend.getToken as any, integration)
       : backend;
     const append = !!(page && !isNaN(page) && page > 0);
     dispatch(entriesLoading(collection));
@@ -611,8 +617,10 @@ export function loadEntries(collection: Collection, page = 0) {
         entries: EntryValue[];
       } = await (loadAllEntries
         ? // nested collections require all entries to construct the tree
-          provider.listAllEntries(collection).then((entries: EntryValue[]) => ({ entries }))
-        : provider.listEntries(collection, page));
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (provider as any).listAllEntries(collection).then((entries: EntryValue[]) => ({ entries }))
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        : (provider as any).listEntries(collection, page));
       response = {
         ...response,
         // The only existing backend using the pagination system is the
@@ -641,7 +649,7 @@ export function loadEntries(collection: Collection, page = 0) {
           append,
         ),
       );
-    } catch (err) {
+    } catch (err: unknown) {
       dispatch(
         addNotification({
           message: {
@@ -652,7 +660,7 @@ export function loadEntries(collection: Collection, page = 0) {
           dismissAfter: 8000,
         }),
       );
-      return Promise.reject(dispatch(entriesFailed(collection, err)));
+      return Promise.reject(dispatch(entriesFailed(collection, err instanceof Error ? err : new Error(String(err)))));
     }
   };
 }
@@ -673,10 +681,13 @@ export function traverseCollectionCursor(collection: Collection, action: string)
     }
     const backend = currentBackend(state.config);
 
-    const { action: realAction, append } = appendActions.has(action)
-      ? appendActions.get(action).toJS()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { action: realAction, append } = appendActions.has(action as any)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ? (appendActions.get(action as any) as any).toJS()
       : { action, append: false };
-    const cursor = selectCollectionEntriesCursor(state.cursors, collection.get('name'));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const cursor = selectCollectionEntriesCursor(state.cursors as any, collection.get('name'));
 
     // Handle cursors representing pages in the old, integer-based
     // pagination API
@@ -692,7 +703,7 @@ export function traverseCollectionCursor(collection: Collection, action: string)
       return dispatch(
         entriesLoaded(collection, entries, pagination, addAppendActionsToCursor(newCursor), append),
       );
-    } catch (err) {
+    } catch (err: unknown) {
       console.error(err);
       dispatch(
         addNotification({
@@ -704,7 +715,7 @@ export function traverseCollectionCursor(collection: Collection, action: string)
           dismissAfter: 8000,
         }),
       );
-      return Promise.reject(dispatch(entriesFailed(collection, err)));
+      return Promise.reject(dispatch(entriesFailed(collection, err instanceof Error ? err : new Error(String(err)))));
     }
   };
 }
@@ -825,7 +836,8 @@ export function createEmptyDraftData(
             : createEmptyDraftData(asList, skipField);
 
           if (!isEmptyDefaultValue(subDefaultValue)) {
-            acc[name] = subDefaultValue;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            acc[name] = subDefaultValue as any;
           }
         }
         return acc;
@@ -879,7 +891,8 @@ export function getSerializedEntry(collection: Collection, entry: Entry) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function serializeData(data: any) {
-    return serializeValues(data, fields);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return serializeValues(data, fields as any);
   }
 
   const serializedData = serializeData(entry.get('data'));
@@ -1039,7 +1052,8 @@ export function validateMetaField(
       return getPathError(value, 'invalidPath', t);
     }
 
-    const customPath = selectCustomPath(collection, fromJS({ entry: { meta: { path: value } } }));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const customPath = selectCustomPath(collection, fromJS({ entry: { meta: { path: value } } }) as any);
     const existingEntry = customPath
       ? selectEntryByPath(state.entries, collection.get('name'), customPath)
       : undefined;

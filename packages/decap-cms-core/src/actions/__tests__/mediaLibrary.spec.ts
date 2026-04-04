@@ -1,16 +1,17 @@
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import configureMockStore from 'redux-mock-store';
 import thunk from 'redux-thunk';
 import { List, Map } from 'immutable';
 
 import { insertMedia, persistMedia, deleteMedia } from '../mediaLibrary';
 
-jest.mock('../../backend');
-jest.mock('../waitUntil');
-jest.mock('decap-cms-lib-util', () => {
-  const lib = jest.requireActual('decap-cms-lib-util');
+vi.mock('../../backend');
+vi.mock('../waitUntil');
+vi.mock('decap-cms-lib-util', async () => {
+  const lib = await vi.importActual('decap-cms-lib-util');
   return {
     ...lib,
-    getBlobSHA: jest.fn(),
+    getBlobSHA: vi.fn(),
   };
 });
 
@@ -63,17 +64,18 @@ describe('mediaLibrary', () => {
   const { currentBackend } = require('../../backend');
 
   const backend = {
-    persistMedia: jest.fn(() => ({ id: 'id' })),
-    deleteMedia: jest.fn(),
+    persistMedia: vi.fn(() => ({ id: 'id' })),
+    deleteMedia: vi.fn(),
   };
 
   currentBackend.mockReturnValue(backend);
 
   describe('persistMedia', () => {
-    global.URL = { createObjectURL: jest.fn().mockReturnValue('displayURL') };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (global as any).URL = { createObjectURL: vi.fn().mockReturnValue('displayURL') };
 
     beforeEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     it('should not persist media when editing draft', () => {
@@ -243,7 +245,7 @@ describe('mediaLibrary', () => {
 
   describe('deleteMedia', () => {
     beforeEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     it('should delete non draft file', () => {

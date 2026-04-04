@@ -1,3 +1,4 @@
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import configureMockStore from 'redux-mock-store';
 import thunk from 'redux-thunk';
 import { fromJS } from 'immutable';
@@ -5,11 +6,11 @@ import { fromJS } from 'immutable';
 import { addAssets } from '../media';
 import * as actions from '../editorialWorkflow';
 
-jest.mock('../../backend');
-jest.mock('../../valueObjects/AssetProxy');
-jest.mock('decap-cms-lib-util');
-jest.mock('uuid', () => {
-  return { v4: jest.fn().mockReturnValue('000000000000000000000') };
+vi.mock('../../backend');
+vi.mock('../../valueObjects/AssetProxy');
+vi.mock('decap-cms-lib-util');
+vi.mock('uuid', () => {
+  return { v4: vi.fn().mockReturnValue('000000000000000000000') };
 });
 
 const middlewares = [thunk];
@@ -17,7 +18,7 @@ const mockStore = configureMockStore(middlewares);
 
 describe('editorialWorkflow actions', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('loadUnpublishedEntry', () => {
@@ -28,7 +29,7 @@ describe('editorialWorkflow actions', () => {
       const assetProxy = { name: 'name', path: 'path' };
       const entry = { mediaFiles: [{ file: { name: 'name' }, id: '1', draft: true }] };
       const backend = {
-        unpublishedEntry: jest.fn().mockResolvedValue(entry),
+        unpublishedEntry: vi.fn().mockResolvedValue(entry),
       };
 
       const store = mockStore({
@@ -84,9 +85,9 @@ describe('editorialWorkflow actions', () => {
 
       const entry = {};
       const backend = {
-        publishUnpublishedEntry: jest.fn().mockResolvedValue(),
-        getEntry: jest.fn().mockResolvedValue(entry),
-        getMedia: jest.fn().mockResolvedValue([]),
+        publishUnpublishedEntry: vi.fn().mockResolvedValue(undefined),
+        getEntry: vi.fn().mockResolvedValue(entry),
+        getMedia: vi.fn().mockResolvedValue([]),
       };
 
       const store = mockStore({
@@ -171,7 +172,7 @@ describe('editorialWorkflow actions', () => {
 
       const error = new Error('failed to publish entry');
       const backend = {
-        publishUnpublishedEntry: jest.fn().mockRejectedValue(error),
+        publishUnpublishedEntry: vi.fn().mockRejectedValue(error),
       };
 
       const store = mockStore({

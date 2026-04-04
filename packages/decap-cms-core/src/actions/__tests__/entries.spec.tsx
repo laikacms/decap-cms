@@ -1,3 +1,4 @@
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { fromJS, Map } from 'immutable';
 import configureMockStore from 'redux-mock-store';
 import thunk from 'redux-thunk';
@@ -12,11 +13,11 @@ import {
 } from '../entries';
 import AssetProxy from '../../valueObjects/AssetProxy';
 
-jest.mock('../../backend');
-jest.mock('decap-cms-lib-util');
-jest.mock('../mediaLibrary');
-jest.mock('../../reducers/entries');
-jest.mock('../../reducers/entryDraft');
+vi.mock('../../backend');
+vi.mock('decap-cms-lib-util');
+vi.mock('../mediaLibrary');
+vi.mock('../../reducers/entries');
+vi.mock('../../reducers/entryDraft');
 
 const middlewares = [thunk];
 const mockStore = configureMockStore(middlewares);
@@ -25,13 +26,13 @@ describe('entries', () => {
   describe('createEmptyDraft', () => {
     const { currentBackend } = require('../../backend');
     const backend = {
-      processEntry: jest.fn((_state, _collection, entry) => Promise.resolve(entry)),
+      processEntry: vi.fn((_state, _collection, entry) => Promise.resolve(entry)),
     };
 
     currentBackend.mockReturnValue(backend);
 
     beforeEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
     it('should dispatch draft created action', () => {
       const store = mockStore({ mediaLibrary: fromJS({ files: [] }) });
@@ -316,14 +317,14 @@ describe('entries', () => {
 
   describe('persistLocalBackup', () => {
     beforeEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     it('should persist local backup with media files', () => {
       const { currentBackend } = require('../../backend');
 
       const backend = {
-        persistLocalDraftBackup: jest.fn(() => Promise.resolve()),
+        persistLocalDraftBackup: vi.fn(() => Promise.resolve()),
       };
 
       const store = mockStore({
@@ -348,7 +349,7 @@ describe('entries', () => {
 
   describe('retrieveLocalBackup', () => {
     beforeEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     it('should retrieve media files with local backup', () => {
@@ -356,7 +357,7 @@ describe('entries', () => {
       const { createAssetProxy } = require('../../valueObjects/AssetProxy');
 
       const backend = {
-        getLocalDraftBackup: jest.fn((...args) => args),
+        getLocalDraftBackup: vi.fn((...args) => args),
       };
 
       const store = mockStore({
@@ -396,7 +397,7 @@ describe('entries', () => {
 
   describe('getMediaAssets', () => {
     beforeEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     it('should map mediaFiles to assets', () => {
@@ -423,13 +424,13 @@ describe('entries', () => {
       type: 'folder_based_collection',
       name: 'name',
     });
-    const t = jest.fn((key, args) => ({ key, args }));
+    const t = vi.fn((key, args) => ({ key, args }));
 
     const { selectCustomPath } = require('../../reducers/entryDraft');
     const { selectEntryByPath } = require('../../reducers/entries');
 
     beforeEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     it('should not return error on non meta field', () => {

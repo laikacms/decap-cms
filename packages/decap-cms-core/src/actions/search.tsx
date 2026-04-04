@@ -130,8 +130,12 @@ export function searchEntries(searchTerm: string, searchCollections: string[], p
 
     dispatch(searchingEntries(searchTerm, allCollections, page));
 
-    const searchPromise = integration
-      ? getIntegrationProvider(state.integrations, backend.getToken, integration).search(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const integrationProvider: any = integration
+      ? getIntegrationProvider(state.integrations, backend.getToken as any, integration)
+      : null;
+    const searchPromise = integrationProvider
+      ? integrationProvider.search(
           collections,
           searchTerm,
           page,
@@ -147,8 +151,8 @@ export function searchEntries(searchTerm: string, searchCollections: string[], p
     try {
       const response: SearchResponse = await searchPromise;
       return dispatch(searchSuccess(response.entries, response.pagination));
-    } catch (error) {
-      return dispatch(searchFailure(error));
+    } catch (error: unknown) {
+      return dispatch(searchFailure(error instanceof Error ? error : new Error(String(error))));
     }
   };
 }
@@ -177,10 +181,14 @@ export function query(
 
     const queuedQueryPromise = state.search.requests.find(({ id }) => id == queryIdentifier);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const integrationProvider: any = integration
+      ? getIntegrationProvider(state.integrations, backend.getToken as any, integration)
+      : null;
     const queryPromise = queuedQueryPromise
       ? queuedQueryPromise.queryResponse
-      : integration
-      ? getIntegrationProvider(state.integrations, backend.getToken, integration).searchBy(
+      : integrationProvider
+      ? integrationProvider.searchBy(
           searchFields.map(f => `data.${f}`),
           collectionName,
           searchTerm,
@@ -203,8 +211,8 @@ export function query(
     try {
       const response: QueryResponse = await queryPromise;
       return dispatch(querySuccess(namespace, response.hits));
-    } catch (error) {
-      return dispatch(queryFailure(error));
+    } catch (error: unknown) {
+      return dispatch(queryFailure(error instanceof Error ? error : new Error(String(error))));
     }
   };
 }

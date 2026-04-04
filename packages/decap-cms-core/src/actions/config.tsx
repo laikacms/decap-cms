@@ -166,8 +166,10 @@ function throwOnMissingDefaultLocale(i18n?: CmsI18nConfig) {
 
 function hasIntegration(config: CmsConfig, collection: CmsCollection) {
   // TODO remove fromJS when Immutable is removed from the integrations state slice
-  const integrations = getIntegrations(fromJS(config));
-  const integration = selectIntegration(integrations, collection.name, 'listEntries');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const integrations = getIntegrations(fromJS(config) as any);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const integration = selectIntegration(integrations as any, collection.name, 'listEntries');
   return !!integration;
 }
 
@@ -358,7 +360,8 @@ export function applyDefaults(originalConfig: CmsConfig) {
       if (!collection.sortable_fields) {
         collection.sortable_fields = selectDefaultSortableFields(
           // TODO remove fromJS when Immutable is removed from the collections state slice
-          fromJS(collection),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          fromJS(collection) as any,
           backend,
           hasIntegration(config, collection),
         );
@@ -550,9 +553,10 @@ export function loadConfig(manualConfig: Partial<CmsConfig> = {}, onLoad: () => 
       if (typeof onLoad === 'function') {
         onLoad();
       }
-    } catch (err) {
-      dispatch(configFailed(err));
-      throw err;
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      dispatch(configFailed(error));
+      throw error;
     }
   };
 }

@@ -1,3 +1,4 @@
+import { vi, describe, it, expect, beforeEach, test } from 'vitest';
 import { stripIndent } from 'common-tags';
 import { stringify } from 'yaml';
 
@@ -10,14 +11,14 @@ import {
   handleLocalBackend,
 } from '../config';
 
-jest.spyOn(console, 'log').mockImplementation(() => {});
-jest.spyOn(console, 'warn').mockImplementation(() => {});
-jest.mock('../../backend', () => {
+vi.spyOn(console, 'log').mockImplementation(() => {});
+vi.spyOn(console, 'warn').mockImplementation(() => {});
+vi.mock('../../backend', () => {
   return {
-    resolveBackend: jest.fn(() => ({ isGitBackend: jest.fn(() => true) })),
+    resolveBackend: vi.fn(() => ({ isGitBackend: vi.fn(() => true) })),
   };
 });
-jest.mock('../../constants/configSchema');
+vi.mock('../../constants/configSchema');
 
 describe('config', () => {
   describe('parseConfig', () => {
@@ -783,7 +784,7 @@ describe('config', () => {
 
     it('should return empty object when not on localhost', async () => {
       window.location = { hostname: 'www.netlify.com' };
-      global.fetch = jest.fn();
+      global.fetch = vi.fn();
       await expect(detectProxyServer()).resolves.toEqual({});
 
       expect(global.fetch).toHaveBeenCalledTimes(0);
@@ -791,7 +792,7 @@ describe('config', () => {
 
     it('should return empty object when fetch returns an error', async () => {
       window.location = { hostname: 'localhost' };
-      global.fetch = jest.fn().mockRejectedValue(new Error());
+      global.fetch = vi.fn().mockRejectedValue(new Error());
       await expect(detectProxyServer(true)).resolves.toEqual({});
 
       assetFetchCalled();
@@ -799,9 +800,9 @@ describe('config', () => {
 
     it('should return empty object when fetch returns an invalid response', async () => {
       window.location = { hostname: 'localhost' };
-      global.fetch = jest
+      global.fetch = vi
         .fn()
-        .mockResolvedValue({ json: jest.fn().mockResolvedValue({ repo: [] }) });
+        .mockResolvedValue({ json: vi.fn().mockResolvedValue({ repo: [] }) });
       await expect(detectProxyServer(true)).resolves.toEqual({});
 
       assetFetchCalled();
@@ -809,8 +810,8 @@ describe('config', () => {
 
     it('should return result object when fetch returns a valid response', async () => {
       window.location = { hostname: 'localhost' };
-      global.fetch = jest.fn().mockResolvedValue({
-        json: jest.fn().mockResolvedValue({
+      global.fetch = vi.fn().mockResolvedValue({
+        json: vi.fn().mockResolvedValue({
           repo: 'test-repo',
           publish_modes: ['simple', 'editorial_workflow'],
           type: 'local_git',
@@ -828,8 +829,8 @@ describe('config', () => {
     it('should use local_backend url', async () => {
       const url = 'http://localhost:8082/api/v1';
       window.location = { hostname: 'localhost' };
-      global.fetch = jest.fn().mockResolvedValue({
-        json: jest.fn().mockResolvedValue({
+      global.fetch = vi.fn().mockResolvedValue({
+        json: vi.fn().mockResolvedValue({
           repo: 'test-repo',
           publish_modes: ['simple', 'editorial_workflow'],
           type: 'local_git',
@@ -847,8 +848,8 @@ describe('config', () => {
     it('should use local_backend allowed_hosts', async () => {
       const allowed_hosts = ['192.168.0.1'];
       window.location = { hostname: '192.168.0.1' };
-      global.fetch = jest.fn().mockResolvedValue({
-        json: jest.fn().mockResolvedValue({
+      global.fetch = vi.fn().mockResolvedValue({
+        json: vi.fn().mockResolvedValue({
           repo: 'test-repo',
           publish_modes: ['simple', 'editorial_workflow'],
           type: 'local_git',
@@ -871,7 +872,7 @@ describe('config', () => {
 
     it('should not replace backend config when proxy is not detected', async () => {
       window.location = { hostname: 'localhost' };
-      global.fetch = jest.fn().mockRejectedValue(new Error());
+      global.fetch = vi.fn().mockRejectedValue(new Error());
 
       const config = { local_backend: true, backend: { name: 'github' } };
       const actual = await handleLocalBackend(config);
@@ -881,8 +882,8 @@ describe('config', () => {
 
     it('should replace backend config when proxy is detected', async () => {
       window.location = { hostname: 'localhost' };
-      global.fetch = jest.fn().mockResolvedValue({
-        json: jest.fn().mockResolvedValue({
+      global.fetch = vi.fn().mockResolvedValue({
+        json: vi.fn().mockResolvedValue({
           repo: 'test-repo',
           publish_modes: ['simple', 'editorial_workflow'],
           type: 'local_git',
@@ -900,8 +901,8 @@ describe('config', () => {
 
     it('should replace publish mode when not supported by proxy', async () => {
       window.location = { hostname: 'localhost' };
-      global.fetch = jest.fn().mockResolvedValue({
-        json: jest.fn().mockResolvedValue({
+      global.fetch = vi.fn().mockResolvedValue({
+        json: vi.fn().mockResolvedValue({
           repo: 'test-repo',
           publish_modes: ['simple'],
           type: 'local_fs',
@@ -925,14 +926,14 @@ describe('config', () => {
 
   describe('loadConfig', () => {
     beforeEach(() => {
-      document.querySelector = jest.fn();
-      global.fetch = jest.fn();
+      document.querySelector = vi.fn();
+      global.fetch = vi.fn() as unknown as typeof fetch;
     });
 
     test(`should fetch default 'config.yml'`, async () => {
-      const dispatch = jest.fn();
+      const dispatch = vi.fn();
 
-      global.fetch.mockResolvedValue({
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         status: 200,
         text: () => Promise.resolve(stringify({ backend: { repo: 'test-repo' } })),
         headers: new Headers(),
@@ -957,10 +958,10 @@ describe('config', () => {
     });
 
     test(`should fetch from custom 'config.yml'`, async () => {
-      const dispatch = jest.fn();
+      const dispatch = vi.fn();
 
-      document.querySelector.mockReturnValue({ type: 'text/yaml', href: 'custom-config.yml' });
-      global.fetch.mockResolvedValue({
+      (document.querySelector as ReturnType<typeof vi.fn>).mockReturnValue({ type: 'text/yaml', href: 'custom-config.yml' });
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         status: 200,
         text: () => Promise.resolve(stringify({ backend: { repo: 'github' } })),
         headers: new Headers(),
@@ -990,9 +991,9 @@ describe('config', () => {
     });
 
     test(`should throw on failure to fetch 'config.yml'`, async () => {
-      const dispatch = jest.fn();
+      const dispatch = vi.fn();
 
-      global.fetch.mockRejectedValue(new Error('Failed to fetch'));
+      (global.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Failed to fetch'));
       await expect(() => loadConfig()(dispatch)).rejects.toEqual(
         new Error('Failed to load config.yml (Failed to fetch)'),
       );

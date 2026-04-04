@@ -269,8 +269,13 @@ export function loadUnpublishedEntry(collection: Collection, slug: string) {
       dispatch(addAssets(assetProxies));
       dispatch(unpublishedEntryLoaded(collection, entry));
       dispatch(createDraftFromEntry(entry));
-    } catch (error) {
-      if (error.name === EDITORIAL_WORKFLOW_ERROR && error.notUnderEditorialWorkflow) {
+    } catch (error: unknown) {
+      if (
+        error instanceof Error &&
+        (error as Error & { notUnderEditorialWorkflow?: boolean }).name ===
+          EDITORIAL_WORKFLOW_ERROR &&
+        (error as Error & { notUnderEditorialWorkflow?: boolean }).notUnderEditorialWorkflow
+      ) {
         dispatch(unpublishedEntryRedirected(collection, slug));
         dispatch(loadEntry(collection, slug));
       } else {
@@ -390,7 +395,7 @@ export function persistUnpublishedEntry(collection: Collection, existingUnpublis
         await dispatch(loadUnpublishedEntry(collection, newSlug));
         navigateToEntry(collection.get('name'), newSlug);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       dispatch(
         addNotification({
           message: {
@@ -402,7 +407,13 @@ export function persistUnpublishedEntry(collection: Collection, existingUnpublis
         }),
       );
       return Promise.reject(
-        dispatch(unpublishedEntryPersistedFail(error, collection, entry.get('slug'))),
+        dispatch(
+          unpublishedEntryPersistedFail(
+            error instanceof Error ? error : new Error(String(error)),
+            collection,
+            entry.get('slug'),
+          ),
+        ),
       );
     }
   };

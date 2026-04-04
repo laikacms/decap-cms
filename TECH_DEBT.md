@@ -21,3 +21,6 @@
 - [ ] Create shared `decap-cms-types` package
 - [ ] Standardize Immutable.js typed wrappers
 - [ ] Add ESLint rules for import patterns
+
+# Testing
+- [ ] Fix failing tests in decap-cms-core

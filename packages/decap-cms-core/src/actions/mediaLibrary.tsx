@@ -94,7 +94,8 @@ export function openMediaLibrary(
     const mediaLibrary = state.mediaLibrary.get('externalLibrary');
     if (mediaLibrary) {
       const { controlID: id, value, config = Map(), allowMultiple, forImage } = payload;
-      mediaLibrary.show({ id, value, config: config.toJS(), allowMultiple, imagesOnly: forImage });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mediaLibrary.show({ id, value, config: config.toJS() as any, allowMultiple, imagesOnly: forImage });
     }
     dispatch(mediaLibraryOpened(payload));
   };
@@ -142,7 +143,8 @@ export function loadMedia(
     const backend = currentBackend(state.config);
     const integration = selectIntegration(state, null, 'assetStore');
     if (integration) {
-      const provider = getIntegrationProvider(state.integrations, backend.getToken, integration);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const provider: any = getIntegrationProvider(state.integrations, backend.getToken as any, integration);
       dispatch(mediaLoading(page));
       try {
         const files = await provider.retrieve(query, page, privateUpload);
@@ -244,9 +246,10 @@ export function persistMedia(file: File, opts: MediaOptions = {}) {
       let assetProxy: AssetProxy;
       if (integration) {
         try {
-          const provider = getIntegrationProvider(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const provider: any = getIntegrationProvider(
             state.integrations,
-            backend.getToken,
+            backend.getToken as any,
             integration,
           );
           const response = await provider.upload(file, privateUpload);
@@ -315,17 +318,18 @@ export function deleteMedia(file: MediaFile, opts: MediaOptions = {}) {
     const backend = currentBackend(state.config);
     const integration = selectIntegration(state, null, 'assetStore');
     if (integration) {
-      const provider = getIntegrationProvider(state.integrations, backend.getToken, integration);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const provider: any = getIntegrationProvider(state.integrations, backend.getToken as any, integration);
       dispatch(mediaDeleting());
 
       try {
         await provider.delete(file.id);
         return dispatch(mediaDeleted(file, { privateUpload }));
-      } catch (error) {
+      } catch (error: unknown) {
         console.error(error);
         dispatch(
           addNotification({
-            message: `Failed to delete media: ${error.message}`,
+            message: `Failed to delete media: ${error instanceof Error ? error.message : String(error)}`,
             type: 'error',
             dismissAfter: 8000,
           }),
@@ -351,11 +355,11 @@ export function deleteMedia(file: MediaFile, opts: MediaOptions = {}) {
           dispatch(removeDraftEntryMediaFile({ id: file.id }));
         }
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(error);
       dispatch(
         addNotification({
-          message: `Failed to delete media: ${error.message}`,
+          message: `Failed to delete media: ${error instanceof Error ? error.message : String(error)}`,
           type: 'error',
           dismissAfter: 8000,
         }),
@@ -399,9 +403,9 @@ export function loadMediaDisplayURL(file: MediaFile) {
       } else {
         throw new Error('No display URL was returned!');
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error(err);
-      dispatch(mediaDisplayURLFailure(id, err));
+      dispatch(mediaDisplayURLFailure(id, err instanceof Error ? err : new Error(String(err))));
     }
   };
 }

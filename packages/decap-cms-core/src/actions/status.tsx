@@ -88,8 +88,8 @@ export function checkBackendStatus() {
       }
 
       dispatch(statusSuccess(status));
-    } catch (error) {
-      dispatch(statusFailure(error));
+    } catch (error: unknown) {
+      dispatch(statusFailure(error instanceof Error ? error : new Error(String(error))));
     }
   };
 }

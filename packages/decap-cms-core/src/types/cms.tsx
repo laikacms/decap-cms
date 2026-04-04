@@ -1058,6 +1058,7 @@ export interface CmsCollection {
   description?: string;
   folder?: string;
   files?: CmsCollectionFile[];
+  type?: 'folder_based_collection' | 'file_based_collection';
   identifier_field?: string;
   summary?: string;
   slug?: string;

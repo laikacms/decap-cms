@@ -83,12 +83,12 @@ export function loadDeployPreview(
         return dispatch(deployPreviewLoaded(collectionName, slug, deploy));
       }
       return dispatch(deployPreviewError(collectionName, slug));
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(error);
       dispatch(
         addNotification({
           message: {
-            details: error.message,
+            details: error instanceof Error ? error.message : String(error),
             key: 'ui.toast.onFailToLoadDeployPreview',
           },
           type: 'error',
