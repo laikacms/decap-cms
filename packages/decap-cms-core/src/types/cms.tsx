@@ -1212,8 +1212,11 @@ export interface EditorComponentOptions {
   toPreview: (data: any) => string | JSX.Element;
 }
 
-export interface EditorComponentPlugin extends EditorComponentOptions {
+export interface EditorComponentPlugin extends Omit<EditorComponentOptions, 'fields'> {
   type?: 'code-block' | 'shortcode';
+  icon?: string;
+  widget?: string;
+  fields: List<EditorComponentField>;
 }
 
 export interface PreviewStyleOptions {
