@@ -12,7 +12,7 @@ import {
 import EmotionStyled from '@emotion/styled';
 import Immutable from 'immutable';
 import ImmutablePropTypes from 'react-immutable-proptypes';
-import Lodash from 'lodash/lodash';
+import Lodash from 'lodash';
 import PropTypes from 'prop-types';
 import React from 'react';
 import ReactDOM from 'react-dom';

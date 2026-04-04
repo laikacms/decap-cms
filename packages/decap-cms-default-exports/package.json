@@ -27,6 +27,12 @@
     "react-immutable-proptypes": "catalog:react",
     "uuid": "catalog:utils"
   },
+  "devDependencies": {
+    "@types/lodash": "catalog:types",
+    "@types/prop-types": "catalog:types",
+    "@types/react": "catalog:types",
+    "@types/react-dom": "catalog:types"
+  },
   "peerDependencies": {
     "react": "catalog:react",
     "react-dom": "catalog:react"
