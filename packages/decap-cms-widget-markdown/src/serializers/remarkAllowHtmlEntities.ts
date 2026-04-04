@@ -6,16 +6,16 @@ export default function remarkAllowHtmlEntities() {
    * HTML entity decoding.
    */
   function text(eat, value, silent) {
-    var self = this;
-    var methods;
-    var tokenizers;
-    var index;
-    var length;
-    var subvalue;
-    var position;
-    var tokenizer;
-    var name;
-    var min;
+    const self = this;
+    let methods;
+    let tokenizers;
+    let index;
+    let length;
+    let subvalue;
+    let position;
+    let tokenizer;
+    let name;
+    let min;
 
     /* istanbul ignore if - never used (yet) */
     if (silent) {
