@@ -16,8 +16,11 @@ import {
   blobToFileObj,
   asyncLock,
   EDITORIAL_WORKFLOW_ERROR,
+  basename,
+  join,
+  extname,
+  dirname,
 } from 'decap-cms-lib-util';
-import { basename, join, extname, dirname } from 'path';
 import { stringTemplate } from 'decap-cms-lib-widgets';
 
 import { resolveFormat } from './formats/formats';
