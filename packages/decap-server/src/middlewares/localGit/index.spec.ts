@@ -1,13 +1,25 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import winston from 'winston';
-
-import { validateRepo, getSchema, localGitMiddleware } from '.';
 
 import type Joi from '@hapi/joi';
 import type express from 'express';
 
-jest.mock('decap-cms-lib-util', () => jest.fn());
-jest.mock('simple-git');
+// Create mock git object
+const git = {
+  checkIsRepo: vi.fn(),
+  silent: vi.fn(),
+  branchLocal: vi.fn(),
+  checkout: vi.fn(),
+};
+git.silent.mockReturnValue(git);
+
+vi.mock('decap-cms-lib-util', () => ({ default: vi.fn() }));
+vi.mock('simple-git', () => ({
+  default: vi.fn(() => git),
+}));
+
+// Import after mocks are set up
+const { validateRepo, getSchema, localGitMiddleware } = await import('.');
 
 function assetFailure(result: Joi.ValidationResult, expectedMessage: string) {
   const { error } = result;
@@ -22,20 +34,9 @@ const defaultParams = {
 };
 
 describe('localGitMiddleware', () => {
-  const simpleGit = require('simple-git');
-
-  const git = {
-    checkIsRepo: jest.fn(),
-    silent: jest.fn(),
-    branchLocal: jest.fn(),
-    checkout: jest.fn(),
-  };
-  git.silent.mockReturnValue(git);
-
-  simpleGit.mockReturnValue(git);
-
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
+    git.silent.mockReturnValue(git);
   });
 
   describe('validateRepo', () => {
@@ -123,8 +124,8 @@ describe('localGitMiddleware', () => {
   });
 
   describe('localGitMiddleware', () => {
-    const json = jest.fn();
-    const status = jest.fn(() => ({ json }));
+    const json = vi.fn();
+    const status = vi.fn(() => ({ json }));
     const res: express.Response = { status } as unknown as express.Response;
 
     const repoPath = '.';

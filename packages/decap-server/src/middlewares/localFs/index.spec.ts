@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { getSchema } from '.';
 
 import type Joi from '@hapi/joi';
@@ -17,7 +17,7 @@ const defaultParams = {
 
 describe('localFsMiddleware', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('getSchema', () => {
