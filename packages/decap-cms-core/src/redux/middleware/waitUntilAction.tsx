@@ -7,7 +7,7 @@
  * action coming through the system. Think of it as a thunk that
  * blocks until the condition is met.
  */
-import type { Middleware, MiddlewareAPI, Dispatch, AnyAction } from 'redux';
+import type { MiddlewareAPI, Dispatch, AnyAction } from 'redux';
 import type { State } from '../../types/cms';
 
 export const WAIT_UNTIL_ACTION = 'WAIT_UNTIL_ACTION';
@@ -22,15 +22,13 @@ interface WaitAction extends WaitActionArgs {
 }
 
 // eslint-disable-next-line func-style
-export const waitUntilAction: Middleware<{}, State, Dispatch> = ({
-  dispatch,
-  getState,
-}: MiddlewareAPI<Dispatch, State>) => {
+export const waitUntilAction = (api: MiddlewareAPI<Dispatch, State>) => {
+  const { dispatch, getState } = api;
   let pending: WaitAction[] = [];
 
   function checkPending(action: AnyAction): void {
-    const readyRequests = [];
-    const stillPending = [];
+    const readyRequests: WaitAction[] = [];
+    const stillPending: WaitAction[] = [];
 
     // Find the pending requests whose predicates are satisfied with
     // this action. Wait to run the requests until after we update the
@@ -52,13 +50,14 @@ export const waitUntilAction: Middleware<{}, State, Dispatch> = ({
   }
 
   return (next: Dispatch<AnyAction>) =>
-    (action: AnyAction): null | AnyAction => {
-      if (action.type === WAIT_UNTIL_ACTION) {
-        pending.push(action as WaitAction);
+    (action: unknown): unknown => {
+      const typedAction = action as AnyAction;
+      if (typedAction.type === WAIT_UNTIL_ACTION) {
+        pending.push(typedAction as WaitAction);
         return null;
       }
-      const result = next(action);
-      checkPending(action);
+      const result = next(typedAction);
+      checkPending(typedAction);
       return result;
     };
 };

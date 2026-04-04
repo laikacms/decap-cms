@@ -5,14 +5,18 @@ import thunkMiddleware from 'redux-thunk';
 import { waitUntilAction } from './middleware/waitUntilAction';
 import createRootReducer from '../reducers/combinedReducer';
 
-import type { ThunkMiddleware, ThunkDispatch } from 'redux-thunk';
-import type { AnyAction } from 'redux';
+import type { ThunkDispatch } from 'redux-thunk';
+import type { AnyAction, Reducer, Middleware } from 'redux';
 import type { State } from '../types/cms';
-import type { Reducer } from 'react';
 
-const store = createStore<State | undefined, AnyAction, unknown, unknown>(
+const store = createStore<State | undefined, AnyAction, object, object>(
   createRootReducer() as unknown as Reducer<State | undefined, AnyAction>,
-  composeWithDevTools(applyMiddleware(thunkMiddleware as ThunkMiddleware<State>, waitUntilAction)),
+  composeWithDevTools(
+    applyMiddleware(
+      thunkMiddleware as unknown as Middleware,
+      waitUntilAction as unknown as Middleware,
+    ),
+  ),
 );
 
 // Export types for typed hooks
