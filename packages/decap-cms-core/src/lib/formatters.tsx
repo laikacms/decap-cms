@@ -1,6 +1,8 @@
 import flow from 'lodash/flow';
 import partialRight from 'lodash/partialRight';
 import trimEnd from 'lodash/trimEnd';
+import isError from 'lodash/isError';
+import isString from 'lodash/isString';
 import trimStart from 'lodash/trimStart';
 import { stringTemplate } from 'decap-cms-lib-widgets';
 import { stripIndent } from 'common-tags';
@@ -15,7 +17,7 @@ import { sanitizeSlug } from './urlHelper';
 import { FILES } from '../constants/collectionTypes';
 import { COMMIT_AUTHOR, COMMIT_DATE } from '../constants/commitProps';
 
-import type { Collection, CmsConfig, CmsSlug, EntryMap } from '../types/redux';
+import type { Collection, CmsConfig, CmsSlug, EntryMap } from '../types/cms';
 import type { Map } from 'immutable';
 
 const {
@@ -135,7 +137,7 @@ export function slugFormatter(
       entryData as unknown as Map<string, unknown>,
       selectInferredField(collection, 'date'),
     ) || new Date(Date.now());
-  const slug = compileStringTemplate(slugTemplate, date, identifier, entryData, processSegment);
+  const slug = compileStringTemplate(slugTemplate, date, identifier as string, entryData, processSegment);
 
   if (!collection.has('path')) {
     return slug;
@@ -196,7 +198,7 @@ export function previewUrlFormatter(
 
   // Prepare and sanitize slug variables only, leave the rest of the
   // `preview_path` template as is.
-  const processSegment = getProcessSegment(slugConfig, [fields.get('dirname')]);
+  const processSegment = getProcessSegment(slugConfig, [fields.get('dirname')].filter(isString));
   let compiledPath;
 
   try {
@@ -205,7 +207,7 @@ export function previewUrlFormatter(
     // Print an error and ignore `preview_path` if both:
     //   1. Date is invalid (according to DayJs), and
     //   2. A date expression (eg. `{{year}}`) is used in `preview_path`
-    if (err.name === SLUG_MISSING_REQUIRED_DATE) {
+    if (isError(err) && err.name === SLUG_MISSING_REQUIRED_DATE) {
       console.error(stripIndent`
         Collection "${collection.get('name')}" configuration error:
           \`preview_path_date_field\` must be a field with a valid date. Ignoring \`preview_path\`.
@@ -261,12 +263,12 @@ export function folderFormatter(
       selectInferredField(collection, 'date'),
     ) || null;
   const identifier = fields.getIn(keyToPathArray(selectIdentifier(collection) as string));
-  const processSegment = getProcessSegment(slugConfig, [defaultFolder, fields.get('dirname')]);
+  const processSegment = getProcessSegment(slugConfig, [defaultFolder, fields.get('dirname')].filter(isString));
 
   const mediaFolder = compileStringTemplate(
     folderTemplate,
     date,
-    identifier,
+    identifier as string | undefined,
     fields,
     processSegment,
   );

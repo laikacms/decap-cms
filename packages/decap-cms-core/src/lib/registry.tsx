@@ -1,10 +1,24 @@
 import { Map } from 'immutable';
-import { produce } from 'immer';
 import { oneLine } from 'common-tags';
+import type { Pluggable } from 'unified';
 
 import EditorComponent from '../valueObjects/EditorComponent';
+import type {
+  CmsRegistry,
+  CmsWidgetParam,
+  CmsMediaLibrary,
+  CmsMediaLibraryOptions,
+  CmsLocalePhrases,
+  CmsWidgetValueSerializer,
+  CmsBackendClass,
+  EditorComponentOptions,
+  EditorComponentPlugin,
+  FormatterFunctions,
+  AllowedEvent,
+  EventHandler,
+} from '../types/cms';
 
-const allowedEvents = [
+const allowedEvents: AllowedEvent[] = [
   'prePublish',
   'postPublish',
   'preUnpublish',
@@ -12,20 +26,25 @@ const allowedEvents = [
   'preSave',
   'postSave',
 ];
-const eventHandlers = {};
-allowedEvents.forEach(e => {
-  eventHandlers[e] = [];
-});
+
+const eventHandlers: Record<AllowedEvent, EventHandler[]> = {
+  'prePublish': [],
+  'postPublish': [],
+  'preUnpublish': [],
+  'postUnpublish': [],
+  'preSave': [],
+  'postSave': [],
+};
 
 /**
  * Global Registry Object
  */
-const registry = {
+const registry: CmsRegistry = {
   backends: {},
   templates: {},
   previewStyles: [],
   widgets: {},
-  editorComponents: Map(),
+  editorComponents: Map<string, EditorComponentPlugin>(),
   remarkPlugins: [],
   widgetValueSerializers: {},
   mediaLibraries: [],
@@ -71,7 +90,7 @@ export default {
  * Valid options:
  *  - raw {boolean} if `true`, `style` value is expected to be a CSS string
  */
-export function registerPreviewStyle(style, opts) {
+export function registerPreviewStyle(style: string, opts: { raw: boolean }) {
   registry.previewStyles.push({ ...opts, value: style });
 }
 export function getPreviewStyles() {
@@ -81,80 +100,66 @@ export function getPreviewStyles() {
 /**
  * Preview Templates
  */
-export function registerPreviewTemplate(name, component) {
+export function registerPreviewTemplate(name: string, component: React.ComponentType<unknown>) {
   registry.templates[name] = component;
 }
-export function getPreviewTemplate(name) {
+export function getPreviewTemplate(name: string) {
   return registry.templates[name];
+}
+
+interface WidgetRegistrationOptions<T = unknown> extends CmsWidgetParam<T> {
+  schema?: unknown;
+  allowMapValue?: boolean;
+  [key: string]: unknown;
 }
 
 /**
  * Editor Widgets
  */
-export function registerWidget(name, control, preview, schema = {}) {
-  if (Array.isArray(name)) {
-    name.forEach(widget => {
-      if (typeof widget !== 'object') {
-        console.error(`Cannot register widget: ${widget}`);
-      } else {
-        registerWidget(widget);
-      }
-    });
-  } else if (typeof name === 'string') {
-    // A registered widget control can be reused by a new widget, allowing
-    // multiple copies with different previews.
-    const newControl = typeof control === 'string' ? registry.widgets[control].control : control;
-    registry.widgets[name] = { control: newControl, preview, schema };
-  } else if (typeof name === 'object') {
-    const {
-      name: widgetName,
-      controlComponent: control,
-      previewComponent: preview,
-      schema = {},
-      allowMapValue,
-      globalStyles,
-      ...options
-    } = name;
-    if (registry.widgets[widgetName]) {
-      console.warn(oneLine`
-        Multiple widgets registered with name "${widgetName}". Only the last widget registered with
-        this name will be used.
-      `);
-    }
-    if (!control) {
-      throw Error(`Widget "${widgetName}" registered without \`controlComponent\`.`);
-    }
-    registry.widgets[widgetName] = {
-      control,
-      preview,
-      schema,
-      globalStyles,
-      allowMapValue,
-      ...options,
-    };
-  } else {
-    console.error('`registerWidget` failed, called with incorrect arguments.');
+export function registerWidget(options: WidgetRegistrationOptions) {
+  const {
+    name: widgetName,
+    controlComponent: control,
+    previewComponent: preview,
+    schema = {},
+    allowMapValue,
+    globalStyles,
+  } = options;
+  if (registry.widgets[widgetName]) {
+    console.warn(oneLine`
+      Multiple widgets registered with name "${widgetName}". Only the last widget registered with
+      this name will be used.
+    `);
   }
+  if (!control) {
+    throw Error(`Widget "${widgetName}" registered without \`controlComponent\`.`);
+  }
+  registry.widgets[widgetName] = {
+    control,
+    preview,
+    schema,
+    globalStyles,
+    allowMapValue,
+    ...options,
+  };
 }
-export function getWidget(name) {
+export function getWidget(name: string) {
   return registry.widgets[name];
 }
 export function getWidgets() {
-  return produce(Object.entries(registry.widgets), draft => {
-    return draft.map(([key, value]) => ({ name: key, ...value }));
-  });
+  return Object.entries(registry.widgets).map(([key, value]) => ({ name: key, ...value }));
 }
-export function resolveWidget(name) {
+export function resolveWidget(name: string | undefined) {
   return getWidget(name || 'string') || getWidget('unknown');
 }
 
 /**
  * Markdown Editor Custom Components
  */
-export function registerEditorComponent(component) {
-  const plugin = EditorComponent(component);
+export function registerEditorComponent(component: EditorComponentOptions) {
+  const plugin = EditorComponent(component) as EditorComponentPlugin;
   if (plugin.type === 'code-block') {
-    const codeBlock = registry.editorComponents.find(c => c.type === 'code-block');
+    const codeBlock = registry.editorComponents.find((c: EditorComponentPlugin) => c.type === 'code-block');
 
     if (codeBlock) {
       console.warn(oneLine`
@@ -174,30 +179,27 @@ export function getEditorComponents() {
 /**
  * Remark plugins
  */
-/** @typedef {import('unified').Pluggable} RemarkPlugin */
-/** @type {(plugin: RemarkPlugin) => void} */
-export function registerRemarkPlugin(plugin) {
+export function registerRemarkPlugin(plugin: Pluggable) {
   registry.remarkPlugins.push(plugin);
 }
-/** @type {() => Array<RemarkPlugin>} */
-export function getRemarkPlugins() {
-  return registry.remarkPlugins;
+export function getRemarkPlugins(): Pluggable[] {
+  return registry.remarkPlugins as Pluggable[];
 }
 
 /**
  * Widget Serializers
  */
-export function registerWidgetValueSerializer(widgetName, serializer) {
+export function registerWidgetValueSerializer(widgetName: string, serializer: CmsWidgetValueSerializer) {
   registry.widgetValueSerializers[widgetName] = serializer;
 }
-export function getWidgetValueSerializer(widgetName) {
+export function getWidgetValueSerializer(widgetName: string) {
   return registry.widgetValueSerializers[widgetName];
 }
 
 /**
  * Backend API
  */
-export function registerBackend(name, BackendClass) {
+export function registerBackend(name: string, BackendClass: CmsBackendClass) {
   if (!name || !BackendClass) {
     console.error(
       "Backend parameters invalid. example: CMS.registerBackend('myBackend', BackendClass)",
@@ -206,46 +208,58 @@ export function registerBackend(name, BackendClass) {
     console.error(`Backend [${name}] already registered. Please choose a different name.`);
   } else {
     registry.backends[name] = {
-      init: (...args) => new BackendClass(...args),
+      init: (...args: unknown[]) => new BackendClass(...args),
     };
   }
 }
 
-export function getBackend(name) {
+export function getBackend(name: string) {
   return registry.backends[name];
 }
 
 /**
  * Media Libraries
  */
-export function registerMediaLibrary(mediaLibrary, options) {
+export function registerMediaLibrary(mediaLibrary: CmsMediaLibrary, options?: CmsMediaLibraryOptions) {
   if (registry.mediaLibraries.find(ml => mediaLibrary.name === ml.name)) {
     throw new Error(`A media library named ${mediaLibrary.name} has already been registered.`);
   }
   registry.mediaLibraries.push({ ...mediaLibrary, options });
 }
 
-export function getMediaLibrary(name) {
+export function getMediaLibrary(name: string) {
   return registry.mediaLibraries.find(ml => ml.name === name);
 }
 
-function validateEventName(name) {
-  if (!allowedEvents.includes(name)) {
+function validateEventName(name: string): asserts name is AllowedEvent {
+  if (!allowedEvents.includes(name as AllowedEvent)) {
     throw new Error(`Invalid event name '${name}'`);
   }
 }
 
-export function getEventListeners(name) {
+export function getEventListeners(name: string) {
   validateEventName(name);
   return [...registry.eventHandlers[name]];
 }
 
-export function registerEventListener({ name, handler }, options = {}) {
+interface EventListenerConfig {
+  name: AllowedEvent;
+  handler: Function;
+}
+
+export function registerEventListener({ name, handler }: EventListenerConfig, options: Record<string, unknown> = {}) {
   validateEventName(name);
   registry.eventHandlers[name].push({ handler, options });
 }
 
-export async function invokeEvent({ name, data }) {
+interface EventData {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  entry: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
+}
+
+export async function invokeEvent({ name, data }: { name: string; data: EventData }) {
   validateEventName(name);
   const handlers = registry.eventHandlers[name];
 
@@ -260,11 +274,11 @@ export async function invokeEvent({ name, data }) {
   return _data.entry.get('data');
 }
 
-export function removeEventListener({ name, handler }) {
+export function removeEventListener({ name, handler }: { name: string; handler?: Function }) {
   validateEventName(name);
   if (handler) {
     registry.eventHandlers[name] = registry.eventHandlers[name].filter(
-      item => item.handler !== handler,
+      (item: EventHandler) => item.handler !== handler,
     );
   } else {
     registry.eventHandlers[name] = [];
@@ -274,7 +288,7 @@ export function removeEventListener({ name, handler }) {
 /**
  * Locales
  */
-export function registerLocale(locale, phrases) {
+export function registerLocale(locale: string, phrases: CmsLocalePhrases) {
   if (!locale || !phrases) {
     console.error("Locale parameters invalid. example: CMS.registerLocale('locale', phrases)");
   } else {
@@ -282,11 +296,11 @@ export function registerLocale(locale, phrases) {
   }
 }
 
-export function getLocale(locale) {
+export function getLocale(locale: string) {
   return registry.locales[locale];
 }
 
-export function registerCustomFormat(name, extension, formatter) {
+export function registerCustomFormat(name: string, extension: string, formatter: FormatterFunctions) {
   registry.formats[name] = { extension, formatter };
 }
 
@@ -294,19 +308,18 @@ export function getCustomFormats() {
   return registry.formats;
 }
 
-export function getCustomFormatsExtensions() {
+export function getCustomFormatsExtensions(): Record<string, string> {
   return Object.entries(registry.formats).reduce(function (acc, [name, { extension }]) {
     return { ...acc, [name]: extension };
   }, {});
 }
 
-/** @type {() => Record<string, unknown>} */
-export function getCustomFormatsFormatters() {
+export function getCustomFormatsFormatters(): Record<string, FormatterFunctions> {
   return Object.entries(registry.formats).reduce(function (acc, [name, { formatter }]) {
     return { ...acc, [name]: formatter };
   }, {});
 }
 
-export function getFormatter(name) {
+export function getFormatter(name: string) {
   return registry.formats[name]?.formatter;
 }

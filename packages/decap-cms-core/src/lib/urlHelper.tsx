@@ -7,7 +7,7 @@ import escapeRegExp from 'lodash/escapeRegExp';
 import flow from 'lodash/flow';
 import partialRight from 'lodash/partialRight';
 
-import type { CmsSlug } from '../types/redux';
+import type { CmsSlug } from '../types/cms';
 
 function getUrl(urlString: string, direct?: boolean) {
   return `${direct ? '/#' : ''}${urlString}`;
@@ -23,7 +23,9 @@ export function getNewEntryUrl(collectionName: string, direct?: boolean) {
 
 export function addParams(urlString: string, params: Record<string, string>) {
   const parsedUrl = url.parse(urlString, true);
-  parsedUrl.query = { ...parsedUrl.query, ...params };
+  const existingQuery =
+    typeof parsedUrl.query === 'object' && parsedUrl.query !== null ? parsedUrl.query : {};
+  parsedUrl.query = { ...existingQuery, ...params };
   return url.format(parsedUrl);
 }
 

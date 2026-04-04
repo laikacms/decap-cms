@@ -3,7 +3,7 @@ import { vercelStegaEncode } from '@vercel/stega';
 import { isImmutableMap, isImmutableList } from '../types/immutable';
 
 import type { Map as ImmutableMap, List } from 'immutable';
-import type { CmsField } from 'decap-cms-core';
+import type { CmsField } from '../types/cms';
 
 /**
  * Context passed to encode functions, containing the current state of the encoding process
@@ -119,7 +119,7 @@ const encodingCache = new Map();
  * Uses a visitor pattern with caching to handle recursive structures
  */
 export function encodeEntry(value: unknown, fields: List<ImmutableMap<string, unknown>>) {
-  const plainFields = fields.toJS() as CmsField[];
+  const plainFields = fields.toJS() as unknown as CmsField[];
 
   function visit(value: unknown, fields: CmsField[], path = '') {
     const cached = encodingCache.get(path);

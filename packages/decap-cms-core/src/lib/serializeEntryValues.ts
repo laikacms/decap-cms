@@ -1,7 +1,17 @@
 import isNil from 'lodash/isNil';
 import { Map, List } from 'immutable';
+import type { Map as ImmutableMap, List as ImmutableList } from 'immutable';
 
 import { getWidgetValueSerializer } from './registry';
+
+type SerializerMethod = 'serialize' | 'deserialize';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type FieldMap = ImmutableMap<string, any>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type FieldList = ImmutableList<FieldMap>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ValuesMap = ImmutableMap<string, any>;
 
 /**
  * Methods for serializing/deserializing entry field values. Most widgets don't
@@ -21,30 +31,31 @@ import { getWidgetValueSerializer } from './registry';
  * registered deserialization handlers run on entry load, and serialization
  * handlers run on persist.
  */
-function runSerializer(values, fields, method) {
+function runSerializer(values: ValuesMap, fields: FieldList, method: SerializerMethod): ValuesMap {
   /**
    * Reduce the list of fields to a map where keys are field names and values
    * are field values, serializing the values of fields whose widgets have
    * registered serializers.  If the field is a list or object, call recursively
    * for nested fields.
    */
-  let serializedData = fields.reduce((acc, field) => {
-    const fieldName = field.get('name');
+  let serializedData = fields.reduce((acc: ValuesMap, field: FieldMap) => {
+    const fieldName = field.get('name') as string;
     const value = values.get(fieldName);
-    const serializer = getWidgetValueSerializer(field.get('widget'));
-    const nestedFields = field.get('fields');
+    const serializer = getWidgetValueSerializer(field.get('widget') as string);
+    const nestedFields = field.get('fields') as FieldList | undefined;
 
     // Call recursively for fields within lists
     if (nestedFields && List.isList(value)) {
       return acc.set(
         fieldName,
-        value.map(val => runSerializer(val, nestedFields, method)),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        value.map((val: any) => runSerializer(val, nestedFields, method)),
       );
     }
 
     // Call recursively for fields within objects
     if (nestedFields && Map.isMap(value)) {
-      return acc.set(fieldName, runSerializer(value, nestedFields, method));
+      return acc.set(fieldName, runSerializer(value as ValuesMap, nestedFields, method));
     }
 
     // Run serialization method on value if not null or undefined
@@ -58,7 +69,7 @@ function runSerializer(values, fields, method) {
     }
 
     return acc;
-  }, Map());
+  }, Map() as ValuesMap);
 
   //preserve unknown fields value
   serializedData = values.mergeDeep(serializedData);
@@ -66,10 +77,10 @@ function runSerializer(values, fields, method) {
   return serializedData;
 }
 
-export function serializeValues(values, fields) {
+export function serializeValues(values: ValuesMap, fields: FieldList): ValuesMap {
   return runSerializer(values, fields, 'serialize');
 }
 
-export function deserializeValues(values, fields) {
+export function deserializeValues(values: ValuesMap, fields: FieldList): ValuesMap {
   return runSerializer(values, fields, 'deserialize');
 }

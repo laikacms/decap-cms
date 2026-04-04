@@ -1,4 +1,4 @@
-export function stringToRGB(str) {
+export function stringToRGB(str: string) {
   if (!str) return '000000';
   let hash = 0;
   for (let i = 0; i < str.length; i++) {

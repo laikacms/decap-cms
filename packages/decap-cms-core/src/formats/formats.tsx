@@ -8,7 +8,7 @@ import { FrontmatterInfer, frontmatterJSON, frontmatterTOML, frontmatterYAML } f
 import { getCustomFormatsExtensions, getCustomFormatsFormatters } from '../lib/registry';
 
 import type { Delimiter } from './frontmatter';
-import type { Collection, EntryObject, Format } from '../types/redux';
+import type { Collection, EntryObject, Format } from '../types/cms';
 import type { EntryValue } from '../valueObjects/Entry';
 import type { Formatter } from 'decap-cms-core';
 
