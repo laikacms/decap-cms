@@ -4,16 +4,30 @@ import trimEnd from 'lodash/trimEnd';
 const NETLIFY_API = 'https://api.netlify.com';
 const AUTH_ENDPOINT = 'auth';
 
-class NetlifyError {
-  constructor(err) {
+export interface NetlifyErrorPayload {
+  message?: string;
+}
+
+export class NetlifyError {
+  err: NetlifyErrorPayload;
+
+  constructor(err: NetlifyErrorPayload) {
     this.err = err;
   }
-  toString() {
-    return this.err && this.err.message;
+
+  toString(): string {
+    return (this.err && this.err.message) || '';
   }
 }
 
-const PROVIDERS = {
+interface ProviderConfig {
+  width: number;
+  height: number;
+}
+
+type ProviderName = 'github' | 'gitlab' | 'bitbucket' | 'email';
+
+const PROVIDERS: Record<ProviderName, ProviderConfig> = {
   github: {
     width: 960,
     height: 600,
@@ -32,61 +46,109 @@ const PROVIDERS = {
   },
 };
 
+export interface NetlifyAuthenticatorConfig {
+  site_id?: string | null;
+  base_url?: string;
+  auth_endpoint?: string;
+}
+
+export interface NetlifyAuthenticateOptions {
+  provider: string;
+  scope?: string;
+  login?: boolean;
+  beta_invite?: string;
+  invite_code?: string;
+}
+
+export interface NetlifyRefreshOptions {
+  provider: string;
+  refresh_token: string;
+}
+
+export interface NetlifyAuthResult {
+  token?: string;
+  [key: string]: unknown;
+}
+
+export type NetlifyAuthCallback = (error: NetlifyError | null, data?: NetlifyAuthResult) => void;
+export type NetlifyRefreshCallback = (
+  error: NetlifyError | null,
+  data?: NetlifyAuthResult,
+) => void;
+
 class Authenticator {
-  constructor(config = {}) {
+  site_id: string | null;
+  base_url: string;
+  auth_endpoint: string;
+  authWindow: Window | null = null;
+
+  constructor(config: NetlifyAuthenticatorConfig = {}) {
     this.site_id = config.site_id || null;
     this.base_url = trimEnd(config.base_url, '/') || NETLIFY_API;
     this.auth_endpoint = trim(config.auth_endpoint, '/') || AUTH_ENDPOINT;
   }
 
-  handshakeCallback(options, cb) {
-    const fn = e => {
+  handshakeCallback(
+    options: NetlifyAuthenticateOptions,
+    cb: NetlifyAuthCallback,
+  ): (e: MessageEvent) => void {
+    const fn = (e: MessageEvent): void => {
       if (e.data === 'authorizing:' + options.provider && e.origin === this.base_url) {
         window.removeEventListener('message', fn, false);
         window.addEventListener('message', this.authorizeCallback(options, cb), false);
-        return this.authWindow.postMessage(e.data, e.origin);
+        return this.authWindow?.postMessage(e.data, e.origin);
       }
     };
     return fn;
   }
 
-  authorizeCallback(options, cb) {
-    const fn = e => {
+  authorizeCallback(
+    options: NetlifyAuthenticateOptions,
+    cb: NetlifyAuthCallback,
+  ): (e: MessageEvent) => void {
+    const fn = (e: MessageEvent): void => {
       if (e.origin !== this.base_url) {
         return;
       }
 
-      if (e.data.indexOf('authorization:' + options.provider + ':success:') === 0) {
-        const data = JSON.parse(
-          e.data.match(new RegExp('^authorization:' + options.provider + ':success:(.+)$'))[1],
+      const eventData = e.data as string;
+      if (eventData.indexOf('authorization:' + options.provider + ':success:') === 0) {
+        const match = eventData.match(
+          new RegExp('^authorization:' + options.provider + ':success:(.+)$'),
         );
-        window.removeEventListener('message', fn, false);
-        this.authWindow.close();
-        cb(null, data);
+        if (match) {
+          const data = JSON.parse(match[1]) as NetlifyAuthResult;
+          window.removeEventListener('message', fn, false);
+          this.authWindow?.close();
+          cb(null, data);
+        }
       }
-      if (e.data.indexOf('authorization:' + options.provider + ':error:') === 0) {
-        const err = JSON.parse(
-          e.data.match(new RegExp('^authorization:' + options.provider + ':error:(.+)$'))[1],
+      if (eventData.indexOf('authorization:' + options.provider + ':error:') === 0) {
+        const match = eventData.match(
+          new RegExp('^authorization:' + options.provider + ':error:(.+)$'),
         );
-        window.removeEventListener('message', fn, false);
-        this.authWindow.close();
-        cb(new NetlifyError(err));
+        if (match) {
+          const err = JSON.parse(match[1]) as NetlifyErrorPayload;
+          window.removeEventListener('message', fn, false);
+          this.authWindow?.close();
+          cb(new NetlifyError(err));
+        }
       }
     };
     return fn;
   }
 
-  getSiteID() {
+  getSiteID(): string {
     if (this.site_id) {
       return this.site_id;
     }
-    const host = document.location.host.split(':')[0];
+    const host: string = document.location.host.split(':')[0];
     return host === 'localhost' ? 'demo.decapcms.org' : host;
   }
 
-  authenticate(options, cb) {
+  authenticate(options: NetlifyAuthenticateOptions, cb: NetlifyAuthCallback): void {
     const { provider } = options;
-    const siteID = this.getSiteID();
+    const siteID: string = this.getSiteID();
 
     if (!provider) {
       return cb(
@@ -104,9 +166,10 @@ class Authenticator {
       );
     }
 
-    const conf = PROVIDERS[provider] || PROVIDERS.github;
-    const left = screen.width / 2 - conf.width / 2;
-    const top = screen.height / 2 - conf.height / 2;
+    const conf: ProviderConfig =
+      PROVIDERS[provider as ProviderName] || PROVIDERS.github;
+    const left: number = screen.width / 2 - conf.width / 2;
+    const top: number = screen.height / 2 - conf.height / 2;
     window.addEventListener('message', this.handshakeCallback(options, cb), false);
     let url = `${this.base_url}/${this.auth_endpoint}?provider=${options.provider}&site_id=${siteID}`;
     if (options.scope) {
@@ -126,12 +189,15 @@ class Authenticator {
       'Netlify Authorization',
       `width=${conf.width}, height=${conf.height}, top=${top}, left=${left}`,
     );
-    this.authWindow.focus();
+    this.authWindow?.focus();
   }
 
-  refresh(options, cb) {
+  refresh(
+    options: NetlifyRefreshOptions,
+    cb?: NetlifyRefreshCallback,
+  ): Promise<NetlifyAuthResult> | void {
     const { provider, refresh_token } = options;
-    const siteID = this.getSiteID();
+    const siteID: string = this.getSiteID();
     const onError = cb || Promise.reject.bind(Promise);
 
     if (!provider || !refresh_token) {
@@ -150,7 +216,9 @@ class Authenticator {
       );
     }
     const url = `${this.base_url}/${this.auth_endpoint}/refresh?provider=${provider}&site_id=${siteID}&refresh_token=${refresh_token}`;
-    const refreshPromise = fetch(url, { method: 'POST', body: '' }).then(res => res.json());
+    const refreshPromise: Promise<NetlifyAuthResult> = fetch(url, { method: 'POST', body: '' }).then(
+      res => res.json() as Promise<NetlifyAuthResult>,
+    );
 
     // Return a promise if a callback wasn't provided
     if (!cb) {
