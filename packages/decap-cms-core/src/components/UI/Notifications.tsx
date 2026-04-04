@@ -9,7 +9,7 @@ import { useTranslate } from 'react-polyglot';
 import { dismissNotification } from '../../actions/notifications';
 
 import type { Id, ToastItem } from 'react-toastify';
-import type { State } from '../../types/redux';
+import type { State } from '../../types/cms';
 import type { Notification } from '../../reducers/notifications';
 
 injectStyle();
