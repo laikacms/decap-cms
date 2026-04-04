@@ -30,6 +30,10 @@
     "prop-types": "catalog:react",
     "react": "catalog:react"
   },
+  "devDependencies": {
+    "@types/prop-types": "catalog:types",
+    "@types/react": "catalog:types"
+  },
   "type": "module",
   "types": "./dist/index.d.ts",
   "exports": {

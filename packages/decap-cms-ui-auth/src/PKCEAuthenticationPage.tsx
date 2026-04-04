@@ -9,37 +9,112 @@ const LoginButtonIcon = styled(Icon)`
   margin-right: 18px;
 `;
 
+// Logo configuration type
+interface LogoConfig {
+  src?: string;
+  url?: string;
+}
+
+// Backend configuration
+interface BackendConfig {
+  base_url?: string;
+  app_id?: string;
+  auth_endpoint?: string;
+  auth_token_endpoint?: string;
+}
+
+// Auth configuration
+interface AuthConfigOptions {
+  use_oidc?: boolean;
+  base_url?: string;
+  auth_endpoint?: string;
+  auth_token_endpoint?: string;
+  app_id?: string;
+  auth_token_endpoint_content_type?: string;
+  email_claim?: string;
+  full_name_claim?: string;
+  first_name_claim?: string;
+  last_name_claim?: string;
+  avatar_url_claim?: string;
+  scope?: string;
+}
+
+// Config type for authentication
+interface PKCEAuthConfig {
+  logo_url?: string;
+  logo?: LogoConfig;
+  site_url?: string;
+  backend: BackendConfig;
+  auth?: AuthConfigOptions;
+  auth_scope?: string;
+}
+
+// User type
+interface PKCEUser {
+  email?: string;
+  user_metadata: {
+    full_name?: string;
+    avatar_url?: string;
+  };
+  token?: string;
+  access_token?: string;
+  id_token?: string;
+  claims?: Record<string, unknown>;
+  idClaims?: Record<string, unknown>;
+}
+
+// JWT Claims type
+interface JWTClaims {
+  [key: string]: unknown;
+}
+
+// Props interface
+interface PKCEAuthenticationPageProps {
+  inProgress?: boolean;
+  config: PKCEAuthConfig;
+  onLogin: (user: PKCEUser) => void;
+  t: (key: string) => string;
+}
+
+// State interface
+interface PKCEAuthenticationPageState {
+  loginError?: string;
+}
+
 function normalizeClaimsToUser(
-  email_claim,
-  full_name_claim,
-  first_name_claim,
-  last_name_claim,
-  avatar_url_claim,
-) {
-  return (user, claims) => {
+  email_claim: string,
+  full_name_claim?: string,
+  first_name_claim?: string,
+  last_name_claim?: string,
+  avatar_url_claim?: string,
+): (user: PKCEUser, claims?: JWTClaims) => void {
+  return (user: PKCEUser, claims?: JWTClaims) => {
     if (!claims) return;
 
     if (!user.email && claims[email_claim]) {
-      user.email = claims[email_claim];
+      user.email = claims[email_claim] as string;
     }
     if (!user.user_metadata.full_name && full_name_claim && claims[full_name_claim]) {
-      user.user_metadata.full_name = claims[full_name_claim];
+      user.user_metadata.full_name = claims[full_name_claim] as string;
     }
     if (!user.user_metadata.full_name && (first_name_claim || last_name_claim)) {
-      const name = [];
-      if (claims[first_name_claim]) name.push(claims[first_name_claim]);
-      if (claims[last_name_claim]) name.push(claims[last_name_claim]);
+      const name: string[] = [];
+      if (first_name_claim && claims[first_name_claim]) name.push(claims[first_name_claim] as string);
+      if (last_name_claim && claims[last_name_claim]) name.push(claims[last_name_claim] as string);
       if (name.length) {
         user.user_metadata.full_name = name.join(' ');
       }
     }
     if (!user.user_metadata.avatar_url && avatar_url_claim && claims[avatar_url_claim]) {
-      user.user_metadata.avatar_url = claims[avatar_url_claim];
+      user.user_metadata.avatar_url = claims[avatar_url_claim] as string;
     }
   };
 }
 
-export default class PKCEAuthenticationPage extends React.Component {
+export default class PKCEAuthenticationPage extends React.Component<
+  PKCEAuthenticationPageProps,
+  PKCEAuthenticationPageState
+> {
   static propTypes = {
     inProgress: PropTypes.bool,
     config: PropTypes.object.isRequired,
@@ -47,7 +122,9 @@ export default class PKCEAuthenticationPage extends React.Component {
     t: PropTypes.func.isRequired,
   };
 
-  state = {};
+  state: PKCEAuthenticationPageState = {};
+
+  auth!: PkceAuthenticator;
 
   componentDidMount() {
     // Old configuration options, available from the backend configuration
@@ -90,17 +167,19 @@ export default class PKCEAuthenticationPage extends React.Component {
     });
 
     // Complete authentication if we were redirected back from the provider.
-    this.auth.completeAuth((err, data) => {
+    this.auth.completeAuth((err: Error | null, data: PKCEUser | null) => {
       if (err) {
         this.setState({ loginError: err.toString() });
         return;
       }
 
-      data.user_metadata = {};
+      if (!data) return;
+
+      data.user_metadata = data.user_metadata || {};
       if (data.access_token) {
         data.token = data.access_token;
         try {
-          data.claims = jwtDecode(data.access_token);
+          data.claims = jwtDecode<JWTClaims>(data.access_token);
           normalizeClaims(data, data.claims);
         } catch {
           /* Ignore */
@@ -108,7 +187,7 @@ export default class PKCEAuthenticationPage extends React.Component {
       }
       if (data.id_token) {
         try {
-          data.idClaims = jwtDecode(data.id_token);
+          data.idClaims = jwtDecode<JWTClaims>(data.id_token);
           normalizeClaims(data, data.idClaims);
         } catch {
           /* Ignore */
@@ -119,15 +198,17 @@ export default class PKCEAuthenticationPage extends React.Component {
     });
   }
 
-  handleLogin = e => {
+  handleLogin = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     const scope = this.props.config.auth?.scope || this.props.config.auth_scope || 'openid email';
-    this.auth.authenticate({ scope }, (err, data) => {
+    this.auth.authenticate({ scope }, (err: Error | null, data: PKCEUser | null) => {
       if (err) {
         this.setState({ loginError: err.toString() });
         return;
       }
-      this.props.onLogin(data);
+      if (data) {
+        this.props.onLogin(data);
+      }
     });
   };
 

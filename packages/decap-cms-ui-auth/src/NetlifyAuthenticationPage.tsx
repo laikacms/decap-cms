@@ -51,22 +51,83 @@ const ErrorMessage = styled.p`
   color: ${colors.errorText};
 `;
 
-let component = null;
+// Logo configuration type
+interface LogoConfig {
+  src?: string;
+  url?: string;
+}
+
+// Config type for authentication
+interface AuthConfig {
+  logo_url?: string;
+  logo?: LogoConfig;
+  site_url?: string;
+}
+
+// Props interface
+interface NetlifyAuthenticationPageProps {
+  onLogin: (user: NetlifyIdentityUser) => void;
+  inProgress: boolean;
+  error?: React.ReactNode;
+  config: AuthConfig;
+  t: (key: string) => string;
+}
+
+// State interface
+interface NetlifyAuthenticationPageState {
+  email: string;
+  password: string;
+  errors: {
+    email?: string;
+    password?: string;
+    server?: string | Error;
+    identity?: string;
+  };
+  loggingIn?: boolean;
+}
+
+// Auth client interface
+interface AuthClient {
+  login: (email: string, password: string, remember: boolean) => Promise<NetlifyIdentityUser>;
+}
+
+// Netlify Identity User type (from modules.d.ts)
+interface NetlifyIdentityUser {
+  id: string;
+  email: string;
+  user_metadata?: {
+    full_name?: string;
+    avatar_url?: string;
+  };
+  app_metadata?: Record<string, unknown>;
+  token?: {
+    access_token: string;
+    token_type: string;
+    expires_in: number;
+    refresh_token: string;
+    expires_at: number;
+  };
+}
+
+let component: NetlifyAuthenticationPage | null = null;
 
 if (window.netlifyIdentity) {
-  window.netlifyIdentity.on('login', user => {
+  window.netlifyIdentity.on('login', (user: NetlifyIdentityUser) => {
     component && component.handleIdentityLogin(user);
   });
   window.netlifyIdentity.on('logout', () => {
     component && component.handleIdentityLogout();
   });
-  window.netlifyIdentity.on('error', err => {
+  window.netlifyIdentity.on('error', (err: Error) => {
     component && component.handleIdentityError(err);
   });
 }
 
-export default class NetlifyAuthenticationPage extends React.Component {
-  static authClient;
+export default class NetlifyAuthenticationPage extends React.Component<
+  NetlifyAuthenticationPageProps,
+  NetlifyAuthenticationPageState
+> {
+  static authClient: () => Promise<AuthClient>;
 
   static propTypes = {
     onLogin: PropTypes.func.isRequired,
@@ -76,10 +137,14 @@ export default class NetlifyAuthenticationPage extends React.Component {
     t: PropTypes.func.isRequired,
   };
 
-  constructor(props) {
+  loggedIn = false;
+
+  constructor(props: NetlifyAuthenticationPageProps) {
     super(props);
     component = this;
   }
+
+  state: NetlifyAuthenticationPageState = { email: '', password: '', errors: {} };
 
   componentDidMount() {
     // Manually validate PropTypes - React 19 breaking change
@@ -91,7 +156,7 @@ export default class NetlifyAuthenticationPage extends React.Component {
     );
 
     if (!this.loggedIn && window.netlifyIdentity && window.netlifyIdentity.currentUser()) {
-      this.props.onLogin(window.netlifyIdentity.currentUser());
+      this.props.onLogin(window.netlifyIdentity.currentUser()!);
       window.netlifyIdentity.close();
     }
   }
@@ -100,18 +165,18 @@ export default class NetlifyAuthenticationPage extends React.Component {
     component = null;
   }
 
-  handleIdentityLogin = user => {
+  handleIdentityLogin = (user: NetlifyIdentityUser) => {
     this.props.onLogin(user);
-    window.netlifyIdentity.close();
+    window.netlifyIdentity?.close();
   };
 
   handleIdentityLogout = () => {
-    window.netlifyIdentity.open();
+    window.netlifyIdentity?.open();
   };
 
-  handleIdentityError = err => {
+  handleIdentityError = (err: Error) => {
     if (err?.message?.match(/^Failed to load settings from.+\.netlify\/identity$/)) {
-      window.netlifyIdentity.close();
+      window.netlifyIdentity?.close();
       this.setState({
         errors: { identity: this.props.t('auth.errors.identitySettings') },
       });
@@ -119,26 +184,24 @@ export default class NetlifyAuthenticationPage extends React.Component {
   };
 
   handleIdentity = () => {
-    const user = window.netlifyIdentity.currentUser();
+    const user = window.netlifyIdentity?.currentUser();
     if (user) {
       this.props.onLogin(user);
     } else {
-      window.netlifyIdentity.open();
+      window.netlifyIdentity?.open();
     }
   };
 
-  state = { email: '', password: '', errors: {} };
-
-  handleChange = (name, e) => {
+  handleChange = (name: 'email' | 'password', e: React.ChangeEvent<HTMLInputElement>) => {
     this.setState({ ...this.state, [name]: e.target.value });
   };
 
-  handleLogin = async e => {
+  handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const { email, password } = this.state;
     const { t } = this.props;
-    const errors = {};
+    const errors: NetlifyAuthenticationPageState['errors'] = {};
     if (!email) {
       errors.email = t('auth.errors.email');
     }
@@ -156,8 +219,9 @@ export default class NetlifyAuthenticationPage extends React.Component {
       const user = await client.login(this.state.email, this.state.password, true);
       this.props.onLogin(user);
     } catch (error) {
+      const err = error as { description?: string; msg?: string };
       this.setState({
-        errors: { server: error.description || error.msg || error },
+        errors: { server: err.description || err.msg || String(error) },
         loggingIn: false,
       });
     }
