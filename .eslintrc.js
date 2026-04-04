@@ -6,25 +6,27 @@ const packages = fs
   .map(dirent => dirent.name);
 
 module.exports = {
-  parser: '@babel/eslint-parser',
+  parser: '@typescript-eslint/parser',
   parserOptions: {
-    requireConfigFile: false,
-    babelOptions: {
-      presets: ['@babel/preset-react'],
+    ecmaVersion: 2022,
+    sourceType: 'module',
+    ecmaFeatures: {
+      jsx: true,
     },
   },
   extends: [
     'eslint:recommended',
     'plugin:react/recommended',
     'plugin:cypress/recommended',
+    'plugin:@typescript-eslint/recommended',
     'prettier',
     'plugin:import/recommended',
+    'plugin:import/typescript',
   ],
   env: {
     es6: true,
     browser: true,
     node: true,
-    jest: true,
     'cypress/globals': true,
   },
   globals: {
@@ -44,7 +46,7 @@ module.exports = {
         groups: [['builtin', 'external'], ['internal', 'parent', 'sibling', 'index'], ['type']],
       },
     ],
-    'no-duplicate-imports': 'error',
+    'no-duplicate-imports': [0], // handled by @typescript-eslint
     '@emotion/no-vanilla': 'error',
     '@emotion/pkg-renaming': 'error',
     '@emotion/import-from-emotion': 'error',
@@ -63,15 +65,28 @@ module.exports = {
       'error',
       { ignore: ['css', 'bold', 'italic', 'delete', 'strikethrough'] },
     ],
+    '@typescript-eslint/ban-types': [0], // TODO enable in future
+    '@typescript-eslint/no-non-null-assertion': [0],
+    '@typescript-eslint/consistent-type-imports': 'error',
+    '@typescript-eslint/explicit-function-return-type': [0],
+    '@typescript-eslint/explicit-module-boundary-types': [0],
+    '@typescript-eslint/no-duplicate-imports': 'error',
+    '@typescript-eslint/no-use-before-define': [
+      'error',
+      { functions: false, classes: true, variables: true },
+    ],
   },
-  plugins: ['babel', '@emotion', 'cypress', 'unicorn'],
+  plugins: ['@typescript-eslint', '@emotion', 'cypress', 'unicorn'],
   settings: {
     react: {
       version: 'detect',
     },
     'import/resolver': {
       node: {
-        extensions: ['.js', '.jsx', '.ts', '.tsx'],
+        extensions: ['.ts', '.tsx'],
+      },
+      typescript: {
+        alwaysTryTypes: true,
       },
       exports: {},
     },
@@ -79,36 +94,16 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['*.ts', '*.tsx'],
-      parser: '@typescript-eslint/parser',
-      extends: [
-        'eslint:recommended',
-        'plugin:react/recommended',
-        'plugin:cypress/recommended',
-        'plugin:@typescript-eslint/recommended',
-        'prettier',
-        'plugin:import/recommended',
-        'plugin:import/typescript',
-      ],
+      // JavaScript files in cypress and config files
+      files: ['*.js', '*.cjs', '*.mjs'],
+      parser: 'espree',
       parserOptions: {
-        ecmaVersion: 2018,
+        ecmaVersion: 2022,
         sourceType: 'module',
-        ecmaFeatures: {
-          jsx: true,
-        },
       },
       rules: {
-        'no-duplicate-imports': [0], // handled by @typescript-eslint
-        '@typescript-eslint/ban-types': [0], // TODO enable in future
-        '@typescript-eslint/no-non-null-assertion': [0],
-        '@typescript-eslint/consistent-type-imports': 'error',
-        '@typescript-eslint/explicit-function-return-type': [0],
-        '@typescript-eslint/explicit-module-boundary-types': [0],
-        '@typescript-eslint/no-duplicate-imports': 'error',
-        '@typescript-eslint/no-use-before-define': [
-          'error',
-          { functions: false, classes: true, variables: true },
-        ],
+        '@typescript-eslint/no-var-requires': 'off',
+        '@typescript-eslint/no-require-imports': 'off',
       },
     },
   ],
