@@ -4,25 +4,39 @@
   "version": "3.0.6",
   "repository": "https://github.com/decaporg/decap-cms/tree/main/packages/decap-cms-lib-auth",
   "bugs": "https://github.com/decaporg/decap-cms/issues",
-  "module": "dist/esm/index.js",
-  "main": "dist/decap-cms-lib-auth.js",
+  "module": "./dist/index.js",
+  "main": "./dist/index.js",
   "license": "MIT",
   "files": [
-    "src/",
-    "dist/"
+    "dist",
+    "src"
   ],
   "keywords": [
     "decap-cms"
   ],
   "sideEffects": false,
   "scripts": {
-    "develop": "npm run build:esm -- --watch",
-    "build": "cross-env NODE_ENV=production webpack",
-    "build:esm": "cross-env NODE_ENV=esm babel src --out-dir dist/esm --ignore \"**/__tests__\" --root-mode upward"
+    "develop": "tsc --build --watch",
+    "build": "tsc --build",
+    "clean": "rimraf dist"
   },
   "peerDependencies": {
-    "immutable": "^3.7.6",
-    "lodash": "^4.17.11",
-    "uuid": "^8.3.2"
+    "immutable": "catalog:utils",
+    "lodash": "catalog:utils",
+    "uuid": "catalog:utils"
+  },
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "import": "./dist/*.js",
+      "default": "./dist/*.js"
+    }
   }
 }

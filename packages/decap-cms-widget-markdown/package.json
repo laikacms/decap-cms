@@ -5,8 +5,8 @@
   "homepage": "https://www.decapcms.org/docs/widgets/#markdown",
   "repository": "https://github.com/decaporg/decap-cms/tree/main/packages/decap-cms-widget-markdown",
   "bugs": "https://github.com/decaporg/decap-cms/issues",
-  "module": "dist/esm/index.js",
-  "main": "dist/decap-cms-widget-markdown.js",
+  "module": "./dist/index.js",
+  "main": "./dist/index.js",
   "license": "MIT",
   "keywords": [
     "decap-cms",
@@ -16,51 +16,69 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "develop": "npm run build:esm -- --watch",
-    "build": "cross-env NODE_ENV=production webpack",
-    "build:esm": "cross-env NODE_ENV=esm babel src --out-dir dist/esm --ignore \"**/__tests__\" --root-mode upward"
+    "develop": "tsc --build --watch",
+    "build": "tsc --build",
+    "clean": "rimraf dist"
   },
   "dependencies": {
-    "detab": "^2.0.4",
-    "dompurify": "^3.3.3",
-    "is-hotkey": "^0.2.0",
-    "is-url": "^1.2.4",
-    "mdast-util-definitions": "^1.2.3",
-    "mdast-util-to-string": "^1.0.5",
-    "rehype-parse": "^6.0.0",
-    "rehype-remark": "^8.0.0",
-    "rehype-stringify": "^7.0.0",
-    "remark-parse": "^6.0.3",
-    "remark-rehype": "^4.0.0",
-    "remark-slate": "^1.8.6",
-    "remark-slate-transformer": "^0.7.4",
-    "remark-stringify": "^6.0.4",
-    "slate": "^0.118.1",
-    "slate-base64-serializer": "^0.2.107",
-    "slate-dom": "^0.118.1",
-    "slate-history": "^0.113.1",
-    "slate-hyperscript": "^0.100.0",
-    "slate-plain-serializer": "^0.7.3",
-    "slate-react": "^0.117.4",
-    "slate-soft-break": "^0.9.0",
-    "unified": "^9.2.0",
-    "unist-builder": "^1.0.3",
-    "unist-util-visit-parents": "^2.0.1",
-    "vfile-location": "^2.0.6"
+    "detab": "catalog:markdown",
+    "dompurify": "catalog:markdown",
+    "is-hotkey": "catalog:markdown",
+    "is-url": "catalog:markdown",
+    "mdast-util-definitions": "catalog:markdown",
+    "mdast-util-to-string": "catalog:markdown",
+    "rehype-parse": "catalog:markdown",
+    "rehype-remark": "catalog:markdown",
+    "rehype-stringify": "catalog:markdown",
+    "remark-parse": "catalog:markdown",
+    "remark-rehype": "catalog:markdown",
+    "remark-slate": "catalog:markdown",
+    "remark-slate-transformer": "catalog:markdown",
+    "remark-stringify": "catalog:markdown",
+    "slate": "catalog:slate",
+    "slate-base64-serializer": "catalog:slate",
+    "slate-dom": "catalog:slate",
+    "slate-history": "catalog:slate",
+    "slate-hyperscript": "catalog:slate",
+    "slate-plain-serializer": "catalog:slate",
+    "slate-react": "catalog:slate",
+    "slate-soft-break": "catalog:slate",
+    "unified": "catalog:markdown",
+    "unist-builder": "catalog:markdown",
+    "unist-util-visit-parents": "catalog:markdown",
+    "vfile-location": "catalog:markdown"
   },
   "peerDependencies": {
-    "@emotion/react": "^11.11.1",
-    "@emotion/styled": "^11.11.0",
-    "decap-cms-ui-default": "^3.0.0",
-    "immutable": "^3.7.6",
-    "lodash": "^4.17.11",
-    "prop-types": "^15.7.2",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "react-immutable-proptypes": "^2.1.0"
+    "@emotion/react": "catalog:emotion",
+    "@emotion/styled": "catalog:emotion",
+    "decap-cms-ui-default": "workspace:*",
+    "immutable": "catalog:utils",
+    "lodash": "catalog:utils",
+    "prop-types": "catalog:react",
+    "react": "catalog:react",
+    "react-dom": "catalog:react",
+    "react-immutable-proptypes": "catalog:react"
   },
   "devDependencies": {
-    "commonmark": "^0.30.0",
-    "commonmark-spec": "^0.30.0"
-  }
+    "commonmark": "catalog:vitest",
+    "commonmark-spec": "catalog:vitest"
+  },
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "import": "./dist/*.js",
+      "default": "./dist/*.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ]
 }

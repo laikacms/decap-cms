@@ -4,8 +4,8 @@
   "version": "3.3.0",
   "repository": "https://github.com/decaporg/decap-cms/tree/main/packages/decap-cms-ui-auth",
   "bugs": "https://github.com/decaporg/decap-cms/issues",
-  "module": "dist/esm/index.js",
-  "main": "dist/decap-cms-ui-auth.js",
+  "module": "./dist/index.js",
+  "main": "./dist/index.js",
   "license": "MIT",
   "keywords": [
     "decap-cms",
@@ -14,20 +14,38 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "develop": "npm run build:esm -- --watch",
-    "build": "cross-env NODE_ENV=production webpack",
-    "build:esm": "cross-env NODE_ENV=esm babel src --out-dir dist/esm --ignore \"**/__tests__\" --root-mode upward --extensions \".js,.jsx,.ts,.tsx\""
+    "develop": "tsc --build --watch",
+    "build": "tsc --build",
+    "clean": "rimraf dist"
   },
   "dependencies": {
-    "jwt-decode": "^3.0.0"
+    "jwt-decode": "catalog:auth"
   },
   "peerDependencies": {
-    "@emotion/react": "^11.11.1",
-    "@emotion/styled": "^11.11.0",
-    "decap-cms-lib-auth": "^3.0.0",
-    "decap-cms-ui-default": "^3.0.0",
-    "lodash": "^4.17.11",
-    "prop-types": "^15.7.2",
-    "react": "^19.1.0"
-  }
+    "@emotion/react": "catalog:emotion",
+    "@emotion/styled": "catalog:emotion",
+    "decap-cms-lib-auth": "workspace:*",
+    "decap-cms-ui-default": "workspace:*",
+    "lodash": "catalog:utils",
+    "prop-types": "catalog:react",
+    "react": "catalog:react"
+  },
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "import": "./dist/*.js",
+      "default": "./dist/*.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ]
 }

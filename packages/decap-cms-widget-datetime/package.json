@@ -5,8 +5,8 @@
   "homepage": "https://www.decapcms.org/docs/widgets/#datetime",
   "repository": "https://github.com/decaporg/decap-cms/tree/main/packages/decap-cms-widget-datetime",
   "bugs": "https://github.com/decaporg/decap-cms/issues",
-  "module": "dist/esm/index.js",
-  "main": "dist/decap-cms-widget-datetime.js",
+  "module": "./dist/index.js",
+  "main": "./dist/index.js",
   "license": "MIT",
   "keywords": [
     "decap-cms",
@@ -17,15 +17,33 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "develop": "npm run build:esm -- --watch",
-    "build": "cross-env NODE_ENV=production webpack",
-    "build:esm": "cross-env NODE_ENV=esm babel src --out-dir dist/esm --ignore \"**/__tests__\" --root-mode upward"
+    "develop": "tsc --build --watch",
+    "build": "tsc --build",
+    "clean": "rimraf dist"
   },
   "dependencies": {
-    "dayjs": "^1.11.10"
+    "dayjs": "catalog:utils"
   },
   "peerDependencies": {
-    "@emotion/react": "^11.11.1",
-    "react": "^19.1.0"
-  }
+    "@emotion/react": "catalog:emotion",
+    "react": "catalog:react"
+  },
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "import": "./dist/*.js",
+      "default": "./dist/*.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ]
 }

@@ -5,8 +5,8 @@
   "homepage": "https://www.decapcms.org/docs/widgets/#code",
   "repository": "https://github.com/decaporg/decap-cms/tree/main/packages/decap-cms-widget-code",
   "bugs": "https://github.com/decaporg/decap-cms/issues",
-  "module": "dist/esm/index.js",
-  "main": "dist/decap-cms-widget-code.js",
+  "module": "./dist/index.js",
+  "main": "./dist/index.js",
   "license": "MIT",
   "keywords": [
     "decap-cms",
@@ -18,20 +18,37 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "develop": "npm run build:esm -- --watch",
-    "build": "cross-env NODE_ENV=production webpack",
-    "build:esm": "cross-env NODE_ENV=esm babel src --out-dir dist/esm --ignore \"**/__tests__\" --root-mode upward",
-    "process:languages": "node ./scripts/process-languages"
+    "develop": "tsc --build --watch",
+    "build": "tsc --build",
+    "clean": "rimraf dist"
   },
   "peerDependencies": {
-    "@emotion/react": "^11.11.1",
-    "codemirror": "^5.46.0",
-    "decap-cms-ui-default": "^3.0.0",
-    "lodash": "^4.17.11",
-    "react": "^19.1.0"
+    "@emotion/react": "catalog:emotion",
+    "codemirror": "catalog:codemirror",
+    "decap-cms-ui-default": "workspace:*",
+    "lodash": "catalog:utils",
+    "react": "catalog:react"
   },
   "dependencies": {
-    "react-codemirror2": "^7.0.0",
-    "react-select": "^5.10.0"
-  }
+    "react-codemirror2": "catalog:react",
+    "react-select": "catalog:react"
+  },
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "import": "./dist/*.js",
+      "default": "./dist/*.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ]
 }
