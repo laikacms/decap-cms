@@ -47,7 +47,7 @@ function fromURL(wholeURL: string): ImmutableRequest {
 
 function fromFetchArguments(wholeURL: string, options?: RequestInit): ImmutableRequest {
   return fromURL(wholeURL).merge(
-    (options ? fromJS(options) : Map()).remove('url').remove('params') as ImmutableRequest,
+    (options ? fromJS(options) as ImmutableRequest : Map<string, unknown>()).remove('url').remove('params') as ImmutableRequest,
   );
 }
 

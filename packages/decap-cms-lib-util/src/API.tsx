@@ -3,6 +3,7 @@ import unsentRequest from './unsentRequest';
 import APIError from './APIError';
 
 import type { AsyncLock } from './asyncLock';
+import type { LocalForage } from 'localforage';
 
 export interface FetchError extends Error {
   status: number;
@@ -199,7 +200,7 @@ export async function apiRequest(
   parser = (response: Response) => parseResponse(response),
 ) {
   const { token, backend, ...props } = config;
-  const options = { cache: 'no-cache', ...props };
+  const options = { cache: 'no-cache' as RequestCache, ...props };
   const headers = await constructRequestHeaders({ headers: options.headers || {}, token });
   const baseUrl = config.apiRoot ?? apiRoots[backend];
   const url = constructUrlWithParams(`${baseUrl}${path}`, options.params);

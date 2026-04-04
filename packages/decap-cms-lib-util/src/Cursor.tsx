@@ -27,15 +27,15 @@ export type CursorStore = {
 
 type ActionHandler = (action: string) => unknown;
 
-function jsToMap(obj: {}) {
+function jsToMap(obj: {}): Map<string, unknown> {
   if (obj === undefined) {
-    return Map();
+    return Map<string, unknown>();
   }
   const immutableObj = fromJS(obj);
   if (!Map.isMap(immutableObj)) {
     throw new Error('Object must be equivalent to a Map.');
   }
-  return immutableObj;
+  return immutableObj as Map<string, unknown>;
 }
 
 const knownMetaKeys = Set([
@@ -63,16 +63,20 @@ function filterUnknownMetaKeys(meta: Map<string, string>) {
 function createCursorStore(...args: {}[]) {
   const { actions, data, meta } =
     args.length === 1
-      ? jsToMap(args[0]).toObject()
-      : { actions: args[0], data: args[1], meta: args[2] };
+      ? (jsToMap(args[0]).toJS() as { actions?: Iterable<string>; data?: {}; meta?: {} })
+      : { actions: args[0] as Iterable<string>, data: args[1], meta: args[2] };
+  
+  const metaMap = jsToMap(meta || {});
+  const filteredMeta = filterUnknownMetaKeys(metaMap as Map<string, string>);
+  
   return Map({
     // actions are a Set, rather than a List, to ensure an efficient .has
     actions: Set(actions),
 
     // data and meta are Maps
-    data: jsToMap(data),
-    meta: jsToMap(meta).update(filterUnknownMetaKeys),
-  }) as CursorStore;
+    data: jsToMap(data || {}),
+    meta: filteredMeta,
+  }) as unknown as CursorStore;
 }
 
 function hasAction(store: CursorStore, action: string) {
@@ -80,10 +84,13 @@ function hasAction(store: CursorStore, action: string) {
 }
 
 function getActionHandlers(store: CursorStore, handler: ActionHandler) {
-  return store
-    .get('actions', Set<string>())
-    .toMap()
-    .map(action => handler(action as string));
+  const actions = store.get('actions', Set<string>());
+  const actionsArray = actions.toArray();
+  const result: Record<string, unknown> = {};
+  for (const action of actionsArray) {
+    result[action] = handler(action);
+  }
+  return Map(result);
 }
 
 // The cursor logic is entirely functional, so this class simply

@@ -12,8 +12,9 @@ declare module 'immutable' {
     delete(key: K): Map<K, V>;
     update(key: K, updater: (value: V) => V): Map<K, V>;
     updateIn(keyPath: Iterable<unknown>, updater: (value: unknown) => unknown): Map<K, V>;
-    merge(...collections: Array<Iterable<[K, V]> | { [key: string]: V }>): Map<K, V>;
+    merge(...collections: Array<Iterable<[K, V]> | { [key: string]: V } | Record<string, unknown>>): Map<K, V>;
     toJS(): { [key: string]: unknown };
+    toObject(): { [key: string]: V };
     has(key: K): boolean;
     filter(predicate: (value: V, key: K, iter: Map<K, V>) => boolean): Map<K, V>;
     entrySeq(): Seq.Indexed<[K, V]>;
@@ -59,6 +60,9 @@ declare module 'immutable' {
     function isMap(maybeMap: unknown): maybeMap is Map<unknown, unknown>;
   }
   export function List<T>(collection?: Iterable<T> | ArrayLike<T>): List<T>;
+  export namespace List {
+    function isList(maybeList: unknown): maybeList is List<unknown>;
+  }
   export function Set<T>(collection?: Iterable<T> | ArrayLike<T>): Set<T>;
   export function fromJS(jsValue: unknown): unknown;
 }
@@ -69,7 +73,7 @@ declare module 'js-sha256' {
 }
 
 declare module 'localforage' {
-  interface LocalForageOptions {
+  export interface LocalForageOptions {
     driver?: string | string[];
     name?: string;
     size?: number;
@@ -78,7 +82,7 @@ declare module 'localforage' {
     description?: string;
   }
 
-  interface LocalForage {
+  export interface LocalForage {
     getItem<T>(key: string): Promise<T | null>;
     setItem<T>(key: string, value: T): Promise<T>;
     removeItem(key: string): Promise<void>;
@@ -102,7 +106,5 @@ declare module 'localforage' {
 
   const localforage: LocalForage;
   export default localforage;
+  export type { LocalForage };
 }
-
-// LocalForage type for use in function signatures
-declare type LocalForage = import('localforage').default;

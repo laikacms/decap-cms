@@ -8,6 +8,7 @@ import type { Semaphore } from 'semaphore';
 import type Cursor from './Cursor';
 import type { AsyncLock } from './asyncLock';
 import type { FileMetadata } from './API';
+import type { LocalForage } from 'localforage';
 
 export type DisplayURLObject = { id: string; path: string };
 
@@ -281,8 +282,8 @@ export async function unpublishedEntries(listEntriesKeys: () => Promise<string[]
   try {
     const keys = await listEntriesKeys();
     return keys;
-  } catch (error) {
-    if (error.message === 'Not Found') {
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message === 'Not Found') {
       return Promise.resolve([]);
     }
     throw error;
@@ -560,7 +561,7 @@ export async function allEntriesByFolder({
         const newCopy = sortBy(
           unionBy(
             diff.filter(d => !deleted[d.path]),
-            localTree.files.filter(f => !deleted[f.path]),
+            localTree.files.filter((f: { path: string }) => !deleted[f.path]),
             file => file.path,
           ),
           file => file.path,

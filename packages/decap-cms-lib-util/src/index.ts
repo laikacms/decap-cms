@@ -3,6 +3,7 @@ import Cursor, { CURSOR_COMPATIBILITY_SYMBOL } from './Cursor';
 import EditorialWorkflowError, { EDITORIAL_WORKFLOW_ERROR } from './EditorialWorkflowError';
 import AccessTokenError from './AccessTokenError';
 import localForage from './localForage';
+import type { LocalForage as LF } from 'localforage';
 import { isAbsolutePath, basename, fileExtensionWithSeparator, fileExtension, extname, dirname, join } from './path';
 import { onlySuccessfulPromises, flowAsync, then } from './promise';
 import unsentRequest from './unsentRequest';
@@ -99,6 +100,7 @@ export type Config = C;
 export type FetchError = FE;
 export type PointerFile = PF;
 export type DataFile = DF;
+export type LocalForage = LF;
 
 export const DecapCmsLibUtil = {
   APIError,
