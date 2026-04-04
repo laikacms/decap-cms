@@ -6,8 +6,64 @@ import { addParams } from '../../../lib/urlHelper';
 
 const { fetchWithTimeout: fetch } = unsentRequest;
 
+export interface AssetStoreConfig {
+  get(key: 'getSignedFormURL'): string | undefined;
+  get(key: 'shouldConfirmUpload', defaultValue?: boolean): boolean;
+  get(key: string, defaultValue?: unknown): unknown;
+}
+
+interface RequestOptions {
+  method?: string;
+  headers?: Record<string, string>;
+  body?: string | FormData;
+  params?: Record<string, string | number>;
+}
+
+interface AssetResponse {
+  id: string;
+  name: string;
+  size: number;
+  url: string;
+}
+
+interface SignedFormResponse {
+  form: {
+    url: string;
+    fields: Record<string, string>;
+  };
+  asset: AssetResponse;
+}
+
+interface AssetFile {
+  id: string;
+  name: string;
+  size: number;
+  displayURL: string;
+  url: string;
+  path: string;
+}
+
+interface UploadResult {
+  success: boolean;
+  asset: AssetFile;
+}
+
+interface FileData {
+  name: string;
+  size: number;
+  content_type?: string;
+  visibility?: string;
+}
+
+type GetTokenFn = () => Promise<string>;
+
 export default class AssetStore {
-  constructor(config, getToken) {
+  config: AssetStoreConfig;
+  getToken: GetTokenFn;
+  shouldConfirmUpload: boolean;
+  getSignedFormURL: string;
+
+  constructor(config: AssetStoreConfig, getToken: GetTokenFn) {
     this.config = config;
     if (config.get('getSignedFormURL') == null) {
       throw 'The AssetStore integration needs the getSignedFormURL in the integration configuration.';
@@ -15,10 +71,10 @@ export default class AssetStore {
     this.getToken = getToken;
 
     this.shouldConfirmUpload = config.get('shouldConfirmUpload', false);
-    this.getSignedFormURL = trimEnd(config.get('getSignedFormURL'), '/');
+    this.getSignedFormURL = trimEnd(config.get('getSignedFormURL') as string, '/');
   }
 
-  parseJsonResponse(response) {
+  parseJsonResponse(response: Response): Promise<unknown> {
     return response.json().then(json => {
       if (!response.ok) {
         return Promise.reject(json);
@@ -28,8 +84,8 @@ export default class AssetStore {
     });
   }
 
-  urlFor(path, options) {
-    const params = [];
+  urlFor(path: string, options: RequestOptions): string {
+    const params: string[] = [];
     if (options.params) {
       for (const key in options.params) {
         params.push(`${key}=${encodeURIComponent(options.params[key])}`);
@@ -41,13 +97,13 @@ export default class AssetStore {
     return path;
   }
 
-  requestHeaders(headers = {}) {
+  requestHeaders(headers: Record<string, string> = {}): Record<string, string> {
     return {
       ...headers,
     };
   }
 
-  confirmRequest(assetID) {
+  confirmRequest(assetID: string): void {
     this.getToken().then(token =>
       this.request(`${this.getSignedFormURL}/${assetID}`, {
         method: 'PUT',
@@ -60,7 +116,7 @@ export default class AssetStore {
     );
   }
 
-  async request(path, options = {}) {
+  async request(path: string, options: RequestOptions = {}): Promise<unknown> {
     const headers = this.requestHeaders(options.headers || {});
     const url = this.urlFor(path, options);
     const response = await fetch(url, { ...options, headers });
@@ -70,25 +126,29 @@ export default class AssetStore {
     return content;
   }
 
-  async retrieve(query, page, privateUpload) {
+  async retrieve(
+    query: string | undefined,
+    page: number | undefined,
+    privateUpload: boolean,
+  ): Promise<AssetFile[]> {
     const params = pickBy(
       { search: query, page, filter: privateUpload ? 'private' : 'public' },
       val => !!val,
     );
-    const url = addParams(this.getSignedFormURL, params);
+    const url = addParams(this.getSignedFormURL, params as Record<string, string>);
     const token = await this.getToken();
     const headers = {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     };
-    const response = await this.request(url, { headers });
+    const response = (await this.request(url, { headers })) as AssetResponse[];
     const files = response.map(({ id, name, size, url }) => {
       return { id, name, size, displayURL: url, url, path: url };
     });
     return files;
   }
 
-  delete(assetID) {
+  delete(assetID: string): Promise<unknown> {
     const url = `${this.getSignedFormURL}/${assetID}`;
     return this.getToken().then(token =>
       this.request(url, {
@@ -101,8 +161,8 @@ export default class AssetStore {
     );
   }
 
-  async upload(file, privateUpload = false) {
-    const fileData = {
+  async upload(file: File, privateUpload = false): Promise<UploadResult> {
+    const fileData: FileData = {
       name: file.name,
       size: file.size,
     };
@@ -116,14 +176,14 @@ export default class AssetStore {
 
     try {
       const token = await this.getToken();
-      const response = await this.request(this.getSignedFormURL, {
+      const response = (await this.request(this.getSignedFormURL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(fileData),
-      });
+      })) as SignedFormResponse;
       const formURL = response.form.url;
       const formFields = response.form.fields;
       const { id, name, size, url } = response.asset;
