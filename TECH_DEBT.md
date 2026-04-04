@@ -1,5 +1,8 @@
 # Technical Debt
 
+## Cleanup Done
+- [x] Remove jest.config.ts from decap-server (migrated to vitest)
+
 ## Import Issues
 - [ ] Direct source imports: `'package/src/file'` → `'package'`
 - [ ] Inconsistent file extensions (.ts vs .tsx)
