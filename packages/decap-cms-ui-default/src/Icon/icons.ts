@@ -1,6 +1,6 @@
 import mapValues from 'lodash/mapValues';
 
-import images from './images/_index';
+import images, { IconComponent, IconImages } from './images/_index';
 
 /**
  * This module outputs icon objects with the following shape:
@@ -16,10 +16,27 @@ import images from './images/_index';
  * defining the default direction here.
  */
 
+export type IconDirection = 'left' | 'right' | 'up' | 'down';
+
+export interface IconConfig {
+  direction?: IconDirection;
+}
+
+export interface IconDefinition {
+  image: IconComponent;
+  direction?: IconDirection;
+}
+
+export type IconName = keyof IconImages;
+
+export type Icons = {
+  [K in IconName]: IconDefinition;
+};
+
 /**
  * Configuration for individual icons.
  */
-const config = {
+const config: Partial<Record<IconName, IconConfig>> = {
   arrow: {
     direction: 'left',
   },
@@ -36,9 +53,9 @@ const config = {
  * name to the raw svg, so we move that to the `image` property of the
  * definition object and set any additional configured properties for each icon.
  */
-const icons = mapValues(images, (image, name) => {
-  const props = config[name] || {};
+const icons = mapValues(images, (image: IconComponent, name: string): IconDefinition => {
+  const props = config[name as IconName] || {};
   return { image, ...props };
-});
+}) as Icons;
 
 export default icons;

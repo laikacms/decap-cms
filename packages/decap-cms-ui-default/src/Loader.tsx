@@ -1,12 +1,20 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
-import { css, keyframes } from '@emotion/react';
+import { css, keyframes, SerializedStyles } from '@emotion/react';
 import { CSSTransition } from 'react-transition-group';
 
 import { colors, zIndex } from './styles';
 
-const styles = {
+interface LoaderStyles {
+  disabled: SerializedStyles;
+  active: SerializedStyles;
+  enter: SerializedStyles;
+  enterActive: SerializedStyles;
+  exit: SerializedStyles;
+  exitActive: SerializedStyles;
+}
+
+const styles: LoaderStyles = {
   disabled: css`
     display: none;
   `,
@@ -29,7 +37,11 @@ const styles = {
   `,
 };
 
-const animations = {
+interface LoaderAnimations {
+  loader: ReturnType<typeof keyframes>;
+}
+
+const animations: LoaderAnimations = {
   loader: keyframes`
     from {
       transform: rotate(0deg);
@@ -56,30 +68,34 @@ const LoaderItem = styled.div`
   transform: translateX(-50%);
 `;
 
-export class Loader extends React.Component {
-  static propTypes = {
-    children: PropTypes.node,
-    className: PropTypes.string,
-  };
+export interface LoaderProps {
+  children?: React.ReactNode;
+  className?: string;
+  active?: boolean;
+}
 
-  state = {
+interface LoaderState {
+  currentItem: number;
+}
+
+export class Loader extends React.Component<LoaderProps, LoaderState> {
+  state: LoaderState = {
     currentItem: 0,
   };
 
-  componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(Loader.propTypes, this.props, 'prop', 'Loader');
-  }
+  interval: ReturnType<typeof setInterval> | null = null;
 
-  componentWillUnmount() {
+  componentWillUnmount(): void {
     if (this.interval) {
       clearInterval(this.interval);
     }
   }
 
-  setAnimation = () => {
+  setAnimation = (): void => {
     if (this.interval) return;
     const { children } = this.props;
+
+    if (!Array.isArray(children)) return;
 
     this.interval = setInterval(() => {
       const nextItem =
@@ -88,23 +104,23 @@ export class Loader extends React.Component {
     }, 5000);
   };
 
-  renderChild = () => {
+  renderChild = (): React.ReactNode => {
     const { children } = this.props;
     const { currentItem } = this.state;
     if (!children) {
       return null;
-    } else if (typeof children == 'string') {
+    } else if (typeof children === 'string') {
       return <LoaderText>{children}</LoaderText>;
     } else if (Array.isArray(children)) {
       this.setAnimation();
       return (
         <LoaderText>
           <CSSTransition
-            className={{
-              enter: styles.enter,
-              enterActive: styles.enterActive,
-              exit: styles.exit,
-              exitActive: styles.exitActive,
+            classNames={{
+              enter: styles.enter.name,
+              enterActive: styles.enterActive.name,
+              exit: styles.exit.name,
+              exitActive: styles.exitActive.name,
             }}
             timeout={500}
           >
@@ -113,16 +129,21 @@ export class Loader extends React.Component {
         </LoaderText>
       );
     }
+    return null;
   };
 
-  render() {
+  render(): React.ReactElement {
     const { className } = this.props;
     return <div className={className}>{this.renderChild()}</div>;
   }
 }
 
-const StyledLoader = styled(Loader)`
-  display: ${props => (props.active ? 'block' : 'none')};
+export interface StyledLoaderProps {
+  active?: boolean;
+}
+
+const StyledLoader = styled(Loader)<StyledLoaderProps>`
+  display: ${(props: StyledLoaderProps) => (props.active ? 'block' : 'none')};
   position: absolute;
   top: 50%;
   left: 50%;

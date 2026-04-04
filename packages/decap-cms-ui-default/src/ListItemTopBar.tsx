@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 
 import Icon from './Icon';
@@ -35,7 +34,12 @@ const DragIconContainer = styled(TopBarButtonSpan)`
   cursor: move;
 `;
 
-function DragHandle({ Wrapper, id }) {
+interface DragHandleProps {
+  Wrapper: React.ComponentType<{ id?: string; children: React.ReactNode }>;
+  id?: string;
+}
+
+function DragHandle({ Wrapper, id }: DragHandleProps): React.ReactElement {
   return (
     <Wrapper id={id}>
       <DragIconContainer>
@@ -45,7 +49,18 @@ function DragHandle({ Wrapper, id }) {
   );
 }
 
-function ListItemTopBar(props) {
+export interface ListItemTopBarProps {
+  className?: string;
+  collapsed?: boolean;
+  onCollapseToggle?: () => void;
+  onRemove?: () => void;
+  allowRemove?: boolean;
+  dragHandle?: React.ComponentType<{ id?: string; children: React.ReactNode }>;
+  allowReorder?: boolean;
+  id?: string;
+}
+
+function ListItemTopBar(props: ListItemTopBarProps): React.ReactElement {
   const {
     className,
     collapsed,
@@ -74,15 +89,6 @@ function ListItemTopBar(props) {
     </TopBar>
   );
 }
-
-ListItemTopBar.propTypes = {
-  className: PropTypes.string,
-  collapsed: PropTypes.bool,
-  onCollapseToggle: PropTypes.func,
-  onRemove: PropTypes.func,
-  allowRemove: PropTypes.bool,
-  allowReorder: PropTypes.bool,
-};
 
 const StyledListItemTopBar = styled(ListItemTopBar)`
   display: flex;

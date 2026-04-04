@@ -1,10 +1,10 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 
 import Icon from './Icon';
 import { buttons, shadows } from './styles';
 import GoBackButton from './GoBackButton';
+import type { TranslateFunction } from './GoBackButton';
 
 const StyledAuthenticationPage = styled.section`
   display: flex;
@@ -32,7 +32,11 @@ const NetlifyCreditIcon = styled(Icon)`
   bottom: 10px;
 `;
 
-function CustomLogoIcon({ url }) {
+interface CustomLogoIconProps {
+  url: string;
+}
+
+function CustomLogoIcon({ url }: CustomLogoIconProps): React.ReactElement {
   return (
     <CustomIconWrapper>
       <img src={url} alt="Logo" />
@@ -40,7 +44,7 @@ function CustomLogoIcon({ url }) {
   );
 }
 
-function renderPageLogo(logoUrl) {
+function renderPageLogo(logoUrl?: string): React.ReactElement {
   if (logoUrl) {
     return <CustomLogoIcon url={logoUrl} />;
   }
@@ -74,6 +78,29 @@ const TextButton = styled.button`
   position: relative;
 `;
 
+export interface LogoConfig {
+  src?: string;
+  show_in_header?: boolean;
+}
+
+export interface PageContentRenderProps {
+  LoginButton: typeof LoginButton;
+  TextButton: typeof TextButton;
+  showAbortButton: boolean;
+}
+
+export interface AuthenticationPageProps {
+  onLogin?: () => void;
+  loginDisabled?: boolean;
+  loginErrorMessage?: React.ReactNode;
+  renderButtonContent?: () => React.ReactNode;
+  renderPageContent?: (props: PageContentRenderProps) => React.ReactNode;
+  logoUrl?: string; // Deprecated, replaced by `logo.src`
+  logo?: LogoConfig;
+  siteUrl?: string;
+  t: TranslateFunction;
+}
+
 function AuthenticationPage({
   onLogin,
   loginDisabled,
@@ -84,7 +111,7 @@ function AuthenticationPage({
   logo,
   siteUrl,
   t,
-}) {
+}: AuthenticationPageProps): React.ReactElement {
   const authLogoUrl = logoUrl || logo?.src;
   return (
     <StyledAuthenticationPage>
@@ -104,19 +131,4 @@ function AuthenticationPage({
   );
 }
 
-AuthenticationPage.propTypes = {
-  onLogin: PropTypes.func,
-  logoUrl: PropTypes.string, // Deprecated, replaced by `logo.src`
-  logo: PropTypes.shape({
-    src: PropTypes.string,
-    show_in_header: PropTypes.bool,
-  }),
-  siteUrl: PropTypes.string,
-  loginDisabled: PropTypes.bool,
-  loginErrorMessage: PropTypes.node,
-  renderButtonContent: PropTypes.func,
-  renderPageContent: PropTypes.func,
-  t: PropTypes.func.isRequired,
-};
-
-export { AuthenticationPage as default, renderPageLogo };
+export { AuthenticationPage as default, renderPageLogo, LoginButton, TextButton };

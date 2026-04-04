@@ -1,8 +1,7 @@
 import styled from '@emotion/styled';
 import React from 'react';
-import PropTypes from 'prop-types';
 
-import { colorsRaw } from './styles.js';
+import { colorsRaw } from './styles';
 import Icon from './Icon';
 
 const GoBackButtonStyle = styled.a`
@@ -20,18 +19,19 @@ const ButtonText = styled.p`
   margin: 0 10px;
 `;
 
-export default class GoBackButton extends React.Component {
-  static propTypes = {
-    href: PropTypes.string.isRequired,
-    t: PropTypes.func.isRequired,
-  };
+export interface TranslateFunction {
+  (key: string, options?: Record<string, unknown>): string;
+}
 
-  componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(GoBackButton.propTypes, this.props, 'prop', 'GoBackButton');
-  }
+export interface GoBackButtonProps {
+  href: string;
+  t: TranslateFunction;
+}
 
-  render() {
+interface GoBackButtonState {}
+
+export default class GoBackButton extends React.Component<GoBackButtonProps, GoBackButtonState> {
+  render(): React.ReactElement {
     const { href, t } = this.props;
 
     return (

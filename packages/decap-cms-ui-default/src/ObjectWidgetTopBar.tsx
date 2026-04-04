@@ -1,8 +1,7 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
-import ImmutablePropTypes from 'react-immutable-proptypes';
+import { List } from 'immutable';
 
 import Icon from './Icon';
 import { colors, buttons } from './styles';
@@ -17,8 +16,12 @@ const TopBarContainer = styled.div`
   padding: 13px;
 `;
 
-const ExpandButtonContainer = styled.div`
-  ${props =>
+interface ExpandButtonContainerProps {
+  hasHeading?: boolean;
+}
+
+const ExpandButtonContainer = styled.div<ExpandButtonContainerProps>`
+  ${(props: ExpandButtonContainerProps) =>
     props.hasHeading &&
     css`
       display: flex;
@@ -49,30 +52,28 @@ const AddButton = styled.button`
   }
 `;
 
-class ObjectWidgetTopBar extends React.Component {
-  static propTypes = {
-    allowAdd: PropTypes.bool,
-    types: ImmutablePropTypes.list,
-    onAdd: PropTypes.func,
-    onAddType: PropTypes.func,
-    onCollapseToggle: PropTypes.func,
-    collapsed: PropTypes.bool,
-    heading: PropTypes.node,
-    label: PropTypes.string,
-    t: PropTypes.func.isRequired,
-  };
+export interface TranslateFunction {
+  (key: string, options?: Record<string, unknown>): string;
+}
 
-  componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(
-      ObjectWidgetTopBar.propTypes,
-      this.props,
-      'prop',
-      'ObjectWidgetTopBar',
-    );
-  }
+export interface TypeItem {
+  get(key: 'label' | 'name', defaultValue?: string): string;
+}
 
-  renderAddUI() {
+export interface ObjectWidgetTopBarProps {
+  allowAdd?: boolean;
+  types?: List<TypeItem>;
+  onAdd?: () => void;
+  onAddType?: (typeName: string) => void;
+  onCollapseToggle?: () => void;
+  collapsed?: boolean;
+  heading?: React.ReactNode;
+  label?: string;
+  t: TranslateFunction;
+}
+
+class ObjectWidgetTopBar extends React.Component<ObjectWidgetTopBarProps> {
+  renderAddUI(): React.ReactNode {
     if (!this.props.allowAdd) {
       return null;
     }
@@ -83,7 +84,7 @@ class ObjectWidgetTopBar extends React.Component {
     }
   }
 
-  renderTypesDropdown(types) {
+  renderTypesDropdown(types: List<TypeItem>): React.ReactElement {
     return (
       <Dropdown
         renderButton={() => (
@@ -92,18 +93,18 @@ class ObjectWidgetTopBar extends React.Component {
           </StyledDropdownButton>
         )}
       >
-        {types.map((type, idx) => (
+        {types.map((type: TypeItem, idx: number) => (
           <DropdownItem
             key={idx}
             label={type.get('label', type.get('name'))}
-            onClick={() => this.props.onAddType(type.get('name'))}
+            onClick={() => this.props.onAddType?.(type.get('name'))}
           />
         ))}
       </Dropdown>
     );
   }
 
-  renderAddButton() {
+  renderAddButton(): React.ReactElement {
     return (
       <AddButton onClick={this.props.onAdd}>
         {this.props.t('editor.editorWidgets.list.add', { item: this.props.label })}
@@ -112,7 +113,7 @@ class ObjectWidgetTopBar extends React.Component {
     );
   }
 
-  render() {
+  render(): React.ReactElement {
     const { onCollapseToggle, collapsed, heading = null, t } = this.props;
 
     return (

@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 
 import { colors, colorsRaw, shadows, transitions } from './styles';
+
+export interface ToggleActiveProps {
+  isActive?: boolean;
+}
 
 const ToggleContainer = styled.button`
   display: inline-flex;
@@ -19,7 +22,7 @@ const ToggleContainer = styled.button`
   background: transparent;
 `;
 
-const ToggleHandle = styled.span`
+const ToggleHandle = styled.span<ToggleActiveProps>`
   ${shadows.dropDeep};
   position: absolute;
   left: 0;
@@ -30,19 +33,35 @@ const ToggleHandle = styled.span`
   background-color: ${colorsRaw.white};
   transition: transform ${transitions.main};
 
-  ${props =>
+  ${(props: ToggleActiveProps) =>
     props.isActive &&
     css`
       transform: translateX(20px);
     `};
 `;
 
-const ToggleBackground = styled.span`
+const ToggleBackground = styled.span<ToggleActiveProps>`
   width: 34px;
   height: 14px;
   border-radius: 10px;
   background-color: ${colors.active};
 `;
+
+export type ToggleContainerComponent = typeof ToggleContainer;
+export type ToggleBackgroundComponent = typeof ToggleBackground;
+export type ToggleHandleComponent = typeof ToggleHandle;
+
+export interface ToggleProps {
+  id?: string;
+  active?: boolean;
+  onChange?: (isActive: boolean) => void;
+  onFocus?: React.FocusEventHandler<HTMLButtonElement>;
+  onBlur?: React.FocusEventHandler<HTMLButtonElement>;
+  className?: string;
+  Container?: React.ComponentType<React.ComponentProps<typeof ToggleContainer>>;
+  Background?: React.ComponentType<ToggleActiveProps>;
+  Handle?: React.ComponentType<ToggleActiveProps>;
+}
 
 function Toggle({
   id,
@@ -54,11 +73,11 @@ function Toggle({
   Container = ToggleContainer,
   Background = ToggleBackground,
   Handle = ToggleHandle,
-}) {
-  const [isActive, setIsActive] = useState(active);
+}: ToggleProps): React.ReactElement {
+  const [isActive, setIsActive] = useState<boolean | undefined>(active);
 
-  function handleToggle() {
-    setIsActive(prevIsActive => !prevIsActive);
+  function handleToggle(): void {
+    setIsActive((prevIsActive: boolean | undefined) => !prevIsActive);
     if (onChange) {
       onChange(!isActive);
     }
@@ -72,26 +91,14 @@ function Toggle({
       className={className}
       onClick={handleToggle}
       role="switch"
-      aria-checked={isActive?.toString()}
-      aria-expanded={null}
+      aria-checked={isActive ? 'true' : 'false'}
+      aria-expanded={undefined}
     >
       <Background isActive={isActive} />
       <Handle isActive={isActive} />
     </Container>
   );
 }
-
-Toggle.propTypes = {
-  id: PropTypes.string,
-  active: PropTypes.bool,
-  onChange: PropTypes.func,
-  onFocus: PropTypes.func,
-  onBlur: PropTypes.func,
-  className: PropTypes.string,
-  Container: PropTypes.func,
-  Background: PropTypes.func,
-  Handle: PropTypes.func,
-};
 
 const StyledToggle = styled(Toggle)``;
 

@@ -16,6 +16,10 @@
     "build": "tsc --build",
     "clean": "rimraf dist"
   },
+  "devDependencies": {
+    "@types/react": "catalog:types",
+    "@types/react-transition-group": "^4.4.12"
+  },
   "dependencies": {
     "react-aria-menubutton": "catalog:react",
     "react-transition-group": "catalog:react"

@@ -2,28 +2,45 @@ import React from 'react';
 import styled from '@emotion/styled';
 
 import Icon from './Icon';
+import type { IconName } from './Icon/icons';
 import { buttons, colors, colorsRaw, shadows } from './styles';
 
-const sizes = {
+type IconButtonSize = 'small' | 'large';
+
+const sizes: Record<IconButtonSize, string> = {
   small: '28px',
   large: '40px',
 };
 
-const ButtonRound = styled.button`
+interface ButtonRoundProps {
+  size: IconButtonSize;
+  isActive?: boolean;
+}
+
+const ButtonRound = styled.button<ButtonRoundProps>`
   ${buttons.button};
   ${shadows.dropMiddle};
   background-color: ${colorsRaw.white};
-  color: ${props => colors[props.isActive ? `active` : `inactive`]};
+  color: ${(props: ButtonRoundProps) => colors[props.isActive ? 'active' : 'inactive']};
   border-radius: 32px;
   display: flex;
   justify-content: center;
   align-items: center;
-  width: ${props => sizes[props.size]};
-  height: ${props => sizes[props.size]};
+  width: ${(props: ButtonRoundProps) => sizes[props.size]};
+  height: ${(props: ButtonRoundProps) => sizes[props.size]};
   padding: 0;
 `;
 
-function IconButton({ size, isActive, type, onClick, className, title }) {
+export interface IconButtonProps {
+  size: IconButtonSize;
+  isActive?: boolean;
+  type: IconName;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  className?: string;
+  title?: string;
+}
+
+function IconButton({ size, isActive, type, onClick, className, title }: IconButtonProps): React.ReactElement {
   return (
     <ButtonRound
       size={size}

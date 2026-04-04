@@ -1,3 +1,5 @@
+import type { FC, SVGProps } from 'react';
+
 import iconAdd from './add.svg';
 import iconAddWith from './add-with.svg';
 import iconArrow from './arrow.svg';
@@ -47,10 +49,62 @@ import iconUser from './user.svg';
 import iconWorkflow from './workflow.svg';
 import iconWrite from './write.svg';
 
-const iconix = iconAdd;
+export type IconComponent = FC<SVGProps<SVGSVGElement>>;
 
-const images = {
-  add: iconix,
+export interface IconImages {
+  add: IconComponent;
+  'add-with': IconComponent;
+  arrow: IconComponent;
+  azure: IconComponent;
+  bitbucket: IconComponent;
+  bold: IconComponent;
+  check: IconComponent;
+  chevron: IconComponent;
+  'chevron-double': IconComponent;
+  circle: IconComponent;
+  close: IconComponent;
+  code: IconComponent;
+  'code-block': IconComponent;
+  'drag-handle': IconComponent;
+  eye: IconComponent;
+  folder: IconComponent;
+  github: IconComponent;
+  gitlab: IconComponent;
+  gitea: IconComponent;
+  grid: IconComponent;
+  h1: IconComponent;
+  h2: IconComponent;
+  hOptions: IconComponent;
+  home: IconComponent;
+  image: IconComponent;
+  'info-circle': IconComponent;
+  italic: IconComponent;
+  link: IconComponent;
+  list: IconComponent;
+  'list-bulleted': IconComponent;
+  'list-numbered': IconComponent;
+  markdown: IconComponent;
+  media: IconComponent;
+  'media-alt': IconComponent;
+  decap: IconComponent;
+  'decap-cms': IconComponent;
+  'new-tab': IconComponent;
+  page: IconComponent;
+  pages: IconComponent;
+  'pages-alt': IconComponent;
+  quote: IconComponent;
+  refresh: IconComponent;
+  scroll: IconComponent;
+  search: IconComponent;
+  settings: IconComponent;
+  strikethrough: IconComponent;
+  user: IconComponent;
+  workflow: IconComponent;
+  write: IconComponent;
+}
+
+const images: IconImages = {
+  add: iconAdd,
   'add-with': iconAddWith,
   arrow: iconArrow,
   azure: iconAzure,

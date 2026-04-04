@@ -1,15 +1,19 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 
-import icons from './Icon/icons';
+import icons, { IconDirection, IconName } from './Icon/icons';
 
-const IconWrapper = styled.span`
+interface IconWrapperProps {
+  size: string;
+  rotation: string;
+}
+
+const IconWrapper = styled.span<IconWrapperProps>`
   display: inline-block;
   line-height: 0;
-  width: ${props => props.size};
-  height: ${props => props.size};
-  transform: ${props => `rotate(${props.rotation})`};
+  width: ${(props: IconWrapperProps) => props.size};
+  height: ${(props: IconWrapperProps) => props.size};
+  transform: ${(props: IconWrapperProps) => `rotate(${props.rotation})`};
 
   & path:not(.no-fill),
   & circle:not(.no-fill),
@@ -36,41 +40,43 @@ const IconWrapper = styled.span`
  * Returned value is a string of shape `${degrees}deg`, for use in a CSS
  * transform.
  */
-function getRotation(iconDirection, newDirection) {
+function getRotation(iconDirection: IconDirection | undefined, newDirection: IconDirection | undefined): string {
   if (!iconDirection || !newDirection) {
     return '0deg';
   }
-  const rotations = { right: 90, down: 180, left: 270, up: 360 };
+  const rotations: Record<IconDirection, number> = { right: 90, down: 180, left: 270, up: 360 };
   const degrees = rotations[newDirection] - rotations[iconDirection];
   return `${degrees}deg`;
 }
 
-const sizes = {
+export type IconSize = 'xsmall' | 'small' | 'medium' | 'large';
+
+const sizes: Record<IconSize, string> = {
   xsmall: '12px',
   small: '18px',
   medium: '24px',
   large: '32px',
 };
 
-function Icon({ type, direction, size = 'medium', className }) {
+export interface IconProps {
+  type: IconName;
+  direction?: IconDirection;
+  size?: IconSize | string;
+  className?: string;
+}
+
+function Icon({ type, direction, size = 'medium', className }: IconProps): React.ReactElement {
   const IconSvg = icons[type].image;
 
   return (
     <IconWrapper
       className={className}
-      size={sizes[size] || size}
+      size={sizes[size as IconSize] || size}
       rotation={getRotation(icons[type].direction, direction)}
     >
       <IconSvg />
     </IconWrapper>
   );
 }
-
-Icon.propTypes = {
-  type: PropTypes.string.isRequired,
-  direction: PropTypes.oneOf(['right', 'down', 'left', 'up']),
-  size: PropTypes.string,
-  className: PropTypes.string,
-};
 
 export default styled(Icon)``;

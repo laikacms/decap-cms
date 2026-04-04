@@ -2,7 +2,18 @@ import styled from '@emotion/styled';
 
 import { colors, colorsRaw, transitions, text } from './styles';
 
-const stateColors = {
+interface StateColors {
+  background: string;
+  text: string;
+}
+
+interface StateColorsMap {
+  default: StateColors;
+  active: StateColors;
+  error: StateColors;
+}
+
+const stateColors: StateColorsMap = {
   default: {
     background: colors.textFieldBorder,
     text: colors.controlLabel,
@@ -17,16 +28,21 @@ const stateColors = {
   },
 };
 
-function getStateColors({ isActive, hasErrors }) {
+export interface FieldLabelStateProps {
+  isActive?: boolean;
+  hasErrors?: boolean;
+}
+
+function getStateColors({ isActive, hasErrors }: FieldLabelStateProps): StateColors {
   if (hasErrors) return stateColors.error;
   if (isActive) return stateColors.active;
   return stateColors.default;
 }
 
-const FieldLabel = styled.label`
+const FieldLabel = styled.label<FieldLabelStateProps>`
   ${text.fieldLabel};
-  color: ${props => getStateColors(props).text};
-  background-color: ${props => getStateColors(props).background};
+  color: ${(props: FieldLabelStateProps) => getStateColors(props).text};
+  background-color: ${(props: FieldLabelStateProps) => getStateColors(props).background};
   display: inline-block;
   border: 0;
   border-radius: 3px 3px 0 0;

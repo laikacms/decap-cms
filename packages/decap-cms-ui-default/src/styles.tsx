@@ -1,10 +1,16 @@
 import React from 'react';
-import { css, Global } from '@emotion/react';
+import { css, Global, SerializedStyles } from '@emotion/react';
+import type { CSSObject } from '@emotion/react';
 
 /**
  * Font Stacks
  */
-const fonts = {
+interface Fonts {
+  primary: string;
+  mono: string;
+}
+
+const fonts: Fonts = {
   primary: `
     system-ui,
     -apple-system,
@@ -31,7 +37,28 @@ const fonts = {
 /**
  * Theme Colors
  */
-const colorsRaw = {
+interface ColorsRaw {
+  white: string;
+  grayLight: string;
+  gray: string;
+  grayDark: string;
+  blue: string;
+  blueLight: string;
+  green: string;
+  greenLight: string;
+  brown: string;
+  yellow: string;
+  red: string;
+  redDark: string;
+  redLight: string;
+  purple: string;
+  purpleLight: string;
+  teal: string;
+  tealDark: string;
+  tealLight: string;
+}
+
+const colorsRaw: ColorsRaw = {
   white: '#fff',
   grayLight: '#eff0f4',
   gray: '#798291',
@@ -52,7 +79,41 @@ const colorsRaw = {
   tealLight: '#ddf5f9',
 };
 
-const colors = {
+interface Colors {
+  statusDraftText: string;
+  statusDraftBackground: string;
+  statusReviewText: string;
+  statusReviewBackground: string;
+  statusReadyText: string;
+  statusReadyBackground: string;
+  text: string;
+  textLight: string;
+  textLead: string;
+  background: string;
+  foreground: string;
+  active: string;
+  activeBackground: string;
+  inactive: string;
+  button: string;
+  buttonText: string;
+  inputBackground: string;
+  infoText: string;
+  infoBackground: string;
+  successText: string;
+  successBackground: string;
+  warnText: string;
+  warnBackground: string;
+  errorText: string;
+  errorBackground: string;
+  textFieldBorder: string;
+  controlLabel: string;
+  checkerboardLight: string;
+  checkerboardDark: string;
+  mediaDraftText: string;
+  mediaDraftBackground: string;
+}
+
+const colors: Colors = {
   statusDraftText: colorsRaw.purple,
   statusDraftBackground: colorsRaw.purpleLight,
   statusReviewText: colorsRaw.brown,
@@ -86,7 +147,18 @@ const colors = {
   mediaDraftBackground: colorsRaw.purpleLight,
 };
 
-const lengths = {
+interface Lengths {
+  topBarHeight: string;
+  inputPadding: string;
+  borderRadius: string;
+  richTextEditorMinHeight: string;
+  borderWidth: string;
+  topCardWidth: string;
+  pageMargin: string;
+  objectWidgetTopBarContainerPadding: string;
+}
+
+const lengths: Lengths = {
   topBarHeight: '56px',
   inputPadding: '16px 20px',
   borderRadius: '5px',
@@ -97,15 +169,31 @@ const lengths = {
   objectWidgetTopBarContainerPadding: '0 14px 14px',
 };
 
-const borders = {
+interface Borders {
+  textField: string;
+}
+
+const borders: Borders = {
   textField: `solid  ${lengths.borderWidth} ${colors.textFieldBorder}`,
 };
 
-const transitions = {
+interface Transitions {
+  main: string;
+}
+
+const transitions: Transitions = {
   main: '.2s ease',
 };
 
-const shadows = {
+interface Shadows {
+  drop: string;
+  dropMain: string;
+  dropMiddle: string;
+  dropDeep: string;
+  inset: string;
+}
+
+const shadows: Shadows = {
   drop: `
     box-shadow: 0 2px 4px 0 rgba(19, 39, 48, 0.12);
   `,
@@ -123,7 +211,11 @@ const shadows = {
   `,
 };
 
-const text = {
+interface Text {
+  fieldLabel: SerializedStyles;
+}
+
+const text: Text = {
   fieldLabel: css`
     font-size: 12px;
     text-transform: uppercase;
@@ -132,7 +224,11 @@ const text = {
   `,
 };
 
-const gradients = {
+interface Gradients {
+  checkerboard: string;
+}
+
+const gradients: Gradients = {
   checkerboard: `
     linear-gradient(
       45deg,
@@ -145,7 +241,11 @@ const gradients = {
   `,
 };
 
-const effects = {
+interface Effects {
+  checkerboard: SerializedStyles;
+}
+
+const effects: Effects = {
   checkerboard: css`
     background-color: ${colors.checkerboardLight};
     background-size: 16px 16px;
@@ -154,12 +254,12 @@ const effects = {
   `,
 };
 
-const badge = css`
+const badge: SerializedStyles = css`
   font-size: 13px;
   line-height: 1;
 `;
 
-const backgroundBadge = css`
+const backgroundBadge: SerializedStyles = css`
   ${badge};
   display: block;
   border-radius: ${lengths.borderRadius};
@@ -167,20 +267,36 @@ const backgroundBadge = css`
   text-align: center;
 `;
 
-const textBadge = css`
+const textBadge: SerializedStyles = css`
   ${badge};
   display: inline-block;
   font-weight: 700;
   text-transform: uppercase;
 `;
 
-const card = css`
+const card: SerializedStyles = css`
   ${shadows.dropMain};
   border-radius: 5px;
   background-color: #fff;
 `;
 
-const buttons = {
+interface Buttons {
+  button: SerializedStyles;
+  default: SerializedStyles;
+  widget: SerializedStyles;
+  medium: SerializedStyles;
+  small: SerializedStyles;
+  gray: SerializedStyles;
+  grayText: SerializedStyles;
+  green: SerializedStyles;
+  lightRed: SerializedStyles;
+  lightBlue: SerializedStyles;
+  lightTeal: SerializedStyles;
+  teal: SerializedStyles;
+  disabled: SerializedStyles;
+}
+
+const buttons: Buttons = {
   button: css`
     border: 0;
     border-radius: ${lengths.borderRadius};
@@ -257,7 +373,7 @@ const buttons = {
   `,
 };
 
-const caret = css`
+const caret: SerializedStyles = css`
   color: ${colorsRaw.white};
   width: 0;
   height: 0;
@@ -265,7 +381,27 @@ const caret = css`
   border-radius: 2px;
 `;
 
-const components = {
+interface Components {
+  card: SerializedStyles;
+  caretDown: SerializedStyles;
+  caretRight: SerializedStyles;
+  badge: SerializedStyles;
+  badgeSuccess: SerializedStyles;
+  badgeDanger: SerializedStyles;
+  textBadge: SerializedStyles;
+  textBadgeSuccess: SerializedStyles;
+  textBadgeDanger: SerializedStyles;
+  loaderSize: SerializedStyles;
+  cardTop: SerializedStyles;
+  cardTopHeading: SerializedStyles;
+  cardTopDescription: SerializedStyles;
+  objectWidgetTopBarContainer: SerializedStyles;
+  dropdownList: SerializedStyles;
+  dropdownItem: SerializedStyles;
+  viewControlsText: SerializedStyles;
+}
+
+const components: Components = {
   card,
   caretDown: css`
     ${caret};
@@ -370,8 +506,30 @@ const components = {
   `,
 };
 
-const reactSelectStyles = {
-  control: styles => ({
+interface ReactSelectStylesState {
+  isSelected?: boolean;
+  isFocused?: boolean;
+  hasValue?: boolean;
+  selectProps?: {
+    isClearable?: boolean;
+  };
+}
+
+interface ReactSelectStyles {
+  control: (styles: CSSObject) => CSSObject;
+  option: (styles: CSSObject, state: ReactSelectStylesState) => CSSObject;
+  menu: (styles: CSSObject) => CSSObject;
+  container: (styles: CSSObject) => CSSObject;
+  indicatorSeparator: (styles: CSSObject, state: ReactSelectStylesState) => CSSObject;
+  dropdownIndicator: (styles: CSSObject) => CSSObject;
+  clearIndicator: (styles: CSSObject) => CSSObject;
+  multiValue: (styles: CSSObject) => CSSObject;
+  multiValueLabel: (styles: CSSObject) => CSSObject;
+  multiValueRemove: (styles: CSSObject) => CSSObject;
+}
+
+const reactSelectStyles: ReactSelectStyles = {
+  control: (styles: CSSObject): CSSObject => ({
     ...styles,
     border: 0,
     boxShadow: 'none',
@@ -380,7 +538,7 @@ const reactSelectStyles = {
     overflow: 'hidden',
     textOverflow: 'ellipsis',
   }),
-  option: (styles, state) => ({
+  option: (styles: CSSObject, state: ReactSelectStylesState): CSSObject => ({
     ...styles,
     backgroundColor: state.isSelected
       ? `${colors.active}`
@@ -389,24 +547,24 @@ const reactSelectStyles = {
       : 'transparent',
     paddingLeft: '22px',
   }),
-  menu: styles => ({ ...styles, right: 0, zIndex: zIndex.zIndex300 }),
-  container: styles => ({ ...styles, padding: '0 !important' }),
-  indicatorSeparator: (styles, state) =>
-    state.hasValue && state.selectProps.isClearable
+  menu: (styles: CSSObject): CSSObject => ({ ...styles, right: 0, zIndex: zIndex.zIndex300 }),
+  container: (styles: CSSObject): CSSObject => ({ ...styles, padding: '0 !important' }),
+  indicatorSeparator: (styles: CSSObject, state: ReactSelectStylesState): CSSObject =>
+    state.hasValue && state.selectProps?.isClearable
       ? { ...styles, backgroundColor: `${colors.textFieldBorder}` }
       : { display: 'none' },
-  dropdownIndicator: styles => ({ ...styles, color: `${colors.controlLabel}` }),
-  clearIndicator: styles => ({ ...styles, color: `${colors.controlLabel}` }),
-  multiValue: styles => ({
+  dropdownIndicator: (styles: CSSObject): CSSObject => ({ ...styles, color: `${colors.controlLabel}` }),
+  clearIndicator: (styles: CSSObject): CSSObject => ({ ...styles, color: `${colors.controlLabel}` }),
+  multiValue: (styles: CSSObject): CSSObject => ({
     ...styles,
     backgroundColor: colors.background,
   }),
-  multiValueLabel: styles => ({
+  multiValueLabel: (styles: CSSObject): CSSObject => ({
     ...styles,
     color: colors.textLead,
     fontWeight: 500,
   }),
-  multiValueRemove: styles => ({
+  multiValueRemove: (styles: CSSObject): CSSObject => ({
     ...styles,
     color: colors.controlLabel,
     ':hover': {
@@ -416,7 +574,21 @@ const reactSelectStyles = {
   }),
 };
 
-const zIndex = {
+interface ZIndex {
+  zIndex0: number;
+  zIndex1: number;
+  zIndex2: number;
+  zIndex10: number;
+  zIndex100: number;
+  zIndex200: number;
+  zIndex299: number;
+  zIndex300: number;
+  zIndex1000: number;
+  zIndex10000: number;
+  zIndex99999: number;
+}
+
+const zIndex: ZIndex = {
   zIndex0: 0,
   zIndex1: 1,
   zIndex2: 2,
@@ -430,7 +602,7 @@ const zIndex = {
   zIndex99999: 99999,
 };
 
-function GlobalStyles() {
+function GlobalStyles(): React.ReactElement {
   return (
     <Global
       styles={css`
@@ -539,4 +711,20 @@ export {
   zIndex,
   reactSelectStyles,
   GlobalStyles,
+};
+
+export type {
+  Fonts,
+  ColorsRaw,
+  Colors,
+  Lengths,
+  Borders,
+  Transitions,
+  Shadows,
+  Text,
+  Effects,
+  Buttons,
+  Components,
+  ZIndex,
+  ReactSelectStyles,
 };
