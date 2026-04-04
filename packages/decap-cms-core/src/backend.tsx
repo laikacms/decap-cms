@@ -364,7 +364,7 @@ export class Backend {
     this.implementation = implementation.init(this.config, {
       useWorkflow: selectUseWorkflow(this.config),
       updateUserCredentials: this.updateUserCredentials,
-      initialWorkflowStatus: status.first(),
+      initialWorkflowStatus: status.first() ?? '',
     });
     this.backendName = backendName;
     this.authStore = authStore;
@@ -442,7 +442,7 @@ export class Backend {
     try {
       await this.implementation.logout();
     } catch (e) {
-      console.warn('Error during logout', e.message);
+      console.warn('Error during logout', (e as Error).message);
     } finally {
       this.user = null;
       if (this.authStore) {
@@ -772,10 +772,7 @@ export class Backend {
       }
 
       const mediaFiles = await Promise.all<MediaFile>(
-        entry
-          .get('mediaFiles')
-          .toJS()
-          .map(async (file: MediaFile) => {
+        (entry.get('mediaFiles').toJS() as unknown as MediaFile[]).map(async (file: MediaFile) => {
             // make sure to serialize the file
             if (file.url?.startsWith('blob:')) {
               const blob = await fetch(file.url as string).then(res => res.blob());
@@ -896,7 +893,7 @@ export class Backend {
     let extension: string;
     if (collection.get('type') === FILES) {
       const file = collection.get('files')!.find(f => f?.get('name') === slug);
-      extension = extname(file.get('file'));
+      extension = extname(file?.get('file') ?? '');
     } else {
       extension = selectFolderEntryExtension(collection);
     }
@@ -994,7 +991,7 @@ export class Backend {
 
   async processEntry(state: State, collection: Collection, entry: EntryValue) {
     const integration = selectIntegration(state.integrations, null, 'assetStore');
-    const mediaFolders = selectMediaFolders(state.config, collection, fromJS(entry));
+    const mediaFolders = selectMediaFolders(state.config, collection, fromJS(entry) as unknown as EntryMap);
     if (mediaFolders.length > 0 && !integration) {
       const files = await Promise.all(
         mediaFolders.map(folder => this.implementation.getMedia(folder)),
@@ -1391,7 +1388,7 @@ export function resolveBackend(config: CmsConfig) {
   if (!backend) {
     throw new Error(`Backend not found: ${name}`);
   } else {
-    return new Backend(backend, { backendName: name, authStore, config });
+    return new Backend(backend as unknown as Implementation, { backendName: name, authStore, config });
   }
 }
 
