@@ -1,0 +1,68 @@
+import { useMemo, useCallback } from 'react';
+
+import { useAppDispatch, useAppSelector } from './useRedux';
+import { EDITORIAL_WORKFLOW } from '../constants/publishModes';
+import { selectUnpublishedEntry } from '../reducers';
+import { selectAllowDeletion } from '../reducers/collections';
+import { loadUnpublishedEntry, persistUnpublishedEntry } from '../actions/editorialWorkflow';
+import { loadEntry as loadEntryAction, persistEntry as persistEntryAction } from '../actions/entries';
+
+import type { Collection } from '../types/cms';
+
+interface UseWorkflowOptions {
+  collectionName: string;
+  slug?: string;
+  newEntry: boolean;
+}
+
+export function useWorkflow({ collectionName, slug, newEntry }: UseWorkflowOptions) {
+  const dispatch = useAppDispatch();
+  
+  const collection = useAppSelector(state => state.collections.get(collectionName)) as Collection | undefined;
+  const isEditorialWorkflow = useAppSelector(state => state.config.publish_mode === EDITORIAL_WORKFLOW);
+  const unpublishedEntry = useAppSelector(state =>
+    isEditorialWorkflow && slug ? selectUnpublishedEntry(state, collectionName, slug) : null
+  );
+  
+  const showDelete = useMemo(() => {
+    if (!collection) return false;
+    return !newEntry && selectAllowDeletion(collection);
+  }, [collection, newEntry]);
+  
+  const hasUnpublishedEntry = Boolean(unpublishedEntry);
+  
+  // Override loadEntry for editorial workflow
+  const loadEntry = useCallback(
+    (coll: Collection, entrySlug: string) => {
+      if (isEditorialWorkflow) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return dispatch(loadUnpublishedEntry(coll, entrySlug) as any);
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return dispatch(loadEntryAction(coll, entrySlug) as any);
+    },
+    [dispatch, isEditorialWorkflow]
+  );
+  
+  // Override persistEntry for editorial workflow
+  const persistEntry = useCallback(
+    (coll: Collection) => {
+      if (isEditorialWorkflow) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return dispatch(persistUnpublishedEntry(coll, hasUnpublishedEntry) as any);
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return dispatch(persistEntryAction(coll) as any);
+    },
+    [dispatch, isEditorialWorkflow, hasUnpublishedEntry]
+  );
+  
+  return {
+    isEditorialWorkflow,
+    showDelete,
+    unpublishedEntry: hasUnpublishedEntry,
+    entry: unpublishedEntry,
+    loadEntry,
+    persistEntry,
+  };
+}

@@ -1,0 +1,128 @@
+import { useCallback, useMemo } from 'react';
+
+import { useAppSelector, useAppDispatch } from './useRedux';
+import { sortByField, filterByField, changeViewStyle, groupByField } from '../actions/entries';
+import {
+  selectSortableFields,
+  selectViewFilters,
+  selectViewGroups,
+} from '../reducers/collections';
+import {
+  selectEntriesSort,
+  selectEntriesFilter,
+  selectEntriesGroup,
+  selectViewStyle,
+} from '../reducers/entries';
+import { getNewEntryUrl } from '../lib/urlHelper';
+
+/**
+ * Hook for collection state and actions
+ * Replaces connect() mapStateToProps/mapDispatchToProps for Collection component
+ */
+export function useCollection(collectionName?: string, t?: (key: string) => string) {
+  const dispatch = useAppDispatch();
+  const collections = useAppSelector(state => state.collections);
+  const entries = useAppSelector(state => state.entries);
+  const isSearchEnabled = useAppSelector(state => state.config?.search !== false);
+
+  const collection = useMemo(() => {
+    if (collectionName) {
+      return collections.get(collectionName);
+    }
+    return collections.first();
+  }, [collections, collectionName]);
+
+  const name = collection?.get('name');
+
+  const sort = useMemo(
+    () => (name ? selectEntriesSort(entries, name) : undefined),
+    [entries, name]
+  );
+
+  const sortableFields = useMemo(
+    () => (collection && t ? selectSortableFields(collection, t) : []),
+    [collection, t]
+  );
+
+  const viewFilters = useMemo(
+    () => (collection ? selectViewFilters(collection) : undefined),
+    [collection]
+  );
+
+  const viewGroups = useMemo(
+    () => (collection ? selectViewGroups(collection) : undefined),
+    [collection]
+  );
+
+  const filter = useMemo(
+    () => (name ? selectEntriesFilter(entries, name) : undefined),
+    [entries, name]
+  );
+
+  const group = useMemo(
+    () => (name ? selectEntriesGroup(entries, name) : undefined),
+    [entries, name]
+  );
+
+  const viewStyle = useMemo(() => selectViewStyle(entries), [entries]);
+
+  const newEntryUrl = useMemo(() => {
+    if (collection?.get('create') && name) {
+      return getNewEntryUrl(name);
+    }
+    return '';
+  }, [collection, name]);
+
+  const onSortClick = useCallback(
+    (key: string, direction: string) => {
+      if (collection) {
+        dispatch(sortByField(collection, key, direction));
+      }
+    },
+    [dispatch, collection]
+  );
+
+  const onFilterClick = useCallback(
+    (filterValue: unknown) => {
+      if (collection) {
+        dispatch(filterByField(collection, filterValue));
+      }
+    },
+    [dispatch, collection]
+  );
+
+  const onGroupClick = useCallback(
+    (groupValue: unknown) => {
+      if (collection) {
+        dispatch(groupByField(collection, groupValue));
+      }
+    },
+    [dispatch, collection]
+  );
+
+  const onChangeViewStyle = useCallback(
+    (style: string) => {
+      dispatch(changeViewStyle(style));
+    },
+    [dispatch]
+  );
+
+  return {
+    collection,
+    collections,
+    collectionName: name,
+    isSearchEnabled,
+    sort,
+    sortableFields,
+    viewFilters,
+    viewGroups,
+    filter,
+    group,
+    viewStyle,
+    newEntryUrl,
+    onSortClick,
+    onFilterClick,
+    onGroupClick,
+    onChangeViewStyle,
+  };
+}
