@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
-import jwtDecode from 'jwt-decode';
-import { PkceAuthenticator } from 'decap-cms-lib-auth';
+import { jwtDecode } from 'jwt-decode';
+import { PkceAuthenticator, PkceAuthResult } from 'decap-cms-lib-auth';
 import { AuthenticationPage, Icon } from 'decap-cms-ui-default';
 
 const LoginButtonIcon = styled(Icon)`
@@ -167,7 +167,7 @@ export default class PKCEAuthenticationPage extends React.Component<
     });
 
     // Complete authentication if we were redirected back from the provider.
-    this.auth.completeAuth((err: Error | null, data: PKCEUser | null) => {
+    this.auth.completeAuth((err, data) => {
       if (err) {
         this.setState({ loginError: err.toString() });
         return;
@@ -175,39 +175,45 @@ export default class PKCEAuthenticationPage extends React.Component<
 
       if (!data) return;
 
-      data.user_metadata = data.user_metadata || {};
+      const user: PKCEUser = {
+        ...data,
+        user_metadata: {},
+      };
       if (data.access_token) {
-        data.token = data.access_token;
+        user.token = data.access_token;
         try {
-          data.claims = jwtDecode<JWTClaims>(data.access_token);
-          normalizeClaims(data, data.claims);
+          user.claims = jwtDecode<JWTClaims>(data.access_token);
+          normalizeClaims(user, user.claims);
         } catch {
           /* Ignore */
         }
       }
-      if (data.id_token) {
+      if (data.id_token && typeof data.id_token === 'string') {
         try {
-          data.idClaims = jwtDecode<JWTClaims>(data.id_token);
-          normalizeClaims(data, data.idClaims);
+          user.idClaims = jwtDecode<JWTClaims>(data.id_token);
+          normalizeClaims(user, user.idClaims);
         } catch {
           /* Ignore */
         }
       }
 
-      this.props.onLogin(data);
+      this.props.onLogin(user);
     });
   }
 
-  handleLogin = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
+  handleLogin = () => {
     const scope = this.props.config.auth?.scope || this.props.config.auth_scope || 'openid email';
-    this.auth.authenticate({ scope }, (err: Error | null, data: PKCEUser | null) => {
+    this.auth.authenticate({ scope }, (err, data) => {
       if (err) {
         this.setState({ loginError: err.toString() });
         return;
       }
       if (data) {
-        this.props.onLogin(data);
+        const user: PKCEUser = {
+          ...data,
+          user_metadata: {},
+        };
+        this.props.onLogin(user);
       }
     });
   };
