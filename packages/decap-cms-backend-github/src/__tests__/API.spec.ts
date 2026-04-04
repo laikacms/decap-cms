@@ -1,4 +1,3 @@
-import { Base64 } from 'js-base64';
 
 import API from '../API';
 
@@ -249,7 +248,7 @@ describe('github API', () => {
         {
           method: 'POST',
           body: JSON.stringify({
-            content: Base64.encode(entry.dataFiles[0].raw),
+            content: btoa(entry.dataFiles[0].raw),
             encoding: 'base64',
           }),
         },

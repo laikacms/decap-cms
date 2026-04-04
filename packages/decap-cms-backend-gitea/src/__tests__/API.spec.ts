@@ -1,5 +1,3 @@
-import { Base64 } from 'js-base64';
-
 import API from '../API';
 
 global.fetch = jest.fn().mockRejectedValue(new Error('should not call fetch inside tests'));
@@ -175,12 +173,12 @@ describe('gitea API', () => {
             files: [
               {
                 operation: 'create',
-                content: Base64.encode(entry.dataFiles[0].raw),
+                content: btoa(entry.dataFiles[0].raw),
                 path: entry.dataFiles[0].path,
               },
               {
                 operation: 'update',
-                content: Base64.encode(entry.dataFiles[1].raw),
+                content: btoa(entry.dataFiles[1].raw),
                 path: entry.dataFiles[1].path,
                 sha: entry.dataFiles[1].sha,
               },

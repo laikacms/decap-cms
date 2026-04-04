@@ -1,4 +1,3 @@
-import { Base64 } from 'js-base64';
 import semaphore from 'semaphore';
 import initial from 'lodash/initial';
 import last from 'lodash/last';
@@ -689,11 +688,11 @@ export default class API {
 
     if (parseText) {
       // treat content as a utf-8 string
-      const content = Base64.decode(result.content);
+      const content = atob(result.content);
       return content;
     } else {
       // treat content as binary and convert to blob
-      const content = Base64.atob(result.content);
+      const content = atob(result.content);
       const byteArray = new Uint8Array(content.length);
       for (let i = 0; i < content.length; i++) {
         byteArray[i] = content.charCodeAt(i);
@@ -1393,7 +1392,7 @@ export default class API {
   }
 
   toBase64(str: string) {
-    return Promise.resolve(Base64.encode(str));
+    return Promise.resolve(btoa(str));
   }
 
   async uploadBlob(item: { raw?: string; sha?: string; toBase64?: () => Promise<string> }) {

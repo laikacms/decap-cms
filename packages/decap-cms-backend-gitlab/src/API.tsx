@@ -26,7 +26,6 @@ import {
   readFileMetadata,
   throwOnConflictingBranches,
 } from 'decap-cms-lib-util';
-import { Base64 } from 'js-base64';
 import { Map } from 'immutable';
 import flow from 'lodash/flow';
 import partial from 'lodash/partial';
@@ -567,8 +566,8 @@ export default class API {
     return entries.filter(({ type }) => type === 'blob');
   };
 
-  toBase64 = (str: string) => Promise.resolve(Base64.encode(str));
-  fromBase64 = (str: string) => Base64.decode(str);
+  toBase64 = (str: string) => Promise.resolve(btoa(str));
+  fromBase64 = (str: string) => atob(str);
 
   async getBranch(branchName: string) {
     const branch: GitLabBranch = await this.requestJSON(
