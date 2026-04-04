@@ -1,4 +1,4 @@
-import { fromJS } from 'immutable';
+import { fromJS, Map } from 'immutable';
 import { Cursor } from 'decap-cms-lib-util';
 
 import {
@@ -8,14 +8,21 @@ import {
   GROUP_ENTRIES_SUCCESS,
 } from '../actions/entries';
 
+import type { AnyAction } from 'redux';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type CursorsState = Map<string, any>;
+
 // Since pagination can be used for a variety of views (collections
 // and searches are the most common examples), we namespace cursors by
 // their type before storing them in the state.
-export function selectCollectionEntriesCursor(state, collectionName) {
+export function selectCollectionEntriesCursor(state: CursorsState, collectionName: string): Cursor {
   return new Cursor(state.getIn(['cursorsByType', 'collectionEntries', collectionName]));
 }
 
-function cursors(state = fromJS({ cursorsByType: { collectionEntries: {} } }), action) {
+const defaultState: CursorsState = fromJS({ cursorsByType: { collectionEntries: {} } });
+
+function cursors(state: CursorsState = defaultState, action: AnyAction): CursorsState {
   switch (action.type) {
     case ENTRIES_SUCCESS: {
       return state.setIn(

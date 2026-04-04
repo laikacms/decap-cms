@@ -8,4 +8,6 @@ function createRootReducer() {
   });
 }
 
+export type RootState = ReturnType<ReturnType<typeof createRootReducer>>;
+
 export default createRootReducer;

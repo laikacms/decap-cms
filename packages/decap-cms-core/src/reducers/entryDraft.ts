@@ -1,7 +1,7 @@
 import { Map, List, fromJS } from 'immutable';
 import { v4 as uuid } from 'uuid';
 import get from 'lodash/get';
-import { join } from 'path';
+import { join } from 'decap-cms-lib-util';
 
 import {
   DRAFT_CREATE_FROM_ENTRY,
@@ -34,7 +34,13 @@ import {
 import { selectFolderEntryExtension, selectHasMetaPath } from './collections';
 import { getDataPath, duplicateI18nFields } from '../lib/i18n';
 
-const initialState = Map({
+import type { AnyAction } from 'redux';
+import type { Collection, EntryDraft, EntryMap, EntryField } from '../types/cms';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type EntryDraftState = Map<string, any>;
+
+const initialState: EntryDraftState = Map({
   entry: Map(),
   fieldsMetaData: Map(),
   fieldsErrors: Map(),
@@ -42,7 +48,7 @@ const initialState = Map({
   key: '',
 });
 
-function entryDraftReducer(state = Map(), action) {
+function entryDraftReducer(state: EntryDraftState = Map(), action: AnyAction): EntryDraftState {
   switch (action.type) {
     case DRAFT_CREATE_FROM_ENTRY:
       // Existing Entry
@@ -91,14 +97,24 @@ function entryDraftReducer(state = Map(), action) {
       return initialState;
     case DRAFT_LOCAL_BACKUP_RETRIEVED: {
       const { entry } = action.payload;
-      const newState = new Map({
+      const newState = Map({
         entry: fromJS(entry),
       });
       return state.set('localBackup', newState);
     }
     case DRAFT_CHANGE_FIELD: {
       return state.withMutations(state => {
-        const { field, value, metadata, entries, i18n } = action.payload;
+        const { field, value, metadata, entries, i18n } = action.payload as {
+          field: EntryField;
+          value: unknown;
+          metadata: Record<string, unknown>;
+          entries: EntryMap[];
+          i18n?: {
+            currentLocale: string;
+            defaultLocale: string;
+            locales: string[];
+          };
+        };
         const name = field.get('name');
         const meta = field.get('meta');
 
@@ -108,7 +124,10 @@ function entryDraftReducer(state = Map(), action) {
         } else {
           state.setIn(['entry', ...dataPath, name], value);
           if (i18n) {
-            state = duplicateI18nFields(state, field, i18n.locales, i18n.defaultLocale);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const updatedState = duplicateI18nFields(state as any, field, i18n.locales, i18n.defaultLocale);
+            // The duplicateI18nFields function returns the updated state
+            return updatedState;
           }
         }
         state.mergeDeepIn(['fieldsMetaData'], fromJS(metadata));
@@ -116,8 +135,10 @@ function entryDraftReducer(state = Map(), action) {
         const newMeta = state.getIn(['entry', 'meta']);
         state.set(
           'hasChanged',
-          !entries.some(e => newData.equals(e.get(...dataPath))) ||
-            !entries.some(e => newMeta.equals(e.get('meta'))),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          !entries.some((e: any) => newData.equals(e.getIn(dataPath))) ||
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            !entries.some((e: any) => newMeta.equals(e.get('meta'))),
         );
       });
     }
@@ -180,7 +201,8 @@ function entryDraftReducer(state = Map(), action) {
         state.setIn(
           ['entry', 'mediaFiles'],
           mediaFiles
-            .filterNot(file => file.get('id') === action.payload.id)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .filterNot((file: any) => file.get('id') === action.payload.id)
             .insert(0, fromJS(action.payload)),
         );
         state.set('hasChanged', true);
@@ -193,7 +215,8 @@ function entryDraftReducer(state = Map(), action) {
 
         state.setIn(
           ['entry', 'mediaFiles'],
-          mediaFiles.filterNot(file => file.get('id') === action.payload.id),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          mediaFiles.filterNot((file: any) => file.get('id') === action.payload.id),
         );
         state.set('hasChanged', true);
       });
@@ -204,7 +227,7 @@ function entryDraftReducer(state = Map(), action) {
   }
 }
 
-export function selectCustomPath(collection, entryDraft) {
+export function selectCustomPath(collection: Collection, entryDraft: EntryDraft): string | undefined {
   if (!selectHasMetaPath(collection)) {
     return;
   }
@@ -212,7 +235,7 @@ export function selectCustomPath(collection, entryDraft) {
   const path = meta && meta.get('path');
   const indexFile = get(collection.toJS(), ['meta', 'path', 'index_file']);
   const extension = selectFolderEntryExtension(collection);
-  const customPath = path && join(collection.get('folder'), path, `${indexFile}.${extension}`);
+  const customPath = path && join(collection.get('folder') as string, path, `${indexFile}.${extension}`);
   return customPath;
 }
 

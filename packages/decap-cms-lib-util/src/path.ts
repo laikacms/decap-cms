@@ -10,6 +10,63 @@ export function isAbsolutePath(path: string) {
 }
 
 /**
+ * Join all arguments together and normalize the resulting path.
+ * @example Usage example
+ *   path.join('/foo', 'bar', 'baz/asdf', 'quux', '..')
+ *   // returns
+ *   '/foo/bar/baz/asdf'
+ *
+ *   path.join('foo', 'bar', 'baz')
+ *   // returns
+ *   'foo/bar/baz'
+ */
+export function join(...paths: string[]): string {
+  if (paths.length === 0) {
+    return '.';
+  }
+
+  // Filter out empty strings
+  const filteredPaths = paths.filter(p => p !== '');
+  if (filteredPaths.length === 0) {
+    return '.';
+  }
+
+  // Join with separator and normalize
+  let joined = filteredPaths.join('/');
+  joined = normalizePath(joined);
+
+  // Resolve . and .. segments
+  const isAbsolute = joined.startsWith('/');
+  const segments = joined.split('/');
+  const resolvedSegments: string[] = [];
+
+  for (const segment of segments) {
+    if (segment === '.' || segment === '') {
+      // Skip current directory markers and empty segments (except for leading slash)
+      continue;
+    } else if (segment === '..') {
+      // Go up one directory if possible
+      if (resolvedSegments.length > 0 && resolvedSegments[resolvedSegments.length - 1] !== '..') {
+        resolvedSegments.pop();
+      } else if (!isAbsolute) {
+        // For relative paths, keep the .. if we can't go up
+        resolvedSegments.push('..');
+      }
+      // For absolute paths, ignore .. at root
+    } else {
+      resolvedSegments.push(segment);
+    }
+  }
+
+  let result = resolvedSegments.join('/');
+  if (isAbsolute) {
+    result = '/' + result;
+  }
+
+  return result || '.';
+}
+
+/**
  * Return the last portion of a path. Similar to the Unix basename command.
  * @example Usage example
  *   path.basename('/foo/bar/baz/asdf/quux.html')
