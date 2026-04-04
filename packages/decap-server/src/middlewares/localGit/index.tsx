@@ -8,7 +8,7 @@ import {
   statusToLabel,
   labelToStatus,
   parseContentKey,
-} from 'decap-cms-lib-util/src/APIUtils';
+} from 'decap-cms-lib-util';
 import { parse } from 'what-the-diff';
 // eslint-disable-next-line import/no-named-as-default
 import simpleGit from 'simple-git';
