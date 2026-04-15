@@ -79,6 +79,7 @@ import type {
   DataFile as DF,
 } from './implementation';
 import type { AsyncLock as AL } from './asyncLock';
+import isHotkey, { isCodeHotkey, isKeyHotkey } from './is-hotkey';
 
 export type AsyncLock = AL;
 export type Implementation = I;
@@ -218,4 +219,7 @@ export {
   allEntriesByFolder,
   AccessTokenError,
   throwOnConflictingBranches,
+  isHotkey,
+  isKeyHotkey,
+  isCodeHotkey,
 };

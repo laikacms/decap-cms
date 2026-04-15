@@ -1,3 +1,4 @@
+/** @jsxImportSource @emotion/react */
 import PropTypes from 'prop-types';
 import React from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
@@ -18,8 +19,13 @@ import {
 } from 'decap-cms-ui-default';
 import { connect } from 'react-redux';
 
+import type { TranslateFunction } from 'decap-cms-ui-default';
+import type { Collections, Collection as CollectionType } from '../../types/cms';
+
 import { SettingsDropdown } from '../UI';
 import { checkBackendStatus } from '../../actions/status';
+
+const ACTIVE_CLASS_NAME = 'header-link-active';
 
 const styles = {
   buttonActive: css`
@@ -27,7 +33,7 @@ const styles = {
   `,
 };
 
-function AppHeader(props) {
+function AppHeader(props: React.HTMLAttributes<HTMLElement>) {
   return (
     <header
       css={css`
@@ -79,15 +85,13 @@ const AppHeaderButton = styled.button`
     }
   }
 
-  ${props => css`
-    &.${props.activeClassName} {
-      ${styles.buttonActive};
+  &.${ACTIVE_CLASS_NAME} {
+    ${styles.buttonActive};
 
-      ${Icon} {
-        ${styles.buttonActive};
-      }
+    ${Icon} {
+      ${styles.buttonActive};
     }
-  `};
+  }
 `;
 
 const AppHeaderNavLink = AppHeaderButton.withComponent(NavLink);
@@ -127,7 +131,23 @@ const AppHeaderLogo = styled.li`
   }
 `;
 
-class Header extends React.Component {
+interface HeaderProps {
+  user: { avatar_url?: string; [key: string]: unknown };
+  collections: Collections;
+  onCreateEntryClick: (collectionName: string) => void;
+  onLogoutClick: () => void;
+  openMediaLibrary: () => void;
+  hasWorkflow: boolean;
+  displayUrl?: string;
+  showMediaButton?: boolean;
+  logoUrl?: string;
+  logo?: { src: string; show_in_header?: boolean };
+  isTestRepo?: boolean;
+  t: TranslateFunction;
+  checkBackendStatus: () => void;
+}
+
+class Header extends React.Component<HeaderProps> {
   static propTypes = {
     user: PropTypes.object.isRequired,
     collections: ImmutablePropTypes.map.isRequired,
@@ -146,7 +166,7 @@ class Header extends React.Component {
     checkBackendStatus: PropTypes.func.isRequired,
   };
 
-  intervalId;
+  intervalId: ReturnType<typeof setInterval> | undefined;
 
   componentDidMount() {
     // Manually validate PropTypes - React 19 breaking change
@@ -161,7 +181,7 @@ class Header extends React.Component {
     clearInterval(this.intervalId);
   }
 
-  handleCreatePostClick = collectionName => {
+  handleCreatePostClick = (collectionName: string) => {
     const { onCreateEntryClick } = this.props;
     if (onCreateEntryClick) {
       onCreateEntryClick(collectionName);
@@ -183,9 +203,9 @@ class Header extends React.Component {
       showMediaButton,
     } = this.props;
 
-    const creatableCollections = collections
-      .filter(collection => collection.get('create'))
-      .toList();
+    const creatableCollections = (collections
+      .filter((collection: CollectionType) => !!collection.get('create')) as Collections)
+      .valueSeq();
 
     const shouldShowLogo = logo?.show_in_header && logo?.src;
 
@@ -202,8 +222,11 @@ class Header extends React.Component {
               <li>
                 <AppHeaderNavLink
                   to="/"
-                  activeClassName="header-link-active"
-                  isActive={(match, location) => location.pathname.startsWith('/collections/')}
+                  className={({ isActive }: { isActive: boolean }) =>
+                    isActive || window.location.hash.includes('/collections/')
+                      ? ACTIVE_CLASS_NAME
+                      : ''
+                  }
                 >
                   <Icon type="page" />
                   {t('app.header.content')}
@@ -211,7 +234,12 @@ class Header extends React.Component {
               </li>
               {hasWorkflow && (
                 <li>
-                  <AppHeaderNavLink to="/workflow" activeClassName="header-link-active">
+                  <AppHeaderNavLink
+                    to="/workflow"
+                    className={({ isActive }: { isActive: boolean }) =>
+                      isActive ? ACTIVE_CLASS_NAME : ''
+                    }
+                  >
                     <Icon type="workflow" />
                     {t('app.header.workflow')}
                   </AppHeaderNavLink>
@@ -228,7 +256,7 @@ class Header extends React.Component {
             </AppHeaderNavList>
           </nav>
           <AppHeaderActions>
-            {creatableCollections.size > 0 && (
+            {creatableCollections.length > 0 && (
               <Dropdown
                 renderButton={() => (
                   <AppHeaderQuickNewButton> {t('app.header.quickAdd')}</AppHeaderQuickNewButton>
@@ -237,7 +265,7 @@ class Header extends React.Component {
                 dropdownWidth="160px"
                 dropdownPosition="left"
               >
-                {creatableCollections.map(collection => (
+                {creatableCollections.map((collection: CollectionType) => (
                   <DropdownItem
                     key={collection.get('name')}
                     label={collection.get('label_singular') || collection.get('label')}

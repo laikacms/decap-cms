@@ -3,19 +3,28 @@ import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import styled from '@emotion/styled';
 import { colors, borders, lengths, shadows, effects } from 'decap-cms-ui-default';
+import type { Map as ImmutableMap } from 'immutable';
 
 const IMAGE_HEIGHT = 160;
 
-const Card = styled.div`
-  width: ${props => props.width};
-  height: ${props => props.height};
-  margin: ${props => props.margin};
+interface CardStyleProps {
+  $width: string;
+  $height: string;
+  $margin: string;
+  $isSelected?: boolean;
+  $isPrivate?: boolean;
+}
+
+const Card = styled.div<CardStyleProps>`
+  width: ${props => props.$width};
+  height: ${props => props.$height};
+  margin: ${props => props.$margin};
   border: ${borders.textField};
-  border-color: ${props => props.isSelected && colors.active};
+  border-color: ${props => props.$isSelected && colors.active};
   border-radius: ${lengths.borderRadius};
   cursor: pointer;
   overflow: hidden;
-  background-color: ${props => props.isPrivate && colors.textFieldBorder};
+  background-color: ${props => props.$isPrivate && colors.textFieldBorder};
 
   &:focus {
     outline: none;
@@ -62,7 +71,23 @@ const DraftText = styled.p`
   border-radius: ${lengths.borderRadius} 0 ${lengths.borderRadius} 0;
 `;
 
-class MediaLibraryCard extends React.Component {
+interface MediaLibraryCardProps {
+  isSelected?: boolean;
+  displayURL: ImmutableMap<string, unknown>;
+  text: string;
+  onClick: () => void;
+  draftText: string;
+  width: string;
+  height: string;
+  margin: string;
+  isPrivate?: boolean;
+  type?: string;
+  isViewableImage: boolean;
+  loadDisplayURL: () => void;
+  isDraft?: boolean;
+}
+
+class MediaLibraryCard extends React.Component<MediaLibraryCardProps> {
   render() {
     const {
       isSelected,
@@ -78,16 +103,16 @@ class MediaLibraryCard extends React.Component {
       isViewableImage,
       isDraft,
     } = this.props;
-    const url = displayURL.get('url');
+    const url = displayURL.get('url') as string | undefined;
     return (
       <Card
-        isSelected={isSelected}
+        $isSelected={isSelected}
         onClick={onClick}
-        width={width}
-        height={height}
-        margin={margin}
-        tabIndex="-1"
-        isPrivate={isPrivate}
+        $width={width}
+        $height={height}
+        $margin={margin}
+        tabIndex={-1}
+        $isPrivate={isPrivate}
       >
         <CardImageWrapper>
           {isDraft ? <DraftText data-testid="draft-text">{draftText}</DraftText> : null}

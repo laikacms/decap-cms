@@ -25,17 +25,26 @@
     "@dnd-kit/core": "catalog:dnd",
     "@dnd-kit/modifiers": "catalog:dnd",
     "@dnd-kit/sortable": "catalog:dnd",
-    "array-move": "catalog:utils"
+    "@dnd-kit/utilities": "^3.2.2",
+    "array-move": "catalog:utils",
+    "lodash": "catalog:utils"
   },
   "peerDependencies": {
     "@emotion/react": "catalog:emotion",
     "@emotion/styled": "catalog:emotion",
+    "common-tags": "catalog:utils",
+    "decap-cms-lib-util": "workspace:*",
     "decap-cms-ui-default": "workspace:*",
     "immutable": "catalog:utils",
     "prop-types": "catalog:react",
     "react": "catalog:react",
     "react-immutable-proptypes": "catalog:react",
     "uuid": "catalog:utils"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:types",
+    "@types/prop-types": "catalog:types",
+    "@types/common-tags": "catalog:types"
   },
   "type": "module",
   "types": "./dist/index.d.ts",

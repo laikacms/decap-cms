@@ -34,6 +34,7 @@ export interface StaticallyTypedRecord<T> {
   setIn(keys: string[], value: unknown): StaticallyTypedRecord<T> & T;
   toJS(): T;
   isEmpty(): boolean;
+  size: number;
   some<K extends keyof T>(predicate: (value: T[K], key: K, iter: this) => boolean): boolean;
   mapKeys<K extends keyof T, V>(mapFunc: (key: K, value: StaticallyTypedRecord<T>) => V): V[];
   find<K extends keyof T>(findFunc: (value: T[K]) => boolean): T[K];
@@ -44,6 +45,8 @@ export interface StaticallyTypedRecord<T> {
   map<K extends keyof T, V>(
     mapFunc: (value: T[K]) => V,
   ): StaticallyTypedRecord<{ [key: string]: V }>;
-  keySeq<K extends keyof T>(): { toArray: () => K[] };
+  keySeq<K extends keyof T>(): { toArray: () => K[]; indexOf: (value: K) => number };
+  toIndexedSeq<K extends keyof T>(): { getIn: (keys: unknown[]) => unknown; map: <V>(mapFunc: (value: T[K], idx: number) => V) => { toArray: () => V[] } };
+  toList<K extends keyof T>(): { filter: (predicate: (value: T[K]) => boolean) => { map: <V>(mapFunc: (value: T[K]) => V) => V[] } };
   withMutations(mutator: (mutable: StaticallyTypedRecord<T>) => unknown): StaticallyTypedRecord<T>;
 }

@@ -17,7 +17,7 @@ type CursorsState = Map<string, any>;
 // and searches are the most common examples), we namespace cursors by
 // their type before storing them in the state.
 export function selectCollectionEntriesCursor(state: CursorsState, collectionName: string): Cursor {
-  return new Cursor(state.getIn(['cursorsByType', 'collectionEntries', collectionName]));
+  return new Cursor(state.getIn(['cursorsByType', 'collectionEntries', collectionName]) as {});
 }
 
 const defaultState: CursorsState = fromJS({ cursorsByType: { collectionEntries: {} } });

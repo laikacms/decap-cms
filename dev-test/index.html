@@ -120,82 +120,78 @@
 
   <script src="dist/decap-cms.js"></script>
   <script>
-    var PostPreview = createClass({
-      render: function() {
-        var entry = this.props.entry;
-        return h('div', {},
-          h('div', {className: "cover"},
-            h('h1', {}, entry.getIn(['data', 'title'])),
-            this.props.widgetFor('image'),
-          ),
-          h('p', {},
-            h('small', {}, "Written " + entry.getIn(['data', 'date']))
-          ),
-          h('h2', {}, "Richtext Widget"),
-          h('div', {"className": "text"}, this.props.widgetFor('body')),
-          h('h2', {}, "Markdown Widget"),
-          h('div', {"className": "text"}, this.props.widgetFor('bodyold'))
-        );
-      }
-    });
+    var CMS = window.DecapCms && window.DecapCms.default ? window.DecapCms.default : window.DecapCms;
+    var h = window.DecapCms.h;
 
-    var GeneralPreview = createClass({
-      render: function() {
-        var entry = this.props.entry;
-        var title = entry.getIn(['data', 'site_title']);
-        var posts = entry.getIn(['data', 'posts']);
-        var thumb = posts && posts.get('thumb');
+    var PostPreview = function(props) {
+      var entry = props.entry;
+      return h('div', {},
+        h('div', {className: "cover"},
+          h('h1', {}, entry.getIn(['data', 'title'])),
+          props.widgetFor('image'),
+        ),
+        h('p', {},
+          h('small', {}, "Written " + entry.getIn(['data', 'date']))
+        ),
+        h('h2', {}, "Richtext Widget"),
+        h('div', {"className": "text"}, props.widgetFor('body')),
+        h('h2', {}, "Markdown Widget"),
+        h('div', {"className": "text"}, props.widgetFor('bodyold'))
+      );
+    };
 
-        return h('div', {},
-          h('h1', {}, title),
-          h('dl', {},
-            h('dt', {}, 'Posts on Frontpage'),
-            h('dd', {}, this.props.widgetsFor('posts').getIn(['widgets', 'front_limit']) || 0),
+    var GeneralPreview = function(props) {
+      var entry = props.entry;
+      var title = entry.getIn(['data', 'site_title']);
+      var posts = entry.getIn(['data', 'posts']);
+      var thumb = posts && posts.get('thumb');
 
-            h('dt', {}, 'Default Author'),
-            h('dd', {}, this.props.widgetsFor('posts').getIn(['data', 'author']) || 'None'),
+      return h('div', {},
+        h('h1', {}, title),
+        h('dl', {},
+          h('dt', {}, 'Posts on Frontpage'),
+          h('dd', {}, props.widgetsFor('posts').getIn(['widgets', 'front_limit']) || 0),
 
-            h('dt', {}, 'Default Thumbnail'),
-            h('dd', {}, thumb && h('img', {src: this.props.getAsset(thumb).toString()}))
-          )
-        );
-      }
-    });
+          h('dt', {}, 'Default Author'),
+          h('dd', {}, props.widgetsFor('posts').getIn(['data', 'author']) || 'None'),
 
-    var AuthorsPreview = createClass({
-      render: function() {
-        return h('div', {},
-          h('h1', {}, 'Authors'),
-          this.props.widgetsFor('authors').map(function(author, index) {
-            return h('div', {key: index},
-              h('hr', {}),
-              h('strong', {}, author.getIn(['data', 'name'])),
-              author.getIn(['widgets', 'description'])
-            );
-          })
-        );
-      }
-    });
+          h('dt', {}, 'Default Thumbnail'),
+          h('dd', {}, thumb && h('img', {src: props.getAsset(thumb).toString()}))
+        )
+      );
+    };
 
-    const RelationKitchenSinkPostPreview = createClass({
-      render: function() {
-        // When a post is selected from the relation field, all of it's data
-        // will be available in the field's metadata nested under the collection
-        // name, and then further nested under the value specified in `value_field`.
-        // In this case, the post would be nested under "posts" and then under
-        // the title of the selected post, since our `value_field` in the config
-        // is "title".
-        const { value, fieldsMetaData } = this.props;
-        const post = fieldsMetaData && fieldsMetaData.getIn(['posts', value]);
-        const style = { border: '2px solid #ccc', borderRadius: '8px', padding: '20px' };
-        return post ? h('div', { style: style },
-          h('h2', {}, 'Related Post'),
-          h('h3', {}, post.get('title')),
-          h('img', { src: post.get('image') }),
-          h('p', {}, post.get('body', '').slice(0, 100) + '...'),
-        ) : null;
-      }
-    });
+    var AuthorsPreview = function(props) {
+      return h('div', {},
+        h('h1', {}, 'Authors'),
+        props.widgetsFor('authors').map(function(author, index) {
+          return h('div', {key: index},
+            h('hr', {}),
+            h('strong', {}, author.getIn(['data', 'name'])),
+            author.getIn(['widgets', 'description'])
+          );
+        })
+      );
+    };
+
+    var RelationKitchenSinkPostPreview = function(props) {
+      // When a post is selected from the relation field, all of it's data
+      // will be available in the field's metadata nested under the collection
+      // name, and then further nested under the value specified in `value_field`.
+      // In this case, the post would be nested under "posts" and then under
+      // the title of the selected post, since our `value_field` in the config
+      // is "title".
+      var value = props.value;
+      var fieldsMetaData = props.fieldsMetaData;
+      var post = fieldsMetaData && fieldsMetaData.getIn(['posts', value]);
+      var style = { border: '2px solid #ccc', borderRadius: '8px', padding: '20px' };
+      return post ? h('div', { style: style },
+        h('h2', {}, 'Related Post'),
+        h('h3', {}, post.get('title')),
+        h('img', { src: post.get('image') }),
+        h('p', {}, post.get('body', '').slice(0, 100) + '...'),
+      ) : null;
+    };
 
     const previewStyles = `
       html,
@@ -226,7 +222,11 @@
     CMS.registerPreviewTemplate("authors", AuthorsPreview);
     CMS.registerPreviewStyle(previewStyles, { raw: true });
     // Pass the name of a registered control to reuse with a new widget preview.
-    CMS.registerWidget("relationKitchenSinkPost", "relation", RelationKitchenSinkPostPreview);
+    CMS.registerWidget({
+      name: "relationKitchenSinkPost",
+      controlComponent: CMS.getWidget("relation").control,
+      previewComponent: RelationKitchenSinkPostPreview,
+    });
     CMS.registerEditorComponent({
       id: "youtube",
       label: "Youtube",
@@ -277,7 +277,7 @@
       toBlock (obj) {
         return `{{< container-richtext >}}${obj.inner}{{< /container-richtext >}}`
       },
-    })
+    });
 
   </script>
 </body>

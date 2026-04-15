@@ -48,7 +48,7 @@ function renderPageLogo(logoUrl?: string): React.ReactElement {
   if (logoUrl) {
     return <CustomLogoIcon url={logoUrl} />;
   }
-  return <DecapLogoIcon size="300px" type="decap-cms" />;
+  return <DecapLogoIcon size="300px" type="decap" />;
 }
 
 const LoginButton = styled.button`
@@ -126,7 +126,7 @@ function AuthenticationPage({
         </LoginButton>
       )}
       {siteUrl && <GoBackButton href={siteUrl} t={t} />}
-      {authLogoUrl ? <NetlifyCreditIcon size="100px" type="decap-cms" /> : null}
+      {authLogoUrl ? <NetlifyCreditIcon size="100px" type="decap" /> : null}
     </StyledAuthenticationPage>
   );
 }

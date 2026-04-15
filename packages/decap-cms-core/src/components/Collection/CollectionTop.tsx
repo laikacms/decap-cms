@@ -4,7 +4,9 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
 import { Link } from 'react-router-dom';
-import { components, buttons, shadows } from 'decap-cms-ui-default';
+import { components, buttons, shadows, TranslateFunction } from 'decap-cms-ui-default';
+
+import type { Collection } from '../../types/cms';
 
 const CollectionTopContainer = styled.div`
   ${components.cardTop};
@@ -35,7 +37,7 @@ const CollectionTopDescription = styled.p`
   margin-bottom: 0;
 `;
 
-function getCollectionProps(collection) {
+function getCollectionProps(collection: Collection) {
   const collectionLabel = collection.get('label');
   const collectionLabelSingular = collection.get('label_singular');
   const collectionDescription = collection.get('description');
@@ -47,10 +49,15 @@ function getCollectionProps(collection) {
   };
 }
 
-function CollectionTop({ collection, newEntryUrl, t }) {
+interface CollectionTopProps {
+  collection: Collection;
+  newEntryUrl?: string;
+  t: TranslateFunction;
+}
+
+function CollectionTop({ collection, newEntryUrl, t }: CollectionTopProps) {
   const { collectionLabel, collectionLabelSingular, collectionDescription } = getCollectionProps(
     collection,
-    t,
   );
 
   return (
@@ -66,7 +73,7 @@ function CollectionTop({ collection, newEntryUrl, t }) {
         ) : null}
       </CollectionTopRow>
       {collectionDescription ? (
-        <CollectionTopDescription>{collectionDescription}</CollectionTopDescription>
+        <CollectionTopDescription>{collectionDescription as React.ReactNode}</CollectionTopDescription>
       ) : null}
     </CollectionTopContainer>
   );

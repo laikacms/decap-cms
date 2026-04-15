@@ -22,7 +22,7 @@ interface MediaLibrary {
 
 function handleInsert(url: string) {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // @ts-expect-error -- TODO: fix underlying type issue
   return store.dispatch(insertMedia(url, undefined));
 }
 

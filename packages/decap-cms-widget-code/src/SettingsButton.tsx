@@ -22,7 +22,12 @@ const StyledSettingsButton = styled.button`
   }
 `;
 
-function SettingsButton({ showClose, onClick }) {
+interface SettingsButtonProps {
+  showClose: boolean;
+  onClick: () => void;
+}
+
+function SettingsButton({ showClose, onClick }: SettingsButtonProps) {
   return (
     <StyledSettingsButton onClick={onClick}>
       <Icon type={showClose ? 'close' : 'settings'} size="small" />

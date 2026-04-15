@@ -5,6 +5,7 @@ import { Map } from 'immutable';
 import isEmpty from 'lodash/isEmpty';
 import { translate } from 'react-polyglot';
 import { colors } from 'decap-cms-ui-default';
+import type { TranslateFunction } from 'decap-cms-ui-default';
 
 import { Modal } from '../UI';
 import MediaLibraryTop from './MediaLibraryTop';
@@ -25,11 +26,11 @@ const cardMargin = `10px`;
  */
 const cardOutsideWidth = `300px`;
 
-const StyledModal = styled(Modal)`
+const StyledModal = styled(Modal)<{ $isPrivate?: boolean }>`
   display: grid;
   grid-template-rows: 120px auto;
   width: calc(${cardOutsideWidth} + 20px);
-  background-color: ${props => props.isPrivate && colors.grayDark};
+  background-color: ${props => props.$isPrivate && colors.inactive};
 
   @media (min-width: 800px) {
     width: calc(${cardOutsideWidth} * 2 + 20px);
@@ -52,14 +53,59 @@ const StyledModal = styled(Modal)`
   }
 
   h1 {
-    color: ${props => props.isPrivate && colors.textFieldBorder};
+    color: ${props => props.$isPrivate && colors.textFieldBorder};
   }
 
   button:disabled,
   label[disabled] {
-    background-color: ${props => props.isPrivate && `rgba(217, 217, 217, 0.15)`};
+    background-color: ${props => props.$isPrivate && `rgba(217, 217, 217, 0.15)`};
   }
 `;
+
+interface MediaFile {
+  id: string;
+  name: string;
+  displayURL?: string | { original: string };
+  path: string;
+  draft?: boolean;
+  size?: number;
+  url?: string;
+  key?: string;
+  type?: string;
+}
+
+interface MediaLibraryModalProps {
+  isVisible?: boolean;
+  canInsert?: boolean;
+  files: MediaFile[];
+  dynamicSearch?: boolean;
+  dynamicSearchActive?: boolean;
+  forImage?: boolean;
+  isLoading?: boolean;
+  isPersisting?: boolean;
+  isDeleting?: boolean;
+  hasNextPage?: boolean;
+  isPaginating?: boolean;
+  privateUpload?: boolean;
+  query?: string;
+  selectedFile?: MediaFile | Record<string, never>;
+  handleFilter: (files: MediaFile[]) => MediaFile[];
+  handleQuery: (query: string, files: MediaFile[]) => MediaFile[];
+  toTableData: (files: MediaFile[]) => { displayURL?: string | Record<string, unknown>; id: string; key: string; name: string; type: string; draft?: boolean; url?: string; isViewableImage?: boolean }[];
+  handleClose: () => void;
+  handleSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  handleSearchKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
+  handlePersist: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  handleDelete: () => void;
+  handleInsert: () => void;
+  handleDownload?: () => void;
+  setScrollContainerRef: (ref: HTMLDivElement | null) => void;
+  handleAssetClick: (asset: MediaFile) => void;
+  handleLoadMore: () => void;
+  loadDisplayURL: (file: MediaFile) => void;
+  t: TranslateFunction;
+  displayURLs: Map<string, unknown>;
+}
 
 function MediaLibraryModal({
   isVisible,
@@ -92,7 +138,7 @@ function MediaLibraryModal({
   loadDisplayURL,
   displayURLs,
   t,
-}) {
+}: MediaLibraryModalProps) {
   const filteredFiles = forImage ? handleFilter(files) : files;
   const queriedFiles = !dynamicSearch && query ? handleQuery(query, filteredFiles) : filteredFiles;
   const tableData = toTableData(queriedFiles);
@@ -111,13 +157,13 @@ function MediaLibraryModal({
   const hasSelection = hasMedia && !isEmpty(selectedFile);
 
   return (
-    <StyledModal isOpen={isVisible} onClose={handleClose} isPrivate={privateUpload}>
+    <StyledModal isOpen={!!isVisible} onClose={handleClose} $isPrivate={privateUpload}>
       <MediaLibraryTop
         t={t}
         onClose={handleClose}
         privateUpload={privateUpload}
         forImage={forImage}
-        onDownload={handleDownload}
+        onDownload={handleDownload ?? (() => {})}
         onUpload={handlePersist}
         query={query}
         onSearchChange={handleSearchChange}
@@ -129,16 +175,16 @@ function MediaLibraryModal({
         hasSelection={hasSelection}
         isPersisting={isPersisting}
         isDeleting={isDeleting}
-        selectedFile={selectedFile}
+        selectedFile={selectedFile as { path: string; draft: boolean; name: string } | Record<string, never> | undefined}
       />
       {!shouldShowEmptyMessage ? null : (
-        <EmptyMessage content={emptyMessage} isPrivate={privateUpload} />
+        <EmptyMessage content={emptyMessage || ''} isPrivate={privateUpload} />
       )}
       <MediaLibraryCardGrid
         setScrollContainerRef={setScrollContainerRef}
         mediaItems={tableData}
-        isSelectedFile={file => selectedFile.key === file.key}
-        onAssetClick={handleAssetClick}
+        isSelectedFile={file => !!selectedFile && 'key' in selectedFile && selectedFile.key === file.key}
+        onAssetClick={handleAssetClick as (asset: { key: string; name: string; id: string; type: string; draft?: boolean }) => void}
         canLoadMore={hasNextPage}
         onLoadMore={handleLoadMore}
         isPaginating={isPaginating}
@@ -148,7 +194,7 @@ function MediaLibraryModal({
         cardHeight={cardHeight}
         cardMargin={cardMargin}
         isPrivate={privateUpload}
-        loadDisplayURL={loadDisplayURL}
+        loadDisplayURL={loadDisplayURL as (file: { id: string; url?: string }) => void}
         displayURLs={displayURLs}
       />
     </StyledModal>
@@ -194,7 +240,7 @@ MediaLibraryModal.propTypes = {
   handleLoadMore: PropTypes.func.isRequired,
   loadDisplayURL: PropTypes.func.isRequired,
   t: PropTypes.func.isRequired,
-  displayURLs: PropTypes.instanceOf(Map).isRequired,
+  displayURLs: PropTypes.instanceOf(Map as unknown as new (...args: any[]) => Map<string, unknown>).isRequired,
 };
 
 export default translate()(MediaLibraryModal);

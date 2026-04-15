@@ -13,6 +13,12 @@ import { FieldLabel, colors, transitions, lengths, borders } from 'decap-cms-ui-
 import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
 
+import type { Map as ImmutableMap } from 'immutable';
+import type { Dispatch } from 'redux';
+import type { TranslateFunction } from 'decap-cms-ui-default';
+import type { Collection, EntryMap, EntryField, CmsConfig, State } from '../../../types/cms';
+import type AssetProxy from '../../../valueObjects/AssetProxy';
+
 import { resolveWidget, getEditorComponents } from '../../../lib/registry';
 import { clearFieldErrors, tryLoadEntry, validateMetaField } from '../../../actions/entries';
 import { addAsset, boundGetAsset } from '../../../actions/media';
@@ -27,6 +33,9 @@ import {
   persistMedia,
 } from '../../../actions/mediaLibrary';
 import Widget from './Widget';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const WidgetComponent: React.ComponentType<any> = Widget;
 
 /**
  * This is a necessary bridge as we are still passing classnames to widgets
@@ -69,6 +78,8 @@ const styleStrings = {
   hidden: `
     visibility: hidden;
   `,
+  label: ``,
+  labelActive: ``,
 };
 
 const ControlContainer = styled.div`
@@ -96,7 +107,7 @@ const ControlErrorsList = styled.ul`
   padding: 2px 0 3px;
 `;
 
-export const ControlHint = styled.p`
+export const ControlHint = styled.p<{ active?: boolean; error?: boolean }>`
   margin-bottom: 0;
   padding: 6px 0 0;
   font-size: 12px;
@@ -105,7 +116,16 @@ export const ControlHint = styled.p`
   transition: color ${transitions.main};
 `;
 
-function LabelComponent({ field, isActive, hasErrors, uniqueFieldId, isFieldOptional, t }) {
+interface LabelComponentProps {
+  field: ImmutableMap<string, unknown>;
+  isActive: boolean;
+  hasErrors: boolean;
+  uniqueFieldId: string;
+  isFieldOptional: boolean;
+  t: TranslateFunction;
+}
+
+function LabelComponent({ field, isActive, hasErrors, uniqueFieldId, isFieldOptional, t }: LabelComponentProps) {
   const label = `${field.get('label', field.get('name'))}`;
   const labelComponent = (
     <FieldLabel isActive={isActive} hasErrors={hasErrors} htmlFor={uniqueFieldId}>
@@ -123,7 +143,59 @@ function LabelComponent({ field, isActive, hasErrors, uniqueFieldId, isFieldOpti
   return labelComponent;
 }
 
-class EditorControl extends React.Component {
+interface FieldError {
+  type: string;
+  message: string;
+  parentIds?: string[];
+}
+
+interface EditorControlProps {
+  value?: React.ReactNode | Record<string, unknown> | string | boolean;
+  field: ImmutableMap<string, unknown>;
+  fieldsMetaData?: ImmutableMap<string, ImmutableMap<string, unknown>>;
+  fieldsErrors?: ImmutableMap<string, FieldError[]>;
+  mediaPaths: ImmutableMap<string, string>;
+  boundGetAsset: (path: string, field: ImmutableMap<string, unknown>) => AssetProxy;
+  onChange: (field: ImmutableMap<string, unknown>, value: unknown, metadata?: ImmutableMap<string, unknown>) => void;
+  openMediaLibrary: (options: Record<string, unknown>) => void;
+  addAsset: (asset: AssetProxy) => void;
+  removeInsertedMedia: (controlID: string) => void;
+  persistMedia: (file: File) => void;
+  onValidate?: (field: ImmutableMap<string, unknown>, errors: FieldError[]) => void;
+  controlRef?: (field: ImmutableMap<string, unknown>, wrappedControl: React.Component | null) => void;
+  query: (namespace: string, collectionName: string, searchFields: string[], searchTerm: string, file?: string, limit?: number) => void;
+  queryHits?: Record<string, unknown>;
+  isFetching?: boolean;
+  clearSearch: () => void;
+  clearFieldErrors: (uniqueFieldId: string) => void;
+  loadEntry: (collectionName: string, slug: string) => Promise<EntryMap>;
+  getEntry: () => EntryMap;
+  t: TranslateFunction;
+  isEditorComponent?: boolean;
+  isNewEditorComponent?: boolean;
+  parentIds?: string[];
+  collection: Collection;
+  config: CmsConfig;
+  isDisabled?: boolean;
+  isHidden?: boolean;
+  isFieldDuplicate?: (field: ImmutableMap<string, unknown>) => boolean;
+  isFieldHidden?: (field: ImmutableMap<string, unknown>) => boolean;
+  locale?: string;
+  isParentListCollapsed?: boolean;
+  clearMediaControl: (controlID: string) => void;
+  removeMediaControl: (controlID: string) => void;
+  className?: string;
+  isSelected?: boolean;
+  validateMetaField: (field: EntryField, value: string | undefined, t: TranslateFunction) => void;
+  isLoadingAsset?: boolean;
+}
+
+interface EditorControlState {
+  activeLabel: boolean;
+  styleActive: boolean;
+}
+
+class EditorControl extends React.Component<EditorControlProps, EditorControlState> {
   static propTypes = {
     value: PropTypes.oneOfType([
       PropTypes.node,
@@ -167,8 +239,9 @@ class EditorControl extends React.Component {
     parentIds: [],
   };
 
-  state = {
+  state: EditorControlState = {
     activeLabel: false,
+    styleActive: false,
   };
 
   uniqueFieldId = uniqueId(`${this.props.field.get('name')}-field-`);
@@ -182,14 +255,14 @@ class EditorControl extends React.Component {
     const { fieldsErrors } = this.props;
 
     if (fieldsErrors && fieldsErrors.size > 0) {
-      return Object.values(fieldsErrors.toJS()).some(arr =>
-        arr.some(err => err.parentIds && err.parentIds.includes(this.uniqueFieldId)),
+      return Object.values(fieldsErrors.toJS()).some((arr: unknown) =>
+        (arr as FieldError[]).some((err: FieldError) => err.parentIds && err.parentIds.includes(this.uniqueFieldId)),
       );
     }
     return false;
   };
 
-  onChange = (newValue, newMetadata) => {
+  onChange = (newValue: unknown, newMetadata?: ImmutableMap<string, unknown>) => {
     this.props.onChange(this.props.field, newValue, newMetadata);
     this.props.clearFieldErrors(this.uniqueFieldId); // We are deleting errors for this field only.
   };
@@ -235,10 +308,10 @@ class EditorControl extends React.Component {
       isParentListCollapsed,
     } = this.props;
 
-    const widgetName = field.get('widget');
+    const widgetName = field.get('widget') as string;
     const widget = resolveWidget(widgetName);
-    const fieldName = field.get('name');
-    const fieldHint = field.get('hint');
+    const fieldName = field.get('name') as string;
+    const fieldHint = field.get('hint') as string | undefined;
     const isFieldOptional = field.get('required') === false;
     const onValidateObject = onValidate;
     const metadata = fieldsMetaData && fieldsMetaData.get(fieldName);
@@ -250,17 +323,14 @@ class EditorControl extends React.Component {
       <ClassNames>
         {({ css, cx }) => (
           <ControlContainer
-            className={className}
+            className={cx(className, isHidden && css`${styleStrings.hidden}`)}
             aria-label={t('editor.editorControl.field.widgetLabel', { widgetLabel: widgetName })}
-            css={css`
-              ${isHidden && styleStrings.hidden};
-            `}
           >
             <ControlTopbar>
               {widget.globalStyles && <Global styles={coreCss`${widget.globalStyles}`} />}
               <LabelComponent
                 field={field}
-                isActive={isSelected || this.state.styleActive}
+                isActive={!!(isSelected || this.state.styleActive)}
                 hasErrors={hasErrors}
                 uniqueFieldId={this.uniqueFieldId}
                 isFieldOptional={isFieldOptional}
@@ -269,7 +339,7 @@ class EditorControl extends React.Component {
               {errors && (
                 <ControlErrorsList>
                   {errors.map(
-                    error =>
+                    (error: FieldError) =>
                       error.message &&
                       typeof error.message === 'string' && (
                         <li key={error.message.trim().replace(/[^a-z0-9]+/gi, '-')}>
@@ -280,7 +350,7 @@ class EditorControl extends React.Component {
                 </ControlErrorsList>
               )}
             </ControlTopbar>
-            <Widget
+            <WidgetComponent
               classNameWrapper={cx(
                 css`
                   ${styleStrings.widget};
@@ -323,7 +393,7 @@ class EditorControl extends React.Component {
               mediaPaths={mediaPaths}
               metadata={metadata}
               onChange={this.onChange}
-              onValidate={onValidate && partial(onValidate, this.uniqueFieldId)}
+              onValidate={onValidate && ((errors: FieldError[]) => onValidate(this.uniqueFieldId as unknown as ImmutableMap<string, unknown>, errors))}
               onOpenMediaLibrary={openMediaLibrary}
               onClearMediaControl={clearMediaControl}
               onRemoveMediaControl={removeMediaControl}
@@ -342,7 +412,7 @@ class EditorControl extends React.Component {
               query={query}
               loadEntry={loadEntry}
               getEntry={getEntry}
-              queryHits={queryHits[this.uniqueFieldId] || []}
+              queryHits={(queryHits || {})[this.uniqueFieldId] || []}
               clearSearch={clearSearch}
               clearFieldErrors={clearFieldErrors}
               isFetching={isFetching}
@@ -390,8 +460,8 @@ class EditorControl extends React.Component {
 }
 
 const stable = {
-  loadEntry: async function stable_loadEntry(collectionName, slug) {
-    const state = store.getState();
+  loadEntry: async function stable_loadEntry(collectionName: string, slug: string) {
+    const state = store.getState() as State;
     const { collections } = state;
     const targetCollection = collections.get(collectionName);
     if (targetCollection) {
@@ -403,27 +473,27 @@ const stable = {
   },
 
   // Will return the same function instance for the same collection.
-  validateMetaField: memoize(collection => {
-    return (field, value, t) => {
-      const state = store.getState();
+  validateMetaField: memoize((collection: Collection) => {
+    return (field: EntryField, value: string | undefined, t: TranslateFunction) => {
+      const state = store.getState() as State;
       validateMetaField(state, collection, field, value, t);
     };
   }),
 
   getEntry() {
-    const state = store.getState();
+    const state = store.getState() as State;
     return state.entryDraft.get('entry');
   },
 
-  getBoundedAsset(collection, entry) {
+  getBoundedAsset(collection: Collection, entry: EntryMap) {
     const dispatch = store.dispatch;
-    return boundGetAsset(dispatch, collection, entry);
+    return boundGetAsset(dispatch as never, collection, entry);
   },
 };
 
-function mapStateToProps(state) {
+function mapStateToProps(state: State) {
   const { collections, entryDraft } = state;
-  const collection = collections.get(entryDraft.getIn(['entry', 'collection']));
+  const collection = collections.get(entryDraft.getIn(['entry', 'collection']) as string);
   const isLoadingAsset = selectIsLoadingAsset(state.medias);
 
   return {
@@ -439,7 +509,7 @@ function mapStateToProps(state) {
   };
 }
 
-function mapDispatchToProps(dispatch) {
+function mapDispatchToProps(dispatch: Dispatch) {
   const creators = bindActionCreators(
     {
       openMediaLibrary,
@@ -460,7 +530,11 @@ function mapDispatchToProps(dispatch) {
   };
 }
 
-function mergeProps(stateProps, dispatchProps, ownProps) {
+function mergeProps(
+  stateProps: ReturnType<typeof mapStateToProps>,
+  dispatchProps: ReturnType<typeof mapDispatchToProps>,
+  ownProps: Record<string, unknown>,
+) {
   return {
     ...stateProps,
     ...dispatchProps,
@@ -469,7 +543,8 @@ function mergeProps(stateProps, dispatchProps, ownProps) {
   };
 }
 
-const ConnectedEditorControl = connect(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const ConnectedEditorControl = (connect as any)(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,

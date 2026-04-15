@@ -3,6 +3,10 @@ import React, { Component } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import styled from '@emotion/styled';
 import { OrderedMap } from 'immutable';
+import type { Map as ImmutableMap } from 'immutable';
+import type { TranslateFunction } from 'decap-cms-ui-default';
+import type { Collections, State, Collection } from '../../types/cms';
+import type { Status } from '../../constants/publishModes';
 import { translate } from 'react-polyglot';
 import { connect } from 'react-redux';
 import {
@@ -52,7 +56,20 @@ const WorkflowTopDescription = styled.p`
   ${components.cardTopDescription};
 `;
 
-class Workflow extends Component {
+interface WorkflowProps {
+  collections: Collections;
+  isEditorialWorkflow: boolean;
+  isOpenAuthoring?: boolean;
+  isFetching?: boolean;
+  unpublishedEntries?: ImmutableMap<string, any>;
+  loadUnpublishedEntries: (collections: Collections) => void;
+  updateUnpublishedEntryStatus: (collection: string, slug: string, oldStatus: string, newStatus: string) => void;
+  publishUnpublishedEntry: (collection: string, slug: string) => void;
+  deleteUnpublishedEntry: (collection: string, slug: string) => void;
+  t: TranslateFunction;
+}
+
+class Workflow extends Component<WorkflowProps> {
   static propTypes = {
     collections: ImmutablePropTypes.map.isRequired,
     isEditorialWorkflow: PropTypes.bool.isRequired,
@@ -91,8 +108,8 @@ class Workflow extends Component {
 
     if (!isEditorialWorkflow) return null;
     if (isFetching) return <Loader active>{t('workflow.workflow.loading')}</Loader>;
-    const reviewCount = unpublishedEntries.get('pending_review').size;
-    const readyCount = unpublishedEntries.get('pending_publish').size;
+    const reviewCount = unpublishedEntries ? unpublishedEntries.get('pending_review')?.size ?? 0 : 0;
+    const readyCount = unpublishedEntries ? unpublishedEntries.get('pending_publish')?.size ?? 0 : 0;
 
     return (
       <WorkflowContainer>
@@ -108,9 +125,9 @@ class Workflow extends Component {
               )}
             >
               {collections
-                .filter(collection => collection.get('create'))
-                .toList()
-                .map(collection => (
+                .filter((collection: Collection) => !!collection.get('create'))
+                .valueSeq()
+                .map((collection: Collection) => (
                   <DropdownItem
                     key={collection.get('name')}
                     label={collection.get('label')}
@@ -126,27 +143,33 @@ class Workflow extends Component {
             })}
           </WorkflowTopDescription>
         </WorkflowTop>
-        <WorkflowList
-          entries={unpublishedEntries}
-          handleChangeStatus={updateUnpublishedEntryStatus}
-          handlePublish={publishUnpublishedEntry}
-          handleDelete={deleteUnpublishedEntry}
-          isOpenAuthoring={isOpenAuthoring}
-          collections={collections}
-        />
+        {React.createElement(WorkflowList as any, {
+          entries: unpublishedEntries,
+          handleChangeStatus: updateUnpublishedEntryStatus,
+          handlePublish: publishUnpublishedEntry,
+          handleDelete: deleteUnpublishedEntry,
+          isOpenAuthoring,
+          collections,
+        })}
       </WorkflowContainer>
     );
   }
 }
 
-function mapStateToProps(state) {
+function mapStateToProps(state: State) {
   const { collections, config, globalUI } = state;
   const isEditorialWorkflow = config.publish_mode === EDITORIAL_WORKFLOW;
   const isOpenAuthoring = globalUI.useOpenAuthoring;
-  const returnObj = { collections, isEditorialWorkflow, isOpenAuthoring };
+  const returnObj: {
+    collections: Collections;
+    isEditorialWorkflow: boolean;
+    isOpenAuthoring: any;
+    isFetching?: boolean;
+    unpublishedEntries?: ImmutableMap<string, any>;
+  } = { collections, isEditorialWorkflow, isOpenAuthoring };
 
   if (isEditorialWorkflow) {
-    returnObj.isFetching = state.editorialWorkflow.getIn(['pages', 'isFetching'], false);
+    returnObj.isFetching = (state.editorialWorkflow as any).getIn(['pages', 'isFetching'], false);
 
     /*
      * Generates an ordered Map of the available status as keys.
@@ -154,9 +177,9 @@ function mapStateToProps(state) {
      * Eg.: OrderedMap{'draft':Seq(), 'pending_review':Seq(), 'pending_publish':Seq()}
      */
     returnObj.unpublishedEntries = status.reduce((acc, currStatus) => {
-      const entries = selectUnpublishedEntriesByStatus(state, currStatus);
-      return acc.set(currStatus, entries);
-    }, OrderedMap());
+      const entries = selectUnpublishedEntriesByStatus(state, currStatus as Status);
+      return acc.set(currStatus as string, entries);
+    }, OrderedMap<string, any>());
   }
   return returnObj;
 }
@@ -166,4 +189,4 @@ export default connect(mapStateToProps, {
   updateUnpublishedEntryStatus,
   publishUnpublishedEntry,
   deleteUnpublishedEntry,
-})(translate()(Workflow));
+})(translate()(Workflow as any) as any);

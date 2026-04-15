@@ -25,6 +25,10 @@
     "lodash": "catalog:utils",
     "uuid": "catalog:utils"
   },
+  "devDependencies": {
+    "@types/react": "catalog:types",
+    "@types/react-dom": "catalog:types"
+  },
   "type": "module",
   "types": "./dist/index.d.ts",
   "exports": {

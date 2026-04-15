@@ -1,6 +1,5 @@
 import { Map, List, fromJS, OrderedMap, Set } from 'immutable';
-import { dirname, join } from 'path';
-import { isAbsolutePath, basename } from 'decap-cms-lib-util';
+import { isAbsolutePath, basename, dirname, join } from 'decap-cms-lib-util';
 import trim from 'lodash/trim';
 import once from 'lodash/once';
 import sortBy from 'lodash/sortBy';
@@ -10,6 +9,7 @@ import groupBy from 'lodash/groupBy';
 import { stringTemplate } from 'decap-cms-lib-widgets';
 
 import { SortDirection } from '../types/cms';
+import type { StaticallyTypedRecord } from '../types/immutable';
 import { folderFormatter } from '../lib/formatters';
 import { selectSortDataPath } from './collections';
 import { SEARCH_ENTRIES_SUCCESS } from '../actions/search';
@@ -99,12 +99,12 @@ const loadSort = once(() => {
         let orderedMap = OrderedMap() as SortMap;
         sortBy(Object.values(sort), ['index']).forEach(value => {
           const { key, direction } = value;
-          orderedMap = orderedMap.set(key, fromJS({ key, direction }));
+          orderedMap = orderedMap.set(key, fromJS({ key, direction }) as unknown as StaticallyTypedRecord<SortObject>);
         });
         map = map.set(collection, orderedMap);
       });
       return map;
-    } catch (e) {
+    } catch (e: unknown) {
       return Map() as Sort;
     }
   }
@@ -120,7 +120,7 @@ function persistSort(sort: Sort | undefined) {
     const storageSort: StorageSort = {};
     sort.keySeq().forEach(key => {
       const collection = key as string;
-      const sortObjects = (sort.get(collection).valueSeq().toJS() as SortObject[]).map(
+      const sortObjects = (sort.get(collection)!.valueSeq().toJS() as unknown as SortObject[]).map(
         (value, index) => ({ ...value, index }),
       );
 
@@ -172,7 +172,7 @@ function entries(
       slug = payload.entry.slug;
       return state.withMutations(map => {
         map.setIn(['entities', `${collection}.${slug}`], fromJS(payload.entry));
-        const ids = map.getIn(['pages', collection, 'ids'], List());
+        const ids = map.getIn(['pages', collection, 'ids'], List()) as List<string>;
         if (!ids.includes(slug)) {
           map.setIn(['pages', collection, 'ids'], ids.unshift(slug));
         }
@@ -207,7 +207,7 @@ function entries(
           ['pages', collection],
           Map({
             page,
-            ids: append ? map.getIn(['pages', collection, 'ids'], List()).concat(ids) : ids,
+            ids: append ? (map.getIn(['pages', collection, 'ids'], List()) as List<string>).concat(ids) : ids,
           }),
         );
       });
@@ -243,8 +243,8 @@ function entries(
       const payload = action.payload as EntryDeletePayload;
       return state.withMutations(map => {
         map.deleteIn(['entities', `${payload.collectionName}.${payload.entrySlug}`]);
-        map.updateIn(['pages', payload.collectionName, 'ids'], (ids: string[]) =>
-          ids.filter(id => id !== payload.entrySlug),
+        map.updateIn(['pages', payload.collectionName, 'ids'], (ids: unknown) =>
+          (ids as string[]).filter(id => id !== payload.entrySlug),
         );
       });
     }
@@ -433,7 +433,7 @@ export function selectEntries(state: Entries, collection: Collection) {
     const orders = sortFields.map(v =>
       v.get('direction') === SortDirection.Ascending ? 'asc' : 'desc',
     );
-    entries = fromJS(orderBy(entries.toJS(), keys, orders));
+    entries = fromJS(orderBy(entries.toJS(), keys, orders)) as unknown as List<EntryMap>;
   }
 
   const filters = selectEntriesFilterFields(state, collectionName);
@@ -480,7 +480,7 @@ function getGroup(entry: EntryMap, selectedGroup: GroupMap) {
       if (matched) {
         value = matched[0];
       }
-    } catch (e) {
+    } catch (e: unknown) {
       console.warn(`Invalid view group pattern '${pattern}' for field '${field}'`, e);
     }
     return {

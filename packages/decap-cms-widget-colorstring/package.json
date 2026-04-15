@@ -30,6 +30,12 @@
     "prop-types": "catalog:react",
     "react": "catalog:react"
   },
+  "devDependencies": {
+    "@types/react": "catalog:types",
+    "@types/prop-types": "catalog:types",
+    "@types/react-color": "catalog:types",
+    "@types/tinycolor2": "catalog:types"
+  },
   "type": "module",
   "types": "./dist/index.d.ts",
   "exports": {

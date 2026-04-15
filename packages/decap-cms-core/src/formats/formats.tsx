@@ -8,9 +8,8 @@ import { FrontmatterInfer, frontmatterJSON, frontmatterTOML, frontmatterYAML } f
 import { getCustomFormatsExtensions, getCustomFormatsFormatters } from '../lib/registry';
 
 import type { Delimiter } from './frontmatter';
-import type { Collection, EntryObject, Format } from '../types/cms';
+import type { Collection, EntryObject, Format, FormatterFunctions } from '../types/cms';
 import type { EntryValue } from '../valueObjects/Entry';
-import type { Formatter } from 'decap-cms-core';
 
 export const frontmatterFormats = ['yaml-frontmatter', 'toml-frontmatter', 'json-frontmatter'];
 
@@ -39,8 +38,8 @@ export const extensionFormatters = {
   html: FrontmatterInfer,
 };
 
-function formatByName(name: Format, customDelimiter?: Delimiter): Formatter {
-  const formatters: Record<string, Formatter> = {
+function formatByName(name: Format, customDelimiter?: Delimiter): FormatterFunctions {
+  const formatters: Record<string, FormatterFunctions> = {
     yml: yamlFormatter,
     yaml: yamlFormatter,
     toml: tomlFormatter,

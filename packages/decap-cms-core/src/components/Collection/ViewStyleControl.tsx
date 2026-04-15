@@ -11,9 +11,9 @@ const ViewControlsSection = styled.div`
   max-width: 500px;
 `;
 
-const ViewControlsButton = styled.button`
+const ViewControlsButton = styled.button<{ $isActive?: boolean }>`
   ${buttons.button};
-  color: ${props => (props.isActive ? colors.active : '#b3b9c4')};
+  color: ${props => (props.$isActive ? colors.active : '#b3b9c4')};
   background-color: transparent;
   display: block;
   padding: 0;
@@ -28,19 +28,25 @@ const ViewControlsButton = styled.button`
   }
 `;
 
-function ViewStyleControl({ viewStyle, onChangeViewStyle, t }) {
+interface ViewStyleControlProps {
+  viewStyle: string;
+  onChangeViewStyle: (style: string) => void;
+  t: (key: string) => string;
+}
+
+function ViewStyleControl({ viewStyle, onChangeViewStyle, t }: ViewStyleControlProps) {
   return (
     <ViewControlsSection>
       <ViewControlsButton
         aria-label={t('collection.collectionTop.viewAsList')}
-        isActive={viewStyle === VIEW_STYLE_LIST}
+        $isActive={viewStyle === VIEW_STYLE_LIST}
         onClick={() => onChangeViewStyle(VIEW_STYLE_LIST)}
       >
         <Icon type="list" />
       </ViewControlsButton>
       <ViewControlsButton
         aria-label={t('collection.collectionTop.viewAsGrid')}
-        isActive={viewStyle === VIEW_STYLE_GRID}
+        $isActive={viewStyle === VIEW_STYLE_GRID}
         onClick={() => onChangeViewStyle(VIEW_STYLE_GRID)}
       >
         <Icon type="grid" />

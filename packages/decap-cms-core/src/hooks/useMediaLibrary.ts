@@ -1,7 +1,10 @@
 import { useCallback } from 'react';
+import { Map } from 'immutable';
 
 import { useAppSelector, useAppDispatch } from './useRedux';
 import { openMediaLibrary, closeMediaLibrary } from '../actions/mediaLibrary';
+
+import type { EntryField } from '../types/cms';
 
 /**
  * Hook for media library state and actions
@@ -17,7 +20,15 @@ export function useMediaLibrary() {
   const isOpen = mediaLibrary.get('isVisible');
 
   const open = useCallback(
-    (options?: unknown) => {
+    (options?: {
+      controlID?: string;
+      forImage?: boolean;
+      privateUpload?: boolean;
+      value?: string;
+      allowMultiple?: boolean;
+      config?: Map<string, unknown>;
+      field?: EntryField;
+    }) => {
       dispatch(openMediaLibrary(options));
     },
     [dispatch]

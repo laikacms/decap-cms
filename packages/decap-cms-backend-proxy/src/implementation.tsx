@@ -5,6 +5,8 @@ import {
   blobToFileObj,
 } from 'decap-cms-lib-util';
 
+import isError from 'lodash/isError';
+
 import AuthenticationPage from './AuthenticationPage';
 
 import type {
@@ -155,8 +157,8 @@ export default class ProxyBackend implements Implementation {
       });
 
       return entry;
-    } catch (e) {
-      if (e.status === 404) {
+    } catch (e: unknown) {
+      if (isError(e) && 'status' in e && e.status === 404) {
         throw new EditorialWorkflowError('content is not under editorial workflow', true);
       }
       throw e;

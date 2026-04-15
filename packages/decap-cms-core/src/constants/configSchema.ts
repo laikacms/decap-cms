@@ -1,12 +1,15 @@
 import AJV from 'ajv';
-import {
-  select,
-  uniqueItemProperties,
-  instanceof as instanceOf,
-  prohibited,
-} from 'ajv-keywords/dist/keywords';
+import type { ErrorObject } from 'ajv';
+import ajvKeywords from 'ajv-keywords/dist/keywords';
 import ajvErrors from 'ajv-errors';
 import { v4 as uuid } from 'uuid';
+
+const {
+  select,
+  uniqueItemProperties,
+  instanceof: instanceOf,
+  prohibited,
+} = ajvKeywords;
 
 import { frontmatterFormats, extensionFormatters } from '../formats/formats';
 import { getWidgets } from '../lib/registry';
@@ -350,24 +353,28 @@ function getConfigSchema() {
 }
 
 function getWidgetSchemas() {
-  const schemas = getWidgets().map(widget => ({ [widget.name]: widget.schema }));
-  return Object.assign(...schemas);
+  const schemas = getWidgets().map(widget => ({
+    [widget.name]: (widget as Record<string, unknown>).schema,
+  }));
+  return Object.assign({}, ...schemas);
 }
 
 class ConfigError extends Error {
-  constructor(errors, ...args) {
+  errors: ErrorObject[];
+
+  constructor(errors: ErrorObject[], ...args: string[]) {
     const message = errors
-      .map(({ message, instancePath }) => {
+      .map(({ message, instancePath }: { message?: string; instancePath: string }) => {
         const dotPath = instancePath
           .slice(1)
           .split('/')
-          .map(seg => (seg.match(/^\d+$/) ? `[${seg}]` : `.${seg}`))
+          .map((seg: string) => (seg.match(/^\d+$/) ? `[${seg}]` : `.${seg}`))
           .join('')
           .slice(1);
         return `${dotPath ? `'${dotPath}'` : 'config'} ${message}`;
       })
       .join('\n');
-    super(message, ...args);
+    super(message);
 
     this.errors = errors;
     this.message = message;
@@ -382,17 +389,17 @@ class ConfigError extends Error {
  * `validateConfig` is a pure function. It does not mutate
  * the config that is passed in.
  */
-export function validateConfig(config) {
+export function validateConfig(config: Record<string, unknown>) {
   const ajv = new AJV({ allErrors: true, $data: true, strict: false });
-  uniqueItemProperties(ajv);
-  select(ajv);
-  instanceOf(ajv);
-  prohibited(ajv);
+  uniqueItemProperties?.(ajv);
+  select?.(ajv);
+  instanceOf?.(ajv);
+  prohibited?.(ajv);
   ajvErrors(ajv);
 
   const valid = ajv.validate(getConfigSchema(), config);
   if (!valid) {
-    const errors = ajv.errors.map(e => {
+    const errors = (ajv.errors ?? []).map(e => {
       switch (e.keyword) {
         // TODO: remove after https://github.com/ajv-validator/ajv-keywords/pull/123 is merged
         case 'uniqueItemProperties': {
@@ -428,20 +435,28 @@ export function validateConfig(config) {
 
   // Custom validation: only one sortable field can have default_sort property
   if (config.collections) {
-    config.collections.forEach((collection, index) => {
-      if (collection.sortable_fields) {
-        const defaultFields = collection.sortable_fields.filter(
-          field => typeof field === 'object' && field.default_sort !== undefined,
-        );
-        if (defaultFields.length > 1) {
-          const error = {
-            instancePath: `/collections/${index}/sortable_fields`,
-            message: 'only one sortable field can have the default_sort property',
-          };
-          console.error('Config Errors', [error]);
-          throw new ConfigError([error]);
+    (config.collections as Record<string, unknown>[]).forEach(
+      (collection: Record<string, unknown>, index: number) => {
+        if (collection.sortable_fields) {
+          const defaultFields = (collection.sortable_fields as unknown[]).filter(
+            (field: unknown) =>
+              typeof field === 'object' &&
+              field !== null &&
+              (field as Record<string, unknown>).default_sort !== undefined,
+          );
+          if (defaultFields.length > 1) {
+            const error: ErrorObject = {
+              instancePath: `/collections/${index}/sortable_fields`,
+              message: 'only one sortable field can have the default_sort property',
+              keyword: '',
+              params: {},
+              schemaPath: '',
+            };
+            console.error('Config Errors', [error]);
+            throw new ConfigError([error]);
+          }
         }
-      }
-    });
+      },
+    );
   }
 }

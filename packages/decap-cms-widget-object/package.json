@@ -25,11 +25,16 @@
     "@emotion/react": "catalog:emotion",
     "@emotion/styled": "catalog:emotion",
     "decap-cms-ui-default": "workspace:*",
+    "decap-cms-lib-widgets": "workspace:*",
     "immutable": "catalog:utils",
     "lodash": "catalog:utils",
     "prop-types": "catalog:react",
     "react": "catalog:react",
     "react-immutable-proptypes": "catalog:react"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:types",
+    "@types/prop-types": "catalog:types"
   },
   "type": "module",
   "types": "./dist/index.d.ts",

@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { useTranslate } from 'react-polyglot';
 import styled from '@emotion/styled';
-import { Route, Switch, Redirect } from 'react-router-dom';
+import { Route, Routes, Navigate, useParams, useNavigate } from 'react-router-dom';
 import TopBarProgress from 'react-topbar-progress-indicator';
 import { Loader, colors } from 'decap-cms-ui-default';
 
@@ -12,7 +12,6 @@ import { createNewEntry } from '../../actions/collections';
 import { openMediaLibrary } from '../../actions/mediaLibrary';
 import MediaLibrary from '../MediaLibrary/MediaLibrary';
 import { Notifications } from '../UI';
-import { history } from '../../routing/history';
 import { EDITORIAL_WORKFLOW } from '../../constants/publishModes';
 import Collection from '../Collection/Collection';
 import Workflow from '../Workflow/Workflow';
@@ -20,6 +19,7 @@ import Editor from '../Editor/Editor';
 import NotFoundPage from './NotFoundPage';
 import Header from './Header';
 
+import type { Credentials } from 'decap-cms-lib-util';
 import type { Collections, Collection as CollectionType } from '../../types/cms';
 
 TopBarProgress.config({
@@ -59,24 +59,65 @@ function getDefaultPath(collections: Collections): string {
   throw new Error('Could not find a non hidden collection');
 }
 
-interface RouteInCollectionProps {
+/**
+ * Helper component that checks if a collection exists and redirects if not.
+ * Used as a wrapper element for Route in react-router v7.
+ */
+function RouteInCollectionGuard({
+  collections,
+  children,
+}: {
   collections: Collections;
-  render: (props: any) => React.ReactNode;
-  exact?: boolean;
-  path: string;
+  children: React.ReactNode;
+}) {
+  const { name } = useParams<{ name: string }>();
+  const defaultPath = getDefaultPath(collections);
+  const collectionExists = name ? collections.get(name) : undefined;
+  return collectionExists ? <>{children}</> : <Navigate to={defaultPath} replace />;
 }
 
-function RouteInCollection({ collections, render, ...props }: RouteInCollectionProps) {
-  const defaultPath = getDefaultPath(collections);
+/**
+ * Wrapper that bridges useParams to the match prop expected by Collection.
+ */
+function CollectionRoute({
+  isSearchResults,
+  isSingleSearchResult,
+}: {
+  isSearchResults?: boolean;
+  isSingleSearchResult?: boolean;
+}) {
+  const params = useParams();
+  const match = { params: params as { name?: string; searchTerm?: string; filterTerm?: string } };
   return (
-    <Route
-      {...props}
-      render={(routeProps: any) => {
-        const collectionExists = collections.get(routeProps.match.params.name);
-        return collectionExists ? render(routeProps) : <Redirect to={defaultPath} />;
-      }}
+    <Collection
+      match={match}
+      isSearchResults={isSearchResults}
+      isSingleSearchResult={isSingleSearchResult}
     />
   );
+}
+
+/**
+ * Wrapper for the Editor component in route context.
+ */
+function EditorRoute({ newRecord }: { newRecord?: boolean }) {
+  return <Editor newRecord={newRecord} />;
+}
+
+/**
+ * Redirect helper for search route within a collection
+ */
+function CollectionSearchRedirect() {
+  const { name } = useParams<{ name: string }>();
+  return <Navigate to={`/collections/${name}`} replace />;
+}
+
+/**
+ * Redirect helper for edit route
+ */
+function EditRedirect() {
+  const { name, entryName } = useParams<{ name: string; entryName: string }>();
+  return <Navigate to={`/collections/${name}/entries/${entryName}`} replace />;
 }
 
 /**
@@ -87,6 +128,7 @@ function RouteInCollection({ collections, render, ...props }: RouteInCollectionP
 function App() {
   const t = useTranslate();
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
 
   // Select state from Redux store
   const auth = useAppSelector(state => state.auth);
@@ -117,7 +159,7 @@ function App() {
 
   // Handlers using useCallback
   const handleLogin = useCallback(
-    (credentials: unknown) => {
+    (credentials: Credentials) => {
       dispatch(loginUser(credentials));
     },
     [dispatch]
@@ -135,8 +177,8 @@ function App() {
   );
 
   const handleClearHash = useCallback(() => {
-    history.replace('/');
-  }, []);
+    navigate('/', { replace: true });
+  }, [navigate]);
 
   // Render helpers
   const renderConfigError = useCallback(() => {
@@ -163,20 +205,23 @@ function App() {
       );
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const AuthComponent = backend.authComponent() as any as React.ComponentType<any>;
+
     return (
       <div>
         <Notifications />
-        {React.createElement(backend.authComponent(), {
-          onLogin: handleLogin,
-          error: auth.error,
-          inProgress: auth.isFetching,
-          siteId: config?.backend?.site_domain,
-          base_url: config?.backend?.base_url,
-          authEndpoint: config?.backend?.auth_endpoint,
-          config,
-          clearHash: handleClearHash,
-          t,
-        })}
+        <AuthComponent
+          onLogin={handleLogin}
+          error={auth.error}
+          inProgress={auth.isFetching}
+          siteId={config?.backend?.site_domain}
+          base_url={config?.backend?.base_url}
+          authEndpoint={config?.backend?.auth_endpoint}
+          config={config}
+          clearHash={handleClearHash}
+          t={t}
+        />
       </div>
     );
   }, [config, auth.error, auth.isFetching, handleLogin, handleClearHash, t]);
@@ -216,60 +261,76 @@ function App() {
       />
       <AppMainContainer>
         {isFetching && <TopBarProgress />}
-        <Switch>
-          <Redirect exact from="/" to={defaultPath} />
-          <Redirect exact from="/search/" to={defaultPath} />
-          <RouteInCollection
-            exact
-            collections={collections}
+        <Routes>
+          <Route path="/" element={<Navigate to={defaultPath} replace />} />
+          <Route path="/search/" element={<Navigate to={defaultPath} replace />} />
+          <Route
             path="/collections/:name/search/"
-            render={({ match }: any) => <Redirect to={`/collections/${match.params.name}`} />}
+            element={
+              <RouteInCollectionGuard collections={collections}>
+                <CollectionSearchRedirect />
+              </RouteInCollectionGuard>
+            }
           />
-          <Redirect
-            from="/error=access_denied&error_description=Signups+not+allowed+for+this+instance"
-            to={defaultPath}
+          <Route
+            path="/error=access_denied&error_description=Signups+not+allowed+for+this+instance"
+            element={<Navigate to={defaultPath} replace />}
           />
-          {hasWorkflow ? <Route path="/workflow" component={Workflow} /> : null}
-          <RouteInCollection
-            exact
-            collections={collections}
+          {hasWorkflow ? <Route path="/workflow" element={<Workflow />} /> : null}
+          <Route
             path="/collections/:name"
-            render={(props: any) => <Collection {...props} />}
+            element={
+              <RouteInCollectionGuard collections={collections}>
+                <CollectionRoute />
+              </RouteInCollectionGuard>
+            }
           />
-          <RouteInCollection
+          <Route
             path="/collections/:name/new"
-            collections={collections}
-            render={(props: any) => <Editor {...props} newRecord />}
+            element={
+              <RouteInCollectionGuard collections={collections}>
+                <EditorRoute newRecord />
+              </RouteInCollectionGuard>
+            }
           />
-          <RouteInCollection
+          <Route
             path="/collections/:name/entries/*"
-            collections={collections}
-            render={(props: any) => <Editor {...props} />}
+            element={
+              <RouteInCollectionGuard collections={collections}>
+                <EditorRoute />
+              </RouteInCollectionGuard>
+            }
           />
-          <RouteInCollection
+          <Route
             path="/collections/:name/search/:searchTerm"
-            collections={collections}
-            render={(props: any) => <Collection {...props} isSearchResults isSingleSearchResult />}
+            element={
+              <RouteInCollectionGuard collections={collections}>
+                <CollectionRoute isSearchResults isSingleSearchResult />
+              </RouteInCollectionGuard>
+            }
           />
-          <RouteInCollection
-            collections={collections}
+          <Route
             path="/collections/:name/filter/:filterTerm*"
-            render={(props: any) => <Collection {...props} />}
+            element={
+              <RouteInCollectionGuard collections={collections}>
+                <CollectionRoute />
+              </RouteInCollectionGuard>
+            }
           />
           <Route
             path="/search/:searchTerm"
-            render={(props: any) => <Collection {...props} isSearchResults />}
+            element={<CollectionRoute isSearchResults />}
           />
-          <RouteInCollection
+          <Route
             path="/edit/:name/:entryName"
-            collections={collections}
-            render={({ match }: any) => {
-              const { name, entryName } = match.params;
-              return <Redirect to={`/collections/${name}/entries/${entryName}`} />;
-            }}
+            element={
+              <RouteInCollectionGuard collections={collections}>
+                <EditRedirect />
+              </RouteInCollectionGuard>
+            }
           />
-          <Route component={NotFoundPage} />
-        </Switch>
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
         {useMediaLibraryFlag ? <MediaLibrary /> : null}
       </AppMainContainer>
     </>

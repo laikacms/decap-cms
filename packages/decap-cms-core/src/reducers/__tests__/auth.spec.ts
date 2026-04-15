@@ -4,7 +4,7 @@ import auth, { defaultState } from '../auth';
 describe('auth', () => {
   it('should handle an empty state', () => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore auth reducer doesn't accept empty action
+    // @ts-expect-error auth reducer doesn't accept empty action
     expect(auth(undefined, {})).toEqual(defaultState);
   });
 

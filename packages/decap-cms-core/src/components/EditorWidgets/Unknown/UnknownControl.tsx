@@ -2,10 +2,17 @@ import React from 'react';
 import { translate } from 'react-polyglot';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import PropTypes from 'prop-types';
+import type { TranslateFunction } from 'decap-cms-ui-default';
+import type { EntryField } from '../../../types/cms';
 
-function UnknownControl({ field, t }) {
+interface UnknownControlProps {
+  field?: EntryField;
+  t: TranslateFunction;
+}
+
+function UnknownControl({ field, t }: UnknownControlProps) {
   return (
-    <div>{t('editor.editorWidgets.unknownControl.noControl', { widget: field.get('widget') })}</div>
+    <div>{t('editor.editorWidgets.unknownControl.noControl', { widget: field?.get('widget') })}</div>
   );
 }
 

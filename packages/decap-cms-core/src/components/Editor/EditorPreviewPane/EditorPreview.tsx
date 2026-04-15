@@ -2,8 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import styled from '@emotion/styled';
+import type { List as ImmutableList, Map as ImmutableMap } from 'immutable';
+import type { Collection, EntryMap, EntryField } from '../../../types/cms';
 
-function isVisible(field) {
+function isVisible(field: EntryField) {
   return field.get('widget') !== 'hidden';
 }
 
@@ -15,7 +17,15 @@ const PreviewContainer = styled.div`
  * Use a stateful component so that child components can effectively utilize
  * `shouldComponentUpdate`.
  */
-export default class Preview extends React.Component {
+interface PreviewProps {
+  collection: Collection;
+  entry: EntryMap;
+  fields: ImmutableList<EntryField>;
+  getAsset: (asset: string) => { url: string; path: string; field?: EntryField };
+  widgetFor: (name: string, fields?: ImmutableList<EntryField>, values?: ImmutableMap<string, unknown>, fieldsMetaData?: ImmutableMap<string, unknown>) => React.ReactNode;
+}
+
+export default class Preview extends React.Component<PreviewProps> {
   render() {
     const { collection, fields, widgetFor } = this.props;
     if (!collection || !fields) {

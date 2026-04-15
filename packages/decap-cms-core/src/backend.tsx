@@ -441,7 +441,7 @@ export class Backend {
   async logout() {
     try {
       await this.implementation.logout();
-    } catch (e) {
+    } catch (e: unknown) {
       console.warn('Error during logout', (e as Error).message);
     } finally {
       this.user = null;
@@ -572,7 +572,7 @@ export class Backend {
           `collection` argument.
         */
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // @ts-expect-error -- TODO: fix underlying type issue
     const cursor = Cursor.create(loadedEntries[CURSOR_COMPATIBILITY_SYMBOL]).wrapData({
       cursorType: 'collectionEntries',
       collection,
@@ -665,7 +665,7 @@ export class Backend {
 
     if (errors.length > 0) {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error -- TODO: fix underlying type issue
       throw new Error({ message: 'Errors occurred while searching entries locally!', errors });
     }
 
@@ -795,7 +795,7 @@ export class Backend {
       });
       const result = await localForage.setItem(getEntryBackupKey(), raw);
       return result;
-    } catch (e) {
+    } catch (e: unknown) {
       console.warn('persistLocalDraftBackup', e);
     } finally {
       this.backupSync.release();
@@ -810,7 +810,7 @@ export class Backend {
       slug && (await localForage.removeItem(getEntryBackupKey(collection.get('name'))));
       const result = await this.deleteAnonymousBackup();
       return result;
-    } catch (e) {
+    } catch (e: unknown) {
       console.warn('deleteLocalDraftBackup', e);
     } finally {
       this.backupSync.release();

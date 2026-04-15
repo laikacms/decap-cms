@@ -12,7 +12,7 @@ import IconButton from './IconButton';
 import Toggle, { ToggleContainer, ToggleBackground, ToggleHandle } from './Toggle';
 import AuthenticationPage, { renderPageLogo } from './AuthenticationPage';
 import WidgetPreviewContainer from './WidgetPreviewContainer';
-import ObjectWidgetTopBar from './ObjectWidgetTopBar';
+import ObjectWidgetTopBar, { type TranslateFunction } from './ObjectWidgetTopBar';
 import GoBackButton from './GoBackButton';
 import {
   fonts,
@@ -66,6 +66,7 @@ export const DecapCmsUiDefault = {
   renderPageLogo,
 };
 export {
+  TranslateFunction,
   Dropdown,
   DropdownItem,
   DropdownCheckedItem,

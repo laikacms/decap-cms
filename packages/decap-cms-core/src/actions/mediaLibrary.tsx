@@ -156,7 +156,7 @@ export function loadMedia(
           privateUpload,
         };
         return dispatch(mediaLoaded(files, mediaLoadedOpts));
-      } catch (error) {
+      } catch (error: unknown) {
         return dispatch(mediaLoadFailed({ privateUpload }));
       }
     }
@@ -257,7 +257,7 @@ export function persistMedia(file: File, opts: MediaOptions = {}) {
             url: response.asset.url,
             path: response.asset.url,
           });
-        } catch (error) {
+        } catch (error: unknown) {
           assetProxy = createAssetProxy({
             file,
             path: fileName,
@@ -297,7 +297,7 @@ export function persistMedia(file: File, opts: MediaOptions = {}) {
       }
 
       return dispatch(mediaPersisted(mediaFile, { privateUpload }));
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(error);
       dispatch(
         addNotification({

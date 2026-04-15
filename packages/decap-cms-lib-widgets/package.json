@@ -20,6 +20,10 @@
     "dayjs": "catalog:utils",
     "decap-cms-lib-util": "workspace:*"
   },
+  "devDependencies": {
+    "@types/react": "catalog:types",
+    "@types/react-dom": "catalog:types"
+  },
   "peerDependencies": {
     "immutable": "catalog:utils",
     "lodash": "catalog:utils"

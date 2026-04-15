@@ -23,7 +23,7 @@ export async function entriesFromFiles(
           data: content.toString(),
           file: { path: normalizePath(file.path), label: file.label, id: sha256(content) },
         };
-      } catch (e) {
+      } catch (e: unknown) {
         return {
           data: null,
           file: { path: normalizePath(file.path), label: file.label, id: null },

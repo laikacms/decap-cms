@@ -30,7 +30,13 @@
     "react-immutable-proptypes": "catalog:react"
   },
   "dependencies": {
+    "lodash": "catalog:utils",
     "react-select": "catalog:react"
+  },
+  "devDependencies": {
+    "@types/lodash": "catalog:types",
+    "@types/react": "catalog:types",
+    "@types/prop-types": "catalog:types"
   },
   "type": "module",
   "types": "./dist/index.d.ts",

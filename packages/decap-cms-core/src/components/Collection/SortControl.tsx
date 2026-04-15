@@ -1,11 +1,12 @@
 import React from 'react';
 import { translate } from 'react-polyglot';
 import { Dropdown, DropdownItem } from 'decap-cms-ui-default';
+import type { Map as ImmutableMap } from 'immutable';
 
 import { SortDirection } from '../../types/cms';
 import { ControlButton } from './ControlButton';
 
-function nextSortDirection(direction) {
+function nextSortDirection(direction: string | undefined) {
   switch (direction) {
     case SortDirection.Ascending:
       return SortDirection.Descending;
@@ -16,30 +17,37 @@ function nextSortDirection(direction) {
   }
 }
 
-function sortIconProps(sortDir) {
+function sortIconProps(sortDir: string) {
   return {
-    icon: 'chevron',
-    iconDirection: sortIconDirections[sortDir],
+    icon: 'chevron' as const,
+    iconDirection: sortIconDirections[sortDir] as 'up' | 'down',
     iconSmall: true,
   };
 }
 
-const sortIconDirections = {
+const sortIconDirections: Record<string, 'up' | 'down'> = {
   [SortDirection.Ascending]: 'up',
   [SortDirection.Descending]: 'down',
 };
 
-function SortControl({ t, fields, onSortClick, sort }) {
+interface SortControlProps {
+  t: (key: string) => string;
+  fields: { key: string; label?: string }[];
+  onSortClick: (key: string, direction: SortDirection) => void;
+  sort: ImmutableMap<string, unknown> | undefined;
+}
+
+function SortControl({ t, fields, onSortClick, sort }: SortControlProps) {
   const hasActiveSort = sort
     ?.valueSeq()
     .toJS()
-    .some(s => s.direction !== SortDirection.None);
+    .some((s: any) => s.direction !== SortDirection.None);
 
   return (
     <Dropdown
       renderButton={() => {
         return (
-          <ControlButton active={hasActiveSort} title={t('collection.collectionTop.sortBy')} />
+          <ControlButton active={hasActiveSort ?? false} title={t('collection.collectionTop.sortBy')} />
         );
       }}
       closeOnSelection={false}
@@ -48,8 +56,8 @@ function SortControl({ t, fields, onSortClick, sort }) {
       dropdownPosition="left"
     >
       {fields.map(field => {
-        const sortDir = sort?.getIn([field.key, 'direction']);
-        const isActive = sortDir && sortDir !== SortDirection.None;
+        const sortDir = sort?.getIn([field.key, 'direction']) as string | undefined;
+        const isActive = sortDir != null && sortDir !== SortDirection.None;
         const nextSortDir = nextSortDirection(sortDir);
         return (
           <DropdownItem
@@ -57,7 +65,7 @@ function SortControl({ t, fields, onSortClick, sort }) {
             label={field.label}
             onClick={() => onSortClick(field.key, nextSortDir)}
             isActive={isActive}
-            {...(isActive && sortIconProps(sortDir))}
+            {...(isActive && sortDir ? sortIconProps(sortDir) : {})}
           />
         );
       })}

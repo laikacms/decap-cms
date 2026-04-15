@@ -218,7 +218,7 @@ export default class NetlifyAuthenticationPage extends React.Component<
       const client = await NetlifyAuthenticationPage.authClient();
       const user = await client.login(this.state.email, this.state.password, true);
       this.props.onLogin(user);
-    } catch (error) {
+    } catch (error: unknown) {
       const err = error as { description?: string; msg?: string };
       this.setState({
         errors: { server: err.description || err.msg || String(error) },

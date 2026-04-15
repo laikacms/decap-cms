@@ -1,11 +1,15 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import Select from 'react-select';
-import isHotkey from 'is-hotkey';
 import { text, shadows, zIndex } from 'decap-cms-ui-default';
-
+import { isHotkey } from 'decap-cms-lib-util';
 import SettingsButton from './SettingsButton';
 import languageSelectStyles from './languageSelectStyles';
+
+interface SelectOption {
+  value: string;
+  label: string;
+}
 
 const SettingsPaneContainer = styled.div`
   position: absolute;
@@ -39,19 +43,43 @@ const SettingsSectionTitle = styled.h3`
   }
 `;
 
-function SettingsSelect({ value, options, onChange, forID, type, autoFocus }) {
+interface SettingsSelectProps {
+  value: SelectOption;
+  options: SelectOption[];
+  onChange: (value: string) => void;
+  forID: string;
+  type: string;
+  autoFocus?: boolean;
+}
+
+function SettingsSelect({ value, options, onChange, forID, type, autoFocus }: SettingsSelectProps) {
   return (
-    <Select
+    <Select<SelectOption>
       inputId={`${forID}-select-${type}`}
       styles={languageSelectStyles}
       value={value}
       options={options}
-      onChange={opt => onChange(opt.value)}
+      onChange={opt => onChange(opt!.value)}
       menuPlacement="auto"
       captureMenuScroll={false}
       autoFocus={autoFocus}
     />
   );
+}
+
+interface SettingsPaneProps {
+  hideSettings: () => void;
+  forID: string;
+  modes: SelectOption[];
+  mode: SelectOption;
+  theme: string;
+  themes: string[] | null;
+  keyMap: SelectOption;
+  keyMaps: SelectOption[];
+  allowLanguageSelection: boolean;
+  onChangeLang: (value: string) => void;
+  onChangeTheme: (value: string) => void;
+  onChangeKeyMap: (value: string) => void;
 }
 
 function SettingsPane({
@@ -67,9 +95,16 @@ function SettingsPane({
   onChangeLang,
   onChangeTheme,
   onChangeKeyMap,
-}) {
+}: SettingsPaneProps) {
   return (
-    <SettingsPaneContainer onKeyDown={e => isHotkey('esc', e) && hideSettings()}>
+    <SettingsPaneContainer
+      onKeyDown={e => {
+        const nativeEvent = e.nativeEvent;
+        if (isHotkey('esc', nativeEvent as unknown as Record<string, unknown>)) {
+          hideSettings();
+        }
+      }}
+    >
       <SettingsButton onClick={hideSettings} showClose={true} />
       {allowLanguageSelection && (
         <>
@@ -94,7 +129,7 @@ function SettingsPane({
               type="theme"
               forID={forID}
               value={{ value: theme, label: theme }}
-              options={themes.map(t => ({ value: t, label: t }))}
+              options={themes.map((t: string) => ({ value: t, label: t }))}
               onChange={onChangeTheme}
               autoFocus={!allowLanguageSelection}
             />

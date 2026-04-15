@@ -1,11 +1,12 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import styled from '@emotion/styled';
 import { List, Map } from 'immutable';
-import ImmutablePropTypes from 'react-immutable-proptypes';
+import type { List as ImmutableList, Map as ImmutableMap } from 'immutable';
+import type { Collection, EntryMap, EntryField, CmsConfig, State } from '../../../types/cms';
 import Frame, { FrameContextConsumer } from 'react-frame-component';
 import { lengths } from 'decap-cms-ui-default';
 import { connect } from 'react-redux';
+import type { Dispatch } from 'redux';
 
 import { encodeEntry } from '../../../lib/stega';
 import {
@@ -37,33 +38,61 @@ const PreviewPaneFrame = styled(Frame)`
   border-radius: ${lengths.borderRadius};
 `;
 
-export class PreviewPane extends React.Component {
-  getWidget = (field, value, metadata, props, idx = null) => {
+type InferableFieldValue = (typeof INFERABLE_FIELDS)[keyof typeof INFERABLE_FIELDS];
+
+interface PreviewPaneProps {
+  collection: Collection;
+  fields: ImmutableList<EntryField>;
+  entry: EntryMap;
+  fieldsMetaData: ImmutableMap<string, unknown>;
+  getAsset: (asset: string) => { url: string; path: string; field?: EntryField };
+  onFieldClick?: (fieldName: string) => void;
+  config: CmsConfig;
+  state: State;
+  isLoadingAsset: boolean;
+  boundGetAsset: (collection: Collection, entry: EntryMap) => unknown;
+}
+
+export class PreviewPane extends React.Component<PreviewPaneProps> {
+  getWidget = (
+    field: EntryField,
+    value: unknown,
+    metadata: unknown,
+    props: PreviewPaneProps,
+    idx: number | string | null = null,
+  ) => {
     const { getAsset, entry } = props;
     const widget = resolveWidget(field.get('widget'));
     const key = idx ? field.get('name') + '_' + idx : field.get('name');
-    const valueIsInMap = value && !widget.allowMapValue && Map.isMap(value);
+    const valueIsInMap =
+      value && !(widget as any)?.allowMapValue && Map.isMap(value);
 
     /**
      * Use an HOC to provide conditional updates for all previews.
      */
-    return !widget.preview ? null : (
+    return !widget?.preview ? null : (
       <PreviewHOC
-        previewComponent={widget.preview}
+        previewComponent={widget.preview as unknown as React.ComponentType<Record<string, unknown>>}
         key={key}
         field={field}
         getAsset={getAsset}
-        value={valueIsInMap ? value.get(field.get('name')) : value}
-        entry={entry}
-        fieldsMetaData={metadata}
-        resolveWidget={resolveWidget}
-        getRemarkPlugins={getRemarkPlugins}
-        getEditorComponents={getEditorComponents}
+        value={
+          valueIsInMap
+            ? (value as ImmutableMap<string, unknown>).get(field.get('name'))
+            : (value as any)
+        }
+        {...({
+          entry,
+          fieldsMetaData: metadata as ImmutableMap<string, unknown>,
+          resolveWidget,
+          getRemarkPlugins,
+          getEditorComponents,
+        } as any)}
       />
     );
   };
 
-  inferredFields = {};
+  inferredFields: Record<string, InferableFieldValue> = {};
 
   inferFields() {
     const titleField = selectInferredField(this.props.collection, 'title');
@@ -83,15 +112,17 @@ export class PreviewPane extends React.Component {
    * exposed for use in custom preview templates.
    */
   widgetFor = (
-    name,
-    fields = this.props.fields,
-    values = this.props.entry.get('data'),
-    fieldsMetaData = this.props.fieldsMetaData,
-  ) => {
+    name: string,
+    fields: ImmutableList<EntryField> = this.props.fields,
+    values: unknown = this.props.entry.get('data'),
+    fieldsMetaData: ImmutableMap<string, unknown> = this.props.fieldsMetaData,
+  ): React.ReactNode => {
     // We retrieve the field by name so that this function can also be used in
     // custom preview templates, where the field object can't be passed in.
     let field = fields && fields.find(f => f.get('name') === name);
-    let value = Map.isMap(values) && values.get(field.get('name'));
+    if (!field) return null;
+
+    let value: any = Map.isMap(values) && (values as ImmutableMap<string, unknown>).get(field.get('name'));
     if (field.get('meta')) {
       value = this.props.entry.getIn(['meta', field.get('name')]);
     }
@@ -101,11 +132,11 @@ export class PreviewPane extends React.Component {
     const metadata = fieldsMetaData && fieldsMetaData.get(field.get('name'), Map());
 
     if (nestedFields) {
-      field = field.set('fields', this.getNestedWidgets(nestedFields, value, metadata));
+      field = field.set('fields', this.getNestedWidgets(nestedFields, value, metadata) as any);
     }
 
     if (singleField) {
-      field = field.set('field', this.getSingleNested(singleField, value, metadata));
+      field = field.set('field', this.getSingleNested(singleField, value, metadata) as any);
     }
 
     const labelledWidgets = ['string', 'text', 'number'];
@@ -125,7 +156,7 @@ export class PreviewPane extends React.Component {
     ) {
       value = (
         <div>
-          <strong>{field.get('label', field.get('name'))}:</strong> {value}
+          <strong>{String((field as any).get('label', field.get('name')))}:</strong> {String(value)}
         </div>
       );
     }
@@ -136,29 +167,56 @@ export class PreviewPane extends React.Component {
   /**
    * Retrieves widgets for nested fields (children of object/list fields)
    */
-  getNestedWidgets = (fields, values, fieldsMetaData) => {
+  getNestedWidgets = (
+    fields: ImmutableList<EntryField>,
+    values: unknown,
+    fieldsMetaData: unknown,
+  ) => {
     // Fields nested within a list field will be paired with a List of value Maps.
     if (List.isList(values)) {
-      return values.map(value => this.widgetsForNestedFields(fields, value, fieldsMetaData));
-    }
-    // Fields nested within an object field will be paired with a single Map of values.
-    return this.widgetsForNestedFields(fields, values, fieldsMetaData);
-  };
-
-  getSingleNested = (field, values, fieldsMetaData) => {
-    if (List.isList(values)) {
-      return values.map((value, idx) =>
-        this.getWidget(field, value, fieldsMetaData.get(field.get('name')), this.props, idx),
+      return (values as ImmutableList<unknown>).map(value =>
+        this.widgetsForNestedFields(fields, value, fieldsMetaData as ImmutableMap<string, unknown>),
       );
     }
-    return this.getWidget(field, values, fieldsMetaData.get(field.get('name')), this.props);
+    // Fields nested within an object field will be paired with a single Map of values.
+    return this.widgetsForNestedFields(fields, values, fieldsMetaData as ImmutableMap<string, unknown>);
+  };
+
+  getSingleNested = (
+    field: EntryField,
+    values: unknown,
+    fieldsMetaData: unknown,
+  ) => {
+    if (List.isList(values)) {
+      return (values as ImmutableList<unknown>).map((value, idx) =>
+        this.getWidget(
+          field,
+          value,
+          (fieldsMetaData as ImmutableMap<string, unknown>)?.get(field.get('name')),
+          this.props,
+          idx,
+        ),
+      );
+    }
+    return this.getWidget(
+      field,
+      values,
+      (fieldsMetaData as ImmutableMap<string, unknown>)?.get(field.get('name')),
+      this.props,
+    );
   };
 
   /**
    * Use widgetFor as a mapping function for recursive widget retrieval
    */
-  widgetsForNestedFields = (fields, values, fieldsMetaData) => {
-    return fields.map(field => this.widgetFor(field.get('name'), fields, values, fieldsMetaData));
+  widgetsForNestedFields = (
+    fields: ImmutableList<EntryField>,
+    values: unknown,
+    fieldsMetaData: ImmutableMap<string, unknown>,
+  ) => {
+    return fields.map((field: EntryField) =>
+      this.widgetFor(field.get('name'), fields, values, fieldsMetaData),
+    );
   };
 
   /**
@@ -167,25 +225,33 @@ export class PreviewPane extends React.Component {
    *
    * TODO: see if widgetFor can now provide this functionality for preview templates
    */
-  widgetsFor = name => {
+  widgetsFor = (name: string) => {
     const { fields, entry, fieldsMetaData } = this.props;
     const field = fields.find(f => f.get('name') === name);
     const nestedFields = field && field.get('fields');
     const variableTypes = field && field.get('types');
-    const value = entry.getIn(['data', field.get('name')]);
-    const metadata = fieldsMetaData.get(field.get('name'), Map());
+    const fieldName = field?.get('name') ?? '';
+    const value = entry.getIn(['data', fieldName]);
+    const metadata = fieldsMetaData.get(field?.get('name') as string, Map()) as ImmutableMap<
+      string,
+      unknown
+    >;
 
     // Variable Type lists
     if (List.isList(value) && variableTypes) {
-      return value.map(val => {
-        const valueType = variableTypes.find(t => t.get('name') === val.get('type'));
+      return (value as ImmutableList<any>).map(val => {
+        const valueType = variableTypes.find(
+          (t: EntryField) => t.get('name') === val.get('type'),
+        );
         const typeFields = valueType && valueType.get('fields');
         const widgets =
           typeFields &&
           Map(
-            typeFields.map((f, i) => [
+            typeFields.map((f: EntryField, i: number) => [
               f.get('name'),
-              <div key={i}>{this.getWidget(f, val, metadata.get(f.get('name')), this.props)}</div>,
+              <div key={i}>
+                {this.getWidget(f, val, (metadata as ImmutableMap<string, unknown>).get(f.get('name')), this.props)}
+              </div>,
             ]),
           );
         return Map({ data: val, widgets });
@@ -194,13 +260,15 @@ export class PreviewPane extends React.Component {
 
     // List widgets
     if (List.isList(value)) {
-      return value.map(val => {
+      return (value as ImmutableList<any>).map(val => {
         const widgets =
           nestedFields &&
           Map(
-            nestedFields.map((f, i) => [
+            nestedFields.map((f: EntryField, i: number) => [
               f.get('name'),
-              <div key={i}>{this.getWidget(f, val, metadata.get(f.get('name')), this.props)}</div>,
+              <div key={i}>
+                {this.getWidget(f, val, (metadata as ImmutableMap<string, unknown>).get(f.get('name')), this.props)}
+              </div>,
             ]),
           );
         return Map({ data: val, widgets });
@@ -212,9 +280,9 @@ export class PreviewPane extends React.Component {
       widgets:
         nestedFields &&
         Map(
-          nestedFields.map(f => [
+          nestedFields.map((f: EntryField) => [
             f.get('name'),
-            this.getWidget(f, value, metadata.get(f.get('name')), this.props),
+            this.getWidget(f, value, (metadata as ImmutableMap<string, unknown>).get(f.get('name')), this.props),
           ]),
         ),
     });
@@ -224,13 +292,13 @@ export class PreviewPane extends React.Component {
    * This function exists entirely to expose collections from outside of this entry
    *
    */
-  getCollection = async (collectionName, slug) => {
+  getCollection = async (collectionName: string, slug?: string) => {
     const { state } = this.props;
     const selectedCollection = state.collections.get(collectionName);
 
     if (typeof slug === 'undefined') {
       const entries = await getAllEntries(state, selectedCollection);
-      return entries.map(entry => Map().set('data', entry.data));
+      return entries.map((entry: { data: unknown }) => Map().set('data', entry.data));
     }
 
     const entry = await tryLoadEntry(state, selectedCollection, slug);
@@ -249,18 +317,28 @@ export class PreviewPane extends React.Component {
 
     this.inferFields();
 
-    const visualEditing = collection.getIn(['editor', 'visualEditing'], false);
+    const visualEditing = (collection as any).getIn(['editor', 'visualEditing'], false);
 
     // Only encode entry data if visual editing is enabled
     const previewEntry = visualEditing
-      ? entry.set('data', encodeEntry(entry.get('data'), this.props.fields))
+      ? entry.set(
+          'data',
+          encodeEntry(
+            entry.get('data'),
+            this.props.fields as unknown as ImmutableList<ImmutableMap<string, unknown>>,
+          ),
+        )
       : entry;
 
     const previewProps = {
       ...this.props,
       entry: previewEntry,
-      widgetFor: (name, fields, values = previewEntry.get('data'), fieldsMetaData) =>
-        this.widgetFor(name, fields, values, fieldsMetaData),
+      widgetFor: (
+        name: string,
+        fields?: ImmutableList<EntryField>,
+        values: unknown = previewEntry.get('data'),
+        fieldsMetaData?: ImmutableMap<string, unknown>,
+      ) => this.widgetFor(name, fields, values, fieldsMetaData),
       widgetsFor: this.widgetsFor,
       getCollection: this.getCollection,
       getEditorComponents,
@@ -274,7 +352,9 @@ export class PreviewPane extends React.Component {
     });
 
     if (!collection) {
-      <PreviewPaneFrame id="preview-pane" head={styleEls} />;
+      <PreviewPaneFrame id="preview-pane" head={styleEls}>
+        {null}
+      </PreviewPaneFrame>;
     }
 
     const initialContent = `
@@ -292,7 +372,8 @@ export class PreviewPane extends React.Component {
             {({ document, window }) => {
               return (
                 <EditorPreviewContent
-                  {...{ previewComponent, previewProps: { ...previewProps, document, window } }}
+                  previewComponent={previewComponent}
+                  previewProps={{ ...previewProps, document, window }}
                   onFieldClick={this.props.onFieldClick}
                 />
               );
@@ -304,27 +385,19 @@ export class PreviewPane extends React.Component {
   }
 }
 
-PreviewPane.propTypes = {
-  collection: ImmutablePropTypes.map.isRequired,
-  fields: ImmutablePropTypes.list.isRequired,
-  entry: ImmutablePropTypes.map.isRequired,
-  fieldsMetaData: ImmutablePropTypes.map.isRequired,
-  getAsset: PropTypes.func.isRequired,
-  onFieldClick: PropTypes.func,
-};
-
-function mapStateToProps(state) {
+function mapStateToProps(state: State) {
   const isLoadingAsset = selectIsLoadingAsset(state.medias);
   return { isLoadingAsset, config: state.config, state };
 }
 
-function mapDispatchToProps(dispatch) {
+function mapDispatchToProps(dispatch: Dispatch) {
   return {
-    boundGetAsset: (collection, entry) => boundGetAsset(dispatch, collection, entry),
+    boundGetAsset: (collection: Collection, entry: EntryMap) =>
+      boundGetAsset(dispatch as any, collection, entry),
   };
 }
 
-function mergeProps(stateProps, dispatchProps, ownProps) {
+function mergeProps(stateProps: any, dispatchProps: any, ownProps: any) {
   return {
     ...stateProps,
     ...dispatchProps,

@@ -1,19 +1,19 @@
-import type { ComponentType } from 'react';
+import type { AssetProxy } from 'decap-cms-lib-util';
+import type { TranslateFunction } from 'decap-cms-ui-default';
+import type { List, Map, OrderedMap, Set } from 'immutable';
+import type { Component, ComponentType, JSX } from 'react';
 import type { Action } from 'redux';
 import type { Pluggable } from 'unified';
-import type { StaticallyTypedRecord } from './immutable';
-import type { Map, List, OrderedMap, Set } from 'immutable';
-import type { FILES, FOLDER } from '../constants/collectionTypes';
 import type { MediaFile as BackendMediaFile } from '../backend';
-import type { Auth } from '../reducers/auth';
-import type { Status } from '../reducers/status';
-import type { Medias } from '../reducers/medias';
-import type { Deploys } from '../reducers/deploys';
-import type { Search } from '../reducers/search';
-import type { GlobalUI } from '../reducers/globalUI';
-import type { NotificationsState } from '../reducers/notifications';
 import type { formatExtensions } from '../formats/formats';
-import type { JSX } from 'react';
+import type { Auth } from '../reducers/auth';
+import type { Deploys } from '../reducers/deploys';
+import type { GlobalUI } from '../reducers/globalUI';
+import type { Medias } from '../reducers/medias';
+import type { NotificationsState } from '../reducers/notifications';
+import type { Search } from '../reducers/search';
+import type { Status } from '../reducers/status';
+import type { StaticallyTypedRecord } from './immutable';
 
 export type CmsBackendType =
   | 'azure'
@@ -225,23 +225,6 @@ export interface CmsFieldRelation {
   display_fields?: string[];
   multiple?: boolean;
   options_length?: number;
-
-  /**
-   * @deprecated Use value_field instead
-   */
-  valueField?: string;
-  /**
-   * @deprecated Use search_fields instead
-   */
-  searchFields?: string[];
-  /**
-   * @deprecated Use display_fields instead
-   */
-  displayFields?: string[];
-  /**
-   * @deprecated Use options_length instead
-   */
-  optionsLength?: number;
 }
 
 export interface CmsFieldHidden {
@@ -601,6 +584,7 @@ type CollectionObject = {
   preview_path?: string;
   preview_path_date_field?: string;
   summary?: string;
+  description?: string;
   filter?: FilterRule;
   type: 'file_based_collection' | 'folder_based_collection';
   extension?: string;
@@ -1184,12 +1168,12 @@ export interface InitOptions {
 }
 
 export type EditorComponentField =
-  | ({
+  | {
     name: string;
     label: string;
-  } & {
-    widget: Omit<string, 'list'>;
-  })
+    widget?: string;
+    [key: string]: unknown;
+  }
   | {
     widget: 'list';
     /**
@@ -1210,7 +1194,7 @@ export interface EditorComponentOptions {
   allow_add?: boolean;
   fromBlock: (match: RegExpMatchArray) => any;
   toBlock: (data: any) => string;
-  toPreview: (data: any) => string | JSX.Element;
+  toPreview: (data: any, getAsset: (value: string, field?: any) => string, fields?: any[]) => string | JSX.Element;
 }
 
 export interface EditorComponentPlugin extends Omit<EditorComponentOptions, 'fields'> {
@@ -1232,17 +1216,156 @@ export interface CmsRegistryBackend {
   init: (args: any) => CmsBackendClass;
 }
 
-export interface CmsWidgetControlProps<T = any> {
-  value: T;
-  field: Map<string, any>;
-  onChange: (value: T) => void;
-  forID: string;
+export interface WidgetProps<T = unknown> {
+  controlComponent: React.ComponentType<Record<string, unknown>>;
+  field: Map<string, unknown>;
+  hasActiveStyle?: boolean;
+  setActiveStyle: () => void;
+  setInactiveStyle: () => void;
   classNameWrapper: string;
+  classNameWidget: string;
+  classNameWidgetActive: string;
+  classNameLabel: string;
+  classNameLabelActive: string;
+  value?: T;
+  mediaPaths: Map<string, string>;
+  metadata?: Map<string, Map<string, unknown>>;
+  fieldsErrors?: Map<string, { type: string; message: string }[]>;
+  onChange: ((value: T) => void) | ((value: T, metadata?: Record<string, unknown>) => void);
+  onValidate?: (errors: (ValidationError | false)[]) => void;
+  controlRef?: (wrappedControl: Component<WidgetProps>) => void;
+  onOpenMediaLibrary: (options: Record<string, unknown>) => void;
+  onClearMediaControl: (controlID: string) => void;
+  onRemoveMediaControl: (controlID: string) => void;
+  onPersistMedia: (file: File) => void;
+  onAddAsset: (asset: AssetProxy) => void;
+  onRemoveInsertedMedia: (controlID: string) => void;
+  getAsset: (path: string, field: Map<string, unknown>) => AssetProxy;
+  resolveWidget: (name: string) => Record<string, unknown>;
+  widget: Record<string, unknown>;
+  getEditorComponents: () => Map<string, unknown>;
+  isFetching?: boolean;
+  query: (
+    namespace: string,
+    collectionName: string,
+    searchFields: string[],
+    searchTerm: string,
+    file?: string,
+    limit?: number,
+  ) => void;
+  clearSearch: () => void;
+  clearFieldErrors: (uniqueFieldId: string) => void;
+  queryHits?: unknown[] | Record<string, unknown>;
+  editorControl: React.ComponentType<Record<string, unknown>>;
+  uniqueFieldId: string;
+  loadEntry: (collectionName: string, slug: string) => void;
+  t: TranslateFunction;
+  onValidateObject?: (errors: { type: string; message: string }[]) => void;
+  isEditorComponent?: boolean;
+  isNewEditorComponent?: boolean;
+  /**
+   * @deprecated Every update creates a new entry, passing a live value down is too expensive. Use the getEntry callback instead or get the value from the store directly in the widget via `useSelector` or `connect`.
+   */
+  entry: EntryMap;
+  getEntry: (collectionName: string, slug: string) => EntryMap | undefined;
+  isDisabled?: boolean;
+  isFieldDuplicate?: (field: Map<string, unknown>) => boolean;
+  isFieldHidden?: (field: Map<string, unknown>) => boolean;
+  locale?: string;
+  isParentListCollapsed?: boolean;
+  isLoadingAsset?: boolean;
+  parentIds?: string[];
+  validateMetaField?: (
+    field: Map<string, unknown>,
+    value: unknown,
+    t: TranslateFunction,
+  ) => ValidationResult;
+  collection?: Collection;
+  config?: CmsConfig;
 }
 
-export type CmsWidgetControlComponent<T = any> = ComponentType<CmsWidgetControlProps<T>>;
+export interface ValidationError {
+  type: string;
+  parentIds?: string[];
+  message: string;
+}
 
-export interface CmsWidgetPreviewProps<T = any> {
+export interface ValidationResult {
+  error: ValidationError | false;
+}
+
+export interface CmsWidgetControlProps<T = unknown> {
+  entry: EntryMap;
+  getEntry: (collectionName: string, slug: string) => EntryMap | undefined;
+  collection: Collection;
+  config: CmsConfig;
+  field: Map<string, unknown>;
+  value: T;
+  mediaPaths: Map<string, string>;
+  metadata: Map<string, Map<string, unknown>>;
+  onChange: (value: T, metadata?: Record<string, unknown>) => void;
+  onValidateObject: (errors: { type: string; message: string }[]) => void;
+  onOpenMediaLibrary: (options: Record<string, unknown>) => void;
+  onClearMediaControl: (controlID: string) => void;
+  onRemoveMediaControl: (controlID: string) => void;
+  onPersistMedia: (file: File) => void;
+  onAddAsset: (asset: AssetProxy) => void;
+  onRemoveInsertedMedia: (controlID: string) => void;
+  getAsset: (path: string, field: Map<string, unknown>) => AssetProxy;
+  classNameWrapper: string;
+  classNameWidget: string;
+  classNameWidgetActive: string;
+  classNameLabel: string;
+  classNameLabelActive: string;
+  setActiveStyle: () => void;
+  setInactiveStyle: () => void;
+  hasActiveStyle: boolean;
+  editorControl: React.ComponentType<Record<string, unknown>>;
+  resolveWidget: (name: string) => Record<string, unknown>;
+  widget: Record<string, unknown>;
+  getEditorComponents: () => Map<string, unknown>;
+  query: (
+    namespace: string,
+    collectionName: string,
+    searchFields: string[],
+    searchTerm: string,
+    file?: string,
+    limit?: number,
+  ) => void;
+  queryHits?: unknown[] | Record<string, unknown>;
+  clearSearch: () => void;
+  clearFieldErrors: (uniqueFieldId: string) => void;
+  isFetching?: boolean;
+  loadEntry: (collectionName: string, slug: string) => void;
+  isEditorComponent?: boolean;
+  isNewEditorComponent?: boolean;
+  fieldsErrors?: Map<string, { type: string; message: string }[]>;
+  controlRef?: (wrappedControl: Component<WidgetProps>) => void;
+  parentIds?: string[];
+  t: TranslateFunction;
+  isDisabled?: boolean;
+  isFieldDuplicate?: (field: Map<string, unknown>) => boolean;
+  isFieldHidden?: (field: Map<string, unknown>) => boolean;
+  locale?: string;
+  isParentListCollapsed?: boolean;
+  onChangeObject: (field: Map<string, unknown>, newValue: T, newMetadata: Record<string, unknown> | undefined) => void;
+  forID: string;
+  ref: (ref: any) => void;
+  validate: (skipWrapped?: boolean | ValidationResult) => void;
+  getRemarkPlugins: () => Pluggable[]
+}
+
+export type CmsWidgetInputProps<T = unknown> = Partial<CmsWidgetControlProps<T>> & Pick<CmsWidgetControlProps<T>, 'field' | 'value' | 'onChange' | 't' | 'forID'>;
+
+/**
+ * A widget control component type that accepts any component whose props are
+ * a subset of CmsWidgetControlProps. This allows third-party widgets to only
+ * declare the props they actually use, while still being compatible with the
+ * full set of props that the CMS will pass at runtime.
+ */
+export type CmsWidgetControlComponent<T = unknown> = ComponentType<any>;
+
+export interface CmsWidgetPreviewProps<T = unknown> {
   value: T;
   field: Map<string, any>;
   metadata: Map<string, any>;
@@ -1251,16 +1374,22 @@ export interface CmsWidgetPreviewProps<T = any> {
   fieldsMetaData: Map<string, any>;
 }
 
-export type CmsWidgetPreviewComponent<T = any> = ComponentType<CmsWidgetPreviewProps<T>>;
+/**
+ * A widget preview component type that accepts any component whose props are
+ * a subset of CmsWidgetPreviewProps. This allows third-party widgets to only
+ * declare the props they actually use, while still being compatible with the
+ * full set of props that the CMS will pass at runtime.
+ */
+export type CmsWidgetPreviewComponent<T = unknown> = ComponentType<any>;
 
-export interface CmsWidgetParam<T = any> {
+export interface CmsWidgetParam<T = unknown> {
   name: string;
   controlComponent: CmsWidgetControlComponent<T>;
   previewComponent?: CmsWidgetPreviewComponent<T>;
   globalStyles?: any;
 }
 
-export interface CmsWidget<T = any> {
+export interface CmsWidget<T = unknown> {
   control: CmsWidgetControlComponent<T>;
   preview?: CmsWidgetPreviewComponent<T>;
   globalStyles?: any;
@@ -1393,8 +1522,8 @@ export interface CMS {
   ) => void;
   registerWidget: (
     widget: string | CmsWidgetParam,
-    control?: ComponentType<CmsWidgetControlProps> | string,
-    preview?: ComponentType<CmsWidgetPreviewProps>,
+    control?: CmsWidgetControlComponent,
+    preview?: CmsWidgetPreviewComponent,
   ) => void;
   registerWidgetValueSerializer: (
     widgetName: string,

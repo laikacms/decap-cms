@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
+import type { TranslateFunction } from 'decap-cms-ui-default';
 import { Icon, shadows, colors, buttons } from 'decap-cms-ui-default';
 
 const CloseButton = styled.button`
@@ -20,21 +21,28 @@ const CloseButton = styled.button`
   align-items: center;
 `;
 
-const LibraryTitle = styled.h1`
+const LibraryTitle = styled.h1<{ $isPrivate?: boolean }>`
   line-height: 36px;
   font-size: 22px;
   text-align: left;
   margin-bottom: 25px;
-  color: ${props => props.isPrivate && colors.textFieldBorder};
+  color: ${props => props.$isPrivate && colors.textFieldBorder};
 `;
 
-function MediaLibraryHeader({ onClose, title, isPrivate, t }) {
+interface MediaLibraryHeaderProps {
+  onClose: () => void;
+  title: string;
+  isPrivate?: boolean;
+  t: TranslateFunction;
+}
+
+function MediaLibraryHeader({ onClose, title, isPrivate, t }: MediaLibraryHeaderProps) {
   return (
     <div>
       <CloseButton aria-label={t('mediaLibrary.mediaLibraryModal.close')} onClick={onClose}>
         <Icon type="close" />
       </CloseButton>
-      <LibraryTitle isPrivate={isPrivate}>{title}</LibraryTitle>
+      <LibraryTitle $isPrivate={isPrivate}>{title}</LibraryTitle>
     </div>
   );
 }

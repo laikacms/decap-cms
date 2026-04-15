@@ -35,7 +35,15 @@ const SearchIcon = styled(Icon)`
   transform: translate(0, -50%);
 `;
 
-function MediaLibrarySearch({ value, onChange, onKeyDown, placeholder, disabled }) {
+interface MediaLibrarySearchProps {
+  value?: string;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
+  placeholder: string;
+  disabled?: boolean;
+}
+
+function MediaLibrarySearch({ value, onChange, onKeyDown, placeholder, disabled }: MediaLibrarySearchProps) {
   return (
     <SearchContainer>
       <SearchIcon type="search" size="small" />

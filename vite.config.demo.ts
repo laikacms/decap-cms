@@ -74,8 +74,12 @@ export default defineConfig({
     },
   },
   define: {
-    'process.env': {},
+    'process.env.NODE_ENV': JSON.stringify('development'),
+    'process.env': '{}',
     global: 'globalThis',
+    DECAP_CMS_APP_VERSION: JSON.stringify('dev'),
+    DECAP_CMS_CORE_VERSION: JSON.stringify('dev'),
+    DECAP_CMS_VERSION: JSON.stringify('dev'),
   },
   optimizeDeps: {
     include: ['buffer', 'process'],

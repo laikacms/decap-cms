@@ -4,17 +4,30 @@ import { Map } from 'immutable';
 import isString from 'lodash/isString';
 import { WidgetPreviewContainer } from 'decap-cms-ui-default';
 
-function toValue(value, field) {
+import type { Map as ImmutableMap } from 'immutable';
+
+function toValue(
+  value: ImmutableMap<string, unknown> | string | undefined,
+  field?: ImmutableMap<string, unknown>,
+): string {
   if (isString(value)) {
     return value;
   }
-  if (Map.isMap(value)) {
-    return value.get(field.getIn(['keys', 'code'], 'code'), '');
+  if (Map.isMap(value) && field) {
+    return (value as ImmutableMap<string, unknown>).get(
+      (field as ImmutableMap<string, unknown>).getIn(['keys', 'code'], 'code') as string,
+      '',
+    ) as string;
   }
   return '';
 }
 
-function CodePreview(props) {
+interface CodePreviewProps {
+  value?: ImmutableMap<string, unknown> | string;
+  field?: ImmutableMap<string, unknown>;
+}
+
+function CodePreview(props: CodePreviewProps) {
   return (
     <WidgetPreviewContainer>
       <pre>

@@ -5,7 +5,9 @@ import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 import { translate } from 'react-polyglot';
 import { NavLink } from 'react-router-dom';
-import { Icon, components, colors } from 'decap-cms-ui-default';
+import { Icon, components, colors, TranslateFunction } from 'decap-cms-ui-default';
+
+import type { Collection, Collections } from '../../types/cms';
 
 import { searchCollections } from '../../actions/collections';
 import CollectionSearch from './CollectionSearch';
@@ -58,16 +60,23 @@ const SidebarNavLink = styled(NavLink)`
     flex-shrink: 0;
   }
 
-  ${props => css`
-    &:hover,
-    &:active,
-    &.${props.activeClassName} {
-      ${styles.sidebarNavLinkActive};
-    }
-  `};
+  &:hover,
+  &:active,
+  &.active {
+    ${styles.sidebarNavLinkActive};
+  }
 `;
 
-export class Sidebar extends React.Component {
+interface SidebarProps {
+  collections: Collections;
+  collection?: Collection;
+  isSearchEnabled?: boolean;
+  searchTerm?: string;
+  filterTerm?: string;
+  t: TranslateFunction;
+}
+
+export class Sidebar extends React.Component<SidebarProps> {
   static propTypes = {
     collections: ImmutablePropTypes.map.isRequired,
     collection: ImmutablePropTypes.map,
@@ -82,15 +91,16 @@ export class Sidebar extends React.Component {
     PropTypes.checkPropTypes(Sidebar.propTypes, this.props, 'prop', 'Sidebar');
   }
 
-  renderLink = (collection, filterTerm) => {
+  renderLink = (collection: Collection, filterTerm: string | undefined) => {
     const collectionName = collection.get('name');
     if (collection.has('nested')) {
       return (
         <li key={collectionName}>
           <NestedCollection
             collection={collection}
-            filterTerm={filterTerm}
+            filterTerm={filterTerm as string}
             data-testid={collectionName}
+            entries={undefined as any}
           />
         </li>
       );
@@ -99,7 +109,7 @@ export class Sidebar extends React.Component {
       <li key={collectionName}>
         <SidebarNavLink
           to={`/collections/${collectionName}`}
-          activeClassName="sidebar-active"
+          className={({ isActive }: { isActive: boolean }) => isActive ? 'active' : ''}
           data-testid={collectionName}
         >
           <Icon type="write" />
@@ -116,17 +126,17 @@ export class Sidebar extends React.Component {
         <SidebarHeading>{t('collection.sidebar.collections')}</SidebarHeading>
         {isSearchEnabled && (
           <CollectionSearch
-            searchTerm={searchTerm}
+            searchTerm={searchTerm || ''}
             collections={collections}
             collection={collection}
-            onSubmit={(query, collection) => searchCollections(query, collection)}
+            onSubmit={(query: string, collection?: string) => searchCollections(query, collection as string)}
           />
         )}
         <SidebarNavList>
-          {collections
+          {(collections as any)
             .toList()
-            .filter(collection => collection.get('hide') !== true)
-            .map(collection => this.renderLink(collection, filterTerm))}
+            .filter((collection: Collection) => collection.get('hide') !== true)
+            .map((collection: Collection) => this.renderLink(collection, filterTerm))}
         </SidebarNavList>
       </SidebarContainer>
     );

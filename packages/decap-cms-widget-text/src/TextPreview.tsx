@@ -2,7 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { WidgetPreviewContainer } from 'decap-cms-ui-default';
 
-function TextPreview({ value }) {
+interface TextPreviewProps {
+  value?: React.ReactNode;
+}
+
+function TextPreview({ value }: TextPreviewProps) {
   return <WidgetPreviewContainer>{value}</WidgetPreviewContainer>;
 }
 

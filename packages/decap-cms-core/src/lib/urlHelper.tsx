@@ -1,3 +1,4 @@
+// @ts-ignore - url module doesn't have type declarations
 import url from 'url';
 import urlJoin from 'url-join';
 import diacritics from 'diacritics';

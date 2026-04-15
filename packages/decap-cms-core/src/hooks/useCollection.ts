@@ -15,6 +15,8 @@ import {
 } from '../reducers/entries';
 import { getNewEntryUrl } from '../lib/urlHelper';
 
+import type { SortDirection, ViewFilter, ViewGroup } from '../types/cms';
+
 /**
  * Hook for collection state and actions
  * Replaces connect() mapStateToProps/mapDispatchToProps for Collection component
@@ -29,7 +31,8 @@ export function useCollection(collectionName?: string, t?: (key: string) => stri
     if (collectionName) {
       return collections.get(collectionName);
     }
-    return collections.first();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (collections as any).first();
   }, [collections, collectionName]);
 
   const name = collection?.get('name');
@@ -74,7 +77,7 @@ export function useCollection(collectionName?: string, t?: (key: string) => stri
   }, [collection, name]);
 
   const onSortClick = useCallback(
-    (key: string, direction: string) => {
+    (key: string, direction: SortDirection) => {
       if (collection) {
         dispatch(sortByField(collection, key, direction));
       }
@@ -83,7 +86,7 @@ export function useCollection(collectionName?: string, t?: (key: string) => stri
   );
 
   const onFilterClick = useCallback(
-    (filterValue: unknown) => {
+    (filterValue: ViewFilter) => {
       if (collection) {
         dispatch(filterByField(collection, filterValue));
       }
@@ -92,7 +95,7 @@ export function useCollection(collectionName?: string, t?: (key: string) => stri
   );
 
   const onGroupClick = useCallback(
-    (groupValue: unknown) => {
+    (groupValue: ViewGroup) => {
       if (collection) {
         dispatch(groupByField(collection, groupValue));
       }

@@ -1,19 +1,31 @@
-import React from 'react';
+interface ImageData {
+  image: string;
+  alt: string;
+  title: string;
+}
+
+interface FieldLike {
+  get(key: string): unknown;
+}
 
 const image = {
   label: 'Image',
   id: 'image',
-  fromBlock: match =>
+  fromBlock: (match: RegExpMatchArray) =>
     match && {
       image: match[2],
       alt: match[1],
       title: match[4],
     },
-  toBlock: ({ alt, image, title }) =>
+  toBlock: ({ alt, image, title }: ImageData) =>
     `![${alt || ''}](${image || ''}${title ? ` "${title.replace(/"/g, '\\"')}"` : ''})`,
   // eslint-disable-next-line react/display-name
-  toPreview: ({ alt, image, title }, getAsset, fields) => {
-    const imageField = fields?.find(f => f.get('widget') === 'image');
+  toPreview: (
+    { alt, image, title }: ImageData,
+    getAsset: (value: string, field?: FieldLike) => string,
+    fields?: FieldLike[],
+  ) => {
+    const imageField = fields?.find((f: FieldLike) => f.get('widget') === 'image');
     const src = getAsset(image, imageField);
     return <img src={src || ''} alt={alt || ''} title={title || ''} />;
   },

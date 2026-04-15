@@ -248,7 +248,7 @@ export function loadUnpublishedEntry(collection: Collection, slug: string) {
         const { entries, pagination } = await backend.unpublishedEntries(state.collections);
         dispatch(unpublishedEntriesLoaded(entries, pagination));
         // eslint-disable-next-line no-empty
-      } catch (e) {}
+      } catch (e: unknown) {}
     }
 
     dispatch(unpublishedEntryLoading(collection, slug));
@@ -520,7 +520,7 @@ export function publishUnpublishedEntry(collectionName: string, slug: string) {
       } else {
         return dispatch(loadEntry(collection, slug));
       }
-    } catch (error) {
+    } catch (error: unknown) {
       dispatch(
         addNotification({
           message: { key: 'ui.toast.onFailToPublishEntry', details: error },

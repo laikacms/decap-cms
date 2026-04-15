@@ -22,6 +22,7 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "uuid": "catalog:utils",
     "common-tags": "catalog:utils",
     "@iarna/toml": "catalog:formats",
     "@reduxjs/toolkit": "catalog:redux",
@@ -93,11 +94,15 @@
     "@types/history": "catalog:types",
     "@types/react": "catalog:types",
     "@types/react-dom": "catalog:types",
+    "@types/react-is": "catalog:types",
+    "@types/prop-types": "catalog:types",
     "@types/iarna__toml": "catalog:types",
     "@types/redux-mock-store": "catalog:types",
+    "@types/react-redux": "catalog:types",
     "@types/url-join": "catalog:types",
     "redux-mock-store": "catalog:vitest",
-    "@types/common-tags": "catalog:types"
+    "@types/common-tags": "catalog:types",
+    "@types/react-modal": "catalog:types"
   },
   "type": "module",
   "exports": {

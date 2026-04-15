@@ -12,12 +12,17 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "develop": "tsc --build --watch",
-    "build": "tsc --build",
-    "clean": "rimraf dist"
+    "svg-to-tsx": "node scripts/svg-to-tsx.mjs",
+    "develop": "node scripts/svg-to-tsx.mjs && tsc --build --watch",
+    "build": "node scripts/svg-to-tsx.mjs && tsc --build",
+    "clean": "rimraf dist src/Icon/images/icons.generated.tsx"
   },
   "devDependencies": {
+    "@svgr/core": "^8.1.0",
+    "@svgr/plugin-jsx": "^8.1.0",
+    "@svgr/plugin-svgo": "^8.1.0",
     "@types/react": "catalog:types",
+    "@types/react-dom": "catalog:types",
     "@types/react-transition-group": "^4.4.12"
   },
   "dependencies": {

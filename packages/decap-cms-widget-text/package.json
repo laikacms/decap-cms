@@ -28,7 +28,12 @@
   "peerDependencies": {
     "decap-cms-ui-default": "workspace:*",
     "prop-types": "catalog:react",
+    "immutable": "catalog:utils",
     "react": "catalog:react"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:types",
+    "@types/prop-types": "catalog:types"
   },
   "type": "module",
   "types": "./dist/index.d.ts",

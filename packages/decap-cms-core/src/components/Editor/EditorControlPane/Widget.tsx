@@ -7,21 +7,30 @@ import { oneLine } from 'common-tags';
 import { getRemarkPlugins } from '../../../lib/registry';
 import ValidationErrorTypes from '../../../constants/validationErrorTypes';
 
+import type { Map as ImmutableMap } from 'immutable';
+import type { TranslateFunction } from 'decap-cms-ui-default';
+import type { WidgetProps, ValidationResult, ValidationError } from '../../../types/cms';
+
 function truthy() {
   return { error: false };
 }
 
-function isEmpty(value) {
+function isEmpty(value: unknown) {
   return (
     value === null ||
     value === undefined ||
-    (Object.prototype.hasOwnProperty.call(value, 'length') && value.length === 0) ||
-    (value.constructor === Object && Object.keys(value).length === 0) ||
-    (List.isList(value) && value.size === 0)
+    (Object.prototype.hasOwnProperty.call(value, 'length') &&
+      (value as { length: number }).length === 0) ||
+    ((value as object).constructor === Object && Object.keys(value as object).length === 0) ||
+    (List.isList(value) && (value as List<unknown>).size === 0)
   );
 }
 
-export default class Widget extends Component {
+export default class Widget extends Component<WidgetProps> {
+  innerWrappedControl: any;
+  wrappedControlValid: (() => unknown) | undefined;
+  wrappedControlShouldComponentUpdate: ((nextProps: WidgetProps) => boolean) | undefined;
+
   static propTypes = {
     controlComponent: PropTypes.func.isRequired,
     field: ImmutablePropTypes.map.isRequired,
@@ -84,7 +93,7 @@ export default class Widget extends Component {
     PropTypes.checkPropTypes(Widget.propTypes, this.props, 'prop', 'Widget');
   }
 
-  shouldComponentUpdate(nextProps) {
+  shouldComponentUpdate(nextProps: WidgetProps) {
     /**
      * Avoid unnecessary rerenders while loading assets.
      */
@@ -102,7 +111,7 @@ export default class Widget extends Component {
     );
   }
 
-  processInnerControlRef = ref => {
+  processInnerControlRef = (ref: any) => {
     if (!ref) return;
 
     /**
@@ -128,7 +137,7 @@ export default class Widget extends Component {
     }
   };
 
-  focus(path) {
+  focus(path: string | string[]) {
     // Try widget's custom focus method first
     if (this.innerWrappedControl?.focus) {
       this.innerWrappedControl.focus(path);
@@ -151,33 +160,42 @@ export default class Widget extends Component {
     return value;
   };
 
-  validate = (skipWrapped = false) => {
+  validate = (skipWrapped: ValidationResult | boolean = false) => {
     const value = this.getValidateValue();
     const field = this.props.field;
-    const errors = [];
-    const validations = [this.validatePresence, this.validatePattern];
+    const errors: (ValidationError | false)[] = [];
+    const validations: ((
+      field: ImmutableMap<string, unknown>,
+      value: unknown,
+      t: TranslateFunction,
+    ) => ValidationResult)[] = [this.validatePresence, this.validatePattern];
     if (field.get('meta')) {
-      validations.push(this.props.validateMetaField);
+      if (this.props.validateMetaField) {
+        validations.push(this.props.validateMetaField);
+      }
     }
     validations.forEach(func => {
       const response = func(field, value, this.props.t);
       if (response.error) errors.push(response.error);
     });
-    if (skipWrapped) {
+    if (skipWrapped && typeof skipWrapped === 'object') {
       if (skipWrapped.error) errors.push(skipWrapped.error);
-    } else {
+    } else if (!skipWrapped) {
       const wrappedError = this.validateWrappedControl(field);
       if (wrappedError.error) errors.push(wrappedError.error);
     }
 
-    this.props.onValidate(errors);
+    this.props.onValidate?.(errors);
   };
 
-  validatePresence = (field, value) => {
+  validatePresence = (
+    field: ImmutableMap<string, unknown>,
+    value: unknown,
+  ): ValidationResult => {
     const { t, parentIds } = this.props;
     const isRequired = field.get('required', true);
     if (isRequired && isEmpty(value)) {
-      const error = {
+      const error: ValidationError = {
         type: ValidationErrorTypes.PRESENCE,
         parentIds,
         message: t('editor.editorControlPane.widget.required', {
@@ -190,16 +208,19 @@ export default class Widget extends Component {
     return { error: false };
   };
 
-  validatePattern = (field, value) => {
+  validatePattern = (
+    field: ImmutableMap<string, unknown>,
+    value: unknown,
+  ): ValidationResult => {
     const { t, parentIds } = this.props;
-    const pattern = field.get('pattern', false);
+    const pattern = field.get('pattern', false) as List<string> | false;
 
     if (isEmpty(value)) {
       return { error: false };
     }
 
-    if (pattern && !RegExp(pattern.first()).test(value)) {
-      const error = {
+    if (pattern && !RegExp(pattern.first() as string).test(value as string)) {
+      const error: ValidationError = {
         type: ValidationErrorTypes.PATTERN,
         parentIds,
         message: t('editor.editorControlPane.widget.regexPattern', {
@@ -214,7 +235,7 @@ export default class Widget extends Component {
     return { error: false };
   };
 
-  validateWrappedControl = field => {
+  validateWrappedControl = (field: ImmutableMap<string, unknown>): ValidationResult => {
     const { t, parentIds } = this.props;
     if (typeof this.wrappedControlValid !== 'function') {
       throw new Error(oneLine`
@@ -226,16 +247,20 @@ export default class Widget extends Component {
     const response = this.wrappedControlValid();
     if (typeof response === 'boolean') {
       const isValid = response;
-      return { error: !isValid };
-    } else if (Object.prototype.hasOwnProperty.call(response, 'error')) {
-      return response;
+      return { error: !isValid as unknown as ValidationError | false };
+    } else if (
+      response &&
+      typeof response === 'object' &&
+      Object.prototype.hasOwnProperty.call(response, 'error')
+    ) {
+      return response as ValidationResult;
     } else if (response instanceof Promise) {
       response.then(
         () => {
           this.validate({ error: false });
         },
-        err => {
-          const error = {
+        (err: unknown) => {
+          const error: ValidationError = {
             type: ValidationErrorTypes.CUSTOM,
             message: `${field.get('label', field.get('name'))} - ${err}.`,
           };
@@ -244,7 +269,7 @@ export default class Widget extends Component {
         },
       );
 
-      const error = {
+      const error: ValidationError = {
         type: ValidationErrorTypes.CUSTOM,
         parentIds,
         message: t('editor.editorControlPane.widget.processing', {
@@ -262,16 +287,23 @@ export default class Widget extends Component {
    * e.g. when debounced, always get the latest object value instead of using
    * `this.props.value` directly.
    */
-  getObjectValue = () => this.props.value || Map();
+  getObjectValue = () => (this.props.value || Map()) as ImmutableMap<string, unknown>;
 
   /**
    * Change handler for fields that are nested within another field.
    */
-  onChangeObject = (field, newValue, newMetadata) => {
-    const newObjectValue = this.getObjectValue().set(field.get('name'), newValue);
+  onChangeObject = (
+    field: ImmutableMap<string, unknown>,
+    newValue: unknown,
+    newMetadata: Record<string, unknown> | undefined,
+  ) => {
+    const newObjectValue = this.getObjectValue().set(
+      field.get('name') as string,
+      newValue,
+    );
     return this.props.onChange(
       newObjectValue,
-      newMetadata && { [this.props.field.get('name')]: newMetadata },
+      newMetadata && { [this.props.field.get('name') as string]: newMetadata },
     );
   };
 
@@ -388,3 +420,6 @@ export default class Widget extends Component {
     });
   }
 }
+
+type Wi = typeof Widget;
+

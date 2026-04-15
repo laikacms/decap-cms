@@ -201,7 +201,7 @@ export function sortByField(
           entries,
         },
       });
-    } catch (error) {
+    } catch (error: unknown) {
       dispatch({
         type: SORT_ENTRIES_FAILURE,
         payload: {
@@ -241,7 +241,7 @@ export function filterByField(collection: Collection, filter: ViewFilter) {
           entries,
         },
       });
-    } catch (error) {
+    } catch (error: unknown) {
       dispatch({
         type: FILTER_ENTRIES_FAILURE,
         payload: {
@@ -279,7 +279,7 @@ export function groupByField(collection: Collection, group: ViewGroup) {
           entries,
         },
       });
-    } catch (error) {
+    } catch (error: unknown) {
       dispatch({
         type: GROUP_ENTRIES_FAILURE,
         payload: {

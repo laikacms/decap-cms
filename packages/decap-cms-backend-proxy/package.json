@@ -17,6 +17,9 @@
     "build": "tsc --build",
     "clean": "rimraf dist"
   },
+  "dependencies": {
+    "lodash": "catalog:utils"
+  },
   "peerDependencies": {
     "@emotion/react": "catalog:emotion",
     "@emotion/styled": "catalog:emotion",
@@ -24,6 +27,11 @@
     "decap-cms-ui-default": "workspace:*",
     "prop-types": "catalog:react",
     "react": "catalog:react"
+  },
+  "devDependencies": {
+    "@types/lodash": "catalog:types",
+    "@types/react": "catalog:types",
+    "@types/prop-types": "catalog:types"
   },
   "type": "module",
   "types": "./dist/index.d.ts",

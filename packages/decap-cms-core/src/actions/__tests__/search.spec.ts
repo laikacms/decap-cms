@@ -1,25 +1,35 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { fromJS } from 'immutable';
 import configureMockStore from 'redux-mock-store';
-import thunk from 'redux-thunk';
+import { thunk } from 'redux-thunk';
 
 import { searchEntries } from '../search';
 
-const middlewares = [thunk];
+import type { Middleware } from 'redux';
+
+const middlewares: Middleware[] = [thunk as unknown as Middleware];
 const mockStore = configureMockStore(middlewares);
 
-jest.mock('../../reducers');
-jest.mock('../../backend');
-jest.mock('../../integrations');
+vi.mock('../../reducers');
+vi.mock('../../backend');
+vi.mock('../../integrations');
 
 describe('search', () => {
   describe('searchEntries', () => {
-    const { currentBackend } = require('../../backend');
-    const { selectIntegration } = require('../../reducers');
-    const { getIntegrationProvider } = require('../../integrations');
+    let currentBackend: ReturnType<typeof vi.fn>;
+    let selectIntegration: ReturnType<typeof vi.fn>;
+    let getIntegrationProvider: ReturnType<typeof vi.fn>;
 
-    beforeEach(() => {
-      jest.resetAllMocks();
+    beforeEach(async () => {
+      vi.resetAllMocks();
+      const backend = await import('../../backend');
+      const reducers = await import('../../reducers');
+      const integrations = await import('../../integrations');
+      currentBackend = backend.currentBackend as ReturnType<typeof vi.fn>;
+      selectIntegration = reducers.selectIntegration as ReturnType<typeof vi.fn>;
+      getIntegrationProvider = integrations.getIntegrationProvider as ReturnType<typeof vi.fn>;
     });
+
     it('should search entries in all collections using integration', async () => {
       const store = mockStore({
         collections: fromJS({ posts: { name: 'posts' }, pages: { name: 'pages' } }),
@@ -29,10 +39,10 @@ describe('search', () => {
       selectIntegration.mockReturnValue('search_integration');
       currentBackend.mockReturnValue({});
       const response = { entries: [{ name: '1' }, { name: '' }], pagination: 1 };
-      const integration = { search: jest.fn().mockResolvedValue(response) };
+      const integration = { search: vi.fn().mockResolvedValue(response) };
       getIntegrationProvider.mockReturnValue(integration);
 
-      await store.dispatch(searchEntries('find me'));
+      await store.dispatch(searchEntries('find me', undefined) as any);
       const actions = store.getActions();
       expect(actions).toHaveLength(2);
 
@@ -65,10 +75,10 @@ describe('search', () => {
       selectIntegration.mockReturnValue('search_integration');
       currentBackend.mockReturnValue({});
       const response = { entries: [{ name: '1' }, { name: '' }], pagination: 1 };
-      const integration = { search: jest.fn().mockResolvedValue(response) };
+      const integration = { search: vi.fn().mockResolvedValue(response) };
       getIntegrationProvider.mockReturnValue(integration);
 
-      await store.dispatch(searchEntries('find me', ['pages']));
+      await store.dispatch(searchEntries('find me', ['pages']) as any);
       const actions = store.getActions();
       expect(actions).toHaveLength(2);
 
@@ -99,10 +109,10 @@ describe('search', () => {
       });
 
       const response = { entries: [{ name: '1' }, { name: '' }], pagination: 1 };
-      const backend = { search: jest.fn().mockResolvedValue(response) };
+      const backend = { search: vi.fn().mockResolvedValue(response) };
       currentBackend.mockReturnValue(backend);
 
-      await store.dispatch(searchEntries('find me'));
+      await store.dispatch(searchEntries('find me', undefined) as any);
 
       const actions = store.getActions();
       expect(actions).toHaveLength(2);
@@ -137,10 +147,10 @@ describe('search', () => {
       });
 
       const response = { entries: [{ name: '1' }, { name: '' }], pagination: 1 };
-      const backend = { search: jest.fn().mockResolvedValue(response) };
+      const backend = { search: vi.fn().mockResolvedValue(response) };
       currentBackend.mockReturnValue(backend);
 
-      await store.dispatch(searchEntries('find me', ['pages']));
+      await store.dispatch(searchEntries('find me', ['pages']) as any);
 
       const actions = store.getActions();
       expect(actions).toHaveLength(2);
@@ -171,7 +181,7 @@ describe('search', () => {
         search: { isFetching: true, term: 'find me', collections: ['posts', 'pages'] },
       });
 
-      await store.dispatch(searchEntries('find me'));
+      await store.dispatch(searchEntries('find me', undefined) as any);
 
       const actions = store.getActions();
       expect(actions).toHaveLength(0);
@@ -183,7 +193,7 @@ describe('search', () => {
         search: { isFetching: true, term: 'find me', collections: ['pages'] },
       });
 
-      await store.dispatch(searchEntries('find me', ['pages']));
+      await store.dispatch(searchEntries('find me', ['pages']) as any);
 
       const actions = store.getActions();
       expect(actions).toHaveLength(0);
@@ -194,10 +204,10 @@ describe('search', () => {
         collections: fromJS({ posts: { name: 'posts' }, pages: { name: 'pages' } }),
         search: { isFetching: true, term: 'find me', collections: ['pages'] },
       });
-      const backend = { search: jest.fn().mockResolvedValue({}) };
+      const backend = { search: vi.fn().mockResolvedValue({}) };
       currentBackend.mockReturnValue(backend);
 
-      await store.dispatch(searchEntries('find me', ['posts', 'pages']));
+      await store.dispatch(searchEntries('find me', ['posts', 'pages']) as any);
 
       expect(backend.search).toHaveBeenCalledTimes(1);
       expect(backend.search).toHaveBeenCalledWith(

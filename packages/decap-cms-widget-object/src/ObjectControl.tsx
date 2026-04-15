@@ -5,6 +5,7 @@ import { ClassNames } from '@emotion/react';
 import memoize from 'lodash/memoize';
 import { List, Map } from 'immutable';
 import { colors, lengths, ObjectWidgetTopBar } from 'decap-cms-ui-default';
+import type { TranslateFunction } from 'decap-cms-ui-default';
 import { stringTemplate } from 'decap-cms-lib-widgets';
 
 const styleStrings = {
@@ -22,13 +23,72 @@ const styleStrings = {
   `,
 };
 
-export default class ObjectControl extends React.Component {
-  childRefs = {};
+/** Minimal shape for a widget control ref passed through controlRef */
+interface WidgetControlRef {
+  props: { field: Map<string, unknown> };
+  validate?: () => void;
+  focus?: (path: string) => void;
+  innerWrappedControl?: {
+    validate?: () => void;
+  };
+}
 
-  processControlRef = ref => {
+interface ObjectControlProps {
+  /** Called when a nested field value changes (provided by Widget wrapper or ListControl) */
+  onChangeObject: (field: Map<string, unknown>, newValue: unknown, newMetadata?: Record<string, unknown>) => void;
+  /** Called to set validation errors for a specific field ID */
+  onValidateObject?: ((fieldId: string | Map<string, unknown>, errors: Array<{ type: string; message: string }>) => void) | undefined;
+  /** The current object value */
+  value?: Map<string, unknown> | unknown;
+  /** The field configuration */
+  field: Map<string, unknown>;
+  /** Unique field identifier */
+  forID?: string;
+  /** CSS class name for the widget wrapper */
+  classNameWrapper: string;
+  /** Whether this object is rendered inside a list widget */
+  forList?: boolean;
+  /** Callback to register a ref for this control */
+  controlRef?: ((ref: WidgetControlRef | null) => void) | undefined;
+  /** The connected EditorControl component for rendering nested fields */
+  editorControl: React.ComponentType<Record<string, unknown>>;
+  /** Resolves a widget by name */
+  resolveWidget: (name: string) => Record<string, unknown>;
+  /** Clears field errors for a given field ID */
+  clearFieldErrors: (fieldId: string) => void;
+  /** Key used for validation tracking (typically the list item's uuid) */
+  validationKey: string;
+  /** Map of field IDs to arrays of validation errors */
+  fieldsErrors?: Map<string, unknown>;
+  /** Metadata for the field's collection */
+  metadata?: Map<string, unknown>;
+  /** Whether this control has a validation error */
+  hasError?: boolean;
+  /** Translation function */
+  t: TranslateFunction;
+  /** Current locale for i18n */
+  locale?: string;
+  /** Whether the object is collapsed (when inside a list) */
+  collapsed?: boolean;
+  /** Parent field IDs for nested validation tracking */
+  parentIds?: string[];
+  /** Returns whether a field is a duplicate (i18n) */
+  isFieldDuplicate?: (field: Map<string, unknown>) => boolean;
+  /** Returns whether a field should be hidden (i18n) */
+  isFieldHidden?: (field: Map<string, unknown>) => boolean;
+}
+
+interface ObjectControlState {
+  collapsed: boolean;
+}
+
+export default class ObjectControl extends React.Component<ObjectControlProps, ObjectControlState> {
+  childRefs: Record<string, WidgetControlRef> = {};
+
+  processControlRef = (ref: WidgetControlRef | null) => {
     if (!ref) return;
     const name = ref.props.field.get('name');
-    this.childRefs[name] = ref;
+    this.childRefs[name as string] = ref;
     this.props.controlRef?.(ref);
   };
 
@@ -55,10 +115,10 @@ export default class ObjectControl extends React.Component {
     value: Map(),
   };
 
-  constructor(props) {
+  constructor(props: ObjectControlProps) {
     super(props);
     this.state = {
-      collapsed: props.field.get('collapsed', false),
+      collapsed: props.field.get('collapsed', false) as boolean,
     };
   }
 
@@ -79,27 +139,29 @@ export default class ObjectControl extends React.Component {
 
   validate = () => {
     const { field } = this.props;
-    let fields = field.get('field') || field.get('fields');
+    let fields: unknown = field.get('field') || field.get('fields');
     fields = List.isList(fields) ? fields : List([fields]);
-    fields.forEach(field => {
+    (fields as List<Map<string, unknown>>).forEach((field: Map<string, unknown>) => {
       if (field.get('widget') === 'hidden') return;
-      const name = field.get('name');
+      const name = field.get('name') as string;
       const control = this.childRefs[name];
+      if (!control) return;
 
-      if (control?.innerWrappedControl?.validate) {
+      if (control.innerWrappedControl?.validate) {
         control.innerWrappedControl.validate();
       } else {
-        control?.validate?.();
+        control.validate?.();
       }
     });
   };
 
   getStableParentIds = memoize(
-    (parentIds, forID) => [...parentIds, forID],
-    (parentIds, forID) => JSON.stringify([parentIds, forID]) /* Fast enough for only ids */,
+    (parentIds: string[], forID: string) => [...parentIds, forID],
+    (parentIds: string[], forID: string) =>
+      JSON.stringify([parentIds, forID]) /* Fast enough for only ids */,
   );
 
-  controlFor(field, key) {
+  controlFor(field: Map<string, unknown>, key?: number) {
     const {
       value,
       onChangeObject,
@@ -119,7 +181,7 @@ export default class ObjectControl extends React.Component {
     if (field.get('widget') === 'hidden') {
       return null;
     }
-    const fieldName = field.get('name');
+    const fieldName = field.get('name') as string;
     const fieldValue = value && Map.isMap(value) ? value.get(fieldName) : value;
 
     const isDuplicate = isFieldDuplicate && isFieldDuplicate(field);
@@ -136,7 +198,7 @@ export default class ObjectControl extends React.Component {
         fieldsErrors={fieldsErrors}
         onValidate={onValidateObject}
         controlRef={this.processControlRef}
-        parentIds={this.getStableParentIds(parentIds, forID)}
+        parentIds={this.getStableParentIds(parentIds || [], forID || '')}
         isDisabled={isDuplicate}
         isHidden={isHidden}
         isFieldDuplicate={isFieldDuplicate}
@@ -151,44 +213,47 @@ export default class ObjectControl extends React.Component {
     this.setState({ collapsed: !this.state.collapsed });
   };
 
-  focus(path) {
+  focus(path?: string) {
     if (this.state.collapsed) {
       this.setState({ collapsed: false }, () => {
         if (path) {
           const [fieldName, ...remainingPath] = path.split('.');
-          const field = this.childRefs[fieldName];
-          if (field?.focus) {
-            field.focus(remainingPath.join('.'));
-          }
+          const control = this.childRefs[fieldName];
+          control?.focus?.(remainingPath.join('.'));
         }
       });
     } else if (path) {
       const [fieldName, ...remainingPath] = path.split('.');
-      const field = this.childRefs[fieldName];
-      if (field?.focus) {
-        field.focus(remainingPath.join('.'));
-      }
+      const control = this.childRefs[fieldName];
+      control?.focus?.(remainingPath.join('.'));
     }
   }
 
-  renderFields = (multiFields, singleField) => {
+  renderFields = (multiFields: List<Map<string, unknown>> | undefined, singleField?: unknown) => {
     if (multiFields) {
-      return multiFields.map((f, idx) => this.controlFor(f, idx));
+      return multiFields.map((f: Map<string, unknown>, idx: number) => this.controlFor(f, idx));
     }
-    return this.controlFor(singleField);
+    return this.controlFor(singleField as Map<string, unknown>);
   };
 
-  objectLabel = () => {
+  objectLabel = (): React.ReactNode => {
     const { value, field } = this.props;
     const label = field.get('label', field.get('name'));
-    const summary = field.get('summary');
-    return summary ? stringTemplate.compileStringTemplate(summary, null, '', value) : label;
+    const summary = field.get('summary') as string | undefined;
+    return summary
+      ? stringTemplate.compileStringTemplate(
+          summary,
+          null,
+          '',
+          value && Map.isMap(value) ? (value as Map<string, unknown>) : Map<string, unknown>(),
+        )
+      : (label as React.ReactNode);
   };
 
   render() {
     const { field, forID, classNameWrapper, forList, hasError, t } = this.props;
     const collapsed = forList ? this.props.collapsed : this.state.collapsed;
-    const multiFields = field.get('fields');
+    const multiFields = field.get('fields') as List<Map<string, unknown>> | undefined;
     const singleField = field.get('field');
 
     if (multiFields || singleField) {

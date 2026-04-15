@@ -541,7 +541,7 @@ export function loadConfig(manualConfig: Partial<CmsConfig> = {}, onLoad: () => 
       // Merge manual config into the config.yml one
       const mergedConfig = deepmerge(configYaml, manualConfig);
 
-      validateConfig(mergedConfig);
+      validateConfig(mergedConfig as unknown as Record<string, unknown>);
 
       const withLocalBackend = await handleLocalBackend(mergedConfig);
       const normalizedConfig = normalizeConfig(withLocalBackend);

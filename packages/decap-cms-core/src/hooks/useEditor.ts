@@ -32,6 +32,8 @@ import { selectEntry, selectUnpublishedEntry, selectDeployPreview } from '../red
 import { selectFields } from '../reducers/collections';
 import { status, EDITORIAL_WORKFLOW } from '../constants/publishModes';
 
+import type { Status } from '../constants/publishModes';
+import type { Update, Transition } from 'history';
 import type { Collection, Entry, EntryDraft } from '../types/cms';
 
 interface UseEditorOptions {
@@ -95,7 +97,7 @@ export function useEditor({
   const isModification = entryDraft?.getIn(['entry', 'isModification']) as boolean | undefined;
   const localBackup = entryDraft?.get('localBackup');
   const draftKey = entryDraft?.get('key');
-  const currentStatus = unPublishedEntry?.get('status') as string | undefined;
+  const currentStatus = unPublishedEntry?.get('status') as Status | undefined;
   
   const fields = useMemo(() => {
     if (!collection) return null;
@@ -174,35 +176,40 @@ export function useEditor({
     exitBlockerRef.current = exitBlocker;
     window.addEventListener('beforeunload', exitBlocker);
     
-    // Setup navigation blocker
-    function navigationBlocker(location: { pathname: string }, action: string) {
+    // Setup navigation blocker (history v5 API)
+    function navigationBlocker(tx: Transition) {
       const draft = entryDraft;
       const isPersisting = draft?.getIn(['entry', 'isPersisting']);
       const newRecord = draft?.getIn(['entry', 'newRecord']);
-      const newEntryPath = `/collections/${collection.get('name')}/new`;
+      const newEntryPath = `/collections/${collection!.get('name')}/new`;
       
       if (
         isPersisting &&
         newRecord &&
         locationPathname === newEntryPath &&
-        action === 'PUSH'
+        tx.action === 'PUSH'
       ) {
+        tx.retry();
         return;
       }
       
       if (draft?.get('hasChanged')) {
-        return leaveMessage;
+        if (window.confirm(leaveMessage)) {
+          tx.retry();
+        }
+        return;
       }
+      
+      tx.retry();
     }
     
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const unblock = history.block(navigationBlocker as any);
+    const unblock = history.block(navigationBlocker);
     unblockRef.current = unblock;
     
-    // Setup history listener
-    const unlisten = history.listen((location: { pathname: string }, action: string) => {
-      const newEntryPath = `/collections/${collection.get('name')}/new`;
-      const entriesPath = `/collections/${collection.get('name')}/entries/`;
+    // Setup history listener (history v5 API: listener receives { location, action })
+    const unlisten = history.listen(({ location, action }: Update) => {
+      const newEntryPath = `/collections/${collection!.get('name')}/new`;
+      const entriesPath = `/collections/${collection!.get('name')}/entries/`;
       const { pathname } = location;
       
       if (
@@ -305,9 +312,11 @@ export function useEditor({
         window.alert(t('editor.editor.onUpdatingWithUnsavedChanges'));
         return;
       }
-      const newStatus = status.get(newStatusName);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      dispatch(updateUnpublishedEntryStatus(collection.get('name'), slug, currentStatus as any, newStatus) as any);
+      const newStatus = status.get(newStatusName) as Status | undefined;
+      if (newStatus) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        dispatch(updateUnpublishedEntryStatus(collection.get('name'), slug, currentStatus, newStatus) as any);
+      }
     },
     [collection, slug, entryDraft, currentStatus, t, dispatch]
   );
@@ -441,7 +450,7 @@ export function useEditor({
       if (!collection || !entry || !slug) return;
       const isPublished = !newEntry && !workflow.unpublishedEntry;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      dispatch(loadDeployPreview(collection, slug, entry, isPublished, opts) as any);
+      dispatch(loadDeployPreview(collection, slug, entry as unknown as Entry, isPublished, opts) as any);
     },
     [collection, slug, entry, newEntry, workflow.unpublishedEntry, dispatch]
   );

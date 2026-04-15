@@ -2,7 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { WidgetPreviewContainer } from 'decap-cms-ui-default';
 
-function DatePreview({ value }) {
+interface DatePreviewProps {
+  value?: Record<string, unknown> | string;
+}
+
+function DatePreview({ value }: DatePreviewProps) {
   return <WidgetPreviewContainer>{value ? value.toString() : null}</WidgetPreviewContainer>;
 }
 

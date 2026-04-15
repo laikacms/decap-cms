@@ -1,10 +1,19 @@
 class RelationCache {
+  cache: Map<string, unknown>;
+  pendingRequests: Map<string, Promise<unknown>>;
+
   constructor() {
     this.cache = new Map();
     this.pendingRequests = new Map();
   }
 
-  async getOptions(collection, searchFields, term, file, queryFn) {
+  async getOptions(
+    collection: string,
+    searchFields: string[],
+    term: string,
+    file: string | undefined,
+    queryFn: () => Promise<unknown>,
+  ): Promise<unknown> {
     const cacheKey = `${collection}-${searchFields.join(',')}-${term || ''}-${file || ''}`;
 
     if (this.cache.has(cacheKey)) {
@@ -28,7 +37,7 @@ class RelationCache {
     }
   }
 
-  invalidateCollection(collection) {
+  invalidateCollection(collection: string) {
     for (const [key] of this.cache.entries()) {
       if (key.startsWith(`${collection}-`)) {
         this.cache.delete(key);
@@ -40,7 +49,9 @@ class RelationCache {
     const maxSize = 100;
     if (this.cache.size > maxSize) {
       const firstKey = this.cache.keys().next().value;
-      this.cache.delete(firstKey);
+      if (firstKey !== undefined) {
+        this.cache.delete(firstKey);
+      }
     }
   }
 

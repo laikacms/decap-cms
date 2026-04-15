@@ -6,11 +6,13 @@ import yaml from 'yaml';
 import truncate from 'lodash/truncate';
 import copyToClipboard from 'copy-text-to-clipboard';
 import { localForage } from 'decap-cms-lib-util';
-import { buttons, colors } from 'decap-cms-ui-default';
+import { buttons, colors, TranslateFunction } from 'decap-cms-ui-default';
+
+import type { CmsConfig } from '../../types/cms';
 
 const ISSUE_URL = 'https://github.com/decaporg/decap-cms/issues/new';
 
-function getIssueTemplate({ version, provider, browser, config }) {
+function getIssueTemplate({ version, provider, browser, config }: { version: string; provider: string; browser: string; config: string }) {
   return `
 **Describe the bug**
 
@@ -34,7 +36,7 @@ ${config}
 `;
 }
 
-function buildIssueTemplate({ config }) {
+function buildIssueTemplate({ config }: { config: CmsConfig }) {
   let version = '';
   if (typeof DECAP_CMS_VERSION === 'string') {
     version = `decap-cms@${DECAP_CMS_VERSION}`;
@@ -51,7 +53,7 @@ function buildIssueTemplate({ config }) {
   return template;
 }
 
-function buildIssueUrl({ title, config }) {
+function buildIssueUrl({ title, config }: { title: string; config: CmsConfig }) {
   const issueUrl = config?.issue_reports?.url ?? ISSUE_URL;
   try {
     const body = buildIssueTemplate({ config });
@@ -62,7 +64,7 @@ function buildIssueUrl({ title, config }) {
     params.append('labels', 'type: bug');
 
     return `${issueUrl}?${params.toString()}`;
-  } catch (e) {
+  } catch (e: unknown) {
     console.log(e);
     return `${issueUrl}?template=bug_report.md`;
   }
@@ -110,7 +112,7 @@ const CopyButton = styled.button`
   margin: 12px 0;
 `;
 
-function RecoveredEntry({ entry, t }) {
+function RecoveredEntry({ entry, t }: { entry: string; t: TranslateFunction }) {
   console.log(entry);
   return (
     <>
@@ -127,7 +129,14 @@ function RecoveredEntry({ entry, t }) {
   );
 }
 
-export class ErrorBoundary extends React.Component {
+interface ErrorBoundaryProps {
+  children?: React.ReactNode;
+  showBackup?: boolean;
+  t: TranslateFunction;
+  config: CmsConfig;
+}
+
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
   static propTypes = {
     children: PropTypes.node,
     t: PropTypes.func.isRequired,
@@ -141,7 +150,7 @@ export class ErrorBoundary extends React.Component {
     backup: '',
   };
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(error: Error) {
     console.error(error);
     return {
       hasError: true,
@@ -155,7 +164,7 @@ export class ErrorBoundary extends React.Component {
     PropTypes.checkPropTypes(ErrorBoundary.propTypes, this.props, 'prop', 'ErrorBoundary');
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate(nextProps: ErrorBoundaryProps, nextState: typeof this.state) {
     if (this.props.showBackup) {
       return (
         this.state.errorMessage !== nextState.errorMessage || this.state.backup !== nextState.backup

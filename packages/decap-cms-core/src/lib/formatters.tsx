@@ -96,18 +96,16 @@ export function commitMessageFormatter(
 }
 
 export function prepareSlug(slug: string) {
-  return (
-    slug
-      .trim()
-      // Convert slug to lower-case
-      .toLocaleLowerCase()
+  return (slug
+    .trim()
+    // Convert slug to lower-case
+    .toLocaleLowerCase()
 
-      // Remove single quotes.
-      .replace(/[']/g, '')
+    // Remove single quotes.
+    .replace(/[']/g, '')
 
-      // Replace periods with dashes.
-      .replace(/[.]/g, '-')
-  );
+    // Replace periods with dashes.
+    .replace(/[.]/g, '-'));
 }
 
 export function getProcessSegment(slugConfig?: CmsSlug, ignoreValues?: string[]) {
@@ -203,7 +201,7 @@ export function previewUrlFormatter(
 
   try {
     compiledPath = compileStringTemplate(pathTemplate, date, slug, fields, processSegment);
-  } catch (err) {
+  } catch (err: unknown) {
     // Print an error and ignore `preview_path` if both:
     //   1. Date is invalid (according to DayJs), and
     //   2. A date expression (eg. `{{year}}`) is used in `preview_path`

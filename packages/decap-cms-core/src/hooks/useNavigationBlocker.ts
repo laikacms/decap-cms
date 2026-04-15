@@ -2,6 +2,8 @@ import { useRef, useCallback } from 'react';
 
 import { history } from '../routing/history';
 
+import type { Transition, Update } from 'history';
+
 interface UseNavigationBlockerOptions {
   /** Function that returns true if navigation should be blocked */
   shouldBlock: () => boolean;
@@ -41,25 +43,32 @@ export function useNavigationBlocker({
     };
     window.addEventListener('beforeunload', exitBlocker);
 
-    // In-app navigation blocker
-    const navigationBlocker = (location: unknown, action: string) => {
+    // In-app navigation blocker (history v5 API)
+    const navigationBlocker = (tx: Transition) => {
       // Check if path is allowed
-      const pathname = (location as { pathname: string }).pathname;
+      const pathname = tx.location.pathname;
       const isAllowed = allowedPaths.some(path => pathname.startsWith(path));
       
-      if (isAllowed && action === 'PUSH') {
+      if (isAllowed && tx.action === 'PUSH') {
+        tx.retry();
         return;
       }
 
       if (shouldBlock()) {
-        return message;
+        // Block by not calling tx.retry()
+        // Show confirmation via window.confirm
+        if (window.confirm(message)) {
+          tx.retry();
+        }
+      } else {
+        tx.retry();
       }
     };
 
     unblockRef.current = history.block(navigationBlocker);
 
-    // Cleanup listener
-    unlistenRef.current = history.listen((location, action) => {
+    // Cleanup listener (history v5 API: listener receives { location, action })
+    unlistenRef.current = history.listen(({ location, action }: Update) => {
       const pathname = location.pathname;
       const isAllowed = allowedPaths.some(path => pathname.startsWith(path));
       

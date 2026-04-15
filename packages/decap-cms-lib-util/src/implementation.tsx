@@ -245,7 +245,7 @@ async function fetchFiles(
             ]);
             resolve({ file: { ...file, ...fileMetadata }, data: data as string });
             sem.leave();
-          } catch (error) {
+          } catch (error: unknown) {
             sem.leave();
             console.error(`failed to load file from ${apiName}: ${file.path}`);
             resolve({ error: true });

@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
+import type { TranslateFunction } from 'decap-cms-ui-default';
 
 import MediaLibrarySearch from './MediaLibrarySearch';
 import MediaLibraryHeader from './MediaLibraryHeader';
@@ -27,6 +28,26 @@ const ButtonsContainer = styled.div`
   flex-shrink: 0;
 `;
 
+interface MediaLibraryTopProps {
+  t: TranslateFunction;
+  onClose: () => void;
+  privateUpload?: boolean;
+  forImage?: boolean;
+  onDownload: () => void;
+  onUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  query?: string;
+  onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onSearchKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
+  searchDisabled: boolean;
+  onDelete: () => void;
+  canInsert?: boolean;
+  onInsert: () => void;
+  hasSelection: boolean;
+  isPersisting?: boolean;
+  isDeleting?: boolean;
+  selectedFile?: { path: string; draft: boolean; name: string } | Record<string, never>;
+}
+
 function MediaLibraryTop({
   t,
   onClose,
@@ -45,7 +66,7 @@ function MediaLibraryTop({
   isPersisting,
   isDeleting,
   selectedFile,
-}) {
+}: MediaLibraryTopProps) {
   const shouldShowButtonLoader = isPersisting || isDeleting;
   const uploadEnabled = !shouldShowButtonLoader;
   const deleteEnabled = !shouldShowButtonLoader && hasSelection;
@@ -75,9 +96,9 @@ function MediaLibraryTop({
         <ButtonsContainer>
           <CopyToClipBoardButton
             disabled={!hasSelection}
-            path={selectedFile.path}
-            name={selectedFile.name}
-            draft={selectedFile.draft}
+            path={selectedFile?.path}
+            name={selectedFile?.name}
+            draft={selectedFile?.draft}
             t={t}
           />
           <DownloadButton onClick={onDownload} disabled={!hasSelection}>

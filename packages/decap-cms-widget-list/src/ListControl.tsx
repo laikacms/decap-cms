@@ -1,10 +1,11 @@
-import React from 'react';
+/** @jsxImportSource @emotion/react */
+import React, { ComponentType } from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import styled from '@emotion/styled';
 import { css, ClassNames } from '@emotion/react';
 import { List, Map, fromJS } from 'immutable';
-import partial from 'lodash/partial';
+import type { Map as ImmutableMap } from 'immutable';
 import isEmpty from 'lodash/isEmpty';
 import memoize from 'lodash/memoize';
 import uniqueId from 'lodash/uniqueId';
@@ -18,6 +19,7 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
+import type { DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 import { CSS } from '@dnd-kit/utilities';
@@ -36,6 +38,19 @@ import {
   resolveFieldKeyType,
   getErrorMessageForTypedFieldAndValue,
 } from './typedListHelpers';
+import type { ImmutableField, ImmutableValue } from './typedListHelpers';
+
+type TranslateFunction = (key: string, options?: Record<string, unknown>) => string;
+
+/** Minimal shape for a widget control ref passed through controlRef */
+interface WidgetControlRef {
+  props: { field: ImmutableMap<string, unknown> };
+  validate?: () => void;
+  focus?: (path: string) => void;
+  innerWrappedControl?: {
+    validate?: () => void;
+  };
+}
 
 const ObjectControl = DecapCmsWidgetObject.controlComponent;
 
@@ -45,10 +60,15 @@ const StyledListItemTopBar = styled(ListItemTopBar)`
   background-color: ${colors.textFieldBorder};
 `;
 
-const NestedObjectLabel = styled.div`
-  display: ${props => (props.collapsed ? 'block' : 'none')};
+interface NestedObjectLabelProps {
+  collapsed?: boolean;
+  error?: boolean;
+}
+
+const NestedObjectLabel = styled.div<NestedObjectLabelProps>`
+  display: ${(props: NestedObjectLabelProps) => (props.collapsed ? 'block' : 'none')};
   border-top: 0;
-  color: ${props => (props.error ? colors.errorText : 'inherit')};
+  color: ${(props: NestedObjectLabelProps) => (props.error ? colors.errorText : 'inherit')};
   background-color: ${colors.textFieldBorder};
   padding: 13px;
   border-radius: 0 0 ${lengths.borderRadius} ${lengths.borderRadius};
@@ -76,17 +96,24 @@ const styles = {
   `,
 };
 
-function SortableList({ items, children, onSortEnd, keys }) {
+interface SortableListProps {
+  items: Array<{ id: string }>;
+  children: React.ReactNode;
+  onSortEnd: (args: { oldIndex: number; newIndex: number }) => void;
+  keys: string[];
+}
+
+function SortableList({ items, children, onSortEnd, keys }: SortableListProps) {
   const activationConstraint = { distance: 4 };
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint }),
     useSensor(TouchSensor, { activationConstraint }),
   );
 
-  function handleSortEnd({ active, over }) {
+  function handleSortEnd({ active, over }: DragEndEvent) {
     onSortEnd({
-      oldIndex: keys.indexOf(active.id),
-      newIndex: keys.indexOf(over.id),
+      oldIndex: keys.indexOf(active.id as string),
+      newIndex: keys.indexOf(over?.id as string),
     });
   }
 
@@ -104,7 +131,16 @@ function SortableList({ items, children, onSortEnd, keys }) {
   );
 }
 
-function SortableListItem(props) {
+interface SortableListItemProps {
+  id: string;
+  index: number;
+  collapsed?: boolean;
+  children: React.ReactNode;
+  keys?: string[];
+  css?: unknown;
+}
+
+function SortableListItem(props: SortableListItemProps) {
   const { setNodeRef, transform, transition } = useSortable({
     id: props.id,
   });
@@ -118,7 +154,6 @@ function SortableListItem(props) {
 
   return (
     <ListItem
-      sortable
       ref={setNodeRef}
       style={style}
       css={[styles.listControlItem, collapsed && styles.listControlItemCollapsed]}
@@ -128,9 +163,14 @@ function SortableListItem(props) {
   );
 }
 
-function DragHandle({ children, id }) {
+interface DragHandleProps {
+  children: React.ReactNode;
+  id?: string;
+}
+
+function DragHandle({ children, id }: DragHandleProps) {
   const { attributes, listeners } = useSortable({
-    id,
+    id: id ?? '',
   });
 
   return (
@@ -146,7 +186,7 @@ const valueTypes = {
   MIXED: 'MIXED',
 };
 
-function handleSummary(summary, entry, label, item) {
+function handleSummary(summary: string, entry: ImmutableValue, label: string, item: ImmutableValue): string {
   const data = stringTemplate.addFileTemplateFields(
     entry.get('path'),
     item.set('fields.label', label),
@@ -154,7 +194,7 @@ function handleSummary(summary, entry, label, item) {
   return stringTemplate.compileStringTemplate(summary, null, '', data);
 }
 
-function validateItem(field, item) {
+function validateItem(field: ImmutableField, item: unknown): boolean {
   if (!Map.isMap(item)) {
     console.warn(
       `'${field.get('name')}' field item value value should be a map but is a '${typeof item}'`,
@@ -164,17 +204,88 @@ function validateItem(field, item) {
 
   return true;
 }
-function LabelComponent({ field, isActive, hasErrors, uniqueFieldId, isFieldOptional, t }) {
+
+interface LabelComponentProps {
+  field: ImmutableField;
+  isActive: boolean;
+  hasErrors: boolean | undefined;
+  uniqueFieldId: string;
+  isFieldOptional: boolean;
+  t: TranslateFunction;
+}
+
+function LabelComponent({ field, isActive, hasErrors, uniqueFieldId, isFieldOptional, t }: LabelComponentProps) {
   const label = `${field.get('label', field.get('name'))}`;
   return (
     <FieldLabel isActive={isActive} hasErrors={hasErrors} htmlFor={uniqueFieldId}>
-      {label} {`${isFieldOptional ? ` (${t('editor.editorControl.field.optional')})` : ''}`}
+      {label} {`${isFieldOptional ? ` (${t?.('editor.editorControl.field.optional') ?? ''})` : ''}`}
     </FieldLabel>
   );
 }
 
-export default class ListControl extends React.Component {
-  childRefs = {};
+interface ListControlProps {
+  /** Metadata for the field's collection, keyed by field name */
+  metadata?: ImmutableMap<string, ImmutableMap<string, unknown>>;
+  /** Called when the list value changes */
+  onChange: (value: List<unknown>, metadata?: Record<string, unknown>) => void;
+  /** Called when a nested object field changes (provided by Widget wrapper) */
+  onChangeObject: (field: ImmutableField, newValue: unknown, newMetadata?: Record<string, unknown>) => void;
+  /** Called to set validation errors for a specific field ID */
+  onValidateObject: (fieldId: string | undefined | ImmutableMap<string, unknown>, errors: Array<{ type: string; message: string }>) => void;
+  /** Triggers validation on this widget */
+  validate: () => void;
+  /** The current list value */
+  value?: List<unknown>;
+  /** The field configuration (immutable map with name, label, fields, field, types, etc.) */
+  field: ImmutableField;
+  /** Unique field identifier used for validation and media paths */
+  forID?: string;
+  /** Callback to register a ref for this control (used by parent for validation) */
+  controlRef?: (ref: WidgetControlRef | null) => void;
+  /** Map of media paths keyed by control ID */
+  mediaPaths: ImmutableMap<string, string>;
+  /** Returns an asset proxy for a given path and field */
+  getAsset: (path: string, field: ImmutableField) => { toString: () => string; url: string; path: string };
+  /** Opens the media library with the given options */
+  onOpenMediaLibrary: (options: Record<string, unknown>) => void;
+  /** Adds an asset to the store */
+  onAddAsset: (asset: unknown) => void;
+  /** Removes inserted media for a given control ID */
+  onRemoveInsertedMedia: (controlID: string) => void;
+  /** CSS class name for the widget wrapper */
+  classNameWrapper: string;
+  /** Sets the active (focused) style on the widget */
+  setActiveStyle: () => void;
+  /** Sets the inactive (blurred) style on the widget */
+  setInactiveStyle: () => void;
+  /** The connected EditorControl component, used to render nested fields */
+  editorControl: ComponentType<Record<string, unknown>>;
+  /** Resolves a widget by name, returning its control/preview components */
+  resolveWidget: (name: string) => Record<string, unknown>;
+  /** Clears field errors for a given field ID */
+  clearFieldErrors: (fieldId: string | undefined) => void;
+  /** Map of field IDs to arrays of validation errors */
+  fieldsErrors: ImmutableMap<string, Array<{ type: string; message: string; parentIds?: string[] }>>;
+  /** The current entry (immutable map with path, data, etc.) */
+  entry: ImmutableMap<string, unknown>;
+  /** Translation function */
+  t: TranslateFunction;
+  /** Parent field IDs for nested validation tracking */
+  parentIds?: string[];
+}
+
+interface ListControlState {
+  listCollapsed: boolean;
+  itemsCollapsed: boolean[];
+  value: string;
+  keys: string[];
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ChildRef = any;
+
+export default class ListControl extends React.Component<ListControlProps, ListControlState> {
+  childRefs: Record<string, ChildRef> = {};
 
   static propTypes = {
     metadata: ImmutablePropTypes.map,
@@ -207,10 +318,10 @@ export default class ListControl extends React.Component {
     parentIds: [],
   };
 
-  constructor(props) {
+  constructor(props: ListControlProps) {
     super(props);
     const { field, value } = props;
-    const listCollapsed = field.get('collapsed', true);
+    const listCollapsed = field.get('collapsed', true) as boolean;
     const itemsCollapsed = (value && Array(value.size).fill(listCollapsed)) || [];
     const keys = (value && Array.from({ length: value.size }, () => uuid())) || [];
 
@@ -227,7 +338,7 @@ export default class ListControl extends React.Component {
     PropTypes.checkPropTypes(ListControl.propTypes, this.props, 'prop', 'ListControl');
   }
 
-  valueToString = value => {
+  valueToString = (value: unknown): string => {
     let stringValue;
     if (List.isList(value) || Array.isArray(value)) {
       stringValue = value.join(',');
@@ -242,7 +353,7 @@ export default class ListControl extends React.Component {
     return stringValue.replace(/,([^\s]|$)/g, ', $1');
   };
 
-  getValueType = () => {
+  getValueType = (): string | null => {
     const { field } = this.props;
     if (field.get('fields')) {
       return valueTypes.MULTIPLE;
@@ -274,7 +385,7 @@ export default class ListControl extends React.Component {
     return true;
   }
 
-  handleChange = e => {
+  handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { onChange } = this.props;
     const oldValue = this.state.value;
     const newValue = e.target.value.trim();
@@ -285,23 +396,23 @@ export default class ListControl extends React.Component {
 
     const parsedValue = this.valueToString(listValue);
     this.setState({ value: parsedValue });
-    onChange(List(listValue.map(val => val.trim())));
+    onChange(List(listValue.map((val: string) => val.trim())));
   };
 
   handleFocus = () => {
     this.props.setActiveStyle();
   };
 
-  handleBlur = e => {
+  handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const listValue = e.target.value
       .split(',')
-      .map(el => el.trim())
-      .filter(el => el);
+      .map((el: string) => el.trim())
+      .filter((el: string) => el);
     this.setState({ value: this.valueToString(listValue) });
     this.props.setInactiveStyle();
   };
 
-  handleAdd = e => {
+  handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     const { field } = this.props;
     const parsedValue =
@@ -315,24 +426,28 @@ export default class ListControl extends React.Component {
     return this.props.field.getIn(['field', 'default'], null);
   };
 
-  multipleDefault = fields => {
+  multipleDefault = (fields: unknown) => {
     return this.getFieldsDefault(fields);
   };
 
-  handleAddType = (type, typeKey) => {
+  handleAddType = (type: string, typeKey: string) => {
     const parsedValue = fromJS(this.mixedDefault(typeKey, type));
     this.addItem(parsedValue);
   };
 
-  mixedDefault = (typeKey, type) => {
-    const selectedType = this.props.field.get(TYPES_KEY).find(f => f.get('name') === type);
+  mixedDefault = (typeKey: string, type: string) => {
+    const selectedType = (this.props.field.get(TYPES_KEY) as List<ImmutableField>).find(
+      (f: ImmutableField) => f.get('name') === type,
+    ) as ImmutableField;
     const fields = selectedType.get('fields') || [selectedType.get('field')];
 
     return this.getFieldsDefault(fields, { [typeKey]: type });
   };
 
-  getFieldsDefault = (fields, initialValue = {}) => {
-    return fields.reduce((acc, item) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getFieldsDefault = (fields: any, initialValue: Record<string, unknown> = {}): Record<string, unknown> => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return fields.reduce((acc: Record<string, unknown>, item: any) => {
       const subfields = item.get('field') || item.get('fields');
       const object = item.get('widget') == 'object';
       const name = item.get('name');
@@ -358,7 +473,7 @@ export default class ListControl extends React.Component {
     }, initialValue);
   };
 
-  addItem = parsedValue => {
+  addItem = (parsedValue: unknown) => {
     const { value, onChange, field } = this.props;
     const addToTop = field.get('add_to_top', false);
 
@@ -378,7 +493,7 @@ export default class ListControl extends React.Component {
     }
   };
 
-  processControlRef = ref => {
+  processControlRef = (ref: ChildRef) => {
     if (!ref) return;
     const {
       props: { validationKey: key },
@@ -391,7 +506,7 @@ export default class ListControl extends React.Component {
     // First validate child widgets if this is a complex list
     const hasChildWidgets = this.getValueType() && Object.keys(this.childRefs).length > 0;
     if (hasChildWidgets) {
-      Object.values(this.childRefs).forEach(widget => {
+      Object.values(this.childRefs).forEach((widget: ChildRef) => {
         widget?.validate?.();
       });
     } else {
@@ -411,7 +526,7 @@ export default class ListControl extends React.Component {
     }
 
     const error = validations.validateMinMax(
-      t,
+      t as (key: string, options: unknown) => string,
       field.get('label', field.get('name')),
       value,
       min,
@@ -426,10 +541,10 @@ export default class ListControl extends React.Component {
    * e.g. when debounced, always get the latest object value instead of using
    * `this.props.value` directly.
    */
-  getObjectValue = idx => this.props.value.get(idx) || Map();
+  getObjectValue = (idx: number) => (this.props.value as List<unknown>).get(idx) || Map();
 
-  handleChangeFor = memoize(index => {
-    return (f, newValue, newMetadata) => {
+  handleChangeFor = memoize((index: number) => {
+    return (f: ImmutableField, newValue: unknown, newMetadata: Record<string, unknown>) => {
       const { value, metadata, onChange, field } = this.props;
       const collectionName = field.get('name');
       const listFieldObjectWidget = field.getIn(['field', 'widget']) === 'object';
@@ -437,16 +552,19 @@ export default class ListControl extends React.Component {
         this.getValueType() !== valueTypes.SINGLE ||
         (this.getValueType() === valueTypes.SINGLE && listFieldObjectWidget);
       const newObjectValue = withNameKey
-        ? this.getObjectValue(index).set(f.get('name'), newValue)
+        ? (this.getObjectValue(index) as ImmutableValue).set(f.get('name'), newValue)
         : newValue;
       const parsedMetadata = {
-        [collectionName]: Object.assign(metadata ? metadata.toJS() : {}, newMetadata || {}),
+        [collectionName]: Object.assign(
+          metadata ? (metadata as ImmutableField).toJS() : {},
+          newMetadata || {},
+        ),
       };
-      onChange(value.set(index, newObjectValue), parsedMetadata);
+      onChange((value as List<unknown>).set(index, newObjectValue), parsedMetadata);
     };
   });
 
-  handleRemove = (index, event) => {
+  handleRemove = (index: number, event: React.MouseEvent) => {
     event.preventDefault();
     const { itemsCollapsed } = this.state;
     const {
@@ -463,10 +581,17 @@ export default class ListControl extends React.Component {
     const collectionName = field.get('name');
     const isSingleField = this.getValueType() === valueTypes.SINGLE;
 
-    const metadataRemovePath = isSingleField ? value.get(index) : value.get(index).valueSeq();
+    const val = value as List<unknown>;
+    const metadataRemovePath = isSingleField
+      ? val.get(index)
+      : (val.get(index) as ImmutableValue).valueSeq();
     const parsedMetadata =
-      metadata && !metadata.isEmpty()
-        ? { [collectionName]: metadata.removeIn(metadataRemovePath) }
+      metadata && !(metadata as ImmutableField).isEmpty()
+        ? {
+            [collectionName]: (metadata as ImmutableField).removeIn(
+              metadataRemovePath as unknown as string[],
+            ),
+          }
         : metadata;
 
     // Get the key of the item being removed
@@ -485,12 +610,14 @@ export default class ListControl extends React.Component {
     // Clear the ref for the removed item
     delete this.childRefs[removedKey];
 
-    const newValue = value.delete(index);
+    const newValue = val.delete(index);
 
     // Clear errors for the removed item and its children
     if (fieldsErrors) {
-      Object.entries(fieldsErrors.toJS()).forEach(([fieldId, errors]) => {
-        if (errors.some(err => err.parentIds?.includes(removedKey))) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      Object.entries(fieldsErrors.toJS()).forEach(([fieldId, errors]: [string, any]) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (errors.some((err: any) => err.parentIds?.includes(removedKey))) {
           clearFieldErrors(fieldId);
         }
       });
@@ -506,10 +633,10 @@ export default class ListControl extends React.Component {
     onChange(newValue, parsedMetadata);
   };
 
-  handleItemCollapseToggle = (index, event) => {
+  handleItemCollapseToggle = (index: number, event: React.MouseEvent) => {
     event.preventDefault();
     const { itemsCollapsed } = this.state;
-    const newItemsCollapsed = itemsCollapsed.map((collapsed, itemIndex) => {
+    const newItemsCollapsed = itemsCollapsed.map((collapsed: boolean, itemIndex: number) => {
       if (index === itemIndex) {
         return !collapsed;
       }
@@ -520,27 +647,29 @@ export default class ListControl extends React.Component {
     });
   };
 
-  handleCollapseAllToggle = e => {
+  handleCollapseAllToggle = (e: React.MouseEvent) => {
     e.preventDefault();
     const { value, field } = this.props;
     const { itemsCollapsed, listCollapsed } = this.state;
     const minimizeCollapsedItems = field.get('minimize_collapsed', false);
     const listCollapsedByDefault = field.get('collapsed', true);
-    const allItemsCollapsed = itemsCollapsed.every(val => val === true);
+    const allItemsCollapsed = itemsCollapsed.every((val: boolean) => val === true);
 
     if (minimizeCollapsedItems) {
       let updatedItemsCollapsed = itemsCollapsed;
       // Only allow collapsing all items in this mode but not opening all at once
       if (!listCollapsed || !listCollapsedByDefault) {
-        updatedItemsCollapsed = Array(value.size).fill(!listCollapsed);
+        updatedItemsCollapsed = Array((value as List<unknown>).size).fill(!listCollapsed);
       }
       this.setState({ listCollapsed: !listCollapsed, itemsCollapsed: updatedItemsCollapsed });
     } else {
-      this.setState({ itemsCollapsed: Array(value.size).fill(!allItemsCollapsed) });
+      this.setState({
+        itemsCollapsed: Array((value as List<unknown>).size).fill(!allItemsCollapsed),
+      });
     }
   };
 
-  objectLabel(item) {
+  objectLabel(item: unknown) {
     const { field, entry } = this.props;
     const valueType = this.getValueType();
     switch (valueType) {
@@ -548,18 +677,20 @@ export default class ListControl extends React.Component {
         if (!validateItem(field, item)) {
           return;
         }
-        const itemType = getTypedFieldForValue(field, item);
+        const itemType = getTypedFieldForValue(field, item as ImmutableValue);
         const label = itemType.get('label', itemType.get('name'));
         // each type can have its own summary, but default to the list summary if exists
         const summary = itemType.get('summary', field.get('summary'));
-        const labelReturn = summary ? handleSummary(summary, entry, label, item) : label;
+        const labelReturn = summary
+          ? handleSummary(summary, entry, label, item as ImmutableValue)
+          : label;
         return labelReturn;
       }
       case valueTypes.SINGLE: {
-        const singleField = field.get('field');
+        const singleField = field.get('field') as ImmutableField;
         const label = singleField.get('label', singleField.get('name'));
         const summary = field.get('summary');
-        const data = fromJS({ [singleField.get('name')]: item });
+        const data = fromJS({ [singleField.get('name')]: item }) as unknown as ImmutableValue;
         const labelReturn = summary ? handleSummary(summary, entry, label, data) : label;
         return labelReturn;
       }
@@ -567,24 +698,27 @@ export default class ListControl extends React.Component {
         if (!validateItem(field, item)) {
           return;
         }
-        const multiFields = field.get('fields');
+        const multiFields = field.get('fields') as List<ImmutableField>;
         const labelField = multiFields && multiFields.first();
-        const value = item.get(labelField.get('name'));
+        const value = (item as ImmutableValue).get(labelField!.get('name'));
         const summary = field.get('summary');
-        const labelReturn = summary ? handleSummary(summary, entry, value, item) : value;
-        return (labelReturn || `No ${labelField.get('name')}`).toString();
+        const labelReturn = summary
+          ? handleSummary(summary, entry, value, item as ImmutableValue)
+          : value;
+        return (labelReturn || `No ${labelField!.get('name')}`).toString();
       }
     }
     return '';
   }
 
-  onSortEnd = ({ oldIndex, newIndex }) => {
+  onSortEnd = ({ oldIndex, newIndex }: { oldIndex: number; newIndex: number }) => {
     const { value } = this.props;
     const { itemsCollapsed, keys } = this.state;
 
+    const val = value as List<unknown>;
     // Update value
-    const item = value.get(oldIndex);
-    const newValue = value.delete(oldIndex).insert(newIndex, item);
+    const item = val.get(oldIndex);
+    const newValue = val.delete(oldIndex).insert(newIndex, item);
     this.props.onChange(newValue);
 
     // Update collapsing
@@ -602,28 +736,30 @@ export default class ListControl extends React.Component {
     this.setState({ itemsCollapsed: updatedItemsCollapsed, keys: updatedKeys });
   };
 
-  hasError = index => {
+  hasError = (index: number) => {
     const { fieldsErrors } = this.props;
     if (fieldsErrors && fieldsErrors.size > 0) {
-      return Object.values(fieldsErrors.toJS()).some(arr =>
-        arr.some(err => err.parentIds && err.parentIds.includes(this.state.keys[index])),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return Object.values(fieldsErrors.toJS()).some((arr: any) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        arr.some((err: any) => err.parentIds && err.parentIds.includes(this.state.keys[index])),
       );
     }
   };
 
-  focus(path) {
+  focus(path: string) {
     const [index, ...remainingPath] = path.split('.');
 
-    if (this.state.listCollapsed || this.state.itemsCollapsed[index]) {
+    if (this.state.listCollapsed || this.state.itemsCollapsed[Number(index)]) {
       const newItemsCollapsed = [...this.state.itemsCollapsed];
-      newItemsCollapsed[index] = false;
+      newItemsCollapsed[Number(index)] = false;
       this.setState(
         {
           listCollapsed: false,
           itemsCollapsed: newItemsCollapsed,
         },
         () => {
-          const key = this.state.keys[index];
+          const key = this.state.keys[Number(index)];
           const control = this.childRefs[key];
           if (control?.focus) {
             control.focus(remainingPath.join('.'));
@@ -631,7 +767,7 @@ export default class ListControl extends React.Component {
         },
       );
     } else {
-      const key = this.state.keys[index];
+      const key = this.state.keys[Number(index)];
       const control = this.childRefs[key];
       if (control?.focus) {
         control.focus(remainingPath.join('.'));
@@ -640,12 +776,13 @@ export default class ListControl extends React.Component {
   }
 
   getStableParentIds = memoize(
-    (parentIds, forID, key) => [...parentIds, forID, key],
-    (parentIds, forID, key) => JSON.stringify([ ...parentIds, forID, key ]),
+    (parentIds: string[], forID: string | undefined, key: string) => [...parentIds, forID ?? '', key],
+    (parentIds: string[], forID: string | undefined, key: string) =>
+      JSON.stringify([...parentIds, forID, key]),
   );
 
   // eslint-disable-next-line react/display-name
-  renderItem = (item, index) => {
+  renderItem = (item: unknown, index: number) => {
     const {
       classNameWrapper,
       editorControl,
@@ -655,7 +792,7 @@ export default class ListControl extends React.Component {
       fieldsErrors,
       controlRef,
       resolveWidget,
-      parentIds,
+      parentIds = [],
       forID,
       t,
     } = this.props;
@@ -663,13 +800,13 @@ export default class ListControl extends React.Component {
     const { itemsCollapsed, keys } = this.state;
     const collapsed = itemsCollapsed[index];
     const key = keys[index];
-    let field = this.props.field;
+    let field: ImmutableField | undefined = this.props.field;
     const hasError = this.hasError(index);
     const isVariableTypesList = this.getValueType() === valueTypes.MIXED;
     if (isVariableTypesList) {
-      field = getTypedFieldForValue(field, item);
+      field = getTypedFieldForValue(field!, item as ImmutableValue);
       if (!field) {
-        return this.renderErroneousTypedItem(index, item);
+        return this.renderErroneousTypedItem(index, item as ImmutableValue);
       }
     }
 
@@ -683,22 +820,22 @@ export default class ListControl extends React.Component {
       >
         {isVariableTypesList && (
           <LabelComponent
-            field={field}
+            field={field!}
             isActive={false}
             hasErrors={hasError}
             uniqueFieldId={this.uniqueFieldId}
-            isFieldOptional={field.get('required') === false}
+            isFieldOptional={field!.get('required') === false}
             t={t}
           />
         )}
         <StyledListItemTopBar
           collapsed={collapsed}
-          onCollapseToggle={partial(this.handleItemCollapseToggle, index)}
+          onCollapseToggle={() => this.handleItemCollapseToggle(index, { preventDefault: () => {} } as React.MouseEvent)}
           dragHandle={DragHandle}
           id={key}
-          allowRemove={field.get('allow_remove', true)}
-          allowReorder={field.get('allow_reorder', true)}
-          onRemove={partial(this.handleRemove, index)}
+          allowRemove={field!.get('allow_remove', true)}
+          allowReorder={field!.get('allow_reorder', true)}
+          onRemove={() => this.handleRemove(index, { preventDefault: () => {} } as React.MouseEvent)}
           data-testid={`styled-list-item-top-bar-${key}`}
         />
         <NestedObjectLabel collapsed={collapsed} error={hasError}>
@@ -712,9 +849,9 @@ export default class ListControl extends React.Component {
                   ${styleStrings.collapsedObjectControl};
                 `]: collapsed,
               })}
-              value={item}
+              value={item as Record<string, unknown>}
               field={field}
-              onChangeObject={this.handleChangeFor(index)}
+              onChangeObject={this.handleChangeFor(index) as (...args: unknown[]) => unknown}
               editorControl={editorControl}
               resolveWidget={resolveWidget}
               metadata={metadata}
@@ -725,6 +862,7 @@ export default class ListControl extends React.Component {
               ref={this.processControlRef}
               controlRef={controlRef}
               validationKey={key}
+              t={t}
               collapsed={collapsed}
               data-testid={`object-control-${key}`}
               hasError={hasError}
@@ -736,7 +874,7 @@ export default class ListControl extends React.Component {
     );
   };
 
-  renderErroneousTypedItem(index, item) {
+  renderErroneousTypedItem(index: number, item: ImmutableValue) {
     const field = this.props.field;
     const errorMessage = getErrorMessageForTypedFieldAndValue(field, item);
     const key = `item-${index}`;
@@ -745,10 +883,11 @@ export default class ListControl extends React.Component {
         css={[styles.listControlItem, styles.listControlItemCollapsed]}
         index={index}
         key={key}
+        id={key}
       >
         <StyledListItemTopBar
-          onCollapseToggle={null}
-          onRemove={partial(this.handleRemove, index, key)}
+          onCollapseToggle={undefined}
+          onRemove={() => this.handleRemove(index, { preventDefault: () => {} } as React.MouseEvent)}
           dragHandle={DragHandle}
           id={key}
         />
@@ -767,10 +906,10 @@ export default class ListControl extends React.Component {
     const labelSingular = field.get('label_singular') || field.get('label', field.get('name'));
     const listLabel = items.size === 1 ? labelSingular.toLowerCase() : label.toLowerCase();
     const minimizeCollapsedItems = field.get('minimize_collapsed', false);
-    const allItemsCollapsed = itemsCollapsed.every(val => val === true);
+    const allItemsCollapsed = itemsCollapsed.every((val: boolean) => val === true);
     const selfCollapsed = allItemsCollapsed && (listCollapsed || !minimizeCollapsedItems);
 
-    const itemsArray = keys.map(key => ({ id: key }));
+    const itemsArray = keys.map((key: string) => ({ id: key }));
 
     return (
       <ClassNames>
@@ -786,14 +925,14 @@ export default class ListControl extends React.Component {
           >
             <ObjectWidgetTopBar
               allowAdd={field.get('allow_add', true)}
-              onAdd={this.handleAdd}
+              onAdd={() => this.handleAdd({ preventDefault: () => {} } as React.MouseEvent)}
               types={field.get(TYPES_KEY, null)}
-              onAddType={type => this.handleAddType(type, resolveFieldKeyType(field))}
+              onAddType={(type: string) => this.handleAddType(type, resolveFieldKeyType(field))}
               heading={`${items.size} ${listLabel}`}
               label={labelSingular.toLowerCase()}
-              onCollapseToggle={this.handleCollapseAllToggle}
+              onCollapseToggle={() => this.handleCollapseAllToggle({ preventDefault: () => {} } as React.MouseEvent)}
               collapsed={selfCollapsed}
-              t={t}
+              t={t!}
             />
             {(!selfCollapsed || !minimizeCollapsedItems) && (
               <SortableList items={itemsArray} keys={keys} onSortEnd={this.onSortEnd}>

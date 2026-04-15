@@ -1,23 +1,19 @@
 import React, { useCallback, useMemo, useRef } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
 import { Loader } from 'decap-cms-ui-default';
 
 import { useEditor } from '../../hooks/useEditor';
 import EditorInterface from './EditorInterface';
 
-import type { RouteComponentProps } from 'react-router-dom';
-
-interface EditorRouteParams {
-  name: string;
-  0?: string; // slug
-}
-
-interface EditorProps extends RouteComponentProps<EditorRouteParams> {
+interface EditorProps {
   newRecord?: boolean;
 }
 
-function Editor({ match, location, newRecord = false }: EditorProps) {
-  const collectionName = match.params.name;
-  const slug = match.params[0];
+function Editor({ newRecord = false }: EditorProps) {
+  const params = useParams<{ name: string; '*'?: string }>();
+  const location = useLocation();
+  const collectionName = params.name!;
+  const slug = params['*'];
   const newEntry = newRecord === true;
   
   // Track previous values for update logic
@@ -127,12 +123,12 @@ function Editor({ match, location, newRecord = false }: EditorProps) {
   
   return (
     <EditorInterface
-      draftKey={draftKey}
+      draftKey={draftKey || ''}
       entry={entryDraft.get('entry')}
-      collection={collection}
-      fields={fields}
-      fieldsMetaData={entryDraft.get('fieldsMetaData')}
-      fieldsErrors={entryDraft.get('fieldsErrors')}
+      collection={collection!}
+      fields={fields!}
+      fieldsMetaData={entryDraft.get('fieldsMetaData') as any}
+      fieldsErrors={entryDraft.get('fieldsErrors') as any}
       onChange={handleChangeDraftField}
       onValidate={handleValidate}
       onPersist={handlePersistEntry}
@@ -142,15 +138,15 @@ function Editor({ match, location, newRecord = false }: EditorProps) {
       onPublish={handlePublishEntry}
       unPublish={handleUnpublishEntry}
       onDuplicate={handleDuplicateEntry}
-      showDelete={showDelete}
+      showDelete={showDelete ?? false}
       user={user}
-      hasChanged={hasChanged}
+      hasChanged={hasChanged ?? false}
       displayUrl={displayUrl}
-      hasWorkflow={hasWorkflow}
-      useOpenAuthoring={useOpenAuthoring}
+      hasWorkflow={hasWorkflow ?? false}
+      useOpenAuthoring={useOpenAuthoring ?? false}
       hasUnpublishedChanges={unpublishedEntry}
       isNewEntry={newEntry}
-      isModification={isModification}
+      isModification={isModification ?? false}
       currentStatus={currentStatus}
       onLogoutClick={handleLogout}
       deployPreview={deployPreview}

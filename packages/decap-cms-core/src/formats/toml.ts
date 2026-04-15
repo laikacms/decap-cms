@@ -8,7 +8,7 @@ import { sortKeys } from './helpers';
 function outputReplacer(_key: string, value: unknown) {
   if (dayjs.isDayjs(value)) {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // @ts-expect-error -- TODO: fix underlying type issue
     return value.format(value._f);
   }
   if (value instanceof AssetProxy) {

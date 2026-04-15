@@ -141,7 +141,7 @@ export default class PkceAuthenticator {
     }
     try {
       await this._loadOidcConfig();
-    } catch (err) {
+    } catch (err: unknown) {
       return cb(err as Error);
     }
 
@@ -199,7 +199,7 @@ export default class PkceAuthenticator {
     if (params.has('code')) {
       try {
         await this._loadOidcConfig();
-      } catch (err) {
+      } catch (err: unknown) {
         return cb(err as Error);
       }
 

@@ -19,7 +19,9 @@
     "clean": "rimraf dist"
   },
   "devDependencies": {
-    "cross-env": "catalog:build"
+    "cross-env": "catalog:build",
+    "@types/react": "catalog:types",
+    "@types/react-dom": "catalog:types"
   },
   "peerDependencies": {
     "react": "catalog:react"

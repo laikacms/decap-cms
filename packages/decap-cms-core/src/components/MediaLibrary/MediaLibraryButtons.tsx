@@ -5,6 +5,7 @@ import styled from '@emotion/styled';
 import copyToClipboard from 'copy-text-to-clipboard';
 import { isAbsolutePath } from 'decap-cms-lib-util';
 import { buttons, shadows, zIndex } from 'decap-cms-ui-default';
+import type { TranslateFunction } from 'decap-cms-ui-default';
 
 import { FileUploadButton } from '../UI';
 
@@ -71,9 +72,17 @@ const ActionButton = styled.button`
 
 export const DownloadButton = ActionButton;
 
-export class CopyToClipBoardButton extends React.Component {
+interface CopyToClipBoardButtonProps {
+  disabled: boolean;
+  draft?: boolean;
+  path?: string;
+  name?: string;
+  t: TranslateFunction;
+}
+
+export class CopyToClipBoardButton extends React.Component<CopyToClipBoardButtonProps> {
   mounted = false;
-  timeout;
+  timeout: ReturnType<typeof setTimeout> | undefined;
 
   state = {
     copied: false,
@@ -90,7 +99,7 @@ export class CopyToClipBoardButton extends React.Component {
   handleCopy = () => {
     clearTimeout(this.timeout);
     const { path, draft, name } = this.props;
-    copyToClipboard(isAbsolutePath(path) || !draft ? path : name);
+    copyToClipboard(isAbsolutePath(path || '') || !draft ? path || '' : name || '');
     this.setState({ copied: true });
     this.timeout = setTimeout(() => this.mounted && this.setState({ copied: false }), 1500);
   };

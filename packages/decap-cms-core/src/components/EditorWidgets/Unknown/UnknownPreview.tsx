@@ -2,11 +2,18 @@ import React from 'react';
 import { translate } from 'react-polyglot';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import PropTypes from 'prop-types';
+import type { TranslateFunction } from 'decap-cms-ui-default';
+import type { EntryField } from '../../../types/cms';
 
-function UnknownPreview({ field, t }) {
+interface UnknownPreviewProps {
+  field?: EntryField;
+  t: TranslateFunction;
+}
+
+function UnknownPreview({ field, t }: UnknownPreviewProps) {
   return (
     <div className="nc-widgetPreview">
-      {t('editor.editorWidgets.unknownPreview.noPreview', { widget: field.get('widget') })}
+      {t('editor.editorWidgets.unknownPreview.noPreview', { widget: field?.get('widget') })}
     </div>
   );
 }

@@ -24,6 +24,17 @@
     "jamstack"
   ],
   "license": "MIT",
+  "excluded.dependencies": {
+    "decap-cms-backend-azure": "workspace:*",
+    "decap-cms-backend-aws-cognito-github-proxy": "workspace:*",
+    "decap-cms-backend-bitbucket": "workspace:*",
+    "decap-cms-backend-git-gateway": "workspace:*",
+    "decap-cms-backend-gitea": "workspace:*",
+    "decap-cms-backend-github": "workspace:*",
+    "decap-cms-backend-gitlab": "workspace:*",
+    "decap-cms-widget-markdown": "workspace:*",
+    "decap-cms-widget-richtext": "workspace:*"
+  },
   "dependencies": {
     "@emotion/react": "catalog:emotion",
     "@emotion/styled": "catalog:emotion",
@@ -32,13 +43,6 @@
     "ajv-keywords": "catalog:validation",
     "codemirror": "catalog:codemirror",
     "dayjs": "catalog:utils",
-    "decap-cms-backend-aws-cognito-github-proxy": "workspace:*",
-    "decap-cms-backend-azure": "workspace:*",
-    "decap-cms-backend-bitbucket": "workspace:*",
-    "decap-cms-backend-git-gateway": "workspace:*",
-    "decap-cms-backend-gitea": "workspace:*",
-    "decap-cms-backend-github": "workspace:*",
-    "decap-cms-backend-gitlab": "workspace:*",
     "decap-cms-backend-proxy": "workspace:*",
     "decap-cms-backend-test": "workspace:*",
     "decap-cms-core": "workspace:*",
@@ -57,7 +61,6 @@
     "decap-cms-widget-image": "workspace:*",
     "decap-cms-widget-list": "workspace:*",
     "decap-cms-widget-map": "workspace:*",
-    "decap-cms-widget-markdown": "workspace:*",
     "decap-cms-widget-number": "workspace:*",
     "decap-cms-widget-object": "workspace:*",
     "decap-cms-widget-relation": "workspace:*",
@@ -69,6 +72,9 @@
     "prop-types": "catalog:react",
     "react-immutable-proptypes": "catalog:react",
     "uuid": "catalog:utils"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:types"
   },
   "peerDependencies": {
     "react": "catalog:react",

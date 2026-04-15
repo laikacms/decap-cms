@@ -1,7 +1,5 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import memoize from 'lodash/memoize';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import {
@@ -12,6 +10,10 @@ import {
   StyledDropdownButton,
   text,
 } from 'decap-cms-ui-default';
+
+import type { Map as ImmutableMap, List as ImmutableList } from 'immutable';
+import type { Collection, EntryMap, EntryField } from '../../../types/cms';
+import type { I18nInfo } from '../../../lib/i18n';
 
 import EditorControl from './EditorControl';
 import {
@@ -57,7 +59,13 @@ const StyledDropdown = styled(Dropdown)`
   margin-right: 20px;
 `;
 
-function LocaleDropdown({ locales, dropdownText, onLocaleChange }) {
+interface LocaleDropdownProps {
+  locales: string[];
+  dropdownText: string;
+  onLocaleChange: (locale: string) => void;
+}
+
+function LocaleDropdown({ locales, dropdownText, onLocaleChange }: LocaleDropdownProps) {
   return (
     <StyledDropdown
       renderButton={() => {
@@ -68,11 +76,8 @@ function LocaleDropdown({ locales, dropdownText, onLocaleChange }) {
         );
       }}
     >
-      {locales.map(l => (
+      {locales.map((l: string) => (
         <DropdownItem
-          css={css`
-            ${text.fieldLabel}
-          `}
           key={l}
           label={l}
           onClick={() => onLocaleChange(l)}
@@ -82,7 +87,14 @@ function LocaleDropdown({ locales, dropdownText, onLocaleChange }) {
   );
 }
 
-function getFieldValue({ field, entry, isTranslatable, locale }) {
+interface GetFieldValueParams {
+  field: EntryField;
+  entry: EntryMap;
+  isTranslatable: boolean;
+  locale: string;
+}
+
+function getFieldValue({ field, entry, isTranslatable, locale }: GetFieldValueParams) {
   if (field.get('meta')) {
     return entry.getIn(['meta', field.get('name')]);
   }
@@ -95,31 +107,48 @@ function getFieldValue({ field, entry, isTranslatable, locale }) {
   return entry.getIn(['data', field.get('name')]);
 }
 
-export default class ControlPane extends React.Component {
-  state = {
+interface ControlPaneProps {
+  collection: Collection;
+  entry: EntryMap;
+  fields: ImmutableList<EntryField>;
+  fieldsMetaData: ImmutableMap<string, ImmutableMap<string, unknown>>;
+  fieldsErrors: ImmutableMap<string, { type: string; message: string }[]>;
+  onChange: (field: EntryField, value: unknown, metadata?: ImmutableMap<string, unknown>, i18n?: unknown) => void;
+  onValidate: (fieldName: string, errors: { type: string; message: string }[]) => void;
+  onLocaleChange?: (locale: string) => void;
+  locale?: string;
+  t: (key: string, options?: Record<string, string>) => string;
+}
+
+interface ControlPaneState {
+  selectedLocale: string | undefined;
+}
+
+export default class ControlPane extends React.Component<ControlPaneProps, ControlPaneState> {
+  state: ControlPaneState = {
     selectedLocale: this.props.locale,
   };
 
-  childRefs = {};
+  childRefs: Record<string, unknown> = {};
 
-  controlRef = (field, wrappedControl) => {
+  controlRef = (field: EntryField, wrappedControl: unknown) => {
     if (!wrappedControl) return;
     const name = field.get('name');
     this.childRefs[name] = wrappedControl;
   };
 
-  getControlRef = memoize(field => wrappedControl => {
+  getControlRef = memoize((field: EntryField) => (wrappedControl: unknown) => {
     this.controlRef(field, wrappedControl);
   });
 
-  handleLocaleChange = val => {
+  handleLocaleChange = (val: string) => {
     this.setState({ selectedLocale: val });
-    this.props.onLocaleChange(val);
+    this.props.onLocaleChange?.(val);
   };
 
   copyFromOtherLocale =
-    ({ targetLocale, t }) =>
-    sourceLocale => {
+    ({ targetLocale, t }: { targetLocale: string; t: (key: string, options?: Record<string, string>) => string }) =>
+    (sourceLocale: string) => {
       if (
         !window.confirm(
           t('editor.editorControlPane.i18n.copyFromLocaleConfirm', {
@@ -130,7 +159,7 @@ export default class ControlPane extends React.Component {
         return;
       }
       const { entry, collection } = this.props;
-      const { locales, defaultLocale } = getI18nInfo(collection);
+      const { locales, defaultLocale } = getI18nInfo(collection) as I18nInfo;
 
       const locale = this.state.selectedLocale;
       const i18n = locales && {
@@ -140,7 +169,7 @@ export default class ControlPane extends React.Component {
       };
 
       this.props.fields.forEach(field => {
-        if (isFieldTranslatable(field, targetLocale, sourceLocale)) {
+        if (field && isFieldTranslatable(field, targetLocale, sourceLocale)) {
           const copyValue = getFieldValue({
             field,
             entry,
@@ -154,9 +183,12 @@ export default class ControlPane extends React.Component {
 
   validate = async () => {
     this.props.fields.forEach(field => {
+      if (!field) return;
       if (field.get('widget') === 'hidden') return;
-      const control = this.childRefs[field.get('name')];
-      const validateFn = control?.innerWrappedControl?.validate ?? control?.validate;
+      const name = field.get('name');
+      const control = this.childRefs[name] as Record<string, unknown> | undefined;
+      const innerWrappedControl = control?.innerWrappedControl as Record<string, unknown> | undefined;
+      const validateFn = (innerWrappedControl?.validate ?? control?.validate) as (() => void) | undefined;
       if (validateFn) {
         validateFn();
       }
@@ -165,24 +197,24 @@ export default class ControlPane extends React.Component {
 
   switchToDefaultLocale = () => {
     if (hasI18n(this.props.collection)) {
-      const { defaultLocale } = getI18nInfo(this.props.collection);
-      return new Promise(resolve => this.setState({ selectedLocale: defaultLocale }, resolve));
+      const { defaultLocale } = getI18nInfo(this.props.collection) as I18nInfo;
+      return new Promise<void>(resolve => this.setState({ selectedLocale: defaultLocale }, resolve));
     } else {
       return Promise.resolve();
     }
   };
 
-  focus(path) {
+  focus(path: string) {
     const [fieldName, ...remainingPath] = path.split('.');
-    const control = this.childRefs[fieldName];
+    const control = this.childRefs[fieldName] as Record<string, unknown> | undefined;
     if (control?.focus) {
-      control.focus(remainingPath.join('.'));
+      (control.focus as (path: string) => void)(remainingPath.join('.'));
     }
   }
 
   getI18n() {
     const { collection } = this.props;
-    const { locales, defaultLocale } = getI18nInfo(collection);
+    const { locales, defaultLocale } = getI18nInfo(collection) as I18nInfo;
     const locale = this.state.selectedLocale;
     return (
       locales && {
@@ -193,20 +225,20 @@ export default class ControlPane extends React.Component {
     );
   }
 
-  onChange = (field, newValue, newMetadata) => {
+  onChange = (field: EntryField, newValue: unknown, newMetadata: ImmutableMap<string, unknown> | undefined) => {
     this.props.onChange(field, newValue, newMetadata, this.getI18n());
   };
 
-  isFieldDuplicate = field => {
+  isFieldDuplicate = (field: EntryField) => {
     const locale = this.state.selectedLocale;
-    const { defaultLocale } = getI18nInfo(this.props.collection);
-    return isFieldDuplicate(field, locale, defaultLocale);
+    const { defaultLocale } = getI18nInfo(this.props.collection) as I18nInfo;
+    return isFieldDuplicate(field, locale ?? '', defaultLocale);
   };
 
-  isFieldHidden = field => {
+  isFieldHidden = (field: EntryField) => {
     const locale = this.state.selectedLocale;
-    const { defaultLocale } = getI18nInfo(this.props.collection);
-    return isFieldHidden(field, locale, defaultLocale);
+    const { defaultLocale } = getI18nInfo(this.props.collection) as I18nInfo;
+    return isFieldHidden(field, locale ?? '', defaultLocale);
   };
 
   render() {
@@ -216,11 +248,11 @@ export default class ControlPane extends React.Component {
       return null;
     }
 
-    if (entry.size === 0 || entry.get('partial') === true) {
+    if ((entry as unknown as { size: number }).size === 0 || entry.get('isFetching') === true) {
       return null;
     }
 
-    const { locales, defaultLocale } = getI18nInfo(collection);
+    const { locales, defaultLocale } = getI18nInfo(collection) as I18nInfo;
     const locale = this.state.selectedLocale;
     const i18n = locales && {
       currentLocale: locale,
@@ -235,23 +267,23 @@ export default class ControlPane extends React.Component {
             <LocaleDropdown
               locales={locales}
               dropdownText={t('editor.editorControlPane.i18n.writingInLocale', {
-                locale: locale.toUpperCase(),
+                locale: (locale ?? '').toUpperCase(),
               })}
               onLocaleChange={this.handleLocaleChange}
             />
             <LocaleDropdown
-              locales={locales.filter(l => l !== locale)}
+              locales={locales.filter((l: string) => l !== locale)}
               dropdownText={t('editor.editorControlPane.i18n.copyFromLocale')}
-              onLocaleChange={this.copyFromOtherLocale({ targetLocale: locale, t })}
+              onLocaleChange={this.copyFromOtherLocale({ targetLocale: locale ?? '', t })}
             />
           </LocaleRowWrapper>
         )}
         {fields
           .filter(f => f.get('widget') !== 'hidden')
           .map((field, i) => {
-            const isTranslatable = isFieldTranslatable(field, locale, defaultLocale);
-            const isDuplicate = isFieldDuplicate(field, locale, defaultLocale);
-            const isHidden = isFieldHidden(field, locale, defaultLocale);
+            const isTranslatable = isFieldTranslatable(field, locale ?? '', defaultLocale);
+            const isDuplicate = isFieldDuplicate(field, locale ?? '', defaultLocale);
+            const isHidden = isFieldHidden(field, locale ?? '', defaultLocale);
             const key = i18n ? `${locale}_${i}` : i;
 
             return (
@@ -261,7 +293,7 @@ export default class ControlPane extends React.Component {
                 value={getFieldValue({
                   field,
                   entry,
-                  locale,
+                  locale: locale ?? '',
                   isTranslatable,
                 })}
                 fieldsMetaData={fieldsMetaData}
@@ -283,14 +315,3 @@ export default class ControlPane extends React.Component {
     );
   }
 }
-
-ControlPane.propTypes = {
-  collection: ImmutablePropTypes.map.isRequired,
-  entry: ImmutablePropTypes.map.isRequired,
-  fields: ImmutablePropTypes.list.isRequired,
-  fieldsMetaData: ImmutablePropTypes.map.isRequired,
-  fieldsErrors: ImmutablePropTypes.map.isRequired,
-  onChange: PropTypes.func.isRequired,
-  onValidate: PropTypes.func.isRequired,
-  locale: PropTypes.string,
-};

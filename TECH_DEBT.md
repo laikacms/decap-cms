@@ -21,6 +21,8 @@
 - [ ] Create shared `decap-cms-types` package
 - [ ] Standardize Immutable.js typed wrappers
 - [ ] Add ESLint rules for import patterns
+- [ ] Constants contain non-constants: packages/decap-cms-core/src/constants/configSchema.ts
 
 # Testing
 - [ ] Fix failing tests in decap-cms-core
+

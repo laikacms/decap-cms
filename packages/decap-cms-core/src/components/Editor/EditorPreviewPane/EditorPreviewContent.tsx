@@ -9,51 +9,71 @@ import { vercelStegaDecode } from '@vercel/stega';
  * PreviewContent renders the preview component and optionally handles visual editing interactions.
  * By default it uses scroll sync, but can be configured to use visual editing instead.
  */
-class PreviewContent extends React.Component {
-  handleClick = e => {
+interface PreviewContentProps {
+  previewComponent: React.ComponentType<Record<string, unknown>> | React.ReactElement;
+  getEditorComponents?: () => Map<string, unknown>;
+  previewProps?: Record<string, any>;
+  onFieldClick?: (fieldName: string) => void;
+}
+
+class PreviewContent extends React.Component<PreviewContentProps> {
+  handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const { previewProps, onFieldClick } = this.props;
-    const visualEditing = previewProps?.collection?.getIn(['editor', 'visualEditing'], false);
+    const visualEditing = (previewProps?.collection as any)?.getIn?.(['editor', 'visualEditing'], false);
 
     if (!visualEditing) {
       return;
     }
 
     try {
-      const text = e.target.textContent;
-      const decoded = vercelStegaDecode(text);
+      const text = (e.target as HTMLElement).textContent;
+      const decoded = vercelStegaDecode(text ?? '') as Record<string, any>;
       if (decoded?.decap) {
         if (onFieldClick) {
           onFieldClick(decoded.decap);
         }
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.log('Visual editing error:', err);
     }
   };
 
   renderPreview() {
     const { previewComponent, previewProps } = this.props;
+    const isValidComponent =
+      isElement(previewComponent) ||
+      typeof previewComponent === 'function' ||
+      (typeof previewComponent === 'object' && previewComponent !== null);
+
+    if (!isValidComponent) {
+      console.warn(
+        `Invalid preview component: expected a React component or element but received ${typeof previewComponent}. ` +
+        `The preview will not be rendered.`
+      );
+      return <div onClick={this.handleClick} />;
+    }
+
     return (
       <div onClick={this.handleClick}>
         {isElement(previewComponent)
           ? React.cloneElement(previewComponent, previewProps)
-          : React.createElement(previewComponent, previewProps)}
+          : React.createElement(previewComponent as React.ComponentType<Record<string, unknown>>, previewProps)}
       </div>
     );
   }
 
   render() {
     const { previewProps } = this.props;
-    const visualEditing = previewProps?.collection?.getIn(['editor', 'visualEditing'], false);
+    const visualEditing = (previewProps?.collection as any)?.getIn?.(['editor', 'visualEditing'], false);
     const showScrollSync = !visualEditing;
 
     return (
       <FrameContextConsumer>
-        {context => {
+        {(context: any) => {
           const preview = this.renderPreview();
           if (showScrollSync) {
             return (
-              <ScrollSyncPane attachTo={context.document.scrollingElement}>
+              <ScrollSyncPane attachTo={context?.document?.scrollingElement}>
                 {preview}
               </ScrollSyncPane>
             );

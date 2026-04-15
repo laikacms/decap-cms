@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
-import { Icon, buttons, shadows, GoBackButton } from 'decap-cms-ui-default';
+import { Icon, buttons, shadows, GoBackButton, TranslateFunction } from 'decap-cms-ui-default';
 
 const StyledAuthenticationPage = styled.section`
   display: flex;
@@ -33,7 +33,25 @@ const LoginButton = styled.button`
   }
 `;
 
-export default class AuthenticationPage extends React.Component {
+interface AuthenticationPageConfig {
+  site_url: string;
+  logo?: {
+    src: string;
+  };
+  logo_url?: string;
+  backend: {
+    login: boolean;
+  }
+}
+
+interface AuthenticationPageProps {
+  onLogin: (...args: unknown[]) => unknown;
+  inProgress?: boolean;
+  config: AuthenticationPageConfig;
+  t: TranslateFunction;
+}
+
+export default class AuthenticationPage extends React.Component<AuthenticationPageProps> {
   static propTypes = {
     onLogin: PropTypes.func.isRequired,
     inProgress: PropTypes.bool,
@@ -59,7 +77,7 @@ export default class AuthenticationPage extends React.Component {
     }
   }
 
-  handleLogin = e => {
+  handleLogin = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     this.props.onLogin(this.state);
   };
@@ -69,7 +87,7 @@ export default class AuthenticationPage extends React.Component {
 
     return (
       <StyledAuthenticationPage>
-        <PageLogoIcon size="300px" type="decap-cms" />
+        <PageLogoIcon size="300px" type="decap" />
         <LoginButton disabled={inProgress} onClick={this.handleLogin}>
           {inProgress ? t('auth.loggingIn') : t('auth.login')}
         </LoginButton>

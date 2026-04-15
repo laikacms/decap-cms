@@ -9,8 +9,10 @@ import {
   deleteLocalBackup,
 } from '../actions/entries';
 
+import type { Collection, EntryMap } from '../types/cms';
+
 interface UseLocalBackupOptions {
-  collection: unknown;
+  collection: Collection;
   slug?: string;
   debounceMs?: number;
 }
@@ -24,13 +26,13 @@ export function useLocalBackup({ collection, slug, debounceMs = 2000 }: UseLocal
   
   // Create debounced persist function
   const debouncedPersistRef = useRef(
-    debounce((entry: unknown, col: unknown) => {
+    debounce((entry: EntryMap, col: Collection) => {
       dispatch(persistLocalBackup(entry, col));
     }, debounceMs)
   );
 
   const retrieve = useCallback(() => {
-    dispatch(retrieveLocalBackup(collection, slug));
+    dispatch(retrieveLocalBackup(collection, slug || ''));
   }, [dispatch, collection, slug]);
 
   const load = useCallback(() => {
@@ -38,7 +40,7 @@ export function useLocalBackup({ collection, slug, debounceMs = 2000 }: UseLocal
   }, [dispatch]);
 
   const persist = useCallback(
-    (entry: unknown) => {
+    (entry: EntryMap) => {
       debouncedPersistRef.current(entry, collection);
     },
     [collection]
@@ -46,7 +48,7 @@ export function useLocalBackup({ collection, slug, debounceMs = 2000 }: UseLocal
 
   const remove = useCallback(() => {
     debouncedPersistRef.current.cancel();
-    dispatch(deleteLocalBackup(collection, slug));
+    dispatch(deleteLocalBackup(collection, slug || ''));
   }, [dispatch, collection, slug]);
 
   const flush = useCallback(() => {

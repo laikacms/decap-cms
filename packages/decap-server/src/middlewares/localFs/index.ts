@@ -134,7 +134,7 @@ export function localFsMiddleware({ repoPath, logger }: FsOptions) {
           break;
         }
       }
-    } catch (e) {
+    } catch (e: unknown) {
       logger.error(
         `Error handling ${JSON.stringify(req.body)}: ${
           e instanceof Error ? e.message : 'Unknown error'

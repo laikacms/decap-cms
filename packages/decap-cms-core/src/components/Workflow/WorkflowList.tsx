@@ -1,3 +1,4 @@
+/** @jsxImportSource @emotion/react */
 import PropTypes from 'prop-types';
 import React from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
@@ -6,6 +7,8 @@ import styled from '@emotion/styled';
 import dayjs from 'dayjs';
 import { translate } from 'react-polyglot';
 import { colors, lengths } from 'decap-cms-ui-default';
+import type { TranslateFunction } from 'decap-cms-ui-default';
+import type { Collections, Collection } from '../../types/cms';
 
 import { status } from '../../constants/publishModes';
 import { DragSource, DropTarget, HTML5DragDrop } from '../UI';
@@ -25,7 +28,7 @@ const WorkflowListContainerOpenAuthoring = styled.div`
 `;
 
 const styles = {
-  columnPosition: idx =>
+  columnPosition: (idx: number) =>
     (idx === 0 &&
       css`
         margin-left: 0;
@@ -77,29 +80,33 @@ const styles = {
   `,
 };
 
-const ColumnHeader = styled.h2`
+interface ColumnHeaderProps {
+  $name?: string;
+}
+
+const ColumnHeader = styled.h2<ColumnHeaderProps>`
   font-size: 20px;
   font-weight: normal;
   padding: 4px 14px;
   border-radius: ${lengths.borderRadius};
   margin-bottom: 28px;
 
-  ${props =>
-    props.name === 'draft' &&
+  ${(props: ColumnHeaderProps) =>
+    props.$name === 'draft' &&
     css`
       background-color: ${colors.statusDraftBackground};
       color: ${colors.statusDraftText};
     `}
 
-  ${props =>
-    props.name === 'pending_review' &&
+  ${(props: ColumnHeaderProps) =>
+    props.$name === 'pending_review' &&
     css`
       background-color: ${colors.statusReviewBackground};
       color: ${colors.statusReviewText};
     `}
 
-  ${props =>
-    props.name === 'pending_publish' &&
+  ${(props: ColumnHeaderProps) =>
+    props.$name === 'pending_publish' &&
     css`
       background-color: ${colors.statusReadyBackground};
       color: ${colors.statusReadyText};
@@ -117,7 +124,7 @@ const ColumnCount = styled.p`
 // This is a namespace so that we can only drop these elements on a DropTarget with the same
 const DNDNamespace = 'cms-workflow';
 
-function getColumnHeaderText(columnName, t) {
+function getColumnHeaderText(columnName: string, t: TranslateFunction) {
   switch (columnName) {
     case 'draft':
       return t('workflow.workflowList.draftHeader');
@@ -128,7 +135,23 @@ function getColumnHeaderText(columnName, t) {
   }
 }
 
-class WorkflowList extends React.Component {
+interface DragProps {
+  slug: string;
+  collection: string;
+  ownStatus: string;
+}
+
+interface WorkflowListProps {
+  entries?: any;
+  handleChangeStatus: (collection: string, slug: string, oldStatus: string, newStatus: string) => void;
+  handlePublish: (collection: string, slug: string) => void;
+  handleDelete: (collection: string, slug: string, status: string) => void;
+  t: TranslateFunction;
+  isOpenAuthoring?: boolean;
+  collections: Collections;
+}
+
+class WorkflowList extends React.Component<WorkflowListProps> {
   static propTypes = {
     entries: ImmutablePropTypes.orderedMap,
     handleChangeStatus: PropTypes.func.isRequired,
@@ -144,20 +167,20 @@ class WorkflowList extends React.Component {
     PropTypes.checkPropTypes(WorkflowList.propTypes, this.props, 'prop', 'WorkflowList');
   }
 
-  handleChangeStatus = (newStatus, dragProps) => {
+  handleChangeStatus = (newStatus: string, dragProps: DragProps) => {
     const slug = dragProps.slug;
     const collection = dragProps.collection;
     const oldStatus = dragProps.ownStatus;
     this.props.handleChangeStatus(collection, slug, oldStatus, newStatus);
   };
 
-  requestDelete = (collection, slug, ownStatus) => {
+  requestDelete = (collection: string, slug: string, ownStatus: string) => {
     if (window.confirm(this.props.t('workflow.workflowList.onDeleteEntry'))) {
       this.props.handleDelete(collection, slug, ownStatus);
     }
   };
 
-  requestPublish = (collection, slug, ownStatus) => {
+  requestPublish = (collection: string, slug: string, ownStatus: string) => {
     if (ownStatus !== status.last()) {
       window.alert(this.props.t('workflow.workflowList.onPublishingNotReadyEntry'));
       return;
@@ -168,18 +191,18 @@ class WorkflowList extends React.Component {
   };
 
   // eslint-disable-next-line react/display-name
-  renderColumns = (entries, column) => {
+  renderColumns = (entries: any, column?: string): any => {
     const { isOpenAuthoring, collections, t } = this.props;
     if (!entries) return null;
 
     if (!column) {
-      return entries.entrySeq().map(([currColumn, currEntries], idx) => (
+      return entries.entrySeq().map(([currColumn, currEntries]: [string, any], idx: number) => (
         <DropTarget
           namespace={DNDNamespace}
           key={currColumn}
-          onDrop={this.handleChangeStatus.bind(this, currColumn)}
+          onDrop={this.handleChangeStatus.bind(this, currColumn) as any}
         >
-          {(connect, { isHovered }) =>
+          {(connect: any, { isHovered }: { isHovered: boolean }) =>
             connect(
               <div style={{ height: '100%' }}>
                 <div
@@ -191,7 +214,7 @@ class WorkflowList extends React.Component {
                     isOpenAuthoring && currColumn === 'pending_review' && styles.hiddenRightBorder,
                   ]}
                 >
-                  <ColumnHeader name={currColumn}>
+                  <ColumnHeader $name={currColumn}>
                     {getColumnHeaderText(currColumn, this.props.t)}
                   </ColumnHeader>
                   <ColumnCount>
@@ -209,19 +232,19 @@ class WorkflowList extends React.Component {
     }
     return (
       <div>
-        {entries.map(entry => {
+        {entries.map((entry: any) => {
           const timestamp = dayjs(entry.get('updatedOn')).format(t('workflow.workflow.dateFormat'));
           const slug = entry.get('slug');
           const collectionName = entry.get('collection');
           const editLink = `collections/${collectionName}/entries/${slug}?ref=workflow`;
           const ownStatus = entry.get('status');
           const collection = collections.find(
-            collection => collection.get('name') === collectionName,
+            (collection: Collection) => collection.get('name') === collectionName,
           );
           const collectionLabel = collection?.get('label');
           const isModification = entry.get('isModification');
 
-          const allowPublish = collection?.get('publish');
+          const allowPublish = (collection as any)?.get('publish');
           const canPublish = ownStatus === status.last() && !entry.get('isPersisting', false);
           const postAuthor = entry.get('author');
 
@@ -233,12 +256,12 @@ class WorkflowList extends React.Component {
               collection={collectionName}
               ownStatus={ownStatus}
             >
-              {connect =>
+              {(connect: any) =>
                 connect(
                   <div>
                     <WorkflowCard
                       collectionLabel={collectionLabel || collectionName}
-                      title={selectEntryCollectionTitle(collection, entry)}
+                      title={selectEntryCollectionTitle(collection as Collection, entry)}
                       authorLastChange={entry.getIn(['metaData', 'user'])}
                       body={entry.getIn(['data', 'body'])}
                       isModification={isModification}
@@ -269,4 +292,4 @@ class WorkflowList extends React.Component {
   }
 }
 
-export default HTML5DragDrop(translate()(WorkflowList));
+export default HTML5DragDrop(translate()(WorkflowList as any));

@@ -9,10 +9,10 @@ import get from 'lodash/get';
 import isEmpty from 'lodash/isEmpty';
 import last from 'lodash/last';
 import uniqBy from 'lodash/uniqBy';
-import { fromJS, List, Map } from 'immutable';
+import { fromJS, List as ImmutableList, Map } from 'immutable';
 import { reactSelectStyles } from 'decap-cms-ui-default';
 import { stringTemplate, validations } from 'decap-cms-lib-widgets';
-import { FixedSizeList } from 'react-window';
+import { List as VirtualList } from 'react-window';
 import {
   DndContext,
   MouseSensor,
@@ -28,18 +28,55 @@ import { v4 as uuid } from 'uuid';
 
 import relationCache from './RelationCache';
 
-function arrayMove(array, from, to) {
+import type { CSSProperties, ReactElement } from 'react';
+import type { List } from 'immutable';
+import type { MultiValueProps, MultiValueGenericProps, GroupBase } from 'react-select';
+
+interface RelationOption {
+  label: string;
+  value: string;
+  data?: Record<string, unknown>;
+}
+
+interface SortableOption extends RelationOption {
+  data: Record<string, unknown> & { id: string };
+}
+
+interface HitData {
+  [key: string]: unknown;
+}
+
+interface Hit {
+  data: HitData;
+  i18n?: Record<string, { data: HitData }>;
+  path: string;
+  slug: string;
+}
+
+interface QueryResult {
+  payload: {
+    hits: Hit[];
+  };
+}
+
+interface FilterObj {
+  field: string;
+  values: unknown[];
+}
+
+function arrayMove<T>(array: T[], from: number, to: number): T[] {
   const slicedArray = array.slice();
   slicedArray.splice(to < 0 ? array.length + to : to, 0, slicedArray.splice(from, 1)[0]);
   return slicedArray;
 }
 
-function MultiValue(props) {
+function MultiValue(props: MultiValueProps<unknown, boolean, GroupBase<unknown>>) {
+  const propsData = props.data as { data: { id: string } };
   const { setNodeRef, transform, transition } = useSortable({
-    id: props.data.data.id,
+    id: propsData.data.id,
   });
 
-  function onMouseDown(e) {
+  function onMouseDown(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
   }
@@ -57,9 +94,10 @@ function MultiValue(props) {
   );
 }
 
-function MultiValueLabel(props) {
+function MultiValueLabel(props: MultiValueGenericProps<unknown, boolean, GroupBase<unknown>>) {
+  const propsData = props.data as { data: { id: string } };
   const { attributes, listeners } = useSortable({
-    id: props.data.data.id,
+    id: propsData.data.id,
   });
 
   return (
@@ -69,11 +107,16 @@ function MultiValueLabel(props) {
   );
 }
 
-function SortableSelect(props) {
-  const { distance, value, onSortEnd, isMulti } = props;
+function SortableSelect(props: Record<string, unknown>) {
+  const { distance, value, onSortEnd, isMulti } = props as {
+    distance: number;
+    value: SortableOption[];
+    onSortEnd: (args: { oldIndex: number; newIndex: number }) => void;
+    isMulti: boolean;
+  };
 
   if (!isMulti) {
-    return <AsyncSelect {...props} />;
+    return <AsyncSelect {...(props as React.ComponentProps<typeof AsyncSelect>)} />;
   }
 
   const keys = Array.isArray(value) ? value.map(({ data }) => data.id) : [];
@@ -84,10 +127,11 @@ function SortableSelect(props) {
     useSensor(TouchSensor, { activationConstraint }),
   );
 
-  function handleSortEnd({ active, over }) {
+  function handleSortEnd({ active, over }: { active: { id: string | number }; over: { id: string | number } | null }) {
+    if (!over) return;
     onSortEnd({
-      oldIndex: keys.indexOf(active.id),
-      newIndex: keys.indexOf(over.id),
+      oldIndex: keys.indexOf(String(active.id)),
+      newIndex: keys.indexOf(String(over.id)),
     });
   }
 
@@ -99,71 +143,82 @@ function SortableSelect(props) {
       onDragEnd={handleSortEnd}
     >
       <SortableContext items={keys} strategy={horizontalListSortingStrategy}>
-        <AsyncSelect {...props} />
+        <AsyncSelect {...(props as React.ComponentProps<typeof AsyncSelect>)} />
       </SortableContext>
     </DndContext>
   );
 }
 
-function Option({ index, style, data }) {
-  return <div style={style}>{data.options[index]}</div>;
+interface OptionRowProps {
+  options: React.ReactNode[];
 }
 
-function MenuList(props) {
-  if (props.isLoading || props.options.length <= 0 || !Array.isArray(props.children)) {
-    return props.children;
+function OptionRow(props: {
+  ariaAttributes: { 'aria-posinset': number; 'aria-setsize': number; role: 'listitem' };
+  index: number;
+  style: CSSProperties;
+} & OptionRowProps): ReactElement | null {
+  const { index, style, options } = props;
+  return <div style={style}>{options[index]}</div>;
+}
+
+function MenuList(props: Record<string, unknown>) {
+  const isLoading = props.isLoading as boolean;
+  const options = props.options as unknown[];
+  const children = props.children;
+
+  if (isLoading || options.length <= 0 || !Array.isArray(children)) {
+    return children as React.ReactElement;
   }
-  const rows = props.children;
+  const rows = children as React.ReactNode[];
   const itemSize = 30;
+  const listHeight = Math.min(300, rows.length * itemSize + itemSize / 3);
   return (
-    <FixedSizeList
-      style={{ width: '100%' }}
-      width={300}
-      height={Math.min(300, rows.length * itemSize + itemSize / 3)}
-      itemCount={rows.length}
-      itemSize={itemSize}
-      itemData={{ options: rows }}
-    >
-      {Option}
-    </FixedSizeList>
+    <VirtualList<OptionRowProps>
+      style={{ width: '100%', height: listHeight }}
+      rowCount={rows.length}
+      rowHeight={itemSize}
+      rowProps={{ options: rows }}
+      rowComponent={OptionRow}
+    />
   );
 }
 
-function optionToString(option) {
+function optionToString(option: RelationOption | null | undefined): string {
   return option && option.value ? option.value : '';
 }
 
-function convertToOption(raw) {
+function convertToOption(raw: unknown): RelationOption {
   if (typeof raw === 'string') {
     return { label: raw, value: raw };
   }
 
-  return Map.isMap(raw) ? raw.toJS() : raw;
+  return Map.isMap(raw) ? (raw as Map<string, unknown>).toJS() as unknown as RelationOption : raw as RelationOption;
 }
 
-function getSelectedOptions(value) {
-  const selectedOptions = List.isList(value) ? value.toJS() : value;
+function getSelectedOptions(value: unknown): RelationOption[] | null {
+  const selectedOptions = ImmutableList.isList(value) ? (value as List<unknown>).toJS() : value;
 
   if (!selectedOptions || !Array.isArray(selectedOptions)) {
     return null;
   }
 
-  return selectedOptions;
+  return selectedOptions as RelationOption[];
 }
 
-function uniqOptions(initial, current) {
-  return uniqBy(initial.concat(current), o => o.value);
+function uniqOptions(initial: RelationOption[], current: RelationOption[]): RelationOption[] {
+  return uniqBy(initial.concat(current), (o: RelationOption) => o.value);
 }
 
-function getFieldArray(field) {
+function getFieldArray(field: unknown): string[] {
   if (!field) {
     return [];
   }
 
-  return List.isList(field) ? field.toJS() : [field];
+  return ImmutableList.isList(field) ? (field as List<string>).toJS() as string[] : [field as string];
 }
 
-function getSelectedValue({ value, options, isMultiple }) {
+function getSelectedValue({ value, options, isMultiple }: { value: unknown; options: RelationOption[]; isMultiple: boolean }): SortableOption[] | RelationOption | null {
   if (isMultiple) {
     const selectedOptions = getSelectedOptions(value);
     if (selectedOptions === null) {
@@ -171,7 +226,7 @@ function getSelectedValue({ value, options, isMultiple }) {
     }
 
     const selected = selectedOptions
-      .map(i => options.find(o => o.value === (i.value || i)))
+      .map((i: RelationOption) => options.find((o: RelationOption) => o.value === (i.value || i)))
       .filter(Boolean)
       .map(convertToSortableOption);
     return selected;
@@ -180,7 +235,7 @@ function getSelectedValue({ value, options, isMultiple }) {
   }
 }
 
-function convertToSortableOption(raw) {
+function convertToSortableOption(raw: unknown): SortableOption {
   const option = convertToOption(raw);
   return {
     ...option,
@@ -191,10 +246,29 @@ function convertToSortableOption(raw) {
   };
 }
 
-export default class RelationControl extends React.Component {
+interface RelationControlProps {
+  onChange: (...args: unknown[]) => unknown;
+  forID: string;
+  value?: unknown;
+  field: Map<string, unknown>;
+  query: (...args: unknown[]) => Promise<QueryResult>;
+  queryHits?: Hit[];
+  classNameWrapper: string;
+  setActiveStyle: (...args: unknown[]) => unknown;
+  setInactiveStyle: (...args: unknown[]) => unknown;
+  locale?: string;
+  hasActiveStyle?: boolean;
+  t: (key: string, options?: unknown) => string;
+}
+
+interface RelationControlState {
+  initialOptions: RelationOption[];
+}
+
+export default class RelationControl extends React.Component<RelationControlProps, RelationControlState> {
   mounted = false;
 
-  state = {
+  state: RelationControlState = {
     initialOptions: [],
   };
 
@@ -213,8 +287,8 @@ export default class RelationControl extends React.Component {
 
   isValid = () => {
     const { field, value, t } = this.props;
-    const min = field.get('min');
-    const max = field.get('max');
+    const min = field.get('min') as number | undefined;
+    const max = field.get('max') as number | undefined;
 
     if (!this.isMultiple()) {
       return { error: false };
@@ -222,8 +296,8 @@ export default class RelationControl extends React.Component {
 
     const error = validations.validateMinMax(
       t,
-      field.get('label', field.get('name')),
-      value,
+      field.get('label', field.get('name')) as string,
+      value as List<unknown> | undefined,
       min,
       max,
     );
@@ -231,7 +305,7 @@ export default class RelationControl extends React.Component {
     return error ? { error } : { error: false };
   };
 
-  shouldComponentUpdate(nextProps) {
+  shouldComponentUpdate(nextProps: RelationControlProps) {
     return (
       this.props.value !== nextProps.value ||
       this.props.hasActiveStyle !== nextProps.hasActiveStyle ||
@@ -250,19 +324,27 @@ export default class RelationControl extends React.Component {
     }
   }
 
-  hasInitialValues(value) {
-    if (this.isMultiple()) {
-      const selectedOptions = getSelectedOptions(value);
-      return selectedOptions && selectedOptions.length > 0;
-    }
-    return value && value !== '';
+  componentWillUnmount() {
+    this.mounted = false;
   }
 
-  async loadInitialOptions() {
+  isMultiple = (): boolean => {
+    return this.props.field.get('multiple', false) as boolean;
+  };
+
+  hasInitialValues = (value: unknown): boolean => {
+    if (this.isMultiple()) {
+      const selectedOptions = getSelectedOptions(value);
+      return selectedOptions !== null && selectedOptions.length > 0;
+    }
+    return value !== undefined && value !== null && value !== '';
+  };
+
+  loadInitialOptions = async () => {
     const { field, query, forID, value } = this.props;
-    const collection = field.get('collection');
+    const collection = field.get('collection') as string;
     const searchFieldsArray = getFieldArray(field.get('search_fields'));
-    const file = field.get('file');
+    const file = field.get('file') as string | undefined;
 
     try {
       const result = await relationCache.getOptions(
@@ -271,7 +353,7 @@ export default class RelationControl extends React.Component {
         '', // empty term for initial load
         file,
         () => query(forID, collection, searchFieldsArray, '', file),
-      );
+      ) as QueryResult;
 
       const hits = result.payload.hits || [];
       const options = this.parseHitOptions(hits);
@@ -284,26 +366,26 @@ export default class RelationControl extends React.Component {
           this.triggerInitialOnChange(value, options);
         }
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Failed to load initial options:', error);
     }
-  }
+  };
 
-  triggerInitialOnChange(value, options) {
+  triggerInitialOnChange = (value: unknown, options: RelationOption[]) => {
     const { onChange, field } = this.props;
 
     if (this.isMultiple()) {
       const selectedOptions = getSelectedOptions(value);
       if (selectedOptions && selectedOptions.length > 0) {
         const matchedOptions = selectedOptions
-          .map(val => options.find(opt => opt.value === (val.value || val)))
-          .filter(Boolean);
+          .map((val: RelationOption) => options.find((opt: RelationOption) => opt.value === (val.value || val)))
+          .filter(Boolean) as RelationOption[];
 
         if (matchedOptions.length > 0) {
           const metadata = {
-            [field.get('name')]: {
-              [field.get('collection')]: matchedOptions.reduce(
-                (acc, option) => ({
+            [field.get('name') as string]: {
+              [field.get('collection') as string]: matchedOptions.reduce(
+                (acc: Record<string, unknown>, option: RelationOption) => ({
                   ...acc,
                   [option.value]: option.data,
                 }),
@@ -315,11 +397,11 @@ export default class RelationControl extends React.Component {
         }
       }
     } else {
-      const matchedOption = options.find(opt => opt.value === value);
+      const matchedOption = options.find((opt: RelationOption) => opt.value === value);
       if (matchedOption) {
         const metadata = {
-          [field.get('name')]: {
-            [field.get('collection')]: {
+          [field.get('name') as string]: {
+            [field.get('collection') as string]: {
               [matchedOption.value]: matchedOption.data,
             },
           },
@@ -327,23 +409,21 @@ export default class RelationControl extends React.Component {
         onChange(value, metadata);
       }
     }
-  }
-
-  componentWillUnmount() {
-    this.mounted = false;
-  }
+  };
 
   onSortEnd =
-    options =>
-    ({ oldIndex, newIndex }) => {
+    (options: RelationOption[]) =>
+    ({ oldIndex, newIndex }: { oldIndex: number; newIndex: number }) => {
       const { onChange, field } = this.props;
       const value = options.map(optionToString);
       const newValue = arrayMove(value, oldIndex, newIndex);
+      const lastOption = last(options);
+      const lastValue = last(newValue);
       const metadata =
-        (!isEmpty(options) && {
-          [field.get('name')]: {
-            [field.get('collection')]: {
-              [last(newValue)]: last(options).data,
+        (!isEmpty(options) && lastOption && lastValue && {
+          [field.get('name') as string]: {
+            [field.get('collection') as string]: {
+              [lastValue]: lastOption.data,
             },
           },
         }) ||
@@ -351,36 +431,39 @@ export default class RelationControl extends React.Component {
       onChange(fromJS(newValue), metadata);
     };
 
-  handleChange = selectedOption => {
+  handleChange = (selectedOption: RelationOption | RelationOption[] | null) => {
     const { onChange, field } = this.props;
 
     if (this.isMultiple()) {
-      const options = selectedOption;
+      const options = (selectedOption || []) as RelationOption[];
       this.setState({ initialOptions: options.filter(Boolean) });
       const value = options.map(optionToString);
+      const lastOption = last(options);
+      const lastValue = last(value);
       const metadata =
-        (!isEmpty(options) && {
-          [field.get('name')]: {
-            [field.get('collection')]: {
-              [last(value)]: last(options).data,
+        (!isEmpty(options) && lastOption && lastValue && {
+          [field.get('name') as string]: {
+            [field.get('collection') as string]: {
+              [lastValue]: lastOption.data,
             },
           },
         }) ||
         {};
       onChange(fromJS(value), metadata);
     } else {
-      this.setState({ initialOptions: [selectedOption].filter(Boolean) });
-      const value = optionToString(selectedOption);
-      const metadata = selectedOption && {
-        [field.get('name')]: {
-          [field.get('collection')]: { [value]: selectedOption.data },
+      const option = selectedOption as RelationOption | null;
+      this.setState({ initialOptions: [option].filter(Boolean) as RelationOption[] });
+      const value = optionToString(option);
+      const metadata = option && {
+        [field.get('name') as string]: {
+          [field.get('collection') as string]: { [value]: option.data },
         },
       };
       onChange(value, metadata);
     }
   };
 
-  parseNestedFields = (hit, field) => {
+  parseNestedFields = (hit: Hit, field: string): string => {
     const { locale } = this.props;
     const hitData =
       locale != null && hit.i18n != null && hit.i18n[locale] != null
@@ -389,44 +472,41 @@ export default class RelationControl extends React.Component {
     const templateVars = stringTemplate.extractTemplateVars(field);
     // return non template fields as is
     if (templateVars.length <= 0) {
-      return get(hitData, field);
+      return get(hitData, field) as string;
     }
-    const data = stringTemplate.addFileTemplateFields(hit.path, fromJS(hitData));
+    const data = stringTemplate.addFileTemplateFields(hit.path, fromJS(hitData) as Map<string, string>);
     const value = stringTemplate.compileStringTemplate(field, null, hit.slug, data);
     return value;
   };
 
-  isMultiple() {
-    return this.props.field.get('multiple', false);
-  }
-
-  parseHitOptions = hits => {
+  parseHitOptions = (hits: Hit[]): RelationOption[] => {
     const { field } = this.props;
-    const valueField = field.get('value_field');
-    const displayField = field.get('display_fields') || List([field.get('value_field')]);
+    const valueField = field.get('value_field') as string;
+    const displayField = (field.get('display_fields') || ImmutableList([field.get('value_field')])) as List<string>;
     const filters = getFieldArray(field.get('filters'));
 
-    const options = hits.reduce((acc, hit) => {
+    const options = hits.reduce((acc: RelationOption[], hit: Hit) => {
       if (
-        filters.every(filter => {
+        filters.every((filter: unknown) => {
           // check if the value for the (nested) filter field is in the filter values
-          const fieldKeys = filter.field.split('.');
-          let value = hit.data;
+          const filterObj = filter as FilterObj;
+          const fieldKeys = filterObj.field.split('.');
+          let value: unknown = hit.data;
           for (let i = 0; i < fieldKeys.length; i++) {
             if (Object.prototype.hasOwnProperty.call(value, fieldKeys[i])) {
-              value = value[fieldKeys[i]];
+              value = (value as Record<string, unknown>)[fieldKeys[i]];
             } else {
               return false;
             }
           }
-          return filter.values.includes(value);
+          return filterObj.values.includes(value);
         })
       ) {
         const valuesPaths = stringTemplate.expandPath({ data: hit.data, path: valueField });
         for (let i = 0; i < valuesPaths.length; i++) {
-          const label = displayField
-            .toJS()
-            .map(key => {
+          const label = (displayField
+            .toJS() as string[])
+            .map((key: string) => {
               const displayPaths = stringTemplate.expandPath({ data: hit.data, path: key });
               return this.parseNestedFields(hit, displayPaths[i] || displayPaths[0]);
             })
@@ -442,24 +522,25 @@ export default class RelationControl extends React.Component {
     return options;
   };
 
-  loadOptions = debounce((term, callback) => {
+  loadOptions = debounce((term: string, callback: (options: RelationOption[]) => void) => {
     const { field, query, forID } = this.props;
-    const collection = field.get('collection');
+    const collection = field.get('collection') as string;
     const searchFieldsArray = getFieldArray(field.get('search_fields'));
-    const file = field.get('file');
+    const file = field.get('file') as string | undefined;
 
     relationCache
       .getOptions(collection, searchFieldsArray, term, file, () =>
         query(forID, collection, searchFieldsArray, term, file),
       )
-      .then(result => {
-        const hits = result.payload.hits || [];
+      .then((result: unknown) => {
+        const queryResult = result as QueryResult;
+        const hits = queryResult.payload.hits || [];
         const options = this.parseHitOptions(hits);
-        const optionsLength = field.get('options_length') || 20;
+        const optionsLength = (field.get('options_length') || 20) as number;
         const uniq = uniqOptions(this.state.initialOptions, options).slice(0, optionsLength);
         callback(uniq);
       })
-      .catch(error => {
+      .catch((error: unknown) => {
         console.error('Failed to load options:', error);
         callback([]);
       });
@@ -471,7 +552,7 @@ export default class RelationControl extends React.Component {
     const isMultiple = this.isMultiple();
     const isClearable = !field.get('required', true) || isMultiple;
 
-    const queryOptions = this.parseHitOptions(queryHits);
+    const queryOptions = this.parseHitOptions(queryHits || []);
     const options = uniqOptions(this.state.initialOptions, queryOptions);
     const selectedValue = getSelectedValue({
       options,
@@ -482,7 +563,7 @@ export default class RelationControl extends React.Component {
     return (
       <SortableSelect
         useDragHandle
-        onSortEnd={this.onSortEnd(selectedValue)}
+        onSortEnd={this.onSortEnd(selectedValue as RelationOption[])}
         distance={4}
         // react-select props:
         components={{ MenuList, MultiValue, MultiValueLabel }}

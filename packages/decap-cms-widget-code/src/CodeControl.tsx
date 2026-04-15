@@ -8,21 +8,43 @@ import isEqual from 'lodash/isEqual';
 import isEmpty from 'lodash/isEmpty';
 import { v4 as uuid } from 'uuid';
 import { UnControlled as ReactCodeMirror } from 'react-codemirror2';
-import CodeMirror from 'codemirror';
-import 'codemirror/keymap/vim';
-import 'codemirror/keymap/sublime';
-import 'codemirror/keymap/emacs';
-import codeMirrorStyles from 'codemirror/lib/codemirror.css';
-import materialTheme from 'codemirror/theme/material.css';
-
+import { EditorView, basicSetup } from 'codemirror'
+import { emacs } from '@replit/codemirror-emacs'
+import { vscodeKeymap } from '@replit/codemirror-vscode-keymap'
+import { vim } from '@replit/codemirror-vim'
 import SettingsPane from './SettingsPane';
 import SettingsButton from './SettingsButton';
 import languageData from '../data/languages.json';
 
+import type { Map as ImmutableMap } from 'immutable';
+
+type CodeMirrorEditor = {
+  getWrapperElement: () => HTMLElement;
+  refresh: () => void;
+  focus: () => void;
+  doc: {
+    getCursor: () => unknown;
+    setCursor: (cursor: unknown) => void;
+    listSelections: () => unknown[];
+    setSelections: (selections: unknown[]) => void;
+  };
+};
+
+interface ChangedProps {
+  [key: string]: unknown;
+  lang?: string;
+  theme?: string;
+  keyMap?: string;
+}
+
 // TODO: relocate as a utility function
-function getChangedProps(previous, next, keys) {
-  const propNames = keys || uniq(Object.keys(previous), Object.keys(next));
-  const changedProps = propNames.reduce((acc, prop) => {
+function getChangedProps(
+  previous: Record<string, unknown>,
+  next: Record<string, unknown>,
+  keys?: string[],
+): ChangedProps | undefined {
+  const propNames = keys || uniq([...Object.keys(previous), ...Object.keys(next)]);
+  const changedProps = propNames.reduce((acc: ChangedProps, prop: string) => {
     if (previous[prop] !== next[prop]) {
       acc[prop] = next[prop];
     }
@@ -33,7 +55,14 @@ function getChangedProps(previous, next, keys) {
   }
 }
 
-const languages = languageData.map(lang => ({
+interface LanguageInfo {
+  label: string;
+  name: string;
+  mode: string;
+  mimeType: string;
+}
+
+const languages: LanguageInfo[] = languageData.map(lang => ({
   label: lang.label,
   name: lang.identifiers[0],
   mode: lang.codemirror_mode,
@@ -46,7 +75,12 @@ const styleString = `
 
 const defaultLang = { name: '', mode: '', label: 'none' };
 
-function valueToOption(val) {
+interface SelectOption {
+  value: string;
+  label: string;
+}
+
+function valueToOption(val: string | { name: string; label?: string }): SelectOption {
   if (typeof val === 'string') {
     return { value: val, label: val };
   }
@@ -57,12 +91,38 @@ const modes = languages.map(valueToOption);
 
 const themes = ['default', 'material'];
 
-const settingsPersistKeys = {
+const settingsPersistKeys: Record<string, string> = {
   theme: 'cms.codemirror.theme',
   keyMap: 'cms.codemirror.keymap',
 };
 
-export default class CodeControl extends React.Component {
+interface CodeControlProps {
+  field: ImmutableMap<string, unknown>;
+  onChange: (...args: unknown[]) => unknown;
+  value?: ImmutableMap<string, unknown> | string;
+  forID: string;
+  classNameWrapper: string;
+  widget: Record<string, unknown>;
+  isParentListCollapsed?: boolean;
+  isEditorComponent?: boolean;
+  isNewEditorComponent?: boolean;
+  setActiveStyle: (...args: unknown[]) => unknown;
+  setInactiveStyle: (...args: unknown[]) => unknown;
+}
+
+interface CodeControlState {
+  isActive: boolean;
+  isLangInitialized: boolean;
+  unknownLang: string | null;
+  lang: string;
+  keyMap: string;
+  settingsVisible: boolean;
+  codeMirrorKey: string;
+  theme: string;
+  lastKnownValue: unknown;
+}
+
+export default class CodeControl extends React.Component<CodeControlProps, CodeControlState> {
   static propTypes = {
     field: ImmutablePropTypes.map.isRequired,
     onChange: PropTypes.func.isRequired,
@@ -73,9 +133,11 @@ export default class CodeControl extends React.Component {
     isParentListCollapsed: PropTypes.bool,
   };
 
+  cm: CodeMirrorEditor | null = null;
+
   keys = this.getKeys(this.props.field);
 
-  state = {
+  state: CodeControlState = {
     isActive: false,
     isLangInitialized: false,
     unknownLang: null,
@@ -84,7 +146,9 @@ export default class CodeControl extends React.Component {
     settingsVisible: false,
     codeMirrorKey: uuid(),
     theme: localStorage.getItem(settingsPersistKeys['theme']) || themes[themes.length - 1],
-    lastKnownValue: this.valueIsMap() ? this.props.value?.get(this.keys.code) : this.props.value,
+    lastKnownValue: this.valueIsMap()
+      ? (this.props.value as ImmutableMap<string, unknown>)?.get(this.keys.code)
+      : this.props.value,
   };
 
   visibility = {
@@ -92,7 +156,7 @@ export default class CodeControl extends React.Component {
     isRefreshedAfterInvisible: false,
   };
 
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate(nextProps: CodeControlProps, nextState: CodeControlState) {
     return (
       !isEqual(this.state, nextState) ||
       this.props.classNameWrapper !== nextProps.classNameWrapper ||
@@ -109,7 +173,7 @@ export default class CodeControl extends React.Component {
     });
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(_prevProps: CodeControlProps, prevState: CodeControlState) {
     this.updateCodeMirrorProps(prevState);
     // when initially hidden and then shown, codeMirror content is not visible
     if (
@@ -121,9 +185,13 @@ export default class CodeControl extends React.Component {
     }
   }
 
-  updateCodeMirrorProps(prevState) {
+  updateCodeMirrorProps(prevState: CodeControlState) {
     const keys = ['lang', 'theme', 'keyMap'];
-    const changedProps = getChangedProps(prevState, this.state, keys);
+    const changedProps = getChangedProps(
+      prevState as unknown as Record<string, unknown>,
+      this.state as unknown as Record<string, unknown>,
+      keys,
+    );
     if (changedProps) {
       // Check if this is the initial setting of the language prop
       const shouldIgnoreLangChange =
@@ -144,28 +212,28 @@ export default class CodeControl extends React.Component {
     }
   }
 
-  getLanguageByName = name => {
+  getLanguageByName = (name: string): LanguageInfo | undefined => {
     return languages.find(lang => lang.name === name);
   };
 
-  getKeyMapOptions = () => {
-    return Object.keys(CodeMirror.keyMap)
+  getKeyMapOptions = (): SelectOption[] => {
+    return ['emacs', 'vim', 'sublime', 'default']
       .sort()
-      .filter(keyMap => ['emacs', 'vim', 'sublime', 'default'].includes(keyMap))
       .map(keyMap => ({ value: keyMap, label: keyMap }));
   };
 
   // This widget is not fully controlled, it only takes a value through props
   // upon initialization.
-  getInitialLang = () => {
+  getInitialLang = (): string | undefined => {
     const { value, field } = this.props;
     const lang =
-      (this.valueIsMap() && value && value.get(this.keys.lang)) || field.get('default_language');
-    const langInfo = this.getLanguageByName(lang);
+      (this.valueIsMap() && value && (value as ImmutableMap<string, unknown>).get(this.keys.lang)) ||
+      field.get('default_language');
+    const langInfo = this.getLanguageByName(lang as string);
     if (lang && !langInfo) {
-      this.setState({ unknownLang: lang });
+      this.setState({ unknownLang: lang as string });
     }
-    return lang;
+    return lang as string | undefined;
   };
 
   // If `allow_language_selection` is not set, default to true. Otherwise, use
@@ -175,12 +243,16 @@ export default class CodeControl extends React.Component {
     !!this.props.field.get('allow_language_selection');
 
   toValue = this.valueIsMap()
-    ? (type, value) => (this.props.value || Map()).set(this.keys[type], value)
-    : (type, value) => (type === 'code' ? value : this.props.value);
+    ? (type: string, value: unknown) =>
+        ((this.props.value as ImmutableMap<string, unknown>) || Map()).set(
+          this.keys[type],
+          value,
+        )
+    : (type: string, value: unknown) => (type === 'code' ? value : this.props.value);
 
   // If the value is a map, keys can be customized via config.
-  getKeys(field) {
-    const defaults = {
+  getKeys(field: ImmutableMap<string, unknown>): Record<string, string> {
+    const defaults: Record<string, string> = {
       code: 'code',
       lang: 'lang',
     };
@@ -190,7 +262,10 @@ export default class CodeControl extends React.Component {
       return defaults;
     }
 
-    const keys = field.get('keys', Map()).toJS();
+    const keys = (field.get('keys', Map()) as ImmutableMap<string, unknown>).toJS() as Record<
+      string,
+      string
+    >;
     return { ...defaults, ...keys };
   }
 
@@ -201,13 +276,17 @@ export default class CodeControl extends React.Component {
     return !field.get('output_code_only') || isEditorComponent;
   }
 
-  async handleChangeCodeMirrorProps(changedProps, ignoreLangChange = false) {
+  async handleChangeCodeMirrorProps(changedProps: ChangedProps, ignoreLangChange = false) {
     const { onChange } = this.props;
 
     if (changedProps.lang) {
       const { mode } = this.getLanguageByName(changedProps.lang) || {};
       if (mode) {
-        require(`codemirror/mode/${mode}/${mode}.js`);
+        try {
+          await import(`codemirror/mode/${mode}/${mode}.js`);
+        } catch {
+          // mode not available
+        }
       }
     }
 
@@ -218,14 +297,14 @@ export default class CodeControl extends React.Component {
       const cursor = this.cm.doc.getCursor();
       const selections = this.cm.doc.listSelections();
       this.setState({ codeMirrorKey: uuid() }, () => {
-        this.cm.doc.setCursor(cursor);
-        this.cm.doc.setSelections(selections);
+        this.cm!.doc.setCursor(cursor);
+        this.cm!.doc.setSelections(selections);
       });
     }
 
     for (const key of ['theme', 'keyMap']) {
       if (changedProps[key]) {
-        localStorage.setItem(settingsPersistKeys[key], changedProps[key]);
+        localStorage.setItem(settingsPersistKeys[key], changedProps[key] as string);
       }
     }
 
@@ -236,9 +315,9 @@ export default class CodeControl extends React.Component {
     }
   }
 
-  handleChange(newValue) {
-    const cursor = this.cm.doc.getCursor();
-    const selections = this.cm.doc.listSelections();
+  handleChange(newValue: string) {
+    const cursor = this.cm!.doc.getCursor();
+    const selections = this.cm!.doc.listSelections();
     this.setState({ lastKnownValue: newValue });
     this.props.onChange(this.toValue('code', newValue), { cursor, selections });
   }
@@ -251,7 +330,7 @@ export default class CodeControl extends React.Component {
     if (this.state.settingsVisible) {
       this.setState({ settingsVisible: false });
     }
-    this.cm.focus();
+    this.cm?.focus();
   };
 
   handleFocus = () => {
@@ -273,6 +352,7 @@ export default class CodeControl extends React.Component {
     const { lang, settingsVisible, keyMap, codeMirrorKey, theme, lastKnownValue } = this.state;
     const langInfo = this.getLanguageByName(lang);
     const mode = langInfo?.mimeType || langInfo?.mode;
+    const codeMirrorConfig = (widget.codeMirrorConfig || {}) as Record<string, unknown>;
 
     return (
       <ClassNames>
@@ -281,32 +361,31 @@ export default class CodeControl extends React.Component {
             className={cx(
               classNameWrapper,
               css`
-                ${codeMirrorStyles};
-                ${materialTheme};
                 ${styleString};
               `,
             )}
           >
-            {!settingsVisible && <SettingsButton onClick={this.showSettings} />}
+            {!settingsVisible && (
+              <SettingsButton onClick={this.showSettings} showClose={false} />
+            )}
             {settingsVisible && (
               <SettingsPane
                 hideSettings={this.hideSettings}
                 forID={forID}
                 modes={modes}
                 mode={valueToOption(langInfo || defaultLang)}
-                theme={themes.find(t => t === theme)}
+                theme={themes.find(t => t === theme) || theme}
                 themes={themes}
                 keyMap={{ value: keyMap, label: keyMap }}
                 keyMaps={this.getKeyMapOptions()}
                 allowLanguageSelection={this.allowLanguageSelection}
-                onChangeLang={newLang => this.setState({ lang: newLang })}
-                onChangeTheme={newTheme => this.setState({ theme: newTheme })}
-                onChangeKeyMap={newKeyMap => this.setState({ keyMap: newKeyMap })}
+                onChangeLang={(newLang: string) => this.setState({ lang: newLang })}
+                onChangeTheme={(newTheme: string) => this.setState({ theme: newTheme })}
+                onChangeKeyMap={(newKeyMap: string) => this.setState({ keyMap: newKeyMap })}
               />
             )}
             <ReactCodeMirror
               key={codeMirrorKey}
-              id={forID}
               className={css`
                 height: 100%;
                 border-radius: 0 3px 3px;
@@ -324,11 +403,11 @@ export default class CodeControl extends React.Component {
               `}
               options={{
                 lineNumbers: true,
-                ...widget.codeMirrorConfig,
+                ...codeMirrorConfig,
                 extraKeys: {
                   'Shift-Tab': 'indentLess',
                   Tab: 'indentMore',
-                  ...(widget.codeMirrorConfig.extraKeys || {}),
+                  ...((codeMirrorConfig.extraKeys as Record<string, string>) || {}),
                 },
                 theme,
                 mode,
@@ -336,14 +415,16 @@ export default class CodeControl extends React.Component {
                 viewportMargin: Infinity,
               }}
               detach={true}
-              editorDidMount={cm => {
+              editorDidMount={(cm: CodeMirrorEditor) => {
                 this.cm = cm;
                 if (isNewEditorComponent) {
                   this.handleFocus();
                 }
               }}
-              value={lastKnownValue}
-              onChange={(editor, data, newValue) => this.handleChange(newValue)}
+              value={lastKnownValue as string}
+              onChange={(_editor: unknown, _data: unknown, newValue: string) =>
+                this.handleChange(newValue)
+              }
               onFocus={this.handleFocus}
               onBlur={this.handleBlur}
             />

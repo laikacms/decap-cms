@@ -54,7 +54,14 @@ const styleStrings = {
   `,
 };
 
-export class Modal extends React.Component {
+interface ModalProps {
+  children: React.ReactNode;
+  isOpen: boolean;
+  className?: string;
+  onClose: () => void;
+}
+
+export class Modal extends React.Component<ModalProps> {
   static propTypes = {
     children: PropTypes.node.isRequired,
     isOpen: PropTypes.bool.isRequired,

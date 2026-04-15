@@ -1,8 +1,17 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
 import TestBackend, { getFolderFiles } from '../implementation';
+
+import type { Config, PersistOptions } from 'decap-cms-lib-util';
+
+type RepoFile = { path?: string; content: string };
+type RepoTree = { [key: string]: RepoFile | RepoTree };
+
+const mockConfig = { backend: { name: 'test' }, media_folder: 'media', auth: {} } as unknown as Config;
 
 describe('test backend implementation', () => {
   beforeEach(() => {
-    jest.resetModules();
+    vi.resetModules();
   });
 
   describe('getEntry', () => {
@@ -13,9 +22,9 @@ describe('test backend implementation', () => {
             content: 'post content',
           },
         },
-      };
+      } as unknown as typeof window.repoFiles;
 
-      const backend = new TestBackend({});
+      const backend = new TestBackend(mockConfig);
 
       await expect(backend.getEntry('posts/some-post.md')).resolves.toEqual({
         file: { path: 'posts/some-post.md', id: null },
@@ -34,9 +43,9 @@ describe('test backend implementation', () => {
             },
           },
         },
-      };
+      } as unknown as typeof window.repoFiles;
 
-      const backend = new TestBackend({});
+      const backend = new TestBackend(mockConfig);
 
       await expect(backend.getEntry('posts/dir1/dir2/some-post.md')).resolves.toEqual({
         file: { path: 'posts/dir1/dir2/some-post.md', id: null },
@@ -47,15 +56,15 @@ describe('test backend implementation', () => {
 
   describe('persistEntry', () => {
     it('should persist entry', async () => {
-      window.repoFiles = {};
+      window.repoFiles = {} as typeof window.repoFiles;
 
-      const backend = new TestBackend({});
+      const backend = new TestBackend(mockConfig);
 
       const entry = {
         dataFiles: [{ path: 'posts/some-post.md', raw: 'content', slug: 'some-post.md' }],
         assets: [],
       };
-      await backend.persistEntry(entry, { newEntry: true });
+      await backend.persistEntry(entry, { newEntry: true, commitMessage: 'test' } as PersistOptions);
 
       expect(window.repoFiles).toEqual({
         posts: {
@@ -79,15 +88,15 @@ describe('test backend implementation', () => {
             content: 'content',
           },
         },
-      };
+      } as unknown as typeof window.repoFiles;
 
-      const backend = new TestBackend({});
+      const backend = new TestBackend(mockConfig);
 
       const entry = {
         dataFiles: [{ path: 'posts/new-post.md', raw: 'content', slug: 'new-post.md' }],
         assets: [],
       };
-      await backend.persistEntry(entry, { newEntry: true });
+      await backend.persistEntry(entry, { newEntry: true, commitMessage: 'test' } as PersistOptions);
 
       expect(window.repoFiles).toEqual({
         pages: {
@@ -108,14 +117,14 @@ describe('test backend implementation', () => {
     });
 
     it('should persist nested entry', async () => {
-      window.repoFiles = {};
+      window.repoFiles = {} as typeof window.repoFiles;
 
-      const backend = new TestBackend({});
+      const backend = new TestBackend(mockConfig);
 
       const slug = 'dir1/dir2/some-post.md';
       const path = `posts/${slug}`;
       const entry = { dataFiles: [{ path, raw: 'content', slug }], assets: [] };
-      await backend.persistEntry(entry, { newEntry: true });
+      await backend.persistEntry(entry, { newEntry: true, commitMessage: 'test' } as PersistOptions);
 
       expect(window.repoFiles).toEqual({
         posts: {
@@ -143,14 +152,14 @@ describe('test backend implementation', () => {
             },
           },
         },
-      };
+      } as unknown as typeof window.repoFiles;
 
-      const backend = new TestBackend({});
+      const backend = new TestBackend(mockConfig);
 
       const slug = 'dir1/dir2/some-post.md';
       const path = `posts/${slug}`;
       const entry = { dataFiles: [{ path, raw: 'new content', slug }], assets: [] };
-      await backend.persistEntry(entry, { newEntry: false });
+      await backend.persistEntry(entry, { newEntry: false, commitMessage: 'test' } as PersistOptions);
 
       expect(window.repoFiles).toEqual({
         posts: {
@@ -175,9 +184,9 @@ describe('test backend implementation', () => {
             content: 'post content',
           },
         },
-      };
+      } as unknown as typeof window.repoFiles;
 
-      const backend = new TestBackend({});
+      const backend = new TestBackend(mockConfig);
 
       await backend.deleteFiles(['posts/some-post.md']);
       expect(window.repoFiles).toEqual({
@@ -196,9 +205,9 @@ describe('test backend implementation', () => {
             },
           },
         },
-      };
+      } as unknown as typeof window.repoFiles;
 
-      const backend = new TestBackend({});
+      const backend = new TestBackend(mockConfig);
 
       await backend.deleteFiles(['posts/dir1/dir2/some-post.md']);
       expect(window.repoFiles).toEqual({
@@ -213,7 +222,7 @@ describe('test backend implementation', () => {
 
   describe('getFolderFiles', () => {
     it('should get files by depth', () => {
-      const tree = {
+      const tree: RepoTree = {
         pages: {
           'root-page.md': {
             content: 'root page content',
@@ -231,13 +240,13 @@ describe('test backend implementation', () => {
         },
       };
 
-      expect(getFolderFiles(tree, 'pages', 'md', 1)).toEqual([
+      expect(getFolderFiles(tree as any, 'pages', 'md', 1)).toEqual([
         {
           path: 'pages/root-page.md',
           content: 'root page content',
         },
       ]);
-      expect(getFolderFiles(tree, 'pages', 'md', 2)).toEqual([
+      expect(getFolderFiles(tree as any, 'pages', 'md', 2)).toEqual([
         {
           path: 'pages/dir1/nested-page-1.md',
           content: 'nested page 1 content',
@@ -247,7 +256,7 @@ describe('test backend implementation', () => {
           content: 'root page content',
         },
       ]);
-      expect(getFolderFiles(tree, 'pages', 'md', 3)).toEqual([
+      expect(getFolderFiles(tree as any, 'pages', 'md', 3)).toEqual([
         {
           path: 'pages/dir1/dir2/nested-page-2.md',
           content: 'nested page 2 content',

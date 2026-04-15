@@ -4,36 +4,60 @@ import styled from '@emotion/styled';
 import { List } from 'immutable';
 import { WidgetPreviewContainer } from 'decap-cms-ui-default';
 
-const FileLink = styled(({ href, path }) => (
-  <a href={href} rel="noopener noreferrer" target="_blank">
+interface FileLinkProps {
+  href: string;
+  path: string;
+  className?: string;
+}
+
+const FileLink = styled(({ href, path, className }: FileLinkProps) => (
+  <a href={href} rel="noopener noreferrer" target="_blank" className={className}>
     {path}
   </a>
 ))`
   display: block;
 `;
 
-function FileLinkList({ values, getAsset, field }) {
+interface FileLinkListProps {
+  values: string[];
+  getAsset: (value: string, field?: unknown) => string;
+  field?: unknown;
+}
+
+function FileLinkList({ values, getAsset, field }: FileLinkListProps) {
   return (
     <div>
-      {values.map(value => (
+      {values.map((value: string) => (
         <FileLink key={value} path={value} href={getAsset(value, field)} />
       ))}
     </div>
   );
 }
 
-function FileContent(props) {
+interface FileContentProps {
+  value: string | string[] | List<string>;
+  getAsset: (value: string, field?: unknown) => string;
+  field?: unknown;
+}
+
+function FileContent(props: FileContentProps) {
   const { value, getAsset, field } = props;
   if (Array.isArray(value) || List.isList(value)) {
-    return <FileLinkList values={value} getAsset={getAsset} field={field} />;
+    return <FileLinkList values={value as string[]} getAsset={getAsset} field={field} />;
   }
   return <FileLink key={value} path={value} href={getAsset(value, field)} />;
 }
 
-function FilePreview(props) {
+interface FilePreviewProps {
+  getAsset: (value: string, field?: unknown) => string;
+  value?: string | string[] | List<string>;
+  field?: unknown;
+}
+
+function FilePreview(props: FilePreviewProps) {
   return (
     <WidgetPreviewContainer>
-      {props.value ? <FileContent {...props} /> : null}
+      {props.value ? <FileContent value={props.value} getAsset={props.getAsset} field={props.field} /> : null}
     </WidgetPreviewContainer>
   );
 }

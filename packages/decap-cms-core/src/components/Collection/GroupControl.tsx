@@ -1,14 +1,23 @@
 import React from 'react';
 import { translate } from 'react-polyglot';
 import { Dropdown, DropdownItem } from 'decap-cms-ui-default';
+import type { Map as ImmutableMap } from 'immutable';
 
+import type { ViewGroup } from '../../types/cms';
 import { ControlButton } from './ControlButton';
 
-function GroupControl({ viewGroups, t, onGroupClick, group }) {
+export interface GroupControlProps {
+  viewGroups: ViewGroup[];
+  t: (key: string) => string;
+  onGroupClick: (group: ViewGroup) => void;
+  group: ImmutableMap<string, unknown>;
+}
+
+function GroupControl({ viewGroups, t, onGroupClick, group }: GroupControlProps) {
   const hasActiveGroup = group
     ?.valueSeq()
     .toJS()
-    .some(f => f.active === true);
+    .some((f: any) => f.active === true);
 
   return (
     <Dropdown
@@ -28,7 +37,7 @@ function GroupControl({ viewGroups, t, onGroupClick, group }) {
             key={viewGroup.id}
             label={viewGroup.label}
             onClick={() => onGroupClick(viewGroup)}
-            isActive={group.getIn([viewGroup.id, 'active'], false)}
+            isActive={group.getIn([viewGroup.id, 'active'], false) as boolean}
           />
         );
       })}

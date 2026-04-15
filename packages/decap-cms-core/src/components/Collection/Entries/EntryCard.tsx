@@ -67,11 +67,11 @@ const CardHeading = styled.h2`
   justify-content: space-between;
 `;
 
-const CardBody = styled.div`
+const CardBody = styled.div<{ $hasImage?: boolean }>`
   padding: 16px 20px;
   height: 90px;
   position: relative;
-  margin-bottom: ${props => props.hasImage && 0};
+  margin-bottom: ${props => props.$hasImage && 0};
 
   &:after {
     content: '';
@@ -86,8 +86,8 @@ const CardBody = styled.div`
   }
 `;
 
-const CardImage = styled.div`
-  background-image: url(${props => props.src});
+const CardImage = styled.div<{ $src: string }>`
+  background-image: url(${props => props.$src});
   background-position: center center;
   background-size: cover;
   background-repeat: no-repeat;
@@ -100,13 +100,13 @@ const TitleIcons = styled.div`
   gap: 8px;
 `;
 
-const WorkflowBadge = styled.span`
+const WorkflowBadge = styled.span<{ $status?: string }>`
   padding: 2px 6px;
   border-radius: 3px;
   font-size: 11px;
   text-transform: uppercase;
   background-color: ${props => {
-    switch (props.status) {
+    switch (props.$status) {
       case 'draft':
         return colors.statusDraftBackground;
       case 'pending_review':
@@ -118,7 +118,7 @@ const WorkflowBadge = styled.span`
     }
   }};
   color: ${props => {
-    switch (props.status) {
+    switch (props.$status) {
       case 'draft':
         return colors.statusDraftText;
       case 'pending_review':
@@ -141,8 +141,8 @@ function EntryCard({
   workflowStatus,
   getAsset,
   t,
-}) {
-  function getStatusLabel(status) {
+}: any) {
+  function getStatusLabel(status: string) {
     switch (status) {
       case 'pending_review':
         return t('editor.editorToolbar.inReview');
@@ -164,7 +164,7 @@ function EntryCard({
             {summary}
             <TitleIcons>
               {workflowStatus && (
-                <WorkflowBadge status={workflowStatus}>
+                <WorkflowBadge $status={workflowStatus}>
                   {getStatusLabel(workflowStatus)}
                 </WorkflowBadge>
               )}
@@ -179,27 +179,27 @@ function EntryCard({
     return (
       <GridCard>
         <GridCardLink to={path}>
-          <CardBody hasImage={image}>
+          <CardBody $hasImage={!!image}>
             {collectionLabel ? <CollectionLabel>{collectionLabel}</CollectionLabel> : null}
             <CardHeading>
               {summary}
               <TitleIcons>
                 {workflowStatus && (
-                  <WorkflowBadge status={workflowStatus}>
+                  <WorkflowBadge $status={workflowStatus}>
                     {getStatusLabel(workflowStatus)}
                   </WorkflowBadge>
                 )}
               </TitleIcons>
             </CardHeading>
           </CardBody>
-          {image ? <CardImage src={getAsset(image, imageField).toString()} /> : null}
+          {image ? <CardImage $src={getAsset(image, imageField).toString()} /> : null}
         </GridCardLink>
       </GridCard>
     );
   }
 }
 
-function mapStateToProps(state, ownProps) {
+function mapStateToProps(state: any, ownProps: any) {
   const { entry, inferredFields, collection } = ownProps;
   const entryData = entry.get('data');
   const summary = selectEntryCollectionTitle(collection, entry);
@@ -217,18 +217,18 @@ function mapStateToProps(state, ownProps) {
     image,
     imageFolder: collection
       .get('fields')
-      ?.find(f => f.get('name') === inferredFields.imageField && f.get('widget') === 'image'),
+      ?.find((f: any) => f.get('name') === inferredFields.imageField && f.get('widget') === 'image'),
     isLoadingAsset,
   };
 }
 
-function mapDispatchToProps(dispatch) {
+function mapDispatchToProps(dispatch: any) {
   return {
-    boundGetAsset: (collection, entry) => boundGetAsset(dispatch, collection, entry),
+    boundGetAsset: (collection: any, entry: any) => boundGetAsset(dispatch, collection, entry),
   };
 }
 
-function mergeProps(stateProps, dispatchProps, ownProps) {
+function mergeProps(stateProps: any, dispatchProps: any, ownProps: any) {
   return {
     ...stateProps,
     ...dispatchProps,

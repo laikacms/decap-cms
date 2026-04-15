@@ -5,6 +5,7 @@ import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
 import { Link } from 'react-router-dom';
 import { components, colors, colorsRaw, transitions, buttons } from 'decap-cms-ui-default';
+import type { TranslateFunction } from 'decap-cms-ui-default';
 
 const styles = {
   text: css`
@@ -97,7 +98,7 @@ const WorkflowCardContainer = styled.div`
   }
 `;
 
-function lastChangePhraseKey(date, author) {
+function lastChangePhraseKey(date: string | undefined, author: string | undefined) {
   if (date && author) {
     return 'lastChange';
   } else if (date) {
@@ -107,14 +108,36 @@ function lastChangePhraseKey(date, author) {
   }
 }
 
-const CardDate = translate()(({ t, date, author }) => {
+interface CardDateOwnProps {
+  date?: string;
+  author?: string;
+}
+
+const CardDate = translate()(({ t, date, author }: { t: TranslateFunction; date?: string; author?: string }) => {
   const key = lastChangePhraseKey(date, author);
   if (key) {
     return (
       <CardDateContainer>{t(`workflow.workflowCard.${key}`, { date, author })}</CardDateContainer>
     );
   }
+  return null;
 });
+
+interface WorkflowCardProps {
+  collectionLabel: string;
+  title?: string;
+  authorLastChange?: string;
+  body?: string;
+  isModification?: boolean;
+  editLink: string;
+  timestamp: string;
+  onDelete: () => void;
+  allowPublish: boolean;
+  canPublish: boolean;
+  onPublish: () => void;
+  postAuthor?: string;
+  t: TranslateFunction;
+}
 
 function WorkflowCard({
   collectionLabel,
@@ -130,7 +153,7 @@ function WorkflowCard({
   onPublish,
   postAuthor,
   t,
-}) {
+}: WorkflowCardProps) {
   return (
     <WorkflowCardContainer>
       <WorkflowLink to={editLink}>

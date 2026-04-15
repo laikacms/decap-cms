@@ -2,7 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { WidgetPreviewContainer } from 'decap-cms-ui-default';
 
-function MapPreview({ value }) {
+interface MapPreviewProps {
+  value?: string;
+}
+
+function MapPreview({ value }: MapPreviewProps) {
   return <WidgetPreviewContainer>{value ? value.toString() : null}</WidgetPreviewContainer>;
 }
 

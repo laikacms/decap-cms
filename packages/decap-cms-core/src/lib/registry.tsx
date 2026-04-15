@@ -116,7 +116,7 @@ interface WidgetRegistrationOptions<T = unknown> extends CmsWidgetParam<T> {
 /**
  * Editor Widgets
  */
-export function registerWidget(options: WidgetRegistrationOptions) {
+export function registerWidget(options: WidgetRegistrationOptions<any>) {
   const {
     name: widgetName,
     controlComponent: control,
@@ -134,9 +134,16 @@ export function registerWidget(options: WidgetRegistrationOptions) {
   if (!control) {
     throw Error(`Widget "${widgetName}" registered without \`controlComponent\`.`);
   }
+  if (preview && typeof preview !== 'function' && typeof preview !== 'object') {
+    console.warn(oneLine`
+      Widget "${widgetName}" registered with an invalid \`previewComponent\` (received
+      ${typeof preview}). The \`previewComponent\` should be a React component. The preview
+      for this widget will not be rendered.
+    `);
+  }
   registry.widgets[widgetName] = {
     control,
-    preview,
+    preview: (preview && typeof preview !== 'function' && typeof preview !== 'object') ? undefined : preview,
     schema,
     globalStyles,
     allowMapValue,
@@ -156,7 +163,7 @@ export function resolveWidget(name: string | undefined) {
 /**
  * Markdown Editor Custom Components
  */
-export function registerEditorComponent(component: EditorComponentOptions) {
+export function registerEditorComponent(component: Partial<EditorComponentOptions> & { id?: string; label?: string; icon?: string; widget?: string; type?: 'code-block' | 'shortcode' }) {
   const plugin = EditorComponent(component) as EditorComponentPlugin;
   if (plugin.type === 'code-block') {
     const codeBlock = registry.editorComponents.find((c: EditorComponentPlugin) => c.type === 'code-block');

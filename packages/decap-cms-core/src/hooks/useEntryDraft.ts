@@ -9,6 +9,8 @@ import {
   changeDraftFieldValidation,
 } from '../actions/entries';
 
+import type { Collection, EntryMap, EntryField } from '../types/cms';
+
 /**
  * Hook for entry draft state and actions
  * Replaces connect() mapStateToProps/mapDispatchToProps for draft management
@@ -28,14 +30,14 @@ export function useEntryDraft() {
   const isModification = entryDraft.getIn(['entry', 'isModification']);
 
   const createEmpty = useCallback(
-    (collection: unknown, search?: string) => {
-      dispatch(createEmptyDraft(collection, search));
+    (collection: Collection, search?: string) => {
+      dispatch(createEmptyDraft(collection, search || ''));
     },
     [dispatch]
   );
 
   const createDuplicate = useCallback(
-    (entry: unknown) => {
+    (entry: EntryMap) => {
       dispatch(createDraftDuplicateFromEntry(entry));
     },
     [dispatch]
@@ -46,14 +48,14 @@ export function useEntryDraft() {
   }, [dispatch]);
 
   const changeField = useCallback(
-    (params: { field: unknown; value: unknown; metadata?: unknown; entries?: unknown[]; i18n?: unknown }) => {
+    (params: { field: EntryField; value: string; metadata: Record<string, unknown>; entries: EntryMap[]; i18n?: { currentLocale: string; defaultLocale: string; locales: string[] } }) => {
       dispatch(changeDraftField(params));
     },
     [dispatch]
   );
 
   const validateField = useCallback(
-    (field: unknown, errors: unknown) => {
+    (field: string, errors: { type: string; parentIds: string[]; message: string }[]) => {
       dispatch(changeDraftFieldValidation(field, errors));
     },
     [dispatch]

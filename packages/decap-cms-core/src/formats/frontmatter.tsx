@@ -126,7 +126,7 @@ export class FrontmatterFormatter {
     const file = matter.stringify(body, meta, {
       engines: parsers,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore `sortedKeys` is not recognized by gray-matter, so it gets passed through to the parser
+      // @ts-expect-error `sortedKeys` is not recognized by gray-matter, so it gets passed through to the parser
       sortedKeys,
       comments,
       ...format,

@@ -30,6 +30,10 @@
     "react": "catalog:react",
     "uuid": "catalog:utils"
   },
+  "devDependencies": {
+    "@types/react": "catalog:types",
+    "@types/prop-types": "catalog:types"
+  },
   "type": "module",
   "types": "./dist/index.d.ts",
   "exports": {

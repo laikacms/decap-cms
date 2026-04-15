@@ -3,7 +3,11 @@ import React from 'react';
 import styled from '@emotion/styled';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { translate } from 'react-polyglot';
-import { Loader, lengths } from 'decap-cms-ui-default';
+import { Loader, lengths, TranslateFunction } from 'decap-cms-ui-default';
+
+import type { List as ImmutableList } from 'immutable';
+import type { Cursor } from 'decap-cms-lib-util';
+import type { Collection, EntryMap } from '../../../types/cms';
 
 import EntryListing from './EntryListing';
 
@@ -17,6 +21,20 @@ const NoEntriesMessage = styled(PaginationMessage)`
   margin-top: 16px;
 `;
 
+interface EntriesProps {
+  collections: Collection;
+  entries?: ImmutableList<EntryMap>;
+  page?: number;
+  isFetching?: boolean;
+  viewStyle?: string;
+  cursor: Cursor;
+  handleCursorActions: (action: string) => void;
+  t: TranslateFunction;
+  getWorkflowStatus?: (collectionName: string, slug: string) => string | null;
+  getUnpublishedEntries?: (collectionName: string) => EntryMap[];
+  filterTerm?: string;
+}
+
 function Entries({
   collections,
   entries,
@@ -29,7 +47,7 @@ function Entries({
   getWorkflowStatus,
   getUnpublishedEntries,
   filterTerm,
-}) {
+}: EntriesProps) {
   const loadingMessages = [
     t('collection.entries.loadingEntries'),
     t('collection.entries.cachingEntries'),
@@ -55,7 +73,7 @@ function Entries({
           getUnpublishedEntries={getUnpublishedEntries}
           filterTerm={filterTerm}
         />
-        {isFetching && page !== undefined && entries.size > 0 ? (
+        {isFetching && page !== undefined && entries && entries.size > 0 ? (
           <PaginationMessage>{t('collection.entries.loadingEntries')}</PaginationMessage>
         ) : null}
       </>

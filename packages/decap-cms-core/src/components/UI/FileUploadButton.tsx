@@ -1,9 +1,17 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-export function FileUploadButton({ label, imagesOnly, onChange, disabled, className }) {
+export interface FileUploadButtonProps {
+  className?: string;
+  label: string;
+  imagesOnly?: boolean;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  disabled?: boolean;
+}
+
+export function FileUploadButton({ label, imagesOnly, onChange, disabled, className }: FileUploadButtonProps) {
   return (
-    <label tabIndex={'0'} className={`nc-fileUploadButton ${className || ''}`}>
+    <label tabIndex={0} className={`nc-fileUploadButton ${className || ''}`}>
       <span>{label}</span>
       <input
         type="file"

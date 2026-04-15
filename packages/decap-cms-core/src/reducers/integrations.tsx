@@ -35,10 +35,10 @@ export function getIntegrations(config: CmsConfig) {
     },
     { providers: {}, hooks: {} } as Acc,
   );
-  return fromJS(newState);
+  return fromJS(newState) as unknown as Integrations;
 }
 
-const defaultState = fromJS({ providers: {}, hooks: {} });
+const defaultState = fromJS({ providers: {}, hooks: {} }) as unknown as Integrations;
 
 function integrations(state = defaultState, action: ConfigAction): Integrations | null {
   switch (action.type) {

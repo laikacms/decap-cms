@@ -9,8 +9,9 @@ import {
   Cursor,
   CURSOR_COMPATIBILITY_SYMBOL,
   basename,
+  extname,
+  dirname,
 } from 'decap-cms-lib-util';
-import { extname, dirname } from 'path';
 
 import AuthenticationPage from './AuthenticationPage';
 
@@ -208,7 +209,7 @@ export default class TestBackend implements Implementation {
     const cursor = getCursor(folder, extension, entries, 0, depth);
     const ret = take(entries, pageSize);
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // @ts-expect-error -- TODO: fix underlying type issue
     ret[CURSOR_COMPATIBILITY_SYMBOL] = cursor;
     return Promise.resolve(ret);
   }

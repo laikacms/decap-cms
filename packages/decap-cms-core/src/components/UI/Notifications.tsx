@@ -1,7 +1,8 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useEffect } from 'react';
 // import { translate } from 'react-polyglot';
-import { injectStyle } from 'react-toastify/dist/inject-style';
+// @ts-expect-error - CSS import resolved by bundler, not TypeScript
+import 'react-toastify/ReactToastify.css';
 import { toast, ToastContainer } from 'react-toastify';
 import { connect, useDispatch } from 'react-redux';
 import { useTranslate } from 'react-polyglot';
@@ -11,8 +12,6 @@ import { dismissNotification } from '../../actions/notifications';
 import type { Id, ToastItem } from 'react-toastify';
 import type { State } from '../../types/cms';
 import type { Notification } from '../../reducers/notifications';
-
-injectStyle();
 
 interface Props {
   notifications: Notification[];

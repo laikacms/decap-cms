@@ -4,29 +4,60 @@ import styled from '@emotion/styled';
 import { Waypoint } from 'react-waypoint';
 import { Map } from 'immutable';
 import { colors } from 'decap-cms-ui-default';
-import { FixedSizeGrid as Grid } from 'react-window';
-import AutoSizer from 'react-virtualized-auto-sizer';
+import { Grid } from 'react-window';
+import { AutoSizer } from 'react-virtualized-auto-sizer';
 
 import MediaLibraryCard from './MediaLibraryCard';
 
-function CardWrapper(props) {
+interface MediaItem {
+  displayURL?: string | Record<string, unknown>;
+  id: string;
+  key: string;
+  name: string;
+  type: string;
+  draft?: boolean;
+  url?: string;
+  isViewableImage?: boolean;
+}
+
+interface CardCellProps {
+  mediaItems: MediaItem[];
+  isSelectedFile: (file: { key: string }) => boolean;
+  onAssetClick: (asset: { key: string; name: string; id: string; type: string; draft?: boolean }) => void;
+  cardDraftText: string;
+  cardWidth: string;
+  cardHeight: string;
+  isPrivate?: boolean;
+  displayURLs: Map<string, unknown>;
+  loadDisplayURL: (file: { id: string; url?: string }) => void;
+  columnCount: number;
+  gutter: number;
+}
+
+function CardWrapper(props: {
+  ariaAttributes: {
+    'aria-colindex': number;
+    role: 'gridcell';
+  };
+  columnIndex: number;
+  rowIndex: number;
+  style: React.CSSProperties;
+} & CardCellProps) {
   const {
     rowIndex,
     columnIndex,
     style,
-    data: {
-      mediaItems,
-      isSelectedFile,
-      onAssetClick,
-      cardDraftText,
-      cardWidth,
-      cardHeight,
-      isPrivate,
-      displayURLs,
-      loadDisplayURL,
-      columnCount,
-      gutter,
-    },
+    mediaItems,
+    isSelectedFile,
+    onAssetClick,
+    cardDraftText,
+    cardWidth,
+    cardHeight,
+    isPrivate,
+    displayURLs,
+    loadDisplayURL,
+    columnCount,
+    gutter,
   } = props;
   const index = rowIndex * columnCount + columnIndex;
   if (index >= mediaItems.length) {
@@ -36,13 +67,13 @@ function CardWrapper(props) {
 
   return (
     <div
-      tabIndex="0"
+      tabIndex={0}
       style={{
         ...style,
-        left: style.left + gutter * columnIndex,
-        top: style.top + gutter,
-        width: style.width - gutter,
-        height: style.height - gutter,
+        left: (typeof style.left === 'number' ? style.left : 0) + gutter * columnIndex,
+        top: (typeof style.top === 'number' ? style.top : 0) + gutter,
+        width: (typeof style.width === 'number' ? style.width : 0) - gutter,
+        height: (typeof style.height === 'number' ? style.height : 0) - gutter,
       }}
     >
       <MediaLibraryCard
@@ -56,27 +87,30 @@ function CardWrapper(props) {
         height={cardHeight}
         margin={'0px'}
         isPrivate={isPrivate}
-        displayURL={displayURLs.get(file.id, file.url ? Map({ url: file.url }) : Map())}
+        displayURL={displayURLs.get(file.id, file.url ? Map({ url: file.url }) : Map()) as any}
         loadDisplayURL={() => loadDisplayURL(file)}
         type={file.type}
-        isViewableImage={file.isViewableImage}
+        isViewableImage={file.isViewableImage ?? false}
       />
     </div>
   );
 }
 
-function VirtualizedGrid(props) {
+function VirtualizedGrid(props: MediaLibraryCardGridProps) {
   const { mediaItems, setScrollContainerRef } = props;
 
   return (
     <CardGridContainer ref={setScrollContainerRef}>
-      <AutoSizer>
-        {({ height, width }) => {
-          const cardWidth = parseInt(props.cardWidth, 10);
-          const cardHeight = parseInt(props.cardHeight, 10);
+      <AutoSizer
+        renderProp={({ height, width }: { height: number | undefined; width: number | undefined }) => {
+          if (height === undefined || width === undefined) {
+            return null;
+          }
+          const cardWidthNum = parseInt(props.cardWidth, 10);
+          const cardHeightNum = parseInt(props.cardHeight, 10);
           const gutter = parseInt(props.cardMargin, 10);
-          const columnWidth = cardWidth + gutter;
-          const rowHeight = cardHeight + gutter;
+          const columnWidth = cardWidthNum + gutter;
+          const rowHeight = cardHeightNum + gutter;
           const columnCount = Math.floor(width / columnWidth);
           const rowCount = Math.ceil(mediaItems.length / columnCount);
           return (
@@ -85,15 +119,26 @@ function VirtualizedGrid(props) {
               columnWidth={columnWidth}
               rowCount={rowCount}
               rowHeight={rowHeight}
-              width={width}
-              height={height}
-              itemData={{ ...props, gutter, columnCount }}
-            >
-              {CardWrapper}
-            </Grid>
+              defaultWidth={width}
+              defaultHeight={height}
+              cellComponent={CardWrapper}
+              cellProps={{
+                mediaItems: props.mediaItems,
+                isSelectedFile: props.isSelectedFile,
+                onAssetClick: props.onAssetClick,
+                cardDraftText: props.cardDraftText,
+                cardWidth: props.cardWidth,
+                cardHeight: props.cardHeight,
+                isPrivate: props.isPrivate,
+                displayURLs: props.displayURLs,
+                loadDisplayURL: props.loadDisplayURL,
+                columnCount,
+                gutter,
+              }}
+            />
           );
         }}
-      </AutoSizer>
+      />
     </CardGridContainer>
   );
 }
@@ -114,11 +159,11 @@ function PaginatedGrid({
   onLoadMore,
   isPaginating,
   paginatingMessage,
-}) {
+}: MediaLibraryCardGridProps) {
   return (
     <CardGridContainer ref={setScrollContainerRef}>
       <CardGrid>
-        {mediaItems.map(file => (
+        {mediaItems.map((file: MediaItem) => (
           <MediaLibraryCard
             key={file.key}
             isSelected={isSelectedFile(file)}
@@ -130,16 +175,16 @@ function PaginatedGrid({
             height={cardHeight}
             margin={cardMargin}
             isPrivate={isPrivate}
-            displayURL={displayURLs.get(file.id, file.url ? Map({ url: file.url }) : Map())}
+            displayURL={displayURLs.get(file.id, file.url ? Map({ url: file.url }) : Map()) as any}
             loadDisplayURL={() => loadDisplayURL(file)}
             type={file.type}
-            isViewableImage={file.isViewableImage}
+            isViewableImage={file.isViewableImage ?? false}
           />
         ))}
         {!canLoadMore ? null : <Waypoint onEnter={onLoadMore} />}
       </CardGrid>
       {!isPaginating ? null : (
-        <PaginatingMessage isPrivate={isPrivate}>{paginatingMessage}</PaginatingMessage>
+        <PaginatingMessage $isPrivate={isPrivate}>{paginatingMessage}</PaginatingMessage>
       )}
     </CardGridContainer>
   );
@@ -158,11 +203,29 @@ const CardGrid = styled.div`
   margin-right: -10px;
 `;
 
-const PaginatingMessage = styled.h1`
-  color: ${props => props.isPrivate && colors.textFieldBorder};
+const PaginatingMessage = styled.h1<{ $isPrivate?: boolean }>`
+  color: ${props => props.$isPrivate && colors.textFieldBorder};
 `;
 
-function MediaLibraryCardGrid(props) {
+interface MediaLibraryCardGridProps {
+  setScrollContainerRef: (ref: HTMLDivElement | null) => void;
+  mediaItems: MediaItem[];
+  isSelectedFile: (file: { key: string }) => boolean;
+  onAssetClick: (asset: { key: string; name: string; id: string; type: string; draft?: boolean }) => void;
+  canLoadMore?: boolean;
+  onLoadMore: () => void;
+  isPaginating?: boolean;
+  paginatingMessage?: string;
+  cardDraftText: string;
+  cardWidth: string;
+  cardHeight: string;
+  cardMargin: string;
+  loadDisplayURL: (file: { id: string; url?: string }) => void;
+  isPrivate?: boolean;
+  displayURLs: Map<string, unknown>;
+}
+
+function MediaLibraryCardGrid(props: MediaLibraryCardGridProps) {
   const { canLoadMore, isPaginating } = props;
   if (canLoadMore || isPaginating) {
     return <PaginatedGrid {...props} />;
@@ -190,10 +253,11 @@ MediaLibraryCardGrid.propTypes = {
   paginatingMessage: PropTypes.string,
   cardDraftText: PropTypes.string.isRequired,
   cardWidth: PropTypes.string.isRequired,
+  cardHeight: PropTypes.string.isRequired,
   cardMargin: PropTypes.string.isRequired,
   loadDisplayURL: PropTypes.func.isRequired,
   isPrivate: PropTypes.bool,
-  displayURLs: PropTypes.instanceOf(Map).isRequired,
+  displayURLs: PropTypes.instanceOf(Map as unknown as new (...args: any[]) => Map<string, unknown>).isRequired,
 };
 
 export default MediaLibraryCardGrid;

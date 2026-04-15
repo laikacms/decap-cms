@@ -17,7 +17,7 @@ async function listFiles(dir: string, extension: string, depth: number): Promise
       }),
     );
     return ([] as string[]).concat(...files);
-  } catch (e) {
+  } catch (e: unknown) {
     return [];
   }
 }

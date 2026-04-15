@@ -1,9 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
-import ChromePicker from 'react-color';
+import { ChromePicker } from 'react-color';
 import tinycolor from 'tinycolor2';
 import { zIndex } from 'decap-cms-ui-default';
+
+import type { ColorResult } from 'react-color';
 
 function ClearIcon() {
   return (
@@ -41,7 +43,7 @@ const ColorSwatchBackground = styled.div`
   border-radius: 5px;
 `;
 
-const ColorSwatch = styled.div`
+const ColorSwatch = styled.div<{ background?: string; color?: string }>`
   position: absolute;
   z-index: ${zIndex.zIndex2};
   background: ${props => props.background};
@@ -76,7 +78,17 @@ const ClickOutsideDiv = styled.div`
   left: 0;
 `;
 
-export default class ColorControl extends React.Component {
+interface ColorControlProps {
+  onChange: (...args: unknown[]) => unknown;
+  forID?: string;
+  value?: string;
+  classNameWrapper: string;
+  setActiveStyle: (...args: unknown[]) => unknown;
+  setInactiveStyle: (...args: unknown[]) => unknown;
+  field: { get: (key: string, defaultValue?: unknown) => unknown };
+}
+
+export default class ColorControl extends React.Component<ColorControlProps> {
   static propTypes = {
     onChange: PropTypes.func.isRequired,
     forID: PropTypes.string,
@@ -107,10 +119,11 @@ export default class ColorControl extends React.Component {
   handleClose = () => {
     this.setState({ showColorPicker: false });
   };
-  handleChange = color => {
+  handleChange = (color: ColorResult) => {
+    const alpha = color.rgb.a ?? 1;
     const formattedColor =
-      color.rgb.a < 1
-        ? `rgba(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${color.rgb.a})`
+      alpha < 1
+        ? `rgba(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${alpha})`
         : color.hex;
     this.props.onChange(formattedColor);
   };
@@ -165,7 +178,7 @@ export default class ColorControl extends React.Component {
           style={{
             paddingLeft: '75px',
             paddingRight: '70px',
-            color: !allowInput && '#bbb',
+            color: !allowInput ? '#bbb' : undefined,
           }}
           // make readonly and open color picker on click if set to allowInput: false
           onClick={!allowInput ? this.handleClick : undefined}

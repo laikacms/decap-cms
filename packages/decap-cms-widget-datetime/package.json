@@ -22,11 +22,17 @@
     "clean": "rimraf dist"
   },
   "dependencies": {
-    "dayjs": "catalog:utils"
+    "dayjs": "catalog:utils",
+    "decap-cms-ui-default": "workspace:*"
   },
   "peerDependencies": {
     "@emotion/react": "catalog:emotion",
+    "prop-types": "catalog:react",
     "react": "catalog:react"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:types",
+    "@types/prop-types": "catalog:types"
   },
   "type": "module",
   "types": "./dist/index.d.ts",

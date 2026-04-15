@@ -31,7 +31,7 @@ describe('media', () => {
 
   describe('getAsset', () => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // @ts-expect-error -- TODO: fix underlying type issue
     global.URL = { createObjectURL: vi.fn() };
 
     beforeEach(() => {
@@ -46,7 +46,7 @@ describe('media', () => {
       // TODO change to proper payload when immutable is removed
       //  from 'collections' and 'entries' state slices
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error -- TODO: fix underlying type issue
       const result = store.dispatch(getAsset(payload));
       const actions = store.getActions();
       expect(actions).toHaveLength(0);
@@ -60,7 +60,7 @@ describe('media', () => {
         // TODO change to proper store data when immutable is removed
         //  from 'config' state slice
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error -- TODO: fix underlying type issue
         config: Map(),
         medias: {
           [path]: { asset, isLoading: false, error: null },
@@ -73,7 +73,7 @@ describe('media', () => {
       // TODO change to proper payload when immutable is removed
       //  from 'collections' and 'entries' state slices
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error -- TODO: fix underlying type issue
       const result = store.dispatch(getAsset(payload));
       const actions = store.getActions();
       expect(actions).toHaveLength(0);
@@ -103,7 +103,7 @@ describe('media', () => {
       // TODO change to proper payload when immutable is removed
       //  from 'collections' state slice
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error -- TODO: fix underlying type issue
       const result = store.dispatch(getAsset(payload));
       const actions = store.getActions();
       expect(actions).toHaveLength(1);
@@ -126,7 +126,7 @@ describe('media', () => {
       // TODO change to proper payload when immutable is removed
       //  from 'collections' and 'entries' state slices
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error -- TODO: fix underlying type issue
       const result = store.dispatch(getAsset(payload));
       const actions = store.getActions();
       expect(actions).toHaveLength(1);
@@ -156,7 +156,7 @@ describe('media', () => {
       // TODO change to proper payload when immutable is removed
       //  from 'collections' and 'entries' state slices
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error -- TODO: fix underlying type issue
       const result = store.dispatch(getAsset(payload));
       const actions = store.getActions();
 

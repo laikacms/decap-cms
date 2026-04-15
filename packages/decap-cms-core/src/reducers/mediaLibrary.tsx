@@ -1,6 +1,6 @@
 import { Map, List } from 'immutable';
 import { v4 as uuid } from 'uuid';
-import { dirname } from 'path';
+import { dirname } from 'decap-cms-lib-util';
 
 import {
   MEDIA_LIBRARY_OPEN,
@@ -34,28 +34,18 @@ import type {
   EntryField,
 } from '../types/cms';
 
-const defaultState: {
-  isVisible: boolean;
-  showMediaButton: boolean;
-  controlMedia: Map<string, string>;
-  displayURLs: Map<string, string>;
-  externalLibrary?: MediaLibraryInstance;
-  controlID?: string;
-  page?: number;
-  files?: MediaFile[];
-  config: Map<string, unknown>;
-  field?: EntryField;
-  value?: string | string[];
-  replaceIndex?: number | boolean;
-} = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type MediaLibraryState = Map<string, any>;
+
+const defaultState: MediaLibraryState = Map({
   isVisible: false,
   showMediaButton: true,
   controlMedia: Map(),
   displayURLs: Map(),
   config: Map(),
-};
+});
 
-function mediaLibrary(state = Map(defaultState), action: MediaLibraryAction) {
+function mediaLibrary(state: MediaLibraryState = defaultState, action: MediaLibraryAction) {
   switch (action.type) {
     case MEDIA_LIBRARY_CREATE:
       return state.withMutations(map => {
@@ -90,7 +80,7 @@ function mediaLibrary(state = Map(defaultState), action: MediaLibraryAction) {
         map.set('canInsert', !!controlID);
         map.set('privateUpload', privateUpload);
         map.set('config', libConfig);
-        map.set('field', field ?? '');
+        map.set('field', field || undefined);
         map.set('value', value == '' && libConfig.get('multiple') ? [] : value ?? '');
         map.set('replaceIndex', replaceIndex ?? false);
       });
@@ -265,7 +255,7 @@ export function selectMediaFiles(state: State, field?: EntryField) {
   if (editingDraft && !integration) {
     const entryFiles = entryDraft
       .getIn(['entry', 'mediaFiles'], List<MediaFileMap>())
-      .toJS() as MediaFile[];
+      .toJS() as unknown as MediaFile[];
     const entry = entryDraft.get('entry');
     const collection = state.collections.get(entry?.get('collection'));
     const mediaFolder = selectMediaFolder(state.config, collection, entry, field);

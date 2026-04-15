@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
-import { Icon, buttons, shadows, GoBackButton, renderPageLogo } from 'decap-cms-ui-default';
+import { Icon, buttons, shadows, GoBackButton, renderPageLogo, TranslateFunction } from 'decap-cms-ui-default';
 
 const StyledAuthenticationPage = styled.section`
   display: flex;
@@ -28,7 +28,22 @@ const LoginButton = styled.button`
   }
 `;
 
-export default class AuthenticationPage extends React.Component {
+interface AuthenticationPageConfig {
+  site_url: string;
+  logo?: {
+    src: string;
+  };
+  logo_url?: string;
+}
+
+interface AuthenticationPageProps {
+  onLogin: (...args: unknown[]) => unknown;
+  inProgress?: boolean;
+  config: AuthenticationPageConfig;
+  t: TranslateFunction;
+}
+
+export default class AuthenticationPage extends React.Component<AuthenticationPageProps> {
   static propTypes = {
     onLogin: PropTypes.func.isRequired,
     inProgress: PropTypes.bool,
@@ -46,7 +61,7 @@ export default class AuthenticationPage extends React.Component {
     );
   }
 
-  handleLogin = e => {
+  handleLogin = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     this.props.onLogin(this.state);
   };

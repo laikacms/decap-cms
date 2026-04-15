@@ -19,6 +19,9 @@ import { selectFields } from '../reducers/collections';
 import { status } from '../constants/publishModes';
 import { navigateToCollection, navigateToNewEntry } from '../routing/history';
 
+import type { Status } from '../constants/publishModes';
+import type { Entry } from '../types/cms';
+
 interface UseEntryOptions {
   collectionName: string;
   slug?: string;
@@ -36,12 +39,15 @@ export function useEntry({ collectionName, slug, newEntry = false }: UseEntryOpt
   const config = useAppSelector(state => state.config);
 
   const collection = collections.get(collectionName);
-  const fields = selectFields(collection, slug);
-  const entry = newEntry ? null : selectEntry({ collections, entries, config } as any, collectionName, slug);
-  const unpublishedEntry = selectUnpublishedEntry({ editorialWorkflow: useAppSelector(state => state.editorialWorkflow) } as any, collectionName, slug);
-  const deployPreview = selectDeployPreview({ deploys: useAppSelector(state => state.deploys) } as any, collectionName, slug);
+  const fields = selectFields(collection, slug || '');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const entry = newEntry ? null : selectEntry({ collections, entries, config } as any, collectionName, slug || '');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const unpublishedEntry = selectUnpublishedEntry({ editorialWorkflow: useAppSelector(state => state.editorialWorkflow) } as any, collectionName, slug || '');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const deployPreview = selectDeployPreview({ deploys: useAppSelector(state => state.deploys) } as any, collectionName, slug || '');
   const collectionEntriesLoaded = !!entries.getIn(['pages', collectionName]);
-  const currentStatus = unpublishedEntry?.get('status');
+  const currentStatus = unpublishedEntry?.get('status') as Status | undefined;
   const isPublished = !newEntry && !unpublishedEntry;
 
   const load = useCallback(() => {
@@ -72,8 +78,10 @@ export function useEntry({ collectionName, slug, newEntry = false }: UseEntryOpt
   const updateStatus = useCallback(
     (newStatusName: string) => {
       if (collection && slug && currentStatus) {
-        const newStatus = status.get(newStatusName);
-        dispatch(updateUnpublishedEntryStatus(collectionName, slug, currentStatus, newStatus));
+        const newStatus = status.get(newStatusName) as Status | undefined;
+        if (newStatus) {
+          dispatch(updateUnpublishedEntryStatus(collectionName, slug, currentStatus, newStatus));
+        }
       }
     },
     [dispatch, collection, slug, currentStatus, collectionName]
@@ -99,9 +107,9 @@ export function useEntry({ collectionName, slug, newEntry = false }: UseEntryOpt
   }, [dispatch, collectionName, slug]);
 
   const loadPreview = useCallback(
-    (opts?: unknown) => {
+    (opts?: { maxAttempts?: number; interval?: number; signal?: AbortSignal }) => {
       if (collection && slug && entry) {
-        dispatch(loadDeployPreview(collection, slug, entry, isPublished, opts));
+        dispatch(loadDeployPreview(collection, slug, entry as unknown as Entry, isPublished, opts));
       }
     },
     [dispatch, collection, slug, entry, isPublished]

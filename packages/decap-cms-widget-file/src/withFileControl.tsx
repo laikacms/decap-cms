@@ -1,3 +1,4 @@
+/** @jsxImportSource @emotion/react */
 import React from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
@@ -26,13 +27,18 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
+import type { DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 
 const MAX_DISPLAY_LENGTH = 50;
 
-const ImageWrapper = styled.div`
+interface ImageWrapperProps {
+  $sortable?: boolean;
+}
+
+const ImageWrapper = styled.div<ImageWrapperProps>`
   flex-basis: 155px;
   width: 155px;
   height: 100px;
@@ -43,7 +49,7 @@ const ImageWrapper = styled.div`
   overflow: hidden;
   ${effects.checkerboard};
   ${shadows.inset};
-  cursor: ${props => (props.sortable ? 'pointer' : 'auto')};
+  cursor: ${(props: ImageWrapperProps) => (props.$sortable ? 'pointer' : 'auto')};
 `;
 
 const SortableImageButtonsWrapper = styled.div`
@@ -61,11 +67,18 @@ const StyledImage = styled.img`
   object-fit: contain;
 `;
 
-function Image(props) {
+interface ImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {}
+
+function Image(props: ImageProps) {
   return <StyledImage role="presentation" {...props} />;
 }
 
-function SortableImageButtons({ onRemove, onReplace }) {
+interface SortableImageButtonsProps {
+  onRemove: () => void;
+  onReplace: () => void;
+}
+
+function SortableImageButtons({ onRemove, onReplace }: SortableImageButtonsProps) {
   return (
     <SortableImageButtonsWrapper>
       <IconButton size="small" type="media" onClick={onReplace}></IconButton>
@@ -74,7 +87,17 @@ function SortableImageButtons({ onRemove, onReplace }) {
   );
 }
 
-function SortableImage(props) {
+interface SortableImageProps {
+  id: string;
+  index: number;
+  itemValue: string;
+  getAsset: (value: string, field?: ImmutableField) => string;
+  field: ImmutableField;
+  onRemove: () => void;
+  onReplace: () => void;
+}
+
+function SortableImage(props: SortableImageProps) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id: props.id,
   });
@@ -88,16 +111,29 @@ function SortableImage(props) {
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <ImageWrapper sortable>
+      <ImageWrapper $sortable>
         <Image src={getAsset(itemValue, field) || ''} />
       </ImageWrapper>
       <SortableImageButtons
-        item={itemValue}
         onRemove={onRemove}
         onReplace={onReplace}
       ></SortableImageButtons>
     </div>
   );
+}
+
+interface SortableItem {
+  id: string;
+  value: string;
+}
+
+interface SortableMultiImageWrapperProps {
+  items: SortableItem[];
+  getAsset: (value: string, field?: ImmutableField) => string;
+  field: ImmutableField;
+  onSortEnd: (args: { oldIndex: number; newIndex: number }) => void;
+  onRemoveOne: (index: number) => () => void;
+  onReplaceOne: (index: number) => () => void;
 }
 
 function SortableMultiImageWrapper({
@@ -107,23 +143,22 @@ function SortableMultiImageWrapper({
   onSortEnd,
   onRemoveOne,
   onReplaceOne,
-}) {
+}: SortableMultiImageWrapperProps) {
   const activationConstraint = { distance: 4 };
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint }),
     useSensor(TouchSensor, { activationConstraint }),
   );
 
-  function handleSortEnd({ active, over }) {
+  function handleSortEnd({ active, over }: DragEndEvent) {
     onSortEnd({
-      oldIndex: items.findIndex(item => item.id === active.id),
-      newIndex: items.findIndex(item => item.id === over.id),
+      oldIndex: items.findIndex((item: SortableItem) => item.id === active.id),
+      newIndex: items.findIndex((item: SortableItem) => item.id === over?.id),
     });
   }
 
   return (
     <div
-      // eslint-disable-next-line react/no-unknown-property
       css={css`
         display: flex;
         flex-wrap: wrap;
@@ -136,7 +171,7 @@ function SortableMultiImageWrapper({
         onDragEnd={handleSortEnd}
       >
         <SortableContext items={items}>
-          {items.map((item, index) => (
+          {items.map((item: SortableItem, index: number) => (
             <SortableImage
               key={item.id}
               id={item.id}
@@ -185,11 +220,16 @@ const FileWidgetButtonRemove = styled.button`
   ${components.badgeDanger};
 `;
 
-function isMultiple(value) {
+type FileValue = string | string[] | List<string>;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ImmutableField = Map<string, any>;
+
+function isMultiple(value: FileValue): boolean {
   return Array.isArray(value) || List.isList(value);
 }
 
-function sizeOfValue(value) {
+function sizeOfValue(value: FileValue): number {
   if (Array.isArray(value)) {
     return value.length;
   }
@@ -201,24 +241,25 @@ function sizeOfValue(value) {
   return value ? 1 : 0;
 }
 
-function valueListToArray(value) {
+function valueListToArray(value: FileValue): string[] | string {
   return List.isList(value) ? value.toArray() : value ?? '';
 }
 
-function valueListToSortableArray(value) {
+function valueListToSortableArray(value: FileValue): SortableItem[] | FileValue {
   if (!isMultiple(value)) {
     return value;
   }
 
-  const valueArray = valueListToArray(value).map(value => ({
+  const arr = valueListToArray(value);
+  const valueArray = (Array.isArray(arr) ? arr : [arr]).map((v: string) => ({
     id: uuid(),
-    value,
+    value: v,
   }));
 
   return valueArray;
 }
 
-const warnDeprecatedOptions = once(field =>
+const warnDeprecatedOptions = once((field: ImmutableField) =>
   console.warn(oneLine`
   Decap CMS config: ${field.get('name')} field: property "options" has been deprecated for the
   ${field.get('widget')} widget and will be removed in the next major release. Rather than
@@ -227,8 +268,23 @@ const warnDeprecatedOptions = once(field =>
 `),
 );
 
-export default function withFileControl({ forImage } = {}) {
-  return class FileControl extends React.Component {
+export interface FileControlProps {
+  field: ImmutableField;
+  getAsset: (value: string, field?: ImmutableField) => string;
+  mediaPaths: Map<string, string>;
+  onAddAsset: (asset: unknown) => void;
+  onChange: (value: unknown) => void;
+  onRemoveInsertedMedia: (controlID: string) => void;
+  onOpenMediaLibrary: (options: Record<string, unknown>) => void;
+  onClearMediaControl: (controlID: string) => void;
+  onRemoveMediaControl: (controlID: string) => void;
+  classNameWrapper: string;
+  value: FileValue;
+  t: (key: string) => string;
+}
+
+export default function withFileControl({ forImage }: { forImage?: boolean } = {}) {
+  return class FileControl extends React.Component<FileControlProps> {
     static propTypes = {
       field: PropTypes.object.isRequired,
       getAsset: PropTypes.func.isRequired,
@@ -252,7 +308,9 @@ export default function withFileControl({ forImage } = {}) {
       value: '',
     };
 
-    constructor(props) {
+    controlID: string;
+
+    constructor(props: FileControlProps) {
       super(props);
       this.controlID = uuid();
     }
@@ -262,7 +320,7 @@ export default function withFileControl({ forImage } = {}) {
       PropTypes.checkPropTypes(FileControl.propTypes, this.props, 'prop', 'FileControl');
     }
 
-    shouldComponentUpdate(nextProps) {
+    shouldComponentUpdate(nextProps: FileControlProps) {
       /**
        * Always update if the value or getAsset changes.
        */
@@ -296,7 +354,7 @@ export default function withFileControl({ forImage } = {}) {
       this.props.onRemoveMediaControl(this.controlID);
     }
 
-    handleChange = e => {
+    handleChange = (e: React.MouseEvent) => {
       const { field, onOpenMediaLibrary, value } = this.props;
       e.preventDefault();
       const mediaLibraryFieldOptions = this.getMediaLibraryFieldOptions();
@@ -312,7 +370,7 @@ export default function withFileControl({ forImage } = {}) {
       });
     };
 
-    handleUrl = subject => e => {
+    handleUrl = (subject: string) => (e: React.MouseEvent) => {
       e.preventDefault();
 
       const url = window.prompt(this.props.t(`editor.editorWidgets.${subject}.promptUrl`));
@@ -322,19 +380,21 @@ export default function withFileControl({ forImage } = {}) {
       }
     };
 
-    handleRemove = e => {
+    handleRemove = (e: React.MouseEvent) => {
       e.preventDefault();
       this.props.onClearMediaControl(this.controlID);
       return this.props.onChange('');
     };
 
-    onRemoveOne = index => () => {
+    onRemoveOne = (index: number) => () => {
       const value = valueListToArray(this.props.value);
-      value.splice(index, 1);
-      return this.props.onChange(sizeOfValue(value) > 0 ? [...value] : null);
+      if (Array.isArray(value)) {
+        value.splice(index, 1);
+        return this.props.onChange(sizeOfValue(value) > 0 ? [...value] : null);
+      }
     };
 
-    onReplaceOne = index => () => {
+    onReplaceOne = (index: number) => () => {
       const { field, onOpenMediaLibrary, value } = this.props;
       const mediaLibraryFieldOptions = this.getMediaLibraryFieldOptions();
 
@@ -350,15 +410,15 @@ export default function withFileControl({ forImage } = {}) {
       });
     };
 
-    getMediaLibraryFieldOptions = () => {
+    getMediaLibraryFieldOptions = (): ImmutableField => {
       const { field } = this.props;
 
       if (field.hasIn(['options', 'media_library'])) {
         warnDeprecatedOptions(field);
-        return field.getIn(['options', 'media_library'], Map());
+        return field.getIn(['options', 'media_library'], Map()) as ImmutableField;
       }
 
-      return field.get('media_library', Map());
+      return field.get('media_library', Map()) as ImmutableField;
     };
 
     allowsMultiple = () => {
@@ -369,22 +429,22 @@ export default function withFileControl({ forImage } = {}) {
       );
     };
 
-    onSortEnd = ({ oldIndex, newIndex }) => {
+    onSortEnd = ({ oldIndex, newIndex }: { oldIndex: number; newIndex: number }) => {
       const { value } = this.props;
-      const newValue = arrayMove(value, oldIndex, newIndex);
+      const newValue = arrayMove(value as string[], oldIndex, newIndex);
       return this.props.onChange(newValue);
     };
 
     getValidateValue = () => {
       const { value } = this.props;
       if (value) {
-        return isMultiple(value) ? value.map(v => basename(v)) : basename(value);
+        return isMultiple(value) ? (value as string[]).map((v: string) => basename(v)) : basename(value as string);
       }
 
       return value;
     };
 
-    renderFileLink = value => {
+    renderFileLink = (value: string) => {
       const size = MAX_DISPLAY_LENGTH;
       if (!value || value.length <= size) {
         return value;
@@ -404,14 +464,14 @@ export default function withFileControl({ forImage } = {}) {
         return (
           <FileLinks>
             <FileLinkList>
-              {value.map(val => (
+              {(value as string[]).map((val: string) => (
                 <li key={val}>{this.renderFileLink(val)}</li>
               ))}
             </FileLinkList>
           </FileLinks>
         );
       }
-      return <FileLinks>{this.renderFileLink(value)}</FileLinks>;
+      return <FileLinks>{this.renderFileLink(value as string)}</FileLinks>;
     };
 
     renderImages = () => {
@@ -420,20 +480,17 @@ export default function withFileControl({ forImage } = {}) {
       if (isMultiple(value)) {
         return (
           <SortableMultiImageWrapper
-            items={items}
+            items={items as SortableItem[]}
             onSortEnd={this.onSortEnd}
             onRemoveOne={this.onRemoveOne}
             onReplaceOne={this.onReplaceOne}
-            distance={4}
             getAsset={getAsset}
             field={field}
-            axis="xy"
-            lockToContainerEdges={true}
           ></SortableMultiImageWrapper>
         );
       }
 
-      const src = getAsset(value, field);
+      const src = getAsset(value as string, field);
       return (
         <ImageWrapper>
           <Image src={src || ''} />
@@ -441,7 +498,7 @@ export default function withFileControl({ forImage } = {}) {
       );
     };
 
-    renderSelection = subject => {
+    renderSelection = (subject: string) => {
       const { t, field } = this.props;
       const allowsMultiple = this.allowsMultiple();
       return (
@@ -469,7 +526,7 @@ export default function withFileControl({ forImage } = {}) {
       );
     };
 
-    renderNoSelection = subject => {
+    renderNoSelection = (subject: string) => {
       const { t, field } = this.props;
       return (
         <>

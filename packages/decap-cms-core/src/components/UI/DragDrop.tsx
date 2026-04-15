@@ -1,60 +1,49 @@
 import { HTML5Backend as ReactDNDHTML5Backend } from 'react-dnd-html5-backend';
 import {
   DndProvider as ReactDNDProvider,
-  DragSource as ReactDNDDragSource,
-  DropTarget as ReactDNDDropTarget,
+  useDrag,
+  useDrop,
 } from 'react-dnd';
+import type { ConnectDragSource, ConnectDropTarget } from 'react-dnd';
 import React from 'react';
-import PropTypes from 'prop-types';
 
-export function DragSource({ namespace, ...props }) {
-  const DragComponent = ReactDNDDragSource(
-    namespace,
-    {
-      // eslint-disable-next-line no-unused-vars
-      beginDrag({ children, isDragging, connectDragComponent, ...ownProps }) {
-        // We return the rest of the props as the ID of the element being dragged.
-        return ownProps;
-      },
-    },
-    connect => ({
-      connectDragComponent: connect.dragSource(),
-    }),
-  )(({ children, connectDragComponent }) => children(connectDragComponent));
-
-  return React.createElement(DragComponent, props, props.children);
+export interface DragSourceProps {
+  namespace: string;
+  children: (connectDragComponent: ConnectDragSource) => React.ReactNode;
+  [key: string]: unknown;
 }
 
-DragSource.propTypes = {
-  namespace: PropTypes.any.isRequired,
-  children: PropTypes.func.isRequired,
-};
+export function DragSource({ namespace, children, ...ownProps }: DragSourceProps) {
+  const [, connectDragSource] = useDrag({
+    type: namespace,
+    item: () => ownProps,
+  });
 
-export function DropTarget({ onDrop, namespace, ...props }) {
-  const DropComponent = ReactDNDDropTarget(
-    namespace,
-    {
-      drop(ownProps, monitor) {
-        onDrop(monitor.getItem());
-      },
+  return <>{children(connectDragSource)}</>;
+}
+
+export interface DropTargetProps {
+  onDrop: (item: Record<string, unknown>) => void;
+  namespace: string;
+  children: (connectDropTarget: ConnectDropTarget, state: { isHovered: boolean }) => React.ReactNode;
+}
+
+export function DropTarget({ onDrop, namespace, children }: DropTargetProps) {
+  const [{ isHovered }, connectDropTarget] = useDrop({
+    accept: namespace,
+    drop: (item: Record<string, unknown>) => {
+      onDrop(item);
     },
-    (connect, monitor) => ({
-      connectDropTarget: connect.dropTarget(),
+    collect: (monitor) => ({
       isHovered: monitor.isOver(),
     }),
-  )(({ children, connectDropTarget, isHovered }) => children(connectDropTarget, { isHovered }));
+  });
 
-  return React.createElement(DropComponent, props, props.children);
+  return <>{children(connectDropTarget, { isHovered })}</>;
 }
 
-DropTarget.propTypes = {
-  onDrop: PropTypes.func.isRequired,
-  namespace: PropTypes.any.isRequired,
-  children: PropTypes.func.isRequired,
-};
-
-export function HTML5DragDrop(WrappedComponent) {
-  return class HTML5DragDrop extends React.Component {
+export function HTML5DragDrop<P extends object>(WrappedComponent: React.ComponentType<P>) {
+  return class HTML5DragDrop extends React.Component<P> {
     render() {
       return (
         <ReactDNDProvider backend={ReactDNDHTML5Backend}>

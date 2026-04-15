@@ -19,6 +19,8 @@ import {
 
 import { status } from '../../constants/publishModes';
 import { SettingsDropdown } from '../UI';
+import type { TranslateFunction } from 'decap-cms-ui-default';
+import type { Collection } from '../../types/cms';
 
 const styles = {
   noOverflow: css`
@@ -221,7 +223,7 @@ const PreviewButtonContainer = styled.div`
   }
 `;
 
-const RefreshPreviewButton = styled.button`
+const RefreshPreviewButton = styled.button<{ $spinning?: boolean }>`
   background: none;
   border: 0;
   cursor: pointer;
@@ -262,7 +264,43 @@ const StatusDropdownItem = styled(DropdownItem)`
   }
 `;
 
-export class EditorToolbar extends React.Component {
+interface EditorToolbarProps {
+  isPersisting?: boolean;
+  isPublishing?: boolean;
+  isUpdatingStatus?: boolean;
+  isDeleting?: boolean;
+  onPersist: (opts?: { createNew?: boolean; duplicate?: boolean }) => void;
+  onPersistAndNew: () => void;
+  onPersistAndDuplicate: () => void;
+  showDelete: boolean;
+  onDelete: () => void;
+  onDeleteUnpublishedChanges: () => void;
+  onChangeStatus: (newStatus: string) => void;
+  onPublish: (opts?: { createNew?: boolean; duplicate?: boolean }) => void;
+  unPublish: () => void;
+  onDuplicate: () => void;
+  onPublishAndNew: () => void;
+  onPublishAndDuplicate: () => void;
+  user?: { login?: string; name?: string; avatar_url?: string };
+  hasChanged?: boolean;
+  displayUrl?: string;
+  collection: Collection;
+  hasWorkflow?: boolean;
+  useOpenAuthoring?: boolean;
+  hasUnpublishedChanges?: boolean;
+  isNewEntry?: boolean;
+  isModification?: boolean;
+  currentStatus?: string;
+  onLogoutClick: () => void;
+  deployPreview?: { url?: string; status?: string; isFetching?: boolean };
+  loadDeployPreview: (opts?: { maxAttempts?: number; signal?: AbortSignal }) => void;
+  t: TranslateFunction;
+  editorBackLink: string;
+}
+
+export class EditorToolbar extends React.Component<EditorToolbarProps> {
+  _pollController: AbortController | null = null;
+
   static propTypes = {
     isPersisting: PropTypes.bool,
     isPublishing: PropTypes.bool,
@@ -312,7 +350,7 @@ export class EditorToolbar extends React.Component {
     }
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: EditorToolbarProps) {
     const { isNewEntry, isPersisting, loadDeployPreview } = this.props;
     if (!isNewEntry && prevProps.isPersisting && !isPersisting) {
       // Abort any in-flight poll before starting a new one.
@@ -347,7 +385,7 @@ export class EditorToolbar extends React.Component {
     );
   };
 
-  renderDeployPreviewControls = label => {
+  renderDeployPreviewControls = (label: string) => {
     const { deployPreview = {}, loadDeployPreview, t } = this.props;
     const { url, status, isFetching } = deployPreview;
 
@@ -365,7 +403,7 @@ export class EditorToolbar extends React.Component {
           </PreviewLink>
         ) : (
           <RefreshPreviewButton
-            onClick={loadDeployPreview}
+            onClick={() => loadDeployPreview()}
             disabled={isFetching}
             $spinning={isFetching}
           >
@@ -380,9 +418,9 @@ export class EditorToolbar extends React.Component {
   renderStatusInfoTooltip = () => {
     const { t, currentStatus } = this.props;
 
-    const statusToLocaleKey = {
-      [status.get('DRAFT')]: 'statusInfoTooltipDraft',
-      [status.get('PENDING_REVIEW')]: 'statusInfoTooltipInReview',
+    const statusToLocaleKey: Record<string, string> = {
+      [status.get('DRAFT') as string]: 'statusInfoTooltipDraft',
+      [status.get('PENDING_REVIEW') as string]: 'statusInfoTooltipInReview',
     };
 
     const statusKey = Object.keys(statusToLocaleKey).find(key => key === currentStatus);
@@ -401,15 +439,15 @@ export class EditorToolbar extends React.Component {
   renderWorkflowStatusControls = () => {
     const { isUpdatingStatus, onChangeStatus, currentStatus, t, useOpenAuthoring } = this.props;
 
-    const statusToTranslation = {
-      [status.get('DRAFT')]: t('editor.editorToolbar.draft'),
-      [status.get('PENDING_REVIEW')]: t('editor.editorToolbar.inReview'),
-      [status.get('PENDING_PUBLISH')]: t('editor.editorToolbar.ready'),
+    const statusToTranslation: Record<string, string> = {
+      [status.get('DRAFT') as string]: t('editor.editorToolbar.draft'),
+      [status.get('PENDING_REVIEW') as string]: t('editor.editorToolbar.inReview'),
+      [status.get('PENDING_PUBLISH') as string]: t('editor.editorToolbar.ready'),
     };
 
     const buttonText = isUpdatingStatus
       ? t('editor.editorToolbar.updating')
-      : t('editor.editorToolbar.status', { status: statusToTranslation[currentStatus] });
+      : t('editor.editorToolbar.status', { status: currentStatus ? statusToTranslation[currentStatus] : '' });
 
     return (
       <>
@@ -421,12 +459,12 @@ export class EditorToolbar extends React.Component {
           <StatusDropdownItem
             label={t('editor.editorToolbar.draft')}
             onClick={() => onChangeStatus('DRAFT')}
-            icon={currentStatus === status.get('DRAFT') ? 'check' : null}
+            icon={currentStatus === status.get('DRAFT') ? 'check' : undefined}
           />
           <StatusDropdownItem
             label={t('editor.editorToolbar.inReview')}
             onClick={() => onChangeStatus('PENDING_REVIEW')}
-            icon={currentStatus === status.get('PENDING_REVIEW') ? 'check' : null}
+            icon={currentStatus === status.get('PENDING_REVIEW') ? 'check' : undefined}
           />
           {useOpenAuthoring ? (
             ''
@@ -434,7 +472,7 @@ export class EditorToolbar extends React.Component {
             <StatusDropdownItem
               label={t('editor.editorToolbar.ready')}
               onClick={() => onChangeStatus('PENDING_PUBLISH')}
-              icon={currentStatus === status.get('PENDING_PUBLISH') ? 'check' : null}
+              icon={currentStatus === status.get('PENDING_PUBLISH') ? 'check' : undefined}
             />
           )}
         </ToolbarDropdown>
@@ -443,7 +481,7 @@ export class EditorToolbar extends React.Component {
     );
   };
 
-  renderNewEntryWorkflowPublishControls = ({ canCreate, canPublish }) => {
+  renderNewEntryWorkflowPublishControls = ({ canCreate, canPublish }: { canCreate?: boolean; canPublish?: boolean }) => {
     const { isPublishing, onPublish, onPublishAndNew, onPublishAndDuplicate, t } = this.props;
 
     return canPublish ? (
@@ -484,7 +522,7 @@ export class EditorToolbar extends React.Component {
     );
   };
 
-  renderExistingEntryWorkflowPublishControls = ({ canCreate, canPublish, canDelete }) => {
+  renderExistingEntryWorkflowPublishControls = ({ canCreate, canPublish, canDelete }: { canCreate?: boolean; canPublish?: boolean; canDelete?: boolean }) => {
     const { unPublish, onDuplicate, isPersisting, t } = this.props;
 
     return canPublish || canCreate ? (
@@ -521,7 +559,7 @@ export class EditorToolbar extends React.Component {
     );
   };
 
-  renderExistingEntrySimplePublishControls = ({ canCreate }) => {
+  renderExistingEntrySimplePublishControls = ({ canCreate }: { canCreate?: boolean }) => {
     const { onDuplicate, t } = this.props;
     return canCreate ? (
       <ToolbarDropdown
@@ -544,7 +582,7 @@ export class EditorToolbar extends React.Component {
     );
   };
 
-  renderNewEntrySimplePublishControls = ({ canCreate }) => {
+  renderNewEntrySimplePublishControls = ({ canCreate }: { canCreate?: boolean }) => {
     const { onPersist, onPersistAndNew, onPersistAndDuplicate, isPersisting, t } = this.props;
 
     return (
@@ -612,7 +650,7 @@ export class EditorToolbar extends React.Component {
     } = this.props;
 
     const canCreate = collection.get('create');
-    const canPublish = collection.get('publish') && !useOpenAuthoring;
+    const canPublish = (collection as any).get('publish') && !useOpenAuthoring;
     const canDelete = collection.get('delete', true);
 
     const deleteLabel =

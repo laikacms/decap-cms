@@ -200,7 +200,7 @@ export default class AssetStore {
 
       const asset = { id, name, size, displayURL: url, url, path: url };
       return { success: true, asset };
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(error);
       throw error;
     }

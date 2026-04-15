@@ -4,7 +4,7 @@ import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { connect } from 'react-redux';
 import { NavLink } from 'react-router-dom';
-import { dirname, sep } from 'path';
+import { dirname } from 'decap-cms-lib-util';
 import { stringTemplate } from 'decap-cms-lib-widgets';
 import { Icon, colors, components } from 'decap-cms-ui-default';
 import PropTypes from 'prop-types';
@@ -13,6 +13,11 @@ import sortBy from 'lodash/sortBy';
 
 import { selectEntries } from '../../reducers/entries';
 import { selectEntryCollectionTitle } from '../../reducers/collections';
+
+import type { List as ImmutableList, Map as ImmutableMap } from 'immutable';
+import type { Collection, EntryMap, State, Entries } from '../../types/cms';
+
+const sep = '/';
 
 const { addFileTemplateFields } = stringTemplate;
 
@@ -42,13 +47,13 @@ const CaretRight = styled(Caret)`
   left: 2px;
 `;
 
-const TreeNavLink = styled(NavLink)`
+const TreeNavLink = styled(NavLink)<{ $depth: number }>`
   display: flex;
   font-size: 14px;
   font-weight: 500;
   align-items: center;
   padding: 8px;
-  padding-left: ${props => props.depth * 16 + 18}px;
+  padding-left: ${(props: { $depth: number }) => props.$depth * 16 + 18}px;
   border-left: 2px solid #fff;
 
   ${Icon} {
@@ -56,10 +61,10 @@ const TreeNavLink = styled(NavLink)`
     flex-shrink: 0;
   }
 
-  ${props => css`
+  ${() => css`
     &:hover,
     &:active,
-    &.${props.activeClassName} {
+    &.sidebar-active {
       color: ${colors.active};
       background-color: ${colors.activeBackground};
       border-left-color: #4863c6;
@@ -67,14 +72,30 @@ const TreeNavLink = styled(NavLink)`
   `};
 `;
 
-function getNodeTitle(node) {
+function getNodeTitle(node: TreeNodeData): string {
   const title = node.isRoot
     ? node.title
-    : node.children.find(c => !c.isDir && c.title)?.title || node.title;
+    : node.children.find((c: TreeNodeData) => !c.isDir && c.title)?.title || node.title;
   return title;
 }
 
-function TreeNode(props) {
+interface TreeNodeData {
+  title: string;
+  path: string;
+  isDir: boolean;
+  isRoot: boolean;
+  children: TreeNodeData[];
+  expanded?: boolean;
+}
+
+interface TreeNodeProps {
+  collection: Collection;
+  depth?: number;
+  treeData: TreeNodeData[];
+  onToggle: (args: { node: TreeNodeData; expanded: boolean }) => void;
+}
+
+function TreeNode(props: TreeNodeProps): React.ReactNode {
   const { collection, treeData, depth = 0, onToggle } = props;
   const collectionName = collection.get('name');
 
@@ -104,11 +125,11 @@ function TreeNode(props) {
     return (
       <React.Fragment key={node.path}>
         <TreeNavLink
-          exact
+          end
           to={to}
-          activeClassName="sidebar-active"
+          className={({ isActive }: { isActive: boolean }) => (isActive ? 'sidebar-active' : '')}
           onClick={() => onToggle({ node, expanded: !node.expanded })}
-          depth={depth}
+          $depth={depth}
           data-testid={node.path}
         >
           <Icon type="write" />
@@ -137,8 +158,8 @@ TreeNode.propTypes = {
   onToggle: PropTypes.func.isRequired,
 };
 
-export function walk(treeData, callback) {
-  function traverse(children) {
+export function walk(treeData: TreeNodeData[], callback: (node: TreeNodeData) => void): void {
+  function traverse(children: TreeNodeData[]) {
     for (const child of children) {
       callback(child);
       traverse(child.children);
@@ -148,59 +169,68 @@ export function walk(treeData, callback) {
   return traverse(treeData);
 }
 
-export function getTreeData(collection, entries) {
-  const collectionFolder = collection.get('folder');
+interface FlatNode {
+  title: string;
+  path: string;
+  isDir: boolean;
+  isRoot: boolean;
+  [key: string]: unknown;
+}
+
+export function getTreeData(collection: Collection, entries: ImmutableList<EntryMap>): TreeNodeData[] {
+  const collectionFolder = collection.get('folder') as string;
   const rootFolder = '/';
   const entriesObj = entries
     .toJS()
-    .map(e => ({ ...e, path: e.path.slice(collectionFolder.length) }));
+    .map((e: Record<string, unknown>) => ({ ...e, path: (e.path as string).slice(collectionFolder.length) }));
 
-  const dirs = entriesObj.reduce((acc, entry) => {
-    let dir = dirname(entry.path);
+  const dirs = entriesObj.reduce((acc: Record<string, string | undefined>, entry: Record<string, unknown>) => {
+    let dir = dirname(entry.path as string);
     while (!acc[dir] && dir && dir !== rootFolder) {
       const parts = dir.split(sep);
       acc[dir] = parts.pop();
-      dir = parts.length && parts.join(sep);
+      dir = parts.length ? parts.join(sep) : '';
     }
     return acc;
-  }, {});
+  }, {} as Record<string, string | undefined>);
 
-  if (collection.getIn(['nested', 'summary'])) {
-    collection = collection.set('summary', collection.getIn(['nested', 'summary']));
+  let col = collection;
+  if (col.getIn(['nested', 'summary'])) {
+    col = col.set('summary', col.getIn(['nested', 'summary']) as string) as Collection;
   } else {
-    collection = collection.delete('summary');
+    col = col.delete('summary') as Collection;
   }
 
-  const flatData = [
+  const flatData: FlatNode[] = [
     {
-      title: collection.get('label'),
+      title: col.get('label') as string,
       path: rootFolder,
       isDir: true,
       isRoot: true,
     },
     ...Object.entries(dirs).map(([key, value]) => ({
-      title: value,
+      title: value as string,
       path: key,
       isDir: true,
       isRoot: false,
     })),
-    ...entriesObj.map((e, index) => {
-      let entryMap = entries.get(index);
+    ...entriesObj.map((e: Record<string, unknown>, index: number) => {
+      let entryMap = entries.get(index)!;
       entryMap = entryMap.set(
         'data',
-        addFileTemplateFields(entryMap.get('path'), entryMap.get('data')),
-      );
-      const title = selectEntryCollectionTitle(collection, entryMap);
+        addFileTemplateFields(entryMap.get('path') as string, entryMap.get('data') as unknown as ImmutableMap<string, string>),
+      ) as EntryMap;
+      const title = selectEntryCollectionTitle(col, entryMap);
       return {
         ...e,
         title,
         isDir: false,
         isRoot: false,
-      };
+      } as FlatNode;
     }),
   ];
 
-  const parentsToChildren = flatData.reduce((acc, node) => {
+  const parentsToChildren = flatData.reduce((acc: Record<string, FlatNode[]>, node: FlatNode) => {
     const parent = node.path === rootFolder ? '' : dirname(node.path);
     if (acc[parent]) {
       acc[parent].push(node);
@@ -208,11 +238,11 @@ export function getTreeData(collection, entries) {
       acc[parent] = [node];
     }
     return acc;
-  }, {});
+  }, {} as Record<string, FlatNode[]>);
 
-  function reducer(acc, value) {
+  function reducer(acc: TreeNodeData[], value: FlatNode): TreeNodeData[] {
     const node = value;
-    let children = [];
+    let children: TreeNodeData[] = [];
     if (parentsToChildren[node.path]) {
       children = parentsToChildren[node.path].reduce(reducer, []);
     }
@@ -221,15 +251,19 @@ export function getTreeData(collection, entries) {
     return acc;
   }
 
-  const treeData = parentsToChildren[''].reduce(reducer, []);
+  const treeData: TreeNodeData[] = parentsToChildren[''].reduce(reducer, []);
 
   return treeData;
 }
 
-export function updateNode(treeData, node, callback) {
+export function updateNode(
+  treeData: TreeNodeData[],
+  node: TreeNodeData,
+  callback: (node: TreeNodeData) => TreeNodeData,
+): TreeNodeData[] {
   let stop = false;
 
-  function updater(nodes) {
+  function updater(nodes: TreeNodeData[]): TreeNodeData[] {
     if (stop) {
       return nodes;
     }
@@ -247,14 +281,26 @@ export function updateNode(treeData, node, callback) {
   return updater([...treeData]);
 }
 
-export class NestedCollection extends React.Component {
+interface NestedCollectionProps {
+  collection: Collection;
+  entries: ImmutableList<EntryMap>;
+  filterTerm?: string;
+}
+
+interface NestedCollectionState {
+  treeData: TreeNodeData[];
+  selected: TreeNodeData | null;
+  useFilter: boolean;
+}
+
+export class NestedCollection extends React.Component<NestedCollectionProps, NestedCollectionState> {
   static propTypes = {
     collection: ImmutablePropTypes.map.isRequired,
     entries: ImmutablePropTypes.list.isRequired,
     filterTerm: PropTypes.string,
   };
 
-  constructor(props) {
+  constructor(props: NestedCollectionProps) {
     super(props);
     this.state = {
       treeData: getTreeData(this.props.collection, this.props.entries),
@@ -268,15 +314,15 @@ export class NestedCollection extends React.Component {
     PropTypes.checkPropTypes(NestedCollection.propTypes, this.props, 'prop', 'NestedCollection');
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: NestedCollectionProps) {
     const { collection, entries, filterTerm } = this.props;
     if (
       collection !== prevProps.collection ||
       entries !== prevProps.entries ||
       filterTerm !== prevProps.filterTerm
     ) {
-      const expanded = {};
-      walk(this.state.treeData, node => {
+      const expanded: Record<string, boolean> = {};
+      walk(this.state.treeData, (node: TreeNodeData) => {
         if (node.expanded) {
           expanded[node.path] = true;
         }
@@ -284,7 +330,7 @@ export class NestedCollection extends React.Component {
       const treeData = getTreeData(collection, entries);
 
       const path = `/${filterTerm}`;
-      walk(treeData, node => {
+      walk(treeData, (node: TreeNodeData) => {
         if (expanded[node.path] || (this.state.useFilter && path.startsWith(node.path))) {
           node.expanded = true;
         }
@@ -293,9 +339,9 @@ export class NestedCollection extends React.Component {
     }
   }
 
-  onToggle = ({ node, expanded }) => {
+  onToggle = ({ node, expanded }: { node: TreeNodeData; expanded: boolean }) => {
     if (!this.state.selected || this.state.selected.path === node.path || expanded) {
-      const treeData = updateNode(this.state.treeData, node, node => ({
+      const treeData = updateNode(this.state.treeData, node, (node: TreeNodeData) => ({
         ...node,
         expanded,
       }));
@@ -314,9 +360,9 @@ export class NestedCollection extends React.Component {
   }
 }
 
-function mapStateToProps(state, ownProps) {
+function mapStateToProps(state: State, ownProps: { collection: Collection }) {
   const { collection } = ownProps;
-  const entries = selectEntries(state.entries, collection) || List();
+  const entries = selectEntries(state.entries as Entries, collection) || List();
   return { entries };
 }
 

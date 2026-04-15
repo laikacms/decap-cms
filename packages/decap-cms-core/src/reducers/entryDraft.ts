@@ -131,8 +131,8 @@ function entryDraftReducer(state: EntryDraftState = Map(), action: AnyAction): E
           }
         }
         state.mergeDeepIn(['fieldsMetaData'], fromJS(metadata));
-        const newData = state.getIn(['entry', ...dataPath]);
-        const newMeta = state.getIn(['entry', 'meta']);
+        const newData = state.getIn(['entry', ...dataPath]) as Map<string, unknown>;
+        const newMeta = state.getIn(['entry', 'meta']) as Map<string, unknown>;
         state.set(
           'hasChanged',
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -196,7 +196,7 @@ function entryDraftReducer(state: EntryDraftState = Map(), action: AnyAction): E
 
     case ADD_DRAFT_ENTRY_MEDIA_FILE: {
       return state.withMutations(state => {
-        const mediaFiles = state.getIn(['entry', 'mediaFiles']);
+        const mediaFiles = state.getIn(['entry', 'mediaFiles']) as List<Map<string, unknown>>;
 
         state.setIn(
           ['entry', 'mediaFiles'],
@@ -211,7 +211,7 @@ function entryDraftReducer(state: EntryDraftState = Map(), action: AnyAction): E
 
     case REMOVE_DRAFT_ENTRY_MEDIA_FILE: {
       return state.withMutations(state => {
-        const mediaFiles = state.getIn(['entry', 'mediaFiles']);
+        const mediaFiles = state.getIn(['entry', 'mediaFiles']) as List<Map<string, unknown>>;
 
         state.setIn(
           ['entry', 'mediaFiles'],

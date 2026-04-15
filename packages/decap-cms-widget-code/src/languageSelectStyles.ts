@@ -1,32 +1,37 @@
+import type { CSSObject } from '@emotion/react';
 import { reactSelectStyles, borders } from 'decap-cms-ui-default';
 
-const languageSelectStyles = {
+interface SelectStyleState {
+  isSelected?: boolean;
+}
+
+const languageSelectStyles: Record<string, unknown> = {
   ...reactSelectStyles,
-  container: provided => ({
+  container: (provided: CSSObject): CSSObject => ({
     ...reactSelectStyles.container(provided),
     'margin-top': '2px',
   }),
-  control: provided => ({
+  control: (provided: CSSObject): CSSObject => ({
     ...reactSelectStyles.control(provided),
     border: borders.textField,
     padding: 0,
     fontSize: '13px',
     minHeight: 'auto',
   }),
-  dropdownIndicator: provided => ({
+  dropdownIndicator: (provided: CSSObject): CSSObject => ({
     ...reactSelectStyles.dropdownIndicator(provided),
     padding: '4px',
   }),
-  option: (provided, state) => ({
+  option: (provided: CSSObject, state: SelectStyleState): CSSObject => ({
     ...reactSelectStyles.option(provided, state),
     padding: 0,
     paddingLeft: '8px',
   }),
-  menu: provided => ({
+  menu: (provided: CSSObject): CSSObject => ({
     ...reactSelectStyles.menu(provided),
     margin: '2px 0',
   }),
-  menuList: provided => ({
+  menuList: (provided: CSSObject): CSSObject => ({
     ...provided,
     'max-height': '200px',
   }),

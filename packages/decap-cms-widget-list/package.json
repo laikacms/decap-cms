@@ -22,8 +22,10 @@
   },
   "dependencies": {
     "@dnd-kit/core": "catalog:dnd",
+    "@dnd-kit/utilities": "catalog:dnd",
     "@dnd-kit/modifiers": "catalog:dnd",
-    "@dnd-kit/sortable": "catalog:dnd"
+    "@dnd-kit/sortable": "catalog:dnd",
+    "uuid": "catalog:utils"
   },
   "peerDependencies": {
     "@emotion/react": "catalog:emotion",
@@ -36,6 +38,10 @@
     "prop-types": "catalog:react",
     "react": "catalog:react",
     "react-immutable-proptypes": "catalog:react"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:types",
+    "@types/prop-types": "catalog:types"
   },
   "type": "module",
   "types": "./dist/index.d.ts",

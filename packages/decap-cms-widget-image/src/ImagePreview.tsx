@@ -4,13 +4,26 @@ import styled from '@emotion/styled';
 import { List } from 'immutable';
 import { WidgetPreviewContainer } from 'decap-cms-ui-default';
 
-const StyledImage = styled(({ src }) => <img src={src || ''} role="presentation" />)`
+interface StyledImageInnerProps {
+  src: string;
+  className?: string;
+}
+
+const StyledImage = styled(({ src, className }: StyledImageInnerProps) => (
+  <img src={src || ''} role="presentation" className={className} />
+))`
   display: block;
   max-width: 100%;
   height: auto;
 `;
 
-function StyledImageAsset({ getAsset, value, field }) {
+interface StyledImageAssetProps {
+  getAsset: (value: string, field?: unknown) => string;
+  value: string | File;
+  field?: unknown;
+}
+
+function StyledImageAsset({ getAsset, value, field }: StyledImageAssetProps) {
   let src = '';
   if (value instanceof File) {
     src = URL.createObjectURL(value);
@@ -20,20 +33,32 @@ function StyledImageAsset({ getAsset, value, field }) {
   return <StyledImage src={src} />;
 }
 
-function ImagePreviewContent(props) {
+interface ImagePreviewContentProps {
+  value: string | string[] | File | List<string>;
+  getAsset: (value: string, field?: unknown) => string;
+  field?: unknown;
+}
+
+function ImagePreviewContent(props: ImagePreviewContentProps) {
   const { value, getAsset, field } = props;
   if (Array.isArray(value) || List.isList(value)) {
-    return value.map((val, index) => (
+    return (value as string[]).map((val: string, index: number) => (
       <StyledImageAsset key={index} value={val} getAsset={getAsset} field={field} />
     ));
   }
-  return <StyledImageAsset {...props} />;
+  return <StyledImageAsset value={value} getAsset={getAsset} field={field} />;
 }
 
-function ImagePreview(props) {
+interface ImagePreviewProps {
+  getAsset: (value: string, field?: unknown) => string;
+  value?: string | string[] | File | List<string>;
+  field?: unknown;
+}
+
+function ImagePreview(props: ImagePreviewProps) {
   return (
     <WidgetPreviewContainer>
-      {props.value ? <ImagePreviewContent {...props} /> : null}
+      {props.value ? <ImagePreviewContent value={props.value} getAsset={props.getAsset} field={props.field} /> : null}
     </WidgetPreviewContainer>
   );
 }

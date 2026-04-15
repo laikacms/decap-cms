@@ -2,12 +2,12 @@ import './lib/polyfill';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Provider, connect } from 'react-redux';
-import { Route, Router } from 'react-router-dom';
+import { unstable_HistoryRouter as HistoryRouter } from 'react-router-dom';
 import { GlobalStyles } from 'decap-cms-ui-default';
 import { I18n } from 'react-polyglot';
 
-import { store } from './redux';
 import { history } from './routing/history';
+import { store } from './redux';
 import { loadConfig } from './actions/config';
 import { authenticateUser } from './actions/auth';
 import { getPhrases } from './lib/phrases';
@@ -18,27 +18,30 @@ import './components/EditorWidgets';
 import './mediaLibrary';
 import 'what-input';
 
+import type { AppDispatch } from './redux';
+import type { CmsConfig } from './types/cms';
+
 const ROOT_ID = 'nc-root';
 
-function TranslatedApp({ locale, config }) {
+function TranslatedApp({ locale, config }: { locale: string; config: CmsConfig }) {
   return (
     <I18n locale={locale} messages={getPhrases(locale)}>
       <ErrorBoundary showBackup config={config}>
-        <Router history={history}>
-          <Route component={App} />
-        </Router>
+        <HistoryRouter history={history as any}>
+          <App />
+        </HistoryRouter>
       </ErrorBoundary>
     </I18n>
   );
 }
 
-function mapDispatchToProps(state) {
+function mapDispatchToProps(state: { config: CmsConfig }) {
   return { locale: selectLocale(state.config), config: state.config };
 }
 
 const ConnectedTranslatedApp = connect(mapDispatchToProps)(TranslatedApp);
 
-function bootstrap(opts = {}) {
+function bootstrap(opts: { config?: CmsConfig } = {}) {
   const { config } = opts;
 
   /**
@@ -74,9 +77,10 @@ function bootstrap(opts = {}) {
    * config.yml if it exists, and any portion that produces a conflict will be
    * overwritten.
    */
-  store.dispatch(
+  const dispatch = store.dispatch as AppDispatch;
+  dispatch(
     loadConfig(config, function onLoad() {
-      store.dispatch(authenticateUser());
+      dispatch(authenticateUser());
     }),
   );
 

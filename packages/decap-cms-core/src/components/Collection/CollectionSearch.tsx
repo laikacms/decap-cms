@@ -1,9 +1,11 @@
 import React from 'react';
 import styled from '@emotion/styled';
-import { colorsRaw, colors, Icon, lengths, zIndex } from 'decap-cms-ui-default';
+import { colorsRaw, colors, Icon, lengths, zIndex, TranslateFunction } from 'decap-cms-ui-default';
 import { translate } from 'react-polyglot';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
+
+import type { Collection, Collections } from '../../types/cms';
 
 const SearchContainer = styled.div`
   margin: 0 12px;
@@ -67,10 +69,10 @@ const SuggestionHeader = styled.li`
   color: ${colors.text};
 `;
 
-const SuggestionItem = styled.li(
-  ({ isActive }) => `
-  color: ${isActive ? colors.active : colorsRaw.grayDark};
-  background-color: ${isActive ? colors.activeBackground : 'inherit'};
+const SuggestionItem = styled.li<{ $isActive?: boolean }>(
+  ({ $isActive }) => `
+  color: ${$isActive ? colors.active : colorsRaw.grayDark};
+  background-color: ${$isActive ? colors.activeBackground : 'inherit'};
   padding: 6px 6px 6px 34px;
   cursor: pointer;
   position: relative;
@@ -86,7 +88,15 @@ const SuggestionDivider = styled.div`
   width: 100%;
 `;
 
-class CollectionSearch extends React.Component {
+interface CollectionSearchProps {
+  collections: Collections;
+  collection?: Collection;
+  searchTerm: string;
+  onSubmit: (query: string, collection?: string) => void;
+  t: TranslateFunction;
+}
+
+class CollectionSearch extends React.Component<CollectionSearchProps> {
   static propTypes = {
     collections: ImmutablePropTypes.map.isRequired,
     collection: ImmutablePropTypes.map,
@@ -107,7 +117,7 @@ class CollectionSearch extends React.Component {
     PropTypes.checkPropTypes(CollectionSearch.propTypes, this.props, 'prop', 'CollectionSearch');
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: CollectionSearchProps) {
     if (prevProps.collection !== this.props.collection) {
       const selectedCollectionIdx = this.getSelectedSelectionBasedOnProps();
       this.setState({ selectedCollectionIdx });
@@ -119,7 +129,7 @@ class CollectionSearch extends React.Component {
     return collection ? collections.keySeq().indexOf(collection.get('name')) : -1;
   }
 
-  toggleSuggestions(visible) {
+  toggleSuggestions(visible: boolean) {
     this.setState({ suggestionsVisible: visible });
   }
 
@@ -150,13 +160,13 @@ class CollectionSearch extends React.Component {
 
     this.toggleSuggestions(false);
     if (selectedCollectionIdx !== -1) {
-      onSubmit(query, collections.toIndexedSeq().getIn([selectedCollectionIdx, 'name']));
+      onSubmit(query, collections.toIndexedSeq().getIn([selectedCollectionIdx, 'name']) as string | undefined);
     } else {
       onSubmit(query);
     }
   };
 
-  handleKeyDown = event => {
+  handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     const { suggestionsVisible } = this.state;
 
     if (event.key === 'Enter') {
@@ -179,7 +189,7 @@ class CollectionSearch extends React.Component {
     }
   };
 
-  handleQueryChange = query => {
+  handleQueryChange = (query: string) => {
     this.setState({ query });
     this.toggleSuggestions(query !== '');
     if (query === '') {
@@ -187,7 +197,7 @@ class CollectionSearch extends React.Component {
     }
   };
 
-  handleSuggestionClick = (event, idx) => {
+  handleSuggestionClick = (event: React.MouseEvent, idx: number) => {
     this.setState({ selectedCollectionIdx: idx }, this.submitSearch);
     event.preventDefault();
   };
@@ -215,18 +225,18 @@ class CollectionSearch extends React.Component {
             <Suggestions>
               <SuggestionHeader>{t('collection.sidebar.searchIn')}</SuggestionHeader>
               <SuggestionItem
-                isActive={selectedCollectionIdx === -1}
+                $isActive={selectedCollectionIdx === -1}
                 onClick={e => this.handleSuggestionClick(e, -1)}
                 onMouseDown={e => e.preventDefault()}
               >
                 {t('collection.sidebar.allCollections')}
               </SuggestionItem>
               <SuggestionDivider />
-              {collections.toIndexedSeq().map((collection, idx) => (
+              {(collections.toIndexedSeq() as any).map((collection: any, idx: number) => (
                 <SuggestionItem
                   key={idx}
-                  isActive={idx === selectedCollectionIdx}
-                  onClick={e => this.handleSuggestionClick(e, idx)}
+                  $isActive={idx === selectedCollectionIdx}
+                  onClick={(e: any) => this.handleSuggestionClick(e, idx)}
                   onMouseDown={e => e.preventDefault()}
                 >
                   {collection.get('label')}
