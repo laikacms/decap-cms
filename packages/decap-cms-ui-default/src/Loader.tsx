@@ -168,7 +168,7 @@ const StyledLoader = styled(Loader)<StyledLoaderProps>`
 
   /* Static Shape */
   &:before {
-    border-color: rgba(0, 0, 0, 0.1);
+    border-color: rgb(0 0 0 / 0.1);
   }
 
   /* Active Shape */
