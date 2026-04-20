@@ -7,8 +7,6 @@ import {
 
 import isError from 'lodash/isError';
 
-import AuthenticationPage from './AuthenticationPage';
-
 import type {
   Entry,
   AssetProxy,
@@ -19,6 +17,8 @@ import type {
   ImplementationFile,
   UnpublishedEntry,
 } from 'decap-cms-lib-util';
+
+import AuthenticationPage from './AuthenticationPage';
 
 async function serializeAsset(assetProxy: AssetProxy) {
   const base64content = await assetProxy.toBase64!();

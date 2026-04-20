@@ -1,9 +1,11 @@
 import eslint from '@eslint/js';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
-import reactPlugin from 'eslint-plugin-react';
+// They have not yet upgraded to ESLint v10
+// import reactPlugin from 'eslint-plugin-react';
 import cypressPlugin from 'eslint-plugin-cypress';
-import importPlugin from 'eslint-plugin-import';
+// They have not yet upgraded to ESLint v10
+// import importPlugin from 'eslint-plugin-import';
 import unicornPlugin from 'eslint-plugin-unicorn';
 import prettierConfig from 'eslint-config-prettier';
 import fs from 'fs';
@@ -31,6 +33,7 @@ export default tseslint.config(
       '**/coverage/**',
       '**/.turbo/**',
       '**/storybook-static/**',
+      '**/.exclude*/**',
     ],
   },
 
@@ -42,10 +45,11 @@ export default tseslint.config(
 
   // Main configuration for TypeScript files
   {
-    files: ['**/*.ts', '**/*.tsx'],
+    files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.mjs'],
     plugins: {
-      react: reactPlugin,
-      import: importPlugin,
+      // react: reactPlugin,
+      // TODO: re-enable when they upgrade to ESLint v10
+      // import: importPlugin,
       unicorn: unicornPlugin,
       '@emotion': emotionPlugin,
     },
@@ -90,23 +94,28 @@ export default tseslint.config(
       'func-style': ['error', 'declaration'],
       'prefer-const': ['error', { destructuring: 'all' }],
       'no-duplicate-imports': 'off', // handled by @typescript-eslint
+      "sort-imports": ["error", {
+        "allowSeparatedGroups": true,
+      }],
 
       // React rules
-      'react/prop-types': 'off',
-      'react/no-unknown-property': [
-        'error',
-        { ignore: ['css', 'bold', 'italic', 'delete', 'strikethrough'] },
-      ],
+      // TODO: re-enable when they upgrade to ESLint v10
+      // 'react/prop-types': 'off',
+      // 'react/no-unknown-property': [
+      //   'error',
+      //   { ignore: ['css', 'bold', 'italic', 'delete', 'strikethrough'] },
+      // ],
 
       // Import rules
-      'import/no-named-as-default': 'off',
-      'import/order': [
-        'error',
-        {
-          'newlines-between': 'always',
-          groups: [['builtin', 'external'], ['internal', 'parent', 'sibling', 'index'], ['type']],
-        },
-      ],
+      // TODO: re-enable when they upgrade to ESLint v10
+      // 'import/no-named-as-default': 'off',
+      // 'import/order': [
+      //   'error',
+      //   {
+      //     'newlines-between': 'always',
+      //     groups: [['builtin', 'external'], ['internal', 'parent', 'sibling', 'index'], ['type']],
+      //   },
+      // ],
 
       // Emotion rules
       '@emotion/no-vanilla': 'error',

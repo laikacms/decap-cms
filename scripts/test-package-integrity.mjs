@@ -12,8 +12,8 @@
  * @see https://github.com/decaporg/decap-cms/issues/7623
  */
 
-import { spawnSync } from 'child_process';
 import { readFileSync, existsSync, readdirSync, statSync } from 'fs';
+import { spawnSync } from 'child_process';
 import { join } from 'path';
 
 const ROOT_DIR = process.cwd();

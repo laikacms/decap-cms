@@ -56,10 +56,10 @@
     "lint": "run-p -c --aggregate-output \"lint:*\"",
     "lint-quiet": "run-p -c --aggregate-output \"lint:* --quiet\"",
     "lint:css": "stylelint --ignore-path .gitignore \"packages/**/*.{css,scss,ts,tsx}\"",
-    "lint:js": "eslint --color \"packages/**/*.{ts,tsx}\" \"scripts/**/*.{ts,tsx}\" \"cypress/**/*.{ts,tsx}\"",
-    "lint:format": "prettier \"packages/**/*.{ts,tsx,css}\" \"scripts/**/*.{ts,tsx}\" --list-different",
+    "lint:js": "eslint --color \"packages/**/*.{ts,tsx,js,mjs}\" \"scripts/**/*.{ts,tsx,mjs,js}\" \"cypress/**/*.{ts,tsx,js,mjs}\"",
+    "lint:format": "prettier \"packages/**/*.{ts,tsx,css,js,mjs}\" \"scripts/**/*.{ts,tsx,mjs,js}\" --list-different",
     "format": "pnpm run lint:js -- --fix --quiet && pnpm run format:prettier -- --write",
-    "format:prettier": "prettier \"packages/**/*.{ts,tsx,css}\" \"scripts/**/*.{ts,tsx}\"",
+    "format:prettier": "prettier \"packages/**/*.{ts,tsx,css}\" \"scripts/**/*.{ts,tsx,mjs,js}\"",
     "lerna:publish": "lerna publish from-package --yes --no-private",
     "prepare": "husky install",
     "test:package-integrity": "node scripts/test-package-integrity.mjs"

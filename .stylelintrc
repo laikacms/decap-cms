@@ -25,5 +25,5 @@
       }
     ]
   },
-  "ignoreFiles": ["packages/decap-cms-lib-auth/index.d.ts"]
+  "ignoreFiles": ["packages/decap-cms-lib-auth/index.d.ts", "**/.exclude*/**"]
 }
