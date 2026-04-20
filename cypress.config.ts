@@ -9,10 +9,10 @@ export default defineConfig({
   e2e: {
     video: false,
     setupNodeEvents(on, config) {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      return require('./cypress/plugins/index.js')(on, config);
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      return require('./cypress/plugins/index.ts')(on, config);
     },
     baseUrl: 'http://localhost:8080',
-    specPattern: 'cypress/e2e/*spec*.js',
+    specPattern: 'cypress/e2e/*spec*.ts',
   },
 });

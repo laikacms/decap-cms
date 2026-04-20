@@ -16,6 +16,8 @@
 - [ ] React 19 peer dependency mismatches (react-aria-menubutton, etc.)
 - [ ] Redux 5 peer dependency mismatches (redux-devtools-extension)
 - [ ] Slate version mismatches (slate-base64-serializer, slate-plain-serializer)
+- [ ] @iarna+toml uses unsafe eval (remove)
+- [ ] Entry module "packages/decap-cms-app/src/index.ts" is using named (including "DecapCmsApp", "default", "h") and default exports together.
 
 ## Architecture
 - [ ] Create shared `decap-cms-types` package

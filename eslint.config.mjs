@@ -1,0 +1,158 @@
+import eslint from '@eslint/js';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
+import reactPlugin from 'eslint-plugin-react';
+import cypressPlugin from 'eslint-plugin-cypress';
+import importPlugin from 'eslint-plugin-import';
+import unicornPlugin from 'eslint-plugin-unicorn';
+import prettierConfig from 'eslint-config-prettier';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+const emotionPlugin = require('@emotion/eslint-plugin');
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const packages = fs
+  .readdirSync(path.join(__dirname, 'packages'), { withFileTypes: true })
+  .filter(dirent => dirent.isDirectory())
+  .map(dirent => dirent.name);
+
+export default tseslint.config(
+  // Global ignores
+  {
+    ignores: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/coverage/**',
+      '**/.turbo/**',
+      '**/storybook-static/**',
+    ],
+  },
+
+  // Base ESLint recommended rules
+  eslint.configs.recommended,
+
+  // TypeScript ESLint recommended rules
+  ...tseslint.configs.recommended,
+
+  // Main configuration for TypeScript files
+  {
+    files: ['**/*.ts', '**/*.tsx'],
+    plugins: {
+      react: reactPlugin,
+      import: importPlugin,
+      unicorn: unicornPlugin,
+      '@emotion': emotionPlugin,
+    },
+    languageOptions: {
+      ecmaVersion: 2026,
+      sourceType: 'module',
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+      globals: {
+        ...globals.node,
+        ...globals.browser,
+       
+        DECAP_CMS_VERSION: 'readonly',
+        DECAP_CMS_APP_VERSION: 'readonly',
+        DECAP_CMS_CORE_VERSION: 'readonly',
+        CMS_ENV: 'readonly',
+      },
+    },
+    settings: {
+      react: {
+        version: 'detect',
+      },
+      'import/resolver': {
+        node: {
+          extensions: ['.ts', '.tsx'],
+        },
+        typescript: {
+          alwaysTryTypes: true,
+        },
+        exports: {},
+      },
+      'import/core-modules': [...packages, 'decap-cms-app/dist/esm'],
+    },
+    rules: {
+      // General rules
+      'no-console': 'off',
+      'require-atomic-updates': 'off',
+      'object-shorthand': ['error', 'always'],
+      'func-style': ['error', 'declaration'],
+      'prefer-const': ['error', { destructuring: 'all' }],
+      'no-duplicate-imports': 'off', // handled by @typescript-eslint
+
+      // React rules
+      'react/prop-types': 'off',
+      'react/no-unknown-property': [
+        'error',
+        { ignore: ['css', 'bold', 'italic', 'delete', 'strikethrough'] },
+      ],
+
+      // Import rules
+      'import/no-named-as-default': 'off',
+      'import/order': [
+        'error',
+        {
+          'newlines-between': 'always',
+          groups: [['builtin', 'external'], ['internal', 'parent', 'sibling', 'index'], ['type']],
+        },
+      ],
+
+      // Emotion rules
+      '@emotion/no-vanilla': 'error',
+      '@emotion/pkg-renaming': 'error',
+      '@emotion/import-from-emotion': 'error',
+      '@emotion/styled-import': 'error',
+
+      // Unicorn rules
+      'unicorn/prefer-string-slice': 'error',
+
+      // TypeScript rules
+      '@typescript-eslint/no-non-null-assertion': 'off',
+      '@typescript-eslint/consistent-type-imports': 'error',
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/explicit-module-boundary-types': 'off',
+      '@typescript-eslint/no-use-before-define': [
+        'error',
+        { functions: false, classes: true, variables: true },
+      ],
+    },
+  },
+
+  // Cypress test files
+  {
+    files: ['cypress/**/*.ts', 'cypress/**/*.tsx'],
+    plugins: {
+      cypress: cypressPlugin,
+    },
+    languageOptions: {
+      globals: {
+        cy: 'readonly',
+        Cypress: 'readonly',
+        describe: 'readonly',
+        it: 'readonly',
+        before: 'readonly',
+        beforeEach: 'readonly',
+        after: 'readonly',
+        afterEach: 'readonly',
+        expect: 'readonly',
+      },
+    },
+    rules: {
+      ...cypressPlugin.configs.recommended.rules,
+    },
+  },
+
+  // Prettier config (must be last to override other formatting rules)
+  prettierConfig,
+);
