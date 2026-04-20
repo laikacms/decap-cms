@@ -32,23 +32,23 @@ const StyledModal = styled(Modal)<{ $isPrivate?: boolean }>`
   width: calc(${cardOutsideWidth} + 20px);
   background-color: ${props => props.$isPrivate && colors.inactive};
 
-  @media (min-width: 800px) {
+  @media (width >= 800px) {
     width: calc(${cardOutsideWidth} * 2 + 20px);
   }
 
-  @media (min-width: 1120px) {
+  @media (width >= 1120px) {
     width: calc(${cardOutsideWidth} * 3 + 20px);
   }
 
-  @media (min-width: 1440px) {
+  @media (width >= 1440px) {
     width: calc(${cardOutsideWidth} * 4 + 20px);
   }
 
-  @media (min-width: 1760px) {
+  @media (width >= 1760px) {
     width: calc(${cardOutsideWidth} * 5 + 20px);
   }
 
-  @media (min-width: 2080px) {
+  @media (width >= 2080px) {
     width: calc(${cardOutsideWidth} * 6 + 20px);
   }
 

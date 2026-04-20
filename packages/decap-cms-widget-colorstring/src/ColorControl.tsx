@@ -72,10 +72,7 @@ const ColorPickerContainer = styled.div`
 // fullscreen div to close color picker when clicking outside of picker
 const ClickOutsideDiv = styled.div`
   position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  inset: 0;
 `;
 
 interface ColorControlProps {

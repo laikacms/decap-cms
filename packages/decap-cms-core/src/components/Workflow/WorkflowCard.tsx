@@ -52,8 +52,9 @@ const CardBody = styled.p`
   ${styles.text};
   color: ${colors.text};
   margin: 24px 0 0;
+  overflow-wrap: anywhere;
   overflow-wrap: break-word;
-  word-break: break-word;
+  word-break: normal;
   hyphens: auto;
 `;
 

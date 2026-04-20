@@ -72,7 +72,7 @@ const styles = {
     display: none;
   `,
   hiddenRightBorder: css`
-    &:not(:first-child):not(:last-child) {
+    &:not(:first-child:last-child) {
       &:after {
         display: none;
       }

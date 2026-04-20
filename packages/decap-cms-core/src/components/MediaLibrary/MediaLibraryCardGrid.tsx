@@ -191,7 +191,7 @@ function PaginatedGrid({
 }
 
 const CardGridContainer = styled.div`
-  overflow-y: auto;
+  overflow: auto;
   overflow-x: hidden;
 `;
 

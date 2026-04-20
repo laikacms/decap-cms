@@ -79,14 +79,14 @@ const TooltipContainer = styled.div`
 
 const DropdownButton = styled(StyledDropdownButton)`
   ${styles.noOverflow}
-  @media (max-width: 1200px) {
+  @media (width >= 1200px) {
     padding-left: 10px;
   }
 `;
 
 const ToolbarContainer = styled.div`
-  box-shadow: 0 2px 6px 0 rgba(68, 74, 87, 0.05), 0 1px 3px 0 rgba(68, 74, 87, 0.1),
-    0 2px 54px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 6px 0 rgb(68 74 87 / 0.05), 0 1px 3px 0 rgb(68 74 87 / 0.1),
+    0 2px 54px rgb(0 0 0 / 0.1);
   position: absolute;
   top: 0;
   left: 0;
@@ -173,7 +173,7 @@ const ToolbarButton = styled.button`
   ${styles.noOverflow};
   display: block;
 
-  @media (max-width: 1200px) {
+  @media (width >= 1200px) {
     padding: 0 10px;
   }
 `;
