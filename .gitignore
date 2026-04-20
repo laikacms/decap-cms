@@ -6,7 +6,8 @@ npm-debug.log
 .DS_Store
 .tern-project
 yarn-error.log
-.vscode/
+.vscode/*
+!.vscode/extensions.json
 .idea/
 .claude/
 manifest.yml
