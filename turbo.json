@@ -5,6 +5,15 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**", "build/**"]
     },
+    "develop": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "passThroughEnv": [
+        "NODE_ENV",
+        "PORT"
+      ],
+      "persistent": true
+    },
     "dev": {
       "dependsOn": ["^build"],
       "cache": false,

@@ -20,7 +20,7 @@ coverage/
 .env
 .temp/
 storybook-static/
-.nx
+.turbo
 *.tsbuildinfo
 *.exclude.*
 

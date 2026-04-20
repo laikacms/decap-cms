@@ -28,12 +28,12 @@
   },
   "scripts": {
     "start": "npm run develop",
-    "develop": "nx run-many -t develop --parallel=999 --output-style=stream --exclude=decap-server",
-    "build": "nx run-many -t build --output-style=stream",
+    "develop": "turbo run develop --parallel --filter=!decap-server",
+    "build": "turbo run build",
     "build:demo": "vite build --config vite.config.demo.ts",
     "type-check": "tsc --noEmit",
     "type-check:watch": "npm run type-check -- --watch",
-    "clean": "rimraf \"packages/*/dist\" dev-test/dist \"packages/*/node_modules\" \".nx/cache\"",
+    "clean": "rimraf \"packages/*/dist\" dev-test/dist \"packages/*/node_modules\" \".turbo\"",
     "reset": "npm run clean",
     "test": "npm run lint && npm run type-check && npm run test:unit",
     "test:all": "npm run test && npm run test:e2e",
@@ -126,7 +126,7 @@
     "nock": "catalog:cypress",
     "node-fetch": "catalog:utils",
     "npm-run-all": "catalog:build",
-    "nx": "catalog:build",
+    "turbo": "catalog:build",
     "path-browserify": "catalog:polyfills",
     "postcss": "catalog:postcss",
     "postcss-scss": "catalog:postcss",
@@ -159,10 +159,7 @@
     "clean-stack": "5.2.0"
   },
   "overrides": {
-    "clean-stack": "5.2.0",
-    "nx": {
-      "minimatch": "9.0.9"
-    }
+    "clean-stack": "5.2.0"
   },
   "packageManager": "pnpm@9.15.9"
 }
