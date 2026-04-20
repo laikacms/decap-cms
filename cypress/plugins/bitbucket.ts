@@ -10,7 +10,8 @@ import {
   transformRecordedData as transformData,
   getGitClient,
 } from './common';
-import { retrieveRecordedExpectations, resetMockServerState, RecordedExpectation } from '../utils/mock-server';
+import type { RecordedExpectation } from '../utils/mock-server';
+import { retrieveRecordedExpectations, resetMockServerState } from '../utils/mock-server';
 
 const BITBUCKET_REPO_OWNER_SANITIZED_VALUE = 'owner';
 const BITBUCKET_REPO_NAME_SANITIZED_VALUE = 'repo';

@@ -5,7 +5,7 @@ import * as specUtils from './common/spec_utils';
 const backend = 'github';
 
 describe('GitHub Backend Media Library - REST API', () => {
-  let taskResult: { data: TaskDataResult } = { data: {} as TaskDataResult };
+  const taskResult: { data: TaskDataResult } = { data: {} as TaskDataResult };
 
   before(() => {
     specUtils.before(

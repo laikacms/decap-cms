@@ -1,6 +1,6 @@
 import React from 'react';
-import { css, Global, SerializedStyles } from '@emotion/react';
-import type { CSSObject } from '@emotion/react';
+import { css, Global } from '@emotion/react';
+import type { CSSObject , SerializedStyles } from '@emotion/react';
 
 /**
  * Font Stacks

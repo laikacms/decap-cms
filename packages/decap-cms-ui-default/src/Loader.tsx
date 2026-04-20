@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from '@emotion/styled';
-import { css, keyframes, SerializedStyles } from '@emotion/react';
+import type { SerializedStyles } from '@emotion/react';
+import { css, keyframes } from '@emotion/react';
 import { CSSTransition } from 'react-transition-group';
 
 import { colors, zIndex } from './styles';

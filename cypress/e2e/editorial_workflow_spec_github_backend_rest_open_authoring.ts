@@ -5,7 +5,7 @@ import { entry1, entry2, entry3 } from './common/entries';
 const backend = 'github';
 
 describe('GitHub Backend Editorial Workflow - REST API - Open Authoring', () => {
-  let taskResult: { data: TaskDataResult } = { data: {} as TaskDataResult };
+  const taskResult: { data: TaskDataResult } = { data: {} as TaskDataResult };
 
   before(() => {
     specUtils.before(

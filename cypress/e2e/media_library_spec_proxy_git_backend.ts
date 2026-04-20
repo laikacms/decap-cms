@@ -6,7 +6,7 @@ const backend = 'proxy';
 const mode = 'git';
 
 describe(`Proxy Backend Media Library - '${mode}' mode`, () => {
-  let taskResult: { data: TaskDataResult } = { data: {} as TaskDataResult };
+  const taskResult: { data: TaskDataResult } = { data: {} as TaskDataResult };
 
   before(() => {
     specUtils.before(taskResult, { publish_mode: 'editorial_workflow', mode }, backend);

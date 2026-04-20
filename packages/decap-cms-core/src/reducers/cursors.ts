@@ -1,4 +1,5 @@
-import { fromJS, Map } from 'immutable';
+import type { Map } from 'immutable';
+import { fromJS } from 'immutable';
 import { Cursor } from 'decap-cms-lib-util';
 
 import {

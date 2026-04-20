@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { Map } from 'immutable';
+import type { Map } from 'immutable';
 
 import { useAppSelector, useAppDispatch } from './useRedux';
 import { openMediaLibrary, closeMediaLibrary } from '../actions/mediaLibrary';

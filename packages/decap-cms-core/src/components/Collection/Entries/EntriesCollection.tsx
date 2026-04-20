@@ -6,7 +6,8 @@ import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
 import partial from 'lodash/partial';
 import { Cursor } from 'decap-cms-lib-util';
-import { colors, TranslateFunction } from 'decap-cms-ui-default';
+import type { TranslateFunction } from 'decap-cms-ui-default';
+import { colors } from 'decap-cms-ui-default';
 
 import type { List as ImmutableList, Set as ImmutableSet } from 'immutable';
 import type { Collection, Collections, EntryMap, GroupOfEntries, State } from '../../../types/cms';

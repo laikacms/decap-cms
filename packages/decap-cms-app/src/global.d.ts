@@ -1,4 +1,4 @@
-import { CMS } from "decap-cms-core";
+import type { CMS } from "decap-cms-core";
 
 declare global {
   interface Window {

@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from '@emotion/styled';
-import { colorsRaw, colors, Icon, lengths, zIndex, TranslateFunction } from 'decap-cms-ui-default';
+import type { TranslateFunction } from 'decap-cms-ui-default';
+import { colorsRaw, colors, Icon, lengths, zIndex } from 'decap-cms-ui-default';
 import { translate } from 'react-polyglot';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';

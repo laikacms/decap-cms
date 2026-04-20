@@ -5,7 +5,8 @@ import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 import { translate } from 'react-polyglot';
 import { NavLink } from 'react-router-dom';
-import { Icon, components, colors, TranslateFunction } from 'decap-cms-ui-default';
+import type { TranslateFunction } from 'decap-cms-ui-default';
+import { Icon, components, colors } from 'decap-cms-ui-default';
 
 import type { Collection, Collections } from '../../types/cms';
 

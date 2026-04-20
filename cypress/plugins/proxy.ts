@@ -1,6 +1,7 @@
 import fs from 'fs-extra';
 import path from 'path';
-import { spawn, ChildProcess } from 'child_process';
+import type { ChildProcess } from 'child_process';
+import { spawn } from 'child_process';
 import { merge } from 'lodash';
 
 import { updateConfig } from '../utils/config';

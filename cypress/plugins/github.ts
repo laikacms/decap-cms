@@ -9,7 +9,8 @@ import {
 } from './common';
 import { updateConfig } from '../utils/config';
 import { escapeRegExp } from '../utils/regexp';
-import { retrieveRecordedExpectations, resetMockServerState, RecordedExpectation } from '../utils/mock-server';
+import type { RecordedExpectation } from '../utils/mock-server';
+import { retrieveRecordedExpectations, resetMockServerState } from '../utils/mock-server';
 
 const GITHUB_REPO_OWNER_SANITIZED_VALUE = 'owner';
 const GITHUB_REPO_NAME_SANITIZED_VALUE = 'repo';

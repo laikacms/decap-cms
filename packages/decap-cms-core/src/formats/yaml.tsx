@@ -2,8 +2,10 @@ import yaml from 'yaml';
 
 import { sortKeys } from './helpers';
 
-import { createNode, CreateNodeContext } from 'yaml/util';
-import { YAMLMap, YAMLSeq, Pair, Node, Schema } from 'yaml';
+import type { CreateNodeContext } from 'yaml/util';
+import { createNode } from 'yaml/util';
+import type { YAMLMap, YAMLSeq, Pair, Node} from 'yaml';
+import { Schema } from 'yaml';
 import { isDate } from 'lodash';
 
 const createNodeContext: CreateNodeContext = {

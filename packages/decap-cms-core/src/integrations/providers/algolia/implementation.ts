@@ -1,7 +1,8 @@
 import flatten from 'lodash/flatten';
 import { unsentRequest } from 'decap-cms-lib-util';
 
-import { createEntry, EntryValue } from '../../../valueObjects/Entry';
+import type { EntryValue } from '../../../valueObjects/Entry';
+import { createEntry } from '../../../valueObjects/Entry';
 import { selectEntrySlug } from '../../../reducers/collections';
 
 import type { Map } from 'immutable';

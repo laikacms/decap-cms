@@ -3,7 +3,8 @@ import React from 'react';
 import styled from '@emotion/styled';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { translate } from 'react-polyglot';
-import { Loader, lengths, TranslateFunction } from 'decap-cms-ui-default';
+import type { TranslateFunction } from 'decap-cms-ui-default';
+import { Loader, lengths } from 'decap-cms-ui-default';
 
 import type { List as ImmutableList } from 'immutable';
 import type { Cursor } from 'decap-cms-lib-util';

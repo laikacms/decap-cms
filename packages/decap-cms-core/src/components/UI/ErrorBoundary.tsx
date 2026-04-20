@@ -6,7 +6,8 @@ import yaml from 'yaml';
 import truncate from 'lodash/truncate';
 import copyToClipboard from 'copy-text-to-clipboard';
 import { localForage } from 'decap-cms-lib-util';
-import { buttons, colors, TranslateFunction } from 'decap-cms-ui-default';
+import type { TranslateFunction } from 'decap-cms-ui-default';
+import { buttons, colors } from 'decap-cms-ui-default';
 
 import type { CmsConfig } from '../../types/cms';
 

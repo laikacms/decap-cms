@@ -1,7 +1,9 @@
 import { Map } from 'immutable';
 
-import Algolia, { AlgoliaConfig } from './providers/algolia/implementation';
-import AssetStore, { AssetStoreConfig } from './providers/assetStore/implementation';
+import type { AlgoliaConfig } from './providers/algolia/implementation';
+import Algolia from './providers/algolia/implementation';
+import type { AssetStoreConfig } from './providers/assetStore/implementation';
+import AssetStore from './providers/assetStore/implementation';
 
 import type { Integrations } from '../types/cms';
 

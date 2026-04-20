@@ -58,7 +58,7 @@
     "lint:css": "stylelint --ignore-path .gitignore \"packages/**/*.{css,scss,ts,tsx}\"",
     "lint:js": "eslint --color \"packages/**/*.{ts,tsx,js,mjs}\" \"scripts/**/*.{ts,tsx,mjs,js}\" \"cypress/**/*.{ts,tsx,js,mjs}\"",
     "lint:format": "prettier \"packages/**/*.{ts,tsx,css,js,mjs}\" \"scripts/**/*.{ts,tsx,mjs,js}\" --list-different",
-    "format": "pnpm run lint:js -- --fix --quiet && pnpm run format:prettier -- --write",
+    "format": "pnpm run lint:js --fix --quiet && pnpm run format:prettier --write",
     "format:prettier": "prettier \"packages/**/*.{ts,tsx,css}\" \"scripts/**/*.{ts,tsx,mjs,js}\"",
     "lerna:publish": "lerna publish from-package --yes --no-private",
     "prepare": "husky install",

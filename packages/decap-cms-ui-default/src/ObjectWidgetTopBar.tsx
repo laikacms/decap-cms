@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
-import { List } from 'immutable';
+import type { List } from 'immutable';
 
 import Icon from './Icon';
 import { colors, buttons } from './styles';

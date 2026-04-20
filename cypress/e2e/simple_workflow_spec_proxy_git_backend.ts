@@ -6,7 +6,7 @@ const backend = 'proxy';
 const mode = 'git';
 
 describe(`Proxy Backend Simple Workflow - '${mode}' mode`, () => {
-  let taskResult: { data: TaskDataResult } = { data: {} as TaskDataResult };
+  const taskResult: { data: TaskDataResult } = { data: {} as TaskDataResult };
 
   before(() => {
     specUtils.before(taskResult, { publish_mode: 'simple', mode }, backend);

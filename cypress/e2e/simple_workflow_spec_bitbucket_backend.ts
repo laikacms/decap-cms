@@ -5,7 +5,7 @@ import { entry1, entry2, entry3 } from './common/entries';
 const backend = 'bitbucket';
 
 describe('BitBucket Backend Simple Workflow', () => {
-  let taskResult: { data: TaskDataResult } = { data: {} as TaskDataResult };
+  const taskResult: { data: TaskDataResult } = { data: {} as TaskDataResult };
 
   before(() => {
     specUtils.before(taskResult, { publish_mode: 'simple' }, backend);

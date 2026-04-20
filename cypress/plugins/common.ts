@@ -1,5 +1,6 @@
 import path from 'path';
-import simpleGit, { SimpleGit } from 'simple-git';
+import type { SimpleGit } from 'simple-git';
+import simpleGit from 'simple-git';
 
 const GIT_SSH_COMMAND = 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no';
 const GIT_SSL_NO_VERIFY = 'true';

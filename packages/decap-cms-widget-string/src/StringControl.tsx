@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import type { Map } from 'immutable';
-import { TranslateFunction } from 'decap-cms-ui-default';
+import type { TranslateFunction } from 'decap-cms-ui-default';
 
 interface StringControlProps {
   onChange: (value: string) => void;

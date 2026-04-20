@@ -6,7 +6,7 @@ const backend = 'git-gateway';
 const provider = 'github';
 
 describe('Git Gateway (GitHub) Backend Simple Workflow', () => {
-  let taskResult: { data: TaskDataResult } = { data: {} as TaskDataResult };
+  const taskResult: { data: TaskDataResult } = { data: {} as TaskDataResult };
 
   before(() => {
     specUtils.before(taskResult, { publish_mode: 'simple', provider }, backend);

@@ -1,4 +1,5 @@
-import { fromJS, List } from 'immutable';
+import type { List } from 'immutable';
+import { fromJS } from 'immutable';
 import isFunction from 'lodash/isFunction';
 
 import type {

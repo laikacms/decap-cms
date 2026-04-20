@@ -6,7 +6,7 @@ const backend = 'bitbucket';
 const lfs = true;
 
 describe('BitBucket Backend Media Library - Large Media', () => {
-  let taskResult: { data: TaskDataResult } = { data: {} as TaskDataResult };
+  const taskResult: { data: TaskDataResult } = { data: {} as TaskDataResult };
 
   before(() => {
     specUtils.before(taskResult, { lfs }, backend);

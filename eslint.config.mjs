@@ -94,9 +94,6 @@ export default tseslint.config(
       'func-style': ['error', 'declaration'],
       'prefer-const': ['error', { destructuring: 'all' }],
       'no-duplicate-imports': 'off', // handled by @typescript-eslint
-      "sort-imports": ["error", {
-        "allowSeparatedGroups": true,
-      }],
 
       // React rules
       // TODO: re-enable when they upgrade to ESLint v10
