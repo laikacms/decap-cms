@@ -8,7 +8,7 @@ import dayjs from 'dayjs';
 import { translate } from 'react-polyglot';
 import { colors, lengths } from 'decap-cms-ui-default';
 import type { TranslateFunction } from 'decap-cms-ui-default';
-import type { Collections, Collection } from '../../types/cms';
+import type { Collections, Collection } from 'decap-cms-lib-util/types/cms-immutable';
 
 import { status } from '../../constants/publishModes';
 import { DragSource, DropTarget, HTML5DragDrop } from '../UI';

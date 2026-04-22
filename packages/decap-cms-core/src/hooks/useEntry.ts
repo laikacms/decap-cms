@@ -20,7 +20,7 @@ import { status } from '../constants/publishModes';
 import { navigateToCollection, navigateToNewEntry } from '../routing/history';
 
 import type { Status } from '../constants/publishModes';
-import type { Entry } from '../types/cms';
+import type { Entry } from 'decap-cms-lib-util/types/cms-immutable';
 
 interface UseEntryOptions {
   collectionName: string;

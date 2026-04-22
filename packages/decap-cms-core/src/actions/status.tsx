@@ -3,7 +3,7 @@ import { addNotification, dismissNotification } from './notifications';
 
 import type { ThunkDispatch } from 'redux-thunk';
 import type { AnyAction } from 'redux';
-import type { State } from '../types/cms';
+import type { State, CmsNotification } from 'decap-cms-lib-util/types/cms-immutable';
 
 export const STATUS_REQUEST = 'STATUS_REQUEST';
 export const STATUS_SUCCESS = 'STATUS_SUCCESS';
@@ -45,7 +45,7 @@ export function checkBackendStatus() {
       const status = await backend.status();
 
       const backendDownKey = 'ui.toast.onBackendDown';
-      const previousBackendDownNotifications = state.notifications.notifications.filter(
+      const previousBackendDownNotifications = (state.notifications.notifications as CmsNotification[]).filter(
         n => typeof n.message != 'string' && n.message?.key === backendDownKey,
       );
 
@@ -72,7 +72,7 @@ export function checkBackendStatus() {
       const authError = status.auth.status === false;
       if (authError) {
         const key = 'ui.toast.onLoggedOut';
-        const existingNotification = state.notifications.notifications.find(
+        const existingNotification = (state.notifications.notifications as CmsNotification[]).find(
           n => typeof n.message != 'string' && n.message?.key === key,
         );
         if (!existingNotification) {

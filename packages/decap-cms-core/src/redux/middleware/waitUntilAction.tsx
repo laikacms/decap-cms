@@ -8,7 +8,7 @@
  * blocks until the condition is met.
  */
 import type { MiddlewareAPI, Dispatch, AnyAction } from 'redux';
-import type { State } from '../../types/cms';
+import type { State } from 'decap-cms-lib-util/types/cms-immutable';
 
 export const WAIT_UNTIL_ACTION = 'WAIT_UNTIL_ACTION';
 

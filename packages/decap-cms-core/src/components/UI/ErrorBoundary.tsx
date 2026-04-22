@@ -9,7 +9,7 @@ import { localForage } from 'decap-cms-lib-util';
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import { buttons, colors } from 'decap-cms-ui-default';
 
-import type { CmsConfig } from '../../types/cms';
+import type { CmsConfig } from 'decap-cms-lib-util/types/cms';
 
 const ISSUE_URL = 'https://github.com/decaporg/decap-cms/issues/new';
 

@@ -10,7 +10,7 @@ import type { TranslateFunction } from 'decap-cms-ui-default';
 import { colors } from 'decap-cms-ui-default';
 
 import type { List as ImmutableList, Set as ImmutableSet } from 'immutable';
-import type { Collection, Collections, EntryMap, GroupOfEntries, State } from '../../../types/cms';
+import type { Collection, Collections, EntryMap, GroupOfEntries, State, Page } from 'decap-cms-lib-util/types/cms-immutable';
 import type { Status } from '../../../constants/publishModes';
 
 import {
@@ -235,7 +235,7 @@ export function filterNestedEntries(
 
 function mapStateToProps(state: State, ownProps: { collection: Collection; viewStyle?: string; filterTerm?: string }) {
   const { collection, viewStyle, filterTerm } = ownProps;
-  const page = state.entries.getIn(['pages', collection.get('name'), 'page']);
+  const page = state.entries.getIn(['pages', collection.get('name'), 'page']) as number | undefined;
 
   const collections = state.collections;
 

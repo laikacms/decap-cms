@@ -23,7 +23,7 @@ import type {
   DisplayURLState,
   MediaLibraryInstance,
   EntryField,
-} from '../types/cms';
+} from 'decap-cms-lib-util/types/cms-immutable';
 import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
 import type AssetProxy from '../valueObjects/AssetProxy';
@@ -117,8 +117,8 @@ export function insertMedia(mediaPath: string | string[], field: EntryField | un
     const state = getState();
     const config = state.config;
     const entry = state.entryDraft.get('entry');
-    const collectionName = state.entryDraft.getIn(['entry', 'collection']);
-    const collection = state.collections.get(collectionName);
+    const collectionName = state.entryDraft.getIn(['entry', 'collection']) as string | number;
+    const collection = state.collections.get(collectionName as string);
     if (Array.isArray(mediaPath)) {
       mediaPath = mediaPath.map(path =>
         selectMediaFilePublicPath(config, collection, path, entry, field),
@@ -200,13 +200,13 @@ function createMediaFileFromAsset({
 }): ImplementationMediaFile {
   const mediaFile = {
     id,
-    name: basename(assetProxy.path),
+    name: basename(assetProxy.path || ''),
     displayURL: assetProxy.url,
     draft,
     file,
     size: file.size,
     url: assetProxy.url,
-    path: assetProxy.path,
+    path: assetProxy.path || '',
     field: assetProxy.field,
   };
   return mediaFile;
@@ -379,7 +379,7 @@ export function loadMediaDisplayURL(file: MediaFile) {
   return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
     const { displayURL, id } = file;
     const state = getState();
-    const displayURLState: DisplayURLState = selectMediaDisplayURL(state, id);
+    const displayURLState = selectMediaDisplayURL(state, id) as DisplayURLState;
     if (
       !id ||
       !displayURL ||
@@ -528,7 +528,7 @@ export async function getMediaDisplayURL(
   state: State,
   file: MediaFile,
 ) {
-  const displayURLState: DisplayURLState = selectMediaDisplayURL(state, file.id);
+  const displayURLState = selectMediaDisplayURL(state, file.id) as DisplayURLState;
 
   let url: string | null | undefined;
   if (displayURLState.get('url')) {

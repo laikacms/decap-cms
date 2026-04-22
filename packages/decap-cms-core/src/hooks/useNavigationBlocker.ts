@@ -44,12 +44,15 @@ export function useNavigationBlocker({
     window.addEventListener('beforeunload', exitBlocker);
 
     // In-app navigation blocker (history v5 API)
+    // IMPORTANT: We must unblock BEFORE calling tx.retry() to prevent infinite loops,
+    // because tx.retry() re-triggers the navigation which would call this blocker again.
     const navigationBlocker = (tx: Transition) => {
       // Check if path is allowed
       const pathname = tx.location.pathname;
       const isAllowed = allowedPaths.some(path => pathname.startsWith(path));
       
       if (isAllowed && tx.action === 'PUSH') {
+        unblockRef.current?.();
         tx.retry();
         return;
       }
@@ -58,9 +61,11 @@ export function useNavigationBlocker({
         // Block by not calling tx.retry()
         // Show confirmation via window.confirm
         if (window.confirm(message)) {
+          unblockRef.current?.();
           tx.retry();
         }
       } else {
+        unblockRef.current?.();
         tx.retry();
       }
     };

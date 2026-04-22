@@ -6,7 +6,7 @@ import isEqual from 'lodash/isEqual';
 import { Cursor } from 'decap-cms-lib-util';
 
 import type { List as ImmutableList, Seq } from 'immutable';
-import type { Collection, EntryMap, State } from '../../../types/cms';
+import type { Collection, EntryMap, State } from 'decap-cms-lib-util/types/cms-immutable';
 
 import { selectSearchedEntries, selectUnpublishedEntry } from '../../../reducers';
 import {

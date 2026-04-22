@@ -80,8 +80,8 @@ interface ColorControlProps {
   forID?: string;
   value?: string;
   classNameWrapper: string;
-  setActiveStyle: (...args: unknown[]) => unknown;
-  setInactiveStyle: (...args: unknown[]) => unknown;
+  setActiveStyle: () => void;
+  setInactiveStyle: () => void;
   field: { get: (key: string, defaultValue?: unknown) => unknown };
 }
 

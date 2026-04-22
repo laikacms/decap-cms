@@ -4,7 +4,7 @@ import { lengths } from 'decap-cms-ui-default';
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import type { Map as ImmutableMap } from 'immutable';
 
-import type { ViewFilter, ViewGroup, SortDirection } from '../../types/cms';
+import type { ViewFilter, ViewGroup, SortDirection } from 'decap-cms-lib-util/types/cms-immutable';
 import ViewStyleControl from './ViewStyleControl';
 import SortControl from './SortControl';
 import FilterControl from './FilterControl';

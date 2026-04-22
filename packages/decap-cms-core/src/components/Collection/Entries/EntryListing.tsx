@@ -7,7 +7,7 @@ import { Map, List } from 'immutable';
 
 import type { List as ImmutableList } from 'immutable';
 import type { Cursor } from 'decap-cms-lib-util';
-import type { Collection, Collections, EntryMap } from '../../../types/cms';
+import type { Collection, Collections, EntryMap } from 'decap-cms-lib-util/types/cms-immutable';
 
 import { selectFields, selectInferredField } from '../../../reducers/collections';
 import { filterNestedEntries } from './EntriesCollection';

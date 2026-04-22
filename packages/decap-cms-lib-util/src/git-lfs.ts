@@ -5,7 +5,7 @@ import { filter, flow, fromPairs, map } from 'lodash/fp';
 
 import getBlobSHA from './getBlobSHA';
 
-import type { AssetProxy } from './implementation';
+import type { AssetProxy } from './types/cms-immutable';
 
 export interface PointerFile {
   size: number;
@@ -121,6 +121,9 @@ export async function getLargeMediaFilteredMediaFiles(
   return await Promise.all(
     mediaFiles.map(async mediaFile => {
       const { fileObj, path } = mediaFile;
+      if (!path) {
+        return mediaFile;
+      }
       const fixedPath = path.startsWith('/') ? path.slice(1) : path;
       if (!client.matchPath(fixedPath)) {
         return mediaFile;

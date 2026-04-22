@@ -27,6 +27,7 @@
   },
   "peerDependencies": {
     "@emotion/react": "catalog:emotion",
+    "decap-cms-lib-util": "workspace:*",
     "prop-types": "catalog:react",
     "react": "catalog:react"
   },

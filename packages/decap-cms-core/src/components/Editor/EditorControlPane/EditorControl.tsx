@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { translate } from 'react-polyglot';
 import { ClassNames, Global, css as coreCss } from '@emotion/react';
+import type { Interpolation, Theme } from '@emotion/react';
 import styled from '@emotion/styled';
 import partial from 'lodash/partial';
 import uniqueId from 'lodash/uniqueId';
@@ -16,7 +17,8 @@ import gfm from 'remark-gfm';
 import type { Map as ImmutableMap } from 'immutable';
 import type { Dispatch } from 'redux';
 import type { TranslateFunction } from 'decap-cms-ui-default';
-import type { Collection, EntryMap, EntryField, CmsConfig, State } from '../../../types/cms';
+import type { Collection, EntryMap, EntryField, State } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsConfig } from 'decap-cms-lib-util/types/cms';
 import type AssetProxy from '../../../valueObjects/AssetProxy';
 
 import { resolveWidget, getEditorComponents } from '../../../lib/registry';
@@ -327,7 +329,7 @@ class EditorControl extends React.Component<EditorControlProps, EditorControlSta
             aria-label={t('editor.editorControl.field.widgetLabel', { widgetLabel: widgetName })}
           >
             <ControlTopbar>
-              {widget.globalStyles && <Global styles={coreCss`${widget.globalStyles}`} />}
+              {widget.globalStyles ? <Global styles={coreCss`${widget.globalStyles as string}` as Interpolation<Theme>} /> : null}
               <LabelComponent
                 field={field}
                 isActive={!!(isSelected || this.state.styleActive)}

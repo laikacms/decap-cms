@@ -10,7 +10,6 @@ import {
   parseContentKey,
 } from 'decap-cms-lib-util';
 import { parse } from 'what-the-diff';
-// eslint-disable-next-line import/no-named-as-default
 import simpleGit from 'simple-git';
 import { Mutex, withTimeout } from 'async-mutex';
 
@@ -444,7 +443,9 @@ export function localGitMiddleware({ repoPath, logger }: GitOptions) {
       );
       res.status(500).json({ error: 'Unknown error' });
     } finally {
-      release && release();
+      if (release) {
+        release();
+      }
     }
   };
 }

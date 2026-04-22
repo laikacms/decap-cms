@@ -17,7 +17,8 @@ import { sanitizeSlug } from './urlHelper';
 import { FILES } from '../constants/collectionTypes';
 import { COMMIT_AUTHOR, COMMIT_DATE } from '../constants/commitProps';
 
-import type { Collection, CmsConfig, CmsSlug, EntryMap } from '../types/cms';
+import type { Collection, EntryMap } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsConfig, CmsSlug } from 'decap-cms-lib-util/types/cms';
 import type { Map } from 'immutable';
 
 const {

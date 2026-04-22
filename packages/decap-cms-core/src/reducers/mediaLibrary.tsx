@@ -32,7 +32,7 @@ import type {
   MediaFileMap,
   DisplayURLState,
   EntryField,
-} from '../types/cms';
+} from 'decap-cms-lib-util/types/cms-immutable';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MediaLibraryState = Map<string, any>;
@@ -253,9 +253,8 @@ export function selectMediaFiles(state: State, field?: EntryField) {
 
   let files;
   if (editingDraft && !integration) {
-    const entryFiles = entryDraft
-      .getIn(['entry', 'mediaFiles'], List<MediaFileMap>())
-      .toJS() as unknown as MediaFile[];
+    const entryFilesList = entryDraft.getIn(['entry', 'mediaFiles'], List<MediaFileMap>()) as List<MediaFileMap>;
+    const entryFiles = entryFilesList.toJS() as MediaFile[];
     const entry = entryDraft.get('entry');
     const collection = state.collections.get(entry?.get('collection'));
     const mediaFolder = selectMediaFolder(state.config, collection, entry, field);

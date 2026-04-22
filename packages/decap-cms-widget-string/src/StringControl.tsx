@@ -2,15 +2,17 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import type { Map } from 'immutable';
 import type { TranslateFunction } from 'decap-cms-ui-default';
+import type {  CmsFieldBase, CmsFieldStringOrText } from 'decap-cms-lib-util/types/cms';
+import type { StaticallyTypedRecord } from 'decap-cms-lib-util/types/cms-immutable';
 
 interface StringControlProps {
   onChange: (value: string) => void;
   forID?: string | undefined;
   value?: string | undefined;
-  field: Map<string, any>;
+  field: StaticallyTypedRecord<CmsFieldStringOrText & CmsFieldBase>;
   classNameWrapper: string;
-  setActiveStyle: (...args: unknown[]) => unknown;
-  setInactiveStyle: (...args: unknown[]) => unknown;
+  setActiveStyle: () => void;
+  setInactiveStyle: () => void;
   t: TranslateFunction,
 }
 

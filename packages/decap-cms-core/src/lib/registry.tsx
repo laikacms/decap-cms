@@ -4,19 +4,55 @@ import type { Pluggable } from 'unified';
 
 import EditorComponent from '../valueObjects/EditorComponent';
 import type {
-  CmsRegistry,
   CmsWidgetParam,
   CmsMediaLibrary,
   CmsMediaLibraryOptions,
   CmsLocalePhrases,
   CmsWidgetValueSerializer,
-  CmsBackendClass,
+} from 'decap-cms-lib-util/types/cms'
+import type {
+  WidgetParam,
   EditorComponentOptions,
   EditorComponentPlugin,
   FormatterFunctions,
   AllowedEvent,
-  EventHandler,
-} from '../types/cms';
+  PreviewStyle,
+  Formatter,
+  Config,
+  Implementation,
+} from 'decap-cms-lib-util/types/cms-immutable';
+
+interface EventHandler {
+  handler: Function;
+  options: Record<string, unknown>;
+}
+
+interface CmsRegistryBackend {
+  init: (config: Config, opts?: Record<string, unknown>) => Implementation;
+}
+
+interface CmsWidget {
+  control: unknown;
+  preview?: unknown;
+  globalStyles?: unknown;
+  schema?: unknown;
+  allowMapValue?: boolean;
+  [key: string]: unknown;
+}
+
+interface Registry {
+  backends: Record<string, CmsRegistryBackend>;
+  templates: Record<string, React.ComponentType<unknown>>;
+  previewStyles: PreviewStyle[];
+  widgets: Record<string, CmsWidget>;
+  editorComponents: Map<string, EditorComponentPlugin>;
+  remarkPlugins: unknown[];
+  widgetValueSerializers: Record<string, CmsWidgetValueSerializer>;
+  mediaLibraries: (CmsMediaLibrary & { options?: CmsMediaLibraryOptions })[];
+  locales: Record<string, CmsLocalePhrases>;
+  eventHandlers: Record<AllowedEvent, EventHandler[]>;
+  formats: Record<string, Formatter>;
+}
 
 const allowedEvents: AllowedEvent[] = [
   'prePublish',
@@ -39,7 +75,7 @@ const eventHandlers: Record<AllowedEvent, EventHandler[]> = {
 /**
  * Global Registry Object
  */
-const registry: CmsRegistry = {
+const registry: Registry = {
   backends: {},
   templates: {},
   previewStyles: [],
@@ -107,7 +143,7 @@ export function getPreviewTemplate(name: string) {
   return registry.templates[name];
 }
 
-interface WidgetRegistrationOptions<T = unknown> extends CmsWidgetParam<T> {
+interface WidgetRegistrationOptions<T = unknown> extends WidgetParam<T> {
   schema?: unknown;
   allowMapValue?: boolean;
   [key: string]: unknown;
@@ -206,7 +242,8 @@ export function getWidgetValueSerializer(widgetName: string) {
 /**
  * Backend API
  */
-export function registerBackend(name: string, BackendClass: CmsBackendClass) {
+
+export function registerBackend(name: string, BackendClass: new(config: Config, opts?: Record<string, unknown>) => Implementation) {
   if (!name || !BackendClass) {
     console.error(
       "Backend parameters invalid. example: CMS.registerBackend('myBackend', BackendClass)",
@@ -215,7 +252,7 @@ export function registerBackend(name: string, BackendClass: CmsBackendClass) {
     console.error(`Backend [${name}] already registered. Please choose a different name.`);
   } else {
     registry.backends[name] = {
-      init: (...args: unknown[]) => new BackendClass(...args),
+      init: (config: Config, opts: Record<string, unknown> = {}) => new BackendClass(config, opts),
     };
   }
 }

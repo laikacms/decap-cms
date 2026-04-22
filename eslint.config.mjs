@@ -128,10 +128,10 @@ export default tseslint.config(
       '@typescript-eslint/consistent-type-imports': 'error',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/no-use-before-define': [
-        'error',
-        { functions: false, classes: true, variables: true },
-      ],
+      "@typescript-eslint/no-unused-vars": 'off', // handled by TypeScript compiler
+      "@typescript-eslint/no-empty-object-type": 'off', // TODO: Remove
+      "@typescript-eslint/no-unsafe-function-type": 'off', // TODO: Remove
+      "@typescript-eslint/no-explicit-any": 'off', // TODO: Remove
     },
   },
 

@@ -106,8 +106,8 @@ interface CodeControlProps {
   isParentListCollapsed?: boolean;
   isEditorComponent?: boolean;
   isNewEditorComponent?: boolean;
-  setActiveStyle: (...args: unknown[]) => unknown;
-  setInactiveStyle: (...args: unknown[]) => unknown;
+  setActiveStyle: () => void;
+  setInactiveStyle: () => void;
 }
 
 interface CodeControlState {

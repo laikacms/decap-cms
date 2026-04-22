@@ -9,7 +9,7 @@ import ValidationErrorTypes from '../../../constants/validationErrorTypes';
 
 import type { Map as ImmutableMap } from 'immutable';
 import type { TranslateFunction } from 'decap-cms-ui-default';
-import type { WidgetProps, ValidationResult, ValidationError } from '../../../types/cms';
+import type { WidgetProps, ValidationResult, ValidationError } from 'decap-cms-lib-util/types/cms-immutable';
 
 function truthy() {
   return { error: false };
@@ -156,7 +156,7 @@ export default class Widget extends Component<WidgetProps> {
   getValidateValue = () => {
     let value = this.innerWrappedControl?.getValidateValue?.() || this.props.value;
     // Convert list input widget value to string for validation test
-    List.isList(value) && (value = value.join(','));
+    if (List.isList(value)) value = value.join(',');
     return value;
   };
 
@@ -365,7 +365,7 @@ export default class Widget extends Component<WidgetProps> {
       isParentListCollapsed,
     } = this.props;
 
-    return React.createElement(controlComponent, {
+    return React.createElement(controlComponent as React.ComponentType<Record<string, unknown>>, {
       entry, // TODO: Remove this deprecated prop in favor of getEntry
       getEntry,
       collection,

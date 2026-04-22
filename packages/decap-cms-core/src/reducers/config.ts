@@ -4,7 +4,7 @@ import { CONFIG_REQUEST, CONFIG_SUCCESS, CONFIG_FAILURE } from '../actions/confi
 import { EDITORIAL_WORKFLOW } from '../constants/publishModes';
 
 import type { ConfigAction } from '../actions/config';
-import type { CmsConfig } from '../types/cms';
+import type { CmsConfig } from 'decap-cms-lib-util/types/cms';
 
 const defaultState = {
   isFetching: true,

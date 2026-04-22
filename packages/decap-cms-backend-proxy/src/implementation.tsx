@@ -19,6 +19,7 @@ import type {
 } from 'decap-cms-lib-util';
 
 import AuthenticationPage from './AuthenticationPage';
+import type { FileEntry } from 'decap-cms-lib-util/types/cms-immutable';
 
 async function serializeAsset(assetProxy: AssetProxy) {
   const base64content = await assetProxy.toBase64!();
@@ -188,9 +189,9 @@ export default class ProxyBackend implements Implementation {
     });
   }
 
-  async persistEntry(entry: Entry, options: PersistOptions) {
+  async persistEntry(entry: FileEntry, options: PersistOptions) {
     const assets = await Promise.all(entry.assets.map(serializeAsset));
-    return this.request({
+    await this.request({
       action: 'persistEntry',
       params: {
         branch: this.branch,

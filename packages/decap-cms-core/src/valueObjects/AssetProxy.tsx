@@ -1,17 +1,18 @@
-import type { EntryField } from '../types/cms';
+import type { DeepCopy } from 'immutable';
+import type { EntryField, AssetProxy as AssetProxyType } from 'decap-cms-lib-util/types/cms-immutable';
 
 interface AssetProxyArgs {
   path: string;
-  url?: string;
-  file?: File;
-  field?: EntryField;
+  url?: string | undefined;
+  file?: File | undefined;
+  field?: unknown;
 }
 
-export default class AssetProxy {
-  url: string;
-  fileObj?: File;
+export default class AssetProxy implements AssetProxyType {
+  url?: string | undefined;
+  fileObj?: File | undefined;
   path: string;
-  field?: EntryField;
+  field?: unknown;
 
   constructor({ url, file, path, field }: AssetProxyArgs) {
     this.url = url ? url : file ? window.URL.createObjectURL(file) : '';
@@ -21,10 +22,13 @@ export default class AssetProxy {
   }
 
   toString(): string {
-    return this.url;
+    return this.url ?? '';
   }
 
   async toBase64(): Promise<string> {
+    if (!this.url) {
+      return '';
+    }
     const blob = await fetch(this.url).then(response => response.blob());
     if (blob.size <= 0) {
       return '';

@@ -1,17 +1,18 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Textarea from 'react-textarea-autosize';
-import type { Map as ImmutableMap } from 'immutable';
 import type { TranslateFunction } from 'decap-cms-ui-default';
+import type { CmsFieldBase, CmsFieldStringOrText } from 'decap-cms-lib-util/types/cms';
+import type { StaticallyTypedRecord } from 'decap-cms-lib-util/types/cms-immutable';
 
 interface TextControlProps {
   onChange: (value: string) => void;
   forID?: string;
   value?: string;
   classNameWrapper: string;
-  setActiveStyle: (...args: unknown[]) => unknown;
-  setInactiveStyle: (...args: unknown[]) => unknown;
-  field: ImmutableMap<string, any>;
+  setActiveStyle: () => void;
+  setInactiveStyle: () => void;
+  field: StaticallyTypedRecord<CmsFieldStringOrText & CmsFieldBase>;
   t: TranslateFunction,
 }
 

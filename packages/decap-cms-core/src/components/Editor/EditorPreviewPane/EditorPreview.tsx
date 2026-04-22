@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import styled from '@emotion/styled';
 import type { List as ImmutableList, Map as ImmutableMap } from 'immutable';
-import type { Collection, EntryMap, EntryField } from '../../../types/cms';
+import type { Collection, EntryMap, EntryField } from 'decap-cms-lib-util/types/cms-immutable';
 
 function isVisible(field: EntryField) {
   return field.get('widget') !== 'hidden';

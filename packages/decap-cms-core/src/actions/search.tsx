@@ -5,10 +5,12 @@ import { getIntegrationProvider } from '../integrations';
 import { selectIntegration } from '../reducers';
 
 import type { QueryRequest } from '../reducers/search';
-import type { State } from '../types/cms';
+import type { State } from 'decap-cms-lib-util/types/cms-immutable';
 import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
 import type { EntryValue } from '../valueObjects/Entry';
+import { Map as ImmutableMap } from 'immutable';
+import { isImmutableMap } from 'decap-cms-lib-util';
 
 /*
  * Constant Declarations
@@ -142,7 +144,7 @@ export function searchEntries(searchTerm: string, searchCollections: string[], p
         )
       : backend.search(
           state.collections
-            .filter((_, key: string) => allCollections.indexOf(key) !== -1)
+            .filter((_, key) => allCollections.indexOf(String(key)) !== -1)
             .valueSeq()
             .toArray(),
           searchTerm,
@@ -193,7 +195,9 @@ export function query(
           collectionName,
           searchTerm,
         )
-      : backend.query(collection, searchFields, searchTerm, file, limit);
+      : isImmutableMap(collection)
+        ? backend.query(collection, searchFields, searchTerm, file, limit)
+        : Promise.resolve({ hits: [], query: '' } satisfies QueryResponse);
 
     dispatch(
       querying(

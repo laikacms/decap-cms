@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import { components, buttons, shadows } from 'decap-cms-ui-default';
 
-import type { Collection } from '../../types/cms';
+import type { Collection } from 'decap-cms-lib-util/types/cms-immutable';
 
 const CollectionTopContainer = styled.div`
   ${components.cardTop};

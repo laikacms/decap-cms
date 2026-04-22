@@ -12,13 +12,12 @@ import type {
   NotificationMessage,
   NotificationPayload,
 } from '../actions/notifications';
-import type { TypeOptions } from 'react-toastify';
 
 export type Notification = {
   id: string;
   message: string | NotificationMessage;
   dismissAfter?: number;
-  type: TypeOptions | undefined;
+  type: 'info' | 'success' | 'warning' | 'error' | 'default' | undefined;
 };
 
 export type NotificationsState = {

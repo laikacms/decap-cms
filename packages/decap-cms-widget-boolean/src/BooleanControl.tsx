@@ -23,8 +23,8 @@ interface BooleanControlProps {
   field: { get: (key: string, defaultValue?: unknown) => unknown };
   onChange: (...args: unknown[]) => unknown;
   classNameWrapper: string;
-  setActiveStyle: (...args: unknown[]) => unknown;
-  setInactiveStyle: (...args: unknown[]) => unknown;
+  setActiveStyle: () => void;
+  setInactiveStyle: () => void;
   forID?: string;
   value?: boolean;
 }

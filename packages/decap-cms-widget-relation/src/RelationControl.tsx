@@ -12,6 +12,8 @@ import uniqBy from 'lodash/uniqBy';
 import { fromJS, List as ImmutableList, Map } from 'immutable';
 import { reactSelectStyles } from 'decap-cms-ui-default';
 import { stringTemplate, validations } from 'decap-cms-lib-widgets';
+import type { CmsFieldBase, CmsFieldRelation } from 'decap-cms-lib-util/types/cms';
+import type { StaticallyTypedRecord } from 'decap-cms-lib-util';
 import { List as VirtualList } from 'react-window';
 import {
   DndContext,
@@ -250,12 +252,12 @@ interface RelationControlProps {
   onChange: (...args: unknown[]) => unknown;
   forID: string;
   value?: unknown;
-  field: Map<string, unknown>;
+  field: StaticallyTypedRecord<CmsFieldRelation & CmsFieldBase>;
   query: (...args: unknown[]) => Promise<QueryResult>;
   queryHits?: Hit[];
   classNameWrapper: string;
-  setActiveStyle: (...args: unknown[]) => unknown;
-  setInactiveStyle: (...args: unknown[]) => unknown;
+  setActiveStyle: () => void;
+  setInactiveStyle: () => void;
   locale?: string;
   hasActiveStyle?: boolean;
   t: (key: string, options?: unknown) => string;

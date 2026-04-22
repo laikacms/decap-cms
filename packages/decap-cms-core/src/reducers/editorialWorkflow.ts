@@ -21,7 +21,8 @@ import {
 } from '../actions/editorialWorkflow';
 import { CONFIG_SUCCESS } from '../actions/config';
 
-import type { EditorialWorkflowAction, EditorialWorkflow, Entities } from '../types/cms';
+import type { EditorialWorkflowAction, EditorialWorkflow, Entities, UnpublishedEntry } from 'decap-cms-lib-util/types/cms-immutable';
+import type { StaticallyTypedRecord } from 'decap-cms-lib-util';
 
 function unpublishedEntries(state = Map(), action: EditorialWorkflowAction) {
   switch (action.type) {
@@ -141,12 +142,12 @@ function unpublishedEntries(state = Map(), action: EditorialWorkflowAction) {
   }
 }
 
-export function selectUnpublishedEntry(state: EditorialWorkflow, collection: string, slug: string) {
-  return state && state.getIn(['entities', `${collection}.${slug}`]);
+export function selectUnpublishedEntry(state: EditorialWorkflow, collection: string, slug: string): StaticallyTypedRecord<UnpublishedEntry> | undefined {
+  return state && state.getIn(['entities', `${collection}.${slug}`]) as StaticallyTypedRecord<UnpublishedEntry> | undefined;
 }
 
 export function selectUnpublishedEntriesByStatus(state: EditorialWorkflow, status: string) {
-  if (!state) return null;
+  if (!state) return undefined;
   const entities = state.get('entities') as Entities;
   return entities.filter(entry => entry.get('status') === status).valueSeq();
 }

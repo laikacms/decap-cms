@@ -10,8 +10,9 @@ import { useTranslate } from 'react-polyglot';
 import { dismissNotification } from '../../actions/notifications';
 
 import type { Id, ToastItem } from 'react-toastify';
-import type { State } from '../../types/cms';
-import type { Notification } from '../../reducers/notifications';
+import type { State, CmsNotification } from 'decap-cms-lib-util/types/cms-immutable';
+
+type Notification = CmsNotification;
 
 interface Props {
   notifications: Notification[];

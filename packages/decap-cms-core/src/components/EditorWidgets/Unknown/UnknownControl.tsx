@@ -3,7 +3,7 @@ import { translate } from 'react-polyglot';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import PropTypes from 'prop-types';
 import type { TranslateFunction } from 'decap-cms-ui-default';
-import type { EntryField } from '../../../types/cms';
+import type { EntryField } from 'decap-cms-lib-util/types/cms-immutable';
 
 interface UnknownControlProps {
   field?: EntryField;

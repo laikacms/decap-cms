@@ -60,7 +60,8 @@ function runSerializer(values: ValuesMap, fields: FieldList, method: SerializerM
 
     // Run serialization method on value if not null or undefined
     if (serializer && !isNil(value)) {
-      return acc.set(fieldName, serializer[method](value));
+      const typedSerializer = serializer as { serialize: (value: unknown) => unknown; deserialize: (value: unknown) => unknown };
+      return acc.set(fieldName, typedSerializer[method](value));
     }
 
     // If no serializer is registered for the field's widget, use the field as is

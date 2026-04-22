@@ -1,7 +1,7 @@
 import bootstrap from './bootstrap';
 import Registry from './lib/registry';
 
-export type * from './types/cms';
+export type * from 'decap-cms-lib-util/types/cms-immutable';
 
 export const DecapCmsCore = {
   ...Registry,

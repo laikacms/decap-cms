@@ -23,7 +23,7 @@ import {
   selectViewStyle,
 } from '../../reducers/entries';
 
-import type { Collection as CollectionType, ViewFilter, ViewGroup, SortDirection } from '../../types/cms';
+import type { Collection as CollectionType, ViewFilter, ViewGroup, SortDirection } from 'decap-cms-lib-util/types/cms-immutable';
 
 const CollectionContainer = styled.div`
   margin: ${lengths.pageMargin};

@@ -15,7 +15,7 @@ import { selectEntries } from '../../reducers/entries';
 import { selectEntryCollectionTitle } from '../../reducers/collections';
 
 import type { List as ImmutableList, Map as ImmutableMap } from 'immutable';
-import type { Collection, EntryMap, State, Entries } from '../../types/cms';
+import type { Collection, EntryMap, State, Entries } from 'decap-cms-lib-util/types/cms-immutable';
 
 const sep = '/';
 

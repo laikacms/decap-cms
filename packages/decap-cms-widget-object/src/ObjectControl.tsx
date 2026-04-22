@@ -3,13 +3,14 @@ import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { ClassNames } from '@emotion/react';
 import memoize from 'lodash/memoize';
-import { List, Map } from 'immutable';
+import { type List, Map } from 'immutable';
 import { colors, lengths, ObjectWidgetTopBar } from 'decap-cms-ui-default';
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import { stringTemplate } from 'decap-cms-lib-widgets';
+import type { Field, FieldBase, FieldObject } from 'decap-cms-lib-util/types/cms-immutable';
 
 const styleStrings = {
-  nestedObjectControl: `
+  nestedObjectControl: `s
     padding: 6px 14px 14px;
     border-top: 0;
     border-top-left-radius: 0;
@@ -41,7 +42,7 @@ interface ObjectControlProps {
   /** The current object value */
   value?: Map<string, unknown> | unknown;
   /** The field configuration */
-  field: Map<string, unknown>;
+  field: FieldObject & FieldBase;
   /** Unique field identifier */
   forID?: string;
   /** CSS class name for the widget wrapper */
@@ -139,9 +140,8 @@ export default class ObjectControl extends React.Component<ObjectControlProps, O
 
   validate = () => {
     const { field } = this.props;
-    let fields: unknown = field.get('field') || field.get('fields');
-    fields = List.isList(fields) ? fields : List([fields]);
-    (fields as List<Map<string, unknown>>).forEach((field: Map<string, unknown>) => {
+    const fields = field.get('fields') as unknown as List<Field>;
+    fields.forEach((field: Field) => {
       if (field.get('widget') === 'hidden') return;
       const name = field.get('name') as string;
       const control = this.childRefs[name];
@@ -161,7 +161,7 @@ export default class ObjectControl extends React.Component<ObjectControlProps, O
       JSON.stringify([parentIds, forID]) /* Fast enough for only ids */,
   );
 
-  controlFor(field: Map<string, unknown>, key?: number) {
+  controlFor(field: Field, key?: number) {
     const {
       value,
       onChangeObject,
@@ -229,11 +229,8 @@ export default class ObjectControl extends React.Component<ObjectControlProps, O
     }
   }
 
-  renderFields = (multiFields: List<Map<string, unknown>> | undefined, singleField?: unknown) => {
-    if (multiFields) {
-      return multiFields.map((f: Map<string, unknown>, idx: number) => this.controlFor(f, idx));
-    }
-    return this.controlFor(singleField as Map<string, unknown>);
+  renderFields = (multiFields: List<Field>) => {
+    return multiFields.map((f, idx) => this.controlFor(f, idx));
   };
 
   objectLabel = (): React.ReactNode => {
@@ -253,10 +250,9 @@ export default class ObjectControl extends React.Component<ObjectControlProps, O
   render() {
     const { field, forID, classNameWrapper, forList, hasError, t } = this.props;
     const collapsed = forList ? this.props.collapsed : this.state.collapsed;
-    const multiFields = field.get('fields') as List<Map<string, unknown>> | undefined;
-    const singleField = field.get('field');
+    const multiFields = field.get('fields') as unknown as List<Field>;
 
-    if (multiFields || singleField) {
+    if (multiFields) {
       return (
         <ClassNames>
           {({ css, cx }) => (
@@ -294,7 +290,7 @@ export default class ObjectControl extends React.Component<ObjectControlProps, O
                   `]: collapsed,
                 })}
               >
-                {this.renderFields(multiFields, singleField)}
+                {this.renderFields(multiFields)}
               </div>
             </div>
           )}

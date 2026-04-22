@@ -25,6 +25,7 @@
     "@emotion/react": "catalog:emotion",
     "@emotion/styled": "catalog:emotion",
     "decap-cms-ui-default": "workspace:*",
+    "decap-cms-lib-util": "workspace:*",
     "decap-cms-widget-file": "workspace:*",
     "immutable": "catalog:utils",
     "prop-types": "catalog:react",

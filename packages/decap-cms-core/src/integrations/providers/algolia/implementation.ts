@@ -6,7 +6,7 @@ import { createEntry } from '../../../valueObjects/Entry';
 import { selectEntrySlug } from '../../../reducers/collections';
 
 import type { Map } from 'immutable';
-import type { Collection } from '../../../types/cms';
+import type { Collection } from 'decap-cms-lib-util/types/cms-immutable';
 
 const { fetchWithTimeout: fetch } = unsentRequest;
 

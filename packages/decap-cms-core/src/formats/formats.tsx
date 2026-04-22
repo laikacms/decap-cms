@@ -8,7 +8,7 @@ import { FrontmatterInfer, frontmatterJSON, frontmatterTOML, frontmatterYAML } f
 import { getCustomFormatsExtensions, getCustomFormatsFormatters } from '../lib/registry';
 
 import type { Delimiter } from './frontmatter';
-import type { Collection, EntryObject, Format, FormatterFunctions } from '../types/cms';
+import type { Collection, EntryObject, Format, FormatterFunctions } from 'decap-cms-lib-util/types/cms-immutable';
 import type { EntryValue } from '../valueObjects/Entry';
 
 export const frontmatterFormats = ['yaml-frontmatter', 'toml-frontmatter', 'json-frontmatter'];

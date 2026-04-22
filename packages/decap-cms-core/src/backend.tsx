@@ -63,7 +63,6 @@ import {
 import type { I18nInfo } from './lib/i18n';
 import type AssetProxy from './valueObjects/AssetProxy';
 import type {
-  CmsConfig,
   EntryMap,
   FilterRule,
   EntryDraft,
@@ -72,7 +71,9 @@ import type {
   CollectionFile,
   State,
   EntryField,
-} from './types/cms';
+  EntryObject,
+} from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsConfig } from 'decap-cms-lib-util/types/cms';
 import type { EntryValue } from './valueObjects/Entry';
 import type {
   Implementation as BackendImplementation,
@@ -98,13 +99,13 @@ function updateAssetProxies(
 ) {
   assetProxies.map(asset => {
     // update media files path based on entry path
-    const oldPath = asset.path;
+    const oldPath = asset.path || '';
     const newPath = selectMediaFilePath(
       config,
       collection,
       entryDraft.get('entry').set('path', path),
       oldPath,
-      asset.field,
+      asset.field as EntryField | undefined,
     );
     asset.path = newPath;
   });
@@ -1283,7 +1284,7 @@ export class Backend {
       user.useOpenAuthoring,
     );
 
-    const entry = selectEntry(state.entries, collection.get('name'), slug);
+    const entry = selectEntry(state.entries, collection.get('name'), slug) as EntryMap;
     await this.invokePreUnpublishEvent(entry);
     let paths = [path];
     if (hasI18n(collection)) {
@@ -1331,7 +1332,7 @@ export class Backend {
   }
 
   entryToRaw(collection: Collection, entry: EntryMap): string {
-    const format = resolveFormat(collection, entry.toJS());
+    const format = resolveFormat(collection, entry.toJS() as EntryObject);
     const fieldsOrder = this.fieldsOrder(collection, entry);
     const fieldsComments = selectFieldsComments(collection, entry);
     let content = format.toFile(entry.get('data').toJS(), fieldsOrder, fieldsComments);

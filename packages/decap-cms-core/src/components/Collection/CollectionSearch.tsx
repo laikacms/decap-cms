@@ -6,7 +6,7 @@ import { translate } from 'react-polyglot';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 
-import type { Collection, Collections } from '../../types/cms';
+import type { Collection, Collections } from 'decap-cms-lib-util/types/cms-immutable';
 
 const SearchContainer = styled.div`
   margin: 0 12px;

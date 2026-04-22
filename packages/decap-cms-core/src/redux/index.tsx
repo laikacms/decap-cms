@@ -7,7 +7,7 @@ import createRootReducer from '../reducers/combinedReducer';
 
 import type { ThunkDispatch } from 'redux-thunk';
 import type { AnyAction, Reducer, Middleware } from 'redux';
-import type { State } from '../types/cms';
+import type { State } from 'decap-cms-lib-util/types/cms-immutable';
 
 const store = createStore<State | undefined, AnyAction, object, object>(
   createRootReducer() as unknown as Reducer<State | undefined, AnyAction>,

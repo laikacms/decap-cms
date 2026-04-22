@@ -12,7 +12,7 @@ import {
 } from 'decap-cms-ui-default';
 
 import type { Map as ImmutableMap, List as ImmutableList } from 'immutable';
-import type { Collection, EntryMap, EntryField } from '../../../types/cms';
+import type { Collection, EntryMap, EntryField } from 'decap-cms-lib-util/types/cms-immutable';
 import type { I18nInfo } from '../../../lib/i18n';
 
 import EditorControl from './EditorControl';

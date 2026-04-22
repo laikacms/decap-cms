@@ -15,7 +15,7 @@ import {
 } from '../reducers/entries';
 import { getNewEntryUrl } from '../lib/urlHelper';
 
-import type { SortDirection, ViewFilter, ViewGroup } from '../types/cms';
+import type { SortDirection, ViewFilter, ViewGroup } from 'decap-cms-lib-util/types/cms-immutable';
 
 /**
  * Hook for collection state and actions

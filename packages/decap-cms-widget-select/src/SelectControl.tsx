@@ -6,6 +6,8 @@ import find from 'lodash/find';
 import Select from 'react-select';
 import { reactSelectStyles } from 'decap-cms-ui-default';
 import { validations } from 'decap-cms-lib-widgets';
+import type { CmsFieldSelect, CmsFieldBase } from 'decap-cms-lib-util/types/cms'
+import type { StaticallyTypedRecord } from 'decap-cms-lib-util/types/cms-immutable';
 
 import type { Map as ImmutableMap, List as ImmutableList } from 'immutable';
 
@@ -57,9 +59,9 @@ interface SelectControlProps {
   value?: ImmutableList<unknown> | string | number;
   forID: string;
   classNameWrapper: string;
-  setActiveStyle: (...args: unknown[]) => unknown;
-  setInactiveStyle: (...args: unknown[]) => unknown;
-  field: ImmutableMap<string, unknown>;
+  setActiveStyle: () => void;
+  setInactiveStyle: () => void;
+  field: StaticallyTypedRecord<CmsFieldSelect & CmsFieldBase>;
   t: (key: string, options?: unknown) => string;
 }
 
@@ -140,7 +142,7 @@ export default class SelectControl extends React.Component<SelectControlProps> {
 
   render() {
     const { field, value, forID, classNameWrapper, setActiveStyle, setInactiveStyle } = this.props;
-    const fieldOptions = field.get('options') as ImmutableList<unknown>;
+    const fieldOptions = field.get('options');
     const isMultiple = field.get('multiple', false) as boolean;
     const isClearable = !field.get('required', true) || isMultiple;
 

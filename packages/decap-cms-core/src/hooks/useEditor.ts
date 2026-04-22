@@ -34,7 +34,7 @@ import { status, EDITORIAL_WORKFLOW } from '../constants/publishModes';
 
 import type { Status } from '../constants/publishModes';
 import type { Update, Transition } from 'history';
-import type { Collection, Entry, EntryDraft } from '../types/cms';
+import type { Collection, Entry, EntryDraft } from 'decap-cms-lib-util/types/cms-immutable';
 
 interface UseEditorOptions {
   collectionName: string;
@@ -177,29 +177,40 @@ export function useEditor({
     window.addEventListener('beforeunload', exitBlocker);
     
     // Setup navigation blocker (history v5 API)
+    // Note: The blocker prevents navigation by default. We only call tx.retry()
+    // when we want to allow the navigation to proceed.
+    // IMPORTANT: We must unblock BEFORE calling tx.retry() to prevent infinite loops,
+    // because tx.retry() re-triggers the navigation which would call this blocker again.
     function navigationBlocker(tx: Transition) {
       const draft = entryDraft;
       const isPersisting = draft?.getIn(['entry', 'isPersisting']);
       const newRecord = draft?.getIn(['entry', 'newRecord']);
       const newEntryPath = `/collections/${collection!.get('name')}/new`;
       
+      // Allow navigation during persist of new entry
       if (
         isPersisting &&
         newRecord &&
         locationPathname === newEntryPath &&
         tx.action === 'PUSH'
       ) {
+        unblockRef.current?.();
         tx.retry();
         return;
       }
       
+      // Block navigation if there are unsaved changes (unless user confirms)
       if (draft?.get('hasChanged')) {
         if (window.confirm(leaveMessage)) {
+          unblockRef.current?.();
           tx.retry();
         }
+        // If user cancels, do nothing - navigation is already blocked
         return;
       }
       
+      // No unsaved changes - allow navigation
+      unblockRef.current?.();
       tx.retry();
     }
     

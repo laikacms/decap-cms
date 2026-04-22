@@ -3,7 +3,7 @@ import fromPairs from 'lodash/fromPairs';
 import { map } from 'lodash/fp';
 
 import unsentRequest from './unsentRequest';
-import APIError from './APIError';
+import { APIError } from './errors';
 
 type Formatter = (res: Response) => Promise<string | Blob | unknown>;
 
@@ -20,6 +20,7 @@ function catchFormatErrors(format: string, formatter: Formatter) {
       const error = err as Error;
       throw new Error(
         `Response cannot be parsed into the expected format (${format}): ${error.message}`,
+        { cause: err },
       );
     }
   };

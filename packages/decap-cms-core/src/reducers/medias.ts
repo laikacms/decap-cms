@@ -10,7 +10,7 @@ import {
 } from '../actions/media';
 
 import type { MediasAction } from '../actions/media';
-import type AssetProxy from '../valueObjects/AssetProxy';
+import type { AssetProxy } from 'decap-cms-lib-util/types/cms-immutable';
 
 export type Medias = {
   [path: string]: { asset: AssetProxy | undefined; isLoading: boolean; error: Error | null };
@@ -23,13 +23,13 @@ const medias = produce((state: Medias, action: MediasAction) => {
     case ADD_ASSETS: {
       const assets = action.payload;
       assets.forEach(asset => {
-        state[asset.path] = { asset, isLoading: false, error: null };
+        if (asset.path) state[asset.path] = { asset, isLoading: false, error: null };
       });
       break;
     }
     case ADD_ASSET: {
       const asset = action.payload;
-      state[asset.path] = { asset, isLoading: false, error: null };
+      if (asset.path) state[asset.path] = { asset, isLoading: false, error: null };
       break;
     }
     case REMOVE_ASSET: {

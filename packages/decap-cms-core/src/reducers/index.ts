@@ -17,7 +17,7 @@ import status from './status';
 import notifications from './notifications';
 
 import type { Status } from '../constants/publishModes';
-import type { State, Collection } from '../types/cms';
+import type { State, Collection, Entry } from 'decap-cms-lib-util/types/cms-immutable';
 
 const reducers = {
   auth,
@@ -54,11 +54,13 @@ export function selectPublishedSlugs(state: State, collection: string) {
   return fromEntries.selectPublishedSlugs(state.entries, collection);
 }
 
-export function selectSearchedEntries(state: State, availableCollections: string[]) {
+export function selectSearchedEntries(state: State, availableCollections: string[]): List<Entry> {
   // only return search results for actually available collections
   return List(state.search.entryIds)
     .filter(entryId => availableCollections.indexOf(entryId!.collection) !== -1)
-    .map(entryId => fromEntries.selectEntry(state.entries, entryId!.collection, entryId!.slug));
+    .map(entryId => fromEntries.selectEntry(state.entries, entryId!.collection, entryId!.slug))
+    .filter(entry => entry !== undefined)
+    .toList() as List<Entry>;
 }
 
 export function selectDeployPreview(state: State, collection: string, slug: string) {

@@ -16,7 +16,7 @@ import { ScrollSync, ScrollSyncPane } from 'react-scroll-sync';
 
 import type { Map as ImmutableMap, List as ImmutableList } from 'immutable';
 import type { TranslateFunction } from 'decap-cms-ui-default';
-import type { Collection, EntryMap, EntryField } from '../../types/cms';
+import type { Collection, EntryMap, EntryField } from 'decap-cms-lib-util/types/cms-immutable';
 import type { I18nInfo } from '../../lib/i18n';
 import type { ReactNode } from 'react';
 

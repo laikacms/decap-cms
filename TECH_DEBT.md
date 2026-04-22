@@ -24,6 +24,7 @@
 - [ ] Standardize Immutable.js typed wrappers
 - [ ] Add ESLint rules for import patterns
 - [ ] Constants contain non-constants: packages/decap-cms-core/src/constants/configSchema.ts
+- [ ] Immutable.js is causing to many problems, policy is to try and avoid using it and replacing it with ES6 syntax (spread operator, ?. operator)
 
 # Testing
 - [ ] Fix failing tests in decap-cms-core

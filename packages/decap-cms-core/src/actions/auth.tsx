@@ -4,7 +4,7 @@ import { addNotification, clearNotifications } from './notifications';
 import type { Credentials, User } from 'decap-cms-lib-util';
 import type { ThunkDispatch } from 'redux-thunk';
 import type { AnyAction } from 'redux';
-import type { State } from '../types/cms';
+import type { State } from 'decap-cms-lib-util/types/cms-immutable';
 
 export const AUTH_REQUEST = 'AUTH_REQUEST';
 export const AUTH_SUCCESS = 'AUTH_SUCCESS';

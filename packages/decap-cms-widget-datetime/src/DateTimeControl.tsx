@@ -63,8 +63,8 @@ interface DateTimeControlProps {
   forID?: string;
   onChange: (value: string) => void;
   classNameWrapper: string;
-  setActiveStyle: (...args: unknown[]) => unknown;
-  setInactiveStyle: (...args: unknown[]) => unknown;
+  setActiveStyle: () => void;
+  setInactiveStyle: () => void;
   value?: string;
   t: (key: string, options?: Record<string, unknown>) => string;
   isDisabled?: boolean;

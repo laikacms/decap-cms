@@ -6,7 +6,7 @@ import { selectUnpublishedEntry } from '../../reducers';
 import { selectAllowDeletion } from '../../reducers/collections';
 import { loadUnpublishedEntry, persistUnpublishedEntry } from '../../actions/editorialWorkflow';
 
-import type { State, Collection } from '../../types/cms';
+import type { State, Collection } from 'decap-cms-lib-util/types/cms-immutable';
 
 interface OwnProps {
   match: {

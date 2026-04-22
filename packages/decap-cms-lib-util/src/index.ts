@@ -1,9 +1,8 @@
-import APIError from './APIError';
+import { APIError, AccessTokenError } from './errors';
 import Cursor, { CURSOR_COMPATIBILITY_SYMBOL } from './Cursor';
 import EditorialWorkflowError, { EDITORIAL_WORKFLOW_ERROR } from './EditorialWorkflowError';
-import AccessTokenError from './AccessTokenError';
 import localForage from './localForage';
-import type { LocalForage as LF } from 'localforage';
+import type * as TypesLocalForage from 'localforage';
 import { isAbsolutePath, basename, fileExtensionWithSeparator, fileExtension, extname, dirname, join } from './path';
 import { onlySuccessfulPromises, flowAsync, then } from './promise';
 import unsentRequest from './unsentRequest';
@@ -57,6 +56,7 @@ import {
   parsePointerFile,
   getPointerFileForMediaFileObj,
 } from './git-lfs';
+import { isImmutableMap, isImmutableList } from './types/immutable';
 
 import type { PointerFile as PF } from './git-lfs';
 import type { FetchError as FE, ApiRequest as AR } from './API';
@@ -77,7 +77,7 @@ import type {
   Config as C,
   UnpublishedEntryMediaFile as UEMF,
   DataFile as DF,
-} from './implementation';
+} from './types/cms-immutable';
 import type { AsyncLock as AL } from './asyncLock';
 import isHotkey, { isCodeHotkey, isKeyHotkey } from './is-hotkey';
 
@@ -101,7 +101,7 @@ export type Config = C;
 export type FetchError = FE;
 export type PointerFile = PF;
 export type DataFile = DF;
-export type LocalForage = LF;
+export type LocalForage = typeof TypesLocalForage;
 
 export const DecapCmsLibUtil = {
   APIError,
@@ -222,4 +222,8 @@ export {
   isHotkey,
   isKeyHotkey,
   isCodeHotkey,
+  isImmutableMap,
+  isImmutableList,
 };
+
+export * from './types/immutable'

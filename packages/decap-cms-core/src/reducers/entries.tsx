@@ -1,4 +1,4 @@
-import { Map, List, fromJS, OrderedMap, Set } from 'immutable';
+import { Map, List, OrderedMap, Set, fromJS } from 'immutable';
 import { isAbsolutePath, basename, dirname, join } from 'decap-cms-lib-util';
 import trim from 'lodash/trim';
 import once from 'lodash/once';
@@ -8,8 +8,7 @@ import orderBy from 'lodash/orderBy';
 import groupBy from 'lodash/groupBy';
 import { stringTemplate } from 'decap-cms-lib-widgets';
 
-import { SortDirection } from '../types/cms';
-import type { StaticallyTypedRecord } from '../types/immutable';
+import { SortDirection } from 'decap-cms-lib-util/types/cms-immutable';
 import { folderFormatter } from '../lib/formatters';
 import { selectSortDataPath } from './collections';
 import { SEARCH_ENTRIES_SUCCESS } from '../actions/search';
@@ -42,7 +41,6 @@ import type {
   EntriesSuccessPayload,
   EntryObject,
   Entries,
-  CmsConfig,
   Collection,
   EntryFailurePayload,
   EntryDeletePayload,
@@ -66,7 +64,8 @@ import type {
   EntriesGroupRequestPayload,
   EntriesGroupFailurePayload,
   GroupOfEntries,
-} from '../types/cms';
+} from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsConfig } from 'decap-cms-lib-util/types/cms/cms';
 
 const { keyToPathArray } = stringTemplate;
 
@@ -99,7 +98,8 @@ const loadSort = once(() => {
         let orderedMap = OrderedMap() as SortMap;
         sortBy(Object.values(sort), ['index']).forEach(value => {
           const { key, direction } = value;
-          orderedMap = orderedMap.set(key, fromJS({ key, direction }) as unknown as StaticallyTypedRecord<SortObject>);
+          const v = fromJS({ key, direction });
+          orderedMap = orderedMap.set(key, v);
         });
         map = map.set(collection, orderedMap);
       });
@@ -407,25 +407,28 @@ export function selectViewStyle(entries: Entries) {
   return entries.get('viewStyle');
 }
 
-export function selectEntry(state: Entries, collection: string, slug: string) {
-  return state.getIn(['entities', `${collection}.${slug}`]);
+export function selectEntry(state: Entries, collection: string, slug: string): EntryMap | undefined {
+  return state.getIn(['entities', `${collection}.${slug}`]) as EntryMap | undefined;
 }
 
-export function selectPublishedSlugs(state: Entries, collection: string) {
-  return state.getIn(['pages', collection, 'ids'], List<string>());
+export function selectPublishedSlugs(state: Entries, collection: string): List<string> | undefined {
+  return state.getIn(['pages', collection as any, 'ids'], List<string>()) as List<string> | undefined;
 }
 
-function getPublishedEntries(state: Entries, collectionName: string) {
+function getPublishedEntries(state: Entries, collectionName: string): List<EntryMap> | undefined {
   const slugs = selectPublishedSlugs(state, collectionName);
   const entries =
     slugs &&
-    (slugs.map(slug => selectEntry(state, collectionName, slug as string)) as List<EntryMap>);
+    (slugs.map(slug => selectEntry(state, collectionName, slug as string)))
+    .filter(e => e !== undefined) as List<EntryMap> | undefined;
   return entries;
 }
 
 export function selectEntries(state: Entries, collection: Collection) {
   const collectionName = collection.get('name');
   let entries = getPublishedEntries(state, collectionName);
+
+  if (!entries) return List() as List<EntryMap>;
 
   const sortFields = selectEntriesSortFields(state, collectionName);
   if (sortFields && sortFields.length > 0) {
@@ -501,6 +504,8 @@ export function selectGroups(state: Entries, collection: Collection) {
   const collectionName = collection.get('name');
   const entries = getPublishedEntries(state, collectionName);
 
+  if (!entries) return [] as GroupOfEntries[];
+
   const selectedGroup = selectEntriesGroupField(state, collectionName);
   if (selectedGroup === undefined) {
     return [];
@@ -525,7 +530,7 @@ export function selectGroups(state: Entries, collection: Collection) {
 }
 
 export function selectEntryByPath(state: Entries, collection: string, path: string) {
-  const slugs = selectPublishedSlugs(state, collection);
+  const slugs = selectPublishedSlugs(state, collection) as List<string> | undefined;
   const entries =
     slugs && (slugs.map(slug => selectEntry(state, collection, slug as string)) as List<EntryMap>);
 
@@ -536,8 +541,8 @@ export function selectEntriesLoaded(state: Entries, collection: string) {
   return !!state.getIn(['pages', collection]);
 }
 
-export function selectIsFetching(state: Entries, collection: string) {
-  return state.getIn(['pages', collection, 'isFetching'], false);
+export function selectIsFetching(state: Entries, collection: string): boolean {
+  return state.getIn(['pages', collection, 'isFetching'], false) as boolean;
 }
 
 function getFileField(collectionFiles: CollectionFiles, slug: string | undefined) {

@@ -3,7 +3,8 @@ import { fromJS } from 'immutable';
 import { CONFIG_SUCCESS } from '../actions/config';
 
 import type { ConfigAction } from '../actions/config';
-import type { Integrations, CmsConfig } from '../types/cms';
+import type { Integrations } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsConfig } from 'decap-cms-lib-util/types/cms';
 
 interface Acc {
   providers: Record<string, {}>;
@@ -50,10 +51,10 @@ function integrations(state = defaultState, action: ConfigAction): Integrations 
   }
 }
 
-export function selectIntegration(state: Integrations, collection: string | null, hook: string) {
+export function selectIntegration(state: Integrations, collection: string | null, hook: string): string | false {
   return collection
-    ? state.getIn(['hooks', collection, hook], false)
-    : state.getIn(['hooks', hook], false);
+    ? state.getIn(['hooks', collection, hook], false) as string | false
+    : state.getIn(['hooks', hook], false) as string | false;
 }
 
 export default integrations;

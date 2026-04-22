@@ -4,7 +4,7 @@ import type { Map } from 'immutable';
 import { useAppSelector, useAppDispatch } from './useRedux';
 import { openMediaLibrary, closeMediaLibrary } from '../actions/mediaLibrary';
 
-import type { EntryField } from '../types/cms';
+import type { EntryField } from 'decap-cms-lib-util/types/cms-immutable';
 
 /**
  * Hook for media library state and actions

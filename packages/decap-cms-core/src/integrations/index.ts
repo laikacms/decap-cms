@@ -5,7 +5,7 @@ import Algolia from './providers/algolia/implementation';
 import type { AssetStoreConfig } from './providers/assetStore/implementation';
 import AssetStore from './providers/assetStore/implementation';
 
-import type { Integrations } from '../types/cms';
+import type { Integrations } from 'decap-cms-lib-util/types/cms-immutable';
 
 type GetTokenFn = () => Promise<string>;
 

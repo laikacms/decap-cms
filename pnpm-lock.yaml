@@ -1366,6 +1366,9 @@ importers:
       '@emotion/styled':
         specifier: catalog:emotion
         version: 11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4)
+      immutable:
+        specifier: catalog:utils
+        version: 5.1.5
       lodash:
         specifier: catalog:utils
         version: 4.18.1
@@ -1406,6 +1409,9 @@ importers:
       '@emotion/react':
         specifier: catalog:emotion
         version: 11.14.0(@types/react@19.2.14)(react@19.2.4)
+      decap-cms-lib-util:
+        specifier: workspace:*
+        version: link:../decap-cms-lib-util
       decap-cms-ui-default:
         specifier: workspace:*
         version: link:../decap-cms-ui-default
@@ -1495,6 +1501,9 @@ importers:
       '@emotion/styled':
         specifier: catalog:emotion
         version: 11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4)
+      decap-cms-lib-util:
+        specifier: workspace:*
+        version: link:../decap-cms-lib-util
       decap-cms-ui-default:
         specifier: workspace:*
         version: link:../decap-cms-ui-default
@@ -1532,6 +1541,9 @@ importers:
       dayjs:
         specifier: catalog:utils
         version: 1.11.20
+      decap-cms-lib-util:
+        specifier: workspace:*
+        version: link:../decap-cms-lib-util
       decap-cms-ui-default:
         specifier: workspace:*
         version: link:../decap-cms-ui-default
@@ -1618,6 +1630,9 @@ importers:
       '@emotion/styled':
         specifier: catalog:emotion
         version: 11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4)
+      decap-cms-lib-util:
+        specifier: workspace:*
+        version: link:../decap-cms-lib-util
       decap-cms-ui-default:
         specifier: workspace:*
         version: link:../decap-cms-ui-default
@@ -1661,6 +1676,9 @@ importers:
       '@emotion/styled':
         specifier: catalog:emotion
         version: 11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4)
+      decap-cms-lib-util:
+        specifier: workspace:*
+        version: link:../decap-cms-lib-util
       decap-cms-lib-widgets:
         specifier: workspace:*
         version: link:../decap-cms-lib-widgets
@@ -1701,6 +1719,9 @@ importers:
       '@emotion/react':
         specifier: catalog:emotion
         version: 11.14.0(@types/react@19.2.14)(react@19.2.4)
+      decap-cms-lib-util:
+        specifier: workspace:*
+        version: link:../decap-cms-lib-util
       decap-cms-ui-default:
         specifier: workspace:*
         version: link:../decap-cms-ui-default
@@ -1732,6 +1753,9 @@ importers:
 
   packages/decap-cms-widget-number:
     dependencies:
+      decap-cms-lib-util:
+        specifier: workspace:*
+        version: link:../decap-cms-lib-util
       decap-cms-ui-default:
         specifier: workspace:*
         version: link:../decap-cms-ui-default
@@ -1763,6 +1787,9 @@ importers:
       '@emotion/styled':
         specifier: catalog:emotion
         version: 11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4)
+      decap-cms-lib-util:
+        specifier: workspace:*
+        version: link:../decap-cms-lib-util
       decap-cms-lib-widgets:
         specifier: workspace:*
         version: link:../decap-cms-lib-widgets
@@ -1812,6 +1839,9 @@ importers:
       '@emotion/styled':
         specifier: catalog:emotion
         version: 11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4)
+      decap-cms-lib-util:
+        specifier: workspace:*
+        version: link:../decap-cms-lib-util
       decap-cms-lib-widgets:
         specifier: workspace:*
         version: link:../decap-cms-lib-widgets
@@ -1852,6 +1882,9 @@ importers:
 
   packages/decap-cms-widget-select:
     dependencies:
+      decap-cms-lib-util:
+        specifier: workspace:*
+        version: link:../decap-cms-lib-util
       decap-cms-lib-widgets:
         specifier: workspace:*
         version: link:../decap-cms-lib-widgets
@@ -1889,6 +1922,9 @@ importers:
 
   packages/decap-cms-widget-string:
     dependencies:
+      decap-cms-lib-util:
+        specifier: workspace:*
+        version: link:../decap-cms-lib-util
       decap-cms-ui-default:
         specifier: workspace:*
         version: link:../decap-cms-ui-default
@@ -1911,6 +1947,9 @@ importers:
 
   packages/decap-cms-widget-text:
     dependencies:
+      decap-cms-lib-util:
+        specifier: workspace:*
+        version: link:../decap-cms-lib-util
       decap-cms-ui-default:
         specifier: workspace:*
         version: link:../decap-cms-ui-default

@@ -20,7 +20,7 @@ import NotFoundPage from './NotFoundPage';
 import Header from './Header';
 
 import type { Credentials } from 'decap-cms-lib-util';
-import type { Collections, Collection as CollectionType } from '../../types/cms';
+import type { Collections, Collection as CollectionType } from 'decap-cms-lib-util/types/cms-immutable';
 
 TopBarProgress.config({
   barColors: {

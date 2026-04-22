@@ -6,7 +6,7 @@ import type {
   EditorComponentOptions,
   EditorComponentPlugin,
   EditorComponentField,
-} from '../types/cms';
+} from 'decap-cms-lib-util/types/cms-immutable';
 
 const catchesNothing = /.^/;
 

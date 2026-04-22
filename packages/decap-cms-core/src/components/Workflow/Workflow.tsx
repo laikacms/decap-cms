@@ -5,7 +5,7 @@ import styled from '@emotion/styled';
 import { OrderedMap } from 'immutable';
 import type { Map as ImmutableMap } from 'immutable';
 import type { TranslateFunction } from 'decap-cms-ui-default';
-import type { Collections, State, Collection } from '../../types/cms';
+import type { Collections, State, Collection } from 'decap-cms-lib-util/types/cms-immutable';
 import type { Status } from '../../constants/publishModes';
 import { translate } from 'react-polyglot';
 import { connect } from 'react-redux';

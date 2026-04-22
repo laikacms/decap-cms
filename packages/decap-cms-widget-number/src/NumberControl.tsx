@@ -62,8 +62,8 @@ interface NumberControlProps {
   field: ImmutableMap<string, unknown>;
   onChange: (...args: unknown[]) => unknown;
   classNameWrapper: string;
-  setActiveStyle: (...args: unknown[]) => unknown;
-  setInactiveStyle: (...args: unknown[]) => unknown;
+  setActiveStyle: () => void;
+  setInactiveStyle: () => void;
   value?: string | number;
   forID?: string;
   valueType?: string;

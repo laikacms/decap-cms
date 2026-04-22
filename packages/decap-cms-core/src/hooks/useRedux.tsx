@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import type { TypedUseSelectorHook } from 'react-redux';
 import type { ThunkDispatch, ThunkAction } from 'redux-thunk';
 import type { AnyAction, Dispatch } from 'redux';
-import type { State } from '../types/cms';
+import type { State } from 'decap-cms-lib-util/types/cms-immutable';
 
 // Re-export types for convenience
 export type RootState = State;

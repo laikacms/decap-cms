@@ -21,7 +21,7 @@ import {
 import { selectMediaFiles } from '../../reducers/mediaLibrary';
 import MediaLibraryModal, { fileShape } from './MediaLibraryModal';
 
-import type { State } from '../../types/cms';
+import type { State } from 'decap-cms-lib-util/types/cms-immutable';
 
 /**
  * Extensions used to determine which files to show when the media library is

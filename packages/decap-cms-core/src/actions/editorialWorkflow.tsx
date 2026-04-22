@@ -33,7 +33,7 @@ import type {
   Collections,
   EntryDraft,
   MediaFile,
-} from '../types/cms';
+} from 'decap-cms-lib-util/types/cms-immutable';
 import type { AnyAction } from 'redux';
 import type { EntryValue } from '../valueObjects/Entry';
 import type { Status } from '../constants/publishModes';
@@ -332,7 +332,7 @@ export function persistUnpublishedEntry(collection: Collection, existingUnpublis
     const fieldsErrors = entryDraft.get('fieldsErrors');
     const unpublishedSlugs = selectUnpublishedSlugs(state, collection.get('name'));
     const publishedSlugs = selectPublishedSlugs(state, collection.get('name'));
-    const usedSlugs = publishedSlugs.concat(unpublishedSlugs) as List<string>;
+    const usedSlugs = (publishedSlugs || List<string>()).concat(unpublishedSlugs) as List<string>;
     const entriesLoaded = get(state.editorialWorkflow.toJS(), 'pages.ids', false);
 
     //load unpublishedEntries
@@ -495,7 +495,7 @@ export function publishUnpublishedEntry(collectionName: string, slug: string) {
     const state = getState();
     const collections = state.collections;
     const backend = currentBackend(state.config);
-    const entry = selectUnpublishedEntry(state, collectionName, slug);
+    const entry = selectUnpublishedEntry(state, collectionName, slug) as unknown as EntryMap;
     dispatch(unpublishedEntryPublishRequest(collectionName, slug));
     try {
       await backend.publishUnpublishedEntry(entry);
@@ -537,7 +537,7 @@ export function unpublishPublishedEntry(collection: Collection, slug: string) {
   return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
     const state = getState();
     const backend = currentBackend(state.config);
-    const entry = selectEntry(state, collection.get('name'), slug);
+    const entry = selectEntry(state, collection.get('name'), slug) as EntryMap;
     const entryDraft = Map().set('entry', entry) as unknown as EntryDraft;
     dispatch(unpublishedEntryPersisting(collection, slug));
     return backend

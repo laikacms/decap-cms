@@ -27,6 +27,7 @@
     "immutable": "catalog:utils",
     "prop-types": "catalog:react",
     "react": "catalog:react",
+    "decap-cms-lib-util": "workspace:*",
     "react-immutable-proptypes": "catalog:react"
   },
   "dependencies": {

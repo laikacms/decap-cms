@@ -26,6 +26,7 @@ import type {
   ImplementationFile,
   DataFile,
 } from 'decap-cms-lib-util';
+import type { FileEntry, ImplementationMediaFile } from 'decap-cms-lib-util/types/cms-immutable';
 
 type RepoFile = { path: string; content: string | AssetProxy };
 type RepoTree = { [key: string]: RepoFile | RepoTree };
@@ -308,7 +309,7 @@ export default class TestBackend implements Implementation {
     };
   }
 
-  async persistEntry(entry: Entry, options: PersistOptions) {
+  async persistEntry(entry: FileEntry, options: PersistOptions) {
     if (options.useWorkflow) {
       const slug = entry.dataFiles[0].slug;
       const key = `${options.collectionName}/${slug}`;
@@ -395,11 +396,12 @@ export default class TestBackend implements Implementation {
     };
   }
 
-  normalizeAsset(assetProxy: AssetProxy) {
+  normalizeAsset(assetProxy: AssetProxy): ImplementationMediaFile & AssetProxy {
     const fileObj = assetProxy.fileObj as File;
     const { name, size } = fileObj;
     const objectUrl = attempt(window.URL.createObjectURL, fileObj);
     const url = isError(objectUrl) ? '' : objectUrl;
+
     const normalizedAsset = {
       id: uuid(),
       name,
@@ -408,6 +410,7 @@ export default class TestBackend implements Implementation {
       url,
       displayURL: url,
       fileObj,
+      toBase64: assetProxy.toBase64,
     };
 
     return normalizedAsset;

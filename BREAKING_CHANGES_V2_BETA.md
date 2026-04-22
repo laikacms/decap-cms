@@ -35,3 +35,20 @@ update your configuration:
 - keymap: sublime
 + keymap: default   # VS Code keymap is used by default
 ```
+
+## Object widget: `field` renamed to `fields`
+
+The singular `field` property on the object widget is no longer supported. You must use
+`fields` (plural) instead.
+
+**Migration:** Update your configuration to use `fields` instead of `field`:
+
+```diff
+- field:
+-   name: author
+-   widget: string
++ fields:
++   - name: author
++     widget: string
+```
+

@@ -35,7 +35,7 @@ import { selectFolderEntryExtension, selectHasMetaPath } from './collections';
 import { getDataPath, duplicateI18nFields } from '../lib/i18n';
 
 import type { AnyAction } from 'redux';
-import type { Collection, EntryDraft, EntryMap, EntryField } from '../types/cms';
+import type { Collection, EntryDraft, EntryMap, EntryField } from 'decap-cms-lib-util/types/cms-immutable';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type EntryDraftState = Map<string, any>;
@@ -231,8 +231,8 @@ export function selectCustomPath(collection: Collection, entryDraft: EntryDraft)
   if (!selectHasMetaPath(collection)) {
     return;
   }
-  const meta = entryDraft.getIn(['entry', 'meta']);
-  const path = meta && meta.get('path');
+  const meta = entryDraft.getIn(['entry', 'meta']) as Map<string, unknown>;
+  const path = meta && meta.get('path') as string;
   const indexFile = get(collection.toJS(), ['meta', 'path', 'index_file']);
   const extension = selectFolderEntryExtension(collection);
   const customPath = path && join(collection.get('folder') as string, path, `${indexFile}.${extension}`);

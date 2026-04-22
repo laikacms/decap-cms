@@ -8,7 +8,7 @@ import escapeRegExp from 'lodash/escapeRegExp';
 import flow from 'lodash/flow';
 import partialRight from 'lodash/partialRight';
 
-import type { CmsSlug } from '../types/cms';
+import type { CmsSlug } from 'decap-cms-lib-util/types/cms';
 
 function getUrl(urlString: string, direct?: boolean) {
   return `${direct ? '/#' : ''}${urlString}`;

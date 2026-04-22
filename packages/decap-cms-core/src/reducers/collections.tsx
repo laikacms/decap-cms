@@ -19,8 +19,8 @@ import type {
   EntryMap,
   ViewFilter,
   ViewGroup,
-  CmsConfig,
-} from '../types/cms';
+} from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsConfig } from 'decap-cms-lib-util/types/cms';
 import type { ConfigAction } from '../actions/config';
 import type { Backend } from '../backend';
 

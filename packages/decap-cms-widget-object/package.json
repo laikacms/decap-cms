@@ -25,6 +25,7 @@
     "@emotion/react": "catalog:emotion",
     "@emotion/styled": "catalog:emotion",
     "decap-cms-ui-default": "workspace:*",
+    "decap-cms-lib-util": "workspace:*",
     "decap-cms-lib-widgets": "workspace:*",
     "immutable": "catalog:utils",
     "lodash": "catalog:utils",

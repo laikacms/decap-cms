@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import type { Map as ImmutableMap } from 'immutable';
-import type { EntryField } from '../../../types/cms';
+import type { EntryField } from 'decap-cms-lib-util/types/cms-immutable';
 
 interface PreviewHOCProps {
   previewComponent: React.ComponentType<Record<string, unknown>>;

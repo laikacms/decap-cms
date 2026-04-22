@@ -12,7 +12,7 @@ import { createEntry } from '../valueObjects/Entry';
 import { createAssetProxy } from '../valueObjects/AssetProxy';
 import ValidationErrorTypes from '../constants/validationErrorTypes';
 import { addAssets, getAsset } from './media';
-import { SortDirection } from '../types/cms';
+import { SortDirection } from 'decap-cms-lib-util/types/cms-immutable';
 import { waitForMediaLibraryToLoad, loadMedia } from './mediaLibrary';
 import { waitUntil } from './waitUntil';
 import { selectIsFetching, selectEntriesSortFields, selectEntryByPath } from '../reducers/entries';
@@ -34,7 +34,8 @@ import type {
   ViewFilter,
   ViewGroup,
   Entry,
-} from '../types/cms';
+  Integration,
+} from 'decap-cms-lib-util/types/cms-immutable';
 import type { EntryValue } from '../valueObjects/Entry';
 import type { Backend } from '../backend';
 import type AssetProxy from '../valueObjects/AssetProxy';
@@ -844,7 +845,7 @@ export function createEmptyDraftData(
       }
 
       if (defaultValue !== null) {
-        acc[name] = defaultValue;
+        (acc as any)[name] = defaultValue;
       }
 
       return acc;
@@ -908,7 +909,7 @@ export function persistEntry(collection: Collection) {
     const state = getState();
     const entryDraft = state.entryDraft;
     const fieldsErrors = entryDraft.get('fieldsErrors');
-    const usedSlugs = selectPublishedSlugs(state, collection.get('name'));
+    const usedSlugs = selectPublishedSlugs(state, collection.get('name')) || List<string>();
 
     // Early return if draft contains validation errors
     if (!fieldsErrors.isEmpty()) {

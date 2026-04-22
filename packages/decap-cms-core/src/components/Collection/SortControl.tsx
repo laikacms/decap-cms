@@ -3,7 +3,7 @@ import { translate } from 'react-polyglot';
 import { Dropdown, DropdownItem } from 'decap-cms-ui-default';
 import type { Map as ImmutableMap } from 'immutable';
 
-import { SortDirection } from '../../types/cms';
+import { SortDirection } from 'decap-cms-lib-util/types/cms-immutable';
 import { ControlButton } from './ControlButton';
 
 function nextSortDirection(direction: string | undefined) {

@@ -26,8 +26,9 @@ import type {
   CmsI18nConfig,
   CmsPublishMode,
   CmsLocalBackend,
-  State,
-} from '../types/cms';
+} from 'decap-cms-lib-util/types/cms';
+
+import type { State } from 'decap-cms-lib-util/types/cms-immutable';
 
 export const CONFIG_REQUEST = 'CONFIG_REQUEST';
 export const CONFIG_SUCCESS = 'CONFIG_SUCCESS';
@@ -270,7 +271,7 @@ export function applyDefaults(originalConfig: CmsConfig) {
 
     const backend = resolveBackend(config);
 
-    for (const collection of config.collections) {
+    for (const collection of config.collections as CmsCollection[] /* TODO: Fix WritableNonArrayDraft */) {
       if (!('publish' in collection)) {
         collection.publish = true;
       }

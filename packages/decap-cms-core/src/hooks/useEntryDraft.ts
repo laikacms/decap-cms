@@ -9,7 +9,7 @@ import {
   changeDraftFieldValidation,
 } from '../actions/entries';
 
-import type { Collection, EntryMap, EntryField } from '../types/cms';
+import type { Collection, EntryMap, EntryField } from 'decap-cms-lib-util/types/cms-immutable';
 
 /**
  * Hook for entry draft state and actions

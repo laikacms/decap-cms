@@ -8,7 +8,7 @@ import { Loader, lengths } from 'decap-cms-ui-default';
 
 import type { List as ImmutableList } from 'immutable';
 import type { Cursor } from 'decap-cms-lib-util';
-import type { Collection, EntryMap } from '../../../types/cms';
+import type { Collection, EntryMap } from 'decap-cms-lib-util/types/cms-immutable';
 
 import EntryListing from './EntryListing';
 

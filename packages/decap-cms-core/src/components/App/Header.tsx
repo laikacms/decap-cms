@@ -20,7 +20,7 @@ import {
 import { connect } from 'react-redux';
 
 import type { TranslateFunction } from 'decap-cms-ui-default';
-import type { Collections, Collection as CollectionType } from '../../types/cms';
+import type { Collections, Collection as CollectionType } from 'decap-cms-lib-util/types/cms-immutable';
 
 import { SettingsDropdown } from '../UI';
 import { checkBackendStatus } from '../../actions/status';
@@ -256,7 +256,7 @@ class Header extends React.Component<HeaderProps> {
             </AppHeaderNavList>
           </nav>
           <AppHeaderActions>
-            {creatableCollections.length > 0 && (
+            {creatableCollections.count() > 0 && (
               <Dropdown
                 renderButton={() => (
                   <AppHeaderQuickNewButton> {t('app.header.quickAdd')}</AppHeaderQuickNewButton>

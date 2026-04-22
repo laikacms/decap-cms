@@ -5,7 +5,7 @@ import escapeRegExp from 'lodash/escapeRegExp';
 
 import { selectEntrySlug } from '../reducers/collections';
 
-import type { Collection, Entry, EntryDraft, EntryField, EntryMap } from '../types/cms';
+import type { Collection, Entry, EntryDraft, EntryField, EntryMap } from 'decap-cms-lib-util/types/cms-immutable';
 import type { EntryValue } from '../valueObjects/Entry';
 
 export const I18N = 'i18n';
