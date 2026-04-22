@@ -1,4 +1,3 @@
-import { Map } from 'immutable';
 import { basename, getBlobSHA } from 'decap-cms-lib-util';
 
 import { currentBackend } from '../backend';
@@ -18,16 +17,22 @@ import { waitUntilWithTimeout } from './waitUntil';
 import { addNotification } from './notifications';
 
 import type {
-  State,
-  MediaFile,
-  DisplayURLState,
-  MediaLibraryInstance,
-  EntryField,
-} from 'decap-cms-lib-util/types/cms-immutable';
+  CmsMediaFile,
+  CmsEntryField,
+  CmsMediaLibraryInstance,
+} from 'decap-cms-lib-util/types/cms';
 import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
 import type AssetProxy from '../valueObjects/AssetProxy';
 import type { ImplementationMediaFile } from 'decap-cms-lib-util';
+
+type MediaFile = CmsMediaFile;
+type EntryField = CmsEntryField;
+type MediaLibraryInstance = CmsMediaLibraryInstance;
+type DisplayURLState = { isFetching: boolean; url?: string; err?: Error };
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type State = any;
 
 export const MEDIA_LIBRARY_OPEN = 'MEDIA_LIBRARY_OPEN';
 export const MEDIA_LIBRARY_CLOSE = 'MEDIA_LIBRARY_CLOSE';
@@ -61,7 +66,7 @@ export function createMediaLibrary(instance: MediaLibraryInstance) {
 export function clearMediaControl(id: string) {
   return (_dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
     const state = getState();
-    const mediaLibrary = state.mediaLibrary.get('externalLibrary');
+    const mediaLibrary = state.mediaLibrary.externalLibrary;
     if (mediaLibrary) {
       mediaLibrary.onClearControl({ id });
     }
@@ -71,7 +76,7 @@ export function clearMediaControl(id: string) {
 export function removeMediaControl(id: string) {
   return (_dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
     const state = getState();
-    const mediaLibrary = state.mediaLibrary.get('externalLibrary');
+    const mediaLibrary = state.mediaLibrary.externalLibrary;
     if (mediaLibrary) {
       mediaLibrary.onRemoveControl({ id });
     }
@@ -85,17 +90,17 @@ export function openMediaLibrary(
     privateUpload?: boolean;
     value?: string;
     allowMultiple?: boolean;
-    config?: Map<string, unknown>;
+    config?: Record<string, unknown>;
     field?: EntryField;
   } = {},
 ) {
   return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
     const state = getState();
-    const mediaLibrary = state.mediaLibrary.get('externalLibrary');
+    const mediaLibrary = state.mediaLibrary.externalLibrary;
     if (mediaLibrary) {
-      const { controlID: id, value, config = Map(), allowMultiple, forImage } = payload;
+      const { controlID: id, value, config = {}, allowMultiple, forImage } = payload;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mediaLibrary.show({ id, value, config: config.toJS() as any, allowMultiple, imagesOnly: forImage });
+      mediaLibrary.show({ id, value, config: config as any, allowMultiple, imagesOnly: forImage });
     }
     dispatch(mediaLibraryOpened(payload));
   };
@@ -104,7 +109,7 @@ export function openMediaLibrary(
 export function closeMediaLibrary() {
   return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
     const state = getState();
-    const mediaLibrary = state.mediaLibrary.get('externalLibrary');
+    const mediaLibrary = state.mediaLibrary.externalLibrary;
     if (mediaLibrary) {
       mediaLibrary.hide();
     }
@@ -116,15 +121,15 @@ export function insertMedia(mediaPath: string | string[], field: EntryField | un
   return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
     const state = getState();
     const config = state.config;
-    const entry = state.entryDraft.get('entry');
-    const collectionName = state.entryDraft.getIn(['entry', 'collection']) as string | number;
-    const collection = state.collections.get(collectionName as string);
+    const entry = state.entryDraft.entry;
+    const collectionName = entry?.collection as string | undefined;
+    const collection = collectionName != null ? state.collections[collectionName] : null;
     if (Array.isArray(mediaPath)) {
       mediaPath = mediaPath.map(path =>
-        selectMediaFilePublicPath(config, collection, path, entry, field),
+        selectMediaFilePublicPath(config, collection as any, path, entry, field as any),
       );
     } else {
-      mediaPath = selectMediaFilePublicPath(config, collection, mediaPath as string, entry, field);
+      mediaPath = selectMediaFilePublicPath(config, collection as any, mediaPath as string, entry, field as any);
     }
     dispatch(mediaInserted(mediaPath));
   };
@@ -165,7 +170,7 @@ export function loadMedia(
     function loadFunction() {
       return backend
         .getMedia()
-        .then(files => dispatch(mediaLoaded(files)))
+        .then((files: ImplementationMediaFile[]) => dispatch(mediaLoaded(files)))
         .catch((error: { status?: number }) => {
           console.error(error);
           if (error.status === 404) {
@@ -266,9 +271,9 @@ export function persistMedia(file: File, opts: MediaOptions = {}) {
       } else if (privateUpload) {
         throw new Error('The Private Upload option is only available for Asset Store Integration');
       } else {
-        const entry = state.entryDraft.get('entry');
-        const collection = state.collections.get(entry?.get('collection'));
-        const path = selectMediaFilePath(state.config, collection, entry, fileName, field);
+        const entry = state.entryDraft.entry;
+        const collection = entry?.collection != null ? state.collections[entry.collection] : null;
+        const path = selectMediaFilePath(state.config, collection as any, entry, fileName, field as any);
         assetProxy = createAssetProxy({
           file,
           path,
@@ -383,9 +388,9 @@ export function loadMediaDisplayURL(file: MediaFile) {
     if (
       !id ||
       !displayURL ||
-      displayURLState.get('url') ||
-      displayURLState.get('isFetching') ||
-      displayURLState.get('err')
+      displayURLState?.url ||
+      displayURLState?.isFetching ||
+      displayURLState?.err
     ) {
       return Promise.resolve();
     }
@@ -417,7 +422,7 @@ function mediaLibraryOpened(payload: {
   value?: string;
   replaceIndex?: number;
   allowMultiple?: boolean;
-  config?: Map<string, unknown>;
+  config?: Record<string, unknown>;
   field?: EntryField;
 }) {
   return { type: MEDIA_LIBRARY_OPEN, payload } as const;
@@ -515,7 +520,7 @@ export async function waitForMediaLibraryToLoad(
   dispatch: ThunkDispatch<State, {}, AnyAction>,
   state: State,
 ) {
-  if (state.mediaLibrary.get('isLoading') !== false && !state.mediaLibrary.get('externalLibrary')) {
+  if (state.mediaLibrary.isLoading !== false && !state.mediaLibrary.externalLibrary) {
     await waitUntilWithTimeout(dispatch, resolve => ({
       predicate: ({ type }) => type === MEDIA_LOAD_SUCCESS || type === MEDIA_LOAD_FAILURE,
       run: () => resolve(),
@@ -531,10 +536,10 @@ export async function getMediaDisplayURL(
   const displayURLState = selectMediaDisplayURL(state, file.id) as DisplayURLState;
 
   let url: string | null | undefined;
-  if (displayURLState.get('url')) {
+  if (displayURLState?.url) {
     // url was already loaded
-    url = displayURLState.get('url');
-  } else if (displayURLState.get('err')) {
+    url = displayURLState.url;
+  } else if (displayURLState?.err) {
     // url loading had an error
     url = null;
   } else {
@@ -546,7 +551,7 @@ export async function getMediaDisplayURL(
       run: (_dispatch, _getState, action) => resolve(action.payload.url),
     }));
 
-    if (!displayURLState.get('isFetching')) {
+    if (!displayURLState?.isFetching) {
       // load display url
       dispatch(loadMediaDisplayURL(file));
     }

@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import Textarea from 'react-textarea-autosize';
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import type { CmsFieldBase, CmsFieldStringOrText } from 'decap-cms-lib-util/types/cms';
-import type { StaticallyTypedRecord } from 'decap-cms-lib-util/types/cms-immutable';
 
 interface TextControlProps {
   onChange: (value: string) => void;
@@ -12,7 +11,7 @@ interface TextControlProps {
   classNameWrapper: string;
   setActiveStyle: () => void;
   setInactiveStyle: () => void;
-  field: StaticallyTypedRecord<CmsFieldStringOrText & CmsFieldBase>;
+  field: CmsFieldStringOrText & CmsFieldBase;
   t: TranslateFunction,
 }
 

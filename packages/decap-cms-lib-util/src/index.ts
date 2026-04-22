@@ -56,33 +56,29 @@ import {
   parsePointerFile,
   getPointerFileForMediaFileObj,
 } from './git-lfs';
-import { isImmutableMap, isImmutableList } from './types/immutable';
 
 import type { PointerFile as PF } from './git-lfs';
 import type { FetchError as FE, ApiRequest as AR } from './API';
 import type {
-  Implementation as I,
-  ImplementationEntry as IE,
-  UnpublishedEntryDiff as UED,
-  UnpublishedEntry as UE,
-  ImplementationMediaFile as IMF,
-  ImplementationFile as IF,
-  DisplayURLObject as DUO,
-  DisplayURL as DU,
-  Credentials as Cred,
-  User as U,
-  Entry as E,
-  PersistOptions as PO,
-  AssetProxy as AP,
-  Config as C,
-  UnpublishedEntryMediaFile as UEMF,
-  DataFile as DF,
-} from './types/cms-immutable';
+  CmsImplementationEntry as IE,
+  CmsUnpublishedEntryDiff as UED,
+  CmsUnpublishedEntry as UE,
+  CmsImplementationMediaFile as IMF,
+  CmsImplementationFile as IF,
+  CmsDisplayURLObject as DUO,
+  CmsDisplayURL as DU,
+  CmsCredentials as Cred,
+  CmsUser as U,
+  CmsEntryMap as E,
+  CmsPersistOptions as PO,
+  CmsAssetProxy as AP,
+  CmsUnpublishedEntryMediaFile as UEMF,
+  CmsDataFile as DF,
+} from './types/cms';
 import type { AsyncLock as AL } from './asyncLock';
 import isHotkey, { isCodeHotkey, isKeyHotkey } from './is-hotkey';
 
 export type AsyncLock = AL;
-export type Implementation = I;
 export type ImplementationEntry = IE;
 export type UnpublishedEntryDiff = UED;
 export type UnpublishedEntry = UE;
@@ -97,7 +93,6 @@ export type UnpublishedEntryMediaFile = UEMF;
 export type PersistOptions = PO;
 export type AssetProxy = AP;
 export type ApiRequest = AR;
-export type Config = C;
 export type FetchError = FE;
 export type PointerFile = PF;
 export type DataFile = DF;
@@ -222,8 +217,4 @@ export {
   isHotkey,
   isKeyHotkey,
   isCodeHotkey,
-  isImmutableMap,
-  isImmutableList,
 };
-
-export * from './types/immutable'

@@ -1,6 +1,5 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react';
-import { fromJS } from 'immutable';
 
 import ListControl from '../ListControl';
 

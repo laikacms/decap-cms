@@ -13,14 +13,20 @@ import { openMediaLibrary } from '../../actions/mediaLibrary';
 import MediaLibrary from '../MediaLibrary/MediaLibrary';
 import { Notifications } from '../UI';
 import { EDITORIAL_WORKFLOW } from '../../constants/publishModes';
-import Collection from '../Collection/Collection';
+import CollectionComponent from '../Collection/Collection';
 import Workflow from '../Workflow/Workflow';
 import Editor from '../Editor/Editor';
 import NotFoundPage from './NotFoundPage';
 import Header from './Header';
 
 import type { Credentials } from 'decap-cms-lib-util';
-import type { Collections, Collection as CollectionType } from 'decap-cms-lib-util/types/cms-immutable';
+import type {
+  CmsCollectionObject,
+  CmsCollections,
+} from 'decap-cms-lib-util/types/cms';
+
+type Collection = CmsCollectionObject;
+type Collections = CmsCollections;
 
 TopBarProgress.config({
   barColors: {
@@ -49,11 +55,11 @@ const ErrorCodeBlock = styled.pre`
 
 function getDefaultPath(collections: Collections): string {
   // Get all collection keys and find the first non-hidden one
-  const keys = Object.keys(collections.toJS ? collections.toJS() : collections);
+  const keys = Object.keys(collections);
   for (const key of keys) {
-    const collection = collections.get(key) as CollectionType | undefined;
-    if (collection && collection.get('hide') !== true) {
-      return `/collections/${collection.get('name')}`;
+    const collection = collections[key] as Collection | undefined;
+    if (collection && collection.hide !== true) {
+      return `/collections/${collection.name}`;
     }
   }
   throw new Error('Could not find a non hidden collection');
@@ -72,7 +78,7 @@ function RouteInCollectionGuard({
 }) {
   const { name } = useParams<{ name: string }>();
   const defaultPath = getDefaultPath(collections);
-  const collectionExists = name ? collections.get(name) : undefined;
+  const collectionExists = name ? collections[name] : undefined;
   return collectionExists ? <>{children}</> : <Navigate to={defaultPath} replace />;
 }
 
@@ -89,7 +95,7 @@ function CollectionRoute({
   const params = useParams();
   const match = { params: params as { name?: string; searchTerm?: string; filterTerm?: string } };
   return (
-    <Collection
+    <CollectionComponent
       match={match}
       isSearchResults={isSearchResults}
       isSingleSearchResult={isSingleSearchResult}
@@ -140,8 +146,8 @@ function App() {
   // Derived state
   const user = auth.user;
   const publishMode = config?.publish_mode;
-  const useMediaLibraryFlag = !mediaLibrary.get('externalLibrary');
-  const showMediaButton = mediaLibrary.get('showMediaButton');
+  const useMediaLibraryFlag = !mediaLibrary.externalLibrary;
+  const showMediaButton = mediaLibrary.showMediaButton;
 
   // Memoized values
   const defaultPath = useMemo(() => {

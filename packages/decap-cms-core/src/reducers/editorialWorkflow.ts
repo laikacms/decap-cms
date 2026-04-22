@@ -1,4 +1,4 @@
-import { Map, List, fromJS } from 'immutable';
+import { produce } from 'immer';
 import startsWith from 'lodash/startsWith';
 
 import { EDITORIAL_WORKFLOW } from '../constants/publishModes';
@@ -21,144 +21,167 @@ import {
 } from '../actions/editorialWorkflow';
 import { CONFIG_SUCCESS } from '../actions/config';
 
-import type { EditorialWorkflowAction, EditorialWorkflow, Entities, UnpublishedEntry } from 'decap-cms-lib-util/types/cms-immutable';
-import type { StaticallyTypedRecord } from 'decap-cms-lib-util';
+import type { AnyAction } from 'redux';
 
-function unpublishedEntries(state = Map(), action: EditorialWorkflowAction) {
+export type WorkflowEntry = {
+  slug: string;
+  collection: string;
+  status?: string;
+  isFetching?: boolean;
+  isPersisting?: boolean;
+  isUpdatingStatus?: boolean;
+  isPublishing?: boolean;
+  [key: string]: unknown;
+};
+
+export type WorkflowPage = { isFetching?: boolean; ids?: string[] };
+
+export type EditorialWorkflow = {
+  pages: Record<string, WorkflowPage | boolean | undefined> & { isFetching?: boolean };
+  entities: Record<string, WorkflowEntry>;
+};
+
+const defaultState: EditorialWorkflow = { entities: {}, pages: {} };
+
+const unpublishedEntries = produce((state: EditorialWorkflow, action: AnyAction) => {
   switch (action.type) {
     case CONFIG_SUCCESS: {
-      const publishMode = action.payload && action.payload.publish_mode;
+      const publishMode = action.payload?.publish_mode;
       if (publishMode === EDITORIAL_WORKFLOW) {
-        //  Editorial workflow state is explicitly initiated after the config.
-        return Map({ entities: Map(), pages: Map() });
+        return { entities: {}, pages: {} };
       }
-      return state;
+      return;
     }
-    case UNPUBLISHED_ENTRY_REQUEST:
-      return state.setIn(
-        ['entities', `${action.payload!.collection}.${action.payload!.slug}`, 'isFetching'],
-        true,
-      );
 
-    case UNPUBLISHED_ENTRY_REDIRECT:
-      return state.deleteIn(['entities', `${action.payload!.collection}.${action.payload!.slug}`]);
+    case UNPUBLISHED_ENTRY_REQUEST: {
+      const key = `${action.payload.collection}.${action.payload.slug}`;
+      state.entities[key] = { ...(state.entities[key] ?? {}), isFetching: true };
+      break;
+    }
 
-    case UNPUBLISHED_ENTRY_SUCCESS:
-      return state.setIn(
-        ['entities', `${action.payload!.collection}.${action.payload!.entry.slug}`],
-        fromJS(action.payload!.entry),
-      );
+    case UNPUBLISHED_ENTRY_REDIRECT: {
+      const key = `${action.payload.collection}.${action.payload.slug}`;
+      delete state.entities[key];
+      break;
+    }
 
-    case UNPUBLISHED_ENTRIES_REQUEST:
-      return state.setIn(['pages', 'isFetching'], true);
+    case UNPUBLISHED_ENTRY_SUCCESS: {
+      const key = `${action.payload.collection}.${action.payload.entry.slug}`;
+      state.entities[key] = action.payload.entry;
+      break;
+    }
 
-    case UNPUBLISHED_ENTRIES_SUCCESS:
-      return state.withMutations(map => {
-        action.payload!.entries.forEach(entry =>
-          map.setIn(
-            ['entities', `${entry.collection}.${entry.slug}`],
-            (fromJS(entry) as Map<string, unknown>).set('isFetching', false),
-          ),
-        );
-        map.set(
-          'pages',
-          Map({
-            ...action.payload!.pages,
-            ids: List(action.payload!.entries.map(entry => entry.slug)),
-          }),
-        );
+    case UNPUBLISHED_ENTRIES_REQUEST: {
+      state.pages = { ...state.pages, isFetching: true };
+      break;
+    }
+
+    case UNPUBLISHED_ENTRIES_SUCCESS: {
+      (action.payload.entries as WorkflowEntry[]).forEach(entry => {
+        const key = `${entry.collection}.${entry.slug}`;
+        state.entities[key] = { ...entry, isFetching: false };
       });
+      state.pages = {
+        ...action.payload.pages,
+        ids: (action.payload.entries as WorkflowEntry[]).map(entry => entry.slug),
+      };
+      break;
+    }
 
     case UNPUBLISHED_ENTRY_PERSIST_REQUEST: {
-      return state.setIn(
-        ['entities', `${action.payload!.collection}.${action.payload!.slug}`, 'isPersisting'],
-        true,
-      );
+      const key = `${action.payload.collection}.${action.payload.slug}`;
+      if (state.entities[key]) {
+        state.entities[key] = { ...state.entities[key], isPersisting: true };
+      }
+      break;
     }
 
-    case UNPUBLISHED_ENTRY_PERSIST_SUCCESS:
-      // Update Optimistically
-      return state.withMutations(map => {
-        map.setIn(
-          ['entities', `${action.payload!.collection}.${action.payload!.entry.get('slug')}`],
-          fromJS(action.payload!.entry),
-        );
-        map.deleteIn([
-          'entities',
-          `${action.payload!.collection}.${action.payload!.entry.get('slug')}`,
-          'isPersisting',
-        ]);
-        map.updateIn(['pages', 'ids'], List(), (list: unknown) =>
-          (list as List<string>).push(action.payload!.entry.get('slug')),
-        );
-      });
+    case UNPUBLISHED_ENTRY_PERSIST_SUCCESS: {
+      const slug = action.payload.entry.slug;
+      const key = `${action.payload.collection}.${slug}`;
+      state.entities[key] = { ...action.payload.entry, isPersisting: undefined };
+      const page = state.pages[action.payload.collection] as WorkflowPage | undefined;
+      if (page?.ids && !page.ids.includes(slug)) {
+        (state.pages[action.payload.collection] as WorkflowPage).ids = [...page.ids, slug];
+      }
+      break;
+    }
 
-    case UNPUBLISHED_ENTRY_PERSIST_FAILURE:
-      return state.setIn(
-        ['entities', `${action.payload!.collection}.${action.payload!.slug}`, 'isPersisting'],
-        false,
-      );
+    case UNPUBLISHED_ENTRY_PERSIST_FAILURE: {
+      const key = `${action.payload.collection}.${action.payload.slug}`;
+      if (state.entities[key]) {
+        state.entities[key] = { ...state.entities[key], isPersisting: false };
+      }
+      break;
+    }
 
-    case UNPUBLISHED_ENTRY_STATUS_CHANGE_REQUEST:
-      // Update Optimistically
-      return state.setIn(
-        ['entities', `${action.payload!.collection}.${action.payload!.slug}`, 'isUpdatingStatus'],
-        true,
-      );
+    case UNPUBLISHED_ENTRY_STATUS_CHANGE_REQUEST: {
+      const key = `${action.payload.collection}.${action.payload.slug}`;
+      if (state.entities[key]) {
+        state.entities[key] = { ...state.entities[key], isUpdatingStatus: true };
+      }
+      break;
+    }
 
-    case UNPUBLISHED_ENTRY_STATUS_CHANGE_SUCCESS:
-      return state.withMutations(map => {
-        map.setIn(
-          ['entities', `${action.payload!.collection}.${action.payload!.slug}`, 'status'],
-          action.payload!.newStatus,
-        );
-        map.setIn(
-          ['entities', `${action.payload!.collection}.${action.payload!.slug}`, 'isUpdatingStatus'],
-          false,
-        );
-      });
+    case UNPUBLISHED_ENTRY_STATUS_CHANGE_SUCCESS: {
+      const key = `${action.payload.collection}.${action.payload.slug}`;
+      if (state.entities[key]) {
+        state.entities[key] = {
+          ...state.entities[key],
+          status: action.payload.newStatus,
+          isUpdatingStatus: false,
+        };
+      }
+      break;
+    }
 
-    case UNPUBLISHED_ENTRY_STATUS_CHANGE_FAILURE:
-      return state.setIn(
-        ['entities', `${action.payload!.collection}.${action.payload!.slug}`, 'isUpdatingStatus'],
-        false,
-      );
+    case UNPUBLISHED_ENTRY_STATUS_CHANGE_FAILURE: {
+      const key = `${action.payload.collection}.${action.payload.slug}`;
+      if (state.entities[key]) {
+        state.entities[key] = { ...state.entities[key], isUpdatingStatus: false };
+      }
+      break;
+    }
 
-    case UNPUBLISHED_ENTRY_PUBLISH_REQUEST:
-      return state.setIn(
-        ['entities', `${action.payload!.collection}.${action.payload!.slug}`, 'isPublishing'],
-        true,
-      );
+    case UNPUBLISHED_ENTRY_PUBLISH_REQUEST: {
+      const key = `${action.payload.collection}.${action.payload.slug}`;
+      if (state.entities[key]) {
+        state.entities[key] = { ...state.entities[key], isPublishing: true };
+      }
+      break;
+    }
 
     case UNPUBLISHED_ENTRY_PUBLISH_SUCCESS:
-      return state.deleteIn(['entities', `${action.payload!.collection}.${action.payload!.slug}`]);
-
-    case UNPUBLISHED_ENTRY_DELETE_SUCCESS:
-      return state.deleteIn(['entities', `${action.payload!.collection}.${action.payload!.slug}`]);
+    case UNPUBLISHED_ENTRY_DELETE_SUCCESS: {
+      const key = `${action.payload.collection}.${action.payload.slug}`;
+      delete state.entities[key];
+      break;
+    }
 
     case UNPUBLISHED_ENTRY_PUBLISH_FAILURE:
     default:
-      return state;
+      break;
   }
-}
+}, defaultState);
 
-export function selectUnpublishedEntry(state: EditorialWorkflow, collection: string, slug: string): StaticallyTypedRecord<UnpublishedEntry> | undefined {
-  return state && state.getIn(['entities', `${collection}.${slug}`]) as StaticallyTypedRecord<UnpublishedEntry> | undefined;
+export function selectUnpublishedEntry(
+  state: EditorialWorkflow,
+  collection: string,
+  slug: string,
+): WorkflowEntry | undefined {
+  return state?.entities?.[`${collection}.${slug}`];
 }
 
 export function selectUnpublishedEntriesByStatus(state: EditorialWorkflow, status: string) {
   if (!state) return undefined;
-  const entities = state.get('entities') as Entities;
-  return entities.filter(entry => entry.get('status') === status).valueSeq();
+  return Object.values(state.entities).filter(entry => entry?.status === status);
 }
 
 export function selectUnpublishedSlugs(state: EditorialWorkflow, collection: string) {
-  if (!state.get('entities')) return null;
-  const entities = state.get('entities') as Entities;
-  return entities
-    .filter((_v, k) => startsWith(k as string, `${collection}.`))
-    .map(entry => entry.get('slug'))
-    .valueSeq();
+  if (!state?.entities) return null;
+  return Object.entries(state.entities)
+    .filter(([k]) => startsWith(k, `${collection}.`))
+    .map(([, entry]) => entry?.slug);
 }
 
 export default unpublishedEntries;

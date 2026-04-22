@@ -1,5 +1,3 @@
-import { List } from 'immutable';
-
 import auth from './auth';
 import config from './config';
 import integrations, * as fromIntegrations from './integrations';
@@ -17,7 +15,12 @@ import status from './status';
 import notifications from './notifications';
 
 import type { Status } from '../constants/publishModes';
-import type { State, Collection, Entry } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsCollectionObject, CmsEntryMap } from 'decap-cms-lib-util/types/cms';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type State = any;
+type Collection = CmsCollectionObject;
+type Entry = CmsEntryMap;
 
 const reducers = {
   auth,
@@ -54,13 +57,11 @@ export function selectPublishedSlugs(state: State, collection: string) {
   return fromEntries.selectPublishedSlugs(state.entries, collection);
 }
 
-export function selectSearchedEntries(state: State, availableCollections: string[]): List<Entry> {
-  // only return search results for actually available collections
-  return List(state.search.entryIds)
-    .filter(entryId => availableCollections.indexOf(entryId!.collection) !== -1)
-    .map(entryId => fromEntries.selectEntry(state.entries, entryId!.collection, entryId!.slug))
-    .filter(entry => entry !== undefined)
-    .toList() as List<Entry>;
+export function selectSearchedEntries(state: State, availableCollections: string[]): Entry[] {
+  return state.search.entryIds
+    .filter((entryId: { collection: string; slug: string }) => availableCollections.indexOf(entryId.collection) !== -1)
+    .map((entryId: { collection: string; slug: string }) => fromEntries.selectEntry(state.entries, entryId.collection, entryId.slug))
+    .filter((entry: Entry | undefined): entry is Entry => entry !== undefined);
 }
 
 export function selectDeployPreview(state: State, collection: string, slug: string) {

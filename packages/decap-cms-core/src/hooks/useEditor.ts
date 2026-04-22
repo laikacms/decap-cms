@@ -34,7 +34,12 @@ import { status, EDITORIAL_WORKFLOW } from '../constants/publishModes';
 
 import type { Status } from '../constants/publishModes';
 import type { Update, Transition } from 'history';
-import type { Collection, Entry, EntryDraft } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsCollectionObject, CmsEntryMap } from 'decap-cms-lib-util/types/cms';
+
+type Collection = CmsCollectionObject;
+type Entry = CmsEntryMap;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type EntryDraft = any;
 
 interface UseEditorOptions {
   collectionName: string;
@@ -65,13 +70,13 @@ export function useEditor({
   
   // Selectors
   const collections = useAppSelector(state => state.collections);
-  const collection = useAppSelector(state => state.collections.get(collectionName)) as Collection | undefined;
+  const collection = useAppSelector(state => state.collections[collectionName]) as Collection | undefined;
   const entryDraft = useAppSelector(state => state.entryDraft) as EntryDraft | undefined;
   const user = useAppSelector(state => state.auth.user);
   const displayUrl = useAppSelector(state => state.config.display_url);
   const hasWorkflow = useAppSelector(state => state.config.publish_mode === EDITORIAL_WORKFLOW);
   const useOpenAuthoring = useAppSelector(state => state.globalUI.useOpenAuthoring);
-  const collectionEntriesLoaded = useAppSelector(state => !!state.entries.getIn(['pages', collectionName]));
+  const collectionEntriesLoaded = useAppSelector(state => !!state.entries.pages?.[collectionName]);
   
   const entry = useAppSelector(state => 
     newEntry ? null : selectEntry(state, collectionName, slug || '')
@@ -93,11 +98,11 @@ export function useEditor({
   const workflow = useWorkflow({ collectionName, slug, newEntry });
   
   // Derived state
-  const hasChanged = entryDraft?.get('hasChanged') as boolean | undefined;
-  const isModification = entryDraft?.getIn(['entry', 'isModification']) as boolean | undefined;
-  const localBackup = entryDraft?.get('localBackup');
-  const draftKey = entryDraft?.get('key');
-  const currentStatus = unPublishedEntry?.get('status') as Status | undefined;
+  const hasChanged = entryDraft?.hasChanged as boolean | undefined;
+  const isModification = entryDraft?.entry?.isModification as boolean | undefined;
+  const localBackup = entryDraft?.localBackup;
+  const draftKey = entryDraft?.key;
+  const currentStatus = unPublishedEntry?.status as Status | undefined;
   
   const fields = useMemo(() => {
     if (!collection) return null;
@@ -109,7 +114,7 @@ export function useEditor({
     if (new URLSearchParams(locationSearch).get('ref') === 'workflow') {
       link = `/workflow`;
     }
-    if (collection?.has('nested') && slug) {
+    if (collection?.nested && slug) {
       const pathParts = slug.split('/');
       if (pathParts.length > 2) {
         link = `${link}/filter/${pathParts.slice(0, -2).join('/')}`;
@@ -167,7 +172,7 @@ export function useEditor({
     // Setup beforeunload handler
     function exitBlocker(event: BeforeUnloadEvent) {
       const draft = entryDraft;
-      if (draft?.get('hasChanged')) {
+      if (draft?.hasChanged) {
         event.returnValue = leaveMessage;
         return leaveMessage;
       }
@@ -183,9 +188,9 @@ export function useEditor({
     // because tx.retry() re-triggers the navigation which would call this blocker again.
     function navigationBlocker(tx: Transition) {
       const draft = entryDraft;
-      const isPersisting = draft?.getIn(['entry', 'isPersisting']);
-      const newRecord = draft?.getIn(['entry', 'newRecord']);
-      const newEntryPath = `/collections/${collection!.get('name')}/new`;
+      const isPersisting = draft?.entry?.isPersisting;
+      const newRecord = draft?.entry?.newRecord;
+      const newEntryPath = `/collections/${collection!.name}/new`;
       
       // Allow navigation during persist of new entry
       if (
@@ -200,7 +205,7 @@ export function useEditor({
       }
       
       // Block navigation if there are unsaved changes (unless user confirms)
-      if (draft?.get('hasChanged')) {
+      if (draft?.hasChanged) {
         if (window.confirm(leaveMessage)) {
           unblockRef.current?.();
           tx.retry();
@@ -219,8 +224,8 @@ export function useEditor({
     
     // Setup history listener (history v5 API: listener receives { location, action })
     const unlisten = history.listen(({ location, action }: Update) => {
-      const newEntryPath = `/collections/${collection!.get('name')}/new`;
-      const entriesPath = `/collections/${collection!.get('name')}/entries/`;
+      const newEntryPath = `/collections/${collection!.name}/new`;
+      const entriesPath = `/collections/${collection!.name}/entries/`;
       const { pathname } = location;
       
       if (
@@ -286,7 +291,7 @@ export function useEditor({
   // Handle backup creation when changed
   const handleBackupOnChange = useCallback(() => {
     if (hasChanged && entryDraft && collection) {
-      createBackup(entryDraft.get('entry'), collection);
+      createBackup(entryDraft.entry, collection);
     }
   }, [hasChanged, entryDraft, collection, createBackup]);
   
@@ -319,14 +324,14 @@ export function useEditor({
     (newStatusName: string) => {
       if (!collection || !slug || !currentStatus) return;
       
-      if (entryDraft?.get('hasChanged')) {
+      if (entryDraft?.hasChanged) {
         window.alert(t('editor.editor.onUpdatingWithUnsavedChanges'));
         return;
       }
-      const newStatus = status.get(newStatusName) as Status | undefined;
+      const newStatus = (status as unknown as Record<string, string>)[newStatusName] as Status | undefined;
       if (newStatus) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        dispatch(updateUnpublishedEntryStatus(collection.get('name'), slug, currentStatus, newStatus) as any);
+        dispatch(updateUnpublishedEntryStatus(collection.name, slug, currentStatus, newStatus) as any);
       }
     },
     [collection, slug, entryDraft, currentStatus, t, dispatch]
@@ -341,10 +346,10 @@ export function useEditor({
       deleteBackup();
       
       if (createNew) {
-        navigateToNewEntry(collection.get('name'));
+        navigateToNewEntry(collection.name);
         if (duplicate && entryDraft) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          dispatch(createDraftDuplicateFromEntry(entryDraft.get('entry')) as any);
+          dispatch(createDraftDuplicateFromEntry(entryDraft.entry) as any);
         }
       } else if (slug && hasWorkflow && !currentStatus) {
         workflow.loadEntry(collection, slug);
@@ -358,10 +363,10 @@ export function useEditor({
       const { createNew = false, duplicate = false } = opts;
       if (!collection || !slug) return;
       
-      if (currentStatus !== status.last()) {
+      if (currentStatus !== Object.values(status).pop()) {
         window.alert(t('editor.editor.onPublishingNotReady'));
         return;
-      } else if (entryDraft?.get('hasChanged')) {
+      } else if (entryDraft?.hasChanged) {
         window.alert(t('editor.editor.onPublishingWithUnsavedChanges'));
         return;
       } else if (!window.confirm(t('editor.editor.onPublishing'))) {
@@ -369,16 +374,16 @@ export function useEditor({
       }
       
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await dispatch(publishUnpublishedEntry(collection.get('name'), slug) as any);
+      await dispatch(publishUnpublishedEntry(collection.name, slug) as any);
       deleteBackup();
       
       if (createNew) {
-        navigateToNewEntry(collection.get('name'));
+        navigateToNewEntry(collection.name);
       }
       
       if (duplicate && entryDraft) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        dispatch(createDraftDuplicateFromEntry(entryDraft.get('entry')) as any);
+        dispatch(createDraftDuplicateFromEntry(entryDraft.entry) as any);
       }
     },
     [collection, slug, currentStatus, entryDraft, t, dispatch, deleteBackup]
@@ -391,21 +396,21 @@ export function useEditor({
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await dispatch(unpublishPublishedEntry(collection, slug) as any);
-    return navigateToCollection(collection.get('name'));
+    return navigateToCollection(collection.name);
   }, [collection, slug, t, dispatch]);
   
   const handleDuplicateEntry = useCallback(() => {
     if (!collection || !entryDraft) return;
     
-    navigateToNewEntry(collection.get('name'));
+    navigateToNewEntry(collection.name);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    dispatch(createDraftDuplicateFromEntry(entryDraft.get('entry')) as any);
+    dispatch(createDraftDuplicateFromEntry(entryDraft.entry) as any);
   }, [collection, entryDraft, dispatch]);
   
   const handleDeleteEntry = useCallback(() => {
     if (!collection) return;
     
-    if (entryDraft?.get('hasChanged')) {
+    if (entryDraft?.hasChanged) {
       if (!window.confirm(t('editor.editor.onDeleteWithUnsavedChanges'))) {
         return;
       }
@@ -414,7 +419,7 @@ export function useEditor({
     }
     
     if (newEntry) {
-      return navigateToCollection(collection.get('name'));
+      return navigateToCollection(collection.name);
     }
     
     setTimeout(async () => {
@@ -423,7 +428,7 @@ export function useEditor({
         await dispatch(deleteEntry(collection, slug) as any);
       }
       deleteBackup();
-      return navigateToCollection(collection.get('name'));
+      return navigateToCollection(collection.name);
     }, 0);
   }, [collection, entryDraft, newEntry, slug, t, dispatch, deleteBackup]);
   
@@ -431,7 +436,7 @@ export function useEditor({
     if (!collection || !slug) return;
     
     if (
-      entryDraft?.get('hasChanged') &&
+      entryDraft?.hasChanged &&
       !window.confirm(t('editor.editor.onDeleteUnpublishedChangesWithUnsavedChanges'))
     ) {
       return;
@@ -440,13 +445,13 @@ export function useEditor({
     }
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await dispatch(deleteUnpublishedEntry(collection.get('name'), slug) as any);
+    await dispatch(deleteUnpublishedEntry(collection.name, slug) as any);
     deleteBackup();
     
     if (isModification) {
       workflow.loadEntry(collection, slug);
     } else {
-      navigateToCollection(collection.get('name'));
+      navigateToCollection(collection.name);
     }
   }, [collection, slug, entryDraft, isModification, t, dispatch, deleteBackup, workflow]);
   

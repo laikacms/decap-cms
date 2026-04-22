@@ -7,7 +7,9 @@ import { selectAllowDeletion } from '../reducers/collections';
 import { loadUnpublishedEntry, persistUnpublishedEntry } from '../actions/editorialWorkflow';
 import { loadEntry as loadEntryAction, persistEntry as persistEntryAction } from '../actions/entries';
 
-import type { Collection } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsCollectionObject } from 'decap-cms-lib-util/types/cms';
+
+type Collection = CmsCollectionObject;
 
 interface UseWorkflowOptions {
   collectionName: string;
@@ -18,7 +20,7 @@ interface UseWorkflowOptions {
 export function useWorkflow({ collectionName, slug, newEntry }: UseWorkflowOptions) {
   const dispatch = useAppDispatch();
   
-  const collection = useAppSelector(state => state.collections.get(collectionName)) as Collection | undefined;
+  const collection = useAppSelector(state => state.collections[collectionName]) as Collection | undefined;
   const isEditorialWorkflow = useAppSelector(state => state.config.publish_mode === EDITORIAL_WORKFLOW);
   const unpublishedEntry = useAppSelector(state =>
     isEditorialWorkflow && slug ? selectUnpublishedEntry(state, collectionName, slug) : null

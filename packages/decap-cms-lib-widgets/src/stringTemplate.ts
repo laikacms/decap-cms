@@ -1,4 +1,3 @@
-import { Map } from 'immutable';
 import get from 'lodash/get';
 import trimEnd from 'lodash/trimEnd';
 import truncate from 'lodash/truncate';
@@ -56,12 +55,12 @@ export const dateParsers: Record<string, (date: Date) => string> = {
   second: (date: Date) => formatDate(date.getUTCSeconds()),
 };
 
-export function parseDateFromEntry(entry: Map<string, unknown>, dateFieldName?: string | null): Date | undefined {
+export function parseDateFromEntry(entry: Record<string, unknown>, dateFieldName?: string | null): Date | undefined {
   if (!dateFieldName) {
     return;
   }
 
-  const entryData = entry.getIn(['data']) as Map<string, unknown> | undefined;
+  const entryData = entry.data as Record<string, unknown> | undefined;
   if (!entryData) {
     return;
   }
@@ -69,13 +68,13 @@ export function parseDateFromEntry(entry: Map<string, unknown>, dateFieldName?: 
 }
 
 export function parseDateFromEntryData(
-  entryData: Map<string, unknown>,
+  entryData: Record<string, unknown>,
   dateFieldName?: string | null,
 ): Date | undefined {
   if (!dateFieldName) {
     return;
   }
-  const dateValue = entryData.getIn([dateFieldName]) as string | number | Date | undefined;
+  const dateValue = entryData[dateFieldName] as string | number | Date | undefined;
   if (!dateValue) {
     return;
   }
@@ -150,12 +149,12 @@ export function expandPath({
 
 // Allow `fields.` prefix in placeholder to override built in replacements
 // like "slug" and "year" with values from fields of the same name.
-function getExplicitFieldReplacement(key: string, data: Map<string, unknown>) {
+function getExplicitFieldReplacement(key: string, data: Record<string, unknown>) {
   if (!key.startsWith(FIELD_PREFIX)) {
     return;
   }
   const fieldName = key.slice(FIELD_PREFIX.length);
-  const value = data.getIn(keyToPathArray(fieldName));
+  const value = data[fieldName];
   if (typeof value === 'object' && value !== null) {
     return JSON.stringify(value);
   }
@@ -181,7 +180,7 @@ export function compileStringTemplate(
   template: string,
   date: Date | undefined | null,
   identifier = '',
-  data = Map<string, unknown>(),
+  data: Record<string, unknown> = {},
   processor?: (value: string) => string,
 ) {
   let missingRequiredDate;
@@ -206,7 +205,7 @@ export function compileStringTemplate(
       } else if (key === 'slug') {
         replacement = identifier;
       } else {
-        replacement = String(data.getIn(keyToPathArray(key), ''));
+        replacement = String(get(data, keyToPathArray(key), ''));
       }
 
       if (processor) {
@@ -249,7 +248,7 @@ export function extractTemplateVars(template: string) {
  *   eg: `addFileTemplateFields('foo/bar/baz.ext', fields, 'foo')`
  *       will result in: `{ dirname: 'bar', filename: 'baz', extension: 'ext' }`
  */
-export function addFileTemplateFields(entryPath: string, fields: Map<string, string>, folder = '') {
+export function addFileTemplateFields(entryPath: string, fields: Record<string, string>, folder = '') {
   if (!entryPath) {
     return fields;
   }
@@ -257,11 +256,9 @@ export function addFileTemplateFields(entryPath: string, fields: Map<string, str
   const extension = extname(entryPath);
   const filename = basename(entryPath, extension);
   const dirnameExcludingFolder = dirname(entryPath).replace(new RegExp(`^(/?)${folder}/?`), '$1');
-  fields = fields.withMutations(map => {
-    map.set('dirname', dirnameExcludingFolder);
-    map.set('filename', filename);
-    map.set('extension', extension === '' ? extension : extension.slice(1));
-  });
+  fields['dirname'] = dirnameExcludingFolder;
+  fields['filename'] = filename;
+  fields['extension'] = extension === '' ? extension : extension.slice(1);
 
   return fields;
 }

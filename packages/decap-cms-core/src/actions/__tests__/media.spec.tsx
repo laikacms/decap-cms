@@ -1,5 +1,4 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { Map } from 'immutable';
 import configureMockStore from 'redux-mock-store';
 import thunk from 'redux-thunk';
 
@@ -7,10 +6,12 @@ import { getAsset, ADD_ASSET, LOAD_ASSET_REQUEST } from '../media';
 import { selectMediaFilePath } from '../../reducers/entries';
 import AssetProxy from '../../valueObjects/AssetProxy';
 
-import type { State } from 'decap-cms-lib-util/types/cms-immutable';
 import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
 import type { Mock } from 'vitest';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type State = any;
 
 const middlewares = [thunk];
 const mockStore = configureMockStore<Partial<State>, ThunkDispatch<State, {}, AnyAction>>(

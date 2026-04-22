@@ -1,22 +1,26 @@
-import { fromJS } from 'immutable';
+import { produce } from 'immer';
 
 import { CONFIG_SUCCESS } from '../actions/config';
 
 import type { ConfigAction } from '../actions/config';
-import type { Integrations } from 'decap-cms-lib-util/types/cms-immutable';
 import type { CmsConfig } from 'decap-cms-lib-util/types/cms';
+
+type Integrations = {
+  hooks: { [collectionOrHook: string]: any };
+  providers?: Record<string, unknown>;
+};
 
 interface Acc {
   providers: Record<string, {}>;
   hooks: Record<string, string | Record<string, string>>;
 }
 
-export function getIntegrations(config: CmsConfig) {
+export function getIntegrations(config: CmsConfig): Integrations {
   const integrations = config.integrations || [];
-  const newState = integrations.reduce(
+  return integrations.reduce(
     (acc, integration) => {
       const { hooks, collections, provider, ...providerData } = integration;
-      acc.providers[provider] = { ...providerData };
+      acc.providers![provider] = { ...providerData };
       if (!collections) {
         hooks.forEach(hook => {
           acc.hooks[hook] = provider;
@@ -27,34 +31,38 @@ export function getIntegrations(config: CmsConfig) {
         collections === '*' ? config.collections.map(collection => collection.name) : collections;
       integrationCollections.forEach(collection => {
         hooks.forEach(hook => {
-          acc.hooks[collection]
-            ? ((acc.hooks[collection] as Record<string, string>)[hook] = provider)
-            : (acc.hooks[collection] = { [hook]: provider });
+          if (acc.hooks[collection]) {
+            (acc.hooks[collection] as Record<string, string>)[hook] = provider;
+          } else {
+            acc.hooks[collection] = { [hook]: provider };
+          }
         });
       });
       return acc;
     },
-    { providers: {}, hooks: {} } as Acc,
+    { providers: {}, hooks: {} } as Integrations,
   );
-  return fromJS(newState) as unknown as Integrations;
 }
 
-const defaultState = fromJS({ providers: {}, hooks: {} }) as unknown as Integrations;
+const defaultState: Integrations = { providers: {}, hooks: {} };
 
-function integrations(state = defaultState, action: ConfigAction): Integrations | null {
+const integrations = produce((state: Integrations, action: ConfigAction) => {
   switch (action.type) {
-    case CONFIG_SUCCESS: {
+    case CONFIG_SUCCESS:
       return getIntegrations(action.payload);
-    }
-    default:
-      return state;
   }
-}
+}, defaultState);
 
-export function selectIntegration(state: Integrations, collection: string | null, hook: string): string | false {
-  return collection
-    ? state.getIn(['hooks', collection, hook], false) as string | false
-    : state.getIn(['hooks', hook], false) as string | false;
+export function selectIntegration(
+  state: Integrations,
+  collection: string | null,
+  hook: string,
+): string | false {
+  if (collection) {
+    const collectionHooks = state.hooks[collection] as Record<string, string> | undefined;
+    return collectionHooks?.[hook] ?? false;
+  }
+  return (state.hooks[hook] as string | undefined) ?? false;
 }
 
 export default integrations;

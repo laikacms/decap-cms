@@ -1,9 +1,10 @@
 import React from 'react';
 import { translate } from 'react-polyglot';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import PropTypes from 'prop-types';
 import type { TranslateFunction } from 'decap-cms-ui-default';
-import type { EntryField } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsEntryField } from 'decap-cms-lib-util/types/cms';
+
+type EntryField = CmsEntryField;
 
 interface UnknownPreviewProps {
   field?: EntryField;
@@ -13,13 +14,13 @@ interface UnknownPreviewProps {
 function UnknownPreview({ field, t }: UnknownPreviewProps) {
   return (
     <div className="nc-widgetPreview">
-      {t('editor.editorWidgets.unknownPreview.noPreview', { widget: field?.get('widget') })}
+      {t('editor.editorWidgets.unknownPreview.noPreview', { widget: field?.widget })}
     </div>
   );
 }
 
 UnknownPreview.propTypes = {
-  field: ImmutablePropTypes.map,
+  field: PropTypes.object,
   t: PropTypes.func.isRequired,
 };
 

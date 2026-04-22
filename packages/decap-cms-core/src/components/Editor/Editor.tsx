@@ -105,18 +105,18 @@ function Editor({ newRecord = false }: EditorProps) {
   const isPublished = !newEntry && !unpublishedEntry;
   
   // Render loading state
-  if (entry && entry.get('error')) {
+  if (entry && (entry as any).error) {
     return (
       <div>
-        <h3>{entry.get('error')}</h3>
+        <h3>{(entry as any).error}</h3>
       </div>
     );
   }
   
   if (
     entryDraft == null ||
-    entryDraft.get('entry') === undefined ||
-    (entry && entry.get('isFetching'))
+    (entryDraft as any).entry === undefined ||
+    (entry && (entry as any).isFetching)
   ) {
     return <Loader active>{t('editor.editor.loadingEntry')}</Loader>;
   }

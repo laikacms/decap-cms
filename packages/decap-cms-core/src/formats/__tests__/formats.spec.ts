@@ -1,5 +1,3 @@
-import { Map } from 'immutable';
-
 import { extensionFormatters, resolveFormat } from '../formats';
 import { registerCustomFormat } from '../../lib/registry';
 

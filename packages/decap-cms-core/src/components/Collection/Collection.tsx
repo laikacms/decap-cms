@@ -23,7 +23,19 @@ import {
   selectViewStyle,
 } from '../../reducers/entries';
 
-import type { Collection as CollectionType, ViewFilter, ViewGroup, SortDirection } from 'decap-cms-lib-util/types/cms-immutable';
+import type {
+  CmsCollectionObject,
+  CmsCollections,
+  CmsViewFilter,
+  CmsViewGroup,
+  CmsSortDirection,
+} from 'decap-cms-lib-util/types/cms';
+
+type Collection = CmsCollectionObject;
+type Collections = CmsCollections;
+type ViewFilter = CmsViewFilter;
+type ViewGroup = CmsViewGroup;
+type SortDirection = CmsSortDirection;
 
 const CollectionContainer = styled.div`
   margin: ${lengths.pageMargin};
@@ -67,21 +79,21 @@ function Collection({ match, isSearchResults = false, isSingleSearchResult = fal
   const { name, searchTerm = '', filterTerm = '' } = match.params;
 
   // Select state from Redux store
-  const collections = useAppSelector(state => state.collections);
+  const collections = useAppSelector(state => state.collections) as Collections;
   const entries = useAppSelector(state => state.entries);
   const isSearchEnabled = useAppSelector(state => state.config?.search !== false);
 
   // Get the collection
   const collection = useMemo(() => {
     if (name) {
-      return collections.get(name);
+      return collections[name];
     }
     // Get first collection
-    const keys = Object.keys(collections.toJS ? collections.toJS() : collections);
-    return keys.length > 0 ? collections.get(keys[0]) : undefined;
-  }, [collections, name]) as CollectionType | undefined;
+    const keys = Object.keys(collections);
+    return keys.length > 0 ? collections[keys[0]] : undefined;
+  }, [collections, name]) as Collection | undefined;
 
-  const collectionName = collection?.get('name') || name || '';
+  const collectionName = collection?.name || name || '';
 
   // Memoized selectors
   const sort = useMemo(
@@ -118,7 +130,7 @@ function Collection({ match, isSearchResults = false, isSingleSearchResult = fal
 
   // Compute new entry URL
   const newEntryUrl = useMemo(() => {
-    if (!collection?.get('create') || !collectionName) {
+    if (!collection?.create || !collectionName) {
       return '';
     }
     let url = getNewEntryUrl(collectionName);
@@ -173,7 +185,9 @@ function Collection({ match, isSearchResults = false, isSingleSearchResult = fal
 
   const renderEntriesSearch = useCallback(() => {
     const searchCollections = isSingleSearchResult && collection
-      ? collections.filter((c: CollectionType) => c === collection)
+      ? Object.fromEntries(
+          Object.entries(collections).filter(([, c]) => c === collection)
+        )
       : collections;
     return (
       <EntriesSearch
@@ -204,7 +218,7 @@ function Collection({ match, isSearchResults = false, isSingleSearchResult = fal
         {isSearchResults ? (
           <SearchResultContainer>
             <SearchResultHeading>
-              {t(searchResultKey, { searchTerm, collection: collection.get('label') })}
+              {t(searchResultKey, { searchTerm, collection: collection.label })}
             </SearchResultHeading>
           </SearchResultContainer>
         ) : (

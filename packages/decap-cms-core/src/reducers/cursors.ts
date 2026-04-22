@@ -1,5 +1,4 @@
-import type { Map } from 'immutable';
-import { fromJS } from 'immutable';
+import { produce } from 'immer';
 import { Cursor } from 'decap-cms-lib-util';
 
 import {
@@ -11,34 +10,31 @@ import {
 
 import type { AnyAction } from 'redux';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type CursorsState = Map<string, any>;
+type CursorsState = Record<string, any>;
 
-// Since pagination can be used for a variety of views (collections
-// and searches are the most common examples), we namespace cursors by
-// their type before storing them in the state.
-export function selectCollectionEntriesCursor(state: CursorsState, collectionName: string): Cursor {
-  return new Cursor(state.getIn(['cursorsByType', 'collectionEntries', collectionName]) as {});
+export function selectCollectionEntriesCursor(
+  state: CursorsState,
+  collectionName: string,
+): Cursor {
+  return new Cursor(state?.cursorsByType?.collectionEntries?.[collectionName] ?? {});
 }
 
-const defaultState: CursorsState = fromJS({ cursorsByType: { collectionEntries: {} } });
+const defaultState: CursorsState = { cursorsByType: { collectionEntries: {} } };
 
-function cursors(state: CursorsState = defaultState, action: AnyAction): CursorsState {
+const cursors = produce((state: CursorsState, action: AnyAction) => {
   switch (action.type) {
     case ENTRIES_SUCCESS: {
-      return state.setIn(
-        ['cursorsByType', 'collectionEntries', action.payload.collection],
-        Cursor.create(action.payload.cursor).store,
-      );
+      state.cursorsByType.collectionEntries[action.payload.collection] =
+        Cursor.create(action.payload.cursor).store;
+      break;
     }
     case FILTER_ENTRIES_SUCCESS:
     case GROUP_ENTRIES_SUCCESS:
     case SORT_ENTRIES_SUCCESS: {
-      return state.deleteIn(['cursorsByType', 'collectionEntries', action.payload.collection]);
+      delete state.cursorsByType.collectionEntries[action.payload.collection];
+      break;
     }
-    default:
-      return state;
   }
-}
+}, defaultState);
 
 export default cursors;

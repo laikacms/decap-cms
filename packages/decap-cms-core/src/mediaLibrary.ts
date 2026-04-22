@@ -9,9 +9,10 @@ import { store } from './redux';
 import { configFailed } from './actions/config';
 import { createMediaLibrary, insertMedia } from './actions/mediaLibrary';
 
-import type { MediaLibraryInstance } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsMediaLibraryInstance } from 'decap-cms-lib-util/types/cms';
 
-type MediaLibraryOptions = {};
+type MediaLibraryInstance = CmsMediaLibraryInstance;
+type MediaLibraryOptions = Record<string, unknown>;
 
 interface MediaLibrary {
   init: (args: {
@@ -43,7 +44,7 @@ store.subscribe(() => {
   const state = store.getState();
   if (state) {
     const mediaLibraryName = state.config.media_library?.name;
-    if (mediaLibraryName && !state.mediaLibrary.get('externalLibrary')) {
+    if (mediaLibraryName && !state.mediaLibrary.externalLibrary) {
       const mediaLibraryConfig = state.config.media_library;
       initializeMediaLibrary(mediaLibraryName, mediaLibraryConfig);
     }

@@ -6,7 +6,11 @@ import { selectUnpublishedEntry } from '../../reducers';
 import { selectAllowDeletion } from '../../reducers/collections';
 import { loadUnpublishedEntry, persistUnpublishedEntry } from '../../actions/editorialWorkflow';
 
-import type { State, Collection } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsCollectionObject } from 'decap-cms-lib-util/types/cms';
+
+type Collection = CmsCollectionObject;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type State = any;
 
 interface OwnProps {
   match: {
@@ -33,14 +37,14 @@ interface MergedProps {
 function mapStateToProps(state: State, ownProps: OwnProps): StateProps {
   const { collections } = state;
   const isEditorialWorkflow = state.config.publish_mode === EDITORIAL_WORKFLOW;
-  const collection = collections.get(ownProps.match.params.name);
+  const collection = collections[ownProps.match.params.name];
   const returnObj: StateProps = {
     isEditorialWorkflow,
     showDelete: !ownProps.newEntry && selectAllowDeletion(collection as Collection),
   };
   if (isEditorialWorkflow) {
     const slug = ownProps.match.params[0];
-    const unpublishedEntry = selectUnpublishedEntry(state, (collection as Collection).get('name'), slug);
+    const unpublishedEntry = selectUnpublishedEntry(state, (collection as Collection).name, slug);
     if (unpublishedEntry) {
       returnObj.unpublishedEntry = true;
       returnObj.entry = unpublishedEntry;

@@ -11,8 +11,15 @@ import {
   text,
 } from 'decap-cms-ui-default';
 
-import type { Map as ImmutableMap, List as ImmutableList } from 'immutable';
-import type { Collection, EntryMap, EntryField } from 'decap-cms-lib-util/types/cms-immutable';
+import type {
+  CmsCollectionObject,
+  CmsEntryMap,
+  CmsEntryField,
+} from 'decap-cms-lib-util/types/cms';
+
+type Collection = CmsCollectionObject;
+type EntryMap = CmsEntryMap;
+type EntryField = CmsEntryField;
 import type { I18nInfo } from '../../../lib/i18n';
 
 import EditorControl from './EditorControl';
@@ -95,25 +102,30 @@ interface GetFieldValueParams {
 }
 
 function getFieldValue({ field, entry, isTranslatable, locale }: GetFieldValueParams) {
-  if (field.get('meta')) {
-    return entry.getIn(['meta', field.get('name')]);
+  if (field.meta) {
+    return (entry.meta as Record<string, unknown>)?.[field.name];
   }
 
   if (isTranslatable) {
     const dataPath = getLocaleDataPath(locale);
-    return entry.getIn([...dataPath, field.get('name')]);
+    // Navigate the entry using the locale data path
+    let current: any = entry;
+    for (const key of dataPath) {
+      current = current?.[key];
+    }
+    return current?.[field.name];
   }
 
-  return entry.getIn(['data', field.get('name')]);
+  return (entry.data as Record<string, unknown>)?.[field.name];
 }
 
 interface ControlPaneProps {
   collection: Collection;
   entry: EntryMap;
-  fields: ImmutableList<EntryField>;
-  fieldsMetaData: ImmutableMap<string, ImmutableMap<string, unknown>>;
-  fieldsErrors: ImmutableMap<string, { type: string; message: string }[]>;
-  onChange: (field: EntryField, value: unknown, metadata?: ImmutableMap<string, unknown>, i18n?: unknown) => void;
+  fields: EntryField[];
+  fieldsMetaData: Record<string, Record<string, unknown>>;
+  fieldsErrors: Record<string, { type: string; message: string }[]>;
+  onChange: (field: EntryField, value: unknown, metadata?: Record<string, unknown>, i18n?: unknown) => void;
   onValidate: (fieldName: string, errors: { type: string; message: string }[]) => void;
   onLocaleChange?: (locale: string) => void;
   locale?: string;
@@ -133,7 +145,7 @@ export default class ControlPane extends React.Component<ControlPaneProps, Contr
 
   controlRef = (field: EntryField, wrappedControl: unknown) => {
     if (!wrappedControl) return;
-    const name = field.get('name');
+    const name = field.name;
     this.childRefs[name] = wrappedControl;
   };
 
@@ -184,8 +196,8 @@ export default class ControlPane extends React.Component<ControlPaneProps, Contr
   validate = async () => {
     this.props.fields.forEach(field => {
       if (!field) return;
-      if (field.get('widget') === 'hidden') return;
-      const name = field.get('name');
+      if (field.widget === 'hidden') return;
+      const name = field.name;
       const control = this.childRefs[name] as Record<string, unknown> | undefined;
       const innerWrappedControl = control?.innerWrappedControl as Record<string, unknown> | undefined;
       const validateFn = (innerWrappedControl?.validate ?? control?.validate) as (() => void) | undefined;
@@ -225,7 +237,7 @@ export default class ControlPane extends React.Component<ControlPaneProps, Contr
     );
   }
 
-  onChange = (field: EntryField, newValue: unknown, newMetadata: ImmutableMap<string, unknown> | undefined) => {
+  onChange = (field: EntryField, newValue: unknown, newMetadata: Record<string, unknown> | undefined) => {
     this.props.onChange(field, newValue, newMetadata, this.getI18n());
   };
 
@@ -248,7 +260,7 @@ export default class ControlPane extends React.Component<ControlPaneProps, Contr
       return null;
     }
 
-    if ((entry as unknown as { size: number }).size === 0 || entry.get('isFetching') === true) {
+    if (entry.isFetching === true) {
       return null;
     }
 
@@ -279,7 +291,7 @@ export default class ControlPane extends React.Component<ControlPaneProps, Contr
           </LocaleRowWrapper>
         )}
         {fields
-          .filter(f => f.get('widget') !== 'hidden')
+          .filter(f => f.widget !== 'hidden')
           .map((field, i) => {
             const isTranslatable = isFieldTranslatable(field, locale ?? '', defaultLocale);
             const isDuplicate = isFieldDuplicate(field, locale ?? '', defaultLocale);

@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import type { TranslateFunction } from 'decap-cms-ui-default';
-import type { Map as ImmutableMap } from 'immutable';
+import type { CmsFieldBase, CmsFieldNumber } from 'decap-cms-lib-util/types/index';
 
 const ValidationErrorTypes = {
   PRESENCE: 'PRESENCE',
@@ -15,7 +15,7 @@ export function validateMinMax(
   value: string | number,
   min: number | false,
   max: number | false,
-  field: ImmutableMap<string, unknown>,
+  field: CmsFieldNumber & CmsFieldBase,
   t: TranslateFunction,
 ) {
   let error;
@@ -26,7 +26,7 @@ export function validateMinMax(
       error = {
         type: ValidationErrorTypes.RANGE,
         message: t('editor.editorControlPane.widget.range', {
-          fieldLabel: field.get('label', field.get('name')),
+          fieldLabel: field.label || field.name,
           minValue: min,
           maxValue: max,
         }),
@@ -36,7 +36,7 @@ export function validateMinMax(
       error = {
         type: ValidationErrorTypes.RANGE,
         message: t('editor.editorControlPane.widget.min', {
-          fieldLabel: field.get('label', field.get('name')),
+          fieldLabel: field.label || field.name,
           minValue: min,
         }),
       };
@@ -45,7 +45,7 @@ export function validateMinMax(
       error = {
         type: ValidationErrorTypes.RANGE,
         message: t('editor.editorControlPane.widget.max', {
-          fieldLabel: field.get('label', field.get('name')),
+          fieldLabel: field.label || field.name,
           maxValue: max,
         }),
       };
@@ -59,7 +59,7 @@ export function validateMinMax(
 }
 
 interface NumberControlProps {
-  field: ImmutableMap<string, unknown>;
+  field: CmsFieldNumber & CmsFieldBase;
   onChange: (...args: unknown[]) => unknown;
   classNameWrapper: string;
   setActiveStyle: () => void;
@@ -99,7 +99,7 @@ export default class NumberControl extends React.Component<NumberControlProps> {
   }
 
   handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const valueType = this.props.field.get('value_type');
+    const valueType = this.props.field.value_type;
     const { onChange } = this.props;
     const value = valueType === 'float' ? parseFloat(e.target.value) : parseInt(e.target.value, 10);
 
@@ -112,9 +112,9 @@ export default class NumberControl extends React.Component<NumberControlProps> {
 
   isValid = () => {
     const { field, value, t } = this.props;
-    const hasPattern = !!field.get('pattern', false);
-    const min = field.get('min', false);
-    const max = field.get('max', false);
+    const hasPattern = !!field.pattern;
+    const min = field.min ?? false;
+    const max = field.max ?? false;
 
     // Pattern overrides min/max logic always:
     if (hasPattern) {
@@ -127,9 +127,9 @@ export default class NumberControl extends React.Component<NumberControlProps> {
 
   render() {
     const { field, value, classNameWrapper, forID, setActiveStyle, setInactiveStyle } = this.props;
-    const min = field.get('min', '') as string | number;
-    const max = field.get('max', '') as string | number;
-    const step = field.get('step', field.get('value_type') === 'int' ? 1 : '') as string | number;
+    const min = field.min ?? '';
+    const max = field.max ?? '';
+    const step = field.step ?? (field.value_type === 'int' ? 1 : '');
     return (
       <input
         type="number"

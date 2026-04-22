@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { ClassNames } from '@emotion/react';
-import { Map } from 'immutable';
 import uniq from 'lodash/uniq';
 import isEqual from 'lodash/isEqual';
 import isEmpty from 'lodash/isEmpty';
@@ -15,8 +14,7 @@ import { vim } from '@replit/codemirror-vim'
 import SettingsPane from './SettingsPane';
 import SettingsButton from './SettingsButton';
 import languageData from '../data/languages.json';
-
-import type { Map as ImmutableMap } from 'immutable';
+import type { CmsFieldBase, CmsFieldCode } from 'decap-cms-lib-util/types/cms/index';
 
 type CodeMirrorEditor = {
   getWrapperElement: () => HTMLElement;
@@ -97,9 +95,9 @@ const settingsPersistKeys: Record<string, string> = {
 };
 
 interface CodeControlProps {
-  field: ImmutableMap<string, unknown>;
+  field: CmsFieldBase & CmsFieldCode;
   onChange: (...args: unknown[]) => unknown;
-  value?: ImmutableMap<string, unknown> | string;
+  value?: Record<string, unknown> | string;
   forID: string;
   classNameWrapper: string;
   widget: Record<string, unknown>;
@@ -147,7 +145,7 @@ export default class CodeControl extends React.Component<CodeControlProps, CodeC
     codeMirrorKey: uuid(),
     theme: localStorage.getItem(settingsPersistKeys['theme']) || themes[themes.length - 1],
     lastKnownValue: this.valueIsMap()
-      ? (this.props.value as ImmutableMap<string, unknown>)?.get(this.keys.code)
+      ? (this.props.value as Record<string, unknown>)?.[this.keys.code]
       : this.props.value,
   };
 
@@ -227,8 +225,8 @@ export default class CodeControl extends React.Component<CodeControlProps, CodeC
   getInitialLang = (): string | undefined => {
     const { value, field } = this.props;
     const lang =
-      (this.valueIsMap() && value && (value as ImmutableMap<string, unknown>).get(this.keys.lang)) ||
-      field.get('default_language');
+      (this.valueIsMap() && value && (value as Record<string, unknown>)?.[this.keys.lang]) ||
+      field.default_language;
     const langInfo = this.getLanguageByName(lang as string);
     if (lang && !langInfo) {
       this.setState({ unknownLang: lang as string });
@@ -238,20 +236,15 @@ export default class CodeControl extends React.Component<CodeControlProps, CodeC
 
   // If `allow_language_selection` is not set, default to true. Otherwise, use
   // its value.
-  allowLanguageSelection =
-    !this.props.field.has('allow_language_selection') ||
-    !!this.props.field.get('allow_language_selection');
+  allowLanguageSelection = this.props.field.allow_language_selection ?? true
 
   toValue = this.valueIsMap()
     ? (type: string, value: unknown) =>
-        ((this.props.value as ImmutableMap<string, unknown>) || Map()).set(
-          this.keys[type],
-          value,
-        )
+        ((this.props.value as Record<string, unknown>))[this.keys[type]] = value
     : (type: string, value: unknown) => (type === 'code' ? value : this.props.value);
 
   // If the value is a map, keys can be customized via config.
-  getKeys(field: ImmutableMap<string, unknown>): Record<string, string> {
+  getKeys(field: CmsFieldBase & CmsFieldCode): Record<string, string> {
     const defaults: Record<string, string> = {
       code: 'code',
       lang: 'lang',
@@ -262,7 +255,7 @@ export default class CodeControl extends React.Component<CodeControlProps, CodeC
       return defaults;
     }
 
-    const keys = (field.get('keys', Map()) as ImmutableMap<string, unknown>).toJS() as Record<
+    const keys = (field.keys as Record<string, unknown>) as Record<
       string,
       string
     >;
@@ -273,7 +266,7 @@ export default class CodeControl extends React.Component<CodeControlProps, CodeC
   // value allows both the code string and the language to be persisted.
   valueIsMap() {
     const { field, isEditorComponent } = this.props;
-    return !field.get('output_code_only') || isEditorComponent;
+    return !field.output_code_only || isEditorComponent;
   }
 
   async handleChangeCodeMirrorProps(changedProps: ChangedProps, ignoreLangChange = false) {

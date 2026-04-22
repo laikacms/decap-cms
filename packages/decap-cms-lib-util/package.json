@@ -42,11 +42,6 @@
       "import": "./dist/*.js",
       "default": "./dist/*.js"
     },
-    "./types/cms-immutable": {
-      "types": "./dist/types/cms-immutable/index.d.ts",
-      "import": "./dist/types/cms-immutable/index.js",
-      "default": "./dist/types/cms-immutable/index.js"
-    },
     "./types/cms": {
       "types": "./dist/types/cms/index.d.ts",
       "import": "./dist/types/cms/index.js",

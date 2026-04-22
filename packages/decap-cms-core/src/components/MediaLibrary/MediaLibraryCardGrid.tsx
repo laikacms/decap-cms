@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 import { Waypoint } from 'react-waypoint';
-import { Map } from 'immutable';
 import { colors } from 'decap-cms-ui-default';
 import { Grid } from 'react-window';
 import { AutoSizer } from 'react-virtualized-auto-sizer';
@@ -87,7 +86,7 @@ function CardWrapper(props: {
         height={cardHeight}
         margin={'0px'}
         isPrivate={isPrivate}
-        displayURL={displayURLs.get(file.id, file.url ? Map({ url: file.url }) : Map()) as any}
+        displayURL={(displayURLs.get(file.id) || (file.url ? { url: file.url } : {})) as any}
         loadDisplayURL={() => loadDisplayURL(file)}
         type={file.type}
         isViewableImage={file.isViewableImage ?? false}
@@ -175,7 +174,7 @@ function PaginatedGrid({
             height={cardHeight}
             margin={cardMargin}
             isPrivate={isPrivate}
-            displayURL={displayURLs.get(file.id, file.url ? Map({ url: file.url }) : Map()) as any}
+            displayURL={(displayURLs.get(file.id) || (file.url ? { url: file.url } : {})) as any}
             loadDisplayURL={() => loadDisplayURL(file)}
             type={file.type}
             isViewableImage={file.isViewableImage ?? false}

@@ -5,7 +5,7 @@ import { filter, flow, fromPairs, map } from 'lodash/fp';
 
 import getBlobSHA from './getBlobSHA';
 
-import type { AssetProxy } from './types/cms-immutable';
+import type { CmsAssetProxy as AssetProxy } from './types/cms';
 
 export interface PointerFile {
   size: number;

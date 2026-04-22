@@ -5,12 +5,13 @@ import { getIntegrationProvider } from '../integrations';
 import { selectIntegration } from '../reducers';
 
 import type { QueryRequest } from '../reducers/search';
-import type { State } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsCollectionObject } from 'decap-cms-lib-util/types/cms';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type State = any;
+type Collection = CmsCollectionObject;
 import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
 import type { EntryValue } from '../valueObjects/Entry';
-import { Map as ImmutableMap } from 'immutable';
-import { isImmutableMap } from 'decap-cms-lib-util';
 
 /*
  * Constant Declarations
@@ -113,7 +114,7 @@ export function searchEntries(searchTerm: string, searchCollections: string[], p
     const state = getState();
     const { search } = state;
     const backend = currentBackend(state.config);
-    const allCollections = searchCollections || state.collections.keySeq().toArray();
+    const allCollections = searchCollections || Object.keys(state.collections);
     const collections = allCollections.filter(collection =>
       selectIntegration(state, collection, 'search'),
     );
@@ -143,10 +144,9 @@ export function searchEntries(searchTerm: string, searchCollections: string[], p
           page,
         )
       : backend.search(
-          state.collections
-            .filter((_, key) => allCollections.indexOf(String(key)) !== -1)
-            .valueSeq()
-            .toArray(),
+          Object.entries(state.collections)
+            .filter(([key]) => allCollections.indexOf(key) !== -1)
+            .map(([, collection]) => collection) as Collection[],
           searchTerm,
         );
 
@@ -173,15 +173,13 @@ export function query(
     const state = getState();
     const backend = currentBackend(state.config);
     const integration = selectIntegration(state, collectionName, 'search');
-    const collection = state.collections.find(
-      collection => collection.get('name') === collectionName,
-    );
+    const collection = state.collections[collectionName];
 
     dispatch(clearRequests());
 
     const queryIdentifier = `${collectionName}-${searchFields.join()}-${searchTerm}-${file}-${limit}`;
 
-    const queuedQueryPromise = state.search.requests.find(({ id }) => id == queryIdentifier);
+    const queuedQueryPromise = state.search.requests.find(({ id }: QueryRequest) => id == queryIdentifier);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const integrationProvider: any = integration
@@ -195,7 +193,7 @@ export function query(
           collectionName,
           searchTerm,
         )
-      : isImmutableMap(collection)
+      : collection != null
         ? backend.query(collection, searchFields, searchTerm, file, limit)
         : Promise.resolve({ hits: [], query: '' } satisfies QueryResponse);
 

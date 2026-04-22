@@ -20,7 +20,13 @@ import {
 import { connect } from 'react-redux';
 
 import type { TranslateFunction } from 'decap-cms-ui-default';
-import type { Collections, Collection as CollectionType } from 'decap-cms-lib-util/types/cms-immutable';
+import type {
+  CmsCollectionObject,
+  CmsCollections,
+} from 'decap-cms-lib-util/types/cms';
+
+type Collection = CmsCollectionObject;
+type Collections = CmsCollections;
 
 import { SettingsDropdown } from '../UI';
 import { checkBackendStatus } from '../../actions/status';
@@ -203,9 +209,8 @@ class Header extends React.Component<HeaderProps> {
       showMediaButton,
     } = this.props;
 
-    const creatableCollections = (collections
-      .filter((collection: CollectionType) => !!collection.get('create')) as Collections)
-      .valueSeq();
+    const creatableCollections = Object.values(collections)
+      .filter((collection: Collection) => !!collection.create);
 
     const shouldShowLogo = logo?.show_in_header && logo?.src;
 
@@ -256,7 +261,7 @@ class Header extends React.Component<HeaderProps> {
             </AppHeaderNavList>
           </nav>
           <AppHeaderActions>
-            {creatableCollections.count() > 0 && (
+            {creatableCollections.length > 0 && (
               <Dropdown
                 renderButton={() => (
                   <AppHeaderQuickNewButton> {t('app.header.quickAdd')}</AppHeaderQuickNewButton>
@@ -265,11 +270,11 @@ class Header extends React.Component<HeaderProps> {
                 dropdownWidth="160px"
                 dropdownPosition="left"
               >
-                {creatableCollections.map((collection: CollectionType) => (
+                {creatableCollections.map((collection: Collection) => (
                   <DropdownItem
-                    key={collection.get('name')}
-                    label={collection.get('label_singular') || collection.get('label')}
-                    onClick={() => this.handleCreatePostClick(collection.get('name'))}
+                    key={collection.name}
+                    label={collection.label_singular || collection.label}
+                    onClick={() => this.handleCreatePostClick(collection.name)}
                   />
                 ))}
               </Dropdown>

@@ -1,15 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
-import { Map, List, fromJS } from 'immutable';
 import find from 'lodash/find';
 import Select from 'react-select';
 import { reactSelectStyles } from 'decap-cms-ui-default';
 import { validations } from 'decap-cms-lib-widgets';
 import type { CmsFieldSelect, CmsFieldBase } from 'decap-cms-lib-util/types/cms'
-import type { StaticallyTypedRecord } from 'decap-cms-lib-util/types/cms-immutable';
-
-import type { Map as ImmutableMap, List as ImmutableList } from 'immutable';
+import isObject from 'lodash/isObject';
 
 interface SelectOption {
   label: string;
@@ -26,7 +23,7 @@ function convertToOption(raw: unknown): SelectOption {
   if (typeof raw === 'string') {
     return { label: raw, value: raw };
   }
-  return Map.isMap(raw) ? (raw as ImmutableMap<string, unknown>).toJS() as unknown as SelectOption : raw as SelectOption;
+  return isObject(raw) ? (raw as SelectOption) : raw as SelectOption;
 }
 
 function getSelectedValue({
@@ -39,7 +36,7 @@ function getSelectedValue({
   isMultiple: boolean;
 }): SelectOption | SelectOption[] | null {
   if (isMultiple) {
-    const selectedOptions = List.isList(value) ? value.toJS() : value;
+    const selectedOptions = Array.isArray(value) ? value : [value];
 
     if (!selectedOptions || !Array.isArray(selectedOptions)) {
       return null;
@@ -56,12 +53,12 @@ function getSelectedValue({
 
 interface SelectControlProps {
   onChange: (...args: unknown[]) => unknown;
-  value?: ImmutableList<unknown> | string | number;
+  value?: string | number | (string | number)[];
   forID: string;
   classNameWrapper: string;
   setActiveStyle: () => void;
   setInactiveStyle: () => void;
-  field: StaticallyTypedRecord<CmsFieldSelect & CmsFieldBase>;
+  field: CmsFieldSelect & CmsFieldBase;
   t: (key: string, options?: unknown) => string;
 }
 
@@ -89,17 +86,17 @@ export default class SelectControl extends React.Component<SelectControlProps> {
 
   isValid = () => {
     const { field, value, t } = this.props;
-    const min = field.get('min') as number | undefined;
-    const max = field.get('max') as number | undefined;
+    const min = field.min;
+    const max = field.max;
 
-    if (!field.get('multiple')) {
+    if (!field.multiple) {
       return { error: false };
     }
 
     const error = validations.validateMinMax(
       t,
-      field.get('label', field.get('name')) as string,
-      value as ImmutableList<unknown> | undefined,
+      field.label ?? field.name,
+      value as (string | number)[] | undefined,
       min,
       max,
     );
@@ -109,18 +106,18 @@ export default class SelectControl extends React.Component<SelectControlProps> {
 
   handleChange = (selectedOption: readonly SelectOption[] | SelectOption | null) => {
     const { onChange, field } = this.props;
-    const isMultiple = field.get('multiple', false) as boolean;
+    const isMultiple = field.multiple;
     const isEmpty = isMultiple
       ? !selectedOption || (Array.isArray(selectedOption) && selectedOption.length === 0)
       : !selectedOption;
 
-    if (field.get('required') && isEmpty && isMultiple) {
-      onChange(List());
+    if (field.required && isEmpty && isMultiple) {
+      onChange([]);
     } else if (isEmpty) {
       onChange(null);
     } else if (isMultiple && Array.isArray(selectedOption)) {
       const options = selectedOption.map(optionToString);
-      onChange(fromJS(options));
+      onChange(options);
     } else if (selectedOption && !Array.isArray(selectedOption)) {
       onChange(optionToString(selectedOption as SelectOption));
     }
@@ -131,20 +128,20 @@ export default class SelectControl extends React.Component<SelectControlProps> {
     PropTypes.checkPropTypes(SelectControl.propTypes, this.props, 'prop', 'SelectControl');
 
     const { field, onChange, value } = this.props;
-    if (field.get('required') && field.get('multiple')) {
-      if (value && !List.isList(value)) {
-        onChange(fromJS([value]));
+    if (field.required && field.multiple) {
+      if (value && !Array.isArray(value)) {
+        onChange([value]);
       } else if (!value) {
-        onChange(fromJS([]));
+        onChange([]);
       }
     }
   }
 
   render() {
     const { field, value, forID, classNameWrapper, setActiveStyle, setInactiveStyle } = this.props;
-    const fieldOptions = field.get('options');
-    const isMultiple = field.get('multiple', false) as boolean;
-    const isClearable = !field.get('required', true) || isMultiple;
+    const fieldOptions = field.options;
+    const isMultiple = !!field.multiple;
+    const isClearable = !field.required || isMultiple;
 
     const options: SelectOption[] = [...fieldOptions.map(convertToOption)];
     const selectedValue = getSelectedValue({

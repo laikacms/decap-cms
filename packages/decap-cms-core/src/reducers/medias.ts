@@ -10,7 +10,9 @@ import {
 } from '../actions/media';
 
 import type { MediasAction } from '../actions/media';
-import type { AssetProxy } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsAssetProxy } from 'decap-cms-lib-util/types/cms';
+
+type AssetProxy = CmsAssetProxy;
 
 export type Medias = {
   [path: string]: { asset: AssetProxy | undefined; isLoading: boolean; error: Error | null };

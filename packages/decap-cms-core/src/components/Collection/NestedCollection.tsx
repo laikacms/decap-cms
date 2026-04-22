@@ -1,5 +1,4 @@
 import React from 'react';
-import { List } from 'immutable';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { connect } from 'react-redux';
@@ -7,15 +6,15 @@ import { NavLink } from 'react-router-dom';
 import { dirname } from 'decap-cms-lib-util';
 import { stringTemplate } from 'decap-cms-lib-widgets';
 import { Icon, colors, components } from 'decap-cms-ui-default';
-import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import sortBy from 'lodash/sortBy';
 
 import { selectEntries } from '../../reducers/entries';
 import { selectEntryCollectionTitle } from '../../reducers/collections';
 
-import type { List as ImmutableList, Map as ImmutableMap } from 'immutable';
-import type { Collection, EntryMap, State, Entries } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsCollectionObject, CmsEntryMap } from 'decap-cms-lib-util/types/cms';
+
+type Collection = CmsCollectionObject;
+type EntryMap = CmsEntryMap;
 
 const sep = '/';
 
@@ -97,10 +96,10 @@ interface TreeNodeProps {
 
 function TreeNode(props: TreeNodeProps): React.ReactNode {
   const { collection, treeData, depth = 0, onToggle } = props;
-  const collectionName = collection.get('name');
+  const collectionName = collection.name;
 
   const sortedData = sortBy(treeData, getNodeTitle);
-  const subfolders = collection.get('nested')?.get('subfolders') !== false;
+  const subfolders = collection.nested?.subfolders !== false;
   return sortedData.map(node => {
     const leaf =
       depth > 0 &&
@@ -151,13 +150,6 @@ function TreeNode(props: TreeNodeProps): React.ReactNode {
   });
 }
 
-TreeNode.propTypes = {
-  collection: ImmutablePropTypes.map.isRequired,
-  depth: PropTypes.number,
-  treeData: PropTypes.array.isRequired,
-  onToggle: PropTypes.func.isRequired,
-};
-
 export function walk(treeData: TreeNodeData[], callback: (node: TreeNodeData) => void): void {
   function traverse(children: TreeNodeData[]) {
     for (const child of children) {
@@ -177,12 +169,11 @@ interface FlatNode {
   [key: string]: unknown;
 }
 
-export function getTreeData(collection: Collection, entries: ImmutableList<EntryMap>): TreeNodeData[] {
-  const collectionFolder = collection.get('folder') as string;
+export function getTreeData(collection: Collection, entries: EntryMap[]): TreeNodeData[] {
+  const collectionFolder = collection.folder as string;
   const rootFolder = '/';
   const entriesObj = entries
-    .toJS()
-    .map((e: Record<string, unknown>) => ({ ...e, path: (e.path as string).slice(collectionFolder.length) }));
+    .map((e: EntryMap) => ({ ...e, path: e.path.slice(collectionFolder.length) }));
 
   const dirs = entriesObj.reduce((acc: Record<string, string | undefined>, entry: Record<string, unknown>) => {
     let dir = dirname(entry.path as string);
@@ -194,16 +185,17 @@ export function getTreeData(collection: Collection, entries: ImmutableList<Entry
     return acc;
   }, {} as Record<string, string | undefined>);
 
-  let col = collection;
-  if (col.getIn(['nested', 'summary'])) {
-    col = col.set('summary', col.getIn(['nested', 'summary']) as string) as Collection;
+  let col = { ...collection };
+  if (col.nested && (col as any).nested?.summary) {
+    col = { ...col, summary: (col as any).nested.summary };
   } else {
-    col = col.delete('summary') as Collection;
+    const { summary: _summary, ...rest } = col;
+    col = rest as Collection;
   }
 
   const flatData: FlatNode[] = [
     {
-      title: col.get('label') as string,
+      title: col.label as string,
       path: rootFolder,
       isDir: true,
       isRoot: true,
@@ -215,12 +207,12 @@ export function getTreeData(collection: Collection, entries: ImmutableList<Entry
       isRoot: false,
     })),
     ...entriesObj.map((e: Record<string, unknown>, index: number) => {
-      let entryMap = entries.get(index)!;
-      entryMap = entryMap.set(
-        'data',
-        addFileTemplateFields(entryMap.get('path') as string, entryMap.get('data') as unknown as ImmutableMap<string, string>),
-      ) as EntryMap;
-      const title = selectEntryCollectionTitle(col, entryMap);
+      let entryMap = { ...entries[index] };
+      entryMap = {
+        ...entryMap,
+        data: addFileTemplateFields(entryMap.path as string, entryMap.data as any),
+      };
+      const title = selectEntryCollectionTitle(col, entryMap as any);
       return {
         ...e,
         title,
@@ -283,7 +275,7 @@ export function updateNode(
 
 interface NestedCollectionProps {
   collection: Collection;
-  entries: ImmutableList<EntryMap>;
+  entries: EntryMap[];
   filterTerm?: string;
 }
 
@@ -294,12 +286,6 @@ interface NestedCollectionState {
 }
 
 export class NestedCollection extends React.Component<NestedCollectionProps, NestedCollectionState> {
-  static propTypes = {
-    collection: ImmutablePropTypes.map.isRequired,
-    entries: ImmutablePropTypes.list.isRequired,
-    filterTerm: PropTypes.string,
-  };
-
   constructor(props: NestedCollectionProps) {
     super(props);
     this.state = {
@@ -307,11 +293,6 @@ export class NestedCollection extends React.Component<NestedCollectionProps, Nes
       selected: null,
       useFilter: true,
     };
-  }
-
-  componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(NestedCollection.propTypes, this.props, 'prop', 'NestedCollection');
   }
 
   componentDidUpdate(prevProps: NestedCollectionProps) {
@@ -360,9 +341,9 @@ export class NestedCollection extends React.Component<NestedCollectionProps, Nes
   }
 }
 
-function mapStateToProps(state: State, ownProps: { collection: Collection }) {
+function mapStateToProps(state: any, ownProps: { collection: Collection }) {
   const { collection } = ownProps;
-  const entries = selectEntries(state.entries as Entries, collection) || List();
+  const entries = selectEntries(state.entries, collection) || [];
   return { entries };
 }
 

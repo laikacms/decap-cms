@@ -3,10 +3,11 @@ import styled from '@emotion/styled';
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import { colorsRaw, colors, Icon, lengths, zIndex } from 'decap-cms-ui-default';
 import { translate } from 'react-polyglot';
-import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 
-import type { Collection, Collections } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsCollectionObject, CmsCollections } from 'decap-cms-lib-util/types/cms';
+
+type Collection = CmsCollectionObject;
+type Collections = CmsCollections;
 
 const SearchContainer = styled.div`
   margin: 0 12px;
@@ -98,25 +99,12 @@ interface CollectionSearchProps {
 }
 
 class CollectionSearch extends React.Component<CollectionSearchProps> {
-  static propTypes = {
-    collections: ImmutablePropTypes.map.isRequired,
-    collection: ImmutablePropTypes.map,
-    searchTerm: PropTypes.string.isRequired,
-    onSubmit: PropTypes.func.isRequired,
-    t: PropTypes.func.isRequired,
-  };
-
   state = {
     query: this.props.searchTerm,
     suggestionsVisible: false,
     // default to the currently selected
     selectedCollectionIdx: this.getSelectedSelectionBasedOnProps(),
   };
-
-  componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(CollectionSearch.propTypes, this.props, 'prop', 'CollectionSearch');
-  }
 
   componentDidUpdate(prevProps: CollectionSearchProps) {
     if (prevProps.collection !== this.props.collection) {
@@ -127,7 +115,9 @@ class CollectionSearch extends React.Component<CollectionSearchProps> {
 
   getSelectedSelectionBasedOnProps() {
     const { collection, collections } = this.props;
-    return collection ? collections.keySeq().indexOf(collection.get('name')) : -1;
+    if (!collection) return -1;
+    const keys = Object.keys(collections);
+    return keys.indexOf(collection.name);
   }
 
   toggleSuggestions(visible: boolean) {
@@ -137,8 +127,9 @@ class CollectionSearch extends React.Component<CollectionSearchProps> {
   selectNextSuggestion() {
     const { collections } = this.props;
     const { selectedCollectionIdx } = this.state;
+    const collectionCount = Object.keys(collections).length;
     this.setState({
-      selectedCollectionIdx: Math.min(selectedCollectionIdx + 1, collections.size - 1),
+      selectedCollectionIdx: Math.min(selectedCollectionIdx + 1, collectionCount - 1),
     });
   }
 
@@ -161,7 +152,9 @@ class CollectionSearch extends React.Component<CollectionSearchProps> {
 
     this.toggleSuggestions(false);
     if (selectedCollectionIdx !== -1) {
-      onSubmit(query, collections.toIndexedSeq().getIn([selectedCollectionIdx, 'name']) as string | undefined);
+      const collectionValues = Object.values(collections);
+      const selectedCollection = collectionValues[selectedCollectionIdx];
+      onSubmit(query, selectedCollection?.name);
     } else {
       onSubmit(query);
     }
@@ -206,6 +199,7 @@ class CollectionSearch extends React.Component<CollectionSearchProps> {
   render() {
     const { collections, t } = this.props;
     const { suggestionsVisible, selectedCollectionIdx, query } = this.state;
+    const collectionValues = Object.values(collections);
     return (
       <SearchContainer
         onBlur={() => this.toggleSuggestions(false)}
@@ -233,14 +227,14 @@ class CollectionSearch extends React.Component<CollectionSearchProps> {
                 {t('collection.sidebar.allCollections')}
               </SuggestionItem>
               <SuggestionDivider />
-              {(collections.toIndexedSeq() as any).map((collection: any, idx: number) => (
+              {collectionValues.map((collection: Collection, idx: number) => (
                 <SuggestionItem
                   key={idx}
                   $isActive={idx === selectedCollectionIdx}
                   onClick={(e: any) => this.handleSuggestionClick(e, idx)}
                   onMouseDown={e => e.preventDefault()}
                 >
-                  {collection.get('label')}
+                  {collection.label}
                 </SuggestionItem>
               ))}
             </Suggestions>

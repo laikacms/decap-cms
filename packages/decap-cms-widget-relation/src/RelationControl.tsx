@@ -13,7 +13,6 @@ import { fromJS, List as ImmutableList, Map } from 'immutable';
 import { reactSelectStyles } from 'decap-cms-ui-default';
 import { stringTemplate, validations } from 'decap-cms-lib-widgets';
 import type { CmsFieldBase, CmsFieldRelation } from 'decap-cms-lib-util/types/cms';
-import type { StaticallyTypedRecord } from 'decap-cms-lib-util';
 import { List as VirtualList } from 'react-window';
 import {
   DndContext,
@@ -33,6 +32,7 @@ import relationCache from './RelationCache';
 import type { CSSProperties, ReactElement } from 'react';
 import type { List } from 'immutable';
 import type { MultiValueProps, MultiValueGenericProps, GroupBase } from 'react-select';
+import { isArray } from 'lodash';
 
 interface RelationOption {
   label: string;
@@ -251,8 +251,8 @@ function convertToSortableOption(raw: unknown): SortableOption {
 interface RelationControlProps {
   onChange: (...args: unknown[]) => unknown;
   forID: string;
-  value?: unknown;
-  field: StaticallyTypedRecord<CmsFieldRelation & CmsFieldBase>;
+  value?: unknown | unknown[];
+  field: CmsFieldRelation & CmsFieldBase;
   query: (...args: unknown[]) => Promise<QueryResult>;
   queryHits?: Hit[];
   classNameWrapper: string;
@@ -289,22 +289,26 @@ export default class RelationControl extends React.Component<RelationControlProp
 
   isValid = () => {
     const { field, value, t } = this.props;
-    const min = field.get('min') as number | undefined;
-    const max = field.get('max') as number | undefined;
+    const min = field.min;
+    const max = field.max;
 
     if (!this.isMultiple()) {
       return { error: false };
     }
 
-    const error = validations.validateMinMax(
-      t,
-      field.get('label', field.get('name')) as string,
-      value as List<unknown> | undefined,
-      min,
-      max,
-    );
+    if (isArray(value)) {
+      const error = validations.validateMinMax(
+        t,
+        field.label ?? field.name,
+        value,
+        min,
+        max,
+      );
 
-    return error ? { error } : { error: false };
+      return error ? { error } : { error: false };
+    }
+
+    return { error: false }
   };
 
   shouldComponentUpdate(nextProps: RelationControlProps) {
@@ -331,7 +335,7 @@ export default class RelationControl extends React.Component<RelationControlProp
   }
 
   isMultiple = (): boolean => {
-    return this.props.field.get('multiple', false) as boolean;
+    return !!this.props.field.multiple;
   };
 
   hasInitialValues = (value: unknown): boolean => {
@@ -344,9 +348,9 @@ export default class RelationControl extends React.Component<RelationControlProp
 
   loadInitialOptions = async () => {
     const { field, query, forID, value } = this.props;
-    const collection = field.get('collection') as string;
-    const searchFieldsArray = getFieldArray(field.get('search_fields'));
-    const file = field.get('file') as string | undefined;
+    const collection = field.collection;
+    const searchFieldsArray = getFieldArray(field.search_fields);
+    const file = field.file;
 
     try {
       const result = await relationCache.getOptions(
@@ -385,8 +389,8 @@ export default class RelationControl extends React.Component<RelationControlProp
 
         if (matchedOptions.length > 0) {
           const metadata = {
-            [field.get('name') as string]: {
-              [field.get('collection') as string]: matchedOptions.reduce(
+            [field.name]: {
+              [field.collection]: matchedOptions.reduce(
                 (acc: Record<string, unknown>, option: RelationOption) => ({
                   ...acc,
                   [option.value]: option.data,
@@ -402,8 +406,8 @@ export default class RelationControl extends React.Component<RelationControlProp
       const matchedOption = options.find((opt: RelationOption) => opt.value === value);
       if (matchedOption) {
         const metadata = {
-          [field.get('name') as string]: {
-            [field.get('collection') as string]: {
+          [field.name]: {
+            [field.collection]: {
               [matchedOption.value]: matchedOption.data,
             },
           },
@@ -423,8 +427,8 @@ export default class RelationControl extends React.Component<RelationControlProp
       const lastValue = last(newValue);
       const metadata =
         (!isEmpty(options) && lastOption && lastValue && {
-          [field.get('name') as string]: {
-            [field.get('collection') as string]: {
+          [field.name]: {
+            [field.collection]: {
               [lastValue]: lastOption.data,
             },
           },
@@ -444,8 +448,8 @@ export default class RelationControl extends React.Component<RelationControlProp
       const lastValue = last(value);
       const metadata =
         (!isEmpty(options) && lastOption && lastValue && {
-          [field.get('name') as string]: {
-            [field.get('collection') as string]: {
+          [field.name]: {
+            [field.collection]: {
               [lastValue]: lastOption.data,
             },
           },
@@ -457,8 +461,8 @@ export default class RelationControl extends React.Component<RelationControlProp
       this.setState({ initialOptions: [option].filter(Boolean) as RelationOption[] });
       const value = optionToString(option);
       const metadata = option && {
-        [field.get('name') as string]: {
-          [field.get('collection') as string]: { [value]: option.data },
+        [field.name]: {
+          [field.collection]: { [value]: option.data },
         },
       };
       onChange(value, metadata);
@@ -476,16 +480,16 @@ export default class RelationControl extends React.Component<RelationControlProp
     if (templateVars.length <= 0) {
       return get(hitData, field) as string;
     }
-    const data = stringTemplate.addFileTemplateFields(hit.path, fromJS(hitData) as Map<string, string>);
+    const data = stringTemplate.addFileTemplateFields(hit.path, hitData as Record<string, string>);
     const value = stringTemplate.compileStringTemplate(field, null, hit.slug, data);
     return value;
   };
 
   parseHitOptions = (hits: Hit[]): RelationOption[] => {
     const { field } = this.props;
-    const valueField = field.get('value_field') as string;
-    const displayField = (field.get('display_fields') || ImmutableList([field.get('value_field')])) as List<string>;
-    const filters = getFieldArray(field.get('filters'));
+    const valueField = field.value_field as string;
+    const displayField = (field.display_fields || ImmutableList([field.value_field])) as List<string>;
+    const filters = getFieldArray(field.filters);
 
     const options = hits.reduce((acc: RelationOption[], hit: Hit) => {
       if (
@@ -526,9 +530,9 @@ export default class RelationControl extends React.Component<RelationControlProp
 
   loadOptions = debounce((term: string, callback: (options: RelationOption[]) => void) => {
     const { field, query, forID } = this.props;
-    const collection = field.get('collection') as string;
-    const searchFieldsArray = getFieldArray(field.get('search_fields'));
-    const file = field.get('file') as string | undefined;
+    const collection = field.collection;
+    const searchFieldsArray = getFieldArray(field.search_fields);
+    const file = field.file as string | undefined;
 
     relationCache
       .getOptions(collection, searchFieldsArray, term, file, () =>
@@ -538,7 +542,7 @@ export default class RelationControl extends React.Component<RelationControlProp
         const queryResult = result as QueryResult;
         const hits = queryResult.payload.hits || [];
         const options = this.parseHitOptions(hits);
-        const optionsLength = (field.get('options_length') || 20) as number;
+        const optionsLength = (field.options_length || 20) as number;
         const uniq = uniqOptions(this.state.initialOptions, options).slice(0, optionsLength);
         callback(uniq);
       })
@@ -552,7 +556,7 @@ export default class RelationControl extends React.Component<RelationControlProp
     const { value, field, forID, classNameWrapper, setActiveStyle, setInactiveStyle, queryHits } =
       this.props;
     const isMultiple = this.isMultiple();
-    const isClearable = !field.get('required', true) || isMultiple;
+    const isClearable = !field.required || isMultiple;
 
     const queryOptions = this.parseHitOptions(queryHits || []);
     const options = uniqOptions(this.state.initialOptions, queryOptions);

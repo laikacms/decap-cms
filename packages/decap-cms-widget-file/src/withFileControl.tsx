@@ -4,8 +4,8 @@ import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
-import { Map, List } from 'immutable';
 import once from 'lodash/once';
+import get from 'lodash/get';
 import { v4 as uuid } from 'uuid';
 import { oneLine } from 'common-tags';
 import {
@@ -31,6 +31,7 @@ import type { DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
+import type { CmsField, CmsFieldBase, CmsFieldFile } from 'decap-cms-lib-util/types/index';
 
 const MAX_DISPLAY_LENGTH = 50;
 
@@ -91,8 +92,8 @@ interface SortableImageProps {
   id: string;
   index: number;
   itemValue: string;
-  getAsset: (value: string, field?: ImmutableField) => string;
-  field: ImmutableField;
+  getAsset: (value: string, field?: CmsField) => string;
+  field: CmsField;
   onRemove: () => void;
   onReplace: () => void;
 }
@@ -129,8 +130,8 @@ interface SortableItem {
 
 interface SortableMultiImageWrapperProps {
   items: SortableItem[];
-  getAsset: (value: string, field?: ImmutableField) => string;
-  field: ImmutableField;
+  getAsset: (value: string, field?: CmsField) => string;
+  field: CmsField;
   onSortEnd: (args: { oldIndex: number; newIndex: number }) => void;
   onRemoveOne: (index: number) => () => void;
   onReplaceOne: (index: number) => () => void;
@@ -220,13 +221,10 @@ const FileWidgetButtonRemove = styled.button`
   ${components.badgeDanger};
 `;
 
-type FileValue = string | string[] | List<string>;
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ImmutableField = Map<string, any>;
+type FileValue = string | string[];
 
 function isMultiple(value: FileValue): boolean {
-  return Array.isArray(value) || List.isList(value);
+  return Array.isArray(value);
 }
 
 function sizeOfValue(value: FileValue): number {
@@ -234,15 +232,11 @@ function sizeOfValue(value: FileValue): number {
     return value.length;
   }
 
-  if (List.isList(value)) {
-    return value.size;
-  }
-
   return value ? 1 : 0;
 }
 
 function valueListToArray(value: FileValue): string[] | string {
-  return List.isList(value) ? value.toArray() : value ?? '';
+  return value ?? '';
 }
 
 function valueListToSortableArray(value: FileValue): SortableItem[] | FileValue {
@@ -259,18 +253,18 @@ function valueListToSortableArray(value: FileValue): SortableItem[] | FileValue 
   return valueArray;
 }
 
-const warnDeprecatedOptions = once((field: ImmutableField) =>
+const warnDeprecatedOptions = once((field: CmsField) =>
   console.warn(oneLine`
-  Decap CMS config: ${field.get('name')} field: property "options" has been deprecated for the
-  ${field.get('widget')} widget and will be removed in the next major release. Rather than
+  Decap CMS config: ${field.name} field: property "options" has been deprecated for the
+  ${field.widget} widget and will be removed in the next major release. Rather than
   \`field.options.media_library\`, apply media library options for this widget under
   \`field.media_library\`.
 `),
 );
 
 export interface FileControlProps {
-  field: ImmutableField;
-  getAsset: (value: string, field?: ImmutableField) => string;
+  field: CmsFieldFile & CmsFieldBase;
+  getAsset: (value: string, field?: CmsField) => string;
   mediaPaths: Map<string, string>;
   onAddAsset: (asset: unknown) => void;
   onChange: (value: unknown) => void;
@@ -362,10 +356,10 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
       return onOpenMediaLibrary({
         controlID: this.controlID,
         forImage,
-        privateUpload: field.get('private'),
+        privateUpload: field.private,
         value: valueListToArray(value),
-        allowMultiple: !!mediaLibraryFieldOptions.get('allow_multiple', true),
-        config: mediaLibraryFieldOptions.get('config'),
+        allowMultiple: !!mediaLibraryFieldOptions?.allow_multiple,
+        config: mediaLibraryFieldOptions?.config,
         field,
       });
     };
@@ -401,31 +395,26 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
       return onOpenMediaLibrary({
         controlID: this.controlID,
         forImage,
-        privateUpload: field.get('private'),
+        privateUpload: field.private,
         value: valueListToArray(value),
         replaceIndex: index,
         allowMultiple: false,
-        config: mediaLibraryFieldOptions.get('config'),
+        config: mediaLibraryFieldOptions?.config,
         field,
       });
     };
 
-    getMediaLibraryFieldOptions = (): ImmutableField => {
+    getMediaLibraryFieldOptions = () => {
       const { field } = this.props;
 
-      if (field.hasIn(['options', 'media_library'])) {
-        warnDeprecatedOptions(field);
-        return field.getIn(['options', 'media_library'], Map()) as ImmutableField;
-      }
-
-      return field.get('media_library', Map()) as ImmutableField;
+      return field.media_library
     };
 
     allowsMultiple = () => {
       const mediaLibraryFieldOptions = this.getMediaLibraryFieldOptions();
       return (
-        mediaLibraryFieldOptions.get('config', false) &&
-        mediaLibraryFieldOptions.get('config').get('multiple', false)
+        mediaLibraryFieldOptions?.config &&
+        mediaLibraryFieldOptions.config?.multiple
       );
     };
 
@@ -513,7 +502,7 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
                 }`,
               )}
             </FileWidgetButton>
-            {field.get('choose_url', true) && !this.allowsMultiple() ? (
+            {field.choose_url && !this.allowsMultiple() ? (
               <FileWidgetButton onClick={this.handleUrl(subject)}>
                 {t(`editor.editorWidgets.${subject}.replaceUrl`)}
               </FileWidgetButton>
@@ -533,7 +522,7 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
           <FileWidgetButton onClick={this.handleChange}>
             {t(`editor.editorWidgets.${subject}.choose${this.allowsMultiple() ? 'Multiple' : ''}`)}
           </FileWidgetButton>
-          {field.get('choose_url', true) ? (
+          {field.choose_url ? (
             <FileWidgetButton onClick={this.handleUrl(subject)}>
               {t(`editor.editorWidgets.${subject}.chooseUrl`)}
             </FileWidgetButton>

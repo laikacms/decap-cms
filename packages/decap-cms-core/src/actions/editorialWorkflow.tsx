@@ -1,5 +1,4 @@
 import get from 'lodash/get';
-import { Map, List } from 'immutable';
 import { EDITORIAL_WORKFLOW_ERROR } from 'decap-cms-lib-util';
 
 import { currentBackend, slugFromCustomPath } from '../backend';
@@ -27,17 +26,24 @@ import { navigateToEntry } from '../routing/history';
 import { addNotification } from './notifications';
 
 import type {
-  Collection,
-  EntryMap,
-  State,
-  Collections,
-  EntryDraft,
-  MediaFile,
-} from 'decap-cms-lib-util/types/cms-immutable';
+  CmsCollectionObject,
+  CmsEntryMap,
+  CmsCollections,
+  CmsMediaFile,
+} from 'decap-cms-lib-util/types/cms';
 import type { AnyAction } from 'redux';
 import type { EntryValue } from '../valueObjects/Entry';
+import type { EntryDraft } from '../reducers/entryDraft';
 import type { Status } from '../constants/publishModes';
 import type { ThunkDispatch } from 'redux-thunk';
+
+type Collection = CmsCollectionObject;
+type EntryMap = CmsEntryMap;
+type Collections = CmsCollections;
+type MediaFile = CmsMediaFile;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type State = any;
 
 /*
  * Constant Declarations
@@ -74,7 +80,7 @@ function unpublishedEntryLoading(collection: Collection, slug: string) {
   return {
     type: UNPUBLISHED_ENTRY_REQUEST,
     payload: {
-      collection: collection.get('name'),
+      collection: collection.name,
       slug,
     },
   };
@@ -87,7 +93,7 @@ function unpublishedEntryLoaded(
   return {
     type: UNPUBLISHED_ENTRY_SUCCESS,
     payload: {
-      collection: collection.get('name'),
+      collection: collection.name,
       entry,
     },
   };
@@ -97,7 +103,7 @@ function unpublishedEntryRedirected(collection: Collection, slug: string) {
   return {
     type: UNPUBLISHED_ENTRY_REDIRECT,
     payload: {
-      collection: collection.get('name'),
+      collection: collection.name,
       slug,
     },
   };
@@ -131,7 +137,7 @@ function unpublishedEntryPersisting(collection: Collection, slug: string) {
   return {
     type: UNPUBLISHED_ENTRY_PERSIST_REQUEST,
     payload: {
-      collection: collection.get('name'),
+      collection: collection.name,
       slug,
     },
   };
@@ -141,7 +147,7 @@ function unpublishedEntryPersisted(collection: Collection, entry: EntryMap) {
   return {
     type: UNPUBLISHED_ENTRY_PERSIST_SUCCESS,
     payload: {
-      collection: collection.get('name'),
+      collection: collection.name,
       entry,
     },
   };
@@ -152,7 +158,7 @@ function unpublishedEntryPersistedFail(error: Error, collection: Collection, slu
     type: UNPUBLISHED_ENTRY_PERSIST_FAILURE,
     payload: {
       error,
-      collection: collection.get('name'),
+      collection: collection.name,
       slug,
     },
     error,
@@ -241,11 +247,11 @@ export function loadUnpublishedEntry(collection: Collection, slug: string) {
   return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
     const state = getState();
     const backend = currentBackend(state.config);
-    const entriesLoaded = get(state.editorialWorkflow.toJS(), 'pages.ids', false);
+    const entriesLoaded = get(state.editorialWorkflow, 'pages.ids', false);
     //run possible unpublishedEntries migration
     if (!entriesLoaded) {
       try {
-        const { entries, pagination } = await backend.unpublishedEntries(state.collections);
+        const { entries, pagination } = await backend.unpublishedEntries(Object.values(state.collections) as any);
         dispatch(unpublishedEntriesLoaded(entries, pagination));
         // eslint-disable-next-line no-empty
       } catch (e: unknown) {}
@@ -298,7 +304,7 @@ export function loadUnpublishedEntries(collections: Collections) {
   return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
     const state = getState();
     const backend = currentBackend(state.config);
-    const entriesLoaded = get(state.editorialWorkflow.toJS(), 'pages.ids', false);
+    const entriesLoaded = get(state.editorialWorkflow, 'pages.ids', false);
 
     if (state.config.publish_mode !== EDITORIAL_WORKFLOW || entriesLoaded) {
       return;
@@ -306,7 +312,7 @@ export function loadUnpublishedEntries(collections: Collections) {
 
     dispatch(unpublishedEntriesLoading());
     backend
-      .unpublishedEntries(collections)
+      .unpublishedEntries(Object.values(collections) as any)
       .then(response => dispatch(unpublishedEntriesLoaded(response.entries, response.pagination)))
       .catch((error: Error) => {
         dispatch(
@@ -329,19 +335,19 @@ export function persistUnpublishedEntry(collection: Collection, existingUnpublis
   return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
     const state = getState();
     const entryDraft = state.entryDraft;
-    const fieldsErrors = entryDraft.get('fieldsErrors');
-    const unpublishedSlugs = selectUnpublishedSlugs(state, collection.get('name'));
-    const publishedSlugs = selectPublishedSlugs(state, collection.get('name'));
-    const usedSlugs = (publishedSlugs || List<string>()).concat(unpublishedSlugs) as List<string>;
-    const entriesLoaded = get(state.editorialWorkflow.toJS(), 'pages.ids', false);
+    const fieldsErrors = entryDraft.fieldsErrors;
+    const unpublishedSlugs = selectUnpublishedSlugs(state, collection.name);
+    const publishedSlugs = selectPublishedSlugs(state, collection.name);
+    const usedSlugs = [...(publishedSlugs || []), ...(unpublishedSlugs || [])];
+    const entriesLoaded = get(state.editorialWorkflow, 'pages.ids', false);
 
     //load unpublishedEntries
-    !entriesLoaded && dispatch(loadUnpublishedEntries(state.collections));
+    if (!entriesLoaded) dispatch(loadUnpublishedEntries(state.collections));
 
     // Early return if draft contains validation errors
-    if (!fieldsErrors.isEmpty()) {
-      const hasPresenceErrors = fieldsErrors.some(errors =>
-        errors.some(error => error.type && error.type === ValidationErrorTypes.PRESENCE),
+    if (fieldsErrors && Object.keys(fieldsErrors).length > 0) {
+      const hasPresenceErrors = Object.values(fieldsErrors).some((errors: any) =>
+        errors.some((error: any) => error.type && error.type === ValidationErrorTypes.PRESENCE),
       );
 
       if (hasPresenceErrors) {
@@ -359,15 +365,15 @@ export function persistUnpublishedEntry(collection: Collection, existingUnpublis
     }
 
     const backend = currentBackend(state.config);
-    const entry = entryDraft.get('entry');
+    const entry = entryDraft.entry;
     const assetProxies = getMediaAssets({
       entry,
     });
 
     const serializedEntry = getSerializedEntry(collection, entry);
-    const serializedEntryDraft = entryDraft.set('entry', serializedEntry);
+    const serializedEntryDraft = { ...entryDraft, entry: serializedEntry };
 
-    dispatch(unpublishedEntryPersisting(collection, entry.get('slug')));
+    dispatch(unpublishedEntryPersisting(collection, entry.slug));
     const persistAction = existingUnpublishedEntry
       ? backend.persistUnpublishedEntry
       : backend.persistEntry;
@@ -391,9 +397,9 @@ export function persistUnpublishedEntry(collection: Collection, existingUnpublis
       );
       dispatch(unpublishedEntryPersisted(collection, serializedEntry));
 
-      if (entry.get('slug') !== newSlug) {
+      if (entry.slug !== newSlug) {
         await dispatch(loadUnpublishedEntry(collection, newSlug));
-        navigateToEntry(collection.get('name'), newSlug);
+        navigateToEntry(collection.name, newSlug);
       }
     } catch (error: unknown) {
       dispatch(
@@ -411,7 +417,7 @@ export function persistUnpublishedEntry(collection: Collection, existingUnpublis
           unpublishedEntryPersistedFail(
             error instanceof Error ? error : new Error(String(error)),
             collection,
-            entry.get('slug'),
+            entry.slug,
           ),
         ),
       );
@@ -509,13 +515,13 @@ export function publishUnpublishedEntry(collectionName: string, slug: string) {
         }),
       );
       dispatch(unpublishedEntryPublished(collectionName, slug));
-      const collection = collections.get(collectionName);
-      if (collection.has('nested')) {
+      const collection = collections[collectionName];
+      if (collection.nested != null) {
         dispatch(loadEntries(collection));
-        const newSlug = slugFromCustomPath(collection, entry.get('path'));
+        const newSlug = slugFromCustomPath(collection, entry.path);
         loadEntry(collection, newSlug);
         if (slug !== newSlug && selectEditingDraft(state.entryDraft)) {
-          navigateToEntry(collection.get('name'), newSlug);
+          navigateToEntry(collection.name, newSlug);
         }
       } else {
         return dispatch(loadEntry(collection, slug));
@@ -537,8 +543,8 @@ export function unpublishPublishedEntry(collection: Collection, slug: string) {
   return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
     const state = getState();
     const backend = currentBackend(state.config);
-    const entry = selectEntry(state, collection.get('name'), slug) as EntryMap;
-    const entryDraft = Map().set('entry', entry) as unknown as EntryDraft;
+    const entry = selectEntry(state, collection.name, slug) as EntryMap;
+    const entryDraft = { entry } as unknown as EntryDraft;
     dispatch(unpublishedEntryPersisting(collection, slug));
     return backend
       .deleteEntry(state, collection, slug)
@@ -548,8 +554,8 @@ export function unpublishPublishedEntry(collection: Collection, slug: string) {
           collection,
           entryDraft,
           assetProxies: [],
-          usedSlugs: List(),
-          status: status.get('PENDING_PUBLISH'),
+          usedSlugs: [],
+          status: status.PENDING_PUBLISH,
         }),
       )
       .then(() => {
@@ -572,7 +578,7 @@ export function unpublishPublishedEntry(collection: Collection, slug: string) {
             dismissAfter: 8000,
           }),
         );
-        dispatch(unpublishedEntryPersistedFail(error, collection, entry.get('slug')));
+        dispatch(unpublishedEntryPersistedFail(error, collection, entry.slug));
       });
   };
 }

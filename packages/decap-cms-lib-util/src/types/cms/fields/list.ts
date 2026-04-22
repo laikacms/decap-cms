@@ -1,5 +1,5 @@
 import type { CmsField } from "../field";
-import type { CmsFieldBase } from "./fields-common";
+import type { CmsFieldBase } from "./base";
 import type { CmsFieldObject } from "./object";
 
 export interface CmsFieldList {

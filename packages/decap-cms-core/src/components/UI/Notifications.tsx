@@ -10,7 +10,15 @@ import { useTranslate } from 'react-polyglot';
 import { dismissNotification } from '../../actions/notifications';
 
 import type { Id, ToastItem } from 'react-toastify';
-import type { State, CmsNotification } from 'decap-cms-lib-util/types/cms-immutable';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type State = any;
+
+interface CmsNotification {
+  id: string;
+  message: string | { key: string; details?: string; [key: string]: unknown };
+  type: 'success' | 'error' | 'info' | 'warning';
+  dismissAfter?: number;
+}
 
 type Notification = CmsNotification;
 

@@ -1,14 +1,16 @@
 /** @jsxImportSource @emotion/react */
 import PropTypes from 'prop-types';
 import React from 'react';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import dayjs from 'dayjs';
 import { translate } from 'react-polyglot';
 import { colors, lengths } from 'decap-cms-ui-default';
 import type { TranslateFunction } from 'decap-cms-ui-default';
-import type { Collections, Collection } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsCollections, CmsCollectionObject } from 'decap-cms-lib-util/types/cms';
+
+type Collections = CmsCollections;
+type Collection = CmsCollectionObject;
 
 import { status } from '../../constants/publishModes';
 import { DragSource, DropTarget, HTML5DragDrop } from '../UI';
@@ -142,6 +144,7 @@ interface DragProps {
 }
 
 interface WorkflowListProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   entries?: any;
   handleChangeStatus: (collection: string, slug: string, oldStatus: string, newStatus: string) => void;
   handlePublish: (collection: string, slug: string) => void;
@@ -153,13 +156,13 @@ interface WorkflowListProps {
 
 class WorkflowList extends React.Component<WorkflowListProps> {
   static propTypes = {
-    entries: ImmutablePropTypes.orderedMap,
+    entries: PropTypes.object,
     handleChangeStatus: PropTypes.func.isRequired,
     handlePublish: PropTypes.func.isRequired,
     handleDelete: PropTypes.func.isRequired,
     t: PropTypes.func.isRequired,
     isOpenAuthoring: PropTypes.bool,
-    collections: ImmutablePropTypes.map.isRequired,
+    collections: PropTypes.object.isRequired,
   };
 
   componentDidMount() {
@@ -181,7 +184,7 @@ class WorkflowList extends React.Component<WorkflowListProps> {
   };
 
   requestPublish = (collection: string, slug: string, ownStatus: string) => {
-    if (ownStatus !== status.last()) {
+    if (ownStatus !== Object.values(status).pop()) {
       window.alert(this.props.t('workflow.workflowList.onPublishingNotReadyEntry'));
       return;
     } else if (!window.confirm(this.props.t('workflow.workflowList.onPublishEntry'))) {
@@ -196,7 +199,7 @@ class WorkflowList extends React.Component<WorkflowListProps> {
     if (!entries) return null;
 
     if (!column) {
-      return entries.entrySeq().map(([currColumn, currEntries]: [string, any], idx: number) => (
+      return Object.entries(entries).map(([currColumn, currEntries]: [string, any], idx: number) => (
         <DropTarget
           namespace={DNDNamespace}
           key={currColumn}
@@ -219,7 +222,7 @@ class WorkflowList extends React.Component<WorkflowListProps> {
                   </ColumnHeader>
                   <ColumnCount>
                     {this.props.t('workflow.workflowList.currentEntries', {
-                      smart_count: currEntries.size,
+                      smart_count: Array.isArray(currEntries) ? currEntries.length : 0,
                     })}
                   </ColumnCount>
                   {this.renderColumns(currEntries, currColumn)}
@@ -233,20 +236,20 @@ class WorkflowList extends React.Component<WorkflowListProps> {
     return (
       <div>
         {entries.map((entry: any) => {
-          const timestamp = dayjs(entry.get('updatedOn')).format(t('workflow.workflow.dateFormat'));
-          const slug = entry.get('slug');
-          const collectionName = entry.get('collection');
+          const timestamp = dayjs(entry.updatedOn).format(t('workflow.workflow.dateFormat'));
+          const slug = entry.slug;
+          const collectionName = entry.collection;
           const editLink = `collections/${collectionName}/entries/${slug}?ref=workflow`;
-          const ownStatus = entry.get('status');
-          const collection = collections.find(
-            (collection: Collection) => collection.get('name') === collectionName,
+          const ownStatus = entry.status;
+          const collection = Object.values(collections).find(
+            (collection: Collection) => collection.name === collectionName,
           );
-          const collectionLabel = collection?.get('label');
-          const isModification = entry.get('isModification');
+          const collectionLabel = collection?.label;
+          const isModification = entry.isModification;
 
-          const allowPublish = (collection as any)?.get('publish');
-          const canPublish = ownStatus === status.last() && !entry.get('isPersisting', false);
-          const postAuthor = entry.get('author');
+          const allowPublish = (collection?.publish ?? true) as boolean;
+          const canPublish = ownStatus === Object.values(status).pop() && !(entry.isPersisting ?? false);
+          const postAuthor = entry.author;
 
           return (
             <DragSource
@@ -262,8 +265,8 @@ class WorkflowList extends React.Component<WorkflowListProps> {
                     <WorkflowCard
                       collectionLabel={collectionLabel || collectionName}
                       title={selectEntryCollectionTitle(collection as Collection, entry)}
-                      authorLastChange={entry.getIn(['metaData', 'user'])}
-                      body={entry.getIn(['data', 'body'])}
+                      authorLastChange={entry.metaData?.user}
+                      body={entry.data?.body}
                       isModification={isModification}
                       editLink={editLink}
                       timestamp={timestamp}

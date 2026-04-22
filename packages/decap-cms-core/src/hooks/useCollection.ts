@@ -15,7 +15,11 @@ import {
 } from '../reducers/entries';
 import { getNewEntryUrl } from '../lib/urlHelper';
 
-import type { SortDirection, ViewFilter, ViewGroup } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsSortDirection, CmsViewFilter, CmsViewGroup } from 'decap-cms-lib-util/types/cms';
+
+type SortDirection = CmsSortDirection;
+type ViewFilter = CmsViewFilter;
+type ViewGroup = CmsViewGroup;
 
 /**
  * Hook for collection state and actions
@@ -29,13 +33,13 @@ export function useCollection(collectionName?: string, t?: (key: string) => stri
 
   const collection = useMemo(() => {
     if (collectionName) {
-      return collections.get(collectionName);
+      return collections[collectionName];
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (collections as any).first();
+    const keys = Object.keys(collections);
+    return keys.length > 0 ? collections[keys[0]] : undefined;
   }, [collections, collectionName]);
 
-  const name = collection?.get('name');
+  const name = collection?.name;
 
   const sort = useMemo(
     () => (name ? selectEntriesSort(entries, name) : undefined),
@@ -70,7 +74,7 @@ export function useCollection(collectionName?: string, t?: (key: string) => stri
   const viewStyle = useMemo(() => selectViewStyle(entries), [entries]);
 
   const newEntryUrl = useMemo(() => {
-    if (collection?.get('create') && name) {
+    if (collection?.create && name) {
       return getNewEntryUrl(name);
     }
     return '';

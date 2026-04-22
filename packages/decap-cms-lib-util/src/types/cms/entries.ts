@@ -1,4 +1,5 @@
 import type { CmsMediaFileMap } from "./media";
+import type { CmsAssetProxy, CmsDataFile } from "./common";
 
 export type CmsEntry = {
   path: string;
@@ -11,12 +12,16 @@ export type CmsEntry = {
   author?: string;
   updatedOn?: string;
   status: string;
-  meta: { path: string };
+  meta: { path?: string };
   error?: string;
   isFetching?: boolean;
   isPersisting?: boolean;
   isModification?: boolean;
 };
+
+export type CmsEntryObject = CmsEntry & { data: Record<string, unknown>; i18n?: Record<string, unknown> };
+
+export type CmsEntryMap = CmsEntryObject;
 
 export type CmsGroupOfEntries = {
   id: string;
@@ -37,5 +42,62 @@ export type CmsEntryField = {
   comment?: string;
   meta?: boolean;
   i18n: 'translate' | 'duplicate' | 'none';
+  [key: string]: unknown;
 };
 
+export type CmsEntryFields = CmsEntryField[];
+
+export type CmsEntryValue = {
+  collection: string;
+  slug: string;
+  path: string;
+  partial: boolean;
+  raw: string;
+  data: unknown;
+  label: string | null;
+  isModification: boolean | null;
+  mediaFiles: CmsMediaFileMap[];
+  author: string;
+  updatedOn: string;
+  status?: string;
+  meta: { path?: string };
+  i18n?: Record<string, unknown>;
+};
+
+export type CmsImplementationEntry = {
+  data: string;
+  file: { path: string; label?: string; id?: string | null; author?: string; updatedOn?: string };
+};
+
+export type CmsImplementationFile = {
+  id?: string | null | undefined;
+  label?: string;
+  path: string;
+};
+
+export type CmsFileEntryObject = {
+  dataFiles: CmsDataFile[];
+  assets: CmsAssetProxy[];
+};
+
+export type CmsFileEntry = CmsFileEntryObject;
+
+export type CmsUnpublishedEntryDiff = {
+  id: string;
+  path: string;
+  newFile: boolean;
+};
+
+export type CmsUnpublishedEntryMediaFile = {
+  id: string;
+  path: string;
+};
+
+export type CmsUnpublishedEntry = {
+  pullRequestAuthor?: string;
+  slug: string;
+  collection: string;
+  status: string;
+  diffs: CmsUnpublishedEntryDiff[];
+  updatedAt: string;
+};

@@ -1,37 +1,35 @@
-import type { Map, List } from 'immutable';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ImmutableField = Map<string, any>;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ImmutableValue = Map<string, any>;
+import get from 'lodash/get';
+import type { CmsField, CmsFieldList } from "decap-cms-lib-util/types/index";
+import { isObject } from 'lodash';
 
 export const TYPES_KEY = 'types';
 export const TYPE_KEY = 'typeKey';
 export const DEFAULT_TYPE_KEY = 'type';
 
-export function getTypedFieldForValue(field: ImmutableField, value: ImmutableValue): ImmutableField {
+export function getTypedFieldForValue(field: CmsFieldList, value: Record<string, unknown> | unknown): CmsField | undefined {
+  if (!isObject(value)) return undefined; // The value is not an object so it cannot have a type key, list control has a fallback for this.
   const typeKey = resolveFieldKeyType(field);
-  const types = field.get(TYPES_KEY) as List<ImmutableField>;
-  const valueType = value.get(typeKey);
-  return types.find((type: ImmutableField) => type.get('name') === valueType) as ImmutableField;
+  const types = field[TYPES_KEY] ?? [];
+  const valueType = get(value, typeKey);
+  return types.find((type: CmsField) => type['name'] === valueType) as CmsField | undefined;
 }
 
-export function resolveFunctionForTypedField(field: ImmutableField) {
+export function resolveFunctionForTypedField(field: CmsFieldList) {
   const typeKey = resolveFieldKeyType(field);
-  const types = field.get(TYPES_KEY) as List<ImmutableField>;
-  return (value: ImmutableValue) => {
-    const valueType = value.get(typeKey);
-    return types.find((type: ImmutableField) => type.get('name') === valueType);
+  const types = field[TYPES_KEY] ?? [];
+  return (value: CmsField) => {
+    const valueType = get(value, typeKey);
+    return types.find((type: CmsField) => type['name'] === valueType);
   };
 }
 
-export function resolveFieldKeyType(field: ImmutableField): string {
-  return field.get(TYPE_KEY, DEFAULT_TYPE_KEY);
+export function resolveFieldKeyType(field: CmsFieldList): string {
+  return get(field, TYPE_KEY, DEFAULT_TYPE_KEY);
 }
 
-export function getErrorMessageForTypedFieldAndValue(field: ImmutableField, value: ImmutableValue): string {
+export function getErrorMessageForTypedFieldAndValue(field: CmsFieldList, value: Record<string, unknown>): string {
   const keyType = resolveFieldKeyType(field);
-  const type = value.get(keyType);
+  const type = get(value, keyType);
   let errorMessage;
   if (!type) {
     errorMessage = `Error: item has no '${keyType}' property`;

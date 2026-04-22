@@ -1,4 +1,4 @@
-import { Map, List, OrderedMap, Set, fromJS } from 'immutable';
+import { produce } from 'immer';
 import { isAbsolutePath, basename, dirname, join } from 'decap-cms-lib-util';
 import trim from 'lodash/trim';
 import once from 'lodash/once';
@@ -8,7 +8,7 @@ import orderBy from 'lodash/orderBy';
 import groupBy from 'lodash/groupBy';
 import { stringTemplate } from 'decap-cms-lib-widgets';
 
-import { SortDirection } from 'decap-cms-lib-util/types/cms-immutable';
+import { CmsSortDirection as SortDirection } from 'decap-cms-lib-util/types/cms';
 import { folderFormatter } from '../lib/formatters';
 import { selectSortDataPath } from './collections';
 import { SEARCH_ENTRIES_SUCCESS } from '../actions/search';
@@ -34,465 +34,393 @@ import {
 import { VIEW_STYLE_LIST } from '../constants/collectionViews';
 import { joinUrlPath } from '../lib/urlHelper';
 
+import type { AnyAction } from 'redux';
 import type {
-  EntriesAction,
-  EntryRequestPayload,
-  EntrySuccessPayload,
-  EntriesSuccessPayload,
-  EntryObject,
-  Entries,
-  Collection,
-  EntryFailurePayload,
-  EntryDeletePayload,
-  EntriesRequestPayload,
-  EntryDraft,
-  EntryMap,
-  EntryField,
-  CollectionFiles,
-  EntriesSortRequestPayload,
-  EntriesSortFailurePayload,
-  SortMap,
-  SortObject,
-  Sort,
-  Filter,
-  Group,
-  FilterMap,
-  GroupMap,
-  EntriesFilterRequestPayload,
-  EntriesFilterFailurePayload,
-  ChangeViewStylePayload,
-  EntriesGroupRequestPayload,
-  EntriesGroupFailurePayload,
-  GroupOfEntries,
-} from 'decap-cms-lib-util/types/cms-immutable';
-import type { CmsConfig } from 'decap-cms-lib-util/types/cms/cms';
+  CmsConfig,
+  CmsEntryMap,
+  CmsEntryField,
+  CmsCollectionObject,
+  CmsCollectionFileState,
+  CmsGroupOfEntries,
+  CmsSortObject,
+  CmsViewFilter,
+  CmsViewGroup,
+} from 'decap-cms-lib-util/types/cms';
+
+type EntryMap = CmsEntryMap;
+type EntryObject = CmsEntryMap;
+type EntryField = CmsEntryField;
+type Collection = CmsCollectionObject;
+type CollectionFiles = CmsCollectionFileState[];
+type GroupOfEntries = CmsGroupOfEntries;
+type SortObject = CmsSortObject;
+type SortMap = Record<string, SortObject>;
+type Sort = Record<string, SortMap>;
+type FilterMap = CmsViewFilter & { active?: boolean };
+type Filter = Record<string, Record<string, FilterMap>>;
+type GroupMap = CmsViewGroup & { active?: boolean };
+type Group = Record<string, Record<string, GroupMap>>;
+
+export type EntryPage = { isFetching: boolean; page?: number; ids: string[] };
+
+export type Entries = {
+  entities: Record<string, EntryMap>;
+  pages: Record<string, EntryPage>;
+  sort: Sort;
+  filter: Filter;
+  group: Group;
+  viewStyle: string;
+};
+
+type EntryDraft = {
+  entry: EntryMap;
+  fieldsMetaData?: Record<string, unknown>;
+  fieldsErrors?: Record<string, unknown>;
+  hasChanged: boolean;
+  key: string;
+};
+
+type EntryRequestPayload = { collection: string; slug: string };
+type EntrySuccessPayload = { collection: string; entry: EntryMap };
+type EntriesSuccessPayload = { collection: string; entries: EntryObject[]; append: boolean; page: number };
+type EntryFailurePayload = { collection: string; slug: string; error: Error };
+type EntryDeletePayload = { collectionName: string; entrySlug: string };
+type EntriesRequestPayload = { collection: string };
+type EntriesSortRequestPayload = { collection: string; key: string; direction: SortDirection };
+type EntriesSortFailurePayload = { collection: string; key: string };
+type EntriesFilterRequestPayload = { collection: string; filter: FilterMap };
+type EntriesFilterFailurePayload = { collection: string; filter: FilterMap };
+type EntriesGroupRequestPayload = { collection: string; group: GroupMap };
+type EntriesGroupFailurePayload = { collection: string; group: GroupMap };
+type ChangeViewStylePayload = { style: string };
+type EntriesAction = AnyAction;
 
 const { keyToPathArray } = stringTemplate;
-
-let collection: string;
-let loadedEntries: EntryObject[];
-let append: boolean;
-let page: number;
-let slug: string;
 
 const storageSortKey = 'decap-cms.entries.sort';
 const viewStyleKey = 'decap-cms.entries.viewStyle';
 
 function normalizeDoubleSlashes(path: string) {
-  if (!path) {
-    return path;
-  }
-
+  if (!path) return path;
   return path.replace(/([^:]\/)\/+/g, '$1');
 }
+
 type StorageSortObject = SortObject & { index: number };
 type StorageSort = { [collection: string]: { [key: string]: StorageSortObject } };
 
-const loadSort = once(() => {
+const loadSort = once((): Sort => {
   const sortString = localStorage.getItem(storageSortKey);
   if (sortString) {
     try {
       const sort: StorageSort = JSON.parse(sortString);
-      let map = Map() as Sort;
-      Object.entries(sort).forEach(([collection, sort]) => {
-        let orderedMap = OrderedMap() as SortMap;
-        sortBy(Object.values(sort), ['index']).forEach(value => {
+      const map: Sort = {};
+      Object.entries(sort).forEach(([collection, collSort]) => {
+        const orderedMap: SortMap = {};
+        sortBy(Object.values(collSort), ['index']).forEach(value => {
           const { key, direction } = value;
-          const v = fromJS({ key, direction });
-          orderedMap = orderedMap.set(key, v);
+          orderedMap[key] = { key, direction };
         });
-        map = map.set(collection, orderedMap);
+        map[collection] = orderedMap;
       });
       return map;
-    } catch (e: unknown) {
-      return Map() as Sort;
+    } catch (e) {
+      return {};
     }
   }
-  return Map() as Sort;
+  return {};
 });
-
-function clearSort() {
-  localStorage.removeItem(storageSortKey);
-}
 
 function persistSort(sort: Sort | undefined) {
   if (sort) {
     const storageSort: StorageSort = {};
-    sort.keySeq().forEach(key => {
-      const collection = key as string;
-      const sortObjects = (sort.get(collection)!.valueSeq().toJS() as unknown as SortObject[]).map(
-        (value, index) => ({ ...value, index }),
-      );
-
-      sortObjects.forEach(value => {
-        set(storageSort, [collection, value.key], value);
+    Object.entries(sort).forEach(([collection, sortMap]) => {
+      Object.values(sortMap).forEach((value, index) => {
+        set(storageSort, [collection, value.key], { ...value, index });
       });
     });
     localStorage.setItem(storageSortKey, JSON.stringify(storageSort));
   } else {
-    clearSort();
+    localStorage.removeItem(storageSortKey);
   }
 }
 
-const loadViewStyle = once(() => {
+const loadViewStyle = once((): string => {
   const viewStyle = localStorage.getItem(viewStyleKey);
-  if (viewStyle) {
-    return viewStyle;
-  }
-
+  if (viewStyle) return viewStyle;
   localStorage.setItem(viewStyleKey, VIEW_STYLE_LIST);
   return VIEW_STYLE_LIST;
 });
-
-function clearViewStyle() {
-  localStorage.removeItem(viewStyleKey);
-}
 
 function persistViewStyle(viewStyle: string | undefined) {
   if (viewStyle) {
     localStorage.setItem(viewStyleKey, viewStyle);
   } else {
-    clearViewStyle();
+    localStorage.removeItem(viewStyleKey);
   }
 }
 
-function entries(
-  state = Map({ entities: Map(), pages: Map(), sort: loadSort(), viewStyle: loadViewStyle() }),
-  action: EntriesAction,
-) {
+const defaultState: Entries = {
+  entities: {},
+  pages: {},
+  sort: loadSort(),
+  filter: {},
+  group: {},
+  viewStyle: loadViewStyle(),
+};
+
+function getNestedValue(obj: any, path: string[]): any {
+  return path.reduce((cur, key) => (cur != null ? cur[key] : undefined), obj);
+}
+
+const entries = produce((state: Entries, action: EntriesAction) => {
   switch (action.type) {
     case ENTRY_REQUEST: {
       const payload = action.payload as EntryRequestPayload;
-      return state.setIn(['entities', `${payload.collection}.${payload.slug}`, 'isFetching'], true);
+      const key = `${payload.collection}.${payload.slug}`;
+      state.entities[key] = { ...(state.entities[key] ?? {}), isFetching: true } as EntryMap;
+      break;
     }
 
     case ENTRY_SUCCESS: {
       const payload = action.payload as EntrySuccessPayload;
-      collection = payload.collection;
-      slug = payload.entry.slug;
-      return state.withMutations(map => {
-        map.setIn(['entities', `${collection}.${slug}`], fromJS(payload.entry));
-        const ids = map.getIn(['pages', collection, 'ids'], List()) as List<string>;
-        if (!ids.includes(slug)) {
-          map.setIn(['pages', collection, 'ids'], ids.unshift(slug));
-        }
-      });
+      const { collection, entry } = payload;
+      const key = `${collection}.${entry.slug}`;
+      state.entities[key] = { ...entry, isFetching: false };
+      const ids = state.pages[collection]?.ids ?? [];
+      if (!ids.includes(entry.slug)) {
+        state.pages[collection] = { ...(state.pages[collection] ?? { isFetching: false, page: 0, ids: [] }), ids: [entry.slug, ...ids] };
+      }
+      break;
     }
 
     case ENTRIES_REQUEST: {
       const payload = action.payload as EntriesRequestPayload;
-      const newState = state.withMutations(map => {
-        map.setIn(['pages', payload.collection, 'isFetching'], true);
-      });
-
-      return newState;
+      state.pages[payload.collection] = { ...(state.pages[payload.collection] ?? { isFetching: false, page: 0, ids: [] }), isFetching: true };
+      break;
     }
 
     case ENTRIES_SUCCESS: {
       const payload = action.payload as EntriesSuccessPayload;
-      collection = payload.collection;
-      loadedEntries = payload.entries;
-      append = payload.append;
-      page = payload.page;
-      return state.withMutations(map => {
-        loadedEntries.forEach(entry =>
-          map.setIn(
-            ['entities', `${collection}.${entry.slug}`],
-            fromJS(entry).set('isFetching', false),
-          ),
-        );
-
-        const ids = List(loadedEntries.map(entry => entry.slug));
-        map.setIn(
-          ['pages', collection],
-          Map({
-            page,
-            ids: append ? (map.getIn(['pages', collection, 'ids'], List()) as List<string>).concat(ids) : ids,
-          }),
-        );
+      const { collection, entries: loadedEntries, append, page } = payload;
+      loadedEntries.forEach(entry => {
+        state.entities[`${collection}.${entry.slug}`] = { ...entry, isFetching: false };
       });
+      const newIds = loadedEntries.map(entry => entry.slug);
+      const existingIds = append ? (state.pages[collection]?.ids ?? []) : [];
+      state.pages[collection] = { page, ids: [...existingIds, ...newIds], isFetching: false };
+      break;
     }
+
     case ENTRIES_FAILURE:
-      return state.setIn(['pages', action.meta.collection, 'isFetching'], false);
+      if (state.pages[(action as any).meta.collection]) {
+        state.pages[(action as any).meta.collection].isFetching = false;
+      }
+      break;
 
     case ENTRY_FAILURE: {
       const payload = action.payload as EntryFailurePayload;
-      return state.withMutations(map => {
-        map.setIn(['entities', `${payload.collection}.${payload.slug}`, 'isFetching'], false);
-        map.setIn(
-          ['entities', `${payload.collection}.${payload.slug}`, 'error'],
-          payload.error.message,
-        );
-      });
+      const key = `${payload.collection}.${payload.slug}`;
+      state.entities[key] = {
+        ...(state.entities[key] ?? {}),
+        isFetching: false,
+        error: payload.error.message,
+      } as EntryMap;
+      break;
     }
 
     case SEARCH_ENTRIES_SUCCESS: {
       const payload = action.payload as EntriesSuccessPayload;
-      loadedEntries = payload.entries;
-      return state.withMutations(map => {
-        loadedEntries.forEach(entry =>
-          map.setIn(
-            ['entities', `${entry.collection}.${entry.slug}`],
-            fromJS(entry).set('isFetching', false),
-          ),
-        );
+      payload.entries.forEach(entry => {
+        state.entities[`${entry.collection}.${entry.slug}`] = { ...entry, isFetching: false };
       });
+      break;
     }
 
     case ENTRY_DELETE_SUCCESS: {
       const payload = action.payload as EntryDeletePayload;
-      return state.withMutations(map => {
-        map.deleteIn(['entities', `${payload.collectionName}.${payload.entrySlug}`]);
-        map.updateIn(['pages', payload.collectionName, 'ids'], (ids: unknown) =>
-          (ids as string[]).filter(id => id !== payload.entrySlug),
-        );
-      });
+      delete state.entities[`${payload.collectionName}.${payload.entrySlug}`];
+      const page = state.pages[payload.collectionName];
+      if (page) {
+        page.ids = page.ids.filter(id => id !== payload.entrySlug);
+      }
+      break;
     }
 
     case SORT_ENTRIES_REQUEST: {
       const payload = action.payload as EntriesSortRequestPayload;
       const { collection, key, direction } = payload;
-      const newState = state.withMutations(map => {
-        const sort = OrderedMap({ [key]: Map({ key, direction }) });
-        map.setIn(['sort', collection], sort);
-        map.setIn(['pages', collection, 'isFetching'], true);
-        map.deleteIn(['pages', collection, 'page']);
-      });
-      persistSort(newState.get('sort') as Sort);
-      return newState;
+      state.sort[collection] = { [key]: { key, direction } } as SortMap;
+      if (!state.pages[collection]) state.pages[collection] = { isFetching: false, page: 0, ids: [] };
+      state.pages[collection].isFetching = true;
+      delete (state.pages[collection] as any).page;
+      persistSort(state.sort);
+      break;
     }
 
     case GROUP_ENTRIES_SUCCESS:
     case FILTER_ENTRIES_SUCCESS:
     case SORT_ENTRIES_SUCCESS: {
       const payload = action.payload as { collection: string; entries: EntryObject[] };
-      const { collection, entries } = payload;
-      loadedEntries = entries;
-      const newState = state.withMutations(map => {
-        loadedEntries.forEach(entry =>
-          map.setIn(
-            ['entities', `${entry.collection}.${entry.slug}`],
-            fromJS(entry).set('isFetching', false),
-          ),
-        );
-        map.setIn(['pages', collection, 'isFetching'], false);
-        const ids = List(loadedEntries.map(entry => entry.slug));
-        map.setIn(
-          ['pages', collection],
-          Map({
-            page: 1,
-            ids,
-          }),
-        );
+      const { collection, entries: loadedEntries } = payload;
+      loadedEntries.forEach(entry => {
+        state.entities[`${entry.collection}.${entry.slug}`] = { ...entry, isFetching: false };
       });
-      return newState;
+      if (state.pages[collection]) state.pages[collection].isFetching = false;
+      const ids = loadedEntries.map(entry => entry.slug);
+      state.pages[collection] = { page: 1, ids, isFetching: false };
+      break;
     }
 
     case SORT_ENTRIES_FAILURE: {
       const payload = action.payload as EntriesSortFailurePayload;
       const { collection, key } = payload;
-      const newState = state.withMutations(map => {
-        map.deleteIn(['sort', collection, key]);
-        map.setIn(['pages', collection, 'isFetching'], false);
-      });
-      persistSort(newState.get('sort') as Sort);
-      return newState;
+      if (state.sort[collection]) delete state.sort[collection][key];
+      if (state.pages[collection]) state.pages[collection].isFetching = false;
+      persistSort(state.sort);
+      break;
     }
 
     case FILTER_ENTRIES_REQUEST: {
       const payload = action.payload as EntriesFilterRequestPayload;
       const { collection, filter } = payload;
-      const newState = state.withMutations(map => {
-        const current: FilterMap = map.getIn(['filter', collection, filter.id], fromJS(filter));
-        map.setIn(
-          ['filter', collection, current.get('id')],
-          current.set('active', !current.get('active')),
-        );
-      });
-      return newState;
+      state.filter[collection] = state.filter[collection] ?? {};
+      const current: FilterMap = state.filter[collection][filter.id] ?? filter as FilterMap;
+      state.filter[collection][current.id] = { ...current, active: !current.active };
+      break;
     }
 
     case FILTER_ENTRIES_FAILURE: {
       const payload = action.payload as EntriesFilterFailurePayload;
       const { collection, filter } = payload;
-      const newState = state.withMutations(map => {
-        map.deleteIn(['filter', collection, filter.id]);
-        map.setIn(['pages', collection, 'isFetching'], false);
-      });
-      return newState;
+      if (state.filter[collection]) delete state.filter[collection][filter.id];
+      if (state.pages[collection]) state.pages[collection].isFetching = false;
+      break;
     }
 
     case GROUP_ENTRIES_REQUEST: {
       const payload = action.payload as EntriesGroupRequestPayload;
       const { collection, group } = payload;
-      const newState = state.withMutations(map => {
-        const current: GroupMap = map.getIn(['group', collection, group.id], fromJS(group));
-        map.deleteIn(['group', collection]);
-        map.setIn(
-          ['group', collection, current.get('id')],
-          current.set('active', !current.get('active')),
-        );
-      });
-      return newState;
+      state.group[collection] = state.group[collection] ?? {};
+      const current: GroupMap = state.group[collection][group.id] ?? group as GroupMap;
+      state.group[collection] = {};
+      state.group[collection][current.id] = { ...current, active: !current.active };
+      break;
     }
 
     case GROUP_ENTRIES_FAILURE: {
       const payload = action.payload as EntriesGroupFailurePayload;
       const { collection, group } = payload;
-      const newState = state.withMutations(map => {
-        map.deleteIn(['group', collection, group.id]);
-        map.setIn(['pages', collection, 'isFetching'], false);
-      });
-      return newState;
+      if (state.group[collection]) delete state.group[collection][group.id];
+      if (state.pages[collection]) state.pages[collection].isFetching = false;
+      break;
     }
 
     case CHANGE_VIEW_STYLE: {
       const payload = action.payload as unknown as ChangeViewStylePayload;
-      const { style } = payload;
-      const newState = state.withMutations(map => {
-        map.setIn(['viewStyle'], style);
-      });
-      persistViewStyle(newState.get('viewStyle') as string);
-      return newState;
+      state.viewStyle = payload.style;
+      persistViewStyle(state.viewStyle);
+      break;
     }
-
-    default:
-      return state;
   }
-}
+}, defaultState);
 
 export function selectEntriesSort(entries: Entries, collection: string) {
-  const sort = entries.get('sort') as Sort | undefined;
-  return sort?.get(collection);
+  return entries.sort?.[collection];
 }
 
 export function selectEntriesFilter(entries: Entries, collection: string) {
-  const filter = entries.get('filter') as Filter | undefined;
-  return filter?.get(collection) || Map();
+  return entries.filter?.[collection] ?? {};
 }
 
 export function selectEntriesGroup(entries: Entries, collection: string) {
-  const group = entries.get('group') as Group | undefined;
-  return group?.get(collection) || Map();
+  return entries.group?.[collection] ?? {};
 }
 
 export function selectEntriesGroupField(entries: Entries, collection: string) {
   const groups = selectEntriesGroup(entries, collection);
-  const value = groups?.valueSeq().find(v => v?.get('active') === true);
-  return value;
+  return Object.values(groups).find(v => v?.active === true);
 }
 
 export function selectEntriesSortFields(entries: Entries, collection: string) {
   const sort = selectEntriesSort(entries, collection);
-  const values =
-    sort
-      ?.valueSeq()
-      .filter(v => v?.get('direction') !== SortDirection.None)
-      .toArray() || [];
-
-  return values;
+  return Object.values(sort ?? {}).filter(v => v?.direction !== SortDirection.None);
 }
 
 export function selectEntriesFilterFields(entries: Entries, collection: string) {
   const filter = selectEntriesFilter(entries, collection);
-  const values =
-    filter
-      ?.valueSeq()
-      .filter(v => v?.get('active') === true)
-      .toArray() || [];
-  return values;
+  return Object.values(filter).filter(v => v?.active === true);
 }
 
 export function selectViewStyle(entries: Entries) {
-  return entries.get('viewStyle');
+  return entries.viewStyle;
 }
 
 export function selectEntry(state: Entries, collection: string, slug: string): EntryMap | undefined {
-  return state.getIn(['entities', `${collection}.${slug}`]) as EntryMap | undefined;
+  return state.entities[`${collection}.${slug}`];
 }
 
-export function selectPublishedSlugs(state: Entries, collection: string): List<string> | undefined {
-  return state.getIn(['pages', collection as any, 'ids'], List<string>()) as List<string> | undefined;
+export function selectPublishedSlugs(state: Entries, collection: string): string[] | undefined {
+  return state.pages[collection]?.ids;
 }
 
-function getPublishedEntries(state: Entries, collectionName: string): List<EntryMap> | undefined {
+function getPublishedEntries(state: Entries, collectionName: string): EntryMap[] | undefined {
   const slugs = selectPublishedSlugs(state, collectionName);
-  const entries =
-    slugs &&
-    (slugs.map(slug => selectEntry(state, collectionName, slug as string)))
-    .filter(e => e !== undefined) as List<EntryMap> | undefined;
-  return entries;
+  if (!slugs) return undefined;
+  return slugs
+    .map(slug => selectEntry(state, collectionName, slug))
+    .filter((e): e is EntryMap => e !== undefined);
 }
 
 export function selectEntries(state: Entries, collection: Collection) {
-  const collectionName = collection.get('name');
+  const collectionName = collection.name;
   let entries = getPublishedEntries(state, collectionName);
 
-  if (!entries) return List() as List<EntryMap>;
+  if (!entries) return [] as EntryMap[];
 
   const sortFields = selectEntriesSortFields(state, collectionName);
   if (sortFields && sortFields.length > 0) {
-    const keys = sortFields.map(v => selectSortDataPath(collection, v.get('key')));
+    const keys = sortFields.map(v => selectSortDataPath(collection, v.key));
     const orders = sortFields.map(v =>
-      v.get('direction') === SortDirection.Ascending ? 'asc' : 'desc',
+      v.direction === SortDirection.Ascending ? 'asc' : 'desc',
     );
-    entries = fromJS(orderBy(entries.toJS(), keys, orders)) as unknown as List<EntryMap>;
+    entries = orderBy(entries, keys, orders);
   }
 
   const filters = selectEntriesFilterFields(state, collectionName);
   if (filters && filters.length > 0) {
-    entries = entries
-      .filter(e => {
-        const allMatched = filters.every(f => {
-          const pattern = f.get('pattern');
-          const field = f.get('field');
-          const data = e!.get('data') || Map();
-          const toMatch = data.getIn(keyToPathArray(field));
-          const matched =
-            toMatch !== undefined && new RegExp(String(pattern)).test(String(toMatch));
-          return matched;
-        });
-        return allMatched;
-      })
-      .toList();
+    entries = entries.filter(e => {
+      return filters.every(f => {
+        const pattern = f.pattern;
+        const field = f.field;
+        const data = e?.data ?? {};
+        const toMatch = getNestedValue(data, keyToPathArray(field));
+        return toMatch !== undefined && new RegExp(String(pattern)).test(String(toMatch));
+      });
+    });
   }
 
   return entries;
 }
 
 function getGroup(entry: EntryMap, selectedGroup: GroupMap) {
-  const label = selectedGroup.get('label');
-  const field = selectedGroup.get('field');
-
-  const fieldData = entry.getIn(['data', ...keyToPathArray(field)]);
+  const { label, field } = selectedGroup;
+  const fieldData = getNestedValue(entry.data, keyToPathArray(field));
   if (fieldData === undefined) {
-    return {
-      id: 'missing_value',
-      label,
-      value: fieldData,
-    };
+    return { id: 'missing_value', label, value: fieldData };
   }
-
   const dataAsString = String(fieldData);
-  if (selectedGroup.has('pattern')) {
-    const pattern = selectedGroup.get('pattern');
+  if (selectedGroup.pattern) {
+    const pattern = selectedGroup.pattern;
     let value = '';
     try {
       const regex = new RegExp(pattern);
       const matched = dataAsString.match(regex);
-      if (matched) {
-        value = matched[0];
-      }
-    } catch (e: unknown) {
+      if (matched) value = matched[0];
+    } catch (e) {
       console.warn(`Invalid view group pattern '${pattern}' for field '${field}'`, e);
     }
-    return {
-      id: `${label}${value}`,
-      label,
-      value,
-    };
+    return { id: `${label}${value}`, label, value };
   }
-
   return {
     id: `${label}${fieldData}`,
     label,
@@ -500,54 +428,45 @@ function getGroup(entry: EntryMap, selectedGroup: GroupMap) {
   };
 }
 
-export function selectGroups(state: Entries, collection: Collection) {
-  const collectionName = collection.get('name');
+export function selectGroups(state: Entries, collection: Collection): GroupOfEntries[] {
+  const collectionName = collection.name;
   const entries = getPublishedEntries(state, collectionName);
-
-  if (!entries) return [] as GroupOfEntries[];
+  if (!entries) return [];
 
   const selectedGroup = selectEntriesGroupField(state, collectionName);
-  if (selectedGroup === undefined) {
-    return [];
-  }
+  if (selectedGroup === undefined) return [];
 
-  let groups: Record<string, { id: string; label: string; value: string | boolean | undefined }> =
-    {};
-  const groupedEntries = groupBy(entries.toArray(), entry => {
+  let groups: Record<string, { id: string; label: string; value: string | boolean | undefined }> = {};
+  const groupedEntries = groupBy(entries, entry => {
     const group = getGroup(entry, selectedGroup);
     groups = { ...groups, [group.id]: group };
     return group.id;
   });
 
-  const groupsArray: GroupOfEntries[] = Object.entries(groupedEntries).map(([id, entries]) => {
-    return {
-      ...groups[id],
-      paths: Set(entries.map(entry => entry.get('path'))),
-    };
-  });
-
-  return groupsArray;
+  return Object.entries(groupedEntries).map(([id, entries]) => ({
+    ...groups[id],
+    paths: new Set(entries.map(entry => entry.path)),
+  }));
 }
 
 export function selectEntryByPath(state: Entries, collection: string, path: string) {
-  const slugs = selectPublishedSlugs(state, collection) as List<string> | undefined;
-  const entries =
-    slugs && (slugs.map(slug => selectEntry(state, collection, slug as string)) as List<EntryMap>);
-
-  return entries && entries.find(e => e?.get('path') === path);
+  const slugs = selectPublishedSlugs(state, collection);
+  if (!slugs) return undefined;
+  return slugs
+    .map(slug => selectEntry(state, collection, slug))
+    .find(e => e?.path === path);
 }
 
 export function selectEntriesLoaded(state: Entries, collection: string) {
-  return !!state.getIn(['pages', collection]);
+  return !!state.pages[collection];
 }
 
 export function selectIsFetching(state: Entries, collection: string): boolean {
-  return state.getIn(['pages', collection, 'isFetching'], false) as boolean;
+  return state.pages[collection]?.isFetching ?? false;
 }
 
 function getFileField(collectionFiles: CollectionFiles, slug: string | undefined) {
-  const file = collectionFiles.find(f => f?.get('name') === slug);
-  return file;
+  return collectionFiles.find(f => f?.name === slug);
 }
 
 function hasCustomFolder(
@@ -555,26 +474,14 @@ function hasCustomFolder(
   collection: Collection | null,
   slug: string | undefined,
   field: EntryField | undefined,
-) {
-  if (!collection) {
-    return false;
+): boolean {
+  if (!collection) return false;
+  if (field && field[folderKey] != null) return true;
+  if (collection.files) {
+    const file = getFileField(collection.files, slug);
+    if (file && file[folderKey] != null) return true;
   }
-
-  if (field && field.has(folderKey)) {
-    return true;
-  }
-
-  if (collection.has('files')) {
-    const file = getFileField(collection.get('files')!, slug);
-    if (file && file.has(folderKey)) {
-      return true;
-    }
-  }
-
-  if (collection.has(folderKey)) {
-    return true;
-  }
-
+  if (collection[folderKey] != null) return true;
   return false;
 }
 
@@ -587,10 +494,10 @@ function traverseFields(
   fields: EntryField[],
   currentFolder: string,
 ): string | null {
-  const matchedField = fields.filter(f => f === field)[0];
+  const matchedField = fields.find(f => f === field);
   if (matchedField) {
     return folderFormatter(
-      matchedField.has(folderKey) ? matchedField.get(folderKey)! : `{{${folderKey}}}`,
+      matchedField[folderKey] != null ? matchedField[folderKey] as string : `{{${folderKey}}}`,
       entryMap,
       collection,
       currentFolder,
@@ -598,57 +505,19 @@ function traverseFields(
       config.slug,
     );
   }
-
   for (let f of fields) {
-    if (!f.has(folderKey)) {
-      // add identity template if doesn't exist
-      f = f.set(folderKey, `{{${folderKey}}}`);
+    if (f[folderKey] == null) f = { ...f, [folderKey]: `{{${folderKey}}}` };
+    const folder = folderFormatter(f[folderKey] as string, entryMap, collection, currentFolder, folderKey, config.slug);
+    let fieldFolder: string | null = null;
+    if (f.fields) {
+      fieldFolder = traverseFields(folderKey, config, collection, entryMap, field, f.fields as EntryField[], folder);
+    } else if (f.field) {
+      fieldFolder = traverseFields(folderKey, config, collection, entryMap, field, [f.field as EntryField], folder);
+    } else if (f.types) {
+      fieldFolder = traverseFields(folderKey, config, collection, entryMap, field, f.types as EntryField[], folder);
     }
-    const folder = folderFormatter(
-      f.get(folderKey)!,
-      entryMap,
-      collection,
-      currentFolder,
-      folderKey,
-      config.slug,
-    );
-    let fieldFolder = null;
-    if (f.has('fields')) {
-      fieldFolder = traverseFields(
-        folderKey,
-        config,
-        collection,
-        entryMap,
-        field,
-        f.get('fields')!.toArray(),
-        folder,
-      );
-    } else if (f.has('field')) {
-      fieldFolder = traverseFields(
-        folderKey,
-        config,
-        collection,
-        entryMap,
-        field,
-        [f.get('field')!],
-        folder,
-      );
-    } else if (f.has('types')) {
-      fieldFolder = traverseFields(
-        folderKey,
-        config,
-        collection,
-        entryMap,
-        field,
-        f.get('types')!.toArray(),
-        folder,
-      );
-    }
-    if (fieldFolder != null) {
-      return fieldFolder;
-    }
+    if (fieldFolder != null) return fieldFolder;
   }
-
   return null;
 }
 
@@ -658,88 +527,28 @@ function evaluateFolder(
   collection: Collection,
   entryMap: EntryMap | undefined,
   field: EntryField | undefined,
-) {
+): string {
   let currentFolder = config[folderKey]!;
+  if (collection[folderKey] == null) collection = { ...collection, [folderKey]: `{{${folderKey}}}` };
 
-  // add identity template if doesn't exist
-  if (!collection.has(folderKey)) {
-    collection = collection.set(folderKey, `{{${folderKey}}}`);
-  }
-
-  if (collection.has('files')) {
-    // files collection evaluate the collection template
-    // then move on to the specific file configuration denoted by the slug
-    currentFolder = folderFormatter(
-      collection.get(folderKey)!,
-      entryMap,
-      collection,
-      currentFolder,
-      folderKey,
-      config.slug,
-    );
-
-    let file = getFileField(collection.get('files')!, entryMap?.get('slug'));
+  if (collection.files) {
+    currentFolder = folderFormatter(collection[folderKey] as string, entryMap, collection, currentFolder, folderKey, config.slug);
+    let file = getFileField(collection.files, entryMap?.slug);
     if (file) {
-      if (!file.has(folderKey)) {
-        // add identity template if doesn't exist
-        file = file.set(folderKey, `{{${folderKey}}}`);
-      }
-
-      // evaluate the file template and keep evaluating until we match our field
-      currentFolder = folderFormatter(
-        file.get(folderKey)!,
-        entryMap,
-        collection,
-        currentFolder,
-        folderKey,
-        config.slug,
-      );
-
+      if (file[folderKey] == null) file = { ...file, [folderKey]: `{{${folderKey}}}` };
+      currentFolder = folderFormatter(file[folderKey] as string, entryMap, collection, currentFolder, folderKey, config.slug);
       if (field) {
-        const fieldFolder = traverseFields(
-          folderKey,
-          config,
-          collection,
-          entryMap,
-          field,
-          file.get('fields')!.toArray(),
-          currentFolder,
-        );
-
-        if (fieldFolder !== null) {
-          currentFolder = fieldFolder;
-        }
+        const fieldFolder = traverseFields(folderKey, config, collection, entryMap, field, (file.fields ?? []) as EntryField[], currentFolder);
+        if (fieldFolder !== null) currentFolder = fieldFolder;
       }
     }
   } else {
-    // folder collection, evaluate the collection template
-    // and keep evaluating until we match our field
-    currentFolder = folderFormatter(
-      collection.get(folderKey)!,
-      entryMap,
-      collection,
-      currentFolder,
-      folderKey,
-      config.slug,
-    );
-
+    currentFolder = folderFormatter(collection[folderKey] as string, entryMap, collection, currentFolder, folderKey, config.slug);
     if (field) {
-      const fieldFolder = traverseFields(
-        folderKey,
-        config,
-        collection,
-        entryMap,
-        field,
-        collection.get('fields')!.toArray(),
-        currentFolder,
-      );
-
-      if (fieldFolder !== null) {
-        currentFolder = fieldFolder;
-      }
+      const fieldFolder = traverseFields(folderKey, config, collection, entryMap, field, (collection.fields ?? []) as EntryField[], currentFolder);
+      if (fieldFolder !== null) currentFolder = fieldFolder;
     }
   }
-
   return currentFolder;
 }
 
@@ -751,22 +560,16 @@ export function selectMediaFolder(
 ) {
   const name = 'media_folder';
   let mediaFolder = config[name];
-
-  const customFolder = hasCustomFolder(name, collection, entryMap?.get('slug'), field);
-
+  const customFolder = hasCustomFolder(name, collection, entryMap?.slug, field);
   if (customFolder) {
     const folder = evaluateFolder(name, config, collection!, entryMap, field);
     if (folder.startsWith('/')) {
-      // return absolute paths as is
       mediaFolder = join(folder);
     } else {
-      const entryPath = entryMap?.get('path');
-      mediaFolder = entryPath
-        ? join(dirname(entryPath), folder)
-        : (collection!.get('folder') as string);
+      const entryPath = entryMap?.path;
+      mediaFolder = entryPath ? join(dirname(entryPath), folder) : (collection!.folder as string);
     }
   }
-
   return trim(mediaFolder, '/');
 }
 
@@ -777,12 +580,8 @@ export function selectMediaFilePath(
   mediaPath: string,
   field: EntryField | undefined,
 ) {
-  if (isAbsolutePath(mediaPath)) {
-    return mediaPath;
-  }
-
+  if (isAbsolutePath(mediaPath)) return mediaPath;
   const mediaFolder = selectMediaFolder(config, collection, entryMap, field);
-
   return join(mediaFolder, basename(mediaPath));
 }
 
@@ -793,32 +592,20 @@ export function selectMediaFilePublicPath(
   entryMap: EntryMap | undefined,
   field: EntryField | undefined,
 ) {
-  if (isAbsolutePath(mediaPath)) {
-    return mediaPath;
-  }
-
+  if (isAbsolutePath(mediaPath)) return mediaPath;
   const name = 'public_folder';
   let publicFolder = normalizeDoubleSlashes(config[name]!);
-
-  const customFolder = hasCustomFolder(name, collection, entryMap?.get('slug'), field);
-
+  const customFolder = hasCustomFolder(name, collection, entryMap?.slug, field);
   if (customFolder) {
-    publicFolder = normalizeDoubleSlashes(
-      evaluateFolder(name, config, collection!, entryMap, field),
-    );
+    publicFolder = normalizeDoubleSlashes(evaluateFolder(name, config, collection!, entryMap, field));
   }
-
-  if (isAbsolutePath(publicFolder)) {
-    return joinUrlPath(publicFolder, basename(mediaPath));
-  }
-
+  if (isAbsolutePath(publicFolder)) return joinUrlPath(publicFolder, basename(mediaPath));
   return join(publicFolder, basename(mediaPath));
 }
 
 export function selectEditingDraft(state: EntryDraft) {
-  const entry = state.get('entry');
-  const workflowDraft = entry && !entry.isEmpty();
-  return workflowDraft;
+  const entry = state.entry;
+  return entry && Object.keys(entry).length > 0;
 }
 
 export default entries;

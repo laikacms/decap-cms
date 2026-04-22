@@ -3,7 +3,15 @@ import { addNotification, dismissNotification } from './notifications';
 
 import type { ThunkDispatch } from 'redux-thunk';
 import type { AnyAction } from 'redux';
-import type { State, CmsNotification } from 'decap-cms-lib-util/types/cms-immutable';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type State = any;
+
+interface CmsNotification {
+  id: string;
+  message: string | { key: string; details?: string };
+  type: string;
+  dismissAfter?: number;
+}
 
 export const STATUS_REQUEST = 'STATUS_REQUEST';
 export const STATUS_SUCCESS = 'STATUS_SUCCESS';

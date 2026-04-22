@@ -1,4 +1,3 @@
-import { List } from 'immutable';
 import get from 'lodash/get';
 
 import yamlFormatter from './yaml';
@@ -8,8 +7,14 @@ import { FrontmatterInfer, frontmatterJSON, frontmatterTOML, frontmatterYAML } f
 import { getCustomFormatsExtensions, getCustomFormatsFormatters } from '../lib/registry';
 
 import type { Delimiter } from './frontmatter';
-import type { Collection, EntryObject, Format, FormatterFunctions } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsCollectionObject, CmsFormatterFunctions, CmsCollectionFormatType } from 'decap-cms-lib-util/types/cms';
 import type { EntryValue } from '../valueObjects/Entry';
+
+type Collection = CmsCollectionObject;
+type Format = CmsCollectionFormatType;
+type FormatterFunctions = CmsFormatterFunctions;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type EntryObject = any;
 
 export const frontmatterFormats = ['yaml-frontmatter', 'toml-frontmatter', 'json-frontmatter'];
 
@@ -56,23 +61,23 @@ function formatByName(name: Format, customDelimiter?: Delimiter): FormatterFunct
   throw new Error(`No formatter available with name: ${name}`);
 }
 
-function frontmatterDelimiterIsList(
-  frontmatterDelimiter?: Delimiter | List<string>,
-): frontmatterDelimiter is List<string> {
-  return List.isList(frontmatterDelimiter);
+function frontmatterDelimiterIsArray(
+  frontmatterDelimiter?: Delimiter | string[],
+): frontmatterDelimiter is string[] {
+  return Array.isArray(frontmatterDelimiter);
 }
 
 export function resolveFormat(collection: Collection, entry: EntryObject | EntryValue) {
   // Check for custom delimiter
-  const frontmatter_delimiter = collection.get('frontmatter_delimiter');
-  const customDelimiter = frontmatterDelimiterIsList(frontmatter_delimiter)
-    ? (frontmatter_delimiter.toArray() as [string, string])
-    : frontmatter_delimiter;
+  const frontmatter_delimiter = collection.frontmatter_delimiter;
+  const customDelimiter = frontmatterDelimiterIsArray(frontmatter_delimiter)
+    ? (frontmatter_delimiter as [string, string])
+    : frontmatter_delimiter as Delimiter | undefined;
 
   // If the format is specified in the collection, use that format.
-  const formatSpecification = collection.get('format');
+  const formatSpecification = collection.format;
   if (formatSpecification) {
-    return formatByName(formatSpecification, customDelimiter);
+    return formatByName(formatSpecification as Format, customDelimiter);
   }
 
   // If a file already exists, infer the format from its file extension.
@@ -86,7 +91,7 @@ export function resolveFormat(collection: Collection, entry: EntryObject | Entry
 
   // If creating a new file, and an `extension` is specified in the
   //   collection config, infer the format from that extension.
-  const extension = collection.get('extension');
+  const extension = collection.extension;
   if (extension) {
     return get(extensionFormatters, extension);
   }

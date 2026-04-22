@@ -1,4 +1,3 @@
-import { Map } from 'immutable';
 import { oneLine } from 'common-tags';
 import type { Pluggable } from 'unified';
 
@@ -9,18 +8,24 @@ import type {
   CmsMediaLibraryOptions,
   CmsLocalePhrases,
   CmsWidgetValueSerializer,
-} from 'decap-cms-lib-util/types/cms'
-import type {
-  WidgetParam,
-  EditorComponentOptions,
-  EditorComponentPlugin,
-  FormatterFunctions,
-  AllowedEvent,
-  PreviewStyle,
-  Formatter,
-  Config,
-  Implementation,
-} from 'decap-cms-lib-util/types/cms-immutable';
+  CmsEditorComponentOptions,
+  CmsEditorComponentPlugin,
+  CmsFormatterFunctions,
+  CmsAllowedEvent,
+  CmsFormatter,
+  CmsConfig,
+  CmsImplementation,
+} from 'decap-cms-lib-util/types/cms';
+
+type WidgetParam<T = unknown> = CmsWidgetParam<T>;
+type EditorComponentOptions = CmsEditorComponentOptions;
+type EditorComponentPlugin = CmsEditorComponentPlugin;
+type FormatterFunctions = CmsFormatterFunctions;
+type AllowedEvent = CmsAllowedEvent;
+type PreviewStyle = { raw?: boolean; value: string };
+type Formatter = CmsFormatter;
+type Config = CmsConfig;
+type Implementation = CmsImplementation;
 
 interface EventHandler {
   handler: Function;
@@ -45,7 +50,7 @@ interface Registry {
   templates: Record<string, React.ComponentType<unknown>>;
   previewStyles: PreviewStyle[];
   widgets: Record<string, CmsWidget>;
-  editorComponents: Map<string, EditorComponentPlugin>;
+  editorComponents: Record<string, EditorComponentPlugin>;
   remarkPlugins: unknown[];
   widgetValueSerializers: Record<string, CmsWidgetValueSerializer>;
   mediaLibraries: (CmsMediaLibrary & { options?: CmsMediaLibraryOptions })[];
@@ -80,7 +85,7 @@ const registry: Registry = {
   templates: {},
   previewStyles: [],
   widgets: {},
-  editorComponents: Map<string, EditorComponentPlugin>(),
+  editorComponents: {},
   remarkPlugins: [],
   widgetValueSerializers: {},
   mediaLibraries: [],
@@ -202,18 +207,18 @@ export function resolveWidget(name: string | undefined) {
 export function registerEditorComponent(component: Partial<EditorComponentOptions> & { id?: string; label?: string; icon?: string; widget?: string; type?: 'code-block' | 'shortcode' }) {
   const plugin = EditorComponent(component) as EditorComponentPlugin;
   if (plugin.type === 'code-block') {
-    const codeBlock = registry.editorComponents.find((c: EditorComponentPlugin) => c.type === 'code-block');
+    const codeBlock = Object.values(registry.editorComponents).find((c: EditorComponentPlugin) => c.type === 'code-block');
 
     if (codeBlock) {
       console.warn(oneLine`
         Only one editor component of type "code-block" may be registered. Previously registered code
         block component(s) will be overwritten.
       `);
-      registry.editorComponents = registry.editorComponents.delete(codeBlock.id);
+      delete registry.editorComponents[codeBlock.id];
     }
   }
 
-  registry.editorComponents = registry.editorComponents.set(plugin.id, plugin);
+  registry.editorComponents[plugin.id] = plugin;
 }
 export function getEditorComponents() {
   return registry.editorComponents;
@@ -311,11 +316,11 @@ export async function invokeEvent({ name, data }: { name: string; data: EventDat
   for (const { handler, options } of handlers) {
     const result = await handler(_data, options);
     if (result !== undefined) {
-      const entry = _data.entry.set('data', result);
+      const entry = { ..._data.entry, data: result };
       _data = { ...data, entry };
     }
   }
-  return _data.entry.get('data');
+  return _data.entry.data;
 }
 
 export function removeEventListener({ name, handler }: { name: string; handler?: Function }) {

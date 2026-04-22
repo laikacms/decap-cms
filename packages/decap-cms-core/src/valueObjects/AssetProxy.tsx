@@ -1,5 +1,6 @@
-import type { DeepCopy } from 'immutable';
-import type { EntryField, AssetProxy as AssetProxyType } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsAssetProxy } from 'decap-cms-lib-util/types/cms';
+
+type AssetProxyType = CmsAssetProxy;
 
 interface AssetProxyArgs {
   path: string;

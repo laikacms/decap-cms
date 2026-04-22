@@ -13,4 +13,4 @@ export * from './relation';
 export * from './select';
 export * from './string';
 export * from './text';
-export * from './fields-common';
+export * from './base';

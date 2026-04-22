@@ -21,10 +21,6 @@ export interface CmsSlug {
   sanitize_replacement?: string;
 }
 
-export type CmsPage = { isFetching: boolean; page: number; ids: string[] };
-
-export type CmsPages = Record<string, CmsPage>;
-
 export enum CmsSortDirection {
   Ascending = 'Ascending',
   Descending = 'Descending',
@@ -47,19 +43,23 @@ export interface CmsViewFilter {
   id: string;
 }
 
+export type CmsFilterRule = {
+  value: string;
+  field: string;
+};
+
 export interface CmsFilterObj {
   field: string;
   values: unknown[];
 }
 
 export type CmsAllowedEvent =
-  'prePublish' |
-  'postPublish' |
-  'preUnpublish' |
-  'postUnpublish' |
-  'preSave' |
-  'postSave';
-
+  | 'prePublish'
+  | 'postPublish'
+  | 'preUnpublish'
+  | 'postUnpublish'
+  | 'preSave'
+  | 'postSave';
 
 export interface CmsEventListener {
   name: CmsAllowedEvent;
@@ -91,25 +91,18 @@ export interface CmsEventHandler {
   options: Record<string, unknown>;
 }
 
-
 export type CmsEditorComponentField =
   | {
-    name: string;
-    label: string;
-    widget?: string;
-    [key: string]: unknown;
-  }
+      name: string;
+      label: string;
+      widget?: string;
+      [key: string]: unknown;
+    }
   | {
-    widget: 'list';
-    /**
-     * Used if widget === "list" to create a flat array
-     */
-    field?: CmsEditorComponentField;
-    /**
-     * Used if widget === "list" to create an array of objects
-     */
-    fields?: CmsEditorComponentField[];
-  };
+      widget: 'list';
+      field?: CmsEditorComponentField;
+      fields?: CmsEditorComponentField[];
+    };
 
 export interface CmsEditorComponentOptions {
   id: string;
@@ -119,7 +112,7 @@ export interface CmsEditorComponentOptions {
   allow_add?: boolean;
   fromBlock: (match: RegExpMatchArray) => unknown;
   toBlock: (data: unknown) => string;
-  toPreview: (data: unknown, getAsset: (value: string, field?: unknown) => string, fields?: unknown[]) => string | unknown /* JSX */;
+  toPreview: (data: unknown, getAsset: (value: string, field?: unknown) => string, fields?: unknown[]) => string | unknown;
 }
 
 export interface CmsEditorComponentPlugin extends Omit<CmsEditorComponentOptions, 'fields'> {
@@ -129,12 +122,53 @@ export interface CmsEditorComponentPlugin extends Omit<CmsEditorComponentOptions
   fields: CmsEditorComponentField[];
 }
 
-export type CmsDisplayURLObject = { id: string; path: string }
+export type CmsDisplayURLObject = { id: string; path: string };
 
-export type CmsDisplayURL = CmsDisplayURLObject| string;
+export type CmsDisplayURL = CmsDisplayURLObject | string;
 
 export interface CmsSortableField {
   field: string;
   label?: string;
   default_sort?: boolean | 'asc' | 'desc';
 }
+
+export type CmsCredentials = { token: string | Record<string, unknown>; refresh_token?: string };
+
+export type CmsUser = CmsCredentials & {
+  backendName?: string;
+  login?: string;
+  name: string;
+  useOpenAuthoring?: boolean;
+};
+
+export type CmsAssetProxy = {
+  path: string;
+  url?: string;
+  fileObj?: File;
+  toBase64: () => Promise<string>;
+};
+
+export type CmsDataFile = {
+  path: string;
+  slug: string;
+  raw: string;
+  newPath?: string;
+};
+
+export type CmsPersistOptions = {
+  newEntry?: boolean;
+  commitMessage: string;
+  collectionName?: string;
+  useWorkflow?: boolean;
+  unpublished?: boolean;
+  status?: string;
+};
+
+export type CmsDeleteOptions = Record<string, unknown>;
+
+export type CmsGetAssetFunction = (asset: string) => {
+  url: string;
+  path: string;
+  field?: unknown;
+  fileObj: File;
+};

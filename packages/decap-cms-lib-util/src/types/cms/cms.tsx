@@ -1,4 +1,4 @@
-import type { CmsAllowedEvent, CmsAuthScope, CmsDisplayURL, CmsEditorComponentOptions, CmsEditorComponentPlugin, CmsEventHandler, CmsEventListener, CmsEventListenerOptions, CmsFormatter, CmsFormatterFunctions, CmsLocalePhrases, CmsPublishMode, CmsSlug, CmsSlugEncoding } from './common';
+import type { CmsAllowedEvent, CmsEditorComponentOptions, CmsEditorComponentPlugin, CmsEventHandler, CmsEventListener, CmsEventListenerOptions, CmsFormatter, CmsFormatterFunctions, CmsGetAssetFunction, CmsLocalePhrases, CmsPublishMode, CmsSlug } from './common';
 import type { CmsI18nConfig } from './i18n';
 import type { CmsBackend, CmsBackendClass, CmsLocalBackend, CmsRegistryBackend } from './backend';
 import type { CmsMediaLibrary, CmsMediaLibraryOptions } from './media';
@@ -49,8 +49,8 @@ export interface CmsConfig {
 
 export interface CmsWidgetParam<T = unknown> {
   name: string;
-  controlComponent: unknown /* Component */;
-  previewComponent?: unknown /* Component */;
+  controlComponent: unknown;
+  previewComponent?: unknown;
   globalStyles?: unknown;
 }
 
@@ -82,8 +82,8 @@ export interface CmsRegistry {
   previewStyles: CmsPreviewStyle[];
   eventHandlers: {
     [event in CmsAllowedEvent]: CmsEventHandler[];
-  }
-  remarkPlugins: unknown[]
+  };
+  remarkPlugins: unknown[];
   widgets: {
     [name: string]: CmsWidget;
   };
@@ -100,18 +100,11 @@ export interface CmsRegistry {
   };
 }
 
-type CmsGetAssetFunction = (asset: string) => {
-  url: string;
-  path: string;
-  field?: unknown;
-  fileObj: File;
-};
-
 export type CmsPreviewTemplateComponentProps = {
   entry: Record<string, unknown>;
   collection: Record<string, unknown>;
   getCollection: (collectionName: string, slug?: string) => Promise<Record<string, unknown>[]>;
-  widgetFor: (name: unknown, fields?: unknown, values?: unknown, fieldsMetaData?: unknown) => unknown /* JSX */;
+  widgetFor: (name: unknown, fields?: unknown, values?: unknown, fieldsMetaData?: unknown) => unknown;
   widgetsFor: (name: unknown) => unknown;
   getAsset: CmsGetAssetFunction;
   boundGetAsset: (collection: unknown, path: unknown) => CmsGetAssetFunction;
@@ -167,40 +160,4 @@ export interface CmsCMS {
   ) => void;
   resolveWidget: (name: string) => CmsWidget | undefined;
   registerCustomFormat: (name: string, extension: string, formatter: CmsFormatterFunctions) => void;
-}
-
-export interface CmsImplementationMediaFile {
-  name: string;
-  id: string;
-  size?: number;
-  displayURL?: CmsDisplayURL;
-  path: string;
-  draft?: boolean;
-  url?: string;
-  file?: File;
-}
-
-export interface CmsUnpublishedEntryMediaFile {
-  id: string;
-  path: string;
-}
-
-export interface CmsImplementationEntry {
-  data: string;
-  file: { path: string; label?: string; id?: string | null; author?: string; updatedOn?: string };
-}
-
-export interface CmsUnpublishedEntryDiff {
-  id: string;
-  path: string;
-  newFile: boolean;
-}
-
-export interface CmsUnpublishedEntry {
-  pullRequestAuthor?: string;
-  slug: string;
-  collection: string;
-  status: string;
-  diffs: CmsUnpublishedEntryDiff[];
-  updatedAt: string;
 }

@@ -1,5 +1,3 @@
-import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import React from 'react';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
@@ -7,7 +5,9 @@ import { Link } from 'react-router-dom';
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import { components, buttons, shadows } from 'decap-cms-ui-default';
 
-import type { Collection } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsCollectionObject } from 'decap-cms-lib-util/types/cms';
+
+type Collection = CmsCollectionObject;
 
 const CollectionTopContainer = styled.div`
   ${components.cardTop};
@@ -39,9 +39,9 @@ const CollectionTopDescription = styled.p`
 `;
 
 function getCollectionProps(collection: Collection) {
-  const collectionLabel = collection.get('label');
-  const collectionLabelSingular = collection.get('label_singular');
-  const collectionDescription = collection.get('description');
+  const collectionLabel = collection.label;
+  const collectionLabelSingular = collection.label_singular;
+  const collectionDescription = collection.description;
 
   return {
     collectionLabel,
@@ -79,11 +79,5 @@ function CollectionTop({ collection, newEntryUrl, t }: CollectionTopProps) {
     </CollectionTopContainer>
   );
 }
-
-CollectionTop.propTypes = {
-  collection: ImmutablePropTypes.map.isRequired,
-  newEntryUrl: PropTypes.string,
-  t: PropTypes.func.isRequired,
-};
 
 export default translate()(CollectionTop);

@@ -4,7 +4,8 @@ import { addNotification, clearNotifications } from './notifications';
 import type { Credentials, User } from 'decap-cms-lib-util';
 import type { ThunkDispatch } from 'redux-thunk';
 import type { AnyAction } from 'redux';
-import type { State } from 'decap-cms-lib-util/types/cms-immutable';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type State = any;
 
 export const AUTH_REQUEST = 'AUTH_REQUEST';
 export const AUTH_SUCCESS = 'AUTH_SUCCESS';

@@ -8,7 +8,7 @@ import type { Semaphore } from 'semaphore';
 import type { AsyncLock } from './asyncLock';
 import type { FileMetadata } from './API';
 import type * as LocalForage from 'localforage';
-import type { ImplementationEntry, ImplementationFile, DisplayURL, DisplayURLObject } from './types/cms-immutable';
+import type { CmsImplementationEntry, CmsImplementationFile, CmsDisplayURL, CmsDisplayURLObject } from './types/cms';
 
 const MAX_CONCURRENT_DOWNLOADS = 10;
 
@@ -20,16 +20,16 @@ type ReadFile = (
 
 type ReadFileMetadata = (path: string, id: string | null | undefined) => Promise<FileMetadata>;
 
-type CustomFetchFunc = (files: ImplementationFile[]) => Promise<ImplementationEntry[]>;
+type CustomFetchFunc = (files: CmsImplementationFile[]) => Promise<CmsImplementationEntry[]>;
 
 async function fetchFiles(
-  files: ImplementationFile[],
+  files: CmsImplementationFile[],
   readFile: ReadFile,
   readFileMetadata: ReadFileMetadata,
   apiName: string,
 ) {
   const sem = semaphore(MAX_CONCURRENT_DOWNLOADS);
-  const promises = [] as Promise<ImplementationEntry | { error: boolean }>[];
+  const promises = [] as Promise<CmsImplementationEntry | { error: boolean }>[];
   files.forEach(file => {
     promises.push(
       new Promise(resolve =>
@@ -52,11 +52,11 @@ async function fetchFiles(
   });
   return Promise.all(promises).then(loadedEntries =>
     loadedEntries.filter(loadedEntry => !(loadedEntry as { error: boolean }).error),
-  ) as Promise<ImplementationEntry[]>;
+  ) as Promise<CmsImplementationEntry[]>;
 }
 
 export async function entriesByFolder(
-  listFiles: () => Promise<ImplementationFile[]>,
+  listFiles: () => Promise<CmsImplementationFile[]>,
   readFile: ReadFile,
   readFileMetadata: ReadFileMetadata,
   apiName: string,
@@ -66,7 +66,7 @@ export async function entriesByFolder(
 }
 
 export async function entriesByFiles(
-  files: ImplementationFile[],
+  files: CmsImplementationFile[],
   readFile: ReadFile,
   readFileMetadata: ReadFileMetadata,
   apiName: string,
@@ -103,11 +103,11 @@ export async function getMediaAsBlob(path: string, id: string | null, readFile: 
 }
 
 export async function getMediaDisplayURL(
-  displayURL: DisplayURL,
+  displayURL: CmsDisplayURL,
   readFile: ReadFile,
   semaphore: Semaphore,
 ) {
-  const { path, id } = displayURL as DisplayURLObject;
+  const { path, id } = displayURL as CmsDisplayURLObject;
   return new Promise<string>((resolve, reject) =>
     semaphore.take(() =>
       getMediaAsBlob(path, id, readFile)
@@ -271,7 +271,7 @@ type AllEntriesByFolderArgs = GetKeyArgs &
       folder: string,
       extension: string,
       depth: number,
-    ) => Promise<ImplementationFile[]>;
+    ) => Promise<CmsImplementationFile[]>;
     readFile: ReadFile;
     readFileMetadata: ReadFileMetadata;
     getDefaultBranch: () => Promise<{ name: string; sha: string }>;

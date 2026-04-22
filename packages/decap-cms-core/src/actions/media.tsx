@@ -7,9 +7,15 @@ import { selectMediaFileByPath } from '../reducers/mediaLibrary';
 import { getMediaFile, waitForMediaLibraryToLoad, getMediaDisplayURL } from './mediaLibrary';
 
 import type AssetProxy from '../valueObjects/AssetProxy';
-import type { Collection, State, EntryMap, EntryField } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsCollectionObject, CmsEntryMap, CmsEntryField } from 'decap-cms-lib-util/types/cms';
 import type { ThunkDispatch } from 'redux-thunk';
 import type { AnyAction } from 'redux';
+
+type Collection = CmsCollectionObject;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type State = any;
+type EntryMap = CmsEntryMap;
+type EntryField = CmsEntryField;
 
 export const ADD_ASSETS = 'ADD_ASSETS';
 export const ADD_ASSET = 'ADD_ASSET';

@@ -1,6 +1,7 @@
-import type { CmsCollectionFormatType, CmsSortableField, CmsViewFilter, CmsViewGroup } from "./common";
+import type { CmsCollectionFormatType, CmsFilterRule, CmsSortableField, CmsViewFilter, CmsViewGroup } from "./common";
 import type { CmsField } from "./field";
 import type { CmsI18nConfig } from "./i18n";
+import type { CmsEntryFields } from "./entries";
 
 export interface CmsCollectionFile {
   name: string;
@@ -15,7 +16,6 @@ export interface CmsCollectionFile {
   media_folder?: string;
   public_folder?: string;
 }
-
 
 export interface CmsCollection {
   name: string;
@@ -43,15 +43,8 @@ export interface CmsCollection {
     subfolders?: boolean | undefined;
   } | undefined;
   meta?: { path?: { label: string; widget: string; index_file: string } } | undefined;
-
-  /**
-   * It accepts the following values: yml, yaml, toml, json, md, markdown, html
-   *
-   * You may also specify a custom extension not included in the list above, by specifying the format value.
-   */
   extension?: string | undefined;
   format?: CmsCollectionFormatType | undefined;
-
   frontmatter_delimiter?: string[] | string | undefined;
   fields?: CmsField[] | undefined;
   filter?: { field: string; value: unknown } | undefined;
@@ -62,9 +55,64 @@ export interface CmsCollection {
   view_filters?: CmsViewFilter[] | undefined;
   view_groups?: CmsViewGroup[] | undefined;
   i18n?: boolean | CmsI18nConfig | undefined;
-
-  /**
-   * @deprecated Use sortable_fields instead
-   */
+  /** @deprecated Use sortable_fields instead */
   sortableFields?: (string | CmsSortableField)[] | undefined;
 }
+
+// Normalized internal collection type (after config loading)
+export type CmsCollectionFileState = {
+  file: string;
+  name: string;
+  fields: CmsEntryFields;
+  label: string;
+  media_folder?: string;
+  public_folder?: string;
+  preview_path?: string;
+  preview_path_date_field?: string;
+};
+
+export type CmsPathObject = { label: string; widget: string; index_file: string };
+
+export type CmsMetaObject = { path?: CmsPathObject };
+
+export type CmsI18nStructure = {
+  structure: string;
+  locales: string[];
+  default_locale: string;
+};
+
+export type CmsCollectionObject = {
+  name: string;
+  folder?: string;
+  files?: CmsCollectionFileState[];
+  fields: CmsEntryFields;
+  isFetching: boolean;
+  media_folder?: string;
+  public_folder?: string;
+  preview_path?: string;
+  preview_path_date_field?: string;
+  summary?: string;
+  description?: string;
+  filter?: CmsFilterRule;
+  type: 'file_based_collection' | 'folder_based_collection';
+  extension?: string;
+  format?: CmsCollectionFormatType | string;
+  frontmatter_delimiter?: string[] | string | [string, string];
+  create?: boolean;
+  delete?: boolean;
+  identifier_field?: string;
+  path?: string;
+  slug?: string;
+  label_singular?: string;
+  label: string;
+  sortable_fields: CmsSortableField[];
+  view_filters: CmsViewFilter[];
+  view_groups: CmsViewGroup[];
+  nested?: { depth: number; subfolders?: boolean };
+  meta?: CmsMetaObject;
+  i18n: CmsI18nStructure;
+  hide?: boolean;
+  [key: string]: unknown;
+};
+
+export type CmsCollections = Record<string, CmsCollectionObject>;

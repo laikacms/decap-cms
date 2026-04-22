@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import orderBy from 'lodash/orderBy';
 import map from 'lodash/map';
@@ -8,7 +7,6 @@ import { translate } from 'react-polyglot';
 import fuzzy from 'fuzzy';
 import { fileExtension } from 'decap-cms-lib-util';
 import type { TranslateFunction } from 'decap-cms-ui-default';
-import type { Map as ImmutableMap } from 'immutable';
 
 import {
   loadMedia as loadMediaAction,
@@ -21,7 +19,8 @@ import {
 import { selectMediaFiles } from '../../reducers/mediaLibrary';
 import MediaLibraryModal, { fileShape } from './MediaLibraryModal';
 
-import type { State } from 'decap-cms-lib-util/types/cms-immutable';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type State = any;
 
 /**
  * Extensions used to determine which files to show when the media library is
@@ -68,7 +67,7 @@ interface MediaLibraryState {
 interface MediaLibraryProps {
   isVisible?: boolean;
   loadMediaDisplayURL?: (file: MediaFile) => void;
-  displayURLs?: ImmutableMap<string, unknown>;
+  displayURLs?: Record<string, unknown>;
   canInsert?: boolean;
   files?: MediaFile[];
   dynamicSearch?: boolean;
@@ -80,7 +79,7 @@ interface MediaLibraryProps {
   hasNextPage?: boolean;
   isPaginating?: boolean;
   privateUpload?: boolean;
-  config?: ImmutableMap<string, unknown>;
+  config?: Record<string, unknown>;
   loadMedia: (opts?: { delay?: number; query?: string; page?: number; privateUpload?: boolean }) => void;
   dynamicSearchQuery?: string;
   page?: number;
@@ -96,7 +95,7 @@ class MediaLibrary extends React.Component<MediaLibraryProps, MediaLibraryState>
   static propTypes = {
     isVisible: PropTypes.bool,
     loadMediaDisplayURL: PropTypes.func,
-    displayURLs: ImmutablePropTypes.map,
+    displayURLs: PropTypes.object,
     canInsert: PropTypes.bool,
     files: PropTypes.arrayOf(PropTypes.shape(fileShape)).isRequired,
     dynamicSearch: PropTypes.bool,
@@ -108,7 +107,7 @@ class MediaLibrary extends React.Component<MediaLibraryProps, MediaLibraryState>
     hasNextPage: PropTypes.bool,
     isPaginating: PropTypes.bool,
     privateUpload: PropTypes.bool,
-    config: ImmutablePropTypes.map,
+    config: PropTypes.object,
     loadMedia: PropTypes.func.isRequired,
     dynamicSearchQuery: PropTypes.string,
     page: PropTypes.number,
@@ -253,7 +252,7 @@ class MediaLibrary extends React.Component<MediaLibraryProps, MediaLibraryState>
     const { files: fileList } = event.dataTransfer || event.target;
     const files = [...(fileList as FileList)];
     const file = files[0];
-    const maxFileSize = config?.get('max_file_size') as number | undefined;
+    const maxFileSize = (config as Record<string, unknown> | undefined)?.max_file_size as number | undefined;
 
     if (maxFileSize && file.size > maxFileSize) {
       window.alert(
@@ -310,7 +309,7 @@ class MediaLibrary extends React.Component<MediaLibraryProps, MediaLibraryState>
     const { displayURLs } = this.props;
     const selectedId = 'id' in selectedFile ? (selectedFile as MediaFile).id : undefined;
     const selectedUrl = 'url' in selectedFile ? (selectedFile as MediaFile).url : undefined;
-    const url = (displayURLs?.getIn([selectedId, 'url']) as string | undefined) || selectedUrl;
+    const url = ((displayURLs as Record<string, Record<string, unknown>> | undefined)?.[selectedId ?? '']?.url as string | undefined) || selectedUrl;
     if (!url) {
       return;
     }
@@ -432,7 +431,7 @@ class MediaLibrary extends React.Component<MediaLibraryProps, MediaLibraryState>
         setScrollContainerRef={(ref: HTMLDivElement | null) => (this.scrollContainerRef = ref)}
         handleAssetClick={this.handleAssetClick}
         handleLoadMore={this.handleLoadMore}
-        displayURLs={displayURLs!}
+        displayURLs={displayURLs as any}
         loadDisplayURL={this.loadDisplayURL}
       />
     );
@@ -441,24 +440,24 @@ class MediaLibrary extends React.Component<MediaLibraryProps, MediaLibraryState>
 
 function mapStateToProps(state: State) {
   const { mediaLibrary } = state;
-  const field = mediaLibrary.get('field');
+  const field = mediaLibrary.field;
   const mediaLibraryProps = {
-    isVisible: mediaLibrary.get('isVisible'),
-    canInsert: mediaLibrary.get('canInsert'),
+    isVisible: mediaLibrary.isVisible,
+    canInsert: mediaLibrary.canInsert,
     files: selectMediaFiles(state, field),
-    displayURLs: mediaLibrary.get('displayURLs'),
-    dynamicSearch: mediaLibrary.get('dynamicSearch'),
-    dynamicSearchActive: mediaLibrary.get('dynamicSearchActive'),
-    dynamicSearchQuery: mediaLibrary.get('dynamicSearchQuery'),
-    forImage: mediaLibrary.get('forImage'),
-    isLoading: mediaLibrary.get('isLoading'),
-    isPersisting: mediaLibrary.get('isPersisting'),
-    isDeleting: mediaLibrary.get('isDeleting'),
-    privateUpload: mediaLibrary.get('privateUpload'),
-    config: mediaLibrary.get('config'),
-    page: mediaLibrary.get('page'),
-    hasNextPage: mediaLibrary.get('hasNextPage'),
-    isPaginating: mediaLibrary.get('isPaginating'),
+    displayURLs: mediaLibrary.displayURLs,
+    dynamicSearch: mediaLibrary.dynamicSearch,
+    dynamicSearchActive: mediaLibrary.dynamicSearchActive,
+    dynamicSearchQuery: mediaLibrary.dynamicSearchQuery,
+    forImage: mediaLibrary.forImage,
+    isLoading: mediaLibrary.isLoading,
+    isPersisting: mediaLibrary.isPersisting,
+    isDeleting: mediaLibrary.isDeleting,
+    privateUpload: mediaLibrary.privateUpload,
+    config: mediaLibrary.config,
+    page: mediaLibrary.page,
+    hasNextPage: mediaLibrary.hasNextPage,
+    isPaginating: mediaLibrary.isPaginating,
     field,
   };
   return { ...mediaLibraryProps };

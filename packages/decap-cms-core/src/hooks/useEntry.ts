@@ -20,7 +20,8 @@ import { status } from '../constants/publishModes';
 import { navigateToCollection, navigateToNewEntry } from '../routing/history';
 
 import type { Status } from '../constants/publishModes';
-import type { Entry } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsEntryMap } from 'decap-cms-lib-util/types/cms';
+type Entry = CmsEntryMap;
 
 interface UseEntryOptions {
   collectionName: string;
@@ -38,7 +39,7 @@ export function useEntry({ collectionName, slug, newEntry = false }: UseEntryOpt
   const entries = useAppSelector(state => state.entries);
   const config = useAppSelector(state => state.config);
 
-  const collection = collections.get(collectionName);
+  const collection = collections[collectionName];
   const fields = selectFields(collection, slug || '');
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const entry = newEntry ? null : selectEntry({ collections, entries, config } as any, collectionName, slug || '');
@@ -46,8 +47,8 @@ export function useEntry({ collectionName, slug, newEntry = false }: UseEntryOpt
   const unpublishedEntry = selectUnpublishedEntry({ editorialWorkflow: useAppSelector(state => state.editorialWorkflow) } as any, collectionName, slug || '');
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const deployPreview = selectDeployPreview({ deploys: useAppSelector(state => state.deploys) } as any, collectionName, slug || '');
-  const collectionEntriesLoaded = !!entries.getIn(['pages', collectionName]);
-  const currentStatus = unpublishedEntry?.get('status') as Status | undefined;
+  const collectionEntriesLoaded = !!entries.pages?.[collectionName];
+  const currentStatus = unpublishedEntry?.status as Status | undefined;
   const isPublished = !newEntry && !unpublishedEntry;
 
   const load = useCallback(() => {
@@ -78,7 +79,7 @@ export function useEntry({ collectionName, slug, newEntry = false }: UseEntryOpt
   const updateStatus = useCallback(
     (newStatusName: string) => {
       if (collection && slug && currentStatus) {
-        const newStatus = status.get(newStatusName) as Status | undefined;
+        const newStatus = (status as unknown as Record<string, string>)[newStatusName] as Status | undefined;
         if (newStatus) {
           dispatch(updateUnpublishedEntryStatus(collectionName, slug, currentStatus, newStatus));
         }

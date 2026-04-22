@@ -1,14 +1,14 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import styled from '@emotion/styled';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { translate } from 'react-polyglot';
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import { Loader, lengths } from 'decap-cms-ui-default';
 
-import type { List as ImmutableList } from 'immutable';
 import type { Cursor } from 'decap-cms-lib-util';
-import type { Collection, EntryMap } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsCollectionObject, CmsEntryMap } from 'decap-cms-lib-util/types/cms';
+
+type Collection = CmsCollectionObject;
+type EntryMap = CmsEntryMap;
 
 import EntryListing from './EntryListing';
 
@@ -24,7 +24,7 @@ const NoEntriesMessage = styled(PaginationMessage)`
 
 interface EntriesProps {
   collections: Collection;
-  entries?: ImmutableList<EntryMap>;
+  entries?: EntryMap[];
   page?: number;
   isFetching?: boolean;
   viewStyle?: string;
@@ -59,7 +59,7 @@ function Entries({
     return <Loader active>{loadingMessages}</Loader>;
   }
 
-  const hasEntries = (entries && entries.size > 0) || cursor?.actions?.has('append_next');
+  const hasEntries = (entries && entries.length > 0) || cursor?.actions?.has('append_next');
   if (hasEntries) {
     return (
       <>
@@ -74,7 +74,7 @@ function Entries({
           getUnpublishedEntries={getUnpublishedEntries}
           filterTerm={filterTerm}
         />
-        {isFetching && page !== undefined && entries && entries.size > 0 ? (
+        {isFetching && page !== undefined && entries && entries.length > 0 ? (
           <PaginationMessage>{t('collection.entries.loadingEntries')}</PaginationMessage>
         ) : null}
       </>
@@ -83,19 +83,5 @@ function Entries({
 
   return <NoEntriesMessage>{t('collection.entries.noEntries')}</NoEntriesMessage>;
 }
-
-Entries.propTypes = {
-  collections: ImmutablePropTypes.iterable.isRequired,
-  entries: ImmutablePropTypes.list,
-  page: PropTypes.number,
-  isFetching: PropTypes.bool,
-  viewStyle: PropTypes.string,
-  cursor: PropTypes.any.isRequired,
-  handleCursorActions: PropTypes.func.isRequired,
-  t: PropTypes.func.isRequired,
-  getWorkflowStatus: PropTypes.func,
-  getUnpublishedEntries: PropTypes.func,
-  filterTerm: PropTypes.string,
-};
 
 export default translate()(Entries);

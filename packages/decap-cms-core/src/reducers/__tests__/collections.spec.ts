@@ -1,5 +1,3 @@
-import { fromJS, Map } from 'immutable';
-
 import { configLoaded } from '../../actions/config';
 import collections, {
   selectAllowDeletion,

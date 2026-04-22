@@ -1,5 +1,3 @@
-import { OrderedMap, fromJS } from 'immutable';
-
 import * as actions from '../../actions/entries';
 import reducer, {
   selectMediaFolder,

@@ -1,11 +1,8 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import styled from '@emotion/styled';
-import { OrderedMap } from 'immutable';
-import type { Map as ImmutableMap } from 'immutable';
 import type { TranslateFunction } from 'decap-cms-ui-default';
-import type { Collections, State, Collection } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsCollections, CmsCollectionObject } from 'decap-cms-lib-util/types/cms';
 import type { Status } from '../../constants/publishModes';
 import { translate } from 'react-polyglot';
 import { connect } from 'react-redux';
@@ -18,6 +15,11 @@ import {
   components,
   shadows,
 } from 'decap-cms-ui-default';
+
+type Collections = CmsCollections;
+type Collection = CmsCollectionObject;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type State = any;
 
 import { createNewEntry } from '../../actions/collections';
 import {
@@ -61,7 +63,8 @@ interface WorkflowProps {
   isEditorialWorkflow: boolean;
   isOpenAuthoring?: boolean;
   isFetching?: boolean;
-  unpublishedEntries?: ImmutableMap<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  unpublishedEntries?: Record<string, any>;
   loadUnpublishedEntries: (collections: Collections) => void;
   updateUnpublishedEntryStatus: (collection: string, slug: string, oldStatus: string, newStatus: string) => void;
   publishUnpublishedEntry: (collection: string, slug: string) => void;
@@ -71,11 +74,11 @@ interface WorkflowProps {
 
 class Workflow extends Component<WorkflowProps> {
   static propTypes = {
-    collections: ImmutablePropTypes.map.isRequired,
+    collections: PropTypes.object.isRequired,
     isEditorialWorkflow: PropTypes.bool.isRequired,
     isOpenAuthoring: PropTypes.bool,
     isFetching: PropTypes.bool,
-    unpublishedEntries: ImmutablePropTypes.map,
+    unpublishedEntries: PropTypes.object,
     loadUnpublishedEntries: PropTypes.func.isRequired,
     updateUnpublishedEntryStatus: PropTypes.func.isRequired,
     publishUnpublishedEntry: PropTypes.func.isRequired,
@@ -108,8 +111,8 @@ class Workflow extends Component<WorkflowProps> {
 
     if (!isEditorialWorkflow) return null;
     if (isFetching) return <Loader active>{t('workflow.workflow.loading')}</Loader>;
-    const reviewCount = unpublishedEntries ? unpublishedEntries.get('pending_review')?.size ?? 0 : 0;
-    const readyCount = unpublishedEntries ? unpublishedEntries.get('pending_publish')?.size ?? 0 : 0;
+    const reviewCount = unpublishedEntries ? unpublishedEntries['pending_review']?.length ?? 0 : 0;
+    const readyCount = unpublishedEntries ? unpublishedEntries['pending_publish']?.length ?? 0 : 0;
 
     return (
       <WorkflowContainer>
@@ -124,14 +127,13 @@ class Workflow extends Component<WorkflowProps> {
                 <StyledDropdownButton>{t('workflow.workflow.newPost')}</StyledDropdownButton>
               )}
             >
-              {collections
-                .filter((collection: Collection) => !!collection.get('create'))
-                .valueSeq()
+              {Object.values(collections)
+                .filter((collection: Collection) => !!collection.create)
                 .map((collection: Collection) => (
                   <DropdownItem
-                    key={collection.get('name')}
-                    label={collection.get('label')}
-                    onClick={() => createNewEntry(collection.get('name'))}
+                    key={collection.name}
+                    label={collection.label}
+                    onClick={() => createNewEntry(collection.name)}
                   />
                 ))}
             </Dropdown>
@@ -160,26 +162,31 @@ function mapStateToProps(state: State) {
   const { collections, config, globalUI } = state;
   const isEditorialWorkflow = config.publish_mode === EDITORIAL_WORKFLOW;
   const isOpenAuthoring = globalUI.useOpenAuthoring;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const returnObj: {
     collections: Collections;
     isEditorialWorkflow: boolean;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     isOpenAuthoring: any;
     isFetching?: boolean;
-    unpublishedEntries?: ImmutableMap<string, any>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    unpublishedEntries?: Record<string, any>;
   } = { collections, isEditorialWorkflow, isOpenAuthoring };
 
   if (isEditorialWorkflow) {
-    returnObj.isFetching = (state.editorialWorkflow as any).getIn(['pages', 'isFetching'], false);
+    returnObj.isFetching = state.editorialWorkflow?.pages?.isFetching ?? false;
 
     /*
-     * Generates an ordered Map of the available status as keys.
-     * Each key containing a Sequence of available unpubhlished entries
-     * Eg.: OrderedMap{'draft':Seq(), 'pending_review':Seq(), 'pending_publish':Seq()}
+     * Generates a plain object of the available status as keys.
+     * Each key containing an array of available unpublished entries
      */
-    returnObj.unpublishedEntries = status.reduce((acc, currStatus) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const unpublishedEntries: Record<string, any> = {};
+    Object.values(status).forEach(currStatus => {
       const entries = selectUnpublishedEntriesByStatus(state, currStatus as Status);
-      return acc.set(currStatus as string, entries);
-    }, OrderedMap<string, any>());
+      unpublishedEntries[currStatus as string] = entries;
+    });
+    returnObj.unpublishedEntries = unpublishedEntries;
   }
   return returnObj;
 }

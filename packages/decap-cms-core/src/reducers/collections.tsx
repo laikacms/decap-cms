@@ -1,4 +1,4 @@
-import { List, Set, fromJS, OrderedMap } from 'immutable';
+import { produce } from 'immer';
 import get from 'lodash/get';
 import escapeRegExp from 'lodash/escapeRegExp';
 import { stringTemplate } from 'decap-cms-lib-widgets';
@@ -12,103 +12,103 @@ import { selectMediaFolder } from './entries';
 import { summaryFormatter } from '../lib/formatters';
 
 import type {
-  Collection,
-  Collections,
-  CollectionFiles,
-  EntryField,
-  EntryMap,
-  ViewFilter,
-  ViewGroup,
-} from 'decap-cms-lib-util/types/cms-immutable';
-import type { CmsConfig } from 'decap-cms-lib-util/types/cms';
+  CmsCollectionObject,
+  CmsCollections,
+  CmsCollectionFileState,
+  CmsEntryField,
+  CmsEntryMap,
+  CmsViewFilter,
+  CmsViewGroup,
+  CmsConfig,
+} from 'decap-cms-lib-util/types/cms';
+
+type Collection = CmsCollectionObject;
+type Collections = CmsCollections;
+type CollectionFiles = CmsCollectionFileState[];
+type EntryField = CmsEntryField;
+type EntryMap = CmsEntryMap;
+type ViewFilter = CmsViewFilter;
+type ViewGroup = CmsViewGroup;
 import type { ConfigAction } from '../actions/config';
 import type { Backend } from '../backend';
 
 const { keyToPathArray } = stringTemplate;
 
-const defaultState: Collections = fromJS({}) as unknown as Collections;
+const defaultState: Collections = {};
 
-function collections(state = defaultState, action: ConfigAction) {
+const collections = produce((state: Collections, action: ConfigAction) => {
   switch (action.type) {
     case CONFIG_SUCCESS: {
-      const collections = action.payload.collections;
-      let newState = OrderedMap({});
-      collections.forEach(collection => {
-        newState = newState.set(collection.name, fromJS(collection));
+      const newState: Collections = {};
+      action.payload.collections.forEach(collection => {
+        newState[collection.name] = collection as unknown as Collection;
       });
       return newState;
     }
-    default:
-      return state;
   }
-}
+}, defaultState);
 
 const selectors = {
   [FOLDER]: {
     entryExtension(collection: Collection) {
       const ext =
-        collection.get('extension') ||
-        get(getFormatExtensions(), collection.get('format') || 'frontmatter');
+        collection.extension ||
+        get(getFormatExtensions(), collection.format || 'frontmatter');
       if (!ext) {
-        throw new Error(`No extension found for format ${collection.get('format')}`);
+        throw new Error(`No extension found for format ${collection.format}`);
       }
-
       return ext.replace(/^\./, '');
     },
     fields(collection: Collection) {
-      return collection.get('fields');
+      return collection.fields;
     },
     entryPath(collection: Collection, slug: string) {
-      const folder = (collection.get('folder') as string).replace(/\/$/, '');
+      const folder = (collection.folder as string).replace(/\/$/, '');
       return `${folder}/${slug}.${this.entryExtension(collection)}`;
     },
     entrySlug(collection: Collection, path: string) {
-      const folder = (collection.get('folder') as string).replace(/\/$/, '');
-      const slug = path
+      const folder = (collection.folder as string).replace(/\/$/, '');
+      return path
         .split(folder + '/')
         .pop()
         ?.replace(new RegExp(`\\.${escapeRegExp(this.entryExtension(collection))}$`), '');
-
-      return slug;
     },
     allowNewEntries(collection: Collection) {
-      return collection.get('create');
+      return collection.create;
     },
     allowDeletion(collection: Collection) {
-      return collection.get('delete', true);
+      return collection.delete !== false;
     },
     templateName(collection: Collection) {
-      return collection.get('name');
+      return collection.name;
     },
   },
   [FILES]: {
     fileForEntry(collection: Collection, slug: string) {
-      const files = collection.get('files');
-      return files && files.filter(f => f?.get('name') === slug).get(0);
+      const files = collection.files;
+      return files && files.find(f => f?.name === slug);
     },
     fields(collection: Collection, slug: string) {
       const file = this.fileForEntry(collection, slug);
-      return file && file.get('fields');
+      return file && file.fields;
     },
     entryPath(collection: Collection, slug: string) {
       const file = this.fileForEntry(collection, slug);
-      return file && file.get('file');
+      return file && file.file;
     },
     entrySlug(collection: Collection, path: string) {
-      const file = (collection.get('files') as CollectionFiles)
-        .filter(f => f?.get('file') === path)
-        .get(0);
-      return file && file.get('name');
+      const file = (collection.files as CollectionFiles)?.find(f => f?.file === path);
+      return file && file.name;
     },
     entryLabel(collection: Collection, slug: string) {
       const file = this.fileForEntry(collection, slug);
-      return file && file.get('label');
+      return file && file.label;
     },
     allowNewEntries() {
       return false;
     },
     allowDeletion(collection: Collection) {
-      return collection.get('delete', false);
+      return collection.delete ?? false;
     },
     templateName(_collection: Collection, slug: string) {
       return slug;
@@ -116,68 +116,48 @@ const selectors = {
   },
 };
 
-function getFieldsWithMediaFolders(fields: EntryField[]) {
-  const fieldsWithMediaFolders = fields.reduce((acc, f) => {
-    if (f.has('media_folder')) {
-      acc = [...acc, f];
-    }
-
-    if (f.has('fields')) {
-      const fields = f.get('fields')?.toArray() as EntryField[];
-      acc = [...acc, ...getFieldsWithMediaFolders(fields)];
-    } else if (f.has('field')) {
-      const field = f.get('field') as EntryField;
-      acc = [...acc, ...getFieldsWithMediaFolders([field])];
-    } else if (f.has('types')) {
-      const types = f.get('types')?.toArray() as EntryField[];
-      acc = [...acc, ...getFieldsWithMediaFolders(types)];
-    }
-
+function getFieldsWithMediaFolders(fields: EntryField[]): EntryField[] {
+  return fields.reduce((acc, f) => {
+    if (f.media_folder) acc = [...acc, f];
+    if (f.fields) acc = [...acc, ...getFieldsWithMediaFolders(f.fields as EntryField[])];
+    else if (f.field) acc = [...acc, ...getFieldsWithMediaFolders([f.field as EntryField])];
+    else if (f.types) acc = [...acc, ...getFieldsWithMediaFolders(f.types as EntryField[])];
     return acc;
   }, [] as EntryField[]);
-
-  return fieldsWithMediaFolders;
 }
 
 export function getFileFromSlug(collection: Collection, slug: string) {
-  return collection
-    .get('files')
-    ?.toArray()
-    .find(f => f.get('name') === slug);
+  return collection.files?.find(f => f.name === slug);
 }
 
 export function selectFieldsWithMediaFolders(collection: Collection, slug: string) {
-  if (collection.has('folder')) {
-    const fields = collection.get('fields').toArray();
-    return getFieldsWithMediaFolders(fields);
-  } else if (collection.has('files')) {
-    const fields = getFileFromSlug(collection, slug)?.get('fields').toArray() || [];
-    return getFieldsWithMediaFolders(fields);
+  if (collection.folder) {
+    return getFieldsWithMediaFolders(collection.fields as EntryField[]);
+  } else if (collection.files) {
+    const fields = getFileFromSlug(collection, slug)?.fields ?? [];
+    return getFieldsWithMediaFolders(fields as EntryField[]);
   }
-
   return [];
 }
 
 export function selectMediaFolders(config: CmsConfig, collection: Collection, entry: EntryMap) {
-  const fields = selectFieldsWithMediaFolders(collection, entry.get('slug'));
+  const fields = selectFieldsWithMediaFolders(collection, entry.slug);
   const folders = fields.map(f => selectMediaFolder(config, collection, entry, f));
-  if (collection.has('files')) {
-    const file = getFileFromSlug(collection, entry.get('slug'));
+  if (collection.files) {
+    const file = getFileFromSlug(collection, entry.slug);
     if (file) {
       folders.unshift(selectMediaFolder(config, collection, entry, undefined));
     }
   }
-  if (collection.has('media_folder')) {
-    // stop evaluating media folders at collection level
-    collection = collection.delete('files');
-    folders.unshift(selectMediaFolder(config, collection, entry, undefined));
+  if (collection.media_folder) {
+    const { files: _files, ...colNoFiles } = collection;
+    folders.unshift(selectMediaFolder(config, colNoFiles as Collection, entry, undefined));
   }
-
-  return Set(folders).toArray();
+  return [...new Set(folders)];
 }
 
 export function selectFields(collection: Collection, slug: string) {
-  return selectors[collection.get('type')].fields(collection, slug);
+  return selectors[collection.type].fields(collection, slug);
 }
 
 export function selectFolderEntryExtension(collection: Collection) {
@@ -189,214 +169,157 @@ export function selectFileEntryLabel(collection: Collection, slug: string) {
 }
 
 export function selectEntryPath(collection: Collection, slug: string) {
-  return selectors[collection.get('type')].entryPath(collection, slug);
+  return selectors[collection.type].entryPath(collection, slug);
 }
 
 export function selectEntrySlug(collection: Collection, path: string) {
-  return selectors[collection.get('type')].entrySlug(collection, path);
+  return selectors[collection.type].entrySlug(collection, path);
 }
 
 export function selectAllowNewEntries(collection: Collection) {
-  return selectors[collection.get('type')].allowNewEntries(collection);
+  return selectors[collection.type].allowNewEntries(collection);
 }
 
 export function selectAllowDeletion(collection: Collection) {
-  return selectors[collection.get('type')].allowDeletion(collection);
+  return selectors[collection.type].allowDeletion(collection);
 }
 
 export function selectTemplateName(collection: Collection, slug: string) {
-  return selectors[collection.get('type')].templateName(collection, slug);
+  return selectors[collection.type].templateName(collection, slug);
 }
 
-export function getFieldsNames(fields: EntryField[], prefix = '') {
-  let names = fields.map(f => `${prefix}${f.get('name')}`);
-
+export function getFieldsNames(fields: EntryField[], prefix = ''): string[] {
+  let names = fields.map(f => `${prefix}${f.name}`);
   fields.forEach((f, index) => {
-    if (f.has('fields')) {
-      const fields = f.get('fields')?.toArray() as EntryField[];
-      names = [...names, ...getFieldsNames(fields, `${names[index]}.`)];
-    } else if (f.has('field')) {
-      const field = f.get('field') as EntryField;
-      names = [...names, ...getFieldsNames([field], `${names[index]}.`)];
-    } else if (f.has('types')) {
-      const types = f.get('types')?.toArray() as EntryField[];
-      names = [...names, ...getFieldsNames(types, `${names[index]}.`)];
+    if (f.fields) {
+      names = [...names, ...getFieldsNames(f.fields as EntryField[], `${names[index]}.`)];
+    } else if (f.field) {
+      names = [...names, ...getFieldsNames([f.field as EntryField], `${names[index]}.`)];
+    } else if (f.types) {
+      names = [...names, ...getFieldsNames(f.types as EntryField[], `${names[index]}.`)];
     }
   });
-
   return names;
 }
 
-export function selectField(collection: Collection, key: string) {
+export function selectField(collection: Collection, key: string): EntryField | undefined {
   const array = keyToPathArray(key);
   let name: string | undefined;
-  let field;
-  let fields = collection.get('fields', List<EntryField>()).toArray();
+  let field: EntryField | undefined;
+  let fields = (collection.fields ?? []) as EntryField[];
   while ((name = array.shift()) && fields) {
-    field = fields.find(f => f.get('name') === name);
-    if (field?.has('fields')) {
-      fields = field?.get('fields')?.toArray() as EntryField[];
-    } else if (field?.has('field')) {
-      fields = [field?.get('field') as EntryField];
-    } else if (field?.has('types')) {
-      fields = field?.get('types')?.toArray() as EntryField[];
-    }
+    field = fields.find(f => f.name === name);
+    if (field?.fields) fields = field.fields as EntryField[];
+    else if (field?.field) fields = [field.field as EntryField];
+    else if (field?.types) fields = field.types as EntryField[];
   }
-
   return field;
 }
 
 export function traverseFields(
-  fields: List<EntryField>,
+  fields: EntryField[],
   updater: (field: EntryField) => EntryField,
   done = () => false,
-) {
-  if (done()) {
-    return fields;
-  }
-
-  fields = fields
-    .map(f => {
-      const field = updater(f as EntryField);
-      if (done()) {
-        return field;
-      } else if (field.has('fields')) {
-        return field.set('fields', traverseFields(field.get('fields')!, updater, done));
-      } else if (field.has('field')) {
-        return field.set(
-          'field',
-          traverseFields(List([field.get('field')!]), updater, done).get(0),
-        );
-      } else if (field.has('types')) {
-        return field.set('types', traverseFields(field.get('types')!, updater, done));
-      } else {
-        return field;
-      }
-    })
-    .toList() as List<EntryField>;
-
-  return fields;
+): EntryField[] {
+  if (done()) return fields;
+  return fields.map(f => {
+    const field = updater(f);
+    if (done()) return field;
+    if (field.fields) return { ...field, fields: traverseFields(field.fields as EntryField[], updater, done) };
+    if (field.field) return { ...field, field: traverseFields([field.field as EntryField], updater, done)[0] };
+    if (field.types) return { ...field, types: traverseFields(field.types as EntryField[], updater, done) };
+    return field;
+  });
 }
 
 export function updateFieldByKey(
   collection: Collection,
   key: string,
   updater: (field: EntryField) => EntryField,
-) {
+): Collection {
   const selected = selectField(collection, key);
-  if (!selected) {
-    return collection;
-  }
+  if (!selected) return collection;
 
   let updated = false;
-
-  function updateAndBreak(f: EntryField) {
-    const field = f as EntryField;
-    if (field === selected) {
+  function updateAndBreak(f: EntryField): EntryField {
+    if (f === selected) {
       updated = true;
-      return updater(field);
-    } else {
-      return field;
+      return updater(f);
     }
+    return f;
   }
 
-  collection = collection.set(
-    'fields',
-    traverseFields(collection.get('fields', List<EntryField>()), updateAndBreak, () => updated),
-  );
-
-  return collection;
+  return {
+    ...collection,
+    fields: traverseFields(collection.fields as EntryField[], updateAndBreak, () => updated),
+  };
 }
 
 export function selectIdentifier(collection: Collection) {
-  const identifier = collection.get('identifier_field');
+  const identifier = collection.identifier_field;
   const identifierFields = identifier ? [identifier, ...IDENTIFIER_FIELDS] : [...IDENTIFIER_FIELDS];
-  const fieldNames = getFieldsNames(collection.get('fields', List()).toArray());
+  const fieldNames = getFieldsNames((collection.fields ?? []) as EntryField[]);
   return identifierFields.find(id =>
     fieldNames.find(name => name.toLowerCase().trim() === id.toLowerCase().trim()),
   );
 }
 
 export function selectInferredField(collection: Collection, fieldName: string) {
-  if (fieldName === 'title' && collection.get('identifier_field')) {
+  if (fieldName === 'title' && collection.identifier_field) {
     return selectIdentifier(collection);
   }
-  const inferableField = (
-    INFERABLE_FIELDS as Record<
-      string,
-      {
-        type: string;
-        synonyms: string[];
-        secondaryTypes: string[];
-        fallbackToFirstField: boolean;
-        showError: boolean;
-      }
-    >
-  )[fieldName];
-  const fields = collection.get('fields');
-  let field;
-
-  // If collection has no fields or fieldName is not defined within inferables list, return null
+  const inferableField = (INFERABLE_FIELDS as Record<string, {
+    type: string;
+    synonyms: string[];
+    secondaryTypes: string[];
+    fallbackToFirstField: boolean;
+    showError: boolean;
+  }>)[fieldName];
+  const fields = collection.fields as EntryField[] | undefined;
   if (!fields || !inferableField) return null;
-  // Try to return a field of the specified type with one of the synonyms
+
   const mainTypeFields = fields
-    .filter(f => f?.get('widget', 'string') === inferableField.type)
-    .map(f => f?.get('name'));
-  field = mainTypeFields.filter(f => inferableField.synonyms.indexOf(f as string) !== -1);
-  if (field && field.size > 0) return field.first();
+    .filter(f => (f.widget ?? 'string') === inferableField.type)
+    .map(f => f.name);
+  let field = mainTypeFields.filter(f => inferableField.synonyms.indexOf(f) !== -1);
+  if (field.length > 0) return field[0];
 
-  // Try to return a field for each of the specified secondary types
   const secondaryTypeFields = fields
-    .filter(f => inferableField.secondaryTypes.indexOf(f?.get('widget', 'string') as string) !== -1)
-    .map(f => f?.get('name'));
-  field = secondaryTypeFields.filter(f => inferableField.synonyms.indexOf(f as string) !== -1);
-  if (field && field.size > 0) return field.first();
+    .filter(f => inferableField.secondaryTypes.indexOf(f.widget ?? 'string') !== -1)
+    .map(f => f.name);
+  field = secondaryTypeFields.filter(f => inferableField.synonyms.indexOf(f) !== -1);
+  if (field.length > 0) return field[0];
 
-  // Try to return the first field of the specified type
-  if (inferableField.fallbackToFirstField && mainTypeFields.size > 0) return mainTypeFields.first();
+  if (inferableField.fallbackToFirstField && mainTypeFields.length > 0) return mainTypeFields[0];
 
-  // Coundn't infer the field. Show error and return null.
   if (inferableField.showError) {
-    function consoleError(title: string, description: string) {
-      console.error(
-        `%c ⛔ ${title}\n` + `%c${description}\n\n`,
-        'color: black; font-weight: bold; font-size: 16px; line-height: 50px;',
-        'color: black;',
-      );
-    }
-
-    consoleError(
-      `The Field ${fieldName} is missing for the collection “${collection.get('name')}”`,
-      `Decap CMS tries to infer the entry ${fieldName} automatically, but one couldn't be found for entries of the collection “${collection.get(
-        'name',
-      )}”. Please check your site configuration.`,
+    console.error(
+      `%c ⛔ The Field ${fieldName} is missing for the collection "${collection.name}"\n` +
+      `%cDecap CMS tries to infer the entry ${fieldName} automatically, but one couldn't be found for entries of the collection "${collection.name}". Please check your site configuration.`,
+      'color: black; font-weight: bold; font-size: 16px; line-height: 50px;',
+      'color: black;',
     );
   }
-
   return null;
 }
 
 export function selectEntryCollectionTitle(collection: Collection, entry: EntryMap) {
-  // prefer formatted summary over everything else
-  const summaryTemplate = collection.get('summary');
+  const summaryTemplate = collection.summary;
   if (summaryTemplate) return summaryFormatter(summaryTemplate, entry, collection);
 
-  // if the collection is a file collection return the label of the entry
-  if (collection.get('type') == FILES) {
-    const label = selectFileEntryLabel(collection, entry.get('slug'));
+  if (collection.type === FILES) {
+    const label = selectFileEntryLabel(collection, entry.slug);
     if (label) return label;
   }
 
-  // try to infer a title field from the entry data
-  const entryData = entry.get('data');
+  const entryData = entry.data;
   const titleField = selectInferredField(collection, 'title');
-  const result = titleField && entryData.getIn(keyToPathArray(titleField));
-
-  // if the custom field does not yield a result, fallback to 'title'
+  const getNestedValue = (obj: any, path: string[]) =>
+    path.reduce((cur, key) => (cur != null ? cur[key] : undefined), obj);
+  const result = titleField && getNestedValue(entryData, keyToPathArray(titleField));
   if (!result && titleField !== 'title') {
-    return entryData.getIn(keyToPathArray('title'));
+    return getNestedValue(entryData, keyToPathArray('title'));
   }
-
   return result;
 }
 
@@ -407,19 +330,16 @@ export function selectDefaultSortableFields(
 ) {
   let defaultSortable = SORTABLE_FIELDS.map((type: string) => {
     const field = selectInferredField(collection, type);
-    if (backend.isGitBackend() && type === 'author' && !field && !hasIntegration) {
-      // default to commit author if not author field is found
+    if (backend.isGitBackend && backend.isGitBackend() && type === 'author' && !field && !hasIntegration) {
       return COMMIT_AUTHOR;
     }
     return field;
   }).filter(Boolean);
 
-  if (backend.isGitBackend() && !hasIntegration) {
-    // always have commit date by default
+  if (backend.isGitBackend && backend.isGitBackend() && !hasIntegration) {
     defaultSortable = [COMMIT_DATE, ...defaultSortable];
   }
 
-  // Return as objects with field property
   return defaultSortable.map(field => ({ field })) as {
     field: string;
     label?: string;
@@ -428,114 +348,82 @@ export function selectDefaultSortableFields(
 }
 
 export function selectSortableFields(collection: Collection, t: (key: string) => string) {
-  const fields = collection
-    .get('sortable_fields')
-    .toArray()
-    .map(sortableField => {
-      // Extract the field name and custom label from the sortable field object
-      const key = sortableField.get('field');
-      const customLabel = sortableField.get('label');
+  return (collection.sortable_fields ?? []).map(sortableField => {
+    const key = sortableField.field;
+    const customLabel = sortableField.label;
 
-      if (key === COMMIT_DATE) {
-        const label = customLabel || t('collection.defaultFields.updatedOn.label');
-        return { key, field: { name: key, label } };
-      }
-      const field = selectField(collection, key);
-      if (key === COMMIT_AUTHOR && !field) {
-        const label = customLabel || t('collection.defaultFields.author.label');
-        return { key, field: { name: key, label } };
-      }
+    if (key === COMMIT_DATE) {
+      const label = customLabel || t('collection.defaultFields.updatedOn.label');
+      return { key, field: { name: key, label } };
+    }
+    const field = selectField(collection, key);
+    if (key === COMMIT_AUTHOR && !field) {
+      const label = customLabel || t('collection.defaultFields.author.label');
+      return { key, field: { name: key, label } };
+    }
 
-      let fieldObj: Record<string, unknown> | undefined = field?.toJS();
+    let fieldObj: Record<string, unknown> | undefined = field ? { ...field } : undefined;
+    if (fieldObj && customLabel) fieldObj = { ...fieldObj, label: customLabel };
+    if (fieldObj && !fieldObj.label) fieldObj = { ...fieldObj, label: (fieldObj.name as string) || key };
 
-      // If custom label is provided, override the field's label
-      if (fieldObj && customLabel) {
-        fieldObj = { ...fieldObj, label: customLabel };
-      }
-
-      // If no label exists at all, use the field name
-      if (fieldObj && !fieldObj.label) {
-        fieldObj = { ...fieldObj, label: (fieldObj.name as string) || key };
-      }
-
-      return { key, field: fieldObj };
-    })
+    return { key, field: fieldObj };
+  })
     .filter(item => !!item.field)
     .map(item => ({ ...item.field, key: item.key }));
-
-  return fields;
 }
 
 export function selectDefaultSortField(collection: Collection) {
-  const sortableFields = collection.get('sortable_fields').toArray();
-  const defaultField = sortableFields.find(field => field.get('default_sort') !== undefined);
+  const sortableFields = collection.sortable_fields ?? [];
+  const defaultField = sortableFields.find(field => field.default_sort !== undefined);
+  if (!defaultField) return null;
 
-  if (!defaultField) {
-    return null;
-  }
-
-  const fieldName = defaultField.get('field');
-  const defaultSortValue = defaultField.get('default_sort');
-
-  // Determine direction based on default_sort value
-  let direction;
-  if (defaultSortValue === true || defaultSortValue === 'asc') {
-    direction = 'asc';
-  } else if (defaultSortValue === 'desc') {
-    direction = 'desc';
-  } else {
-    direction = 'asc'; // fallback
-  }
+  const fieldName = defaultField.field;
+  const defaultSortValue = defaultField.default_sort;
+  let direction: string;
+  if (defaultSortValue === true || defaultSortValue === 'asc') direction = 'asc';
+  else if (defaultSortValue === 'desc') direction = 'desc';
+  else direction = 'asc';
 
   return { field: fieldName, direction };
 }
 
 export function selectSortDataPath(collection: Collection, key: string) {
-  if (key === COMMIT_DATE) {
-    return 'updatedOn';
-  } else if (key === COMMIT_AUTHOR && !selectField(collection, key)) {
-    return 'author';
-  } else {
-    return `data.${key}`;
-  }
+  if (key === COMMIT_DATE) return 'updatedOn';
+  if (key === COMMIT_AUTHOR && !selectField(collection, key)) return 'author';
+  return `data.${key}`;
 }
 
-export function selectViewFilters(collection: Collection) {
-  const viewFilters = collection.get('view_filters').toJS() as unknown as ViewFilter[];
-  return viewFilters;
+export function selectViewFilters(collection: Collection): ViewFilter[] {
+  return (collection.view_filters ?? []) as ViewFilter[];
 }
 
-export function selectViewGroups(collection: Collection) {
-  const viewGroups = collection.get('view_groups').toJS() as unknown as ViewGroup[];
-  return viewGroups;
+export function selectViewGroups(collection: Collection): ViewGroup[] {
+  return (collection.view_groups ?? []) as ViewGroup[];
 }
 
 export function selectFieldsComments(collection: Collection, entryMap: EntryMap) {
   let fields: EntryField[] = [];
-  if (collection.has('folder')) {
-    fields = collection.get('fields').toArray();
-  } else if (collection.has('files')) {
-    const file = collection.get('files')!.find(f => f?.get('name') === entryMap.get('slug'));
-    fields = file!.get('fields').toArray();
+  if (collection.folder) {
+    fields = collection.fields as EntryField[];
+  } else if (collection.files) {
+    const file = collection.files.find(f => f?.name === entryMap.slug);
+    fields = (file?.fields ?? []) as EntryField[];
   }
   const comments: Record<string, string> = {};
   const names = getFieldsNames(fields);
   names.forEach(name => {
     const field = selectField(collection, name);
-    if (field?.has('comment')) {
-      comments[name] = field.get('comment')!;
-    }
+    if (field?.comment) comments[name] = field.comment as string;
   });
-
   return comments;
 }
 
 export function selectHasMetaPath(collection: Collection) {
   return (
-    collection.has('folder') &&
-    collection.get('type') === FOLDER &&
-    collection.has('meta') &&
-    collection.get('meta')?.has('path')
+    collection.folder &&
+    collection.type === FOLDER &&
+    collection.meta &&
+    collection.meta.path != null
   );
 }
 

@@ -1,12 +1,13 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import isEqual from 'lodash/isEqual';
 import { Cursor } from 'decap-cms-lib-util';
 
-import type { List as ImmutableList, Seq } from 'immutable';
-import type { Collection, EntryMap, State } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsCollectionObject, CmsCollections, CmsEntryMap } from 'decap-cms-lib-util/types/cms';
+
+type Collection = CmsCollectionObject;
+type Collections = CmsCollections;
+type EntryMap = CmsEntryMap;
 
 import { selectSearchedEntries, selectUnpublishedEntry } from '../../../reducers';
 import {
@@ -20,30 +21,15 @@ interface EntriesSearchProps {
   searchEntries: (searchTerm: string, collectionNames: string[], page?: number) => void;
   clearSearch: () => void;
   searchTerm: string;
-  collections?: Seq.Indexed<Collection>;
+  collections?: Collection[];
   collectionNames?: string[];
-  entries?: ImmutableList<EntryMap>;
+  entries?: EntryMap[];
   page?: number;
   getWorkflowStatus?: (collectionName: string, slug: string) => string | null;
 }
 
 class EntriesSearch extends React.Component<EntriesSearchProps> {
-  static propTypes = {
-    isFetching: PropTypes.bool,
-    searchEntries: PropTypes.func.isRequired,
-    clearSearch: PropTypes.func.isRequired,
-    searchTerm: PropTypes.string.isRequired,
-    collections: ImmutablePropTypes.seq,
-    collectionNames: PropTypes.array,
-    entries: ImmutablePropTypes.list,
-    page: PropTypes.number,
-    getWorkflowStatus: PropTypes.func,
-  };
-
   componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(EntriesSearch.propTypes, this.props, 'prop', 'EntriesSearch');
-
     const { searchTerm, searchEntries, collectionNames } = this.props;
     searchEntries(searchTerm, collectionNames || []);
   }
@@ -93,17 +79,17 @@ class EntriesSearch extends React.Component<EntriesSearchProps> {
   }
 }
 
-function mapStateToProps(state: State, ownProps: { collections: any; searchTerm: string }) {
+function mapStateToProps(state: any, ownProps: { collections: Collections; searchTerm: string }) {
   const { searchTerm } = ownProps;
-  const collections = ownProps.collections.toIndexedSeq();
-  const collectionNames = ownProps.collections.keySeq().toArray() as string[];
+  const collections = Object.values(ownProps.collections);
+  const collectionNames = Object.keys(ownProps.collections);
   const isFetching = state.search.isFetching;
   const page = state.search.page;
   const entries = selectSearchedEntries(state, collectionNames);
 
   function getWorkflowStatus(collectionName: string, slug: string) {
     const unpublishedEntry = selectUnpublishedEntry(state, collectionName, slug);
-    return unpublishedEntry ? unpublishedEntry.get('status') : null;
+    return unpublishedEntry ? (unpublishedEntry as any).status : null;
   }
 
   return { isFetching, page, collections, collectionNames, entries, searchTerm, getWorkflowStatus };

@@ -1,38 +1,38 @@
-import { Map } from 'immutable';
-
 import type { AlgoliaConfig } from './providers/algolia/implementation';
 import Algolia from './providers/algolia/implementation';
 import type { AssetStoreConfig } from './providers/assetStore/implementation';
 import AssetStore from './providers/assetStore/implementation';
 
-import type { Integrations } from 'decap-cms-lib-util/types/cms-immutable';
+// Integrations config is a plain object after migration from Immutable.js
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Integrations = any;
 
 type GetTokenFn = () => Promise<string>;
 
 type IntegrationProvider = Algolia | AssetStore;
 
-type IntegrationInstances = Map<string, IntegrationProvider>;
+type IntegrationInstances = globalThis.Map<string, IntegrationProvider>;
 
 export function resolveIntegrations(
   integrationsConfig: Integrations,
   getToken: GetTokenFn,
 ): IntegrationInstances {
-  let integrationInstances: IntegrationInstances = Map({});
-  const providers = integrationsConfig.getIn(['providers']) as
-    | Map<string, AlgoliaConfig | AssetStoreConfig>
+  const integrationInstances: IntegrationInstances = new globalThis.Map();
+  const providers = integrationsConfig?.providers as
+    | Record<string, AlgoliaConfig | AssetStoreConfig>
     | undefined;
   if (providers) {
-    providers.forEach(
-      (providerData: AlgoliaConfig | AssetStoreConfig, providerName: string) => {
+    Object.entries(providers).forEach(
+      ([providerName, providerData]: [string, AlgoliaConfig | AssetStoreConfig]) => {
         switch (providerName) {
           case 'algolia':
-            integrationInstances = integrationInstances.set(
+            integrationInstances.set(
               'algolia',
               new Algolia(providerData as AlgoliaConfig),
             );
             break;
           case 'assetStore':
-            integrationInstances = integrationInstances.set(
+            integrationInstances.set(
               'assetStore',
               new AssetStore(providerData as AssetStoreConfig, getToken),
             );

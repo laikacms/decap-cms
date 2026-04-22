@@ -1,12 +1,14 @@
-import type { List } from 'immutable';
-import { fromJS } from 'immutable';
 import isFunction from 'lodash/isFunction';
 
 import type {
-  EditorComponentOptions,
-  EditorComponentPlugin,
-  EditorComponentField,
-} from 'decap-cms-lib-util/types/cms-immutable';
+  CmsEditorComponentOptions,
+  CmsEditorComponentPlugin,
+  CmsEditorComponentField,
+} from 'decap-cms-lib-util/types/cms';
+
+type EditorComponentOptions = CmsEditorComponentOptions;
+type EditorComponentPlugin = CmsEditorComponentPlugin;
+type EditorComponentField = CmsEditorComponentField;
 
 const catchesNothing = /.^/;
 
@@ -51,7 +53,7 @@ export default function createEditorComponent(
     fromBlock: bind(fromBlock) || (() => ({})),
     toBlock: bind(toBlock) || (() => 'Plugin'),
     toPreview: bind(toPreview) || (!widget && (bind(toBlock) || (() => 'Plugin'))),
-    fields: fromJS(fields) as unknown as List<EditorComponentField>,
+    fields: fields as EditorComponentField[],
     ...remainingConfig,
   } as EditorComponentPlugin;
 }

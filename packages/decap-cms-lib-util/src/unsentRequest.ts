@@ -1,10 +1,21 @@
-import { fromJS, List, Map } from 'immutable';
 import curry from 'lodash/curry';
 import flow from 'lodash/flow';
 import isString from 'lodash/isString';
 
-type ImmutableRequest = Map<string, unknown>;
-type RequestInput = string | ImmutableRequest | Record<string, unknown>;
+export type RequestObject = {
+  url: string;
+  params?: Record<string, string>;
+  method?: string;
+  body?: BodyInit;
+  headers?: Record<string, string>;
+  cache?: RequestCache;
+  credentials?: RequestCredentials;
+  mode?: RequestMode;
+  signal?: AbortSignal;
+  [key: string]: unknown;
+};
+
+type RequestInput = string | RequestObject | Record<string, unknown>;
 
 function isAbortControllerSupported() {
   if (typeof window !== 'undefined') {
@@ -34,97 +45,95 @@ function fetchWithTimeout(input: RequestInfo | URL, init?: RequestInit): Promise
     });
 }
 
-function decodeParams(paramsString: string): Map<string, string> {
-  return List(paramsString.split('&'))
-    .map(s => List(s.split('=')).map(decodeURIComponent))
-    .reduce((acc, pair) => acc.set(pair.get(0) || '', pair.get(1) || ''), Map<string, string>());
+function decodeParams(paramsString: string): Record<string, string> {
+  return paramsString
+    .split('&')
+    .reduce((acc, pair) => {
+      const [k, v] = pair.split('=').map(decodeURIComponent);
+      if (k) acc[k] = v ?? '';
+      return acc;
+    }, {} as Record<string, string>);
 }
 
-function fromURL(wholeURL: string): ImmutableRequest {
+function fromURL(wholeURL: string): RequestObject {
   const [url, allParamsString] = wholeURL.split('?');
-  return Map({ url, ...(allParamsString ? { params: decodeParams(allParamsString) } : {}) });
+  return { url, ...(allParamsString ? { params: decodeParams(allParamsString) } : {}) };
 }
 
-function fromFetchArguments(wholeURL: string, options?: RequestInit): ImmutableRequest {
-  return fromURL(wholeURL).merge(
-    (options ? fromJS(options) as ImmutableRequest : Map<string, unknown>()).remove('url').remove('params') as ImmutableRequest,
-  );
+function fromFetchArguments(wholeURL: string, options?: RequestInit): RequestObject {
+  const base = fromURL(wholeURL);
+  if (!options) return base;
+  const { url: _url, params: _params, ...rest } = options as any;
+  return { ...base, ...rest };
 }
 
-function encodeParams(params: Map<string, string>): string {
-  return params
-    .entrySeq()
+function encodeParams(params: Record<string, string>): string {
+  return Object.entries(params)
     .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
     .join('&');
 }
 
-function toURL(req: ImmutableRequest): string {
-  const url = req.get('url') as string;
-  const params = req.get('params') as Map<string, string> | undefined;
+function toURL(req: RequestObject): string {
+  const { url, params } = req;
   return `${url}${params ? `?${encodeParams(params)}` : ''}`;
 }
 
-function toFetchArguments(req: ImmutableRequest): [string, RequestInit] {
-  return [toURL(req), req.remove('url').remove('params').toJS() as RequestInit];
+function toFetchArguments(req: RequestObject): [string, RequestInit] {
+  const { url: _url, params: _params, ...fetchOpts } = req;
+  return [toURL(req), fetchOpts as RequestInit];
 }
 
-function maybeRequestArg(req: RequestInput): ImmutableRequest {
-  if (isString(req)) {
-    return fromURL(req);
-  }
-  if (req) {
-    return Map.isMap(req) ? req as ImmutableRequest : fromJS(req) as ImmutableRequest;
-  }
-  return Map();
+function maybeRequestArg(req: RequestInput): RequestObject {
+  if (isString(req)) return fromURL(req);
+  return req as RequestObject;
 }
 
-function ensureRequestArg<T>(func: (req: ImmutableRequest) => T): (req: RequestInput) => T {
+function ensureRequestArg<T>(func: (req: RequestObject) => T): (req: RequestInput) => T {
   return (req: RequestInput) => func(maybeRequestArg(req));
 }
 
-function ensureRequestArg2<A, T>(func: (arg: A, req: ImmutableRequest) => T): (arg: A, req: RequestInput) => T {
+function ensureRequestArg2<A, T>(
+  func: (arg: A, req: RequestObject) => T,
+): (arg: A, req: RequestInput) => T {
   return (arg: A, req: RequestInput) => func(arg, maybeRequestArg(req));
 }
 
-// This actually performs the built request object
-const performRequest = ensureRequestArg((req: ImmutableRequest) => {
-  const args = toFetchArguments(req);
-  return fetchWithTimeout(args[0], args[1]);
+const performRequest = ensureRequestArg((req: RequestObject) => {
+  const [url, init] = toFetchArguments(req);
+  return fetchWithTimeout(url, init);
 });
 
-// Each of the following functions takes options and returns another
-// function that performs the requested action on a request.
 const getCurriedRequestProcessor = flow([ensureRequestArg2, curry]);
 
-function getPropSetFunction(path: string[]) {
-  return getCurriedRequestProcessor((val: unknown, req: ImmutableRequest) => req.setIn(path, val));
-}
-
-function getPropMergeFunction(path: string[]) {
-  return getCurriedRequestProcessor((obj: unknown, req: ImmutableRequest) => 
-    req.updateIn(path, (p: unknown = Map()) => (p as Map<string, unknown>).merge(obj as Record<string, unknown>))
+function getPropSetFunction(key: keyof RequestObject) {
+  return getCurriedRequestProcessor(
+    (val: unknown, req: RequestObject): RequestObject => ({ ...req, [key]: val }),
   );
 }
 
-const withMethod = getPropSetFunction(['method']);
-const withBody = getPropSetFunction(['body']);
-const withNoCache = getPropSetFunction(['cache'])('no-cache');
-const withParams = getPropMergeFunction(['params']);
-const withHeaders = getPropMergeFunction(['headers']);
+function getPropMergeFunction(key: keyof RequestObject) {
+  return getCurriedRequestProcessor((obj: Record<string, unknown>, req: RequestObject): RequestObject => ({
+    ...req,
+    [key]: { ...(req[key] as Record<string, unknown> ?? {}), ...obj },
+  }));
+}
 
-// withRoot sets a root URL, unless the URL is already absolute
+const withMethod = getPropSetFunction('method');
+const withBody = getPropSetFunction('body');
+const withNoCache = getPropSetFunction('cache')('no-cache');
+const withParams = getPropMergeFunction('params');
+const withHeaders = getPropMergeFunction('headers');
+
 const absolutePath = new RegExp('^(?:[a-z]+:)?//', 'i');
-const withRoot = getCurriedRequestProcessor((root: string, req: ImmutableRequest) =>
-  req.update('url', (p: unknown) => {
-    const path = p as string;
-    if (absolutePath.test(path)) {
-      return path;
-    }
-    return root && path && path[0] !== '/' && root[root.length - 1] !== '/'
+const withRoot = getCurriedRequestProcessor((root: string, req: RequestObject): RequestObject => {
+  const path = req.url;
+  if (absolutePath.test(path)) return req;
+  const newUrl =
+    root && path && path[0] !== '/' && root[root.length - 1] !== '/'
       ? `${root}/${path}`
       : `${root}${path}`;
-  }),
-);
+  return { ...req, url: newUrl };
+});
 
 export default {
   toURL,

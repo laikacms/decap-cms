@@ -20,7 +20,9 @@ import {
 import { status } from '../../constants/publishModes';
 import { SettingsDropdown } from '../UI';
 import type { TranslateFunction } from 'decap-cms-ui-default';
-import type { Collection } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsCollectionObject } from 'decap-cms-lib-util/types/cms';
+
+type Collection = CmsCollectionObject;
 
 const styles = {
   noOverflow: css`
@@ -369,7 +371,7 @@ export class EditorToolbar extends React.Component<EditorToolbarProps> {
 
   renderSimpleControls = () => {
     const { collection, hasChanged, isNewEntry, showDelete, onDelete, t } = this.props;
-    const canCreate = collection.get('create');
+    const canCreate = collection.create;
 
     return (
       <>
@@ -419,8 +421,8 @@ export class EditorToolbar extends React.Component<EditorToolbarProps> {
     const { t, currentStatus } = this.props;
 
     const statusToLocaleKey: Record<string, string> = {
-      [status.get('DRAFT') as string]: 'statusInfoTooltipDraft',
-      [status.get('PENDING_REVIEW') as string]: 'statusInfoTooltipInReview',
+      [status.DRAFT]: 'statusInfoTooltipDraft',
+      [status.PENDING_REVIEW]: 'statusInfoTooltipInReview',
     };
 
     const statusKey = Object.keys(statusToLocaleKey).find(key => key === currentStatus);
@@ -440,9 +442,9 @@ export class EditorToolbar extends React.Component<EditorToolbarProps> {
     const { isUpdatingStatus, onChangeStatus, currentStatus, t, useOpenAuthoring } = this.props;
 
     const statusToTranslation: Record<string, string> = {
-      [status.get('DRAFT') as string]: t('editor.editorToolbar.draft'),
-      [status.get('PENDING_REVIEW') as string]: t('editor.editorToolbar.inReview'),
-      [status.get('PENDING_PUBLISH') as string]: t('editor.editorToolbar.ready'),
+      [status.DRAFT]: t('editor.editorToolbar.draft'),
+      [status.PENDING_REVIEW]: t('editor.editorToolbar.inReview'),
+      [status.PENDING_PUBLISH]: t('editor.editorToolbar.ready'),
     };
 
     const buttonText = isUpdatingStatus
@@ -459,12 +461,12 @@ export class EditorToolbar extends React.Component<EditorToolbarProps> {
           <StatusDropdownItem
             label={t('editor.editorToolbar.draft')}
             onClick={() => onChangeStatus('DRAFT')}
-            icon={currentStatus === status.get('DRAFT') ? 'check' : undefined}
+            icon={currentStatus === status.DRAFT ? 'check' : undefined}
           />
           <StatusDropdownItem
             label={t('editor.editorToolbar.inReview')}
             onClick={() => onChangeStatus('PENDING_REVIEW')}
-            icon={currentStatus === status.get('PENDING_REVIEW') ? 'check' : undefined}
+            icon={currentStatus === status.PENDING_REVIEW ? 'check' : undefined}
           />
           {useOpenAuthoring ? (
             ''
@@ -472,7 +474,7 @@ export class EditorToolbar extends React.Component<EditorToolbarProps> {
             <StatusDropdownItem
               label={t('editor.editorToolbar.ready')}
               onClick={() => onChangeStatus('PENDING_PUBLISH')}
-              icon={currentStatus === status.get('PENDING_PUBLISH') ? 'check' : undefined}
+              icon={currentStatus === status.PENDING_PUBLISH ? 'check' : undefined}
             />
           )}
         </ToolbarDropdown>
@@ -649,9 +651,9 @@ export class EditorToolbar extends React.Component<EditorToolbarProps> {
       t,
     } = this.props;
 
-    const canCreate = collection.get('create');
-    const canPublish = (collection as any).get('publish') && !useOpenAuthoring;
-    const canDelete = collection.get('delete', true);
+    const canCreate = collection.create;
+    const canPublish = !!(collection.publish && !useOpenAuthoring);
+    const canDelete = collection.delete ?? true;
 
     const deleteLabel =
       (hasUnpublishedChanges &&
@@ -731,7 +733,7 @@ export class EditorToolbar extends React.Component<EditorToolbarProps> {
           <div>
             <BackCollection>
               {t('editor.editorToolbar.backCollection', {
-                collectionLabel: collection.get('label'),
+                collectionLabel: collection.label,
               })}
             </BackCollection>
             {hasChanged ? (

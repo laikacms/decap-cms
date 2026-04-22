@@ -1,22 +1,19 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import isObject from 'lodash/isObject'
+import get from 'lodash/get'
 import { WidgetPreviewContainer } from 'decap-cms-ui-default';
-import { fromJS, Map } from 'immutable';
 
 interface ObjectPreviewProps {
   field?: Map<string, unknown> | Record<string, unknown>;
 }
 
 function ObjectPreview({ field }: ObjectPreviewProps) {
-  let immutableField: Map<string, unknown> | undefined;
-
-  if (field) {
-    immutableField = Map.isMap(field) ? (field as Map<string, unknown>) : fromJS(field) as Map<string, unknown>;
-  }
+  const f = get(field, 'field') || get(field, 'fields');
 
   return (
     <WidgetPreviewContainer>
-      {(immutableField && (immutableField.get('fields') || immutableField.get('field'))) as React.ReactNode ?? null}
+      {f as React.ReactNode ?? null}
     </WidgetPreviewContainer>
   );
 }

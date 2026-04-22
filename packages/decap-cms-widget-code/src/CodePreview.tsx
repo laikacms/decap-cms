@@ -1,30 +1,28 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Map } from 'immutable';
+import isObject from 'lodash/isObject';
 import isString from 'lodash/isString';
+import get from 'lodash/get';
 import { WidgetPreviewContainer } from 'decap-cms-ui-default';
 
-import type { Map as ImmutableMap } from 'immutable';
-
 function toValue(
-  value: ImmutableMap<string, unknown> | string | undefined,
-  field?: ImmutableMap<string, unknown>,
+  value: Record<string, unknown> | string | undefined,
+  field?: Record<string, unknown>,
 ): string {
   if (isString(value)) {
     return value;
   }
-  if (Map.isMap(value) && field) {
-    return (value as ImmutableMap<string, unknown>).get(
-      (field as ImmutableMap<string, unknown>).getIn(['keys', 'code'], 'code') as string,
-      '',
-    ) as string;
+  if (isObject(value) && field) {
+    return (value as Record<string, unknown>)[
+      get(field, ['keys', 'code'], 'code')
+    ] as string || '';
   }
   return '';
 }
 
 interface CodePreviewProps {
-  value?: ImmutableMap<string, unknown> | string;
-  field?: ImmutableMap<string, unknown>;
+  value?: Record<string, unknown> | string;
+  field?: Record<string, unknown>;
 }
 
 function CodePreview(props: CodePreviewProps) {
@@ -38,7 +36,8 @@ function CodePreview(props: CodePreviewProps) {
 }
 
 CodePreview.propTypes = {
-  value: PropTypes.node,
+  value: PropTypes.oneOfType([PropTypes.object, PropTypes.string]),
+  field: PropTypes.object,
 };
 
 export default CodePreview;

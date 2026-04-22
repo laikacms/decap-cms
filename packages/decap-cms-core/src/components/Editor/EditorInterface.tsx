@@ -14,9 +14,16 @@ import {
 } from 'decap-cms-ui-default';
 import { ScrollSync, ScrollSyncPane } from 'react-scroll-sync';
 
-import type { Map as ImmutableMap, List as ImmutableList } from 'immutable';
 import type { TranslateFunction } from 'decap-cms-ui-default';
-import type { Collection, EntryMap, EntryField } from 'decap-cms-lib-util/types/cms-immutable';
+import type {
+  CmsCollectionObject,
+  CmsEntryMap,
+  CmsEntryField,
+} from 'decap-cms-lib-util/types/cms';
+
+type Collection = CmsCollectionObject;
+type EntryMap = CmsEntryMap;
+type EntryField = CmsEntryField;
 import type { I18nInfo } from '../../lib/i18n';
 import type { ReactNode } from 'react';
 
@@ -166,21 +173,20 @@ function EditorContent({
 }
 
 function isPreviewEnabled(collection: Collection, entry: EntryMap) {
-  if (collection.get('type') === FILES) {
-    const file = getFileFromSlug(collection, entry.get('slug'));
-    const previewEnabled = file?.getIn(['editor', 'preview']);
+  if (collection.type === FILES) {
+    const file = getFileFromSlug(collection, entry.slug);
+    const previewEnabled = (file as any)?.editor?.preview;
     if (previewEnabled != null) return previewEnabled;
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (collection as any).getIn(['editor', 'preview'], true);
+  return (collection as any).editor?.preview ?? true;
 }
 
 interface EditorInterfaceProps {
   collection: Collection;
   entry: EntryMap;
-  fields: ImmutableList<EntryField>;
-  fieldsMetaData: ImmutableMap<string, ImmutableMap<string, unknown>>;
-  fieldsErrors: ImmutableMap<string, { type: string; message: string }[]>;
+  fields: EntryField[];
+  fieldsMetaData: Record<string, Record<string, unknown>>;
+  fieldsErrors: Record<string, { type: string; message: string }[]>;
   onChange: (field: EntryField, value: unknown, metadata?: unknown, i18n?: unknown) => void;
   onValidate: (fieldName: string, errors: { type: string; message: string }[]) => void;
   onPersist: (opts?: { createNew?: boolean; duplicate?: boolean }) => void;
@@ -398,10 +404,10 @@ class EditorInterface extends Component<EditorInterfaceProps> {
       <EditorContainer>
         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         {React.createElement(EditorToolbar as any, {
-          isPersisting: entry.get('isPersisting'),
-          isPublishing: (entry as any).get('isPublishing'),
-          isUpdatingStatus: (entry as any).get('isUpdatingStatus'),
-          isDeleting: (entry as any).get('isDeleting'),
+          isPersisting: entry.isPersisting,
+          isPublishing: (entry as any).isPublishing,
+          isUpdatingStatus: (entry as any).isUpdatingStatus,
+          isDeleting: (entry as any).isDeleting,
           onPersist: this.handleOnPersist,
           onPersistAndNew: () => this.handleOnPersist({ createNew: true }),
           onPersistAndDuplicate: () => this.handleOnPersist({ createNew: true, duplicate: true }),
@@ -450,7 +456,7 @@ class EditorInterface extends Component<EditorInterfaceProps> {
                 title={t('editor.editorInterface.togglePreview')}
               />
             )}
-            {scrollSyncVisible && !collection.getIn(['editor', 'visualEditing']) && (
+            {scrollSyncVisible && !(collection as any).editor?.visualEditing && (
               <EditorToggle
                 isActive={scrollSyncEnabled}
                 onClick={this.handleToggleScrollSync}

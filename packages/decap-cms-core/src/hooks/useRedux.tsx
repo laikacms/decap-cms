@@ -3,7 +3,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import type { TypedUseSelectorHook } from 'react-redux';
 import type { ThunkDispatch, ThunkAction } from 'redux-thunk';
 import type { AnyAction, Dispatch } from 'redux';
-import type { State } from 'decap-cms-lib-util/types/cms-immutable';
+
+// State is the root Redux state - use `any` since it's composed of many reducers
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type State = any;
 
 // Re-export types for convenience
 export type RootState = State;

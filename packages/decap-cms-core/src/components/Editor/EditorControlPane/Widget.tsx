@@ -1,15 +1,77 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
-import { Map, List } from 'immutable';
 import { oneLine } from 'common-tags';
 
 import { getRemarkPlugins } from '../../../lib/registry';
 import ValidationErrorTypes from '../../../constants/validationErrorTypes';
 
-import type { Map as ImmutableMap } from 'immutable';
 import type { TranslateFunction } from 'decap-cms-ui-default';
-import type { WidgetProps, ValidationResult, ValidationError } from 'decap-cms-lib-util/types/cms-immutable';
+
+// Local type definitions (migrated from cms-immutable)
+interface ValidationError {
+  type: string;
+  parentIds?: string[];
+  message: string;
+}
+
+interface ValidationResult {
+  error: ValidationError | false;
+}
+
+interface WidgetProps<T = unknown> {
+  controlComponent: React.ComponentType<Record<string, unknown>>;
+  field: Record<string, unknown>;
+  hasActiveStyle?: boolean;
+  setActiveStyle: () => void;
+  setInactiveStyle: () => void;
+  classNameWrapper: string;
+  classNameWidget: string;
+  classNameWidgetActive: string;
+  classNameLabel: string;
+  classNameLabelActive: string;
+  value?: T;
+  mediaPaths: Record<string, string>;
+  metadata?: Record<string, Record<string, unknown>>;
+  fieldsErrors?: Record<string, { type: string; message: string }[]>;
+  onChange: ((value: T) => void) | ((value: T, metadata?: Record<string, unknown>) => void);
+  onValidate?: (errors: (ValidationError | false)[]) => void;
+  controlRef?: (wrappedControl: any) => void;
+  onOpenMediaLibrary: (options: Record<string, unknown>) => void;
+  onClearMediaControl: (controlID: string) => void;
+  onRemoveMediaControl: (controlID: string) => void;
+  onPersistMedia: (file: File) => void;
+  onAddAsset: (asset: unknown) => void;
+  onRemoveInsertedMedia: (controlID: string) => void;
+  getAsset: (path: string, field: Record<string, unknown>) => unknown;
+  resolveWidget: (name: string) => Record<string, unknown>;
+  widget: Record<string, unknown>;
+  getEditorComponents: () => Record<string, unknown>;
+  isFetching?: boolean;
+  query: (namespace: string, collectionName: string, searchFields: string[], searchTerm: string, file?: string, limit?: number) => void;
+  clearSearch: () => void;
+  clearFieldErrors: (uniqueFieldId: string) => void;
+  queryHits?: unknown[] | Record<string, unknown>;
+  editorControl: React.ComponentType<Record<string, unknown>>;
+  uniqueFieldId: string;
+  loadEntry: (collectionName: string, slug: string) => void;
+  t: TranslateFunction;
+  onValidateObject?: (errors: { type: string; message: string }[]) => void;
+  isEditorComponent?: boolean;
+  isNewEditorComponent?: boolean;
+  entry: Record<string, unknown>;
+  getEntry: () => Record<string, unknown>;
+  isDisabled?: boolean;
+  isFieldDuplicate?: (field: Record<string, unknown>) => boolean;
+  isFieldHidden?: (field: Record<string, unknown>) => boolean;
+  locale?: string;
+  isParentListCollapsed?: boolean;
+  isLoadingAsset?: boolean;
+  parentIds?: string[];
+  validateMetaField?: (field: Record<string, unknown>, value: unknown, t: TranslateFunction) => ValidationResult;
+  collection?: Record<string, unknown>;
+  config?: Record<string, unknown>;
+}
 
 function truthy() {
   return { error: false };
@@ -21,8 +83,8 @@ function isEmpty(value: unknown) {
     value === undefined ||
     (Object.prototype.hasOwnProperty.call(value, 'length') &&
       (value as { length: number }).length === 0) ||
-    ((value as object).constructor === Object && Object.keys(value as object).length === 0) ||
-    (List.isList(value) && (value as List<unknown>).size === 0)
+    (typeof value === 'object' && value !== null && (value as object).constructor === Object && Object.keys(value as object).length === 0) ||
+    (Array.isArray(value) && value.length === 0)
   );
 }
 
@@ -155,8 +217,8 @@ export default class Widget extends Component<WidgetProps> {
 
   getValidateValue = () => {
     let value = this.innerWrappedControl?.getValidateValue?.() || this.props.value;
-    // Convert list input widget value to string for validation test
-    if (List.isList(value)) value = value.join(',');
+    // Convert list/array input widget value to string for validation test
+    if (Array.isArray(value)) value = value.join(',');
     return value;
   };
 
@@ -165,11 +227,11 @@ export default class Widget extends Component<WidgetProps> {
     const field = this.props.field;
     const errors: (ValidationError | false)[] = [];
     const validations: ((
-      field: ImmutableMap<string, unknown>,
+      field: Record<string, unknown>,
       value: unknown,
       t: TranslateFunction,
     ) => ValidationResult)[] = [this.validatePresence, this.validatePattern];
-    if (field.get('meta')) {
+    if (field.meta) {
       if (this.props.validateMetaField) {
         validations.push(this.props.validateMetaField);
       }
@@ -189,17 +251,17 @@ export default class Widget extends Component<WidgetProps> {
   };
 
   validatePresence = (
-    field: ImmutableMap<string, unknown>,
+    field: Record<string, unknown>,
     value: unknown,
   ): ValidationResult => {
     const { t, parentIds } = this.props;
-    const isRequired = field.get('required', true);
+    const isRequired = field.required ?? true;
     if (isRequired && isEmpty(value)) {
       const error: ValidationError = {
         type: ValidationErrorTypes.PRESENCE,
         parentIds,
         message: t('editor.editorControlPane.widget.required', {
-          fieldLabel: field.get('label', field.get('name')),
+          fieldLabel: (field.label || field.name) as string,
         }),
       };
 
@@ -209,23 +271,23 @@ export default class Widget extends Component<WidgetProps> {
   };
 
   validatePattern = (
-    field: ImmutableMap<string, unknown>,
+    field: Record<string, unknown>,
     value: unknown,
   ): ValidationResult => {
     const { t, parentIds } = this.props;
-    const pattern = field.get('pattern', false) as List<string> | false;
+    const pattern = (field.pattern || false) as string[] | false;
 
     if (isEmpty(value)) {
       return { error: false };
     }
 
-    if (pattern && !RegExp(pattern.first() as string).test(value as string)) {
+    if (pattern && Array.isArray(pattern) && !RegExp(pattern[0]).test(value as string)) {
       const error: ValidationError = {
         type: ValidationErrorTypes.PATTERN,
         parentIds,
         message: t('editor.editorControlPane.widget.regexPattern', {
-          fieldLabel: field.get('label', field.get('name')),
-          pattern: pattern.last(),
+          fieldLabel: (field.label || field.name) as string,
+          pattern: pattern[pattern.length - 1],
         }),
       };
 
@@ -235,12 +297,12 @@ export default class Widget extends Component<WidgetProps> {
     return { error: false };
   };
 
-  validateWrappedControl = (field: ImmutableMap<string, unknown>): ValidationResult => {
+  validateWrappedControl = (field: Record<string, unknown>): ValidationResult => {
     const { t, parentIds } = this.props;
     if (typeof this.wrappedControlValid !== 'function') {
       throw new Error(oneLine`
         this.wrappedControlValid is not a function. Are you sure widget
-        "${field.get('widget')}" is registered?
+        "${field.widget}" is registered?
       `);
     }
 
@@ -262,7 +324,7 @@ export default class Widget extends Component<WidgetProps> {
         (err: unknown) => {
           const error: ValidationError = {
             type: ValidationErrorTypes.CUSTOM,
-            message: `${field.get('label', field.get('name'))} - ${err}.`,
+            message: `${(field.label || field.name) as string} - ${err}.`,
           };
 
           this.validate({ error });
@@ -273,7 +335,7 @@ export default class Widget extends Component<WidgetProps> {
         type: ValidationErrorTypes.CUSTOM,
         parentIds,
         message: t('editor.editorControlPane.widget.processing', {
-          fieldLabel: field.get('label', field.get('name')),
+          fieldLabel: (field.label || field.name) as string,
         }),
       };
 
@@ -287,29 +349,29 @@ export default class Widget extends Component<WidgetProps> {
    * e.g. when debounced, always get the latest object value instead of using
    * `this.props.value` directly.
    */
-  getObjectValue = () => (this.props.value || Map()) as ImmutableMap<string, unknown>;
+  getObjectValue = () => (this.props.value || {}) as Record<string, unknown>;
 
   /**
    * Change handler for fields that are nested within another field.
    */
   onChangeObject = (
-    field: ImmutableMap<string, unknown>,
+    field: Record<string, unknown>,
     newValue: unknown,
     newMetadata: Record<string, unknown> | undefined,
   ) => {
-    const newObjectValue = this.getObjectValue().set(
-      field.get('name') as string,
-      newValue,
-    );
+    const newObjectValue = {
+      ...this.getObjectValue(),
+      [field.name as string]: newValue,
+    };
     return this.props.onChange(
       newObjectValue,
-      newMetadata && { [this.props.field.get('name') as string]: newMetadata },
+      newMetadata && { [this.props.field.name as string]: newMetadata },
     );
   };
 
   setInactiveStyle = () => {
     this.props.setInactiveStyle();
-    if (this.props.field.has('pattern') && !isEmpty(this.getValidateValue())) {
+    if (this.props.field.pattern !== undefined && !isEmpty(this.getValidateValue())) {
       this.validate();
     }
   };

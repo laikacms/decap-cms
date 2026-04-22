@@ -1,7 +1,6 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
-import type { List } from 'immutable';
 
 import Icon from './Icon';
 import { colors, buttons } from './styles';
@@ -62,7 +61,7 @@ export interface TypeItem {
 
 export interface ObjectWidgetTopBarProps {
   allowAdd?: boolean;
-  types?: List<TypeItem>;
+  types?: TypeItem[];
   onAdd?: () => void;
   onAddType?: (typeName: string) => void;
   onCollapseToggle?: () => void;
@@ -77,14 +76,14 @@ class ObjectWidgetTopBar extends React.Component<ObjectWidgetTopBarProps> {
     if (!this.props.allowAdd) {
       return null;
     }
-    if (this.props.types && this.props.types.size > 0) {
+    if (this.props.types && this.props.types.length > 0) {
       return this.renderTypesDropdown(this.props.types);
     } else {
       return this.renderAddButton();
     }
   }
 
-  renderTypesDropdown(types: List<TypeItem>): React.ReactElement {
+  renderTypesDropdown(types: TypeItem[]): React.ReactElement {
     return (
       <Dropdown
         renderButton={() => (

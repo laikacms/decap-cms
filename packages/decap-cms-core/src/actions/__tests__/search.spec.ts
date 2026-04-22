@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { fromJS } from 'immutable';
 import configureMockStore from 'redux-mock-store';
 import { thunk } from 'redux-thunk';
 

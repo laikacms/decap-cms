@@ -1,10 +1,11 @@
 import { useCallback } from 'react';
-import type { Map } from 'immutable';
 
 import { useAppSelector, useAppDispatch } from './useRedux';
 import { openMediaLibrary, closeMediaLibrary } from '../actions/mediaLibrary';
 
-import type { EntryField } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsEntryField } from 'decap-cms-lib-util/types/cms';
+
+type EntryField = CmsEntryField;
 
 /**
  * Hook for media library state and actions
@@ -14,10 +15,10 @@ export function useMediaLibrary() {
   const dispatch = useAppDispatch();
   const mediaLibrary = useAppSelector(state => state.mediaLibrary);
 
-  const isExternal = mediaLibrary.get('externalLibrary');
+  const isExternal = mediaLibrary.externalLibrary;
   const useMediaLibrary = !isExternal;
-  const showMediaButton = mediaLibrary.get('showMediaButton');
-  const isOpen = mediaLibrary.get('isVisible');
+  const showMediaButton = mediaLibrary.showMediaButton;
+  const isOpen = mediaLibrary.isVisible;
 
   const open = useCallback(
     (options?: {
@@ -26,7 +27,7 @@ export function useMediaLibrary() {
       privateUpload?: boolean;
       value?: string;
       allowMultiple?: boolean;
-      config?: Map<string, unknown>;
+      config?: Record<string, unknown>;
       field?: EntryField;
     }) => {
       dispatch(openMediaLibrary(options));

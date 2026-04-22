@@ -1,8 +1,5 @@
 import { vercelStegaEncode } from '@vercel/stega';
 
-import { isImmutableMap, isImmutableList } from 'decap-cms-lib-util';
-
-import type { Map as ImmutableMap, List } from 'immutable';
 import type { CmsField } from 'decap-cms-lib-util/types/cms';
 
 /**
@@ -55,31 +52,30 @@ function encodeString(value: string, { fields, path }: EncodeContext): string {
 }
 
 /**
- * Encode a list of values, handling both simple values and nested objects/lists
+ * Encode an array of values, handling both simple values and nested objects/lists
  * For typed lists, use the type field to determine which fields to use
  */
-function encodeList(list: List<unknown>, ctx: EncodeContext): List<unknown> {
-  let newList = list;
-  for (let i = 0; i < newList.size; i++) {
-    const item = newList.get(i);
-    if (isImmutableMap(item)) {
-      const itemType = item.get('type');
+function encodeList(list: unknown[], ctx: EncodeContext): unknown[] {
+  const newList = [...list];
+  for (let i = 0; i < newList.length; i++) {
+    const item = newList[i];
+    if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
+      const itemRecord = item as Record<string, unknown>;
+      const itemType = itemRecord['type'];
       if (typeof itemType === 'string') {
         // For typed items, look up fields based on type
         const field = ctx.fields.find(f => f.name === itemType);
-        const newItem = ctx.visit(item, getNestedFields(field), `${ctx.path}.${i}`);
-        newList = newList.set(i, newItem);
+        newList[i] = ctx.visit(item, getNestedFields(field), `${ctx.path}.${i}`);
       } else {
         // For untyped items, use current fields
-        const newItem = ctx.visit(item, ctx.fields, `${ctx.path}.${i}`);
-        newList = newList.set(i, newItem);
+        newList[i] = ctx.visit(item, ctx.fields, `${ctx.path}.${i}`);
       }
     } else {
       // For simple values, use first field if available
       const field = ctx.fields[0];
       const newItem = ctx.visit(item, field ? [field] : [], `${ctx.path}.${i}`);
       if (newItem !== item) {
-        newList = newList.set(i, newItem);
+        newList[i] = newItem;
       }
     }
   }
@@ -91,17 +87,17 @@ function encodeList(list: List<unknown>, ctx: EncodeContext): List<unknown> {
  * and recursively encoding nested values
  */
 function encodeMap(
-  map: ImmutableMap<string, unknown>,
+  map: Record<string, unknown>,
   ctx: EncodeContext,
-): ImmutableMap<string, unknown> {
-  let newMap = map;
-  for (const [key, val] of newMap.entrySeq().toArray()) {
+): Record<string, unknown> {
+  const newMap = { ...map };
+  for (const [key, val] of Object.entries(newMap)) {
     const field = ctx.fields.find(f => f.name === key);
     if (field) {
       const fields = getNestedFields(field);
       const newVal = ctx.visit(val, fields, ctx.path ? `${ctx.path}.${key}` : key);
       if (newVal !== val) {
-        newMap = newMap.set(key, newVal);
+        newMap[key] = newVal;
       }
     }
   }
@@ -118,8 +114,8 @@ const encodingCache = new Map();
  * Main entry point for encoding steganographic data into entry values
  * Uses a visitor pattern with caching to handle recursive structures
  */
-export function encodeEntry(value: unknown, fields: List<ImmutableMap<string, unknown>>) {
-  const plainFields = fields.toJS() as unknown as CmsField[];
+export function encodeEntry(value: unknown, fields: CmsField[]) {
+  const plainFields = fields;
 
   function visit(value: unknown, fields: CmsField[], path = '') {
     const cached = encodingCache.get(path);
@@ -127,10 +123,10 @@ export function encodeEntry(value: unknown, fields: List<ImmutableMap<string, un
 
     const ctx: EncodeContext = { fields, path, visit };
     let result;
-    if (isImmutableList(value)) {
+    if (Array.isArray(value)) {
       result = encodeList(value, ctx);
-    } else if (isImmutableMap(value)) {
-      result = encodeMap(value, ctx);
+    } else if (typeof value === 'object' && value !== null) {
+      result = encodeMap(value as Record<string, unknown>, ctx);
     } else if (typeof value === 'string') {
       result = encodeString(value, ctx);
     } else {

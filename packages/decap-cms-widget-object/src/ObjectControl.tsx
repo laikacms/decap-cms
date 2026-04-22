@@ -3,11 +3,13 @@ import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { ClassNames } from '@emotion/react';
 import memoize from 'lodash/memoize';
-import { type List, Map } from 'immutable';
+import get from 'lodash/get';
+import isObject from 'lodash/isObject';
 import { colors, lengths, ObjectWidgetTopBar } from 'decap-cms-ui-default';
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import { stringTemplate } from 'decap-cms-lib-widgets';
-import type { Field, FieldBase, FieldObject } from 'decap-cms-lib-util/types/cms-immutable';
+
+import type { CmsField, CmsFieldBase, CmsFieldObject } from 'decap-cms-lib-util/types/cms';
 
 const styleStrings = {
   nestedObjectControl: `s
@@ -26,7 +28,7 @@ const styleStrings = {
 
 /** Minimal shape for a widget control ref passed through controlRef */
 interface WidgetControlRef {
-  props: { field: Map<string, unknown> };
+  props: { field: CmsField };
   validate?: () => void;
   focus?: (path: string) => void;
   innerWrappedControl?: {
@@ -36,13 +38,13 @@ interface WidgetControlRef {
 
 interface ObjectControlProps {
   /** Called when a nested field value changes (provided by Widget wrapper or ListControl) */
-  onChangeObject: (field: Map<string, unknown>, newValue: unknown, newMetadata?: Record<string, unknown>) => void;
+  onChangeObject: (field: CmsField, newValue: unknown, newMetadata?: Record<string, unknown>) => void;
   /** Called to set validation errors for a specific field ID */
-  onValidateObject?: ((fieldId: string | Map<string, unknown>, errors: Array<{ type: string; message: string }>) => void) | undefined;
+  onValidateObject?: ((fieldId: string | CmsField, errors: Array<{ type: string; message: string }>) => void) | undefined;
   /** The current object value */
-  value?: Map<string, unknown> | unknown;
+  value?: CmsField | unknown;
   /** The field configuration */
-  field: FieldObject & FieldBase;
+  field: CmsFieldObject & CmsFieldBase;
   /** Unique field identifier */
   forID?: string;
   /** CSS class name for the widget wrapper */
@@ -60,9 +62,9 @@ interface ObjectControlProps {
   /** Key used for validation tracking (typically the list item's uuid) */
   validationKey: string;
   /** Map of field IDs to arrays of validation errors */
-  fieldsErrors?: Map<string, unknown>;
+  fieldsErrors?: Record<string, unknown>;
   /** Metadata for the field's collection */
-  metadata?: Map<string, unknown>;
+  metadata?: Record<string, unknown>;
   /** Whether this control has a validation error */
   hasError?: boolean;
   /** Translation function */
@@ -74,9 +76,9 @@ interface ObjectControlProps {
   /** Parent field IDs for nested validation tracking */
   parentIds?: string[];
   /** Returns whether a field is a duplicate (i18n) */
-  isFieldDuplicate?: (field: Map<string, unknown>) => boolean;
+  isFieldDuplicate?: (field: CmsField) => boolean;
   /** Returns whether a field should be hidden (i18n) */
-  isFieldHidden?: (field: Map<string, unknown>) => boolean;
+  isFieldHidden?: (field: CmsField) => boolean;
 }
 
 interface ObjectControlState {
@@ -88,7 +90,7 @@ export default class ObjectControl extends React.Component<ObjectControlProps, O
 
   processControlRef = (ref: WidgetControlRef | null) => {
     if (!ref) return;
-    const name = ref.props.field.get('name');
+    const name = ref.props.field.name;
     this.childRefs[name as string] = ref;
     this.props.controlRef?.(ref);
   };
@@ -113,13 +115,13 @@ export default class ObjectControl extends React.Component<ObjectControlProps, O
   };
 
   static defaultProps = {
-    value: Map(),
+    value: {},
   };
 
   constructor(props: ObjectControlProps) {
     super(props);
     this.state = {
-      collapsed: props.field.get('collapsed', false) as boolean,
+      collapsed: props.field.collapsed ?? false,
     };
   }
 
@@ -140,10 +142,10 @@ export default class ObjectControl extends React.Component<ObjectControlProps, O
 
   validate = () => {
     const { field } = this.props;
-    const fields = field.get('fields') as unknown as List<Field>;
-    fields.forEach((field: Field) => {
-      if (field.get('widget') === 'hidden') return;
-      const name = field.get('name') as string;
+    const fields = field.fields;
+    fields.forEach((field: CmsField) => {
+      if (field.widget === 'hidden') return;
+      const name = field.name;
       const control = this.childRefs[name];
       if (!control) return;
 
@@ -161,7 +163,7 @@ export default class ObjectControl extends React.Component<ObjectControlProps, O
       JSON.stringify([parentIds, forID]) /* Fast enough for only ids */,
   );
 
-  controlFor(field: Field, key?: number) {
+  controlFor(field: CmsField, key?: number) {
     const {
       value,
       onChangeObject,
@@ -178,11 +180,11 @@ export default class ObjectControl extends React.Component<ObjectControlProps, O
       forID,
     } = this.props;
 
-    if (field.get('widget') === 'hidden') {
+    if (field.widget === 'hidden') {
       return null;
     }
-    const fieldName = field.get('name') as string;
-    const fieldValue = value && Map.isMap(value) ? value.get(fieldName) : value;
+    const fieldName = field.name;
+    const fieldValue = get(value, fieldName);
 
     const isDuplicate = isFieldDuplicate && isFieldDuplicate(field);
     const isHidden = isFieldHidden && isFieldHidden(field);
@@ -229,20 +231,20 @@ export default class ObjectControl extends React.Component<ObjectControlProps, O
     }
   }
 
-  renderFields = (multiFields: List<Field>) => {
+  renderFields = (multiFields: CmsField[]) => {
     return multiFields.map((f, idx) => this.controlFor(f, idx));
   };
 
   objectLabel = (): React.ReactNode => {
     const { value, field } = this.props;
-    const label = field.get('label', field.get('name'));
-    const summary = field.get('summary') as string | undefined;
+    const label = field.label || field.name;
+    const summary = field.summary;
     return summary
       ? stringTemplate.compileStringTemplate(
           summary,
           null,
           '',
-          value && Map.isMap(value) ? (value as Map<string, unknown>) : Map<string, unknown>(),
+          (value && isObject(value) ? value : {}) as Record<string, unknown>,
         )
       : (label as React.ReactNode);
   };
@@ -250,7 +252,7 @@ export default class ObjectControl extends React.Component<ObjectControlProps, O
   render() {
     const { field, forID, classNameWrapper, forList, hasError, t } = this.props;
     const collapsed = forList ? this.props.collapsed : this.state.collapsed;
-    const multiFields = field.get('fields') as unknown as List<Field>;
+    const multiFields = field.fields as CmsField[];
 
     if (multiFields) {
       return (

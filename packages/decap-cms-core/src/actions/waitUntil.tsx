@@ -3,7 +3,8 @@ import { WAIT_UNTIL_ACTION } from '../redux/middleware/waitUntilAction';
 import type { WaitActionArgs } from '../redux/middleware/waitUntilAction';
 import type { ThunkDispatch } from 'redux-thunk';
 import type { AnyAction } from 'redux';
-import type { State } from 'decap-cms-lib-util/types/cms-immutable';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type State = any;
 
 export function waitUntil({ predicate, run }: WaitActionArgs) {
   return {

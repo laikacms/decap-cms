@@ -1,5 +1,3 @@
-import { fromJS } from 'immutable';
-
 jest.spyOn(console, 'error').mockImplementation(() => {});
 
 describe('registry', () => {

@@ -5,16 +5,17 @@ import type { EntryValue } from '../../../valueObjects/Entry';
 import { createEntry } from '../../../valueObjects/Entry';
 import { selectEntrySlug } from '../../../reducers/collections';
 
-import type { Map } from 'immutable';
-import type { Collection } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsCollectionObject } from 'decap-cms-lib-util/types/cms';
+
+type Collection = CmsCollectionObject;
 
 const { fetchWithTimeout: fetch } = unsentRequest;
 
 export interface AlgoliaConfig {
-  get(key: 'applicationID'): string | undefined;
-  get(key: 'apiKey'): string | undefined;
-  get(key: 'indexPrefix'): string | undefined;
-  get(key: string): unknown;
+  applicationID?: string;
+  apiKey?: string;
+  indexPrefix?: string;
+  [key: string]: unknown;
 }
 
 interface AlgoliaHit {
@@ -66,14 +67,14 @@ export default class Algolia {
 
   constructor(config: AlgoliaConfig) {
     this.config = config;
-    if (config.get('applicationID') == null || config.get('apiKey') == null) {
+    if (config.applicationID == null || config.apiKey == null) {
       throw 'The Algolia search integration needs the credentials (applicationID and apiKey) in the integration configuration.';
     }
 
-    this.applicationID = config.get('applicationID') as string;
-    this.apiKey = config.get('apiKey') as string;
+    this.applicationID = config.applicationID as string;
+    this.apiKey = config.apiKey as string;
 
-    const prefix = config.get('indexPrefix');
+    const prefix = config.indexPrefix;
     this.indexPrefix = prefix ? `${prefix}-` : '';
 
     this.searchURL = `https://${this.applicationID}-dsn.algolia.net/1`;
@@ -173,7 +174,7 @@ export default class Algolia {
       return Promise.resolve({ page: this.entriesCache.page, entries: this.entriesCache.entries });
     } else {
       return this.request(
-        `${this.searchURL}/indexes/${this.indexPrefix}${collection.get('name')}`,
+        `${this.searchURL}/indexes/${this.indexPrefix}${collection.name}`,
         {
           params: { page },
         },
@@ -181,7 +182,7 @@ export default class Algolia {
         const typedResponse = response as AlgoliaSearchResult;
         const entries = typedResponse.hits.map(hit => {
           const slug = selectEntrySlug(collection, hit.path);
-          return createEntry(collection.get('name'), slug, hit.path, {
+          return createEntry(collection.name, slug, hit.path, {
             data: hit.data,
             partial: true,
           });
@@ -197,14 +198,14 @@ export default class Algolia {
       hitsPerPage: 1000,
     };
     let response = (await this.request(
-      `${this.searchURL}/indexes/${this.indexPrefix}${collection.get('name')}`,
+      `${this.searchURL}/indexes/${this.indexPrefix}${collection.name}`,
       { params },
     )) as AlgoliaSearchResult;
     let { nbPages = 0, hits } = response;
     let page = response.page + 1;
     while (page < nbPages) {
       response = (await this.request(
-        `${this.searchURL}/indexes/${this.indexPrefix}${collection.get('name')}`,
+        `${this.searchURL}/indexes/${this.indexPrefix}${collection.name}`,
         {
           params: { ...params, page },
         },
@@ -214,7 +215,7 @@ export default class Algolia {
     }
     const entries = hits.map(hit => {
       const slug = selectEntrySlug(collection, hit.path);
-      return createEntry(collection.get('name'), slug, hit.path, {
+      return createEntry(collection.name, slug, hit.path, {
         data: hit.data,
         partial: true,
       });
@@ -224,9 +225,9 @@ export default class Algolia {
   }
 
   getEntry(collection: Collection, slug: string): Promise<EntryValue> {
-    return this.searchBy('slug', collection.get('name'), slug).then(response => {
+    return this.searchBy('slug', collection.name, slug).then(response => {
       const entry = response.hits.filter(hit => hit.slug === slug)[0];
-      return createEntry(collection.get('name'), slug, entry.path, {
+      return createEntry(collection.name, slug, entry.path, {
         data: entry.data,
         partial: true,
       });

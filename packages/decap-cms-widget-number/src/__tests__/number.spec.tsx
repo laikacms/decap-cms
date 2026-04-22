@@ -1,5 +1,4 @@
 import React from 'react';
-import { fromJS } from 'immutable';
 import { render, fireEvent } from '@testing-library/react';
 
 import { DecapCmsWidgetNumber } from '../';

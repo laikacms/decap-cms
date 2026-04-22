@@ -7,9 +7,9 @@ import { addParams } from '../../../lib/urlHelper';
 const { fetchWithTimeout: fetch } = unsentRequest;
 
 export interface AssetStoreConfig {
-  get(key: 'getSignedFormURL'): string | undefined;
-  get(key: 'shouldConfirmUpload', defaultValue?: boolean): boolean;
-  get(key: string, defaultValue?: unknown): unknown;
+  getSignedFormURL?: string;
+  shouldConfirmUpload?: boolean;
+  [key: string]: unknown;
 }
 
 interface RequestOptions {
@@ -65,13 +65,13 @@ export default class AssetStore {
 
   constructor(config: AssetStoreConfig, getToken: GetTokenFn) {
     this.config = config;
-    if (config.get('getSignedFormURL') == null) {
+    if (config.getSignedFormURL == null) {
       throw 'The AssetStore integration needs the getSignedFormURL in the integration configuration.';
     }
     this.getToken = getToken;
 
-    this.shouldConfirmUpload = config.get('shouldConfirmUpload', false);
-    this.getSignedFormURL = trimEnd(config.get('getSignedFormURL') as string, '/');
+    this.shouldConfirmUpload = config.shouldConfirmUpload ?? false;
+    this.getSignedFormURL = trimEnd(config.getSignedFormURL as string, '/');
   }
 
   parseJsonResponse(response: Response): Promise<unknown> {

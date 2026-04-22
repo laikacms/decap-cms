@@ -5,8 +5,6 @@ import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import styled from '@emotion/styled';
 import { css, ClassNames } from '@emotion/react';
-import { List, Map, fromJS } from 'immutable';
-import type { Map as ImmutableMap } from 'immutable';
 import isEmpty from 'lodash/isEmpty';
 import memoize from 'lodash/memoize';
 import uniqueId from 'lodash/uniqueId';
@@ -39,13 +37,14 @@ import {
   resolveFieldKeyType,
   getErrorMessageForTypedFieldAndValue,
 } from './typedListHelpers';
-import type { ImmutableField, ImmutableValue } from './typedListHelpers';
+import type { CmsEntry, CmsField, CmsFieldBase, CmsFieldList, CmsFieldObject } from 'decap-cms-lib-util/types/index';
+import { get, isObject, omit, set } from 'lodash';
 
 type TranslateFunction = (key: string, options?: Record<string, unknown>) => string;
 
 /** Minimal shape for a widget control ref passed through controlRef */
 interface WidgetControlRef {
-  props: { field: ImmutableMap<string, unknown> };
+  props: { field: CmsFieldBase & CmsFieldList };
   validate?: () => void;
   focus?: (path: string) => void;
   innerWrappedControl?: {
@@ -187,18 +186,19 @@ const valueTypes = {
   MIXED: 'MIXED',
 };
 
-function handleSummary(summary: string, entry: ImmutableValue, label: string, item: ImmutableValue): string {
+function handleSummary(summary: string, entry: CmsEntry, label: string, item: Record<string, string>): string {
+  set(item, 'fields.label', label);
   const data = stringTemplate.addFileTemplateFields(
-    entry.get('path'),
-    item.set('fields.label', label),
+    entry.path,
+    item,
   );
   return stringTemplate.compileStringTemplate(summary, null, '', data);
 }
 
-function validateItem(field: ImmutableField, item: unknown): boolean {
-  if (!Map.isMap(item)) {
+function validateItem(field: CmsField, item: unknown): boolean {
+  if (!isObject(item)) {
     console.warn(
-      `'${field.get('name')}' field item value value should be a map but is a '${typeof item}'`,
+      `'${field.name}' field item value value should be an object but is a '${typeof item}'`,
     );
     return false;
   }
@@ -207,7 +207,7 @@ function validateItem(field: ImmutableField, item: unknown): boolean {
 }
 
 interface LabelComponentProps {
-  field: ImmutableField;
+  field: CmsField;
   isActive: boolean;
   hasErrors: boolean | undefined;
   uniqueFieldId: string;
@@ -216,7 +216,7 @@ interface LabelComponentProps {
 }
 
 function LabelComponent({ field, isActive, hasErrors, uniqueFieldId, isFieldOptional, t }: LabelComponentProps) {
-  const label = `${field.get('label', field.get('name'))}`;
+  const label = `${field.label ?? field.name}`;
   return (
     <FieldLabel isActive={isActive} hasErrors={hasErrors} htmlFor={uniqueFieldId}>
       {label} {`${isFieldOptional ? ` (${t?.('editor.editorControl.field.optional') ?? ''})` : ''}`}
@@ -224,29 +224,33 @@ function LabelComponent({ field, isActive, hasErrors, uniqueFieldId, isFieldOpti
   );
 }
 
+interface TypeItem {
+  get(key: 'label' | 'name', defaultValue?: string): string;
+}
+
 interface ListControlProps {
   /** Metadata for the field's collection, keyed by field name */
-  metadata?: ImmutableMap<string, ImmutableMap<string, unknown>>;
+  metadata?: Record<string, Record<string, unknown>>;
   /** Called when the list value changes */
-  onChange: (value: List<unknown>, metadata?: Record<string, unknown>) => void;
+  onChange: (value: unknown[], metadata?: Record<string, unknown>) => void;
   /** Called when a nested object field changes (provided by Widget wrapper) */
-  onChangeObject: (field: ImmutableField, newValue: unknown, newMetadata?: Record<string, unknown>) => void;
+  onChangeObject: (field: CmsField, newValue: unknown, newMetadata?: Record<string, unknown>) => void;
   /** Called to set validation errors for a specific field ID */
-  onValidateObject: (fieldId: string | undefined | ImmutableMap<string, unknown>, errors: Array<{ type: string; message: string }>) => void;
+  onValidateObject: (fieldId: string | CmsField, errors: Array<{ type: string; message: string }>) => void;
   /** Triggers validation on this widget */
   validate: () => void;
   /** The current list value */
-  value?: List<unknown>;
+  value?: unknown[] | unknown;
   /** The field configuration (immutable map with name, label, fields, field, types, etc.) */
-  field: ImmutableField;
+  field: CmsFieldBase & CmsFieldList;
   /** Unique field identifier used for validation and media paths */
-  forID?: string;
+  forID: string;
   /** Callback to register a ref for this control (used by parent for validation) */
   controlRef?: (ref: WidgetControlRef | null) => void;
   /** Map of media paths keyed by control ID */
-  mediaPaths: ImmutableMap<string, string>;
+  mediaPaths: Record<string, string>;
   /** Returns an asset proxy for a given path and field */
-  getAsset: (path: string, field: ImmutableField) => { toString: () => string; url: string; path: string };
+  getAsset: (path: string, field: CmsField) => { toString: () => string; url: string; path: string };
   /** Opens the media library with the given options */
   onOpenMediaLibrary: (options: Record<string, unknown>) => void;
   /** Adds an asset to the store */
@@ -266,9 +270,9 @@ interface ListControlProps {
   /** Clears field errors for a given field ID */
   clearFieldErrors: (fieldId: string | undefined) => void;
   /** Map of field IDs to arrays of validation errors */
-  fieldsErrors: ImmutableMap<string, Array<{ type: string; message: string; parentIds?: string[] }>>;
+  fieldsErrors: Record<string, Array<{ type: string; message: string; parentIds?: string[] }>>;
   /** The current entry (immutable map with path, data, etc.) */
-  entry: ImmutableMap<string, unknown>;
+  entry: CmsEntry;
   /** Translation function */
   t: TranslateFunction;
   /** Parent field IDs for nested validation tracking */
@@ -315,16 +319,17 @@ export default class ListControl extends React.Component<ListControlProps, ListC
   };
 
   static defaultProps = {
-    value: List(),
+    value: [],
     parentIds: [],
   };
 
   constructor(props: ListControlProps) {
     super(props);
-    const { field, value } = props;
-    const listCollapsed = field.get('collapsed', true) as boolean;
-    const itemsCollapsed = (value && Array(value.size).fill(listCollapsed)) || [];
-    const keys = (value && Array.from({ length: value.size }, () => uuid())) || [];
+    const { field, value: valueInput } = props;
+    const value = Array.isArray(valueInput) ? valueInput : valueInput ? [valueInput] : [];
+    const listCollapsed = !!field.collapsed;
+    const itemsCollapsed = (value && Array(value.length).fill(listCollapsed)) || [];
+    const keys = (value && Array.from({ length: value.length }, () => uuid())) || [];
 
     this.state = {
       listCollapsed,
@@ -341,13 +346,11 @@ export default class ListControl extends React.Component<ListControlProps, ListC
 
   valueToString = (value: unknown): string => {
     let stringValue;
-    if (List.isList(value) || Array.isArray(value)) {
+    if (Array.isArray(value)) {
       stringValue = value.join(',');
     } else {
       console.warn(
-        `Expected List value to be an array but received '${value}' with type of '${typeof value}'. Please check the value provided to the '${this.props.field.get(
-          'name',
-        )}' field`,
+        `Expected List value to be an array but received '${value}' with type of '${typeof value}'. Please check the value provided to the '${this.props.field.name}' field`,
       );
       stringValue = String(value);
     }
@@ -356,18 +359,18 @@ export default class ListControl extends React.Component<ListControlProps, ListC
 
   getValueType = (): string | null => {
     const { field } = this.props;
-    if (field.get('fields')) {
+    if (field.fields) {
       return valueTypes.MULTIPLE;
-    } else if (field.get('field')) {
+    } else if (field.field) {
       return valueTypes.SINGLE;
-    } else if (field.get(TYPES_KEY)) {
+    } else if (field[TYPES_KEY]) {
       return valueTypes.MIXED;
     } else {
       return null;
     }
   };
 
-  uniqueFieldId = uniqueId(`${this.props.field.get('name')}-field-`);
+  uniqueFieldId = uniqueId(`${this.props.field.name}-field-`);
   /**
    * Old comment:
    *
@@ -397,7 +400,7 @@ export default class ListControl extends React.Component<ListControlProps, ListC
 
     const parsedValue = this.valueToString(listValue);
     this.setState({ value: parsedValue });
-    onChange(List(listValue.map((val: string) => val.trim())));
+    onChange(listValue.map((val: string) => val.trim()));
   };
 
   handleFocus = () => {
@@ -419,12 +422,12 @@ export default class ListControl extends React.Component<ListControlProps, ListC
     const parsedValue =
       this.getValueType() === valueTypes.SINGLE
         ? this.singleDefault()
-        : fromJS(this.multipleDefault(field.get('fields')));
+        : this.multipleDefault(field.fields);
     this.addItem(parsedValue);
   };
 
   singleDefault = () => {
-    return this.props.field.getIn(['field', 'default'], null);
+    return get(this.props.field, ['field', 'default'], null);
   };
 
   multipleDefault = (fields: unknown) => {
@@ -432,37 +435,39 @@ export default class ListControl extends React.Component<ListControlProps, ListC
   };
 
   handleAddType = (type: string, typeKey: string) => {
-    const parsedValue = fromJS(this.mixedDefault(typeKey, type));
+    const parsedValue = this.mixedDefault(typeKey, type);
     this.addItem(parsedValue);
   };
 
   mixedDefault = (typeKey: string, type: string) => {
-    const selectedType = (this.props.field.get(TYPES_KEY) as List<ImmutableField>).find(
-      (f: ImmutableField) => f.get('name') === type,
-    ) as ImmutableField;
-    const fields = selectedType.get('fields') || [selectedType.get('field')];
+    const selectedType = (this.props.field[TYPES_KEY] as CmsField[]).find(
+      (f: CmsField) => f.name === type,
+    ) as CmsField & { fields?: CmsField[] | unknown; field?: CmsField | unknown };
+    const fields = selectedType?.fields || [selectedType?.field];
 
     return this.getFieldsDefault(fields, { [typeKey]: type });
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getFieldsDefault = (fields: any, initialValue: Record<string, unknown> = {}): Record<string, unknown> => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return fields.reduce((acc: Record<string, unknown>, item: any) => {
       const subfields = item.get('field') || item.get('fields');
       const object = item.get('widget') == 'object';
       const name = item.get('name');
       const defaultValue = item.get('default', null);
 
-      if (List.isList(subfields) && object) {
+      if (Array.isArray(subfields) && object) {
         const subDefaultValue = this.getFieldsDefault(subfields);
-        !isEmpty(subDefaultValue) && (acc[name] = subDefaultValue);
+        if (!isEmpty(subDefaultValue)) {
+          acc[name] = subDefaultValue;
+        }
         return acc;
       }
 
-      if (Map.isMap(subfields) && object) {
+      if (isObject(subfields) && object) {
         const subDefaultValue = this.getFieldsDefault([subfields]);
-        !isEmpty(subDefaultValue) && (acc[name] = subDefaultValue);
+        if (!isEmpty(subDefaultValue)) {
+          acc[name] = subDefaultValue;
+        }
         return acc;
       }
 
@@ -476,7 +481,7 @@ export default class ListControl extends React.Component<ListControlProps, ListC
 
   addItem = (parsedValue: unknown) => {
     const { value, onChange, field } = this.props;
-    const addToTop = field.get('add_to_top', false);
+    const addToTop = field.add_to_top ?? false;
 
     const itemKey = uuid();
     this.setState({
@@ -486,11 +491,11 @@ export default class ListControl extends React.Component<ListControlProps, ListC
       keys: addToTop ? [itemKey, ...this.state.keys] : [...this.state.keys, itemKey],
     });
 
-    const listValue = value || List();
+    const listValue = Array.isArray(value) ? value : value ? [value] : [];
     if (addToTop) {
-      onChange(listValue.unshift(parsedValue));
+      onChange([parsedValue, ...listValue]);
     } else {
-      onChange(listValue.push(parsedValue));
+      onChange([...listValue, parsedValue]);
     }
   };
 
@@ -517,18 +522,19 @@ export default class ListControl extends React.Component<ListControlProps, ListC
   };
 
   validateSize = () => {
-    const { field, value, t } = this.props;
-    const min = field.get('min');
-    const max = field.get('max');
-    const required = field.get('required', true);
+    const { field, value: valueInput, t } = this.props;
+    const value = Array.isArray(valueInput) ? valueInput : valueInput ? [valueInput] : [];
+    const min = field.min;
+    const max = field.max;
+    const required = field.required ?? true;
 
-    if (!required && !value?.size) {
+    if (!required && !value?.length) {
       return [];
     }
 
     const error = validations.validateMinMax(
       t as (key: string, options: unknown) => string,
-      field.get('label', field.get('name')),
+      field.label ?? field.name,
       value,
       min,
       max,
@@ -542,26 +548,36 @@ export default class ListControl extends React.Component<ListControlProps, ListC
    * e.g. when debounced, always get the latest object value instead of using
    * `this.props.value` directly.
    */
-  getObjectValue = (idx: number) => (this.props.value as List<unknown>).get(idx) || Map();
+  getObjectValue = (idx: number) => ((this.props.value as unknown[])[idx] || {}) as Record<string, unknown>;
 
   handleChangeFor = memoize((index: number) => {
-    return (f: ImmutableField, newValue: unknown, newMetadata: Record<string, unknown>) => {
-      const { value, metadata, onChange, field } = this.props;
-      const collectionName = field.get('name');
-      const listFieldObjectWidget = field.getIn(['field', 'widget']) === 'object';
+    return (f: CmsField, newValue: unknown, newMetadata: Record<string, unknown>) => {
+      const { value: inputValue, metadata, onChange, field } = this.props;
+      const value = Array.isArray(inputValue) ? inputValue : inputValue ? [inputValue] : [];
+      const collectionName = field.name;
+      const isListFieldObjectWidget = get(field, ['field', 'widget']) === 'object';
       const withNameKey =
         this.getValueType() !== valueTypes.SINGLE ||
-        (this.getValueType() === valueTypes.SINGLE && listFieldObjectWidget);
-      const newObjectValue = withNameKey
-        ? (this.getObjectValue(index) as ImmutableValue).set(f.get('name'), newValue)
-        : newValue;
+        (this.getValueType() === valueTypes.SINGLE && isListFieldObjectWidget);
+      let newObjectValue;
+      if (withNameKey) {
+        const name = f.name;
+        const ov = this.getObjectValue(index)
+        ov[name] = newValue;
+        newObjectValue = ov;
+      } else {
+        newObjectValue = newValue;
+      }
       const parsedMetadata = {
         [collectionName]: Object.assign(
-          metadata ? (metadata as ImmutableField).toJS() : {},
+          metadata ?? {},
           newMetadata || {},
         ),
       };
-      onChange((value as List<unknown>).set(index, newObjectValue), parsedMetadata);
+
+      value[index] = newObjectValue;
+
+      onChange(value, parsedMetadata);
     };
   });
 
@@ -569,7 +585,7 @@ export default class ListControl extends React.Component<ListControlProps, ListC
     event.preventDefault();
     const { itemsCollapsed } = this.state;
     const {
-      value,
+      value: inputValue,
       metadata,
       onChange,
       field,
@@ -579,19 +595,18 @@ export default class ListControl extends React.Component<ListControlProps, ListC
       fieldsErrors,
     } = this.props;
 
-    const collectionName = field.get('name');
+    const collectionName = field.name;
     const isSingleField = this.getValueType() === valueTypes.SINGLE;
+    const value = inputValue && Array.isArray(inputValue) ? inputValue : inputValue ? [inputValue] : [];
 
-    const val = value as List<unknown>;
+    const val = { ...value };
     const metadataRemovePath = isSingleField
-      ? val.get(index)
-      : (val.get(index) as ImmutableValue).valueSeq();
+      ? val[index]
+      : Object.values(val[index]); // TODO: Is this the correct way to get the metadata path for a list item with multiple fields? - Sem
     const parsedMetadata =
-      metadata && !(metadata as ImmutableField).isEmpty()
+      metadata && !isEmpty(metadata)
         ? {
-            [collectionName]: (metadata as ImmutableField).removeIn(
-              metadataRemovePath as unknown as string[],
-            ),
+            [collectionName]: omit(metadata, ...metadataRemovePath),
           }
         : metadata;
 
@@ -611,13 +626,11 @@ export default class ListControl extends React.Component<ListControlProps, ListC
     // Clear the ref for the removed item
     delete this.childRefs[removedKey];
 
-    const newValue = val.delete(index);
+    // Remove the item from the array
+    const newValue = value.filter((_: unknown, i: number) => i !== index);
 
-    // Clear errors for the removed item and its children
     if (fieldsErrors) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      Object.entries(fieldsErrors.toJS()).forEach(([fieldId, errors]: [string, any]) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      Object.entries(fieldsErrors).forEach(([fieldId, errors]: [string, any]) => {
         if (errors.some((err: any) => err.parentIds?.includes(removedKey))) {
           clearFieldErrors(fieldId);
         }
@@ -625,7 +638,7 @@ export default class ListControl extends React.Component<ListControlProps, ListC
     }
 
     // If list is empty, mark it as valid
-    if (newValue.size === 0) {
+    if (newValue.length === 0) {
       clearFieldErrors(forID);
       onValidateObject(forID, []);
     }
@@ -650,22 +663,23 @@ export default class ListControl extends React.Component<ListControlProps, ListC
 
   handleCollapseAllToggle = (e: React.MouseEvent) => {
     e.preventDefault();
-    const { value, field } = this.props;
+    const { value: inputValue, field } = this.props;
+    const value = inputValue && Array.isArray(inputValue) ? inputValue : inputValue ? [inputValue] : [];
     const { itemsCollapsed, listCollapsed } = this.state;
-    const minimizeCollapsedItems = field.get('minimize_collapsed', false);
-    const listCollapsedByDefault = field.get('collapsed', true);
+    const minimizeCollapsedItems = field.minimize_collapsed ?? false;
+    const listCollapsedByDefault = field.collapsed ?? true;
     const allItemsCollapsed = itemsCollapsed.every((val: boolean) => val === true);
 
     if (minimizeCollapsedItems) {
       let updatedItemsCollapsed = itemsCollapsed;
       // Only allow collapsing all items in this mode but not opening all at once
       if (!listCollapsed || !listCollapsedByDefault) {
-        updatedItemsCollapsed = Array((value as List<unknown>).size).fill(!listCollapsed);
+        updatedItemsCollapsed = Array(value.length).fill(!listCollapsed);
       }
       this.setState({ listCollapsed: !listCollapsed, itemsCollapsed: updatedItemsCollapsed });
     } else {
       this.setState({
-        itemsCollapsed: Array((value as List<unknown>).size).fill(!allItemsCollapsed),
+        itemsCollapsed: Array(value.length).fill(!allItemsCollapsed),
       });
     }
   };
@@ -678,20 +692,20 @@ export default class ListControl extends React.Component<ListControlProps, ListC
         if (!validateItem(field, item)) {
           return;
         }
-        const itemType = getTypedFieldForValue(field, item as ImmutableValue);
-        const label = itemType.get('label', itemType.get('name'));
+        const itemType = getTypedFieldForValue(field, item);
+        const label = itemType?.label ?? itemType?.name ?? ''
         // each type can have its own summary, but default to the list summary if exists
-        const summary = itemType.get('summary', field.get('summary'));
+        const summary = get(itemType, 'summary', field?.summary);
         const labelReturn = summary
-          ? handleSummary(summary, entry, label, item as ImmutableValue)
+          ? handleSummary(summary, entry, label, item as Record<string, string>)
           : label;
         return labelReturn;
       }
       case valueTypes.SINGLE: {
-        const singleField = field.get('field') as ImmutableField;
-        const label = singleField.get('label', singleField.get('name'));
-        const summary = field.get('summary');
-        const data = fromJS({ [singleField.get('name')]: item }) as unknown as ImmutableValue;
+        const singleField = field.field;
+        const label = singleField?.label ?? singleField?.name ?? '';
+        const summary = field?.summary;
+        const data = { [singleField?.name ?? '']: item as string };
         const labelReturn = summary ? handleSummary(summary, entry, label, data) : label;
         return labelReturn;
       }
@@ -699,28 +713,30 @@ export default class ListControl extends React.Component<ListControlProps, ListC
         if (!validateItem(field, item)) {
           return;
         }
-        const multiFields = field.get('fields') as List<ImmutableField>;
-        const labelField = multiFields && multiFields.first();
-        const value = (item as ImmutableValue).get(labelField!.get('name'));
-        const summary = field.get('summary');
+        const multiFields = field.fields;
+        const labelField = multiFields && multiFields?.[0];
+        const value = get(item, labelField?.name ?? '', '');
+        const summary = field?.summary;
         const labelReturn = summary
-          ? handleSummary(summary, entry, value, item as ImmutableValue)
+          ? handleSummary(summary, entry, value, item as Record<string, string>)
           : value;
-        return (labelReturn || `No ${labelField!.get('name')}`).toString();
+        return (labelReturn || `No ${labelField?.name}`).toString();
       }
     }
     return '';
   }
 
   onSortEnd = ({ oldIndex, newIndex }: { oldIndex: number; newIndex: number }) => {
-    const { value } = this.props;
+    const { value: inputValue } = this.props;
+    const value = inputValue && Array.isArray(inputValue) ? inputValue : inputValue ? [inputValue] : [];
     const { itemsCollapsed, keys } = this.state;
 
-    const val = value as List<unknown>;
+    const val = { ...value };
     // Update value
-    const item = val.get(oldIndex);
-    const newValue = val.delete(oldIndex).insert(newIndex, item);
-    this.props.onChange(newValue);
+    const item = val[oldIndex];
+    val.splice(oldIndex, 1);
+    val.splice(newIndex, 0, item);
+    this.props.onChange(val);
 
     // Update collapsing
     const collapsed = itemsCollapsed[oldIndex];
@@ -739,10 +755,8 @@ export default class ListControl extends React.Component<ListControlProps, ListC
 
   hasError = (index: number) => {
     const { fieldsErrors } = this.props;
-    if (fieldsErrors && fieldsErrors.size > 0) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return Object.values(fieldsErrors.toJS()).some((arr: any) =>
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (fieldsErrors && !isEmpty(fieldsErrors)) {
+      return Object.values(fieldsErrors).some((arr: any) =>
         arr.some((err: any) => err.parentIds && err.parentIds.includes(this.state.keys[index])),
       );
     }
@@ -782,7 +796,6 @@ export default class ListControl extends React.Component<ListControlProps, ListC
       JSON.stringify([...parentIds, forID, key]),
   );
 
-  // eslint-disable-next-line react/display-name
   renderItem = (item: unknown, index: number) => {
     const {
       classNameWrapper,
@@ -801,13 +814,13 @@ export default class ListControl extends React.Component<ListControlProps, ListC
     const { itemsCollapsed, keys } = this.state;
     const collapsed = itemsCollapsed[index];
     const key = keys[index];
-    let field: ImmutableField | undefined = this.props.field;
+    let field: CmsField | undefined = this.props.field;
     const hasError = this.hasError(index);
     const isVariableTypesList = this.getValueType() === valueTypes.MIXED;
     if (isVariableTypesList) {
-      field = getTypedFieldForValue(field!, item as ImmutableValue);
+      field = getTypedFieldForValue(field!, item);
       if (!field) {
-        return this.renderErroneousTypedItem(index, item as ImmutableValue);
+        return this.renderErroneousTypedItem(index, item);
       }
     }
 
@@ -825,7 +838,7 @@ export default class ListControl extends React.Component<ListControlProps, ListC
             isActive={false}
             hasErrors={hasError}
             uniqueFieldId={this.uniqueFieldId}
-            isFieldOptional={field!.get('required') === false}
+            isFieldOptional={field.required === false}
             t={t}
           />
         )}
@@ -834,8 +847,8 @@ export default class ListControl extends React.Component<ListControlProps, ListC
           onCollapseToggle={() => this.handleItemCollapseToggle(index, { preventDefault: () => {} } as React.MouseEvent)}
           dragHandle={DragHandle}
           id={key}
-          allowRemove={field!.get('allow_remove', true)}
-          allowReorder={field!.get('allow_reorder', true)}
+          allowRemove={field!.allow_remove ?? true}
+          allowReorder={field!.allow_reorder ?? true}
           onRemove={() => this.handleRemove(index, { preventDefault: () => {} } as React.MouseEvent)}
           data-testid={`styled-list-item-top-bar-${key}`}
         />
@@ -851,17 +864,17 @@ export default class ListControl extends React.Component<ListControlProps, ListC
                 `]: collapsed,
               })}
               value={item as Record<string, unknown>}
-              field={field}
+              field={field as CmsFieldObject & CmsFieldBase /* It seems to me that the nested field should be passed but maybe this is a hack to pass the field to the object widget and have it render the field or fields properties? */}
               onChangeObject={this.handleChangeFor(index) as (...args: unknown[]) => unknown}
               editorControl={editorControl}
               resolveWidget={resolveWidget}
               metadata={metadata}
               forList
-              onValidateObject={onValidateObject}
+              onValidateObject={onValidateObject }
               clearFieldErrors={clearFieldErrors}
               fieldsErrors={fieldsErrors}
               ref={this.processControlRef}
-              controlRef={controlRef}
+              controlRef={controlRef as any /* TODO: Fix strange typescript error */}
               validationKey={key}
               t={t}
               collapsed={collapsed}
@@ -875,9 +888,9 @@ export default class ListControl extends React.Component<ListControlProps, ListC
     );
   };
 
-  renderErroneousTypedItem(index: number, item: ImmutableValue) {
+  renderErroneousTypedItem(index: number, item: unknown) {
     const field = this.props.field;
-    const errorMessage = getErrorMessageForTypedFieldAndValue(field, item);
+    const errorMessage = getErrorMessageForTypedFieldAndValue(field, item as Record<string, unknown>);
     const key = `item-${index}`;
     return (
       <SortableListItem
@@ -900,13 +913,14 @@ export default class ListControl extends React.Component<ListControlProps, ListC
   }
 
   renderListControl() {
-    const { value, forID, field, classNameWrapper, t } = this.props;
+    const { value: inputValue, forID, field, classNameWrapper, t } = this.props;
+    const value = inputValue && Array.isArray(inputValue) ? inputValue : inputValue ? [inputValue] : [];
     const { itemsCollapsed, listCollapsed, keys } = this.state;
-    const items = value || List();
-    const label = field.get('label', field.get('name'));
-    const labelSingular = field.get('label_singular') || field.get('label', field.get('name'));
-    const listLabel = items.size === 1 ? labelSingular.toLowerCase() : label.toLowerCase();
-    const minimizeCollapsedItems = field.get('minimize_collapsed', false);
+    const items = value || [];
+    const label = field.label ?? field.name;
+    const labelSingular = field.label_singular ?? field.label ?? field.name;
+    const listLabel = items.length === 1 ? labelSingular.toLowerCase() : label.toLowerCase();
+    const minimizeCollapsedItems = field.minimize_collapsed ?? false;
     const allItemsCollapsed = itemsCollapsed.every((val: boolean) => val === true);
     const selfCollapsed = allItemsCollapsed && (listCollapsed || !minimizeCollapsedItems);
 
@@ -925,11 +939,11 @@ export default class ListControl extends React.Component<ListControlProps, ListC
             )}
           >
             <ObjectWidgetTopBar
-              allowAdd={field.get('allow_add', true)}
+              allowAdd={field.allow_add}
               onAdd={() => this.handleAdd({ preventDefault: () => {} } as React.MouseEvent)}
-              types={field.get(TYPES_KEY, null)}
+              types={field[TYPES_KEY] as unknown as TypeItem[]} // TODO: Check types
               onAddType={(type: string) => this.handleAddType(type, resolveFieldKeyType(field))}
-              heading={`${items.size} ${listLabel}`}
+              heading={`${items.length} ${listLabel}`}
               label={labelSingular.toLowerCase()}
               onCollapseToggle={() => this.handleCollapseAllToggle({ preventDefault: () => {} } as React.MouseEvent)}
               collapsed={selfCollapsed}

@@ -1,10 +1,12 @@
 import React from 'react';
 import { translate } from 'react-polyglot';
 import { Dropdown, DropdownItem } from 'decap-cms-ui-default';
-import type { Map as ImmutableMap } from 'immutable';
 
-import { SortDirection } from 'decap-cms-lib-util/types/cms-immutable';
+import { CmsSortDirection } from 'decap-cms-lib-util/types/cms';
 import { ControlButton } from './ControlButton';
+
+type SortDirection = CmsSortDirection;
+const SortDirection = CmsSortDirection;
 
 function nextSortDirection(direction: string | undefined) {
   switch (direction) {
@@ -34,14 +36,13 @@ interface SortControlProps {
   t: (key: string) => string;
   fields: { key: string; label?: string }[];
   onSortClick: (key: string, direction: SortDirection) => void;
-  sort: ImmutableMap<string, unknown> | undefined;
+  sort: Record<string, unknown> | undefined;
 }
 
 function SortControl({ t, fields, onSortClick, sort }: SortControlProps) {
   const hasActiveSort = sort
-    ?.valueSeq()
-    .toJS()
-    .some((s: any) => s.direction !== SortDirection.None);
+    ? Object.values(sort).some((s: any) => s.direction !== SortDirection.None)
+    : false;
 
   return (
     <Dropdown
@@ -56,7 +57,7 @@ function SortControl({ t, fields, onSortClick, sort }: SortControlProps) {
       dropdownPosition="left"
     >
       {fields.map(field => {
-        const sortDir = sort?.getIn([field.key, 'direction']) as string | undefined;
+        const sortDir = sort?.[field.key] ? (sort[field.key] as any)?.direction as string | undefined : undefined;
         const isActive = sortDir != null && sortDir !== SortDirection.None;
         const nextSortDir = nextSortDirection(sortDir);
         return (

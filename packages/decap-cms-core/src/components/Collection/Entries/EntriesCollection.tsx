@@ -1,6 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
@@ -9,9 +7,13 @@ import { Cursor } from 'decap-cms-lib-util';
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import { colors } from 'decap-cms-ui-default';
 
-import type { List as ImmutableList, Set as ImmutableSet } from 'immutable';
-import type { Collection, Collections, EntryMap, GroupOfEntries, State, Page } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsCollectionObject, CmsCollections, CmsEntryMap, CmsGroupOfEntries } from 'decap-cms-lib-util/types/cms';
 import type { Status } from '../../../constants/publishModes';
+
+type Collection = CmsCollectionObject;
+type Collections = CmsCollections;
+type EntryMap = CmsEntryMap;
+type GroupOfEntries = CmsGroupOfEntries;
 
 import {
   loadEntries as actionLoadEntries,
@@ -38,8 +40,8 @@ const GroupHeading = styled.h2`
 
 const GroupContainer = styled.div``;
 
-function getGroupEntries(entries: ImmutableList<EntryMap> | undefined, paths: ImmutableSet<string>) {
-  return entries?.filter(entry => paths.has(entry.get('path')));
+function getGroupEntries(entries: EntryMap[] | undefined, paths: Set<string>) {
+  return entries?.filter(entry => paths.has(entry.path));
 }
 
 function getGroupTitle(group: GroupOfEntries, t: TranslateFunction) {
@@ -55,8 +57,8 @@ function getGroupTitle(group: GroupOfEntries, t: TranslateFunction) {
 
 function withGroups(
   groups: GroupOfEntries[],
-  entries: ImmutableList<EntryMap> | undefined,
-  EntriesToRender: React.ComponentType<{ entries: ImmutableList<EntryMap> | undefined }>,
+  entries: EntryMap[] | undefined,
+  EntriesToRender: React.ComponentType<{ entries: EntryMap[] | undefined }>,
   t: TranslateFunction,
 ) {
   return groups.map((group: GroupOfEntries) => {
@@ -74,7 +76,7 @@ interface EntriesCollectionProps {
   collection: Collection;
   collections?: Collections;
   page?: number;
-  entries?: ImmutableList<EntryMap>;
+  entries?: EntryMap[];
   groups?: GroupOfEntries[];
   isFetching: boolean;
   viewStyle?: string;
@@ -92,29 +94,7 @@ interface EntriesCollectionProps {
 }
 
 export class EntriesCollection extends React.Component<EntriesCollectionProps> {
-  static propTypes = {
-    collection: ImmutablePropTypes.map.isRequired,
-    collections: ImmutablePropTypes.iterable,
-    page: PropTypes.number,
-    entries: ImmutablePropTypes.list,
-    groups: PropTypes.array,
-    isFetching: PropTypes.bool.isRequired,
-    viewStyle: PropTypes.string,
-    cursor: PropTypes.object.isRequired,
-    loadEntries: PropTypes.func.isRequired,
-    traverseCollectionCursor: PropTypes.func.isRequired,
-    entriesLoaded: PropTypes.bool,
-    loadUnpublishedEntries: PropTypes.func.isRequired,
-    unpublishedEntriesLoaded: PropTypes.bool,
-    isEditorialWorkflowEnabled: PropTypes.bool,
-    getWorkflowStatus: PropTypes.func.isRequired,
-    getUnpublishedEntries: PropTypes.func.isRequired,
-  };
-
   componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(EntriesCollection.propTypes, this.props, 'prop', 'EntriesCollection');
-
     const {
       collection,
       collections,
@@ -177,7 +157,7 @@ export class EntriesCollection extends React.Component<EntriesCollectionProps> {
       filterTerm,
     } = this.props;
 
-    const EntriesToRender = ({ entries }: { entries: ImmutableList<EntryMap> | undefined }) => {
+    const EntriesToRender = ({ entries }: { entries: EntryMap[] | undefined }) => {
       return (
         <Entries
           collections={collection}
@@ -205,11 +185,11 @@ export class EntriesCollection extends React.Component<EntriesCollectionProps> {
 export function filterNestedEntries(
   path: string,
   collectionFolder: string,
-  entries: ImmutableList<EntryMap>,
+  entries: EntryMap[],
   subfolders: boolean,
 ) {
   const filtered = entries.filter((e: EntryMap) => {
-    let entryPath = e.get('path').slice(collectionFolder.length + 1);
+    let entryPath = e.path.slice(collectionFolder.length + 1);
     if (!entryPath.startsWith(path)) {
       return false;
     }
@@ -233,35 +213,35 @@ export function filterNestedEntries(
   return filtered;
 }
 
-function mapStateToProps(state: State, ownProps: { collection: Collection; viewStyle?: string; filterTerm?: string }) {
+function mapStateToProps(state: any, ownProps: { collection: Collection; viewStyle?: string; filterTerm?: string }) {
   const { collection, viewStyle, filterTerm } = ownProps;
-  const page = state.entries.getIn(['pages', collection.get('name'), 'page']) as number | undefined;
+  const page = (state.entries as any)?.pages?.[collection.name]?.page as number | undefined;
 
   const collections = state.collections;
 
-  let entries = selectEntries(state.entries, collection) as ImmutableList<EntryMap>;
+  let entries = selectEntries(state.entries, collection) as EntryMap[];
   const groups = selectGroups(state.entries, collection);
 
-  if (collection.has('nested')) {
-    const collectionFolder = collection.get('folder') as string;
-    const nested = collection.get('nested');
+  if (collection.nested) {
+    const collectionFolder = collection.folder as string;
+    const nested = collection.nested;
     entries = filterNestedEntries(
       filterTerm || '',
       collectionFolder,
       entries,
-      nested ? nested.get('subfolders') !== false : true,
+      nested ? nested.subfolders !== false : true,
     );
   }
-  const entriesLoaded = selectEntriesLoaded(state.entries, collection.get('name'));
-  const isFetching = selectIsFetching(state.entries, collection.get('name'));
+  const entriesLoaded = selectEntriesLoaded(state.entries, collection.name);
+  const isFetching = selectIsFetching(state.entries, collection.name);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const rawCursor = selectCollectionEntriesCursor(state.cursors as any, collection.get('name'));
+  const rawCursor = selectCollectionEntriesCursor(state.cursors as any, collection.name);
   const cursor = Cursor.create(rawCursor).clearData();
 
   const isEditorialWorkflowEnabled = state.config?.publish_mode === 'editorial_workflow';
   const unpublishedEntriesLoaded = isEditorialWorkflowEnabled
-    ? !!state.editorialWorkflow?.getIn(['pages', 'ids'])
+    ? !!(state.editorialWorkflow as any)?.pages?.ids
     : true;
 
   return {
@@ -278,7 +258,7 @@ function mapStateToProps(state: State, ownProps: { collection: Collection; viewS
     isEditorialWorkflowEnabled,
     getWorkflowStatus: (collectionName: string, slug: string) => {
       const unpublishedEntry = selectUnpublishedEntry(state, collectionName, slug);
-      return unpublishedEntry ? unpublishedEntry.get('status') : null;
+      return unpublishedEntry ? (unpublishedEntry as any).status : null;
     },
     getUnpublishedEntries: (collectionName: string) => {
       if (!isEditorialWorkflowEnabled) return [];
@@ -289,10 +269,9 @@ function mapStateToProps(state: State, ownProps: { collection: Collection; viewS
       allStatuses.forEach(statusKey => {
         const entriesForStatus = selectUnpublishedEntriesByStatus(state, statusKey);
         if (entriesForStatus) {
-          entriesForStatus.forEach((entry: EntryMap) => {
-            if (entry.get('collection') === collectionName) {
-              const entryWithCollection = entry.set('collection', collectionName);
-              unpublishedEntries.push(entryWithCollection as EntryMap);
+          entriesForStatus.forEach((entry: any) => {
+            if (entry.collection === collectionName) {
+              unpublishedEntries.push(entry as EntryMap);
             }
           });
         }

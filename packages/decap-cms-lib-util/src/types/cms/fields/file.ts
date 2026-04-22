@@ -1,10 +1,15 @@
 import type { CmsMediaLibrary } from "../media";
+import type { CmsFieldImage } from "./image";
 
-export interface CmsFieldFileOrImage {
-  widget: 'file' | 'image';
+export interface CmsFieldFile {
+  widget: 'file';
   default?: string;
 
   media_library?: CmsMediaLibrary;
   allow_multiple?: boolean;
+  private? : boolean;
   config?: unknown;
+  choose_url?: boolean;
 }
+
+export type CmsFieldFileOrImage = CmsFieldFile | CmsFieldImage;

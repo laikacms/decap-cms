@@ -9,7 +9,11 @@ import {
   changeDraftFieldValidation,
 } from '../actions/entries';
 
-import type { Collection, EntryMap, EntryField } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsCollectionObject, CmsEntryMap, CmsEntryField } from 'decap-cms-lib-util/types/cms';
+
+type Collection = CmsCollectionObject;
+type EntryMap = CmsEntryMap;
+type EntryField = CmsEntryField;
 
 /**
  * Hook for entry draft state and actions
@@ -19,15 +23,15 @@ export function useEntryDraft() {
   const dispatch = useAppDispatch();
   const entryDraft = useAppSelector(state => state.entryDraft);
 
-  const hasChanged = entryDraft.get('hasChanged');
-  const draftEntry = entryDraft.get('entry');
-  const fieldsMetaData = entryDraft.get('fieldsMetaData');
-  const fieldsErrors = entryDraft.get('fieldsErrors');
-  const localBackup = entryDraft.get('localBackup');
-  const draftKey = entryDraft.get('key');
-  const isPersisting = draftEntry?.get('isPersisting');
-  const isNewRecord = draftEntry?.get('newRecord');
-  const isModification = entryDraft.getIn(['entry', 'isModification']);
+  const hasChanged = entryDraft.hasChanged;
+  const draftEntry = entryDraft.entry;
+  const fieldsMetaData = entryDraft.fieldsMetaData;
+  const fieldsErrors = entryDraft.fieldsErrors;
+  const localBackup = entryDraft.localBackup;
+  const draftKey = entryDraft.key;
+  const isPersisting = draftEntry?.isPersisting;
+  const isNewRecord = draftEntry?.newRecord;
+  const isModification = entryDraft.entry?.isModification;
 
   const createEmpty = useCallback(
     (collection: Collection, search?: string) => {

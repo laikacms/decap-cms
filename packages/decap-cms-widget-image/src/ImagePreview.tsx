@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
-import { List } from 'immutable';
 import { WidgetPreviewContainer } from 'decap-cms-ui-default';
 
 interface StyledImageInnerProps {
@@ -24,7 +23,7 @@ interface StyledImageAssetProps {
 }
 
 function StyledImageAsset({ getAsset, value, field }: StyledImageAssetProps) {
-  let src = '';
+  let src;
   if (value instanceof File) {
     src = URL.createObjectURL(value);
   } else {
@@ -34,14 +33,14 @@ function StyledImageAsset({ getAsset, value, field }: StyledImageAssetProps) {
 }
 
 interface ImagePreviewContentProps {
-  value: string | string[] | File | List<string>;
+  value: string | string[] | File;
   getAsset: (value: string, field?: unknown) => string;
   field?: unknown;
 }
 
 function ImagePreviewContent(props: ImagePreviewContentProps) {
   const { value, getAsset, field } = props;
-  if (Array.isArray(value) || List.isList(value)) {
+  if (Array.isArray(value)) {
     return (value as string[]).map((val: string, index: number) => (
       <StyledImageAsset key={index} value={val} getAsset={getAsset} field={field} />
     ));
@@ -51,7 +50,7 @@ function ImagePreviewContent(props: ImagePreviewContentProps) {
 
 interface ImagePreviewProps {
   getAsset: (value: string, field?: unknown) => string;
-  value?: string | string[] | File | List<string>;
+  value?: string | string[] | File;
   field?: unknown;
 }
 

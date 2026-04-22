@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
-import { List } from 'immutable';
 import { WidgetPreviewContainer } from 'decap-cms-ui-default';
 
 interface FileLinkProps {
@@ -35,14 +34,14 @@ function FileLinkList({ values, getAsset, field }: FileLinkListProps) {
 }
 
 interface FileContentProps {
-  value: string | string[] | List<string>;
+  value: string | string[];
   getAsset: (value: string, field?: unknown) => string;
   field?: unknown;
 }
 
 function FileContent(props: FileContentProps) {
   const { value, getAsset, field } = props;
-  if (Array.isArray(value) || List.isList(value)) {
+  if (Array.isArray(value)) {
     return <FileLinkList values={value as string[]} getAsset={getAsset} field={field} />;
   }
   return <FileLink key={value} path={value} href={getAsset(value, field)} />;
@@ -50,7 +49,7 @@ function FileContent(props: FileContentProps) {
 
 interface FilePreviewProps {
   getAsset: (value: string, field?: unknown) => string;
-  value?: string | string[] | List<string>;
+  value?: string | string[];
   field?: unknown;
 }
 

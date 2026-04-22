@@ -1,6 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 import { translate } from 'react-polyglot';
@@ -8,7 +6,10 @@ import { NavLink } from 'react-router-dom';
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import { Icon, components, colors } from 'decap-cms-ui-default';
 
-import type { Collection, Collections } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsCollectionObject, CmsCollections } from 'decap-cms-lib-util/types/cms';
+
+type Collection = CmsCollectionObject;
+type Collections = CmsCollections;
 
 import { searchCollections } from '../../actions/collections';
 import CollectionSearch from './CollectionSearch';
@@ -78,23 +79,9 @@ interface SidebarProps {
 }
 
 export class Sidebar extends React.Component<SidebarProps> {
-  static propTypes = {
-    collections: ImmutablePropTypes.map.isRequired,
-    collection: ImmutablePropTypes.map,
-    isSearchEnabled: PropTypes.bool,
-    searchTerm: PropTypes.string,
-    filterTerm: PropTypes.string,
-    t: PropTypes.func.isRequired,
-  };
-
-  componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(Sidebar.propTypes, this.props, 'prop', 'Sidebar');
-  }
-
   renderLink = (collection: Collection, filterTerm: string | undefined) => {
-    const collectionName = collection.get('name');
-    if (collection.has('nested')) {
+    const collectionName = collection.name;
+    if (collection.nested) {
       return (
         <li key={collectionName}>
           <NestedCollection
@@ -114,7 +101,7 @@ export class Sidebar extends React.Component<SidebarProps> {
           data-testid={collectionName}
         >
           <Icon type="write" />
-          {collection.get('label')}
+          {collection.label}
         </SidebarNavLink>
       </li>
     );
@@ -134,9 +121,8 @@ export class Sidebar extends React.Component<SidebarProps> {
           />
         )}
         <SidebarNavList>
-          {(collections as any)
-            .toList()
-            .filter((collection: Collection) => collection.get('hide') !== true)
+          {Object.values(collections)
+            .filter((collection: Collection) => collection.hide !== true)
             .map((collection: Collection) => this.renderLink(collection, filterTerm))}
         </SidebarNavList>
       </SidebarContainer>

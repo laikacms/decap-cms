@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import styled from '@emotion/styled';
 import { colors, borders, lengths, shadows, effects } from 'decap-cms-ui-default';
-import type { Map as ImmutableMap } from 'immutable';
 
 const IMAGE_HEIGHT = 160;
 
@@ -73,7 +72,7 @@ const DraftText = styled.p`
 
 interface MediaLibraryCardProps {
   isSelected?: boolean;
-  displayURL: ImmutableMap<string, unknown>;
+  displayURL: Record<string, unknown>;
   text: string;
   onClick: () => void;
   draftText: string;
@@ -103,7 +102,7 @@ class MediaLibraryCard extends React.Component<MediaLibraryCardProps> {
       isViewableImage,
       isDraft,
     } = this.props;
-    const url = displayURL.get('url') as string | undefined;
+    const url = displayURL['url'] as string | undefined;
     return (
       <Card
         $isSelected={isSelected}
@@ -128,7 +127,7 @@ class MediaLibraryCard extends React.Component<MediaLibraryCardProps> {
   }
   componentDidMount() {
     const { displayURL, loadDisplayURL } = this.props;
-    if (!displayURL.get('url')) {
+    if (!displayURL['url']) {
       loadDisplayURL();
     }
   }
