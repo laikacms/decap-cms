@@ -1,13 +1,13 @@
-import semaphore from 'semaphore';
+import createSemaphore from './semaphore';
 import unionBy from 'lodash/unionBy';
 import sortBy from 'lodash/sortBy';
 
 import { basename } from './path';
 
-import type { Semaphore } from 'semaphore';
+import type { Semaphore } from './semaphore';
 import type { AsyncLock } from './asyncLock';
 import type { FileMetadata } from './API';
-import type * as LocalForage from 'localforage';
+import type { LocalForage } from './localForage';
 import type { CmsImplementationEntry, CmsImplementationFile, CmsDisplayURL, CmsDisplayURLObject } from './types/cms';
 
 const MAX_CONCURRENT_DOWNLOADS = 10;
@@ -28,7 +28,7 @@ async function fetchFiles(
   readFileMetadata: ReadFileMetadata,
   apiName: string,
 ) {
-  const sem = semaphore(MAX_CONCURRENT_DOWNLOADS);
+  const sem = createSemaphore(MAX_CONCURRENT_DOWNLOADS);
   const promises = [] as Promise<CmsImplementationEntry | { error: boolean }>[];
   files.forEach(file => {
     promises.push(

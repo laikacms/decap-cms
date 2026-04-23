@@ -3,6 +3,7 @@ import unsentRequest from './unsentRequest';
 import { APIError } from './errors';
 
 import type { AsyncLock } from './asyncLock';
+import type { LocalForage } from './localForage';
 
 export interface FetchError extends Error {
   status: number;

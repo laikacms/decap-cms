@@ -21,9 +21,7 @@
     "clean": "rimraf dist"
   },
   "dependencies": {
-    "js-sha256": "catalog:utils",
-    "localforage": "catalog:utils",
-    "semaphore": "catalog:utils"
+    "js-sha256": "catalog:utils"
   },
   "peerDependencies": {
     "immutable": "catalog:utils",

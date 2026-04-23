@@ -1,6 +1,6 @@
 import flow from 'lodash/flow';
 
-export function then<T, V>(fn: (r: T) => V) {
+export function thenP<T, V>(fn: (r: T) => V) {
   return (p: Promise<T>) => Promise.resolve(p).then(fn);
 }
 

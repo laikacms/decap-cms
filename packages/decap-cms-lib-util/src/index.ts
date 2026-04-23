@@ -2,9 +2,9 @@ import { APIError, AccessTokenError } from './errors';
 import Cursor, { CURSOR_COMPATIBILITY_SYMBOL } from './Cursor';
 import EditorialWorkflowError, { EDITORIAL_WORKFLOW_ERROR } from './EditorialWorkflowError';
 import localForage from './localForage';
-import type * as TypesLocalForage from 'localforage';
+import type { LocalForage as LocalForageType } from './localForage';
 import { isAbsolutePath, basename, fileExtensionWithSeparator, fileExtension, extname, dirname, join } from './path';
-import { onlySuccessfulPromises, flowAsync, then } from './promise';
+import { onlySuccessfulPromises, flowAsync, thenP as promiseThen } from './promise';
 import unsentRequest from './unsentRequest';
 import {
   filterByExtension,
@@ -96,7 +96,7 @@ export type ApiRequest = AR;
 export type FetchError = FE;
 export type PointerFile = PF;
 export type DataFile = DF;
-export type LocalForage = typeof TypesLocalForage;
+export type LocalForage = LocalForageType;
 
 export const DecapCmsLibUtil = {
   APIError,
@@ -113,7 +113,7 @@ export const DecapCmsLibUtil = {
   fileExtension,
   onlySuccessfulPromises,
   flowAsync,
-  then,
+  promiseThen,
   unsentRequest,
   filterByExtension,
   parseLinkHeader,
@@ -170,7 +170,7 @@ export {
   fileExtension,
   onlySuccessfulPromises,
   flowAsync,
-  then,
+  promiseThen,
   unsentRequest,
   filterByExtension,
   parseLinkHeader,

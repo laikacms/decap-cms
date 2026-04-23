@@ -1,16 +1,17 @@
-import semaphore from 'semaphore';
+import createSemaphore from './semaphore';
+import type { Semaphore } from './semaphore';
 
 export type AsyncLock = { release: () => void; acquire: () => Promise<boolean> };
 
 export function asyncLock(): AsyncLock {
-  let lock = semaphore(1);
+  let lock: Semaphore = createSemaphore(1);
 
   function acquire(timeout = 15000) {
     const promise = new Promise<boolean>(resolve => {
       // this makes sure a caller doesn't gets stuck forever awaiting on the lock
       const timeoutId = setTimeout(() => {
         // we reset the lock in that case to allow future consumers to use it without being blocked
-        lock = semaphore(1);
+        lock = createSemaphore(1);
         resolve(false);
       }, timeout);
 
@@ -35,7 +36,7 @@ export function asyncLock(): AsyncLock {
         throw e;
       } else {
         console.warn('leave called too many times.');
-        lock = semaphore(1);
+        lock = createSemaphore(1);
       }
     }
   }

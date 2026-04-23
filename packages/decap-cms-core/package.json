@@ -67,7 +67,6 @@
     "remark-gfm": "catalog:markdown",
     "unified": "catalog:markdown",
     "sanitize-filename": "catalog:utils",
-    "semaphore": "catalog:utils",
     "tomlify-j0.4": "catalog:formats",
     "url": "catalog:polyfills",
     "url-join": "catalog:utils",
