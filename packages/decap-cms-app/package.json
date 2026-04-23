@@ -67,10 +67,8 @@
     "decap-cms-widget-select": "workspace:*",
     "decap-cms-widget-string": "workspace:*",
     "decap-cms-widget-text": "workspace:*",
-    "immutable": "catalog:utils",
     "lodash": "catalog:utils",
     "prop-types": "catalog:react",
-    "react-immutable-proptypes": "catalog:react",
     "uuid": "catalog:utils"
   },
   "devDependencies": {
