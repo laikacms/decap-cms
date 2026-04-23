@@ -7,15 +7,15 @@ import DateTimeControl from '../DateTimeControl';
 function setup(propsOverrides = {}) {
   const props = {
     forID: 'test-datetime',
-    onChange: jest.fn(),
+    onChange: vi.fn(),
     classNameWrapper: 'classNameWrapper',
-    setActiveStyle: jest.fn(),
-    setInactiveStyle: jest.fn(),
+    setActiveStyle: vi.fn(),
+    setInactiveStyle: vi.fn(),
     value: '',
     t: key => key,
     isDisabled: false,
     field: {
-      get: jest.fn().mockReturnValue('DD.MM.YYYY'),
+      get: vi.fn().mockReturnValue('DD.MM.YYYY'),
     },
     ...propsOverrides,
   };
@@ -38,13 +38,13 @@ describe('DateTimeControl', () => {
   const mockDate = '2025-01-01T12:00:00.000Z';
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date(mockDate));
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(mockDate));
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   test('renders the component with input, now button, and clear button', () => {

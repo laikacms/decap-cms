@@ -1,11 +1,10 @@
-import { getPhrases } from '../phrases';
+vi.mock('../registry');
 
-jest.mock('../registry');
+import { getPhrases } from '../phrases';
+import { getLocale } from '../registry';
 
 describe('defaultPhrases', () => {
   it('should merge en locale with given locale', () => {
-    const { getLocale } = require('../registry');
-
     const locales = {
       en: {
         app: {
@@ -51,7 +50,7 @@ describe('defaultPhrases', () => {
       },
     };
 
-    getLocale.mockImplementation(locale => locales[locale]);
+    vi.mocked(getLocale).mockImplementation(locale => locales[locale]);
 
     expect(getPhrases('de')).toEqual({
       app: {
@@ -91,8 +90,6 @@ describe('defaultPhrases', () => {
   });
 
   it('should not mutate default phrases', () => {
-    const { getLocale } = require('../registry');
-
     const locales = {
       en: {
         app: {
@@ -110,7 +107,7 @@ describe('defaultPhrases', () => {
       },
     };
 
-    getLocale.mockImplementation(locale => locales[locale]);
+    vi.mocked(getLocale).mockImplementation(locale => locales[locale]);
 
     const result = getPhrases('de');
 

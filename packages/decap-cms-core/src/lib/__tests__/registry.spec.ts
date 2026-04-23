@@ -1,14 +1,14 @@
-jest.spyOn(console, 'error').mockImplementation(() => {});
+vi.spyOn(console, 'error').mockImplementation(() => {});
 
 describe('registry', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    jest.resetModules();
+    vi.clearAllMocks();
+    vi.resetModules();
   });
 
   describe('registerLocale', () => {
-    it('should log error when name is empty', () => {
-      const { registerLocale } = require('../registry');
+    it('should log error when name is empty', async () => {
+      const { registerLocale } = await import('../registry');
 
       registerLocale();
       expect(console.error).toHaveBeenCalledTimes(1);
@@ -17,8 +17,8 @@ describe('registry', () => {
       );
     });
 
-    it('should log error when phrases are undefined', () => {
-      const { registerLocale } = require('../registry');
+    it('should log error when phrases are undefined', async () => {
+      const { registerLocale } = await import('../registry');
 
       registerLocale('fr');
       expect(console.error).toHaveBeenCalledTimes(1);
@@ -27,8 +27,8 @@ describe('registry', () => {
       );
     });
 
-    it('should register locale', () => {
-      const { registerLocale, getLocale } = require('../registry');
+    it('should register locale', async () => {
+      const { registerLocale, getLocale } = await import('../registry');
 
       const phrases = {
         app: {
@@ -45,8 +45,8 @@ describe('registry', () => {
   });
 
   describe('registerCustomFormat', () => {
-    it('can register a custom format', () => {
-      const { getCustomFormats, registerCustomFormat } = require('../registry');
+    it('can register a custom format', async () => {
+      const { getCustomFormats, registerCustomFormat } = await import('../registry');
 
       expect(Object.keys(getCustomFormats())).not.toContain('querystring');
 
@@ -70,8 +70,8 @@ describe('registry', () => {
     ];
 
     describe('registerEventListener', () => {
-      it('should throw error on invalid event', () => {
-        const { registerEventListener } = require('../registry');
+      it('should throw error on invalid event', async () => {
+        const { registerEventListener } = await import('../registry');
 
         expect(() => registerEventListener({ name: 'unknown' })).toThrow(
           new Error("Invalid event name 'unknown'"),
@@ -79,10 +79,10 @@ describe('registry', () => {
       });
 
       events.forEach(name => {
-        it(`should register '${name}' event`, () => {
-          const { registerEventListener, getEventListeners } = require('../registry');
+        it(`should register '${name}' event`, async () => {
+          const { registerEventListener, getEventListeners } = await import('../registry');
 
-          const handler = jest.fn();
+          const handler = vi.fn();
           registerEventListener({ name, handler });
 
           expect(getEventListeners(name)).toEqual([{ handler, options: {} }]);
@@ -91,8 +91,8 @@ describe('registry', () => {
     });
 
     describe('removeEventListener', () => {
-      it('should throw error on invalid event', () => {
-        const { removeEventListener } = require('../registry');
+      it('should throw error on invalid event', async () => {
+        const { removeEventListener } = await import('../registry');
 
         expect(() => removeEventListener({ name: 'unknown' })).toThrow(
           new Error("Invalid event name 'unknown'"),
@@ -100,15 +100,15 @@ describe('registry', () => {
       });
 
       events.forEach(name => {
-        it(`should remove '${name}' event by handler`, () => {
+        it(`should remove '${name}' event by handler`, async () => {
           const {
             registerEventListener,
             getEventListeners,
             removeEventListener,
-          } = require('../registry');
+          } = await import('../registry');
 
-          const handler1 = jest.fn();
-          const handler2 = jest.fn();
+          const handler1 = vi.fn();
+          const handler2 = vi.fn();
           registerEventListener({ name, handler: handler1 });
           registerEventListener({ name, handler: handler2 });
 
@@ -121,15 +121,15 @@ describe('registry', () => {
       });
 
       events.forEach(name => {
-        it(`should remove '${name}' event by name`, () => {
+        it(`should remove '${name}' event by name`, async () => {
           const {
             registerEventListener,
             getEventListeners,
             removeEventListener,
-          } = require('../registry');
+          } = await import('../registry');
 
-          const handler1 = jest.fn();
-          const handler2 = jest.fn();
+          const handler1 = vi.fn();
+          const handler2 = vi.fn();
           registerEventListener({ name, handler: handler1 });
           registerEventListener({ name, handler: handler2 });
 
@@ -144,7 +144,7 @@ describe('registry', () => {
 
     describe('invokeEvent', () => {
       it('should throw error on invalid event', async () => {
-        const { invokeEvent } = require('../registry');
+        const { invokeEvent } = await import('../registry');
 
         await expect(invokeEvent({ name: 'unknown', data: {} })).rejects.toThrow(
           new Error("Invalid event name 'unknown'"),
@@ -153,14 +153,14 @@ describe('registry', () => {
 
       events.forEach(name => {
         it(`should invoke '${name}' event with data`, async () => {
-          const { registerEventListener, invokeEvent } = require('../registry');
+          const { registerEventListener, invokeEvent } = await import('../registry');
 
           const options = { hello: 'world' };
-          const handler = jest.fn();
+          const handler = vi.fn();
 
           registerEventListener({ name, handler }, options);
 
-          const data = { entry: fromJS({ data: {} }) };
+          const data = { entry: { data: {} } };
           await invokeEvent({ name, data });
 
           expect(handler).toHaveBeenCalledTimes(1);
@@ -168,16 +168,16 @@ describe('registry', () => {
         });
 
         it(`should invoke multiple handlers on '${name}`, async () => {
-          const { registerEventListener, invokeEvent } = require('../registry');
+          const { registerEventListener, invokeEvent } = await import('../registry');
 
           const options1 = { hello: 'test1' };
           const options2 = { hello: 'test2' };
-          const handler = jest.fn(({ entry }) => entry.get('data'));
+          const handler = vi.fn(({ entry }) => entry.data);
 
           registerEventListener({ name, handler }, options1);
           registerEventListener({ name, handler }, options2);
 
-          const data = { entry: fromJS({ data: {} }) };
+          const data = { entry: { data: {} } };
           await invokeEvent({ name, data });
 
           expect(handler).toHaveBeenCalledTimes(2);
@@ -185,45 +185,43 @@ describe('registry', () => {
         });
 
         it(`should throw error when '${name}' handler throws error`, async () => {
-          const { registerEventListener, invokeEvent } = require('../registry');
+          const { registerEventListener, invokeEvent } = await import('../registry');
 
-          const handler = jest.fn(() => {
+          const handler = vi.fn(() => {
             throw new Error('handler failed!');
           });
 
           registerEventListener({ name, handler });
-          const data = { entry: fromJS({ data: {} }) };
+          const data = { entry: { data: {} } };
 
           await expect(invokeEvent({ name, data })).rejects.toThrow('handler failed!');
         });
       });
 
       it(`should return an updated entry's DataMap`, async () => {
-        const { registerEventListener, invokeEvent } = require('../registry');
+        const { registerEventListener, invokeEvent } = await import('../registry');
 
         const event = 'preSave';
         const options = { hello: 'world' };
-        const handler1 = jest.fn(({ entry }) => {
-          const data = entry.get('data');
-          return data.set('a', 'test1');
+        const handler1 = vi.fn(({ entry }) => {
+          return { ...entry.data, a: 'test1' };
         });
-        const handler2 = jest.fn(({ entry }) => {
-          const data = entry.get('data');
-          return data.set('c', 'test2');
+        const handler2 = vi.fn(({ entry }) => {
+          return { ...entry.data, c: 'test2' };
         });
 
         registerEventListener({ name: event, handler: handler1 }, options);
         registerEventListener({ name: event, handler: handler2 }, options);
 
         const data = {
-          entry: fromJS({ data: { a: 'foo', b: 'bar' } }),
+          entry: { data: { a: 'foo', b: 'bar' } },
         };
 
         const dataAfterFirstHandlerExecution = {
-          entry: fromJS({ data: { a: 'test1', b: 'bar' } }),
+          entry: { data: { a: 'test1', b: 'bar' } },
         };
         const dataAfterSecondHandlerExecution = {
-          entry: fromJS({ data: { a: 'test1', b: 'bar', c: 'test2' } }),
+          entry: { data: { a: 'test1', b: 'bar', c: 'test2' } },
         };
 
         const result = await invokeEvent({ name: event, data });
@@ -231,28 +229,28 @@ describe('registry', () => {
         expect(handler1).toHaveBeenCalledWith(data, options);
         expect(handler2).toHaveBeenCalledWith(dataAfterFirstHandlerExecution, options);
 
-        expect(result).toEqual(dataAfterSecondHandlerExecution.entry.get('data'));
+        expect(result).toEqual(dataAfterSecondHandlerExecution.entry.data);
       });
 
       it('should allow multiple events to not return a value', async () => {
-        const { registerEventListener, invokeEvent } = require('../registry');
+        const { registerEventListener, invokeEvent } = await import('../registry');
 
         const event = 'prePublish';
         const options = { hello: 'world' };
-        const handler1 = jest.fn();
-        const handler2 = jest.fn();
+        const handler1 = vi.fn();
+        const handler2 = vi.fn();
 
         registerEventListener({ name: event, handler: handler1 }, options);
         registerEventListener({ name: event, handler: handler2 }, options);
 
         const data = {
-          entry: fromJS({ data: { a: 'foo', b: 'bar' } }),
+          entry: { data: { a: 'foo', b: 'bar' } },
         };
         const result = await invokeEvent({ name: event, data });
 
         expect(handler1).toHaveBeenCalledWith(data, options);
         expect(handler2).toHaveBeenCalledWith(data, options);
-        expect(result).toEqual(data.entry.get('data'));
+        expect(result).toEqual(data.entry.data);
       });
     });
   });

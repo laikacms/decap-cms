@@ -1,23 +1,20 @@
+vi.mock('history');
+
 import { createHashHistory } from 'history';
-import { mocked } from 'jest-mock';
 
 import type { History } from 'history';
 
-jest.mock('history');
-
-const history = { push: jest.fn(), replace: jest.fn() } as unknown as History;
-const mockedCreateHashHistory = mocked(createHashHistory);
-mockedCreateHashHistory.mockReturnValue(history);
+const history = { push: vi.fn(), replace: vi.fn() } as unknown as History;
+vi.mocked(createHashHistory).mockReturnValue(history);
 
 describe('history', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('navigateToCollection', () => {
-    it('should push route', () => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { navigateToCollection } = require('../history');
+    it('should push route', async () => {
+      const { navigateToCollection } = await import('../history');
 
       navigateToCollection('posts');
       expect(history.push).toHaveBeenCalledTimes(1);
@@ -26,9 +23,8 @@ describe('history', () => {
   });
 
   describe('navigateToNewEntry', () => {
-    it('should replace route', () => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { navigateToNewEntry } = require('../history');
+    it('should replace route', async () => {
+      const { navigateToNewEntry } = await import('../history');
 
       navigateToNewEntry('posts');
       expect(history.replace).toHaveBeenCalledTimes(1);
@@ -37,9 +33,8 @@ describe('history', () => {
   });
 
   describe('navigateToEntry', () => {
-    it('should replace route', () => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { navigateToEntry } = require('../history');
+    it('should replace route', async () => {
+      const { navigateToEntry } = await import('../history');
 
       navigateToEntry('posts', 'index');
       expect(history.replace).toHaveBeenCalledTimes(1);

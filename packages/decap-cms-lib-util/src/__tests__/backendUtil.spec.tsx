@@ -1,7 +1,13 @@
-import { oneLine } from 'common-tags';
 import nock from 'nock';
 
 import { parseLinkHeader, getAllResponses, getPathDepth, filterByExtension } from '../backendUtil';
+
+function oneLine(strings: TemplateStringsArray, ...values: unknown[]): string {
+  return strings
+    .reduce((result, str, i) => result + str + (values[i] !== undefined ? String(values[i]) : ''), '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 describe('parseLinkHeader', () => {
   it('should return the right rel urls', () => {
@@ -22,18 +28,18 @@ describe('parseLinkHeader', () => {
 });
 
 describe('getAllResponses', () => {
-  function generatePulls(length) {
+  function generatePulls(length: number) {
     return Array.from({ length }, (_, id) => {
       return { id: id + 1, number: `134${id}`, state: 'open' };
     });
   }
 
-  function createLinkHeaders({ page, pageCount }) {
-    const pageNum = parseInt(page, 10);
-    const pageCountNum = parseInt(pageCount, 10);
+  function createLinkHeaders({ page, pageCount }: { page: number | string; pageCount: number }) {
+    const pageNum = parseInt(String(page), 10);
+    const pageCountNum = pageCount;
     const url = 'https://api.github.com/pulls';
 
-    function link(linkPage) {
+    function link(linkPage: number) {
       return `<${url}?page=${linkPage}>`;
     }
 
@@ -47,14 +53,14 @@ describe('getAllResponses', () => {
     return { Link: linkHeader };
   }
 
-  function interceptCall({ perPage = 30, repeat = 1, data = [] } = {}) {
+  function interceptCall({ perPage = 30, repeat = 1, data = [] as ReturnType<typeof generatePulls> } = {}) {
     nock('https://api.github.com')
       .get('/pulls')
       .query(true)
       .times(repeat)
       .reply(uri => {
         const searchParams = new URLSearchParams(uri.split('?')[1]);
-        const page = searchParams.get('page') || 1;
+        const page = Number(searchParams.get('page') || 1);
         const pageCount = data.length <= perPage ? 1 : Math.ceil(data.length / perPage);
         const pageLastIndex = page * perPage;
         const pageFirstIndex = pageLastIndex - perPage;

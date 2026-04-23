@@ -4,7 +4,7 @@ describe('implementation', () => {
   describe('getMediaAsBlob', () => {
     it('should return response blob on non svg file', async () => {
       const blob = {};
-      const readFile = jest.fn().mockResolvedValue(blob);
+      const readFile = vi.fn().mockResolvedValue(blob);
 
       await expect(getMediaAsBlob('static/media/image.png', 'sha', readFile)).resolves.toBe(blob);
 
@@ -16,7 +16,7 @@ describe('implementation', () => {
 
     it('should return text blob on svg file', async () => {
       const text = 'svg';
-      const readFile = jest.fn().mockResolvedValue(text);
+      const readFile = vi.fn().mockResolvedValue(text);
 
       await expect(getMediaAsBlob('static/media/logo.svg', 'sha', readFile)).resolves.toEqual(
         new Blob([text], { type: 'image/svg+xml' }),
@@ -32,12 +32,10 @@ describe('implementation', () => {
   describe('getMediaDisplayURL', () => {
     it('should return createObjectURL result', async () => {
       const blob = {};
-      const readFile = jest.fn().mockResolvedValue(blob);
-      const semaphore = { take: jest.fn(callback => callback()), leave: jest.fn() };
+      const readFile = vi.fn().mockResolvedValue(blob);
+      const semaphore = { take: vi.fn(callback => callback()), leave: vi.fn() };
 
-      global.URL.createObjectURL = jest
-        .fn()
-        .mockResolvedValue('blob:http://localhost:8080/blob-id');
+      global.URL.createObjectURL = vi.fn().mockResolvedValue('blob:http://localhost:8080/blob-id');
 
       await expect(
         getMediaDisplayURL({ path: 'static/media/image.png', id: 'sha' }, readFile, semaphore),

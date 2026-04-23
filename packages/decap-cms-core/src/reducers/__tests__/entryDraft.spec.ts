@@ -1,15 +1,15 @@
+vi.mock('uuid', () => ({ v4: vi.fn(() => '1') }));
+
 import * as actions from '../../actions/entries';
 import reducer from '../entryDraft';
 
-jest.mock('uuid', () => ({ v4: jest.fn(() => '1') }));
-
-const initialState = Map({
-  entry: Map(),
-  fieldsMetaData: Map(),
-  fieldsErrors: Map(),
+const initialState = {
+  entry: {},
+  fieldsMetaData: {},
+  fieldsErrors: {},
   hasChanged: false,
   key: '',
-});
+};
 
 const entry = {
   collection: 'posts',
@@ -24,37 +24,33 @@ const entry = {
 describe('entryDraft reducer', () => {
   describe('DRAFT_CREATE_FROM_ENTRY', () => {
     it('should create draft from the entry', () => {
-      const state = reducer(initialState, actions.createDraftFromEntry(fromJS(entry)));
-      expect(state).toEqual(
-        fromJS({
-          entry: {
-            ...entry,
-            newRecord: false,
-          },
-          fieldsMetaData: Map(),
-          fieldsErrors: Map(),
-          hasChanged: false,
-          key: '1',
-        }),
-      );
+      const state = reducer(initialState, actions.createDraftFromEntry(entry));
+      expect(state).toEqual({
+        entry: {
+          ...entry,
+          newRecord: false,
+        },
+        fieldsMetaData: {},
+        fieldsErrors: {},
+        hasChanged: false,
+        key: '1',
+      });
     });
   });
 
   describe('DRAFT_CREATE_EMPTY', () => {
     it('should create a new draft ', () => {
-      const state = reducer(initialState, actions.emptyDraftCreated(fromJS(entry)));
-      expect(state).toEqual(
-        fromJS({
-          entry: {
-            ...entry,
-            newRecord: true,
-          },
-          fieldsMetaData: Map(),
-          fieldsErrors: Map(),
-          hasChanged: false,
-          key: '1',
-        }),
-      );
+      const state = reducer(initialState, actions.emptyDraftCreated(entry));
+      expect(state).toEqual({
+        entry: {
+          ...entry,
+          newRecord: true,
+        },
+        fieldsMetaData: {},
+        fieldsErrors: {},
+        hasChanged: false,
+        key: '1',
+      });
     });
   });
 
@@ -65,10 +61,10 @@ describe('entryDraft reducer', () => {
   });
 
   describe('persisting', () => {
-    let initialState;
+    let persistInitialState;
 
     beforeEach(() => {
-      initialState = fromJS({
+      persistInitialState = {
         entities: {
           'posts.slug': {
             collection: 'posts',
@@ -81,50 +77,54 @@ describe('entryDraft reducer', () => {
           },
         },
         pages: {},
-      });
+      };
     });
 
     it('should handle persisting request', () => {
       const newState = reducer(
-        initialState,
-        actions.entryPersisting(Map({ name: 'posts' }), Map({ slug: 'slug' })),
+        persistInitialState,
+        actions.entryPersisting({ name: 'posts' }, { slug: 'slug' }),
       );
-      expect(newState.getIn(['entry', 'isPersisting'])).toBe(true);
+      expect(newState.entry?.isPersisting).toBe(true);
     });
 
     it('should handle persisting success', () => {
       let newState = reducer(
-        initialState,
-        actions.entryPersisting(Map({ name: 'posts' }), Map({ slug: 'slug' })),
+        persistInitialState,
+        actions.entryPersisting({ name: 'posts' }, { slug: 'slug' }),
       );
       newState = reducer(
         newState,
-        actions.entryPersisted(Map({ name: 'posts' }), Map({ slug: 'slug' })),
+        actions.entryPersisted({ name: 'posts' }, { slug: 'slug' }),
       );
-      expect(newState.getIn(['entry', 'isPersisting'])).toBeUndefined();
+      expect(newState.entry?.isPersisting).toBeUndefined();
     });
 
     it('should handle persisting error', () => {
       let newState = reducer(
-        initialState,
-        actions.entryPersisting(Map({ name: 'posts' }), Map({ slug: 'slug' })),
+        persistInitialState,
+        actions.entryPersisting({ name: 'posts' }, { slug: 'slug' }),
       );
       newState = reducer(
         newState,
-        actions.entryPersistFail(Map({ name: 'posts' }), Map({ slug: 'slug' }), 'Error message'),
+        actions.entryPersistFail({ name: 'posts' }, { slug: 'slug' }, 'Error message'),
       );
-      expect(newState.getIn(['entry', 'isPersisting'])).toBeUndefined();
+      expect(newState.entry?.isPersisting).toBeUndefined();
     });
   });
 
   describe('REMOVE_DRAFT_ENTRY_MEDIA_FILE', () => {
     it('should remove a media file', () => {
+      const stateWithMedia = {
+        ...initialState,
+        entry: { ...initialState.entry, mediaFiles: [{ id: '1' }, { id: '2' }] },
+      };
       const actualState = reducer(
-        initialState.setIn(['entry', 'mediaFiles'], fromJS([{ id: '1' }, { id: '2' }])),
+        stateWithMedia,
         actions.removeDraftEntryMediaFile({ id: '1' }),
       );
 
-      expect(actualState.toJS()).toEqual({
+      expect(actualState).toEqual({
         entry: { mediaFiles: [{ id: '2' }] },
         fieldsMetaData: {},
         fieldsErrors: {},
@@ -136,12 +136,16 @@ describe('entryDraft reducer', () => {
 
   describe('ADD_DRAFT_ENTRY_MEDIA_FILE', () => {
     it('should overwrite an existing media file', () => {
+      const stateWithMedia = {
+        ...initialState,
+        entry: { ...initialState.entry, mediaFiles: [{ id: '1', name: 'old' }] },
+      };
       const actualState = reducer(
-        initialState.setIn(['entry', 'mediaFiles'], fromJS([{ id: '1', name: 'old' }])),
+        stateWithMedia,
         actions.addDraftEntryMediaFile({ id: '1', name: 'new' }),
       );
 
-      expect(actualState.toJS()).toEqual({
+      expect(actualState).toEqual({
         entry: { mediaFiles: [{ id: '1', name: 'new' }] },
         fieldsMetaData: {},
         fieldsErrors: {},
@@ -153,12 +157,13 @@ describe('entryDraft reducer', () => {
 
   describe('DRAFT_CREATE_FROM_LOCAL_BACKUP', () => {
     it('should create draft from local backup', () => {
-      const localBackup = Map({ entry: fromJS({ ...entry, mediaFiles: [{ id: '1' }] }) });
+      const localBackup = { entry: { ...entry, mediaFiles: [{ id: '1' }] } };
+      const stateWithBackup = { ...initialState, localBackup };
 
-      const actualState = reducer(initialState.set('localBackup', localBackup), {
+      const actualState = reducer(stateWithBackup, {
         type: actions.DRAFT_CREATE_FROM_LOCAL_BACKUP,
       });
-      expect(actualState.toJS()).toEqual({
+      expect(actualState).toEqual({
         entry: {
           ...entry,
           mediaFiles: [{ id: '1' }],
@@ -181,13 +186,16 @@ describe('entryDraft reducer', () => {
         actions.localBackupRetrieved({ ...entry, mediaFiles }),
       );
 
-      expect(actualState.toJS()).toEqual({
+      expect(actualState).toEqual({
         entry: {},
         fieldsMetaData: {},
         fieldsErrors: {},
         hasChanged: false,
         localBackup: {
           entry: { ...entry, mediaFiles: [{ id: '1' }] },
+          fieldsErrors: {},
+          hasChanged: false,
+          key: '',
         },
         key: '',
       });

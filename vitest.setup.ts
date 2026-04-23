@@ -22,3 +22,4 @@ globalThis.fetch = fetch;
 
 // Mock URL.createObjectURL
 URL.createObjectURL = vi.fn();
+

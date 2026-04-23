@@ -29,19 +29,19 @@ describe('stringTemplate', () => {
     it('should return date based on dateFieldName', () => {
       const date = new Date().toISOString();
       const dateFieldName = 'dateFieldName';
-      const entry = fromJS({ data: { dateFieldName: date } });
-      expect(parseDateFromEntry(entry, dateFieldName).toISOString()).toBe(date);
+      const entry = { data: { dateFieldName: date } };
+      expect(parseDateFromEntry(entry, dateFieldName)!.toISOString()).toBe(date);
     });
 
     it('should return undefined on empty dateFieldName', () => {
-      const entry = fromJS({ data: {} });
+      const entry = { data: {} };
       expect(parseDateFromEntry(entry, '')).toBeUndefined();
       expect(parseDateFromEntry(entry, null)).toBeUndefined();
       expect(parseDateFromEntry(entry, undefined)).toBeUndefined();
     });
 
     it('should return undefined on invalid date', () => {
-      const entry = fromJS({ data: { date: '' } });
+      const entry = { data: { date: '' } };
       const dateFieldName = 'date';
       expect(parseDateFromEntry(entry, dateFieldName)).toBeUndefined();
     });
@@ -97,14 +97,14 @@ describe('stringTemplate', () => {
           '{{slug}}-{{year}}-{{fields.slug}}-{{title}}-{{date}}',
           date,
           'backendSlug',
-          fromJS({ slug: 'entrySlug', title: 'title', date }),
+          { slug: 'entrySlug', title: 'title', date },
         ),
       ).toBe('backendSlug-2020-entrySlug-title-' + date.toString());
     });
 
     it('return apply processor to values', () => {
       expect(
-        compileStringTemplate('{{slug}}', date, 'slug', fromJS({}), value => value.toUpperCase()),
+        compileStringTemplate('{{slug}}', date, 'slug', {}, value => value.toUpperCase()),
       ).toBe('SLUG');
     });
 
@@ -114,7 +114,7 @@ describe('stringTemplate', () => {
           '{{slug | upper}}-{{title | lower}}-{{year}}',
           date,
           'backendSlug',
-          fromJS({ slug: 'entrySlug', title: 'Title', date }),
+          { slug: 'entrySlug', title: 'Title', date },
         ),
       ).toBe('BACKENDSLUG-title-2020');
     });
@@ -125,7 +125,7 @@ describe('stringTemplate', () => {
           "{{slug | upper}}-{{title | lower}}-{{published | date('MM-DD')}}-{{year}}",
           date,
           'backendSlug',
-          fromJS({ slug: 'entrySlug', title: 'Title', published: date, date }),
+          { slug: 'entrySlug', title: 'Title', published: date, date },
         ),
       ).toBe('BACKENDSLUG-title-01-02-2020');
     });
@@ -136,7 +136,7 @@ describe('stringTemplate', () => {
           "{{slug | upper}}-{{title | default('none')}}-{{subtitle | default('none')}}",
           date,
           'backendSlug',
-          fromJS({ slug: 'entrySlug', title: 'title', subtitle: null, published: date, date }),
+          { slug: 'entrySlug', title: 'title', subtitle: null, published: date, date },
         ),
       ).toBe('BACKENDSLUG-title-none');
     });
@@ -147,7 +147,7 @@ describe('stringTemplate', () => {
           "{{slug | upper}}-{{starred | ternary('star️','nostar')}}-{{done | ternary('done', 'open️')}}",
           date,
           'backendSlug',
-          fromJS({ slug: 'entrySlug', starred: true, done: false }),
+          { slug: 'entrySlug', starred: true, done: false },
         ),
       ).toBe('BACKENDSLUG-star️-open️');
     });
@@ -158,18 +158,18 @@ describe('stringTemplate', () => {
           '{{slug | truncate(6)}}',
           date,
           'backendSlug',
-          fromJS({ slug: 'entrySlug', starred: true, done: false }),
+          { slug: 'entrySlug', starred: true, done: false },
         ),
       ).toBe('backen...');
     });
 
-    it('return apply filter for truncate', () => {
+    it('return apply filter for truncate with custom ellipsis', () => {
       expect(
         compileStringTemplate(
           "{{slug | truncate(3,'***')}}",
           date,
           'backendSlug',
-          fromJS({ slug: 'entrySlug', starred: true, done: false }),
+          { slug: 'entrySlug', starred: true, done: false },
         ),
       ).toBe('bac***');
     });

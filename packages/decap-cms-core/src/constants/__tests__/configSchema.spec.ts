@@ -1,20 +1,20 @@
+vi.mock('../../lib/registry');
+
 import merge from 'lodash/merge';
 
 import { validateConfig } from '../configSchema';
-
-jest.mock('../../lib/registry');
+import { getWidgets } from '../../lib/registry';
 
 describe('config', () => {
   /**
-   * Suppress error logging to reduce noise during testing. Jest will still
+   * Suppress error logging to reduce noise during testing. Vitest will still
    * log test failures and associated errors as expected.
    */
   beforeEach(() => {
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
-  const { getWidgets } = require('../../lib/registry');
-  getWidgets.mockImplementation(() => [{}]);
+  vi.mocked(getWidgets).mockImplementation(() => [{}]);
 
   describe('validateConfig', () => {
     const validConfig = {
@@ -378,8 +378,7 @@ describe('config', () => {
     });
 
     describe('nested validation', () => {
-      const { getWidgets } = require('../../lib/registry');
-      getWidgets.mockImplementation(() => [
+      vi.mocked(getWidgets).mockImplementation(() => [
         {
           name: 'relation',
           schema: {

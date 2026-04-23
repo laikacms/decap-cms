@@ -1,10 +1,4 @@
-import React from 'react';
-import { fromJS } from 'immutable';
-import { render, fireEvent, waitFor, act } from '@testing-library/react';
-
-import { DecapCmsWidgetRelation } from '../';
-
-jest.mock('react-window', () => {
+vi.mock('react-window', () => {
   function FixedSizeList(props) {
     return props.itemData.options;
   }
@@ -14,21 +8,26 @@ jest.mock('react-window', () => {
   };
 });
 
-jest.mock('../RelationCache', () => {
+vi.mock('../RelationCache', () => {
   return {
     __esModule: true,
     default: {
-      getOptions: jest.fn((collection, searchFields, term, file, queryFn) => {
+      getOptions: vi.fn((collection, searchFields, term, file, queryFn) => {
         return queryFn();
       }),
-      clear: jest.fn(),
-      invalidateCollection: jest.fn(),
+      clear: vi.fn(),
+      invalidateCollection: vi.fn(),
     },
   };
 });
 
+import React from 'react';
+import { render, fireEvent, waitFor, act } from '@testing-library/react';
+
+import { DecapCmsWidgetRelation } from '../';
+
 beforeEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
 });
 
 const RelationControl = DecapCmsWidgetRelation.controlComponent;
@@ -257,13 +256,13 @@ class RelationController extends React.Component {
     this.mounted = false;
   }
 
-  handleOnChange = jest.fn(value => {
+  handleOnChange = vi.fn(value => {
     act(() => {
       this.setState({ ...this.state, value });
     });
   });
 
-  setQueryHits = jest.fn(queryHits => {
+  setQueryHits = vi.fn(queryHits => {
     if (this.mounted) {
       act(() => {
         this.setState({ ...this.state, queryHits });
@@ -271,7 +270,7 @@ class RelationController extends React.Component {
     }
   });
 
-  query = jest.fn((...args) => {
+  query = vi.fn((...args) => {
     const queryHits = generateHits(25);
 
     const [, collection, , term, file, optionsLength] = args;
@@ -312,8 +311,8 @@ class RelationController extends React.Component {
 
 function setup({ field, value }) {
   let renderArgs;
-  const setActiveSpy = jest.fn();
-  const setInactiveSpy = jest.fn();
+  const setActiveSpy = vi.fn();
+  const setInactiveSpy = vi.fn();
 
   const helpers = render(
     <RelationController value={value}>
@@ -349,7 +348,7 @@ function setup({ field, value }) {
 
 describe('Relation widget', () => {
   it('should list the first 20 option hits on initial load', async () => {
-    const field = fromJS(fieldConfig);
+    const field = fieldConfig;
     const { getAllByText, input } = setup({ field });
     fireEvent.keyDown(input, { key: 'ArrowDown' });
 
@@ -359,7 +358,7 @@ describe('Relation widget', () => {
   });
 
   it('should list the first 10 option hits on initial load', async () => {
-    const field = fromJS(customizedOptionsLengthConfig);
+    const field = customizedOptionsLengthConfig;
     const { getAllByText, input } = setup({ field });
     fireEvent.keyDown(input, { key: 'ArrowDown' });
 
@@ -369,7 +368,7 @@ describe('Relation widget', () => {
   });
 
   it('should update option list based on search term', async () => {
-    const field = fromJS(fieldConfig);
+    const field = fieldConfig;
     const { getAllByText, input } = setup({ field });
     fireEvent.change(input, { target: { value: 'YAML' } });
 
@@ -379,7 +378,7 @@ describe('Relation widget', () => {
   });
 
   it('should call onChange with correct selectedItem value and metadata', async () => {
-    const field = fromJS(fieldConfig);
+    const field = fieldConfig;
     const { getByText, input, onChangeSpy } = setup({ field });
     const value = 'Post # 1';
     const label = 'Post # 1 post-number-1';
@@ -399,7 +398,7 @@ describe('Relation widget', () => {
   });
 
   it('should update metadata for initial preview 1', async () => {
-    const field = fromJS(fieldConfig);
+    const field = fieldConfig;
     const value = 'Post # 1';
     const { getByText, onChangeSpy } = setup({ field, value });
     const label = 'Post # 1 post-number-1';
@@ -409,8 +408,6 @@ describe('Relation widget', () => {
       },
     };
 
-    // The component will automatically trigger a query for initial load
-    // Wait for it to process and call onChange
     await waitFor(
       () => {
         expect(getByText(label)).toBeInTheDocument();
@@ -428,7 +425,7 @@ describe('Relation widget', () => {
   });
 
   it('should update option list based on nested search term', async () => {
-    const field = fromJS(nestedFieldConfig);
+    const field = nestedFieldConfig;
     const { getAllByText, input } = setup({ field });
     fireEvent.change(input, { target: { value: 'Nested' } });
 
@@ -438,7 +435,7 @@ describe('Relation widget', () => {
   });
 
   it('should update option list based on deeply nested search term', async () => {
-    const field = fromJS(deeplyNestedFieldConfig);
+    const field = deeplyNestedFieldConfig;
     const { getAllByText, input } = setup({ field });
     fireEvent.change(input, { target: { value: 'Deeply nested' } });
 
@@ -458,7 +455,7 @@ describe('Relation widget', () => {
       value_field: '{{slug}}',
     };
 
-    const field = fromJS(stringTemplateConfig);
+    const field = stringTemplateConfig;
     const { getByText, input, onChangeSpy } = setup({ field });
     const value = 'post-number-1';
     const label = 'post-number-1 post-number-1 md';
@@ -479,7 +476,8 @@ describe('Relation widget', () => {
   });
 
   it('should default display_fields to value_field', async () => {
-    const field = fromJS(fieldConfig).delete('display_fields');
+    const { display_fields: _d, ...fieldConfigWithoutDisplay } = fieldConfig;
+    const field = fieldConfigWithoutDisplay;
     const { getAllByText, input } = setup({ field });
     fireEvent.keyDown(input, { key: 'ArrowDown' });
 
@@ -496,7 +494,7 @@ describe('Relation widget', () => {
       display_fields: ['title'],
     };
 
-    const field = fromJS(fieldConfig);
+    const field = fieldConfig;
     const { getByText, getAllByText, input, onChangeSpy } = setup({ field });
     fireEvent.keyDown(input, { key: 'ArrowDown' });
 
@@ -520,7 +518,7 @@ describe('Relation widget', () => {
 
   describe('with multiple', () => {
     it('should call onChange with correct selectedItem value and metadata', async () => {
-      const field = fromJS({ ...fieldConfig, multiple: true });
+      const field = { ...fieldConfig, multiple: true };
       const { getByText, input, onChangeSpy } = setup({ field });
       const metadata1 = {
         post: {
@@ -544,13 +542,13 @@ describe('Relation widget', () => {
       });
 
       expect(onChangeSpy).toHaveBeenCalledTimes(2);
-      expect(onChangeSpy).toHaveBeenCalledWith(fromJS(['Post # 1']), metadata1);
-      expect(onChangeSpy).toHaveBeenCalledWith(fromJS(['Post # 1', 'Post # 2']), metadata2);
+      expect(onChangeSpy).toHaveBeenCalledWith(['Post # 1'], metadata1);
+      expect(onChangeSpy).toHaveBeenCalledWith(['Post # 1', 'Post # 2'], metadata2);
     });
 
     it('should update metadata for initial preview 2', async () => {
-      const field = fromJS({ ...fieldConfig, multiple: true });
-      const value = fromJS(['YAML post', 'JSON post']);
+      const field = { ...fieldConfig, multiple: true };
+      const value = ['YAML post', 'JSON post'];
       const { getByText, onChangeSpy } = setup({ field, value });
       const metadata = {
         post: {
@@ -561,7 +559,6 @@ describe('Relation widget', () => {
         },
       };
 
-      // Wait for both labels to appear
       await waitFor(
         () => {
           expect(getByText('YAML post post-yaml')).toBeInTheDocument();
@@ -570,7 +567,6 @@ describe('Relation widget', () => {
         { timeout: 3000 },
       );
 
-      // Wait for onChange to be called
       await waitFor(
         () => {
           expect(onChangeSpy).toHaveBeenCalledTimes(1);
@@ -591,7 +587,7 @@ describe('Relation widget', () => {
     };
 
     it('should handle simple list', async () => {
-      const field = fromJS(fileFieldConfig);
+      const field = fileFieldConfig;
       const { getAllByText, input, getByText } = setup({ field });
       fireEvent.keyDown(input, { key: 'ArrowDown' });
 
@@ -603,12 +599,12 @@ describe('Relation widget', () => {
     });
 
     it('should handle nested list', async () => {
-      const field = fromJS({
+      const field = {
         ...fileFieldConfig,
         file: 'nested_file',
         value_field: 'nested.categories.*.id',
         display_fields: ['nested.categories.*.name'],
-      });
+      };
       const { getAllByText, input, getByText } = setup({ field });
       fireEvent.keyDown(input, { key: 'ArrowDown' });
 
@@ -622,7 +618,7 @@ describe('Relation widget', () => {
 
   describe('with filter', () => {
     it('should list the 10 option hits on initial load using a filter on boolean value', async () => {
-      const field = fromJS(filterBooleanFieldConfig);
+      const field = filterBooleanFieldConfig;
       const { getAllByText, input } = setup({ field });
       const expectedOptions = [];
       for (let i = 2; i <= 25; i += 2) {
@@ -644,7 +640,7 @@ describe('Relation widget', () => {
     });
 
     it('should list the 5 option hits on initial load using a filter on string value', async () => {
-      const field = fromJS(filterStringFieldConfig);
+      const field = filterStringFieldConfig;
       const { getAllByText, input } = setup({ field });
       const expectedOptions = [
         'Post # 1 post-number-1',
@@ -669,7 +665,7 @@ describe('Relation widget', () => {
     });
 
     it('should list 3 option hits on initial load using a filter on integer value', async () => {
-      const field = fromJS(filterIntegerFieldConfig);
+      const field = filterIntegerFieldConfig;
       const { getAllByText, input } = setup({ field });
       const expectedOptions = [
         'Post # 1 post-number-1',
@@ -692,7 +688,7 @@ describe('Relation widget', () => {
     });
 
     it('should list 4 option hits on initial load using multiple filters', async () => {
-      const field = fromJS(multipleFiltersFieldConfig);
+      const field = multipleFiltersFieldConfig;
       const { getAllByText, input } = setup({ field });
       const expectedOptions = [
         'Post # 1 post-number-1',
@@ -716,7 +712,7 @@ describe('Relation widget', () => {
     });
 
     it('should list 0 option hits on initial load on empty filter values array', async () => {
-      const field = fromJS(emptyFilterFieldConfig);
+      const field = emptyFilterFieldConfig;
       const { getAllByText, input } = setup({ field });
       fireEvent.keyDown(input, { key: 'ArrowDown' });
 
@@ -726,7 +722,7 @@ describe('Relation widget', () => {
     });
 
     it('should list 1 option hit on initial load on nested filter field', async () => {
-      const field = fromJS(nestedFilterFieldConfig);
+      const field = nestedFilterFieldConfig;
       const { getAllByText, input } = setup({ field });
       fireEvent.keyDown(input, { key: 'ArrowDown' });
 

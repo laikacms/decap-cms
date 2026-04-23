@@ -4,27 +4,27 @@ import { render } from '@testing-library/react';
 import NetlifyAuthenticationPage from '../NetlifyAuthenticationPage';
 
 window.netlifyIdentity = {
-  currentUser: jest.fn(),
-  on: jest.fn(),
-  close: jest.fn(),
+  currentUser: vi.fn(),
+  on: vi.fn(),
+  close: vi.fn(),
 };
 
 describe('NetlifyAuthenticationPage', () => {
   const props = {
     config: { logo: { src: 'logo_url' } },
-    t: jest.fn(key => key),
-    onLogin: jest.fn(),
+    t: vi.fn(key => key),
+    onLogin: vi.fn(),
     inProgress: false,
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    jest.resetModules();
+    vi.clearAllMocks();
+    vi.resetModules();
   });
 
-  it('should render with identity error', () => {
-    // obtain mock calls
-    require('../NetlifyAuthenticationPage');
+  it('should render with identity error', async () => {
+    // Re-import after module reset to re-trigger module-level netlifyIdentity.on() registration
+    await import('../NetlifyAuthenticationPage');
 
     function TestComponent() {
       const { asFragment } = render(<NetlifyAuthenticationPage {...props} />);

@@ -18,7 +18,7 @@ class NumberController extends React.Component {
     value: this.props.defaultValue,
   };
 
-  handleOnChange = jest.fn(value => {
+  handleOnChange = vi.fn(value => {
     this.setState({ value });
   });
 
@@ -36,9 +36,9 @@ class NumberController extends React.Component {
 
 function setup({ field, defaultValue }) {
   let renderArgs;
-  const stateChangeSpy = jest.fn();
-  const setActiveSpy = jest.fn();
-  const setInactiveSpy = jest.fn();
+  const stateChangeSpy = vi.fn();
+  const setActiveSpy = vi.fn();
+  const setInactiveSpy = vi.fn();
 
   const helpers = render(
     <NumberController defaultValue={defaultValue} onStateChange={stateChangeSpy}>
@@ -53,7 +53,7 @@ function setup({ field, defaultValue }) {
             classNameWrapper=""
             setActiveStyle={setActiveSpy}
             setInactiveStyle={setInactiveSpy}
-            t={jest.fn()}
+            t={vi.fn()}
           />
         );
       }}
@@ -74,7 +74,7 @@ function setup({ field, defaultValue }) {
 
 describe('Number widget', () => {
   it('should call onChange when input changes', () => {
-    const field = fromJS(fieldSettings);
+    const field = fieldSettings;
     const testValue = Math.floor(Math.random() * (20 - -20 + 1)) + -20;
     const { input, onChangeSpy } = setup({ field });
 
@@ -86,7 +86,7 @@ describe('Number widget', () => {
   });
 
   it('should call onChange with empty string when no value is set', () => {
-    const field = fromJS(fieldSettings);
+    const field = fieldSettings;
     const { input, onChangeSpy } = setup({ field, defaultValue: 20 });
 
     fireEvent.focus(input);
@@ -97,7 +97,7 @@ describe('Number widget', () => {
   });
 
   it('should call onChange with empty string when a non numeric value is set', () => {
-    const field = fromJS(fieldSettings);
+    const field = fieldSettings;
     const { input, onChangeSpy } = setup({ field, defaultValue: 20 });
 
     fireEvent.focus(input);
@@ -108,7 +108,7 @@ describe('Number widget', () => {
   });
 
   it('should parse float numbers as integers', () => {
-    const field = fromJS(fieldSettings);
+    const field = fieldSettings;
     const testValue = (Math.random() * (20 - -20 + 1) + -20).toFixed(2);
     const { input, onChangeSpy } = setup({ field });
 
@@ -120,7 +120,7 @@ describe('Number widget', () => {
   });
 
   it('should parse float numbers as float', () => {
-    const field = fromJS({ ...fieldSettings, value_type: 'float' });
+    const field = { ...fieldSettings, value_type: 'float' };
     const testValue = (Math.random() * (20 - -20 + 1) + -20).toFixed(2);
     const { input, onChangeSpy } = setup({ field });
 
@@ -132,7 +132,7 @@ describe('Number widget', () => {
   });
 
   it('should allow 0 as a value', () => {
-    const field = fromJS(fieldSettings);
+    const field = fieldSettings;
     const testValue = 0;
     const { input } = setup({ field });
 
@@ -143,13 +143,11 @@ describe('Number widget', () => {
   });
 
   describe('validateMinMax', () => {
-    const field = { get: jest.fn() };
-    field.get.mockReturnValue('label');
-    const t = jest.fn();
-    t.mockImplementation((_, params) => params);
+    const field = { label: 'label' };
+    const t = vi.fn((_, params) => params);
 
     beforeEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     it('should return error when min max are defined and value is out of range', () => {

@@ -1,3 +1,13 @@
+vi.spyOn(console, 'warn').mockImplementation(() => {});
+vi.mock('../../reducers/collections', () => ({
+  selectIdentifier: vi.fn(),
+  selectInferredField: vi.fn(),
+  getFileFromSlug: vi.fn(),
+  selectEntrySlug: vi.fn(),
+  selectField: vi.fn(),
+  default: (state: unknown) => state,
+}));
+
 import {
   commitMessageFormatter,
   prepareSlug,
@@ -6,9 +16,11 @@ import {
   summaryFormatter,
   folderFormatter,
 } from '../formatters';
-
-jest.spyOn(console, 'warn').mockImplementation(() => {});
-jest.mock('../../reducers/collections');
+import {
+  selectIdentifier,
+  selectInferredField,
+  getFileFromSlug,
+} from '../../reducers/collections';
 
 describe('formatters', () => {
   describe('commitMessageFormatter', () => {
@@ -19,11 +31,11 @@ describe('formatters', () => {
     };
 
     beforeEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     it('should return default commit message on create, label_singular', () => {
-      const collection = Map({ label_singular: 'Collection' });
+      const collection = { label_singular: 'Collection' };
 
       expect(
         commitMessageFormatter('create', config, {
@@ -31,11 +43,11 @@ describe('formatters', () => {
           path: 'file-path',
           collection,
         }),
-      ).toEqual('Create Collection “doc-slug”');
+      ).toEqual('Create Collection "doc-slug"');
     });
 
     it('should return default commit message on create, label', () => {
-      const collection = Map({ label: 'Collections' });
+      const collection = { label: 'Collections' };
 
       expect(
         commitMessageFormatter('update', config, {
@@ -43,11 +55,11 @@ describe('formatters', () => {
           path: 'file-path',
           collection,
         }),
-      ).toEqual('Update Collections “doc-slug”');
+      ).toEqual('Update Collections "doc-slug"');
     });
 
     it('should return default commit message on delete', () => {
-      const collection = Map({ label_singular: 'Collection' });
+      const collection = { label_singular: 'Collection' };
 
       expect(
         commitMessageFormatter('delete', config, {
@@ -55,11 +67,11 @@ describe('formatters', () => {
           path: 'file-path',
           collection,
         }),
-      ).toEqual('Delete Collection “doc-slug”');
+      ).toEqual('Delete Collection "doc-slug"');
     });
 
     it('should return default commit message on uploadMedia', () => {
-      const collection = Map({});
+      const collection = {};
 
       expect(
         commitMessageFormatter('uploadMedia', config, {
@@ -67,11 +79,11 @@ describe('formatters', () => {
           path: 'file-path',
           collection,
         }),
-      ).toEqual('Upload “file-path”');
+      ).toEqual('Upload "file-path"');
     });
 
     it('should return default commit message on deleteMedia', () => {
-      const collection = Map({});
+      const collection = {};
 
       expect(
         commitMessageFormatter('deleteMedia', config, {
@@ -79,28 +91,28 @@ describe('formatters', () => {
           path: 'file-path',
           collection,
         }),
-      ).toEqual('Delete “file-path”');
+      ).toEqual('Delete "file-path"');
     });
 
     it('should log warning on unknown variable', () => {
       const config = {
         backend: {
           commit_messages: {
-            create: 'Create {{collection}} “{{slug}}” with "{{unknown variable}}"',
+            create: 'Create {{collection}} "{{slug}}" with "{{unknown variable}}"',
           },
         },
       };
-      const collection = Map({ label_singular: 'Collection' });
+      const collection = { label_singular: 'Collection' };
       expect(
         commitMessageFormatter('create', config, {
           slug: 'doc-slug',
           path: 'file-path',
           collection,
         }),
-      ).toEqual('Create Collection “doc-slug” with ""');
+      ).toEqual('Create Collection "doc-slug" with ""');
       expect(console.warn).toHaveBeenCalledTimes(1);
       expect(console.warn).toHaveBeenCalledWith(
-        'Ignoring unknown variable “unknown variable” in commit message template.',
+        'Ignoring unknown variable "unknown variable" in commit message template.',
       );
     });
 
@@ -112,7 +124,7 @@ describe('formatters', () => {
           },
         },
       };
-      const collection = Map({});
+      const collection = {};
       expect(
         commitMessageFormatter('update', config, {
           slug: 'doc-slug',
@@ -126,11 +138,11 @@ describe('formatters', () => {
       const config = {
         backend: {
           commit_messages: {
-            update: '{{author-login}} - {{author-name}}: Create {{collection}} “{{slug}}”',
+            update: '{{author-login}} - {{author-name}}: Create {{collection}} "{{slug}}"',
           },
         },
       };
-      const collection = Map({ label_singular: 'Collection' });
+      const collection = { label_singular: 'Collection' };
       expect(
         commitMessageFormatter(
           'update',
@@ -142,18 +154,18 @@ describe('formatters', () => {
           },
           true,
         ),
-      ).toEqual(' - : Create Collection “doc-slug”');
+      ).toEqual(' - : Create Collection "doc-slug"');
     });
 
     it('should return custom create message with author information', () => {
       const config = {
         backend: {
           commit_messages: {
-            create: '{{author-login}} - {{author-name}}: Create {{collection}} “{{slug}}”',
+            create: '{{author-login}} - {{author-name}}: Create {{collection}} "{{slug}}"',
           },
         },
       };
-      const collection = Map({ label_singular: 'Collection' });
+      const collection = { label_singular: 'Collection' };
       expect(
         commitMessageFormatter(
           'create',
@@ -167,7 +179,7 @@ describe('formatters', () => {
           },
           true,
         ),
-      ).toEqual('user-login - Test User: Create Collection “doc-slug”');
+      ).toEqual('user-login - Test User: Create Collection "doc-slug"');
     });
 
     it('should return custom open authoring message', () => {
@@ -178,7 +190,7 @@ describe('formatters', () => {
           },
         },
       };
-      const collection = Map({ label_singular: 'Collection' });
+      const collection = { label_singular: 'Collection' };
       expect(
         commitMessageFormatter(
           'create',
@@ -192,7 +204,7 @@ describe('formatters', () => {
           },
           true,
         ),
-      ).toEqual('user-login - Test User: Create Collection “doc-slug”');
+      ).toEqual('user-login - Test User: Create Collection "doc-slug"');
     });
 
     it('should use empty values if "authorLogin" and "authorName" are missing in open authoring message', () => {
@@ -203,7 +215,7 @@ describe('formatters', () => {
           },
         },
       };
-      const collection = Map({ label_singular: 'Collection' });
+      const collection = { label_singular: 'Collection' };
       expect(
         commitMessageFormatter(
           'create',
@@ -215,7 +227,7 @@ describe('formatters', () => {
           },
           true,
         ),
-      ).toEqual(' - : Create Collection “doc-slug”');
+      ).toEqual(' - : Create Collection "doc-slug"');
     });
 
     it('should log warning on unknown variable in open authoring template', () => {
@@ -226,7 +238,7 @@ describe('formatters', () => {
           },
         },
       };
-      const collection = Map({ label_singular: 'Collection' });
+      const collection = { label_singular: 'Collection' };
       commitMessageFormatter(
         'create',
         config,
@@ -242,7 +254,7 @@ describe('formatters', () => {
 
       expect(console.warn).toHaveBeenCalledTimes(1);
       expect(console.warn).toHaveBeenCalledWith(
-        'Ignoring unknown variable “author-email” in open authoring message template.',
+        'Ignoring unknown variable "author-email" in open authoring message template.',
       );
     });
   });
@@ -273,116 +285,114 @@ describe('formatters', () => {
 
   describe('slugFormatter', () => {
     const date = new Date('2020-01-01').valueOf();
-    Date.now = jest.spyOn(Date, 'now').mockImplementation(() => date);
+    Date.now = vi.spyOn(Date, 'now').mockImplementation(() => date);
 
-    const { selectIdentifier } = require('../../reducers/collections');
 
     beforeEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
+      vi.mocked(selectIdentifier).mockReturnValue('title');
     });
 
     it('should format with default pattern', () => {
-      selectIdentifier.mockReturnValueOnce('title');
-      expect(slugFormatter(Map(), Map({ title: 'Post Title' }), slugConfig)).toBe('post-title');
+      vi.mocked(selectIdentifier).mockReturnValueOnce('title');
+      expect(slugFormatter({}, { title: 'Post Title' }, slugConfig)).toBe('post-title');
     });
 
     it('should format with date', () => {
-      selectIdentifier.mockReturnValueOnce('title');
+      vi.mocked(selectIdentifier).mockReturnValueOnce('title');
 
       expect(
         slugFormatter(
-          Map({ slug: '{{year}}-{{month}}-{{day}}_{{slug}}' }),
-          Map({ title: 'Post Title' }),
+          { slug: '{{year}}-{{month}}-{{day}}_{{slug}}' },
+          { title: 'Post Title' },
           slugConfig,
         ),
       ).toBe('2020-01-01_post-title');
     });
 
     it('should format with entry field', () => {
-      selectIdentifier.mockReturnValueOnce('slug');
+      vi.mocked(selectIdentifier).mockReturnValueOnce('slug');
 
       expect(
         slugFormatter(
-          Map({ slug: '{{fields.slug}}' }),
-          Map({ title: 'Post Title', slug: 'entry-slug' }),
+          { slug: '{{fields.slug}}' },
+          { title: 'Post Title', slug: 'entry-slug' },
           slugConfig,
         ),
       ).toBe('entry-slug');
     });
 
     it('should see date filters applied to date from entry if it exists', () => {
-      const { selectInferredField } = require('../../reducers/collections');
-      selectInferredField.mockReturnValue('date');
+      vi.mocked(selectInferredField).mockReturnValue('date');
       const entryDate = new Date('2026-10-20');
 
       expect(
         slugFormatter(
-          Map({ slug: '{{year}}-{{month}}-{{day}}-{{title}}' }),
-          Map({ date: entryDate, title: 'post title' }),
+          { slug: '{{year}}-{{month}}-{{day}}-{{title}}' },
+          { date: entryDate, title: 'post title' },
           slugConfig,
         ),
       ).toBe('2026-10-20-post-title');
     });
 
     it('should see date filters applied to publishDate from entry if it exists', () => {
-      const { selectInferredField } = require('../../reducers/collections');
-      selectInferredField.mockReturnValue('publishDate');
+      vi.mocked(selectInferredField).mockReturnValue('publishDate');
       const entryDate = new Date('2026-10-20');
 
       expect(
         slugFormatter(
-          Map({ slug: '{{year}}-{{month}}-{{day}}-{{title}}' }),
-          Map({ publishDate: entryDate, title: 'post title' }),
+          { slug: '{{year}}-{{month}}-{{day}}-{{title}}' },
+          { publishDate: entryDate, title: 'post title' },
           slugConfig,
         ),
       ).toBe('2026-10-20-post-title');
     });
 
     it('should return slug', () => {
-      selectIdentifier.mockReturnValueOnce('title');
+      vi.mocked(selectIdentifier).mockReturnValueOnce('title');
 
       expect(
-        slugFormatter(Map({ slug: '{{slug}}' }), Map({ title: 'Post Title' }), slugConfig),
+        slugFormatter({ slug: '{{slug}}' }, { title: 'Post Title' }, slugConfig),
       ).toBe('post-title');
     });
 
     it('should return slug with path', () => {
-      selectIdentifier.mockReturnValueOnce('title');
+      vi.mocked(selectIdentifier).mockReturnValueOnce('title');
 
       expect(
         slugFormatter(
-          Map({ slug: '{{year}}-{{month}}-{{day}}-{{slug}}', path: 'sub_dir/{{year}}/{{slug}}' }),
-          Map({ title: 'Post Title' }),
+          { slug: '{{year}}-{{month}}-{{day}}-{{slug}}', path: 'sub_dir/{{year}}/{{slug}}' },
+          { title: 'Post Title' },
           slugConfig,
         ),
       ).toBe('sub_dir/2020/2020-01-01-post-title');
     });
 
     it('should only sanitize template variables', () => {
-      selectIdentifier.mockReturnValueOnce('title');
+      vi.mocked(selectIdentifier).mockReturnValueOnce('title');
 
       expect(
         slugFormatter(
-          Map({
+          {
             slug: '{{year}}-{{month}}-{{day}}-{{slug}}.en',
             path: 'sub_dir/{{year}}/{{slug}}',
-          }),
-          Map({ title: 'Post Title' }),
+          },
+          { title: 'Post Title' },
           slugConfig,
         ),
       ).toBe('sub_dir/2020/2020-01-01-post-title.en');
     });
 
     it(`should replace '.' in path with -`, () => {
-      selectIdentifier.mockReturnValueOnce('title');
+      vi.mocked(selectIdentifier).mockReturnValueOnce('title');
 
       expect(
         slugFormatter(
-          Map({
+          {
             slug: '{{slug}}.en',
             path: '../dir/{{slug}}',
-          }),
-          Map({ title: 'Post Title' }),
+          },
+          { title: 'Post Title' },
           slugConfig,
         ),
       ).toBe('--/dir/post-title.en');
@@ -395,7 +405,7 @@ describe('formatters', () => {
     });
 
     it('should return baseUrl for collection with no preview_path', () => {
-      expect(previewUrlFormatter('https://www.example.com', Map({}))).toBe(
+      expect(previewUrlFormatter('https://www.example.com', {})).toBe(
         'https://www.example.com',
       );
     });
@@ -405,93 +415,89 @@ describe('formatters', () => {
       expect(
         previewUrlFormatter(
           'https://www.example.com',
-          Map({
+          {
             preview_path: '{{year}}/{{slug}}/{{title}}/{{fields.slug}}',
             preview_path_date_field: 'customDateField',
-          }),
+          },
           'backendSlug',
-          Map({ data: Map({ customDateField: date, slug: 'entrySlug', title: 'title' }) }),
+          { data: { customDateField: date, slug: 'entrySlug', title: 'title' } },
           slugConfig,
         ),
       ).toBe('https://www.example.com/2020/backendslug/title/entryslug');
     });
 
     it('should return preview url for files in file collection', () => {
-      const file = Map({ name: 'about-file', preview_path: '{{slug}}/{{fields.slug}}/{{title}}' });
+      const file = { name: 'about-file', preview_path: '{{slug}}/{{fields.slug}}/{{title}}' };
 
-      const { getFileFromSlug } = require('../../reducers/collections');
-      getFileFromSlug.mockReturnValue(file);
+      vi.mocked(getFileFromSlug).mockReturnValue(file);
 
       expect(
         previewUrlFormatter(
           'https://www.example.com',
-          Map({
+          {
             preview_path: '{{slug}}/{{title}}/{{fields.slug}}',
             type: 'file_based_collection',
-            files: List([file]),
-          }),
+            files: [file],
+          },
           'backendSlug',
-          Map({ data: Map({ slug: 'about-the-project', title: 'title' }), slug: 'about-file' }),
+          { data: { slug: 'about-the-project', title: 'title' }, slug: 'about-file' },
           slugConfig,
         ),
       ).toBe('https://www.example.com/backendslug/about-the-project/title');
     });
 
     it('should return preview url for files in file collection when defined on file-level only', () => {
-      const file = Map({ name: 'about-file', preview_path: '{{slug}}/{{fields.slug}}/{{title}}' });
+      const file = { name: 'about-file', preview_path: '{{slug}}/{{fields.slug}}/{{title}}' };
 
-      const { getFileFromSlug } = require('../../reducers/collections');
-      getFileFromSlug.mockReturnValue(file);
+      vi.mocked(getFileFromSlug).mockReturnValue(file);
 
       expect(
         previewUrlFormatter(
           'https://www.example.com',
-          Map({
+          {
             type: 'file_based_collection',
-            files: List([file]),
-          }),
+            files: [file],
+          },
           'backendSlug',
-          Map({ data: Map({ slug: 'about-the-project', title: 'title' }), slug: 'about-file' }),
+          { data: { slug: 'about-the-project', title: 'title' }, slug: 'about-file' },
           slugConfig,
         ),
       ).toBe('https://www.example.com/backendslug/about-the-project/title');
     });
 
     it('should fall back to collection preview url for files in file collection', () => {
-      const file = Map({ name: 'about-file' });
+      const file = { name: 'about-file' };
 
-      const { getFileFromSlug } = require('../../reducers/collections');
-      getFileFromSlug.mockReturnValue(file);
+      vi.mocked(getFileFromSlug).mockReturnValue(file);
 
       expect(
         previewUrlFormatter(
           'https://www.example.com',
-          Map({
+          {
             preview_path: '{{slug}}/{{title}}/{{fields.slug}}',
             type: 'file_based_collection',
-            files: List([file]),
-          }),
+            files: [file],
+          },
           'backendSlug',
-          Map({ data: Map({ slug: 'about-the-project', title: 'title' }), slug: 'about-file' }),
+          { data: { slug: 'about-the-project', title: 'title' }, slug: 'about-file' },
           slugConfig,
         ),
       ).toBe('https://www.example.com/backendslug/title/about-the-project');
     });
 
     it('should infer date field when preview_path_date_field is not configured', () => {
-      const { selectInferredField } = require('../../reducers/collections');
-      selectInferredField.mockReturnValue('date');
+      vi.mocked(selectInferredField).mockReturnValue('date');
 
       const date = new Date('2020-01-02T13:28:27.679Z');
       expect(
         previewUrlFormatter(
           'https://www.example.com',
-          fromJS({
+          {
             name: 'posts',
             preview_path: '{{year}}/{{month}}/{{slug}}/{{title}}/{{fields.slug}}',
-          }),
+          },
           'backendSlug',
-          Map({ data: Map({ date, slug: 'entrySlug', title: 'title' }) }),
+          { data: { date, slug: 'entrySlug', title: 'title' } },
           slugConfig,
         ),
       ).toBe('https://www.example.com/2020/01/backendslug/title/entryslug');
@@ -501,11 +507,11 @@ describe('formatters', () => {
       expect(
         previewUrlFormatter(
           'https://www.example.com',
-          Map({
+          {
             preview_path: 'posts/{{filename}}.{{extension}}',
-          }),
+          },
           'backendSlug',
-          Map({ data: Map({}), path: 'src/content/posts/title.md' }),
+          { data: {}, path: 'src/content/posts/title.md' },
           slugConfig,
         ),
       ).toBe('https://www.example.com/posts/title.md');
@@ -515,12 +521,12 @@ describe('formatters', () => {
       expect(
         previewUrlFormatter(
           'https://www.example.com',
-          Map({
+          {
             folder: '_portfolio',
             preview_path: 'portfolio/{{dirname}}',
-          }),
+          },
           'backendSlug',
-          Map({ data: Map({}), path: '_portfolio/i-am-the-slug.md' }),
+          { data: {}, path: '_portfolio/i-am-the-slug.md' },
           slugConfig,
         ),
       ).toBe('https://www.example.com/portfolio/');
@@ -530,31 +536,31 @@ describe('formatters', () => {
       expect(
         previewUrlFormatter(
           'https://www.example.com',
-          Map({
+          {
             folder: '_portfolio',
             preview_path: 'portfolio/{{dirname}}',
             nested: { depth: 100 },
             meta: { path: { widget: 'string', label: 'Path', index_file: 'index' } },
-          }),
+          },
           'backendSlug',
-          Map({ data: Map({}), path: '_portfolio/drawing/i-am-the-slug/index.md' }),
+          { data: {}, path: '_portfolio/drawing/i-am-the-slug/index.md' },
           slugConfig,
         ),
       ).toBe('https://www.example.com/portfolio/drawing/i-am-the-slug');
     });
 
     it('should log error and ignore preview_path when date is missing', () => {
-      jest.spyOn(console, 'error').mockImplementation(() => {});
+      vi.spyOn(console, 'error').mockImplementation(() => {});
       expect(
         previewUrlFormatter(
           'https://www.example.com',
-          Map({
+          {
             name: 'posts',
             preview_path: '{{year}}',
             preview_path_date_field: 'date',
-          }),
+          },
           'backendSlug',
-          Map({ data: Map({}) }),
+          { data: {} },
           slugConfig,
         ),
       ).toBe('https://www.example.com');
@@ -568,23 +574,21 @@ describe('formatters', () => {
 
   describe('summaryFormatter', () => {
     it('should return summary from template', () => {
-      const { selectInferredField } = require('../../reducers/collections');
-      selectInferredField.mockReturnValue('date');
+      vi.mocked(selectInferredField).mockReturnValue('date');
 
       const date = new Date('2020-01-02T13:28:27.679Z');
-      const entry = fromJS({ data: { date, title: 'title' } });
-      const collection = fromJS({ fields: [{ name: 'date', widget: 'date' }] });
+      const entry = { data: { date, title: 'title' } };
+      const collection = { fields: [{ name: 'date', widget: 'date' }] };
 
       expect(summaryFormatter('{{title}}-{{year}}', entry, collection)).toBe('title-2020');
     });
 
     it('should handle filename and extension variables', () => {
-      const { selectInferredField } = require('../../reducers/collections');
-      selectInferredField.mockReturnValue('date');
+      vi.mocked(selectInferredField).mockReturnValue('date');
 
       const date = new Date('2020-01-02T13:28:27.679Z');
-      const entry = fromJS({ path: 'post.md', data: { date, title: 'title' } });
-      const collection = fromJS({ fields: [{ name: 'date', widget: 'date' }] });
+      const entry = { path: 'post.md', data: { date, title: 'title' } };
+      const collection = { fields: [{ name: 'date', widget: 'date' }] };
 
       expect(
         summaryFormatter('{{title}}-{{year}}-{{filename}}.{{extension}}', entry, collection),
@@ -592,18 +596,17 @@ describe('formatters', () => {
     });
 
     it('should handle the dirname variable in a regular collection', () => {
-      const { selectInferredField } = require('../../reducers/collections');
-      selectInferredField.mockReturnValue('date');
+      vi.mocked(selectInferredField).mockReturnValue('date');
 
       const date = new Date('2020-01-02T13:28:27.679Z');
-      const entry = fromJS({
+      const entry = {
         path: '_portfolio/drawing.md',
         data: { date, title: 'title' },
-      });
-      const collection = fromJS({
+      };
+      const collection = {
         folder: '_portfolio',
         fields: [{ name: 'date', widget: 'date' }],
-      });
+      };
 
       expect(summaryFormatter('{{dirname}}/{{title}}-{{year}}', entry, collection)).toBe(
         '/title-2020',
@@ -611,20 +614,19 @@ describe('formatters', () => {
     });
 
     it('should handle the dirname variable in a nested collection', () => {
-      const { selectInferredField } = require('../../reducers/collections');
-      selectInferredField.mockReturnValue('date');
+      vi.mocked(selectInferredField).mockReturnValue('date');
 
       const date = new Date('2020-01-02T13:28:27.679Z');
-      const entry = fromJS({
+      const entry = {
         path: '_portfolio/drawing/index.md',
         data: { date, title: 'title' },
-      });
-      const collection = fromJS({
+      };
+      const collection = {
         folder: '_portfolio',
         nested: { depth: 100 },
         meta: { path: { widget: 'string', label: 'Path', index_file: 'index' } },
         fields: [{ name: 'date', widget: 'date' }],
-      });
+      };
 
       expect(summaryFormatter('{{dirname}}/{{title}}-{{year}}', entry, collection)).toBe(
         'drawing/title-2020',
@@ -638,18 +640,17 @@ describe('formatters', () => {
     });
 
     it('should return folder is entry data is undefined', () => {
-      expect(folderFormatter('static/images', Map({}))).toBe('static/images');
+      expect(folderFormatter('static/images', {})).toBe('static/images');
     });
 
     it('should return formatted folder', () => {
-      const { selectIdentifier } = require('../../reducers/collections');
-      selectIdentifier.mockReturnValue('title');
+        vi.mocked(selectIdentifier).mockReturnValue('title');
 
-      const entry = fromJS({
+      const entry = {
         path: 'content/en/hosting-and-deployment/deployment-with-nanobox.md',
         data: { title: 'Deployment With NanoBox', category: 'Hosting And Deployment' },
-      });
-      const collection = fromJS({});
+      };
+      const collection = {};
 
       expect(
         folderFormatter(
@@ -664,11 +665,11 @@ describe('formatters', () => {
     });
 
     it('should compile filename template value', () => {
-      const entry = fromJS({
+      const entry = {
         path: 'content/en/hosting-and-deployment/deployment-with-nanobox.md',
         data: { category: 'Hosting And Deployment' },
-      });
-      const collection = fromJS({});
+      };
+      const collection = {};
 
       expect(
         folderFormatter(
@@ -683,11 +684,11 @@ describe('formatters', () => {
     });
 
     it('should compile extension template value', () => {
-      const entry = fromJS({
+      const entry = {
         path: 'content/en/hosting-and-deployment/deployment-with-nanobox.md',
         data: { category: 'Hosting And Deployment' },
-      });
-      const collection = fromJS({});
+      };
+      const collection = {};
 
       expect(
         folderFormatter(
@@ -702,13 +703,13 @@ describe('formatters', () => {
     });
 
     it('should compile dirname template value in a regular collection', () => {
-      const entry = fromJS({
+      const entry = {
         path: 'content/en/hosting-and-deployment/deployment-with-nanobox.md',
         data: { category: 'Hosting And Deployment' },
-      });
-      const collection = fromJS({
+      };
+      const collection = {
         folder: 'content/en/',
-      });
+      };
 
       expect(
         folderFormatter(
@@ -723,16 +724,16 @@ describe('formatters', () => {
     });
 
     it('should compile dirname template value in a nested collection', () => {
-      const entry = fromJS({
+      const entry = {
         path: '_portfolio/drawing/i-am-the-slug/index.md',
         data: { category: 'Hosting And Deployment' },
-      });
-      const collection = fromJS({
+      };
+      const collection = {
         folder: '_portfolio',
         nested: { depth: 100 },
         meta: { path: { widget: 'string', label: 'Path', index_file: 'index' } },
         fields: [{ name: 'date', widget: 'date' }],
-      });
+      };
 
       expect(
         folderFormatter(
