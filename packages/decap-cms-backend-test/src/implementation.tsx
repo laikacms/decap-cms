@@ -22,11 +22,11 @@ import type {
   AssetProxy,
   PersistOptions,
   User,
-  Config,
+  CmsConfig,
   ImplementationFile,
   DataFile,
 } from 'decap-cms-lib-util';
-import type { FileEntry, ImplementationMediaFile } from 'decap-cms-lib-util/types/cms-immutable';
+import type { CmsFileEntry, CmsImplementationMediaFile } from 'decap-cms-lib-util/types/cms';
 
 type RepoFile = { path: string; content: string | AssetProxy };
 type RepoTree = { [key: string]: RepoFile | RepoTree };
@@ -134,7 +134,7 @@ export default class TestBackend implements Implementation {
   mediaFolder: string;
   options: { initialWorkflowStatus?: string };
 
-  constructor(config: Config, options = {}) {
+  constructor(config: CmsConfig, options = {}) {
     this.options = options;
     this.mediaFolder = config.media_folder;
   }
@@ -168,7 +168,7 @@ export default class TestBackend implements Implementation {
   }
 
   traverseCursor(cursor: Cursor, action: string) {
-    const { folder, extension, index, pageCount, depth } = cursor.data!.toObject() as {
+    const { folder, extension, index, pageCount, depth } = cursor.data as {
       folder: string;
       extension: string;
       index: number;
@@ -309,7 +309,7 @@ export default class TestBackend implements Implementation {
     };
   }
 
-  async persistEntry(entry: FileEntry, options: PersistOptions) {
+  async persistEntry(entry: CmsFileEntry, options: PersistOptions) {
     if (options.useWorkflow) {
       const slug = entry.dataFiles[0].slug;
       const key = `${options.collectionName}/${slug}`;
@@ -396,7 +396,7 @@ export default class TestBackend implements Implementation {
     };
   }
 
-  normalizeAsset(assetProxy: AssetProxy): ImplementationMediaFile & AssetProxy {
+  normalizeAsset(assetProxy: AssetProxy): CmsImplementationMediaFile & AssetProxy {
     const fileObj = assetProxy.fileObj as File;
     const { name, size } = fileObj;
     const objectUrl = attempt(window.URL.createObjectURL, fileObj);

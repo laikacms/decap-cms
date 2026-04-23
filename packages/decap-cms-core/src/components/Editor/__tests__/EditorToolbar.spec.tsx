@@ -1,13 +1,14 @@
 import React from 'react';
 import { render } from '@testing-library/react';
+import { vi } from 'vitest';
 
 import { EditorToolbar } from '../EditorToolbar';
 
-jest.mock('../../UI', () => ({
+vi.mock('../../UI', () => ({
   // eslint-disable-next-line react/display-name
   SettingsDropdown: props => <mock-settings-dropdown {...props} />,
 }));
-jest.mock('react-router-dom', () => {
+vi.mock('react-router-dom', () => {
   return {
     // eslint-disable-next-line react/display-name
     Link: props => <mock-link {...props} />,
@@ -20,33 +21,33 @@ describe('EditorToolbar', () => {
     isPublishing: false,
     isUpdatingStatus: false,
     isDeleting: false,
-    onPersist: jest.fn(),
-    onPersistAndNew: jest.fn(),
-    onPersistAndDuplicate: jest.fn(),
+    onPersist: vi.fn(),
+    onPersistAndNew: vi.fn(),
+    onPersistAndDuplicate: vi.fn(),
     showDelete: true,
-    onDelete: jest.fn(),
-    onDeleteUnpublishedChanges: jest.fn(),
-    onChangeStatus: jest.fn(),
-    onPublish: jest.fn(),
-    unPublish: jest.fn(),
-    onDuplicate: jest.fn(),
-    onPublishAndNew: jest.fn(),
-    onPublishAndDuplicate: jest.fn(),
+    onDelete: vi.fn(),
+    onDeleteUnpublishedChanges: vi.fn(),
+    onChangeStatus: vi.fn(),
+    onPublish: vi.fn(),
+    unPublish: vi.fn(),
+    onDuplicate: vi.fn(),
+    onPublishAndNew: vi.fn(),
+    onPublishAndDuplicate: vi.fn(),
     hasChanged: false,
-    collection: fromJS({ name: 'posts' }),
+    collection: { name: 'posts' },
     hasWorkflow: false,
     useOpenAuthoring: false,
     hasUnpublishedChanges: false,
     isNewEntry: false,
     isModification: false,
-    onLogoutClick: jest.fn(),
-    loadDeployPreview: jest.fn(),
-    t: jest.fn(key => key),
+    onLogoutClick: vi.fn(),
+    loadDeployPreview: vi.fn(),
+    t: vi.fn(key => key),
     editorBackLink: '',
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render with default props', () => {

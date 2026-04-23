@@ -24,7 +24,7 @@ import type {
 import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
 import type AssetProxy from '../valueObjects/AssetProxy';
-import type { ImplementationMediaFile } from 'decap-cms-lib-util';
+import type { CmsDataFile } from 'decap-cms-lib-util';
 
 type MediaFile = CmsMediaFile;
 type EntryField = CmsEntryField;
@@ -170,7 +170,7 @@ export function loadMedia(
     function loadFunction() {
       return backend
         .getMedia()
-        .then((files: ImplementationMediaFile[]) => dispatch(mediaLoaded(files)))
+        .then((files: CmsDataFile[]) => dispatch(mediaLoaded(files)))
         .catch((error: { status?: number }) => {
           console.error(error);
           if (error.status === 404) {
@@ -202,7 +202,7 @@ function createMediaFileFromAsset({
   file: File;
   assetProxy: AssetProxy;
   draft: boolean;
-}): ImplementationMediaFile {
+}): CmsDataFile {
   const mediaFile = {
     id,
     name: basename(assetProxy.path || ''),
@@ -283,7 +283,7 @@ export function persistMedia(file: File, opts: MediaOptions = {}) {
 
       dispatch(addAsset(assetProxy));
 
-      let mediaFile: ImplementationMediaFile;
+      let mediaFile: CmsDataFile;
       if (integration) {
         const id = await getBlobSHA(file);
         // integration assets are persisted immediately, thus draft is false
@@ -452,7 +452,7 @@ interface MediaOptions {
   dynamicSearchQuery?: string;
 }
 
-export function mediaLoaded(files: ImplementationMediaFile[], opts: MediaOptions = {}) {
+export function mediaLoaded(files: CmsDataFile[], opts: MediaOptions = {}) {
   return {
     type: MEDIA_LOAD_SUCCESS,
     payload: { files, ...opts },
@@ -468,7 +468,7 @@ export function mediaPersisting() {
   return { type: MEDIA_PERSIST_REQUEST } as const;
 }
 
-export function mediaPersisted(file: ImplementationMediaFile, opts: MediaOptions = {}) {
+export function mediaPersisted(file: CmsDataFile, opts: MediaOptions = {}) {
   const { privateUpload } = opts;
   return {
     type: MEDIA_PERSIST_SUCCESS,

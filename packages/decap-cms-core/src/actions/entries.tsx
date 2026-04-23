@@ -21,7 +21,7 @@ import { getProcessSegment } from '../lib/formatters';
 import { hasI18n, duplicateDefaultI18nFields, serializeI18n, I18N, I18N_FIELD } from '../lib/i18n';
 import { addNotification } from './notifications';
 
-import type { ImplementationMediaFile } from 'decap-cms-lib-util';
+import type { CmsDataFile } from 'decap-cms-lib-util';
 import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
 import type {
@@ -412,7 +412,7 @@ export function loadLocalBackup() {
   };
 }
 
-export function addDraftEntryMediaFile(file: ImplementationMediaFile) {
+export function addDraftEntryMediaFile(file: CmsDataFile) {
   return { type: ADD_DRAFT_ENTRY_MEDIA_FILE, payload: file };
 }
 
