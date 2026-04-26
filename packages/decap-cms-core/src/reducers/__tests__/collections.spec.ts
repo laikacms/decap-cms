@@ -15,7 +15,7 @@ import { FILES, FOLDER } from '../../constants/collectionTypes';
 
 describe('collections', () => {
   it('should handle an empty state', () => {
-    expect(collections(undefined, {})).toEqual(Map());
+    expect(collections(undefined, {})).toEqual({});
   });
 
   it('should load the collections from the config', () => {
@@ -31,7 +31,7 @@ describe('collections', () => {
             },
           ],
         }),
-      ).toJS(),
+      ),
     ).toEqual({
       posts: {
         name: 'posts',
@@ -62,10 +62,10 @@ describe('collections', () => {
     it('should not allow deletions for file collections', () => {
       expect(
         selectAllowDeletion(
-          fromJS({
+          {
             name: 'pages',
             type: FILES,
-          }),
+          },
         ),
       ).toBe(false);
     });
@@ -75,10 +75,10 @@ describe('collections', () => {
     it('should return path', () => {
       expect(
         selectEntryPath(
-          fromJS({
+          {
             type: FOLDER,
             folder: 'posts',
-          }),
+          },
           'dir1/dir2/slug',
         ),
       ).toBe('posts/dir1/dir2/slug.md');
@@ -89,10 +89,10 @@ describe('collections', () => {
     it('should return slug', () => {
       expect(
         selectEntrySlug(
-          fromJS({
+          {
             type: FOLDER,
             folder: 'posts',
-          }),
+          },
           'posts/dir1/dir2/slug.md',
         ),
       ).toBe('dir1/dir2/slug');
@@ -101,13 +101,13 @@ describe('collections', () => {
 
   describe('selectFieldsMediaFolders', () => {
     it('should return empty array for invalid collection', () => {
-      expect(selectFieldsWithMediaFolders(fromJS({}))).toEqual([]);
+      expect(selectFieldsWithMediaFolders({})).toEqual([]);
     });
 
     it('should return configs for folder collection', () => {
       expect(
         selectFieldsWithMediaFolders(
-          fromJS({
+          {
             folder: 'posts',
             fields: [
               {
@@ -144,30 +144,30 @@ describe('collections', () => {
                 ],
               },
             ],
-          }),
+          },
         ),
       ).toEqual([
-        fromJS({
+        {
           name: 'image',
           media_folder: 'image_media_folder',
-        }),
-        fromJS({ name: 'body', media_folder: 'body_media_folder' }),
-        fromJS({ name: 'list_1_item', media_folder: 'list_1_item_media_folder' }),
-        fromJS({
+        },
+        { name: 'body', media_folder: 'body_media_folder' },
+        { name: 'list_1_item', media_folder: 'list_1_item_media_folder' },
+        {
           name: 'list_2_item',
           media_folder: 'list_2_item_media_folder',
-        }),
-        fromJS({
+        },
+        {
           name: 'list_3_type',
           media_folder: 'list_3_type_media_folder',
-        }),
+        },
       ]);
     });
 
     it('should return configs for files collection', () => {
       expect(
         selectFieldsWithMediaFolders(
-          fromJS({
+          {
             files: [
               {
                 name: 'file1',
@@ -223,18 +223,18 @@ describe('collections', () => {
                 ],
               },
             ],
-          }),
+          },
           'file4',
         ),
       ).toEqual([
-        fromJS({
+        {
           name: 'list_2_item',
           media_folder: 'list_2_item_media_folder',
-        }),
-        fromJS({
+        },
+        {
           name: 'list_3_type',
           media_folder: 'list_3_type_media_folder',
-        }),
+        },
       ]);
     });
   });
@@ -251,7 +251,7 @@ describe('collections', () => {
       expect(
         selectMediaFolders(
           config,
-          fromJS({
+          {
             folder: 'posts',
             media_folder: '{{media_folder}}/general/',
             fields: [
@@ -264,8 +264,8 @@ describe('collections', () => {
                 types: [{ name: 'widget', media_folder: '{{media_folder}}/widgets' }],
               },
             ],
-          }),
-          fromJS({ slug: 'name', path: 'src/post/post1.md', data: {} }),
+          },
+          { slug: 'name', path: 'src/post/post1.md', data: {} },
         ),
       ).toEqual([
         'static/img/general',
@@ -278,7 +278,7 @@ describe('collections', () => {
       expect(
         selectMediaFolders(
           config,
-          fromJS({
+          {
             media_folder: '{{media_folder}}/general/',
             files: [
               {
@@ -297,8 +297,8 @@ describe('collections', () => {
                 ],
               },
             ],
-          }),
-          fromJS({ slug: 'name', path: 'src/post/post1.md', data: {} }),
+          },
+          { slug: 'name', path: 'src/post/post1.md', data: {} },
         ),
       ).toEqual([
         'static/img/general',
@@ -311,14 +311,14 @@ describe('collections', () => {
 
   describe('getFieldsNames', () => {
     it('should get flat fields names', () => {
-      const collection = fromJS({
+      const collection = {
         fields: [{ name: 'en' }, { name: 'es' }],
-      });
-      expect(getFieldsNames(collection.get('fields').toArray())).toEqual(['en', 'es']);
+      };
+      expect(getFieldsNames(collection.fields)).toEqual(['en', 'es']);
     });
 
     it('should get nested fields names', () => {
-      const collection = fromJS({
+      const collection = {
         fields: [
           { name: 'en', fields: [{ name: 'title' }, { name: 'body' }] },
           { name: 'es', fields: [{ name: 'title' }, { name: 'body' }] },
@@ -328,8 +328,8 @@ describe('collections', () => {
             fields: [{ name: 'title', widget: 'list', types: [{ name: 'variableType' }] }],
           },
         ],
-      });
-      expect(getFieldsNames(collection.get('fields').toArray())).toEqual([
+      };
+      expect(getFieldsNames(collection.fields)).toEqual([[
         'en',
         'es',
         'it',
@@ -348,14 +348,14 @@ describe('collections', () => {
 
   describe('selectField', () => {
     it('should return top field by key', () => {
-      const collection = fromJS({
+      const collection = {
         fields: [{ name: 'en' }, { name: 'es' }],
-      });
-      expect(selectField(collection, 'en')).toBe(collection.get('fields').get(0));
+      };
+      expect(selectField(collection, 'en')).toBe(collection.fields[0]);
     });
 
     it('should return nested field by key', () => {
-      const collection = fromJS({
+      const collection = {
         fields: [
           { name: 'en', fields: [{ name: 'title' }, { name: 'body' }] },
           { name: 'es', fields: [{ name: 'title' }, { name: 'body' }] },
@@ -365,79 +365,79 @@ describe('collections', () => {
             fields: [{ name: 'title', widget: 'list', types: [{ name: 'variableType' }] }],
           },
         ],
-      });
+      };
 
       expect(selectField(collection, 'en.title')).toBe(
-        collection.get('fields').get(0).get('fields').get(0),
+        collection.fields[0].fields[0],
       );
 
       expect(selectField(collection, 'it.title.subTitle')).toBe(
-        collection.get('fields').get(2).get('field').get('fields').get(0),
+        collection.fields[2].field.fields[0],
       );
 
       expect(selectField(collection, 'fr.title.variableType')).toBe(
-        collection.get('fields').get(3).get('fields').get(0).get('types').get(0),
+        collection.fields[3].fields[0].types[0],
       );
     });
   });
 
   describe('selectEntryCollectionTitle', () => {
-    const entry = fromJS({
+    const entry = {
       data: { title: 'entry title', otherField: 'other field', emptyLinkTitle: '' },
-    });
+    };
 
     it('should return the entry title if set', () => {
-      const collection = fromJS({
+      const collection = {
         fields: [{ name: 'title' }, { name: 'otherField' }],
-      });
+      };
 
       expect(selectEntryCollectionTitle(collection, entry)).toEqual('entry title');
     });
 
     it('should return some other inferreable title if set', () => {
-      const headlineEntry = fromJS({
+      const headlineEntry = {
         data: { headline: 'entry headline', otherField: 'other field' },
-      });
-      const collection = fromJS({
+      };
+      const collection = {
         fields: [{ name: 'headline' }, { name: 'otherField' }],
-      });
+      };
 
       expect(selectEntryCollectionTitle(collection, headlineEntry)).toEqual('entry headline');
     });
 
     it('should return the identifier_field content if defined in collection', () => {
-      const collection = fromJS({
+      const collection = {
         identifier_field: 'otherField',
         fields: [{ name: 'title' }, { name: 'otherField' }],
-      });
+      };
 
       expect(selectEntryCollectionTitle(collection, entry)).toEqual('other field');
     });
 
     it('should return the entry title if identifier_field content is not defined in collection', () => {
-      const collection = fromJS({
+      const collection = {
         identifier_field: 'missingLinkTitle',
         fields: [{ name: 'title' }, { name: 'otherField' }],
-      });
+      };
 
       expect(selectEntryCollectionTitle(collection, entry)).toEqual('entry title');
     });
 
     it('should return the entry title if identifier_field content is empty', () => {
-      const collection = fromJS({
+      const collection = {
         identifier_field: 'emptyLinkTitle',
         fields: [{ name: 'title' }, { name: 'otherField' }, { name: 'emptyLinkTitle' }],
-      });
+      };
 
       expect(selectEntryCollectionTitle(collection, entry)).toEqual('entry title');
     });
 
     it('should return the entry label of a file collection', () => {
-      const labelEntry = fromJS({
+      const labelEntry = {
         slug: 'entry-name',
         data: { title: 'entry title', otherField: 'other field' },
-      });
-      const collection = fromJS({
+      };
+      const collection = {
         type: FILES,
         files: [
           {
@@ -445,17 +445,17 @@ describe('collections', () => {
             label: 'entry label',
           },
         ],
-      });
+      };
 
       expect(selectEntryCollectionTitle(collection, labelEntry)).toEqual('entry label');
     });
 
     it('should return a formatted summary before everything else', () => {
-      const collection = fromJS({
+      const collection = {
         summary: '{{title}} -- {{otherField}}',
         identifier_field: 'otherField',
         fields: [{ name: 'title' }, { name: 'otherField' }],
-      });
+      };
 
       expect(selectEntryCollectionTitle(collection, entry)).toEqual('entry title -- other field');
     });
@@ -463,7 +463,7 @@ describe('collections', () => {
 
   describe('updateFieldByKey', () => {
     it('should update field by key', () => {
-      const collection = fromJS({
+      const collection = {
         fields: [
           { name: 'title' },
           { name: 'image' },
@@ -475,15 +475,15 @@ describe('collections', () => {
           { name: 'body' },
           { name: 'widgetList', types: [{ name: 'widget' }] },
         ],
-      });
+      };
 
       function updater(field) {
-        return field.set('default', 'default');
+        return { ...field, default: 'default' };
       }
 
       expect(updateFieldByKey(collection, 'non-existent', updater)).toBe(collection);
       expect(updateFieldByKey(collection, 'title', updater)).toEqual(
-        fromJS({
+        {
           fields: [
             { name: 'title', default: 'default' },
             { name: 'image' },
@@ -495,10 +495,10 @@ describe('collections', () => {
             { name: 'body' },
             { name: 'widgetList', types: [{ name: 'widget' }] },
           ],
-        }),
+        },
       );
       expect(updateFieldByKey(collection, 'object.title', updater)).toEqual(
-        fromJS({
+        {
           fields: [
             { name: 'title' },
             { name: 'image' },
@@ -513,11 +513,11 @@ describe('collections', () => {
             { name: 'body' },
             { name: 'widgetList', types: [{ name: 'widget' }] },
           ],
-        }),
+        },
       );
 
       expect(updateFieldByKey(collection, 'object.gallery.image', updater)).toEqual(
-        fromJS({
+        {
           fields: [
             { name: 'title' },
             { name: 'image' },
@@ -532,10 +532,10 @@ describe('collections', () => {
             { name: 'body' },
             { name: 'widgetList', types: [{ name: 'widget' }] },
           ],
-        }),
+        },
       );
       expect(updateFieldByKey(collection, 'list.image', updater)).toEqual(
-        fromJS({
+        {
           fields: [
             { name: 'title' },
             { name: 'image' },
@@ -547,11 +547,11 @@ describe('collections', () => {
             { name: 'body' },
             { name: 'widgetList', types: [{ name: 'widget' }] },
           ],
-        }),
+        },
       );
 
       expect(updateFieldByKey(collection, 'widgetList.widget', updater)).toEqual(
-        fromJS({
+        {
           fields: [
             { name: 'title' },
             { name: 'image' },
@@ -563,44 +563,44 @@ describe('collections', () => {
             { name: 'body' },
             { name: 'widgetList', types: [{ name: 'widget', default: 'default' }] },
           ],
-        }),
+        },
       );
     });
   });
 
   describe("selectInferredField(collection, 'date')", () => {
     it('should return publishDate if set', () => {
-      const collection = fromJS({
+      const collection = {
         fields: [{ name: 'title' }, { name: 'publishDate', widget: 'datetime' }],
-      });
+      };
 
       expect(selectInferredField(collection, 'date')).toEqual('publishDate');
     });
 
     it('should return publish_date if set', () => {
-      const collection = fromJS({
+      const collection = {
         fields: [{ name: 'title' }, { name: 'publish_date', widget: 'datetime' }],
-      });
+      };
 
       expect(selectInferredField(collection, 'date')).toEqual('publish_date');
     });
 
     it('should return date if set', () => {
-      const collection = fromJS({
+      const collection = {
         fields: [{ name: 'title' }, { name: 'date', widget: 'datetime' }],
-      });
+      };
 
       expect(selectInferredField(collection, 'date')).toEqual('date');
     });
 
     it('should return first date field if multiple synonyms are present', () => {
-      const collection = fromJS({
+      const collection = {
         fields: [
           { name: 'title' },
           { name: 'publishDate', widget: 'datetime' },
           { name: 'date', widget: 'datetime' },
         ],
-      });
+      };
 
       expect(selectInferredField(collection, 'date')).toEqual('publishDate');
     });

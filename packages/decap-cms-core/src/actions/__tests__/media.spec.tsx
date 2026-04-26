@@ -62,14 +62,14 @@ describe('media', () => {
         //  from 'config' state slice
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error -- TODO: fix underlying type issue
-        config: Map(),
+        config: {},
         medias: {
           [path]: { asset, isLoading: false, error: null },
         },
       });
 
       mockedSelectMediaFilePath.mockReturnValue(path);
-      const payload = { collection: Map(), entry: Map({ path: 'entryPath' }), path };
+      const payload = { collection: {}, entry: { path: 'entryPath' }, path };
 
       // TODO change to proper payload when immutable is removed
       //  from 'collections' and 'entries' state slices

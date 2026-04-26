@@ -1,65 +1,68 @@
 import React from 'react';
 import { render } from '@testing-library/react';
+import { vi } from 'vitest';
 
 import { Editor } from '../Editor';
 
-jest.mock('lodash/debounce', () => {
-  const flush = jest.fn();
-  return func => {
-    func.flush = flush;
-    return func;
+vi.mock('lodash/debounce', () => {
+  const flush = vi.fn();
+  return {
+    default: func => {
+      func.flush = flush;
+      return func;
+    },
   };
 });
 // eslint-disable-next-line react/display-name
-jest.mock('../EditorInterface', () => props => <mock-editor-interface {...props} />);
-jest.mock('decap-cms-ui-default', () => {
+vi.mock('../EditorInterface', () => ({ default: props => <mock-editor-interface {...props} /> }));
+vi.mock('decap-cms-ui-default', () => {
   return {
     // eslint-disable-next-line react/display-name
     Loader: props => <mock-loader {...props} />,
   };
 });
-jest.mock('../../../routing/history');
+vi.mock('../../../routing/history');
 
 describe('Editor', () => {
   const props = {
-    boundGetAsset: jest.fn(),
-    changeDraftField: jest.fn(),
-    changeDraftFieldValidation: jest.fn(),
-    collection: fromJS({ name: 'posts' }),
-    createDraftDuplicateFromEntry: jest.fn(),
-    createEmptyDraft: jest.fn(),
-    discardDraft: jest.fn(),
-    entry: fromJS({}),
-    entryDraft: fromJS({}),
-    loadEntry: jest.fn(),
-    persistEntry: jest.fn(),
-    deleteEntry: jest.fn(),
+    boundGetAsset: vi.fn(),
+    changeDraftField: vi.fn(),
+    changeDraftFieldValidation: vi.fn(),
+    collection: { name: 'posts' },
+    createDraftDuplicateFromEntry: vi.fn(),
+    createEmptyDraft: vi.fn(),
+    discardDraft: vi.fn(),
+    entry: {},
+    entryDraft: {},
+    loadEntry: vi.fn(),
+    persistEntry: vi.fn(),
+    deleteEntry: vi.fn(),
     showDelete: true,
-    fields: fromJS([]),
+    fields: [],
     slug: 'slug',
     newEntry: true,
-    updateUnpublishedEntryStatus: jest.fn(),
-    publishUnpublishedEntry: jest.fn(),
-    deleteUnpublishedEntry: jest.fn(),
-    logoutUser: jest.fn(),
-    loadEntries: jest.fn(),
-    deployPreview: fromJS({}),
-    loadDeployPreview: jest.fn(),
-    user: fromJS({}),
-    t: jest.fn(key => key),
-    localBackup: fromJS({}),
-    retrieveLocalBackup: jest.fn(),
-    persistLocalBackup: jest.fn(),
+    updateUnpublishedEntryStatus: vi.fn(),
+    publishUnpublishedEntry: vi.fn(),
+    deleteUnpublishedEntry: vi.fn(),
+    logoutUser: vi.fn(),
+    loadEntries: vi.fn(),
+    deployPreview: {},
+    loadDeployPreview: vi.fn(),
+    user: {},
+    t: vi.fn(key => key),
+    localBackup: {},
+    retrieveLocalBackup: vi.fn(),
+    persistLocalBackup: vi.fn(),
     location: { search: '?title=title' },
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render loader when entryDraft is null', () => {
     // suppress prop type error
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
     const { asFragment } = render(<Editor {...props} entryDraft={null} />);
     expect(asFragment()).toMatchSnapshot();
     expect(console.error).toHaveBeenCalledTimes(1);
@@ -71,13 +74,13 @@ describe('Editor', () => {
   });
 
   it('should render loader when entryDraft entry is undefined', () => {
-    const { asFragment } = render(<Editor {...props} entryDraft={fromJS({})} />);
+    const { asFragment } = render(<Editor {...props} entryDraft={{}} />);
     expect(asFragment()).toMatchSnapshot();
   });
 
   it('should render loader when entry is fetching', () => {
     const { asFragment } = render(
-      <Editor {...props} entryDraft={fromJS({ entry: {} })} entry={fromJS({ isFetching: true })} />,
+      <Editor {...props} entryDraft={{ entry: {} }} entry={{ isFetching: true }} />,
     );
     expect(asFragment()).toMatchSnapshot();
   });
@@ -86,8 +89,8 @@ describe('Editor', () => {
     const { asFragment } = render(
       <Editor
         {...props}
-        entryDraft={fromJS({ entry: { slug: 'slug' } })}
-        entry={fromJS({ isFetching: false })}
+        entryDraft={{ entry: { slug: 'slug' } }}
+        entry={{ isFetching: false }}
       />,
     );
     expect(asFragment()).toMatchSnapshot();
@@ -97,8 +100,8 @@ describe('Editor', () => {
     render(
       <Editor
         {...props}
-        entryDraft={fromJS({ entry: { slug: 'slug' } })}
-        entry={fromJS({ isFetching: false })}
+        entryDraft={{ entry: { slug: 'slug' } }}
+        entry={{ isFetching: false }}
       />,
     );
 
@@ -110,8 +113,8 @@ describe('Editor', () => {
     render(
       <Editor
         {...props}
-        entryDraft={fromJS({ entry: { slug: 'slug' } })}
-        entry={fromJS({ isFetching: false })}
+        entryDraft={{ entry: { slug: 'slug' } }}
+        entry={{ isFetching: false }}
         newEntry={true}
       />,
     );
@@ -125,8 +128,8 @@ describe('Editor', () => {
     render(
       <Editor
         {...props}
-        entryDraft={fromJS({ entry: { slug: 'slug' } })}
-        entry={fromJS({ isFetching: false })}
+        entryDraft={{ entry: { slug: 'slug' } }}
+        entry={{ isFetching: false }}
         newEntry={false}
       />,
     );
@@ -140,8 +143,8 @@ describe('Editor', () => {
     render(
       <Editor
         {...props}
-        entryDraft={fromJS({ entry: { slug: 'slug' } })}
-        entry={fromJS({ isFetching: false })}
+        entryDraft={{ entry: { slug: 'slug' } }}
+        entry={{ isFetching: false }}
         collectionEntriesLoaded={false}
       />,
     );
@@ -154,8 +157,8 @@ describe('Editor', () => {
     render(
       <Editor
         {...props}
-        entryDraft={fromJS({ entry: { slug: 'slug' } })}
-        entry={fromJS({ isFetching: false })}
+        entryDraft={{ entry: { slug: 'slug' } }}
+        entry={{ isFetching: false }}
         collectionEntriesLoaded={true}
       />,
     );
@@ -164,19 +167,19 @@ describe('Editor', () => {
   });
 
   it('should flush debounce createBackup, discard draft and remove exit blocker on umount', () => {
-    window.removeEventListener = jest.fn();
+    window.removeEventListener = vi.fn();
     const debounce = require('lodash/debounce');
 
     const flush = debounce({}).flush;
     const { unmount } = render(
       <Editor
         {...props}
-        entryDraft={fromJS({ entry: { slug: 'slug' }, hasChanged: true })}
-        entry={fromJS({ isFetching: false })}
+        entryDraft={{ entry: { slug: 'slug' }, hasChanged: true }}
+        entry={{ isFetching: false }}
       />,
     );
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     unmount();
 
     expect(flush).toHaveBeenCalledTimes(1);
@@ -196,24 +199,24 @@ describe('Editor', () => {
     const { rerender } = render(
       <Editor
         {...props}
-        entryDraft={fromJS({ entry: {} })}
-        entry={fromJS({ isFetching: false })}
+        entryDraft={{ entry: {} }}
+        entry={{ isFetching: false }}
       />,
     );
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     rerender(
       <Editor
         {...props}
-        entryDraft={fromJS({ entry: { mediaFiles: [{ id: '1' }] } })}
-        entry={fromJS({ isFetching: false, data: {} })}
+        entryDraft={{ entry: { mediaFiles: [{ id: '1' }] } }}
+        entry={{ isFetching: false, data: {} }}
         hasChanged={true}
       />,
     );
 
     expect(props.persistLocalBackup).toHaveBeenCalledTimes(1);
     expect(props.persistLocalBackup).toHaveBeenCalledWith(
-      fromJS({ mediaFiles: [{ id: '1' }] }),
+      { mediaFiles: [{ id: '1' }] },
       props.collection,
     );
   });

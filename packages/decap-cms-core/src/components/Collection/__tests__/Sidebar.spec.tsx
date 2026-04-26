@@ -1,29 +1,30 @@
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { render } from '@testing-library/react';
+import { vi } from 'vitest';
 
 import { Sidebar } from '../Sidebar';
 
-jest.mock('decap-cms-ui-default', () => {
-  const actual = jest.requireActual('decap-cms-ui-default');
+vi.mock('decap-cms-ui-default', async () => {
+  const actual = await vi.importActual<typeof import('decap-cms-ui-default')>('decap-cms-ui-default');
   return {
     ...actual,
     Icon: 'mocked-icon',
   };
 });
 
-jest.mock('../NestedCollection', () => 'nested-collection');
-jest.mock('../CollectionSearch', () => 'collection-search');
-jest.mock('../../../actions/collections');
+vi.mock('../NestedCollection', () => ({ default: 'nested-collection' }));
+vi.mock('../CollectionSearch', () => ({ default: 'collection-search' }));
+vi.mock('../../../actions/collections');
 
 describe('Sidebar', () => {
   const props = {
     searchTerm: '',
     isSearchEnabled: true,
-    t: jest.fn(key => key),
+    t: vi.fn(key => key),
   };
   it('should render sidebar with a simple collection', () => {
-    const collections = fromJS([{ name: 'posts', label: 'Posts' }]).toOrderedMap();
+    const collections = { posts: { name: 'posts', label: 'Posts' } };
     const { asFragment, getByTestId } = render(
       <MemoryRouter>
         <Sidebar {...props} collections={collections} />
@@ -37,7 +38,7 @@ describe('Sidebar', () => {
   });
 
   it('should not render a hidden collection', () => {
-    const collections = fromJS([{ name: 'posts', label: 'Posts', hide: true }]).toOrderedMap();
+    const collections = { posts: { name: 'posts', label: 'Posts', hide: true } };
     const { queryByTestId } = render(
       <MemoryRouter>
         <Sidebar {...props} collections={collections} />
@@ -48,9 +49,7 @@ describe('Sidebar', () => {
   });
 
   it('should render sidebar with a nested collection', () => {
-    const collections = fromJS([
-      { name: 'posts', label: 'Posts', nested: { depth: 10 } },
-    ]).toOrderedMap();
+    const collections = { posts: { name: 'posts', label: 'Posts', nested: { depth: 10 } } };
     const { asFragment } = render(
       <MemoryRouter>
         <Sidebar {...props} collections={collections} />
@@ -61,9 +60,7 @@ describe('Sidebar', () => {
   });
 
   it('should render nested collection with filterTerm', () => {
-    const collections = fromJS([
-      { name: 'posts', label: 'Posts', nested: { depth: 10 } },
-    ]).toOrderedMap();
+    const collections = { posts: { name: 'posts', label: 'Posts', nested: { depth: 10 } } };
     const { asFragment } = render(
       <MemoryRouter>
         <Sidebar {...props} collections={collections} filterTerm="dir1/dir2" />
@@ -74,7 +71,7 @@ describe('Sidebar', () => {
   });
 
   it('should render sidebar without search', () => {
-    const collections = fromJS([{ name: 'posts', label: 'Posts' }]).toOrderedMap();
+    const collections = { posts: { name: 'posts', label: 'Posts' } };
     const { asFragment } = render(
       <MemoryRouter>
         <Sidebar {...props} collections={collections} isSearchEnabled={false} />

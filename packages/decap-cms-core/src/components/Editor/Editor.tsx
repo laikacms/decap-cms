@@ -124,11 +124,11 @@ function Editor({ newRecord = false }: EditorProps) {
   return (
     <EditorInterface
       draftKey={draftKey || ''}
-      entry={entryDraft.get('entry')}
+      entry={entryDraft.entry}
       collection={collection!}
       fields={fields!}
-      fieldsMetaData={entryDraft.get('fieldsMetaData') as any}
-      fieldsErrors={entryDraft.get('fieldsErrors') as any}
+      fieldsMetaData={entryDraft.fieldsMetaData as any}
+      fieldsErrors={entryDraft.fieldsErrors as any}
       onChange={handleChangeDraftField}
       onValidate={handleValidate}
       onPersist={handlePersistEntry}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { oneLineTrim } from 'common-tags';
+import { vi } from 'vitest';
 
 import { ErrorBoundary } from '../ErrorBoundary';
 
@@ -8,7 +9,7 @@ function WithError() {
   throw new Error('Some unknown error');
 }
 
-jest.spyOn(console, 'error').mockImplementation(() => ({}));
+vi.spyOn(console, 'error').mockImplementation(() => ({}));
 
 Object.defineProperty(
   window.navigator,
@@ -26,10 +27,10 @@ Object.defineProperty(
 describe('Editor', () => {
   const config = { backend: { name: 'github' } };
 
-  const props = { t: jest.fn(key => key), config };
+  const props = { t: vi.fn(key => key), config };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should match snapshot with issue URL', () => {

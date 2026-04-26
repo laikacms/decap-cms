@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import integrations from '../integrations';
 import { CONFIG_SUCCESS } from '../../actions/config';
 import { FOLDER } from '../../constants/collectionTypes';
@@ -10,7 +11,7 @@ describe('integrations', () => {
       type: CONFIG_SUCCESS,
       payload: { integrations: [] },
     } as ConfigAction);
-    expect(result && result.toJS()).toEqual({
+    expect(result).toEqual({
       providers: {},
       hooks: {},
     });
@@ -49,7 +50,7 @@ describe('integrations', () => {
       },
     } as ConfigAction);
 
-    expect(result && result.toJS()).toEqual({
+    expect(result).toEqual({
       providers: {
         algolia: {
           applicationID: 'applicationID',

@@ -1,12 +1,13 @@
 import React from 'react';
 import { render } from '@testing-library/react';
+import { vi } from 'vitest';
 
 import { CopyToClipBoardButton } from '../MediaLibraryButtons';
 
 describe('CopyToClipBoardButton', () => {
   const props = {
     disabled: false,
-    t: jest.fn(key => key),
+    t: vi.fn(key => key),
   };
 
   it('should use copy text when no path is defined', () => {

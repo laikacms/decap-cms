@@ -18,9 +18,9 @@ describe('custom formats', () => {
     updatedOn: 'testUpdatedOn',
   };
   it('resolves builtint formats', () => {
-    const collection = Map({
+    const collection = {
       name: 'posts',
-    });
+    };
     expect(resolveFormat(collection, { ...testEntry, path: 'test.yml' })).toEqual(
       extensionFormatters.yml,
     );
@@ -50,10 +50,10 @@ describe('custom formats', () => {
       toFile: value => new URLSearchParams(value).toString(),
     });
 
-    const collection = Map({
+    const collection = {
       name: 'posts',
       format: 'txt-querystring',
-    });
+    };
 
     const formatter = resolveFormat(collection, { ...testEntry, path: 'test.txt' });
 
@@ -72,10 +72,10 @@ describe('custom formats', () => {
           .join('\n'),
     });
 
-    const collection = Map({
+    const collection = {
       name: 'posts',
       format: 'bad-yaml',
-    });
+    };
 
     const formatter = resolveFormat(collection, { ...testEntry, path: 'test.txt' });
 

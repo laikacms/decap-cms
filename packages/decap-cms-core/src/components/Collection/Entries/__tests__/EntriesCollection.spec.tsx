@@ -2,13 +2,14 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import configureStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
+import { vi } from 'vitest';
 
 import ConnectedEntriesCollection, {
   EntriesCollection,
   filterNestedEntries,
 } from '../EntriesCollection';
 
-jest.mock('../Entries', () => 'mock-entries');
+vi.mock('../Entries', () => 'mock-entries');
 
 const middlewares = [];
 const mockStore = configureStore(middlewares);
@@ -16,12 +17,12 @@ const mockStore = configureStore(middlewares);
 function createMockStore(collection, entriesArray, additionalState = {}) {
   return mockStore({
     entries: toEntriesState(collection, entriesArray),
-    cursors: fromJS({}),
-    config: fromJS({ publish_mode: 'simple' }),
-    collections: fromJS({ [collection.get('name')]: collection }),
-    editorialWorkflow: fromJS({
+    cursors: {},
+    config: { publish_mode: 'simple' },
+    collections: { [collection.name]: collection },
+    editorialWorkflow: {
       pages: { ids: [] },
-    }),
+    },
     ...additionalState,
   });
 }
@@ -37,13 +38,13 @@ function renderWithRedux(component, { store } = {}) {
 function toEntriesState(collection, entriesArray) {
   const entries = entriesArray.reduce(
     (acc, entry) => {
-      acc.entities[`${collection.get('name')}.${entry.slug}`] = entry;
-      acc.pages[collection.get('name')].ids.push(entry.slug);
+      acc.entities[`${collection.name}.${entry.slug}`] = entry;
+      acc.pages[collection.name].ids.push(entry.slug);
       return acc;
     },
-    { pages: { [collection.get('name')]: { ids: [] } }, entities: {} },
+    { pages: { [collection.name]: { ids: [] } }, entities: {} },
   );
-  return fromJS(entries);
+  return entries;
 }
 
 describe('filterNestedEntries', () => {
@@ -55,8 +56,8 @@ describe('filterNestedEntries', () => {
       { slug: 'dir3/index', path: 'src/pages/dir3/index.md', data: { title: 'File 3' } },
       { slug: 'dir3/dir4/index', path: 'src/pages/dir3/dir4/index.md', data: { title: 'File 4' } },
     ];
-    const entries = fromJS(entriesArray);
-    expect(filterNestedEntries('dir3', 'src/pages', entries).toJS()).toEqual([
+    const entries = entriesArray;
+    expect(filterNestedEntries('dir3', 'src/pages', entries)).toEqual([
       { slug: 'dir3/index', path: 'src/pages/dir3/index.md', data: { title: 'File 3' } },
     ]);
   });
@@ -69,33 +70,33 @@ describe('filterNestedEntries', () => {
       { slug: 'dir3/index', path: 'src/pages/dir3/index.md', data: { title: 'File 3' } },
       { slug: 'dir3/dir4/index', path: 'src/pages/dir3/dir4/index.md', data: { title: 'File 4' } },
     ];
-    const entries = fromJS(entriesArray);
-    expect(filterNestedEntries('', 'src/pages', entries).toJS()).toEqual([
+    const entries = entriesArray;
+    expect(filterNestedEntries('', 'src/pages', entries)).toEqual([
       { slug: 'index', path: 'src/pages/index.md', data: { title: 'Root' } },
     ]);
   });
 });
 
 describe('EntriesCollection', () => {
-  const collection = fromJS({ name: 'pages', label: 'Pages', folder: 'src/pages' });
+  const collection = { name: 'pages', label: 'Pages', folder: 'src/pages' };
   const props = {
-    t: jest.fn(),
-    loadEntries: jest.fn(),
-    traverseCollectionCursor: jest.fn(),
-    loadUnpublishedEntries: jest.fn(),
+    t: vi.fn(),
+    loadEntries: vi.fn(),
+    traverseCollectionCursor: vi.fn(),
+    loadUnpublishedEntries: vi.fn(),
     isFetching: false,
     cursor: {},
     collection,
-    collections: fromJS({ pages: collection }),
+    collections: { pages: collection },
     entriesLoaded: true,
     unpublishedEntriesLoaded: true,
     isEditorialWorkflowEnabled: false,
-    getWorkflowStatus: jest.fn(),
-    getUnpublishedEntries: jest.fn(() => []),
+    getWorkflowStatus: vi.fn(),
+    getUnpublishedEntries: vi.fn(() => []),
   };
 
   it('should render with entries', () => {
-    const entries = fromJS([{ slug: 'index' }]);
+    const entries = [{ slug: 'index' }];
     const { asFragment } = render(<EntriesCollection {...props} entries={entries} />);
 
     expect(asFragment()).toMatchSnapshot();
@@ -130,7 +131,7 @@ describe('EntriesCollection', () => {
 
     const { asFragment } = renderWithRedux(
       <ConnectedEntriesCollection
-        collection={collection.set('nested', fromJS({ depth: 10, subfolders: false }))}
+        collection={{ ...collection, nested: { depth: 10, subfolders: false } }}
       />,
       { store },
     );
@@ -151,7 +152,7 @@ describe('EntriesCollection', () => {
 
     const { asFragment } = renderWithRedux(
       <ConnectedEntriesCollection
-        collection={collection.set('nested', fromJS({ depth: 10, subfolders: false }))}
+        collection={{ ...collection, nested: { depth: 10, subfolders: false } }}
         filterTerm="dir3/dir4"
       />,
       { store },

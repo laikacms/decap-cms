@@ -34,11 +34,11 @@ describe('entries', () => {
       vi.clearAllMocks();
     });
     it('should dispatch draft created action', () => {
-      const store = mockStore({ mediaLibrary: fromJS({ files: [] }) });
+      const store = mockStore({ mediaLibrary: { files: [] } });
 
-      const collection = fromJS({
+      const collection = {
         fields: [{ name: 'title' }],
-      });
+      };
 
       return store.dispatch(createEmptyDraft(collection, '')).then(() => {
         const actions = store.getActions();
@@ -67,11 +67,11 @@ describe('entries', () => {
     });
 
     it('should populate draft entry from URL param', () => {
-      const store = mockStore({ mediaLibrary: fromJS({ files: [] }) });
+      const store = mockStore({ mediaLibrary: { files: [] } });
 
-      const collection = fromJS({
+      const collection = {
         fields: [{ name: 'title' }, { name: 'boolean' }],
-      });
+      };
 
       return store.dispatch(createEmptyDraft(collection, '?title=title&boolean=True')).then(() => {
         const actions = store.getActions();
@@ -100,11 +100,11 @@ describe('entries', () => {
     });
 
     it('should html escape URL params', () => {
-      const store = mockStore({ mediaLibrary: fromJS({ files: [] }) });
+      const store = mockStore({ mediaLibrary: { files: [] } });
 
-      const collection = fromJS({
+      const collection = {
         fields: [{ name: 'title' }],
-      });
+      };
 
       return store
         .dispatch(createEmptyDraft(collection, "?title=<script>alert('hello')</script>"))
@@ -136,19 +136,19 @@ describe('entries', () => {
   });
   describe('createEmptyDraftData', () => {
     it('should allow an empty array as list default for a single field list', () => {
-      const fields = fromJS([
+      const fields = [
         {
           name: 'images',
           widget: 'list',
           default: [],
           field: { name: 'url', widget: 'text' },
         },
-      ]);
-      expect(createEmptyDraftData(fields)).toEqual({ images: fromJS([]) });
+      ];
+      expect(createEmptyDraftData(fields)).toEqual({ images: [] });
     });
 
     it('should allow a complex array as list default for a single field list', () => {
-      const fields = fromJS([
+      const fields = [
         {
           name: 'images',
           widget: 'list',
@@ -159,18 +159,18 @@ describe('entries', () => {
           ],
           field: { name: 'url', widget: 'text' },
         },
-      ]);
+      ];
       expect(createEmptyDraftData(fields)).toEqual({
-        images: fromJS([
+        images: [
           {
             url: 'https://image.png',
           },
-        ]),
+        ],
       });
     });
 
     it('should allow an empty array as list default for a fields list', () => {
-      const fields = fromJS([
+      const fields = [
         {
           name: 'images',
           widget: 'list',
@@ -180,12 +180,12 @@ describe('entries', () => {
             { name: 'url', widget: 'text' },
           ],
         },
-      ]);
-      expect(createEmptyDraftData(fields)).toEqual({ images: fromJS([]) });
+      ];
+      expect(createEmptyDraftData(fields)).toEqual({ images: [] });
     });
 
     it('should allow a complex array as list default for a fields list', () => {
-      const fields = fromJS([
+      const fields = [
         {
           name: 'images',
           widget: 'list',
@@ -200,30 +200,30 @@ describe('entries', () => {
             { name: 'url', widget: 'text' },
           ],
         },
-      ]);
+      ];
       expect(createEmptyDraftData(fields)).toEqual({
-        images: fromJS([
+        images: [
           {
             title: 'default image',
             url: 'https://image.png',
           },
-        ]),
+        ],
       });
     });
 
     it('should use field default when no list default is provided', () => {
-      const fields = fromJS([
+      const fields = [
         {
           name: 'images',
           widget: 'list',
           field: { name: 'url', widget: 'text', default: 'https://image.png' },
         },
-      ]);
+      ];
       expect(createEmptyDraftData(fields)).toEqual({ images: [{ url: 'https://image.png' }] });
     });
 
     it('should use fields default when no list default is provided', () => {
-      const fields = fromJS([
+      const fields = [
         {
           name: 'images',
           widget: 'list',
@@ -232,14 +232,14 @@ describe('entries', () => {
             { name: 'url', widget: 'text', default: 'https://image.png' },
           ],
         },
-      ]);
+      ];
       expect(createEmptyDraftData(fields)).toEqual({
         images: [{ title: 'default image', url: 'https://image.png' }],
       });
     });
 
     it('should not set empty value for list fields widget', () => {
-      const fields = fromJS([
+      const fields = [
         {
           name: 'images',
           widget: 'list',
@@ -248,23 +248,23 @@ describe('entries', () => {
             { name: 'url', widget: 'text' },
           ],
         },
-      ]);
+      ];
       expect(createEmptyDraftData(fields)).toEqual({});
     });
 
     it('should set default value for object field widget', () => {
-      const fields = fromJS([
+      const fields = [
         {
           name: 'post',
           widget: 'object',
           field: { name: 'image', widget: 'text', default: 'https://image.png' },
         },
-      ]);
+      ];
       expect(createEmptyDraftData(fields)).toEqual({ post: { image: 'https://image.png' } });
     });
 
     it('should set default values for object fields widget', () => {
-      const fields = fromJS([
+      const fields = [
         {
           name: 'post',
           widget: 'object',
@@ -273,14 +273,14 @@ describe('entries', () => {
             { name: 'url', widget: 'text', default: 'https://image.png' },
           ],
         },
-      ]);
+      ];
       expect(createEmptyDraftData(fields)).toEqual({
         post: { title: 'default title', url: 'https://image.png' },
       });
     });
 
     it('should not set empty value for object fields widget', () => {
-      const fields = fromJS([
+      const fields = [
         {
           name: 'post',
           widget: 'object',
@@ -289,12 +289,12 @@ describe('entries', () => {
             { name: 'url', widget: 'text' },
           ],
         },
-      ]);
+      ];
       expect(createEmptyDraftData(fields)).toEqual({});
     });
 
     it('should populate nested fields', () => {
-      const fields = fromJS([
+      const fields = [
         {
           name: 'names',
           widget: 'list',
@@ -307,7 +307,7 @@ describe('entries', () => {
             ],
           },
         },
-      ]);
+      ];
       expect(createEmptyDraftData(fields)).toEqual({
         names: [{ object: { first: 'first', second: 'second' } }],
       });
@@ -327,14 +327,14 @@ describe('entries', () => {
       };
 
       const store = mockStore({
-        config: Map(),
+        config: {},
       });
 
       currentBackend.mockReturnValue(backend);
 
-      const collection = Map();
+      const collection = {};
       const mediaFiles = [{ path: 'static/media/image.png' }];
-      const entry = fromJS({ mediaFiles });
+      const entry = { mediaFiles };
 
       return store.dispatch(persistLocalBackup(entry, collection)).then(() => {
         const actions = store.getActions();
@@ -360,14 +360,14 @@ describe('entries', () => {
       };
 
       const store = mockStore({
-        config: Map(),
+        config: {},
       });
 
       currentBackend.mockReturnValue(backend);
 
-      const collection = Map({
+      const collection = {
         name: 'collection',
-      });
+      };
       const slug = 'slug';
 
       const file = new File([], 'image.png');
@@ -400,9 +400,9 @@ describe('entries', () => {
     });
 
     it('should map mediaFiles to assets', () => {
-      const mediaFiles = fromJS([{ path: 'path1' }, { path: 'path2', draft: true }]);
+      const mediaFiles = [{ path: 'path1' }, { path: 'path2', draft: true }];
 
-      const entry = Map({ mediaFiles });
+      const entry = { mediaFiles };
       expect(getMediaAssets({ entry })).toEqual([new AssetProxy({ path: 'path2' })]);
     });
   });
@@ -416,13 +416,13 @@ describe('entries', () => {
           sanitize_replacement: '-',
         },
       },
-      entries: fromJS([]),
+      entries: [],
     };
-    const collection = fromJS({
+    const collection = {
       folder: 'folder',
       type: 'folder_based_collection',
       name: 'name',
-    });
+    };
     const t = vi.fn((key, args) => ({ key, args }));
 
     const { selectCustomPath } = require('../../reducers/entryDraft');
@@ -433,17 +433,17 @@ describe('entries', () => {
     });
 
     it('should not return error on non meta field', () => {
-      expect(validateMetaField(null, null, fromJS({}), null, t)).toEqual({ error: false });
+      expect(validateMetaField(null, null, {}, null, t)).toEqual({ error: false });
     });
 
     it('should not return error on meta path field', () => {
-      expect(validateMetaField(null, null, fromJS({ meta: true, name: 'other' }), null, t)).toEqual(
+      expect(validateMetaField(null, null, { meta: true, name: 'other' }, null, t)).toEqual(
         { error: false },
       );
     });
 
     it('should return error on empty path', () => {
-      expect(validateMetaField(null, null, fromJS({ meta: true, name: 'path' }), null, t)).toEqual({
+      expect(validateMetaField(null, null, { meta: true, name: 'path' }, null, t)).toEqual({
         error: {
           message: {
             key: 'editor.editorControlPane.widget.invalidPath',
@@ -454,7 +454,7 @@ describe('entries', () => {
       });
 
       expect(
-        validateMetaField(null, null, fromJS({ meta: true, name: 'path' }), undefined, t),
+        validateMetaField(null, null, { meta: true, name: 'path' }, undefined, t),
       ).toEqual({
         error: {
           message: {
@@ -465,7 +465,7 @@ describe('entries', () => {
         },
       });
 
-      expect(validateMetaField(null, null, fromJS({ meta: true, name: 'path' }), '', t)).toEqual({
+      expect(validateMetaField(null, null, { meta: true, name: 'path' }, '', t)).toEqual({
         error: {
           message: {
             key: 'editor.editorControlPane.widget.invalidPath',
@@ -478,7 +478,7 @@ describe('entries', () => {
 
     it('should return error on invalid path', () => {
       expect(
-        validateMetaField(state, null, fromJS({ meta: true, name: 'path' }), 'invalid path', t),
+        validateMetaField(state, null, { meta: true, name: 'path' }, 'invalid path', t),
       ).toEqual({
         error: {
           message: {
@@ -492,17 +492,17 @@ describe('entries', () => {
 
     it('should return error on existing path', () => {
       selectCustomPath.mockReturnValue('existing-path');
-      selectEntryByPath.mockReturnValue(fromJS({ path: 'existing-path' }));
+      selectEntryByPath.mockReturnValue({ path: 'existing-path' });
       expect(
         validateMetaField(
           {
             ...state,
-            entryDraft: fromJS({
+            entryDraft: {
               entry: {},
-            }),
+            },
           },
           collection,
-          fromJS({ meta: true, name: 'path' }),
+          { meta: true, name: 'path' },
           'existing-path',
           t,
         ),
@@ -519,13 +519,13 @@ describe('entries', () => {
       expect(selectCustomPath).toHaveBeenCalledTimes(1);
       expect(selectCustomPath).toHaveBeenCalledWith(
         collection,
-        fromJS({ entry: { meta: { path: 'existing-path' } } }),
+        { entry: { meta: { path: 'existing-path' } } },
       );
 
       expect(selectEntryByPath).toHaveBeenCalledTimes(1);
       expect(selectEntryByPath).toHaveBeenCalledWith(
         state.entries,
-        collection.get('name'),
+        collection.name,
         'existing-path',
       );
     });
@@ -537,12 +537,12 @@ describe('entries', () => {
         validateMetaField(
           {
             ...state,
-            entryDraft: fromJS({
+            entryDraft: {
               entry: {},
-            }),
+            },
           },
           collection,
-          fromJS({ meta: true, name: 'path' }),
+          { meta: true, name: 'path' },
           'non-existing-path',
           t,
         ),
@@ -553,17 +553,17 @@ describe('entries', () => {
 
     it('should not return error when for existing entry', () => {
       selectCustomPath.mockReturnValue('existing-path');
-      selectEntryByPath.mockReturnValue(fromJS({ path: 'existing-path' }));
+      selectEntryByPath.mockReturnValue({ path: 'existing-path' });
       expect(
         validateMetaField(
           {
             ...state,
-            entryDraft: fromJS({
+            entryDraft: {
               entry: { path: 'existing-path' },
-            }),
+            },
           },
           collection,
-          fromJS({ meta: true, name: 'path' }),
+          { meta: true, name: 'path' },
           'existing-path',
           t,
         ),
