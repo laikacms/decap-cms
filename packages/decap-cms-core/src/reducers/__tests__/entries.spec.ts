@@ -1,4 +1,5 @@
 import * as actions from '../../actions/entries';
+import { Cursor } from 'decap-cms-lib-util';
 import reducer, {
   selectMediaFolder,
   selectMediaFilePath,
@@ -7,19 +8,20 @@ import reducer, {
 } from '../entries';
 
 const initialState = {
-  posts: { name: 'posts' },
+  entities: {},
+  pages: {},
 };
 
 describe('entries', () => {
   describe('reducer', () => {
     it('should mark entries as fetching', () => {
       expect(reducer(initialState, actions.entriesLoading({ name: 'posts' }))).toEqual(
-        {
-            posts: { name: 'posts' },
-            pages: {
-              posts: { isFetching: true },
-            },
-          },,
+        expect.objectContaining({
+          entities: {},
+          pages: {
+            posts: { isFetching: true, ids: [], page: 0 },
+          },
+        }),
       );
     });
 
@@ -29,38 +31,39 @@ describe('entries', () => {
         { slug: 'b', title: 'B' },
       ];
       expect(
-        reducer(initialState, actions.entriesLoaded({ name: 'posts' }, entries, 0)),
+        reducer(initialState, actions.entriesLoaded({ name: 'posts' }, entries, 0, Cursor.create({}))),
       ).toEqual(
-        {
-            posts: { name: 'posts' },
-            entities: {
-              'posts.a': { slug: 'a', path: '', isFetching: false },
-              'posts.b': { slug: 'b', title: 'B', isFetching: false },
+        expect.objectContaining({
+          entities: {
+            'posts.a': { slug: 'a', path: '', isFetching: false },
+            'posts.b': { slug: 'b', title: 'B', isFetching: false },
+          },
+          pages: {
+            posts: {
+              page: 0,
+              ids: ['a', 'b'],
+              isFetching: false,
             },
-            pages: {
-              posts: {
-                page: 0,
-                ids: ['a', 'b'],
-              },
-            },
-          },,
+          },
+        }),
       );
     });
 
     it('should handle loaded entry', () => {
       const entry = { slug: 'a', path: '' };
       expect(reducer(initialState, actions.entryLoaded({ name: 'posts' }, entry))).toEqual(
-        {
-            posts: { name: 'posts' },
-            entities: {
-              'posts.a': { slug: 'a', path: '' },
+        expect.objectContaining({
+          entities: {
+            'posts.a': { slug: 'a', path: '', isFetching: false },
+          },
+          pages: {
+            posts: {
+              ids: ['a'],
+              isFetching: false,
+              page: 0,
             },
-            pages: {
-              posts: {
-                ids: ['a'],
-              },
-            },
-          },,
+          },
+        }),
       );
     });
   });

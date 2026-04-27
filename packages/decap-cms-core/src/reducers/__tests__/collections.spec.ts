@@ -54,7 +54,7 @@ describe('collections', () => {
         collections: collectionsData,
       }),
     );
-    const keyArray = newState.keySeq().toArray();
+    const keyArray = Object.keys(newState);
     expect(keyArray).toEqual(collectionsData.map(({ name }) => name));
   });
 
@@ -329,7 +329,7 @@ describe('collections', () => {
           },
         ],
       };
-      expect(getFieldsNames(collection.fields)).toEqual([[
+      expect(getFieldsNames(collection.fields)).toEqual([
         'en',
         'es',
         'it',

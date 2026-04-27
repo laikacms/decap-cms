@@ -21,10 +21,8 @@
   "dependencies": {
     "@emotion/react": "catalog:emotion",
     "@emotion/styled": "catalog:emotion",
-    "immutable": "catalog:utils",
     "lodash": "catalog:utils",
     "prop-types": "catalog:react",
-    "react-immutable-proptypes": "catalog:react",
     "uuid": "catalog:utils"
   },
   "devDependencies": {

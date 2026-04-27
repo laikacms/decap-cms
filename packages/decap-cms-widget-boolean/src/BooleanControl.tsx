@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { Toggle, ToggleBackground, colors } from 'decap-cms-ui-default';
 
 interface BooleanBackgroundProps {
@@ -31,7 +30,7 @@ interface BooleanControlProps {
 
 export default class BooleanControl extends React.Component<BooleanControlProps> {
   static propTypes = {
-    field: ImmutablePropTypes.map.isRequired,
+    field: PropTypes.object.isRequired,
     onChange: PropTypes.func.isRequired,
     classNameWrapper: PropTypes.string.isRequired,
     setActiveStyle: PropTypes.func.isRequired,

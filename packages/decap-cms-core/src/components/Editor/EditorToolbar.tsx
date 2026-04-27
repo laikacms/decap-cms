@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
@@ -323,7 +322,7 @@ export class EditorToolbar extends React.Component<EditorToolbarProps> {
     user: PropTypes.object,
     hasChanged: PropTypes.bool,
     displayUrl: PropTypes.string,
-    collection: ImmutablePropTypes.map.isRequired,
+    collection: PropTypes.object.isRequired,
     hasWorkflow: PropTypes.bool,
     useOpenAuthoring: PropTypes.bool,
     hasUnpublishedChanges: PropTypes.bool,

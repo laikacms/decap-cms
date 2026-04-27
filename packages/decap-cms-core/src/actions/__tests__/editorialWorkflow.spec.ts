@@ -1,9 +1,11 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import configureMockStore from 'redux-mock-store';
-import thunk from 'redux-thunk';
+import { thunk } from 'redux-thunk';
 
 import { addAssets } from '../media';
 import * as actions from '../editorialWorkflow';
+import * as backendModule from '../../backend';
+import * as assetProxyModule from '../../valueObjects/AssetProxy';
 
 vi.mock('../../backend');
 vi.mock('../../valueObjects/AssetProxy');
@@ -22,8 +24,8 @@ describe('editorialWorkflow actions', () => {
 
   describe('loadUnpublishedEntry', () => {
     it('should load unpublished entry', () => {
-      const { currentBackend } = require('../../backend');
-      const { createAssetProxy } = require('../../valueObjects/AssetProxy');
+      const currentBackend = vi.mocked(backendModule.currentBackend);
+      const createAssetProxy = vi.mocked(assetProxyModule.createAssetProxy);
 
       const assetProxy = { name: 'name', path: 'path' };
       const entry = { mediaFiles: [{ file: { name: 'name' }, id: '1', draft: true }] };
@@ -80,7 +82,7 @@ describe('editorialWorkflow actions', () => {
 
   describe('publishUnpublishedEntry', () => {
     it('should publish unpublished entry and report success', () => {
-      const { currentBackend } = require('../../backend');
+      const currentBackend = vi.mocked(backendModule.currentBackend);
 
       const entry = {};
       const backend = {
@@ -91,7 +93,7 @@ describe('editorialWorkflow actions', () => {
 
       const store = mockStore({
         config: {},
-        integrations: [],
+        integrations: { providers: {}, hooks: {} },
         mediaLibrary: {
           isLoading: false,
         },
@@ -167,7 +169,7 @@ describe('editorialWorkflow actions', () => {
     });
 
     it('should publish unpublished entry and report error', () => {
-      const { currentBackend } = require('../../backend');
+      const currentBackend = vi.mocked(backendModule.currentBackend);
 
       const error = new Error('failed to publish entry');
       const backend = {

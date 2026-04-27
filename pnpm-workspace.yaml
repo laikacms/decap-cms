@@ -48,6 +48,7 @@ catalogs:
 
   # Emotion CSS-in-JS
   emotion:
+    "@emotion/babel-plugin": "^11.13.5"
     "@emotion/eslint-plugin": "^11.12.0"
     "@emotion/react": "^11.14.0"
     "@emotion/styled": "^11.14.1"

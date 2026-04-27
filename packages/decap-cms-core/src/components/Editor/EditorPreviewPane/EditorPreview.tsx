@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import styled from '@emotion/styled';
 import type {
   CmsCollectionObject,
@@ -49,9 +48,9 @@ export default class Preview extends React.Component<PreviewProps> {
 }
 
 Preview.propTypes = {
-  collection: ImmutablePropTypes.map.isRequired,
-  entry: ImmutablePropTypes.map.isRequired,
-  fields: ImmutablePropTypes.list.isRequired,
+  collection: PropTypes.object.isRequired,
+  entry: PropTypes.object.isRequired,
+  fields: PropTypes.array.isRequired,
   getAsset: PropTypes.func.isRequired,
   widgetFor: PropTypes.func.isRequired,
 };

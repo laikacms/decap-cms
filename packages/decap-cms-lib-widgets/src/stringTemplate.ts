@@ -4,7 +4,10 @@ import truncate from 'lodash/truncate';
 import dayjs from 'dayjs';
 import { basename, dirname, extname } from 'decap-cms-lib-util';
 
-const filters = [
+const filters: Array<{
+  pattern: RegExp;
+  transform: (str: string, match: RegExpMatchArray, rawValue?: unknown) => string;
+}> = [
   { pattern: /^upper$/, transform: (str: string) => str.toUpperCase() },
   {
     pattern: /^lower$/,
@@ -16,11 +19,17 @@ const filters = [
   },
   {
     pattern: /^default\('(.+)'\)$/,
-    transform: (str: string, match: RegExpMatchArray) => (str ? str : match[1]),
+    transform: (str: string, match: RegExpMatchArray, rawValue?: unknown) => {
+      const isFalsy = rawValue === null || rawValue === undefined || rawValue === false || rawValue === '';
+      return isFalsy ? match[1] : str;
+    },
   },
   {
     pattern: /^ternary\('(.*)',\s*'(.*)'\)$/,
-    transform: (str: string, match: RegExpMatchArray) => (str ? match[1] : match[2]),
+    transform: (str: string, match: RegExpMatchArray, rawValue?: unknown) => {
+      const isFalsy = rawValue === null || rawValue === undefined || rawValue === false || rawValue === '';
+      return isFalsy ? match[2] : match[1];
+    },
   },
   {
     pattern: /^truncate\(([0-9]+)(?:(?:,\s*['"])([^'"]*)(?:['"]))?\)$/,
@@ -170,7 +179,7 @@ function getFilterFunction(filterStr: string) {
     });
 
     if (filter) {
-      return (str: string) => filter.transform(str, match as RegExpMatchArray);
+      return (str: string, rawValue?: unknown) => filter.transform(str, match as RegExpMatchArray, rawValue);
     }
   }
   return null;
@@ -195,17 +204,22 @@ export function compileStringTemplate(
       let replacement: string;
       const explicitFieldReplacement = getExplicitFieldReplacement(key, data);
 
+      let rawValue: unknown;
       if (explicitFieldReplacement !== undefined) {
-        replacement = String(explicitFieldReplacement);
+        rawValue = explicitFieldReplacement;
+        replacement = String(rawValue);
       } else if (dateParsers[key] && !date) {
         missingRequiredDate = true;
         return '';
       } else if (dateParsers[key]) {
-        replacement = dateParsers[key](date as Date);
+        rawValue = dateParsers[key](date as Date);
+        replacement = String(rawValue);
       } else if (key === 'slug') {
+        rawValue = identifier;
         replacement = identifier;
       } else {
-        replacement = String(get(data, keyToPathArray(key), ''));
+        rawValue = get(data, keyToPathArray(key), '');
+        replacement = String(rawValue ?? '');
       }
 
       if (processor) {
@@ -213,7 +227,7 @@ export function compileStringTemplate(
       } else {
         const filterFunction = getFilterFunction(filter);
         if (filterFunction) {
-          replacement = filterFunction(replacement);
+          replacement = filterFunction(replacement, rawValue);
         }
       }
 

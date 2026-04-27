@@ -2,8 +2,37 @@ import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
+// @vitejs/plugin-react v6 no longer supports the babel option (uses OXC/rolldown).
+// Without @emotion/babel-plugin, styled components have targetClassName=undefined, and
+// the development build of @emotion/styled/base returns 'NO_COMPONENT_SELECTOR' from
+// toString(), which causes @emotion/serialize to throw when component selectors like
+// ${Icon} are used in styled templates. The fix: inline @emotion/styled so Vite processes
+// it through the plugin pipeline, then patch isDevelopment=false so toString() returns
+// ".undefined" (which doesn't throw; the selector just won't match anything in tests).
+const emotionProductionPlugin = {
+  name: 'emotion-styled-base-production',
+  enforce: 'pre' as const,
+  transform(code: string, id: string) {
+    if (id.includes('emotion-styled-base') && id.includes('.development.')) {
+      return code.replace('var isDevelopment = true;', 'var isDevelopment = false;');
+    }
+  },
+};
+
+// @emotion/react and @emotion/styled are not hoisted to the workspace root by pnpm
+// (only packages that are direct root dependencies get root-level symlinks). Aliasing
+// them here ensures every test file can resolve them regardless of which workspace
+// package the test lives in, including packages with no emotion dependency.
+const EMOTION_REACT = path.resolve(__dirname, 'packages/decap-cms-core/node_modules/@emotion/react');
+const EMOTION_STYLED = path.resolve(__dirname, 'packages/decap-cms-core/node_modules/@emotion/styled');
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    emotionProductionPlugin,
+    react({
+      jsxImportSource: '@emotion/react',
+    }),
+  ],
   optimizeDeps: {
     // Pre-bundle CJS packages that are transitively imported via workspace
     // package aliases. Without this, Vite's lazy dep optimizer encounters them
@@ -21,7 +50,14 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
     include: ['packages/**/src/**/*.{test,spec}.{ts,tsx}'],
-    exclude: ['**/node_modules/**', '**/dist/**', '**/.nx/**'],
+    exclude: ['**/node_modules/**', '**/dist/**', '**/.nx/**', 'packages/.exclude.*/**'],
+    server: {
+      deps: {
+        // Inline @emotion/styled so Vite's transform pipeline processes it (instead of
+        // externalizing to Node directly), enabling the emotionProductionPlugin above.
+        inline: [/@emotion\/styled/],
+      },
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -52,6 +88,11 @@ export default defineConfig({
       { find: 'decap-cms-lib-widgets', replacement: path.resolve(__dirname, 'packages/decap-cms-lib-widgets/src/index.ts') },
       { find: 'decap-cms-widget-object', replacement: path.resolve(__dirname, 'packages/decap-cms-widget-object/src/index.ts') },
       { find: 'path', replacement: 'path-browserify' },
+      // Anchor emotion packages to concrete paths so packages without @emotion/* as
+      // a direct dependency can still resolve them (pnpm strict isolation prevents
+      // hoisting them to the workspace root node_modules).
+      { find: /^@emotion\/react/, replacement: EMOTION_REACT },
+      { find: /^@emotion\/styled/, replacement: EMOTION_STYLED },
     ],
   },
 });

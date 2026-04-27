@@ -1,7 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 import once from 'lodash/once';
@@ -282,7 +281,7 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
     static propTypes = {
       field: PropTypes.object.isRequired,
       getAsset: PropTypes.func.isRequired,
-      mediaPaths: ImmutablePropTypes.map.isRequired,
+      mediaPaths: PropTypes.object.isRequired,
       onAddAsset: PropTypes.func.isRequired,
       onChange: PropTypes.func.isRequired,
       onRemoveInsertedMedia: PropTypes.func.isRequired,
@@ -293,7 +292,6 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
       value: PropTypes.oneOfType([
         PropTypes.string,
         PropTypes.arrayOf(PropTypes.string),
-        ImmutablePropTypes.listOf(PropTypes.string),
       ]),
       t: PropTypes.func.isRequired,
     };

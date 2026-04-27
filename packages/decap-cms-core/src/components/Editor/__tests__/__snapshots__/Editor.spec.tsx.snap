@@ -1,0 +1,47 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Editor > should render editor interface when entry is not fetching 1`] = `
+<DocumentFragment>
+  <mock-editor-interface
+    collection="[object Object]"
+    deploypreview="[object Object]"
+    displayurl=""
+    draftkey="key"
+    editorbacklink="/posts"
+    entry="[object Object]"
+    fields=""
+    showdelete=""
+    user="[object Object]"
+  />
+</DocumentFragment>
+`;
+
+exports[`Editor > should render loader when entry is fetching 1`] = `
+<DocumentFragment>
+  <mock-loader
+    active=""
+  >
+    editor.editor.loadingEntry
+  </mock-loader>
+</DocumentFragment>
+`;
+
+exports[`Editor > should render loader when entryDraft entry is undefined 1`] = `
+<DocumentFragment>
+  <mock-loader
+    active=""
+  >
+    editor.editor.loadingEntry
+  </mock-loader>
+</DocumentFragment>
+`;
+
+exports[`Editor > should render loader when entryDraft is null 1`] = `
+<DocumentFragment>
+  <mock-loader
+    active=""
+  >
+    editor.editor.loadingEntry
+  </mock-loader>
+</DocumentFragment>
+`;

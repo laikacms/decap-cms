@@ -1,0 +1,42 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`EntriesCollection > should render connected component 1`] = `
+<DocumentFragment>
+  <mock-entries
+    collections="[object Object]"
+    cursor="[object Object]"
+    entries="[object Object],[object Object],[object Object]"
+  />
+</DocumentFragment>
+`;
+
+exports[`EntriesCollection > should render show only immediate children for nested collection 1`] = `
+<DocumentFragment>
+  <mock-entries
+    collections="[object Object]"
+    cursor="[object Object]"
+    entries="[object Object]"
+  />
+</DocumentFragment>
+`;
+
+exports[`EntriesCollection > should render with applied filter term for nested collections 1`] = `
+<DocumentFragment>
+  <mock-entries
+    collections="[object Object]"
+    cursor="[object Object]"
+    entries="[object Object]"
+    filterterm="dir3/dir4"
+  />
+</DocumentFragment>
+`;
+
+exports[`EntriesCollection > should render with entries 1`] = `
+<DocumentFragment>
+  <mock-entries
+    collections="[object Object]"
+    cursor="[object Object]"
+    entries="[object Object]"
+  />
+</DocumentFragment>
+`;

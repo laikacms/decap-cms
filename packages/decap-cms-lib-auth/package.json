@@ -21,7 +21,6 @@
     "clean": "rimraf dist"
   },
   "peerDependencies": {
-    "immutable": "catalog:utils",
     "lodash": "catalog:utils",
     "uuid": "catalog:utils"
   },

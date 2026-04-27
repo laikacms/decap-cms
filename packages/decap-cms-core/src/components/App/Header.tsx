@@ -1,7 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import PropTypes from 'prop-types';
 import React from 'react';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 import { translate } from 'react-polyglot';
@@ -156,7 +155,7 @@ interface HeaderProps {
 class Header extends React.Component<HeaderProps> {
   static propTypes = {
     user: PropTypes.object.isRequired,
-    collections: ImmutablePropTypes.map.isRequired,
+    collections: PropTypes.object.isRequired,
     onCreateEntryClick: PropTypes.func.isRequired,
     onLogoutClick: PropTypes.func.isRequired,
     openMediaLibrary: PropTypes.func.isRequired,

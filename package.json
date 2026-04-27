@@ -76,6 +76,7 @@
   "devDependencies": {
     "@commitlint/cli": "catalog:commitlint",
     "@commitlint/config-conventional": "catalog:commitlint",
+    "@emotion/babel-plugin": "catalog:emotion",
     "@emotion/eslint-plugin": "catalog:emotion",
     "@eslint/js": "catalog:eslint",
     "@octokit/rest": "catalog:git",

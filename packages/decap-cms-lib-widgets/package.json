@@ -25,7 +25,6 @@
     "@types/react-dom": "catalog:types"
   },
   "peerDependencies": {
-    "immutable": "catalog:utils",
     "lodash": "catalog:utils"
   },
   "type": "module",

@@ -46,7 +46,6 @@
     "react-dnd-html5-backend": "catalog:react",
     "react-dom": "catalog:react",
     "react-frame-component": "catalog:react",
-    "react-immutable-proptypes": "catalog:react",
     "react-is": "catalog:react",
     "react-markdown": "catalog:react",
     "react-modal": "catalog:react",
@@ -81,12 +80,10 @@
     "decap-cms-lib-util": "workspace:*",
     "decap-cms-lib-widgets": "workspace:*",
     "decap-cms-ui-default": "workspace:*",
-    "immutable": "catalog:utils",
     "lodash": "catalog:utils",
     "prop-types": "catalog:react",
     "react": "catalog:react",
     "react-dom": "catalog:react",
-    "react-immutable-proptypes": "catalog:react",
     "@types/prop-types": "catalog:types"
   },
   "devDependencies": {

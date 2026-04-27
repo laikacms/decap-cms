@@ -123,6 +123,9 @@ catalogs:
       specifier: ^3.2.2
       version: 3.2.2
   emotion:
+    '@emotion/babel-plugin':
+      specifier: ^11.13.5
+      version: 11.13.5
     '@emotion/eslint-plugin':
       specifier: ^11.12.0
       version: 11.12.0
@@ -251,9 +254,6 @@ catalogs:
     react-frame-component:
       specifier: ^5.3.2
       version: 5.3.2
-    react-immutable-proptypes:
-      specifier: ^2.2.0
-      version: 2.2.0
     react-is:
       specifier: 19.2.4
       version: 19.2.4
@@ -457,15 +457,9 @@ catalogs:
     fuzzy:
       specifier: ^0.1.3
       version: 0.1.3
-    immutable:
-      specifier: ^5.1.5
-      version: 5.1.5
     js-sha256:
       specifier: ^0.11.1
       version: 0.11.1
-    localforage:
-      specifier: ^1.10.0
-      version: 1.10.0
     lodash:
       specifier: ^4.18.1
       version: 4.18.1
@@ -478,9 +472,6 @@ catalogs:
     sanitize-filename:
       specifier: ^1.6.4
       version: 1.6.4
-    semaphore:
-      specifier: ^1.1.0
-      version: 1.1.0
     unist-util-visit:
       specifier: ^5.1.0
       version: 5.1.0
@@ -572,6 +563,9 @@ importers:
       '@commitlint/config-conventional':
         specifier: catalog:commitlint
         version: 20.5.0
+      '@emotion/babel-plugin':
+        specifier: catalog:emotion
+        version: 11.13.5
       '@emotion/eslint-plugin':
         specifier: catalog:emotion
         version: 11.12.0(eslint@10.2.1(jiti@2.6.1))(typescript@6.0.2)
@@ -887,9 +881,6 @@ importers:
       decap-cms-widget-text:
         specifier: workspace:*
         version: link:../decap-cms-widget-text
-      immutable:
-        specifier: catalog:utils
-        version: 5.1.5
       lodash:
         specifier: catalog:utils
         version: 4.18.1
@@ -902,9 +893,6 @@ importers:
       react-dom:
         specifier: catalog:react
         version: 19.2.4(react@19.2.4)
-      react-immutable-proptypes:
-        specifier: catalog:react
-        version: 2.2.0(immutable@5.1.5)
       uuid:
         specifier: catalog:utils
         version: 13.0.0
@@ -1049,9 +1037,6 @@ importers:
       immer:
         specifier: catalog:redux
         version: 11.1.4
-      immutable:
-        specifier: catalog:utils
-        version: 5.1.5
       jwt-decode:
         specifier: catalog:auth
         version: 4.0.0
@@ -1082,9 +1067,6 @@ importers:
       react-frame-component:
         specifier: catalog:react
         version: 5.3.2(prop-types@15.8.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      react-immutable-proptypes:
-        specifier: catalog:react
-        version: 2.2.0(immutable@5.1.5)
       react-is:
         specifier: catalog:react
         version: 19.2.4
@@ -1142,9 +1124,6 @@ importers:
       sanitize-filename:
         specifier: catalog:utils
         version: 1.6.4
-      semaphore:
-        specifier: catalog:utils
-        version: 1.1.0
       tomlify-j0.4:
         specifier: catalog:formats
         version: 3.0.0
@@ -1212,9 +1191,6 @@ importers:
       '@emotion/styled':
         specifier: catalog:emotion
         version: 11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4)
-      immutable:
-        specifier: catalog:utils
-        version: 5.1.5
       lodash:
         specifier: catalog:utils
         version: 4.18.1
@@ -1227,9 +1203,6 @@ importers:
       react-dom:
         specifier: catalog:react
         version: 19.2.4(react@19.2.4)
-      react-immutable-proptypes:
-        specifier: catalog:react
-        version: 2.2.0(immutable@5.1.5)
       uuid:
         specifier: catalog:utils
         version: 13.0.0
@@ -1265,9 +1238,6 @@ importers:
 
   packages/decap-cms-lib-auth:
     dependencies:
-      immutable:
-        specifier: catalog:utils
-        version: 5.1.5
       lodash:
         specifier: catalog:utils
         version: 4.18.1
@@ -1284,21 +1254,12 @@ importers:
 
   packages/decap-cms-lib-util:
     dependencies:
-      immutable:
-        specifier: catalog:utils
-        version: 5.1.5
       js-sha256:
         specifier: catalog:utils
         version: 0.11.1
-      localforage:
-        specifier: catalog:utils
-        version: 1.10.0
       lodash:
         specifier: catalog:utils
         version: 4.18.1
-      semaphore:
-        specifier: catalog:utils
-        version: 1.1.0
 
   packages/decap-cms-lib-widgets:
     dependencies:
@@ -1308,9 +1269,6 @@ importers:
       decap-cms-lib-util:
         specifier: workspace:*
         version: link:../decap-cms-lib-util
-      immutable:
-        specifier: catalog:utils
-        version: 5.1.5
       lodash:
         specifier: catalog:utils
         version: 4.18.1
@@ -1366,9 +1324,6 @@ importers:
       '@emotion/styled':
         specifier: catalog:emotion
         version: 11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4)
-      immutable:
-        specifier: catalog:utils
-        version: 5.1.5
       lodash:
         specifier: catalog:utils
         version: 4.18.1
@@ -1424,9 +1379,6 @@ importers:
       react:
         specifier: catalog:react
         version: 19.2.4
-      react-immutable-proptypes:
-        specifier: catalog:react
-        version: 2.2.0(immutable@5.1.5)
     devDependencies:
       '@types/prop-types':
         specifier: catalog:types
@@ -1461,9 +1413,6 @@ importers:
       decap-cms-ui-default:
         specifier: workspace:*
         version: link:../decap-cms-ui-default
-      immutable:
-        specifier: catalog:utils
-        version: 5.1.5
       lodash:
         specifier: catalog:utils
         version: 4.18.1
@@ -1476,9 +1425,6 @@ importers:
       react-codemirror2:
         specifier: catalog:react
         version: 9.0.1(codemirror@6.0.2)(react@19.2.4)
-      react-immutable-proptypes:
-        specifier: catalog:react
-        version: 2.2.0(immutable@5.1.5)
       react-select:
         specifier: catalog:react
         version: 5.10.2(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -1593,9 +1539,6 @@ importers:
       decap-cms-ui-default:
         specifier: workspace:*
         version: link:../decap-cms-ui-default
-      immutable:
-        specifier: catalog:utils
-        version: 5.1.5
       lodash:
         specifier: catalog:utils
         version: 4.18.1
@@ -1605,9 +1548,6 @@ importers:
       react:
         specifier: catalog:react
         version: 19.2.4
-      react-immutable-proptypes:
-        specifier: catalog:react
-        version: 2.2.0(immutable@5.1.5)
       uuid:
         specifier: catalog:utils
         version: 13.0.0
@@ -1639,9 +1579,6 @@ importers:
       decap-cms-widget-file:
         specifier: workspace:*
         version: link:../decap-cms-widget-file
-      immutable:
-        specifier: catalog:utils
-        version: 5.1.5
       prop-types:
         specifier: catalog:react
         version: 15.8.1
@@ -1688,9 +1625,6 @@ importers:
       decap-cms-widget-object:
         specifier: workspace:*
         version: link:../decap-cms-widget-object
-      immutable:
-        specifier: catalog:utils
-        version: 5.1.5
       lodash:
         specifier: catalog:utils
         version: 4.18.1
@@ -1700,9 +1634,6 @@ importers:
       react:
         specifier: catalog:react
         version: 19.2.4
-      react-immutable-proptypes:
-        specifier: catalog:react
-        version: 2.2.0(immutable@5.1.5)
       uuid:
         specifier: catalog:utils
         version: 13.0.0
@@ -1725,9 +1656,6 @@ importers:
       decap-cms-ui-default:
         specifier: workspace:*
         version: link:../decap-cms-ui-default
-      immutable:
-        specifier: catalog:utils
-        version: 5.1.5
       lodash:
         specifier: catalog:utils
         version: 4.18.1
@@ -1740,9 +1668,6 @@ importers:
       react:
         specifier: catalog:react
         version: 19.2.4
-      react-immutable-proptypes:
-        specifier: catalog:react
-        version: 2.2.0(immutable@5.1.5)
     devDependencies:
       '@types/prop-types':
         specifier: catalog:types
@@ -1759,18 +1684,12 @@ importers:
       decap-cms-ui-default:
         specifier: workspace:*
         version: link:../decap-cms-ui-default
-      immutable:
-        specifier: catalog:utils
-        version: 5.1.5
       prop-types:
         specifier: catalog:react
         version: 15.8.1
       react:
         specifier: catalog:react
         version: 19.2.4
-      react-immutable-proptypes:
-        specifier: catalog:react
-        version: 2.2.0(immutable@5.1.5)
     devDependencies:
       '@types/prop-types':
         specifier: catalog:types
@@ -1796,9 +1715,6 @@ importers:
       decap-cms-ui-default:
         specifier: workspace:*
         version: link:../decap-cms-ui-default
-      immutable:
-        specifier: catalog:utils
-        version: 5.1.5
       lodash:
         specifier: catalog:utils
         version: 4.18.1
@@ -1808,9 +1724,6 @@ importers:
       react:
         specifier: catalog:react
         version: 19.2.4
-      react-immutable-proptypes:
-        specifier: catalog:react
-        version: 2.2.0(immutable@5.1.5)
     devDependencies:
       '@types/prop-types':
         specifier: catalog:types
@@ -1848,9 +1761,6 @@ importers:
       decap-cms-ui-default:
         specifier: workspace:*
         version: link:../decap-cms-ui-default
-      immutable:
-        specifier: catalog:utils
-        version: 5.1.5
       lodash:
         specifier: catalog:utils
         version: 4.18.1
@@ -1860,9 +1770,6 @@ importers:
       react:
         specifier: catalog:react
         version: 19.2.4
-      react-immutable-proptypes:
-        specifier: catalog:react
-        version: 2.2.0(immutable@5.1.5)
       react-select:
         specifier: catalog:react
         version: 5.10.2(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -1891,9 +1798,6 @@ importers:
       decap-cms-ui-default:
         specifier: workspace:*
         version: link:../decap-cms-ui-default
-      immutable:
-        specifier: catalog:utils
-        version: 5.1.5
       lodash:
         specifier: catalog:utils
         version: 4.18.1
@@ -1903,9 +1807,6 @@ importers:
       react:
         specifier: catalog:react
         version: 19.2.4
-      react-immutable-proptypes:
-        specifier: catalog:react
-        version: 2.2.0(immutable@5.1.5)
       react-select:
         specifier: catalog:react
         version: 5.10.2(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -1928,9 +1829,6 @@ importers:
       decap-cms-ui-default:
         specifier: workspace:*
         version: link:../decap-cms-ui-default
-      immutable:
-        specifier: catalog:utils
-        version: 5.1.5
       prop-types:
         specifier: catalog:react
         version: 15.8.1
@@ -1953,9 +1851,6 @@ importers:
       decap-cms-ui-default:
         specifier: workspace:*
         version: link:../decap-cms-ui-default
-      immutable:
-        specifier: catalog:utils
-        version: 5.1.5
       prop-types:
         specifier: catalog:react
         version: 15.8.1
@@ -6449,14 +6344,8 @@ packages:
     resolution: {integrity: sha512-Hs59xBNfUIunMFgWAbGX5cq6893IbWg4KnrjbYwX3tx0ztorVgTDA6B2sxf8ejHJ4wz8BqGUMYlnzNBer5NvGg==}
     engines: {node: '>= 4'}
 
-  immediate@3.0.6:
-    resolution: {integrity: sha512-XXOFtyqDjNDAQxVfYxuF7g9Il/IbWmmlQg2MYKOH8ExIT1qg6xc4zyS3HaEEATgs1btfzxq15ciUiY7gjSXRGQ==}
-
   immer@11.1.4:
     resolution: {integrity: sha512-XREFCPo6ksxVzP4E0ekD5aMdf8WMwmdNaz6vuvxgI40UaEiu6q3p8X52aU6GdyvLY3XXX/8R7JOTXStz/nBbRw==}
-
-  immutable@5.1.5:
-    resolution: {integrity: sha512-t7xcm2siw+hlUM68I+UEOK+z84RzmN59as9DZ7P1l0994DKUWV7UXBMQZVxaoMSRQ+PBZbHCOoBt7a2wxOMt+A==}
 
   import-fresh@3.3.1:
     resolution: {integrity: sha512-TR3KfrTZTYLPB6jUjfx6MF9WcWrHL9su5TObK4ZkYgBdWKPOFoSoQIdEuTuR82pmtxH2spWG9h6etwfr1pLBqQ==}
@@ -6539,9 +6428,6 @@ packages:
   internal-slot@1.1.0:
     resolution: {integrity: sha512-4gd7VpWNQNB4UKKCFFVcp1AVv+FMOgs9NKzjHKusc8jTMhd5eL1NqQqOpE0KzMds804/yHlglp3uxgluOqAPLw==}
     engines: {node: '>= 0.4'}
-
-  invariant@2.2.4:
-    resolution: {integrity: sha512-phJfQVBuaJM5raOpJjSfkiD6BpbCE4Ns//LaXl6wGYtUBY83nWS6Rf9tXm2e8VaK60JEjYldbPif/A2B1C2gNA==}
 
   ip-address@10.1.0:
     resolution: {integrity: sha512-XXADHxXmvT9+CRxhXg56LJovE+bmWnEWB78LB83VZTprKTmaC5QfruXocxzTZ2Kl0DNwKuBdlIhjL8LeY8Sf8Q==}
@@ -7043,9 +6929,6 @@ packages:
     resolution: {integrity: sha512-tNcU3cLH7toloAzhOOrBDhjzgbxpyuYvkf+BPPnnJCdc5EIcdJ8JcT+SglvCQKKyZ6m9dVXtCVlJcA6csxKdEA==}
     engines: {node: ^20.17.0 || >=22.9.0}
 
-  lie@3.1.1:
-    resolution: {integrity: sha512-RiNhHysUjhrDQntfYSfY4MU24coXXdEOgw9WGcKHNeEwffDYbF//u87M1EWaMGzuFoSbqW0C9C6lEEhDOAswfw==}
-
   lightningcss-android-arm64@1.32.0:
     resolution: {integrity: sha512-YK7/ClTt4kAK0vo6w3X+Pnm0D2cf2vPHbhOXdoNti1Ga0al1P4TBZhwjATvjNwLEBCnKvjJc2jQgHXH0NEwlAg==}
     engines: {node: '>= 12.0.0'}
@@ -7143,9 +7026,6 @@ packages:
   local-pkg@1.1.2:
     resolution: {integrity: sha512-arhlxbFRmoQHl33a0Zkle/YWlmNwoyt6QNZEIJcqNbdrsix5Lvc4HyyI3EnwxTYlZYc32EbYrQ8SzEZ7dqgg9A==}
     engines: {node: '>=14'}
-
-  localforage@1.10.0:
-    resolution: {integrity: sha512-14/H1aX7hzBBmmh7sGPd+AOMkkIrHM3Z1PAyGgZigA1H1p5O5ANnMyWzvpAETtG68/dC4pC0ncy3+PPGzXZHPg==}
 
   locate-path@2.0.0:
     resolution: {integrity: sha512-NCI2kiDkyR7VeEKm27Kda/iQHyKJe1Bu0FlTbYp3CqJu+9IFe9bLyAjMxf5ZDDbEg+iMPzB5zYyUTSm8wVTKmA==}
@@ -8432,11 +8312,6 @@ packages:
       react: '>= 16.8 || ^17.0.0 || ^18.0.0 || ^19.0.0'
       react-dom: '>= 16.8 || ^17.0.0 || ^18.0.0 || ^19.0.0'
 
-  react-immutable-proptypes@2.2.0:
-    resolution: {integrity: sha512-Vf4gBsePlwdGvSZoLSBfd4HAP93HDauMY4fDjXhreg/vg6F3Fj/MXDNyTbltPC/xZKmZc+cjLu3598DdYK6sgQ==}
-    peerDependencies:
-      immutable: '>=3.6.2'
-
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
 
@@ -8849,10 +8724,6 @@ packages:
 
   secure-compare@3.0.1:
     resolution: {integrity: sha512-AckIIV90rPDcBcglUwXPF3kg0P0qmPsPXAj6BBEENQE1p5yA1xfmDJzfi1Tappj37Pv2mVbKpL3Z1T+Nn7k1Qw==}
-
-  semaphore@1.1.0:
-    resolution: {integrity: sha512-O4OZEaNtkMd/K0i6js9SL+gqy0ZCBMgUvlSqHKi4IBdjhe7wB8pwztUk1BbZ1fmrvpwFrPbHzqd2w5pTcJH6LA==}
-    engines: {node: '>=0.8.0'}
 
   semver@5.7.2:
     resolution: {integrity: sha512-cBznnQ9KjJqU67B52RMC65CMarK2600WFnbkcaiwWq3xy/5haFJlshgnpjovMVJ+Hff49d8GEn0b87C5pDQ10g==}
@@ -15017,11 +14888,7 @@ snapshots:
 
   ignore@7.0.5: {}
 
-  immediate@3.0.6: {}
-
   immer@11.1.4: {}
-
-  immutable@5.1.5: {}
 
   import-fresh@3.3.1:
     dependencies:
@@ -15107,10 +14974,6 @@ snapshots:
       es-errors: 1.3.0
       hasown: 2.0.2
       side-channel: 1.1.0
-
-  invariant@2.2.4:
-    dependencies:
-      loose-envify: 1.4.0
 
   ip-address@10.1.0: {}
 
@@ -15668,10 +15531,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  lie@3.1.1:
-    dependencies:
-      immediate: 3.0.6
-
   lightningcss-android-arm64@1.32.0:
     optional: true
 
@@ -15757,10 +15616,6 @@ snapshots:
       mlly: 1.8.2
       pkg-types: 2.3.0
       quansync: 0.2.11
-
-  localforage@1.10.0:
-    dependencies:
-      lie: 3.1.1
 
   locate-path@2.0.0:
     dependencies:
@@ -17353,11 +17208,6 @@ snapshots:
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
 
-  react-immutable-proptypes@2.2.0(immutable@5.1.5):
-    dependencies:
-      immutable: 5.1.5
-      invariant: 2.2.4
-
   react-is@16.13.1: {}
 
   react-is@17.0.2: {}
@@ -17899,8 +17749,6 @@ snapshots:
       kind-of: 6.0.3
 
   secure-compare@3.0.1: {}
-
-  semaphore@1.1.0: {}
 
   semver@5.7.2: {}
 

@@ -299,7 +299,7 @@ describe('NestedCollection', () => {
                   children: [
                     {
                       path: '/intro/category/index.md',
-                      data: { title: 'intro category index' },
+                      data: { title: 'intro category index', dirname: 'src/pages/intro/category', extension: 'md', filename: 'index' },
                       title: 'intro category index',
                       isDir: false,
                       isRoot: false,
@@ -309,7 +309,7 @@ describe('NestedCollection', () => {
                 },
                 {
                   path: '/intro/index.md',
-                  data: { title: 'intro index' },
+                  data: { title: 'intro index', dirname: 'src/pages/intro', extension: 'md', filename: 'index' },
                   title: 'intro index',
                   isDir: false,
                   isRoot: false,
@@ -325,7 +325,7 @@ describe('NestedCollection', () => {
               children: [
                 {
                   path: '/compliance/index.md',
-                  data: { title: 'compliance index' },
+                  data: { title: 'compliance index', dirname: 'src/pages/compliance', extension: 'md', filename: 'index' },
                   title: 'compliance index',
                   isDir: false,
                   isRoot: false,
@@ -335,7 +335,7 @@ describe('NestedCollection', () => {
             },
             {
               path: '/index.md',
-              data: { title: 'Root' },
+              data: { title: 'Root', dirname: 'src/pages', extension: 'md', filename: 'index' },
               title: 'Root',
               isDir: false,
               isRoot: false,
@@ -360,7 +360,7 @@ describe('NestedCollection', () => {
           children: [
             {
               path: '/index.md',
-              data: { title: 'Root' },
+              data: { title: 'Root', dirname: 'src/pages', extension: 'md', filename: 'index' },
               title: 'Root',
               isDir: false,
               isRoot: false,
@@ -388,7 +388,7 @@ describe('NestedCollection', () => {
           children: [
             {
               path: '/index.md',
-              data: { title: 'Root' },
+              data: { title: 'Root', dirname: 'src/pages', extension: 'md', filename: 'index' },
               title: 'index',
               isDir: false,
               isRoot: false,

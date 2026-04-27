@@ -1,8 +1,10 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import configureMockStore from 'redux-mock-store';
-import thunk from 'redux-thunk';
+import { thunk } from 'redux-thunk';
 
 import { insertMedia, persistMedia, deleteMedia } from '../mediaLibrary';
+import * as backendModule from '../../backend';
+import * as libUtil from 'decap-cms-lib-util';
 
 vi.mock('../../backend');
 vi.mock('../waitUntil');
@@ -60,7 +62,7 @@ describe('mediaLibrary', () => {
     });
   });
 
-  const { currentBackend } = require('../../backend');
+  const currentBackend = vi.mocked(backendModule.currentBackend);
 
   const backend = {
     persistMedia: vi.fn(() => ({ id: 'id' })),
@@ -78,7 +80,7 @@ describe('mediaLibrary', () => {
     });
 
     it('should not persist media when editing draft', () => {
-      const { getBlobSHA } = require('decap-cms-lib-util');
+      const getBlobSHA = vi.mocked(libUtil.getBlobSHA);
 
       getBlobSHA.mockReturnValue('000000000000000');
 
@@ -94,7 +96,7 @@ describe('mediaLibrary', () => {
         collections: {
           posts: { name: 'posts' },
         },
-        integrations: {},
+        integrations: { providers: {}, hooks: {} },
         mediaLibrary: {
           files: [],
         },
@@ -145,7 +147,7 @@ describe('mediaLibrary', () => {
         collections: {
           posts: { name: 'posts' },
         },
-        integrations: {},
+        integrations: { providers: {}, hooks: {} },
         mediaLibrary: {
           files: [],
         },
@@ -199,7 +201,7 @@ describe('mediaLibrary', () => {
         collections: {
           posts: { name: 'posts' },
         },
-        integrations: {},
+        integrations: { providers: {}, hooks: {} },
         mediaLibrary: {
           files: [],
         },
@@ -253,7 +255,7 @@ describe('mediaLibrary', () => {
           publish_mode: 'editorial_workflow',
         },
         collections: {},
-        integrations: {},
+        integrations: { providers: {}, hooks: {} },
         mediaLibrary: {
           files: [],
         },
@@ -296,7 +298,7 @@ describe('mediaLibrary', () => {
           publish_mode: 'editorial_workflow',
         },
         collections: {},
-        integrations: {},
+        integrations: { providers: {}, hooks: {} },
         mediaLibrary: {
           files: [],
         },

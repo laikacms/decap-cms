@@ -228,7 +228,7 @@ export function previewUrlFormatter(
 }
 
 export function summaryFormatter(summaryTemplate: string, entry: EntryMap, collection: Collection) {
-  let entryData = entry.data as Record<string, string>;
+  let entryData = { ...(entry.data as Record<string, string>) };
   const date =
     parseDateFromEntry(
       entry as unknown as Record<string, unknown>,

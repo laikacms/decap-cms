@@ -27,7 +27,6 @@
     "decap-cms-ui-default": "workspace:*",
     "decap-cms-lib-util": "workspace:*",
     "decap-cms-widget-file": "workspace:*",
-    "immutable": "catalog:utils",
     "prop-types": "catalog:react",
     "react": "catalog:react"
   },

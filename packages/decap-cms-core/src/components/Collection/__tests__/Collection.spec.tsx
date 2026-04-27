@@ -4,12 +4,12 @@ import configureStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { vi } from 'vitest';
 
-import ConnectedCollection, { Collection } from '../Collection';
+import ConnectedCollection from '../Collection';
 
-vi.mock('../Entries/EntriesCollection', () => 'mock-entries-collection');
-vi.mock('../CollectionTop', () => 'mock-collection-top');
-vi.mock('../CollectionControls', () => 'mock-collection-controls');
-vi.mock('../Sidebar', () => 'mock-sidebar');
+vi.mock('../Entries/EntriesCollection', () => ({ default: 'mock-entries-collection' }));
+vi.mock('../CollectionTop', () => ({ default: 'mock-collection-top' }));
+vi.mock('../CollectionControls', () => ({ default: 'mock-collection-controls' }));
+vi.mock('../Sidebar', () => ({ default: 'mock-sidebar' }));
 
 const middlewares = [];
 const mockStore = configureStore(middlewares);
@@ -29,51 +29,47 @@ describe('Collection', () => {
     view_filters: [],
     view_groups: [],
   };
-  const props = {
-    collections: { pages: collection },
-    collection,
-    collectionName: collection.name,
-    t: vi.fn(key => key),
-    onSortClick: vi.fn(),
-  };
+
+  function makeStore(collectionOverride = {}) {
+    return mockStore({
+      collections: { pages: { ...collection, ...collectionOverride } },
+      entries: {},
+      config: { search: true },
+    });
+  }
 
   it('should render with collection without create url', () => {
-    const { asFragment } = render(
-      <Collection {...props} collection={{ ...collection, create: false }} />,
+    const store = makeStore({ create: false });
+    const { asFragment } = renderWithRedux(
+      <ConnectedCollection match={{ params: { name: 'pages' } }} />,
+      { store },
     );
-
     expect(asFragment()).toMatchSnapshot();
   });
-  it('should render with collection with create url', () => {
-    const { asFragment } = render(
-      <Collection {...props} collection={{ ...collection, create: true }} />,
-    );
 
+  it('should render with collection with create url', () => {
+    const store = makeStore({ create: true });
+    const { asFragment } = renderWithRedux(
+      <ConnectedCollection match={{ params: { name: 'pages' } }} />,
+      { store },
+    );
     expect(asFragment()).toMatchSnapshot();
   });
 
   it('should render with collection with create url and path', () => {
-    const { asFragment } = render(
-      <Collection
-        {...props}
-        collection={{ ...collection, create: true }}
-        filterTerm="dir1/dir2"
-      />,
+    const store = makeStore({ create: true });
+    const { asFragment } = renderWithRedux(
+      <ConnectedCollection match={{ params: { name: 'pages', filterTerm: 'dir1/dir2' } }} />,
+      { store },
     );
-
     expect(asFragment()).toMatchSnapshot();
   });
 
   it('should render connected component', () => {
-    const store = mockStore({
-      collections: props.collections,
-      entries: {},
-    });
-
+    const store = makeStore();
     const { asFragment } = renderWithRedux(<ConnectedCollection match={{ params: {} }} />, {
       store,
     });
-
     expect(asFragment()).toMatchSnapshot();
   });
 });

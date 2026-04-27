@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import find from 'lodash/find';
 import Select from 'react-select';
 import { reactSelectStyles } from 'decap-cms-ui-default';
@@ -36,14 +35,14 @@ function getSelectedValue({
   isMultiple: boolean;
 }): SelectOption | SelectOption[] | null {
   if (isMultiple) {
+    if (value == null) return null;
     const selectedOptions = Array.isArray(value) ? value : [value];
 
-    if (!selectedOptions || !Array.isArray(selectedOptions)) {
-      return null;
-    }
-
     return selectedOptions
-      .map((i: SelectOption | string | number) => options.find((o: SelectOption) => o.value === ((i as SelectOption).value || i)))
+      .map((i: SelectOption | string | number) => {
+        const val = i != null && typeof i === 'object' ? (i as SelectOption).value : i;
+        return options.find((o: SelectOption) => o.value === (val ?? i));
+      })
       .filter(Boolean)
       .map(convertToOption);
   } else {
@@ -70,12 +69,12 @@ export default class SelectControl extends React.Component<SelectControlProps> {
     classNameWrapper: PropTypes.string.isRequired,
     setActiveStyle: PropTypes.func.isRequired,
     setInactiveStyle: PropTypes.func.isRequired,
-    field: ImmutablePropTypes.contains({
-      options: ImmutablePropTypes.listOf(
+    field: PropTypes.shape({
+      options: PropTypes.arrayOf(
         PropTypes.oneOfType([
           PropTypes.string,
           PropTypes.number,
-          ImmutablePropTypes.contains({
+          PropTypes.shape({
             label: PropTypes.string.isRequired,
             value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
           }),

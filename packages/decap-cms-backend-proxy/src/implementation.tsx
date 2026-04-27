@@ -8,20 +8,21 @@ import {
 import isError from 'lodash/isError';
 
 import type {
-  Entry,
-  AssetProxy,
-  PersistOptions,
-  User,
-  Config,
-  Implementation,
-  ImplementationFile,
-  UnpublishedEntry,
+  CmsEntry,
+  CmsAssetProxy,
+  CmsPersistOptions,
+  CmsUser,
+  CmsConfig,
+  CmsImplementation,
+  CmsImplementationFile,
+  CmsUnpublishedEntry,
+  CmsFileEntry,
+  CmsDataFile
 } from 'decap-cms-lib-util';
 
 import AuthenticationPage from './AuthenticationPage';
-import type { FileEntry } from 'decap-cms-lib-util/types/cms-immutable';
 
-async function serializeAsset(assetProxy: AssetProxy) {
+async function serializeAsset(assetProxy: CmsAssetProxy) {
   const base64content = await assetProxy.toBase64!();
   return { path: assetProxy.path, content: base64content, encoding: 'base64' };
 }
@@ -51,14 +52,14 @@ function deserializeMediaFile({ id, content, encoding, path, name }: MediaFile) 
   return { id, name, path, file, size: file.size, url, displayURL: url };
 }
 
-export default class ProxyBackend implements Implementation {
+export default class ProxyBackend implements CmsImplementation {
   proxyUrl: string;
-  mediaFolder: string;
+  mediaFolder: string | undefined;
   options: { initialWorkflowStatus?: string };
   branch: string;
   cmsLabelPrefix?: string;
 
-  constructor(config: Config, options = {}) {
+  constructor(config: CmsConfig, options = {}) {
     if (!config.backend.proxy_url) {
       throw new Error('The Proxy backend needs a "proxy_url" in the backend configuration.');
     }
@@ -87,7 +88,7 @@ export default class ProxyBackend implements Implementation {
   }
 
   authenticate() {
-    return Promise.resolve() as unknown as Promise<User>;
+    return Promise.resolve() as unknown as Promise<CmsUser>;
   }
 
   logout() {
@@ -121,7 +122,7 @@ export default class ProxyBackend implements Implementation {
     });
   }
 
-  entriesByFiles(files: ImplementationFile[]) {
+  entriesByFiles(files: CmsImplementationFile[]) {
     return this.request({
       action: 'entriesByFiles',
       params: { branch: this.branch, files },
@@ -152,7 +153,7 @@ export default class ProxyBackend implements Implementation {
     slug?: string;
   }) {
     try {
-      const entry: UnpublishedEntry = await this.request({
+      const entry: CmsUnpublishedEntry = await this.request({
         action: 'unpublishedEntry',
         params: { branch: this.branch, id, collection, slug, cmsLabelPrefix: this.cmsLabelPrefix },
       });
@@ -189,18 +190,20 @@ export default class ProxyBackend implements Implementation {
     });
   }
 
-  async persistEntry(entry: FileEntry, options: PersistOptions) {
-    const assets = await Promise.all(entry.assets.map(serializeAsset));
-    await this.request({
-      action: 'persistEntry',
-      params: {
-        branch: this.branch,
-        dataFiles: entry.dataFiles,
-        assets,
-        options: { ...options, status: options.status || this.options.initialWorkflowStatus },
-        cmsLabelPrefix: this.cmsLabelPrefix,
-      },
-    });
+  async persistEntry(entry: CmsDataFile | { dataFiles: CmsDataFile[]; assets: CmsAssetProxy[] }, options: CmsPersistOptions) {
+    if ('dataFiles' in entry && 'assets' in entry) {
+      const assets = await Promise.all(entry.assets.map(serializeAsset));
+      await this.request({
+        action: 'persistEntry',
+        params: {
+          branch: this.branch,
+          dataFiles: entry.dataFiles,
+          assets,
+          options: { ...options, status: options.status || this.options.initialWorkflowStatus },
+          cmsLabelPrefix: this.cmsLabelPrefix,
+        },
+      });
+    }
   }
 
   updateUnpublishedEntryStatus(collection: string, slug: string, newStatus: string) {
@@ -240,7 +243,7 @@ export default class ProxyBackend implements Implementation {
     return deserializeMediaFile(file);
   }
 
-  async persistMedia(assetProxy: AssetProxy, options: PersistOptions) {
+  async persistMedia(assetProxy: CmsAssetProxy, options: CmsPersistOptions) {
     const asset = await serializeAsset(assetProxy);
     const file: MediaFile = await this.request({
       action: 'persistMedia',

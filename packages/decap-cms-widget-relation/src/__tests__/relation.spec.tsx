@@ -3,8 +3,15 @@ vi.mock('react-window', () => {
     return props.itemData.options;
   }
 
+  function List({ rowCount, rowProps, rowComponent: RowComponent }) {
+    return Array.from({ length: rowCount || 0 }, (_, index) =>
+      RowComponent({ index, style: {}, options: rowProps?.options || [] }),
+    );
+  }
+
   return {
     FixedSizeList,
+    List,
   };
 });
 

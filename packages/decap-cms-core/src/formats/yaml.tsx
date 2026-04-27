@@ -24,7 +24,7 @@ function addComments(items: Array<Pair>, comments: Record<string, string>, prefi
       if (comments[key]) {
         const value = comments[key].split('\\n').join('\n ');
         // @ts-expect-error
-        item.commentBefore = ` ${value}`;
+        (item.key as any).commentBefore = ` ${value}`;
       }
       if (Array.isArray((item.value as YAMLMap | YAMLSeq | undefined)?.items)) {
         addComments((item.value as YAMLMap | YAMLSeq).items as Array<Pair>, comments, key);

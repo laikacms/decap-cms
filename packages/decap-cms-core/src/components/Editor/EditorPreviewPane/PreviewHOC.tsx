@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import type { CmsEntryField } from 'decap-cms-lib-util/types/cms';
 
 type EntryField = CmsEntryField;
@@ -45,7 +44,7 @@ class PreviewHOC extends React.Component<PreviewHOCProps> {
 
 PreviewHOC.propTypes = {
   previewComponent: PropTypes.func.isRequired,
-  field: ImmutablePropTypes.map.isRequired,
+  field: PropTypes.object.isRequired,
   value: PropTypes.oneOfType([PropTypes.node, PropTypes.object, PropTypes.string, PropTypes.bool]),
 };
 

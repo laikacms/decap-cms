@@ -1,8 +1,15 @@
-vi.mock('decap-cms-widget-object', () => {
-  function MockObjectControl(props) {
-    return <mock-object-control {...props}>{props.children}</mock-object-control>;
+vi.mock('decap-cms-widget-object', async () => {
+  const React = await import('react');
+  class MockObjectControl extends React.Component<any> {
+    validate() {}
+    render() {
+      const { children, ...rest } = this.props;
+      return React.createElement('mock-object-control', rest, children);
+    }
   }
+  const DecapCmsWidgetObject = { controlComponent: MockObjectControl };
   return {
+    default: DecapCmsWidgetObject,
     controlComponent: MockObjectControl,
   };
 });

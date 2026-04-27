@@ -1,6 +1,6 @@
 vi.mock('uuid');
 vi.mock('../entries');
-vi.mock('../');
+vi.mock('../integrations');
 
 import { mediaDeleted } from '../../actions/mediaLibrary';
 import mediaLibrary, {
@@ -9,7 +9,7 @@ import mediaLibrary, {
   selectMediaDisplayURL,
 } from '../mediaLibrary';
 import { selectEditingDraft, selectMediaFolder } from '../entries';
-import { selectIntegration } from '../';
+import { selectIntegration } from '../integrations';
 
 describe('mediaLibrary', () => {
   it('should remove media file by key', () => {
@@ -65,6 +65,7 @@ describe('mediaLibrary', () => {
       entryDraft: {
         entry,
       },
+      integrations: { hooks: {} },
     };
 
     expect(selectMediaFiles(state, imageField)).toEqual([
@@ -95,6 +96,7 @@ describe('mediaLibrary', () => {
       entryDraft: {
         entry,
       },
+      integrations: { hooks: {} },
     };
 
     expect(selectMediaFiles(state, imageField)).toEqual([
@@ -109,6 +111,7 @@ describe('mediaLibrary', () => {
 
     const state = {
       mediaLibrary: { files: [{ id: 1 }] },
+      integrations: { hooks: {} },
     };
 
     expect(selectMediaFiles(state)).toEqual([{ id: 1 }]);
@@ -119,6 +122,7 @@ describe('mediaLibrary', () => {
 
     const state = {
       mediaLibrary: { files: [{ id: 1 }] },
+      integrations: { hooks: {} },
     };
 
     expect(selectMediaFiles(state)).toEqual([{ id: 1 }]);
@@ -129,6 +133,7 @@ describe('mediaLibrary', () => {
 
     const state = {
       mediaLibrary: { files: [{ id: 1, path: 'path' }] },
+      integrations: { hooks: {} },
     };
 
     expect(selectMediaFileByPath(state, 'path')).toEqual({ id: 1, path: 'path' });

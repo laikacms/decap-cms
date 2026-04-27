@@ -23,7 +23,6 @@
     "decap-cms-ui-default": "workspace:*",
     "decap-cms-lib-util": "workspace:*",
     "prop-types": "catalog:react",
-    "immutable": "catalog:utils",
     "react": "catalog:react"
   },
   "devDependencies": {

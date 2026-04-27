@@ -22,7 +22,7 @@ import {
   MEDIA_DISPLAY_URL_FAILURE,
 } from '../actions/mediaLibrary';
 import { selectEditingDraft, selectMediaFolder } from './entries';
-import { selectIntegration } from './';
+import { selectIntegration as selectIntegrationDirect } from './integrations';
 
 import type { MediaLibraryAction } from '../actions/mediaLibrary';
 import type {
@@ -264,7 +264,7 @@ const mediaLibrary = produce((state: MediaLibrary, action: MediaLibraryAction) =
 export function selectMediaFiles(state: State, field?: EntryField) {
   const { mediaLibrary, entryDraft } = state;
   const editingDraft = selectEditingDraft(state.entryDraft);
-  const integration = selectIntegration(state.integrations, null, 'assetStore');
+  const integration = selectIntegrationDirect(state.integrations, null, 'assetStore');
 
   let files: MediaFile[];
   if (editingDraft && !integration) {

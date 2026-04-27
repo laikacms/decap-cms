@@ -2,7 +2,6 @@
 import type { ComponentType } from 'react';
 import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import styled from '@emotion/styled';
 import { css, ClassNames } from '@emotion/react';
 import isEmpty from 'lodash/isEmpty';
@@ -293,16 +292,16 @@ export default class ListControl extends React.Component<ListControlProps, ListC
   childRefs: Record<string, ChildRef> = {};
 
   static propTypes = {
-    metadata: ImmutablePropTypes.map,
+    metadata: PropTypes.object,
     onChange: PropTypes.func.isRequired,
     onChangeObject: PropTypes.func.isRequired,
     onValidateObject: PropTypes.func.isRequired,
     validate: PropTypes.func.isRequired,
-    value: ImmutablePropTypes.list,
+    value: PropTypes.array,
     field: PropTypes.object,
     forID: PropTypes.string,
     controlRef: PropTypes.func,
-    mediaPaths: ImmutablePropTypes.map.isRequired,
+    mediaPaths: PropTypes.object.isRequired,
     getAsset: PropTypes.func.isRequired,
     onOpenMediaLibrary: PropTypes.func.isRequired,
     onAddAsset: PropTypes.func.isRequired,
@@ -313,8 +312,8 @@ export default class ListControl extends React.Component<ListControlProps, ListC
     editorControl: PropTypes.elementType.isRequired,
     resolveWidget: PropTypes.func.isRequired,
     clearFieldErrors: PropTypes.func.isRequired,
-    fieldsErrors: ImmutablePropTypes.map.isRequired,
-    entry: ImmutablePropTypes.map.isRequired,
+    fieldsErrors: PropTypes.object.isRequired,
+    entry: PropTypes.object.isRequired,
     t: PropTypes.func,
   };
 

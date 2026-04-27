@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import type { CmsFieldBase, CmsFieldNumber } from 'decap-cms-lib-util/types/index';
 
@@ -75,7 +74,7 @@ interface NumberControlProps {
 
 export default class NumberControl extends React.Component<NumberControlProps> {
   static propTypes = {
-    field: ImmutablePropTypes.map.isRequired,
+    field: PropTypes.object.isRequired,
     onChange: PropTypes.func.isRequired,
     classNameWrapper: PropTypes.string.isRequired,
     setActiveStyle: PropTypes.func.isRequired,

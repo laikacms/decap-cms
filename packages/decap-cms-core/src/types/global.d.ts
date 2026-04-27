@@ -56,42 +56,6 @@ declare module 'react-polyglot' {
   ) => ComponentType<Omit<P, 't'>>;
 }
 
-// react-immutable-proptypes: PropTypes validators for Immutable.js
-declare module 'react-immutable-proptypes' {
-  import type { Requireable, Validator } from 'prop-types';
-
-  interface ImmutablePropTypes {
-    list: Requireable<unknown>;
-    map: Requireable<unknown>;
-    orderedMap: Requireable<unknown>;
-    set: Requireable<unknown>;
-    orderedSet: Requireable<unknown>;
-    stack: Requireable<unknown>;
-    seq: Requireable<unknown>;
-    record: Requireable<unknown>;
-    iterable: Requireable<unknown>;
-    contains: (shape: Record<string, Validator<unknown>>) => Requireable<unknown>;
-    mapContains: (shape: Record<string, Validator<unknown>>) => Requireable<unknown>;
-    listOf: (typeChecker: Validator<unknown>) => Requireable<unknown>;
-    mapOf: (
-      valTypeChecker: Validator<unknown>,
-      keyTypeChecker?: Validator<unknown>,
-    ) => Requireable<unknown>;
-    orderedMapOf: (
-      valTypeChecker: Validator<unknown>,
-      keyTypeChecker?: Validator<unknown>,
-    ) => Requireable<unknown>;
-    setOf: (typeChecker: Validator<unknown>) => Requireable<unknown>;
-    orderedSetOf: (typeChecker: Validator<unknown>) => Requireable<unknown>;
-    stackOf: (typeChecker: Validator<unknown>) => Requireable<unknown>;
-    iterableOf: (typeChecker: Validator<unknown>) => Requireable<unknown>;
-    recordOf: (shape: Record<string, Validator<unknown>>) => Requireable<unknown>;
-  }
-
-  const ImmutablePropTypes: ImmutablePropTypes;
-  export default ImmutablePropTypes;
-}
-
 // fuzzy: fuzzy string matching library
 declare module 'fuzzy' {
   interface FilterOptions<T> {

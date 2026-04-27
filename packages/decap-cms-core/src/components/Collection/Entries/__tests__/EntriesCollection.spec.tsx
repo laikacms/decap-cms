@@ -9,7 +9,7 @@ import ConnectedEntriesCollection, {
   filterNestedEntries,
 } from '../EntriesCollection';
 
-vi.mock('../Entries', () => 'mock-entries');
+vi.mock('../Entries', () => ({ default: 'mock-entries' }));
 
 const middlewares = [];
 const mockStore = configureStore(middlewares);

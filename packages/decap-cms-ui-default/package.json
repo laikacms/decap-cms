@@ -34,8 +34,7 @@
     "@emotion/styled": "catalog:emotion",
     "lodash": "catalog:utils",
     "prop-types": "catalog:react",
-    "react": "catalog:react",
-    "immutable": "catalog:utils"
+    "react": "catalog:react"
   },
   "type": "module",
   "types": "./dist/index.d.ts",

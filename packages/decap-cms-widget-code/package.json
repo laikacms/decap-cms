@@ -30,8 +30,6 @@
     "@replit/codemirror-vscode-keymap": "catalog:codemirror",
     "@replit/codemirror-vim": "catalog:codemirror",
     "prop-types": "catalog:react",
-    "immutable": "catalog:utils",
-    "react-immutable-proptypes": "catalog:react",
     "uuid": "catalog:utils",
     "decap-cms-ui-default": "workspace:*",
     "decap-cms-lib-util": "workspace:*",

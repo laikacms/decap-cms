@@ -87,38 +87,3 @@ declare module 'react-aria-menubutton' {
   export const MenuItem: ComponentType<MenuItemProps>;
 }
 
-// react-immutable-proptypes
-declare module 'react-immutable-proptypes' {
-  import type { Requireable, Validator } from 'prop-types';
-
-  interface ImmutablePropTypes {
-    list: Requireable<unknown>;
-    map: Requireable<unknown>;
-    orderedMap: Requireable<unknown>;
-    set: Requireable<unknown>;
-    orderedSet: Requireable<unknown>;
-    stack: Requireable<unknown>;
-    seq: Requireable<unknown>;
-    record: Requireable<unknown>;
-    contains: (shape: Record<string, Validator<unknown>>) => Requireable<unknown>;
-    mapContains: (shape: Record<string, Validator<unknown>>) => Requireable<unknown>;
-    listOf: (typeChecker: Validator<unknown>) => Requireable<unknown>;
-    mapOf: (
-      valuesTypeChecker: Validator<unknown>,
-      keysTypeChecker?: Validator<unknown>
-    ) => Requireable<unknown>;
-    orderedMapOf: (
-      valuesTypeChecker: Validator<unknown>,
-      keysTypeChecker?: Validator<unknown>
-    ) => Requireable<unknown>;
-    setOf: (typeChecker: Validator<unknown>) => Requireable<unknown>;
-    orderedSetOf: (typeChecker: Validator<unknown>) => Requireable<unknown>;
-    stackOf: (typeChecker: Validator<unknown>) => Requireable<unknown>;
-    iterableOf: (typeChecker: Validator<unknown>) => Requireable<unknown>;
-    recordOf: (shape: Record<string, Validator<unknown>>) => Requireable<unknown>;
-    shape: (shape: Record<string, Validator<unknown>>) => Requireable<unknown>;
-  }
-
-  const ImmutablePropTypes: ImmutablePropTypes;
-  export default ImmutablePropTypes;
-}

@@ -1,7 +1,6 @@
 import React from 'react';
 import { bindActionCreators } from 'redux';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { translate } from 'react-polyglot';
 import { ClassNames, Global, css as coreCss } from '@emotion/react';
 import type { Interpolation, Theme } from '@emotion/react';
@@ -214,10 +213,10 @@ class EditorControl extends React.Component<EditorControlProps, EditorControlSta
       PropTypes.string,
       PropTypes.bool,
     ]),
-    field: ImmutablePropTypes.map.isRequired,
-    fieldsMetaData: ImmutablePropTypes.map,
-    fieldsErrors: ImmutablePropTypes.map,
-    mediaPaths: ImmutablePropTypes.map.isRequired,
+    field: PropTypes.object.isRequired,
+    fieldsMetaData: PropTypes.object,
+    fieldsErrors: PropTypes.object,
+    mediaPaths: PropTypes.object.isRequired,
     boundGetAsset: PropTypes.func.isRequired,
     onChange: PropTypes.func.isRequired,
     openMediaLibrary: PropTypes.func.isRequired,
@@ -237,7 +236,7 @@ class EditorControl extends React.Component<EditorControlProps, EditorControlSta
     isEditorComponent: PropTypes.bool,
     isNewEditorComponent: PropTypes.bool,
     parentIds: PropTypes.arrayOf(PropTypes.string),
-    collection: ImmutablePropTypes.map.isRequired,
+    collection: PropTypes.object.isRequired,
     isDisabled: PropTypes.bool,
     isHidden: PropTypes.bool,
     isFieldDuplicate: PropTypes.func,

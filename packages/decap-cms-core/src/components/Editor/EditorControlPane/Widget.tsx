@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { oneLine } from 'common-tags';
 
 import { getRemarkPlugins } from '../../../lib/registry';
@@ -95,7 +94,7 @@ export default class Widget extends Component<WidgetProps> {
 
   static propTypes = {
     controlComponent: PropTypes.func.isRequired,
-    field: ImmutablePropTypes.map.isRequired,
+    field: PropTypes.object.isRequired,
     hasActiveStyle: PropTypes.bool,
     setActiveStyle: PropTypes.func.isRequired,
     setInactiveStyle: PropTypes.func.isRequired,
@@ -110,9 +109,9 @@ export default class Widget extends Component<WidgetProps> {
       PropTypes.string,
       PropTypes.bool,
     ]),
-    mediaPaths: ImmutablePropTypes.map.isRequired,
-    metadata: ImmutablePropTypes.map,
-    fieldsErrors: ImmutablePropTypes.map,
+    mediaPaths: PropTypes.object.isRequired,
+    metadata: PropTypes.object,
+    fieldsErrors: PropTypes.object,
     onChange: PropTypes.func.isRequired,
     onValidate: PropTypes.func,
     controlRef: PropTypes.func,
@@ -141,7 +140,7 @@ export default class Widget extends Component<WidgetProps> {
     /**
      * @deprecated Every update creates a new entry, passing a live value down is too expensive. Use the getEntry callback instead or get the value from the store directly in the widget via `useSelector` or `connect`.
      */
-    entry: ImmutablePropTypes.map.isRequired,
+    entry: PropTypes.object.isRequired,
     getEntry: PropTypes.func.isRequired,
     isDisabled: PropTypes.bool,
     isFieldDuplicate: PropTypes.func,

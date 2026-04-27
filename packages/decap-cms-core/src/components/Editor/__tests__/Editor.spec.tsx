@@ -2,222 +2,114 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { vi } from 'vitest';
 
-import { Editor } from '../Editor';
+import Editor from '../Editor';
 
-vi.mock('lodash/debounce', () => {
-  const flush = vi.fn();
-  return {
-    default: func => {
-      func.flush = flush;
-      return func;
-    },
-  };
-});
-// eslint-disable-next-line react/display-name
-vi.mock('../EditorInterface', () => ({ default: props => <mock-editor-interface {...props} /> }));
-vi.mock('decap-cms-ui-default', () => {
-  return {
-    // eslint-disable-next-line react/display-name
-    Loader: props => <mock-loader {...props} />,
-  };
-});
-vi.mock('../../../routing/history');
+vi.mock('../EditorInterface', () => ({
+  // eslint-disable-next-line react/display-name
+  default: props => <mock-editor-interface {...props} />,
+}));
+vi.mock('decap-cms-ui-default', () => ({
+  // eslint-disable-next-line react/display-name
+  Loader: props => <mock-loader {...props} />,
+}));
+vi.mock('react-router-dom', () => ({
+  useParams: vi.fn().mockReturnValue({ name: 'posts', '*': 'slug' }),
+  useLocation: vi.fn().mockReturnValue({ search: '?title=title', pathname: '/posts/slug' }),
+}));
+vi.mock('../../../hooks/useEditor');
+
+import * as useEditorModule from '../../../hooks/useEditor';
+
+const mockSetup = vi.fn().mockReturnValue({ cleanup: vi.fn() });
+const mockHandleLocalBackupCheck = vi.fn();
+const mockHandleBackupOnChange = vi.fn();
+const mockHandleEntryChange = vi.fn();
+
+const defaultEditorReturn = {
+  collection: { name: 'posts' },
+  entry: { isFetching: false },
+  entryDraft: { entry: { slug: 'slug' } },
+  fields: [],
+  user: {},
+  hasChanged: false,
+  displayUrl: '',
+  hasWorkflow: false,
+  useOpenAuthoring: false,
+  isModification: false,
+  currentStatus: undefined,
+  deployPreview: {},
+  localBackup: {},
+  draftKey: 'key',
+  editorBackLink: '/posts',
+  unpublishedEntry: null,
+  showDelete: true,
+  setup: mockSetup,
+  handleLocalBackupCheck: mockHandleLocalBackupCheck,
+  handleBackupOnChange: mockHandleBackupOnChange,
+  handleEntryChange: mockHandleEntryChange,
+  handleChangeDraftField: vi.fn(),
+  handleChangeStatus: vi.fn(),
+  handlePersistEntry: vi.fn(),
+  handlePublishEntry: vi.fn(),
+  handleUnpublishEntry: vi.fn(),
+  handleDuplicateEntry: vi.fn(),
+  handleDeleteEntry: vi.fn(),
+  handleDeleteUnpublishedChanges: vi.fn(),
+  handleLogout: vi.fn(),
+  handleLoadDeployPreview: vi.fn(),
+  handleValidate: vi.fn(),
+  t: vi.fn(key => key),
+};
 
 describe('Editor', () => {
-  const props = {
-    boundGetAsset: vi.fn(),
-    changeDraftField: vi.fn(),
-    changeDraftFieldValidation: vi.fn(),
-    collection: { name: 'posts' },
-    createDraftDuplicateFromEntry: vi.fn(),
-    createEmptyDraft: vi.fn(),
-    discardDraft: vi.fn(),
-    entry: {},
-    entryDraft: {},
-    loadEntry: vi.fn(),
-    persistEntry: vi.fn(),
-    deleteEntry: vi.fn(),
-    showDelete: true,
-    fields: [],
-    slug: 'slug',
-    newEntry: true,
-    updateUnpublishedEntryStatus: vi.fn(),
-    publishUnpublishedEntry: vi.fn(),
-    deleteUnpublishedEntry: vi.fn(),
-    logoutUser: vi.fn(),
-    loadEntries: vi.fn(),
-    deployPreview: {},
-    loadDeployPreview: vi.fn(),
-    user: {},
-    t: vi.fn(key => key),
-    localBackup: {},
-    retrieveLocalBackup: vi.fn(),
-    persistLocalBackup: vi.fn(),
-    location: { search: '?title=title' },
-  };
-
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(useEditorModule.useEditor).mockReturnValue(defaultEditorReturn as any);
   });
 
   it('should render loader when entryDraft is null', () => {
-    // suppress prop type error
-    vi.spyOn(console, 'error').mockImplementation(() => {});
-    const { asFragment } = render(<Editor {...props} entryDraft={null} />);
+    vi.mocked(useEditorModule.useEditor).mockReturnValue({
+      ...defaultEditorReturn,
+      entryDraft: null,
+    } as any);
+    const { asFragment } = render(<Editor />);
     expect(asFragment()).toMatchSnapshot();
-    expect(console.error).toHaveBeenCalledTimes(1);
-    expect(console.error).toHaveBeenCalledWith(
-      expect.stringContaining(
-        'Warning: Failed prop type: Required prop `entryDraft` was not specified in `Editor`.',
-      ),
-    );
   });
 
   it('should render loader when entryDraft entry is undefined', () => {
-    const { asFragment } = render(<Editor {...props} entryDraft={{}} />);
+    vi.mocked(useEditorModule.useEditor).mockReturnValue({
+      ...defaultEditorReturn,
+      entryDraft: {},
+    } as any);
+    const { asFragment } = render(<Editor />);
     expect(asFragment()).toMatchSnapshot();
   });
 
   it('should render loader when entry is fetching', () => {
-    const { asFragment } = render(
-      <Editor {...props} entryDraft={{ entry: {} }} entry={{ isFetching: true }} />,
-    );
+    vi.mocked(useEditorModule.useEditor).mockReturnValue({
+      ...defaultEditorReturn,
+      entry: { isFetching: true },
+    } as any);
+    const { asFragment } = render(<Editor />);
     expect(asFragment()).toMatchSnapshot();
   });
 
   it('should render editor interface when entry is not fetching', () => {
-    const { asFragment } = render(
-      <Editor
-        {...props}
-        entryDraft={{ entry: { slug: 'slug' } }}
-        entry={{ isFetching: false }}
-      />,
-    );
+    const { asFragment } = render(<Editor />);
     expect(asFragment()).toMatchSnapshot();
   });
 
-  it('should call retrieveLocalBackup on mount', () => {
-    render(
-      <Editor
-        {...props}
-        entryDraft={{ entry: { slug: 'slug' } }}
-        entry={{ isFetching: false }}
-      />,
-    );
-
-    expect(props.retrieveLocalBackup).toHaveBeenCalledTimes(1);
-    expect(props.retrieveLocalBackup).toHaveBeenCalledWith(props.collection, props.slug);
+  it('should call setup on mount when collection is available', () => {
+    render(<Editor />);
+    expect(mockSetup).toHaveBeenCalledTimes(1);
   });
 
-  it('should create new draft on new entry when mounting', () => {
-    render(
-      <Editor
-        {...props}
-        entryDraft={{ entry: { slug: 'slug' } }}
-        entry={{ isFetching: false }}
-        newEntry={true}
-      />,
-    );
-
-    expect(props.createEmptyDraft).toHaveBeenCalledTimes(1);
-    expect(props.createEmptyDraft).toHaveBeenCalledWith(props.collection, '?title=title');
-    expect(props.loadEntry).toHaveBeenCalledTimes(0);
-  });
-
-  it('should load entry on existing entry when mounting', () => {
-    render(
-      <Editor
-        {...props}
-        entryDraft={{ entry: { slug: 'slug' } }}
-        entry={{ isFetching: false }}
-        newEntry={false}
-      />,
-    );
-
-    expect(props.createEmptyDraft).toHaveBeenCalledTimes(0);
-    expect(props.loadEntry).toHaveBeenCalledTimes(1);
-    expect(props.loadEntry).toHaveBeenCalledWith(props.collection, 'slug');
-  });
-
-  it('should load entries when entries are not loaded when mounting', () => {
-    render(
-      <Editor
-        {...props}
-        entryDraft={{ entry: { slug: 'slug' } }}
-        entry={{ isFetching: false }}
-        collectionEntriesLoaded={false}
-      />,
-    );
-
-    expect(props.loadEntries).toHaveBeenCalledTimes(1);
-    expect(props.loadEntries).toHaveBeenCalledWith(props.collection);
-  });
-
-  it('should not load entries when entries are loaded when mounting', () => {
-    render(
-      <Editor
-        {...props}
-        entryDraft={{ entry: { slug: 'slug' } }}
-        entry={{ isFetching: false }}
-        collectionEntriesLoaded={true}
-      />,
-    );
-
-    expect(props.loadEntries).toHaveBeenCalledTimes(0);
-  });
-
-  it('should flush debounce createBackup, discard draft and remove exit blocker on umount', () => {
-    window.removeEventListener = vi.fn();
-    const debounce = require('lodash/debounce');
-
-    const flush = debounce({}).flush;
-    const { unmount } = render(
-      <Editor
-        {...props}
-        entryDraft={{ entry: { slug: 'slug' }, hasChanged: true }}
-        entry={{ isFetching: false }}
-      />,
-    );
-
-    vi.clearAllMocks();
-    unmount();
-
-    expect(flush).toHaveBeenCalledTimes(1);
-    expect(props.discardDraft).toHaveBeenCalledTimes(1);
-    expect(window.removeEventListener).toHaveBeenCalledWith('beforeunload', expect.any(Function));
-
-    const callback = window.removeEventListener.mock.calls.find(
-      call => call[0] === 'beforeunload',
-    )[1];
-
-    const event = {};
-    callback(event);
-    expect(event).toEqual({ returnValue: 'editor.editor.onLeavePage' });
-  });
-
-  it('should persist backup when changed', () => {
-    const { rerender } = render(
-      <Editor
-        {...props}
-        entryDraft={{ entry: {} }}
-        entry={{ isFetching: false }}
-      />,
-    );
-
-    vi.clearAllMocks();
-    rerender(
-      <Editor
-        {...props}
-        entryDraft={{ entry: { mediaFiles: [{ id: '1' }] } }}
-        entry={{ isFetching: false, data: {} }}
-        hasChanged={true}
-      />,
-    );
-
-    expect(props.persistLocalBackup).toHaveBeenCalledTimes(1);
-    expect(props.persistLocalBackup).toHaveBeenCalledWith(
-      { mediaFiles: [{ id: '1' }] },
-      props.collection,
-    );
+  it('should not call setup when collection is not available', () => {
+    vi.mocked(useEditorModule.useEditor).mockReturnValue({
+      ...defaultEditorReturn,
+      collection: undefined,
+    } as any);
+    render(<Editor />);
+    expect(mockSetup).not.toHaveBeenCalled();
   });
 });

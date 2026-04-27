@@ -1,0 +1,172 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`NestedCollection > should render connected component 1`] = `
+<DocumentFragment>
+  <a
+    aria-current="page"
+    class="({ isActive }) => isActive ? "sidebar-active" : "" css-8wqsd6 active"
+    data-discover="true"
+    data-testid="/"
+    href="/collections/pages"
+  >
+    <mocked-icon
+      type="write"
+    />
+    <div
+      class="css-1hppjzv"
+    >
+      <div
+        class="css-10scxvy"
+      >
+        Pages
+      </div>
+      <div
+        class="css-1mllirs"
+      />
+    </div>
+  </a>
+  <a
+    class="({ isActive }) => isActive ? "sidebar-active" : "" css-1w7tlmt"
+    data-discover="true"
+    data-testid="/a"
+    href="/collections/pages/filter/a"
+  >
+    <mocked-icon
+      type="write"
+    />
+    <div
+      class="css-1hppjzv"
+    >
+      <div
+        class="css-10scxvy"
+      >
+        File 1
+      </div>
+      <div
+        class="css-1r5xdqj"
+      />
+    </div>
+  </a>
+  <a
+    class="({ isActive }) => isActive ? "sidebar-active" : "" css-1w7tlmt"
+    data-discover="true"
+    data-testid="/b"
+    href="/collections/pages/filter/b"
+  >
+    <mocked-icon
+      type="write"
+    />
+    <div
+      class="css-1hppjzv"
+    >
+      <div
+        class="css-10scxvy"
+      >
+        File 2
+      </div>
+      <div
+        class="css-1r5xdqj"
+      />
+    </div>
+  </a>
+</DocumentFragment>
+`;
+
+exports[`NestedCollection > should render correctly with nested entries 1`] = `
+<DocumentFragment>
+  <a
+    aria-current="page"
+    class="({ isActive }) => isActive ? "sidebar-active" : "" css-8wqsd6 active"
+    data-discover="true"
+    data-testid="/"
+    href="/collections/pages"
+  >
+    <mocked-icon
+      type="write"
+    />
+    <div
+      class="css-1hppjzv"
+    >
+      <div
+        class="css-10scxvy"
+      >
+        Pages
+      </div>
+      <div
+        class="css-1mllirs"
+      />
+    </div>
+  </a>
+  <a
+    class="({ isActive }) => isActive ? "sidebar-active" : "" css-1w7tlmt"
+    data-discover="true"
+    data-testid="/a"
+    href="/collections/pages/filter/a"
+  >
+    <mocked-icon
+      type="write"
+    />
+    <div
+      class="css-1hppjzv"
+    >
+      <div
+        class="css-10scxvy"
+      >
+        File 1
+      </div>
+      <div
+        class="css-1r5xdqj"
+      />
+    </div>
+  </a>
+  <a
+    class="({ isActive }) => isActive ? "sidebar-active" : "" css-1w7tlmt"
+    data-discover="true"
+    data-testid="/b"
+    href="/collections/pages/filter/b"
+  >
+    <mocked-icon
+      type="write"
+    />
+    <div
+      class="css-1hppjzv"
+    >
+      <div
+        class="css-10scxvy"
+      >
+        File 2
+      </div>
+      <div
+        class="css-1r5xdqj"
+      />
+    </div>
+  </a>
+</DocumentFragment>
+`;
+
+exports[`NestedCollection > should render correctly with no entries 1`] = `
+<DocumentFragment>
+  <a
+    class="({ isActive }) => isActive ? "sidebar-active" : "" css-8wqsd6"
+    data-discover="true"
+    data-testid="/"
+    href="/collections/pages"
+  >
+    <mocked-icon
+      type="write"
+    />
+    <div
+      class="css-1hppjzv"
+    >
+      <div
+        class="css-10scxvy"
+      >
+        Pages
+      </div>
+      <div
+        class="css-1r5xdqj"
+      />
+    </div>
+  </a>
+</DocumentFragment>
+`;

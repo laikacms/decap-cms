@@ -1,6 +1,6 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import configureMockStore from 'redux-mock-store';
-import thunk from 'redux-thunk';
+import { thunk } from 'redux-thunk';
 
 import {
   createEmptyDraft,
@@ -11,6 +11,10 @@ import {
   validateMetaField,
 } from '../entries';
 import AssetProxy from '../../valueObjects/AssetProxy';
+import * as backendModule from '../../backend';
+import * as assetProxyModule from '../../valueObjects/AssetProxy';
+import * as entriesReducer from '../../reducers/entries';
+import * as entryDraftReducer from '../../reducers/entryDraft';
 
 vi.mock('../../backend');
 vi.mock('decap-cms-lib-util');
@@ -23,7 +27,7 @@ const mockStore = configureMockStore(middlewares);
 
 describe('entries', () => {
   describe('createEmptyDraft', () => {
-    const { currentBackend } = require('../../backend');
+    const currentBackend = vi.mocked(backendModule.currentBackend);
     const backend = {
       processEntry: vi.fn((_state, _collection, entry) => Promise.resolve(entry)),
     };
@@ -320,7 +324,7 @@ describe('entries', () => {
     });
 
     it('should persist local backup with media files', () => {
-      const { currentBackend } = require('../../backend');
+      const currentBackend = vi.mocked(backendModule.currentBackend);
 
       const backend = {
         persistLocalDraftBackup: vi.fn(() => Promise.resolve()),
@@ -352,8 +356,8 @@ describe('entries', () => {
     });
 
     it('should retrieve media files with local backup', () => {
-      const { currentBackend } = require('../../backend');
-      const { createAssetProxy } = require('../../valueObjects/AssetProxy');
+      const currentBackend = vi.mocked(backendModule.currentBackend);
+      const createAssetProxy = vi.mocked(assetProxyModule.createAssetProxy);
 
       const backend = {
         getLocalDraftBackup: vi.fn((...args) => args),
@@ -425,8 +429,8 @@ describe('entries', () => {
     };
     const t = vi.fn((key, args) => ({ key, args }));
 
-    const { selectCustomPath } = require('../../reducers/entryDraft');
-    const { selectEntryByPath } = require('../../reducers/entries');
+    const selectCustomPath = vi.mocked(entryDraftReducer.selectCustomPath);
+    const selectEntryByPath = vi.mocked(entriesReducer.selectEntryByPath);
 
     beforeEach(() => {
       vi.clearAllMocks();
@@ -519,7 +523,7 @@ describe('entries', () => {
       expect(selectCustomPath).toHaveBeenCalledTimes(1);
       expect(selectCustomPath).toHaveBeenCalledWith(
         collection,
-        { entry: { meta: { path: 'existing-path' } } },
+        { entry: { meta: { path: 'existing-path' } }, fieldsErrors: {}, hasChanged: false, key: '' },
       );
 
       expect(selectEntryByPath).toHaveBeenCalledTimes(1);

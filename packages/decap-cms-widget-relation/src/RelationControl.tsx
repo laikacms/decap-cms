@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { components } from 'react-select';
 import AsyncSelect from 'react-select/async';
 import debounce from 'lodash/debounce';
@@ -9,7 +8,6 @@ import get from 'lodash/get';
 import isEmpty from 'lodash/isEmpty';
 import last from 'lodash/last';
 import uniqBy from 'lodash/uniqBy';
-import { fromJS, List as ImmutableList, Map } from 'immutable';
 import { reactSelectStyles } from 'decap-cms-ui-default';
 import { stringTemplate, validations } from 'decap-cms-lib-widgets';
 import type { CmsFieldBase, CmsFieldRelation } from 'decap-cms-lib-util/types/cms';
@@ -30,9 +28,7 @@ import { v4 as uuid } from 'uuid';
 import relationCache from './RelationCache';
 
 import type { CSSProperties, ReactElement } from 'react';
-import type { List } from 'immutable';
 import type { MultiValueProps, MultiValueGenericProps, GroupBase } from 'react-select';
-import { isArray } from 'lodash';
 
 interface RelationOption {
   label: string;
@@ -195,11 +191,11 @@ function convertToOption(raw: unknown): RelationOption {
     return { label: raw, value: raw };
   }
 
-  return Map.isMap(raw) ? (raw as Map<string, unknown>).toJS() as unknown as RelationOption : raw as RelationOption;
+  return raw as RelationOption;
 }
 
 function getSelectedOptions(value: unknown): RelationOption[] | null {
-  const selectedOptions = ImmutableList.isList(value) ? (value as List<unknown>).toJS() : value;
+  const selectedOptions = value;
 
   if (!selectedOptions || !Array.isArray(selectedOptions)) {
     return null;
@@ -217,7 +213,7 @@ function getFieldArray(field: unknown): string[] {
     return [];
   }
 
-  return ImmutableList.isList(field) ? (field as List<string>).toJS() as string[] : [field as string];
+  return Array.isArray(field) ? field as string[] : [field as string];
 }
 
 function getSelectedValue({ value, options, isMultiple }: { value: unknown; options: RelationOption[]; isMultiple: boolean }): SortableOption[] | RelationOption | null {
@@ -278,7 +274,7 @@ export default class RelationControl extends React.Component<RelationControlProp
     onChange: PropTypes.func.isRequired,
     forID: PropTypes.string.isRequired,
     value: PropTypes.node,
-    field: ImmutablePropTypes.map,
+    field: PropTypes.object,
     query: PropTypes.func.isRequired,
     queryHits: PropTypes.array,
     classNameWrapper: PropTypes.string.isRequired,
@@ -296,7 +292,7 @@ export default class RelationControl extends React.Component<RelationControlProp
       return { error: false };
     }
 
-    if (isArray(value)) {
+    if (Array.isArray(value)) {
       const error = validations.validateMinMax(
         t,
         field.label ?? field.name,
@@ -434,7 +430,7 @@ export default class RelationControl extends React.Component<RelationControlProp
           },
         }) ||
         {};
-      onChange(fromJS(newValue), metadata);
+      onChange(newValue, metadata);
     };
 
   handleChange = (selectedOption: RelationOption | RelationOption[] | null) => {
@@ -455,7 +451,7 @@ export default class RelationControl extends React.Component<RelationControlProp
           },
         }) ||
         {};
-      onChange(fromJS(value), metadata);
+      onChange(value, metadata);
     } else {
       const option = selectedOption as RelationOption | null;
       this.setState({ initialOptions: [option].filter(Boolean) as RelationOption[] });
@@ -480,7 +476,7 @@ export default class RelationControl extends React.Component<RelationControlProp
     if (templateVars.length <= 0) {
       return get(hitData, field) as string;
     }
-    const data = stringTemplate.addFileTemplateFields(hit.path, hitData as Record<string, string>);
+    const data = stringTemplate.addFileTemplateFields(hit.path, { ...hitData } as Record<string, string>);
     const value = stringTemplate.compileStringTemplate(field, null, hit.slug, data);
     return value;
   };
@@ -488,7 +484,7 @@ export default class RelationControl extends React.Component<RelationControlProp
   parseHitOptions = (hits: Hit[]): RelationOption[] => {
     const { field } = this.props;
     const valueField = field.value_field as string;
-    const displayField = (field.display_fields || ImmutableList([field.value_field])) as List<string>;
+    const displayField = (field.display_fields || [field.value_field]) as string[];
     const filters = getFieldArray(field.filters);
 
     const options = hits.reduce((acc: RelationOption[], hit: Hit) => {
@@ -510,8 +506,7 @@ export default class RelationControl extends React.Component<RelationControlProp
       ) {
         const valuesPaths = stringTemplate.expandPath({ data: hit.data, path: valueField });
         for (let i = 0; i < valuesPaths.length; i++) {
-          const label = (displayField
-            .toJS() as string[])
+          const label = displayField
             .map((key: string) => {
               const displayPaths = stringTemplate.expandPath({ data: hit.data, path: key });
               return this.parseNestedFields(hit, displayPaths[i] || displayPaths[0]);

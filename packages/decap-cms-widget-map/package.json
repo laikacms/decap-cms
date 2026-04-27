@@ -26,9 +26,7 @@
     "decap-cms-lib-util": "workspace:*",
     "lodash": "catalog:utils",
     "prop-types": "catalog:react",
-    "react": "catalog:react",
-    "immutable": "catalog:utils",
-    "react-immutable-proptypes": "catalog:react"
+    "react": "catalog:react"
   },
   "dependencies": {
     "ol": "catalog:media"

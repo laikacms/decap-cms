@@ -38,8 +38,6 @@
     "decap-cms-lib-widgets": "workspace:*",
     "decap-cms-ui-default": "workspace:*",
     "decap-cms-lib-util": "workspace:*",
-    "react-immutable-proptypes": "catalog:react",
-    "immutable": "catalog:utils",
     "lodash": "catalog:utils",
     "prop-types": "catalog:react",
     "react": "catalog:react",

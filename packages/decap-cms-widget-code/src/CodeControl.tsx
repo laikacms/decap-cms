@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { ClassNames } from '@emotion/react';
 import uniq from 'lodash/uniq';
 import isEqual from 'lodash/isEqual';
@@ -122,7 +121,7 @@ interface CodeControlState {
 
 export default class CodeControl extends React.Component<CodeControlProps, CodeControlState> {
   static propTypes = {
-    field: ImmutablePropTypes.map.isRequired,
+    field: PropTypes.object.isRequired,
     onChange: PropTypes.func.isRequired,
     value: PropTypes.node,
     forID: PropTypes.string.isRequired,

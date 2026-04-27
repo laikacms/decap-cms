@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { ClassNames } from '@emotion/react';
 import memoize from 'lodash/memoize';
 import get from 'lodash/get';
@@ -107,7 +106,7 @@ export default class ObjectControl extends React.Component<ObjectControlProps, O
     editorControl: PropTypes.elementType.isRequired,
     resolveWidget: PropTypes.func.isRequired,
     clearFieldErrors: PropTypes.func.isRequired,
-    fieldsErrors: ImmutablePropTypes.map,
+    fieldsErrors: PropTypes.object,
     hasError: PropTypes.bool,
     t: PropTypes.func,
     locale: PropTypes.string,

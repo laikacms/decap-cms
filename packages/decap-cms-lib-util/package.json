@@ -24,7 +24,6 @@
     "js-sha256": "catalog:utils"
   },
   "peerDependencies": {
-    "immutable": "catalog:utils",
     "lodash": "catalog:utils"
   },
   "type": "module",

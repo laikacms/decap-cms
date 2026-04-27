@@ -35,10 +35,8 @@
     "common-tags": "catalog:utils",
     "decap-cms-lib-util": "workspace:*",
     "decap-cms-ui-default": "workspace:*",
-    "immutable": "catalog:utils",
     "prop-types": "catalog:react",
     "react": "catalog:react",
-    "react-immutable-proptypes": "catalog:react",
     "uuid": "catalog:utils"
   },
   "devDependencies": {

@@ -1,12 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { List } from 'immutable';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { WidgetPreviewContainer } from 'decap-cms-ui-default';
 
-import type { List as ImmutableList } from 'immutable';
-
-function ListPreview({ values }: { values: ImmutableList<unknown> }) {
+function ListPreview({ values }: { values: unknown[] }) {
   return (
     <ul>
       {values.map((value: unknown, idx: number) => (
@@ -17,20 +13,20 @@ function ListPreview({ values }: { values: ImmutableList<unknown> }) {
 }
 
 interface SelectPreviewProps {
-  value?: string | ImmutableList<unknown>;
+  value?: string | unknown[];
 }
 
 function SelectPreview({ value }: SelectPreviewProps) {
   return (
     <WidgetPreviewContainer>
-      {value && (List.isList(value) ? <ListPreview values={value} /> : value)}
+      {value && (Array.isArray(value) ? <ListPreview values={value} /> : value)}
       {!value && null}
     </WidgetPreviewContainer>
   );
 }
 
 SelectPreview.propTypes = {
-  value: PropTypes.oneOfType([PropTypes.string, ImmutablePropTypes.list]),
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.array]),
 };
 
 export default SelectPreview;
