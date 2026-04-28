@@ -19,9 +19,9 @@ import {
 import { status } from '../../constants/publishModes';
 import { SettingsDropdown } from '../UI';
 import type { TranslateFunction } from 'decap-cms-ui-default';
-import type { CmsCollectionObject } from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState } from 'decap-cms-lib-util/types/cms';
 
-type Collection = CmsCollectionObject;
+type Collection = CmsCollectionState;
 
 const styles = {
   noOverflow: css`

@@ -6,9 +6,9 @@ import { selectUnpublishedEntry } from '../../reducers';
 import { selectAllowDeletion } from '../../reducers/collections';
 import { loadUnpublishedEntry, persistUnpublishedEntry } from '../../actions/editorialWorkflow';
 
-import type { CmsCollectionObject } from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState } from 'decap-cms-lib-util/types/cms';
 
-type Collection = CmsCollectionObject;
+type Collection = CmsCollectionState;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type State = any;
 

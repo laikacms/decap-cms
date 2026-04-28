@@ -1,5 +1,108 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`ListControl > should add to list when add button is clicked 1`] = `
+<DocumentFragment>
+  <div
+    class="classNameWrapper css-1kk27qr"
+    id="forID"
+  >
+    <div
+      class="css-10mqxlx"
+    >
+      <div
+        class="css-1fel4sx"
+      >
+        <button
+          aria-label="editor.editorWidgets.object.collapse"
+          class="css-1b4ukau"
+          data-testid="expand-button"
+        >
+          <span
+            class="css-1xzgr2e"
+          >
+            <svg
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="m5.123 6.33-2.26 2.137 8.656 9.15 9.344-9.105-2.17-2.228-7.084 6.902z"
+              />
+            </svg>
+          </span>
+        </button>
+        1 list
+      </div>
+      <button
+        class="css-1gg838z"
+      >
+        editor.editorWidgets.list.add
+        <span
+          class="css-tzk060"
+        >
+          <svg
+            height="24"
+            viewBox="0 0 24 24"
+            width="24"
+          >
+            <path
+              d="M19 14h-4a1 1 0 0 0-1 1v4a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-4a1 1 0 0 0-1-1H5a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1h4a1 1 0 0 0 1-1V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h4a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1"
+            />
+          </svg>
+        </span>
+      </button>
+    </div>
+    <div>
+      <div
+        class="css-1lnlkbc css-0"
+      >
+        <mock-list-item-top-bar
+          allowremove=""
+          allowreorder=""
+          class="css-13mb0t2"
+          data-testid="styled-list-item-top-bar-0"
+          id="0"
+        >
+          <button>
+            Remove
+          </button>
+        </mock-list-item-top-bar>
+        <div
+          class="css-4bbp2w"
+        >
+          No string
+        </div>
+        <mock-object-control
+          classnamewrapper="classNameWrapper"
+          data-testid="object-control-0"
+          field="[object Object]"
+          fieldserrors="[object Object]"
+          forlist=""
+          parentids="forID,0"
+          validationkey="0"
+          value="[object Object]"
+        />
+      </div>
+      <div
+        id="DndDescribedBy-19"
+        style="display: none;"
+      >
+        
+    To pick up a draggable item, press the space bar.
+    While dragging, use the arrow keys to move the item.
+    Press space again to drop the item in its new position, or press escape to cancel.
+  
+      </div>
+      <div
+        aria-atomic="true"
+        aria-live="assertive"
+        id="DndLiveRegion-19"
+        role="status"
+        style="position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px); clip-path: inset(100%); white-space: nowrap;"
+      />
+    </div>
+  </div>
+</DocumentFragment>
+`;
+
 exports[`ListControl > should remove from list when remove button is clicked 1`] = `
 <DocumentFragment>
   <div
@@ -31,10 +134,28 @@ exports[`ListControl > should remove from list when remove button is clicked 1`]
         </button>
         2 list
       </div>
+      <button
+        class="css-1gg838z"
+      >
+        editor.editorWidgets.list.add
+        <span
+          class="css-tzk060"
+        >
+          <svg
+            height="24"
+            viewBox="0 0 24 24"
+            width="24"
+          >
+            <path
+              d="M19 14h-4a1 1 0 0 0-1 1v4a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-4a1 1 0 0 0-1-1H5a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1h4a1 1 0 0 0 1-1V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h4a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1"
+            />
+          </svg>
+        </span>
+      </button>
     </div>
     <div>
       <div
-        class="css-r3not2"
+        class="css-1lnlkbc css-0"
       >
         <mock-list-item-top-bar
           allowremove=""
@@ -64,7 +185,7 @@ exports[`ListControl > should remove from list when remove button is clicked 1`]
         />
       </div>
       <div
-        class="css-r3not2"
+        class="css-1lnlkbc css-0"
       >
         <mock-list-item-top-bar
           allowremove=""
@@ -146,10 +267,28 @@ exports[`ListControl > should remove from list when remove button is clicked 2`]
         </button>
         1 list
       </div>
+      <button
+        class="css-1gg838z"
+      >
+        editor.editorWidgets.list.add
+        <span
+          class="css-tzk060"
+        >
+          <svg
+            height="24"
+            viewBox="0 0 24 24"
+            width="24"
+          >
+            <path
+              d="M19 14h-4a1 1 0 0 0-1 1v4a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-4a1 1 0 0 0-1-1H5a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1h4a1 1 0 0 0 1-1V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h4a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1"
+            />
+          </svg>
+        </span>
+      </button>
     </div>
     <div>
       <div
-        class="css-r3not2"
+        class="css-1lnlkbc css-0"
       >
         <mock-list-item-top-bar
           allowremove=""
@@ -244,10 +383,28 @@ exports[`ListControl > should render list with fields with collapse = "false" an
         </button>
         2 list
       </div>
+      <button
+        class="css-1gg838z"
+      >
+        editor.editorWidgets.list.add
+        <span
+          class="css-tzk060"
+        >
+          <svg
+            height="24"
+            viewBox="0 0 24 24"
+            width="24"
+          >
+            <path
+              d="M19 14h-4a1 1 0 0 0-1 1v4a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-4a1 1 0 0 0-1-1H5a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1h4a1 1 0 0 0 1-1V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h4a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1"
+            />
+          </svg>
+        </span>
+      </button>
     </div>
     <div>
       <div
-        class="css-r3not2"
+        class="css-1lnlkbc css-0"
       >
         <mock-list-item-top-bar
           allowremove=""
@@ -277,7 +434,7 @@ exports[`ListControl > should render list with fields with collapse = "false" an
         />
       </div>
       <div
-        class="css-r3not2"
+        class="css-1lnlkbc css-0"
       >
         <mock-list-item-top-bar
           allowremove=""
@@ -359,10 +516,28 @@ exports[`ListControl > should render list with fields with collapse = "false" an
         </button>
         2 list
       </div>
+      <button
+        class="css-1gg838z"
+      >
+        editor.editorWidgets.list.add
+        <span
+          class="css-tzk060"
+        >
+          <svg
+            height="24"
+            viewBox="0 0 24 24"
+            width="24"
+          >
+            <path
+              d="M19 14h-4a1 1 0 0 0-1 1v4a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-4a1 1 0 0 0-1-1H5a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1h4a1 1 0 0 0 1-1V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h4a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1"
+            />
+          </svg>
+        </span>
+      </button>
     </div>
     <div>
       <div
-        class="css-r3not2"
+        class="css-1lnlkbc css-0"
       >
         <mock-list-item-top-bar
           allowremove=""
@@ -392,7 +567,7 @@ exports[`ListControl > should render list with fields with collapse = "false" an
         />
       </div>
       <div
-        class="css-r3not2"
+        class="css-1lnlkbc css-0"
       >
         <mock-list-item-top-bar
           allowremove=""
@@ -443,6 +618,334 @@ exports[`ListControl > should render list with fields with collapse = "false" an
 </DocumentFragment>
 `;
 
+exports[`ListControl > should render list with fields with default collapse ("true") and minimize_collapsed ("false") 1`] = `
+<DocumentFragment>
+  <div
+    class="classNameWrapper css-1kk27qr"
+    id="forID"
+  >
+    <div
+      class="css-10mqxlx"
+    >
+      <div
+        class="css-1fel4sx"
+      >
+        <button
+          aria-label="editor.editorWidgets.object.expand"
+          class="css-1b4ukau"
+          data-testid="expand-button"
+        >
+          <span
+            class="css-zbhdt9"
+          >
+            <svg
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="m5.123 6.33-2.26 2.137 8.656 9.15 9.344-9.105-2.17-2.228-7.084 6.902z"
+              />
+            </svg>
+          </span>
+        </button>
+        2 list
+      </div>
+      <button
+        class="css-1gg838z"
+      >
+        editor.editorWidgets.list.add
+        <span
+          class="css-tzk060"
+        >
+          <svg
+            height="24"
+            viewBox="0 0 24 24"
+            width="24"
+          >
+            <path
+              d="M19 14h-4a1 1 0 0 0-1 1v4a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-4a1 1 0 0 0-1-1H5a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1h4a1 1 0 0 0 1-1V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h4a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1"
+            />
+          </svg>
+        </span>
+      </button>
+    </div>
+    <div>
+      <div
+        class="css-1lnlkbc css-0"
+      >
+        <mock-list-item-top-bar
+          allowremove=""
+          allowreorder=""
+          class="css-13mb0t2"
+          collapsed=""
+          data-testid="styled-list-item-top-bar-0"
+          id="0"
+        >
+          <button>
+            Remove
+          </button>
+        </mock-list-item-top-bar>
+        <div
+          class="css-1nv1ia2"
+        >
+          item 1
+        </div>
+        <mock-object-control
+          classnamewrapper="classNameWrapper css-1pznrxi"
+          collapsed=""
+          data-testid="object-control-0"
+          field="[object Object]"
+          fieldserrors="[object Object]"
+          forlist=""
+          parentids="forID,0"
+          validationkey="0"
+          value="[object Object]"
+        />
+      </div>
+      <div
+        class="css-1lnlkbc css-0"
+      >
+        <mock-list-item-top-bar
+          allowremove=""
+          allowreorder=""
+          class="css-13mb0t2"
+          collapsed=""
+          data-testid="styled-list-item-top-bar-1"
+          id="1"
+        >
+          <button>
+            Remove
+          </button>
+        </mock-list-item-top-bar>
+        <div
+          class="css-1nv1ia2"
+        >
+          item 2
+        </div>
+        <mock-object-control
+          classnamewrapper="classNameWrapper css-1pznrxi"
+          collapsed=""
+          data-testid="object-control-1"
+          field="[object Object]"
+          fieldserrors="[object Object]"
+          forlist=""
+          parentids="forID,1"
+          validationkey="1"
+          value="[object Object]"
+        />
+      </div>
+      <div
+        id="DndDescribedBy-15"
+        style="display: none;"
+      >
+        
+    To pick up a draggable item, press the space bar.
+    While dragging, use the arrow keys to move the item.
+    Press space again to drop the item in its new position, or press escape to cancel.
+  
+      </div>
+      <div
+        aria-atomic="true"
+        aria-live="assertive"
+        id="DndLiveRegion-15"
+        role="status"
+        style="position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px); clip-path: inset(100%); white-space: nowrap;"
+      />
+    </div>
+  </div>
+</DocumentFragment>
+`;
+
+exports[`ListControl > should render list with fields with default collapse ("true") and minimize_collapsed = "true" 1`] = `
+<DocumentFragment>
+  <div
+    class="classNameWrapper css-1kk27qr"
+    id="forID"
+  >
+    <div
+      class="css-10mqxlx"
+    >
+      <div
+        class="css-1fel4sx"
+      >
+        <button
+          aria-label="editor.editorWidgets.object.expand"
+          class="css-1b4ukau"
+          data-testid="expand-button"
+        >
+          <span
+            class="css-zbhdt9"
+          >
+            <svg
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="m5.123 6.33-2.26 2.137 8.656 9.15 9.344-9.105-2.17-2.228-7.084 6.902z"
+              />
+            </svg>
+          </span>
+        </button>
+        2 list
+      </div>
+      <button
+        class="css-1gg838z"
+      >
+        editor.editorWidgets.list.add
+        <span
+          class="css-tzk060"
+        >
+          <svg
+            height="24"
+            viewBox="0 0 24 24"
+            width="24"
+          >
+            <path
+              d="M19 14h-4a1 1 0 0 0-1 1v4a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-4a1 1 0 0 0-1-1H5a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1h4a1 1 0 0 0 1-1V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h4a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1"
+            />
+          </svg>
+        </span>
+      </button>
+    </div>
+  </div>
+</DocumentFragment>
+`;
+
+exports[`ListControl > should render list with nested object 1`] = `
+<DocumentFragment>
+  <div
+    class="classNameWrapper css-1kk27qr"
+    id="forID"
+  >
+    <div
+      class="css-10mqxlx"
+    >
+      <div
+        class="css-1fel4sx"
+      >
+        <button
+          aria-label="editor.editorWidgets.object.expand"
+          class="css-1b4ukau"
+          data-testid="expand-button"
+        >
+          <span
+            class="css-zbhdt9"
+          >
+            <svg
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="m5.123 6.33-2.26 2.137 8.656 9.15 9.344-9.105-2.17-2.228-7.084 6.902z"
+              />
+            </svg>
+          </span>
+        </button>
+        2 list
+      </div>
+      <button
+        class="css-1gg838z"
+      >
+        editor.editorWidgets.list.add
+        <span
+          class="css-tzk060"
+        >
+          <svg
+            height="24"
+            viewBox="0 0 24 24"
+            width="24"
+          >
+            <path
+              d="M19 14h-4a1 1 0 0 0-1 1v4a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-4a1 1 0 0 0-1-1H5a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1h4a1 1 0 0 0 1-1V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h4a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1"
+            />
+          </svg>
+        </span>
+      </button>
+    </div>
+    <div>
+      <div
+        class="css-1lnlkbc css-0"
+      >
+        <mock-list-item-top-bar
+          allowremove=""
+          allowreorder=""
+          class="css-13mb0t2"
+          collapsed=""
+          data-testid="styled-list-item-top-bar-0"
+          id="0"
+        >
+          <button>
+            Remove
+          </button>
+        </mock-list-item-top-bar>
+        <div
+          class="css-1nv1ia2"
+        >
+          Object
+        </div>
+        <mock-object-control
+          classnamewrapper="classNameWrapper css-1pznrxi"
+          collapsed=""
+          data-testid="object-control-0"
+          field="[object Object]"
+          fieldserrors="[object Object]"
+          forlist=""
+          parentids="forID,0"
+          validationkey="0"
+          value="[object Object]"
+        />
+      </div>
+      <div
+        class="css-1lnlkbc css-0"
+      >
+        <mock-list-item-top-bar
+          allowremove=""
+          allowreorder=""
+          class="css-13mb0t2"
+          collapsed=""
+          data-testid="styled-list-item-top-bar-1"
+          id="1"
+        >
+          <button>
+            Remove
+          </button>
+        </mock-list-item-top-bar>
+        <div
+          class="css-1nv1ia2"
+        >
+          Object
+        </div>
+        <mock-object-control
+          classnamewrapper="classNameWrapper css-1pznrxi"
+          collapsed=""
+          data-testid="object-control-1"
+          field="[object Object]"
+          fieldserrors="[object Object]"
+          forlist=""
+          parentids="forID,1"
+          validationkey="1"
+          value="[object Object]"
+        />
+      </div>
+      <div
+        id="DndDescribedBy-0"
+        style="display: none;"
+      >
+        
+    To pick up a draggable item, press the space bar.
+    While dragging, use the arrow keys to move the item.
+    Press space again to drop the item in its new position, or press escape to cancel.
+  
+      </div>
+      <div
+        aria-atomic="true"
+        aria-live="assertive"
+        id="DndLiveRegion-0"
+        role="status"
+        style="position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px); clip-path: inset(100%); white-space: nowrap;"
+      />
+    </div>
+  </div>
+</DocumentFragment>
+`;
+
 exports[`ListControl > should render list with nested object with collapse = false 1`] = `
 <DocumentFragment>
   <div
@@ -474,10 +977,28 @@ exports[`ListControl > should render list with nested object with collapse = fal
         </button>
         2 list
       </div>
+      <button
+        class="css-1gg838z"
+      >
+        editor.editorWidgets.list.add
+        <span
+          class="css-tzk060"
+        >
+          <svg
+            height="24"
+            viewBox="0 0 24 24"
+            width="24"
+          >
+            <path
+              d="M19 14h-4a1 1 0 0 0-1 1v4a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-4a1 1 0 0 0-1-1H5a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1h4a1 1 0 0 0 1-1V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h4a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1"
+            />
+          </svg>
+        </span>
+      </button>
     </div>
     <div>
       <div
-        class="css-r3not2"
+        class="css-1lnlkbc css-0"
       >
         <mock-list-item-top-bar
           allowremove=""
@@ -507,7 +1028,7 @@ exports[`ListControl > should render list with nested object with collapse = fal
         />
       </div>
       <div
-        class="css-r3not2"
+        class="css-1lnlkbc css-0"
       >
         <mock-list-item-top-bar
           allowremove=""

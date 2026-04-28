@@ -1,4 +1,4 @@
-import type { CmsField } from "../field";
+import type { CmsField } from "../field.js";
 
 export interface CmsFieldObject {
   widget: 'object';

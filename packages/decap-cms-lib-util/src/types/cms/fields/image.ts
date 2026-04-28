@@ -1,4 +1,4 @@
-import type { CmsMediaLibrary } from "../media";
+import type { CmsMediaLibrary } from "../media.js";
 
 export interface CmsFieldImage {
   widget: 'image';

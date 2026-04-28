@@ -23,7 +23,6 @@ function addComments(items: Array<Pair>, comments: Record<string, string>, prefi
       const key = prefix ? `${prefix}.${itemKey}` : itemKey;
       if (comments[key]) {
         const value = comments[key].split('\\n').join('\n ');
-        // @ts-expect-error
         (item.key as any).commentBefore = ` ${value}`;
       }
       if (Array.isArray((item.value as YAMLMap | YAMLSeq | undefined)?.items)) {

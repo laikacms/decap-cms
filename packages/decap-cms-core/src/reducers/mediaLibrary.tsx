@@ -32,13 +32,8 @@ import type {
   CmsEntryField,
   CmsConfig,
   CmsCollections,
-  CmsEntryMap,
+  CmsEntry,
 } from 'decap-cms-lib-util/types/cms';
-
-type MediaLibraryInstance = CmsMediaLibraryInstance;
-type MediaFile = CmsMediaFile;
-type MediaFileMap = CmsMediaFileMap;
-type EntryField = CmsEntryField;
 
 type DisplayURLState = {
   isFetching: boolean;
@@ -47,8 +42,8 @@ type DisplayURLState = {
 };
 
 type MediaLibrary = {
-  externalLibrary?: MediaLibraryInstance;
-  files: MediaFile[];
+  externalLibrary?: CmsMediaLibraryInstance;
+  files: CmsMediaFile[];
   displayURLs: Record<string, DisplayURLState>;
   isLoading: boolean;
   isVisible: boolean;
@@ -57,7 +52,7 @@ type MediaLibrary = {
   controlID?: string;
   page?: number;
   config: Record<string, unknown>;
-  field?: EntryField;
+  field?: CmsEntryField;
   value?: string | string[];
   replaceIndex?: number | boolean;
   forImage?: boolean;
@@ -78,7 +73,7 @@ type Integrations = {
 };
 
 type EntryDraft = {
-  entry: CmsEntryMap;
+  entry: CmsEntry;
   fieldsErrors?: Record<string, unknown>;
   fieldsMetaData?: Record<string, unknown>;
   hasChanged: boolean;
@@ -106,8 +101,8 @@ const defaultState: MediaLibrary = {
 const mediaLibrary = produce((state: MediaLibrary, action: MediaLibraryAction) => {
   switch (action.type) {
     case MEDIA_LIBRARY_CREATE:
-      state.externalLibrary = action.payload as MediaLibraryInstance;
-      state.showMediaButton = (action.payload as MediaLibraryInstance).enableStandalone();
+      state.externalLibrary = action.payload as CmsMediaLibraryInstance;
+      state.showMediaButton = (action.payload as CmsMediaLibraryInstance).enableStandalone();
       break;
 
     case MEDIA_LIBRARY_OPEN: {
@@ -186,7 +181,7 @@ const mediaLibrary = produce((state: MediaLibrary, action: MediaLibraryAction) =
       } = action.payload;
       if (state.privateUpload !== privateUpload) break;
 
-      const filesWithKeys = files.map((file: MediaFile) => ({ ...file, key: uuid() }));
+      const filesWithKeys = files.map((file: CmsMediaFile) => ({ ...file, key: uuid() }));
       state.isLoading = false;
       state.isPaginating = false;
       state.page = page ?? 1;
@@ -261,14 +256,14 @@ const mediaLibrary = produce((state: MediaLibrary, action: MediaLibraryAction) =
   }
 }, defaultState);
 
-export function selectMediaFiles(state: State, field?: EntryField) {
+export function selectMediaFiles(state: State, field?: CmsEntryField) {
   const { mediaLibrary, entryDraft } = state;
   const editingDraft = selectEditingDraft(state.entryDraft);
   const integration = selectIntegrationDirect(state.integrations, null, 'assetStore');
 
-  let files: MediaFile[];
+  let files: CmsMediaFile[];
   if (editingDraft && !integration) {
-    const entryFiles = (entryDraft.entry?.mediaFiles ?? []) as MediaFile[];
+    const entryFiles = (entryDraft.entry?.mediaFiles ?? []) as CmsMediaFile[];
     const entry = entryDraft.entry;
     const collection = entry?.collection ? state.collections[entry.collection] : undefined;
     const mediaFolder = selectMediaFolder(state.config, collection ?? null, entry, field);

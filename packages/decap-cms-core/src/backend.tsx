@@ -62,34 +62,27 @@ import {
 import type { I18nInfo } from './lib/i18n';
 import type AssetProxy from './valueObjects/AssetProxy';
 import type {
-  CmsCollectionObject,
+  CmsCollectionState,
   CmsCollectionFileState,
-  CmsEntryMap,
+  CmsEntry,
   CmsFilterRule,
   CmsEntryField,
-  CmsEntryObject,
   CmsImplementation as BackendImplementation,
   CmsConfig,
+  CmsCollectionFile,
 } from 'decap-cms-lib-util/types/cms';
 import type { EntryValue } from './valueObjects/Entry';
 import type { EntryDraft } from './reducers/entryDraft';
 import type {
-  DisplayURL,
-  ImplementationEntry,
-  Credentials,
-  User,
+  CmsDisplayURL,
+  CmsImplementationEntry,
+  CmsCredentials,
+  CmsUser,
   AsyncLock,
-  UnpublishedEntry,
-  DataFile,
-  UnpublishedEntryDiff,
+  CmsUnpublishedEntry,
+  CmsDataFile,
+  CmsUnpublishedEntryDiff,
 } from 'decap-cms-lib-util';
-
-type Collection = CmsCollectionObject;
-type CollectionFile = CmsCollectionFileState;
-type EntryMap = CmsEntryMap;
-type FilterRule = CmsFilterRule;
-type EntryField = CmsEntryField;
-type EntryObject = CmsEntryObject;
 
 // State type used in this file - represents the Redux store shape
 interface State {
@@ -104,7 +97,7 @@ const { extractTemplateVars, dateParsers, expandPath } = stringTemplate;
 function updateAssetProxies(
   assetProxies: AssetProxy[],
   config: CmsConfig,
-  collection: Collection,
+  collection: CmsCollectionState,
   entryDraft: EntryDraft,
   path: string,
 ) {
@@ -114,9 +107,9 @@ function updateAssetProxies(
     const newPath = selectMediaFilePath(
       config,
       collection,
-      { ...entryDraft.entry, path } as EntryMap,
+      { ...entryDraft.entry, path } as CmsEntry,
       oldPath,
-      asset.field as EntryField | undefined,
+      asset.field as CmsEntryField | undefined,
     );
     asset.path = newPath;
   });
@@ -254,7 +247,7 @@ function sortByScore(a: fuzzy.FilterResult<EntryValue>, b: fuzzy.FilterResult<En
   return 0;
 }
 
-export function slugFromCustomPath(collection: Collection, customPath: string) {
+export function slugFromCustomPath(collection: CmsCollectionState, customPath: string) {
   const folderPath = (collection.folder || '') as string;
   const entryPath = customPath.toLowerCase().replace(folderPath.toLowerCase(), '');
   const slug = join(dirname(trim(entryPath, '/')), basename(entryPath, extname(customPath)));
@@ -262,8 +255,8 @@ export function slugFromCustomPath(collection: Collection, customPath: string) {
 }
 
 interface AuthStore {
-  retrieve: () => User;
-  store: (user: User) => void;
+  retrieve: () => CmsUser;
+  store: (user: CmsUser) => void;
   logout: () => void;
 }
 
@@ -277,12 +270,12 @@ export interface MediaFile {
   name: string;
   id: string;
   size?: number;
-  displayURL?: DisplayURL;
+  displayURL?: CmsDisplayURL;
   path: string;
   draft?: boolean;
   url?: string;
   file?: File;
-  field?: EntryField;
+  field?: CmsEntryField;
 }
 
 interface BackupEntry {
@@ -294,7 +287,7 @@ interface BackupEntry {
 
 interface PersistArgs {
   config: CmsConfig;
-  collection: Collection;
+  collection: CmsCollectionState;
   entryDraft: EntryDraft;
   assetProxies: AssetProxy[];
   usedSlugs: string[];
@@ -304,7 +297,7 @@ interface PersistArgs {
 
 interface ImplementationInitOptions {
   useWorkflow: boolean;
-  updateUserCredentials: (credentials: Credentials) => void;
+  updateUserCredentials: (credentials: CmsCredentials) => void;
   initialWorkflowStatus: string;
 }
 
@@ -312,7 +305,7 @@ type Implementation = BackendImplementation & {
   init: (config: CmsConfig, options: ImplementationInitOptions) => Implementation;
 };
 
-function prepareMetaPath(path: string, collection: Collection) {
+function prepareMetaPath(path: string, collection: CmsCollectionState) {
   if (!selectHasMetaPath(collection)) {
     return path;
   }
@@ -320,7 +313,7 @@ function prepareMetaPath(path: string, collection: Collection) {
   return dir.slice((collection.folder ?? '').length + 1) || '/';
 }
 
-function collectionDepth(collection: Collection) {
+function collectionDepth(collection: CmsCollectionState) {
   let depth;
   depth =
     collection.nested?.depth || getPathDepth((collection.path || '') as string);
@@ -344,7 +337,7 @@ function i18nRulestring(ruleString: string, { defaultLocale, structure }: I18nIn
   return ruleString;
 }
 
-function collectionRegex(collection: Collection): RegExp | undefined {
+function collectionRegex(collection: CmsCollectionState): RegExp | undefined {
   let ruleString = '';
 
   if (collection.path) {
@@ -366,7 +359,7 @@ export class Backend {
   backendName: string;
   config: CmsConfig;
   authStore?: AuthStore;
-  user?: User | null;
+  user?: CmsUser | null;
   backupSync: AsyncLock;
 
   constructor(implementation: Implementation, { backendName, authStore, config }: BackendOptions) {
@@ -416,7 +409,7 @@ export class Backend {
       return Promise.resolve(this.implementation.restoreUser(stored)).then(user => {
         this.user = { ...user, backendName: this.backendName };
         // return confirmed/rehydrated user object instead of stored
-        this.authStore!.store(this.user as User);
+        this.authStore!.store(this.user as CmsUser);
         return this.user;
       });
     }
@@ -427,11 +420,11 @@ export class Backend {
     return this.implementation.isGitBackend?.() || false;
   }
 
-  updateUserCredentials = (updatedCredentials: Credentials) => {
+  updateUserCredentials = (updatedCredentials: CmsCredentials) => {
     const storedUser = this.authStore!.retrieve();
     if (storedUser && storedUser.backendName === this.backendName) {
       this.user = { ...storedUser, ...updatedCredentials };
-      this.authStore!.store(this.user as User);
+      this.authStore!.store(this.user as CmsUser);
       return this.user;
     }
   };
@@ -440,11 +433,11 @@ export class Backend {
     return this.implementation.authComponent();
   }
 
-  authenticate(credentials: Credentials) {
+  authenticate(credentials: CmsCredentials) {
     return this.implementation.authenticate(credentials).then(user => {
       this.user = { ...user, backendName: this.backendName };
       if (this.authStore) {
-        this.authStore.store(this.user as User);
+        this.authStore.store(this.user as CmsUser);
       }
       return this.user;
     });
@@ -465,7 +458,7 @@ export class Backend {
 
   getToken = () => this.implementation.getToken();
 
-  async entryExist(collection: Collection, path: string, slug: string, useWorkflow: boolean) {
+  async entryExist(collection: CmsCollectionState, path: string, slug: string, useWorkflow: boolean) {
     const unpublishedEntry =
       useWorkflow &&
       (await this.implementation
@@ -490,7 +483,7 @@ export class Backend {
   }
 
   async generateUniqueSlug(
-    collection: Collection,
+    collection: CmsCollectionState,
     entryData: Record<string, unknown>,
     config: CmsConfig,
     usedSlugs: string[],
@@ -521,7 +514,7 @@ export class Backend {
     return uniqueSlug;
   }
 
-  processEntries(loadedEntries: ImplementationEntry[], collection: Collection) {
+  processEntries(loadedEntries: CmsImplementationEntry[], collection: CmsCollectionState) {
     const entries = loadedEntries.map(loadedEntry =>
       createEntry(
         collection.name,
@@ -552,9 +545,9 @@ export class Backend {
     return filteredEntries;
   }
 
-  async listEntries(collection: Collection) {
+  async listEntries(collection: CmsCollectionState) {
     const extension = selectFolderEntryExtension(collection);
-    let listMethod: () => Promise<ImplementationEntry[]>;
+    let listMethod: () => Promise<CmsImplementationEntry[]>;
     const collectionType = collection.type;
     if (collectionType === FOLDER) {
       listMethod = () => {
@@ -566,7 +559,7 @@ export class Backend {
         );
       };
     } else if (collectionType === FILES) {
-      const files = (collection.files || []).map((collectionFile: CollectionFile) => ({
+      const files = (collection.files || []).map((collectionFile: CmsCollectionFileState) => ({
         path: collectionFile.file,
         label: collectionFile.label,
       }));
@@ -598,7 +591,7 @@ export class Backend {
   // repeats the process. Once there is no available "next" action, it
   // returns all the collected entries. Used to retrieve all entries
   // for local searches and queries.
-  async listAllEntries(collection: Collection) {
+  async listAllEntries(collection: CmsCollectionState) {
     if (collection.folder && this.implementation.allEntriesByFolder) {
       const depth = collectionDepth(collection);
       const extension = selectFolderEntryExtension(collection);
@@ -623,7 +616,7 @@ export class Backend {
     return entries;
   }
 
-  async search(collections: Collection[], searchTerm: string) {
+  async search(collections: CmsCollectionState[], searchTerm: string) {
     // Perform a local search by requesting all entries. For each
     // collection, load it, search, and call onCollectionResults with
     // its results.
@@ -637,8 +630,8 @@ export class Backend {
         let searchFields: (string | null | undefined)[] = [];
 
         if (collection.type === FILES) {
-          (collection.files || []).forEach((f: CollectionFile) => {
-            const topLevelFields = (f.fields || []).map((field: EntryField) => field.name);
+          (collection.files || []).forEach((f: CmsCollectionFileState) => {
+            const topLevelFields = (f.fields || []).map((field: CmsEntryField) => field.name);
             searchFields = [...searchFields, ...topLevelFields];
           });
         } else {
@@ -683,7 +676,7 @@ export class Backend {
   }
 
   async query(
-    collection: Collection,
+    collection: CmsCollectionState,
     searchFields: string[],
     searchTerm: string,
     file?: string,
@@ -716,7 +709,7 @@ export class Backend {
   traverseCursor(cursor: Cursor, action: string) {
     const [data, unwrappedCursor] = cursor.unwrapData();
     // TODO: stop assuming all cursors are for collections
-    const collection = data['collection'] as Collection;
+    const collection = data['collection'] as CmsCollectionState;
     return this.implementation!.traverseCursor!(unwrappedCursor, action).then(
       async ({ entries, cursor: newCursor }) => ({
         entries: this.processEntries(entries, collection),
@@ -728,7 +721,7 @@ export class Backend {
     );
   }
 
-  async getLocalDraftBackup(collection: Collection, slug: string) {
+  async getLocalDraftBackup(collection: CmsCollectionState, slug: string) {
     const key = getEntryBackupKey(collection.name, slug);
     const backup = await localForage.getItem<BackupEntry>(key);
     if (!backup || !backup.raw.trim()) {
@@ -767,7 +760,7 @@ export class Backend {
     return { entry };
   }
 
-  async persistLocalDraftBackup(entry: EntryMap, collection: Collection) {
+  async persistLocalDraftBackup(entry: CmsEntry, collection: CmsCollectionState) {
     try {
       await this.backupSync.acquire();
       const key = getEntryBackupKey(collection.name, entry.slug);
@@ -808,12 +801,12 @@ export class Backend {
     }
   }
 
-  async deleteLocalDraftBackup(collection: Collection, slug: string) {
+  async deleteLocalDraftBackup(collection: CmsCollectionState, slug: string) {
     try {
       await this.backupSync.acquire();
       await localForage.removeItem(getEntryBackupKey(collection.name, slug));
       // delete new entry backup if not deleted
-      slug && (await localForage.removeItem(getEntryBackupKey(collection.name)));
+      if (slug) await localForage.removeItem(getEntryBackupKey(collection.name));
       const result = await this.deleteAnonymousBackup();
       return result;
     } catch (e: unknown) {
@@ -829,7 +822,7 @@ export class Backend {
     return localForage.removeItem(getEntryBackupKey());
   }
 
-  async getEntry(state: State, collection: Collection, slug: string) {
+  async getEntry(state: State, collection: CmsCollectionState, slug: string) {
     const path = selectEntryPath(collection, slug) as string;
     const label = selectFileEntryLabel(collection, slug);
     const extension = selectFolderEntryExtension(collection);
@@ -867,18 +860,18 @@ export class Backend {
     return this.implementation.getMediaFile(path);
   }
 
-  getMediaDisplayURL(displayURL: DisplayURL) {
+  getMediaDisplayURL(displayURL: CmsDisplayURL) {
     if (this.implementation.getMediaDisplayURL) {
       return this.implementation.getMediaDisplayURL(displayURL);
     }
     const err = new Error(
       'getMediaDisplayURL is not implemented by the current backend, but the backend returned a displayURL which was not a string!',
-    ) as Error & { displayURL: DisplayURL };
+    ) as Error & { displayURL: CmsDisplayURL };
     err.displayURL = displayURL;
     return Promise.reject(err);
   }
 
-  entryWithFormat(collection: Collection) {
+  entryWithFormat(collection: CmsCollectionState) {
     return (entry: EntryValue): EntryValue => {
       const format = resolveFormat(collection, entry);
       if (entry && entry.raw !== undefined) {
@@ -891,14 +884,14 @@ export class Backend {
   }
 
   async processUnpublishedEntry(
-    collection: Collection,
-    entryData: UnpublishedEntry,
+    collection: CmsCollectionState,
+    entryData: CmsUnpublishedEntry,
     withMediaFiles: boolean,
   ) {
     const { slug } = entryData;
     let extension: string;
     if (collection.type === FILES) {
-      const file = (collection.files || []).find((f: CollectionFile) => f.name === slug);
+      const file = (collection.files || []).find((f: CmsCollectionFileState) => f.name === slug);
       extension = extname(file?.file ?? '');
     } else {
       extension = selectFolderEntryExtension(collection);
@@ -941,7 +934,7 @@ export class Backend {
       return entryWithFormat;
     };
 
-    const readAndFormatDataFile = async (dataFile: UnpublishedEntryDiff) => {
+    const readAndFormatDataFile = async (dataFile: CmsUnpublishedEntryDiff) => {
       const data = await this.implementation.unpublishedEntryDataFile(
         collection.name,
         entryData.slug,
@@ -974,14 +967,14 @@ export class Backend {
     }
   }
 
-  async unpublishedEntries(collections: Collection[]) {
+  async unpublishedEntries(collections: CmsCollectionState[]) {
     const ids = await this.implementation.unpublishedEntries!();
     const entries = (
       await Promise.all(
         ids.map(async id => {
           const entryData = await this.implementation.unpublishedEntry({ id });
           const collectionName = entryData.collection;
-          const collection = collections.find((c: Collection) => c.name === collectionName);
+          const collection = collections.find((c: CmsCollectionState) => c.name === collectionName);
           if (!collection) {
             console.warn(`Missing collection '${collectionName}' for unpublished entry '${id}'`);
             return null;
@@ -995,9 +988,9 @@ export class Backend {
     return { pagination: 0, entries };
   }
 
-  async processEntry(state: State, collection: Collection, entry: EntryValue) {
+  async processEntry(state: State, collection: CmsCollectionState, entry: EntryValue) {
     const integration = selectIntegration(state.integrations as any, null, 'assetStore');
-    const mediaFolders = selectMediaFolders(state.config, collection, entry as unknown as EntryMap);
+    const mediaFolders = selectMediaFolders(state.config, collection, entry as unknown as CmsEntry);
     if (mediaFolders.length > 0 && !integration) {
       const files = await Promise.all(
         mediaFolders.map(folder => this.implementation.getMedia(folder)),
@@ -1010,7 +1003,7 @@ export class Backend {
     return entry;
   }
 
-  async unpublishedEntry(state: State, collection: Collection, slug: string) {
+  async unpublishedEntry(state: State, collection: CmsCollectionState, slug: string) {
     const entryData = await this.implementation!.unpublishedEntry!({
       collection: collection.name as string,
       slug,
@@ -1026,7 +1019,7 @@ export class Backend {
    * entry's collection. Does not currently make a request through the backend,
    * but likely will in the future.
    */
-  getDeploy(collection: Collection, slug: string, entry: EntryMap) {
+  getDeploy(collection: CmsCollectionState, slug: string, entry: CmsEntry) {
     /**
      * If `site_url` is undefined or `show_preview_links` in the config is set to false, do nothing.
      */
@@ -1049,9 +1042,9 @@ export class Backend {
    * often a delay before a preview URL is available.
    */
   async getDeployPreview(
-    collection: Collection,
+    collection: CmsCollectionState,
     slug: string,
-    entry: EntryMap,
+    entry: CmsEntry,
     {
       maxAttempts = 1,
       interval = 5000,
@@ -1120,7 +1113,7 @@ export class Backend {
         : draft;
     } else {
       entryDraft = updatedEntity
-        ? { ...draft, entry: updatedEntity as unknown as EntryMap }
+        ? { ...draft, entry: updatedEntity as unknown as CmsEntry }
         : draft;
     }
 
@@ -1130,7 +1123,7 @@ export class Backend {
 
     const customPath = selectCustomPath(collection, entryDraft);
 
-    let dataFile: DataFile;
+    let dataFile: CmsDataFile;
     if (newEntry) {
       if (!selectAllowNewEntries(collection)) {
         throw new Error('Not allowed to create new entries in this collection');
@@ -1171,14 +1164,14 @@ export class Backend {
         collection,
         extension,
         entryDraft.entry,
-        (draftData: EntryMap) => this.entryToRaw(collection, draftData),
+        (draftData: CmsEntry) => this.entryToRaw(collection, draftData),
         path,
         slug,
         newPath,
       );
     }
 
-    const user = (await this.currentUser()) as User;
+    const user = (await this.currentUser()) as CmsUser;
     const commitMessage = commitMessageFormatter(
       newEntry ? 'create' : 'update',
       config,
@@ -1224,37 +1217,37 @@ export class Backend {
     return slug;
   }
 
-  async invokeEventWithEntry(event: string, entry: EntryMap) {
-    const { login, name } = (await this.currentUser()) as User;
+  async invokeEventWithEntry(event: string, entry: CmsEntry) {
+    const { login, name } = (await this.currentUser()) as CmsUser;
     return await invokeEvent({ name: event, data: { entry, author: { login, name } } });
   }
 
-  async invokePrePublishEvent(entry: EntryMap) {
+  async invokePrePublishEvent(entry: CmsEntry) {
     await this.invokeEventWithEntry('prePublish', entry);
   }
 
-  async invokePostPublishEvent(entry: EntryMap) {
+  async invokePostPublishEvent(entry: CmsEntry) {
     await this.invokeEventWithEntry('postPublish', entry);
   }
 
-  async invokePreUnpublishEvent(entry: EntryMap) {
+  async invokePreUnpublishEvent(entry: CmsEntry) {
     await this.invokeEventWithEntry('preUnpublish', entry);
   }
 
-  async invokePostUnpublishEvent(entry: EntryMap) {
+  async invokePostUnpublishEvent(entry: CmsEntry) {
     await this.invokeEventWithEntry('postUnpublish', entry);
   }
 
-  async invokePreSaveEvent(entry: EntryMap) {
+  async invokePreSaveEvent(entry: CmsEntry) {
     return await this.invokeEventWithEntry('preSave', entry);
   }
 
-  async invokePostSaveEvent(entry: EntryMap) {
+  async invokePostSaveEvent(entry: CmsEntry) {
     await this.invokeEventWithEntry('postSave', entry);
   }
 
   async persistMedia(config: CmsConfig, file: AssetProxy) {
-    const user = (await this.currentUser()) as User;
+    const user = (await this.currentUser()) as CmsUser;
     const options = {
       commitMessage: commitMessageFormatter(
         'uploadMedia',
@@ -1270,7 +1263,7 @@ export class Backend {
     return this.implementation.persistMedia(file, options);
   }
 
-  async deleteEntry(state: State, collection: Collection, slug: string) {
+  async deleteEntry(state: State, collection: CmsCollectionState, slug: string) {
     const config = state.config;
     const path = selectEntryPath(collection, slug) as string;
     const extension = selectFolderEntryExtension(collection) as string;
@@ -1279,7 +1272,7 @@ export class Backend {
       throw new Error('Not allowed to delete entries in this collection');
     }
 
-    const user = (await this.currentUser()) as User;
+    const user = (await this.currentUser()) as CmsUser;
     const commitMessage = commitMessageFormatter(
       'delete',
       config,
@@ -1293,7 +1286,7 @@ export class Backend {
       user.useOpenAuthoring,
     );
 
-    const entry = selectEntry(state.entries as any, collection.name, slug) as EntryMap;
+    const entry = selectEntry(state.entries as any, collection.name, slug) as CmsEntry;
     await this.invokePreUnpublishEvent(entry);
     let paths = [path];
     if (hasI18n(collection)) {
@@ -1305,7 +1298,7 @@ export class Backend {
   }
 
   async deleteMedia(config: CmsConfig, path: string) {
-    const user = (await this.currentUser()) as User;
+    const user = (await this.currentUser()) as CmsUser;
     const commitMessage = commitMessageFormatter(
       'deleteMedia',
       config,
@@ -1327,7 +1320,7 @@ export class Backend {
     return this.implementation.updateUnpublishedEntryStatus!(collection, slug, newStatus);
   }
 
-  async publishUnpublishedEntry(entry: EntryMap) {
+  async publishUnpublishedEntry(entry: CmsEntry) {
     const collection = entry.collection;
     const slug = entry.slug;
 
@@ -1340,8 +1333,8 @@ export class Backend {
     return this.implementation.deleteUnpublishedEntry!(collection, slug);
   }
 
-  entryToRaw(collection: Collection, entry: EntryMap): string {
-    const format = resolveFormat(collection, entry as unknown as EntryObject);
+  entryToRaw(collection: CmsCollectionState, entry: CmsEntry): string {
+    const format = resolveFormat(collection, entry as unknown as CmsEntry);
     const fieldsOrder = this.fieldsOrder(collection, entry);
     const fieldsComments = selectFieldsComments(collection, entry);
     let content = format.toFile(entry.data, fieldsOrder, fieldsComments);
@@ -1352,23 +1345,23 @@ export class Backend {
     return content;
   }
 
-  fieldsOrder(collection: Collection, entry: EntryMap) {
+  fieldsOrder(collection: CmsCollectionState, entry: CmsEntry) {
     const fields = collection.fields;
     if (fields) {
-      return fields.map((f: EntryField) => f.name);
+      return fields.map((f: CmsEntryField) => f.name);
     }
 
     const files = collection.files;
-    const file = (files || ([] as CollectionFile[]))
-      .filter((f: CollectionFile) => f.name === entry.slug)[0];
+    const file = (files || ([] as CmsCollectionFileState[]))
+      .filter((f: CmsCollectionFileState) => f.name === entry.slug)[0];
 
     if (file == null) {
       throw new Error(`No file found for ${entry.slug} in ${collection.name}`);
     }
-    return (file.fields || []).map((f: EntryField) => f.name);
+    return (file.fields || []).map((f: CmsEntryField) => f.name);
   }
 
-  filterEntries(collection: { entries: EntryValue[] }, filterRule: FilterRule) {
+  filterEntries(collection: { entries: EntryValue[] }, filterRule: CmsFilterRule) {
     return collection.entries.filter(entry => {
       const fieldValue = entry.data[filterRule.field];
       if (Array.isArray(fieldValue)) {

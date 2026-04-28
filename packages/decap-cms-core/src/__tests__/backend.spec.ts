@@ -9,9 +9,125 @@ import {
 } from '../backend';
 import { getBackend } from '../lib/registry';
 import { FOLDER, FILES } from '../constants/collectionTypes';
+import { localForage, asyncLock } from 'decap-cms-lib-util';
+import { sanitizeSlug, sanitizeChar } from '../lib/urlHelper';
 
 vi.mock('../lib/registry');
-vi.mock('decap-cms-lib-util');
+vi.mock('decap-cms-lib-util', () => ({
+  APIError: class APIError extends Error {
+    status: number;
+    api: string;
+    constructor(message: string, status: number, api: string) {
+      super(message);
+      this.status = status;
+      this.api = api;
+      this.name = 'API_ERROR';
+    }
+  },
+  AccessTokenError: class AccessTokenError extends Error {},
+  ConfigurationError: class ConfigurationError extends Error {},
+  CURSOR_COMPATIBILITY_SYMBOL: Symbol('cursor key for compatibility with old backends'),
+  Cursor: class Cursor {
+    static create = vi.fn(() => ({ wrapData: vi.fn(function(this: unknown) { return this; }) }));
+  },
+  EditorialWorkflowError: class EditorialWorkflowError extends Error {
+    notUnderEditorialWorkflow = false;
+  },
+  EDITORIAL_WORKFLOW_ERROR: 'EDITORIAL_WORKFLOW_ERROR',
+  localForage: {
+    getItem: vi.fn(),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+    clear: vi.fn(),
+    iterate: vi.fn(),
+    key: vi.fn(),
+    keys: vi.fn(),
+    length: vi.fn(),
+    config: vi.fn(),
+    createInstance: vi.fn(),
+    defineDriver: vi.fn(),
+    driver: vi.fn(),
+    dropInstance: vi.fn(),
+    ready: vi.fn(),
+    setDriver: vi.fn(),
+  },
+  isAbsolutePath: vi.fn((path: string) => path.startsWith('/')),
+  basename: vi.fn((path: string, ext?: string) => {
+    const base = path.split('/').pop() || '';
+    return ext && base.endsWith(ext) ? base.slice(0, -ext.length) : base;
+  }),
+  fileExtensionWithSeparator: vi.fn((path: string) => {
+    const i = path.lastIndexOf('.');
+    return i >= 0 ? path.slice(i) : '';
+  }),
+  fileExtension: vi.fn((path: string) => {
+    const i = path.lastIndexOf('.');
+    return i >= 0 ? path.slice(i + 1) : '';
+  }),
+  extname: vi.fn((path: string) => {
+    const i = path.lastIndexOf('.');
+    return i >= 0 ? path.slice(i) : '';
+  }),
+  dirname: vi.fn((path: string) => path.split('/').slice(0, -1).join('/') || '.'),
+  join: vi.fn((...parts: string[]) => parts.join('/').replace(/\/+/g, '/')),
+  onlySuccessfulPromises: vi.fn(),
+  flowAsync: vi.fn(),
+  promiseThen: vi.fn(),
+  unsentRequest: {
+    fetchWithTimeout: vi.fn(),
+    performRequest: vi.fn(),
+    withRoot: vi.fn(),
+    withHeaders: vi.fn(),
+    withBody: vi.fn(),
+    withMethod: vi.fn(),
+    withJSON: vi.fn(),
+    withNoCache: vi.fn(),
+    toFetchArguments: vi.fn(),
+  },
+  filterByExtension: vi.fn(),
+  getAllResponses: vi.fn(),
+  parseLinkHeader: vi.fn(),
+  parseResponse: vi.fn(),
+  responseParser: vi.fn(),
+  getPathDepth: vi.fn(),
+  loadScript: vi.fn(),
+  getBlobSHA: vi.fn(),
+  asyncLock: vi.fn(() => ({ acquire: vi.fn(), release: vi.fn() })),
+  entriesByFiles: vi.fn(),
+  entriesByFolder: vi.fn(),
+  unpublishedEntries: vi.fn(),
+  getMediaDisplayURL: vi.fn(),
+  getMediaAsBlob: vi.fn(),
+  runWithLock: vi.fn(),
+  blobToFileObj: vi.fn(),
+  allEntriesByFolder: vi.fn(),
+  readFile: vi.fn(),
+  readFileMetadata: vi.fn(),
+  isPreviewContext: vi.fn(),
+  getPreviewStatus: vi.fn(),
+  PreviewState: { Success: 'success', Other: 'other' },
+  requestWithBackoff: vi.fn(),
+  getDefaultBranchName: vi.fn(),
+  throwOnConflictingBranches: vi.fn(),
+  CMS_BRANCH_PREFIX: 'cms/',
+  generateContentKey: vi.fn(),
+  isCMSLabel: vi.fn(),
+  labelToStatus: vi.fn(),
+  statusToLabel: vi.fn(),
+  DEFAULT_PR_BODY: '',
+  MERGE_COMMIT_MESSAGE: '',
+  parseContentKey: vi.fn(),
+  branchFromContentKey: vi.fn(),
+  contentKeyFromBranch: vi.fn(),
+  createPointerFile: vi.fn(),
+  getLargeMediaFilteredMediaFiles: vi.fn(),
+  getLargeMediaPatternsFromGitAttributesFile: vi.fn(),
+  parsePointerFile: vi.fn(),
+  getPointerFileForMediaFileObj: vi.fn(),
+  isHotkey: vi.fn(),
+  isCodeHotkey: vi.fn(),
+  isKeyHotkey: vi.fn(),
+}));
 vi.mock('../lib/urlHelper');
 
 describe('Backend', () => {
@@ -119,9 +235,7 @@ describe('Backend', () => {
   });
 
   describe('getLocalDraftBackup', () => {
-    const { localForage, asyncLock } = require('decap-cms-lib-util');
-
-    asyncLock.mockImplementation(() => ({ acquire: vi.fn(), release: vi.fn() }));
+    (asyncLock as ReturnType<typeof vi.fn>).mockImplementation(() => ({ acquire: vi.fn(), release: vi.fn() }));
 
     beforeEach(() => {
       vi.clearAllMocks();
@@ -251,7 +365,6 @@ describe('Backend', () => {
   });
 
   describe('persistLocalDraftBackup', () => {
-    const { localForage } = require('decap-cms-lib-util');
 
     beforeEach(() => {
       vi.clearAllMocks();
@@ -413,7 +526,7 @@ describe('Backend', () => {
       expect(implementation.persistMedia).toHaveBeenCalledTimes(1);
       expect(implementation.persistMedia).toHaveBeenCalledWith(
         { path: 'static/media/image.png' },
-        { commitMessage: 'Upload “static/media/image.png”' },
+        { commitMessage: 'Upload "static/media/image.png"' },
       );
     });
   });
@@ -477,8 +590,7 @@ describe('Backend', () => {
     });
 
     it("should return unique slug when entry doesn't exist", async () => {
-      const { sanitizeSlug } = require('../lib/urlHelper');
-      sanitizeSlug.mockReturnValue('some-post-title');
+      (sanitizeSlug as ReturnType<typeof vi.fn>).mockReturnValue('some-post-title');
 
       const implementation = {
         init: vi.fn(() => implementation),
@@ -510,9 +622,8 @@ describe('Backend', () => {
     });
 
     it('should return unique slug when entry exists', async () => {
-      const { sanitizeSlug, sanitizeChar } = require('../lib/urlHelper');
-      sanitizeSlug.mockReturnValue('some-post-title');
-      sanitizeChar.mockReturnValue('-');
+      (sanitizeSlug as ReturnType<typeof vi.fn>).mockReturnValue('some-post-title');
+      (sanitizeChar as ReturnType<typeof vi.fn>).mockReturnValue('-');
 
       const implementation = {
         init: vi.fn(() => implementation),

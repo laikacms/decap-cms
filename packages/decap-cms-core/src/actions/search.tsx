@@ -5,10 +5,10 @@ import { getIntegrationProvider } from '../integrations';
 import { selectIntegration } from '../reducers';
 
 import type { QueryRequest } from '../reducers/search';
-import type { CmsCollectionObject } from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState } from 'decap-cms-lib-util/types/cms';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type State = any;
-type Collection = CmsCollectionObject;
+type Collection = CmsCollectionState;
 import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
 import type { EntryValue } from '../valueObjects/Entry';

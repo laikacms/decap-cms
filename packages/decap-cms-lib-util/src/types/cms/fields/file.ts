@@ -1,5 +1,5 @@
-import type { CmsMediaLibrary } from "../media";
-import type { CmsFieldImage } from "./image";
+import type { CmsMediaLibrary } from "../media.js";
+import type { CmsFieldImage } from "./image.js";
 
 export interface CmsFieldFile {
   widget: 'file';

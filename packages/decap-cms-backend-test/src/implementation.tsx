@@ -11,24 +11,25 @@ import {
   basename,
   extname,
   dirname,
+  ConfigurationError
 } from 'decap-cms-lib-util';
 
 import AuthenticationPage from './AuthenticationPage';
 
 import type {
-  Implementation,
-  Entry,
-  ImplementationEntry,
-  AssetProxy,
-  PersistOptions,
-  User,
+  CmsImplementation,
+  CmsEntry,
+  CmsImplementationEntry,
+  CmsAssetProxy,
+  CmsPersistOptions,
+  CmsUser,
   CmsConfig,
-  ImplementationFile,
-  DataFile,
+  CmsImplementationFile,
+  CmsDataFile,
 } from 'decap-cms-lib-util';
 import type { CmsFileEntry, CmsImplementationMediaFile } from 'decap-cms-lib-util/types/cms';
 
-type RepoFile = { path: string; content: string | AssetProxy };
+type RepoFile = { path: string; content: string | CmsAssetProxy };
 type RepoTree = { [key: string]: RepoFile | RepoTree };
 
 type Diff = {
@@ -37,7 +38,7 @@ type Diff = {
   path: string;
   newFile: boolean;
   status: string;
-  content: string | AssetProxy;
+  content: string | CmsAssetProxy;
 };
 
 type UnpublishedRepoEntry = {
@@ -67,7 +68,7 @@ function getFile(path: string, tree: RepoTree) {
   return (obj as unknown as RepoFile) || {};
 }
 
-function writeFile(path: string, content: string | AssetProxy, tree: RepoTree) {
+function writeFile(path: string, content: string | CmsAssetProxy, tree: RepoTree) {
   const segments = path.split('/');
   let obj = tree;
   while (segments.length > 1) {
@@ -87,7 +88,7 @@ const pageSize = 10;
 function getCursor(
   folder: string,
   extension: string,
-  entries: ImplementationEntry[],
+  entries: CmsImplementationEntry[],
   index: number,
   depth: number,
 ) {
@@ -130,12 +131,15 @@ export function getFolderFiles(
   return files;
 }
 
-export default class TestBackend implements Implementation {
+export default class TestBackend implements CmsImplementation {
   mediaFolder: string;
   options: { initialWorkflowStatus?: string };
 
   constructor(config: CmsConfig, options = {}) {
     this.options = options;
+    if (!config.media_folder) {
+      throw new ConfigurationError('The media_folder configuration is required for the Test Backend');
+    }
     this.mediaFolder = config.media_folder;
   }
 
@@ -156,7 +160,7 @@ export default class TestBackend implements Implementation {
   }
 
   authenticate() {
-    return Promise.resolve() as unknown as Promise<User>;
+    return Promise.resolve() as unknown as Promise<CmsUser>;
   }
 
   logout() {
@@ -215,7 +219,7 @@ export default class TestBackend implements Implementation {
     return Promise.resolve(ret);
   }
 
-  entriesByFiles(files: ImplementationFile[]) {
+  entriesByFiles(files: CmsImplementationFile[]) {
     return Promise.all(
       files.map(file => ({
         file,
@@ -260,7 +264,7 @@ export default class TestBackend implements Implementation {
   async unpublishedEntryMediaFile(collection: string, slug: string, path: string) {
     const entry = window.repoFilesUnpublished[`${collection}/${slug}`];
     const file = entry.diffs.find(d => d.path === path);
-    return this.normalizeAsset(file?.content as AssetProxy);
+    return this.normalizeAsset(file?.content as CmsAssetProxy);
   }
 
   deleteUnpublishedEntry(collection: string, slug: string) {
@@ -270,8 +274,8 @@ export default class TestBackend implements Implementation {
 
   async addOrUpdateUnpublishedEntry(
     key: string,
-    dataFiles: DataFile[],
-    assetProxies: AssetProxy[],
+    dataFiles: CmsDataFile[],
+    assetProxies: CmsAssetProxy[],
     slug: string,
     collection: string,
     status: string,
@@ -309,7 +313,8 @@ export default class TestBackend implements Implementation {
     };
   }
 
-  async persistEntry(entry: CmsFileEntry, options: PersistOptions) {
+  async persistEntry(entry: CmsFileEntry, options: CmsPersistOptions) {
+    if (!('dataFiles' in entry)) throw new Error('Expected entry to have dataFiles property');
     if (options.useWorkflow) {
       const slug = entry.dataFiles[0].slug;
       const key = `${options.collectionName}/${slug}`;
@@ -373,12 +378,12 @@ export default class TestBackend implements Implementation {
     const files = getFolderFiles(window.repoFiles, mediaFolder.split('/')[0], '', 100).filter(f =>
       f.path.startsWith(mediaFolder),
     );
-    const assets = files.map(f => this.normalizeAsset(f.content as AssetProxy));
+    const assets = files.map(f => this.normalizeAsset(f.content as CmsAssetProxy));
     return Promise.resolve(assets);
   }
 
   async getMediaFile(path: string) {
-    const asset = getFile(path, window.repoFiles).content as AssetProxy;
+    const asset = getFile(path, window.repoFiles).content as CmsAssetProxy;
 
     const url = asset.toString();
     const name = basename(path);
@@ -396,7 +401,7 @@ export default class TestBackend implements Implementation {
     };
   }
 
-  normalizeAsset(assetProxy: AssetProxy): CmsImplementationMediaFile & AssetProxy {
+  normalizeAsset(assetProxy: CmsAssetProxy): CmsImplementationMediaFile & CmsAssetProxy {
     const fileObj = assetProxy.fileObj as File;
     const { name, size } = fileObj;
     const objectUrl = attempt(window.URL.createObjectURL, fileObj);
@@ -416,7 +421,7 @@ export default class TestBackend implements Implementation {
     return normalizedAsset;
   }
 
-  persistMedia(assetProxy: AssetProxy) {
+  persistMedia(assetProxy: CmsAssetProxy) {
     const normalizedAsset = this.normalizeAsset(assetProxy);
 
     writeFile(assetProxy.path, assetProxy, window.repoFiles);

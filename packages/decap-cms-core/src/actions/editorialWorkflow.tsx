@@ -26,8 +26,8 @@ import { navigateToEntry } from '../routing/history';
 import { addNotification } from './notifications';
 
 import type {
-  CmsCollectionObject,
-  CmsEntryMap,
+  CmsCollectionState,
+  CmsEntry,
   CmsCollections,
   CmsMediaFile,
 } from 'decap-cms-lib-util/types/cms';
@@ -37,8 +37,8 @@ import type { EntryDraft } from '../reducers/entryDraft';
 import type { Status } from '../constants/publishModes';
 import type { ThunkDispatch } from 'redux-thunk';
 
-type Collection = CmsCollectionObject;
-type EntryMap = CmsEntryMap;
+type Collection = CmsCollectionState;
+type EntryMap = CmsEntry;
 type Collections = CmsCollections;
 type MediaFile = CmsMediaFile;
 

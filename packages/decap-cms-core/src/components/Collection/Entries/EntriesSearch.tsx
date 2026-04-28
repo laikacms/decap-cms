@@ -3,11 +3,11 @@ import { connect } from 'react-redux';
 import isEqual from 'lodash/isEqual';
 import { Cursor } from 'decap-cms-lib-util';
 
-import type { CmsCollectionObject, CmsCollections, CmsEntryMap } from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState, CmsCollections, CmsEntry } from 'decap-cms-lib-util/types/cms';
 
-type Collection = CmsCollectionObject;
+type Collection = CmsCollectionState;
 type Collections = CmsCollections;
-type EntryMap = CmsEntryMap;
+type EntryMap = CmsEntry;
 
 import { selectSearchedEntries, selectUnpublishedEntry } from '../../../reducers';
 import {

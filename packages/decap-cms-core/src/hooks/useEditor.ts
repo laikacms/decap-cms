@@ -34,10 +34,10 @@ import { status, EDITORIAL_WORKFLOW } from '../constants/publishModes';
 
 import type { Status } from '../constants/publishModes';
 import type { Update, Transition } from 'history';
-import type { CmsCollectionObject, CmsEntryMap } from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState, CmsEntry } from 'decap-cms-lib-util/types/cms';
 
-type Collection = CmsCollectionObject;
-type Entry = CmsEntryMap;
+type Collection = CmsCollectionState;
+type Entry = CmsEntry;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type EntryDraft = any;
 

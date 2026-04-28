@@ -9,10 +9,10 @@ import {
   changeDraftFieldValidation,
 } from '../actions/entries';
 
-import type { CmsCollectionObject, CmsEntryMap, CmsEntryField } from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState, CmsEntry, CmsEntryField } from 'decap-cms-lib-util/types/cms';
 
-type Collection = CmsCollectionObject;
-type EntryMap = CmsEntryMap;
+type Collection = CmsCollectionState;
+type EntryMap = CmsEntry;
 type EntryField = CmsEntryField;
 
 /**

@@ -56,7 +56,8 @@ export interface TranslateFunction {
 }
 
 export interface TypeItem {
-  get(key: 'label' | 'name', defaultValue?: string): string;
+  name: string;
+  label?: string;
 }
 
 export interface ObjectWidgetTopBarProps {
@@ -95,8 +96,8 @@ class ObjectWidgetTopBar extends React.Component<ObjectWidgetTopBarProps> {
         {types.map((type: TypeItem, idx: number) => (
           <DropdownItem
             key={idx}
-            label={type.get('label', type.get('name'))}
-            onClick={() => this.props.onAddType?.(type.get('name'))}
+            label={type.label ?? type.name}
+            onClick={() => this.props.onAddType?.(type.name)}
           />
         ))}
       </Dropdown>

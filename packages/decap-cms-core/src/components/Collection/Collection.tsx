@@ -24,14 +24,14 @@ import {
 } from '../../reducers/entries';
 
 import type {
-  CmsCollectionObject,
+  CmsCollectionState,
   CmsCollections,
   CmsViewFilter,
   CmsViewGroup,
   CmsSortDirection,
 } from 'decap-cms-lib-util/types/cms';
 
-type Collection = CmsCollectionObject;
+type Collection = CmsCollectionState;
 type Collections = CmsCollections;
 type ViewFilter = CmsViewFilter;
 type ViewGroup = CmsViewGroup;

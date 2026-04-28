@@ -5,10 +5,10 @@ import type { TranslateFunction } from 'decap-cms-ui-default';
 import { Loader, lengths } from 'decap-cms-ui-default';
 
 import type { Cursor } from 'decap-cms-lib-util';
-import type { CmsCollectionObject, CmsEntryMap } from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState, CmsEntry } from 'decap-cms-lib-util/types/cms';
 
-type Collection = CmsCollectionObject;
-type EntryMap = CmsEntryMap;
+type Collection = CmsCollectionState;
+type EntryMap = CmsEntry;
 
 import EntryListing from './EntryListing';
 

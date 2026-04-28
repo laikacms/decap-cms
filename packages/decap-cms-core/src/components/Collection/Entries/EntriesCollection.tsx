@@ -7,12 +7,12 @@ import { Cursor } from 'decap-cms-lib-util';
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import { colors } from 'decap-cms-ui-default';
 
-import type { CmsCollectionObject, CmsCollections, CmsEntryMap, CmsGroupOfEntries } from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState, CmsCollections, CmsEntry, CmsGroupOfEntries } from 'decap-cms-lib-util/types/cms';
 import type { Status } from '../../../constants/publishModes';
 
-type Collection = CmsCollectionObject;
+type Collection = CmsCollectionState;
 type Collections = CmsCollections;
-type EntryMap = CmsEntryMap;
+type EntryMap = CmsEntry;
 type GroupOfEntries = CmsGroupOfEntries;
 
 import {

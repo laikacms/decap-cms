@@ -7,10 +7,10 @@ import dayjs from 'dayjs';
 import { translate } from 'react-polyglot';
 import { colors, lengths } from 'decap-cms-ui-default';
 import type { TranslateFunction } from 'decap-cms-ui-default';
-import type { CmsCollections, CmsCollectionObject } from 'decap-cms-lib-util/types/cms';
+import type { CmsCollections, CmsCollectionState } from 'decap-cms-lib-util/types/cms';
 
 type Collections = CmsCollections;
-type Collection = CmsCollectionObject;
+type Collection = CmsCollectionState;
 
 import { status } from '../../constants/publishModes';
 import { DragSource, DropTarget, HTML5DragDrop } from '../UI';

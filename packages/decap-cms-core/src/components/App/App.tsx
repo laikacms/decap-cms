@@ -19,13 +19,13 @@ import Editor from '../Editor/Editor';
 import NotFoundPage from './NotFoundPage';
 import Header from './Header';
 
-import type { Credentials } from 'decap-cms-lib-util';
+import type { CmsCredentials } from 'decap-cms-lib-util';
 import type {
-  CmsCollectionObject,
+  CmsCollectionState,
   CmsCollections,
 } from 'decap-cms-lib-util/types/cms';
 
-type Collection = CmsCollectionObject;
+type Collection = CmsCollectionState;
 type Collections = CmsCollections;
 
 TopBarProgress.config({
@@ -165,7 +165,7 @@ function App() {
 
   // Handlers using useCallback
   const handleLogin = useCallback(
-    (credentials: Credentials) => {
+    (credentials: CmsCredentials) => {
       dispatch(loginUser(credentials));
     },
     [dispatch]

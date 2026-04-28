@@ -21,16 +21,16 @@ import { getProcessSegment } from '../lib/formatters';
 import { hasI18n, duplicateDefaultI18nFields, serializeI18n, I18N, I18N_FIELD } from '../lib/i18n';
 import { addNotification } from './notifications';
 
-import type { CmsDataFile } from 'decap-cms-lib-util';
 import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
 import type {
-  CmsCollectionObject,
-  CmsEntryMap,
+  CmsCollectionState,
+  CmsEntry,
   CmsEntryField,
   CmsEntryFields,
   CmsViewFilter,
   CmsViewGroup,
+  CmsBackendMediaFile,
 } from 'decap-cms-lib-util/types/cms';
 import type { EntryValue } from '../valueObjects/Entry';
 import type { Backend } from '../backend';
@@ -39,8 +39,8 @@ import type AssetProxy from '../valueObjects/AssetProxy';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type State = any;
 
-type Collection = CmsCollectionObject;
-type EntryMap = CmsEntryMap;
+type Collection = CmsCollectionState;
+type EntryMap = CmsEntry;
 type EntryField = CmsEntryField;
 type EntryFields = CmsEntryFields;
 type ViewFilter = CmsViewFilter;
@@ -349,7 +349,7 @@ export function draftDuplicateEntry(entry: EntryMap) {
     type: DRAFT_CREATE_DUPLICATE_FROM_ENTRY,
     payload: createEntry(entry.collection, '', '', {
       data: entry.data,
-      i18n: entry.i18n,
+      i18n: entry.i18n as { [locale: string]: unknown } | undefined,
       mediaFiles: entry.mediaFiles ?? [],
     }),
   };
@@ -412,7 +412,7 @@ export function loadLocalBackup() {
   };
 }
 
-export function addDraftEntryMediaFile(file: CmsDataFile) {
+export function addDraftEntryMediaFile(file: CmsBackendMediaFile) {
   return { type: ADD_DRAFT_ENTRY_MEDIA_FILE, payload: file };
 }
 

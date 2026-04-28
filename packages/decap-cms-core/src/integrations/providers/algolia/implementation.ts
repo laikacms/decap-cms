@@ -5,9 +5,9 @@ import type { EntryValue } from '../../../valueObjects/Entry';
 import { createEntry } from '../../../valueObjects/Entry';
 import { selectEntrySlug } from '../../../reducers/collections';
 
-import type { CmsCollectionObject } from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState } from 'decap-cms-lib-util/types/cms';
 
-type Collection = CmsCollectionObject;
+type Collection = CmsCollectionState;
 
 const { fetchWithTimeout: fetch } = unsentRequest;
 

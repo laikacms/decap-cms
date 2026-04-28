@@ -9,10 +9,10 @@ import {
   deleteLocalBackup,
 } from '../actions/entries';
 
-import type { CmsCollectionObject, CmsEntryMap } from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState, CmsEntry } from 'decap-cms-lib-util/types/cms';
 
-type Collection = CmsCollectionObject;
-type EntryMap = CmsEntryMap;
+type Collection = CmsCollectionState;
+type EntryMap = CmsEntry;
 
 interface UseLocalBackupOptions {
   collection: Collection;

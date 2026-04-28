@@ -6,9 +6,9 @@ import { NavLink } from 'react-router-dom';
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import { Icon, components, colors } from 'decap-cms-ui-default';
 
-import type { CmsCollectionObject, CmsCollections } from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState, CmsCollections } from 'decap-cms-lib-util/types/cms';
 
-type Collection = CmsCollectionObject;
+type Collection = CmsCollectionState;
 type Collections = CmsCollections;
 
 import { searchCollections } from '../../actions/collections';

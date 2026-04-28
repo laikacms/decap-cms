@@ -4,9 +4,9 @@ import type { TranslateFunction } from 'decap-cms-ui-default';
 import { colorsRaw, colors, Icon, lengths, zIndex } from 'decap-cms-ui-default';
 import { translate } from 'react-polyglot';
 
-import type { CmsCollectionObject, CmsCollections } from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState, CmsCollections } from 'decap-cms-lib-util/types/cms';
 
-type Collection = CmsCollectionObject;
+type Collection = CmsCollectionState;
 type Collections = CmsCollections;
 
 const SearchContainer = styled.div`

@@ -6,14 +6,14 @@ import escapeRegExp from 'lodash/escapeRegExp';
 import { selectEntrySlug } from '../reducers/collections';
 
 import type {
-  CmsCollectionObject,
-  CmsEntryMap,
+  CmsCollectionState,
+  CmsEntry,
   CmsEntryField,
 } from 'decap-cms-lib-util/types/cms';
 import type { EntryValue } from '../valueObjects/Entry';
 
-type Collection = CmsCollectionObject;
-type EntryMap = CmsEntryMap;
+type Collection = CmsCollectionState;
+type EntryMap = CmsEntry;
 type EntryField = CmsEntryField;
 
 type EntryDraft = {

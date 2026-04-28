@@ -20,11 +20,11 @@ import { connect } from 'react-redux';
 
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import type {
-  CmsCollectionObject,
+  CmsCollectionState,
   CmsCollections,
 } from 'decap-cms-lib-util/types/cms';
 
-type Collection = CmsCollectionObject;
+type Collection = CmsCollectionState;
 type Collections = CmsCollections;
 
 import { SettingsDropdown } from '../UI';

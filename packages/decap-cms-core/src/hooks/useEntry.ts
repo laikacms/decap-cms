@@ -20,8 +20,8 @@ import { status } from '../constants/publishModes';
 import { navigateToCollection, navigateToNewEntry } from '../routing/history';
 
 import type { Status } from '../constants/publishModes';
-import type { CmsEntryMap } from 'decap-cms-lib-util/types/cms';
-type Entry = CmsEntryMap;
+import type { CmsEntry } from 'decap-cms-lib-util/types/cms';
+type Entry = CmsEntry;
 
 interface UseEntryOptions {
   collectionName: string;

@@ -1,4 +1,4 @@
-import { getMediaAsBlob, getMediaDisplayURL } from '../implementation';
+import { getMediaAsBlob, getMediaDisplayURL } from '../implementation.js';
 
 describe('implementation', () => {
   describe('getMediaAsBlob', () => {

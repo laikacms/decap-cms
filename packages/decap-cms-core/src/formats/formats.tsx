@@ -7,10 +7,10 @@ import { FrontmatterInfer, frontmatterJSON, frontmatterTOML, frontmatterYAML } f
 import { getCustomFormatsExtensions, getCustomFormatsFormatters } from '../lib/registry';
 
 import type { Delimiter } from './frontmatter';
-import type { CmsCollectionObject, CmsFormatterFunctions, CmsCollectionFormatType } from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState, CmsFormatterFunctions, CmsCollectionFormatType } from 'decap-cms-lib-util/types/cms';
 import type { EntryValue } from '../valueObjects/Entry';
 
-type Collection = CmsCollectionObject;
+type Collection = CmsCollectionState;
 type Format = CmsCollectionFormatType;
 type FormatterFunctions = CmsFormatterFunctions;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

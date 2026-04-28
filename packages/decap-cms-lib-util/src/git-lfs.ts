@@ -3,7 +3,7 @@
 
 import { filter, flow, fromPairs, map } from 'lodash/fp';
 
-import getBlobSHA from './getBlobSHA';
+import getBlobSHA from './getBlobSHA.js';
 
 import type { CmsAssetProxy as AssetProxy } from './types/cms';
 

@@ -1,7 +1,7 @@
-import type { CmsCollectionFormatType, CmsFilterRule, CmsSortableField, CmsViewFilter, CmsViewGroup } from "./common";
-import type { CmsField } from "./field";
-import type { CmsI18nConfig } from "./i18n";
-import type { CmsEntryFields } from "./entries";
+import type { CmsCollectionFormatType, CmsFilterRule, CmsSortableField, CmsViewFilter, CmsViewGroup } from "./common.js";
+import type { CmsField } from "./field.js";
+import type { CmsI18nConfig } from "./i18n.js";
+import type { CmsEntryFields } from "./entries.js";
 
 export interface CmsCollectionFile {
   name: string;
@@ -81,7 +81,7 @@ export type CmsI18nStructure = {
   default_locale: string;
 };
 
-export type CmsCollectionObject = {
+export type CmsCollectionState = {
   name: string;
   folder?: string;
   files?: CmsCollectionFileState[];
@@ -115,4 +115,4 @@ export type CmsCollectionObject = {
   [key: string]: unknown;
 };
 
-export type CmsCollections = Record<string, CmsCollectionObject>;
+export type CmsCollections = Record<string, CmsCollectionState>;

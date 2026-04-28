@@ -1,7 +1,7 @@
-import type { CmsAuthScope, CmsCredentials, CmsUser, CmsAssetProxy, CmsDataFile, CmsPersistOptions, CmsDeleteOptions, CmsDisplayURL } from "./common";
-import type { CmsImplementationEntry, CmsImplementationFile, CmsUnpublishedEntry } from "./entries";
-import type { CmsImplementationMediaFile } from "./media";
-import type Cursor from "../../Cursor";
+import type { CmsAuthScope, CmsCredentials, CmsUser, CmsAssetProxy, CmsDataFile, CmsPersistOptions, CmsDeleteOptions, CmsDisplayURL } from "./common.js";
+import type { CmsFileEntry, CmsImplementationEntry, CmsImplementationFile, CmsUnpublishedEntry } from "./entries.js";
+import type { CmsImplementationMediaFile } from "./media.js";
+import type Cursor from "../../Cursor.js";
 
 export type CmsBackendType =
   | 'azure'
@@ -126,7 +126,7 @@ export interface CmsImplementation {
   getMedia: (folder?: string) => Promise<CmsImplementationMediaFile[]>;
   getMediaFile: (path: string) => Promise<CmsImplementationMediaFile>;
 
-  persistEntry: (entry: CmsDataFile | { dataFiles: CmsDataFile[]; assets: CmsAssetProxy[] }, opts: CmsPersistOptions) => Promise<void>;
+  persistEntry: (entry: CmsFileEntry, opts: CmsPersistOptions) => Promise<void>;
   persistMedia: (file: CmsAssetProxy, opts: CmsPersistOptions) => Promise<CmsImplementationMediaFile>;
   deleteFiles: (paths: string[], commitMessage: string) => Promise<void>;
 

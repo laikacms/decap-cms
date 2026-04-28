@@ -15,13 +15,13 @@ import { ScrollSync, ScrollSyncPane } from 'react-scroll-sync';
 
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import type {
-  CmsCollectionObject,
-  CmsEntryMap,
+  CmsCollectionState,
+  CmsEntry,
   CmsEntryField,
 } from 'decap-cms-lib-util/types/cms';
 
-type Collection = CmsCollectionObject;
-type EntryMap = CmsEntryMap;
+type Collection = CmsCollectionState;
+type EntryMap = CmsEntry;
 type EntryField = CmsEntryField;
 import type { I18nInfo } from '../../lib/i18n';
 import type { ReactNode } from 'react';

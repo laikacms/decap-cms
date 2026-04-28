@@ -1,7 +1,7 @@
 import { currentBackend } from '../backend';
 import { addNotification, clearNotifications } from './notifications';
 
-import type { Credentials, User } from 'decap-cms-lib-util';
+import type { CmsCredentials, CmsUser } from 'decap-cms-lib-util';
 import type { ThunkDispatch } from 'redux-thunk';
 import type { AnyAction } from 'redux';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -20,7 +20,7 @@ export function authenticating() {
   } as const;
 }
 
-export function authenticate(userData: User) {
+export function authenticate(userData: CmsUser) {
   return {
     type: AUTH_SUCCESS,
     payload: userData,
@@ -77,7 +77,7 @@ export function authenticateUser() {
   };
 }
 
-export function loginUser(credentials: Credentials) {
+export function loginUser(credentials: CmsCredentials) {
   return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
     const state = getState();
     const backend = currentBackend(state.config);

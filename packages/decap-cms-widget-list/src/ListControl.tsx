@@ -224,7 +224,8 @@ function LabelComponent({ field, isActive, hasErrors, uniqueFieldId, isFieldOpti
 }
 
 interface TypeItem {
-  get(key: 'label' | 'name', defaultValue?: string): string;
+  name: string;
+  label?: string;
 }
 
 interface ListControlProps {
@@ -326,7 +327,7 @@ export default class ListControl extends React.Component<ListControlProps, ListC
     super(props);
     const { field, value: valueInput } = props;
     const value = Array.isArray(valueInput) ? valueInput : valueInput ? [valueInput] : [];
-    const listCollapsed = !!field.collapsed;
+    const listCollapsed = field.collapsed ?? true;
     const itemsCollapsed = (value && Array(value.length).fill(listCollapsed)) || [];
     const keys = (value && Array.from({ length: value.length }, () => uuid())) || [];
 
@@ -449,10 +450,10 @@ export default class ListControl extends React.Component<ListControlProps, ListC
 
   getFieldsDefault = (fields: any, initialValue: Record<string, unknown> = {}): Record<string, unknown> => {
     return fields.reduce((acc: Record<string, unknown>, item: any) => {
-      const subfields = item.get('field') || item.get('fields');
-      const object = item.get('widget') == 'object';
-      const name = item.get('name');
-      const defaultValue = item.get('default', null);
+      const subfields = item.field || item.fields;
+      const object = item.widget == 'object';
+      const name = item.name;
+      const defaultValue = item.default ?? null;
 
       if (Array.isArray(subfields) && object) {
         const subDefaultValue = this.getFieldsDefault(subfields);
@@ -938,7 +939,7 @@ export default class ListControl extends React.Component<ListControlProps, ListC
             )}
           >
             <ObjectWidgetTopBar
-              allowAdd={field.allow_add}
+              allowAdd={field.allow_add ?? true}
               onAdd={() => this.handleAdd({ preventDefault: () => {} } as React.MouseEvent)}
               types={field[TYPES_KEY] as unknown as TypeItem[]} // TODO: Check types
               onAddType={(type: string) => this.handleAddType(type, resolveFieldKeyType(field))}

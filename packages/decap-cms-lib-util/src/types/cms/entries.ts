@@ -1,5 +1,5 @@
-import type { CmsMediaFileMap } from "./media";
-import type { CmsAssetProxy, CmsDataFile } from "./common";
+import type { CmsMediaFileMap } from "./media.js";
+import type { CmsAssetProxy, CmsDataFile } from "./common.js";
 
 export type CmsEntry = {
   path: string;
@@ -18,10 +18,6 @@ export type CmsEntry = {
   isPersisting?: boolean;
   isModification?: boolean;
 };
-
-export type CmsEntryObject = CmsEntry & { data: Record<string, unknown>; i18n?: Record<string, unknown> };
-
-export type CmsEntryMap = CmsEntryObject;
 
 export type CmsGroupOfEntries = {
   id: string;
@@ -75,12 +71,10 @@ export type CmsImplementationFile = {
   path: string;
 };
 
-export type CmsFileEntryObject = {
+export type CmsFileEntry = {
   dataFiles: CmsDataFile[];
   assets: CmsAssetProxy[];
 };
-
-export type CmsFileEntry = CmsFileEntryObject;
 
 export type CmsUnpublishedEntryDiff = {
   id: string;

@@ -55,7 +55,10 @@ export default defineConfig({
       deps: {
         // Inline @emotion/styled so Vite's transform pipeline processes it (instead of
         // externalizing to Node directly), enabling the emotionProductionPlugin above.
-        inline: [/@emotion\/styled/],
+        // Inline workspace packages so the resolve.alias map (src instead of dist) is
+        // applied; without this, vi.mock auto-resolution uses Node.js native ESM which
+        // cannot resolve bare directory specifiers like `./errors` in the dist output.
+        inline: [/@emotion\/styled/, /decap-cms-lib-util/, /decap-cms-lib-widgets/],
       },
     },
     coverage: {

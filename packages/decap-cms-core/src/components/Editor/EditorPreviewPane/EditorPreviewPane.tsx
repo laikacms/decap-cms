@@ -1,14 +1,14 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import type {
-  CmsCollectionObject,
-  CmsEntryMap,
+  CmsCollectionState,
+  CmsEntry,
   CmsEntryField,
   CmsConfig,
 } from 'decap-cms-lib-util/types/cms';
 
-type Collection = CmsCollectionObject;
-type EntryMap = CmsEntryMap;
+type Collection = CmsCollectionState;
+type EntryMap = CmsEntry;
 type EntryField = CmsEntryField;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type State = any;

@@ -7,9 +7,9 @@ import { selectAllowDeletion } from '../reducers/collections';
 import { loadUnpublishedEntry, persistUnpublishedEntry } from '../actions/editorialWorkflow';
 import { loadEntry as loadEntryAction, persistEntry as persistEntryAction } from '../actions/entries';
 
-import type { CmsCollectionObject } from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState } from 'decap-cms-lib-util/types/cms';
 
-type Collection = CmsCollectionObject;
+type Collection = CmsCollectionState;
 
 interface UseWorkflowOptions {
   collectionName: string;

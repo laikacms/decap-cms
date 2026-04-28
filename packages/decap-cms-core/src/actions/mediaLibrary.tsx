@@ -24,7 +24,6 @@ import type {
 import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
 import type AssetProxy from '../valueObjects/AssetProxy';
-import type { CmsDataFile } from 'decap-cms-lib-util';
 
 type MediaFile = CmsMediaFile;
 type EntryField = CmsEntryField;
@@ -170,7 +169,7 @@ export function loadMedia(
     function loadFunction() {
       return backend
         .getMedia()
-        .then((files: CmsDataFile[]) => dispatch(mediaLoaded(files)))
+        .then((files: MediaFile[]) => dispatch(mediaLoaded(files)))
         .catch((error: { status?: number }) => {
           console.error(error);
           if (error.status === 404) {
@@ -202,7 +201,7 @@ function createMediaFileFromAsset({
   file: File;
   assetProxy: AssetProxy;
   draft: boolean;
-}): CmsDataFile {
+}): MediaFile {
   const mediaFile = {
     id,
     name: basename(assetProxy.path || ''),
@@ -212,7 +211,7 @@ function createMediaFileFromAsset({
     size: file.size,
     url: assetProxy.url,
     path: assetProxy.path || '',
-    field: assetProxy.field,
+    field: assetProxy.field as CmsEntryField | undefined,
   };
   return mediaFile;
 }
@@ -283,7 +282,7 @@ export function persistMedia(file: File, opts: MediaOptions = {}) {
 
       dispatch(addAsset(assetProxy));
 
-      let mediaFile: CmsDataFile;
+      let mediaFile: MediaFile;
       if (integration) {
         const id = await getBlobSHA(file);
         // integration assets are persisted immediately, thus draft is false
@@ -452,7 +451,7 @@ interface MediaOptions {
   dynamicSearchQuery?: string;
 }
 
-export function mediaLoaded(files: CmsDataFile[], opts: MediaOptions = {}) {
+export function mediaLoaded(files: MediaFile[], opts: MediaOptions = {}) {
   return {
     type: MEDIA_LOAD_SUCCESS,
     payload: { files, ...opts },
@@ -468,7 +467,7 @@ export function mediaPersisting() {
   return { type: MEDIA_PERSIST_REQUEST } as const;
 }
 
-export function mediaPersisted(file: CmsDataFile, opts: MediaOptions = {}) {
+export function mediaPersisted(file: MediaFile, opts: MediaOptions = {}) {
   const { privateUpload } = opts;
   return {
     type: MEDIA_PERSIST_SUCCESS,

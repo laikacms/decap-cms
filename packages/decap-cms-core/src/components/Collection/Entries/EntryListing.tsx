@@ -3,11 +3,11 @@ import styled from '@emotion/styled';
 import { Waypoint } from 'react-waypoint';
 
 import type { Cursor } from 'decap-cms-lib-util';
-import type { CmsCollectionObject, CmsCollections, CmsEntryMap } from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState, CmsCollections, CmsEntry } from 'decap-cms-lib-util/types/cms';
 
-type Collection = CmsCollectionObject;
+type Collection = CmsCollectionState;
 type Collections = CmsCollections;
-type EntryMap = CmsEntryMap;
+type EntryMap = CmsEntry;
 
 import { selectFields, selectInferredField } from '../../../reducers/collections';
 import { filterNestedEntries } from './EntriesCollection';

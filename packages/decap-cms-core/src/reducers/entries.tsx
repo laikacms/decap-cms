@@ -37,9 +37,9 @@ import { joinUrlPath } from '../lib/urlHelper';
 import type { AnyAction } from 'redux';
 import type {
   CmsConfig,
-  CmsEntryMap,
+  CmsEntry,
   CmsEntryField,
-  CmsCollectionObject,
+  CmsCollectionState,
   CmsCollectionFileState,
   CmsGroupOfEntries,
   CmsSortObject,
@@ -47,14 +47,7 @@ import type {
   CmsViewGroup,
 } from 'decap-cms-lib-util/types/cms';
 
-type EntryMap = CmsEntryMap;
-type EntryObject = CmsEntryMap;
-type EntryField = CmsEntryField;
-type Collection = CmsCollectionObject;
-type CollectionFiles = CmsCollectionFileState[];
-type GroupOfEntries = CmsGroupOfEntries;
-type SortObject = CmsSortObject;
-type SortMap = Record<string, SortObject>;
+type SortMap = Record<string, CmsSortObject>;
 type Sort = Record<string, SortMap>;
 type FilterMap = CmsViewFilter & { active?: boolean };
 type Filter = Record<string, Record<string, FilterMap>>;
@@ -64,7 +57,7 @@ type Group = Record<string, Record<string, GroupMap>>;
 export type EntryPage = { isFetching: boolean; page?: number; ids: string[] };
 
 export type Entries = {
-  entities: Record<string, EntryMap>;
+  entities: Record<string, CmsEntry>;
   pages: Record<string, EntryPage>;
   sort: Sort;
   filter: Filter;
@@ -73,7 +66,7 @@ export type Entries = {
 };
 
 type EntryDraft = {
-  entry: EntryMap;
+  entry: CmsEntry;
   fieldsMetaData?: Record<string, unknown>;
   fieldsErrors?: Record<string, unknown>;
   hasChanged: boolean;
@@ -81,8 +74,8 @@ type EntryDraft = {
 };
 
 type EntryRequestPayload = { collection: string; slug: string };
-type EntrySuccessPayload = { collection: string; entry: EntryMap };
-type EntriesSuccessPayload = { collection: string; entries: EntryObject[]; append: boolean; page: number };
+type EntrySuccessPayload = { collection: string; entry: CmsEntry };
+type EntriesSuccessPayload = { collection: string; entries: CmsEntry[]; append: boolean; page: number };
 type EntryFailurePayload = { collection: string; slug: string; error: Error };
 type EntryDeletePayload = { collectionName: string; entrySlug: string };
 type EntriesRequestPayload = { collection: string };
@@ -105,7 +98,7 @@ function normalizeDoubleSlashes(path: string) {
   return path.replace(/([^:]\/)\/+/g, '$1');
 }
 
-type StorageSortObject = SortObject & { index: number };
+type StorageSortObject = CmsSortObject & { index: number };
 type StorageSort = { [collection: string]: { [key: string]: StorageSortObject } };
 
 const loadSort = once((): Sort => {
@@ -177,7 +170,7 @@ const entries = produce((state: Entries, action: EntriesAction) => {
     case ENTRY_REQUEST: {
       const payload = action.payload as EntryRequestPayload;
       const key = `${payload.collection}.${payload.slug}`;
-      state.entities[key] = { ...(state.entities[key] ?? {}), isFetching: true } as EntryMap;
+      state.entities[key] = { ...(state.entities[key] ?? {}), isFetching: true } as CmsEntry;
       break;
     }
 
@@ -224,7 +217,7 @@ const entries = produce((state: Entries, action: EntriesAction) => {
         ...(state.entities[key] ?? {}),
         isFetching: false,
         error: payload.error.message,
-      } as EntryMap;
+      } as CmsEntry;
       break;
     }
 
@@ -260,7 +253,7 @@ const entries = produce((state: Entries, action: EntriesAction) => {
     case GROUP_ENTRIES_SUCCESS:
     case FILTER_ENTRIES_SUCCESS:
     case SORT_ENTRIES_SUCCESS: {
-      const payload = action.payload as { collection: string; entries: EntryObject[] };
+      const payload = action.payload as { collection: string; entries: CmsEntry[] };
       const { collection, entries: loadedEntries } = payload;
       loadedEntries.forEach(entry => {
         state.entities[`${entry.collection}.${entry.slug}`] = { ...entry, isFetching: false };
@@ -355,7 +348,7 @@ export function selectViewStyle(entries: Entries) {
   return entries.viewStyle;
 }
 
-export function selectEntry(state: Entries, collection: string, slug: string): EntryMap | undefined {
+export function selectEntry(state: Entries, collection: string, slug: string): CmsEntry | undefined {
   return state.entities[`${collection}.${slug}`];
 }
 
@@ -363,19 +356,19 @@ export function selectPublishedSlugs(state: Entries, collection: string): string
   return state.pages[collection]?.ids;
 }
 
-function getPublishedEntries(state: Entries, collectionName: string): EntryMap[] | undefined {
+function getPublishedEntries(state: Entries, collectionName: string): CmsEntry[] | undefined {
   const slugs = selectPublishedSlugs(state, collectionName);
   if (!slugs) return undefined;
   return slugs
     .map(slug => selectEntry(state, collectionName, slug))
-    .filter((e): e is EntryMap => e !== undefined);
+    .filter((e): e is CmsEntry => e !== undefined);
 }
 
-export function selectEntries(state: Entries, collection: Collection) {
+export function selectEntries(state: Entries, collection: CmsCollectionState) {
   const collectionName = collection.name;
   let entries = getPublishedEntries(state, collectionName);
 
-  if (!entries) return [] as EntryMap[];
+  if (!entries) return [] as CmsEntry[];
 
   const sortFields = selectEntriesSortFields(state, collectionName);
   if (sortFields && sortFields.length > 0) {
@@ -402,7 +395,7 @@ export function selectEntries(state: Entries, collection: Collection) {
   return entries;
 }
 
-function getGroup(entry: EntryMap, selectedGroup: GroupMap) {
+function getGroup(entry: CmsEntry, selectedGroup: GroupMap) {
   const { label, field } = selectedGroup;
   const fieldData = getNestedValue(entry.data, keyToPathArray(field));
   if (fieldData === undefined) {
@@ -428,7 +421,7 @@ function getGroup(entry: EntryMap, selectedGroup: GroupMap) {
   };
 }
 
-export function selectGroups(state: Entries, collection: Collection): GroupOfEntries[] {
+export function selectGroups(state: Entries, collection: CmsCollectionState): CmsGroupOfEntries[] {
   const collectionName = collection.name;
   const entries = getPublishedEntries(state, collectionName);
   if (!entries) return [];
@@ -465,15 +458,15 @@ export function selectIsFetching(state: Entries, collection: string): boolean {
   return state.pages[collection]?.isFetching ?? false;
 }
 
-function getFileField(collectionFiles: CollectionFiles, slug: string | undefined) {
+function getFileField(collectionFiles: CmsCollectionFileState[], slug: string | undefined) {
   return collectionFiles.find(f => f?.name === slug);
 }
 
 function hasCustomFolder(
   folderKey: 'media_folder' | 'public_folder',
-  collection: Collection | null,
+  collection: CmsCollectionState | null,
   slug: string | undefined,
-  field: EntryField | undefined,
+  field: CmsEntryField | undefined,
 ): boolean {
   if (!collection) return false;
   if (field && field[folderKey] != null) return true;
@@ -488,10 +481,10 @@ function hasCustomFolder(
 function traverseFields(
   folderKey: 'media_folder' | 'public_folder',
   config: CmsConfig,
-  collection: Collection,
-  entryMap: EntryMap | undefined,
-  field: EntryField,
-  fields: EntryField[],
+  collection: CmsCollectionState,
+  entryMap: CmsEntry | undefined,
+  field: CmsEntryField,
+  fields: CmsEntryField[],
   currentFolder: string,
 ): string | null {
   const matchedField = fields.find(f => f === field);
@@ -510,11 +503,11 @@ function traverseFields(
     const folder = folderFormatter(f[folderKey] as string, entryMap, collection, currentFolder, folderKey, config.slug);
     let fieldFolder: string | null = null;
     if (f.fields) {
-      fieldFolder = traverseFields(folderKey, config, collection, entryMap, field, f.fields as EntryField[], folder);
+      fieldFolder = traverseFields(folderKey, config, collection, entryMap, field, f.fields as CmsEntryField[], folder);
     } else if (f.field) {
-      fieldFolder = traverseFields(folderKey, config, collection, entryMap, field, [f.field as EntryField], folder);
+      fieldFolder = traverseFields(folderKey, config, collection, entryMap, field, [f.field as CmsEntryField], folder);
     } else if (f.types) {
-      fieldFolder = traverseFields(folderKey, config, collection, entryMap, field, f.types as EntryField[], folder);
+      fieldFolder = traverseFields(folderKey, config, collection, entryMap, field, f.types as CmsEntryField[], folder);
     }
     if (fieldFolder != null) return fieldFolder;
   }
@@ -524,9 +517,9 @@ function traverseFields(
 function evaluateFolder(
   folderKey: 'media_folder' | 'public_folder',
   config: CmsConfig,
-  collection: Collection,
-  entryMap: EntryMap | undefined,
-  field: EntryField | undefined,
+  collection: CmsCollectionState,
+  entryMap: CmsEntry | undefined,
+  field: CmsEntryField | undefined,
 ): string {
   let currentFolder = config[folderKey]!;
   if (collection[folderKey] == null) collection = { ...collection, [folderKey]: `{{${folderKey}}}` };
@@ -538,14 +531,14 @@ function evaluateFolder(
       if (file[folderKey] == null) file = { ...file, [folderKey]: `{{${folderKey}}}` };
       currentFolder = folderFormatter(file[folderKey] as string, entryMap, collection, currentFolder, folderKey, config.slug);
       if (field) {
-        const fieldFolder = traverseFields(folderKey, config, collection, entryMap, field, (file.fields ?? []) as EntryField[], currentFolder);
+        const fieldFolder = traverseFields(folderKey, config, collection, entryMap, field, (file.fields ?? []) as CmsEntryField[], currentFolder);
         if (fieldFolder !== null) currentFolder = fieldFolder;
       }
     }
   } else {
     currentFolder = folderFormatter(collection[folderKey] as string, entryMap, collection, currentFolder, folderKey, config.slug);
     if (field) {
-      const fieldFolder = traverseFields(folderKey, config, collection, entryMap, field, (collection.fields ?? []) as EntryField[], currentFolder);
+      const fieldFolder = traverseFields(folderKey, config, collection, entryMap, field, (collection.fields ?? []) as CmsEntryField[], currentFolder);
       if (fieldFolder !== null) currentFolder = fieldFolder;
     }
   }
@@ -554,9 +547,9 @@ function evaluateFolder(
 
 export function selectMediaFolder(
   config: CmsConfig,
-  collection: Collection | null,
-  entryMap: EntryMap | undefined,
-  field: EntryField | undefined,
+  collection: CmsCollectionState | null,
+  entryMap: CmsEntry | undefined,
+  field: CmsEntryField | undefined,
 ) {
   const name = 'media_folder';
   let mediaFolder = config[name];
@@ -575,10 +568,10 @@ export function selectMediaFolder(
 
 export function selectMediaFilePath(
   config: CmsConfig,
-  collection: Collection | null,
-  entryMap: EntryMap | undefined,
+  collection: CmsCollectionState | null,
+  entryMap: CmsEntry | undefined,
   mediaPath: string,
-  field: EntryField | undefined,
+  field: CmsEntryField | undefined,
 ) {
   if (isAbsolutePath(mediaPath)) return mediaPath;
   const mediaFolder = selectMediaFolder(config, collection, entryMap, field);
@@ -587,10 +580,10 @@ export function selectMediaFilePath(
 
 export function selectMediaFilePublicPath(
   config: CmsConfig,
-  collection: Collection | null,
+  collection: CmsCollectionState | null,
   mediaPath: string,
-  entryMap: EntryMap | undefined,
-  field: EntryField | undefined,
+  entryMap: CmsEntry | undefined,
+  field: CmsEntryField | undefined,
 ) {
   if (isAbsolutePath(mediaPath)) return mediaPath;
   const name = 'public_folder';

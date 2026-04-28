@@ -1,4 +1,4 @@
-import * as apiUtils from '../APIUtils';
+import * as apiUtils from '../APIUtils.js';
 describe('APIUtils', () => {
   describe('generateContentKey', () => {
     it('should generate content key', () => {

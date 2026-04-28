@@ -16,14 +16,14 @@ import gfm from 'remark-gfm';
 import type { Dispatch } from 'redux';
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import type {
-  CmsCollectionObject,
-  CmsEntryMap,
+  CmsCollectionState,
+  CmsEntry,
   CmsEntryField,
   CmsConfig,
 } from 'decap-cms-lib-util/types/cms';
 
-type Collection = CmsCollectionObject;
-type EntryMap = CmsEntryMap;
+type Collection = CmsCollectionState;
+type EntryMap = CmsEntry;
 type EntryField = CmsEntryField;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type State = any;

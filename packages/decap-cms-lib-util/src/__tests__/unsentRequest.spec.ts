@@ -1,4 +1,4 @@
-import unsentRequest from '../unsentRequest';
+import unsentRequest from '../unsentRequest.js';
 
 describe('unsentRequest', () => {
   describe('withHeaders', () => {

@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import styled from '@emotion/styled';
 import type { TranslateFunction } from 'decap-cms-ui-default';
-import type { CmsCollections, CmsCollectionObject } from 'decap-cms-lib-util/types/cms';
+import type { CmsCollections, CmsCollectionState } from 'decap-cms-lib-util/types/cms';
 import type { Status } from '../../constants/publishModes';
 import { translate } from 'react-polyglot';
 import { connect } from 'react-redux';
@@ -17,7 +17,7 @@ import {
 } from 'decap-cms-ui-default';
 
 type Collections = CmsCollections;
-type Collection = CmsCollectionObject;
+type Collection = CmsCollectionState;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type State = any;
 

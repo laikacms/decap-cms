@@ -1,11 +1,13 @@
-export { APIError, AccessTokenError } from './errors';
-export { default as Cursor, CURSOR_COMPATIBILITY_SYMBOL } from './Cursor';
-export { default as EditorialWorkflowError, EDITORIAL_WORKFLOW_ERROR } from './EditorialWorkflowError';
-export { default as localForage } from './localForage';
-export type { LocalForage as LocalForageType } from './localForage';
-export { isAbsolutePath, basename, fileExtensionWithSeparator, fileExtension, extname, dirname, join } from './path';
-export { onlySuccessfulPromises, flowAsync, thenP as promiseThen } from './promise';
-export { default as unsentRequest } from './unsentRequest';
+export * from './errors/APIError.js';
+export * from './errors/AccessTokenError.js';
+export * from './errors/ConfigurationError.js';
+export { default as Cursor, CURSOR_COMPATIBILITY_SYMBOL } from './Cursor.js';
+export { default as EditorialWorkflowError, EDITORIAL_WORKFLOW_ERROR } from './EditorialWorkflowError.js';
+export { default as localForage } from './localForage.js';
+export type { LocalForage as LocalForageType } from './localForage.js';
+export { isAbsolutePath, basename, fileExtensionWithSeparator, fileExtension, extname, dirname, join } from './path.js';
+export { onlySuccessfulPromises, flowAsync, thenP as promiseThen } from './promise.js';
+export { default as unsentRequest } from './unsentRequest.js';
 export {
   filterByExtension,
   getAllResponses,
@@ -13,10 +15,10 @@ export {
   parseResponse,
   responseParser,
   getPathDepth,
-} from './backendUtil';
-export { default as loadScript } from './loadScript';
-export { default as getBlobSHA} from './getBlobSHA';
-export { asyncLock } from './asyncLock';
+} from './backendUtil.js';
+export { default as loadScript } from './loadScript.js';
+export { default as getBlobSHA} from './getBlobSHA.js';
+export { asyncLock } from './asyncLock.js';
 export {
   entriesByFiles,
   entriesByFolder,
@@ -26,7 +28,7 @@ export {
   runWithLock,
   blobToFileObj,
   allEntriesByFolder,
-} from './implementation';
+} from './implementation.js';
 export {
   readFile,
   readFileMetadata,
@@ -36,7 +38,7 @@ export {
   requestWithBackoff,
   getDefaultBranchName,
   throwOnConflictingBranches,
-} from './API';
+} from './API.js';
 export {
   CMS_BRANCH_PREFIX,
   generateContentKey,
@@ -48,18 +50,18 @@ export {
   parseContentKey,
   branchFromContentKey,
   contentKeyFromBranch,
-} from './APIUtils';
+} from './APIUtils.js';
 export {
   createPointerFile,
   getLargeMediaFilteredMediaFiles,
   getLargeMediaPatternsFromGitAttributesFile,
   parsePointerFile,
   getPointerFileForMediaFileObj,
-} from './git-lfs';
+} from './git-lfs.js';
 
-export type { PointerFile } from './git-lfs';
-export type { FetchError, ApiRequest } from './API';
-export type { AsyncLock } from './asyncLock';
-export { default as isHotKey, isCodeHotkey, isKeyHotkey } from './is-hotkey';
+export type { PointerFile } from './git-lfs.js';
+export type { FetchError, ApiRequest } from './API.js';
+export type { AsyncLock } from './asyncLock.js';
+export { default as isHotkey, isCodeHotkey, isKeyHotkey } from './is-hotkey.js';
 
-export * from './types/cms';
+export * from './types/cms/index.js';

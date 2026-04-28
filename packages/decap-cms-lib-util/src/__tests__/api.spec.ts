@@ -1,4 +1,4 @@
-import * as api from '../API';
+import * as api from '../API.js';
 
 describe('Api', () => {
   describe('getPreviewStatus', () => {

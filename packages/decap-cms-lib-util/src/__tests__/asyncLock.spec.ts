@@ -1,4 +1,4 @@
-import { asyncLock } from '../asyncLock';
+import { asyncLock } from '../asyncLock.js';
 
 vi.useFakeTimers();
 vi.spyOn(console, 'warn').mockImplementation(() => {});

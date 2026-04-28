@@ -12,21 +12,21 @@ import { selectMediaFolder } from './entries';
 import { summaryFormatter } from '../lib/formatters';
 
 import type {
-  CmsCollectionObject,
+  CmsCollectionState,
   CmsCollections,
   CmsCollectionFileState,
   CmsEntryField,
-  CmsEntryMap,
+  CmsEntry,
   CmsViewFilter,
   CmsViewGroup,
   CmsConfig,
 } from 'decap-cms-lib-util/types/cms';
 
-type Collection = CmsCollectionObject;
+type Collection = CmsCollectionState;
 type Collections = CmsCollections;
 type CollectionFiles = CmsCollectionFileState[];
 type EntryField = CmsEntryField;
-type EntryMap = CmsEntryMap;
+type EntryMap = CmsEntry;
 type ViewFilter = CmsViewFilter;
 type ViewGroup = CmsViewGroup;
 import type { ConfigAction } from '../actions/config';
@@ -313,9 +313,10 @@ export function selectEntryCollectionTitle(collection: Collection, entry: EntryM
   }
 
   const entryData = entry.data;
-  const titleField = selectInferredField(collection, 'title');
-  const getNestedValue = (obj: any, path: string[]) =>
-    path.reduce((cur, key) => (cur != null ? cur[key] : undefined), obj);
+  const titleField = selectInferredField(collection, 'title') as string;
+  function getNestedValue(obj: any, path: string[]) {
+    return path.reduce((cur, key) => (cur != null ? cur[key] : undefined), obj);
+  }
   const result = titleField && getNestedValue(entryData, keyToPathArray(titleField));
   if (!result && titleField !== 'title') {
     return getNestedValue(entryData, keyToPathArray('title'));
