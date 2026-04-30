@@ -8,7 +8,7 @@ import orderBy from 'lodash/orderBy';
 import groupBy from 'lodash/groupBy';
 import { stringTemplate } from 'decap-cms-lib-widgets';
 
-import { CmsSortDirection as SortDirection } from 'decap-cms-lib-util/types/cms';
+import { CmsSortDirection as SortDirection } from 'decap-cms-lib-util';
 import { folderFormatter } from '../lib/formatters';
 import { selectSortDataPath } from './collections';
 import { SEARCH_ENTRIES_SUCCESS } from '../actions/search';
@@ -45,7 +45,7 @@ import type {
   CmsSortObject,
   CmsViewFilter,
   CmsViewGroup,
-} from 'decap-cms-lib-util/types/cms';
+} from 'decap-cms-lib-util';
 
 type SortMap = Record<string, CmsSortObject>;
 type Sort = Record<string, SortMap>;
@@ -75,7 +75,12 @@ type EntryDraft = {
 
 type EntryRequestPayload = { collection: string; slug: string };
 type EntrySuccessPayload = { collection: string; entry: CmsEntry };
-type EntriesSuccessPayload = { collection: string; entries: CmsEntry[]; append: boolean; page: number };
+type EntriesSuccessPayload = {
+  collection: string;
+  entries: CmsEntry[];
+  append: boolean;
+  page: number;
+};
 type EntryFailurePayload = { collection: string; slug: string; error: Error };
 type EntryDeletePayload = { collectionName: string; entrySlug: string };
 type EntriesRequestPayload = { collection: string };
@@ -181,14 +186,20 @@ const entries = produce((state: Entries, action: EntriesAction) => {
       state.entities[key] = { ...entry, isFetching: false };
       const ids = state.pages[collection]?.ids ?? [];
       if (!ids.includes(entry.slug)) {
-        state.pages[collection] = { ...(state.pages[collection] ?? { isFetching: false, page: 0, ids: [] }), ids: [entry.slug, ...ids] };
+        state.pages[collection] = {
+          ...(state.pages[collection] ?? { isFetching: false, page: 0, ids: [] }),
+          ids: [entry.slug, ...ids],
+        };
       }
       break;
     }
 
     case ENTRIES_REQUEST: {
       const payload = action.payload as EntriesRequestPayload;
-      state.pages[payload.collection] = { ...(state.pages[payload.collection] ?? { isFetching: false, page: 0, ids: [] }), isFetching: true };
+      state.pages[payload.collection] = {
+        ...(state.pages[payload.collection] ?? { isFetching: false, page: 0, ids: [] }),
+        isFetching: true,
+      };
       break;
     }
 
@@ -243,7 +254,8 @@ const entries = produce((state: Entries, action: EntriesAction) => {
       const payload = action.payload as EntriesSortRequestPayload;
       const { collection, key, direction } = payload;
       state.sort[collection] = { [key]: { key, direction } } as SortMap;
-      if (!state.pages[collection]) state.pages[collection] = { isFetching: false, page: 0, ids: [] };
+      if (!state.pages[collection])
+        state.pages[collection] = { isFetching: false, page: 0, ids: [] };
       state.pages[collection].isFetching = true;
       delete (state.pages[collection] as any).page;
       persistSort(state.sort);
@@ -277,7 +289,7 @@ const entries = produce((state: Entries, action: EntriesAction) => {
       const payload = action.payload as EntriesFilterRequestPayload;
       const { collection, filter } = payload;
       state.filter[collection] = state.filter[collection] ?? {};
-      const current: FilterMap = state.filter[collection][filter.id] ?? filter as FilterMap;
+      const current: FilterMap = state.filter[collection][filter.id] ?? (filter as FilterMap);
       state.filter[collection][current.id] = { ...current, active: !current.active };
       break;
     }
@@ -294,7 +306,7 @@ const entries = produce((state: Entries, action: EntriesAction) => {
       const payload = action.payload as EntriesGroupRequestPayload;
       const { collection, group } = payload;
       state.group[collection] = state.group[collection] ?? {};
-      const current: GroupMap = state.group[collection][group.id] ?? group as GroupMap;
+      const current: GroupMap = state.group[collection][group.id] ?? (group as GroupMap);
       state.group[collection] = {};
       state.group[collection][current.id] = { ...current, active: !current.active };
       break;
@@ -348,7 +360,11 @@ export function selectViewStyle(entries: Entries) {
   return entries.viewStyle;
 }
 
-export function selectEntry(state: Entries, collection: string, slug: string): CmsEntry | undefined {
+export function selectEntry(
+  state: Entries,
+  collection: string,
+  slug: string,
+): CmsEntry | undefined {
   return state.entities[`${collection}.${slug}`];
 }
 
@@ -373,9 +389,7 @@ export function selectEntries(state: Entries, collection: CmsCollectionState) {
   const sortFields = selectEntriesSortFields(state, collectionName);
   if (sortFields && sortFields.length > 0) {
     const keys = sortFields.map(v => selectSortDataPath(collection, v.key));
-    const orders = sortFields.map(v =>
-      v.direction === SortDirection.Ascending ? 'asc' : 'desc',
-    );
+    const orders = sortFields.map(v => (v.direction === SortDirection.Ascending ? 'asc' : 'desc'));
     entries = orderBy(entries, keys, orders);
   }
 
@@ -429,7 +443,8 @@ export function selectGroups(state: Entries, collection: CmsCollectionState): Cm
   const selectedGroup = selectEntriesGroupField(state, collectionName);
   if (selectedGroup === undefined) return [];
 
-  let groups: Record<string, { id: string; label: string; value: string | boolean | undefined }> = {};
+  let groups: Record<string, { id: string; label: string; value: string | boolean | undefined }> =
+    {};
   const groupedEntries = groupBy(entries, entry => {
     const group = getGroup(entry, selectedGroup);
     groups = { ...groups, [group.id]: group };
@@ -445,9 +460,7 @@ export function selectGroups(state: Entries, collection: CmsCollectionState): Cm
 export function selectEntryByPath(state: Entries, collection: string, path: string) {
   const slugs = selectPublishedSlugs(state, collection);
   if (!slugs) return undefined;
-  return slugs
-    .map(slug => selectEntry(state, collection, slug))
-    .find(e => e?.path === path);
+  return slugs.map(slug => selectEntry(state, collection, slug)).find(e => e?.path === path);
 }
 
 export function selectEntriesLoaded(state: Entries, collection: string) {
@@ -490,7 +503,7 @@ function traverseFields(
   const matchedField = fields.find(f => f === field);
   if (matchedField) {
     return folderFormatter(
-      matchedField[folderKey] != null ? matchedField[folderKey] as string : `{{${folderKey}}}`,
+      matchedField[folderKey] != null ? (matchedField[folderKey] as string) : `{{${folderKey}}}`,
       entryMap,
       collection,
       currentFolder,
@@ -500,14 +513,45 @@ function traverseFields(
   }
   for (let f of fields) {
     if (f[folderKey] == null) f = { ...f, [folderKey]: `{{${folderKey}}}` };
-    const folder = folderFormatter(f[folderKey] as string, entryMap, collection, currentFolder, folderKey, config.slug);
+    const folder = folderFormatter(
+      f[folderKey] as string,
+      entryMap,
+      collection,
+      currentFolder,
+      folderKey,
+      config.slug,
+    );
     let fieldFolder: string | null = null;
     if (f.fields) {
-      fieldFolder = traverseFields(folderKey, config, collection, entryMap, field, f.fields as CmsEntryField[], folder);
+      fieldFolder = traverseFields(
+        folderKey,
+        config,
+        collection,
+        entryMap,
+        field,
+        f.fields as CmsEntryField[],
+        folder,
+      );
     } else if (f.field) {
-      fieldFolder = traverseFields(folderKey, config, collection, entryMap, field, [f.field as CmsEntryField], folder);
+      fieldFolder = traverseFields(
+        folderKey,
+        config,
+        collection,
+        entryMap,
+        field,
+        [f.field as CmsEntryField],
+        folder,
+      );
     } else if (f.types) {
-      fieldFolder = traverseFields(folderKey, config, collection, entryMap, field, f.types as CmsEntryField[], folder);
+      fieldFolder = traverseFields(
+        folderKey,
+        config,
+        collection,
+        entryMap,
+        field,
+        f.types as CmsEntryField[],
+        folder,
+      );
     }
     if (fieldFolder != null) return fieldFolder;
   }
@@ -522,23 +566,61 @@ function evaluateFolder(
   field: CmsEntryField | undefined,
 ): string {
   let currentFolder = config[folderKey]!;
-  if (collection[folderKey] == null) collection = { ...collection, [folderKey]: `{{${folderKey}}}` };
+  if (collection[folderKey] == null)
+    collection = { ...collection, [folderKey]: `{{${folderKey}}}` };
 
   if (collection.files) {
-    currentFolder = folderFormatter(collection[folderKey] as string, entryMap, collection, currentFolder, folderKey, config.slug);
+    currentFolder = folderFormatter(
+      collection[folderKey] as string,
+      entryMap,
+      collection,
+      currentFolder,
+      folderKey,
+      config.slug,
+    );
     let file = getFileField(collection.files, entryMap?.slug);
     if (file) {
       if (file[folderKey] == null) file = { ...file, [folderKey]: `{{${folderKey}}}` };
-      currentFolder = folderFormatter(file[folderKey] as string, entryMap, collection, currentFolder, folderKey, config.slug);
+      currentFolder = folderFormatter(
+        file[folderKey] as string,
+        entryMap,
+        collection,
+        currentFolder,
+        folderKey,
+        config.slug,
+      );
       if (field) {
-        const fieldFolder = traverseFields(folderKey, config, collection, entryMap, field, (file.fields ?? []) as CmsEntryField[], currentFolder);
+        const fieldFolder = traverseFields(
+          folderKey,
+          config,
+          collection,
+          entryMap,
+          field,
+          (file.fields ?? []) as CmsEntryField[],
+          currentFolder,
+        );
         if (fieldFolder !== null) currentFolder = fieldFolder;
       }
     }
   } else {
-    currentFolder = folderFormatter(collection[folderKey] as string, entryMap, collection, currentFolder, folderKey, config.slug);
+    currentFolder = folderFormatter(
+      collection[folderKey] as string,
+      entryMap,
+      collection,
+      currentFolder,
+      folderKey,
+      config.slug,
+    );
     if (field) {
-      const fieldFolder = traverseFields(folderKey, config, collection, entryMap, field, (collection.fields ?? []) as CmsEntryField[], currentFolder);
+      const fieldFolder = traverseFields(
+        folderKey,
+        config,
+        collection,
+        entryMap,
+        field,
+        (collection.fields ?? []) as CmsEntryField[],
+        currentFolder,
+      );
       if (fieldFolder !== null) currentFolder = fieldFolder;
     }
   }
@@ -590,7 +672,9 @@ export function selectMediaFilePublicPath(
   let publicFolder = normalizeDoubleSlashes(config[name]!);
   const customFolder = hasCustomFolder(name, collection, entryMap?.slug, field);
   if (customFolder) {
-    publicFolder = normalizeDoubleSlashes(evaluateFolder(name, config, collection!, entryMap, field));
+    publicFolder = normalizeDoubleSlashes(
+      evaluateFolder(name, config, collection!, entryMap, field),
+    );
   }
   if (isAbsolutePath(publicFolder)) return joinUrlPath(publicFolder, basename(mediaPath));
   return join(publicFolder, basename(mediaPath));

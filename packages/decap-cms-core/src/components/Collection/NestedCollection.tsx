@@ -11,10 +11,7 @@ import sortBy from 'lodash/sortBy';
 import { selectEntries } from '../../reducers/entries';
 import { selectEntryCollectionTitle } from '../../reducers/collections';
 
-import type { CmsCollectionState, CmsEntry } from 'decap-cms-lib-util/types/cms';
-
-type Collection = CmsCollectionState;
-type EntryMap = CmsEntry;
+import type { CmsCollectionState, CmsEntry } from 'decap-cms-lib-util';
 
 const sep = '/';
 
@@ -88,7 +85,7 @@ interface TreeNodeData {
 }
 
 interface TreeNodeProps {
-  collection: Collection;
+  collection: CmsCollectionState;
   depth?: number;
   treeData: TreeNodeData[];
   onToggle: (args: { node: TreeNodeData; expanded: boolean }) => void;
@@ -169,28 +166,33 @@ interface FlatNode {
   [key: string]: unknown;
 }
 
-export function getTreeData(collection: Collection, entries: EntryMap[]): TreeNodeData[] {
+export function getTreeData(collection: CmsCollectionState, entries: CmsEntry[]): TreeNodeData[] {
   const collectionFolder = collection.folder as string;
   const rootFolder = '/';
-  const entriesObj = entries
-    .map((e: EntryMap) => ({ ...e, path: e.path.slice(collectionFolder.length) }));
+  const entriesObj = entries.map((e: CmsEntry) => ({
+    ...e,
+    path: e.path.slice(collectionFolder.length),
+  }));
 
-  const dirs = entriesObj.reduce((acc: Record<string, string | undefined>, entry: Record<string, unknown>) => {
-    let dir = dirname(entry.path as string);
-    while (!acc[dir] && dir && dir !== rootFolder) {
-      const parts = dir.split(sep);
-      acc[dir] = parts.pop();
-      dir = parts.length ? parts.join(sep) : '';
-    }
-    return acc;
-  }, {} as Record<string, string | undefined>);
+  const dirs = entriesObj.reduce(
+    (acc: Record<string, string | undefined>, entry: Record<string, unknown>) => {
+      let dir = dirname(entry.path as string);
+      while (!acc[dir] && dir && dir !== rootFolder) {
+        const parts = dir.split(sep);
+        acc[dir] = parts.pop();
+        dir = parts.length ? parts.join(sep) : '';
+      }
+      return acc;
+    },
+    {} as Record<string, string | undefined>,
+  );
 
   let col = { ...collection };
   if (col.nested && (col as any).nested?.summary) {
     col = { ...col, summary: (col as any).nested.summary };
   } else {
     const { summary: _summary, ...rest } = col;
-    col = rest as Collection;
+    col = rest as CmsCollectionState;
   }
 
   const flatData: FlatNode[] = [
@@ -222,15 +224,18 @@ export function getTreeData(collection: Collection, entries: EntryMap[]): TreeNo
     }),
   ];
 
-  const parentsToChildren = flatData.reduce((acc: Record<string, FlatNode[]>, node: FlatNode) => {
-    const parent = node.path === rootFolder ? '' : dirname(node.path);
-    if (acc[parent]) {
-      acc[parent].push(node);
-    } else {
-      acc[parent] = [node];
-    }
-    return acc;
-  }, {} as Record<string, FlatNode[]>);
+  const parentsToChildren = flatData.reduce(
+    (acc: Record<string, FlatNode[]>, node: FlatNode) => {
+      const parent = node.path === rootFolder ? '' : dirname(node.path);
+      if (acc[parent]) {
+        acc[parent].push(node);
+      } else {
+        acc[parent] = [node];
+      }
+      return acc;
+    },
+    {} as Record<string, FlatNode[]>,
+  );
 
   function reducer(acc: TreeNodeData[], value: FlatNode): TreeNodeData[] {
     const node = value;
@@ -274,8 +279,8 @@ export function updateNode(
 }
 
 interface NestedCollectionProps {
-  collection: Collection;
-  entries: EntryMap[];
+  collection: CmsCollectionState;
+  entries: CmsEntry[];
   filterTerm?: string;
 }
 
@@ -285,7 +290,10 @@ interface NestedCollectionState {
   useFilter: boolean;
 }
 
-export class NestedCollection extends React.Component<NestedCollectionProps, NestedCollectionState> {
+export class NestedCollection extends React.Component<
+  NestedCollectionProps,
+  NestedCollectionState
+> {
   constructor(props: NestedCollectionProps) {
     super(props);
     this.state = {
@@ -341,10 +349,23 @@ export class NestedCollection extends React.Component<NestedCollectionProps, Nes
   }
 }
 
-function mapStateToProps(state: any, ownProps: { collection: Collection }) {
+function mapStateToProps(state: any, ownProps: { collection: CmsCollectionState }) {
   const { collection } = ownProps;
   const entries = selectEntries(state.entries, collection) || [];
   return { entries };
 }
 
-export default connect(mapStateToProps, null)(NestedCollection);
+function shallowArrayEqual(a: unknown[], b: unknown[]): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
+export default connect(mapStateToProps, null, null, {
+  areStatePropsEqual(next: { entries: CmsEntry[] }, prev: { entries: CmsEntry[] }) {
+    return shallowArrayEqual(next.entries, prev.entries);
+  },
+})(NestedCollection);

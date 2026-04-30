@@ -31,7 +31,9 @@ function getDefaultMap(target: HTMLElement, featuresLayer: VectorLayer<VectorSou
 }
 
 export interface MapControlField {
-  get(key: string, defaultValue?: unknown): unknown;
+  type?: string;
+  decimals?: number;
+  [key: string]: unknown;
 }
 
 export interface MapControlProps {
@@ -40,7 +42,7 @@ export interface MapControlProps {
   height?: string;
   value?: React.ReactNode;
   classNameWrapper?: string;
-  t: TranslateFunction,
+  t: TranslateFunction;
 }
 
 export interface WithMapControlOptions {
@@ -83,20 +85,18 @@ export default function withMapControl({ getFormat, getMap }: WithMapControlOpti
       const featuresLayer = new VectorLayer({ source: featuresSource });
 
       const target = this.mapContainer.current;
-      const map = getMap
-        ? getMap(target!, featuresLayer)
-        : getDefaultMap(target!, featuresLayer);
+      const map = getMap ? getMap(target!, featuresLayer) : getDefaultMap(target!, featuresLayer);
       if (features.length > 0) {
         map.getView().fit(featuresSource.getExtent(), { maxZoom: 16, padding: [80, 80, 80, 80] });
       }
 
       const draw = new Draw({
         source: featuresSource,
-        type: field.get('type', 'Point') as GeometryType,
+        type: (field.type ?? 'Point') as GeometryType,
       });
       map.addInteraction(draw);
 
-      const writeOptions = { decimals: field.get('decimals', 7) as number };
+      const writeOptions = { decimals: (field.decimals ?? 7) as number };
       draw.on('drawend', ({ feature }) => {
         featuresSource.clear();
         onChange(format.writeGeometry(feature.getGeometry()!, writeOptions));

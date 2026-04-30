@@ -1,4 +1,4 @@
-import { vi } from 'vitest';
+import { vi, type Mock } from 'vitest';
 
 export class APIError extends Error {
   status: number;
@@ -15,7 +15,11 @@ export class ConfigurationError extends Error {}
 
 export const CURSOR_COMPATIBILITY_SYMBOL = Symbol('cursor key for compatibility with old backends');
 export class Cursor {
-  static create = vi.fn(() => ({ wrapData: vi.fn(function(this: unknown) { return this; }) }));
+  static create = vi.fn(() => ({
+    wrapData: vi.fn(function (this: unknown) {
+      return this;
+    }),
+  }));
 }
 
 export class EditorialWorkflowError extends Error {
@@ -23,7 +27,7 @@ export class EditorialWorkflowError extends Error {
 }
 export const EDITORIAL_WORKFLOW_ERROR = 'EDITORIAL_WORKFLOW_ERROR';
 
-export const localForage = {
+export const localForage: Record<string, Mock> = {
   getItem: vi.fn(),
   setItem: vi.fn(),
   removeItem: vi.fn(),
@@ -61,11 +65,11 @@ export const extname = vi.fn((path: string) => {
 export const dirname = vi.fn((path: string) => path.split('/').slice(0, -1).join('/') || '.');
 export const join = vi.fn((...parts: string[]) => parts.join('/').replace(/\/+/g, '/'));
 
-export const onlySuccessfulPromises = vi.fn();
-export const flowAsync = vi.fn();
-export const promiseThen = vi.fn();
+export const onlySuccessfulPromises: Mock = vi.fn();
+export const flowAsync: Mock = vi.fn();
+export const promiseThen: Mock = vi.fn();
 
-export const unsentRequest = {
+export const unsentRequest: Record<string, Mock> = {
   fetchWithTimeout: vi.fn(),
   performRequest: vi.fn(),
   withRoot: vi.fn(),
@@ -77,52 +81,52 @@ export const unsentRequest = {
   toFetchArguments: vi.fn(),
 };
 
-export const filterByExtension = vi.fn();
-export const getAllResponses = vi.fn();
-export const parseLinkHeader = vi.fn();
-export const parseResponse = vi.fn();
-export const responseParser = vi.fn();
-export const getPathDepth = vi.fn();
+export const filterByExtension: Mock = vi.fn();
+export const getAllResponses: Mock = vi.fn();
+export const parseLinkHeader: Mock = vi.fn();
+export const parseResponse: Mock = vi.fn();
+export const responseParser: Mock = vi.fn();
+export const getPathDepth: Mock = vi.fn();
 
-export const loadScript = vi.fn();
-export const getBlobSHA = vi.fn();
-export const asyncLock = vi.fn(() => ({ acquire: vi.fn(), release: vi.fn() }));
+export const loadScript: Mock = vi.fn();
+export const getBlobSHA: Mock = vi.fn();
+export const asyncLock: Mock = vi.fn(() => ({ acquire: vi.fn(), release: vi.fn() }));
 
-export const entriesByFiles = vi.fn();
-export const entriesByFolder = vi.fn();
-export const unpublishedEntries = vi.fn();
-export const getMediaDisplayURL = vi.fn();
-export const getMediaAsBlob = vi.fn();
-export const runWithLock = vi.fn();
-export const blobToFileObj = vi.fn();
-export const allEntriesByFolder = vi.fn();
+export const entriesByFiles: Mock = vi.fn();
+export const entriesByFolder: Mock = vi.fn();
+export const unpublishedEntries: Mock = vi.fn();
+export const getMediaDisplayURL: Mock = vi.fn();
+export const getMediaAsBlob: Mock = vi.fn();
+export const runWithLock: Mock = vi.fn();
+export const blobToFileObj: Mock = vi.fn();
+export const allEntriesByFolder: Mock = vi.fn();
 
-export const readFile = vi.fn();
-export const readFileMetadata = vi.fn();
-export const isPreviewContext = vi.fn();
-export const getPreviewStatus = vi.fn();
+export const readFile: Mock = vi.fn();
+export const readFileMetadata: Mock = vi.fn();
+export const isPreviewContext: Mock = vi.fn();
+export const getPreviewStatus: Mock = vi.fn();
 export const PreviewState = { Success: 'success', Other: 'other' };
-export const requestWithBackoff = vi.fn();
-export const getDefaultBranchName = vi.fn();
-export const throwOnConflictingBranches = vi.fn();
+export const requestWithBackoff: Mock = vi.fn();
+export const getDefaultBranchName: Mock = vi.fn();
+export const throwOnConflictingBranches: Mock = vi.fn();
 
 export const CMS_BRANCH_PREFIX = 'cms/';
-export const generateContentKey = vi.fn();
-export const isCMSLabel = vi.fn();
-export const labelToStatus = vi.fn();
-export const statusToLabel = vi.fn();
+export const generateContentKey: Mock = vi.fn();
+export const isCMSLabel: Mock = vi.fn();
+export const labelToStatus: Mock = vi.fn();
+export const statusToLabel: Mock = vi.fn();
 export const DEFAULT_PR_BODY = '';
 export const MERGE_COMMIT_MESSAGE = '';
-export const parseContentKey = vi.fn();
-export const branchFromContentKey = vi.fn();
-export const contentKeyFromBranch = vi.fn();
+export const parseContentKey: Mock = vi.fn();
+export const branchFromContentKey: Mock = vi.fn();
+export const contentKeyFromBranch: Mock = vi.fn();
 
-export const createPointerFile = vi.fn();
-export const getLargeMediaFilteredMediaFiles = vi.fn();
-export const getLargeMediaPatternsFromGitAttributesFile = vi.fn();
-export const parsePointerFile = vi.fn();
-export const getPointerFileForMediaFileObj = vi.fn();
+export const createPointerFile: Mock = vi.fn();
+export const getLargeMediaFilteredMediaFiles: Mock = vi.fn();
+export const getLargeMediaPatternsFromGitAttributesFile: Mock = vi.fn();
+export const parsePointerFile: Mock = vi.fn();
+export const getPointerFileForMediaFileObj: Mock = vi.fn();
 
-export const isHotkey = vi.fn();
-export const isCodeHotkey = vi.fn();
-export const isKeyHotkey = vi.fn();
+export const isHotkey: Mock = vi.fn();
+export const isCodeHotkey: Mock = vi.fn();
+export const isKeyHotkey: Mock = vi.fn();

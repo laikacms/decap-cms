@@ -11,7 +11,7 @@ import { createEntry } from '../valueObjects/Entry';
 import { createAssetProxy } from '../valueObjects/AssetProxy';
 import ValidationErrorTypes from '../constants/validationErrorTypes';
 import { addAssets, getAsset } from './media';
-import { CmsSortDirection } from 'decap-cms-lib-util/types/cms';
+import { CmsSortDirection } from 'decap-cms-lib-util';
 import { waitForMediaLibraryToLoad, loadMedia } from './mediaLibrary';
 import { waitUntil } from './waitUntil';
 import { selectIsFetching, selectEntriesSortFields, selectEntryByPath } from '../reducers/entries';
@@ -31,7 +31,7 @@ import type {
   CmsViewFilter,
   CmsViewGroup,
   CmsBackendMediaFile,
-} from 'decap-cms-lib-util/types/cms';
+} from 'decap-cms-lib-util';
 import type { EntryValue } from '../valueObjects/Entry';
 import type { Backend } from '../backend';
 import type AssetProxy from '../valueObjects/AssetProxy';
@@ -505,11 +505,7 @@ export function loadEntry(collection: Collection, slug: string) {
         }),
       );
       dispatch(
-        entryLoadError(
-          error instanceof Error ? error : new Error(String(error)),
-          collection,
-          slug,
-        ),
+        entryLoadError(error instanceof Error ? error : new Error(String(error)), collection, slug),
       );
     }
   };
@@ -568,10 +564,12 @@ export function loadEntries(collection: Collection, page = 0) {
         pagination: number;
         entries: EntryValue[];
       } = await (loadAllEntries
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ? (provider as any).listAllEntries(collection).then((entries: EntryValue[]) => ({ entries }))
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        : (provider as any).listEntries(collection, page));
+        ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (provider as any)
+            .listAllEntries(collection)
+            .then((entries: EntryValue[]) => ({ entries }))
+        : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (provider as any).listEntries(collection, page));
 
       response = {
         ...response,
@@ -749,7 +747,8 @@ export function createEmptyDraftData(
         return [[{}], {}].some(e => isEqual(val, e));
       }
 
-      const hasSubfields = Array.isArray(subfields) || (typeof subfields === 'object' && subfields !== null);
+      const hasSubfields =
+        Array.isArray(subfields) || (typeof subfields === 'object' && subfields !== null);
       if (hasSubfields) {
         if (list && Array.isArray(defaultValue)) {
           acc[name] = defaultValue;
@@ -780,7 +779,9 @@ function createEmptyDraftI18nData(collection: Collection, dataFields: EntryField
   if (!hasI18n(collection as any)) return {};
 
   function skipField(field: EntryField) {
-    return (field as any)[I18N] !== I18N_FIELD.DUPLICATE && (field as any)[I18N] !== I18N_FIELD.TRANSLATE;
+    return (
+      (field as any)[I18N] !== I18N_FIELD.DUPLICATE && (field as any)[I18N] !== I18N_FIELD.TRANSLATE
+    );
   }
 
   const i18nData = createEmptyDraftData(dataFields, skipField);
@@ -814,7 +815,11 @@ export function getSerializedEntry(collection: Collection, entry: EntryMap) {
   const serializedData = serializeData(entry.data);
   let serializedEntry: EntryMap = { ...entry, data: serializedData };
   if (hasI18n(collection as any)) {
-    serializedEntry = serializeI18n(collection as any, serializedEntry as any, serializeData) as any;
+    serializedEntry = serializeI18n(
+      collection as any,
+      serializedEntry as any,
+      serializeData,
+    ) as any;
   }
   return serializedEntry;
 }

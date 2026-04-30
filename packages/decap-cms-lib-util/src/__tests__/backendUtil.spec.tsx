@@ -4,7 +4,10 @@ import { parseLinkHeader, getAllResponses, getPathDepth, filterByExtension } fro
 
 function oneLine(strings: TemplateStringsArray, ...values: unknown[]): string {
   return strings
-    .reduce((result, str, i) => result + str + (values[i] !== undefined ? String(values[i]) : ''), '')
+    .reduce(
+      (result, str, i) => result + str + (values[i] !== undefined ? String(values[i]) : ''),
+      '',
+    )
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -53,7 +56,11 @@ describe('getAllResponses', () => {
     return { Link: linkHeader };
   }
 
-  function interceptCall({ perPage = 30, repeat = 1, data = [] as ReturnType<typeof generatePulls> } = {}) {
+  function interceptCall({
+    perPage = 30,
+    repeat = 1,
+    data = [] as ReturnType<typeof generatePulls>,
+  } = {}) {
     nock('https://api.github.com')
       .get('/pulls')
       .query(true)

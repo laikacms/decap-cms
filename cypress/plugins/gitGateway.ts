@@ -75,7 +75,7 @@ async function fetchWithTimeout(
     clearTimeout(timeout);
     if (error.name === 'AbortError') {
       console.error(`Netlify API ${method} timeout after 10s: ${path}`);
-      throw new Error(`Netlify API ${method} request timeout: ${path}`);
+      throw new Error(`Netlify API ${method} request timeout: ${path}`, { cause: error });
     }
     throw error;
   }

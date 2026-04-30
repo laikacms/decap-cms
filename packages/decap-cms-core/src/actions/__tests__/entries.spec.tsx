@@ -441,9 +441,9 @@ describe('entries', () => {
     });
 
     it('should not return error on meta path field', () => {
-      expect(validateMetaField(null, null, { meta: true, name: 'other' }, null, t)).toEqual(
-        { error: false },
-      );
+      expect(validateMetaField(null, null, { meta: true, name: 'other' }, null, t)).toEqual({
+        error: false,
+      });
     });
 
     it('should return error on empty path', () => {
@@ -457,9 +457,7 @@ describe('entries', () => {
         },
       });
 
-      expect(
-        validateMetaField(null, null, { meta: true, name: 'path' }, undefined, t),
-      ).toEqual({
+      expect(validateMetaField(null, null, { meta: true, name: 'path' }, undefined, t)).toEqual({
         error: {
           message: {
             key: 'editor.editorControlPane.widget.invalidPath',
@@ -521,10 +519,12 @@ describe('entries', () => {
       });
 
       expect(selectCustomPath).toHaveBeenCalledTimes(1);
-      expect(selectCustomPath).toHaveBeenCalledWith(
-        collection,
-        { entry: { meta: { path: 'existing-path' } }, fieldsErrors: {}, hasChanged: false, key: '' },
-      );
+      expect(selectCustomPath).toHaveBeenCalledWith(collection, {
+        entry: { meta: { path: 'existing-path' } },
+        fieldsErrors: {},
+        hasChanged: false,
+        key: '',
+      });
 
       expect(selectEntryByPath).toHaveBeenCalledTimes(1);
       expect(selectEntryByPath).toHaveBeenCalledWith(

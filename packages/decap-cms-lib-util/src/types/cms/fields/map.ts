@@ -1,4 +1,3 @@
-
 export type CmsMapWidgetType = 'Point' | 'LineString' | 'Polygon';
 
 export interface CmsFieldMap {

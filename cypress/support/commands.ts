@@ -24,7 +24,7 @@
 // -- This is will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
 /// <reference types="cypress" />
-/// <reference path="./index.d.ts" />
+import type {} from './index.d';
 
 import path from 'path';
 import { rehype } from 'rehype';
@@ -61,7 +61,7 @@ const matchRoute = (route: Route, fetchArgs: [string, FetchOptions?]): boolean =
   const body = options && options.body;
   const routeBody = route.body;
 
-  let bodyMatch = false;
+  let bodyMatch: boolean;
   if (typeof routeBody === 'object' && routeBody?.encoding === 'base64' && body && ['File', 'Blob'].includes(body?.constructor.name)) {
     const blob = new Blob([Buffer.from(routeBody.content || '', 'base64')], {
       type: routeBody.contentType,
@@ -197,6 +197,7 @@ keyCommands.forEach(key => {
 // Convert `tab` command from plugin to a child command with `times` support
 Cypress.Commands.add('tabkey', { prevSubject: true }, (subject: JQuery<HTMLElement>, { shift, times }: { shift?: boolean; times?: number } = {}) => {
   const fn = (chain: Cypress.Chainable) => chain.tab({ shift });
+  // eslint-disable-next-line cypress/no-unnecessary-waiting
   cy.wait(100);
   return runTimes(cy, fn, times).wrap(subject);
 });

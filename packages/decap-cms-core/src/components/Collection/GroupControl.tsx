@@ -2,22 +2,18 @@ import React from 'react';
 import { translate } from 'react-polyglot';
 import { Dropdown, DropdownItem } from 'decap-cms-ui-default';
 
-import type { CmsViewGroup } from 'decap-cms-lib-util/types/cms';
+import type { CmsViewGroup } from 'decap-cms-lib-util';
 import { ControlButton } from './ControlButton';
 
-type ViewGroup = CmsViewGroup;
-
 export interface GroupControlProps {
-  viewGroups: ViewGroup[];
+  viewGroups: CmsViewGroup[];
   t: (key: string) => string;
-  onGroupClick: (group: ViewGroup) => void;
+  onGroupClick: (group: CmsViewGroup) => void;
   group: Record<string, unknown>;
 }
 
 function GroupControl({ viewGroups, t, onGroupClick, group }: GroupControlProps) {
-  const hasActiveGroup = group
-    ? Object.values(group).some((f: any) => f.active === true)
-    : false;
+  const hasActiveGroup = group ? Object.values(group).some((f: any) => f.active === true) : false;
 
   return (
     <Dropdown

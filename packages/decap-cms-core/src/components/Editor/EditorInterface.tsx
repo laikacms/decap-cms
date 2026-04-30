@@ -14,11 +14,7 @@ import {
 import { ScrollSync, ScrollSyncPane } from 'react-scroll-sync';
 
 import type { TranslateFunction } from 'decap-cms-ui-default';
-import type {
-  CmsCollectionState,
-  CmsEntry,
-  CmsEntryField,
-} from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState, CmsEntry, CmsEntryField } from 'decap-cms-lib-util';
 
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;
@@ -341,7 +337,10 @@ class EditorInterface extends Component<EditorInterfaceProps> {
     );
 
     const editor2 = (
-      <ControlPaneContainer $overFlow={!this.state.scrollSyncEnabled} $blockEntry={showEventBlocker}>
+      <ControlPaneContainer
+        $overFlow={!this.state.scrollSyncEnabled}
+        $blockEntry={showEventBlocker}
+      >
         <EditorControlPane {...editorProps} locale={locales?.[1]} t={t} />
       </ControlPaneContainer>
     );

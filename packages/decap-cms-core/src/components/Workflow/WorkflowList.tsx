@@ -7,10 +7,7 @@ import dayjs from 'dayjs';
 import { translate } from 'react-polyglot';
 import { colors, lengths } from 'decap-cms-ui-default';
 import type { TranslateFunction } from 'decap-cms-ui-default';
-import type { CmsCollections, CmsCollectionState } from 'decap-cms-lib-util/types/cms';
-
-type Collections = CmsCollections;
-type Collection = CmsCollectionState;
+import type { CmsCollections, CmsCollectionState } from 'decap-cms-lib-util';
 
 import { status } from '../../constants/publishModes';
 import { DragSource, DropTarget, HTML5DragDrop } from '../UI';
@@ -146,12 +143,17 @@ interface DragProps {
 interface WorkflowListProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   entries?: any;
-  handleChangeStatus: (collection: string, slug: string, oldStatus: string, newStatus: string) => void;
+  handleChangeStatus: (
+    collection: string,
+    slug: string,
+    oldStatus: string,
+    newStatus: string,
+  ) => void;
   handlePublish: (collection: string, slug: string) => void;
   handleDelete: (collection: string, slug: string, status: string) => void;
   t: TranslateFunction;
   isOpenAuthoring?: boolean;
-  collections: Collections;
+  collections: CmsCollections;
 }
 
 class WorkflowList extends React.Component<WorkflowListProps> {
@@ -193,45 +195,48 @@ class WorkflowList extends React.Component<WorkflowListProps> {
     this.props.handlePublish(collection, slug);
   };
 
-  // eslint-disable-next-line react/display-name
   renderColumns = (entries: any, column?: string): any => {
     const { isOpenAuthoring, collections, t } = this.props;
     if (!entries) return null;
 
     if (!column) {
-      return Object.entries(entries).map(([currColumn, currEntries]: [string, any], idx: number) => (
-        <DropTarget
-          namespace={DNDNamespace}
-          key={currColumn}
-          onDrop={this.handleChangeStatus.bind(this, currColumn) as any}
-        >
-          {(connect: any, { isHovered }: { isHovered: boolean }) =>
-            connect(
-              <div style={{ height: '100%' }}>
-                <div
-                  css={[
-                    styles.column,
-                    styles.columnPosition(idx),
-                    isHovered && styles.columnHovered,
-                    isOpenAuthoring && currColumn === 'pending_publish' && styles.hiddenColumn,
-                    isOpenAuthoring && currColumn === 'pending_review' && styles.hiddenRightBorder,
-                  ]}
-                >
-                  <ColumnHeader $name={currColumn}>
-                    {getColumnHeaderText(currColumn, this.props.t)}
-                  </ColumnHeader>
-                  <ColumnCount>
-                    {this.props.t('workflow.workflowList.currentEntries', {
-                      smart_count: Array.isArray(currEntries) ? currEntries.length : 0,
-                    })}
-                  </ColumnCount>
-                  {this.renderColumns(currEntries, currColumn)}
-                </div>
-              </div>,
-            )
-          }
-        </DropTarget>
-      ));
+      return Object.entries(entries).map(
+        ([currColumn, currEntries]: [string, any], idx: number) => (
+          <DropTarget
+            namespace={DNDNamespace}
+            key={currColumn}
+            onDrop={this.handleChangeStatus.bind(this, currColumn) as any}
+          >
+            {(connect: any, { isHovered }: { isHovered: boolean }) =>
+              connect(
+                <div style={{ height: '100%' }}>
+                  <div
+                    css={[
+                      styles.column,
+                      styles.columnPosition(idx),
+                      isHovered && styles.columnHovered,
+                      isOpenAuthoring && currColumn === 'pending_publish' && styles.hiddenColumn,
+                      isOpenAuthoring &&
+                        currColumn === 'pending_review' &&
+                        styles.hiddenRightBorder,
+                    ]}
+                  >
+                    <ColumnHeader $name={currColumn}>
+                      {getColumnHeaderText(currColumn, this.props.t)}
+                    </ColumnHeader>
+                    <ColumnCount>
+                      {this.props.t('workflow.workflowList.currentEntries', {
+                        smart_count: Array.isArray(currEntries) ? currEntries.length : 0,
+                      })}
+                    </ColumnCount>
+                    {this.renderColumns(currEntries, currColumn)}
+                  </div>
+                </div>,
+              )
+            }
+          </DropTarget>
+        ),
+      );
     }
     return (
       <div>
@@ -242,13 +247,14 @@ class WorkflowList extends React.Component<WorkflowListProps> {
           const editLink = `collections/${collectionName}/entries/${slug}?ref=workflow`;
           const ownStatus = entry.status;
           const collection = Object.values(collections).find(
-            (collection: Collection) => collection.name === collectionName,
+            (collection: CmsCollectionState) => collection.name === collectionName,
           );
           const collectionLabel = collection?.label;
           const isModification = entry.isModification;
 
           const allowPublish = (collection?.publish ?? true) as boolean;
-          const canPublish = ownStatus === Object.values(status).pop() && !(entry.isPersisting ?? false);
+          const canPublish =
+            ownStatus === Object.values(status).pop() && !(entry.isPersisting ?? false);
           const postAuthor = entry.author;
 
           return (
@@ -264,7 +270,7 @@ class WorkflowList extends React.Component<WorkflowListProps> {
                   <div>
                     <WorkflowCard
                       collectionLabel={collectionLabel || collectionName}
-                      title={selectEntryCollectionTitle(collection as Collection, entry)}
+                      title={selectEntryCollectionTitle(collection as CmsCollectionState, entry)}
                       authorLastChange={entry.metaData?.user}
                       body={entry.data?.body}
                       isModification={isModification}

@@ -5,9 +5,7 @@ import { Link } from 'react-router-dom';
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import { components, buttons, shadows } from 'decap-cms-ui-default';
 
-import type { CmsCollectionState } from 'decap-cms-lib-util/types/cms';
-
-type Collection = CmsCollectionState;
+import type { CmsCollectionState } from 'decap-cms-lib-util';
 
 const CollectionTopContainer = styled.div`
   ${components.cardTop};
@@ -38,7 +36,7 @@ const CollectionTopDescription = styled.p`
   margin-bottom: 0;
 `;
 
-function getCollectionProps(collection: Collection) {
+function getCollectionProps(collection: CmsCollectionState) {
   const collectionLabel = collection.label;
   const collectionLabelSingular = collection.label_singular;
   const collectionDescription = collection.description;
@@ -51,15 +49,14 @@ function getCollectionProps(collection: Collection) {
 }
 
 interface CollectionTopProps {
-  collection: Collection;
+  collection: CmsCollectionState;
   newEntryUrl?: string;
   t: TranslateFunction;
 }
 
 function CollectionTop({ collection, newEntryUrl, t }: CollectionTopProps) {
-  const { collectionLabel, collectionLabelSingular, collectionDescription } = getCollectionProps(
-    collection,
-  );
+  const { collectionLabel, collectionLabelSingular, collectionDescription } =
+    getCollectionProps(collection);
 
   return (
     <CollectionTopContainer>
@@ -74,7 +71,9 @@ function CollectionTop({ collection, newEntryUrl, t }: CollectionTopProps) {
         ) : null}
       </CollectionTopRow>
       {collectionDescription ? (
-        <CollectionTopDescription>{collectionDescription as React.ReactNode}</CollectionTopDescription>
+        <CollectionTopDescription>
+          {collectionDescription as React.ReactNode}
+        </CollectionTopDescription>
       ) : null}
     </CollectionTopContainer>
   );

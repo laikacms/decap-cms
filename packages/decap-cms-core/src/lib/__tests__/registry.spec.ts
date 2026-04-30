@@ -101,11 +101,8 @@ describe('registry', () => {
 
       events.forEach(name => {
         it(`should remove '${name}' event by handler`, async () => {
-          const {
-            registerEventListener,
-            getEventListeners,
-            removeEventListener,
-          } = await import('../registry');
+          const { registerEventListener, getEventListeners, removeEventListener } =
+            await import('../registry');
 
           const handler1 = vi.fn();
           const handler2 = vi.fn();
@@ -122,11 +119,8 @@ describe('registry', () => {
 
       events.forEach(name => {
         it(`should remove '${name}' event by name`, async () => {
-          const {
-            registerEventListener,
-            getEventListeners,
-            removeEventListener,
-          } = await import('../registry');
+          const { registerEventListener, getEventListeners, removeEventListener } =
+            await import('../registry');
 
           const handler1 = vi.fn();
           const handler2 = vi.fn();

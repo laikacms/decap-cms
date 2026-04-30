@@ -72,7 +72,7 @@ export default class AuthenticationPage extends React.Component<AuthenticationPa
 
     return (
       <StyledAuthenticationPage>
-        {renderPageLogo(config.logo?.src || config.logo_url)}
+        {renderPageLogo(config.logo?.src || config.logo?.src)}
         <LoginButton disabled={inProgress} onClick={this.handleLogin}>
           {inProgress ? t('auth.loggingIn') : t('auth.login')}
         </LoginButton>

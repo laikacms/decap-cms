@@ -15,7 +15,7 @@ import status from './status';
 import notifications from './notifications';
 
 import type { Status } from '../constants/publishModes';
-import type { CmsCollectionState, CmsEntry } from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState, CmsEntry } from 'decap-cms-lib-util';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type State = any;
@@ -59,8 +59,13 @@ export function selectPublishedSlugs(state: State, collection: string) {
 
 export function selectSearchedEntries(state: State, availableCollections: string[]): Entry[] {
   return state.search.entryIds
-    .filter((entryId: { collection: string; slug: string }) => availableCollections.indexOf(entryId.collection) !== -1)
-    .map((entryId: { collection: string; slug: string }) => fromEntries.selectEntry(state.entries, entryId.collection, entryId.slug))
+    .filter(
+      (entryId: { collection: string; slug: string }) =>
+        availableCollections.indexOf(entryId.collection) !== -1,
+    )
+    .map((entryId: { collection: string; slug: string }) =>
+      fromEntries.selectEntry(state.entries, entryId.collection, entryId.slug),
+    )
     .filter((entry: Entry | undefined): entry is Entry => entry !== undefined);
 }
 

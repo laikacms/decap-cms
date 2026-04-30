@@ -1,12 +1,7 @@
 import { useCallback } from 'react';
 
 import { useAppSelector, useAppDispatch } from './useRedux';
-import {
-  loadEntry,
-  loadEntries,
-  persistEntry,
-  deleteEntry,
-} from '../actions/entries';
+import { loadEntry, loadEntries, persistEntry, deleteEntry } from '../actions/entries';
 import {
   updateUnpublishedEntryStatus,
   publishUnpublishedEntry,
@@ -20,7 +15,7 @@ import { status } from '../constants/publishModes';
 import { navigateToCollection, navigateToNewEntry } from '../routing/history';
 
 import type { Status } from '../constants/publishModes';
-import type { CmsEntry } from 'decap-cms-lib-util/types/cms';
+import type { CmsEntry } from 'decap-cms-lib-util';
 type Entry = CmsEntry;
 
 interface UseEntryOptions {
@@ -42,11 +37,21 @@ export function useEntry({ collectionName, slug, newEntry = false }: UseEntryOpt
   const collection = collections[collectionName];
   const fields = selectFields(collection, slug || '');
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const entry = newEntry ? null : selectEntry({ collections, entries, config } as any, collectionName, slug || '');
+  const entry = newEntry
+    ? null
+    : selectEntry({ collections, entries, config } as any, collectionName, slug || '');
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const unpublishedEntry = selectUnpublishedEntry({ editorialWorkflow: useAppSelector(state => state.editorialWorkflow) } as any, collectionName, slug || '');
+  const unpublishedEntry = selectUnpublishedEntry(
+    { editorialWorkflow: useAppSelector(state => state.editorialWorkflow) } as any,
+    collectionName,
+    slug || '',
+  );
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const deployPreview = selectDeployPreview({ deploys: useAppSelector(state => state.deploys) } as any, collectionName, slug || '');
+  const deployPreview = selectDeployPreview(
+    { deploys: useAppSelector(state => state.deploys) } as any,
+    collectionName,
+    slug || '',
+  );
   const collectionEntriesLoaded = !!entries.pages?.[collectionName];
   const currentStatus = unpublishedEntry?.status as Status | undefined;
   const isPublished = !newEntry && !unpublishedEntry;
@@ -79,13 +84,15 @@ export function useEntry({ collectionName, slug, newEntry = false }: UseEntryOpt
   const updateStatus = useCallback(
     (newStatusName: string) => {
       if (collection && slug && currentStatus) {
-        const newStatus = (status as unknown as Record<string, string>)[newStatusName] as Status | undefined;
+        const newStatus = (status as unknown as Record<string, string>)[newStatusName] as
+          | Status
+          | undefined;
         if (newStatus) {
           dispatch(updateUnpublishedEntryStatus(collectionName, slug, currentStatus, newStatus));
         }
       }
     },
-    [dispatch, collection, slug, currentStatus, collectionName]
+    [dispatch, collection, slug, currentStatus, collectionName],
   );
 
   const publish = useCallback(async () => {
@@ -113,7 +120,7 @@ export function useEntry({ collectionName, slug, newEntry = false }: UseEntryOpt
         dispatch(loadDeployPreview(collection, slug, entry as unknown as Entry, isPublished, opts));
       }
     },
-    [dispatch, collection, slug, entry, isPublished]
+    [dispatch, collection, slug, entry, isPublished],
   );
 
   const navigateToNew = useCallback(() => {

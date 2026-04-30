@@ -28,7 +28,8 @@
     "decap-cms-ui-default": "workspace:*",
     "lodash": "catalog:utils",
     "prop-types": "catalog:react",
-    "react": "catalog:react"
+    "react": "catalog:react",
+    "decap-cms-lib-util": "workspace:*"
   },
   "devDependencies": {
     "@types/prop-types": "catalog:types",

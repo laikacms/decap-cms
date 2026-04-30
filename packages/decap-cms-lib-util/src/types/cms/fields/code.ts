@@ -1,4 +1,3 @@
-
 export interface CmsFieldCode {
   widget: 'code';
   default?: unknown;

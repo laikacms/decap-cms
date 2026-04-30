@@ -31,7 +31,10 @@ describe('entries', () => {
         { slug: 'b', title: 'B' },
       ];
       expect(
-        reducer(initialState, actions.entriesLoaded({ name: 'posts' }, entries, 0, Cursor.create({}))),
+        reducer(
+          initialState,
+          actions.entriesLoaded({ name: 'posts' }, entries, 0, Cursor.create({})),
+        ),
       ).toEqual(
         expect.objectContaining({
           entities: {
@@ -588,9 +591,12 @@ describe('entries', () => {
         name: 'posts',
       };
 
-      expect(selectEntries(state, collection)).toEqual(
-        [{ slug: '1' }, { slug: '2' }, { slug: '3' }, { slug: '4' }],
-      );
+      expect(selectEntries(state, collection)).toEqual([
+        { slug: '1' },
+        { slug: '2' },
+        { slug: '3' },
+        { slug: '4' },
+      ]);
     });
   });
 
@@ -609,14 +615,12 @@ describe('entries', () => {
       name: 'posts',
     };
 
-    expect(selectEntries(state, collection)).toEqual(
-      [
-        { slug: '4', data: { title: '4' } },
-        { slug: '3', data: { title: '3' } },
-        { slug: '2', data: { title: '2' } },
-        { slug: '1', data: { title: '1' } },
-      ],
-    );
+    expect(selectEntries(state, collection)).toEqual([
+      { slug: '4', data: { title: '4' } },
+      { slug: '3', data: { title: '3' } },
+      { slug: '2', data: { title: '2' } },
+      { slug: '1', data: { title: '1' } },
+    ]);
   });
 
   it('should return sorted entries entries by nested field', () => {
@@ -634,14 +638,12 @@ describe('entries', () => {
       name: 'posts',
     };
 
-    expect(selectEntries(state, collection)).toEqual(
-      [
-        { slug: '4', data: { title: '4', nested: { date: 1 } } },
-        { slug: '3', data: { title: '3', nested: { date: 2 } } },
-        { slug: '2', data: { title: '2', nested: { date: 3 } } },
-        { slug: '1', data: { title: '1', nested: { date: 4 } } },
-      ],
-    );
+    expect(selectEntries(state, collection)).toEqual([
+      { slug: '4', data: { title: '4', nested: { date: 1 } } },
+      { slug: '3', data: { title: '3', nested: { date: 2 } } },
+      { slug: '2', data: { title: '2', nested: { date: 3 } } },
+      { slug: '1', data: { title: '1', nested: { date: 4 } } },
+    ]);
   });
 
   it('should return filtered entries entries by field', () => {
@@ -679,11 +681,9 @@ describe('entries', () => {
       name: 'posts',
     };
 
-    expect(selectEntries(state, collection)).toEqual(
-      [
-        { slug: '3', data: { title: '3', nested: { draft: false } } },
-        { slug: '4', data: { title: '4', nested: { draft: false } } },
-      ],
-    );
+    expect(selectEntries(state, collection)).toEqual([
+      { slug: '3', data: { title: '3', nested: { draft: false } } },
+      { slug: '4', data: { title: '4', nested: { draft: false } } },
+    ]);
   });
 });

@@ -1,24 +1,32 @@
-const fs = require('fs-extra');
-const path = require('path');
-const yaml = require('yaml');
-const uniq = require('lodash/uniq');
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import yaml from 'yaml';
+import uniq from 'lodash/uniq';
 
 const rawDataPath = '../data/languages-raw.yml';
 const outputPath = '../data/languages.json';
 
 async function fetchData() {
   const filePath = path.resolve(__dirname, rawDataPath);
-  const fileContent = await fs.readFile(filePath);
+  const fileContent = await fs.readFile(filePath, 'utf-8');
   return yaml.parse(fileContent);
 }
 
-function outputData(data) {
+function outputData(data: unknown) {
   const filePath = path.resolve(__dirname, outputPath);
-  return fs.writeJson(filePath, data);
+  return fs.writeFile(filePath, JSON.stringify(data, null, 2));
 }
 
-function transform(data) {
-  return Object.entries(data).reduce((acc, [label, lang]) => {
+interface LanguageData {
+  label: string;
+  extensions?: string[];
+  aliases?: string[];
+  codemirror_mode?: string | { name: string; [key: string]: unknown };
+  codemirror_mime_type?: string;
+}
+
+function transform(data: Record<string, LanguageData>) {
+  return Object.entries(data).reduce((acc: any[], [label, lang]) => {
     const { extensions = [], aliases = [], codemirror_mode, codemirror_mime_type } = lang;
     if (codemirror_mode) {
       const dotlessExtensions = extensions.map(ext => ext.slice(1));
@@ -30,7 +38,7 @@ function transform(data) {
           return !/[^a-zA-Z]/.test(alias);
         }),
       );
-      acc.push({ label, identifiers, codemirror_mode, codemirror_mime_type });
+      return [...acc, { label, identifiers, codemirror_mode, codemirror_mime_type }];
     }
     return acc;
   }, []);

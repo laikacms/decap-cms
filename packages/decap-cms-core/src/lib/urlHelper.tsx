@@ -1,14 +1,13 @@
-// @ts-ignore - url module doesn't have type declarations
-import url from 'url';
-import urlJoin from 'url-join';
-import diacritics from 'diacritics';
-import sanitizeFilename from 'sanitize-filename';
 import isString from 'lodash/isString';
 import escapeRegExp from 'lodash/escapeRegExp';
 import flow from 'lodash/flow';
 import partialRight from 'lodash/partialRight';
 
-import type { CmsSlug } from 'decap-cms-lib-util/types/cms';
+import urlJoin from './urlJoin';
+import { remove } from './diacritics.js';
+import sanitizeFilename from './sanitizeFilename';
+
+import type { CmsSlug } from 'decap-cms-lib-util';
 
 function getUrl(urlString: string, direct?: boolean) {
   return `${direct ? '/#' : ''}${urlString}`;
@@ -23,11 +22,10 @@ export function getNewEntryUrl(collectionName: string, direct?: boolean) {
 }
 
 export function addParams(urlString: string, params: Record<string, string>) {
-  const parsedUrl = url.parse(urlString, true);
-  const existingQuery =
-    typeof parsedUrl.query === 'object' && parsedUrl.query !== null ? parsedUrl.query : {};
-  parsedUrl.query = { ...existingQuery, ...params };
-  return url.format(parsedUrl);
+  const parsedUrl = new URL(urlString);
+  const combined = { ...Object.fromEntries(parsedUrl.searchParams.entries()), ...params };
+  parsedUrl.search = new URLSearchParams(combined).toString();
+  return parsedUrl.toString();
 }
 
 export function stripProtocol(urlString: string) {
@@ -108,7 +106,7 @@ export function sanitizeSlug(str: string, options?: CmsSlug) {
   } = options || {};
 
   const sanitizedSlug = flow([
-    ...(stripDiacritics ? [diacritics.remove] : []),
+    ...(stripDiacritics ? [remove] : []),
     partialRight(sanitizeURI, { replacement, encoding }),
     partialRight(sanitizeFilename, { replacement }),
   ])(str);

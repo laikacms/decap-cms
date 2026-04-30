@@ -80,7 +80,12 @@ interface MediaLibraryProps {
   isPaginating?: boolean;
   privateUpload?: boolean;
   config?: Record<string, unknown>;
-  loadMedia: (opts?: { delay?: number; query?: string; page?: number; privateUpload?: boolean }) => void;
+  loadMedia: (opts?: {
+    delay?: number;
+    query?: string;
+    page?: number;
+    privateUpload?: boolean;
+  }) => void;
   dynamicSearchQuery?: string;
   page?: number;
   persistMedia: (file: File, opts?: { privateUpload?: boolean; field?: unknown }) => void;
@@ -239,7 +244,9 @@ class MediaLibrary extends React.Component<MediaLibraryProps, MediaLibraryState>
   /**
    * Upload a file.
    */
-  handlePersist = async (event: React.ChangeEvent<HTMLInputElement> & { dataTransfer?: DataTransfer }) => {
+  handlePersist = async (
+    event: React.ChangeEvent<HTMLInputElement> & { dataTransfer?: DataTransfer },
+  ) => {
     /**
      * Stop the browser from automatically handling the file input click, and
      * get the file for upload, and retain the synthetic event for access after
@@ -252,7 +259,9 @@ class MediaLibrary extends React.Component<MediaLibraryProps, MediaLibraryState>
     const { files: fileList } = event.dataTransfer || event.target;
     const files = [...(fileList as FileList)];
     const file = files[0];
-    const maxFileSize = (config as Record<string, unknown> | undefined)?.max_file_size as number | undefined;
+    const maxFileSize = (config as Record<string, unknown> | undefined)?.max_file_size as
+      | number
+      | undefined;
 
     if (maxFileSize && file.size > maxFileSize) {
       window.alert(
@@ -309,7 +318,9 @@ class MediaLibrary extends React.Component<MediaLibraryProps, MediaLibraryState>
     const { displayURLs } = this.props;
     const selectedId = 'id' in selectedFile ? (selectedFile as MediaFile).id : undefined;
     const selectedUrl = 'url' in selectedFile ? (selectedFile as MediaFile).url : undefined;
-    const url = ((displayURLs as Record<string, Record<string, unknown>> | undefined)?.[selectedId ?? '']?.url as string | undefined) || selectedUrl;
+    const url =
+      ((displayURLs as Record<string, Record<string, unknown>> | undefined)?.[selectedId ?? '']
+        ?.url as string | undefined) || selectedUrl;
     if (!url) {
       return;
     }

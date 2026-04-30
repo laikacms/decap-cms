@@ -3,7 +3,7 @@ import { useCallback } from 'react';
 import { useAppSelector, useAppDispatch } from './useRedux';
 import { loginUser, logoutUser } from '../actions/auth';
 
-import type { CmsCredentials as Credentials } from 'decap-cms-lib-util/types/cms';
+import type { CmsCredentials as Credentials } from 'decap-cms-lib-util';
 
 /**
  * Hook for authentication state and actions
@@ -18,7 +18,7 @@ export function useAuth() {
     (credentials: Credentials) => {
       dispatch(loginUser(credentials));
     },
-    [dispatch]
+    [dispatch],
   );
 
   const logout = useCallback(() => {

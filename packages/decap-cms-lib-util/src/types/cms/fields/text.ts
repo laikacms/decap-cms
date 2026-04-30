@@ -1,4 +1,3 @@
-
 export interface CmsFieldText {
   // This is the default widget, so declaring its type is optional.
   widget?: 'string' | 'text';

@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import fs from 'fs-extra';
+import fs from 'node:fs/promises';
 import fetch from 'node-fetch';
 import path from 'path';
 import { merge } from 'lodash';
@@ -108,7 +107,7 @@ async function prepareTestBitBucketRepo({ lfs }: { lfs?: boolean }): Promise<Rep
   await post(token, `repositories/${owner}/${testRepoName}`, JSON.stringify({ scm: 'git' }));
 
   const tempDir = path.join('.temp', testRepoName);
-  await fs.remove(tempDir);
+  await fs.rm(tempDir, { recursive: true, force: true });
   let git = getGitClient();
 
   const repoUrl = `git@bitbucket.org:${owner}/${repo}.git`;
@@ -161,7 +160,7 @@ async function deleteRepositories({ owner, repo, tempDir }: RepoData): Promise<v
   const { token } = await getEnvs();
 
   console.log('Deleting repository', `${owner}/${repo}`);
-  await fs.remove(tempDir);
+  await fs.rm(tempDir, { recursive: true, force: true });
 
   await del(token, `repositories/${owner}/${repo}`);
 }

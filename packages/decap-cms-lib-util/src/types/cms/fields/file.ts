@@ -1,5 +1,5 @@
-import type { CmsMediaLibrary } from "../media.js";
-import type { CmsFieldImage } from "./image.js";
+import type { CmsMediaLibrary } from '../media.js';
+import type { CmsFieldImage } from './image.js';
 
 export interface CmsFieldFile {
   widget: 'file';
@@ -7,7 +7,7 @@ export interface CmsFieldFile {
 
   media_library?: CmsMediaLibrary;
   allow_multiple?: boolean;
-  private? : boolean;
+  private?: boolean;
   config?: unknown;
   choose_url?: boolean;
 }

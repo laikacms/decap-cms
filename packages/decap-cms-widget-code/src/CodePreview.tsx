@@ -13,9 +13,9 @@ function toValue(
     return value;
   }
   if (isObject(value) && field) {
-    return (value as Record<string, unknown>)[
-      get(field, ['keys', 'code'], 'code')
-    ] as string || '';
+    return (
+      ((value as Record<string, unknown>)[get(field, ['keys', 'code'], 'code')] as string) || ''
+    );
   }
   return '';
 }

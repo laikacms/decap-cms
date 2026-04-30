@@ -20,11 +20,7 @@ const ROOT_DIR = process.cwd();
 const PACKAGES_TO_TEST = ['decap-cms', 'decap-cms-core', 'decap-cms-app'];
 
 // Known Node.js protocol imports that break browser bundlers
-const BROWSER_INCOMPATIBLE_PATTERNS = [
-  /from ['"]node:/,
-  /require\(['"]node:/,
-  /import ['"]node:/,
-];
+const BROWSER_INCOMPATIBLE_PATTERNS = [/from ['"]node:/, /require\(['"]node:/, /import ['"]node:/];
 
 function log(msg) {
   console.log(`[test-package-integrity] ${msg}`);

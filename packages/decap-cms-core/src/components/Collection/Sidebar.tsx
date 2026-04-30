@@ -6,10 +6,7 @@ import { NavLink } from 'react-router-dom';
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import { Icon, components, colors } from 'decap-cms-ui-default';
 
-import type { CmsCollectionState, CmsCollections } from 'decap-cms-lib-util/types/cms';
-
-type Collection = CmsCollectionState;
-type Collections = CmsCollections;
+import type { CmsCollectionState, CmsCollections } from 'decap-cms-lib-util';
 
 import { searchCollections } from '../../actions/collections';
 import CollectionSearch from './CollectionSearch';
@@ -70,8 +67,8 @@ const SidebarNavLink = styled(NavLink)`
 `;
 
 interface SidebarProps {
-  collections: Collections;
-  collection?: Collection;
+  collections: CmsCollections;
+  collection?: CmsCollectionState;
   isSearchEnabled?: boolean;
   searchTerm?: string;
   filterTerm?: string;
@@ -79,7 +76,7 @@ interface SidebarProps {
 }
 
 export class Sidebar extends React.Component<SidebarProps> {
-  renderLink = (collection: Collection, filterTerm: string | undefined) => {
+  renderLink = (collection: CmsCollectionState, filterTerm: string | undefined) => {
     const collectionName = collection.name;
     if (collection.nested) {
       return (
@@ -88,7 +85,6 @@ export class Sidebar extends React.Component<SidebarProps> {
             collection={collection}
             filterTerm={filterTerm as string}
             data-testid={collectionName}
-            entries={undefined as any}
           />
         </li>
       );
@@ -97,7 +93,7 @@ export class Sidebar extends React.Component<SidebarProps> {
       <li key={collectionName}>
         <SidebarNavLink
           to={`/collections/${collectionName}`}
-          className={({ isActive }: { isActive: boolean }) => isActive ? 'active' : ''}
+          className={({ isActive }: { isActive: boolean }) => (isActive ? 'active' : '')}
           data-testid={collectionName}
         >
           <Icon type="write" />
@@ -117,13 +113,15 @@ export class Sidebar extends React.Component<SidebarProps> {
             searchTerm={searchTerm || ''}
             collections={collections}
             collection={collection}
-            onSubmit={(query: string, collection?: string) => searchCollections(query, collection as string)}
+            onSubmit={(query: string, collection?: string) =>
+              searchCollections(query, collection as string)
+            }
           />
         )}
         <SidebarNavList>
           {Object.values(collections)
-            .filter((collection: Collection) => collection.hide !== true)
-            .map((collection: Collection) => this.renderLink(collection, filterTerm))}
+            .filter((collection: CmsCollectionState) => collection.hide !== true)
+            .map((collection: CmsCollectionState) => this.renderLink(collection, filterTerm))}
         </SidebarNavList>
       </SidebarContainer>
     );

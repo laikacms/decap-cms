@@ -3,11 +3,7 @@ import { connect } from 'react-redux';
 import isEqual from 'lodash/isEqual';
 import { Cursor } from 'decap-cms-lib-util';
 
-import type { CmsCollectionState, CmsCollections, CmsEntry } from 'decap-cms-lib-util/types/cms';
-
-type Collection = CmsCollectionState;
-type Collections = CmsCollections;
-type EntryMap = CmsEntry;
+import type { CmsCollectionState, CmsCollections, CmsEntry } from 'decap-cms-lib-util';
 
 import { selectSearchedEntries, selectUnpublishedEntry } from '../../../reducers';
 import {
@@ -21,9 +17,9 @@ interface EntriesSearchProps {
   searchEntries: (searchTerm: string, collectionNames: string[], page?: number) => void;
   clearSearch: () => void;
   searchTerm: string;
-  collections?: Collection[];
+  collections?: CmsCollectionState[];
   collectionNames?: string[];
-  entries?: EntryMap[];
+  entries?: CmsEntry[];
   page?: number;
   getWorkflowStatus?: (collectionName: string, slug: string) => string | null;
 }
@@ -79,7 +75,10 @@ class EntriesSearch extends React.Component<EntriesSearchProps> {
   }
 }
 
-function mapStateToProps(state: any, ownProps: { collections: Collections; searchTerm: string }) {
+function mapStateToProps(
+  state: any,
+  ownProps: { collections: CmsCollections; searchTerm: string },
+) {
   const { searchTerm } = ownProps;
   const collections = Object.values(ownProps.collections);
   const collectionNames = Object.keys(ownProps.collections);

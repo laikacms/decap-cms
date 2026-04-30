@@ -58,7 +58,10 @@ function runSerializer(values: ValuesMap, fields: FieldList, method: SerializerM
 
     // Run serialization method on value if not null or undefined
     if (serializer && !isNil(value)) {
-      const typedSerializer = serializer as { serialize: (value: unknown) => unknown; deserialize: (value: unknown) => unknown };
+      const typedSerializer = serializer as {
+        serialize: (value: unknown) => unknown;
+        deserialize: (value: unknown) => unknown;
+      };
       return { ...acc, [fieldName]: typedSerializer[method](value) };
     }
 

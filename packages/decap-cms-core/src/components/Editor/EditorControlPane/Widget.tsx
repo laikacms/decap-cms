@@ -47,7 +47,14 @@ interface WidgetProps<T = unknown> {
   widget: Record<string, unknown>;
   getEditorComponents: () => Record<string, unknown>;
   isFetching?: boolean;
-  query: (namespace: string, collectionName: string, searchFields: string[], searchTerm: string, file?: string, limit?: number) => void;
+  query: (
+    namespace: string,
+    collectionName: string,
+    searchFields: string[],
+    searchTerm: string,
+    file?: string,
+    limit?: number,
+  ) => void;
   clearSearch: () => void;
   clearFieldErrors: (uniqueFieldId: string) => void;
   queryHits?: unknown[] | Record<string, unknown>;
@@ -67,7 +74,11 @@ interface WidgetProps<T = unknown> {
   isParentListCollapsed?: boolean;
   isLoadingAsset?: boolean;
   parentIds?: string[];
-  validateMetaField?: (field: Record<string, unknown>, value: unknown, t: TranslateFunction) => ValidationResult;
+  validateMetaField?: (
+    field: Record<string, unknown>,
+    value: unknown,
+    t: TranslateFunction,
+  ) => ValidationResult;
   collection?: Record<string, unknown>;
   config?: Record<string, unknown>;
 }
@@ -82,7 +93,10 @@ function isEmpty(value: unknown) {
     value === undefined ||
     (Object.prototype.hasOwnProperty.call(value, 'length') &&
       (value as { length: number }).length === 0) ||
-    (typeof value === 'object' && value !== null && (value as object).constructor === Object && Object.keys(value as object).length === 0) ||
+    (typeof value === 'object' &&
+      value !== null &&
+      (value as object).constructor === Object &&
+      Object.keys(value as object).length === 0) ||
     (Array.isArray(value) && value.length === 0)
   );
 }
@@ -249,10 +263,7 @@ export default class Widget extends Component<WidgetProps> {
     this.props.onValidate?.(errors);
   };
 
-  validatePresence = (
-    field: Record<string, unknown>,
-    value: unknown,
-  ): ValidationResult => {
+  validatePresence = (field: Record<string, unknown>, value: unknown): ValidationResult => {
     const { t, parentIds } = this.props;
     const isRequired = field.required ?? true;
     if (isRequired && isEmpty(value)) {
@@ -269,10 +280,7 @@ export default class Widget extends Component<WidgetProps> {
     return { error: false };
   };
 
-  validatePattern = (
-    field: Record<string, unknown>,
-    value: unknown,
-  ): ValidationResult => {
+  validatePattern = (field: Record<string, unknown>, value: unknown): ValidationResult => {
     const { t, parentIds } = this.props;
     const pattern = (field.pattern || false) as string[] | false;
 
@@ -483,4 +491,3 @@ export default class Widget extends Component<WidgetProps> {
 }
 
 type Wi = typeof Widget;
-

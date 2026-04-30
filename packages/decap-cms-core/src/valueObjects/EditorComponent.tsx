@@ -4,7 +4,7 @@ import type {
   CmsEditorComponentOptions,
   CmsEditorComponentPlugin,
   CmsEditorComponentField,
-} from 'decap-cms-lib-util/types/cms';
+} from 'decap-cms-lib-util';
 
 type EditorComponentOptions = CmsEditorComponentOptions;
 type EditorComponentPlugin = CmsEditorComponentPlugin;
@@ -27,7 +27,7 @@ function bind(fn: AnyFunction | undefined): AnyFunction | false {
 }
 
 export default function createEditorComponent(
-  config: EditorComponentConfig
+  config: EditorComponentConfig,
 ): EditorComponentPlugin {
   const {
     id = null,

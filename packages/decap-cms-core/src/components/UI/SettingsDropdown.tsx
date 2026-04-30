@@ -72,7 +72,13 @@ interface SettingsDropdownProps {
   t: TranslateFunction;
 }
 
-function SettingsDropdown({ displayUrl, isTestRepo, imageUrl, onLogoutClick, t }: SettingsDropdownProps) {
+function SettingsDropdown({
+  displayUrl,
+  isTestRepo,
+  imageUrl,
+  onLogoutClick,
+  t,
+}: SettingsDropdownProps) {
   return (
     <React.Fragment>
       {isTestRepo && (

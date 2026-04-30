@@ -20,14 +20,16 @@ const filters: Array<{
   {
     pattern: /^default\('(.+)'\)$/,
     transform: (str: string, match: RegExpMatchArray, rawValue?: unknown) => {
-      const isFalsy = rawValue === null || rawValue === undefined || rawValue === false || rawValue === '';
+      const isFalsy =
+        rawValue === null || rawValue === undefined || rawValue === false || rawValue === '';
       return isFalsy ? match[1] : str;
     },
   },
   {
     pattern: /^ternary\('(.*)',\s*'(.*)'\)$/,
     transform: (str: string, match: RegExpMatchArray, rawValue?: unknown) => {
-      const isFalsy = rawValue === null || rawValue === undefined || rawValue === false || rawValue === '';
+      const isFalsy =
+        rawValue === null || rawValue === undefined || rawValue === false || rawValue === '';
       return isFalsy ? match[2] : match[1];
     },
   },
@@ -64,7 +66,10 @@ export const dateParsers: Record<string, (date: Date) => string> = {
   second: (date: Date) => formatDate(date.getUTCSeconds()),
 };
 
-export function parseDateFromEntry(entry: Record<string, unknown>, dateFieldName?: string | null): Date | undefined {
+export function parseDateFromEntry(
+  entry: Record<string, unknown>,
+  dateFieldName?: string | null,
+): Date | undefined {
   if (!dateFieldName) {
     return;
   }
@@ -179,7 +184,8 @@ function getFilterFunction(filterStr: string) {
     });
 
     if (filter) {
-      return (str: string, rawValue?: unknown) => filter.transform(str, match as RegExpMatchArray, rawValue);
+      return (str: string, rawValue?: unknown) =>
+        filter.transform(str, match as RegExpMatchArray, rawValue);
     }
   }
   return null;
@@ -262,7 +268,11 @@ export function extractTemplateVars(template: string) {
  *   eg: `addFileTemplateFields('foo/bar/baz.ext', fields, 'foo')`
  *       will result in: `{ dirname: 'bar', filename: 'baz', extension: 'ext' }`
  */
-export function addFileTemplateFields(entryPath: string, fields: Record<string, string>, folder = '') {
+export function addFileTemplateFields(
+  entryPath: string,
+  fields: Record<string, string>,
+  folder = '',
+) {
   if (!entryPath) {
     return fields;
   }

@@ -6,14 +6,14 @@ import isEqual from 'lodash/isEqual';
 import isEmpty from 'lodash/isEmpty';
 import { v4 as uuid } from 'uuid';
 import { UnControlled as ReactCodeMirror } from 'react-codemirror2';
-import { EditorView, basicSetup } from 'codemirror'
-import { emacs } from '@replit/codemirror-emacs'
-import { vscodeKeymap } from '@replit/codemirror-vscode-keymap'
-import { vim } from '@replit/codemirror-vim'
+import { EditorView, basicSetup } from 'codemirror';
+import { emacs } from '@replit/codemirror-emacs';
+import { vscodeKeymap } from '@replit/codemirror-vscode-keymap';
+import { vim } from '@replit/codemirror-vim';
 import SettingsPane from './SettingsPane';
 import SettingsButton from './SettingsButton';
 import languageData from '../data/languages.json';
-import type { CmsFieldBase, CmsFieldCode } from 'decap-cms-lib-util/types/cms/index';
+import type { CmsFieldBase, CmsFieldCode } from 'decap-cms-lib-util';
 
 type CodeMirrorEditor = {
   getWrapperElement: () => HTMLElement;
@@ -235,11 +235,11 @@ export default class CodeControl extends React.Component<CodeControlProps, CodeC
 
   // If `allow_language_selection` is not set, default to true. Otherwise, use
   // its value.
-  allowLanguageSelection = this.props.field.allow_language_selection ?? true
+  allowLanguageSelection = this.props.field.allow_language_selection ?? true;
 
   toValue = this.valueIsMap()
     ? (type: string, value: unknown) =>
-        ((this.props.value as Record<string, unknown>))[this.keys[type]] = value
+        ((this.props.value as Record<string, unknown>)[this.keys[type]] = value)
     : (type: string, value: unknown) => (type === 'code' ? value : this.props.value);
 
   // If the value is a map, keys can be customized via config.
@@ -254,10 +254,7 @@ export default class CodeControl extends React.Component<CodeControlProps, CodeC
       return defaults;
     }
 
-    const keys = (field.keys as Record<string, unknown>) as Record<
-      string,
-      string
-    >;
+    const keys = field.keys as Record<string, unknown> as Record<string, string>;
     return { ...defaults, ...keys };
   }
 
@@ -357,9 +354,7 @@ export default class CodeControl extends React.Component<CodeControlProps, CodeC
               `,
             )}
           >
-            {!settingsVisible && (
-              <SettingsButton onClick={this.showSettings} showClose={false} />
-            )}
+            {!settingsVisible && <SettingsButton onClick={this.showSettings} showClose={false} />}
             {settingsVisible && (
               <SettingsPane
                 hideSettings={this.hideSettings}

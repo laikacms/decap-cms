@@ -29,13 +29,7 @@ import type {
   CmsViewFilter,
   CmsViewGroup,
   CmsSortDirection,
-} from 'decap-cms-lib-util/types/cms';
-
-type Collection = CmsCollectionState;
-type Collections = CmsCollections;
-type ViewFilter = CmsViewFilter;
-type ViewGroup = CmsViewGroup;
-type SortDirection = CmsSortDirection;
+} from 'decap-cms-lib-util';
 
 const CollectionContainer = styled.div`
   margin: ${lengths.pageMargin};
@@ -71,7 +65,11 @@ interface CollectionProps {
  * Uses useCallback for handlers and useMemo for computed values
  * NO useEffect - all side effects are handled by Redux actions
  */
-function Collection({ match, isSearchResults = false, isSingleSearchResult = false }: CollectionProps) {
+function CmsCollection({
+  match,
+  isSearchResults = false,
+  isSingleSearchResult = false,
+}: CollectionProps) {
   const t = useTranslate();
   const dispatch = useAppDispatch();
 
@@ -79,7 +77,7 @@ function Collection({ match, isSearchResults = false, isSingleSearchResult = fal
   const { name, searchTerm = '', filterTerm = '' } = match.params;
 
   // Select state from Redux store
-  const collections = useAppSelector(state => state.collections) as Collections;
+  const collections = useAppSelector(state => state.collections) as CmsCollections;
   const entries = useAppSelector(state => state.entries);
   const isSearchEnabled = useAppSelector(state => state.config?.search !== false);
 
@@ -91,39 +89,39 @@ function Collection({ match, isSearchResults = false, isSingleSearchResult = fal
     // Get first collection
     const keys = Object.keys(collections);
     return keys.length > 0 ? collections[keys[0]] : undefined;
-  }, [collections, name]) as Collection | undefined;
+  }, [collections, name]) as CmsCollectionState | undefined;
 
   const collectionName = collection?.name || name || '';
 
   // Memoized selectors
   const sort = useMemo(
     () => (collectionName ? selectEntriesSort(entries, collectionName) : undefined),
-    [entries, collectionName]
+    [entries, collectionName],
   );
 
   const sortableFields = useMemo(
     () => (collection ? selectSortableFields(collection, t) : []),
-    [collection, t]
+    [collection, t],
   );
 
   const viewFilters = useMemo(
     () => (collection ? selectViewFilters(collection) : undefined),
-    [collection]
+    [collection],
   );
 
   const viewGroups = useMemo(
     () => (collection ? selectViewGroups(collection) : undefined),
-    [collection]
+    [collection],
   );
 
   const filter = useMemo(
     () => (collectionName ? selectEntriesFilter(entries, collectionName) : undefined),
-    [entries, collectionName]
+    [entries, collectionName],
   );
 
   const group = useMemo(
     () => (collectionName ? selectEntriesGroup(entries, collectionName) : undefined),
-    [entries, collectionName]
+    [entries, collectionName],
   );
 
   const viewStyle = useMemo(() => selectViewStyle(entries), [entries]);
@@ -142,37 +140,37 @@ function Collection({ match, isSearchResults = false, isSingleSearchResult = fal
 
   // Handlers using useCallback
   const onSortClick = useCallback(
-    (key: string, direction: SortDirection) => {
+    (key: string, direction: CmsSortDirection) => {
       if (collection) {
         dispatch(sortByField(collection, key, direction));
       }
     },
-    [dispatch, collection]
+    [dispatch, collection],
   );
 
   const onFilterClick = useCallback(
-    (filterValue: ViewFilter) => {
+    (filterValue: CmsViewFilter) => {
       if (collection) {
         dispatch(filterByField(collection, filterValue));
       }
     },
-    [dispatch, collection]
+    [dispatch, collection],
   );
 
   const onGroupClick = useCallback(
-    (groupValue: ViewGroup) => {
+    (groupValue: CmsViewGroup) => {
       if (collection) {
         dispatch(groupByField(collection, groupValue));
       }
     },
-    [dispatch, collection]
+    [dispatch, collection],
   );
 
   const onChangeViewStyle = useCallback(
     (style: string) => {
       dispatch(changeViewStyle(style));
     },
-    [dispatch]
+    [dispatch],
   );
 
   // Render helpers
@@ -184,17 +182,11 @@ function Collection({ match, isSearchResults = false, isSingleSearchResult = fal
   }, [collection, viewStyle, filterTerm]);
 
   const renderEntriesSearch = useCallback(() => {
-    const searchCollections = isSingleSearchResult && collection
-      ? Object.fromEntries(
-          Object.entries(collections).filter(([, c]) => c === collection)
-        )
-      : collections;
-    return (
-      <EntriesSearch
-        collections={searchCollections}
-        searchTerm={searchTerm}
-      />
-    );
+    const searchCollections =
+      isSingleSearchResult && collection
+        ? Object.fromEntries(Object.entries(collections).filter(([, c]) => c === collection))
+        : collections;
+    return <EntriesSearch collections={searchCollections} searchTerm={searchTerm} />;
   }, [collections, collection, isSingleSearchResult, searchTerm]);
 
   // Early return if no collection
@@ -209,7 +201,7 @@ function Collection({ match, isSearchResults = false, isSingleSearchResult = fal
     <CollectionContainer>
       <Sidebar
         collections={collections}
-        collection={(!isSearchResults || isSingleSearchResult) ? collection : undefined}
+        collection={!isSearchResults || isSingleSearchResult ? collection : undefined}
         isSearchEnabled={isSearchEnabled}
         searchTerm={searchTerm}
         filterTerm={filterTerm}
@@ -246,4 +238,4 @@ function Collection({ match, isSearchResults = false, isSingleSearchResult = fal
   );
 }
 
-export default Collection;
+export default CmsCollection;

@@ -5,7 +5,7 @@ import type { EntryValue } from '../../../valueObjects/Entry';
 import { createEntry } from '../../../valueObjects/Entry';
 import { selectEntrySlug } from '../../../reducers/collections';
 
-import type { CmsCollectionState } from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState } from 'decap-cms-lib-util';
 
 type Collection = CmsCollectionState;
 
@@ -173,12 +173,9 @@ export default class Algolia {
     if (this.entriesCache.collection === collection && this.entriesCache.page === page) {
       return Promise.resolve({ page: this.entriesCache.page, entries: this.entriesCache.entries });
     } else {
-      return this.request(
-        `${this.searchURL}/indexes/${this.indexPrefix}${collection.name}`,
-        {
-          params: { page },
-        },
-      ).then(response => {
+      return this.request(`${this.searchURL}/indexes/${this.indexPrefix}${collection.name}`, {
+        params: { page },
+      }).then(response => {
         const typedResponse = response as AlgoliaSearchResult;
         const entries = typedResponse.hits.map(hit => {
           const slug = selectEntrySlug(collection, hit.path);

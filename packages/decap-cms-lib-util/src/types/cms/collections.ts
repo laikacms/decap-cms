@@ -1,7 +1,13 @@
-import type { CmsCollectionFormatType, CmsFilterRule, CmsSortableField, CmsViewFilter, CmsViewGroup } from "./common.js";
-import type { CmsField } from "./field.js";
-import type { CmsI18nConfig } from "./i18n.js";
-import type { CmsEntryFields } from "./entries.js";
+import type {
+  CmsCollectionFormatType,
+  CmsFilterRule,
+  CmsSortableField,
+  CmsViewFilter,
+  CmsViewGroup,
+} from './common.js';
+import type { CmsField } from './field.js';
+import type { CmsI18nConfig } from './i18n.js';
+import type { CmsEntryFields } from './entries.js';
 
 export interface CmsCollectionFile {
   name: string;
@@ -33,15 +39,19 @@ export interface CmsCollection {
   create?: boolean | undefined;
   delete?: boolean | undefined;
   hide?: boolean | undefined;
-  editor?: {
-    preview?: boolean | undefined;
-    visualEditing?: boolean | undefined;
-  } | undefined;
+  editor?:
+    | {
+        preview?: boolean | undefined;
+        visualEditing?: boolean | undefined;
+      }
+    | undefined;
   publish?: boolean | undefined;
-  nested?: {
-    depth: number | undefined;
-    subfolders?: boolean | undefined;
-  } | undefined;
+  nested?:
+    | {
+        depth: number | undefined;
+        subfolders?: boolean | undefined;
+      }
+    | undefined;
   meta?: { path?: { label: string; widget: string; index_file: string } } | undefined;
   extension?: string | undefined;
   format?: CmsCollectionFormatType | undefined;

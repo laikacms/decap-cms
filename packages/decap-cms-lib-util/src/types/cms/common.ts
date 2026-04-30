@@ -1,4 +1,3 @@
-
 export type CmsCollectionFormatType =
   | 'yml'
   | 'yaml'
@@ -112,7 +111,11 @@ export interface CmsEditorComponentOptions {
   allow_add?: boolean;
   fromBlock: (match: RegExpMatchArray) => unknown;
   toBlock: (data: unknown) => string;
-  toPreview: (data: unknown, getAsset: (value: string, field?: unknown) => string, fields?: unknown[]) => string | unknown;
+  toPreview: (
+    data: unknown,
+    getAsset: (value: string, field?: unknown) => string,
+    fields?: unknown[],
+  ) => string | unknown;
 }
 
 export interface CmsEditorComponentPlugin extends Omit<CmsEditorComponentOptions, 'fields'> {
@@ -146,6 +149,7 @@ export type CmsAssetProxy = {
   url?: string;
   fileObj?: File;
   toBase64: () => Promise<string>;
+  sha?: string | null; // For git-based backends
 };
 
 export type CmsDataFile = {
@@ -153,6 +157,7 @@ export type CmsDataFile = {
   slug: string;
   raw: string;
   newPath?: string;
+  sha?: string | null; // For git-based backends
 };
 
 export type CmsPersistOptions = {

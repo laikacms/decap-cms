@@ -5,6 +5,8 @@ import configureStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { vi } from 'vitest';
 
+import type * as DecapCmsUiDefault from 'decap-cms-ui-default';
+
 import ConnectedNestedCollection, {
   NestedCollection,
   getTreeData,
@@ -13,7 +15,7 @@ import ConnectedNestedCollection, {
 } from '../NestedCollection';
 
 vi.mock('decap-cms-ui-default', async () => {
-  const actual = await vi.importActual<typeof import('decap-cms-ui-default')>('decap-cms-ui-default');
+  const actual = await vi.importActual<typeof DecapCmsUiDefault>('decap-cms-ui-default');
   return {
     ...actual,
     Icon: 'mocked-icon',
@@ -170,11 +172,7 @@ describe('NestedCollection', () => {
 
     rerender(
       <MemoryRouter>
-        <NestedCollection
-          collection={collection}
-          entries={[...entries]}
-          filterTerm={'a/a'}
-        />
+        <NestedCollection collection={collection} entries={[...entries]} filterTerm={'a/a'} />
       </MemoryRouter>,
     );
 
@@ -299,7 +297,12 @@ describe('NestedCollection', () => {
                   children: [
                     {
                       path: '/intro/category/index.md',
-                      data: { title: 'intro category index', dirname: 'src/pages/intro/category', extension: 'md', filename: 'index' },
+                      data: {
+                        title: 'intro category index',
+                        dirname: 'src/pages/intro/category',
+                        extension: 'md',
+                        filename: 'index',
+                      },
                       title: 'intro category index',
                       isDir: false,
                       isRoot: false,
@@ -309,7 +312,12 @@ describe('NestedCollection', () => {
                 },
                 {
                   path: '/intro/index.md',
-                  data: { title: 'intro index', dirname: 'src/pages/intro', extension: 'md', filename: 'index' },
+                  data: {
+                    title: 'intro index',
+                    dirname: 'src/pages/intro',
+                    extension: 'md',
+                    filename: 'index',
+                  },
                   title: 'intro index',
                   isDir: false,
                   isRoot: false,
@@ -325,7 +333,12 @@ describe('NestedCollection', () => {
               children: [
                 {
                   path: '/compliance/index.md',
-                  data: { title: 'compliance index', dirname: 'src/pages/compliance', extension: 'md', filename: 'index' },
+                  data: {
+                    title: 'compliance index',
+                    dirname: 'src/pages/compliance',
+                    extension: 'md',
+                    filename: 'index',
+                  },
                   title: 'compliance index',
                   isDir: false,
                   isRoot: false,

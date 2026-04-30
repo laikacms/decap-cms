@@ -61,12 +61,10 @@ describe('collections', () => {
   describe('selectAllowDeletions', () => {
     it('should not allow deletions for file collections', () => {
       expect(
-        selectAllowDeletion(
-          {
-            name: 'pages',
-            type: FILES,
-          },
-        ),
+        selectAllowDeletion({
+          name: 'pages',
+          type: FILES,
+        }),
       ).toBe(false);
     });
   });
@@ -106,46 +104,44 @@ describe('collections', () => {
 
     it('should return configs for folder collection', () => {
       expect(
-        selectFieldsWithMediaFolders(
-          {
-            folder: 'posts',
-            fields: [
-              {
-                name: 'image',
-                media_folder: 'image_media_folder',
+        selectFieldsWithMediaFolders({
+          folder: 'posts',
+          fields: [
+            {
+              name: 'image',
+              media_folder: 'image_media_folder',
+            },
+            {
+              name: 'body',
+              media_folder: 'body_media_folder',
+            },
+            {
+              name: 'list_1',
+              field: {
+                name: 'list_1_item',
+                media_folder: 'list_1_item_media_folder',
               },
-              {
-                name: 'body',
-                media_folder: 'body_media_folder',
-              },
-              {
-                name: 'list_1',
-                field: {
-                  name: 'list_1_item',
-                  media_folder: 'list_1_item_media_folder',
+            },
+            {
+              name: 'list_2',
+              fields: [
+                {
+                  name: 'list_2_item',
+                  media_folder: 'list_2_item_media_folder',
                 },
-              },
-              {
-                name: 'list_2',
-                fields: [
-                  {
-                    name: 'list_2_item',
-                    media_folder: 'list_2_item_media_folder',
-                  },
-                ],
-              },
-              {
-                name: 'list_3',
-                types: [
-                  {
-                    name: 'list_3_type',
-                    media_folder: 'list_3_type_media_folder',
-                  },
-                ],
-              },
-            ],
-          },
-        ),
+              ],
+            },
+            {
+              name: 'list_3',
+              types: [
+                {
+                  name: 'list_3_type',
+                  media_folder: 'list_3_type_media_folder',
+                },
+              ],
+            },
+          ],
+        }),
       ).toEqual([
         {
           name: 'image',
@@ -367,9 +363,7 @@ describe('collections', () => {
         ],
       };
 
-      expect(selectField(collection, 'en.title')).toBe(
-        collection.fields[0].fields[0],
-      );
+      expect(selectField(collection, 'en.title')).toBe(collection.fields[0].fields[0]);
 
       expect(selectField(collection, 'it.title.subTitle')).toBe(
         collection.fields[2].field.fields[0],
@@ -482,89 +476,79 @@ describe('collections', () => {
       }
 
       expect(updateFieldByKey(collection, 'non-existent', updater)).toBe(collection);
-      expect(updateFieldByKey(collection, 'title', updater)).toEqual(
-        {
-          fields: [
-            { name: 'title', default: 'default' },
-            { name: 'image' },
-            {
-              name: 'object',
-              fields: [{ name: 'title' }, { name: 'gallery', fields: [{ name: 'image' }] }],
-            },
-            { name: 'list', field: { name: 'image' } },
-            { name: 'body' },
-            { name: 'widgetList', types: [{ name: 'widget' }] },
-          ],
-        },
-      );
-      expect(updateFieldByKey(collection, 'object.title', updater)).toEqual(
-        {
-          fields: [
-            { name: 'title' },
-            { name: 'image' },
-            {
-              name: 'object',
-              fields: [
-                { name: 'title', default: 'default' },
-                { name: 'gallery', fields: [{ name: 'image' }] },
-              ],
-            },
-            { name: 'list', field: { name: 'image' } },
-            { name: 'body' },
-            { name: 'widgetList', types: [{ name: 'widget' }] },
-          ],
-        },
-      );
+      expect(updateFieldByKey(collection, 'title', updater)).toEqual({
+        fields: [
+          { name: 'title', default: 'default' },
+          { name: 'image' },
+          {
+            name: 'object',
+            fields: [{ name: 'title' }, { name: 'gallery', fields: [{ name: 'image' }] }],
+          },
+          { name: 'list', field: { name: 'image' } },
+          { name: 'body' },
+          { name: 'widgetList', types: [{ name: 'widget' }] },
+        ],
+      });
+      expect(updateFieldByKey(collection, 'object.title', updater)).toEqual({
+        fields: [
+          { name: 'title' },
+          { name: 'image' },
+          {
+            name: 'object',
+            fields: [
+              { name: 'title', default: 'default' },
+              { name: 'gallery', fields: [{ name: 'image' }] },
+            ],
+          },
+          { name: 'list', field: { name: 'image' } },
+          { name: 'body' },
+          { name: 'widgetList', types: [{ name: 'widget' }] },
+        ],
+      });
 
-      expect(updateFieldByKey(collection, 'object.gallery.image', updater)).toEqual(
-        {
-          fields: [
-            { name: 'title' },
-            { name: 'image' },
-            {
-              name: 'object',
-              fields: [
-                { name: 'title' },
-                { name: 'gallery', fields: [{ name: 'image', default: 'default' }] },
-              ],
-            },
-            { name: 'list', field: { name: 'image' } },
-            { name: 'body' },
-            { name: 'widgetList', types: [{ name: 'widget' }] },
-          ],
-        },
-      );
-      expect(updateFieldByKey(collection, 'list.image', updater)).toEqual(
-        {
-          fields: [
-            { name: 'title' },
-            { name: 'image' },
-            {
-              name: 'object',
-              fields: [{ name: 'title' }, { name: 'gallery', fields: [{ name: 'image' }] }],
-            },
-            { name: 'list', field: { name: 'image', default: 'default' } },
-            { name: 'body' },
-            { name: 'widgetList', types: [{ name: 'widget' }] },
-          ],
-        },
-      );
+      expect(updateFieldByKey(collection, 'object.gallery.image', updater)).toEqual({
+        fields: [
+          { name: 'title' },
+          { name: 'image' },
+          {
+            name: 'object',
+            fields: [
+              { name: 'title' },
+              { name: 'gallery', fields: [{ name: 'image', default: 'default' }] },
+            ],
+          },
+          { name: 'list', field: { name: 'image' } },
+          { name: 'body' },
+          { name: 'widgetList', types: [{ name: 'widget' }] },
+        ],
+      });
+      expect(updateFieldByKey(collection, 'list.image', updater)).toEqual({
+        fields: [
+          { name: 'title' },
+          { name: 'image' },
+          {
+            name: 'object',
+            fields: [{ name: 'title' }, { name: 'gallery', fields: [{ name: 'image' }] }],
+          },
+          { name: 'list', field: { name: 'image', default: 'default' } },
+          { name: 'body' },
+          { name: 'widgetList', types: [{ name: 'widget' }] },
+        ],
+      });
 
-      expect(updateFieldByKey(collection, 'widgetList.widget', updater)).toEqual(
-        {
-          fields: [
-            { name: 'title' },
-            { name: 'image' },
-            {
-              name: 'object',
-              fields: [{ name: 'title' }, { name: 'gallery', fields: [{ name: 'image' }] }],
-            },
-            { name: 'list', field: { name: 'image' } },
-            { name: 'body' },
-            { name: 'widgetList', types: [{ name: 'widget', default: 'default' }] },
-          ],
-        },
-      );
+      expect(updateFieldByKey(collection, 'widgetList.widget', updater)).toEqual({
+        fields: [
+          { name: 'title' },
+          { name: 'image' },
+          {
+            name: 'object',
+            fields: [{ name: 'title' }, { name: 'gallery', fields: [{ name: 'image' }] }],
+          },
+          { name: 'list', field: { name: 'image' } },
+          { name: 'body' },
+          { name: 'widgetList', types: [{ name: 'widget', default: 'default' }] },
+        ],
+      });
     });
   });
 

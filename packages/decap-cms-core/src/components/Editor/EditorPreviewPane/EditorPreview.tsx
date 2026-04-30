@@ -1,11 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
-import type {
-  CmsCollectionState,
-  CmsEntry,
-  CmsEntryField,
-} from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState, CmsEntry, CmsEntryField } from 'decap-cms-lib-util';
 
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;
@@ -28,7 +24,12 @@ interface PreviewProps {
   entry: EntryMap;
   fields: EntryField[];
   getAsset: (asset: string) => { url: string; path: string; field?: EntryField };
-  widgetFor: (name: string, fields?: EntryField[], values?: Record<string, unknown>, fieldsMetaData?: Record<string, unknown>) => React.ReactNode;
+  widgetFor: (
+    name: string,
+    fields?: EntryField[],
+    values?: Record<string, unknown>,
+    fieldsMetaData?: Record<string, unknown>,
+  ) => React.ReactNode;
 }
 
 export default class Preview extends React.Component<PreviewProps> {

@@ -10,7 +10,7 @@ import last from 'lodash/last';
 import uniqBy from 'lodash/uniqBy';
 import { reactSelectStyles } from 'decap-cms-ui-default';
 import { stringTemplate, validations } from 'decap-cms-lib-widgets';
-import type { CmsFieldBase, CmsFieldRelation } from 'decap-cms-lib-util/types/cms';
+import type { CmsFieldBase, CmsFieldRelation } from 'decap-cms-lib-util';
 import { List as VirtualList } from 'react-window';
 import {
   DndContext,
@@ -125,7 +125,13 @@ function SortableSelect(props: Record<string, unknown>) {
     useSensor(TouchSensor, { activationConstraint }),
   );
 
-  function handleSortEnd({ active, over }: { active: { id: string | number }; over: { id: string | number } | null }) {
+  function handleSortEnd({
+    active,
+    over,
+  }: {
+    active: { id: string | number };
+    over: { id: string | number } | null;
+  }) {
     if (!over) return;
     onSortEnd({
       oldIndex: keys.indexOf(String(active.id)),
@@ -151,11 +157,13 @@ interface OptionRowProps {
   options: React.ReactNode[];
 }
 
-function OptionRow(props: {
-  ariaAttributes: { 'aria-posinset': number; 'aria-setsize': number; role: 'listitem' };
-  index: number;
-  style: CSSProperties;
-} & OptionRowProps): ReactElement | null {
+function OptionRow(
+  props: {
+    ariaAttributes: { 'aria-posinset': number; 'aria-setsize': number; role: 'listitem' };
+    index: number;
+    style: CSSProperties;
+  } & OptionRowProps,
+): ReactElement | null {
   const { index, style, options } = props;
   return <div style={style}>{options[index]}</div>;
 }
@@ -213,10 +221,18 @@ function getFieldArray(field: unknown): string[] {
     return [];
   }
 
-  return Array.isArray(field) ? field as string[] : [field as string];
+  return Array.isArray(field) ? (field as string[]) : [field as string];
 }
 
-function getSelectedValue({ value, options, isMultiple }: { value: unknown; options: RelationOption[]; isMultiple: boolean }): SortableOption[] | RelationOption | null {
+function getSelectedValue({
+  value,
+  options,
+  isMultiple,
+}: {
+  value: unknown;
+  options: RelationOption[];
+  isMultiple: boolean;
+}): SortableOption[] | RelationOption | null {
   if (isMultiple) {
     const selectedOptions = getSelectedOptions(value);
     if (selectedOptions === null) {
@@ -263,7 +279,10 @@ interface RelationControlState {
   initialOptions: RelationOption[];
 }
 
-export default class RelationControl extends React.Component<RelationControlProps, RelationControlState> {
+export default class RelationControl extends React.Component<
+  RelationControlProps,
+  RelationControlState
+> {
   mounted = false;
 
   state: RelationControlState = {
@@ -293,18 +312,12 @@ export default class RelationControl extends React.Component<RelationControlProp
     }
 
     if (Array.isArray(value)) {
-      const error = validations.validateMinMax(
-        t,
-        field.label ?? field.name,
-        value,
-        min,
-        max,
-      );
+      const error = validations.validateMinMax(t, field.label ?? field.name, value, min, max);
 
       return error ? { error } : { error: false };
     }
 
-    return { error: false }
+    return { error: false };
   };
 
   shouldComponentUpdate(nextProps: RelationControlProps) {
@@ -349,13 +362,13 @@ export default class RelationControl extends React.Component<RelationControlProp
     const file = field.file;
 
     try {
-      const result = await relationCache.getOptions(
+      const result = (await relationCache.getOptions(
         collection,
         searchFieldsArray,
         '', // empty term for initial load
         file,
         () => query(forID, collection, searchFieldsArray, '', file),
-      ) as QueryResult;
+      )) as QueryResult;
 
       const hits = result.payload.hits || [];
       const options = this.parseHitOptions(hits);
@@ -380,7 +393,9 @@ export default class RelationControl extends React.Component<RelationControlProp
       const selectedOptions = getSelectedOptions(value);
       if (selectedOptions && selectedOptions.length > 0) {
         const matchedOptions = selectedOptions
-          .map((val: RelationOption) => options.find((opt: RelationOption) => opt.value === (val.value || val)))
+          .map((val: RelationOption) =>
+            options.find((opt: RelationOption) => opt.value === (val.value || val)),
+          )
           .filter(Boolean) as RelationOption[];
 
         if (matchedOptions.length > 0) {
@@ -422,13 +437,15 @@ export default class RelationControl extends React.Component<RelationControlProp
       const lastOption = last(options);
       const lastValue = last(newValue);
       const metadata =
-        (!isEmpty(options) && lastOption && lastValue && {
-          [field.name]: {
-            [field.collection]: {
-              [lastValue]: lastOption.data,
+        (!isEmpty(options) &&
+          lastOption &&
+          lastValue && {
+            [field.name]: {
+              [field.collection]: {
+                [lastValue]: lastOption.data,
+              },
             },
-          },
-        }) ||
+          }) ||
         {};
       onChange(newValue, metadata);
     };
@@ -443,13 +460,15 @@ export default class RelationControl extends React.Component<RelationControlProp
       const lastOption = last(options);
       const lastValue = last(value);
       const metadata =
-        (!isEmpty(options) && lastOption && lastValue && {
-          [field.name]: {
-            [field.collection]: {
-              [lastValue]: lastOption.data,
+        (!isEmpty(options) &&
+          lastOption &&
+          lastValue && {
+            [field.name]: {
+              [field.collection]: {
+                [lastValue]: lastOption.data,
+              },
             },
-          },
-        }) ||
+          }) ||
         {};
       onChange(value, metadata);
     } else {
@@ -476,7 +495,10 @@ export default class RelationControl extends React.Component<RelationControlProp
     if (templateVars.length <= 0) {
       return get(hitData, field) as string;
     }
-    const data = stringTemplate.addFileTemplateFields(hit.path, { ...hitData } as Record<string, string>);
+    const data = stringTemplate.addFileTemplateFields(hit.path, { ...hitData } as Record<
+      string,
+      string
+    >);
     const value = stringTemplate.compileStringTemplate(field, null, hit.slug, data);
     return value;
   };

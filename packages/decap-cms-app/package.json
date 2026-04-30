@@ -24,7 +24,7 @@
     "jamstack"
   ],
   "license": "MIT",
-  "excluded.dependencies": {
+  "dependencies": {
     "decap-cms-backend-azure": "workspace:*",
     "decap-cms-backend-aws-cognito-github-proxy": "workspace:*",
     "decap-cms-backend-bitbucket": "workspace:*",
@@ -32,10 +32,6 @@
     "decap-cms-backend-gitea": "workspace:*",
     "decap-cms-backend-github": "workspace:*",
     "decap-cms-backend-gitlab": "workspace:*",
-    "decap-cms-widget-markdown": "workspace:*",
-    "decap-cms-widget-richtext": "workspace:*"
-  },
-  "dependencies": {
     "@emotion/react": "catalog:emotion",
     "@emotion/styled": "catalog:emotion",
     "ajv": "catalog:validation",

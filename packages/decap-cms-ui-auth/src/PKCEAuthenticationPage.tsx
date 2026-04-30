@@ -4,82 +4,11 @@ import styled from '@emotion/styled';
 import { jwtDecode } from 'jwt-decode';
 import { PkceAuthenticator, PkceAuthResult } from 'decap-cms-lib-auth';
 import { AuthenticationPage, Icon } from 'decap-cms-ui-default';
+import type { JWTClaims, PKCEAuthenticationPageProps, PKCEAuthenticationPageState, PKCEUser } from './types';
 
 const LoginButtonIcon = styled(Icon)`
   margin-right: 18px;
 `;
-
-// Logo configuration type
-interface LogoConfig {
-  src?: string;
-  url?: string;
-}
-
-// Backend configuration
-interface BackendConfig {
-  base_url?: string;
-  app_id?: string;
-  auth_endpoint?: string;
-  auth_token_endpoint?: string;
-}
-
-// Auth configuration
-interface AuthConfigOptions {
-  use_oidc?: boolean;
-  base_url?: string;
-  auth_endpoint?: string;
-  auth_token_endpoint?: string;
-  app_id?: string;
-  auth_token_endpoint_content_type?: string;
-  email_claim?: string;
-  full_name_claim?: string;
-  first_name_claim?: string;
-  last_name_claim?: string;
-  avatar_url_claim?: string;
-  scope?: string;
-}
-
-// Config type for authentication
-interface PKCEAuthConfig {
-  logo_url?: string;
-  logo?: LogoConfig;
-  site_url?: string;
-  backend: BackendConfig;
-  auth?: AuthConfigOptions;
-  auth_scope?: string;
-}
-
-// User type
-interface PKCEUser {
-  email?: string;
-  user_metadata: {
-    full_name?: string;
-    avatar_url?: string;
-  };
-  token?: string;
-  access_token?: string;
-  id_token?: string;
-  claims?: Record<string, unknown>;
-  idClaims?: Record<string, unknown>;
-}
-
-// JWT Claims type
-interface JWTClaims {
-  [key: string]: unknown;
-}
-
-// Props interface
-interface PKCEAuthenticationPageProps {
-  inProgress?: boolean;
-  config: PKCEAuthConfig;
-  onLogin: (user: PKCEUser) => void;
-  t: (key: string) => string;
-}
-
-// State interface
-interface PKCEAuthenticationPageState {
-  loginError?: string;
-}
 
 function normalizeClaimsToUser(
   email_claim: string,
@@ -99,7 +28,8 @@ function normalizeClaimsToUser(
     }
     if (!user.user_metadata.full_name && (first_name_claim || last_name_claim)) {
       const name: string[] = [];
-      if (first_name_claim && claims[first_name_claim]) name.push(claims[first_name_claim] as string);
+      if (first_name_claim && claims[first_name_claim])
+        name.push(claims[first_name_claim] as string);
       if (last_name_claim && claims[last_name_claim]) name.push(claims[last_name_claim] as string);
       if (name.length) {
         user.user_metadata.full_name = name.join(' ');
@@ -225,7 +155,7 @@ export default class PKCEAuthenticationPage extends React.Component<
         onLogin={this.handleLogin}
         loginDisabled={inProgress}
         loginErrorMessage={this.state.loginError}
-        logoUrl={config.logo_url} // Deprecated, replaced by `logo.src`
+        logoUrl={config.logo?.src} // Deprecated, replaced by `logo.src`
         logo={config.logo}
         siteUrl={config.site_url}
         renderButtonContent={() => (

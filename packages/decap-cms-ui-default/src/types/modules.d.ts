@@ -86,4 +86,3 @@ declare module 'react-aria-menubutton' {
   export const Menu: ComponentType<MenuProps>;
   export const MenuItem: ComponentType<MenuItemProps>;
 }
-

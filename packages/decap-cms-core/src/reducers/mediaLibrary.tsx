@@ -33,7 +33,7 @@ import type {
   CmsConfig,
   CmsCollections,
   CmsEntry,
-} from 'decap-cms-lib-util/types/cms';
+} from 'decap-cms-lib-util';
 
 type DisplayURLState = {
   isFetching: boolean;
@@ -131,7 +131,7 @@ const mediaLibrary = produce((state: MediaLibrary, action: MediaLibraryAction) =
       state.privateUpload = privateUpload;
       state.config = libConfig;
       state.field = field ?? undefined;
-      state.value = value === '' && libConfig.multiple ? [] : value ?? '';
+      state.value = value === '' && libConfig.multiple ? [] : (value ?? '');
       state.replaceIndex = replaceIndex ?? false;
       break;
     }

@@ -12,10 +12,7 @@ import type { AnyAction } from 'redux';
 
 type CursorsState = Record<string, any>;
 
-export function selectCollectionEntriesCursor(
-  state: CursorsState,
-  collectionName: string,
-): Cursor {
+export function selectCollectionEntriesCursor(state: CursorsState, collectionName: string): Cursor {
   return new Cursor(state?.cursorsByType?.collectionEntries?.[collectionName] ?? {});
 }
 
@@ -24,8 +21,9 @@ const defaultState: CursorsState = { cursorsByType: { collectionEntries: {} } };
 const cursors = produce((state: CursorsState, action: AnyAction) => {
   switch (action.type) {
     case ENTRIES_SUCCESS: {
-      state.cursorsByType.collectionEntries[action.payload.collection] =
-        Cursor.create(action.payload.cursor).store;
+      state.cursorsByType.collectionEntries[action.payload.collection] = Cursor.create(
+        action.payload.cursor,
+      ).store;
       break;
     }
     case FILTER_ENTRIES_SUCCESS:

@@ -15,12 +15,7 @@ import gfm from 'remark-gfm';
 
 import type { Dispatch } from 'redux';
 import type { TranslateFunction } from 'decap-cms-ui-default';
-import type {
-  CmsCollectionState,
-  CmsEntry,
-  CmsEntryField,
-  CmsConfig,
-} from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState, CmsEntry, CmsEntryField, CmsConfig } from 'decap-cms-lib-util';
 
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;
@@ -135,7 +130,14 @@ interface LabelComponentProps {
   t: TranslateFunction;
 }
 
-function LabelComponent({ field, isActive, hasErrors, uniqueFieldId, isFieldOptional, t }: LabelComponentProps) {
+function LabelComponent({
+  field,
+  isActive,
+  hasErrors,
+  uniqueFieldId,
+  isFieldOptional,
+  t,
+}: LabelComponentProps) {
   const label = `${(field as any).label || field.name}`;
   const labelComponent = (
     <FieldLabel isActive={isActive} hasErrors={hasErrors} htmlFor={uniqueFieldId}>
@@ -173,7 +175,14 @@ interface EditorControlProps {
   persistMedia: (file: File) => void;
   onValidate?: (field: EntryField | string, errors: FieldError[]) => void;
   controlRef?: (field: EntryField, wrappedControl: React.Component | null) => void;
-  query: (namespace: string, collectionName: string, searchFields: string[], searchTerm: string, file?: string, limit?: number) => void;
+  query: (
+    namespace: string,
+    collectionName: string,
+    searchFields: string[],
+    searchTerm: string,
+    file?: string,
+    limit?: number,
+  ) => void;
   queryHits?: Record<string, unknown>;
   isFetching?: boolean;
   clearSearch: () => void;
@@ -266,7 +275,9 @@ class EditorControl extends React.Component<EditorControlProps, EditorControlSta
 
     if (fieldsErrors && Object.keys(fieldsErrors).length > 0) {
       return Object.values(fieldsErrors).some((arr: unknown) =>
-        (arr as FieldError[]).some((err: FieldError) => err.parentIds && err.parentIds.includes(this.uniqueFieldId)),
+        (arr as FieldError[]).some(
+          (err: FieldError) => err.parentIds && err.parentIds.includes(this.uniqueFieldId),
+        ),
       );
     }
     return false;
@@ -333,11 +344,21 @@ class EditorControl extends React.Component<EditorControlProps, EditorControlSta
       <ClassNames>
         {({ css, cx }) => (
           <ControlContainer
-            className={cx(className, isHidden && css`${styleStrings.hidden}`)}
+            className={cx(
+              className,
+              isHidden &&
+                css`
+                  ${styleStrings.hidden}
+                `,
+            )}
             aria-label={t('editor.editorControl.field.widgetLabel', { widgetLabel: widgetName })}
           >
             <ControlTopbar>
-              {widget.globalStyles ? <Global styles={coreCss`${widget.globalStyles as string}` as Interpolation<Theme>} /> : null}
+              {widget.globalStyles ? (
+                <Global
+                  styles={coreCss`${widget.globalStyles as string}` as Interpolation<Theme>}
+                />
+              ) : null}
               <LabelComponent
                 field={field}
                 isActive={!!(isSelected || this.state.styleActive)}
@@ -403,7 +424,9 @@ class EditorControl extends React.Component<EditorControlProps, EditorControlSta
               mediaPaths={mediaPaths}
               metadata={metadata}
               onChange={this.onChange}
-              onValidate={onValidate && ((errors: FieldError[]) => onValidate(this.uniqueFieldId, errors))}
+              onValidate={
+                onValidate && ((errors: FieldError[]) => onValidate(this.uniqueFieldId, errors))
+              }
               onOpenMediaLibrary={openMediaLibrary}
               onClearMediaControl={clearMediaControl}
               onRemoveMediaControl={removeMediaControl}

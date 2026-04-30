@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import type { TranslateFunction } from 'decap-cms-ui-default';
-import type {  CmsFieldBase, CmsFieldStringOrText } from 'decap-cms-lib-util/types/cms';
+import type { CmsFieldBase, CmsFieldStringOrText } from 'decap-cms-lib-util';
 
 interface StringControlProps {
   onChange: (value: string) => void;
@@ -11,7 +11,7 @@ interface StringControlProps {
   classNameWrapper: string;
   setActiveStyle: () => void;
   setInactiveStyle: () => void;
-  t: TranslateFunction,
+  t: TranslateFunction;
 }
 
 export default class StringControl extends React.Component<StringControlProps> {

@@ -35,7 +35,7 @@ import { selectFolderEntryExtension, selectHasMetaPath } from './collections';
 import { getDataPath, duplicateI18nFields } from '../lib/i18n';
 
 import type { AnyAction } from 'redux';
-import type { CmsCollectionState, CmsEntry, CmsEntryField } from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState, CmsEntry, CmsEntryField } from 'decap-cms-lib-util';
 
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;
@@ -169,8 +169,7 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
         !entries.some((e: any) => {
           const eData = getNestedValue(e, dataPath);
           return JSON.stringify(newData) === JSON.stringify(eData);
-        }) ||
-        !entries.some((e: any) => JSON.stringify(newMeta) === JSON.stringify(e.meta));
+        }) || !entries.some((e: any) => JSON.stringify(newMeta) === JSON.stringify(e.meta));
       break;
     }
 
@@ -179,7 +178,10 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
         const { [action.payload.uniquefieldId]: _, ...rest } = state.fieldsErrors ?? {};
         state.fieldsErrors = rest;
       } else {
-        state.fieldsErrors = { ...state.fieldsErrors, [action.payload.uniquefieldId]: action.payload.errors };
+        state.fieldsErrors = {
+          ...state.fieldsErrors,
+          [action.payload.uniquefieldId]: action.payload.errors,
+        };
       }
       break;
 

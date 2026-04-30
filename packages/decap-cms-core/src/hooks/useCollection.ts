@@ -2,11 +2,7 @@ import { useCallback, useMemo } from 'react';
 
 import { useAppSelector, useAppDispatch } from './useRedux';
 import { sortByField, filterByField, changeViewStyle, groupByField } from '../actions/entries';
-import {
-  selectSortableFields,
-  selectViewFilters,
-  selectViewGroups,
-} from '../reducers/collections';
+import { selectSortableFields, selectViewFilters, selectViewGroups } from '../reducers/collections';
 import {
   selectEntriesSort,
   selectEntriesFilter,
@@ -15,7 +11,7 @@ import {
 } from '../reducers/entries';
 import { getNewEntryUrl } from '../lib/urlHelper';
 
-import type { CmsSortDirection, CmsViewFilter, CmsViewGroup } from 'decap-cms-lib-util/types/cms';
+import type { CmsSortDirection, CmsViewFilter, CmsViewGroup } from 'decap-cms-lib-util';
 
 type SortDirection = CmsSortDirection;
 type ViewFilter = CmsViewFilter;
@@ -43,32 +39,32 @@ export function useCollection(collectionName?: string, t?: (key: string) => stri
 
   const sort = useMemo(
     () => (name ? selectEntriesSort(entries, name) : undefined),
-    [entries, name]
+    [entries, name],
   );
 
   const sortableFields = useMemo(
     () => (collection && t ? selectSortableFields(collection, t) : []),
-    [collection, t]
+    [collection, t],
   );
 
   const viewFilters = useMemo(
     () => (collection ? selectViewFilters(collection) : undefined),
-    [collection]
+    [collection],
   );
 
   const viewGroups = useMemo(
     () => (collection ? selectViewGroups(collection) : undefined),
-    [collection]
+    [collection],
   );
 
   const filter = useMemo(
     () => (name ? selectEntriesFilter(entries, name) : undefined),
-    [entries, name]
+    [entries, name],
   );
 
   const group = useMemo(
     () => (name ? selectEntriesGroup(entries, name) : undefined),
-    [entries, name]
+    [entries, name],
   );
 
   const viewStyle = useMemo(() => selectViewStyle(entries), [entries]);
@@ -86,7 +82,7 @@ export function useCollection(collectionName?: string, t?: (key: string) => stri
         dispatch(sortByField(collection, key, direction));
       }
     },
-    [dispatch, collection]
+    [dispatch, collection],
   );
 
   const onFilterClick = useCallback(
@@ -95,7 +91,7 @@ export function useCollection(collectionName?: string, t?: (key: string) => stri
         dispatch(filterByField(collection, filterValue));
       }
     },
-    [dispatch, collection]
+    [dispatch, collection],
   );
 
   const onGroupClick = useCallback(
@@ -104,14 +100,14 @@ export function useCollection(collectionName?: string, t?: (key: string) => stri
         dispatch(groupByField(collection, groupValue));
       }
     },
-    [dispatch, collection]
+    [dispatch, collection],
   );
 
   const onChangeViewStyle = useCallback(
     (style: string) => {
       dispatch(changeViewStyle(style));
     },
-    [dispatch]
+    [dispatch],
   );
 
   return {

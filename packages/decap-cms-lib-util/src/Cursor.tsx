@@ -27,12 +27,16 @@ function createStore(...args: any[]): CursorStoreData {
   let data: Record<string, unknown>;
   let meta: Record<string, unknown>;
 
-  if (args.length === 0) {
+  if (args.length === 0 || (args.length === 1 && args[0] == null)) {
     actions = [];
     data = {};
     meta = {};
   } else if (args.length === 1) {
-    const obj = args[0] as Partial<{ actions: Iterable<string>; data: Record<string, unknown>; meta: Record<string, unknown> }>;
+    const obj = args[0] as Partial<{
+      actions: Iterable<string>;
+      data: Record<string, unknown>;
+      meta: Record<string, unknown>;
+    }>;
     actions = obj.actions ?? [];
     data = obj.data ?? {};
     meta = obj.meta ?? {};
@@ -52,9 +56,15 @@ function createStore(...args: any[]): CursorStoreData {
 export default class Cursor {
   store!: CursorStoreData;
 
-  get actions() { return this.store.actions; }
-  get data() { return this.store.data; }
-  get meta() { return this.store.meta; }
+  get actions() {
+    return this.store.actions;
+  }
+  get data() {
+    return this.store.data;
+  }
+  get meta() {
+    return this.store.meta;
+  }
 
   static create(...args: any[]) {
     return new Cursor(...args);
@@ -83,7 +93,10 @@ export default class Cursor {
   }
 
   removeAction(action: string): Cursor {
-    return this.withStore({ ...this.store, actions: new Set([...this.store.actions].filter(a => a !== action)) });
+    return this.withStore({
+      ...this.store,
+      actions: new Set([...this.store.actions].filter(a => a !== action)),
+    });
   }
 
   setActions(actions: Iterable<string>): Cursor {
@@ -135,7 +148,10 @@ export default class Cursor {
   }
 
   mergeMeta(meta: Record<string, unknown>): Cursor {
-    return this.withStore({ ...this.store, meta: filterUnknownMetaKeys({ ...this.store.meta, ...meta }) });
+    return this.withStore({
+      ...this.store,
+      meta: filterUnknownMetaKeys({ ...this.store.meta, ...meta }),
+    });
   }
 }
 

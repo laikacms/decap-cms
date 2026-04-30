@@ -9,11 +9,21 @@ import { localForage } from 'decap-cms-lib-util';
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import { buttons, colors } from 'decap-cms-ui-default';
 
-import type { CmsConfig } from 'decap-cms-lib-util/types/cms';
+import type { CmsConfig } from 'decap-cms-lib-util';
 
 const ISSUE_URL = 'https://github.com/decaporg/decap-cms/issues/new';
 
-function getIssueTemplate({ version, provider, browser, config }: { version: string; provider: string; browser: string; config: string }) {
+function getIssueTemplate({
+  version,
+  provider,
+  browser,
+  config,
+}: {
+  version: string;
+  provider: string;
+  browser: string;
+  config: string;
+}) {
   return `
 **Describe the bug**
 
@@ -177,7 +187,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
   async componentDidUpdate() {
     if (this.props.showBackup) {
       const backup = await localForage.getItem('backup');
-      backup && console.log(backup);
+      if (backup) console.log('Recovered backup:', backup);
       this.setState({ backup });
     }
   }

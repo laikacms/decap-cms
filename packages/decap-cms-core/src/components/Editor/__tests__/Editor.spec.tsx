@@ -5,11 +5,9 @@ import { vi } from 'vitest';
 import Editor from '../Editor';
 
 vi.mock('../EditorInterface', () => ({
-  // eslint-disable-next-line react/display-name
   default: props => <mock-editor-interface {...props} />,
 }));
 vi.mock('decap-cms-ui-default', () => ({
-  // eslint-disable-next-line react/display-name
   Loader: props => <mock-loader {...props} />,
 }));
 vi.mock('react-router-dom', () => ({

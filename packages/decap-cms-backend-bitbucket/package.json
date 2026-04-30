@@ -1,0 +1,58 @@
+{
+  "name": "decap-cms-backend-bitbucket",
+  "description": "Bitbucket backend for Decap CMS",
+  "version": "3.3.1",
+  "repository": "https://github.com/decaporg/decap-cms/tree/main/packages/decap-cms-backend-bitbucket",
+  "bugs": "https://github.com/decaporg/decap-cms/issues",
+  "module": "./dist/index.js",
+  "main": "./dist/index.js",
+  "license": "MIT",
+  "keywords": [
+    "decap-cms",
+    "backend",
+    "bitbucket"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "develop": "tsc --build --watch",
+    "build": "tsc --build",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "minimatch": "catalog:utils",
+    "path-browserify": "catalog:polyfills",
+    "what-the-diff": "catalog:utils"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:types",
+    "@types/prop-types": "catalog:types"
+  },
+  "peerDependencies": {
+    "@emotion/react": "catalog:emotion",
+    "@emotion/styled": "catalog:emotion",
+    "decap-cms-lib-auth": "workspace:*",
+    "decap-cms-lib-util": "workspace:*",
+    "decap-cms-ui-default": "workspace:*",
+    "lodash": "catalog:utils",
+    "prop-types": "catalog:react",
+    "react": "catalog:react"
+  },
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "import": "./dist/*.js",
+      "default": "./dist/*.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ]
+}

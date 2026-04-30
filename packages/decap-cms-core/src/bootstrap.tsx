@@ -1,9 +1,8 @@
-import './lib/polyfill';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Provider, connect } from 'react-redux';
 import { unstable_HistoryRouter as HistoryRouter } from 'react-router-dom';
-import type { CmsConfig } from 'decap-cms-lib-util/types/cms';
+import type { CmsConfig } from 'decap-cms-lib-util';
 import { GlobalStyles } from 'decap-cms-ui-default';
 import { I18n } from 'react-polyglot';
 
@@ -89,12 +88,12 @@ function bootstrap(opts: { config?: CmsConfig } = {}) {
    */
   function Root() {
     return (
-      <>
+      <React.StrictMode>
         <GlobalStyles />
         <Provider store={store}>
           <ConnectedTranslatedApp />
         </Provider>
-      </>
+      </React.StrictMode>
     );
   }
 

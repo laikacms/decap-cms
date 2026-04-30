@@ -40,7 +40,14 @@ export interface IconButtonProps {
   title?: string;
 }
 
-function IconButton({ size, isActive, type, onClick, className, title }: IconButtonProps): React.ReactElement {
+function IconButton({
+  size,
+  isActive,
+  type,
+  onClick,
+  className,
+  title,
+}: IconButtonProps): React.ReactElement {
   return (
     <ButtonRound
       size={size}

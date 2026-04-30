@@ -3,7 +3,7 @@ import { useCallback } from 'react';
 import { useAppSelector, useAppDispatch } from './useRedux';
 import { openMediaLibrary, closeMediaLibrary } from '../actions/mediaLibrary';
 
-import type { CmsEntryField } from 'decap-cms-lib-util/types/cms';
+import type { CmsEntryField } from 'decap-cms-lib-util';
 
 type EntryField = CmsEntryField;
 
@@ -32,7 +32,7 @@ export function useMediaLibrary() {
     }) => {
       dispatch(openMediaLibrary(options));
     },
-    [dispatch]
+    [dispatch],
   );
 
   const close = useCallback(() => {

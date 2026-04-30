@@ -71,10 +71,7 @@ export interface NetlifyAuthResult {
 }
 
 export type NetlifyAuthCallback = (error: NetlifyError | null, data?: NetlifyAuthResult) => void;
-export type NetlifyRefreshCallback = (
-  error: NetlifyError | null,
-  data?: NetlifyAuthResult,
-) => void;
+export type NetlifyRefreshCallback = (error: NetlifyError | null, data?: NetlifyAuthResult) => void;
 
 class Authenticator {
   site_id: string | null;
@@ -166,8 +163,7 @@ class Authenticator {
       );
     }
 
-    const conf: ProviderConfig =
-      PROVIDERS[provider as ProviderName] || PROVIDERS.github;
+    const conf: ProviderConfig = PROVIDERS[provider as ProviderName] || PROVIDERS.github;
     const left: number = screen.width / 2 - conf.width / 2;
     const top: number = screen.height / 2 - conf.height / 2;
     window.addEventListener('message', this.handshakeCallback(options, cb), false);
@@ -216,9 +212,10 @@ class Authenticator {
       );
     }
     const url = `${this.base_url}/${this.auth_endpoint}/refresh?provider=${provider}&site_id=${siteID}&refresh_token=${refresh_token}`;
-    const refreshPromise: Promise<NetlifyAuthResult> = fetch(url, { method: 'POST', body: '' }).then(
-      res => res.json() as Promise<NetlifyAuthResult>,
-    );
+    const refreshPromise: Promise<NetlifyAuthResult> = fetch(url, {
+      method: 'POST',
+      body: '',
+    }).then(res => res.json() as Promise<NetlifyAuthResult>);
 
     // Return a promise if a callback wasn't provided
     if (!cb) {

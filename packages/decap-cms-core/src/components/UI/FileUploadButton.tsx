@@ -9,7 +9,13 @@ export interface FileUploadButtonProps {
   disabled?: boolean;
 }
 
-export function FileUploadButton({ label, imagesOnly, onChange, disabled, className }: FileUploadButtonProps) {
+export function FileUploadButton({
+  label,
+  imagesOnly,
+  onChange,
+  disabled,
+  className,
+}: FileUploadButtonProps) {
   return (
     <label tabIndex={0} className={`nc-fileUploadButton ${className || ''}`}>
       <span>{label}</span>

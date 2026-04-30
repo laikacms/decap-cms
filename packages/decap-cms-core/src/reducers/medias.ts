@@ -10,7 +10,7 @@ import {
 } from '../actions/media';
 
 import type { MediasAction } from '../actions/media';
-import type { CmsAssetProxy } from 'decap-cms-lib-util/types/cms';
+import type { CmsAssetProxy } from 'decap-cms-lib-util';
 
 type AssetProxy = CmsAssetProxy;
 

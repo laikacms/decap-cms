@@ -5,7 +5,8 @@ interface ImageData {
 }
 
 interface FieldLike {
-  get(key: string): unknown;
+  widget?: string;
+  [key: string]: unknown;
 }
 
 const image = {
@@ -19,13 +20,12 @@ const image = {
     },
   toBlock: ({ alt, image, title }: ImageData) =>
     `![${alt || ''}](${image || ''}${title ? ` "${title.replace(/"/g, '\\"')}"` : ''})`,
-  // eslint-disable-next-line react/display-name
   toPreview: (
     { alt, image, title }: ImageData,
     getAsset: (value: string, field?: FieldLike) => string,
     fields?: FieldLike[],
   ) => {
-    const imageField = fields?.find((f: FieldLike) => f.get('widget') === 'image');
+    const imageField = fields?.find((f: FieldLike) => f.widget === 'image');
     const src = getAsset(image, imageField);
     return <img src={src || ''} alt={alt || ''} title={title || ''} />;
   },

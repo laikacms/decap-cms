@@ -7,7 +7,11 @@ import type { Config, PersistOptions } from 'decap-cms-lib-util';
 type RepoFile = { path?: string; content: string };
 type RepoTree = { [key: string]: RepoFile | RepoTree };
 
-const mockConfig = { backend: { name: 'test' }, media_folder: 'media', auth: {} } as unknown as Config;
+const mockConfig = {
+  backend: { name: 'test' },
+  media_folder: 'media',
+  auth: {},
+} as unknown as Config;
 
 describe('test backend implementation', () => {
   beforeEach(() => {
@@ -64,7 +68,10 @@ describe('test backend implementation', () => {
         dataFiles: [{ path: 'posts/some-post.md', raw: 'content', slug: 'some-post.md' }],
         assets: [],
       };
-      await backend.persistEntry(entry, { newEntry: true, commitMessage: 'test' } as PersistOptions);
+      await backend.persistEntry(entry, {
+        newEntry: true,
+        commitMessage: 'test',
+      } as PersistOptions);
 
       expect(window.repoFiles).toEqual({
         posts: {
@@ -96,7 +103,10 @@ describe('test backend implementation', () => {
         dataFiles: [{ path: 'posts/new-post.md', raw: 'content', slug: 'new-post.md' }],
         assets: [],
       };
-      await backend.persistEntry(entry, { newEntry: true, commitMessage: 'test' } as PersistOptions);
+      await backend.persistEntry(entry, {
+        newEntry: true,
+        commitMessage: 'test',
+      } as PersistOptions);
 
       expect(window.repoFiles).toEqual({
         pages: {
@@ -124,7 +134,10 @@ describe('test backend implementation', () => {
       const slug = 'dir1/dir2/some-post.md';
       const path = `posts/${slug}`;
       const entry = { dataFiles: [{ path, raw: 'content', slug }], assets: [] };
-      await backend.persistEntry(entry, { newEntry: true, commitMessage: 'test' } as PersistOptions);
+      await backend.persistEntry(entry, {
+        newEntry: true,
+        commitMessage: 'test',
+      } as PersistOptions);
 
       expect(window.repoFiles).toEqual({
         posts: {
@@ -159,7 +172,10 @@ describe('test backend implementation', () => {
       const slug = 'dir1/dir2/some-post.md';
       const path = `posts/${slug}`;
       const entry = { dataFiles: [{ path, raw: 'new content', slug }], assets: [] };
-      await backend.persistEntry(entry, { newEntry: false, commitMessage: 'test' } as PersistOptions);
+      await backend.persistEntry(entry, {
+        newEntry: false,
+        commitMessage: 'test',
+      } as PersistOptions);
 
       expect(window.repoFiles).toEqual({
         posts: {

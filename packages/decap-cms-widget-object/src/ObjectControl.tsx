@@ -8,7 +8,7 @@ import { colors, lengths, ObjectWidgetTopBar } from 'decap-cms-ui-default';
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import { stringTemplate } from 'decap-cms-lib-widgets';
 
-import type { CmsField, CmsFieldBase, CmsFieldObject } from 'decap-cms-lib-util/types/cms';
+import type { CmsField, CmsFieldBase, CmsFieldObject } from 'decap-cms-lib-util';
 
 const styleStrings = {
   nestedObjectControl: `s
@@ -37,9 +37,15 @@ interface WidgetControlRef {
 
 interface ObjectControlProps {
   /** Called when a nested field value changes (provided by Widget wrapper or ListControl) */
-  onChangeObject: (field: CmsField, newValue: unknown, newMetadata?: Record<string, unknown>) => void;
+  onChangeObject: (
+    field: CmsField,
+    newValue: unknown,
+    newMetadata?: Record<string, unknown>,
+  ) => void;
   /** Called to set validation errors for a specific field ID */
-  onValidateObject?: ((fieldId: string | CmsField, errors: Array<{ type: string; message: string }>) => void) | undefined;
+  onValidateObject?:
+    | ((fieldId: string | CmsField, errors: Array<{ type: string; message: string }>) => void)
+    | undefined;
   /** The current object value */
   value?: CmsField | unknown;
   /** The field configuration */

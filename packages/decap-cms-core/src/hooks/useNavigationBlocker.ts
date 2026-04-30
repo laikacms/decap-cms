@@ -18,7 +18,7 @@ interface UseNavigationBlockerOptions {
 /**
  * Hook for blocking navigation when there are unsaved changes
  * Replaces componentDidMount/componentWillUnmount pattern for navigation blocking
- * 
+ *
  * This hook sets up:
  * 1. beforeunload event listener for browser close/refresh
  * 2. history.block for in-app navigation
@@ -50,7 +50,7 @@ export function useNavigationBlocker({
       // Check if path is allowed
       const pathname = tx.location.pathname;
       const isAllowed = allowedPaths.some(path => pathname.startsWith(path));
-      
+
       if (isAllowed && tx.action === 'PUSH') {
         unblockRef.current?.();
         tx.retry();
@@ -76,7 +76,7 @@ export function useNavigationBlocker({
     unlistenRef.current = history.listen(({ location, action }: Update) => {
       const pathname = location.pathname;
       const isAllowed = allowedPaths.some(path => pathname.startsWith(path));
-      
+
       if (isAllowed && action === 'PUSH') {
         return;
       }

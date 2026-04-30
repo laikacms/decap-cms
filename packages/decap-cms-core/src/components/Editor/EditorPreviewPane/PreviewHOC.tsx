@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import type { CmsEntryField } from 'decap-cms-lib-util/types/cms';
+import type { CmsEntryField } from 'decap-cms-lib-util';
 
 type EntryField = CmsEntryField;
 
@@ -33,8 +33,8 @@ class PreviewHOC extends React.Component<PreviewHOCProps> {
     if (typeof previewComponent !== 'function' && typeof previewComponent !== 'object') {
       console.warn(
         `Invalid preview component for field "${props.field?.name ?? 'unknown'}": ` +
-        `expected a React component but received ${typeof previewComponent}. ` +
-        `The preview for this field will not be rendered.`
+          `expected a React component but received ${typeof previewComponent}. ` +
+          `The preview for this field will not be rendered.`,
       );
       return null;
     }

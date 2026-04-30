@@ -91,7 +91,7 @@ export default tseslint.config(
       'no-console': 'off',
       'require-atomic-updates': 'off',
       'object-shorthand': ['error', 'always'],
-      'func-style': ['error', 'declaration'],
+      // 'func-style': ['error', 'declaration'], // TODO: Remove? (feedback please - Sem)
       'prefer-const': ['error', { destructuring: 'all' }],
       'no-duplicate-imports': 'off', // handled by @typescript-eslint
 
@@ -156,6 +156,9 @@ export default tseslint.config(
     },
     rules: {
       ...cypressPlugin.configs.recommended.rules,
+      // Custom Cypress commands are legitimately chained after built-in commands;
+      // the rule gives false positives for prevSubject:true custom commands.
+      'cypress/unsafe-to-chain-command': 'warn',
     },
   },
 

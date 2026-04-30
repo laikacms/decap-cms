@@ -14,15 +14,11 @@ export default defineConfig({
       entry: path.resolve(__dirname, 'packages/decap-cms-app/src/index.ts'),
       name: 'DecapCms',
       fileName: () => 'decap-cms.js',
-      formats: ['umd'],
+      formats: ['iife'],
     },
-    rollupOptions: {
-      external: [],
+    rolldownOptions: {
       output: {
-        globals: {},
-        // Ensure all dependencies are bundled
-        inlineDynamicImports: true,
-      },
+      }
     },
     sourcemap: true,
     minify: false,

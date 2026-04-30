@@ -30,7 +30,7 @@ import type {
   CmsEntry,
   CmsCollections,
   CmsMediaFile,
-} from 'decap-cms-lib-util/types/cms';
+} from 'decap-cms-lib-util';
 import type { AnyAction } from 'redux';
 import type { EntryValue } from '../valueObjects/Entry';
 import type { EntryDraft } from '../reducers/entryDraft';
@@ -251,7 +251,9 @@ export function loadUnpublishedEntry(collection: Collection, slug: string) {
     //run possible unpublishedEntries migration
     if (!entriesLoaded) {
       try {
-        const { entries, pagination } = await backend.unpublishedEntries(Object.values(state.collections) as any);
+        const { entries, pagination } = await backend.unpublishedEntries(
+          Object.values(state.collections) as any,
+        );
         dispatch(unpublishedEntriesLoaded(entries, pagination));
         // eslint-disable-next-line no-empty
       } catch (e: unknown) {}

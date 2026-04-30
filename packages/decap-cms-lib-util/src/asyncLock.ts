@@ -1,7 +1,7 @@
 import createSemaphore from './semaphore.js';
 import type { Semaphore } from './semaphore.js';
 
-export type AsyncLock = { release: () => void; acquire: () => Promise<boolean> };
+export type AsyncLock = { release: () => void; acquire: (timeout?: number) => Promise<boolean> };
 
 export function asyncLock(): AsyncLock {
   let lock: Semaphore = createSemaphore(1);

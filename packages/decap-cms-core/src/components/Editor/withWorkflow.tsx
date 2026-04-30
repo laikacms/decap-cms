@@ -6,7 +6,7 @@ import { selectUnpublishedEntry } from '../../reducers';
 import { selectAllowDeletion } from '../../reducers/collections';
 import { loadUnpublishedEntry, persistUnpublishedEntry } from '../../actions/editorialWorkflow';
 
-import type { CmsCollectionState } from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState } from 'decap-cms-lib-util';
 
 type Collection = CmsCollectionState;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -53,14 +53,19 @@ function mapStateToProps(state: State, ownProps: OwnProps): StateProps {
   return returnObj;
 }
 
-function mergeProps(stateProps: StateProps, dispatchProps: { dispatch: Function }, ownProps: OwnProps): OwnProps & StateProps & MergedProps {
+function mergeProps(
+  stateProps: StateProps,
+  dispatchProps: { dispatch: Function },
+  ownProps: OwnProps,
+): OwnProps & StateProps & MergedProps {
   const { isEditorialWorkflow, unpublishedEntry } = stateProps;
   const { dispatch } = dispatchProps;
   const returnObj: MergedProps = {};
 
   if (isEditorialWorkflow) {
     // Overwrite loadEntry to loadUnpublishedEntry
-    returnObj.loadEntry = (collection: Collection, slug: string) => dispatch(loadUnpublishedEntry(collection, slug));
+    returnObj.loadEntry = (collection: Collection, slug: string) =>
+      dispatch(loadUnpublishedEntry(collection, slug));
 
     // Overwrite persistEntry to persistUnpublishedEntry
     returnObj.persistEntry = (collection: Collection) =>

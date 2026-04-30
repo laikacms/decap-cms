@@ -7,13 +7,13 @@ import { Cursor } from 'decap-cms-lib-util';
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import { colors } from 'decap-cms-ui-default';
 
-import type { CmsCollectionState, CmsCollections, CmsEntry, CmsGroupOfEntries } from 'decap-cms-lib-util/types/cms';
+import type {
+  CmsCollectionState,
+  CmsCollections,
+  CmsEntry,
+  CmsGroupOfEntries,
+} from 'decap-cms-lib-util';
 import type { Status } from '../../../constants/publishModes';
-
-type Collection = CmsCollectionState;
-type Collections = CmsCollections;
-type EntryMap = CmsEntry;
-type GroupOfEntries = CmsGroupOfEntries;
 
 import {
   loadEntries as actionLoadEntries,
@@ -40,11 +40,11 @@ const GroupHeading = styled.h2`
 
 const GroupContainer = styled.div``;
 
-function getGroupEntries(entries: EntryMap[] | undefined, paths: Set<string>) {
+function getGroupEntries(entries: CmsEntry[] | undefined, paths: Set<string>) {
   return entries?.filter(entry => paths.has(entry.path));
 }
 
-function getGroupTitle(group: GroupOfEntries, t: TranslateFunction) {
+function getGroupTitle(group: CmsGroupOfEntries, t: TranslateFunction) {
   const { label, value } = group;
   if (value === undefined) {
     return t('collection.groups.other');
@@ -56,12 +56,12 @@ function getGroupTitle(group: GroupOfEntries, t: TranslateFunction) {
 }
 
 function withGroups(
-  groups: GroupOfEntries[],
-  entries: EntryMap[] | undefined,
-  EntriesToRender: React.ComponentType<{ entries: EntryMap[] | undefined }>,
+  groups: CmsGroupOfEntries[],
+  entries: CmsEntry[] | undefined,
+  EntriesToRender: React.ComponentType<{ entries: CmsEntry[] | undefined }>,
   t: TranslateFunction,
 ) {
-  return groups.map((group: GroupOfEntries) => {
+  return groups.map((group: CmsGroupOfEntries) => {
     const title = getGroupTitle(group, t);
     return (
       <GroupContainer key={group.id} id={group.id}>
@@ -73,24 +73,24 @@ function withGroups(
 }
 
 interface EntriesCollectionProps {
-  collection: Collection;
-  collections?: Collections;
+  collection: CmsCollectionState;
+  collections?: CmsCollections;
   page?: number;
-  entries?: EntryMap[];
-  groups?: GroupOfEntries[];
+  entries?: CmsEntry[];
+  groups?: CmsGroupOfEntries[];
   isFetching: boolean;
   viewStyle?: string;
   cursor: Cursor;
-  loadEntries: (collection: Collection) => void;
-  traverseCollectionCursor: (collection: Collection, action: string) => void;
+  loadEntries: (collection: CmsCollectionState) => void;
+  traverseCollectionCursor: (collection: CmsCollectionState, action: string) => void;
   entriesLoaded?: boolean;
-  loadUnpublishedEntries: (collections: Collections | undefined) => void;
+  loadUnpublishedEntries: (collections: CmsCollections | undefined) => void;
   unpublishedEntriesLoaded?: boolean;
   isEditorialWorkflowEnabled?: boolean;
   filterTerm?: string;
   t: TranslateFunction;
   getWorkflowStatus: (collectionName: string, slug: string) => string | null;
-  getUnpublishedEntries: (collectionName: string) => EntryMap[];
+  getUnpublishedEntries: (collectionName: string) => CmsEntry[];
 }
 
 export class EntriesCollection extends React.Component<EntriesCollectionProps> {
@@ -157,7 +157,7 @@ export class EntriesCollection extends React.Component<EntriesCollectionProps> {
       filterTerm,
     } = this.props;
 
-    const EntriesToRender = ({ entries }: { entries: EntryMap[] | undefined }) => {
+    const EntriesToRender = ({ entries }: { entries: CmsEntry[] | undefined }) => {
       return (
         <Entries
           collections={collection}
@@ -185,10 +185,10 @@ export class EntriesCollection extends React.Component<EntriesCollectionProps> {
 export function filterNestedEntries(
   path: string,
   collectionFolder: string,
-  entries: EntryMap[],
+  entries: CmsEntry[],
   subfolders: boolean,
 ) {
-  const filtered = entries.filter((e: EntryMap) => {
+  const filtered = entries.filter((e: CmsEntry) => {
     let entryPath = e.path.slice(collectionFolder.length + 1);
     if (!entryPath.startsWith(path)) {
       return false;
@@ -213,13 +213,16 @@ export function filterNestedEntries(
   return filtered;
 }
 
-function mapStateToProps(state: any, ownProps: { collection: Collection; viewStyle?: string; filterTerm?: string }) {
+function mapStateToProps(
+  state: any,
+  ownProps: { collection: CmsCollectionState; viewStyle?: string; filterTerm?: string },
+) {
   const { collection, viewStyle, filterTerm } = ownProps;
   const page = (state.entries as any)?.pages?.[collection.name]?.page as number | undefined;
 
   const collections = state.collections;
 
-  let entries = selectEntries(state.entries, collection) as EntryMap[];
+  let entries = selectEntries(state.entries, collection) as CmsEntry[];
   const groups = selectGroups(state.entries, collection);
 
   if (collection.nested) {
@@ -264,14 +267,14 @@ function mapStateToProps(state: any, ownProps: { collection: Collection; viewSty
       if (!isEditorialWorkflowEnabled) return [];
 
       const allStatuses: Status[] = ['DRAFT', 'PENDING_REVIEW', 'PENDING_PUBLISH'];
-      const unpublishedEntries: EntryMap[] = [];
+      const unpublishedEntries: CmsEntry[] = [];
 
       allStatuses.forEach(statusKey => {
         const entriesForStatus = selectUnpublishedEntriesByStatus(state, statusKey);
         if (entriesForStatus) {
           entriesForStatus.forEach((entry: any) => {
             if (entry.collection === collectionName) {
-              unpublishedEntries.push(entry as EntryMap);
+              unpublishedEntries.push(entry as CmsEntry);
             }
           });
         }
@@ -285,9 +288,38 @@ function mapStateToProps(state: any, ownProps: { collection: Collection; viewSty
 const mapDispatchToProps = {
   loadEntries: actionLoadEntries,
   traverseCollectionCursor: actionTraverseCollectionCursor,
-  loadUnpublishedEntries: (collections: Collections | undefined) => loadUnpublishedEntries(collections as Collections),
+  loadUnpublishedEntries: (collections: CmsCollections | undefined) =>
+    loadUnpublishedEntries(collections as CmsCollections),
 };
 
-const ConnectedEntriesCollection = connect(mapStateToProps, mapDispatchToProps)(EntriesCollection);
+function shallowArrayEqual(a: unknown[], b: unknown[]): boolean {
+  if (a === b) return true;
+  if (!a || !b || a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
+const ConnectedEntriesCollection = connect(mapStateToProps, mapDispatchToProps, null, {
+  areStatePropsEqual(next: Record<string, unknown>, prev: Record<string, unknown>) {
+    // mapStateToProps creates new references every call for entries, groups,
+    // cursor, and inline functions. Compare by content where possible to
+    // prevent infinite re-render loops from react-redux connect().
+    for (const key of Object.keys(next)) {
+      const a = next[key];
+      const b = prev[key];
+      if (a === b) continue;
+      // Arrays (entries, groups): compare element-wise
+      if (Array.isArray(a) && Array.isArray(b) && shallowArrayEqual(a, b)) continue;
+      // Functions (getWorkflowStatus, getUnpublishedEntries): always new refs, skip
+      if (typeof a === 'function' && typeof b === 'function') continue;
+      // Cursor objects: compare by data equality (they're always new instances)
+      if (a instanceof Cursor && b instanceof Cursor) continue;
+      return false;
+    }
+    return true;
+  },
+})(EntriesCollection);
 
 export default translate()(ConnectedEntriesCollection);

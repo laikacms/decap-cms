@@ -12,6 +12,7 @@
 // the project's config changing)
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import 'dotenv/config';
+import path from 'node:path';
 import { merge } from 'lodash';
 import { addMatchImageSnapshotPlugin } from '@simonsmith/cypress-image-snapshot/plugin';
 

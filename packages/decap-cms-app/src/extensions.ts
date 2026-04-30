@@ -1,13 +1,13 @@
 // Core
 import { DecapCmsCore as CMS } from 'decap-cms-core';
 // Backends
-// import { AzureBackend } from 'decap-cms-backend-azure';
-// import { AwsCognitoGitHubProxyBackend } from 'decap-cms-backend-aws-cognito-github-proxy';
-// import { GitHubBackend } from 'decap-cms-backend-github';
-// import { GitLabBackend } from 'decap-cms-backend-gitlab';
-// import { GiteaBackend } from 'decap-cms-backend-gitea';
-// import { GitGatewayBackend } from 'decap-cms-backend-git-gateway';
-// import { BitbucketBackend } from 'decap-cms-backend-bitbucket';
+import { AzureBackend } from 'decap-cms-backend-azure';
+import { AwsCognitoGitHubProxyBackend } from 'decap-cms-backend-aws-cognito-github-proxy';
+import { GitHubBackend } from 'decap-cms-backend-github';
+import { GitLabBackend } from 'decap-cms-backend-gitlab';
+import { GiteaBackend } from 'decap-cms-backend-gitea';
+import { GitGatewayBackend } from 'decap-cms-backend-git-gateway';
+import { BitbucketBackend } from 'decap-cms-backend-bitbucket';
 import { TestBackend } from 'decap-cms-backend-test';
 import { ProxyBackend } from 'decap-cms-backend-proxy';
 // Widgets
@@ -60,7 +60,7 @@ CMS.registerBackend('proxy', ProxyBackend);
   DecapCmsWidgetCode.Widget(),
   DecapCmsWidgetColorString.Widget(),
 ].forEach(widget => CMS.registerWidget(widget));
-CMS.registerEditorComponent(image);
+CMS.registerEditorComponent(image as any); // TODO: fix type issue with editor components
 CMS.registerEditorComponent({
   id: 'code-block',
   label: 'Code Block',

@@ -3,10 +3,12 @@ import { MemoryRouter } from 'react-router-dom';
 import { render } from '@testing-library/react';
 import { vi } from 'vitest';
 
+import type * as DecapCmsUiDefault from 'decap-cms-ui-default';
+
 import { Sidebar } from '../Sidebar';
 
 vi.mock('decap-cms-ui-default', async () => {
-  const actual = await vi.importActual<typeof import('decap-cms-ui-default')>('decap-cms-ui-default');
+  const actual = await vi.importActual<typeof DecapCmsUiDefault>('decap-cms-ui-default');
   return {
     ...actual,
     Icon: 'mocked-icon',

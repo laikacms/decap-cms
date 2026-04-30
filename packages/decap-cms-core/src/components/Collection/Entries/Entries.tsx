@@ -5,10 +5,7 @@ import type { TranslateFunction } from 'decap-cms-ui-default';
 import { Loader, lengths } from 'decap-cms-ui-default';
 
 import type { Cursor } from 'decap-cms-lib-util';
-import type { CmsCollectionState, CmsEntry } from 'decap-cms-lib-util/types/cms';
-
-type Collection = CmsCollectionState;
-type EntryMap = CmsEntry;
+import type { CmsCollectionState, CmsEntry } from 'decap-cms-lib-util';
 
 import EntryListing from './EntryListing';
 
@@ -23,8 +20,8 @@ const NoEntriesMessage = styled(PaginationMessage)`
 `;
 
 interface EntriesProps {
-  collections: Collection;
-  entries?: EntryMap[];
+  collections: CmsCollectionState;
+  entries?: CmsEntry[];
   page?: number;
   isFetching?: boolean;
   viewStyle?: string;
@@ -32,7 +29,7 @@ interface EntriesProps {
   handleCursorActions: (action: string) => void;
   t: TranslateFunction;
   getWorkflowStatus?: (collectionName: string, slug: string) => string | null;
-  getUnpublishedEntries?: (collectionName: string) => EntryMap[];
+  getUnpublishedEntries?: (collectionName: string) => CmsEntry[];
   filterTerm?: string;
 }
 

@@ -53,13 +53,8 @@ function Buttons({ t, fieldName, handleChange, getNow }: ButtonsProps) {
   );
 }
 
-interface ImmutableField {
-  get: (key: string, defaultValue?: unknown) => unknown;
-  has?: (key: string) => boolean;
-}
-
 interface DateTimeControlProps {
-  field: ImmutableField;
+  field: Record<string, unknown>;
   forID?: string;
   onChange: (value: string) => void;
   classNameWrapper: string;
@@ -97,7 +92,7 @@ class DateTimeControl extends React.Component<DateTimeControlProps> {
     }
   }
 
-  isUtc = this.props.field.get('picker_utc') as boolean || false;
+  isUtc = (this.props.field.picker_utc as boolean) || false;
 
   escapeZ(str: string): string {
     if (/Z(?![\]])/.test(str)) {
@@ -111,9 +106,9 @@ class DateTimeControl extends React.Component<DateTimeControlProps> {
     let inputType = 'datetime-local';
     let inputFormat = 'YYYY-MM-DDTHH:mm';
     let format = `YYYY-MM-DDTHH:mm:ss.SSS${this.isUtc ? '[Z]' : 'Z'}`;
-    let userFormat = field.get('format') as string | undefined;
-    let dateFormat = field.get('date_format') as string | boolean | undefined;
-    let timeFormat = field.get('time_format') as string | boolean | undefined;
+    let userFormat = field.format as string | undefined;
+    let dateFormat = field.date_format as string | boolean | undefined;
+    let timeFormat = field.time_format as string | boolean | undefined;
     if (dateFormat === true) dateFormat = 'YYYY-MM-DD';
     if (timeFormat === true) timeFormat = 'HH:mm';
 
@@ -231,7 +226,7 @@ class DateTimeControl extends React.Component<DateTimeControlProps> {
         {!isDisabled && (
           <Buttons
             t={t}
-            fieldName={field.get('name') as string}
+            fieldName={field.name as string}
             handleChange={(v: string) => this.handleChange(v)}
             getNow={() => this.getNow()}
           />

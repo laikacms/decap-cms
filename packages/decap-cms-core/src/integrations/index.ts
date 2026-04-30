@@ -26,10 +26,7 @@ export function resolveIntegrations(
       ([providerName, providerData]: [string, AlgoliaConfig | AssetStoreConfig]) => {
         switch (providerName) {
           case 'algolia':
-            integrationInstances.set(
-              'algolia',
-              new Algolia(providerData as AlgoliaConfig),
-            );
+            integrationInstances.set('algolia', new Algolia(providerData as AlgoliaConfig));
             break;
           case 'assetStore':
             integrationInstances.set(

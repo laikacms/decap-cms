@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import isObject from 'lodash/isObject'
-import get from 'lodash/get'
+import get from 'lodash/get';
 import { WidgetPreviewContainer } from 'decap-cms-ui-default';
 
 interface ObjectPreviewProps {
@@ -11,11 +10,7 @@ interface ObjectPreviewProps {
 function ObjectPreview({ field }: ObjectPreviewProps) {
   const f = get(field, 'field') || get(field, 'fields');
 
-  return (
-    <WidgetPreviewContainer>
-      {f as React.ReactNode ?? null}
-    </WidgetPreviewContainer>
-  );
+  return <WidgetPreviewContainer>{(f as React.ReactNode) ?? null}</WidgetPreviewContainer>;
 }
 
 ObjectPreview.propTypes = {

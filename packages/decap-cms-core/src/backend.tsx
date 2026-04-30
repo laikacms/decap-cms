@@ -70,7 +70,7 @@ import type {
   CmsImplementation as BackendImplementation,
   CmsConfig,
   CmsCollectionFile,
-} from 'decap-cms-lib-util/types/cms';
+} from 'decap-cms-lib-util';
 import type { EntryValue } from './valueObjects/Entry';
 import type { EntryDraft } from './reducers/entryDraft';
 import type {
@@ -170,19 +170,22 @@ export function extractSearchFields(searchFields: string[]) {
 
 export function expandSearchEntries(entries: EntryValue[], searchFields: string[]) {
   // expand the entries for the purpose of the search
-  const expandedEntries = entries.reduce((acc, e) => {
-    const expandedFields = searchFields.reduce((acc, f) => {
-      const fields = expandPath({ data: e.data, path: f });
-      acc.push(...fields);
+  const expandedEntries = entries.reduce(
+    (acc, e) => {
+      const expandedFields = searchFields.reduce((acc, f) => {
+        const fields = expandPath({ data: e.data, path: f });
+        acc.push(...fields);
+        return acc;
+      }, [] as string[]);
+
+      for (let i = 0; i < expandedFields.length; i++) {
+        acc.push({ ...e, field: expandedFields[i] });
+      }
+
       return acc;
-    }, [] as string[]);
-
-    for (let i = 0; i < expandedFields.length; i++) {
-      acc.push({ ...e, field: expandedFields[i] });
-    }
-
-    return acc;
-  }, [] as (EntryValue & { field: string })[]);
+    },
+    [] as (EntryValue & { field: string })[],
+  );
 
   return expandedEntries;
 }
@@ -192,26 +195,29 @@ export function mergeExpandedEntries(entries: (EntryValue & { field: string })[]
   const fields = entries.map(f => f.field);
   const arrayPaths: Record<string, Set<string>> = {};
 
-  const merged = entries.reduce((acc, e) => {
-    if (!acc[e.slug]) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { field, ...rest } = e;
-      acc[e.slug] = rest;
-      arrayPaths[e.slug] = new Set();
-    }
-
-    const nestedFields = e.field.split('.');
-    let value = acc[e.slug].data;
-    for (let i = 0; i < nestedFields.length; i++) {
-      value = value[nestedFields[i]];
-      if (Array.isArray(value)) {
-        const path = nestedFields.slice(0, i + 1).join('.');
-        arrayPaths[e.slug] = arrayPaths[e.slug].add(path);
+  const merged = entries.reduce(
+    (acc, e) => {
+      if (!acc[e.slug]) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { field, ...rest } = e;
+        acc[e.slug] = rest;
+        arrayPaths[e.slug] = new Set();
       }
-    }
 
-    return acc;
-  }, {} as Record<string, EntryValue>);
+      const nestedFields = e.field.split('.');
+      let value = acc[e.slug].data;
+      for (let i = 0; i < nestedFields.length; i++) {
+        value = value[nestedFields[i]];
+        if (Array.isArray(value)) {
+          const path = nestedFields.slice(0, i + 1).join('.');
+          arrayPaths[e.slug] = arrayPaths[e.slug].add(path);
+        }
+      }
+
+      return acc;
+    },
+    {} as Record<string, EntryValue>,
+  );
 
   // this keeps the search score sorting order designated by the order in entries
   // and filters non matching items
@@ -315,8 +321,7 @@ function prepareMetaPath(path: string, collection: CmsCollectionState) {
 
 function collectionDepth(collection: CmsCollectionState) {
   let depth;
-  depth =
-    collection.nested?.depth || getPathDepth((collection.path || '') as string);
+  depth = collection.nested?.depth || getPathDepth((collection.path || '') as string);
 
   if (hasI18n(collection)) {
     depth = getI18nFilesDepth(collection, depth);
@@ -341,10 +346,7 @@ function collectionRegex(collection: CmsCollectionState): RegExp | undefined {
   let ruleString = '';
 
   if (collection.path) {
-    ruleString = `${collection.folder}/${collection.path}`.replace(
-      /{{.*}}/gm,
-      '(.*)',
-    );
+    ruleString = `${collection.folder}/${collection.path}`.replace(/{{.*}}/gm, '(.*)');
   }
 
   if (hasI18n(collection)) {
@@ -458,7 +460,12 @@ export class Backend {
 
   getToken = () => this.implementation.getToken();
 
-  async entryExist(collection: CmsCollectionState, path: string, slug: string, useWorkflow: boolean) {
+  async entryExist(
+    collection: CmsCollectionState,
+    path: string,
+    slug: string,
+    useWorkflow: boolean,
+  ) {
     const unpublishedEntry =
       useWorkflow &&
       (await this.implementation
@@ -552,11 +559,7 @@ export class Backend {
     if (collectionType === FOLDER) {
       listMethod = () => {
         const depth = collectionDepth(collection);
-        return this.implementation.entriesByFolder(
-          collection.folder as string,
-          extension,
-          depth,
-        );
+        return this.implementation.entriesByFolder(collection.folder as string, extension, depth);
       };
     } else if (collectionType === FILES) {
       const files = (collection.files || []).map((collectionFile: CmsCollectionFileState) => ({
@@ -772,13 +775,13 @@ export class Backend {
 
       const mediaFiles = await Promise.all<MediaFile>(
         (entry.mediaFiles as unknown as MediaFile[]).map(async (file: MediaFile) => {
-            // make sure to serialize the file
-            if (file.url?.startsWith('blob:')) {
-              const blob = await fetch(file.url as string).then(res => res.blob());
-              return { ...file, file: blobToFileObj(file.name, blob) };
-            }
-            return file;
-          }),
+          // make sure to serialize the file
+          if (file.url?.startsWith('blob:')) {
+            const blob = await fetch(file.url as string).then(res => res.blob());
+            return { ...file, file: blobToFileObj(file.name, blob) };
+          }
+          return file;
+        }),
       );
 
       let i18n;
@@ -902,12 +905,7 @@ export class Backend {
       const nonDataFiles = entryData.diffs.filter(d => !d.path.endsWith(extension));
       const files = await Promise.all(
         nonDataFiles.map(f =>
-          this.implementation!.unpublishedEntryMediaFile(
-            collection.name,
-            slug,
-            f.path,
-            f.id,
-          ),
+          this.implementation!.unpublishedEntryMediaFile(collection.name, slug, f.path, f.id),
         ),
       );
       mediaFiles.push(...files.map(f => ({ ...f, draft: true })));
@@ -1352,8 +1350,9 @@ export class Backend {
     }
 
     const files = collection.files;
-    const file = (files || ([] as CmsCollectionFileState[]))
-      .filter((f: CmsCollectionFileState) => f.name === entry.slug)[0];
+    const file = (files || ([] as CmsCollectionFileState[])).filter(
+      (f: CmsCollectionFileState) => f.name === entry.slug,
+    )[0];
 
     if (file == null) {
       throw new Error(`No file found for ${entry.slug} in ${collection.name}`);
@@ -1384,7 +1383,11 @@ export function resolveBackend(config: CmsConfig) {
   if (!backend) {
     throw new Error(`Backend not found: ${name}`);
   } else {
-    return new Backend(backend as unknown as Implementation, { backendName: name, authStore, config });
+    return new Backend(backend as unknown as Implementation, {
+      backendName: name,
+      authStore,
+      config,
+    });
   }
 }
 

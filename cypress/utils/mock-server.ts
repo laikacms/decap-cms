@@ -49,7 +49,7 @@ export const retrieveRecordedExpectations = async (): Promise<RecordedExpectatio
   recorded = recorded.filter(({ httpRequest }: any) => {
     const headers = httpRequest.headers || {};
     // Handle both array format and object format for headers
-    let hostValues: string[] = [];
+    let hostValues: string[];
     if (Array.isArray(headers)) {
       const hostHeader = headers.find((h: any) => h.name === 'Host');
       hostValues = hostHeader?.values || [];

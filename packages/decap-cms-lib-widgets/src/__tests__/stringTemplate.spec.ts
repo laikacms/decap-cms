@@ -110,12 +110,11 @@ describe('stringTemplate', () => {
 
     it('return apply filter to values', () => {
       expect(
-        compileStringTemplate(
-          '{{slug | upper}}-{{title | lower}}-{{year}}',
+        compileStringTemplate('{{slug | upper}}-{{title | lower}}-{{year}}', date, 'backendSlug', {
+          slug: 'entrySlug',
+          title: 'Title',
           date,
-          'backendSlug',
-          { slug: 'entrySlug', title: 'Title', date },
-        ),
+        }),
       ).toBe('BACKENDSLUG-title-2020');
     });
 
@@ -154,23 +153,21 @@ describe('stringTemplate', () => {
 
     it('return apply filter for truncate', () => {
       expect(
-        compileStringTemplate(
-          '{{slug | truncate(6)}}',
-          date,
-          'backendSlug',
-          { slug: 'entrySlug', starred: true, done: false },
-        ),
+        compileStringTemplate('{{slug | truncate(6)}}', date, 'backendSlug', {
+          slug: 'entrySlug',
+          starred: true,
+          done: false,
+        }),
       ).toBe('backen...');
     });
 
     it('return apply filter for truncate with custom ellipsis', () => {
       expect(
-        compileStringTemplate(
-          "{{slug | truncate(3,'***')}}",
-          date,
-          'backendSlug',
-          { slug: 'entrySlug', starred: true, done: false },
-        ),
+        compileStringTemplate("{{slug | truncate(3,'***')}}", date, 'backendSlug', {
+          slug: 'entrySlug',
+          starred: true,
+          done: false,
+        }),
       ).toBe('bac***');
     });
   });

@@ -8,7 +8,7 @@ import {
   LOGOUT,
 } from '../actions/auth';
 
-import type { CmsUser as User } from 'decap-cms-lib-util/types/cms';
+import type { CmsUser as User } from 'decap-cms-lib-util';
 import type { AuthAction } from '../actions/auth';
 
 export type Auth = {

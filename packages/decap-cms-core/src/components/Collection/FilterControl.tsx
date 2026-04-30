@@ -2,15 +2,13 @@ import React from 'react';
 import { translate } from 'react-polyglot';
 import { Dropdown, DropdownCheckedItem } from 'decap-cms-ui-default';
 
-import type { CmsViewFilter } from 'decap-cms-lib-util/types/cms';
+import type { CmsViewFilter } from 'decap-cms-lib-util';
 import { ControlButton } from './ControlButton';
 
-type ViewFilter = CmsViewFilter;
-
 export interface FilterControlProps {
-  viewFilters: ViewFilter[];
+  viewFilters: CmsViewFilter[];
   t: (key: string) => string;
-  onFilterClick: (filter: ViewFilter) => void;
+  onFilterClick: (filter: CmsViewFilter) => void;
   filter: Record<string, unknown>;
 }
 

@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import styled from '@emotion/styled';
 import type { TranslateFunction } from 'decap-cms-ui-default';
-import type { CmsCollections, CmsCollectionState } from 'decap-cms-lib-util/types/cms';
+import type { CmsCollections, CmsCollectionState } from 'decap-cms-lib-util';
 import type { Status } from '../../constants/publishModes';
 import { translate } from 'react-polyglot';
 import { connect } from 'react-redux';
@@ -66,7 +66,12 @@ interface WorkflowProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   unpublishedEntries?: Record<string, any>;
   loadUnpublishedEntries: (collections: Collections) => void;
-  updateUnpublishedEntryStatus: (collection: string, slug: string, oldStatus: string, newStatus: string) => void;
+  updateUnpublishedEntryStatus: (
+    collection: string,
+    slug: string,
+    oldStatus: string,
+    newStatus: string,
+  ) => void;
   publishUnpublishedEntry: (collection: string, slug: string) => void;
   deleteUnpublishedEntry: (collection: string, slug: string) => void;
   t: TranslateFunction;
@@ -111,8 +116,12 @@ class Workflow extends Component<WorkflowProps> {
 
     if (!isEditorialWorkflow) return null;
     if (isFetching) return <Loader active>{t('workflow.workflow.loading')}</Loader>;
-    const reviewCount = unpublishedEntries ? unpublishedEntries['pending_review']?.length ?? 0 : 0;
-    const readyCount = unpublishedEntries ? unpublishedEntries['pending_publish']?.length ?? 0 : 0;
+    const reviewCount = unpublishedEntries
+      ? (unpublishedEntries['pending_review']?.length ?? 0)
+      : 0;
+    const readyCount = unpublishedEntries
+      ? (unpublishedEntries['pending_publish']?.length ?? 0)
+      : 0;
 
     return (
       <WorkflowContainer>

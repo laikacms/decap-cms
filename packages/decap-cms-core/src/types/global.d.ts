@@ -30,7 +30,11 @@ declare module 'url' {
     href?: string | null;
   }
 
-  function parse(urlString: string, parseQueryString?: boolean, slashesDenoteHost?: boolean): UrlObject;
+  function parse(
+    urlString: string,
+    parseQueryString?: boolean,
+    slashesDenoteHost?: boolean,
+  ): UrlObject;
   function format(urlObject: UrlObject): string;
   function resolve(from: string, to: string): string;
 }
@@ -71,13 +75,13 @@ declare module 'fuzzy' {
     original: T;
   }
 
-  function filter<T>(
-    pattern: string,
-    arr: T[],
-    opts?: FilterOptions<T>,
-  ): FilterResult<T>[];
+  function filter<T>(pattern: string, arr: T[], opts?: FilterOptions<T>): FilterResult<T>[];
 
-  function match(pattern: string, str: string, opts?: { pre?: string; post?: string }): { rendered: string; score: number } | null;
+  function match(
+    pattern: string,
+    str: string,
+    opts?: { pre?: string; post?: string },
+  ): { rendered: string; score: number } | null;
 
   function test(pattern: string, str: string): boolean;
 

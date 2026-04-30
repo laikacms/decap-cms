@@ -19,10 +19,7 @@ import {
 import { connect } from 'react-redux';
 
 import type { TranslateFunction } from 'decap-cms-ui-default';
-import type {
-  CmsCollectionState,
-  CmsCollections,
-} from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState, CmsCollections } from 'decap-cms-lib-util';
 
 type Collection = CmsCollectionState;
 type Collections = CmsCollections;
@@ -177,9 +174,12 @@ class Header extends React.Component<HeaderProps> {
     // Manually validate PropTypes - React 19 breaking change
     PropTypes.checkPropTypes(Header.propTypes, this.props, 'prop', 'Header');
 
-    this.intervalId = setInterval(() => {
-      this.props.checkBackendStatus();
-    }, 5 * 60 * 1000);
+    this.intervalId = setInterval(
+      () => {
+        this.props.checkBackendStatus();
+      },
+      5 * 60 * 1000,
+    );
   }
 
   componentWillUnmount() {
@@ -208,8 +208,9 @@ class Header extends React.Component<HeaderProps> {
       showMediaButton,
     } = this.props;
 
-    const creatableCollections = Object.values(collections)
-      .filter((collection: Collection) => !!collection.create);
+    const creatableCollections = Object.values(collections).filter(
+      (collection: Collection) => !!collection.create,
+    );
 
     const shouldShowLogo = logo?.show_in_header && logo?.src;
 

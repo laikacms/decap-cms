@@ -19,7 +19,7 @@ interface PreviewContentProps {
 class PreviewContent extends React.Component<PreviewContentProps> {
   handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const { previewProps, onFieldClick } = this.props;
-    const visualEditing = (previewProps?.collection as any)?.getIn?.(['editor', 'visualEditing'], false);
+    const visualEditing = (previewProps?.collection as any)?.editor?.visualEditing ?? false;
 
     if (!visualEditing) {
       return;
@@ -48,7 +48,7 @@ class PreviewContent extends React.Component<PreviewContentProps> {
     if (!isValidComponent) {
       console.warn(
         `Invalid preview component: expected a React component or element but received ${typeof previewComponent}. ` +
-        `The preview will not be rendered.`
+          `The preview will not be rendered.`,
       );
       return <div onClick={this.handleClick} />;
     }
@@ -57,14 +57,17 @@ class PreviewContent extends React.Component<PreviewContentProps> {
       <div onClick={this.handleClick}>
         {isElement(previewComponent)
           ? React.cloneElement(previewComponent, previewProps)
-          : React.createElement(previewComponent as React.ComponentType<Record<string, unknown>>, previewProps)}
+          : React.createElement(
+              previewComponent as React.ComponentType<Record<string, unknown>>,
+              previewProps,
+            )}
       </div>
     );
   }
 
   render() {
     const { previewProps } = this.props;
-    const visualEditing = (previewProps?.collection as any)?.getIn?.(['editor', 'visualEditing'], false);
+    const visualEditing = (previewProps?.collection as any)?.editor?.visualEditing ?? false;
     const showScrollSync = !visualEditing;
 
     return (

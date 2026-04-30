@@ -3,15 +3,17 @@ import { render } from '@testing-library/react';
 import { vi } from 'vitest';
 
 import { EditorToolbar } from '../EditorToolbar';
+import type { CmsCollectionState } from 'decap-cms-lib-util';
+import type { TranslateFunction } from 'decap-cms-ui-default';
 
 vi.mock('../../UI', () => ({
-  // eslint-disable-next-line react/display-name
-  SettingsDropdown: props => <mock-settings-dropdown {...props} />,
+  SettingsDropdown: (props: Record<string, unknown>) => (
+    <div data-testid="settings-dropdown" {...props} />
+  ),
 }));
 vi.mock('react-router-dom', () => {
   return {
-    // eslint-disable-next-line react/display-name
-    Link: props => <mock-link {...props} />,
+    Link: (props: Record<string, unknown>) => <div data-testid="link" {...props} />,
   };
 });
 
@@ -34,7 +36,7 @@ describe('EditorToolbar', () => {
     onPublishAndNew: vi.fn(),
     onPublishAndDuplicate: vi.fn(),
     hasChanged: false,
-    collection: { name: 'posts' },
+    collection: { name: 'posts' } as unknown as CmsCollectionState,
     hasWorkflow: false,
     useOpenAuthoring: false,
     hasUnpublishedChanges: false,
@@ -42,7 +44,7 @@ describe('EditorToolbar', () => {
     isModification: false,
     onLogoutClick: vi.fn(),
     loadDeployPreview: vi.fn(),
-    t: vi.fn(key => key),
+    t: vi.fn((key: string) => key) as unknown as TranslateFunction,
     editorBackLink: '',
   };
 

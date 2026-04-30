@@ -16,11 +16,7 @@ import {
   summaryFormatter,
   folderFormatter,
 } from '../formatters';
-import {
-  selectIdentifier,
-  selectInferredField,
-  getFileFromSlug,
-} from '../../reducers/collections';
+import { selectIdentifier, selectInferredField, getFileFromSlug } from '../../reducers/collections';
 
 describe('formatters', () => {
   describe('commitMessageFormatter', () => {
@@ -287,7 +283,6 @@ describe('formatters', () => {
     const date = new Date('2020-01-01').valueOf();
     Date.now = vi.spyOn(Date, 'now').mockImplementation(() => date);
 
-
     beforeEach(() => {
       vi.clearAllMocks();
       vi.mocked(selectIdentifier).mockReturnValue('title');
@@ -351,9 +346,9 @@ describe('formatters', () => {
     it('should return slug', () => {
       vi.mocked(selectIdentifier).mockReturnValueOnce('title');
 
-      expect(
-        slugFormatter({ slug: '{{slug}}' }, { title: 'Post Title' }, slugConfig),
-      ).toBe('post-title');
+      expect(slugFormatter({ slug: '{{slug}}' }, { title: 'Post Title' }, slugConfig)).toBe(
+        'post-title',
+      );
     });
 
     it('should return slug with path', () => {
@@ -405,9 +400,7 @@ describe('formatters', () => {
     });
 
     it('should return baseUrl for collection with no preview_path', () => {
-      expect(previewUrlFormatter('https://www.example.com', {})).toBe(
-        'https://www.example.com',
-      );
+      expect(previewUrlFormatter('https://www.example.com', {})).toBe('https://www.example.com');
     });
 
     it('should return preview url based on preview_path and preview_path_date_field', () => {
@@ -644,7 +637,7 @@ describe('formatters', () => {
     });
 
     it('should return formatted folder', () => {
-        vi.mocked(selectIdentifier).mockReturnValue('title');
+      vi.mocked(selectIdentifier).mockReturnValue('title');
 
       const entry = {
         path: 'content/en/hosting-and-deployment/deployment-with-nanobox.md',

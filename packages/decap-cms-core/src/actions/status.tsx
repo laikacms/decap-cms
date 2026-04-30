@@ -53,9 +53,9 @@ export function checkBackendStatus() {
       const status = await backend.status();
 
       const backendDownKey = 'ui.toast.onBackendDown';
-      const previousBackendDownNotifications = (state.notifications.notifications as CmsNotification[]).filter(
-        n => typeof n.message != 'string' && n.message?.key === backendDownKey,
-      );
+      const previousBackendDownNotifications = (
+        state.notifications.notifications as CmsNotification[]
+      ).filter(n => typeof n.message != 'string' && n.message?.key === backendDownKey);
 
       if (status.api.status === false) {
         if (previousBackendDownNotifications.length === 0) {

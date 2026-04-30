@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import fs from 'node:fs/promises';
 import path from 'path';
 import type { ChildProcess } from 'child_process';
 import { spawn } from 'child_process';
@@ -7,9 +7,11 @@ import { merge } from 'lodash';
 import { updateConfig } from '../utils/config';
 import { getGitClient } from './common';
 
+const fsExists = async (path: string) => fs.access(path).then(() => true, () => false);
+
 const initRepo = async (dir: string): Promise<void> => {
-  await fs.remove(dir);
-  await fs.mkdirp(dir);
+  await fs.rm(dir, { recursive: true, force: true });
+  await fs.mkdir(dir, { recursive: true });
   const git = getGitClient(dir);
   await git.init({ '--initial-branch': 'main' });
   await git.addConfig('user.email', 'cms-cypress-test@netlify.com');
@@ -37,7 +39,7 @@ const startServer = async (repoDir: string, mode: string): Promise<ChildProcess>
 
   console.log(`Starting proxy server on port '${port}' with mode ${mode}`);
   let childProcess: ChildProcess;
-  if (await fs.pathExists(distIndex)) {
+  if (await fsExists(distIndex)) {
     childProcess = spawn('node', [distIndex], { env, cwd: serverDir });
   } else {
     childProcess = spawn(tsNode, ['--files', tsIndex], { env, cwd: serverDir });
@@ -94,7 +96,7 @@ export async function teardownProxy(taskData: ProxyTaskData): Promise<null> {
   if (serverProcess) {
     serverProcess.kill();
   }
-  await fs.remove(taskData.tempDir);
+  await fs.rm(taskData.tempDir, { recursive: true, force: true });
 
   return null;
 }
@@ -109,6 +111,6 @@ export async function teardownProxyTest(taskData: ProxyTaskData): Promise<null> 
   if (serverProcess) {
     serverProcess.kill();
   }
-  await fs.remove(taskData.tempDir);
+  await fs.rm(taskData.tempDir, { recursive: true, force: true });
   return null;
 }

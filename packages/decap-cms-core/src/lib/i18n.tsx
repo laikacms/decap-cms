@@ -5,11 +5,7 @@ import escapeRegExp from 'lodash/escapeRegExp';
 
 import { selectEntrySlug } from '../reducers/collections';
 
-import type {
-  CmsCollectionState,
-  CmsEntry,
-  CmsEntryField,
-} from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState, CmsEntry, CmsEntryField } from 'decap-cms-lib-util';
 import type { EntryValue } from '../valueObjects/Entry';
 
 type Collection = CmsCollectionState;
@@ -169,10 +165,13 @@ export function getI18nFiles(
   const { structure, defaultLocale, locales } = getI18nInfo(collection) as I18nInfo;
 
   if (structure === I18N_STRUCTURE.SINGLE_FILE) {
-    const data = locales.reduce((map, locale) => {
-      const dataPath = getDataPath(locale, defaultLocale);
-      return { ...map, [locale]: get(entryDraft, dataPath) };
-    }, {} as Record<string, unknown>);
+    const data = locales.reduce(
+      (map, locale) => {
+        const dataPath = getDataPath(locale, defaultLocale);
+        return { ...map, [locale]: get(entryDraft, dataPath) };
+      },
+      {} as Record<string, unknown>,
+    );
     const draft = { ...entryDraft, data };
 
     return [
@@ -213,15 +212,18 @@ export function getI18nBackup(
 
   const i18nBackup = locales
     .filter(l => l !== defaultLocale)
-    .reduce((acc, locale) => {
-      const dataPath = getDataPath(locale, defaultLocale);
-      const data = get(entry, dataPath);
-      if (!data) {
-        return acc;
-      }
-      const draft = { ...entry, data };
-      return { ...acc, [locale]: { raw: entryToRaw(draft) } };
-    }, {} as Record<string, { raw: string }>);
+    .reduce(
+      (acc, locale) => {
+        const dataPath = getDataPath(locale, defaultLocale);
+        const data = get(entry, dataPath);
+        if (!data) {
+          return acc;
+        }
+        const draft = { ...entry, data };
+        return { ...acc, [locale]: { raw: entryToRaw(draft) } };
+      },
+      {} as Record<string, { raw: string }>,
+    );
 
   return i18nBackup;
 }
@@ -380,14 +382,17 @@ export function getI18nDataFiles(
     return diffFiles;
   }
   const paths = getFilePaths(collection, extension, path, slug);
-  const dataFiles = paths.reduce((acc, path) => {
-    const dataFile = diffFiles.find(file => file.path === path);
-    if (dataFile) {
-      return [...acc, dataFile];
-    } else {
-      return [...acc, { path, id: '', newFile: false }];
-    }
-  }, [] as { path: string; id: string; newFile: boolean }[]);
+  const dataFiles = paths.reduce(
+    (acc, path) => {
+      const dataFile = diffFiles.find(file => file.path === path);
+      if (dataFile) {
+        return [...acc, dataFile];
+      } else {
+        return [...acc, { path, id: '', newFile: false }];
+      }
+    },
+    [] as { path: string; id: string; newFile: boolean }[],
+  );
 
   return dataFiles;
 }

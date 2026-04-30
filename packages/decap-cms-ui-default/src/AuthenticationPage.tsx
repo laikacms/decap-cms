@@ -90,7 +90,7 @@ export interface PageContentRenderProps {
 }
 
 export interface AuthenticationPageProps {
-  onLogin?: () => void;
+  onLogin?: (e: any) => void;
   loginDisabled?: boolean;
   loginErrorMessage?: React.ReactNode;
   renderButtonContent?: () => React.ReactNode;
@@ -113,6 +113,12 @@ function AuthenticationPage({
   t,
 }: AuthenticationPageProps): React.ReactElement {
   const authLogoUrl = logoUrl || logo?.src;
+  const handleLogin = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (onLogin) {
+      e.preventDefault();
+      onLogin(e);
+    }
+  };
   return (
     <StyledAuthenticationPage>
       {renderPageLogo(authLogoUrl)}
@@ -121,7 +127,7 @@ function AuthenticationPage({
         ? null
         : renderPageContent({ LoginButton, TextButton, showAbortButton: !siteUrl })}
       {!renderButtonContent ? null : (
-        <LoginButton disabled={loginDisabled} onClick={onLogin}>
+        <LoginButton disabled={loginDisabled} onClick={handleLogin}>
           {renderButtonContent()}
         </LoginButton>
       )}

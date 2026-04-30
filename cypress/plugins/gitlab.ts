@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Gitlab } from 'gitlab';
-import fs from 'fs-extra';
+import fs from 'node:fs/promises';
 import path from 'path';
 import { merge } from 'lodash';
 import { updateConfig } from '../utils/config';
@@ -78,7 +78,7 @@ async function prepareTestGitLabRepo(): Promise<RepoData> {
   });
 
   const tempDir = path.join('.temp', testRepoName);
-  await fs.remove(tempDir);
+  await fs.rm(tempDir, { recursive: true, force: true });
   let git = getGitClient();
 
   const repoUrl = `git@gitlab.com:${owner}/${repo}.git`;
@@ -130,7 +130,7 @@ async function deleteRepositories({ owner, repo, tempDir }: RepoData): Promise<v
   };
 
   console.log('Deleting repository', `${owner}/${repo}`);
-  await fs.remove(tempDir);
+  await fs.rm(tempDir, { recursive: true, force: true });
 
   const client = getGitLabClient(token);
   await (client.Projects as any).remove(`${owner}/${repo}`).catch(errorHandler);
@@ -327,7 +327,7 @@ export const transformRecordedData = (expectation: Expectation, toSanitize: Sani
   };
 
   const responseBodySanitizer = (httpRequest: HttpRequest, httpResponse: HttpResponse): unknown => {
-    let responseBody: unknown = null;
+    let responseBody;
     const body = httpResponse.body;
     if (body && typeof body === 'object' && 'string' in body && body.string) {
       responseBody = body.string;

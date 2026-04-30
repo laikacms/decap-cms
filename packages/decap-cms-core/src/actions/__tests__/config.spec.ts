@@ -800,9 +800,7 @@ describe('config', () => {
 
     it('should return empty object when fetch returns an invalid response', async () => {
       window.location = { hostname: 'localhost' };
-      global.fetch = vi
-        .fn()
-        .mockResolvedValue({ json: vi.fn().mockResolvedValue({ repo: [] }) });
+      global.fetch = vi.fn().mockResolvedValue({ json: vi.fn().mockResolvedValue({ repo: [] }) });
       await expect(detectProxyServer(true)).resolves.toEqual({});
 
       assetFetchCalled();
@@ -960,7 +958,10 @@ describe('config', () => {
     test(`should fetch from custom 'config.yml'`, async () => {
       const dispatch = vi.fn();
 
-      (document.querySelector as ReturnType<typeof vi.fn>).mockReturnValue({ type: 'text/yaml', href: 'custom-config.yml' });
+      (document.querySelector as ReturnType<typeof vi.fn>).mockReturnValue({
+        type: 'text/yaml',
+        href: 'custom-config.yml',
+      });
       (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         status: 200,
         text: () => Promise.resolve(stringify({ backend: { repo: 'github' } })),

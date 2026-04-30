@@ -1,5 +1,5 @@
-import type { CmsMediaFileMap } from "./media.js";
-import type { CmsAssetProxy, CmsDataFile } from "./common.js";
+import type { CmsMediaFileMap } from './media.js';
+import type { CmsAssetProxy, CmsDataFile } from './common.js';
 
 export type CmsEntry = {
   path: string;

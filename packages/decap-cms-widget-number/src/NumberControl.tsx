@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import type { TranslateFunction } from 'decap-cms-ui-default';
-import type { CmsFieldBase, CmsFieldNumber } from 'decap-cms-lib-util/types/index';
+import type { CmsFieldBase, CmsFieldNumber } from 'decap-cms-lib-util';
 
 const ValidationErrorTypes = {
   PRESENCE: 'PRESENCE',
@@ -120,7 +120,13 @@ export default class NumberControl extends React.Component<NumberControlProps> {
       return true;
     }
 
-    const error = validateMinMax(value ?? '', min as number | false, max as number | false, field, t);
+    const error = validateMinMax(
+      value ?? '',
+      min as number | false,
+      max as number | false,
+      field,
+      t,
+    );
     return error ? { error } : true;
   };
 

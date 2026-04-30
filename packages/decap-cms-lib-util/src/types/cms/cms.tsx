@@ -1,4 +1,17 @@
-import type { CmsAllowedEvent, CmsEditorComponentOptions, CmsEditorComponentPlugin, CmsEventHandler, CmsEventListener, CmsEventListenerOptions, CmsFormatter, CmsFormatterFunctions, CmsGetAssetFunction, CmsLocalePhrases, CmsPublishMode, CmsSlug } from './common';
+import type {
+  CmsAllowedEvent,
+  CmsEditorComponentOptions,
+  CmsEditorComponentPlugin,
+  CmsEventHandler,
+  CmsEventListener,
+  CmsEventListenerOptions,
+  CmsFormatter,
+  CmsFormatterFunctions,
+  CmsGetAssetFunction,
+  CmsLocalePhrases,
+  CmsPublishMode,
+  CmsSlug,
+} from './common';
 import type { CmsI18nConfig } from './i18n';
 import type { CmsBackend, CmsBackendClass, CmsLocalBackend, CmsRegistryBackend } from './backend';
 import type { CmsMediaLibrary, CmsMediaLibraryOptions } from './media';
@@ -9,8 +22,8 @@ export interface CmsIssueReports {
   url?: string;
 }
 
-export interface CmsConfig {
-  backend: CmsBackend;
+export interface CmsConfig<Backend extends CmsBackend = CmsBackend> {
+  backend: Backend;
   collections: CmsCollection[];
   locale?: string;
   site_url?: string;
@@ -20,9 +33,14 @@ export interface CmsConfig {
     src: string;
     show_in_header?: boolean;
   };
+  app_id?: string;
+  always_fork?: boolean;
+  auth_token_endpoint?: string;
   show_preview_links?: boolean;
   media_folder?: string;
   public_folder?: string;
+  base_url?: string;
+  site_id?: string;
   media_folder_relative?: boolean;
   media_library?: CmsMediaLibrary;
   publish_mode?: CmsPublishMode;
@@ -104,7 +122,12 @@ export type CmsPreviewTemplateComponentProps = {
   entry: Record<string, unknown>;
   collection: Record<string, unknown>;
   getCollection: (collectionName: string, slug?: string) => Promise<Record<string, unknown>[]>;
-  widgetFor: (name: unknown, fields?: unknown, values?: unknown, fieldsMetaData?: unknown) => unknown;
+  widgetFor: (
+    name: unknown,
+    fields?: unknown,
+    values?: unknown,
+    fieldsMetaData?: unknown,
+  ) => unknown;
   widgetsFor: (name: unknown) => unknown;
   getAsset: CmsGetAssetFunction;
   boundGetAsset: (collection: unknown, path: unknown) => CmsGetAssetFunction;
@@ -154,10 +177,7 @@ export interface CmsCMS {
     control?: CmsWidgetControlComponent,
     preview?: CmsWidgetPreviewComponent,
   ) => void;
-  registerWidgetValueSerializer: (
-    widgetName: string,
-    serializer: CmsWidgetValueSerializer,
-  ) => void;
+  registerWidgetValueSerializer: (widgetName: string, serializer: CmsWidgetValueSerializer) => void;
   resolveWidget: (name: string) => CmsWidget | undefined;
   registerCustomFormat: (name: string, extension: string, formatter: CmsFormatterFunctions) => void;
 }

@@ -85,7 +85,7 @@ function codeBlock(content) {
                           <div></div>
                           <div></div>
                           <div>
-                            <div> </div>
+                            <div>\u00a0</div>
                           </div>
                           <div>
                             ${lines}
@@ -106,7 +106,7 @@ function codeBlock(content) {
         <div>
             <span>
                 <span>
-                    <span>﻿</span>
+                    <span>\uFEFF</span>
                 </span>
             </span>
         </div>

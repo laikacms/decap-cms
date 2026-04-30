@@ -1,9 +1,5 @@
 import { HTML5Backend as ReactDNDHTML5Backend } from 'react-dnd-html5-backend';
-import {
-  DndProvider as ReactDNDProvider,
-  useDrag,
-  useDrop,
-} from 'react-dnd';
+import { DndProvider as ReactDNDProvider, useDrag, useDrop } from 'react-dnd';
 import type { ConnectDragSource, ConnectDropTarget } from 'react-dnd';
 import React from 'react';
 
@@ -25,7 +21,10 @@ export function DragSource({ namespace, children, ...ownProps }: DragSourceProps
 export interface DropTargetProps {
   onDrop: (item: Record<string, unknown>) => void;
   namespace: string;
-  children: (connectDropTarget: ConnectDropTarget, state: { isHovered: boolean }) => React.ReactNode;
+  children: (
+    connectDropTarget: ConnectDropTarget,
+    state: { isHovered: boolean },
+  ) => React.ReactNode;
 }
 
 export function DropTarget({ onDrop, namespace, children }: DropTargetProps) {
@@ -34,7 +33,7 @@ export function DropTarget({ onDrop, namespace, children }: DropTargetProps) {
     drop: (item: Record<string, unknown>) => {
       onDrop(item);
     },
-    collect: (monitor) => ({
+    collect: monitor => ({
       isHovered: monitor.isOver(),
     }),
   });

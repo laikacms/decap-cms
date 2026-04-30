@@ -12,4 +12,3 @@ export interface CmsFieldSelect {
   min?: number;
   max?: number;
 }
-

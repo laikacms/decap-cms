@@ -25,7 +25,7 @@ import type {
   CmsI18nConfig,
   CmsPublishMode,
   CmsLocalBackend,
-} from 'decap-cms-lib-util/types/cms';
+} from 'decap-cms-lib-util';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type State = any;
@@ -523,7 +523,6 @@ export function loadConfig(manualConfig: Partial<CmsConfig> = {}, onLoad: () => 
   if (window.CMS_CONFIG) {
     return configLoaded(window.CMS_CONFIG);
   }
-  // eslint-disable-next-line @typescript-eslint/ban-types
   return async (dispatch: ThunkDispatch<State, {}, AnyAction>) => {
     dispatch(configLoading());
 

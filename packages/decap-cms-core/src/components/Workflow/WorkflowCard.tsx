@@ -114,7 +114,15 @@ interface CardDateOwnProps {
   author?: string;
 }
 
-const CardDate = translate()(({ t, date, author }: { t: TranslateFunction; date?: string; author?: string }) => {
+const CardDate = translate()(({
+  t,
+  date,
+  author,
+}: {
+  t: TranslateFunction;
+  date?: string;
+  author?: string;
+}) => {
   const key = lastChangePhraseKey(date, author);
   if (key) {
     return (

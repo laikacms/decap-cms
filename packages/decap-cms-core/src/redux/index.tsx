@@ -23,7 +23,6 @@ const store = createStore<State | undefined, AnyAction, object, object>(
 // Export types for typed hooks
 export type RootState = State;
 // Using {} for extra argument to match existing thunk actions
-// eslint-disable-next-line @typescript-eslint/ban-types
 export type AppDispatch = ThunkDispatch<State, {}, AnyAction>;
 
 export { store };

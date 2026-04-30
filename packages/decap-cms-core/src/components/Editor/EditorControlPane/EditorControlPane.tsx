@@ -11,11 +11,7 @@ import {
   text,
 } from 'decap-cms-ui-default';
 
-import type {
-  CmsCollectionState,
-  CmsEntry,
-  CmsEntryField,
-} from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState, CmsEntry, CmsEntryField } from 'decap-cms-lib-util';
 
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;
@@ -84,11 +80,7 @@ function LocaleDropdown({ locales, dropdownText, onLocaleChange }: LocaleDropdow
       }}
     >
       {locales.map((l: string) => (
-        <DropdownItem
-          key={l}
-          label={l}
-          onClick={() => onLocaleChange(l)}
-        />
+        <DropdownItem key={l} label={l} onClick={() => onLocaleChange(l)} />
       ))}
     </StyledDropdown>
   );
@@ -125,7 +117,12 @@ interface ControlPaneProps {
   fields: EntryField[];
   fieldsMetaData: Record<string, Record<string, unknown>>;
   fieldsErrors: Record<string, { type: string; message: string }[]>;
-  onChange: (field: EntryField, value: unknown, metadata?: Record<string, unknown>, i18n?: unknown) => void;
+  onChange: (
+    field: EntryField,
+    value: unknown,
+    metadata?: Record<string, unknown>,
+    i18n?: unknown,
+  ) => void;
   onValidate: (fieldName: string, errors: { type: string; message: string }[]) => void;
   onLocaleChange?: (locale: string) => void;
   locale?: string;
@@ -159,7 +156,13 @@ export default class ControlPane extends React.Component<ControlPaneProps, Contr
   };
 
   copyFromOtherLocale =
-    ({ targetLocale, t }: { targetLocale: string; t: (key: string, options?: Record<string, string>) => string }) =>
+    ({
+      targetLocale,
+      t,
+    }: {
+      targetLocale: string;
+      t: (key: string, options?: Record<string, string>) => string;
+    }) =>
     (sourceLocale: string) => {
       if (
         !window.confirm(
@@ -199,8 +202,12 @@ export default class ControlPane extends React.Component<ControlPaneProps, Contr
       if (field.widget === 'hidden') return;
       const name = field.name;
       const control = this.childRefs[name] as Record<string, unknown> | undefined;
-      const innerWrappedControl = control?.innerWrappedControl as Record<string, unknown> | undefined;
-      const validateFn = (innerWrappedControl?.validate ?? control?.validate) as (() => void) | undefined;
+      const innerWrappedControl = control?.innerWrappedControl as
+        | Record<string, unknown>
+        | undefined;
+      const validateFn = (innerWrappedControl?.validate ?? control?.validate) as
+        | (() => void)
+        | undefined;
       if (validateFn) {
         validateFn();
       }
@@ -210,7 +217,9 @@ export default class ControlPane extends React.Component<ControlPaneProps, Contr
   switchToDefaultLocale = () => {
     if (hasI18n(this.props.collection)) {
       const { defaultLocale } = getI18nInfo(this.props.collection) as I18nInfo;
-      return new Promise<void>(resolve => this.setState({ selectedLocale: defaultLocale }, resolve));
+      return new Promise<void>(resolve =>
+        this.setState({ selectedLocale: defaultLocale }, resolve),
+      );
     } else {
       return Promise.resolve();
     }
@@ -237,7 +246,11 @@ export default class ControlPane extends React.Component<ControlPaneProps, Contr
     );
   }
 
-  onChange = (field: EntryField, newValue: unknown, newMetadata: Record<string, unknown> | undefined) => {
+  onChange = (
+    field: EntryField,
+    newValue: unknown,
+    newMetadata: Record<string, unknown> | undefined,
+  ) => {
     this.props.onChange(field, newValue, newMetadata, this.getI18n());
   };
 

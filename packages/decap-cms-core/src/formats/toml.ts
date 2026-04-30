@@ -1,5 +1,4 @@
-import parseToml from '@iarna/toml/parse-string';
-import tomlify from 'tomlify-j0.4';
+import { parse, stringify } from 'smol-toml';
 import dayjs from 'dayjs';
 
 import AssetProxy from '../valueObjects/AssetProxy';
@@ -24,10 +23,11 @@ function outputReplacer(_key: string, value: unknown) {
 
 export default {
   fromFile(content: string) {
-    return parseToml(content);
+    return parse(content);
   },
 
   toFile(data: object, sortedKeys: string[] = []) {
-    return tomlify.toToml(data, { replace: outputReplacer, sort: sortKeys(sortedKeys) });
+    return stringify(data); // TODO: add support for outputReplacer and sortKeys
+    // return stringify(data, { replace: outputReplacer, sort: sortKeys(sortedKeys) });
   },
 };

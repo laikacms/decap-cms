@@ -1,21 +1,3 @@
-// Netlify Identity Widget types
-interface NetlifyIdentityUser {
-  id: string;
-  email: string;
-  user_metadata?: {
-    full_name?: string;
-    avatar_url?: string;
-  };
-  app_metadata?: Record<string, unknown>;
-  token?: {
-    access_token: string;
-    token_type: string;
-    expires_in: number;
-    refresh_token: string;
-    expires_at: number;
-  };
-}
-
 interface NetlifyIdentityWidget {
   on(event: 'init', callback: (user: NetlifyIdentityUser | null) => void): void;
   on(event: 'login', callback: (user: NetlifyIdentityUser) => void): void;

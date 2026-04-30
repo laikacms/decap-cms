@@ -28,7 +28,11 @@ vi.mock('decap-cms-lib-util', () => ({
   ConfigurationError: class ConfigurationError extends Error {},
   CURSOR_COMPATIBILITY_SYMBOL: Symbol('cursor key for compatibility with old backends'),
   Cursor: class Cursor {
-    static create = vi.fn(() => ({ wrapData: vi.fn(function(this: unknown) { return this; }) }));
+    static create = vi.fn(() => ({
+      wrapData: vi.fn(function (this: unknown) {
+        return this;
+      }),
+    }));
   },
   EditorialWorkflowError: class EditorialWorkflowError extends Error {
     notUnderEditorialWorkflow = false;
@@ -235,7 +239,10 @@ describe('Backend', () => {
   });
 
   describe('getLocalDraftBackup', () => {
-    (asyncLock as ReturnType<typeof vi.fn>).mockImplementation(() => ({ acquire: vi.fn(), release: vi.fn() }));
+    (asyncLock as ReturnType<typeof vi.fn>).mockImplementation(() => ({
+      acquire: vi.fn(),
+      release: vi.fn(),
+    }));
 
     beforeEach(() => {
       vi.clearAllMocks();
@@ -365,7 +372,6 @@ describe('Backend', () => {
   });
 
   describe('persistLocalDraftBackup', () => {
-
     beforeEach(() => {
       vi.clearAllMocks();
     });
@@ -539,9 +545,7 @@ describe('Backend', () => {
       const implementation = {
         init: vi.fn(() => implementation),
         unpublishedEntry: vi.fn().mockResolvedValue(unpublishedEntryResult),
-        unpublishedEntryDataFile: vi
-          .fn()
-          .mockResolvedValueOnce('---\ntitle: "Hello World"\n---\n'),
+        unpublishedEntryDataFile: vi.fn().mockResolvedValueOnce('---\ntitle: "Hello World"\n---\n'),
         unpublishedEntryMediaFile: vi.fn().mockResolvedValueOnce({ id: '1' }),
       };
       const config = {

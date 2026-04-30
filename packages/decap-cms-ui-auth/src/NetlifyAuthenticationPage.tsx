@@ -11,6 +11,7 @@ import {
   lengths,
   zIndex,
 } from 'decap-cms-ui-default';
+import type { AuthClient, NetlifyAuthenticationPageProps, NetlifyAuthenticationPageState, NetlifyIdentityUser } from './types';
 
 const LoginButton = styled.button`
   ${buttons.button};
@@ -51,75 +52,23 @@ const ErrorMessage = styled.p`
   color: ${colors.errorText};
 `;
 
-// Logo configuration type
-interface LogoConfig {
-  src?: string;
-  url?: string;
-}
-
-// Config type for authentication
-interface AuthConfig {
-  logo_url?: string;
-  logo?: LogoConfig;
-  site_url?: string;
-}
-
-// Props interface
-interface NetlifyAuthenticationPageProps {
-  onLogin: (user: NetlifyIdentityUser) => void;
-  inProgress: boolean;
-  error?: React.ReactNode;
-  config: AuthConfig;
-  t: (key: string) => string;
-}
-
-// State interface
-interface NetlifyAuthenticationPageState {
-  email: string;
-  password: string;
-  errors: {
-    email?: string;
-    password?: string;
-    server?: string | Error;
-    identity?: string;
-  };
-  loggingIn?: boolean;
-}
-
-// Auth client interface
-interface AuthClient {
-  login: (email: string, password: string, remember: boolean) => Promise<NetlifyIdentityUser>;
-}
-
-// Netlify Identity User type (from modules.d.ts)
-interface NetlifyIdentityUser {
-  id: string;
-  email: string;
-  user_metadata?: {
-    full_name?: string;
-    avatar_url?: string;
-  };
-  app_metadata?: Record<string, unknown>;
-  token?: {
-    access_token: string;
-    token_type: string;
-    expires_in: number;
-    refresh_token: string;
-    expires_at: number;
-  };
-}
-
 let component: NetlifyAuthenticationPage | null = null;
 
 if (window.netlifyIdentity) {
   window.netlifyIdentity.on('login', (user: NetlifyIdentityUser) => {
-    component && component.handleIdentityLogin(user);
+    if (component) {
+      component.handleIdentityLogin(user);
+    }
   });
   window.netlifyIdentity.on('logout', () => {
-    component && component.handleIdentityLogout();
+    if (component) {
+      component.handleIdentityLogout();
+    }
   });
   window.netlifyIdentity.on('error', (err: Error) => {
-    component && component.handleIdentityError(err);
+    if (component) {
+      component.handleIdentityError(err);
+    }
   });
 }
 
@@ -141,6 +90,7 @@ export default class NetlifyAuthenticationPage extends React.Component<
 
   constructor(props: NetlifyAuthenticationPageProps) {
     super(props);
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     component = this;
   }
 
@@ -235,7 +185,7 @@ export default class NetlifyAuthenticationPage extends React.Component<
       if (errors.identity) {
         return (
           <AuthenticationPage
-            logoUrl={config.logo_url} // Deprecated, replaced by `logo.src`
+            logoUrl={config.logo?.src} // Deprecated, replaced by `logo.src`
             logo={config.logo}
             siteUrl={config.site_url}
             onLogin={this.handleIdentity}
@@ -254,7 +204,7 @@ export default class NetlifyAuthenticationPage extends React.Component<
       } else {
         return (
           <AuthenticationPage
-            logoUrl={config.logo_url} // Deprecated, replaced by `logo.src`
+            logoUrl={config.logo?.src} // Deprecated, replaced by `logo.src`
             logo={config.logo}
             siteUrl={config.site_url}
             onLogin={this.handleIdentity}
@@ -267,7 +217,7 @@ export default class NetlifyAuthenticationPage extends React.Component<
 
     return (
       <AuthenticationPage
-        logoUrl={config.logo_url} // Deprecated, replaced by `logo.src`
+        logoUrl={config.logo?.src} // Deprecated, replaced by `logo.src`
         logo={config.logo}
         siteUrl={config.site_url}
         renderPageContent={() => (

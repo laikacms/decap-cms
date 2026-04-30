@@ -3,15 +3,11 @@ import styled from '@emotion/styled';
 import { lengths } from 'decap-cms-ui-default';
 import type { TranslateFunction } from 'decap-cms-ui-default';
 
-import type { CmsViewFilter, CmsViewGroup, CmsSortDirection } from 'decap-cms-lib-util/types/cms';
+import type { CmsViewFilter, CmsViewGroup, CmsSortDirection } from 'decap-cms-lib-util';
 import ViewStyleControl from './ViewStyleControl';
 import SortControl from './SortControl';
 import FilterControl from './FilterControl';
 import GroupControl from './GroupControl';
-
-type ViewFilter = CmsViewFilter;
-type ViewGroup = CmsViewGroup;
-type SortDirection = CmsSortDirection;
 
 const CollectionControlsContainer = styled.div`
   display: flex;
@@ -30,12 +26,12 @@ interface CollectionControlsProps {
   viewStyle: string;
   onChangeViewStyle: (style: string) => void;
   sortableFields: { key: string; label?: string }[];
-  onSortClick: (key: string, direction: SortDirection) => void;
+  onSortClick: (key: string, direction: CmsSortDirection) => void;
   sort?: Record<string, unknown>;
-  viewFilters?: ViewFilter[];
-  viewGroups?: ViewGroup[];
-  onFilterClick: (filter: ViewFilter) => void;
-  onGroupClick: (group: ViewGroup) => void;
+  viewFilters?: CmsViewFilter[];
+  viewGroups?: CmsViewGroup[];
+  onFilterClick: (filter: CmsViewFilter) => void;
+  onGroupClick: (group: CmsViewGroup) => void;
   t: TranslateFunction;
   filter?: Record<string, unknown>;
   group?: Record<string, unknown>;
@@ -62,11 +58,7 @@ function CollectionControls({
         <GroupControl viewGroups={viewGroups} onGroupClick={onGroupClick} group={group} />
       )}
       {viewFilters && viewFilters.length > 0 && filter && (
-        <FilterControl
-          viewFilters={viewFilters}
-          onFilterClick={onFilterClick}
-          filter={filter}
-        />
+        <FilterControl viewFilters={viewFilters} onFilterClick={onFilterClick} filter={filter} />
       )}
       {sortableFields && sortableFields.length > 0 && (
         <SortControl fields={sortableFields} sort={sort} onSortClick={onSortClick} />

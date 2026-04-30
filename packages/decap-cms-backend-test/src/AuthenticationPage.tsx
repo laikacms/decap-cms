@@ -42,7 +42,7 @@ interface AuthenticationPageConfig {
   logo_url?: string;
   backend: {
     login: boolean;
-  }
+  };
 }
 
 interface AuthenticationPageProps {

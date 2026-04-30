@@ -1,5 +1,5 @@
-import type { CmsDisplayURL } from "./common.js";
-import type { CmsEntryField } from "./entries.js";
+import type { CmsDisplayURL } from './common.js';
+import type { CmsEntryField } from './entries.js';
 
 export type CmsMediaLibraryOptions = {
   multiple?: boolean | undefined;

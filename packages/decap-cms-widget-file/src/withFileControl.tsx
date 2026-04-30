@@ -30,7 +30,7 @@ import type { DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
-import type { CmsField, CmsFieldBase, CmsFieldFile } from 'decap-cms-lib-util/types/index';
+import type { CmsField, CmsFieldBase, CmsFieldFile } from 'decap-cms-lib-util';
 
 const MAX_DISPLAY_LENGTH = 50;
 
@@ -114,10 +114,7 @@ function SortableImage(props: SortableImageProps) {
       <ImageWrapper $sortable>
         <Image src={getAsset(itemValue, field) || ''} />
       </ImageWrapper>
-      <SortableImageButtons
-        onRemove={onRemove}
-        onReplace={onReplace}
-      ></SortableImageButtons>
+      <SortableImageButtons onRemove={onRemove} onReplace={onReplace}></SortableImageButtons>
     </div>
   );
 }
@@ -264,7 +261,7 @@ const warnDeprecatedOptions = once((field: CmsField) =>
 export interface FileControlProps {
   field: CmsFieldFile & CmsFieldBase;
   getAsset: (value: string, field?: CmsField) => string;
-  mediaPaths: Map<string, string>;
+  mediaPaths: Record<string, string>;
   onAddAsset: (asset: unknown) => void;
   onChange: (value: unknown) => void;
   onRemoveInsertedMedia: (controlID: string) => void;
@@ -289,10 +286,7 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
       onClearMediaControl: PropTypes.func.isRequired,
       onRemoveMediaControl: PropTypes.func.isRequired,
       classNameWrapper: PropTypes.string.isRequired,
-      value: PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.arrayOf(PropTypes.string),
-      ]),
+      value: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)]),
       t: PropTypes.func.isRequired,
     };
 
@@ -324,7 +318,7 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
        * If there is a media path for this control in the state object, and that
        * path is different than the value in `nextProps`, update.
        */
-      const mediaPath = nextProps.mediaPaths.get(this.controlID);
+      const mediaPath = nextProps.mediaPaths[this.controlID];
       if (mediaPath && nextProps.value !== mediaPath) {
         return true;
       }
@@ -334,7 +328,7 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
 
     componentDidUpdate() {
       const { mediaPaths, value, onRemoveInsertedMedia, onChange } = this.props;
-      const mediaPath = mediaPaths.get(this.controlID);
+      const mediaPath = mediaPaths[this.controlID];
       if (mediaPath && mediaPath !== value) {
         onChange(mediaPath);
       } else if (mediaPath && mediaPath === value) {
@@ -405,15 +399,12 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
     getMediaLibraryFieldOptions = () => {
       const { field } = this.props;
 
-      return field.media_library
+      return field.media_library;
     };
 
     allowsMultiple = () => {
       const mediaLibraryFieldOptions = this.getMediaLibraryFieldOptions();
-      return (
-        mediaLibraryFieldOptions?.config &&
-        mediaLibraryFieldOptions.config?.multiple
-      );
+      return mediaLibraryFieldOptions?.config && mediaLibraryFieldOptions.config?.multiple;
     };
 
     onSortEnd = ({ oldIndex, newIndex }: { oldIndex: number; newIndex: number }) => {
@@ -425,7 +416,9 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
     getValidateValue = () => {
       const { value } = this.props;
       if (value) {
-        return isMultiple(value) ? (value as string[]).map((v: string) => basename(v)) : basename(value as string);
+        return isMultiple(value)
+          ? (value as string[]).map((v: string) => basename(v))
+          : basename(value as string);
       }
 
       return value;

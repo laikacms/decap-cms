@@ -56,7 +56,9 @@ interface FilePreviewProps {
 function FilePreview(props: FilePreviewProps) {
   return (
     <WidgetPreviewContainer>
-      {props.value ? <FileContent value={props.value} getAsset={props.getAsset} field={props.field} /> : null}
+      {props.value ? (
+        <FileContent value={props.value} getAsset={props.getAsset} field={props.field} />
+      ) : null}
     </WidgetPreviewContainer>
   );
 }

@@ -2,20 +2,17 @@ import React from 'react';
 import { translate } from 'react-polyglot';
 import { Dropdown, DropdownItem } from 'decap-cms-ui-default';
 
-import { CmsSortDirection } from 'decap-cms-lib-util/types/cms';
+import { CmsSortDirection } from 'decap-cms-lib-util';
 import { ControlButton } from './ControlButton';
-
-type SortDirection = CmsSortDirection;
-const SortDirection = CmsSortDirection;
 
 function nextSortDirection(direction: string | undefined) {
   switch (direction) {
-    case SortDirection.Ascending:
-      return SortDirection.Descending;
-    case SortDirection.Descending:
-      return SortDirection.None;
+    case CmsSortDirection.Ascending:
+      return CmsSortDirection.Descending;
+    case CmsSortDirection.Descending:
+      return CmsSortDirection.None;
     default:
-      return SortDirection.Ascending;
+      return CmsSortDirection.Ascending;
   }
 }
 
@@ -28,27 +25,30 @@ function sortIconProps(sortDir: string) {
 }
 
 const sortIconDirections: Record<string, 'up' | 'down'> = {
-  [SortDirection.Ascending]: 'up',
-  [SortDirection.Descending]: 'down',
+  [CmsSortDirection.Ascending]: 'up',
+  [CmsSortDirection.Descending]: 'down',
 };
 
 interface SortControlProps {
   t: (key: string) => string;
   fields: { key: string; label?: string }[];
-  onSortClick: (key: string, direction: SortDirection) => void;
+  onSortClick: (key: string, direction: CmsSortDirection) => void;
   sort: Record<string, unknown> | undefined;
 }
 
 function SortControl({ t, fields, onSortClick, sort }: SortControlProps) {
   const hasActiveSort = sort
-    ? Object.values(sort).some((s: any) => s.direction !== SortDirection.None)
+    ? Object.values(sort).some((s: any) => s.direction !== CmsSortDirection.None)
     : false;
 
   return (
     <Dropdown
       renderButton={() => {
         return (
-          <ControlButton active={hasActiveSort ?? false} title={t('collection.collectionTop.sortBy')} />
+          <ControlButton
+            active={hasActiveSort ?? false}
+            title={t('collection.collectionTop.sortBy')}
+          />
         );
       }}
       closeOnSelection={false}
@@ -57,8 +57,10 @@ function SortControl({ t, fields, onSortClick, sort }: SortControlProps) {
       dropdownPosition="left"
     >
       {fields.map(field => {
-        const sortDir = sort?.[field.key] ? (sort[field.key] as any)?.direction as string | undefined : undefined;
-        const isActive = sortDir != null && sortDir !== SortDirection.None;
+        const sortDir = sort?.[field.key]
+          ? ((sort[field.key] as any)?.direction as string | undefined)
+          : undefined;
+        const isActive = sortDir != null && sortDir !== CmsSortDirection.None;
         const nextSortDir = nextSortDirection(sortDir);
         return (
           <DropdownItem

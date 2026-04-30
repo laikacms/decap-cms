@@ -5,7 +5,7 @@ import { getIntegrationProvider } from '../integrations';
 import { selectIntegration } from '../reducers';
 
 import type { QueryRequest } from '../reducers/search';
-import type { CmsCollectionState } from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState } from 'decap-cms-lib-util';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type State = any;
 type Collection = CmsCollectionState;
@@ -138,11 +138,7 @@ export function searchEntries(searchTerm: string, searchCollections: string[], p
       ? getIntegrationProvider(state.integrations, backend.getToken as any, integration)
       : null;
     const searchPromise = integrationProvider
-      ? integrationProvider.search(
-          collections,
-          searchTerm,
-          page,
-        )
+      ? integrationProvider.search(collections, searchTerm, page)
       : backend.search(
           Object.entries(state.collections)
             .filter(([key]) => allCollections.indexOf(key) !== -1)
@@ -179,7 +175,9 @@ export function query(
 
     const queryIdentifier = `${collectionName}-${searchFields.join()}-${searchTerm}-${file}-${limit}`;
 
-    const queuedQueryPromise = state.search.requests.find(({ id }: QueryRequest) => id == queryIdentifier);
+    const queuedQueryPromise = state.search.requests.find(
+      ({ id }: QueryRequest) => id == queryIdentifier,
+    );
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const integrationProvider: any = integration
@@ -188,14 +186,14 @@ export function query(
     const queryPromise = queuedQueryPromise
       ? queuedQueryPromise.queryResponse
       : integrationProvider
-      ? integrationProvider.searchBy(
-          searchFields.map(f => `data.${f}`),
-          collectionName,
-          searchTerm,
-        )
-      : collection != null
-        ? backend.query(collection, searchFields, searchTerm, file, limit)
-        : Promise.resolve({ hits: [], query: '' } satisfies QueryResponse);
+        ? integrationProvider.searchBy(
+            searchFields.map(f => `data.${f}`),
+            collectionName,
+            searchTerm,
+          )
+        : collection != null
+          ? backend.query(collection, searchFields, searchTerm, file, limit)
+          : Promise.resolve({ hits: [], query: '' } satisfies QueryResponse);
 
     dispatch(
       querying(

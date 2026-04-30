@@ -5,8 +5,9 @@ exports[`EditorToolbar > should render normal save button 1`] = `
   <div
     class="css-137i05p"
   >
-    <mock-link
+    <div
       class="css-1n6fubc"
+      data-testid="link"
       to=""
     >
       <div
@@ -26,7 +27,7 @@ exports[`EditorToolbar > should render normal save button 1`] = `
           editor.editorToolbar.unsavedChanges
         </div>
       </div>
-    </mock-link>
+    </div>
     <div
       class="css-u4ugap"
     >
@@ -64,7 +65,9 @@ exports[`EditorToolbar > should render normal save button 1`] = `
     <div
       class="css-1c15xun"
     >
-      <mock-settings-dropdown />
+      <div
+        data-testid="settings-dropdown"
+      />
     </div>
   </div>
 </DocumentFragment>
@@ -75,8 +78,9 @@ exports[`EditorToolbar > should render normal save button 2`] = `
   <div
     class="css-137i05p"
   >
-    <mock-link
+    <div
       class="css-1n6fubc"
+      data-testid="link"
       to=""
     >
       <div
@@ -96,7 +100,7 @@ exports[`EditorToolbar > should render normal save button 2`] = `
           editor.editorToolbar.unsavedChanges
         </div>
       </div>
-    </mock-link>
+    </div>
     <div
       class="css-u4ugap"
     >
@@ -134,7 +138,9 @@ exports[`EditorToolbar > should render normal save button 2`] = `
     <div
       class="css-1c15xun"
     >
-      <mock-settings-dropdown />
+      <div
+        data-testid="settings-dropdown"
+      />
     </div>
   </div>
 </DocumentFragment>
@@ -145,8 +151,9 @@ exports[`EditorToolbar > should render with default props 1`] = `
   <div
     class="css-137i05p"
   >
-    <mock-link
+    <div
       class="css-1n6fubc"
+      data-testid="link"
       to=""
     >
       <div
@@ -166,7 +173,7 @@ exports[`EditorToolbar > should render with default props 1`] = `
           editor.editorToolbar.changesSaved
         </div>
       </div>
-    </mock-link>
+    </div>
     <div
       class="css-u4ugap"
     >
@@ -193,7 +200,9 @@ exports[`EditorToolbar > should render with default props 1`] = `
     <div
       class="css-1c15xun"
     >
-      <mock-settings-dropdown />
+      <div
+        data-testid="settings-dropdown"
+      />
     </div>
   </div>
 </DocumentFragment>
@@ -204,8 +213,9 @@ exports[`EditorToolbar > should render with status=draft,useOpenAuthoring=false 
   <div
     class="css-137i05p"
   >
-    <mock-link
+    <div
       class="css-1n6fubc"
+      data-testid="link"
       to=""
     >
       <div
@@ -225,7 +235,7 @@ exports[`EditorToolbar > should render with status=draft,useOpenAuthoring=false 
           editor.editorToolbar.changesSaved
         </div>
       </div>
-    </mock-link>
+    </div>
     <div
       class="css-u4ugap"
     >
@@ -265,7 +275,9 @@ exports[`EditorToolbar > should render with status=draft,useOpenAuthoring=false 
     <div
       class="css-1c15xun"
     >
-      <mock-settings-dropdown />
+      <div
+        data-testid="settings-dropdown"
+      />
     </div>
   </div>
 </DocumentFragment>
@@ -276,8 +288,9 @@ exports[`EditorToolbar > should render with status=draft,useOpenAuthoring=true 1
   <div
     class="css-137i05p"
   >
-    <mock-link
+    <div
       class="css-1n6fubc"
+      data-testid="link"
       to=""
     >
       <div
@@ -297,7 +310,7 @@ exports[`EditorToolbar > should render with status=draft,useOpenAuthoring=true 1
           editor.editorToolbar.changesSaved
         </div>
       </div>
-    </mock-link>
+    </div>
     <div
       class="css-u4ugap"
     >
@@ -363,7 +376,9 @@ exports[`EditorToolbar > should render with status=draft,useOpenAuthoring=true 1
     <div
       class="css-1c15xun"
     >
-      <mock-settings-dropdown />
+      <div
+        data-testid="settings-dropdown"
+      />
     </div>
   </div>
 </DocumentFragment>
@@ -374,8 +389,9 @@ exports[`EditorToolbar > should render with status=pending_publish,useOpenAuthor
   <div
     class="css-137i05p"
   >
-    <mock-link
+    <div
       class="css-1n6fubc"
+      data-testid="link"
       to=""
     >
       <div
@@ -395,7 +411,7 @@ exports[`EditorToolbar > should render with status=pending_publish,useOpenAuthor
           editor.editorToolbar.changesSaved
         </div>
       </div>
-    </mock-link>
+    </div>
     <div
       class="css-u4ugap"
     >
@@ -435,7 +451,9 @@ exports[`EditorToolbar > should render with status=pending_publish,useOpenAuthor
     <div
       class="css-1c15xun"
     >
-      <mock-settings-dropdown />
+      <div
+        data-testid="settings-dropdown"
+      />
     </div>
   </div>
 </DocumentFragment>
@@ -446,8 +464,9 @@ exports[`EditorToolbar > should render with status=pending_publish,useOpenAuthor
   <div
     class="css-137i05p"
   >
-    <mock-link
+    <div
       class="css-1n6fubc"
+      data-testid="link"
       to=""
     >
       <div
@@ -467,7 +486,7 @@ exports[`EditorToolbar > should render with status=pending_publish,useOpenAuthor
           editor.editorToolbar.changesSaved
         </div>
       </div>
-    </mock-link>
+    </div>
     <div
       class="css-u4ugap"
     >
@@ -528,7 +547,9 @@ exports[`EditorToolbar > should render with status=pending_publish,useOpenAuthor
     <div
       class="css-1c15xun"
     >
-      <mock-settings-dropdown />
+      <div
+        data-testid="settings-dropdown"
+      />
     </div>
   </div>
 </DocumentFragment>
@@ -539,8 +560,9 @@ exports[`EditorToolbar > should render with status=pending_review,useOpenAuthori
   <div
     class="css-137i05p"
   >
-    <mock-link
+    <div
       class="css-1n6fubc"
+      data-testid="link"
       to=""
     >
       <div
@@ -560,7 +582,7 @@ exports[`EditorToolbar > should render with status=pending_review,useOpenAuthori
           editor.editorToolbar.changesSaved
         </div>
       </div>
-    </mock-link>
+    </div>
     <div
       class="css-u4ugap"
     >
@@ -600,7 +622,9 @@ exports[`EditorToolbar > should render with status=pending_review,useOpenAuthori
     <div
       class="css-1c15xun"
     >
-      <mock-settings-dropdown />
+      <div
+        data-testid="settings-dropdown"
+      />
     </div>
   </div>
 </DocumentFragment>
@@ -611,8 +635,9 @@ exports[`EditorToolbar > should render with status=pending_review,useOpenAuthori
   <div
     class="css-137i05p"
   >
-    <mock-link
+    <div
       class="css-1n6fubc"
+      data-testid="link"
       to=""
     >
       <div
@@ -632,7 +657,7 @@ exports[`EditorToolbar > should render with status=pending_review,useOpenAuthori
           editor.editorToolbar.changesSaved
         </div>
       </div>
-    </mock-link>
+    </div>
     <div
       class="css-u4ugap"
     >
@@ -698,7 +723,9 @@ exports[`EditorToolbar > should render with status=pending_review,useOpenAuthori
     <div
       class="css-1c15xun"
     >
-      <mock-settings-dropdown />
+      <div
+        data-testid="settings-dropdown"
+      />
     </div>
   </div>
 </DocumentFragment>
@@ -709,8 +736,9 @@ exports[`EditorToolbar > should render with workflow controls hasUnpublishedChan
   <div
     class="css-137i05p"
   >
-    <mock-link
+    <div
       class="css-1n6fubc"
+      data-testid="link"
       to=""
     >
       <div
@@ -730,7 +758,7 @@ exports[`EditorToolbar > should render with workflow controls hasUnpublishedChan
           editor.editorToolbar.changesSaved
         </div>
       </div>
-    </mock-link>
+    </div>
     <div
       class="css-u4ugap"
     >
@@ -756,7 +784,9 @@ exports[`EditorToolbar > should render with workflow controls hasUnpublishedChan
     <div
       class="css-1c15xun"
     >
-      <mock-settings-dropdown />
+      <div
+        data-testid="settings-dropdown"
+      />
     </div>
   </div>
 </DocumentFragment>
@@ -767,8 +797,9 @@ exports[`EditorToolbar > should render with workflow controls hasUnpublishedChan
   <div
     class="css-137i05p"
   >
-    <mock-link
+    <div
       class="css-1n6fubc"
+      data-testid="link"
       to=""
     >
       <div
@@ -788,7 +819,7 @@ exports[`EditorToolbar > should render with workflow controls hasUnpublishedChan
           editor.editorToolbar.changesSaved
         </div>
       </div>
-    </mock-link>
+    </div>
     <div
       class="css-u4ugap"
     >
@@ -809,7 +840,9 @@ exports[`EditorToolbar > should render with workflow controls hasUnpublishedChan
     <div
       class="css-1c15xun"
     >
-      <mock-settings-dropdown />
+      <div
+        data-testid="settings-dropdown"
+      />
     </div>
   </div>
 </DocumentFragment>
@@ -820,8 +853,9 @@ exports[`EditorToolbar > should render with workflow controls hasUnpublishedChan
   <div
     class="css-137i05p"
   >
-    <mock-link
+    <div
       class="css-1n6fubc"
+      data-testid="link"
       to=""
     >
       <div
@@ -841,7 +875,7 @@ exports[`EditorToolbar > should render with workflow controls hasUnpublishedChan
           editor.editorToolbar.changesSaved
         </div>
       </div>
-    </mock-link>
+    </div>
     <div
       class="css-u4ugap"
     >
@@ -867,7 +901,9 @@ exports[`EditorToolbar > should render with workflow controls hasUnpublishedChan
     <div
       class="css-1c15xun"
     >
-      <mock-settings-dropdown />
+      <div
+        data-testid="settings-dropdown"
+      />
     </div>
   </div>
 </DocumentFragment>
@@ -878,8 +914,9 @@ exports[`EditorToolbar > should render with workflow controls hasUnpublishedChan
   <div
     class="css-137i05p"
   >
-    <mock-link
+    <div
       class="css-1n6fubc"
+      data-testid="link"
       to=""
     >
       <div
@@ -899,7 +936,7 @@ exports[`EditorToolbar > should render with workflow controls hasUnpublishedChan
           editor.editorToolbar.changesSaved
         </div>
       </div>
-    </mock-link>
+    </div>
     <div
       class="css-u4ugap"
     >
@@ -925,7 +962,9 @@ exports[`EditorToolbar > should render with workflow controls hasUnpublishedChan
     <div
       class="css-1c15xun"
     >
-      <mock-settings-dropdown />
+      <div
+        data-testid="settings-dropdown"
+      />
     </div>
   </div>
 </DocumentFragment>
@@ -936,8 +975,9 @@ exports[`EditorToolbar > should render with workflow controls hasUnpublishedChan
   <div
     class="css-137i05p"
   >
-    <mock-link
+    <div
       class="css-1n6fubc"
+      data-testid="link"
       to=""
     >
       <div
@@ -957,7 +997,7 @@ exports[`EditorToolbar > should render with workflow controls hasUnpublishedChan
           editor.editorToolbar.changesSaved
         </div>
       </div>
-    </mock-link>
+    </div>
     <div
       class="css-u4ugap"
     >
@@ -983,7 +1023,9 @@ exports[`EditorToolbar > should render with workflow controls hasUnpublishedChan
     <div
       class="css-1c15xun"
     >
-      <mock-settings-dropdown />
+      <div
+        data-testid="settings-dropdown"
+      />
     </div>
   </div>
 </DocumentFragment>
@@ -994,8 +1036,9 @@ exports[`EditorToolbar > should render with workflow controls hasUnpublishedChan
   <div
     class="css-137i05p"
   >
-    <mock-link
+    <div
       class="css-1n6fubc"
+      data-testid="link"
       to=""
     >
       <div
@@ -1015,7 +1058,7 @@ exports[`EditorToolbar > should render with workflow controls hasUnpublishedChan
           editor.editorToolbar.changesSaved
         </div>
       </div>
-    </mock-link>
+    </div>
     <div
       class="css-u4ugap"
     >
@@ -1041,7 +1084,9 @@ exports[`EditorToolbar > should render with workflow controls hasUnpublishedChan
     <div
       class="css-1c15xun"
     >
-      <mock-settings-dropdown />
+      <div
+        data-testid="settings-dropdown"
+      />
     </div>
   </div>
 </DocumentFragment>

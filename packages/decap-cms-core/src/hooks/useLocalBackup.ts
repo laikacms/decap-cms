@@ -9,7 +9,7 @@ import {
   deleteLocalBackup,
 } from '../actions/entries';
 
-import type { CmsCollectionState, CmsEntry } from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState, CmsEntry } from 'decap-cms-lib-util';
 
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;
@@ -26,12 +26,12 @@ interface UseLocalBackupOptions {
  */
 export function useLocalBackup({ collection, slug, debounceMs = 2000 }: UseLocalBackupOptions) {
   const dispatch = useAppDispatch();
-  
+
   // Create debounced persist function
   const debouncedPersistRef = useRef(
     debounce((entry: EntryMap, col: Collection) => {
       dispatch(persistLocalBackup(entry, col));
-    }, debounceMs)
+    }, debounceMs),
   );
 
   const retrieve = useCallback(() => {
@@ -46,7 +46,7 @@ export function useLocalBackup({ collection, slug, debounceMs = 2000 }: UseLocal
     (entry: EntryMap) => {
       debouncedPersistRef.current(entry, collection);
     },
-    [collection]
+    [collection],
   );
 
   const remove = useCallback(() => {

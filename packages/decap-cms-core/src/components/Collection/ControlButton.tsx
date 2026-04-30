@@ -15,11 +15,5 @@ const Button = styled(StyledDropdownButton)`
 `;
 
 export function ControlButton({ active, title }: { active: boolean; title: string }) {
-  return (
-    <Button
-      style={{ color: active ? colors.active : undefined }}
-    >
-      {title}
-    </Button>
-  );
+  return <Button style={{ color: active ? colors.active : undefined }}>{title}</Button>;
 }

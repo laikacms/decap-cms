@@ -35,7 +35,7 @@ describe('APIUtils', () => {
     });
 
     it('should return true for CMS label when undefined prefix is passed', () => {
-      expect(apiUtils.isCMSLabel('decap-cms/draft', undefined)).toBe(true);
+      expect(apiUtils.isCMSLabel('decap-cms/draft', undefined as unknown as string)).toBe(true);
     });
   });
 
@@ -53,7 +53,9 @@ describe('APIUtils', () => {
     });
 
     it('should get status from label when undefined prefix is passed', () => {
-      expect(apiUtils.labelToStatus('decap-cms/draft', undefined)).toBe('draft');
+      expect(apiUtils.labelToStatus('decap-cms/draft', undefined as unknown as string)).toBe(
+        'draft',
+      );
     });
   });
 
@@ -68,7 +70,9 @@ describe('APIUtils', () => {
       expect(apiUtils.statusToLabel('draft', '')).toBe('decap-cms/draft');
     });
     it('should generate label from status when undefined prefix is passed', () => {
-      expect(apiUtils.statusToLabel('draft', undefined)).toBe('decap-cms/draft');
+      expect(apiUtils.statusToLabel('draft', undefined as unknown as string)).toBe(
+        'decap-cms/draft',
+      );
     });
   });
 });

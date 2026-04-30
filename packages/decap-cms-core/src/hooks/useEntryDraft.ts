@@ -9,7 +9,7 @@ import {
   changeDraftFieldValidation,
 } from '../actions/entries';
 
-import type { CmsCollectionState, CmsEntry, CmsEntryField } from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState, CmsEntry, CmsEntryField } from 'decap-cms-lib-util';
 
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;
@@ -37,14 +37,14 @@ export function useEntryDraft() {
     (collection: Collection, search?: string) => {
       dispatch(createEmptyDraft(collection, search || ''));
     },
-    [dispatch]
+    [dispatch],
   );
 
   const createDuplicate = useCallback(
     (entry: EntryMap) => {
       dispatch(createDraftDuplicateFromEntry(entry));
     },
-    [dispatch]
+    [dispatch],
   );
 
   const discard = useCallback(() => {
@@ -52,17 +52,23 @@ export function useEntryDraft() {
   }, [dispatch]);
 
   const changeField = useCallback(
-    (params: { field: EntryField; value: string; metadata: Record<string, unknown>; entries: EntryMap[]; i18n?: { currentLocale: string; defaultLocale: string; locales: string[] } }) => {
+    (params: {
+      field: EntryField;
+      value: string;
+      metadata: Record<string, unknown>;
+      entries: EntryMap[];
+      i18n?: { currentLocale: string; defaultLocale: string; locales: string[] };
+    }) => {
       dispatch(changeDraftField(params));
     },
-    [dispatch]
+    [dispatch],
   );
 
   const validateField = useCallback(
     (field: string, errors: { type: string; parentIds: string[]; message: string }[]) => {
       dispatch(changeDraftFieldValidation(field, errors));
     },
-    [dispatch]
+    [dispatch],
   );
 
   return {

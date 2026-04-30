@@ -1,6 +1,6 @@
-import type { CmsField } from "../field.js";
-import type { CmsFieldBase } from "./base.js";
-import type { CmsFieldObject } from "./object.js";
+import type { CmsField } from '../field.js';
+import type { CmsFieldBase } from './base.js';
+import type { CmsFieldObject } from './object.js';
 
 export interface CmsFieldList {
   widget: 'list';

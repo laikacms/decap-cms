@@ -9,7 +9,7 @@ import { store } from './redux';
 import { configFailed } from './actions/config';
 import { createMediaLibrary, insertMedia } from './actions/mediaLibrary';
 
-import type { CmsMediaLibraryInstance } from 'decap-cms-lib-util/types/cms';
+import type { CmsMediaLibraryInstance } from 'decap-cms-lib-util';
 
 type MediaLibraryInstance = CmsMediaLibraryInstance;
 type MediaLibraryOptions = Record<string, unknown>;

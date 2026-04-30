@@ -11,7 +11,7 @@ import {
   basename,
   extname,
   dirname,
-  ConfigurationError
+  ConfigurationError,
 } from 'decap-cms-lib-util';
 
 import AuthenticationPage from './AuthenticationPage';
@@ -27,7 +27,7 @@ import type {
   CmsImplementationFile,
   CmsDataFile,
 } from 'decap-cms-lib-util';
-import type { CmsFileEntry, CmsImplementationMediaFile } from 'decap-cms-lib-util/types/cms';
+import type { CmsFileEntry, CmsImplementationMediaFile } from 'decap-cms-lib-util';
 
 type RepoFile = { path: string; content: string | CmsAssetProxy };
 type RepoTree = { [key: string]: RepoFile | RepoTree };
@@ -138,7 +138,9 @@ export default class TestBackend implements CmsImplementation {
   constructor(config: CmsConfig, options = {}) {
     this.options = options;
     if (!config.media_folder) {
-      throw new ConfigurationError('The media_folder configuration is required for the Test Backend');
+      throw new ConfigurationError(
+        'The media_folder configuration is required for the Test Backend',
+      );
     }
     this.mediaFolder = config.media_folder;
   }

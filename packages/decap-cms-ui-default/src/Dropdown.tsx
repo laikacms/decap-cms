@@ -70,9 +70,11 @@ const StyledMenuItemWrapper = styled(MenuItem)<{ isActive?: boolean; isCheckedIt
   &:active,
   &:not(:focus),
   &:not(:active) {
-    background-color: ${(props: { isActive?: boolean }) => props.isActive ? colors.activeBackground : 'inherit'};
-    color: ${(props: { isActive?: boolean }) => props.isActive ? colors.active : '#313d3e'};
-    ${(props: { isCheckedItem?: boolean }) => props.isCheckedItem ? 'display: flex; justify-content: start' : ''};
+    background-color: ${(props: { isActive?: boolean }) =>
+      props.isActive ? colors.activeBackground : 'inherit'};
+    color: ${(props: { isActive?: boolean }) => (props.isActive ? colors.active : '#313d3e')};
+    ${(props: { isCheckedItem?: boolean }) =>
+      props.isCheckedItem ? 'display: flex; justify-content: start' : ''};
   }
   &:hover {
     color: ${colors.active};
@@ -83,14 +85,12 @@ const StyledMenuItemWrapper = styled(MenuItem)<{ isActive?: boolean; isCheckedIt
   }
 `;
 
-function StyledMenuItem({ isActive, isCheckedItem = false, ...props }: StyledMenuItemProps): React.ReactElement {
-  return (
-    <StyledMenuItemWrapper
-      isActive={isActive}
-      isCheckedItem={isCheckedItem}
-      {...props}
-    />
-  );
+function StyledMenuItem({
+  isActive,
+  isCheckedItem = false,
+  ...props
+}: StyledMenuItemProps): React.ReactElement {
+  return <StyledMenuItemWrapper isActive={isActive} isCheckedItem={isCheckedItem} {...props} />;
 }
 
 interface MenuItemIconContainerProps {
@@ -153,7 +153,15 @@ export interface DropdownItemProps {
   className?: string;
 }
 
-function DropdownItem({ label, icon, iconDirection, iconSmall, isActive, onClick, className }: DropdownItemProps): React.ReactElement {
+function DropdownItem({
+  label,
+  icon,
+  iconDirection,
+  iconSmall,
+  isActive,
+  onClick,
+  className,
+}: DropdownItemProps): React.ReactElement {
   return (
     <StyledMenuItem value={onClick} isActive={isActive} className={className}>
       <span>{label}</span>
@@ -176,14 +184,7 @@ interface StyledDropdownCheckboxProps {
 }
 
 function StyledDropdownCheckbox({ checked, id }: StyledDropdownCheckboxProps): React.ReactElement {
-  return (
-    <StyledCheckboxInput
-      readOnly
-      type="checkbox"
-      checked={checked}
-      id={id}
-    />
-  );
+  return <StyledCheckboxInput readOnly type="checkbox" checked={checked} id={id} />;
 }
 
 export interface DropdownCheckedItemProps {
@@ -193,7 +194,12 @@ export interface DropdownCheckedItemProps {
   onClick: () => void;
 }
 
-function DropdownCheckedItem({ label, id, checked, onClick }: DropdownCheckedItemProps): React.ReactElement {
+function DropdownCheckedItem({
+  label,
+  id,
+  checked,
+  onClick,
+}: DropdownCheckedItemProps): React.ReactElement {
   return (
     <StyledMenuItem isCheckedItem={true} isActive={checked} onClick={onClick}>
       <StyledDropdownCheckbox checked={checked} id={id} />

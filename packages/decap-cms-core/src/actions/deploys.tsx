@@ -4,10 +4,7 @@ import { addNotification } from './notifications';
 
 import type { ThunkDispatch } from 'redux-thunk';
 import type { AnyAction } from 'redux';
-import type {
-  CmsCollectionState,
-  CmsEntry,
-} from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState, CmsEntry } from 'decap-cms-lib-util';
 
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;

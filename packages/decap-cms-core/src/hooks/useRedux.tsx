@@ -11,7 +11,6 @@ type State = any;
 // Re-export types for convenience
 export type RootState = State;
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 type ThunkExtraArg = {};
 
 // AppDispatch that can handle both regular actions and thunk actions

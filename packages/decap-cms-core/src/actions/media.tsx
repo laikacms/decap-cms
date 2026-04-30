@@ -7,7 +7,7 @@ import { selectMediaFileByPath } from '../reducers/mediaLibrary';
 import { getMediaFile, waitForMediaLibraryToLoad, getMediaDisplayURL } from './mediaLibrary';
 
 import type AssetProxy from '../valueObjects/AssetProxy';
-import type { CmsCollectionState, CmsEntry, CmsEntryField } from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState, CmsEntry, CmsEntryField } from 'decap-cms-lib-util';
 import type { ThunkDispatch } from 'redux-thunk';
 import type { AnyAction } from 'redux';
 
@@ -95,7 +95,8 @@ export const boundGetAsset = memoize(
     }
 
     return bound;
-  }, (_, entry) => entry
+  },
+  (_, entry) => entry,
 );
 
 boundGetAsset.cache = new WeakMap();

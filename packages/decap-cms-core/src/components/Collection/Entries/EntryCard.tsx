@@ -9,6 +9,7 @@ import { boundGetAsset } from '../../../actions/media';
 import { VIEW_STYLE_LIST, VIEW_STYLE_GRID } from '../../../constants/collectionViews';
 import { selectIsLoadingAsset } from '../../../reducers/medias';
 import { selectEntryCollectionTitle } from '../../../reducers/collections';
+import type { TranslateFunction } from 'decap-cms-lib-util';
 
 const ListCard = styled.li`
   ${components.card};
@@ -131,7 +132,19 @@ const WorkflowBadge = styled.span<{ $status?: string }>`
   }};
 `;
 
-function EntryCard({
+interface EntryCardProps {
+  path: string;
+  summary: string;
+  image?: string;
+  imageField?: string;
+  collectionLabel?: string;
+  viewStyle?: string;
+  workflowStatus?: string;
+  getAsset: (assetPath: string, fieldName: string) => string;
+  t: TranslateFunction;
+}
+
+const EntryCard: React.FC<EntryCardProps> = ({
   path,
   summary,
   image,
@@ -141,7 +154,7 @@ function EntryCard({
   workflowStatus,
   getAsset,
   t,
-}: any) {
+}) => {
   function getStatusLabel(status: string) {
     switch (status) {
       case 'pending_review':
@@ -192,19 +205,19 @@ function EntryCard({
               </TitleIcons>
             </CardHeading>
           </CardBody>
-          {image ? <CardImage $src={getAsset(image, imageField).toString()} /> : null}
+          {image ? <CardImage $src={getAsset(image, imageField ?? '').toString()} /> : null}
         </GridCardLink>
       </GridCard>
     );
   }
-}
+};
 
 function mapStateToProps(state: any, ownProps: any) {
   const { entry, inferredFields, collection } = ownProps;
-  const entryData = entry.get('data');
+  const entryData = entry.data as Record<string, unknown> | undefined;
   const summary = selectEntryCollectionTitle(collection, entry);
 
-  let image = entryData.get(inferredFields.imageField);
+  let image = entryData?.[inferredFields.imageField] as string | undefined;
   if (image) {
     image = encodeURI(image);
   }
@@ -213,11 +226,11 @@ function mapStateToProps(state: any, ownProps: any) {
 
   return {
     summary,
-    path: `/collections/${collection.get('name')}/entries/${entry.get('slug')}`,
+    path: `/collections/${collection.name}/entries/${entry.slug}`,
     image,
-    imageFolder: collection
-      .get('fields')
-      ?.find((f: any) => f.get('name') === inferredFields.imageField && f.get('widget') === 'image'),
+    imageFolder: collection.fields?.find(
+      (f: any) => f.name === inferredFields.imageField && f.widget === 'image',
+    ),
     isLoadingAsset,
   };
 }

@@ -1,7 +1,7 @@
 import bootstrap from './bootstrap';
 import Registry from './lib/registry';
 
-export type * from 'decap-cms-lib-util/types/cms';
+export type * from 'decap-cms-lib-util';
 
 export const DecapCmsCore = {
   ...Registry,

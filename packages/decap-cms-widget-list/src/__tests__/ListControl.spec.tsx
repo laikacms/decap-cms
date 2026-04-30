@@ -469,11 +469,7 @@ describe('ListControl', () => {
       fields: [{ label: 'String', name: 'string', widget: 'string' }],
     };
     const { asFragment, getByTestId } = render(
-      <ListControl
-        {...props}
-        field={field}
-        value={[{ string: 'item 1' }, { string: 'item 2' }]}
-      />,
+      <ListControl {...props} field={field} value={[{ string: 'item 1' }, { string: 'item 2' }]} />,
     );
 
     expect(getByTestId('styled-list-item-top-bar-0')).toHaveAttribute('collapsed');
@@ -493,11 +489,7 @@ describe('ListControl', () => {
       fields: [{ label: 'String', name: 'string', widget: 'string' }],
     };
     const { asFragment, getByTestId } = render(
-      <ListControl
-        {...props}
-        field={field}
-        value={[{ string: 'item 1' }, { string: 'item 2' }]}
-      />,
+      <ListControl {...props} field={field} value={[{ string: 'item 1' }, { string: 'item 2' }]} />,
     );
 
     expect(getByTestId('styled-list-item-top-bar-0')).not.toHaveAttribute('collapsed');
@@ -517,11 +509,7 @@ describe('ListControl', () => {
       fields: [{ label: 'String', name: 'string', widget: 'string' }],
     };
     const { asFragment, getByTestId, queryByTestId } = render(
-      <ListControl
-        {...props}
-        field={field}
-        value={[{ string: 'item 1' }, { string: 'item 2' }]}
-      />,
+      <ListControl {...props} field={field} value={[{ string: 'item 1' }, { string: 'item 2' }]} />,
     );
 
     expect(queryByTestId('styled-list-item-top-bar-0')).toBeNull();
@@ -550,11 +538,7 @@ describe('ListControl', () => {
       fields: [{ label: 'String', name: 'string', widget: 'string' }],
     };
     const { asFragment, getByTestId, queryByTestId } = render(
-      <ListControl
-        {...props}
-        field={field}
-        value={[{ string: 'item 1' }, { string: 'item 2' }]}
-      />,
+      <ListControl {...props} field={field} value={[{ string: 'item 1' }, { string: 'item 2' }]} />,
     );
 
     expect(getByTestId('styled-list-item-top-bar-0')).not.toHaveAttribute('collapsed');
@@ -608,11 +592,7 @@ describe('ListControl', () => {
       fields: [{ label: 'String', name: 'string', widget: 'string' }],
     };
     const { asFragment, getAllByText, rerender } = render(
-      <ListControl
-        {...props}
-        field={field}
-        value={[{ string: 'item 1' }, { string: 'item 2' }]}
-      />,
+      <ListControl {...props} field={field} value={[{ string: 'item 1' }, { string: 'item 2' }]} />,
     );
 
     expect(asFragment()).toMatchSnapshot();

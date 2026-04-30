@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Textarea from 'react-textarea-autosize';
 import type { TranslateFunction } from 'decap-cms-ui-default';
-import type { CmsFieldBase, CmsFieldStringOrText } from 'decap-cms-lib-util/types/cms';
+import type { CmsFieldBase, CmsFieldStringOrText } from 'decap-cms-lib-util';
 
 interface TextControlProps {
   onChange: (value: string) => void;
@@ -12,7 +12,7 @@ interface TextControlProps {
   setActiveStyle: () => void;
   setInactiveStyle: () => void;
   field: CmsFieldStringOrText & CmsFieldBase;
-  t: TranslateFunction,
+  t: TranslateFunction;
 }
 
 export default class TextControl extends React.Component<TextControlProps> {

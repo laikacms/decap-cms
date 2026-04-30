@@ -15,17 +15,9 @@ import type {
   CmsFormatter,
   CmsConfig,
   CmsImplementation,
-} from 'decap-cms-lib-util/types/cms';
+} from 'decap-cms-lib-util';
 
-type WidgetParam<T = unknown> = CmsWidgetParam<T>;
-type EditorComponentOptions = CmsEditorComponentOptions;
-type EditorComponentPlugin = CmsEditorComponentPlugin;
-type FormatterFunctions = CmsFormatterFunctions;
-type AllowedEvent = CmsAllowedEvent;
-type PreviewStyle = { raw?: boolean; value: string };
-type Formatter = CmsFormatter;
-type Config = CmsConfig;
-type Implementation = CmsImplementation;
+type CmsPreviewStyle = { raw?: boolean; value: string };
 
 interface EventHandler {
   handler: Function;
@@ -33,7 +25,7 @@ interface EventHandler {
 }
 
 interface CmsRegistryBackend {
-  init: (config: Config, opts?: Record<string, unknown>) => Implementation;
+  init: (config: CmsConfig, opts?: Record<string, unknown>) => CmsImplementation;
 }
 
 interface CmsWidget {
@@ -48,18 +40,18 @@ interface CmsWidget {
 interface Registry {
   backends: Record<string, CmsRegistryBackend>;
   templates: Record<string, React.ComponentType<unknown>>;
-  previewStyles: PreviewStyle[];
+  previewStyles: CmsPreviewStyle[];
   widgets: Record<string, CmsWidget>;
-  editorComponents: Record<string, EditorComponentPlugin>;
+  editorComponents: Record<string, CmsEditorComponentPlugin>;
   remarkPlugins: unknown[];
   widgetValueSerializers: Record<string, CmsWidgetValueSerializer>;
   mediaLibraries: (CmsMediaLibrary & { options?: CmsMediaLibraryOptions })[];
   locales: Record<string, CmsLocalePhrases>;
-  eventHandlers: Record<AllowedEvent, EventHandler[]>;
-  formats: Record<string, Formatter>;
+  eventHandlers: Record<CmsAllowedEvent, EventHandler[]>;
+  formats: Record<string, CmsFormatter>;
 }
 
-const allowedEvents: AllowedEvent[] = [
+const allowedEvents: CmsAllowedEvent[] = [
   'prePublish',
   'postPublish',
   'preUnpublish',
@@ -68,13 +60,13 @@ const allowedEvents: AllowedEvent[] = [
   'postSave',
 ];
 
-const eventHandlers: Record<AllowedEvent, EventHandler[]> = {
-  'prePublish': [],
-  'postPublish': [],
-  'preUnpublish': [],
-  'postUnpublish': [],
-  'preSave': [],
-  'postSave': [],
+const eventHandlers: Record<CmsAllowedEvent, EventHandler[]> = {
+  prePublish: [],
+  postPublish: [],
+  preUnpublish: [],
+  postUnpublish: [],
+  preSave: [],
+  postSave: [],
 };
 
 /**
@@ -148,7 +140,7 @@ export function getPreviewTemplate(name: string) {
   return registry.templates[name];
 }
 
-interface WidgetRegistrationOptions<T = unknown> extends WidgetParam<T> {
+interface WidgetRegistrationOptions<T = unknown> extends CmsWidgetParam<T> {
   schema?: unknown;
   allowMapValue?: boolean;
   [key: string]: unknown;
@@ -184,7 +176,8 @@ export function registerWidget(options: WidgetRegistrationOptions<any>) {
   }
   registry.widgets[widgetName] = {
     control,
-    preview: (preview && typeof preview !== 'function' && typeof preview !== 'object') ? undefined : preview,
+    preview:
+      preview && typeof preview !== 'function' && typeof preview !== 'object' ? undefined : preview,
     schema,
     globalStyles,
     allowMapValue,
@@ -204,10 +197,20 @@ export function resolveWidget(name: string | undefined) {
 /**
  * Markdown Editor Custom Components
  */
-export function registerEditorComponent(component: Partial<EditorComponentOptions> & { id?: string; label?: string; icon?: string; widget?: string; type?: 'code-block' | 'shortcode' }) {
-  const plugin = EditorComponent(component) as EditorComponentPlugin;
+export function registerEditorComponent(
+  component: Partial<CmsEditorComponentOptions> & {
+    id?: string;
+    label?: string;
+    icon?: string;
+    widget?: string;
+    type?: 'code-block' | 'shortcode';
+  },
+) {
+  const plugin = EditorComponent(component) as CmsEditorComponentPlugin;
   if (plugin.type === 'code-block') {
-    const codeBlock = Object.values(registry.editorComponents).find((c: EditorComponentPlugin) => c.type === 'code-block');
+    const codeBlock = Object.values(registry.editorComponents).find(
+      (c: CmsEditorComponentPlugin) => c.type === 'code-block',
+    );
 
     if (codeBlock) {
       console.warn(oneLine`
@@ -237,7 +240,10 @@ export function getRemarkPlugins(): Pluggable[] {
 /**
  * Widget Serializers
  */
-export function registerWidgetValueSerializer(widgetName: string, serializer: CmsWidgetValueSerializer) {
+export function registerWidgetValueSerializer(
+  widgetName: string,
+  serializer: CmsWidgetValueSerializer,
+) {
   registry.widgetValueSerializers[widgetName] = serializer;
 }
 export function getWidgetValueSerializer(widgetName: string) {
@@ -248,7 +254,10 @@ export function getWidgetValueSerializer(widgetName: string) {
  * Backend API
  */
 
-export function registerBackend(name: string, BackendClass: new(config: Config, opts?: Record<string, unknown>) => Implementation) {
+export function registerBackend(
+  name: string,
+  BackendClass: new (config: CmsConfig, opts?: Record<string, unknown>) => CmsImplementation,
+) {
   if (!name || !BackendClass) {
     console.error(
       "Backend parameters invalid. example: CMS.registerBackend('myBackend', BackendClass)",
@@ -257,7 +266,8 @@ export function registerBackend(name: string, BackendClass: new(config: Config, 
     console.error(`Backend [${name}] already registered. Please choose a different name.`);
   } else {
     registry.backends[name] = {
-      init: (config: Config, opts: Record<string, unknown> = {}) => new BackendClass(config, opts),
+      init: (config: CmsConfig, opts: Record<string, unknown> = {}) =>
+        new BackendClass(config, opts),
     };
   }
 }
@@ -269,7 +279,10 @@ export function getBackend(name: string) {
 /**
  * Media Libraries
  */
-export function registerMediaLibrary(mediaLibrary: CmsMediaLibrary, options?: CmsMediaLibraryOptions) {
+export function registerMediaLibrary(
+  mediaLibrary: CmsMediaLibrary,
+  options?: CmsMediaLibraryOptions,
+) {
   if (registry.mediaLibraries.find(ml => mediaLibrary.name === ml.name)) {
     throw new Error(`A media library named ${mediaLibrary.name} has already been registered.`);
   }
@@ -280,8 +293,8 @@ export function getMediaLibrary(name: string) {
   return registry.mediaLibraries.find(ml => ml.name === name);
 }
 
-function validateEventName(name: string): asserts name is AllowedEvent {
-  if (!allowedEvents.includes(name as AllowedEvent)) {
+function validateEventName(name: string): asserts name is CmsAllowedEvent {
+  if (!allowedEvents.includes(name as CmsAllowedEvent)) {
     throw new Error(`Invalid event name '${name}'`);
   }
 }
@@ -292,11 +305,14 @@ export function getEventListeners(name: string) {
 }
 
 interface EventListenerConfig {
-  name: AllowedEvent;
+  name: CmsAllowedEvent;
   handler: Function;
 }
 
-export function registerEventListener({ name, handler }: EventListenerConfig, options: Record<string, unknown> = {}) {
+export function registerEventListener(
+  { name, handler }: EventListenerConfig,
+  options: Record<string, unknown> = {},
+) {
   validateEventName(name);
   registry.eventHandlers[name].push({ handler, options });
 }
@@ -349,7 +365,11 @@ export function getLocale(locale: string) {
   return registry.locales[locale];
 }
 
-export function registerCustomFormat(name: string, extension: string, formatter: FormatterFunctions) {
+export function registerCustomFormat(
+  name: string,
+  extension: string,
+  formatter: CmsFormatterFunctions,
+) {
   registry.formats[name] = { extension, formatter };
 }
 
@@ -363,7 +383,7 @@ export function getCustomFormatsExtensions(): Record<string, string> {
   }, {});
 }
 
-export function getCustomFormatsFormatters(): Record<string, FormatterFunctions> {
+export function getCustomFormatsFormatters(): Record<string, CmsFormatterFunctions> {
   return Object.entries(registry.formats).reduce(function (acc, [name, { formatter }]) {
     return { ...acc, [name]: formatter };
   }, {});

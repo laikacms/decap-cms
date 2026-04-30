@@ -4,10 +4,7 @@ import type { TranslateFunction } from 'decap-cms-ui-default';
 import { colorsRaw, colors, Icon, lengths, zIndex } from 'decap-cms-ui-default';
 import { translate } from 'react-polyglot';
 
-import type { CmsCollectionState, CmsCollections } from 'decap-cms-lib-util/types/cms';
-
-type Collection = CmsCollectionState;
-type Collections = CmsCollections;
+import type { CmsCollectionState, CmsCollections } from 'decap-cms-lib-util';
 
 const SearchContainer = styled.div`
   margin: 0 12px;
@@ -91,8 +88,8 @@ const SuggestionDivider = styled.div`
 `;
 
 interface CollectionSearchProps {
-  collections: Collections;
-  collection?: Collection;
+  collections: CmsCollections;
+  collection?: CmsCollectionState;
   searchTerm: string;
   onSubmit: (query: string, collection?: string) => void;
   t: TranslateFunction;
@@ -227,7 +224,7 @@ class CollectionSearch extends React.Component<CollectionSearchProps> {
                 {t('collection.sidebar.allCollections')}
               </SuggestionItem>
               <SuggestionDivider />
-              {collectionValues.map((collection: Collection, idx: number) => (
+              {collectionValues.map((collection: CmsCollectionState, idx: number) => (
                 <SuggestionItem
                   key={idx}
                   $isActive={idx === selectedCollectionIdx}

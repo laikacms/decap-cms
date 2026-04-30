@@ -1,6 +1,6 @@
 import React from 'react';
 import { css, Global } from '@emotion/react';
-import type { CSSObject , SerializedStyles } from '@emotion/react';
+import type { CSSObject, SerializedStyles } from '@emotion/react';
 
 /**
  * Font Stacks
@@ -249,7 +249,9 @@ const effects: Effects = {
   checkerboard: css`
     background-color: ${colors.checkerboardLight};
     background-size: 16px 16px;
-    background-position: 0 0, 8px 8px;
+    background-position:
+      0 0,
+      8px 8px;
     background-image: ${gradients.checkerboard}, ${gradients.checkerboard};
   `,
 };
@@ -543,8 +545,8 @@ const reactSelectStyles: ReactSelectStyles = {
     backgroundColor: state.isSelected
       ? `${colors.active}`
       : state.isFocused
-      ? `${colors.activeBackground}`
-      : 'transparent',
+        ? `${colors.activeBackground}`
+        : 'transparent',
     paddingLeft: '22px',
   }),
   menu: (styles: CSSObject): CSSObject => ({ ...styles, right: 0, zIndex: zIndex.zIndex300 }),
@@ -553,8 +555,14 @@ const reactSelectStyles: ReactSelectStyles = {
     state.hasValue && state.selectProps?.isClearable
       ? { ...styles, backgroundColor: `${colors.textFieldBorder}` }
       : { display: 'none' },
-  dropdownIndicator: (styles: CSSObject): CSSObject => ({ ...styles, color: `${colors.controlLabel}` }),
-  clearIndicator: (styles: CSSObject): CSSObject => ({ ...styles, color: `${colors.controlLabel}` }),
+  dropdownIndicator: (styles: CSSObject): CSSObject => ({
+    ...styles,
+    color: `${colors.controlLabel}`,
+  }),
+  clearIndicator: (styles: CSSObject): CSSObject => ({
+    ...styles,
+    color: `${colors.controlLabel}`,
+  }),
   multiValue: (styles: CSSObject): CSSObject => ({
     ...styles,
     backgroundColor: colors.background,

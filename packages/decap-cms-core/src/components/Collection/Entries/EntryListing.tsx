@@ -3,11 +3,7 @@ import styled from '@emotion/styled';
 import { Waypoint } from 'react-waypoint';
 
 import type { Cursor } from 'decap-cms-lib-util';
-import type { CmsCollectionState, CmsCollections, CmsEntry } from 'decap-cms-lib-util/types/cms';
-
-type Collection = CmsCollectionState;
-type Collections = CmsCollections;
-type EntryMap = CmsEntry;
+import type { CmsCollectionState, CmsCollections, CmsEntry } from 'decap-cms-lib-util';
 
 import { selectFields, selectInferredField } from '../../../reducers/collections';
 import { filterNestedEntries } from './EntriesCollection';
@@ -23,19 +19,23 @@ const CardsGrid = styled.ul`
 `;
 
 interface EntryListingProps {
-  collections: Collection | Collections;
-  entries?: EntryMap[];
+  collections: CmsCollectionState | CmsCollections;
+  entries?: CmsEntry[];
   viewStyle?: string;
   cursor: Cursor;
   handleCursorActions: (action: string) => void;
   page?: number;
-  getUnpublishedEntries?: (collectionName: string) => EntryMap[];
+  getUnpublishedEntries?: (collectionName: string) => CmsEntry[];
   getWorkflowStatus?: (collectionName: string, slug: string) => string | null;
   filterTerm?: string;
 }
 
-function isSingleCollection(collections: Collection | Collections): collections is Collection {
-  return 'name' in collections && 'fields' in collections && typeof (collections as Collection).type === 'string';
+function isSingleCollection(collections: CmsCollectionState | CmsCollections): collections is CmsCollectionState {
+  return (
+    'name' in collections &&
+    'fields' in collections &&
+    typeof (collections as CmsCollectionState).type === 'string'
+  );
 }
 
 class EntryListing extends React.Component<EntryListingProps> {
@@ -50,7 +50,7 @@ class EntryListing extends React.Component<EntryListingProps> {
     }
   };
 
-  inferFields = (collection: Collection) => {
+  inferFields = (collection: CmsCollectionState) => {
     const titleField = selectInferredField(collection, 'title');
     const descriptionField = selectInferredField(collection, 'description');
     const imageField = selectInferredField(collection, 'image');
@@ -85,19 +85,17 @@ class EntryListing extends React.Component<EntryListingProps> {
       unpublishedList = filterNestedEntries(
         filterTerm,
         collectionFolder,
-        unpublishedList as EntryMap[],
+        unpublishedList as CmsEntry[],
         subfolders,
       );
     }
 
     if (!entries) {
-      return unpublishedList as EntryMap[];
+      return unpublishedList as CmsEntry[];
     }
 
     const publishedSlugs = new Set(entries.map(entry => entry.slug));
-    const uniqueUnpublished = unpublishedList.filter(entry =>
-      !publishedSlugs.has(entry.slug),
-    );
+    const uniqueUnpublished = unpublishedList.filter(entry => !publishedSlugs.has(entry.slug));
 
     return [...entries, ...uniqueUnpublished];
   };
@@ -105,12 +103,12 @@ class EntryListing extends React.Component<EntryListingProps> {
   renderCardsForSingleCollection = () => {
     const { collections, viewStyle } = this.props;
     const allEntries = this.getAllEntries();
-    const inferredFields = this.inferFields(collections as Collection);
+    const inferredFields = this.inferFields(collections as CmsCollectionState);
     const entryCardProps = { collection: collections, inferredFields, viewStyle };
 
     return allEntries?.map((entry, idx) => {
       const workflowStatus = this.props.getWorkflowStatus?.(
-        (collections as Collection).name,
+        (collections as CmsCollectionState).name,
         entry.slug,
       );
 
@@ -122,16 +120,15 @@ class EntryListing extends React.Component<EntryListingProps> {
 
   renderCardsForMultipleCollections = () => {
     const { collections, entries } = this.props;
-    const collectionsRecord = collections as Collections;
+    const collectionsRecord = collections as CmsCollections;
     const collectionValues = Object.values(collectionsRecord);
     const isSingleCollectionInList = collectionValues.length === 1;
     return entries?.map((entry, idx) => {
       const collectionName = entry.collection;
-      const collection = collectionValues.find(
-        (coll: Collection) => coll.name === collectionName,
-      );
-      const collectionLabel = !isSingleCollectionInList && collection?.label;
-      const inferredFields = this.inferFields(collection as Collection);
+      const collection = collectionValues.find((coll: CmsCollectionState) => coll.name === collectionName);
+      if (!collection) return null;
+      const collectionLabel = !isSingleCollectionInList && collection.label;
+      const inferredFields = this.inferFields(collection);
       const workflowStatus = this.props.getWorkflowStatus?.(collectionName, entry.slug);
       const entryCardProps = {
         collection,

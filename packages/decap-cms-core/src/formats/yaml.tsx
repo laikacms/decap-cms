@@ -4,7 +4,7 @@ import { sortKeys } from './helpers';
 
 import type { CreateNodeContext } from 'yaml/util';
 import { createNode } from 'yaml/util';
-import type { YAMLMap, YAMLSeq, Pair, Node} from 'yaml';
+import type { YAMLMap, YAMLSeq, Pair, Node } from 'yaml';
 import { Schema } from 'yaml';
 import { isDate } from 'lodash';
 
@@ -14,7 +14,7 @@ const createNodeContext: CreateNodeContext = {
   onAnchor: () => '',
   sourceObjects: new Map(),
   schema: new Schema({ customTags: [] }),
-}
+};
 
 function addComments(items: Array<Pair>, comments: Record<string, string>, prefix = '') {
   items.forEach(item => {
@@ -45,7 +45,7 @@ const timestampTag = {
       '$',
   ),
   resolve: (str: string) => new Date(str),
-  stringify: (value: Node) => isDate(value) ? value.toISOString() : '',
+  stringify: (value: Node) => (isDate(value) ? value.toISOString() : ''),
 } as const;
 
 export default {

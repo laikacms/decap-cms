@@ -57,7 +57,9 @@ interface ImagePreviewProps {
 function ImagePreview(props: ImagePreviewProps) {
   return (
     <WidgetPreviewContainer>
-      {props.value ? <ImagePreviewContent value={props.value} getAsset={props.getAsset} field={props.field} /> : null}
+      {props.value ? (
+        <ImagePreviewContent value={props.value} getAsset={props.getAsset} field={props.field} />
+      ) : null}
     </WidgetPreviewContainer>
   );
 }

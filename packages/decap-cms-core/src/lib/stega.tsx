@@ -1,6 +1,6 @@
 import { vercelStegaEncode } from '@vercel/stega';
 
-import type { CmsField } from 'decap-cms-lib-util/types/cms';
+import type { CmsField } from 'decap-cms-lib-util';
 
 /**
  * Context passed to encode functions, containing the current state of the encoding process
@@ -86,10 +86,7 @@ function encodeList(list: unknown[], ctx: EncodeContext): unknown[] {
  * Encode a map of values, looking up the appropriate field for each key
  * and recursively encoding nested values
  */
-function encodeMap(
-  map: Record<string, unknown>,
-  ctx: EncodeContext,
-): Record<string, unknown> {
+function encodeMap(map: Record<string, unknown>, ctx: EncodeContext): Record<string, unknown> {
   const newMap = { ...map };
   for (const [key, val] of Object.entries(newMap)) {
     const field = ctx.fields.find(f => f.name === key);

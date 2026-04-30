@@ -20,7 +20,7 @@ import type {
   CmsViewFilter,
   CmsViewGroup,
   CmsConfig,
-} from 'decap-cms-lib-util/types/cms';
+} from 'decap-cms-lib-util';
 
 type Collection = CmsCollectionState;
 type Collections = CmsCollections;
@@ -52,8 +52,7 @@ const selectors = {
   [FOLDER]: {
     entryExtension(collection: Collection) {
       const ext =
-        collection.extension ||
-        get(getFormatExtensions(), collection.format || 'frontmatter');
+        collection.extension || get(getFormatExtensions(), collection.format || 'frontmatter');
       if (!ext) {
         throw new Error(`No extension found for format ${collection.format}`);
       }
@@ -225,9 +224,12 @@ export function traverseFields(
   return fields.map(f => {
     const field = updater(f);
     if (done()) return field;
-    if (field.fields) return { ...field, fields: traverseFields(field.fields as EntryField[], updater, done) };
-    if (field.field) return { ...field, field: traverseFields([field.field as EntryField], updater, done)[0] };
-    if (field.types) return { ...field, types: traverseFields(field.types as EntryField[], updater, done) };
+    if (field.fields)
+      return { ...field, fields: traverseFields(field.fields as EntryField[], updater, done) };
+    if (field.field)
+      return { ...field, field: traverseFields([field.field as EntryField], updater, done)[0] };
+    if (field.types)
+      return { ...field, types: traverseFields(field.types as EntryField[], updater, done) };
     return field;
   });
 }
@@ -268,13 +270,18 @@ export function selectInferredField(collection: Collection, fieldName: string) {
   if (fieldName === 'title' && collection.identifier_field) {
     return selectIdentifier(collection);
   }
-  const inferableField = (INFERABLE_FIELDS as Record<string, {
-    type: string;
-    synonyms: string[];
-    secondaryTypes: string[];
-    fallbackToFirstField: boolean;
-    showError: boolean;
-  }>)[fieldName];
+  const inferableField = (
+    INFERABLE_FIELDS as Record<
+      string,
+      {
+        type: string;
+        synonyms: string[];
+        secondaryTypes: string[];
+        fallbackToFirstField: boolean;
+        showError: boolean;
+      }
+    >
+  )[fieldName];
   const fields = collection.fields as EntryField[] | undefined;
   if (!fields || !inferableField) return null;
 
@@ -295,7 +302,7 @@ export function selectInferredField(collection: Collection, fieldName: string) {
   if (inferableField.showError) {
     console.error(
       `%c ⛔ The Field ${fieldName} is missing for the collection "${collection.name}"\n` +
-      `%cDecap CMS tries to infer the entry ${fieldName} automatically, but one couldn't be found for entries of the collection "${collection.name}". Please check your site configuration.`,
+        `%cDecap CMS tries to infer the entry ${fieldName} automatically, but one couldn't be found for entries of the collection "${collection.name}". Please check your site configuration.`,
       'color: black; font-weight: bold; font-size: 16px; line-height: 50px;',
       'color: black;',
     );
@@ -331,7 +338,13 @@ export function selectDefaultSortableFields(
 ) {
   let defaultSortable = SORTABLE_FIELDS.map((type: string) => {
     const field = selectInferredField(collection, type);
-    if (backend.isGitBackend && backend.isGitBackend() && type === 'author' && !field && !hasIntegration) {
+    if (
+      backend.isGitBackend &&
+      backend.isGitBackend() &&
+      type === 'author' &&
+      !field &&
+      !hasIntegration
+    ) {
       return COMMIT_AUTHOR;
     }
     return field;
@@ -349,26 +362,28 @@ export function selectDefaultSortableFields(
 }
 
 export function selectSortableFields(collection: Collection, t: (key: string) => string) {
-  return (collection.sortable_fields ?? []).map(sortableField => {
-    const key = sortableField.field;
-    const customLabel = sortableField.label;
+  return (collection.sortable_fields ?? [])
+    .map(sortableField => {
+      const key = sortableField.field;
+      const customLabel = sortableField.label;
 
-    if (key === COMMIT_DATE) {
-      const label = customLabel || t('collection.defaultFields.updatedOn.label');
-      return { key, field: { name: key, label } };
-    }
-    const field = selectField(collection, key);
-    if (key === COMMIT_AUTHOR && !field) {
-      const label = customLabel || t('collection.defaultFields.author.label');
-      return { key, field: { name: key, label } };
-    }
+      if (key === COMMIT_DATE) {
+        const label = customLabel || t('collection.defaultFields.updatedOn.label');
+        return { key, field: { name: key, label } };
+      }
+      const field = selectField(collection, key);
+      if (key === COMMIT_AUTHOR && !field) {
+        const label = customLabel || t('collection.defaultFields.author.label');
+        return { key, field: { name: key, label } };
+      }
 
-    let fieldObj: Record<string, unknown> | undefined = field ? { ...field } : undefined;
-    if (fieldObj && customLabel) fieldObj = { ...fieldObj, label: customLabel };
-    if (fieldObj && !fieldObj.label) fieldObj = { ...fieldObj, label: (fieldObj.name as string) || key };
+      let fieldObj: Record<string, unknown> | undefined = field ? { ...field } : undefined;
+      if (fieldObj && customLabel) fieldObj = { ...fieldObj, label: customLabel };
+      if (fieldObj && !fieldObj.label)
+        fieldObj = { ...fieldObj, label: (fieldObj.name as string) || key };
 
-    return { key, field: fieldObj };
-  })
+      return { key, field: fieldObj };
+    })
     .filter(item => !!item.field)
     .map(item => ({ ...item.field, key: item.key }));
 }

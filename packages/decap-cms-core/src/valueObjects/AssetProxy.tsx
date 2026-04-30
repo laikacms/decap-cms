@@ -1,4 +1,4 @@
-import type { CmsAssetProxy } from 'decap-cms-lib-util/types/cms';
+import type { CmsAssetProxy } from 'decap-cms-lib-util';
 
 type AssetProxyType = CmsAssetProxy;
 

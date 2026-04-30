@@ -43,7 +43,13 @@ interface MediaLibrarySearchProps {
   disabled?: boolean;
 }
 
-function MediaLibrarySearch({ value, onChange, onKeyDown, placeholder, disabled }: MediaLibrarySearchProps) {
+function MediaLibrarySearch({
+  value,
+  onChange,
+  onKeyDown,
+  placeholder,
+  disabled,
+}: MediaLibrarySearchProps) {
   return (
     <SearchContainer>
       <SearchIcon type="search" size="small" />

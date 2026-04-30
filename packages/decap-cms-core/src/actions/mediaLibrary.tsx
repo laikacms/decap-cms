@@ -16,11 +16,7 @@ import { sanitizeSlug } from '../lib/urlHelper';
 import { waitUntilWithTimeout } from './waitUntil';
 import { addNotification } from './notifications';
 
-import type {
-  CmsMediaFile,
-  CmsEntryField,
-  CmsMediaLibraryInstance,
-} from 'decap-cms-lib-util/types/cms';
+import type { CmsMediaFile, CmsEntryField, CmsMediaLibraryInstance } from 'decap-cms-lib-util';
 import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
 import type AssetProxy from '../valueObjects/AssetProxy';
@@ -128,7 +124,13 @@ export function insertMedia(mediaPath: string | string[], field: EntryField | un
         selectMediaFilePublicPath(config, collection as any, path, entry, field as any),
       );
     } else {
-      mediaPath = selectMediaFilePublicPath(config, collection as any, mediaPath as string, entry, field as any);
+      mediaPath = selectMediaFilePublicPath(
+        config,
+        collection as any,
+        mediaPath as string,
+        entry,
+        field as any,
+      );
     }
     dispatch(mediaInserted(mediaPath));
   };
@@ -148,7 +150,11 @@ export function loadMedia(
     const integration = selectIntegration(state, null, 'assetStore');
     if (integration) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const provider: any = getIntegrationProvider(state.integrations, backend.getToken as any, integration);
+      const provider: any = getIntegrationProvider(
+        state.integrations,
+        backend.getToken as any,
+        integration,
+      );
       dispatch(mediaLoading(page));
       try {
         const files = await provider.retrieve(query, page, privateUpload);
@@ -272,7 +278,13 @@ export function persistMedia(file: File, opts: MediaOptions = {}) {
       } else {
         const entry = state.entryDraft.entry;
         const collection = entry?.collection != null ? state.collections[entry.collection] : null;
-        const path = selectMediaFilePath(state.config, collection as any, entry, fileName, field as any);
+        const path = selectMediaFilePath(
+          state.config,
+          collection as any,
+          entry,
+          fileName,
+          field as any,
+        );
         assetProxy = createAssetProxy({
           file,
           path,
@@ -323,7 +335,11 @@ export function deleteMedia(file: MediaFile, opts: MediaOptions = {}) {
     const integration = selectIntegration(state, null, 'assetStore');
     if (integration) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const provider: any = getIntegrationProvider(state.integrations, backend.getToken as any, integration);
+      const provider: any = getIntegrationProvider(
+        state.integrations,
+        backend.getToken as any,
+        integration,
+      );
       dispatch(mediaDeleting());
 
       try {

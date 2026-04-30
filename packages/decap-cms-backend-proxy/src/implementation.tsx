@@ -1,9 +1,4 @@
-import {
-  EditorialWorkflowError,
-  APIError,
-  unsentRequest,
-  blobToFileObj,
-} from 'decap-cms-lib-util';
+import { EditorialWorkflowError, APIError, unsentRequest, blobToFileObj } from 'decap-cms-lib-util';
 
 import isError from 'lodash/isError';
 
@@ -17,7 +12,7 @@ import type {
   CmsImplementationFile,
   CmsUnpublishedEntry,
   CmsFileEntry,
-  CmsDataFile
+  CmsDataFile,
 } from 'decap-cms-lib-util';
 
 import AuthenticationPage from './AuthenticationPage';
@@ -190,7 +185,10 @@ export default class ProxyBackend implements CmsImplementation {
     });
   }
 
-  async persistEntry(entry: CmsDataFile | { dataFiles: CmsDataFile[]; assets: CmsAssetProxy[] }, options: CmsPersistOptions) {
+  async persistEntry(
+    entry: CmsDataFile | { dataFiles: CmsDataFile[]; assets: CmsAssetProxy[] },
+    options: CmsPersistOptions,
+  ) {
     if ('dataFiles' in entry && 'assets' in entry) {
       const assets = await Promise.all(entry.assets.map(serializeAsset));
       await this.request({

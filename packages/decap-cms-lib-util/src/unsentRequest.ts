@@ -46,13 +46,14 @@ function fetchWithTimeout(input: RequestInfo | URL, init?: RequestInit): Promise
 }
 
 function decodeParams(paramsString: string): Record<string, string> {
-  return paramsString
-    .split('&')
-    .reduce((acc, pair) => {
+  return paramsString.split('&').reduce(
+    (acc, pair) => {
       const [k, v] = pair.split('=').map(decodeURIComponent);
       if (k) acc[k] = v ?? '';
       return acc;
-    }, {} as Record<string, string>);
+    },
+    {} as Record<string, string>,
+  );
 }
 
 function fromURL(wholeURL: string): RequestObject {
@@ -112,10 +113,12 @@ function getPropSetFunction(key: keyof RequestObject) {
 }
 
 function getPropMergeFunction(key: keyof RequestObject) {
-  return getCurriedRequestProcessor((obj: Record<string, unknown>, req: RequestObject): RequestObject => ({
-    ...req,
-    [key]: { ...(req[key] as Record<string, unknown> ?? {}), ...obj },
-  }));
+  return getCurriedRequestProcessor(
+    (obj: Record<string, unknown>, req: RequestObject): RequestObject => ({
+      ...req,
+      [key]: { ...((req[key] as Record<string, unknown>) ?? {}), ...obj },
+    }),
+  );
 }
 
 const withMethod = getPropSetFunction('method');

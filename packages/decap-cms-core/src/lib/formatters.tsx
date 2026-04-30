@@ -18,12 +18,7 @@ import { sanitizeSlug } from './urlHelper';
 import { FILES } from '../constants/collectionTypes';
 import { COMMIT_AUTHOR, COMMIT_DATE } from '../constants/commitProps';
 
-import type {
-  CmsCollectionState,
-  CmsEntry,
-  CmsConfig,
-  CmsSlug,
-} from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState, CmsEntry, CmsConfig, CmsSlug } from 'decap-cms-lib-util';
 
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;
@@ -104,16 +99,18 @@ export function commitMessageFormatter(
 }
 
 export function prepareSlug(slug: string) {
-  return (slug
-    .trim()
-    // Convert slug to lower-case
-    .toLocaleLowerCase()
+  return (
+    slug
+      .trim()
+      // Convert slug to lower-case
+      .toLocaleLowerCase()
 
-    // Remove single quotes.
-    .replace(/[']/g, '')
+      // Remove single quotes.
+      .replace(/[']/g, '')
 
-    // Replace periods with dashes.
-    .replace(/[.]/g, '-'));
+      // Replace periods with dashes.
+      .replace(/[.]/g, '-')
+  );
 }
 
 export function getProcessSegment(slugConfig?: CmsSlug, ignoreValues?: string[]) {
@@ -139,11 +136,15 @@ export function slugFormatter(
 
   const processSegment = getProcessSegment(slugConfig);
   const date =
-    parseDateFromEntryData(
-      entryData,
-      selectInferredField(collection, 'date'),
-    ) || new Date(Date.now());
-  const slug = compileStringTemplate(slugTemplate, date, identifier as string, entryData, processSegment);
+    parseDateFromEntryData(entryData, selectInferredField(collection, 'date')) ||
+    new Date(Date.now());
+  const slug = compileStringTemplate(
+    slugTemplate,
+    date,
+    identifier as string,
+    entryData,
+    processSegment,
+  );
 
   if (!collection.path) {
     return slug;
@@ -204,7 +205,10 @@ export function previewUrlFormatter(
 
   // Prepare and sanitize slug variables only, leave the rest of the
   // `preview_path` template as is.
-  const processSegment = getProcessSegment(slugConfig, [(fields as Record<string, string>)['dirname']].filter(isString));
+  const processSegment = getProcessSegment(
+    slugConfig,
+    [(fields as Record<string, string>)['dirname']].filter(isString),
+  );
   let compiledPath;
 
   try {
@@ -269,7 +273,10 @@ export function folderFormatter(
       selectInferredField(collection, 'date'),
     ) || null;
   const identifier = get(fields, keyToPathArray(selectIdentifier(collection) as string));
-  const processSegment = getProcessSegment(slugConfig, [defaultFolder, (fields as Record<string, string>)['dirname']].filter(isString));
+  const processSegment = getProcessSegment(
+    slugConfig,
+    [defaultFolder, (fields as Record<string, string>)['dirname']].filter(isString),
+  );
 
   const mediaFolder = compileStringTemplate(
     folderTemplate,

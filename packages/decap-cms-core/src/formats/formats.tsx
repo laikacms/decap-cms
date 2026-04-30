@@ -7,7 +7,11 @@ import { FrontmatterInfer, frontmatterJSON, frontmatterTOML, frontmatterYAML } f
 import { getCustomFormatsExtensions, getCustomFormatsFormatters } from '../lib/registry';
 
 import type { Delimiter } from './frontmatter';
-import type { CmsCollectionState, CmsFormatterFunctions, CmsCollectionFormatType } from 'decap-cms-lib-util/types/cms';
+import type {
+  CmsCollectionState,
+  CmsFormatterFunctions,
+  CmsCollectionFormatType,
+} from 'decap-cms-lib-util';
 import type { EntryValue } from '../valueObjects/Entry';
 
 type Collection = CmsCollectionState;
@@ -72,7 +76,7 @@ export function resolveFormat(collection: Collection, entry: EntryObject | Entry
   const frontmatter_delimiter = collection.frontmatter_delimiter;
   const customDelimiter = frontmatterDelimiterIsArray(frontmatter_delimiter)
     ? (frontmatter_delimiter as [string, string])
-    : frontmatter_delimiter as Delimiter | undefined;
+    : (frontmatter_delimiter as Delimiter | undefined);
 
   // If the format is specified in the collection, use that format.
   const formatSpecification = collection.format;

@@ -1,11 +1,6 @@
 import React from 'react';
 import styled from '@emotion/styled';
-import type {
-  CmsCollectionState,
-  CmsEntry,
-  CmsEntryField,
-  CmsConfig,
-} from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState, CmsEntry, CmsEntryField, CmsConfig } from 'decap-cms-lib-util';
 
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;
@@ -74,7 +69,11 @@ export class PreviewPane extends React.Component<PreviewPaneProps> {
     const widget = resolveWidget(field.widget);
     const key = idx ? field.name + '_' + idx : field.name;
     const valueIsInMap =
-      value && !(widget as any)?.allowMapValue && (typeof value === 'object' && value !== null && !Array.isArray(value));
+      value &&
+      !(widget as any)?.allowMapValue &&
+      typeof value === 'object' &&
+      value !== null &&
+      !Array.isArray(value);
 
     /**
      * Use an HOC to provide conditional updates for all previews.
@@ -85,11 +84,7 @@ export class PreviewPane extends React.Component<PreviewPaneProps> {
         key={key}
         field={field}
         getAsset={getAsset}
-        value={
-          valueIsInMap
-            ? (value as Record<string, unknown>)[field.name]
-            : (value as any)
-        }
+        value={valueIsInMap ? (value as Record<string, unknown>)[field.name] : (value as any)}
         {...({
           entry,
           fieldsMetaData: metadata as Record<string, unknown>,
@@ -131,9 +126,10 @@ export class PreviewPane extends React.Component<PreviewPaneProps> {
     let field = fields && fields.find(f => f.name === name);
     if (!field) return null;
 
-    let value: any = (typeof values === 'object' && values !== null && !Array.isArray(values))
-      ? (values as Record<string, unknown>)[field.name]
-      : undefined;
+    let value: any =
+      typeof values === 'object' && values !== null && !Array.isArray(values)
+        ? (values as Record<string, unknown>)[field.name]
+        : undefined;
     if (field.meta) {
       value = (this.props.entry.meta as Record<string, unknown>)?.[field.name];
     }
@@ -178,11 +174,7 @@ export class PreviewPane extends React.Component<PreviewPaneProps> {
   /**
    * Retrieves widgets for nested fields (children of object/list fields)
    */
-  getNestedWidgets = (
-    fields: EntryField[],
-    values: unknown,
-    fieldsMetaData: unknown,
-  ) => {
+  getNestedWidgets = (fields: EntryField[], values: unknown, fieldsMetaData: unknown) => {
     // Fields nested within a list field will be paired with an array of value objects.
     if (Array.isArray(values)) {
       return values.map(value =>
@@ -193,11 +185,7 @@ export class PreviewPane extends React.Component<PreviewPaneProps> {
     return this.widgetsForNestedFields(fields, values, fieldsMetaData as Record<string, unknown>);
   };
 
-  getSingleNested = (
-    field: EntryField,
-    values: unknown,
-    fieldsMetaData: unknown,
-  ) => {
+  getSingleNested = (field: EntryField, values: unknown, fieldsMetaData: unknown) => {
     if (Array.isArray(values)) {
       return values.map((value, idx) =>
         this.getWidget(
@@ -243,7 +231,8 @@ export class PreviewPane extends React.Component<PreviewPaneProps> {
     const variableTypes = field && field.types;
     const fieldName = field?.name ?? '';
     const value = (entry.data as Record<string, unknown>)?.[fieldName];
-    const metadata = ((fieldsMetaData as Record<string, unknown>)?.[field?.name as string] || {}) as Record<string, unknown>;
+    const metadata = ((fieldsMetaData as Record<string, unknown>)?.[field?.name as string] ||
+      {}) as Record<string, unknown>;
 
     // Variable Type lists
     if (Array.isArray(value) && variableTypes) {
@@ -286,7 +275,12 @@ export class PreviewPane extends React.Component<PreviewPaneProps> {
     const widgets: Record<string, React.ReactNode> = {};
     if (nestedFields) {
       nestedFields.forEach((f: EntryField) => {
-        widgets[f.name] = this.getWidget(f, value, (metadata as Record<string, unknown>)[f.name], this.props);
+        widgets[f.name] = this.getWidget(
+          f,
+          value,
+          (metadata as Record<string, unknown>)[f.name],
+          this.props,
+        );
       });
     }
     return {
@@ -330,10 +324,7 @@ export class PreviewPane extends React.Component<PreviewPaneProps> {
     const previewEntry = visualEditing
       ? {
           ...entry,
-          data: encodeEntry(
-            entry.data,
-            this.props.fields as any,
-          ),
+          data: encodeEntry(entry.data, this.props.fields as any),
         }
       : entry;
 

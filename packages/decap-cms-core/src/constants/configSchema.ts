@@ -4,12 +4,7 @@ import ajvKeywords from 'ajv-keywords/dist/keywords';
 import ajvErrors from 'ajv-errors';
 import { v4 as uuid } from 'uuid';
 
-const {
-  select,
-  uniqueItemProperties,
-  instanceof: instanceOf,
-  prohibited,
-} = ajvKeywords;
+const { select, uniqueItemProperties, instanceof: instanceOf, prohibited } = ajvKeywords;
 
 import { frontmatterFormats, extensionFormatters } from '../formats/formats';
 import { getWidgets } from '../lib/registry';

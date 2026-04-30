@@ -4,7 +4,7 @@ import find from 'lodash/find';
 import Select from 'react-select';
 import { reactSelectStyles } from 'decap-cms-ui-default';
 import { validations } from 'decap-cms-lib-widgets';
-import type { CmsFieldSelect, CmsFieldBase } from 'decap-cms-lib-util/types/cms'
+import type { CmsFieldSelect, CmsFieldBase } from 'decap-cms-lib-util';
 import isObject from 'lodash/isObject';
 
 interface SelectOption {
@@ -22,7 +22,7 @@ function convertToOption(raw: unknown): SelectOption {
   if (typeof raw === 'string') {
     return { label: raw, value: raw };
   }
-  return isObject(raw) ? (raw as SelectOption) : raw as SelectOption;
+  return isObject(raw) ? (raw as SelectOption) : (raw as SelectOption);
 }
 
 function getSelectedValue({
@@ -153,7 +153,9 @@ export default class SelectControl extends React.Component<SelectControlProps> {
       <Select<SelectOption, boolean>
         inputId={forID}
         value={selectedValue}
-        onChange={this.handleChange as (newValue: readonly SelectOption[] | SelectOption | null) => void}
+        onChange={
+          this.handleChange as (newValue: readonly SelectOption[] | SelectOption | null) => void
+        }
         className={classNameWrapper}
         onFocus={setActiveStyle}
         onBlur={setInactiveStyle}

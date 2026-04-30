@@ -276,9 +276,7 @@ describe('Select widget', () => {
 
       expect(onChangeSpy).toHaveBeenCalledTimes(2);
       expect(onChangeSpy).toHaveBeenCalledWith([numberOptions[0].value]);
-      expect(onChangeSpy).toHaveBeenCalledWith(
-        [numberOptions[0].value, numberOptions[2].value],
-      );
+      expect(onChangeSpy).toHaveBeenCalledWith([numberOptions[0].value, numberOptions[2].value]);
     });
   });
   describe('validation', () => {

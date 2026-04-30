@@ -20,10 +20,7 @@ import NotFoundPage from './NotFoundPage';
 import Header from './Header';
 
 import type { CmsCredentials } from 'decap-cms-lib-util';
-import type {
-  CmsCollectionState,
-  CmsCollections,
-} from 'decap-cms-lib-util/types/cms';
+import type { CmsCollectionState, CmsCollections } from 'decap-cms-lib-util';
 
 type Collection = CmsCollectionState;
 type Collections = CmsCollections;
@@ -168,7 +165,7 @@ function App() {
     (credentials: CmsCredentials) => {
       dispatch(loginUser(credentials));
     },
-    [dispatch]
+    [dispatch],
   );
 
   const handleLogout = useCallback(() => {
@@ -179,7 +176,7 @@ function App() {
     (payload?: Parameters<typeof openMediaLibrary>[0]) => {
       dispatch(openMediaLibrary(payload));
     },
-    [dispatch]
+    [dispatch],
   );
 
   const handleClearHash = useCallback(() => {
@@ -260,7 +257,7 @@ function App() {
         openMediaLibrary={handleOpenMediaLibrary}
         hasWorkflow={hasWorkflow}
         displayUrl={config.display_url}
-        logoUrl={config.logo_url}
+        logoUrl={config.logo?.src}
         logo={config.logo}
         isTestRepo={config.backend?.name === 'test-repo'}
         showMediaButton={showMediaButton}
@@ -323,10 +320,7 @@ function App() {
               </RouteInCollectionGuard>
             }
           />
-          <Route
-            path="/search/:searchTerm"
-            element={<CollectionRoute isSearchResults />}
-          />
+          <Route path="/search/:searchTerm" element={<CollectionRoute isSearchResults />} />
           <Route
             path="/edit/:name/:entryName"
             element={

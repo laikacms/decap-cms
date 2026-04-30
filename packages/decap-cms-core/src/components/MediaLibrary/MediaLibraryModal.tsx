@@ -90,7 +90,18 @@ interface MediaLibraryModalProps {
   selectedFile?: MediaFile | Record<string, never>;
   handleFilter: (files: MediaFile[]) => MediaFile[];
   handleQuery: (query: string, files: MediaFile[]) => MediaFile[];
-  toTableData: (files: MediaFile[]) => { displayURL?: string | Record<string, unknown>; id: string; key: string; name: string; type: string; draft?: boolean; url?: string; isViewableImage?: boolean }[];
+  toTableData: (
+    files: MediaFile[],
+  ) => {
+    displayURL?: string | Record<string, unknown>;
+    id: string;
+    key: string;
+    name: string;
+    type: string;
+    draft?: boolean;
+    url?: string;
+    isViewableImage?: boolean;
+  }[];
   handleClose: () => void;
   handleSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   handleSearchKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
@@ -174,7 +185,12 @@ function MediaLibraryModal({
         hasSelection={hasSelection}
         isPersisting={isPersisting}
         isDeleting={isDeleting}
-        selectedFile={selectedFile as { path: string; draft: boolean; name: string } | Record<string, never> | undefined}
+        selectedFile={
+          selectedFile as
+            | { path: string; draft: boolean; name: string }
+            | Record<string, never>
+            | undefined
+        }
       />
       {!shouldShowEmptyMessage ? null : (
         <EmptyMessage content={emptyMessage || ''} isPrivate={privateUpload} />
@@ -182,8 +198,18 @@ function MediaLibraryModal({
       <MediaLibraryCardGrid
         setScrollContainerRef={setScrollContainerRef}
         mediaItems={tableData}
-        isSelectedFile={file => !!selectedFile && 'key' in selectedFile && selectedFile.key === file.key}
-        onAssetClick={handleAssetClick as (asset: { key: string; name: string; id: string; type: string; draft?: boolean }) => void}
+        isSelectedFile={file =>
+          !!selectedFile && 'key' in selectedFile && selectedFile.key === file.key
+        }
+        onAssetClick={
+          handleAssetClick as (asset: {
+            key: string;
+            name: string;
+            id: string;
+            type: string;
+            draft?: boolean;
+          }) => void
+        }
         canLoadMore={hasNextPage}
         onLoadMore={handleLoadMore}
         isPaginating={isPaginating}
@@ -239,7 +265,8 @@ MediaLibraryModal.propTypes = {
   handleLoadMore: PropTypes.func.isRequired,
   loadDisplayURL: PropTypes.func.isRequired,
   t: PropTypes.func.isRequired,
-  displayURLs: PropTypes.instanceOf(Map as unknown as new (...args: any[]) => Map<string, unknown>).isRequired,
+  displayURLs: PropTypes.instanceOf(Map as unknown as new (...args: any[]) => Map<string, unknown>)
+    .isRequired,
 };
 
 export default translate()(MediaLibraryModal);

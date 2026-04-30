@@ -1,4 +1,12 @@
-import matter from 'gray-matter';
+import remarkFrontmatter, { type Options } from 'remark-frontmatter'
+import remarkParse from 'remark-parse'
+import remarkStringify from 'remark-stringify'
+import { unified } from 'unified'
+import type { Literal, Node, Parent } from 'unist'
+import type { VFile } from 'vfile'
+import { CONTINUE, EXIT, visit } from "unist-util-visit"
+import { toString } from "mdast-util-to-string"
+import { fromMarkdown } from "mdast-util-from-markdown"
 
 import tomlFormatter from './toml';
 import yamlFormatter from './yaml';
@@ -14,6 +22,21 @@ type Language = (typeof Languages)[keyof typeof Languages];
 
 export type Delimiter = string | [string, string];
 type Format = { language: Language; delimiters: Delimiter };
+
+export type Content = {
+  body: string;
+  [key: string]: unknown;
+}
+
+export const isContent = (data: unknown): data is Content => {
+  return typeof data === 'object' && data !== null && 'body' in data;
+}
+
+const formatOpts: Record<Language, Options>= {
+  [Languages.YAML]: 'yaml',
+  [Languages.TOML]: 'toml',
+  [Languages.JSON]: { type: 'json', fence: { open: '{', close: '}' } },
+}
 
 const parsers = {
   toml: {
@@ -53,85 +76,103 @@ const parsers = {
   },
 };
 
-function inferFrontmatterFormat(str: string) {
-  const lineEnd = str.indexOf('\n');
-  const firstLine = str.slice(0, lineEnd !== -1 ? lineEnd : 0).trim();
-  if (firstLine.length > 3 && firstLine.slice(0, 3) === '---') {
-    // No need to infer, `gray-matter` will handle things like `---toml` for us.
-    return;
-  }
-  switch (firstLine) {
-    case '---':
-      return getFormatOpts(Languages.YAML);
-    case '+++':
-      return getFormatOpts(Languages.TOML);
-    case '{':
-      return getFormatOpts(Languages.JSON);
-    default:
-      console.warn('Unrecognized front-matter format.');
+const objectToFrontmatter = (opts: { format: Language; sortedKeys?: string[]; comments?: Record<string, string> }) => {
+  const { format, sortedKeys, comments } = opts;
+  return (tree: Node, file: VFile) => {
+    const doc =  file.data.result
+
+    if (!isContent(doc)) {
+      throw new Error('Expected file data to contain a `body` property of type string, along with any frontmatter properties.')
+    }
+
+    if (!doc) return
+
+    const { body = "", ...frontmatter } = doc
+
+    // rebuild markdown AST from body
+    const newTree = fromMarkdown(body)
+
+    if (Object.keys(frontmatter).length > 0) {
+      const value = parsers[format].stringify(frontmatter, { sortedKeys, comments })
+
+      newTree.children.unshift({
+        type: format as any,
+        value
+      })
+    }
+
+    // replace original tree
+    (tree as Parent).children = newTree.children
   }
 }
 
-export function getFormatOpts(format?: Language, customDelimiter?: Delimiter) {
-  if (!format) {
-    return undefined;
+const frontmatterToObject = () => {
+  return (tree: Node, file: VFile) => {
+    let frontmatter = {}
+
+    const formats = Object.keys(parsers)
+
+    visit(tree, formats, (node, index, parent) => {
+      if (Object.prototype.hasOwnProperty.call(parsers, node.type)) {
+        const parser = parsers[node.type as Language]
+        const nodeLiteral = node as Literal
+
+        frontmatter = parser.parse(nodeLiteral.value as string);
+        (parent as Parent).children.splice(index as number, 1);
+
+        return EXIT;
+      } else {
+        return CONTINUE;
+      }
+    })
+
+    file.result = {
+      body: toString(tree),
+      ...frontmatter
+    }
   }
-
-  const formats: { [key in Language]: Format } = {
-    yaml: { language: Languages.YAML, delimiters: '---' },
-    toml: { language: Languages.TOML, delimiters: '+++' },
-    json: { language: Languages.JSON, delimiters: ['{', '}'] },
-  };
-
-  const { language, delimiters } = formats[format];
-
-  return {
-    language,
-    delimiters: customDelimiter || delimiters,
-  };
 }
+
+const defaultOptions: Options = ['yaml', 'toml', { type: 'json', fence: { open: '{', close: '}' } }];
 
 export class FrontmatterFormatter {
-  format?: Format;
+  format?: Language;
+  customDelimiter?: Delimiter;
 
   constructor(format?: Language, customDelimiter?: Delimiter) {
-    this.format = getFormatOpts(format, customDelimiter);
+    this.format = format;
+    this.customDelimiter = customDelimiter;
   }
 
-  fromFile(content: string) {
-    const format = this.format || inferFrontmatterFormat(content);
-    const result = matter(content, { engines: parsers, ...format });
-    // in the absent of a body when serializing an entry we use an empty one
-    // when calling `toFile`, so we don't want to add it when parsing.
-    return {
-      ...result.data,
-      ...(result.content.trim() && { body: result.content }),
-    };
+  fromFile(content: string): Content {
+    const options = this.format ? formatOpts[this.format] : defaultOptions;
+
+    const result = unified()
+      .use(remarkParse)
+      .use(remarkStringify)
+      .use(remarkFrontmatter, options)
+      .use(frontmatterToObject)
+      .processSync(content);
+
+    const obj = { ...result.result as object } as Content;
+
+    return obj;
   }
 
   toFile(
-    data: { body?: string } & Record<string, unknown>,
+    data: Content,
     sortedKeys?: string[],
     comments?: Record<string, string>,
   ) {
-    const { body = '', ...meta } = data;
+    const options = this.format ? formatOpts[this.format] : defaultOptions;
 
-    // Stringify to YAML if the format was not set
-    const format = this.format || getFormatOpts(Languages.YAML);
+    const markdown = unified()
+      .use(objectToFrontmatter, { format: this.format || 'yaml', sortedKeys, comments })
+      .use(remarkFrontmatter, options)
+      .use(remarkStringify)
+      .processSync({ data: { result: data } });
 
-    // gray-matter always adds a line break at the end which trips our
-    // change detection logic
-    // https://github.com/jonschlinkert/gray-matter/issues/96
-    const trimLastLineBreak = body.slice(-1) !== '\n';
-    const file = matter.stringify(body, meta, {
-      engines: parsers,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error `sortedKeys` is not recognized by gray-matter, so it gets passed through to the parser
-      sortedKeys,
-      comments,
-      ...format,
-    });
-    return trimLastLineBreak && file.slice(-1) === '\n' ? file.slice(0, -1) : file;
+    return String(markdown);
   }
 }
 

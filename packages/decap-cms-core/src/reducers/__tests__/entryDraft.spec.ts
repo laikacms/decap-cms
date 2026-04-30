@@ -93,10 +93,7 @@ describe('entryDraft reducer', () => {
         persistInitialState,
         actions.entryPersisting({ name: 'posts' }, { slug: 'slug' }),
       );
-      newState = reducer(
-        newState,
-        actions.entryPersisted({ name: 'posts' }, { slug: 'slug' }),
-      );
+      newState = reducer(newState, actions.entryPersisted({ name: 'posts' }, { slug: 'slug' }));
       expect(newState.entry?.isPersisting).toBeUndefined();
     });
 
@@ -119,10 +116,7 @@ describe('entryDraft reducer', () => {
         ...initialState,
         entry: { ...initialState.entry, mediaFiles: [{ id: '1' }, { id: '2' }] },
       };
-      const actualState = reducer(
-        stateWithMedia,
-        actions.removeDraftEntryMediaFile({ id: '1' }),
-      );
+      const actualState = reducer(stateWithMedia, actions.removeDraftEntryMediaFile({ id: '1' }));
 
       expect(actualState).toEqual({
         entry: { mediaFiles: [{ id: '2' }] },

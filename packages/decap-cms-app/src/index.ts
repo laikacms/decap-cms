@@ -9,7 +9,6 @@ if (typeof window !== 'undefined') {
   }
 }
 
-
 /**
  * Load Decap CMS automatically if `window.CMS_MANUAL_INIT` is set.
  */
@@ -41,4 +40,4 @@ if (typeof window !== 'undefined') {
   }
 }
 
-export default CMS;
+// export default CMS;

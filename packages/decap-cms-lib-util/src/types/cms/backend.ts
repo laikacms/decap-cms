@@ -1,7 +1,21 @@
-import type { CmsAuthScope, CmsCredentials, CmsUser, CmsAssetProxy, CmsDataFile, CmsPersistOptions, CmsDeleteOptions, CmsDisplayURL } from "./common.js";
-import type { CmsFileEntry, CmsImplementationEntry, CmsImplementationFile, CmsUnpublishedEntry } from "./entries.js";
-import type { CmsImplementationMediaFile } from "./media.js";
-import type Cursor from "../../Cursor.js";
+import type {
+  CmsAuthScope,
+  CmsCredentials,
+  CmsUser,
+  CmsAssetProxy,
+  CmsDataFile,
+  CmsPersistOptions,
+  CmsDeleteOptions,
+  CmsDisplayURL,
+} from './common.js';
+import type {
+  CmsFileEntry,
+  CmsImplementationEntry,
+  CmsImplementationFile,
+  CmsUnpublishedEntry,
+} from './entries.js';
+import type { CmsImplementationMediaFile } from './media.js';
+import type Cursor from '../../Cursor.js';
 
 export type CmsBackendType =
   | 'azure'
@@ -19,13 +33,21 @@ export interface CmsBackend {
   open_authoring?: boolean;
   repo?: string;
   branch?: string;
+  always_fork?: boolean;
   api_root?: string;
   site_domain?: string;
   base_url?: string;
+  app_id?: string;
+  auth_token_endpoint?: string;
   auth_endpoint?: string;
   cms_label_prefix?: string;
+  use_graphql?: boolean;
   squash_merges?: boolean;
+  preview_context?: string;
+  api_version?: string;
   proxy_url?: string;
+  auth_type?: string;
+  large_media_url?: string;
   commit_messages?: {
     create?: string;
     update?: string;
@@ -127,7 +149,10 @@ export interface CmsImplementation {
   getMediaFile: (path: string) => Promise<CmsImplementationMediaFile>;
 
   persistEntry: (entry: CmsFileEntry, opts: CmsPersistOptions) => Promise<void>;
-  persistMedia: (file: CmsAssetProxy, opts: CmsPersistOptions) => Promise<CmsImplementationMediaFile>;
+  persistMedia: (
+    file: CmsAssetProxy,
+    opts: CmsPersistOptions,
+  ) => Promise<CmsImplementationMediaFile>;
   deleteFiles: (paths: string[], commitMessage: string) => Promise<void>;
 
   unpublishedEntries: () => Promise<string[]>;

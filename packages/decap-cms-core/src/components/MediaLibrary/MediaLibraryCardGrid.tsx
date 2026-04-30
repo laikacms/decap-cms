@@ -22,7 +22,13 @@ interface MediaItem {
 interface CardCellProps {
   mediaItems: MediaItem[];
   isSelectedFile: (file: { key: string }) => boolean;
-  onAssetClick: (asset: { key: string; name: string; id: string; type: string; draft?: boolean }) => void;
+  onAssetClick: (asset: {
+    key: string;
+    name: string;
+    id: string;
+    type: string;
+    draft?: boolean;
+  }) => void;
   cardDraftText: string;
   cardWidth: string;
   cardHeight: string;
@@ -33,15 +39,17 @@ interface CardCellProps {
   gutter: number;
 }
 
-function CardWrapper(props: {
-  ariaAttributes: {
-    'aria-colindex': number;
-    role: 'gridcell';
-  };
-  columnIndex: number;
-  rowIndex: number;
-  style: React.CSSProperties;
-} & CardCellProps) {
+function CardWrapper(
+  props: {
+    ariaAttributes: {
+      'aria-colindex': number;
+      role: 'gridcell';
+    };
+    columnIndex: number;
+    rowIndex: number;
+    style: React.CSSProperties;
+  } & CardCellProps,
+) {
   const {
     rowIndex,
     columnIndex,
@@ -101,7 +109,13 @@ function VirtualizedGrid(props: MediaLibraryCardGridProps) {
   return (
     <CardGridContainer ref={setScrollContainerRef}>
       <AutoSizer
-        renderProp={({ height, width }: { height: number | undefined; width: number | undefined }) => {
+        renderProp={({
+          height,
+          width,
+        }: {
+          height: number | undefined;
+          width: number | undefined;
+        }) => {
           if (height === undefined || width === undefined) {
             return null;
           }
@@ -210,7 +224,13 @@ interface MediaLibraryCardGridProps {
   setScrollContainerRef: (ref: HTMLDivElement | null) => void;
   mediaItems: MediaItem[];
   isSelectedFile: (file: { key: string }) => boolean;
-  onAssetClick: (asset: { key: string; name: string; id: string; type: string; draft?: boolean }) => void;
+  onAssetClick: (asset: {
+    key: string;
+    name: string;
+    id: string;
+    type: string;
+    draft?: boolean;
+  }) => void;
   canLoadMore?: boolean;
   onLoadMore: () => void;
   isPaginating?: boolean;
@@ -256,7 +276,8 @@ MediaLibraryCardGrid.propTypes = {
   cardMargin: PropTypes.string.isRequired,
   loadDisplayURL: PropTypes.func.isRequired,
   isPrivate: PropTypes.bool,
-  displayURLs: PropTypes.instanceOf(Map as unknown as new (...args: any[]) => Map<string, unknown>).isRequired,
+  displayURLs: PropTypes.instanceOf(Map as unknown as new (...args: any[]) => Map<string, unknown>)
+    .isRequired,
 };
 
 export default MediaLibraryCardGrid;

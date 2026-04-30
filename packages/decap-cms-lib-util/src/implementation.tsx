@@ -2,13 +2,18 @@ import createSemaphore from './semaphore';
 import unionBy from 'lodash/unionBy';
 import sortBy from 'lodash/sortBy';
 
-import { basename } from './path';
+import { basename } from './core-utils/path.js';
 
 import type { Semaphore } from './semaphore';
 import type { AsyncLock } from './asyncLock';
 import type { FileMetadata } from './API';
 import type { LocalForage } from './localForage';
-import type { CmsImplementationEntry, CmsImplementationFile, CmsDisplayURL, CmsDisplayURLObject } from './types/cms';
+import type {
+  CmsImplementationEntry,
+  CmsImplementationFile,
+  CmsDisplayURL,
+  CmsDisplayURLObject,
+} from './types/cms';
 
 const MAX_CONCURRENT_DOWNLOADS = 10;
 
@@ -220,34 +225,37 @@ async function getDiffFromLocalTree({
   const diff = await getDifferences(branch.sha, localTree.head);
   const diffFiles = diff
     .filter(d => d.oldPath?.startsWith(folder) || d.newPath?.startsWith(folder))
-    .reduce((acc, d) => {
-      if (d.status === 'renamed') {
-        acc.push({
-          path: d.oldPath,
-          name: basename(d.oldPath),
-          deleted: true,
-        });
-        acc.push({
-          path: d.newPath,
-          name: basename(d.newPath),
-          deleted: false,
-        });
-      } else if (d.status === 'deleted') {
-        acc.push({
-          path: d.oldPath,
-          name: basename(d.oldPath),
-          deleted: true,
-        });
-      } else {
-        acc.push({
-          path: d.newPath || d.oldPath,
-          name: basename(d.newPath || d.oldPath),
-          deleted: false,
-        });
-      }
+    .reduce(
+      (acc, d) => {
+        if (d.status === 'renamed') {
+          acc.push({
+            path: d.oldPath,
+            name: basename(d.oldPath),
+            deleted: true,
+          });
+          acc.push({
+            path: d.newPath,
+            name: basename(d.newPath),
+            deleted: false,
+          });
+        } else if (d.status === 'deleted') {
+          acc.push({
+            path: d.oldPath,
+            name: basename(d.oldPath),
+            deleted: true,
+          });
+        } else {
+          acc.push({
+            path: d.newPath || d.oldPath,
+            name: basename(d.newPath || d.oldPath),
+            deleted: false,
+          });
+        }
 
-      return acc;
-    }, [] as { path: string; name: string; deleted: boolean }[])
+        return acc;
+      },
+      [] as { path: string; name: string; deleted: boolean }[],
+    )
 
     .filter(filterFile);
 
@@ -350,10 +358,13 @@ export async function allEntriesByFolder({
         // return local copy
         return localTree.files;
       } else {
-        const deleted = diff.reduce((acc, d) => {
-          acc[d.path] = d.deleted;
-          return acc;
-        }, {} as Record<string, boolean>);
+        const deleted = diff.reduce(
+          (acc, d) => {
+            acc[d.path] = d.deleted;
+            return acc;
+          },
+          {} as Record<string, boolean>,
+        );
         const newCopy = sortBy(
           unionBy(
             diff.filter(d => !deleted[d.path]),

@@ -13,7 +13,7 @@
 // https://on.cypress.io/configuration
 // ***********************************************************
 /// <reference types="cypress" />
-/// <reference path="./index.d.ts" />
+import type {} from './index.d';
 
 import 'cypress-plugin-tab';
 import { addMatchImageSnapshotCommand } from '@simonsmith/cypress-image-snapshot/command';

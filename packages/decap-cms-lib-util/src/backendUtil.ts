@@ -27,13 +27,16 @@ function catchFormatErrors(format: string, formatter: Formatter) {
 }
 
 const responseFormatters = new Map<string, Formatter>([
-  ['json', async (res: Response) => {
-    const contentType = res.headers.get('Content-Type') || '';
-    if (!contentType.startsWith('application/json') && !contentType.startsWith('text/json')) {
-      throw new Error(`${contentType} is not a valid JSON Content-Type`);
-    }
-    return res.json();
-  }],
+  [
+    'json',
+    async (res: Response) => {
+      const contentType = res.headers.get('Content-Type') || '';
+      if (!contentType.startsWith('application/json') && !contentType.startsWith('text/json')) {
+        throw new Error(`${contentType} is not a valid JSON Content-Type`);
+      }
+      return res.json();
+    },
+  ],
   ['text', async (res: Response) => res.text()],
   ['blob', async (res: Response) => res.blob()],
 ]);
@@ -44,10 +47,12 @@ responseFormatters.forEach((formatter, format) => {
   wrappedFormatters.set(format, catchFormatErrors(format, formatter));
 });
 
-export async function parseResponse(
+type Format = 'json' | 'text' | 'blob';
+
+export async function parseResponse<F extends Format>(
   res: Response,
-  { expectingOk = true, format = 'text', apiName = '' },
-) {
+  { expectingOk = true, format = 'text' as F, apiName = '' }: { expectingOk?: boolean; format?: F; apiName?: string },
+): Promise<F extends 'json' ? unknown : F extends 'text' ? string : Blob> {
   let body: unknown;
   try {
     const formatter = wrappedFormatters.get(format);
@@ -61,16 +66,18 @@ export async function parseResponse(
   }
   if (expectingOk && !res.ok) {
     const isJSON = format === 'json';
-    const jsonBody = body as { message?: string; msg?: string; error?: { message?: string } } | undefined;
+    const jsonBody = body as
+      | { message?: string; msg?: string; error?: { message?: string } }
+      | undefined;
     const message = isJSON ? jsonBody?.message || jsonBody?.msg || jsonBody?.error?.message : body;
     throw new APIError(isJSON && message ? String(message) : String(body), res.status, apiName);
   }
-  return body;
+  return body as F extends 'json' ? unknown : F extends 'text' ? string : Blob;
 }
 
-export function responseParser(options: {
+export function responseParser<F extends Format>(options: {
   expectingOk?: boolean;
-  format: string;
+  format: F;
   apiName: string;
 }) {
   return (res: Response) => parseResponse(res, options);
