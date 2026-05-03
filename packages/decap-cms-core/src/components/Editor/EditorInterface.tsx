@@ -17,7 +17,7 @@ type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;
 type EntryField = CmsEntryField;
 
-import EditorControlPane from './EditorControlPane/EditorControlPane';
+import EditorControlPane, { type ControlPaneHandle } from './EditorControlPane/EditorControlPane';
 import EditorPreviewPane from './EditorPreviewPane/EditorPreviewPane';
 import EditorToolbar from './EditorToolbar';
 import { hasI18n, getI18nInfo, getPreviewEntry } from '../../lib/i18n';
@@ -208,7 +208,7 @@ interface EditorInterfaceProps {
   editorBackLink?: string;
 }
 
-type ControlPaneRef = InstanceType<typeof EditorControlPane>;
+type ControlPaneRef = ControlPaneHandle;
 
 function EditorInterface(props: EditorInterfaceProps) {
   const {
