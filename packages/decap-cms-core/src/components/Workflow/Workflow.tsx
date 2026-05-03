@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
 import { connect } from 'react-redux';
@@ -77,78 +77,71 @@ interface WorkflowProps {
   t: TranslateFunction;
 }
 
-class Workflow extends Component<WorkflowProps> {
-  componentDidMount() {
-    const { loadUnpublishedEntries, isEditorialWorkflow, collections } = this.props;
+function Workflow({
+  isEditorialWorkflow,
+  isOpenAuthoring,
+  isFetching,
+  unpublishedEntries,
+  loadUnpublishedEntries,
+  updateUnpublishedEntryStatus,
+  publishUnpublishedEntry,
+  deleteUnpublishedEntry,
+  collections,
+  t,
+}: WorkflowProps) {
+  React.useEffect(() => {
     if (isEditorialWorkflow) {
       loadUnpublishedEntries(collections);
     }
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- match prior componentDidMount semantics
+  }, []);
 
-  render() {
-    const {
-      isEditorialWorkflow,
-      isOpenAuthoring,
-      isFetching,
-      unpublishedEntries,
-      updateUnpublishedEntryStatus,
-      publishUnpublishedEntry,
-      deleteUnpublishedEntry,
-      collections,
-      t,
-    } = this.props;
+  if (!isEditorialWorkflow) return null;
+  if (isFetching) return <Loader active>{t('workflow.workflow.loading')}</Loader>;
+  const reviewCount = unpublishedEntries ? (unpublishedEntries['pending_review']?.length ?? 0) : 0;
+  const readyCount = unpublishedEntries ? (unpublishedEntries['pending_publish']?.length ?? 0) : 0;
 
-    if (!isEditorialWorkflow) return null;
-    if (isFetching) return <Loader active>{t('workflow.workflow.loading')}</Loader>;
-    const reviewCount = unpublishedEntries
-      ? (unpublishedEntries['pending_review']?.length ?? 0)
-      : 0;
-    const readyCount = unpublishedEntries
-      ? (unpublishedEntries['pending_publish']?.length ?? 0)
-      : 0;
-
-    return (
-      <WorkflowContainer>
-        <WorkflowTop>
-          <WorkflowTopRow>
-            <WorkflowTopHeading>{t('workflow.workflow.workflowHeading')}</WorkflowTopHeading>
-            <Dropdown
-              dropdownWidth="160px"
-              dropdownPosition="left"
-              dropdownTopOverlap="40px"
-              renderButton={() => (
-                <StyledDropdownButton>{t('workflow.workflow.newPost')}</StyledDropdownButton>
-              )}
-            >
-              {Object.values(collections)
-                .filter((collection: Collection) => !!collection.create)
-                .map((collection: Collection) => (
-                  <DropdownItem
-                    key={collection.name}
-                    label={collection.label}
-                    onClick={() => createNewEntry(collection.name)}
-                  />
-                ))}
-            </Dropdown>
-          </WorkflowTopRow>
-          <WorkflowTopDescription>
-            {t('workflow.workflow.description', {
-              smart_count: reviewCount,
-              readyCount,
-            })}
-          </WorkflowTopDescription>
-        </WorkflowTop>
-        {React.createElement(WorkflowList as any, {
-          entries: unpublishedEntries,
-          handleChangeStatus: updateUnpublishedEntryStatus,
-          handlePublish: publishUnpublishedEntry,
-          handleDelete: deleteUnpublishedEntry,
-          isOpenAuthoring,
-          collections,
-        })}
-      </WorkflowContainer>
-    );
-  }
+  return (
+    <WorkflowContainer>
+      <WorkflowTop>
+        <WorkflowTopRow>
+          <WorkflowTopHeading>{t('workflow.workflow.workflowHeading')}</WorkflowTopHeading>
+          <Dropdown
+            dropdownWidth="160px"
+            dropdownPosition="left"
+            dropdownTopOverlap="40px"
+            renderButton={() => (
+              <StyledDropdownButton>{t('workflow.workflow.newPost')}</StyledDropdownButton>
+            )}
+          >
+            {Object.values(collections)
+              .filter((collection: Collection) => !!collection.create)
+              .map((collection: Collection) => (
+                <DropdownItem
+                  key={collection.name}
+                  label={collection.label}
+                  onClick={() => createNewEntry(collection.name)}
+                />
+              ))}
+          </Dropdown>
+        </WorkflowTopRow>
+        <WorkflowTopDescription>
+          {t('workflow.workflow.description', {
+            smart_count: reviewCount,
+            readyCount,
+          })}
+        </WorkflowTopDescription>
+      </WorkflowTop>
+      {React.createElement(WorkflowList as any, {
+        entries: unpublishedEntries,
+        handleChangeStatus: updateUnpublishedEntryStatus,
+        handlePublish: publishUnpublishedEntry,
+        handleDelete: deleteUnpublishedEntry,
+        isOpenAuthoring,
+        collections,
+      })}
+    </WorkflowContainer>
+  );
 }
 
 function mapStateToProps(state: State) {

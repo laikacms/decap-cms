@@ -149,126 +149,121 @@ interface HeaderProps {
   checkBackendStatus: () => void;
 }
 
-class Header extends React.Component<HeaderProps> {
-  intervalId: ReturnType<typeof setInterval> | undefined;
+function Header({
+  user,
+  collections,
+  onCreateEntryClick,
+  onLogoutClick,
+  openMediaLibrary,
+  hasWorkflow,
+  displayUrl,
+  showMediaButton,
+  logoUrl, // Deprecated, replaced by `logo.src`
+  logo,
+  isTestRepo,
+  t,
+  checkBackendStatus,
+}: HeaderProps) {
+  const checkBackendStatusRef = React.useRef(checkBackendStatus);
+  checkBackendStatusRef.current = checkBackendStatus;
 
-  componentDidMount() {
-    this.intervalId = setInterval(
+  React.useEffect(() => {
+    const intervalId = setInterval(
       () => {
-        this.props.checkBackendStatus();
+        checkBackendStatusRef.current();
       },
       5 * 60 * 1000,
     );
-  }
+    return () => clearInterval(intervalId);
+  }, []);
 
-  componentWillUnmount() {
-    clearInterval(this.intervalId);
-  }
-
-  handleCreatePostClick = (collectionName: string) => {
-    const { onCreateEntryClick } = this.props;
+  function handleCreatePostClick(collectionName: string) {
     if (onCreateEntryClick) {
       onCreateEntryClick(collectionName);
     }
-  };
+  }
 
-  render() {
-    const {
-      user,
-      collections,
-      onLogoutClick,
-      openMediaLibrary,
-      hasWorkflow,
-      displayUrl,
-      logoUrl, // Deprecated, replaced by `logo.src`
-      logo,
-      isTestRepo,
-      t,
-      showMediaButton,
-    } = this.props;
+  const creatableCollections = Object.values(collections).filter(
+    (collection: Collection) => !!collection.create,
+  );
 
-    const creatableCollections = Object.values(collections).filter(
-      (collection: Collection) => !!collection.create,
-    );
+  const shouldShowLogo = logo?.show_in_header && logo?.src;
 
-    const shouldShowLogo = logo?.show_in_header && logo?.src;
-
-    return (
-      <AppHeader>
-        <AppHeaderContent>
-          <nav>
-            <AppHeaderNavList>
-              {shouldShowLogo && (
-                <AppHeaderLogo>
-                  <img src={logo?.src || logoUrl} alt="Logo" />
-                </AppHeaderLogo>
-              )}
+  return (
+    <AppHeader>
+      <AppHeaderContent>
+        <nav>
+          <AppHeaderNavList>
+            {shouldShowLogo && (
+              <AppHeaderLogo>
+                <img src={logo?.src || logoUrl} alt="Logo" />
+              </AppHeaderLogo>
+            )}
+            <li>
+              <AppHeaderNavLink
+                to="/"
+                className={({ isActive }: { isActive: boolean }) =>
+                  isActive || window.location.hash.includes('/collections/')
+                    ? ACTIVE_CLASS_NAME
+                    : ''
+                }
+              >
+                <Icon type="page" />
+                {t('app.header.content')}
+              </AppHeaderNavLink>
+            </li>
+            {hasWorkflow && (
               <li>
                 <AppHeaderNavLink
-                  to="/"
+                  to="/workflow"
                   className={({ isActive }: { isActive: boolean }) =>
-                    isActive || window.location.hash.includes('/collections/')
-                      ? ACTIVE_CLASS_NAME
-                      : ''
+                    isActive ? ACTIVE_CLASS_NAME : ''
                   }
                 >
-                  <Icon type="page" />
-                  {t('app.header.content')}
+                  <Icon type="workflow" />
+                  {t('app.header.workflow')}
                 </AppHeaderNavLink>
               </li>
-              {hasWorkflow && (
-                <li>
-                  <AppHeaderNavLink
-                    to="/workflow"
-                    className={({ isActive }: { isActive: boolean }) =>
-                      isActive ? ACTIVE_CLASS_NAME : ''
-                    }
-                  >
-                    <Icon type="workflow" />
-                    {t('app.header.workflow')}
-                  </AppHeaderNavLink>
-                </li>
-              )}
-              {showMediaButton && (
-                <li>
-                  <AppHeaderButton onClick={openMediaLibrary}>
-                    <Icon type="media-alt" />
-                    {t('app.header.media')}
-                  </AppHeaderButton>
-                </li>
-              )}
-            </AppHeaderNavList>
-          </nav>
-          <AppHeaderActions>
-            {creatableCollections.length > 0 && (
-              <Dropdown
-                renderButton={() => (
-                  <AppHeaderQuickNewButton> {t('app.header.quickAdd')}</AppHeaderQuickNewButton>
-                )}
-                dropdownTopOverlap="30px"
-                dropdownWidth="160px"
-                dropdownPosition="left"
-              >
-                {creatableCollections.map((collection: Collection) => (
-                  <DropdownItem
-                    key={collection.name}
-                    label={collection.label_singular || collection.label}
-                    onClick={() => this.handleCreatePostClick(collection.name)}
-                  />
-                ))}
-              </Dropdown>
             )}
-            <SettingsDropdown
-              displayUrl={displayUrl}
-              isTestRepo={isTestRepo}
-              imageUrl={user?.avatar_url}
-              onLogoutClick={onLogoutClick}
-            />
-          </AppHeaderActions>
-        </AppHeaderContent>
-      </AppHeader>
-    );
-  }
+            {showMediaButton && (
+              <li>
+                <AppHeaderButton onClick={openMediaLibrary}>
+                  <Icon type="media-alt" />
+                  {t('app.header.media')}
+                </AppHeaderButton>
+              </li>
+            )}
+          </AppHeaderNavList>
+        </nav>
+        <AppHeaderActions>
+          {creatableCollections.length > 0 && (
+            <Dropdown
+              renderButton={() => (
+                <AppHeaderQuickNewButton> {t('app.header.quickAdd')}</AppHeaderQuickNewButton>
+              )}
+              dropdownTopOverlap="30px"
+              dropdownWidth="160px"
+              dropdownPosition="left"
+            >
+              {creatableCollections.map((collection: Collection) => (
+                <DropdownItem
+                  key={collection.name}
+                  label={collection.label_singular || collection.label}
+                  onClick={() => handleCreatePostClick(collection.name)}
+                />
+              ))}
+            </Dropdown>
+          )}
+          <SettingsDropdown
+            displayUrl={displayUrl}
+            isTestRepo={isTestRepo}
+            imageUrl={user?.avatar_url}
+            onLogoutClick={onLogoutClick}
+          />
+        </AppHeaderActions>
+      </AppHeaderContent>
+    </AppHeader>
+  );
 }
 
 const mapDispatchToProps = {

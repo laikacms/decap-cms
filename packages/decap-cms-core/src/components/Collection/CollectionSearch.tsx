@@ -95,151 +95,111 @@ interface CollectionSearchProps {
   t: TranslateFunction;
 }
 
-class CollectionSearch extends React.Component<CollectionSearchProps> {
-  state = {
-    query: this.props.searchTerm,
-    suggestionsVisible: false,
-    // default to the currently selected
-    selectedCollectionIdx: this.getSelectedSelectionBasedOnProps(),
-  };
+function getSelectedFromProps(props: CollectionSearchProps) {
+  if (!props.collection) return -1;
+  return Object.keys(props.collections).indexOf(props.collection.name);
+}
 
-  componentDidUpdate(prevProps: CollectionSearchProps) {
-    if (prevProps.collection !== this.props.collection) {
-      const selectedCollectionIdx = this.getSelectedSelectionBasedOnProps();
-      this.setState({ selectedCollectionIdx });
-    }
-  }
+function CollectionSearch(props: CollectionSearchProps) {
+  const { collections, collection, searchTerm, onSubmit, t } = props;
+  const [query, setQuery] = React.useState(searchTerm);
+  const [suggestionsVisible, setSuggestionsVisible] = React.useState(false);
+  const [selectedCollectionIdx, setSelectedCollectionIdx] = React.useState(() =>
+    getSelectedFromProps(props),
+  );
 
-  getSelectedSelectionBasedOnProps() {
-    const { collection, collections } = this.props;
-    if (!collection) return -1;
-    const keys = Object.keys(collections);
-    return keys.indexOf(collection.name);
-  }
+  React.useEffect(() => {
+    setSelectedCollectionIdx(getSelectedFromProps({ ...props, collection }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when collection identity changes
+  }, [collection]);
 
-  toggleSuggestions(visible: boolean) {
-    this.setState({ suggestionsVisible: visible });
-  }
-
-  selectNextSuggestion() {
-    const { collections } = this.props;
-    const { selectedCollectionIdx } = this.state;
-    const collectionCount = Object.keys(collections).length;
-    this.setState({
-      selectedCollectionIdx: Math.min(selectedCollectionIdx + 1, collectionCount - 1),
-    });
-  }
-
-  selectPreviousSuggestion() {
-    const { selectedCollectionIdx } = this.state;
-    this.setState({
-      selectedCollectionIdx: Math.max(selectedCollectionIdx - 1, -1),
-    });
-  }
-
-  resetSelectedSuggestion() {
-    this.setState({
-      selectedCollectionIdx: -1,
-    });
-  }
-
-  submitSearch = () => {
-    const { onSubmit, collections } = this.props;
-    const { selectedCollectionIdx, query } = this.state;
-
-    this.toggleSuggestions(false);
-    if (selectedCollectionIdx !== -1) {
-      const collectionValues = Object.values(collections);
-      const selectedCollection = collectionValues[selectedCollectionIdx];
+  function submitSearch(idx = selectedCollectionIdx) {
+    setSuggestionsVisible(false);
+    if (idx !== -1) {
+      const selectedCollection = Object.values(collections)[idx];
       onSubmit(query, selectedCollection?.name);
     } else {
       onSubmit(query);
     }
-  };
+  }
 
-  handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    const { suggestionsVisible } = this.state;
-
+  function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'Enter') {
-      this.submitSearch();
+      submitSearch();
     }
-
     if (suggestionsVisible) {
-      // allow closing of suggestions with escape key
       if (event.key === 'Escape') {
-        this.toggleSuggestions(false);
+        setSuggestionsVisible(false);
       }
-
       if (event.key === 'ArrowDown') {
-        this.selectNextSuggestion();
+        setSelectedCollectionIdx(prev =>
+          Math.min(prev + 1, Object.keys(collections).length - 1),
+        );
         event.preventDefault();
       } else if (event.key === 'ArrowUp') {
-        this.selectPreviousSuggestion();
+        setSelectedCollectionIdx(prev => Math.max(prev - 1, -1));
         event.preventDefault();
       }
     }
-  };
+  }
 
-  handleQueryChange = (query: string) => {
-    this.setState({ query });
-    this.toggleSuggestions(query !== '');
-    if (query === '') {
-      this.resetSelectedSuggestion();
+  function handleQueryChange(next: string) {
+    setQuery(next);
+    setSuggestionsVisible(next !== '');
+    if (next === '') {
+      setSelectedCollectionIdx(-1);
     }
-  };
+  }
 
-  handleSuggestionClick = (event: React.MouseEvent, idx: number) => {
-    this.setState({ selectedCollectionIdx: idx }, this.submitSearch);
+  function handleSuggestionClick(event: React.MouseEvent, idx: number) {
     event.preventDefault();
-  };
+    setSelectedCollectionIdx(idx);
+    submitSearch(idx);
+  }
 
-  render() {
-    const { collections, t } = this.props;
-    const { suggestionsVisible, selectedCollectionIdx, query } = this.state;
-    const collectionValues = Object.values(collections);
-    return (
-      <SearchContainer
-        onBlur={() => this.toggleSuggestions(false)}
-        onFocus={() => this.toggleSuggestions(query !== '')}
-      >
-        <InputContainer>
-          <Icon type="search" />
-          <SearchInput
-            onChange={e => this.handleQueryChange(e.target.value)}
-            onKeyDown={this.handleKeyDown}
-            onClick={() => this.toggleSuggestions(true)}
-            placeholder={t('collection.sidebar.searchAll')}
-            value={query}
-          />
-        </InputContainer>
-        {suggestionsVisible && (
-          <SuggestionsContainer>
-            <Suggestions>
-              <SuggestionHeader>{t('collection.sidebar.searchIn')}</SuggestionHeader>
+  const collectionValues = Object.values(collections);
+  return (
+    <SearchContainer
+      onBlur={() => setSuggestionsVisible(false)}
+      onFocus={() => setSuggestionsVisible(query !== '')}
+    >
+      <InputContainer>
+        <Icon type="search" />
+        <SearchInput
+          onChange={e => handleQueryChange(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onClick={() => setSuggestionsVisible(true)}
+          placeholder={t('collection.sidebar.searchAll')}
+          value={query}
+        />
+      </InputContainer>
+      {suggestionsVisible && (
+        <SuggestionsContainer>
+          <Suggestions>
+            <SuggestionHeader>{t('collection.sidebar.searchIn')}</SuggestionHeader>
+            <SuggestionItem
+              $isActive={selectedCollectionIdx === -1}
+              onClick={e => handleSuggestionClick(e, -1)}
+              onMouseDown={e => e.preventDefault()}
+            >
+              {t('collection.sidebar.allCollections')}
+            </SuggestionItem>
+            <SuggestionDivider />
+            {collectionValues.map((c: CmsCollectionState, idx: number) => (
               <SuggestionItem
-                $isActive={selectedCollectionIdx === -1}
-                onClick={e => this.handleSuggestionClick(e, -1)}
+                key={idx}
+                $isActive={idx === selectedCollectionIdx}
+                onClick={(e: any) => handleSuggestionClick(e, idx)}
                 onMouseDown={e => e.preventDefault()}
               >
-                {t('collection.sidebar.allCollections')}
+                {c.label}
               </SuggestionItem>
-              <SuggestionDivider />
-              {collectionValues.map((collection: CmsCollectionState, idx: number) => (
-                <SuggestionItem
-                  key={idx}
-                  $isActive={idx === selectedCollectionIdx}
-                  onClick={(e: any) => this.handleSuggestionClick(e, idx)}
-                  onMouseDown={e => e.preventDefault()}
-                >
-                  {collection.label}
-                </SuggestionItem>
-              ))}
-            </Suggestions>
-          </SuggestionsContainer>
-        )}
-      </SearchContainer>
-    );
-  }
+            ))}
+          </Suggestions>
+        </SuggestionsContainer>
+      )}
+    </SearchContainer>
+  );
 }
 
 export default translate()(CollectionSearch);

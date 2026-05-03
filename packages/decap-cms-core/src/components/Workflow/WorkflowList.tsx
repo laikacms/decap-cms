@@ -156,41 +156,45 @@ interface WorkflowListProps {
   collections: CmsCollections;
 }
 
-class WorkflowList extends React.Component<WorkflowListProps> {
-  handleChangeStatus = (newStatus: string, dragProps: DragProps) => {
-    const slug = dragProps.slug;
-    const collection = dragProps.collection;
-    const oldStatus = dragProps.ownStatus;
-    this.props.handleChangeStatus(collection, slug, oldStatus, newStatus);
-  };
+function WorkflowList({
+  entries,
+  handleChangeStatus,
+  handlePublish,
+  handleDelete,
+  t,
+  isOpenAuthoring,
+  collections,
+}: WorkflowListProps) {
+  function onChangeStatus(newStatus: string, dragProps: DragProps) {
+    handleChangeStatus(dragProps.collection, dragProps.slug, dragProps.ownStatus, newStatus);
+  }
 
-  requestDelete = (collection: string, slug: string, ownStatus: string) => {
-    if (window.confirm(this.props.t('workflow.workflowList.onDeleteEntry'))) {
-      this.props.handleDelete(collection, slug, ownStatus);
+  function requestDelete(collection: string, slug: string, ownStatus: string) {
+    if (window.confirm(t('workflow.workflowList.onDeleteEntry'))) {
+      handleDelete(collection, slug, ownStatus);
     }
-  };
+  }
 
-  requestPublish = (collection: string, slug: string, ownStatus: string) => {
+  function requestPublish(collection: string, slug: string, ownStatus: string) {
     if (ownStatus !== Object.values(status).pop()) {
-      window.alert(this.props.t('workflow.workflowList.onPublishingNotReadyEntry'));
+      window.alert(t('workflow.workflowList.onPublishingNotReadyEntry'));
       return;
-    } else if (!window.confirm(this.props.t('workflow.workflowList.onPublishEntry'))) {
+    } else if (!window.confirm(t('workflow.workflowList.onPublishEntry'))) {
       return;
     }
-    this.props.handlePublish(collection, slug);
-  };
+    handlePublish(collection, slug);
+  }
 
-  renderColumns = (entries: any, column?: string): any => {
-    const { isOpenAuthoring, collections, t } = this.props;
-    if (!entries) return null;
+  function renderColumns(entriesArg: any, column?: string): any {
+    if (!entriesArg) return null;
 
     if (!column) {
-      return Object.entries(entries).map(
+      return Object.entries(entriesArg).map(
         ([currColumn, currEntries]: [string, any], idx: number) => (
           <DropTarget
             namespace={DNDNamespace}
             key={currColumn}
-            onDrop={this.handleChangeStatus.bind(this, currColumn) as any}
+            onDrop={(dragProps: any) => onChangeStatus(currColumn, dragProps)}
           >
             {(connect: any, { isHovered }: { isHovered: boolean }) =>
               connect(
@@ -207,14 +211,14 @@ class WorkflowList extends React.Component<WorkflowListProps> {
                     ]}
                   >
                     <ColumnHeader $name={currColumn}>
-                      {getColumnHeaderText(currColumn, this.props.t)}
+                      {getColumnHeaderText(currColumn, t)}
                     </ColumnHeader>
                     <ColumnCount>
-                      {this.props.t('workflow.workflowList.currentEntries', {
+                      {t('workflow.workflowList.currentEntries', {
                         smart_count: Array.isArray(currEntries) ? currEntries.length : 0,
                       })}
                     </ColumnCount>
-                    {this.renderColumns(currEntries, currColumn)}
+                    {renderColumns(currEntries, currColumn)}
                   </div>
                 </div>,
               )
@@ -225,14 +229,14 @@ class WorkflowList extends React.Component<WorkflowListProps> {
     }
     return (
       <div>
-        {entries.map((entry: any) => {
+        {entriesArg.map((entry: any) => {
           const timestamp = dayjs(entry.updatedOn).format(t('workflow.workflow.dateFormat'));
           const slug = entry.slug;
           const collectionName = entry.collection;
           const editLink = `collections/${collectionName}/entries/${slug}?ref=workflow`;
           const ownStatus = entry.status;
           const collection = Object.values(collections).find(
-            (collection: CmsCollectionState) => collection.name === collectionName,
+            (c: CmsCollectionState) => c.name === collectionName,
           );
           const collectionLabel = collection?.label;
           const isModification = entry.isModification;
@@ -261,10 +265,10 @@ class WorkflowList extends React.Component<WorkflowListProps> {
                       isModification={isModification}
                       editLink={editLink}
                       timestamp={timestamp}
-                      onDelete={this.requestDelete.bind(this, collectionName, slug, ownStatus)}
+                      onDelete={() => requestDelete(collectionName, slug, ownStatus)}
                       allowPublish={allowPublish}
                       canPublish={canPublish}
-                      onPublish={this.requestPublish.bind(this, collectionName, slug, ownStatus)}
+                      onPublish={() => requestPublish(collectionName, slug, ownStatus)}
                       postAuthor={postAuthor}
                     />
                   </div>,
@@ -275,15 +279,11 @@ class WorkflowList extends React.Component<WorkflowListProps> {
         })}
       </div>
     );
-  };
-
-  render() {
-    const columns = this.renderColumns(this.props.entries);
-    const ListContainer = this.props.isOpenAuthoring
-      ? WorkflowListContainerOpenAuthoring
-      : WorkflowListContainer;
-    return <ListContainer>{columns}</ListContainer>;
   }
+
+  const columns = renderColumns(entries);
+  const ListContainer = isOpenAuthoring ? WorkflowListContainerOpenAuthoring : WorkflowListContainer;
+  return <ListContainer>{columns}</ListContainer>;
 }
 
 export default HTML5DragDrop(translate()(WorkflowList as any));
