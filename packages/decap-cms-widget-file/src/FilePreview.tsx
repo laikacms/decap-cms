@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 import { WidgetPreviewContainer } from 'decap-cms-ui-default';
 
@@ -62,10 +61,5 @@ function FilePreview(props: FilePreviewProps) {
     </WidgetPreviewContainer>
   );
 }
-
-FilePreview.propTypes = {
-  getAsset: PropTypes.func.isRequired,
-  value: PropTypes.node,
-};
 
 export default FilePreview;

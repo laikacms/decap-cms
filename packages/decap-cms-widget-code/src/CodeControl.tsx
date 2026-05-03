@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { ClassNames } from '@emotion/react';
 import uniq from 'lodash/uniq';
 import isEqual from 'lodash/isEqual';
@@ -122,16 +121,6 @@ interface CodeControlState {
 }
 
 export default class CodeControl extends React.Component<CodeControlProps, CodeControlState> {
-  static propTypes = {
-    field: PropTypes.object.isRequired,
-    onChange: PropTypes.func.isRequired,
-    value: PropTypes.node,
-    forID: PropTypes.string.isRequired,
-    classNameWrapper: PropTypes.string.isRequired,
-    widget: PropTypes.object.isRequired,
-    isParentListCollapsed: PropTypes.bool,
-  };
-
   cm: CodeMirrorEditor | null = null;
 
   keys = this.getKeys(this.props.field);
@@ -164,9 +153,6 @@ export default class CodeControl extends React.Component<CodeControlProps, CodeC
   }
 
   componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(CodeControl.propTypes, this.props, 'prop', 'CodeControl');
-
     this.setState({
       lang: this.getInitialLang() || '',
     });

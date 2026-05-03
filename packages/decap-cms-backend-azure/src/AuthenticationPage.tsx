@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 import { ImplicitAuthenticator } from 'decap-cms-lib-auth';
 import { AuthenticationPage, Icon } from 'decap-cms-ui-default';
@@ -34,29 +33,10 @@ export default class AzureAuthenticationPage extends React.Component<
   AzureAuthenticationPageProps,
   AzureAuthenticationPageState
 > {
-  static propTypes = {
-    onLogin: PropTypes.func.isRequired,
-    inProgress: PropTypes.bool,
-    base_url: PropTypes.string,
-    siteId: PropTypes.string,
-    authEndpoint: PropTypes.string,
-    config: PropTypes.object.isRequired,
-    clearHash: PropTypes.func,
-    t: PropTypes.func.isRequired,
-  };
-
   state: AzureAuthenticationPageState = {};
   auth!: ImplicitAuthenticator;
 
   componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(
-      AzureAuthenticationPage.propTypes,
-      this.props,
-      'prop',
-      'AzureAuthenticationPage',
-    );
-
     this.auth = new ImplicitAuthenticator({
       base_url: `https://login.microsoftonline.com/${this.props.config.backend.tenant_id}`,
       auth_endpoint: 'oauth2/authorize',

@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { ClassNames } from '@emotion/react';
 import olStyles from 'ol/ol.css?inline';
 import Map from 'ol/Map.js';
@@ -53,13 +52,6 @@ export interface WithMapControlOptions {
 
 export default function withMapControl({ getFormat, getMap }: WithMapControlOptions = {}) {
   return class MapControl extends React.Component<MapControlProps> {
-    static propTypes = {
-      onChange: PropTypes.func.isRequired,
-      field: PropTypes.object.isRequired,
-      height: PropTypes.string,
-      value: PropTypes.node,
-    };
-
     static defaultProps = {
       value: '',
       height: '400px',
@@ -75,9 +67,6 @@ export default function withMapControl({ getFormat, getMap }: WithMapControlOpti
     }
 
     componentDidMount() {
-      // Manually validate PropTypes - React 19 breaking change
-      PropTypes.checkPropTypes(MapControl.propTypes, this.props, 'prop', 'MapControl');
-
       const { field, onChange, value } = this.props;
       const format = getFormat ? getFormat(field) : getDefaultFormat();
       const features = value ? [format.readFeature(value)] : [];

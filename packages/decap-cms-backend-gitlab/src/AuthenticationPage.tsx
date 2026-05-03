@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 import { NetlifyAuthenticator, ImplicitAuthenticator, PkceAuthenticator } from 'decap-cms-lib-auth';
 import { AuthenticationPage, Icon } from 'decap-cms-ui-default';
@@ -82,29 +81,10 @@ export default class GitLabAuthenticationPage extends React.Component<
   GitLabAuthenticationPageProps,
   GitLabAuthenticationPageState
 > {
-  static propTypes = {
-    onLogin: PropTypes.func.isRequired,
-    inProgress: PropTypes.bool,
-    base_url: PropTypes.string,
-    siteId: PropTypes.string,
-    authEndpoint: PropTypes.string,
-    config: PropTypes.object.isRequired,
-    clearHash: PropTypes.func,
-    t: PropTypes.func.isRequired,
-  };
-
   state: GitLabAuthenticationPageState = {};
   auth!: Authenticator;
 
   componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(
-      GitLabAuthenticationPage.propTypes,
-      this.props,
-      'prop',
-      'GitLabAuthenticationPage',
-    );
-
     const {
       auth_type: authType = '',
       base_url = 'https://gitlab.com',

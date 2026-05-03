@@ -64,7 +64,6 @@
     "decap-cms-widget-string": "workspace:*",
     "decap-cms-widget-text": "workspace:*",
     "lodash": "catalog:utils",
-    "prop-types": "catalog:react",
     "uuid": "catalog:utils"
   },
   "devDependencies": {

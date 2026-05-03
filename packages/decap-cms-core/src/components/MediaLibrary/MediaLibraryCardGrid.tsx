@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 import { Waypoint } from 'react-waypoint';
 import { colors } from 'decap-cms-ui-default';
@@ -251,33 +250,5 @@ function MediaLibraryCardGrid(props: MediaLibraryCardGridProps) {
   }
   return <VirtualizedGrid {...props} />;
 }
-
-MediaLibraryCardGrid.propTypes = {
-  setScrollContainerRef: PropTypes.func.isRequired,
-  mediaItems: PropTypes.arrayOf(
-    PropTypes.shape({
-      displayURL: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
-      id: PropTypes.string.isRequired,
-      key: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      type: PropTypes.string.isRequired,
-      draft: PropTypes.bool,
-    }),
-  ).isRequired,
-  isSelectedFile: PropTypes.func.isRequired,
-  onAssetClick: PropTypes.func.isRequired,
-  canLoadMore: PropTypes.bool,
-  onLoadMore: PropTypes.func.isRequired,
-  isPaginating: PropTypes.bool,
-  paginatingMessage: PropTypes.string,
-  cardDraftText: PropTypes.string.isRequired,
-  cardWidth: PropTypes.string.isRequired,
-  cardHeight: PropTypes.string.isRequired,
-  cardMargin: PropTypes.string.isRequired,
-  loadDisplayURL: PropTypes.func.isRequired,
-  isPrivate: PropTypes.bool,
-  displayURLs: PropTypes.instanceOf(Map as unknown as new (...args: any[]) => Map<string, unknown>)
-    .isRequired,
-};
 
 export default MediaLibraryCardGrid;

@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import orderBy from 'lodash/orderBy';
 import map from 'lodash/map';
@@ -17,7 +16,7 @@ import {
   closeMediaLibrary as closeMediaLibraryAction,
 } from '../../actions/mediaLibrary';
 import { selectMediaFiles } from '../../reducers/mediaLibrary';
-import MediaLibraryModal, { fileShape } from './MediaLibraryModal';
+import MediaLibraryModal from './MediaLibraryModal';
 
 import type { TranslateFunction } from 'decap-cms-ui-default';
 
@@ -98,32 +97,6 @@ interface MediaLibraryProps {
 }
 
 class MediaLibrary extends React.Component<MediaLibraryProps, MediaLibraryState> {
-  static propTypes = {
-    isVisible: PropTypes.bool,
-    loadMediaDisplayURL: PropTypes.func,
-    displayURLs: PropTypes.object,
-    canInsert: PropTypes.bool,
-    files: PropTypes.arrayOf(PropTypes.shape(fileShape)).isRequired,
-    dynamicSearch: PropTypes.bool,
-    dynamicSearchActive: PropTypes.bool,
-    forImage: PropTypes.bool,
-    isLoading: PropTypes.bool,
-    isPersisting: PropTypes.bool,
-    isDeleting: PropTypes.bool,
-    hasNextPage: PropTypes.bool,
-    isPaginating: PropTypes.bool,
-    privateUpload: PropTypes.bool,
-    config: PropTypes.object,
-    loadMedia: PropTypes.func.isRequired,
-    dynamicSearchQuery: PropTypes.string,
-    page: PropTypes.number,
-    persistMedia: PropTypes.func.isRequired,
-    deleteMedia: PropTypes.func.isRequired,
-    insertMedia: PropTypes.func.isRequired,
-    closeMediaLibrary: PropTypes.func.isRequired,
-    t: PropTypes.func.isRequired,
-  };
-
   static defaultProps = {
     files: [],
   };
@@ -141,9 +114,6 @@ class MediaLibrary extends React.Component<MediaLibraryProps, MediaLibraryState>
   };
 
   componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(MediaLibrary.propTypes, this.props, 'prop', 'MediaLibrary');
-
     this.props.loadMedia();
   }
 

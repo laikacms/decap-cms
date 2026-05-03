@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 import { NetlifyAuthenticator, type NetlifyAuthResult } from 'decap-cms-lib-auth';
 import { AuthenticationPage, Icon } from 'decap-cms-ui-default';
@@ -36,16 +35,6 @@ interface GitHubAuthenticationPageProps {
 }
 
 export default class GitHubAuthenticationPage extends React.Component<GitHubAuthenticationPageProps> {
-  static propTypes = {
-    onLogin: PropTypes.func,
-    inProgress: PropTypes.bool,
-    base_url: PropTypes.string,
-    siteId: PropTypes.string,
-    authEndpoint: PropTypes.string,
-    clearHash: PropTypes.func,
-    t: PropTypes.func.isRequired,
-  };
-
   state: {
     loginError?: string;
     requestingFork?: boolean;
@@ -53,16 +42,6 @@ export default class GitHubAuthenticationPage extends React.Component<GitHubAuth
     approveFork?: () => void;
     refuseFork?: () => void;
   } = {};
-
-  componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(
-      GitHubAuthenticationPage.propTypes,
-      this.props,
-      'prop',
-      'GitHubAuthenticationPage',
-    );
-  }
 
   getPermissionToFork = () => {
     return new Promise<boolean>((resolve, reject) => {

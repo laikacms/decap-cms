@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 import { colors, borders, lengths, shadows, effects } from 'decap-cms-ui-default';
 
@@ -131,21 +130,5 @@ class MediaLibraryCard extends React.Component<MediaLibraryCardProps> {
     }
   }
 }
-
-MediaLibraryCard.propTypes = {
-  isSelected: PropTypes.bool,
-  displayURL: PropTypes.object.isRequired,
-  text: PropTypes.string.isRequired,
-  onClick: PropTypes.func.isRequired,
-  draftText: PropTypes.string.isRequired,
-  width: PropTypes.string.isRequired,
-  height: PropTypes.string.isRequired,
-  margin: PropTypes.string.isRequired,
-  isPrivate: PropTypes.bool,
-  type: PropTypes.string,
-  isViewableImage: PropTypes.bool.isRequired,
-  loadDisplayURL: PropTypes.func.isRequired,
-  isDraft: PropTypes.bool,
-};
 
 export default MediaLibraryCard;

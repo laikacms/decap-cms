@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 import { Icon, buttons, shadows, GoBackButton } from 'decap-cms-ui-default';
 
@@ -54,22 +53,7 @@ interface AuthenticationPageProps {
 }
 
 export default class AuthenticationPage extends React.Component<AuthenticationPageProps> {
-  static propTypes = {
-    onLogin: PropTypes.func.isRequired,
-    inProgress: PropTypes.bool,
-    config: PropTypes.object.isRequired,
-    t: PropTypes.func.isRequired,
-  };
-
   componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(
-      AuthenticationPage.propTypes,
-      this.props,
-      'prop',
-      'AuthenticationPage',
-    );
-
     /**
      * Allow login screen to be skipped for demo purposes.
      */

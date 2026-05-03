@@ -1,6 +1,5 @@
 import React from 'react';
 import { bindActionCreators } from 'redux';
-import PropTypes from 'prop-types';
 import { translate } from 'react-polyglot';
 import { ClassNames, Global, css as coreCss } from '@emotion/react';
 import styled from '@emotion/styled';
@@ -214,45 +213,6 @@ interface EditorControlState {
 }
 
 class EditorControl extends React.Component<EditorControlProps, EditorControlState> {
-  static propTypes = {
-    value: PropTypes.oneOfType([
-      PropTypes.node,
-      PropTypes.object,
-      PropTypes.string,
-      PropTypes.bool,
-    ]),
-    field: PropTypes.object.isRequired,
-    fieldsMetaData: PropTypes.object,
-    fieldsErrors: PropTypes.object,
-    mediaPaths: PropTypes.object.isRequired,
-    boundGetAsset: PropTypes.func.isRequired,
-    onChange: PropTypes.func.isRequired,
-    openMediaLibrary: PropTypes.func.isRequired,
-    addAsset: PropTypes.func.isRequired,
-    removeInsertedMedia: PropTypes.func.isRequired,
-    persistMedia: PropTypes.func.isRequired,
-    onValidate: PropTypes.func,
-    controlRef: PropTypes.func,
-    query: PropTypes.func.isRequired,
-    queryHits: PropTypes.object,
-    isFetching: PropTypes.bool,
-    clearSearch: PropTypes.func.isRequired,
-    clearFieldErrors: PropTypes.func.isRequired,
-    loadEntry: PropTypes.func.isRequired,
-    getEntry: PropTypes.func.isRequired,
-    t: PropTypes.func.isRequired,
-    isEditorComponent: PropTypes.bool,
-    isNewEditorComponent: PropTypes.bool,
-    parentIds: PropTypes.arrayOf(PropTypes.string),
-    collection: PropTypes.object.isRequired,
-    isDisabled: PropTypes.bool,
-    isHidden: PropTypes.bool,
-    isFieldDuplicate: PropTypes.func,
-    isFieldHidden: PropTypes.func,
-    locale: PropTypes.string,
-    isParentListCollapsed: PropTypes.bool,
-  };
-
   static defaultProps = {
     parentIds: [],
   };
@@ -263,11 +223,6 @@ class EditorControl extends React.Component<EditorControlProps, EditorControlSta
   };
 
   uniqueFieldId = uniqueId(`${this.props.field.name}-field-`);
-
-  componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(EditorControl.propTypes, this.props, 'prop', 'EditorControl');
-  }
 
   isAncestorOfFieldError = () => {
     const { fieldsErrors } = this.props;

@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import type { CmsFieldBase, CmsFieldNumber } from 'decap-cms-lib-util';
@@ -74,29 +73,9 @@ interface NumberControlProps {
 }
 
 export default class NumberControl extends React.Component<NumberControlProps> {
-  static propTypes = {
-    field: PropTypes.object.isRequired,
-    onChange: PropTypes.func.isRequired,
-    classNameWrapper: PropTypes.string.isRequired,
-    setActiveStyle: PropTypes.func.isRequired,
-    setInactiveStyle: PropTypes.func.isRequired,
-    value: PropTypes.node,
-    forID: PropTypes.string,
-    valueType: PropTypes.string,
-    step: PropTypes.number,
-    min: PropTypes.number,
-    max: PropTypes.number,
-    t: PropTypes.func.isRequired,
-  };
-
   static defaultProps = {
     value: '',
   };
-
-  componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(NumberControl.propTypes, this.props, 'prop', 'NumberControl');
-  }
 
   handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const valueType = this.props.field.value_type;

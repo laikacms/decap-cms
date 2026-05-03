@@ -1,5 +1,4 @@
 /** @jsxImportSource @emotion/react */
-import PropTypes from 'prop-types';
 import React from 'react';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
@@ -158,21 +157,6 @@ interface WorkflowListProps {
 }
 
 class WorkflowList extends React.Component<WorkflowListProps> {
-  static propTypes = {
-    entries: PropTypes.object,
-    handleChangeStatus: PropTypes.func.isRequired,
-    handlePublish: PropTypes.func.isRequired,
-    handleDelete: PropTypes.func.isRequired,
-    t: PropTypes.func.isRequired,
-    isOpenAuthoring: PropTypes.bool,
-    collections: PropTypes.object.isRequired,
-  };
-
-  componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(WorkflowList.propTypes, this.props, 'prop', 'WorkflowList');
-  }
-
   handleChangeStatus = (newStatus: string, dragProps: DragProps) => {
     const slug = dragProps.slug;
     const collection = dragProps.collection;

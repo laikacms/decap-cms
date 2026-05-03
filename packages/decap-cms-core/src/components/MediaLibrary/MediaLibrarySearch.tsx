@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 import { Icon, lengths, colors, zIndex } from 'decap-cms-ui-default';
 
@@ -63,13 +62,5 @@ function MediaLibrarySearch({
     </SearchContainer>
   );
 }
-
-MediaLibrarySearch.propTypes = {
-  value: PropTypes.string,
-  onChange: PropTypes.func.isRequired,
-  onKeyDown: PropTypes.func.isRequired,
-  placeholder: PropTypes.string.isRequired,
-  disabled: PropTypes.bool,
-};
 
 export default MediaLibrarySearch;

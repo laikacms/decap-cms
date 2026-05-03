@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
 import type { CmsEntryField } from 'decap-cms-lib-util';
 
@@ -42,11 +41,5 @@ class PreviewHOC extends React.Component<PreviewHOCProps> {
     return React.createElement(previewComponent, props);
   }
 }
-
-PreviewHOC.propTypes = {
-  previewComponent: PropTypes.func.isRequired,
-  field: PropTypes.object.isRequired,
-  value: PropTypes.oneOfType([PropTypes.node, PropTypes.object, PropTypes.string, PropTypes.bool]),
-};
 
 export default PreviewHOC;

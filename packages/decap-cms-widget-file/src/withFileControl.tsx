@@ -1,6 +1,5 @@
 /** @jsxImportSource @emotion/react */
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 import once from 'lodash/once';
@@ -276,21 +275,6 @@ export interface FileControlProps {
 
 export default function withFileControl({ forImage }: { forImage?: boolean } = {}) {
   return class FileControl extends React.Component<FileControlProps> {
-    static propTypes = {
-      field: PropTypes.object.isRequired,
-      getAsset: PropTypes.func.isRequired,
-      mediaPaths: PropTypes.object.isRequired,
-      onAddAsset: PropTypes.func.isRequired,
-      onChange: PropTypes.func.isRequired,
-      onRemoveInsertedMedia: PropTypes.func.isRequired,
-      onOpenMediaLibrary: PropTypes.func.isRequired,
-      onClearMediaControl: PropTypes.func.isRequired,
-      onRemoveMediaControl: PropTypes.func.isRequired,
-      classNameWrapper: PropTypes.string.isRequired,
-      value: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)]),
-      t: PropTypes.func.isRequired,
-    };
-
     static defaultProps = {
       value: '',
     };
@@ -300,11 +284,6 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
     constructor(props: FileControlProps) {
       super(props);
       this.controlID = uuid();
-    }
-
-    componentDidMount() {
-      // Manually validate PropTypes - React 19 breaking change
-      PropTypes.checkPropTypes(FileControl.propTypes, this.props, 'prop', 'FileControl');
     }
 
     shouldComponentUpdate(nextProps: FileControlProps) {

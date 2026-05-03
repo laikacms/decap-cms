@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 import { jwtDecode } from 'jwt-decode';
 import { PkceAuthenticator, PkceAuthResult } from 'decap-cms-lib-auth';
@@ -51,13 +50,6 @@ export default class PKCEAuthenticationPage extends React.Component<
   PKCEAuthenticationPageProps,
   PKCEAuthenticationPageState
 > {
-  static propTypes = {
-    inProgress: PropTypes.bool,
-    config: PropTypes.object.isRequired,
-    onLogin: PropTypes.func.isRequired,
-    t: PropTypes.func.isRequired,
-  };
-
   state: PKCEAuthenticationPageState = {};
 
   auth!: PkceAuthenticator;

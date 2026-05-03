@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import { isElement } from 'react-is';
 import { ScrollSyncPane } from 'react-scroll-sync';
@@ -87,12 +86,5 @@ class PreviewContent extends React.Component<PreviewContentProps> {
     );
   }
 }
-
-PreviewContent.propTypes = {
-  previewComponent: PropTypes.func.isRequired,
-  getEditorComponents: PropTypes.func,
-  previewProps: PropTypes.object,
-  onFieldClick: PropTypes.func,
-};
 
 export default PreviewContent;

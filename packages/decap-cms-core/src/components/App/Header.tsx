@@ -1,5 +1,4 @@
 /** @jsxImportSource @emotion/react */
-import PropTypes from 'prop-types';
 import React from 'react';
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
@@ -151,30 +150,9 @@ interface HeaderProps {
 }
 
 class Header extends React.Component<HeaderProps> {
-  static propTypes = {
-    user: PropTypes.object.isRequired,
-    collections: PropTypes.object.isRequired,
-    onCreateEntryClick: PropTypes.func.isRequired,
-    onLogoutClick: PropTypes.func.isRequired,
-    openMediaLibrary: PropTypes.func.isRequired,
-    hasWorkflow: PropTypes.bool.isRequired,
-    displayUrl: PropTypes.string,
-    logoUrl: PropTypes.string, // Deprecated, replaced by `logo.src`
-    logo: PropTypes.shape({
-      src: PropTypes.string.isRequired,
-      show_in_header: PropTypes.bool,
-    }),
-    isTestRepo: PropTypes.bool,
-    t: PropTypes.func.isRequired,
-    checkBackendStatus: PropTypes.func.isRequired,
-  };
-
   intervalId: ReturnType<typeof setInterval> | undefined;
 
   componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(Header.propTypes, this.props, 'prop', 'Header');
-
     this.intervalId = setInterval(
       () => {
         this.props.checkBackendStatus();

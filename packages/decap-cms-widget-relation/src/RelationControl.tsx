@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { components } from 'react-select';
 import AsyncSelect from 'react-select/async';
 import debounce from 'lodash/debounce';
@@ -289,19 +288,6 @@ export default class RelationControl extends React.Component<
     initialOptions: [],
   };
 
-  static propTypes = {
-    onChange: PropTypes.func.isRequired,
-    forID: PropTypes.string.isRequired,
-    value: PropTypes.node,
-    field: PropTypes.object,
-    query: PropTypes.func.isRequired,
-    queryHits: PropTypes.array,
-    classNameWrapper: PropTypes.string.isRequired,
-    setActiveStyle: PropTypes.func.isRequired,
-    setInactiveStyle: PropTypes.func.isRequired,
-    locale: PropTypes.string,
-  };
-
   isValid = () => {
     const { field, value, t } = this.props;
     const min = field.min;
@@ -329,9 +315,6 @@ export default class RelationControl extends React.Component<
   }
 
   async componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(RelationControl.propTypes, this.props, 'prop', 'RelationControl');
-
     this.mounted = true;
     const { value } = this.props;
     if (value && this.hasInitialValues(value)) {

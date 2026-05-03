@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 import { PkceAuthenticator } from 'decap-cms-lib-auth';
 import { AuthenticationPage, Icon } from 'decap-cms-ui-default';
@@ -10,24 +9,9 @@ const LoginButtonIcon = styled(Icon)`
 `;
 
 export default class GenericPKCEAuthenticationPage extends PKCEAuthenticationPage {
-  static propTypes = {
-    inProgress: PropTypes.bool,
-    config: PropTypes.object.isRequired,
-    onLogin: PropTypes.func.isRequired,
-    t: PropTypes.func.isRequired,
-  };
-
   state: { loginError?: string } = {};
 
   componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(
-      GenericPKCEAuthenticationPage.propTypes,
-      this.props,
-      'prop',
-      'GenericPKCEAuthenticationPage',
-    );
-
     const {
       base_url = '',
       app_id = '',

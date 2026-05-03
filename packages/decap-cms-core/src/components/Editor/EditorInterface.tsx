@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { css, Global } from '@emotion/react';
 import styled from '@emotion/styled';
@@ -476,37 +475,5 @@ class EditorInterface extends Component<EditorInterfaceProps> {
     );
   }
 }
-
-EditorInterface.propTypes = {
-  collection: PropTypes.object.isRequired,
-  entry: PropTypes.object.isRequired,
-  fields: PropTypes.array.isRequired,
-  fieldsMetaData: PropTypes.object.isRequired,
-  fieldsErrors: PropTypes.object.isRequired,
-  onChange: PropTypes.func.isRequired,
-  onValidate: PropTypes.func.isRequired,
-  onPersist: PropTypes.func.isRequired,
-  showDelete: PropTypes.bool.isRequired,
-  onDelete: PropTypes.func.isRequired,
-  onDeleteUnpublishedChanges: PropTypes.func.isRequired,
-  onPublish: PropTypes.func.isRequired,
-  unPublish: PropTypes.func.isRequired,
-  onDuplicate: PropTypes.func.isRequired,
-  onChangeStatus: PropTypes.func.isRequired,
-  user: PropTypes.object,
-  hasChanged: PropTypes.bool,
-  displayUrl: PropTypes.string,
-  hasWorkflow: PropTypes.bool,
-  useOpenAuthoring: PropTypes.bool,
-  hasUnpublishedChanges: PropTypes.bool,
-  isNewEntry: PropTypes.bool,
-  isModification: PropTypes.bool,
-  currentStatus: PropTypes.string,
-  onLogoutClick: PropTypes.func.isRequired,
-  deployPreview: PropTypes.object,
-  loadDeployPreview: PropTypes.func.isRequired,
-  draftKey: PropTypes.string.isRequired,
-  t: PropTypes.func.isRequired,
-};
 
 export default EditorInterface;

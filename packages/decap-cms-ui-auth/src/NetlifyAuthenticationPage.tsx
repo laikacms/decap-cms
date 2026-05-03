@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import styled from '@emotion/styled';
 import partial from 'lodash/partial';
@@ -84,14 +83,6 @@ export default class NetlifyAuthenticationPage extends React.Component<
 > {
   static authClient: () => Promise<AuthClient>;
 
-  static propTypes = {
-    onLogin: PropTypes.func.isRequired,
-    inProgress: PropTypes.bool.isRequired,
-    error: PropTypes.node,
-    config: PropTypes.object.isRequired,
-    t: PropTypes.func.isRequired,
-  };
-
   loggedIn = false;
 
   constructor(props: NetlifyAuthenticationPageProps) {
@@ -103,14 +94,6 @@ export default class NetlifyAuthenticationPage extends React.Component<
   state: NetlifyAuthenticationPageState = { email: '', password: '', errors: {} };
 
   componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(
-      NetlifyAuthenticationPage.propTypes,
-      this.props,
-      'prop',
-      'GitGatewayAuthenticationPage',
-    );
-
     if (!this.loggedIn && window.netlifyIdentity && window.netlifyIdentity.currentUser()) {
       this.props.onLogin(window.netlifyIdentity.currentUser()!);
       window.netlifyIdentity.close();

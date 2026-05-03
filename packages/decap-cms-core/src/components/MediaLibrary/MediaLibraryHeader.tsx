@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 import { Icon, shadows, colors, buttons } from 'decap-cms-ui-default';
 
@@ -47,11 +46,5 @@ function MediaLibraryHeader({ onClose, title, isPrivate, t }: MediaLibraryHeader
     </div>
   );
 }
-
-MediaLibraryHeader.propTypes = {
-  onClose: PropTypes.func.isRequired,
-  title: PropTypes.string.isRequired,
-  isPrivate: PropTypes.bool,
-};
 
 export default MediaLibraryHeader;

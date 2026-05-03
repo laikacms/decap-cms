@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import { WidgetPreviewContainer } from 'decap-cms-ui-default';
 
@@ -24,9 +23,5 @@ function SelectPreview({ value }: SelectPreviewProps) {
     </WidgetPreviewContainer>
   );
 }
-
-SelectPreview.propTypes = {
-  value: PropTypes.oneOfType([PropTypes.string, PropTypes.array]),
-};
 
 export default SelectPreview;

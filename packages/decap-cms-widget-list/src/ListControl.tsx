@@ -1,6 +1,5 @@
 /** @jsxImportSource @emotion/react */
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 import { css, ClassNames } from '@emotion/react';
 import isEmpty from 'lodash/isEmpty';
@@ -316,32 +315,6 @@ type ChildRef = any;
 export default class ListControl extends React.Component<ListControlProps, ListControlState> {
   childRefs: Record<string, ChildRef> = {};
 
-  static propTypes = {
-    metadata: PropTypes.object,
-    onChange: PropTypes.func.isRequired,
-    onChangeObject: PropTypes.func.isRequired,
-    onValidateObject: PropTypes.func.isRequired,
-    validate: PropTypes.func.isRequired,
-    value: PropTypes.array,
-    field: PropTypes.object,
-    forID: PropTypes.string,
-    controlRef: PropTypes.func,
-    mediaPaths: PropTypes.object.isRequired,
-    getAsset: PropTypes.func.isRequired,
-    onOpenMediaLibrary: PropTypes.func.isRequired,
-    onAddAsset: PropTypes.func.isRequired,
-    onRemoveInsertedMedia: PropTypes.func.isRequired,
-    classNameWrapper: PropTypes.string.isRequired,
-    setActiveStyle: PropTypes.func.isRequired,
-    setInactiveStyle: PropTypes.func.isRequired,
-    editorControl: PropTypes.elementType.isRequired,
-    resolveWidget: PropTypes.func.isRequired,
-    clearFieldErrors: PropTypes.func.isRequired,
-    fieldsErrors: PropTypes.object.isRequired,
-    entry: PropTypes.object.isRequired,
-    t: PropTypes.func,
-  };
-
   static defaultProps = {
     value: [],
     parentIds: [],
@@ -361,11 +334,6 @@ export default class ListControl extends React.Component<ListControlProps, ListC
       value: this.valueToString(value),
       keys,
     };
-  }
-
-  componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(ListControl.propTypes, this.props, 'prop', 'ListControl');
   }
 
   valueToString = (value: unknown): string => {

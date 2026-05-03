@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 
 import type { CmsCollectionState, CmsEntry, CmsEntryField } from 'decap-cms-lib-util';
@@ -49,10 +48,3 @@ export default class Preview extends React.Component<PreviewProps> {
   }
 }
 
-Preview.propTypes = {
-  collection: PropTypes.object.isRequired,
-  entry: PropTypes.object.isRequired,
-  fields: PropTypes.array.isRequired,
-  getAsset: PropTypes.func.isRequired,
-  widgetFor: PropTypes.func.isRequired,
-};

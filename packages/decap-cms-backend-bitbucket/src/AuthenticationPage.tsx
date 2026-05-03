@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 import { NetlifyAuthenticator, ImplicitAuthenticator } from 'decap-cms-lib-auth';
 import { AuthenticationPage, Icon } from 'decap-cms-ui-default';
@@ -42,30 +41,11 @@ export default class BitbucketAuthenticationPage extends React.Component<
   BitbucketAuthenticationPageProps,
   BitbucketAuthenticationPageState
 > {
-  static propTypes = {
-    onLogin: PropTypes.func.isRequired,
-    inProgress: PropTypes.bool,
-    base_url: PropTypes.string,
-    siteId: PropTypes.string,
-    authEndpoint: PropTypes.string,
-    config: PropTypes.object.isRequired,
-    clearHash: PropTypes.func,
-    t: PropTypes.func.isRequired,
-  };
-
   state: BitbucketAuthenticationPageState = {};
   auth!: ImplicitAuthenticator | NetlifyAuthenticator;
   authSettings!: Record<string, string>;
 
   componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(
-      BitbucketAuthenticationPage.propTypes,
-      this.props,
-      'prop',
-      'BitbucketAuthenticationPage',
-    );
-
     const { auth_type: authType = '' } = this.props.config.backend;
 
     if (authType === 'implicit') {

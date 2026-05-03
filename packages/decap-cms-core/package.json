@@ -44,7 +44,6 @@
     "jwt-decode": "catalog:auth",
     "node-polyglot": "catalog:routing",
     "path-browserify": "catalog:polyfills",
-    "prop-types": "catalog:react",
     "react": "catalog:react",
     "react-dnd": "catalog:react",
     "react-dnd-html5-backend": "catalog:react",
@@ -81,17 +80,14 @@
     "decap-cms-lib-widgets": "workspace:*",
     "decap-cms-ui-default": "workspace:*",
     "lodash": "catalog:utils",
-    "prop-types": "catalog:react",
     "react": "catalog:react",
-    "react-dom": "catalog:react",
-    "@types/prop-types": "catalog:types"
+    "react-dom": "catalog:react"
   },
   "devDependencies": {
     "@types/history": "catalog:types",
     "@types/react": "catalog:types",
     "@types/react-dom": "catalog:types",
     "@types/react-is": "catalog:types",
-    "@types/prop-types": "catalog:types",
     "@types/redux-mock-store": "catalog:types",
     "@types/react-redux": "catalog:types",
     "redux-mock-store": "catalog:vitest",

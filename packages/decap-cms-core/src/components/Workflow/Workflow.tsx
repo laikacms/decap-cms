@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
@@ -79,23 +78,7 @@ interface WorkflowProps {
 }
 
 class Workflow extends Component<WorkflowProps> {
-  static propTypes = {
-    collections: PropTypes.object.isRequired,
-    isEditorialWorkflow: PropTypes.bool.isRequired,
-    isOpenAuthoring: PropTypes.bool,
-    isFetching: PropTypes.bool,
-    unpublishedEntries: PropTypes.object,
-    loadUnpublishedEntries: PropTypes.func.isRequired,
-    updateUnpublishedEntryStatus: PropTypes.func.isRequired,
-    publishUnpublishedEntry: PropTypes.func.isRequired,
-    deleteUnpublishedEntry: PropTypes.func.isRequired,
-    t: PropTypes.func.isRequired,
-  };
-
   componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(Workflow.propTypes, this.props, 'prop', 'Workflow');
-
     const { loadUnpublishedEntries, isEditorialWorkflow, collections } = this.props;
     if (isEditorialWorkflow) {
       loadUnpublishedEntries(collections);

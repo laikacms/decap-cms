@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
@@ -61,10 +60,6 @@ function Avatar({ imageUrl }: AvatarProps) {
   );
 }
 
-Avatar.propTypes = {
-  imageUrl: PropTypes.string,
-};
-
 interface SettingsDropdownProps {
   displayUrl?: string;
   isTestRepo?: boolean;
@@ -111,13 +106,5 @@ function SettingsDropdown({
     </React.Fragment>
   );
 }
-
-SettingsDropdown.propTypes = {
-  displayUrl: PropTypes.string,
-  isTestRepo: PropTypes.bool,
-  imageUrl: PropTypes.string,
-  onLogoutClick: PropTypes.func.isRequired,
-  t: PropTypes.func.isRequired,
-};
 
 export default translate()(SettingsDropdown);

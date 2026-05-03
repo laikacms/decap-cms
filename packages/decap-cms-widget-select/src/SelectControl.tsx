@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import find from 'lodash/find';
 import Select from 'react-select';
 import { reactSelectStyles } from 'decap-cms-ui-default';
@@ -63,26 +62,6 @@ interface SelectControlProps {
 }
 
 export default class SelectControl extends React.Component<SelectControlProps> {
-  static propTypes = {
-    onChange: PropTypes.func.isRequired,
-    value: PropTypes.node,
-    forID: PropTypes.string.isRequired,
-    classNameWrapper: PropTypes.string.isRequired,
-    setActiveStyle: PropTypes.func.isRequired,
-    setInactiveStyle: PropTypes.func.isRequired,
-    field: PropTypes.shape({
-      options: PropTypes.arrayOf(
-        PropTypes.oneOfType([
-          PropTypes.string,
-          PropTypes.number,
-          PropTypes.shape({
-            label: PropTypes.string.isRequired,
-            value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-          }),
-        ]),
-      ).isRequired,
-    }),
-  };
 
   isValid = () => {
     const { field, value, t } = this.props;
@@ -124,9 +103,6 @@ export default class SelectControl extends React.Component<SelectControlProps> {
   };
 
   componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(SelectControl.propTypes, this.props, 'prop', 'SelectControl');
-
     const { field, onChange, value } = this.props;
     if (field.required && field.multiple) {
       if (value && !Array.isArray(value)) {

@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
@@ -305,44 +304,7 @@ interface EditorToolbarProps {
 export class EditorToolbar extends React.Component<EditorToolbarProps> {
   _pollController: AbortController | null = null;
 
-  static propTypes = {
-    isPersisting: PropTypes.bool,
-    isPublishing: PropTypes.bool,
-    isUpdatingStatus: PropTypes.bool,
-    isDeleting: PropTypes.bool,
-    onPersist: PropTypes.func.isRequired,
-    onPersistAndNew: PropTypes.func.isRequired,
-    onPersistAndDuplicate: PropTypes.func.isRequired,
-    showDelete: PropTypes.bool.isRequired,
-    onDelete: PropTypes.func.isRequired,
-    onDeleteUnpublishedChanges: PropTypes.func.isRequired,
-    onChangeStatus: PropTypes.func.isRequired,
-    onPublish: PropTypes.func.isRequired,
-    unPublish: PropTypes.func.isRequired,
-    onDuplicate: PropTypes.func.isRequired,
-    onPublishAndNew: PropTypes.func.isRequired,
-    onPublishAndDuplicate: PropTypes.func.isRequired,
-    user: PropTypes.object,
-    hasChanged: PropTypes.bool,
-    displayUrl: PropTypes.string,
-    collection: PropTypes.object.isRequired,
-    hasWorkflow: PropTypes.bool,
-    useOpenAuthoring: PropTypes.bool,
-    hasUnpublishedChanges: PropTypes.bool,
-    isNewEntry: PropTypes.bool,
-    isModification: PropTypes.bool,
-    currentStatus: PropTypes.string,
-    onLogoutClick: PropTypes.func.isRequired,
-    deployPreview: PropTypes.object,
-    loadDeployPreview: PropTypes.func.isRequired,
-    t: PropTypes.func.isRequired,
-    editorBackLink: PropTypes.string.isRequired,
-  };
-
   componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(EditorToolbar.propTypes, this.props, 'prop', 'EditorToolbar');
-
     const { isNewEntry, loadDeployPreview } = this.props;
     if (!isNewEntry) {
       // 24 attempts × 5s interval = ~2 min polling window.

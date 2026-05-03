@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 import { ChromePicker } from 'react-color';
 import tinycolor from 'tinycolor2';
@@ -86,15 +85,6 @@ interface ColorControlProps {
 }
 
 export default class ColorControl extends React.Component<ColorControlProps> {
-  static propTypes = {
-    onChange: PropTypes.func.isRequired,
-    forID: PropTypes.string,
-    value: PropTypes.node,
-    classNameWrapper: PropTypes.string.isRequired,
-    setActiveStyle: PropTypes.func.isRequired,
-    setInactiveStyle: PropTypes.func.isRequired,
-  };
-
   static defaultProps = {
     value: '',
   };
@@ -102,10 +92,6 @@ export default class ColorControl extends React.Component<ColorControlProps> {
   state = {
     showColorPicker: false,
   };
-  componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(ColorControl.propTypes, this.props, 'prop', 'ColorControl');
-  }
   // show/hide color picker
   handleClick = () => {
     this.setState({ showColorPicker: !this.state.showColorPicker });

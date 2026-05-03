@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 
 
@@ -136,32 +135,5 @@ function MediaLibraryTop({
     </LibraryTop>
   );
 }
-
-MediaLibraryTop.propTypes = {
-  t: PropTypes.func.isRequired,
-  onClose: PropTypes.func.isRequired,
-  privateUpload: PropTypes.bool,
-  forImage: PropTypes.bool,
-  onDownload: PropTypes.func.isRequired,
-  onUpload: PropTypes.func.isRequired,
-  query: PropTypes.string,
-  onSearchChange: PropTypes.func.isRequired,
-  onSearchKeyDown: PropTypes.func.isRequired,
-  searchDisabled: PropTypes.bool.isRequired,
-  onDelete: PropTypes.func.isRequired,
-  canInsert: PropTypes.bool,
-  onInsert: PropTypes.func.isRequired,
-  hasSelection: PropTypes.bool.isRequired,
-  isPersisting: PropTypes.bool,
-  isDeleting: PropTypes.bool,
-  selectedFile: PropTypes.oneOfType([
-    PropTypes.shape({
-      path: PropTypes.string.isRequired,
-      draft: PropTypes.bool.isRequired,
-      name: PropTypes.string.isRequired,
-    }),
-    PropTypes.shape({}),
-  ]),
-};
 
 export default MediaLibraryTop;

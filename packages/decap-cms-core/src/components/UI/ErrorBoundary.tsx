@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { translate } from 'react-polyglot';
 import styled from '@emotion/styled';
 import yaml from 'yaml';
@@ -148,12 +147,6 @@ interface ErrorBoundaryProps {
 }
 
 export class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
-  static propTypes = {
-    children: PropTypes.node,
-    t: PropTypes.func.isRequired,
-    config: PropTypes.object.isRequired,
-  };
-
   state = {
     hasError: false,
     errorMessage: '',
@@ -168,11 +161,6 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
       errorMessage: error.stack || error.toString(),
       errorTitle: error.toString(),
     };
-  }
-
-  componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(ErrorBoundary.propTypes, this.props, 'prop', 'ErrorBoundary');
   }
 
   shouldComponentUpdate(nextProps: ErrorBoundaryProps, nextState: typeof this.state) {

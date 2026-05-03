@@ -2,7 +2,6 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
 import { lengths } from 'decap-cms-ui-default';
-import PropTypes from 'prop-types';
 
 import type { TranslateFunction } from 'decap-cms-ui-default';
 
@@ -21,9 +20,5 @@ function NotFoundPage({ t }: NotFoundPageProps) {
     </NotFoundContainer>
   );
 }
-
-NotFoundPage.propTypes = {
-  t: PropTypes.func.isRequired,
-};
 
 export default translate()(NotFoundPage);

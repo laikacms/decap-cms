@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
@@ -190,21 +189,5 @@ function WorkflowCard({
     </WorkflowCardContainer>
   );
 }
-
-WorkflowCard.propTypes = {
-  collectionLabel: PropTypes.string.isRequired,
-  title: PropTypes.string,
-  authorLastChange: PropTypes.string,
-  body: PropTypes.string,
-  isModification: PropTypes.bool,
-  editLink: PropTypes.string.isRequired,
-  timestamp: PropTypes.string.isRequired,
-  onDelete: PropTypes.func.isRequired,
-  allowPublish: PropTypes.bool.isRequired,
-  canPublish: PropTypes.bool.isRequired,
-  onPublish: PropTypes.func.isRequired,
-  postAuthor: PropTypes.string,
-  t: PropTypes.func.isRequired,
-};
 
 export default translate()(WorkflowCard);

@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import copyToClipboard from 'copy-text-to-clipboard';
@@ -138,10 +137,3 @@ export class CopyToClipBoardButton extends React.Component<CopyToClipBoardButton
   }
 }
 
-CopyToClipBoardButton.propTypes = {
-  disabled: PropTypes.bool.isRequired,
-  draft: PropTypes.bool,
-  path: PropTypes.string,
-  name: PropTypes.string,
-  t: PropTypes.func.isRequired,
-};

@@ -29,7 +29,6 @@
     "@replit/codemirror-emacs": "catalog:codemirror",
     "@replit/codemirror-vscode-keymap": "catalog:codemirror",
     "@replit/codemirror-vim": "catalog:codemirror",
-    "prop-types": "catalog:react",
     "uuid": "catalog:utils",
     "decap-cms-ui-default": "workspace:*",
     "decap-cms-lib-util": "workspace:*",
@@ -41,8 +40,7 @@
     "react-select": "catalog:react"
   },
   "devDependencies": {
-    "@types/react": "catalog:types",
-    "@types/prop-types": "catalog:types"
+    "@types/react": "catalog:types"
   },
   "type": "module",
   "types": "./dist/index.d.ts",
