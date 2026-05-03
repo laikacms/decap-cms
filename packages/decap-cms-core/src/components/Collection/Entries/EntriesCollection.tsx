@@ -86,7 +86,6 @@ interface EntriesCollectionProps {
   traverseCollectionCursor: (collection: CmsCollectionState, action: string) => void;
   entriesLoaded?: boolean;
   loadUnpublishedEntries: (collections: CmsCollections | undefined) => void;
-  unpublishedEntriesLoaded?: boolean;
   isEditorialWorkflowEnabled?: boolean;
   filterTerm?: string;
   t: TranslateFunction;
@@ -107,7 +106,6 @@ export function EntriesCollection({
   traverseCollectionCursor,
   entriesLoaded,
   loadUnpublishedEntries,
-  unpublishedEntriesLoaded,
   isEditorialWorkflowEnabled,
   filterTerm,
   t,
@@ -127,10 +125,7 @@ export function EntriesCollection({
   }, [collection]);
 
   React.useEffect(() => {
-    if (
-      isEditorialWorkflowEnabled &&
-      (!unpublishedEntriesLoaded || true /* re-run when collection changes */)
-    ) {
+    if (isEditorialWorkflowEnabled) {
       loadUnpublishedEntriesRef.current(collections);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mirror prior behavior
@@ -224,9 +219,6 @@ function mapStateToProps(
   const cursor = Cursor.create(rawCursor).clearData();
 
   const isEditorialWorkflowEnabled = state.config?.publish_mode === 'editorial_workflow';
-  const unpublishedEntriesLoaded = isEditorialWorkflowEnabled
-    ? !!(state.editorialWorkflow as any)?.pages?.ids
-    : true;
 
   return {
     collection,
@@ -238,7 +230,6 @@ function mapStateToProps(
     isFetching,
     viewStyle,
     cursor,
-    unpublishedEntriesLoaded,
     isEditorialWorkflowEnabled,
     getWorkflowStatus: (collectionName: string, slug: string) => {
       const unpublishedEntry = selectUnpublishedEntry(state, collectionName, slug);
