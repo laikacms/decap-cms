@@ -94,93 +94,74 @@ interface EntriesCollectionProps {
   getUnpublishedEntries: (collectionName: string) => CmsEntry[];
 }
 
-export class EntriesCollection extends React.Component<EntriesCollectionProps> {
-  componentDidMount() {
-    const {
-      collection,
-      collections,
-      entriesLoaded,
-      loadEntries,
-      unpublishedEntriesLoaded,
-      loadUnpublishedEntries,
-      isEditorialWorkflowEnabled,
-    } = this.props;
+export function EntriesCollection({
+  collection,
+  collections,
+  page,
+  entries,
+  groups,
+  isFetching,
+  viewStyle,
+  cursor,
+  loadEntries,
+  traverseCollectionCursor,
+  entriesLoaded,
+  loadUnpublishedEntries,
+  unpublishedEntriesLoaded,
+  isEditorialWorkflowEnabled,
+  filterTerm,
+  t,
+  getWorkflowStatus,
+  getUnpublishedEntries,
+}: EntriesCollectionProps) {
+  const loadEntriesRef = React.useRef(loadEntries);
+  loadEntriesRef.current = loadEntries;
+  const loadUnpublishedEntriesRef = React.useRef(loadUnpublishedEntries);
+  loadUnpublishedEntriesRef.current = loadUnpublishedEntries;
 
+  React.useEffect(() => {
     if (collection && !entriesLoaded) {
-      loadEntries(collection);
+      loadEntriesRef.current(collection);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mirror componentDidMount + collection-change in componentDidUpdate
+  }, [collection]);
 
-    if (isEditorialWorkflowEnabled && !unpublishedEntriesLoaded) {
-      loadUnpublishedEntries(collections);
-    }
-  }
-
-  componentDidUpdate(prevProps: EntriesCollectionProps) {
-    const {
-      collection,
-      collections,
-      entriesLoaded,
-      loadEntries,
-      unpublishedEntriesLoaded,
-      loadUnpublishedEntries,
-      isEditorialWorkflowEnabled,
-    } = this.props;
-
-    if (collection !== prevProps.collection && !entriesLoaded) {
-      loadEntries(collection);
-    }
-
+  React.useEffect(() => {
     if (
       isEditorialWorkflowEnabled &&
-      (!unpublishedEntriesLoaded || collection !== prevProps.collection)
+      (!unpublishedEntriesLoaded || true /* re-run when collection changes */)
     ) {
-      loadUnpublishedEntries(collections);
+      loadUnpublishedEntriesRef.current(collections);
     }
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mirror prior behavior
+  }, [collection, isEditorialWorkflowEnabled]);
 
-  handleCursorActions = (_cursor: Cursor, action: string) => {
-    const { collection, traverseCollectionCursor } = this.props;
+  function handleCursorActions(_cursor: Cursor, action: string) {
     traverseCollectionCursor(collection, action);
-  };
-
-  render() {
-    const {
-      collection,
-      entries,
-      groups,
-      isFetching,
-      viewStyle,
-      cursor,
-      page,
-      t,
-      getWorkflowStatus,
-      getUnpublishedEntries,
-      filterTerm,
-    } = this.props;
-
-    const EntriesToRender = ({ entries }: { entries: CmsEntry[] | undefined }) => {
-      return (
-        <Entries
-          collections={collection}
-          entries={entries}
-          isFetching={isFetching}
-          viewStyle={viewStyle}
-          cursor={cursor}
-          handleCursorActions={partial(this.handleCursorActions, cursor)}
-          page={page}
-          getWorkflowStatus={getWorkflowStatus}
-          getUnpublishedEntries={getUnpublishedEntries}
-          filterTerm={filterTerm}
-        />
-      );
-    };
-
-    if (groups && groups.length > 0) {
-      return withGroups(groups, entries, EntriesToRender, t);
-    }
-
-    return <EntriesToRender entries={entries} />;
   }
+
+  function EntriesToRender({ entries: entriesArg }: { entries: CmsEntry[] | undefined }) {
+    return (
+      <Entries
+        collections={collection}
+        entries={entriesArg}
+        isFetching={isFetching}
+        viewStyle={viewStyle}
+        cursor={cursor}
+        handleCursorActions={partial(handleCursorActions, cursor)}
+        page={page}
+        getWorkflowStatus={getWorkflowStatus}
+        getUnpublishedEntries={getUnpublishedEntries}
+        filterTerm={filterTerm}
+      />
+    );
+  }
+
+  if (groups && groups.length > 0) {
+    return withGroups(groups, entries, EntriesToRender, t);
+  }
+
+  return <EntriesToRender entries={entries} />;
 }
 
 export function filterNestedEntries(
