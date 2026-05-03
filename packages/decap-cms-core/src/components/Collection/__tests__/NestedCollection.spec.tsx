@@ -5,14 +5,15 @@ import configureStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { vi } from 'vitest';
 
-import type * as DecapCmsUiDefault from 'decap-cms-ui-default';
-
 import ConnectedNestedCollection, {
   NestedCollection,
   getTreeData,
   walk,
   updateNode,
 } from '../NestedCollection';
+
+import type * as DecapCmsUiDefault from 'decap-cms-ui-default';
+
 
 vi.mock('decap-cms-ui-default', async () => {
   const actual = await vi.importActual<typeof DecapCmsUiDefault>('decap-cms-ui-default');

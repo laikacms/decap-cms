@@ -26,10 +26,11 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import type { DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
+
+import type { DragEndEvent } from '@dnd-kit/core';
 import type { CmsField, CmsFieldBase, CmsFieldFile } from 'decap-cms-lib-util';
 
 const MAX_DISPLAY_LENGTH = 50;

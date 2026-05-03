@@ -1,3 +1,4 @@
+/* eslint-disable import/order -- vi.mock must precede imports of the mocked module */
 import { vi } from 'vitest';
 
 vi.mock('decap-cms-core/src/backend');
@@ -5,10 +6,10 @@ import { oneLine, stripIndent } from 'common-tags';
 import nock from 'nock';
 import { Cursor } from 'decap-cms-lib-util';
 
-import type * as BackendModule from 'decap-cms-core/src/backend';
-
 import Gitlab from '../implementation';
 import AuthenticationPage from '../AuthenticationPage';
+
+import type * as BackendModule from 'decap-cms-core/src/backend';
 
 const { Backend, LocalStorageAuthStore } = await vi.importActual<typeof BackendModule>(
   'decap-cms-core/src/backend',

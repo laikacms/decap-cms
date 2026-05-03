@@ -1,14 +1,15 @@
 import AJV from 'ajv';
-import type { ErrorObject } from 'ajv';
 import ajvKeywords from 'ajv-keywords/dist/keywords';
 import ajvErrors from 'ajv-errors';
 import { v4 as uuid } from 'uuid';
 
-const { select, uniqueItemProperties, instanceof: instanceOf, prohibited } = ajvKeywords;
-
 import { frontmatterFormats, extensionFormatters } from '../formats/formats';
 import { getWidgets } from '../lib/registry';
 import { I18N_STRUCTURE, I18N_FIELD } from '../lib/i18n';
+
+import type { ErrorObject } from 'ajv';
+
+const { select, uniqueItemProperties, instanceof: instanceOf, prohibited } = ajvKeywords;
 
 const localeType = { type: 'string', minLength: 2, maxLength: 10, pattern: '^[a-zA-Z-_]+$' };
 

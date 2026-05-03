@@ -1,6 +1,7 @@
 import get from 'lodash/get';
-import type { CmsField, CmsFieldList } from 'decap-cms-lib-util';
 import { isObject } from 'lodash';
+
+import type { CmsField, CmsFieldList } from 'decap-cms-lib-util';
 
 export const TYPES_KEY = 'types';
 export const TYPE_KEY = 'typeKey';

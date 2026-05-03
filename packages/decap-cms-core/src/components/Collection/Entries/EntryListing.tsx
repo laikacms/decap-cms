@@ -2,12 +2,13 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { Waypoint } from 'react-waypoint';
 
-import type { Cursor } from 'decap-cms-lib-util';
-import type { CmsCollectionState, CmsCollections, CmsEntry } from 'decap-cms-lib-util';
 
 import { selectFields, selectInferredField } from '../../../reducers/collections';
 import { filterNestedEntries } from './EntriesCollection';
 import EntryCard from './EntryCard';
+
+import type { CmsCollectionState, CmsCollections, CmsEntry } from 'decap-cms-lib-util';
+import type { Cursor } from 'decap-cms-lib-util';
 
 const CardsGrid = styled.ul`
   display: flex;

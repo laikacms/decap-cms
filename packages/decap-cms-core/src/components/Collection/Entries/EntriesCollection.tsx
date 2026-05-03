@@ -4,16 +4,8 @@ import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
 import partial from 'lodash/partial';
 import { Cursor } from 'decap-cms-lib-util';
-import type { TranslateFunction } from 'decap-cms-ui-default';
 import { colors } from 'decap-cms-ui-default';
 
-import type {
-  CmsCollectionState,
-  CmsCollections,
-  CmsEntry,
-  CmsGroupOfEntries,
-} from 'decap-cms-lib-util';
-import type { Status } from '../../../constants/publishModes';
 
 import {
   loadEntries as actionLoadEntries,
@@ -29,6 +21,15 @@ import {
 import { selectUnpublishedEntry, selectUnpublishedEntriesByStatus } from '../../../reducers';
 import { selectCollectionEntriesCursor } from '../../../reducers/cursors';
 import Entries from './Entries';
+
+import type { Status } from '../../../constants/publishModes';
+import type {
+  CmsCollectionState,
+  CmsCollections,
+  CmsEntry,
+  CmsGroupOfEntries,
+} from 'decap-cms-lib-util';
+import type { TranslateFunction } from 'decap-cms-ui-default';
 
 const GroupHeading = styled.h2`
   font-size: 22px;

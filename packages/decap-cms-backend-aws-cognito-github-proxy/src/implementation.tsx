@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { GitHubBackend } from 'decap-cms-backend-github';
+
 import GenericPKCEAuthenticationPage from './AuthenticationPage';
 
 import type { GitHubUser } from 'decap-cms-backend-github';

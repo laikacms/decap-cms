@@ -1,8 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
-import type { TranslateFunction } from 'decap-cms-ui-default';
 import { Icon, shadows, colors, buttons } from 'decap-cms-ui-default';
+
+import type { TranslateFunction } from 'decap-cms-ui-default';
 
 const CloseButton = styled.button`
   ${buttons.button};

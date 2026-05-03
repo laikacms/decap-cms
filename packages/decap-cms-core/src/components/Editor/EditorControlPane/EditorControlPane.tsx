@@ -11,13 +11,6 @@ import {
   text,
 } from 'decap-cms-ui-default';
 
-import type { CmsCollectionState, CmsEntry, CmsEntryField } from 'decap-cms-lib-util';
-
-type Collection = CmsCollectionState;
-type EntryMap = CmsEntry;
-type EntryField = CmsEntryField;
-import type { I18nInfo } from '../../../lib/i18n';
-
 import EditorControl from './EditorControl';
 import {
   getI18nInfo,
@@ -27,6 +20,14 @@ import {
   isFieldHidden,
   isFieldTranslatable,
 } from '../../../lib/i18n';
+
+import type { CmsCollectionState, CmsEntry, CmsEntryField } from 'decap-cms-lib-util';
+import type { I18nInfo } from '../../../lib/i18n';
+
+type Collection = CmsCollectionState;
+type EntryMap = CmsEntry;
+type EntryField = CmsEntryField;
+
 
 const ControlPaneContainer = styled.div`
   max-width: 800px;

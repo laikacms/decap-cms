@@ -1,16 +1,8 @@
 import React from 'react';
 import styled from '@emotion/styled';
-import type { CmsCollectionState, CmsEntry, CmsEntryField, CmsConfig } from 'decap-cms-lib-util';
-
-type Collection = CmsCollectionState;
-type EntryMap = CmsEntry;
-type EntryField = CmsEntryField;
-
-type State = any;
 import Frame, { FrameContextConsumer } from 'react-frame-component';
 import { lengths } from 'decap-cms-ui-default';
 import { connect } from 'react-redux';
-import type { Dispatch } from 'redux';
 
 import { encodeEntry } from '../../../lib/stega';
 import {
@@ -33,6 +25,15 @@ import { INFERABLE_FIELDS } from '../../../constants/fieldInference';
 import EditorPreviewContent from './EditorPreviewContent.js';
 import PreviewHOC from './PreviewHOC';
 import EditorPreview from './EditorPreview';
+
+import type { Dispatch } from 'redux';
+import type { CmsCollectionState, CmsEntry, CmsEntryField, CmsConfig } from 'decap-cms-lib-util';
+
+type Collection = CmsCollectionState;
+type EntryMap = CmsEntry;
+type EntryField = CmsEntryField;
+
+type State = any;
 
 const PreviewPaneFrame = styled(Frame)`
   width: 100%;

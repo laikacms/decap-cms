@@ -3,6 +3,7 @@ import { Gitlab } from 'gitlab';
 import fs from 'node:fs/promises';
 import path from 'path';
 import { merge } from 'lodash';
+
 import { updateConfig } from '../utils/config';
 import { escapeRegExp } from '../utils/regexp';
 import {
@@ -10,8 +11,9 @@ import {
   transformRecordedData as transformData,
   getGitClient,
 } from './common';
-import type { RecordedExpectation } from '../utils/mock-server';
 import { retrieveRecordedExpectations, resetMockServerState } from '../utils/mock-server';
+
+import type { RecordedExpectation } from '../utils/mock-server';
 
 const GITLAB_REPO_OWNER_SANITIZED_VALUE = 'owner';
 const GITLAB_REPO_NAME_SANITIZED_VALUE = 'repo';

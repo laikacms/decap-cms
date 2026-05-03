@@ -1,7 +1,8 @@
 import mapValues from 'lodash/mapValues';
 
-import type { IconComponent, IconImages } from './images/icons.generated';
 import images from './images/icons.generated';
+
+import type { IconComponent, IconImages } from './images/icons.generated';
 
 /**
  * This module outputs icon objects with the following shape:

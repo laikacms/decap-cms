@@ -1,10 +1,11 @@
 import React from 'react';
 import styled from '@emotion/styled';
-import type { SerializedStyles } from '@emotion/react';
 import { css, keyframes } from '@emotion/react';
 import { CSSTransition } from 'react-transition-group';
 
 import { colors, zIndex } from './styles';
+
+import type { SerializedStyles } from '@emotion/react';
 
 interface LoaderStyles {
   disabled: SerializedStyles;

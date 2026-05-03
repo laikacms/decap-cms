@@ -1,5 +1,6 @@
 import isEqual from 'lodash/isEqual';
 import { Cursor } from 'decap-cms-lib-util';
+import { CmsSortDirection } from 'decap-cms-lib-util';
 
 import { selectCollectionEntriesCursor } from '../reducers/cursors';
 import { selectFields, updateFieldByKey, selectDefaultSortField } from '../reducers/collections';
@@ -11,7 +12,6 @@ import { createEntry } from '../valueObjects/Entry';
 import { createAssetProxy } from '../valueObjects/AssetProxy';
 import ValidationErrorTypes from '../constants/validationErrorTypes';
 import { addAssets, getAsset } from './media';
-import { CmsSortDirection } from 'decap-cms-lib-util';
 import { waitForMediaLibraryToLoad, loadMedia } from './mediaLibrary';
 import { waitUntil } from './waitUntil';
 import { selectIsFetching, selectEntriesSortFields, selectEntryByPath } from '../reducers/entries';

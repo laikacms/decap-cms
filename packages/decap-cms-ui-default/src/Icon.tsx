@@ -1,8 +1,9 @@
 import React from 'react';
 import styled from '@emotion/styled';
 
-import type { IconDirection, IconName } from './Icon/icons';
 import icons from './Icon/icons';
+
+import type { IconDirection, IconName } from './Icon/icons';
 
 interface IconWrapperProps {
   size: string;

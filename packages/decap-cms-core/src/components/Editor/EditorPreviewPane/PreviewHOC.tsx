@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+
 import type { CmsEntryField } from 'decap-cms-lib-util';
 
 type EntryField = CmsEntryField;

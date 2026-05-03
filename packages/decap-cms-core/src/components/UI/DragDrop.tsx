@@ -1,7 +1,8 @@
 import { HTML5Backend as ReactDNDHTML5Backend } from 'react-dnd-html5-backend';
 import { DndProvider as ReactDNDProvider, useDrag, useDrop } from 'react-dnd';
-import type { ConnectDragSource, ConnectDropTarget } from 'react-dnd';
 import React from 'react';
+
+import type { ConnectDragSource, ConnectDropTarget } from 'react-dnd';
 
 export interface DragSourceProps {
   namespace: string;

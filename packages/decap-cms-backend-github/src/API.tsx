@@ -29,6 +29,9 @@ import {
   createSemaphore,
 } from 'decap-cms-lib-util';
 import { dirname } from 'path';
+import { isError } from 'lodash';
+
+import { PullRequestState, GithubCommitStatusState } from './types/api';
 
 import type {
   CmsAssetProxy,
@@ -40,8 +43,6 @@ import type {
   CmsConfig,
 } from 'decap-cms-lib-util';
 import type { Endpoints } from '@octokit/types';
-import { isError } from 'lodash';
-
 import type {
   BlobArgs,
   Config,
@@ -62,7 +63,7 @@ import type {
   TreeFile,
   TreeFileForUpdate,
 } from './types/api';
-import { PullRequestState, GithubCommitStatusState } from './types/api';
+
 
 export const API_NAME = 'GitHub';
 

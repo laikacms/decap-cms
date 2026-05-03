@@ -1,10 +1,10 @@
 import flatten from 'lodash/flatten';
 import { unsentRequest } from 'decap-cms-lib-util';
 
-import type { EntryValue } from '../../../valueObjects/Entry';
 import { createEntry } from '../../../valueObjects/Entry';
 import { selectEntrySlug } from '../../../reducers/collections';
 
+import type { EntryValue } from '../../../valueObjects/Entry';
 import type { CmsCollectionState } from 'decap-cms-lib-util';
 
 type Collection = CmsCollectionState;

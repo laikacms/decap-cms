@@ -21,6 +21,8 @@ import type {
   CmsViewGroup,
   CmsConfig,
 } from 'decap-cms-lib-util';
+import type { ConfigAction } from '../actions/config';
+import type { Backend } from '../backend';
 
 type Collection = CmsCollectionState;
 type Collections = CmsCollections;
@@ -29,8 +31,6 @@ type EntryField = CmsEntryField;
 type EntryMap = CmsEntry;
 type ViewFilter = CmsViewFilter;
 type ViewGroup = CmsViewGroup;
-import type { ConfigAction } from '../actions/config';
-import type { Backend } from '../backend';
 
 const { keyToPathArray } = stringTemplate;
 

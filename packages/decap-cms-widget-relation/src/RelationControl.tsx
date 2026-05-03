@@ -10,7 +10,6 @@ import last from 'lodash/last';
 import uniqBy from 'lodash/uniqBy';
 import { reactSelectStyles } from 'decap-cms-ui-default';
 import { stringTemplate, validations } from 'decap-cms-lib-widgets';
-import type { CmsFieldBase, CmsFieldRelation } from 'decap-cms-lib-util';
 import { List as VirtualList } from 'react-window';
 import {
   DndContext,
@@ -27,6 +26,7 @@ import { v4 as uuid } from 'uuid';
 
 import relationCache from './RelationCache';
 
+import type { CmsFieldBase, CmsFieldRelation } from 'decap-cms-lib-util';
 import type { CSSProperties, ReactElement } from 'react';
 import type { MultiValueProps, MultiValueGenericProps, GroupBase } from 'react-select';
 

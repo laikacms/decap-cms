@@ -5,9 +5,11 @@ import styled from '@emotion/styled';
 import copyToClipboard from 'copy-text-to-clipboard';
 import { isAbsolutePath } from 'decap-cms-lib-util';
 import { buttons, shadows, zIndex } from 'decap-cms-ui-default';
-import type { TranslateFunction } from 'decap-cms-ui-default';
 
 import { FileUploadButton } from '../UI';
+
+import type { TranslateFunction } from 'decap-cms-ui-default';
+
 
 const styles = {
   button: css`

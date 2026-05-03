@@ -1,6 +1,7 @@
 import React from 'react';
 import { translate } from 'react-polyglot';
 import PropTypes from 'prop-types';
+
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import type { CmsEntryField } from 'decap-cms-lib-util';
 

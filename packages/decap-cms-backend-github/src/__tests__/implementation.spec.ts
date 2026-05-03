@@ -1,5 +1,4 @@
 import { vi } from 'vitest';
-
 import { Cursor, CURSOR_COMPATIBILITY_SYMBOL } from 'decap-cms-lib-util';
 
 import GitHubImplementation from '../implementation';

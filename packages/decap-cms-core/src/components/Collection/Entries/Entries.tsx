@@ -1,13 +1,14 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
-import type { TranslateFunction } from 'decap-cms-ui-default';
 import { Loader, lengths } from 'decap-cms-ui-default';
 
+import EntryListing from './EntryListing';
+
+import type { TranslateFunction } from 'decap-cms-ui-default';
 import type { Cursor } from 'decap-cms-lib-util';
 import type { CmsCollectionState, CmsEntry } from 'decap-cms-lib-util';
 
-import EntryListing from './EntryListing';
 
 const PaginationMessage = styled.div`
   width: ${lengths.topCardWidth};

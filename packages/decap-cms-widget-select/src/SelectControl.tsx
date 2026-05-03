@@ -4,8 +4,9 @@ import find from 'lodash/find';
 import Select from 'react-select';
 import { reactSelectStyles } from 'decap-cms-ui-default';
 import { validations } from 'decap-cms-lib-widgets';
-import type { CmsFieldSelect, CmsFieldBase } from 'decap-cms-lib-util';
 import isObject from 'lodash/isObject';
+
+import type { CmsFieldSelect, CmsFieldBase } from 'decap-cms-lib-util';
 
 interface SelectOption {
   label: string;

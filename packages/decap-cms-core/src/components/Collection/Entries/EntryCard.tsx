@@ -9,6 +9,7 @@ import { boundGetAsset } from '../../../actions/media';
 import { VIEW_STYLE_LIST, VIEW_STYLE_GRID } from '../../../constants/collectionViews';
 import { selectIsLoadingAsset } from '../../../reducers/medias';
 import { selectEntryCollectionTitle } from '../../../reducers/collections';
+
 import type { TranslateFunction } from 'decap-cms-lib-util';
 
 const ListCard = styled.li`

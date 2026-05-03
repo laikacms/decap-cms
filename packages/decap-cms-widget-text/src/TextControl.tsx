@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Textarea from 'react-textarea-autosize';
+
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import type { CmsFieldBase, CmsFieldStringOrText } from 'decap-cms-lib-util';
 

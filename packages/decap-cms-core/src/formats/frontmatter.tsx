@@ -2,8 +2,6 @@ import remarkFrontmatter, { type Options } from 'remark-frontmatter';
 import remarkParse from 'remark-parse';
 import remarkStringify from 'remark-stringify';
 import { unified } from 'unified';
-import type { Literal, Node, Parent } from 'unist';
-import type { VFile } from 'vfile';
 import { CONTINUE, EXIT, visit } from 'unist-util-visit';
 import { toString } from 'mdast-util-to-string';
 import { fromMarkdown } from 'mdast-util-from-markdown';
@@ -11,6 +9,9 @@ import { fromMarkdown } from 'mdast-util-from-markdown';
 import tomlFormatter from './toml';
 import yamlFormatter from './yaml';
 import jsonFormatter from './json';
+
+import type { VFile } from 'vfile';
+import type { Literal, Node, Parent } from 'unist';
 
 const Languages = {
   YAML: 'yaml',

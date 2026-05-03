@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+import { localForage, asyncLock } from 'decap-cms-lib-util';
 
 import {
   resolveBackend,
@@ -9,7 +10,6 @@ import {
 } from '../backend';
 import { getBackend } from '../lib/registry';
 import { FOLDER, FILES } from '../constants/collectionTypes';
-import { localForage, asyncLock } from 'decap-cms-lib-util';
 import { sanitizeSlug, sanitizeChar } from '../lib/urlHelper';
 
 vi.mock('../lib/registry');

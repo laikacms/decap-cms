@@ -1,7 +1,8 @@
 import { oneLine } from 'common-tags';
-import type { Pluggable } from 'unified';
 
 import EditorComponent from '../valueObjects/EditorComponent';
+
+import type { Pluggable } from 'unified';
 import type {
   CmsWidgetParam,
   CmsMediaLibrary,

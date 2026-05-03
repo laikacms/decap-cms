@@ -113,6 +113,7 @@
     "eslint-import-resolver-typescript": "catalog:eslint",
     "eslint-plugin-cypress": "catalog:eslint",
     "eslint-plugin-import": "catalog:eslint",
+    "eslint-plugin-import-x": "^4.16.2",
     "eslint-plugin-react": "catalog:eslint",
     "eslint-plugin-unicorn": "catalog:eslint",
     "execa": "catalog:build",

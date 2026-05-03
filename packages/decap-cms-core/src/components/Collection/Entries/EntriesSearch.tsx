@@ -3,7 +3,6 @@ import { connect } from 'react-redux';
 import isEqual from 'lodash/isEqual';
 import { Cursor } from 'decap-cms-lib-util';
 
-import type { CmsCollectionState, CmsCollections, CmsEntry } from 'decap-cms-lib-util';
 
 import { selectSearchedEntries, selectUnpublishedEntry } from '../../../reducers';
 import {
@@ -11,6 +10,8 @@ import {
   clearSearch as actionClearSearch,
 } from '../../../actions/search';
 import Entries from './Entries';
+
+import type { CmsCollectionState, CmsCollections, CmsEntry } from 'decap-cms-lib-util';
 
 interface EntriesSearchProps {
   isFetching?: boolean;

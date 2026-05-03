@@ -6,13 +6,15 @@ import styled from '@emotion/styled';
 import dayjs from 'dayjs';
 import { translate } from 'react-polyglot';
 import { colors, lengths } from 'decap-cms-ui-default';
-import type { TranslateFunction } from 'decap-cms-ui-default';
-import type { CmsCollections, CmsCollectionState } from 'decap-cms-lib-util';
+
 
 import { status } from '../../constants/publishModes';
 import { DragSource, DropTarget, HTML5DragDrop } from '../UI';
 import WorkflowCard from './WorkflowCard';
 import { selectEntryCollectionTitle } from '../../reducers/collections';
+
+import type { CmsCollections, CmsCollectionState } from 'decap-cms-lib-util';
+import type { TranslateFunction } from 'decap-cms-ui-default';
 
 const WorkflowListContainer = styled.div`
   min-height: 60%;

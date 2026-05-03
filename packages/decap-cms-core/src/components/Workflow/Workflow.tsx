@@ -1,9 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import styled from '@emotion/styled';
-import type { TranslateFunction } from 'decap-cms-ui-default';
-import type { CmsCollections, CmsCollectionState } from 'decap-cms-lib-util';
-import type { Status } from '../../constants/publishModes';
 import { translate } from 'react-polyglot';
 import { connect } from 'react-redux';
 import {
@@ -31,6 +28,10 @@ import {
 import { selectUnpublishedEntriesByStatus } from '../../reducers';
 import { EDITORIAL_WORKFLOW, status } from '../../constants/publishModes';
 import WorkflowList from './WorkflowList';
+
+import type { Status } from '../../constants/publishModes';
+import type { CmsCollections, CmsCollectionState } from 'decap-cms-lib-util';
+import type { TranslateFunction } from 'decap-cms-ui-default';
 
 const WorkflowContainer = styled.div`
   padding: ${lengths.pageMargin} 0;

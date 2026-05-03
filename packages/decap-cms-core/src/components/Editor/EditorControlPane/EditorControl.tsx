@@ -3,7 +3,6 @@ import { bindActionCreators } from 'redux';
 import PropTypes from 'prop-types';
 import { translate } from 'react-polyglot';
 import { ClassNames, Global, css as coreCss } from '@emotion/react';
-import type { Interpolation, Theme } from '@emotion/react';
 import styled from '@emotion/styled';
 import partial from 'lodash/partial';
 import uniqueId from 'lodash/uniqueId';
@@ -12,17 +11,6 @@ import { connect } from 'react-redux';
 import { FieldLabel, colors, transitions, lengths, borders } from 'decap-cms-ui-default';
 import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
-
-import type { Dispatch } from 'redux';
-import type { TranslateFunction } from 'decap-cms-ui-default';
-import type { CmsCollectionState, CmsEntry, CmsEntryField, CmsConfig } from 'decap-cms-lib-util';
-
-type Collection = CmsCollectionState;
-type EntryMap = CmsEntry;
-type EntryField = CmsEntryField;
-
-type State = any;
-import type AssetProxy from '../../../valueObjects/AssetProxy';
 
 import { resolveWidget, getEditorComponents } from '../../../lib/registry';
 import { clearFieldErrors, tryLoadEntry, validateMetaField } from '../../../actions/entries';
@@ -38,6 +26,18 @@ import {
   persistMedia,
 } from '../../../actions/mediaLibrary';
 import Widget from './Widget';
+
+import type AssetProxy from '../../../valueObjects/AssetProxy';
+import type { Interpolation, Theme } from '@emotion/react';
+import type { Dispatch } from 'redux';
+import type { TranslateFunction } from 'decap-cms-ui-default';
+import type { CmsCollectionState, CmsEntry, CmsEntryField, CmsConfig } from 'decap-cms-lib-util';
+
+type Collection = CmsCollectionState;
+type EntryMap = CmsEntry;
+type EntryField = CmsEntryField;
+
+type State = any;
 
 const WidgetComponent: React.ComponentType<any> = Widget;
 

@@ -11,6 +11,7 @@ import {
   lengths,
   zIndex,
 } from 'decap-cms-ui-default';
+
 import type {
   AuthClient,
   NetlifyAuthenticationPageProps,

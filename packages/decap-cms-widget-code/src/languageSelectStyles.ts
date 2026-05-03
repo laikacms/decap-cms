@@ -1,5 +1,6 @@
-import type { CSSObject } from '@emotion/react';
 import { reactSelectStyles, borders } from 'decap-cms-ui-default';
+
+import type { CSSObject } from '@emotion/react';
 
 interface SelectStyleState {
   isSelected?: boolean;

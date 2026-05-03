@@ -1,11 +1,12 @@
 import fs from 'node:fs/promises';
 import path from 'path';
-import type { ChildProcess } from 'child_process';
 import { spawn } from 'child_process';
 import { merge } from 'lodash';
 
 import { updateConfig } from '../utils/config';
 import { getGitClient } from './common';
+
+import type { ChildProcess } from 'child_process';
 
 const fsExists = async (path: string) => fs.access(path).then(() => true, () => false);
 

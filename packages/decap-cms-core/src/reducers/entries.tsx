@@ -7,8 +7,8 @@ import set from 'lodash/set';
 import orderBy from 'lodash/orderBy';
 import groupBy from 'lodash/groupBy';
 import { stringTemplate } from 'decap-cms-lib-widgets';
-
 import { CmsSortDirection as SortDirection } from 'decap-cms-lib-util';
+
 import { folderFormatter } from '../lib/formatters';
 import { selectSortDataPath } from './collections';
 import { SEARCH_ENTRIES_SUCCESS } from '../actions/search';

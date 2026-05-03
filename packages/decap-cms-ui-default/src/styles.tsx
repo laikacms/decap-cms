@@ -1,5 +1,6 @@
 import React from 'react';
 import { css, Global } from '@emotion/react';
+
 import type { CSSObject, SerializedStyles } from '@emotion/react';
 
 /**

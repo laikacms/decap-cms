@@ -3,6 +3,7 @@ import { render } from '@testing-library/react';
 import { vi } from 'vitest';
 
 import { EditorToolbar } from '../EditorToolbar';
+
 import type { CmsCollectionState } from 'decap-cms-lib-util';
 import type { TranslateFunction } from 'decap-cms-ui-default';
 

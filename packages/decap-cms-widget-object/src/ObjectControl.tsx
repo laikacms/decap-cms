@@ -5,9 +5,9 @@ import memoize from 'lodash/memoize';
 import get from 'lodash/get';
 import isObject from 'lodash/isObject';
 import { colors, lengths, ObjectWidgetTopBar } from 'decap-cms-ui-default';
-import type { TranslateFunction } from 'decap-cms-ui-default';
 import { stringTemplate } from 'decap-cms-lib-widgets';
 
+import type { TranslateFunction } from 'decap-cms-ui-default';
 import type { CmsField, CmsFieldBase, CmsFieldObject } from 'decap-cms-lib-util';
 
 const styleStrings = {

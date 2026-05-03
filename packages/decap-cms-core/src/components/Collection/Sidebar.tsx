@@ -3,14 +3,15 @@ import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 import { translate } from 'react-polyglot';
 import { NavLink } from 'react-router-dom';
-import type { TranslateFunction } from 'decap-cms-ui-default';
 import { Icon, components, colors } from 'decap-cms-ui-default';
 
-import type { CmsCollectionState, CmsCollections } from 'decap-cms-lib-util';
 
 import { searchCollections } from '../../actions/collections';
 import CollectionSearch from './CollectionSearch';
 import NestedCollection from './NestedCollection';
+
+import type { CmsCollectionState, CmsCollections } from 'decap-cms-lib-util';
+import type { TranslateFunction } from 'decap-cms-ui-default';
 
 const styles = {
   sidebarNavLinkActive: css`

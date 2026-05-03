@@ -6,7 +6,7 @@ import map from 'lodash/map';
 import { translate } from 'react-polyglot';
 import fuzzy from 'fuzzy';
 import { fileExtension } from 'decap-cms-lib-util';
-import type { TranslateFunction } from 'decap-cms-ui-default';
+
 
 import {
   loadMedia as loadMediaAction,
@@ -18,6 +18,8 @@ import {
 } from '../../actions/mediaLibrary';
 import { selectMediaFiles } from '../../reducers/mediaLibrary';
 import MediaLibraryModal, { fileShape } from './MediaLibraryModal';
+
+import type { TranslateFunction } from 'decap-cms-ui-default';
 
 type State = any;
 

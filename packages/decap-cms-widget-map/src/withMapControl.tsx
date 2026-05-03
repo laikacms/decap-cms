@@ -10,6 +10,7 @@ import TileLayer from 'ol/layer/Tile.js';
 import VectorLayer from 'ol/layer/Vector.js';
 import OSMSource from 'ol/source/OSM.js';
 import VectorSource from 'ol/source/Vector.js';
+
 import type { Type as GeometryType } from 'ol/geom/Geometry';
 import type { TranslateFunction } from 'decap-cms-ui-default';
 

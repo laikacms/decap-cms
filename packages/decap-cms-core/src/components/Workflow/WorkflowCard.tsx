@@ -5,6 +5,7 @@ import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
 import { Link } from 'react-router-dom';
 import { components, colors, colorsRaw, transitions, buttons } from 'decap-cms-ui-default';
+
 import type { TranslateFunction } from 'decap-cms-ui-default';
 
 const styles = {

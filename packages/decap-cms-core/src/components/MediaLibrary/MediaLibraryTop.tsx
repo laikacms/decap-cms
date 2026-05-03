@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
-import type { TranslateFunction } from 'decap-cms-ui-default';
+
 
 import MediaLibrarySearch from './MediaLibrarySearch';
 import MediaLibraryHeader from './MediaLibraryHeader';
@@ -12,6 +12,8 @@ import {
   CopyToClipBoardButton,
   InsertButton,
 } from './MediaLibraryButtons';
+
+import type { TranslateFunction } from 'decap-cms-ui-default';
 
 const LibraryTop = styled.div`
   position: relative;

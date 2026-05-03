@@ -1,9 +1,9 @@
 import React from 'react';
 import styled from '@emotion/styled';
-import type { TranslateFunction } from 'decap-cms-ui-default';
 import { colorsRaw, colors, Icon, lengths, zIndex } from 'decap-cms-ui-default';
 import { translate } from 'react-polyglot';
 
+import type { TranslateFunction } from 'decap-cms-ui-default';
 import type { CmsCollectionState, CmsCollections } from 'decap-cms-lib-util';
 
 const SearchContainer = styled.div`

@@ -18,14 +18,15 @@ import {
 } from 'decap-cms-ui-default';
 import { connect } from 'react-redux';
 
+import { SettingsDropdown } from '../UI';
+import { checkBackendStatus } from '../../actions/status';
+
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import type { CmsCollectionState, CmsCollections } from 'decap-cms-lib-util';
 
 type Collection = CmsCollectionState;
 type Collections = CmsCollections;
 
-import { SettingsDropdown } from '../UI';
-import { checkBackendStatus } from '../../actions/status';
 
 const ACTIVE_CLASS_NAME = 'header-link-active';
 

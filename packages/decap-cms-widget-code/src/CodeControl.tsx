@@ -10,9 +10,11 @@ import { EditorView, basicSetup } from 'codemirror';
 import { emacs } from '@replit/codemirror-emacs';
 import { vscodeKeymap } from '@replit/codemirror-vscode-keymap';
 import { vim } from '@replit/codemirror-vim';
+
 import SettingsPane from './SettingsPane';
 import SettingsButton from './SettingsButton';
 import languageData from '../data/languages.json';
+
 import type { CmsFieldBase, CmsFieldCode } from 'decap-cms-lib-util';
 
 type CodeMirrorEditor = {

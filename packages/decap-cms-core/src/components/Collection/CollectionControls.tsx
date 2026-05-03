@@ -1,13 +1,15 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { lengths } from 'decap-cms-ui-default';
-import type { TranslateFunction } from 'decap-cms-ui-default';
 
-import type { CmsViewFilter, CmsViewGroup, CmsSortDirection } from 'decap-cms-lib-util';
+
 import ViewStyleControl from './ViewStyleControl';
 import SortControl from './SortControl';
 import FilterControl from './FilterControl';
 import GroupControl from './GroupControl';
+
+import type { CmsViewFilter, CmsViewGroup, CmsSortDirection } from 'decap-cms-lib-util';
+import type { TranslateFunction } from 'decap-cms-ui-default';
 
 const CollectionControlsContainer = styled.div`
   display: flex;

@@ -1,5 +1,4 @@
 /** @jsxImportSource @emotion/react */
-import type { ComponentType } from 'react';
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
@@ -17,7 +16,6 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import type { DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 import { CSS } from '@dnd-kit/utilities';
@@ -29,6 +27,7 @@ import {
   FieldLabel,
 } from 'decap-cms-ui-default';
 import { stringTemplate, validations } from 'decap-cms-lib-widgets';
+import { get, isObject, omit, set } from 'lodash';
 
 import {
   TYPES_KEY,
@@ -36,6 +35,7 @@ import {
   resolveFieldKeyType,
   getErrorMessageForTypedFieldAndValue,
 } from './typedListHelpers';
+
 import type {
   CmsEntry,
   CmsField,
@@ -44,7 +44,8 @@ import type {
   CmsFieldObject,
   TranslateFunction,
 } from 'decap-cms-lib-util';
-import { get, isObject, omit, set } from 'lodash';
+import type { DragEndEvent } from '@dnd-kit/core';
+import type { ComponentType } from 'react';
 
 /** Minimal shape for a widget control ref passed through controlRef */
 interface WidgetControlRef {

@@ -2,8 +2,9 @@ import React from 'react';
 import styled from '@emotion/styled';
 
 import Icon from './Icon';
-import type { IconName } from './Icon/icons';
 import { buttons, colors, colorsRaw, shadows } from './styles';
+
+import type { IconName } from './Icon/icons';
 
 type IconButtonSize = 'small' | 'large';
 

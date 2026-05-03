@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 import { NetlifyAuthenticator, type NetlifyAuthResult } from 'decap-cms-lib-auth';
 import { AuthenticationPage, Icon } from 'decap-cms-ui-default';
+
 import type GitHub from './implementation';
 import type { CmsConfig, CmsUser, TranslateFunction } from 'decap-cms-lib-util';
 
