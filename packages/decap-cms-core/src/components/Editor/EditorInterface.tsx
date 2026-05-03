@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { css, Global } from '@emotion/react';
 import styled from '@emotion/styled';
 import { SplitPane } from 'react-split-pane';
@@ -210,270 +210,268 @@ interface EditorInterfaceProps {
 
 type ControlPaneRef = InstanceType<typeof EditorControlPane>;
 
-class EditorInterface extends Component<EditorInterfaceProps> {
-  controlPaneRef: ControlPaneRef | null = null;
+function EditorInterface(props: EditorInterfaceProps) {
+  const {
+    collection,
+    entry,
+    fields,
+    fieldsMetaData,
+    fieldsErrors,
+    onChange,
+    onPersist,
+    showDelete,
+    onDelete,
+    onDeleteUnpublishedChanges,
+    onChangeStatus,
+    onPublish,
+    unPublish,
+    onDuplicate,
+    onValidate,
+    user,
+    hasChanged,
+    displayUrl,
+    hasWorkflow,
+    useOpenAuthoring,
+    hasUnpublishedChanges,
+    isNewEntry,
+    isModification,
+    currentStatus,
+    onLogoutClick,
+    loadDeployPreview,
+    deployPreview,
+    draftKey,
+    editorBackLink,
+    t,
+  } = props;
 
-  state = {
-    showEventBlocker: false,
-    previewVisible: localStorage.getItem(PREVIEW_VISIBLE) !== 'false',
-    scrollSyncEnabled: localStorage.getItem(SCROLL_SYNC_ENABLED) !== 'false',
-    i18nVisible: localStorage.getItem(I18N_VISIBLE) !== 'false',
-    leftPanelLocale: undefined as string | undefined,
-  };
+  const controlPaneRef = React.useRef<ControlPaneRef | null>(null);
+  const [showEventBlocker, setShowEventBlocker] = React.useState(false);
+  const [previewVisible, setPreviewVisible] = React.useState(
+    () => localStorage.getItem(PREVIEW_VISIBLE) !== 'false',
+  );
+  const [scrollSyncEnabled, setScrollSyncEnabled] = React.useState(
+    () => localStorage.getItem(SCROLL_SYNC_ENABLED) !== 'false',
+  );
+  const [i18nVisibleState, setI18nVisibleState] = React.useState(
+    () => localStorage.getItem(I18N_VISIBLE) !== 'false',
+  );
+  const [leftPanelLocaleState, setLeftPanelLocale] = React.useState<string | undefined>(undefined);
 
-  handleFieldClick = (path: string) => {
-    this.controlPaneRef?.focus(path);
-  };
-
-  handleSplitPaneDragStart = () => {
-    this.setState({ showEventBlocker: true });
-  };
-
-  handleSplitPaneDragFinished = () => {
-    this.setState({ showEventBlocker: false });
-  };
-
-  handleOnPersist = async (opts: { createNew?: boolean; duplicate?: boolean } = {}) => {
-    const { createNew = false, duplicate = false } = opts;
-    await this.controlPaneRef?.switchToDefaultLocale();
-    this.controlPaneRef?.validate();
-    this.props.onPersist({ createNew, duplicate });
-  };
-
-  handleOnPublish = async (opts: { createNew?: boolean; duplicate?: boolean } = {}) => {
-    const { createNew = false, duplicate = false } = opts;
-    await this.controlPaneRef?.switchToDefaultLocale();
-    this.controlPaneRef?.validate();
-    this.props.onPublish({ createNew, duplicate });
-  };
-
-  handleTogglePreview = () => {
-    const newPreviewVisible = !this.state.previewVisible;
-    this.setState({ previewVisible: newPreviewVisible });
-    localStorage.setItem(PREVIEW_VISIBLE, String(newPreviewVisible));
-  };
-
-  handleToggleScrollSync = () => {
-    const newScrollSyncEnabled = !this.state.scrollSyncEnabled;
-    this.setState({ scrollSyncEnabled: newScrollSyncEnabled });
-    localStorage.setItem(SCROLL_SYNC_ENABLED, String(newScrollSyncEnabled));
-  };
-
-  handleToggleI18n = () => {
-    const newI18nVisible = !this.state.i18nVisible;
-    this.setState({ i18nVisible: newI18nVisible });
-    localStorage.setItem(I18N_VISIBLE, String(newI18nVisible));
-  };
-
-  handleLeftPanelLocaleChange = (locale: string) => {
-    this.setState({ leftPanelLocale: locale });
-  };
-
-  render() {
-    const {
-      collection,
-      entry,
-      fields,
-      fieldsMetaData,
-      fieldsErrors,
-      onChange,
-      showDelete,
-      onDelete,
-      onDeleteUnpublishedChanges,
-      onChangeStatus,
-      onPublish,
-      unPublish,
-      onDuplicate,
-      onValidate,
-      user,
-      hasChanged,
-      displayUrl,
-      hasWorkflow,
-      useOpenAuthoring,
-      hasUnpublishedChanges,
-      isNewEntry,
-      isModification,
-      currentStatus,
-      onLogoutClick,
-      loadDeployPreview,
-      deployPreview,
-      draftKey,
-      editorBackLink,
-      t,
-    } = this.props;
-
-    const { scrollSyncEnabled, showEventBlocker } = this.state;
-
-    const previewEnabled = isPreviewEnabled(collection, entry);
-
-    const i18nInfo = getI18nInfo(this.props.collection) as I18nInfo;
-    const locales = i18nInfo.locales || [];
-    const defaultLocale = i18nInfo.defaultLocale || '';
-    const collectionI18nEnabled = hasI18n(collection) && locales.length > 1;
-    const editorProps = {
-      collection,
-      entry,
-      fields,
-      fieldsMetaData,
-      fieldsErrors,
-      onChange,
-      onValidate,
-    };
-
-    const leftPanelLocale = this.state.leftPanelLocale || locales?.[0];
-    const editor = (
-      <ControlPaneContainer $overFlow $blockEntry={showEventBlocker}>
-        <EditorControlPane
-          {...editorProps}
-          ref={(c: ControlPaneRef | null) => {
-            this.controlPaneRef = c;
-          }}
-          locale={leftPanelLocale}
-          t={t}
-          onLocaleChange={this.handleLeftPanelLocaleChange}
-        />
-      </ControlPaneContainer>
-    );
-
-    const editor2 = (
-      <ControlPaneContainer
-        $overFlow={!this.state.scrollSyncEnabled}
-        $blockEntry={showEventBlocker}
-      >
-        <EditorControlPane {...editorProps} locale={locales?.[1]} t={t} />
-      </ControlPaneContainer>
-    );
-
-    const previewEntry = collectionI18nEnabled
-      ? getPreviewEntry(entry, leftPanelLocale, defaultLocale)
-      : entry;
-
-    const editorWithPreview = (
-      <ScrollSync enabled={this.state.scrollSyncEnabled}>
-        <div>
-          <ReactSplitPaneGlobalStyles />
-          <StyledSplitPane
-            maxSize={-100}
-            minSize={400}
-            defaultSize={parseInt(localStorage.getItem(SPLIT_PANE_POSITION) || '0', 10) || '50%'}
-            onChange={(size: number) => localStorage.setItem(SPLIT_PANE_POSITION, String(size))}
-            onDragStarted={this.handleSplitPaneDragStart}
-            onDragFinished={this.handleSplitPaneDragFinished}
-          >
-            <ScrollSyncPane>{editor}</ScrollSyncPane>
-            <PreviewPaneContainer $blockEntry={showEventBlocker}>
-              <EditorPreviewPane
-                collection={collection}
-                entry={previewEntry}
-                fields={fields}
-                fieldsMetaData={fieldsMetaData}
-                locale={leftPanelLocale}
-                onFieldClick={this.handleFieldClick}
-              />
-            </PreviewPaneContainer>
-          </StyledSplitPane>
-        </div>
-      </ScrollSync>
-    );
-
-    const editorWithEditor = (
-      <ScrollSync enabled={this.state.scrollSyncEnabled}>
-        <div>
-          <StyledSplitPane
-            maxSize={-100}
-            defaultSize={parseInt(localStorage.getItem(SPLIT_PANE_POSITION) || '0', 10) || '50%'}
-            onChange={(size: number) => localStorage.setItem(SPLIT_PANE_POSITION, String(size))}
-            onDragStarted={this.handleSplitPaneDragStart}
-            onDragFinished={this.handleSplitPaneDragFinished}
-          >
-            <ScrollSyncPane>{editor}</ScrollSyncPane>
-            <ScrollSyncPane>{editor2}</ScrollSyncPane>
-          </StyledSplitPane>
-        </div>
-      </ScrollSync>
-    );
-
-    const i18nVisible = collectionI18nEnabled && this.state.i18nVisible;
-    const previewVisible = previewEnabled && this.state.previewVisible;
-    const scrollSyncVisible = i18nVisible || previewVisible;
-
-    return (
-      <EditorContainer>
-        {}
-        {React.createElement(EditorToolbar as any, {
-          isPersisting: entry.isPersisting,
-          isPublishing: (entry as any).isPublishing,
-          isUpdatingStatus: (entry as any).isUpdatingStatus,
-          isDeleting: (entry as any).isDeleting,
-          onPersist: this.handleOnPersist,
-          onPersistAndNew: () => this.handleOnPersist({ createNew: true }),
-          onPersistAndDuplicate: () => this.handleOnPersist({ createNew: true, duplicate: true }),
-          onDelete,
-          onDeleteUnpublishedChanges,
-          onChangeStatus,
-          showDelete,
-          onPublish,
-          unPublish,
-          onDuplicate,
-          onPublishAndNew: () => this.handleOnPublish({ createNew: true }),
-          onPublishAndDuplicate: () => this.handleOnPublish({ createNew: true, duplicate: true }),
-          user,
-          hasChanged,
-          displayUrl,
-          collection,
-          hasWorkflow,
-          useOpenAuthoring,
-          hasUnpublishedChanges,
-          isNewEntry,
-          isModification,
-          currentStatus,
-          onLogoutClick,
-          loadDeployPreview,
-          deployPreview,
-          editorBackLink: editorBackLink || '',
-          t,
-        })}
-        <Editor key={draftKey}>
-          <ViewControls>
-            {collectionI18nEnabled && (
-              <EditorToggle
-                isActive={i18nVisible}
-                onClick={this.handleToggleI18n}
-                size="large"
-                type="page"
-                title={t('editor.editorInterface.toggleI18n')}
-              />
-            )}
-            {previewEnabled && (
-              <EditorToggle
-                isActive={previewVisible}
-                onClick={this.handleTogglePreview}
-                size="large"
-                type="eye"
-                title={t('editor.editorInterface.togglePreview')}
-              />
-            )}
-            {scrollSyncVisible && !(collection as any).editor?.visualEditing && (
-              <EditorToggle
-                isActive={scrollSyncEnabled}
-                onClick={this.handleToggleScrollSync}
-                size="large"
-                type="scroll"
-                title={t('editor.editorInterface.toggleScrollSync')}
-              />
-            )}
-          </ViewControls>
-          <EditorContent
-            i18nVisible={!!i18nVisible}
-            previewVisible={!!previewVisible}
-            editor={editor}
-            editorWithEditor={editorWithEditor}
-            editorWithPreview={editorWithPreview}
-          />
-        </Editor>
-      </EditorContainer>
-    );
+  function handleFieldClick(path: string) {
+    controlPaneRef.current?.focus(path);
   }
+
+  function handleSplitPaneDragStart() {
+    setShowEventBlocker(true);
+  }
+
+  function handleSplitPaneDragFinished() {
+    setShowEventBlocker(false);
+  }
+
+  async function handleOnPersist(opts: { createNew?: boolean; duplicate?: boolean } = {}) {
+    const { createNew = false, duplicate = false } = opts;
+    await controlPaneRef.current?.switchToDefaultLocale();
+    controlPaneRef.current?.validate();
+    onPersist({ createNew, duplicate });
+  }
+
+  async function handleOnPublish(opts: { createNew?: boolean; duplicate?: boolean } = {}) {
+    const { createNew = false, duplicate = false } = opts;
+    await controlPaneRef.current?.switchToDefaultLocale();
+    controlPaneRef.current?.validate();
+    onPublish({ createNew, duplicate });
+  }
+
+  function handleTogglePreview() {
+    setPreviewVisible(prev => {
+      const next = !prev;
+      localStorage.setItem(PREVIEW_VISIBLE, String(next));
+      return next;
+    });
+  }
+
+  function handleToggleScrollSync() {
+    setScrollSyncEnabled(prev => {
+      const next = !prev;
+      localStorage.setItem(SCROLL_SYNC_ENABLED, String(next));
+      return next;
+    });
+  }
+
+  function handleToggleI18n() {
+    setI18nVisibleState(prev => {
+      const next = !prev;
+      localStorage.setItem(I18N_VISIBLE, String(next));
+      return next;
+    });
+  }
+
+  const previewEnabled = isPreviewEnabled(collection, entry);
+
+  const i18nInfo = getI18nInfo(collection) as I18nInfo;
+  const locales = i18nInfo.locales || [];
+  const defaultLocale = i18nInfo.defaultLocale || '';
+  const collectionI18nEnabled = hasI18n(collection) && locales.length > 1;
+  const editorProps = {
+    collection,
+    entry,
+    fields,
+    fieldsMetaData,
+    fieldsErrors,
+    onChange,
+    onValidate,
+  };
+
+  const leftPanelLocale = leftPanelLocaleState || locales?.[0];
+  const editor = (
+    <ControlPaneContainer $overFlow $blockEntry={showEventBlocker}>
+      <EditorControlPane
+        {...editorProps}
+        ref={(c: ControlPaneRef | null) => {
+          controlPaneRef.current = c;
+        }}
+        locale={leftPanelLocale}
+        t={t}
+        onLocaleChange={setLeftPanelLocale}
+      />
+    </ControlPaneContainer>
+  );
+
+  const editor2 = (
+    <ControlPaneContainer $overFlow={!scrollSyncEnabled} $blockEntry={showEventBlocker}>
+      <EditorControlPane {...editorProps} locale={locales?.[1]} t={t} />
+    </ControlPaneContainer>
+  );
+
+  const previewEntry = collectionI18nEnabled
+    ? getPreviewEntry(entry, leftPanelLocale, defaultLocale)
+    : entry;
+
+  const editorWithPreview = (
+    <ScrollSync enabled={scrollSyncEnabled}>
+      <div>
+        <ReactSplitPaneGlobalStyles />
+        <StyledSplitPane
+          maxSize={-100}
+          minSize={400}
+          defaultSize={parseInt(localStorage.getItem(SPLIT_PANE_POSITION) || '0', 10) || '50%'}
+          onChange={(size: number) => localStorage.setItem(SPLIT_PANE_POSITION, String(size))}
+          onDragStarted={handleSplitPaneDragStart}
+          onDragFinished={handleSplitPaneDragFinished}
+        >
+          <ScrollSyncPane>{editor}</ScrollSyncPane>
+          <PreviewPaneContainer $blockEntry={showEventBlocker}>
+            <EditorPreviewPane
+              collection={collection}
+              entry={previewEntry}
+              fields={fields}
+              fieldsMetaData={fieldsMetaData}
+              locale={leftPanelLocale}
+              onFieldClick={handleFieldClick}
+            />
+          </PreviewPaneContainer>
+        </StyledSplitPane>
+      </div>
+    </ScrollSync>
+  );
+
+  const editorWithEditor = (
+    <ScrollSync enabled={scrollSyncEnabled}>
+      <div>
+        <StyledSplitPane
+          maxSize={-100}
+          defaultSize={parseInt(localStorage.getItem(SPLIT_PANE_POSITION) || '0', 10) || '50%'}
+          onChange={(size: number) => localStorage.setItem(SPLIT_PANE_POSITION, String(size))}
+          onDragStarted={handleSplitPaneDragStart}
+          onDragFinished={handleSplitPaneDragFinished}
+        >
+          <ScrollSyncPane>{editor}</ScrollSyncPane>
+          <ScrollSyncPane>{editor2}</ScrollSyncPane>
+        </StyledSplitPane>
+      </div>
+    </ScrollSync>
+  );
+
+  const i18nVisible = collectionI18nEnabled && i18nVisibleState;
+  const previewVisibleResolved = previewEnabled && previewVisible;
+  const scrollSyncVisible = i18nVisible || previewVisibleResolved;
+
+  return (
+    <EditorContainer>
+      {React.createElement(EditorToolbar as any, {
+        isPersisting: entry.isPersisting,
+        isPublishing: (entry as any).isPublishing,
+        isUpdatingStatus: (entry as any).isUpdatingStatus,
+        isDeleting: (entry as any).isDeleting,
+        onPersist: handleOnPersist,
+        onPersistAndNew: () => handleOnPersist({ createNew: true }),
+        onPersistAndDuplicate: () => handleOnPersist({ createNew: true, duplicate: true }),
+        onDelete,
+        onDeleteUnpublishedChanges,
+        onChangeStatus,
+        showDelete,
+        onPublish,
+        unPublish,
+        onDuplicate,
+        onPublishAndNew: () => handleOnPublish({ createNew: true }),
+        onPublishAndDuplicate: () => handleOnPublish({ createNew: true, duplicate: true }),
+        user,
+        hasChanged,
+        displayUrl,
+        collection,
+        hasWorkflow,
+        useOpenAuthoring,
+        hasUnpublishedChanges,
+        isNewEntry,
+        isModification,
+        currentStatus,
+        onLogoutClick,
+        loadDeployPreview,
+        deployPreview,
+        editorBackLink: editorBackLink || '',
+        t,
+      })}
+      <Editor key={draftKey}>
+        <ViewControls>
+          {collectionI18nEnabled && (
+            <EditorToggle
+              isActive={i18nVisible}
+              onClick={handleToggleI18n}
+              size="large"
+              type="page"
+              title={t('editor.editorInterface.toggleI18n')}
+            />
+          )}
+          {previewEnabled && (
+            <EditorToggle
+              isActive={previewVisibleResolved}
+              onClick={handleTogglePreview}
+              size="large"
+              type="eye"
+              title={t('editor.editorInterface.togglePreview')}
+            />
+          )}
+          {scrollSyncVisible && !(collection as any).editor?.visualEditing && (
+            <EditorToggle
+              isActive={scrollSyncEnabled}
+              onClick={handleToggleScrollSync}
+              size="large"
+              type="scroll"
+              title={t('editor.editorInterface.toggleScrollSync')}
+            />
+          )}
+        </ViewControls>
+        <EditorContent
+          i18nVisible={!!i18nVisible}
+          previewVisible={!!previewVisibleResolved}
+          editor={editor}
+          editorWithEditor={editorWithEditor}
+          editorWithPreview={editorWithPreview}
+        />
+      </Editor>
+    </EditorContainer>
+  );
 }
 
 export default EditorInterface;
