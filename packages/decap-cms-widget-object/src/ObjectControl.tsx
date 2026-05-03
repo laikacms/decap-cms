@@ -24,7 +24,6 @@ const styleStrings = {
   `,
 };
 
-/** Minimal shape for a widget control ref passed through controlRef */
 interface WidgetControlRef {
   props: { field: CmsField };
   validate?: () => void;
@@ -34,118 +33,45 @@ interface WidgetControlRef {
   };
 }
 
-interface ObjectControlProps {
-  /** Called when a nested field value changes (provided by Widget wrapper or ListControl) */
+export interface ObjectControlProps {
   onChangeObject: (
     field: CmsField,
     newValue: unknown,
     newMetadata?: Record<string, unknown>,
   ) => void;
-  /** Called to set validation errors for a specific field ID */
   onValidateObject?:
     | ((fieldId: string | CmsField, errors: Array<{ type: string; message: string }>) => void)
     | undefined;
-  /** The current object value */
   value?: CmsField | unknown;
-  /** The field configuration */
   field: CmsFieldObject & CmsFieldBase;
-  /** Unique field identifier */
   forID?: string;
-  /** CSS class name for the widget wrapper */
   classNameWrapper: string;
-  /** Whether this object is rendered inside a list widget */
   forList?: boolean;
-  /** Callback to register a ref for this control */
   controlRef?: ((ref: WidgetControlRef | null) => void) | undefined;
-  /** The connected EditorControl component for rendering nested fields */
   editorControl: React.ComponentType<Record<string, unknown>>;
-  /** Resolves a widget by name */
   resolveWidget: (name: string) => Record<string, unknown>;
-  /** Clears field errors for a given field ID */
   clearFieldErrors: (fieldId: string) => void;
-  /** Key used for validation tracking (typically the list item's uuid) */
   validationKey: string;
-  /** Map of field IDs to arrays of validation errors */
   fieldsErrors?: Record<string, unknown>;
-  /** Metadata for the field's collection */
   metadata?: Record<string, unknown>;
-  /** Whether this control has a validation error */
   hasError?: boolean;
-  /** Translation function */
   t: TranslateFunction;
-  /** Current locale for i18n */
   locale?: string;
-  /** Whether the object is collapsed (when inside a list) */
   collapsed?: boolean;
-  /** Parent field IDs for nested validation tracking */
   parentIds?: string[];
-  /** Returns whether a field is a duplicate (i18n) */
   isFieldDuplicate?: (field: CmsField) => boolean;
-  /** Returns whether a field should be hidden (i18n) */
   isFieldHidden?: (field: CmsField) => boolean;
 }
 
-interface ObjectControlState {
-  collapsed: boolean;
+export interface ObjectControlHandle {
+  validate(): void;
+  focus(path?: string): void;
 }
 
-export default class ObjectControl extends React.Component<ObjectControlProps, ObjectControlState> {
-  childRefs: Record<string, WidgetControlRef> = {};
-
-  processControlRef = (ref: WidgetControlRef | null) => {
-    if (!ref) return;
-    const name = ref.props.field.name;
-    this.childRefs[name as string] = ref;
-    this.props.controlRef?.(ref);
-  };
-
-  static defaultProps = {
-    value: {},
-  };
-
-  constructor(props: ObjectControlProps) {
-    super(props);
-    this.state = {
-      collapsed: props.field.collapsed ?? false,
-    };
-  }
-
-  /*
-   * Always update so that each nested widget has the option to update. This is
-   * required because ControlHOC provides a default `shouldComponentUpdate`
-   * which only updates if the value changes, but every widget must be allowed
-   * to override this.
-   */
-  shouldComponentUpdate() {
-    return true;
-  }
-
-  validate = () => {
-    const { field } = this.props;
-    const fields = field.fields;
-    fields.forEach((field: CmsField) => {
-      if (field.widget === 'hidden') return;
-      const name = field.name;
-      const control = this.childRefs[name];
-      if (!control) return;
-
-      if (control.innerWrappedControl?.validate) {
-        control.innerWrappedControl.validate();
-      } else {
-        control.validate?.();
-      }
-    });
-  };
-
-  getStableParentIds = memoize(
-    (parentIds: string[], forID: string) => [...parentIds, forID],
-    (parentIds: string[], forID: string) =>
-      JSON.stringify([parentIds, forID]) /* Fast enough for only ids */,
-  );
-
-  controlFor(field: CmsField, key?: number) {
+const ObjectControl = React.forwardRef<ObjectControlHandle, ObjectControlProps>(
+  function ObjectControl(props, ref) {
     const {
-      value,
+      value = {},
       onChangeObject,
       onValidateObject,
       clearFieldErrors,
@@ -156,130 +82,173 @@ export default class ObjectControl extends React.Component<ObjectControlProps, O
       isFieldDuplicate,
       isFieldHidden,
       locale,
-      collapsed,
       forID,
-    } = this.props;
+      forList,
+      hasError,
+      t,
+      field,
+      classNameWrapper,
+    } = props;
 
-    if (field.widget === 'hidden') {
-      return null;
+    const childRefs = React.useRef<Record<string, WidgetControlRef>>({});
+    const [collapsed, setCollapsed] = React.useState<boolean>(field.collapsed ?? false);
+
+    function processControlRef(childRef: WidgetControlRef | null) {
+      if (!childRef) return;
+      const name = childRef.props.field.name;
+      childRefs.current[name as string] = childRef;
+      props.controlRef?.(childRef);
     }
-    const fieldName = field.name;
-    const fieldValue = get(value, fieldName);
 
-    const isDuplicate = isFieldDuplicate && isFieldDuplicate(field);
-    const isHidden = isFieldHidden && isFieldHidden(field);
-
-    return (
-      <EditorControl
-        key={key}
-        field={field}
-        value={fieldValue}
-        onChange={onChangeObject}
-        clearFieldErrors={clearFieldErrors}
-        fieldsMetaData={metadata}
-        fieldsErrors={fieldsErrors}
-        onValidate={onValidateObject}
-        controlRef={this.processControlRef}
-        parentIds={this.getStableParentIds(parentIds || [], forID || '')}
-        isDisabled={isDuplicate}
-        isHidden={isHidden}
-        isFieldDuplicate={isFieldDuplicate}
-        isFieldHidden={isFieldHidden}
-        locale={locale}
-        isParentListCollapsed={collapsed}
-      />
+    React.useImperativeHandle(
+      ref,
+      () => ({
+        validate() {
+          const fields = field.fields;
+          fields.forEach((f: CmsField) => {
+            if (f.widget === 'hidden') return;
+            const control = childRefs.current[f.name];
+            if (!control) return;
+            if (control.innerWrappedControl?.validate) {
+              control.innerWrappedControl.validate();
+            } else {
+              control.validate?.();
+            }
+          });
+        },
+        focus(path?: string) {
+          if (collapsedRef.current) {
+            setCollapsed(false);
+            // Defer focus until after the collapse state has been applied.
+            requestAnimationFrame(() => {
+              if (path) {
+                const [fieldName, ...remainingPath] = path.split('.');
+                const control = childRefs.current[fieldName];
+                control?.focus?.(remainingPath.join('.'));
+              }
+            });
+          } else if (path) {
+            const [fieldName, ...remainingPath] = path.split('.');
+            const control = childRefs.current[fieldName];
+            control?.focus?.(remainingPath.join('.'));
+          }
+        },
+      }),
+      [field.fields],
     );
-  }
 
-  handleCollapseToggle = () => {
-    this.setState({ collapsed: !this.state.collapsed });
-  };
+    // Track collapsed in a ref so the imperative handle can branch on it
+    // without being recreated on every collapse toggle.
+    const collapsedRef = React.useRef(collapsed);
+    collapsedRef.current = forList ? !!props.collapsed : collapsed;
 
-  focus(path?: string) {
-    if (this.state.collapsed) {
-      this.setState({ collapsed: false }, () => {
-        if (path) {
-          const [fieldName, ...remainingPath] = path.split('.');
-          const control = this.childRefs[fieldName];
-          control?.focus?.(remainingPath.join('.'));
-        }
-      });
-    } else if (path) {
-      const [fieldName, ...remainingPath] = path.split('.');
-      const control = this.childRefs[fieldName];
-      control?.focus?.(remainingPath.join('.'));
+    const getStableParentIds = React.useMemo(
+      () =>
+        memoize(
+          (parentIdsArr: string[], forIDArg: string) => [...parentIdsArr, forIDArg],
+          (parentIdsArr: string[], forIDArg: string) =>
+            JSON.stringify([parentIdsArr, forIDArg]) /* fast for ids */,
+        ),
+      [],
+    );
+
+    function handleCollapseToggle() {
+      setCollapsed(prev => !prev);
     }
-  }
 
-  renderFields = (multiFields: CmsField[]) => {
-    return multiFields.map((f, idx) => this.controlFor(f, idx));
-  };
+    function controlFor(f: CmsField, key?: number) {
+      if (f.widget === 'hidden') return null;
+      const fieldName = f.name;
+      const fieldValue = get(value, fieldName);
+      const isDuplicate = isFieldDuplicate?.(f);
+      const isHidden = isFieldHidden?.(f);
 
-  objectLabel = (): React.ReactNode => {
-    const { value, field } = this.props;
-    const label = field.label || field.name;
-    const summary = field.summary;
-    return summary
-      ? stringTemplate.compileStringTemplate(
-          summary,
-          null,
-          '',
-          (value && isObject(value) ? value : {}) as Record<string, unknown>,
-        )
-      : (label as React.ReactNode);
-  };
-
-  render() {
-    const { field, forID, classNameWrapper, forList, hasError, t } = this.props;
-    const collapsed = forList ? this.props.collapsed : this.state.collapsed;
-    const multiFields = field.fields as CmsField[];
-
-    if (multiFields) {
       return (
-        <ClassNames>
-          {({ css, cx }) => (
-            <div
-              id={forID}
-              className={cx(
-                classNameWrapper,
-                css`
-                  ${styleStrings.objectWidgetTopBarContainer}
-                `,
-                {
-                  [css`
-                    ${styleStrings.nestedObjectControl}
-                  `]: forList,
-                },
-                {
-                  [css`
-                    border-color: ${colors.textFieldBorder};
-                  `]: forList ? !hasError : false,
-                },
-              )}
-            >
-              {forList ? null : (
-                <ObjectWidgetTopBar
-                  collapsed={collapsed}
-                  onCollapseToggle={this.handleCollapseToggle}
-                  heading={collapsed && this.objectLabel()}
-                  t={t}
-                />
-              )}
-              <div
-                className={cx({
-                  [css`
-                    ${styleStrings.collapsedObjectControl}
-                  `]: collapsed,
-                })}
-              >
-                {this.renderFields(multiFields)}
-              </div>
-            </div>
-          )}
-        </ClassNames>
+        <EditorControl
+          key={key}
+          field={f}
+          value={fieldValue}
+          onChange={onChangeObject}
+          clearFieldErrors={clearFieldErrors}
+          fieldsMetaData={metadata}
+          fieldsErrors={fieldsErrors}
+          onValidate={onValidateObject}
+          controlRef={processControlRef}
+          parentIds={getStableParentIds(parentIds || [], forID || '')}
+          isDisabled={isDuplicate}
+          isHidden={isHidden}
+          isFieldDuplicate={isFieldDuplicate}
+          isFieldHidden={isFieldHidden}
+          locale={locale}
+          isParentListCollapsed={collapsedRef.current}
+        />
       );
     }
 
-    return <h3>No field(s) defined for this widget</h3>;
-  }
-}
+    function objectLabel(): React.ReactNode {
+      const label = field.label || field.name;
+      const summary = field.summary;
+      return summary
+        ? stringTemplate.compileStringTemplate(
+            summary,
+            null,
+            '',
+            (value && isObject(value) ? value : {}) as Record<string, unknown>,
+          )
+        : (label as React.ReactNode);
+    }
+
+    const renderedCollapsed = forList ? props.collapsed : collapsed;
+    const multiFields = field.fields as CmsField[];
+
+    if (!multiFields) {
+      return <h3>No field(s) defined for this widget</h3>;
+    }
+
+    return (
+      <ClassNames>
+        {({ css, cx }) => (
+          <div
+            id={forID}
+            className={cx(
+              classNameWrapper,
+              css`
+                ${styleStrings.objectWidgetTopBarContainer}
+              `,
+              {
+                [css`
+                  ${styleStrings.nestedObjectControl}
+                `]: forList,
+              },
+              {
+                [css`
+                  border-color: ${colors.textFieldBorder};
+                `]: forList ? !hasError : false,
+              },
+            )}
+          >
+            {forList ? null : (
+              <ObjectWidgetTopBar
+                collapsed={renderedCollapsed}
+                onCollapseToggle={handleCollapseToggle}
+                heading={renderedCollapsed && objectLabel()}
+                t={t}
+              />
+            )}
+            <div
+              className={cx({
+                [css`
+                  ${styleStrings.collapsedObjectControl}
+                `]: renderedCollapsed,
+              })}
+            >
+              {multiFields.map((f, idx) => controlFor(f, idx))}
+            </div>
+          </div>
+        )}
+      </ClassNames>
+    );
+  },
+);
+
+export default ObjectControl;
