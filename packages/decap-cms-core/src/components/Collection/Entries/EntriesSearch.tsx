@@ -1,7 +1,5 @@
 import React from 'react';
-import { connect } from 'react-redux';
 import { Cursor } from 'decap-cms-lib-util';
-
 
 import { selectSearchedEntries, selectUnpublishedEntry } from '../../../reducers';
 import {
@@ -9,55 +7,51 @@ import {
   clearSearch as actionClearSearch,
 } from '../../../actions/search';
 import Entries from './Entries';
+import { useAppDispatch, useAppSelector } from '../../../hooks/useRedux';
 
-import type { CmsCollectionState, CmsCollections, CmsEntry } from 'decap-cms-lib-util';
+import type { CmsCollections } from 'decap-cms-lib-util';
 
 interface EntriesSearchProps {
-  isFetching?: boolean;
-  searchEntries: (searchTerm: string, collectionNames: string[], page?: number) => void;
-  clearSearch: () => void;
+  collections: CmsCollections;
   searchTerm: string;
-  collections?: CmsCollectionState[];
-  collectionNames?: string[];
-  entries?: CmsEntry[];
-  page?: number;
-  getWorkflowStatus?: (collectionName: string, slug: string) => string | null;
 }
 
-function EntriesSearch({
-  isFetching,
-  searchEntries,
-  clearSearch,
-  searchTerm,
-  collections,
-  collectionNames,
-  entries,
-  page,
-  getWorkflowStatus,
-}: EntriesSearchProps) {
-  const searchEntriesRef = React.useRef(searchEntries);
-  searchEntriesRef.current = searchEntries;
-  const clearSearchRef = React.useRef(clearSearch);
-  clearSearchRef.current = clearSearch;
+export default function EntriesSearch({ collections, searchTerm }: EntriesSearchProps) {
+  const dispatch = useAppDispatch();
+  const collectionValues = React.useMemo(() => Object.values(collections), [collections]);
+  const collectionNames = React.useMemo(() => Object.keys(collections), [collections]);
+  const collectionNamesKey = React.useMemo(
+    () => JSON.stringify(collectionNames),
+    [collectionNames],
+  );
 
-  const collectionNamesKey = JSON.stringify(collectionNames || []);
+  const isFetching = useAppSelector((state: any) => state.search.isFetching);
+  const page = useAppSelector((state: any) => state.search.page);
+  const entries = useAppSelector((state: any) => selectSearchedEntries(state, collectionNames));
+
+  const getWorkflowStatus = useAppSelector(
+    (state: any) => (collectionName: string, slug: string) => {
+      const unpublishedEntry = selectUnpublishedEntry(state, collectionName, slug);
+      return unpublishedEntry ? (unpublishedEntry as any).status : null;
+    },
+  );
 
   React.useEffect(() => {
-    searchEntriesRef.current(searchTerm, collectionNames || []);
-    // collectionNamesKey is included so re-search occurs when names change.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    dispatch(actionSearchEntries(searchTerm, JSON.parse(collectionNamesKey)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mirror prior behavior
   }, [searchTerm, collectionNamesKey]);
 
   React.useEffect(() => {
     return () => {
-      clearSearchRef.current();
+      dispatch(actionClearSearch());
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- unmount only
   }, []);
 
   function handleCursorActions(action: string) {
     if (action === 'append_next') {
       const nextPage = (page || 0) + 1;
-      searchEntries(searchTerm, collectionNames || [], nextPage);
+      dispatch(actionSearchEntries(searchTerm, collectionNames, nextPage));
     }
   }
 
@@ -69,36 +63,10 @@ function EntriesSearch({
     <Entries
       cursor={cursor}
       handleCursorActions={handleCursorActions}
-      collections={collections as any}
+      collections={collectionValues as any}
       entries={entries}
       isFetching={isFetching}
       getWorkflowStatus={getWorkflowStatus}
     />
   );
 }
-
-function mapStateToProps(
-  state: any,
-  ownProps: { collections: CmsCollections; searchTerm: string },
-) {
-  const { searchTerm } = ownProps;
-  const collections = Object.values(ownProps.collections);
-  const collectionNames = Object.keys(ownProps.collections);
-  const isFetching = state.search.isFetching;
-  const page = state.search.page;
-  const entries = selectSearchedEntries(state, collectionNames);
-
-  function getWorkflowStatus(collectionName: string, slug: string) {
-    const unpublishedEntry = selectUnpublishedEntry(state, collectionName, slug);
-    return unpublishedEntry ? (unpublishedEntry as any).status : null;
-  }
-
-  return { isFetching, page, collections, collectionNames, entries, searchTerm, getWorkflowStatus };
-}
-
-const mapDispatchToProps = {
-  searchEntries: actionSearchEntries,
-  clearSearch: actionClearSearch,
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(EntriesSearch);
