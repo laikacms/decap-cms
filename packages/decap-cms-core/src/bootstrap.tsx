@@ -1,6 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { Provider, connect } from 'react-redux';
+import { Provider } from 'react-redux';
+import { useAppSelector } from './hooks/useRedux';
 import { unstable_HistoryRouter as HistoryRouter } from 'react-router-dom';
 import { GlobalStyles } from 'decap-cms-ui-default';
 import { I18n } from 'react-polyglot';
@@ -22,7 +23,9 @@ import type { CmsConfig } from 'decap-cms-lib-util';
 
 const ROOT_ID = 'nc-root';
 
-function TranslatedApp({ locale, config }: { locale: string; config: CmsConfig }) {
+function ConnectedTranslatedApp() {
+  const config = useAppSelector((state: any) => state.config as CmsConfig);
+  const locale = useAppSelector((state: any) => selectLocale(state.config));
   return (
     <I18n locale={locale} messages={getPhrases(locale)}>
       <ErrorBoundary showBackup config={config}>
@@ -33,12 +36,6 @@ function TranslatedApp({ locale, config }: { locale: string; config: CmsConfig }
     </I18n>
   );
 }
-
-function mapDispatchToProps(state: { config: CmsConfig }) {
-  return { locale: selectLocale(state.config), config: state.config };
-}
-
-const ConnectedTranslatedApp = connect(mapDispatchToProps)(TranslatedApp);
 
 function bootstrap(opts: { config?: CmsConfig } = {}) {
   const { config } = opts;
