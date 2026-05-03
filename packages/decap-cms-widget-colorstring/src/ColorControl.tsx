@@ -84,88 +84,83 @@ interface ColorControlProps {
   field: Record<string, unknown>;
 }
 
-export default class ColorControl extends React.Component<ColorControlProps> {
-  static defaultProps = {
-    value: '',
-  };
+export default function ColorControl({
+  forID,
+  value = '',
+  field,
+  onChange,
+  classNameWrapper,
+  setActiveStyle,
+  setInactiveStyle,
+}: ColorControlProps) {
+  const [showColorPicker, setShowColorPicker] = React.useState(false);
 
-  state = {
-    showColorPicker: false,
-  };
-  // show/hide color picker
-  handleClick = () => {
-    this.setState({ showColorPicker: !this.state.showColorPicker });
-  };
-  handleClear = () => {
-    this.props.onChange('');
-  };
-  handleClose = () => {
-    this.setState({ showColorPicker: false });
-  };
-  handleChange = (color: ColorResult) => {
+  function handleClick() {
+    setShowColorPicker(prev => !prev);
+  }
+
+  function handleClear() {
+    onChange('');
+  }
+
+  function handleClose() {
+    setShowColorPicker(false);
+  }
+
+  function handleChange(color: ColorResult) {
     const alpha = color.rgb.a ?? 1;
     const formattedColor =
       alpha < 1 ? `rgba(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${alpha})` : color.hex;
-    this.props.onChange(formattedColor);
-  };
-  render() {
-    const { forID, value, field, onChange, classNameWrapper, setActiveStyle, setInactiveStyle } =
-      this.props;
-
-    const allowInput = field.allowInput ?? false;
-
-    // clear button is not displayed if allowInput: true
-    const showClearButton = !allowInput && value;
-
-    return (
-      <>
-        {' '}
-        {showClearButton && (
-          <ClearButtonWrapper>
-            <ClearButton onClick={this.handleClear}>
-              <ClearIcon />
-            </ClearButton>
-          </ClearButtonWrapper>
-        )}
-        <ColorSwatchBackground />
-        <ColorSwatch
-          background={tinycolor(this.props.value).isValid() ? this.props.value : '#fff'}
-          color={
-            tinycolor(this.props.value).isValid() ? 'rgba(255, 255, 255, 0)' : 'rgb(223, 223, 227)'
-          }
-          onClick={this.handleClick}
-        >
-          ?
-        </ColorSwatch>
-        {this.state.showColorPicker && (
-          <ColorPickerContainer>
-            <ClickOutsideDiv onClick={this.handleClose} />
-            <ChromePicker
-              color={value || ''}
-              onChange={this.handleChange}
-              disableAlpha={!(field.enableAlpha ?? false)}
-            />
-          </ColorPickerContainer>
-        )}
-        <input
-          // text input with padding left for the color swatch
-          type="text"
-          id={forID}
-          className={classNameWrapper}
-          value={value || ''}
-          onChange={e => onChange(e.target.value)}
-          onFocus={setActiveStyle}
-          onBlur={setInactiveStyle}
-          style={{
-            paddingLeft: '75px',
-            paddingRight: '70px',
-            color: !allowInput ? '#bbb' : undefined,
-          }}
-          // make readonly and open color picker on click if set to allowInput: false
-          onClick={!allowInput ? this.handleClick : undefined}
-          readOnly={!allowInput}
-        />
-      </>
-    );
+    onChange(formattedColor);
   }
+
+  const allowInput = field.allowInput ?? false;
+  const showClearButton = !allowInput && value;
+
+  return (
+    <>
+      {' '}
+      {showClearButton && (
+        <ClearButtonWrapper>
+          <ClearButton onClick={handleClear}>
+            <ClearIcon />
+          </ClearButton>
+        </ClearButtonWrapper>
+      )}
+      <ColorSwatchBackground />
+      <ColorSwatch
+        background={tinycolor(value).isValid() ? value : '#fff'}
+        color={tinycolor(value).isValid() ? 'rgba(255, 255, 255, 0)' : 'rgb(223, 223, 227)'}
+        onClick={handleClick}
+      >
+        ?
+      </ColorSwatch>
+      {showColorPicker && (
+        <ColorPickerContainer>
+          <ClickOutsideDiv onClick={handleClose} />
+          <ChromePicker
+            color={value || ''}
+            onChange={handleChange}
+            disableAlpha={!(field.enableAlpha ?? false)}
+          />
+        </ColorPickerContainer>
+      )}
+      <input
+        type="text"
+        id={forID}
+        className={classNameWrapper}
+        value={value || ''}
+        onChange={e => onChange(e.target.value)}
+        onFocus={setActiveStyle}
+        onBlur={setInactiveStyle}
+        style={{
+          paddingLeft: '75px',
+          paddingRight: '70px',
+          color: !allowInput ? '#bbb' : undefined,
+        }}
+        onClick={!allowInput ? handleClick : undefined}
+        readOnly={!allowInput}
+      />
+    </>
+  );
 }
