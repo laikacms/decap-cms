@@ -1,10 +1,11 @@
 import React from 'react';
 import styled from '@emotion/styled';
-import type { SerializedStyles } from '@emotion/react';
 import { css, keyframes } from '@emotion/react';
 import { CSSTransition } from 'react-transition-group';
 
 import { colors, zIndex } from './styles';
+
+import type { SerializedStyles } from '@emotion/react';
 
 interface LoaderStyles {
   disabled: SerializedStyles;
@@ -75,68 +76,39 @@ export interface LoaderProps {
   active?: boolean;
 }
 
-interface LoaderState {
-  currentItem: number;
-}
+export function Loader({ children, className }: LoaderProps) {
+  const [currentItem, setCurrentItem] = React.useState(0);
 
-export class Loader extends React.Component<LoaderProps, LoaderState> {
-  state: LoaderState = {
-    currentItem: 0,
-  };
-
-  interval: ReturnType<typeof setInterval> | null = null;
-
-  componentWillUnmount(): void {
-    if (this.interval) {
-      clearInterval(this.interval);
-    }
-  }
-
-  setAnimation = (): void => {
-    if (this.interval) return;
-    const { children } = this.props;
-
+  React.useEffect(() => {
     if (!Array.isArray(children)) return;
-
-    this.interval = setInterval(() => {
-      const nextItem =
-        this.state.currentItem === children.length - 1 ? 0 : this.state.currentItem + 1;
-      this.setState({ currentItem: nextItem });
+    const interval = setInterval(() => {
+      setCurrentItem(prev => (prev === children.length - 1 ? 0 : prev + 1));
     }, 5000);
-  };
+    return () => clearInterval(interval);
+  }, [children]);
 
-  renderChild = (): React.ReactNode => {
-    const { children } = this.props;
-    const { currentItem } = this.state;
-    if (!children) {
-      return null;
-    } else if (typeof children === 'string') {
-      return <LoaderText>{children}</LoaderText>;
-    } else if (Array.isArray(children)) {
-      this.setAnimation();
-      return (
-        <LoaderText>
-          <CSSTransition
-            classNames={{
-              enter: styles.enter.name,
-              enterActive: styles.enterActive.name,
-              exit: styles.exit.name,
-              exitActive: styles.exitActive.name,
-            }}
-            timeout={500}
-          >
-            <LoaderItem key={currentItem}>{children[currentItem]}</LoaderItem>
-          </CSSTransition>
-        </LoaderText>
-      );
-    }
-    return null;
-  };
-
-  render(): React.ReactElement {
-    const { className } = this.props;
-    return <div className={className}>{this.renderChild()}</div>;
+  let content: React.ReactNode = null;
+  if (typeof children === 'string') {
+    content = <LoaderText>{children}</LoaderText>;
+  } else if (Array.isArray(children)) {
+    content = (
+      <LoaderText>
+        <CSSTransition
+          classNames={{
+            enter: styles.enter.name,
+            enterActive: styles.enterActive.name,
+            exit: styles.exit.name,
+            exitActive: styles.exitActive.name,
+          }}
+          timeout={500}
+        >
+          <LoaderItem key={currentItem}>{children[currentItem]}</LoaderItem>
+        </CSSTransition>
+      </LoaderText>
+    );
   }
+
+  return <div className={className}>{content}</div>;
 }
 
 export interface StyledLoaderProps {

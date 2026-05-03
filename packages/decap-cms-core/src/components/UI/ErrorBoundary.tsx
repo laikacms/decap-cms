@@ -1,14 +1,13 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { translate } from 'react-polyglot';
 import styled from '@emotion/styled';
 import yaml from 'yaml';
 import truncate from 'lodash/truncate';
 import copyToClipboard from 'copy-text-to-clipboard';
 import { localForage } from 'decap-cms-lib-util';
-import type { TranslateFunction } from 'decap-cms-ui-default';
 import { buttons, colors } from 'decap-cms-ui-default';
 
+import type { TranslateFunction } from 'decap-cms-ui-default';
 import type { CmsConfig } from 'decap-cms-lib-util';
 
 const ISSUE_URL = 'https://github.com/decaporg/decap-cms/issues/new';
@@ -148,12 +147,6 @@ interface ErrorBoundaryProps {
 }
 
 export class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
-  static propTypes = {
-    children: PropTypes.node,
-    t: PropTypes.func.isRequired,
-    config: PropTypes.object.isRequired,
-  };
-
   state = {
     hasError: false,
     errorMessage: '',
@@ -168,11 +161,6 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
       errorMessage: error.stack || error.toString(),
       errorTitle: error.toString(),
     };
-  }
-
-  componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(ErrorBoundary.propTypes, this.props, 'prop', 'ErrorBoundary');
   }
 
   shouldComponentUpdate(nextProps: ErrorBoundaryProps, nextState: typeof this.state) {

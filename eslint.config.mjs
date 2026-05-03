@@ -1,11 +1,10 @@
 import eslint from '@eslint/js';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
-// They have not yet upgraded to ESLint v10
-// import reactPlugin from 'eslint-plugin-react';
+import reactPlugin from 'eslint-plugin-react';
+import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import cypressPlugin from 'eslint-plugin-cypress';
-// They have not yet upgraded to ESLint v10
-// import importPlugin from 'eslint-plugin-import';
+import importPlugin from 'eslint-plugin-import-x';
 import unicornPlugin from 'eslint-plugin-unicorn';
 import prettierConfig from 'eslint-config-prettier';
 import fs from 'fs';
@@ -47,9 +46,9 @@ export default tseslint.config(
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.mjs'],
     plugins: {
-      // react: reactPlugin,
-      // TODO: re-enable when they upgrade to ESLint v10
-      // import: importPlugin,
+      react: reactPlugin,
+      'react-hooks': reactHooksPlugin,
+      import: importPlugin,
       unicorn: unicornPlugin,
       '@emotion': emotionPlugin,
     },
@@ -73,7 +72,7 @@ export default tseslint.config(
     },
     settings: {
       react: {
-        version: 'detect',
+        version: '19.2',
       },
       'import/resolver': {
         node: {
@@ -96,23 +95,23 @@ export default tseslint.config(
       'no-duplicate-imports': 'off', // handled by @typescript-eslint
 
       // React rules
-      // TODO: re-enable when they upgrade to ESLint v10
-      // 'react/prop-types': 'off',
-      // 'react/no-unknown-property': [
-      //   'error',
-      //   { ignore: ['css', 'bold', 'italic', 'delete', 'strikethrough'] },
-      // ],
+      'react/prop-types': 'off',
+      'react/no-unknown-property': [
+        'error',
+        { ignore: ['css', 'bold', 'italic', 'delete', 'strikethrough'] },
+      ],
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
 
       // Import rules
-      // TODO: re-enable when they upgrade to ESLint v10
-      // 'import/no-named-as-default': 'off',
-      // 'import/order': [
-      //   'error',
-      //   {
-      //     'newlines-between': 'always',
-      //     groups: [['builtin', 'external'], ['internal', 'parent', 'sibling', 'index'], ['type']],
-      //   },
-      // ],
+      'import/no-named-as-default': 'off',
+      'import/order': [
+        'error',
+        {
+          'newlines-between': 'always',
+          groups: [['builtin', 'external'], ['internal', 'parent', 'sibling', 'index'], ['type']],
+        },
+      ],
 
       // Emotion rules
       '@emotion/no-vanilla': 'error',

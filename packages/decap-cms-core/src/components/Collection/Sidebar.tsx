@@ -3,14 +3,15 @@ import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 import { translate } from 'react-polyglot';
 import { NavLink } from 'react-router-dom';
-import type { TranslateFunction } from 'decap-cms-ui-default';
 import { Icon, components, colors } from 'decap-cms-ui-default';
 
-import type { CmsCollectionState, CmsCollections } from 'decap-cms-lib-util';
 
 import { searchCollections } from '../../actions/collections';
 import CollectionSearch from './CollectionSearch';
 import NestedCollection from './NestedCollection';
+
+import type { CmsCollectionState, CmsCollections } from 'decap-cms-lib-util';
+import type { TranslateFunction } from 'decap-cms-ui-default';
 
 const styles = {
   sidebarNavLinkActive: css`
@@ -75,57 +76,59 @@ interface SidebarProps {
   t: TranslateFunction;
 }
 
-export class Sidebar extends React.Component<SidebarProps> {
-  renderLink = (collection: CmsCollectionState, filterTerm: string | undefined) => {
-    const collectionName = collection.name;
-    if (collection.nested) {
-      return (
-        <li key={collectionName}>
-          <NestedCollection
-            collection={collection}
-            filterTerm={filterTerm as string}
-            data-testid={collectionName}
-          />
-        </li>
-      );
-    }
+function renderLink(collection: CmsCollectionState, filterTerm: string | undefined) {
+  const collectionName = collection.name;
+  if (collection.nested) {
     return (
       <li key={collectionName}>
-        <SidebarNavLink
-          to={`/collections/${collectionName}`}
-          className={({ isActive }: { isActive: boolean }) => (isActive ? 'active' : '')}
+        <NestedCollection
+          collection={collection}
+          filterTerm={filterTerm as string}
           data-testid={collectionName}
-        >
-          <Icon type="write" />
-          {collection.label}
-        </SidebarNavLink>
+        />
       </li>
     );
-  };
-
-  render() {
-    const { collections, collection, isSearchEnabled, searchTerm, t, filterTerm } = this.props;
-    return (
-      <SidebarContainer>
-        <SidebarHeading>{t('collection.sidebar.collections')}</SidebarHeading>
-        {isSearchEnabled && (
-          <CollectionSearch
-            searchTerm={searchTerm || ''}
-            collections={collections}
-            collection={collection}
-            onSubmit={(query: string, collection?: string) =>
-              searchCollections(query, collection as string)
-            }
-          />
-        )}
-        <SidebarNavList>
-          {Object.values(collections)
-            .filter((collection: CmsCollectionState) => collection.hide !== true)
-            .map((collection: CmsCollectionState) => this.renderLink(collection, filterTerm))}
-        </SidebarNavList>
-      </SidebarContainer>
-    );
   }
+  return (
+    <li key={collectionName}>
+      <SidebarNavLink
+        to={`/collections/${collectionName}`}
+        className={({ isActive }: { isActive: boolean }) => (isActive ? 'active' : '')}
+        data-testid={collectionName}
+      >
+        <Icon type="write" />
+        {collection.label}
+      </SidebarNavLink>
+    </li>
+  );
+}
+
+export function Sidebar({
+  collections,
+  collection,
+  isSearchEnabled,
+  searchTerm,
+  t,
+  filterTerm,
+}: SidebarProps) {
+  return (
+    <SidebarContainer>
+      <SidebarHeading>{t('collection.sidebar.collections')}</SidebarHeading>
+      {isSearchEnabled && (
+        <CollectionSearch
+          searchTerm={searchTerm || ''}
+          collections={collections}
+          collection={collection}
+          onSubmit={(query: string, c?: string) => searchCollections(query, c as string)}
+        />
+      )}
+      <SidebarNavList>
+        {Object.values(collections)
+          .filter((c: CmsCollectionState) => c.hide !== true)
+          .map((c: CmsCollectionState) => renderLink(c, filterTerm))}
+      </SidebarNavList>
+    </SidebarContainer>
+  );
 }
 
 export default translate()(Sidebar);

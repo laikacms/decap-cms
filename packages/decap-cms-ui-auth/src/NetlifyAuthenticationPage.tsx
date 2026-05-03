@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import styled from '@emotion/styled';
 import partial from 'lodash/partial';
@@ -11,6 +10,7 @@ import {
   lengths,
   zIndex,
 } from 'decap-cms-ui-default';
+
 import type {
   AuthClient,
   NetlifyAuthenticationPageProps,
@@ -57,201 +57,165 @@ const ErrorMessage = styled.p`
   color: ${colors.errorText};
 `;
 
-let component: NetlifyAuthenticationPage | null = null;
+interface NetlifyAuthHandlers {
+  handleIdentityLogin: (user: NetlifyIdentityUser) => void;
+  handleIdentityLogout: () => void;
+  handleIdentityError: (err: Error) => void;
+}
+
+const handlersRef: { current: NetlifyAuthHandlers | null } = { current: null };
 
 if (window.netlifyIdentity) {
   window.netlifyIdentity.on('login', (user: NetlifyIdentityUser) => {
-    if (component) {
-      component.handleIdentityLogin(user);
-    }
+    handlersRef.current?.handleIdentityLogin(user);
   });
   window.netlifyIdentity.on('logout', () => {
-    if (component) {
-      component.handleIdentityLogout();
-    }
+    handlersRef.current?.handleIdentityLogout();
   });
   window.netlifyIdentity.on('error', (err: Error) => {
-    if (component) {
-      component.handleIdentityError(err);
-    }
+    handlersRef.current?.handleIdentityError(err);
   });
 }
 
-export default class NetlifyAuthenticationPage extends React.Component<
-  NetlifyAuthenticationPageProps,
-  NetlifyAuthenticationPageState
-> {
-  static authClient: () => Promise<AuthClient>;
+function NetlifyAuthenticationPage({ error, inProgress, config, onLogin, t }: NetlifyAuthenticationPageProps) {
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [errors, setErrors] = React.useState<NetlifyAuthenticationPageState['errors']>({});
 
-  static propTypes = {
-    onLogin: PropTypes.func.isRequired,
-    inProgress: PropTypes.bool.isRequired,
-    error: PropTypes.node,
-    config: PropTypes.object.isRequired,
-    t: PropTypes.func.isRequired,
-  };
+  const onLoginRef = React.useRef(onLogin);
+  onLoginRef.current = onLogin;
+  const tRef = React.useRef(t);
+  tRef.current = t;
 
-  loggedIn = false;
-
-  constructor(props: NetlifyAuthenticationPageProps) {
-    super(props);
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    component = this;
-  }
-
-  state: NetlifyAuthenticationPageState = { email: '', password: '', errors: {} };
-
-  componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(
-      NetlifyAuthenticationPage.propTypes,
-      this.props,
-      'prop',
-      'GitGatewayAuthenticationPage',
-    );
-
-    if (!this.loggedIn && window.netlifyIdentity && window.netlifyIdentity.currentUser()) {
-      this.props.onLogin(window.netlifyIdentity.currentUser()!);
+  React.useEffect(() => {
+    handlersRef.current = {
+      handleIdentityLogin(user: NetlifyIdentityUser) {
+        onLoginRef.current(user);
+        window.netlifyIdentity?.close();
+      },
+      handleIdentityLogout() {
+        window.netlifyIdentity?.open();
+      },
+      handleIdentityError(err: Error) {
+        if (err?.message?.match(/^Failed to load settings from.+\.netlify\/identity$/)) {
+          window.netlifyIdentity?.close();
+          setErrors(prev => ({ ...prev, identity: tRef.current('auth.errors.identitySettings') }));
+        }
+      },
+    };
+    if (window.netlifyIdentity?.currentUser()) {
+      onLoginRef.current(window.netlifyIdentity.currentUser()!);
       window.netlifyIdentity.close();
     }
-  }
+    return () => {
+      handlersRef.current = null;
+    };
+  }, []);
 
-  componentWillUnmount() {
-    component = null;
-  }
-
-  handleIdentityLogin = (user: NetlifyIdentityUser) => {
-    this.props.onLogin(user);
-    window.netlifyIdentity?.close();
-  };
-
-  handleIdentityLogout = () => {
-    window.netlifyIdentity?.open();
-  };
-
-  handleIdentityError = (err: Error) => {
-    if (err?.message?.match(/^Failed to load settings from.+\.netlify\/identity$/)) {
-      window.netlifyIdentity?.close();
-      this.setState({
-        errors: { identity: this.props.t('auth.errors.identitySettings') },
-      });
-    }
-  };
-
-  handleIdentity = () => {
+  function handleIdentity() {
     const user = window.netlifyIdentity?.currentUser();
     if (user) {
-      this.props.onLogin(user);
+      onLogin(user);
     } else {
       window.netlifyIdentity?.open();
     }
-  };
+  }
 
-  handleChange = (name: 'email' | 'password', e: React.ChangeEvent<HTMLInputElement>) => {
-    this.setState({ ...this.state, [name]: e.target.value });
-  };
+  function handleChange(name: 'email' | 'password', e: React.ChangeEvent<HTMLInputElement>) {
+    if (name === 'email') setEmail(e.target.value);
+    else setPassword(e.target.value);
+  }
 
-  handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    const { email, password } = this.state;
-    const { t } = this.props;
-    const errors: NetlifyAuthenticationPageState['errors'] = {};
-    if (!email) {
-      errors.email = t('auth.errors.email');
-    }
-    if (!password) {
-      errors.password = t('auth.errors.password');
-    }
+    const nextErrors: NetlifyAuthenticationPageState['errors'] = {};
+    if (!email) nextErrors.email = t('auth.errors.email');
+    if (!password) nextErrors.password = t('auth.errors.password');
 
-    if (Object.keys(errors).length > 0) {
-      this.setState({ errors });
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors);
       return;
     }
 
     try {
       const client = await NetlifyAuthenticationPage.authClient();
-      const user = await client.login(this.state.email, this.state.password, true);
-      this.props.onLogin(user);
-    } catch (error: unknown) {
-      const err = error as { description?: string; msg?: string };
-      this.setState({
-        errors: { server: err.description || err.msg || String(error) },
-        loggingIn: false,
-      });
+      const user = await client.login(email, password, true);
+      onLogin(user);
+    } catch (err: unknown) {
+      const e = err as { description?: string; msg?: string };
+      setErrors({ server: e.description || e.msg || String(err) });
     }
-  };
+  }
 
-  render() {
-    const { errors } = this.state;
-    const { error, inProgress, config, t } = this.props;
-
-    if (window.netlifyIdentity) {
-      if (errors.identity) {
-        return (
-          <AuthenticationPage
-            logoUrl={config.logo?.src} // Deprecated, replaced by `logo.src`
-            logo={config.logo}
-            siteUrl={config.site_url}
-            onLogin={this.handleIdentity}
-            renderPageContent={() => (
-              <a
-                href="https://docs.netlify.com/visitor-access/git-gateway/#setup-and-settings"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {errors.identity}
-              </a>
-            )}
-            t={t}
-          />
-        );
-      } else {
-        return (
-          <AuthenticationPage
-            logoUrl={config.logo?.src} // Deprecated, replaced by `logo.src`
-            logo={config.logo}
-            siteUrl={config.site_url}
-            onLogin={this.handleIdentity}
-            renderButtonContent={() => t('auth.loginWithNetlifyIdentity')}
-            t={t}
-          />
-        );
-      }
+  if (window.netlifyIdentity) {
+    if (errors.identity) {
+      return (
+        <AuthenticationPage
+          logoUrl={config.logo?.src} // Deprecated, replaced by `logo.src`
+          logo={config.logo}
+          siteUrl={config.site_url}
+          onLogin={handleIdentity}
+          renderPageContent={() => (
+            <a
+              href="https://docs.netlify.com/visitor-access/git-gateway/#setup-and-settings"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {errors.identity}
+            </a>
+          )}
+          t={t}
+        />
+      );
     }
-
     return (
       <AuthenticationPage
         logoUrl={config.logo?.src} // Deprecated, replaced by `logo.src`
         logo={config.logo}
         siteUrl={config.site_url}
-        renderPageContent={() => (
-          <AuthForm onSubmit={this.handleLogin}>
-            {!error ? null : <ErrorMessage>{error}</ErrorMessage>}
-            {!errors.server ? null : <ErrorMessage>{String(errors.server)}</ErrorMessage>}
-            <ErrorMessage>{errors.email || null}</ErrorMessage>
-            <AuthInput
-              type="text"
-              name="email"
-              placeholder="Email"
-              value={this.state.email}
-              onChange={partial(this.handleChange, 'email')}
-            />
-            <ErrorMessage>{errors.password || null}</ErrorMessage>
-            <AuthInput
-              type="password"
-              name="password"
-              placeholder="Password"
-              value={this.state.password}
-              onChange={partial(this.handleChange, 'password')}
-            />
-            <LoginButton disabled={inProgress}>
-              {inProgress ? t('auth.loggingIn') : t('auth.login')}
-            </LoginButton>
-          </AuthForm>
-        )}
+        onLogin={handleIdentity}
+        renderButtonContent={() => t('auth.loginWithNetlifyIdentity')}
         t={t}
       />
     );
   }
+
+  return (
+    <AuthenticationPage
+      logoUrl={config.logo?.src} // Deprecated, replaced by `logo.src`
+      logo={config.logo}
+      siteUrl={config.site_url}
+      renderPageContent={() => (
+        <AuthForm onSubmit={handleLogin}>
+          {!error ? null : <ErrorMessage>{error}</ErrorMessage>}
+          {!errors.server ? null : <ErrorMessage>{String(errors.server)}</ErrorMessage>}
+          <ErrorMessage>{errors.email || null}</ErrorMessage>
+          <AuthInput
+            type="text"
+            name="email"
+            placeholder="Email"
+            value={email}
+            onChange={partial(handleChange, 'email')}
+          />
+          <ErrorMessage>{errors.password || null}</ErrorMessage>
+          <AuthInput
+            type="password"
+            name="password"
+            placeholder="Password"
+            value={password}
+            onChange={partial(handleChange, 'password')}
+          />
+          <LoginButton disabled={inProgress}>
+            {inProgress ? t('auth.loggingIn') : t('auth.login')}
+          </LoginButton>
+        </AuthForm>
+      )}
+      t={t}
+    />
+  );
 }
+
+NetlifyAuthenticationPage.authClient = (() => Promise.reject(new Error('authClient not configured'))) as () => Promise<AuthClient>;
+
+export default NetlifyAuthenticationPage;

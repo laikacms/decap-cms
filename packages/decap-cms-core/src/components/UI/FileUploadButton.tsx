@@ -1,6 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-
 export interface FileUploadButtonProps {
   className?: string;
   label: string;
@@ -29,10 +27,3 @@ export function FileUploadButton({
   );
 }
 
-FileUploadButton.propTypes = {
-  className: PropTypes.string,
-  label: PropTypes.string.isRequired,
-  imagesOnly: PropTypes.bool,
-  onChange: PropTypes.func.isRequired,
-  disabled: PropTypes.bool,
-};

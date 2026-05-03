@@ -80,15 +80,8 @@ function mergeProps(
 }
 
 export default function withWorkflow(Editor: React.ComponentType<any>) {
-  return connect(
-    mapStateToProps,
-    null,
-    mergeProps,
-  )(
-    class WorkflowEditor extends React.Component<any> {
-      render() {
-        return <Editor {...this.props} />;
-      }
-    },
-  );
+  function WorkflowEditor(props: any) {
+    return <Editor {...props} />;
+  }
+  return connect(mapStateToProps, null, mergeProps)(WorkflowEditor);
 }

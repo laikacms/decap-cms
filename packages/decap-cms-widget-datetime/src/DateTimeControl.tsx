@@ -1,6 +1,5 @@
 /** @jsxImportSource @emotion/react */
 import React from 'react';
-import PropTypes from 'prop-types';
 import { css } from '@emotion/react';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
@@ -66,26 +65,11 @@ interface DateTimeControlProps {
 }
 
 class DateTimeControl extends React.Component<DateTimeControlProps> {
-  static propTypes = {
-    field: PropTypes.object.isRequired,
-    forID: PropTypes.string,
-    onChange: PropTypes.func.isRequired,
-    classNameWrapper: PropTypes.string.isRequired,
-    setActiveStyle: PropTypes.func.isRequired,
-    setInactiveStyle: PropTypes.func.isRequired,
-    value: PropTypes.oneOfType([PropTypes.object, PropTypes.string]),
-    t: PropTypes.func.isRequired,
-    isDisabled: PropTypes.bool,
-  };
-
   static defaultProps = {
     isDisabled: false,
   };
 
   componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(DateTimeControl.propTypes, this.props, 'prop', 'DateTimeControl');
-
     const { value } = this.props;
     if (value === '{{now}}') {
       this.handleChange(this.getNow());

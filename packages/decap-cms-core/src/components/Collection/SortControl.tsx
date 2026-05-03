@@ -1,8 +1,8 @@
 import React from 'react';
 import { translate } from 'react-polyglot';
 import { Dropdown, DropdownItem } from 'decap-cms-ui-default';
-
 import { CmsSortDirection } from 'decap-cms-lib-util';
+
 import { ControlButton } from './ControlButton';
 
 function nextSortDirection(direction: string | undefined) {

@@ -1,3 +1,4 @@
+/* eslint-disable import/order -- vi.mock calls must precede imports that depend on them */
 import React from 'react';
 import { render } from '@testing-library/react';
 import { vi } from 'vitest';

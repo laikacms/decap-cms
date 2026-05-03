@@ -1,12 +1,12 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
-import type { TranslateFunction } from 'decap-cms-ui-default';
 import { Icon, Dropdown, DropdownItem, DropdownButton, colors } from 'decap-cms-ui-default';
 
 import { stripProtocol } from '../../lib/urlHelper';
+
+import type { TranslateFunction } from 'decap-cms-ui-default';
 
 const styles = {
   avatarImage: css`
@@ -60,10 +60,6 @@ function Avatar({ imageUrl }: AvatarProps) {
   );
 }
 
-Avatar.propTypes = {
-  imageUrl: PropTypes.string,
-};
-
 interface SettingsDropdownProps {
   displayUrl?: string;
   isTestRepo?: boolean;
@@ -110,13 +106,5 @@ function SettingsDropdown({
     </React.Fragment>
   );
 }
-
-SettingsDropdown.propTypes = {
-  displayUrl: PropTypes.string,
-  isTestRepo: PropTypes.bool,
-  imageUrl: PropTypes.string,
-  onLogoutClick: PropTypes.func.isRequired,
-  t: PropTypes.func.isRequired,
-};
 
 export default translate()(SettingsDropdown);

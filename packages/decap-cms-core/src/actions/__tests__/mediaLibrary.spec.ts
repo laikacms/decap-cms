@@ -1,10 +1,10 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import configureMockStore from 'redux-mock-store';
 import { thunk } from 'redux-thunk';
+import * as libUtil from 'decap-cms-lib-util';
 
 import { insertMedia, persistMedia, deleteMedia } from '../mediaLibrary';
 import * as backendModule from '../../backend';
-import * as libUtil from 'decap-cms-lib-util';
 
 vi.mock('../../backend');
 vi.mock('../waitUntil');

@@ -2,12 +2,13 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { Waypoint } from 'react-waypoint';
 
-import type { Cursor } from 'decap-cms-lib-util';
-import type { CmsCollectionState, CmsCollections, CmsEntry } from 'decap-cms-lib-util';
 
 import { selectFields, selectInferredField } from '../../../reducers/collections';
 import { filterNestedEntries } from './EntriesCollection';
 import EntryCard from './EntryCard';
+
+import type { CmsCollectionState, CmsCollections, CmsEntry } from 'decap-cms-lib-util';
+import type { Cursor } from 'decap-cms-lib-util';
 
 const CardsGrid = styled.ul`
   display: flex;
@@ -40,39 +41,41 @@ function isSingleCollection(
   );
 }
 
-class EntryListing extends React.Component<EntryListingProps> {
-  hasMore = () => {
-    const hasMore = this.props.cursor?.actions?.has('append_next');
-    return hasMore;
-  };
+function inferFields(collection: CmsCollectionState) {
+  const titleField = selectInferredField(collection, 'title');
+  const descriptionField = selectInferredField(collection, 'description');
+  const imageField = selectInferredField(collection, 'image');
+  const fields = selectFields(collection, '');
+  const inferred = [titleField, descriptionField, imageField];
+  const remainingFields =
+    fields && fields.filter(f => inferred.indexOf((f as any).name) === -1);
+  return { titleField, descriptionField, imageField, remainingFields };
+}
 
-  handleLoadMore = () => {
-    if (this.hasMore()) {
-      this.props.handleCursorActions('append_next');
+function EntryListing({
+  collections,
+  entries,
+  viewStyle,
+  cursor,
+  handleCursorActions,
+  page,
+  getUnpublishedEntries,
+  getWorkflowStatus,
+  filterTerm,
+}: EntryListingProps) {
+  const hasMore = cursor?.actions?.has('append_next');
+
+  function handleLoadMore() {
+    if (hasMore) {
+      handleCursorActions('append_next');
     }
-  };
+  }
 
-  inferFields = (collection: CmsCollectionState) => {
-    const titleField = selectInferredField(collection, 'title');
-    const descriptionField = selectInferredField(collection, 'description');
-    const imageField = selectInferredField(collection, 'image');
-    const fields = selectFields(collection, '');
-    const inferredFields = [titleField, descriptionField, imageField];
-    const remainingFields =
-      fields && fields.filter(f => inferredFields.indexOf((f as any).name) === -1);
-    return { titleField, descriptionField, imageField, remainingFields };
-  };
-
-  getAllEntries = () => {
-    const { entries, collections, filterTerm } = this.props;
+  function getAllEntries() {
     const collectionName = isSingleCollection(collections) ? collections.name : null;
+    if (!collectionName) return entries;
 
-    if (!collectionName) {
-      return entries;
-    }
-
-    const unpublishedEntries = this.props.getUnpublishedEntries?.(collectionName);
-
+    const unpublishedEntries = getUnpublishedEntries?.(collectionName);
     if (!unpublishedEntries || unpublishedEntries.length === 0) {
       return entries;
     }
@@ -98,30 +101,26 @@ class EntryListing extends React.Component<EntryListingProps> {
 
     const publishedSlugs = new Set(entries.map(entry => entry.slug));
     const uniqueUnpublished = unpublishedList.filter(entry => !publishedSlugs.has(entry.slug));
-
     return [...entries, ...uniqueUnpublished];
-  };
+  }
 
-  renderCardsForSingleCollection = () => {
-    const { collections, viewStyle } = this.props;
-    const allEntries = this.getAllEntries();
-    const inferredFields = this.inferFields(collections as CmsCollectionState);
-    const entryCardProps = { collection: collections, inferredFields, viewStyle };
+  function renderCardsForSingleCollection() {
+    const allEntries = getAllEntries();
+    const collectionFields = inferFields(collections as CmsCollectionState);
+    const entryCardProps = { collection: collections, inferredFields: collectionFields, viewStyle };
 
     return allEntries?.map((entry, idx) => {
-      const workflowStatus = this.props.getWorkflowStatus?.(
+      const workflowStatus = getWorkflowStatus?.(
         (collections as CmsCollectionState).name,
         entry.slug,
       );
-
       return (
         <EntryCard {...entryCardProps} entry={entry} workflowStatus={workflowStatus} key={idx} />
       );
     });
-  };
+  }
 
-  renderCardsForMultipleCollections = () => {
-    const { collections, entries } = this.props;
+  function renderCardsForMultipleCollections() {
     const collectionsRecord = collections as CmsCollections;
     const collectionValues = Object.values(collectionsRecord);
     const isSingleCollectionInList = collectionValues.length === 1;
@@ -132,33 +131,31 @@ class EntryListing extends React.Component<EntryListingProps> {
       );
       if (!collection) return null;
       const collectionLabel = !isSingleCollectionInList && collection.label;
-      const inferredFields = this.inferFields(collection);
-      const workflowStatus = this.props.getWorkflowStatus?.(collectionName, entry.slug);
-      const entryCardProps = {
-        collection,
-        entry,
-        inferredFields,
-        collectionLabel,
-        workflowStatus,
-      };
-      return <EntryCard {...entryCardProps} key={idx} />;
+      const fields = inferFields(collection);
+      const workflowStatus = getWorkflowStatus?.(collectionName, entry.slug);
+      return (
+        <EntryCard
+          collection={collection}
+          entry={entry}
+          inferredFields={fields}
+          collectionLabel={collectionLabel}
+          workflowStatus={workflowStatus}
+          key={idx}
+        />
+      );
     });
-  };
-
-  render() {
-    const { collections, page } = this.props;
-
-    return (
-      <div>
-        <CardsGrid>
-          {isSingleCollection(collections)
-            ? this.renderCardsForSingleCollection()
-            : this.renderCardsForMultipleCollections()}
-          {this.hasMore() && <Waypoint key={page} onEnter={this.handleLoadMore} />}
-        </CardsGrid>
-      </div>
-    );
   }
+
+  return (
+    <div>
+      <CardsGrid>
+        {isSingleCollection(collections)
+          ? renderCardsForSingleCollection()
+          : renderCardsForMultipleCollections()}
+        {hasMore && <Waypoint key={page} onEnter={handleLoadMore} />}
+      </CardsGrid>
+    </div>
+  );
 }
 
 export default EntryListing;

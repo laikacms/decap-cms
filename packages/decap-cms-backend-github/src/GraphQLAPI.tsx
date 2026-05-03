@@ -22,12 +22,12 @@ import introspectionQueryResultData from './fragmentTypes';
 import API, { API_NAME, MOCK_PULL_REQUEST } from './API';
 import * as queries from './queries';
 import * as mutations from './mutations';
+import { PullRequestState, type BlobArgs, type Config } from './types/api';
 
 import type { NormalizedCacheObject } from 'apollo-cache-inmemory';
 import type { QueryOptions, MutationOptions, OperationVariables } from 'apollo-client';
 import type { GraphQLError } from 'graphql';
 import type { Endpoints } from '@octokit/types';
-import { PullRequestState, type BlobArgs, type Config } from './types/api';
 
 const NO_CACHE = 'no-cache';
 const CACHE_FIRST = 'cache-first';

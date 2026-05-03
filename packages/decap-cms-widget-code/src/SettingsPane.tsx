@@ -3,6 +3,7 @@ import styled from '@emotion/styled';
 import Select from 'react-select';
 import { text, shadows, zIndex } from 'decap-cms-ui-default';
 import { isHotkey } from 'decap-cms-lib-util';
+
 import SettingsButton from './SettingsButton';
 import languageSelectStyles from './languageSelectStyles';
 

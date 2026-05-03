@@ -284,69 +284,60 @@ interface NestedCollectionProps {
   filterTerm?: string;
 }
 
-interface NestedCollectionState {
-  treeData: TreeNodeData[];
-  selected: TreeNodeData | null;
-  useFilter: boolean;
-}
+export function NestedCollection({ collection, entries, filterTerm }: NestedCollectionProps) {
+  const [treeData, setTreeData] = React.useState<TreeNodeData[]>(() =>
+    getTreeData(collection, entries),
+  );
+  const [selected, setSelected] = React.useState<TreeNodeData | null>(null);
+  const [useFilter, setUseFilter] = React.useState(true);
 
-export class NestedCollection extends React.Component<
-  NestedCollectionProps,
-  NestedCollectionState
-> {
-  constructor(props: NestedCollectionProps) {
-    super(props);
-    this.state = {
-      treeData: getTreeData(this.props.collection, this.props.entries),
-      selected: null,
-      useFilter: true,
-    };
+  // Track previous values so we only rebuild when one of the inputs changes,
+  // matching the original componentDidUpdate semantics (preserve current
+  // expansion state, then re-apply based on the new entries/filter).
+  const isFirstRender = React.useRef(true);
+  const prevInputs = React.useRef({ collection, entries, filterTerm });
+
+  if (isFirstRender.current) {
+    isFirstRender.current = false;
+  } else if (
+    prevInputs.current.collection !== collection ||
+    prevInputs.current.entries !== entries ||
+    prevInputs.current.filterTerm !== filterTerm
+  ) {
+    const expanded: Record<string, boolean> = {};
+    walk(treeData, (node: TreeNodeData) => {
+      if (node.expanded) {
+        expanded[node.path] = true;
+      }
+    });
+    const nextTree = getTreeData(collection, entries);
+
+    const path = `/${filterTerm}`;
+    walk(nextTree, (node: TreeNodeData) => {
+      if (expanded[node.path] || (useFilter && path.startsWith(node.path))) {
+        node.expanded = true;
+      }
+    });
+    prevInputs.current = { collection, entries, filterTerm };
+    // setState during render to derive new tree before commit, like the
+    // original componentDidUpdate did synchronously after render.
+    setTreeData(nextTree);
   }
 
-  componentDidUpdate(prevProps: NestedCollectionProps) {
-    const { collection, entries, filterTerm } = this.props;
-    if (
-      collection !== prevProps.collection ||
-      entries !== prevProps.entries ||
-      filterTerm !== prevProps.filterTerm
-    ) {
-      const expanded: Record<string, boolean> = {};
-      walk(this.state.treeData, (node: TreeNodeData) => {
-        if (node.expanded) {
-          expanded[node.path] = true;
-        }
-      });
-      const treeData = getTreeData(collection, entries);
-
-      const path = `/${filterTerm}`;
-      walk(treeData, (node: TreeNodeData) => {
-        if (expanded[node.path] || (this.state.useFilter && path.startsWith(node.path))) {
-          node.expanded = true;
-        }
-      });
-      this.setState({ treeData });
-    }
-  }
-
-  onToggle = ({ node, expanded }: { node: TreeNodeData; expanded: boolean }) => {
-    if (!this.state.selected || this.state.selected.path === node.path || expanded) {
-      const treeData = updateNode(this.state.treeData, node, (node: TreeNodeData) => ({
-        ...node,
-        expanded,
-      }));
-      this.setState({ treeData, selected: node, useFilter: false });
+  function onToggle({ node, expanded }: { node: TreeNodeData; expanded: boolean }) {
+    if (!selected || selected.path === node.path || expanded) {
+      const nextTree = updateNode(treeData, node, (n: TreeNodeData) => ({ ...n, expanded }));
+      setTreeData(nextTree);
+      setSelected(node);
+      setUseFilter(false);
     } else {
       // don't collapse non selected nodes when clicked
-      this.setState({ selected: node, useFilter: false });
+      setSelected(node);
+      setUseFilter(false);
     }
-  };
-
-  render() {
-    const { treeData } = this.state;
-    const { collection } = this.props;
-
-    return <TreeNode collection={collection} treeData={treeData} onToggle={this.onToggle} />;
   }
+
+  return <TreeNode collection={collection} treeData={treeData} onToggle={onToggle} />;
 }
 
 function mapStateToProps(state: any, ownProps: { collection: CmsCollectionState }) {

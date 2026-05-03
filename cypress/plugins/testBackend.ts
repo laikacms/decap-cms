@@ -1,5 +1,6 @@
-import { updateConfig } from '../utils/config';
 import { merge } from 'lodash';
+
+import { updateConfig } from '../utils/config';
 
 interface BackendOptions {
   [key: string]: unknown;

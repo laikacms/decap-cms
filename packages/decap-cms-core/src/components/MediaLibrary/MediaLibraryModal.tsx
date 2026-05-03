@@ -1,15 +1,16 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 import isEmpty from 'lodash/isEmpty';
 import { translate } from 'react-polyglot';
 import { colors } from 'decap-cms-ui-default';
-import type { TranslateFunction } from 'decap-cms-ui-default';
+
 
 import { Modal } from '../UI';
 import MediaLibraryTop from './MediaLibraryTop';
 import MediaLibraryCardGrid from './MediaLibraryCardGrid';
 import EmptyMessage from './EmptyMessage';
+
+import type { TranslateFunction } from 'decap-cms-ui-default';
 
 /**
  * Responsive styling needs to be overhauled. Current setup requires specifying
@@ -223,48 +224,5 @@ function MediaLibraryModal({
     </StyledModal>
   );
 }
-
-export const fileShape = {
-  displayURL: PropTypes.oneOfType([PropTypes.string, PropTypes.object]).isRequired,
-  id: PropTypes.string.isRequired,
-  key: PropTypes.string.isRequired,
-  name: PropTypes.string.isRequired,
-  queryOrder: PropTypes.number,
-  size: PropTypes.number,
-  path: PropTypes.string.isRequired,
-};
-
-MediaLibraryModal.propTypes = {
-  isVisible: PropTypes.bool,
-  canInsert: PropTypes.bool,
-  files: PropTypes.arrayOf(PropTypes.shape(fileShape)).isRequired,
-  dynamicSearch: PropTypes.bool,
-  dynamicSearchActive: PropTypes.bool,
-  forImage: PropTypes.bool,
-  isLoading: PropTypes.bool,
-  isPersisting: PropTypes.bool,
-  isDeleting: PropTypes.bool,
-  hasNextPage: PropTypes.bool,
-  isPaginating: PropTypes.bool,
-  privateUpload: PropTypes.bool,
-  query: PropTypes.string,
-  selectedFile: PropTypes.oneOfType([PropTypes.shape(fileShape), PropTypes.shape({})]),
-  handleFilter: PropTypes.func.isRequired,
-  handleQuery: PropTypes.func.isRequired,
-  toTableData: PropTypes.func.isRequired,
-  handleClose: PropTypes.func.isRequired,
-  handleSearchChange: PropTypes.func.isRequired,
-  handleSearchKeyDown: PropTypes.func.isRequired,
-  handlePersist: PropTypes.func.isRequired,
-  handleDelete: PropTypes.func.isRequired,
-  handleInsert: PropTypes.func.isRequired,
-  setScrollContainerRef: PropTypes.func.isRequired,
-  handleAssetClick: PropTypes.func.isRequired,
-  handleLoadMore: PropTypes.func.isRequired,
-  loadDisplayURL: PropTypes.func.isRequired,
-  t: PropTypes.func.isRequired,
-  displayURLs: PropTypes.instanceOf(Map as unknown as new (...args: any[]) => Map<string, unknown>)
-    .isRequired,
-};
 
 export default translate()(MediaLibraryModal);

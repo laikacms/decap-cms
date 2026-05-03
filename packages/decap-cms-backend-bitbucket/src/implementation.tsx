@@ -27,12 +27,13 @@ import {
   branchFromContentKey,
 } from 'decap-cms-lib-util';
 import { NetlifyAuthenticator } from 'decap-cms-lib-auth';
-import type { NetlifyAuthResult } from 'decap-cms-lib-auth';
+
 
 import AuthenticationPage from './AuthenticationPage';
 import API, { API_NAME } from './API';
 import { GitLfsClient } from './git-lfs-client';
 
+import type { NetlifyAuthResult } from 'decap-cms-lib-auth';
 import type {
   CmsFileEntry,
   ApiRequest,

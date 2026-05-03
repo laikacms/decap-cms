@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 import { PkceAuthenticator } from 'decap-cms-lib-auth';
 import { AuthenticationPage, Icon } from 'decap-cms-ui-default';
@@ -23,82 +22,63 @@ interface GiteaAuthenticationPageProps {
   t: TranslateFunction;
 }
 
-interface GiteaAuthenticationPageState {
-  loginError?: string;
-}
+export default function GiteaAuthenticationPage({
+  inProgress,
+  config,
+  onLogin,
+  t,
+}: GiteaAuthenticationPageProps) {
+  const [loginError, setLoginError] = React.useState<string | undefined>();
+  const authRef = React.useRef<PkceAuthenticator | null>(null);
 
-export default class GiteaAuthenticationPage extends React.Component<
-  GiteaAuthenticationPageProps,
-  GiteaAuthenticationPageState
-> {
-  static propTypes = {
-    inProgress: PropTypes.bool,
-    config: PropTypes.object.isRequired,
-    onLogin: PropTypes.func.isRequired,
-    t: PropTypes.func.isRequired,
-  };
-
-  state: GiteaAuthenticationPageState = {};
-  auth!: PkceAuthenticator;
-
-  componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(
-      GiteaAuthenticationPage.propTypes,
-      this.props,
-      'prop',
-      'GiteaAuthenticationPage',
-    );
-
-    const { base_url = 'https://try.gitea.io', app_id = '' } = this.props.config.backend;
-    this.auth = new PkceAuthenticator({
+  React.useEffect(() => {
+    const { base_url = 'https://try.gitea.io', app_id = '' } = config.backend;
+    const auth = new PkceAuthenticator({
       base_url,
       auth_endpoint: 'login/oauth/authorize',
       app_id,
       auth_token_endpoint: 'login/oauth/access_token',
       auth_token_endpoint_content_type: 'application/json; charset=utf-8',
     });
-    // Complete authentication if we were redirected back to from the provider.
-    this.auth.completeAuth((err, data) => {
+    authRef.current = auth;
+    // Complete authentication if we were redirected back from the provider.
+    auth.completeAuth((err, data) => {
       if (err) {
-        this.setState({ loginError: err.toString() });
+        setLoginError(err.toString());
         return;
       } else if (data) {
-        this.props.onLogin(data);
+        onLogin(data);
       }
     });
-  }
+  }, []);
 
-  handleLogin = () => {
-    this.auth.authenticate({ scope: 'repository' }, (err, data) => {
+  function handleLogin() {
+    authRef.current?.authenticate({ scope: 'repository' }, (err, data) => {
       if (err) {
-        this.setState({ loginError: err.toString() });
+        setLoginError(err.toString());
         return;
       }
       if (data) {
-        this.props.onLogin(data);
+        onLogin(data);
       }
     });
-  };
-
-  render() {
-    const { inProgress, config, t } = this.props;
-    return (
-      <AuthenticationPage
-        onLogin={this.handleLogin}
-        loginDisabled={inProgress}
-        loginErrorMessage={this.state.loginError}
-        logoUrl={config.logo?.src}
-        logo={config.logo}
-        siteUrl={config.site_url}
-        renderButtonContent={() => (
-          <React.Fragment>
-            <LoginButtonIcon type="gitea" />{' '}
-            {inProgress ? t('auth.loggingIn') : t('auth.loginWithGitea')}
-          </React.Fragment>
-        )}
-        t={t}
-      />
-    );
   }
+
+  return (
+    <AuthenticationPage
+      onLogin={handleLogin}
+      loginDisabled={inProgress}
+      loginErrorMessage={loginError}
+      logoUrl={config.logo?.src}
+      logo={config.logo}
+      siteUrl={config.site_url}
+      renderButtonContent={() => (
+        <React.Fragment>
+          <LoginButtonIcon type="gitea" />{' '}
+          {inProgress ? t('auth.loggingIn') : t('auth.loginWithGitea')}
+        </React.Fragment>
+      )}
+      t={t}
+    />
+  );
 }

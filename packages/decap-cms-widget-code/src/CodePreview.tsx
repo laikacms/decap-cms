@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import isObject from 'lodash/isObject';
 import isString from 'lodash/isString';
 import get from 'lodash/get';
@@ -34,10 +33,5 @@ function CodePreview(props: CodePreviewProps) {
     </WidgetPreviewContainer>
   );
 }
-
-CodePreview.propTypes = {
-  value: PropTypes.oneOfType([PropTypes.object, PropTypes.string]),
-  field: PropTypes.object,
-};
 
 export default CodePreview;

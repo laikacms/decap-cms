@@ -1,5 +1,6 @@
-import * as actions from '../../actions/entries';
 import { Cursor } from 'decap-cms-lib-util';
+
+import * as actions from '../../actions/entries';
 import reducer, {
   selectMediaFolder,
   selectMediaFilePath,

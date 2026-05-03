@@ -1,13 +1,12 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { ClassNames } from '@emotion/react';
 import memoize from 'lodash/memoize';
 import get from 'lodash/get';
 import isObject from 'lodash/isObject';
 import { colors, lengths, ObjectWidgetTopBar } from 'decap-cms-ui-default';
-import type { TranslateFunction } from 'decap-cms-ui-default';
 import { stringTemplate } from 'decap-cms-lib-widgets';
 
+import type { TranslateFunction } from 'decap-cms-ui-default';
 import type { CmsField, CmsFieldBase, CmsFieldObject } from 'decap-cms-lib-util';
 
 const styleStrings = {
@@ -100,25 +99,6 @@ export default class ObjectControl extends React.Component<ObjectControlProps, O
     this.props.controlRef?.(ref);
   };
 
-  static propTypes = {
-    onChangeObject: PropTypes.func.isRequired,
-    onValidateObject: PropTypes.func,
-    value: PropTypes.oneOfType([PropTypes.node, PropTypes.object, PropTypes.bool]),
-    field: PropTypes.object,
-    forID: PropTypes.string,
-    classNameWrapper: PropTypes.string.isRequired,
-    forList: PropTypes.bool,
-    controlRef: PropTypes.func,
-    editorControl: PropTypes.elementType.isRequired,
-    resolveWidget: PropTypes.func.isRequired,
-    clearFieldErrors: PropTypes.func.isRequired,
-    fieldsErrors: PropTypes.object,
-    hasError: PropTypes.bool,
-    t: PropTypes.func,
-    locale: PropTypes.string,
-    collapsed: PropTypes.bool,
-  };
-
   static defaultProps = {
     value: {},
   };
@@ -128,11 +108,6 @@ export default class ObjectControl extends React.Component<ObjectControlProps, O
     this.state = {
       collapsed: props.field.collapsed ?? false,
     };
-  }
-
-  componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(ObjectControl.propTypes, this.props, 'prop', 'ObjectControl');
   }
 
   /*

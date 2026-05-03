@@ -22,9 +22,9 @@ import {
   branchFromContentKey,
   Path,
 } from 'decap-cms-lib-util';
+import { isError } from 'lodash';
 
 import type { ApiRequest, CmsAssetProxy, CmsPersistOptions, CmsDataFile } from 'decap-cms-lib-util';
-import { isError } from 'lodash';
 
 export const API_NAME = 'Azure DevOps';
 

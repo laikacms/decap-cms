@@ -2,8 +2,9 @@ import React from 'react';
 import { translate } from 'react-polyglot';
 import { Dropdown, DropdownCheckedItem } from 'decap-cms-ui-default';
 
-import type { CmsViewFilter } from 'decap-cms-lib-util';
 import { ControlButton } from './ControlButton';
+
+import type { CmsViewFilter } from 'decap-cms-lib-util';
 
 export interface FilterControlProps {
   viewFilters: CmsViewFilter[];

@@ -1,5 +1,4 @@
 /** @jsxImportSource @emotion/react */
-import PropTypes from 'prop-types';
 import React from 'react';
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
@@ -18,14 +17,15 @@ import {
 } from 'decap-cms-ui-default';
 import { connect } from 'react-redux';
 
+import { SettingsDropdown } from '../UI';
+import { checkBackendStatus } from '../../actions/status';
+
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import type { CmsCollectionState, CmsCollections } from 'decap-cms-lib-util';
 
 type Collection = CmsCollectionState;
 type Collections = CmsCollections;
 
-import { SettingsDropdown } from '../UI';
-import { checkBackendStatus } from '../../actions/status';
 
 const ACTIVE_CLASS_NAME = 'header-link-active';
 
@@ -149,147 +149,121 @@ interface HeaderProps {
   checkBackendStatus: () => void;
 }
 
-class Header extends React.Component<HeaderProps> {
-  static propTypes = {
-    user: PropTypes.object.isRequired,
-    collections: PropTypes.object.isRequired,
-    onCreateEntryClick: PropTypes.func.isRequired,
-    onLogoutClick: PropTypes.func.isRequired,
-    openMediaLibrary: PropTypes.func.isRequired,
-    hasWorkflow: PropTypes.bool.isRequired,
-    displayUrl: PropTypes.string,
-    logoUrl: PropTypes.string, // Deprecated, replaced by `logo.src`
-    logo: PropTypes.shape({
-      src: PropTypes.string.isRequired,
-      show_in_header: PropTypes.bool,
-    }),
-    isTestRepo: PropTypes.bool,
-    t: PropTypes.func.isRequired,
-    checkBackendStatus: PropTypes.func.isRequired,
-  };
+function Header({
+  user,
+  collections,
+  onCreateEntryClick,
+  onLogoutClick,
+  openMediaLibrary,
+  hasWorkflow,
+  displayUrl,
+  showMediaButton,
+  logoUrl, // Deprecated, replaced by `logo.src`
+  logo,
+  isTestRepo,
+  t,
+  checkBackendStatus,
+}: HeaderProps) {
+  const checkBackendStatusRef = React.useRef(checkBackendStatus);
+  checkBackendStatusRef.current = checkBackendStatus;
 
-  intervalId: ReturnType<typeof setInterval> | undefined;
-
-  componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(Header.propTypes, this.props, 'prop', 'Header');
-
-    this.intervalId = setInterval(
+  React.useEffect(() => {
+    const intervalId = setInterval(
       () => {
-        this.props.checkBackendStatus();
+        checkBackendStatusRef.current();
       },
       5 * 60 * 1000,
     );
-  }
+    return () => clearInterval(intervalId);
+  }, []);
 
-  componentWillUnmount() {
-    clearInterval(this.intervalId);
-  }
-
-  handleCreatePostClick = (collectionName: string) => {
-    const { onCreateEntryClick } = this.props;
+  function handleCreatePostClick(collectionName: string) {
     if (onCreateEntryClick) {
       onCreateEntryClick(collectionName);
     }
-  };
+  }
 
-  render() {
-    const {
-      user,
-      collections,
-      onLogoutClick,
-      openMediaLibrary,
-      hasWorkflow,
-      displayUrl,
-      logoUrl, // Deprecated, replaced by `logo.src`
-      logo,
-      isTestRepo,
-      t,
-      showMediaButton,
-    } = this.props;
+  const creatableCollections = Object.values(collections).filter(
+    (collection: Collection) => !!collection.create,
+  );
 
-    const creatableCollections = Object.values(collections).filter(
-      (collection: Collection) => !!collection.create,
-    );
+  const shouldShowLogo = logo?.show_in_header && logo?.src;
 
-    const shouldShowLogo = logo?.show_in_header && logo?.src;
-
-    return (
-      <AppHeader>
-        <AppHeaderContent>
-          <nav>
-            <AppHeaderNavList>
-              {shouldShowLogo && (
-                <AppHeaderLogo>
-                  <img src={logo?.src || logoUrl} alt="Logo" />
-                </AppHeaderLogo>
-              )}
+  return (
+    <AppHeader>
+      <AppHeaderContent>
+        <nav>
+          <AppHeaderNavList>
+            {shouldShowLogo && (
+              <AppHeaderLogo>
+                <img src={logo?.src || logoUrl} alt="Logo" />
+              </AppHeaderLogo>
+            )}
+            <li>
+              <AppHeaderNavLink
+                to="/"
+                className={({ isActive }: { isActive: boolean }) =>
+                  isActive || window.location.hash.includes('/collections/')
+                    ? ACTIVE_CLASS_NAME
+                    : ''
+                }
+              >
+                <Icon type="page" />
+                {t('app.header.content')}
+              </AppHeaderNavLink>
+            </li>
+            {hasWorkflow && (
               <li>
                 <AppHeaderNavLink
-                  to="/"
+                  to="/workflow"
                   className={({ isActive }: { isActive: boolean }) =>
-                    isActive || window.location.hash.includes('/collections/')
-                      ? ACTIVE_CLASS_NAME
-                      : ''
+                    isActive ? ACTIVE_CLASS_NAME : ''
                   }
                 >
-                  <Icon type="page" />
-                  {t('app.header.content')}
+                  <Icon type="workflow" />
+                  {t('app.header.workflow')}
                 </AppHeaderNavLink>
               </li>
-              {hasWorkflow && (
-                <li>
-                  <AppHeaderNavLink
-                    to="/workflow"
-                    className={({ isActive }: { isActive: boolean }) =>
-                      isActive ? ACTIVE_CLASS_NAME : ''
-                    }
-                  >
-                    <Icon type="workflow" />
-                    {t('app.header.workflow')}
-                  </AppHeaderNavLink>
-                </li>
-              )}
-              {showMediaButton && (
-                <li>
-                  <AppHeaderButton onClick={openMediaLibrary}>
-                    <Icon type="media-alt" />
-                    {t('app.header.media')}
-                  </AppHeaderButton>
-                </li>
-              )}
-            </AppHeaderNavList>
-          </nav>
-          <AppHeaderActions>
-            {creatableCollections.length > 0 && (
-              <Dropdown
-                renderButton={() => (
-                  <AppHeaderQuickNewButton> {t('app.header.quickAdd')}</AppHeaderQuickNewButton>
-                )}
-                dropdownTopOverlap="30px"
-                dropdownWidth="160px"
-                dropdownPosition="left"
-              >
-                {creatableCollections.map((collection: Collection) => (
-                  <DropdownItem
-                    key={collection.name}
-                    label={collection.label_singular || collection.label}
-                    onClick={() => this.handleCreatePostClick(collection.name)}
-                  />
-                ))}
-              </Dropdown>
             )}
-            <SettingsDropdown
-              displayUrl={displayUrl}
-              isTestRepo={isTestRepo}
-              imageUrl={user?.avatar_url}
-              onLogoutClick={onLogoutClick}
-            />
-          </AppHeaderActions>
-        </AppHeaderContent>
-      </AppHeader>
-    );
-  }
+            {showMediaButton && (
+              <li>
+                <AppHeaderButton onClick={openMediaLibrary}>
+                  <Icon type="media-alt" />
+                  {t('app.header.media')}
+                </AppHeaderButton>
+              </li>
+            )}
+          </AppHeaderNavList>
+        </nav>
+        <AppHeaderActions>
+          {creatableCollections.length > 0 && (
+            <Dropdown
+              renderButton={() => (
+                <AppHeaderQuickNewButton> {t('app.header.quickAdd')}</AppHeaderQuickNewButton>
+              )}
+              dropdownTopOverlap="30px"
+              dropdownWidth="160px"
+              dropdownPosition="left"
+            >
+              {creatableCollections.map((collection: Collection) => (
+                <DropdownItem
+                  key={collection.name}
+                  label={collection.label_singular || collection.label}
+                  onClick={() => handleCreatePostClick(collection.name)}
+                />
+              ))}
+            </Dropdown>
+          )}
+          <SettingsDropdown
+            displayUrl={displayUrl}
+            isTestRepo={isTestRepo}
+            imageUrl={user?.avatar_url}
+            onLogoutClick={onLogoutClick}
+          />
+        </AppHeaderActions>
+      </AppHeaderContent>
+    </AppHeader>
+  );
 }
 
 const mapDispatchToProps = {

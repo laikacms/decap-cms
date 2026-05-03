@@ -6,12 +6,12 @@ import { selectIntegration } from '../reducers';
 
 import type { QueryRequest } from '../reducers/search';
 import type { CmsCollectionState } from 'decap-cms-lib-util';
-
-type State = any;
-type Collection = CmsCollectionState;
 import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
 import type { EntryValue } from '../valueObjects/Entry';
+
+type State = any;
+type Collection = CmsCollectionState;
 
 /*
  * Constant Declarations

@@ -10,7 +10,6 @@ import {
 } from '@emotion/react';
 import EmotionStyled from '@emotion/styled';
 import Lodash from 'lodash';
-import PropTypes from 'prop-types';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import * as UUId from 'uuid';
@@ -29,7 +28,6 @@ export const DecapCmsDefaultExports = {
   EmotionCore,
   EmotionStyled,
   Lodash,
-  PropTypes,
   React,
   ReactDOM,
   UUId,

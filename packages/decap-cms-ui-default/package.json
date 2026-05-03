@@ -33,7 +33,6 @@
     "@emotion/react": "catalog:emotion",
     "@emotion/styled": "catalog:emotion",
     "lodash": "catalog:utils",
-    "prop-types": "catalog:react",
     "react": "catalog:react"
   },
   "type": "module",

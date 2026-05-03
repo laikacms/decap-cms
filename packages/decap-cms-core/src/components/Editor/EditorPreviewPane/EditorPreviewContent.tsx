@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import { isElement } from 'react-is';
 import { ScrollSyncPane } from 'react-scroll-sync';
@@ -16,30 +15,23 @@ interface PreviewContentProps {
   onFieldClick?: (fieldName: string) => void;
 }
 
-class PreviewContent extends React.Component<PreviewContentProps> {
-  handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const { previewProps, onFieldClick } = this.props;
-    const visualEditing = (previewProps?.collection as any)?.editor?.visualEditing ?? false;
+function PreviewContent({ previewComponent, previewProps, onFieldClick }: PreviewContentProps) {
+  const visualEditing = (previewProps?.collection as any)?.editor?.visualEditing ?? false;
 
-    if (!visualEditing) {
-      return;
-    }
-
+  function handleClick(e: React.MouseEvent<HTMLDivElement>) {
+    if (!visualEditing) return;
     try {
       const text = (e.target as HTMLElement).textContent;
       const decoded = vercelStegaDecode(text ?? '') as Record<string, any>;
-      if (decoded?.decap) {
-        if (onFieldClick) {
-          onFieldClick(decoded.decap);
-        }
+      if (decoded?.decap && onFieldClick) {
+        onFieldClick(decoded.decap);
       }
     } catch (err: unknown) {
       console.log('Visual editing error:', err);
     }
-  };
+  }
 
-  renderPreview() {
-    const { previewComponent, previewProps } = this.props;
+  function renderPreview() {
     const isValidComponent =
       isElement(previewComponent) ||
       typeof previewComponent === 'function' ||
@@ -50,11 +42,11 @@ class PreviewContent extends React.Component<PreviewContentProps> {
         `Invalid preview component: expected a React component or element but received ${typeof previewComponent}. ` +
           `The preview will not be rendered.`,
       );
-      return <div onClick={this.handleClick} />;
+      return <div onClick={handleClick} />;
     }
 
     return (
-      <div onClick={this.handleClick}>
+      <div onClick={handleClick}>
         {isElement(previewComponent)
           ? React.cloneElement(previewComponent, previewProps)
           : React.createElement(
@@ -65,34 +57,21 @@ class PreviewContent extends React.Component<PreviewContentProps> {
     );
   }
 
-  render() {
-    const { previewProps } = this.props;
-    const visualEditing = (previewProps?.collection as any)?.editor?.visualEditing ?? false;
-    const showScrollSync = !visualEditing;
+  const showScrollSync = !visualEditing;
 
-    return (
-      <FrameContextConsumer>
-        {(context: any) => {
-          const preview = this.renderPreview();
-          if (showScrollSync) {
-            return (
-              <ScrollSyncPane attachTo={context?.document?.scrollingElement}>
-                {preview}
-              </ScrollSyncPane>
-            );
-          }
-          return preview;
-        }}
-      </FrameContextConsumer>
-    );
-  }
+  return (
+    <FrameContextConsumer>
+      {(context: any) => {
+        const preview = renderPreview();
+        if (showScrollSync) {
+          return (
+            <ScrollSyncPane attachTo={context?.document?.scrollingElement}>{preview}</ScrollSyncPane>
+          );
+        }
+        return preview;
+      }}
+    </FrameContextConsumer>
+  );
 }
-
-PreviewContent.propTypes = {
-  previewComponent: PropTypes.func.isRequired,
-  getEditorComponents: PropTypes.func,
-  previewProps: PropTypes.object,
-  onFieldClick: PropTypes.func,
-};
 
 export default PreviewContent;

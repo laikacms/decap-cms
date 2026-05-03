@@ -2,8 +2,9 @@ import React from 'react';
 import { translate } from 'react-polyglot';
 import { Dropdown, DropdownItem } from 'decap-cms-ui-default';
 
-import type { CmsViewGroup } from 'decap-cms-lib-util';
 import { ControlButton } from './ControlButton';
+
+import type { CmsViewGroup } from 'decap-cms-lib-util';
 
 export interface GroupControlProps {
   viewGroups: CmsViewGroup[];

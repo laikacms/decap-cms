@@ -1,7 +1,7 @@
-import createSemaphore from './semaphore';
 import unionBy from 'lodash/unionBy';
 import sortBy from 'lodash/sortBy';
 
+import createSemaphore from './semaphore';
 import { basename } from './core-utils/path.js';
 
 import type { Semaphore } from './semaphore';

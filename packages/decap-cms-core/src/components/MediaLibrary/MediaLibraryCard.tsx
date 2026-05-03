@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 import { colors, borders, lengths, shadows, effects } from 'decap-cms-ui-default';
 
@@ -85,67 +84,50 @@ interface MediaLibraryCardProps {
   isDraft?: boolean;
 }
 
-class MediaLibraryCard extends React.Component<MediaLibraryCardProps> {
-  render() {
-    const {
-      isSelected,
-      displayURL,
-      text,
-      onClick,
-      draftText,
-      width,
-      height,
-      margin,
-      isPrivate,
-      type,
-      isViewableImage,
-      isDraft,
-    } = this.props;
-    const url = displayURL['url'] as string | undefined;
-    return (
-      <Card
-        $isSelected={isSelected}
-        onClick={onClick}
-        $width={width}
-        $height={height}
-        $margin={margin}
-        tabIndex={-1}
-        $isPrivate={isPrivate}
-      >
-        <CardImageWrapper>
-          {isDraft ? <DraftText data-testid="draft-text">{draftText}</DraftText> : null}
-          {url && isViewableImage ? (
-            <CardImage loading="lazy" src={url} />
-          ) : (
-            <CardFileIcon data-testid="card-file-icon">{type}</CardFileIcon>
-          )}
-        </CardImageWrapper>
-        <CardText>{text}</CardText>
-      </Card>
-    );
-  }
-  componentDidMount() {
-    const { displayURL, loadDisplayURL } = this.props;
+function MediaLibraryCard({
+  isSelected,
+  displayURL,
+  text,
+  onClick,
+  draftText,
+  width,
+  height,
+  margin,
+  isPrivate,
+  type,
+  isViewableImage,
+  loadDisplayURL,
+  isDraft,
+}: MediaLibraryCardProps) {
+  const url = displayURL['url'] as string | undefined;
+
+  React.useEffect(() => {
     if (!displayURL['url']) {
       loadDisplayURL();
     }
-  }
-}
+  }, []);
 
-MediaLibraryCard.propTypes = {
-  isSelected: PropTypes.bool,
-  displayURL: PropTypes.object.isRequired,
-  text: PropTypes.string.isRequired,
-  onClick: PropTypes.func.isRequired,
-  draftText: PropTypes.string.isRequired,
-  width: PropTypes.string.isRequired,
-  height: PropTypes.string.isRequired,
-  margin: PropTypes.string.isRequired,
-  isPrivate: PropTypes.bool,
-  type: PropTypes.string,
-  isViewableImage: PropTypes.bool.isRequired,
-  loadDisplayURL: PropTypes.func.isRequired,
-  isDraft: PropTypes.bool,
-};
+  return (
+    <Card
+      $isSelected={isSelected}
+      onClick={onClick}
+      $width={width}
+      $height={height}
+      $margin={margin}
+      tabIndex={-1}
+      $isPrivate={isPrivate}
+    >
+      <CardImageWrapper>
+        {isDraft ? <DraftText data-testid="draft-text">{draftText}</DraftText> : null}
+        {url && isViewableImage ? (
+          <CardImage loading="lazy" src={url} />
+        ) : (
+          <CardFileIcon data-testid="card-file-icon">{type}</CardFileIcon>
+        )}
+      </CardImageWrapper>
+      <CardText>{text}</CardText>
+    </Card>
+  );
+}
 
 export default MediaLibraryCard;

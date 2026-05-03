@@ -1,7 +1,9 @@
-import type { AlgoliaConfig } from './providers/algolia/implementation';
 import Algolia from './providers/algolia/implementation';
-import type { AssetStoreConfig } from './providers/assetStore/implementation';
 import AssetStore from './providers/assetStore/implementation';
+
+import type { AlgoliaConfig } from './providers/algolia/implementation';
+import type { AssetStoreConfig } from './providers/assetStore/implementation';
+
 
 // Integrations config is a plain object after migration from Immutable.js
 

@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { oneLine } from 'common-tags';
 
@@ -105,68 +104,6 @@ export default class Widget extends Component<WidgetProps> {
   innerWrappedControl: any;
   wrappedControlValid: (() => unknown) | undefined;
   wrappedControlShouldComponentUpdate: ((nextProps: WidgetProps) => boolean) | undefined;
-
-  static propTypes = {
-    controlComponent: PropTypes.func.isRequired,
-    field: PropTypes.object.isRequired,
-    hasActiveStyle: PropTypes.bool,
-    setActiveStyle: PropTypes.func.isRequired,
-    setInactiveStyle: PropTypes.func.isRequired,
-    classNameWrapper: PropTypes.string.isRequired,
-    classNameWidget: PropTypes.string.isRequired,
-    classNameWidgetActive: PropTypes.string.isRequired,
-    classNameLabel: PropTypes.string.isRequired,
-    classNameLabelActive: PropTypes.string.isRequired,
-    value: PropTypes.oneOfType([
-      PropTypes.node,
-      PropTypes.object,
-      PropTypes.string,
-      PropTypes.bool,
-    ]),
-    mediaPaths: PropTypes.object.isRequired,
-    metadata: PropTypes.object,
-    fieldsErrors: PropTypes.object,
-    onChange: PropTypes.func.isRequired,
-    onValidate: PropTypes.func,
-    controlRef: PropTypes.func,
-    onOpenMediaLibrary: PropTypes.func.isRequired,
-    onClearMediaControl: PropTypes.func.isRequired,
-    onRemoveMediaControl: PropTypes.func.isRequired,
-    onPersistMedia: PropTypes.func.isRequired,
-    onAddAsset: PropTypes.func.isRequired,
-    onRemoveInsertedMedia: PropTypes.func.isRequired,
-    getAsset: PropTypes.func.isRequired,
-    resolveWidget: PropTypes.func.isRequired,
-    widget: PropTypes.object.isRequired,
-    getEditorComponents: PropTypes.func.isRequired,
-    isFetching: PropTypes.bool,
-    query: PropTypes.func.isRequired,
-    clearSearch: PropTypes.func.isRequired,
-    clearFieldErrors: PropTypes.func.isRequired,
-    queryHits: PropTypes.oneOfType([PropTypes.array, PropTypes.object]),
-    editorControl: PropTypes.elementType.isRequired,
-    uniqueFieldId: PropTypes.string.isRequired,
-    loadEntry: PropTypes.func.isRequired,
-    t: PropTypes.func.isRequired,
-    onValidateObject: PropTypes.func,
-    isEditorComponent: PropTypes.bool,
-    isNewEditorComponent: PropTypes.bool,
-    /**
-     * @deprecated Every update creates a new entry, passing a live value down is too expensive. Use the getEntry callback instead or get the value from the store directly in the widget via `useSelector` or `connect`.
-     */
-    entry: PropTypes.object.isRequired,
-    getEntry: PropTypes.func.isRequired,
-    isDisabled: PropTypes.bool,
-    isFieldDuplicate: PropTypes.func,
-    isFieldHidden: PropTypes.func,
-    locale: PropTypes.string,
-    isParentListCollapsed: PropTypes.bool,
-  };
-
-  componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(Widget.propTypes, this.props, 'prop', 'Widget');
-  }
 
   shouldComponentUpdate(nextProps: WidgetProps) {
     /**

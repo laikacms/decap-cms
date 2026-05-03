@@ -25,13 +25,11 @@
     "@emotion/styled": "catalog:emotion",
     "decap-cms-lib-util": "workspace:*",
     "decap-cms-ui-default": "workspace:*",
-    "prop-types": "catalog:react",
     "react": "catalog:react"
   },
   "devDependencies": {
     "@types/lodash": "catalog:types",
-    "@types/react": "catalog:types",
-    "@types/prop-types": "catalog:types"
+    "@types/react": "catalog:types"
   },
   "type": "module",
   "types": "./dist/index.d.ts",

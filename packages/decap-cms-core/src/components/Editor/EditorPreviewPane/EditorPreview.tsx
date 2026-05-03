@@ -1,6 +1,6 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
+
 import type { CmsCollectionState, CmsEntry, CmsEntryField } from 'decap-cms-lib-util';
 
 type Collection = CmsCollectionState;
@@ -15,10 +15,6 @@ const PreviewContainer = styled.div`
   font-family: Roboto, 'Helvetica Neue', HelveticaNeue, Helvetica, Arial, sans-serif;
 `;
 
-/**
- * Use a stateful component so that child components can effectively utilize
- * `shouldComponentUpdate`.
- */
 interface PreviewProps {
   collection: Collection;
   entry: EntryMap;
@@ -32,26 +28,16 @@ interface PreviewProps {
   ) => React.ReactNode;
 }
 
-export default class Preview extends React.Component<PreviewProps> {
-  render() {
-    const { collection, fields, widgetFor } = this.props;
-    if (!collection || !fields) {
-      return null;
-    }
-    return (
-      <PreviewContainer>
-        {fields.filter(isVisible).map(field => (
-          <div key={field.name}>{widgetFor(field.name)}</div>
-        ))}
-      </PreviewContainer>
-    );
+export default function Preview({ collection, fields, widgetFor }: PreviewProps) {
+  if (!collection || !fields) {
+    return null;
   }
+  return (
+    <PreviewContainer>
+      {fields.filter(isVisible).map(field => (
+        <div key={field.name}>{widgetFor(field.name)}</div>
+      ))}
+    </PreviewContainer>
+  );
 }
 
-Preview.propTypes = {
-  collection: PropTypes.object.isRequired,
-  entry: PropTypes.object.isRequired,
-  fields: PropTypes.array.isRequired,
-  getAsset: PropTypes.func.isRequired,
-  widgetFor: PropTypes.func.isRequired,
-};

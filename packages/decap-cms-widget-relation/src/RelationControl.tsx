@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { components } from 'react-select';
 import AsyncSelect from 'react-select/async';
 import debounce from 'lodash/debounce';
@@ -10,7 +9,6 @@ import last from 'lodash/last';
 import uniqBy from 'lodash/uniqBy';
 import { reactSelectStyles } from 'decap-cms-ui-default';
 import { stringTemplate, validations } from 'decap-cms-lib-widgets';
-import type { CmsFieldBase, CmsFieldRelation } from 'decap-cms-lib-util';
 import { List as VirtualList } from 'react-window';
 import {
   DndContext,
@@ -27,6 +25,7 @@ import { v4 as uuid } from 'uuid';
 
 import relationCache from './RelationCache';
 
+import type { CmsFieldBase, CmsFieldRelation } from 'decap-cms-lib-util';
 import type { CSSProperties, ReactElement } from 'react';
 import type { MultiValueProps, MultiValueGenericProps, GroupBase } from 'react-select';
 
@@ -113,17 +112,17 @@ function SortableSelect(props: Record<string, unknown>) {
     isMulti: boolean;
   };
 
-  if (!isMulti) {
-    return <AsyncSelect {...(props as React.ComponentProps<typeof AsyncSelect>)} />;
-  }
-
-  const keys = Array.isArray(value) ? value.map(({ data }) => data.id) : [];
-
   const activationConstraint = { distance };
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint }),
     useSensor(TouchSensor, { activationConstraint }),
   );
+
+  if (!isMulti) {
+    return <AsyncSelect {...(props as React.ComponentProps<typeof AsyncSelect>)} />;
+  }
+
+  const keys = Array.isArray(value) ? value.map(({ data }) => data.id) : [];
 
   function handleSortEnd({
     active,
@@ -289,19 +288,6 @@ export default class RelationControl extends React.Component<
     initialOptions: [],
   };
 
-  static propTypes = {
-    onChange: PropTypes.func.isRequired,
-    forID: PropTypes.string.isRequired,
-    value: PropTypes.node,
-    field: PropTypes.object,
-    query: PropTypes.func.isRequired,
-    queryHits: PropTypes.array,
-    classNameWrapper: PropTypes.string.isRequired,
-    setActiveStyle: PropTypes.func.isRequired,
-    setInactiveStyle: PropTypes.func.isRequired,
-    locale: PropTypes.string,
-  };
-
   isValid = () => {
     const { field, value, t } = this.props;
     const min = field.min;
@@ -329,9 +315,6 @@ export default class RelationControl extends React.Component<
   }
 
   async componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(RelationControl.propTypes, this.props, 'prop', 'RelationControl');
-
     this.mounted = true;
     const { value } = this.props;
     if (value && this.hasInitialValues(value)) {

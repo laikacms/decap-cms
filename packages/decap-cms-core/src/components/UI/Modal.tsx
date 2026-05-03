@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { css, Global, ClassNames } from '@emotion/react';
 import ReactModal from 'react-modal';
 import { transitions, shadows, lengths, zIndex } from 'decap-cms-ui-default';
@@ -61,59 +60,46 @@ interface ModalProps {
   onClose: () => void;
 }
 
-export class Modal extends React.Component<ModalProps> {
-  static propTypes = {
-    children: PropTypes.node.isRequired,
-    isOpen: PropTypes.bool.isRequired,
-    className: PropTypes.string,
-    onClose: PropTypes.func.isRequired,
-  };
-
-  componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(Modal.propTypes, this.props, 'prop', 'Modal');
-
+export function Modal({ isOpen, children, className, onClose }: ModalProps) {
+  React.useEffect(() => {
     ReactModal.setAppElement('#nc-root');
-  }
+  }, []);
 
-  render() {
-    const { isOpen, children, className, onClose } = this.props;
-    return (
-      <>
-        <ReactModalGlobalStyles />
-        <ClassNames>
-          {({ css, cx }) => (
-            <ReactModal
-              isOpen={isOpen}
-              onRequestClose={onClose}
-              closeTimeoutMS={300}
-              className={{
-                base: cx(
-                  css`
-                    ${styleStrings.modalBody};
-                  `,
-                  className,
-                ),
-                afterOpen: '',
-                beforeClose: '',
-              }}
-              overlayClassName={{
-                base: css`
-                  ${styleStrings.overlay};
+  return (
+    <>
+      <ReactModalGlobalStyles />
+      <ClassNames>
+        {({ css, cx }) => (
+          <ReactModal
+            isOpen={isOpen}
+            onRequestClose={onClose}
+            closeTimeoutMS={300}
+            className={{
+              base: cx(
+                css`
+                  ${styleStrings.modalBody};
                 `,
-                afterOpen: css`
-                  ${styleStrings.overlayAfterOpen};
-                `,
-                beforeClose: css`
-                  ${styleStrings.overlayBeforeClose};
-                `,
-              }}
-            >
-              {children}
-            </ReactModal>
-          )}
-        </ClassNames>
-      </>
-    );
-  }
+                className,
+              ),
+              afterOpen: '',
+              beforeClose: '',
+            }}
+            overlayClassName={{
+              base: css`
+                ${styleStrings.overlay};
+              `,
+              afterOpen: css`
+                ${styleStrings.overlayAfterOpen};
+              `,
+              beforeClose: css`
+                ${styleStrings.overlayBeforeClose};
+              `,
+            }}
+          >
+            {children}
+          </ReactModal>
+        )}
+      </ClassNames>
+    </>
+  );
 }

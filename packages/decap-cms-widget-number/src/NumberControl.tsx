@@ -1,5 +1,5 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import type { CmsFieldBase, CmsFieldNumber } from 'decap-cms-lib-util';
 
@@ -57,7 +57,7 @@ export function validateMinMax(
   return error;
 }
 
-interface NumberControlProps {
+export interface NumberControlProps {
   field: CmsFieldNumber & CmsFieldBase;
   onChange: (...args: unknown[]) => unknown;
   classNameWrapper: string;
@@ -72,66 +72,56 @@ interface NumberControlProps {
   t: TranslateFunction;
 }
 
-export default class NumberControl extends React.Component<NumberControlProps> {
-  static propTypes = {
-    field: PropTypes.object.isRequired,
-    onChange: PropTypes.func.isRequired,
-    classNameWrapper: PropTypes.string.isRequired,
-    setActiveStyle: PropTypes.func.isRequired,
-    setInactiveStyle: PropTypes.func.isRequired,
-    value: PropTypes.node,
-    forID: PropTypes.string,
-    valueType: PropTypes.string,
-    step: PropTypes.number,
-    min: PropTypes.number,
-    max: PropTypes.number,
-    t: PropTypes.func.isRequired,
-  };
+export interface NumberControlHandle {
+  isValid(): true | { error: { type: string; message: string } };
+}
 
-  static defaultProps = {
-    value: '',
-  };
-
-  componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(NumberControl.propTypes, this.props, 'prop', 'NumberControl');
-  }
-
-  handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const valueType = this.props.field.value_type;
-    const { onChange } = this.props;
-    const value = valueType === 'float' ? parseFloat(e.target.value) : parseInt(e.target.value, 10);
-
-    if (!isNaN(value)) {
-      onChange(value);
-    } else {
-      onChange('');
-    }
-  };
-
-  isValid = () => {
-    const { field, value, t } = this.props;
-    const hasPattern = !!field.pattern;
-    const min = field.min ?? false;
-    const max = field.max ?? false;
-
-    // Pattern overrides min/max logic always:
-    if (hasPattern) {
-      return true;
-    }
-
-    const error = validateMinMax(
-      value ?? '',
-      min as number | false,
-      max as number | false,
+const NumberControl = React.forwardRef<NumberControlHandle, NumberControlProps>(
+  function NumberControl(props, ref) {
+    const {
       field,
-      t,
-    );
-    return error ? { error } : true;
-  };
+      value = '',
+      onChange,
+      classNameWrapper,
+      forID,
+      setActiveStyle,
+      setInactiveStyle,
+    } = props;
 
-  render() {
-    const { field, value, classNameWrapper, forID, setActiveStyle, setInactiveStyle } = this.props;
+    // Stable handle: read latest field/value/t through a ref so callers that
+    // captured the handle once (e.g. in a test helper) keep working.
+    const latestProps = React.useRef(props);
+    latestProps.current = props;
+    React.useImperativeHandle(
+      ref,
+      () => ({
+        isValid() {
+          const { field: f, value: v, t: tt } = latestProps.current;
+          if (f.pattern) return true;
+          const error = validateMinMax(
+            v ?? '',
+            (f.min ?? false) as number | false,
+            (f.max ?? false) as number | false,
+            f,
+            tt,
+          );
+          return error ? { error } : true;
+        },
+      }),
+      [],
+    );
+
+    function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+      const valueType = field.value_type;
+      const next =
+        valueType === 'float' ? parseFloat(e.target.value) : parseInt(e.target.value, 10);
+      if (!isNaN(next)) {
+        onChange(next);
+      } else {
+        onChange('');
+      }
+    }
+
     const min = field.min ?? '';
     const max = field.max ?? '';
     const step = field.step ?? (field.value_type === 'int' ? 1 : '');
@@ -146,8 +136,10 @@ export default class NumberControl extends React.Component<NumberControlProps> {
         step={step}
         min={min}
         max={max}
-        onChange={this.handleChange}
+        onChange={handleChange}
       />
     );
-  }
-}
+  },
+);
+
+export default NumberControl;

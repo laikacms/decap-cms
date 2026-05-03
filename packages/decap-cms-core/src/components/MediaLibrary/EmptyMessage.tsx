@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 import { colors } from 'decap-cms-ui-default';
 
@@ -24,10 +23,5 @@ function EmptyMessage({ content, isPrivate }: EmptyMessageProps) {
     </EmptyMessageContainer>
   );
 }
-
-EmptyMessage.propTypes = {
-  content: PropTypes.string.isRequired,
-  isPrivate: PropTypes.bool,
-};
 
 export default EmptyMessage;

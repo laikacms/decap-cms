@@ -5,6 +5,7 @@ import { Wrapper, Button as DropdownButton, Menu, MenuItem } from 'react-aria-me
 
 import { colors, buttons, components, zIndex } from './styles';
 import Icon from './Icon';
+
 import type { IconDirection, IconName } from './Icon/icons';
 
 const StyledWrapper = styled(Wrapper)`

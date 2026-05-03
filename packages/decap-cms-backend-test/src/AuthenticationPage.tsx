@@ -1,8 +1,8 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
-import type { TranslateFunction } from 'decap-cms-ui-default';
 import { Icon, buttons, shadows, GoBackButton } from 'decap-cms-ui-default';
+
+import type { TranslateFunction } from 'decap-cms-ui-default';
 
 const StyledAuthenticationPage = styled.section`
   display: flex;
@@ -52,48 +52,31 @@ interface AuthenticationPageProps {
   t: TranslateFunction;
 }
 
-export default class AuthenticationPage extends React.Component<AuthenticationPageProps> {
-  static propTypes = {
-    onLogin: PropTypes.func.isRequired,
-    inProgress: PropTypes.bool,
-    config: PropTypes.object.isRequired,
-    t: PropTypes.func.isRequired,
-  };
-
-  componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(
-      AuthenticationPage.propTypes,
-      this.props,
-      'prop',
-      'AuthenticationPage',
-    );
-
-    /**
-     * Allow login screen to be skipped for demo purposes.
-     */
-    const skipLogin = this.props.config.backend.login === false;
-    if (skipLogin) {
-      this.props.onLogin(this.state);
+export default function AuthenticationPage({
+  onLogin,
+  inProgress,
+  config,
+  t,
+}: AuthenticationPageProps) {
+  React.useEffect(() => {
+    // Allow login screen to be skipped for demo purposes.
+    if (config.backend.login === false) {
+      onLogin(null);
     }
-  }
+  }, []);
 
-  handleLogin = (e: React.MouseEvent<HTMLButtonElement>) => {
+  function handleLogin(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
-    this.props.onLogin(this.state);
-  };
-
-  render() {
-    const { config, inProgress, t } = this.props;
-
-    return (
-      <StyledAuthenticationPage>
-        <PageLogoIcon size="300px" type="decap" />
-        <LoginButton disabled={inProgress} onClick={this.handleLogin}>
-          {inProgress ? t('auth.loggingIn') : t('auth.login')}
-        </LoginButton>
-        {config.site_url && <GoBackButton href={config.site_url} t={t}></GoBackButton>}
-      </StyledAuthenticationPage>
-    );
+    onLogin(null);
   }
+
+  return (
+    <StyledAuthenticationPage>
+      <PageLogoIcon size="300px" type="decap" />
+      <LoginButton disabled={inProgress} onClick={handleLogin}>
+        {inProgress ? t('auth.loggingIn') : t('auth.login')}
+      </LoginButton>
+      {config.site_url && <GoBackButton href={config.site_url} t={t}></GoBackButton>}
+    </StyledAuthenticationPage>
+  );
 }

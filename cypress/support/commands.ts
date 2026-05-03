@@ -30,6 +30,7 @@ import path from 'path';
 import { rehype } from 'rehype';
 import { visit } from 'unist-util-visit';
 import { oneLineTrim } from 'common-tags';
+
 import { escapeRegExp } from '../utils/regexp';
 
 interface Route {

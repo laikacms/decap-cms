@@ -1,11 +1,11 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import find from 'lodash/find';
 import Select from 'react-select';
 import { reactSelectStyles } from 'decap-cms-ui-default';
 import { validations } from 'decap-cms-lib-widgets';
-import type { CmsFieldSelect, CmsFieldBase } from 'decap-cms-lib-util';
 import isObject from 'lodash/isObject';
+
+import type { CmsFieldSelect, CmsFieldBase } from 'decap-cms-lib-util';
 
 interface SelectOption {
   label: string;
@@ -50,7 +50,7 @@ function getSelectedValue({
   }
 }
 
-interface SelectControlProps {
+export interface SelectControlProps {
   onChange: (...args: unknown[]) => unknown;
   value?: string | number | (string | number)[];
   forID: string;
@@ -61,100 +61,80 @@ interface SelectControlProps {
   t: (key: string, options?: unknown) => string;
 }
 
-export default class SelectControl extends React.Component<SelectControlProps> {
-  static propTypes = {
-    onChange: PropTypes.func.isRequired,
-    value: PropTypes.node,
-    forID: PropTypes.string.isRequired,
-    classNameWrapper: PropTypes.string.isRequired,
-    setActiveStyle: PropTypes.func.isRequired,
-    setInactiveStyle: PropTypes.func.isRequired,
-    field: PropTypes.shape({
-      options: PropTypes.arrayOf(
-        PropTypes.oneOfType([
-          PropTypes.string,
-          PropTypes.number,
-          PropTypes.shape({
-            label: PropTypes.string.isRequired,
-            value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-          }),
-        ]),
-      ).isRequired,
-    }),
-  };
+export interface SelectControlHandle {
+  isValid(): { error: false | { type: string; message: string } };
+}
 
-  isValid = () => {
-    const { field, value, t } = this.props;
-    const min = field.min;
-    const max = field.max;
+const SelectControl = React.forwardRef<SelectControlHandle, SelectControlProps>(
+  function SelectControl(props, ref) {
+    const { field, value, forID, classNameWrapper, setActiveStyle, setInactiveStyle, onChange, t } =
+      props;
 
-    if (!field.multiple) {
-      return { error: false };
-    }
-
-    const error = validations.validateMinMax(
-      t,
-      field.label ?? field.name,
-      value as (string | number)[] | undefined,
-      min,
-      max,
+    // Read latest props from a ref so the imperative handle stays referentially
+    // stable across renders. Callers that captured the ref once (e.g. in a test
+    // helper) can keep using it; isValid always sees the current value.
+    const latestProps = React.useRef(props);
+    latestProps.current = props;
+    React.useImperativeHandle(
+      ref,
+      () => ({
+        isValid() {
+          const { field: f, value: v, t: tt } = latestProps.current;
+          if (!f.multiple) return { error: false };
+          const error = validations.validateMinMax(
+            tt,
+            f.label ?? f.name,
+            v as (string | number)[] | undefined,
+            f.min,
+            f.max,
+          );
+          return error ? { error } : { error: false };
+        },
+      }),
+      [],
     );
 
-    return error ? { error } : { error: false };
-  };
+    React.useEffect(() => {
+      if (field.required && field.multiple) {
+        if (value && !Array.isArray(value)) {
+          onChange([value]);
+        } else if (!value) {
+          onChange([]);
+        }
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- mirror componentDidMount
+    }, []);
 
-  handleChange = (selectedOption: readonly SelectOption[] | SelectOption | null) => {
-    const { onChange, field } = this.props;
-    const isMultiple = field.multiple;
-    const isEmpty = isMultiple
-      ? !selectedOption || (Array.isArray(selectedOption) && selectedOption.length === 0)
-      : !selectedOption;
+    function handleChange(selectedOption: readonly SelectOption[] | SelectOption | null) {
+      const isMultiple = field.multiple;
+      const isEmpty = isMultiple
+        ? !selectedOption || (Array.isArray(selectedOption) && selectedOption.length === 0)
+        : !selectedOption;
 
-    if (field.required && isEmpty && isMultiple) {
-      onChange([]);
-    } else if (isEmpty) {
-      onChange(null);
-    } else if (isMultiple && Array.isArray(selectedOption)) {
-      const options = selectedOption.map(optionToString);
-      onChange(options);
-    } else if (selectedOption && !Array.isArray(selectedOption)) {
-      onChange(optionToString(selectedOption as SelectOption));
-    }
-  };
-
-  componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(SelectControl.propTypes, this.props, 'prop', 'SelectControl');
-
-    const { field, onChange, value } = this.props;
-    if (field.required && field.multiple) {
-      if (value && !Array.isArray(value)) {
-        onChange([value]);
-      } else if (!value) {
+      if (field.required && isEmpty && isMultiple) {
         onChange([]);
+      } else if (isEmpty) {
+        onChange(null);
+      } else if (isMultiple && Array.isArray(selectedOption)) {
+        onChange(selectedOption.map(optionToString));
+      } else if (selectedOption && !Array.isArray(selectedOption)) {
+        onChange(optionToString(selectedOption as SelectOption));
       }
     }
-  }
 
-  render() {
-    const { field, value, forID, classNameWrapper, setActiveStyle, setInactiveStyle } = this.props;
     const fieldOptions = field.options;
     const isMultiple = !!field.multiple;
     const isClearable = !field.required || isMultiple;
 
     const options: SelectOption[] = [...fieldOptions.map(convertToOption)];
-    const selectedValue = getSelectedValue({
-      options,
-      value,
-      isMultiple,
-    });
+    const selectedValue = getSelectedValue({ options, value, isMultiple });
 
     return (
       <Select<SelectOption, boolean>
         inputId={forID}
         value={selectedValue}
         onChange={
-          this.handleChange as (newValue: readonly SelectOption[] | SelectOption | null) => void
+          handleChange as (newValue: readonly SelectOption[] | SelectOption | null) => void
         }
         className={classNameWrapper}
         onFocus={setActiveStyle}
@@ -166,5 +146,7 @@ export default class SelectControl extends React.Component<SelectControlProps> {
         placeholder=""
       />
     );
-  }
-}
+  },
+);
+
+export default SelectControl;

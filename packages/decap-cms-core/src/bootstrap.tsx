@@ -2,7 +2,6 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Provider, connect } from 'react-redux';
 import { unstable_HistoryRouter as HistoryRouter } from 'react-router-dom';
-import type { CmsConfig } from 'decap-cms-lib-util';
 import { GlobalStyles } from 'decap-cms-ui-default';
 import { I18n } from 'react-polyglot';
 
@@ -19,6 +18,7 @@ import './mediaLibrary';
 import 'what-input';
 
 import type { AppDispatch } from './redux';
+import type { CmsConfig } from 'decap-cms-lib-util';
 
 const ROOT_ID = 'nc-root';
 

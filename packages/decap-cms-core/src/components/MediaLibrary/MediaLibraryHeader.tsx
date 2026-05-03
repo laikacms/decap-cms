@@ -1,8 +1,8 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
-import type { TranslateFunction } from 'decap-cms-ui-default';
 import { Icon, shadows, colors, buttons } from 'decap-cms-ui-default';
+
+import type { TranslateFunction } from 'decap-cms-ui-default';
 
 const CloseButton = styled.button`
   ${buttons.button};
@@ -46,11 +46,5 @@ function MediaLibraryHeader({ onClose, title, isPrivate, t }: MediaLibraryHeader
     </div>
   );
 }
-
-MediaLibraryHeader.propTypes = {
-  onClose: PropTypes.func.isRequired,
-  title: PropTypes.string.isRequired,
-  isPrivate: PropTypes.bool,
-};
 
 export default MediaLibraryHeader;

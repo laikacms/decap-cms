@@ -1,6 +1,7 @@
 import { EditorialWorkflowError, APIError, unsentRequest, blobToFileObj } from 'decap-cms-lib-util';
-
 import isError from 'lodash/isError';
+
+import AuthenticationPage from './AuthenticationPage';
 
 import type {
   CmsEntry,
@@ -15,7 +16,6 @@ import type {
   CmsDataFile,
 } from 'decap-cms-lib-util';
 
-import AuthenticationPage from './AuthenticationPage';
 
 async function serializeAsset(assetProxy: CmsAssetProxy) {
   const base64content = await assetProxy.toBase64!();
