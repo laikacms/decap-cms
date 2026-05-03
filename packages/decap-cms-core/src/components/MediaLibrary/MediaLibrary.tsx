@@ -1,11 +1,9 @@
 import React from 'react';
-import { connect } from 'react-redux';
 import orderBy from 'lodash/orderBy';
 import map from 'lodash/map';
-import { translate } from 'react-polyglot';
+import { useTranslate } from 'react-polyglot';
 import fuzzy from 'fuzzy';
 import { fileExtension } from 'decap-cms-lib-util';
-
 
 import {
   loadMedia as loadMediaAction,
@@ -17,10 +15,9 @@ import {
 } from '../../actions/mediaLibrary';
 import { selectMediaFiles } from '../../reducers/mediaLibrary';
 import MediaLibraryModal from './MediaLibraryModal';
+import { useAppDispatch, useAppSelector } from '../../hooks/useRedux';
 
 import type { TranslateFunction } from 'decap-cms-ui-default';
-
-type State = any;
 
 /**
  * Extensions used to determine which files to show when the media library is
@@ -344,13 +341,16 @@ function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
   );
 }
 
-function mapStateToProps(state: State) {
-  const { mediaLibrary } = state;
-  const field = mediaLibrary.field;
-  const mediaLibraryProps = {
+export default function ConnectedMediaLibrary() {
+  const t = useTranslate();
+  const dispatch = useAppDispatch();
+  const mediaLibrary = useAppSelector((state: any) => state.mediaLibrary);
+  const files = useAppSelector((state: any) => selectMediaFiles(state, state.mediaLibrary.field));
+
+  const props: any = {
     isVisible: mediaLibrary.isVisible,
     canInsert: mediaLibrary.canInsert,
-    files: selectMediaFiles(state, field),
+    files,
     displayURLs: mediaLibrary.displayURLs,
     dynamicSearch: mediaLibrary.dynamicSearch,
     dynamicSearchActive: mediaLibrary.dynamicSearchActive,
@@ -364,18 +364,15 @@ function mapStateToProps(state: State) {
     page: mediaLibrary.page,
     hasNextPage: mediaLibrary.hasNextPage,
     isPaginating: mediaLibrary.isPaginating,
-    field,
+    field: mediaLibrary.field,
+    loadMedia: (opts?: any) => dispatch(loadMediaAction(opts)),
+    persistMedia: (file: File, opts?: any) => dispatch(persistMediaAction(file, opts)),
+    deleteMedia: (file: any, opts?: any) => dispatch(deleteMediaAction(file, opts)),
+    insertMedia: (mediaPath: string | string[], field?: any) =>
+      dispatch(insertMediaAction(mediaPath, field)),
+    loadMediaDisplayURL: (file: any) => dispatch(loadMediaDisplayURLAction(file)),
+    closeMediaLibrary: () => dispatch(closeMediaLibraryAction()),
+    t: t as TranslateFunction,
   };
-  return { ...mediaLibraryProps };
+  return <MediaLibrary {...props} />;
 }
-
-const mapDispatchToProps = {
-  loadMedia: loadMediaAction,
-  persistMedia: persistMediaAction,
-  deleteMedia: deleteMediaAction,
-  insertMedia: insertMediaAction,
-  loadMediaDisplayURL: loadMediaDisplayURLAction,
-  closeMediaLibrary: closeMediaLibraryAction,
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(translate()(MediaLibrary) as any);
