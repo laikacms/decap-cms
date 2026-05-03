@@ -43,13 +43,13 @@ export function DropTarget({ onDrop, namespace, children }: DropTargetProps) {
 }
 
 export function HTML5DragDrop<P extends object>(WrappedComponent: React.ComponentType<P>) {
-  return class HTML5DragDrop extends React.Component<P> {
-    render() {
-      return (
-        <ReactDNDProvider backend={ReactDNDHTML5Backend}>
-          <WrappedComponent {...this.props} />
-        </ReactDNDProvider>
-      );
-    }
-  };
+  function HTML5DragDropWrapper(props: P) {
+    return (
+      <ReactDNDProvider backend={ReactDNDHTML5Backend}>
+        <WrappedComponent {...props} />
+      </ReactDNDProvider>
+    );
+  }
+  HTML5DragDropWrapper.displayName = `HTML5DragDrop(${WrappedComponent.displayName || WrappedComponent.name || 'Component'})`;
+  return HTML5DragDropWrapper;
 }

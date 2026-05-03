@@ -115,6 +115,7 @@
     "eslint-plugin-import": "catalog:eslint",
     "eslint-plugin-import-x": "^4.16.2",
     "eslint-plugin-react": "catalog:eslint",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-unicorn": "catalog:eslint",
     "execa": "catalog:build",
     "gitlab": "catalog:git",

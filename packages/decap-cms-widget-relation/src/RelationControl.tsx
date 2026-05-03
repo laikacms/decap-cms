@@ -112,17 +112,17 @@ function SortableSelect(props: Record<string, unknown>) {
     isMulti: boolean;
   };
 
-  if (!isMulti) {
-    return <AsyncSelect {...(props as React.ComponentProps<typeof AsyncSelect>)} />;
-  }
-
-  const keys = Array.isArray(value) ? value.map(({ data }) => data.id) : [];
-
   const activationConstraint = { distance };
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint }),
     useSensor(TouchSensor, { activationConstraint }),
   );
+
+  if (!isMulti) {
+    return <AsyncSelect {...(props as React.ComponentProps<typeof AsyncSelect>)} />;
+  }
+
+  const keys = Array.isArray(value) ? value.map(({ data }) => data.id) : [];
 
   function handleSortEnd({
     active,

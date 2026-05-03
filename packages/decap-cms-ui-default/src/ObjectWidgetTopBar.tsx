@@ -72,70 +72,66 @@ export interface ObjectWidgetTopBarProps {
   t: TranslateFunction;
 }
 
-class ObjectWidgetTopBar extends React.Component<ObjectWidgetTopBarProps> {
-  renderAddUI(): React.ReactNode {
-    if (!this.props.allowAdd) {
-      return null;
-    }
-    if (this.props.types && this.props.types.length > 0) {
-      return this.renderTypesDropdown(this.props.types);
+function ObjectWidgetTopBar({
+  allowAdd,
+  types,
+  onAdd,
+  onAddType,
+  onCollapseToggle,
+  collapsed,
+  heading = null,
+  label,
+  t,
+}: ObjectWidgetTopBarProps) {
+  let addUI: React.ReactNode = null;
+  if (allowAdd) {
+    if (types && types.length > 0) {
+      addUI = (
+        <Dropdown
+          renderButton={() => (
+            <StyledDropdownButton>
+              {t('editor.editorWidgets.list.addType', { item: label })}
+            </StyledDropdownButton>
+          )}
+        >
+          {types.map((type: TypeItem, idx: number) => (
+            <DropdownItem
+              key={idx}
+              label={type.label ?? type.name}
+              onClick={() => onAddType?.(type.name)}
+            />
+          ))}
+        </Dropdown>
+      );
     } else {
-      return this.renderAddButton();
+      addUI = (
+        <AddButton onClick={onAdd}>
+          {t('editor.editorWidgets.list.add', { item: label })}
+          <Icon type="add" size="xsmall" />
+        </AddButton>
+      );
     }
   }
 
-  renderTypesDropdown(types: TypeItem[]): React.ReactElement {
-    return (
-      <Dropdown
-        renderButton={() => (
-          <StyledDropdownButton>
-            {this.props.t('editor.editorWidgets.list.addType', { item: this.props.label })}
-          </StyledDropdownButton>
-        )}
-      >
-        {types.map((type: TypeItem, idx: number) => (
-          <DropdownItem
-            key={idx}
-            label={type.label ?? type.name}
-            onClick={() => this.props.onAddType?.(type.name)}
-          />
-        ))}
-      </Dropdown>
-    );
-  }
-
-  renderAddButton(): React.ReactElement {
-    return (
-      <AddButton onClick={this.props.onAdd}>
-        {this.props.t('editor.editorWidgets.list.add', { item: this.props.label })}
-        <Icon type="add" size="xsmall" />
-      </AddButton>
-    );
-  }
-
-  render(): React.ReactElement {
-    const { onCollapseToggle, collapsed, heading = null, t } = this.props;
-
-    return (
-      <TopBarContainer>
-        <ExpandButtonContainer hasHeading={!!heading}>
-          <ExpandButton
-            onClick={onCollapseToggle}
-            data-testid="expand-button"
-            aria-label={
-              collapsed
-                ? t('editor.editorWidgets.object.expand')
-                : t('editor.editorWidgets.object.collapse')
-            }
-          >
-            <Icon type="chevron" direction={collapsed ? 'right' : 'down'} size="small" />
-          </ExpandButton>
-          {heading}
-        </ExpandButtonContainer>
-        {this.renderAddUI()}
-      </TopBarContainer>
-    );
-  }
+  return (
+    <TopBarContainer>
+      <ExpandButtonContainer hasHeading={!!heading}>
+        <ExpandButton
+          onClick={onCollapseToggle}
+          data-testid="expand-button"
+          aria-label={
+            collapsed
+              ? t('editor.editorWidgets.object.expand')
+              : t('editor.editorWidgets.object.collapse')
+          }
+        >
+          <Icon type="chevron" direction={collapsed ? 'right' : 'down'} size="small" />
+        </ExpandButton>
+        {heading}
+      </ExpandButtonContainer>
+      {addUI}
+    </TopBarContainer>
+  );
 }
 
 export default ObjectWidgetTopBar;

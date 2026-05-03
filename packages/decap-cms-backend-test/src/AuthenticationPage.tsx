@@ -52,33 +52,31 @@ interface AuthenticationPageProps {
   t: TranslateFunction;
 }
 
-export default class AuthenticationPage extends React.Component<AuthenticationPageProps> {
-  componentDidMount() {
-    /**
-     * Allow login screen to be skipped for demo purposes.
-     */
-    const skipLogin = this.props.config.backend.login === false;
-    if (skipLogin) {
-      this.props.onLogin(this.state);
+export default function AuthenticationPage({
+  onLogin,
+  inProgress,
+  config,
+  t,
+}: AuthenticationPageProps) {
+  React.useEffect(() => {
+    // Allow login screen to be skipped for demo purposes.
+    if (config.backend.login === false) {
+      onLogin(null);
     }
-  }
+  }, []);
 
-  handleLogin = (e: React.MouseEvent<HTMLButtonElement>) => {
+  function handleLogin(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
-    this.props.onLogin(this.state);
-  };
-
-  render() {
-    const { config, inProgress, t } = this.props;
-
-    return (
-      <StyledAuthenticationPage>
-        <PageLogoIcon size="300px" type="decap" />
-        <LoginButton disabled={inProgress} onClick={this.handleLogin}>
-          {inProgress ? t('auth.loggingIn') : t('auth.login')}
-        </LoginButton>
-        {config.site_url && <GoBackButton href={config.site_url} t={t}></GoBackButton>}
-      </StyledAuthenticationPage>
-    );
+    onLogin(null);
   }
+
+  return (
+    <StyledAuthenticationPage>
+      <PageLogoIcon size="300px" type="decap" />
+      <LoginButton disabled={inProgress} onClick={handleLogin}>
+        {inProgress ? t('auth.loggingIn') : t('auth.login')}
+      </LoginButton>
+      {config.site_url && <GoBackButton href={config.site_url} t={t}></GoBackButton>}
+    </StyledAuthenticationPage>
+  );
 }

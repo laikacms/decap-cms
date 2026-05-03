@@ -2,6 +2,7 @@ import eslint from '@eslint/js';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 import reactPlugin from 'eslint-plugin-react';
+import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import cypressPlugin from 'eslint-plugin-cypress';
 import importPlugin from 'eslint-plugin-import-x';
 import unicornPlugin from 'eslint-plugin-unicorn';
@@ -46,6 +47,7 @@ export default tseslint.config(
     files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.mjs'],
     plugins: {
       react: reactPlugin,
+      'react-hooks': reactHooksPlugin,
       import: importPlugin,
       unicorn: unicornPlugin,
       '@emotion': emotionPlugin,
@@ -98,6 +100,8 @@ export default tseslint.config(
         'error',
         { ignore: ['css', 'bold', 'italic', 'delete', 'strikethrough'] },
       ],
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
 
       // Import rules
       'import/no-named-as-default': 'off',

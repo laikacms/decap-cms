@@ -28,17 +28,11 @@ export interface GoBackButtonProps {
   t: TranslateFunction;
 }
 
-interface GoBackButtonState {}
-
-export default class GoBackButton extends React.Component<GoBackButtonProps, GoBackButtonState> {
-  render(): React.ReactElement {
-    const { href, t } = this.props;
-
-    return (
-      <GoBackButtonStyle href={href}>
-        <Icon type="arrow" size="small" />
-        <ButtonText>{t('ui.default.goBackToSite')}</ButtonText>
-      </GoBackButtonStyle>
-    );
-  }
+export default function GoBackButton({ href, t }: GoBackButtonProps) {
+  return (
+    <GoBackButtonStyle href={href}>
+      <Icon type="arrow" size="small" />
+      <ButtonText>{t('ui.default.goBackToSite')}</ButtonText>
+    </GoBackButtonStyle>
+  );
 }

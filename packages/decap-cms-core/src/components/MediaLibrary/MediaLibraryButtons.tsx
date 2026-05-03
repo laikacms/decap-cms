@@ -81,59 +81,46 @@ interface CopyToClipBoardButtonProps {
   t: TranslateFunction;
 }
 
-export class CopyToClipBoardButton extends React.Component<CopyToClipBoardButtonProps> {
-  mounted = false;
-  timeout: ReturnType<typeof setTimeout> | undefined;
+export function CopyToClipBoardButton({
+  disabled,
+  draft,
+  path,
+  name,
+  t,
+}: CopyToClipBoardButtonProps) {
+  const [copied, setCopied] = React.useState(false);
+  const timeoutRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  state = {
-    copied: false,
-  };
+  React.useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
-  componentDidMount() {
-    this.mounted = true;
-  }
-
-  componentWillUnmount() {
-    this.mounted = false;
-  }
-
-  handleCopy = () => {
-    clearTimeout(this.timeout);
-    const { path, draft, name } = this.props;
+  function handleCopy() {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
     copyToClipboard(isAbsolutePath(path || '') || !draft ? path || '' : name || '');
-    this.setState({ copied: true });
-    this.timeout = setTimeout(() => this.mounted && this.setState({ copied: false }), 1500);
-  };
-
-  getTitle = () => {
-    const { t, path, draft } = this.props;
-    if (this.state.copied) {
-      return t('mediaLibrary.mediaLibraryCard.copied');
-    }
-
-    if (!path) {
-      return t('mediaLibrary.mediaLibraryCard.copy');
-    }
-
-    if (isAbsolutePath(path)) {
-      return t('mediaLibrary.mediaLibraryCard.copyUrl');
-    }
-
-    if (draft) {
-      return t('mediaLibrary.mediaLibraryCard.copyName');
-    }
-
-    return t('mediaLibrary.mediaLibraryCard.copyPath');
-  };
-
-  render() {
-    const { disabled } = this.props;
-
-    return (
-      <ActionButton disabled={disabled} onClick={this.handleCopy}>
-        {this.getTitle()}
-      </ActionButton>
-    );
+    setCopied(true);
+    timeoutRef.current = setTimeout(() => setCopied(false), 1500);
   }
+
+  let title: string;
+  if (copied) {
+    title = t('mediaLibrary.mediaLibraryCard.copied');
+  } else if (!path) {
+    title = t('mediaLibrary.mediaLibraryCard.copy');
+  } else if (isAbsolutePath(path)) {
+    title = t('mediaLibrary.mediaLibraryCard.copyUrl');
+  } else if (draft) {
+    title = t('mediaLibrary.mediaLibraryCard.copyName');
+  } else {
+    title = t('mediaLibrary.mediaLibraryCard.copyPath');
+  }
+
+  return (
+    <ActionButton disabled={disabled} onClick={handleCopy}>
+      {title}
+    </ActionButton>
+  );
 }
 
