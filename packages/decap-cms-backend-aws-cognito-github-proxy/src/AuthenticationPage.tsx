@@ -2,67 +2,58 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { PkceAuthenticator } from 'decap-cms-lib-auth';
 import { AuthenticationPage, Icon } from 'decap-cms-ui-default';
-import { PKCEAuthenticationPage, type PKCEUser } from 'decap-cms-ui-auth';
+import { usePkceAuth, type PKCEAuthenticationPageProps, type PKCEUser } from 'decap-cms-ui-auth';
 
 const LoginButtonIcon = styled(Icon)`
   margin-right: 18px;
 `;
 
-export default class GenericPKCEAuthenticationPage extends PKCEAuthenticationPage {
-  state: { loginError?: string } = {};
+export default function AwsCognitoGitHubProxyAuthenticationPage({
+  inProgress,
+  config,
+  onLogin,
+  t,
+}: PKCEAuthenticationPageProps) {
+  const { login, loginError } = usePkceAuth(
+    () => {
+      const {
+        base_url = '',
+        app_id = '',
+        auth_endpoint = 'oauth2/authorize',
+        auth_token_endpoint = 'oauth2/token',
+      } = config.backend;
+      return new PkceAuthenticator({
+        base_url,
+        auth_endpoint,
+        app_id,
+        auth_token_endpoint,
+        auth_token_endpoint_content_type: 'application/x-www-form-urlencoded; charset=utf-8',
+      });
+    },
+    onLogin,
+    {
+      onCompleteAuth: data => ({ ...data, user_metadata: {} } as PKCEUser),
+    },
+  );
 
-  componentDidMount() {
-    const {
-      base_url = '',
-      app_id = '',
-      auth_endpoint = 'oauth2/authorize',
-      auth_token_endpoint = 'oauth2/token',
-    } = this.props.config.backend;
-    this.auth = new PkceAuthenticator({
-      base_url,
-      auth_endpoint,
-      app_id,
-      auth_token_endpoint,
-      auth_token_endpoint_content_type: 'application/x-www-form-urlencoded; charset=utf-8',
-    });
-    // Complete authentication if we were redirected back to from the provider.
-    this.auth.completeAuth((err, data) => {
-      if (err) {
-        this.setState({ loginError: err.toString() });
-        return;
-      }
-      this.props.onLogin(data as unknown as PKCEUser);
-    });
-    super.componentDidMount();
+  function handleLogin() {
+    login({ scope: 'https://api.github.com/repo openid email' });
   }
 
-  handleLogin = () => {
-    this.auth.authenticate({ scope: 'https://api.github.com/repo openid email' }, (err, data) => {
-      if (err) {
-        this.setState({ loginError: err.toString() });
-        return;
-      }
-      this.props.onLogin(data as unknown as PKCEUser);
-    });
-  };
-
-  render() {
-    const { inProgress, config, t } = this.props;
-    return (
-      <AuthenticationPage
-        onLogin={this.handleLogin}
-        loginDisabled={inProgress}
-        loginErrorMessage={this.state.loginError}
-        logoUrl={config.logo?.src} // Deprecated, replaced by `logo.src`
-        logo={config.logo}
-        siteUrl={config.site_url}
-        renderButtonContent={() => (
-          <React.Fragment>
-            <LoginButtonIcon type="link" /> {inProgress ? t('auth.loggingIn') : t('auth.login')}
-          </React.Fragment>
-        )}
-        t={t}
-      />
-    );
-  }
+  return (
+    <AuthenticationPage
+      onLogin={handleLogin}
+      loginDisabled={inProgress}
+      loginErrorMessage={loginError}
+      logoUrl={config.logo?.src} // Deprecated, replaced by `logo.src`
+      logo={config.logo}
+      siteUrl={config.site_url}
+      renderButtonContent={() => (
+        <React.Fragment>
+          <LoginButtonIcon type="link" /> {inProgress ? t('auth.loggingIn') : t('auth.login')}
+        </React.Fragment>
+      )}
+      t={t}
+    />
+  );
 }

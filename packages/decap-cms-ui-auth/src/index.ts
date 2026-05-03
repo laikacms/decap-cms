@@ -1,9 +1,9 @@
 import NetlifyAuthenticationPage from './NetlifyAuthenticationPage';
-import PKCEAuthenticationPage from './PKCEAuthenticationPage';
+import PKCEAuthenticationPage, { usePkceAuth } from './PKCEAuthenticationPage';
 
 export const DecapCmsUiAuth = {
   NetlifyAuthenticationPage,
   PKCEAuthenticationPage,
 };
-export { NetlifyAuthenticationPage, PKCEAuthenticationPage };
+export { NetlifyAuthenticationPage, PKCEAuthenticationPage, usePkceAuth };
 export * from './types/index';

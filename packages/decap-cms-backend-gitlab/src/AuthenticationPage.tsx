@@ -73,34 +73,36 @@ interface GitLabAuthenticationPageProps {
   t: TranslateFunction;
 }
 
-interface GitLabAuthenticationPageState {
-  loginError?: string;
-}
+export default function GitLabAuthenticationPage({
+  onLogin,
+  inProgress,
+  base_url: propsBaseUrl,
+  siteId,
+  authEndpoint,
+  config,
+  clearHash,
+  t,
+}: GitLabAuthenticationPageProps) {
+  const [loginError, setLoginError] = React.useState<string | undefined>();
+  const authRef = React.useRef<Authenticator | null>(null);
 
-export default class GitLabAuthenticationPage extends React.Component<
-  GitLabAuthenticationPageProps,
-  GitLabAuthenticationPageState
-> {
-  state: GitLabAuthenticationPageState = {};
-  auth!: Authenticator;
-
-  componentDidMount() {
+  React.useEffect(() => {
     const {
       auth_type: authType = '',
       base_url = 'https://gitlab.com',
       auth_endpoint = 'oauth/authorize',
       app_id = '',
-    } = this.props.config.backend;
+    } = config.backend;
 
     const authenticatorFactory =
       clientSideAuthenticators[authType as keyof typeof clientSideAuthenticators];
     if (authenticatorFactory) {
-      this.auth = authenticatorFactory({
+      const auth = authenticatorFactory({
         base_url,
         auth_endpoint,
         app_id,
         auth_token_endpoint: 'oauth/token',
-        clearHash: this.props.clearHash,
+        clearHash,
       } as {
         base_url: string;
         auth_endpoint: string;
@@ -108,62 +110,57 @@ export default class GitLabAuthenticationPage extends React.Component<
         auth_token_endpoint: string;
         clearHash?: () => void;
       });
-      // Complete authentication if we were redirected back to from the provider.
-
-      (this.auth as any).completeAuth((err: Error | null, data?: AuthResult) => {
+      authRef.current = auth;
+      // Complete authentication if we were redirected back from the provider.
+      (auth as any).completeAuth((err: Error | null, data?: AuthResult) => {
         if (err) {
-          this.setState({ loginError: err.toString() });
+          setLoginError(err.toString());
           return;
         }
         if (data) {
-          this.props.onLogin(data);
+          onLogin(data);
         }
       });
     } else {
-      this.auth = new NetlifyAuthenticator({
-        base_url: this.props.base_url,
+      authRef.current = new NetlifyAuthenticator({
+        base_url: propsBaseUrl,
         site_id:
-          document.location.host.split(':')[0] === 'localhost'
-            ? 'demo.decapcms.org'
-            : this.props.siteId,
-        auth_endpoint: this.props.authEndpoint,
+          document.location.host.split(':')[0] === 'localhost' ? 'demo.decapcms.org' : siteId,
+        auth_endpoint: authEndpoint,
       });
     }
-  }
+  }, []);
 
-  handleLogin = () => {
-    (this.auth as any).authenticate(
+  function handleLogin() {
+    (authRef.current as any)?.authenticate(
       { provider: 'gitlab', scope: 'api' },
       (err: Error | null, data?: AuthResult) => {
         if (err) {
-          this.setState({ loginError: err.toString() });
+          setLoginError(err.toString());
           return;
         }
         if (data) {
-          this.props.onLogin(data);
+          onLogin(data);
         }
       },
     );
-  };
-
-  render() {
-    const { inProgress, config, t } = this.props;
-    return (
-      <AuthenticationPage
-        onLogin={this.handleLogin}
-        loginDisabled={inProgress}
-        loginErrorMessage={this.state.loginError}
-        logoUrl={config.logo?.src}
-        logo={config.logo}
-        siteUrl={config.site_url}
-        renderButtonContent={() => (
-          <React.Fragment>
-            <LoginButtonIcon type="gitlab" />{' '}
-            {inProgress ? t('auth.loggingIn') : t('auth.loginWithGitLab')}
-          </React.Fragment>
-        )}
-        t={t}
-      />
-    );
   }
+
+  return (
+    <AuthenticationPage
+      onLogin={handleLogin}
+      loginDisabled={inProgress}
+      loginErrorMessage={loginError}
+      logoUrl={config.logo?.src}
+      logo={config.logo}
+      siteUrl={config.site_url}
+      renderButtonContent={() => (
+        <React.Fragment>
+          <LoginButtonIcon type="gitlab" />{' '}
+          {inProgress ? t('auth.loggingIn') : t('auth.loginWithGitLab')}
+        </React.Fragment>
+      )}
+      t={t}
+    />
+  );
 }

@@ -25,38 +25,38 @@ interface AzureAuthenticationPageProps {
   t: TranslateFunction;
 }
 
-interface AzureAuthenticationPageState {
-  loginError?: string;
-}
+export default function AzureAuthenticationPage({
+  onLogin,
+  inProgress,
+  config,
+  clearHash,
+  t,
+}: AzureAuthenticationPageProps) {
+  const [loginError, setLoginError] = React.useState<string | undefined>();
+  const authRef = React.useRef<ImplicitAuthenticator | null>(null);
 
-export default class AzureAuthenticationPage extends React.Component<
-  AzureAuthenticationPageProps,
-  AzureAuthenticationPageState
-> {
-  state: AzureAuthenticationPageState = {};
-  auth!: ImplicitAuthenticator;
-
-  componentDidMount() {
-    this.auth = new ImplicitAuthenticator({
-      base_url: `https://login.microsoftonline.com/${this.props.config.backend.tenant_id}`,
+  React.useEffect(() => {
+    const auth = new ImplicitAuthenticator({
+      base_url: `https://login.microsoftonline.com/${config.backend.tenant_id}`,
       auth_endpoint: 'oauth2/authorize',
-      app_id: this.props.config.backend.app_id ?? '',
-      clearHash: this.props.clearHash,
+      app_id: config.backend.app_id ?? '',
+      clearHash,
     });
-    // Complete implicit authentication if we were redirected back to from the provider.
-    this.auth.completeAuth((err, data) => {
+    authRef.current = auth;
+    // Complete implicit authentication if we were redirected back from the provider.
+    auth.completeAuth((err, data) => {
       if (err) {
         alert(err);
         return;
       }
       if (data) {
-        this.props.onLogin(data);
+        onLogin(data);
       }
     });
-  }
+  }, []);
 
-  handleLogin = () => {
-    this.auth.authenticate(
+  function handleLogin() {
+    authRef.current?.authenticate(
       {
         scope: 'vso.code_full,user.read',
         resource: '499b84ac-1321-427f-aa17-267ca6975798',
@@ -64,34 +64,30 @@ export default class AzureAuthenticationPage extends React.Component<
       },
       (err, data) => {
         if (err) {
-          this.setState({ loginError: err.toString() });
+          setLoginError(err.toString());
           return;
         }
         if (data) {
-          this.props.onLogin(data);
+          onLogin(data);
         }
       },
     );
-  };
-
-  render() {
-    const { inProgress, config, t } = this.props;
-
-    return (
-      <AuthenticationPage
-        onLogin={this.handleLogin}
-        loginDisabled={inProgress}
-        loginErrorMessage={this.state.loginError}
-        logoUrl={config.logo?.src}
-        logo={config.logo}
-        renderButtonContent={() => (
-          <React.Fragment>
-            <LoginButtonIcon type="azure" />
-            {inProgress ? t('auth.loggingIn') : t('auth.loginWithAzure')}
-          </React.Fragment>
-        )}
-        t={t}
-      />
-    );
   }
+
+  return (
+    <AuthenticationPage
+      onLogin={handleLogin}
+      loginDisabled={inProgress}
+      loginErrorMessage={loginError}
+      logoUrl={config.logo?.src}
+      logo={config.logo}
+      renderButtonContent={() => (
+        <React.Fragment>
+          <LoginButtonIcon type="azure" />
+          {inProgress ? t('auth.loggingIn') : t('auth.loginWithAzure')}
+        </React.Fragment>
+      )}
+      t={t}
+    />
+  );
 }

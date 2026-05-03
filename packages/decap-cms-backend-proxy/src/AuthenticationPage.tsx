@@ -44,23 +44,24 @@ interface AuthenticationPageProps {
   t: TranslateFunction;
 }
 
-export default class AuthenticationPage extends React.Component<AuthenticationPageProps> {
-  handleLogin = (e: React.MouseEvent<HTMLButtonElement>) => {
+export default function AuthenticationPage({
+  onLogin,
+  inProgress,
+  config,
+  t,
+}: AuthenticationPageProps) {
+  function handleLogin(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
-    this.props.onLogin(this.state);
-  };
-
-  render() {
-    const { config, inProgress, t } = this.props;
-
-    return (
-      <StyledAuthenticationPage>
-        {renderPageLogo(config.logo?.src || config.logo?.src)}
-        <LoginButton disabled={inProgress} onClick={this.handleLogin}>
-          {inProgress ? t('auth.loggingIn') : t('auth.login')}
-        </LoginButton>
-        {config.site_url && <GoBackButton href={config.site_url} t={t}></GoBackButton>}
-      </StyledAuthenticationPage>
-    );
+    onLogin(null);
   }
+
+  return (
+    <StyledAuthenticationPage>
+      {renderPageLogo(config.logo?.src || config.logo?.src)}
+      <LoginButton disabled={inProgress} onClick={handleLogin}>
+        {inProgress ? t('auth.loggingIn') : t('auth.login')}
+      </LoginButton>
+      {config.site_url && <GoBackButton href={config.site_url} t={t}></GoBackButton>}
+    </StyledAuthenticationPage>
+  );
 }

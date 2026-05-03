@@ -33,89 +33,89 @@ interface BitbucketAuthenticationPageProps {
   t: TranslateFunction;
 }
 
-interface BitbucketAuthenticationPageState {
-  loginError?: string;
-}
+export default function BitbucketAuthenticationPage({
+  onLogin,
+  inProgress,
+  base_url,
+  siteId,
+  authEndpoint,
+  config,
+  clearHash,
+  t,
+}: BitbucketAuthenticationPageProps) {
+  const [loginError, setLoginError] = React.useState<string | undefined>();
+  const authRef = React.useRef<ImplicitAuthenticator | NetlifyAuthenticator | null>(null);
+  const authSettingsRef = React.useRef<Record<string, string>>({});
 
-export default class BitbucketAuthenticationPage extends React.Component<
-  BitbucketAuthenticationPageProps,
-  BitbucketAuthenticationPageState
-> {
-  state: BitbucketAuthenticationPageState = {};
-  auth!: ImplicitAuthenticator | NetlifyAuthenticator;
-  authSettings!: Record<string, string>;
-
-  componentDidMount() {
-    const { auth_type: authType = '' } = this.props.config.backend;
+  React.useEffect(() => {
+    const { auth_type: authType = '' } = config.backend;
 
     if (authType === 'implicit') {
       const {
-        base_url = 'https://bitbucket.org',
+        base_url: implicitBaseUrl = 'https://bitbucket.org',
         auth_endpoint = 'site/oauth2/authorize',
         app_id = '',
-      } = this.props.config.backend;
+      } = config.backend;
 
-      this.auth = new ImplicitAuthenticator({
-        base_url,
+      const auth = new ImplicitAuthenticator({
+        base_url: implicitBaseUrl,
         auth_endpoint,
         app_id,
-        clearHash: this.props.clearHash,
+        clearHash,
       });
-      // Complete implicit authentication if we were redirected back to from the provider.
-      this.auth.completeAuth((err, data) => {
+      authRef.current = auth;
+      authSettingsRef.current = { scope: 'repository:write' };
+      // Complete implicit authentication if we were redirected back from the provider.
+      auth.completeAuth((err, data) => {
         if (err) {
-          this.setState({ loginError: err.toString() });
+          setLoginError(err.toString());
           return;
         }
         if (data) {
-          this.props.onLogin(data);
+          onLogin(data);
         }
       });
-      this.authSettings = { scope: 'repository:write' };
     } else {
-      this.auth = new NetlifyAuthenticator({
-        base_url: this.props.base_url,
+      authRef.current = new NetlifyAuthenticator({
+        base_url,
         site_id:
-          document.location.host.split(':')[0] === 'localhost'
-            ? 'demo.decapcms.org'
-            : this.props.siteId,
-        auth_endpoint: this.props.authEndpoint,
+          document.location.host.split(':')[0] === 'localhost' ? 'demo.decapcms.org' : siteId,
+        auth_endpoint: authEndpoint,
       });
-      this.authSettings = { provider: 'bitbucket', scope: 'repo' };
+      authSettingsRef.current = { provider: 'bitbucket', scope: 'repo' };
     }
-  }
+  }, []);
 
-  handleLogin = () => {
-    (this.auth as any).authenticate(this.authSettings, (err: Error | null, data?: AuthResult) => {
-      if (err) {
-        this.setState({ loginError: err.toString() });
-        return;
-      }
-      if (data) {
-        this.props.onLogin(data);
-      }
-    });
-  };
-
-  render() {
-    const { inProgress, config, t } = this.props;
-
-    return (
-      <AuthenticationPage
-        onLogin={this.handleLogin}
-        loginDisabled={inProgress}
-        loginErrorMessage={this.state.loginError}
-        logoUrl={config.logo?.src}
-        logo={config.logo}
-        siteUrl={config.site_url}
-        renderButtonContent={() => (
-          <React.Fragment>
-            <LoginButtonIcon type="bitbucket" />
-            {inProgress ? t('auth.loggingIn') : t('auth.loginWithBitbucket')}
-          </React.Fragment>
-        )}
-        t={t}
-      />
+  function handleLogin() {
+    (authRef.current as any)?.authenticate(
+      authSettingsRef.current,
+      (err: Error | null, data?: AuthResult) => {
+        if (err) {
+          setLoginError(err.toString());
+          return;
+        }
+        if (data) {
+          onLogin(data);
+        }
+      },
     );
   }
+
+  return (
+    <AuthenticationPage
+      onLogin={handleLogin}
+      loginDisabled={inProgress}
+      loginErrorMessage={loginError}
+      logoUrl={config.logo?.src}
+      logo={config.logo}
+      siteUrl={config.site_url}
+      renderButtonContent={() => (
+        <React.Fragment>
+          <LoginButtonIcon type="bitbucket" />
+          {inProgress ? t('auth.loggingIn') : t('auth.loginWithBitbucket')}
+        </React.Fragment>
+      )}
+      t={t}
+    />
+  );
 }
