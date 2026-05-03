@@ -15,10 +15,10 @@ import {
   buttons,
   zIndex,
 } from 'decap-cms-ui-default';
-import { connect } from 'react-redux';
 
 import { SettingsDropdown } from '../UI';
 import { checkBackendStatus } from '../../actions/status';
+import { useAppDispatch } from '../../hooks/useRedux';
 
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import type { CmsCollectionState, CmsCollections } from 'decap-cms-lib-util';
@@ -146,7 +146,6 @@ interface HeaderProps {
   logo?: { src: string; show_in_header?: boolean };
   isTestRepo?: boolean;
   t: TranslateFunction;
-  checkBackendStatus: () => void;
 }
 
 function Header({
@@ -162,20 +161,18 @@ function Header({
   logo,
   isTestRepo,
   t,
-  checkBackendStatus,
 }: HeaderProps) {
-  const checkBackendStatusRef = React.useRef(checkBackendStatus);
-  checkBackendStatusRef.current = checkBackendStatus;
+  const dispatch = useAppDispatch();
 
   React.useEffect(() => {
     const intervalId = setInterval(
       () => {
-        checkBackendStatusRef.current();
+        dispatch(checkBackendStatus());
       },
       5 * 60 * 1000,
     );
     return () => clearInterval(intervalId);
-  }, []);
+  }, [dispatch]);
 
   function handleCreatePostClick(collectionName: string) {
     if (onCreateEntryClick) {
@@ -266,8 +263,4 @@ function Header({
   );
 }
 
-const mapDispatchToProps = {
-  checkBackendStatus,
-};
-
-export default connect(null, mapDispatchToProps)(translate()(Header));
+export default translate()(Header);
