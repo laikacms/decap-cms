@@ -301,65 +301,77 @@ interface EditorToolbarProps {
   editorBackLink: string;
 }
 
-export class EditorToolbar extends React.Component<EditorToolbarProps> {
-  _pollController: AbortController | null = null;
+export function EditorToolbar(props: EditorToolbarProps) {
+  const {
+    isNewEntry,
+    isPersisting,
+    isPublishing,
+    isUpdatingStatus,
+    isDeleting,
+    isModification,
+    hasChanged,
+    hasUnpublishedChanges,
+    useOpenAuthoring,
+    currentStatus,
+    showDelete,
+    onPersist,
+    onPersistAndNew,
+    onPersistAndDuplicate,
+    onPublish,
+    onPublishAndNew,
+    onPublishAndDuplicate,
+    onChangeStatus,
+    onDelete,
+    onDeleteUnpublishedChanges,
+    unPublish,
+    onDuplicate,
+    onLogoutClick,
+    user,
+    displayUrl,
+    collection,
+    hasWorkflow,
+    deployPreview = {},
+    loadDeployPreview,
+    editorBackLink,
+    t,
+  } = props;
 
-  componentDidMount() {
-    const { isNewEntry, loadDeployPreview } = this.props;
+  const pollControllerRef = React.useRef<AbortController | null>(null);
+  const isPersistingRef = React.useRef(isPersisting);
+  const loadDeployPreviewRef = React.useRef(loadDeployPreview);
+  loadDeployPreviewRef.current = loadDeployPreview;
+
+  React.useEffect(() => {
     if (!isNewEntry) {
       // 24 attempts × 5s interval = ~2 min polling window.
       // With editorial workflow, saving remounts the component (navigates to
-      // the unpublished entry view), so componentDidMount is the primary
-      // polling trigger — not componentDidUpdate.
-      this._pollController = new AbortController();
-      loadDeployPreview({ maxAttempts: 24, signal: this._pollController.signal });
+      // the unpublished entry view), so mount is the primary polling trigger.
+      const controller = new AbortController();
+      pollControllerRef.current = controller;
+      loadDeployPreviewRef.current({ maxAttempts: 24, signal: controller.signal });
     }
-  }
+    return () => {
+      pollControllerRef.current?.abort();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only
+  }, []);
 
-  componentDidUpdate(prevProps: EditorToolbarProps) {
-    const { isNewEntry, isPersisting, loadDeployPreview } = this.props;
-    if (!isNewEntry && prevProps.isPersisting && !isPersisting) {
+  React.useEffect(() => {
+    if (!isNewEntry && isPersistingRef.current && !isPersisting) {
       // Abort any in-flight poll before starting a new one.
-      this._pollController?.abort();
-      this._pollController = new AbortController();
-      // Fires on subsequent saves when the component survives (no remount).
-      // In editorial workflow the first save remounts, so this mainly
-      // covers the second-save-and-beyond case.
-      loadDeployPreview({ maxAttempts: 3, signal: this._pollController.signal });
+      pollControllerRef.current?.abort();
+      const controller = new AbortController();
+      pollControllerRef.current = controller;
+      // Subsequent saves where the component survives (no remount).
+      loadDeployPreviewRef.current({ maxAttempts: 3, signal: controller.signal });
     }
-  }
+    isPersistingRef.current = isPersisting;
+  }, [isPersisting, isNewEntry]);
 
-  componentWillUnmount() {
-    this._pollController?.abort();
-  }
-
-  renderSimpleControls = () => {
-    const { collection, hasChanged, isNewEntry, showDelete, onDelete, t } = this.props;
-    const canCreate = collection.create;
-
-    return (
-      <>
-        {!isNewEntry && !hasChanged
-          ? this.renderExistingEntrySimplePublishControls({ canCreate })
-          : this.renderNewEntrySimplePublishControls({ canCreate })}
-        <div>
-          {showDelete ? (
-            <DeleteButton onClick={onDelete}>{t('editor.editorToolbar.deleteEntry')}</DeleteButton>
-          ) : null}
-        </div>
-      </>
-    );
-  };
-
-  renderDeployPreviewControls = (label: string) => {
-    const { deployPreview = {}, loadDeployPreview, t } = this.props;
-    const { url, status, isFetching } = deployPreview;
-
-    if (!status) {
-      return;
-    }
-
-    const deployPreviewReady = status === 'SUCCESS' && !isFetching;
+  function renderDeployPreviewControls(label: string) {
+    const { url, status: previewStatus, isFetching } = deployPreview;
+    if (!previewStatus) return undefined;
+    const deployPreviewReady = previewStatus === 'SUCCESS' && !isFetching;
     return (
       <PreviewButtonContainer>
         {deployPreviewReady ? (
@@ -379,16 +391,13 @@ export class EditorToolbar extends React.Component<EditorToolbarProps> {
         )}
       </PreviewButtonContainer>
     );
-  };
+  }
 
-  renderStatusInfoTooltip = () => {
-    const { t, currentStatus } = this.props;
-
+  function renderStatusInfoTooltip() {
     const statusToLocaleKey: Record<string, string> = {
       [status.DRAFT]: 'statusInfoTooltipDraft',
       [status.PENDING_REVIEW]: 'statusInfoTooltipInReview',
     };
-
     const statusKey = Object.keys(statusToLocaleKey).find(key => key === currentStatus);
     return (
       <TooltipContainer>
@@ -400,23 +409,19 @@ export class EditorToolbar extends React.Component<EditorToolbarProps> {
         )}
       </TooltipContainer>
     );
-  };
+  }
 
-  renderWorkflowStatusControls = () => {
-    const { isUpdatingStatus, onChangeStatus, currentStatus, t, useOpenAuthoring } = this.props;
-
+  function renderWorkflowStatusControls() {
     const statusToTranslation: Record<string, string> = {
       [status.DRAFT]: t('editor.editorToolbar.draft'),
       [status.PENDING_REVIEW]: t('editor.editorToolbar.inReview'),
       [status.PENDING_PUBLISH]: t('editor.editorToolbar.ready'),
     };
-
     const buttonText = isUpdatingStatus
       ? t('editor.editorToolbar.updating')
       : t('editor.editorToolbar.status', {
           status: currentStatus ? statusToTranslation[currentStatus] : '',
         });
-
     return (
       <>
         <ToolbarDropdown
@@ -444,20 +449,18 @@ export class EditorToolbar extends React.Component<EditorToolbarProps> {
             />
           )}
         </ToolbarDropdown>
-        {useOpenAuthoring && this.renderStatusInfoTooltip()}
+        {useOpenAuthoring && renderStatusInfoTooltip()}
       </>
     );
-  };
+  }
 
-  renderNewEntryWorkflowPublishControls = ({
+  function renderNewEntryWorkflowPublishControls({
     canCreate,
     canPublish,
   }: {
     canCreate?: boolean;
     canPublish?: boolean;
-  }) => {
-    const { isPublishing, onPublish, onPublishAndNew, onPublishAndDuplicate, t } = this.props;
-
+  }) {
     return canPublish ? (
       <ToolbarDropdown
         dropdownTopOverlap="40px"
@@ -494,9 +497,9 @@ export class EditorToolbar extends React.Component<EditorToolbarProps> {
     ) : (
       ''
     );
-  };
+  }
 
-  renderExistingEntryWorkflowPublishControls = ({
+  function renderExistingEntryWorkflowPublishControls({
     canCreate,
     canPublish,
     canDelete,
@@ -504,9 +507,7 @@ export class EditorToolbar extends React.Component<EditorToolbarProps> {
     canCreate?: boolean;
     canPublish?: boolean;
     canDelete?: boolean;
-  }) => {
-    const { unPublish, onDuplicate, isPersisting, t } = this.props;
-
+  }) {
     return canPublish || canCreate ? (
       <ToolbarDropdown
         dropdownTopOverlap="40px"
@@ -539,10 +540,9 @@ export class EditorToolbar extends React.Component<EditorToolbarProps> {
     ) : (
       ''
     );
-  };
+  }
 
-  renderExistingEntrySimplePublishControls = ({ canCreate }: { canCreate?: boolean }) => {
-    const { onDuplicate, t } = this.props;
+  function renderExistingEntrySimplePublishControls({ canCreate }: { canCreate?: boolean }) {
     return canCreate ? (
       <ToolbarDropdown
         dropdownTopOverlap="40px"
@@ -551,22 +551,18 @@ export class EditorToolbar extends React.Component<EditorToolbarProps> {
           <PublishedToolbarButton>{t('editor.editorToolbar.published')}</PublishedToolbarButton>
         )}
       >
-        {
-          <DropdownItem
-            label={t('editor.editorToolbar.duplicate')}
-            icon="add"
-            onClick={onDuplicate}
-          />
-        }
+        <DropdownItem
+          label={t('editor.editorToolbar.duplicate')}
+          icon="add"
+          onClick={onDuplicate}
+        />
       </ToolbarDropdown>
     ) : (
       <PublishedButton>{t('editor.editorToolbar.published')}</PublishedButton>
     );
-  };
+  }
 
-  renderNewEntrySimplePublishControls = ({ canCreate }: { canCreate?: boolean }) => {
-    const { onPersist, onPersistAndNew, onPersistAndDuplicate, isPersisting, t } = this.props;
-
+  function renderNewEntrySimplePublishControls({ canCreate }: { canCreate?: boolean }) {
     return (
       <div>
         <ToolbarDropdown
@@ -603,34 +599,31 @@ export class EditorToolbar extends React.Component<EditorToolbarProps> {
         </ToolbarDropdown>
       </div>
     );
-  };
+  }
 
-  renderSimpleDeployPreviewControls = () => {
-    const { hasChanged, isNewEntry, t } = this.props;
+  function renderSimpleControls() {
+    const canCreate = collection.create;
+    return (
+      <>
+        {!isNewEntry && !hasChanged
+          ? renderExistingEntrySimplePublishControls({ canCreate })
+          : renderNewEntrySimplePublishControls({ canCreate })}
+        <div>
+          {showDelete ? (
+            <DeleteButton onClick={onDelete}>{t('editor.editorToolbar.deleteEntry')}</DeleteButton>
+          ) : null}
+        </div>
+      </>
+    );
+  }
 
+  function renderSimpleDeployPreviewControls() {
     if (!isNewEntry && !hasChanged) {
-      return this.renderDeployPreviewControls(t('editor.editorToolbar.deployButtonLabel'));
+      return renderDeployPreviewControls(t('editor.editorToolbar.deployButtonLabel'));
     }
-  };
+  }
 
-  renderWorkflowControls = () => {
-    const {
-      onPersist,
-      onDelete,
-      onDeleteUnpublishedChanges,
-      showDelete,
-      hasChanged,
-      hasUnpublishedChanges,
-      useOpenAuthoring,
-      isPersisting,
-      isDeleting,
-      isNewEntry,
-      isModification,
-      currentStatus,
-      collection,
-      t,
-    } = this.props;
-
+  function renderWorkflowControls() {
     const canCreate = collection.create;
     const canPublish = !!(collection.publish && !useOpenAuthoring);
     const canDelete = collection.delete ?? true;
@@ -655,17 +648,13 @@ export class EditorToolbar extends React.Component<EditorToolbarProps> {
       currentStatus
         ? [
             <React.Fragment key="workflow-status-controls">
-              {this.renderWorkflowStatusControls()}
-              {!hasChanged && this.renderNewEntryWorkflowPublishControls({ canCreate, canPublish })}
+              {renderWorkflowStatusControls()}
+              {!hasChanged && renderNewEntryWorkflowPublishControls({ canCreate, canPublish })}
             </React.Fragment>,
           ]
         : !isNewEntry && (
             <React.Fragment key="existing-entry-workflow-publish-controls">
-              {this.renderExistingEntryWorkflowPublishControls({
-                canCreate,
-                canPublish,
-                canDelete,
-              })}
+              {renderExistingEntryWorkflowPublishControls({ canCreate, canPublish, canDelete })}
             </React.Fragment>
           ),
       (!showDelete || useOpenAuthoring) && !hasUnpublishedChanges && !isModification ? null : (
@@ -677,72 +666,49 @@ export class EditorToolbar extends React.Component<EditorToolbarProps> {
         </DeleteButton>
       ),
     ];
-  };
-
-  renderWorkflowDeployPreviewControls = () => {
-    const { currentStatus, isNewEntry, t } = this.props;
-
-    if (currentStatus) {
-      return this.renderDeployPreviewControls(t('editor.editorToolbar.deployPreviewButtonLabel'));
-    }
-
-    /**
-     * Publish control for published workflow entry.
-     */
-    if (!isNewEntry) {
-      return this.renderDeployPreviewControls(t('editor.editorToolbar.deployButtonLabel'));
-    }
-  };
-
-  render() {
-    const {
-      user,
-      hasChanged,
-      displayUrl,
-      collection,
-      hasWorkflow,
-      onLogoutClick,
-      t,
-      editorBackLink,
-    } = this.props;
-
-    return (
-      <ToolbarContainer>
-        <ToolbarSectionBackLink to={editorBackLink}>
-          <BackArrow>←</BackArrow>
-          <div>
-            <BackCollection>
-              {t('editor.editorToolbar.backCollection', {
-                collectionLabel: collection.label,
-              })}
-            </BackCollection>
-            {hasChanged ? (
-              <BackStatusChanged>{t('editor.editorToolbar.unsavedChanges')}</BackStatusChanged>
-            ) : (
-              <BackStatusUnchanged>{t('editor.editorToolbar.changesSaved')}</BackStatusUnchanged>
-            )}
-          </div>
-        </ToolbarSectionBackLink>
-        <ToolbarSectionMain>
-          <ToolbarSubSectionFirst>
-            {hasWorkflow ? this.renderWorkflowControls() : this.renderSimpleControls()}
-          </ToolbarSubSectionFirst>
-          <ToolbarSubSectionLast>
-            {hasWorkflow
-              ? this.renderWorkflowDeployPreviewControls()
-              : this.renderSimpleDeployPreviewControls()}
-          </ToolbarSubSectionLast>
-        </ToolbarSectionMain>
-        <ToolbarSectionMeta>
-          <SettingsDropdown
-            displayUrl={displayUrl}
-            imageUrl={user?.avatar_url}
-            onLogoutClick={onLogoutClick}
-          />
-        </ToolbarSectionMeta>
-      </ToolbarContainer>
-    );
   }
+
+  function renderWorkflowDeployPreviewControls() {
+    if (currentStatus) {
+      return renderDeployPreviewControls(t('editor.editorToolbar.deployPreviewButtonLabel'));
+    }
+    if (!isNewEntry) {
+      return renderDeployPreviewControls(t('editor.editorToolbar.deployButtonLabel'));
+    }
+  }
+
+  return (
+    <ToolbarContainer>
+      <ToolbarSectionBackLink to={editorBackLink}>
+        <BackArrow>←</BackArrow>
+        <div>
+          <BackCollection>
+            {t('editor.editorToolbar.backCollection', { collectionLabel: collection.label })}
+          </BackCollection>
+          {hasChanged ? (
+            <BackStatusChanged>{t('editor.editorToolbar.unsavedChanges')}</BackStatusChanged>
+          ) : (
+            <BackStatusUnchanged>{t('editor.editorToolbar.changesSaved')}</BackStatusUnchanged>
+          )}
+        </div>
+      </ToolbarSectionBackLink>
+      <ToolbarSectionMain>
+        <ToolbarSubSectionFirst>
+          {hasWorkflow ? renderWorkflowControls() : renderSimpleControls()}
+        </ToolbarSubSectionFirst>
+        <ToolbarSubSectionLast>
+          {hasWorkflow ? renderWorkflowDeployPreviewControls() : renderSimpleDeployPreviewControls()}
+        </ToolbarSubSectionLast>
+      </ToolbarSectionMain>
+      <ToolbarSectionMeta>
+        <SettingsDropdown
+          displayUrl={displayUrl}
+          imageUrl={user?.avatar_url}
+          onLogoutClick={onLogoutClick}
+        />
+      </ToolbarSectionMeta>
+    </ToolbarContainer>
+  );
 }
 
 export default translate()(EditorToolbar);
