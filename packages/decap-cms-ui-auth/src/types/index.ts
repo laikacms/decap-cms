@@ -1,4 +1,3 @@
-
 // Logo configuration type
 export interface LogoConfig {
   src?: string;
@@ -71,7 +70,6 @@ export interface PKCEAuthenticationPageState {
   loginError?: string;
 }
 
-
 // Logo configuration type
 export interface LogoConfig {
   src?: string;
@@ -112,7 +110,7 @@ export interface AuthClient {
   login: (email: string, password: string, remember: boolean) => Promise<NetlifyIdentityUser>;
 }
 
-// Netlify Identity User type (from modules.d.ts)
+// Netlify Identity User type
 export interface NetlifyIdentityUser {
   id: string;
   email: string;
@@ -128,4 +126,31 @@ export interface NetlifyIdentityUser {
     refresh_token: string;
     expires_at: number;
   };
+}
+
+export interface NetlifyIdentityWidget {
+  on(event: 'init', callback: (user: NetlifyIdentityUser | null) => void): void;
+  on(event: 'login', callback: (user: NetlifyIdentityUser) => void): void;
+  on(event: 'logout', callback: () => void): void;
+  on(event: 'error', callback: (err: Error) => void): void;
+  on(event: 'open', callback: () => void): void;
+  on(event: 'close', callback: () => void): void;
+  on(event: string, callback: (...args: unknown[]) => void): void;
+  open(tab?: 'login' | 'signup'): void;
+  close(): void;
+  init(): void;
+  currentUser(): NetlifyIdentityUser | null;
+  logout(): Promise<void>;
+  refresh(force?: boolean): Promise<string>;
+  store: {
+    user: unknown;
+    modal: { page: string };
+    saving: boolean;
+  };
+}
+
+declare global {
+  interface Window {
+    netlifyIdentity?: NetlifyIdentityWidget;
+  }
 }

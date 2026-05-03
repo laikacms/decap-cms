@@ -128,7 +128,7 @@ function isHotkey(
   }
 
   const array = hotkey.map(string => parseHotkey(string, options as HotkeyOptions | null));
-  // eslint-disable-next-line func-style
+
   const check = (e: HotkeyEvent) => array.some(object => compareHotkey(object, e));
   const ret = event == null ? check : check(event);
   return ret;

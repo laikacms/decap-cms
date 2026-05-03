@@ -310,7 +310,6 @@ interface ListControlState {
   keys: string[];
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ChildRef = any;
 
 export default class ListControl extends React.Component<ListControlProps, ListControlState> {

@@ -1,14 +1,16 @@
+import { vi } from 'vitest';
+
 import API from '../GitHubAPI';
 
 describe('github API', () => {
   describe('request', () => {
     beforeEach(() => {
-      const fetch = jest.fn();
+      const fetch = vi.fn();
       global.fetch = fetch;
     });
 
     afterEach(() => {
-      jest.resetAllMocks();
+      vi.resetAllMocks();
     });
 
     it('should fetch url with authorization header', async () => {
@@ -18,7 +20,7 @@ describe('github API', () => {
       });
 
       fetch.mockResolvedValue({
-        text: jest.fn().mockResolvedValue('some response'),
+        text: vi.fn().mockResolvedValue('some response'),
         ok: true,
         status: 200,
         headers: { get: () => '' },
@@ -43,7 +45,7 @@ describe('github API', () => {
       });
 
       fetch.mockResolvedValue({
-        text: jest.fn().mockResolvedValue({ message: 'some error' }),
+        text: vi.fn().mockResolvedValue({ message: 'some error' }),
         ok: false,
         status: 404,
         headers: { get: () => '' },
@@ -66,7 +68,7 @@ describe('github API', () => {
       });
 
       fetch.mockResolvedValue({
-        text: jest.fn().mockResolvedValue({ msg: 'some error' }),
+        text: vi.fn().mockResolvedValue({ msg: 'some error' }),
         ok: false,
         status: 404,
         headers: { get: () => '' },

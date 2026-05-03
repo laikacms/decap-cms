@@ -3,7 +3,7 @@ import { addNotification, dismissNotification } from './notifications';
 
 import type { ThunkDispatch } from 'redux-thunk';
 import type { AnyAction } from 'redux';
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 type State = any;
 
 interface CmsNotification {

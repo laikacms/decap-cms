@@ -238,7 +238,6 @@ function mapStateToProps(
   const entriesLoaded = selectEntriesLoaded(state.entries, collection.name);
   const isFetching = selectIsFetching(state.entries, collection.name);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const rawCursor = selectCollectionEntriesCursor(state.cursors as any, collection.name);
   const cursor = Cursor.create(rawCursor).clearData();
 

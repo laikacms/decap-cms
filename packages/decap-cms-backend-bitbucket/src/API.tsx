@@ -246,7 +246,6 @@ export default class API {
   responseToBlob = responseParser({ format: 'blob', apiName: API_NAME });
   responseToText = responseParser({ format: 'text', apiName: API_NAME });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   requestJSON = (req: ApiRequest) => this.request(req).then(this.responseToJSON) as Promise<any>;
   requestText = (req: ApiRequest) => this.request(req).then(this.responseToText) as Promise<string>;
 
@@ -397,10 +396,12 @@ export default class API {
     flow([
       this.requestJSON,
       promiseThen(this.getEntriesAndCursor),
-      promiseThen(({ cursor: newCursor, entries }: { cursor: Cursor; entries: BitBucketFile[] }) => ({
-        cursor: newCursor,
-        entries: this.processFiles(entries),
-      })),
+      promiseThen(
+        ({ cursor: newCursor, entries }: { cursor: Cursor; entries: BitBucketFile[] }) => ({
+          cursor: newCursor,
+          entries: this.processFiles(entries),
+        }),
+      ),
     ])((cursor.data!['links'] as Record<string, unknown>)[action] as ApiRequest);
 
   listAllFiles = async (path: string, depth: number, branch: string) => {
@@ -467,7 +468,11 @@ export default class API {
                 branch: filesBranch,
                 parseText: false,
               });
-        formData.append(file.path.replace(sourceDir, destDir), content as Blob, basename(file.path));
+        formData.append(
+          file.path.replace(sourceDir, destDir),
+          content as Blob,
+          basename(file.path),
+        );
       }
     }
 
@@ -503,7 +508,11 @@ export default class API {
     return files;
   }
 
-  async persistFiles(dataFiles: CmsDataFile[], mediaFiles: CmsAssetProxy[], options: CmsPersistOptions) {
+  async persistFiles(
+    dataFiles: CmsDataFile[],
+    mediaFiles: CmsAssetProxy[],
+    options: CmsPersistOptions,
+  ) {
     const files = [...dataFiles, ...mediaFiles];
     if (options.useWorkflow) {
       const slug = dataFiles[0].slug;

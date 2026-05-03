@@ -45,7 +45,13 @@ export default class GitHubAuthenticationPage extends React.Component<GitHubAuth
     t: PropTypes.func.isRequired,
   };
 
-  state: { loginError?: string; requestingFork?: boolean; findingFork?: boolean; approveFork?: () => void; refuseFork?: () => void } = {};
+  state: {
+    loginError?: string;
+    requestingFork?: boolean;
+    findingFork?: boolean;
+    approveFork?: () => void;
+    refuseFork?: () => void;
+  } = {};
 
   componentDidMount() {
     // Manually validate PropTypes - React 19 breaking change
@@ -78,7 +84,10 @@ export default class GitHubAuthenticationPage extends React.Component<GitHubAuth
 
     this.setState({ findingFork: true });
     return backend
-      .authenticateWithFork({ userData: data as CmsUser, getPermissionToFork: this.getPermissionToFork })
+      .authenticateWithFork({
+        userData: data as CmsUser,
+        getPermissionToFork: this.getPermissionToFork,
+      })
       .catch(err => {
         this.setState({ findingFork: false });
         console.error(err);
@@ -100,8 +109,7 @@ export default class GitHubAuthenticationPage extends React.Component<GitHubAuth
 
     const config = this.props.backend.config;
 
-    const { open_authoring: openAuthoring = false, auth_scope: authScope = '' } =
-      config.backend;
+    const { open_authoring: openAuthoring = false, auth_scope: authScope = '' } = config.backend;
 
     const scope = authScope || (openAuthoring ? 'public_repo' : 'repo');
     auth.authenticate({ provider: 'github', scope }, (err, data) => {
@@ -134,7 +142,15 @@ export default class GitHubAuthenticationPage extends React.Component<GitHubAuth
     if (requestingFork) {
       const { approveFork, refuseFork } = this.state;
       return {
-        renderPageContent: ({ LoginButton, TextButton, showAbortButton }: { LoginButton: React.FC<React.PropsWithChildren & { onClick: (() => void) | undefined }>; TextButton: React.FC<React.PropsWithChildren & { onClick: (() => void) | undefined }>; showAbortButton: boolean}) => (
+        renderPageContent: ({
+          LoginButton,
+          TextButton,
+          showAbortButton,
+        }: {
+          LoginButton: React.FC<React.PropsWithChildren & { onClick: (() => void) | undefined }>;
+          TextButton: React.FC<React.PropsWithChildren & { onClick: (() => void) | undefined }>;
+          showAbortButton: boolean;
+        }) => (
           <ForkApprovalContainer>
             <p>
               Open Authoring is enabled: we need to use a fork on your github account. (If a fork

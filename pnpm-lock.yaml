@@ -1678,6 +1678,9 @@ importers:
       decap-cms-lib-util:
         specifier: workspace:*
         version: link:../decap-cms-lib-util
+      lodash:
+        specifier: catalog:utils
+        version: 4.18.1
 
   packages/decap-cms-media-library-uploadcare:
     dependencies:
@@ -1687,6 +1690,9 @@ importers:
       uploadcare-widget-tab-effects:
         specifier: catalog:media
         version: 1.7.2(uploadcare-widget@3.24.0)
+      uuid:
+        specifier: catalog:utils
+        version: 13.0.0
 
   packages/decap-cms-ui-auth:
     dependencies:
@@ -10626,6 +10632,7 @@ packages:
 
   uuid@8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   v8-compile-cache-lib@3.0.1:

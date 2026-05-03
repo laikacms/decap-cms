@@ -215,7 +215,7 @@ export default class TestBackend implements CmsImplementation {
     }));
     const cursor = getCursor(folder, extension, entries, 0, depth);
     const ret = take(entries, pageSize);
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
     // @ts-expect-error -- TODO: fix underlying type issue
     ret[CURSOR_COMPATIBILITY_SYMBOL] = cursor;
     return Promise.resolve(ret);

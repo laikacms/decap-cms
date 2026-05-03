@@ -48,6 +48,11 @@ export interface CmsBackend {
   proxy_url?: string;
   auth_type?: string;
   large_media_url?: string;
+  use_large_media_transforms_in_media_library?: boolean;
+  identity_url?: string;
+  gateway_url?: string;
+  status_endpoint?: string;
+  graphql_api_root?: string;
   commit_messages?: {
     create?: string;
     update?: string;
@@ -123,7 +128,7 @@ export type CmsBackendInitConfig = {
     last_name_claim?: string;
     avatar_url_claim?: string;
   };
-  media_folder: string;
+  media_folder?: string;
   base_url?: string;
   site_id?: string;
 };

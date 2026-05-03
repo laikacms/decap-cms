@@ -9,7 +9,6 @@ import type { CmsCollectionState, CmsEntry } from 'decap-cms-lib-util';
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type State = any;
 
 export const DEPLOY_PREVIEW_REQUEST = 'DEPLOY_PREVIEW_REQUEST';

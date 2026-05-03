@@ -49,30 +49,34 @@ for (const svgFile of svgFiles) {
   const svgContent = readFileSync(svgPath, 'utf-8');
 
   // Use SVGR to convert SVG to a React component string
-  const tsxCode = await transform(svgContent, {
-    plugins: ['@svgr/plugin-svgo', '@svgr/plugin-jsx'],
-    typescript: true,
-    exportType: 'named',
-    namedExport: componentName,
-    jsxRuntime: 'automatic',
-    svgoConfig: {
-      plugins: [
-        {
-          name: 'preset-default',
-          params: {
-            overrides: {
-              // Keep viewBox for proper scaling
-              removeViewBox: false,
+  const tsxCode = await transform(
+    svgContent,
+    {
+      plugins: ['@svgr/plugin-svgo', '@svgr/plugin-jsx'],
+      typescript: true,
+      exportType: 'named',
+      namedExport: componentName,
+      jsxRuntime: 'automatic',
+      svgoConfig: {
+        plugins: [
+          {
+            name: 'preset-default',
+            params: {
+              overrides: {
+                // Keep viewBox for proper scaling
+                removeViewBox: false,
+              },
             },
           },
-        },
-        // Remove non-standard attributes
-        'removeXMLNS',
-      ],
+          // Remove non-standard attributes
+          'removeXMLNS',
+        ],
+      },
+      // Pass props through to the SVG element
+      svgProps: {},
     },
-    // Pass props through to the SVG element
-    svgProps: {},
-  }, { componentName });
+    { componentName },
+  );
 
   // Extract just the component function (strip imports and export)
   // SVGR outputs: import * as React from "react"; ... const ComponentName = (...) => ...; export { ComponentName };

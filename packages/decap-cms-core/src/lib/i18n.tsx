@@ -397,7 +397,6 @@ export function getI18nDataFiles(
   return dataFiles;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function duplicateDefaultI18nFields(collection: Collection, dataFields: any) {
   const { locales, defaultLocale } = getI18nInfo(collection) as I18nInfo;
 
@@ -457,7 +456,7 @@ export function getPreviewEntry(entry: EntryMap, locale: string, defaultLocale: 
 export function serializeI18n(
   collection: Collection,
   entry: EntryMap,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   serializeValues: (data: any) => any,
 ) {
   const { locales, defaultLocale } = getI18nInfo(collection) as I18nInfo;

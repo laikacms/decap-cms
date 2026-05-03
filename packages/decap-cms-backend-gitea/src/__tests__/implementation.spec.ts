@@ -1,8 +1,10 @@
+import { vi } from 'vitest';
+
 import { Cursor, CURSOR_COMPATIBILITY_SYMBOL } from 'decap-cms-lib-util';
 
 import GiteaImplementation from '../implementation';
 
-jest.spyOn(console, 'error').mockImplementation(() => {});
+vi.spyOn(console, 'error').mockImplementation(() => {});
 
 describe('gitea backend implementation', () => {
   const config = {
@@ -12,27 +14,25 @@ describe('gitea backend implementation', () => {
     },
   };
 
-  const createObjectURL = jest.fn();
+  const createObjectURL = vi.fn();
   global.URL = {
     createObjectURL,
   };
 
   createObjectURL.mockReturnValue('displayURL');
 
-  beforeAll(() => {
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-  });
+  beforeAll(() => {});
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterAll(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('persistMedia', () => {
-    const persistFiles = jest.fn();
+    const persistFiles = vi.fn();
     const mockAPI = {
       persistFiles,
     };
@@ -96,9 +96,9 @@ describe('gitea backend implementation', () => {
   });
 
   describe('entriesByFolder', () => {
-    const listFiles = jest.fn();
-    const readFile = jest.fn();
-    const readFileMetadata = jest.fn(() => Promise.resolve({ author: '', updatedOn: '' }));
+    const listFiles = vi.fn();
+    const readFile = vi.fn();
+    const readFileMetadata = vi.fn(() => Promise.resolve({ author: '', updatedOn: '' }));
 
     const mockAPI = {
       listFiles,
@@ -134,7 +134,6 @@ describe('gitea backend implementation', () => {
         data: { files },
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expectedEntries[CURSOR_COMPATIBILITY_SYMBOL] = expectedCursor;
 
       const result = await giteaImplementation.entriesByFolder('posts', 'md', 1);
@@ -147,9 +146,9 @@ describe('gitea backend implementation', () => {
   });
 
   describe('traverseCursor', () => {
-    const listFiles = jest.fn();
-    const readFile = jest.fn((_path, id) => Promise.resolve(`${id}`));
-    const readFileMetadata = jest.fn(() => Promise.resolve({}));
+    const listFiles = vi.fn();
+    const readFile = vi.fn((_path, id) => Promise.resolve(`${id}`));
+    const readFileMetadata = vi.fn(() => Promise.resolve({}));
 
     const mockAPI = {
       listFiles,
@@ -158,7 +157,6 @@ describe('gitea backend implementation', () => {
       readFileMetadata,
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const files = [];
     const count = 1501;
     for (let i = 0; i < count; i++) {

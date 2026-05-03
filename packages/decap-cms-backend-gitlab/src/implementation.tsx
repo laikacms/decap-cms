@@ -91,7 +91,7 @@ export default class GitLab implements CmsImplementation {
     this.token = '';
     this.squashMerges = config.backend.squash_merges || false;
     this.cmsLabelPrefix = config.backend.cms_label_prefix || '';
-    this.mediaFolder = config.media_folder;
+    this.mediaFolder = config.media_folder ?? '';
     this.previewContext = config.backend.preview_context || '';
     this.useGraphQL = config.backend.use_graphql || false;
     this.graphQLAPIRoot = config.backend.graphql_api_root || 'https://gitlab.com/api/graphql';
@@ -203,7 +203,7 @@ export default class GitLab implements CmsImplementation {
       this.api!.readFileMetadata.bind(this.api),
       API_NAME,
     );
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
     // @ts-expect-error -- TODO: fix underlying type issue
     files[CURSOR_COMPATIBILITY_SYMBOL] = cursor;
     return files;
@@ -266,11 +266,7 @@ export default class GitLab implements CmsImplementation {
   getMediaDisplayURL(displayURL: CmsDisplayURL) {
     const sem = this._mediaDisplayURLSem || createSemaphore(MAX_CONCURRENT_DOWNLOADS);
     this._mediaDisplayURLSem = sem;
-    return getMediaDisplayURL(
-      displayURL,
-      this.api!.readFile.bind(this.api!),
-      sem,
-    );
+    return getMediaDisplayURL(displayURL, this.api!.readFile.bind(this.api!), sem);
   }
 
   async getMediaFile(path: string) {

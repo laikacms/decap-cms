@@ -15,7 +15,7 @@ function setup(propsOverrides = {}) {
     t: key => key,
     isDisabled: false,
     field: {
-      get: vi.fn().mockReturnValue('DD.MM.YYYY'),
+      format: 'DD.MM.YYYY',
     },
     ...propsOverrides,
   };
@@ -67,7 +67,7 @@ describe('DateTimeControl', () => {
   });
 
   test('sets value in custom format (local timezone) when input value changes', () => {
-    const { input, props } = setup({ field: new Map() });
+    const { input, props } = setup({ field: {} });
 
     const testDate = '2024-03-15T10:30:00';
 
@@ -78,7 +78,7 @@ describe('DateTimeControl', () => {
   });
 
   test('sets value in custom format (UTC) when input value changes', () => {
-    const { input, props } = setup({ field: new Map([['picker_utc', true]]) });
+    const { input, props } = setup({ field: { picker_utc: true } });
 
     const testDate = '2024-03-15T10:30:00';
 

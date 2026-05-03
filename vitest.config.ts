@@ -84,6 +84,7 @@ export default defineConfig({
         find: /^decap-cms-lib-util\/types\/cms\/(.*)$/,
         replacement: path.resolve(__dirname, 'packages/decap-cms-lib-util/src/types/cms') + '/$1',
       },
+      { find: /^decap-cms-core\/src\/backend$/, replacement: path.resolve(__dirname, 'packages/decap-cms-core/src/backend.tsx') },
       { find: 'decap-cms-lib-auth', replacement: path.resolve(__dirname, 'packages/decap-cms-lib-auth/src/index.ts') },
       { find: 'decap-cms-lib-util', replacement: path.resolve(__dirname, 'packages/decap-cms-lib-util/src/index.ts') },
       { find: 'decap-cms-ui-default', replacement: path.resolve(__dirname, 'packages/decap-cms-ui-default/src/index.ts') },

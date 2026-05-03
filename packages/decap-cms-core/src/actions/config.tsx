@@ -27,7 +27,6 @@ import type {
   CmsLocalBackend,
 } from 'decap-cms-lib-util';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type State = any;
 
 export const CONFIG_REQUEST = 'CONFIG_REQUEST';

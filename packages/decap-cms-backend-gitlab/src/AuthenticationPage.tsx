@@ -1,11 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
-import {
-  NetlifyAuthenticator,
-  ImplicitAuthenticator,
-  PkceAuthenticator,
-} from 'decap-cms-lib-auth';
+import { NetlifyAuthenticator, ImplicitAuthenticator, PkceAuthenticator } from 'decap-cms-lib-auth';
 import { AuthenticationPage, Icon } from 'decap-cms-ui-default';
 
 import type { TranslateFunction } from 'decap-cms-ui-default';
@@ -102,7 +98,12 @@ export default class GitLabAuthenticationPage extends React.Component<
 
   componentDidMount() {
     // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(GitLabAuthenticationPage.propTypes, this.props, 'prop', 'GitLabAuthenticationPage');
+    PropTypes.checkPropTypes(
+      GitLabAuthenticationPage.propTypes,
+      this.props,
+      'prop',
+      'GitLabAuthenticationPage',
+    );
 
     const {
       auth_type: authType = '',
@@ -111,7 +112,8 @@ export default class GitLabAuthenticationPage extends React.Component<
       app_id = '',
     } = this.props.config.backend;
 
-    const authenticatorFactory = clientSideAuthenticators[authType as keyof typeof clientSideAuthenticators];
+    const authenticatorFactory =
+      clientSideAuthenticators[authType as keyof typeof clientSideAuthenticators];
     if (authenticatorFactory) {
       this.auth = authenticatorFactory({
         base_url,
@@ -119,9 +121,15 @@ export default class GitLabAuthenticationPage extends React.Component<
         app_id,
         auth_token_endpoint: 'oauth/token',
         clearHash: this.props.clearHash,
-      } as { base_url: string; auth_endpoint: string; app_id: string; auth_token_endpoint: string; clearHash?: () => void });
+      } as {
+        base_url: string;
+        auth_endpoint: string;
+        app_id: string;
+        auth_token_endpoint: string;
+        clearHash?: () => void;
+      });
       // Complete authentication if we were redirected back to from the provider.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       (this.auth as any).completeAuth((err: Error | null, data?: AuthResult) => {
         if (err) {
           this.setState({ loginError: err.toString() });
@@ -144,16 +152,18 @@ export default class GitLabAuthenticationPage extends React.Component<
   }
 
   handleLogin = () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (this.auth as any).authenticate({ provider: 'gitlab', scope: 'api' }, (err: Error | null, data?: AuthResult) => {
-      if (err) {
-        this.setState({ loginError: err.toString() });
-        return;
-      }
-      if (data) {
-        this.props.onLogin(data);
-      }
-    });
+    (this.auth as any).authenticate(
+      { provider: 'gitlab', scope: 'api' },
+      (err: Error | null, data?: AuthResult) => {
+        if (err) {
+          this.setState({ loginError: err.toString() });
+          return;
+        }
+        if (data) {
+          this.props.onLogin(data);
+        }
+      },
+    );
   };
 
   render() {

@@ -90,9 +90,7 @@ interface MediaLibraryModalProps {
   selectedFile?: MediaFile | Record<string, never>;
   handleFilter: (files: MediaFile[]) => MediaFile[];
   handleQuery: (query: string, files: MediaFile[]) => MediaFile[];
-  toTableData: (
-    files: MediaFile[],
-  ) => {
+  toTableData: (files: MediaFile[]) => {
     displayURL?: string | Record<string, unknown>;
     id: string;
     key: string;

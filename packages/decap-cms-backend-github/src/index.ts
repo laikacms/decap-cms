@@ -8,3 +8,5 @@ export const DecapCmsBackendGithub = {
   AuthenticationPage,
 };
 export { GitHubBackend, API, AuthenticationPage };
+export type { Diff } from './API';
+export type { GitHubUser, Config } from './types/api';

@@ -130,7 +130,8 @@ async function init({
       imagesOnly?: boolean;
     } = {}) => {
       const config = { ...baseConfig, imagesOnly, ...instanceConfig };
-      const multiple = allowMultiple === false ? false : !!(config as { multiple?: boolean }).multiple;
+      const multiple =
+        allowMultiple === false ? false : !!(config as { multiple?: boolean }).multiple;
       const resolvedConfig = { ...config, multiple };
       const files = getFiles(value);
 

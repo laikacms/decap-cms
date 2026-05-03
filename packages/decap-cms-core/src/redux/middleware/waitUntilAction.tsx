@@ -8,7 +8,7 @@
  * blocks until the condition is met.
  */
 import type { MiddlewareAPI, Dispatch, AnyAction } from 'redux';
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 type State = any;
 
 export const WAIT_UNTIL_ACTION = 'WAIT_UNTIL_ACTION';
@@ -22,7 +22,6 @@ interface WaitAction extends WaitActionArgs {
   type: typeof WAIT_UNTIL_ACTION;
 }
 
-// eslint-disable-next-line func-style
 export const waitUntilAction = (api: MiddlewareAPI<Dispatch, State>) => {
   const { dispatch, getState } = api;
   let pending: WaitAction[] = [];

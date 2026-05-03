@@ -141,7 +141,6 @@ interface DragProps {
 }
 
 interface WorkflowListProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   entries?: any;
   handleChangeStatus: (
     collection: string,

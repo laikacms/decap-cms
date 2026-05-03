@@ -1,10 +1,12 @@
+import { vi } from 'vitest';
+
 import API from '../API';
 
-global.fetch = jest.fn().mockRejectedValue(new Error('should not call fetch inside tests'));
+global.fetch = vi.fn().mockRejectedValue(new Error('should not call fetch inside tests'));
 
 describe('bitbucket API', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   test('should get preview statuses', async () => {
@@ -16,8 +18,8 @@ describe('bitbucket API', () => {
       { key: 'build', state: 'FAILED' },
     ];
 
-    api.getBranchPullRequest = jest.fn(() => Promise.resolve(pr));
-    api.getPullRequestStatuses = jest.fn(() => Promise.resolve(statuses));
+    api.getBranchPullRequest = vi.fn(() => Promise.resolve(pr));
+    api.getPullRequestStatuses = vi.fn(() => Promise.resolve(statuses));
 
     const collectionName = 'posts';
     const slug = 'title';

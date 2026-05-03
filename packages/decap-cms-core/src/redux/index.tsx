@@ -7,7 +7,7 @@ import createRootReducer from '../reducers/combinedReducer';
 
 import type { ThunkDispatch } from 'redux-thunk';
 import type { AnyAction, Reducer, Middleware } from 'redux';
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 type State = any;
 
 const store = createStore<State | undefined, AnyAction, object, object>(

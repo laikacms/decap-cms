@@ -17,7 +17,6 @@ import notifications from './notifications';
 import type { Status } from '../constants/publishModes';
 import type { CmsCollectionState, CmsEntry } from 'decap-cms-lib-util';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type State = any;
 type Collection = CmsCollectionState;
 type Entry = CmsEntry;

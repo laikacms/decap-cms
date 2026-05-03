@@ -1,19 +1,21 @@
+import { vi } from 'vitest';
+
 import API, { getMaxAccess } from '../API';
 
-global.fetch = jest.fn().mockRejectedValue(new Error('should not call fetch inside tests'));
+global.fetch = vi.fn().mockRejectedValue(new Error('should not call fetch inside tests'));
 
-jest.spyOn(console, 'log').mockImplementation(() => undefined);
+vi.spyOn(console, 'log').mockImplementation(() => undefined);
 
 describe('GitLab API', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   describe('hasWriteAccess', () => {
     test('should return true on project access_level >= 30', async () => {
       const api = new API({ repo: 'repo' });
 
-      api.requestJSON = jest
+      api.requestJSON = vi
         .fn()
         .mockResolvedValueOnce({ permissions: { project_access: { access_level: 30 } } });
 
@@ -23,7 +25,7 @@ describe('GitLab API', () => {
     test('should return false on project access_level < 30', async () => {
       const api = new API({ repo: 'repo' });
 
-      api.requestJSON = jest
+      api.requestJSON = vi
         .fn()
         .mockResolvedValueOnce({ permissions: { project_access: { access_level: 10 } } });
 
@@ -33,7 +35,7 @@ describe('GitLab API', () => {
     test('should return true on group access_level >= 30', async () => {
       const api = new API({ repo: 'repo' });
 
-      api.requestJSON = jest
+      api.requestJSON = vi
         .fn()
         .mockResolvedValueOnce({ permissions: { group_access: { access_level: 30 } } });
 
@@ -43,7 +45,7 @@ describe('GitLab API', () => {
     test('should return false on group access_level < 30', async () => {
       const api = new API({ repo: 'repo' });
 
-      api.requestJSON = jest
+      api.requestJSON = vi
         .fn()
         .mockResolvedValueOnce({ permissions: { group_access: { access_level: 10 } } });
 
@@ -52,7 +54,7 @@ describe('GitLab API', () => {
 
     test('should return true on shared group access_level >= 40', async () => {
       const api = new API({ repo: 'repo' });
-      api.requestJSON = jest.fn().mockResolvedValueOnce({
+      api.requestJSON = vi.fn().mockResolvedValueOnce({
         permissions: { project_access: null, group_access: null },
         shared_with_groups: [{ group_access_level: 10 }, { group_access_level: 40 }],
       });
@@ -65,7 +67,7 @@ describe('GitLab API', () => {
     test('should return true on shared group access_level >= 30, developers can merge and push', async () => {
       const api = new API({ repo: 'repo' });
 
-      api.requestJSON = jest.fn();
+      api.requestJSON = vi.fn();
       api.requestJSON.mockResolvedValueOnce({
         permissions: { project_access: null, group_access: null },
         shared_with_groups: [{ group_access_level: 10 }, { group_access_level: 30 }],
@@ -81,7 +83,7 @@ describe('GitLab API', () => {
     test('should return false on shared group access_level < 30,', async () => {
       const api = new API({ repo: 'repo' });
 
-      api.requestJSON = jest.fn();
+      api.requestJSON = vi.fn();
       api.requestJSON.mockResolvedValueOnce({
         permissions: { project_access: null, group_access: null },
         shared_with_groups: [{ group_access_level: 10 }, { group_access_level: 20 }],
@@ -97,7 +99,7 @@ describe('GitLab API', () => {
     test("should return false on shared group access_level >= 30, developers can't merge", async () => {
       const api = new API({ repo: 'repo' });
 
-      api.requestJSON = jest.fn();
+      api.requestJSON = vi.fn();
       api.requestJSON.mockResolvedValueOnce({
         permissions: { project_access: null, group_access: null },
         shared_with_groups: [{ group_access_level: 10 }, { group_access_level: 30 }],
@@ -113,7 +115,7 @@ describe('GitLab API', () => {
     test("should return false on shared group access_level >= 30, developers can't push", async () => {
       const api = new API({ repo: 'repo' });
 
-      api.requestJSON = jest.fn();
+      api.requestJSON = vi.fn();
       api.requestJSON.mockResolvedValueOnce({
         permissions: { project_access: null, group_access: null },
         shared_with_groups: [{ group_access_level: 10 }, { group_access_level: 30 }],
@@ -129,7 +131,7 @@ describe('GitLab API', () => {
     test('should return false on shared group access_level >= 30, error getting branch', async () => {
       const api = new API({ repo: 'repo' });
 
-      api.requestJSON = jest.fn();
+      api.requestJSON = vi.fn();
       api.requestJSON.mockResolvedValueOnce({
         permissions: { project_access: null, group_access: null },
         shared_with_groups: [{ group_access_level: 10 }, { group_access_level: 30 }],
@@ -155,8 +157,8 @@ describe('GitLab API', () => {
         { name: 'build', status: 'pending' },
       ];
 
-      api.getBranchMergeRequest = jest.fn(() => Promise.resolve(mr));
-      api.getMergeRequestStatues = jest.fn(() => Promise.resolve(statuses));
+      api.getBranchMergeRequest = vi.fn(() => Promise.resolve(mr));
+      api.getMergeRequestStatues = vi.fn(() => Promise.resolve(statuses));
 
       const collectionName = 'posts';
       const slug = 'title';

@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { v4 as uuid } from 'uuid';
 import uploadcare from 'uploadcare-widget';
 import uploadcareTabEffects from 'uploadcare-widget-tab-effects';
@@ -20,14 +21,14 @@ let openDialogCallback;
 /**
  * Mock of the uploadcare widget object itself.
  */
-jest.mock('uploadcare-widget', () => ({
-  registerTab: jest.fn(),
-  openDialog: jest.fn(() => ({
-    done: jest.fn(cb => {
+vi.mock('uploadcare-widget', () => ({
+  registerTab: vi.fn(),
+  openDialog: vi.fn(() => ({
+    done: vi.fn(cb => {
       openDialogCallback = cb;
     }),
   })),
-  fileFrom: jest.fn((type, url) =>
+  fileFrom: vi.fn((type, url) =>
     Promise.resolve({
       testFileUrl: url,
     }),
@@ -61,7 +62,7 @@ describe('uploadcare media library', () => {
     /**
      * Spy to serve as the Decap CMS insertion handler.
      */
-    handleInsert = jest.fn();
+    handleInsert = vi.fn();
   });
 
   it('exports an object with expected properties', () => {

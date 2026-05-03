@@ -3,7 +3,7 @@ import {HOT_KEY_MAP} from "../utils/constants";
 const headingNumberToWord = ['', 'one', 'two', 'three', 'four', 'five', 'six'];
 const isMac = Cypress.platform === 'darwin';
 const modifierKey = isMac ? '{meta}' : '{ctrl}';
-// eslint-disable-next-line func-style
+ 
 const replaceMod = (str) => str.replace(/mod\+/g, modifierKey).replace(/shift\+/g, '{shift}');
 
 describe('Markdown widget hotkeys', () => {

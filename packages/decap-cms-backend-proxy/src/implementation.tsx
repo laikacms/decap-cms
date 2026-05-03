@@ -61,7 +61,7 @@ export default class ProxyBackend implements CmsImplementation {
 
     this.branch = config.backend.branch || 'master';
     this.proxyUrl = config.backend.proxy_url;
-    this.mediaFolder = config.media_folder;
+    this.mediaFolder = config.media_folder ?? '';
     this.options = options;
     this.cmsLabelPrefix = config.backend.cms_label_prefix;
   }

@@ -1,7 +1,7 @@
 import { API as GitlabAPI } from 'decap-cms-backend-gitlab';
 import { unsentRequest } from 'decap-cms-lib-util';
 
-import type { Config as GitLabConfig, CommitAuthor } from 'decap-cms-backend-gitlab/src/API';
+import type { Config as GitLabConfig, CommitAuthor } from 'decap-cms-backend-gitlab';
 import type { ApiRequest } from 'decap-cms-lib-util';
 
 type Config = GitLabConfig & { tokenPromise: () => Promise<string>; commitAuthor: CommitAuthor };

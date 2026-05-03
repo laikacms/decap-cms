@@ -4,11 +4,10 @@ import { getWidgetValueSerializer } from './registry';
 
 type SerializerMethod = 'serialize' | 'deserialize';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type FieldMap = Record<string, any>;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 type FieldList = FieldMap[];
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 type ValuesMap = Record<string, any>;
 
 /**
@@ -46,7 +45,7 @@ function runSerializer(values: ValuesMap, fields: FieldList, method: SerializerM
     if (nestedFields && Array.isArray(value)) {
       return {
         ...acc,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         [fieldName]: value.map((val: any) => runSerializer(val, nestedFields, method)),
       };
     }

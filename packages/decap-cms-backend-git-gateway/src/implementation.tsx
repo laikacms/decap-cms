@@ -1,5 +1,5 @@
 import GoTrue from 'gotrue-js';
-import jwtDecode from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import get from 'lodash/get';
 import pick from 'lodash/pick';
 import intersection from 'lodash/intersection';
@@ -28,17 +28,18 @@ import { getClient } from './netlify-lfs-client';
 import type { Client } from './netlify-lfs-client';
 import type {
   ApiRequest,
-  AssetProxy,
-  PersistOptions,
-  Entry,
+  CmsAssetProxy as AssetProxy,
+  CmsPersistOptions as PersistOptions,
+  CmsEntry as Entry,
+  CmsFileEntry,
   Cursor,
-  Implementation,
-  DisplayURL,
-  User,
-  Credentials,
-  Config,
-  ImplementationFile,
-  DisplayURLObject,
+  CmsImplementation as Implementation,
+  CmsDisplayURL as DisplayURL,
+  CmsUser as User,
+  CmsCredentials as Credentials,
+  CmsConfig as Config,
+  CmsImplementationFile as ImplementationFile,
+  CmsDisplayURLObject as DisplayURLObject,
 } from 'decap-cms-lib-util';
 
 const STATUS_PAGE = 'https://www.netlifystatus.com';
@@ -50,26 +51,12 @@ type GitGatewayStatus = {
   status: string;
 };
 
-type NetlifyIdentity = {
-  logout: () => void;
-  currentUser: () => User;
-  on: (event: string, args: unknown) => void;
-  init: () => void;
-  store: { user: unknown; modal: { page: string }; saving: boolean };
-};
-
 type AuthClient = {
   logout: () => void;
   currentUser: () => unknown;
   login?(email: string, password: string, remember?: boolean): Promise<unknown>;
   clearStore: () => void;
 };
-
-declare global {
-  interface Window {
-    netlifyIdentity?: NetlifyIdentity;
-  }
-}
 
 const localHosts: Record<string, boolean> = {
   localhost: true,
@@ -170,7 +157,7 @@ export default class GitGateway implements Implementation {
     this.branch = config.backend.branch?.trim() || 'master';
     this.squashMerges = config.backend.squash_merges || false;
     this.cmsLabelPrefix = config.backend.cms_label_prefix || '';
-    this.mediaFolder = config.media_folder;
+    this.mediaFolder = config.media_folder ?? '';
     this.gitGatewayStatusEndpoint = config.backend.status_endpoint || GIT_GATEWAY_STATUS_ENDPOINT;
     const { use_large_media_transforms_in_media_library: transformImages = true } = config.backend;
     this.transformImages = transformImages;
@@ -196,7 +183,7 @@ export default class GitGateway implements Implementation {
       this.authType = 'pkce';
     } else {
       this.authType = 'netlify';
-      NetlifyAuthenticationPage.authClient = () => this.getAuthClient();
+      NetlifyAuthenticationPage.authClient = () => this.getAuthClient() as any;
     }
   }
 
@@ -285,7 +272,7 @@ export default class GitGateway implements Implementation {
           const func = user.jwt.bind(user);
           return await func();
         } catch (error: unknown) {
-          throw new AccessTokenError(`Failed getting access token: ${error.message}`);
+          throw new AccessTokenError(`Failed getting access token: ${(error as Error).message}`);
         }
       };
     } else {
@@ -564,7 +551,7 @@ export default class GitGateway implements Implementation {
     return this.backend!.getMediaFile(path);
   }
 
-  async persistEntry(entry: Entry, options: PersistOptions) {
+  async persistEntry(entry: CmsFileEntry, options: PersistOptions) {
     const client = await this.getLargeMediaClient();
     if (client.enabled) {
       const assets = await getLargeMediaFilteredMediaFiles(client, entry.assets);
@@ -587,7 +574,10 @@ export default class GitGateway implements Implementation {
         path,
       );
       return {
-        ...(await this.backend!.persistMedia(persistMediaArgument, options)),
+        ...(await this.backend!.persistMedia(
+          persistMediaArgument as unknown as AssetProxy,
+          options,
+        )),
         displayURL,
       };
     }

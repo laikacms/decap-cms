@@ -38,7 +38,7 @@ import type { CmsCollectionState, CmsEntry } from 'decap-cms-lib-util';
 
 type Collection = CmsCollectionState;
 type Entry = CmsEntry;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 type EntryDraft = any;
 
 interface UseEditorOptions {
@@ -128,9 +128,7 @@ export function useEditor({
   // Debounced backup creation
   const createBackup = useMemo(
     () =>
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       debounce((entryData: any, coll: Collection) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         dispatch(persistLocalBackup(entryData, coll) as any);
       }, 2000),
     [dispatch],
@@ -140,24 +138,22 @@ export function useEditor({
   const deleteBackup = useCallback(() => {
     if (!collection) return;
     createBackup.cancel();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     dispatch(deleteLocalBackup(collection, (!newEntry && slug) || '') as any);
   }, [dispatch, collection, newEntry, slug, createBackup]);
 
   // Setup function - call this on mount
   const setup = useCallback((): EditorSetupResult => {
     if (!collection) {
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
       return { cleanup: () => {} };
     }
 
     // Retrieve local backup
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     dispatch(retrieveLocalBackup(collection, slug || '') as any);
 
     // Create empty draft or load entry
     if (newEntry) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       dispatch(createEmptyDraft(collection, locationSearch) as any);
     } else if (slug) {
       workflow.loadEntry(collection, slug);
@@ -165,7 +161,6 @@ export function useEditor({
 
     // Load collection entries if not loaded
     if (!collectionEntriesLoaded) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       dispatch(loadEntries(collection) as any);
     }
 
@@ -241,7 +236,7 @@ export function useEditor({
     return {
       cleanup: () => {
         createBackup.flush();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         dispatch(discardDraft() as any);
         if (exitBlockerRef.current) {
           window.removeEventListener('beforeunload', exitBlockerRef.current);
@@ -275,7 +270,6 @@ export function useEditor({
       if (!prevLocalBackup && localBackup) {
         const confirmLoadBackup = window.confirm(t('editor.editor.confirmLoadBackup'));
         if (confirmLoadBackup) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           dispatch(loadLocalBackup() as any);
         } else {
           deleteBackup();
@@ -298,7 +292,6 @@ export function useEditor({
       if (prevEntry === entry) return;
 
       if (newEntry && collection) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         dispatch(createEmptyDraft(collection, locationSearch) as any);
       }
     },
@@ -307,11 +300,9 @@ export function useEditor({
 
   // Event handlers
   const handleChangeDraftField = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (field: any, value: any, metadata: any, i18n: any) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const entries = [unPublishedEntry, publishedEntry].filter(Boolean) as any[];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       dispatch(changeDraftField({ field, value, metadata, entries, i18n }) as any);
     },
     [dispatch, unPublishedEntry, publishedEntry],
@@ -329,7 +320,6 @@ export function useEditor({
         | Status
         | undefined;
       if (newStatus) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         dispatch(
           updateUnpublishedEntryStatus(collection.name, slug, currentStatus, newStatus) as any,
         );
@@ -349,7 +339,6 @@ export function useEditor({
       if (createNew) {
         navigateToNewEntry(collection.name);
         if (duplicate && entryDraft) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           dispatch(createDraftDuplicateFromEntry(entryDraft.entry) as any);
         }
       } else if (slug && hasWorkflow && !currentStatus) {
@@ -374,7 +363,6 @@ export function useEditor({
         return;
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await dispatch(publishUnpublishedEntry(collection.name, slug) as any);
       deleteBackup();
 
@@ -383,7 +371,6 @@ export function useEditor({
       }
 
       if (duplicate && entryDraft) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         dispatch(createDraftDuplicateFromEntry(entryDraft.entry) as any);
       }
     },
@@ -395,7 +382,6 @@ export function useEditor({
 
     if (!window.confirm(t('editor.editor.onUnpublishing'))) return;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await dispatch(unpublishPublishedEntry(collection, slug) as any);
     return navigateToCollection(collection.name);
   }, [collection, slug, t, dispatch]);
@@ -404,7 +390,7 @@ export function useEditor({
     if (!collection || !entryDraft) return;
 
     navigateToNewEntry(collection.name);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     dispatch(createDraftDuplicateFromEntry(entryDraft.entry) as any);
   }, [collection, entryDraft, dispatch]);
 
@@ -425,7 +411,6 @@ export function useEditor({
 
     setTimeout(async () => {
       if (slug) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await dispatch(deleteEntry(collection, slug) as any);
       }
       deleteBackup();
@@ -445,7 +430,6 @@ export function useEditor({
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await dispatch(deleteUnpublishedEntry(collection.name, slug) as any);
     deleteBackup();
 
@@ -457,16 +441,14 @@ export function useEditor({
   }, [collection, slug, entryDraft, isModification, t, dispatch, deleteBackup, workflow]);
 
   const handleLogout = useCallback(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     dispatch(logoutUser() as any);
   }, [dispatch]);
 
   const handleLoadDeployPreview = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (opts?: any) => {
       if (!collection || !entry || !slug) return;
       const isPublished = !newEntry && !workflow.unpublishedEntry;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       dispatch(
         loadDeployPreview(collection, slug, entry as unknown as Entry, isPublished, opts) as any,
       );
@@ -475,9 +457,7 @@ export function useEditor({
   );
 
   const handleValidate = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (field: any, errors: any) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       dispatch(changeDraftFieldValidation(field, errors) as any);
     },
     [dispatch],

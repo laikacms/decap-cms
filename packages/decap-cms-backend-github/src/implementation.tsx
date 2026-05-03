@@ -42,7 +42,7 @@ import type {
   CmsFileEntry,
 } from 'decap-cms-lib-util';
 import type { Semaphore } from 'decap-cms-lib-util';
-import { AuthenticationPageProps } from 'decap-cms-ui-default/AuthenticationPage';
+import type { AuthenticationPageProps } from 'decap-cms-ui-default/AuthenticationPage';
 
 export type GitHubUser = Endpoints['GET /user']['response']['data'];
 
@@ -132,7 +132,8 @@ export default class GitHub implements CmsImplementation {
     this.squashMerges = config.backend.squash_merges || false;
     this.cmsLabelPrefix = config.backend.cms_label_prefix || '';
     this.useGraphql = config.backend.use_graphql || false;
-    if (!config.media_folder) console.warn('No media_folder configured for GitHub backend, using root of repo');
+    if (!config.media_folder)
+      console.warn('No media_folder configured for GitHub backend, using root of repo');
     this.mediaFolder = config.media_folder!;
     this.previewContext = config.backend.preview_context || '';
     this.lock = asyncLock();
@@ -450,7 +451,7 @@ export default class GitHub implements CmsImplementation {
       this.api!.readFileMetadata.bind(this.api),
       API_NAME,
     );
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
     // @ts-expect-error -- TODO: fix underlying type issue
     files[CURSOR_COMPATIBILITY_SYMBOL] = cursor;
     return files;
@@ -532,7 +533,8 @@ export default class GitHub implements CmsImplementation {
   }
 
   getMediaDisplayURL(displayURL: CmsDisplayURL) {
-    this._mediaDisplayURLSem = this._mediaDisplayURLSem || createSemaphore(MAX_CONCURRENT_DOWNLOADS);
+    this._mediaDisplayURLSem =
+      this._mediaDisplayURLSem || createSemaphore(MAX_CONCURRENT_DOWNLOADS);
     return getMediaDisplayURL(
       displayURL,
       this.api!.readFile.bind(this.api!),

@@ -36,7 +36,6 @@ import type { EntryValue } from '../valueObjects/Entry';
 import type { Backend } from '../backend';
 import type AssetProxy from '../valueObjects/AssetProxy';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type State = any;
 
 type Collection = CmsCollectionState;
@@ -168,7 +167,7 @@ export function entriesFailed(collection: Collection, error: Error) {
 export async function getAllEntries(state: State, collection: Collection) {
   const backend = currentBackend(state.config);
   const integration = selectIntegration(state, collection.name, 'listEntries');
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const provider: any = integration
     ? getIntegrationProvider(state.integrations, backend.getToken as any, integration)
     : backend;
@@ -549,7 +548,7 @@ export function loadEntries(collection: Collection, page = 0) {
 
     const backend = currentBackend(state.config);
     const integration = selectIntegration(state, collection.name, 'listEntries');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const provider = integration
       ? getIntegrationProvider(state.integrations, backend.getToken as any, integration)
       : backend;
@@ -564,12 +563,10 @@ export function loadEntries(collection: Collection, page = 0) {
         pagination: number;
         entries: EntryValue[];
       } = await (loadAllEntries
-        ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (provider as any)
+        ? (provider as any)
             .listAllEntries(collection)
             .then((entries: EntryValue[]) => ({ entries }))
-        : // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (provider as any).listEntries(collection, page));
+        : (provider as any).listEntries(collection, page));
 
       response = {
         ...response,
@@ -623,7 +620,7 @@ export function traverseCollectionCursor(collection: Collection, action: string)
 
     const backend = currentBackend(state.config);
     const { action: realAction, append } = appendActionsMap[action] ?? { action, append: false };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const cursor = selectCollectionEntriesCursor(state.cursors as any, collectionName);
 
     if (cursor.meta?.usingOldPaginationAPI) {
@@ -705,7 +702,7 @@ export function createEmptyDraft(collection: Collection, search: string) {
       data,
       i18n: i18nFields,
       mediaFiles: [],
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       meta: meta as any,
     });
     newEntry = await backend.processEntry(state, collection, newEntry);
@@ -758,7 +755,6 @@ export function createEmptyDraftData(
             ? [createEmptyDraftData(asList as EntryField[], skipField)]
             : createEmptyDraftData(asList as EntryField[], skipField);
           if (!isEmptyDefaultValue(subDefaultValue)) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             acc[name] = subDefaultValue as any;
           }
         }
@@ -806,9 +802,7 @@ export function getMediaAssets({ entry }: { entry: EntryMap }) {
 export function getSerializedEntry(collection: Collection, entry: EntryMap) {
   const fields = selectFields(collection as any, entry.slug);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function serializeData(data: any) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return serializeValues(data, fields as any);
   }
 

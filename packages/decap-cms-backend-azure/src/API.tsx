@@ -20,7 +20,7 @@ import {
   PreviewState,
   readFileMetadata,
   branchFromContentKey,
-  Path
+  Path,
 } from 'decap-cms-lib-util';
 
 import type { ApiRequest, CmsAssetProxy, CmsPersistOptions, CmsDataFile } from 'decap-cms-lib-util';
@@ -552,7 +552,11 @@ export default class API {
     return items;
   }
 
-  async persistFiles(dataFiles: CmsDataFile[], mediaFiles: CmsAssetProxy[], options: CmsPersistOptions) {
+  async persistFiles(
+    dataFiles: CmsDataFile[],
+    mediaFiles: CmsAssetProxy[],
+    options: CmsPersistOptions,
+  ) {
     const files = [...dataFiles, ...mediaFiles];
     if (options.useWorkflow) {
       const slug = dataFiles[0].slug;

@@ -85,7 +85,7 @@ export default class Gitea implements CmsImplementation {
     this.branch = config.backend.branch?.trim() || 'master';
     this.apiRoot = config.backend.api_root || 'https://try.gitea.io/api/v1';
     this.token = '';
-    this.mediaFolder = config.media_folder;
+    this.mediaFolder = config.media_folder ?? '';
     this.lock = asyncLock();
   }
 
@@ -248,7 +248,7 @@ export default class Gitea implements CmsImplementation {
       this.api!.readFileMetadata.bind(this.api),
       API_NAME,
     );
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
     // @ts-expect-error -- TODO: fix underlying type issue
     files[CURSOR_COMPATIBILITY_SYMBOL] = cursor;
     return files;
@@ -327,7 +327,8 @@ export default class Gitea implements CmsImplementation {
   }
 
   getMediaDisplayURL(displayURL: CmsDisplayURL) {
-    this._mediaDisplayURLSem = this._mediaDisplayURLSem || createSemaphore(MAX_CONCURRENT_DOWNLOADS);
+    this._mediaDisplayURLSem =
+      this._mediaDisplayURLSem || createSemaphore(MAX_CONCURRENT_DOWNLOADS);
     return getMediaDisplayURL(
       displayURL,
       this.api!.readFile.bind(this.api!),
@@ -416,11 +417,7 @@ export default class Gitea implements CmsImplementation {
     return [];
   }
 
-  async unpublishedEntry(_args: {
-    id?: string;
-    collection?: string;
-    slug?: string;
-  }) {
+  async unpublishedEntry(_args: { id?: string; collection?: string; slug?: string }) {
     return { slug: '', collection: '', status: '', diffs: [], updatedAt: '' };
   }
 
@@ -433,12 +430,7 @@ export default class Gitea implements CmsImplementation {
     return '';
   }
 
-  async unpublishedEntryMediaFile(
-    _collection: string,
-    _slug: string,
-    _path: string,
-    _id: string,
-  ) {
+  async unpublishedEntryMediaFile(_collection: string, _slug: string, _path: string, _id: string) {
     return { id: '', name: '', path: '' };
   }
 

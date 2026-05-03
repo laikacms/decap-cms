@@ -18,7 +18,7 @@ import {
 
 type Collections = CmsCollections;
 type Collection = CmsCollectionState;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 type State = any;
 
 import { createNewEntry } from '../../actions/collections';
@@ -63,7 +63,7 @@ interface WorkflowProps {
   isEditorialWorkflow: boolean;
   isOpenAuthoring?: boolean;
   isFetching?: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   unpublishedEntries?: Record<string, any>;
   loadUnpublishedEntries: (collections: Collections) => void;
   updateUnpublishedEntryStatus: (
@@ -171,14 +171,14 @@ function mapStateToProps(state: State) {
   const { collections, config, globalUI } = state;
   const isEditorialWorkflow = config.publish_mode === EDITORIAL_WORKFLOW;
   const isOpenAuthoring = globalUI.useOpenAuthoring;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const returnObj: {
     collections: Collections;
     isEditorialWorkflow: boolean;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     isOpenAuthoring: any;
     isFetching?: boolean;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     unpublishedEntries?: Record<string, any>;
   } = { collections, isEditorialWorkflow, isOpenAuthoring };
 
@@ -189,7 +189,7 @@ function mapStateToProps(state: State) {
      * Generates a plain object of the available status as keys.
      * Each key containing an array of available unpublished entries
      */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const unpublishedEntries: Record<string, any> = {};
     Object.values(status).forEach(currStatus => {
       const entries = selectUnpublishedEntriesByStatus(state, currStatus as Status);

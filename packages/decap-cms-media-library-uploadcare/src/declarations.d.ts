@@ -5,7 +5,14 @@ declare module 'uploadcare-widget' {
     openDialog(
       files: unknown,
       config: Record<string, unknown>,
-    ): { done(cb: (result: { promise: () => Promise<unknown>; files: (() => Promise<unknown>[]) | null }) => void): void };
+    ): {
+      done(
+        cb: (result: {
+          promise: () => Promise<unknown>;
+          files: (() => Promise<unknown>[]) | null;
+        }) => void,
+      ): void;
+    };
     registerTab(name: string, tab: unknown): void;
   };
   export default uploadcare;

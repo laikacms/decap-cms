@@ -106,7 +106,6 @@ export default class BitbucketAuthenticationPage extends React.Component<
   }
 
   handleLogin = () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (this.auth as any).authenticate(this.authSettings, (err: Error | null, data?: AuthResult) => {
       if (err) {
         this.setState({ loginError: err.toString() });

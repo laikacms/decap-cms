@@ -1,7 +1,5 @@
-// eslint-disable-next-line no-unused-vars
 import React, { useEffect } from 'react';
 // import { translate } from 'react-polyglot';
-// @ts-expect-error - CSS import resolved by bundler, not TypeScript
 import 'react-toastify/ReactToastify.css';
 import { toast, ToastContainer } from 'react-toastify';
 import { connect, useDispatch } from 'react-redux';
@@ -10,7 +8,7 @@ import { useTranslate } from 'react-polyglot';
 import { dismissNotification } from '../../actions/notifications';
 
 import type { Id, ToastItem } from 'react-toastify';
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 type State = any;
 
 interface CmsNotification {

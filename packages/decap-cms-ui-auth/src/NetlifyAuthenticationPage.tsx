@@ -11,7 +11,12 @@ import {
   lengths,
   zIndex,
 } from 'decap-cms-ui-default';
-import type { AuthClient, NetlifyAuthenticationPageProps, NetlifyAuthenticationPageState, NetlifyIdentityUser } from './types';
+import type {
+  AuthClient,
+  NetlifyAuthenticationPageProps,
+  NetlifyAuthenticationPageState,
+  NetlifyIdentityUser,
+} from './types';
 
 const LoginButton = styled.button`
   ${buttons.button};

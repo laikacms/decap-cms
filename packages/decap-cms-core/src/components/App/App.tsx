@@ -208,7 +208,6 @@ function App() {
       );
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const AuthComponent = backend.authComponent() as any as React.ComponentType<any>;
 
     return (

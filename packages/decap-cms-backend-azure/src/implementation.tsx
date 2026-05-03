@@ -204,7 +204,8 @@ export default class Azure implements CmsImplementation {
   }
 
   getMediaDisplayURL(displayURL: CmsDisplayURL) {
-    this._mediaDisplayURLSem = this._mediaDisplayURLSem || createSemaphore(MAX_CONCURRENT_DOWNLOADS);
+    this._mediaDisplayURLSem =
+      this._mediaDisplayURLSem || createSemaphore(MAX_CONCURRENT_DOWNLOADS);
     return getMediaDisplayURL(
       displayURL,
       this.api!.readFile.bind(this.api!),

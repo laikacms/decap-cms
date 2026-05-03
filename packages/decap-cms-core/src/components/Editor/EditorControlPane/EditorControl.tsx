@@ -20,7 +20,7 @@ import type { CmsCollectionState, CmsEntry, CmsEntryField, CmsConfig } from 'dec
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;
 type EntryField = CmsEntryField;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 type State = any;
 import type AssetProxy from '../../../valueObjects/AssetProxy';
 
@@ -39,7 +39,6 @@ import {
 } from '../../../actions/mediaLibrary';
 import Widget from './Widget';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const WidgetComponent: React.ComponentType<any> = Widget;
 
 /**
@@ -470,7 +469,6 @@ class EditorControl extends React.Component<EditorControlProps, EditorControlSta
                   allowedElements={['a', 'strong', 'em', 'del']}
                   unwrapDisallowed={true}
                   components={{
-                    // eslint-disable-next-line no-unused-vars
                     a: ({ node, ...props }) => (
                       <a
                         {...props}
@@ -576,7 +574,6 @@ function mergeProps(
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ConnectedEditorControl = (connect as any)(
   mapStateToProps,
   mapDispatchToProps,

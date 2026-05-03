@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 import { PkceAuthenticator } from 'decap-cms-lib-auth';
 import { AuthenticationPage, Icon } from 'decap-cms-ui-default';
-import type { CmsConfig, TranslateFunction } from 'CmsConfig';
 import { PKCEAuthenticationPage, type PKCEUser } from 'decap-cms-ui-auth';
 
 const LoginButtonIcon = styled(Icon)`

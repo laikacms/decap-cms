@@ -85,7 +85,6 @@ function ReactSplitPaneGlobalStyles() {
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const StyledSplitPane = styled(SplitPane as any)`
   ${styles.splitPane};
 
@@ -400,7 +399,7 @@ class EditorInterface extends Component<EditorInterfaceProps> {
 
     return (
       <EditorContainer>
-        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        {}
         {React.createElement(EditorToolbar as any, {
           isPersisting: entry.isPersisting,
           isPublishing: (entry as any).isPublishing,

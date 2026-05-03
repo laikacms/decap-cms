@@ -23,7 +23,8 @@
   },
   "dependencies": {
     "uploadcare-widget": "catalog:media",
-    "uploadcare-widget-tab-effects": "catalog:media"
+    "uploadcare-widget-tab-effects": "catalog:media",
+    "uuid": "catalog:utils"
   },
   "type": "module",
   "types": "./dist/index.d.ts",

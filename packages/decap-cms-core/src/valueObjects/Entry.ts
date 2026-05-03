@@ -5,7 +5,7 @@ import type { MediaFile } from '../backend';
 interface Options {
   partial?: boolean;
   raw?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   data?: any;
   label?: string | null;
   isModification?: boolean | null;
@@ -15,7 +15,6 @@ interface Options {
   status?: string;
   meta?: { path?: string };
   i18n?: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [locale: string]: any;
   };
 }
@@ -26,7 +25,7 @@ export interface EntryValue {
   path: string;
   partial: boolean;
   raw: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   data: any;
   label: string | null;
   isModification: boolean | null;
@@ -36,7 +35,6 @@ export interface EntryValue {
   status?: string;
   meta: { path?: string };
   i18n?: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [locale: string]: any;
   };
 }

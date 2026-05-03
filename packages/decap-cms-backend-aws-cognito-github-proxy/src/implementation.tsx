@@ -1,13 +1,14 @@
 import * as React from 'react';
 import { GitHubBackend } from 'decap-cms-backend-github';
-import { PKCEAuthenticationPage } from 'decap-cms-ui-auth';
+import GenericPKCEAuthenticationPage from './AuthenticationPage';
 
-import type { GithubUser } from 'decap-cms-backend-github';
-import type { Config } from 'decap-cms-lib-util/src';
+import type { GitHubUser } from 'decap-cms-backend-github';
+import type { CmsConfig } from 'decap-cms-lib-util';
+import type { AuthenticationPageProps } from 'decap-cms-ui-default/AuthenticationPage';
 import type { Endpoints } from '@octokit/types';
 
 export default class AwsCognitoGitHubProxyBackend extends GitHubBackend {
-  constructor(config: Config, options = {}) {
+  constructor(config: CmsConfig, options = {}) {
     super(config, options);
 
     this.bypassWriteAccessCheckForAppTokens = true;
@@ -15,10 +16,9 @@ export default class AwsCognitoGitHubProxyBackend extends GitHubBackend {
   }
 
   authComponent() {
-    const wrappedAuthenticationPage = (props: Record<string, unknown>) => {
-      const allProps = { ...props, backend: this };
-      return <PKCEAuthenticationPage {...allProps} />;
-    };
+    const wrappedAuthenticationPage = (props: AuthenticationPageProps) => (
+      <GenericPKCEAuthenticationPage {...(props as any)} backend={this} />
+    );
     wrappedAuthenticationPage.displayName = 'AuthenticationPage';
     return wrappedAuthenticationPage;
   }

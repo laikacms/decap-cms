@@ -198,7 +198,6 @@ export function mergeExpandedEntries(entries: (EntryValue & { field: string })[]
   const merged = entries.reduce(
     (acc, e) => {
       if (!acc[e.slug]) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { field, ...rest } = e;
         acc[e.slug] = rest;
         arrayPaths[e.slug] = new Set();
@@ -576,7 +575,7 @@ export class Backend {
           from. This is done to prevent traverseCursor from requiring a
           `collection` argument.
         */
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
     // @ts-expect-error -- TODO: fix underlying type issue
     const cursor = Cursor.create(loadedEntries[CURSOR_COMPATIBILITY_SYMBOL]).wrapData({
       cursorType: 'collectionEntries',
@@ -666,7 +665,6 @@ export class Backend {
     const entries = await Promise.all(collectionEntriesRequests).then(arrays => flatten(arrays));
 
     if (errors.length > 0) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-expect-error -- TODO: fix underlying type issue
       throw new Error({ message: 'Errors occurred while searching entries locally!', errors });
     }

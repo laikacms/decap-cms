@@ -58,11 +58,12 @@ export function selectIntegration(
   collection: string | null,
   hook: string,
 ): string | false {
+  const hooks = (state?.hooks ?? {}) as Record<string, unknown>;
   if (collection) {
-    const collectionHooks = state.hooks[collection] as Record<string, string> | undefined;
+    const collectionHooks = hooks[collection] as Record<string, string> | undefined;
     return collectionHooks?.[hook] ?? false;
   }
-  return (state.hooks[hook] as string | undefined) ?? false;
+  return (hooks[hook] as string | undefined) ?? false;
 }
 
 export default integrations;

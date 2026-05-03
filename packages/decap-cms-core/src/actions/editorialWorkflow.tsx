@@ -42,7 +42,6 @@ type EntryMap = CmsEntry;
 type Collections = CmsCollections;
 type MediaFile = CmsMediaFile;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type State = any;
 
 /*

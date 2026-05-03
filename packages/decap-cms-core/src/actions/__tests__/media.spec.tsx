@@ -10,7 +10,6 @@ import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
 import type { Mock } from 'vitest';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type State = any;
 
 const middlewares = [thunk];
@@ -31,7 +30,6 @@ describe('media', () => {
   });
 
   describe('getAsset', () => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error -- TODO: fix underlying type issue
     global.URL = { createObjectURL: vi.fn() };
 
@@ -46,7 +44,7 @@ describe('media', () => {
 
       // TODO change to proper payload when immutable is removed
       //  from 'collections' and 'entries' state slices
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
       // @ts-expect-error -- TODO: fix underlying type issue
       const result = store.dispatch(getAsset(payload));
       const actions = store.getActions();
@@ -60,7 +58,7 @@ describe('media', () => {
       const store = mockStore({
         // TODO change to proper store data when immutable is removed
         //  from 'config' state slice
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
         // @ts-expect-error -- TODO: fix underlying type issue
         config: {},
         medias: {
@@ -73,7 +71,7 @@ describe('media', () => {
 
       // TODO change to proper payload when immutable is removed
       //  from 'collections' and 'entries' state slices
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
       // @ts-expect-error -- TODO: fix underlying type issue
       const result = store.dispatch(getAsset(payload));
       const actions = store.getActions();
@@ -103,7 +101,7 @@ describe('media', () => {
 
       // TODO change to proper payload when immutable is removed
       //  from 'collections' state slice
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
       // @ts-expect-error -- TODO: fix underlying type issue
       const result = store.dispatch(getAsset(payload));
       const actions = store.getActions();
@@ -126,7 +124,7 @@ describe('media', () => {
 
       // TODO change to proper payload when immutable is removed
       //  from 'collections' and 'entries' state slices
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
       // @ts-expect-error -- TODO: fix underlying type issue
       const result = store.dispatch(getAsset(payload));
       const actions = store.getActions();
@@ -156,7 +154,7 @@ describe('media', () => {
 
       // TODO change to proper payload when immutable is removed
       //  from 'collections' and 'entries' state slices
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
       // @ts-expect-error -- TODO: fix underlying type issue
       const result = store.dispatch(getAsset(payload));
       const actions = store.getActions();

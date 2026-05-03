@@ -4,7 +4,12 @@ import styled from '@emotion/styled';
 import { jwtDecode } from 'jwt-decode';
 import { PkceAuthenticator, PkceAuthResult } from 'decap-cms-lib-auth';
 import { AuthenticationPage, Icon } from 'decap-cms-ui-default';
-import type { JWTClaims, PKCEAuthenticationPageProps, PKCEAuthenticationPageState, PKCEUser } from './types';
+import type {
+  JWTClaims,
+  PKCEAuthenticationPageProps,
+  PKCEAuthenticationPageState,
+  PKCEUser,
+} from './types';
 
 const LoginButtonIcon = styled(Icon)`
   margin-right: 18px;

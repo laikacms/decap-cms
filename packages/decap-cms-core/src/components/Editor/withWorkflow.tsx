@@ -9,7 +9,7 @@ import { loadUnpublishedEntry, persistUnpublishedEntry } from '../../actions/edi
 import type { CmsCollectionState } from 'decap-cms-lib-util';
 
 type Collection = CmsCollectionState;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 type State = any;
 
 interface OwnProps {

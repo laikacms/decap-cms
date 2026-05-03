@@ -30,7 +30,9 @@ interface EntryListingProps {
   filterTerm?: string;
 }
 
-function isSingleCollection(collections: CmsCollectionState | CmsCollections): collections is CmsCollectionState {
+function isSingleCollection(
+  collections: CmsCollectionState | CmsCollections,
+): collections is CmsCollectionState {
   return (
     'name' in collections &&
     'fields' in collections &&
@@ -125,7 +127,9 @@ class EntryListing extends React.Component<EntryListingProps> {
     const isSingleCollectionInList = collectionValues.length === 1;
     return entries?.map((entry, idx) => {
       const collectionName = entry.collection;
-      const collection = collectionValues.find((coll: CmsCollectionState) => coll.name === collectionName);
+      const collection = collectionValues.find(
+        (coll: CmsCollectionState) => coll.name === collectionName,
+      );
       if (!collection) return null;
       const collectionLabel = !isSingleCollectionInList && collection.label;
       const inferredFields = this.inferFields(collection);

@@ -72,7 +72,6 @@ export default class Cursor {
 
   constructor(...args: any[]) {
     if (args[0] instanceof Cursor) {
-      // eslint-disable-next-line no-constructor-return
       return args[0];
     }
     this.store = createStore(...args);

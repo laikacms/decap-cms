@@ -12,7 +12,7 @@ import type { ThunkDispatch } from 'redux-thunk';
 import type { AnyAction } from 'redux';
 
 type Collection = CmsCollectionState;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 type State = any;
 type EntryMap = CmsEntry;
 type EntryField = CmsEntryField;

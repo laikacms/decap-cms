@@ -1,4 +1,3 @@
-// eslint-disable-next-line @emotion/no-vanilla
 import {
   withEmotionCache,
   CacheProvider,

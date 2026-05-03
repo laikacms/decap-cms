@@ -1,6 +1,9 @@
-import cloudinary from '../index';
+import { vi } from 'vitest';
 
-jest.mock('decap-cms-lib-util');
+import cloudinary from '../index';
+import { loadScript } from 'decap-cms-lib-util';
+
+vi.mock('decap-cms-lib-util');
 
 describe('cloudinary exports', () => {
   it('exports an object with expected properties', () => {
@@ -35,17 +38,16 @@ describe('cloudinary media library', () => {
      * Mock of the object returned by the Cloudinary createMediaLibrary method.
      */
     mediaLibrary = {
-      show: jest.fn(),
-      hide: jest.fn(),
+      show: vi.fn(),
+      hide: vi.fn(),
     };
   });
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
-    const { loadScript } = require('decap-cms-lib-util');
     expect(loadScript).toHaveBeenCalledTimes(1);
     expect(loadScript).toHaveBeenCalledWith('https://media-library.cloudinary.com/global/all.js');
   });
@@ -117,7 +119,7 @@ describe('cloudinary media library', () => {
     };
 
     beforeEach(() => {
-      handleInsert = jest.fn();
+      handleInsert = vi.fn();
     });
 
     it('calls insert function with single asset', async () => {

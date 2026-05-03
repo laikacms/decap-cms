@@ -44,10 +44,9 @@ export function useWorkflow({ collectionName, slug, newEntry }: UseWorkflowOptio
   const loadEntry = useCallback(
     (coll: Collection, entrySlug: string) => {
       if (isEditorialWorkflow) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return dispatch(loadUnpublishedEntry(coll, entrySlug) as any);
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       return dispatch(loadEntryAction(coll, entrySlug) as any);
     },
     [dispatch, isEditorialWorkflow],
@@ -57,10 +56,9 @@ export function useWorkflow({ collectionName, slug, newEntry }: UseWorkflowOptio
   const persistEntry = useCallback(
     (coll: Collection) => {
       if (isEditorialWorkflow) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return dispatch(persistUnpublishedEntry(coll, hasUnpublishedEntry) as any);
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       return dispatch(persistEntryAction(coll) as any);
     },
     [dispatch, isEditorialWorkflow, hasUnpublishedEntry],

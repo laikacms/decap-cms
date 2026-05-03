@@ -1,12 +1,18 @@
-jest.mock('decap-cms-core/src/backend');
+import { vi } from 'vitest';
+
+vi.mock('decap-cms-core/src/backend');
 import { oneLine, stripIndent } from 'common-tags';
 import nock from 'nock';
 import { Cursor } from 'decap-cms-lib-util';
 
+import type * as BackendModule from 'decap-cms-core/src/backend';
+
 import Gitlab from '../implementation';
 import AuthenticationPage from '../AuthenticationPage';
 
-const { Backend, LocalStorageAuthStore } = jest.requireActual('decap-cms-core/src/backend');
+const { Backend, LocalStorageAuthStore } = await vi.importActual<typeof BackendModule>(
+  'decap-cms-core/src/backend',
+);
 
 function generateEntries(path, length) {
   const entries = Array.from({ length }, (val, idx) => {
@@ -323,7 +329,7 @@ describe('gitlab backend', () => {
 
   it('throws if configuration does not include repo', () => {
     expect(() => resolveBackend({ backend: {} })).toThrowErrorMatchingInlineSnapshot(
-      `"The GitLab backend needs a \\"repo\\" in the backend configuration."`,
+      `[Error: The GitLab backend needs a "repo" in the backend configuration.]`,
     );
   });
 
@@ -341,7 +347,7 @@ describe('gitlab backend', () => {
       await expect(
         backend.authenticate(mockCredentials),
       ).rejects.toThrowErrorMatchingInlineSnapshot(
-        `"Your GitLab user account does not have access to this repo."`,
+        `[Error: Your GitLab user account does not have access to this repo.]`,
       );
     });
 

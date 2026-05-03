@@ -22,8 +22,8 @@ export const lazyAsync = <T>(func: () => Promise<T>) => {
 
 export type LazyAsync<T> = () => Promise<T> | T;
 
-export const memoizeOne = <I, O>(func: (t: I) => O): (t: I) => O => {
-  let cache: { 0: I, 1: O } | undefined; // Keep just 1 item to prevent memory leaks
+export const memoizeOne = <I, O>(func: (t: I) => O): ((t: I) => O) => {
+  let cache: { 0: I; 1: O } | undefined; // Keep just 1 item to prevent memory leaks
   return (i: I) => {
     if (cache?.[0] === i) return cache[1];
     const result = func(i);
@@ -33,7 +33,8 @@ export const memoizeOne = <I, O>(func: (t: I) => O): (t: I) => O => {
 };
 
 export const Url = {
-  isAbsolute: (url: string | undefined | null) => typeof url === 'string' && /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(url),
+  isAbsolute: (url: string | undefined | null) =>
+    typeof url === 'string' && /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(url),
   join: (url1: string | undefined | null, url2: string | undefined | null): string => {
     url1 = Url.normalize(url1);
     url2 = Url.normalize(url2);
@@ -72,10 +73,6 @@ export const Paths = {
   },
 };
 
-export const TemplateLiteral = {
-  
-};
+export const TemplateLiteral = {};
 
-export const Header = {
-
-};
+export const Header = {};

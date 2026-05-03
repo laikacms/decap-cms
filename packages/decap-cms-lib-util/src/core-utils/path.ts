@@ -189,7 +189,7 @@ export const pathToSegments = (path: string) => {
     .map(x => x.trim())
     .filter(x => x.length > 0);
   return segments;
-}
+};
 
 export const combine = (...segments: string[]) => {
   const path = segments
@@ -197,7 +197,7 @@ export const combine = (...segments: string[]) => {
     .filter(x => x.length > 0)
     .join('/');
   return path;
-}
+};
 
 export function getPathDepth(path: string) {
   return pathToSegments(path).length;

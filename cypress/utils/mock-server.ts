@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import { mockServerClient } from 'mockserver-client';
 import mockserver from 'mockserver-node';
 

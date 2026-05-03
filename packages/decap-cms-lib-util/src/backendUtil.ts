@@ -51,7 +51,11 @@ type Format = 'json' | 'text' | 'blob';
 
 export async function parseResponse<F extends Format>(
   res: Response,
-  { expectingOk = true, format = 'text' as F, apiName = '' }: { expectingOk?: boolean; format?: F; apiName?: string },
+  {
+    expectingOk = true,
+    format = 'text' as F,
+    apiName = '',
+  }: { expectingOk?: boolean; format?: F; apiName?: string },
 ): Promise<F extends 'json' ? unknown : F extends 'text' ? string : Blob> {
   let body: unknown;
   try {

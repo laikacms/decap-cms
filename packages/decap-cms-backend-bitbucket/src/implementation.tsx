@@ -122,7 +122,7 @@ export default class BitbucketBackend implements CmsImplementation {
     this.largeMediaURL =
       config.backend.large_media_url || `https://bitbucket.org/${config.backend.repo}/info/lfs`;
     this.token = '';
-    this.mediaFolder = config.media_folder;
+    this.mediaFolder = config.media_folder ?? '';
     this.squashMerges = config.backend.squash_merges || false;
     this.cmsLabelPrefix = config.backend.cms_label_prefix || '';
     this.previewContext = config.backend.preview_context || '';
@@ -273,10 +273,12 @@ export default class BitbucketBackend implements CmsImplementation {
       this.authenticator = new NetlifyAuthenticator(cfg);
     }
 
-    this.refreshedTokenPromise = (this.authenticator!.refresh({
-      provider: 'bitbucket',
-      refresh_token: this.refreshToken as string,
-    }) as Promise<NetlifyAuthResult>).then(result => {
+    this.refreshedTokenPromise = (
+      this.authenticator!.refresh({
+        provider: 'bitbucket',
+        refresh_token: this.refreshToken as string,
+      }) as Promise<NetlifyAuthResult>
+    ).then(result => {
       const token = result.token as string;
       const refresh_token = result['refresh_token'] as string | undefined;
       this.token = token;
@@ -347,7 +349,6 @@ export default class BitbucketBackend implements CmsImplementation {
       API_NAME,
     );
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error -- TODO: fix underlying type issue
     files[CURSOR_COMPATIBILITY_SYMBOL] = cursor;
     return files;
@@ -435,11 +436,7 @@ export default class BitbucketBackend implements CmsImplementation {
   getMediaDisplayURL(displayURL: CmsDisplayURL) {
     const sem = this._mediaDisplayURLSem || createSemaphore(MAX_CONCURRENT_DOWNLOADS);
     this._mediaDisplayURLSem = sem;
-    return getMediaDisplayURL(
-      displayURL,
-      this.api!.readFile.bind(this.api!),
-      sem,
-    );
+    return getMediaDisplayURL(displayURL, this.api!.readFile.bind(this.api!), sem);
   }
 
   async getMediaFile(path: string) {

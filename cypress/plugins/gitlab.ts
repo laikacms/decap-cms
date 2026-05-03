@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import { Gitlab } from 'gitlab';
 import fs from 'node:fs/promises';
 import path from 'path';

@@ -1,12 +1,12 @@
-import remarkFrontmatter, { type Options } from 'remark-frontmatter'
-import remarkParse from 'remark-parse'
-import remarkStringify from 'remark-stringify'
-import { unified } from 'unified'
-import type { Literal, Node, Parent } from 'unist'
-import type { VFile } from 'vfile'
-import { CONTINUE, EXIT, visit } from "unist-util-visit"
-import { toString } from "mdast-util-to-string"
-import { fromMarkdown } from "mdast-util-from-markdown"
+import remarkFrontmatter, { type Options } from 'remark-frontmatter';
+import remarkParse from 'remark-parse';
+import remarkStringify from 'remark-stringify';
+import { unified } from 'unified';
+import type { Literal, Node, Parent } from 'unist';
+import type { VFile } from 'vfile';
+import { CONTINUE, EXIT, visit } from 'unist-util-visit';
+import { toString } from 'mdast-util-to-string';
+import { fromMarkdown } from 'mdast-util-from-markdown';
 
 import tomlFormatter from './toml';
 import yamlFormatter from './yaml';
@@ -26,16 +26,24 @@ type Format = { language: Language; delimiters: Delimiter };
 export type Content = {
   body: string;
   [key: string]: unknown;
-}
+};
 
 export const isContent = (data: unknown): data is Content => {
-  return typeof data === 'object' && data !== null && 'body' in data;
-}
+  return typeof data === 'object' && data !== null;
+};
 
-const formatOpts: Record<Language, Options>= {
+const formatOpts: Record<Language, Options> = {
   [Languages.YAML]: 'yaml',
   [Languages.TOML]: 'toml',
   [Languages.JSON]: { type: 'json', fence: { open: '{', close: '}' } },
+};
+
+function buildOptions(format: Language, customDelimiter?: Delimiter): Options {
+  if (!customDelimiter) {
+    return formatOpts[format];
+  }
+  const [open, close] = Array.isArray(customDelimiter) ? customDelimiter : [customDelimiter, customDelimiter];
+  return { type: format, fence: { open, close } };
 }
 
 const parsers = {
@@ -76,46 +84,52 @@ const parsers = {
   },
 };
 
-const objectToFrontmatter = (opts: { format: Language; sortedKeys?: string[]; comments?: Record<string, string> }) => {
+const objectToFrontmatter = (opts: {
+  format: Language;
+  sortedKeys?: string[];
+  comments?: Record<string, string>;
+}) => {
   const { format, sortedKeys, comments } = opts;
   return (tree: Node, file: VFile) => {
-    const doc =  file.data.result
+    const doc = file.data.result;
 
     if (!isContent(doc)) {
-      throw new Error('Expected file data to contain a `body` property of type string, along with any frontmatter properties.')
+      throw new Error(
+        'Expected file data to contain a `body` property of type string, along with any frontmatter properties.',
+      );
     }
 
-    if (!doc) return
+    if (!doc) return;
 
-    const { body = "", ...frontmatter } = doc
+    const { body = '', ...frontmatter } = doc;
 
     // rebuild markdown AST from body
-    const newTree = fromMarkdown(body)
+    const newTree = fromMarkdown(body);
 
     if (Object.keys(frontmatter).length > 0) {
-      const value = parsers[format].stringify(frontmatter, { sortedKeys, comments })
+      const value = parsers[format].stringify(frontmatter, { sortedKeys, comments });
 
       newTree.children.unshift({
         type: format as any,
-        value
-      })
+        value,
+      });
     }
 
     // replace original tree
-    (tree as Parent).children = newTree.children
-  }
-}
+    (tree as Parent).children = newTree.children;
+  };
+};
 
 const frontmatterToObject = () => {
   return (tree: Node, file: VFile) => {
-    let frontmatter = {}
+    let frontmatter = {};
 
-    const formats = Object.keys(parsers)
+    const formats = Object.keys(parsers);
 
     visit(tree, formats, (node, index, parent) => {
       if (Object.prototype.hasOwnProperty.call(parsers, node.type)) {
-        const parser = parsers[node.type as Language]
-        const nodeLiteral = node as Literal
+        const parser = parsers[node.type as Language];
+        const nodeLiteral = node as Literal;
 
         frontmatter = parser.parse(nodeLiteral.value as string);
         (parent as Parent).children.splice(index as number, 1);
@@ -124,16 +138,20 @@ const frontmatterToObject = () => {
       } else {
         return CONTINUE;
       }
-    })
+    });
 
     file.result = {
+      ...frontmatter,
       body: toString(tree),
-      ...frontmatter
-    }
-  }
-}
+    };
+  };
+};
 
-const defaultOptions: Options = ['yaml', 'toml', { type: 'json', fence: { open: '{', close: '}' } }];
+const defaultOptions: Options = [
+  'yaml',
+  'toml',
+  { type: 'json', fence: { open: '{', close: '}' } },
+];
 
 export class FrontmatterFormatter {
   format?: Language;
@@ -145,7 +163,9 @@ export class FrontmatterFormatter {
   }
 
   fromFile(content: string): Content {
-    const options = this.format ? formatOpts[this.format] : defaultOptions;
+    const options = this.format
+      ? buildOptions(this.format, this.customDelimiter)
+      : defaultOptions;
 
     const result = unified()
       .use(remarkParse)
@@ -154,19 +174,18 @@ export class FrontmatterFormatter {
       .use(frontmatterToObject)
       .processSync(content);
 
-    const obj = { ...result.result as object } as Content;
+    const obj = { ...(result.result as object) } as Content;
 
     return obj;
   }
 
-  toFile(
-    data: Content,
-    sortedKeys?: string[],
-    comments?: Record<string, string>,
-  ) {
-    const options = this.format ? formatOpts[this.format] : defaultOptions;
+  toFile(data: Content, sortedKeys?: string[], comments?: Record<string, string>) {
+    const options = this.format
+      ? buildOptions(this.format, this.customDelimiter)
+      : defaultOptions;
 
     const markdown = unified()
+      .use(remarkParse)
       .use(objectToFrontmatter, { format: this.format || 'yaml', sortedKeys, comments })
       .use(remarkFrontmatter, options)
       .use(remarkStringify)

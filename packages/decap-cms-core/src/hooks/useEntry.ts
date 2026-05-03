@@ -36,17 +36,17 @@ export function useEntry({ collectionName, slug, newEntry = false }: UseEntryOpt
 
   const collection = collections[collectionName];
   const fields = selectFields(collection, slug || '');
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const entry = newEntry
     ? null
     : selectEntry({ collections, entries, config } as any, collectionName, slug || '');
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const unpublishedEntry = selectUnpublishedEntry(
     { editorialWorkflow: useAppSelector(state => state.editorialWorkflow) } as any,
     collectionName,
     slug || '',
   );
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const deployPreview = selectDeployPreview(
     { deploys: useAppSelector(state => state.deploys) } as any,
     collectionName,

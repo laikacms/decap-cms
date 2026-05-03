@@ -298,7 +298,6 @@ export default class API {
   responseToBlob = responseParser({ format: 'blob', apiName: API_NAME });
   responseToText = responseParser({ format: 'text', apiName: API_NAME });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   requestJSON = (req: ApiRequest) => this.request(req).then(this.responseToJSON) as Promise<any>;
   requestText = (req: ApiRequest) => this.request(req).then(this.responseToText) as Promise<string>;
 
@@ -517,10 +516,10 @@ export default class API {
     });
 
     const [blobsResults, commitsResults] = await Promise.all([
-      (await Promise.all(blobPromises)).map((result: ApolloQueryResult<BlobResult>) => result.data.project.repository.blobs.nodes),
-      (
-        await Promise.all(commitPromises)
-      ).map(
+      (await Promise.all(blobPromises)).map(
+        (result: ApolloQueryResult<BlobResult>) => result.data.project.repository.blobs.nodes,
+      ),
+      (await Promise.all(commitPromises)).map(
         (result: ApolloQueryResult<CommitResult>) =>
           Object.values(result.data.project.repository)
             .map(({ lastCommit }: any) => lastCommit)
@@ -546,7 +545,7 @@ export default class API {
       return await this.listAllFilesGraphQL(path, recursive, branch);
     }
     const entries = [];
-    // eslint-disable-next-line prefer-const
+
     let { cursor, entries: initialEntries } = await this.fetchCursorAndEntries({
       url: `${this.repoURL}/repository/tree`,
       // Get the maximum number of entries per page
@@ -660,7 +659,11 @@ export default class API {
     return items;
   }
 
-  async persistFiles(dataFiles: CmsDataFile[], mediaFiles: CmsAssetProxy[], options: CmsPersistOptions) {
+  async persistFiles(
+    dataFiles: CmsDataFile[],
+    mediaFiles: CmsAssetProxy[],
+    options: CmsPersistOptions,
+  ) {
     const files = [...dataFiles, ...mediaFiles];
     if (options.useWorkflow) {
       const slug = dataFiles[0].slug;

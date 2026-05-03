@@ -14,7 +14,6 @@ import {
   branchFromContentKey,
   CMS_BRANCH_PREFIX,
   throwOnConflictingBranches,
-  type CmsConfig,
 } from 'decap-cms-lib-util';
 import trim from 'lodash/trim';
 import trimStart from 'lodash/trimStart';
@@ -28,7 +27,7 @@ import type { NormalizedCacheObject } from 'apollo-cache-inmemory';
 import type { QueryOptions, MutationOptions, OperationVariables } from 'apollo-client';
 import type { GraphQLError } from 'graphql';
 import type { Endpoints } from '@octokit/types';
-import { PullRequestState, type BlobArgs } from './types/api';
+import { PullRequestState, type BlobArgs, type Config } from './types/api';
 
 const NO_CACHE = 'no-cache';
 const CACHE_FIRST = 'cache-first';
@@ -99,7 +98,7 @@ type GitHubPull = Endpoints['GET /repos/{owner}/{repo}/pulls']['response']['data
 export default class GraphQLAPI extends API {
   client: ApolloClient<NormalizedCacheObject>;
 
-  constructor(config: CmsConfig) {
+  constructor(config: Config) {
     super(config);
 
     this.client = this.getApolloClient();
@@ -454,7 +453,7 @@ export default class GraphQLAPI extends API {
       variables: {
         deleteRefInput: { refId: branch.id },
       },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       update: (store: any) => store.data.delete(defaultDataIdFromObject(branch)),
     });
 
@@ -573,7 +572,7 @@ export default class GraphQLAPI extends API {
             deleteRefInput: { refId: branch.id },
             closePullRequestInput: { pullRequestId: pullRequest.id },
           },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
           update: (store: any) => {
             store.data.delete(defaultDataIdFromObject(branch));
             store.data.delete(defaultDataIdFromObject(pullRequest));

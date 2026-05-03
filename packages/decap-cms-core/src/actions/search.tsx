@@ -6,7 +6,7 @@ import { selectIntegration } from '../reducers';
 
 import type { QueryRequest } from '../reducers/search';
 import type { CmsCollectionState } from 'decap-cms-lib-util';
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 type State = any;
 type Collection = CmsCollectionState;
 import type { AnyAction } from 'redux';
@@ -133,7 +133,6 @@ export function searchEntries(searchTerm: string, searchCollections: string[], p
 
     dispatch(searchingEntries(searchTerm, allCollections, page));
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const integrationProvider: any = integration
       ? getIntegrationProvider(state.integrations, backend.getToken as any, integration)
       : null;
@@ -179,7 +178,6 @@ export function query(
       ({ id }: QueryRequest) => id == queryIdentifier,
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const integrationProvider: any = integration
       ? getIntegrationProvider(state.integrations, backend.getToken as any, integration)
       : null;

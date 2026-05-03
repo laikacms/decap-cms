@@ -26,7 +26,6 @@ type EntryField = CmsEntryField;
 type MediaLibraryInstance = CmsMediaLibraryInstance;
 type DisplayURLState = { isFetching: boolean; url?: string; err?: Error };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type State = any;
 
 export const MEDIA_LIBRARY_OPEN = 'MEDIA_LIBRARY_OPEN';
@@ -94,7 +93,7 @@ export function openMediaLibrary(
     const mediaLibrary = state.mediaLibrary.externalLibrary;
     if (mediaLibrary) {
       const { controlID: id, value, config = {}, allowMultiple, forImage } = payload;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       mediaLibrary.show({ id, value, config: config as any, allowMultiple, imagesOnly: forImage });
     }
     dispatch(mediaLibraryOpened(payload));
@@ -149,7 +148,6 @@ export function loadMedia(
     const backend = currentBackend(state.config);
     const integration = selectIntegration(state, null, 'assetStore');
     if (integration) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const provider: any = getIntegrationProvider(
         state.integrations,
         backend.getToken as any,
@@ -256,7 +254,6 @@ export function persistMedia(file: File, opts: MediaOptions = {}) {
       let assetProxy: AssetProxy;
       if (integration) {
         try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const provider: any = getIntegrationProvider(
             state.integrations,
             backend.getToken as any,
@@ -334,7 +331,6 @@ export function deleteMedia(file: MediaFile, opts: MediaOptions = {}) {
     const backend = currentBackend(state.config);
     const integration = selectIntegration(state, null, 'assetStore');
     if (integration) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const provider: any = getIntegrationProvider(
         state.integrations,
         backend.getToken as any,

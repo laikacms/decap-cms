@@ -117,11 +117,3 @@ declare module 'react-scroll-sync' {
   export const ScrollSync: ComponentType<ScrollSyncProps>;
   export const ScrollSyncPane: ComponentType<ScrollSyncPaneProps>;
 }
-
-// CSS module declarations
-declare module '*.css' {
-  const content: Record<string, string>;
-  export default content;
-}
-
-declare module 'react-toastify/ReactToastify.css' {}

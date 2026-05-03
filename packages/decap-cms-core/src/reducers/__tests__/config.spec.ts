@@ -3,7 +3,6 @@ import config, { selectLocale } from '../config';
 
 describe('config', () => {
   it('should handle an empty state', () => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error config reducer doesn't accept empty action
     expect(config(undefined, {})).toEqual({ isFetching: true });
   });

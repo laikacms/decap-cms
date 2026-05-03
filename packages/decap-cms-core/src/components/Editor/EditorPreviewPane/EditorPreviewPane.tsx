@@ -5,7 +5,7 @@ import type { CmsCollectionState, CmsEntry, CmsEntryField, CmsConfig } from 'dec
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;
 type EntryField = CmsEntryField;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 type State = any;
 import Frame, { FrameContextConsumer } from 'react-frame-component';
 import { lengths } from 'decap-cms-ui-default';

@@ -5,7 +5,7 @@ import type { ThunkDispatch, ThunkAction } from 'redux-thunk';
 import type { AnyAction, Dispatch } from 'redux';
 
 // State is the root Redux state - use `any` since it's composed of many reducers
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 type State = any;
 
 // Re-export types for convenience
@@ -30,7 +30,7 @@ export type AppThunk<ReturnType = void> = ThunkAction<ReturnType, State, ThunkEx
 export function useAppDispatch() {
   const dispatch = useDispatch();
   // Return a dispatch that accepts any action or thunk
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   return dispatch as <T>(action: T) => T extends (...args: any[]) => infer R ? R : T;
 }
 

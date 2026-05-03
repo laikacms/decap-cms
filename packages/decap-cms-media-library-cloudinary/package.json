@@ -23,6 +23,9 @@
     "build": "tsc --build",
     "clean": "rimraf dist"
   },
+  "dependencies": {
+    "lodash": "catalog:utils"
+  },
   "peerDependencies": {
     "decap-cms-lib-util": "workspace:*"
   },

@@ -1,4 +1,4 @@
-import { Url } from "./utilities";
+import { Url } from './utilities';
 
 export const url = (strings: TemplateStringsArray, ...values: any[]) => {
   const raw = strings.reduce((acc, str, i) => {
@@ -9,4 +9,4 @@ export const url = (strings: TemplateStringsArray, ...values: any[]) => {
   }, '');
 
   return raw;
-}
+};

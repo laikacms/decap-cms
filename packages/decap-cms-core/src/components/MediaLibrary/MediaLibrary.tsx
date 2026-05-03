@@ -19,7 +19,6 @@ import {
 import { selectMediaFiles } from '../../reducers/mediaLibrary';
 import MediaLibraryModal, { fileShape } from './MediaLibraryModal';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type State = any;
 
 /**

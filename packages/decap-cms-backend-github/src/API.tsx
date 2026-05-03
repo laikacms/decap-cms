@@ -37,12 +37,31 @@ import type {
   FetchError,
   ApiRequest,
   Semaphore,
-  CmsConfig
+  CmsConfig,
 } from 'decap-cms-lib-util';
 import type { Endpoints } from '@octokit/types';
 import { isError } from 'lodash';
 
-import type { BlobArgs, Config, GitHubAuthor, GitHubCommitStatus, GitHubCommitter, GitHubCompareCommit, GitHubCompareCommits, GitHubCompareFile, GitHubCompareFiles, GitHubLabel, GitHubPull, GitHubUser, MediaFile, Metadata, Options, TreeEntry, TreeFile, TreeFileForUpdate } from './types/api';
+import type {
+  BlobArgs,
+  Config,
+  GitHubAuthor,
+  GitHubCommitStatus,
+  GitHubCommitter,
+  GitHubCompareCommit,
+  GitHubCompareCommits,
+  GitHubCompareFile,
+  GitHubCompareFiles,
+  GitHubLabel,
+  GitHubPull,
+  GitHubUser,
+  MediaFile,
+  Metadata,
+  Options,
+  TreeEntry,
+  TreeFile,
+  TreeFileForUpdate,
+} from './types/api';
 import { PullRequestState, GithubCommitStatusState } from './types/api';
 
 export const API_NAME = 'GitHub';
@@ -803,8 +822,14 @@ export default class API {
     }));
   }
 
-  async persistFiles(dataFiles: CmsDataFile[], mediaFiles: CmsAssetProxy[], options: CmsPersistOptions) {
-    const files = mediaFiles.concat(dataFiles.map(file => ({ ...file, toBase64: () => Promise.resolve(btoa(file.raw)) })));
+  async persistFiles(
+    dataFiles: CmsDataFile[],
+    mediaFiles: CmsAssetProxy[],
+    options: CmsPersistOptions,
+  ) {
+    const files = mediaFiles.concat(
+      dataFiles.map(file => ({ ...file, toBase64: () => Promise.resolve(btoa(file.raw)) })),
+    );
     const uploadPromises = files.map(file => this.uploadBlob(file));
     await Promise.all(uploadPromises);
 
@@ -826,7 +851,7 @@ export default class API {
       for (const file of files) {
         if (!file.sha) console.error(`File ${file.path} is missing a SHA!`);
       }
-      const treeFiles = files.map(file => ({ ...file, type: 'blob' as const, sha: file.sha! }))
+      const treeFiles = files.map(file => ({ ...file, type: 'blob' as const, sha: file.sha! }));
       return this.editorialWorkflowGit(treeFiles, slug, mediaFilesList, options);
     }
   }
@@ -1152,7 +1177,7 @@ export default class API {
       const result = await this.createRef('heads', branchName, sha);
       return result;
     } catch (e: unknown) {
-      if (!isError(e)) throw e; 
+      if (!isError(e)) throw e;
       const message = String(e.message || '');
       if (message === 'Reference update failed') {
         await throwOnConflictingBranches(branchName, name => this.getBranch(name), API_NAME);

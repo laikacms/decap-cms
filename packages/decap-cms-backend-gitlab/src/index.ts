@@ -8,3 +8,4 @@ export const DecapCmsBackendGitlab = {
   AuthenticationPage,
 };
 export { GitLabBackend, API, AuthenticationPage };
+export type { Config, CommitAuthor } from './API';

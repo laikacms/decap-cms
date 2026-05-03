@@ -7,7 +7,7 @@ exports[`MediaLibraryCard > should match snapshot for draft image 1`] = `
     tabindex="-1"
   >
     <div
-      class="css-1pimpfc"
+      class="css-t4oi0l"
     >
       <p
         class="css-1m7ygk3"
@@ -37,7 +37,7 @@ exports[`MediaLibraryCard > should match snapshot for non draft image 1`] = `
     tabindex="-1"
   >
     <div
-      class="css-1pimpfc"
+      class="css-t4oi0l"
     >
       <img
         class="css-1qtgfye"
@@ -61,7 +61,7 @@ exports[`MediaLibraryCard > should match snapshot for non viewable image 1`] = `
     tabindex="-1"
   >
     <div
-      class="css-1pimpfc"
+      class="css-t4oi0l"
     >
       <div
         class="css-3wpsvl"

@@ -72,7 +72,6 @@ describe('mediaLibrary', () => {
   currentBackend.mockReturnValue(backend);
 
   describe('persistMedia', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (global as any).URL = { createObjectURL: vi.fn().mockReturnValue('displayURL') };
 
     beforeEach(() => {

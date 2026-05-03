@@ -1,7 +1,7 @@
 import { API as GithubAPI } from 'decap-cms-backend-github';
 import { APIError } from 'decap-cms-lib-util';
 
-import type { Config as GitHubConfig, Diff } from 'decap-cms-backend-github/src/API';
+import type { Config as GitHubConfig, Diff } from 'decap-cms-backend-github';
 import type { FetchError } from 'decap-cms-lib-util';
 import type { Endpoints } from '@octokit/types';
 
@@ -19,8 +19,8 @@ export default class API extends GithubAPI {
 
   constructor(config: Config) {
     super({
-      getUser: () => Promise.reject('Never used'),
       ...config,
+      getUser: () => Promise.reject('Never used'),
     });
     this.apiRoot = config.apiRoot;
     this.tokenPromise = config.tokenPromise;

@@ -3,7 +3,7 @@
 exports[`EditorToolbar > should render normal save button 1`] = `
 <DocumentFragment>
   <div
-    class="css-137i05p"
+    class="css-rdq5dl"
   >
     <div
       class="css-1n6fubc"
@@ -76,7 +76,7 @@ exports[`EditorToolbar > should render normal save button 1`] = `
 exports[`EditorToolbar > should render normal save button 2`] = `
 <DocumentFragment>
   <div
-    class="css-137i05p"
+    class="css-rdq5dl"
   >
     <div
       class="css-1n6fubc"
@@ -149,7 +149,7 @@ exports[`EditorToolbar > should render normal save button 2`] = `
 exports[`EditorToolbar > should render with default props 1`] = `
 <DocumentFragment>
   <div
-    class="css-137i05p"
+    class="css-rdq5dl"
   >
     <div
       class="css-1n6fubc"
@@ -211,7 +211,7 @@ exports[`EditorToolbar > should render with default props 1`] = `
 exports[`EditorToolbar > should render with status=draft,useOpenAuthoring=false 1`] = `
 <DocumentFragment>
   <div
-    class="css-137i05p"
+    class="css-rdq5dl"
   >
     <div
       class="css-1n6fubc"
@@ -286,7 +286,7 @@ exports[`EditorToolbar > should render with status=draft,useOpenAuthoring=false 
 exports[`EditorToolbar > should render with status=draft,useOpenAuthoring=true 1`] = `
 <DocumentFragment>
   <div
-    class="css-137i05p"
+    class="css-rdq5dl"
   >
     <div
       class="css-1n6fubc"
@@ -387,7 +387,7 @@ exports[`EditorToolbar > should render with status=draft,useOpenAuthoring=true 1
 exports[`EditorToolbar > should render with status=pending_publish,useOpenAuthoring=false 1`] = `
 <DocumentFragment>
   <div
-    class="css-137i05p"
+    class="css-rdq5dl"
   >
     <div
       class="css-1n6fubc"
@@ -462,7 +462,7 @@ exports[`EditorToolbar > should render with status=pending_publish,useOpenAuthor
 exports[`EditorToolbar > should render with status=pending_publish,useOpenAuthoring=true 1`] = `
 <DocumentFragment>
   <div
-    class="css-137i05p"
+    class="css-rdq5dl"
   >
     <div
       class="css-1n6fubc"
@@ -558,7 +558,7 @@ exports[`EditorToolbar > should render with status=pending_publish,useOpenAuthor
 exports[`EditorToolbar > should render with status=pending_review,useOpenAuthoring=false 1`] = `
 <DocumentFragment>
   <div
-    class="css-137i05p"
+    class="css-rdq5dl"
   >
     <div
       class="css-1n6fubc"
@@ -633,7 +633,7 @@ exports[`EditorToolbar > should render with status=pending_review,useOpenAuthori
 exports[`EditorToolbar > should render with status=pending_review,useOpenAuthoring=true 1`] = `
 <DocumentFragment>
   <div
-    class="css-137i05p"
+    class="css-rdq5dl"
   >
     <div
       class="css-1n6fubc"
@@ -734,7 +734,7 @@ exports[`EditorToolbar > should render with status=pending_review,useOpenAuthori
 exports[`EditorToolbar > should render with workflow controls hasUnpublishedChanges=false,isNewEntry=false,isModification=false,useOpenAuthoring=false 1`] = `
 <DocumentFragment>
   <div
-    class="css-137i05p"
+    class="css-rdq5dl"
   >
     <div
       class="css-1n6fubc"
@@ -795,7 +795,7 @@ exports[`EditorToolbar > should render with workflow controls hasUnpublishedChan
 exports[`EditorToolbar > should render with workflow controls hasUnpublishedChanges=false,isNewEntry=false,isModification=false,useOpenAuthoring=true 1`] = `
 <DocumentFragment>
   <div
-    class="css-137i05p"
+    class="css-rdq5dl"
   >
     <div
       class="css-1n6fubc"
@@ -851,7 +851,7 @@ exports[`EditorToolbar > should render with workflow controls hasUnpublishedChan
 exports[`EditorToolbar > should render with workflow controls hasUnpublishedChanges=true,isNewEntry=false,isModification=false,useOpenAuthoring=false 1`] = `
 <DocumentFragment>
   <div
-    class="css-137i05p"
+    class="css-rdq5dl"
   >
     <div
       class="css-1n6fubc"
@@ -912,7 +912,7 @@ exports[`EditorToolbar > should render with workflow controls hasUnpublishedChan
 exports[`EditorToolbar > should render with workflow controls hasUnpublishedChanges=true,isNewEntry=false,isModification=false,useOpenAuthoring=true 1`] = `
 <DocumentFragment>
   <div
-    class="css-137i05p"
+    class="css-rdq5dl"
   >
     <div
       class="css-1n6fubc"
@@ -973,7 +973,7 @@ exports[`EditorToolbar > should render with workflow controls hasUnpublishedChan
 exports[`EditorToolbar > should render with workflow controls hasUnpublishedChanges=true,isNewEntry=false,isModification=true,useOpenAuthoring=false 1`] = `
 <DocumentFragment>
   <div
-    class="css-137i05p"
+    class="css-rdq5dl"
   >
     <div
       class="css-1n6fubc"
@@ -1034,7 +1034,7 @@ exports[`EditorToolbar > should render with workflow controls hasUnpublishedChan
 exports[`EditorToolbar > should render with workflow controls hasUnpublishedChanges=true,isNewEntry=false,isModification=true,useOpenAuthoring=true 1`] = `
 <DocumentFragment>
   <div
-    class="css-137i05p"
+    class="css-rdq5dl"
   >
     <div
       class="css-1n6fubc"

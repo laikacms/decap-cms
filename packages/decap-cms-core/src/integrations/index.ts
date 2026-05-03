@@ -4,7 +4,7 @@ import type { AssetStoreConfig } from './providers/assetStore/implementation';
 import AssetStore from './providers/assetStore/implementation';
 
 // Integrations config is a plain object after migration from Immutable.js
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 type Integrations = any;
 
 type GetTokenFn = () => Promise<string>;

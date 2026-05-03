@@ -361,7 +361,12 @@ export default class API {
           }))
       );
     } catch (err: unknown) {
-      if (err && typeof err === 'object' && 'status' in err && (err as { status: number }).status === 404) {
+      if (
+        err &&
+        typeof err === 'object' &&
+        'status' in err &&
+        (err as { status: number }).status === 404
+      ) {
         console.info('[StaticCMS] This 404 was expected and handled appropriately.');
         return [];
       } else {
@@ -370,8 +375,11 @@ export default class API {
     }
   }
 
-  async persistFiles(dataFiles: CmsDataFile[], mediaFiles: CmsAssetProxy[], options: CmsPersistOptions) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async persistFiles(
+    dataFiles: CmsDataFile[],
+    mediaFiles: CmsAssetProxy[],
+    options: CmsPersistOptions,
+  ) {
     const files: (CmsDataFile | CmsAssetProxy)[] = mediaFiles.concat(dataFiles as any);
     const operations = await this.getChangeFileOperations(files, this.branch);
     return this.changeFiles(operations, options);

@@ -17,7 +17,7 @@ import type { EntryValue } from '../valueObjects/Entry';
 type Collection = CmsCollectionState;
 type Format = CmsCollectionFormatType;
 type FormatterFunctions = CmsFormatterFunctions;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 type EntryObject = any;
 
 export const frontmatterFormats = ['yaml-frontmatter', 'toml-frontmatter', 'json-frontmatter'];

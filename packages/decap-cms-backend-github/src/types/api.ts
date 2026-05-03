@@ -1,11 +1,10 @@
-
 import type {
   CmsAssetProxy,
   CmsDataFile,
   CmsPersistOptions,
   FetchError,
   ApiRequest,
-  Semaphore
+  Semaphore,
 } from 'decap-cms-lib-util';
 import type { Endpoints } from '@octokit/types';
 
@@ -78,14 +77,15 @@ export const GithubCommitStatusState = {
   Pending: 'pending',
   Success: 'success',
 } as const;
-export type GithubCommitStatusState = typeof GithubCommitStatusState[keyof typeof GithubCommitStatusState];
+export type GithubCommitStatusState =
+  (typeof GithubCommitStatusState)[keyof typeof GithubCommitStatusState];
 
 export const PullRequestState = {
   Open: 'open',
   Closed: 'closed',
   All: 'all',
 } as const;
-export type PullRequestState = typeof PullRequestState[keyof typeof PullRequestState];
+export type PullRequestState = (typeof PullRequestState)[keyof typeof PullRequestState];
 
 export type GitHubCommitStatus =
   Endpoints['GET /repos/{owner}/{repo}/commits/{ref}/statuses']['response']['data'][0] & {
@@ -123,7 +123,9 @@ export interface BlobArgs {
 
 export type Param = string | number | undefined;
 
-export type Options = RequestInit & { params?: Record<string, Param | Record<string, Param> | string[]> };
+export type Options = RequestInit & {
+  params?: Record<string, Param | Record<string, Param> | string[]>;
+};
 
 export type MediaFile = {
   sha: string;

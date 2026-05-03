@@ -1,4 +1,4 @@
-import { fileExtensionWithSeparator, fileExtension } from '../path.js';
+import { fileExtensionWithSeparator, fileExtension } from '../core-utils/path.js';
 
 describe('fileExtensionWithSeparator', () => {
   it('should return the extension of a file', () => {

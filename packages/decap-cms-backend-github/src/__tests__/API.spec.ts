@@ -1,15 +1,16 @@
+import { vi } from 'vitest';
 
 import API from '../API';
 
-global.fetch = jest.fn().mockRejectedValue(new Error('should not call fetch inside tests'));
+global.fetch = vi.fn().mockRejectedValue(new Error('should not call fetch inside tests'));
 
 describe('github API', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   function mockAPI(api, responses) {
-    api.request = jest.fn().mockImplementation((path, options = {}) => {
+    api.request = vi.fn().mockImplementation((path, options = {}) => {
       const normalizedPath = path.indexOf('?') !== -1 ? path.slice(0, path.indexOf('?')) : path;
       const response = responses[normalizedPath];
       return typeof response === 'function'
@@ -91,7 +92,7 @@ describe('github API', () => {
     it('should create tree with nested paths', async () => {
       const api = new API({ branch: 'master', repo: 'owner/repo' });
 
-      api.createTree = jest.fn().mockImplementation(() => Promise.resolve({ sha: 'newTreeSha' }));
+      api.createTree = vi.fn().mockImplementation(() => Promise.resolve({ sha: 'newTreeSha' }));
 
       const files = [
         { path: '/static/media/new-image.jpeg', sha: null },
@@ -125,19 +126,19 @@ describe('github API', () => {
 
   describe('request', () => {
     beforeEach(() => {
-      const fetch = jest.fn();
+      const fetch = vi.fn();
       global.fetch = fetch;
     });
 
     afterEach(() => {
-      jest.resetAllMocks();
+      vi.resetAllMocks();
     });
 
     it('should fetch url with authorization header', async () => {
       const api = new API({ branch: 'gh-pages', repo: 'my-repo', token: 'token' });
 
       fetch.mockResolvedValue({
-        text: jest.fn().mockResolvedValue('some response'),
+        text: vi.fn().mockResolvedValue('some response'),
         ok: true,
         status: 200,
         headers: { get: () => '' },
@@ -159,7 +160,7 @@ describe('github API', () => {
       const api = new API({ branch: 'gh-pages', repo: 'my-repo', token: 'token' });
 
       fetch.mockResolvedValue({
-        text: jest.fn().mockResolvedValue({ message: 'some error' }),
+        text: vi.fn().mockResolvedValue({ message: 'some error' }),
         ok: false,
         status: 404,
         headers: { get: () => '' },
@@ -178,13 +179,13 @@ describe('github API', () => {
     it('should allow overriding requestHeaders to return a promise ', async () => {
       const api = new API({ branch: 'gh-pages', repo: 'my-repo', token: 'token' });
 
-      api.requestHeaders = jest.fn().mockResolvedValue({
+      api.requestHeaders = vi.fn().mockResolvedValue({
         Authorization: 'promise-token',
         'Content-Type': 'application/json; charset=utf-8',
       });
 
       fetch.mockResolvedValue({
-        text: jest.fn().mockResolvedValue('some response'),
+        text: vi.fn().mockResolvedValue('some response'),
         ok: true,
         status: 200,
         headers: { get: () => '' },
@@ -301,8 +302,8 @@ describe('github API', () => {
     it('should call editorialWorkflowGit when useWorkflow is true', async () => {
       const api = new API({ branch: 'master', repo: 'owner/repo' });
 
-      api.uploadBlob = jest.fn();
-      api.editorialWorkflowGit = jest.fn();
+      api.uploadBlob = vi.fn();
+      api.editorialWorkflowGit = vi.fn();
 
       const entry = {
         dataFiles: [
@@ -328,7 +329,7 @@ describe('github API', () => {
       await api.persistFiles(entry.dataFiles, entry.assets, { useWorkflow: true });
 
       expect(api.uploadBlob).toHaveBeenCalledTimes(3);
-      expect(api.uploadBlob).toHaveBeenCalledWith(entry.dataFiles[0]);
+      expect(api.uploadBlob).toHaveBeenCalledWith(expect.objectContaining(entry.dataFiles[0]));
       expect(api.uploadBlob).toHaveBeenCalledWith(entry.assets[0]);
       expect(api.uploadBlob).toHaveBeenCalledWith(entry.assets[1]);
 
@@ -357,14 +358,14 @@ describe('github API', () => {
         labels: [],
       };
       const metadata = { type: 'PR' };
-      api.retrieveMetadataOld = jest.fn().mockResolvedValue(metadata);
+      api.retrieveMetadataOld = vi.fn().mockResolvedValue(metadata);
       const newBranch = 'cms/posts/2019-11-11-post-title';
       const migrateToVersion1Result = {
         metadata: { ...metadata, branch: newBranch, version: '1' },
         pullRequest: { ...pr, number: 2 },
       };
-      api.migrateToVersion1 = jest.fn().mockResolvedValue(migrateToVersion1Result);
-      api.migrateToPullRequestLabels = jest.fn();
+      api.migrateToVersion1 = vi.fn().mockResolvedValue(migrateToVersion1Result);
+      api.migrateToPullRequestLabels = vi.fn();
 
       await api.migratePullRequest(pr);
 
@@ -384,7 +385,7 @@ describe('github API', () => {
     it('should migrate to pull request labels when version is 1', async () => {
       const api = new API({ branch: 'master', repo: 'owner/repo' });
 
-      api.migrateToVersion1 = jest.fn();
+      api.migrateToVersion1 = vi.fn();
       const pr = {
         head: { ref: 'cms/posts/2019-11-11-post-title' },
         title: 'pr title',
@@ -392,8 +393,8 @@ describe('github API', () => {
         labels: [],
       };
       const metadata = { type: 'PR', version: '1' };
-      api.retrieveMetadataOld = jest.fn().mockResolvedValue(metadata);
-      api.migrateToPullRequestLabels = jest.fn().mockResolvedValue(pr, metadata);
+      api.retrieveMetadataOld = vi.fn().mockResolvedValue(metadata);
+      api.migrateToPullRequestLabels = vi.fn().mockResolvedValue(pr, metadata);
 
       await api.migratePullRequest(pr);
 
@@ -419,17 +420,17 @@ describe('github API', () => {
       };
 
       const newBranch = { ref: 'refs/heads/cms/posts/2019-11-11-post-title' };
-      api.createBranch = jest.fn().mockResolvedValue(newBranch);
-      api.getBranch = jest.fn().mockRejectedValue(new Error('Branch not found'));
+      api.createBranch = vi.fn().mockResolvedValue(newBranch);
+      api.getBranch = vi.fn().mockRejectedValue(new Error('Branch not found'));
 
       const newPr = { ...pr, number: 2 };
-      api.createPR = jest.fn().mockResolvedValue(newPr);
-      api.getPullRequests = jest.fn().mockResolvedValue([]);
+      api.createPR = vi.fn().mockResolvedValue(newPr);
+      api.getPullRequests = vi.fn().mockResolvedValue([]);
 
-      api.storeMetadata = jest.fn();
-      api.closePR = jest.fn();
-      api.deleteBranch = jest.fn();
-      api.deleteMetadata = jest.fn();
+      api.storeMetadata = vi.fn();
+      api.closePR = vi.fn();
+      api.deleteBranch = vi.fn();
+      api.deleteMetadata = vi.fn();
 
       const branch = 'cms/2019-11-11-post-title';
       const metadata = {
@@ -494,17 +495,17 @@ describe('github API', () => {
       };
 
       const newBranch = { ref: 'refs/heads/cms/posts/2019-11-11-post-title' };
-      api.createBranch = jest.fn();
-      api.getBranch = jest.fn().mockResolvedValue(newBranch);
+      api.createBranch = vi.fn();
+      api.getBranch = vi.fn().mockResolvedValue(newBranch);
 
       const newPr = { ...pr, number: 2 };
-      api.createPR = jest.fn().mockResolvedValue(newPr);
-      api.getPullRequests = jest.fn().mockResolvedValue([]);
+      api.createPR = vi.fn().mockResolvedValue(newPr);
+      api.getPullRequests = vi.fn().mockResolvedValue([]);
 
-      api.storeMetadata = jest.fn();
-      api.closePR = jest.fn();
-      api.deleteBranch = jest.fn();
-      api.deleteMetadata = jest.fn();
+      api.storeMetadata = vi.fn();
+      api.closePR = vi.fn();
+      api.deleteBranch = vi.fn();
+      api.deleteMetadata = vi.fn();
 
       const branch = 'cms/2019-11-11-post-title';
       const metadata = {
@@ -568,17 +569,17 @@ describe('github API', () => {
       };
 
       const newBranch = { ref: 'refs/heads/cms/posts/2019-11-11-post-title' };
-      api.createBranch = jest.fn();
-      api.getBranch = jest.fn().mockResolvedValue(newBranch);
+      api.createBranch = vi.fn();
+      api.getBranch = vi.fn().mockResolvedValue(newBranch);
 
       const newPr = { ...pr, number: 2 };
-      api.createPR = jest.fn();
-      api.getPullRequests = jest.fn().mockResolvedValue([newPr]);
+      api.createPR = vi.fn();
+      api.getPullRequests = vi.fn().mockResolvedValue([newPr]);
 
-      api.storeMetadata = jest.fn();
-      api.closePR = jest.fn();
-      api.deleteBranch = jest.fn();
-      api.deleteMetadata = jest.fn();
+      api.storeMetadata = vi.fn();
+      api.closePR = vi.fn();
+      api.deleteBranch = vi.fn();
+      api.deleteMetadata = vi.fn();
 
       const branch = 'cms/2019-11-11-post-title';
       const metadata = {
@@ -642,8 +643,8 @@ describe('github API', () => {
         labels: [],
       };
 
-      api.setPullRequestStatus = jest.fn();
-      api.deleteMetadata = jest.fn();
+      api.setPullRequestStatus = vi.fn();
+      api.deleteMetadata = vi.fn();
 
       const metadata = {
         branch: pr.head.ref,
@@ -668,7 +669,7 @@ describe('github API', () => {
     it('should create updated tree and commit', async () => {
       const api = new API({ branch: 'master', repo: 'owner/repo' });
 
-      api.getDifferences = jest.fn().mockResolvedValueOnce({
+      api.getDifferences = vi.fn().mockResolvedValueOnce({
         files: [
           { filename: 'removed.md', status: 'removed', sha: 'removed_sha' },
           {
@@ -682,10 +683,10 @@ describe('github API', () => {
       });
 
       const newTree = { sha: 'new_tree_sha' };
-      api.updateTree = jest.fn().mockResolvedValueOnce(newTree);
+      api.updateTree = vi.fn().mockResolvedValueOnce(newTree);
 
       const newCommit = { sha: 'newCommit' };
-      api.createCommit = jest.fn().mockResolvedValueOnce(newCommit);
+      api.createCommit = vi.fn().mockResolvedValueOnce(newCommit);
 
       const baseCommit = { sha: 'base_commit_sha' };
       const commit = {
@@ -748,7 +749,7 @@ describe('github API', () => {
           type: 'blob',
         },
       ];
-      api.request = jest.fn().mockResolvedValue({ tree });
+      api.request = vi.fn().mockResolvedValue({ tree });
 
       await expect(api.listFiles('posts', { depth: 1 })).resolves.toEqual([
         {
@@ -764,7 +765,7 @@ describe('github API', () => {
         params: {},
       });
 
-      jest.clearAllMocks();
+      vi.clearAllMocks();
       await expect(api.listFiles('posts', { depth: 2 })).resolves.toEqual([
         {
           path: 'posts/post.md',
@@ -786,7 +787,7 @@ describe('github API', () => {
         params: { recursive: 1 },
       });
 
-      jest.clearAllMocks();
+      vi.clearAllMocks();
       await expect(api.listFiles('posts', { depth: 3 })).resolves.toEqual([
         {
           path: 'posts/post.md',
@@ -825,9 +826,9 @@ describe('github API', () => {
       { context: 'build', state: 'error' },
     ];
 
-    api.request = jest.fn(() => Promise.resolve({ statuses }));
+    api.request = vi.fn(() => Promise.resolve({ statuses }));
     const sha = 'sha';
-    api.getBranchPullRequest = jest.fn(() => Promise.resolve({ head: { sha } }));
+    api.getBranchPullRequest = vi.fn(() => Promise.resolve({ head: { sha } }));
 
     const collection = 'collection';
     const slug = 'slug';
