@@ -2,7 +2,6 @@ import React from 'react';
 import styled from '@emotion/styled';
 import Frame, { FrameContextConsumer } from 'react-frame-component';
 import { lengths } from 'decap-cms-ui-default';
-import { connect } from 'react-redux';
 
 import { encodeEntry } from '../../../lib/stega';
 import {
@@ -23,6 +22,7 @@ import { boundGetAsset } from '../../../actions/media';
 import { selectIsLoadingAsset } from '../../../reducers/medias';
 import { INFERABLE_FIELDS } from '../../../constants/fieldInference';
 import EditorPreviewContent from './EditorPreviewContent.js';
+import { useAppDispatch, useAppSelector } from '../../../hooks/useRedux';
 import PreviewHOC from './PreviewHOC';
 import EditorPreview from './EditorPreview';
 
@@ -345,25 +345,35 @@ export function PreviewPane(props: PreviewPaneProps) {
   );
 }
 
-function mapStateToProps(state: any) {
-  const isLoadingAsset = selectIsLoadingAsset(state.medias);
-  return { isLoadingAsset, config: state.config, state };
+interface ConnectedPreviewPaneProps {
+  collection: Collection;
+  fields: EntryField[];
+  entry: EntryMap;
+  fieldsMetaData: Record<string, unknown>;
+  onFieldClick?: (fieldName: string) => void;
+  locale?: string;
 }
 
-function mapDispatchToProps(dispatch: Dispatch) {
-  return {
-    boundGetAsset: (collection: Collection, entry: EntryMap) =>
-      boundGetAsset(dispatch as any, collection, entry),
-  };
-}
+export default function ConnectedPreviewPane(props: ConnectedPreviewPaneProps) {
+  const dispatch = useAppDispatch();
+  const isLoadingAsset = useAppSelector((state: any) => selectIsLoadingAsset(state.medias));
+  const config = useAppSelector((state: any) => state.config);
+  const state = useAppSelector((state: any) => state);
+  const getAsset = React.useMemo(
+    () => boundGetAsset(dispatch as any, props.collection, props.entry),
+    [dispatch, props.collection, props.entry],
+  );
 
-function mergeProps(stateProps: any, dispatchProps: any, ownProps: any) {
-  return {
-    ...stateProps,
-    ...dispatchProps,
-    ...ownProps,
-    getAsset: dispatchProps.boundGetAsset(ownProps.collection, ownProps.entry),
-  };
+  return (
+    <PreviewPane
+      {...props}
+      isLoadingAsset={isLoadingAsset}
+      config={config}
+      state={state}
+      boundGetAsset={(collection: Collection, entry: EntryMap) =>
+        boundGetAsset(dispatch as any, collection, entry)
+      }
+      getAsset={getAsset as (asset: string) => { url: string; path: string; field?: EntryField }}
+    />
+  );
 }
-
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(PreviewPane);
