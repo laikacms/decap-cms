@@ -36,6 +36,32 @@ update your configuration:
 + keymap: default   # VS Code keymap is used by default
 ```
 
+## Removed `PropTypes` from default exports
+
+`PropTypes` (the legacy `prop-types` package) is no longer re-exported from the
+Decap CMS default-exports bundle. Plugin authors who relied on
+`window.CMS.PropTypes` (e.g. for runtime prop validation in custom widgets) must
+either drop the validation or import `prop-types` directly in their plugin.
+
+React 19 itself no longer runs PropTypes validation, so the runtime check was a
+no-op in modern React anyway. We recommend migrating to TypeScript or JSDoc for
+prop documentation.
+
+**Migration:**
+
+```diff
+- const { PropTypes, React } = window.CMS;
+- MyControl.propTypes = { value: PropTypes.string };
++ // Drop the propTypes block, or convert the component to TypeScript / JSDoc.
+```
+
+If you must keep runtime validation:
+
+```js
+import PropTypes from 'prop-types';   // add prop-types as a direct dep
+MyControl.propTypes = { value: PropTypes.string };
+```
+
 ## Object widget: `field` renamed to `fields`
 
 The singular `field` property on the object widget is no longer supported. You must use

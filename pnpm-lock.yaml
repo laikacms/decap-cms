@@ -254,9 +254,6 @@ catalogs:
       specifier: ^0.7.1
       version: 0.7.1
   react:
-    prop-types:
-      specifier: ^15.8.1
-      version: 15.8.1
     react:
       specifier: ^19.2.4
       version: 19.2.4
@@ -420,9 +417,6 @@ catalogs:
     '@types/node':
       specifier: ^24.12.2
       version: 24.12.2
-    '@types/prop-types':
-      specifier: ^15.7.15
-      version: 15.7.15
     '@types/react':
       specifier: ^19.2.14
       version: 19.2.14
@@ -1525,9 +1519,6 @@ importers:
       lodash:
         specifier: catalog:utils
         version: 4.18.1
-      prop-types:
-        specifier: catalog:react
-        version: 15.8.1
       react:
         specifier: catalog:react
         version: 19.2.4
@@ -1541,9 +1532,6 @@ importers:
       '@types/lodash':
         specifier: catalog:types
         version: 4.17.24
-      '@types/prop-types':
-        specifier: catalog:types
-        version: 15.7.15
       '@types/react':
         specifier: catalog:types
         version: 19.2.14
@@ -4561,9 +4549,6 @@ packages:
 
   '@types/pixelmatch@5.2.6':
     resolution: {integrity: sha512-wC83uexE5KGuUODn6zkm9gMzTwdY5L0chiK+VrKcDfEjzxh1uadlWTvOmAbCpnM9zx/Ww3f8uKlYQVnO/TrqVg==}
-
-  '@types/prop-types@15.7.15':
-    resolution: {integrity: sha512-F6bEyamV9jKGAFBEmlQnesRPGOQqS2+Uwi0Em15xenOxHaf2hv6L8YCVn3rPdPJOiJfPiCnLIRyvwVaqMY3MIw==}
 
   '@types/qs@6.15.0':
     resolution: {integrity: sha512-JawvT8iBVWpzTrz3EGw9BTQFg3BQNmwERdKE22vlTxawwtbyUSlMppvZYKLZzB5zgACXdXxbD3m1bXaMqP/9ow==}
@@ -13505,8 +13490,6 @@ snapshots:
   '@types/pixelmatch@5.2.6':
     dependencies:
       '@types/node': 25.6.0
-
-  '@types/prop-types@15.7.15': {}
 
   '@types/qs@6.15.0': {}
 
