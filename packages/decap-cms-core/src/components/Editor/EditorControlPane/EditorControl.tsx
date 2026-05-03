@@ -1,13 +1,12 @@
 import React from 'react';
-import { bindActionCreators } from 'redux';
-import { translate } from 'react-polyglot';
+import { useTranslate } from 'react-polyglot';
 import { ClassNames, Global, css as coreCss } from '@emotion/react';
 import styled from '@emotion/styled';
 import partial from 'lodash/partial';
 import uniqueId from 'lodash/uniqueId';
 import memoize from 'lodash/memoize';
-import { connect } from 'react-redux';
 import { FieldLabel, colors, transitions, lengths, borders } from 'decap-cms-ui-default';
+import { useAppDispatch, useAppSelector } from '../../../hooks/useRedux';
 import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
 
@@ -467,62 +466,78 @@ const stable = {
   },
 };
 
-function mapStateToProps(state: State) {
-  const { collections, entryDraft } = state;
-  const collection = collections[entryDraft.entry?.collection as string];
-  const isLoadingAsset = selectIsLoadingAsset(state.medias);
-
-  return {
-    mediaPaths: state.mediaLibrary.controlMedia,
-    isFetching: state.search.isFetching,
-    queryHits: state.search.queryHits,
-    config: state.config,
-    collection,
-    isLoadingAsset,
-    getEntry: stable.getEntry,
-    loadEntry: stable.loadEntry,
-    validateMetaField: stable.validateMetaField(collection),
-  };
+interface ConnectedEditorControlProps {
+  field: EntryField;
+  value: unknown;
+  fieldsMetaData: Record<string, unknown>;
+  fieldsErrors: Record<string, FieldError[]>;
+  onChange: (field: EntryField, value: unknown, metadata?: Record<string, unknown>) => void;
+  onValidate: (uniqueFieldId: string, errors: FieldError[]) => void;
+  controlRef?: (ref: unknown) => void;
+  collection?: Collection;
+  isDisabled?: boolean;
+  isHidden?: boolean;
+  isFieldDuplicate?: (field: EntryField) => boolean;
+  isFieldHidden?: (field: EntryField) => boolean;
+  locale?: string;
+  isParentListCollapsed?: boolean;
+  className?: string;
+  isSelected?: boolean;
+  isEditorComponent?: boolean;
+  isNewEditorComponent?: boolean;
+  parentIds?: string[];
 }
 
-function mapDispatchToProps(dispatch: Dispatch) {
-  const creators = bindActionCreators(
-    {
-      openMediaLibrary,
-      clearMediaControl,
-      removeMediaControl,
-      removeInsertedMedia,
-      persistMedia,
-      addAsset,
-      query,
-      clearSearch,
-      clearFieldErrors,
-    },
-    dispatch,
+export default function ConnectedEditorControl(props: ConnectedEditorControlProps) {
+  const t = useTranslate();
+  const dispatch = useAppDispatch();
+  const stateCollection = useAppSelector(
+    (state: any) => state.collections[state.entryDraft.entry?.collection as string],
   );
-  return {
-    ...creators,
-    boundGetAsset: stable.getBoundedAsset,
-  };
+  const collection = (props.collection ?? stateCollection) as Collection;
+  const mediaPaths = useAppSelector((state: any) => state.mediaLibrary.controlMedia);
+  const isFetching = useAppSelector((state: any) => state.search.isFetching);
+  const queryHits = useAppSelector((state: any) => state.search.queryHits);
+  const config = useAppSelector((state: any) => state.config);
+  const isLoadingAsset = useAppSelector((state: any) => selectIsLoadingAsset(state.medias));
+
+  const validateMetaFieldFn = React.useMemo(
+    () => stable.validateMetaField(collection),
+    [collection],
+  );
+  const boundGetAssetForEntry = React.useMemo(
+    () => stable.getBoundedAsset(collection, stable.getEntry()),
+    // recompute when collection changes; entry is read live via stable.getEntry on each call
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [collection],
+  );
+
+  const inner = (
+    <EditorControl
+      {...(props as any)}
+      collection={collection}
+      mediaPaths={mediaPaths}
+      isFetching={isFetching}
+      queryHits={queryHits}
+      config={config}
+      isLoadingAsset={isLoadingAsset}
+      getEntry={stable.getEntry}
+      loadEntry={stable.loadEntry}
+      validateMetaField={validateMetaFieldFn}
+      boundGetAsset={boundGetAssetForEntry}
+      openMediaLibrary={(opts: any) => dispatch(openMediaLibrary(opts))}
+      clearMediaControl={(controlID: string) => dispatch(clearMediaControl(controlID))}
+      removeMediaControl={(controlID: string) => dispatch(removeMediaControl(controlID))}
+      removeInsertedMedia={(controlID: string) => dispatch(removeInsertedMedia(controlID))}
+      persistMedia={(file: File, opts?: any) => dispatch(persistMedia(file, opts))}
+      addAsset={(asset: unknown) => dispatch(addAsset(asset as any))}
+      query={(...args: unknown[]) => dispatch((query as any)(...args))}
+      clearSearch={() => dispatch(clearSearch())}
+      clearFieldErrors={(fieldId: string | undefined) =>
+        dispatch(clearFieldErrors(fieldId as string))
+      }
+      t={t}
+    />
+  );
+  return inner;
 }
-
-function mergeProps(
-  stateProps: ReturnType<typeof mapStateToProps>,
-  dispatchProps: ReturnType<typeof mapDispatchToProps>,
-  ownProps: Record<string, unknown>,
-) {
-  return {
-    ...stateProps,
-    ...dispatchProps,
-    ...ownProps,
-    boundGetAsset: dispatchProps.boundGetAsset(stateProps.collection, stateProps.getEntry()),
-  };
-}
-
-const ConnectedEditorControl = (connect as any)(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-)(translate()(EditorControl));
-
-export default ConnectedEditorControl;
