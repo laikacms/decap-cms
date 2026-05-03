@@ -3,7 +3,6 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 import once from 'lodash/once';
-import get from 'lodash/get';
 import { v4 as uuid } from 'uuid';
 import { oneLine } from 'common-tags';
 import {
@@ -257,6 +256,7 @@ const warnDeprecatedOptions = once((field: CmsField) =>
   \`field.media_library\`.
 `),
 );
+void warnDeprecatedOptions;
 
 export interface FileControlProps {
   field: CmsFieldFile & CmsFieldBase;
@@ -273,180 +273,181 @@ export interface FileControlProps {
   t: (key: string) => string;
 }
 
+export interface FileControlHandle {
+  getValidateValue(): FileValue;
+}
+
 export default function withFileControl({ forImage }: { forImage?: boolean } = {}) {
-  return class FileControl extends React.Component<FileControlProps> {
-    static defaultProps = {
-      value: '',
-    };
+  return React.forwardRef<FileControlHandle, FileControlProps>(function FileControl(props, ref) {
+    const {
+      field,
+      getAsset,
+      mediaPaths,
+      onChange,
+      onRemoveInsertedMedia,
+      onOpenMediaLibrary,
+      onClearMediaControl,
+      onRemoveMediaControl,
+      classNameWrapper,
+      value = '',
+      t,
+    } = props;
 
-    controlID: string;
-
-    constructor(props: FileControlProps) {
-      super(props);
-      this.controlID = uuid();
+    const controlIDRef = React.useRef<string>('');
+    if (!controlIDRef.current) {
+      controlIDRef.current = uuid();
     }
+    const controlID = controlIDRef.current;
 
-    shouldComponentUpdate(nextProps: FileControlProps) {
-      /**
-       * Always update if the value or getAsset changes.
-       */
-      if (this.props.value !== nextProps.value || this.props.getAsset !== nextProps.getAsset) {
-        return true;
-      }
+    // Stable handle: read latest value via ref so callers that captured the
+    // handle once keep seeing the current value.
+    const valueRef = React.useRef(value);
+    valueRef.current = value;
+    React.useImperativeHandle(
+      ref,
+      () => ({
+        getValidateValue() {
+          const v = valueRef.current;
+          if (v) {
+            return isMultiple(v)
+              ? (v as string[]).map((s: string) => basename(s))
+              : basename(v as string);
+          }
+          return v;
+        },
+      }),
+      [],
+    );
 
-      /**
-       * If there is a media path for this control in the state object, and that
-       * path is different than the value in `nextProps`, update.
-       */
-      const mediaPath = nextProps.mediaPaths[this.controlID];
-      if (mediaPath && nextProps.value !== mediaPath) {
-        return true;
-      }
-
-      return false;
-    }
-
-    componentDidUpdate() {
-      const { mediaPaths, value, onRemoveInsertedMedia, onChange } = this.props;
-      const mediaPath = mediaPaths[this.controlID];
+    // Mirror componentDidUpdate: react to mediaPath changes for this control.
+    React.useEffect(() => {
+      const mediaPath = mediaPaths[controlID];
       if (mediaPath && mediaPath !== value) {
         onChange(mediaPath);
       } else if (mediaPath && mediaPath === value) {
-        onRemoveInsertedMedia(this.controlID);
+        onRemoveInsertedMedia(controlID);
       }
-    }
+    });
 
-    componentWillUnmount() {
-      this.props.onRemoveMediaControl(this.controlID);
-    }
+    // Mirror componentWillUnmount: release the media control slot.
+    const onRemoveMediaControlRef = React.useRef(onRemoveMediaControl);
+    onRemoveMediaControlRef.current = onRemoveMediaControl;
+    React.useEffect(() => {
+      return () => {
+        onRemoveMediaControlRef.current(controlID);
+      };
+    }, [controlID]);
 
-    handleChange = (e: React.MouseEvent) => {
-      const { field, onOpenMediaLibrary, value } = this.props;
-      e.preventDefault();
-      const mediaLibraryFieldOptions = this.getMediaLibraryFieldOptions();
-
-      return onOpenMediaLibrary({
-        controlID: this.controlID,
-        forImage,
-        privateUpload: field.private,
-        value: valueListToArray(value),
-        allowMultiple: !!mediaLibraryFieldOptions?.allow_multiple,
-        config: mediaLibraryFieldOptions?.config,
-        field,
-      });
-    };
-
-    handleUrl = (subject: string) => (e: React.MouseEvent) => {
-      e.preventDefault();
-
-      const url = window.prompt(this.props.t(`editor.editorWidgets.${subject}.promptUrl`));
-
-      if (url) {
-        return this.props.onChange(url);
-      }
-    };
-
-    handleRemove = (e: React.MouseEvent) => {
-      e.preventDefault();
-      this.props.onClearMediaControl(this.controlID);
-      return this.props.onChange('');
-    };
-
-    onRemoveOne = (index: number) => () => {
-      const value = valueListToArray(this.props.value);
-      if (Array.isArray(value)) {
-        value.splice(index, 1);
-        return this.props.onChange(sizeOfValue(value) > 0 ? [...value] : null);
-      }
-    };
-
-    onReplaceOne = (index: number) => () => {
-      const { field, onOpenMediaLibrary, value } = this.props;
-      const mediaLibraryFieldOptions = this.getMediaLibraryFieldOptions();
-
-      return onOpenMediaLibrary({
-        controlID: this.controlID,
-        forImage,
-        privateUpload: field.private,
-        value: valueListToArray(value),
-        replaceIndex: index,
-        allowMultiple: false,
-        config: mediaLibraryFieldOptions?.config,
-        field,
-      });
-    };
-
-    getMediaLibraryFieldOptions = () => {
-      const { field } = this.props;
-
+    function getMediaLibraryFieldOptions() {
       return field.media_library;
-    };
+    }
 
-    allowsMultiple = () => {
-      const mediaLibraryFieldOptions = this.getMediaLibraryFieldOptions();
-      return mediaLibraryFieldOptions?.config && mediaLibraryFieldOptions.config?.multiple;
-    };
+    function allowsMultiple() {
+      const opts = getMediaLibraryFieldOptions();
+      return opts?.config && opts.config?.multiple;
+    }
 
-    onSortEnd = ({ oldIndex, newIndex }: { oldIndex: number; newIndex: number }) => {
-      const { value } = this.props;
+    function handleChange(e: React.MouseEvent) {
+      e.preventDefault();
+      const opts = getMediaLibraryFieldOptions();
+      return onOpenMediaLibrary({
+        controlID,
+        forImage,
+        privateUpload: field.private,
+        value: valueListToArray(value),
+        allowMultiple: !!opts?.allow_multiple,
+        config: opts?.config,
+        field,
+      });
+    }
+
+    function handleUrl(subject: string) {
+      return (e: React.MouseEvent) => {
+        e.preventDefault();
+        const url = window.prompt(t(`editor.editorWidgets.${subject}.promptUrl`));
+        if (url) {
+          return onChange(url);
+        }
+      };
+    }
+
+    function handleRemove(e: React.MouseEvent) {
+      e.preventDefault();
+      onClearMediaControl(controlID);
+      return onChange('');
+    }
+
+    function onRemoveOne(index: number) {
+      return () => {
+        const v = valueListToArray(value);
+        if (Array.isArray(v)) {
+          v.splice(index, 1);
+          return onChange(sizeOfValue(v) > 0 ? [...v] : null);
+        }
+      };
+    }
+
+    function onReplaceOne(index: number) {
+      return () => {
+        const opts = getMediaLibraryFieldOptions();
+        return onOpenMediaLibrary({
+          controlID,
+          forImage,
+          privateUpload: field.private,
+          value: valueListToArray(value),
+          replaceIndex: index,
+          allowMultiple: false,
+          config: opts?.config,
+          field,
+        });
+      };
+    }
+
+    function onSortEnd({ oldIndex, newIndex }: { oldIndex: number; newIndex: number }) {
       const newValue = arrayMove(value as string[], oldIndex, newIndex);
-      return this.props.onChange(newValue);
-    };
+      return onChange(newValue);
+    }
 
-    getValidateValue = () => {
-      const { value } = this.props;
-      if (value) {
-        return isMultiple(value)
-          ? (value as string[]).map((v: string) => basename(v))
-          : basename(value as string);
-      }
-
-      return value;
-    };
-
-    renderFileLink = (value: string) => {
+    function renderFileLink(v: string) {
       const size = MAX_DISPLAY_LENGTH;
-      if (!value || value.length <= size) {
-        return value;
+      if (!v || v.length <= size) {
+        return v;
       }
-      const text = `${value.slice(0, size / 2)}\u2026${value.slice(-(size / 2) + 1)}`;
+      const text = `${v.slice(0, size / 2)}…${v.slice(-(size / 2) + 1)}`;
       return (
-        <FileLink href={value} rel="noopener" target="_blank">
+        <FileLink href={v} rel="noopener" target="_blank">
           {text}
         </FileLink>
       );
-    };
+    }
 
-    renderFileLinks = () => {
-      const { value } = this.props;
-
+    function renderFileLinks() {
       if (isMultiple(value)) {
         return (
           <FileLinks>
             <FileLinkList>
               {(value as string[]).map((val: string) => (
-                <li key={val}>{this.renderFileLink(val)}</li>
+                <li key={val}>{renderFileLink(val)}</li>
               ))}
             </FileLinkList>
           </FileLinks>
         );
       }
-      return <FileLinks>{this.renderFileLink(value as string)}</FileLinks>;
-    };
+      return <FileLinks>{renderFileLink(value as string)}</FileLinks>;
+    }
 
-    renderImages = () => {
-      const { getAsset, value, field } = this.props;
+    function renderImages() {
       const items = valueListToSortableArray(value);
       if (isMultiple(value)) {
         return (
           <SortableMultiImageWrapper
             items={items as SortableItem[]}
-            onSortEnd={this.onSortEnd}
-            onRemoveOne={this.onRemoveOne}
-            onReplaceOne={this.onReplaceOne}
+            onSortEnd={onSortEnd}
+            onRemoveOne={onRemoveOne}
+            onReplaceOne={onReplaceOne}
             getAsset={getAsset}
             field={field}
-          ></SortableMultiImageWrapper>
+          />
         );
       }
 
@@ -456,61 +457,52 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
           <Image src={src || ''} />
         </ImageWrapper>
       );
-    };
+    }
 
-    renderSelection = (subject: string) => {
-      const { t, field } = this.props;
-      const allowsMultiple = this.allowsMultiple();
+    function renderSelection(subject: string) {
+      const multi = allowsMultiple();
       return (
         <div>
-          {forImage ? this.renderImages() : null}
+          {forImage ? renderImages() : null}
           <div>
-            {forImage ? null : this.renderFileLinks()}
-            <FileWidgetButton onClick={this.handleChange}>
-              {t(
-                `editor.editorWidgets.${subject}.${
-                  this.allowsMultiple() ? 'addMore' : 'chooseDifferent'
-                }`,
-              )}
+            {forImage ? null : renderFileLinks()}
+            <FileWidgetButton onClick={handleChange}>
+              {t(`editor.editorWidgets.${subject}.${multi ? 'addMore' : 'chooseDifferent'}`)}
             </FileWidgetButton>
-            {field.choose_url && !this.allowsMultiple() ? (
-              <FileWidgetButton onClick={this.handleUrl(subject)}>
+            {field.choose_url && !multi ? (
+              <FileWidgetButton onClick={handleUrl(subject)}>
                 {t(`editor.editorWidgets.${subject}.replaceUrl`)}
               </FileWidgetButton>
             ) : null}
-            <FileWidgetButtonRemove onClick={this.handleRemove}>
-              {t(`editor.editorWidgets.${subject}.remove${allowsMultiple ? 'All' : ''}`)}
+            <FileWidgetButtonRemove onClick={handleRemove}>
+              {t(`editor.editorWidgets.${subject}.remove${multi ? 'All' : ''}`)}
             </FileWidgetButtonRemove>
           </div>
         </div>
       );
-    };
+    }
 
-    renderNoSelection = (subject: string) => {
-      const { t, field } = this.props;
+    function renderNoSelection(subject: string) {
       return (
         <>
-          <FileWidgetButton onClick={this.handleChange}>
-            {t(`editor.editorWidgets.${subject}.choose${this.allowsMultiple() ? 'Multiple' : ''}`)}
+          <FileWidgetButton onClick={handleChange}>
+            {t(`editor.editorWidgets.${subject}.choose${allowsMultiple() ? 'Multiple' : ''}`)}
           </FileWidgetButton>
           {field.choose_url ? (
-            <FileWidgetButton onClick={this.handleUrl(subject)}>
+            <FileWidgetButton onClick={handleUrl(subject)}>
               {t(`editor.editorWidgets.${subject}.chooseUrl`)}
             </FileWidgetButton>
           ) : null}
         </>
       );
-    };
-
-    render() {
-      const { value, classNameWrapper } = this.props;
-      const subject = forImage ? 'image' : 'file';
-
-      return (
-        <div className={classNameWrapper}>
-          <span>{value ? this.renderSelection(subject) : this.renderNoSelection(subject)}</span>
-        </div>
-      );
     }
-  };
+
+    const subject = forImage ? 'image' : 'file';
+
+    return (
+      <div className={classNameWrapper}>
+        <span>{value ? renderSelection(subject) : renderNoSelection(subject)}</span>
+      </div>
+    );
+  });
 }
