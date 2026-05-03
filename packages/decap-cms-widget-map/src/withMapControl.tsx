@@ -51,81 +51,75 @@ export interface WithMapControlOptions {
 }
 
 export default function withMapControl({ getFormat, getMap }: WithMapControlOptions = {}) {
-  return class MapControl extends React.Component<MapControlProps> {
-    static defaultProps = {
-      value: '',
-      height: '400px',
-    };
+  return function MapControl({
+    field,
+    onChange,
+    value = '',
+    height = '400px',
+    classNameWrapper,
+  }: MapControlProps) {
+    const mapContainer = React.useRef<HTMLDivElement | null>(null);
 
-    mapContainer: React.RefObject<HTMLDivElement | null>;
-    resizeObserver: ResizeObserver | null;
+    // Capture initial value/field via ref so the mount-only effect doesn't
+    // re-initialize the map when props change. The original componentDidMount
+    // also only ran once.
+    const initRef = React.useRef({ field, value, onChange });
+    initRef.current = { field, value, onChange };
 
-    constructor(props: MapControlProps) {
-      super(props);
-      this.mapContainer = React.createRef();
-      this.resizeObserver = null;
-    }
-
-    componentDidMount() {
-      const { field, onChange, value } = this.props;
-      const format = getFormat ? getFormat(field) : getDefaultFormat();
-      const features = value ? [format.readFeature(value)] : [];
+    React.useEffect(() => {
+      const { field: f, value: v } = initRef.current;
+      const format = getFormat ? getFormat(f) : getDefaultFormat();
+      const features = v ? [format.readFeature(v)] : [];
 
       const featuresSource = new VectorSource({ features, wrapX: false });
       const featuresLayer = new VectorLayer({ source: featuresSource });
 
-      const target = this.mapContainer.current;
-      const map = getMap ? getMap(target!, featuresLayer) : getDefaultMap(target!, featuresLayer);
+      const target = mapContainer.current!;
+      const map = getMap ? getMap(target, featuresLayer) : getDefaultMap(target, featuresLayer);
       if (features.length > 0) {
         map.getView().fit(featuresSource.getExtent(), { maxZoom: 16, padding: [80, 80, 80, 80] });
       }
 
       const draw = new Draw({
         source: featuresSource,
-        type: (field.type ?? 'Point') as GeometryType,
+        type: (f.type ?? 'Point') as GeometryType,
       });
       map.addInteraction(draw);
 
-      const writeOptions = { decimals: (field.decimals ?? 7) as number };
+      const writeOptions = { decimals: (f.decimals ?? 7) as number };
       draw.on('drawend', ({ feature }) => {
         featuresSource.clear();
-        onChange(format.writeGeometry(feature.getGeometry()!, writeOptions));
+        initRef.current.onChange(format.writeGeometry(feature.getGeometry()!, writeOptions));
       });
 
-      this.resizeObserver = new ResizeObserver(() => {
+      const resizeObserver = new ResizeObserver(() => {
         map.updateSize();
       });
+      resizeObserver.observe(target);
 
-      this.resizeObserver.observe(target!);
-    }
+      return () => {
+        resizeObserver.disconnect();
+      };
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- componentDidMount semantics
+    }, []);
 
-    componentWillUnmount() {
-      if (this.resizeObserver) {
-        this.resizeObserver.disconnect();
-      }
-    }
-
-    render() {
-      const { height } = this.props;
-
-      return (
-        <ClassNames>
-          {({ cx, css }) => (
-            <div
-              className={cx(
-                this.props.classNameWrapper,
-                css`
-                  ${olStyles};
-                  padding: 0;
-                  overflow: hidden;
-                  height: ${height};
-                `,
-              )}
-              ref={this.mapContainer}
-            />
-          )}
-        </ClassNames>
-      );
-    }
+    return (
+      <ClassNames>
+        {({ cx, css }) => (
+          <div
+            className={cx(
+              classNameWrapper,
+              css`
+                ${olStyles};
+                padding: 0;
+                overflow: hidden;
+                height: ${height};
+              `,
+            )}
+            ref={mapContainer}
+          />
+        )}
+      </ClassNames>
+    );
   };
 }

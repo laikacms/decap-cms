@@ -64,160 +64,152 @@ interface DateTimeControlProps {
   isDisabled?: boolean;
 }
 
-class DateTimeControl extends React.Component<DateTimeControlProps> {
-  static defaultProps = {
-    isDisabled: false,
-  };
+function escapeZ(str: string): string {
+  if (/Z(?![\]])/.test(str)) {
+    return str.replace('Z', '[Z]');
+  }
+  return str;
+}
 
-  componentDidMount() {
-    const { value } = this.props;
-    if (value === '{{now}}') {
-      this.handleChange(this.getNow());
-    }
+function getFormat(field: Record<string, unknown>, isUtc: boolean) {
+  let inputType = 'datetime-local';
+  let inputFormat = 'YYYY-MM-DDTHH:mm';
+  let format = `YYYY-MM-DDTHH:mm:ss.SSS${isUtc ? '[Z]' : 'Z'}`;
+  let userFormat = field.format as string | undefined;
+  let dateFormat = field.date_format as string | boolean | undefined;
+  let timeFormat = field.time_format as string | boolean | undefined;
+  if (dateFormat === true) dateFormat = 'YYYY-MM-DD';
+  if (timeFormat === true) timeFormat = 'HH:mm';
+
+  if (isUtc) {
+    if (typeof userFormat === 'string') userFormat = escapeZ(userFormat);
+    if (typeof dateFormat === 'string') dateFormat = escapeZ(dateFormat);
+    if (typeof timeFormat === 'string') timeFormat = escapeZ(timeFormat);
   }
 
-  isUtc = (this.props.field.picker_utc as boolean) || false;
-
-  escapeZ(str: string): string {
-    if (/Z(?![\]])/.test(str)) {
-      return str.replace('Z', '[Z]');
-    }
-    return str;
+  if (typeof dateFormat === 'string' && typeof timeFormat === 'string') {
+    format = `${dateFormat}T${timeFormat}`;
+  } else if (typeof timeFormat === 'string') {
+    inputType = 'time';
+    format = timeFormat;
+  } else if (typeof dateFormat === 'string') {
+    inputType = 'date';
+    format = dateFormat;
   }
 
-  getFormat() {
-    const { field } = this.props;
-    let inputType = 'datetime-local';
-    let inputFormat = 'YYYY-MM-DDTHH:mm';
-    let format = `YYYY-MM-DDTHH:mm:ss.SSS${this.isUtc ? '[Z]' : 'Z'}`;
-    let userFormat = field.format as string | undefined;
-    let dateFormat = field.date_format as string | boolean | undefined;
-    let timeFormat = field.time_format as string | boolean | undefined;
-    if (dateFormat === true) dateFormat = 'YYYY-MM-DD';
-    if (timeFormat === true) timeFormat = 'HH:mm';
-
-    if (this.isUtc) {
-      if (typeof userFormat === 'string') userFormat = this.escapeZ(userFormat);
-      if (typeof dateFormat === 'string') dateFormat = this.escapeZ(dateFormat);
-      if (typeof timeFormat === 'string') timeFormat = this.escapeZ(timeFormat);
-    }
-
-    if (typeof dateFormat === 'string' && typeof timeFormat === 'string') {
-      format = `${dateFormat}T${timeFormat}`;
-    } else if (typeof timeFormat === 'string') {
-      inputType = 'time';
-      format = timeFormat;
-    } else if (typeof dateFormat === 'string') {
-      inputType = 'date';
-      format = dateFormat;
-    }
-
-    if (typeof userFormat === 'string') {
-      format = userFormat;
-      inputType = 'datetime-local';
-    }
-
-    if (dateFormat === false) inputType = 'time';
-    if (timeFormat === false) inputType = 'date';
-    if (inputType === 'datetime-local') inputFormat = 'YYYY-MM-DDTHH:mm';
-    if (inputType === 'date') inputFormat = 'YYYY-MM-DD';
-    if (inputType === 'time') inputFormat = 'HH:mm';
-
-    return { format, inputType, inputFormat };
+  if (typeof userFormat === 'string') {
+    format = userFormat;
+    inputType = 'datetime-local';
   }
 
-  isValidDate = (dt: string) => dayjs(dt, this.getFormat().inputFormat).isValid() || dt === '';
+  if (dateFormat === false) inputType = 'time';
+  if (timeFormat === false) inputType = 'date';
+  if (inputType === 'datetime-local') inputFormat = 'YYYY-MM-DDTHH:mm';
+  if (inputType === 'date') inputFormat = 'YYYY-MM-DD';
+  if (inputType === 'time') inputFormat = 'HH:mm';
 
-  getNow(): string {
-    const { inputFormat } = this.getFormat();
-    return this.isUtc ? dayjs.utc().format(inputFormat) : dayjs().format(inputFormat);
+  return { format, inputType, inputFormat };
+}
+
+export default function DateTimeControl({
+  forID,
+  field,
+  value,
+  classNameWrapper,
+  setActiveStyle,
+  setInactiveStyle,
+  onChange,
+  t,
+  isDisabled = false,
+}: DateTimeControlProps) {
+  const isUtc = (field.picker_utc as boolean) || false;
+
+  function isValidDate(dt: string) {
+    return dayjs(dt, getFormat(field, isUtc).inputFormat).isValid() || dt === '';
   }
 
-  formatInputValue(value: string): string {
-    if (value === '') return value;
-    const { format, inputFormat } = this.getFormat();
+  function getNow(): string {
+    const { inputFormat } = getFormat(field, isUtc);
+    return isUtc ? dayjs.utc().format(inputFormat) : dayjs().format(inputFormat);
+  }
 
-    const inputValue = this.isUtc
-      ? dayjs.utc(value, format).format(inputFormat)
-      : dayjs(value, format).format(inputFormat);
+  function formatInputValue(v: string): string {
+    if (v === '') return v;
+    const { format, inputFormat } = getFormat(field, isUtc);
 
-    if (this.isValidDate(inputValue)) {
+    const inputValue = isUtc
+      ? dayjs.utc(v, format).format(inputFormat)
+      : dayjs(v, format).format(inputFormat);
+
+    if (isValidDate(inputValue)) {
       return inputValue;
     }
-    return this.isUtc ? dayjs.utc(value).format(inputFormat) : dayjs(value).format(inputFormat);
+    return isUtc ? dayjs.utc(v).format(inputFormat) : dayjs(v).format(inputFormat);
   }
 
-  handleChange = (datetime: string) => {
-    if (!this.isValidDate(datetime)) return;
-    const { onChange } = this.props;
+  function handleChange(datetime: string) {
+    if (!isValidDate(datetime)) return;
 
     if (datetime === '') {
       onChange('');
     } else {
-      const { format, inputFormat } = this.getFormat();
+      const { format, inputFormat } = getFormat(field, isUtc);
       const formattedValue = dayjs(datetime, inputFormat).format(format);
       onChange(formattedValue);
     }
-  };
-
-  onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const etv = e.target.value;
-    this.handleChange(etv);
-  };
-
-  render() {
-    const {
-      forID,
-      field,
-      value,
-      classNameWrapper,
-      setActiveStyle,
-      setInactiveStyle,
-      t,
-      isDisabled,
-    } = this.props;
-    const { inputType } = this.getFormat();
-
-    return (
-      <div
-        className={classNameWrapper}
-        css={css`
-          display: flex !important;
-          gap: 20px;
-          align-items: center;
-        `}
-      >
-        <input
-          id={forID}
-          data-testid={forID}
-          type={inputType}
-          value={value ? this.formatInputValue(value) : ''}
-          onChange={this.onInputChange}
-          onFocus={setActiveStyle as React.FocusEventHandler<HTMLInputElement>}
-          onBlur={setInactiveStyle as React.FocusEventHandler<HTMLInputElement>}
-          disabled={isDisabled}
-        />
-        {this.isUtc && (
-          <span
-            css={css`
-              font-size: 0.8em;
-              color: #666;
-            `}
-          >
-            UTC
-          </span>
-        )}
-        {!isDisabled && (
-          <Buttons
-            t={t}
-            fieldName={field.name as string}
-            handleChange={(v: string) => this.handleChange(v)}
-            getNow={() => this.getNow()}
-          />
-        )}
-      </div>
-    );
   }
-}
 
-export default DateTimeControl;
+  // Read latest handleChange/getNow through a ref so the mount-only effect
+  // reflects the {{now}} → current-time substitution without re-firing on
+  // every render.
+  const initRef = React.useRef({ value, handleChange, getNow });
+  initRef.current = { value, handleChange, getNow };
+  React.useEffect(() => {
+    if (initRef.current.value === '{{now}}') {
+      initRef.current.handleChange(initRef.current.getNow());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mirror componentDidMount
+  }, []);
+
+  const { inputType } = getFormat(field, isUtc);
+
+  return (
+    <div
+      className={classNameWrapper}
+      css={css`
+        display: flex !important;
+        gap: 20px;
+        align-items: center;
+      `}
+    >
+      <input
+        id={forID}
+        data-testid={forID}
+        type={inputType}
+        value={value ? formatInputValue(value) : ''}
+        onChange={e => handleChange(e.target.value)}
+        onFocus={setActiveStyle as React.FocusEventHandler<HTMLInputElement>}
+        onBlur={setInactiveStyle as React.FocusEventHandler<HTMLInputElement>}
+        disabled={isDisabled}
+      />
+      {isUtc && (
+        <span
+          css={css`
+            font-size: 0.8em;
+            color: #666;
+          `}
+        >
+          UTC
+        </span>
+      )}
+      {!isDisabled && (
+        <Buttons
+          t={t}
+          fieldName={field.name as string}
+          handleChange={handleChange}
+          getNow={getNow}
+        />
+      )}
+    </div>
+  );
+}
