@@ -21,22 +21,27 @@ let openDialogCallback;
 /**
  * Mock of the uploadcare widget object itself.
  */
-vi.mock('uploadcare-widget', () => ({
-  registerTab: vi.fn(),
-  openDialog: vi.fn(() => ({
-    done: vi.fn(cb => {
-      openDialogCallback = cb;
+vi.mock('uploadcare-widget', () => {
+  const mockUploadcare = {
+    registerTab: vi.fn(),
+    openDialog: vi.fn(() => ({
+      done: vi.fn(cb => {
+        openDialogCallback = cb;
+      }),
+    })),
+    fileFrom: vi.fn((type, url) =>
+      Promise.resolve({
+        testFileUrl: url,
+      }),
+    ),
+    loadFileGroup: () => ({
+      done: cb => cb(),
     }),
-  })),
-  fileFrom: vi.fn((type, url) =>
-    Promise.resolve({
-      testFileUrl: url,
-    }),
-  ),
-  loadFileGroup: () => ({
-    done: cb => cb(),
-  }),
-}));
+  };
+  return { default: mockUploadcare, ...mockUploadcare };
+});
+
+vi.mock('uploadcare-widget-tab-effects', () => ({ default: {} }));
 
 describe('uploadcare media library', () => {
   let handleInsert;
@@ -67,11 +72,11 @@ describe('uploadcare media library', () => {
 
   it('exports an object with expected properties', () => {
     expect(uploadcareMediaLibrary).toMatchInlineSnapshot(`
-Object {
-  "init": [Function],
-  "name": "uploadcare",
-}
-`);
+      {
+        "init": [Function],
+        "name": "uploadcare",
+      }
+    `);
   });
 
   describe('initialization', () => {
