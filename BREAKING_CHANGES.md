@@ -1,6 +1,6 @@
-# Breaking Changes — Decap CMS v2.0 (Beta)
+# Breaking Changes — Decap CMS v4
 
-This document lists breaking changes introduced in the Decap CMS v2.0 beta release.
+This document lists breaking changes introduced in the Decap CMS v4 release line.
 
 ## Removed `window.createClass` support
 

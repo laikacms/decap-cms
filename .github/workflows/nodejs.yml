@@ -19,7 +19,7 @@ jobs:
       cms: ${{ steps.filter.outputs.cms }}
     steps:
       - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v2
+      - uses: dorny/paths-filter@v3
         id: filter
         with:
           filters: |
@@ -40,20 +40,21 @@ jobs:
     if: ${{ needs.changes.outputs.cms == 'true' }}
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           check-latest: true
-          cache: 'npm'
+          cache: 'pnpm'
       - name: log versions
-        run: node --version && npm --version
+        run: node --version && pnpm --version
       - name: install dependencies (skip Cypress binary)
-        run: npm ci
+        run: pnpm install --frozen-lockfile
         env:
           CYPRESS_INSTALL_BINARY: 0
       - name: run lint + types + unit tests
-        run: npm run test:ci
+        run: pnpm run test:ci
 
   e2e:
     needs: changes
@@ -61,34 +62,35 @@ jobs:
     runs-on: depot-ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
       - name: Use Node.js 24.x
         uses: actions/setup-node@v4
         with:
           node-version: 24.x
           check-latest: true
-          cache: 'npm'
-      - name: Cache Nx local cache
+          cache: 'pnpm'
+      - name: Cache turbo cache
         uses: actions/cache@v4
         with:
-          path: .nx/cache
-          key: nx-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: |
-            nx-${{ runner.os }}-
+            turbo-${{ runner.os }}-
       - name: Cache Cypress binary
         uses: actions/cache@v4
         with:
           path: ~/.cache/Cypress
-          key: cypress-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          key: cypress-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: |
             cypress-${{ runner.os }}-
       - name: install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
       - name: build demo site
-        run: npm run build:demo
+        run: pnpm run build:demo
       - name: test package integrity
-        run: npm run test:package-integrity
+        run: pnpm run test:package-integrity
       - name: run e2e tests
-        run: npm run test:e2e:run-ci
+        run: pnpm run test:e2e:run-ci
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           NODE_OPTIONS: --max-old-space-size=4096
@@ -102,4 +104,3 @@ jobs:
           path: |
             cypress/screenshots
             cypress/videos
-

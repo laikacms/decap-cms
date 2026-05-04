@@ -1,36 +1,25 @@
-# Technical Debt
+# Technical debt
 
-## Cleanup Done
-- [x] Remove jest.config.ts from decap-server (migrated to vitest)
+Living list of known issues that aren't urgent enough to block work but should be cleaned up over time. Move items to "Done" rather than deleting them, so the next person can audit what's already been tried.
 
-## Import Issues
-- [x] Direct source imports: `'package/src/file'` → `'package'`
-- [ ] Inconsistent file extensions (.ts vs .tsx)
+## Open
 
-## Type Safety
-- [x] Replace `Map<string, any>` with proper typed records
-- [ ] Remove `as unknown as` double casts in backend.tsx
-- [x] Add missing @types dependencies to packages
+### Type safety
+- [ ] Remove `as unknown as` double casts in `packages/decap-cms-core/src/backend.tsx`.
 
-## Dependencies
-- [x] React 19 peer dependency mismatches (react-aria-menubutton, etc.)
-- [x] Redux 5 peer dependency mismatches (redux-devtools-extension)
-- [x] Slate version mismatches (slate-base64-serializer, slate-plain-serializer)
-- [ ] @iarna+toml uses unsafe eval (remove)
-- [ ] Entry module "packages/decap-cms-app/src/index.ts" is using named (including "DecapCmsApp", "default", "h") and default exports together.
+### Dependencies
+- [ ] Replace `@iarna/toml` — current version uses unsafe `eval` in the parser.
+- [ ] `packages/decap-cms-app/src/index.ts` mixes named (`DecapCmsApp`, `default`, `h`) and default exports; pick one.
 
-## Architecture
-- [x] Put shared types in `decap-cms-lib-util` package
-- [x] Remove Immutable.js
-- [ ] Add ESLint rules for import patterns
-- [ ] Constants contain non-constants: packages/decap-cms-core/src/constants/configSchema.ts
-- [ ] Immutable.js is causing to many problems, policy is to try and avoid using it and replacing it with ES6 syntax (spread operator, ?. operator)
+### Architecture
+- [ ] Add ESLint rules to enforce import patterns (e.g. no `package/src/file` imports).
+- [ ] `packages/decap-cms-core/src/constants/configSchema.ts` contains non-constants — move logic out.
+- [ ] Continue removing leftover Immutable.js helpers; preference is plain ES (`...`, `?.`, `??`).
 
-# Testing
-- [x] Fix failing tests in decap-cms-core
+### File organization
+- [ ] Inconsistent `.ts` vs `.tsx` extensions across packages.
 
-# Ideas
-- [ ] Standard Schema integration (so people can use their zod, joi, effect, etc schemas directly)
-- [ ] Portable text
+## Ideas (not committed)
 
-
+- Standard Schema integration — let users plug in zod / joi / effect schemas directly.
+- Portable text support.
