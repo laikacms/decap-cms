@@ -1,7 +1,6 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
-import { connect } from 'react-redux';
 import {
   Dropdown,
   DropdownItem,
@@ -15,8 +14,6 @@ import {
 type Collections = CmsCollections;
 type Collection = CmsCollectionState;
 
-type State = any;
-
 import { createNewEntry } from '../../actions/collections';
 import {
   loadUnpublishedEntries,
@@ -27,6 +24,7 @@ import {
 import { selectUnpublishedEntriesByStatus } from '../../reducers';
 import { EDITORIAL_WORKFLOW, status } from '../../constants/publishModes';
 import WorkflowList from './WorkflowList';
+import { useAppDispatch, useAppSelector } from '../../hooks/useRedux';
 
 import type { Status } from '../../constants/publishModes';
 import type { CmsCollections, CmsCollectionState } from 'decap-cms-lib-util';
@@ -59,39 +57,31 @@ const WorkflowTopDescription = styled.p`
 `;
 
 interface WorkflowProps {
-  collections: Collections;
-  isEditorialWorkflow: boolean;
-  isOpenAuthoring?: boolean;
-  isFetching?: boolean;
-
-  unpublishedEntries?: Record<string, any>;
-  loadUnpublishedEntries: (collections: Collections) => void;
-  updateUnpublishedEntryStatus: (
-    collection: string,
-    slug: string,
-    oldStatus: string,
-    newStatus: string,
-  ) => void;
-  publishUnpublishedEntry: (collection: string, slug: string) => void;
-  deleteUnpublishedEntry: (collection: string, slug: string) => void;
   t: TranslateFunction;
 }
 
-function Workflow({
-  isEditorialWorkflow,
-  isOpenAuthoring,
-  isFetching,
-  unpublishedEntries,
-  loadUnpublishedEntries,
-  updateUnpublishedEntryStatus,
-  publishUnpublishedEntry,
-  deleteUnpublishedEntry,
-  collections,
-  t,
-}: WorkflowProps) {
+function Workflow({ t }: WorkflowProps) {
+  const dispatch = useAppDispatch();
+  const collections = useAppSelector((state: any) => state.collections as Collections);
+  const isEditorialWorkflow = useAppSelector(
+    (state: any) => state.config.publish_mode === EDITORIAL_WORKFLOW,
+  );
+  const isOpenAuthoring = useAppSelector((state: any) => state.globalUI.useOpenAuthoring);
+  const isFetching = useAppSelector((state: any) =>
+    isEditorialWorkflow ? (state.editorialWorkflow?.pages?.isFetching ?? false) : false,
+  );
+  const unpublishedEntries = useAppSelector((state: any) => {
+    if (!isEditorialWorkflow) return undefined;
+    const result: Record<string, any> = {};
+    Object.values(status).forEach(currStatus => {
+      result[currStatus as string] = selectUnpublishedEntriesByStatus(state, currStatus as Status);
+    });
+    return result;
+  });
+
   React.useEffect(() => {
     if (isEditorialWorkflow) {
-      loadUnpublishedEntries(collections);
+      dispatch(loadUnpublishedEntries(collections));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- match prior componentDidMount semantics
   }, []);
@@ -134,9 +124,16 @@ function Workflow({
       </WorkflowTop>
       {React.createElement(WorkflowList as any, {
         entries: unpublishedEntries,
-        handleChangeStatus: updateUnpublishedEntryStatus,
-        handlePublish: publishUnpublishedEntry,
-        handleDelete: deleteUnpublishedEntry,
+        handleChangeStatus: (
+          collection: string,
+          slug: string,
+          oldStatus: Status,
+          newStatus: Status,
+        ) => dispatch(updateUnpublishedEntryStatus(collection, slug, oldStatus, newStatus)),
+        handlePublish: (collection: string, slug: string) =>
+          dispatch(publishUnpublishedEntry(collection, slug)),
+        handleDelete: (collection: string, slug: string) =>
+          dispatch(deleteUnpublishedEntry(collection, slug)),
         isOpenAuthoring,
         collections,
       })}
@@ -144,42 +141,4 @@ function Workflow({
   );
 }
 
-function mapStateToProps(state: State) {
-  const { collections, config, globalUI } = state;
-  const isEditorialWorkflow = config.publish_mode === EDITORIAL_WORKFLOW;
-  const isOpenAuthoring = globalUI.useOpenAuthoring;
-
-  const returnObj: {
-    collections: Collections;
-    isEditorialWorkflow: boolean;
-
-    isOpenAuthoring: any;
-    isFetching?: boolean;
-
-    unpublishedEntries?: Record<string, any>;
-  } = { collections, isEditorialWorkflow, isOpenAuthoring };
-
-  if (isEditorialWorkflow) {
-    returnObj.isFetching = state.editorialWorkflow?.pages?.isFetching ?? false;
-
-    /*
-     * Generates a plain object of the available status as keys.
-     * Each key containing an array of available unpublished entries
-     */
-
-    const unpublishedEntries: Record<string, any> = {};
-    Object.values(status).forEach(currStatus => {
-      const entries = selectUnpublishedEntriesByStatus(state, currStatus as Status);
-      unpublishedEntries[currStatus as string] = entries;
-    });
-    returnObj.unpublishedEntries = unpublishedEntries;
-  }
-  return returnObj;
-}
-
-export default connect(mapStateToProps, {
-  loadUnpublishedEntries,
-  updateUnpublishedEntryStatus,
-  publishUnpublishedEntry,
-  deleteUnpublishedEntry,
-})(translate()(Workflow as any) as any);
+export default translate()(Workflow as any) as any;

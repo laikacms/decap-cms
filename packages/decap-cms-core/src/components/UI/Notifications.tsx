@@ -1,15 +1,12 @@
 import React, { useEffect } from 'react';
-// import { translate } from 'react-polyglot';
 import 'react-toastify/ReactToastify.css';
 import { toast, ToastContainer } from 'react-toastify';
-import { connect, useDispatch } from 'react-redux';
 import { useTranslate } from 'react-polyglot';
 
 import { dismissNotification } from '../../actions/notifications';
+import { useAppDispatch, useAppSelector } from '../../hooks/useRedux';
 
 import type { Id, ToastItem } from 'react-toastify';
-
-type State = any;
 
 interface CmsNotification {
   id: string;
@@ -20,17 +17,16 @@ interface CmsNotification {
 
 type Notification = CmsNotification;
 
-interface Props {
-  notifications: Notification[];
-}
-
 type IdMap = {
   [id: string]: Id;
 };
 
-function Notifications({ notifications }: Props) {
+export default function Notifications() {
   const t = useTranslate();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
+  const notifications = useAppSelector(
+    (state: any) => state.notifications.notifications as Notification[],
+  );
   const [idMap, setIdMap] = React.useState<IdMap>({});
 
   useEffect(() => {
@@ -81,9 +77,3 @@ function Notifications({ notifications }: Props) {
     </>
   );
 }
-
-function mapStateToProps({ notifications }: State): Props {
-  return { notifications: notifications.notifications };
-}
-
-export default connect(mapStateToProps)(Notifications);

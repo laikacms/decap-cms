@@ -33,13 +33,13 @@ import image from 'decap-cms-editor-component-image';
 import * as locales from 'decap-cms-locales';
 
 // Register all the things
-// CMS.registerBackend('git-gateway', GitGatewayBackend);
-// CMS.registerBackend('azure', AzureBackend);
-// CMS.registerBackend('aws-cognito-github-proxy', AwsCognitoGitHubProxyBackend);
-// CMS.registerBackend('github', GitHubBackend);
-// CMS.registerBackend('gitlab', GitLabBackend);
-// CMS.registerBackend('gitea', GiteaBackend);
-// CMS.registerBackend('bitbucket', BitbucketBackend);
+CMS.registerBackend('git-gateway', GitGatewayBackend);
+CMS.registerBackend('azure', AzureBackend);
+CMS.registerBackend('aws-cognito-github-proxy', AwsCognitoGitHubProxyBackend);
+CMS.registerBackend('github', GitHubBackend);
+CMS.registerBackend('gitlab', GitLabBackend);
+CMS.registerBackend('gitea', GiteaBackend);
+CMS.registerBackend('bitbucket', BitbucketBackend);
 CMS.registerBackend('test-repo', TestBackend);
 CMS.registerBackend('proxy', ProxyBackend);
 [

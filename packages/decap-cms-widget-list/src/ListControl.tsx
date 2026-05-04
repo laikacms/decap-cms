@@ -46,7 +46,6 @@ import type {
 import type { DragEndEvent } from '@dnd-kit/core';
 import type { ComponentType } from 'react';
 
-/** Minimal shape for a widget control ref passed through controlRef */
 interface WidgetControlRef {
   props: { field: CmsFieldBase & CmsFieldList };
   validate?: () => void;
@@ -208,7 +207,6 @@ function validateItem(field: CmsField, item: unknown): boolean {
     );
     return false;
   }
-
   return true;
 }
 
@@ -242,283 +240,153 @@ interface TypeItem {
   label?: string;
 }
 
-interface ListControlProps {
-  /** Metadata for the field's collection, keyed by field name */
+export interface ListControlProps {
   metadata?: Record<string, Record<string, unknown>>;
-  /** Called when the list value changes */
   onChange: (value: unknown[], metadata?: Record<string, unknown>) => void;
-  /** Called when a nested object field changes (provided by Widget wrapper) */
   onChangeObject: (
     field: CmsField,
     newValue: unknown,
     newMetadata?: Record<string, unknown>,
   ) => void;
-  /** Called to set validation errors for a specific field ID */
   onValidateObject: (
     fieldId: string | CmsField,
     errors: Array<{ type: string; message: string }>,
   ) => void;
-  /** Triggers validation on this widget */
   validate: () => void;
-  /** The current list value */
   value?: unknown[] | unknown;
-  /** The field configuration (immutable map with name, label, fields, field, types, etc.) */
   field: CmsFieldBase & CmsFieldList;
-  /** Unique field identifier used for validation and media paths */
   forID: string;
-  /** Callback to register a ref for this control (used by parent for validation) */
   controlRef?: (ref: WidgetControlRef | null) => void;
-  /** Map of media paths keyed by control ID */
   mediaPaths: Record<string, string>;
-  /** Returns an asset proxy for a given path and field */
   getAsset: (
     path: string,
     field: CmsField,
   ) => { toString: () => string; url: string; path: string };
-  /** Opens the media library with the given options */
   onOpenMediaLibrary: (options: Record<string, unknown>) => void;
-  /** Adds an asset to the store */
   onAddAsset: (asset: unknown) => void;
-  /** Removes inserted media for a given control ID */
   onRemoveInsertedMedia: (controlID: string) => void;
-  /** CSS class name for the widget wrapper */
   classNameWrapper: string;
-  /** Sets the active (focused) style on the widget */
   setActiveStyle: () => void;
-  /** Sets the inactive (blurred) style on the widget */
   setInactiveStyle: () => void;
-  /** The connected EditorControl component, used to render nested fields */
   editorControl: ComponentType<Record<string, unknown>>;
-  /** Resolves a widget by name, returning its control/preview components */
   resolveWidget: (name: string) => Record<string, unknown>;
-  /** Clears field errors for a given field ID */
   clearFieldErrors: (fieldId: string | undefined) => void;
-  /** Map of field IDs to arrays of validation errors */
   fieldsErrors: Record<string, Array<{ type: string; message: string; parentIds?: string[] }>>;
-  /** The current entry (immutable map with path, data, etc.) */
   entry: CmsEntry;
-  /** Translation function */
   t: TranslateFunction;
-  /** Parent field IDs for nested validation tracking */
   parentIds?: string[];
 }
 
-interface ListControlState {
-  listCollapsed: boolean;
-  itemsCollapsed: boolean[];
-  value: string;
-  keys: string[];
+export interface ListControlHandle {
+  validate(): void;
+  focus(path: string): void;
 }
 
 type ChildRef = any;
 
-export default class ListControl extends React.Component<ListControlProps, ListControlState> {
-  childRefs: Record<string, ChildRef> = {};
-
-  static defaultProps = {
-    value: [],
-    parentIds: [],
-  };
-
-  constructor(props: ListControlProps) {
-    super(props);
-    const { field, value: valueInput } = props;
-    const value = Array.isArray(valueInput) ? valueInput : valueInput ? [valueInput] : [];
-    const listCollapsed = field.collapsed ?? true;
-    const itemsCollapsed = (value && Array(value.length).fill(listCollapsed)) || [];
-    const keys = (value && Array.from({ length: value.length }, () => uuid())) || [];
-
-    this.state = {
-      listCollapsed,
-      itemsCollapsed,
-      value: this.valueToString(value),
-      keys,
-    };
+function valueToString(value: unknown, fieldName: string): string {
+  let stringValue;
+  if (Array.isArray(value)) {
+    stringValue = value.join(',');
+  } else {
+    console.warn(
+      `Expected List value to be an array but received '${value}' with type of '${typeof value}'. Please check the value provided to the '${fieldName}' field`,
+    );
+    stringValue = String(value);
   }
+  return stringValue.replace(/,([^\s]|$)/g, ', $1');
+}
 
-  valueToString = (value: unknown): string => {
-    let stringValue;
-    if (Array.isArray(value)) {
-      stringValue = value.join(',');
-    } else {
-      console.warn(
-        `Expected List value to be an array but received '${value}' with type of '${typeof value}'. Please check the value provided to the '${this.props.field.name}' field`,
-      );
-      stringValue = String(value);
-    }
-    return stringValue.replace(/,([^\s]|$)/g, ', $1');
-  };
+function getFieldsDefault(
+  fields: any,
+  initialValue: Record<string, unknown> = {},
+): Record<string, unknown> {
+  return fields.reduce((acc: Record<string, unknown>, item: any) => {
+    const subfields = item.field || item.fields;
+    const object = item.widget == 'object';
+    const name = item.name;
+    const defaultValue = item.default ?? null;
 
-  getValueType = (): string | null => {
-    const { field } = this.props;
-    if (field.fields) {
-      return valueTypes.MULTIPLE;
-    } else if (field.field) {
-      return valueTypes.SINGLE;
-    } else if (field[TYPES_KEY]) {
-      return valueTypes.MIXED;
-    } else {
-      return null;
-    }
-  };
-
-  uniqueFieldId = uniqueId(`${this.props.field.name}-field-`);
-  /**
-   * Old comment:
-   *
-   * Always update so that each nested widget has the option to update. This is
-   * required because ControlHOC provides a default `shouldComponentUpdate`
-   * which only updates if the value changes, but every widget must be allowed
-   * to override this.
-   *
-   * New comment:
-   *
-   * Each Widget is wrapped with EditorControl which already tries to update every time.
-   * Is there a specific reason we need to always rerender the list?
-   * This seems overkill.
-   */
-  shouldComponentUpdate() {
-    return true;
-  }
-
-  handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { onChange } = this.props;
-    const oldValue = this.state.value;
-    const newValue = e.target.value.trim();
-    const listValue = newValue ? newValue.split(',') : [];
-    if (newValue.match(/,$/) && oldValue.match(/, $/)) {
-      listValue.pop();
-    }
-
-    const parsedValue = this.valueToString(listValue);
-    this.setState({ value: parsedValue });
-    onChange(listValue.map((val: string) => val.trim()));
-  };
-
-  handleFocus = () => {
-    this.props.setActiveStyle();
-  };
-
-  handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const listValue = e.target.value
-      .split(',')
-      .map((el: string) => el.trim())
-      .filter((el: string) => el);
-    this.setState({ value: this.valueToString(listValue) });
-    this.props.setInactiveStyle();
-  };
-
-  handleAdd = (e: React.MouseEvent) => {
-    e.preventDefault();
-    const { field } = this.props;
-    const parsedValue =
-      this.getValueType() === valueTypes.SINGLE
-        ? this.singleDefault()
-        : this.multipleDefault(field.fields);
-    this.addItem(parsedValue);
-  };
-
-  singleDefault = () => {
-    return get(this.props.field, ['field', 'default'], null);
-  };
-
-  multipleDefault = (fields: unknown) => {
-    return this.getFieldsDefault(fields);
-  };
-
-  handleAddType = (type: string, typeKey: string) => {
-    const parsedValue = this.mixedDefault(typeKey, type);
-    this.addItem(parsedValue);
-  };
-
-  mixedDefault = (typeKey: string, type: string) => {
-    const selectedType = (this.props.field[TYPES_KEY] as CmsField[]).find(
-      (f: CmsField) => f.name === type,
-    ) as CmsField & { fields?: CmsField[] | unknown; field?: CmsField | unknown };
-    const fields = selectedType?.fields || [selectedType?.field];
-
-    return this.getFieldsDefault(fields, { [typeKey]: type });
-  };
-
-  getFieldsDefault = (
-    fields: any,
-    initialValue: Record<string, unknown> = {},
-  ): Record<string, unknown> => {
-    return fields.reduce((acc: Record<string, unknown>, item: any) => {
-      const subfields = item.field || item.fields;
-      const object = item.widget == 'object';
-      const name = item.name;
-      const defaultValue = item.default ?? null;
-
-      if (Array.isArray(subfields) && object) {
-        const subDefaultValue = this.getFieldsDefault(subfields);
-        if (!isEmpty(subDefaultValue)) {
-          acc[name] = subDefaultValue;
-        }
-        return acc;
+    if (Array.isArray(subfields) && object) {
+      const subDefaultValue = getFieldsDefault(subfields);
+      if (!isEmpty(subDefaultValue)) {
+        acc[name] = subDefaultValue;
       }
-
-      if (isObject(subfields) && object) {
-        const subDefaultValue = this.getFieldsDefault([subfields]);
-        if (!isEmpty(subDefaultValue)) {
-          acc[name] = subDefaultValue;
-        }
-        return acc;
-      }
-
-      if (defaultValue !== null) {
-        acc[name] = defaultValue;
-      }
-
       return acc;
-    }, initialValue);
-  };
-
-  addItem = (parsedValue: unknown) => {
-    const { value, onChange, field } = this.props;
-    const addToTop = field.add_to_top ?? false;
-
-    const itemKey = uuid();
-    this.setState({
-      itemsCollapsed: addToTop
-        ? [false, ...this.state.itemsCollapsed]
-        : [...this.state.itemsCollapsed, false],
-      keys: addToTop ? [itemKey, ...this.state.keys] : [...this.state.keys, itemKey],
-    });
-
-    const listValue = Array.isArray(value) ? value : value ? [value] : [];
-    if (addToTop) {
-      onChange([parsedValue, ...listValue]);
-    } else {
-      onChange([...listValue, parsedValue]);
     }
-  };
 
-  processControlRef = (ref: ChildRef) => {
-    if (!ref) return;
-    const {
-      props: { validationKey: key },
-    } = ref;
-    this.childRefs[key] = ref;
-    this.props.controlRef?.(this);
-  };
-
-  validate = () => {
-    // First validate child widgets if this is a complex list
-    const hasChildWidgets = this.getValueType() && Object.keys(this.childRefs).length > 0;
-    if (hasChildWidgets) {
-      Object.values(this.childRefs).forEach((widget: ChildRef) => {
-        widget?.validate?.();
-      });
-    } else {
-      this.props.validate();
+    if (isObject(subfields) && object) {
+      const subDefaultValue = getFieldsDefault([subfields]);
+      if (!isEmpty(subDefaultValue)) {
+        acc[name] = subDefaultValue;
+      }
+      return acc;
     }
-    this.props.onValidateObject(this.props.forID, this.validateSize());
-  };
 
-  validateSize = () => {
-    const { field, value: valueInput, t } = this.props;
-    const value = Array.isArray(valueInput) ? valueInput : valueInput ? [valueInput] : [];
+    if (defaultValue !== null) {
+      acc[name] = defaultValue;
+    }
+
+    return acc;
+  }, initialValue);
+}
+
+const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(function ListControl(
+  props,
+  ref,
+) {
+  const {
+    field,
+    value: inputValue = [],
+    forID,
+    classNameWrapper,
+    editorControl,
+    onValidateObject,
+    metadata,
+    clearFieldErrors,
+    fieldsErrors,
+    controlRef,
+    resolveWidget,
+    parentIds = [],
+    entry,
+    t,
+    setActiveStyle,
+    setInactiveStyle,
+    onChange,
+  } = props;
+
+  const childRefs = React.useRef<Record<string, ChildRef>>({});
+  const uniqueFieldIdRef = React.useRef<string>('');
+  if (!uniqueFieldIdRef.current) {
+    uniqueFieldIdRef.current = uniqueId(`${field.name}-field-`);
+  }
+  const uniqueFieldId = uniqueFieldIdRef.current;
+
+  const initialArrayValue = Array.isArray(inputValue)
+    ? inputValue
+    : inputValue
+      ? [inputValue]
+      : [];
+  const initialListCollapsed = field.collapsed ?? true;
+
+  const [listCollapsed, setListCollapsed] = React.useState<boolean>(initialListCollapsed);
+  const [itemsCollapsed, setItemsCollapsed] = React.useState<boolean[]>(
+    () => initialArrayValue.map(() => initialListCollapsed) || [],
+  );
+  const [stringValue, setStringValue] = React.useState<string>(() =>
+    valueToString(initialArrayValue, field.name),
+  );
+  const [keys, setKeys] = React.useState<string[]>(() => initialArrayValue.map(() => uuid()));
+
+  function getValueType(): string | null {
+    if (field.fields) return valueTypes.MULTIPLE;
+    if (field.field) return valueTypes.SINGLE;
+    if (field[TYPES_KEY]) return valueTypes.MIXED;
+    return null;
+  }
+
+  function validateSize() {
+    const value = Array.isArray(inputValue) ? inputValue : inputValue ? [inputValue] : [];
     const min = field.min;
     const max = field.max;
     const required = field.required ?? true;
@@ -536,65 +404,203 @@ export default class ListControl extends React.Component<ListControlProps, ListC
     );
 
     return error ? [error] : [];
+  }
+
+  // Latest state/props for the imperative handle so callers that captured the
+  // handle once keep seeing the current value.
+  const latestRef = React.useRef({
+    listCollapsed,
+    itemsCollapsed,
+    keys,
+    propsValidate: props.validate,
+    onValidateObject,
+    forID,
+  });
+  latestRef.current = {
+    listCollapsed,
+    itemsCollapsed,
+    keys,
+    propsValidate: props.validate,
+    onValidateObject,
+    forID,
   };
 
-  /**
-   * In case the `onChangeObject` function is frozen by a child widget implementation,
-   * e.g. when debounced, always get the latest object value instead of using
-   * `this.props.value` directly.
-   */
-  getObjectValue = (idx: number) =>
-    ((this.props.value as unknown[])[idx] || {}) as Record<string, unknown>;
+  // Pending focus for after a setState-triggered re-render expanded the items.
+  const pendingFocusRef = React.useRef<{ index: number; remainingPath: string } | null>(null);
 
-  handleChangeFor = memoize((index: number) => {
-    return (f: CmsField, newValue: unknown, newMetadata: Record<string, unknown>) => {
-      const { value: inputValue, metadata, onChange, field } = this.props;
-      const value = Array.isArray(inputValue) ? inputValue : inputValue ? [inputValue] : [];
-      const collectionName = field.name;
-      const isListFieldObjectWidget = get(field, ['field', 'widget']) === 'object';
-      const withNameKey =
-        this.getValueType() !== valueTypes.SINGLE ||
-        (this.getValueType() === valueTypes.SINGLE && isListFieldObjectWidget);
-      let newObjectValue;
-      if (withNameKey) {
-        const name = f.name;
-        const ov = this.getObjectValue(index);
-        ov[name] = newValue;
-        newObjectValue = ov;
-      } else {
-        newObjectValue = newValue;
-      }
-      const parsedMetadata = {
-        [collectionName]: Object.assign(metadata ?? {}, newMetadata || {}),
-      };
+  React.useImperativeHandle(
+    ref,
+    () => ({
+      validate() {
+        const hasChildWidgets = getValueType() && Object.keys(childRefs.current).length > 0;
+        if (hasChildWidgets) {
+          Object.values(childRefs.current).forEach((widget: ChildRef) => {
+            widget?.validate?.();
+          });
+        } else {
+          latestRef.current.propsValidate();
+        }
+        latestRef.current.onValidateObject(latestRef.current.forID, validateSize());
+      },
+      focus(path: string) {
+        const [indexStr, ...remainingPath] = path.split('.');
+        const index = Number(indexStr);
+        const { listCollapsed: lc, itemsCollapsed: ic, keys: ks } = latestRef.current;
 
-      value[index] = newObjectValue;
+        if (lc || ic[index]) {
+          // Defer focus until after expansion renders.
+          pendingFocusRef.current = { index, remainingPath: remainingPath.join('.') };
+          setListCollapsed(false);
+          setItemsCollapsed(prev => {
+            const next = [...prev];
+            next[index] = false;
+            return next;
+          });
+        } else {
+          const key = ks[index];
+          const control = childRefs.current[key];
+          control?.focus?.(remainingPath.join('.'));
+        }
+      },
+    }),
+    [],
+  );
 
-      onChange(value, parsedMetadata);
-    };
-  });
+  // Apply pending focus after items expand.
+  React.useEffect(() => {
+    const pending = pendingFocusRef.current;
+    if (!pending) return;
+    if (listCollapsed || itemsCollapsed[pending.index]) return;
+    pendingFocusRef.current = null;
+    const key = keys[pending.index];
+    const control = childRefs.current[key];
+    control?.focus?.(pending.remainingPath);
+  }, [listCollapsed, itemsCollapsed, keys]);
 
-  handleRemove = (index: number, event: React.MouseEvent) => {
-    event.preventDefault();
-    const { itemsCollapsed } = this.state;
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const oldValue = stringValue;
+    const newValue = e.target.value.trim();
+    const listValue = newValue ? newValue.split(',') : [];
+    if (newValue.match(/,$/) && oldValue.match(/, $/)) {
+      listValue.pop();
+    }
+
+    const parsedValue = valueToString(listValue, field.name);
+    setStringValue(parsedValue);
+    onChange(listValue.map((val: string) => val.trim()));
+  }
+
+  function handleFocus() {
+    setActiveStyle();
+  }
+
+  function handleBlur(e: React.FocusEvent<HTMLInputElement>) {
+    const listValue = e.target.value
+      .split(',')
+      .map((el: string) => el.trim())
+      .filter((el: string) => el);
+    setStringValue(valueToString(listValue, field.name));
+    setInactiveStyle();
+  }
+
+  function singleDefault() {
+    return get(field, ['field', 'default'], null);
+  }
+
+  function multipleDefault(fields: unknown) {
+    return getFieldsDefault(fields);
+  }
+
+  function mixedDefault(typeKey: string, type: string) {
+    const selectedType = (field[TYPES_KEY] as CmsField[]).find(
+      (f: CmsField) => f.name === type,
+    ) as CmsField & { fields?: CmsField[] | unknown; field?: CmsField | unknown };
+    const fields = selectedType?.fields || [selectedType?.field];
+    return getFieldsDefault(fields, { [typeKey]: type });
+  }
+
+  function addItem(parsedValue: unknown) {
+    const addToTop = field.add_to_top ?? false;
+    const itemKey = uuid();
+    setItemsCollapsed(prev => (addToTop ? [false, ...prev] : [...prev, false]));
+    setKeys(prev => (addToTop ? [itemKey, ...prev] : [...prev, itemKey]));
+
+    const listValue = Array.isArray(inputValue) ? inputValue : inputValue ? [inputValue] : [];
+    if (addToTop) {
+      onChange([parsedValue, ...listValue]);
+    } else {
+      onChange([...listValue, parsedValue]);
+    }
+  }
+
+  function handleAdd(e: React.MouseEvent) {
+    e.preventDefault();
+    const parsedValue =
+      getValueType() === valueTypes.SINGLE ? singleDefault() : multipleDefault(field.fields);
+    addItem(parsedValue);
+  }
+
+  function handleAddType(type: string, typeKey: string) {
+    addItem(mixedDefault(typeKey, type));
+  }
+
+  function processControlRef(childRef: ChildRef) {
+    if (!childRef) return;
     const {
-      value: inputValue,
-      metadata,
-      onChange,
-      field,
-      clearFieldErrors,
-      onValidateObject,
-      forID,
-      fieldsErrors,
-    } = this.props;
+      props: { validationKey: key },
+    } = childRef;
+    childRefs.current[key] = childRef;
+  }
 
+  function getObjectValue(idx: number) {
+    return ((inputValue as unknown[])[idx] || {}) as Record<string, unknown>;
+  }
+
+  const handleChangeFor = React.useMemo(
+    () =>
+      memoize((index: number) => {
+        return (f: CmsField, newValue: unknown, newMetadata: Record<string, unknown>) => {
+          const value = Array.isArray(inputValue)
+            ? inputValue
+            : inputValue
+              ? [inputValue]
+              : [];
+          const collectionName = field.name;
+          const isListFieldObjectWidget = get(field, ['field', 'widget']) === 'object';
+          const withNameKey =
+            getValueType() !== valueTypes.SINGLE ||
+            (getValueType() === valueTypes.SINGLE && isListFieldObjectWidget);
+          let newObjectValue;
+          if (withNameKey) {
+            const name = f.name;
+            const ov = getObjectValue(index);
+            ov[name] = newValue;
+            newObjectValue = ov;
+          } else {
+            newObjectValue = newValue;
+          }
+          const parsedMetadata = {
+            [collectionName]: Object.assign(metadata ?? {}, newMetadata || {}),
+          };
+
+          value[index] = newObjectValue;
+          onChange(value, parsedMetadata);
+        };
+      }),
+    // Recreate when value identity changes so closures see latest value.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [inputValue, metadata, field, onChange],
+  );
+
+  function handleRemove(index: number, event: React.MouseEvent) {
+    event.preventDefault();
     const collectionName = field.name;
-    const isSingleField = this.getValueType() === valueTypes.SINGLE;
+    const isSingleField = getValueType() === valueTypes.SINGLE;
     const value =
       inputValue && Array.isArray(inputValue) ? inputValue : inputValue ? [inputValue] : [];
 
     const val = { ...value };
-    const metadataRemovePath = isSingleField ? val[index] : Object.values(val[index]); // TODO: Is this the correct way to get the metadata path for a list item with multiple fields? - Sem
+    const metadataRemovePath = isSingleField ? val[index] : Object.values(val[index]);
     const parsedMetadata =
       metadata && !isEmpty(metadata)
         ? {
@@ -602,23 +608,18 @@ export default class ListControl extends React.Component<ListControlProps, ListC
           }
         : metadata;
 
-    // Get the key of the item being removed
-    const removedKey = this.state.keys[index];
+    const removedKey = keys[index];
 
-    // Update state while preserving keys for remaining items
-    const newKeys = [...this.state.keys];
+    const newKeys = [...keys];
     newKeys.splice(index, 1);
-    itemsCollapsed.splice(index, 1);
+    const newItemsCollapsed = [...itemsCollapsed];
+    newItemsCollapsed.splice(index, 1);
 
-    this.setState({
-      itemsCollapsed: [...itemsCollapsed],
-      keys: newKeys,
-    });
+    setItemsCollapsed(newItemsCollapsed);
+    setKeys(newKeys);
 
-    // Clear the ref for the removed item
-    delete this.childRefs[removedKey];
+    delete childRefs.current[removedKey];
 
-    // Remove the item from the array
     const newValue = value.filter((_: unknown, i: number) => i !== index);
 
     if (fieldsErrors) {
@@ -629,83 +630,62 @@ export default class ListControl extends React.Component<ListControlProps, ListC
       });
     }
 
-    // If list is empty, mark it as valid
     if (newValue.length === 0) {
       clearFieldErrors(forID);
       onValidateObject(forID, []);
     }
 
-    // Update the value last to ensure all error states are cleared
     onChange(newValue, parsedMetadata);
-  };
+  }
 
-  handleItemCollapseToggle = (index: number, event: React.MouseEvent) => {
+  function handleItemCollapseToggle(index: number, event: React.MouseEvent) {
     event.preventDefault();
-    const { itemsCollapsed } = this.state;
-    const newItemsCollapsed = itemsCollapsed.map((collapsed: boolean, itemIndex: number) => {
-      if (index === itemIndex) {
-        return !collapsed;
-      }
-      return collapsed;
-    });
-    this.setState({
-      itemsCollapsed: newItemsCollapsed,
-    });
-  };
+    setItemsCollapsed(prev =>
+      prev.map((collapsed: boolean, i: number) => (i === index ? !collapsed : collapsed)),
+    );
+  }
 
-  handleCollapseAllToggle = (e: React.MouseEvent) => {
+  function handleCollapseAllToggle(e: React.MouseEvent) {
     e.preventDefault();
-    const { value: inputValue, field } = this.props;
     const value =
       inputValue && Array.isArray(inputValue) ? inputValue : inputValue ? [inputValue] : [];
-    const { itemsCollapsed, listCollapsed } = this.state;
     const minimizeCollapsedItems = field.minimize_collapsed ?? false;
     const listCollapsedByDefault = field.collapsed ?? true;
     const allItemsCollapsed = itemsCollapsed.every((val: boolean) => val === true);
 
     if (minimizeCollapsedItems) {
       let updatedItemsCollapsed = itemsCollapsed;
-      // Only allow collapsing all items in this mode but not opening all at once
       if (!listCollapsed || !listCollapsedByDefault) {
         updatedItemsCollapsed = Array(value.length).fill(!listCollapsed);
       }
-      this.setState({ listCollapsed: !listCollapsed, itemsCollapsed: updatedItemsCollapsed });
+      setListCollapsed(prev => !prev);
+      setItemsCollapsed(updatedItemsCollapsed);
     } else {
-      this.setState({
-        itemsCollapsed: Array(value.length).fill(!allItemsCollapsed),
-      });
+      setItemsCollapsed(Array(value.length).fill(!allItemsCollapsed));
     }
-  };
+  }
 
-  objectLabel(item: unknown) {
-    const { field, entry } = this.props;
-    const valueType = this.getValueType();
+  function objectLabel(item: unknown) {
+    const valueType = getValueType();
     switch (valueType) {
       case valueTypes.MIXED: {
-        if (!validateItem(field, item)) {
-          return;
-        }
+        if (!validateItem(field, item)) return;
         const itemType = getTypedFieldForValue(field, item);
         const label = itemType?.label ?? itemType?.name ?? '';
-        // each type can have its own summary, but default to the list summary if exists
         const summary = get(itemType, 'summary', field?.summary);
-        const labelReturn = summary
+        return summary
           ? handleSummary(summary, entry, label, item as Record<string, string>)
           : label;
-        return labelReturn;
       }
       case valueTypes.SINGLE: {
         const singleField = field.field;
         const label = singleField?.label ?? singleField?.name ?? '';
         const summary = field?.summary;
         const data = { [singleField?.name ?? '']: item as string };
-        const labelReturn = summary ? handleSummary(summary, entry, label, data) : label;
-        return labelReturn;
+        return summary ? handleSummary(summary, entry, label, data) : label;
       }
       case valueTypes.MULTIPLE: {
-        if (!validateItem(field, item)) {
-          return;
-        }
+        if (!validateItem(field, item)) return;
         const multiFields = field.fields;
         const labelField = multiFields && multiFields?.[0];
         const value = get(item, labelField?.name ?? '', '');
@@ -719,106 +699,63 @@ export default class ListControl extends React.Component<ListControlProps, ListC
     return '';
   }
 
-  onSortEnd = ({ oldIndex, newIndex }: { oldIndex: number; newIndex: number }) => {
-    const { value: inputValue } = this.props;
+  function onSortEnd({ oldIndex, newIndex }: { oldIndex: number; newIndex: number }) {
     const value =
       inputValue && Array.isArray(inputValue) ? inputValue : inputValue ? [inputValue] : [];
-    const { itemsCollapsed, keys } = this.state;
 
     const val = { ...value };
-    // Update value
     const item = val[oldIndex];
     val.splice(oldIndex, 1);
     val.splice(newIndex, 0, item);
-    this.props.onChange(val);
+    onChange(val);
 
-    // Update collapsing
     const collapsed = itemsCollapsed[oldIndex];
-    itemsCollapsed.splice(oldIndex, 1);
-    const updatedItemsCollapsed = [...itemsCollapsed];
+    const next = [...itemsCollapsed];
+    next.splice(oldIndex, 1);
+    const updatedItemsCollapsed = [...next];
     updatedItemsCollapsed.splice(newIndex, 0, collapsed);
 
-    // Move keys to maintain relationships
     const movedKey = keys[oldIndex];
     const updatedKeys = [...keys];
     updatedKeys.splice(oldIndex, 1);
     updatedKeys.splice(newIndex, 0, movedKey);
 
-    this.setState({ itemsCollapsed: updatedItemsCollapsed, keys: updatedKeys });
-  };
+    setItemsCollapsed(updatedItemsCollapsed);
+    setKeys(updatedKeys);
+  }
 
-  hasError = (index: number) => {
-    const { fieldsErrors } = this.props;
+  function hasError(index: number) {
     if (fieldsErrors && !isEmpty(fieldsErrors)) {
       return Object.values(fieldsErrors).some((arr: any) =>
-        arr.some((err: any) => err.parentIds && err.parentIds.includes(this.state.keys[index])),
+        arr.some((err: any) => err.parentIds && err.parentIds.includes(keys[index])),
       );
-    }
-  };
-
-  focus(path: string) {
-    const [index, ...remainingPath] = path.split('.');
-
-    if (this.state.listCollapsed || this.state.itemsCollapsed[Number(index)]) {
-      const newItemsCollapsed = [...this.state.itemsCollapsed];
-      newItemsCollapsed[Number(index)] = false;
-      this.setState(
-        {
-          listCollapsed: false,
-          itemsCollapsed: newItemsCollapsed,
-        },
-        () => {
-          const key = this.state.keys[Number(index)];
-          const control = this.childRefs[key];
-          if (control?.focus) {
-            control.focus(remainingPath.join('.'));
-          }
-        },
-      );
-    } else {
-      const key = this.state.keys[Number(index)];
-      const control = this.childRefs[key];
-      if (control?.focus) {
-        control.focus(remainingPath.join('.'));
-      }
     }
   }
 
-  getStableParentIds = memoize(
-    (parentIds: string[], forID: string | undefined, key: string) => [
-      ...parentIds,
-      forID ?? '',
-      key,
-    ],
-    (parentIds: string[], forID: string | undefined, key: string) =>
-      JSON.stringify([...parentIds, forID, key]),
+  const getStableParentIds = React.useMemo(
+    () =>
+      memoize(
+        (parentIdsArr: string[], forIDArg: string | undefined, key: string) => [
+          ...parentIdsArr,
+          forIDArg ?? '',
+          key,
+        ],
+        (parentIdsArr: string[], forIDArg: string | undefined, key: string) =>
+          JSON.stringify([...parentIdsArr, forIDArg, key]),
+      ),
+    [],
   );
 
-  renderItem = (item: unknown, index: number) => {
-    const {
-      classNameWrapper,
-      editorControl,
-      onValidateObject,
-      metadata,
-      clearFieldErrors,
-      fieldsErrors,
-      controlRef,
-      resolveWidget,
-      parentIds = [],
-      forID,
-      t,
-    } = this.props;
-
-    const { itemsCollapsed, keys } = this.state;
+  function renderItem(item: unknown, index: number) {
     const collapsed = itemsCollapsed[index];
     const key = keys[index];
-    let field: CmsField | undefined = this.props.field;
-    const hasError = this.hasError(index);
-    const isVariableTypesList = this.getValueType() === valueTypes.MIXED;
+    let f: CmsField | undefined = field;
+    const itemHasError = hasError(index);
+    const isVariableTypesList = getValueType() === valueTypes.MIXED;
     if (isVariableTypesList) {
-      field = getTypedFieldForValue(field!, item);
-      if (!field) {
-        return this.renderErroneousTypedItem(index, item);
+      f = getTypedFieldForValue(f!, item);
+      if (!f) {
+        return renderErroneousTypedItem(index, item);
       }
     }
 
@@ -832,45 +769,40 @@ export default class ListControl extends React.Component<ListControlProps, ListC
       >
         {isVariableTypesList && (
           <LabelComponent
-            field={field!}
+            field={f!}
             isActive={false}
-            hasErrors={hasError}
-            uniqueFieldId={this.uniqueFieldId}
-            isFieldOptional={field.required === false}
+            hasErrors={itemHasError}
+            uniqueFieldId={uniqueFieldId}
+            isFieldOptional={f.required === false}
             t={t}
           />
         )}
         <StyledListItemTopBar
           collapsed={collapsed}
           onCollapseToggle={() =>
-            this.handleItemCollapseToggle(index, { preventDefault: () => {} } as React.MouseEvent)
+            handleItemCollapseToggle(index, { preventDefault: () => {} } as React.MouseEvent)
           }
           dragHandle={DragHandle}
           id={key}
-          allowRemove={field!.allow_remove ?? true}
-          allowReorder={field!.allow_reorder ?? true}
-          onRemove={() =>
-            this.handleRemove(index, { preventDefault: () => {} } as React.MouseEvent)
-          }
+          allowRemove={f!.allow_remove ?? true}
+          allowReorder={f!.allow_reorder ?? true}
+          onRemove={() => handleRemove(index, { preventDefault: () => {} } as React.MouseEvent)}
           data-testid={`styled-list-item-top-bar-${key}`}
         />
-        <NestedObjectLabel collapsed={collapsed} error={hasError}>
-          {this.objectLabel(item)}
+        <NestedObjectLabel collapsed={collapsed} error={itemHasError}>
+          {objectLabel(item)}
         </NestedObjectLabel>
         <ClassNames>
-          {({ css, cx }) => (
+          {({ css: cn, cx }) => (
             <ObjectControl
               classNameWrapper={cx(classNameWrapper, {
-                [css`
+                [cn`
                   ${styleStrings.collapsedObjectControl};
                 `]: collapsed,
               })}
               value={item as Record<string, unknown>}
-              field={
-                field as CmsFieldObject &
-                  CmsFieldBase /* It seems to me that the nested field should be passed but maybe this is a hack to pass the field to the object widget and have it render the field or fields properties? */
-              }
-              onChangeObject={this.handleChangeFor(index) as (...args: unknown[]) => unknown}
+              field={f as CmsFieldObject & CmsFieldBase}
+              onChangeObject={handleChangeFor(index) as (...args: unknown[]) => unknown}
               editorControl={editorControl}
               resolveWidget={resolveWidget}
               metadata={metadata}
@@ -878,23 +810,22 @@ export default class ListControl extends React.Component<ListControlProps, ListC
               onValidateObject={onValidateObject}
               clearFieldErrors={clearFieldErrors}
               fieldsErrors={fieldsErrors}
-              ref={this.processControlRef}
-              controlRef={controlRef as any /* TODO: Fix strange typescript error */}
+              ref={processControlRef}
+              controlRef={controlRef as any}
               validationKey={key}
               t={t}
               collapsed={collapsed}
               data-testid={`object-control-${key}`}
-              hasError={hasError}
-              parentIds={this.getStableParentIds(parentIds, forID, key)}
+              hasError={itemHasError}
+              parentIds={getStableParentIds(parentIds, forID, key)}
             />
           )}
         </ClassNames>
       </SortableListItem>
     );
-  };
+  }
 
-  renderErroneousTypedItem(index: number, item: unknown) {
-    const field = this.props.field;
+  function renderErroneousTypedItem(index: number, item: unknown) {
     const errorMessage = getErrorMessageForTypedFieldAndValue(
       field,
       item as Record<string, unknown>,
@@ -909,9 +840,7 @@ export default class ListControl extends React.Component<ListControlProps, ListC
       >
         <StyledListItemTopBar
           onCollapseToggle={undefined}
-          onRemove={() =>
-            this.handleRemove(index, { preventDefault: () => {} } as React.MouseEvent)
-          }
+          onRemove={() => handleRemove(index, { preventDefault: () => {} } as React.MouseEvent)}
           dragHandle={DragHandle}
           id={key}
         />
@@ -922,11 +851,9 @@ export default class ListControl extends React.Component<ListControlProps, ListC
     );
   }
 
-  renderListControl() {
-    const { value: inputValue, forID, field, classNameWrapper, t } = this.props;
+  function renderListControl() {
     const value =
       inputValue && Array.isArray(inputValue) ? inputValue : inputValue ? [inputValue] : [];
-    const { itemsCollapsed, listCollapsed, keys } = this.state;
     const items = value || [];
     const label = field.label ?? field.name;
     const labelSingular = field.label_singular ?? field.label ?? field.name;
@@ -939,32 +866,32 @@ export default class ListControl extends React.Component<ListControlProps, ListC
 
     return (
       <ClassNames>
-        {({ cx, css }) => (
+        {({ cx, css: cn }) => (
           <div
             id={forID}
             className={cx(
               classNameWrapper,
-              css`
+              cn`
                 ${styleStrings.objectWidgetTopBarContainer}
               `,
             )}
           >
             <ObjectWidgetTopBar
               allowAdd={field.allow_add ?? true}
-              onAdd={() => this.handleAdd({ preventDefault: () => {} } as React.MouseEvent)}
-              types={field[TYPES_KEY] as unknown as TypeItem[]} // TODO: Check types
-              onAddType={(type: string) => this.handleAddType(type, resolveFieldKeyType(field))}
+              onAdd={() => handleAdd({ preventDefault: () => {} } as React.MouseEvent)}
+              types={field[TYPES_KEY] as unknown as TypeItem[]}
+              onAddType={(type: string) => handleAddType(type, resolveFieldKeyType(field))}
               heading={`${items.length} ${listLabel}`}
               label={labelSingular.toLowerCase()}
               onCollapseToggle={() =>
-                this.handleCollapseAllToggle({ preventDefault: () => {} } as React.MouseEvent)
+                handleCollapseAllToggle({ preventDefault: () => {} } as React.MouseEvent)
               }
               collapsed={selfCollapsed}
               t={t!}
             />
             {(!selfCollapsed || !minimizeCollapsedItems) && (
-              <SortableList items={itemsArray} keys={keys} onSortEnd={this.onSortEnd}>
-                {items.map(this.renderItem)}
+              <SortableList items={itemsArray} keys={keys} onSortEnd={onSortEnd}>
+                {items.map(renderItem)}
               </SortableList>
             )}
           </div>
@@ -973,28 +900,24 @@ export default class ListControl extends React.Component<ListControlProps, ListC
     );
   }
 
-  renderInput() {
-    const { forID, classNameWrapper } = this.props;
-    const { value } = this.state;
-
+  function renderInput() {
     return (
       <input
         type="text"
         id={forID}
-        value={value}
-        onChange={this.handleChange}
-        onFocus={this.handleFocus}
-        onBlur={this.handleBlur}
+        value={stringValue}
+        onChange={handleChange}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
         className={classNameWrapper}
       />
     );
   }
 
-  render() {
-    if (this.getValueType() !== null) {
-      return this.renderListControl();
-    } else {
-      return this.renderInput();
-    }
+  if (getValueType() !== null) {
+    return renderListControl();
   }
-}
+  return renderInput();
+});
+
+export default ListControl;

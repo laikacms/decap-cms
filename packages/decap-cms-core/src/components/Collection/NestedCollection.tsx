@@ -1,7 +1,6 @@
 import React from 'react';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
-import { connect } from 'react-redux';
 import { NavLink } from 'react-router-dom';
 import { dirname } from 'decap-cms-lib-util';
 import { stringTemplate } from 'decap-cms-lib-widgets';
@@ -10,6 +9,7 @@ import sortBy from 'lodash/sortBy';
 
 import { selectEntries } from '../../reducers/entries';
 import { selectEntryCollectionTitle } from '../../reducers/collections';
+import { useAppSelector } from '../../hooks/useRedux';
 
 import type { CmsCollectionState, CmsEntry } from 'decap-cms-lib-util';
 
@@ -284,6 +284,29 @@ interface NestedCollectionProps {
   filterTerm?: string;
 }
 
+function shallowArrayEqual(a: unknown[], b: unknown[]): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
+export default function ConnectedNestedCollection({
+  collection,
+  filterTerm,
+}: {
+  collection: CmsCollectionState;
+  filterTerm?: string;
+}) {
+  const entries = useAppSelector(
+    (state: any) => (selectEntries(state.entries, collection) || []) as CmsEntry[],
+    shallowArrayEqual,
+  );
+  return <NestedCollection collection={collection} entries={entries} filterTerm={filterTerm} />;
+}
+
 export function NestedCollection({ collection, entries, filterTerm }: NestedCollectionProps) {
   const [treeData, setTreeData] = React.useState<TreeNodeData[]>(() =>
     getTreeData(collection, entries),
@@ -340,23 +363,3 @@ export function NestedCollection({ collection, entries, filterTerm }: NestedColl
   return <TreeNode collection={collection} treeData={treeData} onToggle={onToggle} />;
 }
 
-function mapStateToProps(state: any, ownProps: { collection: CmsCollectionState }) {
-  const { collection } = ownProps;
-  const entries = selectEntries(state.entries, collection) || [];
-  return { entries };
-}
-
-function shallowArrayEqual(a: unknown[], b: unknown[]): boolean {
-  if (a === b) return true;
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) return false;
-  }
-  return true;
-}
-
-export default connect(mapStateToProps, null, null, {
-  areStatePropsEqual(next: { entries: CmsEntry[] }, prev: { entries: CmsEntry[] }) {
-    return shallowArrayEqual(next.entries, prev.entries);
-  },
-})(NestedCollection);

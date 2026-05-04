@@ -4,7 +4,7 @@ import { NetlifyAuthenticator, type NetlifyAuthResult } from 'decap-cms-lib-auth
 import { AuthenticationPage, Icon } from 'decap-cms-ui-default';
 
 import type GitHub from './implementation';
-import type { CmsConfig, CmsUser, TranslateFunction } from 'decap-cms-lib-util';
+import type { CmsUser, TranslateFunction } from 'decap-cms-lib-util';
 
 const LoginButtonIcon = styled(Icon)`
   margin-right: 18px;
@@ -34,79 +34,83 @@ interface GitHubAuthenticationPageProps {
   backend: GitHub;
 }
 
-export default class GitHubAuthenticationPage extends React.Component<GitHubAuthenticationPageProps> {
-  state: {
-    loginError?: string;
-    requestingFork?: boolean;
-    findingFork?: boolean;
-    approveFork?: () => void;
-    refuseFork?: () => void;
-  } = {};
+export default function GitHubAuthenticationPage({
+  onLogin,
+  inProgress,
+  base_url,
+  siteId,
+  authEndpoint,
+  t,
+  backend,
+}: GitHubAuthenticationPageProps) {
+  const [loginError, setLoginError] = React.useState<string | undefined>();
+  const [requestingFork, setRequestingFork] = React.useState(false);
+  const [findingFork, setFindingFork] = React.useState(false);
+  // Resolver for the in-flight fork-permission Promise so the approve/refuse
+  // buttons can resolve it.
+  const forkResolverRef = React.useRef<((approved: boolean) => void) | null>(null);
 
-  getPermissionToFork = () => {
-    return new Promise<boolean>((resolve, reject) => {
-      this.setState({
-        requestingFork: true,
-        approveFork: () => {
-          this.setState({ requestingFork: false });
-          resolve(true);
-        },
-        refuseFork: () => {
-          this.setState({ requestingFork: false });
-          resolve(false);
-        },
-      });
+  function getPermissionToFork() {
+    return new Promise<boolean>(resolve => {
+      forkResolverRef.current = resolve;
+      setRequestingFork(true);
     });
-  };
+  }
 
-  loginWithOpenAuthoring(data: NetlifyAuthResult) {
-    const { backend } = this.props;
+  function approveFork() {
+    setRequestingFork(false);
+    forkResolverRef.current?.(true);
+    forkResolverRef.current = null;
+  }
 
-    this.setState({ findingFork: true });
+  function refuseFork() {
+    setRequestingFork(false);
+    forkResolverRef.current?.(false);
+    forkResolverRef.current = null;
+  }
+
+  function loginWithOpenAuthoring(data: NetlifyAuthResult) {
+    setFindingFork(true);
     return backend
       .authenticateWithFork({
         userData: data as CmsUser,
-        getPermissionToFork: this.getPermissionToFork,
+        getPermissionToFork,
       })
       .catch(err => {
-        this.setState({ findingFork: false });
+        setFindingFork(false);
         console.error(err);
         throw err;
       });
   }
 
-  handleLogin = (e: React.MouseEvent<HTMLButtonElement>) => {
+  function handleLogin(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
     const cfg = {
-      base_url: this.props.base_url,
+      base_url,
       site_id:
-        document.location.host.split(':')[0] === 'localhost'
-          ? 'demo.decapcms.org'
-          : this.props.siteId,
-      auth_endpoint: this.props.authEndpoint,
+        document.location.host.split(':')[0] === 'localhost' ? 'demo.decapcms.org' : siteId,
+      auth_endpoint: authEndpoint,
     };
     const auth = new NetlifyAuthenticator(cfg);
 
-    const config = this.props.backend.config;
-
+    const config = backend.config;
     const { open_authoring: openAuthoring = false, auth_scope: authScope = '' } = config.backend;
 
     const scope = authScope || (openAuthoring ? 'public_repo' : 'repo');
     auth.authenticate({ provider: 'github', scope }, (err, data) => {
       if (err) {
-        this.setState({ loginError: err.toString() });
+        setLoginError(err.toString());
         return;
       }
       if (openAuthoring) {
-        return this.loginWithOpenAuthoring(data!).then(() => this.props.onLogin?.());
+        return loginWithOpenAuthoring(data!).then(() => onLogin?.());
       }
-      this.props.onLogin?.();
+      onLogin?.();
     });
-  };
+  }
 
-  renderLoginButton = () => {
-    const { inProgress, t } = this.props;
-    return inProgress || this.state.findingFork ? (
+  function renderLoginButton() {
+    return inProgress || findingFork ? (
       t('auth.loggingIn')
     ) : (
       <React.Fragment>
@@ -114,13 +118,10 @@ export default class GitHubAuthenticationPage extends React.Component<GitHubAuth
         {t('auth.loginWithGitHub')}
       </React.Fragment>
     );
-  };
+  }
 
-  getAuthenticationPageRenderArgs() {
-    const { requestingFork } = this.state;
-
+  function getAuthenticationPageRenderArgs() {
     if (requestingFork) {
-      const { approveFork, refuseFork } = this.state;
       return {
         renderPageContent: ({
           LoginButton,
@@ -148,26 +149,21 @@ export default class GitHubAuthenticationPage extends React.Component<GitHubAuth
     }
 
     return {
-      renderButtonContent: this.renderLoginButton,
+      renderButtonContent: renderLoginButton,
     };
   }
 
-  render() {
-    const config = this.props.backend.config;
-    const { inProgress, t } = this.props;
-    const { loginError, requestingFork, findingFork } = this.state;
-
-    return (
-      <AuthenticationPage
-        onLogin={this.handleLogin}
-        loginDisabled={inProgress || findingFork || requestingFork}
-        loginErrorMessage={loginError}
-        logoUrl={config.logo?.src} // Deprecated, replaced by `logo.src`
-        logo={config.logo}
-        siteUrl={config.site_url}
-        {...this.getAuthenticationPageRenderArgs()}
-        t={t}
-      />
-    );
-  }
+  const config = backend.config;
+  return (
+    <AuthenticationPage
+      onLogin={handleLogin}
+      loginDisabled={inProgress || findingFork || requestingFork}
+      loginErrorMessage={loginError}
+      logoUrl={config.logo?.src}
+      logo={config.logo}
+      siteUrl={config.site_url}
+      {...getAuthenticationPageRenderArgs()}
+      t={t}
+    />
+  );
 }

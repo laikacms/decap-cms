@@ -615,6 +615,19 @@ describe('ListControl', () => {
     }
   });
 
+  function renderAndValidate(field, value) {
+    let handle;
+    render(
+      <ListControl
+        {...props}
+        field={field}
+        value={value}
+        ref={(h) => (handle = h)}
+      />,
+    );
+    handle.validate();
+  }
+
   it('should give validation error if below min elements', () => {
     const field = {
       name: 'list',
@@ -626,13 +639,7 @@ describe('ListControl', () => {
       max: 3,
       fields: [{ label: 'String', name: 'string', widget: 'string' }],
     };
-    const listControl = new ListControl({
-      ...props,
-      field,
-      value: [{ string: 'item 1' }],
-    });
-
-    listControl.validate();
+    renderAndValidate(field, [{ string: 'item 1' }]);
     expect(props.onValidateObject).toHaveBeenCalledWith('forID', [
       {
         message: 'editor.editorControlPane.widget.rangeCount',
@@ -651,13 +658,7 @@ describe('ListControl', () => {
       min: 2,
       fields: [{ label: 'String', name: 'string', widget: 'string' }],
     };
-    const listControl = new ListControl({
-      ...props,
-      field,
-      value: [{ string: 'item 1' }],
-    });
-
-    listControl.validate();
+    renderAndValidate(field, [{ string: 'item 1' }]);
     expect(props.onValidateObject).toHaveBeenCalledWith('forID', [
       {
         message: 'editor.editorControlPane.widget.rangeMin',
@@ -677,18 +678,12 @@ describe('ListControl', () => {
       max: 3,
       fields: [{ label: 'String', name: 'string', widget: 'string' }],
     };
-    const listControl = new ListControl({
-      ...props,
-      field,
-      value: [
-        { string: 'item 1' },
-        { string: 'item 2' },
-        { string: 'item 3' },
-        { string: 'item 4' },
-      ],
-    });
-
-    listControl.validate();
+    renderAndValidate(field, [
+      { string: 'item 1' },
+      { string: 'item 2' },
+      { string: 'item 3' },
+      { string: 'item 4' },
+    ]);
     expect(props.onValidateObject).toHaveBeenCalledWith('forID', [
       {
         message: 'editor.editorControlPane.widget.rangeCount',
@@ -707,18 +702,12 @@ describe('ListControl', () => {
       max: 3,
       fields: [{ label: 'String', name: 'string', widget: 'string' }],
     };
-    const listControl = new ListControl({
-      ...props,
-      field,
-      value: [
-        { string: 'item 1' },
-        { string: 'item 2' },
-        { string: 'item 3' },
-        { string: 'item 4' },
-      ],
-    });
-
-    listControl.validate();
+    renderAndValidate(field, [
+      { string: 'item 1' },
+      { string: 'item 2' },
+      { string: 'item 3' },
+      { string: 'item 4' },
+    ]);
     expect(props.onValidateObject).toHaveBeenCalledWith('forID', [
       {
         message: 'editor.editorControlPane.widget.rangeMax',
@@ -738,13 +727,11 @@ describe('ListControl', () => {
       max: 3,
       fields: [{ label: 'String', name: 'string', widget: 'string' }],
     };
-    const listControl = new ListControl({
-      ...props,
-      field,
-      value: [{ string: 'item 1' }, { string: 'item 2' }, { string: 'item 3' }],
-    });
-
-    listControl.validate();
+    renderAndValidate(field, [
+      { string: 'item 1' },
+      { string: 'item 2' },
+      { string: 'item 3' },
+    ]);
     expect(props.onValidateObject).toHaveBeenCalledWith('forID', []);
   });
 
@@ -759,13 +746,7 @@ describe('ListControl', () => {
       max: 3,
       fields: [{ label: 'String', name: 'string', widget: 'string' }],
     };
-    const listControl = new ListControl({
-      ...props,
-      field,
-      value: [],
-    });
-
-    listControl.validate();
+    renderAndValidate(field, []);
     expect(props.onValidateObject).toHaveBeenCalledWith('forID', []);
   });
 });

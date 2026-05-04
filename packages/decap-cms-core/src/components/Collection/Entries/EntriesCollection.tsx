@@ -1,11 +1,9 @@
 import React from 'react';
-import { connect } from 'react-redux';
 import styled from '@emotion/styled';
-import { translate } from 'react-polyglot';
+import { useTranslate } from 'react-polyglot';
 import partial from 'lodash/partial';
 import { Cursor } from 'decap-cms-lib-util';
 import { colors } from 'decap-cms-ui-default';
-
 
 import {
   loadEntries as actionLoadEntries,
@@ -21,6 +19,7 @@ import {
 import { selectUnpublishedEntry, selectUnpublishedEntriesByStatus } from '../../../reducers';
 import { selectCollectionEntriesCursor } from '../../../reducers/cursors';
 import Entries from './Entries';
+import { useAppDispatch, useAppSelector } from '../../../hooks/useRedux';
 
 import type { Status } from '../../../constants/publishModes';
 import type {
@@ -73,6 +72,38 @@ function withGroups(
   });
 }
 
+export function filterNestedEntries(
+  path: string,
+  collectionFolder: string,
+  entries: CmsEntry[],
+  subfolders: boolean,
+) {
+  const filtered = entries.filter((e: CmsEntry) => {
+    let entryPath = e.path.slice(collectionFolder.length + 1);
+    if (!entryPath.startsWith(path)) {
+      return false;
+    }
+    if (path) {
+      entryPath = entryPath.slice(path.length + 1);
+    }
+    if (subfolders) {
+      const depth = entryPath.split('/').length;
+      return path ? depth === 2 : depth <= 2;
+    }
+    return !entryPath.includes('/');
+  });
+  return filtered;
+}
+
+function shallowArrayEqual<T>(a: T[] | undefined, b: T[] | undefined): boolean {
+  if (a === b) return true;
+  if (!a || !b || a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
 interface EntriesCollectionProps {
   collection: CmsCollectionState;
   collections?: CmsCollections;
@@ -86,7 +117,6 @@ interface EntriesCollectionProps {
   traverseCollectionCursor: (collection: CmsCollectionState, action: string) => void;
   entriesLoaded?: boolean;
   loadUnpublishedEntries: (collections: CmsCollections | undefined) => void;
-  unpublishedEntriesLoaded?: boolean;
   isEditorialWorkflowEnabled?: boolean;
   filterTerm?: string;
   t: TranslateFunction;
@@ -107,7 +137,6 @@ export function EntriesCollection({
   traverseCollectionCursor,
   entriesLoaded,
   loadUnpublishedEntries,
-  unpublishedEntriesLoaded,
   isEditorialWorkflowEnabled,
   filterTerm,
   t,
@@ -123,14 +152,11 @@ export function EntriesCollection({
     if (collection && !entriesLoaded) {
       loadEntriesRef.current(collection);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mirror componentDidMount + collection-change in componentDidUpdate
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mirror componentDidMount + collection-change
   }, [collection]);
 
   React.useEffect(() => {
-    if (
-      isEditorialWorkflowEnabled &&
-      (!unpublishedEntriesLoaded || true /* re-run when collection changes */)
-    ) {
+    if (isEditorialWorkflowEnabled) {
       loadUnpublishedEntriesRef.current(collections);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mirror prior behavior
@@ -160,98 +186,78 @@ export function EntriesCollection({
   if (groups && groups.length > 0) {
     return withGroups(groups, entries, EntriesToRender, t);
   }
-
   return <EntriesToRender entries={entries} />;
 }
 
-export function filterNestedEntries(
-  path: string,
-  collectionFolder: string,
-  entries: CmsEntry[],
-  subfolders: boolean,
-) {
-  const filtered = entries.filter((e: CmsEntry) => {
-    let entryPath = e.path.slice(collectionFolder.length + 1);
-    if (!entryPath.startsWith(path)) {
-      return false;
-    }
-
-    // for subdirectories, trim off the parent folder corresponding to
-    // this nested collection entry
-    if (path) {
-      entryPath = entryPath.slice(path.length + 1);
-    }
-
-    // if subfolders legacy mode is enabled, show only immediate subfolders
-    // also show index file in root folder
-    if (subfolders) {
-      const depth = entryPath.split('/').length;
-      return path ? depth === 2 : depth <= 2;
-    }
-
-    // only show immediate children
-    return !entryPath.includes('/');
-  });
-  return filtered;
+interface ConnectedProps {
+  collection: CmsCollectionState;
+  viewStyle?: string;
+  filterTerm?: string;
 }
 
-function mapStateToProps(
-  state: any,
-  ownProps: { collection: CmsCollectionState; viewStyle?: string; filterTerm?: string },
-) {
-  const { collection, viewStyle, filterTerm } = ownProps;
-  const page = (state.entries as any)?.pages?.[collection.name]?.page as number | undefined;
+export default function ConnectedEntriesCollection({
+  collection,
+  viewStyle,
+  filterTerm,
+}: ConnectedProps) {
+  const t = useTranslate();
+  const dispatch = useAppDispatch();
 
-  const collections = state.collections;
+  const collections = useAppSelector((state: any) => state.collections as CmsCollections);
+  const page = useAppSelector(
+    (state: any) =>
+      ((state.entries as any)?.pages?.[collection.name]?.page as number | undefined) ?? undefined,
+  );
+  const rawEntries = useAppSelector(
+    (state: any) => selectEntries(state.entries, collection) as CmsEntry[],
+    shallowArrayEqual,
+  );
+  const entries = React.useMemo(() => {
+    if (collection.nested) {
+      const collectionFolder = collection.folder as string;
+      const nested = collection.nested;
+      return filterNestedEntries(
+        filterTerm || '',
+        collectionFolder,
+        rawEntries || [],
+        nested ? nested.subfolders !== false : true,
+      );
+    }
+    return rawEntries;
+  }, [collection, filterTerm, rawEntries]);
+  const groups = useAppSelector(
+    (state: any) => selectGroups(state.entries, collection),
+    shallowArrayEqual,
+  );
+  const entriesLoaded = useAppSelector((state: any) =>
+    selectEntriesLoaded(state.entries, collection.name),
+  );
+  const isFetching = useAppSelector((state: any) =>
+    selectIsFetching(state.entries, collection.name),
+  );
+  const rawCursor = useAppSelector((state: any) =>
+    selectCollectionEntriesCursor(state.cursors as any, collection.name),
+  );
+  const cursor = React.useMemo(() => Cursor.create(rawCursor).clearData(), [rawCursor]);
+  const isEditorialWorkflowEnabled = useAppSelector(
+    (state: any) => state.config?.publish_mode === 'editorial_workflow',
+  );
 
-  let entries = selectEntries(state.entries, collection) as CmsEntry[];
-  const groups = selectGroups(state.entries, collection);
-
-  if (collection.nested) {
-    const collectionFolder = collection.folder as string;
-    const nested = collection.nested;
-    entries = filterNestedEntries(
-      filterTerm || '',
-      collectionFolder,
-      entries,
-      nested ? nested.subfolders !== false : true,
-    );
-  }
-  const entriesLoaded = selectEntriesLoaded(state.entries, collection.name);
-  const isFetching = selectIsFetching(state.entries, collection.name);
-
-  const rawCursor = selectCollectionEntriesCursor(state.cursors as any, collection.name);
-  const cursor = Cursor.create(rawCursor).clearData();
-
-  const isEditorialWorkflowEnabled = state.config?.publish_mode === 'editorial_workflow';
-  const unpublishedEntriesLoaded = isEditorialWorkflowEnabled
-    ? !!(state.editorialWorkflow as any)?.pages?.ids
-    : true;
-
-  return {
-    collection,
-    collections,
-    page,
-    entries,
-    groups,
-    entriesLoaded,
-    isFetching,
-    viewStyle,
-    cursor,
-    unpublishedEntriesLoaded,
-    isEditorialWorkflowEnabled,
-    getWorkflowStatus: (collectionName: string, slug: string) => {
-      const unpublishedEntry = selectUnpublishedEntry(state, collectionName, slug);
+  const store = useAppSelector((state: any) => state);
+  const getWorkflowStatus = React.useCallback(
+    (collectionName: string, slug: string) => {
+      const unpublishedEntry = selectUnpublishedEntry(store, collectionName, slug);
       return unpublishedEntry ? (unpublishedEntry as any).status : null;
     },
-    getUnpublishedEntries: (collectionName: string) => {
+    [store],
+  );
+  const getUnpublishedEntries = React.useCallback(
+    (collectionName: string) => {
       if (!isEditorialWorkflowEnabled) return [];
-
       const allStatuses: Status[] = ['DRAFT', 'PENDING_REVIEW', 'PENDING_PUBLISH'];
       const unpublishedEntries: CmsEntry[] = [];
-
       allStatuses.forEach(statusKey => {
-        const entriesForStatus = selectUnpublishedEntriesByStatus(state, statusKey);
+        const entriesForStatus = selectUnpublishedEntriesByStatus(store, statusKey);
         if (entriesForStatus) {
           entriesForStatus.forEach((entry: any) => {
             if (entry.collection === collectionName) {
@@ -260,47 +266,34 @@ function mapStateToProps(
           });
         }
       });
-
       return unpublishedEntries;
     },
-  };
+    [store, isEditorialWorkflowEnabled],
+  );
+
+  return (
+    <EntriesCollection
+      collection={collection}
+      collections={collections}
+      page={page}
+      entries={entries}
+      groups={groups}
+      isFetching={isFetching}
+      viewStyle={viewStyle}
+      cursor={cursor}
+      loadEntries={(c: CmsCollectionState) => dispatch(actionLoadEntries(c))}
+      traverseCollectionCursor={(c: CmsCollectionState, action: string) =>
+        dispatch(actionTraverseCollectionCursor(c, action))
+      }
+      entriesLoaded={entriesLoaded}
+      loadUnpublishedEntries={(cols: CmsCollections | undefined) =>
+        dispatch(loadUnpublishedEntries(cols as CmsCollections))
+      }
+      isEditorialWorkflowEnabled={isEditorialWorkflowEnabled}
+      filterTerm={filterTerm}
+      t={t}
+      getWorkflowStatus={getWorkflowStatus}
+      getUnpublishedEntries={getUnpublishedEntries}
+    />
+  );
 }
-
-const mapDispatchToProps = {
-  loadEntries: actionLoadEntries,
-  traverseCollectionCursor: actionTraverseCollectionCursor,
-  loadUnpublishedEntries: (collections: CmsCollections | undefined) =>
-    loadUnpublishedEntries(collections as CmsCollections),
-};
-
-function shallowArrayEqual(a: unknown[], b: unknown[]): boolean {
-  if (a === b) return true;
-  if (!a || !b || a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) return false;
-  }
-  return true;
-}
-
-const ConnectedEntriesCollection = connect(mapStateToProps, mapDispatchToProps, null, {
-  areStatePropsEqual(next: Record<string, unknown>, prev: Record<string, unknown>) {
-    // mapStateToProps creates new references every call for entries, groups,
-    // cursor, and inline functions. Compare by content where possible to
-    // prevent infinite re-render loops from react-redux connect().
-    for (const key of Object.keys(next)) {
-      const a = next[key];
-      const b = prev[key];
-      if (a === b) continue;
-      // Arrays (entries, groups): compare element-wise
-      if (Array.isArray(a) && Array.isArray(b) && shallowArrayEqual(a, b)) continue;
-      // Functions (getWorkflowStatus, getUnpublishedEntries): always new refs, skip
-      if (typeof a === 'function' && typeof b === 'function') continue;
-      // Cursor objects: compare by data equality (they're always new instances)
-      if (a instanceof Cursor && b instanceof Cursor) continue;
-      return false;
-    }
-    return true;
-  },
-})(EntriesCollection);
-
-export default translate()(ConnectedEntriesCollection);

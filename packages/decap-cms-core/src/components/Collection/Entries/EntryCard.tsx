@@ -1,16 +1,15 @@
 import React from 'react';
 import styled from '@emotion/styled';
-import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { colors, colorsRaw, components, lengths, zIndex } from 'decap-cms-ui-default';
-import { translate } from 'react-polyglot';
+import { useTranslate } from 'react-polyglot';
 
 import { boundGetAsset } from '../../../actions/media';
 import { VIEW_STYLE_LIST, VIEW_STYLE_GRID } from '../../../constants/collectionViews';
-import { selectIsLoadingAsset } from '../../../reducers/medias';
 import { selectEntryCollectionTitle } from '../../../reducers/collections';
+import { useAppDispatch } from '../../../hooks/useRedux';
 
-import type { TranslateFunction } from 'decap-cms-lib-util';
+import type { CmsCollectionState, CmsEntry } from 'decap-cms-lib-util';
 
 const ListCard = styled.li`
   ${components.card};
@@ -134,28 +133,39 @@ const WorkflowBadge = styled.span<{ $status?: string }>`
 `;
 
 interface EntryCardProps {
-  path: string;
-  summary: string;
-  image?: string;
-  imageField?: string;
-  collectionLabel?: string;
+  collection: CmsCollectionState;
+  entry: CmsEntry;
+  inferredFields: {
+    imageField?: string | null;
+    [key: string]: unknown;
+  };
+  collectionLabel?: string | false;
   viewStyle?: string;
-  workflowStatus?: string;
-  getAsset: (assetPath: string, fieldName: string) => string;
-  t: TranslateFunction;
+  workflowStatus?: string | null;
 }
 
-const EntryCard: React.FC<EntryCardProps> = ({
-  path,
-  summary,
-  image,
-  imageField,
+export default function EntryCard({
+  collection,
+  entry,
+  inferredFields,
   collectionLabel,
   viewStyle = VIEW_STYLE_LIST,
   workflowStatus,
-  getAsset,
-  t,
-}) => {
+}: EntryCardProps) {
+  const t = useTranslate();
+  const dispatch = useAppDispatch();
+  const getAsset = React.useMemo(
+    () => boundGetAsset(dispatch, collection, entry),
+    [dispatch, collection, entry],
+  );
+
+  const summary = selectEntryCollectionTitle(collection, entry);
+  const path = `/collections/${collection.name}/entries/${entry.slug}`;
+  const entryData = entry.data as Record<string, unknown> | undefined;
+  const imageField = inferredFields.imageField ?? '';
+  let image = imageField ? (entryData?.[imageField] as string | undefined) : undefined;
+  if (image) image = encodeURI(image);
+
   function getStatusLabel(status: string) {
     switch (status) {
       case 'pending_review':
@@ -206,55 +216,12 @@ const EntryCard: React.FC<EntryCardProps> = ({
               </TitleIcons>
             </CardHeading>
           </CardBody>
-          {image ? <CardImage $src={getAsset(image, imageField ?? '').toString()} /> : null}
+          {image ? (
+            <CardImage $src={getAsset(image, imageField as any).toString()} />
+          ) : null}
         </GridCardLink>
       </GridCard>
     );
   }
-};
-
-function mapStateToProps(state: any, ownProps: any) {
-  const { entry, inferredFields, collection } = ownProps;
-  const entryData = entry.data as Record<string, unknown> | undefined;
-  const summary = selectEntryCollectionTitle(collection, entry);
-
-  let image = entryData?.[inferredFields.imageField] as string | undefined;
-  if (image) {
-    image = encodeURI(image);
-  }
-
-  const isLoadingAsset = selectIsLoadingAsset(state.medias);
-
-  return {
-    summary,
-    path: `/collections/${collection.name}/entries/${entry.slug}`,
-    image,
-    imageFolder: collection.fields?.find(
-      (f: any) => f.name === inferredFields.imageField && f.widget === 'image',
-    ),
-    isLoadingAsset,
-  };
+  return null;
 }
-
-function mapDispatchToProps(dispatch: any) {
-  return {
-    boundGetAsset: (collection: any, entry: any) => boundGetAsset(dispatch, collection, entry),
-  };
-}
-
-function mergeProps(stateProps: any, dispatchProps: any, ownProps: any) {
-  return {
-    ...stateProps,
-    ...dispatchProps,
-    ...ownProps,
-    getAsset: dispatchProps.boundGetAsset(ownProps.collection, ownProps.entry),
-  };
-}
-
-const ConnectedEntryCard = connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-)(translate()(EntryCard));
-
-export default ConnectedEntryCard;

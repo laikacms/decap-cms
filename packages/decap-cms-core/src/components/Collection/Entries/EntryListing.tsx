@@ -107,7 +107,11 @@ function EntryListing({
   function renderCardsForSingleCollection() {
     const allEntries = getAllEntries();
     const collectionFields = inferFields(collections as CmsCollectionState);
-    const entryCardProps = { collection: collections, inferredFields: collectionFields, viewStyle };
+    const entryCardProps = {
+      collection: collections as CmsCollectionState,
+      inferredFields: collectionFields,
+      viewStyle,
+    };
 
     return allEntries?.map((entry, idx) => {
       const workflowStatus = getWorkflowStatus?.(

@@ -197,17 +197,14 @@ function convertToOption(raw: unknown): RelationOption {
   if (typeof raw === 'string') {
     return { label: raw, value: raw };
   }
-
   return raw as RelationOption;
 }
 
 function getSelectedOptions(value: unknown): RelationOption[] | null {
   const selectedOptions = value;
-
   if (!selectedOptions || !Array.isArray(selectedOptions)) {
     return null;
   }
-
   return selectedOptions as RelationOption[];
 }
 
@@ -216,36 +213,8 @@ function uniqOptions(initial: RelationOption[], current: RelationOption[]): Rela
 }
 
 function getFieldArray(field: unknown): string[] {
-  if (!field) {
-    return [];
-  }
-
+  if (!field) return [];
   return Array.isArray(field) ? (field as string[]) : [field as string];
-}
-
-function getSelectedValue({
-  value,
-  options,
-  isMultiple,
-}: {
-  value: unknown;
-  options: RelationOption[];
-  isMultiple: boolean;
-}): SortableOption[] | RelationOption | null {
-  if (isMultiple) {
-    const selectedOptions = getSelectedOptions(value);
-    if (selectedOptions === null) {
-      return null;
-    }
-
-    const selected = selectedOptions
-      .map((i: RelationOption) => options.find((o: RelationOption) => o.value === (i.value || i)))
-      .filter(Boolean)
-      .map(convertToSortableOption);
-    return selected;
-  } else {
-    return find(options, ['value', value]) || null;
-  }
 }
 
 function convertToSortableOption(raw: unknown): SortableOption {
@@ -259,7 +228,28 @@ function convertToSortableOption(raw: unknown): SortableOption {
   };
 }
 
-interface RelationControlProps {
+function getSelectedValue({
+  value,
+  options,
+  isMultiple,
+}: {
+  value: unknown;
+  options: RelationOption[];
+  isMultiple: boolean;
+}): SortableOption[] | RelationOption | null {
+  if (isMultiple) {
+    const selectedOptions = getSelectedOptions(value);
+    if (selectedOptions === null) return null;
+
+    return selectedOptions
+      .map((i: RelationOption) => options.find((o: RelationOption) => o.value === (i.value || i)))
+      .filter(Boolean)
+      .map(convertToSortableOption);
+  }
+  return find(options, ['value', value]) || null;
+}
+
+export interface RelationControlProps {
   onChange: (...args: unknown[]) => unknown;
   forID: string;
   value?: unknown | unknown[];
@@ -274,319 +264,349 @@ interface RelationControlProps {
   t: (key: string, options?: unknown) => string;
 }
 
-interface RelationControlState {
-  initialOptions: RelationOption[];
+export interface RelationControlHandle {
+  isValid(): { error: false | { type: string; message: string } };
 }
 
-export default class RelationControl extends React.Component<
-  RelationControlProps,
-  RelationControlState
-> {
-  mounted = false;
+const RelationControl = React.forwardRef<RelationControlHandle, RelationControlProps>(
+  function RelationControl(props, ref) {
+    const {
+      value,
+      field,
+      forID,
+      classNameWrapper,
+      setActiveStyle,
+      setInactiveStyle,
+      queryHits,
+      query,
+      onChange,
+      locale,
+    } = props;
 
-  state: RelationControlState = {
-    initialOptions: [],
-  };
+    const [initialOptions, setInitialOptions] = React.useState<RelationOption[]>([]);
+    const mountedRef = React.useRef(false);
 
-  isValid = () => {
-    const { field, value, t } = this.props;
-    const min = field.min;
-    const max = field.max;
-
-    if (!this.isMultiple()) {
-      return { error: false };
+    function isMultiple(): boolean {
+      return !!field.multiple;
     }
 
-    if (Array.isArray(value)) {
-      const error = validations.validateMinMax(t, field.label ?? field.name, value, min, max);
-
-      return error ? { error } : { error: false };
-    }
-
-    return { error: false };
-  };
-
-  shouldComponentUpdate(nextProps: RelationControlProps) {
-    return (
-      this.props.value !== nextProps.value ||
-      this.props.hasActiveStyle !== nextProps.hasActiveStyle ||
-      this.props.queryHits !== nextProps.queryHits
-    );
-  }
-
-  async componentDidMount() {
-    this.mounted = true;
-    const { value } = this.props;
-    if (value && this.hasInitialValues(value)) {
-      await this.loadInitialOptions();
-    }
-  }
-
-  componentWillUnmount() {
-    this.mounted = false;
-  }
-
-  isMultiple = (): boolean => {
-    return !!this.props.field.multiple;
-  };
-
-  hasInitialValues = (value: unknown): boolean => {
-    if (this.isMultiple()) {
-      const selectedOptions = getSelectedOptions(value);
-      return selectedOptions !== null && selectedOptions.length > 0;
-    }
-    return value !== undefined && value !== null && value !== '';
-  };
-
-  loadInitialOptions = async () => {
-    const { field, query, forID, value } = this.props;
-    const collection = field.collection;
-    const searchFieldsArray = getFieldArray(field.search_fields);
-    const file = field.file;
-
-    try {
-      const result = (await relationCache.getOptions(
-        collection,
-        searchFieldsArray,
-        '', // empty term for initial load
-        file,
-        () => query(forID, collection, searchFieldsArray, '', file),
-      )) as QueryResult;
-
-      const hits = result.payload.hits || [];
-      const options = this.parseHitOptions(hits);
-
-      if (this.mounted) {
-        this.setState({ initialOptions: options });
-
-        // Call onChange with metadata for initial values
-        if (value && this.hasInitialValues(value)) {
-          this.triggerInitialOnChange(value, options);
-        }
+    function hasInitialValues(v: unknown): boolean {
+      if (isMultiple()) {
+        const selectedOptions = getSelectedOptions(v);
+        return selectedOptions !== null && selectedOptions.length > 0;
       }
-    } catch (error: unknown) {
-      console.error('Failed to load initial options:', error);
+      return v !== undefined && v !== null && v !== '';
     }
-  };
 
-  triggerInitialOnChange = (value: unknown, options: RelationOption[]) => {
-    const { onChange, field } = this.props;
+    function parseNestedFields(hit: Hit, fieldName: string): string {
+      const hitData =
+        locale != null && hit.i18n != null && hit.i18n[locale] != null
+          ? hit.i18n[locale].data
+          : hit.data;
+      const templateVars = stringTemplate.extractTemplateVars(fieldName);
+      if (templateVars.length <= 0) {
+        return get(hitData, fieldName) as string;
+      }
+      const data = stringTemplate.addFileTemplateFields(hit.path, { ...hitData } as Record<
+        string,
+        string
+      >);
+      return stringTemplate.compileStringTemplate(fieldName, null, hit.slug, data);
+    }
 
-    if (this.isMultiple()) {
-      const selectedOptions = getSelectedOptions(value);
-      if (selectedOptions && selectedOptions.length > 0) {
-        const matchedOptions = selectedOptions
-          .map((val: RelationOption) =>
-            options.find((opt: RelationOption) => opt.value === (val.value || val)),
-          )
-          .filter(Boolean) as RelationOption[];
+    function parseHitOptions(hits: Hit[]): RelationOption[] {
+      const valueField = field.value_field as string;
+      const displayField = (field.display_fields || [field.value_field]) as string[];
+      const filters = getFieldArray(field.filters);
 
-        if (matchedOptions.length > 0) {
+      return hits.reduce((acc: RelationOption[], hit: Hit) => {
+        if (
+          filters.every((filter: unknown) => {
+            const filterObj = filter as FilterObj;
+            const fieldKeys = filterObj.field.split('.');
+            let v: unknown = hit.data;
+            for (let i = 0; i < fieldKeys.length; i++) {
+              if (Object.prototype.hasOwnProperty.call(v, fieldKeys[i])) {
+                v = (v as Record<string, unknown>)[fieldKeys[i]];
+              } else {
+                return false;
+              }
+            }
+            return filterObj.values.includes(v);
+          })
+        ) {
+          const valuesPaths = stringTemplate.expandPath({ data: hit.data, path: valueField });
+          for (let i = 0; i < valuesPaths.length; i++) {
+            const label = displayField
+              .map((key: string) => {
+                const displayPaths = stringTemplate.expandPath({ data: hit.data, path: key });
+                return parseNestedFields(hit, displayPaths[i] || displayPaths[0]);
+              })
+              .join(' ');
+            const v = parseNestedFields(hit, valuesPaths[i]);
+            acc.push({ data: hit.data, value: v, label });
+          }
+        }
+        return acc;
+      }, []);
+    }
+
+    // Stable handle: read latest value/field/t via ref so callers that captured
+    // the handle once keep seeing current values.
+    const validateRefs = React.useRef({ value, field, t: props.t });
+    validateRefs.current = { value, field, t: props.t };
+    React.useImperativeHandle(
+      ref,
+      () => ({
+        isValid() {
+          const { value: v, field: f, t: tt } = validateRefs.current;
+          if (!f.multiple) return { error: false };
+          if (Array.isArray(v)) {
+            const error = validations.validateMinMax(tt, f.label ?? f.name, v, f.min, f.max);
+            return error ? { error } : { error: false };
+          }
+          return { error: false };
+        },
+      }),
+      [],
+    );
+
+    function triggerInitialOnChange(v: unknown, options: RelationOption[]) {
+      if (isMultiple()) {
+        const selectedOptions = getSelectedOptions(v);
+        if (selectedOptions && selectedOptions.length > 0) {
+          const matchedOptions = selectedOptions
+            .map((val: RelationOption) =>
+              options.find((opt: RelationOption) => opt.value === (val.value || val)),
+            )
+            .filter(Boolean) as RelationOption[];
+
+          if (matchedOptions.length > 0) {
+            const metadata = {
+              [field.name]: {
+                [field.collection]: matchedOptions.reduce(
+                  (acc: Record<string, unknown>, option: RelationOption) => ({
+                    ...acc,
+                    [option.value]: option.data,
+                  }),
+                  {},
+                ),
+              },
+            };
+            onChange(v, metadata);
+          }
+        }
+      } else {
+        const matchedOption = options.find((opt: RelationOption) => opt.value === v);
+        if (matchedOption) {
           const metadata = {
             [field.name]: {
-              [field.collection]: matchedOptions.reduce(
-                (acc: Record<string, unknown>, option: RelationOption) => ({
-                  ...acc,
-                  [option.value]: option.data,
-                }),
-                {},
-              ),
+              [field.collection]: {
+                [matchedOption.value]: matchedOption.data,
+              },
             },
           };
-          onChange(value, metadata);
+          onChange(v, metadata);
         }
       }
-    } else {
-      const matchedOption = options.find((opt: RelationOption) => opt.value === value);
-      if (matchedOption) {
-        const metadata = {
-          [field.name]: {
-            [field.collection]: {
-              [matchedOption.value]: matchedOption.data,
-            },
-          },
-        };
-        onChange(value, metadata);
-      }
     }
-  };
 
-  onSortEnd =
-    (options: RelationOption[]) =>
-    ({ oldIndex, newIndex }: { oldIndex: number; newIndex: number }) => {
-      const { onChange, field } = this.props;
-      const value = options.map(optionToString);
-      const newValue = arrayMove(value, oldIndex, newIndex);
-      const lastOption = last(options);
-      const lastValue = last(newValue);
-      const metadata =
-        (!isEmpty(options) &&
-          lastOption &&
-          lastValue && {
-            [field.name]: {
-              [field.collection]: {
-                [lastValue]: lastOption.data,
-              },
-            },
-          }) ||
-        {};
-      onChange(newValue, metadata);
+    // Mount-only initial options load. Uses refs to avoid re-firing when value
+    // changes and to always see the latest props inside the async callback.
+    const initialLoadRef = React.useRef({
+      value,
+      field,
+      forID,
+      query,
+      onChange,
+      hasInitialValues,
+      parseHitOptions,
+      triggerInitialOnChange,
+    });
+    initialLoadRef.current = {
+      value,
+      field,
+      forID,
+      query,
+      onChange,
+      hasInitialValues,
+      parseHitOptions,
+      triggerInitialOnChange,
     };
 
-  handleChange = (selectedOption: RelationOption | RelationOption[] | null) => {
-    const { onChange, field } = this.props;
+    React.useEffect(() => {
+      mountedRef.current = true;
+      const {
+        value: v,
+        field: f,
+        forID: id,
+        query: q,
+        hasInitialValues: hiv,
+        parseHitOptions: pho,
+        triggerInitialOnChange: tioc,
+      } = initialLoadRef.current;
 
-    if (this.isMultiple()) {
-      const options = (selectedOption || []) as RelationOption[];
-      this.setState({ initialOptions: options.filter(Boolean) });
-      const value = options.map(optionToString);
-      const lastOption = last(options);
-      const lastValue = last(value);
-      const metadata =
-        (!isEmpty(options) &&
-          lastOption &&
-          lastValue && {
-            [field.name]: {
-              [field.collection]: {
-                [lastValue]: lastOption.data,
-              },
-            },
-          }) ||
-        {};
-      onChange(value, metadata);
-    } else {
-      const option = selectedOption as RelationOption | null;
-      this.setState({ initialOptions: [option].filter(Boolean) as RelationOption[] });
-      const value = optionToString(option);
-      const metadata = option && {
-        [field.name]: {
-          [field.collection]: { [value]: option.data },
-        },
-      };
-      onChange(value, metadata);
-    }
-  };
+      if (v && hiv(v)) {
+        (async () => {
+          const collection = f.collection;
+          const searchFieldsArray = getFieldArray(f.search_fields);
+          const file = f.file;
+          try {
+            const result = (await relationCache.getOptions(
+              collection,
+              searchFieldsArray,
+              '',
+              file,
+              () => q(id, collection, searchFieldsArray, '', file),
+            )) as QueryResult;
 
-  parseNestedFields = (hit: Hit, field: string): string => {
-    const { locale } = this.props;
-    const hitData =
-      locale != null && hit.i18n != null && hit.i18n[locale] != null
-        ? hit.i18n[locale].data
-        : hit.data;
-    const templateVars = stringTemplate.extractTemplateVars(field);
-    // return non template fields as is
-    if (templateVars.length <= 0) {
-      return get(hitData, field) as string;
-    }
-    const data = stringTemplate.addFileTemplateFields(hit.path, { ...hitData } as Record<
-      string,
-      string
-    >);
-    const value = stringTemplate.compileStringTemplate(field, null, hit.slug, data);
-    return value;
-  };
+            const hits = result.payload.hits || [];
+            const options = pho(hits);
 
-  parseHitOptions = (hits: Hit[]): RelationOption[] => {
-    const { field } = this.props;
-    const valueField = field.value_field as string;
-    const displayField = (field.display_fields || [field.value_field]) as string[];
-    const filters = getFieldArray(field.filters);
-
-    const options = hits.reduce((acc: RelationOption[], hit: Hit) => {
-      if (
-        filters.every((filter: unknown) => {
-          // check if the value for the (nested) filter field is in the filter values
-          const filterObj = filter as FilterObj;
-          const fieldKeys = filterObj.field.split('.');
-          let value: unknown = hit.data;
-          for (let i = 0; i < fieldKeys.length; i++) {
-            if (Object.prototype.hasOwnProperty.call(value, fieldKeys[i])) {
-              value = (value as Record<string, unknown>)[fieldKeys[i]];
-            } else {
-              return false;
+            if (mountedRef.current) {
+              setInitialOptions(options);
+              if (v && hiv(v)) {
+                tioc(v, options);
+              }
             }
+          } catch (error) {
+            console.error('Failed to load initial options:', error);
           }
-          return filterObj.values.includes(value);
-        })
-      ) {
-        const valuesPaths = stringTemplate.expandPath({ data: hit.data, path: valueField });
-        for (let i = 0; i < valuesPaths.length; i++) {
-          const label = displayField
-            .map((key: string) => {
-              const displayPaths = stringTemplate.expandPath({ data: hit.data, path: key });
-              return this.parseNestedFields(hit, displayPaths[i] || displayPaths[0]);
-            })
-            .join(' ');
-          const value = this.parseNestedFields(hit, valuesPaths[i]);
-          acc.push({ data: hit.data, value, label });
-        }
+        })();
       }
 
-      return acc;
+      return () => {
+        mountedRef.current = false;
+      };
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- mirror componentDidMount
     }, []);
 
-    return options;
-  };
+    function onSortEnd(options: RelationOption[]) {
+      return ({ oldIndex, newIndex }: { oldIndex: number; newIndex: number }) => {
+        const v = options.map(optionToString);
+        const newValue = arrayMove(v, oldIndex, newIndex);
+        const lastOption = last(options);
+        const lastValue = last(newValue);
+        const metadata =
+          (!isEmpty(options) &&
+            lastOption &&
+            lastValue && {
+              [field.name]: {
+                [field.collection]: {
+                  [lastValue]: lastOption.data,
+                },
+              },
+            }) ||
+          {};
+        onChange(newValue, metadata);
+      };
+    }
 
-  loadOptions = debounce((term: string, callback: (options: RelationOption[]) => void) => {
-    const { field, query, forID } = this.props;
-    const collection = field.collection;
-    const searchFieldsArray = getFieldArray(field.search_fields);
-    const file = field.file as string | undefined;
+    function handleChange(selectedOption: RelationOption | RelationOption[] | null) {
+      if (isMultiple()) {
+        const options = (selectedOption || []) as RelationOption[];
+        setInitialOptions(options.filter(Boolean));
+        const v = options.map(optionToString);
+        const lastOption = last(options);
+        const lastValue = last(v);
+        const metadata =
+          (!isEmpty(options) &&
+            lastOption &&
+            lastValue && {
+              [field.name]: {
+                [field.collection]: {
+                  [lastValue]: lastOption.data,
+                },
+              },
+            }) ||
+          {};
+        onChange(v, metadata);
+      } else {
+        const option = selectedOption as RelationOption | null;
+        setInitialOptions([option].filter(Boolean) as RelationOption[]);
+        const v = optionToString(option);
+        const metadata = option && {
+          [field.name]: {
+            [field.collection]: { [v]: option.data },
+          },
+        };
+        onChange(v, metadata);
+      }
+    }
 
-    relationCache
-      .getOptions(collection, searchFieldsArray, term, file, () =>
-        query(forID, collection, searchFieldsArray, term, file),
-      )
-      .then((result: unknown) => {
-        const queryResult = result as QueryResult;
-        const hits = queryResult.payload.hits || [];
-        const options = this.parseHitOptions(hits);
-        const optionsLength = (field.options_length || 20) as number;
-        const uniq = uniqOptions(this.state.initialOptions, options).slice(0, optionsLength);
-        callback(uniq);
-      })
-      .catch((error: unknown) => {
-        console.error('Failed to load options:', error);
-        callback([]);
-      });
-  }, 500);
-
-  render() {
-    const { value, field, forID, classNameWrapper, setActiveStyle, setInactiveStyle, queryHits } =
-      this.props;
-    const isMultiple = this.isMultiple();
-    const isClearable = !field.required || isMultiple;
-
-    const queryOptions = this.parseHitOptions(queryHits || []);
-    const options = uniqOptions(this.state.initialOptions, queryOptions);
-    const selectedValue = getSelectedValue({
-      options,
-      value,
-      isMultiple,
+    // Keep loadOptions stable across renders. It reads latest props/state via
+    // refs.
+    const loadOptionsCtxRef = React.useRef({
+      field,
+      query,
+      forID,
+      initialOptions,
+      parseHitOptions,
     });
+    loadOptionsCtxRef.current = { field, query, forID, initialOptions, parseHitOptions };
+
+    const loadOptions = React.useMemo(
+      () =>
+        debounce((term: string, callback: (options: RelationOption[]) => void) => {
+          const {
+            field: f,
+            query: q,
+            forID: id,
+            initialOptions: io,
+            parseHitOptions: pho,
+          } = loadOptionsCtxRef.current;
+          const collection = f.collection;
+          const searchFieldsArray = getFieldArray(f.search_fields);
+          const file = f.file as string | undefined;
+
+          relationCache
+            .getOptions(collection, searchFieldsArray, term, file, () =>
+              q(id, collection, searchFieldsArray, term, file),
+            )
+            .then((result: unknown) => {
+              const queryResult = result as QueryResult;
+              const hits = queryResult.payload.hits || [];
+              const options = pho(hits);
+              const optionsLength = (f.options_length || 20) as number;
+              const uniq = uniqOptions(io, options).slice(0, optionsLength);
+              callback(uniq);
+            })
+            .catch((error: unknown) => {
+              console.error('Failed to load options:', error);
+              callback([]);
+            });
+        }, 500),
+      [],
+    );
+
+    const isMulti = isMultiple();
+    const isClearable = !field.required || isMulti;
+    const queryOptions = parseHitOptions(queryHits || []);
+    const options = uniqOptions(initialOptions, queryOptions);
+    const selectedValue = getSelectedValue({ options, value, isMultiple: isMulti });
 
     return (
       <SortableSelect
         useDragHandle
-        onSortEnd={this.onSortEnd(selectedValue as RelationOption[])}
+        onSortEnd={onSortEnd(selectedValue as RelationOption[])}
         distance={4}
-        // react-select props:
         components={{ MenuList, MultiValue, MultiValueLabel }}
         value={selectedValue}
         inputId={forID}
         cacheOptions
         defaultOptions
-        loadOptions={this.loadOptions}
-        onChange={this.handleChange}
+        loadOptions={loadOptions}
+        onChange={handleChange}
         className={classNameWrapper}
         onFocus={setActiveStyle}
         onBlur={setInactiveStyle}
         styles={reactSelectStyles}
-        isMulti={isMultiple}
+        isMulti={isMulti}
         isClearable={isClearable}
         placeholder=""
       />
     );
-  }
-}
+  },
+);
+
+export default RelationControl;
