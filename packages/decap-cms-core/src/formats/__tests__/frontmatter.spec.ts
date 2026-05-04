@@ -254,7 +254,7 @@ describe('Frontmatter', () => {
       ).toEqual(
         [
           '+++',
-          'tags = ["front matter", "toml"]',
+          'tags = [ "front matter", "toml" ]',
           'title = "TOML"',
           '+++',
           'Some content',
@@ -273,7 +273,7 @@ describe('Frontmatter', () => {
       ).toEqual(
         [
           '~~~',
-          'tags = ["front matter", "toml"]',
+          'tags = [ "front matter", "toml" ]',
           'title = "TOML"',
           '~~~',
           'Some content',
@@ -373,7 +373,7 @@ describe('Frontmatter', () => {
       ).toEqual(
         [
           '{',
-          '"tags": [',
+          '  "tags": [',
           '    "front matter",',
           '    "json"',
           '  ],',
@@ -395,7 +395,7 @@ describe('Frontmatter', () => {
       ).toEqual(
         [
           '~~~',
-          '"tags": [',
+          '  "tags": [',
           '    "front matter",',
           '    "json"',
           '  ],',

@@ -108,7 +108,11 @@ const objectToFrontmatter = (opts: {
     const newTree = fromMarkdown(body);
 
     if (Object.keys(frontmatter).length > 0) {
-      const value = parsers[format].stringify(frontmatter, { sortedKeys, comments });
+      // Strip trailing newlines so remark-stringify doesn't emit a blank line
+      // before the closing delimiter (the underlying yaml/toml libs append one).
+      const value = parsers[format]
+        .stringify(frontmatter, { sortedKeys, comments })
+        .replace(/\r?\n+$/, '');
 
       newTree.children.unshift({
         type: format as any,
@@ -154,6 +158,66 @@ const defaultOptions: Options = [
   { type: 'json', fence: { open: '{', close: '}' } },
 ];
 
+// Decap historically supported language-tagged opening delimiters
+// (`---yaml`, `---toml`, `---json`) for content authored under gray-matter.
+// remark-frontmatter doesn't recognise them, so swap them for the
+// conventional delimiters of the indicated language before parsing.
+function stripLanguageTaggedDelimiter(content: string): string {
+  const opener = content.match(/^---(yaml|toml|json)\r?\n/);
+  if (!opener) return content;
+  const lang = opener[1] as 'yaml' | 'toml' | 'json';
+  const rest = content.slice(opener[0].length);
+  const close = rest.match(/(^|\r?\n)---(?=\r?\n|$)/);
+  if (!close) return content;
+  const closeIdx = (close.index ?? 0) + close[1].length;
+  const fmBody = rest.slice(0, closeIdx);
+  const after = rest.slice(closeIdx + 3);
+  if (lang === 'json') {
+    // The content already includes its own `{`/`}` braces; just drop the
+    // language-tagged wrapper lines.
+    return `${fmBody}${after}`;
+  }
+  const wrap = lang === 'toml' ? '+++' : '---';
+  return `${wrap}\n${fmBody}${wrap}${after}`;
+}
+
+// Delimiter line: either 3+ identical punctuation characters on a line by
+// themselves (yaml/toml-style `---`, `+++`, etc.), or a single `{` / `}`
+// that brackets a JSON frontmatter block.
+const DELIMITER_LINE_RE = /^(?:([-+~^=*#])\1{2,}|\{|\})$/;
+
+// remark-stringify pads frontmatter blocks with a blank line before the body
+// and emits a trailing newline. Collapse the gap so the output matches the
+// canonical `---\n<body>` shape downstream tools expect, and preserve the
+// caller's trailing-newline preference on `body` (a body ending with `\n`
+// stays that way; one without doesn't get one added). When there is no body
+// at all the closing delimiter still gets a single trailing newline.
+function normalizeFrontmatterOutput(output: string, body: string): string {
+  // Collapse every "blank line directly after a delimiter line" — there can
+  // be two: one inside the frontmatter (after the opener `{` for JSON) and
+  // one between the closer and the body. `String.replace` with a function
+  // only catches the first; iterate until stable.
+  let collapsed = output;
+  while (true) {
+    const next = collapsed.replace(
+      /([^\r\n]*)(\r?\n)\r?\n+/,
+      (match, lastLine: string, nl: string) => {
+        return DELIMITER_LINE_RE.test(lastLine) ? lastLine + nl : match;
+      },
+    );
+    if (next === collapsed) break;
+    collapsed = next;
+  }
+  const trimmed = collapsed.replace(/\r?\n+$/, '');
+  const lastLine = trimmed.split(/\r?\n/).pop() || '';
+  if (DELIMITER_LINE_RE.test(lastLine)) {
+    // No body — keep one trailing newline after the closing delimiter.
+    return trimmed + '\n';
+  }
+  // Mirror the caller's trailing-newline preference on body.
+  return body.endsWith('\n') ? trimmed + '\n' : trimmed;
+}
+
 export class FrontmatterFormatter {
   format?: Language;
   customDelimiter?: Delimiter;
@@ -173,7 +237,7 @@ export class FrontmatterFormatter {
       .use(remarkStringify)
       .use(remarkFrontmatter, options)
       .use(frontmatterToObject)
-      .processSync(content);
+      .processSync(stripLanguageTaggedDelimiter(content));
 
     const obj = { ...(result.result as object) } as Content;
 
@@ -192,7 +256,7 @@ export class FrontmatterFormatter {
       .use(remarkStringify)
       .processSync({ data: { result: data } });
 
-    return String(markdown);
+    return normalizeFrontmatterOutput(String(markdown), data.body ?? '');
   }
 }
 

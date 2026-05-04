@@ -26,7 +26,10 @@ export default {
   },
 
   toFile(data: object, sortedKeys: string[] = []) {
-    return stringify(data); // TODO: add support for outputReplacer and sortKeys
+    // smol-toml appends a trailing newline; strip it so callers can join the
+    // output with `\n` themselves and so frontmatter wrappers don't end up
+    // with a blank line before the closing delimiter.
+    return stringify(data).replace(/\n+$/, ''); // TODO: add support for outputReplacer and sortKeys
     // return stringify(data, { replace: outputReplacer, sort: sortKeys(sortedKeys) });
   },
 };
