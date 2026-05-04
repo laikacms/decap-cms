@@ -18,6 +18,7 @@ export interface CmsCollectionFile {
   description?: string;
   preview_path?: string;
   preview_path_date_field?: string;
+  preview_path_preserve_slashes?: boolean;
   i18n?: boolean | CmsI18nConfig;
   media_folder?: string;
   public_folder?: string;
@@ -36,6 +37,7 @@ export interface CmsCollection {
   slug?: string | undefined;
   preview_path?: string | undefined;
   preview_path_date_field?: string | undefined;
+  preview_path_preserve_slashes?: boolean | undefined;
   create?: boolean | undefined;
   delete?: boolean | undefined;
   hide?: boolean | undefined;
@@ -79,6 +81,7 @@ export type CmsCollectionFileState = {
   public_folder?: string;
   preview_path?: string;
   preview_path_date_field?: string;
+  preview_path_preserve_slashes?: boolean;
 };
 
 export type CmsPathObject = { label: string; widget: string; index_file: string };
@@ -101,6 +104,7 @@ export type CmsCollectionState = {
   public_folder?: string;
   preview_path?: string;
   preview_path_date_field?: string;
+  preview_path_preserve_slashes?: boolean;
   summary?: string;
   description?: string;
   filter?: CmsFilterRule;

@@ -43,6 +43,7 @@ export interface CmsBackend {
   cms_label_prefix?: string;
   use_graphql?: boolean;
   squash_merges?: boolean;
+  signoff_commits?: boolean;
   preview_context?: string;
   api_version?: string;
   proxy_url?: string;
@@ -81,6 +82,7 @@ export type CmsBackendObject = {
   branch?: string;
   api_root?: string;
   squash_merges?: boolean;
+  signoff_commits?: boolean;
   use_graphql?: boolean;
   preview_context?: string;
   identity_url?: string;
@@ -100,6 +102,7 @@ export type CmsBackendInitConfig = {
     branch?: string;
     api_root?: string;
     squash_merges?: boolean;
+    signoff_commits?: boolean;
     use_graphql?: boolean;
     graphql_api_root?: string;
     preview_context?: string;

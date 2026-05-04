@@ -515,6 +515,63 @@ describe('Backend', () => {
       expect(backend.entryToRaw).toHaveBeenCalledTimes(1);
       expect(backend.entryToRaw).toHaveBeenCalledWith(collection, newEntry);
     });
+
+    it('should preserve slug when preSave event handler modifies file collection entry', async () => {
+      const implementation = {
+        init: vi.fn(() => implementation),
+        persistEntry: vi.fn(() => implementation),
+      };
+
+      const config = {
+        backend: {
+          commit_messages: 'commit-messages',
+        },
+      };
+
+      const collection = {
+        name: 'settings',
+        type: FILES,
+        files: [
+          {
+            name: 'config',
+            file: 'data/config.json',
+            fields: [{ name: 'title', widget: 'string' }],
+          },
+        ],
+      };
+
+      const originalEntry = {
+        slug: 'config',
+        path: 'data/config.json',
+        data: { title: 'original' },
+        meta: { path: 'data/config.json' },
+      };
+
+      const entryDraft = {
+        entry: originalEntry,
+      };
+
+      const user = { login: 'login', name: 'name' };
+      const backend = new Backend(implementation, { config, backendName: 'github' });
+
+      backend.currentUser = vi.fn().mockResolvedValue(user);
+      backend.entryToRaw = vi.fn().mockReturnValue('content');
+
+      // Returning the FULL entry with slug — not just the data — is the
+      // contract verified by registry.invokeEvent.
+      backend.invokePreSaveEvent = vi.fn().mockImplementation(async entry => {
+        return { ...entry, data: { ...entry.data, title: 'modified' } };
+      });
+
+      await backend.persistEntry({ config, collection, entryDraft });
+
+      expect(backend.entryToRaw).toHaveBeenCalledTimes(1);
+      const entryPassedToRaw = backend.entryToRaw.mock.calls[0][1];
+
+      expect(entryPassedToRaw.slug).toBe('config');
+      expect(entryPassedToRaw.path).toBe('data/config.json');
+      expect(entryPassedToRaw.data.title).toBe('modified');
+    });
   });
 
   describe('persistMedia', () => {

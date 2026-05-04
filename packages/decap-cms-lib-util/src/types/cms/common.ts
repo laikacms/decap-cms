@@ -140,6 +140,7 @@ export type CmsCredentials = { token: string | Record<string, unknown>; refresh_
 export type CmsUser = CmsCredentials & {
   backendName?: string;
   login?: string;
+  email?: string;
   name: string;
   useOpenAuthoring?: boolean;
 };

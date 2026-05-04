@@ -1,7 +1,6 @@
 import React from 'react';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
-import copyToClipboard from 'copy-text-to-clipboard';
 import { isAbsolutePath } from 'decap-cms-lib-util';
 import { buttons, shadows, zIndex } from 'decap-cms-ui-default';
 
@@ -97,9 +96,11 @@ export function CopyToClipBoardButton({
     };
   }, []);
 
-  function handleCopy() {
+  async function handleCopy() {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    copyToClipboard(isAbsolutePath(path || '') || !draft ? path || '' : name || '');
+    await navigator.clipboard.writeText(
+      isAbsolutePath(path || '') || !draft ? path || '' : name || '',
+    );
     setCopied(true);
     timeoutRef.current = setTimeout(() => setCopied(false), 1500);
   }

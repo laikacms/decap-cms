@@ -49,15 +49,27 @@ type Options = {
   collection?: Collection;
   authorLogin?: string;
   authorName?: string;
+  authorEmail?: string;
 };
 
 export function commitMessageFormatter(
   type: keyof typeof commitMessageTemplates,
   config: CmsConfig,
-  { slug, path, collection, authorLogin, authorName }: Options,
+  { slug, path, collection, authorLogin, authorName, authorEmail }: Options,
   isOpenAuthoring?: boolean,
 ) {
   const templates = { ...commitMessageTemplates, ...(config.backend.commit_messages || {}) };
+
+  let trailers = '';
+  if (config.backend.signoff_commits) {
+    if (!authorName) {
+      console.warn('Option signoff_commits is enabled, but author name is unknown');
+    } else if (!authorEmail) {
+      console.warn('Option signoff_commits is enabled, but author email is unknown');
+    } else {
+      trailers = `\n\nSigned-off-by: ${authorName} <${authorEmail}>\n`;
+    }
+  }
 
   const commitMessage = templates[type].replace(variableRegex, (_, variable) => {
     switch (variable) {
@@ -78,7 +90,7 @@ export function commitMessageFormatter(
   });
 
   if (!isOpenAuthoring) {
-    return commitMessage;
+    return commitMessage + trailers;
   }
 
   const message = templates.openAuthoring.replace(variableRegex, (_, variable) => {
@@ -95,7 +107,7 @@ export function commitMessageFormatter(
     }
   });
 
-  return message;
+  return message + trailers;
 }
 
 export function prepareSlug(slug: string) {
@@ -113,11 +125,19 @@ export function prepareSlug(slug: string) {
   );
 }
 
-export function getProcessSegment(slugConfig?: CmsSlug, ignoreValues?: string[]) {
+export function getProcessSegment(
+  slugConfig?: CmsSlug,
+  ignoreValues?: string[],
+  preserveSlashes?: boolean,
+) {
   return (value: string) =>
     ignoreValues && ignoreValues.includes(value)
       ? value
-      : flow([value => String(value), prepareSlug, partialRight(sanitizeSlug, slugConfig)])(value);
+      : flow([
+          value => String(value),
+          prepareSlug,
+          partialRight(sanitizeSlug, slugConfig, preserveSlashes),
+        ])(value);
 }
 
 export function slugFormatter(
@@ -202,12 +222,16 @@ export function previewUrlFormatter(
   fields = addFileTemplateFields(entry.path, fields, collection.folder);
   const dateFieldName = getDateField() || selectInferredField(collection, 'date');
   const date = parseDateFromEntry(entry as unknown as Record<string, unknown>, dateFieldName);
+  const previewPathPreserveSlashes =
+    file?.preview_path_preserve_slashes ?? collection.preview_path_preserve_slashes;
+  const preserveSlashes = !!(previewPathPreserveSlashes ?? collection.nested);
 
   // Prepare and sanitize slug variables only, leave the rest of the
   // `preview_path` template as is.
   const processSegment = getProcessSegment(
     slugConfig,
     [(fields as Record<string, string>)['dirname']].filter(isString),
+    preserveSlashes,
   );
   let compiledPath;
 

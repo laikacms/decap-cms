@@ -8,6 +8,7 @@ import { UnControlled as ReactCodeMirror } from 'react-codemirror2';
 import SettingsPane from './SettingsPane';
 import SettingsButton from './SettingsButton';
 import languageData from '../data/languages.json';
+import { getLanguageLoader } from './languageLoaders';
 
 import type { CmsFieldBase, CmsFieldCode } from 'decap-cms-lib-util';
 
@@ -190,10 +191,13 @@ export default function CodeControl({
     if (changedProps.lang) {
       const { mode } = getLanguageByName(changedProps.lang) || {};
       if (mode) {
-        try {
-          await import(`codemirror/mode/${mode}/${mode}.js`);
-        } catch {
-          // mode not available
+        const loader = getLanguageLoader(mode);
+        if (loader) {
+          try {
+            await loader();
+          } catch (e) {
+            console.warn(`Failed to load CodeMirror mode: ${mode}`, e);
+          }
         }
       }
     }

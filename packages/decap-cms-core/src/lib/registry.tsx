@@ -336,7 +336,7 @@ export async function invokeEvent({ name, data }: { name: string; data: EventDat
       _data = { ...data, entry };
     }
   }
-  return _data.entry.data;
+  return _data.entry;
 }
 
 export function removeEventListener({ name, handler }: { name: string; handler?: Function }) {

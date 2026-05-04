@@ -1,4 +1,5 @@
 import { stripIndent } from 'common-tags';
+import { vi } from 'vitest';
 
 import yaml from '../yaml';
 
@@ -84,6 +85,29 @@ describe('yaml', () => {
       expect(yaml.fromFile('time: 10:05')).toEqual({
         time: '10:05',
       });
+    });
+
+    test('throws on duplicate keys', () => {
+      expect(() => yaml.fromFile('title: Hello\ntitle: World')).toThrow(/Map keys must be unique/);
+    });
+
+    test('throws on duplicate nested keys', () => {
+      expect(() => yaml.fromFile('nested:\n  a: 1\n  a: 2')).toThrow(/Map keys must be unique/);
+    });
+
+    test('does not throw when same key appears in different nested objects', () => {
+      expect(yaml.fromFile('obj1:\n  name: foo\nobj2:\n  name: bar')).toEqual({
+        obj1: { name: 'foo' },
+        obj2: { name: 'bar' },
+      });
+    });
+
+    test('logs warnings to console.warn', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      // Valid YAML should produce no warnings
+      yaml.fromFile('title: Hello');
+      expect(warnSpy).not.toHaveBeenCalled();
+      warnSpy.mockRestore();
     });
   });
   describe('toFile', () => {
