@@ -26,7 +26,11 @@ export default {
   },
 
   toFile(data: object, sortedKeys: string[] = []) {
-    return stringify(data); // TODO: add support for outputReplacer and sortKeys
+    let result = stringify(data); // TODO: add support for outputReplacer and sortKeys
+    // smol-toml renders inline arrays with surrounding spaces (e.g. `[ "a", "b" ]`).
+    // Normalize to compact spacing (`["a", "b"]`) and trim the trailing newline.
+    result = result.replace(/= \[ /g, '= [').replace(/ \](?=\n|$)/g, ']');
+    return result.replace(/\n$/, '');
     // return stringify(data, { replace: outputReplacer, sort: sortKeys(sortedKeys) });
   },
 };

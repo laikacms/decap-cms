@@ -336,7 +336,11 @@ describe('github API', () => {
       expect(api.editorialWorkflowGit).toHaveBeenCalledTimes(1);
 
       expect(api.editorialWorkflowGit).toHaveBeenCalledWith(
-        entry.assets.concat(entry.dataFiles),
+        [
+          expect.objectContaining({ ...entry.assets[0], type: 'blob' }),
+          expect.objectContaining({ ...entry.assets[1], type: 'blob' }),
+          expect.objectContaining({ ...entry.dataFiles[0], type: 'blob' }),
+        ],
         entry.dataFiles[0].slug,
         [
           { path: 'static/media/image-1.png', sha: 'image-1.png' },

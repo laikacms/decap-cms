@@ -742,12 +742,13 @@ export class Backend {
     const label = selectFileEntryLabel(collection, slug);
 
     const formatRawData = (raw: string) => {
+      const metaPath = prepareMetaPath(path, collection);
       return this.entryWithFormat(collection)(
         createEntry(collection.name, slug, path, {
           raw,
           label,
           mediaFiles,
-          meta: { path: prepareMetaPath(path, collection) },
+          meta: metaPath ? { path: metaPath } : {},
         }),
       );
     };

@@ -70,6 +70,10 @@ const parsers = {
       if (JSONoutput.slice(0, 1) === '{' && JSONoutput.slice(-1) === '}') {
         JSONoutput = JSONoutput.slice(1, -1);
       }
+      // Strip the leading newline + indent left over from the outer brace, and
+      // any trailing newline + indent. This matches the layout the tests expect
+      // when the JSON body is wrapped back inside frontmatter delimiters.
+      JSONoutput = JSONoutput.replace(/^\s*\n[ \t]*/, '').replace(/\n[ \t]*$/, '');
       return JSONoutput;
     },
   },
@@ -80,7 +84,10 @@ const parsers = {
       opts?: { sortedKeys?: string[]; comments?: Record<string, string> },
     ) => {
       const { sortedKeys, comments } = opts || {};
-      return yamlFormatter.toFile(metadata, sortedKeys, comments);
+      // yamlFormatter.toFile emits a trailing newline. When embedded between
+      // frontmatter delimiters that newline becomes a blank line before the
+      // closing fence, so strip it here.
+      return yamlFormatter.toFile(metadata, sortedKeys, comments).replace(/\n$/, '');
     },
   },
 };
@@ -168,32 +175,91 @@ export class FrontmatterFormatter {
       ? buildOptions(this.format, this.customDelimiter)
       : defaultOptions;
 
+    const normalized = this.format ? content : normalizeLanguageTaggedFrontmatter(content);
+
     const result = unified()
       .use(remarkParse)
       .use(remarkStringify)
       .use(remarkFrontmatter, options)
       .use(frontmatterToObject)
-      .processSync(content);
+      .processSync(normalized);
 
     const obj = { ...(result.result as object) } as Content;
+
+    // Match grey-matter behaviour: omit `body` when there is no actual body
+    // content. Without this, callers comparing parsed entries would see a
+    // spurious empty `body` field for entries that only contain frontmatter.
+    if (typeof obj.body === 'string' && obj.body === '') {
+      delete (obj as Record<string, unknown>).body;
+    }
 
     return obj;
   }
 
   toFile(data: Content, sortedKeys?: string[], comments?: Record<string, string>) {
+    const format = this.format || Languages.YAML;
     const options = this.format
       ? buildOptions(this.format, this.customDelimiter)
       : defaultOptions;
 
     const markdown = unified()
       .use(remarkParse)
-      .use(objectToFrontmatter, { format: this.format || 'yaml', sortedKeys, comments })
+      .use(objectToFrontmatter, { format, sortedKeys, comments })
       .use(remarkFrontmatter, options)
       .use(remarkStringify)
       .processSync({ data: { result: data } });
 
-    return String(markdown);
+    let result = String(markdown);
+
+    // remark-stringify inserts a blank line between the closing frontmatter
+    // delimiter and the body. Collapse that back to a single newline so the
+    // serialized output round-trips with the body the user supplied.
+    const closeDelim = getCloseDelimiter(format, this.customDelimiter);
+    const closeEscaped = escapeRegExp(closeDelim);
+    result = result.replace(new RegExp(`(\\n${closeEscaped}\\n)\\n`), '$1');
+
+    // Match grey-matter behaviour: only emit a trailing newline when the body
+    // actually ended with one (or when there is no body at all).
+    const body = typeof data?.body === 'string' ? data.body : '';
+    if (body !== '' && !body.endsWith('\n') && result.endsWith('\n')) {
+      result = result.slice(0, -1);
+    }
+
+    return result;
   }
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function getCloseDelimiter(format: Language, customDelimiter?: Delimiter): string {
+  if (customDelimiter) {
+    return Array.isArray(customDelimiter) ? customDelimiter[1] : customDelimiter;
+  }
+  if (format === Languages.TOML) return '+++';
+  if (format === Languages.JSON) return '}';
+  return '---';
+}
+
+// Decap historically supported language-tagged frontmatter fences such as
+// `---yaml`, `---toml`, and `---json`. remark-frontmatter does not understand
+// those tags directly, so rewrite them to canonical delimiters before parsing.
+function normalizeLanguageTaggedFrontmatter(content: string): string {
+  const match = content.match(/^---(yaml|toml|json)\n([\s\S]*?)\n---(\n[\s\S]*)?$/);
+  if (!match) return content;
+
+  const [, lang, fmContent, rest = ''] = match;
+  const body = rest.startsWith('\n') ? rest.slice(1) : rest;
+
+  if (lang === 'yaml') {
+    return `---\n${fmContent}\n---\n${body}`;
+  }
+  if (lang === 'toml') {
+    return `+++\n${fmContent}\n+++\n${body}`;
+  }
+  // For JSON, the inner content already includes its own braces.
+  return `${fmContent}\n${body}`;
 }
 
 export const FrontmatterInfer = new FrontmatterFormatter();

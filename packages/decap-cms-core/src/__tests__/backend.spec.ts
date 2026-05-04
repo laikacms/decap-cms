@@ -38,6 +38,11 @@ vi.mock('decap-cms-lib-util', () => ({
     notUnderEditorialWorkflow = false;
   },
   EDITORIAL_WORKFLOW_ERROR: 'EDITORIAL_WORKFLOW_ERROR',
+  CmsSortDirection: {
+    Ascending: 'Ascending',
+    Descending: 'Descending',
+    None: 'None',
+  },
   localForage: {
     getItem: vi.fn(),
     setItem: vi.fn(),
