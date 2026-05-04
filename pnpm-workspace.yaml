@@ -304,3 +304,23 @@ catalogs:
   # Stega encoding
   stega:
     "@vercel/stega": "^1.1.0"
+
+  # Lexical editor
+  lexical:
+    "lexical": "^0.42.0"
+    "@lexical/code": "^0.42.0"
+    "@lexical/code-shiki": "^0.42.0"
+    "@lexical/extension": "^0.42.0"
+    "@lexical/file": "^0.42.0"
+    "@lexical/hashtag": "^0.42.0"
+    "@lexical/history": "^0.42.0"
+    "@lexical/link": "^0.42.0"
+    "@lexical/list": "^0.42.0"
+    "@lexical/markdown": "^0.42.0"
+    "@lexical/overflow": "^0.42.0"
+    "@lexical/react": "^0.42.0"
+    "@lexical/rich-text": "^0.42.0"
+    "@lexical/selection": "^0.42.0"
+    "@lexical/table": "^0.42.0"
+    "@lexical/text": "^0.42.0"
+    "@lexical/utils": "^0.42.0"
