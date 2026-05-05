@@ -4,10 +4,7 @@ import AssetStore from './providers/assetStore/implementation';
 import type { AlgoliaConfig } from './providers/algolia/implementation';
 import type { AssetStoreConfig } from './providers/assetStore/implementation';
 
-
-// Integrations config is a plain object after migration from Immutable.js
-
-type Integrations = any;
+// any config is a plain object after migration from Immutable.js
 
 type GetTokenFn = () => Promise<string>;
 
@@ -16,7 +13,7 @@ type IntegrationProvider = Algolia | AssetStore;
 type IntegrationInstances = globalThis.Map<string, IntegrationProvider>;
 
 export function resolveIntegrations(
-  integrationsConfig: Integrations,
+  integrationsConfig: any,
   getToken: GetTokenFn,
 ): IntegrationInstances {
   const integrationInstances: IntegrationInstances = new globalThis.Map();
@@ -47,7 +44,7 @@ export const getIntegrationProvider = (function () {
   let integrations: IntegrationInstances | null = null;
 
   return (
-    integrationsConfig: Integrations,
+    integrationsConfig: any,
     getToken: GetTokenFn,
     provider: string,
   ): IntegrationProvider | undefined => {

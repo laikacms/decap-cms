@@ -24,11 +24,6 @@ import {
 import type { CmsCollectionState, CmsEntry, CmsEntryField } from 'decap-cms-lib-util';
 import type { I18nInfo } from '../../../lib/i18n';
 
-type Collection = CmsCollectionState;
-type EntryMap = CmsEntry;
-type EntryField = CmsEntryField;
-
-
 const ControlPaneContainer = styled.div`
   max-width: 800px;
   margin: 0 auto;
@@ -88,8 +83,8 @@ function LocaleDropdown({ locales, dropdownText, onLocaleChange }: LocaleDropdow
 }
 
 interface GetFieldValueParams {
-  field: EntryField;
-  entry: EntryMap;
+  field: CmsEntryField;
+  entry: CmsEntry;
   isTranslatable: boolean;
   locale: string;
 }
@@ -113,13 +108,13 @@ function getFieldValue({ field, entry, isTranslatable, locale }: GetFieldValuePa
 }
 
 interface ControlPaneProps {
-  collection: Collection;
-  entry: EntryMap;
-  fields: EntryField[];
+  collection: CmsCollectionState;
+  entry: CmsEntry;
+  fields: CmsEntryField[];
   fieldsMetaData: Record<string, Record<string, unknown>>;
   fieldsErrors: Record<string, { type: string; message: string }[]>;
   onChange: (
-    field: EntryField,
+    field: CmsEntryField,
     value: unknown,
     metadata?: Record<string, unknown>,
     i18n?: unknown,
@@ -145,7 +140,7 @@ const ControlPane = React.forwardRef<ControlPaneHandle, ControlPaneProps>(functi
   const [selectedLocale, setSelectedLocale] = React.useState<string | undefined>(props.locale);
   const childRefs = React.useRef<Record<string, unknown>>({});
 
-  function controlRef(field: EntryField, wrappedControl: unknown) {
+  function controlRef(field: CmsEntryField, wrappedControl: unknown) {
     if (!wrappedControl) return;
     childRefs.current[field.name] = wrappedControl;
   }
@@ -154,7 +149,7 @@ const ControlPane = React.forwardRef<ControlPaneHandle, ControlPaneProps>(functi
   // function on every render.
   const getControlRef = React.useMemo(
     () =>
-      memoize((field: EntryField) => (wrappedControl: unknown) => {
+      memoize((field: CmsEntryField) => (wrappedControl: unknown) => {
         controlRef(field, wrappedControl);
       }),
     [],
@@ -253,19 +248,19 @@ const ControlPane = React.forwardRef<ControlPaneHandle, ControlPaneProps>(functi
   }
 
   function onChange(
-    field: EntryField,
+    field: CmsEntryField,
     newValue: unknown,
     newMetadata: Record<string, unknown> | undefined,
   ) {
     props.onChange(field, newValue, newMetadata, getI18n());
   }
 
-  function isFieldDuplicateForLocale(field: EntryField) {
+  function isFieldDuplicateForLocale(field: CmsEntryField) {
     const { defaultLocale } = getI18nInfo(collection) as I18nInfo;
     return isFieldDuplicate(field, selectedLocale ?? '', defaultLocale);
   }
 
-  function isFieldHiddenForLocale(field: EntryField) {
+  function isFieldHiddenForLocale(field: CmsEntryField) {
     const { defaultLocale } = getI18nInfo(collection) as I18nInfo;
     return isFieldHidden(field, selectedLocale ?? '', defaultLocale);
   }

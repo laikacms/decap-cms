@@ -29,12 +29,6 @@ import EditorPreview from './EditorPreview';
 import type { Dispatch } from 'redux';
 import type { CmsCollectionState, CmsEntry, CmsEntryField, CmsConfig } from 'decap-cms-lib-util';
 
-type Collection = CmsCollectionState;
-type EntryMap = CmsEntry;
-type EntryField = CmsEntryField;
-
-type State = any;
-
 const PreviewPaneFrame = styled(Frame)`
   width: 100%;
   height: 100%;
@@ -46,19 +40,19 @@ const PreviewPaneFrame = styled(Frame)`
 type InferableFieldValue = (typeof INFERABLE_FIELDS)[keyof typeof INFERABLE_FIELDS];
 
 interface PreviewPaneProps {
-  collection: Collection;
-  fields: EntryField[];
-  entry: EntryMap;
+  collection: CmsCollectionState;
+  fields: CmsEntryField[];
+  entry: CmsEntry;
   fieldsMetaData: Record<string, unknown>;
-  getAsset: (asset: string) => { url: string; path: string; field?: EntryField };
+  getAsset: (asset: string) => { url: string; path: string; field?: CmsEntryField };
   onFieldClick?: (fieldName: string) => void;
   config: CmsConfig;
-  state: State;
+  state: any;
   isLoadingAsset: boolean;
-  boundGetAsset: (collection: Collection, entry: EntryMap) => unknown;
+  boundGetAsset: (collection: CmsCollectionState, entry: CmsEntry) => unknown;
 }
 
-function inferFieldsForCollection(collection: Collection): Record<string, InferableFieldValue> {
+function inferFieldsForCollection(collection: CmsCollectionState): Record<string, InferableFieldValue> {
   const titleField = selectInferredField(collection, 'title');
   const shortTitleField = selectInferredField(collection, 'shortTitle');
   const authorField = selectInferredField(collection, 'author');
@@ -70,7 +64,7 @@ function inferFieldsForCollection(collection: Collection): Record<string, Infera
 }
 
 function getWidget(
-  field: EntryField,
+  field: CmsEntryField,
   value: unknown,
   metadata: unknown,
   props: PreviewPaneProps,
@@ -118,7 +112,7 @@ export function PreviewPane(props: PreviewPaneProps) {
    */
   function widgetFor(
     name: string,
-    fields: EntryField[] = props.fields,
+    fields: CmsEntryField[] = props.fields,
     values: unknown = props.entry.data,
     fieldsMetaData: Record<string, unknown> = props.fieldsMetaData,
   ): React.ReactNode {
@@ -170,7 +164,7 @@ export function PreviewPane(props: PreviewPaneProps) {
     return value ? getWidget(field, value, metadata, props) : null;
   }
 
-  function getNestedWidgets(fields: EntryField[], values: unknown, fieldsMetaData: unknown) {
+  function getNestedWidgets(fields: CmsEntryField[], values: unknown, fieldsMetaData: unknown) {
     if (Array.isArray(values)) {
       return values.map(value =>
         widgetsForNestedFields(fields, value, fieldsMetaData as Record<string, unknown>),
@@ -179,7 +173,7 @@ export function PreviewPane(props: PreviewPaneProps) {
     return widgetsForNestedFields(fields, values, fieldsMetaData as Record<string, unknown>);
   }
 
-  function getSingleNested(field: EntryField, values: unknown, fieldsMetaData: unknown) {
+  function getSingleNested(field: CmsEntryField, values: unknown, fieldsMetaData: unknown) {
     if (Array.isArray(values)) {
       return values.map((value, idx) =>
         getWidget(
@@ -200,11 +194,11 @@ export function PreviewPane(props: PreviewPaneProps) {
   }
 
   function widgetsForNestedFields(
-    fields: EntryField[],
+    fields: CmsEntryField[],
     values: unknown,
     fieldsMetaData: Record<string, unknown>,
   ) {
-    return fields.map((field: EntryField) =>
+    return fields.map((field: CmsEntryField) =>
       widgetFor(field.name, fields, values, fieldsMetaData),
     );
   }
@@ -225,12 +219,12 @@ export function PreviewPane(props: PreviewPaneProps) {
     if (Array.isArray(value) && variableTypes) {
       return value.map(val => {
         const valueType = variableTypes.find(
-          (t: EntryField) => t.name === (val as Record<string, unknown>).type,
+          (t: CmsEntryField) => t.name === (val as Record<string, unknown>).type,
         );
         const typeFields = valueType && valueType.fields;
         const widgets: Record<string, React.ReactNode> = {};
         if (typeFields) {
-          typeFields.forEach((f: EntryField, i: number) => {
+          typeFields.forEach((f: CmsEntryField, i: number) => {
             widgets[f.name] = (
               <div key={i}>
                 {getWidget(f, val, (metadata as Record<string, unknown>)[f.name], props)}
@@ -246,7 +240,7 @@ export function PreviewPane(props: PreviewPaneProps) {
       return value.map(val => {
         const widgets: Record<string, React.ReactNode> = {};
         if (nestedFields) {
-          nestedFields.forEach((f: EntryField, i: number) => {
+          nestedFields.forEach((f: CmsEntryField, i: number) => {
             widgets[f.name] = (
               <div key={i}>
                 {getWidget(f, val, (metadata as Record<string, unknown>)[f.name], props)}
@@ -260,7 +254,7 @@ export function PreviewPane(props: PreviewPaneProps) {
 
     const widgets: Record<string, React.ReactNode> = {};
     if (nestedFields) {
-      nestedFields.forEach((f: EntryField) => {
+      nestedFields.forEach((f: CmsEntryField) => {
         widgets[f.name] = getWidget(
           f,
           value,
@@ -304,7 +298,7 @@ export function PreviewPane(props: PreviewPaneProps) {
     entry: previewEntry,
     widgetFor: (
       name: string,
-      fields?: EntryField[],
+      fields?: CmsEntryField[],
       values: unknown = previewEntry.data,
       fieldsMetaData?: Record<string, unknown>,
     ) => widgetFor(name, fields, values, fieldsMetaData),
@@ -346,9 +340,9 @@ export function PreviewPane(props: PreviewPaneProps) {
 }
 
 interface ConnectedPreviewPaneProps {
-  collection: Collection;
-  fields: EntryField[];
-  entry: EntryMap;
+  collection: CmsCollectionState;
+  fields: CmsEntryField[];
+  entry: CmsEntry;
   fieldsMetaData: Record<string, unknown>;
   onFieldClick?: (fieldName: string) => void;
   locale?: string;
@@ -370,10 +364,10 @@ export default function ConnectedPreviewPane(props: ConnectedPreviewPaneProps) {
       isLoadingAsset={isLoadingAsset}
       config={config}
       state={state}
-      boundGetAsset={(collection: Collection, entry: EntryMap) =>
+      boundGetAsset={(collection: CmsCollectionState, entry: CmsEntry) =>
         boundGetAsset(dispatch as any, collection, entry)
       }
-      getAsset={getAsset as (asset: string) => { url: string; path: string; field?: EntryField }}
+      getAsset={getAsset as (asset: string) => { url: string; path: string; field?: CmsEntryField }}
     />
   );
 }

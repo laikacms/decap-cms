@@ -8,10 +8,8 @@ import createRootReducer from '../reducers/combinedReducer';
 import type { ThunkDispatch } from 'redux-thunk';
 import type { AnyAction, Reducer, Middleware } from 'redux';
 
-type State = any;
-
-const store = createStore<State | undefined, AnyAction, object, object>(
-  createRootReducer() as unknown as Reducer<State | undefined, AnyAction>,
+const store = createStore<any | undefined, AnyAction, object, object>(
+  createRootReducer() as unknown as Reducer<any | undefined, AnyAction>,
   composeWithDevTools(
     applyMiddleware(
       thunkMiddleware as unknown as Middleware,
@@ -21,8 +19,8 @@ const store = createStore<State | undefined, AnyAction, object, object>(
 );
 
 // Export types for typed hooks
-export type RootState = State;
+export type RootState = any;
 // Using {} for extra argument to match existing thunk actions
-export type AppDispatch = ThunkDispatch<State, {}, AnyAction>;
+export type AppDispatch = ThunkDispatch<any, {}, AnyAction>;
 
 export { store };

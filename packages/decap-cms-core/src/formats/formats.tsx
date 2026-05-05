@@ -14,12 +14,6 @@ import type {
 } from 'decap-cms-lib-util';
 import type { EntryValue } from '../valueObjects/Entry';
 
-type Collection = CmsCollectionState;
-type Format = CmsCollectionFormatType;
-type FormatterFunctions = CmsFormatterFunctions;
-
-type EntryObject = any;
-
 export const frontmatterFormats = ['yaml-frontmatter', 'toml-frontmatter', 'json-frontmatter'];
 
 export const formatExtensions = {
@@ -47,8 +41,8 @@ export const extensionFormatters = {
   html: FrontmatterInfer,
 };
 
-function formatByName(name: Format, customDelimiter?: Delimiter): FormatterFunctions {
-  const formatters: Record<string, FormatterFunctions> = {
+function formatByName(name: CmsCollectionFormatType, customDelimiter?: Delimiter): CmsFormatterFunctions {
+  const formatters: Record<string, CmsFormatterFunctions> = {
     yml: yamlFormatter,
     yaml: yamlFormatter,
     toml: tomlFormatter,
@@ -71,7 +65,7 @@ function frontmatterDelimiterIsArray(
   return Array.isArray(frontmatterDelimiter);
 }
 
-export function resolveFormat(collection: Collection, entry: EntryObject | EntryValue) {
+export function resolveFormat(collection: CmsCollectionState, entry: any | EntryValue) {
   // Check for custom delimiter
   const frontmatter_delimiter = collection.frontmatter_delimiter;
   const customDelimiter = frontmatterDelimiterIsArray(frontmatter_delimiter)
@@ -81,7 +75,7 @@ export function resolveFormat(collection: Collection, entry: EntryObject | Entry
   // If the format is specified in the collection, use that format.
   const formatSpecification = collection.format;
   if (formatSpecification) {
-    return formatByName(formatSpecification as Format, customDelimiter);
+    return formatByName(formatSpecification as CmsCollectionFormatType, customDelimiter);
   }
 
   // If a file already exists, infer the format from its file extension.

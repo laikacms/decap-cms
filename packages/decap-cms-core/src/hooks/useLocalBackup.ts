@@ -11,11 +11,8 @@ import {
 
 import type { CmsCollectionState, CmsEntry } from 'decap-cms-lib-util';
 
-type Collection = CmsCollectionState;
-type EntryMap = CmsEntry;
-
 interface UseLocalBackupOptions {
-  collection: Collection;
+  collection: CmsCollectionState;
   slug?: string;
   debounceMs?: number;
 }
@@ -29,7 +26,7 @@ export function useLocalBackup({ collection, slug, debounceMs = 2000 }: UseLocal
 
   // Create debounced persist function
   const debouncedPersistRef = useRef(
-    debounce((entry: EntryMap, col: Collection) => {
+    debounce((entry: CmsEntry, col: CmsCollectionState) => {
       dispatch(persistLocalBackup(entry, col));
     }, debounceMs),
   );
@@ -43,7 +40,7 @@ export function useLocalBackup({ collection, slug, debounceMs = 2000 }: UseLocal
   }, [dispatch]);
 
   const persist = useCallback(
-    (entry: EntryMap) => {
+    (entry: CmsEntry) => {
       debouncedPersistRef.current(entry, collection);
     },
     [collection],

@@ -4,8 +4,6 @@ import { addNotification, dismissNotification } from './notifications';
 import type { ThunkDispatch } from 'redux-thunk';
 import type { AnyAction } from 'redux';
 
-type State = any;
-
 interface CmsNotification {
   id: string;
   message: string | { key: string; details?: string };
@@ -41,7 +39,7 @@ export function statusFailure(error: Error) {
 }
 
 export function checkBackendStatus() {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     try {
       const state = getState();
       if (state.status.isFetching) {

@@ -5,8 +5,6 @@ import type { CmsCredentials, CmsUser } from 'decap-cms-lib-util';
 import type { ThunkDispatch } from 'redux-thunk';
 import type { AnyAction } from 'redux';
 
-type State = any;
-
 export const AUTH_REQUEST = 'AUTH_REQUEST';
 export const AUTH_SUCCESS = 'AUTH_SUCCESS';
 export const AUTH_FAILURE = 'AUTH_FAILURE';
@@ -55,7 +53,7 @@ export function logout() {
 
 // Check if user data token is cached and is valid
 export function authenticateUser() {
-  return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const state = getState();
     const backend = currentBackend(state.config);
     dispatch(authenticating());
@@ -78,7 +76,7 @@ export function authenticateUser() {
 }
 
 export function loginUser(credentials: CmsCredentials) {
-  return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const state = getState();
     const backend = currentBackend(state.config);
 
@@ -109,7 +107,7 @@ export function loginUser(credentials: CmsCredentials) {
 }
 
 export function logoutUser() {
-  return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const state = getState();
     const backend = currentBackend(state.config);
     Promise.resolve(backend.logout()).then(() => {

@@ -10,10 +10,8 @@ import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
 import type { Mock } from 'vitest';
 
-type State = any;
-
 const middlewares = [thunk];
-const mockStore = configureMockStore<Partial<State>, ThunkDispatch<State, {}, AnyAction>>(
+const mockStore = configureMockStore<Partial<any>, ThunkDispatch<any, {}, AnyAction>>(
   middlewares,
 );
 const mockedSelectMediaFilePath = selectMediaFilePath as Mock;

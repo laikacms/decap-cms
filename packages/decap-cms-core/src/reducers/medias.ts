@@ -12,10 +12,8 @@ import {
 import type { MediasAction } from '../actions/media';
 import type { CmsAssetProxy } from 'decap-cms-lib-util';
 
-type AssetProxy = CmsAssetProxy;
-
 export type Medias = {
-  [path: string]: { asset: AssetProxy | undefined; isLoading: boolean; error: Error | null };
+  [path: string]: { asset: CmsAssetProxy | undefined; isLoading: boolean; error: Error | null };
 };
 
 const defaultState: Medias = {};

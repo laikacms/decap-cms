@@ -37,13 +37,6 @@ import type { EntryDraft } from '../reducers/entryDraft';
 import type { Status } from '../constants/publishModes';
 import type { ThunkDispatch } from 'redux-thunk';
 
-type Collection = CmsCollectionState;
-type EntryMap = CmsEntry;
-type Collections = CmsCollections;
-type MediaFile = CmsMediaFile;
-
-type State = any;
-
 /*
  * Constant Declarations
  */
@@ -75,7 +68,7 @@ export const UNPUBLISHED_ENTRY_DELETE_FAILURE = 'UNPUBLISHED_ENTRY_DELETE_FAILUR
  * Simple Action Creators (Internal)
  */
 
-function unpublishedEntryLoading(collection: Collection, slug: string) {
+function unpublishedEntryLoading(collection: CmsCollectionState, slug: string) {
   return {
     type: UNPUBLISHED_ENTRY_REQUEST,
     payload: {
@@ -86,8 +79,8 @@ function unpublishedEntryLoading(collection: Collection, slug: string) {
 }
 
 function unpublishedEntryLoaded(
-  collection: Collection,
-  entry: EntryValue & { mediaFiles: MediaFile[] },
+  collection: CmsCollectionState,
+  entry: EntryValue & { mediaFiles: CmsMediaFile[] },
 ) {
   return {
     type: UNPUBLISHED_ENTRY_SUCCESS,
@@ -98,7 +91,7 @@ function unpublishedEntryLoaded(
   };
 }
 
-function unpublishedEntryRedirected(collection: Collection, slug: string) {
+function unpublishedEntryRedirected(collection: CmsCollectionState, slug: string) {
   return {
     type: UNPUBLISHED_ENTRY_REDIRECT,
     payload: {
@@ -132,7 +125,7 @@ function unpublishedEntriesFailed(error: Error) {
   };
 }
 
-function unpublishedEntryPersisting(collection: Collection, slug: string) {
+function unpublishedEntryPersisting(collection: CmsCollectionState, slug: string) {
   return {
     type: UNPUBLISHED_ENTRY_PERSIST_REQUEST,
     payload: {
@@ -142,7 +135,7 @@ function unpublishedEntryPersisting(collection: Collection, slug: string) {
   };
 }
 
-function unpublishedEntryPersisted(collection: Collection, entry: EntryMap) {
+function unpublishedEntryPersisted(collection: CmsCollectionState, entry: CmsEntry) {
   return {
     type: UNPUBLISHED_ENTRY_PERSIST_SUCCESS,
     payload: {
@@ -152,7 +145,7 @@ function unpublishedEntryPersisted(collection: Collection, entry: EntryMap) {
   };
 }
 
-function unpublishedEntryPersistedFail(error: Error, collection: Collection, slug: string) {
+function unpublishedEntryPersistedFail(error: Error, collection: CmsCollectionState, slug: string) {
   return {
     type: UNPUBLISHED_ENTRY_PERSIST_FAILURE,
     payload: {
@@ -242,8 +235,8 @@ function unpublishedEntryDeleteError(collection: string, slug: string) {
  * Exported Thunk Action Creators
  */
 
-export function loadUnpublishedEntry(collection: Collection, slug: string) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+export function loadUnpublishedEntry(collection: CmsCollectionState, slug: string) {
+  return async (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const state = getState();
     const backend = currentBackend(state.config);
     const entriesLoaded = get(state.editorialWorkflow, 'pages.ids', false);
@@ -301,8 +294,8 @@ export function loadUnpublishedEntry(collection: Collection, slug: string) {
   };
 }
 
-export function loadUnpublishedEntries(collections: Collections) {
-  return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+export function loadUnpublishedEntries(collections: CmsCollections) {
+  return (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const state = getState();
     const backend = currentBackend(state.config);
     const entriesLoaded = get(state.editorialWorkflow, 'pages.ids', false);
@@ -332,8 +325,8 @@ export function loadUnpublishedEntries(collections: Collections) {
   };
 }
 
-export function persistUnpublishedEntry(collection: Collection, existingUnpublishedEntry: boolean) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+export function persistUnpublishedEntry(collection: CmsCollectionState, existingUnpublishedEntry: boolean) {
+  return async (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const state = getState();
     const entryDraft = state.entryDraft;
     const fieldsErrors = entryDraft.fieldsErrors;
@@ -432,7 +425,7 @@ export function updateUnpublishedEntryStatus(
   oldStatus: Status,
   newStatus: Status,
 ) {
-  return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     if (oldStatus === newStatus) return;
     const state = getState();
     const backend = currentBackend(state.config);
@@ -468,7 +461,7 @@ export function updateUnpublishedEntryStatus(
 }
 
 export function deleteUnpublishedEntry(collection: string, slug: string) {
-  return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const state = getState();
     const backend = currentBackend(state.config);
     dispatch(unpublishedEntryDeleteRequest(collection, slug));
@@ -498,11 +491,11 @@ export function deleteUnpublishedEntry(collection: string, slug: string) {
 }
 
 export function publishUnpublishedEntry(collectionName: string, slug: string) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const state = getState();
     const collections = state.collections;
     const backend = currentBackend(state.config);
-    const entry = selectUnpublishedEntry(state, collectionName, slug) as unknown as EntryMap;
+    const entry = selectUnpublishedEntry(state, collectionName, slug) as unknown as CmsEntry;
     dispatch(unpublishedEntryPublishRequest(collectionName, slug));
     try {
       await backend.publishUnpublishedEntry(entry);
@@ -540,11 +533,11 @@ export function publishUnpublishedEntry(collectionName: string, slug: string) {
   };
 }
 
-export function unpublishPublishedEntry(collection: Collection, slug: string) {
-  return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+export function unpublishPublishedEntry(collection: CmsCollectionState, slug: string) {
+  return (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const state = getState();
     const backend = currentBackend(state.config);
-    const entry = selectEntry(state, collection.name, slug) as EntryMap;
+    const entry = selectEntry(state, collection.name, slug) as CmsEntry;
     const entryDraft = { entry } as unknown as EntryDraft;
     dispatch(unpublishedEntryPersisting(collection, slug));
     return backend

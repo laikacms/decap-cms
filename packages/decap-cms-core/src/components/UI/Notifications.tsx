@@ -15,8 +15,6 @@ interface CmsNotification {
   dismissAfter?: number;
 }
 
-type Notification = CmsNotification;
-
 type IdMap = {
   [id: string]: Id;
 };
@@ -25,7 +23,7 @@ export default function Notifications() {
   const t = useTranslate();
   const dispatch = useAppDispatch();
   const notifications = useAppSelector(
-    (state: any) => state.notifications.notifications as Notification[],
+    (state: any) => state.notifications.notifications as CmsNotification[],
   );
   const [idMap, setIdMap] = React.useState<IdMap>({});
 

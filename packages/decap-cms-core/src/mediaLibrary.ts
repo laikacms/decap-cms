@@ -11,14 +11,13 @@ import { createMediaLibrary, insertMedia } from './actions/mediaLibrary';
 
 import type { CmsMediaLibraryInstance } from 'decap-cms-lib-util';
 
-type MediaLibraryInstance = CmsMediaLibraryInstance;
 type MediaLibraryOptions = Record<string, unknown>;
 
 interface MediaLibrary {
   init: (args: {
     options: MediaLibraryOptions;
     handleInsert: (url: string) => void;
-  }) => MediaLibraryInstance;
+  }) => CmsMediaLibraryInstance;
 }
 
 function handleInsert(url: string) {

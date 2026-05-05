@@ -4,20 +4,18 @@ import type { TypedUseSelectorHook } from 'react-redux';
 import type { ThunkDispatch, ThunkAction } from 'redux-thunk';
 import type { AnyAction, Dispatch } from 'redux';
 
-// State is the root Redux state - use `any` since it's composed of many reducers
-
-type State = any;
+// any is the root Redux state - use `any` since it's composed of many reducers
 
 // Re-export types for convenience
-export type RootState = State;
+export type RootState = any;
 
 type ThunkExtraArg = {};
 
 // AppDispatch that can handle both regular actions and thunk actions
-export type AppDispatch = ThunkDispatch<State, ThunkExtraArg, AnyAction> & Dispatch<AnyAction>;
+export type AppDispatch = ThunkDispatch<any, ThunkExtraArg, AnyAction> & Dispatch<AnyAction>;
 
 // Type for thunk actions used in the app
-export type AppThunk<ReturnType = void> = ThunkAction<ReturnType, State, ThunkExtraArg, AnyAction>;
+export type AppThunk<ReturnType = void> = ThunkAction<ReturnType, any, ThunkExtraArg, AnyAction>;
 
 /**
  * Typed dispatch hook for use throughout the app

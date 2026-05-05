@@ -8,8 +8,6 @@ import { useAppDispatch, useAppSelector } from '../../hooks/useRedux';
 
 import type { CmsCollectionState } from 'decap-cms-lib-util';
 
-type Collection = CmsCollectionState;
-
 interface OwnProps {
   match: {
     params: {
@@ -31,23 +29,23 @@ export default function withWorkflow(Editor: React.ComponentType<any>) {
     const collection = useAppSelector((state: any) => state.collections[match.params.name]);
     const unpublishedEntry = useAppSelector((state: any) =>
       isEditorialWorkflow && collection
-        ? selectUnpublishedEntry(state, (collection as Collection).name, match.params[0])
+        ? selectUnpublishedEntry(state, (collection as CmsCollectionState).name, match.params[0])
         : undefined,
     );
 
-    const showDelete = !newEntry && selectAllowDeletion(collection as Collection);
+    const showDelete = !newEntry && selectAllowDeletion(collection as CmsCollectionState);
 
     const extraProps: {
-      loadEntry?: (collection: Collection, slug: string) => void;
-      persistEntry?: (collection: Collection) => void;
+      loadEntry?: (collection: CmsCollectionState, slug: string) => void;
+      persistEntry?: (collection: CmsCollectionState) => void;
       unpublishedEntry?: boolean;
       entry?: unknown;
     } = {};
 
     if (isEditorialWorkflow) {
-      extraProps.loadEntry = (collection: Collection, slug: string) =>
+      extraProps.loadEntry = (collection: CmsCollectionState, slug: string) =>
         dispatch(loadUnpublishedEntry(collection, slug));
-      extraProps.persistEntry = (collection: Collection) =>
+      extraProps.persistEntry = (collection: CmsCollectionState) =>
         dispatch(persistUnpublishedEntry(collection, !!unpublishedEntry));
 
       if (unpublishedEntry) {

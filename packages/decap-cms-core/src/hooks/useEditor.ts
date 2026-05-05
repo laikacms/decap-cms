@@ -36,11 +36,6 @@ import type { Status } from '../constants/publishModes';
 import type { Update, Transition } from 'history';
 import type { CmsCollectionState, CmsEntry } from 'decap-cms-lib-util';
 
-type Collection = CmsCollectionState;
-type Entry = CmsEntry;
-
-type EntryDraft = any;
-
 interface UseEditorOptions {
   collectionName: string;
   slug?: string;
@@ -71,9 +66,9 @@ export function useEditor({
   // Selectors
   const collections = useAppSelector(state => state.collections);
   const collection = useAppSelector(state => state.collections[collectionName]) as
-    | Collection
+    | CmsCollectionState
     | undefined;
-  const entryDraft = useAppSelector(state => state.entryDraft) as EntryDraft | undefined;
+  const entryDraft = useAppSelector(state => state.entryDraft) as any | undefined;
   const user = useAppSelector(state => state.auth.user);
   const displayUrl = useAppSelector(state => state.config.display_url);
   const hasWorkflow = useAppSelector(state => state.config.publish_mode === EDITORIAL_WORKFLOW);
@@ -82,7 +77,7 @@ export function useEditor({
 
   const entry = useAppSelector(state =>
     newEntry ? null : selectEntry(state, collectionName, slug || ''),
-  ) as Entry | null;
+  ) as CmsEntry | null;
 
   const unPublishedEntry = useAppSelector(state =>
     selectUnpublishedEntry(state, collectionName, slug || ''),
@@ -90,7 +85,7 @@ export function useEditor({
 
   const publishedEntry = useAppSelector(state =>
     selectEntry(state, collectionName, slug || ''),
-  ) as Entry | null;
+  ) as CmsEntry | null;
 
   const deployPreview = useAppSelector(state =>
     selectDeployPreview(state, collectionName, slug || ''),
@@ -128,7 +123,7 @@ export function useEditor({
   // Debounced backup creation
   const createBackup = useMemo(
     () =>
-      debounce((entryData: any, coll: Collection) => {
+      debounce((entryData: any, coll: CmsCollectionState) => {
         dispatch(persistLocalBackup(entryData, coll) as any);
       }, 2000),
     [dispatch],
@@ -450,7 +445,7 @@ export function useEditor({
       const isPublished = !newEntry && !workflow.unpublishedEntry;
 
       dispatch(
-        loadDeployPreview(collection, slug, entry as unknown as Entry, isPublished, opts) as any,
+        loadDeployPreview(collection, slug, entry as unknown as CmsEntry, isPublished, opts) as any,
       );
     },
     [collection, slug, entry, newEntry, workflow.unpublishedEntry, dispatch],

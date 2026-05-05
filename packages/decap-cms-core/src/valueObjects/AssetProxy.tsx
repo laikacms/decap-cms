@@ -1,7 +1,5 @@
 import type { CmsAssetProxy } from 'decap-cms-lib-util';
 
-type AssetProxyType = CmsAssetProxy;
-
 interface AssetProxyArgs {
   path: string;
   url?: string | undefined;
@@ -9,7 +7,7 @@ interface AssetProxyArgs {
   field?: unknown;
 }
 
-export default class AssetProxy implements AssetProxyType {
+export default class AssetProxy implements CmsAssetProxy {
   url?: string | undefined;
   fileObj?: File | undefined;
   path: string;

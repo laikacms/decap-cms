@@ -17,10 +17,6 @@ import notifications from './notifications';
 import type { Status } from '../constants/publishModes';
 import type { CmsCollectionState, CmsEntry } from 'decap-cms-lib-util';
 
-type State = any;
-type Collection = CmsCollectionState;
-type Entry = CmsEntry;
-
 const reducers = {
   auth,
   config,
@@ -44,19 +40,19 @@ export default reducers;
 /*
  * Selectors
  */
-export function selectEntry(state: State, collection: string, slug: string) {
+export function selectEntry(state: any, collection: string, slug: string) {
   return fromEntries.selectEntry(state.entries, collection, slug);
 }
 
-export function selectEntries(state: State, collection: Collection) {
+export function selectEntries(state: any, collection: CmsCollectionState) {
   return fromEntries.selectEntries(state.entries, collection);
 }
 
-export function selectPublishedSlugs(state: State, collection: string) {
+export function selectPublishedSlugs(state: any, collection: string) {
   return fromEntries.selectPublishedSlugs(state.entries, collection);
 }
 
-export function selectSearchedEntries(state: State, availableCollections: string[]): Entry[] {
+export function selectSearchedEntries(state: any, availableCollections: string[]): CmsEntry[] {
   return state.search.entryIds
     .filter(
       (entryId: { collection: string; slug: string }) =>
@@ -65,25 +61,25 @@ export function selectSearchedEntries(state: State, availableCollections: string
     .map((entryId: { collection: string; slug: string }) =>
       fromEntries.selectEntry(state.entries, entryId.collection, entryId.slug),
     )
-    .filter((entry: Entry | undefined): entry is Entry => entry !== undefined);
+    .filter((entry: CmsEntry | undefined): entry is CmsEntry => entry !== undefined);
 }
 
-export function selectDeployPreview(state: State, collection: string, slug: string) {
+export function selectDeployPreview(state: any, collection: string, slug: string) {
   return fromDeploys.selectDeployPreview(state.deploys, collection, slug);
 }
 
-export function selectUnpublishedEntry(state: State, collection: string, slug: string) {
+export function selectUnpublishedEntry(state: any, collection: string, slug: string) {
   return fromEditorialWorkflow.selectUnpublishedEntry(state.editorialWorkflow, collection, slug);
 }
 
-export function selectUnpublishedEntriesByStatus(state: State, status: Status) {
+export function selectUnpublishedEntriesByStatus(state: any, status: Status) {
   return fromEditorialWorkflow.selectUnpublishedEntriesByStatus(state.editorialWorkflow, status);
 }
 
-export function selectUnpublishedSlugs(state: State, collection: string) {
+export function selectUnpublishedSlugs(state: any, collection: string) {
   return fromEditorialWorkflow.selectUnpublishedSlugs(state.editorialWorkflow, collection);
 }
 
-export function selectIntegration(state: State, collection: string | null, hook: string) {
+export function selectIntegration(state: any, collection: string | null, hook: string) {
   return fromIntegrations.selectIntegration(state.integrations, collection, hook);
 }

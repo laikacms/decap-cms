@@ -3,11 +3,7 @@ import styled from '@emotion/styled';
 
 import type { CmsCollectionState, CmsEntry, CmsEntryField } from 'decap-cms-lib-util';
 
-type Collection = CmsCollectionState;
-type EntryMap = CmsEntry;
-type EntryField = CmsEntryField;
-
-function isVisible(field: EntryField) {
+function isVisible(field: CmsEntryField) {
   return field.widget !== 'hidden';
 }
 
@@ -16,13 +12,13 @@ const PreviewContainer = styled.div`
 `;
 
 interface PreviewProps {
-  collection: Collection;
-  entry: EntryMap;
-  fields: EntryField[];
-  getAsset: (asset: string) => { url: string; path: string; field?: EntryField };
+  collection: CmsCollectionState;
+  entry: CmsEntry;
+  fields: CmsEntryField[];
+  getAsset: (asset: string) => { url: string; path: string; field?: CmsEntryField };
   widgetFor: (
     name: string,
-    fields?: EntryField[],
+    fields?: CmsEntryField[],
     values?: Record<string, unknown>,
     fieldsMetaData?: Record<string, unknown>,
   ) => React.ReactNode;

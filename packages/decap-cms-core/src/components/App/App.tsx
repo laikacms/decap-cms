@@ -22,9 +22,6 @@ import Header from './Header';
 import type { CmsCredentials } from 'decap-cms-lib-util';
 import type { CmsCollectionState, CmsCollections } from 'decap-cms-lib-util';
 
-type Collection = CmsCollectionState;
-type Collections = CmsCollections;
-
 TopBarProgress.config({
   barColors: {
     0: colors.active,
@@ -50,11 +47,11 @@ const ErrorCodeBlock = styled.pre`
   line-height: 1.5;
 `;
 
-function getDefaultPath(collections: Collections): string {
+function getDefaultPath(collections: CmsCollections): string {
   // Get all collection keys and find the first non-hidden one
   const keys = Object.keys(collections);
   for (const key of keys) {
-    const collection = collections[key] as Collection | undefined;
+    const collection = collections[key] as CmsCollectionState | undefined;
     if (collection && collection.hide !== true) {
       return `/collections/${collection.name}`;
     }
@@ -70,7 +67,7 @@ function RouteInCollectionGuard({
   collections,
   children,
 }: {
-  collections: Collections;
+  collections: CmsCollections;
   children: React.ReactNode;
 }) {
   const { name } = useParams<{ name: string }>();
@@ -80,7 +77,7 @@ function RouteInCollectionGuard({
 }
 
 /**
- * Wrapper that bridges useParams to the match prop expected by Collection.
+ * Wrapper that bridges useParams to the match prop expected by CmsCollectionState.
  */
 function CollectionRoute({
   isSearchResults,

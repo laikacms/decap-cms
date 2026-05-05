@@ -8,12 +8,8 @@ import { selectEntrySlug } from '../reducers/collections';
 import type { CmsCollectionState, CmsEntry, CmsEntryField } from 'decap-cms-lib-util';
 import type { EntryValue } from '../valueObjects/Entry';
 
-type Collection = CmsCollectionState;
-type EntryMap = CmsEntry;
-type EntryField = CmsEntryField;
-
 type EntryDraft = {
-  entry: EntryMap;
+  entry: CmsEntry;
   fieldsMetaData?: Record<string, unknown>;
   fieldsErrors?: Record<string, unknown>;
   hasChanged: boolean;
@@ -34,7 +30,7 @@ export enum I18N_FIELD {
   NONE = 'none',
 }
 
-export function hasI18n(collection: Collection) {
+export function hasI18n(collection: CmsCollectionState) {
   return collection.i18n !== undefined && collection.i18n !== null;
 }
 
@@ -44,7 +40,7 @@ export type I18nInfo = {
   structure: I18N_STRUCTURE;
 };
 
-export function getI18nInfo(collection: Collection) {
+export function getI18nInfo(collection: CmsCollectionState) {
   if (!hasI18n(collection)) {
     return {};
   }
@@ -53,7 +49,7 @@ export function getI18nInfo(collection: Collection) {
   return { structure, locales, defaultLocale } as I18nInfo;
 }
 
-export function getI18nFilesDepth(collection: Collection, depth: number) {
+export function getI18nFilesDepth(collection: CmsCollectionState, depth: number) {
   const { structure } = getI18nInfo(collection) as I18nInfo;
   if (structure === I18N_STRUCTURE.MULTIPLE_FOLDERS) {
     return depth + 1;
@@ -61,17 +57,17 @@ export function getI18nFilesDepth(collection: Collection, depth: number) {
   return depth;
 }
 
-export function isFieldTranslatable(field: EntryField, locale: string, defaultLocale: string) {
+export function isFieldTranslatable(field: CmsEntryField, locale: string, defaultLocale: string) {
   const isTranslatable = locale !== defaultLocale && field.i18n === I18N_FIELD.TRANSLATE;
   return isTranslatable;
 }
 
-export function isFieldDuplicate(field: EntryField, locale: string, defaultLocale: string) {
+export function isFieldDuplicate(field: CmsEntryField, locale: string, defaultLocale: string) {
   const isDuplicate = locale !== defaultLocale && field.i18n === I18N_FIELD.DUPLICATE;
   return isDuplicate;
 }
 
-export function isFieldHidden(field: EntryField, locale: string, defaultLocale: string) {
+export function isFieldHidden(field: CmsEntryField, locale: string, defaultLocale: string) {
   const isHidden = locale !== defaultLocale && field.i18n === I18N_FIELD.NONE;
   return isHidden;
 }
@@ -123,7 +119,7 @@ export function getLocaleFromPath(structure: I18N_STRUCTURE, extension: string, 
 }
 
 export function getFilePaths(
-  collection: Collection,
+  collection: CmsCollectionState,
   extension: string,
   path: string,
   slug: string,
@@ -154,10 +150,10 @@ export function normalizeFilePath(structure: I18N_STRUCTURE, path: string, local
 }
 
 export function getI18nFiles(
-  collection: Collection,
+  collection: CmsCollectionState,
   extension: string,
-  entryDraft: EntryMap,
-  entryToRaw: (entryDraft: EntryMap) => string,
+  entryDraft: CmsEntry,
+  entryToRaw: (entryDraft: CmsEntry) => string,
   path: string,
   slug: string,
   newPath?: string,
@@ -204,9 +200,9 @@ export function getI18nFiles(
 }
 
 export function getI18nBackup(
-  collection: Collection,
-  entry: EntryMap,
-  entryToRaw: (entry: EntryMap) => string,
+  collection: CmsCollectionState,
+  entry: CmsEntry,
+  entryToRaw: (entry: CmsEntry) => string,
 ) {
   const { locales, defaultLocale } = getI18nInfo(collection) as I18nInfo;
 
@@ -241,7 +237,7 @@ export function formatI18nBackup(
 }
 
 function applyDefaultI18nValues(
-  collection: Collection,
+  collection: CmsCollectionState,
   value: EntryValue,
   defaultLocaleValue: EntryValue,
 ) {
@@ -259,7 +255,7 @@ function applyDefaultI18nValues(
 }
 
 function mergeValues(
-  collection: Collection,
+  collection: CmsCollectionState,
   structure: I18N_STRUCTURE,
   defaultLocale: string,
   values: { locale: string; value: EntryValue }[],
@@ -315,7 +311,7 @@ function mergeSingleFileValue(
 }
 
 export async function getI18nEntry(
-  collection: Collection,
+  collection: CmsCollectionState,
   extension: string,
   path: string,
   slug: string,
@@ -354,7 +350,7 @@ export async function getI18nEntry(
   return entryValue;
 }
 
-export function groupEntries(collection: Collection, extension: string, entries: EntryValue[]) {
+export function groupEntries(collection: CmsCollectionState, extension: string, entries: EntryValue[]) {
   const { structure, defaultLocale, locales } = getI18nInfo(collection) as I18nInfo;
   if (structure === I18N_STRUCTURE.SINGLE_FILE) {
     return entries.map(e => mergeSingleFileValue(e, defaultLocale, locales));
@@ -379,7 +375,7 @@ export function groupEntries(collection: Collection, extension: string, entries:
 }
 
 export function getI18nDataFiles(
-  collection: Collection,
+  collection: CmsCollectionState,
   extension: string,
   path: string,
   slug: string,
@@ -405,7 +401,7 @@ export function getI18nDataFiles(
   return dataFiles;
 }
 
-export function duplicateDefaultI18nFields(collection: Collection, dataFields: any) {
+export function duplicateDefaultI18nFields(collection: CmsCollectionState, dataFields: any) {
   const { locales, defaultLocale } = getI18nInfo(collection) as I18nInfo;
 
   const i18nFields = Object.fromEntries(
@@ -419,7 +415,7 @@ export function duplicateDefaultI18nFields(collection: Collection, dataFields: a
 
 export function duplicateI18nFields(
   entryDraft: EntryDraft,
-  field: EntryField,
+  field: CmsEntryField,
   locales: string[],
   defaultLocale: string,
   fieldPath: string[] = [field.name],
@@ -434,7 +430,7 @@ export function duplicateI18nFields(
   }
 
   if (field.field && !Array.isArray(value)) {
-    const fields = [field.field as EntryField];
+    const fields = [field.field as CmsEntryField];
     fields.forEach(field => {
       entryDraft = duplicateI18nFields(entryDraft, field, locales, defaultLocale, [
         ...fieldPath,
@@ -442,7 +438,7 @@ export function duplicateI18nFields(
       ]);
     });
   } else if (field.fields && !Array.isArray(value)) {
-    const fields = field.fields as EntryField[];
+    const fields = field.fields as CmsEntryField[];
     fields.forEach(field => {
       entryDraft = duplicateI18nFields(entryDraft, field, locales, defaultLocale, [
         ...fieldPath,
@@ -454,7 +450,7 @@ export function duplicateI18nFields(
   return entryDraft;
 }
 
-export function getPreviewEntry(entry: EntryMap, locale: string, defaultLocale: string) {
+export function getPreviewEntry(entry: CmsEntry, locale: string, defaultLocale: string) {
   if (locale === defaultLocale) {
     return entry;
   }
@@ -462,8 +458,8 @@ export function getPreviewEntry(entry: EntryMap, locale: string, defaultLocale: 
 }
 
 export function serializeI18n(
-  collection: Collection,
-  entry: EntryMap,
+  collection: CmsCollectionState,
+  entry: CmsEntry,
 
   serializeValues: (data: any) => any,
 ) {

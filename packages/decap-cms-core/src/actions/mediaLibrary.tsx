@@ -21,12 +21,7 @@ import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
 import type AssetProxy from '../valueObjects/AssetProxy';
 
-type MediaFile = CmsMediaFile;
-type EntryField = CmsEntryField;
-type MediaLibraryInstance = CmsMediaLibraryInstance;
 type DisplayURLState = { isFetching: boolean; url?: string; err?: Error };
-
-type State = any;
 
 export const MEDIA_LIBRARY_OPEN = 'MEDIA_LIBRARY_OPEN';
 export const MEDIA_LIBRARY_CLOSE = 'MEDIA_LIBRARY_CLOSE';
@@ -46,7 +41,7 @@ export const MEDIA_DISPLAY_URL_REQUEST = 'MEDIA_DISPLAY_URL_REQUEST';
 export const MEDIA_DISPLAY_URL_SUCCESS = 'MEDIA_DISPLAY_URL_SUCCESS';
 export const MEDIA_DISPLAY_URL_FAILURE = 'MEDIA_DISPLAY_URL_FAILURE';
 
-export function createMediaLibrary(instance: MediaLibraryInstance) {
+export function createMediaLibrary(instance: CmsMediaLibraryInstance) {
   const api = {
     show: instance.show || (() => undefined),
     hide: instance.hide || (() => undefined),
@@ -58,7 +53,7 @@ export function createMediaLibrary(instance: MediaLibraryInstance) {
 }
 
 export function clearMediaControl(id: string) {
-  return (_dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return (_dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const state = getState();
     const mediaLibrary = state.mediaLibrary.externalLibrary;
     if (mediaLibrary) {
@@ -68,7 +63,7 @@ export function clearMediaControl(id: string) {
 }
 
 export function removeMediaControl(id: string) {
-  return (_dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return (_dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const state = getState();
     const mediaLibrary = state.mediaLibrary.externalLibrary;
     if (mediaLibrary) {
@@ -85,10 +80,10 @@ export function openMediaLibrary(
     value?: string;
     allowMultiple?: boolean;
     config?: Record<string, unknown>;
-    field?: EntryField;
+    field?: CmsEntryField;
   } = {},
 ) {
-  return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const state = getState();
     const mediaLibrary = state.mediaLibrary.externalLibrary;
     if (mediaLibrary) {
@@ -101,7 +96,7 @@ export function openMediaLibrary(
 }
 
 export function closeMediaLibrary() {
-  return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const state = getState();
     const mediaLibrary = state.mediaLibrary.externalLibrary;
     if (mediaLibrary) {
@@ -111,8 +106,8 @@ export function closeMediaLibrary() {
   };
 }
 
-export function insertMedia(mediaPath: string | string[], field: EntryField | undefined) {
-  return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+export function insertMedia(mediaPath: string | string[], field: CmsEntryField | undefined) {
+  return (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const state = getState();
     const config = state.config;
     const entry = state.entryDraft.entry;
@@ -143,7 +138,7 @@ export function loadMedia(
   opts: { delay?: number; query?: string; page?: number; privateUpload?: boolean } = {},
 ) {
   const { delay = 0, query = '', page = 1, privateUpload } = opts;
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const state = getState();
     const backend = currentBackend(state.config);
     const integration = selectIntegration(state, null, 'assetStore');
@@ -173,7 +168,7 @@ export function loadMedia(
     function loadFunction() {
       return backend
         .getMedia()
-        .then((files: MediaFile[]) => dispatch(mediaLoaded(files)))
+        .then((files: CmsMediaFile[]) => dispatch(mediaLoaded(files)))
         .catch((error: { status?: number }) => {
           console.error(error);
           if (error.status === 404) {
@@ -205,7 +200,7 @@ function createMediaFileFromAsset({
   file: File;
   assetProxy: AssetProxy;
   draft: boolean;
-}): MediaFile {
+}): CmsMediaFile {
   const mediaFile = {
     id,
     name: basename(assetProxy.path || ''),
@@ -222,11 +217,11 @@ function createMediaFileFromAsset({
 
 export function persistMedia(file: File, opts: MediaOptions = {}) {
   const { privateUpload, field } = opts;
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const state = getState();
     const backend = currentBackend(state.config);
     const integration = selectIntegration(state, null, 'assetStore');
-    const files: MediaFile[] = selectMediaFiles(state, field);
+    const files: CmsMediaFile[] = selectMediaFiles(state, field);
     const fileName = sanitizeSlug(file.name.toLowerCase(), state.config.slug);
     const existingFile = files.find(existingFile => existingFile.name.toLowerCase() === fileName);
 
@@ -291,7 +286,7 @@ export function persistMedia(file: File, opts: MediaOptions = {}) {
 
       dispatch(addAsset(assetProxy));
 
-      let mediaFile: MediaFile;
+      let mediaFile: CmsMediaFile;
       if (integration) {
         const id = await getBlobSHA(file);
         // integration assets are persisted immediately, thus draft is false
@@ -324,9 +319,9 @@ export function persistMedia(file: File, opts: MediaOptions = {}) {
   };
 }
 
-export function deleteMedia(file: MediaFile, opts: MediaOptions = {}) {
+export function deleteMedia(file: CmsMediaFile, opts: MediaOptions = {}) {
   const { privateUpload } = opts;
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const state = getState();
     const backend = currentBackend(state.config);
     const integration = selectIntegration(state, null, 'assetStore');
@@ -385,14 +380,14 @@ export function deleteMedia(file: MediaFile, opts: MediaOptions = {}) {
   };
 }
 
-export async function getMediaFile(state: State, path: string) {
+export async function getMediaFile(state: any, path: string) {
   const backend = currentBackend(state.config);
   const { url } = await backend.getMediaFile(path);
   return { url };
 }
 
-export function loadMediaDisplayURL(file: MediaFile) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+export function loadMediaDisplayURL(file: CmsMediaFile) {
+  return async (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const { displayURL, id } = file;
     const state = getState();
     const displayURLState = selectMediaDisplayURL(state, id) as DisplayURLState;
@@ -434,7 +429,7 @@ function mediaLibraryOpened(payload: {
   replaceIndex?: number;
   allowMultiple?: boolean;
   config?: Record<string, unknown>;
-  field?: EntryField;
+  field?: CmsEntryField;
 }) {
   return { type: MEDIA_LIBRARY_OPEN, payload } as const;
 }
@@ -456,14 +451,14 @@ export function mediaLoading(page: number) {
 
 interface MediaOptions {
   privateUpload?: boolean;
-  field?: EntryField;
+  field?: CmsEntryField;
   page?: number;
   canPaginate?: boolean;
   dynamicSearch?: boolean;
   dynamicSearchQuery?: string;
 }
 
-export function mediaLoaded(files: MediaFile[], opts: MediaOptions = {}) {
+export function mediaLoaded(files: CmsMediaFile[], opts: MediaOptions = {}) {
   return {
     type: MEDIA_LOAD_SUCCESS,
     payload: { files, ...opts },
@@ -479,7 +474,7 @@ export function mediaPersisting() {
   return { type: MEDIA_PERSIST_REQUEST } as const;
 }
 
-export function mediaPersisted(file: MediaFile, opts: MediaOptions = {}) {
+export function mediaPersisted(file: CmsMediaFile, opts: MediaOptions = {}) {
   const { privateUpload } = opts;
   return {
     type: MEDIA_PERSIST_SUCCESS,
@@ -496,7 +491,7 @@ export function mediaDeleting() {
   return { type: MEDIA_DELETE_REQUEST } as const;
 }
 
-export function mediaDeleted(file: MediaFile, opts: MediaOptions = {}) {
+export function mediaDeleted(file: CmsMediaFile, opts: MediaOptions = {}) {
   const { privateUpload } = opts;
   return {
     type: MEDIA_DELETE_SUCCESS,
@@ -528,8 +523,8 @@ export function mediaDisplayURLFailure(key: string, err: Error) {
 }
 
 export async function waitForMediaLibraryToLoad(
-  dispatch: ThunkDispatch<State, {}, AnyAction>,
-  state: State,
+  dispatch: ThunkDispatch<any, {}, AnyAction>,
+  state: any,
 ) {
   if (state.mediaLibrary.isLoading !== false && !state.mediaLibrary.externalLibrary) {
     await waitUntilWithTimeout(dispatch, resolve => ({
@@ -540,9 +535,9 @@ export async function waitForMediaLibraryToLoad(
 }
 
 export async function getMediaDisplayURL(
-  dispatch: ThunkDispatch<State, {}, AnyAction>,
-  state: State,
-  file: MediaFile,
+  dispatch: ThunkDispatch<any, {}, AnyAction>,
+  state: any,
+  file: CmsMediaFile,
 ) {
   const displayURLState = selectMediaDisplayURL(state, file.id) as DisplayURLState;
 

@@ -6,10 +6,10 @@ import partial from 'lodash/partial';
 import uniqueId from 'lodash/uniqueId';
 import memoize from 'lodash/memoize';
 import { FieldLabel, colors, transitions, lengths, borders } from 'decap-cms-ui-default';
-import { useAppDispatch, useAppSelector } from '../../../hooks/useRedux';
 import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
 
+import { useAppDispatch, useAppSelector } from '../../../hooks/useRedux';
 import { resolveWidget, getEditorComponents } from '../../../lib/registry';
 import { clearFieldErrors, tryLoadEntry, validateMetaField } from '../../../actions/entries';
 import { addAsset, boundGetAsset } from '../../../actions/media';
@@ -30,12 +30,6 @@ import type { Interpolation, Theme } from '@emotion/react';
 import type { Dispatch } from 'redux';
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import type { CmsCollectionState, CmsEntry, CmsEntryField, CmsConfig } from 'decap-cms-lib-util';
-
-type Collection = CmsCollectionState;
-type EntryMap = CmsEntry;
-type EntryField = CmsEntryField;
-
-type State = any;
 
 const WidgetComponent: React.ComponentType<any> = Widget;
 
@@ -119,7 +113,7 @@ export const ControlHint = styled.p<{ active?: boolean; error?: boolean }>`
 `;
 
 interface LabelComponentProps {
-  field: EntryField;
+  field: CmsEntryField;
   isActive: boolean;
   hasErrors: boolean;
   uniqueFieldId: string;
@@ -160,18 +154,18 @@ interface FieldError {
 
 interface EditorControlProps {
   value?: React.ReactNode | Record<string, unknown> | string | boolean;
-  field: EntryField;
+  field: CmsEntryField;
   fieldsMetaData?: Record<string, Record<string, unknown>>;
   fieldsErrors?: Record<string, FieldError[]>;
   mediaPaths: Record<string, string>;
-  boundGetAsset: (path: string, field: EntryField) => AssetProxy;
-  onChange: (field: EntryField, value: unknown, metadata?: Record<string, unknown>) => void;
+  boundGetAsset: (path: string, field: CmsEntryField) => AssetProxy;
+  onChange: (field: CmsEntryField, value: unknown, metadata?: Record<string, unknown>) => void;
   openMediaLibrary: (options: Record<string, unknown>) => void;
   addAsset: (asset: AssetProxy) => void;
   removeInsertedMedia: (controlID: string) => void;
   persistMedia: (file: File) => void;
-  onValidate?: (field: EntryField | string, errors: FieldError[]) => void;
-  controlRef?: (field: EntryField, wrappedControl: React.Component | null) => void;
+  onValidate?: (field: CmsEntryField | string, errors: FieldError[]) => void;
+  controlRef?: (field: CmsEntryField, wrappedControl: React.Component | null) => void;
   query: (
     namespace: string,
     collectionName: string,
@@ -184,25 +178,25 @@ interface EditorControlProps {
   isFetching?: boolean;
   clearSearch: () => void;
   clearFieldErrors: (uniqueFieldId: string) => void;
-  loadEntry: (collectionName: string, slug: string) => Promise<EntryMap>;
-  getEntry: () => EntryMap;
+  loadEntry: (collectionName: string, slug: string) => Promise<CmsEntry>;
+  getEntry: () => CmsEntry;
   t: TranslateFunction;
   isEditorComponent?: boolean;
   isNewEditorComponent?: boolean;
   parentIds?: string[];
-  collection: Collection;
+  collection: CmsCollectionState;
   config: CmsConfig;
   isDisabled?: boolean;
   isHidden?: boolean;
-  isFieldDuplicate?: (field: EntryField) => boolean;
-  isFieldHidden?: (field: EntryField) => boolean;
+  isFieldDuplicate?: (field: CmsEntryField) => boolean;
+  isFieldHidden?: (field: CmsEntryField) => boolean;
   locale?: string;
   isParentListCollapsed?: boolean;
   clearMediaControl: (controlID: string) => void;
   removeMediaControl: (controlID: string) => void;
   className?: string;
   isSelected?: boolean;
-  validateMetaField: (field: EntryField, value: string | undefined, t: TranslateFunction) => void;
+  validateMetaField: (field: CmsEntryField, value: string | undefined, t: TranslateFunction) => void;
   isLoadingAsset?: boolean;
 }
 
@@ -436,7 +430,7 @@ function EditorControl(props: EditorControlProps) {
 
 const stable = {
   loadEntry: async function stable_loadEntry(collectionName: string, slug: string) {
-    const state = store.getState() as State;
+    const state = store.getState() as any;
     const { collections } = state;
     const targetCollection = collections[collectionName];
     if (targetCollection) {
@@ -448,37 +442,37 @@ const stable = {
   },
 
   // Will return the same function instance for the same collection.
-  validateMetaField: memoize((collection: Collection) => {
-    return (field: EntryField, value: string | undefined, t: TranslateFunction) => {
-      const state = store.getState() as State;
+  validateMetaField: memoize((collection: CmsCollectionState) => {
+    return (field: CmsEntryField, value: string | undefined, t: TranslateFunction) => {
+      const state = store.getState() as any;
       validateMetaField(state, collection, field, value, t);
     };
   }),
 
   getEntry() {
-    const state = store.getState() as State;
+    const state = store.getState() as any;
     return state.entryDraft.entry;
   },
 
-  getBoundedAsset(collection: Collection, entry: EntryMap) {
+  getBoundedAsset(collection: CmsCollectionState, entry: CmsEntry) {
     const dispatch = store.dispatch;
     return boundGetAsset(dispatch as never, collection, entry);
   },
 };
 
 interface ConnectedEditorControlProps {
-  field: EntryField;
+  field: CmsEntryField;
   value: unknown;
   fieldsMetaData: Record<string, unknown>;
   fieldsErrors: Record<string, FieldError[]>;
-  onChange: (field: EntryField, value: unknown, metadata?: Record<string, unknown>) => void;
+  onChange: (field: CmsEntryField, value: unknown, metadata?: Record<string, unknown>) => void;
   onValidate: (uniqueFieldId: string, errors: FieldError[]) => void;
   controlRef?: (ref: unknown) => void;
-  collection?: Collection;
+  collection?: CmsCollectionState;
   isDisabled?: boolean;
   isHidden?: boolean;
-  isFieldDuplicate?: (field: EntryField) => boolean;
-  isFieldHidden?: (field: EntryField) => boolean;
+  isFieldDuplicate?: (field: CmsEntryField) => boolean;
+  isFieldHidden?: (field: CmsEntryField) => boolean;
   locale?: string;
   isParentListCollapsed?: boolean;
   className?: string;
@@ -494,7 +488,7 @@ export default function ConnectedEditorControl(props: ConnectedEditorControlProp
   const stateCollection = useAppSelector(
     (state: any) => state.collections[state.entryDraft.entry?.collection as string],
   );
-  const collection = (props.collection ?? stateCollection) as Collection;
+  const collection = (props.collection ?? stateCollection) as CmsCollectionState;
   const mediaPaths = useAppSelector((state: any) => state.mediaLibrary.controlMedia);
   const isFetching = useAppSelector((state: any) => state.search.isFetching);
   const queryHits = useAppSelector((state: any) => state.search.queryHits);
@@ -508,7 +502,7 @@ export default function ConnectedEditorControl(props: ConnectedEditorControlProp
   const boundGetAssetForEntry = React.useMemo(
     () => stable.getBoundedAsset(collection, stable.getEntry()),
     // recompute when collection changes; entry is read live via stable.getEntry on each call
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     [collection],
   );
 

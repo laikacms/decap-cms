@@ -12,11 +12,6 @@ import {
 } from 'decap-cms-ui-default';
 import { ScrollSync, ScrollSyncPane } from 'react-scroll-sync';
 
-
-type Collection = CmsCollectionState;
-type EntryMap = CmsEntry;
-type EntryField = CmsEntryField;
-
 import EditorControlPane, { type ControlPaneHandle } from './EditorControlPane/EditorControlPane';
 import EditorPreviewPane from './EditorPreviewPane/EditorPreviewPane';
 import EditorToolbar from './EditorToolbar';
@@ -166,7 +161,7 @@ function EditorContent({
   }
 }
 
-function isPreviewEnabled(collection: Collection, entry: EntryMap) {
+function isPreviewEnabled(collection: CmsCollectionState, entry: CmsEntry) {
   if (collection.type === FILES) {
     const file = getFileFromSlug(collection, entry.slug);
     const previewEnabled = (file as any)?.editor?.preview;
@@ -176,12 +171,12 @@ function isPreviewEnabled(collection: Collection, entry: EntryMap) {
 }
 
 interface EditorInterfaceProps {
-  collection: Collection;
-  entry: EntryMap;
-  fields: EntryField[];
+  collection: CmsCollectionState;
+  entry: CmsEntry;
+  fields: CmsEntryField[];
   fieldsMetaData: Record<string, Record<string, unknown>>;
   fieldsErrors: Record<string, { type: string; message: string }[]>;
-  onChange: (field: EntryField, value: unknown, metadata?: unknown, i18n?: unknown) => void;
+  onChange: (field: CmsEntryField, value: unknown, metadata?: unknown, i18n?: unknown) => void;
   onValidate: (fieldName: string, errors: { type: string; message: string }[]) => void;
   onPersist: (opts?: { createNew?: boolean; duplicate?: boolean }) => void;
   showDelete: boolean;

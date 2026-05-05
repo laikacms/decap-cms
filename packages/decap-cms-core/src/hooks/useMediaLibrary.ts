@@ -5,8 +5,6 @@ import { openMediaLibrary, closeMediaLibrary } from '../actions/mediaLibrary';
 
 import type { CmsEntryField } from 'decap-cms-lib-util';
 
-type EntryField = CmsEntryField;
-
 /**
  * Hook for media library state and actions
  * Replaces connect() mapStateToProps/mapDispatchToProps for media library
@@ -28,7 +26,7 @@ export function useMediaLibrary() {
       value?: string;
       allowMultiple?: boolean;
       config?: Record<string, unknown>;
-      field?: EntryField;
+      field?: CmsEntryField;
     }) => {
       dispatch(openMediaLibrary(options));
     },

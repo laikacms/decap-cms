@@ -21,8 +21,6 @@ import { SettingsDropdown } from '../UI';
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import type { CmsCollectionState } from 'decap-cms-lib-util';
 
-type Collection = CmsCollectionState;
-
 const styles = {
   noOverflow: css`
     overflow: hidden;
@@ -287,7 +285,7 @@ interface EditorToolbarProps {
   user?: { login?: string; name?: string; avatar_url?: string };
   hasChanged?: boolean;
   displayUrl?: string;
-  collection: Collection;
+  collection: CmsCollectionState;
   hasWorkflow?: boolean;
   useOpenAuthoring?: boolean;
   hasUnpublishedChanges?: boolean;

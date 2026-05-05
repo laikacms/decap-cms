@@ -4,8 +4,6 @@ import type { WaitActionArgs } from '../redux/middleware/waitUntilAction';
 import type { ThunkDispatch } from 'redux-thunk';
 import type { AnyAction } from 'redux';
 
-type State = any;
-
 export function waitUntil({ predicate, run }: WaitActionArgs) {
   return {
     type: WAIT_UNTIL_ACTION,
@@ -15,7 +13,7 @@ export function waitUntil({ predicate, run }: WaitActionArgs) {
 }
 
 export async function waitUntilWithTimeout<T>(
-  dispatch: ThunkDispatch<State, {}, AnyAction>,
+  dispatch: ThunkDispatch<any, {}, AnyAction>,
   waitActionArgs: (resolve: (value?: T) => void) => WaitActionArgs,
   timeout = 30000,
 ): Promise<T | null | void> {

@@ -282,8 +282,6 @@ export interface ListControlHandle {
   focus(path: string): void;
 }
 
-type ChildRef = any;
-
 function valueToString(value: unknown, fieldName: string): string {
   let stringValue;
   if (Array.isArray(value)) {
@@ -355,7 +353,7 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(functi
     onChange,
   } = props;
 
-  const childRefs = React.useRef<Record<string, ChildRef>>({});
+  const childRefs = React.useRef<Record<string, any>>({});
   const uniqueFieldIdRef = React.useRef<string>('');
   if (!uniqueFieldIdRef.current) {
     uniqueFieldIdRef.current = uniqueId(`${field.name}-field-`);
@@ -434,7 +432,7 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(functi
       validate() {
         const hasChildWidgets = getValueType() && Object.keys(childRefs.current).length > 0;
         if (hasChildWidgets) {
-          Object.values(childRefs.current).forEach((widget: ChildRef) => {
+          Object.values(childRefs.current).forEach((widget: any) => {
             widget?.validate?.();
           });
         } else {
@@ -544,7 +542,7 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(functi
     addItem(mixedDefault(typeKey, type));
   }
 
-  function processControlRef(childRef: ChildRef) {
+  function processControlRef(childRef: any) {
     if (!childRef) return;
     const {
       props: { validationKey: key },

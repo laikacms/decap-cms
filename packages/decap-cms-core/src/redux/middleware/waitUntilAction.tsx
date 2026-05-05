@@ -9,20 +9,18 @@
  */
 import type { MiddlewareAPI, Dispatch, AnyAction } from 'redux';
 
-type State = any;
-
 export const WAIT_UNTIL_ACTION = 'WAIT_UNTIL_ACTION';
 
 export interface WaitActionArgs {
   predicate: (action: AnyAction) => boolean;
-  run: (dispatch: Dispatch, getState: () => State, action: AnyAction) => void;
+  run: (dispatch: Dispatch, getState: () => any, action: AnyAction) => void;
 }
 
 interface WaitAction extends WaitActionArgs {
   type: typeof WAIT_UNTIL_ACTION;
 }
 
-export const waitUntilAction = (api: MiddlewareAPI<Dispatch, State>) => {
+export const waitUntilAction = (api: MiddlewareAPI<Dispatch, any>) => {
   const { dispatch, getState } = api;
   let pending: WaitAction[] = [];
 

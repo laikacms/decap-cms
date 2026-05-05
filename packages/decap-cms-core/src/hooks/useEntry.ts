@@ -16,7 +16,6 @@ import { navigateToCollection, navigateToNewEntry } from '../routing/history';
 
 import type { Status } from '../constants/publishModes';
 import type { CmsEntry } from 'decap-cms-lib-util';
-type Entry = CmsEntry;
 
 interface UseEntryOptions {
   collectionName: string;
@@ -117,7 +116,7 @@ export function useEntry({ collectionName, slug, newEntry = false }: UseEntryOpt
   const loadPreview = useCallback(
     (opts?: { maxAttempts?: number; interval?: number; signal?: AbortSignal }) => {
       if (collection && slug && entry) {
-        dispatch(loadDeployPreview(collection, slug, entry as unknown as Entry, isPublished, opts));
+        dispatch(loadDeployPreview(collection, slug, entry as unknown as CmsEntry, isPublished, opts));
       }
     },
     [dispatch, collection, slug, entry, isPublished],

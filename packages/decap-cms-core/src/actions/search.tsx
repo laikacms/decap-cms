@@ -10,9 +10,6 @@ import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
 import type { EntryValue } from '../valueObjects/Entry';
 
-type State = any;
-type Collection = CmsCollectionState;
-
 /*
  * Constant Declarations
  */
@@ -110,7 +107,7 @@ export function clearRequests() {
 
 // SearchEntries will search for complete entries in all collections.
 export function searchEntries(searchTerm: string, searchCollections: string[], page = 0) {
-  return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<any, undefined, AnyAction>, getState: () => any) => {
     const state = getState();
     const { search } = state;
     const backend = currentBackend(state.config);
@@ -141,7 +138,7 @@ export function searchEntries(searchTerm: string, searchCollections: string[], p
       : backend.search(
           Object.entries(state.collections)
             .filter(([key]) => allCollections.indexOf(key) !== -1)
-            .map(([, collection]) => collection) as Collection[],
+            .map(([, collection]) => collection) as CmsCollectionState[],
           searchTerm,
         );
 
@@ -164,7 +161,7 @@ export function query(
   file?: string,
   limit?: number,
 ) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const state = getState();
     const backend = currentBackend(state.config);
     const integration = selectIntegration(state, collectionName, 'search');

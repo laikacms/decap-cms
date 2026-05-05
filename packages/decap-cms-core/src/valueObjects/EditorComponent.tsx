@@ -6,15 +6,11 @@ import type {
   CmsEditorComponentField,
 } from 'decap-cms-lib-util';
 
-type EditorComponentOptions = CmsEditorComponentOptions;
-type EditorComponentPlugin = CmsEditorComponentPlugin;
-type EditorComponentField = CmsEditorComponentField;
-
 const catchesNothing = /.^/;
 
 type AnyFunction = (...args: any[]) => any;
 
-type EditorComponentConfig = Partial<EditorComponentOptions> & {
+type EditorComponentConfig = Partial<CmsEditorComponentOptions> & {
   label?: string;
   icon?: string;
   widget?: string;
@@ -27,7 +23,7 @@ function bind(fn: AnyFunction | undefined): AnyFunction | false {
 
 export default function createEditorComponent(
   config: EditorComponentConfig,
-): EditorComponentPlugin {
+): CmsEditorComponentPlugin {
   const {
     id = null,
     label = 'unnamed component',
@@ -52,7 +48,7 @@ export default function createEditorComponent(
     fromBlock: bind(fromBlock) || (() => ({})),
     toBlock: bind(toBlock) || (() => 'Plugin'),
     toPreview: bind(toPreview) || (!widget && (bind(toBlock) || (() => 'Plugin'))),
-    fields: fields as EditorComponentField[],
+    fields: fields as CmsEditorComponentField[],
     ...remainingConfig,
-  } as EditorComponentPlugin;
+  } as CmsEditorComponentPlugin;
 }

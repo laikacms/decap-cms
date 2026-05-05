@@ -27,8 +27,6 @@ import type {
   CmsLocalBackend,
 } from 'decap-cms-lib-util';
 
-type State = any;
-
 export const CONFIG_REQUEST = 'CONFIG_REQUEST';
 export const CONFIG_SUCCESS = 'CONFIG_SUCCESS';
 export const CONFIG_FAILURE = 'CONFIG_FAILURE';
@@ -522,7 +520,7 @@ export function loadConfig(manualConfig: Partial<CmsConfig> = {}, onLoad: () => 
   if (window.CMS_CONFIG) {
     return configLoaded(window.CMS_CONFIG);
   }
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>) => {
+  return async (dispatch: ThunkDispatch<any, {}, AnyAction>) => {
     dispatch(configLoading());
 
     try {

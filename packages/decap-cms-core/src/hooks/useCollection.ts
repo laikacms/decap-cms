@@ -13,10 +13,6 @@ import { getNewEntryUrl } from '../lib/urlHelper';
 
 import type { CmsSortDirection, CmsViewFilter, CmsViewGroup } from 'decap-cms-lib-util';
 
-type SortDirection = CmsSortDirection;
-type ViewFilter = CmsViewFilter;
-type ViewGroup = CmsViewGroup;
-
 /**
  * Hook for collection state and actions
  * Replaces connect() mapStateToProps/mapDispatchToProps for Collection component
@@ -77,7 +73,7 @@ export function useCollection(collectionName?: string, t?: (key: string) => stri
   }, [collection, name]);
 
   const onSortClick = useCallback(
-    (key: string, direction: SortDirection) => {
+    (key: string, direction: CmsSortDirection) => {
       if (collection) {
         dispatch(sortByField(collection, key, direction));
       }
@@ -86,7 +82,7 @@ export function useCollection(collectionName?: string, t?: (key: string) => stri
   );
 
   const onFilterClick = useCallback(
-    (filterValue: ViewFilter) => {
+    (filterValue: CmsViewFilter) => {
       if (collection) {
         dispatch(filterByField(collection, filterValue));
       }
@@ -95,7 +91,7 @@ export function useCollection(collectionName?: string, t?: (key: string) => stri
   );
 
   const onGroupClick = useCallback(
-    (groupValue: ViewGroup) => {
+    (groupValue: CmsViewGroup) => {
       if (collection) {
         dispatch(groupByField(collection, groupValue));
       }

@@ -12,8 +12,6 @@ import {
 
 import type { CmsCollectionState } from 'decap-cms-lib-util';
 
-type Collection = CmsCollectionState;
-
 interface UseWorkflowOptions {
   collectionName: string;
   slug?: string;
@@ -24,7 +22,7 @@ export function useWorkflow({ collectionName, slug, newEntry }: UseWorkflowOptio
   const dispatch = useAppDispatch();
 
   const collection = useAppSelector(state => state.collections[collectionName]) as
-    | Collection
+    | CmsCollectionState
     | undefined;
   const isEditorialWorkflow = useAppSelector(
     state => state.config.publish_mode === EDITORIAL_WORKFLOW,
@@ -42,7 +40,7 @@ export function useWorkflow({ collectionName, slug, newEntry }: UseWorkflowOptio
 
   // Override loadEntry for editorial workflow
   const loadEntry = useCallback(
-    (coll: Collection, entrySlug: string) => {
+    (coll: CmsCollectionState, entrySlug: string) => {
       if (isEditorialWorkflow) {
         return dispatch(loadUnpublishedEntry(coll, entrySlug) as any);
       }
@@ -54,7 +52,7 @@ export function useWorkflow({ collectionName, slug, newEntry }: UseWorkflowOptio
 
   // Override persistEntry for editorial workflow
   const persistEntry = useCallback(
-    (coll: Collection) => {
+    (coll: CmsCollectionState) => {
       if (isEditorialWorkflow) {
         return dispatch(persistUnpublishedEntry(coll, hasUnpublishedEntry) as any);
       }

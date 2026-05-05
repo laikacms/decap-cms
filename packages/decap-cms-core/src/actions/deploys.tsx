@@ -6,11 +6,6 @@ import type { ThunkDispatch } from 'redux-thunk';
 import type { AnyAction } from 'redux';
 import type { CmsCollectionState, CmsEntry } from 'decap-cms-lib-util';
 
-type Collection = CmsCollectionState;
-type EntryMap = CmsEntry;
-
-type State = any;
-
 export const DEPLOY_PREVIEW_REQUEST = 'DEPLOY_PREVIEW_REQUEST';
 export const DEPLOY_PREVIEW_SUCCESS = 'DEPLOY_PREVIEW_SUCCESS';
 export const DEPLOY_PREVIEW_FAILURE = 'DEPLOY_PREVIEW_FAILURE';
@@ -56,13 +51,13 @@ function deployPreviewError(collection: string, slug: string) {
  * Requests a deploy preview object from the registered backend.
  */
 export function loadDeployPreview(
-  collection: Collection,
+  collection: CmsCollectionState,
   slug: string,
-  entry: EntryMap,
+  entry: CmsEntry,
   published: boolean,
   opts?: { maxAttempts?: number; interval?: number; signal?: AbortSignal },
 ) {
-  return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<any, undefined, AnyAction>, getState: () => any) => {
     const state = getState();
     const backend = currentBackend(state.config);
     const collectionName = collection.name;

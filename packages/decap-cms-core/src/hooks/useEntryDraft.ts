@@ -11,10 +11,6 @@ import {
 
 import type { CmsCollectionState, CmsEntry, CmsEntryField } from 'decap-cms-lib-util';
 
-type Collection = CmsCollectionState;
-type EntryMap = CmsEntry;
-type EntryField = CmsEntryField;
-
 /**
  * Hook for entry draft state and actions
  * Replaces connect() mapStateToProps/mapDispatchToProps for draft management
@@ -34,14 +30,14 @@ export function useEntryDraft() {
   const isModification = entryDraft.entry?.isModification;
 
   const createEmpty = useCallback(
-    (collection: Collection, search?: string) => {
+    (collection: CmsCollectionState, search?: string) => {
       dispatch(createEmptyDraft(collection, search || ''));
     },
     [dispatch],
   );
 
   const createDuplicate = useCallback(
-    (entry: EntryMap) => {
+    (entry: CmsEntry) => {
       dispatch(createDraftDuplicateFromEntry(entry));
     },
     [dispatch],
@@ -53,10 +49,10 @@ export function useEntryDraft() {
 
   const changeField = useCallback(
     (params: {
-      field: EntryField;
+      field: CmsEntryField;
       value: string;
       metadata: Record<string, unknown>;
-      entries: EntryMap[];
+      entries: CmsEntry[];
       i18n?: { currentLocale: string; defaultLocale: string; locales: string[] };
     }) => {
       dispatch(changeDraftField(params));

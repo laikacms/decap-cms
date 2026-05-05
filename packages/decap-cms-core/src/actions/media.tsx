@@ -11,12 +11,6 @@ import type { CmsCollectionState, CmsEntry, CmsEntryField } from 'decap-cms-lib-
 import type { ThunkDispatch } from 'redux-thunk';
 import type { AnyAction } from 'redux';
 
-type Collection = CmsCollectionState;
-
-type State = any;
-type EntryMap = CmsEntry;
-type EntryField = CmsEntryField;
-
 export const ADD_ASSETS = 'ADD_ASSETS';
 export const ADD_ASSET = 'ADD_ASSET';
 export const REMOVE_ASSET = 'REMOVE_ASSET';
@@ -50,7 +44,7 @@ export function loadAssetFailure(path: string, error: Error) {
 }
 
 export function loadAsset(resolvedPath: string) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     try {
       dispatch(loadAssetRequest(resolvedPath));
       // load asset url from backend
@@ -74,10 +68,10 @@ export function loadAsset(resolvedPath: string) {
 }
 
 interface GetAssetArgs {
-  collection: Collection;
-  entry: EntryMap;
+  collection: CmsCollectionState;
+  entry: CmsEntry;
   path: string;
-  field?: EntryField;
+  field?: CmsEntryField;
 }
 
 const emptyAsset = createAssetProxy({
@@ -88,8 +82,8 @@ const emptyAsset = createAssetProxy({
 });
 
 export const boundGetAsset = memoize(
-  (dispatch: ThunkDispatch<State, {}, AnyAction>, collection: Collection, entry: EntryMap) => {
-    function bound(path: string, field: EntryField) {
+  (dispatch: ThunkDispatch<any, {}, AnyAction>, collection: CmsCollectionState, entry: CmsEntry) => {
+    function bound(path: string, field: CmsEntryField) {
       const asset = dispatch(getAsset({ collection, entry, path, field }));
       return asset;
     }
@@ -102,7 +96,7 @@ export const boundGetAsset = memoize(
 boundGetAsset.cache = new WeakMap();
 
 export function getAsset({ collection, entry, path, field }: GetAssetArgs) {
-  return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     if (!path) return emptyAsset;
 
     const state = getState();

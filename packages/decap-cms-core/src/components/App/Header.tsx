@@ -23,10 +23,6 @@ import { useAppDispatch } from '../../hooks/useRedux';
 import type { TranslateFunction } from 'decap-cms-ui-default';
 import type { CmsCollectionState, CmsCollections } from 'decap-cms-lib-util';
 
-type Collection = CmsCollectionState;
-type Collections = CmsCollections;
-
-
 const ACTIVE_CLASS_NAME = 'header-link-active';
 
 const styles = {
@@ -135,7 +131,7 @@ const AppHeaderLogo = styled.li`
 
 interface HeaderProps {
   user: { avatar_url?: string; [key: string]: unknown };
-  collections: Collections;
+  collections: CmsCollections;
   onCreateEntryClick: (collectionName: string) => void;
   onLogoutClick: () => void;
   openMediaLibrary: () => void;
@@ -181,7 +177,7 @@ function Header({
   }
 
   const creatableCollections = Object.values(collections).filter(
-    (collection: Collection) => !!collection.create,
+    (collection: CmsCollectionState) => !!collection.create,
   );
 
   const shouldShowLogo = logo?.show_in_header && logo?.src;
@@ -242,7 +238,7 @@ function Header({
               dropdownWidth="160px"
               dropdownPosition="left"
             >
-              {creatableCollections.map((collection: Collection) => (
+              {creatableCollections.map((collection: CmsCollectionState) => (
                 <DropdownItem
                   key={collection.name}
                   label={collection.label_singular || collection.label}

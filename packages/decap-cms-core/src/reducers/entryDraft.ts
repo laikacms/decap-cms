@@ -37,12 +37,8 @@ import { getDataPath, duplicateI18nFields } from '../lib/i18n';
 import type { AnyAction } from 'redux';
 import type { CmsCollectionState, CmsEntry, CmsEntryField } from 'decap-cms-lib-util';
 
-type Collection = CmsCollectionState;
-type EntryMap = CmsEntry;
-type EntryField = CmsEntryField;
-
 export type EntryDraft = {
-  entry: EntryMap;
+  entry: CmsEntry;
   fieldsMetaData?: Record<string, unknown>;
   fieldsErrors?: Record<string, unknown>;
   hasChanged: boolean;
@@ -51,7 +47,7 @@ export type EntryDraft = {
 };
 
 const initialState: EntryDraft = {
-  entry: {} as EntryMap,
+  entry: {} as CmsEntry,
   fieldsMetaData: {},
   fieldsErrors: {},
   hasChanged: false,
@@ -139,10 +135,10 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
 
     case DRAFT_CHANGE_FIELD: {
       const { field, value, metadata, entries, i18n } = action.payload as {
-        field: EntryField;
+        field: CmsEntryField;
         value: unknown;
         metadata: Record<string, unknown>;
-        entries: EntryMap[];
+        entries: CmsEntry[];
         i18n?: {
           currentLocale: string;
           defaultLocale: string;
@@ -154,9 +150,9 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
       const dataPath = (i18n && getDataPath(i18n.currentLocale, i18n.defaultLocale)) || ['data'];
 
       if (meta) {
-        state.entry = setNestedValue(state.entry, ['meta', name as string], value) as EntryMap;
+        state.entry = setNestedValue(state.entry, ['meta', name as string], value) as CmsEntry;
       } else {
-        state.entry = setNestedValue(state.entry, [...dataPath, name as string], value) as EntryMap;
+        state.entry = setNestedValue(state.entry, [...dataPath, name as string], value) as CmsEntry;
         if (i18n) {
           return duplicateI18nFields(state as any, field, i18n.locales, i18n.defaultLocale) as any;
         }
@@ -267,7 +263,7 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
 }, initialState);
 
 export function selectCustomPath(
-  collection: Collection,
+  collection: CmsCollectionState,
   entryDraft: EntryDraft,
 ): string | undefined {
   if (!selectHasMetaPath(collection)) return;

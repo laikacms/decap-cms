@@ -7,8 +7,6 @@ import { selectEntrySlug } from '../../../reducers/collections';
 import type { EntryValue } from '../../../valueObjects/Entry';
 import type { CmsCollectionState } from 'decap-cms-lib-util';
 
-type Collection = CmsCollectionState;
-
 const { fetchWithTimeout: fetch } = unsentRequest;
 
 export interface AlgoliaConfig {
@@ -35,7 +33,7 @@ interface AlgoliaMultiSearchResponse {
 }
 
 interface EntriesCache {
-  collection: Collection | null;
+  collection: CmsCollectionState | null;
   page: number | null;
   pagination?: number;
   entries: EntryValue[];
@@ -167,7 +165,7 @@ export default class Algolia {
   }
 
   listEntries(
-    collection: Collection,
+    collection: CmsCollectionState,
     page: number,
   ): Promise<{ page?: number; pagination?: number; entries: EntryValue[] }> {
     if (this.entriesCache.collection === collection && this.entriesCache.page === page) {
@@ -190,7 +188,7 @@ export default class Algolia {
     }
   }
 
-  async listAllEntries(collection: Collection): Promise<EntryValue[]> {
+  async listAllEntries(collection: CmsCollectionState): Promise<EntryValue[]> {
     const params = {
       hitsPerPage: 1000,
     };
@@ -221,7 +219,7 @@ export default class Algolia {
     return entries;
   }
 
-  getEntry(collection: Collection, slug: string): Promise<EntryValue> {
+  getEntry(collection: CmsCollectionState, slug: string): Promise<EntryValue> {
     return this.searchBy('slug', collection.name, slug).then(response => {
       const entry = response.hits.filter(hit => hit.slug === slug)[0];
       return createEntry(collection.name, slug, entry.path, {

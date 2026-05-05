@@ -20,9 +20,6 @@ import { COMMIT_AUTHOR, COMMIT_DATE } from '../constants/commitProps';
 
 import type { CmsCollectionState, CmsEntry, CmsConfig, CmsSlug } from 'decap-cms-lib-util';
 
-type Collection = CmsCollectionState;
-type EntryMap = CmsEntry;
-
 const {
   compileStringTemplate,
   parseDateFromEntry,
@@ -46,7 +43,7 @@ const variableRegex = /\{\{([^}]+)\}\}/g;
 type Options = {
   slug?: string;
   path?: string;
-  collection?: Collection;
+  collection?: CmsCollectionState;
   authorLogin?: string;
   authorName?: string;
   authorEmail?: string;
@@ -141,7 +138,7 @@ export function getProcessSegment(
 }
 
 export function slugFormatter(
-  collection: Collection,
+  collection: CmsCollectionState,
   entryData: Record<string, unknown>,
   slugConfig?: CmsSlug,
 ) {
@@ -178,9 +175,9 @@ export function slugFormatter(
 
 export function previewUrlFormatter(
   baseUrl: string,
-  collection: Collection,
+  collection: CmsCollectionState,
   slug: string,
-  entry: EntryMap,
+  entry: CmsEntry,
   slugConfig?: CmsSlug,
 ) {
   /**
@@ -255,7 +252,7 @@ export function previewUrlFormatter(
   return `${basePath}/${previewPath}`;
 }
 
-export function summaryFormatter(summaryTemplate: string, entry: EntryMap, collection: Collection) {
+export function summaryFormatter(summaryTemplate: string, entry: CmsEntry, collection: CmsCollectionState) {
   let entryData = { ...(entry.data as Record<string, string>) };
   const date =
     parseDateFromEntry(
@@ -278,8 +275,8 @@ export function summaryFormatter(summaryTemplate: string, entry: EntryMap, colle
 
 export function folderFormatter(
   folderTemplate: string,
-  entry: EntryMap | undefined,
-  collection: Collection,
+  entry: CmsEntry | undefined,
+  collection: CmsCollectionState,
   defaultFolder: string,
   folderKey: string,
   slugConfig?: CmsSlug,

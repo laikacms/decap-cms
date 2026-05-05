@@ -36,17 +36,6 @@ import type { EntryValue } from '../valueObjects/Entry';
 import type { Backend } from '../backend';
 import type AssetProxy from '../valueObjects/AssetProxy';
 
-type State = any;
-
-type Collection = CmsCollectionState;
-type EntryMap = CmsEntry;
-type EntryField = CmsEntryField;
-type EntryFields = CmsEntryFields;
-type ViewFilter = CmsViewFilter;
-type ViewGroup = CmsViewGroup;
-type SortDirection = CmsSortDirection;
-const SortDirection = CmsSortDirection;
-
 /*
  * Constant Declarations
  */
@@ -96,7 +85,7 @@ export const CHANGE_VIEW_STYLE = 'CHANGE_VIEW_STYLE';
 /*
  * Simple Action Creators (Internal)
  */
-export function entryLoading(collection: Collection, slug: string) {
+export function entryLoading(collection: CmsCollectionState, slug: string) {
   return {
     type: ENTRY_REQUEST,
     payload: {
@@ -106,7 +95,7 @@ export function entryLoading(collection: Collection, slug: string) {
   };
 }
 
-export function entryLoaded(collection: Collection, entry: EntryValue) {
+export function entryLoaded(collection: CmsCollectionState, entry: EntryValue) {
   return {
     type: ENTRY_SUCCESS,
     payload: {
@@ -116,7 +105,7 @@ export function entryLoaded(collection: Collection, entry: EntryValue) {
   };
 }
 
-export function entryLoadError(error: Error, collection: Collection, slug: string) {
+export function entryLoadError(error: Error, collection: CmsCollectionState, slug: string) {
   return {
     type: ENTRY_FAILURE,
     payload: {
@@ -127,7 +116,7 @@ export function entryLoadError(error: Error, collection: Collection, slug: strin
   };
 }
 
-export function entriesLoading(collection: Collection) {
+export function entriesLoading(collection: CmsCollectionState) {
   return {
     type: ENTRIES_REQUEST,
     payload: {
@@ -137,7 +126,7 @@ export function entriesLoading(collection: Collection) {
 }
 
 export function entriesLoaded(
-  collection: Collection,
+  collection: CmsCollectionState,
   entries: EntryValue[],
   pagination: number | null,
   cursor: Cursor,
@@ -155,7 +144,7 @@ export function entriesLoaded(
   };
 }
 
-export function entriesFailed(collection: Collection, error: Error) {
+export function entriesFailed(collection: CmsCollectionState, error: Error) {
   return {
     type: ENTRIES_FAILURE,
     error: 'Failed to load entries',
@@ -164,7 +153,7 @@ export function entriesFailed(collection: Collection, error: Error) {
   };
 }
 
-export async function getAllEntries(state: State, collection: Collection) {
+export async function getAllEntries(state: any, collection: CmsCollectionState) {
   const backend = currentBackend(state.config);
   const integration = selectIntegration(state, collection.name, 'listEntries');
 
@@ -176,11 +165,11 @@ export async function getAllEntries(state: State, collection: Collection) {
 }
 
 export function sortByField(
-  collection: Collection,
+  collection: CmsCollectionState,
   key: string,
-  direction: SortDirection = SortDirection.Ascending,
+  direction: CmsSortDirection = CmsSortDirection.Ascending,
 ) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const state = getState();
     const isFetching = selectIsFetching(state.entries, collection.name);
     dispatch({
@@ -208,8 +197,8 @@ export function sortByField(
   };
 }
 
-export function filterByField(collection: Collection, filter: ViewFilter) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+export function filterByField(collection: CmsCollectionState, filter: CmsViewFilter) {
+  return async (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const state = getState();
     const isFetching = selectIsFetching(state.entries, collection.name);
     dispatch({
@@ -233,8 +222,8 @@ export function filterByField(collection: Collection, filter: ViewFilter) {
   };
 }
 
-export function groupByField(collection: Collection, group: ViewGroup) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+export function groupByField(collection: CmsCollectionState, group: CmsViewGroup) {
+  return async (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const state = getState();
     const isFetching = selectIsFetching(state.entries, collection.name);
     dispatch({
@@ -265,7 +254,7 @@ export function changeViewStyle(viewStyle: string) {
   };
 }
 
-export function entryPersisting(collection: Collection, entry: EntryMap) {
+export function entryPersisting(collection: CmsCollectionState, entry: CmsEntry) {
   return {
     type: ENTRY_PERSIST_REQUEST,
     payload: {
@@ -275,7 +264,7 @@ export function entryPersisting(collection: Collection, entry: EntryMap) {
   };
 }
 
-export function entryPersisted(collection: Collection, entry: EntryMap, slug: string) {
+export function entryPersisted(collection: CmsCollectionState, entry: CmsEntry, slug: string) {
   return {
     type: ENTRY_PERSIST_SUCCESS,
     payload: {
@@ -286,7 +275,7 @@ export function entryPersisted(collection: Collection, entry: EntryMap, slug: st
   };
 }
 
-export function entryPersistFail(collection: Collection, entry: EntryMap, error: Error) {
+export function entryPersistFail(collection: CmsCollectionState, entry: CmsEntry, error: Error) {
   return {
     type: ENTRY_PERSIST_FAILURE,
     error: 'Failed to persist entry',
@@ -298,7 +287,7 @@ export function entryPersistFail(collection: Collection, entry: EntryMap, error:
   };
 }
 
-export function entryDeleting(collection: Collection, slug: string) {
+export function entryDeleting(collection: CmsCollectionState, slug: string) {
   return {
     type: ENTRY_DELETE_REQUEST,
     payload: {
@@ -308,7 +297,7 @@ export function entryDeleting(collection: Collection, slug: string) {
   };
 }
 
-export function entryDeleted(collection: Collection, slug: string) {
+export function entryDeleted(collection: CmsCollectionState, slug: string) {
   return {
     type: ENTRY_DELETE_SUCCESS,
     payload: {
@@ -318,7 +307,7 @@ export function entryDeleted(collection: Collection, slug: string) {
   };
 }
 
-export function entryDeleteFail(collection: Collection, slug: string, error: Error) {
+export function entryDeleteFail(collection: CmsCollectionState, slug: string, error: Error) {
   return {
     type: ENTRY_DELETE_FAILURE,
     payload: {
@@ -343,7 +332,7 @@ export function createDraftFromEntry(entry: EntryValue) {
   };
 }
 
-export function draftDuplicateEntry(entry: EntryMap) {
+export function draftDuplicateEntry(entry: CmsEntry) {
   return {
     type: DRAFT_CREATE_DUPLICATE_FROM_ENTRY,
     payload: createEntry(entry.collection, '', '', {
@@ -365,10 +354,10 @@ export function changeDraftField({
   entries,
   i18n,
 }: {
-  field: EntryField;
+  field: CmsEntryField;
   value: string;
   metadata: Record<string, unknown>;
-  entries: EntryMap[];
+  entries: CmsEntry[];
   i18n?: {
     currentLocale: string;
     defaultLocale: string;
@@ -419,16 +408,16 @@ export function removeDraftEntryMediaFile({ id }: { id: string }) {
   return { type: REMOVE_DRAFT_ENTRY_MEDIA_FILE, payload: { id } };
 }
 
-export function persistLocalBackup(entry: EntryMap, collection: Collection) {
-  return (_dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+export function persistLocalBackup(entry: CmsEntry, collection: CmsCollectionState) {
+  return (_dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const state = getState();
     const backend = currentBackend(state.config);
     return backend.persistLocalDraftBackup(entry, collection);
   };
 }
 
-export function createDraftDuplicateFromEntry(entry: EntryMap) {
-  return (dispatch: ThunkDispatch<State, {}, AnyAction>) => {
+export function createDraftDuplicateFromEntry(entry: CmsEntry) {
+  return (dispatch: ThunkDispatch<any, {}, AnyAction>) => {
     dispatch(
       waitUntil({
         predicate: ({ type }) => type === DRAFT_CREATE_EMPTY,
@@ -438,8 +427,8 @@ export function createDraftDuplicateFromEntry(entry: EntryMap) {
   };
 }
 
-export function retrieveLocalBackup(collection: Collection, slug: string) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+export function retrieveLocalBackup(collection: CmsCollectionState, slug: string) {
+  return async (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const state = getState();
     const backend = currentBackend(state.config);
     const { entry } = await backend.getLocalDraftBackup(collection, slug);
@@ -471,8 +460,8 @@ export function retrieveLocalBackup(collection: Collection, slug: string) {
   };
 }
 
-export function deleteLocalBackup(collection: Collection, slug: string) {
-  return (_dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+export function deleteLocalBackup(collection: CmsCollectionState, slug: string) {
+  return (_dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const state = getState();
     const backend = currentBackend(state.config);
     return backend.deleteLocalDraftBackup(collection, slug);
@@ -483,8 +472,8 @@ export function deleteLocalBackup(collection: Collection, slug: string) {
  * Exported Thunk Action Creators
  */
 
-export function loadEntry(collection: Collection, slug: string) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+export function loadEntry(collection: CmsCollectionState, slug: string) {
+  return async (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     await waitForMediaLibraryToLoad(dispatch, getState());
     dispatch(entryLoading(collection, slug));
 
@@ -510,7 +499,7 @@ export function loadEntry(collection: Collection, slug: string) {
   };
 }
 
-export async function tryLoadEntry(state: State, collection: Collection, slug: string) {
+export async function tryLoadEntry(state: any, collection: CmsCollectionState, slug: string) {
   const backend = currentBackend(state.config);
   const loadedEntry = await backend.getEntry(state, collection, slug);
   return loadedEntry;
@@ -527,8 +516,8 @@ function addAppendActionsToCursor(cursor: Cursor) {
   return Cursor.create(cursor).mergeActions(new Set(additionalActions));
 }
 
-export function loadEntries(collection: Collection, page = 0) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+export function loadEntries(collection: CmsCollectionState, page = 0) {
+  return async (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     if (collection.isFetching) return;
 
     const state = getState();
@@ -542,7 +531,7 @@ export function loadEntries(collection: Collection, page = 0) {
     const defaultSort = selectDefaultSortField(collection as any);
     if (defaultSort) {
       const direction =
-        defaultSort.direction === 'desc' ? SortDirection.Descending : SortDirection.Ascending;
+        defaultSort.direction === 'desc' ? CmsSortDirection.Descending : CmsSortDirection.Ascending;
       return dispatch(sortByField(collection, defaultSort.field, direction));
     }
 
@@ -612,8 +601,8 @@ function traverseCursor(backend: Backend, cursor: Cursor, action: string) {
   return backend.traverseCursor(cursor, action);
 }
 
-export function traverseCollectionCursor(collection: Collection, action: string) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+export function traverseCollectionCursor(collection: CmsCollectionState, action: string) {
+  return async (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const state = getState();
     const collectionName = collection.name;
     if (state.entries.pages[collectionName]?.isFetching) return;
@@ -665,16 +654,16 @@ function processValue(unsafe: string) {
   return escapeHtml(unsafe);
 }
 
-function getDataFields(fields: EntryFields) {
+function getDataFields(fields: CmsEntryFields) {
   return fields.filter(f => !f?.meta);
 }
 
-function getMetaFields(fields: EntryFields) {
+function getMetaFields(fields: CmsEntryFields) {
   return fields.filter(f => f?.meta === true);
 }
 
-export function createEmptyDraft(collection: Collection, search: string) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+export function createEmptyDraft(collection: CmsCollectionState, search: string) {
+  return async (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const params = new URLSearchParams(search);
     params.forEach((value, key) => {
       collection = updateFieldByKey(collection as any, key, field => ({
@@ -683,7 +672,7 @@ export function createEmptyDraft(collection: Collection, search: string) {
       }));
     });
 
-    const fields = (collection.fields ?? []) as EntryField[];
+    const fields = (collection.fields ?? []) as CmsEntryField[];
     const dataFields = getDataFields(fields);
     const data = createEmptyDraftData(dataFields);
     const metaFields = getMetaFields(fields);
@@ -722,16 +711,16 @@ interface DraftEntryData {
 }
 
 export function createEmptyDraftData(
-  fields: EntryFields,
-  skipField: (field: EntryField) => boolean = () => false,
+  fields: CmsEntryFields,
+  skipField: (field: CmsEntryField) => boolean = () => false,
 ) {
   return fields.reduce(
     (
       reduction: DraftEntryData | string | undefined | boolean | unknown[],
-      value: EntryField | undefined | boolean,
+      value: CmsEntryField | undefined | boolean,
     ) => {
       const acc = reduction as DraftEntryData;
-      const item = value as EntryField;
+      const item = value as CmsEntryField;
 
       if (skipField(item)) return acc;
 
@@ -750,10 +739,10 @@ export function createEmptyDraftData(
         if (list && Array.isArray(defaultValue)) {
           acc[name] = defaultValue;
         } else {
-          const asList = Array.isArray(subfields) ? subfields : [subfields as EntryField];
+          const asList = Array.isArray(subfields) ? subfields : [subfields as CmsEntryField];
           const subDefaultValue = list
-            ? [createEmptyDraftData(asList as EntryField[], skipField)]
-            : createEmptyDraftData(asList as EntryField[], skipField);
+            ? [createEmptyDraftData(asList as CmsEntryField[], skipField)]
+            : createEmptyDraftData(asList as CmsEntryField[], skipField);
           if (!isEmptyDefaultValue(subDefaultValue)) {
             acc[name] = subDefaultValue as any;
           }
@@ -771,10 +760,10 @@ export function createEmptyDraftData(
   );
 }
 
-function createEmptyDraftI18nData(collection: Collection, dataFields: EntryFields) {
+function createEmptyDraftI18nData(collection: CmsCollectionState, dataFields: CmsEntryFields) {
   if (!hasI18n(collection as any)) return {};
 
-  function skipField(field: EntryField) {
+  function skipField(field: CmsEntryField) {
     return (
       (field as any)[I18N] !== I18N_FIELD.DUPLICATE && (field as any)[I18N] !== I18N_FIELD.TRANSLATE
     );
@@ -784,7 +773,7 @@ function createEmptyDraftI18nData(collection: Collection, dataFields: EntryField
   return duplicateDefaultI18nFields(collection as any, i18nData);
 }
 
-export function getMediaAssets({ entry }: { entry: EntryMap }) {
+export function getMediaAssets({ entry }: { entry: CmsEntry }) {
   const filesArray = entry.mediaFiles ?? [];
   const assets = filesArray
     .filter((file: any) => file.draft)
@@ -799,7 +788,7 @@ export function getMediaAssets({ entry }: { entry: EntryMap }) {
   return assets;
 }
 
-export function getSerializedEntry(collection: Collection, entry: EntryMap) {
+export function getSerializedEntry(collection: CmsCollectionState, entry: CmsEntry) {
   const fields = selectFields(collection as any, entry.slug);
 
   function serializeData(data: any) {
@@ -807,7 +796,7 @@ export function getSerializedEntry(collection: Collection, entry: EntryMap) {
   }
 
   const serializedData = serializeData(entry.data);
-  let serializedEntry: EntryMap = { ...entry, data: serializedData };
+  let serializedEntry: CmsEntry = { ...entry, data: serializedData };
   if (hasI18n(collection as any)) {
     serializedEntry = serializeI18n(
       collection as any,
@@ -818,8 +807,8 @@ export function getSerializedEntry(collection: Collection, entry: EntryMap) {
   return serializedEntry;
 }
 
-export function persistEntry(collection: Collection) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+export function persistEntry(collection: CmsCollectionState) {
+  return async (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const state = getState();
     const entryDraft = state.entryDraft;
     const fieldsErrors = entryDraft.fieldsErrors;
@@ -892,8 +881,8 @@ export function persistEntry(collection: Collection) {
   };
 }
 
-export function deleteEntry(collection: Collection, slug: string) {
-  return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+export function deleteEntry(collection: CmsCollectionState, slug: string) {
+  return (dispatch: ThunkDispatch<any, {}, AnyAction>, getState: () => any) => {
     const state = getState();
     const backend = currentBackend(state.config);
 
@@ -929,9 +918,9 @@ function getPathError(
 }
 
 export function validateMetaField(
-  state: State,
-  collection: Collection,
-  field: EntryField,
+  state: any,
+  collection: CmsCollectionState,
+  field: CmsEntryField,
   value: string | undefined,
   t: (key: string, args: Record<string, unknown>) => string,
 ) {

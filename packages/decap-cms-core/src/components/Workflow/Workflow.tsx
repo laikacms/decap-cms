@@ -11,9 +11,6 @@ import {
   shadows,
 } from 'decap-cms-ui-default';
 
-type Collections = CmsCollections;
-type Collection = CmsCollectionState;
-
 import { createNewEntry } from '../../actions/collections';
 import {
   loadUnpublishedEntries,
@@ -62,7 +59,7 @@ interface WorkflowProps {
 
 function Workflow({ t }: WorkflowProps) {
   const dispatch = useAppDispatch();
-  const collections = useAppSelector((state: any) => state.collections as Collections);
+  const collections = useAppSelector((state: any) => state.collections as CmsCollections);
   const isEditorialWorkflow = useAppSelector(
     (state: any) => state.config.publish_mode === EDITORIAL_WORKFLOW,
   );
@@ -105,8 +102,8 @@ function Workflow({ t }: WorkflowProps) {
             )}
           >
             {Object.values(collections)
-              .filter((collection: Collection) => !!collection.create)
-              .map((collection: Collection) => (
+              .filter((collection: CmsCollectionState) => !!collection.create)
+              .map((collection: CmsCollectionState) => (
                 <DropdownItem
                   key={collection.name}
                   label={collection.label}

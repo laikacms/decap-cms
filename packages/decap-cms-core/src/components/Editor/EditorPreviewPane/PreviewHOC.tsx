@@ -2,14 +2,12 @@ import React from 'react';
 
 import type { CmsEntryField } from 'decap-cms-lib-util';
 
-type EntryField = CmsEntryField;
-
 interface PreviewHOCProps {
   previewComponent: React.ComponentType<Record<string, unknown>>;
-  field: EntryField;
+  field: CmsEntryField;
   value?: React.ReactNode | Record<string, unknown> | string | boolean;
   fieldsMetaData?: Record<string, unknown>;
-  getAsset?: (asset: string) => { url: string; path: string; field?: EntryField };
+  getAsset?: (asset: string) => { url: string; path: string; field?: CmsEntryField };
 }
 
 function PreviewHOCInner({ previewComponent, ...props }: PreviewHOCProps) {
