@@ -84,6 +84,7 @@ export default function BitbucketAuthenticationPage({
       });
       authSettingsRef.current = { provider: 'bitbucket', scope: 'repo' };
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only OAuth completion
   }, []);
 
   function handleLogin() {

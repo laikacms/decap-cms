@@ -478,7 +478,7 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
       return () => {
         mountedRef.current = false;
       };
-      // eslint-disable-next-line react-hooks/exhaustive-deps -- mirror componentDidMount
+       
     }, []);
 
     function onSortEnd(options: RelationOption[]) {

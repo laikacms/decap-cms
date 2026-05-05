@@ -168,7 +168,7 @@ export default function DateTimeControl({
     if (initRef.current.value === '{{now}}') {
       initRef.current.handleChange(initRef.current.getNow());
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mirror componentDidMount
+     
   }, []);
 
   const { inputType } = getFormat(field, isUtc);

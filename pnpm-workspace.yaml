@@ -215,51 +215,17 @@ catalogs:
     "gotrue-js": "^1.0.1"
     "jwt-decode": "^4.0.0"
 
-  # Markdown/Rich text processing
+  # Markdown/Rich text processing (frontmatter parsing only — the WYSIWYG
+  # editor stack was removed alongside widget-markdown and widget-richtext).
   markdown:
     "remark-gfm": "4.0.1"
     "remark-parse": "^11.0.0"
-    "remark-rehype": "^11.1.2"
     "remark-stringify": "^11.0.0"
     "remark-frontmatter": "^5.0.0"
-    "remark-slate": "^1.8.6"
-    "remark-slate-transformer": "^0.9.0"
-    "rehype-parse": "^9.0.1"
-    "rehype-remark": "^10.0.1"
-    "rehype-stringify": "^10.0.1"
     "unified": "^11.0.5"
-    "unist-builder": "^4.0.0"
-    "unist-util-visit-parents": "^6.0.2"
-    "vfile-location": "^5.0.3"
     "vfile": "^6.0.3"
-    "mdast-util-definitions": "^6.0.0"
     "mdast-util-to-string": "^4.0.0"
     "mdast-util-from-markdown": "^2.0.3"
-    "detab": "^3.0.2"
-    "dompurify": "^3.3.3"
-    "is-hotkey": "^0.2.0"
-    "is-url": "^1.2.4"
-
-  # Slate editor
-  slate:
-    "slate": "^0.124.0"
-    "slate-dom": "^0.124.0"
-    "slate-history": "^0.113.1"
-    "slate-hyperscript": "^0.100.0"
-    "slate-react": "^0.124.0"
-    "slate-base64-serializer": "^0.2.115"
-    "slate-plain-serializer": "^0.7.13"
-    "slate-soft-break": "^0.9.0"
-
-  # Plate editor (rich text)
-  plate:
-    "@platejs/basic-nodes": "^52.3.10"
-    "@platejs/link": "^52.3.17"
-    "@platejs/list": "^52.3.10"
-    "@platejs/list-classic": "^52.3.10"
-    "platejs": "^52.3.21"
-    "class-variance-authority": "^0.7.1"
-    "lucide-react": "^1.7.0"
 
   # Drag and drop
   dnd:

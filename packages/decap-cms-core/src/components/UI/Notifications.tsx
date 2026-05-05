@@ -60,6 +60,7 @@ export default function Notifications() {
         setIdMap(idMap);
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- idMap is mutated in place; a deeper refactor is owed
   }, [notifications]);
 
   toast.onChange((payload: ToastItem) => {
