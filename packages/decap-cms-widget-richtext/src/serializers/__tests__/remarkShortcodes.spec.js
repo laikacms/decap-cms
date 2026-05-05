@@ -110,7 +110,7 @@ describe('remarkParseShortcodes', () => {
       return obj.map(removePositions);
     }
     if (obj && typeof obj === 'object') {
-      // eslint-disable-next-line no-unused-vars
+       
       const { position, ...rest } = obj;
       const result = {};
       for (const key in rest) {

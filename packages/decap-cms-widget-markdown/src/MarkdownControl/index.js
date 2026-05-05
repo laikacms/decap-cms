@@ -11,7 +11,7 @@ const MODE_STORAGE_KEY = 'cms.md-mode';
 // TODO: passing the editorControl and components like this is horrible, should
 // be handled through Redux and a separate registry store for instances
 let editorControl;
-// eslint-disable-next-line func-style
+ 
 let _getEditorComponents = () => Map();
 
 export function getEditorControl() {

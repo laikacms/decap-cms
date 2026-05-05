@@ -147,6 +147,7 @@ function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
    * behavior: clear local state when the modal opens, and replace the selected
    * file with files[0] right after a persist completes.
    */
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally runs every render to compare prev refs
   React.useEffect(() => {
     const wasVisible = wasVisibleRef.current;
     const isOpening = !wasVisible && isVisible;

@@ -1,4 +1,4 @@
-/* eslint-disable react/prop-types */
+ 
 import React from 'react';
 import { css } from '@emotion/react';
 import { zIndex } from 'decap-cms-ui-default';

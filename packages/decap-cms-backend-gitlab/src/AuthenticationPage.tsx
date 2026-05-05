@@ -129,6 +129,7 @@ export default function GitLabAuthenticationPage({
         auth_endpoint: authEndpoint,
       });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only OAuth completion
   }, []);
 
   function handleLogin() {

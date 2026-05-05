@@ -63,6 +63,7 @@ export default function AuthenticationPage({
     if (config.backend.login === false) {
       onLogin(null);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only OAuth completion
   }, []);
 
   function handleLogin(e: React.MouseEvent<HTMLButtonElement>) {

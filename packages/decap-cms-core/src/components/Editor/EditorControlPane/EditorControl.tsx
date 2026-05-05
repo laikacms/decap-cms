@@ -6,10 +6,10 @@ import partial from 'lodash/partial';
 import uniqueId from 'lodash/uniqueId';
 import memoize from 'lodash/memoize';
 import { FieldLabel, colors, transitions, lengths, borders } from 'decap-cms-ui-default';
-import { useAppDispatch, useAppSelector } from '../../../hooks/useRedux';
 import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
 
+import { useAppDispatch, useAppSelector } from '../../../hooks/useRedux';
 import { resolveWidget, getEditorComponents } from '../../../lib/registry';
 import { clearFieldErrors, tryLoadEntry, validateMetaField } from '../../../actions/entries';
 import { addAsset, boundGetAsset } from '../../../actions/media';
@@ -508,7 +508,7 @@ export default function ConnectedEditorControl(props: ConnectedEditorControlProp
   const boundGetAssetForEntry = React.useMemo(
     () => stable.getBoundedAsset(collection, stable.getEntry()),
     // recompute when collection changes; entry is read live via stable.getEntry on each call
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     [collection],
   );
 

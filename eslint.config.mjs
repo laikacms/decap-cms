@@ -33,6 +33,11 @@ export default tseslint.config(
       '**/.turbo/**',
       '**/storybook-static/**',
       '**/.exclude*/**',
+      // Legacy slate-based markdown/richtext widgets — disabled in app
+      // registration and pending replacement. Exclude from lint until they're
+      // either rewritten or removed.
+      'packages/decap-cms-widget-markdown/**',
+      'packages/decap-cms-widget-richtext/**',
     ],
   },
 
@@ -131,6 +136,29 @@ export default tseslint.config(
       "@typescript-eslint/no-empty-object-type": 'off', // TODO: Remove
       "@typescript-eslint/no-unsafe-function-type": 'off', // TODO: Remove
       "@typescript-eslint/no-explicit-any": 'off', // TODO: Remove
+    },
+  },
+
+  // Vitest test files. `vitest.config.ts` enables `globals: true`, so
+  // `describe`/`it`/`expect`/`vi` etc. are available without imports — tell
+  // ESLint about them.
+  {
+    files: ['**/*.{spec,test}.{js,jsx,ts,tsx,mjs}', '**/__tests__/**/*.{js,jsx,ts,tsx,mjs}'],
+    languageOptions: {
+      globals: {
+        describe: 'readonly',
+        it: 'readonly',
+        test: 'readonly',
+        expect: 'readonly',
+        vi: 'readonly',
+        beforeAll: 'readonly',
+        beforeEach: 'readonly',
+        afterAll: 'readonly',
+        afterEach: 'readonly',
+        suite: 'readonly',
+        chai: 'readonly',
+        assert: 'readonly',
+      },
     },
   },
 
