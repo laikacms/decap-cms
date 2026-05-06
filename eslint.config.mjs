@@ -112,6 +112,25 @@ export default tseslint.config(
           groups: [['builtin', 'external'], ['internal', 'parent', 'sibling', 'index'], ['type']],
         },
       ],
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'immutable',
+              message:
+                'Immutable.js is intentionally not used in this codebase. Use plain objects/arrays with the spread operator and optional chaining instead.',
+            },
+          ],
+          patterns: [
+            {
+              group: ['immutable/*'],
+              message:
+                'Immutable.js is intentionally not used in this codebase. Use plain objects/arrays with the spread operator and optional chaining instead.',
+            },
+          ],
+        },
+      ],
 
       // Emotion rules
       '@emotion/no-vanilla': 'error',
