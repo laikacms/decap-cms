@@ -15,6 +15,7 @@ import type {
   CmsUnpublishedEntry,
 } from './entries.js';
 import type { CmsImplementationMediaFile } from './media.js';
+import type { CmsConfig } from './cms.js';
 import type Cursor from '../../Cursor.js';
 
 export type CmsBackendType =
@@ -69,10 +70,23 @@ export interface CmsLocalBackend {
   allowed_hosts?: string[];
 }
 
-export type CmsBackendClass = unknown; // TODO: type properly
+/** A backend class, as accepted by `CMS.registerBackend(name, BackendClass)`. */
+export type CmsBackendClass = new (
+  config: CmsConfig,
+  opts?: Record<string, unknown>,
+) => CmsImplementation;
+
+export interface CmsImplementationInitOptions {
+  useWorkflow: boolean;
+  updateUserCredentials: (credentials: CmsCredentials) => void;
+  initialWorkflowStatus: string;
+}
 
 export interface CmsRegistryBackend {
-  init: (args: unknown) => CmsBackendClass;
+  init: (
+    config: CmsConfig,
+    options: CmsImplementationInitOptions,
+  ) => CmsImplementation;
 }
 
 export type CmsBackendObject = {

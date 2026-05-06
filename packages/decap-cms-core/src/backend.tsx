@@ -82,6 +82,7 @@ import type {
   CmsUnpublishedEntry,
   CmsDataFile,
   CmsUnpublishedEntryDiff,
+  CmsRegistryBackend,
 } from 'decap-cms-lib-util';
 
 // State type used in this file - represents the Redux store shape
@@ -300,15 +301,7 @@ interface PersistArgs {
   status?: string;
 }
 
-interface ImplementationInitOptions {
-  useWorkflow: boolean;
-  updateUserCredentials: (credentials: CmsCredentials) => void;
-  initialWorkflowStatus: string;
-}
-
-type Implementation = BackendImplementation & {
-  init: (config: CmsConfig, options: ImplementationInitOptions) => Implementation;
-};
+type Implementation = BackendImplementation;
 
 function prepareMetaPath(path: string, collection: CmsCollectionState) {
   if (!selectHasMetaPath(collection)) {
@@ -363,11 +356,11 @@ export class Backend {
   user?: CmsUser | null;
   backupSync: AsyncLock;
 
-  constructor(implementation: Implementation, { backendName, authStore, config }: BackendOptions) {
+  constructor(factory: CmsRegistryBackend, { backendName, authStore, config }: BackendOptions) {
     // We can't reliably run this on exit, so we do cleanup on load.
     this.deleteAnonymousBackup();
     this.config = config;
-    this.implementation = implementation.init(this.config, {
+    this.implementation = factory.init(this.config, {
       useWorkflow: selectUseWorkflow(this.config),
       updateUserCredentials: this.updateUserCredentials,
       initialWorkflowStatus: Object.values(status)[0] ?? '',
@@ -773,7 +766,7 @@ export class Backend {
       }
 
       const mediaFiles = await Promise.all<MediaFile>(
-        (entry.mediaFiles as unknown as MediaFile[]).map(async (file: MediaFile) => {
+        entry.mediaFiles.map(async (file: MediaFile) => {
           // make sure to serialize the file
           if (file.url?.startsWith('blob:')) {
             const blob = await fetch(file.url as string).then(res => res.blob());
@@ -987,7 +980,16 @@ export class Backend {
 
   async processEntry(state: State, collection: CmsCollectionState, entry: EntryValue) {
     const integration = selectIntegration(state.integrations as any, null, 'assetStore');
-    const mediaFolders = selectMediaFolders(state.config, collection, entry as unknown as CmsEntry);
+    // `EntryValue` and `CmsEntry` describe the same shape on the wire but
+    // diverge on a few internal fields (`newRecord`, nullable `isModification`).
+    // selectMediaFolders only reads `slug` and `path`, so normalize just enough.
+    const cmsEntry: CmsEntry = {
+      ...entry,
+      newRecord: false,
+      status: entry.status ?? '',
+      isModification: entry.isModification ?? undefined,
+    };
+    const mediaFolders = selectMediaFolders(state.config, collection, cmsEntry);
     if (mediaFolders.length > 0 && !integration) {
       const files = await Promise.all(
         mediaFolders.map(folder => this.implementation.getMedia(folder)),
@@ -1110,7 +1112,7 @@ export class Backend {
         : draft;
     } else {
       entryDraft = updatedEntity
-        ? { ...draft, entry: updatedEntity as unknown as CmsEntry }
+        ? { ...draft, entry: updatedEntity as CmsEntry }
         : draft;
     }
 
@@ -1127,7 +1129,7 @@ export class Backend {
       }
       const slug = await this.generateUniqueSlug(
         collection,
-        entryDraft.entry?.data as unknown as Record<string, unknown>,
+        entryDraft.entry?.data as Record<string, unknown>,
         config,
         usedSlugs,
         customPath,
@@ -1335,7 +1337,7 @@ export class Backend {
   }
 
   entryToRaw(collection: CmsCollectionState, entry: CmsEntry): string {
-    const format = resolveFormat(collection, entry as unknown as CmsEntry);
+    const format = resolveFormat(collection, entry);
     const fieldsOrder = this.fieldsOrder(collection, entry);
     const fieldsComments = selectFieldsComments(collection, entry);
     let content = format.toFile(entry.data, fieldsOrder, fieldsComments);
@@ -1386,7 +1388,7 @@ export function resolveBackend(config: CmsConfig) {
   if (!backend) {
     throw new Error(`Backend not found: ${name}`);
   } else {
-    return new Backend(backend as unknown as Implementation, {
+    return new Backend(backend, {
       backendName: name,
       authStore,
       config,

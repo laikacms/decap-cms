@@ -16,6 +16,7 @@ import type {
   CmsFormatter,
   CmsConfig,
   CmsImplementation,
+  CmsImplementationInitOptions,
 } from 'decap-cms-lib-util';
 
 type CmsPreviewStyle = { raw?: boolean; value: string };
@@ -26,7 +27,7 @@ interface EventHandler {
 }
 
 interface CmsRegistryBackend {
-  init: (config: CmsConfig, opts?: Record<string, unknown>) => CmsImplementation;
+  init: (config: CmsConfig, options: CmsImplementationInitOptions) => CmsImplementation;
 }
 
 interface CmsWidget {
@@ -257,7 +258,10 @@ export function getWidgetValueSerializer(widgetName: string) {
 
 export function registerBackend(
   name: string,
-  BackendClass: new (config: CmsConfig, opts?: Record<string, unknown>) => CmsImplementation,
+  BackendClass: new (
+    config: CmsConfig,
+    opts?: CmsImplementationInitOptions,
+  ) => CmsImplementation,
 ) {
   if (!name || !BackendClass) {
     console.error(
@@ -267,7 +271,7 @@ export function registerBackend(
     console.error(`Backend [${name}] already registered. Please choose a different name.`);
   } else {
     registry.backends[name] = {
-      init: (config: CmsConfig, opts: Record<string, unknown> = {}) =>
+      init: (config: CmsConfig, opts: CmsImplementationInitOptions) =>
         new BackendClass(config, opts),
     };
   }
