@@ -83,7 +83,7 @@ export default tseslint.config(
         },
         exports: {},
       },
-      'import/core-modules': [...packages, 'decap-cms-app/dist/esm'],
+      'import/core-modules': packages,
     },
     rules: {
       // General rules
