@@ -5,7 +5,7 @@
 
 ## Import Issues
 - [x] Direct source imports: `'package/src/file'` → `'package'`
-- [ ] Inconsistent file extensions (.ts vs .tsx)
+- [x] Inconsistent file extensions (.ts vs .tsx)
 
 ## Type Safety
 - [x] Replace `Map<string, any>` with proper typed records
