@@ -53,6 +53,7 @@ export default function AzureAuthenticationPage({
         onLogin(data);
       }
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only OAuth completion
   }, []);
 
   function handleLogin() {

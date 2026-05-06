@@ -1,11 +1,11 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
-import { useAppSelector } from './hooks/useRedux';
 import { unstable_HistoryRouter as HistoryRouter } from 'react-router-dom';
 import { GlobalStyles } from 'decap-cms-ui-default';
 import { I18n } from 'react-polyglot';
 
+import { useAppSelector } from './hooks/useRedux';
 import { history } from './routing/history';
 import { store } from './redux';
 import { loadConfig } from './actions/config';

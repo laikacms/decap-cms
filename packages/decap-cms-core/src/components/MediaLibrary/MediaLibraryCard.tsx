@@ -105,6 +105,7 @@ function MediaLibraryCard({
     if (!displayURL['url']) {
       loadDisplayURL();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only displayURL load
   }, []);
 
   return (

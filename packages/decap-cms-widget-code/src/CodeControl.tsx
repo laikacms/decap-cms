@@ -168,7 +168,7 @@ export default function CodeControl({
   const initialLangRef = React.useRef(initialLang);
   React.useEffect(() => {
     setLang((initialLangRef.current as string) || '');
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- componentDidMount semantics
+     
   }, []);
 
   // Track previous codeMirror-relevant state to drive componentDidUpdate logic.

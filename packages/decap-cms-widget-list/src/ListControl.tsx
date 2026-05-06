@@ -415,6 +415,8 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(functi
     propsValidate: props.validate,
     onValidateObject,
     forID,
+    getValueType,
+    validateSize,
   });
   latestRef.current = {
     listCollapsed,
@@ -423,6 +425,8 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(functi
     propsValidate: props.validate,
     onValidateObject,
     forID,
+    getValueType,
+    validateSize,
   };
 
   // Pending focus for after a setState-triggered re-render expanded the items.
@@ -432,7 +436,8 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(functi
     ref,
     () => ({
       validate() {
-        const hasChildWidgets = getValueType() && Object.keys(childRefs.current).length > 0;
+        const hasChildWidgets =
+          latestRef.current.getValueType() && Object.keys(childRefs.current).length > 0;
         if (hasChildWidgets) {
           Object.values(childRefs.current).forEach((widget: ChildRef) => {
             widget?.validate?.();
@@ -440,7 +445,10 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(functi
         } else {
           latestRef.current.propsValidate();
         }
-        latestRef.current.onValidateObject(latestRef.current.forID, validateSize());
+        latestRef.current.onValidateObject(
+          latestRef.current.forID,
+          latestRef.current.validateSize(),
+        );
       },
       focus(path: string) {
         const [indexStr, ...remainingPath] = path.split('.');

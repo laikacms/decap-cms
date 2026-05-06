@@ -100,7 +100,7 @@ export default function withMapControl({ getFormat, getMap }: WithMapControlOpti
       return () => {
         resizeObserver.disconnect();
       };
-      // eslint-disable-next-line react-hooks/exhaustive-deps -- componentDidMount semantics
+       
     }, []);
 
     return (

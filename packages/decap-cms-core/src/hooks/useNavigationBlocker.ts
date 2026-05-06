@@ -90,6 +90,7 @@ export function useNavigationBlocker({
       window.removeEventListener('beforeunload', exitBlocker);
       cleanup();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `cleanup` is defined below and itself depends only on stable refs
   }, [shouldBlock, message, onNavigate, allowedPaths]);
 
   const cleanup = useCallback(() => {

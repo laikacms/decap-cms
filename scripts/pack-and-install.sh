@@ -40,7 +40,6 @@ PACKAGES=(
   "decap-cms-widget-image"
   "decap-cms-widget-list"
   "decap-cms-widget-map"
-  "decap-cms-widget-markdown"
   "decap-cms-widget-number"
   "decap-cms-widget-object"
   "decap-cms-widget-relation"
