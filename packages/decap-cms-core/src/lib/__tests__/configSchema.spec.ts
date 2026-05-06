@@ -1,9 +1,10 @@
-vi.mock('../../lib/registry');
+vi.mock('../registry');
 
 import merge from 'lodash/merge';
+import { z } from 'zod';
 
 import { validateConfig } from '../configSchema';
-import { getWidgets } from '../../lib/registry';
+import { getWidgets } from '../registry';
 
 describe('config', () => {
   /**
@@ -14,7 +15,7 @@ describe('config', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
-  vi.mocked(getWidgets).mockImplementation(() => [{}]);
+  vi.mocked(getWidgets).mockImplementation(() => []);
 
   describe('validateConfig', () => {
     const validConfig = {
@@ -381,12 +382,13 @@ describe('config', () => {
       vi.mocked(getWidgets).mockImplementation(() => [
         {
           name: 'relation',
-          schema: {
-            properties: {
-              search_fields: { type: 'array', items: { type: 'string' } },
-              display_fields: { type: 'array', items: { type: 'string' } },
-            },
-          },
+          control: () => null,
+          schema: z
+            .object({
+              search_fields: z.array(z.string()).optional(),
+              display_fields: z.array(z.string()).optional(),
+            })
+            .passthrough(),
         },
       ]);
 

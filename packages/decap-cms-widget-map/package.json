@@ -28,7 +28,8 @@
     "react": "catalog:react"
   },
   "dependencies": {
-    "ol": "catalog:media"
+    "ol": "catalog:media",
+    "zod": "catalog:validation"
   },
   "devDependencies": {
     "@types/react": "catalog:types"

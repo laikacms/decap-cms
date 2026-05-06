@@ -1,11 +1,16 @@
-export default {
-  properties: {
-    default_language: { type: 'string' },
-    allow_language_selection: { type: 'boolean' },
-    output_code_only: { type: 'boolean' },
-    keys: {
-      type: 'object',
-      properties: { code: { type: 'string' }, lang: { type: 'string' } },
-    },
-  },
-};
+import { z } from 'zod';
+
+export default z
+  .object({
+    default_language: z.string().optional(),
+    allow_language_selection: z.boolean().optional(),
+    output_code_only: z.boolean().optional(),
+    keys: z
+      .object({
+        code: z.string().optional(),
+        lang: z.string().optional(),
+      })
+      .passthrough()
+      .optional(),
+  })
+  .passthrough();

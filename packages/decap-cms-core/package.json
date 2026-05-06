@@ -25,6 +25,8 @@
     "uuid": "catalog:utils",
     "common-tags": "catalog:utils",
     "smol-toml": "catalog:utils",
+    "zod": "catalog:validation",
+    "@standard-schema/spec": "catalog:validation",
     "@reduxjs/toolkit": "catalog:redux",
     "@vercel/stega": "catalog:stega",
     "buffer": "catalog:polyfills",

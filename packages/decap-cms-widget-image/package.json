@@ -49,5 +49,8 @@
   "files": [
     "dist",
     "src"
-  ]
+  ],
+  "dependencies": {
+    "zod": "catalog:validation"
+  }
 }

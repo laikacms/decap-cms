@@ -1,5 +1,7 @@
-export default {
-  properties: {
-    allow_multiple: { type: 'boolean' },
-  },
-};
+import { z } from 'zod';
+
+export default z
+  .object({
+    allow_multiple: z.boolean().optional(),
+  })
+  .passthrough();

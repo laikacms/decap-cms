@@ -27,7 +27,8 @@
     "@dnd-kit/sortable": "catalog:dnd",
     "@dnd-kit/utilities": "^3.2.2",
     "array-move": "catalog:utils",
-    "lodash": "catalog:utils"
+    "lodash": "catalog:utils",
+    "zod": "catalog:validation"
   },
   "peerDependencies": {
     "@emotion/react": "catalog:emotion",

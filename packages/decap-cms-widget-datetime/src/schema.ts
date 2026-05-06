@@ -1,8 +1,10 @@
-export default {
-  properties: {
-    format: { type: 'string' },
-    date_format: { oneOf: [{ type: 'string' }, { type: 'boolean' }] },
-    time_format: { oneOf: [{ type: 'string' }, { type: 'boolean' }] },
-    picker_utc: { type: 'boolean' },
-  },
-};
+import { z } from 'zod';
+
+export default z
+  .object({
+    format: z.string().optional(),
+    date_format: z.union([z.string(), z.boolean()]).optional(),
+    time_format: z.union([z.string(), z.boolean()]).optional(),
+    picker_utc: z.boolean().optional(),
+  })
+  .passthrough();

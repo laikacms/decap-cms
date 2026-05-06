@@ -1,6 +1,8 @@
-export default {
-  properties: {
-    decimals: { type: 'integer' },
-    type: { type: 'string', enum: ['Point', 'LineString', 'Polygon'] },
-  },
-};
+import { z } from 'zod';
+
+export default z
+  .object({
+    decimals: z.number().int().optional(),
+    type: z.enum(['Point', 'LineString', 'Polygon']).optional(),
+  })
+  .passthrough();

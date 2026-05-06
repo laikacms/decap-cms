@@ -37,7 +37,8 @@
   },
   "dependencies": {
     "react-codemirror2": "catalog:react",
-    "react-select": "catalog:react"
+    "react-select": "catalog:react",
+    "zod": "catalog:validation"
   },
   "devDependencies": {
     "@types/react": "catalog:types"

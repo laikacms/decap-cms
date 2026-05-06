@@ -22,10 +22,11 @@
   },
   "dependencies": {
     "@dnd-kit/core": "catalog:dnd",
-    "@dnd-kit/utilities": "catalog:dnd",
     "@dnd-kit/modifiers": "catalog:dnd",
     "@dnd-kit/sortable": "catalog:dnd",
-    "uuid": "catalog:utils"
+    "@dnd-kit/utilities": "catalog:dnd",
+    "uuid": "catalog:utils",
+    "zod": "catalog:validation"
   },
   "peerDependencies": {
     "@emotion/react": "catalog:emotion",

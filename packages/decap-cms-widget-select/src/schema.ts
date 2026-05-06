@@ -1,25 +1,15 @@
-export default {
-  properties: {
-    multiple: { type: 'boolean' },
-    min: { type: 'integer' },
-    max: { type: 'integer' },
-    options: {
-      type: 'array',
-      items: {
-        oneOf: [
-          { type: 'string' },
-          { type: 'number' },
-          {
-            type: 'object',
-            properties: {
-              label: { type: 'string' },
-              value: { oneOf: [{ type: 'string' }, { type: 'number' }] },
-            },
-            required: ['label', 'value'],
-          },
-        ],
-      },
-    },
-  },
-  required: ['options'],
-};
+import { z } from 'zod';
+
+const optionObject = z.object({
+  label: z.string(),
+  value: z.union([z.string(), z.number()]),
+});
+
+export default z
+  .object({
+    multiple: z.boolean().optional(),
+    min: z.number().int().optional(),
+    max: z.number().int().optional(),
+    options: z.array(z.union([z.string(), z.number(), optionObject])),
+  })
+  .passthrough();

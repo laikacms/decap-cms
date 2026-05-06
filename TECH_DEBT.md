@@ -23,14 +23,14 @@
 - [x] Put shared types in `decap-cms-lib-util` package
 - [x] Remove Immutable.js
 - [ ] Add ESLint rules for import patterns
-- [ ] Constants contain non-constants: packages/decap-cms-core/src/constants/configSchema.ts
+- [x] Constants contain non-constants: packages/decap-cms-core/src/constants/configSchema.ts
 - [ ] Immutable.js is causing to many problems, policy is to try and avoid using it and replacing it with ES6 syntax (spread operator, ?. operator)
 
 # Testing
 - [x] Fix failing tests in decap-cms-core
 
 # Ideas
-- [ ] Standard Schema integration (so people can use their zod, joi, effect, etc schemas directly)
+- [x] Standard Schema integration (so people can use their zod, joi, effect, etc schemas directly)
 - [ ] Portable text
 
 

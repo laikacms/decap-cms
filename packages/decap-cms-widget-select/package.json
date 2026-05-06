@@ -29,7 +29,8 @@
   },
   "dependencies": {
     "lodash": "catalog:utils",
-    "react-select": "catalog:react"
+    "react-select": "catalog:react",
+    "zod": "catalog:validation"
   },
   "devDependencies": {
     "@types/lodash": "catalog:types",

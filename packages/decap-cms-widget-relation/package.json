@@ -26,7 +26,8 @@
     "@dnd-kit/sortable": "catalog:dnd",
     "@dnd-kit/utilities": "catalog:dnd",
     "react-select": "catalog:react",
-    "react-window": "catalog:react"
+    "react-window": "catalog:react",
+    "zod": "catalog:validation"
   },
   "devDependencies": {
     "@types/react": "catalog:types"

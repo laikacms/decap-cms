@@ -23,7 +23,8 @@
   },
   "dependencies": {
     "dayjs": "catalog:utils",
-    "decap-cms-ui-default": "workspace:*"
+    "decap-cms-ui-default": "workspace:*",
+    "zod": "catalog:validation"
   },
   "peerDependencies": {
     "@emotion/react": "catalog:emotion",

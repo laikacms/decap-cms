@@ -3,6 +3,7 @@ import { oneLine } from 'common-tags';
 import EditorComponent from '../valueObjects/EditorComponent';
 
 import type { Pluggable } from 'unified';
+import type { StandardSchemaV1 } from '@standard-schema/spec';
 import type {
   CmsWidgetParam,
   CmsMediaLibrary,
@@ -33,7 +34,12 @@ interface CmsWidget {
   control: unknown;
   preview?: unknown;
   globalStyles?: unknown;
-  schema?: unknown;
+  /**
+   * Per-widget configuration schema, used by `validateConfig` to validate
+   * field options once the widget has been picked. Any Standard Schema
+   * implementation works (Zod 4+, Valibot, ArkType, etc.).
+   */
+  schema?: StandardSchemaV1;
   allowMapValue?: boolean;
   [key: string]: unknown;
 }
@@ -142,7 +148,7 @@ export function getPreviewTemplate(name: string) {
 }
 
 interface WidgetRegistrationOptions<T = unknown> extends CmsWidgetParam<T> {
-  schema?: unknown;
+  schema?: StandardSchemaV1;
   allowMapValue?: boolean;
   [key: string]: unknown;
 }
@@ -155,7 +161,7 @@ export function registerWidget(options: WidgetRegistrationOptions<any>) {
     name: widgetName,
     controlComponent: control,
     previewComponent: preview,
-    schema = {},
+    schema,
     allowMapValue,
     globalStyles,
   } = options;

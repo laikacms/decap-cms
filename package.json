@@ -99,7 +99,6 @@
     "@types/uuid": "catalog:types",
     "@vitejs/plugin-react": "catalog:vite",
     "@vitest/coverage-v8": "catalog:vitest",
-    "ajv": "catalog:validation",
     "all-contributors-cli": "catalog:build",
     "buffer": "catalog:polyfills",
     "common-tags": "catalog:utils",
@@ -157,9 +156,6 @@
     "vitest": "catalog:vitest"
   },
   "dependencies": {
-    "ajv": "catalog:validation",
-    "ajv-errors": "catalog:validation",
-    "ajv-keywords": "catalog:validation",
     "yaml": "catalog:utils"
   },
   "resolutions": {

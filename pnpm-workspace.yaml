@@ -166,9 +166,8 @@ catalogs:
 
   # Schema validation
   validation:
-    "ajv": "^8.18.0"
-    "ajv-errors": "^3.0.0"
-    "ajv-keywords": "^5.1.0"
+    "zod": "^4.4.2"
+    "@standard-schema/spec": "^1.1.0"
     "@hapi/joi": "^17.1.1"
 
   # Utility libraries

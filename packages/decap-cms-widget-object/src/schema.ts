@@ -1,6 +1,8 @@
-export default {
-  properties: {
-    collapsed: { type: 'boolean' },
-    i18n: { type: 'boolean' },
-  },
-};
+import { z } from 'zod';
+
+export default z
+  .object({
+    collapsed: z.boolean().optional(),
+    i18n: z.boolean().optional(),
+  })
+  .passthrough();

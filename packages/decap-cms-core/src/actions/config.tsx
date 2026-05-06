@@ -6,7 +6,7 @@ import trim from 'lodash/trim';
 import isEmpty from 'lodash/isEmpty';
 
 import { SIMPLE as SIMPLE_PUBLISH_MODE } from '../constants/publishModes';
-import { validateConfig } from '../constants/configSchema';
+import { validateConfig } from '../lib/configSchema';
 import { selectDefaultSortableFields } from '../reducers/collections';
 import { getIntegrations, selectIntegration } from '../reducers/integrations';
 import { resolveBackend } from '../backend';
