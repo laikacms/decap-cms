@@ -1,7 +1,7 @@
 import { vi } from 'vitest';
 import { loadScript } from 'decap-cms-lib-util';
 
-import cloudinary from '../index';
+import cloudinary from "..";
 
 vi.mock('decap-cms-lib-util');
 

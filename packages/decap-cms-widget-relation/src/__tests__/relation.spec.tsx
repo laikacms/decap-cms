@@ -31,7 +31,7 @@ vi.mock('../RelationCache', () => {
 import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react';
 
-import { DecapCmsWidgetRelation } from '../';
+import { DecapCmsWidgetRelation } from "..";
 
 beforeEach(() => {
   vi.clearAllMocks();

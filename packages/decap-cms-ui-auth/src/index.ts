@@ -6,4 +6,4 @@ export const DecapCmsUiAuth = {
   PKCEAuthenticationPage,
 };
 export { NetlifyAuthenticationPage, PKCEAuthenticationPage, usePkceAuth };
-export * from './types/index';
+export * from "./types";

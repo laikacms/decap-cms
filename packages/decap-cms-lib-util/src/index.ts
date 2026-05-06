@@ -17,7 +17,7 @@ export {
   dirname,
   join,
 } from './core-utils/path.js'; // Backwards compatibility - re-export path utilities at top level
-export * from './core-utils/index.js';
+export * from "./core-utils";
 export { onlySuccessfulPromises, flowAsync, thenP as promiseThen } from './promise.js';
 export { default as unsentRequest } from './unsentRequest.js';
 export {
@@ -76,5 +76,5 @@ export type { FetchError, ApiRequest } from './API.js';
 export type { AsyncLock } from './asyncLock.js';
 export { default as isHotkey, isCodeHotkey, isKeyHotkey } from './is-hotkey.js';
 
-export * from './types/index.js';
+export * from "./types";
 export * from './semaphore.js';

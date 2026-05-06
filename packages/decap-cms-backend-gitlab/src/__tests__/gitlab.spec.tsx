@@ -1,4 +1,5 @@
 /* eslint-disable import/order -- vi.mock must precede imports of the mocked module */
+/* eslint-disable no-restricted-imports -- intentionally mocks an internal `decap-cms-core` module so other code that imports it via the same path receives the mock; using the package root would not match the actual import target */
 import { vi } from 'vitest';
 
 vi.mock('decap-cms-core/src/backend');

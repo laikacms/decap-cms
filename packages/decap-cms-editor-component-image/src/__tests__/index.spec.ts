@@ -1,4 +1,4 @@
-import component from '../index';
+import component from "..";
 
 function getAsset(path) {
   return path;

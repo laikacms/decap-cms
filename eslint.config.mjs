@@ -113,6 +113,38 @@ export default tseslint.config(
         },
       ],
 
+      // Forbid reaching into a workspace package's internals. Always import
+      // from the package root (`'decap-cms-core'`) — never from `/src/*` or
+      // `/dist/*`. This keeps the public surface of each package honest and
+      // prevents accidental tight coupling on internal layout.
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['decap-cms-*/src/*', 'decap-cms-*/src'],
+              message:
+                "Don't reach into a workspace package's `src/`. Import from the package root (e.g. `decap-cms-core`) and re-export through the package's `index.ts` if needed.",
+            },
+            {
+              group: ['decap-cms-*/dist/*', 'decap-cms-*/dist'],
+              message:
+                "Don't import a workspace package's `dist/` — use the package root (the `package.json` `main`/`exports` already points at `dist/index.js` for consumers).",
+            },
+          ],
+        },
+      ],
+
+      // Catch the reverse mistake: `import X from '../../other-package'`
+      // (which sometimes works via a symlink) instead of `from
+      // 'other-package'`. The package-name form is the only one that survives
+      // a published install.
+      'import/no-relative-packages': 'error',
+
+      // Trivial but cheap correctness checks.
+      'import/no-self-import': 'error',
+      'import/no-useless-path-segments': ['error', { noUselessIndex: true }],
+
       // Emotion rules
       '@emotion/no-vanilla': 'error',
       '@emotion/pkg-renaming': 'error',
