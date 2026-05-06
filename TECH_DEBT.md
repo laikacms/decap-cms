@@ -9,7 +9,7 @@
 
 ## Type Safety
 - [x] Replace `Map<string, any>` with proper typed records
-- [ ] Remove `as unknown as` double casts in backend.tsx
+- [x] Remove `as unknown as` double casts in backend.tsx
 - [x] Add missing @types dependencies to packages
 
 ## Dependencies

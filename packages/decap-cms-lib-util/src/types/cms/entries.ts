@@ -8,15 +8,15 @@ export type CmsEntry = {
   i18n?: unknown;
   collection: string;
   mediaFiles: CmsMediaFileMap[];
-  newRecord: boolean;
+  newRecord?: boolean;
   author?: string;
   updatedOn?: string;
-  status: string;
+  status?: string;
   meta: { path?: string };
   error?: string;
   isFetching?: boolean;
   isPersisting?: boolean;
-  isModification?: boolean;
+  isModification?: boolean | null;
 };
 
 export type CmsGroupOfEntries = {

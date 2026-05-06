@@ -773,7 +773,7 @@ export class Backend {
       }
 
       const mediaFiles = await Promise.all<MediaFile>(
-        (entry.mediaFiles as unknown as MediaFile[]).map(async (file: MediaFile) => {
+        entry.mediaFiles.map(async (file: MediaFile) => {
           // make sure to serialize the file
           if (file.url?.startsWith('blob:')) {
             const blob = await fetch(file.url as string).then(res => res.blob());
@@ -987,7 +987,7 @@ export class Backend {
 
   async processEntry(state: State, collection: CmsCollectionState, entry: EntryValue) {
     const integration = selectIntegration(state.integrations as any, null, 'assetStore');
-    const mediaFolders = selectMediaFolders(state.config, collection, entry as unknown as CmsEntry);
+    const mediaFolders = selectMediaFolders(state.config, collection, entry);
     if (mediaFolders.length > 0 && !integration) {
       const files = await Promise.all(
         mediaFolders.map(folder => this.implementation.getMedia(folder)),
@@ -1109,9 +1109,7 @@ export class Backend {
         ? { ...draft, entry: { ...draft.entry, data: updatedEntity } }
         : draft;
     } else {
-      entryDraft = updatedEntity
-        ? { ...draft, entry: updatedEntity as unknown as CmsEntry }
-        : draft;
+      entryDraft = updatedEntity ? { ...draft, entry: updatedEntity as CmsEntry } : draft;
     }
 
     const newEntry = entryDraft.entry?.newRecord || false;
@@ -1127,7 +1125,7 @@ export class Backend {
       }
       const slug = await this.generateUniqueSlug(
         collection,
-        entryDraft.entry?.data as unknown as Record<string, unknown>,
+        entryDraft.entry?.data as Record<string, unknown>,
         config,
         usedSlugs,
         customPath,
@@ -1335,7 +1333,7 @@ export class Backend {
   }
 
   entryToRaw(collection: CmsCollectionState, entry: CmsEntry): string {
-    const format = resolveFormat(collection, entry as unknown as CmsEntry);
+    const format = resolveFormat(collection, entry);
     const fieldsOrder = this.fieldsOrder(collection, entry);
     const fieldsComments = selectFieldsComments(collection, entry);
     let content = format.toFile(entry.data, fieldsOrder, fieldsComments);
@@ -1386,6 +1384,9 @@ export function resolveBackend(config: CmsConfig) {
   if (!backend) {
     throw new Error(`Backend not found: ${name}`);
   } else {
+    // `getBackend` returns a registry entry with only `init`; the rest of
+    // `Implementation` is supplied by the value `init` returns at runtime,
+    // which the Backend instance only needs after `authenticate()`.
     return new Backend(backend as unknown as Implementation, {
       backendName: name,
       authStore,
