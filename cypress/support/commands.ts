@@ -33,6 +33,8 @@ import { oneLineTrim } from 'common-tags';
 
 import { escapeRegExp } from '../utils/regexp';
 
+import type { Root, Element } from 'hast';
+
 interface Route {
   url: string;
   method: string;
@@ -387,8 +389,6 @@ Cypress.Commands.add('confirmRawEditorContent', (expectedDomString: string) => {
     cy.contains('span', expectedDomString);
   });
 });
-
-import type { Root, Element } from 'hast';
 
 function toPlainTree(domString: string): string {
   return rehype()

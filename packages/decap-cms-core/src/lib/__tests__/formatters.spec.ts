@@ -1,13 +1,3 @@
-vi.spyOn(console, 'warn').mockImplementation(() => {});
-vi.mock('../../reducers/collections', () => ({
-  selectIdentifier: vi.fn(),
-  selectInferredField: vi.fn(),
-  getFileFromSlug: vi.fn(),
-  selectEntrySlug: vi.fn(),
-  selectField: vi.fn(),
-  default: (state: unknown) => state,
-}));
-
 import {
   commitMessageFormatter,
   prepareSlug,
@@ -17,6 +7,16 @@ import {
   folderFormatter,
 } from '../formatters';
 import { selectIdentifier, selectInferredField, getFileFromSlug } from '../../reducers/collections';
+
+vi.spyOn(console, 'warn').mockImplementation(() => {});
+vi.mock('../../reducers/collections', () => ({
+  selectIdentifier: vi.fn(),
+  selectInferredField: vi.fn(),
+  getFileFromSlug: vi.fn(),
+  selectEntrySlug: vi.fn(),
+  selectField: vi.fn(),
+  default: (state: unknown) => state,
+}));
 
 describe('formatters', () => {
   describe('commitMessageFormatter', () => {

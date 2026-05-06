@@ -18,6 +18,8 @@ import type {} from './index.d';
 import 'cypress-plugin-tab';
 import { addMatchImageSnapshotCommand } from '@simonsmith/cypress-image-snapshot/command';
 
+import './commands';
+
 addMatchImageSnapshotCommand({
   failureThreshold: 0.01,
   failureThresholdType: 'percent',
@@ -30,8 +32,6 @@ Cypress.on('uncaught:exception', (err) => {
   console.error('[UNCAUGHT EXCEPTION] Stack:', err.stack);
   return false; // Prevent Cypress from failing the test
 });
-
-import './commands';
 
 afterEach(function () {
   if (this.currentTest?.state === 'failed') {

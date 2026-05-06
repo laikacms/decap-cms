@@ -1,6 +1,6 @@
 import { combineReducers } from 'redux';
 
-import reducers from './index';
+import reducers from ".";
 
 function createRootReducer() {
   return combineReducers({

@@ -112,6 +112,28 @@ export default tseslint.config(
           groups: [['builtin', 'external'], ['internal', 'parent', 'sibling', 'index'], ['type']],
         },
       ],
+      'import/no-self-import': 'error',
+      'import/no-useless-path-segments': ['error', { noUselessIndex: true }],
+      'import/no-relative-packages': 'error',
+      'import/newline-after-import': ['error', { count: 1 }],
+      'import/first': 'error',
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['decap-cms-*/src/*', 'decap-cms-*/src'],
+              message:
+                'Import from the package entry point (e.g. `decap-cms-lib-util`), not from `src/...`. Add an explicit export if the symbol is missing.',
+            },
+            {
+              group: ['decap-cms-*/dist/*', 'decap-cms-*/dist'],
+              message:
+                'Do not import from a workspace package\'s built `dist/` output. Import from the package entry instead.',
+            },
+          ],
+        },
+      ],
 
       // Emotion rules
       '@emotion/no-vanilla': 'error',
@@ -131,6 +153,16 @@ export default tseslint.config(
       "@typescript-eslint/no-empty-object-type": 'off', // TODO: Remove
       "@typescript-eslint/no-unsafe-function-type": 'off', // TODO: Remove
       "@typescript-eslint/no-explicit-any": 'off', // TODO: Remove
+    },
+  },
+
+  // Vitest unit test files: relax the cross-package source-import ban.
+  // Tests legitimately reach into `<package>/src/...` via `vi.importActual`
+  // when they need to mix the actual implementation with mocks.
+  {
+    files: ['**/__tests__/**/*.{ts,tsx}', '**/*.{spec,test}.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': 'off',
     },
   },
 

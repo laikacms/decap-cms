@@ -1,3 +1,8 @@
+import React from 'react';
+import { render, fireEvent, waitFor, act } from '@testing-library/react';
+
+import { DecapCmsWidgetRelation } from "..";
+
 vi.mock('react-window', () => {
   function FixedSizeList(props) {
     return props.itemData.options;
@@ -27,11 +32,6 @@ vi.mock('../RelationCache', () => {
     },
   };
 });
-
-import React from 'react';
-import { render, fireEvent, waitFor, act } from '@testing-library/react';
-
-import { DecapCmsWidgetRelation } from '../';
 
 beforeEach(() => {
   vi.clearAllMocks();

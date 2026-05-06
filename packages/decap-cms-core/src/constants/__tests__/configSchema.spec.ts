@@ -1,9 +1,9 @@
-vi.mock('../../lib/registry');
-
 import merge from 'lodash/merge';
 
 import { validateConfig } from '../configSchema';
 import { getWidgets } from '../../lib/registry';
+
+vi.mock('../../lib/registry');
 
 describe('config', () => {
   /**

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 
-import { DecapCmsWidgetSelect } from '../';
+import { DecapCmsWidgetSelect } from "..";
 
 const SelectControl = DecapCmsWidgetSelect.controlComponent;
 

@@ -1,7 +1,7 @@
-vi.mock('uuid', () => ({ v4: vi.fn(() => '1') }));
-
 import * as actions from '../../actions/entries';
 import reducer from '../entryDraft';
+
+vi.mock('uuid', () => ({ v4: vi.fn(() => '1') }));
 
 const initialState = {
   entry: {},

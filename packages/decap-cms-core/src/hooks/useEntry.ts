@@ -16,6 +16,7 @@ import { navigateToCollection, navigateToNewEntry } from '../routing/history';
 
 import type { Status } from '../constants/publishModes';
 import type { CmsEntry } from 'decap-cms-lib-util';
+
 type Entry = CmsEntry;
 
 interface UseEntryOptions {

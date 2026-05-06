@@ -1,7 +1,3 @@
-vi.mock('uuid');
-vi.mock('../entries');
-vi.mock('../integrations');
-
 import { mediaDeleted } from '../../actions/mediaLibrary';
 import mediaLibrary, {
   selectMediaFiles,
@@ -10,6 +6,10 @@ import mediaLibrary, {
 } from '../mediaLibrary';
 import { selectEditingDraft, selectMediaFolder } from '../entries';
 import { selectIntegration } from '../integrations';
+
+vi.mock('uuid');
+vi.mock('../entries');
+vi.mock('../integrations');
 
 describe('mediaLibrary', () => {
   it('should remove media file by key', () => {

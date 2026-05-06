@@ -1,8 +1,8 @@
-vi.mock('history');
-
 import { createHashHistory } from 'history';
 
 import type { History } from 'history';
+
+vi.mock('history');
 
 const history = { push: vi.fn(), replace: vi.fn() } as unknown as History;
 vi.mocked(createHashHistory).mockReturnValue(history);

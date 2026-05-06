@@ -11,9 +11,6 @@ import {
   shadows,
 } from 'decap-cms-ui-default';
 
-type Collections = CmsCollections;
-type Collection = CmsCollectionState;
-
 import { createNewEntry } from '../../actions/collections';
 import {
   loadUnpublishedEntries,
@@ -29,6 +26,9 @@ import { useAppDispatch, useAppSelector } from '../../hooks/useRedux';
 import type { Status } from '../../constants/publishModes';
 import type { CmsCollections, CmsCollectionState } from 'decap-cms-lib-util';
 import type { TranslateFunction } from 'decap-cms-ui-default';
+
+type Collections = CmsCollections;
+type Collection = CmsCollectionState;
 
 const WorkflowContainer = styled.div`
   padding: ${lengths.pageMargin} 0;

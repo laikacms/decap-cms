@@ -32,7 +32,6 @@ import partial from 'lodash/partial';
 import result from 'lodash/result';
 import trimStart from 'lodash/trimStart';
 
-const NO_CACHE = 'no-cache';
 import * as queries from './queries';
 
 import type { ApolloQueryResult } from 'apollo-client';
@@ -45,6 +44,8 @@ import type {
   FetchError,
   CmsImplementationFile,
 } from 'decap-cms-lib-util';
+
+const NO_CACHE = 'no-cache';
 
 export const API_NAME = 'GitLab';
 

@@ -1,3 +1,9 @@
+import React from 'react';
+import { fireEvent, render } from '@testing-library/react';
+import * as uuid from 'uuid';
+
+import ListControl from '../ListControl';
+
 vi.mock('decap-cms-widget-object', async () => {
   const React = await import('react');
   class MockObjectControl extends React.Component<any> {
@@ -31,12 +37,6 @@ vi.mock('decap-cms-ui-default', async () => {
   };
 });
 vi.mock('uuid');
-
-import React from 'react';
-import { fireEvent, render } from '@testing-library/react';
-import * as uuid from 'uuid';
-
-import ListControl from '../ListControl';
 
 describe('ListControl', () => {
   const props = {

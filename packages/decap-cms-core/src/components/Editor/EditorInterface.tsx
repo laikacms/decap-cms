@@ -12,11 +12,6 @@ import {
 } from 'decap-cms-ui-default';
 import { ScrollSync, ScrollSyncPane } from 'react-scroll-sync';
 
-
-type Collection = CmsCollectionState;
-type EntryMap = CmsEntry;
-type EntryField = CmsEntryField;
-
 import EditorControlPane, { type ControlPaneHandle } from './EditorControlPane/EditorControlPane';
 import EditorPreviewPane from './EditorPreviewPane/EditorPreviewPane';
 import EditorToolbar from './EditorToolbar';
@@ -28,6 +23,11 @@ import type { ReactNode } from 'react';
 import type { I18nInfo } from '../../lib/i18n';
 import type { CmsCollectionState, CmsEntry, CmsEntryField } from 'decap-cms-lib-util';
 import type { TranslateFunction } from 'decap-cms-ui-default';
+
+
+type Collection = CmsCollectionState;
+type EntryMap = CmsEntry;
+type EntryField = CmsEntryField;
 
 const PREVIEW_VISIBLE = 'cms.preview-visible';
 const SCROLL_SYNC_ENABLED = 'cms.scroll-sync-enabled';

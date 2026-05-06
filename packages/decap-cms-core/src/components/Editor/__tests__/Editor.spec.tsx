@@ -5,6 +5,8 @@ import { vi } from 'vitest';
 
 import Editor from '../Editor';
 
+import * as useEditorModule from '../../../hooks/useEditor';
+
 vi.mock('../EditorInterface', () => ({
   default: props => <mock-editor-interface {...props} />,
 }));
@@ -16,8 +18,6 @@ vi.mock('react-router-dom', () => ({
   useLocation: vi.fn().mockReturnValue({ search: '?title=title', pathname: '/posts/slug' }),
 }));
 vi.mock('../../../hooks/useEditor');
-
-import * as useEditorModule from '../../../hooks/useEditor';
 
 const mockSetup = vi.fn().mockReturnValue({ cleanup: vi.fn() });
 const mockHandleLocalBackupCheck = vi.fn();
