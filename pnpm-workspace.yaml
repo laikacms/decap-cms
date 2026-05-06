@@ -12,7 +12,6 @@ catalogs:
     "@types/unist": "^3.0.3"
     "@types/history": "^5.0.0"
     "@types/redux-mock-store": "^1.5.0"
-    "@types/iarna__toml": "^2.0.5"
     "@types/cors": "^2.8.19"
     "@types/express": "^5.0.6"
     "@types/hapi__joi": "17.1.15"
@@ -241,13 +240,6 @@ catalogs:
     "@replit/codemirror-vscode-keymap": "^6.0.2"
     "@replit/codemirror-vim": "^6.3.0"
     "@uiw/codemirror-theme-material": "^4.25.9"
-
-  # Data formats
-  formats:
-    "@iarna/toml": "2.2.5"
-    "tomlify-j0.4": "^3.0.0"
-    "micromark-extension-frontmatter": "^2.0.0"
-    "micromark": "^4.0.2"
 
   # History/routing
   routing:
