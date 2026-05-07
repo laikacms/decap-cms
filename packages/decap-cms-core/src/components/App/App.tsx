@@ -90,7 +90,14 @@ function CollectionRoute({
   isSingleSearchResult?: boolean;
 }) {
   const params = useParams();
-  const match = { params: params as { name?: string; searchTerm?: string; filterTerm?: string } };
+  const filterTerm = params['*'] || params.filterTerm;
+  const match = {
+    params: { ...params, filterTerm } as {
+      name?: string;
+      searchTerm?: string;
+      filterTerm?: string;
+    },
+  };
   return (
     <CollectionComponent
       match={match}
@@ -312,7 +319,7 @@ function App() {
             }
           />
           <Route
-            path="/collections/:name/filter/:filterTerm*"
+            path="/collections/:name/filter/*"
             element={
               <RouteInCollectionGuard collections={collections}>
                 <CollectionRoute />

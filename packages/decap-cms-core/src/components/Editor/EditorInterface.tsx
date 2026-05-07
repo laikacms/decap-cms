@@ -1,7 +1,7 @@
 import React from 'react';
 import { css, Global } from '@emotion/react';
 import styled from '@emotion/styled';
-import { SplitPane } from 'react-split-pane';
+import { Pane, SplitPane } from 'react-split-pane';
 import {
   colors,
   colorsRaw,
@@ -360,17 +360,21 @@ function EditorInterface(props: EditorInterfaceProps) {
           onDragStarted={handleSplitPaneDragStart}
           onDragFinished={handleSplitPaneDragFinished}
         >
-          <ScrollSyncPane>{editor}</ScrollSyncPane>
-          <PreviewPaneContainer $blockEntry={showEventBlocker}>
-            <EditorPreviewPane
-              collection={collection}
-              entry={previewEntry}
-              fields={fields}
-              fieldsMetaData={fieldsMetaData}
-              locale={leftPanelLocale}
-              onFieldClick={handleFieldClick}
-            />
-          </PreviewPaneContainer>
+          <Pane className="Pane1">
+            <ScrollSyncPane>{editor}</ScrollSyncPane>
+          </Pane>
+          <Pane className="Pane2">
+            <PreviewPaneContainer $blockEntry={showEventBlocker}>
+              <EditorPreviewPane
+                collection={collection}
+                entry={previewEntry}
+                fields={fields}
+                fieldsMetaData={fieldsMetaData}
+                locale={leftPanelLocale}
+                onFieldClick={handleFieldClick}
+              />
+            </PreviewPaneContainer>
+          </Pane>
         </StyledSplitPane>
       </div>
     </ScrollSync>
@@ -386,8 +390,12 @@ function EditorInterface(props: EditorInterfaceProps) {
           onDragStarted={handleSplitPaneDragStart}
           onDragFinished={handleSplitPaneDragFinished}
         >
-          <ScrollSyncPane>{editor}</ScrollSyncPane>
-          <ScrollSyncPane>{editor2}</ScrollSyncPane>
+          <Pane className="Pane1">
+            <ScrollSyncPane>{editor}</ScrollSyncPane>
+          </Pane>
+          <Pane className="Pane2">
+            <ScrollSyncPane>{editor2}</ScrollSyncPane>
+          </Pane>
         </StyledSplitPane>
       </div>
     </ScrollSync>

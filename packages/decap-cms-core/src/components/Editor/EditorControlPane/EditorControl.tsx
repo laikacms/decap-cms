@@ -451,7 +451,7 @@ const stable = {
   validateMetaField: memoize((collection: Collection) => {
     return (field: EntryField, value: string | undefined, t: TranslateFunction) => {
       const state = store.getState() as State;
-      validateMetaField(state, collection, field, value, t);
+      return validateMetaField(state, collection, field, value, t);
     };
   }),
 
