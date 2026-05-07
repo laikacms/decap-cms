@@ -51,7 +51,7 @@ export interface ObjectControlProps {
   editorControl: React.ComponentType<Record<string, unknown>>;
   resolveWidget: (name: string) => Record<string, unknown>;
   clearFieldErrors: (fieldId: string) => void;
-  validationKey: string;
+  validationKey?: string;
   fieldsErrors?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
   hasError?: boolean;
@@ -97,7 +97,12 @@ const ObjectControl = React.forwardRef<ObjectControlHandle, ObjectControlProps>(
       if (!childRef) return;
       const name = childRef.props.field.name;
       childRefs.current[name as string] = childRef;
-      props.controlRef?.(childRef);
+      // Do NOT call `props.controlRef?.(childRef)` here. That ref belongs
+      // to *this* ObjectControl in the parent's slot — propagating sub-field
+      // widgets up would overwrite the parent's slot with the last child to
+      // mount, which breaks validation traversal (the parent EditorControlPane
+      // would call validate on a sibling-leaf widget instead of on this
+      // ObjectControl's imperative handle).
     }
 
     React.useImperativeHandle(

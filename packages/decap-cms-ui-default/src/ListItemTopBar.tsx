@@ -74,13 +74,13 @@ function ListItemTopBar(props: ListItemTopBarProps): React.ReactElement {
   return (
     <TopBar className={className}>
       {onCollapseToggle ? (
-        <TopBarButton onClick={onCollapseToggle}>
+        <TopBarButton className="TopBarButton-button" onClick={onCollapseToggle}>
           <Icon type="chevron" size="small" direction={collapsed ? 'right' : 'down'} />
         </TopBarButton>
       ) : null}
       {dragHandle && allowReorder ? <DragHandle Wrapper={dragHandle} id={id} /> : <span></span>}
       {onRemove && allowRemove ? (
-        <TopBarButton onClick={onRemove}>
+        <TopBarButton className="TopBarButton-button" onClick={onRemove}>
           <Icon type="close" size="small" />
         </TopBarButton>
       ) : (

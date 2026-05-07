@@ -119,7 +119,12 @@ export default class Widget extends Component<WidgetProps> {
     return (
       this.props.value !== nextProps.value ||
       this.props.classNameWrapper !== nextProps.classNameWrapper ||
-      this.props.hasActiveStyle !== nextProps.hasActiveStyle
+      this.props.hasActiveStyle !== nextProps.hasActiveStyle ||
+      // Re-render when validation errors change. Container widgets (object,
+      // list) pass `fieldsErrors` to their children, so the reference
+      // changing means a descendant's error state changed and we need to
+      // propagate the new value.
+      this.props.fieldsErrors !== nextProps.fieldsErrors
     );
   }
 

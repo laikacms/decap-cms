@@ -541,12 +541,8 @@ export function validateListFields({ name, description }: ListFieldSettings): vo
     scope: cy.get('@listControl'),
   });
   assertListControlErrorStatus([colorError, colorError], '@listControl');
-  cy.get('input')
-    .eq(2)
-    .type(name);
-  cy.get('textarea')
-    .eq(0)
-    .type(description);
+  cy.get('@listControl').find('input[type=text]').filter(':visible').first().type(name);
+  cy.get('@listControl').find('textarea').filter(':visible').first().type(description);
   flushClockAndSave();
   assertNotification(notifications.saved);
   assertFieldErrorStatus('Authors', colorNormal);
