@@ -174,7 +174,7 @@ export function updateWorkflowStatus({ title }: Entry, fromColumnHeading: string
 }
 
 export function publishWorkflowEntry({ title }: Entry, timeout?: number): void {
-  cy.contains('h2', workflowStatus.ready, { timeout })
+  cy.contains('h2', workflowStatus.ready, timeout !== undefined ? { timeout } : undefined)
     .parent()
     .within(() => {
       cy.contains('a', title)

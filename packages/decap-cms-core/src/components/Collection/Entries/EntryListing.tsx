@@ -154,7 +154,7 @@ function EntryListing({
 
   return (
     <div>
-      <CardsGrid>
+      <CardsGrid className="CardsGrid">
         {isSingleCollection(collections)
           ? renderCardsForSingleCollection()
           : renderCardsForMultipleCollections()}

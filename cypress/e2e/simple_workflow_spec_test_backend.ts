@@ -35,6 +35,12 @@ describe('Test Backend Simple Workflow', () => {
     cy.task('teardownBackend', { backend });
   });
 
+  beforeEach(() => {
+    // Freeze time so {{year}}-{{month}}-{{day}}-{{slug}} permalinks are
+    // deterministic ("1970-01-01-…") regardless of when the test runs.
+    cy.clock(0, ['Date']);
+  });
+
   it('successfully loads', () => {
     login();
   });
