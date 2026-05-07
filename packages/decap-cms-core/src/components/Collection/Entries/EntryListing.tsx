@@ -34,10 +34,12 @@ interface EntryListingProps {
 function isSingleCollection(
   collections: CmsCollectionState | CmsCollections,
 ): collections is CmsCollectionState {
+  // Single collections always have a `type` (set by `applyDefaults` to either
+  // `folder_based_collection` or `file_based_collection`) and a `name`.
+  // The earlier `'fields' in collections` check incorrectly returned false
+  // for file-based collections, which carry `files` instead.
   return (
-    'name' in collections &&
-    'fields' in collections &&
-    typeof (collections as CmsCollectionState).type === 'string'
+    'name' in collections && typeof (collections as CmsCollectionState).type === 'string'
   );
 }
 
