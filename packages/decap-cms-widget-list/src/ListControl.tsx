@@ -569,7 +569,7 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(functi
       memoize((index: number) => {
         return (f: CmsField, newValue: unknown, newMetadata: Record<string, unknown>) => {
           const value = Array.isArray(inputValue)
-            ? inputValue
+            ? [...inputValue]
             : inputValue
               ? [inputValue]
               : [];
@@ -581,14 +581,14 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(functi
           let newObjectValue;
           if (withNameKey) {
             const name = f.name;
-            const ov = getObjectValue(index);
+            const ov = { ...getObjectValue(index) };
             ov[name] = newValue;
             newObjectValue = ov;
           } else {
             newObjectValue = newValue;
           }
           const parsedMetadata = {
-            [collectionName]: Object.assign(metadata ?? {}, newMetadata || {}),
+            [collectionName]: { ...(metadata ?? {}), ...(newMetadata || {}) },
           };
 
           value[index] = newObjectValue;
