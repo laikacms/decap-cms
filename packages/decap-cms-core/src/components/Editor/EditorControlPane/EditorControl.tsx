@@ -312,7 +312,7 @@ function EditorControl(props: EditorControlProps) {
               t={t}
             />
             {errors && (
-              <ControlErrorsList>
+              <ControlErrorsList className="ControlErrorsList">
                 {errors.map(
                   (error: FieldError) =>
                     error.message &&
