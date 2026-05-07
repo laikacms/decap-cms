@@ -166,6 +166,7 @@ function CollectionSearch(props: CollectionSearchProps) {
       <InputContainer>
         <Icon type="search" />
         <SearchInput
+          className="SearchInput"
           onChange={e => handleQueryChange(e.target.value)}
           onKeyDown={handleKeyDown}
           onClick={() => setSuggestionsVisible(true)}
@@ -174,7 +175,7 @@ function CollectionSearch(props: CollectionSearchProps) {
         />
       </InputContainer>
       {suggestionsVisible && (
-        <SuggestionsContainer>
+        <SuggestionsContainer className="SuggestionsContainer">
           <Suggestions>
             <SuggestionHeader>{t('collection.sidebar.searchIn')}</SuggestionHeader>
             <SuggestionItem

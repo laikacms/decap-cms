@@ -182,7 +182,7 @@ export default function EntryCard({
   if (viewStyle === VIEW_STYLE_LIST) {
     return (
       <ListCard>
-        <ListCardLink to={path}>
+        <ListCardLink className="ListCardLink" to={path}>
           {collectionLabel ? <CollectionLabel>{collectionLabel}</CollectionLabel> : null}
           <ListCardTitle>
             {summary}
