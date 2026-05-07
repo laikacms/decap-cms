@@ -308,9 +308,18 @@ export default function ConnectedNestedCollection({
 }
 
 export function NestedCollection({ collection, entries, filterTerm }: NestedCollectionProps) {
-  const [treeData, setTreeData] = React.useState<TreeNodeData[]>(() =>
-    getTreeData(collection, entries),
-  );
+  const [treeData, setTreeData] = React.useState<TreeNodeData[]>(() => {
+    const initial = getTreeData(collection, entries);
+    if (filterTerm) {
+      const path = `/${filterTerm}`;
+      walk(initial, (node: TreeNodeData) => {
+        if (path.startsWith(node.path)) {
+          node.expanded = true;
+        }
+      });
+    }
+    return initial;
+  });
   const [selected, setSelected] = React.useState<TreeNodeData | null>(null);
   const [useFilter, setUseFilter] = React.useState(true);
 
@@ -327,6 +336,11 @@ export function NestedCollection({ collection, entries, filterTerm }: NestedColl
     prevInputs.current.entries !== entries ||
     prevInputs.current.filterTerm !== filterTerm
   ) {
+    // When the filter URL changes, treat it as a fresh navigation: expand to
+    // the new path even if the user previously collapsed something.
+    const filterChanged = prevInputs.current.filterTerm !== filterTerm;
+    const applyFilterExpansion = useFilter || filterChanged;
+
     const expanded: Record<string, boolean> = {};
     walk(treeData, (node: TreeNodeData) => {
       if (node.expanded) {
@@ -335,13 +349,19 @@ export function NestedCollection({ collection, entries, filterTerm }: NestedColl
     });
     const nextTree = getTreeData(collection, entries);
 
-    const path = `/${filterTerm}`;
+    const path = `/${filterTerm ?? ''}`;
     walk(nextTree, (node: TreeNodeData) => {
-      if (expanded[node.path] || (useFilter && path.startsWith(node.path))) {
+      if (
+        expanded[node.path] ||
+        (applyFilterExpansion && filterTerm && path.startsWith(node.path))
+      ) {
         node.expanded = true;
       }
     });
     prevInputs.current = { collection, entries, filterTerm };
+    if (filterChanged && filterTerm) {
+      setUseFilter(true);
+    }
     // setState during render to derive new tree before commit, like the
     // original componentDidUpdate did synchronously after render.
     setTreeData(nextTree);
