@@ -1,6 +1,6 @@
 import flow from 'lodash/flow';
 import fromPairs from 'lodash/fromPairs';
-import { map } from 'lodash/fp';
+import map from 'lodash/fp/map.js';
 
 import unsentRequest from './unsentRequest.js';
 import { APIError } from './errors/APIError.js';

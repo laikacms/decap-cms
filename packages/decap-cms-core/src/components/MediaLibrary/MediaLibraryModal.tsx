@@ -113,7 +113,7 @@ interface MediaLibraryModalProps {
   handleLoadMore: () => void;
   loadDisplayURL: (file: MediaFile) => void;
   t: TranslateFunction;
-  displayURLs: Map<string, unknown>;
+  displayURLs: Record<string, unknown>;
 }
 
 function MediaLibraryModal({

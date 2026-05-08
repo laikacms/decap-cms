@@ -309,19 +309,12 @@ export function populateEntry(entry: Entry, onDone: () => void = flushClockAndSa
   for (const key of keys) {
     const value = entry[key];
     if (!value) continue;
-    if (key === 'body') {
-      cy.get('textarea').first().as('bodyEditor');
-      cy.get('@bodyEditor').click();
-      cy.get('@bodyEditor').clear({ force: true });
-      cy.get('@bodyEditor').type(value, { force: true });
-    } else {
-      cy.get(`[id^="${key}-field"]`)
-        .first()
-        .clear({ force: true });
-      cy.get(`[id^="${key}-field"]`)
-        .first()
-        .type(value, { force: true });
-    }
+    cy.get(`[id^="${key}-field"]`)
+      .first()
+      .clear({ force: true });
+    cy.get(`[id^="${key}-field"]`)
+      .first()
+      .type(value, { force: true });
   }
 
   onDone();

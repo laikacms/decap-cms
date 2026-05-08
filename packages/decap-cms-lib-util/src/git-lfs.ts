@@ -1,7 +1,10 @@
 //
 // Pointer file parsing
 
-import { filter, flow, fromPairs, map } from 'lodash/fp';
+import filter from 'lodash/fp/filter.js';
+import flow from 'lodash/fp/flow.js';
+import fromPairs from 'lodash/fp/fromPairs.js';
+import map from 'lodash/fp/map.js';
 
 import getBlobSHA from './getBlobSHA.js';
 

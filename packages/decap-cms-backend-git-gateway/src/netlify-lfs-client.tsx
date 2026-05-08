@@ -1,4 +1,6 @@
-import { flow, fromPairs, map } from 'lodash/fp';
+import flow from 'lodash/fp/flow.js';
+import fromPairs from 'lodash/fp/fromPairs.js';
+import map from 'lodash/fp/map.js';
 import isPlainObject from 'lodash/isPlainObject';
 import isEmpty from 'lodash/isEmpty';
 import { minimatch } from 'minimatch';
