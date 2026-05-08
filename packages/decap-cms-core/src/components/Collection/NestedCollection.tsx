@@ -308,10 +308,15 @@ export default function ConnectedNestedCollection({
 }
 
 export function NestedCollection({ collection, entries, filterTerm }: NestedCollectionProps) {
+  // Mirror legacy behavior: when the tree is first built with non-empty
+  // entries, expand any node whose path is a prefix of the current filter
+  // URL (so '/' always matches the root, expanding it; '/dir' expands the
+  // /dir node, etc.). When entries are still loading we skip this and the
+  // componentDidUpdate-equivalent branch below picks it up.
   const [treeData, setTreeData] = React.useState<TreeNodeData[]>(() => {
     const initial = getTreeData(collection, entries);
-    if (filterTerm) {
-      const path = `/${filterTerm}`;
+    if (entries && entries.length > 0) {
+      const path = `/${filterTerm ?? ''}`;
       walk(initial, (node: TreeNodeData) => {
         if (path.startsWith(node.path)) {
           node.expanded = true;
@@ -353,7 +358,7 @@ export function NestedCollection({ collection, entries, filterTerm }: NestedColl
     walk(nextTree, (node: TreeNodeData) => {
       if (
         expanded[node.path] ||
-        (applyFilterExpansion && filterTerm && path.startsWith(node.path))
+        (applyFilterExpansion && path.startsWith(node.path))
       ) {
         node.expanded = true;
       }
