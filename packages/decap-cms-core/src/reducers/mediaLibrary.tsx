@@ -262,7 +262,11 @@ export function selectMediaFiles(state: State, field?: CmsEntryField) {
   const integration = selectIntegrationDirect(state.integrations, null, 'assetStore');
 
   let files: CmsMediaFile[];
-  if (editingDraft && !integration) {
+  // Only fall back to the entry's draft media files when the library was
+  // opened for a specific field on that draft. The global media library
+  // (no field) must always reflect the persisted store, otherwise draft
+  // uploads from a leftover entryDraft state leak into it.
+  if (editingDraft && field && !integration) {
     const entryFiles = (entryDraft.entry?.mediaFiles ?? []) as CmsMediaFile[];
     const entry = entryDraft.entry;
     const collection = entry?.collection ? state.collections[entry.collection] : undefined;

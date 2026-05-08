@@ -217,7 +217,7 @@ export default function EntryCard({
             </CardHeading>
           </CardBody>
           {image ? (
-            <CardImage $src={getAsset(image, imageField as any).toString()} />
+            <CardImage className="CardImage" $src={getAsset(image, imageField as any).toString()} />
           ) : null}
         </GridCardLink>
       </GridCard>
