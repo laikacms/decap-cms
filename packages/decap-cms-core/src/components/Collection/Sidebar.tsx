@@ -122,7 +122,7 @@ export function Sidebar({
           onSubmit={(query: string, c?: string) => searchCollections(query, c as string)}
         />
       )}
-      <SidebarNavList>
+      <SidebarNavList className="SidebarNavList">
         {Object.values(collections)
           .filter((c: CmsCollectionState) => c.hide !== true)
           .map((c: CmsCollectionState) => renderLink(c, filterTerm))}

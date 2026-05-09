@@ -32,7 +32,7 @@ interface CardCellProps {
   cardWidth: string;
   cardHeight: string;
   isPrivate?: boolean;
-  displayURLs: Map<string, unknown>;
+  displayURLs: Record<string, unknown>;
   loadDisplayURL: (file: { id: string; url?: string }) => void;
   columnCount: number;
   gutter: number;
@@ -93,7 +93,7 @@ function CardWrapper(
         height={cardHeight}
         margin={'0px'}
         isPrivate={isPrivate}
-        displayURL={(displayURLs.get(file.id) || (file.url ? { url: file.url } : {})) as any}
+        displayURL={(displayURLs[file.id] || (file.url ? { url: file.url } : {})) as any}
         loadDisplayURL={() => loadDisplayURL(file)}
         type={file.type}
         isViewableImage={file.isViewableImage ?? false}
@@ -187,7 +187,7 @@ function PaginatedGrid({
             height={cardHeight}
             margin={cardMargin}
             isPrivate={isPrivate}
-            displayURL={(displayURLs.get(file.id) || (file.url ? { url: file.url } : {})) as any}
+            displayURL={(displayURLs[file.id] || (file.url ? { url: file.url } : {})) as any}
             loadDisplayURL={() => loadDisplayURL(file)}
             type={file.type}
             isViewableImage={file.isViewableImage ?? false}
@@ -240,7 +240,7 @@ interface MediaLibraryCardGridProps {
   cardMargin: string;
   loadDisplayURL: (file: { id: string; url?: string }) => void;
   isPrivate?: boolean;
-  displayURLs: Map<string, unknown>;
+  displayURLs: Record<string, unknown>;
 }
 
 function MediaLibraryCardGrid(props: MediaLibraryCardGridProps) {

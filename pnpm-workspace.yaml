@@ -233,13 +233,10 @@ catalogs:
     "@dnd-kit/sortable": "^10.0.0"
     "@dnd-kit/utilities": "^3.2.2"
 
-  # Code editor
+  # Code editor (CodeMirror 5; the widget uses react-codemirror2 + classic
+  # `codemirror/mode/*` loaders, which only exist in CodeMirror 5.x).
   codemirror:
-    "codemirror": "^6.0.2"
-    "@replit/codemirror-emacs": "^6.1.0"
-    "@replit/codemirror-vscode-keymap": "^6.0.2"
-    "@replit/codemirror-vim": "^6.3.0"
-    "@uiw/codemirror-theme-material": "^4.25.9"
+    "codemirror": "^5.65.21"
 
   # History/routing
   routing:

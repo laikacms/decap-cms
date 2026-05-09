@@ -36,7 +36,7 @@ interface ViewStyleControlProps {
 
 function ViewStyleControl({ viewStyle, onChangeViewStyle, t }: ViewStyleControlProps) {
   return (
-    <ViewControlsSection>
+    <ViewControlsSection className="ViewControls">
       <ViewControlsButton
         aria-label={t('collection.collectionTop.viewAsList')}
         $isActive={viewStyle === VIEW_STYLE_LIST}

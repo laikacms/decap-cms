@@ -312,7 +312,7 @@ function EditorControl(props: EditorControlProps) {
               t={t}
             />
             {errors && (
-              <ControlErrorsList>
+              <ControlErrorsList className="ControlErrorsList">
                 {errors.map(
                   (error: FieldError) =>
                     error.message &&
@@ -451,7 +451,7 @@ const stable = {
   validateMetaField: memoize((collection: Collection) => {
     return (field: EntryField, value: string | undefined, t: TranslateFunction) => {
       const state = store.getState() as State;
-      validateMetaField(state, collection, field, value, t);
+      return validateMetaField(state, collection, field, value, t);
     };
   }),
 

@@ -37,7 +37,7 @@ collections:
         widget: string
       - label: Body
         name: body
-        widget: markdown
+        widget: text
       - label: Tags
         name: tags
         widget: list
@@ -61,4 +61,4 @@ collections:
         default: true
       - label: Body
         name: body
-        widget: markdown
+        widget: text

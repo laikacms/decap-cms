@@ -28,17 +28,25 @@ export default function StringControl({
   setInactiveStyle,
 }: StringControlProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const selectionRef = useRef(0);
+  // Only track the selection across re-renders that follow a user-initiated
+  // change. On the initial mount and on external value updates we let the
+  // browser keep its native caret position so e.g. focus-then-type lands at
+  // the end of the existing value.
+  const pendingSelection = useRef<number | null>(null);
 
   useEffect(() => {
     const el = inputRef.current;
-    if (el && el.selectionStart !== selectionRef.current) {
-      el.setSelectionRange(selectionRef.current, selectionRef.current);
+    if (el && pendingSelection.current !== null) {
+      const pos = pendingSelection.current;
+      pendingSelection.current = null;
+      if (el.selectionStart !== pos) {
+        el.setSelectionRange(pos, pos);
+      }
     }
   });
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    selectionRef.current = e.target.selectionStart ?? 0;
+    pendingSelection.current = e.target.selectionStart ?? 0;
     onChange(e.target.value);
   }
 

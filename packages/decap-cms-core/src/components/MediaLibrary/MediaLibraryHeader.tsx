@@ -39,7 +39,11 @@ interface MediaLibraryHeaderProps {
 function MediaLibraryHeader({ onClose, title, isPrivate, t }: MediaLibraryHeaderProps) {
   return (
     <div>
-      <CloseButton aria-label={t('mediaLibrary.mediaLibraryModal.close')} onClick={onClose}>
+      <CloseButton
+        className="CloseButton"
+        aria-label={t('mediaLibrary.mediaLibraryModal.close')}
+        onClick={onClose}
+      >
         <Icon type="close" />
       </CloseButton>
       <LibraryTitle $isPrivate={isPrivate}>{title}</LibraryTitle>

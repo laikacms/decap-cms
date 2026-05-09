@@ -209,7 +209,7 @@ function CmsCollection({
       <CollectionMain>
         {isSearchResults ? (
           <SearchResultContainer>
-            <SearchResultHeading>
+            <SearchResultHeading className="SearchResultHeading">
               {t(searchResultKey, { searchTerm, collection: collection.label })}
             </SearchResultHeading>
           </SearchResultContainer>

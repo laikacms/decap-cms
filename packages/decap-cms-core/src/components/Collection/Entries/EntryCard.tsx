@@ -182,7 +182,7 @@ export default function EntryCard({
   if (viewStyle === VIEW_STYLE_LIST) {
     return (
       <ListCard>
-        <ListCardLink to={path}>
+        <ListCardLink className="ListCardLink" to={path}>
           {collectionLabel ? <CollectionLabel>{collectionLabel}</CollectionLabel> : null}
           <ListCardTitle>
             {summary}
@@ -217,7 +217,7 @@ export default function EntryCard({
             </CardHeading>
           </CardBody>
           {image ? (
-            <CardImage $src={getAsset(image, imageField as any).toString()} />
+            <CardImage className="CardImage" $src={getAsset(image, imageField as any).toString()} />
           ) : null}
         </GridCardLink>
       </GridCard>

@@ -27,9 +27,6 @@
 import type {} from './index.d';
 
 import path from 'path';
-import { rehype } from 'rehype';
-import { visit } from 'unist-util-visit';
-import { oneLineTrim } from 'common-tags';
 
 import { escapeRegExp } from '../utils/regexp';
 
@@ -297,129 +294,6 @@ Cypress.Commands.add('drop', { prevSubject: true }, (subject: JQuery<HTMLElement
     force: true,
   });
 });
-
-Cypress.Commands.add('clickToolbarButton', (title: string, { times }: { times?: number } = {}) => {
-  const isHeading = title.startsWith('Heading');
-  if (isHeading) {
-    cy.get('button[title="Headings"]').click();
-  }
-  const instance = isHeading ? cy.contains('div', title) : cy.get(`button[title="${title}"]`);
-  const fn = (chain: Cypress.Chainable<JQuery<HTMLElement>>) => chain.click();
-  // this seems to be the only thing that makes cypress stable(ish)
-  // eslint-disable-next-line cypress/no-unnecessary-waiting
-  cy.wait(100);
-  return runTimes(instance, fn, times).focused();
-});
-
-Cypress.Commands.add('insertEditorComponent', (title: string) => {
-  cy.get('button[title="Add Component"]').click();
-  cy.contains('div', title)
-    .click()
-    .focused();
-});
-
-type ToolbarButtonCommand = [string, string];
-
-const toolbarButtonCommands: ToolbarButtonCommand[] = [
-  ['clickHeadingOneButton', 'Heading 1'],
-  ['clickHeadingTwoButton', 'Heading 2'],
-  ['clickOrderedListButton', 'Numbered List'],
-  ['clickUnorderedListButton', 'Bulleted List'],
-  ['clickCodeButton', 'Code'],
-  ['clickItalicButton', 'Italic'],
-  ['clickStrikethroughButton', 'Strikethrough'],
-  ['clickQuoteButton', 'Quote'],
-  ['clickLinkButton', 'Link'],
-];
-
-toolbarButtonCommands.forEach(([commandName, toolbarButtonName]) => {
-  Cypress.Commands.add(commandName as keyof Cypress.Chainable, (opts?: { times?: number }) => {
-    return cy.clickToolbarButton(toolbarButtonName, opts);
-  });
-});
-
-Cypress.Commands.add('clickModeToggle', () => {
-  cy.get('.cms-editor-visual').within(() => {
-    cy.get('button[role="switch"]')
-      .click()
-      .focused();
-  });
-});
-
-const editorComponentCommands: [string, string][] = [['insertCodeBlock', 'Code Block']];
-
-editorComponentCommands.forEach(([commandName, componentTitle]) => {
-  Cypress.Commands.add(commandName as keyof Cypress.Chainable, () => {
-    return cy.insertEditorComponent(componentTitle);
-  });
-});
-
-Cypress.Commands.add('getMarkdownEditor', () => {
-  return cy.get('[data-slate-editor]');
-});
-
-Cypress.Commands.add('confirmMarkdownEditorContent', (expectedDomString: string) => {
-  return cy.getMarkdownEditor().should(([element]) => {
-    // Slate makes the following representations:
-    // - blank line: 2 BOM's + <br>
-    // - blank element (placed inside empty elements): 1 BOM + <br>
-    // - inline element (e.g. link tag <a>) are wrapped with BOM characters (https://github.com/ianstormtaylor/slate/issues/2722)
-    // We replace to represent a blank line as a single <br>, remove the
-    // contents of elements that are actually empty, and remove BOM characters wrapping <a> tags
-    const actualDomString = toPlainTree(element.innerHTML)
-      .replace(/\uFEFF\uFEFF<br>/g, '<br>')
-      .replace(/\uFEFF<br>/g, '')
-      .replace(/\uFEFF<a>/g, '<a>')
-      .replace(/<\/a>\uFEFF/g, '</a>');
-    expect(actualDomString).to.equal(oneLineTrim(expectedDomString));
-  });
-});
-
-Cypress.Commands.add('clearMarkdownEditorContent', () => {
-  return cy
-    .getMarkdownEditor()
-    .selectAll()
-    .backspace({ times: 2 });
-});
-
-Cypress.Commands.add('confirmRawEditorContent', (expectedDomString: string) => {
-  cy.get('.cms-editor-raw').within(() => {
-    cy.contains('span', expectedDomString);
-  });
-});
-
-import type { Root, Element } from 'hast';
-
-function toPlainTree(domString: string): string {
-  return rehype()
-    .use(removeSlateArtifacts)
-    .data('settings', { fragment: true })
-    .processSync(domString).value as string;
-}
-
-function getActualBlockChildren(node: Element): Element | Element[] {
-  if (node.tagName === 'span') {
-    return (node.children as Element[])?.flatMap(getActualBlockChildren) || [];
-  }
-  if (node.children) {
-    return { ...node, children: (node.children as Element[]).flatMap(getActualBlockChildren) } as Element;
-  }
-  return node;
-}
-
-function removeSlateArtifacts() {
-  return function transform(tree: Root): void {
-    visit(tree, 'element', (node: Element) => {
-      // remove all element attributes
-      delete (node as Element & { properties?: unknown }).properties;
-
-      // remove slate padding spans to simplify test cases
-      if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p'].includes(node.tagName || '')) {
-        node.children = (node.children as Element[])?.flatMap(getActualBlockChildren) || [];
-      }
-    });
-  };
-}
 
 function getTextNode(el: HTMLElement | null, match?: string): Text | null {
   if (!el) return null;

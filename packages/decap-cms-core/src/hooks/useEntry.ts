@@ -70,7 +70,11 @@ export function useEntry({ collectionName, slug, newEntry = false }: UseEntryOpt
 
   const persist = useCallback(async () => {
     if (collection) {
-      await dispatch(persistEntry(collection));
+      try {
+        await dispatch(persistEntry(collection));
+      } catch {
+        // Validation rejection is already surfaced as a notification.
+      }
     }
   }, [dispatch, collection]);
 

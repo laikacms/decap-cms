@@ -52,6 +52,9 @@ describe('Test Backend Editorial Workflow', () => {
 
   beforeEach(() => {
     cy.task('updateConfig', { collections: [{ publish: true }] });
+    // Freeze time so {{year}}-{{month}}-{{day}}-{{slug}} permalinks are
+    // deterministic ("1970-01-01-…") regardless of when the test runs.
+    cy.clock(0, ['Date']);
   });
 
   it('successfully loads', () => {

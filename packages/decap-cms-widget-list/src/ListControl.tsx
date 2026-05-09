@@ -159,6 +159,7 @@ function SortableListItem(props: SortableListItemProps) {
     <ListItem
       ref={setNodeRef}
       style={style}
+      className="SortableListItem"
       css={[styles.listControlItem, collapsed && styles.listControlItemCollapsed]}
     >
       {props.children}
@@ -552,12 +553,11 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(functi
     addItem(mixedDefault(typeKey, type));
   }
 
-  function processControlRef(childRef: ChildRef) {
-    if (!childRef) return;
-    const {
-      props: { validationKey: key },
-    } = childRef;
-    childRefs.current[key] = childRef;
+  function processControlRef(itemKey: string) {
+    return (childRef: ChildRef) => {
+      if (!childRef) return;
+      childRefs.current[itemKey] = childRef;
+    };
   }
 
   function getObjectValue(idx: number) {
@@ -569,7 +569,7 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(functi
       memoize((index: number) => {
         return (f: CmsField, newValue: unknown, newMetadata: Record<string, unknown>) => {
           const value = Array.isArray(inputValue)
-            ? inputValue
+            ? [...inputValue]
             : inputValue
               ? [inputValue]
               : [];
@@ -581,14 +581,14 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(functi
           let newObjectValue;
           if (withNameKey) {
             const name = f.name;
-            const ov = getObjectValue(index);
+            const ov = { ...getObjectValue(index) };
             ov[name] = newValue;
             newObjectValue = ov;
           } else {
             newObjectValue = newValue;
           }
           const parsedMetadata = {
-            [collectionName]: Object.assign(metadata ?? {}, newMetadata || {}),
+            [collectionName]: { ...(metadata ?? {}), ...(newMetadata || {}) },
           };
 
           value[index] = newObjectValue;
@@ -797,7 +797,7 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(functi
           onRemove={() => handleRemove(index, { preventDefault: () => {} } as React.MouseEvent)}
           data-testid={`styled-list-item-top-bar-${key}`}
         />
-        <NestedObjectLabel collapsed={collapsed} error={itemHasError}>
+        <NestedObjectLabel className="NestedObjectLabel" collapsed={collapsed} error={itemHasError}>
           {objectLabel(item)}
         </NestedObjectLabel>
         <ClassNames>
@@ -818,9 +818,8 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(functi
               onValidateObject={onValidateObject}
               clearFieldErrors={clearFieldErrors}
               fieldsErrors={fieldsErrors}
-              ref={processControlRef}
+              ref={processControlRef(key)}
               controlRef={controlRef as any}
-              validationKey={key}
               t={t}
               collapsed={collapsed}
               data-testid={`object-control-${key}`}
@@ -852,7 +851,7 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(functi
           dragHandle={DragHandle}
           id={key}
         />
-        <NestedObjectLabel collapsed={true} error={true}>
+        <NestedObjectLabel className="NestedObjectLabel" collapsed={true} error={true}>
           {errorMessage}
         </NestedObjectLabel>
       </SortableListItem>

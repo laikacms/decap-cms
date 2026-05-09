@@ -64,7 +64,7 @@ function withGroups(
   return groups.map((group: CmsGroupOfEntries) => {
     const title = getGroupTitle(group, t);
     return (
-      <GroupContainer key={group.id} id={group.id}>
+      <GroupContainer key={group.id} className="GroupContainer" id={group.id}>
         <GroupHeading>{title}</GroupHeading>
         <EntriesToRender entries={getGroupEntries(entries, group.paths)} />
       </GroupContainer>

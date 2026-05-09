@@ -158,7 +158,7 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
       } else {
         state.entry = setNestedValue(state.entry, [...dataPath, name as string], value) as EntryMap;
         if (i18n) {
-          return duplicateI18nFields(state as any, field, i18n.locales, i18n.defaultLocale) as any;
+          duplicateI18nFields(state as any, field, i18n.locales, i18n.defaultLocale);
         }
       }
       state.fieldsMetaData = deepMerge(state.fieldsMetaData ?? {}, metadata);

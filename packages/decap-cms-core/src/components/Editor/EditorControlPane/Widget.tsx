@@ -102,7 +102,7 @@ function isEmpty(value: unknown) {
 
 export default class Widget extends Component<WidgetProps> {
   innerWrappedControl: any;
-  wrappedControlValid: (() => unknown) | undefined;
+  wrappedControlValid: () => unknown = truthy;
   wrappedControlShouldComponentUpdate: ((nextProps: WidgetProps) => boolean) | undefined;
 
   shouldComponentUpdate(nextProps: WidgetProps) {
@@ -119,7 +119,12 @@ export default class Widget extends Component<WidgetProps> {
     return (
       this.props.value !== nextProps.value ||
       this.props.classNameWrapper !== nextProps.classNameWrapper ||
-      this.props.hasActiveStyle !== nextProps.hasActiveStyle
+      this.props.hasActiveStyle !== nextProps.hasActiveStyle ||
+      // Re-render when validation errors change. Container widgets (object,
+      // list) pass `fieldsErrors` to their children, so the reference
+      // changing means a descendant's error state changed and we need to
+      // propagate the new value.
+      this.props.fieldsErrors !== nextProps.fieldsErrors
     );
   }
 
@@ -142,12 +147,21 @@ export default class Widget extends Component<WidgetProps> {
      */
     const { shouldComponentUpdate: scu } = this.innerWrappedControl;
     this.wrappedControlShouldComponentUpdate = scu && scu.bind(this.innerWrappedControl);
-
-    // Call the control ref if provided, passing this Widget instance
-    if (this.props.controlRef) {
-      this.props.controlRef(this);
-    }
   };
+
+  /**
+   * Function-component widgets without `forwardRef` (e.g. StringControl,
+   * TextControl) never trigger `processInnerControlRef`, so without this
+   * mount-time registration the parent EditorControlPane / ObjectControl
+   * never sees the Widget instance and silently skips its validation.
+   */
+  componentDidMount() {
+    this.props.controlRef?.(this);
+  }
+
+  componentWillUnmount() {
+    this.props.controlRef?.(null);
+  }
 
   focus(path: string | string[]) {
     // Try widget's custom focus method first
@@ -243,13 +257,6 @@ export default class Widget extends Component<WidgetProps> {
 
   validateWrappedControl = (field: Record<string, unknown>): ValidationResult => {
     const { t, parentIds } = this.props;
-    if (typeof this.wrappedControlValid !== 'function') {
-      throw new Error(oneLine`
-        this.wrappedControlValid is not a function. Are you sure widget
-        "${field.widget}" is registered?
-      `);
-    }
-
     const response = this.wrappedControlValid();
     if (typeof response === 'boolean') {
       const isValid = response;

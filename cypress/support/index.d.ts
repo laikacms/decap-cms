@@ -46,26 +46,6 @@ declare global {
       stubFetch(options: { fixture: string }): Chainable<void>;
 
       /**
-       * Custom command to get the markdown editor
-       */
-      getMarkdownEditor(): Chainable<JQuery<HTMLElement>>;
-
-      /**
-       * Custom command to confirm markdown editor content
-       */
-      confirmMarkdownEditorContent(expectedDomString: string): Chainable<JQuery<HTMLElement>>;
-
-      /**
-       * Custom command to clear markdown editor content
-       */
-      clearMarkdownEditorContent(): Chainable<JQuery<HTMLElement>>;
-
-      /**
-       * Custom command to confirm raw editor content
-       */
-      confirmRawEditorContent(expectedDomString: string): Chainable<void>;
-
-      /**
        * Custom command to login
        */
       login(): Chainable<void>;
@@ -84,26 +64,6 @@ declare global {
        * Custom command to drop on an element
        */
       drop(): Chainable<JQuery<HTMLElement>>;
-
-      /**
-       * Custom command to click toolbar button
-       */
-      clickToolbarButton(title: string, options?: { times?: number }): Chainable<JQuery<HTMLElement>>;
-
-      /**
-       * Custom command to insert editor component
-       */
-      insertEditorComponent(title: string): Chainable<void>;
-
-      /**
-       * Custom command to click mode toggle
-       */
-      clickModeToggle(): Chainable<void>;
-
-      /**
-       * Custom command to insert code block
-       */
-      insertCodeBlock(): Chainable<void>;
 
       /**
        * Custom command to press enter key
@@ -174,51 +134,6 @@ declare global {
        * Custom command to set cursor after text
        */
       setCursorAfter(query: string): Chainable<JQuery<HTMLElement>>;
-
-      /**
-       * Custom command to click heading one button
-       */
-      clickHeadingOneButton(opts?: { times?: number }): Chainable<JQuery<HTMLElement>>;
-
-      /**
-       * Custom command to click heading two button
-       */
-      clickHeadingTwoButton(opts?: { times?: number }): Chainable<JQuery<HTMLElement>>;
-
-      /**
-       * Custom command to click ordered list button
-       */
-      clickOrderedListButton(opts?: { times?: number }): Chainable<JQuery<HTMLElement>>;
-
-      /**
-       * Custom command to click unordered list button
-       */
-      clickUnorderedListButton(opts?: { times?: number }): Chainable<JQuery<HTMLElement>>;
-
-      /**
-       * Custom command to click code button
-       */
-      clickCodeButton(opts?: { times?: number }): Chainable<JQuery<HTMLElement>>;
-
-      /**
-       * Custom command to click italic button
-       */
-      clickItalicButton(opts?: { times?: number }): Chainable<JQuery<HTMLElement>>;
-
-      /**
-       * Custom command to click strikethrough button
-       */
-      clickStrikethroughButton(opts?: { times?: number }): Chainable<JQuery<HTMLElement>>;
-
-      /**
-       * Custom command to click quote button
-       */
-      clickQuoteButton(opts?: { times?: number }): Chainable<JQuery<HTMLElement>>;
-
-      /**
-       * Custom command to click link button
-       */
-      clickLinkButton(opts?: { times?: number }): Chainable<JQuery<HTMLElement>>;
 
       /**
        * Access internal Cypress state

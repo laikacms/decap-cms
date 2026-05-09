@@ -24,13 +24,11 @@ interface ColorOnOptions {
   type?: 'label' | 'field';
   label?: string;
   scope?: Cypress.Chainable;
-  isMarkdown?: boolean;
   el?: Cypress.Chainable;
 }
 
 interface FieldErrorOptions {
   scope?: Cypress.Chainable;
-  isMarkdown?: boolean;
 }
 
 interface ValidationError {
@@ -116,22 +114,11 @@ function assertColorOn(cssProperty: string, color: string, opts: ColorOnOptions)
     });
   } else if (opts.type && opts.type === 'field') {
     const assertion = ($el: JQuery) => expect($el).to.have.css(cssProperty, color);
-    if (opts.isMarkdown) {
-      (opts.scope ? opts.scope : cy)
-        .contains('label', opts.label!)
-        .next()
-        .children()
-        .eq(0)
-        .children()
-        .eq(1)
-        .should(assertion);
-    } else {
-      (opts.scope ? opts.scope : cy)
-        .contains('label', opts.label!)
-        .parents()
-        .next()
-        .should(assertion);
-    }
+    (opts.scope ? opts.scope : cy)
+      .contains('label', opts.label!)
+      .parents()
+      .next()
+      .should(assertion);
   } else if (opts.el) {
     opts.el.should($el => {
       expect($el).to.have.css(cssProperty, color);
@@ -187,7 +174,7 @@ export function updateWorkflowStatus({ title }: Entry, fromColumnHeading: string
 }
 
 export function publishWorkflowEntry({ title }: Entry, timeout?: number): void {
-  cy.contains('h2', workflowStatus.ready, { timeout })
+  cy.contains('h2', workflowStatus.ready, timeout !== undefined ? { timeout } : undefined)
     .parent()
     .within(() => {
       cy.contains('a', title)
@@ -322,19 +309,12 @@ export function populateEntry(entry: Entry, onDone: () => void = flushClockAndSa
   for (const key of keys) {
     const value = entry[key];
     if (!value) continue;
-    if (key === 'body') {
-      cy.getMarkdownEditor().first().as('bodyEditor');
-      cy.get('@bodyEditor').click();
-      cy.get('@bodyEditor').clear({ force: true });
-      cy.get('@bodyEditor').type(value, { force: true });
-    } else {
-      cy.get(`[id^="${key}-field"]`)
-        .first()
-        .clear({ force: true });
-      cy.get(`[id^="${key}-field"]`)
-        .first()
-        .type(value, { force: true });
-    }
+    cy.get(`[id^="${key}-field"]`)
+      .first()
+      .clear({ force: true });
+    cy.get(`[id^="${key}-field"]`)
+      .first()
+      .type(value, { force: true });
   }
 
   onDone();
@@ -552,15 +532,10 @@ export function validateListFields({ name, description }: ListFieldSettings): vo
     type: 'label',
     label: 'Description',
     scope: cy.get('@listControl'),
-    isMarkdown: true,
   });
   assertListControlErrorStatus([colorError, colorError], '@listControl');
-  cy.get('input')
-    .eq(2)
-    .type(name);
-  cy.getMarkdownEditor()
-    .eq(2)
-    .type(description);
+  cy.get('@listControl').find('input[type=text]').filter(':visible').first().type(name);
+  cy.get('@listControl').find('textarea').filter(':visible').first().type(description);
   flushClockAndSave();
   assertNotification(notifications.saved);
   assertFieldErrorStatus('Authors', colorNormal);
@@ -714,18 +689,16 @@ export function assertFieldValidationError({ message, fieldLabel }: ValidationEr
   assertFieldErrorStatus(fieldLabel, colorError);
 }
 
-function assertFieldErrorStatus(label: string, color: string, opts: FieldErrorOptions = { isMarkdown: false }): void {
+function assertFieldErrorStatus(label: string, color: string, opts: FieldErrorOptions = {}): void {
   assertColorOn('background-color', color, {
     type: 'label',
     label,
     scope: opts.scope,
-    isMarkdown: opts.isMarkdown,
   });
   assertColorOn('border-color', color, {
     type: 'field',
     label,
     scope: opts.scope,
-    isMarkdown: opts.isMarkdown,
   });
 }
 

@@ -333,7 +333,14 @@ export function useEditor({
       const { createNew = false, duplicate = false } = opts;
       if (!collection) return;
 
-      await workflow.persistEntry(collection);
+      try {
+        await workflow.persistEntry(collection);
+      } catch {
+        // The persist action rejects when validation fails (and shows a
+        // notification itself). Stop here so we don't delete the draft
+        // backup or navigate away.
+        return;
+      }
       deleteBackup();
 
       if (createNew) {
