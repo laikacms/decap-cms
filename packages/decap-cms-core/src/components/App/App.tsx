@@ -1,17 +1,25 @@
 import React, { useCallback, useMemo } from 'react';
 import { useTranslate } from 'react-polyglot';
 import styled from '@emotion/styled';
-import { Route, Routes, Navigate, useParams, useNavigate } from 'react-router-dom';
+import {
+  Route,
+  Routes,
+  Navigate,
+  useParams,
+  useNavigate,
+  unstable_HistoryRouter as HistoryRouter,
+} from 'react-router-dom';
 import TopBarProgress from 'react-topbar-progress-indicator';
-import { Loader, colors } from 'decap-cms-ui-default';
+import { Loader, colorsDefaults } from 'decap-cms-ui-default';
 
 import { useAppSelector, useAppDispatch } from '../../hooks/useRedux';
 import { loginUser, logoutUser } from '../../actions/auth';
 import { currentBackend } from '../../backend';
 import { createNewEntry } from '../../actions/collections';
 import { openMediaLibrary } from '../../actions/mediaLibrary';
+import { history } from '../../routing/history';
 import MediaLibrary from '../MediaLibrary/MediaLibrary';
-import { Notifications } from '../UI';
+import { Notifications, ErrorBoundary } from '../UI';
 import { EDITORIAL_WORKFLOW } from '../../constants/publishModes';
 import CollectionComponent from '../Collection/Collection';
 import Workflow from '../Workflow/Workflow';
@@ -26,9 +34,11 @@ type Collection = CmsCollectionState;
 type Collections = CmsCollections;
 
 TopBarProgress.config({
+  // Rendered to a <canvas>, which cannot resolve CSS `var()` tokens — use the
+  // raw default color value here.
   barColors: {
-    0: colors.active,
-    '1.0': colors.active,
+    0: colorsDefaults.active,
+    '1.0': colorsDefaults.active,
   },
   shadowBlur: 0,
   barThickness: 2,
@@ -135,7 +145,13 @@ function EditRedirect() {
  * Uses useCallback for handlers and useMemo for computed values
  * NO useEffect - all side effects are handled by Redux actions
  */
-function App() {
+/**
+ * The default Decap CMS UI: header, notifications, media library and the
+ * routed collection/editor/workflow pages. It requires a router ancestor —
+ * render it directly when you supply your own router, or use the default
+ * `App` export which provides one.
+ */
+function AppContent() {
   const t = useTranslate();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -343,4 +359,22 @@ function App() {
   );
 }
 
+/**
+ * The default, self-contained Decap CMS app. Provides its own router and error
+ * boundary, so it only needs a `DecapCmsProvider` ancestor. For a custom
+ * layout, render `AppContent` (or individual page components) inside your own
+ * router instead.
+ */
+function App() {
+  const config = useAppSelector(state => state.config);
+  return (
+    <ErrorBoundary showBackup config={config}>
+      <HistoryRouter history={history as any}>
+        <AppContent />
+      </HistoryRouter>
+    </ErrorBoundary>
+  );
+}
+
 export default App;
+export { AppContent };
