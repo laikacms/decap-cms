@@ -66,6 +66,10 @@ export interface ObjectControlProps {
 export interface ObjectControlHandle {
   validate(): void;
   focus(path?: string): void;
+  // Exposed so a parent ListControl can key this item's ref by the same
+  // identifier it passed in. The imperative handle is a plain object with no
+  // `.props`, so the key has to travel on the handle itself.
+  validationKey?: string;
 }
 
 const ObjectControl = React.forwardRef<ObjectControlHandle, ObjectControlProps>(
@@ -138,8 +142,9 @@ const ObjectControl = React.forwardRef<ObjectControlHandle, ObjectControlProps>(
             control?.focus?.(remainingPath.join('.'));
           }
         },
+        validationKey: props.validationKey,
       }),
-      [field.fields],
+      [field.fields, props.validationKey],
     );
 
     // Track collapsed in a ref so the imperative handle can branch on it
