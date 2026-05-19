@@ -1,72 +1,36 @@
 import React from 'react';
 import { ClassNames } from '@emotion/react';
-import uniq from 'lodash/uniq';
-import isEmpty from 'lodash/isEmpty';
-import { v4 as uuid } from 'uuid';
-import { UnControlled as ReactCodeMirror } from 'react-codemirror2';
+import CodeMirror, { EditorView, keymap } from '@uiw/react-codemirror';
+import { material } from '@uiw/codemirror-theme-material';
+import { emacs } from '@replit/codemirror-emacs';
+import { vim } from '@replit/codemirror-vim';
+import { vscodeKeymap } from '@replit/codemirror-vscode-keymap';
 
 import SettingsPane from './SettingsPane';
 import SettingsButton from './SettingsButton';
 import languageData from '../data/languages.json';
-import { getLanguageLoader } from './languageLoaders';
+import { getLanguageExtension } from './languageLoaders';
 
+import type { Extension, ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import type { CmsFieldBase, CmsFieldCode } from 'decap-cms-lib-util';
-
-type CodeMirrorEditor = {
-  getWrapperElement: () => HTMLElement;
-  refresh: () => void;
-  focus: () => void;
-  doc: {
-    getCursor: () => unknown;
-    setCursor: (cursor: unknown) => void;
-    listSelections: () => unknown[];
-    setSelections: (selections: unknown[]) => void;
-  };
-};
-
-interface ChangedProps {
-  [key: string]: unknown;
-  lang?: string;
-  theme?: string;
-  keyMap?: string;
-}
-
-function getChangedProps(
-  previous: Record<string, unknown>,
-  next: Record<string, unknown>,
-  keys?: string[],
-): ChangedProps | undefined {
-  const propNames = keys || uniq([...Object.keys(previous), ...Object.keys(next)]);
-  const changedProps = propNames.reduce((acc: ChangedProps, prop: string) => {
-    if (previous[prop] !== next[prop]) {
-      acc[prop] = next[prop];
-    }
-    return acc;
-  }, {});
-  if (!isEmpty(changedProps)) {
-    return changedProps;
-  }
-}
 
 interface LanguageInfo {
   label: string;
   name: string;
-  mode: string;
-  mimeType: string;
+  identifiers: string[];
 }
 
 const languages: LanguageInfo[] = languageData.map(lang => ({
   label: lang.label,
   name: lang.identifiers[0],
-  mode: lang.codemirror_mode,
-  mimeType: lang.codemirror_mime_type,
+  identifiers: lang.identifiers,
 }));
 
 const styleString = `
   padding: 0;
 `;
 
-const defaultLang = { name: '', mode: '', label: 'none' };
+const defaultLang = { name: '', label: 'none' };
 
 interface SelectOption {
   value: string;
@@ -94,7 +58,7 @@ function getLanguageByName(name: string): LanguageInfo | undefined {
 }
 
 function getKeyMapOptions(): SelectOption[] {
-  return ['emacs', 'vim', 'sublime', 'default']
+  return ['emacs', 'vim', 'vscode', 'default']
     .sort()
     .map(keyMap => ({ value: keyMap, label: keyMap }));
 }
@@ -143,7 +107,7 @@ export default function CodeControl({
   setActiveStyle,
   setInactiveStyle,
 }: CodeControlProps) {
-  const cmRef = React.useRef<CodeMirrorEditor | null>(null);
+  const cmRef = React.useRef<ReactCodeMirrorRef>(null);
   const keys = React.useMemo(() => getKeys(field, isEditorComponent), [field, isEditorComponent]);
   const isMap = valueIsMap(field, isEditorComponent);
   const allowLanguageSelection = field.allow_language_selection ?? true;
@@ -151,13 +115,11 @@ export default function CodeControl({
   const initialLang =
     (isMap && value && (value as Record<string, unknown>)?.[keys.lang]) || field.default_language;
 
-  const [isLangInitialized, setIsLangInitialized] = React.useState(false);
   const [lang, setLang] = React.useState<string>('');
   const [keyMap, setKeyMap] = React.useState<string>(
     () => localStorage.getItem(settingsPersistKeys['keyMap']) || 'default',
   );
   const [settingsVisible, setSettingsVisible] = React.useState(false);
-  const [codeMirrorKey, setCodeMirrorKey] = React.useState<string>(() => uuid());
   const [theme, setTheme] = React.useState<string>(
     () => localStorage.getItem(settingsPersistKeys['theme']) || themes[themes.length - 1],
   );
@@ -171,104 +133,51 @@ export default function CodeControl({
      
   }, []);
 
-  // Track previous codeMirror-relevant state to drive componentDidUpdate logic.
-  const prevCmStateRef = React.useRef({ lang, theme, keyMap });
-
-  // Visibility tracking for collapsed-list refresh.
-  const visibilityRef = React.useRef({
-    isInvisibleOnInit: isParentListCollapsed === true,
-    isRefreshedAfterInvisible: false,
-  });
-
   function toValue(type: string, val: unknown) {
     if (isMap) {
-      return ((value as Record<string, unknown>)[keys[type]] = val);
+      // Return a new map with the updated key. `value` is undefined for a new
+      // entry, so spread defensively rather than mutating it in place.
+      return { ...(value as Record<string, unknown> | undefined), [keys[type]]: val };
     }
     return type === 'code' ? val : value;
   }
 
-  async function handleChangeCodeMirrorProps(changedProps: ChangedProps, ignoreLangChange = false) {
-    if (changedProps.lang) {
-      const { mode } = getLanguageByName(changedProps.lang) || {};
-      if (mode) {
-        const loader = getLanguageLoader(mode);
-        if (loader) {
-          try {
-            await loader();
-          } catch (e) {
-            console.warn(`Failed to load CodeMirror mode: ${mode}`, e);
-          }
-        }
-      }
-    }
-
-    // Changing CodeMirror props requires re-initializing the
-    // detached/uncontrolled React CodeMirror component, so we save and restore
-    // selection/cursor across the re-mount.
-    const cm = cmRef.current;
-    if (cm) {
-      const cursor = cm.doc.getCursor();
-      const selections = cm.doc.listSelections();
-      setCodeMirrorKey(uuid());
-      // After remount via key change, restore selection in editorDidMount.
-      pendingRestoreRef.current = { cursor, selections };
-    }
-
-    for (const key of ['theme', 'keyMap']) {
-      if (changedProps[key]) {
-        localStorage.setItem(settingsPersistKeys[key], changedProps[key] as string);
-      }
-    }
-
-    if (changedProps.lang && !ignoreLangChange && isMap) {
-      onChange(toValue('lang', changedProps.lang));
-    }
-  }
-
-  const pendingRestoreRef = React.useRef<{ cursor: unknown; selections: unknown[] } | null>(null);
-
-  // Latest handleChangeCodeMirrorProps via ref so the prop-change effect can
-  // call it without needing it in deps.
-  const handleChangePropsRef = React.useRef(handleChangeCodeMirrorProps);
-  handleChangePropsRef.current = handleChangeCodeMirrorProps;
-
+  // Persist theme/keyMap selections so they apply across fields and sessions.
   React.useEffect(() => {
-    const prev = prevCmStateRef.current;
-    const next = { lang, theme, keyMap };
-    const changedProps = getChangedProps(
-      prev as unknown as Record<string, unknown>,
-      next as unknown as Record<string, unknown>,
-      ['lang', 'theme', 'keyMap'],
-    );
-    prevCmStateRef.current = next;
-    if (changedProps) {
-      const shouldIgnoreLangChange =
-        !isLangInitialized && !!changedProps.lang && Object.keys(changedProps).length === 1;
-      setIsLangInitialized(true);
-      handleChangePropsRef.current(changedProps, shouldIgnoreLangChange);
-    }
-  }, [lang, theme, keyMap, isLangInitialized]);
-
+    localStorage.setItem(settingsPersistKeys['theme'], theme);
+  }, [theme]);
   React.useEffect(() => {
-    if (
-      visibilityRef.current.isInvisibleOnInit &&
-      !visibilityRef.current.isRefreshedAfterInvisible &&
-      !isParentListCollapsed
-    ) {
-      const cm = cmRef.current;
-      if (cm?.getWrapperElement().offsetHeight) {
-        cm.refresh();
-        visibilityRef.current.isRefreshedAfterInvisible = true;
-      }
+    localStorage.setItem(settingsPersistKeys['keyMap'], keyMap);
+  }, [keyMap]);
+
+  // The first language change is the initial value being applied, so it is not
+  // written back through onChange — only subsequent user selections are.
+  const prevLangRef = React.useRef(lang);
+  const langInitializedRef = React.useRef(false);
+  React.useEffect(() => {
+    if (prevLangRef.current === lang) {
+      return;
+    }
+    prevLangRef.current = lang;
+    const isInitialLangChange = !langInitializedRef.current;
+    langInitializedRef.current = true;
+    if (!isInitialLangChange && isMap) {
+      onChange(toValue('lang', lang));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- onChange/toValue are stable enough here
+  }, [lang]);
+
+  // CodeMirror 6 lays out reactively, but a collapsed parent list hides the
+  // editor with zero height; re-measure once it becomes visible again.
+  React.useEffect(() => {
+    if (!isParentListCollapsed) {
+      cmRef.current?.view?.requestMeasure();
     }
   }, [isParentListCollapsed]);
 
   function handleChange(newValue: string) {
-    const cm = cmRef.current!;
-    const cursor = cm.doc.getCursor();
-    const selections = cm.doc.listSelections();
     setLastKnownValue(newValue);
-    onChange(toValue('code', newValue), { cursor, selections });
+    onChange(toValue('code', newValue));
   }
 
   function showSettings() {
@@ -277,7 +186,7 @@ export default function CodeControl({
 
   function hideSettings() {
     setSettingsVisible(prev => (prev ? false : prev));
-    cmRef.current?.focus();
+    cmRef.current?.view?.focus();
   }
 
   function handleFocus() {
@@ -289,9 +198,46 @@ export default function CodeControl({
     setInactiveStyle();
   }
 
+  // The focus/blur DOM handlers are wired into CodeMirror as an extension.
+  // Route through refs so the extension list only changes with lang/keyMap.
+  const focusHandlerRef = React.useRef(handleFocus);
+  const blurHandlerRef = React.useRef(handleBlur);
+  focusHandlerRef.current = handleFocus;
+  blurHandlerRef.current = handleBlur;
+
+  const extensions = React.useMemo<Extension[]>(() => {
+    const exts: Extension[] = [
+      EditorView.domEventHandlers({
+        focus: () => {
+          focusHandlerRef.current();
+          return false;
+        },
+        blur: () => {
+          blurHandlerRef.current();
+          return false;
+        },
+      }),
+    ];
+    const langInfo = getLanguageByName(lang);
+    if (langInfo) {
+      const langExtension = getLanguageExtension(langInfo.identifiers);
+      if (langExtension) {
+        exts.push(langExtension);
+      }
+    }
+    if (keyMap === 'emacs') {
+      exts.push(emacs());
+    } else if (keyMap === 'vim') {
+      exts.push(vim());
+    } else if (keyMap === 'vscode') {
+      exts.push(keymap.of(vscodeKeymap));
+    }
+    return exts;
+  }, [lang, keyMap]);
+
   const langInfo = getLanguageByName(lang);
-  const mode = langInfo?.mimeType || langInfo?.mode;
   const codeMirrorConfig = (widget.codeMirrorConfig || {}) as Record<string, unknown>;
+  const lineNumbers = codeMirrorConfig.lineNumbers !== false;
 
   return (
     <ClassNames>
@@ -321,56 +267,24 @@ export default function CodeControl({
               onChangeKeyMap={(newKeyMap: string) => setKeyMap(newKeyMap)}
             />
           )}
-          <ReactCodeMirror
-            key={codeMirrorKey}
+          <CodeMirror
+            ref={cmRef}
             className={css`
               height: 100%;
               border-radius: 0 3px 3px;
               overflow: hidden;
 
-              .CodeMirror {
-                height: auto !important;
+              .cm-editor {
                 cursor: text;
-                min-height: 300px;
-              }
-
-              .CodeMirror-scroll {
-                min-height: 300px;
               }
             `}
-            options={{
-              lineNumbers: true,
-              ...codeMirrorConfig,
-              extraKeys: {
-                'Shift-Tab': 'indentLess',
-                Tab: 'indentMore',
-                ...((codeMirrorConfig.extraKeys as Record<string, string>) || {}),
-              },
-              theme,
-              mode,
-              keyMap,
-              viewportMargin: Infinity,
-            }}
-            detach={true}
-            editorDidMount={(cm: CodeMirrorEditor) => {
-              cmRef.current = cm;
-              // Restore cursor/selection if we just remounted via key change.
-              const pending = pendingRestoreRef.current;
-              if (pending) {
-                cm.doc.setCursor(pending.cursor);
-                cm.doc.setSelections(pending.selections);
-                pendingRestoreRef.current = null;
-              }
-              if (isNewEditorComponent) {
-                handleFocus();
-              }
-            }}
-            value={lastKnownValue as string}
-            onChange={(_editor: unknown, _data: unknown, newValue: string) =>
-              handleChange(newValue)
-            }
-            onFocus={handleFocus}
-            onBlur={handleBlur}
+            value={(lastKnownValue as string) || ''}
+            theme={theme === 'material' ? material : 'light'}
+            extensions={extensions}
+            minHeight="300px"
+            autoFocus={isNewEditorComponent}
+            basicSetup={{ lineNumbers }}
+            onChange={handleChange}
           />
         </div>
       )}

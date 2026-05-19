@@ -168,6 +168,10 @@ collections: # A list of collections the CMS should be able to edit
         }
       - { label: 'Hidden', name: 'hidden', widget: 'hidden', default: 'hidden' }
       - { label: 'Color', name: 'color', widget: 'color' }
+      - label: 'Code'
+        name: 'code'
+        widget: 'code'
+        default_language: 'javascript'
       - label: 'Object'
         name: 'object'
         widget: 'object'

@@ -26,6 +26,12 @@
     "@emotion/react": "catalog:emotion",
     "@emotion/styled": "catalog:emotion",
     "codemirror": "catalog:codemirror",
+    "@replit/codemirror-emacs": "catalog:codemirror",
+    "@replit/codemirror-vscode-keymap": "catalog:codemirror",
+    "@replit/codemirror-vim": "catalog:codemirror",
+    "@uiw/react-codemirror": "catalog:codemirror",
+    "@uiw/codemirror-extensions-langs": "catalog:codemirror",
+    "@uiw/codemirror-theme-material": "catalog:codemirror",
     "uuid": "catalog:utils",
     "decap-cms-ui-default": "workspace:*",
     "decap-cms-lib-util": "workspace:*",
@@ -33,7 +39,6 @@
     "react": "catalog:react"
   },
   "dependencies": {
-    "react-codemirror2": "catalog:react",
     "react-select": "catalog:react"
   },
   "devDependencies": {
