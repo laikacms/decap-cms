@@ -18,6 +18,8 @@ import {
   fonts,
   colorsRaw,
   colors,
+  colorsDefaults,
+  colorsRawDefaults,
   lengths,
   components,
   buttons,
@@ -29,7 +31,10 @@ import {
   zIndex,
   reactSelectStyles,
   GlobalStyles,
+  themeToCssVars,
 } from './styles';
+
+export type { DecapTheme } from './styles';
 
 export const DecapCmsUiDefault = {
   Dropdown,
@@ -52,6 +57,8 @@ export const DecapCmsUiDefault = {
   fonts,
   colorsRaw,
   colors,
+  colorsDefaults,
+  colorsRawDefaults,
   lengths,
   components,
   buttons,
@@ -63,6 +70,7 @@ export const DecapCmsUiDefault = {
   zIndex,
   reactSelectStyles,
   GlobalStyles,
+  themeToCssVars,
   renderPageLogo,
 };
 export {
@@ -87,6 +95,8 @@ export {
   fonts,
   colorsRaw,
   colors,
+  colorsDefaults,
+  colorsRawDefaults,
   lengths,
   components,
   buttons,
@@ -98,6 +108,7 @@ export {
   zIndex,
   reactSelectStyles,
   GlobalStyles,
+  themeToCssVars,
   GoBackButton,
   renderPageLogo,
 };

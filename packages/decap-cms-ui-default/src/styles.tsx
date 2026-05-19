@@ -59,7 +59,7 @@ interface ColorsRaw {
   tealLight: string;
 }
 
-const colorsRaw: ColorsRaw = {
+const colorsRawDefaults: ColorsRaw = {
   white: '#fff',
   grayLight: '#eff0f4',
   gray: '#798291',
@@ -114,39 +114,96 @@ interface Colors {
   mediaDraftBackground: string;
 }
 
-const colors: Colors = {
-  statusDraftText: colorsRaw.purple,
-  statusDraftBackground: colorsRaw.purpleLight,
-  statusReviewText: colorsRaw.brown,
-  statusReviewBackground: colorsRaw.yellow,
-  statusReadyText: colorsRaw.green,
-  statusReadyBackground: colorsRaw.greenLight,
-  text: colorsRaw.gray,
-  textLight: colorsRaw.white,
-  textLead: colorsRaw.grayDark,
-  background: colorsRaw.grayLight,
-  foreground: colorsRaw.white,
-  active: colorsRaw.blue,
-  activeBackground: colorsRaw.blueLight,
-  inactive: colorsRaw.gray,
-  button: colorsRaw.grayDark,
-  buttonText: colorsRaw.white,
-  inputBackground: colorsRaw.white,
-  infoText: colorsRaw.blue,
-  infoBackground: colorsRaw.blueLight,
-  successText: colorsRaw.green,
-  successBackground: colorsRaw.greenLight,
-  warnText: colorsRaw.brown,
-  warnBackground: colorsRaw.yellow,
-  errorText: colorsRaw.red,
-  errorBackground: colorsRaw.redLight,
+const colorsDefaults: Colors = {
+  statusDraftText: colorsRawDefaults.purple,
+  statusDraftBackground: colorsRawDefaults.purpleLight,
+  statusReviewText: colorsRawDefaults.brown,
+  statusReviewBackground: colorsRawDefaults.yellow,
+  statusReadyText: colorsRawDefaults.green,
+  statusReadyBackground: colorsRawDefaults.greenLight,
+  text: colorsRawDefaults.gray,
+  textLight: colorsRawDefaults.white,
+  textLead: colorsRawDefaults.grayDark,
+  background: colorsRawDefaults.grayLight,
+  foreground: colorsRawDefaults.white,
+  active: colorsRawDefaults.blue,
+  activeBackground: colorsRawDefaults.blueLight,
+  inactive: colorsRawDefaults.gray,
+  button: colorsRawDefaults.grayDark,
+  buttonText: colorsRawDefaults.white,
+  inputBackground: colorsRawDefaults.white,
+  infoText: colorsRawDefaults.blue,
+  infoBackground: colorsRawDefaults.blueLight,
+  successText: colorsRawDefaults.green,
+  successBackground: colorsRawDefaults.greenLight,
+  warnText: colorsRawDefaults.brown,
+  warnBackground: colorsRawDefaults.yellow,
+  errorText: colorsRawDefaults.red,
+  errorBackground: colorsRawDefaults.redLight,
   textFieldBorder: '#dfdfe3',
   controlLabel: '#5D626F',
   checkerboardLight: '#f2f2f2',
   checkerboardDark: '#e6e6e6',
-  mediaDraftText: colorsRaw.purple,
-  mediaDraftBackground: colorsRaw.purpleLight,
+  mediaDraftText: colorsRawDefaults.purple,
+  mediaDraftBackground: colorsRawDefaults.purpleLight,
 };
+
+/**
+ * Token → CSS-variable layer.
+ *
+ * Components consume tokens like `colors.active` as constants, which emotion
+ * inlines into the generated CSS. Resolving each token to
+ * `var(--decap-color-*, <default>)` makes every existing usage themeable via a
+ * CSS variable, with the default carried in the `var()` fallback so nothing
+ * needs to be set for the CMS to look right out of the box.
+ *
+ * Override a variable — via `DecapCmsProvider`'s `theme` prop, or plain CSS —
+ * to retheme every component that reads the token.
+ */
+function toCssVarTokens<T>(defaults: T, prefix: string): T {
+  return Object.fromEntries(
+    Object.entries(defaults as Record<string, string>).map(([key, value]) => [
+      key,
+      `var(--decap-${prefix}-${key}, ${value})`,
+    ]),
+  ) as T;
+}
+
+const colorsRaw: ColorsRaw = toCssVarTokens(colorsRawDefaults, 'color-raw');
+const colors: Colors = toCssVarTokens(colorsDefaults, 'color');
+
+/**
+ * A consumer-supplied theme. Every key is optional; omitted tokens keep their
+ * default. Passed to `DecapCmsProvider` via the `theme` prop.
+ */
+export interface DecapTheme {
+  /** Semantic colors — `text`, `active`, `background`, `errorText`, … */
+  colors?: Partial<Colors>;
+  /** The raw color palette — `white`, `blue`, `purple`, … */
+  colorsRaw?: Partial<ColorsRaw>;
+}
+
+/**
+ * Converts a `DecapTheme` into the CSS custom properties the token layer
+ * reads, e.g. `{ '--decap-color-active': '#e91e63' }`. Spread into a `style`
+ * object or emit through a stylesheet to retheme the CMS.
+ */
+export function themeToCssVars(theme: DecapTheme): Record<string, string> {
+  const vars: Record<string, string> = {};
+  const add = (prefix: string, group?: Record<string, unknown>) => {
+    if (!group) {
+      return;
+    }
+    for (const [key, value] of Object.entries(group)) {
+      if (typeof value === 'string') {
+        vars[`--decap-${prefix}-${key}`] = value;
+      }
+    }
+  };
+  add('color', theme.colors as Record<string, unknown> | undefined);
+  add('color-raw', theme.colorsRaw as Record<string, unknown> | undefined);
+  return vars;
+}
 
 interface Lengths {
   topBarHeight: string;
@@ -709,6 +766,11 @@ export {
   fonts,
   colorsRaw,
   colors,
+  // Raw default values, for the rare non-CSS context (e.g. a canvas API) that
+  // cannot resolve a `var()` token. Prefer `colors` / `colorsRaw` everywhere
+  // a CSS value is expected so the value stays themeable.
+  colorsDefaults,
+  colorsRawDefaults,
   lengths,
   components,
   buttons,
