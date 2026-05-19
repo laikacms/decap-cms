@@ -18,7 +18,7 @@ vi.mock('../../backend', () => {
     resolveBackend: vi.fn(() => ({ isGitBackend: vi.fn(() => true) })),
   };
 });
-vi.mock('../../constants/configSchema');
+vi.mock('../../lib/validateConfig');
 
 describe('config', () => {
   describe('parseConfig', () => {

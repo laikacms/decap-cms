@@ -5,7 +5,7 @@
 
 ## Import Issues
 - [x] Direct source imports: `'package/src/file'` → `'package'`
-- [ ] Inconsistent file extensions (.ts vs .tsx)
+- [x] Inconsistent file extensions (.ts vs .tsx) — renamed .tsx files containing no JSX to .ts
 
 ## Type Safety
 - [x] Replace `Map<string, any>` with proper typed records
@@ -23,7 +23,7 @@
 - [x] Put shared types in `decap-cms-lib-util` package
 - [x] Remove Immutable.js
 - [ ] Add ESLint rules for import patterns
-- [ ] Constants contain non-constants: packages/decap-cms-core/src/constants/configSchema.ts
+- [x] Constants contain non-constants: packages/decap-cms-core/src/constants/configSchema.ts
 - [x] Immutable.js is causing to many problems, policy is to try and avoid using it and replacing it with ES6 syntax (spread operator, ?. operator)
 
 # Testing

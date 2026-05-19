@@ -4,8 +4,8 @@ import ajvErrors from 'ajv-errors';
 import { v4 as uuid } from 'uuid';
 
 import { frontmatterFormats, extensionFormatters } from '../formats/formats';
-import { getWidgets } from '../lib/registry';
-import { I18N_STRUCTURE, I18N_FIELD } from '../lib/i18n';
+import { getWidgets } from './registry';
+import { I18N_STRUCTURE, I18N_FIELD } from './i18n';
 
 import type { ErrorObject } from 'ajv';
 
