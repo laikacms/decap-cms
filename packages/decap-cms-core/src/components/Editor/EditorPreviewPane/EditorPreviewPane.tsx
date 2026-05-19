@@ -4,6 +4,7 @@ import Frame, { FrameContextConsumer } from 'react-frame-component';
 import { lengths } from 'decap-cms-ui-default';
 
 import { encodeEntry } from '../../../lib/stega';
+import { toPreviewCompat } from '../../../lib/previewCompat';
 import {
   resolveWidget,
   getPreviewTemplate,
@@ -301,15 +302,19 @@ export function PreviewPane(props: PreviewPaneProps) {
 
   const previewProps = {
     ...props,
-    entry: previewEntry,
+    // `entry`, `widgetsFor` and `getCollection` are wrapped so custom preview
+    // templates can read them with either plain access (`entry.data.title`)
+    // or the legacy Immutable API (`entry.getIn(['data', 'title'])`).
+    entry: toPreviewCompat(previewEntry),
     widgetFor: (
       name: string,
       fields?: EntryField[],
       values: unknown = previewEntry.data,
       fieldsMetaData?: Record<string, unknown>,
     ) => widgetFor(name, fields, values, fieldsMetaData),
-    widgetsFor,
-    getCollection,
+    widgetsFor: (name: string) => toPreviewCompat(widgetsFor(name)),
+    getCollection: (collectionName: string, slug?: string) =>
+      getCollection(collectionName, slug).then(toPreviewCompat),
     getEditorComponents,
   };
 
