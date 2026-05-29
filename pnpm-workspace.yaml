@@ -1,6 +1,7 @@
-packages:
-  - packages/*
-  - "!packages/*.exclude.*"
+# Single-package layout: the `packages:` list is intentionally empty —
+# this file is kept only so the `catalog:` protocol below keeps resolving.
+# See RESTRUCTURE.md.
+packages: []
 
 catalogs:
   # TypeScript type definitions

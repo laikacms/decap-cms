@@ -1,0 +1,299 @@
+import React from 'react';
+import styled from '@emotion/styled';
+import { useTranslate } from 'react-polyglot';
+import partial from 'lodash/partial';
+import { Cursor } from '../../../../lib-util/index';
+import { colors } from '../../../../ui-default/index';
+
+import {
+  loadEntries as actionLoadEntries,
+  traverseCollectionCursor as actionTraverseCollectionCursor,
+} from '../../../actions/entries';
+import { loadUnpublishedEntries } from '../../../actions/editorialWorkflow';
+import {
+  selectEntries,
+  selectEntriesLoaded,
+  selectIsFetching,
+  selectGroups,
+} from '../../../reducers/entries';
+import { selectUnpublishedEntry, selectUnpublishedEntriesByStatus } from '../../../reducers';
+import { selectCollectionEntriesCursor } from '../../../reducers/cursors';
+import Entries from './Entries';
+import { useAppDispatch, useAppSelector } from '../../../hooks/useRedux';
+
+import type { Status } from '../../../constants/publishModes';
+import type {
+  CmsCollectionState,
+  CmsCollections,
+  CmsEntry,
+  CmsGroupOfEntries,
+} from '../../../../lib-util/index';
+import type { TranslateFunction } from '../../../../ui-default/index';
+
+const GroupHeading = styled.h2`
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 37px;
+  padding-inline-start: 20px;
+  color: ${colors.textLead};
+`;
+
+const GroupContainer = styled.div``;
+
+function getGroupEntries(entries: CmsEntry[] | undefined, paths: Set<string>) {
+  return entries?.filter(entry => paths.has(entry.path));
+}
+
+function getGroupTitle(group: CmsGroupOfEntries, t: TranslateFunction) {
+  const { label, value } = group;
+  if (value === undefined) {
+    return t('collection.groups.other');
+  }
+  if (typeof value === 'boolean') {
+    return value ? label : t('collection.groups.negateLabel', { label });
+  }
+  return `${label} ${value}`.trim();
+}
+
+function withGroups(
+  groups: CmsGroupOfEntries[],
+  entries: CmsEntry[] | undefined,
+  EntriesToRender: React.ComponentType<{ entries: CmsEntry[] | undefined }>,
+  t: TranslateFunction,
+) {
+  return groups.map((group: CmsGroupOfEntries) => {
+    const title = getGroupTitle(group, t);
+    return (
+      <GroupContainer key={group.id} className="GroupContainer" id={group.id}>
+        <GroupHeading>{title}</GroupHeading>
+        <EntriesToRender entries={getGroupEntries(entries, group.paths)} />
+      </GroupContainer>
+    );
+  });
+}
+
+export function filterNestedEntries(
+  path: string,
+  collectionFolder: string,
+  entries: CmsEntry[],
+  subfolders: boolean,
+) {
+  const filtered = entries.filter((e: CmsEntry) => {
+    let entryPath = e.path.slice(collectionFolder.length + 1);
+    if (!entryPath.startsWith(path)) {
+      return false;
+    }
+    if (path) {
+      entryPath = entryPath.slice(path.length + 1);
+    }
+    if (subfolders) {
+      const depth = entryPath.split('/').length;
+      return path ? depth === 2 : depth <= 2;
+    }
+    return !entryPath.includes('/');
+  });
+  return filtered;
+}
+
+function shallowArrayEqual<T>(a: T[] | undefined, b: T[] | undefined): boolean {
+  if (a === b) return true;
+  if (!a || !b || a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
+interface EntriesCollectionProps {
+  collection: CmsCollectionState;
+  collections?: CmsCollections;
+  page?: number;
+  entries?: CmsEntry[];
+  groups?: CmsGroupOfEntries[];
+  isFetching: boolean;
+  viewStyle?: string;
+  cursor: Cursor;
+  loadEntries: (collection: CmsCollectionState) => void;
+  traverseCollectionCursor: (collection: CmsCollectionState, action: string) => void;
+  entriesLoaded?: boolean;
+  loadUnpublishedEntries: (collections: CmsCollections | undefined) => void;
+  isEditorialWorkflowEnabled?: boolean;
+  filterTerm?: string;
+  t: TranslateFunction;
+  getWorkflowStatus: (collectionName: string, slug: string) => string | null;
+  getUnpublishedEntries: (collectionName: string) => CmsEntry[];
+}
+
+export function EntriesCollection({
+  collection,
+  collections,
+  page,
+  entries,
+  groups,
+  isFetching,
+  viewStyle,
+  cursor,
+  loadEntries,
+  traverseCollectionCursor,
+  entriesLoaded,
+  loadUnpublishedEntries,
+  isEditorialWorkflowEnabled,
+  filterTerm,
+  t,
+  getWorkflowStatus,
+  getUnpublishedEntries,
+}: EntriesCollectionProps) {
+  const loadEntriesRef = React.useRef(loadEntries);
+  loadEntriesRef.current = loadEntries;
+  const loadUnpublishedEntriesRef = React.useRef(loadUnpublishedEntries);
+  loadUnpublishedEntriesRef.current = loadUnpublishedEntries;
+
+  React.useEffect(() => {
+    if (collection && !entriesLoaded) {
+      loadEntriesRef.current(collection);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mirror componentDidMount + collection-change
+  }, [collection]);
+
+  React.useEffect(() => {
+    if (isEditorialWorkflowEnabled) {
+      loadUnpublishedEntriesRef.current(collections);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mirror prior behavior
+  }, [collection, isEditorialWorkflowEnabled]);
+
+  function handleCursorActions(_cursor: Cursor, action: string) {
+    traverseCollectionCursor(collection, action);
+  }
+
+  function EntriesToRender({ entries: entriesArg }: { entries: CmsEntry[] | undefined }) {
+    return (
+      <Entries
+        collections={collection}
+        entries={entriesArg}
+        isFetching={isFetching}
+        viewStyle={viewStyle}
+        cursor={cursor}
+        handleCursorActions={partial(handleCursorActions, cursor)}
+        page={page}
+        getWorkflowStatus={getWorkflowStatus}
+        getUnpublishedEntries={getUnpublishedEntries}
+        filterTerm={filterTerm}
+      />
+    );
+  }
+
+  if (groups && groups.length > 0) {
+    return withGroups(groups, entries, EntriesToRender, t);
+  }
+  return <EntriesToRender entries={entries} />;
+}
+
+interface ConnectedProps {
+  collection: CmsCollectionState;
+  viewStyle?: string;
+  filterTerm?: string;
+}
+
+export default function ConnectedEntriesCollection({
+  collection,
+  viewStyle,
+  filterTerm,
+}: ConnectedProps) {
+  const t = useTranslate();
+  const dispatch = useAppDispatch();
+
+  const collections = useAppSelector((state: any) => state.collections as CmsCollections);
+  const page = useAppSelector(
+    (state: any) =>
+      ((state.entries as any)?.pages?.[collection.name]?.page as number | undefined) ?? undefined,
+  );
+  const rawEntries = useAppSelector(
+    (state: any) => selectEntries(state.entries, collection) as CmsEntry[],
+    shallowArrayEqual,
+  );
+  const entries = React.useMemo(() => {
+    if (collection.nested) {
+      const collectionFolder = collection.folder as string;
+      const nested = collection.nested;
+      return filterNestedEntries(
+        filterTerm || '',
+        collectionFolder,
+        rawEntries || [],
+        nested ? nested.subfolders !== false : true,
+      );
+    }
+    return rawEntries;
+  }, [collection, filterTerm, rawEntries]);
+  const groups = useAppSelector(
+    (state: any) => selectGroups(state.entries, collection),
+    shallowArrayEqual,
+  );
+  const entriesLoaded = useAppSelector((state: any) =>
+    selectEntriesLoaded(state.entries, collection.name),
+  );
+  const isFetching = useAppSelector((state: any) =>
+    selectIsFetching(state.entries, collection.name),
+  );
+  const rawCursor = useAppSelector((state: any) =>
+    selectCollectionEntriesCursor(state.cursors as any, collection.name),
+  );
+  const cursor = React.useMemo(() => Cursor.create(rawCursor).clearData(), [rawCursor]);
+  const isEditorialWorkflowEnabled = useAppSelector(
+    (state: any) => state.config?.publish_mode === 'editorial_workflow',
+  );
+
+  const store = useAppSelector((state: any) => state);
+  const getWorkflowStatus = React.useCallback(
+    (collectionName: string, slug: string) => {
+      const unpublishedEntry = selectUnpublishedEntry(store, collectionName, slug);
+      return unpublishedEntry ? (unpublishedEntry as any).status : null;
+    },
+    [store],
+  );
+  const getUnpublishedEntries = React.useCallback(
+    (collectionName: string) => {
+      if (!isEditorialWorkflowEnabled) return [];
+      const allStatuses: Status[] = ['DRAFT', 'PENDING_REVIEW', 'PENDING_PUBLISH'];
+      const unpublishedEntries: CmsEntry[] = [];
+      allStatuses.forEach(statusKey => {
+        const entriesForStatus = selectUnpublishedEntriesByStatus(store, statusKey);
+        if (entriesForStatus) {
+          entriesForStatus.forEach((entry: any) => {
+            if (entry.collection === collectionName) {
+              unpublishedEntries.push(entry as CmsEntry);
+            }
+          });
+        }
+      });
+      return unpublishedEntries;
+    },
+    [store, isEditorialWorkflowEnabled],
+  );
+
+  return (
+    <EntriesCollection
+      collection={collection}
+      collections={collections}
+      page={page}
+      entries={entries}
+      groups={groups}
+      isFetching={isFetching}
+      viewStyle={viewStyle}
+      cursor={cursor}
+      loadEntries={(c: CmsCollectionState) => dispatch(actionLoadEntries(c))}
+      traverseCollectionCursor={(c: CmsCollectionState, action: string) =>
+        dispatch(actionTraverseCollectionCursor(c, action))
+      }
+      entriesLoaded={entriesLoaded}
+      loadUnpublishedEntries={(cols: CmsCollections | undefined) =>
+        dispatch(loadUnpublishedEntries(cols as CmsCollections))
+      }
+      isEditorialWorkflowEnabled={isEditorialWorkflowEnabled}
+      filterTerm={filterTerm}
+      t={t}
+      getWorkflowStatus={getWorkflowStatus}
+      getUnpublishedEntries={getUnpublishedEntries}
+    />
+  );
+}

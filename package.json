@@ -1,68 +1,208 @@
 {
-  "name": "decap-cms-monorepo",
-  "version": "4.0.0",
-  "description": "A CMS for static site generators. Give users a simple way to edit and add content to any site built with a static site generator.",
-  "private": true,
+  "name": "@laikacms/decap",
+  "version": "4.0.0-laikacms.0",
+  "description": "Single-package fork of Decap CMS v4.beta. Same components as the original monorepo, exposed through one package with subpath exports. Root export is the decap-cms-app bootstrap. See RESTRUCTURE.md.",
   "license": "MIT",
-  "author": "Decap CMS <decapcms@pm.me>",
-  "homepage": "https://decapcms.org",
+  "author": "Sem Postma <sempostma@gmail.com> (based on Decap CMS by Netlify and contributors)",
+  "homepage": "https://github.com/sempostma/laika-cms",
   "repository": {
     "type": "git",
-    "url": "https://github.com/decaporg/decap-cms.git"
+    "url": "https://github.com/sempostma/decap-cms.git"
   },
   "bugs": {
-    "url": "https://github.com/decaporg/decap-cms/issues"
+    "url": "https://github.com/sempostma/decap-cms/issues"
   },
   "keywords": [
     "cms",
     "decap",
-    "netlify",
-    "static-site-generator",
+    "laikacms",
     "headless-cms",
     "content-management",
     "git-based-cms",
     "jamstack"
   ],
+  "type": "module",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "RESTRUCTURE.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/app/index.d.ts",
+      "import": "./dist/app/index.js",
+      "default": "./dist/app/index.js"
+    },
+    "./app": {
+      "types": "./dist/app/index.d.ts",
+      "import": "./dist/app/index.js"
+    },
+    "./backend-aws-cognito-github-proxy": {
+      "types": "./dist/backend-aws-cognito-github-proxy/index.d.ts",
+      "import": "./dist/backend-aws-cognito-github-proxy/index.js"
+    },
+    "./backend-azure": {
+      "types": "./dist/backend-azure/index.d.ts",
+      "import": "./dist/backend-azure/index.js"
+    },
+    "./backend-bitbucket": {
+      "types": "./dist/backend-bitbucket/index.d.ts",
+      "import": "./dist/backend-bitbucket/index.js"
+    },
+    "./backend-git-gateway": {
+      "types": "./dist/backend-git-gateway/index.d.ts",
+      "import": "./dist/backend-git-gateway/index.js"
+    },
+    "./backend-gitea": {
+      "types": "./dist/backend-gitea/index.d.ts",
+      "import": "./dist/backend-gitea/index.js"
+    },
+    "./backend-github": {
+      "types": "./dist/backend-github/index.d.ts",
+      "import": "./dist/backend-github/index.js"
+    },
+    "./backend-gitlab": {
+      "types": "./dist/backend-gitlab/index.d.ts",
+      "import": "./dist/backend-gitlab/index.js"
+    },
+    "./backend-proxy": {
+      "types": "./dist/backend-proxy/index.d.ts",
+      "import": "./dist/backend-proxy/index.js"
+    },
+    "./backend-test": {
+      "types": "./dist/backend-test/index.d.ts",
+      "import": "./dist/backend-test/index.js"
+    },
+    "./core": {
+      "types": "./dist/core/index.d.ts",
+      "import": "./dist/core/index.js"
+    },
+    "./default-exports": {
+      "types": "./dist/default-exports/index.d.ts",
+      "import": "./dist/default-exports/index.js"
+    },
+    "./editor-component-image": {
+      "types": "./dist/editor-component-image/index.d.ts",
+      "import": "./dist/editor-component-image/index.js"
+    },
+    "./lib-auth": {
+      "types": "./dist/lib-auth/index.d.ts",
+      "import": "./dist/lib-auth/index.js"
+    },
+    "./lib-util": {
+      "types": "./dist/lib-util/index.d.ts",
+      "import": "./dist/lib-util/index.js"
+    },
+    "./lib-widgets": {
+      "types": "./dist/lib-widgets/index.d.ts",
+      "import": "./dist/lib-widgets/index.js"
+    },
+    "./locales": {
+      "types": "./dist/locales/index.d.ts",
+      "import": "./dist/locales/index.js"
+    },
+    "./media-library-cloudinary": {
+      "types": "./dist/media-library-cloudinary/index.d.ts",
+      "import": "./dist/media-library-cloudinary/index.js"
+    },
+    "./media-library-uploadcare": {
+      "types": "./dist/media-library-uploadcare/index.d.ts",
+      "import": "./dist/media-library-uploadcare/index.js"
+    },
+    "./server": {
+      "types": "./dist/server/index.d.ts",
+      "import": "./dist/server/index.js"
+    },
+    "./ui-auth": {
+      "types": "./dist/ui-auth/index.d.ts",
+      "import": "./dist/ui-auth/index.js"
+    },
+    "./ui-default": {
+      "types": "./dist/ui-default/index.d.ts",
+      "import": "./dist/ui-default/index.js"
+    },
+    "./widget-boolean": {
+      "types": "./dist/widget-boolean/index.d.ts",
+      "import": "./dist/widget-boolean/index.js"
+    },
+    "./widget-code": {
+      "types": "./dist/widget-code/index.d.ts",
+      "import": "./dist/widget-code/index.js"
+    },
+    "./widget-colorstring": {
+      "types": "./dist/widget-colorstring/index.d.ts",
+      "import": "./dist/widget-colorstring/index.js"
+    },
+    "./widget-datetime": {
+      "types": "./dist/widget-datetime/index.d.ts",
+      "import": "./dist/widget-datetime/index.js"
+    },
+    "./widget-file": {
+      "types": "./dist/widget-file/index.d.ts",
+      "import": "./dist/widget-file/index.js"
+    },
+    "./widget-image": {
+      "types": "./dist/widget-image/index.d.ts",
+      "import": "./dist/widget-image/index.js"
+    },
+    "./widget-list": {
+      "types": "./dist/widget-list/index.d.ts",
+      "import": "./dist/widget-list/index.js"
+    },
+    "./widget-map": {
+      "types": "./dist/widget-map/index.d.ts",
+      "import": "./dist/widget-map/index.js"
+    },
+    "./widget-markdown": {
+      "types": "./dist/widget-markdown/index.d.ts",
+      "import": "./dist/widget-markdown/index.js"
+    },
+    "./widget-number": {
+      "types": "./dist/widget-number/index.d.ts",
+      "import": "./dist/widget-number/index.js"
+    },
+    "./widget-object": {
+      "types": "./dist/widget-object/index.d.ts",
+      "import": "./dist/widget-object/index.js"
+    },
+    "./widget-relation": {
+      "types": "./dist/widget-relation/index.d.ts",
+      "import": "./dist/widget-relation/index.js"
+    },
+    "./widget-richtext": {
+      "types": "./dist/widget-richtext/index.d.ts",
+      "import": "./dist/widget-richtext/index.js"
+    },
+    "./widget-select": {
+      "types": "./dist/widget-select/index.d.ts",
+      "import": "./dist/widget-select/index.js"
+    },
+    "./widget-string": {
+      "types": "./dist/widget-string/index.d.ts",
+      "import": "./dist/widget-string/index.js"
+    },
+    "./widget-text": {
+      "types": "./dist/widget-text/index.d.ts",
+      "import": "./dist/widget-text/index.js"
+    },
+    "./package.json": "./package.json"
   },
   "scripts": {
-    "start": "pnpm run develop",
-    "develop": "turbo run develop --parallel --filter=!decap-server",
-    "build": "turbo run build",
-    "build:demo": "vite build --config vite.config.demo.ts",
-    "type-check": "tsc --noEmit",
-    "type-check:watch": "pnpm run type-check -- --watch",
-    "clean": "rimraf \"packages/*/dist\" dev-test/dist \"packages/*/node_modules\" \".turbo\"",
-    "reset": "pnpm run clean",
-    "test": "pnpm run lint && pnpm run type-check && pnpm run test:unit",
-    "test:all": "pnpm run test && pnpm run test:e2e",
-    "test:ci": "pnpm run lint-quiet && pnpm run type-check && pnpm run test:unit",
-    "test:unit": "vitest run",
-    "test:unit:watch": "vitest",
-    "test:unit:coverage": "vitest run --coverage",
-    "test:e2e": "pnpm run build:demo && pnpm run test:e2e:run",
-    "test:e2e:ci": "pnpm run build:demo && pnpm run test:e2e:run-ci",
-    "test:e2e:dev": "start-test develop 8080 test:e2e:exec-dev",
-    "test:e2e:serve": "http-server -c-1 dev-test",
-    "test:e2e:exec": "cypress run --browser chrome --headless",
-    "test:e2e:exec-ci": "node cypress/run.mjs",
-    "test:e2e:exec-dev": "cypress open",
-    "test:e2e:record-fixtures:dev": "HTTP_PROXY=http://localhost:1080 RECORD_FIXTURES=true cypress open",
-    "test:e2e:run": "start-test test:e2e:serve 8080 test:e2e:exec",
-    "test:e2e:run-ci": "start-test test:e2e:serve 8080 test:e2e:exec-ci",
-    "mock:server:start": "node -e 'require(\"./cypress/utils/mock-server\").start()'",
-    "mock:server:stop": "node -e 'require(\"./cypress/utils/mock-server\").stop()'",
-    "lint": "run-p -c --aggregate-output \"lint:*\"",
-    "lint-quiet": "run-p -c --aggregate-output \"lint:* --quiet\"",
-    "lint:css": "stylelint --ignore-path .gitignore \"packages/**/*.{css,scss,ts,tsx}\"",
-    "lint:js": "eslint --color \"packages/**/*.{ts,tsx,js,mjs}\" \"scripts/**/*.{ts,tsx,mjs,js}\" \"cypress/**/*.{ts,tsx,js,mjs}\"",
-    "lint:format": "prettier \"packages/**/*.{ts,tsx,css,js,mjs}\" \"scripts/**/*.{ts,tsx,mjs,js}\" --list-different",
-    "format": "pnpm run lint:js --fix --quiet && pnpm run format:prettier --write",
-    "format:prettier": "prettier \"packages/**/*.{ts,tsx,css}\" \"scripts/**/*.{ts,tsx,mjs,js}\"",
-    "lerna:publish": "lerna publish from-package --yes --no-private",
-    "prepare": "husky install",
-    "test:package-integrity": "node scripts/test-package-integrity.mjs"
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint --color \"src/**/*.{ts,tsx,js,mjs}\"",
+    "format": "prettier \"src/**/*.{ts,tsx,css}\" --write",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "clean": "rimraf dist .turbo",
+    "prepare": "husky install"
   },
   "browserslist": [
     "last 2 Chrome versions",
@@ -73,97 +213,139 @@
     "last 2 iOS versions",
     "last 2 ChromeAndroid versions"
   ],
+  "peerDependencies": {
+    "@emotion/react": "catalog:emotion",
+    "@emotion/styled": "catalog:emotion",
+    "react": "catalog:react",
+    "react-dom": "catalog:react"
+  },
+  "dependencies": {
+    "@dnd-kit/core": "catalog:dnd",
+    "@dnd-kit/modifiers": "catalog:dnd",
+    "@dnd-kit/sortable": "catalog:dnd",
+    "@dnd-kit/utilities": "catalog:dnd",
+    "@hapi/joi": "catalog:validation",
+    "@reduxjs/toolkit": "catalog:redux",
+    "@replit/codemirror-emacs": "catalog:codemirror",
+    "@replit/codemirror-vim": "catalog:codemirror",
+    "@replit/codemirror-vscode-keymap": "catalog:codemirror",
+    "@uiw/codemirror-extensions-langs": "catalog:codemirror",
+    "@uiw/codemirror-theme-material": "catalog:codemirror",
+    "@uiw/react-codemirror": "catalog:codemirror",
+    "@vercel/stega": "catalog:stega",
+    "ajv": "catalog:validation",
+    "ajv-errors": "catalog:validation",
+    "ajv-keywords": "catalog:validation",
+    "apollo-cache-inmemory": "catalog:graphql",
+    "apollo-client": "catalog:graphql",
+    "apollo-link-context": "catalog:graphql",
+    "apollo-link-http": "catalog:graphql",
+    "array-move": "catalog:utils",
+    "async-mutex": "catalog:utils",
+    "buffer": "catalog:polyfills",
+    "codemirror": "catalog:codemirror",
+    "common-tags": "catalog:utils",
+    "copy-text-to-clipboard": "catalog:utils",
+    "cors": "catalog:server",
+    "dayjs": "catalog:utils",
+    "deepmerge": "catalog:utils",
+    "dotenv": "catalog:build",
+    "express": "catalog:server",
+    "fuzzy": "catalog:utils",
+    "gotrue-js": "catalog:auth",
+    "graphql": "catalog:graphql",
+    "graphql-tag": "catalog:graphql",
+    "history": "catalog:routing",
+    "immer": "catalog:redux",
+    "ini": "catalog:utils",
+    "js-sha256": "catalog:utils",
+    "jwt-decode": "catalog:auth",
+    "lodash": "catalog:utils",
+    "mdast-util-from-markdown": "catalog:markdown",
+    "minimatch": "catalog:utils",
+    "morgan": "catalog:server",
+    "node-polyglot": "catalog:routing",
+    "ol": "catalog:media",
+    "path-browserify": "catalog:polyfills",
+    "prop-types": "^15.8.1",
+    "react-aria-menubutton": "catalog:react",
+    "react-color": "catalog:react",
+    "react-dnd": "catalog:react",
+    "react-dnd-html5-backend": "catalog:react",
+    "react-frame-component": "catalog:react",
+    "react-is": "catalog:react",
+    "react-markdown": "catalog:react",
+    "react-modal": "catalog:react",
+    "react-polyglot": "catalog:react",
+    "react-redux": "catalog:react",
+    "react-router-dom": "catalog:react",
+    "react-scroll-sync": "catalog:react",
+    "react-select": "catalog:react",
+    "react-split-pane": "catalog:react",
+    "react-textarea-autosize": "catalog:react",
+    "react-toastify": "catalog:react",
+    "react-topbar-progress-indicator": "catalog:react",
+    "react-transition-group": "catalog:react",
+    "react-virtualized-auto-sizer": "catalog:react",
+    "react-waypoint": "catalog:react",
+    "react-window": "catalog:react",
+    "redux": "catalog:redux",
+    "redux-devtools-extension": "catalog:redux",
+    "redux-notifications": "catalog:redux",
+    "redux-thunk": "catalog:redux",
+    "remark-frontmatter": "catalog:markdown",
+    "remark-gfm": "catalog:markdown",
+    "simple-git": "catalog:git",
+    "smol-toml": "catalog:utils",
+    "tinycolor2": "catalog:react",
+    "uploadcare-widget": "catalog:media",
+    "uploadcare-widget-tab-effects": "catalog:media",
+    "uuid": "catalog:utils",
+    "vfile": "catalog:markdown",
+    "what-input": "catalog:utils",
+    "what-the-diff": "catalog:utils",
+    "winston": "catalog:server",
+    "yaml": "catalog:utils"
+  },
   "devDependencies": {
     "@commitlint/cli": "catalog:commitlint",
     "@commitlint/config-conventional": "catalog:commitlint",
-    "@cypress/webpack-preprocessor": "^7.1.0",
     "@emotion/babel-plugin": "catalog:emotion",
     "@emotion/eslint-plugin": "catalog:emotion",
     "@eslint/js": "catalog:eslint",
     "@octokit/rest": "catalog:git",
     "@octokit/types": "catalog:git",
-    "@simonsmith/cypress-image-snapshot": "catalog:cypress",
-    "@storybook/addon-actions": "catalog:storybook",
-    "@storybook/addon-links": "catalog:storybook",
-    "@storybook/react": "catalog:storybook",
-    "@stylelint/postcss-css-in-js": "catalog:stylelint",
     "@testing-library/dom": "catalog:vitest",
     "@testing-library/jest-dom": "catalog:vitest",
     "@testing-library/react": "catalog:vitest",
     "@types/common-tags": "^1.8.4",
     "@types/hast": "^3.0.4",
-    "@types/jscodeshift": "^17.3.0",
     "@types/jwt-decode": "catalog:types",
     "@types/lodash": "catalog:types",
     "@types/node": "^25.6.0",
+    "@types/react": "catalog:types",
+    "@types/react-dom": "catalog:types",
     "@types/uuid": "catalog:types",
     "@vitejs/plugin-react": "catalog:vite",
     "@vitest/coverage-v8": "catalog:vitest",
-    "ajv": "catalog:validation",
-    "all-contributors-cli": "catalog:build",
-    "buffer": "catalog:polyfills",
-    "common-tags": "catalog:utils",
-    "cross-env": "catalog:build",
-    "cypress": "catalog:cypress",
-    "cypress-plugin-tab": "catalog:cypress",
-    "dotenv": "catalog:build",
     "eslint": "catalog:eslint",
     "eslint-config-prettier": "catalog:eslint",
-    "eslint-import-resolver-exports": "catalog:eslint",
     "eslint-import-resolver-typescript": "catalog:eslint",
-    "eslint-plugin-cypress": "catalog:eslint",
     "eslint-plugin-import": "catalog:eslint",
-    "eslint-plugin-import-x": "^4.16.2",
     "eslint-plugin-react": "catalog:eslint",
-    "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-unicorn": "catalog:eslint",
-    "execa": "catalog:build",
-    "gitlab": "catalog:git",
     "globals": "catalog:build",
-    "globby": "catalog:build",
-    "http-server": "catalog:build",
     "husky": "catalog:build",
-    "jscodeshift": "^17.3.0",
     "jsdom": "catalog:vitest",
-    "lerna": "catalog:build",
-    "mockserver-client": "catalog:cypress",
-    "mockserver-node": "catalog:cypress",
-    "ncp": "catalog:build",
-    "nock": "catalog:cypress",
-    "node-fetch": "catalog:utils",
-    "npm-run-all": "catalog:build",
-    "path-browserify": "catalog:polyfills",
-    "postcss": "catalog:postcss",
-    "postcss-scss": "catalog:postcss",
-    "postcss-styled-syntax": "catalog:postcss",
     "prettier": "catalog:build",
-    "process": "catalog:polyfills",
-    "react": "catalog:react",
-    "react-dom": "catalog:react",
-    "rehype": "catalog:utils",
     "rimraf": "catalog:build",
-    "simple-git": "catalog:git",
-    "start-server-and-test": "catalog:build",
-    "stream-browserify": "catalog:polyfills",
-    "stylelint": "catalog:stylelint",
-    "stylelint-config-standard-scss": "catalog:stylelint",
-    "ts-loader": "^9.5.7",
-    "turbo": "catalog:build",
+    "tsup": "^8.4.0",
     "typescript": "catalog:build",
     "typescript-eslint": "catalog:eslint",
-    "unist-util-visit": "catalog:utils",
     "vite": "catalog:vite",
-    "vite-plugin-dts": "catalog:vite",
     "vitest": "catalog:vitest"
   },
-  "dependencies": {
-    "ajv": "catalog:validation",
-    "ajv-errors": "catalog:validation",
-    "ajv-keywords": "catalog:validation",
-    "yaml": "catalog:utils"
-  },
   "resolutions": {
-    "react-redux": "^7.2.0",
     "clean-stack": "5.2.0"
   },
   "overrides": {
