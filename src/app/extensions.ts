@@ -17,8 +17,6 @@ import DecapCmsWidgetText from '../widget-text/index';
 import DecapCmsWidgetImage from '../widget-image/index';
 import DecapCmsWidgetFile from '../widget-file/index';
 import DecapCmsWidgetSelect from '../widget-select/index';
-import DecapCmsWidgetMarkdown from '../widget-markdown/index';
-import DecapCmsWidgetRichtext from '../widget-richtext/index';
 import DecapCmsWidgetList from '../widget-list/index';
 import DecapCmsWidgetObject from '../widget-object/index';
 import DecapCmsWidgetRelation from '../widget-relation/index';
@@ -49,8 +47,6 @@ CMS.registerBackend('proxy', ProxyBackend);
   DecapCmsWidgetImage.Widget(),
   DecapCmsWidgetFile.Widget(),
   DecapCmsWidgetSelect.Widget(),
-  DecapCmsWidgetMarkdown.Widget(),
-  DecapCmsWidgetRichtext.Widget(),
   DecapCmsWidgetList.Widget(),
   DecapCmsWidgetObject.Widget(),
   DecapCmsWidgetRelation.Widget(),

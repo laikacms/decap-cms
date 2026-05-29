@@ -773,11 +773,7 @@ export class Backend {
       }
 
       const mediaFiles = await Promise.all<MediaFile>(
-<<<<<<< HEAD
-        entry.mediaFiles.map(async (file: MediaFile) => {
-=======
         (entry.mediaFiles as MediaFile[]).map(async (file: MediaFile) => {
->>>>>>> e4faeaf30 (refactor(core): move configSchema to lib/validateConfig)
           // make sure to serialize the file
           if (file.url?.startsWith('blob:')) {
             const blob = await fetch(file.url as string).then(res => res.blob());
@@ -1113,13 +1109,9 @@ export class Backend {
         ? { ...draft, entry: { ...draft.entry, data: updatedEntity } }
         : draft;
     } else {
-<<<<<<< HEAD
-      entryDraft = updatedEntity ? { ...draft, entry: updatedEntity as CmsEntry } : draft;
-=======
       entryDraft = updatedEntity
         ? { ...draft, entry: updatedEntity as CmsEntry }
         : draft;
->>>>>>> e4faeaf30 (refactor(core): move configSchema to lib/validateConfig)
     }
 
     const newEntry = entryDraft.entry?.newRecord || false;

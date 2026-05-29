@@ -8,7 +8,7 @@ import { vscodeKeymap } from '@replit/codemirror-vscode-keymap';
 
 import SettingsPane from './SettingsPane';
 import SettingsButton from './SettingsButton';
-import languageData from '../data/languages.json';
+import languageData from './data/languages.json';
 import { getLanguageExtension } from './languageLoaders';
 
 import type { Extension, ReactCodeMirrorRef } from '@uiw/react-codemirror';
