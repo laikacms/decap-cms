@@ -3,14 +3,14 @@
   "version": "4.0.0-laikacms.0",
   "description": "Single-package fork of Decap CMS v4.beta. Same components as the original monorepo, exposed through one package with subpath exports. Root export is the decap-cms-app bootstrap. See RESTRUCTURE.md.",
   "license": "MIT",
-  "author": "Sem Postma <sempostma@gmail.com> (based on Decap CMS by Netlify and contributors)",
-  "homepage": "https://github.com/sempostma/laika-cms",
+  "author": "Sem Postma <sem@laikacms.com> (based on Decap CMS by Netlify and contributors)",
+  "homepage": "https://github.com/laikacms/decap-cms",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sempostma/decap-cms.git"
+    "url": "https://github.com/laikacms/decap-cms.git"
   },
   "bugs": {
-    "url": "https://github.com/sempostma/decap-cms/issues"
+    "url": "https://github.com/laikacms/decap-cms/issues"
   },
   "keywords": [
     "cms",
