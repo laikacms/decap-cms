@@ -186,6 +186,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json && pnpm copy:assets",
+    "build:demo": "vite build --config vite.config.demo.ts",
     "dev": "pnpm copy:assets && tsc -p tsconfig.build.json --watch",
     "copy:assets": "mkdir -p dist/widget-code/data && cp src/widget-code/data/languages.json dist/widget-code/data/languages.json",
     "typecheck": "tsc --noEmit",
