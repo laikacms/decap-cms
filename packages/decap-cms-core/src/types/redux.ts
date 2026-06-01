@@ -77,7 +77,7 @@ export interface CmsFieldBase {
   label?: string;
   required?: boolean;
   hint?: string;
-  pattern?: [string, string];
+  pattern?: [string | RegExp, string];
   i18n?: boolean | 'translate' | 'duplicate' | 'none';
   media_folder?: string;
   public_folder?: string;
