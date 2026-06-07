@@ -4,6 +4,7 @@ import { translate } from 'react-polyglot';
 import { Loader, lengths } from '../../../../ui-default/index';
 
 import EntryListing from './EntryListing';
+import { useCmsSlots } from '../../../lib/slots';
 
 import type { TranslateFunction } from '../../../../ui-default/index';
 import type { Cursor } from '../../../../lib-util/index';
@@ -47,6 +48,7 @@ function Entries({
   getUnpublishedEntries,
   filterTerm,
 }: EntriesProps) {
+  const { renderLoader } = useCmsSlots();
   const loadingMessages = [
     t('collection.entries.loadingEntries'),
     t('collection.entries.cachingEntries'),
@@ -54,7 +56,11 @@ function Entries({
   ];
 
   if (isFetching && page === undefined) {
-    return <Loader active>{loadingMessages}</Loader>;
+    return renderLoader ? (
+      <>{renderLoader({ label: loadingMessages, context: 'entries' })}</>
+    ) : (
+      <Loader active>{loadingMessages}</Loader>
+    );
   }
 
   const hasEntries = (entries && entries.length > 0) || cursor?.actions?.has('append_next');

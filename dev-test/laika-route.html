@@ -1,0 +1,18 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Laika CMS (routed)</title>
+  <script>
+    // Seed auth + jump to whatever route the query string asks for.
+    // Use: /laika-route.html?to=/collections/posts
+    localStorage.setItem(
+      'decap-cms-user',
+      JSON.stringify({ backendName: 'test-repo', name: 'Alice', login: 'alice' }),
+    );
+    const route = new URLSearchParams(location.search).get('to') || '/';
+    window.location.replace('/laika.html#' + route);
+  </script>
+</head>
+<body>Seeding + routing…</body>
+</html>

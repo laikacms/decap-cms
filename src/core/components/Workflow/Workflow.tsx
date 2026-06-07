@@ -25,6 +25,7 @@ import { selectUnpublishedEntriesByStatus } from '../../reducers';
 import { EDITORIAL_WORKFLOW, status } from '../../constants/publishModes';
 import WorkflowList from './WorkflowList';
 import { useAppDispatch, useAppSelector } from '../../hooks/useRedux';
+import { useCmsSlots } from '../../lib/slots';
 
 import type { Status } from '../../constants/publishModes';
 import type { CmsCollections, CmsCollectionState } from '../../../lib-util/index';
@@ -61,6 +62,7 @@ interface WorkflowProps {
 }
 
 function Workflow({ t }: WorkflowProps) {
+  const { renderLoader } = useCmsSlots();
   const dispatch = useAppDispatch();
   const collections = useAppSelector((state: any) => state.collections as Collections);
   const isEditorialWorkflow = useAppSelector(
@@ -87,7 +89,13 @@ function Workflow({ t }: WorkflowProps) {
   }, []);
 
   if (!isEditorialWorkflow) return null;
-  if (isFetching) return <Loader active>{t('workflow.workflow.loading')}</Loader>;
+  if (isFetching) {
+    return renderLoader ? (
+      <>{renderLoader({ label: t('workflow.workflow.loading'), context: 'workflow' })}</>
+    ) : (
+      <Loader active>{t('workflow.workflow.loading')}</Loader>
+    );
+  }
   const reviewCount = unpublishedEntries ? (unpublishedEntries['pending_review']?.length ?? 0) : 0;
   const readyCount = unpublishedEntries ? (unpublishedEntries['pending_publish']?.length ?? 0) : 0;
 

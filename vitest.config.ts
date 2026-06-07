@@ -19,12 +19,11 @@ const emotionProductionPlugin = {
   },
 };
 
-// @emotion/react and @emotion/styled are not hoisted to the workspace root by pnpm
-// (only packages that are direct root dependencies get root-level symlinks). Aliasing
-// them here ensures every test file can resolve them regardless of which workspace
-// package the test lives in, including packages with no emotion dependency.
-const EMOTION_REACT = path.resolve(__dirname, 'packages/decap-cms-core/node_modules/@emotion/react');
-const EMOTION_STYLED = path.resolve(__dirname, 'packages/decap-cms-core/node_modules/@emotion/styled');
+// Since the monorepo flattening (single @laikacms/decap package), @emotion/react +
+// @emotion/styled live in the root node_modules. The pre-flatten paths previously
+// pointed under `packages/decap-cms-core/node_modules/@emotion/*`.
+const EMOTION_REACT = path.resolve(__dirname, 'node_modules/@emotion/react');
+const EMOTION_STYLED = path.resolve(__dirname, 'node_modules/@emotion/styled');
 
 export default defineConfig({
   plugins: [
@@ -49,8 +48,8 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
-    include: ['packages/**/src/**/*.{test,spec}.{ts,tsx}'],
-    exclude: ['**/node_modules/**', '**/dist/**', '**/.nx/**', 'packages/.exclude.*/**'],
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    exclude: ['**/node_modules/**', '**/dist/**', '**/.nx/**'],
     server: {
       deps: {
         // Inline @emotion/styled so Vite's transform pipeline processes it (instead of

@@ -4,7 +4,6 @@ import Frame, { FrameContextConsumer } from 'react-frame-component';
 import { lengths } from '../../../../ui-default/index';
 
 import { encodeEntry } from '../../../lib/stega';
-import { toPreviewCompat } from '../../../lib/previewCompat';
 import {
   resolveWidget,
   getPreviewTemplate,
@@ -87,7 +86,9 @@ function getWidget(
     value !== null &&
     !Array.isArray(value);
 
-  // Use an HOC to provide conditional updates for all previews.
+  // Use an HOC to provide conditional updates for all previews. Preview
+  // components receive plain objects/arrays and read them with plain access
+  // (e.g. `entry.data.title`).
   return !widget?.preview ? null : (
     <PreviewHOC
       previewComponent={widget.preview as unknown as React.ComponentType<Record<string, unknown>>}
@@ -302,19 +303,19 @@ export function PreviewPane(props: PreviewPaneProps) {
 
   const previewProps = {
     ...props,
-    // `entry`, `widgetsFor` and `getCollection` are wrapped so custom preview
-    // templates can read them with either plain access (`entry.data.title`)
-    // or the legacy Immutable API (`entry.getIn(['data', 'title'])`).
-    entry: toPreviewCompat(previewEntry),
+    // Custom preview templates receive plain objects/arrays and read them with
+    // plain access (`entry.data.title`).
+    entry: previewEntry,
+    fieldsMetaData: props.fieldsMetaData,
     widgetFor: (
       name: string,
       fields?: EntryField[],
       values: unknown = previewEntry.data,
       fieldsMetaData?: Record<string, unknown>,
     ) => widgetFor(name, fields, values, fieldsMetaData),
-    widgetsFor: (name: string) => toPreviewCompat(widgetsFor(name)),
+    widgetsFor: (name: string) => widgetsFor(name),
     getCollection: (collectionName: string, slug?: string) =>
-      getCollection(collectionName, slug).then(toPreviewCompat),
+      getCollection(collectionName, slug),
     getEditorComponents,
   };
 

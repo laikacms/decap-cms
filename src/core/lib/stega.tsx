@@ -12,6 +12,20 @@ interface EncodeContext {
 }
 
 /**
+ * Whether a value is a plain object (`{}` / `Object.create(null)`) as opposed
+ * to a class instance like `Date` or `RegExp`. Only plain objects represent
+ * nested field maps worth traversing; spreading a non-plain object (e.g.
+ * `{ ...date }`) would strip it to `{}` and destroy the value.
+ */
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    return false;
+  }
+  const proto = Object.getPrototypeOf(value);
+  return proto === Object.prototype || proto === null;
+}
+
+/**
  * Get the fields that should be used for encoding nested values
  */
 function getNestedFields(f?: CmsField): CmsField[] {
@@ -122,8 +136,8 @@ export function encodeEntry(value: unknown, fields: CmsField[]) {
     let result;
     if (Array.isArray(value)) {
       result = encodeList(value, ctx);
-    } else if (typeof value === 'object' && value !== null) {
-      result = encodeMap(value as Record<string, unknown>, ctx);
+    } else if (isPlainObject(value)) {
+      result = encodeMap(value, ctx);
     } else if (typeof value === 'string') {
       result = encodeString(value, ctx);
     } else {

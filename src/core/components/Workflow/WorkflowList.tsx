@@ -11,6 +11,7 @@ import { status } from '../../constants/publishModes';
 import { DragSource, DropTarget, HTML5DragDrop } from '../UI';
 import WorkflowCard from './WorkflowCard';
 import { selectEntryCollectionTitle } from '../../reducers/collections';
+import { useCmsSlots } from '../../lib/slots';
 
 import type { CmsCollections, CmsCollectionState } from '../../../lib-util/index';
 import type { TranslateFunction } from '../../../ui-default/index';
@@ -165,6 +166,8 @@ function WorkflowList({
   isOpenAuthoring,
   collections,
 }: WorkflowListProps) {
+  const { renderWorkflowCard } = useCmsSlots();
+
   function onChangeStatus(newStatus: string, dragProps: DragProps) {
     handleChangeStatus(dragProps.collection, dragProps.slug, dragProps.ownStatus, newStatus);
   }
@@ -254,26 +257,31 @@ function WorkflowList({
               collection={collectionName}
               ownStatus={ownStatus}
             >
-              {(connect: any) =>
-                connect(
+              {(connect: any) => {
+                const cardProps = {
+                  collectionLabel: collectionLabel || collectionName,
+                  title: selectEntryCollectionTitle(collection as CmsCollectionState, entry),
+                  authorLastChange: entry.metaData?.user,
+                  body: entry.data?.body,
+                  isModification,
+                  editLink,
+                  timestamp,
+                  onDelete: () => requestDelete(collectionName, slug, ownStatus),
+                  allowPublish,
+                  canPublish,
+                  onPublish: () => requestPublish(collectionName, slug, ownStatus),
+                  postAuthor,
+                };
+                return connect(
                   <div>
-                    <WorkflowCard
-                      collectionLabel={collectionLabel || collectionName}
-                      title={selectEntryCollectionTitle(collection as CmsCollectionState, entry)}
-                      authorLastChange={entry.metaData?.user}
-                      body={entry.data?.body}
-                      isModification={isModification}
-                      editLink={editLink}
-                      timestamp={timestamp}
-                      onDelete={() => requestDelete(collectionName, slug, ownStatus)}
-                      allowPublish={allowPublish}
-                      canPublish={canPublish}
-                      onPublish={() => requestPublish(collectionName, slug, ownStatus)}
-                      postAuthor={postAuthor}
-                    />
+                    {renderWorkflowCard ? (
+                      renderWorkflowCard(cardProps)
+                    ) : (
+                      <WorkflowCard {...cardProps} />
+                    )}
                   </div>,
-                )
-              }
+                );
+              }}
             </DragSource>
           );
         })}

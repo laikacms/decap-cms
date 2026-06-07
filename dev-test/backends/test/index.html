@@ -135,7 +135,7 @@
       var entry = props.entry;
       var title = entry?.data?.site_title;
       var posts = entry?.data?.posts;
-      var thumb = posts && posts.get('thumb');
+      var thumb = posts && posts.thumb;
 
       return h('div', {},
         h('h1', {}, title),
@@ -174,13 +174,13 @@
       // is "title".
       var value = props.value;
       var fieldsMetaData = props.fieldsMetaData;
-      var post = fieldsMetaData && fieldsMetaData?.posts;
+      var post = fieldsMetaData && fieldsMetaData.posts && fieldsMetaData.posts[value];
       var style = { border: '2px solid #ccc', borderRadius: '8px', padding: '20px' };
       return post ? h('div', { style: style },
         h('h2', {}, 'Related Post'),
-        h('h3', {}, post.get('title')),
-        h('img', { src: post.get('image') }),
-        h('p', {}, post.get('body', '').slice(0, 100) + '...'),
+        h('h3', {}, post.title),
+        h('img', { src: post.image }),
+        h('p', {}, (post.body || '').slice(0, 100) + '...'),
       ) : null;
     };
 

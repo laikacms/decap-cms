@@ -7,6 +7,7 @@ import { useAppSelector, useAppDispatch } from '../../hooks/useRedux';
 import { getNewEntryUrl } from '../../lib/urlHelper';
 import Sidebar from './Sidebar';
 import CollectionTop from './CollectionTop';
+import { useCmsSlots } from '../../lib/slots';
 import EntriesCollection from './Entries/EntriesCollection';
 import EntriesSearch from './Entries/EntriesSearch';
 import CollectionControls from './CollectionControls';
@@ -35,8 +36,8 @@ const CollectionContainer = styled.div`
   margin: ${lengths.pageMargin};
 `;
 
-const CollectionMain = styled.main`
-  padding-left: 280px;
+const CollectionMain = styled.main<{ $hasSidebar?: boolean }>`
+  padding-left: ${({ $hasSidebar }) => ($hasSidebar === false ? '0' : '280px')};
 `;
 
 const SearchResultContainer = styled.div`
@@ -72,6 +73,8 @@ function CmsCollection({
 }: CollectionProps) {
   const t = useTranslate();
   const dispatch = useAppDispatch();
+  const { renderCollectionTop, renderCollectionSidebar, renderCollectionControls } =
+    useCmsSlots();
 
   // Extract params from match
   const { name, searchTerm = '', filterTerm = '' } = match.params;
@@ -197,16 +200,22 @@ function CmsCollection({
   const searchResultKey =
     'collection.collectionTop.searchResults' + (isSingleSearchResult ? 'InCollection' : '');
 
+  const sidebarProps = {
+    collections,
+    collection: !isSearchResults || isSingleSearchResult ? collection : undefined,
+    isSearchEnabled,
+    searchTerm,
+    filterTerm,
+  };
+  const sidebarNode = renderCollectionSidebar
+    ? renderCollectionSidebar(sidebarProps)
+    : <Sidebar {...sidebarProps} />;
+  const hasSidebar = sidebarNode != null;
+
   return (
     <CollectionContainer>
-      <Sidebar
-        collections={collections}
-        collection={!isSearchResults || isSingleSearchResult ? collection : undefined}
-        isSearchEnabled={isSearchEnabled}
-        searchTerm={searchTerm}
-        filterTerm={filterTerm}
-      />
-      <CollectionMain>
+      {sidebarNode}
+      <CollectionMain $hasSidebar={hasSidebar}>
         {isSearchResults ? (
           <SearchResultContainer>
             <SearchResultHeading className="SearchResultHeading">
@@ -215,21 +224,41 @@ function CmsCollection({
           </SearchResultContainer>
         ) : (
           <>
-            <CollectionTop collection={collection} newEntryUrl={newEntryUrl} />
-            <CollectionControls
-              viewStyle={viewStyle}
-              onChangeViewStyle={onChangeViewStyle}
-              sortableFields={sortableFields}
-              onSortClick={onSortClick}
-              sort={sort}
-              viewFilters={viewFilters}
-              viewGroups={viewGroups}
-              t={t}
-              onFilterClick={onFilterClick}
-              onGroupClick={onGroupClick}
-              filter={filter}
-              group={group}
-            />
+            {renderCollectionTop ? (
+              renderCollectionTop({ collection, newEntryUrl })
+            ) : (
+              <CollectionTop collection={collection} newEntryUrl={newEntryUrl} />
+            )}
+            {renderCollectionControls ? (
+              renderCollectionControls({
+                viewStyle,
+                onChangeViewStyle,
+                sortableFields,
+                onSortClick,
+                sort,
+                viewFilters,
+                viewGroups,
+                onFilterClick,
+                onGroupClick,
+                filter,
+                group,
+              })
+            ) : (
+              <CollectionControls
+                viewStyle={viewStyle}
+                onChangeViewStyle={onChangeViewStyle}
+                sortableFields={sortableFields}
+                onSortClick={onSortClick}
+                sort={sort}
+                viewFilters={viewFilters}
+                viewGroups={viewGroups}
+                t={t}
+                onFilterClick={onFilterClick}
+                onGroupClick={onGroupClick}
+                filter={filter}
+                group={group}
+              />
+            )}
           </>
         )}
         {isSearchResults ? renderEntriesSearch() : renderEntriesCollection()}

@@ -20,14 +20,38 @@ const emotionStyledProductionPlugin = {
 
 const config: StorybookConfig = {
   stories: ['../src/**/*.stories.@(ts|tsx)'],
+  // Storybook 10 ships what used to be `@storybook/addon-essentials`
+  // (controls, viewport, backgrounds, …) inside the core package, so no
+  // addons are needed here. Add `@storybook/addon-a11y@^10` later if
+  // accessibility checks become a goal.
   addons: [],
   framework: {
     name: '@storybook/react-vite',
     options: {},
   },
-  async viteFinal(viteConfig) {
+  typescript: {
+    reactDocgen: 'react-docgen',
+  },
+  // Same vite tweaks the demo IIFE bundle uses, so styled components +
+  // path-browserify resolve correctly inside Storybook.
+  viteFinal: async config => {
     const { mergeConfig } = await import('vite');
-    return mergeConfig(viteConfig, {
+    config.resolve = config.resolve ?? {};
+    (config.resolve as { alias?: Record<string, string> }).alias = {
+      ...((config.resolve as { alias?: Record<string, string> }).alias ?? {}),
+      path: 'path-browserify',
+      buffer: 'buffer',
+    };
+    config.define = {
+      ...(config.define ?? {}),
+      'process.env.NODE_ENV': JSON.stringify('development'),
+      'process.env': '{}',
+      global: 'globalThis',
+      DECAP_CMS_APP_VERSION: JSON.stringify('storybook'),
+      DECAP_CMS_CORE_VERSION: JSON.stringify('storybook'),
+      DECAP_CMS_VERSION: JSON.stringify('storybook'),
+    };
+    return mergeConfig(config, {
       plugins: [emotionStyledProductionPlugin],
     });
   },

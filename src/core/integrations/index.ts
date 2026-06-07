@@ -5,7 +5,7 @@ import type { AlgoliaConfig } from './providers/algolia/implementation';
 import type { AssetStoreConfig } from './providers/assetStore/implementation';
 
 
-// Integrations config is a plain object after migration from Immutable.js
+// Integrations config is a plain object.
 
 type Integrations = any;
 

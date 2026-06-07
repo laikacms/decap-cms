@@ -20,6 +20,7 @@ import { openMediaLibrary } from '../../actions/mediaLibrary';
 import { history } from '../../routing/history';
 import MediaLibrary from '../MediaLibrary/MediaLibrary';
 import { Notifications, ErrorBoundary } from '../UI';
+import type { ErrorBoundaryRenderProps } from '../UI';
 import { EDITORIAL_WORKFLOW } from '../../constants/publishModes';
 import CollectionComponent from '../Collection/Collection';
 import Workflow from '../Workflow/Workflow';
@@ -27,11 +28,135 @@ import Editor from '../Editor/Editor';
 import NotFoundPage from './NotFoundPage';
 import Header from './Header';
 
-import type { CmsCredentials } from '../../../lib-util/index';
+import type { CmsConfig, CmsCredentials } from '../../../lib-util/index';
 import type { CmsCollectionState, CmsCollections } from '../../../lib-util/index';
+import type { TranslateFunction } from '../../../ui-default/index';
+import { CmsSlotsProvider } from '../../lib/slots';
+import type { CmsSlots } from '../../lib/slots';
 
 type Collection = CmsCollectionState;
 type Collections = CmsCollections;
+
+/**
+ * Props passed to a custom header renderer. Consumers that supply `renderHeader`
+ * to `AppContent` receive these — everything the default `Header` reads off of
+ * Redux is pre-resolved so the renderer stays a plain function.
+ */
+export interface AppHeaderRenderProps {
+  user: { avatar_url?: string; [key: string]: unknown };
+  collections: Collections;
+  onCreateEntryClick: (collectionName: string) => void;
+  onLogoutClick: () => void;
+  openMediaLibrary: () => void;
+  hasWorkflow: boolean;
+  displayUrl?: string;
+  showMediaButton?: boolean;
+  logoUrl?: string;
+  logo?: { src: string; show_in_header?: boolean };
+  isTestRepo?: boolean;
+}
+
+/**
+ * Props passed to a custom layout renderer. The `main` slot is the routed
+ * content (collections / editor / workflow / media library wrapper) already
+ * fully composed; consumers wrap it in whatever shell they want (sidebar,
+ * dashboard, breadcrumbs, footer). `headerProps` is the same payload supplied
+ * to `renderHeader` so a layout can co-render auxiliary nav from the same
+ * source of truth.
+ */
+export interface AppLayoutRenderProps {
+  main: React.ReactNode;
+  headerProps: AppHeaderRenderProps;
+}
+
+/**
+ * Props passed to a custom auth-page renderer. Receives the backend-supplied
+ * `AuthComponent` already constructed plus the handlers + state the default
+ * page wires into it; `AuthComponent` is `null` while the backend is still
+ * being resolved. Consumers can wrap, restyle, or fully replace the page.
+ */
+export interface AppAuthRenderProps {
+  AuthComponent: React.ComponentType<Record<string, unknown>> | null;
+  onLogin: (credentials: CmsCredentials) => void;
+  error?: string | null;
+  inProgress?: boolean;
+  config: CmsConfig;
+  clearHash: () => void;
+  t: TranslateFunction;
+}
+
+export interface AppContentProps {
+  /**
+   * Render a custom header in place of the default Decap header. Receives the
+   * same props the built-in `Header` consumes — auth user, collections, the
+   * media/quick-add/logout handlers, etc. Omit to use the default header.
+   */
+  renderHeader?: (props: AppHeaderRenderProps) => React.ReactNode;
+  /**
+   * Wrap the routed main content (everything below the header) in a custom
+   * layout — e.g. add a left sidebar, change the container width, inject a
+   * dashboard. Receives the already-composed routed content as `main`. Omit
+   * to use the default centered container.
+   */
+  renderLayout?: (props: AppLayoutRenderProps) => React.ReactNode;
+  /**
+   * Render a custom authentication page (or a wrapper around the backend's
+   * built-in one). Receives the backend's `AuthComponent` plus the standard
+   * login handlers. When `AuthComponent` is `null` the backend is still being
+   * resolved — show a waiting state or fall back. Omit for the default page.
+   */
+  renderAuth?: (props: AppAuthRenderProps) => React.ReactNode;
+  /**
+   * Replace the element rendered at `/`. By default, `/` redirects to the
+   * first non-hidden collection. Supply this to render a dashboard, an
+   * onboarding screen, or any other home view instead.
+   */
+  renderRoot?: () => React.ReactNode;
+  /**
+   * Inject additional `<Route>` elements into the router, just before the
+   * catch-all `NotFoundPage` route. Use to add custom pages (settings,
+   * analytics, docs). React-router walks fragments and arrays, so any group
+   * of `<Route>` elements is fine here.
+   */
+  extraRoutes?: React.ReactNode;
+  /**
+   * Render-slot overrides for deeper components (Collection, Editor,
+   * MediaLibrary, …). See `CmsSlots`. Omit to use the defaults everywhere.
+   */
+  slots?: CmsSlots;
+  /**
+   * Replace the toast notifications surface. Called from both the auth and
+   * post-login render paths, so a single override re-skins notifications
+   * everywhere. Omit to use the default `Notifications` component.
+   */
+  renderNotifications?: () => React.ReactNode;
+  /**
+   * Replace the 404 / not-found page rendered for unmatched routes. Omit to
+   * use the default `NotFoundPage`.
+   */
+  renderNotFound?: () => React.ReactNode;
+  /**
+   * Render a footer below the routed content (still inside the layout, so
+   * `renderLayout` controls the surrounding chrome). Omit for no footer.
+   */
+  renderFooter?: () => React.ReactNode;
+  /**
+   * Replace the screen shown while the CMS config is being loaded. Omit to
+   * use the default `Loader` component.
+   */
+  renderConfigLoading?: () => React.ReactNode;
+  /**
+   * Replace the screen shown when the CMS config has an error. Receives the
+   * raw error message string. Omit for the default error block.
+   */
+  renderConfigError?: (props: { error: string }) => React.ReactNode;
+  /**
+   * Replace the crash-fallback screen rendered by the root `ErrorBoundary`.
+   * Receives the error title, full message/stack, a pre-built Github issue
+   * URL, and (when `showBackup` is on) the recovered draft JSON.
+   */
+  renderError?: (props: ErrorBoundaryRenderProps) => React.ReactNode;
+}
 
 TopBarProgress.config({
   // Rendered to a <canvas>, which cannot resolve CSS `var()` tokens — use the
@@ -151,7 +276,19 @@ function EditRedirect() {
  * render it directly when you supply your own router, or use the default
  * `App` export which provides one.
  */
-function AppContent() {
+function AppContent({
+  renderHeader,
+  renderLayout,
+  renderAuth,
+  renderRoot,
+  extraRoutes,
+  slots,
+  renderNotifications,
+  renderNotFound,
+  renderFooter,
+  renderConfigLoading,
+  renderConfigError,
+}: AppContentProps = {}) {
   const t = useTranslate();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -207,7 +344,7 @@ function AppContent() {
   }, [navigate]);
 
   // Render helpers
-  const renderConfigError = useCallback(() => {
+  const renderDefaultConfigError = useCallback(() => {
     return (
       <ErrorContainer>
         <h1>{t('app.app.errorHeader')}</h1>
@@ -222,8 +359,29 @@ function AppContent() {
 
   const renderAuthenticating = useCallback(() => {
     const backend = currentBackend(config);
+    const AuthComponent =
+      backend == null
+        ? null
+        : (backend.authComponent() as any as React.ComponentType<Record<string, unknown>>);
 
-    if (backend == null) {
+    if (renderAuth) {
+      return (
+        <>
+          {renderNotifications ? renderNotifications() : <Notifications />}
+          {renderAuth({
+            AuthComponent,
+            onLogin: handleLogin,
+            error: auth.error,
+            inProgress: auth.isFetching,
+            config: config as CmsConfig,
+            clearHash: handleClearHash,
+            t,
+          })}
+        </>
+      );
+    }
+
+    if (AuthComponent == null) {
       return (
         <div>
           <h1>{t('app.app.waitingBackend')}</h1>
@@ -231,11 +389,9 @@ function AppContent() {
       );
     }
 
-    const AuthComponent = backend.authComponent() as any as React.ComponentType<any>;
-
     return (
       <div>
-        <Notifications />
+        {renderNotifications ? renderNotifications() : <Notifications />}
         <AuthComponent
           onLogin={handleLogin}
           error={auth.error}
@@ -249,7 +405,16 @@ function AppContent() {
         />
       </div>
     );
-  }, [config, auth.error, auth.isFetching, handleLogin, handleClearHash, t]);
+  }, [
+    config,
+    auth.error,
+    auth.isFetching,
+    handleLogin,
+    handleClearHash,
+    t,
+    renderAuth,
+    renderNotifications,
+  ]);
 
   // Early returns for loading/error states
   if (config === null) {
@@ -257,37 +422,43 @@ function AppContent() {
   }
 
   if (config.error) {
-    return renderConfigError();
+    return renderConfigError
+      ? <>{renderConfigError({ error: config.error })}</>
+      : renderDefaultConfigError();
   }
 
   if (config.isFetching) {
-    return <Loader active>{t('app.app.loadingConfig')}</Loader>;
+    return renderConfigLoading
+      ? <>{renderConfigLoading()}</>
+      : <Loader active>{t('app.app.loadingConfig')}</Loader>;
   }
 
   if (user == null) {
     return renderAuthenticating();
   }
 
-  return (
+  const headerProps: AppHeaderRenderProps = {
+    user,
+    collections,
+    onCreateEntryClick: createNewEntry,
+    onLogoutClick: handleLogout,
+    openMediaLibrary: handleOpenMediaLibrary,
+    hasWorkflow,
+    displayUrl: config.display_url,
+    logoUrl: config.logo?.src,
+    logo: config.logo,
+    isTestRepo: config.backend?.name === 'test-repo',
+    showMediaButton,
+  };
+
+  const routedContent = (
     <>
-      <Notifications />
-      <Header
-        user={user}
-        collections={collections}
-        onCreateEntryClick={createNewEntry}
-        onLogoutClick={handleLogout}
-        openMediaLibrary={handleOpenMediaLibrary}
-        hasWorkflow={hasWorkflow}
-        displayUrl={config.display_url}
-        logoUrl={config.logo?.src}
-        logo={config.logo}
-        isTestRepo={config.backend?.name === 'test-repo'}
-        showMediaButton={showMediaButton}
-      />
-      <AppMainContainer>
-        {isFetching && <TopBarProgress />}
-        <Routes>
-          <Route path="/" element={<Navigate to={defaultPath} replace />} />
+      {isFetching && <TopBarProgress />}
+      <Routes>
+          <Route
+            path="/"
+            element={renderRoot ? <>{renderRoot()}</> : <Navigate to={defaultPath} replace />}
+          />
           <Route path="/search/" element={<Navigate to={defaultPath} replace />} />
           <Route
             path="/collections/:name/search/"
@@ -351,11 +522,27 @@ function AppContent() {
               </RouteInCollectionGuard>
             }
           />
-          <Route path="*" element={<NotFoundPage />} />
+          {extraRoutes}
+          <Route
+            path="*"
+            element={renderNotFound ? <>{renderNotFound()}</> : <NotFoundPage />}
+          />
         </Routes>
         {useMediaLibraryFlag ? <MediaLibrary /> : null}
-      </AppMainContainer>
+        {renderFooter ? renderFooter() : null}
     </>
+  );
+
+  return (
+    <CmsSlotsProvider slots={slots}>
+      {renderNotifications ? renderNotifications() : <Notifications />}
+      {renderHeader ? renderHeader(headerProps) : <Header {...headerProps} />}
+      {renderLayout ? (
+        renderLayout({ main: routedContent, headerProps })
+      ) : (
+        <AppMainContainer>{routedContent}</AppMainContainer>
+      )}
+    </CmsSlotsProvider>
   );
 }
 
@@ -365,12 +552,37 @@ function AppContent() {
  * layout, render `AppContent` (or individual page components) inside your own
  * router instead.
  */
-function App() {
+function App({
+  renderHeader,
+  renderLayout,
+  renderAuth,
+  renderRoot,
+  extraRoutes,
+  slots,
+  renderNotifications,
+  renderNotFound,
+  renderFooter,
+  renderConfigLoading,
+  renderConfigError,
+  renderError,
+}: AppContentProps = {}) {
   const config = useAppSelector(state => state.config);
   return (
-    <ErrorBoundary showBackup config={config}>
+    <ErrorBoundary showBackup config={config} renderError={renderError}>
       <HistoryRouter history={history as any}>
-        <AppContent />
+        <AppContent
+          renderHeader={renderHeader}
+          renderLayout={renderLayout}
+          renderAuth={renderAuth}
+          renderRoot={renderRoot}
+          extraRoutes={extraRoutes}
+          slots={slots}
+          renderNotifications={renderNotifications}
+          renderNotFound={renderNotFound}
+          renderFooter={renderFooter}
+          renderConfigLoading={renderConfigLoading}
+          renderConfigError={renderConfigError}
+        />
       </HistoryRouter>
     </ErrorBoundary>
   );

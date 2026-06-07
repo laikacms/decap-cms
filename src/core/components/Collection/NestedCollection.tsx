@@ -43,7 +43,9 @@ const CaretRight = styled(Caret)`
   left: 2px;
 `;
 
-const TreeNavLink = styled(NavLink)<{ $depth: number }>`
+const TreeNavLink = styled(NavLink, {
+  shouldForwardProp: prop => prop !== '$depth',
+})<{ $depth: number }>`
   display: flex;
   font-size: 14px;
   font-weight: 500;

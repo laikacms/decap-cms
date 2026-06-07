@@ -6,6 +6,22 @@ import { Grid } from 'react-window';
 import { AutoSizer } from 'react-virtualized-auto-sizer';
 
 import MediaLibraryCard from './MediaLibraryCard';
+import { useCmsSlots } from '../../lib/slots';
+
+import type { MediaLibraryCardRenderProps } from '../../lib/slots';
+
+/**
+ * Picks between the slot-supplied media card renderer and the default
+ * `MediaLibraryCard`. Encapsulated as a small component so both grid
+ * call sites can share the hook lookup without prop drilling.
+ */
+function MediaCardSlot(props: MediaLibraryCardRenderProps) {
+  const { renderMediaLibraryCard } = useCmsSlots();
+  if (renderMediaLibraryCard) {
+    return <>{renderMediaLibraryCard(props)}</>;
+  }
+  return <MediaLibraryCard {...props} />;
+}
 
 interface MediaItem {
   displayURL?: string | Record<string, unknown>;
@@ -82,7 +98,7 @@ function CardWrapper(
         height: (typeof style.height === 'number' ? style.height : 0) - gutter,
       }}
     >
-      <MediaLibraryCard
+      <MediaCardSlot
         key={file.key}
         isSelected={isSelectedFile(file)}
         text={file.name}
@@ -176,7 +192,7 @@ function PaginatedGrid({
     <CardGridContainer ref={setScrollContainerRef}>
       <CardGrid>
         {mediaItems.map((file: MediaItem) => (
-          <MediaLibraryCard
+          <MediaCardSlot
             key={file.key}
             isSelected={isSelectedFile(file)}
             text={file.name}

@@ -6,6 +6,9 @@ import { Waypoint } from 'react-waypoint';
 import { selectFields, selectInferredField } from '../../../reducers/collections';
 import { filterNestedEntries } from './EntriesCollection';
 import EntryCard from './EntryCard';
+import { useCmsSlots } from '../../../lib/slots';
+
+import type { EntryCardRenderProps } from '../../../lib/slots';
 
 import type { CmsCollectionState, CmsCollections, CmsEntry } from '../../../../lib-util/index';
 import type { Cursor } from '../../../../lib-util/index';
@@ -66,6 +69,14 @@ function EntryListing({
   filterTerm,
 }: EntryListingProps) {
   const hasMore = cursor?.actions?.has('append_next');
+  const { renderEntryCard, renderEntryListEmpty } = useCmsSlots();
+
+  function renderEntry(props: EntryCardRenderProps, key: string | number) {
+    if (renderEntryCard) {
+      return <React.Fragment key={key}>{renderEntryCard(props)}</React.Fragment>;
+    }
+    return <EntryCard {...props} key={key} />;
+  }
 
   function handleLoadMore() {
     if (hasMore) {
@@ -120,9 +131,7 @@ function EntryListing({
         (collections as CmsCollectionState).name,
         entry.slug,
       );
-      return (
-        <EntryCard {...entryCardProps} entry={entry} workflowStatus={workflowStatus} key={idx} />
-      );
+      return renderEntry({ ...entryCardProps, entry, workflowStatus }, idx);
     });
   }
 
@@ -139,27 +148,38 @@ function EntryListing({
       const collectionLabel = !isSingleCollectionInList && collection.label;
       const fields = inferFields(collection);
       const workflowStatus = getWorkflowStatus?.(collectionName, entry.slug);
-      return (
-        <EntryCard
-          collection={collection}
-          entry={entry}
-          inferredFields={fields}
-          collectionLabel={collectionLabel}
-          workflowStatus={workflowStatus}
-          key={idx}
-        />
+      return renderEntry(
+        {
+          collection,
+          entry,
+          inferredFields: fields,
+          collectionLabel,
+          workflowStatus,
+        },
+        idx,
       );
     });
   }
 
+  const cards = isSingleCollection(collections)
+    ? renderCardsForSingleCollection()
+    : renderCardsForMultipleCollections();
+  const cardCount = Array.isArray(cards) ? cards.filter(Boolean).length : 0;
+  const showEmptyState =
+    !!renderEntryListEmpty && Array.isArray(cards) && cardCount === 0;
+
   return (
     <div>
-      <CardsGrid className="CardsGrid">
-        {isSingleCollection(collections)
-          ? renderCardsForSingleCollection()
-          : renderCardsForMultipleCollections()}
-        {hasMore && <Waypoint key={page} onEnter={handleLoadMore} />}
-      </CardsGrid>
+      {showEmptyState ? (
+        renderEntryListEmpty({
+          collection: isSingleCollection(collections) ? collections : undefined,
+        })
+      ) : (
+        <CardsGrid className="CardsGrid">
+          {cards}
+          {hasMore && <Waypoint key={page} onEnter={handleLoadMore} />}
+        </CardsGrid>
+      )}
     </div>
   );
 }

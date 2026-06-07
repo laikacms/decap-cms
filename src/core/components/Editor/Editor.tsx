@@ -1,15 +1,17 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { Loader } from '../../../ui-default/index';
 
 import { useEditor } from '../../hooks/useEditor';
 import EditorInterface from './EditorInterface';
+import { useCmsSlots } from '../../lib/slots';
 
 interface EditorProps {
   newRecord?: boolean;
 }
 
 function Editor({ newRecord = false }: EditorProps) {
+  const { renderLoader } = useCmsSlots();
   const params = useParams<{ name: string; '*'?: string }>();
   const location = useLocation();
   const collectionName = params.name!;
@@ -19,8 +21,6 @@ function Editor({ newRecord = false }: EditorProps) {
   // Track previous values for update logic
   const prevLocalBackupRef = useRef<unknown>(undefined);
   const prevEntryRef = useRef<unknown>(undefined);
-  const setupDoneRef = useRef(false);
-  const cleanupRef = useRef<(() => void) | null>(null);
 
   const editor = useEditor({
     collectionName,
@@ -66,18 +66,27 @@ function Editor({ newRecord = false }: EditorProps) {
     t,
   } = editor;
 
-  // Setup on first render (replaces componentDidMount)
-  // Using useMemo to run setup synchronously on first render
-  useMemo(() => {
-    if (!setupDoneRef.current && collection) {
-      setupDoneRef.current = true;
-      const result = setup();
-      cleanupRef.current = result.cleanup;
-    }
-  }, [collection, setup]);
+  // Setup on mount and teardown on unmount (replaces componentDidMount /
+  // componentWillUnmount). Side effects must run in an effect, not during
+  // render: `setup()` dispatches Redux actions, and dispatching while
+  // rendering triggers React's "cannot update a component while rendering a
+  // different component" warning (the store update reaches subscribed parents
+  // like AppContent mid-render).
+  //
+  // Keyed on the edited-entry identity rather than `setup`'s identity: `setup`
+  // is a useCallback whose deps include `entryDraft`, so it changes on every
+  // keystroke — depending on it would re-run history.block()/loadEntries on
+  // every edit. We want the once-per-entry semantics of the old lifecycle.
+  const editKey = `${collectionName}/${slug ?? ''}/${newEntry}`;
+  useEffect(() => {
+    if (!collection) return;
+    const result = setup();
+    return result.cleanup;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editKey]);
 
   // Handle local backup check (replaces componentDidUpdate for localBackup)
-  useMemo(() => {
+  useEffect(() => {
     if (prevLocalBackupRef.current !== localBackup) {
       handleLocalBackupCheck(prevLocalBackupRef.current);
       prevLocalBackupRef.current = localBackup;
@@ -85,22 +94,17 @@ function Editor({ newRecord = false }: EditorProps) {
   }, [localBackup, handleLocalBackupCheck]);
 
   // Handle backup on change (replaces componentDidUpdate for hasChanged)
-  useMemo(() => {
+  useEffect(() => {
     handleBackupOnChange();
   }, [handleBackupOnChange]);
 
   // Handle entry change (replaces componentDidUpdate for entry)
-  useMemo(() => {
+  useEffect(() => {
     if (prevEntryRef.current !== entry) {
       handleEntryChange(prevEntryRef.current);
       prevEntryRef.current = entry;
     }
   }, [entry, handleEntryChange]);
-
-  // Cleanup handler - store in ref for external cleanup if needed
-  // Note: Without useEffect, cleanup must be handled differently
-  // The setup function returns a cleanup that should be called when navigating away
-  // This is handled by the history listener in the setup function
 
   const isPublished = !newEntry && !unpublishedEntry;
 
@@ -118,7 +122,11 @@ function Editor({ newRecord = false }: EditorProps) {
     (entryDraft as any).entry === undefined ||
     (entry && (entry as any).isFetching)
   ) {
-    return <Loader active>{t('editor.editor.loadingEntry')}</Loader>;
+    return renderLoader ? (
+      <>{renderLoader({ label: t('editor.editor.loadingEntry'), context: 'entry' })}</>
+    ) : (
+      <Loader active>{t('editor.editor.loadingEntry')}</Loader>
+    );
   }
 
   return (

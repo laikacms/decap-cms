@@ -42,9 +42,6 @@ describe('media', () => {
 
       const payload = { collection: null, entryPath: null, entry: null, path: null };
 
-      // TODO change to proper payload when immutable is removed
-      //  from 'collections' and 'entries' state slices
-
       // @ts-expect-error -- TODO: fix underlying type issue
       const result = store.dispatch(getAsset(payload));
       const actions = store.getActions();
@@ -56,9 +53,6 @@ describe('media', () => {
       const path = 'static/media/image.png';
       const asset = new AssetProxy({ file: new File([], 'empty'), path });
       const store = mockStore({
-        // TODO change to proper store data when immutable is removed
-        //  from 'config' state slice
-
         // @ts-expect-error -- TODO: fix underlying type issue
         config: {},
         medias: {
@@ -68,9 +62,6 @@ describe('media', () => {
 
       mockedSelectMediaFilePath.mockReturnValue(path);
       const payload = { collection: {}, entry: { path: 'entryPath' }, path };
-
-      // TODO change to proper payload when immutable is removed
-      //  from 'collections' and 'entries' state slices
 
       // @ts-expect-error -- TODO: fix underlying type issue
       const result = store.dispatch(getAsset(payload));
@@ -99,9 +90,6 @@ describe('media', () => {
       mockedSelectMediaFilePath.mockReturnValue(path);
       const payload = { collection: null, entryPath: null, path };
 
-      // TODO change to proper payload when immutable is removed
-      //  from 'collections' state slice
-
       // @ts-expect-error -- TODO: fix underlying type issue
       const result = store.dispatch(getAsset(payload));
       const actions = store.getActions();
@@ -121,9 +109,6 @@ describe('media', () => {
 
       mockedSelectMediaFilePath.mockReturnValue(path);
       const payload = { path };
-
-      // TODO change to proper payload when immutable is removed
-      //  from 'collections' and 'entries' state slices
 
       // @ts-expect-error -- TODO: fix underlying type issue
       const result = store.dispatch(getAsset(payload));
@@ -151,9 +136,6 @@ describe('media', () => {
 
       mockedSelectMediaFilePath.mockReturnValue(resolvePath);
       const payload = { path };
-
-      // TODO change to proper payload when immutable is removed
-      //  from 'collections' and 'entries' state slices
 
       // @ts-expect-error -- TODO: fix underlying type issue
       const result = store.dispatch(getAsset(payload));

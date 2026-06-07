@@ -17,8 +17,10 @@ import {
   selectGroups,
 } from '../../../reducers/entries';
 import { selectUnpublishedEntry, selectUnpublishedEntriesByStatus } from '../../../reducers';
-import { selectCollectionEntriesCursor } from '../../../reducers/cursors';
 import Entries from './Entries';
+import { useStore } from 'react-redux';
+// `selectCollectionEntriesCursor` builds a fresh `Cursor` per call; we select
+// the raw stored data below and construct the `Cursor` in a memo instead.
 import { useAppDispatch, useAppSelector } from '../../../hooks/useRedux';
 
 import type { Status } from '../../../constants/publishModes';
@@ -235,18 +237,27 @@ export default function ConnectedEntriesCollection({
   const isFetching = useAppSelector((state: any) =>
     selectIsFetching(state.entries, collection.name),
   );
-  const rawCursor = useAppSelector((state: any) =>
-    selectCollectionEntriesCursor(state.cursors as any, collection.name),
+  // Select the raw stored cursor data (a stable reference); the `Cursor`
+  // instance is built in the memo below so the selector stays referentially
+  // stable across unrelated dispatches.
+  const rawCursorStore = useAppSelector(
+    (state: any) => state.cursors?.cursorsByType?.collectionEntries?.[collection.name],
   );
-  const cursor = React.useMemo(() => Cursor.create(rawCursor).clearData(), [rawCursor]);
+  const cursor = React.useMemo(
+    () => new Cursor(rawCursorStore ?? {}).clearData(),
+    [rawCursorStore],
+  );
   const isEditorialWorkflowEnabled = useAppSelector(
     (state: any) => state.config?.publish_mode === 'editorial_workflow',
   );
 
-  const store = useAppSelector((state: any) => state);
+  // Read state lazily via the store instead of subscribing to the whole root
+  // state: these callbacks only need a snapshot when invoked, and subscribing
+  // to `(state) => state` would re-render this component on every dispatch.
+  const store = useStore();
   const getWorkflowStatus = React.useCallback(
     (collectionName: string, slug: string) => {
-      const unpublishedEntry = selectUnpublishedEntry(store, collectionName, slug);
+      const unpublishedEntry = selectUnpublishedEntry(store.getState(), collectionName, slug);
       return unpublishedEntry ? (unpublishedEntry as any).status : null;
     },
     [store],
@@ -257,7 +268,7 @@ export default function ConnectedEntriesCollection({
       const allStatuses: Status[] = ['DRAFT', 'PENDING_REVIEW', 'PENDING_PUBLISH'];
       const unpublishedEntries: CmsEntry[] = [];
       allStatuses.forEach(statusKey => {
-        const entriesForStatus = selectUnpublishedEntriesByStatus(store, statusKey);
+        const entriesForStatus = selectUnpublishedEntriesByStatus(store.getState(), statusKey);
         if (entriesForStatus) {
           entriesForStatus.forEach((entry: any) => {
             if (entry.collection === collectionName) {

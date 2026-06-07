@@ -21,12 +21,34 @@ export type { DecapTheme } from '../ui-default/index';
  * the building blocks for assembling a custom layout.
  */
 export { default as App, AppContent } from './components/App/App';
+export type {
+  AppContentProps,
+  AppHeaderRenderProps,
+  AppLayoutRenderProps,
+  AppAuthRenderProps,
+} from './components/App/App';
+export { CmsSlotsProvider, useCmsSlots } from './lib/slots';
+export type {
+  CmsSlots,
+  CollectionTopRenderProps,
+  CollectionSidebarRenderProps,
+  CollectionControlsRenderProps,
+  EntryCardRenderProps,
+  EntryListEmptyRenderProps,
+  LoaderRenderProps,
+  WorkflowCardRenderProps,
+  EditorToolbarRenderProps,
+  EditorViewControlsRenderProps,
+  MediaLibraryCardRenderProps,
+  MediaLibraryTopRenderProps,
+} from './lib/slots';
 export { default as Header } from './components/App/Header';
 export { default as Collection } from './components/Collection/Collection';
 export { default as Editor } from './components/Editor/Editor';
 export { default as Workflow } from './components/Workflow/Workflow';
 export { default as MediaLibrary } from './components/MediaLibrary/MediaLibrary';
 export { ErrorBoundary, Notifications } from './components/UI';
+export type { ErrorBoundaryRenderProps } from './components/UI';
 
 /**
  * Hooks for reading and interacting with the CMS state as a consumer.

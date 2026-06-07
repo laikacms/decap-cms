@@ -138,11 +138,31 @@ function RecoveredEntry({ entry, t }: { entry: string; t: TranslateFunction }) {
   );
 }
 
+/**
+ * Props passed to a custom error renderer. Consumers that supply `renderError`
+ * to `ErrorBoundary` receive the same data the default screen uses, plus the
+ * Github issue URL pre-computed so the renderer stays presentational.
+ */
+export interface ErrorBoundaryRenderProps {
+  errorTitle: string;
+  errorMessage: string;
+  /** Pre-built Github issue URL for this error and config. */
+  issueUrl: string;
+  /** Recovered draft JSON, if any. Only populated when `showBackup` is on. */
+  backup?: string;
+}
+
 interface ErrorBoundaryProps {
   children?: React.ReactNode;
   showBackup?: boolean;
   t: TranslateFunction;
   config: CmsConfig;
+  /**
+   * Replace the default error screen with a custom render. When provided
+   * and the boundary has caught an error, this is rendered in place of the
+   * default `<ErrorBoundaryContainer>` layout.
+   */
+  renderError?: (props: ErrorBoundaryRenderProps) => React.ReactNode;
 }
 
 export class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
@@ -181,9 +201,17 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
 
   render() {
     const { hasError, errorMessage, backup, errorTitle } = this.state;
-    const { showBackup, t } = this.props;
+    const { showBackup, t, renderError } = this.props;
     if (!hasError) {
       return this.props.children;
+    }
+    if (renderError) {
+      return renderError({
+        errorTitle,
+        errorMessage,
+        issueUrl: buildIssueUrl({ title: errorTitle, config: this.props.config }),
+        backup: showBackup ? backup : undefined,
+      });
     }
     return (
       <ErrorBoundaryContainer>
@@ -203,10 +231,10 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
           {t('ui.errorBoundary.privacyWarning')
             .split('\n')
             .map((item, index) => (
-              <>
-                <PrivacyWarning key={index}>{item}</PrivacyWarning>
+              <React.Fragment key={index}>
+                <PrivacyWarning>{item}</PrivacyWarning>
                 <br />
-              </>
+              </React.Fragment>
             ))}
         </p>
         <hr />

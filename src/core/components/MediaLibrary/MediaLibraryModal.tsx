@@ -9,6 +9,7 @@ import { Modal } from '../UI';
 import MediaLibraryTop from './MediaLibraryTop';
 import MediaLibraryCardGrid from './MediaLibraryCardGrid';
 import EmptyMessage from './EmptyMessage';
+import { useCmsSlots } from '../../lib/slots';
 
 import type { TranslateFunction } from '../../../ui-default/index';
 
@@ -148,6 +149,7 @@ function MediaLibraryModal({
   displayURLs,
   t,
 }: MediaLibraryModalProps) {
+  const { renderMediaLibraryTop } = useCmsSlots();
   const filteredFiles = forImage ? handleFilter(files) : files;
   const queriedFiles = !dynamicSearch && query ? handleQuery(query, filteredFiles) : filteredFiles;
   const tableData = toTableData(queriedFiles);
@@ -167,30 +169,34 @@ function MediaLibraryModal({
 
   return (
     <StyledModal isOpen={!!isVisible} onClose={handleClose} $isPrivate={privateUpload}>
-      <MediaLibraryTop
-        t={t}
-        onClose={handleClose}
-        privateUpload={privateUpload}
-        forImage={forImage}
-        onDownload={handleDownload ?? (() => {})}
-        onUpload={handlePersist}
-        query={query}
-        onSearchChange={handleSearchChange}
-        onSearchKeyDown={handleSearchKeyDown}
-        searchDisabled={!dynamicSearchActive && !hasFilteredFiles}
-        onDelete={handleDelete}
-        canInsert={canInsert}
-        onInsert={handleInsert}
-        hasSelection={hasSelection}
-        isPersisting={isPersisting}
-        isDeleting={isDeleting}
-        selectedFile={
-          selectedFile as
+      {(() => {
+        const topProps = {
+          onClose: handleClose,
+          privateUpload,
+          forImage,
+          onDownload: handleDownload ?? (() => {}),
+          onUpload: handlePersist,
+          query,
+          onSearchChange: handleSearchChange,
+          onSearchKeyDown: handleSearchKeyDown,
+          searchDisabled: !dynamicSearchActive && !hasFilteredFiles,
+          onDelete: handleDelete,
+          canInsert,
+          onInsert: handleInsert,
+          hasSelection,
+          isPersisting,
+          isDeleting,
+          selectedFile: selectedFile as
             | { path: string; draft: boolean; name: string }
             | Record<string, never>
-            | undefined
-        }
-      />
+            | undefined,
+        };
+        return renderMediaLibraryTop ? (
+          renderMediaLibraryTop(topProps)
+        ) : (
+          <MediaLibraryTop {...topProps} t={t} />
+        );
+      })()}
       {!shouldShowEmptyMessage ? null : (
         <EmptyMessage content={emptyMessage || ''} isPrivate={privateUpload} />
       )}

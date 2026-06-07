@@ -6,7 +6,7 @@ import ValidationErrorTypes from '../../../constants/validationErrorTypes';
 
 import type { TranslateFunction } from '../../../../ui-default/index';
 
-// Local type definitions (migrated from cms-immutable)
+// Local type definitions
 interface ValidationError {
   type: string;
   parentIds?: string[];

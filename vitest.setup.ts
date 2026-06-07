@@ -10,10 +10,8 @@ vi.mock('path', async () => {
   };
 });
 
-// Mock fetch
-import fetch from 'node-fetch';
-// @ts-expect-error - node-fetch types don't match exactly
-globalThis.fetch = fetch;
+// Modern Node provides a global `fetch`; the previous `node-fetch` shim is no
+// longer needed after the monorepo flatten dropped node-fetch as a root dep.
 
 // Mock URL.createObjectURL
 URL.createObjectURL = vi.fn();

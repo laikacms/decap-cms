@@ -20,6 +20,7 @@ type EntryField = CmsEntryField;
 import EditorControlPane, { type ControlPaneHandle } from './EditorControlPane/EditorControlPane';
 import EditorPreviewPane from './EditorPreviewPane/EditorPreviewPane';
 import EditorToolbar from './EditorToolbar';
+import { useCmsSlots } from '../../lib/slots';
 import { hasI18n, getI18nInfo, getPreviewEntry } from '../../lib/i18n';
 import { FILES } from '../../constants/collectionTypes';
 import { getFileFromSlug } from '../../reducers/collections';
@@ -98,6 +99,14 @@ const StyledSplitPane = styled(SplitPane as any)`
 
 const NoPreviewContainer = styled.div`
   ${styles.splitPane};
+`;
+
+// Wrapper between `Editor` and the split pane. Must be full-height: the split
+// pane and its panes are `height: 100%`, so without a definite-height parent
+// the percentage collapses and the preview pane (Pane2), whose only content is
+// the ~150px-intrinsic iframe, shrinks instead of filling the editor.
+const SplitPaneWrapper = styled.div`
+  height: 100%;
 `;
 
 const EditorContainer = styled.div`
@@ -211,6 +220,7 @@ interface EditorInterfaceProps {
 type ControlPaneRef = ControlPaneHandle;
 
 function EditorInterface(props: EditorInterfaceProps) {
+  const { renderEditorToolbar, renderEditorViewControls } = useCmsSlots();
   const {
     collection,
     entry,
@@ -350,7 +360,7 @@ function EditorInterface(props: EditorInterfaceProps) {
 
   const editorWithPreview = (
     <ScrollSync enabled={scrollSyncEnabled}>
-      <div>
+      <SplitPaneWrapper>
         <ReactSplitPaneGlobalStyles />
         <StyledSplitPane
           maxSize={-100}
@@ -376,13 +386,13 @@ function EditorInterface(props: EditorInterfaceProps) {
             </PreviewPaneContainer>
           </Pane>
         </StyledSplitPane>
-      </div>
+      </SplitPaneWrapper>
     </ScrollSync>
   );
 
   const editorWithEditor = (
     <ScrollSync enabled={scrollSyncEnabled}>
-      <div>
+      <SplitPaneWrapper>
         <StyledSplitPane
           maxSize={-100}
           defaultSize={parseInt(localStorage.getItem(SPLIT_PANE_POSITION) || '0', 10) || '50%'}
@@ -397,7 +407,7 @@ function EditorInterface(props: EditorInterfaceProps) {
             <ScrollSyncPane>{editor2}</ScrollSyncPane>
           </Pane>
         </StyledSplitPane>
-      </div>
+      </SplitPaneWrapper>
     </ScrollSync>
   );
 
@@ -405,71 +415,93 @@ function EditorInterface(props: EditorInterfaceProps) {
   const previewVisibleResolved = previewEnabled && previewVisible;
   const scrollSyncVisible = i18nVisible || previewVisibleResolved;
 
+  const toolbarProps = {
+    isPersisting: entry.isPersisting,
+    isPublishing: (entry as any).isPublishing,
+    isUpdatingStatus: (entry as any).isUpdatingStatus,
+    isDeleting: (entry as any).isDeleting,
+    onPersist: handleOnPersist,
+    onPersistAndNew: () => handleOnPersist({ createNew: true }),
+    onPersistAndDuplicate: () => handleOnPersist({ createNew: true, duplicate: true }),
+    onDelete,
+    onDeleteUnpublishedChanges,
+    onChangeStatus,
+    showDelete,
+    onPublish,
+    unPublish,
+    onDuplicate,
+    onPublishAndNew: () => handleOnPublish({ createNew: true }),
+    onPublishAndDuplicate: () => handleOnPublish({ createNew: true, duplicate: true }),
+    user,
+    hasChanged,
+    displayUrl,
+    collection,
+    hasWorkflow,
+    useOpenAuthoring,
+    hasUnpublishedChanges,
+    isNewEntry,
+    isModification,
+    currentStatus,
+    onLogoutClick,
+    loadDeployPreview,
+    deployPreview,
+    editorBackLink: editorBackLink || '',
+  };
+
   return (
     <EditorContainer>
-      {React.createElement(EditorToolbar as any, {
-        isPersisting: entry.isPersisting,
-        isPublishing: (entry as any).isPublishing,
-        isUpdatingStatus: (entry as any).isUpdatingStatus,
-        isDeleting: (entry as any).isDeleting,
-        onPersist: handleOnPersist,
-        onPersistAndNew: () => handleOnPersist({ createNew: true }),
-        onPersistAndDuplicate: () => handleOnPersist({ createNew: true, duplicate: true }),
-        onDelete,
-        onDeleteUnpublishedChanges,
-        onChangeStatus,
-        showDelete,
-        onPublish,
-        unPublish,
-        onDuplicate,
-        onPublishAndNew: () => handleOnPublish({ createNew: true }),
-        onPublishAndDuplicate: () => handleOnPublish({ createNew: true, duplicate: true }),
-        user,
-        hasChanged,
-        displayUrl,
-        collection,
-        hasWorkflow,
-        useOpenAuthoring,
-        hasUnpublishedChanges,
-        isNewEntry,
-        isModification,
-        currentStatus,
-        onLogoutClick,
-        loadDeployPreview,
-        deployPreview,
-        editorBackLink: editorBackLink || '',
-        t,
-      })}
+      {renderEditorToolbar
+        ? renderEditorToolbar(toolbarProps as any)
+        : React.createElement(EditorToolbar as any, { ...toolbarProps, t })}
       <Editor key={draftKey}>
-        <ViewControls>
-          {collectionI18nEnabled && (
-            <EditorToggle
-              isActive={i18nVisible}
-              onClick={handleToggleI18n}
-              size="large"
-              type="page"
-              title={t('editor.editorInterface.toggleI18n')}
-            />
-          )}
-          {previewEnabled && (
-            <EditorToggle
-              isActive={previewVisibleResolved}
-              onClick={handleTogglePreview}
-              size="large"
-              type="eye"
-              title={t('editor.editorInterface.togglePreview')}
-            />
-          )}
-          {scrollSyncVisible && !(collection as any).editor?.visualEditing && (
-            <EditorToggle
-              isActive={scrollSyncEnabled}
-              onClick={handleToggleScrollSync}
-              size="large"
-              type="scroll"
-              title={t('editor.editorInterface.toggleScrollSync')}
-            />
-          )}
-        </ViewControls>
+        {(() => {
+          const viewControlsProps = {
+            i18nEnabled: !!collectionI18nEnabled,
+            i18nVisible: !!i18nVisible,
+            onToggleI18n: handleToggleI18n,
+            previewEnabled: !!previewEnabled,
+            previewVisible: !!previewVisibleResolved,
+            onTogglePreview: handleTogglePreview,
+            scrollSyncEnabled: !!scrollSyncEnabled,
+            scrollSyncVisible:
+              !!scrollSyncVisible && !(collection as any).editor?.visualEditing,
+            onToggleScrollSync: handleToggleScrollSync,
+          };
+          if (renderEditorViewControls) {
+            return renderEditorViewControls(viewControlsProps);
+          }
+          return (
+            <ViewControls>
+              {collectionI18nEnabled && (
+                <EditorToggle
+                  isActive={i18nVisible}
+                  onClick={handleToggleI18n}
+                  size="large"
+                  type="page"
+                  title={t('editor.editorInterface.toggleI18n')}
+                />
+              )}
+              {previewEnabled && (
+                <EditorToggle
+                  isActive={previewVisibleResolved}
+                  onClick={handleTogglePreview}
+                  size="large"
+                  type="eye"
+                  title={t('editor.editorInterface.togglePreview')}
+                />
+              )}
+              {scrollSyncVisible && !(collection as any).editor?.visualEditing && (
+                <EditorToggle
+                  isActive={scrollSyncEnabled}
+                  onClick={handleToggleScrollSync}
+                  size="large"
+                  type="scroll"
+                  title={t('editor.editorInterface.toggleScrollSync')}
+                />
+              )}
+            </ViewControls>
+          );
+        })()}
         <EditorContent
           i18nVisible={!!i18nVisible}
           previewVisible={!!previewVisibleResolved}
