@@ -78,12 +78,17 @@ Not blocking the restructure, but they belong in the next pass:
   `codemods/`, `functions/`, `img/`, `scripts/` were all aimed at the old
   workspace. Most can be deleted; the ones we want to keep (e.g. a demo for
   manual sanity testing) need to be re-pointed at the new src/ layout.
-- **Remove `scripts/test-package-integrity.mjs`** — checked per-package
-  `package.json#main`, no longer relevant.
-- **vitest config**. `vitest.config.ts` probably still references
-  `packages/**`. Update to `src/**`.
-- **ESLint config**. `eslint.config.mjs` lints `packages/**`; switch to
-  `src/**`.
+  (Partly done: the broken `packages/decap-cms-locales` import in
+  `cypress/utils/dismiss-local-backup.ts` now points at `src/locales`.)
+- ~~Remove `scripts/test-package-integrity.mjs`~~ — done (deleted).
+- ~~vitest config references `packages/**`~~ — done; dead `decap-cms-*`
+  aliases removed from `vitest.config.ts`.
+- ~~ESLint config lints `packages/**`~~ — done; config repaired to read
+  `src/**`, missing plugins added, import-x resolver wired up.
+- **Publish workflow**. `.github/workflows/publish.yml` still calls `lerna`
+  (`lerna ls`, `npm run lerna:publish`), but `lerna.json`, the `lerna`
+  dependency, and the `lerna:publish` script are all gone. The single-package
+  publish flow needs to be defined and the workflow rewritten.
 - **Sort the deps**. The hoisted `dependencies` block was picked from the
   per-package lists with conflict-resolution favoring the catalog where one
   existed. The widget-markdown / widget-richtext conflicts (older
