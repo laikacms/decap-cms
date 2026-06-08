@@ -58,47 +58,38 @@ old `decap-cms-app` bootstrap).
 
 ## Stubs and empty entries
 
-Five packages had no `src/` directory in the v4.beta state we forked from:
-
-- `lexical-core`, `lexical-format-contentful-rtf`, `lexical-format-html`,
-  `lexical-format-markdown`, `lexical-format-portabletext` — the Lexical
-  WYSIWYG stack was scaffolded but never implemented.
-- `lib-domain` — empty.
-- `widget-lexicaleditor` — also empty.
-
-These are **not** in the `exports` map. If you want to revive any of them,
-add the `src/<name>/index.ts`, restore the dependency in the root
-`package.json`, and add the subpath to `exports`.
+Five packages had no `src/` directory in the v4.beta state we forked from
+(the never-implemented Lexical WYSIWYG stack — `lexical-core`,
+`lexical-format-*`, `widget-lexicaleditor` — plus the empty `lib-domain`).
+These have since been deleted; revive from git history if needed.
 
 ## Known follow-ups
 
 Not blocking the restructure, but they belong in the next pass:
 
-- **Strip cypress/dev-test plumbing**. `cypress/`, `dev-test/`, `__mocks__/`,
-  `codemods/`, `functions/`, `img/`, `scripts/` were all aimed at the old
-  workspace. Most can be deleted; the ones we want to keep (e.g. a demo for
-  manual sanity testing) need to be re-pointed at the new src/ layout.
-  (Partly done: the broken `packages/decap-cms-locales` import in
-  `cypress/utils/dismiss-local-backup.ts` now points at `src/locales`.)
+- ~~Strip dead plumbing~~ — done. Removed `__mocks__/` (jest leftover),
+  `functions/` (orphan Slack webhook, no netlify config), `codemods/`, and
+  unused `img/` badges. `dev-test/` is kept — it's the live demo, served by
+  the `dev`/`serve:dev-test` scripts. The broken
+  `packages/decap-cms-locales` import in `cypress/utils/dismiss-local-backup.ts`
+  now points at `src/locales`.
 - ~~Remove `scripts/test-package-integrity.mjs`~~ — done (deleted).
 - ~~vitest config references `packages/**`~~ — done; dead `decap-cms-*`
   aliases removed from `vitest.config.ts`.
 - ~~ESLint config lints `packages/**`~~ — done; config repaired to read
   `src/**`, missing plugins added, import-x resolver wired up.
-- **Publish workflow**. `.github/workflows/publish.yml` still calls `lerna`
-  (`lerna ls`, `npm run lerna:publish`), but `lerna.json`, the `lerna`
-  dependency, and the `lerna:publish` script are all gone. The single-package
-  publish flow needs to be defined and the workflow rewritten.
-- **Sort the deps**. The hoisted `dependencies` block was picked from the
-  per-package lists with conflict-resolution favoring the catalog where one
-  existed. The widget-markdown / widget-richtext conflicts (older
-  `mdast-util-to-string`, `unified` 9 vs 11, etc.) were resolved in favor of
-  the catalog. If those widgets break at runtime, pin the older versions
-  inline (override the catalog) rather than splitting back into packages.
-- **`overrides`/`resolutions` review**. Inherited the old `clean-stack` and
-  `react-redux` resolutions; verify they're still load-bearing.
-- **The lexical stubs** (above) — decide whether to delete them outright or
-  finish implementing them.
+- ~~Publish + CI workflows~~ — done. `publish.yml` rewritten for the single
+  `@laikacms/decap` package (pnpm install/build/test, `v*` tag trigger,
+  `npm publish --provenance --access public` via OIDC). `nodejs.yml` switched
+  from `npm ci` to pnpm and now runs the new `test:ci` script. The Cypress
+  e2e job was dropped — its orchestration scripts (`test:e2e:run-ci`,
+  `test:package-integrity`) are gone; rebuild it for the `src/` layout when
+  e2e coverage is wanted again.
+- ~~Sort the deps~~ — the `dependencies` block is already alphabetised.
+- ~~`overrides`/`resolutions` review~~ — done; removed the dead `clean-stack`
+  pin (not in the dependency tree, and pnpm reads `pnpm.overrides`, not the
+  npm/yarn fields anyway).
+- ~~The lexical stubs~~ — deleted (see above).
 
 ## Why this shape
 

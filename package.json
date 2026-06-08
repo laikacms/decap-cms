@@ -49,6 +49,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:ci": "pnpm run lint && pnpm run typecheck && pnpm run test",
     "clean": "rimraf dist .turbo",
     "prepare": "husky install"
   },
@@ -375,12 +376,6 @@
       "import": "./dist/widget-text/index.js"
     },
     "./package.json": "./package.json"
-  },
-  "resolutions": {
-    "clean-stack": "5.2.0"
-  },
-  "overrides": {
-    "clean-stack": "5.2.0"
   },
   "packageManager": "pnpm@9.15.9"
 }

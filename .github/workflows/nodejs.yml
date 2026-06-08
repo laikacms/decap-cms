@@ -9,25 +9,12 @@ on:
     branches:
       - main
       - master
+      - v4.beta
   pull_request:
     types: [opened, synchronize, reopened]
 
 jobs:
-  changes:
-    runs-on: ubuntu-latest
-    outputs:
-      cms: ${{ steps.filter.outputs.cms }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          filters: |
-            cms:
-              - '!website/**'
-
   build-unit:
-    needs: changes
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -37,69 +24,27 @@ jobs:
           - os: ubuntu-latest
             node-version: 22.x
       fail-fast: true
-    if: ${{ needs.changes.outputs.cms == 'true' }}
     steps:
       - uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           check-latest: true
-          cache: 'npm'
+          cache: 'pnpm'
       - name: log versions
-        run: node --version && npm --version
+        run: node --version && pnpm --version
       - name: install dependencies (skip Cypress binary)
-        run: npm ci
+        run: pnpm install --frozen-lockfile
         env:
           CYPRESS_INSTALL_BINARY: 0
       - name: run lint + types + unit tests
-        run: npm run test:ci
+        run: pnpm run test:ci
 
-  e2e:
-    needs: changes
-    if: ${{ needs.changes.outputs.cms == 'true' }}
-    runs-on: depot-ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - name: Use Node.js 24.x
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24.x
-          check-latest: true
-          cache: 'npm'
-      - name: Cache Nx local cache
-        uses: actions/cache@v4
-        with:
-          path: .nx/cache
-          key: nx-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            nx-${{ runner.os }}-
-      - name: Cache Cypress binary
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/Cypress
-          key: cypress-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            cypress-${{ runner.os }}-
-      - name: install dependencies
-        run: npm ci
-      - name: build demo site
-        run: npm run build:demo
-      - name: test package integrity
-        run: npm run test:package-integrity
-      - name: run e2e tests
-        run: npm run test:e2e:run-ci
-        env:
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-          NODE_OPTIONS: --max-old-space-size=4096
-          TZ: Europe/Amsterdam
-          GITHUB_EVENT_NAME: ${{ github.event_name }}
-          GITHUB_BASE_REF: ${{ github.base_ref }}
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: cypress-results
-          path: |
-            cypress/screenshots
-            cypress/videos
-
+  # NOTE: the Cypress e2e job was dropped during the single-package restructure.
+  # Its orchestration scripts (test:e2e:run-ci, test:package-integrity) were
+  # removed along with the old workspace, so the job could no longer run. Restore
+  # a pnpm-based e2e job once the cypress + mockserver run scripts are rebuilt for
+  # the src/ layout.

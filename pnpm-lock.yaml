@@ -449,9 +449,6 @@ catalogs:
       specifier: ^4.1.2
       version: 4.1.2
 
-overrides:
-  clean-stack: 5.2.0
-
 importers:
 
   .:
