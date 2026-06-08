@@ -661,9 +661,9 @@ export class Backend {
     const entries = await Promise.all(collectionEntriesRequests).then(arrays => flatten(arrays));
 
     if (errors.length > 0) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      throw new Error({ message: 'Errors occurred while searching entries locally!', errors });
+      throw Object.assign(new Error('Errors occurred while searching entries locally!'), {
+        errors,
+      });
     }
 
     const hits = entries
