@@ -2,14 +2,12 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { Waypoint } from 'react-waypoint';
 
-
 import { selectFields, selectInferredField } from '../../../reducers/collections';
 import { filterNestedEntries } from './EntriesCollection';
 import EntryCard from './EntryCard';
 import { useCmsSlots } from '../../../lib/slots';
 
 import type { EntryCardRenderProps } from '../../../lib/slots';
-
 import type { CmsCollectionState, CmsCollections, CmsEntry } from '../../../../lib-util/index';
 import type { Cursor } from '../../../../lib-util/index';
 
@@ -41,9 +39,7 @@ function isSingleCollection(
   // `folder_based_collection` or `file_based_collection`) and a `name`.
   // The earlier `'fields' in collections` check incorrectly returned false
   // for file-based collections, which carry `files` instead.
-  return (
-    'name' in collections && typeof (collections as CmsCollectionState).type === 'string'
-  );
+  return 'name' in collections && typeof (collections as CmsCollectionState).type === 'string';
 }
 
 function inferFields(collection: CmsCollectionState) {
@@ -52,8 +48,7 @@ function inferFields(collection: CmsCollectionState) {
   const imageField = selectInferredField(collection, 'image');
   const fields = selectFields(collection, '');
   const inferred = [titleField, descriptionField, imageField];
-  const remainingFields =
-    fields && fields.filter(f => inferred.indexOf((f as any).name) === -1);
+  const remainingFields = fields && fields.filter(f => inferred.indexOf((f as any).name) === -1);
   return { titleField, descriptionField, imageField, remainingFields };
 }
 
@@ -165,8 +160,7 @@ function EntryListing({
     ? renderCardsForSingleCollection()
     : renderCardsForMultipleCollections();
   const cardCount = Array.isArray(cards) ? cards.filter(Boolean).length : 0;
-  const showEmptyState =
-    !!renderEntryListEmpty && Array.isArray(cards) && cardCount === 0;
+  const showEmptyState = !!renderEntryListEmpty && Array.isArray(cards) && cardCount === 0;
 
   return (
     <div>

@@ -2,9 +2,8 @@ import React from 'react';
 import styled from '@emotion/styled';
 import isEmpty from 'lodash/isEmpty';
 import { translate } from 'react-polyglot';
+
 import { colors } from '../../../ui-default/index';
-
-
 import { Modal } from '../UI';
 import MediaLibraryTop from './MediaLibraryTop';
 import MediaLibraryCardGrid from './MediaLibraryCardGrid';

@@ -1,6 +1,6 @@
 import React from 'react';
-import { Cursor } from '../../../../lib-util/index';
 
+import { Cursor } from '../../../../lib-util/index';
 import { selectSearchedEntries, selectUnpublishedEntry } from '../../../reducers';
 import {
   searchEntries as actionSearchEntries,

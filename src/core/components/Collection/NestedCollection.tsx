@@ -2,11 +2,11 @@ import React from 'react';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { NavLink } from 'react-router-dom';
+import sortBy from 'lodash/sortBy';
+
 import { dirname } from '../../../lib-util/index';
 import { stringTemplate } from '../../../lib-widgets/index';
 import { Icon, colors, components } from '../../../ui-default/index';
-import sortBy from 'lodash/sortBy';
-
 import { selectEntries } from '../../reducers/entries';
 import { selectEntryCollectionTitle } from '../../reducers/collections';
 import { useAppSelector } from '../../hooks/useRedux';
@@ -62,7 +62,7 @@ const TreeNavLink = styled(NavLink, {
   ${() => css`
     &:hover,
     &:active,
-    &.sidebar-active {
+    &.active {
       color: ${colors.active};
       background-color: ${colors.activeBackground};
       border-left-color: #4863c6;
@@ -125,7 +125,6 @@ function TreeNode(props: TreeNodeProps): React.ReactNode {
         <TreeNavLink
           end
           to={to}
-          className={({ isActive }: { isActive: boolean }) => (isActive ? 'sidebar-active' : '')}
           onClick={() => onToggle({ node, expanded: !node.expanded })}
           $depth={depth}
           data-testid={node.path}
@@ -317,8 +316,11 @@ export function NestedCollection({ collection, entries, filterTerm }: NestedColl
   // componentDidUpdate-equivalent branch below picks it up.
   const [treeData, setTreeData] = React.useState<TreeNodeData[]>(() => {
     const initial = getTreeData(collection, entries);
-    if (entries && entries.length > 0) {
-      const path = `/${filterTerm ?? ''}`;
+    // Only auto-expand when there is an actual filter path to expand toward.
+    // Without this guard `'/'.startsWith('/')` always matches, so the root would
+    // expand on mount and a click meant to expand it would instead collapse it.
+    if (entries && entries.length > 0 && filterTerm) {
+      const path = `/${filterTerm}`;
       walk(initial, (node: TreeNodeData) => {
         if (path.startsWith(node.path)) {
           node.expanded = true;
@@ -360,7 +362,7 @@ export function NestedCollection({ collection, entries, filterTerm }: NestedColl
     walk(nextTree, (node: TreeNodeData) => {
       if (
         expanded[node.path] ||
-        (applyFilterExpansion && path.startsWith(node.path))
+        (applyFilterExpansion && filterTerm && path.startsWith(node.path))
       ) {
         node.expanded = true;
       }
@@ -389,4 +391,3 @@ export function NestedCollection({ collection, entries, filterTerm }: NestedColl
 
   return <TreeNode collection={collection} treeData={treeData} onToggle={onToggle} />;
 }
-

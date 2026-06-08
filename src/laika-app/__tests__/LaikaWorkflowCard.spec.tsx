@@ -54,9 +54,7 @@ describe('LaikaWorkflowCard', () => {
       </MemoryRouter>,
     );
     fireEvent.click(getByText('Hello world'));
-    expect(getByTestId('route').textContent).toBe(
-      '/collections/posts/entries/hello-world',
-    );
+    expect(getByTestId('route').textContent).toBe('/collections/posts/entries/hello-world');
   });
 
   it('fires onDelete when delete is clicked', () => {

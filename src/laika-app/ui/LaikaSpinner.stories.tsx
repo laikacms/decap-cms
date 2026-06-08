@@ -1,6 +1,8 @@
 import React from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+
 import LaikaSpinner from './LaikaSpinner';
+
+import type { Meta, StoryObj } from '@storybook/react';
 
 const meta: Meta<typeof LaikaSpinner> = {
   title: 'Primitives/LaikaSpinner',

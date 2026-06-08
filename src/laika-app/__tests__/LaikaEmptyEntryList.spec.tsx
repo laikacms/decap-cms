@@ -18,13 +18,15 @@ describe('LaikaEmptyEntryList', () => {
   it('renders a friendly empty title for a collection', () => {
     const { getByText } = render(
       <LaikaEmptyEntryList
-        collection={{
-          name: 'posts',
-          label: 'Posts',
-          label_singular: 'Post',
-          type: 'folder_based_collection',
-          create: true,
-        } as any}
+        collection={
+          {
+            name: 'posts',
+            label: 'Posts',
+            label_singular: 'Post',
+            type: 'folder_based_collection',
+            create: true,
+          } as any
+        }
       />,
     );
     expect(getByText('No posts yet')).toBeInTheDocument();

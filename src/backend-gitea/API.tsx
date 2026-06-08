@@ -4,6 +4,7 @@ import result from 'lodash/result';
 import partial from 'lodash/partial';
 import last from 'lodash/last';
 import initial from 'lodash/initial';
+
 import {
   APIError,
   basename,

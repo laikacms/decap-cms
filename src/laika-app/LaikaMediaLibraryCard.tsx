@@ -27,12 +27,15 @@ const Card = styled('button', { shouldForwardProp: laikaShouldForwardProp })<{
   cursor: pointer;
   font-family: inherit;
   padding: 0;
-  background-color: ${({ $isPrivate }) => ($isPrivate ? colors.activeBackground : colors.foreground)};
+  background-color: ${({ $isPrivate }) =>
+    $isPrivate ? colors.activeBackground : colors.foreground};
   border: 1px solid ${({ $isSelected }) => ($isSelected ? colors.active : colors.textFieldBorder)};
   border-radius: ${lengths.borderRadius};
   box-shadow: ${({ $isSelected }) =>
     $isSelected ? `0 0 0 3px ${colors.activeBackground}` : 'none'};
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 
   &:hover,
   &:focus-visible {

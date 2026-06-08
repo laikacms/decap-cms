@@ -34,7 +34,9 @@ const Button = styled('button', { shouldForwardProp: laikaShouldForwardProp })<{
   border: none;
   cursor: pointer;
   font-family: inherit;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 
   &:hover,
   &:focus-visible {
@@ -55,8 +57,10 @@ const Button = styled('button', { shouldForwardProp: laikaShouldForwardProp })<{
   }
 `;
 
-export interface LaikaIconButtonProps
-  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'size'> {
+export interface LaikaIconButtonProps extends Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  'size'
+> {
   size?: LaikaIconButtonSize;
   /** Whether this button shows in an "active" toggled state. */
   active?: boolean;

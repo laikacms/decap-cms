@@ -5,6 +5,7 @@ import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import utc from 'dayjs/plugin/utc';
+
 import { buttons } from '../ui-default/index';
 
 dayjs.extend(customParseFormat);
@@ -168,7 +169,6 @@ export default function DateTimeControl({
     if (initRef.current.value === '{{now}}') {
       initRef.current.handleChange(initRef.current.getNow());
     }
-     
   }, []);
 
   const { inputType } = getFormat(field, isUtc);

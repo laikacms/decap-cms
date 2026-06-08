@@ -1,8 +1,7 @@
 import React from 'react';
 import styled from '@emotion/styled';
+
 import { lengths } from '../../../ui-default/index';
-
-
 import ViewStyleControl from './ViewStyleControl';
 import SortControl from './SortControl';
 import FilterControl from './FilterControl';

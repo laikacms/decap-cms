@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
-import { Cursor, CURSOR_COMPATIBILITY_SYMBOL } from '../../lib-util/index';
 
+import { Cursor, CURSOR_COMPATIBILITY_SYMBOL } from '../../lib-util/index';
 import GiteaImplementation from '../implementation';
 
 vi.spyOn(console, 'error').mockImplementation(() => {});

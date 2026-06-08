@@ -40,4 +40,3 @@ export default function Preview({ collection, fields, widgetFor }: PreviewProps)
     </PreviewContainer>
   );
 }
-

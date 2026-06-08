@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from '@emotion/styled';
+
 import { Icon, buttons, shadows, GoBackButton } from '../ui-default/index';
 
 import type { TranslateFunction } from '../ui-default/index';
@@ -63,7 +64,7 @@ export default function AuthenticationPage({
     if (config.backend.login === false) {
       onLogin(null);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only OAuth completion
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only OAuth completion
   }, []);
 
   function handleLogin(e: React.MouseEvent<HTMLButtonElement>) {

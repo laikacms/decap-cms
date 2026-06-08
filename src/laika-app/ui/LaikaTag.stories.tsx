@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+
 import LaikaTag from './LaikaTag';
+
+import type { Meta, StoryObj } from '@storybook/react';
 
 const meta: Meta<typeof LaikaTag> = {
   title: 'Primitives/LaikaTag',

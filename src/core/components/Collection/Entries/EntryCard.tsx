@@ -1,9 +1,9 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
-import { colors, colorsRaw, components, lengths, zIndex } from '../../../../ui-default/index';
 import { useTranslate } from 'react-polyglot';
 
+import { colors, colorsRaw, components, lengths, zIndex } from '../../../../ui-default/index';
 import { boundGetAsset } from '../../../actions/media';
 import { VIEW_STYLE_LIST, VIEW_STYLE_GRID } from '../../../constants/collectionViews';
 import { selectEntryCollectionTitle } from '../../../reducers/collections';

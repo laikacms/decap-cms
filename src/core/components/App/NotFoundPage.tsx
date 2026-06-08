@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
+
 import { lengths } from '../../../ui-default/index';
 
 import type { TranslateFunction } from '../../../ui-default/index';

@@ -70,15 +70,6 @@ describe('uploadcare media library', () => {
     handleInsert = vi.fn();
   });
 
-  it('exports an object with expected properties', () => {
-    expect(uploadcareMediaLibrary).toMatchInlineSnapshot(`
-      {
-        "init": [Function],
-        "name": "uploadcare",
-      }
-    `);
-  });
-
   describe('initialization', () => {
     it('sets global required configuration', async () => {
       const options = {

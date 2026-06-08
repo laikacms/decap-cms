@@ -12,13 +12,7 @@ import { laikaShouldForwardProp } from './styled-utils';
  * tokens so badges automatically follow the active theme.
  */
 
-export type LaikaBadgeIntent =
-  | 'neutral'
-  | 'info'
-  | 'success'
-  | 'warning'
-  | 'danger'
-  | 'draft';
+export type LaikaBadgeIntent = 'neutral' | 'info' | 'success' | 'warning' | 'danger' | 'draft';
 
 const intentStyles: Record<LaikaBadgeIntent, ReturnType<typeof css>> = {
   neutral: css`

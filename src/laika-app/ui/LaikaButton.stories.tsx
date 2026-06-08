@@ -1,6 +1,8 @@
 import React from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+
 import LaikaButton from './LaikaButton';
+
+import type { Meta, StoryObj } from '@storybook/react';
 
 const meta: Meta<typeof LaikaButton> = {
   title: 'Primitives/LaikaButton',
@@ -20,7 +22,9 @@ export const Secondary: Story = { args: { variant: 'secondary', children: 'Brows
 export const Ghost: Story = { args: { variant: 'ghost', children: 'Cancel' } };
 export const Danger: Story = { args: { variant: 'danger', children: 'Delete entry' } };
 export const Small: Story = { args: { variant: 'primary', size: 'sm', children: 'Compact' } };
-export const Disabled: Story = { args: { variant: 'primary', disabled: true, children: 'Disabled' } };
+export const Disabled: Story = {
+  args: { variant: 'primary', disabled: true, children: 'Disabled' },
+};
 
 export const AllVariants: Story = {
   render: () => (

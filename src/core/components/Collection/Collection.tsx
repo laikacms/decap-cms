@@ -1,8 +1,8 @@
 import React, { useCallback, useMemo } from 'react';
 import styled from '@emotion/styled';
 import { useTranslate } from 'react-polyglot';
-import { lengths, components } from '../../../ui-default/index';
 
+import { lengths, components } from '../../../ui-default/index';
 import { useAppSelector, useAppDispatch } from '../../hooks/useRedux';
 import { getNewEntryUrl } from '../../lib/urlHelper';
 import Sidebar from './Sidebar';
@@ -73,8 +73,7 @@ function CmsCollection({
 }: CollectionProps) {
   const t = useTranslate();
   const dispatch = useAppDispatch();
-  const { renderCollectionTop, renderCollectionSidebar, renderCollectionControls } =
-    useCmsSlots();
+  const { renderCollectionTop, renderCollectionSidebar, renderCollectionControls } = useCmsSlots();
 
   // Extract params from match
   const { name, searchTerm = '', filterTerm = '' } = match.params;
@@ -207,9 +206,11 @@ function CmsCollection({
     searchTerm,
     filterTerm,
   };
-  const sidebarNode = renderCollectionSidebar
-    ? renderCollectionSidebar(sidebarProps)
-    : <Sidebar {...sidebarProps} />;
+  const sidebarNode = renderCollectionSidebar ? (
+    renderCollectionSidebar(sidebarProps)
+  ) : (
+    <Sidebar {...sidebarProps} />
+  );
   const hasSidebar = sidebarNode != null;
 
   return (

@@ -117,8 +117,8 @@ function LaikaDialog({
             title
               ? { labelledby: 'laika-dialog-title' }
               : ariaLabel
-              ? ({ label: ariaLabel } as ReactModal.Props['aria'])
-              : undefined
+                ? ({ label: ariaLabel } as ReactModal.Props['aria'])
+                : undefined
           }
           className={{
             base: cx(

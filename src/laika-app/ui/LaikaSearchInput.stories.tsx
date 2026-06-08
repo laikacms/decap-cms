@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+
 import LaikaSearchInput from './LaikaSearchInput';
+
+import type { Meta, StoryObj } from '@storybook/react';
 
 const meta: Meta<typeof LaikaSearchInput> = {
   title: 'Primitives/LaikaSearchInput',

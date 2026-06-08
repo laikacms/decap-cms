@@ -2,6 +2,8 @@ import React from 'react';
 import { css, Global } from '@emotion/react';
 import styled from '@emotion/styled';
 import { Pane, SplitPane } from 'react-split-pane';
+import { ScrollSync, ScrollSyncPane } from 'react-scroll-sync';
+
 import {
   colors,
   colorsRaw,
@@ -10,13 +12,6 @@ import {
   IconButton,
   zIndex,
 } from '../../../ui-default/index';
-import { ScrollSync, ScrollSyncPane } from 'react-scroll-sync';
-
-
-type Collection = CmsCollectionState;
-type EntryMap = CmsEntry;
-type EntryField = CmsEntryField;
-
 import EditorControlPane, { type ControlPaneHandle } from './EditorControlPane/EditorControlPane';
 import EditorPreviewPane from './EditorPreviewPane/EditorPreviewPane';
 import EditorToolbar from './EditorToolbar';
@@ -29,6 +24,10 @@ import type { ReactNode } from 'react';
 import type { I18nInfo } from '../../lib/i18n';
 import type { CmsCollectionState, CmsEntry, CmsEntryField } from '../../../lib-util/index';
 import type { TranslateFunction } from '../../../ui-default/index';
+
+type Collection = CmsCollectionState;
+type EntryMap = CmsEntry;
+type EntryField = CmsEntryField;
 
 const PREVIEW_VISIBLE = 'cms.preview-visible';
 const SCROLL_SYNC_ENABLED = 'cms.scroll-sync-enabled';
@@ -463,8 +462,7 @@ function EditorInterface(props: EditorInterfaceProps) {
             previewVisible: !!previewVisibleResolved,
             onTogglePreview: handleTogglePreview,
             scrollSyncEnabled: !!scrollSyncEnabled,
-            scrollSyncVisible:
-              !!scrollSyncVisible && !(collection as any).editor?.visualEditing,
+            scrollSyncVisible: !!scrollSyncVisible && !(collection as any).editor?.visualEditing,
             onToggleScrollSync: handleToggleScrollSync,
           };
           if (renderEditorViewControls) {

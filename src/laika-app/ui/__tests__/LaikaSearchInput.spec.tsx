@@ -6,9 +6,7 @@ import LaikaSearchInput from '../LaikaSearchInput';
 
 describe('LaikaSearchInput', () => {
   it('renders a type="search" input', () => {
-    const { getByPlaceholderText } = render(
-      <LaikaSearchInput placeholder="Search collections" />,
-    );
+    const { getByPlaceholderText } = render(<LaikaSearchInput placeholder="Search collections" />);
     const input = getByPlaceholderText('Search collections') as HTMLInputElement;
     expect(input.type).toBe('search');
   });
@@ -23,9 +21,7 @@ describe('LaikaSearchInput', () => {
   });
 
   it('forwards arbitrary input attributes', () => {
-    const { getByLabelText } = render(
-      <LaikaSearchInput aria-label="search the things" disabled />,
-    );
+    const { getByLabelText } = render(<LaikaSearchInput aria-label="search the things" disabled />);
     const input = getByLabelText('search the things') as HTMLInputElement;
     expect(input.disabled).toBe(true);
   });

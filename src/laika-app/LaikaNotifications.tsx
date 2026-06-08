@@ -19,9 +19,7 @@ import type { Id, ToastItem } from 'react-toastify';
 
 interface CmsNotification {
   id: string;
-  message:
-    | string
-    | { key: string; details?: string; [key: string]: unknown };
+  message: string | { key: string; details?: string; [key: string]: unknown };
   type: 'success' | 'error' | 'info' | 'warning';
   dismissAfter?: number;
 }

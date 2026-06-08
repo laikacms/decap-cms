@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from '@emotion/styled';
+
 import { NetlifyAuthenticator, ImplicitAuthenticator } from '../lib-auth/index';
 import { AuthenticationPage, Icon } from '../ui-default/index';
 
@@ -84,7 +85,7 @@ export default function BitbucketAuthenticationPage({
       });
       authSettingsRef.current = { provider: 'bitbucket', scope: 'repo' };
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only OAuth completion
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only OAuth completion
   }, []);
 
   function handleLogin() {

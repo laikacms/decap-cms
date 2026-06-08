@@ -26,9 +26,7 @@ describe('LaikaCard', () => {
   });
 
   it('respects the interactive=false flag without throwing', () => {
-    const { getByText } = render(
-      <LaikaCard interactive={false}>static panel</LaikaCard>,
-    );
+    const { getByText } = render(<LaikaCard interactive={false}>static panel</LaikaCard>);
     expect(getByText('static panel')).toBeInTheDocument();
   });
 });

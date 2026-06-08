@@ -235,9 +235,7 @@ export interface CmsSlots {
    * comes in as `<feature>Enabled` (should it render at all) +
    * `<feature>Visible` (is it currently active) + the click handler.
    */
-  renderEditorViewControls?: (
-    props: EditorViewControlsRenderProps,
-  ) => React.ReactNode;
+  renderEditorViewControls?: (props: EditorViewControlsRenderProps) => React.ReactNode;
   /**
    * Replace each card in the MediaLibrary grid (the modal that opens when
    * picking an image/file from a widget). Receives the file's display URL,
@@ -265,9 +263,7 @@ export interface CmsSlotsProviderProps {
 
 export function CmsSlotsProvider({ slots, children }: CmsSlotsProviderProps) {
   return (
-    <CmsSlotsContext.Provider value={slots ?? EMPTY_SLOTS}>
-      {children}
-    </CmsSlotsContext.Provider>
+    <CmsSlotsContext.Provider value={slots ?? EMPTY_SLOTS}>{children}</CmsSlotsContext.Provider>
   );
 }
 

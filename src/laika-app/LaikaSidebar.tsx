@@ -22,7 +22,6 @@ import type { CmsCollections, CmsCollectionState } from '../lib-util/index';
  * supplies the collections list from the `headerProps` payload.
  */
 
-
 const SidebarShell = styled('aside', { shouldForwardProp: laikaShouldForwardProp })<{
   $isMobileOpen?: boolean;
 }>`
@@ -49,9 +48,7 @@ const SidebarShell = styled('aside', { shouldForwardProp: laikaShouldForwardProp
     transform: translateX(${({ $isMobileOpen }) => ($isMobileOpen ? '0' : '-100%')});
     transition: transform 0.2s ease;
     box-shadow: ${({ $isMobileOpen }) =>
-      $isMobileOpen
-        ? 'var(--laika-shadow-strong, 12px 0 32px rgba(15, 23, 42, 0.18))'
-        : 'none'};
+      $isMobileOpen ? 'var(--laika-shadow-strong, 12px 0 32px rgba(15, 23, 42, 0.18))' : 'none'};
   }
 `;
 
@@ -106,7 +103,9 @@ const SidebarLink = styled(NavLink)`
   font-weight: 500;
   color: ${colors.controlLabel};
   text-decoration: none;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 
   &:hover,
   &:focus-visible {
@@ -187,9 +186,7 @@ function LaikaSidebar({ collections, onCollectionClick, t }: LaikaSidebarProps) 
 
   return (
     <>
-      {isMobileSidebarOpen ? (
-        <Backdrop aria-hidden="true" onClick={closeMobileSidebar} />
-      ) : null}
+      {isMobileSidebarOpen ? <Backdrop aria-hidden="true" onClick={closeMobileSidebar} /> : null}
       <SidebarShell
         aria-label={t('collection.sidebar.collections')}
         data-mobile-open={isMobileSidebarOpen ? 'true' : 'false'}
@@ -203,33 +200,29 @@ function LaikaSidebar({ collections, onCollectionClick, t }: LaikaSidebarProps) 
           }
         }}
       >
-      <LaikaCollectionSearch />
-      {folders.length > 0 ? (
+        <LaikaCollectionSearch />
+        {folders.length > 0 ? (
+          <SidebarSection>
+            {showSectionHeadings ? <SidebarSectionHeading>Folders</SidebarSectionHeading> : null}
+            <SidebarList>{folders.map(renderItem)}</SidebarList>
+          </SidebarSection>
+        ) : null}
+        {files.length > 0 ? (
+          <SidebarSection>
+            {showSectionHeadings ? <SidebarSectionHeading>Files</SidebarSectionHeading> : null}
+            <SidebarList>{files.map(renderItem)}</SidebarList>
+          </SidebarSection>
+        ) : null}
         <SidebarSection>
-          {showSectionHeadings ? (
-            <SidebarSectionHeading>Folders</SidebarSectionHeading>
-          ) : null}
-          <SidebarList>{folders.map(renderItem)}</SidebarList>
+          <SidebarList>
+            <SidebarListItem>
+              <SidebarLink to="/settings">
+                <Icon type="settings" />
+                <SidebarLinkLabel>Settings</SidebarLinkLabel>
+              </SidebarLink>
+            </SidebarListItem>
+          </SidebarList>
         </SidebarSection>
-      ) : null}
-      {files.length > 0 ? (
-        <SidebarSection>
-          {showSectionHeadings ? (
-            <SidebarSectionHeading>Files</SidebarSectionHeading>
-          ) : null}
-          <SidebarList>{files.map(renderItem)}</SidebarList>
-        </SidebarSection>
-      ) : null}
-      <SidebarSection>
-        <SidebarList>
-          <SidebarListItem>
-            <SidebarLink to="/settings">
-              <Icon type="settings" />
-              <SidebarLinkLabel>Settings</SidebarLinkLabel>
-            </SidebarLink>
-          </SidebarListItem>
-        </SidebarList>
-      </SidebarSection>
       </SidebarShell>
     </>
   );

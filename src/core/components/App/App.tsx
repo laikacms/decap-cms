@@ -10,8 +10,8 @@ import {
   unstable_HistoryRouter as HistoryRouter,
 } from 'react-router-dom';
 import TopBarProgress from 'react-topbar-progress-indicator';
-import { Loader, colorsDefaults } from '../../../ui-default/index';
 
+import { Loader, colorsDefaults } from '../../../ui-default/index';
 import { useAppSelector, useAppDispatch } from '../../hooks/useRedux';
 import { loginUser, logoutUser } from '../../actions/auth';
 import { currentBackend } from '../../backend';
@@ -20,18 +20,18 @@ import { openMediaLibrary } from '../../actions/mediaLibrary';
 import { history } from '../../routing/history';
 import MediaLibrary from '../MediaLibrary/MediaLibrary';
 import { Notifications, ErrorBoundary } from '../UI';
-import type { ErrorBoundaryRenderProps } from '../UI';
 import { EDITORIAL_WORKFLOW } from '../../constants/publishModes';
 import CollectionComponent from '../Collection/Collection';
 import Workflow from '../Workflow/Workflow';
 import Editor from '../Editor/Editor';
 import NotFoundPage from './NotFoundPage';
 import Header from './Header';
+import { CmsSlotsProvider } from '../../lib/slots';
 
 import type { CmsConfig, CmsCredentials } from '../../../lib-util/index';
 import type { CmsCollectionState, CmsCollections } from '../../../lib-util/index';
 import type { TranslateFunction } from '../../../ui-default/index';
-import { CmsSlotsProvider } from '../../lib/slots';
+import type { ErrorBoundaryRenderProps } from '../UI';
 import type { CmsSlots } from '../../lib/slots';
 
 type Collection = CmsCollectionState;
@@ -422,15 +422,19 @@ function AppContent({
   }
 
   if (config.error) {
-    return renderConfigError
-      ? <>{renderConfigError({ error: config.error })}</>
-      : renderDefaultConfigError();
+    return renderConfigError ? (
+      <>{renderConfigError({ error: config.error })}</>
+    ) : (
+      renderDefaultConfigError()
+    );
   }
 
   if (config.isFetching) {
-    return renderConfigLoading
-      ? <>{renderConfigLoading()}</>
-      : <Loader active>{t('app.app.loadingConfig')}</Loader>;
+    return renderConfigLoading ? (
+      <>{renderConfigLoading()}</>
+    ) : (
+      <Loader active>{t('app.app.loadingConfig')}</Loader>
+    );
   }
 
   if (user == null) {
@@ -455,81 +459,78 @@ function AppContent({
     <>
       {isFetching && <TopBarProgress />}
       <Routes>
-          <Route
-            path="/"
-            element={renderRoot ? <>{renderRoot()}</> : <Navigate to={defaultPath} replace />}
-          />
-          <Route path="/search/" element={<Navigate to={defaultPath} replace />} />
-          <Route
-            path="/collections/:name/search/"
-            element={
-              <RouteInCollectionGuard collections={collections}>
-                <CollectionSearchRedirect />
-              </RouteInCollectionGuard>
-            }
-          />
-          <Route
-            path="/error=access_denied&error_description=Signups+not+allowed+for+this+instance"
-            element={<Navigate to={defaultPath} replace />}
-          />
-          {hasWorkflow ? <Route path="/workflow" element={<Workflow />} /> : null}
-          <Route
-            path="/collections/:name"
-            element={
-              <RouteInCollectionGuard collections={collections}>
-                <CollectionRoute />
-              </RouteInCollectionGuard>
-            }
-          />
-          <Route
-            path="/collections/:name/new"
-            element={
-              <RouteInCollectionGuard collections={collections}>
-                <EditorRoute newRecord />
-              </RouteInCollectionGuard>
-            }
-          />
-          <Route
-            path="/collections/:name/entries/*"
-            element={
-              <RouteInCollectionGuard collections={collections}>
-                <EditorRoute />
-              </RouteInCollectionGuard>
-            }
-          />
-          <Route
-            path="/collections/:name/search/:searchTerm"
-            element={
-              <RouteInCollectionGuard collections={collections}>
-                <CollectionRoute isSearchResults isSingleSearchResult />
-              </RouteInCollectionGuard>
-            }
-          />
-          <Route
-            path="/collections/:name/filter/*"
-            element={
-              <RouteInCollectionGuard collections={collections}>
-                <CollectionRoute />
-              </RouteInCollectionGuard>
-            }
-          />
-          <Route path="/search/:searchTerm" element={<CollectionRoute isSearchResults />} />
-          <Route
-            path="/edit/:name/:entryName"
-            element={
-              <RouteInCollectionGuard collections={collections}>
-                <EditRedirect />
-              </RouteInCollectionGuard>
-            }
-          />
-          {extraRoutes}
-          <Route
-            path="*"
-            element={renderNotFound ? <>{renderNotFound()}</> : <NotFoundPage />}
-          />
-        </Routes>
-        {useMediaLibraryFlag ? <MediaLibrary /> : null}
-        {renderFooter ? renderFooter() : null}
+        <Route
+          path="/"
+          element={renderRoot ? <>{renderRoot()}</> : <Navigate to={defaultPath} replace />}
+        />
+        <Route path="/search/" element={<Navigate to={defaultPath} replace />} />
+        <Route
+          path="/collections/:name/search/"
+          element={
+            <RouteInCollectionGuard collections={collections}>
+              <CollectionSearchRedirect />
+            </RouteInCollectionGuard>
+          }
+        />
+        <Route
+          path="/error=access_denied&error_description=Signups+not+allowed+for+this+instance"
+          element={<Navigate to={defaultPath} replace />}
+        />
+        {hasWorkflow ? <Route path="/workflow" element={<Workflow />} /> : null}
+        <Route
+          path="/collections/:name"
+          element={
+            <RouteInCollectionGuard collections={collections}>
+              <CollectionRoute />
+            </RouteInCollectionGuard>
+          }
+        />
+        <Route
+          path="/collections/:name/new"
+          element={
+            <RouteInCollectionGuard collections={collections}>
+              <EditorRoute newRecord />
+            </RouteInCollectionGuard>
+          }
+        />
+        <Route
+          path="/collections/:name/entries/*"
+          element={
+            <RouteInCollectionGuard collections={collections}>
+              <EditorRoute />
+            </RouteInCollectionGuard>
+          }
+        />
+        <Route
+          path="/collections/:name/search/:searchTerm"
+          element={
+            <RouteInCollectionGuard collections={collections}>
+              <CollectionRoute isSearchResults isSingleSearchResult />
+            </RouteInCollectionGuard>
+          }
+        />
+        <Route
+          path="/collections/:name/filter/*"
+          element={
+            <RouteInCollectionGuard collections={collections}>
+              <CollectionRoute />
+            </RouteInCollectionGuard>
+          }
+        />
+        <Route path="/search/:searchTerm" element={<CollectionRoute isSearchResults />} />
+        <Route
+          path="/edit/:name/:entryName"
+          element={
+            <RouteInCollectionGuard collections={collections}>
+              <EditRedirect />
+            </RouteInCollectionGuard>
+          }
+        />
+        {extraRoutes}
+        <Route path="*" element={renderNotFound ? <>{renderNotFound()}</> : <NotFoundPage />} />
+      </Routes>
+      {useMediaLibraryFlag ? <MediaLibrary /> : null}
+      {renderFooter ? renderFooter() : null}
     </>
   );
 

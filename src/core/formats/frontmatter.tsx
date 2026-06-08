@@ -43,7 +43,9 @@ function buildOptions(format: Language, customDelimiter?: Delimiter): Options {
   if (!customDelimiter) {
     return formatOpts[format];
   }
-  const [open, close] = Array.isArray(customDelimiter) ? customDelimiter : [customDelimiter, customDelimiter];
+  const [open, close] = Array.isArray(customDelimiter)
+    ? customDelimiter
+    : [customDelimiter, customDelimiter];
   return { type: format, fence: { open, close } };
 }
 
@@ -171,9 +173,7 @@ export class FrontmatterFormatter {
   }
 
   fromFile(content: string): Content {
-    const options = this.format
-      ? buildOptions(this.format, this.customDelimiter)
-      : defaultOptions;
+    const options = this.format ? buildOptions(this.format, this.customDelimiter) : defaultOptions;
 
     const normalized = this.format ? content : normalizeLanguageTaggedFrontmatter(content);
 
@@ -198,9 +198,7 @@ export class FrontmatterFormatter {
 
   toFile(data: Content, sortedKeys?: string[], comments?: Record<string, string>) {
     const format = this.format || Languages.YAML;
-    const options = this.format
-      ? buildOptions(this.format, this.customDelimiter)
-      : defaultOptions;
+    const options = this.format ? buildOptions(this.format, this.customDelimiter) : defaultOptions;
 
     const markdown = unified()
       .use(remarkParse)

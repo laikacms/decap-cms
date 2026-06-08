@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from '@emotion/styled';
+
 import { colors } from '../../../ui-default/index';
 
 const EmptyMessageContainer = styled.div<{ $isPrivate?: boolean }>`

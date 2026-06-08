@@ -1,14 +1,14 @@
 import { produce } from 'immer';
-import { isAbsolutePath, basename, dirname, join } from '../../lib-util/index';
 import trim from 'lodash/trim';
 import once from 'lodash/once';
 import sortBy from 'lodash/sortBy';
 import set from 'lodash/set';
 import orderBy from 'lodash/orderBy';
 import groupBy from 'lodash/groupBy';
+
+import { isAbsolutePath, basename, dirname, join } from '../../lib-util/index';
 import { stringTemplate } from '../../lib-widgets/index';
 import { CmsSortDirection as SortDirection } from '../../lib-util/index';
-
 import { folderFormatter } from '../lib/formatters';
 import { selectSortDataPath } from './collections';
 import { SEARCH_ENTRIES_SUCCESS } from '../actions/search';

@@ -5,16 +5,6 @@ import { css } from '@emotion/react';
 import once from 'lodash/once';
 import { v4 as uuid } from 'uuid';
 import { oneLine } from 'common-tags';
-import {
-  lengths,
-  components,
-  buttons,
-  borders,
-  effects,
-  shadows,
-  IconButton,
-} from '../ui-default/index';
-import { basename } from '../lib-util/index';
 import { arrayMoveImmutable as arrayMove } from 'array-move';
 import {
   DndContext,
@@ -27,6 +17,17 @@ import {
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
+
+import { basename } from '../lib-util/index';
+import {
+  lengths,
+  components,
+  buttons,
+  borders,
+  effects,
+  shadows,
+  IconButton,
+} from '../ui-default/index';
 
 import type { DragEndEvent } from '@dnd-kit/core';
 import type { CmsField, CmsFieldBase, CmsFieldFile } from '../lib-util/index';

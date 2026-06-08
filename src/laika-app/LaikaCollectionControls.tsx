@@ -86,11 +86,7 @@ function LaikaCollectionControls({
         />
       ) : null}
       {hasSort ? (
-        <SortControl
-          fields={sortableFields}
-          sort={sort}
-          onSortClick={onSortClick}
-        />
+        <SortControl fields={sortableFields} sort={sort} onSortClick={onSortClick} />
       ) : null}
       <Divider />
       <ViewToggleGroup>

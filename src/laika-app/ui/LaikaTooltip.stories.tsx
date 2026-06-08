@@ -1,7 +1,9 @@
 import React from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+
 import LaikaTooltip from './LaikaTooltip';
 import LaikaButton from './LaikaButton';
+
+import type { Meta, StoryObj } from '@storybook/react';
 
 const meta: Meta<typeof LaikaTooltip> = {
   title: 'Primitives/LaikaTooltip',

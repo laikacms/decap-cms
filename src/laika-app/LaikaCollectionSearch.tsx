@@ -73,7 +73,9 @@ function LaikaCollectionSearch({ t }: LaikaCollectionSearchProps) {
         aria-label={placeholder}
       />
       {scopedCollection ? (
-        <ScopeHint>↩ {t('collection.sidebar.searchIn')} {scopedCollection.label}</ScopeHint>
+        <ScopeHint>
+          ↩ {t('collection.sidebar.searchIn')} {scopedCollection.label}
+        </ScopeHint>
       ) : null}
     </Wrap>
   );

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Route } from 'react-router-dom';
+
 import { App as DefaultApp } from '../core/index';
 import LaikaHeader from './LaikaHeader';
 import LaikaLayout from './LaikaLayout';
@@ -49,25 +50,23 @@ import type {
  * from v4.beta core.
  */
 const slots: CmsSlots = {
-  renderCollectionTop: renderCollectionTop,
-  renderCollectionControls: renderCollectionControls,
-  renderEntryCard: renderEntryCard,
-  renderEntryListEmpty: renderEntryListEmpty,
-  renderLoader: renderLoader,
-  renderWorkflowCard: renderWorkflowCard,
-  renderEditorToolbar: renderEditorToolbar,
-  renderEditorViewControls: renderEditorViewControls,
-  renderMediaLibraryCard: renderMediaLibraryCard,
-  renderMediaLibraryTop: renderMediaLibraryTop,
+  renderCollectionTop,
+  renderCollectionControls,
+  renderEntryCard,
+  renderEntryListEmpty,
+  renderLoader,
+  renderWorkflowCard,
+  renderEditorToolbar,
+  renderEditorViewControls,
+  renderMediaLibraryCard,
+  renderMediaLibraryTop,
   // The Laika layout already supplies a top-level sidebar (LaikaSidebar), so
   // suppress the per-page sidebar that core's Collection page would otherwise
   // render — returning null lets the main pane reflow to fill the row.
   renderCollectionSidebar: () => null,
 };
 
-const extraRoutes = (
-  <Route path="/settings" element={<LaikaSettingsPage />} />
-);
+const extraRoutes = <Route path="/settings" element={<LaikaSettingsPage />} />;
 
 /**
  * Optional overrides for `LaikaApp`. Anything supplied here takes precedence
@@ -78,8 +77,7 @@ const extraRoutes = (
  * The `slots` field is shallow-merged with the default laika slots — set a
  * slot to a function to override, or to `null`/`undefined` to keep laika's.
  */
-export interface LaikaAppProps
-  extends Omit<AppContentProps, 'slots' | 'extraRoutes'> {
+export interface LaikaAppProps extends Omit<AppContentProps, 'slots' | 'extraRoutes'> {
   /** Override individual `CmsSlots` entries; merged on top of laika defaults. */
   slots?: CmsSlots;
   /** Extra routes appended after laika's `/settings` route. */

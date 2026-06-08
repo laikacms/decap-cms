@@ -7,6 +7,7 @@ import sortBy from 'lodash/sortBy';
 import get from 'lodash/get';
 import set from 'lodash/set';
 import * as fuzzy from 'fuzzy';
+
 import {
   localForage,
   Cursor,
@@ -21,7 +22,6 @@ import {
   dirname,
 } from '../lib-util/index';
 import { stringTemplate } from '../lib-widgets/index';
-
 import { resolveFormat } from './formats/formats';
 import { selectUseWorkflow } from './reducers/config';
 import { selectMediaFilePath, selectEntry } from './reducers/entries';
@@ -1109,9 +1109,7 @@ export class Backend {
         ? { ...draft, entry: { ...draft.entry, data: updatedEntity } }
         : draft;
     } else {
-      entryDraft = updatedEntity
-        ? { ...draft, entry: updatedEntity as CmsEntry }
-        : draft;
+      entryDraft = updatedEntity ? { ...draft, entry: updatedEntity as CmsEntry } : draft;
     }
 
     const newEntry = entryDraft.entry?.newRecord || false;

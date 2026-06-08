@@ -1,5 +1,9 @@
 import path from 'path';
 import { promises as fs } from 'fs';
+import { parse } from 'what-the-diff';
+import simpleGit from 'simple-git';
+import { Mutex, withTimeout } from 'async-mutex';
+
 import {
   branchFromContentKey,
   generateContentKey,
@@ -9,10 +13,6 @@ import {
   labelToStatus,
   parseContentKey,
 } from '../../../lib-util/index';
-import { parse } from 'what-the-diff';
-import simpleGit from 'simple-git';
-import { Mutex, withTimeout } from 'async-mutex';
-
 import { defaultSchema, joi } from '../joi';
 import { pathTraversal } from '../joi/customValidators';
 import { listRepoFiles, writeFile, move, deleteFile, getUpdateDate } from '../utils/fs';

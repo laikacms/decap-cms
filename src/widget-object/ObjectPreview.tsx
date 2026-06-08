@@ -1,5 +1,6 @@
 import React from 'react';
 import get from 'lodash/get';
+
 import { WidgetPreviewContainer } from '../ui-default/index';
 
 interface ObjectPreviewProps {

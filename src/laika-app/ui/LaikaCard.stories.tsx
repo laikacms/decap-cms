@@ -1,8 +1,10 @@
 import React from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+
 import LaikaCard from './LaikaCard';
 import LaikaButton from './LaikaButton';
 import LaikaBadge from './LaikaBadge';
+
+import type { Meta, StoryObj } from '@storybook/react';
 
 const meta: Meta<typeof LaikaCard> = {
   title: 'Primitives/LaikaCard',
@@ -24,7 +26,9 @@ export const Basic: Story = {
       </LaikaCard.Header>
       <LaikaCard.Body>Blog posts and articles, written in markdown.</LaikaCard.Body>
       <LaikaCard.Footer>
-        <LaikaButton variant="secondary" fullWidth>Browse</LaikaButton>
+        <LaikaButton variant="secondary" fullWidth>
+          Browse
+        </LaikaButton>
         <LaikaButton>New Post</LaikaButton>
       </LaikaCard.Footer>
     </LaikaCard>

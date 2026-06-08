@@ -1,5 +1,4 @@
 import { API } from '../backend-github/index';
-
 import AwsCognitoGitHubProxyBackend from './implementation';
 
 export const DecapCmsBackendAwsCognitoGithubProxy = {

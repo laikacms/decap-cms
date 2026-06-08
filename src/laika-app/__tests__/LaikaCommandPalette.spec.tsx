@@ -98,5 +98,4 @@ describe('LaikaCommandPalette', () => {
     fireEvent.change(input, { target: { value: 'taxes' } });
     expect(getByText(/Search all collections for "taxes"/)).toBeInTheDocument();
   });
-
 });

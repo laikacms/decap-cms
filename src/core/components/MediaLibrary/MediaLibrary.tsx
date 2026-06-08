@@ -3,8 +3,8 @@ import orderBy from 'lodash/orderBy';
 import map from 'lodash/map';
 import { useTranslate } from 'react-polyglot';
 import fuzzy from 'fuzzy';
-import { fileExtension } from '../../../lib-util/index';
 
+import { fileExtension } from '../../../lib-util/index';
 import {
   loadMedia as loadMediaAction,
   persistMedia as persistMediaAction,
@@ -202,9 +202,7 @@ function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
   }
 
   function handleAssetClick(asset: MediaFile) {
-    setSelectedFile(prev =>
-      'key' in prev && (prev as MediaFile).key === asset.key ? {} : asset,
-    );
+    setSelectedFile(prev => ('key' in prev && (prev as MediaFile).key === asset.key ? {} : asset));
   }
 
   async function handlePersist(

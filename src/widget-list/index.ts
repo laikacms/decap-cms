@@ -1,5 +1,4 @@
 import DecapCmsWidgetObject from '../widget-object/index';
-
 import controlComponent from './ListControl';
 import schema from './schema';
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import partial from 'lodash/partial';
+
 import {
   AuthenticationPage,
   buttons,
@@ -77,7 +78,13 @@ if (window.netlifyIdentity) {
   });
 }
 
-function NetlifyAuthenticationPage({ error, inProgress, config, onLogin, t }: NetlifyAuthenticationPageProps) {
+function NetlifyAuthenticationPage({
+  error,
+  inProgress,
+  config,
+  onLogin,
+  t,
+}: NetlifyAuthenticationPageProps) {
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [errors, setErrors] = React.useState<NetlifyAuthenticationPageState['errors']>({});
@@ -216,6 +223,7 @@ function NetlifyAuthenticationPage({ error, inProgress, config, onLogin, t }: Ne
   );
 }
 
-NetlifyAuthenticationPage.authClient = (() => Promise.reject(new Error('authClient not configured'))) as () => Promise<AuthClient>;
+NetlifyAuthenticationPage.authClient = (() =>
+  Promise.reject(new Error('authClient not configured'))) as () => Promise<AuthClient>;
 
 export default NetlifyAuthenticationPage;

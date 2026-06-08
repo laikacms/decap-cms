@@ -4,6 +4,7 @@ import get from 'lodash/get';
 import pick from 'lodash/pick';
 import intersection from 'lodash/intersection';
 import ini from 'ini';
+
 import {
   APIError,
   unsentRequest,
@@ -20,7 +21,6 @@ import { GitHubBackend } from '../backend-github/index';
 import { GitLabBackend } from '../backend-gitlab/index';
 import { BitbucketBackend, API as BitBucketAPI } from '../backend-bitbucket/index';
 import { NetlifyAuthenticationPage, PKCEAuthenticationPage } from '../ui-auth/index';
-
 import GitHubAPI from './GitHubAPI';
 import GitLabAPI from './GitLabAPI';
 import { getClient } from './netlify-lfs-client';

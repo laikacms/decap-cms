@@ -2,6 +2,7 @@ import React from 'react';
 import isObject from 'lodash/isObject';
 import isString from 'lodash/isString';
 import get from 'lodash/get';
+
 import { WidgetPreviewContainer } from '../ui-default/index';
 
 function toValue(

@@ -1,4 +1,5 @@
 import { minimatch } from 'minimatch';
+
 import { unsentRequest } from '../lib-util/index';
 
 import type { ApiRequest, PointerFile } from '../lib-util/index';

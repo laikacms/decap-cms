@@ -7,8 +7,6 @@ import get from 'lodash/get';
 import isEmpty from 'lodash/isEmpty';
 import last from 'lodash/last';
 import uniqBy from 'lodash/uniqBy';
-import { reactSelectStyles } from '../ui-default/index';
-import { stringTemplate, validations } from '../lib-widgets/index';
 import { List as VirtualList } from 'react-window';
 import {
   DndContext,
@@ -23,6 +21,8 @@ import { restrictToParentElement } from '@dnd-kit/modifiers';
 import { CSS } from '@dnd-kit/utilities';
 import { v4 as uuid } from 'uuid';
 
+import { stringTemplate, validations } from '../lib-widgets/index';
+import { reactSelectStyles } from '../ui-default/index';
 import relationCache from './RelationCache';
 
 import type { CmsFieldBase, CmsFieldRelation } from '../lib-util/index';
@@ -478,7 +478,6 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
       return () => {
         mountedRef.current = false;
       };
-       
     }, []);
 
     function onSortEnd(options: RelationOption[]) {

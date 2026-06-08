@@ -1,6 +1,6 @@
 import get from 'lodash/get';
-import { EDITORIAL_WORKFLOW_ERROR } from '../../lib-util/index';
 
+import { EDITORIAL_WORKFLOW_ERROR } from '../../lib-util/index';
 import { currentBackend, slugFromCustomPath } from '../backend';
 import {
   selectPublishedSlugs,

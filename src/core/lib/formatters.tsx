@@ -5,9 +5,9 @@ import trimEnd from 'lodash/trimEnd';
 import isError from 'lodash/isError';
 import isString from 'lodash/isString';
 import trimStart from 'lodash/trimStart';
-import { stringTemplate } from '../../lib-widgets/index';
 import { stripIndent } from 'common-tags';
 
+import { stringTemplate } from '../../lib-widgets/index';
 import {
   selectIdentifier,
   selectField,

@@ -1,10 +1,10 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { Waypoint } from 'react-waypoint';
-import { colors } from '../../../ui-default/index';
 import { Grid } from 'react-window';
 import { AutoSizer } from 'react-virtualized-auto-sizer';
 
+import { colors } from '../../../ui-default/index';
 import MediaLibraryCard from './MediaLibraryCard';
 import { useCmsSlots } from '../../lib/slots';
 

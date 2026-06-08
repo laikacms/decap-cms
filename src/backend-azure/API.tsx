@@ -2,6 +2,8 @@ import partial from 'lodash/partial';
 import result from 'lodash/result';
 import trim from 'lodash/trim';
 import trimStart from 'lodash/trimStart';
+import { isError } from 'lodash';
+
 import {
   localForage,
   APIError,
@@ -22,7 +24,6 @@ import {
   branchFromContentKey,
   Path,
 } from '../lib-util/index';
-import { isError } from 'lodash';
 
 import type { ApiRequest, CmsAssetProxy, CmsPersistOptions, CmsDataFile } from '../lib-util/index';
 

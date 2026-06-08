@@ -88,7 +88,10 @@ const baseStyles = css`
   cursor: pointer;
   text-decoration: none;
   font-family: inherit;
-  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
   white-space: nowrap;
   user-select: none;
 
@@ -111,7 +114,11 @@ const buttonCss = ({
   ${baseStyles};
   ${sizeStyles[buttonSize]};
   ${variantStyles[variant]};
-  ${$fullWidth ? css`width: 100%;` : ''};
+  ${$fullWidth
+    ? css`
+        width: 100%;
+      `
+    : ''};
 `;
 
 const StyledButton = styled('button', { shouldForwardProp: laikaShouldForwardProp })<{

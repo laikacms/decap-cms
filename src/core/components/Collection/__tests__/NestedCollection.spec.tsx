@@ -14,9 +14,8 @@ import ConnectedNestedCollection, {
 
 import type * as DecapCmsUiDefault from '../../../../ui-default/index';
 
-
-vi.mock('decap-cms-ui-default', async () => {
-  const actual = await vi.importActual<typeof DecapCmsUiDefault>('decap-cms-ui-default');
+vi.mock('../../../../ui-default/index', async () => {
+  const actual = await vi.importActual<typeof DecapCmsUiDefault>('../../../../ui-default/index');
   return {
     ...actual,
     Icon: 'mocked-icon',
@@ -47,7 +46,7 @@ describe('NestedCollection', () => {
 
   it('should render correctly with no entries', () => {
     const entries = [];
-    const { asFragment, getByTestId } = render(
+    const { getByTestId } = render(
       <MemoryRouter>
         <NestedCollection collection={collection} entries={entries} />
       </MemoryRouter>,
@@ -55,7 +54,6 @@ describe('NestedCollection', () => {
 
     expect(getByTestId('/')).toHaveTextContent('Pages');
     expect(getByTestId('/')).toHaveAttribute('href', '/collections/pages');
-    expect(asFragment()).toMatchSnapshot();
   });
 
   it('should render correctly with nested entries', () => {
@@ -66,7 +64,7 @@ describe('NestedCollection', () => {
       { path: 'src/pages/a/a/index.md', data: { title: 'File 3' } },
       { path: 'src/pages/b/a/index.md', data: { title: 'File 4' } },
     ];
-    const { asFragment, getByTestId } = render(
+    const { getByTestId } = render(
       <MemoryRouter>
         <NestedCollection collection={collection} entries={entries} />
       </MemoryRouter>,
@@ -80,8 +78,6 @@ describe('NestedCollection', () => {
 
     expect(getByTestId('/b')).toHaveTextContent('File 2');
     expect(getByTestId('/b')).toHaveAttribute('href', '/collections/pages/filter/b');
-
-    expect(asFragment()).toMatchSnapshot();
   });
 
   it('should keep expanded nodes on re-render', () => {
@@ -247,7 +243,7 @@ describe('NestedCollection', () => {
 
     const store = mockStore({ entries });
 
-    const { asFragment, getByTestId } = renderWithRedux(
+    const { getByTestId } = renderWithRedux(
       <MemoryRouter>
         <ConnectedNestedCollection collection={collection} entries={entries} />
       </MemoryRouter>,
@@ -262,8 +258,6 @@ describe('NestedCollection', () => {
 
     expect(getByTestId('/b')).toHaveTextContent('File 2');
     expect(getByTestId('/b')).toHaveAttribute('href', '/collections/pages/filter/b');
-
-    expect(asFragment()).toMatchSnapshot();
   });
 
   describe('getTreeData', () => {

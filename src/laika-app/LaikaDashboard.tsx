@@ -95,16 +95,14 @@ function LaikaDashboard({ t }: LaikaDashboardProps) {
   const config = useAppSelector(state => state.config);
 
   const visibleCollections = React.useMemo<CmsCollectionState[]>(
-    () =>
-      Object.values((collections ?? {}) as CmsCollections).filter(
-        c => c.hide !== true,
-      ),
+    () => Object.values((collections ?? {}) as CmsCollections).filter(c => c.hide !== true),
     [collections],
   );
 
   const greeting = user?.name ? `Welcome back, ${user.name}` : 'Welcome';
-  const siteName = (config as { site_name?: string; name?: string } | null | undefined)?.site_name
-    ?? (config as { site_name?: string; name?: string } | null | undefined)?.name;
+  const siteName =
+    (config as { site_name?: string; name?: string } | null | undefined)?.site_name ??
+    (config as { site_name?: string; name?: string } | null | undefined)?.name;
 
   return (
     <Page>
@@ -137,8 +135,8 @@ function LaikaDashboard({ t }: LaikaDashboardProps) {
                 {collection.description
                   ? collection.description
                   : collection.type === 'file_based_collection'
-                  ? 'Single-file collection.'
-                  : 'Folder-based collection.'}
+                    ? 'Single-file collection.'
+                    : 'Folder-based collection.'}
               </LaikaCard.Body>
               <LaikaCard.Footer>
                 <LaikaButton variant="secondary" to={`/collections/${collection.name}`} fullWidth>

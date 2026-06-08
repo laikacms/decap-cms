@@ -41,7 +41,9 @@ const ListCardLink = styled(Link)`
   background-color: ${colors.foreground};
   color: ${colors.textLead};
   text-decoration: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 
   &:hover,
   &:focus-visible {
@@ -92,7 +94,9 @@ const GridCardLink = styled(Link)`
   color: ${colors.textLead};
   text-decoration: none;
   overflow: hidden;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 
   &:hover,
   &:focus-visible {
@@ -199,9 +203,7 @@ function LaikaEntryCard({
       <GRID_CONTAINER_OVERRIDE>
         <GridCard>
           <GridCardLink to={path}>
-            {image ? (
-              <GridImage $src={getAsset(image, imageField as any).toString()} />
-            ) : null}
+            {image ? <GridImage $src={getAsset(image, imageField as any).toString()} /> : null}
             <GridBody>
               {collectionLabel ? (
                 <ListCollectionLabel>{collectionLabel}</ListCollectionLabel>
@@ -226,9 +228,7 @@ function LaikaEntryCard({
       <ListCardLink to={path}>
         <ListTitle>{summary}</ListTitle>
         <ListMeta>
-          {collectionLabel ? (
-            <ListCollectionLabel>{collectionLabel}</ListCollectionLabel>
-          ) : null}
+          {collectionLabel ? <ListCollectionLabel>{collectionLabel}</ListCollectionLabel> : null}
           {workflowStatus ? (
             <LaikaBadge intent={workflowIntent(workflowStatus)}>
               {statusLabel(workflowStatus)}

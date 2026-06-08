@@ -114,6 +114,8 @@ describe('LaikaApp', () => {
     const children = React.Children.toArray(merged.props.children);
     expect(children).toHaveLength(2);
     expect((children[1] as React.ReactElement).type).toBe('span');
-    expect(((children[1] as React.ReactElement).props as { 'data-testid': string })['data-testid']).toBe('custom-route');
+    expect(
+      ((children[1] as React.ReactElement).props as { 'data-testid': string })['data-testid'],
+    ).toBe('custom-route');
   });
 });

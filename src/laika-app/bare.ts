@@ -1,5 +1,6 @@
 import React, { createElement, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+
 import { DecapCmsCore as CMS } from '../core/index';
 import LaikaApp from './LaikaApp';
 import LaikaProvider from './LaikaProvider';

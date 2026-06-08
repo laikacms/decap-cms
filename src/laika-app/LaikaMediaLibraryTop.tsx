@@ -115,9 +115,7 @@ function LaikaMediaLibraryTop({
         <Title>
           {titleLabel}
           {privateUpload ? (
-            <LaikaBadge intent="warning">
-              {t('mediaLibrary.mediaLibraryModal.private')}
-            </LaikaBadge>
+            <LaikaBadge intent="warning">{t('mediaLibrary.mediaLibraryModal.private')}</LaikaBadge>
           ) : null}
         </Title>
         <LaikaIconButton aria-label="Close" onClick={onClose}>
@@ -136,20 +134,10 @@ function LaikaMediaLibraryTop({
           />
         </SearchSlot>
         <ButtonGroup>
-          <LaikaButton
-            variant="ghost"
-            size="sm"
-            disabled={!hasSelection}
-            onClick={onDownload}
-          >
+          <LaikaButton variant="ghost" size="sm" disabled={!hasSelection} onClick={onDownload}>
             {downloadLabel}
           </LaikaButton>
-          <LaikaButton
-            variant="danger"
-            size="sm"
-            disabled={deleteDisabled}
-            onClick={onDelete}
-          >
+          <LaikaButton variant="danger" size="sm" disabled={deleteDisabled} onClick={onDelete}>
             {deleteLabel}
           </LaikaButton>
           <LaikaButton

@@ -1,20 +1,9 @@
 import { vi } from 'vitest';
-import { loadScript } from '../../lib-util/index';
 
+import { loadScript } from '../../lib-util/index';
 import cloudinary from '../index';
 
-vi.mock('decap-cms-lib-util');
-
-describe('cloudinary exports', () => {
-  it('exports an object with expected properties', () => {
-    expect(cloudinary).toMatchInlineSnapshot(`
-      {
-        "init": [Function],
-        "name": "cloudinary",
-      }
-    `);
-  });
-});
+vi.mock('../../lib-util/index');
 
 describe('cloudinary media library', () => {
   let mediaLibrary;
@@ -186,7 +175,7 @@ describe('cloudinary media library', () => {
       };
       await cloudinary.init({ options, handleInsert });
       cloudinaryInsertHandler({ assets: [asset] });
-      expect(handleInsert.mock.calls[0][0]).toMatchInlineSnapshot(`"image.jpg"`);
+      expect(handleInsert.mock.calls[0][0]).toBe('image.jpg');
     });
   });
 

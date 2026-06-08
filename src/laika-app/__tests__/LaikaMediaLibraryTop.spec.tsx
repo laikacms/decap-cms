@@ -41,14 +41,22 @@ describe('LaikaMediaLibraryTop', () => {
   it('disables delete + download + insert when no selection', () => {
     const { getByText } = render(<LaikaMediaLibraryTop {...baseProps} />);
     expect(getByText('mediaLibrary.mediaLibraryModal.download').closest('button')).toBeDisabled();
-    expect(getByText('mediaLibrary.mediaLibraryModal.deleteSelected').closest('button')).toBeDisabled();
-    expect(getByText('mediaLibrary.mediaLibraryModal.chooseSelected').closest('button')).toBeDisabled();
+    expect(
+      getByText('mediaLibrary.mediaLibraryModal.deleteSelected').closest('button'),
+    ).toBeDisabled();
+    expect(
+      getByText('mediaLibrary.mediaLibraryModal.chooseSelected').closest('button'),
+    ).toBeDisabled();
   });
 
   it('enables delete + download when hasSelection is true', () => {
     const { getByText } = render(<LaikaMediaLibraryTop {...baseProps} hasSelection />);
-    expect(getByText('mediaLibrary.mediaLibraryModal.download').closest('button')).not.toBeDisabled();
-    expect(getByText('mediaLibrary.mediaLibraryModal.deleteSelected').closest('button')).not.toBeDisabled();
+    expect(
+      getByText('mediaLibrary.mediaLibraryModal.download').closest('button'),
+    ).not.toBeDisabled();
+    expect(
+      getByText('mediaLibrary.mediaLibraryModal.deleteSelected').closest('button'),
+    ).not.toBeDisabled();
   });
 
   it('fires onClose when close button clicked', () => {

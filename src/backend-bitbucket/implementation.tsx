@@ -1,5 +1,6 @@
 import trimStart from 'lodash/trimStart';
 import { stripIndent } from 'common-tags';
+
 import {
   CURSOR_COMPATIBILITY_SYMBOL,
   createSemaphore,
@@ -27,8 +28,6 @@ import {
   branchFromContentKey,
 } from '../lib-util/index';
 import { NetlifyAuthenticator } from '../lib-auth/index';
-
-
 import AuthenticationPage from './AuthenticationPage';
 import API, { API_NAME } from './API';
 import { GitLfsClient } from './git-lfs-client';

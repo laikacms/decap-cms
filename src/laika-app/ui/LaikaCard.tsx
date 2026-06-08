@@ -22,7 +22,9 @@ const Surface = styled('article', { shouldForwardProp: laikaShouldForwardProp })
   border-radius: ${lengths.borderRadius};
   border: 1px solid ${colors.textFieldBorder};
   background-color: ${colors.foreground};
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
   box-sizing: border-box;
 
   ${({ $interactive }) =>

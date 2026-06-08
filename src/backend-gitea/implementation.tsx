@@ -1,5 +1,6 @@
 import { stripIndent } from 'common-tags';
 import trimStart from 'lodash/trimStart';
+
 import {
   asyncLock,
   basename,
@@ -16,7 +17,6 @@ import {
   runWithLock,
   unsentRequest,
 } from '../lib-util/index';
-
 import API, { API_NAME } from './API';
 import AuthenticationPage from './AuthenticationPage';
 

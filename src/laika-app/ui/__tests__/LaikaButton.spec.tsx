@@ -27,9 +27,7 @@ describe('LaikaButton', () => {
 
   it('fires onClick when clicked', () => {
     const onClick = vi.fn();
-    const { getByRole } = renderInRouter(
-      <LaikaButton onClick={onClick}>Press</LaikaButton>,
-    );
+    const { getByRole } = renderInRouter(<LaikaButton onClick={onClick}>Press</LaikaButton>);
     fireEvent.click(getByRole('button'));
     expect(onClick).toHaveBeenCalledTimes(1);
   });
@@ -48,9 +46,7 @@ describe('LaikaButton', () => {
   });
 
   it('forwards the type prop when overridden', () => {
-    const { getByRole } = renderInRouter(
-      <LaikaButton type="submit">Submit</LaikaButton>,
-    );
+    const { getByRole } = renderInRouter(<LaikaButton type="submit">Submit</LaikaButton>);
     expect(getByRole('button')).toHaveAttribute('type', 'submit');
   });
 });

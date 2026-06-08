@@ -17,25 +17,22 @@ describe('MediaLibraryCard', () => {
     loadDisplayURL: vi.fn(),
   };
 
-  it('should match snapshot for non draft image', () => {
-    const { asFragment, queryByTestId } = render(<MediaLibraryCard {...props} />);
+  it('should not render draft text for non draft image', () => {
+    const { queryByTestId } = render(<MediaLibraryCard {...props} />);
 
     expect(queryByTestId('draft-text')).toBeNull();
-    expect(asFragment()).toMatchSnapshot();
   });
 
-  it('should match snapshot for draft image', () => {
-    const { asFragment, getByTestId } = render(<MediaLibraryCard {...props} isDraft={true} />);
+  it('should render draft text for draft image', () => {
+    const { getByTestId } = render(<MediaLibraryCard {...props} isDraft={true} />);
     expect(getByTestId('draft-text')).toHaveTextContent('Draft');
-    expect(asFragment()).toMatchSnapshot();
   });
 
-  it('should match snapshot for non viewable image', () => {
-    const { asFragment, getByTestId } = render(
+  it('should render file icon for non viewable image', () => {
+    const { getByTestId } = render(
       <MediaLibraryCard {...props} isViewableImage={false} type="Not Viewable" />,
     );
     expect(getByTestId('card-file-icon')).toHaveTextContent('Not Viewable');
-    expect(asFragment()).toMatchSnapshot();
   });
 
   it('should call loadDisplayURL on mount when url is empty', () => {

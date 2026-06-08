@@ -1,7 +1,9 @@
 import React from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+
 import LaikaIconButton from './LaikaIconButton';
 import { Icon } from '../../ui-default/index';
+
+import type { Meta, StoryObj } from '@storybook/react';
 
 const meta: Meta<typeof LaikaIconButton> = {
   title: 'Primitives/LaikaIconButton',

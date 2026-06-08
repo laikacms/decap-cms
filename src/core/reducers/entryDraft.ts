@@ -1,8 +1,8 @@
 import { produce } from 'immer';
 import { v4 as uuid } from 'uuid';
 import get from 'lodash/get';
-import { join } from '../../lib-util/index';
 
+import { join } from '../../lib-util/index';
 import {
   DRAFT_CREATE_FROM_ENTRY,
   DRAFT_CREATE_EMPTY,

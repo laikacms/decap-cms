@@ -2,6 +2,11 @@ import { ApolloClient } from 'apollo-client';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import { createHttpLink } from 'apollo-link-http';
 import { setContext } from 'apollo-link-context';
+import flow from 'lodash/flow';
+import partial from 'lodash/partial';
+import result from 'lodash/result';
+import trimStart from 'lodash/trimStart';
+
 import {
   localForage,
   parseLinkHeader,
@@ -27,12 +32,6 @@ import {
   throwOnConflictingBranches,
   dirname,
 } from '../lib-util/index';
-import flow from 'lodash/flow';
-import partial from 'lodash/partial';
-import result from 'lodash/result';
-import trimStart from 'lodash/trimStart';
-
-const NO_CACHE = 'no-cache';
 import * as queries from './queries';
 
 import type { ApolloQueryResult } from 'apollo-client';
@@ -45,6 +44,8 @@ import type {
   FetchError,
   CmsImplementationFile,
 } from '../lib-util/index';
+
+const NO_CACHE = 'no-cache';
 
 export const API_NAME = 'GitLab';
 

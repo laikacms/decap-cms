@@ -3,9 +3,8 @@ import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 import { translate } from 'react-polyglot';
 import { NavLink } from 'react-router-dom';
+
 import { Icon, components, colors } from '../../../ui-default/index';
-
-
 import { searchCollections } from '../../actions/collections';
 import CollectionSearch from './CollectionSearch';
 import NestedCollection from './NestedCollection';
@@ -91,11 +90,7 @@ function renderLink(collection: CmsCollectionState, filterTerm: string | undefin
   }
   return (
     <li key={collectionName}>
-      <SidebarNavLink
-        to={`/collections/${collectionName}`}
-        className={({ isActive }: { isActive: boolean }) => (isActive ? 'active' : '')}
-        data-testid={collectionName}
-      >
+      <SidebarNavLink to={`/collections/${collectionName}`} data-testid={collectionName}>
         <Icon type="write" />
         {collection.label}
       </SidebarNavLink>

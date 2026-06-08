@@ -6,6 +6,9 @@ import {
 } from 'apollo-cache-inmemory';
 import { createHttpLink } from 'apollo-link-http';
 import { setContext } from 'apollo-link-context';
+import trim from 'lodash/trim';
+import trimStart from 'lodash/trimStart';
+
 import {
   APIError,
   readFile,
@@ -15,9 +18,6 @@ import {
   CMS_BRANCH_PREFIX,
   throwOnConflictingBranches,
 } from '../lib-util/index';
-import trim from 'lodash/trim';
-import trimStart from 'lodash/trimStart';
-
 import introspectionQueryResultData from './fragmentTypes';
 import API, { API_NAME, MOCK_PULL_REQUEST } from './API';
 import * as queries from './queries';

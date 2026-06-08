@@ -5,6 +5,7 @@ import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import cypressPlugin from 'eslint-plugin-cypress';
 import importPlugin from 'eslint-plugin-import-x';
+import { createTypeScriptImportResolver } from 'eslint-import-resolver-typescript';
 import unicornPlugin from 'eslint-plugin-unicorn';
 import prettierConfig from 'eslint-config-prettier';
 import fs from 'fs';
@@ -17,10 +18,13 @@ const emotionPlugin = require('@emotion/eslint-plugin');
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const packages = fs
-  .readdirSync(path.join(__dirname, 'packages'), { withFileTypes: true })
+// Post-restructure the former `packages/decap-cms-<name>` workspaces live under
+// `src/<name>`; map them back to their published package names so cross-package
+// specifiers are still treated as resolvable core modules by import/no-unresolved.
+const srcDir = path.join(__dirname, 'src');
+const packages = (fs.existsSync(srcDir) ? fs.readdirSync(srcDir, { withFileTypes: true }) : [])
   .filter(dirent => dirent.isDirectory())
-  .map(dirent => dirent.name);
+  .map(dirent => (dirent.name === 'server' ? 'decap-server' : `decap-cms-${dirent.name}`));
 
 export default tseslint.config(
   // Global ignores
@@ -74,15 +78,16 @@ export default tseslint.config(
       react: {
         version: '19.2',
       },
-      'import/resolver': {
-        node: {
-          extensions: ['.ts', '.tsx'],
-        },
-        typescript: {
+      // eslint-plugin-import-x uses the new resolver interface; the legacy
+      // string-keyed `typescript`/`node` resolvers don't pick up this repo's
+      // `moduleResolution: "bundler"` tsconfig, which left `src/` sibling
+      // imports unresolved and misgrouped by import/order.
+      'import-x/resolver-next': [
+        createTypeScriptImportResolver({
           alwaysTryTypes: true,
-        },
-        exports: {},
-      },
+          project: './tsconfig.json',
+        }),
+      ],
       'import/core-modules': [...packages, 'decap-cms-app/dist/esm'],
     },
     rules: {
@@ -150,6 +155,16 @@ export default tseslint.config(
       "@typescript-eslint/no-empty-object-type": 'off', // TODO: Remove
       "@typescript-eslint/no-unsafe-function-type": 'off', // TODO: Remove
       "@typescript-eslint/no-explicit-any": 'off', // TODO: Remove
+    },
+  },
+
+  // Storybook story files
+  {
+    files: ['**/*.stories.ts', '**/*.stories.tsx'],
+    rules: {
+      // CSF `render` functions legitimately call hooks to drive interactive
+      // demos; the rule only flags them because `render` isn't capitalized.
+      'react-hooks/rules-of-hooks': 'off',
     },
   },
 

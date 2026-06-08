@@ -8,7 +8,6 @@ import { sortKeys } from './helpers';
 import type { CreateNodeContext } from 'yaml/util';
 import type { YAMLMap, YAMLSeq, Pair, Node } from 'yaml';
 
-
 const createNodeContext: CreateNodeContext = {
   aliasDuplicateObjects: false,
   keepUndefined: false,

@@ -1,8 +1,8 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import Frame, { FrameContextConsumer } from 'react-frame-component';
-import { lengths } from '../../../../ui-default/index';
 
+import { lengths } from '../../../../ui-default/index';
 import { encodeEntry } from '../../../lib/stega';
 import {
   resolveWidget,
@@ -27,7 +27,12 @@ import PreviewHOC from './PreviewHOC';
 import EditorPreview from './EditorPreview';
 
 import type { Dispatch } from 'redux';
-import type { CmsCollectionState, CmsEntry, CmsEntryField, CmsConfig } from '../../../../lib-util/index';
+import type {
+  CmsCollectionState,
+  CmsEntry,
+  CmsEntryField,
+  CmsConfig,
+} from '../../../../lib-util/index';
 
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;
@@ -206,9 +211,7 @@ export function PreviewPane(props: PreviewPaneProps) {
     values: unknown,
     fieldsMetaData: Record<string, unknown>,
   ) {
-    return fields.map((field: EntryField) =>
-      widgetFor(field.name, fields, values, fieldsMetaData),
-    );
+    return fields.map((field: EntryField) => widgetFor(field.name, fields, values, fieldsMetaData));
   }
 
   /**
@@ -263,12 +266,7 @@ export function PreviewPane(props: PreviewPaneProps) {
     const widgets: Record<string, React.ReactNode> = {};
     if (nestedFields) {
       nestedFields.forEach((f: EntryField) => {
-        widgets[f.name] = getWidget(
-          f,
-          value,
-          (metadata as Record<string, unknown>)[f.name],
-          props,
-        );
+        widgets[f.name] = getWidget(f, value, (metadata as Record<string, unknown>)[f.name], props);
       });
     }
     return { data: value, widgets };
@@ -314,8 +312,7 @@ export function PreviewPane(props: PreviewPaneProps) {
       fieldsMetaData?: Record<string, unknown>,
     ) => widgetFor(name, fields, values, fieldsMetaData),
     widgetsFor: (name: string) => widgetsFor(name),
-    getCollection: (collectionName: string, slug?: string) =>
-      getCollection(collectionName, slug),
+    getCollection: (collectionName: string, slug?: string) => getCollection(collectionName, slug),
     getEditorComponents,
   };
 

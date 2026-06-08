@@ -54,8 +54,7 @@ const Target = styled.span`
   display: inline-flex;
   align-items: center;
 
-  &:hover + ${Bubble},
-  &:focus-within + ${Bubble} {
+  &:hover + ${Bubble}, &:focus-within + ${Bubble} {
     opacity: 1;
   }
 `;

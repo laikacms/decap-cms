@@ -42,7 +42,9 @@ const RemoveButton = styled.button`
   font-size: 13px;
   line-height: 1;
   font-family: inherit;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 
   &:hover,
   &:focus-visible {

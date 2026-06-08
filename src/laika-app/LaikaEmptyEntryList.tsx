@@ -69,9 +69,7 @@ function LaikaEmptyEntryList({ collection }: EntryListEmptyRenderProps) {
   const dispatch = useAppDispatch();
 
   const singular = collection?.label_singular || collection?.label || 'entry';
-  const title = collection
-    ? 'No ' + collection.label.toLowerCase() + ' yet'
-    : 'No matches';
+  const title = collection ? 'No ' + collection.label.toLowerCase() + ' yet' : 'No matches';
 
   return (
     <Wrap>
@@ -83,7 +81,7 @@ function LaikaEmptyEntryList({ collection }: EntryListEmptyRenderProps) {
         <Body>
           {collection
             ? 'Get started by creating your first ' + singular.toLowerCase() + '.'
-            : "Nothing matches the current filters. Try widening the search."}
+            : 'Nothing matches the current filters. Try widening the search.'}
         </Body>
         {collection?.create ? (
           <LaikaButton onClick={() => dispatch(createNewEntry(collection.name))}>

@@ -125,12 +125,7 @@ function LaikaWorkflowCard({
                 : t('workflow.workflowCard.deleteNewEntry')}
             </LaikaButton>
             {allowPublish ? (
-              <LaikaButton
-                variant="primary"
-                size="sm"
-                disabled={!canPublish}
-                onClick={onPublish}
-              >
+              <LaikaButton variant="primary" size="sm" disabled={!canPublish} onClick={onPublish}>
                 {isModification
                   ? t('workflow.workflowCard.publishChanges')
                   : t('workflow.workflowCard.publishNewEntry')}

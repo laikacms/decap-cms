@@ -1,7 +1,7 @@
 import React from 'react';
 import { translate } from 'react-polyglot';
-import { Dropdown, DropdownItem } from '../../../ui-default/index';
 
+import { Dropdown, DropdownItem } from '../../../ui-default/index';
 import { ControlButton } from './ControlButton';
 
 import type { CmsViewGroup } from '../../../lib-util/index';

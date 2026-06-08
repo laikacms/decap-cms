@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+
 import LaikaToggleSwitch from './LaikaToggleSwitch';
+
+import type { Meta, StoryObj } from '@storybook/react';
 
 const meta: Meta<typeof LaikaToggleSwitch> = {
   title: 'Primitives/LaikaToggleSwitch',

@@ -6,7 +6,6 @@ import isEmpty from 'lodash/isEmpty';
 import memoize from 'lodash/memoize';
 import uniqueId from 'lodash/uniqueId';
 import { v4 as uuid } from 'uuid';
-import DecapCmsWidgetObject from '../widget-object/index';
 import {
   DndContext,
   MouseSensor,
@@ -18,6 +17,8 @@ import {
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 import { CSS } from '@dnd-kit/utilities';
+import { get, isObject, omit, set } from 'lodash';
+
 import {
   ListItemTopBar,
   ObjectWidgetTopBar,
@@ -26,8 +27,7 @@ import {
   FieldLabel,
 } from '../ui-default/index';
 import { stringTemplate, validations } from '../lib-widgets/index';
-import { get, isObject, omit, set } from 'lodash';
-
+import DecapCmsWidgetObject from '../widget-object/index';
 import {
   TYPES_KEY,
   getTypedFieldForValue,
@@ -332,599 +332,602 @@ function getFieldsDefault(
   }, initialValue);
 }
 
-const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(function ListControl(
-  props,
-  ref,
-) {
-  const {
-    field,
-    value: inputValue = [],
-    forID,
-    classNameWrapper,
-    editorControl,
-    onValidateObject,
-    metadata,
-    clearFieldErrors,
-    fieldsErrors,
-    controlRef,
-    resolveWidget,
-    parentIds = [],
-    entry,
-    t,
-    setActiveStyle,
-    setInactiveStyle,
-    onChange,
-  } = props;
+const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
+  function ListControl(props, ref) {
+    const {
+      field,
+      value: inputValue = [],
+      forID,
+      classNameWrapper,
+      editorControl,
+      onValidateObject,
+      metadata,
+      clearFieldErrors,
+      fieldsErrors,
+      controlRef,
+      resolveWidget,
+      parentIds = [],
+      entry,
+      t,
+      setActiveStyle,
+      setInactiveStyle,
+      onChange,
+    } = props;
 
-  const childRefs = React.useRef<Record<string, ChildRef>>({});
-  const uniqueFieldIdRef = React.useRef<string>('');
-  if (!uniqueFieldIdRef.current) {
-    uniqueFieldIdRef.current = uniqueId(`${field.name}-field-`);
-  }
-  const uniqueFieldId = uniqueFieldIdRef.current;
-
-  const initialArrayValue = Array.isArray(inputValue)
-    ? inputValue
-    : inputValue
-      ? [inputValue]
-      : [];
-  const initialListCollapsed = field.collapsed ?? true;
-
-  const [listCollapsed, setListCollapsed] = React.useState<boolean>(initialListCollapsed);
-  const [itemsCollapsed, setItemsCollapsed] = React.useState<boolean[]>(
-    () => initialArrayValue.map(() => initialListCollapsed) || [],
-  );
-  const [stringValue, setStringValue] = React.useState<string>(() =>
-    valueToString(initialArrayValue, field.name),
-  );
-  const [keys, setKeys] = React.useState<string[]>(() => initialArrayValue.map(() => uuid()));
-
-  function getValueType(): string | null {
-    if (field.fields) return valueTypes.MULTIPLE;
-    if (field.field) return valueTypes.SINGLE;
-    if (field[TYPES_KEY]) return valueTypes.MIXED;
-    return null;
-  }
-
-  function validateSize() {
-    const value = Array.isArray(inputValue) ? inputValue : inputValue ? [inputValue] : [];
-    const min = field.min;
-    const max = field.max;
-    const required = field.required ?? true;
-
-    if (!required && !value?.length) {
-      return [];
+    const childRefs = React.useRef<Record<string, ChildRef>>({});
+    const uniqueFieldIdRef = React.useRef<string>('');
+    if (!uniqueFieldIdRef.current) {
+      uniqueFieldIdRef.current = uniqueId(`${field.name}-field-`);
     }
+    const uniqueFieldId = uniqueFieldIdRef.current;
 
-    const error = validations.validateMinMax(
-      t as (key: string, options: unknown) => string,
-      field.label ?? field.name,
-      value,
-      min,
-      max,
+    const initialArrayValue = Array.isArray(inputValue)
+      ? inputValue
+      : inputValue
+        ? [inputValue]
+        : [];
+    const initialListCollapsed = field.collapsed ?? true;
+
+    const [listCollapsed, setListCollapsed] = React.useState<boolean>(initialListCollapsed);
+    const [itemsCollapsed, setItemsCollapsed] = React.useState<boolean[]>(
+      () => initialArrayValue.map(() => initialListCollapsed) || [],
     );
+    const [stringValue, setStringValue] = React.useState<string>(() =>
+      valueToString(initialArrayValue, field.name),
+    );
+    const [keys, setKeys] = React.useState<string[]>(() => initialArrayValue.map(() => uuid()));
 
-    return error ? [error] : [];
-  }
-
-  // Latest state/props for the imperative handle so callers that captured the
-  // handle once keep seeing the current value.
-  const latestRef = React.useRef({
-    listCollapsed,
-    itemsCollapsed,
-    keys,
-    propsValidate: props.validate,
-    onValidateObject,
-    forID,
-    getValueType,
-    validateSize,
-  });
-  latestRef.current = {
-    listCollapsed,
-    itemsCollapsed,
-    keys,
-    propsValidate: props.validate,
-    onValidateObject,
-    forID,
-    getValueType,
-    validateSize,
-  };
-
-  // Pending focus for after a setState-triggered re-render expanded the items.
-  const pendingFocusRef = React.useRef<{ index: number; remainingPath: string } | null>(null);
-
-  React.useImperativeHandle(
-    ref,
-    () => ({
-      validate() {
-        const hasChildWidgets =
-          latestRef.current.getValueType() && Object.keys(childRefs.current).length > 0;
-        if (hasChildWidgets) {
-          Object.values(childRefs.current).forEach((widget: ChildRef) => {
-            widget?.validate?.();
-          });
-        } else {
-          latestRef.current.propsValidate();
-        }
-        latestRef.current.onValidateObject(
-          latestRef.current.forID,
-          latestRef.current.validateSize(),
-        );
-      },
-      focus(path: string) {
-        const [indexStr, ...remainingPath] = path.split('.');
-        const index = Number(indexStr);
-        const { listCollapsed: lc, itemsCollapsed: ic, keys: ks } = latestRef.current;
-
-        if (lc || ic[index]) {
-          // Defer focus until after expansion renders.
-          pendingFocusRef.current = { index, remainingPath: remainingPath.join('.') };
-          setListCollapsed(false);
-          setItemsCollapsed(prev => {
-            const next = [...prev];
-            next[index] = false;
-            return next;
-          });
-        } else {
-          const key = ks[index];
-          const control = childRefs.current[key];
-          control?.focus?.(remainingPath.join('.'));
-        }
-      },
-    }),
-    [],
-  );
-
-  // Apply pending focus after items expand.
-  React.useEffect(() => {
-    const pending = pendingFocusRef.current;
-    if (!pending) return;
-    if (listCollapsed || itemsCollapsed[pending.index]) return;
-    pendingFocusRef.current = null;
-    const key = keys[pending.index];
-    const control = childRefs.current[key];
-    control?.focus?.(pending.remainingPath);
-  }, [listCollapsed, itemsCollapsed, keys]);
-
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const oldValue = stringValue;
-    const newValue = e.target.value.trim();
-    const listValue = newValue ? newValue.split(',') : [];
-    if (newValue.match(/,$/) && oldValue.match(/, $/)) {
-      listValue.pop();
+    function getValueType(): string | null {
+      if (field.fields) return valueTypes.MULTIPLE;
+      if (field.field) return valueTypes.SINGLE;
+      if (field[TYPES_KEY]) return valueTypes.MIXED;
+      return null;
     }
 
-    const parsedValue = valueToString(listValue, field.name);
-    setStringValue(parsedValue);
-    onChange(listValue.map((val: string) => val.trim()));
-  }
+    function validateSize() {
+      const value = Array.isArray(inputValue) ? inputValue : inputValue ? [inputValue] : [];
+      const min = field.min;
+      const max = field.max;
+      const required = field.required ?? true;
 
-  function handleFocus() {
-    setActiveStyle();
-  }
+      if (!required && !value?.length) {
+        return [];
+      }
 
-  function handleBlur(e: React.FocusEvent<HTMLInputElement>) {
-    const listValue = e.target.value
-      .split(',')
-      .map((el: string) => el.trim())
-      .filter((el: string) => el);
-    setStringValue(valueToString(listValue, field.name));
-    setInactiveStyle();
-  }
+      const error = validations.validateMinMax(
+        t as (key: string, options: unknown) => string,
+        field.label ?? field.name,
+        value,
+        min,
+        max,
+      );
 
-  function singleDefault() {
-    return get(field, ['field', 'default'], null);
-  }
-
-  function multipleDefault(fields: unknown) {
-    return getFieldsDefault(fields);
-  }
-
-  function mixedDefault(typeKey: string, type: string) {
-    const selectedType = (field[TYPES_KEY] as CmsField[]).find(
-      (f: CmsField) => f.name === type,
-    ) as CmsField & { fields?: CmsField[] | unknown; field?: CmsField | unknown };
-    const fields = selectedType?.fields || [selectedType?.field];
-    return getFieldsDefault(fields, { [typeKey]: type });
-  }
-
-  function addItem(parsedValue: unknown) {
-    const addToTop = field.add_to_top ?? false;
-    const itemKey = uuid();
-    setItemsCollapsed(prev => (addToTop ? [false, ...prev] : [...prev, false]));
-    setKeys(prev => (addToTop ? [itemKey, ...prev] : [...prev, itemKey]));
-
-    const listValue = Array.isArray(inputValue) ? inputValue : inputValue ? [inputValue] : [];
-    if (addToTop) {
-      onChange([parsedValue, ...listValue]);
-    } else {
-      onChange([...listValue, parsedValue]);
+      return error ? [error] : [];
     }
-  }
 
-  function handleAdd(e: React.MouseEvent) {
-    e.preventDefault();
-    const parsedValue =
-      getValueType() === valueTypes.SINGLE ? singleDefault() : multipleDefault(field.fields);
-    addItem(parsedValue);
-  }
-
-  function handleAddType(type: string, typeKey: string) {
-    addItem(mixedDefault(typeKey, type));
-  }
-
-  function processControlRef(itemKey: string) {
-    return (childRef: ChildRef) => {
-      if (!childRef) return;
-      childRefs.current[itemKey] = childRef;
+    // Latest state/props for the imperative handle so callers that captured the
+    // handle once keep seeing the current value.
+    const latestRef = React.useRef({
+      listCollapsed,
+      itemsCollapsed,
+      keys,
+      propsValidate: props.validate,
+      onValidateObject,
+      forID,
+      getValueType,
+      validateSize,
+    });
+    latestRef.current = {
+      listCollapsed,
+      itemsCollapsed,
+      keys,
+      propsValidate: props.validate,
+      onValidateObject,
+      forID,
+      getValueType,
+      validateSize,
     };
-  }
 
-  function getObjectValue(idx: number) {
-    return ((inputValue as unknown[])[idx] || {}) as Record<string, unknown>;
-  }
+    // Pending focus for after a setState-triggered re-render expanded the items.
+    const pendingFocusRef = React.useRef<{ index: number; remainingPath: string } | null>(null);
 
-  const handleChangeFor = React.useMemo(
-    () =>
-      memoize((index: number) => {
-        return (f: CmsField, newValue: unknown, newMetadata: Record<string, unknown>) => {
-          const value = Array.isArray(inputValue)
-            ? [...inputValue]
-            : inputValue
-              ? [inputValue]
-              : [];
-          const collectionName = field.name;
-          const isListFieldObjectWidget = get(field, ['field', 'widget']) === 'object';
-          const withNameKey =
-            getValueType() !== valueTypes.SINGLE ||
-            (getValueType() === valueTypes.SINGLE && isListFieldObjectWidget);
-          let newObjectValue;
-          if (withNameKey) {
-            const name = f.name;
-            const ov = { ...getObjectValue(index) };
-            ov[name] = newValue;
-            newObjectValue = ov;
+    React.useImperativeHandle(
+      ref,
+      () => ({
+        validate() {
+          const hasChildWidgets =
+            latestRef.current.getValueType() && Object.keys(childRefs.current).length > 0;
+          if (hasChildWidgets) {
+            Object.values(childRefs.current).forEach((widget: ChildRef) => {
+              widget?.validate?.();
+            });
           } else {
-            newObjectValue = newValue;
+            latestRef.current.propsValidate();
           }
-          const parsedMetadata = {
-            [collectionName]: { ...(metadata ?? {}), ...(newMetadata || {}) },
-          };
+          latestRef.current.onValidateObject(
+            latestRef.current.forID,
+            latestRef.current.validateSize(),
+          );
+        },
+        focus(path: string) {
+          const [indexStr, ...remainingPath] = path.split('.');
+          const index = Number(indexStr);
+          const { listCollapsed: lc, itemsCollapsed: ic, keys: ks } = latestRef.current;
 
-          value[index] = newObjectValue;
-          onChange(value, parsedMetadata);
-        };
+          if (lc || ic[index]) {
+            // Defer focus until after expansion renders.
+            pendingFocusRef.current = { index, remainingPath: remainingPath.join('.') };
+            setListCollapsed(false);
+            setItemsCollapsed(prev => {
+              const next = [...prev];
+              next[index] = false;
+              return next;
+            });
+          } else {
+            const key = ks[index];
+            const control = childRefs.current[key];
+            control?.focus?.(remainingPath.join('.'));
+          }
+        },
       }),
-    // Recreate when value identity changes so closures see latest value.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [inputValue, metadata, field, onChange],
-  );
-
-  function handleRemove(index: number, event: React.MouseEvent) {
-    event.preventDefault();
-    const collectionName = field.name;
-    const isSingleField = getValueType() === valueTypes.SINGLE;
-    const value =
-      inputValue && Array.isArray(inputValue) ? inputValue : inputValue ? [inputValue] : [];
-
-    const val = { ...value };
-    const metadataRemovePath = isSingleField ? val[index] : Object.values(val[index]);
-    const parsedMetadata =
-      metadata && !isEmpty(metadata)
-        ? {
-            [collectionName]: omit(metadata, ...metadataRemovePath),
-          }
-        : metadata;
-
-    const removedKey = keys[index];
-
-    const newKeys = [...keys];
-    newKeys.splice(index, 1);
-    const newItemsCollapsed = [...itemsCollapsed];
-    newItemsCollapsed.splice(index, 1);
-
-    setItemsCollapsed(newItemsCollapsed);
-    setKeys(newKeys);
-
-    delete childRefs.current[removedKey];
-
-    const newValue = value.filter((_: unknown, i: number) => i !== index);
-
-    if (fieldsErrors) {
-      Object.entries(fieldsErrors).forEach(([fieldId, errors]: [string, any]) => {
-        if (errors.some((err: any) => err.parentIds?.includes(removedKey))) {
-          clearFieldErrors(fieldId);
-        }
-      });
-    }
-
-    if (newValue.length === 0) {
-      clearFieldErrors(forID);
-      onValidateObject(forID, []);
-    }
-
-    onChange(newValue, parsedMetadata);
-  }
-
-  function handleItemCollapseToggle(index: number, event: React.MouseEvent) {
-    event.preventDefault();
-    setItemsCollapsed(prev =>
-      prev.map((collapsed: boolean, i: number) => (i === index ? !collapsed : collapsed)),
+      [],
     );
-  }
 
-  function handleCollapseAllToggle(e: React.MouseEvent) {
-    e.preventDefault();
-    const value =
-      inputValue && Array.isArray(inputValue) ? inputValue : inputValue ? [inputValue] : [];
-    const minimizeCollapsedItems = field.minimize_collapsed ?? false;
-    const listCollapsedByDefault = field.collapsed ?? true;
-    const allItemsCollapsed = itemsCollapsed.every((val: boolean) => val === true);
+    // Apply pending focus after items expand.
+    React.useEffect(() => {
+      const pending = pendingFocusRef.current;
+      if (!pending) return;
+      if (listCollapsed || itemsCollapsed[pending.index]) return;
+      pendingFocusRef.current = null;
+      const key = keys[pending.index];
+      const control = childRefs.current[key];
+      control?.focus?.(pending.remainingPath);
+    }, [listCollapsed, itemsCollapsed, keys]);
 
-    if (minimizeCollapsedItems) {
-      let updatedItemsCollapsed = itemsCollapsed;
-      if (!listCollapsed || !listCollapsedByDefault) {
-        updatedItemsCollapsed = Array(value.length).fill(!listCollapsed);
+    function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+      const oldValue = stringValue;
+      const newValue = e.target.value.trim();
+      const listValue = newValue ? newValue.split(',') : [];
+      if (newValue.match(/,$/) && oldValue.match(/, $/)) {
+        listValue.pop();
       }
-      setListCollapsed(prev => !prev);
-      setItemsCollapsed(updatedItemsCollapsed);
-    } else {
-      setItemsCollapsed(Array(value.length).fill(!allItemsCollapsed));
+
+      const parsedValue = valueToString(listValue, field.name);
+      setStringValue(parsedValue);
+      onChange(listValue.map((val: string) => val.trim()));
     }
-  }
 
-  function objectLabel(item: unknown) {
-    const valueType = getValueType();
-    switch (valueType) {
-      case valueTypes.MIXED: {
-        if (!validateItem(field, item)) return;
-        const itemType = getTypedFieldForValue(field, item);
-        const label = itemType?.label ?? itemType?.name ?? '';
-        const summary = get(itemType, 'summary', field?.summary);
-        return summary
-          ? handleSummary(summary, entry, label, item as Record<string, string>)
-          : label;
-      }
-      case valueTypes.SINGLE: {
-        const singleField = field.field;
-        const label = singleField?.label ?? singleField?.name ?? '';
-        const summary = field?.summary;
-        const data = { [singleField?.name ?? '']: item as string };
-        return summary ? handleSummary(summary, entry, label, data) : label;
-      }
-      case valueTypes.MULTIPLE: {
-        if (!validateItem(field, item)) return;
-        const multiFields = field.fields;
-        const labelField = multiFields && multiFields?.[0];
-        const value = get(item, labelField?.name ?? '', '');
-        const summary = field?.summary;
-        const labelReturn = summary
-          ? handleSummary(summary, entry, value, item as Record<string, string>)
-          : value;
-        return (labelReturn || `No ${labelField?.name}`).toString();
+    function handleFocus() {
+      setActiveStyle();
+    }
+
+    function handleBlur(e: React.FocusEvent<HTMLInputElement>) {
+      const listValue = e.target.value
+        .split(',')
+        .map((el: string) => el.trim())
+        .filter((el: string) => el);
+      setStringValue(valueToString(listValue, field.name));
+      setInactiveStyle();
+    }
+
+    function singleDefault() {
+      return get(field, ['field', 'default'], null);
+    }
+
+    function multipleDefault(fields: unknown) {
+      return getFieldsDefault(fields);
+    }
+
+    function mixedDefault(typeKey: string, type: string) {
+      const selectedType = (field[TYPES_KEY] as CmsField[]).find(
+        (f: CmsField) => f.name === type,
+      ) as CmsField & { fields?: CmsField[] | unknown; field?: CmsField | unknown };
+      const fields = selectedType?.fields || [selectedType?.field];
+      return getFieldsDefault(fields, { [typeKey]: type });
+    }
+
+    function addItem(parsedValue: unknown) {
+      const addToTop = field.add_to_top ?? false;
+      const itemKey = uuid();
+      setItemsCollapsed(prev => (addToTop ? [false, ...prev] : [...prev, false]));
+      setKeys(prev => (addToTop ? [itemKey, ...prev] : [...prev, itemKey]));
+
+      const listValue = Array.isArray(inputValue) ? inputValue : inputValue ? [inputValue] : [];
+      if (addToTop) {
+        onChange([parsedValue, ...listValue]);
+      } else {
+        onChange([...listValue, parsedValue]);
       }
     }
-    return '';
-  }
 
-  function onSortEnd({ oldIndex, newIndex }: { oldIndex: number; newIndex: number }) {
-    const value =
-      inputValue && Array.isArray(inputValue) ? inputValue : inputValue ? [inputValue] : [];
+    function handleAdd(e: React.MouseEvent) {
+      e.preventDefault();
+      const parsedValue =
+        getValueType() === valueTypes.SINGLE ? singleDefault() : multipleDefault(field.fields);
+      addItem(parsedValue);
+    }
 
-    const val = { ...value };
-    const item = val[oldIndex];
-    val.splice(oldIndex, 1);
-    val.splice(newIndex, 0, item);
-    onChange(val);
+    function handleAddType(type: string, typeKey: string) {
+      addItem(mixedDefault(typeKey, type));
+    }
 
-    const collapsed = itemsCollapsed[oldIndex];
-    const next = [...itemsCollapsed];
-    next.splice(oldIndex, 1);
-    const updatedItemsCollapsed = [...next];
-    updatedItemsCollapsed.splice(newIndex, 0, collapsed);
+    function processControlRef(itemKey: string) {
+      return (childRef: ChildRef) => {
+        if (!childRef) return;
+        childRefs.current[itemKey] = childRef;
+      };
+    }
 
-    const movedKey = keys[oldIndex];
-    const updatedKeys = [...keys];
-    updatedKeys.splice(oldIndex, 1);
-    updatedKeys.splice(newIndex, 0, movedKey);
+    function getObjectValue(idx: number) {
+      return ((inputValue as unknown[])[idx] || {}) as Record<string, unknown>;
+    }
 
-    setItemsCollapsed(updatedItemsCollapsed);
-    setKeys(updatedKeys);
-  }
+    const handleChangeFor = React.useMemo(
+      () =>
+        memoize((index: number) => {
+          return (f: CmsField, newValue: unknown, newMetadata: Record<string, unknown>) => {
+            const value = Array.isArray(inputValue)
+              ? [...inputValue]
+              : inputValue
+                ? [inputValue]
+                : [];
+            const collectionName = field.name;
+            const isListFieldObjectWidget = get(field, ['field', 'widget']) === 'object';
+            const withNameKey =
+              getValueType() !== valueTypes.SINGLE ||
+              (getValueType() === valueTypes.SINGLE && isListFieldObjectWidget);
+            let newObjectValue;
+            if (withNameKey) {
+              const name = f.name;
+              const ov = { ...getObjectValue(index) };
+              ov[name] = newValue;
+              newObjectValue = ov;
+            } else {
+              newObjectValue = newValue;
+            }
+            const parsedMetadata = {
+              [collectionName]: { ...(metadata ?? {}), ...(newMetadata || {}) },
+            };
 
-  function hasError(index: number) {
-    if (fieldsErrors && !isEmpty(fieldsErrors)) {
-      return Object.values(fieldsErrors).some((arr: any) =>
-        arr.some((err: any) => err.parentIds && err.parentIds.includes(keys[index])),
+            value[index] = newObjectValue;
+            onChange(value, parsedMetadata);
+          };
+        }),
+      // Recreate when value identity changes so closures see latest value.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [inputValue, metadata, field, onChange],
+    );
+
+    function handleRemove(index: number, event: React.MouseEvent) {
+      event.preventDefault();
+      const collectionName = field.name;
+      const isSingleField = getValueType() === valueTypes.SINGLE;
+      const value =
+        inputValue && Array.isArray(inputValue) ? inputValue : inputValue ? [inputValue] : [];
+
+      const val = { ...value };
+      const metadataRemovePath = isSingleField ? val[index] : Object.values(val[index]);
+      const parsedMetadata =
+        metadata && !isEmpty(metadata)
+          ? {
+              [collectionName]: omit(metadata, ...metadataRemovePath),
+            }
+          : metadata;
+
+      const removedKey = keys[index];
+
+      const newKeys = [...keys];
+      newKeys.splice(index, 1);
+      const newItemsCollapsed = [...itemsCollapsed];
+      newItemsCollapsed.splice(index, 1);
+
+      setItemsCollapsed(newItemsCollapsed);
+      setKeys(newKeys);
+
+      delete childRefs.current[removedKey];
+
+      const newValue = value.filter((_: unknown, i: number) => i !== index);
+
+      if (fieldsErrors) {
+        Object.entries(fieldsErrors).forEach(([fieldId, errors]: [string, any]) => {
+          if (errors.some((err: any) => err.parentIds?.includes(removedKey))) {
+            clearFieldErrors(fieldId);
+          }
+        });
+      }
+
+      if (newValue.length === 0) {
+        clearFieldErrors(forID);
+        onValidateObject(forID, []);
+      }
+
+      onChange(newValue, parsedMetadata);
+    }
+
+    function handleItemCollapseToggle(index: number, event: React.MouseEvent) {
+      event.preventDefault();
+      setItemsCollapsed(prev =>
+        prev.map((collapsed: boolean, i: number) => (i === index ? !collapsed : collapsed)),
       );
     }
-  }
 
-  const getStableParentIds = React.useMemo(
-    () =>
-      memoize(
-        (parentIdsArr: string[], forIDArg: string | undefined, key: string) => [
-          ...parentIdsArr,
-          forIDArg ?? '',
-          key,
-        ],
-        (parentIdsArr: string[], forIDArg: string | undefined, key: string) =>
-          JSON.stringify([...parentIdsArr, forIDArg, key]),
-      ),
-    [],
-  );
+    function handleCollapseAllToggle(e: React.MouseEvent) {
+      e.preventDefault();
+      const value =
+        inputValue && Array.isArray(inputValue) ? inputValue : inputValue ? [inputValue] : [];
+      const minimizeCollapsedItems = field.minimize_collapsed ?? false;
+      const listCollapsedByDefault = field.collapsed ?? true;
+      const allItemsCollapsed = itemsCollapsed.every((val: boolean) => val === true);
 
-  function renderItem(item: unknown, index: number) {
-    const collapsed = itemsCollapsed[index];
-    const key = keys[index];
-    let f: CmsField | undefined = field;
-    const itemHasError = hasError(index);
-    const isVariableTypesList = getValueType() === valueTypes.MIXED;
-    if (isVariableTypesList) {
-      f = getTypedFieldForValue(f!, item);
-      if (!f) {
-        return renderErroneousTypedItem(index, item);
+      if (minimizeCollapsedItems) {
+        let updatedItemsCollapsed = itemsCollapsed;
+        if (!listCollapsed || !listCollapsedByDefault) {
+          updatedItemsCollapsed = Array(value.length).fill(!listCollapsed);
+        }
+        setListCollapsed(prev => !prev);
+        setItemsCollapsed(updatedItemsCollapsed);
+      } else {
+        setItemsCollapsed(Array(value.length).fill(!allItemsCollapsed));
       }
     }
 
-    return (
-      <SortableListItem
-        css={[styles.listControlItem, collapsed && styles.listControlItemCollapsed]}
-        index={index}
-        key={key}
-        id={key}
-        keys={keys}
-      >
-        {isVariableTypesList && (
-          <LabelComponent
-            field={f!}
-            isActive={false}
-            hasErrors={itemHasError}
-            uniqueFieldId={uniqueFieldId}
-            isFieldOptional={f.required === false}
-            t={t}
-          />
-        )}
-        <StyledListItemTopBar
-          collapsed={collapsed}
-          onCollapseToggle={() =>
-            handleItemCollapseToggle(index, { preventDefault: () => {} } as React.MouseEvent)
-          }
-          dragHandle={DragHandle}
+    function objectLabel(item: unknown) {
+      const valueType = getValueType();
+      switch (valueType) {
+        case valueTypes.MIXED: {
+          if (!validateItem(field, item)) return;
+          const itemType = getTypedFieldForValue(field, item);
+          const label = itemType?.label ?? itemType?.name ?? '';
+          const summary = get(itemType, 'summary', field?.summary);
+          return summary
+            ? handleSummary(summary, entry, label, item as Record<string, string>)
+            : label;
+        }
+        case valueTypes.SINGLE: {
+          const singleField = field.field;
+          const label = singleField?.label ?? singleField?.name ?? '';
+          const summary = field?.summary;
+          const data = { [singleField?.name ?? '']: item as string };
+          return summary ? handleSummary(summary, entry, label, data) : label;
+        }
+        case valueTypes.MULTIPLE: {
+          if (!validateItem(field, item)) return;
+          const multiFields = field.fields;
+          const labelField = multiFields && multiFields?.[0];
+          const value = get(item, labelField?.name ?? '', '');
+          const summary = field?.summary;
+          const labelReturn = summary
+            ? handleSummary(summary, entry, value, item as Record<string, string>)
+            : value;
+          return (labelReturn || `No ${labelField?.name}`).toString();
+        }
+      }
+      return '';
+    }
+
+    function onSortEnd({ oldIndex, newIndex }: { oldIndex: number; newIndex: number }) {
+      const value =
+        inputValue && Array.isArray(inputValue) ? inputValue : inputValue ? [inputValue] : [];
+
+      const val = { ...value };
+      const item = val[oldIndex];
+      val.splice(oldIndex, 1);
+      val.splice(newIndex, 0, item);
+      onChange(val);
+
+      const collapsed = itemsCollapsed[oldIndex];
+      const next = [...itemsCollapsed];
+      next.splice(oldIndex, 1);
+      const updatedItemsCollapsed = [...next];
+      updatedItemsCollapsed.splice(newIndex, 0, collapsed);
+
+      const movedKey = keys[oldIndex];
+      const updatedKeys = [...keys];
+      updatedKeys.splice(oldIndex, 1);
+      updatedKeys.splice(newIndex, 0, movedKey);
+
+      setItemsCollapsed(updatedItemsCollapsed);
+      setKeys(updatedKeys);
+    }
+
+    function hasError(index: number) {
+      if (fieldsErrors && !isEmpty(fieldsErrors)) {
+        return Object.values(fieldsErrors).some((arr: any) =>
+          arr.some((err: any) => err.parentIds && err.parentIds.includes(keys[index])),
+        );
+      }
+    }
+
+    const getStableParentIds = React.useMemo(
+      () =>
+        memoize(
+          (parentIdsArr: string[], forIDArg: string | undefined, key: string) => [
+            ...parentIdsArr,
+            forIDArg ?? '',
+            key,
+          ],
+          (parentIdsArr: string[], forIDArg: string | undefined, key: string) =>
+            JSON.stringify([...parentIdsArr, forIDArg, key]),
+        ),
+      [],
+    );
+
+    function renderItem(item: unknown, index: number) {
+      const collapsed = itemsCollapsed[index];
+      const key = keys[index];
+      let f: CmsField | undefined = field;
+      const itemHasError = hasError(index);
+      const isVariableTypesList = getValueType() === valueTypes.MIXED;
+      if (isVariableTypesList) {
+        f = getTypedFieldForValue(f!, item);
+        if (!f) {
+          return renderErroneousTypedItem(index, item);
+        }
+      }
+
+      return (
+        <SortableListItem
+          css={[styles.listControlItem, collapsed && styles.listControlItemCollapsed]}
+          index={index}
+          key={key}
           id={key}
-          allowRemove={f!.allow_remove ?? true}
-          allowReorder={f!.allow_reorder ?? true}
-          onRemove={() => handleRemove(index, { preventDefault: () => {} } as React.MouseEvent)}
-          data-testid={`styled-list-item-top-bar-${key}`}
-        />
-        <NestedObjectLabel className="NestedObjectLabel" collapsed={collapsed} error={itemHasError}>
-          {objectLabel(item)}
-        </NestedObjectLabel>
-        <ClassNames>
-          {({ css: cn, cx }) => (
-            <ObjectControl
-              classNameWrapper={cx(classNameWrapper, {
-                [cn`
-                  ${styleStrings.collapsedObjectControl};
-                `]: collapsed,
-              })}
-              value={item as Record<string, unknown>}
-              field={f as CmsFieldObject & CmsFieldBase}
-              onChangeObject={handleChangeFor(index) as (...args: unknown[]) => unknown}
-              editorControl={editorControl}
-              resolveWidget={resolveWidget}
-              metadata={metadata}
-              forList
-              onValidateObject={onValidateObject}
-              clearFieldErrors={clearFieldErrors}
-              fieldsErrors={fieldsErrors}
-              ref={processControlRef(key)}
-              controlRef={controlRef as any}
+          keys={keys}
+        >
+          {isVariableTypesList && (
+            <LabelComponent
+              field={f!}
+              isActive={false}
+              hasErrors={itemHasError}
+              uniqueFieldId={uniqueFieldId}
+              isFieldOptional={f.required === false}
               t={t}
-              collapsed={collapsed}
-              data-testid={`object-control-${key}`}
-              hasError={itemHasError}
-              parentIds={getStableParentIds(parentIds, forID, key)}
             />
           )}
-        </ClassNames>
-      </SortableListItem>
-    );
-  }
+          <StyledListItemTopBar
+            collapsed={collapsed}
+            onCollapseToggle={() =>
+              handleItemCollapseToggle(index, { preventDefault: () => {} } as React.MouseEvent)
+            }
+            dragHandle={DragHandle}
+            id={key}
+            allowRemove={f!.allow_remove ?? true}
+            allowReorder={f!.allow_reorder ?? true}
+            onRemove={() => handleRemove(index, { preventDefault: () => {} } as React.MouseEvent)}
+            data-testid={`styled-list-item-top-bar-${key}`}
+          />
+          <NestedObjectLabel
+            className="NestedObjectLabel"
+            collapsed={collapsed}
+            error={itemHasError}
+          >
+            {objectLabel(item)}
+          </NestedObjectLabel>
+          <ClassNames>
+            {({ css: cn, cx }) => (
+              <ObjectControl
+                classNameWrapper={cx(classNameWrapper, {
+                  [cn`
+                  ${styleStrings.collapsedObjectControl};
+                `]: collapsed,
+                })}
+                value={item as Record<string, unknown>}
+                field={f as CmsFieldObject & CmsFieldBase}
+                onChangeObject={handleChangeFor(index) as (...args: unknown[]) => unknown}
+                editorControl={editorControl}
+                resolveWidget={resolveWidget}
+                metadata={metadata}
+                forList
+                onValidateObject={onValidateObject}
+                clearFieldErrors={clearFieldErrors}
+                fieldsErrors={fieldsErrors}
+                ref={processControlRef(key)}
+                controlRef={controlRef as any}
+                t={t}
+                collapsed={collapsed}
+                data-testid={`object-control-${key}`}
+                hasError={itemHasError}
+                parentIds={getStableParentIds(parentIds, forID, key)}
+              />
+            )}
+          </ClassNames>
+        </SortableListItem>
+      );
+    }
 
-  function renderErroneousTypedItem(index: number, item: unknown) {
-    const errorMessage = getErrorMessageForTypedFieldAndValue(
-      field,
-      item as Record<string, unknown>,
-    );
-    const key = `item-${index}`;
-    return (
-      <SortableListItem
-        css={[styles.listControlItem, styles.listControlItemCollapsed]}
-        index={index}
-        key={key}
-        id={key}
-      >
-        <StyledListItemTopBar
-          onCollapseToggle={undefined}
-          onRemove={() => handleRemove(index, { preventDefault: () => {} } as React.MouseEvent)}
-          dragHandle={DragHandle}
+    function renderErroneousTypedItem(index: number, item: unknown) {
+      const errorMessage = getErrorMessageForTypedFieldAndValue(
+        field,
+        item as Record<string, unknown>,
+      );
+      const key = `item-${index}`;
+      return (
+        <SortableListItem
+          css={[styles.listControlItem, styles.listControlItemCollapsed]}
+          index={index}
+          key={key}
           id={key}
-        />
-        <NestedObjectLabel className="NestedObjectLabel" collapsed={true} error={true}>
-          {errorMessage}
-        </NestedObjectLabel>
-      </SortableListItem>
-    );
-  }
+        >
+          <StyledListItemTopBar
+            onCollapseToggle={undefined}
+            onRemove={() => handleRemove(index, { preventDefault: () => {} } as React.MouseEvent)}
+            dragHandle={DragHandle}
+            id={key}
+          />
+          <NestedObjectLabel className="NestedObjectLabel" collapsed={true} error={true}>
+            {errorMessage}
+          </NestedObjectLabel>
+        </SortableListItem>
+      );
+    }
 
-  function renderListControl() {
-    const value =
-      inputValue && Array.isArray(inputValue) ? inputValue : inputValue ? [inputValue] : [];
-    const items = value || [];
-    const label = field.label ?? field.name;
-    const labelSingular = field.label_singular ?? field.label ?? field.name;
-    const listLabel = items.length === 1 ? labelSingular.toLowerCase() : label.toLowerCase();
-    const minimizeCollapsedItems = field.minimize_collapsed ?? false;
-    const allItemsCollapsed = itemsCollapsed.every((val: boolean) => val === true);
-    const selfCollapsed = allItemsCollapsed && (listCollapsed || !minimizeCollapsedItems);
+    function renderListControl() {
+      const value =
+        inputValue && Array.isArray(inputValue) ? inputValue : inputValue ? [inputValue] : [];
+      const items = value || [];
+      const label = field.label ?? field.name;
+      const labelSingular = field.label_singular ?? field.label ?? field.name;
+      const listLabel = items.length === 1 ? labelSingular.toLowerCase() : label.toLowerCase();
+      const minimizeCollapsedItems = field.minimize_collapsed ?? false;
+      const allItemsCollapsed = itemsCollapsed.every((val: boolean) => val === true);
+      const selfCollapsed = allItemsCollapsed && (listCollapsed || !minimizeCollapsedItems);
 
-    const itemsArray = keys.map((key: string) => ({ id: key }));
+      const itemsArray = keys.map((key: string) => ({ id: key }));
 
-    return (
-      <ClassNames>
-        {({ cx, css: cn }) => (
-          <div
-            id={forID}
-            className={cx(
-              classNameWrapper,
-              cn`
+      return (
+        <ClassNames>
+          {({ cx, css: cn }) => (
+            <div
+              id={forID}
+              className={cx(
+                classNameWrapper,
+                cn`
                 ${styleStrings.objectWidgetTopBarContainer}
               `,
-            )}
-          >
-            <ObjectWidgetTopBar
-              allowAdd={field.allow_add ?? true}
-              onAdd={() => handleAdd({ preventDefault: () => {} } as React.MouseEvent)}
-              types={field[TYPES_KEY] as unknown as TypeItem[]}
-              onAddType={(type: string) => handleAddType(type, resolveFieldKeyType(field))}
-              heading={`${items.length} ${listLabel}`}
-              label={labelSingular.toLowerCase()}
-              onCollapseToggle={() =>
-                handleCollapseAllToggle({ preventDefault: () => {} } as React.MouseEvent)
-              }
-              collapsed={selfCollapsed}
-              t={t!}
-            />
-            {(!selfCollapsed || !minimizeCollapsedItems) && (
-              <SortableList items={itemsArray} keys={keys} onSortEnd={onSortEnd}>
-                {items.map(renderItem)}
-              </SortableList>
-            )}
-          </div>
-        )}
-      </ClassNames>
-    );
-  }
+              )}
+            >
+              <ObjectWidgetTopBar
+                allowAdd={field.allow_add ?? true}
+                onAdd={() => handleAdd({ preventDefault: () => {} } as React.MouseEvent)}
+                types={field[TYPES_KEY] as unknown as TypeItem[]}
+                onAddType={(type: string) => handleAddType(type, resolveFieldKeyType(field))}
+                heading={`${items.length} ${listLabel}`}
+                label={labelSingular.toLowerCase()}
+                onCollapseToggle={() =>
+                  handleCollapseAllToggle({ preventDefault: () => {} } as React.MouseEvent)
+                }
+                collapsed={selfCollapsed}
+                t={t!}
+              />
+              {(!selfCollapsed || !minimizeCollapsedItems) && (
+                <SortableList items={itemsArray} keys={keys} onSortEnd={onSortEnd}>
+                  {items.map(renderItem)}
+                </SortableList>
+              )}
+            </div>
+          )}
+        </ClassNames>
+      );
+    }
 
-  function renderInput() {
-    return (
-      <input
-        type="text"
-        id={forID}
-        value={stringValue}
-        onChange={handleChange}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-        className={classNameWrapper}
-      />
-    );
-  }
+    function renderInput() {
+      return (
+        <input
+          type="text"
+          id={forID}
+          value={stringValue}
+          onChange={handleChange}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          className={classNameWrapper}
+        />
+      );
+    }
 
-  if (getValueType() !== null) {
-    return renderListControl();
-  }
-  return renderInput();
-});
+    if (getValueType() !== null) {
+      return renderListControl();
+    }
+    return renderInput();
+  },
+);
 
 export default ListControl;

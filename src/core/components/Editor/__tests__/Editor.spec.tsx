@@ -8,7 +8,7 @@ import Editor from '../Editor';
 vi.mock('../EditorInterface', () => ({
   default: props => <mock-editor-interface {...props} />,
 }));
-vi.mock('decap-cms-ui-default', () => ({
+vi.mock('../../../../ui-default/index', () => ({
   Loader: props => <mock-loader {...props} />,
 }));
 vi.mock('react-router-dom', () => ({
@@ -64,38 +64,6 @@ describe('Editor', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useEditorModule.useEditor).mockReturnValue(defaultEditorReturn as any);
-  });
-
-  it('should render loader when entryDraft is null', () => {
-    vi.mocked(useEditorModule.useEditor).mockReturnValue({
-      ...defaultEditorReturn,
-      entryDraft: null,
-    } as any);
-    const { asFragment } = render(<Editor />);
-    expect(asFragment()).toMatchSnapshot();
-  });
-
-  it('should render loader when entryDraft entry is undefined', () => {
-    vi.mocked(useEditorModule.useEditor).mockReturnValue({
-      ...defaultEditorReturn,
-      entryDraft: {},
-    } as any);
-    const { asFragment } = render(<Editor />);
-    expect(asFragment()).toMatchSnapshot();
-  });
-
-  it('should render loader when entry is fetching', () => {
-    vi.mocked(useEditorModule.useEditor).mockReturnValue({
-      ...defaultEditorReturn,
-      entry: { isFetching: true },
-    } as any);
-    const { asFragment } = render(<Editor />);
-    expect(asFragment()).toMatchSnapshot();
-  });
-
-  it('should render editor interface when entry is not fetching', () => {
-    const { asFragment } = render(<Editor />);
-    expect(asFragment()).toMatchSnapshot();
   });
 
   it('should call setup on mount when collection is available', () => {

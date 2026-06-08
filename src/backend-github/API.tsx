@@ -5,6 +5,9 @@ import result from 'lodash/result';
 import trimStart from 'lodash/trimStart';
 import trim from 'lodash/trim';
 import { oneLine } from 'common-tags';
+import { dirname } from 'path';
+import { isError } from 'lodash';
+
 import {
   getAllResponses,
   APIError,
@@ -28,9 +31,6 @@ import {
   throwOnConflictingBranches,
   createSemaphore,
 } from '../lib-util/index';
-import { dirname } from 'path';
-import { isError } from 'lodash';
-
 import { PullRequestState, GithubCommitStatusState } from './types/api';
 
 import type {
@@ -63,7 +63,6 @@ import type {
   TreeFile,
   TreeFileForUpdate,
 } from './types/api';
-
 
 export const API_NAME = 'GitHub';
 

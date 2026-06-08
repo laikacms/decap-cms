@@ -87,10 +87,7 @@ export function LaikaThemeProvider({
   const mode = modeProp ?? internalMode;
 
   const [systemDark, setSystemDark] = useState<boolean>(() => {
-    if (
-      typeof window !== 'undefined' &&
-      typeof window.matchMedia === 'function'
-    ) {
+    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
       return window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
     return false;

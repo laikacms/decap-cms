@@ -1,7 +1,8 @@
 import React from 'react';
 import styled from '@emotion/styled';
-import { colorsRaw, colors, Icon, lengths, zIndex } from '../../../ui-default/index';
 import { translate } from 'react-polyglot';
+
+import { colorsRaw, colors, Icon, lengths, zIndex } from '../../../ui-default/index';
 
 import type { TranslateFunction } from '../../../ui-default/index';
 import type { CmsCollectionState, CmsCollections } from '../../../lib-util/index';
@@ -132,9 +133,7 @@ function CollectionSearch(props: CollectionSearchProps) {
         setSuggestionsVisible(false);
       }
       if (event.key === 'ArrowDown') {
-        setSelectedCollectionIdx(prev =>
-          Math.min(prev + 1, Object.keys(collections).length - 1),
-        );
+        setSelectedCollectionIdx(prev => Math.min(prev + 1, Object.keys(collections).length - 1));
         event.preventDefault();
       } else if (event.key === 'ArrowUp') {
         setSelectedCollectionIdx(prev => Math.max(prev - 1, -1));

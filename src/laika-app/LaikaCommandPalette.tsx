@@ -60,10 +60,11 @@ const ResultItem = styled('li', { shouldForwardProp: laikaShouldForwardProp })<{
   gap: 12px;
   padding: 10px 16px;
   cursor: pointer;
-  background-color: ${({ $isActive }) =>
-    $isActive ? colors.activeBackground : 'transparent'};
+  background-color: ${({ $isActive }) => ($isActive ? colors.activeBackground : 'transparent')};
   color: ${({ $isActive }) => ($isActive ? colors.active : colors.textLead)};
-  transition: background-color 0.1s ease, color 0.1s ease;
+  transition:
+    background-color 0.1s ease,
+    color 0.1s ease;
 
   &:hover {
     background-color: ${colors.activeBackground};
@@ -147,9 +148,7 @@ function LaikaCommandPalette() {
   const location = useLocation();
   const params = useParams();
   const collections = useAppSelector(state => state.collections) as CmsCollections | undefined;
-  const hasWorkflow = useAppSelector(
-    state => state.config?.publish_mode === 'editorial_workflow',
-  );
+  const hasWorkflow = useAppSelector(state => state.config?.publish_mode === 'editorial_workflow');
   const showMediaButton = useAppSelector(state => state.mediaLibrary?.showMediaButton);
 
   const [isOpen, setIsOpen] = React.useState(false);
@@ -234,7 +233,9 @@ function LaikaCommandPalette() {
     // their query doesn't match any nav item directly.
     const searchActions: CommandItem[] = [];
     const onCollectionRoute = location.pathname.startsWith('/collections/');
-    const scopedCollectionName = onCollectionRoute ? (params.name as string | undefined) : undefined;
+    const scopedCollectionName = onCollectionRoute
+      ? (params.name as string | undefined)
+      : undefined;
     const scopedCollection =
       scopedCollectionName && collections ? collections[scopedCollectionName] : undefined;
 

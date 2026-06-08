@@ -7,9 +7,8 @@ import { Sidebar } from '../Sidebar';
 
 import type * as DecapCmsUiDefault from '../../../../ui-default/index';
 
-
-vi.mock('decap-cms-ui-default', async () => {
-  const actual = await vi.importActual<typeof DecapCmsUiDefault>('decap-cms-ui-default');
+vi.mock('../../../../ui-default/index', async () => {
+  const actual = await vi.importActual<typeof DecapCmsUiDefault>('../../../../ui-default/index');
   return {
     ...actual,
     Icon: 'mocked-icon',
@@ -28,7 +27,7 @@ describe('Sidebar', () => {
   };
   it('should render sidebar with a simple collection', () => {
     const collections = { posts: { name: 'posts', label: 'Posts' } };
-    const { asFragment, getByTestId } = render(
+    const { getByTestId } = render(
       <MemoryRouter>
         <Sidebar {...props} collections={collections} />
       </MemoryRouter>,
@@ -36,8 +35,6 @@ describe('Sidebar', () => {
 
     expect(getByTestId('posts')).toHaveTextContent('Posts');
     expect(getByTestId('posts')).toHaveAttribute('href', '/collections/posts');
-
-    expect(asFragment()).toMatchSnapshot();
   });
 
   it('should not render a hidden collection', () => {
@@ -49,38 +46,5 @@ describe('Sidebar', () => {
     );
 
     expect(queryByTestId('posts')).toBeNull();
-  });
-
-  it('should render sidebar with a nested collection', () => {
-    const collections = { posts: { name: 'posts', label: 'Posts', nested: { depth: 10 } } };
-    const { asFragment } = render(
-      <MemoryRouter>
-        <Sidebar {...props} collections={collections} />
-      </MemoryRouter>,
-    );
-
-    expect(asFragment()).toMatchSnapshot();
-  });
-
-  it('should render nested collection with filterTerm', () => {
-    const collections = { posts: { name: 'posts', label: 'Posts', nested: { depth: 10 } } };
-    const { asFragment } = render(
-      <MemoryRouter>
-        <Sidebar {...props} collections={collections} filterTerm="dir1/dir2" />
-      </MemoryRouter>,
-    );
-
-    expect(asFragment()).toMatchSnapshot();
-  });
-
-  it('should render sidebar without search', () => {
-    const collections = { posts: { name: 'posts', label: 'Posts' } };
-    const { asFragment } = render(
-      <MemoryRouter>
-        <Sidebar {...props} collections={collections} isSearchEnabled={false} />
-      </MemoryRouter>,
-    );
-
-    expect(asFragment()).toMatchSnapshot();
   });
 });

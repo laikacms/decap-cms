@@ -1,6 +1,7 @@
 import trimStart from 'lodash/trimStart';
 import trim from 'lodash/trim';
 import { stripIndent } from 'common-tags';
+
 import {
   CURSOR_COMPATIBILITY_SYMBOL,
   basename,
@@ -23,7 +24,6 @@ import {
   branchFromContentKey,
   getDefaultBranchName,
 } from '../lib-util/index';
-
 import AuthenticationPage from './AuthenticationPage';
 import API, { API_NAME } from './API';
 

@@ -5,11 +5,7 @@
  * compose with the same building blocks.
  */
 export { default as LaikaButton } from './LaikaButton';
-export type {
-  LaikaButtonProps,
-  LaikaButtonVariant,
-  LaikaButtonSize,
-} from './LaikaButton';
+export type { LaikaButtonProps, LaikaButtonVariant, LaikaButtonSize } from './LaikaButton';
 
 export { default as LaikaIconButton } from './LaikaIconButton';
 export type { LaikaIconButtonProps, LaikaIconButtonSize } from './LaikaIconButton';

@@ -1,5 +1,6 @@
 import trimStart from 'lodash/trimStart';
 import trim from 'lodash/trim';
+
 import { createSemaphore } from '../lib-util/index';
 import {
   basename,
@@ -17,7 +18,6 @@ import {
   contentKeyFromBranch,
   getBlobSHA,
 } from '../lib-util/index';
-
 import AuthenticationPage from './AuthenticationPage';
 import API, { API_NAME } from './API';
 

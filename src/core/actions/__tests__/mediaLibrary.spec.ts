@@ -1,15 +1,15 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import configureMockStore from 'redux-mock-store';
 import { thunk } from 'redux-thunk';
-import * as libUtil from '../../../lib-util/index';
 
+import * as libUtil from '../../../lib-util/index';
 import { insertMedia, persistMedia, deleteMedia } from '../mediaLibrary';
 import * as backendModule from '../../backend';
 
 vi.mock('../../backend');
 vi.mock('../waitUntil');
-vi.mock('decap-cms-lib-util', async () => {
-  const lib = await vi.importActual('decap-cms-lib-util');
+vi.mock('../../../lib-util/index', async () => {
+  const lib = await vi.importActual('../../../lib-util/index');
   return {
     ...lib,
     getBlobSHA: vi.fn(),

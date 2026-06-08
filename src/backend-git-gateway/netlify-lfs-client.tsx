@@ -4,6 +4,7 @@ import map from 'lodash/fp/map.js';
 import isPlainObject from 'lodash/isPlainObject';
 import isEmpty from 'lodash/isEmpty';
 import { minimatch } from 'minimatch';
+
 import { unsentRequest } from '../lib-util/index';
 
 import type { ApiRequest, PointerFile } from '../lib-util/index';

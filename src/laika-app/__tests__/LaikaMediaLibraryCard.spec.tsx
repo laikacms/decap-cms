@@ -18,18 +18,13 @@ const baseProps = {
 
 describe('LaikaMediaLibraryCard', () => {
   it('renders the file name caption', () => {
-    const { getByText } = render(
-      <LaikaMediaLibraryCard {...baseProps} displayURL={{}} />,
-    );
+    const { getByText } = render(<LaikaMediaLibraryCard {...baseProps} displayURL={{}} />);
     expect(getByText('hero.png')).toBeInTheDocument();
   });
 
   it('renders the image when a displayURL is available', () => {
     const { getByRole } = render(
-      <LaikaMediaLibraryCard
-        {...baseProps}
-        displayURL={{ url: 'asset://hero.png' }}
-      />,
+      <LaikaMediaLibraryCard {...baseProps} displayURL={{ url: 'asset://hero.png' }} />,
     );
     const img = getByRole('img') as HTMLImageElement;
     expect(img.src).toContain('asset://hero.png');
@@ -38,20 +33,14 @@ describe('LaikaMediaLibraryCard', () => {
 
   it('falls back to a file-type placeholder when not viewable', () => {
     const { getByText, queryByRole } = render(
-      <LaikaMediaLibraryCard
-        {...baseProps}
-        isViewableImage={false}
-        displayURL={{}}
-      />,
+      <LaikaMediaLibraryCard {...baseProps} isViewableImage={false} displayURL={{}} />,
     );
     expect(queryByRole('img')).toBeNull();
     expect(getByText('png')).toBeInTheDocument();
   });
 
   it('shows the draft badge when isDraft is true', () => {
-    const { getByText } = render(
-      <LaikaMediaLibraryCard {...baseProps} displayURL={{}} isDraft />,
-    );
+    const { getByText } = render(<LaikaMediaLibraryCard {...baseProps} displayURL={{}} isDraft />);
     expect(getByText('Draft')).toBeInTheDocument();
   });
 
@@ -67,11 +56,7 @@ describe('LaikaMediaLibraryCard', () => {
   it('calls loadDisplayURL on mount when no URL is available yet', () => {
     const loadDisplayURL = vi.fn();
     render(
-      <LaikaMediaLibraryCard
-        {...baseProps}
-        displayURL={{}}
-        loadDisplayURL={loadDisplayURL}
-      />,
+      <LaikaMediaLibraryCard {...baseProps} displayURL={{}} loadDisplayURL={loadDisplayURL} />,
     );
     expect(loadDisplayURL).toHaveBeenCalledTimes(1);
   });

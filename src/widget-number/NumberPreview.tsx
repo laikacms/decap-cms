@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { WidgetPreviewContainer } from '../ui-default/index';
 
 interface NumberPreviewProps {

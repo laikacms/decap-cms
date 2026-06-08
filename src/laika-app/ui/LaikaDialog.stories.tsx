@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+
 import LaikaDialog from './LaikaDialog';
 import LaikaButton from './LaikaButton';
+
+import type { Meta, StoryObj } from '@storybook/react';
 
 const meta: Meta<typeof LaikaDialog> = {
   title: 'Primitives/LaikaDialog',

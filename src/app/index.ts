@@ -1,5 +1,6 @@
 import React, { createElement, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+
 import { DecapCmsCore as CMS, DecapCmsProvider, App } from '../core/index';
 import './extensions.js';
 

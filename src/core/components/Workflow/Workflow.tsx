@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
+
 import {
   Dropdown,
   DropdownItem,
@@ -10,10 +11,6 @@ import {
   components,
   shadows,
 } from '../../../ui-default/index';
-
-type Collections = CmsCollections;
-type Collection = CmsCollectionState;
-
 import { createNewEntry } from '../../actions/collections';
 import {
   loadUnpublishedEntries,
@@ -30,6 +27,9 @@ import { useCmsSlots } from '../../lib/slots';
 import type { Status } from '../../constants/publishModes';
 import type { CmsCollections, CmsCollectionState } from '../../../lib-util/index';
 import type { TranslateFunction } from '../../../ui-default/index';
+
+type Collections = CmsCollections;
+type Collection = CmsCollectionState;
 
 const WorkflowContainer = styled.div`
   padding: ${lengths.pageMargin} 0;

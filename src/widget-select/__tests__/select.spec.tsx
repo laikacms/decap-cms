@@ -290,37 +290,35 @@ describe('Select widget', () => {
         field: { options: stringOptions, multiple: true, min: 2 },
         defaultValue: [stringOptions[0]],
       };
-      expect(validate(opts)).toMatchInlineSnapshot(`"editor.editorControlPane.widget.rangeMin"`);
+      expect(validate(opts)).toBe('editor.editorControlPane.widget.rangeMin');
     });
     it('should fail with more items than max allows', () => {
       const opts = {
         field: { options: stringOptions, multiple: true, max: 1 },
         defaultValue: [stringOptions[0], stringOptions[1]],
       };
-      expect(validate(opts)).toMatchInlineSnapshot(`"editor.editorControlPane.widget.rangeMax"`);
+      expect(validate(opts)).toBe('editor.editorControlPane.widget.rangeMax');
     });
     it('should enforce min when both min and max are set', () => {
       const opts = {
         field: { options: stringOptions, multiple: true, min: 2, max: 3 },
         defaultValue: [stringOptions[0]],
       };
-      expect(validate(opts)).toMatchInlineSnapshot(`"editor.editorControlPane.widget.rangeCount"`);
+      expect(validate(opts)).toBe('editor.editorControlPane.widget.rangeCount');
     });
     it('should enforce max when both min and max are set', () => {
       const opts = {
         field: { options: stringOptions, multiple: true, min: 1, max: 2 },
         defaultValue: [stringOptions[0], stringOptions[1], stringOptions[2]],
       };
-      expect(validate(opts)).toMatchInlineSnapshot(`"editor.editorControlPane.widget.rangeCount"`);
+      expect(validate(opts)).toBe('editor.editorControlPane.widget.rangeCount');
     });
     it('should enforce min and max when they are the same value', () => {
       const opts = {
         field: { options: stringOptions, multiple: true, min: 2, max: 2 },
         defaultValue: [stringOptions[0], stringOptions[1], stringOptions[2]],
       };
-      expect(validate(opts)).toMatchInlineSnapshot(
-        `"editor.editorControlPane.widget.rangeCountExact"`,
-      );
+      expect(validate(opts)).toBe('editor.editorControlPane.widget.rangeCountExact');
     });
     it('should pass when min is met', () => {
       const opts = {
@@ -365,9 +363,7 @@ describe('Select widget', () => {
       expect(ref.isValid().error?.message).toBeUndefined();
       fireEvent.keyDown(input, { key: 'ArrowDown' });
       fireEvent.click(getByText('foo'));
-      expect(ref.isValid().error?.message).toMatchInlineSnapshot(
-        `"editor.editorControlPane.widget.rangeMin"`,
-      );
+      expect(ref.isValid().error?.message).toBe('editor.editorControlPane.widget.rangeMin');
       clickClearButton(container);
       expect(ref.isValid().error?.message).toBeUndefined();
     });

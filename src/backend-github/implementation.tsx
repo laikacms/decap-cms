@@ -1,6 +1,7 @@
 import * as React from 'react';
 import trimStart from 'lodash/trimStart';
 import { stripIndent } from 'common-tags';
+
 import {
   CURSOR_COMPATIBILITY_SYMBOL,
   Cursor,
@@ -21,7 +22,6 @@ import {
   branchFromContentKey,
   createSemaphore,
 } from '../lib-util/index';
-
 import AuthenticationPage from './AuthenticationPage';
 import API, { API_NAME } from './API';
 import GraphQLAPI from './GraphQLAPI';

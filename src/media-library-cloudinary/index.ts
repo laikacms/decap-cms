@@ -1,4 +1,5 @@
 import pick from 'lodash/pick';
+
 import { loadScript } from '../lib-util/index';
 
 declare global {

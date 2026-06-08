@@ -40,7 +40,9 @@ const Input = styled.input`
   color: ${colors.textLead};
   font-family: inherit;
   font-size: 13px;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
   outline: none;
 
   &::placeholder {

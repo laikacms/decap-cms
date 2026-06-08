@@ -2,10 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import { Provider } from 'react-redux';
 import { I18n } from 'react-polyglot';
 import { Global } from '@emotion/react';
+
 import { GlobalStyles, themeToCssVars } from '../../../ui-default/index';
-
-import type { DecapTheme } from '../../../ui-default/index';
-
 import { store } from '../../redux';
 import { useAppSelector, useAppDispatch } from '../../hooks/useRedux';
 import { loadConfig } from '../../actions/config';
@@ -20,6 +18,7 @@ import '../EditorWidgets';
 import '../../mediaLibrary';
 import 'what-input';
 
+import type { DecapTheme } from '../../../ui-default/index';
 import type { AppDispatch } from '../../redux';
 import type { CmsConfig } from '../../../lib-util/index';
 

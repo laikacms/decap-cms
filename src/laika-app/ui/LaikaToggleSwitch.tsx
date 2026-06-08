@@ -79,8 +79,10 @@ const Knob = styled.span<{ $size: LaikaToggleSwitchSize }>`
   }
 `;
 
-export interface LaikaToggleSwitchProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size' | 'type'> {
+export interface LaikaToggleSwitchProps extends Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  'size' | 'type'
+> {
   size?: LaikaToggleSwitchSize;
 }
 

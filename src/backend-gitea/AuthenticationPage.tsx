@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from '@emotion/styled';
+
 import { PkceAuthenticator } from '../lib-auth/index';
 import { AuthenticationPage, Icon } from '../ui-default/index';
 
@@ -50,7 +51,7 @@ export default function GiteaAuthenticationPage({
         onLogin(data);
       }
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only OAuth completion
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only OAuth completion
   }, []);
 
   function handleLogin() {

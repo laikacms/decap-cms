@@ -1,9 +1,10 @@
 import React from 'react';
 import find from 'lodash/find';
 import Select from 'react-select';
+import isObject from 'lodash/isObject';
+
 import { reactSelectStyles } from '../ui-default/index';
 import { validations } from '../lib-widgets/index';
-import isObject from 'lodash/isObject';
 
 import type { CmsFieldSelect, CmsFieldBase } from '../lib-util/index';
 
@@ -133,9 +134,7 @@ const SelectControl = React.forwardRef<SelectControlHandle, SelectControlProps>(
       <Select<SelectOption, boolean>
         inputId={forID}
         value={selectedValue}
-        onChange={
-          handleChange as (newValue: readonly SelectOption[] | SelectOption | null) => void
-        }
+        onChange={handleChange as (newValue: readonly SelectOption[] | SelectOption | null) => void}
         className={classNameWrapper}
         onFocus={setActiveStyle}
         onBlur={setInactiveStyle}

@@ -13,17 +13,13 @@ describe('LaikaToggleSwitch', () => {
   });
 
   it('renders the checked state', () => {
-    const { getByRole } = render(
-      <LaikaToggleSwitch aria-label="Dark mode" defaultChecked />,
-    );
+    const { getByRole } = render(<LaikaToggleSwitch aria-label="Dark mode" defaultChecked />);
     expect((getByRole('switch') as HTMLInputElement).checked).toBe(true);
   });
 
   it('fires onChange when toggled', () => {
     const onChange = vi.fn();
-    const { getByRole } = render(
-      <LaikaToggleSwitch aria-label="Dark mode" onChange={onChange} />,
-    );
+    const { getByRole } = render(<LaikaToggleSwitch aria-label="Dark mode" onChange={onChange} />);
     fireEvent.click(getByRole('switch'));
     expect(onChange).toHaveBeenCalledTimes(1);
   });

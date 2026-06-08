@@ -3,6 +3,7 @@ import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
 import { Link } from 'react-router-dom';
+
 import {
   Icon,
   Dropdown,
@@ -14,7 +15,6 @@ import {
   buttons,
   zIndex,
 } from '../../../ui-default/index';
-
 import { status } from '../../constants/publishModes';
 import { SettingsDropdown } from '../UI';
 
@@ -697,7 +697,9 @@ export function EditorToolbar(props: EditorToolbarProps) {
           {hasWorkflow ? renderWorkflowControls() : renderSimpleControls()}
         </ToolbarSubSectionFirst>
         <ToolbarSubSectionLast>
-          {hasWorkflow ? renderWorkflowDeployPreviewControls() : renderSimpleDeployPreviewControls()}
+          {hasWorkflow
+            ? renderWorkflowDeployPreviewControls()
+            : renderSimpleDeployPreviewControls()}
         </ToolbarSubSectionLast>
       </ToolbarSectionMain>
       <ToolbarSectionMeta>

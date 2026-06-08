@@ -100,7 +100,6 @@ export default function withMapControl({ getFormat, getMap }: WithMapControlOpti
       return () => {
         resizeObserver.disconnect();
       };
-       
     }, []);
 
     return (

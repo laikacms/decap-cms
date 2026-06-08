@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from '@emotion/styled';
+
 import { NetlifyAuthenticator, ImplicitAuthenticator, PkceAuthenticator } from '../lib-auth/index';
 import { AuthenticationPage, Icon } from '../ui-default/index';
 
@@ -129,7 +130,7 @@ export default function GitLabAuthenticationPage({
         auth_endpoint: authEndpoint,
       });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only OAuth completion
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only OAuth completion
   }, []);
 
   function handleLogin() {

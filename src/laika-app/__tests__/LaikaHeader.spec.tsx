@@ -112,9 +112,12 @@ describe('LaikaHeader', () => {
   it('hides the quick-add when no collection allows create', () => {
     const { queryByText } = render(
       <MemoryRouter>
-        <LaikaHeader {...baseProps} collections={{
-          drafts: { name: 'drafts', label: 'Drafts', create: false } as any,
-        }} />
+        <LaikaHeader
+          {...baseProps}
+          collections={{
+            drafts: { name: 'drafts', label: 'Drafts', create: false } as any,
+          }}
+        />
       </MemoryRouter>,
     );
     expect(queryByText('app.header.quickAdd')).toBeNull();

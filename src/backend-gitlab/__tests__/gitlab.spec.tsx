@@ -1,7 +1,7 @@
 /* eslint-disable import/order -- vi.mock must precede imports of the mocked module */
 import { vi } from 'vitest';
 
-vi.mock('decap-cms-core/src/backend');
+vi.mock('../../core/backend');
 import { oneLine, stripIndent } from 'common-tags';
 import nock from 'nock';
 import { Cursor } from '../../lib-util/index';
@@ -9,11 +9,10 @@ import { Cursor } from '../../lib-util/index';
 import Gitlab from '../implementation';
 import AuthenticationPage from '../AuthenticationPage';
 
-import type * as BackendModule from '../../core/src/backend';
+import type * as BackendModule from '../../core/backend';
 
-const { Backend, LocalStorageAuthStore } = await vi.importActual<typeof BackendModule>(
-  'decap-cms-core/src/backend',
-);
+const { Backend, LocalStorageAuthStore } =
+  await vi.importActual<typeof BackendModule>('../../core/backend');
 
 function generateEntries(path, length) {
   const entries = Array.from({ length }, (val, idx) => {

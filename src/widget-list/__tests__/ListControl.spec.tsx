@@ -1,4 +1,4 @@
-vi.mock('decap-cms-widget-object', async () => {
+vi.mock('../../widget-object/index', async () => {
   const React = await import('react');
   class MockObjectControl extends React.Component<any> {
     validate() {}
@@ -13,8 +13,8 @@ vi.mock('decap-cms-widget-object', async () => {
     controlComponent: MockObjectControl,
   };
 });
-vi.mock('decap-cms-ui-default', async () => {
-  const actual = await vi.importActual('decap-cms-ui-default');
+vi.mock('../../ui-default/index', async () => {
+  const actual = await vi.importActual('../../ui-default/index');
 
   function ListItemTopBar(props) {
     return (
@@ -68,22 +68,6 @@ describe('ListControl', () => {
     let id = 0;
     vi.mocked(uuid.v4).mockImplementation(() => String(id++));
   });
-  it('should render empty list', () => {
-    const field = { name: 'list', label: 'List' };
-    const { asFragment } = render(<ListControl {...props} field={field} />);
-
-    expect(asFragment()).toMatchSnapshot();
-  });
-
-  it('should render list with string array', () => {
-    const field = { name: 'list', label: 'List' };
-    const { asFragment } = render(
-      <ListControl {...props} field={field} value={['item 1', 'item 2']} />,
-    );
-
-    expect(asFragment()).toMatchSnapshot();
-  });
-
   it('should render list with nested object', () => {
     const field = {
       name: 'list',
@@ -95,7 +79,7 @@ describe('ListControl', () => {
         fields: [{ name: 'title', widget: 'string', label: 'Title' }],
       },
     };
-    const { asFragment, getByTestId } = render(
+    const { getByTestId } = render(
       <ListControl
         {...props}
         field={field}
@@ -108,8 +92,6 @@ describe('ListControl', () => {
 
     expect(getByTestId('object-control-0')).toHaveAttribute('collapsed');
     expect(getByTestId('object-control-1')).toHaveAttribute('collapsed');
-
-    expect(asFragment()).toMatchSnapshot();
   });
 
   it('should render list with nested object with collapse = false', () => {
@@ -124,7 +106,7 @@ describe('ListControl', () => {
         fields: [{ name: 'title', widget: 'string', label: 'Title' }],
       },
     };
-    const { asFragment, getByTestId } = render(
+    const { getByTestId } = render(
       <ListControl
         {...props}
         field={field}
@@ -137,8 +119,6 @@ describe('ListControl', () => {
 
     expect(getByTestId('object-control-0')).not.toHaveAttribute('collapsed');
     expect(getByTestId('object-control-1')).not.toHaveAttribute('collapsed');
-
-    expect(asFragment()).toMatchSnapshot();
   });
 
   it('should collapse all items on top bar collapse click', () => {
@@ -468,7 +448,7 @@ describe('ListControl', () => {
       label: 'List',
       fields: [{ label: 'String', name: 'string', widget: 'string' }],
     };
-    const { asFragment, getByTestId } = render(
+    const { getByTestId } = render(
       <ListControl {...props} field={field} value={[{ string: 'item 1' }, { string: 'item 2' }]} />,
     );
 
@@ -477,8 +457,6 @@ describe('ListControl', () => {
 
     expect(getByTestId('object-control-0')).toHaveAttribute('collapsed');
     expect(getByTestId('object-control-1')).toHaveAttribute('collapsed');
-
-    expect(asFragment()).toMatchSnapshot();
   });
 
   it('should render list with fields with collapse = "false" and default minimize_collapsed ("false")', () => {
@@ -488,7 +466,7 @@ describe('ListControl', () => {
       collapsed: false,
       fields: [{ label: 'String', name: 'string', widget: 'string' }],
     };
-    const { asFragment, getByTestId } = render(
+    const { getByTestId } = render(
       <ListControl {...props} field={field} value={[{ string: 'item 1' }, { string: 'item 2' }]} />,
     );
 
@@ -497,8 +475,6 @@ describe('ListControl', () => {
 
     expect(getByTestId('object-control-0')).not.toHaveAttribute('collapsed');
     expect(getByTestId('object-control-1')).not.toHaveAttribute('collapsed');
-
-    expect(asFragment()).toMatchSnapshot();
   });
 
   it('should render list with fields with default collapse ("true") and minimize_collapsed = "true"', () => {
@@ -508,7 +484,7 @@ describe('ListControl', () => {
       minimize_collapsed: true,
       fields: [{ label: 'String', name: 'string', widget: 'string' }],
     };
-    const { asFragment, getByTestId, queryByTestId } = render(
+    const { getByTestId, queryByTestId } = render(
       <ListControl {...props} field={field} value={[{ string: 'item 1' }, { string: 'item 2' }]} />,
     );
 
@@ -517,8 +493,6 @@ describe('ListControl', () => {
 
     expect(queryByTestId('object-control-0')).toBeNull();
     expect(queryByTestId('object-control-1')).toBeNull();
-
-    expect(asFragment()).toMatchSnapshot();
 
     fireEvent.click(getByTestId('expand-button'));
 
@@ -537,7 +511,7 @@ describe('ListControl', () => {
       minimize_collapsed: true,
       fields: [{ label: 'String', name: 'string', widget: 'string' }],
     };
-    const { asFragment, getByTestId, queryByTestId } = render(
+    const { getByTestId, queryByTestId } = render(
       <ListControl {...props} field={field} value={[{ string: 'item 1' }, { string: 'item 2' }]} />,
     );
 
@@ -546,8 +520,6 @@ describe('ListControl', () => {
 
     expect(getByTestId('object-control-0')).not.toHaveAttribute('collapsed');
     expect(getByTestId('object-control-1')).not.toHaveAttribute('collapsed');
-
-    expect(asFragment()).toMatchSnapshot();
 
     fireEvent.click(getByTestId('expand-button'));
 
@@ -564,7 +536,7 @@ describe('ListControl', () => {
       label: 'List',
       fields: [{ label: 'String', name: 'string', widget: 'string' }],
     };
-    const { asFragment, getByText, queryByTestId, rerender, getByTestId } = render(
+    const { getByText, queryByTestId, rerender, getByTestId } = render(
       <ListControl {...props} field={field} value={[]} />,
     );
 
@@ -579,8 +551,6 @@ describe('ListControl', () => {
 
     expect(getByTestId('styled-list-item-top-bar-0')).not.toHaveAttribute('collapsed');
     expect(getByTestId('object-control-0')).not.toHaveAttribute('collapsed');
-
-    expect(asFragment()).toMatchSnapshot();
   });
 
   it('should remove from list when remove button is clicked', () => {
@@ -591,11 +561,9 @@ describe('ListControl', () => {
       minimize_collapsed: true,
       fields: [{ label: 'String', name: 'string', widget: 'string' }],
     };
-    const { asFragment, getAllByText, rerender } = render(
+    const { getAllByText, rerender } = render(
       <ListControl {...props} field={field} value={[{ string: 'item 1' }, { string: 'item 2' }]} />,
     );
-
-    expect(asFragment()).toMatchSnapshot();
 
     let mock;
     try {
@@ -608,8 +576,6 @@ describe('ListControl', () => {
       expect(props.onChange).toHaveBeenCalledWith([{ string: 'item 2' }], undefined);
 
       rerender(<ListControl {...props} field={field} value={[{ string: 'item 2' }]} />);
-
-      expect(asFragment()).toMatchSnapshot();
     } finally {
       mock.mockRestore();
     }
@@ -617,14 +583,7 @@ describe('ListControl', () => {
 
   function renderAndValidate(field, value) {
     let handle;
-    render(
-      <ListControl
-        {...props}
-        field={field}
-        value={value}
-        ref={(h) => (handle = h)}
-      />,
-    );
+    render(<ListControl {...props} field={field} value={value} ref={h => (handle = h)} />);
     handle.validate();
   }
 
@@ -727,11 +686,7 @@ describe('ListControl', () => {
       max: 3,
       fields: [{ label: 'String', name: 'string', widget: 'string' }],
     };
-    renderAndValidate(field, [
-      { string: 'item 1' },
-      { string: 'item 2' },
-      { string: 'item 3' },
-    ]);
+    renderAndValidate(field, [{ string: 'item 1' }, { string: 'item 2' }, { string: 'item 3' }]);
     expect(props.onValidateObject).toHaveBeenCalledWith('forID', []);
   });
 

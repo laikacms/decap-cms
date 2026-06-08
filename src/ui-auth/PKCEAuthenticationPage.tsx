@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { jwtDecode } from 'jwt-decode';
+
 import { PkceAuthenticator } from '../lib-auth/index';
 import { AuthenticationPage, Icon } from '../ui-default/index';
 

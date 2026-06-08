@@ -1,7 +1,7 @@
 import isEqual from 'lodash/isEqual';
+
 import { Cursor } from '../../lib-util/index';
 import { CmsSortDirection } from '../../lib-util/index';
-
 import { selectCollectionEntriesCursor } from '../reducers/cursors';
 import { selectFields, updateFieldByKey, selectDefaultSortField } from '../reducers/collections';
 import { selectIntegration, selectPublishedSlugs } from '../reducers';

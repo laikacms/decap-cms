@@ -1,5 +1,4 @@
 import { basename, getBlobSHA } from '../../lib-util/index';
-
 import { currentBackend } from '../backend';
 import { createAssetProxy } from '../valueObjects/AssetProxy';
 import { selectIntegration } from '../reducers';

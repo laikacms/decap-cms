@@ -2,9 +2,10 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { useTranslate } from 'react-polyglot';
 import partial from 'lodash/partial';
+import { useStore } from 'react-redux';
+
 import { Cursor } from '../../../../lib-util/index';
 import { colors } from '../../../../ui-default/index';
-
 import {
   loadEntries as actionLoadEntries,
   traverseCollectionCursor as actionTraverseCollectionCursor,
@@ -18,7 +19,6 @@ import {
 } from '../../../reducers/entries';
 import { selectUnpublishedEntry, selectUnpublishedEntriesByStatus } from '../../../reducers';
 import Entries from './Entries';
-import { useStore } from 'react-redux';
 // `selectCollectionEntriesCursor` builds a fresh `Cursor` per call; we select
 // the raw stored data below and construct the `Cursor` in a memo instead.
 import { useAppDispatch, useAppSelector } from '../../../hooks/useRedux';

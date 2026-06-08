@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { GitHubBackend } from '../backend-github/index';
 
+import { GitHubBackend } from '../backend-github/index';
 import GenericPKCEAuthenticationPage from './AuthenticationPage';
 
 import type { GitHubUser } from '../backend-github/index';

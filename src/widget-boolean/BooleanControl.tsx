@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { Toggle, ToggleBackground, colors } from '../ui-default/index';
 
 interface BooleanBackgroundProps {

@@ -4,6 +4,7 @@ import take from 'lodash/take';
 import unset from 'lodash/unset';
 import isEmpty from 'lodash/isEmpty';
 import { v4 as uuid } from 'uuid';
+
 import {
   EditorialWorkflowError,
   Cursor,
@@ -13,7 +14,6 @@ import {
   dirname,
   ConfigurationError,
 } from '../lib-util/index';
-
 import AuthenticationPage from './AuthenticationPage';
 
 import type {

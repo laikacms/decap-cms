@@ -1,6 +1,6 @@
-import { isAbsolutePath } from '../../lib-util/index';
 import memoize from 'lodash/memoize';
 
+import { isAbsolutePath } from '../../lib-util/index';
 import { createAssetProxy } from '../valueObjects/AssetProxy';
 import { selectMediaFilePath } from '../reducers/entries';
 import { selectMediaFileByPath } from '../reducers/mediaLibrary';

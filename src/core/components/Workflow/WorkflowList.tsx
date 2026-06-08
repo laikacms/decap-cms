@@ -4,9 +4,8 @@ import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import dayjs from 'dayjs';
 import { translate } from 'react-polyglot';
+
 import { colors, lengths } from '../../../ui-default/index';
-
-
 import { status } from '../../constants/publishModes';
 import { DragSource, DropTarget, HTML5DragDrop } from '../UI';
 import WorkflowCard from './WorkflowCard';
@@ -290,7 +289,9 @@ function WorkflowList({
   }
 
   const columns = renderColumns(entries);
-  const ListContainer = isOpenAuthoring ? WorkflowListContainerOpenAuthoring : WorkflowListContainer;
+  const ListContainer = isOpenAuthoring
+    ? WorkflowListContainerOpenAuthoring
+    : WorkflowListContainer;
   return <ListContainer>{columns}</ListContainer>;
 }
 

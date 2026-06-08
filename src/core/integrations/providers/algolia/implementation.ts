@@ -1,6 +1,6 @@
 import flatten from 'lodash/flatten';
-import { unsentRequest } from '../../../../lib-util/index';
 
+import { unsentRequest } from '../../../../lib-util/index';
 import { createEntry } from '../../../valueObjects/Entry';
 import { selectEntrySlug } from '../../../reducers/collections';
 

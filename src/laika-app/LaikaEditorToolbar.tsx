@@ -55,7 +55,9 @@ const BackLink = styled(Link)`
   color: ${colors.controlLabel};
   text-decoration: none;
   flex-shrink: 0;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 
   &:hover,
   &:focus-visible {
@@ -172,7 +174,8 @@ function LaikaEditorToolbar({
     }
   }, [deployPreview, loadDeployPreview]);
 
-  const canPublish = !!hasChanged === false && (!hasWorkflow || currentStatus === 'pending_publish');
+  const canPublish =
+    !!hasChanged === false && (!hasWorkflow || currentStatus === 'pending_publish');
   const showStatusControls = hasWorkflow && !isNewEntry;
 
   const saveLabel = isPersisting
@@ -182,8 +185,8 @@ function LaikaEditorToolbar({
   const publishLabel = isPublishing
     ? t('editor.editorToolbar.publishing')
     : isModification
-    ? t('editor.editorToolbar.publishChanges')
-    : t('editor.editorToolbar.publishNow');
+      ? t('editor.editorToolbar.publishChanges')
+      : t('editor.editorToolbar.publishNow');
 
   return (
     <Bar>
@@ -252,11 +255,7 @@ function LaikaEditorToolbar({
         ) : null}
 
         {(!hasWorkflow || canPublish) && !isNewEntry ? (
-          <LaikaButton
-            size="sm"
-            disabled={isPublishing}
-            onClick={() => onPublish()}
-          >
+          <LaikaButton size="sm" disabled={isPublishing} onClick={() => onPublish()}>
             {publishLabel}
           </LaikaButton>
         ) : null}

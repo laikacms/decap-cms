@@ -43,11 +43,7 @@ describe('LaikaErrorScreen', () => {
 
   it('omits the download button when no backup is supplied', () => {
     const { queryByText } = render(
-      <LaikaErrorScreen
-        errorTitle="Boom"
-        errorMessage="trace"
-        issueUrl="https://example.test"
-      />,
+      <LaikaErrorScreen errorTitle="Boom" errorMessage="trace" issueUrl="https://example.test" />,
     );
     expect(queryByText('Download recovered draft')).toBeNull();
   });

@@ -1,8 +1,8 @@
 import { produce } from 'immer';
 import get from 'lodash/get';
 import escapeRegExp from 'lodash/escapeRegExp';
-import { stringTemplate } from '../../lib-widgets/index';
 
+import { stringTemplate } from '../../lib-widgets/index';
 import { CONFIG_SUCCESS } from '../actions/config';
 import { FILES, FOLDER } from '../constants/collectionTypes';
 import { COMMIT_DATE, COMMIT_AUTHOR } from '../constants/commitProps';

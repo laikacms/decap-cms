@@ -54,10 +54,7 @@ export default defineConfig({
       deps: {
         // Inline @emotion/styled so Vite's transform pipeline processes it (instead of
         // externalizing to Node directly), enabling the emotionProductionPlugin above.
-        // Inline workspace packages so the resolve.alias map (src instead of dist) is
-        // applied; without this, vi.mock auto-resolution uses Node.js native ESM which
-        // cannot resolve bare directory specifiers like `./errors` in the dist output.
-        inline: [/@emotion\/styled/, /decap-cms-lib-util/, /decap-cms-lib-widgets/],
+        inline: [/@emotion\/styled/],
       },
     },
     coverage: {
@@ -74,22 +71,9 @@ export default defineConfig({
   },
   resolve: {
     alias: [
-      // More specific subpath aliases must come before the package root alias.
-      {
-        find: /^decap-cms-lib-util\/types\/cms$/,
-        replacement: path.resolve(__dirname, 'packages/decap-cms-lib-util/src/types/cms/index.ts'),
-      },
-      {
-        find: /^decap-cms-lib-util\/types\/cms\/(.*)$/,
-        replacement: path.resolve(__dirname, 'packages/decap-cms-lib-util/src/types/cms') + '/$1',
-      },
-      { find: /^decap-cms-core\/src\/backend$/, replacement: path.resolve(__dirname, 'packages/decap-cms-core/src/backend.tsx') },
-      { find: 'decap-cms-lib-auth', replacement: path.resolve(__dirname, 'packages/decap-cms-lib-auth/src/index.ts') },
-      { find: 'decap-cms-lib-util', replacement: path.resolve(__dirname, 'packages/decap-cms-lib-util/src/index.ts') },
-      { find: 'decap-cms-ui-default', replacement: path.resolve(__dirname, 'packages/decap-cms-ui-default/src/index.ts') },
-      { find: 'decap-cms-backend-github', replacement: path.resolve(__dirname, 'packages/decap-cms-backend-github/src/index.ts') },
-      { find: 'decap-cms-lib-widgets', replacement: path.resolve(__dirname, 'packages/decap-cms-lib-widgets/src/index.ts') },
-      { find: 'decap-cms-widget-object', replacement: path.resolve(__dirname, 'packages/decap-cms-widget-object/src/index.ts') },
+      // Cross-package imports were rewritten to relative paths in the single-package
+      // restructure, so the former `decap-cms-*` → `packages/decap-cms-*/src` aliases
+      // are gone. Only the path shim and emotion anchoring remain.
       { find: 'path', replacement: 'path-browserify' },
       // Anchor emotion packages to concrete paths so packages without @emotion/* as
       // a direct dependency can still resolve them (pnpm strict isolation prevents

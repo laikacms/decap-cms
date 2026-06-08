@@ -1,5 +1,4 @@
 import type React from 'react';
-
 import type { DecapCmsApp, init } from './index';
 
 declare global {

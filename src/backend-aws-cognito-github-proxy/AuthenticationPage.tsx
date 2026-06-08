@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from '@emotion/styled';
+
 import { PkceAuthenticator } from '../lib-auth/index';
 import { AuthenticationPage, Icon } from '../ui-default/index';
 import { usePkceAuth, type PKCEAuthenticationPageProps, type PKCEUser } from '../ui-auth/index';
@@ -32,7 +33,7 @@ export default function AwsCognitoGitHubProxyAuthenticationPage({
     },
     onLogin,
     {
-      onCompleteAuth: data => ({ ...data, user_metadata: {} } as PKCEUser),
+      onCompleteAuth: data => ({ ...data, user_metadata: {} }) as PKCEUser,
     },
   );
 

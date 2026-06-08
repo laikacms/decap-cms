@@ -16,9 +16,7 @@ describe('LaikaAvatar', () => {
   });
 
   it('renders the image when src is provided', () => {
-    const { getByRole } = render(
-      <LaikaAvatar name="Alice" src="https://example.test/a.png" />,
-    );
+    const { getByRole } = render(<LaikaAvatar name="Alice" src="https://example.test/a.png" />);
     const img = getByRole('img') as HTMLImageElement;
     expect(img.src).toBe('https://example.test/a.png');
     expect(img.alt).toBe('Alice');

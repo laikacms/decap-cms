@@ -130,7 +130,6 @@ export default function CodeControl({
   const initialLangRef = React.useRef(initialLang);
   React.useEffect(() => {
     setLang((initialLangRef.current as string) || '');
-     
   }, []);
 
   function toValue(type: string, val: unknown) {

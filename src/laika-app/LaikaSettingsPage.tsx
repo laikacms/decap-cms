@@ -138,9 +138,7 @@ function LaikaSettingsPage() {
           <ToggleRow>
             <ToggleLabel>
               <ToggleTitle>Match system theme</ToggleTitle>
-              <ToggleHint>
-                Follows your OS&apos;s light / dark preference automatically.
-              </ToggleHint>
+              <ToggleHint>Follows your OS&apos;s light / dark preference automatically.</ToggleHint>
             </ToggleLabel>
             <LaikaToggleSwitch
               aria-label="Match system theme"

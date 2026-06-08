@@ -1,5 +1,8 @@
 import flow from 'lodash/flow';
 import get from 'lodash/get';
+import { oneLine } from 'common-tags';
+import { parse } from 'what-the-diff';
+
 import {
   localForage,
   unsentRequest,
@@ -25,8 +28,6 @@ import {
   throwOnConflictingBranches,
 } from '../lib-util/index';
 import { dirname } from '../lib-util/index';
-import { oneLine } from 'common-tags';
-import { parse } from 'what-the-diff';
 
 import type {
   ApiRequest,

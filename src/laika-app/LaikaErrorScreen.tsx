@@ -127,12 +127,7 @@ interface LaikaErrorScreenProps extends ErrorBoundaryRenderProps {
   t: TranslateFunction;
 }
 
-function LaikaErrorScreen({
-  errorMessage,
-  issueUrl,
-  backup,
-  t,
-}: LaikaErrorScreenProps) {
+function LaikaErrorScreen({ errorMessage, issueUrl, backup, t }: LaikaErrorScreenProps) {
   return (
     <Page>
       <Card>

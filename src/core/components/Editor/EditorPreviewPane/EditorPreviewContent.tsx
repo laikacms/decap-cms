@@ -65,7 +65,9 @@ function PreviewContent({ previewComponent, previewProps, onFieldClick }: Previe
         const preview = renderPreview();
         if (showScrollSync) {
           return (
-            <ScrollSyncPane attachTo={context?.document?.scrollingElement}>{preview}</ScrollSyncPane>
+            <ScrollSyncPane attachTo={context?.document?.scrollingElement}>
+              {preview}
+            </ScrollSyncPane>
           );
         }
         return preview;

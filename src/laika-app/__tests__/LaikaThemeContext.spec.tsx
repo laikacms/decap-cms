@@ -12,7 +12,13 @@ import { LaikaThemeProvider, useLaikaTheme } from '../LaikaThemeContext';
 
 const STORAGE_KEY = 'laika-cms-theme-mode';
 
-function wrapper({ children, ...rest }: { children: React.ReactNode; mode?: 'light' | 'dark' | 'system' }) {
+function wrapper({
+  children,
+  ...rest
+}: {
+  children: React.ReactNode;
+  mode?: 'light' | 'dark' | 'system';
+}) {
   return <LaikaThemeProvider {...rest}>{children}</LaikaThemeProvider>;
 }
 

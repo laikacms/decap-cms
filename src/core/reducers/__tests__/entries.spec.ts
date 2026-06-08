@@ -1,5 +1,4 @@
 import { Cursor } from '../../../lib-util/index';
-
 import * as actions from '../../actions/entries';
 import reducer, {
   selectMediaFolder,

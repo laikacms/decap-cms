@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from '@emotion/styled';
+
 import { NetlifyAuthenticator, type NetlifyAuthResult } from '../lib-auth/index';
 import { AuthenticationPage, Icon } from '../ui-default/index';
 
@@ -87,8 +88,7 @@ export default function GitHubAuthenticationPage({
     e.preventDefault();
     const cfg = {
       base_url,
-      site_id:
-        document.location.host.split(':')[0] === 'localhost' ? 'demo.decapcms.org' : siteId,
+      site_id: document.location.host.split(':')[0] === 'localhost' ? 'demo.decapcms.org' : siteId,
       auth_endpoint: authEndpoint,
     };
     const auth = new NetlifyAuthenticator(cfg);

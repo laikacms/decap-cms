@@ -5,10 +5,10 @@ import styled from '@emotion/styled';
 import partial from 'lodash/partial';
 import uniqueId from 'lodash/uniqueId';
 import memoize from 'lodash/memoize';
-import { FieldLabel, colors, transitions, lengths, borders } from '../../../../ui-default/index';
 import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
 
+import { FieldLabel, colors, transitions, lengths, borders } from '../../../../ui-default/index';
 import { useAppDispatch, useAppSelector } from '../../../hooks/useRedux';
 import { resolveWidget, getEditorComponents } from '../../../lib/registry';
 import { clearFieldErrors, tryLoadEntry, validateMetaField } from '../../../actions/entries';
@@ -29,7 +29,12 @@ import type AssetProxy from '../../../valueObjects/AssetProxy';
 import type { Interpolation, Theme } from '@emotion/react';
 import type { Dispatch } from 'redux';
 import type { TranslateFunction } from '../../../../ui-default/index';
-import type { CmsCollectionState, CmsEntry, CmsEntryField, CmsConfig } from '../../../../lib-util/index';
+import type {
+  CmsCollectionState,
+  CmsEntry,
+  CmsEntryField,
+  CmsConfig,
+} from '../../../../lib-util/index';
 
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;
@@ -368,9 +373,7 @@ function EditorControl(props: EditorControlProps) {
             mediaPaths={mediaPaths}
             metadata={metadata}
             onChange={onChange}
-            onValidate={
-              onValidate && ((errs: FieldError[]) => onValidate(uniqueFieldId, errs))
-            }
+            onValidate={onValidate && ((errs: FieldError[]) => onValidate(uniqueFieldId, errs))}
             onOpenMediaLibrary={openMediaLibrary}
             onClearMediaControl={clearMediaControl}
             onRemoveMediaControl={removeMediaControl}
@@ -508,7 +511,7 @@ export default function ConnectedEditorControl(props: ConnectedEditorControlProp
   const boundGetAssetForEntry = React.useMemo(
     () => stable.getBoundedAsset(collection, stable.getEntry()),
     // recompute when collection changes; entry is read live via stable.getEntry on each call
-     
+
     [collection],
   );
 
