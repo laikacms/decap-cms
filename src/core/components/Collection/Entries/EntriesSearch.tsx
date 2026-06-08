@@ -1,4 +1,5 @@
 import React from 'react';
+import { useStore } from 'react-redux';
 
 import { Cursor } from '../../../../lib-util/index';
 import { selectSearchedEntries, selectUnpublishedEntry } from '../../../reducers';
@@ -29,11 +30,16 @@ export default function EntriesSearch({ collections, searchTerm }: EntriesSearch
   const page = useAppSelector((state: any) => state.search.page);
   const entries = useAppSelector((state: any) => selectSearchedEntries(state, collectionNames));
 
-  const getWorkflowStatus = useAppSelector(
-    (state: any) => (collectionName: string, slug: string) => {
-      const unpublishedEntry = selectUnpublishedEntry(state, collectionName, slug);
+  // Read state lazily via the store: subscribing with a selector that returns a
+  // new function on every run is never referentially equal, so it would
+  // re-render this component on every dispatch. Mirrors EntriesCollection.
+  const store = useStore();
+  const getWorkflowStatus = React.useCallback(
+    (collectionName: string, slug: string) => {
+      const unpublishedEntry = selectUnpublishedEntry(store.getState(), collectionName, slug);
       return unpublishedEntry ? (unpublishedEntry as any).status : null;
     },
+    [store],
   );
 
   React.useEffect(() => {
