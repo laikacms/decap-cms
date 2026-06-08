@@ -87,4 +87,51 @@ describe('DateTimeControl', () => {
     const expectedValue = dayjs(testDate).format('YYYY-MM-DDTHH:mm:ss.SSS[Z]');
     expect(props.onChange).toHaveBeenCalledWith(expectedValue);
   });
+
+  test('stores plain date string (YYYY-MM-DD) when time_format is false', () => {
+    const field = new Map([['time_format', false]]);
+    const { input, props } = setup({ field });
+
+    const testDate = '2024-03-15';
+    fireEvent.change(input, { target: { value: testDate } });
+
+    expect(props.onChange).toHaveBeenCalledWith('2024-03-15');
+  });
+
+  test('stores plain time string (HH:mm) when date_format is false', () => {
+    const field = new Map([['date_format', false]]);
+    const { input, props } = setup({ field });
+
+    const testTime = '10:30';
+    fireEvent.change(input, { target: { value: testTime } });
+
+    expect(props.onChange).toHaveBeenCalledWith('10:30');
+  });
+
+  test('uses custom date_format string when time_format is false', () => {
+    const field = new Map([
+      ['time_format', false],
+      ['date_format', 'DD/MM/YYYY'],
+    ]);
+    const { input, props } = setup({ field });
+
+    // Native date input supplies YYYY-MM-DD; the stored value is reformatted to the custom format
+    const testDate = '2024-03-15';
+    fireEvent.change(input, { target: { value: testDate } });
+
+    expect(props.onChange).toHaveBeenCalledWith('15/03/2024');
+  });
+
+  test('uses custom time_format string when date_format is false', () => {
+    const field = new Map([
+      ['date_format', false],
+      ['time_format', 'HH:mm:ss'],
+    ]);
+    const { input, props } = setup({ field });
+
+    const testTime = '10:30:00';
+    fireEvent.change(input, { target: { value: testTime } });
+
+    expect(props.onChange).toHaveBeenCalledWith('10:30:00');
+  });
 });
