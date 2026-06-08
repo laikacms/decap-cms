@@ -1,5 +1,4 @@
 import { Map, List, fromJS } from 'immutable';
-import { v4 as uuid } from 'uuid';
 import { join, basename } from 'path';
 
 import { sanitizeSlug } from '../lib/urlHelper';
@@ -52,7 +51,7 @@ function entryDraftReducer(state = Map(), action) {
         state.set('fieldsMetaData', Map());
         state.set('fieldsErrors', Map());
         state.set('hasChanged', false);
-        state.set('key', uuid());
+        state.set('key', crypto.randomUUID());
         // DCMS-1737: this reload/remount (e.g. the loadUnpublishedEntry
         // reload that follows a successful editorial-workflow persist, or a
         // plain entry load) is about to cause every widget to mount fresh
@@ -79,7 +78,7 @@ function entryDraftReducer(state = Map(), action) {
         state.set('fieldsMetaData', Map());
         state.set('fieldsErrors', Map());
         state.set('hasChanged', false);
-        state.set('key', uuid());
+        state.set('key', crypto.randomUUID());
         // A brand-new empty entry has no stored values for widgets to
         // re-affirm on mount, so the first write to any field here is a
         // real user edit (or an explicit `fromDefault` substitution,
@@ -98,7 +97,7 @@ function entryDraftReducer(state = Map(), action) {
         state.set('fieldsMetaData', Map());
         state.set('fieldsErrors', Map());
         state.set('hasChanged', true);
-        state.set('key', uuid());
+        state.set('key', crypto.randomUUID());
         state.delete('mountedFields');
       });
     case DRAFT_CREATE_DUPLICATE_FROM_ENTRY:
