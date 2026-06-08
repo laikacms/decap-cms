@@ -3,7 +3,7 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 import { translate } from 'react-polyglot';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 
 import {
   Icon,
@@ -162,6 +162,12 @@ function Header({
   t,
 }: HeaderProps) {
   const dispatch = useAppDispatch();
+  const { pathname } = useLocation();
+  // A function `className` passed to a `styled(NavLink)` is stringified by
+  // emotion before NavLink can call it, so the active class was never applied.
+  // Derive the active state from the current route instead.
+  const contentActive = pathname === '/' || pathname.startsWith('/collections');
+  const workflowActive = pathname.startsWith('/workflow');
 
   React.useEffect(() => {
     const intervalId = setInterval(
@@ -198,11 +204,7 @@ function Header({
             <li>
               <AppHeaderNavLink
                 to="/"
-                className={({ isActive }: { isActive: boolean }) =>
-                  isActive || window.location.hash.includes('/collections/')
-                    ? ACTIVE_CLASS_NAME
-                    : ''
-                }
+                className={contentActive ? ACTIVE_CLASS_NAME : undefined}
               >
                 <Icon type="page" />
                 {t('app.header.content')}
@@ -212,9 +214,7 @@ function Header({
               <li>
                 <AppHeaderNavLink
                   to="/workflow"
-                  className={({ isActive }: { isActive: boolean }) =>
-                    isActive ? ACTIVE_CLASS_NAME : ''
-                  }
+                  className={workflowActive ? ACTIVE_CLASS_NAME : undefined}
                 >
                   <Icon type="workflow" />
                   {t('app.header.workflow')}
