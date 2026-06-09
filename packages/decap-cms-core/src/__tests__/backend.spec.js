@@ -829,6 +829,23 @@ describe('Backend', () => {
         query: 'find me by nested title',
       });
     });
+
+    it('should throw an Error with a string message and attach errors when a per-collection backend rejects', async () => {
+      const backendError = new Error('listAllEntries failed');
+      backend.listAllEntries = jest.fn().mockRejectedValue(backendError);
+
+      let caught;
+      try {
+        await backend.search(collections, 'find me');
+      } catch (e) {
+        caught = e;
+      }
+
+      expect(caught).toBeInstanceOf(Error);
+      expect(typeof caught.message).toBe('string');
+      expect(caught.message).toBe('Errors occurred while searching entries locally!');
+      expect(caught.errors).toEqual([backendError, backendError]);
+    });
   });
 
   describe('expandSearchEntries', () => {
