@@ -11,7 +11,8 @@ import type { CmsField } from 'decap-cms-core';
 interface EncodeContext {
   fields: CmsField[]; // Available CMS fields at current level
   path: string; // Path to current value in object tree
-  visit: (value: unknown, fields: CmsField[], path: string) => unknown; // Visitor for recursive traversal
+  typeKey: string; // Key used to discriminate typed list items (default: 'type')
+  visit: (value: unknown, fields: CmsField[], path: string, typeKey?: string) => unknown; // Visitor for recursive traversal
 }
 
 /**
@@ -56,14 +57,15 @@ function encodeString(value: string, { fields, path }: EncodeContext): string {
 
 /**
  * Encode a list of values, handling both simple values and nested objects/lists
- * For typed lists, use the type field to determine which fields to use
+ * For typed lists, use the configured typeKey (defaulting to 'type') to discriminate items
  */
 function encodeList(list: List<unknown>, ctx: EncodeContext): List<unknown> {
+  const typeKey = ctx.typeKey;
   let newList = list;
   for (let i = 0; i < newList.size; i++) {
     const item = newList.get(i);
     if (isImmutableMap(item)) {
-      const itemType = item.get('type');
+      const itemType = item.get(typeKey);
       if (typeof itemType === 'string') {
         // For typed items, look up fields based on type
         const field = ctx.fields.find(f => f.name === itemType);
@@ -99,7 +101,11 @@ function encodeMap(
     const field = ctx.fields.find(f => f.name === key);
     if (field) {
       const fields = getNestedFields(field);
-      const newVal = ctx.visit(val, fields, ctx.path ? `${ctx.path}.${key}` : key);
+      const typeKey =
+        field.widget === 'list' && 'typeKey' in field && typeof field.typeKey === 'string'
+          ? field.typeKey
+          : undefined;
+      const newVal = ctx.visit(val, fields, ctx.path ? `${ctx.path}.${key}` : key, typeKey);
       if (newVal !== val) {
         newMap = newMap.set(key, newVal);
       }
@@ -121,11 +127,11 @@ const encodingCache = new Map();
 export function encodeEntry(value: unknown, fields: List<ImmutableMap<string, unknown>>) {
   const plainFields = fields.toJS() as CmsField[];
 
-  function visit(value: unknown, fields: CmsField[], path = '') {
+  function visit(value: unknown, fields: CmsField[], path = '', typeKey = 'type') {
     const cached = encodingCache.get(path);
     if (cached === value) return value;
 
-    const ctx: EncodeContext = { fields, path, visit };
+    const ctx: EncodeContext = { fields, path, typeKey, visit };
     let result;
     if (isImmutableList(value)) {
       result = encodeList(value, ctx);
