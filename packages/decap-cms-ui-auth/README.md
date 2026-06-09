@@ -7,7 +7,6 @@ Authentication UI pages used by the decap-cms-backend-* packages.
 * An authenticator must return the following fields:
   * email
   * token?
-  * expires?
 
 ## Components
 
