@@ -1,4 +1,5 @@
 import { Map } from 'immutable';
+
 import schema from '../schema';
 
 describe('file widget schema', () => {
@@ -45,5 +46,4 @@ describe('file widget schema', () => {
       expect(mediaLibraryOptions.get('allow_multiple', true)).toBe(true);
     });
   });
-
 });
