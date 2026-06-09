@@ -119,6 +119,93 @@ describe('encodeEntry', () => {
     });
   });
 
+  describe('typed list items', () => {
+    it('encodes nested string field inside a matched typed item', () => {
+      // The list field has `types` — each type has its own fields.
+      // encodeList sees item.get('type') === 'banner', finds the matching type,
+      // then recurses into that type's fields.
+      const fields = makeFields([
+        {
+          name: 'sections',
+          widget: 'list',
+          types: [
+            {
+              name: 'banner',
+              widget: 'object',
+              fields: [{ name: 'headline', widget: 'string' }],
+            },
+          ],
+        },
+      ]);
+      const entry = fromJS({ sections: [{ type: 'banner', headline: 'Welcome' }] });
+      const result = encodeEntry(entry, fields) as ImmutableMap<string, unknown>;
+      const sections = result.get('sections') as List<ImmutableMap<string, unknown>>;
+      const item = sections.get(0) as ImmutableMap<string, unknown>;
+      const headline = item.get('headline') as string;
+      expect(isEncoded(headline, 'Welcome')).toBe(true);
+    });
+
+    it('returns item unchanged and throws no error when type name has no match', () => {
+      const fields = makeFields([
+        {
+          name: 'sections',
+          widget: 'list',
+          types: [
+            {
+              name: 'banner',
+              widget: 'object',
+              fields: [{ name: 'headline', widget: 'string' }],
+            },
+          ],
+        },
+      ]);
+      const entry = fromJS({ sections: [{ type: 'unknown-type', headline: 'Should not encode' }] });
+      expect(() => encodeEntry(entry, fields)).not.toThrow();
+      const result = encodeEntry(entry, fields) as ImmutableMap<string, unknown>;
+      const sections = result.get('sections') as List<ImmutableMap<string, unknown>>;
+      const item = sections.get(0) as ImmutableMap<string, unknown>;
+      // headline must be untouched — getNestedFields(undefined) returns [] so no encoding happens
+      expect(item.get('headline')).toBe('Should not encode');
+    });
+
+    it('handles a mixed list of typed and untyped items correctly', () => {
+      // When a list field declares `types`, getNestedFields returns the type objects
+      // as ctx.fields.  A typed item (has a `type` key) is looked up by name in ctx.fields
+      // and its own sub-fields are used for encoding.  An untyped item (no `type` key) falls
+      // through to the else branch and is visited with ctx.fields — which are the type objects,
+      // not sub-fields — so none of its keys match and strings are NOT encoded.
+      const fields = makeFields([
+        {
+          name: 'blocks',
+          widget: 'list',
+          types: [
+            {
+              name: 'card',
+              widget: 'object',
+              fields: [{ name: 'title', widget: 'string' }],
+            },
+          ],
+        },
+      ]);
+      const entry = fromJS({
+        blocks: [
+          { type: 'card', title: 'Card title' }, // typed — resolved via type name → encoded
+          { title: 'No type key' },               // untyped — ctx.fields has no 'title' match → not encoded
+        ],
+      });
+      const result = encodeEntry(entry, fields) as ImmutableMap<string, unknown>;
+      const blocks = result.get('blocks') as List<ImmutableMap<string, unknown>>;
+
+      const typedItem = blocks.get(0) as ImmutableMap<string, unknown>;
+      expect(isEncoded(typedItem.get('title') as string, 'Card title')).toBe(true);
+
+      // Untyped item: ctx.fields contains type-definition objects (name === 'card'),
+      // encodeMap finds no field named 'title' at that level, so value is left unchanged.
+      const untypedItem = blocks.get(1) as ImmutableMap<string, unknown>;
+      expect(untypedItem.get('title')).toBe('No type key');
+    });
+  });
+
   describe('encoding cache', () => {
     it('returns the same reference when value is unchanged on second call', () => {
       const fields = makeFields([{ name: 'title', widget: 'string' }]);
