@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
+import express from 'express';
 import winston from 'winston';
 
-import { validateRepo, getSchema, localGitMiddleware } from '.';
+import { validateRepo, getSchema, localGitMiddleware, registerMiddleware } from '.';
 
 import type Joi from '@hapi/joi';
-import type express from 'express';
 
 jest.mock('decap-cms-lib-util', () => jest.fn());
 jest.mock('simple-git');
@@ -149,6 +149,28 @@ describe('localGitMiddleware', () => {
 
       expect(json).toHaveBeenCalledTimes(1);
       expect(json).toHaveBeenCalledWith({ error: "Default branch 'develop' doesn't exist" });
+    });
+  });
+
+  describe('MODE=git smoke-check', () => {
+    it('should register routes without error when repo is valid', async () => {
+      git.checkIsRepo.mockResolvedValue(true);
+
+      const app = express();
+      const logger = winston.createLogger({ silent: true });
+
+      await expect(registerMiddleware(app, { logger })).resolves.toBeUndefined();
+    });
+
+    it('should reject startup when directory is not a git repository', async () => {
+      git.checkIsRepo.mockResolvedValue(false);
+
+      const app = express();
+      const logger = winston.createLogger({ silent: true });
+
+      await expect(registerMiddleware(app, { logger })).rejects.toThrow(
+        'is not a valid git repository',
+      );
     });
   });
 });

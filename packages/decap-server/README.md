@@ -31,4 +31,10 @@ PORT=CUSTOM_PORT
 BIND_HOST=127.0.0.1
 # optional, restrict API requests to a specific origin. Default is /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/ to allow requests from localhost and 127.0.0.1.
 ORIGIN=https://example.com
+# optional, defaults to "fs". Set to "git" to enable full editorial workflow with branch management.
+#   fs  — reads/writes files directly; no git operations, no editorial workflow (default)
+#   git — uses simple-git; enables editorial workflow with branch-per-entry and publish/unpublish support
+MODE=fs
+# optional, controls log verbosity. Defaults to "info". Accepts standard Winston log levels: error, warn, info, http, verbose, debug, silly.
+LOG_LEVEL=info
 ```
