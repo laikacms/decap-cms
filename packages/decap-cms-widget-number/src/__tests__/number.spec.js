@@ -4,6 +4,7 @@ import { render, fireEvent } from '@testing-library/react';
 
 import { DecapCmsWidgetNumber } from '../';
 import { validateMinMax } from '../NumberControl';
+import schema from '../schema';
 
 const NumberControl = DecapCmsWidgetNumber.controlComponent;
 
@@ -72,6 +73,32 @@ function setup({ field, defaultValue }) {
     input,
   };
 }
+
+describe('Number widget schema', () => {
+  it('should restrict value_type to int and float enum values', () => {
+    expect(schema.properties.value_type).toEqual({ type: 'string', enum: ['int', 'float'] });
+  });
+
+  it('value_type int should produce integer result', () => {
+    const field = fromJS({ value_type: 'int' });
+    const { onChangeSpy, input } = setup({ field });
+
+    fireEvent.change(input, { target: { value: '3.7' } });
+
+    expect(onChangeSpy).toHaveBeenCalledWith(3);
+    expect(Number.isInteger(onChangeSpy.mock.calls[0][0])).toBe(true);
+  });
+
+  it('value_type float should produce float result', () => {
+    const field = fromJS({ value_type: 'float' });
+    const { onChangeSpy, input } = setup({ field });
+
+    fireEvent.change(input, { target: { value: '3.7' } });
+
+    expect(onChangeSpy).toHaveBeenCalledWith(3.7);
+    expect(onChangeSpy.mock.calls[0][0]).toBeCloseTo(3.7);
+  });
+});
 
 describe('Number widget', () => {
   it('should call onChange when input changes', () => {
