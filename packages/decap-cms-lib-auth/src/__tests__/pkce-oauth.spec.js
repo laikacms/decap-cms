@@ -134,6 +134,144 @@ describe('PkceAuthenticator', () => {
     expect(cb).toHaveBeenCalledWith(null, expect.objectContaining({ token: 'token-xyz' }));
   });
 
+  describe('_loadOidcConfig', () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('should populate auth_url and auth_token_url from OIDC discovery', async () => {
+      const authenticator = new PkceAuthenticator({
+        use_oidc: true,
+        base_url: 'https://idp.example.com',
+        app_id: 'client-id',
+      });
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            authorization_endpoint: 'https://idp.example.com/authorize',
+            token_endpoint: 'https://idp.example.com/token',
+          }),
+      });
+
+      await authenticator._loadOidcConfig();
+
+      expect(fetch).toHaveBeenCalledWith(
+        'https://idp.example.com/.well-known/openid-configuration',
+      );
+      expect(authenticator.auth_url).toBe('https://idp.example.com/authorize');
+      expect(authenticator.auth_token_url).toBe('https://idp.example.com/token');
+    });
+
+    it('should ignore auth_endpoint and auth_token_endpoint when use_oidc is true', () => {
+      const authenticator = new PkceAuthenticator({
+        use_oidc: true,
+        base_url: 'https://idp.example.com',
+        auth_endpoint: 'oauth2/authorize',
+        auth_token_endpoint: 'oauth2/token',
+        app_id: 'client-id',
+      });
+
+      // auth_url and auth_token_url must NOT be set from the config keys
+      expect(authenticator.auth_url).toBeUndefined();
+      expect(authenticator.auth_token_url).toBeUndefined();
+      expect(authenticator.oidc_url).toBe('https://idp.example.com');
+    });
+
+    it('should not re-fetch OIDC config when endpoints are already populated', async () => {
+      const authenticator = new PkceAuthenticator({
+        use_oidc: true,
+        base_url: 'https://idp.example.com',
+        app_id: 'client-id',
+      });
+
+      authenticator.auth_url = 'https://idp.example.com/authorize';
+      authenticator.auth_token_url = 'https://idp.example.com/token';
+      global.fetch = jest.fn();
+
+      await authenticator._loadOidcConfig();
+
+      expect(fetch).not.toHaveBeenCalled();
+    });
+
+    it('should throw when OIDC discovery request fails (network error)', async () => {
+      const authenticator = new PkceAuthenticator({
+        use_oidc: true,
+        base_url: 'https://idp.example.com',
+        app_id: 'client-id',
+      });
+
+      global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+
+      await expect(authenticator._loadOidcConfig()).rejects.toThrow(
+        'Failed to load OIDC configuration',
+      );
+    });
+
+    it('should throw when OIDC discovery returns a non-ok response', async () => {
+      const authenticator = new PkceAuthenticator({
+        use_oidc: true,
+        base_url: 'https://idp.example.com',
+        app_id: 'client-id',
+      });
+
+      global.fetch = jest.fn().mockResolvedValue({ ok: false });
+
+      await expect(authenticator._loadOidcConfig()).rejects.toThrow(
+        'Bad response while getting OIDC configuration',
+      );
+    });
+
+    it('should throw when OIDC discovery response is not valid JSON', async () => {
+      const authenticator = new PkceAuthenticator({
+        use_oidc: true,
+        base_url: 'https://idp.example.com',
+        app_id: 'client-id',
+      });
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.reject(new Error('bad json')),
+      });
+
+      await expect(authenticator._loadOidcConfig()).rejects.toThrow(
+        'Failed to parse OIDC configuration JSON',
+      );
+    });
+
+    it('should throw when OIDC discovery response is missing endpoint fields', async () => {
+      const authenticator = new PkceAuthenticator({
+        use_oidc: true,
+        base_url: 'https://idp.example.com',
+        app_id: 'client-id',
+      });
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ issuer: 'https://idp.example.com' }),
+      });
+
+      await expect(authenticator._loadOidcConfig()).rejects.toThrow(
+        'OIDC configuration missing endpoint fields',
+      );
+    });
+
+    it('should throw when use_oidc is false and endpoints are not configured', async () => {
+      const authenticator = new PkceAuthenticator({
+        use_oidc: false,
+        base_url: 'https://idp.example.com',
+        app_id: 'client-id',
+      });
+
+      // Simulate missing oidc_url and auth_url/auth_token_url
+      delete authenticator.auth_url;
+      delete authenticator.auth_token_url;
+
+      await expect(authenticator._loadOidcConfig()).rejects.toThrow('Missing auth URLs');
+    });
+  });
+
   it('should clear code verifier when nonce validation fails', async () => {
     const expectedNonce = setValidNonce('expected-nonce');
     const state = encodeURIComponent(JSON.stringify({ nonce: `${expectedNonce}-other` }));

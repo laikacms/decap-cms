@@ -87,3 +87,20 @@ When `auth_type: pkce` is set, a top-level `auth:` block can be used to configur
         email_claim: email
         full_name_claim: name
         avatar_url_claim: picture
+
+### OIDC endpoint discovery (`use_oidc: true`)
+
+When `use_oidc: true` is set, the PKCE authenticator **ignores** `auth_endpoint` and `auth_token_endpoint` entirely. Instead, it performs OIDC Discovery by fetching:
+
+    GET {base_url}/.well-known/openid-configuration
+
+The JSON response must contain the standard fields:
+
+| Field | Used as |
+|-------|---------|
+| `authorization_endpoint` | Authorization redirect URL |
+| `token_endpoint` | Token exchange URL |
+
+If the discovery request fails, returns a non-2xx status, returns non-JSON, or is missing either endpoint field, authentication is aborted with an error.
+
+Use `use_oidc: true` with any standards-compliant OIDC provider (Keycloak, Auth0, AWS Cognito, etc.) so you don't need to hard-code provider-specific endpoint paths.
