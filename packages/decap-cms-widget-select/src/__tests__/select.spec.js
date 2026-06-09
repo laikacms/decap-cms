@@ -360,6 +360,20 @@ describe('Select widget', () => {
       };
       expect(validate(opts)).toBeUndefined();
     });
+    it('should not fail on min/max when multiple is explicitly false with impossible min', () => {
+      const opts = {
+        field: fromJS({ options: stringOptions, multiple: false, min: 2 }),
+        defaultValue: stringOptions[0],
+      };
+      expect(validate(opts)).toBeUndefined();
+    });
+    it('should not fail on min/max when multiple is explicitly false with impossible max', () => {
+      const opts = {
+        field: fromJS({ options: stringOptions, multiple: false, max: 0 }),
+        defaultValue: stringOptions[0],
+      };
+      expect(validate(opts)).toBeUndefined();
+    });
     it('should not fail for empty field (should work for optional field)', () => {
       const opts = {
         field: fromJS({ options: stringOptions, multiple: true, min: 2 }),
