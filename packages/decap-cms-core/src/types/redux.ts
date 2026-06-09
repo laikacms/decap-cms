@@ -459,7 +459,7 @@ export interface CmsConfig {
   isFetching: boolean;
 }
 
-export type CmsMediaLibraryOptions = unknown; // TODO: type properly
+export type CmsMediaLibraryOptions = Record<string, unknown>;
 
 export interface CmsMediaLibrary {
   name: string;
