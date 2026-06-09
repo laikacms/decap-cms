@@ -159,7 +159,7 @@ const clientFns: Record<string, Function> = {
 
 export type Client = {
   resourceExists: (pointer: PointerFile) => Promise<boolean | undefined>;
-  getResourceUploadURLs: (objects: PointerFile[]) => Promise<string>;
+  getResourceUploadURLs: (objects: PointerFile[]) => Promise<string[]>;
   getDownloadURL: (pointer: PointerFile) => Promise<{ url: string; blob: Blob }>;
   uploadResource: (pointer: PointerFile, blob: Blob) => Promise<string>;
   matchPath: (path: string) => boolean;
