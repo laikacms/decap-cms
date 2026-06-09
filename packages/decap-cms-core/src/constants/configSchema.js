@@ -191,6 +191,7 @@ function getConfigSchema() {
         properties: {
           encoding: { type: 'string', enum: ['unicode', 'ascii'] },
           clean_accents: { type: 'boolean' },
+          sanitize_replacement: { type: 'string' },
         },
       },
       issue_reports: {
