@@ -7,7 +7,9 @@ export default {
     summary: { type: 'string' },
     minimize_collapsed: { type: 'boolean' },
     label_singular: { type: 'string' },
-    i18n: { type: 'boolean' },
+    i18n: {
+      oneOf: [{ type: 'boolean' }, { type: 'string', enum: ['translate', 'duplicate', 'none'] }],
+    },
     min: { type: 'integer' },
     max: { type: 'integer' },
   },

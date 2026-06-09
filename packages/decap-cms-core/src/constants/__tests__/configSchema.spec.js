@@ -606,6 +606,91 @@ describe('config', () => {
           );
         }).not.toThrow();
       });
+
+      it('should not throw when list field has i18n: "duplicate"', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [
+                {
+                  fields: [
+                    {
+                      name: 'items',
+                      label: 'Items',
+                      widget: 'list',
+                      i18n: 'duplicate',
+                    },
+                  ],
+                },
+              ],
+            }),
+          );
+        }).not.toThrow();
+      });
+
+      it('should not throw when list field has i18n: "translate"', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [
+                {
+                  fields: [
+                    {
+                      name: 'items',
+                      label: 'Items',
+                      widget: 'list',
+                      i18n: 'translate',
+                    },
+                  ],
+                },
+              ],
+            }),
+          );
+        }).not.toThrow();
+      });
+
+      it('should not throw when list field has i18n: "none"', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [
+                {
+                  fields: [
+                    {
+                      name: 'items',
+                      label: 'Items',
+                      widget: 'list',
+                      i18n: 'none',
+                    },
+                  ],
+                },
+              ],
+            }),
+          );
+        }).not.toThrow();
+      });
+
+      it('should not throw when object field has i18n: "duplicate"', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [
+                {
+                  fields: [
+                    {
+                      name: 'meta',
+                      label: 'Meta',
+                      widget: 'object',
+                      i18n: 'duplicate',
+                      fields: [{ name: 'title', label: 'Title', widget: 'string' }],
+                    },
+                  ],
+                },
+              ],
+            }),
+          );
+        }).not.toThrow();
+      });
     });
   });
 });
