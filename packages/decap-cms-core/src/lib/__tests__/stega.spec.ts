@@ -190,7 +190,7 @@ describe('encodeEntry', () => {
       const entry = fromJS({
         blocks: [
           { type: 'card', title: 'Card title' }, // typed — resolved via type name → encoded
-          { title: 'No type key' },               // untyped — ctx.fields has no 'title' match → not encoded
+          { title: 'No type key' }, // untyped — ctx.fields has no 'title' match → not encoded
         ],
       });
       const result = encodeEntry(entry, fields) as ImmutableMap<string, unknown>;
