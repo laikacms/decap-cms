@@ -75,4 +75,63 @@ describe('PKCEAuthenticationPage', () => {
     const loginArg = baseProps.onLogin.mock.calls[0][0];
     expect(loginArg.idToken).toBeUndefined();
   });
+
+  describe('config.auth.* overrides config.backend.* for shared keys', () => {
+    it('prefers auth.base_url over backend.base_url', () => {
+      const { PkceAuthenticator } = require('decap-cms-lib-auth');
+
+      const props = {
+        ...baseProps,
+        config: {
+          backend: {
+            base_url: 'https://backend.example.com',
+            app_id: 'backend-app-id',
+            auth_endpoint: 'backend/authorize',
+            auth_token_endpoint: 'backend/token',
+          },
+          auth: {
+            base_url: 'https://auth.example.com',
+            app_id: 'auth-app-id',
+            auth_endpoint: 'auth/authorize',
+            auth_token_endpoint: 'auth/token',
+          },
+        },
+      };
+
+      render(<PKCEAuthenticationPage {...props} />);
+
+      expect(PkceAuthenticator).toHaveBeenCalledWith(
+        expect.objectContaining({
+          base_url: 'https://auth.example.com',
+          app_id: 'auth-app-id',
+          auth_endpoint: 'auth/authorize',
+          auth_token_endpoint: 'auth/token',
+        }),
+      );
+    });
+
+    it('falls back to backend.* when auth.* keys are absent', () => {
+      const { PkceAuthenticator } = require('decap-cms-lib-auth');
+
+      const props = {
+        ...baseProps,
+        config: {
+          backend: {
+            base_url: 'https://backend.example.com',
+            app_id: 'backend-app-id',
+          },
+          auth: {},
+        },
+      };
+
+      render(<PKCEAuthenticationPage {...props} />);
+
+      expect(PkceAuthenticator).toHaveBeenCalledWith(
+        expect.objectContaining({
+          base_url: 'https://backend.example.com',
+          app_id: 'backend-app-id',
+        }),
+      );
+    });
+  });
 });
