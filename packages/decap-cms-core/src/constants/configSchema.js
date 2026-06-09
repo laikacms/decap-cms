@@ -339,6 +339,24 @@ function getConfigSchema() {
         },
         uniqueItemProperties: ['name'],
       },
+      auth: {
+        type: 'object',
+        properties: {
+          use_oidc: { type: 'boolean' },
+          base_url: { type: 'string' },
+          auth_endpoint: { type: 'string' },
+          auth_token_endpoint: { type: 'string' },
+          app_id: { type: 'string' },
+          scope: { type: 'string' },
+          auth_token_endpoint_content_type: { type: 'string' },
+          email_claim: { type: 'string' },
+          full_name_claim: { type: 'string' },
+          first_name_claim: { type: 'string' },
+          last_name_claim: { type: 'string' },
+          avatar_url_claim: { type: 'string' },
+        },
+        additionalProperties: false,
+      },
       editor: {
         type: 'object',
         properties: {

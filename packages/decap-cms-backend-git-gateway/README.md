@@ -51,3 +51,39 @@ To use a custom Git-Gateway implementation with PKCE authentication, use a confi
         status_endpoint: https://your.gitgateway.host/api/v2/components.json
         # Optional: defaults to "master"
         branch: main
+
+## Top-level `auth:` block (PKCE)
+
+When `auth_type: pkce` is set, a top-level `auth:` block can be used to configure PKCE authentication independently of the `backend:` block. Keys in `auth:` take **priority** over the corresponding keys in `backend:` when both are present.
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `use_oidc` | boolean | `false` | When `true`, fetches OAuth2 server metadata from `{base_url}/.well-known/openid-configuration` and uses the discovered endpoints automatically. |
+| `base_url` | string | `backend.base_url` | Base URL of the OAuth2 / OIDC provider. Overrides `backend.base_url`. |
+| `auth_endpoint` | string | `oauth2/authorize` | Path (relative to `base_url`) for the authorization endpoint. Overrides `backend.auth_endpoint`. |
+| `auth_token_endpoint` | string | `oauth2/token` | Path (relative to `base_url`) for the token endpoint. Overrides `backend.auth_token_endpoint`. |
+| `app_id` | string | `backend.app_id` | OAuth2 client ID. Overrides `backend.app_id`. |
+| `scope` | string | `openid email` | Space-separated OAuth2 scopes requested during authorization. |
+| `auth_token_endpoint_content_type` | string | `application/x-www-form-urlencoded; charset=utf-8` | `Content-Type` header sent when exchanging the authorization code for tokens. |
+| `email_claim` | string | `email` | JWT claim to use as the user's email address. |
+| `full_name_claim` | string | — | JWT claim to use as the user's full name. Takes precedence over `first_name_claim` / `last_name_claim`. |
+| `first_name_claim` | string | — | JWT claim for the user's first name (combined with `last_name_claim` when `full_name_claim` is absent). |
+| `last_name_claim` | string | — | JWT claim for the user's last name. |
+| `avatar_url_claim` | string | — | JWT claim for the user's avatar URL. |
+
+### Example
+
+    backend:
+        name: git-gateway
+        auth_type: pkce
+        gateway_url: https://your.gitgateway.host/git-gateway/github/
+        branch: main
+
+    auth:
+        use_oidc: true
+        base_url: https://your-idp.example.com
+        app_id: your-oauth2-client-id
+        scope: openid email profile
+        email_claim: email
+        full_name_claim: name
+        avatar_url_claim: picture
