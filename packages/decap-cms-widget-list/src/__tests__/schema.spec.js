@@ -25,4 +25,14 @@ describe('list widget schema', () => {
       expect(validate({ max: 2.5 })).toBe(false);
     });
   });
+
+  describe('add_to_top', () => {
+    it('accepts boolean values', () => {
+      expect(validate({ add_to_top: true })).toBe(true);
+    });
+
+    it('rejects non-boolean values', () => {
+      expect(validate({ add_to_top: 1 })).toBe(false);
+    });
+  });
 });
