@@ -1,15 +1,13 @@
 import parseToml from '@iarna/toml/parse-string';
 import tomlify from 'tomlify-j0.4';
-import dayjs from 'dayjs';
+import dayjs, { type Dayjs } from 'dayjs';
 
 import AssetProxy from '../valueObjects/AssetProxy';
 import { sortKeys } from './helpers';
 
 function outputReplacer(_key: string, value: unknown) {
   if (dayjs.isDayjs(value)) {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    return value.format(value._f);
+    return value.format((value as Dayjs & { _f?: string })._f);
   }
   if (value instanceof AssetProxy) {
     return `${value.path}`;
