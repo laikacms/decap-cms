@@ -541,6 +541,28 @@ describe('config', () => {
       }).not.toThrow();
     });
 
+    describe('collection filter', () => {
+      it('should not throw if collection filter has field and value', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [{ filter: { field: 'type', value: 'post' } }],
+            }),
+          );
+        }).not.toThrow();
+      });
+
+      it('should throw if collection filter is missing value', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [{ filter: { field: 'type' } }],
+            }),
+          );
+        }).toThrowError("'collections[0].filter' must have required property 'value'");
+      });
+    });
+
     describe('i18n', () => {
       it('should throw error when locale has invalid characters', () => {
         expect(() => {
