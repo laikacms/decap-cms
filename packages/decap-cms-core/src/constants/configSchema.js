@@ -241,6 +241,7 @@ function getConfigSchema() {
             create: { type: 'boolean' },
             publish: { type: 'boolean' },
             hide: { type: 'boolean' },
+            delete: { type: 'boolean' },
             editor: {
               type: 'object',
               properties: {
