@@ -207,9 +207,9 @@ export default class TestBackend implements Implementation {
     }));
     const cursor = getCursor(folder, extension, entries, 0, depth);
     const ret = take(entries, pageSize);
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    ret[CURSOR_COMPATIBILITY_SYMBOL] = cursor;
+    (ret as ImplementationEntry[] & { [CURSOR_COMPATIBILITY_SYMBOL]?: unknown })[
+      CURSOR_COMPATIBILITY_SYMBOL
+    ] = cursor;
     return Promise.resolve(ret);
   }
 
