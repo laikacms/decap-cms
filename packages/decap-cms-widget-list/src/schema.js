@@ -12,5 +12,6 @@ export default {
     },
     min: { type: 'integer' },
     max: { type: 'integer' },
+    add_to_top: { type: 'boolean' },
   },
 };
