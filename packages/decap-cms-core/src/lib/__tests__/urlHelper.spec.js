@@ -1,4 +1,11 @@
-import { sanitizeURI, sanitizeSlug, sanitizeChar, addParams, stripProtocol, joinUrlPath } from '../urlHelper';
+import {
+  sanitizeURI,
+  sanitizeSlug,
+  sanitizeChar,
+  addParams,
+  stripProtocol,
+  joinUrlPath,
+} from '../urlHelper';
 
 describe('sanitizeURI', () => {
   // `sanitizeURI` tests from RFC 3987
