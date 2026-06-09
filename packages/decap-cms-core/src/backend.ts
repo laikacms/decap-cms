@@ -568,9 +568,12 @@ export class Backend {
           from. This is done to prevent traverseCursor from requiring a
           `collection` argument.
         */
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const cursor = Cursor.create(loadedEntries[CURSOR_COMPATIBILITY_SYMBOL]).wrapData({
+    const entriesWithCursorCompat = loadedEntries as ImplementationEntry[] & {
+      [CURSOR_COMPATIBILITY_SYMBOL]?: {};
+    };
+    const cursor = Cursor.create(
+      entriesWithCursorCompat[CURSOR_COMPATIBILITY_SYMBOL] as {},
+    ).wrapData({
       cursorType: 'collectionEntries',
       collection,
     });
