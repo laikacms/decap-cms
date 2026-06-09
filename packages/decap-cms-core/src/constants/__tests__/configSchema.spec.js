@@ -172,6 +172,18 @@ describe('config', () => {
       }).not.toThrowError();
     });
 
+    it('should not throw if slug.sanitize_replacement is a string', () => {
+      expect(() => {
+        validateConfig({ ...validConfig, slug: { sanitize_replacement: '-' } });
+      }).not.toThrowError();
+    });
+
+    it('should throw if slug.sanitize_replacement is not a string', () => {
+      expect(() => {
+        validateConfig({ ...validConfig, slug: { sanitize_replacement: 99 } });
+      }).toThrowError("'slug.sanitize_replacement' must be string");
+    });
+
     it('should throw if collection publish is not a boolean', () => {
       expect(() => {
         validateConfig(merge({}, validConfig, { collections: [{ publish: 'false' }] }));
