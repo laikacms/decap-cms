@@ -107,6 +107,7 @@ export default class PKCEAuthenticationPage extends React.Component {
         }
       }
       if (data.id_token) {
+        data.idToken = data.id_token;
         try {
           data.idClaims = jwtDecode(data.id_token);
           normalizeClaims(data, data.idClaims);
