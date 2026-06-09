@@ -1,4 +1,11 @@
-import { sanitizeURI, sanitizeSlug, sanitizeChar } from '../urlHelper';
+import {
+  sanitizeURI,
+  sanitizeSlug,
+  sanitizeChar,
+  addParams,
+  stripProtocol,
+  joinUrlPath,
+} from '../urlHelper';
 
 describe('sanitizeURI', () => {
   // `sanitizeURI` tests from RFC 3987
@@ -141,5 +148,81 @@ describe('sanitizeChar', () => {
 
   it('should sanitize whitespace with custom replacement', () => {
     expect(sanitizeChar(' ', { ...slugConfig, sanitize_replacement: '_' })).toBe('_');
+  });
+});
+
+describe('addParams', () => {
+  it('returns the URL unchanged when given an empty params object', () => {
+    expect(addParams('https://example.com/path', {})).toBe('https://example.com/path');
+  });
+
+  it('appends a single query param', () => {
+    expect(addParams('https://example.com/path', { foo: 'bar' })).toBe(
+      'https://example.com/path?foo=bar',
+    );
+  });
+
+  it('appends multiple query params', () => {
+    const result = addParams('https://example.com/', { a: '1', b: '2' });
+    expect(result).toContain('a=1');
+    expect(result).toContain('b=2');
+  });
+
+  it('preserves existing query params when merging', () => {
+    const result = addParams('https://example.com/?existing=yes', { extra: 'value' });
+    expect(result).toContain('existing=yes');
+  });
+
+  it('appends params when the URL has no existing query string', () => {
+    const result = addParams('https://example.com/path', { key: 'value' });
+    expect(result).toBe('https://example.com/path?key=value');
+  });
+});
+
+describe('stripProtocol', () => {
+  it('strips the http:// protocol prefix', () => {
+    expect(stripProtocol('http://example.com/path')).toBe('example.com/path');
+  });
+
+  it('strips the https:// protocol prefix', () => {
+    expect(stripProtocol('https://example.com/path')).toBe('example.com/path');
+  });
+
+  it('strips a custom scheme prefix', () => {
+    expect(stripProtocol('ftp://files.example.com')).toBe('files.example.com');
+  });
+
+  it('returns the input unchanged when there is no protocol', () => {
+    expect(stripProtocol('example.com/path')).toBe('example.com/path');
+  });
+
+  it('handles protocol-relative URLs (starting with //)', () => {
+    expect(stripProtocol('//example.com/path')).toBe('example.com/path');
+  });
+});
+
+describe('joinUrlPath', () => {
+  it('returns the base when no additional segments are given', () => {
+    expect(joinUrlPath('https://example.com')).toBe('https://example.com');
+  });
+
+  it('joins a base with a single path segment', () => {
+    expect(joinUrlPath('https://example.com', 'foo')).toBe('https://example.com/foo');
+  });
+
+  it('joins a base with multiple path segments', () => {
+    expect(joinUrlPath('https://example.com', 'foo', 'bar', 'baz')).toBe(
+      'https://example.com/foo/bar/baz',
+    );
+  });
+
+  it('normalizes segments that already have leading slashes', () => {
+    expect(joinUrlPath('https://example.com/', '/foo/', '/bar')).toBe(
+      'https://example.com/foo/bar',
+    );
+  });
+
+  it('works with relative base paths', () => {
+    expect(joinUrlPath('/api', 'v1', 'users')).toBe('/api/v1/users');
   });
 });
