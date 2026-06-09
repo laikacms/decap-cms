@@ -16,6 +16,9 @@ function localForageTest() {
     });
 }
 
-localForageTest();
+// Guard against Node environments (e.g. proxy server) where localStorage is not available
+if (typeof localStorage !== 'undefined') {
+  localForageTest();
+}
 
 export default localForage;
