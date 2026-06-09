@@ -54,7 +54,7 @@ declare global {
 }
 
 window.repoFiles = window.repoFiles || {};
-window.repoFilesUnpublished = window.repoFilesUnpublished || [];
+window.repoFilesUnpublished = window.repoFilesUnpublished || {};
 
 function getFile(path: string, tree: RepoTree) {
   const segments = path.split('/');

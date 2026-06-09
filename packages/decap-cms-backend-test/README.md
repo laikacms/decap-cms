@@ -9,7 +9,7 @@ Used for demo purposes only.
 
 ```js
 window.repoFiles // json file-system tree
-window.repoFilesUnpublished // flat file list
+window.repoFilesUnpublished // object map keyed by `collection/slug`
 ```
 
 `AuthenticationPage` - A component which allow skip `login screen` for demo purposes.
