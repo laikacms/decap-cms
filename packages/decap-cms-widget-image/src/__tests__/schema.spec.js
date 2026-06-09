@@ -2,7 +2,7 @@ import { Map } from 'immutable';
 
 import schema from '../schema';
 
-describe('file widget schema', () => {
+describe('image widget schema', () => {
   describe('media_library', () => {
     it('is defined as an object under schema.properties', () => {
       expect(schema.properties.media_library).toBeDefined();
@@ -31,11 +31,9 @@ describe('file widget schema', () => {
 
   describe('allow_multiple behavior via getMediaLibraryFieldOptions', () => {
     it('allow_multiple:false in media_library is read correctly', () => {
-      // Simulate how withFileControl reads allow_multiple via getMediaLibraryFieldOptions:
-      // field.get('media_library', Map()).get('allow_multiple', true)
       const fieldWithFalse = Map({
-        name: 'upload',
-        widget: 'file',
+        name: 'photo',
+        widget: 'image',
         media_library: Map({ allow_multiple: false }),
       });
       const mediaLibraryOptions = fieldWithFalse.get('media_library', Map());
@@ -43,20 +41,18 @@ describe('file widget schema', () => {
     });
 
     it('allow_multiple defaults to true when not specified', () => {
-      const fieldWithoutOption = Map({ name: 'upload', widget: 'file' });
+      const fieldWithoutOption = Map({ name: 'photo', widget: 'image' });
       const mediaLibraryOptions = fieldWithoutOption.get('media_library', Map());
       expect(mediaLibraryOptions.get('allow_multiple', true)).toBe(true);
     });
 
     it('top-level allow_multiple has no effect on media library options', () => {
-      // A field with allow_multiple at the wrong (top) level must NOT affect the option
       const fieldWithTopLevelOnly = Map({
-        name: 'upload',
-        widget: 'file',
+        name: 'photo',
+        widget: 'image',
         allow_multiple: false,
       });
       const mediaLibraryOptions = fieldWithTopLevelOnly.get('media_library', Map());
-      // The code reads from media_library sub-map, so this still defaults to true
       expect(mediaLibraryOptions.get('allow_multiple', true)).toBe(true);
     });
   });
