@@ -211,6 +211,73 @@ describe('test backend implementation', () => {
     });
   });
 
+  describe('repoFilesUnpublished workflow', () => {
+    beforeEach(() => {
+      window.repoFiles = {};
+      window.repoFilesUnpublished = {};
+    });
+
+    it('should initialize repoFilesUnpublished as an object map, not an array', () => {
+      expect(window.repoFilesUnpublished).toEqual({});
+      expect(Array.isArray(window.repoFilesUnpublished)).toBe(false);
+    });
+
+    it('should write and read an unpublished entry via persistEntry + unpublishedEntry', async () => {
+      const backend = new TestBackend(
+        { media_folder: 'static/media' },
+        { initialWorkflowStatus: 'draft' },
+      );
+
+      const entry = {
+        dataFiles: [{ path: 'posts/hello-world.md', raw: '# Hello', slug: 'hello-world' }],
+        assets: [],
+      };
+
+      await backend.persistEntry(entry, {
+        useWorkflow: true,
+        newEntry: true,
+        collectionName: 'posts',
+        status: 'draft',
+      });
+
+      const key = 'posts/hello-world';
+      expect(window.repoFilesUnpublished[key]).toBeDefined();
+      expect(window.repoFilesUnpublished[key].slug).toBe('hello-world');
+      expect(window.repoFilesUnpublished[key].collection).toBe('posts');
+      expect(window.repoFilesUnpublished[key].status).toBe('draft');
+
+      const unpublished = await backend.unpublishedEntry({
+        collection: 'posts',
+        slug: 'hello-world',
+      });
+      expect(unpublished.slug).toBe('hello-world');
+      expect(unpublished.collection).toBe('posts');
+      expect(unpublished.diffs[0].content).toBe('# Hello');
+    });
+
+    it('should list unpublished entry keys via unpublishedEntries', async () => {
+      const backend = new TestBackend(
+        { media_folder: 'static/media' },
+        { initialWorkflowStatus: 'draft' },
+      );
+
+      const entry = {
+        dataFiles: [{ path: 'posts/my-post.md', raw: 'body', slug: 'my-post' }],
+        assets: [],
+      };
+
+      await backend.persistEntry(entry, {
+        useWorkflow: true,
+        newEntry: true,
+        collectionName: 'posts',
+        status: 'draft',
+      });
+
+      const keys = await backend.unpublishedEntries();
+      expect(keys).toContain('posts/my-post');
+    });
+  });
+
   describe('getFolderFiles', () => {
     it('should get files by depth', () => {
       const tree = {
