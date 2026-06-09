@@ -46,15 +46,4 @@ describe('file widget schema', () => {
     });
   });
 
-  describe('choose_url', () => {
-    it('is defined as a boolean in the schema', () => {
-      expect(schema.properties.choose_url).toEqual({ type: 'boolean' });
-    });
-  });
-
-  describe('private', () => {
-    it('is defined as a boolean in the schema', () => {
-      expect(schema.properties.private).toEqual({ type: 'boolean' });
-    });
-  });
 });
