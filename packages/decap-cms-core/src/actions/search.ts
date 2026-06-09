@@ -172,10 +172,11 @@ export function query(
     );
 
     dispatch(clearRequests());
+    const freshState = getState();
 
     const queryIdentifier = `${collectionName}-${searchFields.join()}-${searchTerm}-${file}-${limit}`;
 
-    const queuedQueryPromise = state.search.requests.find(({ id }) => id == queryIdentifier);
+    const queuedQueryPromise = freshState.search.requests.find(({ id }) => id === queryIdentifier);
 
     const queryPromise = queuedQueryPromise
       ? queuedQueryPromise.queryResponse
