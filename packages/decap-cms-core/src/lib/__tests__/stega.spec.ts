@@ -206,6 +206,55 @@ describe('encodeEntry', () => {
     });
   });
 
+  describe('typed list with custom typeKey', () => {
+    it('encodes nested string field when typeKey is set to "kind"', () => {
+      // DCMS-039: encodeList was hardcoding item.get('type') — when typeKey differs,
+      // no typed-list item was ever matched and nested fields were not encoded.
+      const fields = makeFields([
+        {
+          name: 'sections',
+          widget: 'list',
+          typeKey: 'kind',
+          types: [
+            {
+              name: 'hero',
+              widget: 'object',
+              fields: [{ name: 'headline', widget: 'string' }],
+            },
+          ],
+        },
+      ]);
+      const entry = fromJS({ sections: [{ kind: 'hero', headline: 'Hello DCMS-039' }] });
+      const result = encodeEntry(entry, fields) as ImmutableMap<string, unknown>;
+      const sections = result.get('sections') as List<ImmutableMap<string, unknown>>;
+      const item = sections.get(0) as ImmutableMap<string, unknown>;
+      const headline = item.get('headline') as string;
+      expect(isEncoded(headline, 'Hello DCMS-039')).toBe(true);
+    });
+
+    it('does not encode item when typeKey value has no matching type', () => {
+      const fields = makeFields([
+        {
+          name: 'sections',
+          widget: 'list',
+          typeKey: 'kind',
+          types: [
+            {
+              name: 'hero',
+              widget: 'object',
+              fields: [{ name: 'headline', widget: 'string' }],
+            },
+          ],
+        },
+      ]);
+      const entry = fromJS({ sections: [{ kind: 'unknown', headline: 'No match' }] });
+      const result = encodeEntry(entry, fields) as ImmutableMap<string, unknown>;
+      const sections = result.get('sections') as List<ImmutableMap<string, unknown>>;
+      const item = sections.get(0) as ImmutableMap<string, unknown>;
+      expect(item.get('headline')).toBe('No match');
+    });
+  });
+
   describe('encoding cache', () => {
     it('returns the same reference when value is unchanged on second call', () => {
       const fields = makeFields([{ name: 'title', widget: 'string' }]);
