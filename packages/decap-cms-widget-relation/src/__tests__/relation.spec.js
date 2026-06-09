@@ -347,6 +347,73 @@ function setup({ field, value }) {
   };
 }
 
+function setupForValidation({ field, value }) {
+  let widgetRef;
+  const query = jest.fn(() => Promise.resolve({ payload: { hits: [] } }));
+
+  render(
+    <RelationControl
+      field={field}
+      value={value}
+      query={query}
+      queryHits={[]}
+      onChange={jest.fn()}
+      forID="relation-field"
+      classNameWrapper=""
+      setActiveStyle={jest.fn()}
+      setInactiveStyle={jest.fn()}
+      t={key => key}
+      ref={r => (widgetRef = r)}
+    />,
+  );
+
+  return { ref: widgetRef };
+}
+
+describe('isValid', () => {
+  it('should return { error: false } for single (non-multiple) regardless of min/max', () => {
+    const field = fromJS({ ...fieldConfig, multiple: false, min: 2, max: 2 });
+    const { ref } = setupForValidation({ field, value: 'Post # 1' });
+    expect(ref.isValid()).toEqual({ error: false });
+  });
+
+  it('should return error when multiple value count is below min', () => {
+    const field = fromJS({ ...fieldConfig, multiple: true, min: 2 });
+    const value = fromJS(['Post # 1']);
+    const { ref } = setupForValidation({ field, value });
+    const result = ref.isValid();
+    expect(result.error).toBeTruthy();
+    expect(result.error.message).toMatchInlineSnapshot(
+      `"editor.editorControlPane.widget.rangeMin"`,
+    );
+  });
+
+  it('should return error when multiple value count is above max', () => {
+    const field = fromJS({ ...fieldConfig, multiple: true, max: 1 });
+    const value = fromJS(['Post # 1', 'Post # 2']);
+    const { ref } = setupForValidation({ field, value });
+    const result = ref.isValid();
+    expect(result.error).toBeTruthy();
+    expect(result.error.message).toMatchInlineSnapshot(
+      `"editor.editorControlPane.widget.rangeMax"`,
+    );
+  });
+
+  it('should return { error: false } when multiple value count is within range', () => {
+    const field = fromJS({ ...fieldConfig, multiple: true, min: 1, max: 3 });
+    const value = fromJS(['Post # 1', 'Post # 2']);
+    const { ref } = setupForValidation({ field, value });
+    expect(ref.isValid()).toEqual({ error: false });
+  });
+
+  it('should return { error: false } for multiple when no min/max set', () => {
+    const field = fromJS({ ...fieldConfig, multiple: true });
+    const value = fromJS(['Post # 1']);
+    const { ref } = setupForValidation({ field, value });
+    expect(ref.isValid()).toEqual({ error: false });
+  });
+});
+
 describe('Relation widget', () => {
   it('should list the first 20 option hits on initial load', async () => {
     const field = fromJS(fieldConfig);
