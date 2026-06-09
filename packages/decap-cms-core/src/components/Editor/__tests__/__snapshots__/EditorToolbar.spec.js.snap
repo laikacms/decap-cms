@@ -9,7 +9,7 @@ exports[`EditorToolbar should render normal save button 1`] = `
   left: 0;
   width: 100%;
   min-width: 800px;
-  z-index: 300;
+  z-index: 200;
   background-color: #fff;
   height: 66px;
   display: -webkit-box;
@@ -286,7 +286,7 @@ exports[`EditorToolbar should render normal save button 2`] = `
   left: 0;
   width: 100%;
   min-width: 800px;
-  z-index: 300;
+  z-index: 200;
   background-color: #fff;
   height: 66px;
   display: -webkit-box;
@@ -563,7 +563,7 @@ exports[`EditorToolbar should render with default props 1`] = `
   left: 0;
   width: 100%;
   min-width: 800px;
-  z-index: 300;
+  z-index: 200;
   background-color: #fff;
   height: 66px;
   display: -webkit-box;
@@ -799,7 +799,7 @@ exports[`EditorToolbar should render with status=draft,useOpenAuthoring=false 1`
   left: 0;
   width: 100%;
   min-width: 800px;
-  z-index: 300;
+  z-index: 200;
   background-color: #fff;
   height: 66px;
   display: -webkit-box;
@@ -1110,7 +1110,7 @@ exports[`EditorToolbar should render with status=draft,useOpenAuthoring=true 1`]
   left: 0;
   width: 100%;
   min-width: 800px;
-  z-index: 300;
+  z-index: 200;
   background-color: #fff;
   height: 66px;
   display: -webkit-box;
@@ -1482,7 +1482,7 @@ exports[`EditorToolbar should render with status=pending_publish,useOpenAuthorin
   left: 0;
   width: 100%;
   min-width: 800px;
-  z-index: 300;
+  z-index: 200;
   background-color: #fff;
   height: 66px;
   display: -webkit-box;
@@ -1793,7 +1793,7 @@ exports[`EditorToolbar should render with status=pending_publish,useOpenAuthorin
   left: 0;
   width: 100%;
   min-width: 800px;
-  z-index: 300;
+  z-index: 200;
   background-color: #fff;
   height: 66px;
   display: -webkit-box;
@@ -2142,7 +2142,7 @@ exports[`EditorToolbar should render with status=pending_review,useOpenAuthoring
   left: 0;
   width: 100%;
   min-width: 800px;
-  z-index: 300;
+  z-index: 200;
   background-color: #fff;
   height: 66px;
   display: -webkit-box;
@@ -2453,7 +2453,7 @@ exports[`EditorToolbar should render with status=pending_review,useOpenAuthoring
   left: 0;
   width: 100%;
   min-width: 800px;
-  z-index: 300;
+  z-index: 200;
   background-color: #fff;
   height: 66px;
   display: -webkit-box;
@@ -2825,7 +2825,7 @@ exports[`EditorToolbar should render with workflow controls hasUnpublishedChange
   left: 0;
   width: 100%;
   min-width: 800px;
-  z-index: 300;
+  z-index: 200;
   background-color: #fff;
   height: 66px;
   display: -webkit-box;
@@ -3066,7 +3066,7 @@ exports[`EditorToolbar should render with workflow controls hasUnpublishedChange
   left: 0;
   width: 100%;
   min-width: 800px;
-  z-index: 300;
+  z-index: 200;
   background-color: #fff;
   height: 66px;
   display: -webkit-box;
@@ -3277,7 +3277,7 @@ exports[`EditorToolbar should render with workflow controls hasUnpublishedChange
   left: 0;
   width: 100%;
   min-width: 800px;
-  z-index: 300;
+  z-index: 200;
   background-color: #fff;
   height: 66px;
   display: -webkit-box;
@@ -3518,7 +3518,7 @@ exports[`EditorToolbar should render with workflow controls hasUnpublishedChange
   left: 0;
   width: 100%;
   min-width: 800px;
-  z-index: 300;
+  z-index: 200;
   background-color: #fff;
   height: 66px;
   display: -webkit-box;
@@ -3759,7 +3759,7 @@ exports[`EditorToolbar should render with workflow controls hasUnpublishedChange
   left: 0;
   width: 100%;
   min-width: 800px;
-  z-index: 300;
+  z-index: 200;
   background-color: #fff;
   height: 66px;
   display: -webkit-box;
@@ -4000,7 +4000,7 @@ exports[`EditorToolbar should render with workflow controls hasUnpublishedChange
   left: 0;
   width: 100%;
   min-width: 800px;
-  z-index: 300;
+  z-index: 200;
   background-color: #fff;
   height: 66px;
   display: -webkit-box;
