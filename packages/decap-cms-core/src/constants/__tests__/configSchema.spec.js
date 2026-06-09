@@ -196,6 +196,18 @@ describe('config', () => {
       }).not.toThrowError();
     });
 
+    it('should throw if collection delete is not a boolean', () => {
+      expect(() => {
+        validateConfig(merge({}, validConfig, { collections: [{ delete: 'no' }] }));
+      }).toThrowError("'collections[0].delete' must be boolean");
+    });
+
+    it('should not throw if collection delete is a boolean', () => {
+      expect(() => {
+        validateConfig(merge({}, validConfig, { collections: [{ delete: false }] }));
+      }).not.toThrowError();
+    });
+
     it('should throw if collections sortable_fields is not a boolean or a string array', () => {
       expect(() => {
         validateConfig(merge({}, validConfig, { collections: [{ sortable_fields: 'title' }] }));
