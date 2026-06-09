@@ -123,14 +123,16 @@ export class FrontmatterFormatter {
     // change detection logic
     // https://github.com/jonschlinkert/gray-matter/issues/96
     const trimLastLineBreak = body.slice(-1) !== '\n';
+    type MatterStringifyOptions = Parameters<typeof matter.stringify>[2] & {
+      sortedKeys?: string[];
+      comments?: Record<string, string>;
+    };
     const file = matter.stringify(body, meta, {
       engines: parsers,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore `sortedKeys` is not recognized by gray-matter, so it gets passed through to the parser
       sortedKeys,
       comments,
       ...format,
-    });
+    } as MatterStringifyOptions);
     return trimLastLineBreak && file.slice(-1) === '\n' ? file.slice(0, -1) : file;
   }
 }
