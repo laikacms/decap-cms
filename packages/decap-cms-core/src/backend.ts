@@ -569,9 +569,11 @@ export class Backend {
           `collection` argument.
         */
     const entriesWithCursorCompat = loadedEntries as ImplementationEntry[] & {
-      [CURSOR_COMPATIBILITY_SYMBOL]?: unknown;
+      [CURSOR_COMPATIBILITY_SYMBOL]?: {};
     };
-    const cursor = Cursor.create(entriesWithCursorCompat[CURSOR_COMPATIBILITY_SYMBOL]).wrapData({
+    const cursor = Cursor.create(
+      entriesWithCursorCompat[CURSOR_COMPATIBILITY_SYMBOL] as {},
+    ).wrapData({
       cursorType: 'collectionEntries',
       collection,
     });
