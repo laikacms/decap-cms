@@ -23,7 +23,7 @@ interface MediaLibrary {
 }
 
 function handleInsert(url: string) {
-  return (store.dispatch as ThunkDispatch<State, unknown, AnyAction>)(insertMedia(url, undefined));
+  return (store.dispatch as ThunkDispatch<State, {}, AnyAction>)(insertMedia(url, undefined));
 }
 
 const initializeMediaLibrary = once(async function initializeMediaLibrary(name, options) {
