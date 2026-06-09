@@ -38,7 +38,7 @@ const DragIconContainer = styled(TopBarButtonSpan)`
 function DragHandle({ Wrapper, id }) {
   return (
     <Wrapper id={id}>
-      <DragIconContainer>
+      <DragIconContainer aria-hidden="true">
         <Icon type="drag-handle" size="small" />
       </DragIconContainer>
     </Wrapper>
@@ -59,13 +59,16 @@ function ListItemTopBar(props) {
   return (
     <TopBar className={className}>
       {onCollapseToggle ? (
-        <TopBarButton onClick={onCollapseToggle}>
+        <TopBarButton
+          onClick={onCollapseToggle}
+          aria-label={collapsed ? 'Expand item' : 'Collapse item'}
+        >
           <Icon type="chevron" size="small" direction={collapsed ? 'right' : 'down'} />
         </TopBarButton>
       ) : null}
       {dragHandle && allowReorder ? <DragHandle Wrapper={dragHandle} id={id} /> : <span></span>}
       {onRemove && allowRemove ? (
-        <TopBarButton onClick={onRemove}>
+        <TopBarButton onClick={onRemove} aria-label="Remove item">
           <Icon type="close" size="small" />
         </TopBarButton>
       ) : (
