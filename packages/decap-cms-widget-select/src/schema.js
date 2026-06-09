@@ -1,8 +1,6 @@
 export default {
   properties: {
     multiple: { type: 'boolean' },
-    min: { type: 'integer' },
-    max: { type: 'integer' },
     options: {
       type: 'array',
       items: {
@@ -19,6 +17,21 @@ export default {
           },
         ],
       },
+    },
+  },
+  if: {
+    properties: { multiple: { const: true } },
+    required: ['multiple'],
+  },
+  then: {
+    properties: {
+      min: { type: 'integer' },
+      max: { type: 'integer' },
+    },
+  },
+  else: {
+    not: {
+      anyOf: [{ required: ['min'] }, { required: ['max'] }],
     },
   },
   required: ['options'],
