@@ -114,8 +114,14 @@ class DateTimeControl extends React.Component {
       inputType = 'datetime-local';
     }
 
-    if (dateFormat === false) inputType = 'time';
-    if (timeFormat === false) inputType = 'date';
+    if (dateFormat === false) {
+      inputType = 'time';
+      format = typeof timeFormat === 'string' ? timeFormat : 'HH:mm';
+    }
+    if (timeFormat === false) {
+      inputType = 'date';
+      format = typeof dateFormat === 'string' ? dateFormat : 'YYYY-MM-DD';
+    }
     if (inputType === 'datetime-local') inputFormat = 'YYYY-MM-DDTHH:mm';
     if (inputType === 'date') inputFormat = 'YYYY-MM-DD';
     if (inputType === 'time') inputFormat = 'HH:mm';
