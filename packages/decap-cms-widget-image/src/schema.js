@@ -1,5 +1,10 @@
 export default {
   properties: {
-    allow_multiple: { type: 'boolean' },
+    media_library: {
+      type: 'object',
+      properties: {
+        allow_multiple: { type: 'boolean' },
+      },
+    },
   },
 };
