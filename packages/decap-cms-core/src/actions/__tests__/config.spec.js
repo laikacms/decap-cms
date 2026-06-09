@@ -543,6 +543,32 @@ describe('config', () => {
       });
     });
 
+    test('should normalize color widget camelCase keys to snake_case (DCMS-048)', () => {
+      const result = applyDefaults(
+        normalizeConfig({
+          collections: [
+            {
+              folder: 'src',
+              fields: [
+                {
+                  name: 'bg',
+                  widget: 'color',
+                  allowInput: true,
+                  enableAlpha: true,
+                },
+              ],
+            },
+          ],
+        }),
+      );
+      const field = result.collections[0].fields[0];
+      expect(field.allow_input).toBe(true);
+      expect(field.enable_alpha).toBe(true);
+      // original camelCase keys are preserved alongside snake_case
+      expect(field.allowInput).toBe(true);
+      expect(field.enableAlpha).toBe(true);
+    });
+
     describe('i18n', () => {
       it('should set root i18n on collection when collection i18n is set to true', () => {
         expect(

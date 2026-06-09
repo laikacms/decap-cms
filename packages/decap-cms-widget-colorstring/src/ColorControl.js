@@ -118,7 +118,7 @@ export default class ColorControl extends React.Component {
     const { forID, value, field, onChange, classNameWrapper, setActiveStyle, setInactiveStyle } =
       this.props;
 
-    const allowInput = field.get('allowInput', false);
+    const allowInput = field.get('allow_input', false);
 
     // clear button is not displayed if allowInput: true
     const showClearButton = !allowInput && value;
@@ -149,7 +149,7 @@ export default class ColorControl extends React.Component {
             <ChromePicker
               color={value || ''}
               onChange={this.handleChange}
-              disableAlpha={!field.get('enableAlpha', false)}
+              disableAlpha={!field.get('enable_alpha', false)}
             />
           </ColorPickerContainer>
         )}

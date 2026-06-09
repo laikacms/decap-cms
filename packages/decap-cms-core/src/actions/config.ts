@@ -90,6 +90,8 @@ const WIDGET_KEY_MAP = {
   searchFields: 'search_fields',
   displayFields: 'display_fields',
   optionsLength: 'options_length',
+  allowInput: 'allow_input',
+  enableAlpha: 'enable_alpha',
 } as const;
 
 function setSnakeCaseConfig<T extends CmsField>(field: T) {

@@ -98,7 +98,16 @@ export interface CmsFieldColor {
   widget: 'color';
   default?: string;
 
+  allow_input?: boolean;
+  enable_alpha?: boolean;
+
+  /**
+   * @deprecated Use allow_input instead
+   */
   allowInput?: boolean;
+  /**
+   * @deprecated Use enable_alpha instead
+   */
   enableAlpha?: boolean;
 }
 
