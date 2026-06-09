@@ -69,6 +69,7 @@ function fieldsConfig() {
         field: { $ref: `field_${id}` },
         fields: { $ref: `fields_${id}` },
         types: { $ref: `fields_${id}` },
+        visualEditing: { type: 'boolean' },
       },
       select: { $data: '0/widget' },
       selectCases: {
@@ -247,6 +248,7 @@ function getConfigSchema() {
               type: 'object',
               properties: {
                 preview: { type: 'boolean' },
+                visualEditing: { type: 'boolean' },
               },
             },
             format: { type: 'string' },
