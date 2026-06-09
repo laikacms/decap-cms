@@ -64,7 +64,7 @@ When `auth_type: pkce` is set, a top-level `auth:` block can be used to configur
 | `auth_token_endpoint` | string | `oauth2/token` | Path (relative to `base_url`) for the token endpoint. Overrides `backend.auth_token_endpoint`. |
 | `app_id` | string | `backend.app_id` | OAuth2 client ID. Overrides `backend.app_id`. |
 | `scope` | string | `openid email` | Space-separated OAuth2 scopes requested during authorization. |
-| `auth_token_endpoint_content_type` | string | `application/x-www-form-urlencoded; charset=utf-8` | `Content-Type` header sent when exchanging the authorization code for tokens. |
+| `auth_token_endpoint_content_type` | string | `application/x-www-form-urlencoded; charset=utf-8` | `Content-Type` header sent when exchanging the authorization code for tokens. Also controls body serialization: values starting with `application/x-www-form-urlencoded` serialize the body as URL-encoded form data; any other value (e.g. `application/json`) serializes the body as JSON. Use `application/json` for providers such as AWS Cognito that require a JSON request body. |
 | `email_claim` | string | `email` | JWT claim to use as the user's email address. |
 | `full_name_claim` | string | — | JWT claim to use as the user's full name. Takes precedence over `first_name_claim` / `last_name_claim`. |
 | `first_name_claim` | string | — | JWT claim for the user's first name (combined with `last_name_claim` when `full_name_claim` is absent). |
