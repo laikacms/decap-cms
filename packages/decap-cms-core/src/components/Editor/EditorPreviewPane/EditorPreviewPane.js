@@ -318,11 +318,21 @@ function mapStateToProps(state) {
   const isLoadingAsset = selectIsLoadingAsset(state.medias);
   // Pass only the slices needed by getCollection → getAllEntries / tryLoadEntry,
   // rather than the entire store, to avoid re-rendering on every state change.
+  //
+  // Slices included and why:
+  //   config       — currentBackend(state.config) in getAllEntries + tryLoadEntry
+  //   collections  — state.collections.get(collectionName) in getCollection itself
+  //   integrations — selectIntegration(state, …) / getIntegrationProvider(state.integrations, …)
+  //   mediaLibrary — processEntry reads state.mediaLibrary.get('files')
+  //   entries      — selectIsFetching / selectEntriesSortFields read state.entries in the
+  //                  sort/filter/loadEntries paths that getAllEntries can trigger; also
+  //                  selectEntryByPath(state.entries, …) in validateMetaField
   const collectionState = {
     config: state.config,
     collections: state.collections,
     integrations: state.integrations,
     mediaLibrary: state.mediaLibrary,
+    entries: state.entries,
   };
   return { isLoadingAsset, config: state.config, state: collectionState };
 }
