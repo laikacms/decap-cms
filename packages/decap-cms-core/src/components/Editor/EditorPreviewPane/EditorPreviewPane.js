@@ -316,7 +316,15 @@ PreviewPane.propTypes = {
 
 function mapStateToProps(state) {
   const isLoadingAsset = selectIsLoadingAsset(state.medias);
-  return { isLoadingAsset, config: state.config, state };
+  // Pass only the slices needed by getCollection → getAllEntries / tryLoadEntry,
+  // rather than the entire store, to avoid re-rendering on every state change.
+  const collectionState = {
+    config: state.config,
+    collections: state.collections,
+    integrations: state.integrations,
+    mediaLibrary: state.mediaLibrary,
+  };
+  return { isLoadingAsset, config: state.config, state: collectionState };
 }
 
 function mapDispatchToProps(dispatch) {
