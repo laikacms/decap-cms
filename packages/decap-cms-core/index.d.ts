@@ -523,7 +523,7 @@ declare module 'decap-cms-core' {
 
   export type CmsWidgetValueSerializer = any; // TODO: type properly
 
-  export type CmsMediaLibraryOptions = any; // TODO: type properly
+  export type CmsMediaLibraryOptions = Record<string, unknown>;
 
   export interface CmsMediaLibrary {
     name: string;
