@@ -37,6 +37,7 @@ import type {
   User,
   Credentials,
   Config,
+  ImplementationEntry,
   ImplementationFile,
   UnpublishedEntryMediaFile,
   AsyncLock,
@@ -203,9 +204,9 @@ export default class GitLab implements Implementation {
       this.api!.readFileMetadata.bind(this.api),
       API_NAME,
     );
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    files[CURSOR_COMPATIBILITY_SYMBOL] = cursor;
+    (files as ImplementationEntry[] & { [CURSOR_COMPATIBILITY_SYMBOL]?: unknown })[
+      CURSOR_COMPATIBILITY_SYMBOL
+    ] = cursor!;
     return files;
   }
 

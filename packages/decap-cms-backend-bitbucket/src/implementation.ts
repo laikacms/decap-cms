@@ -40,6 +40,7 @@ import type {
   PersistOptions,
   DisplayURL,
   Implementation,
+  ImplementationEntry,
   User,
   Credentials,
   Config,
@@ -344,9 +345,9 @@ export default class BitbucketBackend implements Implementation {
       API_NAME,
     );
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    files[CURSOR_COMPATIBILITY_SYMBOL] = cursor;
+    (files as ImplementationEntry[] & { [CURSOR_COMPATIBILITY_SYMBOL]?: unknown })[
+      CURSOR_COMPATIBILITY_SYMBOL
+    ] = cursor!;
     return files;
   }
 
