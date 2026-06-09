@@ -9,7 +9,9 @@ import { store } from './redux';
 import { configFailed } from './actions/config';
 import { createMediaLibrary, insertMedia } from './actions/mediaLibrary';
 
-import type { MediaLibraryInstance } from './types/redux';
+import type { AnyAction } from 'redux';
+import type { ThunkDispatch } from 'redux-thunk';
+import type { MediaLibraryInstance, State } from './types/redux';
 
 type MediaLibraryOptions = {};
 
@@ -21,9 +23,7 @@ interface MediaLibrary {
 }
 
 function handleInsert(url: string) {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  return store.dispatch(insertMedia(url, undefined));
+  return (store.dispatch as ThunkDispatch<State, {}, AnyAction>)(insertMedia(url, undefined));
 }
 
 const initializeMediaLibrary = once(async function initializeMediaLibrary(name, options) {
