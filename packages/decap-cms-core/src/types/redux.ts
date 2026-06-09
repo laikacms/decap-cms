@@ -27,6 +27,7 @@ export type CmsMapWidgetType = 'Point' | 'LineString' | 'Polygon';
 export type CmsMarkdownWidgetButton =
   | 'bold'
   | 'italic'
+  | 'strikethrough'
   | 'code'
   | 'link'
   | 'heading-one'
@@ -36,7 +37,6 @@ export type CmsMarkdownWidgetButton =
   | 'heading-five'
   | 'heading-six'
   | 'quote'
-  | 'code-block'
   | 'bulleted-list'
   | 'numbered-list';
 
