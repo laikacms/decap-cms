@@ -35,4 +35,14 @@ describe('list widget schema', () => {
       expect(validate({ add_to_top: 1 })).toBe(false);
     });
   });
+
+  describe('typeKey', () => {
+    it('accepts string values', () => {
+      expect(validate({ typeKey: 'kind' })).toBe(true);
+    });
+
+    it('rejects non-string values', () => {
+      expect(validate({ typeKey: 123 })).toBe(false);
+    });
+  });
 });
