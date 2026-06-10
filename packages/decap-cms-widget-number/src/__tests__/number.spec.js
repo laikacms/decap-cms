@@ -170,6 +170,34 @@ describe('Number widget', () => {
     expect(input.value).toBe('0');
   });
 
+  describe('isValid with pattern and min/max (DCMS-104)', () => {
+    const tFn = jest.fn(key => key);
+
+    function makeControl(fieldObj, value) {
+      const field = fromJS(fieldObj);
+      const instance = new NumberControl({ field, value, t: tFn, onChange: jest.fn(), classNameWrapper: '', setActiveStyle: jest.fn(), setInactiveStyle: jest.fn() });
+      return instance;
+    }
+
+    it('returns error when pattern is set and value is below min', () => {
+      const ctrl = makeControl({ pattern: ['^\\d+$', 'digits only'], min: 1, max: 10 }, 0);
+      const result = ctrl.isValid();
+      expect(result).not.toBe(true);
+      expect(result).toHaveProperty('error');
+      expect(result.error.type).toBe('RANGE');
+    });
+
+    it('returns true when pattern is set and value is within min/max', () => {
+      const ctrl = makeControl({ pattern: ['^\\d+$', 'digits only'], min: 1, max: 10 }, 5);
+      expect(ctrl.isValid()).toBe(true);
+    });
+
+    it('returns true when pattern is set and no min/max configured', () => {
+      const ctrl = makeControl({ pattern: ['^\\d+$', 'digits only'] }, 999);
+      expect(ctrl.isValid()).toBe(true);
+    });
+  });
+
   describe('validateMinMax', () => {
     const field = { get: jest.fn() };
     field.get.mockReturnValue('label');
