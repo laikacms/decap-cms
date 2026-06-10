@@ -77,6 +77,7 @@ export default class GitHub implements Implementation {
   alwaysForkEnabled: boolean;
   branch: string;
   apiRoot: string;
+  graphqlApiRoot: string;
   mediaFolder: string;
   previewContext: string;
   token: string | null;
@@ -123,6 +124,7 @@ export default class GitHub implements Implementation {
     this.alwaysForkEnabled = config.backend.always_fork || false;
     this.branch = config.backend.branch?.trim() || 'master';
     this.apiRoot = config.backend.api_root || 'https://api.github.com';
+    this.graphqlApiRoot = config.backend.graphql_api_root || this.apiRoot;
     this.token = '';
     this.tokenKeyword = 'token';
     this.baseUrl = config.backend.base_url;
@@ -348,7 +350,7 @@ export default class GitHub implements Implementation {
       branch: this.branch,
       repo: this.repo,
       originRepo: this.originRepo,
-      apiRoot: this.apiRoot,
+      apiRoot: this.useGraphql ? this.graphqlApiRoot : this.apiRoot,
       squashMerges: this.squashMerges,
       cmsLabelPrefix: this.cmsLabelPrefix,
       useOpenAuthoring: this.useOpenAuthoring,
