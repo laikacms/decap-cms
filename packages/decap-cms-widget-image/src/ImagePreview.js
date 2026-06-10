@@ -4,7 +4,9 @@ import styled from '@emotion/styled';
 import { List } from 'immutable';
 import { WidgetPreviewContainer } from 'decap-cms-ui-default';
 
-const StyledImage = styled(({ src }) => <img src={src || ''} role="presentation" />)`
+const StyledImage = styled(({ src, className }) => (
+  <img src={src || ''} role="presentation" className={className} />
+))`
   display: block;
   max-width: 100%;
   height: auto;
@@ -30,7 +32,8 @@ function StyledImageAsset({ getAsset, value, field }) {
     setAsset(newAsset);
   }, [value, field, getAsset]);
 
-  return asset ? <StyledImage src={asset} /> : null;
+  const fieldClass = field && field.get('class');
+  return asset ? <StyledImage src={asset} className={fieldClass || undefined} /> : null;
 }
 
 function ImagePreviewContent(props) {
