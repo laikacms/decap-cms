@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import styled from '@emotion/styled';
-import { OrderedMap } from 'immutable';
 import { translate } from 'react-polyglot';
 import { connect } from 'react-redux';
 import {
@@ -22,8 +21,8 @@ import {
   publishUnpublishedEntry,
   deleteUnpublishedEntry,
 } from '../../actions/editorialWorkflow';
-import { selectUnpublishedEntriesByStatus } from '../../reducers';
-import { EDITORIAL_WORKFLOW, status } from '../../constants/publishModes';
+import { selectUnpublishedEntriesGroupedByStatus } from '../../reducers';
+import { EDITORIAL_WORKFLOW } from '../../constants/publishModes';
 import WorkflowList from './WorkflowList';
 
 const WorkflowContainer = styled.div`
@@ -149,14 +148,12 @@ function mapStateToProps(state) {
     returnObj.isFetching = state.editorialWorkflow.getIn(['pages', 'isFetching'], false);
 
     /*
-     * Generates an ordered Map of the available status as keys.
-     * Each key containing a Sequence of available unpubhlished entries
+     * Returns a memoized OrderedMap of status keys to entry sequences.
      * Eg.: OrderedMap{'draft':Seq(), 'pending_review':Seq(), 'pending_publish':Seq()}
+     * The selector only recomputes when editorialWorkflow.entities changes,
+     * preventing board rerenders on every unrelated app-wide dispatch.
      */
-    returnObj.unpublishedEntries = status.reduce((acc, currStatus) => {
-      const entries = selectUnpublishedEntriesByStatus(state, currStatus);
-      return acc.set(currStatus, entries);
-    }, OrderedMap());
+    returnObj.unpublishedEntries = selectUnpublishedEntriesGroupedByStatus(state);
   }
   return returnObj;
 }
