@@ -71,4 +71,42 @@ describe('APIUtils', () => {
       expect(apiUtils.statusToLabel('draft', undefined)).toBe('decap-cms/draft');
     });
   });
+
+  describe('branchFromContentKey', () => {
+    it('should prepend cms/ prefix for a simple slug', () => {
+      expect(apiUtils.branchFromContentKey('posts/my-post')).toBe('cms/posts/my-post');
+    });
+
+    it('should prepend cms/ prefix for a nested slug', () => {
+      expect(apiUtils.branchFromContentKey('posts/dir1/dir2/nested-post')).toBe(
+        'cms/posts/dir1/dir2/nested-post',
+      );
+    });
+  });
+
+  describe('contentKeyFromBranch', () => {
+    it('should strip cms/ prefix for a simple slug', () => {
+      expect(apiUtils.contentKeyFromBranch('cms/posts/my-post')).toBe('posts/my-post');
+    });
+
+    it('should strip cms/ prefix for a nested slug', () => {
+      expect(apiUtils.contentKeyFromBranch('cms/posts/dir1/dir2/nested-post')).toBe(
+        'posts/dir1/dir2/nested-post',
+      );
+    });
+
+    it('should round-trip with branchFromContentKey for a simple slug', () => {
+      const contentKey = 'posts/my-post';
+      expect(apiUtils.contentKeyFromBranch(apiUtils.branchFromContentKey(contentKey))).toBe(
+        contentKey,
+      );
+    });
+
+    it('should round-trip with branchFromContentKey for a nested slug', () => {
+      const contentKey = 'posts/dir1/dir2/nested-post';
+      expect(apiUtils.contentKeyFromBranch(apiUtils.branchFromContentKey(contentKey))).toBe(
+        contentKey,
+      );
+    });
+  });
 });
