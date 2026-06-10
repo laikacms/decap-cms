@@ -155,6 +155,7 @@ function getConfigSchema() {
             },
             additionalProperties: false,
           },
+          signoff_commits: { type: 'boolean' },
         },
         required: ['name'],
       },
