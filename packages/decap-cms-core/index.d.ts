@@ -384,6 +384,8 @@ declare module 'decap-cms-core' {
     squash_merges?: boolean;
     signoff_commits?: boolean;
     proxy_url?: string;
+    use_graphql?: boolean;
+    graphql_api_root?: string;
     commit_messages?: {
       create?: string;
       update?: string;
