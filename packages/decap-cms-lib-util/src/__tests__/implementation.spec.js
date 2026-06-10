@@ -1,6 +1,24 @@
-import { getMediaAsBlob, getMediaDisplayURL } from '../implementation';
+import { blobToFileObj, getMediaAsBlob, getMediaDisplayURL } from '../implementation';
 
 describe('implementation', () => {
+  describe('blobToFileObj', () => {
+    it('returns a File with the given name for a non-svg file without forcing MIME type', () => {
+      const blob = new Blob(['data'], { type: 'image/png' });
+      const file = blobToFileObj('image.png', blob);
+      expect(file).toBeInstanceOf(File);
+      expect(file.name).toBe('image.png');
+      expect(file.type).not.toBe('image/svg+xml');
+    });
+
+    it('returns a File with type image/svg+xml for a .svg filename', () => {
+      const blob = new Blob(['<svg/>'], { type: 'text/plain' });
+      const file = blobToFileObj('icon.svg', blob);
+      expect(file).toBeInstanceOf(File);
+      expect(file.name).toBe('icon.svg');
+      expect(file.type).toBe('image/svg+xml');
+    });
+  });
+
   describe('getMediaAsBlob', () => {
     it('should return response blob on non svg file', async () => {
       const blob = {};
