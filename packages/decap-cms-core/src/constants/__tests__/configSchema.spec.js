@@ -184,6 +184,24 @@ describe('config', () => {
       }).toThrowError("'slug.sanitize_replacement' must be string");
     });
 
+    it('should not throw if collection has media_folder string', () => {
+      expect(() => {
+        validateConfig(merge({}, validConfig, { collections: [{ media_folder: 'assets/img' }] }));
+      }).not.toThrow();
+    });
+
+    it('should not throw if collection has public_folder string', () => {
+      expect(() => {
+        validateConfig(merge({}, validConfig, { collections: [{ public_folder: '/img' }] }));
+      }).not.toThrow();
+    });
+
+    it('should throw if collection media_folder is not a string', () => {
+      expect(() => {
+        validateConfig(merge({}, validConfig, { collections: [{ media_folder: 123 }] }));
+      }).toThrowError("'collections[0].media_folder' must be string");
+    });
+
     it('should throw if collection publish is not a boolean', () => {
       expect(() => {
         validateConfig(merge({}, validConfig, { collections: [{ publish: 'false' }] }));
