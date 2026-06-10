@@ -30,7 +30,9 @@ import type {
   Implementation,
   ImplementationEntry,
   ImplementationFile,
+  ImplementationMediaFile,
   PersistOptions,
+  UnpublishedEntry,
   User,
 } from 'decap-cms-lib-util';
 import type { Semaphore } from 'semaphore';
@@ -414,24 +416,20 @@ export default class Gitea implements Implementation {
     };
   }
 
-  async unpublishedEntries() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return {} as any;
+  async unpublishedEntries(): Promise<string[]> {
+    return [];
   }
 
-  async unpublishedEntry() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return {} as any;
+  async unpublishedEntry(): Promise<UnpublishedEntry> {
+    return {} as UnpublishedEntry;
   }
 
-  async unpublishedEntryDataFile() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return {} as any;
+  async unpublishedEntryDataFile(): Promise<string> {
+    return '';
   }
 
-  async unpublishedEntryMediaFile() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return {} as any;
+  async unpublishedEntryMediaFile(): Promise<ImplementationMediaFile> {
+    return {} as ImplementationMediaFile;
   }
 
   async updateUnpublishedEntryStatus() {
@@ -445,8 +443,7 @@ export default class Gitea implements Implementation {
     return;
   }
 
-  async getDeployPreview() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return {} as any;
+  async getDeployPreview(): Promise<null> {
+    return null;
   }
 }
