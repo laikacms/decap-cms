@@ -29,9 +29,7 @@ describe('media', () => {
   });
 
   describe('getAsset', () => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    global.URL = { createObjectURL: jest.fn() };
+    (global as unknown as Record<string, unknown>).URL = { createObjectURL: jest.fn() };
 
     beforeEach(() => {
       jest.resetAllMocks();
@@ -44,9 +42,7 @@ describe('media', () => {
 
       // TODO change to proper payload when immutable is removed
       //  from 'collections' and 'entries' state slices
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      const result = store.dispatch(getAsset(payload));
+      const result = store.dispatch(getAsset(payload as unknown as Parameters<typeof getAsset>[0]));
       const actions = store.getActions();
       expect(actions).toHaveLength(0);
       expect(result).toEqual(emptyAsset);
@@ -58,9 +54,7 @@ describe('media', () => {
       const store = mockStore({
         // TODO change to proper store data when immutable is removed
         //  from 'config' state slice
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        config: Map(),
+        config: Map() as unknown as State['config'],
         medias: {
           [path]: { asset, isLoading: false, error: null },
         },
@@ -71,9 +65,7 @@ describe('media', () => {
 
       // TODO change to proper payload when immutable is removed
       //  from 'collections' and 'entries' state slices
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      const result = store.dispatch(getAsset(payload));
+      const result = store.dispatch(getAsset(payload as unknown as Parameters<typeof getAsset>[0]));
       const actions = store.getActions();
       expect(actions).toHaveLength(0);
 
@@ -101,9 +93,7 @@ describe('media', () => {
 
       // TODO change to proper payload when immutable is removed
       //  from 'collections' state slice
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      const result = store.dispatch(getAsset(payload));
+      const result = store.dispatch(getAsset(payload as unknown as Parameters<typeof getAsset>[0]));
       const actions = store.getActions();
       expect(actions).toHaveLength(1);
       expect(actions[0]).toEqual({
@@ -124,9 +114,7 @@ describe('media', () => {
 
       // TODO change to proper payload when immutable is removed
       //  from 'collections' and 'entries' state slices
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      const result = store.dispatch(getAsset(payload));
+      const result = store.dispatch(getAsset(payload as unknown as Parameters<typeof getAsset>[0]));
       const actions = store.getActions();
       expect(actions).toHaveLength(1);
       expect(actions[0]).toEqual({
@@ -154,9 +142,7 @@ describe('media', () => {
 
       // TODO change to proper payload when immutable is removed
       //  from 'collections' and 'entries' state slices
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      const result = store.dispatch(getAsset(payload));
+      const result = store.dispatch(getAsset(payload as unknown as Parameters<typeof getAsset>[0]));
       const actions = store.getActions();
 
       const asset = new AssetProxy({ url: path, path: resolvePath });

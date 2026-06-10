@@ -2,6 +2,7 @@ import { statusRequest, statusSuccess, statusFailure } from '../../actions/statu
 import status from '../status';
 
 import type { Status } from '../status';
+import type { StatusAction } from '../../actions/status';
 
 const defaultState: Status = {
   isFetching: false,
@@ -14,15 +15,11 @@ const defaultState: Status = {
 
 describe('status reducer', () => {
   it('should return the default state', () => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore reducer does not accept empty action
-    expect(status(undefined, {})).toEqual(defaultState);
+    expect(status(undefined, {} as unknown as StatusAction)).toEqual(defaultState);
   });
 
   it('should set isFetching to true on STATUS_REQUEST without changing status or error', () => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore action creator type mismatch with reducer
-    const state = status(undefined, statusRequest());
+    const state = status(undefined, statusRequest() as unknown as StatusAction);
     expect(state.isFetching).toBe(true);
     expect(state.status).toEqual(defaultState.status);
     expect(state.error).toBeUndefined();
@@ -33,24 +30,16 @@ describe('status reducer', () => {
       auth: { status: false },
       api: { status: false, statusPage: 'https://status.example.com' },
     };
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore action creator type mismatch with reducer
-    const fetching = status(undefined, statusRequest());
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore action creator type mismatch with reducer
-    const state = status(fetching, statusSuccess(newStatus));
+    const fetching = status(undefined, statusRequest() as unknown as StatusAction);
+    const state = status(fetching, statusSuccess(newStatus) as unknown as StatusAction);
     expect(state.isFetching).toBe(false);
     expect(state.status).toEqual(newStatus);
   });
 
   it('should set isFetching to false and store error on STATUS_FAILURE', () => {
     const error = new Error('backend unreachable');
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore action creator type mismatch with reducer
-    const fetching = status(undefined, statusRequest());
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore action creator type mismatch with reducer
-    const state = status(fetching, statusFailure(error));
+    const fetching = status(undefined, statusRequest() as unknown as StatusAction);
+    const state = status(fetching, statusFailure(error) as unknown as StatusAction);
     expect(state.isFetching).toBe(false);
     expect(state.error).toBe(error);
   });
