@@ -240,6 +240,10 @@ declare module 'decap-cms-core' {
      * @deprecated Use options_length instead
      */
     optionsLength?: number;
+
+    filters?: Array<{ field: string; values: (string | boolean | number)[] }>;
+    min?: number;
+    max?: number;
   }
 
   export interface CmsFieldHidden {
