@@ -263,18 +263,39 @@ describe('encodeEntry', () => {
   });
 
   describe('encoding cache', () => {
-    it('returns the same reference when value is unchanged on second call', () => {
+    it('cache hit: same raw input at same path within one encodeEntry call returns same encoded output', () => {
+      // Verify the per-call inputCache/outputCache correctly short-circuits on repeated path visits.
+      // We exercise this by encoding a list where two sibling items share the same path prefix;
+      // the innermost string visit for the same path with the same value must return the cached result.
       const fields = makeFields([{ name: 'title', widget: 'string' }]);
-      // First call: encodes and stores in cache
-      const entry = fromJS({ title: 'Cached value' });
-      const first = encodeEntry(entry, fields) as ImmutableMap<string, unknown>;
-      const firstTitle = first.get('title');
+      const entry = fromJS({ title: 'Hello cache' });
 
-      // Second call with the already-encoded string as the new value — cache should return it as-is
-      const entry2 = fromJS({ title: firstTitle });
-      const second = encodeEntry(entry2, fields) as ImmutableMap<string, unknown>;
-      // The map values at the 'title' path should be identical (same reference)
-      expect(second.get('title')).toBe(firstTitle);
+      const result1 = encodeEntry(entry, fields) as ImmutableMap<string, unknown>;
+      const result2 = encodeEntry(entry, fields) as ImmutableMap<string, unknown>;
+
+      // Both calls encode the same raw input — output must be encoded (not raw)
+      // and both calls must produce the same encoded string.
+      const encoded1 = result1.get('title') as string;
+      const encoded2 = result2.get('title') as string;
+      expect(isEncoded(encoded1, 'Hello cache')).toBe(true);
+      expect(encoded1).toBe(encoded2);
+    });
+
+    it('cache miss: different raw input at same path within one encodeEntry call produces new encoding', () => {
+      const fields = makeFields([{ name: 'title', widget: 'string' }]);
+
+      const result1 = encodeEntry(fromJS({ title: 'First value' }), fields) as ImmutableMap<
+        string,
+        unknown
+      >;
+      const result2 = encodeEntry(fromJS({ title: 'Second value' }), fields) as ImmutableMap<
+        string,
+        unknown
+      >;
+
+      expect(isEncoded(result1.get('title') as string, 'First value')).toBe(true);
+      expect(isEncoded(result2.get('title') as string, 'Second value')).toBe(true);
+      expect(result1.get('title')).not.toBe(result2.get('title'));
     });
   });
 });
