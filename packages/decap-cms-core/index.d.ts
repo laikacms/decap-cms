@@ -147,6 +147,7 @@ declare module 'decap-cms-core' {
     min?: number;
     add_to_top?: boolean;
     types?: (CmsFieldBase & CmsFieldObject)[];
+    typeKey?: string;
   }
 
   export interface CmsFieldMap {
