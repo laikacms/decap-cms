@@ -713,6 +713,88 @@ describe('config', () => {
       });
     });
 
+    describe('view_filters / view_groups', () => {
+      it('should not throw for valid view_filters with boolean pattern', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [
+                {
+                  view_filters: [{ label: 'Drafts', field: 'draft', pattern: true }],
+                },
+              ],
+            }),
+          );
+        }).not.toThrow();
+      });
+
+      it('should not throw for valid view_filters with string pattern', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [
+                {
+                  view_filters: [{ label: 'Featured', field: 'featured', pattern: 'yes' }],
+                },
+              ],
+            }),
+          );
+        }).not.toThrow();
+      });
+
+      it('should throw if view_filters item is missing pattern', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [
+                {
+                  view_filters: [{ label: 'Drafts', field: 'draft' }],
+                },
+              ],
+            }),
+          );
+        }).toThrowError("'collections[0].view_filters[0]' must have required property 'pattern'");
+      });
+
+      it('should not throw for valid view_groups without pattern (optional)', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [
+                {
+                  view_groups: [{ label: 'Year', field: 'date' }],
+                },
+              ],
+            }),
+          );
+        }).not.toThrow();
+      });
+
+      it('should throw if view_groups item has non-string pattern', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [
+                {
+                  view_groups: [{ label: 'Year', field: 'date', pattern: true }],
+                },
+              ],
+            }),
+          );
+        }).toThrowError("'collections[0].view_groups[0].pattern' must be string");
+      });
+
+      it('should throw if view_filters is an empty array (minItems: 1)', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [{ view_filters: [] }],
+            }),
+          );
+        }).toThrowError("'collections[0].view_filters' must NOT have fewer than 1 items");
+      });
+    });
+
     describe('i18n', () => {
       it('should throw error when locale has invalid characters', () => {
         expect(() => {
