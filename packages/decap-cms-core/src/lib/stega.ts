@@ -116,21 +116,20 @@ function encodeMap(
 }
 
 /**
- * Cache for encoded values to prevent re-encoding unchanged values
- * across keystrokes. The cache is keyed by path.
- */
-const encodingCache = new Map();
-
-/**
  * Main entry point for encoding steganographic data into entry values
- * Uses a visitor pattern with caching to handle recursive structures
+ * Uses a visitor pattern with per-call caching to handle recursive structures.
+ *
+ * inputCache and outputCache are scoped to each encodeEntry invocation so
+ * the Map never grows across calls and the cache hit check compares the
+ * correct values (raw input vs cached raw input, not encoded output).
  */
 export function encodeEntry(value: unknown, fields: List<ImmutableMap<string, unknown>>) {
   const plainFields = fields.toJS() as CmsField[];
+  const inputCache = new Map<string, unknown>();
+  const outputCache = new Map<string, unknown>();
 
   function visit(value: unknown, fields: CmsField[], path = '', typeKey = 'type') {
-    const cached = encodingCache.get(path);
-    if (cached === value) return value;
+    if (inputCache.get(path) === value) return outputCache.get(path);
 
     const ctx: EncodeContext = { fields, path, typeKey, visit };
     let result;
@@ -144,7 +143,8 @@ export function encodeEntry(value: unknown, fields: List<ImmutableMap<string, un
       result = value;
     }
 
-    encodingCache.set(path, result);
+    inputCache.set(path, value);
+    outputCache.set(path, result);
     return result;
   }
 
