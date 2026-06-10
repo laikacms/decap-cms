@@ -77,4 +77,29 @@ describe('file widget schema', () => {
       expect(mediaLibraryOptions.get('allow_multiple', true)).toBe(true);
     });
   });
+
+  describe('media_library.config', () => {
+    it('is defined as an object under media_library in the schema', () => {
+      expect(schema.properties.media_library.properties.config).toEqual({
+        type: 'object',
+      });
+    });
+
+    it('config object in media_library is readable via getMediaLibraryFieldOptions', () => {
+      const fieldWithConfig = Map({
+        name: 'upload',
+        widget: 'file',
+        media_library: Map({ config: Map({ publicKey: 'abc123' }) }),
+      });
+      const mediaLibraryOptions = fieldWithConfig.get('media_library', Map());
+      expect(mediaLibraryOptions.get('config')).toBeDefined();
+      expect(mediaLibraryOptions.get('config').get('publicKey')).toBe('abc123');
+    });
+
+    it('config is undefined when not specified', () => {
+      const fieldWithoutConfig = Map({ name: 'upload', widget: 'file' });
+      const mediaLibraryOptions = fieldWithoutConfig.get('media_library', Map());
+      expect(mediaLibraryOptions.get('config')).toBeUndefined();
+    });
+  });
 });
