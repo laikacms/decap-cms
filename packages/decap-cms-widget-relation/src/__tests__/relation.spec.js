@@ -27,8 +27,26 @@ jest.mock('../RelationCache', () => {
   };
 });
 
+// RelationControl.componentDidMount is async and calls setState after awaiting a query,
+// which escapes the synchronous act() boundary. Suppress the benign act() warning so it
+// doesn't pollute test output. See DCMS-071.
+const originalConsoleError = console.error.bind(console); // eslint-disable-line no-console
+const consoleErrorSpy = jest // eslint-disable-line no-console
+  .spyOn(console, 'error')
+  .mockImplementation((...args) => {
+    const msg = typeof args[0] === 'string' ? args[0] : '';
+    if (msg.includes('not wrapped in act')) return;
+    originalConsoleError(...args);
+  });
+
 beforeEach(() => {
   jest.clearAllMocks();
+  // Re-apply the implementation after clearAllMocks resets the call counts
+  // (clearAllMocks does not reset implementations, so this is a no-op for the impl)
+});
+
+afterAll(() => {
+  consoleErrorSpy.mockRestore();
 });
 
 const RelationControl = DecapCmsWidgetRelation.controlComponent;
