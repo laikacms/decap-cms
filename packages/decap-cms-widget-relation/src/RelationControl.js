@@ -28,6 +28,25 @@ import { v4 as uuid } from 'uuid';
 
 import relationCache from './RelationCache';
 
+/**
+ * Normalise camelCase field config keys to snake_case.
+ * The schema's oneOf allows both forms; the implementation reads only snake_case.
+ * Coalescing here keeps backward compat and makes the schema promise real.
+ */
+function normalizeField(field) {
+  let normalized = field;
+  if (!normalized.get('value_field') && normalized.get('valueField')) {
+    normalized = normalized.set('value_field', normalized.get('valueField'));
+  }
+  if (!normalized.get('search_fields') && normalized.get('searchFields')) {
+    normalized = normalized.set('search_fields', normalized.get('searchFields'));
+  }
+  if (!normalized.get('display_fields') && normalized.get('displayFields')) {
+    normalized = normalized.set('display_fields', normalized.get('displayFields'));
+  }
+  return normalized;
+}
+
 function arrayMove(array, from, to) {
   const slicedArray = array.slice();
   slicedArray.splice(to < 0 ? array.length + to : to, 0, slicedArray.splice(from, 1)[0]);
@@ -198,6 +217,10 @@ export default class RelationControl extends React.Component {
     initialOptions: [],
   };
 
+  get field() {
+    return normalizeField(this.props.field);
+  }
+
   static propTypes = {
     onChange: PropTypes.func.isRequired,
     forID: PropTypes.string.isRequired,
@@ -212,7 +235,8 @@ export default class RelationControl extends React.Component {
   };
 
   isValid = () => {
-    const { field, value, t } = this.props;
+    const field = this.field;
+    const { value, t } = this.props;
     const min = field.get('min');
     const max = field.get('max');
 
@@ -259,7 +283,8 @@ export default class RelationControl extends React.Component {
   }
 
   async loadInitialOptions() {
-    const { field, query, forID, value } = this.props;
+    const { query, forID, value } = this.props;
+    const field = this.field;
     const collection = field.get('collection');
     const searchFieldsArray = getFieldArray(field.get('search_fields'));
     const file = field.get('file');
@@ -290,7 +315,8 @@ export default class RelationControl extends React.Component {
   }
 
   triggerInitialOnChange(value, options) {
-    const { onChange, field } = this.props;
+    const { onChange } = this.props;
+    const field = this.field;
 
     if (this.isMultiple()) {
       const selectedOptions = getSelectedOptions(value);
@@ -336,7 +362,8 @@ export default class RelationControl extends React.Component {
   onSortEnd =
     options =>
     ({ oldIndex, newIndex }) => {
-      const { onChange, field } = this.props;
+      const { onChange } = this.props;
+      const field = this.field;
       const value = options.map(optionToString);
       const newValue = arrayMove(value, oldIndex, newIndex);
       const metadata =
@@ -352,7 +379,8 @@ export default class RelationControl extends React.Component {
     };
 
   handleChange = selectedOption => {
-    const { onChange, field } = this.props;
+    const { onChange } = this.props;
+    const field = this.field;
 
     if (this.isMultiple()) {
       const options = selectedOption;
@@ -397,11 +425,11 @@ export default class RelationControl extends React.Component {
   };
 
   isMultiple() {
-    return this.props.field.get('multiple', false);
+    return this.field.get('multiple', false);
   }
 
   parseHitOptions = hits => {
-    const { field } = this.props;
+    const field = this.field;
     const valueField = field.get('value_field');
     const displayField = field.get('display_fields') || List([field.get('value_field')]);
     const filters = getFieldArray(field.get('filters'));
@@ -443,7 +471,8 @@ export default class RelationControl extends React.Component {
   };
 
   loadOptions = debounce((term, callback) => {
-    const { field, query, forID } = this.props;
+    const { query, forID } = this.props;
+    const field = this.field;
     const collection = field.get('collection');
     const searchFieldsArray = getFieldArray(field.get('search_fields'));
     const file = field.get('file');
@@ -466,8 +495,9 @@ export default class RelationControl extends React.Component {
   }, 500);
 
   render() {
-    const { value, field, forID, classNameWrapper, setActiveStyle, setInactiveStyle, queryHits } =
+    const { value, forID, classNameWrapper, setActiveStyle, setInactiveStyle, queryHits } =
       this.props;
+    const field = this.field;
     const isMultiple = this.isMultiple();
     const isClearable = !field.get('required', true) || isMultiple;
 
