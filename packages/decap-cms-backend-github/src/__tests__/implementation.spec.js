@@ -358,4 +358,36 @@ describe('github backend implementation', () => {
       });
     });
   });
+
+  describe('graphql_api_root', () => {
+    it('defaults graphqlApiRoot to apiRoot when graphql_api_root is not set', () => {
+      const impl = new GitHubImplementation({
+        backend: { repo: 'owner/repo', api_root: 'https://api.github.com' },
+      });
+      expect(impl.graphqlApiRoot).toBe('https://api.github.com');
+    });
+
+    it('uses graphql_api_root when set', () => {
+      const impl = new GitHubImplementation({
+        backend: {
+          repo: 'owner/repo',
+          api_root: 'https://api.github.com',
+          graphql_api_root: 'https://github.example.com/api',
+        },
+      });
+      expect(impl.graphqlApiRoot).toBe('https://github.example.com/api');
+    });
+
+    it('graphqlApiRoot is independent of apiRoot', () => {
+      const impl = new GitHubImplementation({
+        backend: {
+          repo: 'owner/repo',
+          api_root: 'https://rest.example.com',
+          graphql_api_root: 'https://graphql.example.com',
+        },
+      });
+      expect(impl.apiRoot).toBe('https://rest.example.com');
+      expect(impl.graphqlApiRoot).toBe('https://graphql.example.com');
+    });
+  });
 });

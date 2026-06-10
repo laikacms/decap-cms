@@ -141,6 +141,8 @@ function getConfigSchema() {
           },
           cms_label_prefix: { type: 'string', minLength: 1 },
           open_authoring: { type: 'boolean', examples: [true] },
+          use_graphql: { type: 'boolean' },
+          graphql_api_root: { type: 'string' },
           commit_messages: {
             type: 'object',
             properties: {
