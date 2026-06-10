@@ -423,7 +423,6 @@ declare module 'decap-cms-core' {
     show_preview_links?: boolean;
     media_folder?: string;
     public_folder?: string;
-    media_folder_relative?: boolean;
     media_library?: CmsMediaLibrary;
     publish_mode?: CmsPublishMode;
     issue_reports?: CmsIssueReports;
