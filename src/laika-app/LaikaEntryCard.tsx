@@ -185,6 +185,17 @@ function LaikaEntryCard({
   let image = imageField ? (entryData?.[imageField] as string | undefined) : undefined;
   if (image) image = encodeURI(image);
 
+  const [resolvedImageUrl, setResolvedImageUrl] = React.useState<string | undefined>(undefined);
+
+  React.useEffect(() => {
+    if (!image || !imageField) {
+      setResolvedImageUrl(undefined);
+      return;
+    }
+    const asset = getAsset(image, imageField as any);
+    setResolvedImageUrl(asset.toString());
+  }, [getAsset, image, imageField]);
+
   function statusLabel(status: string) {
     switch (status) {
       case 'pending_review':
@@ -203,7 +214,7 @@ function LaikaEntryCard({
       <GRID_CONTAINER_OVERRIDE>
         <GridCard>
           <GridCardLink to={path}>
-            {image ? <GridImage $src={getAsset(image, imageField as any).toString()} /> : null}
+            {resolvedImageUrl ? <GridImage $src={resolvedImageUrl} /> : null}
             <GridBody>
               {collectionLabel ? (
                 <ListCollectionLabel>{collectionLabel}</ListCollectionLabel>
