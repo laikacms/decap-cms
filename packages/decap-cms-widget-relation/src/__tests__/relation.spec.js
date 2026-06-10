@@ -432,6 +432,65 @@ describe('isValid', () => {
   });
 });
 
+describe('camelCase field config normalization (DCMS-082)', () => {
+  it('should render options when valueField/searchFields are used instead of value_field/search_fields', async () => {
+    const camelCaseConfig = {
+      name: 'post',
+      collection: 'posts',
+      searchFields: ['title', 'body'],
+      valueField: 'title',
+    };
+    const field = fromJS(camelCaseConfig);
+    const { getAllByText, input } = setup({ field });
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+
+    await waitFor(() => {
+      expect(getAllByText(/^Post # (\d{1,2})$/)).toHaveLength(20);
+    });
+  });
+
+  it('should render options when displayFields is used instead of display_fields', async () => {
+    const camelCaseConfig = {
+      name: 'post',
+      collection: 'posts',
+      searchFields: ['title', 'body'],
+      valueField: 'title',
+      displayFields: ['title', 'slug'],
+    };
+    const field = fromJS(camelCaseConfig);
+    const { getAllByText, input } = setup({ field });
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+
+    await waitFor(() => {
+      expect(getAllByText(/^Post # (\d{1,2}) post-number-\1$/)).toHaveLength(20);
+    });
+  });
+
+  it('should call onChange with correct value when camelCase config is used', async () => {
+    const camelCaseConfig = {
+      name: 'post',
+      collection: 'posts',
+      searchFields: ['title', 'body'],
+      valueField: 'title',
+      displayFields: ['title', 'slug'],
+    };
+    const field = fromJS(camelCaseConfig);
+    const { getByText, input, onChangeSpy } = setup({ field });
+    const value = 'Post # 1';
+    const label = 'Post # 1 post-number-1';
+
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+
+    await waitFor(() => {
+      fireEvent.click(getByText(label));
+      expect(onChangeSpy).toHaveBeenCalledWith(
+        value,
+        expect.objectContaining({ post: expect.any(Object) }),
+      );
+    });
+  });
+});
+
 describe('Relation widget', () => {
   it('should list the first 20 option hits on initial load', async () => {
     const field = fromJS(fieldConfig);
