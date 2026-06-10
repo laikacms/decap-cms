@@ -1,7 +1,8 @@
-import { Map, List, fromJS } from 'immutable';
+import { Map, List, OrderedMap, fromJS } from 'immutable';
 import startsWith from 'lodash/startsWith';
+import { createSelector } from '@reduxjs/toolkit';
 
-import { EDITORIAL_WORKFLOW } from '../constants/publishModes';
+import { EDITORIAL_WORKFLOW, status as statusValues } from '../constants/publishModes';
 import {
   UNPUBLISHED_ENTRY_REQUEST,
   UNPUBLISHED_ENTRY_REDIRECT,
@@ -145,11 +146,43 @@ export function selectUnpublishedEntry(state: EditorialWorkflow, collection: str
   return state && state.getIn(['entities', `${collection}.${slug}`]);
 }
 
-export function selectUnpublishedEntriesByStatus(state: EditorialWorkflow, status: string) {
-  if (!state) return null;
-  const entities = state.get('entities') as Entities;
-  return entities.filter(entry => entry.get('status') === status).valueSeq();
+// Per-status selector factory: one memoized selector per status value,
+// so each call site gets a stable reference when entities haven't changed.
+const _selectorsByStatus: Record<string, ReturnType<typeof createSelector>> = {};
+
+function getSelectorForStatus(targetStatus: string) {
+  if (!_selectorsByStatus[targetStatus]) {
+    _selectorsByStatus[targetStatus] = createSelector(
+      (state: EditorialWorkflow) => (state ? (state.get('entities') as Entities) : null),
+      entities => {
+        if (!entities) return null;
+        return entities.filter(entry => entry.get('status') === targetStatus).valueSeq();
+      },
+    );
+  }
+  return _selectorsByStatus[targetStatus];
 }
+
+export function selectUnpublishedEntriesByStatus(state: EditorialWorkflow, status: string) {
+  return getSelectorForStatus(status)(state);
+}
+
+// Single memoized selector that groups all unpublished entries by status.
+// Returns a stable OrderedMap reference when entities haven't changed.
+export const selectUnpublishedEntriesGroupedByStatus = createSelector(
+  (state: EditorialWorkflow) => (state ? (state.get('entities') as Entities) : null),
+  entities => {
+    const grouped: Record<string, ReturnType<Entities['valueSeq']> | null> = {};
+    statusValues.forEach(currStatus => {
+      if (currStatus) {
+        grouped[currStatus] = entities
+          ? entities.filter(entry => entry.get('status') === currStatus).valueSeq()
+          : null;
+      }
+    });
+    return OrderedMap(grouped);
+  },
+);
 
 export function selectUnpublishedSlugs(state: EditorialWorkflow, collection: string) {
   if (!state.get('entities')) return null;
