@@ -31,6 +31,7 @@ import {
   zIndex,
   reactSelectStyles,
   GlobalStyles,
+  DefaultTokensGlobalStyle,
   themeToCssVars,
 } from './styles';
 
@@ -70,6 +71,7 @@ export const DecapCmsUiDefault = {
   zIndex,
   reactSelectStyles,
   GlobalStyles,
+  DefaultTokensGlobalStyle,
   themeToCssVars,
   renderPageLogo,
 };
@@ -108,6 +110,7 @@ export {
   zIndex,
   reactSelectStyles,
   GlobalStyles,
+  DefaultTokensGlobalStyle,
   themeToCssVars,
   GoBackButton,
   renderPageLogo,

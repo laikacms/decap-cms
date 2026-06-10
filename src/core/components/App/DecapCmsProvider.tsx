@@ -3,7 +3,7 @@ import { Provider } from 'react-redux';
 import { I18n } from 'react-polyglot';
 import { Global } from '@emotion/react';
 
-import { GlobalStyles, themeToCssVars } from '../../../ui-default/index';
+import { GlobalStyles, DefaultTokensGlobalStyle, themeToCssVars } from '../../../ui-default/index';
 import { store } from '../../redux';
 import { useAppSelector, useAppDispatch } from '../../hooks/useRedux';
 import { loadConfig } from '../../actions/config';
@@ -88,6 +88,7 @@ export function DecapCmsProvider({ config, theme, children }: DecapCmsProviderPr
   return (
     <Provider store={store}>
       <GlobalStyles />
+      <DefaultTokensGlobalStyle />
       {theme ? <Global styles={{ ':root': themeToCssVars(theme) }} /> : null}
       <ConfigLoader config={config} />
       <I18nProvider>{children}</I18nProvider>
