@@ -175,7 +175,15 @@ describe('Number widget', () => {
 
     function makeControl(fieldObj, value) {
       const field = fromJS(fieldObj);
-      const instance = new NumberControl({ field, value, t: tFn, onChange: jest.fn(), classNameWrapper: '', setActiveStyle: jest.fn(), setInactiveStyle: jest.fn() });
+      const instance = new NumberControl({
+        field,
+        value,
+        t: tFn,
+        onChange: jest.fn(),
+        classNameWrapper: '',
+        setActiveStyle: jest.fn(),
+        setInactiveStyle: jest.fn(),
+      });
       return instance;
     }
 
