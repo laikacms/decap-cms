@@ -121,7 +121,10 @@ describe('unsentRequest', () => {
     });
 
     it('should not modify an already-absolute URL', () => {
-      const req = unsentRequest.withRoot('https://proxy.example.com', 'https://api.example.com/repos');
+      const req = unsentRequest.withRoot(
+        'https://proxy.example.com',
+        'https://api.example.com/repos',
+      );
       expect(req.get('url')).toBe('https://api.example.com/repos');
     });
 
