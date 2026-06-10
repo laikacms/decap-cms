@@ -3,9 +3,10 @@ import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 
 import { colors, colorsRaw, shadows, transitions } from './styles';
+import { laikaShouldForwardProp } from '../laika-app/ui/styled-utils';
 
 export interface ToggleActiveProps {
-  isActive?: boolean;
+  $isActive?: boolean;
 }
 
 const ToggleContainer = styled.button`
@@ -22,7 +23,7 @@ const ToggleContainer = styled.button`
   background: transparent;
 `;
 
-const ToggleHandle = styled.span<ToggleActiveProps>`
+const ToggleHandle = styled('span', { shouldForwardProp: laikaShouldForwardProp })<ToggleActiveProps>`
   ${shadows.dropDeep};
   position: absolute;
   left: 0;
@@ -34,13 +35,15 @@ const ToggleHandle = styled.span<ToggleActiveProps>`
   transition: transform ${transitions.main};
 
   ${(props: ToggleActiveProps) =>
-    props.isActive &&
+    props.$isActive &&
     css`
       transform: translateX(20px);
     `};
 `;
 
-const ToggleBackground = styled.span<ToggleActiveProps>`
+const ToggleBackground = styled('span', {
+  shouldForwardProp: laikaShouldForwardProp,
+})<ToggleActiveProps>`
   width: 34px;
   height: 14px;
   border-radius: 10px;
@@ -94,8 +97,8 @@ function Toggle({
       aria-checked={isActive ? 'true' : 'false'}
       aria-expanded={undefined}
     >
-      <Background isActive={isActive} />
-      <Handle isActive={isActive} />
+      <Background $isActive={isActive} />
+      <Handle $isActive={isActive} />
     </Container>
   );
 }

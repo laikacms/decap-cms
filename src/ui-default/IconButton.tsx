@@ -3,6 +3,7 @@ import styled from '@emotion/styled';
 
 import Icon from './Icon';
 import { buttons, colors, colorsRaw, shadows } from './styles';
+import { laikaShouldForwardProp } from '../laika-app/ui/styled-utils';
 
 import type { IconName } from './Icon/icons';
 
@@ -15,14 +16,14 @@ const sizes: Record<IconButtonSize, string> = {
 
 interface ButtonRoundProps {
   size: IconButtonSize;
-  isActive?: boolean;
+  $isActive?: boolean;
 }
 
-const ButtonRound = styled.button<ButtonRoundProps>`
+const ButtonRound = styled('button', { shouldForwardProp: laikaShouldForwardProp })<ButtonRoundProps>`
   ${buttons.button};
   ${shadows.dropMiddle};
   background-color: ${colorsRaw.white};
-  color: ${(props: ButtonRoundProps) => colors[props.isActive ? 'active' : 'inactive']};
+  color: ${(props: ButtonRoundProps) => colors[props.$isActive ? 'active' : 'inactive']};
   border-radius: 32px;
   display: flex;
   justify-content: center;
@@ -52,7 +53,7 @@ function IconButton({
   return (
     <ButtonRound
       size={size}
-      isActive={isActive}
+      $isActive={isActive}
       className={className}
       onClick={onClick}
       title={title}

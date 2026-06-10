@@ -230,7 +230,7 @@ function LabelComponent({
 }: LabelComponentProps) {
   const label = `${field.label ?? field.name}`;
   return (
-    <FieldLabel isActive={isActive} hasErrors={hasErrors} htmlFor={uniqueFieldId}>
+    <FieldLabel $isActive={isActive} $hasErrors={hasErrors} htmlFor={uniqueFieldId}>
       {label} {`${isFieldOptional ? ` (${t?.('editor.editorControl.field.optional') ?? ''})` : ''}`}
     </FieldLabel>
   );

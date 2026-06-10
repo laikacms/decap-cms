@@ -142,7 +142,7 @@ function LabelComponent({
 }: LabelComponentProps) {
   const label = `${(field as any).label || field.name}`;
   const labelComponent = (
-    <FieldLabel isActive={isActive} hasErrors={hasErrors} htmlFor={uniqueFieldId}>
+    <FieldLabel $isActive={isActive} $hasErrors={hasErrors} htmlFor={uniqueFieldId}>
       {isFieldOptional ? (
         <>
           {label}
