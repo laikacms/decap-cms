@@ -732,10 +732,13 @@ export default class API {
       collection,
       slug,
       status,
-      // TODO: get real id
       diffs: diffs
         .filter(d => d.status !== 'deleted')
-        .map(d => ({ path: d.path, newFile: d.newFile, id: '' })),
+        .map(d => ({
+          path: d.path,
+          newFile: d.newFile,
+          id: this.getFileId(pullRequest.source.commit.hash, d.path),
+        })),
       updatedAt,
       pullRequestAuthor,
     };
