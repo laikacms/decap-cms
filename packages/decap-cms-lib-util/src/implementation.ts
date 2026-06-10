@@ -131,6 +131,7 @@ export type Config = {
     first_name_claim?: string;
     last_name_claim?: string;
     avatar_url_claim?: string;
+    scope?: string;
   };
   media_folder: string;
   base_url?: string;
