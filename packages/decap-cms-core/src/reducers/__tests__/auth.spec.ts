@@ -1,11 +1,11 @@
 import { authenticating, authenticate, authError, logout } from '../../actions/auth';
 import auth, { defaultState } from '../auth';
 
+import type { AuthAction } from '../../actions/auth';
+
 describe('auth', () => {
   it('should handle an empty state', () => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore auth reducer doesn't accept empty action
-    expect(auth(undefined, {})).toEqual(defaultState);
+    expect(auth(undefined, {} as unknown as AuthAction)).toEqual(defaultState);
   });
 
   it('should handle an authentication request', () => {
