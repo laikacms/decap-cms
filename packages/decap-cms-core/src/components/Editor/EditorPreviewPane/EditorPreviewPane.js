@@ -91,6 +91,9 @@ export class PreviewPane extends React.Component {
     // We retrieve the field by name so that this function can also be used in
     // custom preview templates, where the field object can't be passed in.
     let field = fields && fields.find(f => f.get('name') === name);
+    if (!field || field.get('widget') === 'hidden') {
+      return null;
+    }
     let value = Map.isMap(values) && values.get(field.get('name'));
     if (field.get('meta')) {
       value = this.props.entry.getIn(['meta', field.get('name')]);
