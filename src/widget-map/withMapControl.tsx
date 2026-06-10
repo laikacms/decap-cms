@@ -92,6 +92,10 @@ export default function withMapControl({ getFormat, getMap }: WithMapControlOpti
         initRef.current.onChange(format.writeGeometry(feature.getGeometry()!, writeOptions));
       });
 
+      requestAnimationFrame(() => {
+        map.updateSize();
+      });
+
       const resizeObserver = new ResizeObserver(() => {
         map.updateSize();
       });
