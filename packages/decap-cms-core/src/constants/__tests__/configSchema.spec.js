@@ -619,6 +619,36 @@ describe('config', () => {
       });
     });
 
+    describe('field comment property', () => {
+      it('should not throw if field has comment as a string', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [
+                {
+                  fields: [{ name: 'title', label: 'Title', widget: 'string', comment: 'My hint' }],
+                },
+              ],
+            }),
+          );
+        }).not.toThrow();
+      });
+
+      it('should throw if field comment is not a string', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [
+                {
+                  fields: [{ name: 'title', label: 'Title', widget: 'string', comment: 123 }],
+                },
+              ],
+            }),
+          );
+        }).toThrowError("'collections[0].fields[0].comment' must be string");
+      });
+    });
+
     describe('i18n', () => {
       it('should throw error when locale has invalid characters', () => {
         expect(() => {
