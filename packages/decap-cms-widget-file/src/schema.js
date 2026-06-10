@@ -5,6 +5,7 @@ export default {
       type: 'object',
       properties: {
         allow_multiple: { type: 'boolean' },
+        config: { type: 'object' },
       },
     },
   },
