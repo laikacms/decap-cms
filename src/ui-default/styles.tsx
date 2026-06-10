@@ -205,6 +205,37 @@ export function themeToCssVars(theme: DecapTheme): Record<string, string> {
   return vars;
 }
 
+/**
+ * The full set of default `--decap-color-*` and `--decap-color-raw-*` CSS
+ * custom properties, declared as their concrete default values. Emitting these
+ * on `:root` makes every token readable via `getComputedStyle(document.documentElement)`
+ * on first paint — before any theme prop or styled wrapper mounts — so tools
+ * that inspect the root element (e.g. color-scheme detectors, tests, DevTools)
+ * always see a defined value rather than an empty string.
+ *
+ * Theme overrides from `DecapCmsProvider`'s `theme` prop are applied on top of
+ * this baseline and take precedence via normal CSS cascade order.
+ */
+export function defaultTokensToCssVars(): Record<string, string> {
+  const vars: Record<string, string> = {};
+  for (const [key, value] of Object.entries(colorsDefaults)) {
+    vars[`--decap-color-${key}`] = value;
+  }
+  for (const [key, value] of Object.entries(colorsRawDefaults)) {
+    vars[`--decap-color-raw-${key}`] = value;
+  }
+  return vars;
+}
+
+/**
+ * Emits all default `--decap-color-*` and `--decap-color-raw-*` tokens onto
+ * `:root` so they are available on first paint, before any theme prop is
+ * applied. Render this once, unconditionally, inside `DecapCmsProvider`.
+ */
+export function DefaultTokensGlobalStyle(): React.ReactElement {
+  return <Global styles={{ ':root': defaultTokensToCssVars() }} />;
+}
+
 interface Lengths {
   topBarHeight: string;
   inputPadding: string;
