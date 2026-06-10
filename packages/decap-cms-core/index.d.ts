@@ -61,6 +61,7 @@ declare module 'decap-cms-core' {
     media_folder?: string;
     public_folder?: string;
     comment?: string;
+    tagname?: string;
   }
 
   export interface CmsFieldBoolean {

@@ -44,16 +44,18 @@ function ImagePreviewContent(props) {
 }
 
 function ImagePreview(props) {
-  return (
-    <WidgetPreviewContainer>
-      {props.value ? <ImagePreviewContent {...props} /> : null}
-    </WidgetPreviewContainer>
-  );
+  const tagname = props.field && props.field.get('tagname');
+  const content = props.value ? <ImagePreviewContent {...props} /> : null;
+  if (tagname) {
+    return React.createElement(tagname, null, content);
+  }
+  return <WidgetPreviewContainer>{content}</WidgetPreviewContainer>;
 }
 
 ImagePreview.propTypes = {
   getAsset: PropTypes.func.isRequired,
   value: PropTypes.node,
+  field: PropTypes.object,
 };
 
 export default ImagePreview;
