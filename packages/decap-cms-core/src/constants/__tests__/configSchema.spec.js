@@ -649,6 +649,70 @@ describe('config', () => {
       });
     });
 
+    describe('frontmatter_delimiter dependency', () => {
+      it('should throw if frontmatter_delimiter is set without format', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [{ frontmatter_delimiter: '---' }],
+            }),
+          );
+        }).toThrowError();
+      });
+
+      it('should not throw if frontmatter_delimiter is set with a valid frontmatter format', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [{ frontmatter_delimiter: '---', format: 'yaml-frontmatter' }],
+            }),
+          );
+        }).not.toThrowError();
+      });
+
+      it('should throw if frontmatter_delimiter is set with a non-frontmatter format', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [{ frontmatter_delimiter: '---', format: 'toml' }],
+            }),
+          );
+        }).toThrowError();
+      });
+    });
+
+    describe('extension/format conditional', () => {
+      it('should throw if extension is unknown and format is not provided', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [{ extension: 'custom' }],
+            }),
+          );
+        }).toThrowError();
+      });
+
+      it('should not throw if extension is unknown but format is provided', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [{ extension: 'custom', format: 'yaml' }],
+            }),
+          );
+        }).not.toThrowError();
+      });
+
+      it('should not throw if extension is a known extension and format is not provided', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [{ extension: 'md' }],
+            }),
+          );
+        }).not.toThrowError();
+      });
+    });
+
     describe('i18n', () => {
       it('should throw error when locale has invalid characters', () => {
         expect(() => {
