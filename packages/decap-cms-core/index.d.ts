@@ -114,6 +114,7 @@ declare module 'decap-cms-core' {
     widget: 'file' | 'image';
     default?: string;
 
+    class?: string;
     media_library?: CmsMediaLibrary;
     allow_multiple?: boolean;
     choose_url?: boolean;
