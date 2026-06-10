@@ -551,12 +551,12 @@ export default class API {
       return await this.listAllFilesGraphQL(path, recursive, branch);
     }
     const entries = [];
-    // eslint-disable-next-line prefer-const
-    let { cursor, entries: initialEntries } = await this.fetchCursorAndEntries({
+    const { cursor: initialCursor, entries: initialEntries } = await this.fetchCursorAndEntries({
       url: `${this.repoURL}/repository/tree`,
       // Get the maximum number of entries per page
       params: { path, ref: branch, per_page: 100, recursive },
     });
+    let cursor = initialCursor;
     entries.push(...initialEntries);
     while (cursor && cursor.actions!.has('next')) {
       const link = cursor.data!.getIn(['links', 'next']);
