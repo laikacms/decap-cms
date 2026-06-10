@@ -1,11 +1,13 @@
-import { fromJS } from 'immutable';
+import { fromJS, Map } from 'immutable';
 
 import {
+  addFileTemplateFields,
   compileStringTemplate,
   expandPath,
   extractTemplateVars,
   keyToPathArray,
   parseDateFromEntry,
+  parseDateFromEntryData,
 } from '../stringTemplate';
 
 describe('stringTemplate', () => {
@@ -174,6 +176,67 @@ describe('stringTemplate', () => {
           fromJS({ slug: 'entrySlug', starred: true, done: false }),
         ),
       ).toBe('bac***');
+    });
+  });
+
+  describe('parseDateFromEntryData', () => {
+    it('should return undefined when dateFieldName is missing', () => {
+      const entryData = fromJS({ date: new Date().toISOString() });
+      expect(parseDateFromEntryData(entryData, '')).toBeUndefined();
+      expect(parseDateFromEntryData(entryData, null)).toBeUndefined();
+      expect(parseDateFromEntryData(entryData, undefined)).toBeUndefined();
+    });
+
+    it('should return undefined for an invalid date string', () => {
+      const entryData = fromJS({ date: 'not-a-date' });
+      expect(parseDateFromEntryData(entryData, 'date')).toBeUndefined();
+    });
+
+    it('should return a Date object for a valid ISO string', () => {
+      const isoString = '2024-03-15T10:30:00.000Z';
+      const entryData = fromJS({ publishedAt: isoString });
+      const result = parseDateFromEntryData(entryData, 'publishedAt');
+      expect(result).toBeInstanceOf(Date);
+      expect(result.toISOString()).toBe(isoString);
+    });
+  });
+
+  describe('addFileTemplateFields', () => {
+    it('should return fields unchanged when entryPath is empty', () => {
+      const fields = Map({ title: 'hello' });
+      const result = addFileTemplateFields('', fields);
+      expect(result).toBe(fields);
+      expect(result.has('dirname')).toBe(false);
+      expect(result.has('filename')).toBe(false);
+      expect(result.has('extension')).toBe(false);
+    });
+
+    it('should set dirname, filename, and extension for a normal path', () => {
+      const fields = Map();
+      const result = addFileTemplateFields('blog/2024/post.md', fields, 'blog');
+      expect(result.get('dirname')).toBe('2024');
+      expect(result.get('filename')).toBe('post');
+      expect(result.get('extension')).toBe('md');
+    });
+
+    it('should strip the folder prefix from dirname', () => {
+      const fields = Map();
+      const result = addFileTemplateFields('content/posts/my-post.mdx', fields, 'content/posts');
+      expect(result.get('dirname')).toBe('');
+      expect(result.get('filename')).toBe('my-post');
+      expect(result.get('extension')).toBe('mdx');
+    });
+
+    it('should not leave a trailing slash on dirname', () => {
+      const fields = Map();
+      const result = addFileTemplateFields('blog/2024/post.md', fields, 'blog');
+      expect(result.get('dirname')).not.toMatch(/\/$/);
+    });
+
+    it('should strip the leading dot from the extension', () => {
+      const fields = Map();
+      const result = addFileTemplateFields('notes/entry.txt', fields);
+      expect(result.get('extension')).toBe('txt');
     });
   });
 
