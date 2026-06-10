@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-unused-vars
 import React, { useEffect } from 'react';
 // import { translate } from 'react-polyglot';
 import { injectStyle } from 'react-toastify/dist/inject-style';
