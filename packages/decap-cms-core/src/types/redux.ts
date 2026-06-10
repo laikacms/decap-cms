@@ -446,7 +446,6 @@ export interface CmsConfig {
   show_preview_links?: boolean;
   media_folder?: string;
   public_folder?: string;
-  media_folder_relative?: boolean;
   media_library?: CmsMediaLibrary;
   publish_mode?: CmsPublishMode;
   load_config_file?: boolean;
@@ -508,7 +507,6 @@ export type Config = StaticallyTypedRecord<{
   media_library: StaticallyTypedRecord<{ name: string }> & { name: string };
   locale?: string;
   slug: SlugConfig;
-  media_folder_relative?: boolean;
   base_url?: string;
   site_id?: string;
   site_url?: string;

@@ -37,6 +37,14 @@ describe('config', () => {
       }).not.toThrowError();
     });
 
+    it('should not throw when media_folder_relative is set (removed field, silently ignored as extra property)', () => {
+      // media_folder_relative was removed in DCMS-080 — it was a no-op since 2019.
+      // The top-level schema has no additionalProperties:false so it passes through without error.
+      expect(() => {
+        validateConfig({ ...validConfig, media_folder_relative: true });
+      }).not.toThrowError();
+    });
+
     it('should throw if backend is not defined in config', () => {
       expect(() => {
         validateConfig({ foo: 'bar' });
