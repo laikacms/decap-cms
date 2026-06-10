@@ -763,6 +763,54 @@ describe('i18n', () => {
     });
   });
 
+  describe('duplicateDefaultI18nFields', () => {
+    it('should return a single-key map for a collection with one non-default locale', () => {
+      const collection = fromJS({
+        i18n: {
+          structure: i18n.I18N_STRUCTURE.MULTIPLE_FOLDERS,
+          locales: ['en', 'de'],
+          default_locale: 'en',
+        },
+      });
+      const dataFields = { title: 'hello' };
+
+      expect(i18n.duplicateDefaultI18nFields(collection, dataFields)).toEqual({
+        de: { data: { title: 'hello' } },
+      });
+    });
+
+    it('should return a key for every non-default locale and omit the default locale', () => {
+      const collection = fromJS({
+        i18n: {
+          structure: i18n.I18N_STRUCTURE.MULTIPLE_FILES,
+          locales: ['en', 'de', 'fr'],
+          default_locale: 'en',
+        },
+      });
+      const dataFields = { title: 'hello', body: 'world' };
+
+      const result = i18n.duplicateDefaultI18nFields(collection, dataFields);
+
+      expect(result).toEqual({
+        de: { data: { title: 'hello', body: 'world' } },
+        fr: { data: { title: 'hello', body: 'world' } },
+      });
+      expect(result).not.toHaveProperty('en');
+    });
+
+    it('should return an empty object when all locales equal the default locale', () => {
+      const collection = fromJS({
+        i18n: {
+          structure: i18n.I18N_STRUCTURE.SINGLE_FILE,
+          locales: ['en'],
+          default_locale: 'en',
+        },
+      });
+
+      expect(i18n.duplicateDefaultI18nFields(collection, { title: 'hello' })).toEqual({});
+    });
+  });
+
   describe('getPreviewEntry', () => {
     it('should set data to i18n data when locale is not default', () => {
       expect(
