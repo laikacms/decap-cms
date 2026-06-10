@@ -138,6 +138,18 @@ function getConfigSchema() {
           },
           cms_label_prefix: { type: 'string', minLength: 1 },
           open_authoring: { type: 'boolean', examples: [true] },
+          commit_messages: {
+            type: 'object',
+            properties: {
+              create: { type: 'string' },
+              update: { type: 'string' },
+              delete: { type: 'string' },
+              uploadMedia: { type: 'string' },
+              deleteMedia: { type: 'string' },
+              openAuthoring: { type: 'string' },
+            },
+            additionalProperties: false,
+          },
         },
         required: ['name'],
       },

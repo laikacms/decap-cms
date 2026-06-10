@@ -82,6 +82,20 @@ describe('config', () => {
       }).not.toThrowError();
     });
 
+    it('should not throw if backend.commit_messages.create is a string', () => {
+      expect(() => {
+        validateConfig(
+          merge({}, validConfig, { backend: { commit_messages: { create: 'Created {{slug}}' } } }),
+        );
+      }).not.toThrowError();
+    });
+
+    it('should throw if backend.commit_messages.create is not a string', () => {
+      expect(() => {
+        validateConfig(merge({}, validConfig, { backend: { commit_messages: { create: 123 } } }));
+      }).toThrowError("'backend.commit_messages.create' must be string");
+    });
+
     it('should throw if media_folder is not defined in config', () => {
       expect(() => {
         validateConfig({ foo: 'bar', backend: { name: 'bar' } });
