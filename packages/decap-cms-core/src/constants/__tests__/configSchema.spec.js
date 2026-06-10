@@ -795,6 +795,58 @@ describe('config', () => {
       });
     });
 
+    describe('collection editor', () => {
+      it('should not throw when editor is absent', () => {
+        expect(() => {
+          validateConfig(merge({}, validConfig));
+        }).not.toThrow();
+      });
+
+      it('should not throw when editor.preview is true', () => {
+        expect(() => {
+          validateConfig(merge({}, validConfig, { collections: [{ editor: { preview: true } }] }));
+        }).not.toThrow();
+      });
+
+      it('should not throw when editor.preview is false', () => {
+        expect(() => {
+          validateConfig(merge({}, validConfig, { collections: [{ editor: { preview: false } }] }));
+        }).not.toThrow();
+      });
+
+      it('should throw when editor.preview is not a boolean', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, { collections: [{ editor: { preview: 'true' } }] }),
+          );
+        }).toThrowError("'collections[0].editor.preview' must be boolean");
+      });
+
+      it('should not throw when editor.visualEditing is true', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, { collections: [{ editor: { visualEditing: true } }] }),
+          );
+        }).not.toThrow();
+      });
+
+      it('should not throw when editor.visualEditing is false', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, { collections: [{ editor: { visualEditing: false } }] }),
+          );
+        }).not.toThrow();
+      });
+
+      it('should throw when editor.visualEditing is not a boolean', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, { collections: [{ editor: { visualEditing: 'yes' } }] }),
+          );
+        }).toThrowError("'collections[0].editor.visualEditing' must be boolean");
+      });
+    });
+
     describe('i18n', () => {
       it('should throw error when locale has invalid characters', () => {
         expect(() => {
