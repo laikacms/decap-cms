@@ -21,7 +21,7 @@ interface WaitAction extends WaitActionArgs {
   type: typeof WAIT_UNTIL_ACTION;
 }
 
-// eslint-disable-next-line func-style
+// eslint-disable-next-line func-style -- arrow function required for Middleware<> type inference
 export const waitUntilAction: Middleware<{}, State, Dispatch> = ({
   dispatch,
   getState,
