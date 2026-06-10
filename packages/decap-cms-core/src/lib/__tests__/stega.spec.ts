@@ -74,6 +74,13 @@ describe('encodeEntry', () => {
       const result = encodeEntry(entry, fields) as ImmutableMap<string, unknown>;
       expect(result.get('body')).toBe('Plain text');
     });
+
+    it('skips encoding for markdown widget with visualEditing false', () => {
+      const fields = makeFields([{ name: 'content', widget: 'markdown', visualEditing: false }]);
+      const entry = fromJS({ content: 'First paragraph\n\nSecond paragraph' });
+      const result = encodeEntry(entry, fields) as ImmutableMap<string, unknown>;
+      expect(result.get('content')).toBe('First paragraph\n\nSecond paragraph');
+    });
   });
 
   describe('unknown widget type', () => {
