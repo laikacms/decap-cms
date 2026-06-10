@@ -1,7 +1,66 @@
 import { oneLine } from 'common-tags';
 import nock from 'nock';
 
-import { parseLinkHeader, getAllResponses, getPathDepth, filterByExtension } from '../backendUtil';
+import {
+  parseLinkHeader,
+  getAllResponses,
+  getPathDepth,
+  filterByExtension,
+  responseParser,
+} from '../backendUtil';
+
+function makeResponse({ ok, status, body, contentType = 'application/json' } = {}) {
+  return {
+    ok,
+    status,
+    headers: {
+      get: key => (key === 'Content-Type' ? contentType : null),
+    },
+    json: () => Promise.resolve(body),
+    text: () => Promise.resolve(String(body)),
+    blob: () => Promise.resolve(new Blob([String(body)])),
+  };
+}
+
+describe('responseParser', () => {
+  it('returns a function', () => {
+    const parser = responseParser({ format: 'json', apiName: 'Test' });
+    expect(typeof parser).toBe('function');
+  });
+
+  it('resolves to parsed JSON for an ok response', async () => {
+    const parser = responseParser({ format: 'json', apiName: 'Test' });
+    const res = makeResponse({ ok: true, status: 200, body: { id: 1 } });
+    const result = await parser(res);
+    expect(result).toEqual({ id: 1 });
+  });
+
+  it('rejects with an APIError containing apiName on a non-ok response', async () => {
+    const parser = responseParser({ format: 'text', apiName: 'TestAPI' });
+    const res = makeResponse({
+      ok: false,
+      status: 404,
+      body: 'Not Found',
+      contentType: 'text/plain',
+    });
+    await expect(parser(res)).rejects.toMatchObject({
+      status: 404,
+      api: 'TestAPI',
+    });
+  });
+
+  it('resolves instead of rejecting when expectingOk is false on a non-ok response', async () => {
+    const parser = responseParser({ format: 'text', apiName: 'Test', expectingOk: false });
+    const res = makeResponse({
+      ok: false,
+      status: 404,
+      body: 'Not Found',
+      contentType: 'text/plain',
+    });
+    const result = await parser(res);
+    expect(result).toBe('Not Found');
+  });
+});
 
 describe('parseLinkHeader', () => {
   it('should return the right rel urls', () => {
