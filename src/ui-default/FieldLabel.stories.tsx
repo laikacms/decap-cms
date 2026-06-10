@@ -18,12 +18,12 @@ export const Default: Story = {};
 
 export const Active: Story = {
   args: {
-    isActive: true,
+    $isActive: true,
   },
 };
 
 export const HasErrors: Story = {
   args: {
-    hasErrors: true,
+    $hasErrors: true,
   },
 };

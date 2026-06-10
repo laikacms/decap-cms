@@ -2,16 +2,14 @@ import React from 'react';
 
 import { Toggle, ToggleBackground, colors } from '../ui-default/index';
 
-interface BooleanBackgroundProps {
-  isActive?: boolean;
-}
+import type { ToggleActiveProps } from '../ui-default/Toggle';
 
-function BooleanBackground({ isActive, ...props }: BooleanBackgroundProps) {
+function BooleanBackground({ $isActive, ...props }: ToggleActiveProps) {
   return (
     <ToggleBackground
-      isActive={isActive}
+      $isActive={$isActive}
       style={{
-        backgroundColor: isActive ? colors.active : colors.textFieldBorder,
+        backgroundColor: $isActive ? colors.active : colors.textFieldBorder,
       }}
       {...props}
     />

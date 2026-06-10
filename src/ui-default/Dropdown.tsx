@@ -3,6 +3,7 @@ import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { Wrapper, Button as DropdownButton, Menu, MenuItem } from 'react-aria-menubutton';
 
+import { laikaShouldForwardProp } from '../laika-app/ui/styled-utils';
 import { colors, buttons, components, zIndex } from './styles';
 import Icon from './Icon';
 
@@ -65,17 +66,25 @@ interface StyledMenuItemProps {
   onClick?: () => void;
 }
 
-const StyledMenuItemWrapper = styled(MenuItem)<{ isActive?: boolean; isCheckedItem?: boolean }>`
+interface StyledMenuItemWrapperProps {
+  $isActive?: boolean;
+  $isCheckedItem?: boolean;
+}
+
+const StyledMenuItemWrapper = styled(MenuItem, {
+  shouldForwardProp: prop => laikaShouldForwardProp(prop) || prop === 'value',
+})<StyledMenuItemWrapperProps>`
   ${components.dropdownItem};
   &:focus,
   &:active,
   &:not(:focus),
   &:not(:active) {
-    background-color: ${(props: { isActive?: boolean }) =>
-      props.isActive ? colors.activeBackground : 'inherit'};
-    color: ${(props: { isActive?: boolean }) => (props.isActive ? colors.active : '#313d3e')};
-    ${(props: { isCheckedItem?: boolean }) =>
-      props.isCheckedItem ? 'display: flex; justify-content: start' : ''};
+    background-color: ${(props: StyledMenuItemWrapperProps) =>
+      props.$isActive ? colors.activeBackground : 'inherit'};
+    color: ${(props: StyledMenuItemWrapperProps) =>
+      props.$isActive ? colors.active : '#313d3e'};
+    ${(props: StyledMenuItemWrapperProps) =>
+      props.$isCheckedItem ? 'display: flex; justify-content: start' : ''};
   }
   &:hover {
     color: ${colors.active};
@@ -91,7 +100,7 @@ function StyledMenuItem({
   isCheckedItem = false,
   ...props
 }: StyledMenuItemProps): React.ReactElement {
-  return <StyledMenuItemWrapper isActive={isActive} isCheckedItem={isCheckedItem} {...props} />;
+  return <StyledMenuItemWrapper $isActive={isActive} $isCheckedItem={isCheckedItem} {...props} />;
 }
 
 interface MenuItemIconContainerProps {
