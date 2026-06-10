@@ -233,6 +233,8 @@ function getConfigSchema() {
               },
               uniqueItemProperties: ['name'],
             },
+            media_folder: { type: 'string' },
+            public_folder: { type: 'string' },
             identifier_field: { type: 'string' },
             summary: { type: 'string' },
             slug: { type: 'string' },
