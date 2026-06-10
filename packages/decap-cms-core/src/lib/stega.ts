@@ -48,6 +48,7 @@ function encodeString(value: string, { fields, path }: EncodeContext): string {
     return value + stega;
   }
   if (widget === 'markdown') {
+    if ('visualEditing' in field && field.visualEditing === false) return value;
     const stega = vercelStegaEncode({ decap: path });
     const blocks = value.split(/(\n\n+)/);
     return blocks.map(block => (block.trim() ? block + stega : block)).join('');
