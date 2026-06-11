@@ -119,6 +119,7 @@ declare module 'decap-cms-core' {
     allow_multiple?: boolean;
     choose_url?: boolean;
     config?: any;
+    private?: boolean;
   }
 
   export interface CmsFieldObject {
