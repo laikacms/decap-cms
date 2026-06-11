@@ -32,7 +32,13 @@ import image from 'decap-cms-editor-component-image';
 // Locales
 import * as locales from 'decap-cms-locales';
 
-// Register all the things
+// Register all the things.
+// NOTE: the `laika` backend is intentionally absent. It lives in the separate
+// package @laikacms/decap-integrations (decap-cms-backend-laika) and is not
+// bundled here. Register it in your own entry point:
+//   import { LaikaBackend } from 'decap-cms-backend-laika';
+//   CMS.registerBackend('laika', LaikaBackend);
+// See dev-test/laika-real.html for a minimal standalone example.
 CMS.registerBackend('git-gateway', GitGatewayBackend);
 CMS.registerBackend('azure', AzureBackend);
 CMS.registerBackend('aws-cognito-github-proxy', AwsCognitoGitHubProxyBackend);
