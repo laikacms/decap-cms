@@ -694,9 +694,7 @@ describe('config', () => {
             merge({}, validConfig, {
               collections: [
                 {
-                  fields: [
-                    { name: 'title', label: 'Title', widget: 'string', class: 'my-widget' },
-                  ],
+                  fields: [{ name: 'title', label: 'Title', widget: 'string', class: 'my-widget' }],
                 },
               ],
             }),
