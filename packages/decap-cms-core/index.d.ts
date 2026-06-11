@@ -418,6 +418,21 @@ declare module 'decap-cms-core' {
     url?: string;
   }
 
+  export interface CmsPkceAuthConfig {
+    use_oidc?: boolean;
+    base_url?: string;
+    auth_endpoint?: string;
+    auth_token_endpoint?: string;
+    app_id?: string;
+    scope?: string;
+    auth_token_endpoint_content_type?: string;
+    email_claim?: string;
+    full_name_claim?: string;
+    first_name_claim?: string;
+    last_name_claim?: string;
+    avatar_url_claim?: string;
+  }
+
   export interface CmsConfig {
     backend: CmsBackend;
     collections: CmsCollection[];
@@ -450,6 +465,7 @@ declare module 'decap-cms-core' {
     editor?: {
       preview?: boolean;
     };
+    auth?: CmsPkceAuthConfig;
   }
 
   export interface InitOptions {
