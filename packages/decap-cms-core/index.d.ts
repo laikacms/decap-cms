@@ -548,7 +548,10 @@ declare module 'decap-cms-core' {
     globalStyles?: any;
   }
 
-  export type CmsWidgetValueSerializer = any; // TODO: type properly
+  export type CmsWidgetValueSerializer = {
+    serialize(value: unknown): unknown;
+    deserialize(value: unknown): unknown;
+  };
 
   export type CmsMediaLibraryOptions = Record<string, unknown>;
 
