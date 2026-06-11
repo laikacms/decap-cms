@@ -41,7 +41,7 @@ export async function waitUntilWithTimeout<T>(
         waitDone = true;
         return result;
       })
-      .catch(null),
+      .catch(() => null),
     timeoutPromise,
   ]);
 
