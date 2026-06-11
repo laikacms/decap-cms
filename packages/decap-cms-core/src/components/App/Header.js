@@ -187,7 +187,7 @@ class Header extends React.Component {
       .filter(collection => collection.get('create'))
       .toList();
 
-    const shouldShowLogo = logo?.src && logo?.show_in_header !== false;
+    const shouldShowLogo = (logo?.src || logoUrl) && logo?.show_in_header !== false;
 
     return (
       <AppHeader>
