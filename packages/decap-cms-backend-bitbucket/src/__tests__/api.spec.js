@@ -1,4 +1,4 @@
-import API from '../API';
+import API, { replace404WithEmptyResponse } from '../API';
 
 global.fetch = jest.fn().mockRejectedValue(new Error('should not call fetch inside tests'));
 
@@ -31,5 +31,19 @@ describe('bitbucket API', () => {
 
     expect(api.getPullRequestStatuses).toHaveBeenCalledTimes(1);
     expect(api.getPullRequestStatuses).toHaveBeenCalledWith(pr);
+  });
+
+  describe('replace404WithEmptyResponse', () => {
+    test('returns empty result when status is 404', () => {
+      const result = replace404WithEmptyResponse({ status: 404 });
+      expect(result).toEqual({ size: 0, values: [] });
+    });
+
+    test('rejects with the original error when status is not 404', async () => {
+      const err = { status: 500 };
+      await expect(Promise.resolve().then(() => replace404WithEmptyResponse(err))).rejects.toBe(
+        err,
+      );
+    });
   });
 });
