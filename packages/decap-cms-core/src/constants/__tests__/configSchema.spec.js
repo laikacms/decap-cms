@@ -90,6 +90,42 @@ describe('config', () => {
       }).not.toThrowError();
     });
 
+    it('should not throw if backend.squash_merges is boolean in config', () => {
+      expect(() => {
+        validateConfig(merge({}, validConfig, { backend: { squash_merges: true } }));
+      }).not.toThrowError();
+    });
+
+    it('should throw if backend.squash_merges is not a boolean in config', () => {
+      expect(() => {
+        validateConfig(merge({}, validConfig, { backend: { squash_merges: 'true' } }));
+      }).toThrowError("'backend.squash_merges' must be boolean");
+    });
+
+    it('should not throw if backend.preview_context is a string in config', () => {
+      expect(() => {
+        validateConfig(merge({}, validConfig, { backend: { preview_context: 'ci/build' } }));
+      }).not.toThrowError();
+    });
+
+    it('should throw if backend.preview_context is not a string in config', () => {
+      expect(() => {
+        validateConfig(merge({}, validConfig, { backend: { preview_context: 123 } }));
+      }).toThrowError("'backend.preview_context' must be string");
+    });
+
+    it('should not throw if backend.always_fork is boolean in config', () => {
+      expect(() => {
+        validateConfig(merge({}, validConfig, { backend: { always_fork: true } }));
+      }).not.toThrowError();
+    });
+
+    it('should throw if backend.always_fork is not a boolean in config', () => {
+      expect(() => {
+        validateConfig(merge({}, validConfig, { backend: { always_fork: 'true' } }));
+      }).toThrowError("'backend.always_fork' must be boolean");
+    });
+
     it('should not throw if backend.commit_messages.create is a string', () => {
       expect(() => {
         validateConfig(
