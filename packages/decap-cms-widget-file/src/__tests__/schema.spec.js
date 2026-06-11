@@ -78,6 +78,28 @@ describe('file widget schema', () => {
     });
   });
 
+  describe('private', () => {
+    it('is defined as a boolean top-level property in the schema', () => {
+      expect(schema.properties.private).toEqual({ type: 'boolean' });
+    });
+
+    it('accepts true as a valid value', () => {
+      const valid = ajv.validate(widgetSchema, { private: true });
+      expect(valid).toBe(true);
+    });
+
+    it('accepts false as a valid value', () => {
+      const valid = ajv.validate(widgetSchema, { private: false });
+      expect(valid).toBe(true);
+    });
+
+    it('rejects a number value (wrong type)', () => {
+      const valid = ajv.validate(widgetSchema, { private: 1 });
+      expect(valid).toBe(false);
+      expect(ajv.errors.some(e => e.instancePath === '/private')).toBe(true);
+    });
+  });
+
   describe('media_library.config', () => {
     it('is defined as an object under media_library in the schema', () => {
       expect(schema.properties.media_library.properties.config).toEqual({

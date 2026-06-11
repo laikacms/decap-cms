@@ -143,6 +143,7 @@ export interface CmsFieldFileOrImage {
   config?: unknown;
   class?: string;
   choose_url?: boolean;
+  private?: boolean;
 }
 
 export interface CmsFieldObject {
