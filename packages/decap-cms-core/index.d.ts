@@ -205,9 +205,9 @@ declare module 'decap-cms-core' {
 
   export interface CmsFieldSelect {
     widget: 'select';
-    default?: string | string[];
+    default?: string | number | string[] | number[];
 
-    options: string[] | CmsSelectWidgetOptionObject[];
+    options: (string | number)[] | CmsSelectWidgetOptionObject[];
     multiple?: boolean;
     min?: number;
     max?: number;
