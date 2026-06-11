@@ -620,8 +620,9 @@ export default class GitGateway implements Implementation {
             };
           }
         }
-        // eslint-disable-next-line no-empty
-      } catch (e) {}
+      } catch (_e) {
+        // deploy preview is optional; any error returns no preview
+      }
     }
     return preview;
   }
