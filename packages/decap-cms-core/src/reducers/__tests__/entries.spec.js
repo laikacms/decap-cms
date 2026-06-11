@@ -691,4 +691,72 @@ describe('entries', () => {
       ]),
     );
   });
+
+  it('should not match string field "truecolor" when pattern is boolean true', () => {
+    const state = fromJS({
+      entities: {
+        'posts.1': { slug: '1', data: { title: 'truecolor' } },
+        'posts.2': { slug: '2', data: { title: 'other' } },
+      },
+      pages: { posts: { ids: ['1', '2'] } },
+      filter: {
+        posts: { 'title__true': { field: 'title', pattern: true, active: true } },
+      },
+    });
+    const collection = fromJS({ name: 'posts' });
+
+    expect(selectEntries(state, collection)).toEqual(fromJS([]));
+  });
+
+  it('should not match string field "falsetto" when pattern is boolean false', () => {
+    const state = fromJS({
+      entities: {
+        'posts.1': { slug: '1', data: { title: 'falsetto' } },
+        'posts.2': { slug: '2', data: { title: 'other' } },
+      },
+      pages: { posts: { ids: ['1', '2'] } },
+      filter: {
+        posts: { 'title__false': { field: 'title', pattern: false, active: true } },
+      },
+    });
+    const collection = fromJS({ name: 'posts' });
+
+    expect(selectEntries(state, collection)).toEqual(fromJS([]));
+  });
+
+  it('should match boolean field true when pattern is boolean true', () => {
+    const state = fromJS({
+      entities: {
+        'posts.1': { slug: '1', data: { title: '1', draft: true } },
+        'posts.2': { slug: '2', data: { title: '2', draft: false } },
+      },
+      pages: { posts: { ids: ['1', '2'] } },
+      filter: {
+        posts: { 'draft__true': { field: 'draft', pattern: true, active: true } },
+      },
+    });
+    const collection = fromJS({ name: 'posts' });
+
+    expect(selectEntries(state, collection)).toEqual(
+      fromJS([{ slug: '1', data: { title: '1', draft: true } }]),
+    );
+  });
+
+  it('should match boolean field false when pattern is boolean false', () => {
+    const state = fromJS({
+      entities: {
+        'posts.1': { slug: '1', data: { title: '1', draft: true } },
+        'posts.2': { slug: '2', data: { title: '2', draft: false } },
+      },
+      pages: { posts: { ids: ['1', '2'] } },
+      filter: {
+        posts: { 'draft__false': { field: 'draft', pattern: false, active: true } },
+      },
+    });
+    const collection = fromJS({ name: 'posts' });
+
+    expect(selectEntries(state, collection)).toEqual(
+      fromJS([{ slug: '2', data: { title: '2', draft: false } }]),
+    );
+  });
 });
