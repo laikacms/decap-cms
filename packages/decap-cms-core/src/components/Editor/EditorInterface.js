@@ -11,6 +11,7 @@ import {
   transitions,
   IconButton,
   zIndex,
+  lengths,
 } from 'decap-cms-ui-default';
 import { ScrollSync, ScrollSyncPane } from 'react-scroll-sync';
 
@@ -100,7 +101,7 @@ const EditorContainer = styled.div`
   top: 0;
   left: 0;
   overflow: hidden;
-  padding-top: 66px;
+  padding-top: calc(66px + ${lengths.topBarHeight});
   background-color: ${colors.background};
 `;
 
