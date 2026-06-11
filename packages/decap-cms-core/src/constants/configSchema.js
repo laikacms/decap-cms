@@ -294,7 +294,8 @@ function getConfigSchema() {
                       field: { type: 'string' },
                       label: { type: 'string' },
                       default_sort: {
-                        oneOf: [{ type: 'boolean' }, { type: 'string', enum: ['asc', 'desc'] }],
+                        type: 'string',
+                        enum: ['asc', 'desc'],
                       },
                     },
                     required: ['field'],

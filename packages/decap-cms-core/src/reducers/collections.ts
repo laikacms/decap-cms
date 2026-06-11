@@ -416,7 +416,7 @@ export function selectDefaultSortableFields(
   return defaultSortable.map(field => ({ field })) as {
     field: string;
     label?: string;
-    default_sort?: boolean | 'asc' | 'desc';
+    default_sort?: 'asc' | 'desc';
   }[];
 }
 
@@ -470,15 +470,7 @@ export function selectDefaultSortField(collection: Collection) {
   const fieldName = defaultField.get('field');
   const defaultSortValue = defaultField.get('default_sort');
 
-  // Determine direction based on default_sort value
-  let direction;
-  if (defaultSortValue === true || defaultSortValue === 'asc') {
-    direction = 'asc';
-  } else if (defaultSortValue === 'desc') {
-    direction = 'desc';
-  } else {
-    direction = 'asc'; // fallback
-  }
+  const direction = defaultSortValue === 'desc' ? 'desc' : 'asc';
 
   return { field: fieldName, direction };
 }
