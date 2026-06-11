@@ -95,14 +95,16 @@ interface AzureArray<T> {
   value: T[];
 }
 
-enum AzureCommitChangeType {
+/** @internal */
+export enum AzureCommitChangeType {
   ADD = 'add',
   DELETE = 'delete',
   RENAME = 'rename',
   EDIT = 'edit',
 }
 
-enum AzureItemContentType {
+/** @internal */
+export enum AzureItemContentType {
   BASE64 = 'base64encoded',
 }
 
@@ -166,7 +168,8 @@ function delay(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function getChangeItem(item: AzureCommitItem) {
+/** @internal */
+export function getChangeItem(item: AzureCommitItem) {
   switch (item.action) {
     case AzureCommitChangeType.ADD:
       return {
