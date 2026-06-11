@@ -320,9 +320,10 @@ describe('apiRequest', () => {
     jest.spyOn(console, 'log').mockImplementation(() => {});
     unsentRequest.performRequest.mockRejectedValue(new Error('network failure'));
 
-    await expect(
-      api.apiRequest('/repos/owner/repo', { backend: 'github' }),
-    ).rejects.toMatchObject({ name: 'API_ERROR', api: 'github' });
+    await expect(api.apiRequest('/repos/owner/repo', { backend: 'github' })).rejects.toMatchObject({
+      name: 'API_ERROR',
+      api: 'github',
+    });
 
     jest.restoreAllMocks();
   });
@@ -406,7 +407,7 @@ describe('throwOnConflictingBranches', () => {
       api.throwOnConflictingBranches('cms/posts/post-1', getBranch, 'github'),
     ).rejects.toMatchObject({
       name: 'API_ERROR',
-      message: expect.stringContaining("cms/posts"),
+      message: expect.stringContaining('cms/posts'),
     });
   });
 
