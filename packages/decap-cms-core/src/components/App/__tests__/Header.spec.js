@@ -61,8 +61,6 @@ describe('Header shouldShowLogo', () => {
   });
 
   it('hides logo when logoUrl is set but show_in_header is explicitly false', () => {
-    expect(
-      shouldShowLogo({ show_in_header: false }, 'https://example.com/logo.png'),
-    ).toBeFalsy();
+    expect(shouldShowLogo({ show_in_header: false }, 'https://example.com/logo.png')).toBeFalsy();
   });
 });
