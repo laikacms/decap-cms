@@ -5,7 +5,7 @@ exports[`EditorToolbar should render normal save button 1`] = `
   .emotion-0 {
   box-shadow: 0 2px 6px 0 rgba(68, 74, 87, 0.05),0 1px 3px 0 rgba(68, 74, 87, 0.1),0 2px 54px rgba(0, 0, 0, 0.1);
   position: absolute;
-  top: 0;
+  top: 56px;
   left: 0;
   width: 100%;
   min-width: 800px;
@@ -282,7 +282,7 @@ exports[`EditorToolbar should render normal save button 2`] = `
   .emotion-0 {
   box-shadow: 0 2px 6px 0 rgba(68, 74, 87, 0.05),0 1px 3px 0 rgba(68, 74, 87, 0.1),0 2px 54px rgba(0, 0, 0, 0.1);
   position: absolute;
-  top: 0;
+  top: 56px;
   left: 0;
   width: 100%;
   min-width: 800px;
@@ -559,7 +559,7 @@ exports[`EditorToolbar should render with default props 1`] = `
   .emotion-0 {
   box-shadow: 0 2px 6px 0 rgba(68, 74, 87, 0.05),0 1px 3px 0 rgba(68, 74, 87, 0.1),0 2px 54px rgba(0, 0, 0, 0.1);
   position: absolute;
-  top: 0;
+  top: 56px;
   left: 0;
   width: 100%;
   min-width: 800px;
@@ -795,7 +795,7 @@ exports[`EditorToolbar should render with status=draft,useOpenAuthoring=false 1`
   .emotion-0 {
   box-shadow: 0 2px 6px 0 rgba(68, 74, 87, 0.05),0 1px 3px 0 rgba(68, 74, 87, 0.1),0 2px 54px rgba(0, 0, 0, 0.1);
   position: absolute;
-  top: 0;
+  top: 56px;
   left: 0;
   width: 100%;
   min-width: 800px;
@@ -1106,7 +1106,7 @@ exports[`EditorToolbar should render with status=draft,useOpenAuthoring=true 1`]
   .emotion-0 {
   box-shadow: 0 2px 6px 0 rgba(68, 74, 87, 0.05),0 1px 3px 0 rgba(68, 74, 87, 0.1),0 2px 54px rgba(0, 0, 0, 0.1);
   position: absolute;
-  top: 0;
+  top: 56px;
   left: 0;
   width: 100%;
   min-width: 800px;
@@ -1478,7 +1478,7 @@ exports[`EditorToolbar should render with status=pending_publish,useOpenAuthorin
   .emotion-0 {
   box-shadow: 0 2px 6px 0 rgba(68, 74, 87, 0.05),0 1px 3px 0 rgba(68, 74, 87, 0.1),0 2px 54px rgba(0, 0, 0, 0.1);
   position: absolute;
-  top: 0;
+  top: 56px;
   left: 0;
   width: 100%;
   min-width: 800px;
@@ -1789,7 +1789,7 @@ exports[`EditorToolbar should render with status=pending_publish,useOpenAuthorin
   .emotion-0 {
   box-shadow: 0 2px 6px 0 rgba(68, 74, 87, 0.05),0 1px 3px 0 rgba(68, 74, 87, 0.1),0 2px 54px rgba(0, 0, 0, 0.1);
   position: absolute;
-  top: 0;
+  top: 56px;
   left: 0;
   width: 100%;
   min-width: 800px;
@@ -2138,7 +2138,7 @@ exports[`EditorToolbar should render with status=pending_review,useOpenAuthoring
   .emotion-0 {
   box-shadow: 0 2px 6px 0 rgba(68, 74, 87, 0.05),0 1px 3px 0 rgba(68, 74, 87, 0.1),0 2px 54px rgba(0, 0, 0, 0.1);
   position: absolute;
-  top: 0;
+  top: 56px;
   left: 0;
   width: 100%;
   min-width: 800px;
@@ -2449,7 +2449,7 @@ exports[`EditorToolbar should render with status=pending_review,useOpenAuthoring
   .emotion-0 {
   box-shadow: 0 2px 6px 0 rgba(68, 74, 87, 0.05),0 1px 3px 0 rgba(68, 74, 87, 0.1),0 2px 54px rgba(0, 0, 0, 0.1);
   position: absolute;
-  top: 0;
+  top: 56px;
   left: 0;
   width: 100%;
   min-width: 800px;
@@ -2821,7 +2821,7 @@ exports[`EditorToolbar should render with workflow controls hasUnpublishedChange
   .emotion-0 {
   box-shadow: 0 2px 6px 0 rgba(68, 74, 87, 0.05),0 1px 3px 0 rgba(68, 74, 87, 0.1),0 2px 54px rgba(0, 0, 0, 0.1);
   position: absolute;
-  top: 0;
+  top: 56px;
   left: 0;
   width: 100%;
   min-width: 800px;
@@ -3062,7 +3062,7 @@ exports[`EditorToolbar should render with workflow controls hasUnpublishedChange
   .emotion-0 {
   box-shadow: 0 2px 6px 0 rgba(68, 74, 87, 0.05),0 1px 3px 0 rgba(68, 74, 87, 0.1),0 2px 54px rgba(0, 0, 0, 0.1);
   position: absolute;
-  top: 0;
+  top: 56px;
   left: 0;
   width: 100%;
   min-width: 800px;
@@ -3273,7 +3273,7 @@ exports[`EditorToolbar should render with workflow controls hasUnpublishedChange
   .emotion-0 {
   box-shadow: 0 2px 6px 0 rgba(68, 74, 87, 0.05),0 1px 3px 0 rgba(68, 74, 87, 0.1),0 2px 54px rgba(0, 0, 0, 0.1);
   position: absolute;
-  top: 0;
+  top: 56px;
   left: 0;
   width: 100%;
   min-width: 800px;
@@ -3514,7 +3514,7 @@ exports[`EditorToolbar should render with workflow controls hasUnpublishedChange
   .emotion-0 {
   box-shadow: 0 2px 6px 0 rgba(68, 74, 87, 0.05),0 1px 3px 0 rgba(68, 74, 87, 0.1),0 2px 54px rgba(0, 0, 0, 0.1);
   position: absolute;
-  top: 0;
+  top: 56px;
   left: 0;
   width: 100%;
   min-width: 800px;
@@ -3755,7 +3755,7 @@ exports[`EditorToolbar should render with workflow controls hasUnpublishedChange
   .emotion-0 {
   box-shadow: 0 2px 6px 0 rgba(68, 74, 87, 0.05),0 1px 3px 0 rgba(68, 74, 87, 0.1),0 2px 54px rgba(0, 0, 0, 0.1);
   position: absolute;
-  top: 0;
+  top: 56px;
   left: 0;
   width: 100%;
   min-width: 800px;
@@ -3996,7 +3996,7 @@ exports[`EditorToolbar should render with workflow controls hasUnpublishedChange
   .emotion-0 {
   box-shadow: 0 2px 6px 0 rgba(68, 74, 87, 0.05),0 1px 3px 0 rgba(68, 74, 87, 0.1),0 2px 54px rgba(0, 0, 0, 0.1);
   position: absolute;
-  top: 0;
+  top: 56px;
   left: 0;
   width: 100%;
   min-width: 800px;
