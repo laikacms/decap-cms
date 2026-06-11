@@ -1,4 +1,5 @@
 import Ajv from 'ajv';
+
 import schema from '../schema';
 
 const ajv = new Ajv();
