@@ -331,7 +331,7 @@ export interface CmsCollectionFile {
 export interface ViewFilter {
   label: string;
   field: string;
-  pattern: string;
+  pattern: string | boolean;
   id: string;
 }
 
