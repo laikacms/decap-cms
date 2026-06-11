@@ -700,7 +700,7 @@ describe('entries', () => {
       },
       pages: { posts: { ids: ['1', '2'] } },
       filter: {
-        posts: { 'title__true': { field: 'title', pattern: true, active: true } },
+        posts: { title__true: { field: 'title', pattern: true, active: true } },
       },
     });
     const collection = fromJS({ name: 'posts' });
@@ -716,7 +716,7 @@ describe('entries', () => {
       },
       pages: { posts: { ids: ['1', '2'] } },
       filter: {
-        posts: { 'title__false': { field: 'title', pattern: false, active: true } },
+        posts: { title__false: { field: 'title', pattern: false, active: true } },
       },
     });
     const collection = fromJS({ name: 'posts' });
@@ -732,7 +732,7 @@ describe('entries', () => {
       },
       pages: { posts: { ids: ['1', '2'] } },
       filter: {
-        posts: { 'draft__true': { field: 'draft', pattern: true, active: true } },
+        posts: { draft__true: { field: 'draft', pattern: true, active: true } },
       },
     });
     const collection = fromJS({ name: 'posts' });
@@ -750,7 +750,7 @@ describe('entries', () => {
       },
       pages: { posts: { ids: ['1', '2'] } },
       filter: {
-        posts: { 'draft__false': { field: 'draft', pattern: false, active: true } },
+        posts: { draft__false: { field: 'draft', pattern: false, active: true } },
       },
     });
     const collection = fromJS({ name: 'posts' });
