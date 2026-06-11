@@ -138,8 +138,7 @@ export interface CmsFieldFileOrImage {
   widget: 'file' | 'image';
   default?: string;
 
-  media_library?: CmsMediaLibrary;
-  allow_multiple?: boolean;
+  media_library?: CmsMediaLibrary & { allow_multiple?: boolean };
   config?: unknown;
   class?: string;
   choose_url?: boolean;
