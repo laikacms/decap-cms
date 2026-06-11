@@ -446,7 +446,10 @@ export function selectEntries(state: Entries, collection: Collection) {
           const data = e!.get('data') || Map();
           const toMatch = data.getIn(keyToPathArray(field));
           const matched =
-            toMatch !== undefined && new RegExp(String(pattern)).test(String(toMatch));
+            toMatch !== undefined &&
+            (typeof pattern === 'boolean'
+              ? toMatch === pattern
+              : new RegExp(String(pattern)).test(String(toMatch)));
           return matched;
         });
         return allMatched;
