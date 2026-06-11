@@ -657,6 +657,66 @@ describe('config', () => {
       });
     });
 
+    describe('field tagname property', () => {
+      it('should not throw if field has tagname as a string', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [
+                {
+                  fields: [{ name: 'title', label: 'Title', widget: 'string', tagname: 'h2' }],
+                },
+              ],
+            }),
+          );
+        }).not.toThrow();
+      });
+
+      it('should throw if field tagname is not a string', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [
+                {
+                  fields: [{ name: 'title', label: 'Title', widget: 'string', tagname: 42 }],
+                },
+              ],
+            }),
+          );
+        }).toThrowError("'collections[0].fields[0].tagname' must be string");
+      });
+    });
+
+    describe('field class property', () => {
+      it('should not throw if field has class as a string', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [
+                {
+                  fields: [{ name: 'title', label: 'Title', widget: 'string', class: 'my-widget' }],
+                },
+              ],
+            }),
+          );
+        }).not.toThrow();
+      });
+
+      it('should throw if field class is not a string', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [
+                {
+                  fields: [{ name: 'title', label: 'Title', widget: 'string', class: true }],
+                },
+              ],
+            }),
+          );
+        }).toThrowError("'collections[0].fields[0].class' must be string");
+      });
+    });
+
     describe('frontmatter_delimiter dependency', () => {
       it('should throw if frontmatter_delimiter is set without format', () => {
         expect(() => {
