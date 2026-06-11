@@ -4,6 +4,18 @@ import GitHubImplementation from '../implementation';
 
 jest.spyOn(console, 'error').mockImplementation(() => {});
 
+// Shared mock API instance used by branch-resolution tests
+const mockAPIInstance = {
+  user: jest.fn(),
+  hasWriteAccess: jest.fn(),
+};
+
+jest.mock('../API', () => {
+  const MockAPI = jest.fn().mockImplementation(() => mockAPIInstance);
+  MockAPI.API_NAME = 'GitHub';
+  return { __esModule: true, default: MockAPI, API_NAME: 'GitHub' };
+});
+
 describe('github backend implementation', () => {
   const config = {
     backend: {
@@ -356,6 +368,75 @@ describe('github backend implementation', () => {
         entries: expectedEntries,
         cursor: expectedCursor,
       });
+    });
+  });
+
+  describe('branch resolution in authenticate()', () => {
+    beforeEach(() => {
+      mockAPIInstance.user.mockResolvedValue({ login: 'testuser' });
+      mockAPIInstance.hasWriteAccess.mockResolvedValue(true);
+    });
+
+    it('uses configured branch value and does not call GitHub repo info API', async () => {
+      const impl = new GitHubImplementation({
+        backend: { repo: 'owner/repo', branch: 'my-configured-branch' },
+      });
+
+      global.fetch = jest.fn().mockResolvedValue({
+        json: () => ({ default_branch: 'should-not-be-used' }),
+      });
+
+      await impl.authenticate({ token: 'test-token' });
+
+      expect(impl.branch).toBe('my-configured-branch');
+      const repoCalls = global.fetch.mock.calls.filter(([url]) =>
+        String(url).includes('/repos/owner/repo'),
+      );
+      expect(repoCalls).toHaveLength(0);
+    });
+
+    it('resolves branch from GitHub API default_branch when branch is not configured', async () => {
+      const impl = new GitHubImplementation({
+        backend: { repo: 'owner/repo' },
+      });
+
+      global.fetch = jest.fn().mockResolvedValue({
+        json: () => ({ default_branch: 'main' }),
+      });
+
+      await impl.authenticate({ token: 'test-token' });
+
+      expect(impl.branch).toBe('main');
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://api.github.com/repos/owner/repo',
+        expect.objectContaining({ headers: { Authorization: 'token test-token' } }),
+      );
+    });
+
+    it('falls back to master when branch is not configured and fetch throws', async () => {
+      const impl = new GitHubImplementation({
+        backend: { repo: 'owner/repo' },
+      });
+
+      global.fetch = jest.fn().mockRejectedValue(new Error('network error'));
+
+      await impl.authenticate({ token: 'test-token' });
+
+      expect(impl.branch).toBe('master');
+    });
+
+    it('falls back to master when branch is not configured and API response lacks default_branch', async () => {
+      const impl = new GitHubImplementation({
+        backend: { repo: 'owner/repo' },
+      });
+
+      global.fetch = jest.fn().mockResolvedValue({
+        json: () => ({}),
+      });
+
+      await impl.authenticate({ token: 'test-token' });
+
+      expect(impl.branch).toBe('master');
     });
   });
 
