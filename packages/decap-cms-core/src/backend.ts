@@ -1395,7 +1395,14 @@ export function resolveBackend(config: CmsConfig) {
 
   const backend = getBackend(name);
   if (!backend) {
-    throw new Error(`Backend not found: ${name}`);
+    const hint =
+      (name as string) === 'laika'
+        ? ' The laika backend is not bundled here — register it before init() via' +
+          ' CMS.registerBackend("laika", LaikaBackend) using the adapter from' +
+          ' @laikacms/decap-integrations (decap-cms-backend-laika).'
+        : ' Make sure the backend is registered with CMS.registerBackend() before' +
+          ' the CMS initialises.';
+    throw new Error(`Backend not found: ${name}.${hint}`);
   } else {
     return new Backend(backend, { backendName: name, authStore, config });
   }
