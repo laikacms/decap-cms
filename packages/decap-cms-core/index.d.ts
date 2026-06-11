@@ -393,6 +393,7 @@ declare module 'decap-cms-core' {
     proxy_url?: string;
     use_graphql?: boolean;
     graphql_api_root?: string;
+    large_media_url?: string;
     commit_messages?: {
       create?: string;
       update?: string;
