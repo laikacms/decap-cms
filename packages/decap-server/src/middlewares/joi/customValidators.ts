@@ -10,7 +10,8 @@ export function pathTraversal(repoPath: string) {
     },
     validate(value, helpers) {
       const resolvedPath = path.join(repoPath, value);
-      if (!resolvedPath.startsWith(repoPath)) {
+      const normalizedRepo = repoPath.endsWith(path.sep) ? repoPath : repoPath + path.sep;
+      if (!resolvedPath.startsWith(normalizedRepo) && resolvedPath !== repoPath) {
         return { value, errors: helpers.error('path.invalid') };
       }
     },
