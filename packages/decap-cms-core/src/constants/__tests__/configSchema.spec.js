@@ -126,6 +126,30 @@ describe('config', () => {
       }).toThrowError("'backend.always_fork' must be boolean");
     });
 
+    it('should not throw if backend.repo is a string in config', () => {
+      expect(() => {
+        validateConfig(merge({}, validConfig, { backend: { repo: 'owner/repo' } }));
+      }).not.toThrowError();
+    });
+
+    it('should throw if backend.repo is not a string in config', () => {
+      expect(() => {
+        validateConfig(merge({}, validConfig, { backend: { repo: 123 } }));
+      }).toThrowError("'backend.repo' must be string");
+    });
+
+    it('should not throw if backend.branch is a string in config', () => {
+      expect(() => {
+        validateConfig(merge({}, validConfig, { backend: { branch: 'main' } }));
+      }).not.toThrowError();
+    });
+
+    it('should throw if backend.branch is not a string in config', () => {
+      expect(() => {
+        validateConfig(merge({}, validConfig, { backend: { branch: true } }));
+      }).toThrowError("'backend.branch' must be string");
+    });
+
     it('should not throw if backend.commit_messages.create is a string', () => {
       expect(() => {
         validateConfig(

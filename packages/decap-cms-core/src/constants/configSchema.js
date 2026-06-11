@@ -136,6 +136,8 @@ function getConfigSchema() {
         type: 'object',
         properties: {
           name: { type: 'string', examples: ['test-repo'] },
+          repo: { type: 'string' },
+          branch: { type: 'string' },
           auth_scope: {
             type: 'string',
             examples: ['repo', 'public_repo'],
