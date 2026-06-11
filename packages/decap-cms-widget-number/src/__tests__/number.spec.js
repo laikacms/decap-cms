@@ -79,6 +79,27 @@ describe('Number widget schema', () => {
     expect(schema.properties.value_type).toEqual({ type: 'string', enum: ['int', 'float'] });
   });
 
+  it('unset value_type should produce integer result (parseInt fallback)', () => {
+    const field = fromJS({});
+    const { onChangeSpy, input } = setup({ field });
+
+    fireEvent.change(input, { target: { value: '42' } });
+
+    expect(onChangeSpy).toHaveBeenCalledWith(42);
+    expect(Number.isInteger(onChangeSpy.mock.calls[0][0])).toBe(true);
+    expect(typeof onChangeSpy.mock.calls[0][0]).toBe('number');
+  });
+
+  it('unset value_type with decimal input should truncate to integer', () => {
+    const field = fromJS({});
+    const { onChangeSpy, input } = setup({ field });
+
+    fireEvent.change(input, { target: { value: '3.9' } });
+
+    expect(onChangeSpy).toHaveBeenCalledWith(3);
+    expect(Number.isInteger(onChangeSpy.mock.calls[0][0])).toBe(true);
+  });
+
   it('value_type int should produce integer result', () => {
     const field = fromJS({ value_type: 'int' });
     const { onChangeSpy, input } = setup({ field });
