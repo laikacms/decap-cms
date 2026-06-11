@@ -258,4 +258,316 @@ describe('registry', () => {
       });
     });
   });
+
+  describe('registerWidget / getWidget / getWidgets / resolveWidget', () => {
+    it('registers a widget by string name with control and preview', () => {
+      const { registerWidget, getWidget } = require('../registry');
+      const control = jest.fn();
+      const preview = jest.fn();
+
+      registerWidget('text', control, preview);
+
+      const widget = getWidget('text');
+      expect(widget.control).toBe(control);
+      expect(widget.preview).toBe(preview);
+    });
+
+    it('registers a widget by object descriptor', () => {
+      const { registerWidget, getWidget } = require('../registry');
+      const control = jest.fn();
+      const preview = jest.fn();
+
+      registerWidget({ name: 'myWidget', controlComponent: control, previewComponent: preview });
+
+      const widget = getWidget('myWidget');
+      expect(widget.control).toBe(control);
+      expect(widget.preview).toBe(preview);
+    });
+
+    it('overwriting an object-style widget emits a console.warn', () => {
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const { registerWidget } = require('../registry');
+      const control = jest.fn();
+
+      registerWidget({ name: 'dup', controlComponent: control });
+      registerWidget({ name: 'dup', controlComponent: control });
+
+      expect(console.warn).toHaveBeenCalledTimes(1);
+      expect(console.warn.mock.calls[0][0]).toMatch(/dup/);
+    });
+
+    it('throws when object-style widget is missing controlComponent', () => {
+      const { registerWidget } = require('../registry');
+
+      expect(() => registerWidget({ name: 'bad' })).toThrow(
+        'Widget "bad" registered without `controlComponent`.',
+      );
+    });
+
+    it('getWidgets returns all registered widgets with their names', () => {
+      const { registerWidget, getWidgets } = require('../registry');
+      const controlA = jest.fn();
+      const controlB = jest.fn();
+
+      registerWidget('alpha', controlA, null);
+      registerWidget('beta', controlB, null);
+
+      const widgets = getWidgets();
+      const names = widgets.map(w => w.name);
+      expect(names).toContain('alpha');
+      expect(names).toContain('beta');
+    });
+
+    it('resolveWidget returns the named widget when it exists', () => {
+      const { registerWidget, resolveWidget } = require('../registry');
+      const control = jest.fn();
+
+      registerWidget('string', control, null);
+
+      expect(resolveWidget('string').control).toBe(control);
+    });
+
+    it('resolveWidget falls back to the "unknown" widget for unregistered names', () => {
+      const { registerWidget, resolveWidget } = require('../registry');
+      const unknownControl = jest.fn();
+
+      registerWidget('unknown', unknownControl, null);
+
+      const result = resolveWidget('totally-unknown-widget-xyz');
+      expect(result.control).toBe(unknownControl);
+    });
+
+    it('resolveWidget with no argument falls back to "string" widget', () => {
+      const { registerWidget, resolveWidget } = require('../registry');
+      const stringControl = jest.fn();
+
+      registerWidget('string', stringControl, null);
+
+      expect(resolveWidget(undefined).control).toBe(stringControl);
+    });
+
+    it('registers widget schema and exposes it', () => {
+      const { registerWidget, getWidget } = require('../registry');
+      const schema = { properties: { foo: { type: 'string' } } };
+
+      registerWidget({ name: 'schemaWidget', controlComponent: jest.fn(), schema });
+
+      expect(getWidget('schemaWidget').schema).toEqual(schema);
+    });
+
+    it('string-name registration can reuse control from another widget', () => {
+      const { registerWidget, getWidget } = require('../registry');
+      const originalControl = jest.fn();
+      const newPreview = jest.fn();
+
+      registerWidget('base', originalControl, null);
+      registerWidget('derived', 'base', newPreview);
+
+      expect(getWidget('derived').control).toBe(originalControl);
+      expect(getWidget('derived').preview).toBe(newPreview);
+    });
+  });
+
+  describe('registerBackend / getBackend', () => {
+    it('registers and retrieves a backend', () => {
+      const { registerBackend, getBackend } = require('../registry');
+
+      class MyBackend {}
+      registerBackend('myBackend', MyBackend);
+
+      const backend = getBackend('myBackend');
+      expect(backend).toBeDefined();
+      expect(typeof backend.init).toBe('function');
+    });
+
+    it('init creates an instance of the backend class', () => {
+      const { registerBackend, getBackend } = require('../registry');
+
+      class MyBackend {
+        constructor(config) {
+          this.config = config;
+        }
+      }
+      registerBackend('myBackend2', MyBackend);
+
+      const instance = getBackend('myBackend2').init({ option: true });
+      expect(instance).toBeInstanceOf(MyBackend);
+      expect(instance.config).toEqual({ option: true });
+    });
+
+    it('returns undefined for an unregistered backend name', () => {
+      const { getBackend } = require('../registry');
+
+      expect(getBackend('nonExistent')).toBeUndefined();
+    });
+
+    it('logs error when registering a duplicate backend name', () => {
+      const { registerBackend } = require('../registry');
+
+      class BackendA {}
+      class BackendB {}
+      registerBackend('dupBackend', BackendA);
+      registerBackend('dupBackend', BackendB);
+
+      expect(console.error).toHaveBeenCalledTimes(1);
+      expect(console.error.mock.calls[0][0]).toMatch(/dupBackend/);
+    });
+
+    it('logs error when called without arguments', () => {
+      const { registerBackend } = require('../registry');
+
+      registerBackend();
+
+      expect(console.error).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('registerMediaLibrary / getMediaLibrary', () => {
+    it('registers and retrieves a media library by name', () => {
+      const { registerMediaLibrary, getMediaLibrary } = require('../registry');
+
+      const lib = { name: 'cloudinary', config: {} };
+      registerMediaLibrary(lib);
+
+      expect(getMediaLibrary('cloudinary')).toMatchObject({ name: 'cloudinary' });
+    });
+
+    it('passes options alongside the media library', () => {
+      const { registerMediaLibrary, getMediaLibrary } = require('../registry');
+
+      const lib = { name: 'uploadcare' };
+      const options = { publicKey: 'abc123' };
+      registerMediaLibrary(lib, options);
+
+      expect(getMediaLibrary('uploadcare').options).toEqual(options);
+    });
+
+    it('returns undefined for an unregistered media library', () => {
+      const { getMediaLibrary } = require('../registry');
+
+      expect(getMediaLibrary('notRegistered')).toBeUndefined();
+    });
+
+    it('throws when registering a duplicate media library name', () => {
+      const { registerMediaLibrary } = require('../registry');
+
+      const lib = { name: 'dupLib' };
+      registerMediaLibrary(lib);
+
+      expect(() => registerMediaLibrary(lib)).toThrow(
+        'A media library named dupLib has already been registered.',
+      );
+    });
+  });
+
+  describe('registerEditorComponent / getEditorComponents', () => {
+    it('returns an empty map before any components are registered', () => {
+      const { getEditorComponents } = require('../registry');
+
+      expect(getEditorComponents().size).toBe(0);
+    });
+
+    it('registers an editor component and retrieves it', () => {
+      const { registerEditorComponent, getEditorComponents } = require('../registry');
+
+      registerEditorComponent({
+        id: 'youtube',
+        label: 'YouTube',
+        fields: [],
+        pattern: /x/,
+        fromBlock: jest.fn(),
+        toBlock: jest.fn(),
+      });
+
+      const components = getEditorComponents();
+      expect(components.has('youtube')).toBe(true);
+    });
+
+    it('registers multiple editor components', () => {
+      const { registerEditorComponent, getEditorComponents } = require('../registry');
+
+      registerEditorComponent({
+        id: 'comp1',
+        label: 'Comp1',
+        fields: [],
+        pattern: /a/,
+        fromBlock: jest.fn(),
+        toBlock: jest.fn(),
+      });
+      registerEditorComponent({
+        id: 'comp2',
+        label: 'Comp2',
+        fields: [],
+        pattern: /b/,
+        fromBlock: jest.fn(),
+        toBlock: jest.fn(),
+      });
+
+      expect(getEditorComponents().size).toBe(2);
+    });
+
+    it('a second code-block component replaces the first and emits console.warn', () => {
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const { registerEditorComponent, getEditorComponents } = require('../registry');
+
+      registerEditorComponent({
+        id: 'cb1',
+        label: 'CB1',
+        type: 'code-block',
+        fields: [],
+        pattern: /a/,
+        fromBlock: jest.fn(),
+        toBlock: jest.fn(),
+      });
+      registerEditorComponent({
+        id: 'cb2',
+        label: 'CB2',
+        type: 'code-block',
+        fields: [],
+        pattern: /b/,
+        fromBlock: jest.fn(),
+        toBlock: jest.fn(),
+      });
+
+      expect(console.warn).toHaveBeenCalledTimes(1);
+      const components = getEditorComponents();
+      expect(components.has('cb1')).toBe(false);
+      expect(components.has('cb2')).toBe(true);
+    });
+  });
+
+  describe('registerPreviewStyle / getPreviewStyles', () => {
+    it('returns empty array before any styles are registered', () => {
+      const { getPreviewStyles } = require('../registry');
+
+      expect(getPreviewStyles()).toEqual([]);
+    });
+
+    it('registers a string URL style', () => {
+      const { registerPreviewStyle, getPreviewStyles } = require('../registry');
+
+      registerPreviewStyle('/styles/preview.css');
+
+      expect(getPreviewStyles()).toEqual([{ value: '/styles/preview.css' }]);
+    });
+
+    it('registers a raw CSS string style with raw option', () => {
+      const { registerPreviewStyle, getPreviewStyles } = require('../registry');
+
+      registerPreviewStyle('body { color: red; }', { raw: true });
+
+      expect(getPreviewStyles()).toEqual([{ raw: true, value: 'body { color: red; }' }]);
+    });
+
+    it('registers multiple styles and returns all of them', () => {
+      const { registerPreviewStyle, getPreviewStyles } = require('../registry');
+
+      registerPreviewStyle('/a.css');
+      registerPreviewStyle('/b.css');
+
+      const styles = getPreviewStyles();
+      expect(styles).toHaveLength(2);
+      expect(styles.map(s => s.value)).toEqual(['/a.css', '/b.css']);
+    });
+  });
 });
