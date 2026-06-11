@@ -318,7 +318,7 @@ declare module 'decap-cms-core' {
   export interface SortableField {
     field: string;
     label?: string;
-    default_sort?: boolean | 'asc' | 'desc';
+    default_sort?: 'asc' | 'desc';
   }
 
   export interface CmsCollection {

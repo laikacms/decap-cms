@@ -310,14 +310,24 @@ describe('config', () => {
       }).not.toThrow();
     });
 
-    it('should allow sortable_fields with default_sort as boolean', () => {
+    it('should throw if sortable_fields has default_sort as boolean true', () => {
       expect(() => {
         validateConfig(
           merge({}, validConfig, {
             collections: [{ sortable_fields: [{ field: 'title', default_sort: true }] }],
           }),
         );
-      }).not.toThrow();
+      }).toThrow();
+    });
+
+    it('should throw if sortable_fields has default_sort as boolean false', () => {
+      expect(() => {
+        validateConfig(
+          merge({}, validConfig, {
+            collections: [{ sortable_fields: [{ field: 'title', default_sort: false }] }],
+          }),
+        );
+      }).toThrow();
     });
 
     it('should allow sortable_fields with default_sort as asc/desc', () => {
@@ -361,7 +371,7 @@ describe('config', () => {
       expect(() => {
         validateConfig(
           merge({}, validConfig, {
-            collections: [{ sortable_fields: ['title', { field: 'date', default_sort: true }] }],
+            collections: [{ sortable_fields: ['title', { field: 'date', default_sort: 'asc' }] }],
           }),
         );
       }).not.toThrow();
@@ -374,8 +384,8 @@ describe('config', () => {
             collections: [
               {
                 sortable_fields: [
-                  { field: 'title', default_sort: true },
-                  { field: 'date', default_sort: true },
+                  { field: 'title', default_sort: 'asc' },
+                  { field: 'date', default_sort: 'desc' },
                 ],
               },
             ],
