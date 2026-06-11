@@ -272,6 +272,26 @@ describe('config', () => {
       }).not.toThrow();
     });
 
+    it('should allow sortableFields to have object format with field property', () => {
+      expect(() => {
+        validateConfig(
+          merge({}, validConfig, {
+            collections: [{ sortableFields: [{ field: 'title' }] }],
+          }),
+        );
+      }).not.toThrow();
+    });
+
+    it('should allow mixed string and object format in sortableFields', () => {
+      expect(() => {
+        validateConfig(
+          merge({}, validConfig, {
+            collections: [{ sortableFields: ['title', { field: 'date', default_sort: 'desc' }] }],
+          }),
+        );
+      }).not.toThrow();
+    });
+
     it('should throw if both sortable_fields and sortableFields exist', () => {
       expect(() => {
         validateConfig(

@@ -306,7 +306,21 @@ function getConfigSchema() {
             sortableFields: {
               type: 'array',
               items: {
-                type: 'string',
+                oneOf: [
+                  { type: 'string' },
+                  {
+                    type: 'object',
+                    properties: {
+                      field: { type: 'string' },
+                      label: { type: 'string' },
+                      default_sort: {
+                        oneOf: [{ type: 'boolean' }, { type: 'string', enum: ['asc', 'desc'] }],
+                      },
+                    },
+                    required: ['field'],
+                    additionalProperties: false,
+                  },
+                ],
               },
             },
             view_filters: viewFilters,
