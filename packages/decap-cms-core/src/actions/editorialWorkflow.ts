@@ -247,8 +247,9 @@ export function loadUnpublishedEntry(collection: Collection, slug: string) {
       try {
         const { entries, pagination } = await backend.unpublishedEntries(state.collections);
         dispatch(unpublishedEntriesLoaded(entries, pagination));
-        // eslint-disable-next-line no-empty
-      } catch (e) {}
+      } catch (_e) {
+        /* optional migration — not all backends implement unpublishedEntries */
+      }
     }
 
     dispatch(unpublishedEntryLoading(collection, slug));
