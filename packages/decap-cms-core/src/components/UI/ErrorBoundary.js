@@ -51,19 +51,23 @@ function buildIssueTemplate({ config }) {
 }
 
 function buildIssueUrl({ title, config }) {
-  const issueUrl = config?.issue_reports?.url ?? ISSUE_URL;
+  const customUrl = config?.issue_reports?.url;
+  const issueUrl = customUrl ?? ISSUE_URL;
+  const isCustomUrl = Boolean(customUrl);
   try {
     const body = buildIssueTemplate({ config });
 
     const params = new URLSearchParams();
     params.append('title', truncate(title, { length: 100 }));
     params.append('body', truncate(body, { length: 4000, omission: '\n...' }));
-    params.append('labels', 'type: bug');
+    if (!isCustomUrl) {
+      params.append('labels', 'type: bug');
+    }
 
     return `${issueUrl}?${params.toString()}`;
   } catch (e) {
     console.log(e);
-    return `${issueUrl}?template=bug_report.md`;
+    return isCustomUrl ? issueUrl : `${issueUrl}?template=bug_report.md`;
   }
 }
 

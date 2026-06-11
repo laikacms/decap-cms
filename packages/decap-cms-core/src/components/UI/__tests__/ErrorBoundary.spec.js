@@ -54,4 +54,24 @@ describe('Editor', () => {
         `,
     );
   });
+
+  it('should omit labels param when issue_reports.url is a custom URL', () => {
+    global.navigator.userAgent = 'Test User Agent';
+    const customConfig = {
+      ...config,
+      issue_reports: { url: 'https://gitlab.example.com/org/repo/-/issues/new' },
+    };
+    const { getByTestId } = render(
+      <ErrorBoundary {...props} config={customConfig}>
+        <WithError />
+      </ErrorBoundary>,
+    );
+
+    const href = getByTestId('issue-url').getAttribute('href');
+    expect(href).toContain('https://gitlab.example.com/org/repo/-/issues/new?');
+    expect(href).toContain('title=');
+    expect(href).toContain('body=');
+    expect(href).not.toContain('labels=');
+    expect(href).not.toContain('template=bug_report.md');
+  });
 });
