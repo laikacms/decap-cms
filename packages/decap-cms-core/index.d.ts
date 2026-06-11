@@ -402,6 +402,7 @@ declare module 'decap-cms-core' {
       deleteMedia?: string;
       openAuthoring?: string;
     };
+    preview_context?: string;
   }
 
   export interface CmsSlug {
