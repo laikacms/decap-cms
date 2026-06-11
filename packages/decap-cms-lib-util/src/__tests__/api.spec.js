@@ -41,6 +41,48 @@ describe('Api', () => {
     });
   });
 
+  describe('readFile', () => {
+    it('should return cached empty string without calling fetchContent again', async () => {
+      const store = {};
+      const localForage = {
+        getItem: jest.fn(key => Promise.resolve(key in store ? store[key] : null)),
+        setItem: jest.fn((key, value) => {
+          store[key] = value;
+          return Promise.resolve();
+        }),
+      };
+      const fetchContent = jest.fn(() => Promise.resolve(''));
+
+      const first = await api.readFile('file-id', fetchContent, localForage, true);
+      expect(first).toBe('');
+      expect(fetchContent).toHaveBeenCalledTimes(1);
+
+      const second = await api.readFile('file-id', fetchContent, localForage, true);
+      expect(second).toBe('');
+      expect(fetchContent).toHaveBeenCalledTimes(1);
+    });
+
+    it('should fetch and cache non-empty content', async () => {
+      const store = {};
+      const localForage = {
+        getItem: jest.fn(key => Promise.resolve(key in store ? store[key] : null)),
+        setItem: jest.fn((key, value) => {
+          store[key] = value;
+          return Promise.resolve();
+        }),
+      };
+      const fetchContent = jest.fn(() => Promise.resolve('hello'));
+
+      const first = await api.readFile('file-id-2', fetchContent, localForage, true);
+      expect(first).toBe('hello');
+      expect(fetchContent).toHaveBeenCalledTimes(1);
+
+      const second = await api.readFile('file-id-2', fetchContent, localForage, true);
+      expect(second).toBe('hello');
+      expect(fetchContent).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('isPreviewContext', () => {
     it('should return true when context exactly matches previewContext', () => {
       expect(

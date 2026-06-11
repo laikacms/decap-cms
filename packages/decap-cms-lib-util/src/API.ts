@@ -260,7 +260,7 @@ export async function readFile(
 ) {
   const key = id ? (isText ? `gh.${id}` : `gh.${id}.blob`) : null;
   const cached = key ? await localForage.getItem<string | Blob>(key) : null;
-  if (cached) {
+  if (cached != null) {
     return cached;
   }
 
