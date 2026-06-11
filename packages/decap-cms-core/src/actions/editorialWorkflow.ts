@@ -247,7 +247,9 @@ export function loadUnpublishedEntry(collection: Collection, slug: string) {
       try {
         const { entries, pagination } = await backend.unpublishedEntries(state.collections);
         dispatch(unpublishedEntriesLoaded(entries, pagination));
-      } catch (_e) { /* optional migration — not all backends implement unpublishedEntries */ }
+      } catch (_e) {
+        /* optional migration — not all backends implement unpublishedEntries */
+      }
     }
 
     dispatch(unpublishedEntryLoading(collection, slug));
