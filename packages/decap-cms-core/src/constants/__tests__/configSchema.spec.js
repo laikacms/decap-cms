@@ -1066,5 +1066,69 @@ describe('config', () => {
         }).not.toThrow();
       });
     });
+
+    describe('integrations', () => {
+      it('should not throw when integrations array contains a valid integration', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              integrations: [
+                {
+                  hooks: ['search'],
+                  provider: 'algolia',
+                  collections: '*',
+                  applicationID: 'ABCDEF',
+                  apiKey: 'secret',
+                },
+              ],
+            }),
+          );
+        }).not.toThrow();
+      });
+
+      it('should not throw when integration has collections as array of strings', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              integrations: [
+                {
+                  hooks: ['search'],
+                  provider: 'algolia',
+                  collections: ['posts', 'pages'],
+                },
+              ],
+            }),
+          );
+        }).not.toThrow();
+      });
+
+      it('should throw when integration is missing required hooks field', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              integrations: [
+                {
+                  provider: 'algolia',
+                },
+              ],
+            }),
+          );
+        }).toThrow();
+      });
+
+      it('should throw when integration is missing required provider field', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              integrations: [
+                {
+                  hooks: ['search'],
+                },
+              ],
+            }),
+          );
+        }).toThrow();
+      });
+    });
   });
 });

@@ -373,6 +373,29 @@ function getConfigSchema() {
         },
         uniqueItemProperties: ['name'],
       },
+      integrations: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            hooks: {
+              type: 'array',
+              items: { type: 'string' },
+            },
+            provider: { type: 'string' },
+            collections: {
+              oneOf: [
+                { type: 'string', enum: ['*'] },
+                { type: 'array', items: { type: 'string' } },
+              ],
+            },
+            applicationID: { type: 'string' },
+            apiKey: { type: 'string' },
+            getSignedFormURL: { type: 'string' },
+          },
+          required: ['hooks', 'provider'],
+        },
+      },
       auth: {
         type: 'object',
         properties: {
