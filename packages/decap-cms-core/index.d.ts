@@ -571,9 +571,9 @@ declare module 'decap-cms-core' {
     }) => any;
   }
 
-  export type CmsEventListenerOptions = any; // TODO: type properly
+  export type CmsEventListenerOptions = Record<string, unknown>;
 
-  export type CmsLocalePhrases = any; // TODO: type properly
+  export type CmsLocalePhrases = Record<string, unknown>;
 
   export type Formatter = {
     fromFile(content: string): unknown;
