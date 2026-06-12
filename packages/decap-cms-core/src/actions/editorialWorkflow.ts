@@ -351,7 +351,7 @@ export function persistUnpublishedEntry(collection: Collection, existingUnpublis
           }),
         );
       }
-      return Promise.reject();
+      return Promise.reject(new Error('Entry has validation errors'));
     }
 
     const backend = currentBackend(state.config);
