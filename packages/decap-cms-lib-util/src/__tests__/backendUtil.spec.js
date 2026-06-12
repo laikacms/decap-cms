@@ -32,7 +32,12 @@ describe('parseResponse', () => {
   });
 
   it('returns text body for ok response with format text', async () => {
-    const res = makeResponse({ ok: true, status: 200, body: 'hello world', contentType: 'text/plain' });
+    const res = makeResponse({
+      ok: true,
+      status: 200,
+      body: 'hello world',
+      contentType: 'text/plain',
+    });
     const result = await parseResponse(res, { format: 'text' });
     expect(result).toBe('hello world');
   });
@@ -45,7 +50,9 @@ describe('parseResponse', () => {
 
   it('throws APIError with body message for non-ok response when expectingOk is true and JSON body has message', async () => {
     const res = makeResponse({ ok: false, status: 422, body: { message: 'Validation failed' } });
-    await expect(parseResponse(res, { format: 'json', expectingOk: true, apiName: 'TestAPI' })).rejects.toMatchObject({
+    await expect(
+      parseResponse(res, { format: 'json', expectingOk: true, apiName: 'TestAPI' }),
+    ).rejects.toMatchObject({
       message: expect.stringContaining('Validation failed'),
       status: 422,
       api: 'TestAPI',
@@ -53,7 +60,12 @@ describe('parseResponse', () => {
   });
 
   it('returns body without throwing for non-ok response when expectingOk is false', async () => {
-    const res = makeResponse({ ok: false, status: 404, body: 'Not Found', contentType: 'text/plain' });
+    const res = makeResponse({
+      ok: false,
+      status: 404,
+      body: 'Not Found',
+      contentType: 'text/plain',
+    });
     const result = await parseResponse(res, { format: 'text', expectingOk: false });
     expect(result).toBe('Not Found');
   });
