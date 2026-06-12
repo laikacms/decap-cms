@@ -79,6 +79,12 @@ describe('Number widget schema', () => {
     expect(schema.properties.value_type).toEqual({ type: 'string', enum: ['int', 'float'] });
   });
 
+  it('should accept step: any as a valid schema value', () => {
+    expect(schema.properties.step).toEqual({
+      oneOf: [{ type: 'number' }, { type: 'string', enum: ['any'] }],
+    });
+  });
+
   it('unset value_type should produce integer result (parseInt fallback)', () => {
     const field = fromJS({});
     const { onChangeSpy, input } = setup({ field });
@@ -178,6 +184,20 @@ describe('Number widget', () => {
 
     expect(onChangeSpy).toHaveBeenCalledTimes(1);
     expect(onChangeSpy).toHaveBeenCalledWith(parseFloat(testValue));
+  });
+
+  it('float field with no explicit step renders with step="any"', () => {
+    const field = fromJS({ value_type: 'float' });
+    const { input } = setup({ field });
+
+    expect(input.getAttribute('step')).toBe('any');
+  });
+
+  it('int field with no explicit step renders with step="1"', () => {
+    const field = fromJS({ value_type: 'int' });
+    const { input } = setup({ field });
+
+    expect(input.getAttribute('step')).toBe('1');
   });
 
   it('should allow 0 as a value', () => {

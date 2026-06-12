@@ -98,7 +98,7 @@ export default class NumberControl extends React.Component {
     const { field, value, classNameWrapper, forID, setActiveStyle, setInactiveStyle } = this.props;
     const min = field.get('min', '');
     const max = field.get('max', '');
-    const step = field.get('step', field.get('value_type') === 'int' ? 1 : '');
+    const step = field.get('step', field.get('value_type') === 'int' ? 1 : 'any');
     return (
       <input
         type="number"

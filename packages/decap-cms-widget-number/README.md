@@ -12,7 +12,7 @@ Number widget for [Decap CMS](https://decapcms.org).
 | `value_type` | string  | —       | How the stored value is typed. Valid values: `int`, `float`. When omitted, the value is stored as an integer via `parseInt`. |
 | `min`        | number  | —       | Minimum allowed value. |
 | `max`        | number  | —       | Maximum allowed value. |
-| `step`       | number  | `1` for `int`, browser default otherwise | Input step size. |
+| `step`       | number \| `'any'`  | `1` for `int`, `any` for `float` or omitted | Input step size. Use `'any'` to allow any decimal value. |
 
 ### `value_type` behavior
 
