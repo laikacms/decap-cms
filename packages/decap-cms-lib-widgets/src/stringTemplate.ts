@@ -6,10 +6,10 @@ import dayjs from 'dayjs';
 import { basename, dirname, extname } from 'path';
 
 const filters = [
-  { pattern: /^upper$/, transform: (str: string) => str.toUpperCase() },
+  { pattern: /^upper$/, transform: (str: string) => String(str).toUpperCase() },
   {
     pattern: /^lower$/,
-    transform: (str: string) => str.toLowerCase(),
+    transform: (str: string) => String(str).toLowerCase(),
   },
   {
     pattern: /^date\('(.+)'\)$/,
