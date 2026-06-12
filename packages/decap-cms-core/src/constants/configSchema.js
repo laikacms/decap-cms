@@ -159,6 +159,7 @@ function getConfigSchema() {
             },
             additionalProperties: false,
           },
+          auth_type: { type: 'string', enum: ['pkce'] },
           signoff_commits: { type: 'boolean' },
           squash_merges: { type: 'boolean' },
           preview_context: { type: 'string' },
