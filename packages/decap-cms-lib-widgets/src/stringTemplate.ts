@@ -190,7 +190,7 @@ export function compileStringTemplate(
       let replacement;
       const explicitFieldReplacement = getExplicitFieldReplacement(key, data);
 
-      if (explicitFieldReplacement) {
+      if (explicitFieldReplacement !== undefined) {
         replacement = explicitFieldReplacement;
       } else if (dateParsers[key] && !date) {
         missingRequiredDate = true;
