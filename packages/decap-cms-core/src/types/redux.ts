@@ -470,6 +470,7 @@ export interface CmsConfig {
   editor?: {
     preview?: boolean;
   };
+  search?: boolean;
   error: string | undefined;
   isFetching: boolean;
 }
