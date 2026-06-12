@@ -440,6 +440,105 @@ describe('github backend implementation', () => {
     });
   });
 
+  describe('authenticateWithFork — default branch resolution (DCMS-175)', () => {
+    const openAuthoringConfig = {
+      backend: {
+        repo: 'owner/repo',
+        open_authoring: true,
+        api_root: 'https://api.github.com',
+      },
+      useWorkflow: true,
+    };
+
+    it('uses default_branch from origin repo API when branch is not configured', async () => {
+      const impl = new GitHubImplementation(openAuthoringConfig, { useWorkflow: true });
+
+      impl.userIsOriginMaintainer = jest.fn().mockResolvedValue(false);
+      impl.currentUser = jest.fn().mockResolvedValue({ login: 'forkuser' });
+      impl.forkExists = jest.fn().mockResolvedValue(true);
+
+      global.fetch = jest.fn().mockImplementation(url => {
+        const urlStr = String(url);
+        if (urlStr.includes('/repos/owner/repo') && !urlStr.includes('merge-upstream')) {
+          return Promise.resolve({ json: () => ({ default_branch: 'main' }) });
+        }
+        return Promise.resolve({ json: () => ({}) });
+      });
+
+      await impl.authenticateWithFork({
+        userData: { token: 'test-token' },
+        getPermissionToFork: jest.fn(),
+      });
+
+      const mergeUpstreamCall = global.fetch.mock.calls.find(([url]) =>
+        String(url).includes('merge-upstream'),
+      );
+      expect(mergeUpstreamCall).toBeDefined();
+      const body = JSON.parse(mergeUpstreamCall[1].body);
+      expect(body.branch).toBe('main');
+    });
+
+    it('uses master as fallback when default_branch fetch fails', async () => {
+      const impl = new GitHubImplementation(openAuthoringConfig, { useWorkflow: true });
+
+      impl.userIsOriginMaintainer = jest.fn().mockResolvedValue(false);
+      impl.currentUser = jest.fn().mockResolvedValue({ login: 'forkuser' });
+      impl.forkExists = jest.fn().mockResolvedValue(true);
+
+      global.fetch = jest.fn().mockImplementation(url => {
+        const urlStr = String(url);
+        if (urlStr.includes('/repos/owner/repo') && !urlStr.includes('merge-upstream')) {
+          return Promise.reject(new Error('network error'));
+        }
+        return Promise.resolve({ json: () => ({}) });
+      });
+
+      await impl.authenticateWithFork({
+        userData: { token: 'test-token' },
+        getPermissionToFork: jest.fn(),
+      });
+
+      const mergeUpstreamCall = global.fetch.mock.calls.find(([url]) =>
+        String(url).includes('merge-upstream'),
+      );
+      expect(mergeUpstreamCall).toBeDefined();
+      const body = JSON.parse(mergeUpstreamCall[1].body);
+      expect(body.branch).toBe('master');
+    });
+
+    it('does not re-fetch default_branch when authenticate is called after authenticateWithFork', async () => {
+      const impl = new GitHubImplementation(openAuthoringConfig, { useWorkflow: true });
+
+      impl.userIsOriginMaintainer = jest.fn().mockResolvedValue(false);
+      impl.currentUser = jest.fn().mockResolvedValue({ login: 'forkuser' });
+      impl.forkExists = jest.fn().mockResolvedValue(true);
+
+      mockAPIInstance.user.mockResolvedValue({ login: 'forkuser' });
+      mockAPIInstance.hasWriteAccess.mockResolvedValue(true);
+
+      global.fetch = jest.fn().mockImplementation(url => {
+        const urlStr = String(url);
+        if (urlStr.includes('/repos/owner/repo') && !urlStr.includes('merge-upstream')) {
+          return Promise.resolve({ json: () => ({ default_branch: 'main' }) });
+        }
+        return Promise.resolve({ json: () => ({}) });
+      });
+
+      await impl.authenticateWithFork({
+        userData: { token: 'test-token' },
+        getPermissionToFork: jest.fn(),
+      });
+      await impl.authenticate({ token: 'test-token' });
+
+      const repoInfoCalls = global.fetch.mock.calls.filter(
+        ([url]) => String(url) === 'https://api.github.com/repos/owner/repo',
+      );
+      // Should only fetch repo info once, not twice
+      expect(repoInfoCalls).toHaveLength(1);
+      expect(impl.branch).toBe('main');
+    });
+  });
+
   describe('graphql_api_root', () => {
     it('defaults graphqlApiRoot to apiRoot when graphql_api_root is not set', () => {
       const impl = new GitHubImplementation({

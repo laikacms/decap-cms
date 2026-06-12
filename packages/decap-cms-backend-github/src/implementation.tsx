@@ -87,6 +87,7 @@ export default class GitHub implements Implementation {
   useGraphql: boolean;
   baseUrl?: string;
   bypassWriteAccessCheckForAppTokens = false;
+  _defaultBranchResolved = false;
   _currentUserPromise?: Promise<GitHubUser>;
   _userIsOriginMaintainerPromises?: {
     [key: string]: Promise<boolean>;
@@ -279,6 +280,21 @@ export default class GitHub implements Implementation {
     }
   }
 
+  async resolveDefaultBranch(token: string): Promise<void> {
+    if (this.isBranchConfigured || this._defaultBranchResolved) {
+      return;
+    }
+    this._defaultBranchResolved = true;
+    const repoInfo = await fetch(`${this.apiRoot}/repos/${this.originRepo}`, {
+      headers: { Authorization: `${this.tokenKeyword} ${token}` },
+    })
+      .then(res => res.json())
+      .catch(() => null);
+    if (repoInfo && repoInfo.default_branch) {
+      this.branch = repoInfo.default_branch;
+    }
+  }
+
   async authenticateWithFork({
     userData,
     getPermissionToFork,
@@ -298,6 +314,10 @@ export default class GitHub implements Implementation {
       this.useOpenAuthoring = false;
       return Promise.resolve();
     }
+
+    // Resolve default branch before merge-upstream so the correct branch name
+    // is used even when `branch` is not set in config (DCMS-175).
+    await this.resolveDefaultBranch(token);
 
     // If a fork exists merge it with upstream
     // otherwise create a new fork.
@@ -332,17 +352,8 @@ export default class GitHub implements Implementation {
   async authenticate(state: Credentials) {
     this.token = state.token as string;
     // Query the default branch name when the `branch` property is missing
-    // in the config file
-    if (!this.isBranchConfigured) {
-      const repoInfo = await fetch(`${this.apiRoot}/repos/${this.originRepo}`, {
-        headers: { Authorization: `token ${this.token}` },
-      })
-        .then(res => res.json())
-        .catch(() => null);
-      if (repoInfo && repoInfo.default_branch) {
-        this.branch = repoInfo.default_branch;
-      }
-    }
+    // in the config file. Skip if already resolved (e.g. by authenticateWithFork).
+    await this.resolveDefaultBranch(this.token);
     const apiCtor = this.useGraphql ? GraphQLAPI : API;
     this.api = new apiCtor({
       token: this.token,
