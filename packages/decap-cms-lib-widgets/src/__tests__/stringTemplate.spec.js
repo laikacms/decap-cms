@@ -197,6 +197,24 @@ describe('stringTemplate', () => {
         'hello',
       );
     });
+
+    it('applies | upper to a boolean field without throwing', () => {
+      expect(
+        compileStringTemplate('{{boolField | upper}}', date, '', fromJS({ boolField: true })),
+      ).toBe('TRUE');
+    });
+
+    it('applies | lower to a boolean field without throwing', () => {
+      expect(
+        compileStringTemplate('{{boolField | lower}}', date, '', fromJS({ boolField: false })),
+      ).toBe('false');
+    });
+
+    it('applies | upper to a number field without throwing', () => {
+      expect(
+        compileStringTemplate('{{numField | upper}}', date, '', fromJS({ numField: 42 })),
+      ).toBe('42');
+    });
   });
 
   describe('parseDateFromEntryData', () => {
