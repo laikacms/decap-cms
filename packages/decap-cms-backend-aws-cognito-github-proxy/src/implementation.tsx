@@ -15,9 +15,9 @@ export default class AwsCognitoGitHubProxyBackend extends GitHubBackend {
   }
 
   authComponent() {
-    const wrappedAuthenticationPage = (props: Record<string, unknown>) => {
+    function wrappedAuthenticationPage(props: Record<string, unknown>) {
       return <PKCEAuthenticationPage {...(props as unknown as PKCEAuthenticationPageProps)} />;
-    };
+    }
     wrappedAuthenticationPage.displayName = 'AuthenticationPage';
     return wrappedAuthenticationPage;
   }
