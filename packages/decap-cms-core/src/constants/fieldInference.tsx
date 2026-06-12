@@ -4,12 +4,24 @@ export const IDENTIFIER_FIELDS = ['title', 'path'] as const;
 
 export const SORTABLE_FIELDS = ['title', 'date', 'author', 'description'] as const;
 
+function TitlePreview({ value }: { value: React.ReactNode }) {
+  return <h1>{value}</h1>;
+}
+
+function ShortTitlePreview({ value }: { value: React.ReactNode }) {
+  return <h2>{value}</h2>;
+}
+
+function AuthorPreview({ value }: { value: React.ReactNode }) {
+  return <strong>{value}</strong>;
+}
+
 export const INFERABLE_FIELDS = {
   title: {
     type: 'string',
     secondaryTypes: [],
     synonyms: ['title', 'name', 'label', 'headline', 'header'],
-    defaultPreview: (value: React.ReactNode) => <h1>{value}</h1>, // eslint-disable-line react/display-name
+    defaultPreview: (value: React.ReactNode) => <TitlePreview value={value} />,
     fallbackToFirstField: true,
     showError: true,
   },
@@ -17,7 +29,7 @@ export const INFERABLE_FIELDS = {
     type: 'string',
     secondaryTypes: [],
     synonyms: ['short_title', 'shortTitle', 'short'],
-    defaultPreview: (value: React.ReactNode) => <h2>{value}</h2>, // eslint-disable-line react/display-name
+    defaultPreview: (value: React.ReactNode) => <ShortTitlePreview value={value} />,
     fallbackToFirstField: false,
     showError: false,
   },
@@ -25,7 +37,7 @@ export const INFERABLE_FIELDS = {
     type: 'string',
     secondaryTypes: [],
     synonyms: ['author', 'name', 'by', 'byline', 'owner'],
-    defaultPreview: (value: React.ReactNode) => <strong>{value}</strong>, // eslint-disable-line react/display-name
+    defaultPreview: (value: React.ReactNode) => <AuthorPreview value={value} />,
     fallbackToFirstField: false,
     showError: false,
   },
