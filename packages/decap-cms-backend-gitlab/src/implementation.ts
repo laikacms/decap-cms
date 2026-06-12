@@ -126,6 +126,19 @@ export default class GitLab implements Implementation {
 
   async authenticate(state: Credentials) {
     this.token = state.token as string;
+
+    if (!this.isBranchConfigured) {
+      const defaultBranchName = await getDefaultBranchName({
+        backend: 'gitlab',
+        repo: this.repo,
+        token: this.token,
+        apiRoot: this.apiRoot,
+      });
+      if (defaultBranchName) {
+        this.branch = defaultBranchName;
+      }
+    }
+
     this.api = new API({
       token: this.token,
       branch: this.branch,
@@ -154,17 +167,6 @@ export default class GitLab implements Implementation {
       throw new Error('Your GitLab user account does not have access to this repo.');
     }
 
-    if (!this.isBranchConfigured) {
-      const defaultBranchName = await getDefaultBranchName({
-        backend: 'gitlab',
-        repo: this.repo,
-        token: this.token,
-        apiRoot: this.apiRoot,
-      });
-      if (defaultBranchName) {
-        this.branch = defaultBranchName;
-      }
-    }
     // Authorized user
     return { ...user, login: user.username, token: state.token as string };
   }
