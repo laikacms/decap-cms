@@ -1,4 +1,4 @@
-import { blobToFileObj, getMediaAsBlob, getMediaDisplayURL } from '../implementation';
+import { blobToFileObj, getMediaAsBlob, getMediaDisplayURL, runWithLock } from '../implementation';
 
 describe('implementation', () => {
   describe('blobToFileObj', () => {
@@ -44,6 +44,53 @@ describe('implementation', () => {
       expect(readFile).toHaveBeenCalledWith('static/media/logo.svg', 'sha', {
         parseText: true,
       });
+    });
+  });
+
+  describe('runWithLock', () => {
+    let lock;
+
+    beforeEach(() => {
+      lock = { acquire: jest.fn(), release: jest.fn() };
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('calls func, releases lock, and returns result when lock is acquired', async () => {
+      lock.acquire.mockResolvedValue(true);
+      const func = jest.fn().mockResolvedValue('result');
+
+      const result = await runWithLock(lock, func, 'warn message');
+
+      expect(func).toHaveBeenCalledTimes(1);
+      expect(lock.release).toHaveBeenCalledTimes(1);
+      expect(result).toBe('result');
+      expect(console.warn).not.toHaveBeenCalled();
+    });
+
+    it('warns with message but still calls func and releases lock when lock is not acquired', async () => {
+      lock.acquire.mockResolvedValue(false);
+      const func = jest.fn().mockResolvedValue('best-effort-result');
+
+      const result = await runWithLock(lock, func, 'lock timeout warning');
+
+      expect(console.warn).toHaveBeenCalledWith('lock timeout warning');
+      expect(func).toHaveBeenCalledTimes(1);
+      expect(lock.release).toHaveBeenCalledTimes(1);
+      expect(result).toBe('best-effort-result');
+    });
+
+    it('releases lock in finally even when func throws', async () => {
+      lock.acquire.mockResolvedValue(true);
+      const error = new Error('func failed');
+      const func = jest.fn().mockRejectedValue(error);
+
+      await expect(runWithLock(lock, func, 'warn message')).rejects.toThrow('func failed');
+
+      expect(lock.release).toHaveBeenCalledTimes(1);
     });
   });
 
