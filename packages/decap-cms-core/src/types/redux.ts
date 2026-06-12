@@ -338,7 +338,7 @@ export interface ViewFilter {
 export interface ViewGroup {
   label: string;
   field: string;
-  pattern: string;
+  pattern?: string;
   id: string;
 }
 
