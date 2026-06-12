@@ -73,31 +73,33 @@ export default function withMapControl({ getFormat, getMap }: WithMapControlOpti
 
       const featuresSource = new VectorSource({ features, wrapX: false });
       const featuresLayer = new VectorLayer({ source: featuresSource });
-
       const target = mapContainer.current!;
-      const map = getMap ? getMap(target, featuresLayer) : getDefaultMap(target, featuresLayer);
-      if (features.length > 0) {
-        map.getView().fit(featuresSource.getExtent(), { maxZoom: 16, padding: [80, 80, 80, 80] });
-      }
 
-      const draw = new Draw({
-        source: featuresSource,
-        type: (f.type ?? 'Point') as GeometryType,
-      });
-      map.addInteraction(draw);
+      let map: Map | null = null;
 
-      const writeOptions = { decimals: (f.decimals ?? 7) as number };
-      draw.on('drawend', ({ feature }) => {
-        featuresSource.clear();
-        initRef.current.onChange(format.writeGeometry(feature.getGeometry()!, writeOptions));
-      });
+      const tryInit = () => {
+        if (map !== null || target.offsetWidth === 0 || target.offsetHeight === 0) return;
+        map = getMap ? getMap(target, featuresLayer) : getDefaultMap(target, featuresLayer);
+        if (features.length > 0) {
+          map.getView().fit(featuresSource.getExtent(), { maxZoom: 16, padding: [80, 80, 80, 80] });
+        }
 
-      requestAnimationFrame(() => {
-        map.updateSize();
-      });
+        const draw = new Draw({
+          source: featuresSource,
+          type: (f.type ?? 'Point') as GeometryType,
+        });
+        map.addInteraction(draw);
+
+        const writeOptions = { decimals: (f.decimals ?? 7) as number };
+        draw.on('drawend', ({ feature }) => {
+          featuresSource.clear();
+          initRef.current.onChange(format.writeGeometry(feature.getGeometry()!, writeOptions));
+        });
+      };
 
       const resizeObserver = new ResizeObserver(() => {
-        map.updateSize();
+        tryInit();
+        map?.updateSize();
       });
       resizeObserver.observe(target);
 
