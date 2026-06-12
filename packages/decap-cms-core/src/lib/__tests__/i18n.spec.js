@@ -811,6 +811,71 @@ describe('i18n', () => {
     });
   });
 
+  describe('serializeI18n', () => {
+    it('should return entry unchanged and never call serializeValues for a single-locale collection', () => {
+      const collection = fromJS({
+        i18n: {
+          structure: i18n.I18N_STRUCTURE.MULTIPLE_FILES,
+          locales: ['en'],
+          default_locale: 'en',
+        },
+      });
+      const entry = fromJS({ data: { title: 'hello' } });
+      const serializeValues = jest.fn(data => data);
+
+      const result = i18n.serializeI18n(collection, entry, serializeValues);
+
+      expect(serializeValues).not.toHaveBeenCalled();
+      expect(result).toBe(entry);
+    });
+
+    it('should call serializeValues once per non-default locale with the locale data', () => {
+      const collection = fromJS({
+        i18n: {
+          structure: i18n.I18N_STRUCTURE.MULTIPLE_FILES,
+          locales: ['en', 'de', 'fr'],
+          default_locale: 'en',
+        },
+      });
+      const entry = fromJS({
+        data: { title: 'en_title' },
+        i18n: {
+          de: { data: { title: 'de_title' } },
+          fr: { data: { title: 'fr_title' } },
+        },
+      });
+      const serializeValues = jest.fn(data => data);
+
+      i18n.serializeI18n(collection, entry, serializeValues);
+
+      expect(serializeValues).toHaveBeenCalledTimes(2);
+      expect(serializeValues).toHaveBeenCalledWith(entry.getIn(['i18n', 'de', 'data']));
+      expect(serializeValues).toHaveBeenCalledWith(entry.getIn(['i18n', 'fr', 'data']));
+    });
+
+    it('should write serializeValues return value back to the correct locale data path', () => {
+      const collection = fromJS({
+        i18n: {
+          structure: i18n.I18N_STRUCTURE.MULTIPLE_FILES,
+          locales: ['en', 'de'],
+          default_locale: 'en',
+        },
+      });
+      const entry = fromJS({
+        data: { title: 'en_title' },
+        i18n: {
+          de: { data: { title: 'de_title' } },
+        },
+      });
+      const serializedDeData = fromJS({ title: 'de_title_serialized' });
+      const serializeValues = jest.fn(() => serializedDeData);
+
+      const result = i18n.serializeI18n(collection, entry, serializeValues);
+
+      expect(result.getIn(['i18n', 'de', 'data'])).toBe(serializedDeData);
+    });
+  });
+
   describe('getPreviewEntry', () => {
     it('should set data to i18n data when locale is not default', () => {
       expect(
