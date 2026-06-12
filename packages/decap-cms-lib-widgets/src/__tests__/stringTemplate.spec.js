@@ -177,6 +177,26 @@ describe('stringTemplate', () => {
         ),
       ).toBe('bac***');
     });
+
+    it('should render false boolean field value as "false"', () => {
+      expect(compileStringTemplate('{{fields.draft}}', date, '', fromJS({ draft: false }))).toBe(
+        'false',
+      );
+    });
+
+    it('should render 0 numeric field value as "0"', () => {
+      expect(compileStringTemplate('{{fields.count}}', date, '', fromJS({ count: 0 }))).toBe('0');
+    });
+
+    it('should render empty string field value as ""', () => {
+      expect(compileStringTemplate('{{fields.title}}', date, '', fromJS({ title: '' }))).toBe('');
+    });
+
+    it('should render truthy string field value unchanged', () => {
+      expect(compileStringTemplate('{{fields.title}}', date, '', fromJS({ title: 'hello' }))).toBe(
+        'hello',
+      );
+    });
   });
 
   describe('parseDateFromEntryData', () => {
