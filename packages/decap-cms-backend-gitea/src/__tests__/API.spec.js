@@ -259,6 +259,56 @@ describe('gitea API', () => {
     });
   });
 
+  describe('getFileSha', () => {
+    it('should resolve with sha when tree contains matching file', async () => {
+      const api = new API({ branch: 'master', repo: 'owner/repo' });
+
+      api.request = jest.fn().mockResolvedValue({
+        tree: [
+          { path: 'other.md', sha: 'other-sha' },
+          { path: 'file.md', sha: 'abc123' },
+        ],
+      });
+
+      await expect(api.getFileSha('dir/file.md')).resolves.toEqual('abc123');
+      expect(api.request).toHaveBeenCalledTimes(1);
+      expect(api.request).toHaveBeenCalledWith(
+        `/repos/owner/repo/git/trees/master:${encodeURIComponent('dir')}`,
+      );
+    });
+
+    it('should reject with APIError (404) when file is absent from tree', async () => {
+      const api = new API({ branch: 'master', repo: 'owner/repo' });
+
+      api.request = jest.fn().mockResolvedValue({
+        tree: [{ path: 'other.md', sha: 'other-sha' }],
+      });
+
+      await expect(api.getFileSha('dir/missing.md')).rejects.toMatchObject({
+        name: 'API_ERROR',
+        status: 404,
+        api: 'Gitea',
+      });
+      expect(api.request).toHaveBeenCalledTimes(1);
+      expect(api.request).toHaveBeenCalledWith(
+        `/repos/owner/repo/git/trees/master:${encodeURIComponent('dir')}`,
+      );
+    });
+
+    it('should use encodeURIComponent for the directory segment', async () => {
+      const api = new API({ branch: 'main', repo: 'owner/repo' });
+
+      api.request = jest.fn().mockResolvedValue({
+        tree: [{ path: 'file.md', sha: 'def456' }],
+      });
+
+      await expect(api.getFileSha('content/blog posts/file.md')).resolves.toEqual('def456');
+      expect(api.request).toHaveBeenCalledWith(
+        `/repos/owner/repo/git/trees/main:${encodeURIComponent('content/blog posts')}`,
+      );
+    });
+  });
+
   describe('listFiles', () => {
     it('should get files by depth', async () => {
       const api = new API({ branch: 'master', repo: 'owner/repo' });
