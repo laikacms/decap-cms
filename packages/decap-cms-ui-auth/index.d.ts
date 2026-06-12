@@ -1,16 +1,33 @@
 declare module 'decap-cms-ui-auth' {
   import React from 'react';
 
-  import type { Implementation } from 'decap-cms-lib-util/src';
-
-  class PKCEAuthenticationPage extends React.Component {
-    constructor({ backend }: { backend: Implementation });
-    handleLogin(e: ChangeEvent<HTMLInputElement>): void;
-  }
-  class NetlifyAuthenticationPage extends React.Component {
-    handleLogin(e: ChangeEvent<HTMLInputElement>): void;
-    static authClient: () => Promise;
+  interface PKCEAuthenticationPageProps {
+    config: object;
+    onLogin: (user: unknown) => void;
+    inProgress?: boolean;
+    t: (key: string) => string;
   }
 
-  export { PKCEAuthenticationPage, NetlifyAuthenticationPage };
+  interface NetlifyAuthenticationPageProps {
+    config: object;
+    onLogin: (user: unknown) => void;
+    inProgress: boolean;
+    t: (key: string) => string;
+    error?: React.ReactNode;
+  }
+
+  class PKCEAuthenticationPage extends React.Component<PKCEAuthenticationPageProps> {
+    handleLogin(e: React.ChangeEvent<HTMLInputElement>): void;
+  }
+  class NetlifyAuthenticationPage extends React.Component<NetlifyAuthenticationPageProps> {
+    handleLogin(e: React.ChangeEvent<HTMLInputElement>): void;
+    static authClient: () => Promise<unknown>;
+  }
+
+  export {
+    PKCEAuthenticationPage,
+    PKCEAuthenticationPageProps,
+    NetlifyAuthenticationPage,
+    NetlifyAuthenticationPageProps,
+  };
 }
