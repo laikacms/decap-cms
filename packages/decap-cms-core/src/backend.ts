@@ -186,8 +186,7 @@ export function mergeExpandedEntries(entries: (EntryValue & { field: string })[]
 
   const merged = entries.reduce((acc, e) => {
     if (!acc[e.slug]) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { field, ...rest } = e;
+      const { field: _field, ...rest } = e;
       acc[e.slug] = rest;
       arrayPaths[e.slug] = Set();
     }
