@@ -7,6 +7,54 @@ describe('github GraphQL API', () => {
     jest.resetAllMocks();
   });
 
+  describe('getBranchQualifiedName', () => {
+    it('should prefix branch name with refs/heads/', () => {
+      const api = new GraphQLAPI({ branch: 'main', repo: 'owner/repo' });
+      expect(api.getBranchQualifiedName('my-feature')).toBe('refs/heads/my-feature');
+    });
+  });
+
+  describe('getBranchQuery', () => {
+    it('should return query object with correct variables', () => {
+      const api = new GraphQLAPI({ branch: 'main', repo: 'owner/repo' });
+      const result = api.getBranchQuery('main', 'myowner', 'myrepo');
+      expect(result.variables.qualifiedName).toBe('refs/heads/main');
+      expect(result.variables.owner).toBe('myowner');
+      expect(result.variables.name).toBe('myrepo');
+    });
+  });
+
+  describe('getOwnerAndNameFromRepoUrl', () => {
+    const repoOwner = 'owner';
+    const repoName = 'my-repo';
+    const originRepoOwner = 'fork-owner';
+    const originRepoName = 'my-forked-repo';
+
+    it('should return owner and name for the main repo URL', () => {
+      const api = new GraphQLAPI({
+        branch: 'main',
+        repo: `${repoOwner}/${repoName}`,
+        originRepo: `${originRepoOwner}/${originRepoName}`,
+      });
+      expect(api.getOwnerAndNameFromRepoUrl(api.repoURL)).toEqual({
+        owner: repoOwner,
+        name: repoName,
+      });
+    });
+
+    it('should return origin owner and name for the originRepoURL (fork/open-authoring path)', () => {
+      const api = new GraphQLAPI({
+        branch: 'main',
+        repo: `${repoOwner}/${repoName}`,
+        originRepo: `${originRepoOwner}/${originRepoName}`,
+      });
+      expect(api.getOwnerAndNameFromRepoUrl(api.originRepoURL)).toEqual({
+        owner: originRepoOwner,
+        name: originRepoName,
+      });
+    });
+  });
+
   describe('editorialWorkflowGit', () => {
     it('should should flatten nested tree into a list of files', () => {
       const api = new GraphQLAPI({ branch: 'gh-pages', repo: 'owner/my-repo' });
