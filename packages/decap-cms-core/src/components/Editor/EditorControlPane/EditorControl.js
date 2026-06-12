@@ -363,8 +363,7 @@ class EditorControl extends React.Component {
                   allowedElements={['a', 'strong', 'em', 'del']}
                   unwrapDisallowed={true}
                   components={{
-                    // eslint-disable-next-line no-unused-vars
-                    a: ({ node, ...props }) => (
+                    a: ({ node: _node, ...props }) => (
                       <a
                         {...props}
                         target="_blank"
