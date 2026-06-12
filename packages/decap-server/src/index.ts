@@ -1,5 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-require('dotenv').config();
+import 'dotenv/config';
 import express from 'express';
 
 import { registerCommonMiddlewares } from './middlewares/common';
