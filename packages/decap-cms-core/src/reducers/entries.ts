@@ -475,7 +475,7 @@ function getGroup(entry: EntryMap, selectedGroup: GroupMap) {
 
   const dataAsString = String(fieldData);
   if (selectedGroup.has('pattern')) {
-    const pattern = selectedGroup.get('pattern');
+    const pattern = selectedGroup.get('pattern') as string;
     let value = '';
     try {
       const regex = new RegExp(pattern);

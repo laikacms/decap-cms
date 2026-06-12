@@ -377,7 +377,7 @@ export function applyDefaults(originalConfig: CmsConfig) {
       collection.view_groups = (view_groups || []).map(group => {
         return {
           ...group,
-          id: `${group.field}__${group.pattern}`,
+          id: group.pattern != null ? `${group.field}__${group.pattern}` : group.field,
         };
       });
 

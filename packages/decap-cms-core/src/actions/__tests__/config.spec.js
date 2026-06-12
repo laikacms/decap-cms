@@ -402,6 +402,34 @@ describe('config', () => {
         });
       });
 
+      describe('view_groups id generation (DCMS-164)', () => {
+        it('should use field alone as id when pattern is absent', () => {
+          const result = applyDefaults({
+            collections: [
+              {
+                folder: 'foo',
+                fields: [{ name: 'title', widget: 'string' }],
+                view_groups: [{ label: 'By Author', field: 'author' }],
+              },
+            ],
+          });
+          expect(result.collections[0].view_groups[0].id).toEqual('author');
+        });
+
+        it('should use field__pattern as id when pattern is present', () => {
+          const result = applyDefaults({
+            collections: [
+              {
+                folder: 'foo',
+                fields: [{ name: 'title', widget: 'string' }],
+                view_groups: [{ label: 'By Draft', field: 'draft', pattern: 'true' }],
+              },
+            ],
+          });
+          expect(result.collections[0].view_groups[0].id).toEqual('draft__true');
+        });
+      });
+
       describe('editor preview', () => {
         it('should set editor preview honoring global config before and specific config after', () => {
           const config = applyDefaults({
