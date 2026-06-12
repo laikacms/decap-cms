@@ -363,7 +363,7 @@ class EditorControl extends React.Component {
                   allowedElements={['a', 'strong', 'em', 'del']}
                   unwrapDisallowed={true}
                   components={{
-                    a: ({ _node, ...props }) => (
+                    a: ({ node: _node, ...props }) => (
                       <a
                         {...props}
                         target="_blank"

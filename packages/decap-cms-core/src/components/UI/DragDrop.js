@@ -11,7 +11,12 @@ export function DragSource({ namespace, ...props }) {
   const DragComponent = ReactDNDDragSource(
     namespace,
     {
-      beginDrag({ _children, _isDragging, _connectDragComponent, ...ownProps }) {
+      beginDrag({
+        children: _children,
+        isDragging: _isDragging,
+        connectDragComponent: _connectDragComponent,
+        ...ownProps
+      }) {
         // We return the rest of the props as the ID of the element being dragged.
         return ownProps;
       },
