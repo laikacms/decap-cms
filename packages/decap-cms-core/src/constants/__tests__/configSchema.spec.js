@@ -37,6 +37,24 @@ describe('config', () => {
       }).not.toThrowError();
     });
 
+    it('should not throw when search is false', () => {
+      expect(() => {
+        validateConfig({ ...validConfig, search: false });
+      }).not.toThrowError();
+    });
+
+    it('should not throw when search is true', () => {
+      expect(() => {
+        validateConfig({ ...validConfig, search: true });
+      }).not.toThrowError();
+    });
+
+    it('should throw when search is a non-boolean string', () => {
+      expect(() => {
+        validateConfig({ ...validConfig, search: 'yes' });
+      }).toThrowError();
+    });
+
     it('should not throw when media_folder_relative is set (removed field, silently ignored as extra property)', () => {
       // media_folder_relative was removed in DCMS-080 — it was a no-op since 2019.
       // The top-level schema has no additionalProperties:false so it passes through without error.

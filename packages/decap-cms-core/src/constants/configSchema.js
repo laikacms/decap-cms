@@ -440,6 +440,7 @@ function getConfigSchema() {
           preview: { type: 'boolean' },
         },
       },
+      search: { type: 'boolean' },
     },
     required: ['backend', 'collections'],
     anyOf: [{ required: ['media_folder'] }, { required: ['media_library'] }],
