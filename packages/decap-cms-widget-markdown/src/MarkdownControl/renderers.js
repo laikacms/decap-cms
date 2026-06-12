@@ -1,4 +1,3 @@
-/* eslint-disable react/display-name */
 import React from 'react';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
@@ -283,7 +282,7 @@ export function Leaf({ attributes, children, leaf }) {
 }
 
 export function renderInline__DEPRECATED() {
-  return props => {
+  return function RenderInlineDeprecated(props) {
     switch (props.node.type) {
       case 'link':
         return <Link {...props} />;
