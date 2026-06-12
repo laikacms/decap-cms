@@ -383,7 +383,10 @@ export function getI18nDataFiles(
   return dataFiles;
 }
 
-export function duplicateDefaultI18nFields(collection: Collection, dataFields: Record<string, unknown>) {
+export function duplicateDefaultI18nFields(
+  collection: Collection,
+  dataFields: Record<string, unknown>,
+) {
   const { locales, defaultLocale } = getI18nInfo(collection) as I18nInfo;
 
   const i18nFields = Object.fromEntries(
@@ -453,7 +456,10 @@ export function serializeI18n(
     .filter(locale => locale !== defaultLocale)
     .forEach(locale => {
       const dataPath = getLocaleDataPath(locale);
-      entry = entry.setIn(dataPath, serializeValues(entry.getIn(dataPath) as Record<string, unknown>));
+      entry = entry.setIn(
+        dataPath,
+        serializeValues(entry.getIn(dataPath) as Record<string, unknown>),
+      );
     });
 
   return entry;

@@ -1342,7 +1342,11 @@ export class Backend {
     const format = resolveFormat(collection, entry.toJS());
     const fieldsOrder = this.fieldsOrder(collection, entry);
     const fieldsComments = selectFieldsComments(collection, entry);
-    let content = format.toFile((entry.get('data') as unknown as { toJS(): unknown }).toJS(), fieldsOrder, fieldsComments);
+    let content = format.toFile(
+      (entry.get('data') as unknown as { toJS(): unknown }).toJS(),
+      fieldsOrder,
+      fieldsComments,
+    );
     if (content.slice(-1) != '\n') {
       // add the EOL if it does not exist.
       content += '\n';
