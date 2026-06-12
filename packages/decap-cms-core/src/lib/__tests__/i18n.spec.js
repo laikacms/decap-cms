@@ -849,12 +849,8 @@ describe('i18n', () => {
       i18n.serializeI18n(collection, entry, serializeValues);
 
       expect(serializeValues).toHaveBeenCalledTimes(2);
-      expect(serializeValues).toHaveBeenCalledWith(
-        entry.getIn(['i18n', 'de', 'data']),
-      );
-      expect(serializeValues).toHaveBeenCalledWith(
-        entry.getIn(['i18n', 'fr', 'data']),
-      );
+      expect(serializeValues).toHaveBeenCalledWith(entry.getIn(['i18n', 'de', 'data']));
+      expect(serializeValues).toHaveBeenCalledWith(entry.getIn(['i18n', 'fr', 'data']));
     });
 
     it('should write serializeValues return value back to the correct locale data path', () => {
