@@ -354,6 +354,28 @@ describe('gitlab backend', () => {
       expect(authStore.retrieve()).toEqual(user);
       expect(user).toEqual({ ...resp.user.success, ...mockCredentials, backendName });
     });
+
+    it('uses default_branch from API when branch is not configured', async () => {
+      // repo responds with default_branch: 'main'
+      backend = resolveBackend(defaultConfig);
+      interceptAuth(backend, {
+        projectResponse: { ...resp.project.success, default_branch: 'main' },
+      });
+      await backend.authenticate(mockCredentials);
+      // The API instance must have been constructed with branch 'main'
+      expect(backend.implementation.api.branch).toEqual('main');
+    });
+
+    it('keeps configured branch and does not call getDefaultBranchName', async () => {
+      const configWithBranch = { backend: { ...defaultConfig.backend, branch: 'develop' } };
+      backend = resolveBackend(configWithBranch);
+      const api = mockApi(backend);
+      // Only one project call expected (hasWriteAccess); getDefaultBranchName must NOT be called
+      api.get('/user').query(true).reply(200, resp.user.success);
+      api.get(expectedRepoUrl).query(true).reply(200, resp.project.success);
+      await backend.authenticate(mockCredentials);
+      expect(backend.implementation.api.branch).toEqual('develop');
+    });
   });
 
   describe('currentUser', () => {
@@ -441,7 +463,7 @@ describe('gitlab backend', () => {
 
     it('returns all entries from folder collection', async () => {
       const tree = mockRepo.tree[collectionManyEntriesConfig.folder];
-      interceptBranch(backend);
+      interceptBranch(backend, { branch: 'main' });
       tree.forEach(file => interceptFiles(backend, file.path));
 
       interceptCollection(backend, collectionManyEntriesConfig, { repeat: 5 });
