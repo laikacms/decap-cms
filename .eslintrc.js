@@ -34,6 +34,10 @@ module.exports = {
     CMS_ENV: false,
   },
   rules: {
+    'no-unused-vars': [
+      'error',
+      { varsIgnorePattern: '^_', argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
+    ],
     'no-console': [0],
     'react/prop-types': [0],
     'import/no-named-as-default': 0,
