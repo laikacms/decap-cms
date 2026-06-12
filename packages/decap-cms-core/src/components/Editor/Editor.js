@@ -234,7 +234,14 @@ export class Editor extends React.Component {
       entryDraft,
     } = this.props;
 
-    await persistEntry(collection);
+    try {
+      await persistEntry(collection);
+    } catch (e) {
+      if (e instanceof Error && e.message === 'Entry has validation errors') {
+        return;
+      }
+      throw e;
+    }
 
     this.deleteBackup();
 

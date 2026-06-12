@@ -9,6 +9,7 @@ import {
   persistLocalBackup,
   getMediaAssets,
   validateMetaField,
+  persistEntry,
 } from '../entries';
 import AssetProxy from '../../valueObjects/AssetProxy';
 
@@ -439,6 +440,33 @@ describe('entries', () => {
 
       const entry = Map({ mediaFiles });
       expect(getMediaAssets({ entry })).toEqual([new AssetProxy({ path: 'path2' })]);
+    });
+  });
+
+  describe('persistEntry', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should reject with an Error (not undefined) when draft has presence validation errors', () => {
+      const store = mockStore({
+        config: Map(),
+        entryDraft: fromJS({
+          entry: {},
+          fieldsErrors: {
+            title: [{ type: 'PRESENCE', message: 'Required' }],
+          },
+        }),
+        entries: fromJS({}),
+        integrations: fromJS({}),
+        mediaLibrary: fromJS({ files: [] }),
+      });
+
+      const collection = fromJS({ name: 'posts', fields: [{ name: 'title', required: true }] });
+
+      return expect(store.dispatch(persistEntry(collection))).rejects.toEqual(
+        new Error('Entry has validation errors'),
+      );
     });
   });
 
