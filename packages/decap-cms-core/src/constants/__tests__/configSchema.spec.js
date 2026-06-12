@@ -108,6 +108,24 @@ describe('config', () => {
       }).not.toThrowError();
     });
 
+    it('should throw if backend.auth_type is not "pkce" in config', () => {
+      expect(() => {
+        validateConfig(merge(validConfig, { backend: { auth_type: 'invalid' } }));
+      }).toThrowError("'backend.auth_type' must be equal to one of the allowed values");
+    });
+
+    it('should not throw if backend.auth_type is "pkce" in config', () => {
+      expect(() => {
+        validateConfig(merge(validConfig, { backend: { auth_type: 'pkce' } }));
+      }).not.toThrowError();
+    });
+
+    it('should not throw if backend.auth_type is omitted from config', () => {
+      expect(() => {
+        validateConfig(validConfig);
+      }).not.toThrowError();
+    });
+
     it('should not throw if backend.squash_merges is boolean in config', () => {
       expect(() => {
         validateConfig(merge({}, validConfig, { backend: { squash_merges: true } }));
