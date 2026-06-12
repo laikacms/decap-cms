@@ -12,6 +12,7 @@ import { getFormatExtensions } from '../formats/formats';
 import { selectMediaFolder } from './entries';
 import { summaryFormatter } from '../lib/formatters';
 
+import type { Map } from 'immutable';
 import type {
   Collection,
   Collections,
@@ -381,7 +382,7 @@ export function selectEntryCollectionTitle(collection: Collection, entry: EntryM
   }
 
   // try to infer a title field from the entry data
-  const entryData = entry.get('data');
+  const entryData = entry.get('data') as unknown as Map<string, unknown>;
   const titleField = selectInferredField(collection, 'title');
   const result = titleField && entryData.getIn(keyToPathArray(titleField));
 

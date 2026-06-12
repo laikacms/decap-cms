@@ -574,14 +574,11 @@ export type EditorialWorkflow = StaticallyTypedRecord<{
   entities: Entities & EntitiesObject;
 }>;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type EntryObject = {
   path: string;
   slug: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  i18n?: any;
+  data: Record<string, unknown>;
+  i18n?: { [locale: string]: { data: Record<string, unknown> } };
   collection: string;
   mediaFiles: List<MediaFileMap>;
   newRecord: boolean;

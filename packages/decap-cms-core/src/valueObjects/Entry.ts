@@ -5,8 +5,7 @@ import type { MediaFile } from '../backend';
 interface Options {
   partial?: boolean;
   raw?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data?: any;
+  data?: Record<string, unknown>;
   label?: string | null;
   isModification?: boolean | null;
   mediaFiles?: MediaFile[] | null;
@@ -14,10 +13,7 @@ interface Options {
   updatedOn?: string;
   status?: string;
   meta?: { path?: string };
-  i18n?: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [locale: string]: any;
-  };
+  i18n?: { [locale: string]: { data: Record<string, unknown> } };
 }
 
 export interface EntryValue {
@@ -26,8 +22,7 @@ export interface EntryValue {
   path: string;
   partial: boolean;
   raw: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any;
+  data: Record<string, unknown>;
   label: string | null;
   isModification: boolean | null;
   mediaFiles: MediaFile[];
@@ -35,10 +30,7 @@ export interface EntryValue {
   updatedOn: string;
   status?: string;
   meta: { path?: string };
-  i18n?: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [locale: string]: any;
-  };
+  i18n?: { [locale: string]: { data: Record<string, unknown> } };
 }
 
 export function createEntry(collection: string, slug = '', path = '', options: Options = {}) {

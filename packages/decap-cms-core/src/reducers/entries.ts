@@ -443,7 +443,7 @@ export function selectEntries(state: Entries, collection: Collection) {
         const allMatched = filters.every(f => {
           const pattern = f.get('pattern');
           const field = f.get('field');
-          const data = e!.get('data') || Map();
+          const data = (e!.get('data') || Map()) as unknown as Map<string, unknown>;
           const toMatch = data.getIn(keyToPathArray(field));
           const matched =
             toMatch !== undefined &&

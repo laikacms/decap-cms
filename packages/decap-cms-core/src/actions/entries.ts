@@ -892,8 +892,7 @@ export function getSerializedEntry(collection: Collection, entry: Entry) {
    */
   const fields = selectFields(collection, entry.get('slug'));
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function serializeData(data: any) {
+  function serializeData(data: Record<string, unknown>): Record<string, unknown> {
     return serializeValues(data, fields);
   }
 

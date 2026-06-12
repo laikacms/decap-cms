@@ -242,7 +242,7 @@ export function previewUrlFormatter(
 }
 
 export function summaryFormatter(summaryTemplate: string, entry: EntryMap, collection: Collection) {
-  let entryData = entry.get('data');
+  let entryData = entry.get('data') as unknown as Map<string, unknown>;
   const date =
     parseDateFromEntry(
       entry as unknown as Map<string, unknown>,
@@ -250,7 +250,7 @@ export function summaryFormatter(summaryTemplate: string, entry: EntryMap, colle
     ) || null;
   const identifier = entryData.getIn(keyToPathArray(selectIdentifier(collection) as string));
 
-  entryData = addFileTemplateFields(entry.get('path'), entryData, collection.get('folder'));
+  entryData = addFileTemplateFields(entry.get('path'), entryData as unknown as Map<string, string>, collection.get('folder')) as unknown as Map<string, unknown>;
   // allow commit information in summary template
   if (entry.get('author') && !selectField(collection, COMMIT_AUTHOR)) {
     entryData = entryData.set(COMMIT_AUTHOR, entry.get('author'));
