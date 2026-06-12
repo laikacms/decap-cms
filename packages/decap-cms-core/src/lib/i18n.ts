@@ -173,7 +173,7 @@ export function getI18nFiles(
   const dataFiles = locales
     .map(locale => {
       const dataPath = getDataPath(locale, defaultLocale);
-      const draft = entryDraft.set('data', entryDraft.getIn(dataPath));
+      const draft = entryDraft.set('data', entryDraft.getIn(dataPath) as Record<string, unknown>);
       return {
         path: getFilePath(structure, extension, path, slug, locale),
         slug,
@@ -202,7 +202,7 @@ export function getI18nBackup(
       if (!data) {
         return acc;
       }
-      const draft = entry.set('data', data);
+      const draft = entry.set('data', data as Record<string, unknown>);
       return { ...acc, [locale]: { raw: entryToRaw(draft) } };
     }, {} as Record<string, { raw: string }>);
 
@@ -216,7 +216,7 @@ export function formatI18nBackup(
   const i18n = Object.entries(i18nBackup).reduce((acc, [locale, { raw }]) => {
     const entry = formatRawData(raw);
     return { ...acc, [locale]: { data: entry.data } };
-  }, {});
+  }, {} as { [locale: string]: { data: Record<string, unknown> } });
 
   return i18n;
 }
@@ -278,14 +278,14 @@ function mergeSingleFileValue(
   defaultLocale: string,
   locales: string[],
 ): EntryValue {
-  const data = entryValue.data[defaultLocale] || {};
+  const data = (entryValue.data[defaultLocale] || {}) as Record<string, unknown>;
   const i18n = locales
     .filter(l => l !== defaultLocale)
     .map(l => ({ locale: l, value: entryValue.data[l] }))
     .filter(e => e.value)
     .reduce((acc, e) => {
-      return { ...acc, [e.locale]: { data: e.value } };
-    }, {});
+      return { ...acc, [e.locale]: { data: e.value as Record<string, unknown> } };
+    }, {} as { [locale: string]: { data: Record<string, unknown> } });
 
   return {
     ...entryValue,
@@ -383,8 +383,10 @@ export function getI18nDataFiles(
   return dataFiles;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function duplicateDefaultI18nFields(collection: Collection, dataFields: any) {
+export function duplicateDefaultI18nFields(
+  collection: Collection,
+  dataFields: Record<string, unknown>,
+) {
   const { locales, defaultLocale } = getI18nInfo(collection) as I18nInfo;
 
   const i18nFields = Object.fromEntries(
@@ -440,14 +442,13 @@ export function getPreviewEntry(entry: EntryMap, locale: string, defaultLocale: 
   if (locale === defaultLocale) {
     return entry;
   }
-  return entry.set('data', entry.getIn([I18N, locale, 'data']));
+  return entry.set('data', entry.getIn([I18N, locale, 'data']) as Record<string, unknown>);
 }
 
 export function serializeI18n(
   collection: Collection,
   entry: Entry,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  serializeValues: (data: any) => any,
+  serializeValues: (data: Record<string, unknown>) => Record<string, unknown>,
 ) {
   const { locales, defaultLocale } = getI18nInfo(collection) as I18nInfo;
 
@@ -455,7 +456,10 @@ export function serializeI18n(
     .filter(locale => locale !== defaultLocale)
     .forEach(locale => {
       const dataPath = getLocaleDataPath(locale);
-      entry = entry.setIn(dataPath, serializeValues(entry.getIn(dataPath)));
+      entry = entry.setIn(
+        dataPath,
+        serializeValues(entry.getIn(dataPath) as Record<string, unknown>),
+      );
     });
 
   return entry;

@@ -141,7 +141,7 @@ function getEntryField(field: string, entry: EntryValue) {
     const firstFieldPart = field.split('.')[0];
     if (entry[firstFieldPart as keyof EntryValue]) {
       // allows searching using entry.slug/entry.path etc.
-      return entry[firstFieldPart as keyof EntryValue];
+      return String(entry[firstFieldPart as keyof EntryValue]);
     } else {
       return '';
     }
@@ -192,9 +192,9 @@ export function mergeExpandedEntries(entries: (EntryValue & { field: string })[]
     }
 
     const nestedFields = e.field.split('.');
-    let value = acc[e.slug].data;
+    let value: unknown = acc[e.slug].data;
     for (let i = 0; i < nestedFields.length; i++) {
-      value = value[nestedFields[i]];
+      value = (value as Record<string, unknown>)[nestedFields[i]];
       if (Array.isArray(value)) {
         const path = nestedFields.slice(0, i + 1).join('.');
         arrayPaths[e.slug] = arrayPaths[e.slug].add(path);
@@ -1342,7 +1342,11 @@ export class Backend {
     const format = resolveFormat(collection, entry.toJS());
     const fieldsOrder = this.fieldsOrder(collection, entry);
     const fieldsComments = selectFieldsComments(collection, entry);
-    let content = format.toFile(entry.get('data').toJS(), fieldsOrder, fieldsComments);
+    let content = format.toFile(
+      (entry.get('data') as unknown as { toJS(): unknown }).toJS(),
+      fieldsOrder,
+      fieldsComments,
+    );
     if (content.slice(-1) != '\n') {
       // add the EOL if it does not exist.
       content += '\n';
