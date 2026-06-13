@@ -49,6 +49,11 @@ To use a custom Git-Gateway implementation with PKCE authentication, use a confi
         gateway_url: https://your.gitgateway.host/git-gateway/bitbucket/
         # Override the Netlify git-gateway status check
         status_endpoint: https://your.gitgateway.host/api/v2/components.json
+        # Optional: component name to match in the status API response (default: "Git Gateway")
+        status_component_name: My Git Gateway
+        # Optional: URL of the status page shown to users when the service is down.
+        # Defaults to the origin of status_endpoint when set, otherwise https://www.netlifystatus.com
+        status_page: https://your.gitgateway.host/status
         # Optional: defaults to "master"
         branch: main
 

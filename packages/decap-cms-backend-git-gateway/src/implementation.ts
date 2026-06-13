@@ -41,9 +41,9 @@ import type {
   DisplayURLObject,
 } from 'decap-cms-lib-util';
 
-const STATUS_PAGE = 'https://www.netlifystatus.com';
-const GIT_GATEWAY_STATUS_ENDPOINT = `${STATUS_PAGE}/api/v2/components.json`;
-const GIT_GATEWAY_OPERATIONAL_UNITS = ['Git Gateway'];
+const DEFAULT_STATUS_PAGE = 'https://www.netlifystatus.com';
+const DEFAULT_STATUS_COMPONENT_NAME = 'Git Gateway';
+const GIT_GATEWAY_STATUS_ENDPOINT = `${DEFAULT_STATUS_PAGE}/api/v2/components.json`;
 type GitGatewayStatus = {
   id: string;
   name: string;
@@ -144,6 +144,8 @@ export default class GitGateway implements Implementation {
   transformImages: boolean;
   gatewayUrl: string;
   gitGatewayStatusEndpoint: string;
+  gitGatewayStatusPage: string;
+  gitGatewayStatusComponentName: string;
   netlifyLargeMediaURL: string;
   backendType: string | null;
   apiUrl: string;
@@ -172,6 +174,13 @@ export default class GitGateway implements Implementation {
     this.cmsLabelPrefix = config.backend.cms_label_prefix || '';
     this.mediaFolder = config.media_folder;
     this.gitGatewayStatusEndpoint = config.backend.status_endpoint || GIT_GATEWAY_STATUS_ENDPOINT;
+    this.gitGatewayStatusComponentName =
+      config.backend.status_component_name || DEFAULT_STATUS_COMPONENT_NAME;
+    this.gitGatewayStatusPage =
+      config.backend.status_page ||
+      (config.backend.status_endpoint
+        ? new URL(config.backend.status_endpoint).origin
+        : DEFAULT_STATUS_PAGE);
     const { use_large_media_transforms_in_media_library: transformImages = true } = config.backend;
     this.transformImages = transformImages;
 
@@ -209,8 +218,9 @@ export default class GitGateway implements Implementation {
       .then(res => res.json())
       .then(res => {
         return res['components']
-          .filter((statusComponent: GitGatewayStatus) =>
-            GIT_GATEWAY_OPERATIONAL_UNITS.includes(statusComponent.name),
+          .filter(
+            (statusComponent: GitGatewayStatus) =>
+              statusComponent.name === this.gitGatewayStatusComponentName,
           )
           .every((statusComponent: GitGatewayStatus) => statusComponent.status === 'operational');
       })
@@ -231,7 +241,7 @@ export default class GitGateway implements Implementation {
           })) || false;
     }
 
-    return { auth: { status: auth }, api: { status: api, statusPage: STATUS_PAGE } };
+    return { auth: { status: auth }, api: { status: api, statusPage: this.gitGatewayStatusPage } };
   }
 
   async getAuthClient() {
