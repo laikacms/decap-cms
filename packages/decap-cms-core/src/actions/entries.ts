@@ -692,7 +692,7 @@ export function traverseCollectionCursor(collection: Collection, action: string)
       dispatch(entriesLoading(collection));
       const { entries, cursor: newCursor } = await traverseCursor(backend, cursor, realAction);
 
-      const pagination = newCursor.meta?.get('page');
+      const pagination = newCursor.meta?.get('page') as number | null;
       return dispatch(
         entriesLoaded(collection, entries, pagination, addAppendActionsToCursor(newCursor), append),
       );
