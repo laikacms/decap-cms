@@ -19,10 +19,8 @@ export type CursorStore = {
   setIn(path: string[], value: unknown): CursorStore;
   hasIn(path: string[]): boolean;
   mergeIn(path: string[], value: unknown): CursorStore;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  update: (...args: any[]) => CursorStore;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  updateIn: (...args: any[]) => CursorStore;
+  update: (...args: unknown[]) => CursorStore;
+  updateIn: (...args: unknown[]) => CursorStore;
 };
 
 type ActionHandler = (action: string) => unknown;
@@ -91,10 +89,8 @@ function getActionHandlers(store: CursorStore, handler: ActionHandler) {
 export default class Cursor {
   store?: CursorStore;
   actions?: Set<string>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data?: Map<string, any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  meta?: Map<string, any>;
+  data?: Map<string, unknown>;
+  meta?: Map<string, unknown>;
 
   static create(...args: {}[]) {
     return new Cursor(...args);
@@ -111,12 +107,10 @@ export default class Cursor {
     this.meta = this.store.get('meta');
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  updateStore(...args: any[]) {
+  updateStore(...args: unknown[]) {
     return new Cursor(this.store!.update(...args));
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  updateInStore(...args: any[]) {
+  updateInStore(...args: unknown[]) {
     return new Cursor(this.store!.updateIn(...args));
   }
 

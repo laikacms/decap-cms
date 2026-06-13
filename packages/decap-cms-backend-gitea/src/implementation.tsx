@@ -372,7 +372,7 @@ export default class Gitea implements Implementation {
 
   async traverseCursor(cursor: Cursor, action: string) {
     const meta = cursor.meta!;
-    const files = cursor.data!.get('files')!.toJS() as ApiFile[];
+    const files = (cursor.data!.get('files')! as { toJS(): ApiFile[] }).toJS();
 
     let result: { cursor: Cursor; files: ApiFile[] };
     switch (action) {
@@ -381,15 +381,15 @@ export default class Gitea implements Implementation {
         break;
       }
       case 'last': {
-        result = this.getCursorAndFiles(files, meta.get('pageCount'));
+        result = this.getCursorAndFiles(files, meta.get('pageCount') as number);
         break;
       }
       case 'next': {
-        result = this.getCursorAndFiles(files, meta.get('page') + 1);
+        result = this.getCursorAndFiles(files, (meta.get('page') as number) + 1);
         break;
       }
       case 'prev': {
-        result = this.getCursorAndFiles(files, meta.get('page') - 1);
+        result = this.getCursorAndFiles(files, (meta.get('page') as number) - 1);
         break;
       }
       default: {
