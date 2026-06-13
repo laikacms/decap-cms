@@ -112,6 +112,14 @@ export default class PkceAuthenticator {
     authURL.searchParams.set('response_type', 'code');
     authURL.searchParams.set('scope', options.scope);
 
+    if (options.prompt != null && options.prompt != undefined) {
+      authURL.searchParams.set('prompt', options.prompt);
+    }
+
+    if (options.resource != null && options.resource != undefined) {
+      authURL.searchParams.set('resource', options.resource);
+    }
+
     const state = JSON.stringify({ auth_type: 'pkce', nonce: createNonce() });
 
     authURL.searchParams.set('state', state);

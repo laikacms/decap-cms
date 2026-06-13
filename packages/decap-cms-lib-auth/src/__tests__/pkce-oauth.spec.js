@@ -19,6 +19,111 @@ describe('PkceAuthenticator', () => {
     setAuthCallbackUrl('');
   });
 
+  describe('authenticate', () => {
+    let navigatedUrl;
+
+    beforeEach(() => {
+      navigatedUrl = null;
+      // jsdom stores the Location impl on document.location via a unique Symbol.
+      // We can retrieve the impl without importing jsdom's utils (which has module-cache issues in Jest)
+      // by using Object.getOwnPropertySymbols — there is exactly one Symbol on the wrapper.
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { serializeURL } = require('whatwg-url');
+      const implSymbol = Object.getOwnPropertySymbols(document.location)[0];
+      const locationImpl = document.location[implSymbol];
+      const origNavigate = locationImpl._locationObjectNavigate;
+      locationImpl._locationObjectNavigate = function interceptedNavigate(urlRecord) {
+        navigatedUrl = typeof urlRecord === 'string' ? urlRecord : serializeURL(urlRecord);
+      };
+      locationImpl.__origNavigate__ = origNavigate;
+
+      // jsdom does not implement window.crypto — provide minimal stubs
+      Object.defineProperty(window, 'crypto', {
+        value: {
+          getRandomValues(buf) {
+            for (let i = 0; i < buf.length; i++) buf[i] = i % 256;
+            return buf;
+          },
+          subtle: {
+            digest: jest.fn().mockResolvedValue(new Uint8Array(32).fill(1).buffer),
+          },
+        },
+        writable: true,
+        configurable: true,
+      });
+      // jsdom may not provide TextEncoder — polyfill if needed
+      if (typeof global.TextEncoder === 'undefined') {
+        const { TextEncoder: NodeTextEncoder } = require('util');
+        global.TextEncoder = NodeTextEncoder;
+      }
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+      const implSymbol = Object.getOwnPropertySymbols(document.location)[0];
+      const locationImpl = document.location[implSymbol];
+      if (locationImpl && locationImpl.__origNavigate__) {
+        locationImpl._locationObjectNavigate = locationImpl.__origNavigate__;
+        delete locationImpl.__origNavigate__;
+      }
+    });
+
+    function makeAuthenticator() {
+      return new PkceAuthenticator({
+        use_oidc: false,
+        base_url: 'https://idp.example.com',
+        auth_endpoint: 'oauth2/authorize',
+        auth_token_endpoint: 'oauth2/token',
+        auth_token_endpoint_content_type: 'application/json',
+        app_id: 'client-id',
+      });
+    }
+
+    it('should include prompt in authorization URL when provided', async () => {
+      const authenticator = makeAuthenticator();
+      const cb = jest.fn();
+
+      await authenticator.authenticate({ scope: 'openid', prompt: 'select_account' }, cb);
+
+      expect(navigatedUrl).not.toBeNull();
+      const url = new URL(navigatedUrl);
+      expect(url.searchParams.get('prompt')).toBe('select_account');
+    });
+
+    it('should include resource in authorization URL when provided', async () => {
+      const authenticator = makeAuthenticator();
+      const cb = jest.fn();
+
+      await authenticator.authenticate({ scope: 'openid', resource: 'some-resource' }, cb);
+
+      expect(navigatedUrl).not.toBeNull();
+      const url = new URL(navigatedUrl);
+      expect(url.searchParams.get('resource')).toBe('some-resource');
+    });
+
+    it('should not include prompt in authorization URL when not provided', async () => {
+      const authenticator = makeAuthenticator();
+      const cb = jest.fn();
+
+      await authenticator.authenticate({ scope: 'openid' }, cb);
+
+      expect(navigatedUrl).not.toBeNull();
+      const url = new URL(navigatedUrl);
+      expect(url.searchParams.has('prompt')).toBe(false);
+    });
+
+    it('should not include resource in authorization URL when not provided', async () => {
+      const authenticator = makeAuthenticator();
+      const cb = jest.fn();
+
+      await authenticator.authenticate({ scope: 'openid' }, cb);
+
+      expect(navigatedUrl).not.toBeNull();
+      const url = new URL(navigatedUrl);
+      expect(url.searchParams.has('resource')).toBe(false);
+    });
+  });
+
   it('should clear code verifier when provider returns an auth error', async () => {
     const nonce = setValidNonce();
     const state = encodeURIComponent(JSON.stringify({ nonce }));
