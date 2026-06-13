@@ -10,7 +10,7 @@ export const DEPLOY_PREVIEW_REQUEST = 'DEPLOY_PREVIEW_REQUEST';
 export const DEPLOY_PREVIEW_SUCCESS = 'DEPLOY_PREVIEW_SUCCESS';
 export const DEPLOY_PREVIEW_FAILURE = 'DEPLOY_PREVIEW_FAILURE';
 
-function deployPreviewLoading(collection: string, slug: string) {
+export function deployPreviewLoading(collection: string, slug: string) {
   return {
     type: DEPLOY_PREVIEW_REQUEST,
     payload: {
@@ -20,7 +20,7 @@ function deployPreviewLoading(collection: string, slug: string) {
   } as const;
 }
 
-function deployPreviewLoaded(
+export function deployPreviewLoaded(
   collection: string,
   slug: string,
   deploy: { url: string | undefined; status: string },
@@ -37,7 +37,7 @@ function deployPreviewLoaded(
   } as const;
 }
 
-function deployPreviewError(collection: string, slug: string) {
+export function deployPreviewError(collection: string, slug: string) {
   return {
     type: DEPLOY_PREVIEW_FAILURE,
     payload: {
