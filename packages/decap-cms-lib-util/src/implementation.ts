@@ -118,6 +118,8 @@ export type Config = {
     cms_label_prefix?: string;
     api_version?: string;
     status_endpoint?: string;
+    status_component_name?: string;
+    status_page?: string;
   };
   auth: {
     use_oidc?: boolean;
