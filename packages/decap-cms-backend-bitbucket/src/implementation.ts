@@ -203,7 +203,7 @@ export default class BitbucketBackend implements Implementation {
       })
         .then(res => res.json())
         .catch(() => null);
-      if (repo) {
+      if (repo && repo.mainbranch?.name) {
         this.branch = repo.mainbranch.name;
       }
     }
