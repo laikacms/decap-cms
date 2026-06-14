@@ -12,8 +12,15 @@ import collections, {
   selectField,
   updateFieldByKey,
   selectInferredField,
+  selectSortableFields,
+  selectDefaultSortField,
+  selectSortDataPath,
+  selectViewFilters,
+  selectViewGroups,
+  selectHasMetaPath,
 } from '../collections';
 import { FILES, FOLDER } from '../../constants/collectionTypes';
+import { COMMIT_DATE, COMMIT_AUTHOR } from '../../constants/commitProps';
 
 describe('collections', () => {
   it('should handle an empty state', () => {
@@ -605,6 +612,237 @@ describe('collections', () => {
       });
 
       expect(selectInferredField(collection, 'date')).toEqual('publishDate');
+    });
+  });
+
+  describe('selectSortableFields', () => {
+    function t(key) {
+      return key;
+    }
+
+    it('should return COMMIT_DATE entry with default label', () => {
+      const collection = fromJS({
+        sortable_fields: [{ field: COMMIT_DATE }],
+        fields: [],
+      });
+      const result = selectSortableFields(collection, t);
+      expect(result).toHaveLength(1);
+      expect(result[0].key).toBe(COMMIT_DATE);
+      expect(result[0].name).toBe(COMMIT_DATE);
+      expect(result[0].label).toBeTruthy();
+    });
+
+    it('should use custom label for COMMIT_DATE when provided', () => {
+      const collection = fromJS({
+        sortable_fields: [{ field: COMMIT_DATE, label: 'Modified' }],
+        fields: [],
+      });
+      const result = selectSortableFields(collection, t);
+      expect(result[0].label).toBe('Modified');
+    });
+
+    it('should return COMMIT_AUTHOR entry when no author field exists', () => {
+      const collection = fromJS({
+        sortable_fields: [{ field: COMMIT_AUTHOR }],
+        fields: [],
+      });
+      const result = selectSortableFields(collection, t);
+      expect(result).toHaveLength(1);
+      expect(result[0].key).toBe(COMMIT_AUTHOR);
+      expect(result[0].name).toBe(COMMIT_AUTHOR);
+    });
+
+    it('should use custom label for COMMIT_AUTHOR when provided', () => {
+      const collection = fromJS({
+        sortable_fields: [{ field: COMMIT_AUTHOR, label: 'Writer' }],
+        fields: [],
+      });
+      const result = selectSortableFields(collection, t);
+      expect(result[0].label).toBe('Writer');
+    });
+
+    it('should use custom label override for a regular field', () => {
+      const collection = fromJS({
+        sortable_fields: [{ field: 'title', label: 'Headline' }],
+        fields: [{ name: 'title', label: 'Title', widget: 'string' }],
+      });
+      const result = selectSortableFields(collection, t);
+      expect(result[0].label).toBe('Headline');
+    });
+
+    it('should filter out sortable fields that do not exist in the collection', () => {
+      const collection = fromJS({
+        sortable_fields: [{ field: 'nonexistent' }],
+        fields: [{ name: 'title', widget: 'string' }],
+      });
+      const result = selectSortableFields(collection, t);
+      expect(result).toHaveLength(0);
+    });
+
+    it('should return multiple sortable fields in order', () => {
+      const collection = fromJS({
+        sortable_fields: [{ field: COMMIT_DATE }, { field: 'title' }],
+        fields: [{ name: 'title', label: 'Title', widget: 'string' }],
+      });
+      const result = selectSortableFields(collection, t);
+      expect(result).toHaveLength(2);
+      expect(result[0].key).toBe(COMMIT_DATE);
+      expect(result[1].key).toBe('title');
+    });
+  });
+
+  describe('selectDefaultSortField', () => {
+    it('should return null when no field has default_sort set', () => {
+      const collection = fromJS({
+        sortable_fields: [{ field: 'title' }, { field: COMMIT_DATE }],
+      });
+      expect(selectDefaultSortField(collection)).toBeNull();
+    });
+
+    it('should return field and direction "desc" when default_sort is "desc"', () => {
+      const collection = fromJS({
+        sortable_fields: [{ field: 'title', default_sort: 'desc' }],
+      });
+      const result = selectDefaultSortField(collection);
+      expect(result).toEqual({ field: 'title', direction: 'desc' });
+    });
+
+    it('should return direction "asc" when default_sort is "asc"', () => {
+      const collection = fromJS({
+        sortable_fields: [{ field: 'title', default_sort: 'asc' }],
+      });
+      const result = selectDefaultSortField(collection);
+      expect(result).toEqual({ field: 'title', direction: 'asc' });
+    });
+
+    it('should return direction "asc" when default_sort is true', () => {
+      const collection = fromJS({
+        sortable_fields: [{ field: 'title', default_sort: true }],
+      });
+      const result = selectDefaultSortField(collection);
+      expect(result).toEqual({ field: 'title', direction: 'asc' });
+    });
+
+    it('should use the first field with default_sort when multiple are set', () => {
+      const collection = fromJS({
+        sortable_fields: [
+          { field: 'title', default_sort: 'asc' },
+          { field: 'date', default_sort: 'desc' },
+        ],
+      });
+      const result = selectDefaultSortField(collection);
+      expect(result).toEqual({ field: 'title', direction: 'asc' });
+    });
+  });
+
+  describe('selectSortDataPath', () => {
+    const collection = fromJS({
+      fields: [{ name: 'title', widget: 'string' }],
+    });
+
+    it('should return "updatedOn" for COMMIT_DATE key', () => {
+      expect(selectSortDataPath(collection, COMMIT_DATE)).toBe('updatedOn');
+    });
+
+    it('should return "author" for COMMIT_AUTHOR key when no author field exists', () => {
+      expect(selectSortDataPath(collection, COMMIT_AUTHOR)).toBe('author');
+    });
+
+    it('should return "data.<key>" for a regular field key', () => {
+      expect(selectSortDataPath(collection, 'title')).toBe('data.title');
+    });
+
+    it('should return "data.<key>" for COMMIT_AUTHOR when an author field exists in the collection', () => {
+      const collectionWithAuthor = fromJS({
+        fields: [{ name: COMMIT_AUTHOR, widget: 'string' }],
+      });
+      expect(selectSortDataPath(collectionWithAuthor, COMMIT_AUTHOR)).toBe(`data.${COMMIT_AUTHOR}`);
+    });
+  });
+
+  describe('selectViewFilters', () => {
+    it('should return an empty array when view_filters is empty', () => {
+      const collection = fromJS({
+        view_filters: [],
+      });
+      expect(selectViewFilters(collection)).toEqual([]);
+    });
+
+    it('should return view_filters as a plain JS array', () => {
+      const collection = fromJS({
+        view_filters: [
+          { label: 'Drafts', field: 'draft', pattern: true },
+          { label: 'Published', field: 'draft', pattern: false },
+        ],
+      });
+      const result = selectViewFilters(collection);
+      expect(result).toEqual([
+        { label: 'Drafts', field: 'draft', pattern: true },
+        { label: 'Published', field: 'draft', pattern: false },
+      ]);
+    });
+  });
+
+  describe('selectViewGroups', () => {
+    it('should return an empty array when view_groups is empty', () => {
+      const collection = fromJS({
+        view_groups: [],
+      });
+      expect(selectViewGroups(collection)).toEqual([]);
+    });
+
+    it('should return view_groups as a plain JS array', () => {
+      const collection = fromJS({
+        view_groups: [
+          { label: 'Year', field: 'date', pattern: '\\d{4}' },
+          { label: 'Drafts', field: 'draft' },
+        ],
+      });
+      const result = selectViewGroups(collection);
+      expect(result).toEqual([
+        { label: 'Year', field: 'date', pattern: '\\d{4}' },
+        { label: 'Drafts', field: 'draft' },
+      ]);
+    });
+  });
+
+  describe('selectHasMetaPath', () => {
+    it('should return true for a folder collection with meta.path defined', () => {
+      const collection = fromJS({
+        folder: '_posts',
+        type: FOLDER,
+        meta: { path: { label: 'Path', widget: 'string', index_file: 'index' } },
+        fields: [],
+      });
+      expect(selectHasMetaPath(collection)).toBe(true);
+    });
+
+    it('should return false for a folder collection without meta', () => {
+      const collection = fromJS({
+        folder: '_posts',
+        type: FOLDER,
+        fields: [],
+      });
+      expect(selectHasMetaPath(collection)).toBeFalsy();
+    });
+
+    it('should return false for a folder collection with meta but no path', () => {
+      const collection = fromJS({
+        folder: '_posts',
+        type: FOLDER,
+        meta: { other: 'value' },
+        fields: [],
+      });
+      expect(selectHasMetaPath(collection)).toBeFalsy();
+    });
+
+    it('should return false for a files collection even with meta.path defined', () => {
+      const collection = fromJS({
+        type: FILES,
+        files: [],
+        meta: { path: { label: 'Path' } },
+      });
+      expect(selectHasMetaPath(collection)).toBeFalsy();
     });
   });
 });
