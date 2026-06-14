@@ -374,8 +374,7 @@ export default class API {
   }
 
   async persistFiles(dataFiles: DataFile[], mediaFiles: AssetProxy[], options: PersistOptions) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const files: (DataFile | AssetProxy)[] = mediaFiles.concat(dataFiles as any);
+    const files: (DataFile | AssetProxy)[] = [...mediaFiles, ...dataFiles];
     const operations = await this.getChangeFileOperations(files, this.branch);
     return this.changeFiles(operations, options);
   }
