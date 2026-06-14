@@ -111,6 +111,14 @@ describe('relation widget schema', () => {
     it('rejects options_length float', () => {
       expect(validate({ ...baseSnake, options_length: 2.5 })).toBe(false);
     });
+
+    it('accepts optionsLength integer (DCMS-226)', () => {
+      expect(validate({ ...baseSnake, optionsLength: 20 })).toBe(true);
+    });
+
+    it('rejects optionsLength float (DCMS-226)', () => {
+      expect(validate({ ...baseSnake, optionsLength: 2.5 })).toBe(false);
+    });
   });
 
   describe('filters field', () => {

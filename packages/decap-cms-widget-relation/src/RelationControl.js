@@ -44,6 +44,9 @@ function normalizeField(field) {
   if (!normalized.get('display_fields') && normalized.get('displayFields')) {
     normalized = normalized.set('display_fields', normalized.get('displayFields'));
   }
+  if (!normalized.get('options_length') && normalized.get('optionsLength')) {
+    normalized = normalized.set('options_length', normalized.get('optionsLength'));
+  }
   return normalized;
 }
 
