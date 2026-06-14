@@ -303,6 +303,7 @@ declare module 'decap-cms-core' {
     description?: string;
     preview_path?: string;
     preview_path_date_field?: string;
+    preview_path_preserve_slashes?: boolean;
     i18n?: boolean | CmsI18nConfig;
     media_folder?: string;
     public_folder?: string;

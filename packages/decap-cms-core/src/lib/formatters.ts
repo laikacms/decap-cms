@@ -213,7 +213,8 @@ export function previewUrlFormatter(
   fields = addFileTemplateFields(entry.get('path'), fields, collection.get('folder'));
   const dateFieldName = getDateField() || selectInferredField(collection, 'date');
   const date = parseDateFromEntry(entry as unknown as Map<string, unknown>, dateFieldName);
-  const previewPathPreserveSlashes = collection.get('preview_path_preserve_slashes');
+  const previewPathPreserveSlashes =
+    file?.get('preview_path_preserve_slashes') ?? collection.get('preview_path_preserve_slashes');
   const preserveSlashes = !!(previewPathPreserveSlashes ?? collection.has('nested'));
 
   // Prepare and sanitize slug variables only, leave the rest of the
