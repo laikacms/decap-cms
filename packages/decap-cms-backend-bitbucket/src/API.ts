@@ -343,7 +343,9 @@ export default class API {
   }
 
   async isShaExistsInBranch(branch: string, sha: string) {
-    const { values }: { values: BitBucketCommit[] } = await this.requestJSON<{ values: BitBucketCommit[] }>({
+    const { values }: { values: BitBucketCommit[] } = await this.requestJSON<{
+      values: BitBucketCommit[];
+    }>({
       url: `${this.repoURL}/commits`,
       params: { include: branch, pagelen: 100 },
     }).catch(e => {
