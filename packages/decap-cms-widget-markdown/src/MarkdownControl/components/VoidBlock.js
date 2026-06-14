@@ -1,5 +1,5 @@
-/* eslint-disable react/prop-types */
 import React from 'react';
+import PropTypes from 'prop-types';
 import { css } from '@emotion/react';
 import { zIndex } from 'decap-cms-ui-default';
 import { ReactEditor, useSlate } from 'slate-react';
@@ -54,5 +54,11 @@ function VoidBlock({ attributes, children, element }) {
     </div>
   );
 }
+
+VoidBlock.propTypes = {
+  attributes: PropTypes.object.isRequired,
+  children: PropTypes.node,
+  element: PropTypes.object.isRequired,
+};
 
 export default VoidBlock;
