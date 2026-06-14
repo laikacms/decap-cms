@@ -620,10 +620,15 @@ declare module 'decap-cms-core' {
     entry: Map<string, any>;
     collection: Map<string, any>;
     getCollection: (collectionName: string, slug?: string) => Promise<Map<string, any>[]>;
-    widgetFor: (name: any, fields?: any, values?: any, fieldsMetaData?: any) => JSX.Element | null;
-    widgetsFor: (name: any) => any;
+    widgetFor: (
+      name: string,
+      fields?: any,
+      values?: any,
+      fieldsMetaData?: any,
+    ) => JSX.Element | null;
+    widgetsFor: (name: string) => unknown;
     getAsset: GetAssetFunction;
-    boundGetAsset: (collection: any, path: any) => GetAssetFunction;
+    boundGetAsset: (collection: any, path: string) => GetAssetFunction;
     fieldsMetaData: Map<string, any>;
     config: Map<string, any>;
     fields: List<Map<string, any>>;
