@@ -53,14 +53,18 @@
   </head>
   <body>
     <!--
-      Replace the script below with YOUR bundle that calls
-      CMS.registerBackend('laika', LaikaBackend) BEFORE the CMS initialises.
+      This page uses the proxy backend (local_backend) so it works without any
+      external service. Start decap-server on http://localhost:8082 first:
 
-      The stock dist/decap.js will produce:
-        Error: Backend not found: laika. The laika backend is not bundled here —
-        register it before init() via CMS.registerBackend("laika", LaikaBackend)
-        using the adapter from @laikacms/decap-integrations (decap-cms-backend-laika).
+        npx decap-server
+
+      To use the real laika backend instead, register it before the CMS boots:
+
+        import CMS from 'decap-cms-core';
+        import { LaikaBackend } from 'decap-cms-backend-laika';
+        CMS.registerBackend('laika', LaikaBackend);
+        CMS.init({ config: { backend: { name: 'laika', api_root: '...' } } });
     -->
-    <script src="dist/decap.js"></script>
+    <script src="dist/decap-cms.js"></script>
   </body>
 </html>
