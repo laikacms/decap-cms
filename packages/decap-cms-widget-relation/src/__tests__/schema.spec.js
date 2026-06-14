@@ -140,5 +140,14 @@ describe('relation widget schema', () => {
         }),
       ).toBe(false);
     });
+
+    it('passes with float filter values (DCMS-227)', () => {
+      expect(
+        validate({
+          ...baseSnake,
+          filters: [{ field: 'rating', values: [1.5, 2.7] }],
+        }),
+      ).toBe(true);
+    });
   });
 });

@@ -13,7 +13,7 @@ export default {
         type: 'object',
         properties: {
           field: { type: 'string' },
-          values: { type: 'array', minItems: 1, items: { type: ['string', 'boolean', 'integer'] } },
+          values: { type: 'array', minItems: 1, items: { type: ['string', 'boolean', 'number'] } },
         },
         required: ['field', 'values'],
       },
