@@ -46,6 +46,7 @@ export default function withMapControl({ getFormat, getMap } = {}) {
       super(props);
       this.mapContainer = React.createRef();
       this.resizeObserver = null;
+      this.map = null;
     }
 
     componentDidMount() {
@@ -60,30 +61,54 @@ export default function withMapControl({ getFormat, getMap } = {}) {
       const featuresLayer = new VectorLayer({ source: featuresSource });
 
       const target = this.mapContainer.current;
-      const map = getMap ? getMap(target, featuresLayer) : getDefaultMap(target, featuresLayer);
-      if (features.length > 0) {
-        map.getView().fit(featuresSource.getExtent(), { maxZoom: 16, padding: [80, 80, 80, 80] });
-      }
 
-      const draw = new Draw({ source: featuresSource, type: field.get('type', 'Point') });
-      map.addInteraction(draw);
+      const initMap = () => {
+        if (this.map) return;
+        const map = getMap ? getMap(target, featuresLayer) : getDefaultMap(target, featuresLayer);
+        this.map = map;
 
-      const writeOptions = { decimals: field.get('decimals', 7) };
-      draw.on('drawend', ({ feature }) => {
-        featuresSource.clear();
-        onChange(format.writeGeometry(feature.getGeometry(), writeOptions));
-      });
+        if (features.length > 0) {
+          map.getView().fit(featuresSource.getExtent(), { maxZoom: 16, padding: [80, 80, 80, 80] });
+        }
 
-      this.resizeObserver = new ResizeObserver(() => {
-        map.updateSize();
+        const draw = new Draw({ source: featuresSource, type: field.get('type', 'Point') });
+        map.addInteraction(draw);
+
+        const writeOptions = { decimals: field.get('decimals', 7) };
+        draw.on('drawend', ({ feature }) => {
+          featuresSource.clear();
+          onChange(format.writeGeometry(feature.getGeometry(), writeOptions));
+        });
+      };
+
+      this.resizeObserver = new ResizeObserver(entries => {
+        for (const entry of entries) {
+          const { offsetHeight, offsetWidth } = entry.target;
+          if (offsetHeight > 0 && offsetWidth > 0) {
+            if (!this.map) {
+              initMap();
+            } else {
+              this.map.updateSize();
+            }
+          }
+        }
       });
 
       this.resizeObserver.observe(target);
+
+      // Construct immediately if container already has non-zero dimensions
+      if (target.offsetHeight > 0 && target.offsetWidth > 0) {
+        initMap();
+      }
     }
 
     componentWillUnmount() {
       if (this.resizeObserver) {
         this.resizeObserver.disconnect();
+      }
+      if (this.map) {
+        this.map.setTarget(null);
+        this.map = null;
       }
     }
 
