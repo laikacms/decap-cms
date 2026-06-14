@@ -629,6 +629,54 @@ describe('formatters', () => {
       ).toBe('https://www.example.com/prefix/nested-value');
     });
 
+    it('should preserve slashes when preview_path_preserve_slashes is set at file level', () => {
+      const file = Map({
+        name: 'about-file',
+        preview_path: 'prefix/{{value}}',
+        preview_path_preserve_slashes: true,
+      });
+
+      const { getFileFromSlug } = require('../../reducers/collections');
+      getFileFromSlug.mockReturnValue(file);
+
+      expect(
+        previewUrlFormatter(
+          'https://www.example.com',
+          Map({
+            type: 'file_based_collection',
+            files: List([file]),
+          }),
+          'backendSlug',
+          Map({ data: Map({ value: 'nested/value' }), slug: 'about-file' }),
+          slugConfig,
+        ),
+      ).toBe('https://www.example.com/prefix/nested/value');
+    });
+
+    it('should use collection-level preview_path_preserve_slashes as fallback when not set on file', () => {
+      const file = Map({
+        name: 'about-file',
+        preview_path: 'prefix/{{value}}',
+      });
+
+      const { getFileFromSlug } = require('../../reducers/collections');
+      getFileFromSlug.mockReturnValue(file);
+
+      expect(
+        previewUrlFormatter(
+          'https://www.example.com',
+          Map({
+            type: 'file_based_collection',
+            preview_path_preserve_slashes: true,
+            files: List([file]),
+          }),
+          'backendSlug',
+          Map({ data: Map({ value: 'nested/value' }), slug: 'about-file' }),
+          slugConfig,
+        ),
+      ).toBe('https://www.example.com/prefix/nested/value');
+    });
+
     it('should preserve slashes in value for nested collections by default', () => {
       expect(
         previewUrlFormatter(

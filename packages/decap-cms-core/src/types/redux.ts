@@ -631,6 +631,7 @@ export type CollectionFile = StaticallyTypedRecord<{
   public_folder?: string;
   preview_path?: string;
   preview_path_date_field?: string;
+  preview_path_preserve_slashes?: boolean;
 }>;
 
 export type CollectionFiles = List<CollectionFile>;
