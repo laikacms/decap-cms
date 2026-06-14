@@ -1,7 +1,6 @@
 export function sortKeys<Item>(
   sortedKeys: string[],
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  selector: (a: Item) => string = (a: any) => a,
+  selector: (a: Item) => string = (a: Item) => a as unknown as string,
 ) {
   return (a: Item, b: Item) => {
     const idxA = sortedKeys.indexOf(selector(a));
