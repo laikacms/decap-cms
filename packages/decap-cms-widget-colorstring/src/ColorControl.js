@@ -128,7 +128,18 @@ export default class ColorControl extends React.Component {
         {' '}
         {showClearButton && (
           <ClearButtonWrapper>
-            <ClearButton onClick={this.handleClear}>
+            <ClearButton
+              onClick={this.handleClear}
+              role="button"
+              aria-label="Clear color"
+              tabIndex={0}
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  this.handleClear();
+                }
+              }}
+            >
               <ClearIcon />
             </ClearButton>
           </ClearButtonWrapper>
@@ -140,6 +151,15 @@ export default class ColorControl extends React.Component {
             tinycolor(this.props.value).isValid() ? 'rgba(255, 255, 255, 0)' : 'rgb(223, 223, 227)'
           }
           onClick={this.handleClick}
+          role="button"
+          aria-label="Open color picker"
+          tabIndex={0}
+          onKeyDown={e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              this.handleClick();
+            }
+          }}
         >
           ?
         </ColorSwatch>
