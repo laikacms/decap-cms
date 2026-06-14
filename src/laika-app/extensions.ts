@@ -25,6 +25,7 @@ import DecapCmsWidgetMap from '../widget-map/index';
 import DecapCmsWidgetDatetime from '../widget-datetime/index';
 import DecapCmsWidgetCode from '../widget-code/index';
 import DecapCmsWidgetColorString from '../widget-colorstring/index';
+import DecapCmsWidgetMarkdown from '../widget-markdown/index';
 // Editor Components
 import image from '../editor-component-image/index';
 // Locales
@@ -54,6 +55,7 @@ CMS.registerBackend('proxy', ProxyBackend);
   DecapCmsWidgetDatetime.Widget(),
   DecapCmsWidgetCode.Widget(),
   DecapCmsWidgetColorString.Widget(),
+  DecapCmsWidgetMarkdown.Widget(),
 ].forEach(widget => CMS.registerWidget(widget));
 CMS.registerEditorComponent(image as any);
 CMS.registerEditorComponent({
