@@ -239,6 +239,43 @@ describe('PkceAuthenticator', () => {
     expect(cb).toHaveBeenCalledWith(null, expect.objectContaining({ token: 'token-xyz' }));
   });
 
+  it('should use form-encoding default when auth_token_endpoint_content_type is omitted', async () => {
+    const nonce = setValidNonce();
+    const state = encodeURIComponent(JSON.stringify({ nonce }));
+    setAuthCallbackUrl(`?code=auth-code-default&state=${state}`);
+    window.sessionStorage.setItem(CODE_VERIFIER_STORAGE_KEY, 'verifier-default');
+
+    const mockFetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ access_token: 'token-default' }),
+    });
+    global.fetch = mockFetch;
+
+    const authenticator = new PkceAuthenticator({
+      use_oidc: false,
+      base_url: 'https://example.com',
+      auth_endpoint: 'oauth2/authorize',
+      auth_token_endpoint: 'oauth2/token',
+      app_id: 'client-default',
+      // auth_token_endpoint_content_type intentionally omitted
+    });
+    const cb = jest.fn();
+
+    await authenticator.completeAuth(cb);
+
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const [, fetchOptions] = mockFetch.mock.calls[0];
+    expect(fetchOptions.headers['Content-Type']).toBe(
+      'application/x-www-form-urlencoded; charset=utf-8',
+    );
+    const params = new URLSearchParams(fetchOptions.body);
+    expect(params.get('client_id')).toBe('client-default');
+    expect(params.get('code')).toBe('auth-code-default');
+    expect(params.get('grant_type')).toBe('authorization_code');
+    expect(params.get('code_verifier')).toBe('verifier-default');
+    expect(cb).toHaveBeenCalledWith(null, expect.objectContaining({ token: 'token-default' }));
+  });
+
   describe('_loadOidcConfig', () => {
     afterEach(() => {
       jest.restoreAllMocks();
