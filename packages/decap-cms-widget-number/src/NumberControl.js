@@ -58,7 +58,7 @@ export default class NumberControl extends React.Component {
     value: PropTypes.node,
     forID: PropTypes.string,
     valueType: PropTypes.string,
-    step: PropTypes.number,
+    step: PropTypes.oneOfType([PropTypes.number, PropTypes.oneOf(['any'])]),
     min: PropTypes.number,
     max: PropTypes.number,
     t: PropTypes.func.isRequired,

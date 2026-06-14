@@ -220,7 +220,7 @@ export interface CmsFieldNumber {
   min?: number;
   max?: number;
 
-  step?: number;
+  step?: number | 'any';
 
   /**
    * @deprecated Use valueType instead
