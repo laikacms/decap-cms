@@ -122,7 +122,7 @@ export default class PKCEAuthenticationPage extends React.Component {
 
   handleLogin = e => {
     e.preventDefault();
-    const scope = this.props.config.auth?.scope || this.props.config.auth_scope || 'openid email';
+    const scope = this.props.config.auth?.scope || 'openid email';
     this.auth.authenticate({ scope }, (err, data) => {
       if (err) {
         this.setState({ loginError: err.toString() });
