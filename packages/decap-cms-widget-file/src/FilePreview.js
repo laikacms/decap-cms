@@ -31,8 +31,9 @@ function FileContent(props) {
 }
 
 function FilePreview(props) {
+  const fieldClass = props.field && props.field.get('class');
   return (
-    <WidgetPreviewContainer>
+    <WidgetPreviewContainer className={fieldClass || undefined}>
       {props.value ? <FileContent {...props} /> : null}
     </WidgetPreviewContainer>
   );
@@ -41,6 +42,7 @@ function FilePreview(props) {
 FilePreview.propTypes = {
   getAsset: PropTypes.func.isRequired,
   value: PropTypes.node,
+  field: PropTypes.object,
 };
 
 export default FilePreview;
