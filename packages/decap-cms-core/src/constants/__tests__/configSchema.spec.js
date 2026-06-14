@@ -126,6 +126,12 @@ describe('config', () => {
       }).not.toThrowError();
     });
 
+    it('should not throw if backend.auth_type is "implicit" in config', () => {
+      expect(() => {
+        validateConfig(merge(validConfig, { backend: { auth_type: 'implicit' } }));
+      }).not.toThrowError();
+    });
+
     it('should not throw if backend.squash_merges is boolean in config', () => {
       expect(() => {
         validateConfig(merge({}, validConfig, { backend: { squash_merges: true } }));
