@@ -73,7 +73,6 @@ function Toggle({
       onClick={handleToggle}
       role="switch"
       aria-checked={isActive?.toString()}
-      aria-expanded={null}
     >
       <Background isActive={isActive} />
       <Handle isActive={isActive} />
