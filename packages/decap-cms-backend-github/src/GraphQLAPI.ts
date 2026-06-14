@@ -24,7 +24,8 @@ import * as queries from './queries';
 import * as mutations from './mutations';
 
 import type { Config, BlobArgs } from './API';
-import type { NormalizedCacheObject } from 'apollo-cache-inmemory';
+import type { NormalizedCacheObject, NormalizedCache } from 'apollo-cache-inmemory';
+import type { ApolloCache } from 'apollo-cache';
 import type { QueryOptions, MutationOptions, OperationVariables } from 'apollo-client';
 import type { GraphQLError } from 'graphql';
 import type { Endpoints } from '@octokit/types';
@@ -453,8 +454,8 @@ export default class GraphQLAPI extends API {
       variables: {
         deleteRefInput: { refId: branch.id },
       },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      update: (store: any) => store.data.delete(defaultDataIdFromObject(branch)),
+      update: (store: ApolloCache<NormalizedCacheObject> & { data: NormalizedCache }) =>
+        store.data.delete(defaultDataIdFromObject(branch)),
     });
 
     return data!.deleteRef;
@@ -572,8 +573,7 @@ export default class GraphQLAPI extends API {
             deleteRefInput: { refId: branch.id },
             closePullRequestInput: { pullRequestId: pullRequest.id },
           },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          update: (store: any) => {
+          update: (store: ApolloCache<NormalizedCacheObject> & { data: NormalizedCache }) => {
             store.data.delete(defaultDataIdFromObject(branch));
             store.data.delete(defaultDataIdFromObject(pullRequest));
           },
