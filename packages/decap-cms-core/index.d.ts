@@ -19,6 +19,7 @@ declare module 'decap-cms-core' {
   export type CmsMarkdownWidgetButton =
     | 'bold'
     | 'italic'
+    | 'strikethrough'
     | 'code'
     | 'link'
     | 'heading-one'
@@ -28,7 +29,6 @@ declare module 'decap-cms-core' {
     | 'heading-five'
     | 'heading-six'
     | 'quote'
-    | 'code-block'
     | 'bulleted-list'
     | 'numbered-list';
 
