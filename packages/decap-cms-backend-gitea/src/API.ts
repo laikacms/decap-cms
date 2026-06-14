@@ -234,9 +234,8 @@ export default class API {
       responseStatus = response.status;
       const parsedResponse = await parser(response);
       return parsedResponse;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      return this.handleRequestError(error, responseStatus);
+    } catch (error: unknown) {
+      return this.handleRequestError(error as FetchError, responseStatus);
     }
   }
 
@@ -362,9 +361,13 @@ export default class API {
             size: file.size!,
           }))
       );
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
-      if (err && err.status === 404) {
+    } catch (err: unknown) {
+      if (
+        err !== null &&
+        typeof err === 'object' &&
+        'status' in err &&
+        (err as { status: number }).status === 404
+      ) {
         console.info('[StaticCMS] This 404 was expected and handled appropriately.');
         return [];
       } else {
