@@ -223,7 +223,7 @@ export interface CmsFieldNumber {
   step?: number | 'any';
 
   /**
-   * @deprecated Use valueType instead
+   * @deprecated Use value_type instead
    */
   valueType?: 'int' | 'float' | string;
 }

@@ -204,7 +204,7 @@ declare module 'decap-cms-core' {
     step?: number | 'any';
 
     /**
-     * @deprecated Use valueType instead
+     * @deprecated Use value_type instead
      */
     valueType?: 'int' | 'float' | string;
   }
