@@ -79,8 +79,8 @@ function Image({ value, field, getAsset }) {
 function SortableImageButtons({ onRemove, onReplace }) {
   return (
     <SortableImageButtonsWrapper>
-      <IconButton size="small" type="media" onClick={onReplace}></IconButton>
-      <IconButton size="small" type="close" onClick={onRemove}></IconButton>
+      <IconButton size="small" type="media" onClick={onReplace} title="Replace image"></IconButton>
+      <IconButton size="small" type="close" onClick={onRemove} title="Remove image"></IconButton>
     </SortableImageButtonsWrapper>
   );
 }
