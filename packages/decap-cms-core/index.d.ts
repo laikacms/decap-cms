@@ -201,7 +201,7 @@ declare module 'decap-cms-core' {
     min?: number;
     max?: number;
 
-    step?: number;
+    step?: number | 'any';
 
     /**
      * @deprecated Use valueType instead
