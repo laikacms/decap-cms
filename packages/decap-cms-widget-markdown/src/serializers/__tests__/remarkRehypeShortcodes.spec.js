@@ -3,7 +3,12 @@ import { Map } from 'immutable';
 
 import remarkToRehypeShortcodes, { processShortcodes } from '../remarkRehypeShortcodes';
 
-function makeOptions({ plugins = Map(), getAsset = jest.fn(), resolveWidget = jest.fn(), toHtml = jest.fn() } = {}) {
+function makeOptions({
+  plugins = Map(),
+  getAsset = jest.fn(),
+  resolveWidget = jest.fn(),
+  toHtml = jest.fn(),
+} = {}) {
   return { plugins, getAsset, resolveWidget, toHtml };
 }
 
@@ -43,7 +48,9 @@ describe('remarkRehypeShortcodes', () => {
     });
 
     it('renders React component from toPreview to string using renderToString', () => {
-      const ReactComponent = () => React.createElement('span', null, 'react preview');
+      function ReactComponent() {
+        return React.createElement('span', null, 'react preview');
+      }
       const plugin = { toPreview: jest.fn(() => React.createElement(ReactComponent)) };
       const plugins = Map({ reactShortcode: plugin });
       const node = {
