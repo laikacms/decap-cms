@@ -1,5 +1,5 @@
-/* eslint-disable react/prop-types */
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import { css } from '@emotion/react';
 import { fromJS } from 'immutable';
 import omit from 'lodash/omit';
@@ -70,5 +70,11 @@ function Shortcode(props) {
     )
   );
 }
+
+Shortcode.propTypes = {
+  element: PropTypes.object.isRequired,
+  dataKey: PropTypes.string.isRequired,
+  children: PropTypes.node,
+};
 
 export default Shortcode;
