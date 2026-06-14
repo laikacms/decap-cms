@@ -536,6 +536,46 @@ describe('registry', () => {
     });
   });
 
+  describe('registerWidgetValueSerializer / getWidgetValueSerializer', () => {
+    it('returns undefined for an unregistered widget name', () => {
+      const { getWidgetValueSerializer } = require('../registry');
+
+      expect(getWidgetValueSerializer('custom')).toBeUndefined();
+    });
+
+    it('returns the serializer after registration', () => {
+      const { registerWidgetValueSerializer, getWidgetValueSerializer } = require('../registry');
+
+      const serializer = { serialize: jest.fn(), deserialize: jest.fn() };
+      registerWidgetValueSerializer('custom', serializer);
+
+      expect(getWidgetValueSerializer('custom')).toBe(serializer);
+    });
+
+    it('overwrites the previous serializer when registering under the same name', () => {
+      const { registerWidgetValueSerializer, getWidgetValueSerializer } = require('../registry');
+
+      const first = { serialize: jest.fn(), deserialize: jest.fn() };
+      const second = { serialize: jest.fn(), deserialize: jest.fn() };
+      registerWidgetValueSerializer('custom', first);
+      registerWidgetValueSerializer('custom', second);
+
+      expect(getWidgetValueSerializer('custom')).toBe(second);
+    });
+
+    it('serializers for different widget names do not interfere', () => {
+      const { registerWidgetValueSerializer, getWidgetValueSerializer } = require('../registry');
+
+      const serializerA = { serialize: jest.fn(), deserialize: jest.fn() };
+      const serializerB = { serialize: jest.fn(), deserialize: jest.fn() };
+      registerWidgetValueSerializer('widgetA', serializerA);
+      registerWidgetValueSerializer('widgetB', serializerB);
+
+      expect(getWidgetValueSerializer('widgetA')).toBe(serializerA);
+      expect(getWidgetValueSerializer('widgetB')).toBe(serializerB);
+    });
+  });
+
   describe('registerPreviewStyle / getPreviewStyles', () => {
     it('returns empty array before any styles are registered', () => {
       const { getPreviewStyles } = require('../registry');
