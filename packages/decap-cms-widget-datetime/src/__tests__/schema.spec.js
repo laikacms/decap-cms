@@ -47,4 +47,38 @@ describe('datetime widget schema', () => {
       expect(validate({ picker_utc: 'yes' })).toBe(false);
     });
   });
+
+  describe('deprecated camelCase aliases', () => {
+    it('dateFormat accepts string values', () => {
+      expect(validate({ dateFormat: 'YYYY-MM-DD' })).toBe(true);
+    });
+
+    it('dateFormat accepts boolean values', () => {
+      expect(validate({ dateFormat: false })).toBe(true);
+    });
+
+    it('dateFormat rejects number values', () => {
+      expect(validate({ dateFormat: 42 })).toBe(false);
+    });
+
+    it('timeFormat accepts string values', () => {
+      expect(validate({ timeFormat: 'HH:mm' })).toBe(true);
+    });
+
+    it('timeFormat accepts boolean values', () => {
+      expect(validate({ timeFormat: false })).toBe(true);
+    });
+
+    it('timeFormat rejects number values', () => {
+      expect(validate({ timeFormat: 42 })).toBe(false);
+    });
+
+    it('pickerUtc accepts boolean values', () => {
+      expect(validate({ pickerUtc: true })).toBe(true);
+    });
+
+    it('pickerUtc rejects non-boolean values', () => {
+      expect(validate({ pickerUtc: 'yes' })).toBe(false);
+    });
+  });
 });
