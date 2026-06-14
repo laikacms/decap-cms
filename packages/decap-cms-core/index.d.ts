@@ -75,7 +75,7 @@ declare module 'decap-cms-core' {
 
     default_language?: string;
     allow_language_selection?: boolean;
-    keys?: { code: string; lang: string };
+    keys?: { code?: string; lang?: string };
     output_code_only?: boolean;
   }
 
