@@ -782,8 +782,7 @@ export function createEmptyDraft(collection: Collection, search: string) {
       data,
       i18n: i18nFields,
       mediaFiles: [],
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      meta: meta as any,
+      meta: meta as unknown as { path?: string },
     });
     newEntry = await backend.processEntry(state, collection, newEntry);
     dispatch(emptyDraftCreated(newEntry));
