@@ -134,7 +134,6 @@ function SortableMultiImageWrapper({
 
   return (
     <div
-      // eslint-disable-next-line react/no-unknown-property
       css={css`
         display: flex;
         flex-wrap: wrap;
