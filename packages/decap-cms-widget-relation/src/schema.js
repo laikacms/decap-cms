@@ -7,6 +7,7 @@ export default {
     multiple: { type: 'boolean' },
     display_fields: { type: 'array', minItems: 1, items: { type: 'string' } },
     options_length: { type: 'integer' },
+    optionsLength: { type: 'integer' },
     filters: {
       type: 'array',
       items: {

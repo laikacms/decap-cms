@@ -68,6 +68,15 @@ const customizedOptionsLengthConfig = {
   options_length: 10,
 };
 
+const camelCaseOptionsLengthConfig = {
+  name: 'post',
+  collection: 'posts',
+  display_fields: ['title', 'slug'],
+  search_fields: ['title', 'body'],
+  value_field: 'title',
+  optionsLength: 10,
+};
+
 const deeplyNestedFieldConfig = {
   name: 'post',
   collection: 'posts',
@@ -504,6 +513,16 @@ describe('Relation widget', () => {
 
   it('should list the first 10 option hits on initial load', async () => {
     const field = fromJS(customizedOptionsLengthConfig);
+    const { getAllByText, input } = setup({ field });
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+
+    await waitFor(() => {
+      expect(getAllByText(/^Post # (\d{1,2}) post-number-\1$/)).toHaveLength(10);
+    });
+  });
+
+  it('should list the first 10 option hits when optionsLength alias is used (DCMS-226)', async () => {
+    const field = fromJS(camelCaseOptionsLengthConfig);
     const { getAllByText, input } = setup({ field });
     fireEvent.keyDown(input, { key: 'ArrowDown' });
 
