@@ -447,6 +447,8 @@ declare module 'decap-cms-core' {
     locale?: string;
     site_url?: string;
     display_url?: string;
+    /** Set to false to disable the collection search bar. */
+    search?: boolean;
     logo_url?: string; // Deprecated, replaced by `logo.src`
     logo?: {
       src: string;
