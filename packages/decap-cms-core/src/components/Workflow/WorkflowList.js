@@ -167,8 +167,7 @@ class WorkflowList extends React.Component {
     this.props.handlePublish(collection, slug);
   };
 
-  // eslint-disable-next-line react/display-name
-  renderColumns = (entries, column) => {
+  renderColumns(entries, column) {
     const { isOpenAuthoring, collections, t } = this.props;
     if (!entries) return null;
 
@@ -258,7 +257,7 @@ class WorkflowList extends React.Component {
         })}
       </div>
     );
-  };
+  }
 
   render() {
     const columns = this.renderColumns(this.props.entries);
