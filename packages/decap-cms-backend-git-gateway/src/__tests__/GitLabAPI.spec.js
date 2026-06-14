@@ -1,3 +1,5 @@
+import { unsentRequest } from 'decap-cms-lib-util';
+
 import API from '../GitLabAPI';
 
 jest.mock('decap-cms-lib-util', () => {
@@ -6,12 +8,13 @@ jest.mock('decap-cms-lib-util', () => {
     ...actual,
     unsentRequest: {
       ...actual.unsentRequest,
-      withHeaders: jest.fn((headers, req) => ({ ...req, headers: { ...(req && req.headers), ...headers } })),
+      withHeaders: jest.fn((headers, req) => ({
+        ...req,
+        headers: { ...(req && req.headers), ...headers },
+      })),
     },
   };
 });
-
-import { unsentRequest } from 'decap-cms-lib-util';
 
 describe('GitLabAPI (git-gateway)', () => {
   const baseConfig = {
@@ -31,7 +34,9 @@ describe('GitLabAPI (git-gateway)', () => {
     });
 
     it('sets tokenPromise from config', () => {
-      const tokenPromise = () => Promise.resolve('my-token');
+      function tokenPromise() {
+        return Promise.resolve('my-token');
+      }
       const api = new API({ ...baseConfig, tokenPromise });
       expect(api.tokenPromise).toBe(tokenPromise);
     });
