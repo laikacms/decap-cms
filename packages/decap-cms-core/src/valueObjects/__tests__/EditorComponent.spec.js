@@ -1,4 +1,5 @@
 import { fromJS } from 'immutable';
+
 import createEditorComponent from '../EditorComponent';
 
 describe('createEditorComponent', () => {
@@ -27,7 +28,9 @@ describe('createEditorComponent', () => {
     });
 
     it('uses the provided fromBlock function', () => {
-      const fromBlock = match => ({ matched: match[0] });
+      function fromBlock(match) {
+        return { matched: match[0] };
+      }
       const result = createEditorComponent({ label: 'Test', fromBlock });
       expect(result.fromBlock(['hello'])).toEqual({ matched: 'hello' });
     });
@@ -41,7 +44,9 @@ describe('createEditorComponent', () => {
     });
 
     it('uses the provided toBlock function', () => {
-      const toBlock = data => `[shortcode data="${data.value}"]`;
+      function toBlock(data) {
+        return `[shortcode data="${data.value}"]`;
+      }
       const result = createEditorComponent({ label: 'Test', toBlock });
       expect(result.toBlock({ value: 'hello' })).toBe('[shortcode data="hello"]');
     });
@@ -55,13 +60,17 @@ describe('createEditorComponent', () => {
     });
 
     it('falls through to the provided toBlock when widget is falsy and toPreview is absent', () => {
-      const toBlock = () => 'CustomBlock';
+      function toBlock() {
+        return 'CustomBlock';
+      }
       const result = createEditorComponent({ label: 'Test', widget: '', toBlock });
       expect(result.toPreview()).toBe('CustomBlock');
     });
 
     it('uses provided toPreview when given', () => {
-      const toPreview = data => `<strong>${data}</strong>`;
+      function toPreview(data) {
+        return `<strong>${data}</strong>`;
+      }
       const result = createEditorComponent({ label: 'Test', toPreview });
       expect(result.toPreview('hi')).toBe('<strong>hi</strong>');
     });
