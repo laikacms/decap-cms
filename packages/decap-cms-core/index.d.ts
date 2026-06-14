@@ -120,9 +120,9 @@ declare module 'decap-cms-core' {
     default?: string;
 
     class?: string;
+    /** Use `media_library.config` to pass options to the media library for this field. */
     media_library?: CmsMediaLibrary & { allow_multiple?: boolean };
     choose_url?: boolean;
-    config?: any;
     private?: boolean;
   }
 

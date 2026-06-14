@@ -138,8 +138,8 @@ export interface CmsFieldFileOrImage {
   widget: 'file' | 'image';
   default?: string;
 
+  /** Use `media_library.config` to pass options to the media library for this field. */
   media_library?: CmsMediaLibrary & { allow_multiple?: boolean };
-  config?: unknown;
   class?: string;
   choose_url?: boolean;
   private?: boolean;
