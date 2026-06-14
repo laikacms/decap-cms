@@ -72,7 +72,7 @@ export default class PkceAuthenticator {
       this.auth_url = `${baseURL}/${authEndpoint}`;
       this.auth_token_url = `${baseURL}/${authTokenEndpoint}`;
     }
-    this.auth_token_endpoint_content_type = config.auth_token_endpoint_content_type;
+    this.auth_token_endpoint_content_type = config.auth_token_endpoint_content_type || 'application/x-www-form-urlencoded; charset=utf-8';
     this.appID = config.app_id;
   }
 
