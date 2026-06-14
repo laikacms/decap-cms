@@ -733,8 +733,7 @@ export type MediaLibrary = StaticallyTypedRecord<{
 export type Hook = string | boolean;
 
 export type Integrations = StaticallyTypedRecord<{
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  hooks: { [collectionOrHook: string]: any };
+  hooks: { [collectionOrHook: string]: string | Record<string, string> };
 }>;
 
 export type Cursors = StaticallyTypedRecord<{}>;

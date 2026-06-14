@@ -50,10 +50,22 @@ function integrations(state = defaultState, action: ConfigAction): Integrations 
   }
 }
 
-export function selectIntegration(state: Integrations, collection: string | null, hook: string) {
-  return collection
-    ? state.getIn(['hooks', collection, hook], false)
-    : state.getIn(['hooks', hook], false);
+export function selectIntegration(
+  state: Integrations,
+  collection: string | null,
+  hook: string,
+): string | false {
+  const hooks = state.get('hooks');
+  if (!hooks) return false;
+  if (collection) {
+    const collectionHooks = hooks[collection];
+    if (collectionHooks && typeof collectionHooks === 'object') {
+      return (collectionHooks as Record<string, string>)[hook] ?? false;
+    }
+    return false;
+  }
+  const value = hooks[hook];
+  return typeof value === 'string' ? value : false;
 }
 
 export default integrations;
