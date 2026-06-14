@@ -155,6 +155,14 @@ type GitLabMergeRequest = {
   sha: string;
 };
 
+type GitLabUser = {
+  id: number;
+  name: string;
+  username: string;
+  avatar_url: string;
+  email: string;
+};
+
 type GitLabRepo = {
   shared_with_groups: { group_access_level: number }[] | null;
   permissions: {
@@ -300,11 +308,11 @@ export default class API {
   responseToBlob = responseParser({ format: 'blob', apiName: API_NAME });
   responseToText = responseParser({ format: 'text', apiName: API_NAME });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  requestJSON = (req: ApiRequest) => this.request(req).then(this.responseToJSON) as Promise<any>;
+  requestJSON = <T = unknown>(req: ApiRequest): Promise<T> =>
+    this.request(req).then(this.responseToJSON) as Promise<T>;
   requestText = (req: ApiRequest) => this.request(req).then(this.responseToText) as Promise<string>;
 
-  user = () => this.requestJSON('/user');
+  user = () => this.requestJSON<GitLabUser>('/user');
 
   WRITE_ACCESS = 30;
   MAINTAINER_ACCESS = 40;
@@ -603,13 +611,12 @@ export default class API {
     }
 
     try {
-      const result = await this.requestJSON({
+      await this.requestJSON<void>({
         url: `${this.repoURL}/repository/commits`,
         method: 'POST',
         headers: { 'Content-Type': 'application/json; charset=utf-8' },
         body: JSON.stringify(commitParams),
       });
-      return result;
     } catch (error) {
       const message = error.message || '';
       if (newBranch && message.includes(`Could not update ${branch}`)) {
