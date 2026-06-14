@@ -630,7 +630,6 @@ export default class ListControl extends React.Component {
     }
   }
 
-  // eslint-disable-next-line react/display-name
   renderItem = (item, index) => {
     const {
       classNameWrapper,
