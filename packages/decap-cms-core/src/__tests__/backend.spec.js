@@ -6,6 +6,7 @@ import {
   extractSearchFields,
   expandSearchEntries,
   mergeExpandedEntries,
+  slugFromCustomPath,
 } from '../backend';
 import { getBackend } from '../lib/registry';
 import { FOLDER, FILES } from '../constants/collectionTypes';
@@ -1235,6 +1236,39 @@ describe('Backend', () => {
           hasSubfolders: true,
         }),
       );
+    });
+  });
+
+  describe('slugFromCustomPath', () => {
+    function makeCollection(folder) {
+      return Map({ folder });
+    }
+
+    it('strips folder prefix and .md extension to produce slug', () => {
+      const collection = makeCollection('content/posts');
+      expect(slugFromCustomPath(collection, 'content/posts/my-entry.md')).toBe('my-entry');
+    });
+
+    it('includes subdirectory in slug for nested paths', () => {
+      const collection = makeCollection('content/posts');
+      expect(slugFromCustomPath(collection, 'content/posts/2024/my-nested-entry.md')).toBe(
+        '2024/my-nested-entry',
+      );
+    });
+
+    it('strips .yaml extension', () => {
+      const collection = makeCollection('data');
+      expect(slugFromCustomPath(collection, 'data/settings.yaml')).toBe('settings');
+    });
+
+    it('strips .json extension', () => {
+      const collection = makeCollection('data');
+      expect(slugFromCustomPath(collection, 'data/config.json')).toBe('config');
+    });
+
+    it('is case-insensitive when matching folder prefix', () => {
+      const collection = makeCollection('Content/Posts');
+      expect(slugFromCustomPath(collection, 'content/posts/hello-world.md')).toBe('hello-world');
     });
   });
 });
