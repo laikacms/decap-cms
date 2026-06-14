@@ -247,11 +247,11 @@ export default class API {
   responseToBlob = responseParser({ format: 'blob', apiName: API_NAME });
   responseToText = responseParser({ format: 'text', apiName: API_NAME });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  requestJSON = (req: ApiRequest) => this.request(req).then(this.responseToJSON) as Promise<any>;
+  requestJSON = <T = unknown>(req: ApiRequest): Promise<T> =>
+    this.request(req).then(this.responseToJSON) as Promise<T>;
   requestText = (req: ApiRequest) => this.request(req).then(this.responseToText) as Promise<string>;
 
-  user = () => this.requestJSON('/user') as Promise<BitBucketUser>;
+  user = () => this.requestJSON<BitBucketUser>('/user');
 
   hasWriteAccess = async () => {
     const response = await this.request(this.repoURL);
@@ -343,12 +343,12 @@ export default class API {
   }
 
   async isShaExistsInBranch(branch: string, sha: string) {
-    const { values }: { values: BitBucketCommit[] } = await this.requestJSON({
+    const { values }: { values: BitBucketCommit[] } = await this.requestJSON<{ values: BitBucketCommit[] }>({
       url: `${this.repoURL}/commits`,
       params: { include: branch, pagelen: 100 },
     }).catch(e => {
       console.log(`Failed getting commits for branch '${branch}'`, e);
-      return [];
+      return { values: [] as BitBucketCommit[] };
     });
 
     return values.some(v => v.hash === sha);
@@ -376,7 +376,7 @@ export default class API {
 
   listFiles = async (path: string, depth = 1, pagelen: number, branch: string) => {
     const node = await this.branchCommitSha(branch);
-    const result: BitBucketSrcResult = await this.requestJSON({
+    const result: BitBucketSrcResult = await this.requestJSON<BitBucketSrcResult>({
       url: `${this.repoURL}/src/${node}/${path}`,
       params: {
         max_depth: depth,
