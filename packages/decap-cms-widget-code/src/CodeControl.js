@@ -21,7 +21,7 @@ import languageData from '../data/languages.json';
 import { getLanguageLoader } from './languageLoaders';
 
 // TODO: relocate as a utility function
-function getChangedProps(previous, next, keys) {
+export function getChangedProps(previous, next, keys) {
   const propNames = keys || uniq(Object.keys(previous), Object.keys(next));
   const changedProps = propNames.reduce((acc, prop) => {
     if (previous[prop] !== next[prop]) {
@@ -47,7 +47,7 @@ const styleString = `
 
 const defaultLang = { name: '', mode: '', label: 'none' };
 
-function valueToOption(val) {
+export function valueToOption(val) {
   if (typeof val === 'string') {
     return { value: val, label: val };
   }
