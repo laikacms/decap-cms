@@ -12,6 +12,24 @@ dayjs.extend(customParseFormat);
 dayjs.extend(localizedFormat);
 dayjs.extend(utc);
 
+/**
+ * Normalise deprecated camelCase field config keys to their snake_case equivalents.
+ * The schema accepts both forms; the implementation reads only snake_case.
+ */
+function normalizeField(field) {
+  let normalized = field;
+  if (normalized.get('date_format') === undefined && normalized.get('dateFormat') !== undefined) {
+    normalized = normalized.set('date_format', normalized.get('dateFormat'));
+  }
+  if (normalized.get('time_format') === undefined && normalized.get('timeFormat') !== undefined) {
+    normalized = normalized.set('time_format', normalized.get('timeFormat'));
+  }
+  if (normalized.get('picker_utc') === undefined && normalized.get('pickerUtc') !== undefined) {
+    normalized = normalized.set('picker_utc', normalized.get('pickerUtc'));
+  }
+  return normalized;
+}
+
 function Buttons({ t, fieldName, handleChange, getNow }) {
   return (
     <div
@@ -73,7 +91,7 @@ class DateTimeControl extends React.Component {
     }
   }
 
-  isUtc = this.props.field.get('picker_utc') || false;
+  isUtc = normalizeField(this.props.field).get('picker_utc') || false;
 
   escapeZ(str) {
     if (/Z(?![\]])/.test(str)) {
@@ -83,7 +101,7 @@ class DateTimeControl extends React.Component {
   }
 
   getFormat() {
-    const { field } = this.props;
+    const field = normalizeField(this.props.field);
     let inputType = 'datetime-local';
     let inputFormat = 'YYYY-MM-DDTHH:mm';
     let format = `YYYY-MM-DDTHH:mm:ss.SSS${this.isUtc ? '[Z]' : 'Z'}`;

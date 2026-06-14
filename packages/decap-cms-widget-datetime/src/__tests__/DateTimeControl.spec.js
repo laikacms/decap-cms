@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react';
+import { render, fireEvent, within } from '@testing-library/react';
 import dayjs from 'dayjs';
 
 import DateTimeControl from '../DateTimeControl';
@@ -21,9 +21,10 @@ function setup(propsOverrides = {}) {
   };
 
   const utils = render(<DateTimeControl {...props} />);
-  const input = utils.getByTestId('test-datetime');
-  const nowButton = utils.getByTestId('now-button');
-  const clearButton = utils.getByTestId('clear-button');
+  const scoped = within(utils.container);
+  const input = scoped.getByTestId(props.forID);
+  const nowButton = scoped.getByTestId('now-button');
+  const clearButton = scoped.getByTestId('clear-button');
 
   return {
     ...utils,
@@ -133,5 +134,70 @@ describe('DateTimeControl', () => {
     fireEvent.change(input, { target: { value: testTime } });
 
     expect(props.onChange).toHaveBeenCalledWith('10:30:00');
+  });
+
+  describe('deprecated camelCase aliases', () => {
+    test('dateFormat alias produces same result as date_format', () => {
+      const field = new Map([
+        ['time_format', false],
+        ['date_format', 'DD/MM/YYYY'],
+      ]);
+      const { input, props } = setup({ field });
+      const testDate = '2024-03-15';
+      fireEvent.change(input, { target: { value: testDate } });
+      const snakeResult = props.onChange.mock.calls[0][0];
+
+      const fieldCamel = new Map([
+        ['time_format', false],
+        ['dateFormat', 'DD/MM/YYYY'],
+      ]);
+      const { input: inputCamel, props: propsCamel } = setup({
+        forID: 'test-datetime-camel',
+        field: fieldCamel,
+      });
+      fireEvent.change(inputCamel, { target: { value: testDate } });
+
+      expect(propsCamel.onChange).toHaveBeenCalledWith(snakeResult);
+    });
+
+    test('timeFormat alias produces same result as time_format', () => {
+      const field = new Map([
+        ['date_format', false],
+        ['time_format', 'HH:mm:ss'],
+      ]);
+      const { input, props } = setup({ field });
+      const testTime = '10:30:00';
+      fireEvent.change(input, { target: { value: testTime } });
+      const snakeResult = props.onChange.mock.calls[0][0];
+
+      const fieldCamel = new Map([
+        ['date_format', false],
+        ['timeFormat', 'HH:mm:ss'],
+      ]);
+      const { input: inputCamel, props: propsCamel } = setup({
+        forID: 'test-datetime-camel',
+        field: fieldCamel,
+      });
+      fireEvent.change(inputCamel, { target: { value: testTime } });
+
+      expect(propsCamel.onChange).toHaveBeenCalledWith(snakeResult);
+    });
+
+    test('pickerUtc alias produces same result as picker_utc', () => {
+      const field = new Map([['picker_utc', true]]);
+      const { input, props } = setup({ field });
+      const testDate = '2024-03-15T10:30:00';
+      fireEvent.change(input, { target: { value: testDate } });
+      const snakeResult = props.onChange.mock.calls[0][0];
+
+      const fieldCamel = new Map([['pickerUtc', true]]);
+      const { input: inputCamel, props: propsCamel } = setup({
+        forID: 'test-datetime-camel',
+        field: fieldCamel,
+      });
+      fireEvent.change(inputCamel, { target: { value: testDate } });
+
+      expect(propsCamel.onChange).toHaveBeenCalledWith(snakeResult);
+    });
   });
 });
