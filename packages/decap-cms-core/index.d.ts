@@ -410,6 +410,18 @@ declare module 'decap-cms-core' {
       openAuthoring?: string;
     };
     preview_context?: string;
+    /** git-gateway: custom git-gateway deployment URL */
+    gateway_url?: string;
+    /** git-gateway: custom status/components API URL */
+    status_endpoint?: string;
+    /** git-gateway: component name to match in status API response (default: "Git Gateway") */
+    status_component_name?: string;
+    /** git-gateway: URL shown to users when the git-gateway service is down */
+    status_page?: string;
+    /** git-gateway: identity service URL */
+    identity_url?: string;
+    /** git-gateway: whether to apply large media transforms in the media library */
+    use_large_media_transforms_in_media_library?: boolean;
   }
 
   export interface CmsSlug {
