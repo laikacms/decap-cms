@@ -66,7 +66,10 @@ describe('stringTemplate', () => {
   });
 
   describe('compileStringTemplate', () => {
-    const date = new Date('2020-01-02T13:28:27.679Z');
+    // Construct using local-time constructor so date tokens always reflect local values,
+    // regardless of the timezone the test runner is in. This mirrors how the datetime
+    // widget stores the user's local "now" and how dateParsers now reads local parts.
+    const date = new Date(2020, 0, 2, 13, 28, 27, 679); // 2020-01-02 13:28:27 local
     it('should compile year variable', () => {
       expect(compileStringTemplate('{{year}}', date)).toBe('2020');
     });
@@ -89,6 +92,15 @@ describe('stringTemplate', () => {
 
     it('should compile second variable', () => {
       expect(compileStringTemplate('{{second}}', date)).toBe('27');
+    });
+
+    it('should use local date not UTC for slug tokens (DCMS-233 regression)', () => {
+      // Simulate a UTC+ user creating an entry just after local midnight.
+      // Local time: 2026-06-15 01:28 (e.g. CEST = UTC+2)
+      // The Date object is constructed in local time so local day = 15.
+      // Before the fix, dateParsers used getUTC* which would yield day = 14 for UTC+2.
+      const localDate = new Date(2026, 5, 15, 1, 28, 0, 0); // Jun 15 01:28 local
+      expect(compileStringTemplate('{{year}}-{{month}}-{{day}}', localDate)).toBe('2026-06-15');
     });
 
     it('should error on missing date', () => {
