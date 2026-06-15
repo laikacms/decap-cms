@@ -58,13 +58,14 @@ export function selectIntegration(
   const hooks = state.get('hooks');
   if (!hooks) return false;
   if (collection) {
-    const collectionHooks = hooks[collection];
+    const collectionHooks = (hooks as unknown as { get(key: string): unknown }).get(collection);
     if (collectionHooks && typeof collectionHooks === 'object') {
-      return (collectionHooks as Record<string, string>)[hook] ?? false;
+      const value = (collectionHooks as { get(key: string): unknown }).get(hook);
+      return typeof value === 'string' ? value : false;
     }
     return false;
   }
-  const value = hooks[hook];
+  const value = (hooks as unknown as { get(key: string): unknown }).get(hook);
   return typeof value === 'string' ? value : false;
 }
 
