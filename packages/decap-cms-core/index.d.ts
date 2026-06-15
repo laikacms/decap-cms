@@ -392,6 +392,8 @@ declare module 'decap-cms-core' {
     site_domain?: string;
     base_url?: string;
     auth_endpoint?: string;
+    /** Token exchange endpoint for PKCE auth flow. Defaults to 'oauth2/token'. Mirrors the auth: block's auth_token_endpoint. */
+    auth_token_endpoint?: string;
     app_id?: string;
     auth_type?: 'implicit' | 'pkce';
     cms_label_prefix?: string;
