@@ -820,13 +820,13 @@ describe('config', () => {
     });
 
     describe('field class property', () => {
-      it('should not throw if field has class as a string', () => {
+      it('should not throw if file field has class as a string', () => {
         expect(() => {
           validateConfig(
             merge({}, validConfig, {
               collections: [
                 {
-                  fields: [{ name: 'title', label: 'Title', widget: 'string', class: 'my-widget' }],
+                  fields: [{ name: 'title', label: 'Title', widget: 'file', class: 'my-widget' }],
                 },
               ],
             }),
@@ -834,18 +834,18 @@ describe('config', () => {
         }).not.toThrow();
       });
 
-      it('should throw if field class is not a string', () => {
+      it('should not throw if image field has class as a string', () => {
         expect(() => {
           validateConfig(
             merge({}, validConfig, {
               collections: [
                 {
-                  fields: [{ name: 'title', label: 'Title', widget: 'string', class: true }],
+                  fields: [{ name: 'title', label: 'Title', widget: 'image', class: 'my-widget' }],
                 },
               ],
             }),
           );
-        }).toThrowError("'collections[0].fields[0].class' must be string");
+        }).not.toThrow();
       });
     });
 

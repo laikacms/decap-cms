@@ -74,7 +74,6 @@ function fieldsConfig() {
         types: { $ref: `fields_${id}` },
         visualEditing: { type: 'boolean' },
         tagname: { type: 'string' },
-        class: { type: 'string' },
       },
       select: { $data: '0/widget' },
       selectCases: {
