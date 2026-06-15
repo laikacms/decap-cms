@@ -200,6 +200,15 @@ describe('Number widget', () => {
     expect(input.getAttribute('step')).toBe('1');
   });
 
+  it('numeric default renders as a number value in the input (DCMS-240)', () => {
+    const field = fromJS({ value_type: 'int' });
+    const numericDefault = 42;
+    const { input } = setup({ field, defaultValue: numericDefault });
+
+    expect(typeof numericDefault).toBe('number');
+    expect(input.value).toBe('42');
+  });
+
   it('should allow 0 as a value', () => {
     const field = fromJS(fieldSettings);
     const testValue = 0;
