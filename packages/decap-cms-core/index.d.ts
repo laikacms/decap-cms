@@ -196,7 +196,7 @@ declare module 'decap-cms-core' {
 
   export interface CmsFieldNumber {
     widget: 'number';
-    default?: string | number;
+    default?: number;
 
     value_type?: 'int' | 'float' | string;
     min?: number;
