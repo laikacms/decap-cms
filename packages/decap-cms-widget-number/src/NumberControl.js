@@ -108,7 +108,12 @@ export default class NumberControl extends React.Component {
 
     // Detect unsafe integer: value is a non-empty string that looks like an integer
     // and is only present because parseInt rounded it to an unsafe float.
-    if (valueType !== 'float' && typeof value === 'string' && value !== '' && /^-?\d+$/.test(value)) {
+    if (
+      valueType !== 'float' &&
+      typeof value === 'string' &&
+      value !== '' &&
+      /^-?\d+$/.test(value)
+    ) {
       const parsed = parseInt(value, 10);
       if (!Number.isSafeInteger(parsed)) {
         return {
