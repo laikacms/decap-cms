@@ -128,7 +128,7 @@ declare module 'decap-cms-core' {
 
   export interface CmsFieldObject {
     widget: 'object';
-    default?: any;
+    default?: unknown;
 
     collapsed?: boolean;
     summary?: string;
@@ -137,7 +137,7 @@ declare module 'decap-cms-core' {
 
   export interface CmsFieldList {
     widget: 'list';
-    default?: any;
+    default?: unknown;
 
     allow_add?: boolean;
     allow_remove?: boolean;
@@ -259,7 +259,7 @@ declare module 'decap-cms-core' {
 
   export interface CmsFieldHidden {
     widget: 'hidden';
-    default?: any;
+    default?: unknown;
   }
 
   export interface CmsFieldStringOrText {
@@ -368,7 +368,7 @@ declare module 'decap-cms-core' {
 
     frontmatter_delimiter?: string[] | string;
     fields?: CmsField[];
-    filter?: { field: string; value: any };
+    filter?: { field: string; value: unknown };
     path?: string;
     media_folder?: string;
     public_folder?: string;
@@ -524,9 +524,9 @@ declare module 'decap-cms-core' {
     fields?: EditorComponentField[];
     pattern: RegExp;
     allow_add?: boolean;
-    fromBlock: (match: RegExpMatchArray) => any;
-    toBlock: (data: any) => string;
-    toPreview: (data: any) => string | JSX.Element;
+    fromBlock: (match: RegExpMatchArray) => Record<string, unknown>;
+    toBlock: (data: Record<string, unknown>) => string;
+    toPreview: (data: Record<string, unknown>) => string | JSX.Element;
   }
 
   export interface PreviewStyleOptions {
