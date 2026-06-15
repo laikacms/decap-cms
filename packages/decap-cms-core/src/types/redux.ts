@@ -217,7 +217,7 @@ export interface CmsFieldNumber {
   widget: 'number';
   default?: string | number;
 
-  value_type?: 'int' | 'float' | string;
+  value_type?: 'int' | 'float';
   min?: number;
   max?: number;
 
@@ -226,7 +226,7 @@ export interface CmsFieldNumber {
   /**
    * @deprecated Use value_type instead
    */
-  valueType?: 'int' | 'float' | string;
+  valueType?: 'int' | 'float';
 }
 
 export interface CmsFieldSelect {

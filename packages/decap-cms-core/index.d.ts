@@ -198,7 +198,7 @@ declare module 'decap-cms-core' {
     widget: 'number';
     default?: string | number;
 
-    value_type?: 'int' | 'float' | string;
+    value_type?: 'int' | 'float';
     min?: number;
     max?: number;
 
@@ -207,7 +207,7 @@ declare module 'decap-cms-core' {
     /**
      * @deprecated Use value_type instead
      */
-    valueType?: 'int' | 'float' | string;
+    valueType?: 'int' | 'float';
   }
 
   export interface CmsFieldSelect {
