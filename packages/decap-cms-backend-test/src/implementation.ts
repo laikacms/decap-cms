@@ -17,6 +17,7 @@ import AuthenticationPage from './AuthenticationPage';
 import type {
   Implementation,
   Entry,
+  CursorCompatibleEntries,
   ImplementationEntry,
   AssetProxy,
   PersistOptions,
@@ -207,9 +208,7 @@ export default class TestBackend implements Implementation {
     }));
     const cursor = getCursor(folder, extension, entries, 0, depth);
     const ret = take(entries, pageSize);
-    (ret as ImplementationEntry[] & { [CURSOR_COMPATIBILITY_SYMBOL]?: unknown })[
-      CURSOR_COMPATIBILITY_SYMBOL
-    ] = cursor;
+    (ret as CursorCompatibleEntries<ImplementationEntry>)[CURSOR_COMPATIBILITY_SYMBOL] = cursor;
     return Promise.resolve(ret);
   }
 

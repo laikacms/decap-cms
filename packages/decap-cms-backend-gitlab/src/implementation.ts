@@ -30,6 +30,7 @@ import API, { API_NAME } from './API';
 import type {
   Entry,
   AssetProxy,
+  CursorCompatibleEntries,
   PersistOptions,
   Cursor,
   Implementation,
@@ -206,9 +207,7 @@ export default class GitLab implements Implementation {
       this.api!.readFileMetadata.bind(this.api),
       API_NAME,
     );
-    (files as ImplementationEntry[] & { [CURSOR_COMPATIBILITY_SYMBOL]?: unknown })[
-      CURSOR_COMPATIBILITY_SYMBOL
-    ] = cursor!;
+    (files as CursorCompatibleEntries<ImplementationEntry>)[CURSOR_COMPATIBILITY_SYMBOL] = cursor!;
     return files;
   }
 

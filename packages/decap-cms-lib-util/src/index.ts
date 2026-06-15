@@ -57,6 +57,7 @@ import {
   getPointerFileForMediaFileObj,
 } from './git-lfs';
 
+import type { CursorCompatibleEntries } from './Cursor';
 import type { PointerFile as PF } from './git-lfs';
 import type { FetchError as FE, ApiRequest as AR } from './API';
 import type {
@@ -80,6 +81,7 @@ import type {
 import type { AsyncLock as AL } from './asyncLock';
 
 export type AsyncLock = AL;
+export type { CursorCompatibleEntries };
 export type Implementation = I;
 export type ImplementationEntry = IE;
 export type UnpublishedEntryDiff = UED;

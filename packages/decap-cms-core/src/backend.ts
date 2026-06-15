@@ -73,6 +73,7 @@ import type {
 import type { EntryValue } from './valueObjects/Entry';
 import type {
   Implementation as BackendImplementation,
+  CursorCompatibleEntries,
   DisplayURL,
   ImplementationEntry,
   Credentials,
@@ -567,9 +568,7 @@ export class Backend {
           from. This is done to prevent traverseCursor from requiring a
           `collection` argument.
         */
-    const entriesWithCursorCompat = loadedEntries as ImplementationEntry[] & {
-      [CURSOR_COMPATIBILITY_SYMBOL]?: {};
-    };
+    const entriesWithCursorCompat = loadedEntries as CursorCompatibleEntries<ImplementationEntry>;
     const cursor = Cursor.create(
       entriesWithCursorCompat[CURSOR_COMPATIBILITY_SYMBOL] as {},
     ).wrapData({
