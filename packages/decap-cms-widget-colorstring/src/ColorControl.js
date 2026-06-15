@@ -76,6 +76,21 @@ const ClickOutsideDiv = styled.div`
   left: 0;
 `;
 
+/**
+ * Normalise deprecated camelCase field config keys to their snake_case equivalents.
+ * The schema accepts both forms; the implementation reads only snake_case.
+ */
+function normalizeField(field) {
+  let normalized = field;
+  if (normalized.get('allow_input') === undefined && normalized.get('allowInput') !== undefined) {
+    normalized = normalized.set('allow_input', normalized.get('allowInput'));
+  }
+  if (normalized.get('enable_alpha') === undefined && normalized.get('enableAlpha') !== undefined) {
+    normalized = normalized.set('enable_alpha', normalized.get('enableAlpha'));
+  }
+  return normalized;
+}
+
 export default class ColorControl extends React.Component {
   static propTypes = {
     onChange: PropTypes.func.isRequired,
@@ -118,7 +133,8 @@ export default class ColorControl extends React.Component {
     const { forID, value, field, onChange, classNameWrapper, setActiveStyle, setInactiveStyle } =
       this.props;
 
-    const allowInput = field.get('allow_input', false);
+    const normalizedField = normalizeField(field);
+    const allowInput = normalizedField.get('allow_input', false);
 
     // clear button is not displayed if allowInput: true
     const showClearButton = !allowInput && value;
@@ -169,7 +185,7 @@ export default class ColorControl extends React.Component {
             <ChromePicker
               color={value || ''}
               onChange={this.handleChange}
-              disableAlpha={!field.get('enable_alpha', false)}
+              disableAlpha={!normalizedField.get('enable_alpha', false)}
             />
           </ColorPickerContainer>
         )}
