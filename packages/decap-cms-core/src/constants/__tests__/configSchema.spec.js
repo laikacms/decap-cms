@@ -737,6 +737,16 @@ describe('config', () => {
       }).not.toThrow();
     });
 
+    it('should throw if collection field pattern has more than 2 elements', () => {
+      expect(() => {
+        validateConfig(
+          merge({}, validConfig, {
+            collections: [{ fields: [{ pattern: ['pattern', 'error', 'extra'] }] }],
+          }),
+        );
+      }).toThrowError("'collections[0].fields[0].pattern' must NOT have more than 2 items");
+    });
+
     describe('collection filter', () => {
       it('should not throw if collection filter has field and value', () => {
         expect(() => {
