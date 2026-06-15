@@ -48,12 +48,12 @@ function formatDate(date: number) {
 }
 
 export const dateParsers: Record<string, (date: Date) => string> = {
-  year: (date: Date) => `${date.getUTCFullYear()}`,
-  month: (date: Date) => formatDate(date.getUTCMonth() + 1),
-  day: (date: Date) => formatDate(date.getUTCDate()),
-  hour: (date: Date) => formatDate(date.getUTCHours()),
-  minute: (date: Date) => formatDate(date.getUTCMinutes()),
-  second: (date: Date) => formatDate(date.getUTCSeconds()),
+  year: (date: Date) => `${date.getFullYear()}`,
+  month: (date: Date) => formatDate(date.getMonth() + 1),
+  day: (date: Date) => formatDate(date.getDate()),
+  hour: (date: Date) => formatDate(date.getHours()),
+  minute: (date: Date) => formatDate(date.getMinutes()),
+  second: (date: Date) => formatDate(date.getSeconds()),
 };
 
 export function parseDateFromEntry(entry: Map<string, unknown>, dateFieldName?: string | null) {
