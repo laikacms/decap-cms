@@ -1,4 +1,4 @@
-import { getChangedProps, valueToOption } from '../CodeControl';
+import { getChangedProps, valueToOption } from '../helpers';
 
 describe('getChangedProps', () => {
   it('returns undefined when no props changed', () => {
