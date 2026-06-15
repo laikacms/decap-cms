@@ -1,4 +1,11 @@
-import { blobToFileObj, getMediaAsBlob, getMediaDisplayURL, runWithLock } from '../implementation';
+import {
+  blobToFileObj,
+  getMediaAsBlob,
+  getMediaDisplayURL,
+  runWithLock,
+  allEntriesByFolder,
+  persistLocalTree,
+} from '../implementation';
 
 describe('implementation', () => {
   describe('blobToFileObj', () => {
@@ -118,6 +125,255 @@ describe('implementation', () => {
 
       expect(global.URL.createObjectURL).toHaveBeenCalledTimes(1);
       expect(global.URL.createObjectURL).toHaveBeenCalledWith(blob);
+    });
+  });
+
+  describe('allEntriesByFolder / getDiffFromLocalTree', () => {
+    // Shared test parameters
+    const BRANCH = 'main';
+    const FOLDER = 'content/posts';
+    const EXTENSION = 'md';
+    const DEPTH = 1;
+    const BRANCH_SHA = 'branch-sha-abc';
+    const LOCAL_TREE_SHA = 'local-tree-sha-xyz';
+
+    /**
+     * Build a minimal localForage stub that already has a persisted local tree
+     * so getLocalTree() returns it and we exercise the diff path.
+     */
+    async function makeLocalForageWithTree(files) {
+      const store = {};
+      const localForage = {
+        getItem: jest.fn(key => Promise.resolve(store[key] ?? null)),
+        setItem: jest.fn((key, value) => {
+          store[key] = value;
+          return Promise.resolve(value);
+        }),
+      };
+
+      // Persist a local tree so the cached-tree branch is taken.
+      await persistLocalTree({
+        localForage,
+        localTree: { head: LOCAL_TREE_SHA, files },
+        branch: BRANCH,
+        folder: FOLDER,
+        extension: EXTENSION,
+        depth: DEPTH,
+      });
+
+      return localForage;
+    }
+
+    /**
+     * Build default args shared across tests.
+     * Each test overrides getDifferences / filterFile / getFileId as needed.
+     */
+    function makeArgs({ localForage, getDifferences, filterFile, getFileId, customFetch }) {
+      return {
+        listAllFiles: jest.fn(),
+        readFile: jest.fn(),
+        readFileMetadata: jest.fn(),
+        apiName: 'test',
+        branch: BRANCH,
+        localForage,
+        folder: FOLDER,
+        extension: EXTENSION,
+        depth: DEPTH,
+        getDefaultBranch: jest.fn().mockResolvedValue({ name: BRANCH, sha: BRANCH_SHA }),
+        isShaExistsInBranch: jest.fn().mockResolvedValue(true),
+        getDifferences,
+        getFileId: getFileId ?? jest.fn(path => Promise.resolve(`id:${path}`)),
+        filterFile: filterFile ?? (() => true),
+        customFetch: customFetch ?? (files => Promise.resolve(files)),
+      };
+    }
+
+    it('renamed diff: old path is deleted, new path is not deleted', async () => {
+      const existingFiles = [{ id: 'old-id', path: `${FOLDER}/old-name.md`, name: 'old-name.md' }];
+      const localForage = await makeLocalForageWithTree(existingFiles);
+
+      const getDifferences = jest.fn().mockResolvedValue([
+        {
+          status: 'renamed',
+          oldPath: `${FOLDER}/old-name.md`,
+          newPath: `${FOLDER}/new-name.md`,
+        },
+      ]);
+
+      const result = await allEntriesByFolder(makeArgs({ localForage, getDifferences }));
+
+      // old path must not appear (it's deleted and filtered out of newCopy)
+      expect(result.find(f => f.path === `${FOLDER}/old-name.md`)).toBeUndefined();
+
+      // new path must appear and not be deleted
+      const newEntry = result.find(f => f.path === `${FOLDER}/new-name.md`);
+      expect(newEntry).toBeDefined();
+      expect(newEntry.id).toBe(`id:${FOLDER}/new-name.md`);
+    });
+
+    it('renamed diff: getDiffFromLocalTree returns deleted=true for old path, deleted=false for new path', async () => {
+      const existingFiles = [];
+      const localForage = await makeLocalForageWithTree(existingFiles);
+
+      const getDifferences = jest.fn().mockResolvedValue([
+        {
+          status: 'renamed',
+          oldPath: `${FOLDER}/a.md`,
+          newPath: `${FOLDER}/b.md`,
+        },
+      ]);
+
+      // Use customFetch to intercept the file list before fetchFiles is called.
+      // allEntriesByFolder builds newCopy which merges diff + localTree.files.
+      // We verify both paths appear with correct deleted flags by inspecting what
+      // getDifferences returned and how persistLocalTree was called.
+      const localForageSetItem = localForage.setItem;
+      let persistedTree = null;
+      localForage.setItem = jest.fn((key, value) => {
+        persistedTree = value;
+        return localForageSetItem(key, value);
+      });
+
+      await allEntriesByFolder(makeArgs({ localForage, getDifferences }));
+
+      // The persisted tree (newCopy) should only contain non-deleted entries.
+      // b.md (not deleted) should be present; a.md (deleted) should not.
+      expect(persistedTree.files.find(f => f.path === `${FOLDER}/b.md`)).toBeDefined();
+      expect(persistedTree.files.find(f => f.path === `${FOLDER}/a.md`)).toBeUndefined();
+    });
+
+    it('deleted diff: old path appears with deleted=true and id=""', async () => {
+      const existingFiles = [{ id: 'some-id', path: `${FOLDER}/entry.md`, name: 'entry.md' }];
+      const localForage = await makeLocalForageWithTree(existingFiles);
+
+      const getDifferences = jest.fn().mockResolvedValue([
+        {
+          status: 'deleted',
+          oldPath: `${FOLDER}/entry.md`,
+          newPath: null,
+        },
+      ]);
+
+      const getFileId = jest.fn();
+
+      // Capture what the diff produces by intercepting persistLocalTree call.
+      let persistedTree = null;
+      localForage.setItem = jest.fn((key, value) => {
+        persistedTree = value;
+        return Promise.resolve(value);
+      });
+
+      const result = await allEntriesByFolder(makeArgs({ localForage, getDifferences, getFileId }));
+
+      // deleted entry must be removed from result (deleted=true is filtered by newCopy logic)
+      expect(result.find(f => f.path === `${FOLDER}/entry.md`)).toBeUndefined();
+
+      // getFileId must not be called for deleted files (id should be '')
+      expect(getFileId).not.toHaveBeenCalled();
+
+      // persisted tree should not include the deleted entry
+      if (persistedTree) {
+        expect(persistedTree.files.find(f => f.path === `${FOLDER}/entry.md`)).toBeUndefined();
+      }
+    });
+
+    it('modified diff: new path appears with correct id and deleted=false', async () => {
+      const existingFiles = [{ id: 'old-id', path: `${FOLDER}/post.md`, name: 'post.md' }];
+      const localForage = await makeLocalForageWithTree(existingFiles);
+
+      const getDifferences = jest.fn().mockResolvedValue([
+        {
+          status: 'modified',
+          oldPath: `${FOLDER}/post.md`,
+          newPath: `${FOLDER}/post.md`,
+        },
+      ]);
+
+      const getFileId = jest.fn().mockResolvedValue('new-content-id');
+
+      const result = await allEntriesByFolder(makeArgs({ localForage, getDifferences, getFileId }));
+
+      const entry = result.find(f => f.path === `${FOLDER}/post.md`);
+      expect(entry).toBeDefined();
+      expect(entry.id).toBe('new-content-id');
+      expect(getFileId).toHaveBeenCalledWith(`${FOLDER}/post.md`);
+    });
+
+    it('added diff: new path (no oldPath) appears with correct id and deleted=false', async () => {
+      const existingFiles = [];
+      const localForage = await makeLocalForageWithTree(existingFiles);
+
+      const getDifferences = jest.fn().mockResolvedValue([
+        {
+          status: 'added',
+          oldPath: null,
+          newPath: `${FOLDER}/brand-new.md`,
+        },
+      ]);
+
+      const getFileId = jest.fn().mockResolvedValue('added-file-id');
+
+      const result = await allEntriesByFolder(makeArgs({ localForage, getDifferences, getFileId }));
+
+      const entry = result.find(f => f.path === `${FOLDER}/brand-new.md`);
+      expect(entry).toBeDefined();
+      expect(entry.id).toBe('added-file-id');
+    });
+
+    it('filterFile excludes entries that do not pass the predicate', async () => {
+      const existingFiles = [];
+      const localForage = await makeLocalForageWithTree(existingFiles);
+
+      const getDifferences = jest.fn().mockResolvedValue([
+        {
+          status: 'added',
+          oldPath: null,
+          newPath: `${FOLDER}/keep.md`,
+        },
+        {
+          status: 'added',
+          oldPath: null,
+          newPath: `${FOLDER}/skip.md`,
+        },
+      ]);
+
+      // Only allow files whose name does not start with 'skip'
+      const filterFile = jest.fn(file => !file.name.startsWith('skip'));
+
+      const getFileId = jest.fn(path => Promise.resolve(`id:${path}`));
+
+      const result = await allEntriesByFolder(
+        makeArgs({ localForage, getDifferences, filterFile, getFileId }),
+      );
+
+      expect(result.find(f => f.path === `${FOLDER}/keep.md`)).toBeDefined();
+      expect(result.find(f => f.path === `${FOLDER}/skip.md`)).toBeUndefined();
+      expect(filterFile).toHaveBeenCalled();
+    });
+
+    it('diff entries outside the folder are ignored', async () => {
+      const existingFiles = [];
+      const localForage = await makeLocalForageWithTree(existingFiles);
+
+      const getDifferences = jest.fn().mockResolvedValue([
+        {
+          status: 'added',
+          oldPath: null,
+          newPath: 'other-folder/post.md',
+        },
+        {
+          status: 'added',
+          oldPath: null,
+          newPath: `${FOLDER}/in-scope.md`,
+        },
+      ]);
+
+      const getFileId = jest.fn(path => Promise.resolve(`id:${path}`));
+
+      const result = await allEntriesByFolder(makeArgs({ localForage, getDifferences, getFileId }));
+
+      expect(result.find(f => f.path === 'other-folder/post.md')).toBeUndefined();
+      expect(result.find(f => f.path === `${FOLDER}/in-scope.md`)).toBeDefined();
     });
   });
 });
