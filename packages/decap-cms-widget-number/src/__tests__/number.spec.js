@@ -220,6 +220,78 @@ describe('Number widget', () => {
     expect(input.value).toBe('0');
   });
 
+  describe('unsafe integer precision guard (DCMS-249)', () => {
+    const UNSAFE_INT = '99999999999999999999'; // 20 nines, > Number.MAX_SAFE_INTEGER
+
+    it('does NOT pass a corrupted (rounded) number to onChange when value exceeds MAX_SAFE_INTEGER', () => {
+      const field = fromJS({ value_type: 'int' });
+      const { input, onChangeSpy } = setup({ field });
+
+      fireEvent.change(input, { target: { value: UNSAFE_INT } });
+
+      // The corrupted rounded value must never reach onChange
+      expect(onChangeSpy).not.toHaveBeenCalledWith(100000000000000000000);
+      expect(onChangeSpy).not.toHaveBeenCalledWith(parseInt(UNSAFE_INT, 10));
+    });
+
+    it('passes the raw string to onChange when value exceeds MAX_SAFE_INTEGER', () => {
+      const field = fromJS({ value_type: 'int' });
+      const { input, onChangeSpy } = setup({ field });
+
+      fireEvent.change(input, { target: { value: UNSAFE_INT } });
+
+      expect(onChangeSpy).toHaveBeenCalledWith(UNSAFE_INT);
+    });
+
+    it('isValid returns a CUSTOM error when the stored value is an unsafe integer string', () => {
+      const field = fromJS({ value_type: 'int' });
+      const instance = new NumberControl({
+        field,
+        value: UNSAFE_INT,
+        t: jest.fn(key => key),
+        onChange: jest.fn(),
+        classNameWrapper: '',
+        setActiveStyle: jest.fn(),
+        setInactiveStyle: jest.fn(),
+      });
+
+      const result = instance.isValid();
+      expect(result).not.toBe(true);
+      expect(result).toHaveProperty('error');
+      expect(result.error.type).toBe('CUSTOM');
+      expect(result.error.message).toMatch(/maximum safe integer/i);
+    });
+
+    it('float fields are NOT affected by the unsafe integer guard', () => {
+      const field = fromJS({ value_type: 'float' });
+      const { input, onChangeSpy } = setup({ field });
+
+      // A large but representable float — should pass through unchanged
+      fireEvent.change(input, { target: { value: '1e20' } });
+
+      expect(onChangeSpy).toHaveBeenCalledWith(1e20);
+    });
+
+    it('safe integers are unaffected', () => {
+      const field = fromJS({ value_type: 'int' });
+      const { input, onChangeSpy } = setup({ field });
+
+      fireEvent.change(input, { target: { value: String(Number.MAX_SAFE_INTEGER) } });
+
+      expect(onChangeSpy).toHaveBeenCalledWith(Number.MAX_SAFE_INTEGER);
+    });
+
+    it('unset value_type (defaults to int path) also guards unsafe integers', () => {
+      const field = fromJS({});
+      const { input, onChangeSpy } = setup({ field });
+
+      fireEvent.change(input, { target: { value: UNSAFE_INT } });
+
+      expect(onChangeSpy).not.toHaveBeenCalledWith(parseInt(UNSAFE_INT, 10));
+      expect(onChangeSpy).toHaveBeenCalledWith(UNSAFE_INT);
+    });
+  });
+
   describe('isValid with pattern and min/max (DCMS-104)', () => {
     const tFn = jest.fn(key => key);
 
