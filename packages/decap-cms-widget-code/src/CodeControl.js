@@ -3,9 +3,7 @@ import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { ClassNames } from '@emotion/react';
 import { Map } from 'immutable';
-import uniq from 'lodash/uniq';
 import isEqual from 'lodash/isEqual';
-import isEmpty from 'lodash/isEmpty';
 import { v4 as uuid } from 'uuid';
 import { UnControlled as ReactCodeMirror } from 'react-codemirror2';
 import CodeMirror from 'codemirror';
@@ -19,20 +17,9 @@ import SettingsPane from './SettingsPane';
 import SettingsButton from './SettingsButton';
 import languageData from '../data/languages.json';
 import { getLanguageLoader } from './languageLoaders';
+import { getChangedProps, valueToOption } from './helpers';
 
-// TODO: relocate as a utility function
-export function getChangedProps(previous, next, keys) {
-  const propNames = keys || uniq(Object.keys(previous), Object.keys(next));
-  const changedProps = propNames.reduce((acc, prop) => {
-    if (previous[prop] !== next[prop]) {
-      acc[prop] = next[prop];
-    }
-    return acc;
-  }, {});
-  if (!isEmpty(changedProps)) {
-    return changedProps;
-  }
-}
+export { getChangedProps, valueToOption };
 
 const languages = languageData.map(lang => ({
   label: lang.label,
@@ -46,13 +33,6 @@ const styleString = `
 `;
 
 const defaultLang = { name: '', mode: '', label: 'none' };
-
-export function valueToOption(val) {
-  if (typeof val === 'string') {
-    return { value: val, label: val };
-  }
-  return { value: val.name, label: val.label || val.name };
-}
 
 const modes = languages.map(valueToOption);
 
