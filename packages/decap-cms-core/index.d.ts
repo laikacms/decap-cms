@@ -3,8 +3,6 @@ declare module 'decap-cms-core' {
   import type { ComponentType } from 'react';
   import type { List, Map } from 'immutable';
   import type { Pluggable } from 'unified';
-  import type { Implementation } from 'decap-cms-lib-util';
-
   export type CmsBackendType =
     | 'azure'
     | 'git-gateway'
@@ -518,7 +516,7 @@ declare module 'decap-cms-core' {
     value: string;
   }
 
-  export type CmsBackendClass = new (...args: any[]) => Implementation;
+  export type CmsBackendClass = new (...args: any[]) => object;
 
   export interface CmsRegistryBackend {
     init: (args: any) => CmsBackendClass;
