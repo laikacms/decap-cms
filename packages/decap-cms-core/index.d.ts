@@ -159,6 +159,7 @@ declare module 'decap-cms-core' {
     widget: 'map';
     default?: string;
 
+    /** @remarks Must be a whole number (integer). Non-integer values pass TypeScript but are rejected by config schema validation. */
     decimals?: number;
     type?: CmsMapWidgetType;
   }
@@ -229,6 +230,7 @@ declare module 'decap-cms-core' {
     search_fields: string[];
     file?: string;
     display_fields?: string[];
+    /** @remarks Must be a whole number (integer). Non-integer values pass TypeScript but are rejected by config schema validation. */
     options_length?: number;
 
     /**
