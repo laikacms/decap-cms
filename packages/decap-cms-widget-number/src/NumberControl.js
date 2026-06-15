@@ -76,19 +76,55 @@ export default class NumberControl extends React.Component {
   handleChange = e => {
     const valueType = this.props.field.get('value_type');
     const { onChange } = this.props;
-    const value = valueType === 'float' ? parseFloat(e.target.value) : parseInt(e.target.value, 10);
+    const raw = e.target.value;
 
-    if (!isNaN(value)) {
-      onChange(value);
-    } else {
-      onChange('');
+    if (valueType === 'float') {
+      const value = parseFloat(raw);
+      onChange(isNaN(value) ? '' : value);
+      return;
     }
+
+    const value = parseInt(raw, 10);
+    if (isNaN(value)) {
+      onChange('');
+      return;
+    }
+
+    // Integers above Number.MAX_SAFE_INTEGER are silently rounded by parseInt;
+    // store the raw string so isValid() can surface the error without corrupting data.
+    if (!Number.isSafeInteger(value)) {
+      onChange(raw);
+      return;
+    }
+
+    onChange(value);
   };
 
   isValid = () => {
     const { field, value, t } = this.props;
     const min = field.get('min', false);
     const max = field.get('max', false);
+    const valueType = field.get('value_type');
+
+    // Detect unsafe integer: value is a non-empty string that looks like an integer
+    // and is only present because parseInt rounded it to an unsafe float.
+    if (
+      valueType !== 'float' &&
+      typeof value === 'string' &&
+      value !== '' &&
+      /^-?\d+$/.test(value)
+    ) {
+      const parsed = parseInt(value, 10);
+      if (!Number.isSafeInteger(parsed)) {
+        return {
+          error: {
+            type: ValidationErrorTypes.CUSTOM,
+            message:
+              'Value exceeds the maximum safe integer. Use a string widget for arbitrary-precision IDs.',
+          },
+        };
+      }
+    }
 
     const error = validateMinMax(value, min, max, field, t);
     return error ? { error } : true;
