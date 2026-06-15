@@ -71,7 +71,7 @@ declare module 'decap-cms-core' {
 
   export interface CmsFieldCode {
     widget: 'code';
-    default?: any;
+    default?: string | { code?: string; lang?: string };
 
     default_language?: string;
     allow_language_selection?: boolean;
