@@ -29,6 +29,7 @@ import GraphQLAPI from './GraphQLAPI';
 import type { Endpoints } from '@octokit/types';
 import type {
   AsyncLock,
+  CursorCompatibleEntries,
   Implementation,
   AssetProxy,
   PersistOptions,
@@ -459,9 +460,7 @@ export default class GitHub implements Implementation {
       this.api!.readFileMetadata.bind(this.api),
       API_NAME,
     );
-    (files as ImplementationEntry[] & { [CURSOR_COMPATIBILITY_SYMBOL]?: unknown })[
-      CURSOR_COMPATIBILITY_SYMBOL
-    ] = cursor!;
+    (files as CursorCompatibleEntries<ImplementationEntry>)[CURSOR_COMPATIBILITY_SYMBOL] = cursor!;
     return files;
   }
 

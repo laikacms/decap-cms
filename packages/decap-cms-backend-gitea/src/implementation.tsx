@@ -25,6 +25,7 @@ import type {
   AsyncLock,
   Config,
   Credentials,
+  CursorCompatibleEntries,
   DisplayURL,
   Entry,
   Implementation,
@@ -252,9 +253,7 @@ export default class Gitea implements Implementation {
       this.api!.readFileMetadata.bind(this.api),
       API_NAME,
     );
-    (files as ImplementationEntry[] & { [CURSOR_COMPATIBILITY_SYMBOL]?: unknown })[
-      CURSOR_COMPATIBILITY_SYMBOL
-    ] = cursor!;
+    (files as CursorCompatibleEntries<ImplementationEntry>)[CURSOR_COMPATIBILITY_SYMBOL] = cursor!;
     return files;
   }
 

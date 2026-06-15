@@ -169,4 +169,8 @@ export default class Cursor {
 // backends at all. This should be removed in favor of wrapping old
 // backends with a compatibility layer, as part of the backend API
 // refactor.
-export const CURSOR_COMPATIBILITY_SYMBOL = Symbol('cursor key for compatibility with old backends');
+export const CURSOR_COMPATIBILITY_SYMBOL: unique symbol = Symbol(
+  'cursor key for compatibility with old backends',
+);
+
+export type CursorCompatibleEntries<T> = T[] & { [CURSOR_COMPATIBILITY_SYMBOL]?: Cursor };

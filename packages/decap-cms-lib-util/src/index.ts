@@ -1,5 +1,6 @@
 import APIError from './APIError';
 import Cursor, { CURSOR_COMPATIBILITY_SYMBOL } from './Cursor';
+import type { CursorCompatibleEntries } from './Cursor';
 import EditorialWorkflowError, { EDITORIAL_WORKFLOW_ERROR } from './EditorialWorkflowError';
 import AccessTokenError from './AccessTokenError';
 import localForage from './localForage';
@@ -80,6 +81,7 @@ import type {
 import type { AsyncLock as AL } from './asyncLock';
 
 export type AsyncLock = AL;
+export type { CursorCompatibleEntries };
 export type Implementation = I;
 export type ImplementationEntry = IE;
 export type UnpublishedEntryDiff = UED;

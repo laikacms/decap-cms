@@ -47,6 +47,7 @@ import type {
   ImplementationFile,
   AsyncLock,
   FetchError,
+  CursorCompatibleEntries,
 } from 'decap-cms-lib-util';
 import type { Semaphore } from 'semaphore';
 
@@ -345,9 +346,7 @@ export default class BitbucketBackend implements Implementation {
       API_NAME,
     );
 
-    (files as ImplementationEntry[] & { [CURSOR_COMPATIBILITY_SYMBOL]?: unknown })[
-      CURSOR_COMPATIBILITY_SYMBOL
-    ] = cursor!;
+    (files as CursorCompatibleEntries<ImplementationEntry>)[CURSOR_COMPATIBILITY_SYMBOL] = cursor!;
     return files;
   }
 
