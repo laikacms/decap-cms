@@ -210,17 +210,18 @@ declare module 'decap-cms-core' {
     valueType?: 'int' | 'float' | string;
   }
 
-  export interface CmsFieldSelect {
+  interface CmsFieldSelectBase {
     widget: 'select';
     default?: string | number | string[] | number[];
 
     options: (string | number)[] | CmsSelectWidgetOptionObject[];
-    multiple?: boolean;
-    min?: number;
-    max?: number;
   }
 
-  export interface CmsFieldRelation {
+  export type CmsFieldSelect =
+    | (CmsFieldSelectBase & { multiple: true; min?: number; max?: number })
+    | (CmsFieldSelectBase & { multiple?: false });
+
+  interface CmsFieldRelationBase {
     widget: 'relation';
     default?: string | string[];
 
@@ -229,7 +230,6 @@ declare module 'decap-cms-core' {
     search_fields: string[];
     file?: string;
     display_fields?: string[];
-    multiple?: boolean;
     options_length?: number;
 
     /**
@@ -250,9 +250,11 @@ declare module 'decap-cms-core' {
     optionsLength?: number;
 
     filters?: Array<{ field: string; values: (string | boolean | number)[] }>;
-    min?: number;
-    max?: number;
   }
+
+  export type CmsFieldRelation =
+    | (CmsFieldRelationBase & { multiple: true; min?: number; max?: number })
+    | (CmsFieldRelationBase & { multiple?: false });
 
   export interface CmsFieldHidden {
     widget: 'hidden';
