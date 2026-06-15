@@ -1,6 +1,6 @@
 import React from 'react';
 import { fromJS } from 'immutable';
-import { render } from '@testing-library/react';
+import { render, fireEvent } from '@testing-library/react';
 
 import ColorControl from '../ColorControl';
 
@@ -33,13 +33,20 @@ describe('ColorControl', () => {
       const input = getByRole('textbox');
       expect(input).not.toHaveAttribute('readonly');
     });
+  });
 
-    it('renders an editable input when camelCase allowInput: true is normalized (via field.get)', () => {
-      // After config normalization, allowInput becomes allow_input on the field map.
-      // This test directly exercises that the widget reads allow_input.
-      const { getByRole } = setup({ fieldConfig: { allow_input: true } });
+  describe('allowInput (camelCase alias)', () => {
+    it('renders an editable input when allowInput: true is used instead of allow_input', () => {
+      const { getByRole } = setup({ fieldConfig: { allowInput: true } });
       const input = getByRole('textbox');
       expect(input).not.toHaveAttribute('readonly');
+    });
+
+    it('snake_case allow_input takes precedence over camelCase allowInput', () => {
+      // allow_input: false + allowInput: true → snake_case wins → readonly
+      const { getByRole } = setup({ fieldConfig: { allow_input: false, allowInput: true } });
+      const input = getByRole('textbox');
+      expect(input).toHaveAttribute('readonly');
     });
   });
 
@@ -48,6 +55,17 @@ describe('ColorControl', () => {
       const { queryByTitle } = setup({ fieldConfig: { allow_input: true } });
       // ChromePicker opens on swatch click; just validate no crash with snake_case key absent
       expect(queryByTitle).toBeDefined();
+    });
+  });
+
+  describe('enableAlpha (camelCase alias)', () => {
+    it('opens ChromePicker without crashing when enableAlpha: true is used', () => {
+      const { getByRole } = setup({ fieldConfig: { enableAlpha: true } });
+      const swatch = getByRole('button', { name: /open color picker/i });
+      // clicking the swatch should open the picker without error
+      fireEvent.click(swatch);
+      // ChromePicker renders a canvas or colour inputs; just assert no throw
+      expect(swatch).toBeInTheDocument();
     });
   });
 });
