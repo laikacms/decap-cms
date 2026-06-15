@@ -3,6 +3,7 @@ import { List, Map, fromJS } from 'immutable';
 import {
   commitMessageFormatter,
   prepareSlug,
+  getProcessSegment,
   slugFormatter,
   previewUrlFormatter,
   summaryFormatter,
@@ -285,6 +286,34 @@ describe('formatters', () => {
 
     it('should replace periods with slashes', () => {
       expect(prepareSlug(`sl.ug`)).toBe('sl-ug');
+    });
+  });
+
+  describe('getProcessSegment', () => {
+    const slugConfig = {
+      encoding: 'unicode',
+      clean_accents: false,
+      sanitize_replacement: '-',
+    };
+
+    it('should return value unchanged when it is in ignoreValues', () => {
+      const processSegment = getProcessSegment(slugConfig, ['__ignored__']);
+      expect(processSegment('__ignored__')).toBe('__ignored__');
+    });
+
+    it('should lowercase, trim, and sanitize a normal value', () => {
+      const processSegment = getProcessSegment(slugConfig);
+      expect(processSegment('  Hello World  ')).toBe('hello-world');
+    });
+
+    it('should pass slashes through when preserveSlashes is true', () => {
+      const processSegment = getProcessSegment(slugConfig, [], true);
+      expect(processSegment('nested/path')).toBe('nested/path');
+    });
+
+    it('should replace slashes when preserveSlashes is false (default)', () => {
+      const processSegment = getProcessSegment(slugConfig, [], false);
+      expect(processSegment('nested/path')).toBe('nested-path');
     });
   });
 
