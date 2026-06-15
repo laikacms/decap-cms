@@ -64,6 +64,7 @@ function fieldsConfig() {
         pattern: {
           type: 'array',
           minItems: 2,
+          maxItems: 2,
           items: [{ oneOf: [{ type: 'string' }, { instanceof: 'RegExp' }] }, { type: 'string' }],
         },
         media_folder: { type: 'string' },
