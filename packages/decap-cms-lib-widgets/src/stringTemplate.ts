@@ -1,4 +1,3 @@
-import { Map } from 'immutable';
 import get from 'lodash/get';
 import trimEnd from 'lodash/trimEnd';
 import truncate from 'lodash/truncate';
@@ -56,25 +55,35 @@ export const dateParsers: Record<string, (date: Date) => string> = {
   second: (date: Date) => formatDate(date.getSeconds()),
 };
 
-export function parseDateFromEntry(entry: Map<string, unknown>, dateFieldName?: string | null) {
+function getIn(obj: unknown, path: string[]): unknown {
+  let current: unknown = obj;
+  for (const key of path) {
+    if (current === null || current === undefined) return undefined;
+    current = (current as Record<string, unknown>)[key];
+  }
+  return current;
+}
+
+export function parseDateFromEntry(entry: Record<string, unknown>, dateFieldName?: string | null) {
   if (!dateFieldName) {
     return;
   }
 
-  const entryData = entry.getIn(['data']);
-  return parseDateFromEntryData(entryData, dateFieldName);
+  const entryData = entry['data'];
+  return parseDateFromEntryData(entryData as Record<string, unknown>, dateFieldName);
 }
 
 export function parseDateFromEntryData(
-  entryData: Map<string, unknown>,
+  entryData: Record<string, unknown>,
   dateFieldName?: string | null,
 ) {
   if (!dateFieldName) {
     return;
   }
-  const dateValue = entryData.getIn([dateFieldName]);
-  const dateDayjs = dateValue && dayjs(dateValue);
-  if (dateDayjs && dateDayjs.isValid()) {
+  const dateValue = entryData[dateFieldName];
+  if (!dateValue) return;
+  const dateDayjs = dayjs(dateValue as string);
+  if (dateDayjs.isValid()) {
     return dateDayjs.toDate();
   }
 }
@@ -144,12 +153,12 @@ export function expandPath({
 
 // Allow `fields.` prefix in placeholder to override built in replacements
 // like "slug" and "year" with values from fields of the same name.
-function getExplicitFieldReplacement(key: string, data: Map<string, unknown>) {
+function getExplicitFieldReplacement(key: string, data: Record<string, unknown>) {
   if (!key.startsWith(FIELD_PREFIX)) {
     return;
   }
   const fieldName = key.slice(FIELD_PREFIX.length);
-  const value = data.getIn(keyToPathArray(fieldName));
+  const value = getIn(data, keyToPathArray(fieldName));
   if (typeof value === 'object' && value !== null) {
     return JSON.stringify(value);
   }
@@ -175,7 +184,7 @@ export function compileStringTemplate(
   template: string,
   date: Date | undefined | null,
   identifier = '',
-  data = Map<string, unknown>(),
+  data: Record<string, unknown> = {},
   processor?: (value: string) => string,
 ) {
   let missingRequiredDate;
@@ -186,26 +195,32 @@ export function compileStringTemplate(
 
   const compiledString = template.replace(
     RegExp(templateVariablePattern, 'g'),
-    (_full, key: string, _part, filter: string) => {
-      let replacement;
+    (_full, key: string, _part, filter: string): string => {
+      // Keep raw value for filter processing (filters like ternary depend on truthiness of the raw value)
+      let rawValue: unknown;
       const explicitFieldReplacement = getExplicitFieldReplacement(key, data);
 
       if (explicitFieldReplacement !== undefined) {
-        replacement = explicitFieldReplacement;
+        rawValue = explicitFieldReplacement;
       } else if (dateParsers[key] && !date) {
         missingRequiredDate = true;
         return '';
       } else if (dateParsers[key]) {
-        replacement = dateParsers[key](date as Date);
+        rawValue = dateParsers[key](date as Date);
       } else if (key === 'slug') {
-        replacement = identifier;
+        rawValue = identifier;
       } else {
-        replacement = data.getIn(keyToPathArray(key), '') as string;
+        rawValue = getIn(data, keyToPathArray(key)) ?? '';
       }
+
+      // Convert to string for filter/processor pipeline (filters receive strings)
+      // Exception: the ternary filter checks truthiness, so pass raw value through
+      let replacement = String(rawValue ?? '');
 
       const filterFunction = getFilterFunction(filter);
       if (filterFunction) {
-        replacement = filterFunction(replacement);
+        // Pass the raw (pre-stringified) value to allow truthiness checks in ternary filter
+        replacement = filterFunction(rawValue as string);
       }
 
       if (processor) {
@@ -243,7 +258,11 @@ export function extractTemplateVars(template: string) {
  *   eg: `addFileTemplateFields('foo/bar/baz.ext', fields, 'foo')`
  *       will result in: `{ dirname: 'bar', filename: 'baz', extension: 'ext' }`
  */
-export function addFileTemplateFields(entryPath: string, fields: Map<string, string>, folder = '') {
+export function addFileTemplateFields(
+  entryPath: string,
+  fields: Record<string, string>,
+  folder = '',
+): Record<string, string> {
   if (!entryPath) {
     return fields;
   }
@@ -251,11 +270,11 @@ export function addFileTemplateFields(entryPath: string, fields: Map<string, str
   const extension = extname(entryPath);
   const filename = basename(entryPath, extension);
   const dirnameExcludingFolder = dirname(entryPath).replace(new RegExp(`^(/?)${folder}/?`), '$1');
-  fields = fields.withMutations(map => {
-    map.set('dirname', dirnameExcludingFolder);
-    map.set('filename', filename);
-    map.set('extension', extension === '' ? extension : extension.slice(1));
-  });
 
-  return fields;
+  return {
+    ...fields,
+    dirname: dirnameExcludingFolder,
+    filename,
+    extension: extension === '' ? extension : extension.slice(1),
+  };
 }

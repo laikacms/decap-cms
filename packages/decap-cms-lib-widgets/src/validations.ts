@@ -1,14 +1,19 @@
 import isNumber from 'lodash/isNumber';
 
-import type { List } from 'immutable';
-
 export function validateMinMax(
   t: (key: string, options: unknown) => string,
   fieldLabel: string,
-  value?: List<unknown>,
+  value?: unknown[] | { length: number },
   min?: number,
   max?: number,
 ) {
+  const size =
+    value != null
+      ? Array.isArray(value)
+        ? value.length
+        : (value as { length: number }).length
+      : undefined;
+
   function minMaxError(messageKey: string) {
     return {
       type: 'RANGE',
@@ -21,11 +26,11 @@ export function validateMinMax(
     };
   }
 
-  if ([min, max, value?.size].every(isNumber) && (value!.size < min! || value!.size > max!)) {
+  if ([min, max, size].every(isNumber) && (size! < min! || size! > max!)) {
     return minMaxError(min === max ? 'rangeCountExact' : 'rangeCount');
-  } else if (isNumber(min) && min > 0 && isNumber(value?.size) && value!.size < min) {
+  } else if (isNumber(min) && min > 0 && isNumber(size) && size! < min) {
     return minMaxError('rangeMin');
-  } else if (isNumber(max) && isNumber(value?.size) && value!.size > max) {
+  } else if (isNumber(max) && isNumber(size) && size! > max) {
     return minMaxError('rangeMax');
   }
 }

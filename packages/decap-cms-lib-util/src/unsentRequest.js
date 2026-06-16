@@ -1,4 +1,3 @@
-import { fromJS, List, Map } from 'immutable';
 import curry from 'lodash/curry';
 import flow from 'lodash/flow';
 import isString from 'lodash/isString';
@@ -32,35 +31,34 @@ function fetchWithTimeout(input, init) {
 }
 
 function decodeParams(paramsString) {
-  return List(paramsString.split('&'))
-    .map(s => List(s.split('=')).map(decodeURIComponent))
-    .update(Map);
+  return Object.fromEntries(paramsString.split('&').map(s => s.split('=').map(decodeURIComponent)));
 }
 
 function fromURL(wholeURL) {
   const [url, allParamsString] = wholeURL.split('?');
-  return Map({ url, ...(allParamsString ? { params: decodeParams(allParamsString) } : {}) });
+  return { url, ...(allParamsString ? { params: decodeParams(allParamsString) } : {}) };
 }
 
 function fromFetchArguments(wholeURL, options) {
-  return fromURL(wholeURL).merge(
-    (options ? fromJS(options) : Map()).remove('url').remove('params'),
-  );
+  const base = fromURL(wholeURL);
+  if (!options) return base;
+  const { url: _url, params: _params, ...rest } = options;
+  return { ...base, ...rest };
 }
 
 function encodeParams(params) {
-  return params
-    .entrySeq()
+  return Object.entries(params)
     .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
     .join('&');
 }
 
 function toURL(req) {
-  return `${req.get('url')}${req.get('params') ? `?${encodeParams(req.get('params'))}` : ''}`;
+  return `${req.url}${req.params ? `?${encodeParams(req.params)}` : ''}`;
 }
 
 function toFetchArguments(req) {
-  return [toURL(req), req.remove('url').remove('params').toJS()];
+  const { url: _url, params: _params, ...fetchOptions } = req;
+  return [toURL(req), fetchOptions];
 }
 
 function maybeRequestArg(req) {
@@ -68,9 +66,9 @@ function maybeRequestArg(req) {
     return fromURL(req);
   }
   if (req) {
-    return fromJS(req);
+    return typeof req === 'object' ? req : fromURL(String(req));
   }
-  return Map();
+  return {};
 }
 
 function ensureRequestArg(func) {
@@ -91,12 +89,29 @@ const performRequest = ensureRequestArg(req => {
 // function that performs the requested action on a request.
 const getCurriedRequestProcessor = flow([ensureRequestArg2, curry]);
 
+function setIn(obj, path, val) {
+  if (path.length === 0) return val;
+  const [head, ...rest] = path;
+  return { ...obj, [head]: rest.length === 0 ? val : setIn(obj[head] ?? {}, rest, val) };
+}
+
+function updateIn(obj, path, fn) {
+  if (path.length === 0) return fn(obj);
+  const [head, ...rest] = path;
+  return {
+    ...obj,
+    [head]: rest.length === 0 ? fn(obj[head]) : updateIn(obj[head] ?? {}, rest, fn),
+  };
+}
+
 function getPropSetFunction(path) {
-  return getCurriedRequestProcessor((val, req) => req.setIn(path, val));
+  return getCurriedRequestProcessor((val, req) => setIn(req, path, val));
 }
 
 function getPropMergeFunction(path) {
-  return getCurriedRequestProcessor((obj, req) => req.updateIn(path, (p = Map()) => p.merge(obj)));
+  return getCurriedRequestProcessor((obj, req) =>
+    updateIn(req, path, (p = {}) => ({ ...p, ...obj })),
+  );
 }
 
 const withMethod = getPropSetFunction(['method']);
@@ -107,16 +122,17 @@ const withHeaders = getPropMergeFunction(['headers']);
 
 // withRoot sets a root URL, unless the URL is already absolute
 const absolutePath = new RegExp('^(?:[a-z]+:)?//', 'i');
-const withRoot = getCurriedRequestProcessor((root, req) =>
-  req.update('url', p => {
-    if (absolutePath.test(p)) {
-      return p;
-    }
-    return root && p && p[0] !== '/' && root[root.length - 1] !== '/'
-      ? `${root}/${p}`
-      : `${root}${p}`;
-  }),
-);
+const withRoot = getCurriedRequestProcessor((root, req) => {
+  const p = req.url;
+  let newUrl;
+  if (absolutePath.test(p)) {
+    newUrl = p;
+  } else {
+    newUrl =
+      root && p && p[0] !== '/' && root[root.length - 1] !== '/' ? `${root}/${p}` : `${root}${p}`;
+  }
+  return { ...req, url: newUrl };
+});
 
 export default {
   toURL,
