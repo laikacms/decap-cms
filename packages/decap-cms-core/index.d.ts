@@ -33,7 +33,7 @@ declare module 'decap-cms-core' {
 
   export interface CmsSelectWidgetOptionObject {
     label: string;
-    value: any;
+    value: string | number;
   }
 
   export type CmsCollectionFormatType = string;
