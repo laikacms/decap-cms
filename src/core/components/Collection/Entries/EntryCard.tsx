@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
 import { useTranslate } from 'react-polyglot';
@@ -166,6 +166,17 @@ export default function EntryCard({
   let image = imageField ? (entryData?.[imageField] as string | undefined) : undefined;
   if (image) image = encodeURI(image);
 
+  const [resolvedImageUrl, setResolvedImageUrl] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (!image || !imageField) {
+      setResolvedImageUrl(undefined);
+      return;
+    }
+    const asset = getAsset(image, imageField as any);
+    setResolvedImageUrl(asset.toString());
+  }, [getAsset, image, imageField]);
+
   function getStatusLabel(status: string) {
     switch (status) {
       case 'pending_review':
@@ -216,8 +227,8 @@ export default function EntryCard({
               </TitleIcons>
             </CardHeading>
           </CardBody>
-          {image ? (
-            <CardImage className="CardImage" $src={getAsset(image, imageField as any).toString()} />
+          {resolvedImageUrl ? (
+            <CardImage className="CardImage" $src={resolvedImageUrl} />
           ) : null}
         </GridCardLink>
       </GridCard>
