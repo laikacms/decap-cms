@@ -462,7 +462,12 @@ export function selectSortableFields(collection: Collection, t: (key: string) =>
 
 export function selectDefaultSortField(collection: Collection) {
   const sortableFields = collection.get('sortable_fields').toArray();
-  const defaultField = sortableFields.find(field => field.get('default_sort') !== undefined);
+  // Only treat string 'asc'/'desc' as an active default sort direction.
+  // Boolean values (default_sort: true/false) are schema-valid but mean "no default sort".
+  const defaultField = sortableFields.find(field => {
+    const v = field.get('default_sort');
+    return v === 'asc' || v === 'desc';
+  });
 
   if (!defaultField) {
     return null;
