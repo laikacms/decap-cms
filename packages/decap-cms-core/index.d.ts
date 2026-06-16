@@ -132,7 +132,8 @@ declare module 'decap-cms-core' {
 
     collapsed?: boolean;
     summary?: string;
-    fields: CmsField[];
+    field?: CmsField;
+    fields?: CmsField[];
   }
 
   export interface CmsFieldList {
