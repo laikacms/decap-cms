@@ -361,7 +361,14 @@ export default function ConnectedPreviewPane(props: ConnectedPreviewPaneProps) {
   const dispatch = useAppDispatch();
   const isLoadingAsset = useAppSelector((state: any) => selectIsLoadingAsset(state.medias));
   const config = useAppSelector((state: any) => state.config);
-  const state = useAppSelector((state: any) => state);
+  const collections = useAppSelector((state: any) => state.collections);
+  const integrations = useAppSelector((state: any) => state.integrations);
+  const entries = useAppSelector((state: any) => state.entries);
+  const mediaLibrary = useAppSelector((state: any) => state.mediaLibrary);
+  const state = React.useMemo(
+    () => ({ config, collections, integrations, entries, mediaLibrary }),
+    [config, collections, integrations, entries, mediaLibrary],
+  );
   const getAsset = React.useMemo(
     () => boundGetAsset(dispatch as any, props.collection, props.entry),
     [dispatch, props.collection, props.entry],
