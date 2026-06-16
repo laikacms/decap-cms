@@ -28,7 +28,6 @@ import {
 } from 'decap-cms-lib-util';
 import { dirname } from 'path';
 import { Base64 } from 'js-base64';
-import { Map } from 'immutable';
 import flow from 'lodash/flow';
 import partial from 'lodash/partial';
 import result from 'lodash/result';
@@ -288,7 +287,8 @@ export default class API {
     const withRoot: ApiRequest = unsentRequest.withRoot(this.apiRoot)(req);
     const withAuthorizationHeaders = await this.withAuthorizationHeaders(withRoot);
 
-    if (withAuthorizationHeaders.has('cache')) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((withAuthorizationHeaders as any).has('cache')) {
       return withAuthorizationHeaders;
     } else {
       const withNoCache: ApiRequest = unsentRequest.withNoCache(withAuthorizationHeaders);
@@ -395,16 +395,12 @@ export default class API {
     const pageSize = parseInt(headers.get('X-Per-Page') as string, 10);
     const count = parseInt(headers.get('X-Total') as string, 10);
     const links = parseLinkHeader(headers.get('Link'));
-    const actions = Map(links)
-      .keySeq()
-      .flatMap(key =>
-        (key === 'prev' && page > 1) ||
-        (key === 'next' && page < pageCount) ||
-        (key === 'first' && page > 1) ||
-        (key === 'last' && page < pageCount)
-          ? [key]
-          : [],
-      );
+    const actions = Object.keys(links).filter(key =>
+      (key === 'prev' && page > 1) ||
+      (key === 'next' && page < pageCount) ||
+      (key === 'first' && page > 1) ||
+      (key === 'last' && page < pageCount),
+    );
     return Cursor.create({
       actions,
       meta: { page, count, pageSize, pageCount },
