@@ -715,12 +715,20 @@ describe('collections', () => {
       expect(result).toEqual({ field: 'title', direction: 'asc' });
     });
 
-    it('should return direction "asc" when default_sort is true', () => {
+    it('should return null when default_sort is true (boolean values do not activate sort)', () => {
       const collection = fromJS({
         sortable_fields: [{ field: 'title', default_sort: true }],
       });
       const result = selectDefaultSortField(collection);
-      expect(result).toEqual({ field: 'title', direction: 'asc' });
+      expect(result).toBeNull();
+    });
+
+    it('should return null when default_sort is false (boolean values do not activate sort)', () => {
+      const collection = fromJS({
+        sortable_fields: [{ field: 'title', default_sort: false }],
+      });
+      const result = selectDefaultSortField(collection);
+      expect(result).toBeNull();
     });
 
     it('should use the first field with default_sort when multiple are set', () => {
