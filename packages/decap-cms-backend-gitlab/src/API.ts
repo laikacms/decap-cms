@@ -395,11 +395,12 @@ export default class API {
     const pageSize = parseInt(headers.get('X-Per-Page') as string, 10);
     const count = parseInt(headers.get('X-Total') as string, 10);
     const links = parseLinkHeader(headers.get('Link'));
-    const actions = Object.keys(links).filter(key =>
-      (key === 'prev' && page > 1) ||
-      (key === 'next' && page < pageCount) ||
-      (key === 'first' && page > 1) ||
-      (key === 'last' && page < pageCount),
+    const actions = Object.keys(links).filter(
+      key =>
+        (key === 'prev' && page > 1) ||
+        (key === 'next' && page < pageCount) ||
+        (key === 'first' && page > 1) ||
+        (key === 'last' && page < pageCount),
     );
     return Cursor.create({
       actions,
