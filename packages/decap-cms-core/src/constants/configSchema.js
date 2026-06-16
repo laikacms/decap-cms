@@ -266,6 +266,8 @@ function getConfigSchema() {
                   preview_path: { type: 'string' },
                   preview_path_date_field: { type: 'string' },
                   preview_path_preserve_slashes: { type: 'boolean' },
+                  media_folder: { type: 'string' },
+                  public_folder: { type: 'string' },
                   fields: fieldsConfig(),
                 },
                 required: ['name', 'label', 'file', 'fields'],
