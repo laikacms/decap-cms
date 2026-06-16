@@ -32,5 +32,6 @@ export default {
       },
       minItems: 1,
     },
+    sanitize_preview: { type: 'boolean' },
   },
 };
