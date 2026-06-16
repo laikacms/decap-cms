@@ -173,6 +173,7 @@ declare module 'decap-cms-core' {
     buttons?: CmsMarkdownWidgetButton[];
     editor_components?: string[];
     modes?: ('raw' | 'rich_text')[];
+    sanitize_preview?: boolean;
 
     /**
      * @deprecated Use editor_components instead
@@ -188,6 +189,7 @@ declare module 'decap-cms-core' {
     buttons?: CmsMarkdownWidgetButton[];
     editor_components?: string[];
     modes?: ('raw' | 'rich_text')[];
+    sanitize_preview?: boolean;
 
     /**
      * @deprecated Use editor_components instead
