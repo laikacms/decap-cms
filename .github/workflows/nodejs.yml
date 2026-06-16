@@ -24,7 +24,7 @@ jobs:
         with:
           filters: |
             cms:
-              - '!website/**'
+              - '**'
 
   build-unit:
     needs: changes
