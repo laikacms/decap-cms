@@ -25,7 +25,6 @@ import {
 import { basename, dirname } from 'path';
 
 import type { ApiRequest, AssetProxy, PersistOptions, DataFile } from 'decap-cms-lib-util';
-import type { Map } from 'immutable';
 
 export const API_NAME = 'Azure DevOps';
 
@@ -255,8 +254,8 @@ export default class API {
     return withHeaders;
   };
 
-  withAzureFeatures = (req: Map<string, Map<string, string>>) => {
-    if (req.hasIn(['params', API_VERSION])) {
+  withAzureFeatures = (req: ApiRequest) => {
+    if (typeof req !== 'string' && req.params?.[API_VERSION] !== undefined) {
       return req;
     }
     const withParams = unsentRequest.withParams(
@@ -272,7 +271,7 @@ export default class API {
   buildRequest = (req: ApiRequest) => {
     const withHeaders = this.withHeaders(req);
     const withAzureFeatures = this.withAzureFeatures(withHeaders);
-    if (withAzureFeatures.has('cache')) {
+    if (typeof withAzureFeatures !== 'string' && 'cache' in withAzureFeatures) {
       return withAzureFeatures;
     } else {
       const withNoCache = unsentRequest.withNoCache(withAzureFeatures);
