@@ -55,7 +55,8 @@ declare module 'decap-cms-core' {
     label?: string;
     required?: boolean;
     hint?: string;
-    pattern?: [string, string];
+    /** RegExp is only valid when using the JS API; YAML/JSON config only supports string patterns. */
+    pattern?: [string | RegExp, string];
     i18n?: boolean | 'translate' | 'duplicate' | 'none';
     media_folder?: string;
     public_folder?: string;
