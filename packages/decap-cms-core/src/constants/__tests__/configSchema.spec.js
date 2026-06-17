@@ -132,6 +132,28 @@ describe('config', () => {
       }).not.toThrowError();
     });
 
+    it('should throw if backend.name is "proxy" and proxy_url is missing', () => {
+      expect(() => {
+        validateConfig(merge({}, validConfig, { backend: { name: 'proxy' } }));
+      }).toThrowError("'backend' must have required property 'proxy_url'");
+    });
+
+    it('should not throw if backend.name is "proxy" and proxy_url is provided', () => {
+      expect(() => {
+        validateConfig(
+          merge({}, validConfig, {
+            backend: { name: 'proxy', proxy_url: 'http://localhost:8081/api/v1' },
+          }),
+        );
+      }).not.toThrowError();
+    });
+
+    it('should not throw if backend.name is not "proxy" and proxy_url is absent', () => {
+      expect(() => {
+        validateConfig(merge({}, validConfig, { backend: { name: 'github' } }));
+      }).not.toThrowError();
+    });
+
     it('should not throw if backend.squash_merges is boolean in config', () => {
       expect(() => {
         validateConfig(merge({}, validConfig, { backend: { squash_merges: true } }));

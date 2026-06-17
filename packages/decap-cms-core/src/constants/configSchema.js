@@ -180,6 +180,8 @@ function getConfigSchema() {
           use_large_media_transforms_in_media_library: { type: 'boolean' },
         },
         required: ['name'],
+        if: { properties: { name: { const: 'proxy' } }, required: ['name'] },
+        then: { required: ['proxy_url'] },
       },
       local_backend: {
         oneOf: [
