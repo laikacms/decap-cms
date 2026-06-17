@@ -5,7 +5,7 @@ import { map } from 'lodash/fp';
 import unsentRequest from './unsentRequest';
 import APIError from './APIError';
 
-type Formatter = (res: Response) => Promise<string | Blob | unknown>;
+type Formatter = (res: Response) => Promise<string | Blob>;
 
 export function filterByExtension(file: { path: string }, extension: string) {
   const path = file?.path || '';
@@ -54,7 +54,7 @@ export async function parseResponse(
   }
   if (expectingOk && !res.ok) {
     const isJSON = format === 'json';
-    const bodyRecord = body as Record<string, unknown>;
+    const bodyRecord = body as unknown as Record<string, unknown>;
     const message = isJSON
       ? bodyRecord.message ||
         bodyRecord.msg ||

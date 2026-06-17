@@ -82,7 +82,6 @@ function createCursorStore(...args: unknown[]): CursorStore {
         : new Set(Array.isArray(actions) ? (actions as string[]) : []),
     data: toPlainObject(data),
     meta: filterUnknownMetaKeys(toPlainObject(meta)),
-    [CURSOR_STORE_BRAND]: true as const,
   });
 }
 

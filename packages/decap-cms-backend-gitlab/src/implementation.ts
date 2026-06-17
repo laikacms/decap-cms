@@ -330,9 +330,9 @@ export default class GitLab implements Implementation {
   traverseCursor(cursor: Cursor, action: string) {
     return this.api!.traverseCursor(cursor, action).then(async ({ entries, cursor: newCursor }) => {
       const [folder, depth, extension] = [
-        cursor.meta?.get('folder') as string,
-        cursor.meta?.get('depth') as number,
-        cursor.meta?.get('extension') as string,
+        cursor.meta?.['folder'] as string,
+        cursor.meta?.['depth'] as number,
+        cursor.meta?.['extension'] as string,
       ];
       if (folder && depth && extension) {
         entries = entries.filter(f => this.filterFile(folder, f, extension, depth));

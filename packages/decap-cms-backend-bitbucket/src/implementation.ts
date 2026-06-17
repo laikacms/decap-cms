@@ -505,7 +505,7 @@ export default class BitbucketBackend implements Implementation {
 
   traverseCursor(cursor: Cursor, action: string) {
     return this.api!.traverseCursor(cursor, action).then(async ({ entries, cursor: newCursor }) => {
-      const extension = cursor.meta?.get('extension') as string | undefined;
+      const extension = cursor.meta?.['extension'] as string | undefined;
       if (extension) {
         entries = entries.filter(e => filterByExtension(e, extension));
         newCursor = newCursor.mergeMeta({ extension });

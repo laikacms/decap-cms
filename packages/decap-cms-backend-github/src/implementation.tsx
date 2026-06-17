@@ -581,7 +581,7 @@ export default class GitHub implements Implementation {
 
   async traverseCursor(cursor: Cursor, action: string) {
     const meta = cursor.meta!;
-    const files = (cursor.data!.get('files')! as { toJS(): ApiFile[] }).toJS();
+    const files = cursor.data!['files'] as ApiFile[];
 
     let result: { cursor: Cursor; files: ApiFile[] };
     switch (action) {
@@ -590,15 +590,15 @@ export default class GitHub implements Implementation {
         break;
       }
       case 'last': {
-        result = this.getCursorAndFiles(files, meta.get('pageCount') as number);
+        result = this.getCursorAndFiles(files, meta['pageCount'] as number);
         break;
       }
       case 'next': {
-        result = this.getCursorAndFiles(files, (meta.get('page') as number) + 1);
+        result = this.getCursorAndFiles(files, (meta['page'] as number) + 1);
         break;
       }
       case 'prev': {
-        result = this.getCursorAndFiles(files, (meta.get('page') as number) - 1);
+        result = this.getCursorAndFiles(files, (meta['page'] as number) - 1);
         break;
       }
       default: {
