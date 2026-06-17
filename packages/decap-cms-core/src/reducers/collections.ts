@@ -382,13 +382,13 @@ export function selectEntryCollectionTitle(collection: Collection, entry: EntryM
 
   // try to infer a title field from the entry data
   const rawData = entry.get('data');
-  const getInData = (path: string[]) => {
+  function getInData(path: string[]) {
     // Handle both Immutable Maps (Redux state) and plain objects (e.g. NestedCollection enriched data)
     if (rawData != null && typeof (rawData as { getIn?: unknown }).getIn === 'function') {
       return (rawData as { getIn: (p: string[]) => unknown }).getIn(path);
     }
     return get(rawData as Record<string, unknown>, path);
-  };
+  }
   const titleField = selectInferredField(collection, 'title');
   const result = titleField && getInData(keyToPathArray(titleField));
 
