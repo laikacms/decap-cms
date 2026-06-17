@@ -287,8 +287,7 @@ export default class API {
     const withRoot: ApiRequest = unsentRequest.withRoot(this.apiRoot)(req);
     const withAuthorizationHeaders = await this.withAuthorizationHeaders(withRoot);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((withAuthorizationHeaders as any).has('cache')) {
+    if (typeof withAuthorizationHeaders !== 'string' && 'cache' in withAuthorizationHeaders) {
       return withAuthorizationHeaders;
     } else {
       const withNoCache: ApiRequest = unsentRequest.withNoCache(withAuthorizationHeaders);

@@ -255,9 +255,7 @@ export default class API {
   };
 
   withAzureFeatures = (req: ApiRequest) => {
-    // req is an Immutable Map at runtime (produced by unsentRequest helpers)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((req as any).hasIn(['params', API_VERSION])) {
+    if (typeof req !== 'string' && req.params?.[API_VERSION] !== undefined) {
       return req;
     }
     const withParams = unsentRequest.withParams(
@@ -273,8 +271,7 @@ export default class API {
   buildRequest = (req: ApiRequest) => {
     const withHeaders = this.withHeaders(req);
     const withAzureFeatures = this.withAzureFeatures(withHeaders);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((withAzureFeatures as any).has('cache')) {
+    if (typeof withAzureFeatures !== 'string' && 'cache' in withAzureFeatures) {
       return withAzureFeatures;
     } else {
       const withNoCache = unsentRequest.withNoCache(withAzureFeatures);
