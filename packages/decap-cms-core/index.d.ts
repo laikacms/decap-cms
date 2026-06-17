@@ -11,7 +11,8 @@ declare module 'decap-cms-core' {
     | 'gitea'
     | 'bitbucket'
     | 'test-repo'
-    | 'proxy';
+    | 'proxy'
+    | 'aws-cognito-github-proxy';
 
   export type CmsMapWidgetType = 'Point' | 'LineString' | 'Polygon';
 
