@@ -146,10 +146,11 @@ const valueTypes = {
 };
 
 function handleSummary(summary, entry, label, item) {
-  const data = stringTemplate.addFileTemplateFields(
-    entry.get('path'),
-    item.set('fields.label', label),
-  );
+  const plainItem = {
+    ...(item && typeof item.toJS === 'function' ? item.toJS() : item),
+    'fields.label': label,
+  };
+  const data = stringTemplate.addFileTemplateFields(entry.get('path'), plainItem);
   return stringTemplate.compileStringTemplate(summary, null, '', data);
 }
 
