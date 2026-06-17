@@ -368,6 +368,15 @@ describe('getDefaultBranchName', () => {
     expect(result).toBe('master');
   });
 
+  it('returns undefined when bitbucket mainbranch is null (empty repo)', async () => {
+    unsentRequest.performRequest.mockResolvedValueOnce(
+      makeResponse(200, { mainbranch: null }, jsonHeaders),
+    );
+
+    const result = await api.getDefaultBranchName({ backend: 'bitbucket', repo: 'owner/repo' });
+    expect(result).toBeUndefined();
+  });
+
   it('calls the correct path for each backend', async () => {
     unsentRequest.performRequest
       .mockResolvedValueOnce(makeResponse(200, { default_branch: 'main' }, jsonHeaders))

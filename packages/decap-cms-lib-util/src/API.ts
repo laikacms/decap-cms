@@ -241,10 +241,7 @@ export async function getDefaultBranchName(configs: {
   const repoInfo = await apiRequest(apiPath, { token, backend, apiRoot });
   let defaultBranchName;
   if (backend === 'bitbucket') {
-    const {
-      mainbranch: { name },
-    } = repoInfo;
-    defaultBranchName = name;
+    defaultBranchName = repoInfo?.mainbranch?.name;
   } else {
     const { default_branch } = repoInfo;
     defaultBranchName = default_branch;
