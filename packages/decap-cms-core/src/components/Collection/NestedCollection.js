@@ -193,10 +193,11 @@ export function getTreeData(collection, entries) {
     })),
     ...entriesObj.map((e, index) => {
       let entryMap = entries.get(index);
-      entryMap = entryMap.set(
-        'data',
-        addFileTemplateFields(entryMap.get('path'), entryMap.get('data')),
+      const entryDataPlain = addFileTemplateFields(
+        entryMap.get('path'),
+        entryMap.get('data').toJS(),
       );
+      entryMap = entryMap.set('data', entryDataPlain);
       const title = selectEntryCollectionTitle(collection, entryMap);
       return {
         ...e,

@@ -422,7 +422,7 @@ export default class RelationControl extends React.Component {
     if (templateVars.length <= 0) {
       return get(hitData, field);
     }
-    const data = stringTemplate.addFileTemplateFields(hit.path, fromJS(hitData));
+    const data = stringTemplate.addFileTemplateFields(hit.path, hitData);
     const value = stringTemplate.compileStringTemplate(field, null, hit.slug, data);
     return value;
   };

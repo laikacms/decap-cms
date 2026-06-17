@@ -83,7 +83,6 @@ import type {
   DataFile,
   UnpublishedEntryDiff,
 } from 'decap-cms-lib-util';
-import type { Map } from 'immutable';
 
 const { extractTemplateVars, dateParsers, expandPath } = stringTemplate;
 
@@ -476,7 +475,7 @@ export class Backend {
 
   async generateUniqueSlug(
     collection: Collection,
-    entryData: Map<string, unknown>,
+    entryData: Record<string, unknown>,
     config: CmsConfig,
     usedSlugs: List<string>,
     customPath: string | undefined,
@@ -577,7 +576,7 @@ export class Backend {
     });
     return {
       entries: this.processEntries(loadedEntries, collection),
-      pagination: cursor.meta?.get('page'),
+      pagination: cursor.meta?.['page'] as number | undefined,
       cursor,
     };
   }
@@ -604,7 +603,7 @@ export class Backend {
     const response = await this.listEntries(collection);
     const { entries } = response;
     let { cursor } = response;
-    while (cursor && cursor.actions!.includes('next')) {
+    while (cursor && cursor.actions!.has('next')) {
       const { entries: newEntries, cursor: newCursor } = await this.traverseCursor(cursor, 'next');
       entries.push(...newEntries);
       cursor = newCursor;
@@ -708,7 +707,7 @@ export class Backend {
   traverseCursor(cursor: Cursor, action: string) {
     const [data, unwrappedCursor] = cursor.unwrapData();
     // TODO: stop assuming all cursors are for collections
-    const collection = data.get('collection') as Collection;
+    const collection = data['collection'] as Collection;
     return this.implementation!.traverseCursor!(unwrappedCursor, action).then(
       async ({ entries, cursor: newCursor }) => ({
         entries: this.processEntries(entries, collection),
@@ -1128,7 +1127,7 @@ export class Backend {
       }
       const slug = await this.generateUniqueSlug(
         collection,
-        entryDraft.getIn(['entry', 'data']),
+        entryDraft.getIn(['entry', 'data']) as Record<string, unknown>,
         config,
         usedSlugs,
         customPath,

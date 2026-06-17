@@ -3,14 +3,16 @@ import unsentRequest from '../unsentRequest';
 describe('unsentRequest', () => {
   describe('withHeaders', () => {
     it('should create new request with headers', () => {
-      expect(unsentRequest.withHeaders({ Authorization: 'token' })('path').toJS()).toEqual({
+      const req = unsentRequest.withHeaders({ Authorization: 'token' })('path');
+      expect(req).toMatchObject({
         url: 'path',
         headers: { Authorization: 'token' },
       });
     });
 
     it('should add headers to existing request', () => {
-      expect(unsentRequest.withHeaders({ Authorization: 'token' }, 'path').toJS()).toEqual({
+      const req = unsentRequest.withHeaders({ Authorization: 'token' }, 'path');
+      expect(req).toMatchObject({
         url: 'path',
         headers: { Authorization: 'token' },
       });
@@ -20,20 +22,20 @@ describe('unsentRequest', () => {
   describe('fromURL', () => {
     it('should parse a plain URL with no query params', () => {
       const req = unsentRequest.fromURL('https://api.example.com/repos');
-      expect(req.get('url')).toBe('https://api.example.com/repos');
-      expect(req.get('params')).toBeUndefined();
+      expect(req.url).toBe('https://api.example.com/repos');
+      expect(req.params).toBeUndefined();
     });
 
-    it('should parse query params into an ImmutableJS Map', () => {
+    it('should parse query params into a plain object', () => {
       const req = unsentRequest.fromURL('https://api.example.com/repos?owner=alice&page=2');
-      expect(req.get('url')).toBe('https://api.example.com/repos');
-      expect(req.get('params').get('owner')).toBe('alice');
-      expect(req.get('params').get('page')).toBe('2');
+      expect(req.url).toBe('https://api.example.com/repos');
+      expect(req.params.owner).toBe('alice');
+      expect(req.params.page).toBe('2');
     });
 
     it('should decode percent-encoded query param values', () => {
       const req = unsentRequest.fromURL('https://api.example.com/search?q=hello%20world');
-      expect(req.get('params').get('q')).toBe('hello world');
+      expect(req.params.q).toBe('hello world');
     });
   });
 
@@ -61,63 +63,63 @@ describe('unsentRequest', () => {
   describe('withMethod', () => {
     it('should set the method (curried)', () => {
       const req = unsentRequest.withMethod('POST')('https://api.example.com/repos');
-      expect(req.get('method')).toBe('POST');
-      expect(req.get('url')).toBe('https://api.example.com/repos');
+      expect(req.method).toBe('POST');
+      expect(req.url).toBe('https://api.example.com/repos');
     });
 
     it('should set the method (two-arg)', () => {
       const req = unsentRequest.withMethod('PUT', 'https://api.example.com/repos');
-      expect(req.get('method')).toBe('PUT');
+      expect(req.method).toBe('PUT');
     });
 
     it('should override an existing method', () => {
       const base = unsentRequest.withMethod('GET')('https://api.example.com/repos');
       const updated = unsentRequest.withMethod('DELETE')(base);
-      expect(updated.get('method')).toBe('DELETE');
+      expect(updated.method).toBe('DELETE');
     });
   });
 
   describe('withBody', () => {
     it('should set the body (curried)', () => {
       const req = unsentRequest.withBody('{"key":"value"}')('https://api.example.com/repos');
-      expect(req.get('body')).toBe('{"key":"value"}');
+      expect(req.body).toBe('{"key":"value"}');
     });
 
     it('should set the body (two-arg)', () => {
       const req = unsentRequest.withBody('payload', 'https://api.example.com/repos');
-      expect(req.get('body')).toBe('payload');
+      expect(req.body).toBe('payload');
     });
   });
 
   describe('withParams', () => {
     it('should add query params to a request with no existing params', () => {
       const req = unsentRequest.withParams({ per_page: '10' }, 'https://api.example.com/repos');
-      expect(req.get('params').get('per_page')).toBe('10');
+      expect(req.params.per_page).toBe('10');
     });
 
     it('should merge query params with existing params', () => {
       const base = unsentRequest.fromURL('https://api.example.com/repos?owner=alice');
       const req = unsentRequest.withParams({ page: '2' }, base);
-      expect(req.get('params').get('owner')).toBe('alice');
-      expect(req.get('params').get('page')).toBe('2');
+      expect(req.params.owner).toBe('alice');
+      expect(req.params.page).toBe('2');
     });
 
     it('should override existing params with the same key', () => {
       const base = unsentRequest.fromURL('https://api.example.com/repos?page=1');
       const req = unsentRequest.withParams({ page: '3' }, base);
-      expect(req.get('params').get('page')).toBe('3');
+      expect(req.params.page).toBe('3');
     });
   });
 
   describe('withRoot', () => {
     it('should prepend root to a relative URL', () => {
       const req = unsentRequest.withRoot('https://api.example.com', 'repos');
-      expect(req.get('url')).toBe('https://api.example.com/repos');
+      expect(req.url).toBe('https://api.example.com/repos');
     });
 
     it('should not add double slashes at the join point', () => {
       const req = unsentRequest.withRoot('https://api.example.com', 'repos/list');
-      expect(req.get('url')).toBe('https://api.example.com/repos/list');
+      expect(req.url).toBe('https://api.example.com/repos/list');
     });
 
     it('should not modify an already-absolute URL', () => {
@@ -125,25 +127,25 @@ describe('unsentRequest', () => {
         'https://proxy.example.com',
         'https://api.example.com/repos',
       );
-      expect(req.get('url')).toBe('https://api.example.com/repos');
+      expect(req.url).toBe('https://api.example.com/repos');
     });
 
     it('should handle a leading slash on the path', () => {
       const req = unsentRequest.withRoot('https://api.example.com', '/repos');
-      expect(req.get('url')).toBe('https://api.example.com/repos');
+      expect(req.url).toBe('https://api.example.com/repos');
     });
   });
 
   describe('withNoCache', () => {
     it('should set cache to no-cache on a new request', () => {
       const req = unsentRequest.withNoCache('https://api.example.com/repos');
-      expect(req.get('cache')).toBe('no-cache');
+      expect(req.cache).toBe('no-cache');
     });
 
     it('should set cache to no-cache on an existing request', () => {
       const base = unsentRequest.fromURL('https://api.example.com/repos');
       const req = unsentRequest.withNoCache(base);
-      expect(req.get('cache')).toBe('no-cache');
+      expect(req.cache).toBe('no-cache');
     });
   });
 });

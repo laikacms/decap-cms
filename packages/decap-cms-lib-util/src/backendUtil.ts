@@ -1,12 +1,11 @@
 import flow from 'lodash/flow';
 import fromPairs from 'lodash/fromPairs';
 import { map } from 'lodash/fp';
-import { fromJS } from 'immutable';
 
 import unsentRequest from './unsentRequest';
 import APIError from './APIError';
 
-type Formatter = (res: Response) => Promise<string | Blob | unknown>;
+type Formatter = (res: Response) => Promise<string | Blob>;
 
 export function filterByExtension(file: { path: string }, extension: string) {
   const path = file?.path || '';
@@ -25,20 +24,19 @@ function catchFormatErrors(format: string, formatter: Formatter) {
   };
 }
 
-const responseFormatters = fromJS({
-  json: async (res: Response) => {
-    const contentType = res.headers.get('Content-Type') || '';
-    if (!contentType.startsWith('application/json') && !contentType.startsWith('text/json')) {
-      throw new Error(`${contentType} is not a valid JSON Content-Type`);
-    }
-    return res.json();
-  },
-  text: async (res: Response) => res.text(),
-  blob: async (res: Response) => res.blob(),
-}).mapEntries(([format, formatter]: [string, Formatter]) => [
-  format,
-  catchFormatErrors(format, formatter),
-]);
+const responseFormatters: Record<string, Formatter> = Object.fromEntries(
+  Object.entries({
+    json: async (res: Response) => {
+      const contentType = res.headers.get('Content-Type') || '';
+      if (!contentType.startsWith('application/json') && !contentType.startsWith('text/json')) {
+        throw new Error(`${contentType} is not a valid JSON Content-Type`);
+      }
+      return res.json();
+    },
+    text: async (res: Response) => res.text(),
+    blob: async (res: Response) => res.blob(),
+  }).map(([format, formatter]) => [format, catchFormatErrors(format, formatter as Formatter)]),
+);
 
 export async function parseResponse(
   res: Response,
@@ -46,7 +44,7 @@ export async function parseResponse(
 ) {
   let body;
   try {
-    const formatter = responseFormatters.get(format, false);
+    const formatter = responseFormatters[format];
     if (!formatter) {
       throw new Error(`${format} is not a supported response format.`);
     }
@@ -56,8 +54,13 @@ export async function parseResponse(
   }
   if (expectingOk && !res.ok) {
     const isJSON = format === 'json';
-    const message = isJSON ? body.message || body.msg || body.error?.message : body;
-    throw new APIError(isJSON && message ? message : body, res.status, apiName);
+    const bodyRecord = body as unknown as Record<string, unknown>;
+    const message = isJSON
+      ? bodyRecord.message ||
+        bodyRecord.msg ||
+        (bodyRecord.error as Record<string, unknown>)?.message
+      : body;
+    throw new APIError(String(isJSON && message ? message : body), res.status, apiName);
   }
   return body;
 }

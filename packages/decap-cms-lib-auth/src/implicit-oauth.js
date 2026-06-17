@@ -1,4 +1,3 @@
-import { Map } from 'immutable';
 import trim from 'lodash/trim';
 import trimEnd from 'lodash/trimEnd';
 
@@ -50,20 +49,20 @@ export default class ImplicitAuthenticator {
     // Remove tokens from hash so that token does not remain in browser history.
     this.clearHash();
 
-    const params = Map(hashParams.entries());
+    const params = Object.fromEntries(hashParams.entries());
 
-    const { nonce } = JSON.parse(params.get('state'));
+    const { nonce } = JSON.parse(params['state']);
     const validNonce = validateNonce(nonce);
     if (!validNonce) {
       return cb(new Error('Invalid nonce'));
     }
 
-    if (params.has('error')) {
-      return cb(new Error(`${params.get('error')}: ${params.get('error_description')}`));
+    if (params['error']) {
+      return cb(new Error(`${params['error']}: ${params['error_description']}`));
     }
 
-    if (params.has('access_token')) {
-      const { access_token: token, ...data } = params.toJS();
+    if (params['access_token']) {
+      const { access_token: token, ...data } = params;
       cb(null, { token, ...data });
     }
   }

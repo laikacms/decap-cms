@@ -375,6 +375,7 @@ describe('formatters', () => {
     });
 
     it('should see date filters applied to date from entry if it exists', () => {
+      selectIdentifier.mockReturnValueOnce('title');
       const { selectInferredField } = require('../../reducers/collections');
       selectInferredField.mockReturnValue('date');
       const entryDate = new Date('2026-10-20T13:28:27.679Z');
@@ -382,13 +383,14 @@ describe('formatters', () => {
       expect(
         slugFormatter(
           Map({ slug: '{{year}}-{{month}}-{{day}}-{{title}}' }),
-          Map({ date: entryDate, title: 'post title' }),
+          { date: entryDate, title: 'post title' },
           slugConfig,
         ),
       ).toBe('2026-10-20-post-title');
     });
 
     it('should see date filters applied to publishDate from entry if it exists', () => {
+      selectIdentifier.mockReturnValueOnce('title');
       const { selectInferredField } = require('../../reducers/collections');
       selectInferredField.mockReturnValue('publishDate');
       const entryDate = new Date('2026-10-20T13:28:27.679Z');
@@ -396,7 +398,7 @@ describe('formatters', () => {
       expect(
         slugFormatter(
           Map({ slug: '{{year}}-{{month}}-{{day}}-{{title}}' }),
-          Map({ publishDate: entryDate, title: 'post title' }),
+          { publishDate: entryDate, title: 'post title' },
           slugConfig,
         ),
       ).toBe('2026-10-20-post-title');

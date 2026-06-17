@@ -167,7 +167,7 @@ export default class TestBackend implements Implementation {
   }
 
   traverseCursor(cursor: Cursor, action: string) {
-    const { folder, extension, index, pageCount, depth } = cursor.data!.toObject() as {
+    const { folder, extension, index, pageCount, depth } = cursor.data! as {
       folder: string;
       extension: string;
       index: number;

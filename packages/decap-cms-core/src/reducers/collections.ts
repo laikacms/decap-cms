@@ -12,7 +12,6 @@ import { getFormatExtensions } from '../formats/formats';
 import { selectMediaFolder } from './entries';
 import { summaryFormatter } from '../lib/formatters';
 
-import type { Map } from 'immutable';
 import type {
   Collection,
   Collections,
@@ -382,13 +381,20 @@ export function selectEntryCollectionTitle(collection: Collection, entry: EntryM
   }
 
   // try to infer a title field from the entry data
-  const entryData = entry.get('data') as unknown as Map<string, unknown>;
+  const rawData = entry.get('data');
+  function getInData(path: string[]) {
+    // Handle both Immutable Maps (Redux state) and plain objects (e.g. NestedCollection enriched data)
+    if (rawData != null && typeof (rawData as { getIn?: unknown }).getIn === 'function') {
+      return (rawData as { getIn: (p: string[]) => unknown }).getIn(path);
+    }
+    return get(rawData as Record<string, unknown>, path);
+  }
   const titleField = selectInferredField(collection, 'title');
-  const result = titleField && entryData.getIn(keyToPathArray(titleField));
+  const result = titleField && getInData(keyToPathArray(titleField));
 
   // if the custom field does not yield a result, fallback to 'title'
   if (!result && titleField !== 'title') {
-    return entryData.getIn(keyToPathArray('title'));
+    return getInData(keyToPathArray('title'));
   }
 
   return result;

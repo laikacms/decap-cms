@@ -562,17 +562,20 @@ export async function tryLoadEntry(state: State, collection: Collection, slug: s
   return loadedEntry;
 }
 
-const appendActions = fromJS({
-  ['append_next']: { action: 'next', append: true },
-});
+const appendActions: Record<string, { action: string; append: boolean }> = {
+  append_next: { action: 'next', append: true },
+};
 
 function addAppendActionsToCursor(cursor: Cursor) {
-  return Cursor.create(cursor).updateStore('actions', (actions: Set<string>) => {
-    return actions.union(
-      appendActions
-        .filter((v: Map<string, string | boolean>) => actions.has(v.get('action') as string))
-        .keySeq(),
-    );
+  return Cursor.create(cursor).updateStore('actions', (val: unknown) => {
+    const actions = val as globalThis.Set<string>;
+    const next = new globalThis.Set(actions);
+    for (const [key, { action }] of Object.entries(appendActions)) {
+      if (actions.has(action)) {
+        next.add(key);
+      }
+    }
+    return next;
   });
 }
 
@@ -637,7 +640,7 @@ export function loadEntries(collection: Collection, page = 0) {
       dispatch(
         entriesLoaded(
           collection,
-          response.cursor.meta!.get('usingOldPaginationAPI')
+          response.cursor.meta!['usingOldPaginationAPI']
             ? response.entries.reverse()
             : response.entries,
           response.pagination,
@@ -677,22 +680,21 @@ export function traverseCollectionCursor(collection: Collection, action: string)
     }
     const backend = currentBackend(state.config);
 
-    const { action: realAction, append } = appendActions.has(action)
-      ? appendActions.get(action).toJS()
-      : { action, append: false };
+    const { action: realAction, append } =
+      action in appendActions ? appendActions[action] : { action, append: false };
     const cursor = selectCollectionEntriesCursor(state.cursors, collection.get('name'));
 
     // Handle cursors representing pages in the old, integer-based
     // pagination API
-    if (cursor.meta!.get('usingOldPaginationAPI', false)) {
-      return dispatch(loadEntries(collection, cursor.data!.get('nextPage') as number));
+    if (cursor.meta!['usingOldPaginationAPI']) {
+      return dispatch(loadEntries(collection, cursor.data!['nextPage'] as number));
     }
 
     try {
       dispatch(entriesLoading(collection));
       const { entries, cursor: newCursor } = await traverseCursor(backend, cursor, realAction);
 
-      const pagination = newCursor.meta?.get('page') as number | null;
+      const pagination = newCursor.meta?.['page'] as number | null;
       return dispatch(
         entriesLoaded(collection, entries, pagination, addAppendActionsToCursor(newCursor), append),
       );

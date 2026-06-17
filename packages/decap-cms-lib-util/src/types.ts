@@ -1,9 +1,7 @@
-import { Map as ImmutableMap, List } from 'immutable';
-
-export function isImmutableMap(value: unknown): value is ImmutableMap<string, unknown> {
-  return ImmutableMap.isMap(value);
+export function isImmutableMap(_value: unknown): _value is Record<string, unknown> {
+  return false;
 }
 
-export function isImmutableList(value: unknown): value is List<unknown> {
-  return List.isList(value);
+export function isImmutableList(_value: unknown): _value is unknown[] {
+  return false;
 }

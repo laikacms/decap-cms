@@ -10,7 +10,6 @@ import {
   css,
 } from '@emotion/react';
 import EmotionStyled from '@emotion/styled';
-import Immutable from 'immutable';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import Lodash from 'lodash/lodash';
 import PropTypes from 'prop-types';
@@ -31,7 +30,6 @@ const EmotionCore = {
 export const DecapCmsDefaultExports = {
   EmotionCore,
   EmotionStyled,
-  Immutable,
   ImmutablePropTypes,
   Lodash,
   PropTypes,
