@@ -1,4 +1,43 @@
-import { getLargeMediaPatternsFromGitAttributesFile, parsePointerFile } from '../git-lfs';
+import {
+  createPointerFile,
+  getLargeMediaPatternsFromGitAttributesFile,
+  parsePointerFile,
+} from '../git-lfs';
+
+describe('createPointerFile', () => {
+  const sha = '4d7a214614ab2935c943f9e0ff69d22eadbb8f32b1258daaa5e2ca24d17e2393';
+  const size = 12345;
+
+  it('returns the exact expected pointer file string for known sha and size', () => {
+    const result = createPointerFile({ sha, size });
+    expect(result).toBe(
+      `version https://git-lfs.github.com/spec/v1\noid sha256:${sha}\nsize ${size}\n`,
+    );
+  });
+
+  it('includes the oid sha256: prefix', () => {
+    const result = createPointerFile({ sha, size });
+    expect(result).toContain(`oid sha256:${sha}`);
+  });
+
+  it('includes the size field on its own line', () => {
+    const result = createPointerFile({ sha, size });
+    expect(result).toContain(`\nsize ${size}\n`);
+  });
+
+  it('ends with a trailing newline', () => {
+    const result = createPointerFile({ sha, size });
+    expect(result.endsWith('\n')).toBe(true);
+  });
+
+  it('round-trips through parsePointerFile', () => {
+    const original = { sha, size };
+    const pointer = createPointerFile(original);
+    const parsed = parsePointerFile(pointer);
+    expect(parsed.sha).toBe(original.sha);
+    expect(parsed.size).toBe(original.size);
+  });
+});
 
 describe('parsePointerFile', () => {
   it('parses a valid pointer file and returns correct size and sha', () => {
