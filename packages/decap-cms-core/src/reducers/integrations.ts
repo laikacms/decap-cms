@@ -38,7 +38,10 @@ export function getIntegrations(config: CmsConfig) {
 
 const defaultState: Integrations = { hooks: {} };
 
-function integrations(state: Integrations = defaultState, action: ConfigAction): Integrations | null {
+function integrations(
+  state: Integrations = defaultState,
+  action: ConfigAction,
+): Integrations | null {
   switch (action.type) {
     case CONFIG_SUCCESS: {
       return getIntegrations(action.payload);

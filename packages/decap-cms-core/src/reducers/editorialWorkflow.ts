@@ -21,11 +21,19 @@ import {
 } from '../actions/editorialWorkflow';
 import { CONFIG_SUCCESS } from '../actions/config';
 
-import type { EditorialWorkflowAction, EditorialWorkflow, Entities, EntryMap } from '../types/redux';
+import type {
+  EditorialWorkflowAction,
+  EditorialWorkflow,
+  Entities,
+  EntryMap,
+} from '../types/redux';
 
 const defaultState: EditorialWorkflow = { entities: {}, pages: {} };
 
-function unpublishedEntries(state: EditorialWorkflow = defaultState as unknown as EditorialWorkflow, action: EditorialWorkflowAction): EditorialWorkflow {
+function unpublishedEntries(
+  state: EditorialWorkflow = defaultState as unknown as EditorialWorkflow,
+  action: EditorialWorkflowAction,
+): EditorialWorkflow {
   switch (action.type) {
     case CONFIG_SUCCESS: {
       const publishMode = action.payload && action.payload.publish_mode;
@@ -73,7 +81,10 @@ function unpublishedEntries(state: EditorialWorkflow = defaultState as unknown a
     case UNPUBLISHED_ENTRIES_SUCCESS: {
       const newEntities = { ...state.entities };
       action.payload!.entries.forEach(entry => {
-        newEntities[`${entry.collection}.${entry.slug}`] = { ...entry, isFetching: false } as unknown as EntryMap;
+        newEntities[`${entry.collection}.${entry.slug}`] = {
+          ...entry,
+          isFetching: false,
+        } as unknown as EntryMap;
       });
       return {
         ...state,
@@ -100,13 +111,14 @@ function unpublishedEntries(state: EditorialWorkflow = defaultState as unknown a
       // Update Optimistically
       const entrySlug = action.payload!.entry.slug;
       const key = `${action.payload!.collection}.${entrySlug}`;
-      const { isPersisting: _, ...entryWithoutPersisting } = (state.entities?.[key] ?? {}) as EntryMap & { isPersisting?: boolean };
+      const { isPersisting: _, ...entryWithoutPersisting } = (state.entities?.[key] ??
+        {}) as EntryMap & { isPersisting?: boolean };
       const ids = (state.pages as unknown as { ids?: string[] })?.ids ?? [];
       return {
         ...state,
         entities: {
           ...state.entities,
-          [key]: { ...action.payload!.entry as unknown as EntryMap, ...entryWithoutPersisting },
+          [key]: { ...(action.payload!.entry as unknown as EntryMap), ...entryWithoutPersisting },
         },
         pages: {
           ...state.pages,
@@ -207,7 +219,9 @@ function getSelectorForStatus(targetStatus: string) {
       (state: EditorialWorkflow) => (state ? state.entities : null),
       (entities: Entities | null) => {
         if (!entities) return null;
-        return Object.values(entities).filter(entry => (entry as EntryMap & { status?: string }).status === targetStatus);
+        return Object.values(entities).filter(
+          entry => (entry as EntryMap & { status?: string }).status === targetStatus,
+        );
       },
     );
   }
@@ -227,7 +241,9 @@ export const selectUnpublishedEntriesGroupedByStatus = createSelector(
     Object.values(statusValues).forEach(currStatus => {
       if (currStatus) {
         grouped[currStatus] = entities
-          ? Object.values(entities).filter(entry => (entry as EntryMap & { status?: string }).status === currStatus)
+          ? Object.values(entities).filter(
+              entry => (entry as EntryMap & { status?: string }).status === currStatus,
+            )
           : null;
       }
     });

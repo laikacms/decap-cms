@@ -47,8 +47,7 @@ const selectors = {
   [FOLDER]: {
     entryExtension(collection: Collection) {
       const ext =
-        collection.extension ||
-        get(getFormatExtensions(), collection.format || 'frontmatter');
+        collection.extension || get(getFormatExtensions(), collection.format || 'frontmatter');
       if (!ext) {
         throw new Error(`No extension found for format ${collection.format}`);
       }
@@ -95,8 +94,7 @@ const selectors = {
       return file && file.file;
     },
     entrySlug(collection: Collection, path: string) {
-      const file = (collection.files as CollectionFiles)
-        .filter(f => f?.file === path)[0];
+      const file = (collection.files as CollectionFiles).filter(f => f?.file === path)[0];
       return file && file.name;
     },
     entryLabel(collection: Collection, slug: string) {

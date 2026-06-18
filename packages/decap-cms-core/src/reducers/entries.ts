@@ -118,9 +118,10 @@ function persistSort(sort: Sort | undefined) {
     const storageSort: StorageSort = {};
     Object.keys(sort).forEach(key => {
       const collection = key;
-      const sortObjects = (Object.values(sort[collection]) as SortObject[]).map(
-        (value, index) => ({ ...value, index }),
-      );
+      const sortObjects = (Object.values(sort[collection]) as SortObject[]).map((value, index) => ({
+        ...value,
+        index,
+      }));
 
       sortObjects.forEach(value => {
         set(storageSort, [collection, value.key], value);
@@ -274,7 +275,10 @@ function entries(state: Entries = defaultEntriesState, action: EntriesAction): E
       loadedEntries = payload.entries;
       const newEntities = { ...state.entities };
       loadedEntries.forEach(entry => {
-        newEntities[`${entry.collection}.${entry.slug}`] = { ...entry, isFetching: false } as EntryMap;
+        newEntities[`${entry.collection}.${entry.slug}`] = {
+          ...entry,
+          isFetching: false,
+        } as EntryMap;
       });
       return { ...state, entities: newEntities };
     }
@@ -327,7 +331,10 @@ function entries(state: Entries = defaultEntriesState, action: EntriesAction): E
       loadedEntries = entries;
       const newEntities = { ...state.entities };
       loadedEntries.forEach(entry => {
-        newEntities[`${entry.collection}.${entry.slug}`] = { ...entry, isFetching: false } as EntryMap;
+        newEntities[`${entry.collection}.${entry.slug}`] = {
+          ...entry,
+          isFetching: false,
+        } as EntryMap;
       });
       const ids = loadedEntries.map(entry => entry.slug);
       return {
@@ -368,7 +375,7 @@ function entries(state: Entries = defaultEntriesState, action: EntriesAction): E
     case FILTER_ENTRIES_REQUEST: {
       const payload = action.payload as EntriesFilterRequestPayload;
       const { collection, filter } = payload;
-      const current: FilterMap = state.filter?.[collection]?.[filter.id] ?? filter as FilterMap;
+      const current: FilterMap = state.filter?.[collection]?.[filter.id] ?? (filter as FilterMap);
       return {
         ...state,
         filter: {
@@ -404,7 +411,7 @@ function entries(state: Entries = defaultEntriesState, action: EntriesAction): E
     case GROUP_ENTRIES_REQUEST: {
       const payload = action.payload as EntriesGroupRequestPayload;
       const { collection, group } = payload;
-      const current: GroupMap = state.group?.[collection]?.[group.id] ?? group as GroupMap;
+      const current: GroupMap = state.group?.[collection]?.[group.id] ?? (group as GroupMap);
       return {
         ...state,
         group: {
@@ -504,9 +511,7 @@ export function selectEntries(state: Entries, collection: Collection) {
   const sortFields = selectEntriesSortFields(state, collectionName);
   if (sortFields && sortFields.length > 0) {
     const keys = sortFields.map(v => selectSortDataPath(collection, v.key));
-    const orders = sortFields.map(v =>
-      v.direction === SortDirection.Ascending ? 'asc' : 'desc',
-    );
+    const orders = sortFields.map(v => (v.direction === SortDirection.Ascending ? 'asc' : 'desc'));
     entries = orderBy(entries, keys, orders) as EntryMap[];
   }
 
@@ -601,7 +606,9 @@ export function selectGroups(state: Entries, collection: Collection) {
 
 export function selectEntryByPath(state: Entries, collection: string, path: string) {
   const slugs = selectPublishedSlugs(state, collection);
-  const entries = slugs.map(slug => selectEntry(state, collection, slug)).filter(Boolean) as EntryMap[];
+  const entries = slugs
+    .map(slug => selectEntry(state, collection, slug))
+    .filter(Boolean) as EntryMap[];
   return entries.find(e => e?.path === path);
 }
 
@@ -829,9 +836,7 @@ export function selectMediaFolder(
       mediaFolder = join(folder);
     } else {
       const entryPath = entryMap?.path;
-      mediaFolder = entryPath
-        ? join(dirname(entryPath), folder)
-        : (collection!.folder as string);
+      mediaFolder = entryPath ? join(dirname(entryPath), folder) : (collection!.folder as string);
     }
   }
 

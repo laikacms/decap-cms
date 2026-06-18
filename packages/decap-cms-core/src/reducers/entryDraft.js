@@ -36,6 +36,14 @@ import {
 import { selectFolderEntryExtension, selectHasMetaPath } from './collections';
 import { getDataPath, duplicateI18nFields } from '../lib/i18n';
 
+function setDeep(target, pathArr, val) {
+  const key = pathArr[0];
+  if (pathArr.length === 1) {
+    return { ...target, [key]: val };
+  }
+  return { ...target, [key]: setDeep(target[key] ?? {}, pathArr.slice(1), val) };
+}
+
 const initialState = {
   entry: {},
   fieldsMetaData: {},
@@ -119,20 +127,7 @@ function entryDraftReducer(state = {}, action) {
           },
         };
       } else {
-        // Build nested path for dataPath
-        let entryData = { ...(state.entry ?? {}) };
-        // Set deeply nested value
-        const fullPath = ['entry', ...dataPath, name];
-        let obj = { ...entryData };
-        // Use a manual deep-set
-        const setDeep = (target, pathArr, val) => {
-          const key = pathArr[0];
-          if (pathArr.length === 1) {
-            return { ...target, [key]: val };
-          }
-          return { ...target, [key]: setDeep(target[key] ?? {}, pathArr.slice(1), val) };
-        };
-        entryData = setDeep(state.entry ?? {}, [...dataPath, name], value);
+        const entryData = setDeep(state.entry ?? {}, [...dataPath, name], value);
         newState = { ...state, entry: entryData };
         if (i18n) {
           newState = duplicateI18nFields(newState, field, i18n.locales, i18n.defaultLocale);
@@ -237,10 +232,7 @@ function entryDraftReducer(state = {}, action) {
         ...state,
         entry: {
           ...state.entry,
-          mediaFiles: [
-            action.payload,
-            ...mediaFiles.filter(file => file.id !== action.payload.id),
-          ],
+          mediaFiles: [action.payload, ...mediaFiles.filter(file => file.id !== action.payload.id)],
         },
         hasChanged: true,
       };

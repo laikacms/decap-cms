@@ -56,7 +56,10 @@ const defaultState: MediaLibraryState = {
   config: {},
 };
 
-function mediaLibrary(state: MediaLibraryState = defaultState, action: MediaLibraryAction): MediaLibraryState {
+function mediaLibrary(
+  state: MediaLibraryState = defaultState,
+  action: MediaLibraryAction,
+): MediaLibraryState {
   switch (action.type) {
     case MEDIA_LIBRARY_CREATE:
       return {
@@ -323,7 +326,9 @@ export function selectMediaFileByPath(state: State, path: string) {
 }
 
 export function selectMediaDisplayURL(state: State, id: string) {
-  const displayUrlState = (state.mediaLibrary as unknown as MediaLibraryState).displayURLs?.[id] ?? {} as DisplayURLState;
+  const displayUrlState =
+    (state.mediaLibrary as unknown as MediaLibraryState).displayURLs?.[id] ??
+    ({} as DisplayURLState);
   return displayUrlState;
 }
 
