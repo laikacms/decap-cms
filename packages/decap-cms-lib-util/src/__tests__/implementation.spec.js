@@ -453,7 +453,7 @@ describe('implementation', () => {
       ];
 
       const fileMetadata = { author: 'test-author', updatedOn: '2024-01-01' };
-      const readFile = jest.fn((path, id, opts) => Promise.resolve(`data:${path}`));
+      const readFile = jest.fn((path, _id, _opts) => Promise.resolve(`data:${path}`));
       const readFileMetadata = jest.fn(() => Promise.resolve(fileMetadata));
 
       const result = await entriesByFiles(files, readFile, readFileMetadata, 'test-api');
