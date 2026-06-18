@@ -1,5 +1,3 @@
-import { Map, OrderedMap } from 'immutable';
-
 // Create/edit workflow modes
 export const SIMPLE = 'simple';
 export const EDITORIAL_WORKFLOW = 'editorial_workflow';
@@ -11,12 +9,12 @@ export const Statues = {
 };
 
 // Available status
-export const status = OrderedMap(Statues);
+export const status = Statues;
 
-export const statusDescriptions = Map({
-  [status.get('DRAFT')]: 'Draft',
-  [status.get('PENDING_REVIEW')]: 'Waiting for Review',
-  [status.get('PENDING_PUBLISH')]: 'Waiting to go live',
-});
+export const statusDescriptions = {
+  [status.DRAFT]: 'Draft',
+  [status.PENDING_REVIEW]: 'Waiting for Review',
+  [status.PENDING_PUBLISH]: 'Waiting to go live',
+};
 
 export type Status = keyof typeof Statues;
