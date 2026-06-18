@@ -5,6 +5,8 @@ import {
   runWithLock,
   allEntriesByFolder,
   persistLocalTree,
+  unpublishedEntries,
+  entriesByFiles,
 } from '../implementation';
 
 describe('implementation', () => {
@@ -351,6 +353,44 @@ describe('implementation', () => {
       expect(filterFile).toHaveBeenCalled();
     });
 
+    it('no local tree: falls back to listAllFiles and fetches all files', async () => {
+      const store = {};
+      const localForage = {
+        getItem: jest.fn(() => Promise.resolve(null)),
+        setItem: jest.fn((key, value) => {
+          store[key] = value;
+          return Promise.resolve(value);
+        }),
+      };
+
+      const files = [{ id: 'id-a', path: `${FOLDER}/a.md` }];
+      const listAllFiles = jest.fn().mockResolvedValue(files);
+
+      const args = {
+        listAllFiles,
+        readFile: jest.fn(),
+        readFileMetadata: jest.fn(),
+        apiName: 'test',
+        branch: BRANCH,
+        localForage,
+        folder: FOLDER,
+        extension: EXTENSION,
+        depth: DEPTH,
+        getDefaultBranch: jest.fn().mockResolvedValue({ name: BRANCH, sha: BRANCH_SHA }),
+        isShaExistsInBranch: jest.fn().mockResolvedValue(true),
+        getDifferences: jest.fn(),
+        getFileId: jest.fn(),
+        filterFile: () => true,
+        customFetch: jest.fn().mockResolvedValue(files),
+      };
+
+      const result = await allEntriesByFolder(args);
+
+      expect(listAllFiles).toHaveBeenCalledTimes(1);
+      expect(args.customFetch).toHaveBeenCalledWith(files);
+      expect(result).toEqual(files);
+    });
+
     it('diff entries outside the folder are ignored', async () => {
       const existingFiles = [];
       const localForage = await makeLocalForageWithTree(existingFiles);
@@ -374,6 +414,89 @@ describe('implementation', () => {
 
       expect(result.find(f => f.path === 'other-folder/post.md')).toBeUndefined();
       expect(result.find(f => f.path === `${FOLDER}/in-scope.md`)).toBeDefined();
+    });
+  });
+
+  describe('unpublishedEntries', () => {
+    it('resolves with the keys returned by listEntriesKeys on success', async () => {
+      const keys = ['key1', 'key2'];
+      const listEntriesKeys = jest.fn().mockResolvedValue(keys);
+
+      const result = await unpublishedEntries(listEntriesKeys);
+
+      expect(listEntriesKeys).toHaveBeenCalledTimes(1);
+      expect(result).toEqual(keys);
+    });
+
+    it('returns [] when the error message is "Not Found"', async () => {
+      const error = new Error('Not Found');
+      const listEntriesKeys = jest.fn().mockRejectedValue(error);
+
+      const result = await unpublishedEntries(listEntriesKeys);
+
+      expect(result).toEqual([]);
+    });
+
+    it('re-throws errors with messages other than "Not Found"', async () => {
+      const error = new Error('Server Error');
+      const listEntriesKeys = jest.fn().mockRejectedValue(error);
+
+      await expect(unpublishedEntries(listEntriesKeys)).rejects.toThrow('Server Error');
+    });
+  });
+
+  describe('entriesByFiles', () => {
+    it('calls readFile and readFileMetadata for each file and returns mapped entries', async () => {
+      const files = [
+        { path: 'content/a.md', id: 'id-a', label: 'A' },
+        { path: 'content/b.md', id: 'id-b', label: 'B' },
+      ];
+
+      const fileMetadata = { author: 'test-author', updatedOn: '2024-01-01' };
+      const readFile = jest.fn((path, id, opts) => Promise.resolve(`data:${path}`));
+      const readFileMetadata = jest.fn(() => Promise.resolve(fileMetadata));
+
+      const result = await entriesByFiles(files, readFile, readFileMetadata, 'test-api');
+
+      expect(readFile).toHaveBeenCalledTimes(2);
+      expect(readFileMetadata).toHaveBeenCalledTimes(2);
+
+      expect(readFile).toHaveBeenCalledWith('content/a.md', 'id-a', { parseText: true });
+      expect(readFile).toHaveBeenCalledWith('content/b.md', 'id-b', { parseText: true });
+      expect(readFileMetadata).toHaveBeenCalledWith('content/a.md', 'id-a');
+      expect(readFileMetadata).toHaveBeenCalledWith('content/b.md', 'id-b');
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toMatchObject({
+        data: 'data:content/a.md',
+        file: { path: 'content/a.md', id: 'id-a', label: 'A', ...fileMetadata },
+      });
+      expect(result[1]).toMatchObject({
+        data: 'data:content/b.md',
+        file: { path: 'content/b.md', id: 'id-b', label: 'B', ...fileMetadata },
+      });
+    });
+
+    it('omits entries where readFile or readFileMetadata fails', async () => {
+      const files = [
+        { path: 'content/good.md', id: 'id-good' },
+        { path: 'content/bad.md', id: 'id-bad' },
+      ];
+
+      const readFile = jest.fn(path => {
+        if (path === 'content/bad.md') return Promise.reject(new Error('fetch failed'));
+        return Promise.resolve('good data');
+      });
+      const readFileMetadata = jest.fn(() => Promise.resolve({ author: 'a', updatedOn: '2024' }));
+
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      const result = await entriesByFiles(files, readFile, readFileMetadata, 'test-api');
+
+      jest.restoreAllMocks();
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({ data: 'good data' });
     });
   });
 });
