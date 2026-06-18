@@ -1,5 +1,4 @@
 import yaml from 'yaml';
-import { fromJS } from 'immutable';
 import deepmerge from 'deepmerge';
 import { produce } from 'immer';
 import trimStart from 'lodash/trimStart';
@@ -17,6 +16,7 @@ import { FILES, FOLDER } from '../constants/collectionTypes';
 import type { ThunkDispatch } from 'redux-thunk';
 import type { AnyAction } from 'redux';
 import type {
+  Collection,
   CmsCollection,
   CmsConfig,
   CmsField,
@@ -167,8 +167,7 @@ function throwOnMissingDefaultLocale(i18n?: CmsI18nConfig) {
 }
 
 function hasIntegration(config: CmsConfig, collection: CmsCollection) {
-  // TODO remove fromJS when Immutable is removed from the integrations state slice
-  const integrations = getIntegrations(fromJS(config));
+  const integrations = getIntegrations(config);
   const integration = selectIntegration(integrations, collection.name, 'listEntries');
   return !!integration;
 }
@@ -360,8 +359,7 @@ export function applyDefaults(originalConfig: CmsConfig) {
 
       if (!collection.sortable_fields) {
         collection.sortable_fields = selectDefaultSortableFields(
-          // TODO remove fromJS when Immutable is removed from the collections state slice
-          fromJS(collection),
+          collection as unknown as Collection,
           backend,
           hasIntegration(config, collection),
         );
