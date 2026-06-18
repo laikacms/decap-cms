@@ -1,6 +1,4 @@
 import type { Action } from 'redux';
-import type { StaticallyTypedRecord } from './immutable';
-import type { Map, List, OrderedMap, Set } from 'immutable';
 import type { FILES, FOLDER } from '../constants/collectionTypes';
 import type { MediaFile as BackendMediaFile } from '../backend';
 import type { Auth } from '../reducers/auth';
@@ -484,11 +482,11 @@ export interface CmsMediaLibrary {
   config?: CmsMediaLibraryOptions;
 }
 
-export type SlugConfig = StaticallyTypedRecord<{
+export interface SlugConfig {
   encoding: string;
   clean_accents: boolean;
   sanitize_replacement: string;
-}>;
+}
 
 type BackendObject = {
   name: string;
@@ -503,17 +501,17 @@ type BackendObject = {
   gateway_url?: string;
   large_media_url?: string;
   use_large_media_transforms_in_media_library?: boolean;
-  commit_messages: Map<string, string>;
+  commit_messages: Record<string, string>;
 };
 
-type Backend = StaticallyTypedRecord<Backend> & BackendObject;
+type Backend = BackendObject;
 
-export type Config = StaticallyTypedRecord<{
+export interface Config {
   backend: Backend;
   media_folder: string;
   public_folder: string;
   publish_mode?: string;
-  media_library: StaticallyTypedRecord<{ name: string }> & { name: string };
+  media_library: { name: string };
   locale?: string;
   slug: SlugConfig;
   base_url?: string;
@@ -521,15 +519,15 @@ export type Config = StaticallyTypedRecord<{
   site_url?: string;
   show_preview_links?: boolean;
   isFetching?: boolean;
-  integrations: List<Integration>;
-  collections: List<StaticallyTypedRecord<{ name: string }>>;
-}>;
+  integrations: Integration[];
+  collections: { name: string }[];
+}
 
 type PagesObject = {
-  [collection: string]: { isFetching: boolean; page: number; ids: List<string> };
+  [collection: string]: { isFetching: boolean; page: number; ids: string[] };
 };
 
-type Pages = StaticallyTypedRecord<PagesObject>;
+type Pages = PagesObject;
 
 type EntitiesObject = { [key: string]: EntryMap };
 
@@ -541,40 +539,40 @@ export enum SortDirection {
 
 export type SortObject = { key: string; direction: SortDirection };
 
-export type SortMap = OrderedMap<string, StaticallyTypedRecord<SortObject>>;
+export type SortMap = Record<string, SortObject>;
 
-export type Sort = Map<string, SortMap>;
+export type Sort = Record<string, SortMap>;
 
-export type FilterMap = StaticallyTypedRecord<ViewFilter & { active: boolean }>;
+export type FilterMap = ViewFilter & { active: boolean };
 
-export type GroupMap = StaticallyTypedRecord<ViewGroup & { active: boolean }>;
+export type GroupMap = ViewGroup & { active: boolean };
 
-export type Filter = Map<string, Map<string, FilterMap>>; // collection.field.active
+export type Filter = Record<string, Record<string, FilterMap>>; // collection.field.active
 
-export type Group = Map<string, Map<string, GroupMap>>; // collection.field.active
+export type Group = Record<string, Record<string, GroupMap>>; // collection.field.active
 
 export type GroupOfEntries = {
   id: string;
   label: string;
   value: string | boolean | undefined;
-  paths: Set<string>;
+  paths: string[];
 };
 
-export type Entities = StaticallyTypedRecord<EntitiesObject>;
+export type Entities = EntitiesObject;
 
-export type Entries = StaticallyTypedRecord<{
-  pages: Pages & PagesObject;
-  entities: Entities & EntitiesObject;
+export interface Entries {
+  pages: Pages;
+  entities: Entities;
   sort: Sort;
   filter: Filter;
   group: Group;
   viewStyle: string;
-}>;
+}
 
-export type EditorialWorkflow = StaticallyTypedRecord<{
-  pages: Pages & PagesObject;
-  entities: Entities & EntitiesObject;
-}>;
+export interface EditorialWorkflow {
+  pages: Pages;
+  entities: Entities;
+}
 
 export type EntryObject = {
   path: string;
@@ -582,49 +580,49 @@ export type EntryObject = {
   data: Record<string, unknown>;
   i18n?: { [locale: string]: { data: Record<string, unknown> } };
   collection: string;
-  mediaFiles: List<MediaFileMap>;
+  mediaFiles: MediaFileMap[];
   newRecord: boolean;
   author?: string;
   updatedOn?: string;
   status: string;
-  meta: StaticallyTypedRecord<{ path: string }>;
+  meta: { path: string };
 };
 
-export type EntryMap = StaticallyTypedRecord<EntryObject>;
+export type EntryMap = EntryObject;
 
-export type Entry = EntryMap & EntryObject;
+export type Entry = EntryObject;
 
-export type FieldsErrors = StaticallyTypedRecord<{ [field: string]: { type: string }[] }>;
+export type FieldsErrors = Record<string, { type: string }[]>;
 
-export type EntryDraft = StaticallyTypedRecord<{
+export interface EntryDraft {
   entry: Entry;
   fieldsErrors: FieldsErrors;
-  fieldsMetaData?: Map<string, Map<string, string>>;
-}>;
+  fieldsMetaData?: Record<string, Record<string, string>>;
+}
 
-export type EntryField = StaticallyTypedRecord<{
+export interface EntryField {
   field?: EntryField;
-  fields?: List<EntryField>;
-  types?: List<EntryField>;
+  fields?: EntryField[];
+  types?: EntryField[];
   widget: string;
   name: string;
-  default: string | null | boolean | List<unknown>;
+  default: string | null | boolean | unknown[];
   media_folder?: string;
   multiple?: boolean;
   public_folder?: string;
   comment?: string;
   meta?: boolean;
   i18n: 'translate' | 'duplicate' | 'none';
-}>;
+}
 
-export type EntryFields = List<EntryField>;
+export type EntryFields = EntryField[];
 
-export type FilterRule = StaticallyTypedRecord<{
+export type FilterRule = {
   value: string;
   field: string;
-}>;
+};
 
-export type CollectionFile = StaticallyTypedRecord<{
+export interface CollectionFile {
   file: string;
   name: string;
   fields: EntryFields;
@@ -634,35 +632,35 @@ export type CollectionFile = StaticallyTypedRecord<{
   preview_path?: string;
   preview_path_date_field?: string;
   preview_path_preserve_slashes?: boolean;
-}>;
+}
 
-export type CollectionFiles = List<CollectionFile>;
+export type CollectionFiles = CollectionFile[];
 
 type NestedObject = { depth: number; subfolders?: boolean; summary?: string };
 
-type Nested = StaticallyTypedRecord<NestedObject>;
+type Nested = NestedObject;
 
 type PathObject = { label: string; widget: string; index_file: string };
 
 type MetaObject = {
-  path?: StaticallyTypedRecord<PathObject>;
+  path?: PathObject;
 };
 
-type Meta = StaticallyTypedRecord<MetaObject>;
+type Meta = MetaObject;
 
-type i18n = StaticallyTypedRecord<{
+interface i18n {
   structure: string;
   locales: string[];
   default_locale: string;
-}>;
+}
 
 export type Format = keyof typeof formatExtensions | string;
 
 type CollectionObject = {
   name: string;
   folder?: string;
-  files?: CollectionFiles;
-  fields: EntryFields;
+  files?: CollectionFile[];
+  fields: EntryField[];
   isFetching: boolean;
   media_folder?: string;
   public_folder?: string;
@@ -670,11 +668,11 @@ type CollectionObject = {
   preview_path_date_field?: string;
   preview_path_preserve_slashes?: boolean;
   summary?: string;
-  filter?: FilterRule;
+  filter?: { value: string; field: string };
   type: 'file_based_collection' | 'folder_based_collection';
   extension?: string;
   format?: Format;
-  frontmatter_delimiter?: List<string> | string | [string, string];
+  frontmatter_delimiter?: string[] | string | [string, string];
   create?: boolean;
   delete?: boolean;
   identifier_field?: string;
@@ -682,23 +680,23 @@ type CollectionObject = {
   slug?: string;
   label_singular?: string;
   label: string;
-  sortable_fields: List<StaticallyTypedRecord<SortableField>>;
-  view_filters: List<StaticallyTypedRecord<ViewFilter>>;
-  view_groups: List<StaticallyTypedRecord<ViewGroup>>;
-  nested?: Nested;
-  meta?: Meta;
+  sortable_fields: SortableField[];
+  view_filters: ViewFilter[];
+  view_groups: ViewGroup[];
+  nested?: NestedObject;
+  meta?: MetaObject;
   i18n: i18n;
 };
 
-export type Collection = StaticallyTypedRecord<CollectionObject>;
+export type Collection = CollectionObject;
 
-export type Collections = StaticallyTypedRecord<{ [path: string]: Collection & CollectionObject }>;
+export type Collections = Record<string, CollectionObject>;
 
 export interface MediaLibraryInstance {
   show: (args: {
     id?: string;
     value?: string;
-    config: StaticallyTypedRecord<{}>;
+    config: Record<string, unknown>;
     allowMultiple?: boolean;
     imagesOnly?: boolean;
   }) => void;
@@ -712,7 +710,7 @@ export type DisplayURL = { id: string; path: string } | string;
 
 export type MediaFile = BackendMediaFile & { key?: string };
 
-export type MediaFileMap = StaticallyTypedRecord<MediaFile>;
+export type MediaFileMap = MediaFile;
 
 type DisplayURLStateObject = {
   isFetching: boolean;
@@ -720,26 +718,26 @@ type DisplayURLStateObject = {
   err?: Error;
 };
 
-export type DisplayURLState = StaticallyTypedRecord<DisplayURLStateObject>;
+export type DisplayURLState = DisplayURLStateObject;
 
 interface DisplayURLsObject {
   [id: string]: DisplayURLState;
 }
 
-export type MediaLibrary = StaticallyTypedRecord<{
+export interface MediaLibrary {
   externalLibrary?: MediaLibraryInstance;
   files: MediaFile[];
-  displayURLs: StaticallyTypedRecord<DisplayURLsObject> & DisplayURLsObject;
+  displayURLs: DisplayURLsObject;
   isLoading: boolean;
-}>;
+}
 
 export type Hook = string | boolean;
 
-export type Integrations = StaticallyTypedRecord<{
-  hooks: { [collectionOrHook: string]: string | Record<string, string> };
-}>;
+export interface Integrations {
+  hooks: Record<string, string | Record<string, string>>;
+}
 
-export type Cursors = StaticallyTypedRecord<{}>;
+export type Cursors = Record<string, unknown>;
 
 export interface State {
   auth: Auth;
@@ -858,7 +856,7 @@ export interface EditorialWorkflowAction extends Action<string> {
     entries: { collection: string; slug: string }[];
   } & {
     collection: string;
-    entry: StaticallyTypedRecord<{ slug: string }>;
+    entry: { slug: string };
   } & {
     collection: string;
     slug: string;
