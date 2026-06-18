@@ -13,12 +13,18 @@ afterEach(() => {
 describe('AssetProxy constructor', () => {
   describe('branch 1: url provided', () => {
     it('stores the given url', () => {
-      const proxy = new AssetProxy({ path: 'images/photo.jpg', url: 'https://example.com/photo.jpg' });
+      const proxy = new AssetProxy({
+        path: 'images/photo.jpg',
+        url: 'https://example.com/photo.jpg',
+      });
       expect(proxy.url).toBe('https://example.com/photo.jpg');
     });
 
     it('toString() returns the given url', () => {
-      const proxy = new AssetProxy({ path: 'images/photo.jpg', url: 'https://example.com/photo.jpg' });
+      const proxy = new AssetProxy({
+        path: 'images/photo.jpg',
+        url: 'https://example.com/photo.jpg',
+      });
       expect(proxy.toString()).toBe('https://example.com/photo.jpg');
     });
 
@@ -73,13 +79,20 @@ describe('AssetProxy constructor', () => {
 
   describe('stores path and field', () => {
     it('stores the path', () => {
-      const proxy = new AssetProxy({ path: 'images/photo.jpg', url: 'https://example.com/photo.jpg' });
+      const proxy = new AssetProxy({
+        path: 'images/photo.jpg',
+        url: 'https://example.com/photo.jpg',
+      });
       expect(proxy.path).toBe('images/photo.jpg');
     });
 
     it('stores the field when provided', () => {
       const field = { name: 'image', widget: 'image' } as never;
-      const proxy = new AssetProxy({ path: 'images/photo.jpg', url: 'https://example.com/photo.jpg', field });
+      const proxy = new AssetProxy({
+        path: 'images/photo.jpg',
+        url: 'https://example.com/photo.jpg',
+        field,
+      });
       expect(proxy.field).toBe(field);
     });
 
@@ -93,13 +106,19 @@ describe('AssetProxy constructor', () => {
 describe('createAssetProxy factory', () => {
   describe('branch 1: url provided', () => {
     it('returns an AssetProxy with the given url', () => {
-      const proxy = createAssetProxy({ path: 'images/photo.jpg', url: 'https://example.com/photo.jpg' });
+      const proxy = createAssetProxy({
+        path: 'images/photo.jpg',
+        url: 'https://example.com/photo.jpg',
+      });
       expect(proxy).toBeInstanceOf(AssetProxy);
       expect(proxy.url).toBe('https://example.com/photo.jpg');
     });
 
     it('toString() returns the given url', () => {
-      const proxy = createAssetProxy({ path: 'images/photo.jpg', url: 'https://example.com/photo.jpg' });
+      const proxy = createAssetProxy({
+        path: 'images/photo.jpg',
+        url: 'https://example.com/photo.jpg',
+      });
       expect(proxy.toString()).toBe('https://example.com/photo.jpg');
     });
   });
