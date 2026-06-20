@@ -97,6 +97,7 @@ export { default as LaikaApp } from './LaikaApp';
 export type { LaikaAppProps } from './LaikaApp';
 export { default as LaikaHeader } from './LaikaHeader';
 export { default as LaikaSidebar } from './LaikaSidebar';
+export type { LaikaSidebarProps, LaikaNavItem, LaikaNavSection } from './LaikaSidebar';
 export { default as LaikaLayout } from './LaikaLayout';
 export { default as LaikaAuthenticationPage } from './LaikaAuthenticationPage';
 export type { LaikaAuthenticationPageProps } from './LaikaAuthenticationPage';

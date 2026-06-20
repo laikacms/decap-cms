@@ -154,6 +154,24 @@ function partitionCollections(collections: CmsCollections) {
   return { folders, files };
 }
 
+/** A single host-supplied nav entry rendered in the Laika sidebar. */
+export interface LaikaNavItem {
+  /** Router path (passed straight to `NavLink`). */
+  to: string;
+  label: React.ReactNode;
+  /** `ui-default` `Icon` type; defaults to `'page'`. */
+  icon?: string;
+  badge?: React.ReactNode;
+  /** Match the route exactly — forwarded to `NavLink`'s `end`. */
+  end?: boolean;
+}
+
+/** A labelled group of host-supplied nav entries. */
+export interface LaikaNavSection {
+  heading?: React.ReactNode;
+  items: LaikaNavItem[];
+}
+
 export interface LaikaSidebarProps {
   collections: CmsCollections;
   /**
@@ -161,10 +179,17 @@ export interface LaikaSidebarProps {
    * still runs; this fires alongside for analytics or custom side-effects.
    */
   onCollectionClick?: (collection: CmsCollectionState) => void;
+  /**
+   * Extra nav sections rendered after the CMS collections and before the
+   * Settings link. Lets a host mount custom admin pages (e.g. a shop admin)
+   * in the same sidebar as the collections — pair with `core.App`'s
+   * `extraRoutes` to register the matching routes.
+   */
+  extraNavSections?: LaikaNavSection[];
   t: TranslateFunction;
 }
 
-function LaikaSidebar({ collections, onCollectionClick, t }: LaikaSidebarProps) {
+function LaikaSidebar({ collections, onCollectionClick, extraNavSections, t }: LaikaSidebarProps) {
   const { folders, files } = partitionCollections(collections);
   const showSectionHeadings = folders.length > 0 && files.length > 0;
   const { isMobileSidebarOpen, closeMobileSidebar } = useLaikaShell();
@@ -180,6 +205,16 @@ function LaikaSidebar({ collections, onCollectionClick, t }: LaikaSidebarProps) 
         {Array.isArray(collection.files) && collection.files.length > 0 ? (
           <SidebarLinkBadge>{collection.files.length}</SidebarLinkBadge>
         ) : null}
+      </SidebarLink>
+    </SidebarListItem>
+  );
+
+  const renderNavItem = (item: LaikaNavItem) => (
+    <SidebarListItem key={item.to}>
+      <SidebarLink to={item.to} end={item.end}>
+        <Icon type={item.icon ?? 'page'} />
+        <SidebarLinkLabel>{item.label}</SidebarLinkLabel>
+        {item.badge != null ? <SidebarLinkBadge>{item.badge}</SidebarLinkBadge> : null}
       </SidebarLink>
     </SidebarListItem>
   );
@@ -213,6 +248,16 @@ function LaikaSidebar({ collections, onCollectionClick, t }: LaikaSidebarProps) 
             <SidebarList>{files.map(renderItem)}</SidebarList>
           </SidebarSection>
         ) : null}
+        {(extraNavSections ?? []).map((section, index) =>
+          section.items.length > 0 ? (
+            <SidebarSection key={`extra-${index}`}>
+              {section.heading ? (
+                <SidebarSectionHeading>{section.heading}</SidebarSectionHeading>
+              ) : null}
+              <SidebarList>{section.items.map(renderNavItem)}</SidebarList>
+            </SidebarSection>
+          ) : null,
+        )}
         <SidebarSection>
           <SidebarList>
             <SidebarListItem>
