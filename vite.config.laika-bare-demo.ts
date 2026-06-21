@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 
 /**
- * IIFE build for `@laikacms/decap/laika-app/bare` — the laika shell + UI
+ * IIFE build for `@laikacms/decap-cms/laika-app/bare` — the laika shell + UI
  * primitives + providers + init(), WITHOUT the eager extension registrations
  * (no backends, widgets, editor components, locales). Consumers using the
  * bare entry register only what they need.

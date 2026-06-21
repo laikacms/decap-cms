@@ -16,6 +16,7 @@ import type { CmsI18nConfig } from './i18n';
 import type { CmsBackend, CmsBackendClass, CmsLocalBackend, CmsRegistryBackend } from './backend';
 import type { CmsMediaLibrary, CmsMediaLibraryOptions } from './media';
 import type { CmsCollection } from './collections';
+import type { CmsFieldBase } from './fields/base';
 import type { ComponentType } from '../core';
 
 export interface CmsIssueReports {
@@ -80,6 +81,43 @@ export interface CmsWidget<T = unknown> {
   control: CmsWidgetControlComponent;
   preview?: CmsWidgetPreviewComponent;
   globalStyles?: unknown;
+}
+
+/**
+ * The `t` function passed to widget controls. Structurally identical to
+ * `ui-default`'s `TranslateFunction` (kept here so `lib-util` stays free of a
+ * `ui-default` dependency).
+ */
+export type CmsWidgetTranslate = (key: string, options?: Record<string, unknown>) => string;
+
+/**
+ * Props passed to a widget's `controlComponent`. Shared, exported contract so a
+ * custom widget types its control as `CmsWidgetControlProps<MyValue>` instead of
+ * re-declaring the prop shape — the way upstream decap-cms exposed it. Generic
+ * over the value type `T` and the field type `F`. Mirrors what core's
+ * `EditorControl` passes (see the fork's own `StringControl`).
+ */
+export interface CmsWidgetControlProps<T = unknown, F = CmsFieldBase> {
+  value?: T;
+  field: F;
+  onChange: (value: T) => void;
+  forID?: string;
+  classNameWrapper: string;
+  setActiveStyle: () => void;
+  setInactiveStyle: () => void;
+  t: CmsWidgetTranslate;
+}
+
+/**
+ * Props passed to a widget's `previewComponent`. Generic over the value type
+ * `T` and field type `F`. Most previews only read `value`.
+ */
+export interface CmsWidgetPreviewProps<T = unknown, F = CmsFieldBase> {
+  value?: T;
+  field?: F;
+  entry?: unknown;
+  metadata?: Record<string, unknown>;
+  getAsset?: CmsGetAssetFunction;
 }
 
 export type CmsWidgetValueSerializer = unknown; // TODO: type properly

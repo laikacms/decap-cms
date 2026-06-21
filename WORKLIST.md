@@ -96,7 +96,7 @@ Epic: tech-debt · Effort: S · Status: pending · Deps: DCB-002
 Epic: tech-debt · Effort: S · Status: pending · Deps: DCB-002
 
 **Acceptance criteria:**
-- `eslint.config.mjs` includes a rule (e.g. `import-x/no-relative-packages` or custom) that prevents any `from 'decap-cms-*'` or `from '@laikacms/decap/*'` string inside `src/`
+- `eslint.config.mjs` includes a rule (e.g. `import-x/no-relative-packages` or custom) that prevents any `from 'decap-cms-*'` or `from '@laikacms/decap-cms/*'` string inside `src/`
 - `pnpm lint` exits 0 after the rule is added
 
 **Primary files:** `eslint.config.mjs`

@@ -1,7 +1,7 @@
 # Single-package restructure (`feat/single-package-restructure`)
 
 This branch converts the Decap CMS v4.beta monorepo into a single published
-package — **`@laikacms/decap`** — that exposes every former workspace package
+package — **`@laikacms/decap-cms`** — that exposes every former workspace package
 through a subpath export. The root export is the `decap-cms-app` bootstrap
 (not a barrel re-export).
 
@@ -9,13 +9,13 @@ The goal is so a downstream consumer (e.g. `laikacms/laikacms`'s
 forthcoming `laika-cms-app`) can do:
 
 ```ts
-import { DecapCmsCore, DecapCmsProvider, App } from '@laikacms/decap/core';
-import { widget as stringWidget } from '@laikacms/decap/widget-string';
+import { DecapCmsCore, DecapCmsProvider, App } from '@laikacms/decap-cms/core';
+import { widget as stringWidget } from '@laikacms/decap-cms/widget-string';
 // ...etc — same shape as the old `decap-cms-app/src/extensions.ts`,
 // minus the multi-package workspace.
 ```
 
-and assemble its own `App` without taking on `@laikacms/decap` as a barrel.
+and assemble its own `App` without taking on `@laikacms/decap-cms` as a barrel.
 
 ## What changed
 
@@ -79,7 +79,7 @@ Not blocking the restructure, but they belong in the next pass:
 - ~~ESLint config lints `packages/**`~~ — done; config repaired to read
   `src/**`, missing plugins added, import-x resolver wired up.
 - ~~Publish + CI workflows~~ — done. `publish.yml` rewritten for the single
-  `@laikacms/decap` package (pnpm install/build/test, `v*` tag trigger,
+  `@laikacms/decap-cms` package (pnpm install/build/test, `v*` tag trigger,
   `npm publish --provenance --access public` via OIDC). `nodejs.yml` switched
   from `npm ci` to pnpm and now runs the new `test:ci` script. The Cypress
   e2e job was dropped — its orchestration scripts (`test:e2e:run-ci`,
@@ -93,11 +93,11 @@ Not blocking the restructure, but they belong in the next pass:
 
 ## Why this shape
 
-- **One package, many exports.** Consumers depend on one name (`@laikacms/decap`)
+- **One package, many exports.** Consumers depend on one name (`@laikacms/decap-cms`)
   and pick the bits they want by subpath. Versioning is one cursor instead of 38.
-- **Root export = `app`, not a barrel.** Importing `@laikacms/decap` gives you
+- **Root export = `app`, not a barrel.** Importing `@laikacms/decap-cms` gives you
   the default bootstrap (`init({ config })`). Importing
-  `@laikacms/decap/core` gives you the raw building blocks, in the same
+  `@laikacms/decap-cms/core` gives you the raw building blocks, in the same
   shape the old `decap-cms-app/src/extensions.ts` consumed them.
 - **Relative imports in `src/`.** No `tsconfig#paths` indirection, no
   self-references, no bundler magic — what you read is what runs. Required to

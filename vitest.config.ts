@@ -19,7 +19,7 @@ const emotionProductionPlugin = {
   },
 };
 
-// Since the monorepo flattening (single @laikacms/decap package), @emotion/react +
+// Since the monorepo flattening (single @laikacms/decap-cms package), @emotion/react +
 // @emotion/styled live in the root node_modules. The pre-flatten paths previously
 // pointed under `packages/decap-cms-core/node_modules/@emotion/*`.
 const EMOTION_REACT = path.resolve(__dirname, 'node_modules/@emotion/react');
