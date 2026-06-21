@@ -10,6 +10,7 @@ import { useLaikaShell, LAIKA_BREAKPOINT_MOBILE } from './LaikaShellContext';
 import { laikaShouldForwardProp } from './ui/styled-utils';
 
 import type { TranslateFunction } from '../ui-default/index';
+import type { IconName } from '../ui-default/Icon/icons';
 import type { CmsCollections, CmsCollectionState } from '../lib-util/index';
 
 /**
@@ -159,8 +160,8 @@ export interface LaikaNavItem {
   /** Router path (passed straight to `NavLink`). */
   to: string;
   label: React.ReactNode;
-  /** `ui-default` `Icon` type; defaults to `'page'`. */
-  icon?: string;
+  /** `ui-default` `Icon` name; defaults to `'page'`. */
+  icon?: IconName;
   badge?: React.ReactNode;
   /** Match the route exactly — forwarded to `NavLink`'s `end`. */
   end?: boolean;
