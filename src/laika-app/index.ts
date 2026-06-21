@@ -2,7 +2,7 @@ import React from 'react';
 
 import { init, LaikaCmsApp } from './bare';
 // Eagerly register every backend, widget, editor-component, and locale. Apps
-// that want a smaller bundle can import from `@laikacms/decap/laika-app/bare`
+// that want a smaller bundle can import from `@laikacms/decap-cms/laika-app/bare`
 // instead and pick only the registrations they actually need.
 import './extensions.js';
 
@@ -22,7 +22,7 @@ if (typeof window !== 'undefined') {
   window.h = window.h || React.createElement;
 }
 
-// Re-export everything from `./bare` so `@laikacms/decap/laika-app` keeps its
+// Re-export everything from `./bare` so `@laikacms/decap-cms/laika-app` keeps its
 // public API. The only differences vs `./bare`: this entry also pulls in
 // `./extensions.js` for side-effect Registry registration and runs `init()`
 // automatically when loaded in a browser.

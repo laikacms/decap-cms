@@ -8,7 +8,7 @@ import LaikaProvider from './LaikaProvider';
 import type { CmsConfig } from '../core/index';
 
 /**
- * `@laikacms/decap/laika-app/bare` — the same public API as `/laika-app`
+ * `@laikacms/decap-cms/laika-app/bare` — the same public API as `/laika-app`
  * **without** the eager import of `./extensions.js` and **without** the
  * auto-init at module load.
  *
@@ -26,9 +26,9 @@ import type { CmsConfig } from '../core/index';
  *       init,
  *       LaikaCmsApp,
  *       CMS,
- *     } from '@laikacms/decap/laika-app/bare';
- *     import { GitHubBackend } from '@laikacms/decap/backend-github';
- *     import widgetString from '@laikacms/decap/widget-string';
+ *     } from '@laikacms/decap-cms/laika-app/bare';
+ *     import { GitHubBackend } from '@laikacms/decap-cms/backend-github';
+ *     import widgetString from '@laikacms/decap-cms/widget-string';
  *
  *     CMS.registerBackend('github', GitHubBackend);
  *     CMS.registerWidget(widgetString.Widget());

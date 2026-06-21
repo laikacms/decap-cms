@@ -1,5 +1,5 @@
 {
-  "name": "@laikacms/decap",
+  "name": "@laikacms/decap-cms",
   "version": "4.0.0-laikacms.0",
   "description": "Single-package fork of Decap CMS v4.beta. Same components as the original monorepo, exposed through one package with subpath exports. Root export is the decap-cms-app bootstrap. See RESTRUCTURE.md.",
   "license": "MIT",

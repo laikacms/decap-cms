@@ -17,7 +17,7 @@ import type { LaikaThemeProviderProps } from './LaikaThemeContext';
  *     </LaikaThemeProvider>
  *
  * Use this when composing the laika shell inside a host React tree. The
- * `init()` exported from `@laikacms/decap/laika-app` uses it internally;
+ * `init()` exported from `@laikacms/decap-cms/laika-app` uses it internally;
  * downstream apps that already control their own root can mount this
  * directly around `<LaikaApp />` (or any subset of laika components).
  */
