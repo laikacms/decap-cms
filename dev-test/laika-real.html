@@ -1,0 +1,70 @@
+<!doctype html>
+<!--
+  laika-real.html — minimal example of wiring the laika backend to the
+  Decap CMS bare entry.
+
+  The prebuilt `dist/decap.js` (or `dist/laika-cms.js` on the v4.beta branch)
+  registers every *git* backend but NOT the laika backend, because
+  decap-cms-backend-laika lives in a separate package:
+
+    @laikacms/decap-integrations  →  packages/decap/decap-cms-backend-laika
+
+  The pattern below is "Option 2" from DCMS-148: use the bare CMS entry from
+  your own bundle so you control exactly which backends are registered.
+
+  ── How to use ──────────────────────────────────────────────────────────────
+  In your own application bundle (e.g. via webpack / vite):
+
+    import CMS from 'decap-cms-core';
+    import { LaikaBackend } from 'decap-cms-backend-laika';   // external pkg
+    // … register widgets, locales, etc. as needed …
+    CMS.registerBackend('laika', LaikaBackend);
+    CMS.init({ config: { backend: { name: 'laika', api_root: '…' } } });
+
+  ── Standalone script-tag approach (advanced) ────────────────────────────────
+  If you build your own IIFE that re-exports decap-cms-core and registers the
+  laika backend, drop it here and reference it below instead of dist/decap.js.
+  See vite.config.laika-demo.ts (v4.beta branch) for a Vite-based build.
+  ────────────────────────────────────────────────────────────────────────────
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Laika CMS — real backend demo</title>
+    <!--
+      Point this at a config that uses `backend: { name: laika }`.
+      Example config-laika-test.yml:
+
+        backend:
+          name: laika
+          api_root: http://localhost:8099/api/decap
+          branch: main
+        media_folder: assets/uploads
+        collections:
+          - name: posts
+            label: Posts
+            folder: _posts
+            create: true
+            fields:
+              - { label: Title, name: title, widget: string }
+              - { label: Body,  name: body,  widget: markdown }
+    -->
+    <link rel="cms-config-url" type="text/yaml" href="config-laika-test.yml" />
+  </head>
+  <body>
+    <!--
+      This page uses the proxy backend (local_backend) so it works without any
+      external service. Start decap-server on http://localhost:8082 first:
+
+        npx decap-server
+
+      To use the real laika backend instead, register it before the CMS boots:
+
+        import CMS from 'decap-cms-core';
+        import { LaikaBackend } from 'decap-cms-backend-laika';
+        CMS.registerBackend('laika', LaikaBackend);
+        CMS.init({ config: { backend: { name: 'laika', api_root: '...' } } });
+    -->
+    <script src="dist/decap-cms.js"></script>
+  </body>
+</html>

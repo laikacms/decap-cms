@@ -1,0 +1,13 @@
+export function sortKeys<Item>(
+  sortedKeys: string[],
+  selector: (a: Item) => string = (a: Item) => a as unknown as string,
+) {
+  return (a: Item, b: Item) => {
+    const idxA = sortedKeys.indexOf(selector(a));
+    const idxB = sortedKeys.indexOf(selector(b));
+    if (idxA === -1 || idxB === -1) return 0;
+    if (idxA > idxB) return 1;
+    if (idxA < idxB) return -1;
+    return 0;
+  };
+}

@@ -1,0 +1,153 @@
+import React from 'react';
+import PropTypes from 'prop-types';
+import ImmutablePropTypes from 'react-immutable-proptypes';
+const ValidationErrorTypes = {
+  PRESENCE: 'PRESENCE',
+  PATTERN: 'PATTERN',
+  RANGE: 'RANGE',
+  CUSTOM: 'CUSTOM',
+};
+
+export function validateMinMax(value, min, max, field, t) {
+  let error;
+
+  switch (true) {
+    case value !== '' && min !== false && max !== false && (value < min || value > max):
+      error = {
+        type: ValidationErrorTypes.RANGE,
+        message: t('editor.editorControlPane.widget.range', {
+          fieldLabel: field.get('label', field.get('name')),
+          minValue: min,
+          maxValue: max,
+        }),
+      };
+      break;
+    case value !== '' && min !== false && value < min:
+      error = {
+        type: ValidationErrorTypes.RANGE,
+        message: t('editor.editorControlPane.widget.min', {
+          fieldLabel: field.get('label', field.get('name')),
+          minValue: min,
+        }),
+      };
+      break;
+    case value !== '' && max !== false && value > max:
+      error = {
+        type: ValidationErrorTypes.RANGE,
+        message: t('editor.editorControlPane.widget.max', {
+          fieldLabel: field.get('label', field.get('name')),
+          maxValue: max,
+        }),
+      };
+      break;
+    default:
+      error = null;
+      break;
+  }
+
+  return error;
+}
+
+export default class NumberControl extends React.Component {
+  static propTypes = {
+    field: ImmutablePropTypes.map.isRequired,
+    onChange: PropTypes.func.isRequired,
+    classNameWrapper: PropTypes.string.isRequired,
+    setActiveStyle: PropTypes.func.isRequired,
+    setInactiveStyle: PropTypes.func.isRequired,
+    value: PropTypes.node,
+    forID: PropTypes.string,
+    valueType: PropTypes.string,
+    step: PropTypes.oneOfType([PropTypes.number, PropTypes.oneOf(['any'])]),
+    min: PropTypes.number,
+    max: PropTypes.number,
+    t: PropTypes.func.isRequired,
+  };
+
+  static defaultProps = {
+    value: '',
+  };
+
+  componentDidMount() {
+    // Manually validate PropTypes - React 19 breaking change
+    PropTypes.checkPropTypes(NumberControl.propTypes, this.props, 'prop', 'NumberControl');
+  }
+
+  handleChange = e => {
+    const valueType = this.props.field.get('value_type');
+    const { onChange } = this.props;
+    const raw = e.target.value;
+
+    if (valueType === 'float') {
+      const value = parseFloat(raw);
+      onChange(isNaN(value) ? '' : value);
+      return;
+    }
+
+    const value = parseInt(raw, 10);
+    if (isNaN(value)) {
+      onChange('');
+      return;
+    }
+
+    // Integers above Number.MAX_SAFE_INTEGER are silently rounded by parseInt;
+    // store the raw string so isValid() can surface the error without corrupting data.
+    if (!Number.isSafeInteger(value)) {
+      onChange(raw);
+      return;
+    }
+
+    onChange(value);
+  };
+
+  isValid = () => {
+    const { field, value, t } = this.props;
+    const min = field.get('min', false);
+    const max = field.get('max', false);
+    const valueType = field.get('value_type');
+
+    // Detect unsafe integer: value is a non-empty string that looks like an integer
+    // and is only present because parseInt rounded it to an unsafe float.
+    if (
+      valueType !== 'float' &&
+      typeof value === 'string' &&
+      value !== '' &&
+      /^-?\d+$/.test(value)
+    ) {
+      const parsed = parseInt(value, 10);
+      if (!Number.isSafeInteger(parsed)) {
+        return {
+          error: {
+            type: ValidationErrorTypes.CUSTOM,
+            message:
+              'Value exceeds the maximum safe integer. Use a string widget for arbitrary-precision IDs.',
+          },
+        };
+      }
+    }
+
+    const error = validateMinMax(value, min, max, field, t);
+    return error ? { error } : true;
+  };
+
+  render() {
+    const { field, value, classNameWrapper, forID, setActiveStyle, setInactiveStyle } = this.props;
+    const min = field.get('min', '');
+    const max = field.get('max', '');
+    const step = field.get('step', field.get('value_type') === 'int' ? 1 : 'any');
+    return (
+      <input
+        type="number"
+        id={forID}
+        className={classNameWrapper}
+        onFocus={setActiveStyle}
+        onBlur={setInactiveStyle}
+        value={value || (value === 0 ? value : '')}
+        step={step}
+        min={min}
+        max={max}
+        onChange={this.handleChange}
+      />
+    );
+  }
+}
