@@ -73,8 +73,13 @@
     "@dnd-kit/modifiers": "catalog:dnd",
     "@dnd-kit/sortable": "catalog:dnd",
     "@dnd-kit/utilities": "catalog:dnd",
+    "@emotion/css": "catalog:emotion",
     "@emotion/is-prop-valid": "^1.4.0",
     "@hapi/joi": "catalog:validation",
+    "@portabletext/editor": "catalog:portabletext",
+    "@portabletext/markdown": "catalog:portabletext",
+    "@portabletext/react": "catalog:portabletext",
+    "@portabletext/types": "catalog:portabletext",
     "@reduxjs/toolkit": "catalog:redux",
     "@replit/codemirror-emacs": "catalog:codemirror",
     "@replit/codemirror-vim": "catalog:codemirror",
@@ -111,6 +116,7 @@
     "js-sha256": "catalog:utils",
     "jwt-decode": "catalog:auth",
     "lodash": "catalog:utils",
+    "lucide-react": "catalog:icons",
     "mdast-util-from-markdown": "catalog:markdown",
     "mdast-util-to-string": "catalog:markdown",
     "minimatch": "catalog:utils",
@@ -279,6 +285,10 @@
       "types": "./dist/lib-auth/index.d.ts",
       "import": "./dist/lib-auth/index.js"
     },
+    "./lib-richtext": {
+      "types": "./dist/lib-richtext/index.d.ts",
+      "import": "./dist/lib-richtext/index.js"
+    },
     "./lib-util": {
       "types": "./dist/lib-util/index.d.ts",
       "import": "./dist/lib-util/index.js"
@@ -350,6 +360,10 @@
     "./widget-map": {
       "types": "./dist/widget-map/index.d.ts",
       "import": "./dist/widget-map/index.js"
+    },
+    "./widget-markdown": {
+      "types": "./dist/widget-markdown/index.d.ts",
+      "import": "./dist/widget-markdown/index.js"
     },
     "./widget-number": {
       "types": "./dist/widget-number/index.d.ts",

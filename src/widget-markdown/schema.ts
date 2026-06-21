@@ -1,8 +1,13 @@
-export default {
+/**
+ * Field-level JSON schema for the `markdown` widget. Decap reads this when
+ * validating CMS configs.
+ */
+export const schema = {
+  type: 'object',
   properties: {
-    minimal: { type: 'boolean' },
-    buttons: { type: 'array', items: { type: 'string' } },
-    editor_components: { type: 'array', items: { type: 'string' } },
-    modes: { type: 'array', items: { type: 'string', enum: ['raw', 'rich_text'] } },
+    /** Mapper id used to read the stored value and to serialize on save. */
+    format: { type: 'string' },
+    /** Placeholder shown when the document is empty. */
+    placeholder: { type: 'string' },
   },
 };

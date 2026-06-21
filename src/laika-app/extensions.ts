@@ -57,6 +57,9 @@ CMS.registerBackend('proxy', ProxyBackend);
   DecapCmsWidgetColorString.Widget(),
   DecapCmsWidgetMarkdown.Widget(),
 ].forEach(widget => CMS.registerWidget(widget));
+// The markdown widget stores a lazy `RichtextValue`; serialize it to a markdown
+// string at persist time (deserialize on load) via the value-serializer pipeline.
+CMS.registerWidgetValueSerializer('markdown', DecapCmsWidgetMarkdown.valueSerializer);
 CMS.registerEditorComponent(image as any);
 CMS.registerEditorComponent({
   id: 'code-block',

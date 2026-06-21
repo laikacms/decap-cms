@@ -49,6 +49,7 @@ catalogs:
   # Emotion CSS-in-JS
   emotion:
     "@emotion/babel-plugin": "^11.13.5"
+    "@emotion/css": "^11.13.5"
     "@emotion/eslint-plugin": "^11.12.0"
     "@emotion/react": "^11.14.0"
     "@emotion/styled": "^11.14.1"
@@ -292,3 +293,15 @@ catalogs:
     "@lexical/table": "^0.42.0"
     "@lexical/text": "^0.42.0"
     "@lexical/utils": "^0.42.0"
+
+  # Portable Text editor stack (the `markdown` widget — replaces the dropped
+  # widget-markdown; backs the rich-text editor via Sanity's PT editor).
+  portabletext:
+    "@portabletext/editor": "^6.6.4"
+    "@portabletext/markdown": "^1.2.0"
+    "@portabletext/react": "^6.2.0"
+    "@portabletext/types": "^4.0.2"
+
+  # Icons (lucide-react — markdown widget toolbar).
+  icons:
+    "lucide-react": "^1.7.0"

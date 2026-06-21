@@ -25,6 +25,7 @@ import DecapCmsWidgetMap from '../widget-map/index';
 import DecapCmsWidgetDatetime from '../widget-datetime/index';
 import DecapCmsWidgetCode from '../widget-code/index';
 import DecapCmsWidgetColorString from '../widget-colorstring/index';
+import DecapCmsWidgetMarkdown from '../widget-markdown/index';
 // Editor Components
 import image from '../editor-component-image/index';
 // Locales
@@ -55,7 +56,11 @@ CMS.registerBackend('proxy', ProxyBackend);
   DecapCmsWidgetDatetime.Widget(),
   DecapCmsWidgetCode.Widget(),
   DecapCmsWidgetColorString.Widget(),
+  DecapCmsWidgetMarkdown.Widget(),
 ].forEach(widget => CMS.registerWidget(widget));
+// The markdown widget stores a lazy `RichtextValue`; serialize it to a markdown
+// string at persist time (deserialize on load) via the value-serializer pipeline.
+CMS.registerWidgetValueSerializer('markdown', DecapCmsWidgetMarkdown.valueSerializer);
 CMS.registerEditorComponent(image as any); // TODO: fix type issue with editor components
 CMS.registerEditorComponent({
   id: 'code-block',
