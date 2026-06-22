@@ -1,6 +1,6 @@
 {
   "name": "@laikacms/decap-cms",
-  "version": "4.0.0-laikacms.0",
+  "version": "4.0.0",
   "description": "Single-package fork of Decap CMS v4.beta. Same components as the original monorepo, exposed through one package with subpath exports. Root export is the decap-cms-app bootstrap. See RESTRUCTURE.md.",
   "license": "MIT",
   "author": "Sem Postma <sem@laikacms.com> (based on Decap CMS by Netlify and contributors)",
@@ -33,7 +33,8 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && pnpm copy:assets",
+    "build": "tsc -p tsconfig.build.json && node ./scripts/postbuild-emotion.mjs && pnpm copy:assets",
+    "prepack": "pnpm build",
     "build:demo": "vite build --config vite.config.demo.ts",
     "build:laika-demo": "vite build --config vite.config.laika-demo.ts",
     "build:laika-bare-demo": "vite build --config vite.config.laika-bare-demo.ts",
@@ -169,6 +170,7 @@
     "yaml": "catalog:utils"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.7",
     "@commitlint/cli": "catalog:commitlint",
     "@commitlint/config-conventional": "catalog:commitlint",
     "@emotion/babel-plugin": "catalog:emotion",
