@@ -16,10 +16,10 @@
   In your own application bundle (e.g. via webpack / vite):
 
     import CMS from 'decap-cms-core';
-    import { LaikaBackend } from 'decap-cms-backend-laika';   // external pkg
+    import createLaikaBackend from 'decap-cms-backend-laika';   // external pkg
     // … register widgets, locales, etc. as needed …
-    CMS.registerBackend('laika', LaikaBackend);
-    CMS.init({ config: { backend: { name: 'laika', api_root: '…' } } });
+    CMS.registerBackend('laika', createLaikaBackend({ documentsApiBaseUrl, assetsApiBaseUrl }));
+    CMS.init({ config: { backend: { name: 'laika', base_url: '…', api_root: '…' } } });
 
   ── Standalone script-tag approach (advanced) ────────────────────────────────
   If you build your own IIFE that re-exports decap-cms-core and registers the
@@ -37,7 +37,8 @@
 
         backend:
           name: laika
-          api_root: http://localhost:8099/api/decap
+          base_url: http://localhost:8099
+          api_root: /api/decap
           branch: main
         media_folder: assets/uploads
         collections:
@@ -61,9 +62,9 @@
       To use the real laika backend instead, register it before the CMS boots:
 
         import CMS from 'decap-cms-core';
-        import { LaikaBackend } from 'decap-cms-backend-laika';
-        CMS.registerBackend('laika', LaikaBackend);
-        CMS.init({ config: { backend: { name: 'laika', api_root: '...' } } });
+        import createLaikaBackend from 'decap-cms-backend-laika';
+        CMS.registerBackend('laika', createLaikaBackend({ documentsApiBaseUrl, assetsApiBaseUrl }));
+        CMS.init({ config: { backend: { name: 'laika', base_url: '...', api_root: '...' } } });
     -->
     <script src="dist/decap-cms.js"></script>
   </body>
