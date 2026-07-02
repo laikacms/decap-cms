@@ -73,4 +73,9 @@ describe('validateMinMax', () => {
     const error = validateMinMax(t, fieldLabel, ['a', 'b'], undefined, undefined);
     expect(error).toBeUndefined();
   });
+
+  it('returns undefined when min === max and size matches exactly (rangeCountExact boundary)', () => {
+    const error = validateMinMax(t, fieldLabel, ['a'], 1, 1);
+    expect(error).toBeUndefined();
+  });
 });
