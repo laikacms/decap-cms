@@ -373,10 +373,7 @@ export default function withFileControl({ forImage } = {}) {
 
     allowsMultiple = () => {
       const mediaLibraryFieldOptions = this.getMediaLibraryFieldOptions();
-      return (
-        mediaLibraryFieldOptions.get('config', false) &&
-        mediaLibraryFieldOptions.get('config').get('multiple', false)
-      );
+      return !!mediaLibraryFieldOptions.get('allow_multiple', false);
     };
 
     onSortEnd = ({ oldIndex, newIndex }) => {
