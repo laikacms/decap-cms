@@ -21,6 +21,7 @@ import {
   isFieldHidden,
   isFieldTranslatable,
 } from '../../../lib/i18n';
+import { isVisible } from '../../../lib/widgets';
 
 const ControlPaneContainer = styled.div`
   max-width: 800px;
@@ -153,7 +154,7 @@ export default class ControlPane extends React.Component {
 
   validate = async () => {
     this.props.fields.forEach(field => {
-      if (field.get('widget') === 'hidden') return;
+      if (!isVisible(field)) return;
       const control = this.childRefs[field.get('name')];
       const validateFn = control?.innerWrappedControl?.validate ?? control?.validate;
       if (validateFn) {
@@ -217,41 +218,39 @@ export default class ControlPane extends React.Component {
             />
           </LocaleRowWrapper>
         )}
-        {fields
-          .filter(f => f.get('widget') !== 'hidden')
-          .map((field, i) => {
-            const isTranslatable = isFieldTranslatable(field, locale, defaultLocale);
-            const isDuplicate = isFieldDuplicate(field, locale, defaultLocale);
-            const isHidden = isFieldHidden(field, locale, defaultLocale);
-            const key = i18n ? `${locale}_${i}` : i;
+        {fields.filter(isVisible).map((field, i) => {
+          const isTranslatable = isFieldTranslatable(field, locale, defaultLocale);
+          const isDuplicate = isFieldDuplicate(field, locale, defaultLocale);
+          const isHidden = isFieldHidden(field, locale, defaultLocale);
+          const key = i18n ? `${locale}_${i}` : i;
 
-            return (
-              <EditorControl
-                key={key}
-                field={field}
-                value={getFieldValue({
-                  field,
-                  entry,
-                  locale,
-                  isTranslatable,
-                })}
-                fieldsMetaData={fieldsMetaData}
-                fieldsErrors={fieldsErrors}
-                onChange={(field, newValue, newMetadata) => {
-                  onChange(field, newValue, newMetadata, i18n);
-                }}
-                onValidate={onValidate}
-                controlRef={this.getControlRef(field)}
-                entry={entry}
-                collection={collection}
-                isDisabled={isDuplicate}
-                isHidden={isHidden}
-                isFieldDuplicate={field => isFieldDuplicate(field, locale, defaultLocale)}
-                isFieldHidden={field => isFieldHidden(field, locale, defaultLocale)}
-                locale={locale}
-              />
-            );
-          })}
+          return (
+            <EditorControl
+              key={key}
+              field={field}
+              value={getFieldValue({
+                field,
+                entry,
+                locale,
+                isTranslatable,
+              })}
+              fieldsMetaData={fieldsMetaData}
+              fieldsErrors={fieldsErrors}
+              onChange={(field, newValue, newMetadata) => {
+                onChange(field, newValue, newMetadata, i18n);
+              }}
+              onValidate={onValidate}
+              controlRef={this.getControlRef(field)}
+              entry={entry}
+              collection={collection}
+              isDisabled={isDuplicate}
+              isHidden={isHidden}
+              isFieldDuplicate={field => isFieldDuplicate(field, locale, defaultLocale)}
+              isFieldHidden={field => isFieldHidden(field, locale, defaultLocale)}
+              locale={locale}
+            />
+          );
+        })}
       </ControlPaneContainer>
     );
   }

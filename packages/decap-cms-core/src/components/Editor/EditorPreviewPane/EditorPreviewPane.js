@@ -8,6 +8,7 @@ import { lengths } from 'decap-cms-ui-default';
 import { connect } from 'react-redux';
 
 import { encodeEntry } from '../../../lib/stega';
+import { isVisible } from '../../../lib/widgets';
 import {
   resolveWidget,
   getPreviewTemplate,
@@ -39,6 +40,16 @@ const PreviewPaneFrame = styled(Frame)`
 
 export class PreviewPane extends React.Component {
   getWidget = (field, value, metadata, props, idx = null) => {
+    // The `hidden` widget has no registered control/preview, so resolving it
+    // would fall through to the generic "unknown widget" preview and leak a
+    // "No preview for widget 'hidden'." notice. Hidden fields must never
+    // produce preview output, regardless of which call site reaches here
+    // (top-level widgetFor, singular nested fields, or the widgetsFor API
+    // exposed to custom preview templates).
+    if (!isVisible(field)) {
+      return null;
+    }
+
     const { getAsset, entry } = props;
     const widget = resolveWidget(field.get('widget'));
     const key = idx ? field.get('name') + '_' + idx : field.get('name');
@@ -91,7 +102,7 @@ export class PreviewPane extends React.Component {
     // We retrieve the field by name so that this function can also be used in
     // custom preview templates, where the field object can't be passed in.
     let field = fields && fields.find(f => f.get('name') === name);
-    if (!field || field.get('widget') === 'hidden') {
+    if (!field || !isVisible(field)) {
       return null;
     }
     let value = Map.isMap(values) && values.get(field.get('name'));
