@@ -82,4 +82,15 @@ describe('BitbucketBackend.authenticate()', () => {
 
     expect(backend.branch).toBe('master');
   });
+
+  test('falls back to master when getDefaultBranchName rejects', async () => {
+    const backend = new BitbucketBackend(makeConfig());
+    getDefaultBranchName.mockRejectedValue(new Error('API request failed'));
+
+    await expect(
+      backend.authenticate({ token: 'test-token', refresh_token: 'refresh' }),
+    ).resolves.toBeDefined();
+
+    expect(backend.branch).toBe('master');
+  });
 });
