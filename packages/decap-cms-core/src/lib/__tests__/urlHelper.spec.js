@@ -139,6 +139,13 @@ describe('sanitizeSlug', () => {
     expect(sanitizeSlug(input, slugConfig, false)).toEqual('this-is-a-nested-page');
     expect(sanitizeSlug(input, slugConfig, true)).toEqual('this-is-a/nested/page');
   });
+
+  // DCMS-306: without an explicit `sanitize_replacement`, the real default must match
+  // the documented default ('-'), not silently fall through to '' and smash words together.
+  it('defaults to a hyphen replacement when sanitize_replacement is unset', () => {
+    expect(sanitizeSlug('Hello World! Foo & Bar', {})).toEqual('Hello-World-Foo-Bar');
+    expect(sanitizeSlug('Hello World! Foo & Bar')).toEqual('Hello-World-Foo-Bar');
+  });
 });
 
 describe('sanitizeChar', () => {
