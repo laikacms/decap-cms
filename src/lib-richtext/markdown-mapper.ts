@@ -1,7 +1,8 @@
 import { markdownToPortableText, portableTextToMarkdown } from '@portabletext/markdown';
-import type { TypedObject } from '@portabletext/types';
 
 import { createKeyGenerator } from './keys';
+
+import type { TypedObject } from '@portabletext/types';
 import type { PortableTextDocument } from './portable-text';
 import type { Mapper } from './types';
 
