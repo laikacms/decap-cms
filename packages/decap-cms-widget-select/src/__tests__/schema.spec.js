@@ -52,17 +52,20 @@ describe('select widget schema', () => {
     });
   });
 
-  describe('multiple not true — min/max forbidden', () => {
-    it('rejects min without multiple: true', () => {
-      expect(validate({ options: ['a'], min: 1 })).toBe(false);
+  describe('multiple not true — min/max ignored, not rejected (DCMS-310)', () => {
+    // min/max are ignored at runtime by SelectControl#isValid when the
+    // field isn't multiple, so the schema no longer rejects their presence —
+    // it simply doesn't enforce them.
+    it('accepts min without multiple: true', () => {
+      expect(validate({ options: ['a'], min: 1 })).toBe(true);
     });
 
-    it('rejects max without multiple: true', () => {
-      expect(validate({ options: ['a'], max: 5 })).toBe(false);
+    it('accepts max without multiple: true', () => {
+      expect(validate({ options: ['a'], max: 5 })).toBe(true);
     });
 
-    it('rejects min/max when multiple is false', () => {
-      expect(validate({ options: ['a'], multiple: false, min: 1 })).toBe(false);
+    it('accepts min/max when multiple is false', () => {
+      expect(validate({ options: ['a'], multiple: false, min: 1 })).toBe(true);
     });
   });
 });

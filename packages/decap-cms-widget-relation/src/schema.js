@@ -19,21 +19,12 @@ export default {
         required: ['field', 'values'],
       },
     },
-  },
-  if: {
-    properties: { multiple: { const: true } },
-    required: ['multiple'],
-  },
-  then: {
-    properties: {
-      min: { type: 'integer' },
-      max: { type: 'integer' },
-    },
-  },
-  else: {
-    not: {
-      anyOf: [{ required: ['min'] }, { required: ['max'] }],
-    },
+    // `min`/`max` are only meaningful when `multiple: true`; when `multiple`
+    // is not `true` they are simply ignored at runtime (see
+    // RelationControl#isValid), so the schema allows but does not require
+    // `multiple` for them (DCMS-310).
+    min: { type: 'integer' },
+    max: { type: 'integer' },
   },
   oneOf: [
     {
