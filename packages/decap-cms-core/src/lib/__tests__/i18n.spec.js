@@ -80,6 +80,18 @@ describe('i18n', () => {
     it("should return false when doesn't have i18n", () => {
       expect(i18n.isFieldTranslatable(fromJS({}), 'en', 'en')).toBe(false);
     });
+
+    it('should return true when not default locale and i18n is true', () => {
+      expect(i18n.isFieldTranslatable(fromJS({ i18n: true }), 'en', 'de')).toBe(true);
+    });
+
+    it('should return false when default locale and i18n is true', () => {
+      expect(i18n.isFieldTranslatable(fromJS({ i18n: true }), 'en', 'en')).toBe(false);
+    });
+
+    it('should return false when not default locale and i18n is false', () => {
+      expect(i18n.isFieldTranslatable(fromJS({ i18n: false }), 'en', 'de')).toBe(false);
+    });
   });
 
   describe('isFieldDuplicate', () => {
@@ -98,6 +110,14 @@ describe('i18n', () => {
     it("should return false when doesn't have i18n", () => {
       expect(i18n.isFieldDuplicate(fromJS({}), 'en', 'en')).toBe(false);
     });
+
+    it('should return false when not default locale and i18n is true', () => {
+      expect(i18n.isFieldDuplicate(fromJS({ i18n: true }), 'en', 'de')).toBe(false);
+    });
+
+    it('should return false when not default locale and i18n is false', () => {
+      expect(i18n.isFieldDuplicate(fromJS({ i18n: false }), 'en', 'de')).toBe(false);
+    });
   });
 
   describe('isFieldHidden', () => {
@@ -111,6 +131,14 @@ describe('i18n', () => {
 
     it("should return false when doesn't have i18n", () => {
       expect(i18n.isFieldHidden(fromJS({}), 'en', 'en')).toBe(false);
+    });
+
+    it('should return false when not default locale and i18n is true', () => {
+      expect(i18n.isFieldHidden(fromJS({ i18n: true }), 'en', 'de')).toBe(false);
+    });
+
+    it('should return false when not default locale and i18n is false', () => {
+      expect(i18n.isFieldHidden(fromJS({ i18n: false }), 'en', 'de')).toBe(false);
     });
   });
 
