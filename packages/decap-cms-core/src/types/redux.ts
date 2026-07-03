@@ -638,15 +638,11 @@ export type CollectionFiles = CollectionFile[];
 
 type NestedObject = { depth: number; subfolders?: boolean; summary?: string };
 
-type Nested = NestedObject;
-
 type PathObject = { label: string; widget: string; index_file: string };
 
 type MetaObject = {
   path?: PathObject;
 };
-
-type Meta = MetaObject;
 
 interface i18n {
   structure: string;

@@ -2,7 +2,6 @@ import { vercelStegaEncode } from '@vercel/stega';
 
 import { isImmutableMap, isImmutableList } from '../types/immutable';
 
-import type { Map as ImmutableMap, List } from 'immutable';
 import type { CmsField } from 'decap-cms-core';
 
 /**
@@ -60,29 +59,29 @@ function encodeString(value: string, { fields, path }: EncodeContext): string {
  * Encode a list of values, handling both simple values and nested objects/lists
  * For typed lists, use the configured typeKey (defaulting to 'type') to discriminate items
  */
-function encodeList(list: List<unknown>, ctx: EncodeContext): List<unknown> {
+function encodeList(list: unknown[], ctx: EncodeContext): unknown[] {
   const typeKey = ctx.typeKey;
-  let newList = list;
-  for (let i = 0; i < newList.size; i++) {
-    const item = newList.get(i);
+  const newList = list.slice();
+  for (let i = 0; i < newList.length; i++) {
+    const item = newList[i];
     if (isImmutableMap(item)) {
-      const itemType = item.get(typeKey);
+      const itemType = item[typeKey];
       if (typeof itemType === 'string') {
         // For typed items, look up fields based on type
         const field = ctx.fields.find(f => f.name === itemType);
         const newItem = ctx.visit(item, getNestedFields(field), `${ctx.path}.${i}`);
-        newList = newList.set(i, newItem);
+        newList[i] = newItem;
       } else {
         // For untyped items, use current fields
         const newItem = ctx.visit(item, ctx.fields, `${ctx.path}.${i}`);
-        newList = newList.set(i, newItem);
+        newList[i] = newItem;
       }
     } else {
       // For simple values, use first field if available
       const field = ctx.fields[0];
       const newItem = ctx.visit(item, field ? [field] : [], `${ctx.path}.${i}`);
       if (newItem !== item) {
-        newList = newList.set(i, newItem);
+        newList[i] = newItem;
       }
     }
   }
@@ -93,12 +92,9 @@ function encodeList(list: List<unknown>, ctx: EncodeContext): List<unknown> {
  * Encode a map of values, looking up the appropriate field for each key
  * and recursively encoding nested values
  */
-function encodeMap(
-  map: ImmutableMap<string, unknown>,
-  ctx: EncodeContext,
-): ImmutableMap<string, unknown> {
-  let newMap = map;
-  for (const [key, val] of newMap.entrySeq().toArray()) {
+function encodeMap(map: Record<string, unknown>, ctx: EncodeContext): Record<string, unknown> {
+  const newMap = { ...map };
+  for (const [key, val] of Object.entries(newMap)) {
     const field = ctx.fields.find(f => f.name === key);
     if (field) {
       const fields = getNestedFields(field);
@@ -108,7 +104,7 @@ function encodeMap(
           : undefined;
       const newVal = ctx.visit(val, fields, ctx.path ? `${ctx.path}.${key}` : key, typeKey);
       if (newVal !== val) {
-        newMap = newMap.set(key, newVal);
+        newMap[key] = newVal;
       }
     }
   }
@@ -123,8 +119,8 @@ function encodeMap(
  * the Map never grows across calls and the cache hit check compares the
  * correct values (raw input vs cached raw input, not encoded output).
  */
-export function encodeEntry(value: unknown, fields: List<ImmutableMap<string, unknown>>) {
-  const plainFields = fields.toJS() as CmsField[];
+export function encodeEntry(value: unknown, fields: CmsField[]) {
+  const plainFields = fields;
   const inputCache = new Map<string, unknown>();
   const outputCache = new Map<string, unknown>();
 

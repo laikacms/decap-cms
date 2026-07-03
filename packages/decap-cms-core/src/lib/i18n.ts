@@ -1,4 +1,4 @@
-import { Map, List } from 'immutable';
+import get from 'lodash/get';
 import set from 'lodash/set';
 import groupBy from 'lodash/groupBy';
 import escapeRegExp from 'lodash/escapeRegExp';
@@ -7,6 +7,18 @@ import { selectEntrySlug } from '../reducers/collections';
 
 import type { Collection, Entry, EntryDraft, EntryField, EntryMap } from '../types/redux';
 import type { EntryValue } from '../valueObjects/Entry';
+
+function setDeep<T>(target: T, pathArr: (string | number)[], val: unknown): T {
+  const source = target as unknown as Record<string, unknown>;
+  const key = pathArr[0];
+  if (pathArr.length === 1) {
+    return { ...source, [key]: val } as unknown as T;
+  }
+  return {
+    ...source,
+    [key]: setDeep((source[key] as Record<string, unknown>) ?? {}, pathArr.slice(1), val),
+  } as unknown as T;
+}
 
 export const I18N = 'i18n';
 
@@ -23,7 +35,7 @@ export enum I18N_FIELD {
 }
 
 export function hasI18n(collection: Collection) {
-  return collection.has(I18N);
+  return I18N in collection;
 }
 
 export type I18nInfo = {
@@ -36,7 +48,7 @@ export function getI18nInfo(collection: Collection) {
   if (!hasI18n(collection)) {
     return {};
   }
-  const { structure, locales, default_locale: defaultLocale } = collection.get(I18N).toJS();
+  const { structure, locales, default_locale: defaultLocale } = collection.i18n;
   return { structure, locales, defaultLocale } as I18nInfo;
 }
 
@@ -49,17 +61,17 @@ export function getI18nFilesDepth(collection: Collection, depth: number) {
 }
 
 export function isFieldTranslatable(field: EntryField, locale: string, defaultLocale: string) {
-  const isTranslatable = locale !== defaultLocale && field.get(I18N) === I18N_FIELD.TRANSLATE;
+  const isTranslatable = locale !== defaultLocale && field.i18n === I18N_FIELD.TRANSLATE;
   return isTranslatable;
 }
 
 export function isFieldDuplicate(field: EntryField, locale: string, defaultLocale: string) {
-  const isDuplicate = locale !== defaultLocale && field.get(I18N) === I18N_FIELD.DUPLICATE;
+  const isDuplicate = locale !== defaultLocale && field.i18n === I18N_FIELD.DUPLICATE;
   return isDuplicate;
 }
 
 export function isFieldHidden(field: EntryField, locale: string, defaultLocale: string) {
-  const isHidden = locale !== defaultLocale && field.get(I18N) === I18N_FIELD.NONE;
+  const isHidden = locale !== defaultLocale && field.i18n === I18N_FIELD.NONE;
   return isHidden;
 }
 
@@ -154,9 +166,9 @@ export function getI18nFiles(
   if (structure === I18N_STRUCTURE.SINGLE_FILE) {
     const data = locales.reduce((map, locale) => {
       const dataPath = getDataPath(locale, defaultLocale);
-      return map.set(locale, entryDraft.getIn(dataPath));
-    }, Map<string, unknown>({}));
-    const draft = entryDraft.set('data', data);
+      return { ...map, [locale]: get(entryDraft, dataPath) };
+    }, {} as Record<string, unknown>);
+    const draft = { ...entryDraft, data };
 
     return [
       {
@@ -173,11 +185,11 @@ export function getI18nFiles(
   const dataFiles = locales
     .map(locale => {
       const dataPath = getDataPath(locale, defaultLocale);
-      const draft = entryDraft.set('data', entryDraft.getIn(dataPath) as Record<string, unknown>);
+      const draft = { ...entryDraft, data: get(entryDraft, dataPath) as Record<string, unknown> };
       return {
         path: getFilePath(structure, extension, path, slug, locale),
         slug,
-        raw: draft.get('data') ? entryToRaw(draft) : '',
+        raw: draft.data ? entryToRaw(draft) : '',
         ...(newPath && {
           newPath: getFilePath(structure, extension, newPath, slug, locale),
         }),
@@ -198,11 +210,11 @@ export function getI18nBackup(
     .filter(l => l !== defaultLocale)
     .reduce((acc, locale) => {
       const dataPath = getDataPath(locale, defaultLocale);
-      const data = entry.getIn(dataPath);
+      const data = get(entry, dataPath);
       if (!data) {
         return acc;
       }
-      const draft = entry.set('data', data as Record<string, unknown>);
+      const draft = { ...entry, data: data as Record<string, unknown> };
       return { ...acc, [locale]: { raw: entryToRaw(draft) } };
     }, {} as Record<string, { raw: string }>);
 
@@ -226,14 +238,14 @@ function applyDefaultI18nValues(
   value: EntryValue,
   defaultLocaleValue: EntryValue,
 ) {
-  if (collection.get('fields') === undefined) {
+  if (collection.fields === undefined) {
     return;
   }
-  collection.get('fields').forEach(field => {
-    if (field && field.get(I18N) === I18N_FIELD.DUPLICATE) {
-      const data = value.data[field.get('name')];
+  collection.fields.forEach(field => {
+    if (field && field.i18n === I18N_FIELD.DUPLICATE) {
+      const data = value.data[field.name];
       if (!data) {
-        value.data[field.get('name')] = defaultLocaleValue.data[field.get('name')];
+        value.data[field.name] = defaultLocaleValue.data[field.name];
       }
     }
   });
@@ -403,34 +415,35 @@ export function duplicateI18nFields(
   field: EntryField,
   locales: string[],
   defaultLocale: string,
-  fieldPath: string[] = [field.get('name')],
+  fieldPath: string[] = [field.name],
 ) {
-  const value = entryDraft.getIn(['entry', 'data', ...fieldPath]);
-  if (field.get(I18N) === I18N_FIELD.DUPLICATE) {
+  const value = get(entryDraft, ['entry', 'data', ...fieldPath]);
+  if (field.i18n === I18N_FIELD.DUPLICATE) {
     locales
       .filter(l => l !== defaultLocale)
       .forEach(l => {
-        entryDraft = entryDraft.setIn(
+        entryDraft = setDeep(
+          entryDraft,
           ['entry', ...getDataPath(l, defaultLocale), ...fieldPath],
           value,
         );
       });
   }
 
-  if (field.has('field') && !List.isList(value)) {
-    const fields = [field.get('field') as EntryField];
+  if (field.field && !Array.isArray(value)) {
+    const fields = [field.field as EntryField];
     fields.forEach(field => {
       entryDraft = duplicateI18nFields(entryDraft, field, locales, defaultLocale, [
         ...fieldPath,
-        field.get('name'),
+        field.name,
       ]);
     });
-  } else if (field.has('fields') && !List.isList(value)) {
-    const fields = field.get('fields')!.toArray() as EntryField[];
+  } else if (field.fields && !Array.isArray(value)) {
+    const fields = field.fields as EntryField[];
     fields.forEach(field => {
       entryDraft = duplicateI18nFields(entryDraft, field, locales, defaultLocale, [
         ...fieldPath,
-        field.get('name'),
+        field.name,
       ]);
     });
   }
@@ -442,7 +455,7 @@ export function getPreviewEntry(entry: EntryMap, locale: string, defaultLocale: 
   if (locale === defaultLocale) {
     return entry;
   }
-  return entry.set('data', entry.getIn([I18N, locale, 'data']) as Record<string, unknown>);
+  return { ...entry, data: get(entry, [I18N, locale, 'data']) as Record<string, unknown> };
 }
 
 export function serializeI18n(
@@ -456,9 +469,10 @@ export function serializeI18n(
     .filter(locale => locale !== defaultLocale)
     .forEach(locale => {
       const dataPath = getLocaleDataPath(locale);
-      entry = entry.setIn(
+      entry = setDeep(
+        entry,
         dataPath,
-        serializeValues(entry.getIn(dataPath) as Record<string, unknown>),
+        serializeValues(get(entry, dataPath) as Record<string, unknown>),
       );
     });
 

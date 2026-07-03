@@ -26,20 +26,6 @@ const {
   addFileTemplateFields,
 } = stringTemplate;
 
-// At runtime, Redux state entries are stored as Immutable records via fromJS().
-// This helper extracts the plain-object form of the data field whether the
-// value is an Immutable Map (has .toJS()) or already a plain object.
-function toPlainData(value: unknown): Record<string, unknown> {
-  if (
-    value !== null &&
-    typeof value === 'object' &&
-    typeof (value as { toJS?: unknown }).toJS === 'function'
-  ) {
-    return (value as { toJS(): Record<string, unknown> }).toJS();
-  }
-  return (value as Record<string, unknown>) || {};
-}
-
 const commitMessageTemplates = {
   create: 'Create {{collection}} “{{slug}}”',
   update: 'Update {{collection}} “{{slug}}”',
@@ -86,7 +72,7 @@ export function commitMessageFormatter(
       case 'path':
         return path || '';
       case 'collection':
-        return collection ? collection.get('label_singular') || collection.get('label') : '';
+        return collection ? collection.label_singular || collection.label : '';
       case 'author-login':
         return authorLogin || '';
       case 'author-name':
@@ -153,8 +139,8 @@ export function slugFormatter(
   entryData: Record<string, unknown>,
   slugConfig?: CmsSlug,
 ) {
-  const slugTemplate = collection.get('slug') || '{{slug}}';
-  const data = toPlainData(entryData);
+  const slugTemplate = collection.slug || '{{slug}}';
+  const data = entryData;
 
   const identifier = get(data, keyToPathArray(selectIdentifier(collection) as string));
   if (!identifier) {
@@ -168,10 +154,10 @@ export function slugFormatter(
     parseDateFromEntryData(data, selectInferredField(collection, 'date')) || new Date(Date.now());
   const slug = compileStringTemplate(slugTemplate, date, identifier, data, processSegment);
 
-  if (!collection.has('path')) {
+  if (!('path' in collection)) {
     return slug;
   } else {
-    const pathTemplate = prepareSlug(collection.get('path') as string);
+    const pathTemplate = prepareSlug(collection.path as string);
     return compileStringTemplate(pathTemplate, date, slug, data, (value: string) =>
       value === slug ? value : processSegment(value),
     );
@@ -195,15 +181,15 @@ export function previewUrlFormatter(
 
   const basePath = trimEnd(baseUrl, '/');
 
-  const isFileCollection = collection.get('type') === FILES;
-  const file = isFileCollection ? getFileFromSlug(collection, entry.get('slug')) : undefined;
+  const isFileCollection = collection.type === FILES;
+  const file = isFileCollection ? getFileFromSlug(collection, entry.slug) : undefined;
 
   function getPathTemplate() {
-    return file?.get('preview_path') ?? collection.get('preview_path');
+    return file?.preview_path ?? collection.preview_path;
   }
 
   function getDateField() {
-    return file?.get('preview_path_date_field') ?? collection.get('preview_path_date_field');
+    return file?.preview_path_date_field ?? collection.preview_path_date_field;
   }
 
   /**
@@ -220,13 +206,13 @@ export function previewUrlFormatter(
     return baseUrl;
   }
 
-  let fields: Record<string, string> = toPlainData(entry.get('data')) as Record<string, string>;
-  fields = addFileTemplateFields(entry.get('path'), fields, collection.get('folder'));
+  let fields: Record<string, string> = entry.data as Record<string, string>;
+  fields = addFileTemplateFields(entry.path, fields, collection.folder);
   const dateFieldName = getDateField() || selectInferredField(collection, 'date');
   const date = parseDateFromEntryData(fields, dateFieldName);
   const previewPathPreserveSlashes =
-    file?.get('preview_path_preserve_slashes') ?? collection.get('preview_path_preserve_slashes');
-  const preserveSlashes = !!(previewPathPreserveSlashes ?? collection.has('nested'));
+    file?.preview_path_preserve_slashes ?? collection.preview_path_preserve_slashes;
+  const preserveSlashes = !!(previewPathPreserveSlashes ?? 'nested' in collection);
 
   // Prepare and sanitize slug variables only, leave the rest of the
   // `preview_path` template as is.
@@ -241,7 +227,7 @@ export function previewUrlFormatter(
     //   2. A date expression (eg. `{{year}}`) is used in `preview_path`
     if (err instanceof Error && err.name === SLUG_MISSING_REQUIRED_DATE) {
       console.error(stripIndent`
-        Collection "${collection.get('name')}" configuration error:
+        Collection "${collection.name}" configuration error:
           \`preview_path_date_field\` must be a field with a valid date. Ignoring \`preview_path\`.
       `);
       return basePath;
@@ -254,21 +240,21 @@ export function previewUrlFormatter(
 }
 
 export function summaryFormatter(summaryTemplate: string, entry: EntryMap, collection: Collection) {
-  let entryData: Record<string, unknown> = toPlainData(entry.get('data'));
+  let entryData: Record<string, unknown> = entry.data;
   const date = parseDateFromEntryData(entryData, selectInferredField(collection, 'date')) || null;
   const identifier = get(entryData, keyToPathArray(selectIdentifier(collection) as string));
 
   entryData = addFileTemplateFields(
-    entry.get('path'),
+    entry.path,
     entryData as Record<string, string>,
-    collection.get('folder'),
+    collection.folder,
   ) as Record<string, unknown>;
   // allow commit information in summary template
-  if (entry.get('author') && !selectField(collection, COMMIT_AUTHOR)) {
-    entryData = { ...entryData, [COMMIT_AUTHOR]: entry.get('author') };
+  if (entry.author && !selectField(collection, COMMIT_AUTHOR)) {
+    entryData = { ...entryData, [COMMIT_AUTHOR]: entry.author };
   }
-  if (entry.get('updatedOn') && !selectField(collection, COMMIT_DATE)) {
-    entryData = { ...entryData, [COMMIT_DATE]: entry.get('updatedOn') };
+  if (entry.updatedOn && !selectField(collection, COMMIT_DATE)) {
+    entryData = { ...entryData, [COMMIT_DATE]: entry.updatedOn };
   }
   const summary = compileStringTemplate(summaryTemplate, date, identifier, entryData);
   return summary;
@@ -282,15 +268,15 @@ export function folderFormatter(
   folderKey: string,
   slugConfig?: CmsSlug,
 ) {
-  if (!entry || !entry.get('data')) {
+  if (!entry || !entry.data) {
     return folderTemplate;
   }
 
   let fields: Record<string, string> = {
-    ...(toPlainData(entry.get('data')) as Record<string, string>),
+    ...(entry.data as Record<string, string>),
     [folderKey]: defaultFolder,
   };
-  fields = addFileTemplateFields(entry.get('path'), fields, collection.get('folder'));
+  fields = addFileTemplateFields(entry.path, fields, collection.folder);
 
   const date = parseDateFromEntryData(fields, selectInferredField(collection, 'date')) || null;
   const identifier = get(fields, keyToPathArray(selectIdentifier(collection) as string));

@@ -60,7 +60,7 @@ export function loadDeployPreview(
   return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const backend = currentBackend(state.config);
-    const collectionName = collection.get('name');
+    const collectionName = collection.name;
 
     // Exit if currently fetching, unless the caller provides a signal
     // (indicating it manages cancellation of the previous poll externally).

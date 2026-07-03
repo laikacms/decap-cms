@@ -1,4 +1,3 @@
-import { List } from 'immutable';
 import get from 'lodash/get';
 
 import yamlFormatter from './yaml';
@@ -57,21 +56,15 @@ function formatByName(name: Format, customDelimiter?: Delimiter): Formatter {
   throw new Error(`No formatter available with name: ${name}`);
 }
 
-function frontmatterDelimiterIsList(
-  frontmatterDelimiter?: Delimiter | List<string>,
-): frontmatterDelimiter is List<string> {
-  return List.isList(frontmatterDelimiter);
-}
-
 export function resolveFormat(collection: Collection, entry: EntryObject | EntryValue) {
   // Check for custom delimiter
-  const frontmatter_delimiter = collection.get('frontmatter_delimiter');
-  const customDelimiter = frontmatterDelimiterIsList(frontmatter_delimiter)
-    ? (frontmatter_delimiter.toArray() as [string, string])
+  const frontmatter_delimiter = collection.frontmatter_delimiter;
+  const customDelimiter = Array.isArray(frontmatter_delimiter)
+    ? (frontmatter_delimiter as [string, string])
     : frontmatter_delimiter;
 
   // If the format is specified in the collection, use that format.
-  const formatSpecification = collection.get('format');
+  const formatSpecification = collection.format;
   if (formatSpecification) {
     return formatByName(formatSpecification, customDelimiter);
   }
@@ -87,7 +80,7 @@ export function resolveFormat(collection: Collection, entry: EntryObject | Entry
 
   // If creating a new file, and an `extension` is specified in the
   //   collection config, infer the format from that extension.
-  const extension = collection.get('extension');
+  const extension = collection.extension;
   if (extension) {
     return get(extensionFormatters, extension);
   }
