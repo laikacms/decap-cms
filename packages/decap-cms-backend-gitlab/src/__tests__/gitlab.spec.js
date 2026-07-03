@@ -376,6 +376,19 @@ describe('gitlab backend', () => {
       await backend.authenticate(mockCredentials);
       expect(backend.implementation.api.branch).toEqual('develop');
     });
+
+    it('falls back to master when getDefaultBranchName API request fails', async () => {
+      backend = resolveBackend(defaultConfig);
+      const api = mockApi(backend);
+      // First request to expectedRepoUrl is made by getDefaultBranchName and fails.
+      api.get(expectedRepoUrl).query(true).reply(500, 'Internal Server Error');
+      api.get('/user').query(true).reply(200, resp.user.success);
+      // Second request to expectedRepoUrl is made by hasWriteAccess and succeeds.
+      api.get(expectedRepoUrl).query(true).reply(200, resp.project.success);
+      const user = await backend.authenticate(mockCredentials);
+      expect(user).toBeTruthy();
+      expect(backend.implementation.api.branch).toEqual('master');
+    });
   });
 
   describe('currentUser', () => {
