@@ -33,6 +33,7 @@ import ShortcodePlugin from './plugins/ShortcodePlugin';
 import { TablePlugin, TableRowPlugin, TableCellPlugin } from './plugins/TablePlugin';
 import defaultEmptyBlock from './defaultEmptyBlock';
 import { mergeMediaConfig } from './mergeMediaConfig';
+import { normalizeField } from './normalizeField';
 import { handleLinkClick } from './linkHandler';
 import { handlePasteHtml } from './pasteHandler';
 
@@ -55,7 +56,7 @@ const emptyValue = [defaultEmptyBlock()];
 export default function VisualEditor(props) {
   const {
     t,
-    field,
+    field: rawField,
     className,
     isDisabled,
     isEditorComponent,
@@ -65,6 +66,8 @@ export default function VisualEditor(props) {
     getEditorComponents,
     getAsset,
   } = props;
+
+  const field = normalizeField(rawField);
 
   let editorComponents = getEditorComponents();
   const codeBlockComponent = fromJS(editorComponents.find(({ type }) => type === 'code-block'));

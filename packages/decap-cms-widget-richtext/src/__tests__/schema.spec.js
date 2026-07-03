@@ -48,6 +48,16 @@ describe('richtext widget schema — editor_components', () => {
   });
 });
 
+describe('richtext widget schema — editorComponents (camelCase alias)', () => {
+  it('passes with an array of strings', () => {
+    expect(validate({ editorComponents: ['image', 'code-block'] }).valid).toBe(true);
+  });
+
+  it('passes with an empty array', () => {
+    expect(validate({ editorComponents: [] }).valid).toBe(true);
+  });
+});
+
 describe('richtext widget schema — modes', () => {
   it('passes with rich_text', () => {
     expect(validate({ modes: ['rich_text'] }).valid).toBe(true);
