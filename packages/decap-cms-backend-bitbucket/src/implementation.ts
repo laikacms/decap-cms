@@ -202,7 +202,7 @@ export default class BitbucketBackend implements Implementation {
         backend: 'bitbucket',
         repo: this.repo,
         token: this.token,
-      });
+      }).catch(() => null);
       if (defaultBranchName) {
         this.branch = defaultBranchName;
       }
