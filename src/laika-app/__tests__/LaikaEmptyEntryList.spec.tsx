@@ -2,14 +2,10 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-const dispatch = vi.fn();
-
-vi.mock('../../core/hooks/useRedux', () => ({
-  useAppDispatch: () => dispatch,
-}));
+const createNewEntry = vi.fn();
 
 vi.mock('../../core/actions/collections', () => ({
-  createNewEntry: (name: string) => ({ type: 'CREATE_NEW_ENTRY', payload: name }),
+  createNewEntry: (...args: unknown[]) => createNewEntry(...args),
 }));
 
 import LaikaEmptyEntryList from '../LaikaEmptyEntryList';
@@ -49,15 +45,15 @@ describe('LaikaEmptyEntryList', () => {
     expect(queryByText('Create Post')).toBeNull();
   });
 
-  it('dispatches createNewEntry when CTA is clicked', () => {
-    dispatch.mockClear();
+  it('calls createNewEntry directly (not via dispatch) when CTA is clicked', () => {
+    createNewEntry.mockClear();
     const { getByText } = render(
       <LaikaEmptyEntryList
         collection={{ name: 'posts', label: 'Posts', label_singular: 'Post', create: true } as any}
       />,
     );
     fireEvent.click(getByText('Create Post'));
-    expect(dispatch).toHaveBeenCalledWith({ type: 'CREATE_NEW_ENTRY', payload: 'posts' });
+    expect(createNewEntry).toHaveBeenCalledWith('posts');
   });
 
   it('falls back to "No matches" without a CTA when no collection is provided', () => {
