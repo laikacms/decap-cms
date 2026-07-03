@@ -368,7 +368,7 @@ const textBadge: SerializedStyles = css`
 const card: SerializedStyles = css`
   ${shadows.dropMain};
   border-radius: 5px;
-  background-color: #fff;
+  background-color: ${colors.foreground};
 `;
 
 interface Buttons {
@@ -548,6 +548,7 @@ const components: Components = {
     line-height: 37px;
     margin: 0;
     padding: 0;
+    color: ${colors.textLead};
   `,
   cardTopDescription: css`
     max-width: 480px;
