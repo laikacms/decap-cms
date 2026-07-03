@@ -2,7 +2,7 @@ import React from 'react';
 import styled from '@emotion/styled';
 
 import Icon from './Icon';
-import { buttons, shadows } from './styles';
+import { buttons, colors, shadows } from './styles';
 import GoBackButton from './GoBackButton';
 
 import type { TranslateFunction } from './GoBackButton';
@@ -25,6 +25,7 @@ const CustomIconWrapper = styled.span`
 
 const DecapLogoIcon = styled(Icon)`
   height: auto;
+  color: ${colors.textLead};
 `;
 
 const NetlifyCreditIcon = styled(Icon)`
