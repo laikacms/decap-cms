@@ -373,8 +373,7 @@ export function persistUnpublishedEntry(collection: Collection, existingUnpublis
         collection,
         entryDraft: serializedEntryDraft,
         assetProxies,
-        // TODO: remove cast once backend.ts is migrated off Immutable (DCMS-263)
-        usedSlugs: usedSlugs as unknown as never,
+        usedSlugs,
       });
       dispatch(
         addNotification({
@@ -402,9 +401,7 @@ export function persistUnpublishedEntry(collection: Collection, existingUnpublis
           dismissAfter: 8000,
         }),
       );
-      return Promise.reject(
-        dispatch(unpublishedEntryPersistedFail(error, collection, entry.slug)),
-      );
+      return Promise.reject(dispatch(unpublishedEntryPersistedFail(error, collection, entry.slug)));
     }
   };
 }
@@ -538,8 +535,7 @@ export function unpublishPublishedEntry(collection: Collection, slug: string) {
           collection,
           entryDraft,
           assetProxies: [],
-          // TODO: remove cast once backend.ts is migrated off Immutable (DCMS-263)
-          usedSlugs: [] as unknown as never,
+          usedSlugs: [],
           status: status.PENDING_PUBLISH,
         }),
       )

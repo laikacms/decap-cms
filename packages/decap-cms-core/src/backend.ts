@@ -6,7 +6,6 @@ import trim from 'lodash/trim';
 import sortBy from 'lodash/sortBy';
 import get from 'lodash/get';
 import set from 'lodash/set';
-import { List, fromJS, Set } from 'immutable';
 import * as fuzzy from 'fuzzy';
 import {
   localForage,
@@ -61,12 +60,12 @@ import type { I18nInfo } from './lib/i18n';
 import type AssetProxy from './valueObjects/AssetProxy';
 import type {
   CmsConfig,
+  Entry,
   EntryMap,
   FilterRule,
   EntryDraft,
   Collection,
   Collections,
-  CollectionFile,
   State,
   EntryField,
 } from './types/redux';
@@ -99,7 +98,7 @@ function updateAssetProxies(
     const newPath = selectMediaFilePath(
       config,
       collection,
-      entryDraft.get('entry').set('path', path),
+      { ...entryDraft.entry, path },
       oldPath,
       asset.field,
     );
@@ -188,7 +187,7 @@ export function mergeExpandedEntries(entries: (EntryValue & { field: string })[]
     if (!acc[e.slug]) {
       const { field: _field, ...rest } = e;
       acc[e.slug] = rest;
-      arrayPaths[e.slug] = Set();
+      arrayPaths[e.slug] = new Set();
     }
 
     const nestedFields = e.field.split('.');
@@ -197,7 +196,7 @@ export function mergeExpandedEntries(entries: (EntryValue & { field: string })[]
       value = (value as Record<string, unknown>)[nestedFields[i]];
       if (Array.isArray(value)) {
         const path = nestedFields.slice(0, i + 1).join('.');
-        arrayPaths[e.slug] = arrayPaths[e.slug].add(path);
+        arrayPaths[e.slug].add(path);
       }
     }
 
@@ -208,7 +207,7 @@ export function mergeExpandedEntries(entries: (EntryValue & { field: string })[]
   // and filters non matching items
   Object.keys(merged).forEach(slug => {
     const data = merged[slug].data;
-    for (const path of arrayPaths[slug].toArray()) {
+    for (const path of arrayPaths[slug]) {
       const array = get(data, path) as unknown[];
       const filtered = array.filter((_, index) => {
         return fields.some(f => `${f}.`.startsWith(`${path}.${index}.`));
@@ -239,7 +238,7 @@ function sortByScore(a: fuzzy.FilterResult<EntryValue>, b: fuzzy.FilterResult<En
 }
 
 export function slugFromCustomPath(collection: Collection, customPath: string) {
-  const folderPath = collection.get('folder', '') as string;
+  const folderPath = collection.folder || '';
   const entryPath = customPath.toLowerCase().replace(folderPath.toLowerCase(), '');
   const slug = join(dirname(trim(entryPath, '/')), basename(entryPath, extname(customPath)));
   return slug;
@@ -281,7 +280,7 @@ interface PersistArgs {
   collection: Collection;
   entryDraft: EntryDraft;
   assetProxies: AssetProxy[];
-  usedSlugs: List<string>;
+  usedSlugs: string[];
   unpublished?: boolean;
   status?: string;
 }
@@ -301,13 +300,12 @@ function prepareMetaPath(path: string, collection: Collection) {
     return path;
   }
   const dir = dirname(path);
-  return dir.slice(collection.get('folder')!.length + 1) || '/';
+  return dir.slice(collection.folder!.length + 1) || '/';
 }
 
 function collectionDepth(collection: Collection) {
   let depth;
-  depth =
-    collection.get('nested')?.get('depth') || getPathDepth(collection.get('path', '') as string);
+  depth = collection.nested?.depth || getPathDepth(collection.path || '');
 
   if (hasI18n(collection)) {
     depth = getI18nFilesDepth(collection, depth);
@@ -331,11 +329,8 @@ function i18nRulestring(ruleString: string, { defaultLocale, structure }: I18nIn
 function collectionRegex(collection: Collection): RegExp | undefined {
   let ruleString = '';
 
-  if (collection.get('path')) {
-    ruleString = `${collection.get('folder')}/${collection.get('path')}`.replace(
-      /{{.*}}/gm,
-      '(.*)',
-    );
+  if (collection.path) {
+    ruleString = `${collection.folder}/${collection.path}`.replace(/{{.*}}/gm, '(.*)');
   }
 
   if (hasI18n(collection)) {
@@ -360,7 +355,7 @@ export class Backend {
     this.implementation = implementation.init(this.config, {
       useWorkflow: selectUseWorkflow(this.config),
       updateUserCredentials: this.updateUserCredentials,
-      initialWorkflowStatus: status.first(),
+      initialWorkflowStatus: status.DRAFT,
     });
     this.backendName = backendName;
     this.authStore = authStore;
@@ -453,7 +448,7 @@ export class Backend {
     const unpublishedEntry =
       useWorkflow &&
       (await this.implementation
-        .unpublishedEntry({ collection: collection.get('name'), slug })
+        .unpublishedEntry({ collection: collection.name, slug })
         .catch(error => {
           if (error.name === EDITORIAL_WORKFLOW_ERROR && error.notUnderEditorialWorkflow) {
             return Promise.resolve(false);
@@ -477,7 +472,7 @@ export class Backend {
     collection: Collection,
     entryData: Record<string, unknown>,
     config: CmsConfig,
-    usedSlugs: List<string>,
+    usedSlugs: string[],
     customPath: string | undefined,
   ) {
     const slugConfig = config.slug;
@@ -508,7 +503,7 @@ export class Backend {
   processEntries(loadedEntries: ImplementationEntry[], collection: Collection) {
     const entries = loadedEntries.map(loadedEntry =>
       createEntry(
-        collection.get('name'),
+        collection.name,
         selectEntrySlug(collection, loadedEntry.file.path),
         loadedEntry.file.path,
         {
@@ -522,7 +517,7 @@ export class Backend {
     );
     const formattedEntries = entries.map(this.entryWithFormat(collection));
     // If this collection has a "filter" property, filter entries accordingly
-    const collectionFilter = collection.get('filter');
+    const collectionFilter = collection.filter;
     const filteredEntries = collectionFilter
       ? this.filterEntries({ entries: formattedEntries }, collectionFilter)
       : formattedEntries;
@@ -539,24 +534,17 @@ export class Backend {
   async listEntries(collection: Collection) {
     const extension = selectFolderEntryExtension(collection);
     let listMethod: () => Promise<ImplementationEntry[]>;
-    const collectionType = collection.get('type');
+    const collectionType = collection.type;
     if (collectionType === FOLDER) {
       listMethod = () => {
         const depth = collectionDepth(collection);
-        return this.implementation.entriesByFolder(
-          collection.get('folder') as string,
-          extension,
-          depth,
-        );
+        return this.implementation.entriesByFolder(collection.folder as string, extension, depth);
       };
     } else if (collectionType === FILES) {
-      const files = collection
-        .get('files')!
-        .map(collectionFile => ({
-          path: collectionFile!.get('file'),
-          label: collectionFile!.get('label'),
-        }))
-        .toArray();
+      const files = collection.files!.map(collectionFile => ({
+        path: collectionFile!.file,
+        label: collectionFile!.label,
+      }));
       listMethod = () => this.implementation.entriesByFiles(files);
     } else {
       throw new Error(`Unknown collection type: ${collectionType}`);
@@ -587,12 +575,12 @@ export class Backend {
   // returns all the collected entries. Used to retrieve all entries
   // for local searches and queries.
   async listAllEntries(collection: Collection) {
-    if (collection.get('folder') && this.implementation.allEntriesByFolder) {
+    if (collection.folder && this.implementation.allEntriesByFolder) {
       const depth = collectionDepth(collection);
       const extension = selectFolderEntryExtension(collection);
       return this.implementation
         .allEntriesByFolder(
-          collection.get('folder') as string,
+          collection.folder as string,
           extension,
           depth,
           collectionRegex(collection),
@@ -618,18 +606,15 @@ export class Backend {
     const errors: Error[] = [];
     const collectionEntriesRequests = collections
       .map(async collection => {
-        const summary = collection.get('summary', '') as string;
+        const summary = collection.summary || '';
         const summaryFields = extractTemplateVars(summary);
 
         // TODO: pass search fields in as an argument
         let searchFields: (string | null | undefined)[] = [];
 
-        if (collection.get('type') === FILES) {
-          collection.get('files')?.forEach(f => {
-            const topLevelFields = f!
-              .get('fields')
-              .map(f => f!.get('name'))
-              .toArray();
+        if (collection.type === FILES) {
+          collection.files?.forEach(f => {
+            const topLevelFields = f.fields.map(field => field.name);
             searchFields = [...searchFields, ...topLevelFields];
           });
         } else {
@@ -720,7 +705,7 @@ export class Backend {
   }
 
   async getLocalDraftBackup(collection: Collection, slug: string) {
-    const key = getEntryBackupKey(collection.get('name'), slug);
+    const key = getEntryBackupKey(collection.name, slug);
     const backup = await localForage.getItem<BackupEntry>(key);
     if (!backup || !backup.raw.trim()) {
       return {};
@@ -740,7 +725,7 @@ export class Backend {
 
     const formatRawData = (raw: string) => {
       return this.entryWithFormat(collection)(
-        createEntry(collection.get('name'), slug, path, {
+        createEntry(collection.name, slug, path, {
           raw,
           label,
           mediaFiles,
@@ -761,7 +746,7 @@ export class Backend {
   async persistLocalDraftBackup(entry: EntryMap, collection: Collection) {
     try {
       await this.backupSync.acquire();
-      const key = getEntryBackupKey(collection.get('name'), entry.get('slug'));
+      const key = getEntryBackupKey(collection.name, entry.slug);
       const raw = this.entryToRaw(collection, entry);
 
       if (!raw.trim()) {
@@ -769,17 +754,14 @@ export class Backend {
       }
 
       const mediaFiles = await Promise.all<MediaFile>(
-        entry
-          .get('mediaFiles')
-          .toJS()
-          .map(async (file: MediaFile) => {
-            // make sure to serialize the file
-            if (file.url?.startsWith('blob:')) {
-              const blob = await fetch(file.url as string).then(res => res.blob());
-              return { ...file, file: blobToFileObj(file.name, blob) };
-            }
-            return file;
-          }),
+        entry.mediaFiles.map(async (file: MediaFile) => {
+          // make sure to serialize the file
+          if (file.url?.startsWith('blob:')) {
+            const blob = await fetch(file.url as string).then(res => res.blob());
+            return { ...file, file: blobToFileObj(file.name, blob) };
+          }
+          return file;
+        }),
       );
 
       let i18n;
@@ -789,7 +771,7 @@ export class Backend {
 
       await localForage.setItem<BackupEntry>(key, {
         raw,
-        path: entry.get('path'),
+        path: entry.path,
         mediaFiles,
         ...(i18n && { i18n }),
       });
@@ -805,9 +787,9 @@ export class Backend {
   async deleteLocalDraftBackup(collection: Collection, slug: string) {
     try {
       await this.backupSync.acquire();
-      await localForage.removeItem(getEntryBackupKey(collection.get('name'), slug));
+      await localForage.removeItem(getEntryBackupKey(collection.name, slug));
       // delete new entry backup if not deleted
-      slug && (await localForage.removeItem(getEntryBackupKey(collection.get('name'))));
+      slug && (await localForage.removeItem(getEntryBackupKey(collection.name)));
       const result = await this.deleteAnonymousBackup();
       return result;
     } catch (e) {
@@ -830,7 +812,7 @@ export class Backend {
 
     const getEntryValue = async (path: string) => {
       const loadedEntry = await this.implementation.getEntry(path);
-      let entry = createEntry(collection.get('name'), slug, loadedEntry.file.path, {
+      let entry = createEntry(collection.name, slug, loadedEntry.file.path, {
         raw: loadedEntry.data,
         label,
         mediaFiles: [],
@@ -891,9 +873,9 @@ export class Backend {
   ) {
     const { slug } = entryData;
     let extension: string;
-    if (collection.get('type') === FILES) {
-      const file = collection.get('files')!.find(f => f?.get('name') === slug);
-      extension = extname(file.get('file'));
+    if (collection.type === FILES) {
+      const file = collection.files!.find(f => f.name === slug)!;
+      extension = extname(file.file);
     } else {
       extension = selectFolderEntryExtension(collection);
     }
@@ -903,12 +885,7 @@ export class Backend {
       const nonDataFiles = entryData.diffs.filter(d => !d.path.endsWith(extension));
       const files = await Promise.all(
         nonDataFiles.map(f =>
-          this.implementation!.unpublishedEntryMediaFile(
-            collection.get('name'),
-            slug,
-            f.path,
-            f.id,
-          ),
+          this.implementation!.unpublishedEntryMediaFile(collection.name, slug, f.path, f.id),
         ),
       );
       mediaFiles.push(...files.map(f => ({ ...f, draft: true })));
@@ -920,7 +897,7 @@ export class Backend {
     );
 
     const formatData = (data: string, path: string, newFile: boolean) => {
-      const entry = createEntry(collection.get('name'), slug, path, {
+      const entry = createEntry(collection.name, slug, path, {
         raw: data,
         isModification: !newFile,
         label: collection && selectFileEntryLabel(collection, slug),
@@ -937,7 +914,7 @@ export class Backend {
 
     const readAndFormatDataFile = async (dataFile: UnpublishedEntryDiff) => {
       const data = await this.implementation.unpublishedEntryDataFile(
-        collection.get('name'),
+        collection.name,
         entryData.slug,
         dataFile.path,
         dataFile.id,
@@ -975,7 +952,7 @@ export class Backend {
         ids.map(async id => {
           const entryData = await this.implementation.unpublishedEntry({ id });
           const collectionName = entryData.collection;
-          const collection = collections.find(c => c.get('name') === collectionName);
+          const collection = Object.values(collections).find(c => c.name === collectionName);
           if (!collection) {
             console.warn(`Missing collection '${collectionName}' for unpublished entry '${id}'`);
             return null;
@@ -991,14 +968,14 @@ export class Backend {
 
   async processEntry(state: State, collection: Collection, entry: EntryValue) {
     const integration = selectIntegration(state.integrations, null, 'assetStore');
-    const mediaFolders = selectMediaFolders(state.config, collection, fromJS(entry));
+    const mediaFolders = selectMediaFolders(state.config, collection, entry as unknown as EntryMap);
     if (mediaFolders.length > 0 && !integration) {
       const files = await Promise.all(
         mediaFolders.map(folder => this.implementation.getMedia(folder)),
       );
       entry.mediaFiles = entry.mediaFiles.concat(...files);
     } else {
-      entry.mediaFiles = entry.mediaFiles.concat(state.mediaLibrary.get('files') || []);
+      entry.mediaFiles = entry.mediaFiles.concat(state.mediaLibrary.files || []);
     }
 
     return entry;
@@ -1006,7 +983,7 @@ export class Backend {
 
   async unpublishedEntry(state: State, collection: Collection, slug: string) {
     const entryData = await this.implementation!.unpublishedEntry!({
-      collection: collection.get('name') as string,
+      collection: collection.name,
       slug,
     });
 
@@ -1071,7 +1048,7 @@ export class Backend {
         return;
       }
       count++;
-      deployPreview = await this.implementation.getDeployPreview(collection.get('name'), slug);
+      deployPreview = await this.implementation.getDeployPreview(collection.name, slug);
       if (!deployPreview) {
         await new Promise(resolve => setTimeout(() => resolve(undefined), interval));
       }
@@ -1105,16 +1082,16 @@ export class Backend {
     unpublished = false,
     status,
   }: PersistArgs) {
-    const updatedEntity = await this.invokePreSaveEvent(draft.get('entry'));
+    const updatedEntity = await this.invokePreSaveEvent(draft.entry);
 
-    let entryDraft;
-    if (updatedEntity.get('data') === undefined) {
-      entryDraft = (updatedEntity && draft.setIn(['entry', 'data'], updatedEntity)) || draft;
+    let entryDraft: EntryDraft;
+    if (updatedEntity && (updatedEntity as Partial<Entry>).data === undefined) {
+      entryDraft = { ...draft, entry: { ...draft.entry, data: updatedEntity } };
     } else {
-      entryDraft = (updatedEntity && draft.setIn(['entry'], updatedEntity)) || draft;
+      entryDraft = updatedEntity ? { ...draft, entry: updatedEntity } : draft;
     }
 
-    const newEntry = entryDraft.getIn(['entry', 'newRecord']) || false;
+    const newEntry = entryDraft.entry.newRecord || false;
 
     const useWorkflow = selectUseWorkflow(config);
 
@@ -1127,7 +1104,7 @@ export class Backend {
       }
       const slug = await this.generateUniqueSlug(
         collection,
-        entryDraft.getIn(['entry', 'data']) as Record<string, unknown>,
+        entryDraft.entry.data,
         config,
         usedSlugs,
         customPath,
@@ -1136,18 +1113,18 @@ export class Backend {
       dataFile = {
         path,
         slug,
-        raw: this.entryToRaw(collection, entryDraft.get('entry')),
+        raw: this.entryToRaw(collection, entryDraft.entry),
       };
 
       updateAssetProxies(assetProxies, config, collection, entryDraft, path);
     } else {
-      const slug = entryDraft.getIn(['entry', 'slug']);
-      const path = entryDraft.getIn(['entry', 'path']);
+      const slug = entryDraft.entry.slug;
+      const path = entryDraft.entry.path;
       dataFile = {
         path,
         // for workflow entries we refresh the slug on publish
         slug: customPath && !useWorkflow ? slugFromCustomPath(collection, customPath) : slug,
-        raw: this.entryToRaw(collection, entryDraft.get('entry')),
+        raw: this.entryToRaw(collection, entryDraft.entry),
         newPath: customPath === path ? undefined : customPath,
       };
     }
@@ -1160,7 +1137,7 @@ export class Backend {
       dataFiles = getI18nFiles(
         collection,
         extension,
-        entryDraft.get('entry'),
+        entryDraft.entry,
         (draftData: EntryMap) => this.entryToRaw(collection, draftData),
         path,
         slug,
@@ -1183,8 +1160,8 @@ export class Backend {
       user.useOpenAuthoring,
     );
 
-    const collectionName = collection.get('name');
-    const hasSubfolders = collection.get('nested')?.get('subfolders') !== false;
+    const collectionName = collection.name;
+    const hasSubfolders = collection.nested?.subfolders !== false;
 
     const updatedOptions = { unpublished, status };
     const opts = {
@@ -1197,7 +1174,7 @@ export class Backend {
     };
 
     if (!useWorkflow) {
-      await this.invokePrePublishEvent(entryDraft.get('entry'));
+      await this.invokePrePublishEvent(entryDraft.entry);
     }
 
     await this.implementation.persistEntry(
@@ -1208,10 +1185,10 @@ export class Backend {
       opts,
     );
 
-    await this.invokePostSaveEvent(entryDraft.get('entry'));
+    await this.invokePostSaveEvent(entryDraft.entry);
 
     if (!useWorkflow) {
-      await this.invokePostPublishEvent(entryDraft.get('entry'));
+      await this.invokePostPublishEvent(entryDraft.entry);
     }
 
     return slug;
@@ -1288,7 +1265,7 @@ export class Backend {
       user.useOpenAuthoring,
     );
 
-    const entry = selectEntry(state.entries, collection.get('name'), slug);
+    const entry = selectEntry(state.entries, collection.name, slug);
     await this.invokePreUnpublishEvent(entry);
     let paths = [path];
     if (hasI18n(collection)) {
@@ -1324,8 +1301,8 @@ export class Backend {
   }
 
   async publishUnpublishedEntry(entry: EntryMap) {
-    const collection = entry.get('collection');
-    const slug = entry.get('slug');
+    const collection = entry.collection;
+    const slug = entry.slug;
 
     await this.invokePrePublishEvent(entry);
     await this.implementation.publishUnpublishedEntry!(collection, slug);
@@ -1337,14 +1314,10 @@ export class Backend {
   }
 
   entryToRaw(collection: Collection, entry: EntryMap): string {
-    const format = resolveFormat(collection, entry.toJS());
+    const format = resolveFormat(collection, entry);
     const fieldsOrder = this.fieldsOrder(collection, entry);
     const fieldsComments = selectFieldsComments(collection, entry);
-    let content = format.toFile(
-      (entry.get('data') as unknown as { toJS(): unknown }).toJS(),
-      fieldsOrder,
-      fieldsComments,
-    );
+    let content = format.toFile(entry.data, fieldsOrder, fieldsComments);
     if (content.slice(-1) != '\n') {
       // add the EOL if it does not exist.
       content += '\n';
@@ -1353,35 +1326,27 @@ export class Backend {
   }
 
   fieldsOrder(collection: Collection, entry: EntryMap) {
-    const fields = collection.get('fields');
+    const fields = collection.fields;
     if (fields) {
-      return collection
-        .get('fields')
-        .map(f => f!.get('name'))
-        .toArray();
+      return fields.map(f => f.name);
     }
 
-    const files = collection.get('files');
-    const file = (files || List<CollectionFile>())
-      .filter(f => f!.get('name') === entry.get('slug'))
-      .get(0);
+    const files = collection.files;
+    const file = (files || []).find(f => f.name === entry.slug);
 
     if (file == null) {
-      throw new Error(`No file found for ${entry.get('slug')} in ${collection.get('name')}`);
+      throw new Error(`No file found for ${entry.slug} in ${collection.name}`);
     }
-    return file
-      .get('fields')
-      .map(f => f!.get('name'))
-      .toArray();
+    return file.fields.map(f => f.name);
   }
 
   filterEntries(collection: { entries: EntryValue[] }, filterRule: FilterRule) {
     return collection.entries.filter(entry => {
-      const fieldValue = entry.data[filterRule.get('field')];
+      const fieldValue = entry.data[filterRule.field];
       if (Array.isArray(fieldValue)) {
-        return fieldValue.includes(filterRule.get('value'));
+        return fieldValue.includes(filterRule.value);
       }
-      return fieldValue === filterRule.get('value');
+      return fieldValue === filterRule.value;
     });
   }
 }

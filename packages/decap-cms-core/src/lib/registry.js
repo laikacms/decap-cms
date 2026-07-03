@@ -253,7 +253,7 @@ export async function invokeEvent({ name, data }) {
   for (const { handler, options } of handlers) {
     const result = await handler(_data, options);
     if (result !== undefined) {
-      const entry = _data.entry.set('data', result);
+      const entry = { ..._data.entry, data: result };
       _data = { ...data, entry };
     }
   }

@@ -835,9 +835,7 @@ export function createEmptyDraftData(
         if (list && Array.isArray(defaultValue)) {
           acc[name] = defaultValue;
         } else {
-          const asList = isSubfieldsArray
-            ? (subfields as EntryFields)
-            : [subfields as EntryField];
+          const asList = isSubfieldsArray ? (subfields as EntryFields) : [subfields as EntryField];
 
           const subDefaultValue = list
             ? [createEmptyDraftData(asList, skipField)]
@@ -951,8 +949,7 @@ export function persistEntry(collection: Collection) {
         collection,
         entryDraft: serializedEntryDraft,
         assetProxies,
-        // TODO: remove cast once backend.ts is migrated off Immutable (DCMS-263)
-        usedSlugs: usedSlugs as unknown as never,
+        usedSlugs,
       })
       .then(async (newSlug: string) => {
         dispatch(
