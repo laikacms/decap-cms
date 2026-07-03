@@ -82,12 +82,23 @@ export function mergeMediaConfig(editorComponents, field) {
   }
 }
 
+export function normalizeField(field) {
+  let normalized = field;
+  if (
+    normalized.get('editor_components') === undefined &&
+    normalized.get('editorComponents') !== undefined
+  ) {
+    normalized = normalized.set('editor_components', normalized.get('editorComponents'));
+  }
+  return normalized;
+}
+
 function Editor(props) {
   const {
     onAddAsset,
     getAsset,
     className,
-    field,
+    field: rawField,
     isShowModeToggle,
     t,
     isDisabled,
@@ -95,6 +106,8 @@ function Editor(props) {
     getRemarkPlugins,
     onChange,
   } = props;
+
+  const field = normalizeField(rawField);
 
   const editor = useMemo(
     () =>
