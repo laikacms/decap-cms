@@ -249,6 +249,48 @@ describe('Backend', () => {
       expect(localForage.getItem).toHaveBeenCalledTimes(1);
       expect(localForage.getItem).toHaveBeenCalledWith('backup.posts.slug');
     });
+
+    it('should not throw and should omit the url when a persisted media file has a truthy, non-Blob file property', async () => {
+      const implementation = {
+        init: jest.fn(() => implementation),
+      };
+
+      const backend = new Backend(implementation, { config: {}, backendName: 'github' });
+
+      const collection = Map({
+        name: 'posts',
+      });
+      const slug = 'slug';
+
+      localForage.getItem.mockReturnValue({
+        raw: '---\ntitle: "Hello World"\n---\n',
+        mediaFiles: [{ id: '1', file: { notABlob: true } }],
+      });
+
+      const result = await backend.getLocalDraftBackup(collection, slug);
+
+      expect(result).toEqual({
+        entry: {
+          author: '',
+          mediaFiles: [{ id: '1', file: { notABlob: true } }],
+          collection: 'posts',
+          slug: 'slug',
+          path: '',
+          partial: false,
+          raw: '---\ntitle: "Hello World"\n---\n',
+          data: { title: 'Hello World' },
+          meta: {},
+          i18n: {},
+          label: null,
+          isModification: null,
+          status: '',
+          updatedOn: '',
+        },
+      });
+      expect(result.entry.mediaFiles[0].url).toBeUndefined();
+      expect(localForage.getItem).toHaveBeenCalledTimes(1);
+      expect(localForage.getItem).toHaveBeenCalledWith('backup.posts.slug');
+    });
   });
 
   describe('persistLocalDraftBackup', () => {
