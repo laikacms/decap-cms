@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { fromJS } from 'immutable';
 
 import { EditorToolbar } from '../EditorToolbar';
@@ -53,6 +53,26 @@ describe('EditorToolbar', () => {
   it('should render with default props', () => {
     const { asFragment } = render(<EditorToolbar {...props} />);
     expect(asFragment()).toMatchSnapshot();
+  });
+
+  describe('DCMS-292: new entry status label', () => {
+    it('should not show "changesSaved" for a pristine new entry (isNewEntry=true, hasChanged=false)', () => {
+      render(<EditorToolbar {...props} isNewEntry={true} hasChanged={false} />);
+      expect(screen.queryByText('editor.editorToolbar.changesSaved')).not.toBeInTheDocument();
+      expect(screen.getByText('editor.editorToolbar.unsavedChanges')).toBeInTheDocument();
+    });
+
+    it('should show "changesSaved" for an existing, unchanged entry (isNewEntry=false, hasChanged=false)', () => {
+      render(<EditorToolbar {...props} isNewEntry={false} hasChanged={false} />);
+      expect(screen.getByText('editor.editorToolbar.changesSaved')).toBeInTheDocument();
+    });
+
+    it('should enable the save button for a pristine new entry with workflow controls', () => {
+      render(
+        <EditorToolbar {...props} hasWorkflow={true} isNewEntry={true} hasChanged={false} />,
+      );
+      expect(screen.getByText('editor.editorToolbar.save')).not.toBeDisabled();
+    });
   });
 
   [false, true].forEach(useOpenAuthoring => {
