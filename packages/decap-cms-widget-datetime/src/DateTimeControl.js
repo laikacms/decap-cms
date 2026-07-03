@@ -8,27 +8,11 @@ import localizedFormat from 'dayjs/plugin/localizedFormat';
 import utc from 'dayjs/plugin/utc';
 import { buttons } from 'decap-cms-ui-default';
 
+import { normalizeField, getFormat } from './DateTimeFormatter';
+
 dayjs.extend(customParseFormat);
 dayjs.extend(localizedFormat);
 dayjs.extend(utc);
-
-/**
- * Normalise deprecated camelCase field config keys to their snake_case equivalents.
- * The schema accepts both forms; the implementation reads only snake_case.
- */
-function normalizeField(field) {
-  let normalized = field;
-  if (normalized.get('date_format') === undefined && normalized.get('dateFormat') !== undefined) {
-    normalized = normalized.set('date_format', normalized.get('dateFormat'));
-  }
-  if (normalized.get('time_format') === undefined && normalized.get('timeFormat') !== undefined) {
-    normalized = normalized.set('time_format', normalized.get('timeFormat'));
-  }
-  if (normalized.get('picker_utc') === undefined && normalized.get('pickerUtc') !== undefined) {
-    normalized = normalized.set('picker_utc', normalized.get('pickerUtc'));
-  }
-  return normalized;
-}
 
 function Buttons({ t, fieldName, handleChange, getNow }) {
   return (
@@ -93,58 +77,8 @@ class DateTimeControl extends React.Component {
 
   isUtc = normalizeField(this.props.field).get('picker_utc') || false;
 
-  escapeZ(str) {
-    if (/Z(?![\]])/.test(str)) {
-      return str.replace('Z', '[Z]');
-    }
-    return str;
-  }
-
   getFormat() {
-    const field = normalizeField(this.props.field);
-    let inputType = 'datetime-local';
-    let inputFormat = 'YYYY-MM-DDTHH:mm';
-    let format = `YYYY-MM-DDTHH:mm:ss.SSS${this.isUtc ? '[Z]' : 'Z'}`;
-    let userFormat = field?.get('format');
-    let dateFormat = field?.get('date_format');
-    let timeFormat = field?.get('time_format');
-    if (dateFormat === true) dateFormat = 'YYYY-MM-DD';
-    if (timeFormat === true) timeFormat = 'HH:mm';
-
-    if (this.isUtc) {
-      userFormat = this.escapeZ(userFormat);
-      dateFormat = this.escapeZ(dateFormat);
-      timeFormat = this.escapeZ(timeFormat);
-    }
-
-    if (typeof dateFormat === 'string' && typeof timeFormat === 'string') {
-      format = `${dateFormat}T${timeFormat}`;
-    } else if (typeof timeFormat === 'string') {
-      inputType = 'time';
-      format = timeFormat;
-    } else if (typeof dateFormat === 'string') {
-      inputType = 'date';
-      format = dateFormat;
-    }
-
-    if (typeof userFormat === 'string') {
-      format = userFormat;
-      inputType = 'datetime-local';
-    }
-
-    if (dateFormat === false) {
-      inputType = 'time';
-      format = typeof timeFormat === 'string' ? timeFormat : 'HH:mm';
-    }
-    if (timeFormat === false) {
-      inputType = 'date';
-      format = typeof dateFormat === 'string' ? dateFormat : 'YYYY-MM-DD';
-    }
-    if (inputType === 'datetime-local') inputFormat = 'YYYY-MM-DDTHH:mm';
-    if (inputType === 'date') inputFormat = 'YYYY-MM-DD';
-    if (inputType === 'time') inputFormat = 'HH:mm';
-
-    return { format, inputType, inputFormat };
+    return getFormat(this.props.field);
   }
 
   isValidDate = dt => dayjs(dt, this.getFormat().inputFormat).isValid() || dt === '';
