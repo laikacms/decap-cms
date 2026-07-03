@@ -149,11 +149,9 @@ export default class CodeControl extends React.Component {
     return lang;
   };
 
-  // If `allow_language_selection` is not set, default to true. Otherwise, use
-  // its value.
-  allowLanguageSelection =
-    !this.props.field.has('allow_language_selection') ||
-    !!this.props.field.get('allow_language_selection');
+  // If `allow_language_selection` is not set, default to false. Otherwise,
+  // use its value.
+  allowLanguageSelection = !!this.props.field.get('allow_language_selection');
 
   toValue = this.valueIsMap()
     ? (type, value) => (this.props.value || Map()).set(this.keys[type], value)
