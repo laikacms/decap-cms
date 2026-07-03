@@ -872,7 +872,11 @@ function createEmptyDraftI18nData(collection: Collection, dataFields: EntryField
   }
 
   function skipField(field: EntryField) {
-    return field.get(I18N) !== I18N_FIELD.DUPLICATE && field.get(I18N) !== I18N_FIELD.TRANSLATE;
+    const fieldI18n = field.get(I18N);
+    // `i18n: true` on a field is treated as equivalent to `i18n: 'translate'`
+    return (
+      fieldI18n !== I18N_FIELD.DUPLICATE && fieldI18n !== I18N_FIELD.TRANSLATE && fieldI18n !== true
+    );
   }
 
   const i18nData = createEmptyDraftData(dataFields, skipField);
