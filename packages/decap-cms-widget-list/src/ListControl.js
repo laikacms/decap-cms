@@ -210,7 +210,7 @@ export default class ListControl extends React.Component {
   constructor(props) {
     super(props);
     const { field, value } = props;
-    const listCollapsed = field.get('collapsed', true);
+    const listCollapsed = field.get('collapsed', false);
     const itemsCollapsed = (value && Array(value.size).fill(listCollapsed)) || [];
     const keys = (value && Array.from({ length: value.size }, () => uuid())) || [];
 
@@ -517,7 +517,7 @@ export default class ListControl extends React.Component {
     const { value, field } = this.props;
     const { itemsCollapsed, listCollapsed } = this.state;
     const minimizeCollapsedItems = field.get('minimize_collapsed', false);
-    const listCollapsedByDefault = field.get('collapsed', true);
+    const listCollapsedByDefault = field.get('collapsed', false);
     const allItemsCollapsed = itemsCollapsed.every(val => val === true);
 
     if (minimizeCollapsedItems) {

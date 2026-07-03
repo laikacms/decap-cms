@@ -85,7 +85,7 @@ describe('ListControl', () => {
     expect(asFragment()).toMatchSnapshot();
   });
 
-  it('should render list with nested object', () => {
+  it('should render list with nested object expanded by default when collapsed is not set', () => {
     const field = fromJS({
       name: 'list',
       label: 'List',
@@ -104,11 +104,11 @@ describe('ListControl', () => {
       />,
     );
 
-    expect(getByTestId('styled-list-item-top-bar-0')).toHaveAttribute('collapsed');
-    expect(getByTestId('styled-list-item-top-bar-1')).toHaveAttribute('collapsed');
+    expect(getByTestId('styled-list-item-top-bar-0')).not.toHaveAttribute('collapsed');
+    expect(getByTestId('styled-list-item-top-bar-1')).not.toHaveAttribute('collapsed');
 
-    expect(getByTestId('object-control-0')).toHaveAttribute('collapsed');
-    expect(getByTestId('object-control-1')).toHaveAttribute('collapsed');
+    expect(getByTestId('object-control-0')).not.toHaveAttribute('collapsed');
+    expect(getByTestId('object-control-1')).not.toHaveAttribute('collapsed');
 
     expect(asFragment()).toMatchSnapshot();
   });
@@ -463,7 +463,7 @@ describe('ListControl', () => {
     expect(getByText('hello - world - index.md')).toBeInTheDocument();
   });
 
-  it('should render list with fields with default collapse ("true") and minimize_collapsed ("false")', () => {
+  it('should render list with fields with default collapse ("false") and minimize_collapsed ("false")', () => {
     const field = fromJS({
       name: 'list',
       label: 'List',
@@ -477,11 +477,11 @@ describe('ListControl', () => {
       />,
     );
 
-    expect(getByTestId('styled-list-item-top-bar-0')).toHaveAttribute('collapsed');
-    expect(getByTestId('styled-list-item-top-bar-1')).toHaveAttribute('collapsed');
+    expect(getByTestId('styled-list-item-top-bar-0')).not.toHaveAttribute('collapsed');
+    expect(getByTestId('styled-list-item-top-bar-1')).not.toHaveAttribute('collapsed');
 
-    expect(getByTestId('object-control-0')).toHaveAttribute('collapsed');
-    expect(getByTestId('object-control-1')).toHaveAttribute('collapsed');
+    expect(getByTestId('object-control-0')).not.toHaveAttribute('collapsed');
+    expect(getByTestId('object-control-1')).not.toHaveAttribute('collapsed');
 
     expect(asFragment()).toMatchSnapshot();
   });
@@ -510,7 +510,7 @@ describe('ListControl', () => {
     expect(asFragment()).toMatchSnapshot();
   });
 
-  it('should render list with fields with default collapse ("true") and minimize_collapsed = "true"', () => {
+  it('should render list with fields with default collapse ("false") and minimize_collapsed = "true"', () => {
     const field = fromJS({
       name: 'list',
       label: 'List',
@@ -525,21 +525,21 @@ describe('ListControl', () => {
       />,
     );
 
-    expect(queryByTestId('styled-list-item-top-bar-0')).toBeNull();
-    expect(queryByTestId('styled-list-item-top-bar-1')).toBeNull();
+    expect(getByTestId('styled-list-item-top-bar-0')).not.toHaveAttribute('collapsed');
+    expect(getByTestId('styled-list-item-top-bar-1')).not.toHaveAttribute('collapsed');
 
-    expect(queryByTestId('object-control-0')).toBeNull();
-    expect(queryByTestId('object-control-1')).toBeNull();
+    expect(getByTestId('object-control-0')).not.toHaveAttribute('collapsed');
+    expect(getByTestId('object-control-1')).not.toHaveAttribute('collapsed');
 
     expect(asFragment()).toMatchSnapshot();
 
     fireEvent.click(getByTestId('expand-button'));
 
-    expect(getByTestId('styled-list-item-top-bar-0')).toHaveAttribute('collapsed');
-    expect(getByTestId('styled-list-item-top-bar-1')).toHaveAttribute('collapsed');
+    expect(queryByTestId('styled-list-item-top-bar-0')).toBeNull();
+    expect(queryByTestId('styled-list-item-top-bar-1')).toBeNull();
 
-    expect(getByTestId('object-control-0')).toHaveAttribute('collapsed');
-    expect(getByTestId('object-control-1')).toHaveAttribute('collapsed');
+    expect(queryByTestId('object-control-0')).toBeNull();
+    expect(queryByTestId('object-control-1')).toBeNull();
   });
 
   it('should render list with fields with collapse = "false" and default minimize_collapsed = "true"', () => {
