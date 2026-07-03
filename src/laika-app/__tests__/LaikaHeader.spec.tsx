@@ -109,6 +109,31 @@ describe('LaikaHeader', () => {
     expect(getByText('app.header.quickAdd')).toBeInTheDocument();
   });
 
+  it('wires menu ARIA semantics on the quick-add trigger and its popover (DCMS-311)', () => {
+    const { getByText, container } = render(
+      <MemoryRouter>
+        <LaikaHeader {...baseProps} />
+      </MemoryRouter>,
+    );
+
+    const trigger = getByText('app.header.quickAdd').closest('[role="button"]') as HTMLElement;
+    expect(trigger).toBeTruthy();
+    expect(trigger).toHaveAttribute('aria-haspopup', 'true');
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+
+    const menuId = trigger.getAttribute('aria-controls');
+    expect(menuId).toBeTruthy();
+
+    fireEvent.click(trigger);
+
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+
+    const menu = container.querySelector('[role="menu"]');
+    expect(menu).toBeTruthy();
+    expect(menu?.id).toBe(menuId);
+    expect(menu?.querySelectorAll('[role="menuitem"]').length).toBeGreaterThan(0);
+  });
+
   it('hides the quick-add when no collection allows create', () => {
     const { queryByText } = render(
       <MemoryRouter>
