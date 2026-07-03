@@ -730,7 +730,7 @@ export class Backend {
 
     mediaFiles = mediaFiles.map(file => {
       // de-serialize the file object
-      if (file.file) {
+      if (file.file instanceof Blob) {
         return { ...file, url: URL.createObjectURL(file.file) };
       }
       return file;
