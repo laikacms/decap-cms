@@ -849,6 +849,15 @@ export function createEmptyDraftData(
 
       if (defaultValue !== null) {
         acc[name] = defaultValue;
+      } else if (item.get('required', true) === false) {
+        // Widgets whose documentation promises a concrete persisted default
+        // value for optional fields with no explicit `default` configured.
+        const widget = item.get('widget');
+        if (widget === 'boolean') {
+          acc[name] = false;
+        } else if (widget === 'text') {
+          acc[name] = '';
+        }
       }
 
       return acc;
