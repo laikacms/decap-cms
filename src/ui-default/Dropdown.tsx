@@ -122,6 +122,13 @@ export interface DropdownProps {
   dropdownTopOverlap?: string;
   className?: string;
   children?: React.ReactNode;
+  // Optional id for the popover element. react-aria-menubutton's Button/Menu
+  // already wire up role="button", aria-haspopup, aria-expanded (on the
+  // trigger) and role="menu" / role="menuitem" (on the popover and its
+  // items) — the one piece they don't provide is the aria-controls link
+  // from trigger to popover. Callers that pass `menuId` here should also
+  // put the same id on their trigger's `aria-controls` prop.
+  menuId?: string;
 }
 
 function Dropdown({
@@ -132,6 +139,7 @@ function Dropdown({
   dropdownTopOverlap = '0',
   className,
   children,
+  menuId,
 }: DropdownProps): React.ReactElement {
   return (
     <StyledWrapper
@@ -144,7 +152,7 @@ function Dropdown({
       className={className}
     >
       {renderButton()}
-      <Menu>
+      <Menu id={menuId}>
         <DropdownList width={dropdownWidth} top={dropdownTopOverlap} position={dropdownPosition}>
           {children}
         </DropdownList>

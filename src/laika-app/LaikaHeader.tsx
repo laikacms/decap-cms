@@ -255,6 +255,7 @@ function LaikaHeader({
   const dispatch = useAppDispatch();
   const { resolvedMode, toggleMode } = useLaikaTheme();
   const { isMobileSidebarOpen, toggleMobileSidebar } = useLaikaShell();
+  const quickAddMenuId = React.useId();
 
   React.useEffect(() => {
     const id = setInterval(
@@ -320,7 +321,12 @@ function LaikaHeader({
         <Actions>
           {creatableCollections.length > 0 ? (
             <Dropdown
-              renderButton={() => <QuickAddButton>{t('app.header.quickAdd')}</QuickAddButton>}
+              renderButton={() => (
+                <QuickAddButton aria-controls={quickAddMenuId}>
+                  {t('app.header.quickAdd')}
+                </QuickAddButton>
+              )}
+              menuId={quickAddMenuId}
               dropdownTopOverlap="36px"
               dropdownWidth="200px"
               dropdownPosition="right"
