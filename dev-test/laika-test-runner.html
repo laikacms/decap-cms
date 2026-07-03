@@ -38,6 +38,31 @@
 
     function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+    // Rendered text of `root`, excluding the source of any SCRIPT/STYLE
+    // elements. `textContent` walks those nodes too, which makes it match
+    // strings that only exist in embedded script/preview-template source —
+    // never anything actually shown to a user. Use this instead of
+    // `.textContent` whenever a test cares about what's visibly rendered.
+    function getRenderedText(root, doc) {
+      const ownerDoc = doc || root.ownerDocument || document;
+      const walker = ownerDoc.createTreeWalker(
+        root,
+        NodeFilter.SHOW_TEXT,
+        {
+          acceptNode(node) {
+            const tag = node.parentElement?.closest('script, style');
+            return tag ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+          },
+        },
+      );
+      let text = '';
+      let node;
+      while ((node = walker.nextNode())) {
+        text += node.nodeValue + ' ';
+      }
+      return text;
+    }
+
     async function run() {
       // 1) Seed auth in our origin (the iframe inherits localStorage if same-origin)
       localStorage.setItem(
@@ -941,7 +966,13 @@
       // === Test 19.16.5: footer shows "laika-cms-app" identifier ===
       iwin.location.hash = '#/';
       await sleep(500);
-      const footerText = idoc.querySelector('footer')?.textContent?.trim() || '';
+      // Collection cards each render their own semantic <footer> (Browse /
+      // Quick add), so `querySelector('footer')` grabs the first CARD
+      // footer instead of the page-level one. The app-shell footer with the
+      // build marker is always the last <footer> in document order.
+      const footers = idoc.querySelectorAll('footer');
+      const pageFooter = footers[footers.length - 1];
+      const footerText = pageFooter?.textContent?.trim() || '';
       /laika-cms-app/.test(footerText)
         ? pass(`footer identifies laika build: "${footerText.slice(0, 80)}"`)
         : fail(`footer missing "laika-cms-app" marker: "${footerText.slice(0, 80)}"`);
@@ -959,7 +990,10 @@
       // react-polyglot returns the raw key string when a translation is missing.
       // Walk the rendered DOM for any text node that looks like a dotted key.
       // Pattern: 2+ words separated by dots, no spaces, all lowercase.
-      const allText = (idoc.body.textContent || '');
+      // Only rendered text counts — `body.textContent` also picks up the
+      // source of inline <script> preview-template blocks, which can
+      // contain the same dotted identifiers without ever leaking to the UI.
+      const allText = getRenderedText(idoc.body, idoc);
       // false positives are common — use a tight pattern that requires three
       // segments to keep things like "v1.2.3" or "react-modal" from matching.
       const leakedKeys = (allText.match(/\b[a-z][a-zA-Z]+\.[a-z][a-zA-Z]+\.[a-zA-Z]+\b/g) || [])
