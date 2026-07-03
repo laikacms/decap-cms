@@ -68,9 +68,7 @@ describe('EditorToolbar', () => {
     });
 
     it('should enable the save button for a pristine new entry with workflow controls', () => {
-      render(
-        <EditorToolbar {...props} hasWorkflow={true} isNewEntry={true} hasChanged={false} />,
-      );
+      render(<EditorToolbar {...props} hasWorkflow={true} isNewEntry={true} hasChanged={false} />);
       expect(screen.getByText('editor.editorToolbar.save')).not.toBeDisabled();
     });
   });
