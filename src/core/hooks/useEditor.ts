@@ -67,6 +67,7 @@ export function useEditor({
   const exitBlockerRef = useRef<((event: BeforeUnloadEvent) => string | undefined) | null>(null);
   const unlistenRef = useRef<(() => void) | null>(null);
   const unblockRef = useRef<(() => void) | null>(null);
+  const popSyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Selectors
   const collections = useAppSelector(state => state.collections);
@@ -233,6 +234,66 @@ export function useEditor({
     });
     unlistenRef.current = unlisten;
 
+    // POP-navigation safety net (DCMS-286).
+    //
+    // `history@5`'s `history.block()` above can only intercept a browser
+    // back/forward navigation when it can find the target location's `idx`
+    // in the native history state, i.e. a location it created itself (see
+    // history/hash.js `handlePop`). For any other POP — most notably the
+    // very first Back the user presses, landing on whatever history entry
+    // existed before this app took over — it just warns ("...block will
+    // fail silently in production...") and lets the browser navigate away
+    // without ever calling `navigationBlocker` above, so the unsaved-changes
+    // guard is silently skipped for exactly the case it exists to cover.
+    //
+    // The native `hashchange` event always fires, unlike `history.block()`/
+    // `history.listen` in this failure mode. Use it to detect when
+    // `history`'s internal bookkeeping has fallen out of sync with the real
+    // URL, then resync through the SAME shared `history` instance
+    // (`history.replace`), which re-stamps `idx` so this location blocks
+    // correctly on the next POP. Debounce so this doesn't race the
+    // multi-tick revert/retry dance `history.block()` runs for the case it
+    // CAN handle (idx known) — that dance always settles well within the
+    // debounce window.
+    const isInSync = () => window.location.href === history.createHref(history.location);
+    const getHashPath = () => {
+      const raw = window.location.hash;
+      return raw.startsWith('#') ? raw.slice(1) || '/' : raw || '/';
+    };
+
+    const handleHashChange = () => {
+      if (popSyncTimerRef.current) {
+        clearTimeout(popSyncTimerRef.current);
+      }
+      popSyncTimerRef.current = setTimeout(() => {
+        popSyncTimerRef.current = null;
+        if (isInSync()) {
+          return;
+        }
+
+        const path = getHashPath();
+        const draft = entryDraft;
+        const newEntryPath = `/collections/${collection!.name}/new`;
+        const isPersistingNewEntry =
+          draft?.entry?.isPersisting && draft?.entry?.newRecord && path === newEntryPath;
+
+        if (isPersistingNewEntry || !draft?.hasChanged) {
+          // Hands bookkeeping back to `history`, which fires the `listen`
+          // callback registered above as normal.
+          history.replace(path);
+          return;
+        }
+
+        if (window.confirm(leaveMessage)) {
+          history.replace(path);
+        } else {
+          // Revert the URL bar back to where the app actually is.
+          window.location.href = history.createHref(history.location);
+        }
+      }, 50);
+    };
+    window.addEventListener('hashchange', handleHashChange);
+
     return {
       cleanup: () => {
         createBackup.flush();
@@ -240,6 +301,11 @@ export function useEditor({
         dispatch(discardDraft() as any);
         if (exitBlockerRef.current) {
           window.removeEventListener('beforeunload', exitBlockerRef.current);
+        }
+        window.removeEventListener('hashchange', handleHashChange);
+        if (popSyncTimerRef.current) {
+          clearTimeout(popSyncTimerRef.current);
+          popSyncTimerRef.current = null;
         }
         if (unblockRef.current) {
           unblockRef.current();
