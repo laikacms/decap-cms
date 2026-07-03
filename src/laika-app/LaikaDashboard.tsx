@@ -4,7 +4,7 @@ import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
 
 import { Icon, colors, lengths } from '../ui-default/index';
-import { useAppSelector, useAppDispatch } from '../core/hooks/useRedux';
+import { useAppSelector } from '../core/hooks/useRedux';
 import { createNewEntry } from '../core/actions/collections';
 import { LaikaButton, LaikaCard, LaikaBadge } from './ui';
 
@@ -89,7 +89,6 @@ interface LaikaDashboardProps {
 }
 
 function LaikaDashboard({ t }: LaikaDashboardProps) {
-  const dispatch = useAppDispatch();
   const collections = useAppSelector(state => state.collections) as CmsCollections | undefined;
   const user = useAppSelector(state => state.auth?.user) as { name?: string } | undefined;
   const config = useAppSelector(state => state.config);
@@ -143,7 +142,7 @@ function LaikaDashboard({ t }: LaikaDashboardProps) {
                   Browse
                 </LaikaButton>
                 {collection.create ? (
-                  <LaikaButton onClick={() => dispatch(createNewEntry(collection.name))}>
+                  <LaikaButton onClick={() => createNewEntry(collection.name)}>
                     {t('app.header.quickAdd')}
                   </LaikaButton>
                 ) : null}
