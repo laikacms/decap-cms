@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -37,13 +37,14 @@ vi.mock('../../core/hooks/useRedux', () => {
     config: { site_name: 'Test Site' },
   };
   return {
-    useAppDispatch: () => () => undefined,
     useAppSelector: (selector: (s: typeof state) => unknown) => selector(state),
   };
 });
 
+const createNewEntry = vi.fn();
+
 vi.mock('../../core/actions/collections', () => ({
-  createNewEntry: vi.fn(() => ({ type: 'CREATE_NEW_ENTRY' })),
+  createNewEntry: (...args: unknown[]) => createNewEntry(...args),
 }));
 
 import LaikaDashboard from '../LaikaDashboard';
@@ -88,5 +89,16 @@ describe('LaikaDashboard', () => {
       </MemoryRouter>,
     );
     expect(getAllByText('Browse')).toHaveLength(2);
+  });
+
+  it('calls createNewEntry directly (not via dispatch) when Quick add is clicked', () => {
+    createNewEntry.mockClear();
+    const { getByText } = render(
+      <MemoryRouter>
+        <LaikaDashboard />
+      </MemoryRouter>,
+    );
+    fireEvent.click(getByText('app.header.quickAdd'));
+    expect(createNewEntry).toHaveBeenCalledWith('posts');
   });
 });

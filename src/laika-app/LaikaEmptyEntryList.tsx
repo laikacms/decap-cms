@@ -3,7 +3,6 @@ import React from 'react';
 import styled from '@emotion/styled';
 
 import { Icon, colors, lengths } from '../ui-default/index';
-import { useAppDispatch } from '../core/hooks/useRedux';
 import { createNewEntry } from '../core/actions/collections';
 import { LaikaButton } from './ui';
 
@@ -66,8 +65,6 @@ const Body = styled.p`
 `;
 
 function LaikaEmptyEntryList({ collection }: EntryListEmptyRenderProps) {
-  const dispatch = useAppDispatch();
-
   const singular = collection?.label_singular || collection?.label || 'entry';
   const title = collection ? 'No ' + collection.label.toLowerCase() + ' yet' : 'No matches';
 
@@ -84,7 +81,7 @@ function LaikaEmptyEntryList({ collection }: EntryListEmptyRenderProps) {
             : 'Nothing matches the current filters. Try widening the search.'}
         </Body>
         {collection?.create ? (
-          <LaikaButton onClick={() => dispatch(createNewEntry(collection.name))}>
+          <LaikaButton onClick={() => createNewEntry(collection.name)}>
             Create {singular}
           </LaikaButton>
         ) : null}
