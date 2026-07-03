@@ -1,5 +1,6 @@
 import { detectMapper } from './detect';
 import { getMapper } from './registry';
+
 import type { PortableTextDocument } from './portable-text';
 
 export interface RichtextValueOptions {

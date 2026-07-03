@@ -1,4 +1,4 @@
-import { css } from '@emotion/css';
+import styled from '@emotion/styled';
 import {
   defineSchema,
   type Editor,
@@ -11,9 +11,10 @@ import {
 } from '@portabletext/editor';
 import { type ReactNode, useEffect, useRef } from 'react';
 
+import { Toolbar } from './Toolbar';
+
 import type { PortableTextDocument } from '../lib-richtext/index';
 
-import { Toolbar } from './Toolbar';
 
 /**
  * The full schema we hand to `@portabletext/editor`. Mirrors the constructs
@@ -52,7 +53,7 @@ const schema = defineSchema({
   blockObjects: [],
 });
 
-const wrapperCss = css`
+const EditorShell = styled.div`
   border: 1px solid var(--decap-richtext-border, #ddd);
   border-radius: 4px;
   background: var(--decap-richtext-bg, #fff);
@@ -60,7 +61,7 @@ const wrapperCss = css`
   flex-direction: column;
   font-family: inherit;
 `;
-const editableCss = css`
+const StyledEditable = styled(PortableTextEditable)`
   padding: 12px 16px;
   min-height: 200px;
   font-size: 15px;
@@ -171,16 +172,15 @@ export function PortableTextEditorView({
       }}
     >
       <ChangeBridge onChange={onChange} />
-      <div className={wrapperCss}>
+      <EditorShell>
         <Toolbar />
-        <PortableTextEditable
-          className={editableCss}
+        <StyledEditable
           renderStyle={renderStyle}
           renderDecorator={renderDecorator}
           renderListItem={renderListItem}
           renderPlaceholder={placeholder ? () => <>{placeholder}</> : undefined}
         />
-      </div>
+      </EditorShell>
     </EditorProvider>
   );
 }

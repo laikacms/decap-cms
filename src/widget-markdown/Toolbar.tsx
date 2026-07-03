@@ -1,4 +1,4 @@
-import { css } from '@emotion/css';
+import styled from '@emotion/styled';
 import { useEditor, useEditorSelector } from '@portabletext/editor';
 import * as selectors from '@portabletext/editor/selectors';
 import {
@@ -14,9 +14,10 @@ import {
   Strikethrough,
   Underline,
 } from 'lucide-react';
+
 import type { MouseEvent, ReactNode } from 'react';
 
-const toolbarCss = css`
+const ToolbarWrap = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 2px;
@@ -24,7 +25,7 @@ const toolbarCss = css`
   border-bottom: 1px solid var(--decap-richtext-border, #ddd);
   background: var(--decap-richtext-toolbar-bg, #fafafa);
 `;
-const buttonCss = css`
+const ToolbarButton = styled.button`
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -43,7 +44,7 @@ const buttonCss = css`
     border-color: rgba(0, 0, 0, 0.15);
   }
 `;
-const dividerCss = css`
+const Divider = styled.span`
   width: 1px;
   background: #ddd;
   margin: 4px 4px;
@@ -59,9 +60,8 @@ function DecoratorButton({ decorator, icon, label }: DecoratorButtonProps): Reac
   const editor = useEditor();
   const active = useEditorSelector(editor, selectors.isActiveDecorator(decorator));
   return (
-    <button
+    <ToolbarButton
       type="button"
-      className={buttonCss}
       data-active={active ? 'true' : 'false'}
       title={label}
       aria-label={label}
@@ -71,7 +71,7 @@ function DecoratorButton({ decorator, icon, label }: DecoratorButtonProps): Reac
       }}
     >
       {icon}
-    </button>
+    </ToolbarButton>
   );
 }
 
@@ -85,9 +85,8 @@ function StyleButton({ style, icon, label }: StyleButtonProps): ReactNode {
   const editor = useEditor();
   const active = useEditorSelector(editor, selectors.isActiveStyle(style));
   return (
-    <button
+    <ToolbarButton
       type="button"
-      className={buttonCss}
       data-active={active ? 'true' : 'false'}
       title={label}
       aria-label={label}
@@ -97,7 +96,7 @@ function StyleButton({ style, icon, label }: StyleButtonProps): ReactNode {
       }}
     >
       {icon}
-    </button>
+    </ToolbarButton>
   );
 }
 
@@ -111,9 +110,8 @@ function ListButton({ list, icon, label }: ListButtonProps): ReactNode {
   const editor = useEditor();
   const active = useEditorSelector(editor, selectors.isActiveListItem(list));
   return (
-    <button
+    <ToolbarButton
       type="button"
-      className={buttonCss}
       data-active={active ? 'true' : 'false'}
       title={label}
       aria-label={label}
@@ -123,26 +121,26 @@ function ListButton({ list, icon, label }: ListButtonProps): ReactNode {
       }}
     >
       {icon}
-    </button>
+    </ToolbarButton>
   );
 }
 
 export function Toolbar(): ReactNode {
   return (
-    <div className={toolbarCss}>
+    <ToolbarWrap>
       <StyleButton style="h1" icon={<Heading1 size={16} />} label="Heading 1" />
       <StyleButton style="h2" icon={<Heading2 size={16} />} label="Heading 2" />
       <StyleButton style="h3" icon={<Heading3 size={16} />} label="Heading 3" />
       <StyleButton style="blockquote" icon={<Quote size={16} />} label="Quote" />
-      <span className={dividerCss} />
+      <Divider />
       <DecoratorButton decorator="strong" icon={<Bold size={16} />} label="Bold" />
       <DecoratorButton decorator="em" icon={<Italic size={16} />} label="Italic" />
       <DecoratorButton decorator="underline" icon={<Underline size={16} />} label="Underline" />
       <DecoratorButton decorator="strike-through" icon={<Strikethrough size={16} />} label="Strikethrough" />
       <DecoratorButton decorator="code" icon={<Code size={16} />} label="Inline code" />
-      <span className={dividerCss} />
+      <Divider />
       <ListButton list="bullet" icon={<List size={16} />} label="Bullet list" />
       <ListButton list="number" icon={<ListOrdered size={16} />} label="Numbered list" />
-    </div>
+    </ToolbarWrap>
   );
 }

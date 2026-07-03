@@ -1,7 +1,9 @@
 import { PortableText, type PortableTextComponents } from '@portabletext/react';
-import type { ReactNode } from 'react';
 
 import { type PortableTextDocument, RichtextValue } from '../lib-richtext/index';
+
+import type { ReactNode } from 'react';
+
 
 interface MarkdownPreviewProps {
   value?: string | RichtextValue;

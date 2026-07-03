@@ -1,4 +1,5 @@
 import { listMappers } from './registry';
+
 import type { Mapper } from './types';
 
 /** Two scores within this distance are considered ambiguous. */

@@ -1,7 +1,6 @@
 import { type ReactNode, useMemo, useRef } from 'react';
 
 import { createRichtextValue, type PortableTextDocument, RichtextValue } from '../lib-richtext/index';
-
 import { PortableTextEditorView } from './PortableTextEditorView';
 
 /**
