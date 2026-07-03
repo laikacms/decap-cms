@@ -611,6 +611,9 @@ interface ReactSelectStyles {
   control: (styles: CSSObject) => CSSObject;
   option: (styles: CSSObject, state: ReactSelectStylesState) => CSSObject;
   menu: (styles: CSSObject) => CSSObject;
+  menuList: (styles: CSSObject) => CSSObject;
+  singleValue: (styles: CSSObject) => CSSObject;
+  input: (styles: CSSObject) => CSSObject;
   container: (styles: CSSObject) => CSSObject;
   indicatorSeparator: (styles: CSSObject, state: ReactSelectStylesState) => CSSObject;
   dropdownIndicator: (styles: CSSObject) => CSSObject;
@@ -623,6 +626,8 @@ interface ReactSelectStyles {
 const reactSelectStyles: ReactSelectStyles = {
   control: (styles: CSSObject): CSSObject => ({
     ...styles,
+    backgroundColor: colors.inputBackground,
+    color: colors.text,
     border: 0,
     boxShadow: 'none',
     padding: '9px 0 9px 12px',
@@ -637,9 +642,21 @@ const reactSelectStyles: ReactSelectStyles = {
       : state.isFocused
         ? `${colors.activeBackground}`
         : 'transparent',
+    color: state.isSelected ? colors.textLight : colors.text,
     paddingLeft: '22px',
   }),
-  menu: (styles: CSSObject): CSSObject => ({ ...styles, right: 0, zIndex: zIndex.zIndex300 }),
+  menu: (styles: CSSObject): CSSObject => ({
+    ...styles,
+    backgroundColor: colors.inputBackground,
+    right: 0,
+    zIndex: zIndex.zIndex300,
+  }),
+  menuList: (styles: CSSObject): CSSObject => ({
+    ...styles,
+    backgroundColor: colors.inputBackground,
+  }),
+  singleValue: (styles: CSSObject): CSSObject => ({ ...styles, color: colors.text }),
+  input: (styles: CSSObject): CSSObject => ({ ...styles, color: colors.text }),
   container: (styles: CSSObject): CSSObject => ({ ...styles, padding: '0 !important' }),
   indicatorSeparator: (styles: CSSObject, state: ReactSelectStylesState): CSSObject =>
     state.hasValue && state.selectProps?.isClearable
