@@ -1,6 +1,6 @@
 import { useRef, useCallback } from 'react';
 
-import { defaultRouter } from '../routing/router';
+import { defaultRouter, routerHistory as history } from '../routing/router';
 
 import type { RouterTransition, RouterUpdate } from '../routing/router';
 
