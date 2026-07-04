@@ -119,6 +119,50 @@ describe('Backend', () => {
     });
   });
 
+  describe('resolveBackend', () => {
+    beforeEach(() => {
+      getBackend.mockReset();
+    });
+
+    it('throws when config.backend.name is unset', () => {
+      expect(() => resolveBackend({ backend: {} })).toThrowError(
+        'No backend defined in configuration',
+      );
+    });
+
+    it('throws with the generic registerBackend hint for an unregistered non-laika backend', () => {
+      getBackend.mockReturnValue(undefined);
+
+      expect(() => resolveBackend({ backend: { name: 'some-unregistered-backend' } })).toThrowError(
+        /Backend not found: some-unregistered-backend\..*Make sure the backend is registered with CMS\.registerBackend\(\) before/,
+      );
+    });
+
+    it('throws with the laika-specific hint when config.backend.name is "laika" and unregistered', () => {
+      getBackend.mockReturnValue(undefined);
+
+      expect(() => resolveBackend({ backend: { name: 'laika' } })).toThrowError(
+        /Backend not found: laika\..*install @laikacms\/decap and.*register it before init\(\) via CMS\.registerBackend\("laika"/,
+      );
+    });
+  });
+
+  describe('currentBackend', () => {
+    it('returns the identical Backend instance on a second call even with a different config', () => {
+      jest.isolateModules(() => {
+        const { currentBackend } = require('../backend');
+        const { getBackend: mockedGetBackend } = require('../lib/registry');
+
+        mockedGetBackend.mockReturnValue({ init: jest.fn() });
+
+        const firstInstance = currentBackend({ backend: { name: 'git-gateway' } });
+        const secondInstance = currentBackend({ backend: { name: 'some-other-backend' } });
+
+        expect(secondInstance).toBe(firstInstance);
+      });
+    });
+  });
+
   describe('getLocalDraftBackup', () => {
     const { localForage, asyncLock } = require('decap-cms-lib-util');
 
