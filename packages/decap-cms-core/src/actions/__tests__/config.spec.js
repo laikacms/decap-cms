@@ -211,7 +211,7 @@ describe('config', () => {
                 },
               ],
             }).collections[0].public_folder,
-          ).toEqual('static/images/docs');
+          ).toEqual('/static/images/docs');
         });
 
         it('should not overwrite collection public_folder if set to non empty string', () => {
@@ -255,7 +255,7 @@ describe('config', () => {
             ],
           });
           expect(result.collections[0].media_folder).toEqual('');
-          expect(result.collections[0].public_folder).toEqual('');
+          expect(result.collections[0].public_folder).toEqual('/');
         });
 
         it('should set file public_folder based on media_folder if not set', () => {
@@ -273,7 +273,7 @@ describe('config', () => {
                 },
               ],
             }).collections[0].files[0].public_folder,
-          ).toEqual('static/images/docs');
+          ).toEqual('/static/images/docs');
         });
 
         it('should not overwrite file public_folder if set', () => {
@@ -326,10 +326,10 @@ describe('config', () => {
             ],
           });
           expect(config.collections[0].fields[0].public_folder).toEqual(
-            'collection/static/images/docs',
+            '/collection/static/images/docs',
           );
           expect(config.collections[1].files[0].fields[0].public_folder).toEqual(
-            'file/static/images/docs',
+            '/file/static/images/docs',
           );
         });
 
@@ -367,6 +367,48 @@ describe('config', () => {
           expect(config.collections[0].fields[0].public_folder).toEqual('collection/public_folder');
           expect(config.collections[1].files[0].fields[0].public_folder).toEqual(
             'file/public_folder',
+          );
+        });
+
+        it('should default public_folder consistently at the global, collection, file, and field levels', () => {
+          const config = applyDefaults({
+            media_folder: 'static/images',
+            collections: [
+              {
+                folder: 'foo',
+                media_folder: 'static/images/collection',
+                fields: [
+                  {
+                    name: 'title',
+                    widget: 'string',
+                    media_folder: 'static/images/field',
+                  },
+                ],
+              },
+              {
+                files: [
+                  {
+                    file: 'foo',
+                    media_folder: 'static/images/file',
+                    fields: [
+                      {
+                        name: 'title',
+                        widget: 'string',
+                        media_folder: 'static/images/file-field',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          });
+
+          expect(config.public_folder).toEqual('/static/images');
+          expect(config.collections[0].public_folder).toEqual('/static/images/collection');
+          expect(config.collections[0].fields[0].public_folder).toEqual('/static/images/field');
+          expect(config.collections[1].files[0].public_folder).toEqual('/static/images/file');
+          expect(config.collections[1].files[0].fields[0].public_folder).toEqual(
+            '/static/images/file-field',
           );
         });
       });

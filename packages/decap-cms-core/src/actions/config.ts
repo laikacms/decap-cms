@@ -72,9 +72,14 @@ function getConfigUrl() {
   return 'config.yml';
 }
 
+// Default `public_folder` to `media_folder`'s value, prefixed with `/` if not already present.
+function defaultPublicFolderFromMediaFolder(mediaFolder: string | undefined) {
+  return `/${trimStart(mediaFolder, '/')}`;
+}
+
 function setDefaultPublicFolderForField<T extends CmsField>(field: T) {
   if ('media_folder' in field && !('public_folder' in field)) {
-    return { ...field, public_folder: field.media_folder };
+    return { ...field, public_folder: defaultPublicFolderFromMediaFolder(field.media_folder) };
   }
   return field;
 }
@@ -242,7 +247,7 @@ export function applyDefaults(originalConfig: CmsConfig) {
     }
 
     // Use media_folder as default public_folder.
-    const defaultPublicFolder = `/${trimStart(config.media_folder, '/')}`;
+    const defaultPublicFolder = defaultPublicFolderFromMediaFolder(config.media_folder);
     if (!('public_folder' in config)) {
       config.public_folder = defaultPublicFolder;
     }
@@ -300,7 +305,7 @@ export function applyDefaults(originalConfig: CmsConfig) {
         }
 
         if ('media_folder' in collection && !('public_folder' in collection)) {
-          collection.public_folder = collection.media_folder;
+          collection.public_folder = defaultPublicFolderFromMediaFolder(collection.media_folder);
         }
 
         if (collection.fields) {
@@ -333,7 +338,7 @@ export function applyDefaults(originalConfig: CmsConfig) {
           file.file = trimStart(file.file, '/');
 
           if ('media_folder' in file && !('public_folder' in file)) {
-            file.public_folder = file.media_folder;
+            file.public_folder = defaultPublicFolderFromMediaFolder(file.media_folder);
           }
 
           if (file.fields) {
