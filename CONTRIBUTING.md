@@ -59,7 +59,7 @@ npm run build-preview
 
 ### test
 
-Runs linting and Jest tests.
+Runs linting, type-checking, and Jest tests.
 
 ```sh
 npm run test
