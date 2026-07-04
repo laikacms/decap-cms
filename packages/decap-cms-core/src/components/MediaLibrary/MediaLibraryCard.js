@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import styled from '@emotion/styled';
 import { colors, borders, lengths, shadows, effects } from 'decap-cms-ui-default';
 
@@ -78,7 +77,7 @@ class MediaLibraryCard extends React.Component {
       isViewableImage,
       isDraft,
     } = this.props;
-    const url = displayURL.get('url');
+    const url = displayURL?.url;
     return (
       <Card
         isSelected={isSelected}
@@ -103,7 +102,7 @@ class MediaLibraryCard extends React.Component {
   }
   componentDidMount() {
     const { displayURL, loadDisplayURL } = this.props;
-    if (!displayURL.get('url')) {
+    if (!displayURL?.url) {
       loadDisplayURL();
     }
   }
@@ -111,7 +110,7 @@ class MediaLibraryCard extends React.Component {
 
 MediaLibraryCard.propTypes = {
   isSelected: PropTypes.bool,
-  displayURL: ImmutablePropTypes.map.isRequired,
+  displayURL: PropTypes.shape({ url: PropTypes.string }).isRequired,
   text: PropTypes.string.isRequired,
   onClick: PropTypes.func.isRequired,
   draftText: PropTypes.string.isRequired,

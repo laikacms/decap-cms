@@ -1,12 +1,11 @@
 import React from 'react';
-import { Map } from 'immutable';
 import { render } from '@testing-library/react';
 
 import MediaLibraryCard from '../MediaLibraryCard';
 
 describe('MediaLibraryCard', () => {
   const props = {
-    displayURL: Map({ url: 'url' }),
+    displayURL: { url: 'url' },
     text: 'image.png',
     onClick: jest.fn(),
     draftText: 'Draft',
@@ -41,7 +40,7 @@ describe('MediaLibraryCard', () => {
   it('should call loadDisplayURL on mount when url is empty', () => {
     const loadDisplayURL = jest.fn();
     render(
-      <MediaLibraryCard {...props} loadDisplayURL={loadDisplayURL} displayURL={Map({ url: '' })} />,
+      <MediaLibraryCard {...props} loadDisplayURL={loadDisplayURL} displayURL={{ url: '' }} />,
     );
 
     expect(loadDisplayURL).toHaveBeenCalledTimes(1);
