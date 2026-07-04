@@ -51,7 +51,7 @@ npm run build
 
 ### build-preview
 
-Runs the `build` and `build-preview` scripts in each package and serves the resulting build locally.
+Builds all packages, then runs the `build-preview` script in the `decap-cms` package to serve the resulting demo build locally.
 
 ```sh
 npm run build-preview
