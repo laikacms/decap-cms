@@ -5,7 +5,7 @@ import { useAppDispatch, useAppSelector } from './useRedux';
 import { useWorkflow } from './useWorkflow';
 import { useTranslate } from './useTranslate';
 import { navigateToCollection, navigateToNewEntry } from '../routing/navigation';
-import { defaultRouter } from '../routing/router';
+import { defaultRouter, routerHistory as history } from '../routing/router';
 import { logoutUser } from '../actions/auth';
 import {
   loadEntry,
