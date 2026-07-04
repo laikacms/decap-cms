@@ -369,11 +369,12 @@ export default class RelationControl extends React.Component {
       const field = this.field;
       const value = options.map(optionToString);
       const newValue = arrayMove(value, oldIndex, newIndex);
+      const newOptions = arrayMove(options, oldIndex, newIndex);
       const metadata =
         (!isEmpty(options) && {
           [field.get('name')]: {
             [field.get('collection')]: {
-              [last(newValue)]: last(options).data,
+              [last(newValue)]: last(newOptions).data,
             },
           },
         }) ||
