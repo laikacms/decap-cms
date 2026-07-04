@@ -12,10 +12,11 @@ function t(key) {
 
 function noop() {}
 
-function renderControl({ value, mediaLibrary } = {}) {
+function renderControl({ value, mediaLibrary, allowMultiple } = {}) {
   const field = Map({
     name: 'file',
     widget: 'file',
+    ...(allowMultiple !== undefined ? { allow_multiple: allowMultiple } : {}),
     ...(mediaLibrary ? { media_library: Map(mediaLibrary) } : {}),
   });
 
@@ -79,6 +80,27 @@ describe('withFileControl', () => {
       expect(screen.getByText('editor.editorWidgets.file.chooseDifferent')).toBeInTheDocument();
       expect(screen.getByText('editor.editorWidgets.file.replaceUrl')).toBeInTheDocument();
       expect(screen.getByText('editor.editorWidgets.file.remove')).toBeInTheDocument();
+    });
+  });
+
+  describe('top-level field.allow_multiple', () => {
+    it('renders multi-select labels when allow_multiple is set directly on the field', () => {
+      renderControl({ value: '', allowMultiple: true });
+
+      expect(screen.getByText('editor.editorWidgets.file.chooseMultiple')).toBeInTheDocument();
+    });
+
+    it('renders single-select labels when allow_multiple:false is set directly on the field, even if media_library.allow_multiple is true', () => {
+      renderControl({
+        value: 'file.pdf',
+        allowMultiple: false,
+        mediaLibrary: { allow_multiple: true },
+      });
+
+      expect(screen.getByText('editor.editorWidgets.file.chooseDifferent')).toBeInTheDocument();
+      expect(screen.getByText('editor.editorWidgets.file.replaceUrl')).toBeInTheDocument();
+      expect(screen.getByText('editor.editorWidgets.file.remove')).toBeInTheDocument();
+      expect(screen.queryByText('editor.editorWidgets.file.removeAll')).not.toBeInTheDocument();
     });
   });
 });
