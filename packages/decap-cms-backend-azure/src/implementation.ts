@@ -39,7 +39,7 @@ import type {
 
 const MAX_CONCURRENT_DOWNLOADS = 10;
 
-function parseAzureRepo(config: Config) {
+export function parseAzureRepo(config: Config) {
   const { repo } = config.backend;
 
   if (typeof repo !== 'string') {
