@@ -53,4 +53,16 @@ describe('Map widget schema', () => {
       expect(validTypes).toHaveLength(3);
     });
   });
+
+  describe('height', () => {
+    it('should restrict height to string type', () => {
+      expect(schema.properties.height).toEqual({ type: 'string' });
+    });
+
+    it('should accept a string value for height', () => {
+      const heightSchema = schema.properties.height;
+      expect(heightSchema.type).toBe('string');
+      expect(typeof '400px').toBe(heightSchema.type);
+    });
+  });
 });
