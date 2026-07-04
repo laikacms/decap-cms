@@ -73,7 +73,7 @@ function getConfigUrl() {
 }
 
 // Default `public_folder` to `media_folder`'s value, prefixed with `/` if not already present.
-function defaultPublicFolderFromMediaFolder(mediaFolder: string) {
+function defaultPublicFolderFromMediaFolder(mediaFolder: string | undefined) {
   return `/${trimStart(mediaFolder, '/')}`;
 }
 
