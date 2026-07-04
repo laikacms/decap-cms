@@ -27,10 +27,14 @@ export default class GiteaAuthenticationPage extends React.Component {
       'GiteaAuthenticationPage',
     );
 
-    const { base_url = 'https://try.gitea.io', app_id = '' } = this.props.config.backend;
+    const {
+      base_url = 'https://try.gitea.io',
+      auth_endpoint = 'login/oauth/authorize',
+      app_id = '',
+    } = this.props.config.backend;
     this.auth = new PkceAuthenticator({
       base_url,
-      auth_endpoint: 'login/oauth/authorize',
+      auth_endpoint,
       app_id,
       auth_token_endpoint: 'login/oauth/access_token',
       auth_token_endpoint_content_type: 'application/json; charset=utf-8',
