@@ -818,6 +818,22 @@ describe('github API', () => {
     });
   });
 
+  describe('updateUnpublishedEntryStatus', () => {
+    it('should throw when useOpenAuthoring is true and newStatus is pending_publish', async () => {
+      const api = new API({
+        branch: 'master',
+        repo: 'owner/repo',
+        useOpenAuthoring: true,
+      });
+
+      api.getBranchPullRequest = jest.fn(() => Promise.resolve({ number: 1, state: 'open' }));
+
+      await expect(
+        api.updateUnpublishedEntryStatus('posts', 'slug', 'pending_publish'),
+      ).rejects.toThrow('Open Authoring entries may not be set to the status "pending_publish".');
+    });
+  });
+
   test('should get preview statuses', async () => {
     const api = new API({ repo: 'repo' });
 
