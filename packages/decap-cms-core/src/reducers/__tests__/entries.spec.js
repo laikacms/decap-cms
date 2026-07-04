@@ -1,5 +1,3 @@
-import { OrderedMap, fromJS } from 'immutable';
-
 import * as actions from '../../actions/entries';
 import reducer, {
   selectMediaFolder,
@@ -8,23 +6,17 @@ import reducer, {
   selectEntries,
 } from '../entries';
 
-const initialState = OrderedMap({
-  posts: fromJS({ name: 'posts' }),
-});
+const initialState = { entities: {}, pages: {} };
 
 describe('entries', () => {
   describe('reducer', () => {
     it('should mark entries as fetching', () => {
-      expect(reducer(initialState, actions.entriesLoading(fromJS({ name: 'posts' })))).toEqual(
-        OrderedMap(
-          fromJS({
-            posts: { name: 'posts' },
-            pages: {
-              posts: { isFetching: true },
-            },
-          }),
-        ),
-      );
+      expect(reducer(initialState, actions.entriesLoading({ name: 'posts' }))).toEqual({
+        entities: {},
+        pages: {
+          posts: { isFetching: true },
+        },
+      });
     });
 
     it('should handle loaded entries', () => {
@@ -32,44 +24,33 @@ describe('entries', () => {
         { slug: 'a', path: '' },
         { slug: 'b', title: 'B' },
       ];
-      expect(
-        reducer(initialState, actions.entriesLoaded(fromJS({ name: 'posts' }), entries, 0)),
-      ).toEqual(
-        OrderedMap(
-          fromJS({
-            posts: { name: 'posts' },
-            entities: {
-              'posts.a': { slug: 'a', path: '', isFetching: false },
-              'posts.b': { slug: 'b', title: 'B', isFetching: false },
-            },
-            pages: {
-              posts: {
-                page: 0,
-                ids: ['a', 'b'],
-              },
-            },
-          }),
-        ),
-      );
+      expect(reducer(initialState, actions.entriesLoaded({ name: 'posts' }, entries, 0))).toEqual({
+        entities: {
+          'posts.a': { slug: 'a', path: '', isFetching: false },
+          'posts.b': { slug: 'b', title: 'B', isFetching: false },
+        },
+        pages: {
+          posts: {
+            isFetching: false,
+            page: 0,
+            ids: ['a', 'b'],
+          },
+        },
+      });
     });
 
     it('should handle loaded entry', () => {
       const entry = { slug: 'a', path: '' };
-      expect(reducer(initialState, actions.entryLoaded(fromJS({ name: 'posts' }), entry))).toEqual(
-        OrderedMap(
-          fromJS({
-            posts: { name: 'posts' },
-            entities: {
-              'posts.a': { slug: 'a', path: '' },
-            },
-            pages: {
-              posts: {
-                ids: ['a'],
-              },
-            },
-          }),
-        ),
-      );
+      expect(reducer(initialState, actions.entryLoaded({ name: 'posts' }, entry))).toEqual({
+        entities: {
+          'posts.a': { slug: 'a', path: '' },
+        },
+        pages: {
+          posts: {
+            ids: ['a'],
+          },
+        },
+      });
     });
   });
 
@@ -78,7 +59,7 @@ describe('entries', () => {
       expect(
         selectMediaFolder(
           { media_folder: 'static/media' },
-          fromJS({ name: 'posts' }),
+          { name: 'posts' },
           undefined,
           undefined,
         ),
@@ -89,7 +70,7 @@ describe('entries', () => {
       expect(
         selectMediaFolder(
           { media_folder: 'static/media' },
-          fromJS({ name: 'posts', folder: 'posts', media_folder: '' }),
+          { name: 'posts', folder: 'posts', media_folder: '' },
           undefined,
           undefined,
         ),
@@ -100,8 +81,8 @@ describe('entries', () => {
       expect(
         selectMediaFolder(
           { media_folder: 'static/media' },
-          fromJS({ name: 'posts', folder: 'posts', media_folder: '' }),
-          fromJS({ path: 'posts/title/index.md' }),
+          { name: 'posts', folder: 'posts', media_folder: '' },
+          { path: 'posts/title/index.md' },
           undefined,
         ),
       ).toEqual('posts/title');
@@ -110,26 +91,26 @@ describe('entries', () => {
     it('should resolve collection relative media folder', () => {
       expect(
         selectMediaFolder(
-          fromJS({ media_folder: 'static/media' }),
-          fromJS({ name: 'posts', folder: 'posts', media_folder: '../' }),
-          fromJS({ path: 'posts/title/index.md' }),
+          { media_folder: 'static/media' },
+          { name: 'posts', folder: 'posts', media_folder: '../' },
+          { path: 'posts/title/index.md' },
           undefined,
         ),
       ).toEqual('posts');
     });
 
     it('should resolve field relative media folder', () => {
-      const field = fromJS({ media_folder: '' });
+      const field = { media_folder: '' };
       expect(
         selectMediaFolder(
           { media_folder: '/static/img' },
-          fromJS({
+          {
             name: 'other',
             folder: 'other',
             fields: [field],
             media_folder: '../',
-          }),
-          fromJS({ path: 'src/other/other.md', data: {} }),
+          },
+          { path: 'src/other/other.md', data: {} },
           field,
         ),
       ).toEqual('src/other');
@@ -139,12 +120,12 @@ describe('entries', () => {
       expect(
         selectMediaFolder(
           { media_folder: '/static/Images' },
-          fromJS({
+          {
             name: 'getting-started',
             folder: 'src/docs/getting-started',
             media_folder: '/static/images/docs/getting-started',
-          }),
-          fromJS({}),
+          },
+          {},
           undefined,
         ),
       ).toEqual('static/images/docs/getting-started');
@@ -157,16 +138,16 @@ describe('entries', () => {
         sanitize_replacement: '-',
       };
 
-      const entry = fromJS({
+      const entry = {
         path: 'content/en/hosting-and-deployment/deployment-with-nanobox.md',
         data: { title: 'Deployment With NanoBox', category: 'Hosting And Deployment' },
-      });
-      const collection = fromJS({
+      };
+      const collection = {
         name: 'posts',
         folder: 'content',
         media_folder: '../../../{{media_folder}}/{{category}}/{{slug}}',
         fields: [{ name: 'title', widget: 'string' }],
-      });
+      };
 
       expect(
         selectMediaFolder(
@@ -185,15 +166,15 @@ describe('entries', () => {
         sanitize_replacement: '-',
       };
 
-      const entry = fromJS({
+      const entry = {
         data: { title: 'Overview' },
-      });
-      const collection = fromJS({
+      };
+      const collection = {
         name: 'extending',
         folder: 'src/docs/extending',
         media_folder: '{{media_folder}}/docs/extending',
         fields: [{ name: 'title', widget: 'string' }],
-      });
+      };
 
       expect(
         selectMediaFolder(
@@ -212,11 +193,11 @@ describe('entries', () => {
         sanitize_replacement: '-',
       };
 
-      const entry = fromJS({
+      const entry = {
         path: 'content/en/hosting-and-deployment/deployment-with-nanobox.md',
         data: { title: 'Deployment With NanoBox', category: 'Hosting And Deployment' },
-      });
-      const collection = fromJS({
+      };
+      const collection = {
         name: 'posts',
         folder: 'content',
         fields: [
@@ -226,14 +207,14 @@ describe('entries', () => {
             media_folder: '../../../{{media_folder}}/{{category}}/{{slug}}',
           },
         ],
-      });
+      };
 
       expect(
         selectMediaFolder(
           { media_folder: 'static/media', slug: slugConfig },
           collection,
           entry,
-          collection.get('fields').get(0),
+          collection.fields[0],
         ),
       ).toEqual('static/media/hosting-and-deployment/deployment-with-nanobox');
     });
@@ -245,17 +226,17 @@ describe('entries', () => {
         sanitize_replacement: '-',
       };
 
-      const entry = fromJS({
+      const entry = {
         path: 'content/en/hosting-and-deployment/deployment-with-nanobox.md',
         data: { title: 'Deployment With NanoBox', category: 'Hosting And Deployment' },
-      });
+      };
 
-      const collection = fromJS({
+      const collection = {
         name: 'posts',
         folder: 'content',
         media_folder: '{{media_folder}}/blog',
         fields: [{ name: 'title', widget: 'string' }],
-      });
+      };
 
       expect(
         selectMediaFolder(
@@ -280,31 +261,31 @@ describe('entries', () => {
       expect(
         selectMediaFolder(
           { media_folder: 'static/media' },
-          fromJS({ name: 'posts', files: [{ name: 'index', media_folder: '/static/images/' }] }),
-          fromJS({ path: 'posts/title/index.md', slug: 'index' }),
+          { name: 'posts', files: [{ name: 'index', media_folder: '/static/images/' }] },
+          { path: 'posts/title/index.md', slug: 'index' },
           undefined,
         ),
       ).toBe('static/images');
     });
 
     it('should cascade media_folders', () => {
-      const mainImageField = fromJS({ name: 'main_image' });
-      const logoField = fromJS({ name: 'logo', media_folder: '{{media_folder}}/logos/' });
-      const nestedField3 = fromJS({ name: 'nested', media_folder: '{{media_folder}}/nested3/' });
-      const nestedField2 = fromJS({
+      const mainImageField = { name: 'main_image' };
+      const logoField = { name: 'logo', media_folder: '{{media_folder}}/logos/' };
+      const nestedField3 = { name: 'nested', media_folder: '{{media_folder}}/nested3/' };
+      const nestedField2 = {
         name: 'nested',
         media_folder: '{{media_folder}}/nested2/',
         types: [nestedField3],
-      });
-      const nestedField1 = fromJS({
+      };
+      const nestedField1 = {
         name: 'nested',
         media_folder: '{{media_folder}}/nested1/',
         fields: [nestedField2],
-      });
+      };
 
       const args = [
         { media_folder: '/static/img' },
-        fromJS({
+        {
           name: 'general',
           media_folder: '{{media_folder}}/general/',
           files: [
@@ -318,8 +299,8 @@ describe('entries', () => {
               ],
             },
           ],
-        }),
-        fromJS({ path: 'src/customers/customers.md', slug: 'customers', data: { title: 'title' } }),
+        },
+        { path: 'src/customers/customers.md', slug: 'customers', data: { title: 'title' } },
       ];
 
       expect(selectMediaFolder(...args, mainImageField)).toBe('static/img/general/customers');
@@ -347,7 +328,7 @@ describe('entries', () => {
       expect(
         selectMediaFilePath(
           { media_folder: 'static/media' },
-          fromJS({ name: 'posts', folder: 'posts' }),
+          { name: 'posts', folder: 'posts' },
           undefined,
           'image.png',
           undefined,
@@ -359,7 +340,7 @@ describe('entries', () => {
       expect(
         selectMediaFilePath(
           { media_folder: 'static/media' },
-          fromJS({ name: 'posts', folder: 'posts', media_folder: '' }),
+          { name: 'posts', folder: 'posts', media_folder: '' },
           undefined,
           'image.png',
           undefined,
@@ -371,8 +352,8 @@ describe('entries', () => {
       expect(
         selectMediaFilePath(
           { media_folder: 'static/media' },
-          fromJS({ name: 'posts', folder: 'posts', media_folder: '../../static/media/' }),
-          fromJS({ path: 'posts/title/index.md' }),
+          { name: 'posts', folder: 'posts', media_folder: '../../static/media/' },
+          { path: 'posts/title/index.md' },
           'image.png',
           undefined,
         ),
@@ -380,12 +361,12 @@ describe('entries', () => {
     });
 
     it('should handle field media_folder', () => {
-      const field = fromJS({ media_folder: '../../static/media/' });
+      const field = { media_folder: '../../static/media/' };
       expect(
         selectMediaFilePath(
           { media_folder: 'static/media' },
-          fromJS({ name: 'posts', folder: 'posts', fields: [field] }),
-          fromJS({ path: 'posts/title/index.md' }),
+          { name: 'posts', folder: 'posts', fields: [field] },
+          { path: 'posts/title/index.md' },
           'image.png',
           field,
         ),
@@ -416,7 +397,7 @@ describe('entries', () => {
       expect(
         selectMediaFilePublicPath(
           { public_folder: '/media' },
-          fromJS({ name: 'posts', folder: 'posts', public_folder: '' }),
+          { name: 'posts', folder: 'posts', public_folder: '' },
           'image.png',
           undefined,
           undefined,
@@ -428,7 +409,7 @@ describe('entries', () => {
       expect(
         selectMediaFilePublicPath(
           { public_folder: '/media' },
-          fromJS({ name: 'posts', folder: 'posts', public_folder: '../../static/media/' }),
+          { name: 'posts', folder: 'posts', public_folder: '../../static/media/' },
           'image.png',
           undefined,
           undefined,
@@ -440,11 +421,11 @@ describe('entries', () => {
       expect(
         selectMediaFilePublicPath(
           { public_folder: 'https://www.netlify.com/media' },
-          fromJS({
+          {
             name: 'posts',
             folder: 'posts',
             public_folder: 'https://www.netlify.com/media',
-          }),
+          },
           'image.png',
           undefined,
           undefined,
@@ -459,16 +440,16 @@ describe('entries', () => {
         sanitize_replacement: '-',
       };
 
-      const entry = fromJS({
+      const entry = {
         path: 'content/en/hosting-and-deployment/deployment-with-nanobox.md',
         data: { title: 'Deployment With NanoBox', category: 'Hosting And Deployment' },
-      });
-      const collection = fromJS({
+      };
+      const collection = {
         name: 'posts',
         folder: 'content',
         public_folder: '/{{public_folder}}/{{category}}/{{slug}}',
         fields: [{ name: 'title', widget: 'string' }],
-      });
+      };
 
       expect(
         selectMediaFilePublicPath(
@@ -488,21 +469,21 @@ describe('entries', () => {
         sanitize_replacement: '-',
       };
 
-      const entry = fromJS({
+      const entry = {
         path: 'content/en/hosting-and-deployment/deployment-with-nanobox.md',
         data: { title: 'Deployment With NanoBox', category: 'Hosting And Deployment' },
-      });
+      };
 
-      const field = fromJS({
+      const field = {
         name: 'title',
         widget: 'string',
         public_folder: '/{{public_folder}}/{{category}}/{{slug}}',
-      });
-      const collection = fromJS({
+      };
+      const collection = {
         name: 'posts',
         folder: 'content',
         fields: [field],
-      });
+      };
 
       expect(
         selectMediaFilePublicPath(
@@ -522,21 +503,21 @@ describe('entries', () => {
         sanitize_replacement: '-',
       };
 
-      const entry = fromJS({
+      const entry = {
         path: 'content/en/hosting-and-deployment/deployment-with-nanobox.md',
         data: { title: 'Deployment With NanoBox', category: 'Hosting And Deployment' },
-      });
+      };
 
-      const field = fromJS({
+      const field = {
         name: 'title',
         widget: 'string',
         public_folder: '/{{public_folder}}/{{category}}/{{slug}}',
-      });
-      const collection = fromJS({
+      };
+      const collection = {
         name: 'posts',
         folder: 'content',
         fields: [field],
-      });
+      };
 
       expect(
         selectMediaFilePublicPath(
@@ -550,12 +531,12 @@ describe('entries', () => {
     });
 
     it('should handle file public_folder', () => {
-      const entry = fromJS({
+      const entry = {
         path: 'src/posts/index.md',
         slug: 'index',
-      });
+      };
 
-      const collection = fromJS({
+      const collection = {
         name: 'posts',
         files: [
           {
@@ -564,7 +545,7 @@ describe('entries', () => {
             fields: [{ name: 'title', widget: 'string' }],
           },
         ],
-      });
+      };
 
       expect(
         selectMediaFilePublicPath(
@@ -580,7 +561,7 @@ describe('entries', () => {
 
   describe('selectEntries', () => {
     it('should return all entries', () => {
-      const state = fromJS({
+      const state = {
         entities: {
           'posts.1': { slug: '1' },
           'posts.2': { slug: '2' },
@@ -588,19 +569,19 @@ describe('entries', () => {
           'posts.4': { slug: '4' },
         },
         pages: { posts: { ids: ['1', '2', '3', '4'] } },
-      });
-      const collection = fromJS({
+      };
+      const collection = {
         name: 'posts',
-      });
+      };
 
       expect(selectEntries(state, collection)).toEqual(
-        fromJS([{ slug: '1' }, { slug: '2' }, { slug: '3' }, { slug: '4' }]),
+        [{ slug: '1' }, { slug: '2' }, { slug: '3' }, { slug: '4' }],
       );
     });
   });
 
   it('should return sorted entries entries by field', () => {
-    const state = fromJS({
+    const state = {
       entities: {
         'posts.1': { slug: '1', data: { title: '1' } },
         'posts.2': { slug: '2', data: { title: '2' } },
@@ -609,23 +590,23 @@ describe('entries', () => {
       },
       pages: { posts: { ids: ['1', '2', '3', '4'] } },
       sort: { posts: { title: { key: 'title', direction: 'Descending' } } },
-    });
-    const collection = fromJS({
+    };
+    const collection = {
       name: 'posts',
-    });
+    };
 
     expect(selectEntries(state, collection)).toEqual(
-      fromJS([
+      [
         { slug: '4', data: { title: '4' } },
         { slug: '3', data: { title: '3' } },
         { slug: '2', data: { title: '2' } },
         { slug: '1', data: { title: '1' } },
-      ]),
+      ],
     );
   });
 
   it('should return sorted entries entries by nested field', () => {
-    const state = fromJS({
+    const state = {
       entities: {
         'posts.1': { slug: '1', data: { title: '1', nested: { date: 4 } } },
         'posts.2': { slug: '2', data: { title: '2', nested: { date: 3 } } },
@@ -634,23 +615,23 @@ describe('entries', () => {
       },
       pages: { posts: { ids: ['1', '2', '3', '4'] } },
       sort: { posts: { title: { key: 'nested.date', direction: 'Ascending' } } },
-    });
-    const collection = fromJS({
+    };
+    const collection = {
       name: 'posts',
-    });
+    };
 
     expect(selectEntries(state, collection)).toEqual(
-      fromJS([
+      [
         { slug: '4', data: { title: '4', nested: { date: 1 } } },
         { slug: '3', data: { title: '3', nested: { date: 2 } } },
         { slug: '2', data: { title: '2', nested: { date: 3 } } },
         { slug: '1', data: { title: '1', nested: { date: 4 } } },
-      ]),
+      ],
     );
   });
 
   it('should return filtered entries entries by field', () => {
-    const state = fromJS({
+    const state = {
       entities: {
         'posts.1': { slug: '1', data: { title: '1' } },
         'posts.2': { slug: '2', data: { title: '2' } },
@@ -659,16 +640,16 @@ describe('entries', () => {
       },
       pages: { posts: { ids: ['1', '2', '3', '4'] } },
       filter: { posts: { title__1: { field: 'title', pattern: '4', active: true } } },
-    });
-    const collection = fromJS({
+    };
+    const collection = {
       name: 'posts',
-    });
+    };
 
-    expect(selectEntries(state, collection)).toEqual(fromJS([{ slug: '4', data: { title: '4' } }]));
+    expect(selectEntries(state, collection)).toEqual([{ slug: '4', data: { title: '4' } }]);
   });
 
   it('should return filtered entries entries by nested field', () => {
-    const state = fromJS({
+    const state = {
       entities: {
         'posts.1': { slug: '1', data: { title: '1', nested: { draft: true } } },
         'posts.2': { slug: '2', data: { title: '2', nested: { draft: true } } },
@@ -679,21 +660,21 @@ describe('entries', () => {
       filter: {
         posts: { 'nested.draft__false': { field: 'nested.draft', pattern: false, active: true } },
       },
-    });
-    const collection = fromJS({
+    };
+    const collection = {
       name: 'posts',
-    });
+    };
 
     expect(selectEntries(state, collection)).toEqual(
-      fromJS([
+      [
         { slug: '3', data: { title: '3', nested: { draft: false } } },
         { slug: '4', data: { title: '4', nested: { draft: false } } },
-      ]),
+      ],
     );
   });
 
   it('should not match string field "truecolor" when pattern is boolean true', () => {
-    const state = fromJS({
+    const state = {
       entities: {
         'posts.1': { slug: '1', data: { title: 'truecolor' } },
         'posts.2': { slug: '2', data: { title: 'other' } },
@@ -702,14 +683,14 @@ describe('entries', () => {
       filter: {
         posts: { title__true: { field: 'title', pattern: true, active: true } },
       },
-    });
-    const collection = fromJS({ name: 'posts' });
+    };
+    const collection = { name: 'posts' };
 
-    expect(selectEntries(state, collection)).toEqual(fromJS([]));
+    expect(selectEntries(state, collection)).toEqual([]);
   });
 
   it('should not match string field "falsetto" when pattern is boolean false', () => {
-    const state = fromJS({
+    const state = {
       entities: {
         'posts.1': { slug: '1', data: { title: 'falsetto' } },
         'posts.2': { slug: '2', data: { title: 'other' } },
@@ -718,14 +699,14 @@ describe('entries', () => {
       filter: {
         posts: { title__false: { field: 'title', pattern: false, active: true } },
       },
-    });
-    const collection = fromJS({ name: 'posts' });
+    };
+    const collection = { name: 'posts' };
 
-    expect(selectEntries(state, collection)).toEqual(fromJS([]));
+    expect(selectEntries(state, collection)).toEqual([]);
   });
 
   it('should match boolean field true when pattern is boolean true', () => {
-    const state = fromJS({
+    const state = {
       entities: {
         'posts.1': { slug: '1', data: { title: '1', draft: true } },
         'posts.2': { slug: '2', data: { title: '2', draft: false } },
@@ -734,16 +715,16 @@ describe('entries', () => {
       filter: {
         posts: { draft__true: { field: 'draft', pattern: true, active: true } },
       },
-    });
-    const collection = fromJS({ name: 'posts' });
+    };
+    const collection = { name: 'posts' };
 
     expect(selectEntries(state, collection)).toEqual(
-      fromJS([{ slug: '1', data: { title: '1', draft: true } }]),
+      [{ slug: '1', data: { title: '1', draft: true } }],
     );
   });
 
   it('should match boolean field false when pattern is boolean false', () => {
-    const state = fromJS({
+    const state = {
       entities: {
         'posts.1': { slug: '1', data: { title: '1', draft: true } },
         'posts.2': { slug: '2', data: { title: '2', draft: false } },
@@ -752,11 +733,11 @@ describe('entries', () => {
       filter: {
         posts: { draft__false: { field: 'draft', pattern: false, active: true } },
       },
-    });
-    const collection = fromJS({ name: 'posts' });
+    };
+    const collection = { name: 'posts' };
 
     expect(selectEntries(state, collection)).toEqual(
-      fromJS([{ slug: '2', data: { title: '2', draft: false } }]),
+      [{ slug: '2', data: { title: '2', draft: false } }],
     );
   });
 });

@@ -1,17 +1,15 @@
-import { Map, fromJS } from 'immutable';
-
 import * as actions from '../../actions/entries';
 import reducer from '../entryDraft';
 
 jest.mock('uuid', () => ({ v4: jest.fn(() => '1') }));
 
-const initialState = Map({
-  entry: Map(),
-  fieldsMetaData: Map(),
-  fieldsErrors: Map(),
+const initialState = {
+  entry: {},
+  fieldsMetaData: {},
+  fieldsErrors: {},
   hasChanged: false,
   key: '',
-});
+};
 
 const entry = {
   collection: 'posts',
@@ -26,37 +24,33 @@ const entry = {
 describe('entryDraft reducer', () => {
   describe('DRAFT_CREATE_FROM_ENTRY', () => {
     it('should create draft from the entry', () => {
-      const state = reducer(initialState, actions.createDraftFromEntry(fromJS(entry)));
-      expect(state).toEqual(
-        fromJS({
-          entry: {
-            ...entry,
-            newRecord: false,
-          },
-          fieldsMetaData: Map(),
-          fieldsErrors: Map(),
-          hasChanged: false,
-          key: '1',
-        }),
-      );
+      const state = reducer(initialState, actions.createDraftFromEntry(entry));
+      expect(state).toEqual({
+        entry: {
+          ...entry,
+          newRecord: false,
+        },
+        fieldsMetaData: {},
+        fieldsErrors: {},
+        hasChanged: false,
+        key: '1',
+      });
     });
   });
 
   describe('DRAFT_CREATE_EMPTY', () => {
     it('should create a new draft ', () => {
-      const state = reducer(initialState, actions.emptyDraftCreated(fromJS(entry)));
-      expect(state).toEqual(
-        fromJS({
-          entry: {
-            ...entry,
-            newRecord: true,
-          },
-          fieldsMetaData: Map(),
-          fieldsErrors: Map(),
-          hasChanged: false,
-          key: '1',
-        }),
-      );
+      const state = reducer(initialState, actions.emptyDraftCreated(entry));
+      expect(state).toEqual({
+        entry: {
+          ...entry,
+          newRecord: true,
+        },
+        fieldsMetaData: {},
+        fieldsErrors: {},
+        hasChanged: false,
+        key: '1',
+      });
     });
   });
 
@@ -70,7 +64,7 @@ describe('entryDraft reducer', () => {
     let initialState;
 
     beforeEach(() => {
-      initialState = fromJS({
+      initialState = {
         entities: {
           'posts.slug': {
             collection: 'posts',
@@ -83,50 +77,50 @@ describe('entryDraft reducer', () => {
           },
         },
         pages: {},
-      });
+      };
     });
 
     it('should handle persisting request', () => {
       const newState = reducer(
         initialState,
-        actions.entryPersisting(Map({ name: 'posts' }), Map({ slug: 'slug' })),
+        actions.entryPersisting({ name: 'posts' }, { slug: 'slug' }),
       );
-      expect(newState.getIn(['entry', 'isPersisting'])).toBe(true);
+      expect(newState.entry.isPersisting).toBe(true);
     });
 
     it('should handle persisting success', () => {
       let newState = reducer(
         initialState,
-        actions.entryPersisting(Map({ name: 'posts' }), Map({ slug: 'slug' })),
+        actions.entryPersisting({ name: 'posts' }, { slug: 'slug' }),
       );
       newState = reducer(
         newState,
-        actions.entryPersisted(Map({ name: 'posts' }), Map({ slug: 'slug' })),
+        actions.entryPersisted({ name: 'posts' }, { slug: 'slug' }),
       );
-      expect(newState.getIn(['entry', 'isPersisting'])).toBeUndefined();
+      expect(newState.entry.isPersisting).toBeUndefined();
     });
 
     it('should handle persisting error', () => {
       let newState = reducer(
         initialState,
-        actions.entryPersisting(Map({ name: 'posts' }), Map({ slug: 'slug' })),
+        actions.entryPersisting({ name: 'posts' }, { slug: 'slug' }),
       );
       newState = reducer(
         newState,
-        actions.entryPersistFail(Map({ name: 'posts' }), Map({ slug: 'slug' }), 'Error message'),
+        actions.entryPersistFail({ name: 'posts' }, { slug: 'slug' }, new Error('Error message')),
       );
-      expect(newState.getIn(['entry', 'isPersisting'])).toBeUndefined();
+      expect(newState.entry.isPersisting).toBeUndefined();
     });
   });
 
   describe('REMOVE_DRAFT_ENTRY_MEDIA_FILE', () => {
     it('should remove a media file', () => {
       const actualState = reducer(
-        initialState.setIn(['entry', 'mediaFiles'], fromJS([{ id: '1' }, { id: '2' }])),
+        { ...initialState, entry: { ...initialState.entry, mediaFiles: [{ id: '1' }, { id: '2' }] } },
         actions.removeDraftEntryMediaFile({ id: '1' }),
       );
 
-      expect(actualState.toJS()).toEqual({
+      expect(actualState).toEqual({
         entry: { mediaFiles: [{ id: '2' }] },
         fieldsMetaData: {},
         fieldsErrors: {},
@@ -139,11 +133,11 @@ describe('entryDraft reducer', () => {
   describe('ADD_DRAFT_ENTRY_MEDIA_FILE', () => {
     it('should overwrite an existing media file', () => {
       const actualState = reducer(
-        initialState.setIn(['entry', 'mediaFiles'], fromJS([{ id: '1', name: 'old' }])),
+        { ...initialState, entry: { ...initialState.entry, mediaFiles: [{ id: '1', name: 'old' }] } },
         actions.addDraftEntryMediaFile({ id: '1', name: 'new' }),
       );
 
-      expect(actualState.toJS()).toEqual({
+      expect(actualState).toEqual({
         entry: { mediaFiles: [{ id: '1', name: 'new' }] },
         fieldsMetaData: {},
         fieldsErrors: {},
@@ -155,12 +149,15 @@ describe('entryDraft reducer', () => {
 
   describe('DRAFT_CREATE_FROM_LOCAL_BACKUP', () => {
     it('should create draft from local backup', () => {
-      const localBackup = Map({ entry: fromJS({ ...entry, mediaFiles: [{ id: '1' }] }) });
+      const localBackup = { entry: { ...entry, mediaFiles: [{ id: '1' }] } };
 
-      const actualState = reducer(initialState.set('localBackup', localBackup), {
-        type: actions.DRAFT_CREATE_FROM_LOCAL_BACKUP,
-      });
-      expect(actualState.toJS()).toEqual({
+      const actualState = reducer(
+        { ...initialState, localBackup },
+        {
+          type: actions.DRAFT_CREATE_FROM_LOCAL_BACKUP,
+        },
+      );
+      expect(actualState).toEqual({
         entry: {
           ...entry,
           mediaFiles: [{ id: '1' }],
@@ -183,7 +180,7 @@ describe('entryDraft reducer', () => {
         actions.localBackupRetrieved({ ...entry, mediaFiles }),
       );
 
-      expect(actualState.toJS()).toEqual({
+      expect(actualState).toEqual({
         entry: {},
         fieldsMetaData: {},
         fieldsErrors: {},
@@ -203,10 +200,8 @@ describe('entryDraft reducer', () => {
 
     beforeEach(() => {
       jest.resetModules();
-      selectHasMetaPath = jest.fn(
-        collection => collection.has('meta') && collection.get('meta').has('path'),
-      );
-      selectFolderEntryExtension = jest.fn(collection => collection.get('extension') || 'md');
+      selectHasMetaPath = jest.fn(collection => 'meta' in collection && 'path' in collection.meta);
+      selectFolderEntryExtension = jest.fn(collection => collection.extension || 'md');
 
       jest.doMock('../collections', () => ({
         selectHasMetaPath,
@@ -222,91 +217,91 @@ describe('entryDraft reducer', () => {
     });
 
     it('should generate dynamic filename for new entries without index_file', () => {
-      const collection = fromJS({
+      const collection = {
         folder: '_pages',
         extension: 'md',
         meta: { path: { label: 'Path', widget: 'string' } },
-      });
-      const entryDraft = fromJS({
+      };
+      const entryDraft = {
         entry: {
           newRecord: true,
           data: { title: 'My Great Article' },
           meta: { path: 'blog' },
         },
-      });
+      };
 
       const result = selectCustomPath(collection, entryDraft);
       expect(result).toBe('_pages/blog/my-great-article.md');
     });
 
     it('should preserve filename for existing entries without index_file', () => {
-      const collection = fromJS({
+      const collection = {
         folder: '_pages',
         extension: 'md',
         meta: { path: { label: 'Path', widget: 'string' } },
-      });
-      const entryDraft = fromJS({
+      };
+      const entryDraft = {
         entry: {
           newRecord: false,
           path: '_pages/old-folder/existing-file.md',
           data: { title: 'Updated Title' },
           meta: { path: 'new-folder' },
         },
-      });
+      };
 
       const result = selectCustomPath(collection, entryDraft);
       expect(result).toBe('_pages/new-folder/existing-file.md');
     });
 
     it('should use index_file when specified (backward compatibility)', () => {
-      const collection = fromJS({
+      const collection = {
         folder: '_pages',
         extension: 'md',
         meta: { path: { label: 'Path', widget: 'string', index_file: 'index' } },
-      });
-      const entryDraft = fromJS({
+      };
+      const entryDraft = {
         entry: {
           newRecord: true,
           data: { title: 'My Article' },
           meta: { path: 'blog' },
         },
-      });
+      };
 
       const result = selectCustomPath(collection, entryDraft);
       expect(result).toBe('_pages/blog/index.md');
     });
 
     it('should return undefined when path is not set', () => {
-      const collection = fromJS({
+      const collection = {
         folder: '_pages',
         extension: 'md',
         meta: { path: { label: 'Path', widget: 'string' } },
-      });
-      const entryDraft = fromJS({
+      };
+      const entryDraft = {
         entry: {
           newRecord: true,
           data: { title: 'My Article' },
           meta: {},
         },
-      });
+      };
 
       const result = selectCustomPath(collection, entryDraft);
       expect(result).toBeUndefined();
     });
 
     it('should preserve non-latin characters in generated filename', () => {
-      const collection = fromJS({
+      const collection = {
         folder: '_pages',
         extension: 'md',
         meta: { path: { label: 'Path', widget: 'string' } },
-      });
-      const entryDraft = fromJS({
+      };
+      const entryDraft = {
         entry: {
           newRecord: true,
           data: { title: '日本語のタイトル' },
           meta: { path: 'blog' },
         },
-      });
+      };
 
       const result = selectCustomPath(collection, entryDraft);
       expect(result).toBe('_pages/blog/日本語のタイトル.md');

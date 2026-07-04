@@ -1,4 +1,3 @@
-import { fromJS } from 'immutable';
 import { Cursor } from 'decap-cms-lib-util';
 
 import cursors, { selectCollectionEntriesCursor } from '../cursors';
@@ -9,7 +8,7 @@ import {
   GROUP_ENTRIES_SUCCESS,
 } from '../../actions/entries';
 
-const initialState = fromJS({ cursorsByType: { collectionEntries: {} } });
+const initialState = { cursorsByType: { collectionEntries: {} } };
 
 describe('cursors reducer', () => {
   it('returns the initial state for an unknown action', () => {
@@ -31,7 +30,7 @@ describe('cursors reducer', () => {
       };
 
       const state = cursors(undefined, action);
-      const stored = state.getIn(['cursorsByType', 'collectionEntries', 'posts']);
+      const stored = state.cursorsByType.collectionEntries.posts;
       expect(stored).toEqual(cursor.store);
     });
 
@@ -48,8 +47,8 @@ describe('cursors reducer', () => {
         payload: { collection: 'authors', entries: [], page: 1, cursor: cursorB, append: false },
       });
 
-      const storedPosts = state.getIn(['cursorsByType', 'collectionEntries', 'posts']);
-      const storedAuthors = state.getIn(['cursorsByType', 'collectionEntries', 'authors']);
+      const storedPosts = state.cursorsByType.collectionEntries.posts;
+      const storedAuthors = state.cursorsByType.collectionEntries.authors;
 
       expect(storedPosts).toEqual(cursorA.store);
       expect(storedAuthors).toEqual(cursorB.store);
@@ -69,7 +68,7 @@ describe('cursors reducer', () => {
         payload: { collection: 'posts' },
       });
 
-      expect(state.getIn(['cursorsByType', 'collectionEntries', 'posts'])).toBeUndefined();
+      expect(state.cursorsByType.collectionEntries.posts).toBeUndefined();
     });
   });
 
@@ -86,7 +85,7 @@ describe('cursors reducer', () => {
         payload: { collection: 'posts' },
       });
 
-      expect(state.getIn(['cursorsByType', 'collectionEntries', 'posts'])).toBeUndefined();
+      expect(state.cursorsByType.collectionEntries.posts).toBeUndefined();
     });
   });
 
@@ -103,7 +102,7 @@ describe('cursors reducer', () => {
         payload: { collection: 'posts' },
       });
 
-      expect(state.getIn(['cursorsByType', 'collectionEntries', 'posts'])).toBeUndefined();
+      expect(state.cursorsByType.collectionEntries.posts).toBeUndefined();
     });
   });
 
