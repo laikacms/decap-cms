@@ -1099,6 +1099,42 @@ describe('config', () => {
       });
     });
 
+    test(`should warn and fall back to 'config.yml' when cms-config-url link has missing/invalid type (DCMS-331)`, async () => {
+      const dispatch = jest.fn();
+
+      console.warn.mockClear();
+      document.querySelector.mockReturnValue({ type: '', href: 'custom-config-endpoint' });
+      global.fetch.mockResolvedValue({
+        status: 200,
+        text: () => Promise.resolve(stringify({ backend: { repo: 'test-repo' } })),
+        headers: new Headers(),
+      });
+      await loadConfig()(dispatch);
+
+      expect(global.fetch).toHaveBeenCalledWith('config.yml', { credentials: 'same-origin' });
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Ignoring cms-config-url link "custom-config-endpoint": missing or unsupported type attribute',
+        ),
+      );
+    });
+
+    test(`should not warn when no cms-config-url link is present (DCMS-331)`, async () => {
+      const dispatch = jest.fn();
+
+      console.warn.mockClear();
+      document.querySelector.mockReturnValue(null);
+      global.fetch.mockResolvedValue({
+        status: 200,
+        text: () => Promise.resolve(stringify({ backend: { repo: 'test-repo' } })),
+        headers: new Headers(),
+      });
+      await loadConfig()(dispatch);
+
+      expect(global.fetch).toHaveBeenCalledWith('config.yml', { credentials: 'same-origin' });
+      expect(console.warn).not.toHaveBeenCalled();
+    });
+
     test(`should throw on failure to fetch 'config.yml'`, async () => {
       const dispatch = jest.fn();
 
