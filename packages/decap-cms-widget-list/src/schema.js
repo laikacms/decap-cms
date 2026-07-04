@@ -10,6 +10,8 @@ export default {
     i18n: {
       oneOf: [{ type: 'boolean' }, { type: 'string', enum: ['translate', 'duplicate', 'none'] }],
     },
+    // `min` and `max` are independently optional (see validateMinMax in
+    // decap-cms-lib-widgets) — setting one does not require the other.
     min: { type: 'integer' },
     max: { type: 'integer' },
     add_to_top: { type: 'boolean' },
