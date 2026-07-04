@@ -1,9 +1,26 @@
-# Docs coming soon!
+# decap-cms-widget-map
 
-Decap CMS was converted from a single npm package to a "monorepo" of over 20 packages.
-We haven't created a README for this package yet, but you can:
+Map widget for [Decap CMS](https://decapcms.org). Renders an interactive [OpenLayers](https://openlayers.org/)
+map for drawing a point, line, or polygon, and stores the result as a GeoJSON string.
 
-1. Check out the [main readme](https://github.com/decaporg/decap-cms/#readme) or the [documentation
-   site](https://www.decapcms.org) for more info.
-2. Reach out to the [community chat](https://decapcms.org/chat/) if you need help.
-3. Help out and [write the readme yourself](https://github.com/decaporg/decap-cms/edit/main/packages/decap-cms-widget-map/README.md)!
+## Configuration options
+
+| Option     | Type   | Default   | Description |
+|------------|--------|-----------|--------------|
+| `label`    | string | Field `name` | Label for the field in the editor UI. |
+| `name`     | string | —         | Unique field identifier. |
+| `decimals` | integer | `7`      | Number of decimal places of precision to store for coordinates. |
+| `type`     | string | `Point`   | Geometry type to draw/store. Valid values: `Point`, `LineString`, `Polygon`. |
+| `default`  | string (GeoJSON) | `''` (empty string) | Default GeoJSON value used when no value is set yet. |
+| `height`   | string | `'400px'` | CSS `height` applied to the rendered map container (e.g. `'400px'`, `'50vh'`). |
+
+## Example
+
+```yaml
+- label: "Location"
+  name: "location"
+  widget: "map"
+  type: "Point"
+  decimals: 5
+  height: "600px"
+```
