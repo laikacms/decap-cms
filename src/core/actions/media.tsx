@@ -96,10 +96,16 @@ export const boundGetAsset = memoize(
 
     return bound;
   },
-  (_, entry) => entry,
+  // NOTE: despite the parameter name, this resolver keys on the 2nd positional
+  // argument passed to the memoized function above, i.e. `collection`, not `entry`.
+  (_, collection) => collection,
 );
 
-boundGetAsset.cache = new WeakMap();
+// A `WeakMap` requires object keys and throws on nullish/primitive keys. The
+// resolver above can key on `collection`, which is nullish on new-entry mount
+// (the entry's collection hasn't resolved yet) - use a `Map` instead so a
+// transient nullish key doesn't crash the whole editor (DCMS-313).
+boundGetAsset.cache = new Map();
 
 export function getAsset({ collection, entry, path, field }: GetAssetArgs) {
   return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
