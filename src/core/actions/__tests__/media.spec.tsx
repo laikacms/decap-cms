@@ -2,7 +2,7 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 import configureMockStore from 'redux-mock-store';
 import { thunk } from 'redux-thunk';
 
-import { getAsset, ADD_ASSET, LOAD_ASSET_REQUEST } from '../media';
+import { getAsset, boundGetAsset, ADD_ASSET, LOAD_ASSET_REQUEST } from '../media';
 import { selectMediaFilePath } from '../../reducers/entries';
 import AssetProxy from '../../valueObjects/AssetProxy';
 
@@ -148,6 +148,19 @@ describe('media', () => {
         payload: asset,
       });
       expect(result).toEqual(asset);
+    });
+  });
+
+  describe('boundGetAsset', () => {
+    it('does not throw when called with a nullish collection (DCMS-313 new-entry mount)', () => {
+      const store = mockStore({});
+      const dispatch = store.dispatch as unknown as ThunkDispatch<State, {}, AnyAction>;
+
+      expect(() => boundGetAsset(dispatch, undefined as unknown as never, undefined as unknown as never)).not.toThrow();
+      expect(() => boundGetAsset(dispatch, null as unknown as never, null as unknown as never)).not.toThrow();
+
+      const bound = boundGetAsset(dispatch, undefined as unknown as never, undefined as unknown as never);
+      expect(typeof bound).toBe('function');
     });
   });
 });
