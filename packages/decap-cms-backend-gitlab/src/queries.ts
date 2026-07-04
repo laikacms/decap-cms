@@ -63,7 +63,7 @@ export function lastCommits(paths: string[]) {
   query lastCommits($repo: ID!, $branch: String!) {
     project(fullPath: $repo) {
       repository {
-        ${tree}
+        ${tree || '__typename'}
       }
     }
   }
