@@ -65,9 +65,18 @@ function getConfigUrl() {
     'application/x-yaml': 'yaml',
   };
   const configLinkEl = document.querySelector<HTMLLinkElement>('link[rel="cms-config-url"]');
-  if (configLinkEl && validTypes[configLinkEl.type] && configLinkEl.href) {
-    console.log(`Using config file path: "${configLinkEl.href}"`);
-    return configLinkEl.href;
+  if (configLinkEl && configLinkEl.href) {
+    if (validTypes[configLinkEl.type]) {
+      console.log(`Using config file path: "${configLinkEl.href}"`);
+      return configLinkEl.href;
+    }
+    if (/\.ya?ml$/i.test(configLinkEl.href)) {
+      console.log(`Using config file path: "${configLinkEl.href}"`);
+      return configLinkEl.href;
+    }
+    console.warn(
+      `Ignoring cms-config-url link "${configLinkEl.href}": missing or unsupported type attribute (expected text/yaml); loading default config.yml`,
+    );
   }
   return 'config.yml';
 }
