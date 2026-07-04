@@ -1,5 +1,3 @@
-import { fromJS } from 'immutable';
-
 jest.spyOn(console, 'error').mockImplementation(() => {});
 
 describe('registry', () => {
@@ -162,7 +160,7 @@ describe('registry', () => {
 
           registerEventListener({ name, handler }, options);
 
-          const data = { entry: fromJS({ data: {} }) };
+          const data = { entry: { data: {} } };
           await invokeEvent({ name, data });
 
           expect(handler).toHaveBeenCalledTimes(1);
@@ -174,12 +172,12 @@ describe('registry', () => {
 
           const options1 = { hello: 'test1' };
           const options2 = { hello: 'test2' };
-          const handler = jest.fn(({ entry }) => entry.get('data'));
+          const handler = jest.fn(({ entry }) => entry.data);
 
           registerEventListener({ name, handler }, options1);
           registerEventListener({ name, handler }, options2);
 
-          const data = { entry: fromJS({ data: {} }) };
+          const data = { entry: { data: {} } };
           await invokeEvent({ name, data });
 
           expect(handler).toHaveBeenCalledTimes(2);
@@ -194,7 +192,7 @@ describe('registry', () => {
           });
 
           registerEventListener({ name, handler });
-          const data = { entry: fromJS({ data: {} }) };
+          const data = { entry: { data: {} } };
 
           await expect(invokeEvent({ name, data })).rejects.toThrow('handler failed!');
         });
@@ -206,26 +204,26 @@ describe('registry', () => {
         const event = 'preSave';
         const options = { hello: 'world' };
         const handler1 = jest.fn(({ entry }) => {
-          const data = entry.get('data');
-          return data.set('a', 'test1');
+          const data = entry.data;
+          return { ...data, a: 'test1' };
         });
         const handler2 = jest.fn(({ entry }) => {
-          const data = entry.get('data');
-          return data.set('c', 'test2');
+          const data = entry.data;
+          return { ...data, c: 'test2' };
         });
 
         registerEventListener({ name: event, handler: handler1 }, options);
         registerEventListener({ name: event, handler: handler2 }, options);
 
         const data = {
-          entry: fromJS({ data: { a: 'foo', b: 'bar' } }),
+          entry: { data: { a: 'foo', b: 'bar' } },
         };
 
         const dataAfterFirstHandlerExecution = {
-          entry: fromJS({ data: { a: 'test1', b: 'bar' } }),
+          entry: { data: { a: 'test1', b: 'bar' } },
         };
         const dataAfterSecondHandlerExecution = {
-          entry: fromJS({ data: { a: 'test1', b: 'bar', c: 'test2' } }),
+          entry: { data: { a: 'test1', b: 'bar', c: 'test2' } },
         };
 
         const result = await invokeEvent({ name: event, data });
@@ -248,7 +246,7 @@ describe('registry', () => {
         registerEventListener({ name: event, handler: handler2 }, options);
 
         const data = {
-          entry: fromJS({ data: { a: 'foo', b: 'bar' } }),
+          entry: { data: { a: 'foo', b: 'bar' } },
         };
         const result = await invokeEvent({ name: event, data });
 
