@@ -55,9 +55,11 @@
   <body>
     <!--
       This page uses the proxy backend (local_backend) so it works without any
-      external service. Start decap-server on http://localhost:8082 first:
+      external service. Start decap-server on http://localhost:8082 first
+      (decap-server defaults to port 8081, so the PORT env var must be set
+      explicitly to match this config's proxy_url):
 
-        npx decap-server
+        PORT=8082 npx decap-server
 
       To use the real laika backend instead, register it before the CMS boots:
 
