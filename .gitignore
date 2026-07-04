@@ -14,6 +14,9 @@ manifest.yml
 .imdone/
 cypress/videos
 cypress/screenshots
+playwright-report/
+test-results/
+/playwright/.cache/
 __diff_output__
 coverage/
 .cache

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import integrations from '../integrations';
 import { CONFIG_SUCCESS } from '../../actions/config';

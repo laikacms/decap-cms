@@ -1,5 +1,5 @@
 import { stripIndent } from 'common-tags';
-import { vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 
 import yaml from '../yaml';
 

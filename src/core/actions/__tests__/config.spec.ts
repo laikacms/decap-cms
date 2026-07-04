@@ -1,4 +1,4 @@
-import { vi, describe, it, expect, beforeEach, test } from 'vitest';
+import { beforeEach, describe, expect, it, test, vi } from 'vitest';
 import { stripIndent } from 'common-tags';
 import { stringify } from 'yaml';
 

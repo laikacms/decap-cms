@@ -1,3 +1,5 @@
+import { describe, expect, it } from 'vitest';
+
 import unsentRequest from '../unsentRequest.js';
 
 describe('unsentRequest', () => {

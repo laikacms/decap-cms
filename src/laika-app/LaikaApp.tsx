@@ -1,5 +1,4 @@
 import React from 'react';
-import { Route } from 'react-router-dom';
 
 import { App as DefaultApp } from '../core/index';
 import LaikaHeader from './LaikaHeader';
@@ -36,6 +35,7 @@ import type {
   EntryCardRenderProps,
   EntryListEmptyRenderProps,
   ErrorBoundaryRenderProps,
+  ExtraRoute,
   LoaderRenderProps,
   MediaLibraryCardRenderProps,
   MediaLibraryTopRenderProps,
@@ -66,7 +66,7 @@ const slots: CmsSlots = {
   renderCollectionSidebar: () => null,
 };
 
-const extraRoutes = <Route path="/settings" element={<LaikaSettingsPage />} />;
+const extraRoutes: ExtraRoute[] = [{ path: '/settings', element: <LaikaSettingsPage /> }];
 
 /**
  * Optional overrides for `LaikaApp`. Anything supplied here takes precedence
@@ -81,19 +81,14 @@ export interface LaikaAppProps extends Omit<AppContentProps, 'slots' | 'extraRou
   /** Override individual `CmsSlots` entries; merged on top of laika defaults. */
   slots?: CmsSlots;
   /** Extra routes appended after laika's `/settings` route. */
-  extraRoutes?: React.ReactNode;
+  extraRoutes?: ExtraRoute[];
 }
 
 function LaikaApp(props: LaikaAppProps = {}) {
   const mergedSlots: CmsSlots = { ...slots, ...(props.slots ?? {}) };
-  const mergedExtraRoutes = props.extraRoutes ? (
-    <>
-      {extraRoutes}
-      {props.extraRoutes}
-    </>
-  ) : (
-    extraRoutes
-  );
+  const mergedExtraRoutes = props.extraRoutes
+    ? [...extraRoutes, ...props.extraRoutes]
+    : extraRoutes;
 
   return (
     <DefaultApp

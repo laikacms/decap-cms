@@ -2,6 +2,8 @@ vi.mock('uuid');
 vi.mock('../entries');
 vi.mock('../integrations');
 
+import { describe, expect, it, vi } from 'vitest';
+
 import { mediaDeleted } from '../../actions/mediaLibrary';
 import mediaLibrary, {
   selectMediaFiles,

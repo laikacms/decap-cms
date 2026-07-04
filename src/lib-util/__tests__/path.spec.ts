@@ -1,3 +1,5 @@
+import { describe, expect, it } from 'vitest';
+
 import { fileExtensionWithSeparator, fileExtension } from '../core-utils/path.js';
 
 describe('fileExtensionWithSeparator', () => {

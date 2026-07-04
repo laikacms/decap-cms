@@ -1,7 +1,8 @@
 /* eslint-disable import/order -- vi.mock calls must precede imports that depend on them */
-import React from 'react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from '@testing-library/react';
-import { vi } from 'vitest';
+
+import React from 'react';
 
 import Editor from '../Editor';
 
@@ -11,8 +12,7 @@ vi.mock('../EditorInterface', () => ({
 vi.mock('../../../../ui-default/index', () => ({
   Loader: props => <mock-loader {...props} />,
 }));
-vi.mock('react-router-dom', () => ({
-  useParams: vi.fn().mockReturnValue({ name: 'posts', '*': 'slug' }),
+vi.mock('../../../routing/context', () => ({
   useLocation: vi.fn().mockReturnValue({ search: '?title=title', pathname: '/posts/slug' }),
 }));
 vi.mock('../../../hooks/useEditor');
@@ -67,7 +67,7 @@ describe('Editor', () => {
   });
 
   it('should call setup on mount when collection is available', () => {
-    render(<Editor />);
+    render(<Editor collectionName="posts" slug="slug" />);
     expect(mockSetup).toHaveBeenCalledTimes(1);
   });
 
@@ -76,7 +76,7 @@ describe('Editor', () => {
       ...defaultEditorReturn,
       collection: undefined,
     } as any);
-    render(<Editor />);
+    render(<Editor collectionName="posts" slug="slug" />);
     expect(mockSetup).not.toHaveBeenCalled();
   });
 });

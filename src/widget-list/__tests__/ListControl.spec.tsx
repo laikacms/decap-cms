@@ -32,6 +32,7 @@ vi.mock('../../ui-default/index', async () => {
 });
 vi.mock('uuid');
 
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react';
 import * as uuid from 'uuid';

@@ -1,3 +1,5 @@
+import { describe, expect, it } from 'vitest';
+
 import * as apiUtils from '../APIUtils.js';
 describe('APIUtils', () => {
   describe('generateContentKey', () => {

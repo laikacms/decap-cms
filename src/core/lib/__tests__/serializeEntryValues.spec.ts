@@ -1,3 +1,5 @@
+import { describe, expect, it } from 'vitest';
+
 import { serializeValues, deserializeValues } from '../serializeEntryValues';
 
 const values = { title: 'New Post', unknown: 'Unknown Field' };

@@ -1,3 +1,5 @@
+import { describe, expect, it } from 'vitest';
+
 import { configLoaded, configLoading, configFailed } from '../../actions/config';
 import config, { selectLocale } from '../config';
 

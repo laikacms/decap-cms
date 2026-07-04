@@ -1,9 +1,9 @@
 import React from 'react';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
-import { NavLink } from 'react-router-dom';
 import sortBy from 'lodash/sortBy';
 
+import { NavLink } from '../../routing/Link';
 import { dirname } from '../../../lib-util/index';
 import { stringTemplate } from '../../../lib-widgets/index';
 import { Icon, colors, components } from '../../../ui-default/index';

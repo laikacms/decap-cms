@@ -62,8 +62,6 @@ export interface CmsConfig<Backend extends CmsBackend = CmsBackend> {
     preview?: boolean;
   };
   search?: boolean;
-  error: string | undefined;
-  isFetching: boolean;
 }
 
 export interface CmsWidgetParam<T = unknown> {

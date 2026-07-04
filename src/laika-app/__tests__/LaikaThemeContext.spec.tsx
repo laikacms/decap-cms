@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, renderHook, act } from '@testing-library/react';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Stub DecapCmsProvider so the test doesn't pull the full Redux store —
 // see LaikaProvider.spec.tsx for the same approach.

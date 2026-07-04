@@ -1,8 +1,8 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
-import { Link } from 'react-router-dom';
 
+import { Link } from '../../routing/Link';
 import { components, buttons, shadows } from '../../../ui-default/index';
 
 import type { TranslateFunction } from '../../../ui-default/index';

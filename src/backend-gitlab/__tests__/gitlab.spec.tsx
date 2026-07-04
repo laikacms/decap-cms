@@ -1,5 +1,5 @@
 /* eslint-disable import/order -- vi.mock must precede imports of the mocked module */
-import { vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('../../core/backend');
 import { oneLine, stripIndent } from 'common-tags';

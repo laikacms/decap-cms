@@ -1,10 +1,10 @@
 import React from 'react';
-import { MemoryRouter } from 'react-router-dom';
 import { render, fireEvent } from '@testing-library/react';
 import configureStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
+import { RouterProvider } from '../../../routing/context';
 import ConnectedNestedCollection, {
   NestedCollection,
   getTreeData,
@@ -47,13 +47,13 @@ describe('NestedCollection', () => {
   it('should render correctly with no entries', () => {
     const entries = [];
     const { getByTestId } = render(
-      <MemoryRouter>
+      <RouterProvider>
         <NestedCollection collection={collection} entries={entries} />
-      </MemoryRouter>,
+      </RouterProvider>,
     );
 
     expect(getByTestId('/')).toHaveTextContent('Pages');
-    expect(getByTestId('/')).toHaveAttribute('href', '/collections/pages');
+    expect(getByTestId('/')).toHaveAttribute('href', '#/collections/pages');
   });
 
   it('should render correctly with nested entries', () => {
@@ -65,19 +65,19 @@ describe('NestedCollection', () => {
       { path: 'src/pages/b/a/index.md', data: { title: 'File 4' } },
     ];
     const { getByTestId } = render(
-      <MemoryRouter>
+      <RouterProvider>
         <NestedCollection collection={collection} entries={entries} />
-      </MemoryRouter>,
+      </RouterProvider>,
     );
 
     // expand the tree
     fireEvent.click(getByTestId('/'));
 
     expect(getByTestId('/a')).toHaveTextContent('File 1');
-    expect(getByTestId('/a')).toHaveAttribute('href', '/collections/pages/filter/a');
+    expect(getByTestId('/a')).toHaveAttribute('href', '#/collections/pages/filter/a');
 
     expect(getByTestId('/b')).toHaveTextContent('File 2');
-    expect(getByTestId('/b')).toHaveAttribute('href', '/collections/pages/filter/b');
+    expect(getByTestId('/b')).toHaveAttribute('href', '#/collections/pages/filter/b');
   });
 
   it('should keep expanded nodes on re-render', () => {
@@ -89,9 +89,9 @@ describe('NestedCollection', () => {
       { path: 'src/pages/b/a/index.md', data: { title: 'File 4' } },
     ];
     const { getByTestId, rerender } = render(
-      <MemoryRouter>
+      <RouterProvider>
         <NestedCollection collection={collection} entries={entries} />
-      </MemoryRouter>,
+      </RouterProvider>,
     );
 
     fireEvent.click(getByTestId('/'));
@@ -110,9 +110,9 @@ describe('NestedCollection', () => {
     ];
 
     rerender(
-      <MemoryRouter>
+      <RouterProvider>
         <NestedCollection collection={collection} entries={newEntries} />
-      </MemoryRouter>,
+      </RouterProvider>,
     );
 
     expect(getByTestId('/a')).toHaveTextContent('File 1');
@@ -127,17 +127,17 @@ describe('NestedCollection', () => {
     ];
 
     const { getByTestId, queryByTestId, rerender } = render(
-      <MemoryRouter>
+      <RouterProvider>
         <NestedCollection collection={collection} entries={entries} />
-      </MemoryRouter>,
+      </RouterProvider>,
     );
 
     expect(queryByTestId('/a/a')).toBeNull();
 
     rerender(
-      <MemoryRouter>
+      <RouterProvider>
         <NestedCollection collection={collection} entries={entries} filterTerm={'a/a'} />
-      </MemoryRouter>,
+      </RouterProvider>,
     );
 
     expect(getByTestId('/a/a')).toHaveTextContent('File 2');
@@ -152,15 +152,15 @@ describe('NestedCollection', () => {
     ];
 
     const { getByTestId, queryByTestId, rerender } = render(
-      <MemoryRouter>
+      <RouterProvider>
         <NestedCollection collection={collection} entries={entries} />
-      </MemoryRouter>,
+      </RouterProvider>,
     );
 
     rerender(
-      <MemoryRouter>
+      <RouterProvider>
         <NestedCollection collection={collection} entries={entries} filterTerm={'a/a'} />
-      </MemoryRouter>,
+      </RouterProvider>,
     );
 
     expect(getByTestId('/a/a')).toHaveTextContent('File 2');
@@ -168,9 +168,9 @@ describe('NestedCollection', () => {
     fireEvent.click(getByTestId('/a'));
 
     rerender(
-      <MemoryRouter>
+      <RouterProvider>
         <NestedCollection collection={collection} entries={[...entries]} filterTerm={'a/a'} />
-      </MemoryRouter>,
+      </RouterProvider>,
     );
 
     expect(queryByTestId('/a/a')).toBeNull();
@@ -186,9 +186,9 @@ describe('NestedCollection', () => {
     ];
 
     const { getByTestId } = render(
-      <MemoryRouter>
+      <RouterProvider>
         <NestedCollection collection={collection} entries={entries} />
-      </MemoryRouter>,
+      </RouterProvider>,
     );
 
     fireEvent.click(getByTestId('/'));
@@ -210,9 +210,9 @@ describe('NestedCollection', () => {
     ];
 
     const { getByTestId, queryByTestId } = render(
-      <MemoryRouter>
+      <RouterProvider>
         <NestedCollection collection={collection} entries={entries} />
-      </MemoryRouter>,
+      </RouterProvider>,
     );
 
     fireEvent.click(getByTestId('/'));
@@ -244,9 +244,9 @@ describe('NestedCollection', () => {
     const store = mockStore({ entries });
 
     const { getByTestId } = renderWithRedux(
-      <MemoryRouter>
+      <RouterProvider>
         <ConnectedNestedCollection collection={collection} entries={entries} />
-      </MemoryRouter>,
+      </RouterProvider>,
       { store },
     );
 
@@ -254,10 +254,10 @@ describe('NestedCollection', () => {
     fireEvent.click(getByTestId('/'));
 
     expect(getByTestId('/a')).toHaveTextContent('File 1');
-    expect(getByTestId('/a')).toHaveAttribute('href', '/collections/pages/filter/a');
+    expect(getByTestId('/a')).toHaveAttribute('href', '#/collections/pages/filter/a');
 
     expect(getByTestId('/b')).toHaveTextContent('File 2');
-    expect(getByTestId('/b')).toHaveAttribute('href', '/collections/pages/filter/b');
+    expect(getByTestId('/b')).toHaveAttribute('href', '#/collections/pages/filter/b');
   });
 
   describe('getTreeData', () => {

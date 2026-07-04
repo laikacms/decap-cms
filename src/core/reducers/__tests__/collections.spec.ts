@@ -1,3 +1,5 @@
+import { describe, expect, it } from 'vitest';
+
 import { configLoaded } from '../../actions/config';
 import collections, {
   selectAllowDeletion,

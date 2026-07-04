@@ -1,3 +1,5 @@
+import { describe, expect, it, vi } from 'vitest';
+
 import { asyncLock } from '../asyncLock.js';
 
 vi.useFakeTimers();

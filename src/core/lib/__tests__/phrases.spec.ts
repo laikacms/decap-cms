@@ -1,5 +1,7 @@
 vi.mock('../registry');
 
+import { describe, expect, it, vi } from 'vitest';
+
 import { getPhrases } from '../phrases';
 import { getLocale } from '../registry';
 

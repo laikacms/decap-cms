@@ -1,6 +1,6 @@
-import React from 'react';
-import { render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import { render } from '@testing-library/react';
+import React from 'react';
 
 // Capture the props that DefaultApp receives so we can verify the
 // slot/render-prop merging logic without mounting the entire CMS.
@@ -100,22 +100,19 @@ describe('LaikaApp', () => {
     render(<LaikaApp />);
     const defaultRoutes = capturedProps.current.extraRoutes;
 
+    // The laika default is a single `/settings` route entry.
+    expect(Array.isArray(defaultRoutes)).toBe(true);
+    expect(defaultRoutes).toHaveLength(1);
+    expect(defaultRoutes[0].path).toBe('/settings');
+
     capturedProps.current = null;
-    const customRoute = <span data-testid="custom-route" />;
-    render(<LaikaApp extraRoutes={customRoute} />);
+    const customRoute = { path: '/custom', element: <span data-testid="custom-route" /> };
+    render(<LaikaApp extraRoutes={[customRoute]} />);
     const merged = capturedProps.current.extraRoutes;
 
-    // Default branch returns the bare laika `<Route />` element; the
-    // override branch wraps it in a fragment alongside the custom node.
-    expect(merged).not.toBe(defaultRoutes);
-    expect(merged.type).toBe(React.Fragment);
-    // React.Children.toArray clones each child with a synthetic key, so
-    // reference equality won't match — assert on length + types instead.
-    const children = React.Children.toArray(merged.props.children);
-    expect(children).toHaveLength(2);
-    expect((children[1] as React.ReactElement).type).toBe('span');
-    expect(
-      ((children[1] as React.ReactElement).props as { 'data-testid': string })['data-testid'],
-    ).toBe('custom-route');
+    // The override is appended after the laika `/settings` route.
+    expect(merged).toHaveLength(2);
+    expect(merged[0].path).toBe('/settings');
+    expect(merged[1]).toBe(customRoute);
   });
 });

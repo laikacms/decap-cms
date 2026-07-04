@@ -1,12 +1,10 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
-import { unstable_HistoryRouter as HistoryRouter } from 'react-router-dom';
 import { I18n } from 'react-polyglot';
 
 import { GlobalStyles } from '../ui-default/index';
 import { useAppSelector } from './hooks/useRedux';
-import { history } from './routing/history';
 import { store } from './redux';
 import { loadConfig } from './actions/config';
 import { authenticateUser } from './actions/auth';
@@ -29,9 +27,7 @@ function ConnectedTranslatedApp() {
   return (
     <I18n locale={locale} messages={getPhrases(locale)}>
       <ErrorBoundary showBackup config={config}>
-        <HistoryRouter history={history as any}>
-          <App />
-        </HistoryRouter>
+        <App />
       </ErrorBoundary>
     </I18n>
   );

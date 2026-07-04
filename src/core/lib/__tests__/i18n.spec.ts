@@ -1,3 +1,5 @@
+import { describe, expect, it, vi } from 'vitest';
+
 import * as i18n from '../i18n';
 
 vi.mock('../../reducers/collections', () => {

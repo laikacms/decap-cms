@@ -12,7 +12,7 @@ import { loadDeployPreview } from '../actions/deploys';
 import { selectEntry, selectUnpublishedEntry, selectDeployPreview } from '../reducers';
 import { selectFields } from '../reducers/collections';
 import { status } from '../constants/publishModes';
-import { navigateToCollection, navigateToNewEntry } from '../routing/history';
+import { navigateToCollection, navigateToNewEntry } from '../routing/navigation';
 
 import type { Status } from '../constants/publishModes';
 import type { CmsEntry } from '../../lib-util/index';

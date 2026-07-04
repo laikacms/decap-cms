@@ -4,7 +4,8 @@ import debounce from 'lodash/debounce';
 import { useAppDispatch, useAppSelector } from './useRedux';
 import { useWorkflow } from './useWorkflow';
 import { useTranslate } from './useTranslate';
-import { history, navigateToCollection, navigateToNewEntry } from '../routing/history';
+import { navigateToCollection, navigateToNewEntry } from '../routing/navigation';
+import { defaultRouter } from '../routing/router';
 import { logoutUser } from '../actions/auth';
 import {
   loadEntry,
@@ -33,7 +34,7 @@ import { selectFields } from '../reducers/collections';
 import { status, EDITORIAL_WORKFLOW } from '../constants/publishModes';
 
 import type { Status } from '../constants/publishModes';
-import type { Update, Transition } from 'history';
+import type { RouterUpdate, RouterTransition } from '../routing/router';
 import type { CmsCollectionState, CmsEntry } from '../../lib-util/index';
 
 type Collection = CmsCollectionState;
@@ -184,7 +185,7 @@ export function useEditor({
     // when we want to allow the navigation to proceed.
     // IMPORTANT: We must unblock BEFORE calling tx.retry() to prevent infinite loops,
     // because tx.retry() re-triggers the navigation which would call this blocker again.
-    function navigationBlocker(tx: Transition) {
+    function navigationBlocker(tx: RouterTransition) {
       const draft = entryDraft;
       const isPersisting = draft?.entry?.isPersisting;
       const newRecord = draft?.entry?.newRecord;
@@ -212,11 +213,11 @@ export function useEditor({
       tx.retry();
     }
 
-    const unblock = history.block(navigationBlocker);
+    const unblock = defaultRouter.block(navigationBlocker);
     unblockRef.current = unblock;
 
-    // Setup history listener (history v5 API: listener receives { location, action })
-    const unlisten = history.listen(({ location, action }: Update) => {
+    // Setup navigation listener (receives { location, action } on every navigation)
+    const unlisten = defaultRouter.subscribe(({ location, action }: RouterUpdate) => {
       const newEntryPath = `/collections/${collection!.name}/new`;
       const entriesPath = `/collections/${collection!.name}/entries/`;
       const { pathname } = location;

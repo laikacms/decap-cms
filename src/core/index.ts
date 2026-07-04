@@ -26,6 +26,7 @@ export type {
   AppHeaderRenderProps,
   AppLayoutRenderProps,
   AppAuthRenderProps,
+  ExtraRoute,
 } from './components/App/App';
 export { CmsSlotsProvider, useCmsSlots } from './lib/slots';
 export type {

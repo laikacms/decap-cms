@@ -1,14 +1,6 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { useTranslate } from 'react-polyglot';
 import styled from '@emotion/styled';
-import {
-  Route,
-  Routes,
-  Navigate,
-  useParams,
-  useNavigate,
-  unstable_HistoryRouter as HistoryRouter,
-} from 'react-router-dom';
 import TopBarProgress from 'react-topbar-progress-indicator';
 
 import { Loader, colorsDefaults } from '../../../ui-default/index';
@@ -17,7 +9,6 @@ import { loginUser, logoutUser } from '../../actions/auth';
 import { currentBackend } from '../../backend';
 import { createNewEntry } from '../../actions/collections';
 import { openMediaLibrary } from '../../actions/mediaLibrary';
-import { history } from '../../routing/history';
 import MediaLibrary from '../MediaLibrary/MediaLibrary';
 import { Notifications, ErrorBoundary } from '../UI';
 import { EDITORIAL_WORKFLOW } from '../../constants/publishModes';
@@ -27,6 +18,9 @@ import Editor from '../Editor/Editor';
 import NotFoundPage from './NotFoundPage';
 import Header from './Header';
 import { CmsSlotsProvider } from '../../lib/slots';
+import { useDecap } from '../../hooks/useDecap';
+import { useNavigate } from '../../hooks/useNavigate';
+import { matchRoute } from '../../routing/router';
 
 import type { CmsConfig, CmsCredentials } from '../../../lib-util/index';
 import type { CmsCollectionState, CmsCollections } from '../../../lib-util/index';
@@ -36,6 +30,16 @@ import type { CmsSlots } from '../../lib/slots';
 
 type Collection = CmsCollectionState;
 type Collections = CmsCollections;
+
+/**
+ * A consumer-injected route: rendered when the current location path equals
+ * `path` exactly. Kept intentionally simple (exact match, no params) — richer
+ * matching can be added to the routing table when a use case needs it.
+ */
+export interface ExtraRoute {
+  path: string;
+  element: React.ReactNode;
+}
 
 /**
  * Props passed to a custom header renderer. Consumers that supply `renderHeader`
@@ -113,12 +117,11 @@ export interface AppContentProps {
    */
   renderRoot?: () => React.ReactNode;
   /**
-   * Inject additional `<Route>` elements into the router, just before the
-   * catch-all `NotFoundPage` route. Use to add custom pages (settings,
-   * analytics, docs). React-router walks fragments and arrays, so any group
-   * of `<Route>` elements is fine here.
+   * Inject additional routes, matched (by exact path) after the built-in
+   * routes and before the catch-all not-found page. Use to add custom pages
+   * (settings, analytics, docs).
    */
-  extraRoutes?: React.ReactNode;
+  extraRoutes?: ExtraRoute[];
   /**
    * Render-slot overrides for deeper components (Collection, Editor,
    * MediaLibrary, …). See `CmsSlots`. Omit to use the defaults everywhere.
@@ -185,57 +188,87 @@ const ErrorCodeBlock = styled.pre`
   line-height: 1.5;
 `;
 
-function getDefaultPath(collections: Collections): string {
-  // Get all collection keys and find the first non-hidden one
-  const keys = Object.keys(collections);
-  for (const key of keys) {
+function getDefaultCollectionName(collections: Collections): string | undefined {
+  // First non-hidden collection; used as the home/redirect target.
+  for (const key of Object.keys(collections)) {
     const collection = collections[key] as Collection | undefined;
     if (collection && collection.hide !== true) {
-      return `/collections/${collection.name}`;
+      return collection.name;
     }
   }
-  throw new Error('Could not find a non hidden collection');
+  return undefined;
 }
 
 /**
- * Helper component that checks if a collection exists and redirects if not.
- * Used as a wrapper element for Route in react-router v7.
+ * Imperatively redirect to a collection's entry list, replacing the current
+ * history entry. Renders nothing; the navigation happens in an effect so it
+ * does not run during render. A no-op when there is no default collection.
  */
-function RouteInCollectionGuard({
+function RedirectToCollection({ collectionName }: { collectionName?: string }) {
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (collectionName) {
+      navigate('collection', { collectionName }, { replace: true });
+    }
+  }, [navigate, collectionName]);
+  return null;
+}
+
+/**
+ * Imperatively redirect to an entry editor, replacing the current history
+ * entry — backs the legacy `/edit/:name/:entryName` route.
+ */
+function RedirectToEntry({ collectionName, slug }: { collectionName: string; slug: string }) {
+  const navigate = useNavigate();
+  useEffect(() => {
+    navigate('entry', { collectionName, slug }, { replace: true });
+  }, [navigate, collectionName, slug]);
+  return null;
+}
+
+/**
+ * Renders `children` only if `name` is an existing collection; otherwise
+ * redirects to the default collection. Replaces react-router's per-route
+ * existence guard.
+ */
+function CollectionGuard({
   collections,
+  name,
+  defaultCollectionName,
   children,
 }: {
   collections: Collections;
+  name: string;
+  defaultCollectionName?: string;
   children: React.ReactNode;
 }) {
-  const { name } = useParams<{ name: string }>();
-  const defaultPath = getDefaultPath(collections);
-  const collectionExists = name ? collections[name] : undefined;
-  return collectionExists ? <>{children}</> : <Navigate to={defaultPath} replace />;
+  const exists = name ? collections[name] : undefined;
+  if (!exists) {
+    return <RedirectToCollection collectionName={defaultCollectionName} />;
+  }
+  return <>{children}</>;
 }
 
 /**
- * Wrapper that bridges useParams to the match prop expected by Collection.
+ * Adapts the routing-table params to the `match.params` shape `Collection`
+ * expects (it reads `name` / `searchTerm` / `filterTerm`).
  */
-function CollectionRoute({
+function CollectionView({
+  name,
+  searchTerm,
+  filterTerm,
   isSearchResults,
   isSingleSearchResult,
 }: {
+  name?: string;
+  searchTerm?: string;
+  filterTerm?: string;
   isSearchResults?: boolean;
   isSingleSearchResult?: boolean;
 }) {
-  const params = useParams();
-  const filterTerm = params['*'] || params.filterTerm;
-  const match = {
-    params: { ...params, filterTerm } as {
-      name?: string;
-      searchTerm?: string;
-      filterTerm?: string;
-    },
-  };
   return (
     <CollectionComponent
-      match={match}
+      match={{ params: { name, searchTerm, filterTerm } }}
       isSearchResults={isSearchResults}
       isSingleSearchResult={isSingleSearchResult}
     />
@@ -243,26 +276,141 @@ function CollectionRoute({
 }
 
 /**
- * Wrapper for the Editor component in route context.
+ * The table-driven route switch that replaces react-router's `<Routes>`. Reads
+ * the current path from the routing context, finds the matching table entry,
+ * and renders the corresponding page — applying the collection-existence guard
+ * and legacy redirects the old route tree encoded.
  */
-function EditorRoute({ newRecord }: { newRecord?: boolean }) {
-  return <Editor newRecord={newRecord} />;
-}
+function AppRoutes({
+  collections,
+  hasWorkflow,
+  renderRoot,
+  renderNotFound,
+  extraRoutes,
+  defaultCollectionName,
+}: {
+  collections: Collections;
+  hasWorkflow: boolean;
+  renderRoot?: () => React.ReactNode;
+  renderNotFound?: () => React.ReactNode;
+  extraRoutes?: ExtraRoute[];
+  defaultCollectionName?: string;
+}) {
+  const { routing, path } = useDecap();
 
-/**
- * Redirect helper for search route within a collection
- */
-function CollectionSearchRedirect() {
-  const { name } = useParams<{ name: string }>();
-  return <Navigate to={`/collections/${name}`} replace />;
-}
+  // OAuth "signups not allowed" bounces back here as a path; send it home.
+  if (path.startsWith('/error=')) {
+    return <RedirectToCollection collectionName={defaultCollectionName} />;
+  }
 
-/**
- * Redirect helper for edit route
- */
-function EditRedirect() {
-  const { name, entryName } = useParams<{ name: string; entryName: string }>();
-  return <Navigate to={`/collections/${name}/entries/${entryName}`} replace />;
+  // Bare search URLs with no term (an empty search box submit): go home.
+  if (path === '/search' || path === '/search/') {
+    return <RedirectToCollection collectionName={defaultCollectionName} />;
+  }
+  const bareCollectionSearch = path.match(/^\/collections\/([^/]+)\/search\/?$/);
+  if (bareCollectionSearch) {
+    return <RedirectToCollection collectionName={bareCollectionSearch[1]} />;
+  }
+
+  const match = matchRoute(routing, path);
+
+  if (!match) {
+    const extra = extraRoutes?.find(route => route.path === path);
+    if (extra) {
+      return <>{extra.element}</>;
+    }
+    return renderNotFound ? <>{renderNotFound()}</> : <NotFoundPage />;
+  }
+
+  switch (match.key) {
+    case 'root':
+      return renderRoot ? (
+        <>{renderRoot()}</>
+      ) : (
+        <RedirectToCollection collectionName={defaultCollectionName} />
+      );
+    case 'workflow':
+      return hasWorkflow ? (
+        <Workflow />
+      ) : (
+        <RedirectToCollection collectionName={defaultCollectionName} />
+      );
+    case 'collection':
+      return (
+        <CollectionGuard
+          collections={collections}
+          name={match.params.collectionName}
+          defaultCollectionName={defaultCollectionName}
+        >
+          <CollectionView name={match.params.collectionName} />
+        </CollectionGuard>
+      );
+    case 'collectionSearch':
+      return (
+        <CollectionGuard
+          collections={collections}
+          name={match.params.collectionName}
+          defaultCollectionName={defaultCollectionName}
+        >
+          <CollectionView
+            name={match.params.collectionName}
+            searchTerm={match.params.searchTerm}
+            isSearchResults
+            isSingleSearchResult
+          />
+        </CollectionGuard>
+      );
+    case 'collectionFilter':
+      return (
+        <CollectionGuard
+          collections={collections}
+          name={match.params.collectionName}
+          defaultCollectionName={defaultCollectionName}
+        >
+          <CollectionView
+            name={match.params.collectionName}
+            filterTerm={match.params.filterTerm}
+          />
+        </CollectionGuard>
+      );
+    case 'search':
+      return <CollectionView searchTerm={match.params.searchTerm} isSearchResults />;
+    case 'entryNew':
+      return (
+        <CollectionGuard
+          collections={collections}
+          name={match.params.collectionName}
+          defaultCollectionName={defaultCollectionName}
+        >
+          <Editor newRecord collectionName={match.params.collectionName} />
+        </CollectionGuard>
+      );
+    case 'entry':
+      return (
+        <CollectionGuard
+          collections={collections}
+          name={match.params.collectionName}
+          defaultCollectionName={defaultCollectionName}
+        >
+          <Editor collectionName={match.params.collectionName} slug={match.params.slug} />
+        </CollectionGuard>
+      );
+    case 'editRedirect':
+      return (
+        <CollectionGuard
+          collections={collections}
+          name={match.params.collectionName}
+          defaultCollectionName={defaultCollectionName}
+        >
+          <RedirectToEntry
+            collectionName={match.params.collectionName}
+            slug={match.params.slug}
+          />
+        </CollectionGuard>
+      );
+    default:
+      return renderNotFound ? <>{renderNotFound()}</> : <NotFoundPage />;
+  }
 }
 
 /**
@@ -307,16 +455,10 @@ function AppContent({
   const showMediaButton = mediaLibrary.showMediaButton;
 
   // Memoized values
-  const defaultPath = useMemo(() => {
-    if (collections) {
-      try {
-        return getDefaultPath(collections);
-      } catch {
-        return '/';
-      }
-    }
-    return '/';
-  }, [collections]);
+  const defaultCollectionName = useMemo(
+    () => (collections ? getDefaultCollectionName(collections) : undefined),
+    [collections],
+  );
 
   const hasWorkflow = useMemo(() => publishMode === EDITORIAL_WORKFLOW, [publishMode]);
 
@@ -340,7 +482,7 @@ function AppContent({
   );
 
   const handleClearHash = useCallback(() => {
-    navigate('/', { replace: true });
+    navigate('root', undefined, { replace: true });
   }, [navigate]);
 
   // Render helpers
@@ -458,77 +600,14 @@ function AppContent({
   const routedContent = (
     <>
       {isFetching && <TopBarProgress />}
-      <Routes>
-        <Route
-          path="/"
-          element={renderRoot ? <>{renderRoot()}</> : <Navigate to={defaultPath} replace />}
-        />
-        <Route path="/search/" element={<Navigate to={defaultPath} replace />} />
-        <Route
-          path="/collections/:name/search/"
-          element={
-            <RouteInCollectionGuard collections={collections}>
-              <CollectionSearchRedirect />
-            </RouteInCollectionGuard>
-          }
-        />
-        <Route
-          path="/error=access_denied&error_description=Signups+not+allowed+for+this+instance"
-          element={<Navigate to={defaultPath} replace />}
-        />
-        {hasWorkflow ? <Route path="/workflow" element={<Workflow />} /> : null}
-        <Route
-          path="/collections/:name"
-          element={
-            <RouteInCollectionGuard collections={collections}>
-              <CollectionRoute />
-            </RouteInCollectionGuard>
-          }
-        />
-        <Route
-          path="/collections/:name/new"
-          element={
-            <RouteInCollectionGuard collections={collections}>
-              <EditorRoute newRecord />
-            </RouteInCollectionGuard>
-          }
-        />
-        <Route
-          path="/collections/:name/entries/*"
-          element={
-            <RouteInCollectionGuard collections={collections}>
-              <EditorRoute />
-            </RouteInCollectionGuard>
-          }
-        />
-        <Route
-          path="/collections/:name/search/:searchTerm"
-          element={
-            <RouteInCollectionGuard collections={collections}>
-              <CollectionRoute isSearchResults isSingleSearchResult />
-            </RouteInCollectionGuard>
-          }
-        />
-        <Route
-          path="/collections/:name/filter/*"
-          element={
-            <RouteInCollectionGuard collections={collections}>
-              <CollectionRoute />
-            </RouteInCollectionGuard>
-          }
-        />
-        <Route path="/search/:searchTerm" element={<CollectionRoute isSearchResults />} />
-        <Route
-          path="/edit/:name/:entryName"
-          element={
-            <RouteInCollectionGuard collections={collections}>
-              <EditRedirect />
-            </RouteInCollectionGuard>
-          }
-        />
-        {extraRoutes}
-        <Route path="*" element={renderNotFound ? <>{renderNotFound()}</> : <NotFoundPage />} />
-      </Routes>
+      <AppRoutes
+        collections={collections}
+        hasWorkflow={hasWorkflow}
+        renderRoot={renderRoot}
+        renderNotFound={renderNotFound}
+        extraRoutes={extraRoutes}
+        defaultCollectionName={defaultCollectionName}
+      />
       {useMediaLibraryFlag ? <MediaLibrary /> : null}
       {renderFooter ? renderFooter() : null}
     </>
@@ -548,10 +627,11 @@ function AppContent({
 }
 
 /**
- * The default, self-contained Decap CMS app. Provides its own router and error
- * boundary, so it only needs a `DecapCmsProvider` ancestor. For a custom
- * layout, render `AppContent` (or individual page components) inside your own
- * router instead.
+ * The default, self-contained Decap CMS app: the routed UI wrapped in the root
+ * error boundary. Routing/config come from the `DecapCmsProvider` ancestor
+ * (which owns the routing context), so this only needs to be rendered inside
+ * one. For a custom layout, render `AppContent` (or individual page
+ * components) yourself instead.
  */
 function App({
   renderHeader,
@@ -570,21 +650,19 @@ function App({
   const config = useAppSelector(state => state.config);
   return (
     <ErrorBoundary showBackup config={config} renderError={renderError}>
-      <HistoryRouter history={history as any}>
-        <AppContent
-          renderHeader={renderHeader}
-          renderLayout={renderLayout}
-          renderAuth={renderAuth}
-          renderRoot={renderRoot}
-          extraRoutes={extraRoutes}
-          slots={slots}
-          renderNotifications={renderNotifications}
-          renderNotFound={renderNotFound}
-          renderFooter={renderFooter}
-          renderConfigLoading={renderConfigLoading}
-          renderConfigError={renderConfigError}
-        />
-      </HistoryRouter>
+      <AppContent
+        renderHeader={renderHeader}
+        renderLayout={renderLayout}
+        renderAuth={renderAuth}
+        renderRoot={renderRoot}
+        extraRoutes={extraRoutes}
+        slots={slots}
+        renderNotifications={renderNotifications}
+        renderNotFound={renderNotFound}
+        renderFooter={renderFooter}
+        renderConfigLoading={renderConfigLoading}
+        renderConfigError={renderConfigError}
+      />
     </ErrorBoundary>
   );
 }

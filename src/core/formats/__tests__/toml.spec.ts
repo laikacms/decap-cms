@@ -1,3 +1,5 @@
+import { describe, expect, it } from 'vitest';
+
 import tomlFormatter from '../toml';
 
 describe('tomlFormatter', () => {

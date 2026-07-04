@@ -1,7 +1,9 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Global, css } from '@emotion/react';
+import { unstable_HistoryRouter as HistoryRouter } from 'react-router-dom';
 
 import { DecapCmsProvider } from '../core/index';
+import { routerHistory } from '../core/routing/router';
 import { resolveTheme } from './laikaThemes';
 
 import type { DecapCmsProviderProps } from '../core/index';
@@ -158,7 +160,13 @@ export function LaikaThemeProvider({
       <Global styles={shadowVars} />
       <Global styles={reducedMotionStyles} />
       <DecapCmsProvider config={config} theme={theme}>
-        {children}
+        {/*
+         * laika's own components still navigate via react-router-dom. Core no
+         * longer provides a react-router context, so bridge one here, bound to
+         * the same hash history our `defaultRouter` drives, so both stay in
+         * sync. Remove once laika's components move onto the in-house router.
+         */}
+        <HistoryRouter history={routerHistory as never}>{children}</HistoryRouter>
       </DecapCmsProvider>
     </LaikaThemeContext.Provider>
   );

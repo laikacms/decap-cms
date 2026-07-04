@@ -1,3 +1,5 @@
+import { describe, expect, it } from 'vitest';
+
 import deploys, { selectDeployPreview } from '../deploys';
 import {
   DEPLOY_PREVIEW_REQUEST,

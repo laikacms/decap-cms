@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
 
+import { useLocation } from '../../routing/context';
 import { Loader } from '../../../ui-default/index';
 import { useEditor } from '../../hooks/useEditor';
 import EditorInterface from './EditorInterface';
@@ -8,14 +8,15 @@ import { useCmsSlots } from '../../lib/slots';
 
 interface EditorProps {
   newRecord?: boolean;
+  /** Collection the edited entry belongs to. Supplied by the route switch. */
+  collectionName: string;
+  /** Entry slug; omitted for a new entry. Supplied by the route switch. */
+  slug?: string;
 }
 
-function Editor({ newRecord = false }: EditorProps) {
+function Editor({ newRecord = false, collectionName, slug }: EditorProps) {
   const { renderLoader } = useCmsSlots();
-  const params = useParams<{ name: string; '*'?: string }>();
   const location = useLocation();
-  const collectionName = params.name!;
-  const slug = params['*'];
   const newEntry = newRecord === true;
 
   // Track previous values for update logic

@@ -1,5 +1,15 @@
-import '@testing-library/jest-dom';
-import { vi } from 'vitest';
+import * as matchers from '@testing-library/jest-dom/matchers';
+import { cleanup } from '@testing-library/react';
+import { afterEach, expect, vi } from 'vitest';
+
+expect.extend(matchers);
+
+// With `globals: false`, @testing-library/react cannot auto-register its
+// afterEach(cleanup) hook (it relies on a global afterEach), so rendered DOM
+// would leak between tests. Register cleanup explicitly.
+afterEach(() => {
+  cleanup();
+});
 
 // Mock path module to use posix paths
 vi.mock('path', async () => {

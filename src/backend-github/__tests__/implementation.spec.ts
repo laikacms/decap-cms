@@ -1,4 +1,4 @@
-import { vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Cursor, CURSOR_COMPATIBILITY_SYMBOL } from '../../lib-util/index';
 import GitHubImplementation from '../implementation';

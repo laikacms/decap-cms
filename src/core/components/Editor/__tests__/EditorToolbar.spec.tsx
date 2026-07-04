@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react';
-import { vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { EditorToolbar } from '../EditorToolbar';
 
@@ -12,7 +12,7 @@ vi.mock('../../UI', () => ({
     <div data-testid="settings-dropdown" {...props} />
   ),
 }));
-vi.mock('react-router-dom', () => {
+vi.mock('../../../routing/Link', () => {
   return {
     Link: (props: Record<string, unknown>) => <div data-testid="link" {...props} />,
   };

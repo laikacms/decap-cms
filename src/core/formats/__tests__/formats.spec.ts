@@ -1,3 +1,5 @@
+import { describe, expect, it, test } from 'vitest';
+
 import { extensionFormatters, resolveFormat } from '../formats';
 import { registerCustomFormat } from '../../lib/registry';
 

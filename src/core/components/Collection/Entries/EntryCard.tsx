@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import styled from '@emotion/styled';
-import { Link } from 'react-router-dom';
 import { useTranslate } from 'react-polyglot';
 
+import { Link } from '../../../routing/Link';
 import { colors, colorsRaw, components, lengths, zIndex } from '../../../../ui-default/index';
 import { boundGetAsset } from '../../../actions/media';
 import { VIEW_STYLE_LIST, VIEW_STYLE_GRID } from '../../../constants/collectionViews';

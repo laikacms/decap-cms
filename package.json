@@ -51,6 +51,9 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:ci": "pnpm run lint && pnpm run typecheck && pnpm run test",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:report": "playwright show-report",
     "clean": "rimraf dist .turbo",
     "prepare": "husky install"
   },
@@ -111,7 +114,6 @@
     "gotrue-js": "catalog:auth",
     "graphql": "catalog:graphql",
     "graphql-tag": "catalog:graphql",
-    "history": "catalog:routing",
     "immer": "catalog:redux",
     "ini": "catalog:utils",
     "js-sha256": "catalog:utils",
@@ -178,6 +180,7 @@
     "@eslint/js": "catalog:eslint",
     "@octokit/rest": "catalog:git",
     "@octokit/types": "catalog:git",
+    "@playwright/test": "^1.61.1",
     "@storybook/addon-a11y": "^10",
     "@storybook/react": "^10.4.2",
     "@storybook/react-vite": "^10.4.2",
@@ -225,7 +228,7 @@
     "vite": "catalog:vite",
     "vitest": "catalog:vitest"
   },
-    "exports": {
+  "exports": {
     ".": {
       "types": "./dist/app/index.d.ts",
       "import": "./dist/app/index.js",

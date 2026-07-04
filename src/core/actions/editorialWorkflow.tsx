@@ -22,7 +22,7 @@ import { createAssetProxy } from '../valueObjects/AssetProxy';
 import { addAssets } from './media';
 import { loadMedia } from './mediaLibrary';
 import ValidationErrorTypes from '../constants/validationErrorTypes';
-import { navigateToEntry } from '../routing/history';
+import { navigateToEntry } from '../routing/navigation';
 import { addNotification } from './notifications';
 
 import type {

@@ -1,8 +1,8 @@
 import React from 'react';
-import { MemoryRouter } from 'react-router-dom';
 import { render } from '@testing-library/react';
-import { vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
+import { RouterProvider } from '../../../routing/context';
 import { Sidebar } from '../Sidebar';
 
 import type * as DecapCmsUiDefault from '../../../../ui-default/index';
@@ -28,21 +28,21 @@ describe('Sidebar', () => {
   it('should render sidebar with a simple collection', () => {
     const collections = { posts: { name: 'posts', label: 'Posts' } };
     const { getByTestId } = render(
-      <MemoryRouter>
+      <RouterProvider>
         <Sidebar {...props} collections={collections} />
-      </MemoryRouter>,
+      </RouterProvider>,
     );
 
     expect(getByTestId('posts')).toHaveTextContent('Posts');
-    expect(getByTestId('posts')).toHaveAttribute('href', '/collections/posts');
+    expect(getByTestId('posts')).toHaveAttribute('href', '#/collections/posts');
   });
 
   it('should not render a hidden collection', () => {
     const collections = { posts: { name: 'posts', label: 'Posts', hide: true } };
     const { queryByTestId } = render(
-      <MemoryRouter>
+      <RouterProvider>
         <Sidebar {...props} collections={collections} />
-      </MemoryRouter>,
+      </RouterProvider>,
     );
 
     expect(queryByTestId('posts')).toBeNull();

@@ -1,8 +1,8 @@
 import { useRef, useCallback } from 'react';
 
-import { history } from '../routing/history';
+import { defaultRouter } from '../routing/router';
 
-import type { Transition, Update } from 'history';
+import type { RouterTransition, RouterUpdate } from '../routing/router';
 
 interface UseNavigationBlockerOptions {
   /** Function that returns true if navigation should be blocked */
@@ -21,8 +21,8 @@ interface UseNavigationBlockerOptions {
  *
  * This hook sets up:
  * 1. beforeunload event listener for browser close/refresh
- * 2. history.block for in-app navigation
- * 3. history.listen for cleanup after navigation
+ * 2. router.block for in-app navigation
+ * 3. router.subscribe for cleanup after navigation
  */
 export function useNavigationBlocker({
   shouldBlock,
@@ -44,10 +44,10 @@ export function useNavigationBlocker({
     };
     window.addEventListener('beforeunload', exitBlocker);
 
-    // In-app navigation blocker (history v5 API)
+    // In-app navigation blocker.
     // IMPORTANT: We must unblock BEFORE calling tx.retry() to prevent infinite loops,
     // because tx.retry() re-triggers the navigation which would call this blocker again.
-    const navigationBlocker = (tx: Transition) => {
+    const navigationBlocker = (tx: RouterTransition) => {
       // Check if path is allowed
       const pathname = tx.location.pathname;
       const isAllowed = allowedPaths.some(path => pathname.startsWith(path));
@@ -71,10 +71,10 @@ export function useNavigationBlocker({
       }
     };
 
-    unblockRef.current = history.block(navigationBlocker);
+    unblockRef.current = defaultRouter.block(navigationBlocker);
 
-    // Cleanup listener (history v5 API: listener receives { location, action })
-    unlistenRef.current = history.listen(({ location, action }: Update) => {
+    // Cleanup listener (receives { location, action } on every navigation)
+    unlistenRef.current = defaultRouter.subscribe(({ location, action }: RouterUpdate) => {
       const pathname = location.pathname;
       const isAllowed = allowedPaths.some(path => pathname.startsWith(path));
 

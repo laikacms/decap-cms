@@ -1,5 +1,6 @@
 vi.mock('../registry');
 
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import merge from 'lodash/merge';
 
 import { validateConfig } from '../validateConfig';

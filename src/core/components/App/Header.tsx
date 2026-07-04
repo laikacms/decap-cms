@@ -3,8 +3,9 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 import { translate } from 'react-polyglot';
-import { NavLink, useLocation } from 'react-router-dom';
 
+import { NavLink } from '../../routing/Link';
+import { useLocation } from '../../routing/context';
 import {
   Icon,
   Dropdown,

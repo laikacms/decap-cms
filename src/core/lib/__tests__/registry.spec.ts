@@ -1,3 +1,5 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 vi.spyOn(console, 'error').mockImplementation(() => {});
 
 describe('registry', () => {
