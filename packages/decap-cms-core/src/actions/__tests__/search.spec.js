@@ -1,4 +1,3 @@
-import { fromJS } from 'immutable';
 import configureMockStore from 'redux-mock-store';
 import thunk from 'redux-thunk';
 
@@ -22,7 +21,7 @@ describe('search', () => {
     });
     it('should search entries in all collections using integration', async () => {
       const store = mockStore({
-        collections: fromJS({ posts: { name: 'posts' }, pages: { name: 'pages' } }),
+        collections: { posts: { name: 'posts' }, pages: { name: 'pages' } },
         search: {},
       });
 
@@ -58,7 +57,7 @@ describe('search', () => {
 
     it('should search entries in a subset of collections using integration', async () => {
       const store = mockStore({
-        collections: fromJS({ posts: { name: 'posts' }, pages: { name: 'pages' } }),
+        collections: { posts: { name: 'posts' }, pages: { name: 'pages' } },
         search: {},
       });
 
@@ -94,7 +93,7 @@ describe('search', () => {
 
     it('should search entries in all collections using backend', async () => {
       const store = mockStore({
-        collections: fromJS({ posts: { name: 'posts' }, pages: { name: 'pages' } }),
+        collections: { posts: { name: 'posts' }, pages: { name: 'pages' } },
         search: {},
       });
 
@@ -125,14 +124,14 @@ describe('search', () => {
 
       expect(backend.search).toHaveBeenCalledTimes(1);
       expect(backend.search).toHaveBeenCalledWith(
-        [fromJS({ name: 'posts' }), fromJS({ name: 'pages' })],
+        [{ name: 'posts' }, { name: 'pages' }],
         'find me',
       );
     });
 
     it('should search entries in a subset of collections using backend', async () => {
       const store = mockStore({
-        collections: fromJS({ posts: { name: 'posts' }, pages: { name: 'pages' } }),
+        collections: { posts: { name: 'posts' }, pages: { name: 'pages' } },
         search: {},
       });
 
@@ -162,12 +161,12 @@ describe('search', () => {
       });
 
       expect(backend.search).toHaveBeenCalledTimes(1);
-      expect(backend.search).toHaveBeenCalledWith([fromJS({ name: 'pages' })], 'find me');
+      expect(backend.search).toHaveBeenCalledWith([{ name: 'pages' }], 'find me');
     });
 
     it('should ignore identical search in all collections', async () => {
       const store = mockStore({
-        collections: fromJS({ posts: { name: 'posts' }, pages: { name: 'pages' } }),
+        collections: { posts: { name: 'posts' }, pages: { name: 'pages' } },
         search: { isFetching: true, term: 'find me', collections: ['posts', 'pages'] },
       });
 
@@ -179,7 +178,7 @@ describe('search', () => {
 
     it('should ignore identical search in a subset of collections', async () => {
       const store = mockStore({
-        collections: fromJS({ posts: { name: 'posts' }, pages: { name: 'pages' } }),
+        collections: { posts: { name: 'posts' }, pages: { name: 'pages' } },
         search: { isFetching: true, term: 'find me', collections: ['pages'] },
       });
 
@@ -191,7 +190,7 @@ describe('search', () => {
 
     it('should not ignore same search term in different search collections', async () => {
       const store = mockStore({
-        collections: fromJS({ posts: { name: 'posts' }, pages: { name: 'pages' } }),
+        collections: { posts: { name: 'posts' }, pages: { name: 'pages' } },
         search: { isFetching: true, term: 'find me', collections: ['pages'] },
       });
       const backend = { search: jest.fn().mockResolvedValue({}) };
@@ -201,7 +200,7 @@ describe('search', () => {
 
       expect(backend.search).toHaveBeenCalledTimes(1);
       expect(backend.search).toHaveBeenCalledWith(
-        [fromJS({ name: 'posts' }), fromJS({ name: 'pages' })],
+        [{ name: 'posts' }, { name: 'pages' }],
         'find me',
       );
     });
@@ -234,7 +233,7 @@ describe('search', () => {
         queryResponse: Promise.resolve({ hits: [], query: 'stale' }),
       };
 
-      const baseCollections = fromJS({ posts: { name: 'posts' } });
+      const baseCollections = { posts: { name: 'posts' } };
 
       // getState is called twice by the thunk:
       //   1st call  — before dispatch(clearRequests())  → stale state with expired request
@@ -300,7 +299,7 @@ describe('search', () => {
 
       const state = {
         config: {},
-        collections: fromJS({ posts: { name: 'posts' } }),
+        collections: { posts: { name: 'posts' } },
         integrations: {},
         search: { requests: [validRequest] },
       };

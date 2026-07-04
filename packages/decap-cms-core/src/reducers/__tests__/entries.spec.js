@@ -574,9 +574,12 @@ describe('entries', () => {
         name: 'posts',
       };
 
-      expect(selectEntries(state, collection)).toEqual(
-        [{ slug: '1' }, { slug: '2' }, { slug: '3' }, { slug: '4' }],
-      );
+      expect(selectEntries(state, collection)).toEqual([
+        { slug: '1' },
+        { slug: '2' },
+        { slug: '3' },
+        { slug: '4' },
+      ]);
     });
   });
 
@@ -595,14 +598,12 @@ describe('entries', () => {
       name: 'posts',
     };
 
-    expect(selectEntries(state, collection)).toEqual(
-      [
-        { slug: '4', data: { title: '4' } },
-        { slug: '3', data: { title: '3' } },
-        { slug: '2', data: { title: '2' } },
-        { slug: '1', data: { title: '1' } },
-      ],
-    );
+    expect(selectEntries(state, collection)).toEqual([
+      { slug: '4', data: { title: '4' } },
+      { slug: '3', data: { title: '3' } },
+      { slug: '2', data: { title: '2' } },
+      { slug: '1', data: { title: '1' } },
+    ]);
   });
 
   it('should return sorted entries entries by nested field', () => {
@@ -620,14 +621,12 @@ describe('entries', () => {
       name: 'posts',
     };
 
-    expect(selectEntries(state, collection)).toEqual(
-      [
-        { slug: '4', data: { title: '4', nested: { date: 1 } } },
-        { slug: '3', data: { title: '3', nested: { date: 2 } } },
-        { slug: '2', data: { title: '2', nested: { date: 3 } } },
-        { slug: '1', data: { title: '1', nested: { date: 4 } } },
-      ],
-    );
+    expect(selectEntries(state, collection)).toEqual([
+      { slug: '4', data: { title: '4', nested: { date: 1 } } },
+      { slug: '3', data: { title: '3', nested: { date: 2 } } },
+      { slug: '2', data: { title: '2', nested: { date: 3 } } },
+      { slug: '1', data: { title: '1', nested: { date: 4 } } },
+    ]);
   });
 
   it('should return filtered entries entries by field', () => {
@@ -665,12 +664,10 @@ describe('entries', () => {
       name: 'posts',
     };
 
-    expect(selectEntries(state, collection)).toEqual(
-      [
-        { slug: '3', data: { title: '3', nested: { draft: false } } },
-        { slug: '4', data: { title: '4', nested: { draft: false } } },
-      ],
-    );
+    expect(selectEntries(state, collection)).toEqual([
+      { slug: '3', data: { title: '3', nested: { draft: false } } },
+      { slug: '4', data: { title: '4', nested: { draft: false } } },
+    ]);
   });
 
   it('should not match string field "truecolor" when pattern is boolean true', () => {
@@ -718,9 +715,9 @@ describe('entries', () => {
     };
     const collection = { name: 'posts' };
 
-    expect(selectEntries(state, collection)).toEqual(
-      [{ slug: '1', data: { title: '1', draft: true } }],
-    );
+    expect(selectEntries(state, collection)).toEqual([
+      { slug: '1', data: { title: '1', draft: true } },
+    ]);
   });
 
   it('should match boolean field false when pattern is boolean false', () => {
@@ -736,8 +733,8 @@ describe('entries', () => {
     };
     const collection = { name: 'posts' };
 
-    expect(selectEntries(state, collection)).toEqual(
-      [{ slug: '2', data: { title: '2', draft: false } }],
-    );
+    expect(selectEntries(state, collection)).toEqual([
+      { slug: '2', data: { title: '2', draft: false } },
+    ]);
   });
 });

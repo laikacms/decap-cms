@@ -405,9 +405,9 @@ describe('formatters', () => {
     it('should return slug', () => {
       selectIdentifier.mockReturnValueOnce('title');
 
-      expect(
-        slugFormatter({ slug: '{{slug}}' }, { title: 'Post Title' }, slugConfig),
-      ).toBe('post-title');
+      expect(slugFormatter({ slug: '{{slug}}' }, { title: 'Post Title' }, slugConfig)).toBe(
+        'post-title',
+      );
     });
 
     it('should return slug with path', () => {
@@ -459,9 +459,7 @@ describe('formatters', () => {
     });
 
     it('should return baseUrl for collection with no preview_path', () => {
-      expect(previewUrlFormatter('https://www.example.com', {})).toBe(
-        'https://www.example.com',
-      );
+      expect(previewUrlFormatter('https://www.example.com', {})).toBe('https://www.example.com');
     });
 
     it('should return preview url based on preview_path and preview_path_date_field', () => {

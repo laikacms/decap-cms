@@ -93,10 +93,7 @@ describe('entryDraft reducer', () => {
         initialState,
         actions.entryPersisting({ name: 'posts' }, { slug: 'slug' }),
       );
-      newState = reducer(
-        newState,
-        actions.entryPersisted({ name: 'posts' }, { slug: 'slug' }),
-      );
+      newState = reducer(newState, actions.entryPersisted({ name: 'posts' }, { slug: 'slug' }));
       expect(newState.entry.isPersisting).toBeUndefined();
     });
 
@@ -116,7 +113,10 @@ describe('entryDraft reducer', () => {
   describe('REMOVE_DRAFT_ENTRY_MEDIA_FILE', () => {
     it('should remove a media file', () => {
       const actualState = reducer(
-        { ...initialState, entry: { ...initialState.entry, mediaFiles: [{ id: '1' }, { id: '2' }] } },
+        {
+          ...initialState,
+          entry: { ...initialState.entry, mediaFiles: [{ id: '1' }, { id: '2' }] },
+        },
         actions.removeDraftEntryMediaFile({ id: '1' }),
       );
 
@@ -133,7 +133,10 @@ describe('entryDraft reducer', () => {
   describe('ADD_DRAFT_ENTRY_MEDIA_FILE', () => {
     it('should overwrite an existing media file', () => {
       const actualState = reducer(
-        { ...initialState, entry: { ...initialState.entry, mediaFiles: [{ id: '1', name: 'old' }] } },
+        {
+          ...initialState,
+          entry: { ...initialState.entry, mediaFiles: [{ id: '1', name: 'old' }] },
+        },
         actions.addDraftEntryMediaFile({ id: '1', name: 'new' }),
       );
 

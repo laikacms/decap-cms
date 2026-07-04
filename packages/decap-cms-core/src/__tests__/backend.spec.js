@@ -1,5 +1,3 @@
-import { Map, List, fromJS } from 'immutable';
-
 import {
   resolveBackend,
   Backend,
@@ -46,7 +44,7 @@ describe('Backend', () => {
             },
           ],
         },
-        Map({ field: 'testField', value: 'testValue' }),
+        { field: 'testField', value: 'testValue' },
       );
 
       expect(result.length).toBe(1);
@@ -68,7 +66,7 @@ describe('Backend', () => {
             },
           ],
         },
-        Map({ field: 'testField', value: 42 }),
+        { field: 'testField', value: 42 },
       );
 
       expect(result.length).toBe(1);
@@ -90,7 +88,7 @@ describe('Backend', () => {
             },
           ],
         },
-        Map({ field: 'testField', value: false }),
+        { field: 'testField', value: false },
       );
 
       expect(result.length).toBe(1);
@@ -112,7 +110,7 @@ describe('Backend', () => {
             },
           ],
         },
-        Map({ field: 'testField', value: 'testValue' }),
+        { field: 'testField', value: 'testValue' },
       );
 
       expect(result.length).toBe(1);
@@ -135,9 +133,9 @@ describe('Backend', () => {
 
       const backend = new Backend(implementation, { config: {}, backendName: 'github' });
 
-      const collection = Map({
+      const collection = {
         name: 'posts',
-      });
+      };
       const slug = 'slug';
 
       localForage.getItem.mockReturnValue();
@@ -155,9 +153,9 @@ describe('Backend', () => {
       };
       const backend = new Backend(implementation, { config: {}, backendName: 'github' });
 
-      const collection = Map({
+      const collection = {
         name: 'posts',
-      });
+      };
       const slug = 'slug';
 
       localForage.getItem.mockReturnValue({ raw: '' });
@@ -176,9 +174,9 @@ describe('Backend', () => {
 
       const backend = new Backend(implementation, { config: {}, backendName: 'github' });
 
-      const collection = Map({
+      const collection = {
         name: 'posts',
-      });
+      };
       const slug = 'slug';
 
       localForage.getItem.mockReturnValue({
@@ -216,9 +214,9 @@ describe('Backend', () => {
 
       const backend = new Backend(implementation, { config: {}, backendName: 'github' });
 
-      const collection = Map({
+      const collection = {
         name: 'posts',
-      });
+      };
       const slug = 'slug';
 
       localForage.getItem.mockReturnValue({
@@ -267,15 +265,15 @@ describe('Backend', () => {
 
       backend.entryToRaw = jest.fn().mockReturnValue('');
 
-      const collection = Map({
+      const collection = {
         name: 'posts',
-      });
+      };
 
       const slug = 'slug';
 
-      const entry = Map({
+      const entry = {
         slug,
-      });
+      };
 
       await backend.persistLocalDraftBackup(entry, collection);
 
@@ -293,17 +291,17 @@ describe('Backend', () => {
 
       backend.entryToRaw = jest.fn().mockReturnValue('content');
 
-      const collection = Map({
+      const collection = {
         name: 'posts',
-      });
+      };
 
       const slug = 'slug';
 
-      const entry = Map({
+      const entry = {
         slug,
         path: 'content/posts/entry.md',
-        mediaFiles: List([{ id: '1' }]),
-      });
+        mediaFiles: [{ id: '1' }],
+      };
 
       await backend.persistLocalDraftBackup(entry, collection);
 
@@ -331,18 +329,18 @@ describe('Backend', () => {
           commit_messages: 'commit-messages',
         },
       };
-      const collection = Map({
+      const collection = {
         name: 'posts',
-      });
-      const entry = Map({
+      };
+      const entry = {
         data: 'old_data',
-      });
-      const newEntry = Map({
+      };
+      const newEntry = {
         data: 'new_data',
-      });
-      const entryDraft = Map({
+      };
+      const entryDraft = {
         entry,
-      });
+      };
       const user = { login: 'login', name: 'name' };
       const backend = new Backend(implementation, { config, backendName: 'github' });
 
@@ -367,19 +365,19 @@ describe('Backend', () => {
           commit_messages: 'commit-messages',
         },
       };
-      const collection = Map({
+      const collection = {
         name: 'posts',
-      });
-      const entry = Map({
-        data: Map({}),
-      });
-      const newData = Map({});
-      const newEntry = Map({
+      };
+      const entry = {
+        data: {},
+      };
+      const newData = {};
+      const newEntry = {
         data: newData,
-      });
-      const entryDraft = Map({
+      };
+      const entryDraft = {
         entry,
-      });
+      };
       const user = { login: 'login', name: 'name' };
       const backend = new Backend(implementation, { config, backendName: 'github' });
 
@@ -406,28 +404,28 @@ describe('Backend', () => {
       };
 
       // File collection with a single file
-      const collection = Map({
+      const collection = {
         name: 'settings',
         type: FILES,
-        files: List([
-          Map({
+        files: [
+          {
             name: 'config',
             file: 'data/config.json',
-            fields: List([Map({ name: 'title', widget: 'string' })]),
-          }),
-        ]),
-      });
+            fields: [{ name: 'title', widget: 'string' }],
+          },
+        ],
+      };
 
-      const originalEntry = Map({
+      const originalEntry = {
         slug: 'config',
         path: 'data/config.json',
-        data: Map({ title: 'original' }),
-        meta: Map({ path: 'data/config.json' }),
-      });
+        data: { title: 'original' },
+        meta: { path: 'data/config.json' },
+      };
 
-      const entryDraft = Map({
+      const entryDraft = {
         entry: originalEntry,
-      });
+      };
 
       const user = { login: 'login', name: 'name' };
       const backend = new Backend(implementation, { config, backendName: 'github' });
@@ -440,7 +438,7 @@ describe('Backend', () => {
       // The key is that it returns the FULL entry with slug, not just the data
       backend.invokePreSaveEvent = jest.fn().mockImplementation(async entry => {
         // Simulate a preSave handler modifying the data field
-        return entry.setIn(['data', 'title'], 'modified');
+        return { ...entry, data: { ...entry.data, title: 'modified' } };
       });
 
       await backend.persistEntry({ config, collection, entryDraft });
@@ -450,9 +448,9 @@ describe('Backend', () => {
       const entryPassedToRaw = backend.entryToRaw.mock.calls[0][1];
 
       // Critical assertion: slug must be preserved
-      expect(entryPassedToRaw.get('slug')).toBe('config');
-      expect(entryPassedToRaw.get('path')).toBe('data/config.json');
-      expect(entryPassedToRaw.getIn(['data', 'title'])).toBe('modified');
+      expect(entryPassedToRaw.slug).toBe('config');
+      expect(entryPassedToRaw.path).toBe('data/config.json');
+      expect(entryPassedToRaw.data.title).toBe('modified');
     });
   });
 
@@ -500,16 +498,16 @@ describe('Backend', () => {
 
       const backend = new Backend(implementation, { config, backendName: 'github' });
 
-      const collection = fromJS({
+      const collection = {
         name: 'posts',
         folder: 'src/posts',
         fields: [],
-      });
+      };
 
       const state = {
         config,
-        integrations: Map({}),
-        mediaLibrary: Map({}),
+        integrations: {},
+        mediaLibrary: {},
       };
 
       const slug = 'slug';
@@ -548,7 +546,7 @@ describe('Backend', () => {
         getEntry: jest.fn(() => Promise.resolve()),
       };
 
-      const collection = fromJS({
+      const collection = {
         name: 'posts',
         fields: [
           {
@@ -559,15 +557,15 @@ describe('Backend', () => {
         folder: 'posts',
         slug: '{{slug}}',
         path: 'sub_dir/{{slug}}',
-      });
+      };
 
-      const entry = Map({
+      const entry = {
         title: 'some post title',
-      });
+      };
 
       const backend = new Backend(implementation, { config: {}, backendName: 'github' });
 
-      await expect(backend.generateUniqueSlug(collection, entry, Map({}), [])).resolves.toBe(
+      await expect(backend.generateUniqueSlug(collection, entry, {}, [])).resolves.toBe(
         'sub_dir/some-post-title',
       );
     });
@@ -585,7 +583,7 @@ describe('Backend', () => {
       implementation.getEntry.mockResolvedValueOnce({ data: 'data' });
       implementation.getEntry.mockResolvedValueOnce();
 
-      const collection = fromJS({
+      const collection = {
         name: 'posts',
         fields: [
           {
@@ -596,15 +594,15 @@ describe('Backend', () => {
         folder: 'posts',
         slug: '{{slug}}',
         path: 'sub_dir/{{slug}}',
-      });
+      };
 
-      const entry = Map({
+      const entry = {
         title: 'some post title',
-      });
+      };
 
       const backend = new Backend(implementation, { config: {}, backendName: 'github' });
 
-      await expect(backend.generateUniqueSlug(collection, entry, Map({}), [])).resolves.toBe(
+      await expect(backend.generateUniqueSlug(collection, entry, {}, [])).resolves.toBe(
         'sub_dir/some-post-title-1',
       );
     });
@@ -638,7 +636,7 @@ describe('Backend', () => {
 
   describe('search/query', () => {
     const collections = [
-      fromJS({
+      {
         name: 'posts',
         folder: 'posts',
         fields: [
@@ -648,8 +646,8 @@ describe('Backend', () => {
           { name: 'description', widget: 'string' },
           { name: 'nested', widget: 'object', fields: { name: 'title', widget: 'string' } },
         ],
-      }),
-      fromJS({
+      },
+      {
         name: 'pages',
         folder: 'pages',
         fields: [
@@ -659,7 +657,7 @@ describe('Backend', () => {
           { name: 'description', widget: 'string' },
           { name: 'nested', widget: 'object', fields: { name: 'title', widget: 'string' } },
         ],
-      }),
+      },
     ];
 
     const posts = [
@@ -717,13 +715,13 @@ describe('Backend', () => {
     beforeEach(() => {
       backend = new Backend(implementation, { config: {}, backendName: 'github' });
       backend.listAllEntries = jest.fn(collection => {
-        if (collection.get('name') === 'posts') {
+        if (collection.name === 'posts') {
           return Promise.resolve(posts);
         }
-        if (collection.get('name') === 'pages') {
+        if (collection.name === 'pages') {
           return Promise.resolve(pages);
         }
-        if (collection.get('name') === 'files') {
+        if (collection.name === 'files') {
           return Promise.resolve(files);
         }
         return Promise.resolve([]);
@@ -756,7 +754,7 @@ describe('Backend', () => {
 
     it('should search collections by summary description', async () => {
       const results = await backend.search(
-        collections.map(c => c.set('summary', '{{description}}')),
+        collections.map(c => ({ ...c, summary: '{{description}}' })),
         'find me by description',
       );
 
@@ -767,7 +765,7 @@ describe('Backend', () => {
 
     it('should search in file collection using top level fields', async () => {
       const collections = [
-        fromJS({
+        {
           name: 'files',
           files: [
             {
@@ -780,7 +778,7 @@ describe('Backend', () => {
             },
           ],
           type: FILES,
-        }),
+        },
       ];
 
       expect(await backend.search(collections, 'find me by author')).toEqual({
@@ -1097,29 +1095,29 @@ describe('Backend', () => {
       const config = {
         backend: { commit_messages: {} },
       };
-      const collection = Map({
+      const collection = {
         name: 'pages',
         type: FOLDER,
         folder: '_pages',
         create: true,
-        fields: List([Map({ name: 'title', widget: 'string' })]),
-        nested: Map({ depth: 10, subfolders: true }),
-        meta: Map({ path: Map({ label: 'Path', widget: 'string' }) }),
-      });
-      const entryDraft = Map({
-        entry: Map({
-          data: Map({ title: 'Test' }),
-          meta: Map({ path: 'blog' }),
+        fields: [{ name: 'title', widget: 'string' }],
+        nested: { depth: 10, subfolders: true },
+        meta: { path: { label: 'Path', widget: 'string' } },
+      };
+      const entryDraft = {
+        entry: {
+          data: { title: 'Test' },
+          meta: { path: 'blog' },
           newRecord: true,
-        }),
-      });
+        },
+      };
       const user = { login: 'user', name: 'User' };
       const backend = new Backend(implementation, { config, backendName: 'test' });
 
       backend.currentUser = jest.fn().mockResolvedValue(user);
       backend.entryToRaw = jest.fn().mockReturnValue('content');
       backend.generateUniqueSlug = jest.fn().mockResolvedValue('test-slug');
-      backend.invokePreSaveEvent = jest.fn().mockResolvedValue(entryDraft.get('entry'));
+      backend.invokePreSaveEvent = jest.fn().mockResolvedValue(entryDraft.entry);
       backend.invokePostSaveEvent = jest.fn().mockResolvedValue();
 
       await backend.persistEntry({
@@ -1127,7 +1125,7 @@ describe('Backend', () => {
         collection,
         entryDraft,
         assetProxies: [],
-        usedSlugs: List(),
+        usedSlugs: [],
       });
 
       expect(implementation.persistEntry).toHaveBeenCalledWith(
@@ -1147,29 +1145,29 @@ describe('Backend', () => {
       const config = {
         backend: { commit_messages: {} },
       };
-      const collection = Map({
+      const collection = {
         name: 'pages',
         type: FOLDER,
         folder: '_pages',
         create: true,
-        fields: List([Map({ name: 'title', widget: 'string' })]),
-        nested: Map({ depth: 10, subfolders: false }),
-        meta: Map({ path: Map({ label: 'Path', widget: 'string' }) }),
-      });
-      const entryDraft = Map({
-        entry: Map({
-          data: Map({ title: 'Test' }),
-          meta: Map({ path: 'blog' }),
+        fields: [{ name: 'title', widget: 'string' }],
+        nested: { depth: 10, subfolders: false },
+        meta: { path: { label: 'Path', widget: 'string' } },
+      };
+      const entryDraft = {
+        entry: {
+          data: { title: 'Test' },
+          meta: { path: 'blog' },
           newRecord: true,
-        }),
-      });
+        },
+      };
       const user = { login: 'user', name: 'User' };
       const backend = new Backend(implementation, { config, backendName: 'test' });
 
       backend.currentUser = jest.fn().mockResolvedValue(user);
       backend.entryToRaw = jest.fn().mockReturnValue('content');
       backend.generateUniqueSlug = jest.fn().mockResolvedValue('test-slug');
-      backend.invokePreSaveEvent = jest.fn().mockResolvedValue(entryDraft.get('entry'));
+      backend.invokePreSaveEvent = jest.fn().mockResolvedValue(entryDraft.entry);
       backend.invokePostSaveEvent = jest.fn().mockResolvedValue();
 
       await backend.persistEntry({
@@ -1177,7 +1175,7 @@ describe('Backend', () => {
         collection,
         entryDraft,
         assetProxies: [],
-        usedSlugs: List(),
+        usedSlugs: [],
       });
 
       expect(implementation.persistEntry).toHaveBeenCalledWith(
@@ -1197,29 +1195,29 @@ describe('Backend', () => {
       const config = {
         backend: { commit_messages: {} },
       };
-      const collection = Map({
+      const collection = {
         name: 'pages',
         type: FOLDER,
         folder: '_pages',
         create: true,
-        fields: List([Map({ name: 'title', widget: 'string' })]),
-        nested: Map({ depth: 10 }),
-        meta: Map({ path: Map({ label: 'Path', widget: 'string' }) }),
-      });
-      const entryDraft = Map({
-        entry: Map({
-          data: Map({ title: 'Test' }),
-          meta: Map({ path: 'blog' }),
+        fields: [{ name: 'title', widget: 'string' }],
+        nested: { depth: 10 },
+        meta: { path: { label: 'Path', widget: 'string' } },
+      };
+      const entryDraft = {
+        entry: {
+          data: { title: 'Test' },
+          meta: { path: 'blog' },
           newRecord: true,
-        }),
-      });
+        },
+      };
       const user = { login: 'user', name: 'User' };
       const backend = new Backend(implementation, { config, backendName: 'test' });
 
       backend.currentUser = jest.fn().mockResolvedValue(user);
       backend.entryToRaw = jest.fn().mockReturnValue('content');
       backend.generateUniqueSlug = jest.fn().mockResolvedValue('test-slug');
-      backend.invokePreSaveEvent = jest.fn().mockResolvedValue(entryDraft.get('entry'));
+      backend.invokePreSaveEvent = jest.fn().mockResolvedValue(entryDraft.entry);
       backend.invokePostSaveEvent = jest.fn().mockResolvedValue();
 
       await backend.persistEntry({
@@ -1227,7 +1225,7 @@ describe('Backend', () => {
         collection,
         entryDraft,
         assetProxies: [],
-        usedSlugs: List(),
+        usedSlugs: [],
       });
 
       expect(implementation.persistEntry).toHaveBeenCalledWith(
@@ -1241,7 +1239,7 @@ describe('Backend', () => {
 
   describe('slugFromCustomPath', () => {
     function makeCollection(folder) {
-      return Map({ folder });
+      return { folder };
     }
 
     it('strips folder prefix and .md extension to produce slug', () => {

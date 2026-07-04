@@ -1,6 +1,5 @@
 import configureMockStore from 'redux-mock-store';
 import thunk from 'redux-thunk';
-import { fromJS } from 'immutable';
 
 import { addAssets } from '../media';
 import * as actions from '../editorialWorkflow';
@@ -32,23 +31,23 @@ describe('editorialWorkflow actions', () => {
       };
 
       const store = mockStore({
-        config: fromJS({}),
-        collections: fromJS({
+        config: {},
+        collections: {
           posts: { name: 'posts' },
-        }),
-        mediaLibrary: fromJS({
+        },
+        mediaLibrary: {
           isLoading: false,
-        }),
-        editorialWorkflow: fromJS({
+        },
+        editorialWorkflow: {
           pages: { ids: [] },
-        }),
+        },
       });
 
       currentBackend.mockReturnValue(backend);
       createAssetProxy.mockResolvedValue(assetProxy);
 
       const slug = 'slug';
-      const collection = store.getState().collections.get('posts');
+      const collection = store.getState().collections.posts;
 
       return store.dispatch(actions.loadUnpublishedEntry(collection, slug)).then(() => {
         const actions = store.getActions();
@@ -90,14 +89,14 @@ describe('editorialWorkflow actions', () => {
       };
 
       const store = mockStore({
-        config: fromJS({}),
-        integrations: fromJS([]),
-        mediaLibrary: fromJS({
+        config: {},
+        integrations: [],
+        mediaLibrary: {
           isLoading: false,
-        }),
-        collections: fromJS({
+        },
+        collections: {
           posts: { name: 'posts' },
-        }),
+        },
       });
 
       currentBackend.mockReturnValue(backend);
@@ -175,10 +174,10 @@ describe('editorialWorkflow actions', () => {
       };
 
       const store = mockStore({
-        config: fromJS({}),
-        collections: fromJS({
+        config: {},
+        collections: {
           posts: { name: 'posts' },
-        }),
+        },
       });
 
       currentBackend.mockReturnValue(backend);

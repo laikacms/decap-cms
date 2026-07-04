@@ -13,9 +13,7 @@ describe('i18n', () => {
     });
 
     it('should return true for collection with i18n', () => {
-      expect(i18n.hasI18n({ i18n: { structure: i18n.I18N_STRUCTURE.SINGLE_FILE } })).toBe(
-        true,
-      );
+      expect(i18n.hasI18n({ i18n: { structure: i18n.I18N_STRUCTURE.SINGLE_FILE } })).toBe(true);
     });
   });
 
@@ -41,19 +39,13 @@ describe('i18n', () => {
   describe('getI18nFilesDepth', () => {
     it('should increase depth when i18n structure is I18N_STRUCTURE.MULTIPLE_FOLDERS', () => {
       expect(
-        i18n.getI18nFilesDepth(
-          { i18n: { structure: i18n.I18N_STRUCTURE.MULTIPLE_FOLDERS } },
-          5,
-        ),
+        i18n.getI18nFilesDepth({ i18n: { structure: i18n.I18N_STRUCTURE.MULTIPLE_FOLDERS } }, 5),
       ).toBe(6);
     });
 
     it('should return current depth when i18n structure is not I18N_STRUCTURE.MULTIPLE_FOLDERS', () => {
       expect(
-        i18n.getI18nFilesDepth(
-          { i18n: { structure: i18n.I18N_STRUCTURE.MULTIPLE_FILES } },
-          5,
-        ),
+        i18n.getI18nFilesDepth({ i18n: { structure: i18n.I18N_STRUCTURE.MULTIPLE_FILES } }, 5),
       ).toBe(5);
       expect(
         i18n.getI18nFilesDepth({ i18n: { structure: i18n.I18N_STRUCTURE.SINGLE_FILE } }, 5),
@@ -64,15 +56,11 @@ describe('i18n', () => {
 
   describe('isFieldTranslatable', () => {
     it('should return true when not default locale and has I18N_FIELD.TRANSLATE', () => {
-      expect(
-        i18n.isFieldTranslatable({ i18n: i18n.I18N_FIELD.TRANSLATE }, 'en', 'de'),
-      ).toBe(true);
+      expect(i18n.isFieldTranslatable({ i18n: i18n.I18N_FIELD.TRANSLATE }, 'en', 'de')).toBe(true);
     });
 
     it('should return false when default locale and has I18N_FIELD.TRANSLATE', () => {
-      expect(
-        i18n.isFieldTranslatable({ i18n: i18n.I18N_FIELD.TRANSLATE }, 'en', 'en'),
-      ).toBe(false);
+      expect(i18n.isFieldTranslatable({ i18n: i18n.I18N_FIELD.TRANSLATE }, 'en', 'en')).toBe(false);
     });
 
     it("should return false when doesn't have i18n", () => {
@@ -82,15 +70,11 @@ describe('i18n', () => {
 
   describe('isFieldDuplicate', () => {
     it('should return true when not default locale and has I18N_FIELD.TRANSLATE', () => {
-      expect(i18n.isFieldDuplicate({ i18n: i18n.I18N_FIELD.DUPLICATE }, 'en', 'de')).toBe(
-        true,
-      );
+      expect(i18n.isFieldDuplicate({ i18n: i18n.I18N_FIELD.DUPLICATE }, 'en', 'de')).toBe(true);
     });
 
     it('should return false when default locale and has I18N_FIELD.TRANSLATE', () => {
-      expect(i18n.isFieldDuplicate({ i18n: i18n.I18N_FIELD.DUPLICATE }, 'en', 'en')).toBe(
-        false,
-      );
+      expect(i18n.isFieldDuplicate({ i18n: i18n.I18N_FIELD.DUPLICATE }, 'en', 'en')).toBe(false);
     });
 
     it("should return false when doesn't have i18n", () => {
@@ -690,13 +674,12 @@ describe('i18n', () => {
     it('should duplicate non nested field when field i18n is DUPLICATE', () => {
       const date = new Date('2020/01/01');
       expect(
-        i18n
-          .duplicateI18nFields(
-            { entry: { data: { date } } },
-            { name: 'date', i18n: i18n.I18N_FIELD.DUPLICATE },
-            ['en', 'de', 'fr'],
-            'en',
-          ),
+        i18n.duplicateI18nFields(
+          { entry: { data: { date } } },
+          { name: 'date', i18n: i18n.I18N_FIELD.DUPLICATE },
+          ['en', 'de', 'fr'],
+          'en',
+        ),
       ).toEqual({
         entry: {
           data: { date },
@@ -712,13 +695,12 @@ describe('i18n', () => {
       const date = new Date('2020/01/01');
       [i18n.I18N_FIELD.TRANSLATE, i18n.I18N_FIELD.TRANSLATE.DUPLICATE].forEach(fieldI18n => {
         expect(
-          i18n
-            .duplicateI18nFields(
-              { entry: { data: { date } } },
-              { name: 'date', i18n: fieldI18n },
-              ['en', 'de', 'fr'],
-              'en',
-            ),
+          i18n.duplicateI18nFields(
+            { entry: { data: { date } } },
+            { name: 'date', i18n: fieldI18n },
+            ['en', 'de', 'fr'],
+            'en',
+          ),
         ).toEqual({
           entry: {
             data: { date },
@@ -731,21 +713,20 @@ describe('i18n', () => {
       const date = new Date('2020/01/01');
       const value = { title: 'title', date, boolean: true };
       expect(
-        i18n
-          .duplicateI18nFields(
-            { entry: { data: { object: value } } },
-            {
-              name: 'object',
-              fields: [
-                { name: 'string', i18n: i18n.I18N_FIELD.TRANSLATE },
-                { name: 'date', i18n: i18n.I18N_FIELD.DUPLICATE },
-                { name: 'boolean', i18n: i18n.I18N_FIELD.NONE },
-              ],
-              i18n: i18n.I18N_FIELD.TRANSLATE,
-            },
-            ['en', 'de', 'fr'],
-            'en',
-          ),
+        i18n.duplicateI18nFields(
+          { entry: { data: { object: value } } },
+          {
+            name: 'object',
+            fields: [
+              { name: 'string', i18n: i18n.I18N_FIELD.TRANSLATE },
+              { name: 'date', i18n: i18n.I18N_FIELD.DUPLICATE },
+              { name: 'boolean', i18n: i18n.I18N_FIELD.NONE },
+            ],
+            i18n: i18n.I18N_FIELD.TRANSLATE,
+          },
+          ['en', 'de', 'fr'],
+          'en',
+        ),
       ).toEqual({
         entry: {
           data: { object: value },
@@ -874,14 +855,13 @@ describe('i18n', () => {
   describe('getPreviewEntry', () => {
     it('should set data to i18n data when locale is not default', () => {
       expect(
-        i18n
-          .getPreviewEntry(
-            {
-              data: { title: 'en', body: 'markdown' },
-              i18n: { de: { data: { title: 'de' } } },
-            },
-            'de',
-          ),
+        i18n.getPreviewEntry(
+          {
+            data: { title: 'en', body: 'markdown' },
+            i18n: { de: { data: { title: 'de' } } },
+          },
+          'de',
+        ),
       ).toEqual({
         data: { title: 'de' },
         i18n: { de: { data: { title: 'de' } } },

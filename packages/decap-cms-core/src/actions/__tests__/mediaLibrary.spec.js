@@ -1,6 +1,5 @@
 import configureMockStore from 'redux-mock-store';
 import thunk from 'redux-thunk';
-import { List, Map } from 'immutable';
 
 import { insertMedia, persistMedia, deleteMedia } from '../mediaLibrary';
 
@@ -24,12 +23,12 @@ describe('mediaLibrary', () => {
         config: {
           public_folder: '/media',
         },
-        collections: Map({
-          posts: Map({ name: 'posts' }),
-        }),
-        entryDraft: Map({
-          entry: Map({ isPersisting: false, collection: 'posts' }),
-        }),
+        collections: {
+          posts: { name: 'posts' },
+        },
+        entryDraft: {
+          entry: { isPersisting: false, collection: 'posts' },
+        },
       });
 
       store.dispatch(insertMedia('foo.png'));
@@ -44,12 +43,12 @@ describe('mediaLibrary', () => {
         config: {
           public_folder: '/media',
         },
-        collections: Map({
-          posts: Map({ name: 'posts' }),
-        }),
-        entryDraft: Map({
-          entry: Map({ isPersisting: false, collection: 'posts' }),
-        }),
+        collections: {
+          posts: { name: 'posts' },
+        },
+        entryDraft: {
+          entry: { isPersisting: false, collection: 'posts' },
+        },
       });
 
       store.dispatch(insertMedia(['foo.png']));
@@ -90,16 +89,16 @@ describe('mediaLibrary', () => {
             sanitize_replacement: '-',
           },
         },
-        collections: Map({
-          posts: Map({ name: 'posts' }),
-        }),
-        integrations: Map(),
-        mediaLibrary: Map({
-          files: List(),
-        }),
-        entryDraft: Map({
-          entry: Map({ isPersisting: false, collection: 'posts' }),
-        }),
+        collections: {
+          posts: { name: 'posts' },
+        },
+        integrations: {},
+        mediaLibrary: {
+          files: [],
+        },
+        entryDraft: {
+          entry: { isPersisting: false, collection: 'posts' },
+        },
       });
 
       const file = new File([''], 'name.png');
@@ -141,16 +140,16 @@ describe('mediaLibrary', () => {
             sanitize_replacement: '-',
           },
         },
-        collections: Map({
-          posts: Map({ name: 'posts' }),
-        }),
-        integrations: Map(),
-        mediaLibrary: Map({
-          files: List(),
-        }),
-        entryDraft: Map({
-          entry: Map(),
-        }),
+        collections: {
+          posts: { name: 'posts' },
+        },
+        integrations: {},
+        mediaLibrary: {
+          files: [],
+        },
+        entryDraft: {
+          entry: {},
+        },
       });
 
       const file = new File([''], 'name.png');
@@ -195,16 +194,16 @@ describe('mediaLibrary', () => {
             sanitize_replacement: '_',
           },
         },
-        collections: Map({
-          posts: Map({ name: 'posts' }),
-        }),
-        integrations: Map(),
-        mediaLibrary: Map({
-          files: List(),
-        }),
-        entryDraft: Map({
-          entry: Map(),
-        }),
+        collections: {
+          posts: { name: 'posts' },
+        },
+        integrations: {},
+        mediaLibrary: {
+          files: [],
+        },
+        entryDraft: {
+          entry: {},
+        },
       });
 
       const file = new File([''], 'abc DEF éâçÖ $;, .png');
@@ -251,14 +250,14 @@ describe('mediaLibrary', () => {
         config: {
           publish_mode: 'editorial_workflow',
         },
-        collections: Map(),
-        integrations: Map(),
-        mediaLibrary: Map({
-          files: List(),
-        }),
-        entryDraft: Map({
-          entry: Map({ isPersisting: false }),
-        }),
+        collections: {},
+        integrations: {},
+        mediaLibrary: {
+          files: [],
+        },
+        entryDraft: {
+          entry: { isPersisting: false },
+        },
       });
 
       const file = { name: 'name.png', id: 'id', path: 'static/media/name.png', draft: false };
@@ -294,14 +293,14 @@ describe('mediaLibrary', () => {
         config: {
           publish_mode: 'editorial_workflow',
         },
-        collections: Map(),
-        integrations: Map(),
-        mediaLibrary: Map({
-          files: List(),
-        }),
-        entryDraft: Map({
-          entry: Map({ isPersisting: false }),
-        }),
+        collections: {},
+        integrations: {},
+        mediaLibrary: {
+          files: [],
+        },
+        entryDraft: {
+          entry: { isPersisting: false },
+        },
       });
 
       const file = { name: 'name.png', id: 'id', path: 'static/media/name.png', draft: true };

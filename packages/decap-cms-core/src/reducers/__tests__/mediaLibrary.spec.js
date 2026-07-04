@@ -1,5 +1,3 @@
-import { Map, fromJS } from 'immutable';
-
 import { mediaDeleted } from '../../actions/mediaLibrary';
 import mediaLibrary, {
   selectMediaFiles,
@@ -15,33 +13,31 @@ describe('mediaLibrary', () => {
   it('should remove media file by key', () => {
     expect(
       mediaLibrary(
-        Map({
+        {
           files: [{ key: 'key1' }, { key: 'key2' }],
-        }),
+        },
         mediaDeleted({ key: 'key1' }),
       ),
-    ).toEqual(
-      Map({
-        isDeleting: false,
-        files: [{ key: 'key2' }],
-      }),
-    );
+    ).toEqual({
+      isDeleting: false,
+      displayURLs: {},
+      files: [{ key: 'key2' }],
+    });
   });
 
   it('should remove media file by id', () => {
     expect(
       mediaLibrary(
-        Map({
+        {
           files: [{ id: 'id1' }, { id: 'id2' }],
-        }),
+        },
         mediaDeleted({ id: 'id1' }),
       ),
-    ).toEqual(
-      Map({
-        isDeleting: false,
-        files: [{ id: 'id2' }],
-      }),
-    );
+    ).toEqual({
+      isDeleting: false,
+      displayURLs: {},
+      files: [{ id: 'id2' }],
+    });
   });
 
   it('should select draft media files from field when editing a draft', () => {
@@ -50,9 +46,9 @@ describe('mediaLibrary', () => {
     selectEditingDraft.mockReturnValue(true);
     selectMediaFolder.mockReturnValue('/static/images/posts/logos');
 
-    const imageField = fromJS({ name: 'image' });
-    const collection = fromJS({ fields: [imageField] });
-    const entry = fromJS({
+    const imageField = { name: 'image' };
+    const collection = { fields: [imageField] };
+    const entry = {
       collection: 'posts',
       mediaFiles: [
         { id: 1, path: '/static/images/posts/logos/logo.png' },
@@ -60,13 +56,13 @@ describe('mediaLibrary', () => {
         { id: 3, path: '/static/images/posts/index.png' },
       ],
       data: {},
-    });
+    };
     const state = {
       config: {},
-      collections: fromJS({ posts: collection }),
-      entryDraft: fromJS({
+      collections: { posts: collection },
+      entryDraft: {
         entry,
-      }),
+      },
     };
 
     expect(selectMediaFiles(state, imageField)).toEqual([
@@ -82,9 +78,9 @@ describe('mediaLibrary', () => {
     selectEditingDraft.mockReturnValue(true);
     selectMediaFolder.mockReturnValue('/static/images/posts');
 
-    const imageField = fromJS({ name: 'image' });
-    const collection = fromJS({ fields: [imageField] });
-    const entry = fromJS({
+    const imageField = { name: 'image' };
+    const collection = { fields: [imageField] };
+    const entry = {
       collection: 'posts',
       mediaFiles: [
         { id: 1, path: '/static/images/posts/logos/logo.png' },
@@ -92,13 +88,13 @@ describe('mediaLibrary', () => {
         { id: 3, path: '/static/images/posts/index.png' },
       ],
       data: {},
-    });
+    };
     const state = {
       config: {},
-      collections: fromJS({ posts: collection }),
-      entryDraft: fromJS({
+      collections: { posts: collection },
+      entryDraft: {
         entry,
-      }),
+      },
     };
 
     expect(selectMediaFiles(state, imageField)).toEqual([
@@ -114,7 +110,7 @@ describe('mediaLibrary', () => {
     selectEditingDraft.mockReturnValue(false);
 
     const state = {
-      mediaLibrary: Map({ files: [{ id: 1 }] }),
+      mediaLibrary: { files: [{ id: 1 }] },
     };
 
     expect(selectMediaFiles(state)).toEqual([{ id: 1 }]);
@@ -126,7 +122,7 @@ describe('mediaLibrary', () => {
     selectIntegration.mockReturnValue({});
 
     const state = {
-      mediaLibrary: Map({ files: [{ id: 1 }] }),
+      mediaLibrary: { files: [{ id: 1 }] },
     };
 
     expect(selectMediaFiles(state)).toEqual([{ id: 1 }]);
@@ -138,7 +134,7 @@ describe('mediaLibrary', () => {
     selectEditingDraft.mockReturnValue(false);
 
     const state = {
-      mediaLibrary: Map({ files: [{ id: 1, path: 'path' }] }),
+      mediaLibrary: { files: [{ id: 1, path: 'path' }] },
     };
 
     expect(selectMediaFileByPath(state, 'path')).toEqual({ id: 1, path: 'path' });
@@ -146,9 +142,9 @@ describe('mediaLibrary', () => {
 
   it('should return media display URL state', () => {
     const state = {
-      mediaLibrary: fromJS({ displayURLs: { id: { url: 'url' } } }),
+      mediaLibrary: { displayURLs: { id: { url: 'url' } } },
     };
 
-    expect(selectMediaDisplayURL(state, 'id')).toEqual(Map({ url: 'url' }));
+    expect(selectMediaDisplayURL(state, 'id')).toEqual({ url: 'url' });
   });
 });
