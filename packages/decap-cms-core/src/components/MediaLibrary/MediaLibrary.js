@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import orderBy from 'lodash/orderBy';
 import map from 'lodash/map';
@@ -40,7 +39,7 @@ class MediaLibrary extends React.Component {
   static propTypes = {
     isVisible: PropTypes.bool,
     loadMediaDisplayURL: PropTypes.func,
-    displayURLs: ImmutablePropTypes.map,
+    displayURLs: PropTypes.objectOf(PropTypes.shape({ url: PropTypes.string })),
     canInsert: PropTypes.bool,
     files: PropTypes.arrayOf(PropTypes.shape(fileShape)).isRequired,
     dynamicSearch: PropTypes.bool,
@@ -52,7 +51,7 @@ class MediaLibrary extends React.Component {
     hasNextPage: PropTypes.bool,
     isPaginating: PropTypes.bool,
     privateUpload: PropTypes.bool,
-    config: ImmutablePropTypes.map,
+    config: PropTypes.object,
     loadMedia: PropTypes.func.isRequired,
     dynamicSearchQuery: PropTypes.string,
     page: PropTypes.number,
@@ -194,7 +193,7 @@ class MediaLibrary extends React.Component {
     const { files: fileList } = event.dataTransfer || event.target;
     const files = [...fileList];
     const file = files[0];
-    const maxFileSize = config.get('max_file_size');
+    const maxFileSize = config.max_file_size;
 
     if (maxFileSize && file.size > maxFileSize) {
       window.alert(
@@ -246,7 +245,7 @@ class MediaLibrary extends React.Component {
   handleDownload = () => {
     const { selectedFile } = this.state;
     const { displayURLs } = this.props;
-    const url = displayURLs.getIn([selectedFile.id, 'url']) || selectedFile.url;
+    const url = displayURLs[selectedFile.id]?.url || selectedFile.url;
     if (!url) {
       return;
     }
@@ -376,24 +375,24 @@ class MediaLibrary extends React.Component {
 
 function mapStateToProps(state) {
   const { mediaLibrary } = state;
-  const field = mediaLibrary.get('field');
+  const { field } = mediaLibrary;
   const mediaLibraryProps = {
-    isVisible: mediaLibrary.get('isVisible'),
-    canInsert: mediaLibrary.get('canInsert'),
+    isVisible: mediaLibrary.isVisible,
+    canInsert: mediaLibrary.canInsert,
     files: selectMediaFiles(state, field),
-    displayURLs: mediaLibrary.get('displayURLs'),
-    dynamicSearch: mediaLibrary.get('dynamicSearch'),
-    dynamicSearchActive: mediaLibrary.get('dynamicSearchActive'),
-    dynamicSearchQuery: mediaLibrary.get('dynamicSearchQuery'),
-    forImage: mediaLibrary.get('forImage'),
-    isLoading: mediaLibrary.get('isLoading'),
-    isPersisting: mediaLibrary.get('isPersisting'),
-    isDeleting: mediaLibrary.get('isDeleting'),
-    privateUpload: mediaLibrary.get('privateUpload'),
-    config: mediaLibrary.get('config'),
-    page: mediaLibrary.get('page'),
-    hasNextPage: mediaLibrary.get('hasNextPage'),
-    isPaginating: mediaLibrary.get('isPaginating'),
+    displayURLs: mediaLibrary.displayURLs,
+    dynamicSearch: mediaLibrary.dynamicSearch,
+    dynamicSearchActive: mediaLibrary.dynamicSearchActive,
+    dynamicSearchQuery: mediaLibrary.dynamicSearchQuery,
+    forImage: mediaLibrary.forImage,
+    isLoading: mediaLibrary.isLoading,
+    isPersisting: mediaLibrary.isPersisting,
+    isDeleting: mediaLibrary.isDeleting,
+    privateUpload: mediaLibrary.privateUpload,
+    config: mediaLibrary.config,
+    page: mediaLibrary.page,
+    hasNextPage: mediaLibrary.hasNextPage,
+    isPaginating: mediaLibrary.isPaginating,
     field,
   };
   return { ...mediaLibraryProps };
