@@ -818,9 +818,14 @@
         : fail(`theme mode not persisted (got: ${JSON.stringify(stored)})`);
 
       // === Test 19.14: quick-add dropdown is keyboard-operable ===
-      const qaBtn = Array.from(idoc.querySelectorAll('button'))
-        .find(b => /quick.?add|add new|create/i.test(b.textContent || '') ||
-                   /quick.?add|add new|create/i.test(b.getAttribute('aria-label') || ''));
+      // NOTE (DCMS-319): the real trigger is a `<span role="button">` in the
+      // header, not a native `<button>`. A `button`-only fuzzy query instead
+      // grabs an unrelated per-collection "Quick add" nav button in a
+      // dashboard card footer, which navigates straight to the collection's
+      // new-entry route and never opens a menu. Scope to the header and
+      // include role="button" elements, matching Test 12 / 14.47.
+      const qaBtn = Array.from(idoc.querySelectorAll('header [role="button"], header button'))
+        .find(b => /^Quick add$/.test((b.textContent || '').trim()));
       if (qaBtn) {
         qaBtn.click();
         await sleep(250);
