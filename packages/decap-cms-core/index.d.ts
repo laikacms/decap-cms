@@ -474,6 +474,7 @@ declare module 'decap-cms-core' {
     logo_url?: string; // Deprecated, replaced by `logo.src`
     logo?: {
       src: string;
+      /** Shown in the header by default once `src` is set; set to `false` to hide it there. */
       show_in_header?: boolean;
     };
     show_preview_links?: boolean;

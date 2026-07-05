@@ -187,6 +187,8 @@ class Header extends React.Component {
       .filter(collection => collection.get('create'))
       .toList();
 
+    // Opt-out default (DCMS-081/155/371): the logo shows in the header whenever a src is
+    // configured, unless `show_in_header` is explicitly set to `false`.
     const shouldShowLogo = (logo?.src || logoUrl) && logo?.show_in_header !== false;
 
     return (
