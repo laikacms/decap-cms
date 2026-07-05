@@ -382,8 +382,8 @@ export class EditorToolbar extends React.Component {
     const { t, currentStatus } = this.props;
 
     const statusToLocaleKey = {
-      [status.get('DRAFT')]: 'statusInfoTooltipDraft',
-      [status.get('PENDING_REVIEW')]: 'statusInfoTooltipInReview',
+      [status.DRAFT]: 'statusInfoTooltipDraft',
+      [status.PENDING_REVIEW]: 'statusInfoTooltipInReview',
     };
 
     const statusKey = Object.keys(statusToLocaleKey).find(key => key === currentStatus);
@@ -403,9 +403,9 @@ export class EditorToolbar extends React.Component {
     const { isUpdatingStatus, onChangeStatus, currentStatus, t, useOpenAuthoring } = this.props;
 
     const statusToTranslation = {
-      [status.get('DRAFT')]: t('editor.editorToolbar.draft'),
-      [status.get('PENDING_REVIEW')]: t('editor.editorToolbar.inReview'),
-      [status.get('PENDING_PUBLISH')]: t('editor.editorToolbar.ready'),
+      [status.DRAFT]: t('editor.editorToolbar.draft'),
+      [status.PENDING_REVIEW]: t('editor.editorToolbar.inReview'),
+      [status.PENDING_PUBLISH]: t('editor.editorToolbar.ready'),
     };
 
     const buttonText = isUpdatingStatus
@@ -422,12 +422,12 @@ export class EditorToolbar extends React.Component {
           <StatusDropdownItem
             label={t('editor.editorToolbar.draft')}
             onClick={() => onChangeStatus('DRAFT')}
-            icon={currentStatus === status.get('DRAFT') ? 'check' : null}
+            icon={currentStatus === status.DRAFT ? 'check' : null}
           />
           <StatusDropdownItem
             label={t('editor.editorToolbar.inReview')}
             onClick={() => onChangeStatus('PENDING_REVIEW')}
-            icon={currentStatus === status.get('PENDING_REVIEW') ? 'check' : null}
+            icon={currentStatus === status.PENDING_REVIEW ? 'check' : null}
           />
           {useOpenAuthoring ? (
             ''
@@ -435,7 +435,7 @@ export class EditorToolbar extends React.Component {
             <StatusDropdownItem
               label={t('editor.editorToolbar.ready')}
               onClick={() => onChangeStatus('PENDING_PUBLISH')}
-              icon={currentStatus === status.get('PENDING_PUBLISH') ? 'check' : null}
+              icon={currentStatus === status.PENDING_PUBLISH ? 'check' : null}
             />
           )}
         </ToolbarDropdown>
