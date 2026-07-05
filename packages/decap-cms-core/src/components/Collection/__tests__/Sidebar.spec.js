@@ -1,7 +1,6 @@
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { render } from '@testing-library/react';
-import { fromJS } from 'immutable';
 
 import { Sidebar } from '../Sidebar';
 
@@ -24,7 +23,7 @@ describe('Sidebar', () => {
     t: jest.fn(key => key),
   };
   it('should render sidebar with a simple collection', () => {
-    const collections = fromJS([{ name: 'posts', label: 'Posts' }]).toOrderedMap();
+    const collections = { posts: { name: 'posts', label: 'Posts' } };
     const { asFragment, getByTestId } = render(
       <MemoryRouter>
         <Sidebar {...props} collections={collections} />
@@ -38,7 +37,7 @@ describe('Sidebar', () => {
   });
 
   it('should not render a hidden collection', () => {
-    const collections = fromJS([{ name: 'posts', label: 'Posts', hide: true }]).toOrderedMap();
+    const collections = { posts: { name: 'posts', label: 'Posts', hide: true } };
     const { queryByTestId } = render(
       <MemoryRouter>
         <Sidebar {...props} collections={collections} />
@@ -49,9 +48,7 @@ describe('Sidebar', () => {
   });
 
   it('should render sidebar with a nested collection', () => {
-    const collections = fromJS([
-      { name: 'posts', label: 'Posts', nested: { depth: 10 } },
-    ]).toOrderedMap();
+    const collections = { posts: { name: 'posts', label: 'Posts', nested: { depth: 10 } } };
     const { asFragment } = render(
       <MemoryRouter>
         <Sidebar {...props} collections={collections} />
@@ -62,9 +59,7 @@ describe('Sidebar', () => {
   });
 
   it('should render nested collection with filterTerm', () => {
-    const collections = fromJS([
-      { name: 'posts', label: 'Posts', nested: { depth: 10 } },
-    ]).toOrderedMap();
+    const collections = { posts: { name: 'posts', label: 'Posts', nested: { depth: 10 } } };
     const { asFragment } = render(
       <MemoryRouter>
         <Sidebar {...props} collections={collections} filterTerm="dir1/dir2" />
@@ -75,7 +70,7 @@ describe('Sidebar', () => {
   });
 
   it('should render sidebar without search', () => {
-    const collections = fromJS([{ name: 'posts', label: 'Posts' }]).toOrderedMap();
+    const collections = { posts: { name: 'posts', label: 'Posts' } };
     const { asFragment } = render(
       <MemoryRouter>
         <Sidebar {...props} collections={collections} isSearchEnabled={false} />

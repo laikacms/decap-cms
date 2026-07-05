@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import isEqual from 'lodash/isEqual';
 import { Cursor } from 'decap-cms-lib-util';
@@ -18,9 +17,9 @@ class EntriesSearch extends React.Component {
     searchEntries: PropTypes.func.isRequired,
     clearSearch: PropTypes.func.isRequired,
     searchTerm: PropTypes.string.isRequired,
-    collections: ImmutablePropTypes.seq,
+    collections: PropTypes.array,
     collectionNames: PropTypes.array,
-    entries: ImmutablePropTypes.list,
+    entries: PropTypes.array,
     page: PropTypes.number,
     getWorkflowStatus: PropTypes.func,
   };
@@ -80,15 +79,15 @@ class EntriesSearch extends React.Component {
 
 function mapStateToProps(state, ownProps) {
   const { searchTerm } = ownProps;
-  const collections = ownProps.collections.toIndexedSeq();
-  const collectionNames = ownProps.collections.keySeq().toArray();
+  const collections = Object.values(ownProps.collections);
+  const collectionNames = Object.keys(ownProps.collections);
   const isFetching = state.search.isFetching;
   const page = state.search.page;
   const entries = selectSearchedEntries(state, collectionNames);
 
   function getWorkflowStatus(collectionName, slug) {
     const unpublishedEntry = selectUnpublishedEntry(state, collectionName, slug);
-    return unpublishedEntry ? unpublishedEntry.get('status') : null;
+    return unpublishedEntry ? unpublishedEntry.status : null;
   }
 
   return { isFetching, page, collections, collectionNames, entries, searchTerm, getWorkflowStatus };

@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
@@ -34,7 +33,7 @@ const GroupHeading = styled.h2`
 const GroupContainer = styled.div``;
 
 function getGroupEntries(entries, paths) {
-  return entries.filter(entry => paths.has(entry.get('path')));
+  return entries.filter(entry => paths.includes(entry.path));
 }
 
 function getGroupTitle(group, t) {
@@ -62,10 +61,10 @@ function withGroups(groups, entries, EntriesToRender, t) {
 
 export class EntriesCollection extends React.Component {
   static propTypes = {
-    collection: ImmutablePropTypes.map.isRequired,
-    collections: ImmutablePropTypes.iterable,
+    collection: PropTypes.object.isRequired,
+    collections: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
     page: PropTypes.number,
-    entries: ImmutablePropTypes.list,
+    entries: PropTypes.array,
     groups: PropTypes.array,
     isFetching: PropTypes.bool.isRequired,
     viewStyle: PropTypes.string,
@@ -152,7 +151,7 @@ export class EntriesCollection extends React.Component {
           collections={collection}
           entries={entries}
           isFetching={isFetching}
-          collectionName={collection.get('label')}
+          collectionName={collection.label}
           viewStyle={viewStyle}
           cursor={cursor}
           handleCursorActions={partial(this.handleCursorActions, cursor)}
@@ -174,7 +173,7 @@ export class EntriesCollection extends React.Component {
 
 export function filterNestedEntries(path, collectionFolder, entries, subfolders) {
   const filtered = entries.filter(e => {
-    let entryPath = e.get('path').slice(collectionFolder.length + 1);
+    let entryPath = e.path.slice(collectionFolder.length + 1);
     if (!entryPath.startsWith(path)) {
       return false;
     }
@@ -200,31 +199,31 @@ export function filterNestedEntries(path, collectionFolder, entries, subfolders)
 
 function mapStateToProps(state, ownProps) {
   const { collection, viewStyle, filterTerm } = ownProps;
-  const page = state.entries.getIn(['pages', collection.get('name'), 'page']);
+  const page = state.entries.pages?.[collection.name]?.page;
 
   const collections = state.collections;
 
   let entries = selectEntries(state.entries, collection);
   const groups = selectGroups(state.entries, collection);
 
-  if (collection.has('nested')) {
-    const collectionFolder = collection.get('folder');
+  if (collection.nested) {
+    const collectionFolder = collection.folder;
     entries = filterNestedEntries(
       filterTerm || '',
       collectionFolder,
       entries,
-      collection.get('nested').get('subfolders') !== false,
+      collection.nested.subfolders !== false,
     );
   }
-  const entriesLoaded = selectEntriesLoaded(state.entries, collection.get('name'));
-  const isFetching = selectIsFetching(state.entries, collection.get('name'));
+  const entriesLoaded = selectEntriesLoaded(state.entries, collection.name);
+  const isFetching = selectIsFetching(state.entries, collection.name);
 
-  const rawCursor = selectCollectionEntriesCursor(state.cursors, collection.get('name'));
+  const rawCursor = selectCollectionEntriesCursor(state.cursors, collection.name);
   const cursor = Cursor.create(rawCursor).clearData();
 
   const isEditorialWorkflowEnabled = state.config?.publish_mode === 'editorial_workflow';
   const unpublishedEntriesLoaded = isEditorialWorkflowEnabled
-    ? !!state.editorialWorkflow?.getIn(['pages', 'ids'], false)
+    ? !!(state.editorialWorkflow?.pages?.ids ?? false)
     : true;
 
   return {
@@ -241,7 +240,7 @@ function mapStateToProps(state, ownProps) {
     isEditorialWorkflowEnabled,
     getWorkflowStatus: (collectionName, slug) => {
       const unpublishedEntry = selectUnpublishedEntry(state, collectionName, slug);
-      return unpublishedEntry ? unpublishedEntry.get('status') : null;
+      return unpublishedEntry ? unpublishedEntry.status : null;
     },
     getUnpublishedEntries: collectionName => {
       if (!isEditorialWorkflowEnabled) return [];
@@ -253,8 +252,8 @@ function mapStateToProps(state, ownProps) {
         const entriesForStatus = selectUnpublishedEntriesByStatus(state, statusKey);
         if (entriesForStatus) {
           entriesForStatus.forEach(entry => {
-            if (entry.get('collection') === collectionName) {
-              const entryWithCollection = entry.set('collection', collectionName);
+            if (entry.collection === collectionName) {
+              const entryWithCollection = { ...entry, collection: collectionName };
               unpublishedEntries.push(entryWithCollection);
             }
           });

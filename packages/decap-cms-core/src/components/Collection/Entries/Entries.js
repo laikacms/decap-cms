@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import styled from '@emotion/styled';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { translate } from 'react-polyglot';
 import { Loader, lengths } from 'decap-cms-ui-default';
 
@@ -40,7 +39,7 @@ function Entries({
     return <Loader active>{loadingMessages}</Loader>;
   }
 
-  const hasEntries = (entries && entries.size > 0) || cursor?.actions?.has('append_next');
+  const hasEntries = (entries && entries.length > 0) || cursor?.actions?.has('append_next');
   if (hasEntries) {
     return (
       <>
@@ -55,7 +54,7 @@ function Entries({
           getUnpublishedEntries={getUnpublishedEntries}
           filterTerm={filterTerm}
         />
-        {isFetching && page !== undefined && entries.size > 0 ? (
+        {isFetching && page !== undefined && entries.length > 0 ? (
           <PaginationMessage>{t('collection.entries.loadingEntries')}</PaginationMessage>
         ) : null}
       </>
@@ -66,8 +65,8 @@ function Entries({
 }
 
 Entries.propTypes = {
-  collections: ImmutablePropTypes.iterable.isRequired,
-  entries: ImmutablePropTypes.list,
+  collections: PropTypes.oneOfType([PropTypes.object, PropTypes.array]).isRequired,
+  entries: PropTypes.array,
   page: PropTypes.number,
   isFetching: PropTypes.bool,
   viewStyle: PropTypes.string,

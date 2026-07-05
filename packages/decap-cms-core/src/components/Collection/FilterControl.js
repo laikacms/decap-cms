@@ -5,10 +5,7 @@ import { Dropdown, DropdownCheckedItem } from 'decap-cms-ui-default';
 import { ControlButton } from './ControlButton';
 
 function FilterControl({ viewFilters, t, onFilterClick, filter }) {
-  const hasActiveFilter = filter
-    ?.valueSeq()
-    .toJS()
-    .some(f => f.active === true);
+  const hasActiveFilter = filter && Object.values(filter).some(f => f.active === true);
 
   return (
     <Dropdown
@@ -27,7 +24,7 @@ function FilterControl({ viewFilters, t, onFilterClick, filter }) {
             key={viewFilter.id}
             label={viewFilter.label}
             id={viewFilter.id}
-            checked={filter.getIn([viewFilter.id, 'active'], false)}
+            checked={filter?.[viewFilter.id]?.active ?? false}
             onClick={() => onFilterClick(viewFilter)}
           />
         );

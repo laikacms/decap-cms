@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 import { translate } from 'react-polyglot';
@@ -69,8 +68,8 @@ const SidebarNavLink = styled(NavLink)`
 
 export class Sidebar extends React.Component {
   static propTypes = {
-    collections: ImmutablePropTypes.map.isRequired,
-    collection: ImmutablePropTypes.map,
+    collections: PropTypes.object.isRequired,
+    collection: PropTypes.object,
     isSearchEnabled: PropTypes.bool,
     searchTerm: PropTypes.string,
     filterTerm: PropTypes.string,
@@ -83,8 +82,8 @@ export class Sidebar extends React.Component {
   }
 
   renderLink = (collection, filterTerm) => {
-    const collectionName = collection.get('name');
-    if (collection.has('nested')) {
+    const collectionName = collection.name;
+    if (collection.nested) {
       return (
         <li key={collectionName}>
           <NestedCollection
@@ -103,7 +102,7 @@ export class Sidebar extends React.Component {
           data-testid={collectionName}
         >
           <Icon type="write" />
-          {collection.get('label')}
+          {collection.label}
         </SidebarNavLink>
       </li>
     );
@@ -123,9 +122,8 @@ export class Sidebar extends React.Component {
           />
         )}
         <SidebarNavList>
-          {collections
-            .toList()
-            .filter(collection => collection.get('hide') !== true)
+          {Object.values(collections)
+            .filter(collection => collection.hide !== true)
             .map(collection => this.renderLink(collection, filterTerm))}
         </SidebarNavList>
       </SidebarContainer>

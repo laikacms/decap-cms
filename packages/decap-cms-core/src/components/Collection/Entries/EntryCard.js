@@ -211,10 +211,10 @@ function EntryCard({
 
 function mapStateToProps(state, ownProps) {
   const { entry, inferredFields, collection } = ownProps;
-  const entryData = entry.get('data');
+  const entryData = entry.data;
   const summary = selectEntryCollectionTitle(collection, entry);
 
-  let image = entryData.get(inferredFields.imageField);
+  let image = entryData?.[inferredFields.imageField];
   if (image) {
     image = encodeURI(image);
   }
@@ -223,11 +223,11 @@ function mapStateToProps(state, ownProps) {
 
   return {
     summary,
-    path: `/collections/${collection.get('name')}/entries/${entry.get('slug')}`,
+    path: `/collections/${collection.name}/entries/${entry.slug}`,
     image,
-    imageFolder: collection
-      .get('fields')
-      ?.find(f => f.get('name') === inferredFields.imageField && f.get('widget') === 'image'),
+    imageFolder: collection.fields?.find(
+      f => f.name === inferredFields.imageField && f.widget === 'image',
+    ),
     isLoadingAsset,
   };
 }

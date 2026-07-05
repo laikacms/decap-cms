@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import React from 'react';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
@@ -36,9 +35,9 @@ const CollectionTopDescription = styled.p`
 `;
 
 function getCollectionProps(collection) {
-  const collectionLabel = collection.get('label');
-  const collectionLabelSingular = collection.get('label_singular');
-  const collectionDescription = collection.get('description');
+  const collectionLabel = collection.label;
+  const collectionLabelSingular = collection.label_singular;
+  const collectionDescription = collection.description;
 
   return {
     collectionLabel,
@@ -73,7 +72,7 @@ function CollectionTop({ collection, newEntryUrl, t }) {
 }
 
 CollectionTop.propTypes = {
-  collection: ImmutablePropTypes.map.isRequired,
+  collection: PropTypes.object.isRequired,
   newEntryUrl: PropTypes.string,
   t: PropTypes.func.isRequired,
 };

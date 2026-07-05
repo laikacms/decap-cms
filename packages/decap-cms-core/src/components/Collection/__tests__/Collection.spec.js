@@ -1,6 +1,5 @@
 import React from 'react';
 import { render } from '@testing-library/react';
-import { fromJS } from 'immutable';
 import configureStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 
@@ -23,30 +22,30 @@ function renderWithRedux(component, { store } = {}) {
 }
 
 describe('Collection', () => {
-  const collection = fromJS({
+  const collection = {
     name: 'pages',
     sortable_fields: [],
     view_filters: [],
     view_groups: [],
-  });
+  };
   const props = {
-    collections: fromJS([collection]).toOrderedMap(),
+    collections: { [collection.name]: collection },
     collection,
-    collectionName: collection.get('name'),
+    collectionName: collection.name,
     t: jest.fn(key => key),
     onSortClick: jest.fn(),
   };
 
   it('should render with collection without create url', () => {
     const { asFragment } = render(
-      <Collection {...props} collection={collection.set('create', false)} />,
+      <Collection {...props} collection={{ ...collection, create: false }} />,
     );
 
     expect(asFragment()).toMatchSnapshot();
   });
   it('should render with collection with create url', () => {
     const { asFragment } = render(
-      <Collection {...props} collection={collection.set('create', true)} />,
+      <Collection {...props} collection={{ ...collection, create: true }} />,
     );
 
     expect(asFragment()).toMatchSnapshot();
@@ -54,7 +53,7 @@ describe('Collection', () => {
 
   it('should render with collection with create url and path', () => {
     const { asFragment } = render(
-      <Collection {...props} collection={collection.set('create', true)} filterTerm="dir1/dir2" />,
+      <Collection {...props} collection={{ ...collection, create: true }} filterTerm="dir1/dir2" />,
     );
 
     expect(asFragment()).toMatchSnapshot();
@@ -63,7 +62,7 @@ describe('Collection', () => {
   it('should render connected component', () => {
     const store = mockStore({
       collections: props.collections,
-      entries: fromJS({}),
+      entries: {},
     });
 
     const { asFragment } = renderWithRedux(<ConnectedCollection match={{ params: {} }} />, {

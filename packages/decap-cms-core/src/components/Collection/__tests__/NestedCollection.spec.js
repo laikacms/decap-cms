@@ -1,7 +1,6 @@
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { render, fireEvent } from '@testing-library/react';
-import { fromJS } from 'immutable';
 import configureStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 
@@ -32,7 +31,7 @@ function renderWithRedux(component, { store } = {}) {
 }
 
 describe('NestedCollection', () => {
-  const collection = fromJS({
+  const collection = {
     name: 'pages',
     label: 'Pages',
     folder: 'src/pages',
@@ -40,10 +39,10 @@ describe('NestedCollection', () => {
     nested: {
       subfolders: true,
     },
-  });
+  };
 
   it('should render correctly with no entries', () => {
-    const entries = fromJS([]);
+    const entries = [];
     const { asFragment, getByTestId } = render(
       <MemoryRouter>
         <NestedCollection collection={collection} entries={entries} />
@@ -56,13 +55,13 @@ describe('NestedCollection', () => {
   });
 
   it('should render correctly with nested entries', () => {
-    const entries = fromJS([
+    const entries = [
       { path: 'src/pages/index.md', data: { title: 'Root' } },
       { path: 'src/pages/a/index.md', data: { title: 'File 1' } },
       { path: 'src/pages/b/index.md', data: { title: 'File 2' } },
       { path: 'src/pages/a/a/index.md', data: { title: 'File 3' } },
       { path: 'src/pages/b/a/index.md', data: { title: 'File 4' } },
-    ]);
+    ];
     const { asFragment, getByTestId } = render(
       <MemoryRouter>
         <NestedCollection collection={collection} entries={entries} />
@@ -82,13 +81,13 @@ describe('NestedCollection', () => {
   });
 
   it('should keep expanded nodes on re-render', () => {
-    const entries = fromJS([
+    const entries = [
       { path: 'src/pages/index.md', data: { title: 'Root' } },
       { path: 'src/pages/a/index.md', data: { title: 'File 1' } },
       { path: 'src/pages/b/index.md', data: { title: 'File 2' } },
       { path: 'src/pages/a/a/index.md', data: { title: 'File 3' } },
       { path: 'src/pages/b/a/index.md', data: { title: 'File 4' } },
-    ]);
+    ];
     const { getByTestId, rerender } = render(
       <MemoryRouter>
         <NestedCollection collection={collection} entries={entries} />
@@ -100,7 +99,7 @@ describe('NestedCollection', () => {
 
     expect(getByTestId('/a')).toHaveTextContent('File 1');
 
-    const newEntries = fromJS([
+    const newEntries = [
       { path: 'src/pages/index.md', data: { title: 'Root' } },
       { path: 'src/pages/a/index.md', data: { title: 'File 1' } },
       { path: 'src/pages/b/index.md', data: { title: 'File 2' } },
@@ -108,7 +107,7 @@ describe('NestedCollection', () => {
       { path: 'src/pages/b/a/index.md', data: { title: 'File 4' } },
       { path: 'src/pages/c/index.md', data: { title: 'File 5' } },
       { path: 'src/pages/c/a/index.md', data: { title: 'File 6' } },
-    ]);
+    ];
 
     rerender(
       <MemoryRouter>
@@ -120,12 +119,12 @@ describe('NestedCollection', () => {
   });
 
   it('should expand nodes based on filterTerm', () => {
-    const entries = fromJS([
+    const entries = [
       { path: 'src/pages/index.md', data: { title: 'Root' } },
       { path: 'src/pages/a/index.md', data: { title: 'File 1' } },
       { path: 'src/pages/a/a/index.md', data: { title: 'File 2' } },
       { path: 'src/pages/a/a/a/index.md', data: { title: 'File 3' } },
-    ]);
+    ];
 
     const { getByTestId, queryByTestId, rerender } = render(
       <MemoryRouter>
@@ -145,12 +144,12 @@ describe('NestedCollection', () => {
   });
 
   it('should ignore filterTerm once a user toggles an node', () => {
-    const entries = fromJS([
+    const entries = [
       { path: 'src/pages/index.md', data: { title: 'Root' } },
       { path: 'src/pages/a/index.md', data: { title: 'File 1' } },
       { path: 'src/pages/a/a/index.md', data: { title: 'File 2' } },
       { path: 'src/pages/a/a/a/index.md', data: { title: 'File 3' } },
-    ]);
+    ];
 
     const { getByTestId, queryByTestId, rerender } = render(
       <MemoryRouter>
@@ -172,7 +171,7 @@ describe('NestedCollection', () => {
       <MemoryRouter>
         <NestedCollection
           collection={collection}
-          entries={fromJS(entries.toJS())}
+          entries={entries.map(e => ({ ...e }))}
           filterTerm={'a/a'}
         />
       </MemoryRouter>,
@@ -182,13 +181,13 @@ describe('NestedCollection', () => {
   });
 
   it('should not collapse an unselected node when clicked', () => {
-    const entries = fromJS([
+    const entries = [
       { path: 'src/pages/index.md', data: { title: 'Root' } },
       { path: 'src/pages/a/index.md', data: { title: 'File 1' } },
       { path: 'src/pages/a/a/index.md', data: { title: 'File 2' } },
       { path: 'src/pages/a/a/a/index.md', data: { title: 'File 3' } },
       { path: 'src/pages/a/a/a/a/index.md', data: { title: 'File 4' } },
-    ]);
+    ];
 
     const { getByTestId } = render(
       <MemoryRouter>
@@ -206,13 +205,13 @@ describe('NestedCollection', () => {
   });
 
   it('should collapse a selected node when clicked', () => {
-    const entries = fromJS([
+    const entries = [
       { path: 'src/pages/index.md', data: { title: 'Root' } },
       { path: 'src/pages/a/index.md', data: { title: 'File 1' } },
       { path: 'src/pages/a/a/index.md', data: { title: 'File 2' } },
       { path: 'src/pages/a/a/a/index.md', data: { title: 'File 3' } },
       { path: 'src/pages/a/a/a/a/index.md', data: { title: 'File 4' } },
-    ]);
+    ];
 
     const { getByTestId, queryByTestId } = render(
       <MemoryRouter>
@@ -239,14 +238,14 @@ describe('NestedCollection', () => {
     ];
     const entries = entriesArray.reduce(
       (acc, entry) => {
-        acc.entities[`${collection.get('name')}.${entry.slug}`] = entry;
-        acc.pages[collection.get('name')].ids.push(entry.slug);
+        acc.entities[`${collection.name}.${entry.slug}`] = entry;
+        acc.pages[collection.name].ids.push(entry.slug);
         return acc;
       },
-      { pages: { [collection.get('name')]: { ids: [] } }, entities: {} },
+      { pages: { [collection.name]: { ids: [] } }, entities: {} },
     );
 
-    const store = mockStore({ entries: fromJS(entries) });
+    const store = mockStore({ entries });
 
     const { asFragment, getByTestId } = renderWithRedux(
       <MemoryRouter>
@@ -269,12 +268,12 @@ describe('NestedCollection', () => {
 
   describe('getTreeData', () => {
     it('should return nested tree data from entries', () => {
-      const entries = fromJS([
+      const entries = [
         { path: 'src/pages/index.md', data: { title: 'Root' } },
         { path: 'src/pages/intro/index.md', data: { title: 'intro index' } },
         { path: 'src/pages/intro/category/index.md', data: { title: 'intro category index' } },
         { path: 'src/pages/compliance/index.md', data: { title: 'compliance index' } },
-      ]);
+      ];
 
       const treeData = getTreeData(collection, entries);
 
@@ -347,7 +346,7 @@ describe('NestedCollection', () => {
     });
 
     it('should ignore collection summary', () => {
-      const entries = fromJS([{ path: 'src/pages/index.md', data: { title: 'Root' } }]);
+      const entries = [{ path: 'src/pages/index.md', data: { title: 'Root' } }];
 
       const treeData = getTreeData(collection, entries);
 
@@ -372,10 +371,10 @@ describe('NestedCollection', () => {
     });
 
     it('should use nested collection summary for title', () => {
-      const entries = fromJS([{ path: 'src/pages/index.md', data: { title: 'Root' } }]);
+      const entries = [{ path: 'src/pages/index.md', data: { title: 'Root' } }];
 
       const treeData = getTreeData(
-        collection.setIn(['nested', 'summary'], '{{filename}}'),
+        { ...collection, nested: { ...collection.nested, summary: '{{filename}}' } },
         entries,
       );
 
@@ -402,11 +401,11 @@ describe('NestedCollection', () => {
 
   describe('walk', () => {
     it('should visit every tree node', () => {
-      const entries = fromJS([
+      const entries = [
         { path: 'src/pages/index.md', data: { title: 'Root' } },
         { path: 'src/pages/dir1/index.md', data: { title: 'Dir1 File' } },
         { path: 'src/pages/dir2/index.md', data: { title: 'Dir2 File' } },
-      ]);
+      ];
 
       const treeData = getTreeData(collection, entries);
       const callback = jest.fn();
@@ -424,11 +423,11 @@ describe('NestedCollection', () => {
 
   describe('updateNode', () => {
     it('should update node', () => {
-      const entries = fromJS([
+      const entries = [
         { path: 'src/pages/index.md', data: { title: 'Root' } },
         { path: 'src/pages/dir1/index.md', data: { title: 'Dir1 File' } },
         { path: 'src/pages/dir2/index.md', data: { title: 'Dir2 File' } },
-      ]);
+      ];
 
       const treeData = getTreeData(collection, entries);
       expect(treeData[0].children[0].children[0].expanded).toBeUndefined();
