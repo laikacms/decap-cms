@@ -1323,6 +1323,67 @@ describe('Backend', () => {
         }),
       );
     });
+
+    // DCMS-373: relocating an existing nested entry (e.g. an `_index.md` node with children
+    // underneath it) via the `meta.path` field only moves that single index file. persistEntry
+    // builds exactly one dataFile (plus i18n variants) for the entry being saved; it does not
+    // enumerate or move any files that live in the entry's old folder. This test pins that
+    // current, documented-as-manual behavior so a future change to it is intentional.
+    it('only moves the single index file when relocating a nested entry, not its child entries', async () => {
+      const implementation = {
+        init: jest.fn(() => implementation),
+        persistEntry: jest.fn(),
+      };
+
+      const config = {
+        backend: { commit_messages: {} },
+      };
+      const collection = Map({
+        name: 'pages',
+        type: FOLDER,
+        folder: '_pages',
+        create: true,
+        fields: List([Map({ name: 'title', widget: 'string' })]),
+        nested: Map({ depth: 10, subfolders: true }),
+        meta: Map({ path: Map({ label: 'Path', widget: 'string', index_file: '_index' }) }),
+      });
+      // Existing entry at `_pages/section/_index.md`, being moved to `_pages/renamed/_index.md`.
+      // A child entry lives at `_pages/section/child/_index.md` and is not part of this draft.
+      const entryDraft = Map({
+        entry: Map({
+          slug: 'section',
+          path: '_pages/section/_index.md',
+          data: Map({ title: 'Section' }),
+          meta: Map({ path: 'renamed' }),
+          newRecord: false,
+        }),
+      });
+      const user = { login: 'user', name: 'User' };
+      const backend = new Backend(implementation, { config, backendName: 'test' });
+
+      backend.currentUser = jest.fn().mockResolvedValue(user);
+      backend.entryToRaw = jest.fn().mockReturnValue('content');
+      backend.invokePreSaveEvent = jest.fn().mockResolvedValue(entryDraft.get('entry'));
+      backend.invokePostSaveEvent = jest.fn().mockResolvedValue();
+
+      await backend.persistEntry({
+        config,
+        collection,
+        entryDraft,
+        assetProxies: [],
+        usedSlugs: List(),
+      });
+
+      const [{ dataFiles }] = implementation.persistEntry.mock.calls[0];
+
+      // Only the index file itself is included in the move — the child entry
+      // (`_pages/section/child/_index.md`) is never enumerated or renamed.
+      expect(dataFiles).toHaveLength(1);
+      expect(dataFiles[0]).toMatchObject({
+        path: '_pages/section/_index.md',
+        newPath: '_pages/renamed/_index.md',
+      });
+    });
   });
 
   describe('slugFromCustomPath', () => {
