@@ -139,6 +139,16 @@ describe('Select widget', () => {
     expect(getByText('baz')).toBeInTheDocument();
   });
 
+  it('should respect default value when given as a { label, value } object (DCMS-349)', () => {
+    const field = fromJS({ options });
+    const { getByText } = setup({
+      field,
+      defaultValue: fromJS(options[2]),
+    });
+
+    expect(getByText('Baz')).toBeInTheDocument();
+  });
+
   it('should call onChange with correct selectedItem when value is number 0', () => {
     const field = fromJS({ options: numberOptions });
     const { getByText, input, onChangeSpy } = setup({ field });

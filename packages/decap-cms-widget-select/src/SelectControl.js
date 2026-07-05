@@ -20,6 +20,16 @@ function convertToOption(raw) {
   return Map.isMap(raw) ? raw.toJS() : raw;
 }
 
+// Unwraps a `{ label, value }` shaped item (plain object or Immutable Map)
+// down to its raw `value`, leaving primitives untouched. Used to normalize
+// `default` values in both single- and multiple-select modes.
+function unwrapOptionValue(item) {
+  if (Map.isMap(item)) {
+    return item.get('value');
+  }
+  return (item && typeof item === 'object' && item.value) || item;
+}
+
 function getSelectedValue({ value, options, isMultiple }) {
   if (isMultiple) {
     const selectedOptions = List.isList(value) ? value.toJS() : value;
@@ -29,11 +39,11 @@ function getSelectedValue({ value, options, isMultiple }) {
     }
 
     return selectedOptions
-      .map(i => options.find(o => o.value === (i.value || i)))
+      .map(i => options.find(o => o.value === unwrapOptionValue(i)))
       .filter(Boolean)
       .map(convertToOption);
   } else {
-    return find(options, ['value', value]) || null;
+    return find(options, ['value', unwrapOptionValue(value)]) || null;
   }
 }
 
