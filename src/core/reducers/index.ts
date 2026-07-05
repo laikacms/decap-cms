@@ -80,6 +80,10 @@ export function selectUnpublishedEntriesByStatus(state: State, status: Status) {
   return fromEditorialWorkflow.selectUnpublishedEntriesByStatus(state.editorialWorkflow, status);
 }
 
+export function selectUnpublishedEntriesGroupedByStatus(state: State) {
+  return fromEditorialWorkflow.selectUnpublishedEntriesGroupedByStatus(state.editorialWorkflow);
+}
+
 export function selectUnpublishedSlugs(state: State, collection: string) {
   return fromEditorialWorkflow.selectUnpublishedSlugs(state.editorialWorkflow, collection);
 }

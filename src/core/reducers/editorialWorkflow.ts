@@ -1,7 +1,8 @@
+import { createSelector } from '@reduxjs/toolkit';
 import { produce } from 'immer';
 import startsWith from 'lodash/startsWith';
 
-import { EDITORIAL_WORKFLOW } from '../constants/publishModes';
+import { EDITORIAL_WORKFLOW, status as statusValues } from '../constants/publishModes';
 import {
   UNPUBLISHED_ENTRY_REQUEST,
   UNPUBLISHED_ENTRY_REDIRECT,
@@ -176,6 +177,23 @@ export function selectUnpublishedEntriesByStatus(state: EditorialWorkflow, statu
   if (!state) return undefined;
   return Object.values(state.entities).filter(entry => entry?.status === status);
 }
+
+// Memoized selector that groups all unpublished entries by status. Returns a
+// stable reference when `entities` hasn't changed, preventing the workflow
+// board from rerendering on every unrelated app-wide dispatch (DCMS-351,
+// porting the DCMS-077 fix).
+export const selectUnpublishedEntriesGroupedByStatus = createSelector(
+  (state: EditorialWorkflow) => state?.entities,
+  entities => {
+    const grouped: Record<string, WorkflowEntry[]> = {};
+    Object.values(statusValues).forEach(currStatus => {
+      grouped[currStatus] = entities
+        ? Object.values(entities).filter(entry => entry?.status === currStatus)
+        : [];
+    });
+    return grouped;
+  },
+);
 
 export function selectUnpublishedSlugs(state: EditorialWorkflow, collection: string) {
   if (!state?.entities) return null;
