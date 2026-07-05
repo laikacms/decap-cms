@@ -71,6 +71,7 @@ export default class Azure implements Implementation {
     repoName: string;
   };
   branch: string;
+  isBranchConfigured: boolean;
   apiRoot: string;
   apiVersion: string;
   token: string | null;
@@ -89,6 +90,7 @@ export default class Azure implements Implementation {
 
     this.repo = parseAzureRepo(config);
     this.branch = config.backend.branch || 'master';
+    this.isBranchConfigured = config.backend.branch ? true : false;
     this.apiRoot = config.backend.api_root || 'https://dev.azure.com';
     this.apiVersion = config.backend.api_version || '6.1-preview';
     this.token = '';
@@ -123,8 +125,37 @@ export default class Azure implements Implementation {
     return this.authenticate(user);
   }
 
+  /**
+   * Fetches the repository's real default branch from the Azure DevOps API
+   * (`GET /_apis/git/repositories/{repositoryId}`, which returns a `defaultBranch` field such as
+   * `refs/heads/main`) and uses it as `this.branch`. Only called when `backend.branch` is not set
+   * in the config. Falls back silently (leaving `this.branch` as `'master'`) if the request fails.
+   */
+  async resolveDefaultBranch(token: string): Promise<void> {
+    const apiRoot = trim(this.apiRoot, '/');
+    const url = `${apiRoot}/${this.repo.org}/${this.repo.project}/_apis/git/repositories/${this.repo.repoName}`;
+    const repoInfo = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(res => res.json())
+      .catch(() => null);
+
+    const defaultBranch: string | undefined = repoInfo?.defaultBranch;
+    if (defaultBranch) {
+      const refPrefix = 'refs/heads/';
+      this.branch = defaultBranch.startsWith(refPrefix)
+        ? defaultBranch.slice(refPrefix.length)
+        : defaultBranch;
+    }
+  }
+
   async authenticate(state: Credentials) {
     this.token = state.token as string;
+
+    if (!this.isBranchConfigured) {
+      await this.resolveDefaultBranch(this.token);
+    }
+
     this.api = new API(
       {
         apiRoot: this.apiRoot,
