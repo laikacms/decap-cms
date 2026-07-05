@@ -3,9 +3,7 @@ import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import styled from '@emotion/styled';
 
-function isVisible(field) {
-  return field.get('widget') !== 'hidden';
-}
+import { isVisible } from '../../../lib/widgets';
 
 const PreviewContainer = styled.div`
   font-family: Roboto, 'Helvetica Neue', HelveticaNeue, Helvetica, Arial, sans-serif;

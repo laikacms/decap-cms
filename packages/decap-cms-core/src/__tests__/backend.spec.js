@@ -119,6 +119,50 @@ describe('Backend', () => {
     });
   });
 
+  describe('resolveBackend', () => {
+    beforeEach(() => {
+      getBackend.mockReset();
+    });
+
+    it('throws when config.backend.name is unset', () => {
+      expect(() => resolveBackend({ backend: {} })).toThrowError(
+        'No backend defined in configuration',
+      );
+    });
+
+    it('throws with the generic registerBackend hint for an unregistered non-laika backend', () => {
+      getBackend.mockReturnValue(undefined);
+
+      expect(() => resolveBackend({ backend: { name: 'some-unregistered-backend' } })).toThrowError(
+        /Backend not found: some-unregistered-backend\..*Make sure the backend is registered with CMS\.registerBackend\(\) before/,
+      );
+    });
+
+    it('throws with the laika-specific hint when config.backend.name is "laika" and unregistered', () => {
+      getBackend.mockReturnValue(undefined);
+
+      expect(() => resolveBackend({ backend: { name: 'laika' } })).toThrowError(
+        /Backend not found: laika\..*install @laikacms\/decap and.*register it before init\(\) via CMS\.registerBackend\("laika"/,
+      );
+    });
+  });
+
+  describe('currentBackend', () => {
+    it('returns the identical Backend instance on a second call even with a different config', () => {
+      jest.isolateModules(() => {
+        const { currentBackend } = require('../backend');
+        const { getBackend: mockedGetBackend } = require('../lib/registry');
+
+        mockedGetBackend.mockReturnValue({ init: jest.fn() });
+
+        const firstInstance = currentBackend({ backend: { name: 'git-gateway' } });
+        const secondInstance = currentBackend({ backend: { name: 'some-other-backend' } });
+
+        expect(secondInstance).toBe(firstInstance);
+      });
+    });
+  });
+
   describe('getLocalDraftBackup', () => {
     const { localForage, asyncLock } = require('decap-cms-lib-util');
 
@@ -246,6 +290,48 @@ describe('Backend', () => {
           updatedOn: '',
         },
       });
+      expect(localForage.getItem).toHaveBeenCalledTimes(1);
+      expect(localForage.getItem).toHaveBeenCalledWith('backup.posts.slug');
+    });
+
+    it('should not throw and should omit the url when a persisted media file has a truthy, non-Blob file property', async () => {
+      const implementation = {
+        init: jest.fn(() => implementation),
+      };
+
+      const backend = new Backend(implementation, { config: {}, backendName: 'github' });
+
+      const collection = Map({
+        name: 'posts',
+      });
+      const slug = 'slug';
+
+      localForage.getItem.mockReturnValue({
+        raw: '---\ntitle: "Hello World"\n---\n',
+        mediaFiles: [{ id: '1', file: { notABlob: true } }],
+      });
+
+      const result = await backend.getLocalDraftBackup(collection, slug);
+
+      expect(result).toEqual({
+        entry: {
+          author: '',
+          mediaFiles: [{ id: '1', file: { notABlob: true } }],
+          collection: 'posts',
+          slug: 'slug',
+          path: '',
+          partial: false,
+          raw: '---\ntitle: "Hello World"\n---\n',
+          data: { title: 'Hello World' },
+          meta: {},
+          i18n: {},
+          label: null,
+          isModification: null,
+          status: '',
+          updatedOn: '',
+        },
+      });
+      expect(result.entry.mediaFiles[0].url).toBeUndefined();
       expect(localForage.getItem).toHaveBeenCalledTimes(1);
       expect(localForage.getItem).toHaveBeenCalledWith('backup.posts.slug');
     });

@@ -16,6 +16,7 @@ import { fromJS } from 'immutable';
 
 import { editorContainerStyles, EditorControlBar, editorStyleVars } from '../styles';
 import { markdownToSlate, slateToMarkdown } from '../serializers';
+import { shouldEmitChange } from './valueSync';
 import Editor from './components/Editor';
 import Toolbar from './components/Toolbar';
 import ParagraphElement from './components/Element/ParagraphElement';
@@ -33,6 +34,7 @@ import ShortcodePlugin from './plugins/ShortcodePlugin';
 import { TablePlugin, TableRowPlugin, TableCellPlugin } from './plugins/TablePlugin';
 import defaultEmptyBlock from './defaultEmptyBlock';
 import { mergeMediaConfig } from './mergeMediaConfig';
+import { normalizeField } from './normalizeField';
 import { handleLinkClick } from './linkHandler';
 import { handlePasteHtml } from './pasteHandler';
 
@@ -55,7 +57,7 @@ const emptyValue = [defaultEmptyBlock()];
 export default function VisualEditor(props) {
   const {
     t,
-    field,
+    field: rawField,
     className,
     isDisabled,
     isEditorComponent,
@@ -64,7 +66,10 @@ export default function VisualEditor(props) {
     onChange,
     getEditorComponents,
     getAsset,
+    value: currentValue,
   } = props;
+
+  const field = normalizeField(rawField);
 
   let editorComponents = getEditorComponents();
   const codeBlockComponent = fromJS(editorComponents.find(({ type }) => type === 'code-block'));
@@ -86,7 +91,10 @@ export default function VisualEditor(props) {
       { voidCodeBlock: !!codeBlockComponent },
       editorComponents,
     );
-    onChange(mdValue);
+    // Guards against DCMS-307: Plate fires onChange on selection-only changes too.
+    if (shouldEmitChange(mdValue, currentValue)) {
+      onChange(mdValue);
+    }
   }
 
   function handlePaste(event) {

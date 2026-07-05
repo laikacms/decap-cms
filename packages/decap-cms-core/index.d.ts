@@ -278,7 +278,7 @@ declare module 'decap-cms-core' {
     label: string;
     widget: string;
     required: boolean;
-    index_file: string;
+    index_file?: string;
     meta: boolean;
   }
 

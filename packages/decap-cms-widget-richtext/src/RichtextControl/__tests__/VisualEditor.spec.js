@@ -1,6 +1,7 @@
 import { Map, fromJS } from 'immutable';
 
 import { mergeMediaConfig } from '../mergeMediaConfig';
+import { normalizeField } from '../normalizeField';
 
 describe('VisualEditor', () => {
   describe('mergeMediaConfig', () => {
@@ -51,6 +52,29 @@ describe('VisualEditor', () => {
           { label: 'Title', name: 'title' },
         ]),
       );
+    });
+  });
+
+  describe('normalizeField', () => {
+    it('leaves editor_components untouched when already set', () => {
+      const field = fromJS({ widget: 'richtext', editor_components: ['image'] });
+      expect(normalizeField(field).get('editor_components')).toEqual(fromJS(['image']));
+    });
+
+    it('normalizes camelCase editorComponents to editor_components', () => {
+      const field = fromJS({ widget: 'richtext', editorComponents: ['image', 'code-block'] });
+      expect(normalizeField(field).get('editor_components')).toEqual(
+        fromJS(['image', 'code-block']),
+      );
+    });
+
+    it('prefers snake_case editor_components over camelCase editorComponents', () => {
+      const field = fromJS({
+        widget: 'richtext',
+        editor_components: ['image'],
+        editorComponents: ['code-block'],
+      });
+      expect(normalizeField(field).get('editor_components')).toEqual(fromJS(['image']));
     });
   });
 });

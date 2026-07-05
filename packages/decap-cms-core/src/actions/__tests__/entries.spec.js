@@ -348,6 +348,31 @@ describe('entries', () => {
         names: [{ object: { first: 'first', second: 'second' } }],
       });
     });
+
+    it('should default an optional boolean field with no default to false', () => {
+      const fields = fromJS([{ name: 'featured', widget: 'boolean', required: false }]);
+      expect(createEmptyDraftData(fields)).toEqual({ featured: false });
+    });
+
+    it('should default an optional text field with no default to an empty string', () => {
+      const fields = fromJS([{ name: 'subtitle', widget: 'text', required: false }]);
+      expect(createEmptyDraftData(fields)).toEqual({ subtitle: '' });
+    });
+
+    it('should not set a default for a required boolean field with no default', () => {
+      const fields = fromJS([{ name: 'featured', widget: 'boolean' }]);
+      expect(createEmptyDraftData(fields)).toEqual({});
+    });
+
+    it('should not set a default for a required text field with no default', () => {
+      const fields = fromJS([{ name: 'subtitle', widget: 'text' }]);
+      expect(createEmptyDraftData(fields)).toEqual({});
+    });
+
+    it('should not set a default for other optional widgets with no default', () => {
+      const fields = fromJS([{ name: 'count', widget: 'number', required: false }]);
+      expect(createEmptyDraftData(fields)).toEqual({});
+    });
   });
 
   describe('persistLocalBackup', () => {

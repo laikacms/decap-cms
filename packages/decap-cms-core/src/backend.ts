@@ -730,7 +730,7 @@ export class Backend {
 
     mediaFiles = mediaFiles.map(file => {
       // de-serialize the file object
-      if (file.file) {
+      if (file.file instanceof Blob) {
         return { ...file, url: URL.createObjectURL(file.file) };
       }
       return file;
@@ -1398,9 +1398,10 @@ export function resolveBackend(config: CmsConfig) {
   if (!backend) {
     const hint =
       (name as string) === 'laika'
-        ? ' The laika backend is not bundled here — register it before init() via' +
-          ' CMS.registerBackend("laika", LaikaBackend) using the adapter from' +
-          ' @laikacms/decap-integrations (decap-cms-backend-laika).'
+        ? ' The laika backend is not bundled here — install @laikacms/decap and' +
+          ' register it before init() via CMS.registerBackend("laika",' +
+          ' createLaikaBackend) using the default export from' +
+          ' @laikacms/decap/decap-cms-backend-laika.'
         : ' Make sure the backend is registered with CMS.registerBackend() before' +
           ' the CMS initialises.';
     throw new Error(`Backend not found: ${name}.${hint}`);

@@ -627,9 +627,9 @@ export class EditorToolbar extends React.Component {
 
     return [
       <SaveButton
-        disabled={!hasChanged}
+        disabled={!hasChanged && !isNewEntry}
         key="save-button"
-        onClick={() => hasChanged && onPersist()}
+        onClick={() => (hasChanged || isNewEntry) && onPersist()}
       >
         {isPersisting ? t('editor.editorToolbar.saving') : t('editor.editorToolbar.save')}
       </SaveButton>,
@@ -679,6 +679,7 @@ export class EditorToolbar extends React.Component {
     const {
       user,
       hasChanged,
+      isNewEntry,
       displayUrl,
       collection,
       hasWorkflow,
@@ -697,7 +698,7 @@ export class EditorToolbar extends React.Component {
                 collectionLabel: collection.get('label'),
               })}
             </BackCollection>
-            {hasChanged ? (
+            {hasChanged || isNewEntry ? (
               <BackStatusChanged>{t('editor.editorToolbar.unsavedChanges')}</BackStatusChanged>
             ) : (
               <BackStatusUnchanged>{t('editor.editorToolbar.changesSaved')}</BackStatusUnchanged>

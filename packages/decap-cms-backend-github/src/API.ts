@@ -1171,7 +1171,7 @@ export default class API {
     if (!this.useOpenAuthoring) {
       await this.setPullRequestStatus(pullRequest, newStatus);
     } else {
-      if (status === 'pending_publish') {
+      if (newStatus === 'pending_publish') {
         throw new Error('Open Authoring entries may not be set to the status "pending_publish".');
       }
 

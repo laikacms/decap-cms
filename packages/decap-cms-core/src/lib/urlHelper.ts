@@ -118,7 +118,8 @@ export function sanitizeSlug(str: string, options?: CmsSlug, preserveSlashes?: b
   const {
     encoding,
     clean_accents: stripDiacritics,
-    sanitize_replacement: replacement,
+    // Default matches decapcms.org docs (DCMS-306)
+    sanitize_replacement: replacement = '-',
   } = options || {};
 
   const sanitizedSlug = flow([

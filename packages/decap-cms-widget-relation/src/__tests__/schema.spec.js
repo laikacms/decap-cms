@@ -69,21 +69,24 @@ describe('relation widget schema', () => {
     });
   });
 
-  describe('min/max without multiple: true', () => {
-    it('fails with min when multiple is absent', () => {
-      expect(validate({ ...baseSnake, min: 1 })).toBe(false);
+  describe('min/max without multiple: true (DCMS-310)', () => {
+    // min/max are ignored at runtime by RelationControl#isValid when the
+    // field isn't multiple, so the schema no longer rejects their presence —
+    // it simply doesn't enforce them.
+    it('passes with min when multiple is absent', () => {
+      expect(validate({ ...baseSnake, min: 1 })).toBe(true);
     });
 
-    it('fails with max when multiple is absent', () => {
-      expect(validate({ ...baseSnake, max: 5 })).toBe(false);
+    it('passes with max when multiple is absent', () => {
+      expect(validate({ ...baseSnake, max: 5 })).toBe(true);
     });
 
-    it('fails with min when multiple: false', () => {
-      expect(validate({ ...baseSnake, multiple: false, min: 1 })).toBe(false);
+    it('passes with min when multiple: false', () => {
+      expect(validate({ ...baseSnake, multiple: false, min: 1 })).toBe(true);
     });
 
-    it('fails with max when multiple: false', () => {
-      expect(validate({ ...baseSnake, multiple: false, max: 5 })).toBe(false);
+    it('passes with max when multiple: false', () => {
+      expect(validate({ ...baseSnake, multiple: false, max: 5 })).toBe(true);
     });
   });
 

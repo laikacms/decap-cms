@@ -24,6 +24,8 @@ export default {
       },
     },
     editor_components: { type: 'array', items: { type: 'string' } },
+    // Deprecated camelCase alias — normalised to snake_case at runtime
+    editorComponents: { type: 'array', items: { type: 'string' } },
     modes: {
       type: 'array',
       items: {

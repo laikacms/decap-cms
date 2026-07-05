@@ -1,4 +1,23 @@
+import Ajv from 'ajv';
+
 import schema from '../schema';
+
+const ajv = new Ajv();
+
+function validate(data) {
+  const valid = ajv.validate({ type: 'object', ...schema }, data);
+  return { valid, errors: ajv.errors };
+}
+
+describe('markdown widget schema — editorComponents (camelCase alias)', () => {
+  it('passes with an array of strings', () => {
+    expect(validate({ editorComponents: ['image', 'code-block'] }).valid).toBe(true);
+  });
+
+  it('passes with an empty array', () => {
+    expect(validate({ editorComponents: [] }).valid).toBe(true);
+  });
+});
 
 describe('markdown widget schema buttons', () => {
   const buttonEnum = schema.properties.buttons.items.enum;

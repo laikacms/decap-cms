@@ -310,13 +310,16 @@ export default function withFileControl({ forImage } = {}) {
       const { field, onOpenMediaLibrary, value } = this.props;
       e.preventDefault();
       const mediaLibraryFieldOptions = this.getMediaLibraryFieldOptions();
+      const allowMultiple = field.has('allow_multiple')
+        ? field.get('allow_multiple')
+        : mediaLibraryFieldOptions.get('allow_multiple', true);
 
       return onOpenMediaLibrary({
         controlID: this.controlID,
         forImage,
         privateUpload: field.get('private'),
         value: valueListToArray(value),
-        allowMultiple: !!mediaLibraryFieldOptions.get('allow_multiple', true),
+        allowMultiple: !!allowMultiple,
         config: mediaLibraryFieldOptions.get('config'),
         field,
       });
@@ -372,11 +375,11 @@ export default function withFileControl({ forImage } = {}) {
     };
 
     allowsMultiple = () => {
+      const { field } = this.props;
       const mediaLibraryFieldOptions = this.getMediaLibraryFieldOptions();
-      return (
-        mediaLibraryFieldOptions.get('config', false) &&
-        mediaLibraryFieldOptions.get('config').get('multiple', false)
-      );
+      return !!(field.has('allow_multiple')
+        ? field.get('allow_multiple')
+        : mediaLibraryFieldOptions.get('allow_multiple', false));
     };
 
     onSortEnd = ({ oldIndex, newIndex }) => {

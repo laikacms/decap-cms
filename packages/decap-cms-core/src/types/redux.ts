@@ -614,7 +614,8 @@ export type EntryField = StaticallyTypedRecord<{
   public_folder?: string;
   comment?: string;
   meta?: boolean;
-  i18n: 'translate' | 'duplicate' | 'none';
+  i18n: boolean | 'translate' | 'duplicate' | 'none';
+  required?: boolean;
 }>;
 
 export type EntryFields = List<EntryField>;

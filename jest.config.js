@@ -16,7 +16,7 @@ module.exports = {
   modulePathIgnorePatterns: ['.nx', 'dist'],
   snapshotSerializers: ['@emotion/jest/serializer'],
   transformIgnorePatterns: [
-    'node_modules/(?!copy-text-to-clipboard|clean-stack|escape-string-regexp)',
+    'node_modules/(?!copy-text-to-clipboard|clean-stack|escape-string-regexp|array-move)',
   ],
   testEnvironment: 'jsdom',
   testEnvironmentOptions: {

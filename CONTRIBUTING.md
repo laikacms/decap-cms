@@ -27,7 +27,7 @@ npm run start
 
 ### clean
 
-Removes all of the CMS package `dist` directories.
+Removes all of the CMS package `dist` directories, `dev-test/dist`, the `node_modules` in each CMS package, and the Nx cache.
 
 ```sh
 npm run clean
@@ -35,7 +35,7 @@ npm run clean
 
 ### reset
 
-Runs the `clean` script and removes all the `node_modules` from the CMS packages.
+Currently an alias for the `clean` script; it does not perform any additional steps.
 
 ```sh
 npm run reset
@@ -43,7 +43,7 @@ npm run reset
 
 ### build
 
-Runs the `clean` script and builds the CMS packages.
+Builds the CMS packages. This does not run the `clean` script first, so stale build output is not removed automatically.
 
 ```sh
 npm run build
@@ -51,7 +51,7 @@ npm run build
 
 ### build-preview
 
-Runs the `build` and `build-preview` scripts in each package and serves the resulting build locally.
+Builds all packages, then runs the `build-preview` script in the `decap-cms` package to serve the resulting demo build locally.
 
 ```sh
 npm run build-preview
@@ -59,7 +59,7 @@ npm run build-preview
 
 ### test
 
-Runs linting and Jest tests.
+Runs linting, type-checking, and Jest tests.
 
 ```sh
 npm run test
