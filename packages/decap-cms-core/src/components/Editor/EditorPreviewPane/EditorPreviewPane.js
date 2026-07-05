@@ -87,30 +87,30 @@ export class PreviewPane extends React.Component {
   widgetFor = (
     name,
     fields = this.props.fields,
-    values = this.props.entry.get('data'),
+    values = this.props.entry.data,
     fieldsMetaData = this.props.fieldsMetaData,
   ) => {
     // We retrieve the field by name so that this function can also be used in
     // custom preview templates, where the field object can't be passed in.
-    let field = fields && fields.find(f => f.get('name') === name);
-    if (!field || field.get('widget') === 'hidden') {
+    let field = fields && fields.find(f => f.name === name);
+    if (!field || field.widget === 'hidden') {
       return null;
     }
-    let value = Map.isMap(values) && values.get(field.get('name'));
-    if (field.get('meta')) {
-      value = this.props.entry.getIn(['meta', field.get('name')]);
+    let value = isPlainRecord(values) && values[field.name];
+    if (field.meta) {
+      value = this.props.entry.meta && this.props.entry.meta[field.name];
     }
 
-    const nestedFields = field.get('fields');
-    const singleField = field.get('field');
-    const metadata = fieldsMetaData && fieldsMetaData.get(field.get('name'), Map());
+    const nestedFields = field.fields;
+    const singleField = field.field;
+    const metadata = (fieldsMetaData && fieldsMetaData[field.name]) || {};
 
     if (nestedFields) {
-      field = field.set('fields', this.getNestedWidgets(nestedFields, value, metadata));
+      field = { ...field, fields: this.getNestedWidgets(nestedFields, value, metadata) };
     }
 
     if (singleField) {
-      field = field.set('field', this.getSingleNested(singleField, value, metadata));
+      field = { ...field, field: this.getSingleNested(singleField, value, metadata) };
     }
 
     const labelledWidgets = ['string', 'text', 'number'];
@@ -125,12 +125,12 @@ export class PreviewPane extends React.Component {
       value = inferredField.defaultPreview(value);
     } else if (
       value &&
-      labelledWidgets.indexOf(field.get('widget')) !== -1 &&
+      labelledWidgets.indexOf(field.widget) !== -1 &&
       value.toString().length < 50
     ) {
       value = (
         <div>
-          <strong>{field.get('label', field.get('name'))}:</strong> {value}
+          <strong>{field.label ?? field.name}:</strong> {value}
         </div>
       );
     }
@@ -142,28 +142,28 @@ export class PreviewPane extends React.Component {
    * Retrieves widgets for nested fields (children of object/list fields)
    */
   getNestedWidgets = (fields, values, fieldsMetaData) => {
-    // Fields nested within a list field will be paired with a List of value Maps.
-    if (List.isList(values)) {
+    // Fields nested within a list field will be paired with an array of value objects.
+    if (Array.isArray(values)) {
       return values.map(value => this.widgetsForNestedFields(fields, value, fieldsMetaData));
     }
-    // Fields nested within an object field will be paired with a single Map of values.
+    // Fields nested within an object field will be paired with a single object of values.
     return this.widgetsForNestedFields(fields, values, fieldsMetaData);
   };
 
   getSingleNested = (field, values, fieldsMetaData) => {
-    if (List.isList(values)) {
+    if (Array.isArray(values)) {
       return values.map((value, idx) =>
-        this.getWidget(field, value, fieldsMetaData.get(field.get('name')), this.props, idx),
+        this.getWidget(field, value, fieldsMetaData[field.name], this.props, idx),
       );
     }
-    return this.getWidget(field, values, fieldsMetaData.get(field.get('name')), this.props);
+    return this.getWidget(field, values, fieldsMetaData[field.name], this.props);
   };
 
   /**
    * Use widgetFor as a mapping function for recursive widget retrieval
    */
   widgetsForNestedFields = (fields, values, fieldsMetaData) => {
-    return fields.map(field => this.widgetFor(field.get('name'), fields, values, fieldsMetaData));
+    return fields.map(field => this.widgetFor(field.name, fields, values, fieldsMetaData));
   };
 
   /**
@@ -174,55 +174,52 @@ export class PreviewPane extends React.Component {
    */
   widgetsFor = name => {
     const { fields, entry, fieldsMetaData } = this.props;
-    const field = fields.find(f => f.get('name') === name);
-    const nestedFields = field && field.get('fields');
-    const variableTypes = field && field.get('types');
-    const value = entry.getIn(['data', field.get('name')]);
-    const metadata = fieldsMetaData.get(field.get('name'), Map());
+    const field = fields.find(f => f.name === name);
+    const nestedFields = field && field.fields;
+    const variableTypes = field && field.types;
+    const value = field && entry.data && entry.data[field.name];
+    const metadata = (fieldsMetaData && fieldsMetaData[field.name]) || {};
 
     // Variable Type lists
-    if (List.isList(value) && variableTypes) {
+    if (Array.isArray(value) && variableTypes) {
       return value.map(val => {
-        const valueType = variableTypes.find(t => t.get('name') === val.get('type'));
-        const typeFields = valueType && valueType.get('fields');
+        const valueType = variableTypes.find(t => t.name === val.type);
+        const typeFields = valueType && valueType.fields;
         const widgets =
           typeFields &&
-          Map(
+          Object.fromEntries(
             typeFields.map((f, i) => [
-              f.get('name'),
-              <div key={i}>{this.getWidget(f, val, metadata.get(f.get('name')), this.props)}</div>,
+              f.name,
+              <div key={i}>{this.getWidget(f, val, metadata[f.name], this.props)}</div>,
             ]),
           );
-        return Map({ data: val, widgets });
+        return { data: val, widgets };
       });
     }
 
     // List widgets
-    if (List.isList(value)) {
+    if (Array.isArray(value)) {
       return value.map(val => {
         const widgets =
           nestedFields &&
-          Map(
+          Object.fromEntries(
             nestedFields.map((f, i) => [
-              f.get('name'),
-              <div key={i}>{this.getWidget(f, val, metadata.get(f.get('name')), this.props)}</div>,
+              f.name,
+              <div key={i}>{this.getWidget(f, val, metadata[f.name], this.props)}</div>,
             ]),
           );
-        return Map({ data: val, widgets });
+        return { data: val, widgets };
       });
     }
 
-    return Map({
+    return {
       data: value,
       widgets:
         nestedFields &&
-        Map(
-          nestedFields.map(f => [
-            f.get('name'),
-            this.getWidget(f, value, metadata.get(f.get('name')), this.props),
-          ]),
+        Object.fromEntries(
+          nestedFields.map(f => [f.name, this.getWidget(f, value, metadata[f.name], this.props)]),
         ),
-    });
+    };
   };
 
   /**
@@ -231,41 +228,41 @@ export class PreviewPane extends React.Component {
    */
   getCollection = async (collectionName, slugToLoad) => {
     const { state } = this.props;
-    const selectedCollection = state.collections.get(collectionName);
+    const selectedCollection = state.collections[collectionName];
 
     if (typeof slugToLoad === 'undefined') {
       const entries = await getAllEntries(state, selectedCollection);
 
-      return entries.map(({ data, slug, path }) => Map({ data, slug, path }));
+      return entries.map(({ data, slug, path }) => ({ data, slug, path }));
     }
 
     const { data, slug, path } = await tryLoadEntry(state, selectedCollection, slugToLoad);
-    return Map({ data, slug, path });
+    return { data, slug, path };
   };
 
   render() {
     const { entry, collection, config } = this.props;
 
-    if (!entry || !entry.get('data')) {
+    if (!entry || !entry.data) {
       return null;
     }
 
     const previewComponent =
-      getPreviewTemplate(selectTemplateName(collection, entry.get('slug'))) || EditorPreview;
+      getPreviewTemplate(selectTemplateName(collection, entry.slug)) || EditorPreview;
 
     this.inferFields();
 
-    const visualEditing = collection.getIn(['editor', 'visualEditing'], false);
+    const visualEditing = collection.editor?.visualEditing ?? false;
 
     // Only encode entry data if visual editing is enabled
     const previewEntry = visualEditing
-      ? entry.set('data', encodeEntry(entry.get('data'), this.props.fields))
+      ? { ...entry, data: encodeEntry(entry.data, this.props.fields) }
       : entry;
 
     const previewProps = {
       ...this.props,
       entry: previewEntry,
-      widgetFor: (name, fields, values = previewEntry.get('data'), fieldsMetaData) =>
+      widgetFor: (name, fields, values = previewEntry.data, fieldsMetaData) =>
         this.widgetFor(name, fields, values, fieldsMetaData),
       widgetsFor: this.widgetsFor,
       getCollection: this.getCollection,
@@ -311,10 +308,10 @@ export class PreviewPane extends React.Component {
 }
 
 PreviewPane.propTypes = {
-  collection: ImmutablePropTypes.map.isRequired,
-  fields: ImmutablePropTypes.list.isRequired,
-  entry: ImmutablePropTypes.map.isRequired,
-  fieldsMetaData: ImmutablePropTypes.map.isRequired,
+  collection: PropTypes.object.isRequired,
+  fields: PropTypes.array.isRequired,
+  entry: PropTypes.object.isRequired,
+  fieldsMetaData: PropTypes.object.isRequired,
   getAsset: PropTypes.func.isRequired,
   onFieldClick: PropTypes.func,
 };
