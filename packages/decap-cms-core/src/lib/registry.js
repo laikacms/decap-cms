@@ -1,4 +1,3 @@
-import { Map } from 'immutable';
 import { produce } from 'immer';
 import { oneLine } from 'common-tags';
 
@@ -25,7 +24,7 @@ const registry = {
   templates: {},
   previewStyles: [],
   widgets: {},
-  editorComponents: Map(),
+  editorComponents: {},
   remarkPlugins: [],
   widgetValueSerializers: {},
   mediaLibraries: [],
@@ -154,18 +153,20 @@ export function resolveWidget(name) {
 export function registerEditorComponent(component) {
   const plugin = EditorComponent(component);
   if (plugin.type === 'code-block') {
-    const codeBlock = registry.editorComponents.find(c => c.type === 'code-block');
+    const codeBlock = Object.values(registry.editorComponents).find(
+      c => c.type === 'code-block',
+    );
 
     if (codeBlock) {
       console.warn(oneLine`
         Only one editor component of type "code-block" may be registered. Previously registered code
         block component(s) will be overwritten.
       `);
-      registry.editorComponents = registry.editorComponents.delete(codeBlock.id);
+      delete registry.editorComponents[codeBlock.id];
     }
   }
 
-  registry.editorComponents = registry.editorComponents.set(plugin.id, plugin);
+  registry.editorComponents[plugin.id] = plugin;
 }
 export function getEditorComponents() {
   return registry.editorComponents;

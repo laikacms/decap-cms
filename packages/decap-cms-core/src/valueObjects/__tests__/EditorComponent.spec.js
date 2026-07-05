@@ -1,5 +1,3 @@
-import { fromJS } from 'immutable';
-
 import createEditorComponent from '../EditorComponent';
 
 describe('createEditorComponent', () => {
@@ -83,15 +81,15 @@ describe('createEditorComponent', () => {
   });
 
   describe('fields conversion', () => {
-    it('converts fields array to Immutable List', () => {
+    it('keeps fields as a plain array', () => {
       const fields = [{ name: 'title', widget: 'string' }];
       const result = createEditorComponent({ label: 'Test', fields });
-      expect(result.fields).toEqual(fromJS(fields));
+      expect(result.fields).toEqual(fields);
     });
 
-    it('defaults to empty Immutable List when fields is not provided', () => {
+    it('defaults to an empty array when fields is not provided', () => {
       const result = createEditorComponent({ label: 'Test' });
-      expect(result.fields).toEqual(fromJS([]));
+      expect(result.fields).toEqual([]);
     });
   });
 });

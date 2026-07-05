@@ -1,6 +1,5 @@
 import React from 'react';
 import { render } from '@testing-library/react';
-import { fromJS } from 'immutable';
 
 import EditorPreview from '../EditorPreview';
 
@@ -12,12 +11,12 @@ jest.mock('@emotion/styled', () => {
 });
 
 describe('EditorPreview', () => {
-  const collection = fromJS({ name: 'posts' });
-  const entry = fromJS({ data: {} });
+  const collection = { name: 'posts' };
+  const entry = { data: {} };
   const getAsset = jest.fn();
 
   it('renders visible fields', () => {
-    const fields = fromJS([{ name: 'title', widget: 'string' }]);
+    const fields = [{ name: 'title', widget: 'string' }];
     const widgetFor = jest.fn(name => <span data-testid={`widget-${name}`}>{name}</span>);
 
     const { getByTestId } = render(
@@ -35,10 +34,10 @@ describe('EditorPreview', () => {
   });
 
   it('does not render hidden widget fields (DCMS-108)', () => {
-    const fields = fromJS([
+    const fields = [
       { name: 'title', widget: 'string' },
       { name: 'secret', widget: 'hidden' },
-    ]);
+    ];
     const widgetFor = jest.fn(name => <span data-testid={`widget-${name}`}>{name}</span>);
 
     const { getByTestId, queryByTestId } = render(

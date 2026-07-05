@@ -1,10 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import styled from '@emotion/styled';
 
 function isVisible(field) {
-  return field.get('widget') !== 'hidden';
+  return field.widget !== 'hidden';
 }
 
 const PreviewContainer = styled.div`
@@ -24,7 +23,7 @@ export default class Preview extends React.Component {
     return (
       <PreviewContainer>
         {fields.filter(isVisible).map(field => (
-          <div key={field.get('name')}>{widgetFor(field.get('name'))}</div>
+          <div key={field.name}>{widgetFor(field.name)}</div>
         ))}
       </PreviewContainer>
     );
@@ -32,9 +31,9 @@ export default class Preview extends React.Component {
 }
 
 Preview.propTypes = {
-  collection: ImmutablePropTypes.map.isRequired,
-  entry: ImmutablePropTypes.map.isRequired,
-  fields: ImmutablePropTypes.list.isRequired,
+  collection: PropTypes.object.isRequired,
+  entry: PropTypes.object.isRequired,
+  fields: PropTypes.array.isRequired,
   getAsset: PropTypes.func.isRequired,
   widgetFor: PropTypes.func.isRequired,
 };

@@ -462,7 +462,7 @@ describe('registry', () => {
     it('returns an empty map before any components are registered', () => {
       const { getEditorComponents } = require('../registry');
 
-      expect(getEditorComponents().size).toBe(0);
+      expect(Object.keys(getEditorComponents())).toHaveLength(0);
     });
 
     it('registers an editor component and retrieves it', () => {
@@ -478,7 +478,7 @@ describe('registry', () => {
       });
 
       const components = getEditorComponents();
-      expect(components.has('youtube')).toBe(true);
+      expect('youtube' in components).toBe(true);
     });
 
     it('registers multiple editor components', () => {
@@ -501,7 +501,7 @@ describe('registry', () => {
         toBlock: jest.fn(),
       });
 
-      expect(getEditorComponents().size).toBe(2);
+      expect(Object.keys(getEditorComponents())).toHaveLength(2);
     });
 
     it('a second code-block component replaces the first and emits console.warn', () => {
@@ -529,8 +529,8 @@ describe('registry', () => {
 
       expect(console.warn).toHaveBeenCalledTimes(1);
       const components = getEditorComponents();
-      expect(components.has('cb1')).toBe(false);
-      expect(components.has('cb2')).toBe(true);
+      expect('cb1' in components).toBe(false);
+      expect('cb2' in components).toBe(true);
     });
   });
 

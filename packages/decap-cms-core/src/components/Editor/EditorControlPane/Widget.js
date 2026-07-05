@@ -1,7 +1,5 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import ImmutablePropTypes from 'react-immutable-proptypes';
-import { Map, List } from 'immutable';
 import { oneLine } from 'common-tags';
 
 import { getRemarkPlugins } from '../../../lib/registry';
@@ -16,15 +14,14 @@ function isEmpty(value) {
     value === null ||
     value === undefined ||
     (Object.prototype.hasOwnProperty.call(value, 'length') && value.length === 0) ||
-    (value.constructor === Object && Object.keys(value).length === 0) ||
-    (List.isList(value) && value.size === 0)
+    (value.constructor === Object && Object.keys(value).length === 0)
   );
 }
 
 export default class Widget extends Component {
   static propTypes = {
     controlComponent: PropTypes.func.isRequired,
-    field: ImmutablePropTypes.map.isRequired,
+    field: PropTypes.object.isRequired,
     hasActiveStyle: PropTypes.bool,
     setActiveStyle: PropTypes.func.isRequired,
     setInactiveStyle: PropTypes.func.isRequired,
@@ -39,9 +36,9 @@ export default class Widget extends Component {
       PropTypes.string,
       PropTypes.bool,
     ]),
-    mediaPaths: ImmutablePropTypes.map.isRequired,
-    metadata: ImmutablePropTypes.map,
-    fieldsErrors: ImmutablePropTypes.map,
+    mediaPaths: PropTypes.object.isRequired,
+    metadata: PropTypes.object,
+    fieldsErrors: PropTypes.object,
     onChange: PropTypes.func.isRequired,
     onValidate: PropTypes.func,
     controlRef: PropTypes.func,
@@ -67,7 +64,7 @@ export default class Widget extends Component {
     onValidateObject: PropTypes.func,
     isEditorComponent: PropTypes.bool,
     isNewEditorComponent: PropTypes.bool,
-    entry: ImmutablePropTypes.map.isRequired,
+    entry: PropTypes.object.isRequired,
     isDisabled: PropTypes.bool,
     isFieldDuplicate: PropTypes.func,
     isFieldHidden: PropTypes.func,
@@ -143,7 +140,7 @@ export default class Widget extends Component {
   getValidateValue = () => {
     let value = this.innerWrappedControl?.getValidateValue?.() || this.props.value;
     // Convert list input widget value to string for validation test
-    List.isList(value) && (value = value.join(','));
+    Array.isArray(value) && (value = value.join(','));
     return value;
   };
 
@@ -152,7 +149,7 @@ export default class Widget extends Component {
     const field = this.props.field;
     const errors = [];
     const validations = [this.validatePresence, this.validatePattern];
-    if (field.get('meta')) {
+    if (field.meta) {
       validations.push(this.props.validateMetaField);
     }
     validations.forEach(func => {
@@ -171,13 +168,13 @@ export default class Widget extends Component {
 
   validatePresence = (field, value) => {
     const { t, parentIds } = this.props;
-    const isRequired = field.get('required', true);
+    const isRequired = field.required ?? true;
     if (isRequired && isEmpty(value)) {
       const error = {
         type: ValidationErrorTypes.PRESENCE,
         parentIds,
         message: t('editor.editorControlPane.widget.required', {
-          fieldLabel: field.get('label', field.get('name')),
+          fieldLabel: field.label ?? field.name,
         }),
       };
 
@@ -188,19 +185,19 @@ export default class Widget extends Component {
 
   validatePattern = (field, value) => {
     const { t, parentIds } = this.props;
-    const pattern = field.get('pattern', false);
+    const pattern = field.pattern ?? false;
 
     if (isEmpty(value)) {
       return { error: false };
     }
 
-    if (pattern && !RegExp(pattern.first()).test(value)) {
+    if (pattern && !RegExp(pattern[0]).test(value)) {
       const error = {
         type: ValidationErrorTypes.PATTERN,
         parentIds,
         message: t('editor.editorControlPane.widget.regexPattern', {
-          fieldLabel: field.get('label', field.get('name')),
-          pattern: pattern.last(),
+          fieldLabel: field.label ?? field.name,
+          pattern: pattern[pattern.length - 1],
         }),
       };
 
@@ -215,7 +212,7 @@ export default class Widget extends Component {
     if (typeof this.wrappedControlValid !== 'function') {
       throw new Error(oneLine`
         this.wrappedControlValid is not a function. Are you sure widget
-        "${field.get('widget')}" is registered?
+        "${field.widget}" is registered?
       `);
     }
 
@@ -233,7 +230,7 @@ export default class Widget extends Component {
         err => {
           const error = {
             type: ValidationErrorTypes.CUSTOM,
-            message: `${field.get('label', field.get('name'))} - ${err}.`,
+            message: `${field.label ?? field.name} - ${err}.`,
           };
 
           this.validate({ error });
@@ -244,7 +241,7 @@ export default class Widget extends Component {
         type: ValidationErrorTypes.CUSTOM,
         parentIds,
         message: t('editor.editorControlPane.widget.processing', {
-          fieldLabel: field.get('label', field.get('name')),
+          fieldLabel: field.label ?? field.name,
         }),
       };
 
@@ -258,22 +255,22 @@ export default class Widget extends Component {
    * e.g. when debounced, always get the latest object value instead of using
    * `this.props.value` directly.
    */
-  getObjectValue = () => this.props.value || Map();
+  getObjectValue = () => this.props.value || {};
 
   /**
    * Change handler for fields that are nested within another field.
    */
   onChangeObject = (field, newValue, newMetadata) => {
-    const newObjectValue = this.getObjectValue().set(field.get('name'), newValue);
+    const newObjectValue = { ...this.getObjectValue(), [field.name]: newValue };
     return this.props.onChange(
       newObjectValue,
-      newMetadata && { [this.props.field.get('name')]: newMetadata },
+      newMetadata && { [this.props.field.name]: newMetadata },
     );
   };
 
   setInactiveStyle = () => {
     this.props.setInactiveStyle();
-    if (this.props.field.has('pattern') && !isEmpty(this.getValidateValue())) {
+    if (this.props.field.pattern !== undefined && !isEmpty(this.getValidateValue())) {
       this.validate();
     }
   };

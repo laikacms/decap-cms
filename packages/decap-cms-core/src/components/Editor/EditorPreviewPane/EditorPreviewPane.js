@@ -1,8 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import styled from '@emotion/styled';
-import { List, Map } from 'immutable';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import Frame, { FrameContextConsumer } from 'react-frame-component';
 import { lengths } from 'decap-cms-ui-default';
 import { connect } from 'react-redux';
@@ -37,12 +35,16 @@ const PreviewPaneFrame = styled(Frame)`
   border-radius: ${lengths.borderRadius};
 `;
 
+function isPlainRecord(value) {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 export class PreviewPane extends React.Component {
   getWidget = (field, value, metadata, props, idx = null) => {
     const { getAsset, entry } = props;
-    const widget = resolveWidget(field.get('widget'));
-    const key = idx ? field.get('name') + '_' + idx : field.get('name');
-    const valueIsInMap = value && !widget.allowMapValue && Map.isMap(value);
+    const widget = resolveWidget(field.widget);
+    const key = idx ? field.name + '_' + idx : field.name;
+    const valueIsInMap = value && !widget.allowMapValue && isPlainRecord(value);
 
     /**
      * Use an HOC to provide conditional updates for all previews.
@@ -53,7 +55,7 @@ export class PreviewPane extends React.Component {
         key={key}
         field={field}
         getAsset={getAsset}
-        value={valueIsInMap ? value.get(field.get('name')) : value}
+        value={valueIsInMap ? value[field.name] : value}
         entry={entry}
         fieldsMetaData={metadata}
         resolveWidget={resolveWidget}
