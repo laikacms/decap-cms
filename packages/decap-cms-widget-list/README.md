@@ -17,7 +17,7 @@ The List widget allows you to author a repeatable list of items.
 | `min`                | integer           |         | Minimum number of list items. Independent of `max` — may be set alone.    |
 | `max`                | integer           |         | Maximum number of list items. Independent of `min` — may be set alone.    |
 | `add_to_top`         | boolean           | `false` | Add new list items to the top of the list instead of the bottom           |
-| `typeKey`            | string            |         | Key used to identify the widget/type of a variable list item              |
+| `typeKey`            | string            | `type`  | Key used to identify the widget/type of a variable list item              |
 
 ### `min` and `max`
 
