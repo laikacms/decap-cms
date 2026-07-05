@@ -118,7 +118,9 @@ describe('Azure.authenticate() branch resolution', () => {
   });
 
   it('falls back to master when the Azure DevOps API request fails', async () => {
-    global.fetch = jest.fn().mockRejectedValue(new Error('network error')) as unknown as typeof fetch;
+    global.fetch = jest
+      .fn()
+      .mockRejectedValue(new Error('network error')) as unknown as typeof fetch;
 
     const backend = new Azure(makeConfig());
 
