@@ -1,5 +1,4 @@
 jest.mock('decap-cms-core/src/backend');
-import { fromJS } from 'immutable';
 import { oneLine, stripIndent } from 'common-tags';
 import nock from 'nock';
 import { Cursor } from 'decap-cms-lib-util';
@@ -429,11 +428,11 @@ describe('gitlab backend', () => {
       const entry = await backend.getEntry(
         {
           config: {},
-          integrations: fromJS([]),
-          entryDraft: fromJS({}),
-          mediaLibrary: fromJS({}),
+          integrations: [],
+          entryDraft: {},
+          mediaLibrary: {},
         },
-        fromJS(collectionContentConfig),
+        collectionContentConfig,
         slug,
       );
 
@@ -449,7 +448,7 @@ describe('gitlab backend', () => {
       tree.forEach(file => interceptFiles(backend, file.path));
 
       interceptCollection(backend, collectionContentConfig);
-      const entries = await backend.listEntries(fromJS(collectionContentConfig));
+      const entries = await backend.listEntries(collectionContentConfig);
 
       expect(entries).toEqual({
         cursor: expect.any(Cursor),
@@ -467,7 +466,7 @@ describe('gitlab backend', () => {
       tree.forEach(file => interceptFiles(backend, file.path));
 
       interceptCollection(backend, collectionManyEntriesConfig, { repeat: 5 });
-      const entries = await backend.listAllEntries(fromJS(collectionManyEntriesConfig));
+      const entries = await backend.listAllEntries(collectionManyEntriesConfig);
 
       expect(entries).toEqual(
         expect.arrayContaining(tree.map(file => expect.objectContaining({ path: file.path }))),
@@ -478,7 +477,7 @@ describe('gitlab backend', () => {
     it('returns entries from file collection', async () => {
       const { files } = collectionFilesConfig;
       files.forEach(file => interceptFiles(backend, file.file));
-      const entries = await backend.listEntries(fromJS(collectionFilesConfig));
+      const entries = await backend.listEntries(collectionFilesConfig);
 
       expect(entries).toEqual({
         cursor: expect.any(Cursor),
@@ -494,7 +493,7 @@ describe('gitlab backend', () => {
       const pageTree = tree.slice(0, 20);
       pageTree.forEach(file => interceptFiles(backend, file.path));
       interceptCollection(backend, collectionManyEntriesConfig, { page: 1 });
-      const entries = await backend.listEntries(fromJS(collectionManyEntriesConfig));
+      const entries = await backend.listEntries(collectionManyEntriesConfig);
 
       expect(entries.entries).toEqual(
         expect.arrayContaining(pageTree.map(file => expect.objectContaining({ path: file.path }))),
@@ -510,7 +509,7 @@ describe('gitlab backend', () => {
       const tree = mockRepo.tree[collectionManyEntriesConfig.folder];
       tree.slice(0, 20).forEach(file => interceptFiles(backend, file.path));
       interceptCollection(backend, collectionManyEntriesConfig, { page: 1 });
-      const entries = await backend.listEntries(fromJS(collectionManyEntriesConfig));
+      const entries = await backend.listEntries(collectionManyEntriesConfig);
 
       const nextPageTree = tree.slice(20, 40);
       nextPageTree.forEach(file => interceptFiles(backend, file.path));
