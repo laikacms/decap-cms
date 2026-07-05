@@ -109,7 +109,7 @@ AuthenticationPage.propTypes = {
   logoUrl: PropTypes.string, // Deprecated, replaced by `logo.src`
   logo: PropTypes.shape({
     src: PropTypes.string,
-    show_in_header: PropTypes.bool,
+    show_in_header: PropTypes.bool, // Shown in the header by default; set to `false` to hide it there.
   }),
   siteUrl: PropTypes.string,
   loginDisabled: PropTypes.bool,
