@@ -74,12 +74,24 @@ describe('withMapControl', () => {
     delete global.ResizeObserver;
   });
 
-  function renderControl() {
-    const field = Map({ name: 'map', widget: 'map' });
+  function renderControl(fieldOverrides = {}) {
+    const field = Map({ name: 'map', widget: 'map', ...fieldOverrides });
     return render(
       <MapControl field={field} onChange={jest.fn()} value="" classNameWrapper="control" />,
     );
   }
+
+  it('defaults the container height to 400px when the field has no height option', () => {
+    const { container } = renderControl();
+
+    expect(container.querySelector('.control')).toHaveStyle({ height: '400px' });
+  });
+
+  it('reads the container height from the field height option', () => {
+    const { container } = renderControl({ height: '600px' });
+
+    expect(container.querySelector('.control')).toHaveStyle({ height: '600px' });
+  });
 
   it('does not construct the map while the container is 0x0 at mount', () => {
     renderControl();
