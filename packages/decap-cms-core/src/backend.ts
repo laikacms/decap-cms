@@ -1120,6 +1120,12 @@ export class Backend {
 
     const customPath = selectCustomPath(collection, entryDraft);
 
+    // NOTE (DCMS-373): when `customPath` relocates a nested folder-collection entry backed by
+    // `meta.path.index_file` (e.g. `_index.md`), only this single entry's dataFile is renamed
+    // below. Any child entries/subfolders that live underneath the entry's old path are never
+    // enumerated or moved and are left behind at their original location. Relocating such a
+    // node moves only its own index file, not the whole subtree; child entries must be
+    // relocated manually.
     let dataFile: DataFile;
     if (newEntry) {
       if (!selectAllowNewEntries(collection)) {
