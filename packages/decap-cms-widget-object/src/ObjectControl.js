@@ -176,7 +176,8 @@ export default class ObjectControl extends React.Component {
     const { value, field } = this.props;
     const label = field.get('label', field.get('name'));
     const summary = field.get('summary');
-    return summary ? stringTemplate.compileStringTemplate(summary, null, '', value) : label;
+    const data = value && typeof value.toJS === 'function' ? value.toJS() : value;
+    return summary ? stringTemplate.compileStringTemplate(summary, null, '', data) : label;
   };
 
   render() {

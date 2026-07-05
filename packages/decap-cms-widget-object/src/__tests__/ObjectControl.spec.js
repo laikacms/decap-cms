@@ -185,12 +185,6 @@ describe('ObjectControl', () => {
 
   describe('summary rendering', () => {
     it('shows the compiled summary as the collapsed heading', () => {
-      // Note: `objectLabel` passes the raw Immutable `value` Map straight into
-      // `compileStringTemplate` as its data source, but that helper only reads
-      // plain-JS-style properties (`obj[key]`), which Immutable.Map does not
-      // expose. So `{{fieldName}}`-style placeholders never actually resolve
-      // against real entry values here; a literal (placeholder-free) summary
-      // still round-trips correctly, which is what this test documents.
       const field = fromJS({
         name: 'object',
         collapsed: true,
@@ -202,6 +196,23 @@ describe('ObjectControl', () => {
       );
 
       expect(screen.getByText('Custom Summary Text')).toBeInTheDocument();
+    });
+
+    it('substitutes {{fieldName}} placeholders in the summary against the Immutable Map value (DCMS-353)', () => {
+      // `objectLabel` passes `value` (an Immutable.Map) into `compileStringTemplate`.
+      // Regression test: placeholders must resolve to the real field value, not
+      // an empty string, whether `value` is Immutable or a plain object.
+      const field = fromJS({
+        name: 'object',
+        collapsed: true,
+        summary: 'Title: {{title}}',
+        fields: [{ name: 'title', widget: 'string' }],
+      });
+      render(
+        <ObjectControl {...defaultProps} field={field} value={fromJS({ title: 'Hello World' })} />,
+      );
+
+      expect(screen.getByText('Title: Hello World')).toBeInTheDocument();
     });
 
     it('falls back to the field label when no summary is configured', () => {
