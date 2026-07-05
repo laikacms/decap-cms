@@ -153,9 +153,7 @@ export function resolveWidget(name) {
 export function registerEditorComponent(component) {
   const plugin = EditorComponent(component);
   if (plugin.type === 'code-block') {
-    const codeBlock = Object.values(registry.editorComponents).find(
-      c => c.type === 'code-block',
-    );
+    const codeBlock = Object.values(registry.editorComponents).find(c => c.type === 'code-block');
 
     if (codeBlock) {
       console.warn(oneLine`
