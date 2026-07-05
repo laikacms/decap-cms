@@ -55,6 +55,12 @@ describe('Editor', () => {
     );
   });
 
+  it('should not log a prop-type warning when children is a render-prop function', () => {
+    render(<ErrorBoundary {...props}>{() => <div>rendered</div>}</ErrorBoundary>);
+
+    expect(console.error).not.toHaveBeenCalledWith(expect.stringContaining('Failed prop type'));
+  });
+
   it('should omit labels param when issue_reports.url is a custom URL', () => {
     global.navigator.userAgent = 'Test User Agent';
     const customConfig = {
