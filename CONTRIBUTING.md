@@ -67,7 +67,7 @@ npm run test
 
 ### test:all
 
-Runs linting, Jest, and Cypress tests. **Note:** This inherits `test:e2e`'s build step, so `npm run build:demo` runs before Cypress, and build failures will surface here.
+Runs linting, type-checking, Jest, and Cypress tests. **Note:** This inherits `test:e2e`'s build step, so `npm run build:demo` runs before Cypress, and build failures will surface here.
 
 ```sh
 npm run test:all
