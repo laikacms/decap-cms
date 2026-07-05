@@ -1,6 +1,27 @@
 import { createNonce, validateNonce, isInsecureProtocol } from '../utils';
 
-describe('auth utils', () => {
+describe('createNonce', () => {
+  beforeEach(() => {
+    window.sessionStorage.clear();
+  });
+
+  it('writes a nonce to sessionStorage under the decap-cms-auth key and returns it', () => {
+    const nonce = createNonce();
+
+    expect(typeof nonce).toBe('string');
+    expect(nonce).not.toHaveLength(0);
+    expect(JSON.parse(window.sessionStorage.getItem('decap-cms-auth'))).toEqual({ nonce });
+  });
+
+  it('returns a different nonce on each call', () => {
+    const first = createNonce();
+    const second = createNonce();
+
+    expect(first).not.toBe(second);
+  });
+});
+
+describe('validateNonce', () => {
   beforeEach(() => {
     window.sessionStorage.clear();
     window.localStorage.clear();
@@ -11,6 +32,16 @@ describe('auth utils', () => {
 
     expect(validateNonce(nonce)).toBe(true);
     expect(window.sessionStorage.getItem('decap-cms-auth')).toBeNull();
+  });
+
+  it('returns false when the check value does not match the stored nonce', () => {
+    createNonce();
+
+    expect(validateNonce('not-the-stored-nonce')).toBe(false);
+  });
+
+  it('returns false when nothing is stored', () => {
+    expect(validateNonce('anything')).toBe(false);
   });
 
   it('should not clear local storage nonce key', () => {
