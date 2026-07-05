@@ -17,7 +17,7 @@ const stateColors = {
   },
 };
 
-function getStateColors({ isActive, hasErrors }) {
+export function getStateColors({ isActive, hasErrors }) {
   if (hasErrors) return stateColors.error;
   if (isActive) return stateColors.active;
   return stateColors.default;
