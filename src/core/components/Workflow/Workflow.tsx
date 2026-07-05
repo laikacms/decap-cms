@@ -18,8 +18,8 @@ import {
   publishUnpublishedEntry,
   deleteUnpublishedEntry,
 } from '../../actions/editorialWorkflow';
-import { selectUnpublishedEntriesByStatus } from '../../reducers';
-import { EDITORIAL_WORKFLOW, status } from '../../constants/publishModes';
+import { selectUnpublishedEntriesGroupedByStatus } from '../../reducers';
+import { EDITORIAL_WORKFLOW } from '../../constants/publishModes';
 import WorkflowList from './WorkflowList';
 import { useAppDispatch, useAppSelector } from '../../hooks/useRedux';
 import { useCmsSlots } from '../../lib/slots';
@@ -72,14 +72,9 @@ function Workflow({ t }: WorkflowProps) {
   const isFetching = useAppSelector((state: any) =>
     isEditorialWorkflow ? (state.editorialWorkflow?.pages?.isFetching ?? false) : false,
   );
-  const unpublishedEntries = useAppSelector((state: any) => {
-    if (!isEditorialWorkflow) return undefined;
-    const result: Record<string, any> = {};
-    Object.values(status).forEach(currStatus => {
-      result[currStatus as string] = selectUnpublishedEntriesByStatus(state, currStatus as Status);
-    });
-    return result;
-  });
+  const unpublishedEntries = useAppSelector((state: any) =>
+    isEditorialWorkflow ? selectUnpublishedEntriesGroupedByStatus(state) : undefined,
+  );
 
   React.useEffect(() => {
     if (isEditorialWorkflow) {
