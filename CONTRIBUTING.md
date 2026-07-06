@@ -91,7 +91,7 @@ npm run test:e2e:dev
 
 ### format
 
-Formats code and docs according to our style guidelines.
+Formats code according to our style guidelines. This does not reformat markdown/docs files.
 
 ```sh
 npm run format
