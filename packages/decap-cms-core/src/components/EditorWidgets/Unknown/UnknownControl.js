@@ -3,9 +3,7 @@ import { translate } from 'react-polyglot';
 import PropTypes from 'prop-types';
 
 function UnknownControl({ field, t }) {
-  return (
-    <div>{t('editor.editorWidgets.unknownControl.noControl', { widget: field.widget })}</div>
-  );
+  return <div>{t('editor.editorWidgets.unknownControl.noControl', { widget: field.widget })}</div>;
 }
 
 UnknownControl.propTypes = {

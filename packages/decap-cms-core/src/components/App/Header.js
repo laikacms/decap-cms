@@ -182,9 +182,7 @@ class Header extends React.Component {
       showMediaButton,
     } = this.props;
 
-    const creatableCollections = Object.values(collections).filter(
-      collection => collection.create,
-    );
+    const creatableCollections = Object.values(collections).filter(collection => collection.create);
 
     const shouldShowLogo = (logo?.src || logoUrl) && logo?.show_in_header !== false;
 

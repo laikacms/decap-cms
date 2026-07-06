@@ -84,22 +84,14 @@ describe('Editor', () => {
 
   it('should render editor interface when entry is not fetching', () => {
     const { asFragment } = render(
-      <Editor
-        {...props}
-        entryDraft={{ entry: { slug: 'slug' } }}
-        entry={{ isFetching: false }}
-      />,
+      <Editor {...props} entryDraft={{ entry: { slug: 'slug' } }} entry={{ isFetching: false }} />,
     );
     expect(asFragment()).toMatchSnapshot();
   });
 
   it('should call retrieveLocalBackup on mount', () => {
     render(
-      <Editor
-        {...props}
-        entryDraft={{ entry: { slug: 'slug' } }}
-        entry={{ isFetching: false }}
-      />,
+      <Editor {...props} entryDraft={{ entry: { slug: 'slug' } }} entry={{ isFetching: false }} />,
     );
 
     expect(props.retrieveLocalBackup).toHaveBeenCalledTimes(1);
