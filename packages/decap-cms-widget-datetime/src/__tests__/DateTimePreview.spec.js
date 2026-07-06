@@ -58,4 +58,34 @@ describe('DateTimePreview', () => {
     const { container } = render(<DatePreview value="not-a-date" field={field} />);
     expect(container).toHaveTextContent('not-a-date');
   });
+
+  // DCMS-380: when a custom `format` is configured, values are saved to the
+  // content file in that format (e.g. "15/03/2024 at 09:05"), not ISO-8601.
+  // A bare `dayjs.utc(value)` (no format) cannot parse this string at all, so
+  // the preview must retry with the field's configured format, the same way
+  // DateTimeControl.formatInputValue does, instead of silently falling back
+  // to the raw saved string.
+  //
+  // The format re-renders without zero-padding (`D/M/YYYY H:mm`), so the
+  // expected output ("15/3/2024 at 9:05") differs from the padded raw input
+  // ("15/03/2024 at 09:05") -- this only matches if the value was actually
+  // parsed and re-formatted, not merely echoed back as a fallback.
+  test('formats a value saved with a custom format instead of falling back to the raw string', () => {
+    const field = new Map([
+      ['format', 'D/M/YYYY [at] H:mm'],
+      ['picker_utc', true],
+    ]);
+    const { container } = render(<DatePreview value="15/03/2024 at 09:05" field={field} />);
+    expect(container).toHaveTextContent('15/3/2024 at 9:05');
+    expect(container).not.toHaveTextContent('15/03/2024 at 09:05');
+  });
+
+  test('formats a value saved with a custom format using non-slash separators', () => {
+    const field = new Map([
+      ['format', 'D.M.YYYY [at] H:mm'],
+      ['picker_utc', true],
+    ]);
+    const { container } = render(<DatePreview value="25.12.2024 at 09:05" field={field} />);
+    expect(container).toHaveTextContent('25.12.2024 at 9:05');
+  });
 });
