@@ -33,7 +33,7 @@ import relationCache from './RelationCache';
  * The schema's oneOf allows both forms; the implementation reads only snake_case.
  * Coalescing here keeps backward compat and makes the schema promise real.
  */
-function normalizeField(field) {
+export function normalizeField(field) {
   let normalized = field;
   if (!normalized.get('value_field') && normalized.get('valueField')) {
     normalized = normalized.set('value_field', normalized.get('valueField'));
@@ -50,7 +50,7 @@ function normalizeField(field) {
   return normalized;
 }
 
-function arrayMove(array, from, to) {
+export function arrayMove(array, from, to) {
   const slicedArray = array.slice();
   slicedArray.splice(to < 0 ? array.length + to : to, 0, slicedArray.splice(from, 1)[0]);
   return slicedArray;
@@ -151,11 +151,11 @@ function MenuList(props) {
   );
 }
 
-function optionToString(option) {
+export function optionToString(option) {
   return option && option.value ? option.value : '';
 }
 
-function convertToOption(raw) {
+export function convertToOption(raw) {
   if (typeof raw === 'string') {
     return { label: raw, value: raw };
   }
@@ -163,7 +163,7 @@ function convertToOption(raw) {
   return Map.isMap(raw) ? raw.toJS() : raw;
 }
 
-function getSelectedOptions(value) {
+export function getSelectedOptions(value) {
   const selectedOptions = List.isList(value) ? value.toJS() : value;
 
   if (!selectedOptions || !Array.isArray(selectedOptions)) {
@@ -173,11 +173,11 @@ function getSelectedOptions(value) {
   return selectedOptions;
 }
 
-function uniqOptions(initial, current) {
+export function uniqOptions(initial, current) {
   return uniqBy(initial.concat(current), o => o.value);
 }
 
-function getFieldArray(field) {
+export function getFieldArray(field) {
   if (!field) {
     return [];
   }
@@ -185,7 +185,7 @@ function getFieldArray(field) {
   return List.isList(field) ? field.toJS() : [field];
 }
 
-function getSelectedValue({ value, options, isMultiple }) {
+export function getSelectedValue({ value, options, isMultiple }) {
   if (isMultiple) {
     const selectedOptions = getSelectedOptions(value);
     if (selectedOptions === null) {
@@ -202,7 +202,7 @@ function getSelectedValue({ value, options, isMultiple }) {
   }
 }
 
-function convertToSortableOption(raw) {
+export function convertToSortableOption(raw) {
   const option = convertToOption(raw);
   return {
     ...option,
