@@ -10,7 +10,9 @@ import {
 describe('sanitizeURI', () => {
   // `sanitizeURI` tests from RFC 3987
   it('should keep valid URI chars (letters digits _ - . ~)', () => {
-    expect(sanitizeURI('This, that-one_or.the~other 123!')).toEqual('Thisthat-one_or.the~other123');
+    expect(sanitizeURI('This, that-one_or.the~other 123!', { replacement: '' })).toEqual(
+      'Thisthat-one_or.the~other123',
+    );
   });
 
   it('should not remove accents', () => {
@@ -22,7 +24,9 @@ describe('sanitizeURI', () => {
   });
 
   it('should not keep valid non-latin chars (ucschars in RFC 3987) if set to ASCII mode', () => {
-    expect(sanitizeURI('ěščřžý日本語のタイトル', { encoding: 'ascii' })).toEqual('');
+    expect(sanitizeURI('ěščřžý日本語のタイトル', { encoding: 'ascii', replacement: '' })).toEqual(
+      '',
+    );
   });
 
   it('should not normalize Unicode strings', () => {
@@ -45,6 +49,13 @@ describe('sanitizeURI', () => {
   it('should not actually URI-encode the characters', () => {
     expect(sanitizeURI('🎉')).toEqual('🎉');
     expect(sanitizeURI('🎉')).not.toEqual('%F0%9F%8E%89');
+  });
+
+  // DCMS-395: without an explicit `replacement`, the real default must match
+  // the documented default ('-'), not silently fall through to ''.
+  it('defaults to a hyphen replacement when replacement is unset', () => {
+    expect(sanitizeURI('hello world')).toEqual('hello-world');
+    expect(sanitizeURI('hello world', {})).toEqual('hello-world');
   });
 });
 
@@ -155,6 +166,13 @@ describe('sanitizeChar', () => {
 
   it('should sanitize whitespace with custom replacement', () => {
     expect(sanitizeChar(' ', { ...slugConfig, sanitize_replacement: '_' })).toBe('_');
+  });
+
+  // DCMS-395: without an explicit `sanitize_replacement`, the real default must match
+  // the documented default ('-'), not silently fall through to ''.
+  it('defaults to a hyphen replacement when sanitize_replacement is unset', () => {
+    expect(sanitizeChar(' ')).toBe('-');
+    expect(sanitizeChar(' ', {})).toBe('-');
   });
 });
 
