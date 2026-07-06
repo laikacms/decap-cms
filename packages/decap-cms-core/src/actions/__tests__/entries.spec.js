@@ -493,6 +493,35 @@ describe('entries', () => {
         new Error('Entry has validation errors'),
       );
     });
+
+    it('should reject with the original Error (not the entryPersistFail action) when the backend persist fails', () => {
+      const { currentBackend } = require('../../backend');
+      const persistError = new Error('Failed to persist entry');
+      const backend = {
+        persistEntry: jest.fn(() => Promise.reject(persistError)),
+      };
+      currentBackend.mockReturnValue(backend);
+
+      const store = mockStore({
+        config: Map(),
+        entryDraft: fromJS({
+          entry: { data: {}, mediaFiles: [] },
+          fieldsErrors: {},
+        }),
+        entries: fromJS({}),
+        integrations: fromJS({}),
+        mediaLibrary: fromJS({ files: [] }),
+      });
+
+      const collection = fromJS({
+        name: 'posts',
+        type: 'folder_based_collection',
+        folder: 'posts',
+        fields: [{ name: 'title' }],
+      });
+
+      return expect(store.dispatch(persistEntry(collection))).rejects.toBe(persistError);
+    });
   });
 
   describe('validateMetaField', () => {
