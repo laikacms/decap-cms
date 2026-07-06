@@ -2,6 +2,12 @@
  * Shared date/time formatting logic used by both DateTimeControl (editing)
  * and DateTimePreview (read-only display), so the two stay in sync.
  */
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+import utc from 'dayjs/plugin/utc';
+
+dayjs.extend(customParseFormat);
+dayjs.extend(utc);
 
 /**
  * Normalise deprecated camelCase field config keys to their snake_case equivalents.
@@ -80,6 +86,22 @@ export function getFormat(field) {
   if (inputType === 'time') inputFormat = 'HH:mm';
 
   return { format, inputType, inputFormat, isUtc };
+}
+
+/**
+ * Parse a stored datetime value the same way regardless of caller: try a bare
+ * parse first (covers the default ISO-8601 storage format), and fall back to
+ * parsing with the field's configured `format` for values that were saved
+ * using a custom format and can't be parsed without it (dayjs can't infer a
+ * non-ISO format on its own). Used by both DateTimeControl.formatInputValue
+ * and DateTimePreview.formatValue so they stay in sync.
+ */
+export function parseStoredValue(value, { format, isUtc }) {
+  const bare = isUtc ? dayjs.utc(value) : dayjs(value);
+  if (bare.isValid()) {
+    return bare;
+  }
+  return isUtc ? dayjs.utc(value, format) : dayjs(value, format);
 }
 
 /**

@@ -1,14 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import dayjs from 'dayjs';
-import customParseFormat from 'dayjs/plugin/customParseFormat';
-import utc from 'dayjs/plugin/utc';
 import { WidgetPreviewContainer } from 'decap-cms-ui-default';
 
-import { getFormat, hasFormatOptions } from './DateTimeFormatter';
-
-dayjs.extend(customParseFormat);
-dayjs.extend(utc);
+import { getFormat, hasFormatOptions, parseStoredValue } from './DateTimeFormatter';
 
 function formatValue(value, field) {
   const raw = value.toString();
@@ -18,7 +12,7 @@ function formatValue(value, field) {
   }
 
   const { format, isUtc } = getFormat(field);
-  const parsed = isUtc ? dayjs.utc(value) : dayjs(value);
+  const parsed = parseStoredValue(value, { format, isUtc });
 
   if (!parsed.isValid()) {
     return raw;
