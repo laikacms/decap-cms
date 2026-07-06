@@ -999,7 +999,8 @@ export function persistEntry(collection: Collection) {
             dismissAfter: 8000,
           }),
         );
-        return Promise.reject(dispatch(entryPersistFail(collection, serializedEntry, error)));
+        dispatch(entryPersistFail(collection, serializedEntry, error));
+        return Promise.reject(error);
       });
   };
 }
