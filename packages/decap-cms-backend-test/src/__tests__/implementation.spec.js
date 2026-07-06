@@ -43,6 +43,22 @@ describe('test backend implementation', () => {
         data: 'post content',
       });
     });
+
+    it('should reject when entry does not exist', async () => {
+      window.repoFiles = {
+        posts: {
+          'some-post.md': {
+            content: 'post content',
+          },
+        },
+      };
+
+      const backend = new TestBackend({});
+
+      await expect(backend.getEntry('posts/entries/does-not-exist.md')).rejects.toThrow(
+        'Entry not found: posts/entries/does-not-exist.md',
+      );
+    });
   });
 
   describe('persistEntry', () => {
