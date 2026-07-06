@@ -1,4 +1,3 @@
-import { Map } from 'immutable';
 import configureMockStore from 'redux-mock-store';
 import thunk from 'redux-thunk';
 import { mocked } from 'jest-mock';
@@ -40,8 +39,6 @@ describe('media', () => {
 
       const payload = { collection: null, entryPath: null, entry: null, path: null };
 
-      // TODO change to proper payload when immutable is removed
-      //  from 'collections' and 'entries' state slices
       const result = store.dispatch(getAsset(payload as unknown as Parameters<typeof getAsset>[0]));
       const actions = store.getActions();
       expect(actions).toHaveLength(0);
@@ -52,19 +49,15 @@ describe('media', () => {
       const path = 'static/media/image.png';
       const asset = new AssetProxy({ file: new File([], 'empty'), path });
       const store = mockStore({
-        // TODO change to proper store data when immutable is removed
-        //  from 'config' state slice
-        config: Map() as unknown as State['config'],
+        config: {} as unknown as State['config'],
         medias: {
           [path]: { asset, isLoading: false, error: null },
         },
       });
 
       mockedSelectMediaFilePath.mockReturnValue(path);
-      const payload = { collection: Map(), entry: Map({ path: 'entryPath' }), path };
+      const payload = { collection: {}, entry: { path: 'entryPath' }, path };
 
-      // TODO change to proper payload when immutable is removed
-      //  from 'collections' and 'entries' state slices
       const result = store.dispatch(getAsset(payload as unknown as Parameters<typeof getAsset>[0]));
       const actions = store.getActions();
       expect(actions).toHaveLength(0);
@@ -91,8 +84,6 @@ describe('media', () => {
       mockedSelectMediaFilePath.mockReturnValue(path);
       const payload = { collection: null, entryPath: null, path };
 
-      // TODO change to proper payload when immutable is removed
-      //  from 'collections' state slice
       const result = store.dispatch(getAsset(payload as unknown as Parameters<typeof getAsset>[0]));
       const actions = store.getActions();
       expect(actions).toHaveLength(1);
@@ -112,8 +103,6 @@ describe('media', () => {
       mockedSelectMediaFilePath.mockReturnValue(path);
       const payload = { path };
 
-      // TODO change to proper payload when immutable is removed
-      //  from 'collections' and 'entries' state slices
       const result = store.dispatch(getAsset(payload as unknown as Parameters<typeof getAsset>[0]));
       const actions = store.getActions();
       expect(actions).toHaveLength(1);
@@ -140,8 +129,6 @@ describe('media', () => {
       mockedSelectMediaFilePath.mockReturnValue(resolvePath);
       const payload = { path };
 
-      // TODO change to proper payload when immutable is removed
-      //  from 'collections' and 'entries' state slices
       const result = store.dispatch(getAsset(payload as unknown as Parameters<typeof getAsset>[0]));
       const actions = store.getActions();
 

@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import dayjs from 'dayjs';
@@ -130,13 +129,13 @@ function getColumnHeaderText(columnName, t) {
 
 class WorkflowList extends React.Component {
   static propTypes = {
-    entries: ImmutablePropTypes.orderedMap,
+    entries: PropTypes.object,
     handleChangeStatus: PropTypes.func.isRequired,
     handlePublish: PropTypes.func.isRequired,
     handleDelete: PropTypes.func.isRequired,
     t: PropTypes.func.isRequired,
     isOpenAuthoring: PropTypes.bool,
-    collections: ImmutablePropTypes.map.isRequired,
+    collections: PropTypes.object.isRequired,
   };
 
   componentDidMount() {
@@ -158,7 +157,7 @@ class WorkflowList extends React.Component {
   };
 
   requestPublish = (collection, slug, ownStatus) => {
-    if (ownStatus !== status.last()) {
+    if (ownStatus !== status.PENDING_PUBLISH) {
       window.alert(this.props.t('workflow.workflowList.onPublishingNotReadyEntry'));
       return;
     } else if (!window.confirm(this.props.t('workflow.workflowList.onPublishEntry'))) {
@@ -172,7 +171,7 @@ class WorkflowList extends React.Component {
     if (!entries) return null;
 
     if (!column) {
-      return entries.entrySeq().map(([currColumn, currEntries], idx) => (
+      return Object.entries(entries).map(([currColumn, currEntries], idx) => (
         <DropTarget
           namespace={DNDNamespace}
           key={currColumn}
@@ -195,7 +194,7 @@ class WorkflowList extends React.Component {
                   </ColumnHeader>
                   <ColumnCount>
                     {this.props.t('workflow.workflowList.currentEntries', {
-                      smart_count: currEntries.size,
+                      smart_count: currEntries.length,
                     })}
                   </ColumnCount>
                   {this.renderColumns(currEntries, currColumn)}
@@ -209,20 +208,18 @@ class WorkflowList extends React.Component {
     return (
       <div>
         {entries.map(entry => {
-          const timestamp = dayjs(entry.get('updatedOn')).format(t('workflow.workflow.dateFormat'));
-          const slug = entry.get('slug');
-          const collectionName = entry.get('collection');
+          const timestamp = dayjs(entry.updatedOn).format(t('workflow.workflow.dateFormat'));
+          const slug = entry.slug;
+          const collectionName = entry.collection;
           const editLink = `collections/${collectionName}/entries/${slug}?ref=workflow`;
-          const ownStatus = entry.get('status');
-          const collection = collections.find(
-            collection => collection.get('name') === collectionName,
-          );
-          const collectionLabel = collection?.get('label');
-          const isModification = entry.get('isModification');
+          const ownStatus = entry.status;
+          const collection = collections[collectionName];
+          const collectionLabel = collection?.label;
+          const isModification = entry.isModification;
 
-          const allowPublish = collection?.get('publish');
-          const canPublish = ownStatus === status.last() && !entry.get('isPersisting', false);
-          const postAuthor = entry.get('author');
+          const allowPublish = collection?.publish;
+          const canPublish = ownStatus === status.PENDING_PUBLISH && !entry.isPersisting;
+          const postAuthor = entry.author;
 
           return (
             <DragSource
@@ -238,8 +235,8 @@ class WorkflowList extends React.Component {
                     <WorkflowCard
                       collectionLabel={collectionLabel || collectionName}
                       title={selectEntryCollectionTitle(collection, entry)}
-                      authorLastChange={entry.getIn(['metaData', 'user'])}
-                      body={entry.getIn(['data', 'body'])}
+                      authorLastChange={entry.metaData?.user}
+                      body={entry.data?.body}
                       isModification={isModification}
                       editLink={editLink}
                       timestamp={timestamp}

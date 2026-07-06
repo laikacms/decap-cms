@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { translate } from 'react-polyglot';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import styled from '@emotion/styled';
 import { connect } from 'react-redux';
 import { Route, Switch, Redirect } from 'react-router-dom';
@@ -48,9 +47,9 @@ const ErrorCodeBlock = styled.pre`
 `;
 
 function getDefaultPath(collections) {
-  const first = collections.filter(collection => collection.get('hide') !== true).first();
+  const first = Object.values(collections).find(collection => collection.hide !== true);
   if (first) {
-    return `/collections/${first.get('name')}`;
+    return `/collections/${first.name}`;
   } else {
     throw new Error('Could not find a non hidden collection');
   }
@@ -62,7 +61,7 @@ function RouteInCollection({ collections, render, ...props }) {
     <Route
       {...props}
       render={routeProps => {
-        const collectionExists = collections.get(routeProps.match.params.name);
+        const collectionExists = collections[routeProps.match.params.name];
         return collectionExists ? render(routeProps) : <Redirect to={defaultPath} />;
       }}
     />
@@ -73,7 +72,7 @@ class App extends React.Component {
   static propTypes = {
     auth: PropTypes.object.isRequired,
     config: PropTypes.object.isRequired,
-    collections: ImmutablePropTypes.map.isRequired,
+    collections: PropTypes.object.isRequired,
     loginUser: PropTypes.func.isRequired,
     logoutUser: PropTypes.func.isRequired,
     user: PropTypes.object,
@@ -263,8 +262,8 @@ function mapStateToProps(state) {
   const user = auth.user;
   const isFetching = globalUI.isFetching;
   const publishMode = config.publish_mode;
-  const useMediaLibrary = !mediaLibrary.get('externalLibrary');
-  const showMediaButton = mediaLibrary.get('showMediaButton');
+  const useMediaLibrary = !mediaLibrary.externalLibrary;
+  const showMediaButton = mediaLibrary.showMediaButton;
   return {
     auth,
     config,

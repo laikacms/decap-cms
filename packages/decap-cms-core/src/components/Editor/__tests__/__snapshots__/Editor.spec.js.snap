@@ -3,13 +3,13 @@
 exports[`Editor should render editor interface when entry is not fetching 1`] = `
 <DocumentFragment>
   <mock-editor-interface
-    collection="Map { \\"name\\": \\"posts\\" }"
-    deploypreview="Map {}"
-    entry="Map { \\"slug\\": \\"slug\\" }"
-    fields="List []"
+    collection="[object Object]"
+    deploypreview="[object Object]"
+    entry="[object Object]"
+    fields=""
     isnewentry=""
     showdelete=""
-    user="Map {}"
+    user="[object Object]"
   />
 </DocumentFragment>
 `;

@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
+import get from 'lodash/get';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import {
@@ -82,16 +82,16 @@ function LocaleDropdown({ locales, dropdownText, onLocaleChange }) {
 }
 
 function getFieldValue({ field, entry, isTranslatable, locale }) {
-  if (field.get('meta')) {
-    return entry.getIn(['meta', field.get('name')]);
+  if (field.meta) {
+    return entry.meta?.[field.name];
   }
 
   if (isTranslatable) {
     const dataPath = getLocaleDataPath(locale);
-    return entry.getIn([...dataPath, field.get('name')]);
+    return get(entry, [...dataPath, field.name]);
   }
 
-  return entry.getIn(['data', field.get('name')]);
+  return entry.data?.[field.name];
 }
 
 export default class ControlPane extends React.Component {
@@ -103,7 +103,7 @@ export default class ControlPane extends React.Component {
 
   controlRef = (field, wrappedControl) => {
     if (!wrappedControl) return;
-    const name = field.get('name');
+    const name = field.name;
     this.childRefs[name] = wrappedControl;
   };
 
@@ -153,8 +153,8 @@ export default class ControlPane extends React.Component {
 
   validate = async () => {
     this.props.fields.forEach(field => {
-      if (field.get('widget') === 'hidden') return;
-      const control = this.childRefs[field.get('name')];
+      if (field.widget === 'hidden') return;
+      const control = this.childRefs[field.name];
       const validateFn = control?.innerWrappedControl?.validate ?? control?.validate;
       if (validateFn) {
         validateFn();
@@ -187,7 +187,7 @@ export default class ControlPane extends React.Component {
       return null;
     }
 
-    if (entry.size === 0 || entry.get('partial') === true) {
+    if (Object.keys(entry).length === 0 || entry.partial === true) {
       return null;
     }
 
@@ -218,7 +218,7 @@ export default class ControlPane extends React.Component {
           </LocaleRowWrapper>
         )}
         {fields
-          .filter(f => f.get('widget') !== 'hidden')
+          .filter(f => f.widget !== 'hidden')
           .map((field, i) => {
             const isTranslatable = isFieldTranslatable(field, locale, defaultLocale);
             const isDuplicate = isFieldDuplicate(field, locale, defaultLocale);
@@ -258,11 +258,11 @@ export default class ControlPane extends React.Component {
 }
 
 ControlPane.propTypes = {
-  collection: ImmutablePropTypes.map.isRequired,
-  entry: ImmutablePropTypes.map.isRequired,
-  fields: ImmutablePropTypes.list.isRequired,
-  fieldsMetaData: ImmutablePropTypes.map.isRequired,
-  fieldsErrors: ImmutablePropTypes.map.isRequired,
+  collection: PropTypes.object.isRequired,
+  entry: PropTypes.object.isRequired,
+  fields: PropTypes.array.isRequired,
+  fieldsMetaData: PropTypes.object.isRequired,
+  fieldsErrors: PropTypes.object.isRequired,
   onChange: PropTypes.func.isRequired,
   onValidate: PropTypes.func.isRequired,
   locale: PropTypes.string,

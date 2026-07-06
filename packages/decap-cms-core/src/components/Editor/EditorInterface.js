@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { css, Global } from '@emotion/react';
 import styled from '@emotion/styled';
 import SplitPane from 'react-split-pane';
@@ -147,12 +146,12 @@ function EditorContent({
 }
 
 function isPreviewEnabled(collection, entry) {
-  if (collection.get('type') === FILES) {
-    const file = getFileFromSlug(collection, entry.get('slug'));
-    const previewEnabled = file?.getIn(['editor', 'preview']);
+  if (collection.type === FILES) {
+    const file = getFileFromSlug(collection, entry.slug);
+    const previewEnabled = file?.editor?.preview;
     if (previewEnabled != null) return previewEnabled;
   }
-  return collection.getIn(['editor', 'preview'], true);
+  return collection.editor?.preview ?? true;
 }
 
 class EditorInterface extends Component {
@@ -335,10 +334,10 @@ class EditorInterface extends Component {
     return (
       <EditorContainer>
         <EditorToolbar
-          isPersisting={entry.get('isPersisting')}
-          isPublishing={entry.get('isPublishing')}
-          isUpdatingStatus={entry.get('isUpdatingStatus')}
-          isDeleting={entry.get('isDeleting')}
+          isPersisting={entry.isPersisting}
+          isPublishing={entry.isPublishing}
+          isUpdatingStatus={entry.isUpdatingStatus}
+          isDeleting={entry.isDeleting}
           onPersist={this.handleOnPersist}
           onPersistAndNew={() => this.handleOnPersist({ createNew: true })}
           onPersistAndDuplicate={() => this.handleOnPersist({ createNew: true, duplicate: true })}
@@ -387,7 +386,7 @@ class EditorInterface extends Component {
                 title={t('editor.editorInterface.togglePreview')}
               />
             )}
-            {scrollSyncVisible && !collection.getIn(['editor', 'visualEditing']) && (
+            {scrollSyncVisible && !collection.editor?.visualEditing && (
               <EditorToggle
                 isActive={scrollSyncEnabled}
                 onClick={this.handleToggleScrollSync}
@@ -411,11 +410,11 @@ class EditorInterface extends Component {
 }
 
 EditorInterface.propTypes = {
-  collection: ImmutablePropTypes.map.isRequired,
-  entry: ImmutablePropTypes.map.isRequired,
-  fields: ImmutablePropTypes.list.isRequired,
-  fieldsMetaData: ImmutablePropTypes.map.isRequired,
-  fieldsErrors: ImmutablePropTypes.map.isRequired,
+  collection: PropTypes.object.isRequired,
+  entry: PropTypes.object.isRequired,
+  fields: PropTypes.array.isRequired,
+  fieldsMetaData: PropTypes.object.isRequired,
+  fieldsErrors: PropTypes.object.isRequired,
   onChange: PropTypes.func.isRequired,
   onValidate: PropTypes.func.isRequired,
   onPersist: PropTypes.func.isRequired,

@@ -1,7 +1,6 @@
 import React from 'react';
 import { bindActionCreators } from 'redux';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { translate } from 'react-polyglot';
 import { ClassNames, Global, css as coreCss } from '@emotion/react';
 import styled from '@emotion/styled';
@@ -104,7 +103,7 @@ export const ControlHint = styled.p`
 `;
 
 function LabelComponent({ field, isActive, hasErrors, uniqueFieldId, isFieldOptional, t }) {
-  const label = `${field.get('label', field.get('name'))}`;
+  const label = `${field.label ?? field.name}`;
   const labelComponent = (
     <FieldLabel isActive={isActive} hasErrors={hasErrors} htmlFor={uniqueFieldId}>
       {isFieldOptional ? (
@@ -129,10 +128,10 @@ class EditorControl extends React.Component {
       PropTypes.string,
       PropTypes.bool,
     ]),
-    field: ImmutablePropTypes.map.isRequired,
-    fieldsMetaData: ImmutablePropTypes.map,
-    fieldsErrors: ImmutablePropTypes.map,
-    mediaPaths: ImmutablePropTypes.map.isRequired,
+    field: PropTypes.object.isRequired,
+    fieldsMetaData: PropTypes.object,
+    fieldsErrors: PropTypes.object,
+    mediaPaths: PropTypes.object.isRequired,
     boundGetAsset: PropTypes.func.isRequired,
     onChange: PropTypes.func.isRequired,
     openMediaLibrary: PropTypes.func.isRequired,
@@ -151,8 +150,8 @@ class EditorControl extends React.Component {
     isEditorComponent: PropTypes.bool,
     isNewEditorComponent: PropTypes.bool,
     parentIds: PropTypes.arrayOf(PropTypes.string),
-    entry: ImmutablePropTypes.map.isRequired,
-    collection: ImmutablePropTypes.map.isRequired,
+    entry: PropTypes.object.isRequired,
+    collection: PropTypes.object.isRequired,
     isDisabled: PropTypes.bool,
     isHidden: PropTypes.bool,
     isFieldDuplicate: PropTypes.func,
@@ -169,7 +168,7 @@ class EditorControl extends React.Component {
     activeLabel: false,
   };
 
-  uniqueFieldId = uniqueId(`${this.props.field.get('name')}-field-`);
+  uniqueFieldId = uniqueId(`${this.props.field.name}-field-`);
 
   componentDidMount() {
     // Manually validate PropTypes - React 19 breaking change
@@ -179,8 +178,8 @@ class EditorControl extends React.Component {
   isAncestorOfFieldError = () => {
     const { fieldsErrors } = this.props;
 
-    if (fieldsErrors && fieldsErrors.size > 0) {
-      return Object.values(fieldsErrors.toJS()).some(arr =>
+    if (fieldsErrors && Object.keys(fieldsErrors).length > 0) {
+      return Object.values(fieldsErrors).some(arr =>
         arr.some(err => err.parentIds && err.parentIds.includes(this.uniqueFieldId)),
       );
     }
@@ -229,14 +228,14 @@ class EditorControl extends React.Component {
       isParentListCollapsed,
     } = this.props;
 
-    const widgetName = field.get('widget');
+    const widgetName = field.widget;
     const widget = resolveWidget(widgetName);
-    const fieldName = field.get('name');
-    const fieldHint = field.get('hint');
-    const isFieldOptional = field.get('required') === false;
+    const fieldName = field.name;
+    const fieldHint = field.hint;
+    const isFieldOptional = field.required === false;
     const onValidateObject = onValidate;
-    const metadata = fieldsMetaData && fieldsMetaData.get(fieldName);
-    const errors = fieldsErrors && fieldsErrors.get(this.uniqueFieldId);
+    const metadata = fieldsMetaData && fieldsMetaData[fieldName];
+    const errors = fieldsErrors && fieldsErrors[this.uniqueFieldId];
     const childErrors = this.isAncestorOfFieldError();
     const hasErrors = !!errors || childErrors;
 
@@ -386,12 +385,12 @@ class EditorControl extends React.Component {
 
 function mapStateToProps(state) {
   const { collections, entryDraft } = state;
-  const entry = entryDraft.get('entry');
-  const collection = collections.get(entryDraft.getIn(['entry', 'collection']));
+  const entry = entryDraft.entry;
+  const collection = collections[entryDraft.entry?.collection];
   const isLoadingAsset = selectIsLoadingAsset(state.medias);
 
   async function loadEntry(collectionName, slug) {
-    const targetCollection = collections.get(collectionName);
+    const targetCollection = collections[collectionName];
     if (targetCollection) {
       const loadedEntry = await tryLoadEntry(state, targetCollection, slug);
       return loadedEntry;
@@ -401,7 +400,7 @@ function mapStateToProps(state) {
   }
 
   return {
-    mediaPaths: state.mediaLibrary.get('controlMedia'),
+    mediaPaths: state.mediaLibrary.controlMedia,
     isFetching: state.search.isFetching,
     queryHits: state.search.queryHits,
     config: state.config,

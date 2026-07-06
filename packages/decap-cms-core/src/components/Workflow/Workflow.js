@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
 import { connect } from 'react-redux';
@@ -53,11 +52,11 @@ const WorkflowTopDescription = styled.p`
 
 class Workflow extends Component {
   static propTypes = {
-    collections: ImmutablePropTypes.map.isRequired,
+    collections: PropTypes.object.isRequired,
     isEditorialWorkflow: PropTypes.bool.isRequired,
     isOpenAuthoring: PropTypes.bool,
     isFetching: PropTypes.bool,
-    unpublishedEntries: ImmutablePropTypes.map,
+    unpublishedEntries: PropTypes.object,
     loadUnpublishedEntries: PropTypes.func.isRequired,
     updateUnpublishedEntryStatus: PropTypes.func.isRequired,
     publishUnpublishedEntry: PropTypes.func.isRequired,
@@ -90,8 +89,8 @@ class Workflow extends Component {
 
     if (!isEditorialWorkflow) return null;
     if (isFetching) return <Loader active>{t('workflow.workflow.loading')}</Loader>;
-    const reviewCount = unpublishedEntries.get('pending_review').size;
-    const readyCount = unpublishedEntries.get('pending_publish').size;
+    const reviewCount = unpublishedEntries.pending_review.length;
+    const readyCount = unpublishedEntries.pending_publish.length;
 
     return (
       <WorkflowContainer>
@@ -106,14 +105,13 @@ class Workflow extends Component {
                 <StyledDropdownButton>{t('workflow.workflow.newPost')}</StyledDropdownButton>
               )}
             >
-              {collections
-                .filter(collection => collection.get('create'))
-                .toList()
+              {Object.values(collections)
+                .filter(collection => collection.create)
                 .map(collection => (
                   <DropdownItem
-                    key={collection.get('name')}
-                    label={collection.get('label')}
-                    onClick={() => createNewEntry(collection.get('name'))}
+                    key={collection.name}
+                    label={collection.label}
+                    onClick={() => createNewEntry(collection.name)}
                   />
                 ))}
             </Dropdown>
@@ -145,7 +143,7 @@ function mapStateToProps(state) {
   const returnObj = { collections, isEditorialWorkflow, isOpenAuthoring };
 
   if (isEditorialWorkflow) {
-    returnObj.isFetching = state.editorialWorkflow.getIn(['pages', 'isFetching'], false);
+    returnObj.isFetching = state.editorialWorkflow.pages?.isFetching ?? false;
 
     /*
      * Returns a memoized OrderedMap of status keys to entry sequences.

@@ -1,6 +1,5 @@
 import React from 'react';
 import { render } from '@testing-library/react';
-import { fromJS } from 'immutable';
 
 import { Editor } from '../Editor';
 
@@ -26,17 +25,17 @@ describe('Editor', () => {
     boundGetAsset: jest.fn(),
     changeDraftField: jest.fn(),
     changeDraftFieldValidation: jest.fn(),
-    collection: fromJS({ name: 'posts' }),
+    collection: { name: 'posts' },
     createDraftDuplicateFromEntry: jest.fn(),
     createEmptyDraft: jest.fn(),
     discardDraft: jest.fn(),
-    entry: fromJS({}),
-    entryDraft: fromJS({}),
+    entry: {},
+    entryDraft: {},
     loadEntry: jest.fn(),
     persistEntry: jest.fn(),
     deleteEntry: jest.fn(),
     showDelete: true,
-    fields: fromJS([]),
+    fields: [],
     slug: 'slug',
     newEntry: true,
     updateUnpublishedEntryStatus: jest.fn(),
@@ -44,11 +43,11 @@ describe('Editor', () => {
     deleteUnpublishedEntry: jest.fn(),
     logoutUser: jest.fn(),
     loadEntries: jest.fn(),
-    deployPreview: fromJS({}),
+    deployPreview: {},
     loadDeployPreview: jest.fn(),
-    user: fromJS({}),
+    user: {},
     t: jest.fn(key => key),
-    localBackup: fromJS({}),
+    localBackup: {},
     retrieveLocalBackup: jest.fn(),
     persistLocalBackup: jest.fn(),
     location: { search: '?title=title' },
@@ -66,19 +65,19 @@ describe('Editor', () => {
     expect(console.error).toHaveBeenCalledTimes(1);
     expect(console.error).toHaveBeenCalledWith(
       expect.stringContaining(
-        'Warning: Failed prop type: Required prop `entryDraft` was not specified in `Editor`.',
+        'Warning: Failed prop type: The prop `entryDraft` is marked as required in `Editor`, but its value is `null`.',
       ),
     );
   });
 
   it('should render loader when entryDraft entry is undefined', () => {
-    const { asFragment } = render(<Editor {...props} entryDraft={fromJS({})} />);
+    const { asFragment } = render(<Editor {...props} entryDraft={{}} />);
     expect(asFragment()).toMatchSnapshot();
   });
 
   it('should render loader when entry is fetching', () => {
     const { asFragment } = render(
-      <Editor {...props} entryDraft={fromJS({ entry: {} })} entry={fromJS({ isFetching: true })} />,
+      <Editor {...props} entryDraft={{ entry: {} }} entry={{ isFetching: true }} />,
     );
     expect(asFragment()).toMatchSnapshot();
   });
@@ -87,8 +86,8 @@ describe('Editor', () => {
     const { asFragment } = render(
       <Editor
         {...props}
-        entryDraft={fromJS({ entry: { slug: 'slug' } })}
-        entry={fromJS({ isFetching: false })}
+        entryDraft={{ entry: { slug: 'slug' } }}
+        entry={{ isFetching: false }}
       />,
     );
     expect(asFragment()).toMatchSnapshot();
@@ -98,8 +97,8 @@ describe('Editor', () => {
     render(
       <Editor
         {...props}
-        entryDraft={fromJS({ entry: { slug: 'slug' } })}
-        entry={fromJS({ isFetching: false })}
+        entryDraft={{ entry: { slug: 'slug' } }}
+        entry={{ isFetching: false }}
       />,
     );
 
@@ -111,8 +110,8 @@ describe('Editor', () => {
     render(
       <Editor
         {...props}
-        entryDraft={fromJS({ entry: { slug: 'slug' } })}
-        entry={fromJS({ isFetching: false })}
+        entryDraft={{ entry: { slug: 'slug' } }}
+        entry={{ isFetching: false }}
         newEntry={true}
       />,
     );
@@ -126,8 +125,8 @@ describe('Editor', () => {
     render(
       <Editor
         {...props}
-        entryDraft={fromJS({ entry: { slug: 'slug' } })}
-        entry={fromJS({ isFetching: false })}
+        entryDraft={{ entry: { slug: 'slug' } }}
+        entry={{ isFetching: false }}
         newEntry={false}
       />,
     );
@@ -141,8 +140,8 @@ describe('Editor', () => {
     render(
       <Editor
         {...props}
-        entryDraft={fromJS({ entry: { slug: 'slug' } })}
-        entry={fromJS({ isFetching: false })}
+        entryDraft={{ entry: { slug: 'slug' } }}
+        entry={{ isFetching: false }}
         collectionEntriesLoaded={false}
       />,
     );
@@ -155,8 +154,8 @@ describe('Editor', () => {
     render(
       <Editor
         {...props}
-        entryDraft={fromJS({ entry: { slug: 'slug' } })}
-        entry={fromJS({ isFetching: false })}
+        entryDraft={{ entry: { slug: 'slug' } }}
+        entry={{ isFetching: false }}
         collectionEntriesLoaded={true}
       />,
     );
@@ -172,8 +171,8 @@ describe('Editor', () => {
     const { unmount } = render(
       <Editor
         {...props}
-        entryDraft={fromJS({ entry: { slug: 'slug' }, hasChanged: true })}
-        entry={fromJS({ isFetching: false })}
+        entryDraft={{ entry: { slug: 'slug' }, hasChanged: true }}
+        entry={{ isFetching: false }}
       />,
     );
 
@@ -195,26 +194,22 @@ describe('Editor', () => {
 
   it('should persist backup when changed', () => {
     const { rerender } = render(
-      <Editor
-        {...props}
-        entryDraft={fromJS({ entry: {} })}
-        entry={fromJS({ isFetching: false })}
-      />,
+      <Editor {...props} entryDraft={{ entry: {} }} entry={{ isFetching: false }} />,
     );
 
     jest.clearAllMocks();
     rerender(
       <Editor
         {...props}
-        entryDraft={fromJS({ entry: { mediaFiles: [{ id: '1' }] } })}
-        entry={fromJS({ isFetching: false, data: {} })}
+        entryDraft={{ entry: { mediaFiles: [{ id: '1' }] } }}
+        entry={{ isFetching: false, data: {} }}
         hasChanged={true}
       />,
     );
 
     expect(props.persistLocalBackup).toHaveBeenCalledTimes(1);
     expect(props.persistLocalBackup).toHaveBeenCalledWith(
-      fromJS({ mediaFiles: [{ id: '1' }] }),
+      { mediaFiles: [{ id: '1' }] },
       props.collection,
     );
   });

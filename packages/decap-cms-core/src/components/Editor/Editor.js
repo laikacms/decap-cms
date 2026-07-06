@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import { Loader } from 'decap-cms-ui-default';
 import { translate } from 'react-polyglot';
@@ -40,17 +39,17 @@ export class Editor extends React.Component {
   static propTypes = {
     changeDraftField: PropTypes.func.isRequired,
     changeDraftFieldValidation: PropTypes.func.isRequired,
-    collection: ImmutablePropTypes.map.isRequired,
+    collection: PropTypes.object.isRequired,
     createDraftDuplicateFromEntry: PropTypes.func.isRequired,
     createEmptyDraft: PropTypes.func.isRequired,
     discardDraft: PropTypes.func.isRequired,
-    entry: ImmutablePropTypes.map,
-    entryDraft: ImmutablePropTypes.map.isRequired,
+    entry: PropTypes.object,
+    entryDraft: PropTypes.object.isRequired,
     loadEntry: PropTypes.func.isRequired,
     persistEntry: PropTypes.func.isRequired,
     deleteEntry: PropTypes.func.isRequired,
     showDelete: PropTypes.bool.isRequired,
-    fields: ImmutablePropTypes.list.isRequired,
+    fields: PropTypes.array.isRequired,
     slug: PropTypes.string,
     newEntry: PropTypes.bool.isRequired,
     displayUrl: PropTypes.string,
@@ -75,7 +74,7 @@ export class Editor extends React.Component {
     hasChanged: PropTypes.bool,
     t: PropTypes.func.isRequired,
     retrieveLocalBackup: PropTypes.func.isRequired,
-    localBackup: ImmutablePropTypes.map,
+    localBackup: PropTypes.object,
     loadLocalBackup: PropTypes.func,
     persistLocalBackup: PropTypes.func.isRequired,
     deleteLocalBackup: PropTypes.func,
@@ -108,7 +107,7 @@ export class Editor extends React.Component {
     const leaveMessage = t('editor.editor.onLeavePage');
 
     this.exitBlocker = event => {
-      if (this.props.entryDraft.get('hasChanged')) {
+      if (this.props.entryDraft.hasChanged) {
         // This message is ignored in most browsers, but its presence
         // triggers the confirmation dialog
         event.returnValue = leaveMessage;
@@ -121,9 +120,9 @@ export class Editor extends React.Component {
       /**
        * New entry being saved and redirected to it's new slug based url.
        */
-      const isPersisting = this.props.entryDraft.getIn(['entry', 'isPersisting']);
-      const newRecord = this.props.entryDraft.getIn(['entry', 'newRecord']);
-      const newEntryPath = `/collections/${collection.get('name')}/new`;
+      const isPersisting = this.props.entryDraft.entry?.isPersisting;
+      const newRecord = this.props.entryDraft.entry?.newRecord;
+      const newEntryPath = `/collections/${collection.name}/new`;
       if (
         isPersisting &&
         newRecord &&
@@ -145,8 +144,8 @@ export class Editor extends React.Component {
      * a new post. The confirmation above will run first.
      */
     this.unlisten = history.listen((location, action) => {
-      const newEntryPath = `/collections/${collection.get('name')}/new`;
-      const entriesPath = `/collections/${collection.get('name')}/entries/`;
+      const newEntryPath = `/collections/${collection.name}/new`;
+      const entriesPath = `/collections/${collection.name}/entries/`;
       const { pathname } = location;
       if (
         pathname.startsWith(newEntryPath) ||
@@ -177,7 +176,7 @@ export class Editor extends React.Component {
     }
 
     if (this.props.hasChanged) {
-      this.createBackup(this.props.entryDraft.get('entry'), this.props.collection);
+      this.createBackup(this.props.entryDraft.entry, this.props.collection);
     }
 
     if (prevProps.entry === this.props.entry) return;
@@ -207,12 +206,12 @@ export class Editor extends React.Component {
   handleChangeStatus = newStatusName => {
     const { entryDraft, updateUnpublishedEntryStatus, collection, slug, currentStatus, t } =
       this.props;
-    if (entryDraft.get('hasChanged')) {
+    if (entryDraft.hasChanged) {
       window.alert(t('editor.editor.onUpdatingWithUnsavedChanges'));
       return;
     }
-    const newStatus = status.get(newStatusName);
-    updateUnpublishedEntryStatus(collection.get('name'), slug, currentStatus, newStatus);
+    const newStatus = status[newStatusName];
+    updateUnpublishedEntryStatus(collection.name, slug, currentStatus, newStatus);
   };
 
   deleteBackup() {
@@ -246,8 +245,8 @@ export class Editor extends React.Component {
     this.deleteBackup();
 
     if (createNew) {
-      navigateToNewEntry(collection.get('name'));
-      duplicate && createDraftDuplicateFromEntry(entryDraft.get('entry'));
+      navigateToNewEntry(collection.name);
+      duplicate && createDraftDuplicateFromEntry(entryDraft.entry);
     } else if (slug && hasWorkflow && !currentStatus) {
       loadEntry(collection, slug);
     }
@@ -264,25 +263,25 @@ export class Editor extends React.Component {
       currentStatus,
       t,
     } = this.props;
-    if (currentStatus !== status.last()) {
+    if (currentStatus !== status.PENDING_PUBLISH) {
       window.alert(t('editor.editor.onPublishingNotReady'));
       return;
-    } else if (entryDraft.get('hasChanged')) {
+    } else if (entryDraft.hasChanged) {
       window.alert(t('editor.editor.onPublishingWithUnsavedChanges'));
       return;
     } else if (!window.confirm(t('editor.editor.onPublishing'))) {
       return;
     }
 
-    await publishUnpublishedEntry(collection.get('name'), slug);
+    await publishUnpublishedEntry(collection.name, slug);
 
     this.deleteBackup();
 
     if (createNew) {
-      navigateToNewEntry(collection.get('name'));
+      navigateToNewEntry(collection.name);
     }
 
-    duplicate && createDraftDuplicateFromEntry(entryDraft.get('entry'));
+    duplicate && createDraftDuplicateFromEntry(entryDraft.entry);
   };
 
   handleUnpublishEntry = async () => {
@@ -291,19 +290,19 @@ export class Editor extends React.Component {
 
     await unpublishPublishedEntry(collection, slug);
 
-    return navigateToCollection(collection.get('name'));
+    return navigateToCollection(collection.name);
   };
 
   handleDuplicateEntry = () => {
     const { createDraftDuplicateFromEntry, collection, entryDraft } = this.props;
 
-    navigateToNewEntry(collection.get('name'));
-    createDraftDuplicateFromEntry(entryDraft.get('entry'));
+    navigateToNewEntry(collection.name);
+    createDraftDuplicateFromEntry(entryDraft.entry);
   };
 
   handleDeleteEntry = () => {
     const { entryDraft, newEntry, collection, deleteEntry, slug, t } = this.props;
-    if (entryDraft.get('hasChanged')) {
+    if (entryDraft.hasChanged) {
       if (!window.confirm(t('editor.editor.onDeleteWithUnsavedChanges'))) {
         return;
       }
@@ -311,13 +310,13 @@ export class Editor extends React.Component {
       return;
     }
     if (newEntry) {
-      return navigateToCollection(collection.get('name'));
+      return navigateToCollection(collection.name);
     }
 
     setTimeout(async () => {
       await deleteEntry(collection, slug);
       this.deleteBackup();
-      return navigateToCollection(collection.get('name'));
+      return navigateToCollection(collection.name);
     }, 0);
   };
 
@@ -325,21 +324,21 @@ export class Editor extends React.Component {
     const { entryDraft, collection, slug, deleteUnpublishedEntry, loadEntry, isModification, t } =
       this.props;
     if (
-      entryDraft.get('hasChanged') &&
+      entryDraft.hasChanged &&
       !window.confirm(t('editor.editor.onDeleteUnpublishedChangesWithUnsavedChanges'))
     ) {
       return;
     } else if (!window.confirm(t('editor.editor.onDeleteUnpublishedChanges'))) {
       return;
     }
-    await deleteUnpublishedEntry(collection.get('name'), slug);
+    await deleteUnpublishedEntry(collection.name, slug);
 
     this.deleteBackup();
 
     if (isModification) {
       loadEntry(collection, slug);
     } else {
-      navigateToCollection(collection.get('name'));
+      navigateToCollection(collection.name);
     }
   };
 
@@ -370,16 +369,16 @@ export class Editor extends React.Component {
 
     const isPublished = !newEntry && !unpublishedEntry;
 
-    if (entry && entry.get('error')) {
+    if (entry && entry.error) {
       return (
         <div>
-          <h3>{entry.get('error')}</h3>
+          <h3>{entry.error}</h3>
         </div>
       );
     } else if (
       entryDraft == null ||
-      entryDraft.get('entry') === undefined ||
-      (entry && entry.get('isFetching'))
+      entryDraft.entry === undefined ||
+      (entry && entry.isFetching)
     ) {
       return <Loader active>{t('editor.editor.loadingEntry')}</Loader>;
     }
@@ -387,11 +386,11 @@ export class Editor extends React.Component {
     return (
       <EditorInterface
         draftKey={draftKey}
-        entry={entryDraft.get('entry')}
+        entry={entryDraft.entry}
         collection={collection}
         fields={fields}
-        fieldsMetaData={entryDraft.get('fieldsMetaData')}
-        fieldsErrors={entryDraft.get('fieldsErrors')}
+        fieldsMetaData={entryDraft.fieldsMetaData}
+        fieldsErrors={entryDraft.fieldsErrors}
         onChange={this.handleChangeDraftField}
         onValidate={changeDraftFieldValidation}
         onPersist={this.handlePersistEntry}
@@ -424,30 +423,30 @@ export class Editor extends React.Component {
 function mapStateToProps(state, ownProps) {
   const { collections, entryDraft, auth, config, entries, globalUI } = state;
   const slug = ownProps.match.params[0];
-  const collection = collections.get(ownProps.match.params.name);
-  const collectionName = collection.get('name');
+  const collection = collections[ownProps.match.params.name];
+  const collectionName = collection.name;
   const newEntry = ownProps.newRecord === true;
   const fields = selectFields(collection, slug);
   const entry = newEntry ? null : selectEntry(state, collectionName, slug);
   const user = auth.user;
-  const hasChanged = entryDraft.get('hasChanged');
+  const hasChanged = entryDraft.hasChanged;
   const displayUrl = config.display_url;
   const hasWorkflow = config.publish_mode === EDITORIAL_WORKFLOW;
   const useOpenAuthoring = globalUI.useOpenAuthoring;
-  const isModification = entryDraft.getIn(['entry', 'isModification']);
-  const collectionEntriesLoaded = !!entries.getIn(['pages', collectionName]);
+  const isModification = entryDraft.entry?.isModification;
+  const collectionEntriesLoaded = !!entries.pages?.[collectionName];
   const unPublishedEntry = selectUnpublishedEntry(state, collectionName, slug);
   const publishedEntry = selectEntry(state, collectionName, slug);
-  const currentStatus = unPublishedEntry && unPublishedEntry.get('status');
+  const currentStatus = unPublishedEntry && unPublishedEntry.status;
   const deployPreview = selectDeployPreview(state, collectionName, slug);
-  const localBackup = entryDraft.get('localBackup');
-  const draftKey = entryDraft.get('key');
+  const localBackup = entryDraft.localBackup;
+  const draftKey = entryDraft.key;
   let editorBackLink = `/collections/${collectionName}`;
   if (new URLSearchParams(ownProps.location.search).get('ref') === 'workflow') {
     editorBackLink = `/workflow`;
   }
 
-  if (collection.has('nested') && slug) {
+  if (collection.nested && slug) {
     const pathParts = slug.split('/');
     if (pathParts.length > 2) {
       editorBackLink = `${editorBackLink}/filter/${pathParts.slice(0, -2).join('/')}`;

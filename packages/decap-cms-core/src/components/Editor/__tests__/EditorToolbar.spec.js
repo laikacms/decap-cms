@@ -1,6 +1,5 @@
 import React from 'react';
 import { render } from '@testing-library/react';
-import { fromJS } from 'immutable';
 
 import { EditorToolbar } from '../EditorToolbar';
 
@@ -34,7 +33,7 @@ describe('EditorToolbar', () => {
     onPublishAndNew: jest.fn(),
     onPublishAndDuplicate: jest.fn(),
     hasChanged: false,
-    collection: fromJS({ name: 'posts' }),
+    collection: { name: 'posts' },
     hasWorkflow: false,
     useOpenAuthoring: false,
     hasUnpublishedChanges: false,

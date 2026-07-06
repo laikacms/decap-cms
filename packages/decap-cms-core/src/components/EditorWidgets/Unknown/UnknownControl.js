@@ -1,16 +1,15 @@
 import React from 'react';
 import { translate } from 'react-polyglot';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import PropTypes from 'prop-types';
 
 function UnknownControl({ field, t }) {
   return (
-    <div>{t('editor.editorWidgets.unknownControl.noControl', { widget: field.get('widget') })}</div>
+    <div>{t('editor.editorWidgets.unknownControl.noControl', { widget: field.widget })}</div>
   );
 }
 
 UnknownControl.propTypes = {
-  field: ImmutablePropTypes.map,
+  field: PropTypes.object,
   t: PropTypes.func.isRequired,
 };
 

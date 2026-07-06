@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 import { translate } from 'react-polyglot';
@@ -130,7 +129,7 @@ const AppHeaderLogo = styled.li`
 class Header extends React.Component {
   static propTypes = {
     user: PropTypes.object.isRequired,
-    collections: ImmutablePropTypes.map.isRequired,
+    collections: PropTypes.object.isRequired,
     onCreateEntryClick: PropTypes.func.isRequired,
     onLogoutClick: PropTypes.func.isRequired,
     openMediaLibrary: PropTypes.func.isRequired,
@@ -183,9 +182,9 @@ class Header extends React.Component {
       showMediaButton,
     } = this.props;
 
-    const creatableCollections = collections
-      .filter(collection => collection.get('create'))
-      .toList();
+    const creatableCollections = Object.values(collections).filter(
+      collection => collection.create,
+    );
 
     const shouldShowLogo = (logo?.src || logoUrl) && logo?.show_in_header !== false;
 
@@ -228,7 +227,7 @@ class Header extends React.Component {
             </AppHeaderNavList>
           </nav>
           <AppHeaderActions>
-            {creatableCollections.size > 0 && (
+            {creatableCollections.length > 0 && (
               <Dropdown
                 renderButton={() => (
                   <AppHeaderQuickNewButton> {t('app.header.quickAdd')}</AppHeaderQuickNewButton>
@@ -239,9 +238,9 @@ class Header extends React.Component {
               >
                 {creatableCollections.map(collection => (
                   <DropdownItem
-                    key={collection.get('name')}
-                    label={collection.get('label_singular') || collection.get('label')}
-                    onClick={() => this.handleCreatePostClick(collection.get('name'))}
+                    key={collection.name}
+                    label={collection.label_singular || collection.label}
+                    onClick={() => this.handleCreatePostClick(collection.name)}
                   />
                 ))}
               </Dropdown>
