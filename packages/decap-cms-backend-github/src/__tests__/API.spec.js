@@ -834,6 +834,27 @@ describe('github API', () => {
     });
   });
 
+  describe('retrieveUnpublishedEntryData', () => {
+    it('should throw EditorialWorkflowError when pull request has no CMS status label', async () => {
+      const api = new API({ repo: 'owner/repo', branch: 'master' });
+
+      api.getBranchPullRequest = jest.fn(() =>
+        Promise.resolve({
+          number: 1,
+          head: { sha: 'head-sha' },
+          updated_at: '2020-01-01T00:00:00.000Z',
+          labels: [{ name: 'not-a-cms-label' }],
+        }),
+      );
+      api.getDifferences = jest.fn(() => Promise.resolve({ files: [] }));
+      api.getPullRequestAuthor = jest.fn(() => Promise.resolve(undefined));
+
+      await expect(api.retrieveUnpublishedEntryData('cms/posts/slug')).rejects.toThrow(
+        'content is not under editorial workflow',
+      );
+    });
+  });
+
   test('should get preview statuses', async () => {
     const api = new API({ repo: 'repo' });
 
