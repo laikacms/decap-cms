@@ -200,6 +200,30 @@ describe('Number widget', () => {
     expect(input.getAttribute('step')).toBe('1');
   });
 
+  it('field with no value_type and no explicit step renders with step="any" (DCMS-378)', () => {
+    const field = fromJS({});
+    const { input } = setup({ field });
+
+    expect(input.getAttribute('step')).toBe('any');
+  });
+
+  it('field with an unrecognized value_type and no explicit step renders with step="any" (DCMS-378)', () => {
+    const field = fromJS({ value_type: 'not-a-real-type' });
+    const { input } = setup({ field });
+
+    expect(input.getAttribute('step')).toBe('any');
+  });
+
+  it('explicit step overrides the value_type-derived default for every value_type (DCMS-378)', () => {
+    ['int', 'float', undefined].forEach(value_type => {
+      const field = fromJS(value_type === undefined ? { step: 0.5 } : { value_type, step: 0.5 });
+      const { input, unmount } = setup({ field });
+
+      expect(input.getAttribute('step')).toBe('0.5');
+      unmount();
+    });
+  });
+
   it('numeric default renders as a number value in the input (DCMS-240)', () => {
     const field = fromJS({ value_type: 'int' });
     const numericDefault = 42;
