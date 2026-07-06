@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { Map } from 'immutable';
 
 import withFileControl from '../withFileControl';
@@ -12,7 +12,7 @@ function t(key) {
 
 function noop() {}
 
-function renderControl({ value, mediaLibrary, allowMultiple } = {}) {
+function renderControl({ value, mediaLibrary, allowMultiple, onOpenMediaLibrary = noop } = {}) {
   const field = Map({
     name: 'file',
     widget: 'file',
@@ -28,7 +28,7 @@ function renderControl({ value, mediaLibrary, allowMultiple } = {}) {
       onAddAsset={noop}
       onChange={noop}
       onRemoveInsertedMedia={noop}
-      onOpenMediaLibrary={noop}
+      onOpenMediaLibrary={onOpenMediaLibrary}
       onClearMediaControl={noop}
       onRemoveMediaControl={noop}
       classNameWrapper="control"
@@ -69,6 +69,17 @@ describe('withFileControl', () => {
       expect(screen.queryByText('editor.editorWidgets.file.replaceUrl')).not.toBeInTheDocument();
       expect(screen.getByText('editor.editorWidgets.file.removeAll')).toBeInTheDocument();
       expect(screen.queryByText('editor.editorWidgets.file.remove')).not.toBeInTheDocument();
+    });
+
+    it('opens the media library in single-select mode when allow_multiple is not set anywhere (DCMS-387)', () => {
+      const onOpenMediaLibrary = jest.fn();
+      renderControl({ value: '', onOpenMediaLibrary });
+
+      fireEvent.click(screen.getByText('editor.editorWidgets.file.choose'));
+
+      expect(onOpenMediaLibrary).toHaveBeenCalledWith(
+        expect.objectContaining({ allowMultiple: false }),
+      );
     });
 
     it('does not treat the legacy field.media_library.config.multiple key as multi-select', () => {
