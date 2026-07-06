@@ -109,6 +109,14 @@ export function clearRequests() {
 export function searchEntries(searchTerm: string, searchCollections: string[], page = 0) {
   return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
+
+    // `search: false` disables the rate-limit-heavy "load all entries" search
+    // entirely, not just the sidebar search UI. Enforce it here so the route
+    // and any programmatic dispatch can't bypass it.
+    if (state.config && state.config.search === false) {
+      return dispatch(searchFailure(new Error('Search is disabled by the `search` config option')));
+    }
+
     const { search } = state;
     const backend = currentBackend(state.config);
     const allCollections = searchCollections || state.collections.keySeq().toArray();

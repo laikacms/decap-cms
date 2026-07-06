@@ -56,6 +56,13 @@ function getDefaultPath(collections) {
   }
 }
 
+// `search: false` disables the rate-limit-heavy "load all entries" search feature
+// entirely, not just the sidebar CollectionSearch UI (DCMS-391). Routes that would
+// trigger a search must check this before rendering the search-driving Collection view.
+export function isSearchDisabled(config) {
+  return Boolean(config) && config.search === false;
+}
+
 function RouteInCollection({ collections, render, ...props }) {
   const defaultPath = getDefaultPath(collections);
   return (
@@ -230,7 +237,13 @@ class App extends React.Component {
             <RouteInCollection
               path="/collections/:name/search/:searchTerm"
               collections={collections}
-              render={props => <Collection {...props} isSearchResults isSingleSearchResult />}
+              render={props =>
+                isSearchDisabled(config) ? (
+                  <Redirect to={`/collections/${props.match.params.name}`} />
+                ) : (
+                  <Collection {...props} isSearchResults isSingleSearchResult />
+                )
+              }
             />
             <RouteInCollection
               collections={collections}
@@ -239,7 +252,13 @@ class App extends React.Component {
             />
             <Route
               path="/search/:searchTerm"
-              render={props => <Collection {...props} isSearchResults />}
+              render={props =>
+                isSearchDisabled(config) ? (
+                  <Redirect to={defaultPath} />
+                ) : (
+                  <Collection {...props} isSearchResults />
+                )
+              }
             />
             <RouteInCollection
               path="/edit/:name/:entryName"

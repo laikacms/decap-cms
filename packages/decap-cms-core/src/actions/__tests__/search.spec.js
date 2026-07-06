@@ -165,6 +165,36 @@ describe('search', () => {
       expect(backend.search).toHaveBeenCalledWith([fromJS({ name: 'pages' })], 'find me');
     });
 
+    /**
+     * Regression test for DCMS-391.
+     *
+     * `search: false` must fully disable the rate-limit-heavy "load all entries"
+     * search, not just hide the sidebar CollectionSearch UI. The thunk must
+     * refuse to run — no backend/integration call and no REQUEST/SUCCESS
+     * actions — even when dispatched directly (e.g. by a route bypassing the
+     * hidden UI), and it must report a failure instead of silently doing nothing.
+     */
+    it('does not search and dispatches a failure when config.search is false', async () => {
+      const store = mockStore({
+        config: { search: false },
+        collections: fromJS({ posts: { name: 'posts' }, pages: { name: 'pages' } }),
+        search: {},
+      });
+
+      const backend = { search: jest.fn() };
+      currentBackend.mockReturnValue(backend);
+      selectIntegration.mockReturnValue(null);
+
+      await store.dispatch(searchEntries('find me'));
+
+      const actions = store.getActions();
+      expect(actions).toHaveLength(1);
+      expect(actions[0].type).toBe('SEARCH_ENTRIES_FAILURE');
+
+      expect(backend.search).not.toHaveBeenCalled();
+      expect(getIntegrationProvider).not.toHaveBeenCalled();
+    });
+
     it('should ignore identical search in all collections', async () => {
       const store = mockStore({
         collections: fromJS({ posts: { name: 'posts' }, pages: { name: 'pages' } }),
