@@ -91,7 +91,8 @@ export function sanitizeURI(
     preserveSlashes?: boolean;
   },
 ) {
-  const { replacement = '', encoding = 'unicode', preserveSlashes } = options || {};
+  // Default matches decapcms.org docs (DCMS-306, DCMS-395)
+  const { replacement = '-', encoding = 'unicode', preserveSlashes } = options || {};
 
   if (!isString(str)) {
     throw new Error('The input slug must be a string.');
@@ -106,7 +107,8 @@ export function sanitizeURI(
 }
 
 export function sanitizeChar(char: string, options?: CmsSlug) {
-  const { encoding = 'unicode', sanitize_replacement: replacement = '' } = options || {};
+  // Default matches decapcms.org docs (DCMS-306, DCMS-395)
+  const { encoding = 'unicode', sanitize_replacement: replacement = '-' } = options || {};
   return getCharReplacer(encoding, { replacement })(char);
 }
 

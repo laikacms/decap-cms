@@ -694,6 +694,48 @@ describe('Backend', () => {
         'sub_dir/some-post-title-1',
       );
     });
+
+    // DCMS-395: exercise the REAL (unmocked) `urlHelper` so an unset
+    // `sanitize_replacement` genuinely falls back to '-' (matching the docs)
+    // instead of being masked by a hard-coded `sanitizeChar` mock.
+    it('should return a hyphen-separated unique slug using the real urlHelper default when sanitize_replacement is unset', async () => {
+      const urlHelper = require('../lib/urlHelper');
+      const actualUrlHelper = jest.requireActual('../lib/urlHelper');
+      urlHelper.sanitizeSlug.mockImplementation(actualUrlHelper.sanitizeSlug);
+      urlHelper.sanitizeChar.mockImplementation(actualUrlHelper.sanitizeChar);
+
+      const implementation = {
+        init: jest.fn(() => implementation),
+        getEntry: jest.fn(),
+      };
+
+      implementation.getEntry.mockResolvedValueOnce({ data: 'data' });
+      implementation.getEntry.mockResolvedValueOnce();
+
+      const collection = fromJS({
+        name: 'posts',
+        fields: [
+          {
+            name: 'title',
+          },
+        ],
+        type: FOLDER,
+        folder: 'posts',
+        slug: '{{slug}}',
+        path: 'sub_dir/{{slug}}',
+      });
+
+      const entry = Map({
+        title: 'some post title',
+      });
+
+      // `config: {}` leaves `config.slug` (and therefore `sanitize_replacement`) unset.
+      const backend = new Backend(implementation, { config: {}, backendName: 'github' });
+
+      await expect(backend.generateUniqueSlug(collection, entry, Map({}), [])).resolves.toBe(
+        'sub_dir/some-post-title-1',
+      );
+    });
   });
 
   describe('extractSearchFields', () => {
