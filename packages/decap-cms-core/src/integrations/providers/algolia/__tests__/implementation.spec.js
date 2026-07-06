@@ -93,9 +93,9 @@ describe('Algolia integration', () => {
     it('appends a single param as a query string', () => {
       const algolia = createAlgolia();
 
-      expect(
-        algolia.urlFor('/indexes/posts', { params: { page: 1 } }),
-      ).toEqual('/indexes/posts?page=1');
+      expect(algolia.urlFor('/indexes/posts', { params: { page: 1 } })).toEqual(
+        '/indexes/posts?page=1',
+      );
     });
 
     it('appends multiple params joined by & and URL-encodes values', () => {
