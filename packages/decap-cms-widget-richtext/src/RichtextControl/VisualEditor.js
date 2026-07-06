@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { KEYS } from 'platejs';
 import { usePlateEditor, Plate, ParagraphPlugin, PlateLeaf } from 'platejs/react';
 import {
@@ -16,7 +16,7 @@ import { fromJS } from 'immutable';
 
 import { editorContainerStyles, EditorControlBar, editorStyleVars } from '../styles';
 import { markdownToSlate, slateToMarkdown } from '../serializers';
-import { shouldEmitChange } from './valueSync';
+import { createChangeGuard } from './valueSync';
 import Editor from './components/Editor';
 import Toolbar from './components/Toolbar';
 import ParagraphElement from './components/Element/ParagraphElement';
@@ -85,16 +85,25 @@ export default function VisualEditor(props) {
     onMode('raw');
   }
 
+  // DCMS-337: guard against the store-notify -> onChange -> store-update
+  // feedback loop by comparing each serialized value against what THIS editor
+  // instance last emitted, never against the store-derived `currentValue`
+  // prop (see createChangeGuard in ./valueSync).
+  const changeGuardRef = useRef(null);
+  if (!changeGuardRef.current) {
+    changeGuardRef.current = createChangeGuard(currentValue);
+  }
+
   function handleChange({ value }) {
     const mdValue = slateToMarkdown(
       value,
       { voidCodeBlock: !!codeBlockComponent },
       editorComponents,
     );
-    // Guards against DCMS-307: Plate fires onChange on selection-only changes too.
-    if (shouldEmitChange(mdValue, currentValue)) {
-      onChange(mdValue);
-    }
+    // Guards against DCMS-307/DCMS-337: Plate fires onChange on selection-only
+    // changes too, and the store may notify back a value this editor instance
+    // already emitted (possibly re-serialized slightly differently).
+    changeGuardRef.current(mdValue, onChange);
   }
 
   function handlePaste(event) {
