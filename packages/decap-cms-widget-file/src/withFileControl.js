@@ -312,7 +312,7 @@ export default function withFileControl({ forImage } = {}) {
       const mediaLibraryFieldOptions = this.getMediaLibraryFieldOptions();
       const allowMultiple = field.has('allow_multiple')
         ? field.get('allow_multiple')
-        : mediaLibraryFieldOptions.get('allow_multiple', true);
+        : mediaLibraryFieldOptions.get('allow_multiple', false);
 
       return onOpenMediaLibrary({
         controlID: this.controlID,
