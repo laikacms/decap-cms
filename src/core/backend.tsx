@@ -1382,7 +1382,15 @@ export function resolveBackend(config: CmsConfig) {
 
   const backend = getBackend(name);
   if (!backend) {
-    throw new Error(`Backend not found: ${name}`);
+    const hint =
+      (name as string) === 'laika'
+        ? ' The laika backend is not bundled here — install @laikacms/decap and' +
+          ' register it before init() via CMS.registerBackend("laika",' +
+          ' createLaikaBackend) using the default export from' +
+          ' @laikacms/decap/decap-cms-backend-laika.'
+        : ' Make sure the backend is registered with CMS.registerBackend() before' +
+          ' the CMS initialises.';
+    throw new Error(`Backend not found: ${name}.${hint}`);
   } else {
     // `getBackend` returns a registry entry with only `init`; the rest of
     // `Implementation` is supplied by the value `init` returns at runtime,
