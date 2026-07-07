@@ -80,7 +80,20 @@ export default class NumberControl extends React.Component {
 
     if (valueType === 'float') {
       const value = parseFloat(raw);
-      onChange(isNaN(value) ? '' : value);
+      if (isNaN(value)) {
+        onChange('');
+        return;
+      }
+
+      // Overflowing magnitudes (e.g. "1e309") parse to Infinity/-Infinity without
+      // NaN, so store the raw string so isValid() can surface the error without
+      // silently persisting a non-finite value, mirroring the int path below.
+      if (!isFinite(value)) {
+        onChange(raw);
+        return;
+      }
+
+      onChange(value);
       return;
     }
 
@@ -121,6 +134,20 @@ export default class NumberControl extends React.Component {
             type: ValidationErrorTypes.CUSTOM,
             message:
               'Value exceeds the maximum safe integer. Use a string widget for arbitrary-precision IDs.',
+          },
+        };
+      }
+    }
+
+    // Detect float overflow: value is a non-empty string that is only present
+    // because handleChange refused to store the non-finite parseFloat result.
+    if (valueType === 'float' && typeof value === 'string' && value !== '') {
+      const parsed = parseFloat(value);
+      if (!isNaN(parsed) && !isFinite(parsed)) {
+        return {
+          error: {
+            type: ValidationErrorTypes.CUSTOM,
+            message: 'Value exceeds the maximum representable number.',
           },
         };
       }

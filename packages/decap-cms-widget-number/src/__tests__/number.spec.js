@@ -316,6 +316,95 @@ describe('Number widget', () => {
     });
   });
 
+  describe('float infinity overflow guard (DCMS-408)', () => {
+    const OVERFLOW = '1e309'; // parses to Infinity via parseFloat
+
+    // jsdom's <input type="number"> value sanitization is stricter than real
+    // browsers: it rejects magnitude-overflowing (but syntactically valid)
+    // strings like "1e309" at DOM-assignment time, before a change event can
+    // ever reach our handler with that raw value. So we call handleChange
+    // directly (as isValid() is tested below) to reproduce what a real
+    // browser's change event delivers.
+    function makeInstance(onChange) {
+      const field = fromJS({ value_type: 'float' });
+      return new NumberControl({
+        field,
+        value: '',
+        t: jest.fn(key => key),
+        onChange,
+        classNameWrapper: '',
+        setActiveStyle: jest.fn(),
+        setInactiveStyle: jest.fn(),
+      });
+    }
+
+    it('does NOT pass Infinity to onChange when value overflows the float range', () => {
+      const onChange = jest.fn();
+      const instance = makeInstance(onChange);
+
+      instance.handleChange({ target: { value: OVERFLOW } });
+
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).not.toHaveBeenCalledWith(Infinity);
+    });
+
+    it('passes the raw string to onChange when value overflows the float range', () => {
+      const onChange = jest.fn();
+      const instance = makeInstance(onChange);
+
+      instance.handleChange({ target: { value: OVERFLOW } });
+
+      expect(onChange).toHaveBeenCalledWith(OVERFLOW);
+    });
+
+    it('also guards -Infinity overflow', () => {
+      const onChange = jest.fn();
+      const instance = makeInstance(onChange);
+
+      instance.handleChange({ target: { value: '-1e309' } });
+
+      expect(onChange).not.toHaveBeenCalledWith(-Infinity);
+      expect(onChange).toHaveBeenCalledWith('-1e309');
+    });
+
+    it('isValid returns a CUSTOM error when the stored value is a non-finite float string', () => {
+      const field = fromJS({ value_type: 'float' });
+      const instance = new NumberControl({
+        field,
+        value: OVERFLOW,
+        t: jest.fn(key => key),
+        onChange: jest.fn(),
+        classNameWrapper: '',
+        setActiveStyle: jest.fn(),
+        setInactiveStyle: jest.fn(),
+      });
+
+      const result = instance.isValid();
+      expect(result).not.toBe(true);
+      expect(result).toHaveProperty('error');
+      expect(result.error.type).toBe('CUSTOM');
+      expect(result.error.message).toMatch(/maximum representable number/i);
+    });
+
+    it('representable large floats are unaffected', () => {
+      const field = fromJS({ value_type: 'float' });
+      const { input, onChangeSpy } = setup({ field });
+
+      fireEvent.change(input, { target: { value: '1e300' } });
+
+      expect(onChangeSpy).toHaveBeenCalledWith(1e300);
+    });
+
+    it('normal float input still works', () => {
+      const field = fromJS({ value_type: 'float' });
+      const { input, onChangeSpy } = setup({ field });
+
+      fireEvent.change(input, { target: { value: '3.14' } });
+
+      expect(onChangeSpy).toHaveBeenCalledWith(3.14);
+    });
+  });
+
   describe('isValid with pattern and min/max (DCMS-104)', () => {
     const tFn = jest.fn(key => key);
 
