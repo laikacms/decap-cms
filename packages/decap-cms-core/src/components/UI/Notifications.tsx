@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 // import { translate } from 'react-polyglot';
 import { injectStyle } from 'react-toastify/dist/inject-style';
 import { toast, ToastContainer } from 'react-toastify';
@@ -21,12 +21,17 @@ type IdMap = {
   [id: string]: Id;
 };
 
-function Notifications({ notifications }: Props) {
+export function Notifications({ notifications }: Props) {
   const t = useTranslate();
   const dispatch = useDispatch();
-  const [idMap, setIdMap] = React.useState<IdMap>({});
+  // Bookkeeping only, never rendered - a ref avoids re-render churn and, more
+  // importantly, avoids this value being captured in the toast.onChange
+  // effect's dependency list (see below).
+  const idMapRef = useRef<IdMap>({});
 
   useEffect(() => {
+    const idMap = idMapRef.current;
+
     notifications
       .filter(notification => !idMap[notification.id])
       .forEach(notification => {
@@ -41,7 +46,6 @@ function Notifications({ notifications }: Props) {
         );
 
         idMap[notification.id] = toastId;
-        setIdMap(idMap);
 
         if (notification.dismissAfter) {
           setTimeout(() => {
@@ -50,23 +54,36 @@ function Notifications({ notifications }: Props) {
         }
       });
 
-    Object.entries(idMap).forEach(([id, toastId]) => {
+    Object.keys(idMap).forEach(id => {
       if (!notifications.find(notification => notification.id === id)) {
-        toast.dismiss(toastId);
+        toast.dismiss(idMap[id]);
         delete idMap[id];
-        setIdMap(idMap);
       }
     });
-  }, [notifications]);
+  }, [notifications, t, dispatch]);
 
-  toast.onChange((payload: ToastItem) => {
-    if (payload.status == 'removed') {
-      const id = Object.entries(idMap).find(([, toastId]) => toastId === payload.id)?.[0];
-      if (id) {
-        dispatch(dismissNotification(id));
+  // `toast.onChange` returns an unsubscribe function and must be registered
+  // exactly once. Previously this call sat directly in the render body, so
+  // every re-render (each toast created/dismissed during a create -> save ->
+  // navigate session) registered another listener without ever releasing the
+  // previous one. Each accumulated listener re-dispatched `dismissNotification`
+  // on the next toast removal, so the listener count - and the resulting
+  // synchronous dispatch/render fan-out - grew without bound across a session,
+  // eventually tripping React's "Maximum update depth exceeded" (#185) via the
+  // store subscription's onStateChange. Registering it once in an effect with
+  // a cleanup keeps exactly one listener alive at a time.
+  useEffect(() => {
+    return toast.onChange((payload: ToastItem) => {
+      if (payload.status == 'removed') {
+        const idMap = idMapRef.current;
+        const id = Object.entries(idMap).find(([, toastId]) => toastId === payload.id)?.[0];
+        if (id) {
+          delete idMap[id];
+          dispatch(dismissNotification(id));
+        }
       }
-    }
-  });
+    });
+  }, [dispatch]);
 
   return (
     <>
