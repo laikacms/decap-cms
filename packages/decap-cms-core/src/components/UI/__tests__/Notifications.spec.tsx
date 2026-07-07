@@ -1,5 +1,11 @@
 import React from 'react';
 import { render } from '@testing-library/react';
+import { useDispatch } from 'react-redux';
+import { toast } from 'react-toastify';
+
+import { Notifications } from '../Notifications';
+
+import type { Notification } from '../../../reducers/notifications';
 
 jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
@@ -7,12 +13,12 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('react-toastify', () => {
-  const toast: jest.Mock & { onChange?: jest.Mock; dismiss?: jest.Mock } = jest.fn(
+  const mockToast: jest.Mock & { onChange?: jest.Mock; dismiss?: jest.Mock } = jest.fn(
     () => 'toast-id',
   );
-  toast.onChange = jest.fn();
-  toast.dismiss = jest.fn();
-  return { toast, ToastContainer: () => null };
+  mockToast.onChange = jest.fn();
+  mockToast.dismiss = jest.fn();
+  return { toast: mockToast, ToastContainer: () => null };
 });
 
 jest.mock('react-toastify/dist/inject-style', () => ({
@@ -22,11 +28,6 @@ jest.mock('react-toastify/dist/inject-style', () => ({
 jest.mock('react-polyglot', () => ({
   useTranslate: () => (key: string) => key,
 }));
-
-import { useDispatch } from 'react-redux';
-import { toast } from 'react-toastify';
-import { Notifications } from '../Notifications';
-import type { Notification } from '../../../reducers/notifications';
 
 const mockOnChange = toast.onChange as jest.Mock;
 
