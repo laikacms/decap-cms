@@ -30,9 +30,7 @@ describe('DropdownItem', () => {
   });
 
   it('renders an icon when an icon prop is provided', () => {
-    const { container } = setup(
-      <DropdownItem label="With icon" icon="add" onClick={jest.fn()} />,
-    );
+    const { container } = setup(<DropdownItem label="With icon" icon="add" onClick={jest.fn()} />);
 
     expect(container.querySelector('svg')).toBeInTheDocument();
   });
@@ -84,17 +82,13 @@ describe('DropdownCheckedItem', () => {
   });
 
   it('renders the label', () => {
-    setup(
-      <DropdownCheckedItem label="My label" id="my-label" checked onClick={jest.fn()} />,
-    );
+    setup(<DropdownCheckedItem label="My label" id="my-label" checked onClick={jest.fn()} />);
 
     expect(screen.getByText('My label')).toBeInTheDocument();
   });
 
   it('applies active styling when checked is true', () => {
-    setup(
-      <DropdownCheckedItem label="Active item" id="active-item" checked onClick={jest.fn()} />,
-    );
+    setup(<DropdownCheckedItem label="Active item" id="active-item" checked onClick={jest.fn()} />);
 
     const menuItem = screen.getByText('Active item').closest('[role="menuitem"]');
     expect(menuItem).toHaveStyle({ color: colors.active });
