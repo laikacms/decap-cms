@@ -294,6 +294,8 @@ function shallowArrayEqual(a: unknown[], b: unknown[]): boolean {
   return true;
 }
 
+const EMPTY_ENTRIES: CmsEntry[] = [];
+
 export default function ConnectedNestedCollection({
   collection,
   filterTerm,
@@ -302,7 +304,7 @@ export default function ConnectedNestedCollection({
   filterTerm?: string;
 }) {
   const entries = useAppSelector(
-    (state: any) => (selectEntries(state.entries, collection) || []) as CmsEntry[],
+    (state: any) => (selectEntries(state.entries, collection) || EMPTY_ENTRIES) as CmsEntry[],
     shallowArrayEqual,
   );
   return <NestedCollection collection={collection} entries={entries} filterTerm={filterTerm} />;
