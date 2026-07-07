@@ -21,7 +21,7 @@ type IdMap = {
   [id: string]: Id;
 };
 
-function Notifications({ notifications }: Props) {
+export function Notifications({ notifications }: Props) {
   const t = useTranslate();
   const dispatch = useDispatch();
   // Bookkeeping only, never rendered - a ref avoids re-render churn and, more
