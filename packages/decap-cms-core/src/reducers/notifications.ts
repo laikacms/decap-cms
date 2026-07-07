@@ -29,10 +29,7 @@ const defaultState: NotificationsState = {
   notifications: [],
 };
 
-function messagesMatch(
-  a: string | NotificationMessage,
-  b: string | NotificationMessage,
-): boolean {
+function messagesMatch(a: string | NotificationMessage, b: string | NotificationMessage): boolean {
   if (typeof a === 'string' || typeof b === 'string') {
     return a === b;
   }
@@ -40,9 +37,7 @@ function messagesMatch(
 }
 
 function isDuplicate(notification: Notification, payload: NotificationPayload): boolean {
-  return (
-    notification.type === payload.type && messagesMatch(notification.message, payload.message)
-  );
+  return notification.type === payload.type && messagesMatch(notification.message, payload.message);
 }
 
 const notifications = produce((state: NotificationsState, action: NotificationsAction) => {
