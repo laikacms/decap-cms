@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 declare module 'decap-cms-core' {
   import type { ComponentType } from 'react';
-  import type { List, Map } from 'immutable';
   import type { Pluggable } from 'unified';
   export type CmsBackendType =
     | 'azure'
@@ -550,7 +549,7 @@ declare module 'decap-cms-core' {
 
   export interface CmsWidgetControlProps<T = any> {
     value: T;
-    field: Map<string, any>;
+    field: Record<string, any>;
     onChange: (value: T) => void;
     forID: string;
     classNameWrapper: string;
@@ -558,11 +557,11 @@ declare module 'decap-cms-core' {
 
   export interface CmsWidgetPreviewProps<T = any> {
     value: T;
-    field: Map<string, any>;
-    metadata: Map<string, any>;
+    field: Record<string, any>;
+    metadata: Record<string, any>;
     getAsset: GetAssetFunction;
-    entry: Map<string, any>;
-    fieldsMetaData: Map<string, any>;
+    entry: Record<string, any>;
+    fieldsMetaData: Record<string, any>;
   }
 
   export interface CmsWidgetParam<T = any> {
@@ -596,7 +595,7 @@ declare module 'decap-cms-core' {
       entry,
       author,
     }: {
-      entry: Map<string, any>;
+      entry: Record<string, any>;
       author: { login: string; name: string };
     }) => any;
   }
@@ -621,7 +620,7 @@ declare module 'decap-cms-core' {
     widgets: {
       [name: string]: CmsWidget;
     };
-    editorComponents: Map<string, ComponentType<any>>;
+    editorComponents: Record<string, ComponentType<any>>;
     widgetValueSerializers: {
       [name: string]: CmsWidgetValueSerializer;
     };
@@ -642,9 +641,9 @@ declare module 'decap-cms-core' {
   };
 
   export type PreviewTemplateComponentProps = {
-    entry: Map<string, any>;
-    collection: Map<string, any>;
-    getCollection: (collectionName: string, slug?: string) => Promise<Map<string, any>[]>;
+    entry: Record<string, any>;
+    collection: Record<string, any>;
+    getCollection: (collectionName: string, slug?: string) => Promise<Record<string, any>[]>;
     widgetFor: (
       name: string,
       fields?: any,
@@ -654,9 +653,9 @@ declare module 'decap-cms-core' {
     widgetsFor: (name: string) => unknown;
     getAsset: GetAssetFunction;
     boundGetAsset: (collection: any, path: string) => GetAssetFunction;
-    fieldsMetaData: Map<string, any>;
-    config: Map<string, any>;
-    fields: List<Map<string, any>>;
+    fieldsMetaData: Record<string, any>;
+    config: Record<string, any>;
+    fields: Record<string, any>[];
     isLoadingAsset: boolean;
     window: Window;
     document: Document;
@@ -664,7 +663,7 @@ declare module 'decap-cms-core' {
 
   export interface CMS {
     getBackend: (name: string) => CmsRegistryBackend | undefined;
-    getEditorComponents: () => Map<string, ComponentType<any>>;
+    getEditorComponents: () => Record<string, ComponentType<any>>;
     getRemarkPlugins: () => Array<Pluggable>;
     getLocale: (locale: string) => CmsLocalePhrases | undefined;
     getMediaLibrary: (name: string) => CmsMediaLibrary | undefined;

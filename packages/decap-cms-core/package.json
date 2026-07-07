@@ -46,7 +46,6 @@
     "react-dnd-html5-backend": "^14.0.0",
     "react-dom": "^19.1.0",
     "react-frame-component": "^5.2.1",
-    "react-immutable-proptypes": "^2.1.0",
     "react-is": "16.13.1",
     "react-markdown": "^6.0.2",
     "react-modal": "^3.8.1",
@@ -81,12 +80,10 @@
     "decap-cms-lib-util": "^3.0.0",
     "decap-cms-lib-widgets": "^3.0.0",
     "decap-cms-ui-default": "^3.0.0",
-    "immutable": "^3.7.6",
     "lodash": "^4.17.11",
     "prop-types": "^15.7.2",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "react-immutable-proptypes": "^2.1.0"
+    "react-dom": "^19.1.0"
   },
   "devDependencies": {
     "@types/history": "^4.7.8",
