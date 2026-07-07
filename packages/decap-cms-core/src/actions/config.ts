@@ -141,7 +141,8 @@ function getI18nDefaults(
     return defaultI18n;
   } else {
     const locales = collectionOrFileI18n.locales || defaultI18n.locales;
-    const defaultLocale = collectionOrFileI18n.default_locale || locales[0];
+    const defaultLocale =
+      collectionOrFileI18n.default_locale || defaultI18n.default_locale || locales[0];
     const mergedI18n: CmsI18nConfig = deepmerge(defaultI18n, collectionOrFileI18n);
     mergedI18n.locales = locales;
     mergedI18n.default_locale = defaultLocale;
