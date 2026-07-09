@@ -1,5 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 
+import { bidiControls } from '../lib-widgets/index';
+
 import type { TranslateFunction } from '../ui-default/index';
 import type { CmsFieldBase, CmsFieldStringOrText } from '../lib-util/index';
 
@@ -50,16 +52,29 @@ export default function StringControl({
     onChange(e.target.value);
   }
 
+  const hasBidiControls = bidiControls.containsBidiControls(value);
+
   return (
-    <input
-      ref={inputRef}
-      type="text"
-      id={forID}
-      className={classNameWrapper}
-      value={value || ''}
-      onChange={handleChange}
-      onFocus={setActiveStyle}
-      onBlur={setInactiveStyle}
-    />
+    <>
+      <input
+        ref={inputRef}
+        type="text"
+        id={forID}
+        className={classNameWrapper}
+        value={value || ''}
+        onChange={handleChange}
+        onFocus={setActiveStyle}
+        onBlur={setInactiveStyle}
+      />
+      {hasBidiControls && (
+        <span
+          role="alert"
+          title="This value contains an invisible Unicode bidi control character (e.g. U+202E RIGHT-TO-LEFT OVERRIDE), which can make it render very differently from how it is stored. This can be used to spoof file names/titles (Trojan Source). Review the raw value carefully before saving."
+          style={{ color: '#c53030', marginLeft: '4px', cursor: 'help' }}
+        >
+          ⚠
+        </span>
+      )}
+    </>
   );
 }
