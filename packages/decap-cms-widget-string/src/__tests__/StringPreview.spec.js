@@ -54,4 +54,30 @@ describe('StringPreview', () => {
     expect(container.querySelector('h1 h1')).toBeNull();
     expect(headings[0].textContent).toBe('Sample Title');
   });
+
+  // DCMS-415: the preview pane rendered bidi control characters verbatim,
+  // so the RLO (U+202E) actually visually reversed the trailing text
+  // ("admin<RLO>txt.exe" rendered as "admin exe.txt") with no indication to
+  // the reviewer that a control character was present.
+  describe('bidi control visualization (DCMS-415)', () => {
+    const RLO = String.fromCharCode(0x202e);
+
+    it('renders a visible <RLO> badge instead of the invisible control character', () => {
+      const field = fromJS({ name: 'title', widget: 'string' });
+      const { container } = render(<StringPreview value={`admin${RLO}txt.exe`} field={field} />);
+      expect(container.textContent).toBe('admin<RLO>txt.exe');
+    });
+
+    it('does not reverse or otherwise garble the surrounding text', () => {
+      const field = fromJS({ name: 'title', widget: 'string' });
+      const { container } = render(<StringPreview value={`admin${RLO}txt.exe`} field={field} />);
+      expect(container.textContent).not.toContain('exe.txt');
+    });
+
+    it('renders plain values unchanged', () => {
+      const field = fromJS({ name: 'title', widget: 'string' });
+      const { container } = render(<StringPreview value="admin.txt.exe" field={field} />);
+      expect(container.textContent).toBe('admin.txt.exe');
+    });
+  });
 });
