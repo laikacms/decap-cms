@@ -23,6 +23,7 @@ import type {
   DisplayURLState,
   MediaLibraryInstance,
   EntryField,
+  CmsMediaLibraryOptions,
 } from '../types/redux';
 import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
@@ -93,8 +94,30 @@ export function openMediaLibrary(
     const state = getState();
     const mediaLibrary = state.mediaLibrary.get('externalLibrary');
     if (mediaLibrary) {
-      const { controlID: id, value, config = Map(), allowMultiple, forImage } = payload;
-      mediaLibrary.show({ id, value, config: config.toJS(), allowMultiple, imagesOnly: forImage });
+      const { controlID: id, value, config = Map(), allowMultiple, forImage, field } = payload;
+      /**
+       * Field-level `media_library` keys other than `name`/`config`/`allow_multiple`
+       * (e.g. the Cloudinary `output_filename_only`/`use_transformations`/
+       * `use_secure_url` options) are forwarded as `options` so integrations can
+       * apply field-over-global overrides, mirroring the precedence `config`
+       * already has.
+       */
+      const fieldMediaLibrary = field?.get('media_library');
+      const options: CmsMediaLibraryOptions | undefined = fieldMediaLibrary
+        ? (fieldMediaLibrary
+            .delete('name')
+            .delete('config')
+            .delete('allow_multiple')
+            .toJS() as unknown as CmsMediaLibraryOptions)
+        : undefined;
+      mediaLibrary.show({
+        id,
+        value,
+        config: config.toJS(),
+        allowMultiple,
+        imagesOnly: forImage,
+        options,
+      });
     }
     dispatch(mediaLibraryOpened(payload));
   };

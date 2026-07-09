@@ -1,8 +1,8 @@
 import configureMockStore from 'redux-mock-store';
 import thunk from 'redux-thunk';
-import { List, Map } from 'immutable';
+import { List, Map, fromJS } from 'immutable';
 
-import { insertMedia, persistMedia, deleteMedia } from '../mediaLibrary';
+import { insertMedia, persistMedia, deleteMedia, openMediaLibrary } from '../mediaLibrary';
 
 jest.mock('../../backend');
 jest.mock('../waitUntil');
@@ -57,6 +57,58 @@ describe('mediaLibrary', () => {
         type: 'MEDIA_INSERT',
         payload: { mediaPath: ['/media/foo.png'] },
       });
+    });
+  });
+
+  describe('openMediaLibrary', () => {
+    it('forwards field-level media_library options (excluding name/config/allow_multiple) as `options`', () => {
+      const show = jest.fn();
+      const store = mockStore({
+        mediaLibrary: Map({
+          externalLibrary: { show },
+        }),
+      });
+
+      const field = fromJS({
+        name: 'image',
+        widget: 'image',
+        media_library: {
+          name: 'cloudinary',
+          output_filename_only: true,
+          config: { multiple: true },
+          allow_multiple: true,
+        },
+      });
+
+      store.dispatch(
+        openMediaLibrary({
+          controlID: 'control-id',
+          config: Map({ multiple: true }),
+          field,
+        }),
+      );
+
+      expect(show).toHaveBeenCalledWith({
+        id: 'control-id',
+        value: undefined,
+        config: { multiple: true },
+        allowMultiple: undefined,
+        imagesOnly: undefined,
+        options: { output_filename_only: true },
+      });
+    });
+
+    it('passes `options: undefined` when the field has no media_library config', () => {
+      const show = jest.fn();
+      const store = mockStore({
+        mediaLibrary: Map({
+          externalLibrary: { show },
+        }),
+      });
+
+      store.dispatch(openMediaLibrary({ controlID: 'control-id' }));
+
+      expect(show).toHaveBeenCalledWith(expect.objectContaining({ options: undefined }));
     });
   });
 

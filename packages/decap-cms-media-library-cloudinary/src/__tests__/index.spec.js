@@ -270,6 +270,48 @@ describe('cloudinary media library', () => {
     });
   });
 
+  describe('field-level integration options', () => {
+    const asset = {
+      url: 'http://foo.bar/image.jpg',
+      secure_url: 'https://foo.bar/image.jpg',
+      public_id: 'image',
+      format: 'jpg',
+    };
+
+    it('honors field-level output_filename_only over the global default', async () => {
+      const handleInsert = jest.fn();
+      const integration = await cloudinary.init({ handleInsert });
+      integration.show({ options: { output_filename_only: true } });
+      cloudinaryInsertHandler({ assets: [asset] });
+      expect(handleInsert).toHaveBeenCalledWith('image.jpg');
+    });
+
+    it('lets a field-level override turn a global output_filename_only: true back off', async () => {
+      const handleInsert = jest.fn();
+      const options = { output_filename_only: true };
+      const integration = await cloudinary.init({ options, handleInsert });
+      integration.show({ options: { output_filename_only: false } });
+      cloudinaryInsertHandler({ assets: [asset] });
+      expect(handleInsert).toHaveBeenCalledWith(asset.secure_url);
+    });
+
+    it('falls back to the global output_filename_only when no field-level override is given', async () => {
+      const handleInsert = jest.fn();
+      const options = { output_filename_only: true };
+      const integration = await cloudinary.init({ options, handleInsert });
+      integration.show();
+      cloudinaryInsertHandler({ assets: [asset] });
+      expect(handleInsert).toHaveBeenCalledWith('image.jpg');
+    });
+
+    it('does not forward field-level integration options to the underlying Cloudinary widget config', async () => {
+      const handleInsert = jest.fn();
+      const integration = await cloudinary.init({ handleInsert });
+      integration.show({ options: { output_filename_only: true } });
+      expect(mediaLibrary.show).toHaveBeenCalledWith({ multiple: false });
+    });
+  });
+
   describe('hide method', () => {
     it('calls cloudinary instance hide method', async () => {
       const integration = await cloudinary.init();
