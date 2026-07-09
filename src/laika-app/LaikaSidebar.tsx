@@ -264,7 +264,7 @@ function LaikaSidebar({ collections, onCollectionClick, extraNavSections, t }: L
             <SidebarListItem>
               <SidebarLink to="/settings">
                 <Icon type="settings" />
-                <SidebarLinkLabel>Settings</SidebarLinkLabel>
+                <SidebarLinkLabel>App settings</SidebarLinkLabel>
               </SidebarLink>
             </SidebarListItem>
           </SidebarList>
