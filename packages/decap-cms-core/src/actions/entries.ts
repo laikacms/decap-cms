@@ -849,14 +849,16 @@ export function createEmptyDraftData(
 
       if (defaultValue !== null) {
         acc[name] = defaultValue;
-      } else if (item.get('required', true) === false) {
-        // Widgets whose documentation promises a concrete persisted default
-        // value for optional fields with no explicit `default` configured.
+      } else {
         const widget = item.get('widget');
-        if (widget === 'boolean') {
-          acc[name] = false;
-        } else if (widget === 'text') {
+        if (widget === 'text') {
+          // Text widget docs promise an unconditional `""` default when none
+          // is configured, regardless of `required`.
           acc[name] = '';
+        } else if (widget === 'boolean' && item.get('required', true) === false) {
+          // Boolean widget docs only promise a `false` default when the
+          // field is explicitly `required: false`.
+          acc[name] = false;
         }
       }
 
