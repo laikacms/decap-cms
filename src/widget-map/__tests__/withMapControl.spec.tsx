@@ -175,6 +175,36 @@ describe('withMapControl', () => {
     expect(mapConstructorSpy).toHaveBeenCalledTimes(1);
   });
 
+  test('re-checks hasLayout() before constructing when the rAF fallback fires while the container is still 0x0', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { target } = setup();
+
+    // jsdom reports 0x0 at mount, so the fallback rAF is scheduled. Flush it
+    // while the container is still 0x0 (route-transition timing): it must
+    // re-check hasLayout(), skip construction, and reschedule instead of
+    // building an undersized map.
+    flushRaf();
+    expect(mapConstructorSpy).not.toHaveBeenCalled();
+
+    setLayout(target, 300, 400);
+    // The rescheduled rAF fires now that the container has real layout.
+    flushRaf();
+
+    expect(mapConstructorSpy).toHaveBeenCalledTimes(1);
+    expect(mapConstructorSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        target,
+      }),
+    );
+
+    const zeroSizeWarnings = warnSpy.mock.calls.filter(args =>
+      /No map visible.*width or height/.test(String(args[0])),
+    );
+    expect(zeroSizeWarnings).toHaveLength(0);
+
+    warnSpy.mockRestore();
+  });
+
   test('never logs the OpenLayers 0x0 container warning during the mount -> resize sequence', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const { target } = setup();
