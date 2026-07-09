@@ -78,13 +78,18 @@ function renderAppContentAt(
     path,
   };
 
-  return render(
-    <Provider store={mockStore(state)}>
-      <context.Provider value={decapValue}>
-        <AppContent {...props} />
-      </context.Provider>
-    </Provider>,
-  );
+  return {
+    ...render(
+      <Provider store={mockStore(state)}>
+        <context.Provider value={decapValue}>
+          <AppContent {...props} />
+        </context.Provider>
+      </Provider>,
+    ),
+    // Exposed so DCMS-432 regression tests can assert no navigation (and
+    // therefore no URL/hash rewrite) happened for an unknown collection.
+    navigate: decapValue.navigate,
+  };
 }
 
 describe('AppContent — DCMS-431 editor-route header suppression', () => {
@@ -133,5 +138,60 @@ describe('AppContent — DCMS-431 editor-route header suppression', () => {
     renderAppContentAt('/collections/posts/new', { renderLayout });
 
     expect(seen).toEqual([false, true]);
+  });
+});
+
+describe('AppContent — DCMS-432 unknown-collection deep-link', () => {
+  it('renders NotFound naming the missing collection instead of the collection view, for a bare collection route', () => {
+    const { getByText, queryByTestId } = renderAppContentAt(
+      '/collections/nonexistent_collection',
+    );
+
+    expect(getByText('app.notFoundPage.header')).toBeInTheDocument();
+    expect(getByText('app.notFoundPage.collectionNotFound')).toBeInTheDocument();
+    expect(queryByTestId('collection-view')).not.toBeInTheDocument();
+  });
+
+  it('renders NotFound naming the missing collection for an entry deep-link too, instead of the editor view', () => {
+    const { getByText, queryByTestId } = renderAppContentAt(
+      '/collections/nonexistent_collection/entries/foo',
+    );
+
+    expect(getByText('app.notFoundPage.header')).toBeInTheDocument();
+    expect(getByText('app.notFoundPage.collectionNotFound')).toBeInTheDocument();
+    expect(queryByTestId('editor-view')).not.toBeInTheDocument();
+  });
+
+  it('does not navigate away (no URL/hash rewrite) when the collection is unknown', () => {
+    const { navigate } = renderAppContentAt('/collections/nonexistent_collection');
+
+    // Previously this fell through to `navigate('collection', { collectionName:
+    // <first collection> }, { replace: true })`, silently rewriting the URL
+    // bar to the default collection. It must now stay on the bad deep-link.
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('does not navigate away for an unknown-collection entry deep-link either', () => {
+    const { navigate } = renderAppContentAt('/collections/nonexistent_collection/entries/foo');
+
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('still renders the collection view for a known collection (no regression)', () => {
+    const { getByTestId, queryByText } = renderAppContentAt('/collections/posts');
+
+    expect(getByTestId('collection-view')).toBeInTheDocument();
+    expect(queryByText('app.notFoundPage.header')).not.toBeInTheDocument();
+  });
+
+  it('honours a custom renderNotFound for an unknown collection', () => {
+    const renderNotFound = vi.fn(() => <div data-testid="custom-not-found" />);
+    const { getByTestId, queryByText } = renderAppContentAt(
+      '/collections/nonexistent_collection',
+      { renderNotFound },
+    );
+
+    expect(getByTestId('custom-not-found')).toBeInTheDocument();
+    expect(queryByText('app.notFoundPage.header')).not.toBeInTheDocument();
   });
 });

@@ -236,23 +236,26 @@ function RedirectToEntry({ collectionName, slug }: { collectionName: string; slu
 
 /**
  * Renders `children` only if `name` is an existing collection; otherwise
- * redirects to the default collection. Replaces react-router's per-route
- * existence guard.
+ * renders the not-found page naming the missing collection (DCMS-432).
+ * Previously this silently redirected (and rewrote the URL bar) to the
+ * default collection, which gave the user no signal that the deep-linked
+ * collection did not exist — replaces react-router's per-route existence
+ * guard, but without the silent fallback.
  */
 function CollectionGuard({
-  collections,
   name,
-  defaultCollectionName,
+  collections,
+  renderNotFound,
   children,
 }: {
-  collections: Collections;
   name: string;
-  defaultCollectionName?: string;
+  collections: Collections;
+  renderNotFound?: () => React.ReactNode;
   children: React.ReactNode;
 }) {
   const exists = name ? collections[name] : undefined;
   if (!exists) {
-    return <RedirectToCollection collectionName={defaultCollectionName} />;
+    return renderNotFound ? <>{renderNotFound()}</> : <NotFoundPage collectionName={name} />;
   }
   return <>{children}</>;
 }
@@ -348,7 +351,7 @@ function AppRoutes({
         <CollectionGuard
           collections={collections}
           name={match.params.collectionName}
-          defaultCollectionName={defaultCollectionName}
+          renderNotFound={renderNotFound}
         >
           <CollectionView name={match.params.collectionName} />
         </CollectionGuard>
@@ -358,7 +361,7 @@ function AppRoutes({
         <CollectionGuard
           collections={collections}
           name={match.params.collectionName}
-          defaultCollectionName={defaultCollectionName}
+          renderNotFound={renderNotFound}
         >
           <CollectionView
             name={match.params.collectionName}
@@ -373,7 +376,7 @@ function AppRoutes({
         <CollectionGuard
           collections={collections}
           name={match.params.collectionName}
-          defaultCollectionName={defaultCollectionName}
+          renderNotFound={renderNotFound}
         >
           <CollectionView
             name={match.params.collectionName}
@@ -388,7 +391,7 @@ function AppRoutes({
         <CollectionGuard
           collections={collections}
           name={match.params.collectionName}
-          defaultCollectionName={defaultCollectionName}
+          renderNotFound={renderNotFound}
         >
           <Editor newRecord collectionName={match.params.collectionName} />
         </CollectionGuard>
@@ -398,7 +401,7 @@ function AppRoutes({
         <CollectionGuard
           collections={collections}
           name={match.params.collectionName}
-          defaultCollectionName={defaultCollectionName}
+          renderNotFound={renderNotFound}
         >
           <Editor collectionName={match.params.collectionName} slug={match.params.slug} />
         </CollectionGuard>
@@ -408,7 +411,7 @@ function AppRoutes({
         <CollectionGuard
           collections={collections}
           name={match.params.collectionName}
-          defaultCollectionName={defaultCollectionName}
+          renderNotFound={renderNotFound}
         >
           <RedirectToEntry
             collectionName={match.params.collectionName}
