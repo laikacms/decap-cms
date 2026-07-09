@@ -274,7 +274,7 @@ describe('entries', () => {
       });
     });
 
-    it('should not set empty value for list fields widget', () => {
+    it('should default nested text fields with no default to an empty string for list fields widget', () => {
       const fields = fromJS([
         {
           name: 'images',
@@ -285,7 +285,9 @@ describe('entries', () => {
           ],
         },
       ]);
-      expect(createEmptyDraftData(fields)).toEqual({});
+      expect(createEmptyDraftData(fields)).toEqual({
+        images: [{ title: '', url: '' }],
+      });
     });
 
     it('should set default value for object field widget', () => {
@@ -315,7 +317,7 @@ describe('entries', () => {
       });
     });
 
-    it('should not set empty value for object fields widget', () => {
+    it('should default nested text fields with no default to an empty string for object fields widget', () => {
       const fields = fromJS([
         {
           name: 'post',
@@ -326,7 +328,9 @@ describe('entries', () => {
           ],
         },
       ]);
-      expect(createEmptyDraftData(fields)).toEqual({});
+      expect(createEmptyDraftData(fields)).toEqual({
+        post: { title: '', url: '' },
+      });
     });
 
     it('should populate nested fields', () => {
@@ -364,9 +368,14 @@ describe('entries', () => {
       expect(createEmptyDraftData(fields)).toEqual({});
     });
 
-    it('should not set a default for a required text field with no default', () => {
+    it('should default a text field with required omitted and no default to an empty string', () => {
       const fields = fromJS([{ name: 'subtitle', widget: 'text' }]);
-      expect(createEmptyDraftData(fields)).toEqual({});
+      expect(createEmptyDraftData(fields)).toEqual({ subtitle: '' });
+    });
+
+    it('should default a required text field with no default to an empty string', () => {
+      const fields = fromJS([{ name: 'subtitle', widget: 'text', required: true }]);
+      expect(createEmptyDraftData(fields)).toEqual({ subtitle: '' });
     });
 
     it('should not set a default for other optional widgets with no default', () => {
