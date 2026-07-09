@@ -195,11 +195,11 @@ const FileWidgetButtonRemove = styled.button`
   ${components.badgeDanger};
 `;
 
-function isMultiple(value) {
+export function isMultiple(value) {
   return Array.isArray(value) || List.isList(value);
 }
 
-function sizeOfValue(value) {
+export function sizeOfValue(value) {
   if (Array.isArray(value)) {
     return value.length;
   }
@@ -211,11 +211,11 @@ function sizeOfValue(value) {
   return value ? 1 : 0;
 }
 
-function valueListToArray(value) {
+export function valueListToArray(value) {
   return List.isList(value) ? value.toArray() : value ?? '';
 }
 
-function valueListToSortableArray(value) {
+export function valueListToSortableArray(value) {
   if (!isMultiple(value)) {
     return value;
   }
