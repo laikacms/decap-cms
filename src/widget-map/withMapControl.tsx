@@ -84,10 +84,21 @@ export default function withMapControl({ getFormat, getMap }: WithMapControlOpti
       // the observer never reports a non-zero size.
       let map: Map | undefined;
 
+      // React.StrictMode (and, per DCMS-430, the shipped v4.beta demo bundle
+      // running React in dev mode) invokes this effect, its cleanup, and then
+      // the effect again on mount. Each invocation gets a fresh `map` closure,
+      // so without an explicit "this instance was torn down" flag a callback
+      // scheduled by the first invocation (ResizeObserver or the rAF
+      // fallback) can still fire after cleanup and construct a second,
+      // undersized OL Map. `disposed` makes every entry point into this
+      // effect instance a no-op once its cleanup has run, regardless of
+      // whether the ResizeObserver/rAF cancellation actually pre-empted it.
+      let disposed = false;
+
       const hasLayout = () => target.offsetWidth > 0 && target.offsetHeight > 0;
 
       const initMap = () => {
-        if (map) {
+        if (disposed || map) {
           return;
         }
         map = getMap ? getMap(target, featuresLayer) : getDefaultMap(target, featuresLayer);
@@ -113,6 +124,9 @@ export default function withMapControl({ getFormat, getMap }: WithMapControlOpti
       };
 
       const resizeObserver = new ResizeObserver(() => {
+        if (disposed) {
+          return;
+        }
         if (!map) {
           if (hasLayout()) {
             initMap();
@@ -130,9 +144,17 @@ export default function withMapControl({ getFormat, getMap }: WithMapControlOpti
       // map on a route-transition frame where the container hasn't resolved
       // its layout yet. Reschedules, bounded, until either the observer or
       // this loop sees a non-zero size.
+      //
+      // The very first attempt also goes through this path (DCMS-430): there
+      // used to be a separate synchronous `if (hasLayout()) initMap()` branch
+      // at mount, so a StrictMode/dev-mode double-invoked mount could run
+      // that synchronous branch twice against a container that was
+      // transiently non-zero for a single frame, constructing two Maps.
+      // Routing every attempt through `scheduleFallback` means both
+      // invocations share the same `disposed`-gated, idempotent entry point.
       const scheduleFallback = (attemptsLeft: number) => {
         fallbackRafId = requestAnimationFrame(() => {
-          if (map) {
+          if (disposed || map) {
             return;
           }
           if (hasLayout()) {
@@ -145,13 +167,10 @@ export default function withMapControl({ getFormat, getMap }: WithMapControlOpti
         });
       };
 
-      if (hasLayout()) {
-        initMap();
-      } else {
-        scheduleFallback(60); // ~1s worst case at 60fps
-      }
+      scheduleFallback(60); // ~1s worst case at 60fps
 
       return () => {
+        disposed = true;
         resizeObserver.disconnect();
         if (fallbackRafId !== undefined) {
           cancelAnimationFrame(fallbackRafId);

@@ -229,4 +229,46 @@ describe('withMapControl', () => {
 
     expect(resizeObserverDisconnect).toHaveBeenCalledTimes(1);
   });
+
+  // DCMS-430: DCMS-428's hasLayout() re-check inside the rAF fallback still
+  // let a cold deep-link into the v4.beta laika demo (React running in dev
+  // mode, StrictMode double-invoking the mount effect) construct the OL Map
+  // twice, warning twice. Render under React.StrictMode - which double-invokes
+  // mount effects in dev builds - and assert the OL Map is constructed exactly
+  // once across the double-invoke cycle, against a non-zero target, with no
+  // 0x0 warnings. This fails against the pre-fix code (separate synchronous
+  // `if (hasLayout()) initMap()` branch, no `disposed` guard).
+  test('constructs the OL Map exactly once when rendered under React.StrictMode (double-invoked mount effect)', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const props = {
+      field: { type: 'Point' },
+      onChange: vi.fn(),
+      value: '',
+      height: '400px',
+      classNameWrapper: 'classNameWrapper',
+      t: (key: string) => key,
+    };
+
+    const utils = render(
+      <React.StrictMode>
+        <MapControl {...(props as any)} />
+      </React.StrictMode>,
+    );
+    const target = utils.container.firstChild as HTMLElement;
+
+    setLayout(target, 300, 400);
+    resizeObserverCallback?.();
+    flushRaf();
+
+    expect(mapConstructorSpy).toHaveBeenCalledTimes(1);
+    expect(mapConstructorSpy).toHaveBeenCalledWith(expect.objectContaining({ target }));
+
+    const zeroSizeWarnings = warnSpy.mock.calls.filter(args =>
+      /No map visible.*width or height/.test(String(args[0])),
+    );
+    expect(zeroSizeWarnings).toHaveLength(0);
+
+    warnSpy.mockRestore();
+  });
 });
