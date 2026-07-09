@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { bidiControls } from 'decap-cms-lib-widgets';
 
 export default class StringControl extends React.Component {
   static propTypes = {
@@ -47,20 +48,32 @@ export default class StringControl extends React.Component {
 
   render() {
     const { forID, value, classNameWrapper, setActiveStyle, setInactiveStyle } = this.props;
+    const hasBidiControls = bidiControls.containsBidiControls(value);
 
     return (
-      <input
-        ref={el => {
-          this._el = el;
-        }}
-        type="text"
-        id={forID}
-        className={classNameWrapper}
-        value={value || ''}
-        onChange={this.handleChange}
-        onFocus={setActiveStyle}
-        onBlur={setInactiveStyle}
-      />
+      <>
+        <input
+          ref={el => {
+            this._el = el;
+          }}
+          type="text"
+          id={forID}
+          className={classNameWrapper}
+          value={value || ''}
+          onChange={this.handleChange}
+          onFocus={setActiveStyle}
+          onBlur={setInactiveStyle}
+        />
+        {hasBidiControls && (
+          <span
+            role="alert"
+            title="This value contains an invisible Unicode bidi control character (e.g. U+202E RIGHT-TO-LEFT OVERRIDE), which can make it render very differently from how it is stored. This can be used to spoof file names/titles (Trojan Source). Review the raw value carefully before saving."
+            css={{ color: '#c53030', marginLeft: '4px', cursor: 'help' }}
+          >
+            ⚠
+          </span>
+        )}
+      </>
     );
   }
 }

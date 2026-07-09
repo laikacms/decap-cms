@@ -50,3 +50,26 @@ describe('TextControl', () => {
     expect(onChange).toHaveBeenCalledWith('hello world');
   });
 });
+
+// DCMS-415: text widgets accepted invisible Unicode bidi override
+// characters (e.g. U+202E RLO) with no warning to the editor.
+describe('TextControl bidi control warning (DCMS-415)', () => {
+  const RLO = String.fromCharCode(0x202e);
+
+  it('does not render a warning badge for a plain value', () => {
+    const { queryByRole } = render(<TextControl {...defaultProps} value="admin.txt.exe" />);
+    expect(queryByRole('alert')).toBeNull();
+  });
+
+  it('renders a warning badge when the value contains a bidi control character', () => {
+    const { getByRole } = render(<TextControl {...defaultProps} value={`admin${RLO}txt.exe`} />);
+    expect(getByRole('alert')).toBeInTheDocument();
+  });
+
+  it('does not mutate the textarea value when bidi controls are present', () => {
+    const trojanValue = `admin${RLO}txt.exe`;
+    const { container } = render(<TextControl {...defaultProps} value={trojanValue} />);
+    const textarea = container.querySelector('textarea');
+    expect(textarea.value).toBe(trojanValue);
+  });
+});

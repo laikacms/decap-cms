@@ -18,4 +18,19 @@ describe('TextPreview', () => {
     const { container } = render(<TextPreview value="" />);
     expect(container.textContent).toBe('');
   });
+
+  // DCMS-415: see StringPreview.spec.js for the full rationale.
+  describe('bidi control visualization (DCMS-415)', () => {
+    const RLO = String.fromCharCode(0x202e);
+
+    it('renders a visible <RLO> badge instead of the invisible control character', () => {
+      const { container } = render(<TextPreview value={`admin${RLO}txt.exe`} />);
+      expect(container.textContent).toBe('admin<RLO>txt.exe');
+    });
+
+    it('renders plain values unchanged', () => {
+      const { container } = render(<TextPreview value="admin.txt.exe" />);
+      expect(container.textContent).toBe('admin.txt.exe');
+    });
+  });
 });
