@@ -124,14 +124,31 @@ export default function withMapControl({ getFormat, getMap }: WithMapControlOpti
       resizeObserver.observe(target);
 
       let fallbackRafId: number | undefined;
+
+      // Mirrors the ResizeObserver branch above: re-check hasLayout() before
+      // constructing so the rAF fallback can't build an undersized (or 0x0)
+      // map on a route-transition frame where the container hasn't resolved
+      // its layout yet. Reschedules, bounded, until either the observer or
+      // this loop sees a non-zero size.
+      const scheduleFallback = (attemptsLeft: number) => {
+        fallbackRafId = requestAnimationFrame(() => {
+          if (map) {
+            return;
+          }
+          if (hasLayout()) {
+            initMap();
+            return;
+          }
+          if (attemptsLeft > 0) {
+            scheduleFallback(attemptsLeft - 1);
+          }
+        });
+      };
+
       if (hasLayout()) {
         initMap();
       } else {
-        fallbackRafId = requestAnimationFrame(() => {
-          if (!map) {
-            initMap();
-          }
-        });
+        scheduleFallback(60); // ~1s worst case at 60fps
       }
 
       return () => {
