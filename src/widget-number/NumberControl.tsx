@@ -97,6 +97,44 @@ const NumberControl = React.forwardRef<NumberControlHandle, NumberControlProps>(
       () => ({
         isValid() {
           const { field: f, value: v, t: tt } = latestProps.current;
+          const valueType = f.value_type;
+
+          // Detect unsafe integer: value is a non-empty string that looks like an
+          // integer and is only present because parseInt rounded it to an unsafe
+          // float (handleChange refused to store the rounded result).
+          if (
+            valueType !== 'float' &&
+            typeof v === 'string' &&
+            v !== '' &&
+            /^-?\d+$/.test(v)
+          ) {
+            const parsed = parseInt(v, 10);
+            if (!Number.isSafeInteger(parsed)) {
+              return {
+                error: {
+                  type: ValidationErrorTypes.CUSTOM,
+                  message:
+                    'Value exceeds the maximum safe integer. Use a string widget for arbitrary-precision IDs.',
+                },
+              };
+            }
+          }
+
+          // Detect float overflow: value is a non-empty string that is only
+          // present because handleChange refused to store the non-finite
+          // parseFloat result.
+          if (valueType === 'float' && typeof v === 'string' && v !== '') {
+            const parsed = parseFloat(v);
+            if (!isNaN(parsed) && !isFinite(parsed)) {
+              return {
+                error: {
+                  type: ValidationErrorTypes.CUSTOM,
+                  message: 'Value exceeds the maximum representable number.',
+                },
+              };
+            }
+          }
+
           if (f.pattern) return true;
           const error = validateMinMax(
             v ?? '',
@@ -113,13 +151,43 @@ const NumberControl = React.forwardRef<NumberControlHandle, NumberControlProps>(
 
     function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
       const valueType = field.value_type;
-      const next =
-        valueType === 'float' ? parseFloat(e.target.value) : parseInt(e.target.value, 10);
-      if (!isNaN(next)) {
-        onChange(next);
-      } else {
-        onChange('');
+      const raw = e.target.value;
+
+      if (valueType === 'float') {
+        const parsed = parseFloat(raw);
+        if (isNaN(parsed)) {
+          onChange('');
+          return;
+        }
+
+        // Overflowing magnitudes (e.g. "1e309") parse to Infinity/-Infinity
+        // without NaN, so store the raw string so isValid() can surface the
+        // error without silently persisting a non-finite value, mirroring the
+        // int path below.
+        if (!isFinite(parsed)) {
+          onChange(raw);
+          return;
+        }
+
+        onChange(parsed);
+        return;
       }
+
+      const parsed = parseInt(raw, 10);
+      if (isNaN(parsed)) {
+        onChange('');
+        return;
+      }
+
+      // Integers above Number.MAX_SAFE_INTEGER are silently rounded by
+      // parseInt; store the raw string so isValid() can surface the error
+      // without corrupting data.
+      if (!Number.isSafeInteger(parsed)) {
+        onChange(raw);
+        return;
+      }
+
+      onChange(parsed);
     }
 
     const min = field.min ?? '';
