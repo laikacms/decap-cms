@@ -75,34 +75,70 @@ export default function withMapControl({ getFormat, getMap }: WithMapControlOpti
       const featuresLayer = new VectorLayer({ source: featuresSource });
 
       const target = mapContainer.current!;
-      const map = getMap ? getMap(target, featuresLayer) : getDefaultMap(target, featuresLayer);
-      if (features.length > 0) {
-        map.getView().fit(featuresSource.getExtent(), { maxZoom: 16, padding: [80, 80, 80, 80] });
-      }
 
-      const draw = new Draw({
-        source: featuresSource,
-        type: (f.type ?? 'Point') as GeometryType,
-      });
-      map.addInteraction(draw);
+      // OpenLayers probes the target's size synchronously on construction and
+      // warns ("No map visible because the map container's width or height
+      // are 0.") when layout hasn't resolved yet. Defer construction until the
+      // container actually has non-zero layout so the probe never sees a 0x0
+      // box; a ResizeObserver detects that moment, with a rAF fallback in case
+      // the observer never reports a non-zero size.
+      let map: Map | undefined;
 
-      const writeOptions = { decimals: (f.decimals ?? 7) as number };
-      draw.on('drawend', ({ feature }) => {
-        featuresSource.clear();
-        initRef.current.onChange(format.writeGeometry(feature.getGeometry()!, writeOptions));
-      });
+      const hasLayout = () => target.offsetWidth > 0 && target.offsetHeight > 0;
 
-      requestAnimationFrame(() => {
-        map.updateSize();
-      });
+      const initMap = () => {
+        if (map) {
+          return;
+        }
+        map = getMap ? getMap(target, featuresLayer) : getDefaultMap(target, featuresLayer);
+        if (features.length > 0) {
+          map.getView().fit(featuresSource.getExtent(), { maxZoom: 16, padding: [80, 80, 80, 80] });
+        }
+
+        const draw = new Draw({
+          source: featuresSource,
+          type: (f.type ?? 'Point') as GeometryType,
+        });
+        map.addInteraction(draw);
+
+        const writeOptions = { decimals: (f.decimals ?? 7) as number };
+        draw.on('drawend', ({ feature }) => {
+          featuresSource.clear();
+          initRef.current.onChange(format.writeGeometry(feature.getGeometry()!, writeOptions));
+        });
+
+        requestAnimationFrame(() => {
+          map?.updateSize();
+        });
+      };
 
       const resizeObserver = new ResizeObserver(() => {
+        if (!map) {
+          if (hasLayout()) {
+            initMap();
+          }
+          return;
+        }
         map.updateSize();
       });
       resizeObserver.observe(target);
 
+      let fallbackRafId: number | undefined;
+      if (hasLayout()) {
+        initMap();
+      } else {
+        fallbackRafId = requestAnimationFrame(() => {
+          if (!map) {
+            initMap();
+          }
+        });
+      }
+
       return () => {
         resizeObserver.disconnect();
+        if (fallbackRafId !== undefined) {
+          cancelAnimationFrame(fallbackRafId);
+        }
       };
     }, []);
 
