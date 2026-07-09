@@ -55,7 +55,11 @@ export type CmsCollectionFormatType =
   | 'toml-frontmatter'
   | 'json-frontmatter';
 
-export type CmsAuthScope = 'repo' | 'public_repo';
+// 'repo' and 'public_repo' are the documented defaults and autocomplete as
+// literals, but the github backend passes auth_scope straight through to the
+// OAuth `scope` param with no allowlist, so any GitHub OAuth scope string
+// (e.g. 'repo:status', 'read:org') is valid at runtime. See DCMS-419.
+export type CmsAuthScope = 'repo' | 'public_repo' | (string & {});
 
 export type CmsPublishMode = 'simple' | 'editorial_workflow';
 
