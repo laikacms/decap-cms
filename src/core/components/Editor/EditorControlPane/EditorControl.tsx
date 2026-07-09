@@ -49,7 +49,7 @@ const WidgetComponent: React.ComponentType<any> = Widget;
  * for styling. Once that changes we can stop storing raw style strings like
  * this.
  */
-const styleStrings = {
+export const styleStrings = {
   widget: `
     display: block;
     width: 100%;
@@ -61,7 +61,7 @@ const styleStrings = {
     outline: 0;
     box-shadow: none;
     background-color: ${colors.inputBackground};
-    color: #444a57;
+    color: ${colors.textLead};
     transition: border-color ${transitions.main};
     position: relative;
     font-size: 15px;
