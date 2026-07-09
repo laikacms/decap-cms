@@ -56,7 +56,7 @@ function Buttons({ t, fieldName, handleChange, getNow }: ButtonsProps) {
 interface DateTimeControlProps {
   field: Record<string, unknown>;
   forID?: string;
-  onChange: (value: string) => void;
+  onChange: (value: string, metadata?: Record<string, unknown>) => void;
   classNameWrapper: string;
   setActiveStyle: () => void;
   setInactiveStyle: () => void;
@@ -148,14 +148,18 @@ export default function DateTimeControl({
     return isUtc ? dayjs.utc(v).format(inputFormat) : dayjs(v).format(inputFormat);
   }
 
-  function handleChange(datetime: string) {
+  function handleChange(datetime: string, fromDefault = false) {
     if (!isValidDate(datetime)) return;
 
-    if (datetime === '') {
-      onChange('');
-    } else {
+    let formattedValue = '';
+    if (datetime !== '') {
       const { format, inputFormat } = getFormat(field, isUtc);
-      const formattedValue = dayjs(datetime, inputFormat).format(format);
+      formattedValue = dayjs(datetime, inputFormat).format(format);
+    }
+
+    if (fromDefault) {
+      onChange(formattedValue, { fromDefault: true });
+    } else {
       onChange(formattedValue);
     }
   }
@@ -167,7 +171,10 @@ export default function DateTimeControl({
   initRef.current = { value, handleChange, getNow };
   React.useEffect(() => {
     if (initRef.current.value === '{{now}}') {
-      initRef.current.handleChange(initRef.current.getNow());
+      // This substitutes the framework-provided default; it is not a user
+      // edit, so it's flagged via metadata so the draft reducer does not
+      // mark a fresh entry as changed because of it (DCMS-416).
+      initRef.current.handleChange(initRef.current.getNow(), true);
     }
   }, []);
 

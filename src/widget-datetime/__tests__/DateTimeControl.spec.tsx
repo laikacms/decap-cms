@@ -88,4 +88,22 @@ describe('DateTimeControl', () => {
     const expectedValue = dayjs(testDate).format('YYYY-MM-DDTHH:mm:ss.SSS[Z]');
     expect(props.onChange).toHaveBeenCalledWith(expectedValue);
   });
+
+  test('substitutes {{now}} on mount and flags the change as a framework default (DCMS-416)', () => {
+    const { props } = setup({ value: '{{now}}', field: {} });
+
+    expect(props.onChange).toHaveBeenCalledTimes(1);
+    expect(props.onChange).toHaveBeenCalledWith(dayjs().format('YYYY-MM-DDTHH:mm:ss.SSSZ'), {
+      fromDefault: true,
+    });
+  });
+
+  test('does not flag user-initiated changes as a framework default', () => {
+    const { nowButton, props } = setup({ value: '{{now}}', field: {} });
+
+    props.onChange.mockClear();
+    fireEvent.click(nowButton);
+
+    expect(props.onChange).toHaveBeenCalledWith(dayjs().format('YYYY-MM-DDTHH:mm:ss.SSSZ'));
+  });
 });
