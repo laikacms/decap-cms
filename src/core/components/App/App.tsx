@@ -71,6 +71,14 @@ export interface AppHeaderRenderProps {
 export interface AppLayoutRenderProps {
   main: React.ReactNode;
   headerProps: AppHeaderRenderProps;
+  /**
+   * `true` while the current route is an entry editor (`entryNew` / `entry`).
+   * The editor renders its own full-bleed header/toolbar that visually covers
+   * the app-shell chrome (DCMS-431), so a custom layout that also renders its
+   * own persistent nav (e.g. a sidebar) can use this to avoid stacking a
+   * second layer of dead-but-focusable controls under the editor.
+   */
+  isEditorRoute: boolean;
 }
 
 /**
@@ -414,6 +422,18 @@ function AppRoutes({
 }
 
 /**
+ * `true` for the two routes the entry editor renders on (`entryNew` / `entry`).
+ * The editor takes over the full viewport with its own header + toolbar
+ * (`EditorInterface`'s `EditorContainer` is `position: absolute; top: 0`), so
+ * the app-shell header must not stay mounted underneath it — otherwise its
+ * nav links remain in the DOM (focusable, tab-reachable) while being visually
+ * painted over, hit-testing to the editor's own controls instead (DCMS-431).
+ */
+function isEditorRouteKey(key: string | undefined): boolean {
+  return key === 'entryNew' || key === 'entry';
+}
+
+/**
  * Main App component - converted to functional component with Redux hooks
  * Uses useCallback for handlers and useMemo for computed values
  * NO useEffect - all side effects are handled by Redux actions
@@ -440,6 +460,7 @@ function AppContent({
   const t = useTranslate();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const { routing, path } = useDecap();
 
   // Select state from Redux store
   const auth = useAppSelector(state => state.auth);
@@ -447,6 +468,13 @@ function AppContent({
   const collections = useAppSelector(state => state.collections);
   const isFetching = useAppSelector(state => state.globalUI.isFetching);
   const mediaLibrary = useAppSelector(state => state.mediaLibrary);
+
+  // Drives whether the app-shell header mounts at all (DCMS-431) — see
+  // `isEditorRouteKey`.
+  const isEditorRoute = useMemo(
+    () => isEditorRouteKey(matchRoute(routing, path)?.key),
+    [routing, path],
+  );
 
   // Derived state
   const user = auth.user;
@@ -616,9 +644,16 @@ function AppContent({
   return (
     <CmsSlotsProvider slots={slots}>
       {renderNotifications ? renderNotifications() : <Notifications />}
-      {renderHeader ? renderHeader(headerProps) : <Header {...headerProps} />}
+      {/* The entry editor renders its own full-bleed header/toolbar over the
+          same viewport region as the app-shell header (`position: absolute;
+          top: 0`) — mounting both leaves invisible-yet-focusable nav controls
+          in the DOM that hit-test to the editor instead (DCMS-431). Unmount
+          the app header entirely while an editor route is active rather than
+          layering a z-index/pointer-events patch on top of it. */}
+      {!isEditorRoute &&
+        (renderHeader ? renderHeader(headerProps) : <Header {...headerProps} />)}
       {renderLayout ? (
-        renderLayout({ main: routedContent, headerProps })
+        renderLayout({ main: routedContent, headerProps, isEditorRoute })
       ) : (
         <AppMainContainer>{routedContent}</AppMainContainer>
       )}
