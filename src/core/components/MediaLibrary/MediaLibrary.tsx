@@ -16,6 +16,7 @@ import {
 import { selectMediaFiles } from '../../reducers/mediaLibrary';
 import MediaLibraryModal from './MediaLibraryModal';
 import { useAppDispatch, useAppSelector } from '../../hooks/useRedux';
+import { defaultRouter } from '../../routing/router';
 
 import type { TranslateFunction } from '../../../ui-default/index';
 
@@ -100,7 +101,7 @@ function filterImages(files: MediaFile[]) {
   });
 }
 
-function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
+export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
   const props = { ...rest, files };
   const {
     isVisible,
@@ -141,6 +142,21 @@ function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
     loadMedia();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
   }, []);
+
+  /**
+   * The modal is rendered via a `ReactModalPortal` that sits above the router's
+   * own views, so navigating away (browser Back, hash change, or a programmatic
+   * `defaultRouter.navigate`) doesn't unmount it — `isVisible` just stays `true`
+   * and the portal keeps intercepting pointer events on the destination page.
+   * Mirrors the router-subscribe teardown pattern in `useEditor.ts`.
+   */
+  React.useEffect(() => {
+    return defaultRouter.subscribe(() => {
+      if (isVisible) {
+        closeMediaLibrary();
+      }
+    });
+  }, [isVisible, closeMediaLibrary]);
 
   /**
    * Replicates the prior UNSAFE_componentWillReceiveProps + componentDidUpdate
