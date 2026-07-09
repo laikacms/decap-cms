@@ -483,6 +483,9 @@ export type CmsMediaLibraryOptions = Record<string, unknown>;
 export interface CmsMediaLibrary {
   name: string;
   config?: CmsMediaLibraryOptions;
+  output_filename_only?: boolean;
+  use_transformations?: boolean;
+  use_secure_url?: boolean;
 }
 
 export type SlugConfig = StaticallyTypedRecord<{
@@ -617,6 +620,7 @@ export type EntryField = StaticallyTypedRecord<{
   meta?: boolean;
   i18n: boolean | 'translate' | 'duplicate' | 'none';
   required?: boolean;
+  media_library?: StaticallyTypedRecord<CmsMediaLibrary & { allow_multiple?: boolean }>;
 }>;
 
 export type EntryFields = List<EntryField>;
@@ -703,6 +707,13 @@ export interface MediaLibraryInstance {
     config: StaticallyTypedRecord<{}>;
     allowMultiple?: boolean;
     imagesOnly?: boolean;
+    /**
+     * Field-level `media_library` options other than `name`/`config`/`allow_multiple`
+     * (e.g. Cloudinary's `output_filename_only`/`use_transformations`/`use_secure_url`).
+     * Integrations may use this to override their globally configured options
+     * on a per-field basis.
+     */
+    options?: CmsMediaLibraryOptions;
   }) => void;
   hide: () => void;
   onClearControl: (args: { id: string }) => void;
