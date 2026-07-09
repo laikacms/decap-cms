@@ -141,7 +141,7 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
       const { field, value, metadata, entries, i18n } = action.payload as {
         field: EntryField;
         value: unknown;
-        metadata: Record<string, unknown>;
+        metadata: (Record<string, unknown> & { fromDefault?: boolean }) | undefined;
         entries: EntryMap[];
         i18n?: {
           currentLocale: string;
@@ -153,6 +153,15 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
       const meta = field.meta;
       const dataPath = (i18n && getDataPath(i18n.currentLocale, i18n.defaultLocale)) || ['data'];
 
+      // `fromDefault` marks a value substitution the framework performed on
+      // mount (e.g. datetime's `{{now}}` default) rather than a user edit.
+      // On a brand-new entry it must not flip `hasChanged`, otherwise a
+      // freshly opened form shows "unsaved changes" before anyone types
+      // anything (DCMS-416). The flag itself is not real field metadata, so
+      // it's stripped before merging into fieldsMetaData.
+      const { fromDefault, ...restMetadata } = metadata ?? {};
+      const isNewRecord = (state.entry as any).newRecord;
+
       if (meta) {
         state.entry = setNestedValue(state.entry, ['meta', name as string], value) as EntryMap;
       } else {
@@ -161,15 +170,17 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
           duplicateI18nFields(state as any, field, i18n.locales, i18n.defaultLocale);
         }
       }
-      state.fieldsMetaData = deepMerge(state.fieldsMetaData ?? {}, metadata);
+      state.fieldsMetaData = deepMerge(state.fieldsMetaData ?? {}, restMetadata);
 
-      const newData = getNestedValue(state.entry, dataPath);
-      const newMeta = (state.entry as any).meta;
-      state.hasChanged =
-        !entries.some((e: any) => {
-          const eData = getNestedValue(e, dataPath);
-          return JSON.stringify(newData) === JSON.stringify(eData);
-        }) || !entries.some((e: any) => JSON.stringify(newMeta) === JSON.stringify(e.meta));
+      if (!(fromDefault && isNewRecord)) {
+        const newData = getNestedValue(state.entry, dataPath);
+        const newMeta = (state.entry as any).meta;
+        state.hasChanged =
+          !entries.some((e: any) => {
+            const eData = getNestedValue(e, dataPath);
+            return JSON.stringify(newData) === JSON.stringify(eData);
+          }) || !entries.some((e: any) => JSON.stringify(newMeta) === JSON.stringify(e.meta));
+      }
       break;
     }
 

@@ -173,6 +173,69 @@ describe('entryDraft reducer', () => {
     });
   });
 
+  describe('DRAFT_CHANGE_FIELD', () => {
+    const field = { name: 'date' };
+
+    it('does not mark a fresh new-record draft as changed when the value comes from a framework default (DCMS-416)', () => {
+      const newRecordState = {
+        ...initialState,
+        entry: { ...entry, data: {}, newRecord: true },
+      };
+
+      const newState = reducer(
+        newRecordState,
+        actions.changeDraftField({
+          field,
+          value: '2026-07-09T00:00:00.000Z',
+          metadata: { fromDefault: true },
+          entries: [],
+        }),
+      );
+
+      expect(newState.hasChanged).toBe(false);
+      expect((newState.entry as any).data.date).toBe('2026-07-09T00:00:00.000Z');
+      expect(newState.fieldsMetaData).toEqual({});
+    });
+
+    it('marks a fresh new-record draft as changed for a real user edit', () => {
+      const newRecordState = {
+        ...initialState,
+        entry: { ...entry, data: {}, newRecord: true },
+      };
+
+      const newState = reducer(
+        newRecordState,
+        actions.changeDraftField({
+          field,
+          value: 'typed by user',
+          metadata: {},
+          entries: [],
+        }),
+      );
+
+      expect(newState.hasChanged).toBe(true);
+    });
+
+    it('still computes hasChanged normally for fromDefault changes on an existing record', () => {
+      const existingRecordState = {
+        ...initialState,
+        entry: { ...entry, data: { date: 'old-value' }, newRecord: false },
+      };
+
+      const newState = reducer(
+        existingRecordState,
+        actions.changeDraftField({
+          field,
+          value: 'new-value',
+          metadata: { fromDefault: true },
+          entries: [{ ...entry, data: { date: 'old-value' } } as any],
+        }),
+      );
+
+      expect(newState.hasChanged).toBe(true);
+    });
+  });
+
   describe('DRAFT_LOCAL_BACKUP_RETRIEVED', () => {
     it('should set local backup', () => {
       const mediaFiles = [{ id: '1' }];
