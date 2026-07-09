@@ -1,7 +1,9 @@
 import { validateMinMax } from '../validations';
 
 describe('validateMinMax', () => {
-  const t = (key, options) => JSON.stringify({ key, options });
+  function t(key, options) {
+    return JSON.stringify({ key, options });
+  }
   const fieldLabel = 'Categories';
 
   it('should return undefined when value is within min and max bounds', () => {
