@@ -315,6 +315,13 @@ declare module 'decap-cms-core' {
     description?: string;
     preview_path?: string;
     preview_path_date_field?: string;
+    /**
+     * When `true`, preserves `/` characters in sanitized `preview_path`
+     * template segments (e.g. `{{dirname}}`) instead of stripping/replacing
+     * them. Defaults to `false`, unless the collection has `nested` set, in
+     * which case slashes are preserved by default. Overrides the
+     * collection-level setting when defined on a file.
+     */
     preview_path_preserve_slashes?: boolean;
     i18n?: boolean | CmsI18nConfig;
     media_folder?: string;
@@ -351,6 +358,13 @@ declare module 'decap-cms-core' {
     slug?: string;
     preview_path?: string;
     preview_path_date_field?: string;
+    /**
+     * When `true`, preserves `/` characters in sanitized `preview_path`
+     * template segments (e.g. `{{dirname}}`) instead of stripping/replacing
+     * them. Defaults to `false`, unless `nested` is set on the collection, in
+     * which case slashes are preserved by default. Can be overridden per
+     * file via `CmsCollectionFile.preview_path_preserve_slashes`.
+     */
     preview_path_preserve_slashes?: boolean;
     create?: boolean;
     delete?: boolean;
