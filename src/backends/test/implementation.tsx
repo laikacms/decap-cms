@@ -231,9 +231,13 @@ export default class TestBackend implements CmsImplementation {
   }
 
   getEntry(path: string) {
+    const file = getFile(path, window.repoFiles);
+    if (isEmpty(file)) {
+      return Promise.reject(new Error(`Entry not found: ${path}`));
+    }
     return Promise.resolve({
       file: { path, id: null },
-      data: getFile(path, window.repoFiles).content as string,
+      data: file.content as string,
     });
   }
 
