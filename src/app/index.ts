@@ -1,12 +1,47 @@
 import React, { createElement, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
-import { DecapCmsCore as CMS, DecapCmsProvider, App } from '../core/index';
+import { DecapCmsCore as CMS, DecapCmsProvider } from '../core/index';
+import { App, AppContent } from './components/index';
 import './extensions.js';
 
 import type { CmsConfig } from '../core/index';
 
 const ROOT_ID = 'nc-root';
+
+/**
+ * The default, self-contained CMS UI, and its building blocks — the routed
+ * `App` layout, the render-prop layout surface (`AppContent`), and the
+ * `CmsSlots` extension points deep components read via `useCmsSlots`.
+ * `core` is the headless engine these compose (DCMS-251). Re-exported from
+ * the side-effect-free `./components` barrel — importing them from here also
+ * pulls in this file's auto-mount-on-load behavior, so a consumer building
+ * its own composition (like `laika-app`) should import `./components`
+ * (or `@laikacms/decap/app/components`) directly instead.
+ */
+export { App, AppContent };
+export type {
+  AppContentProps,
+  AppHeaderRenderProps,
+  AppLayoutRenderProps,
+  AppAuthRenderProps,
+  ExtraRoute,
+} from './components/index';
+export { Header, NotFoundPage, CmsSlotsProvider, useCmsSlots } from './components/index';
+export type {
+  CmsSlots,
+  CollectionTopRenderProps,
+  CollectionSidebarRenderProps,
+  CollectionControlsRenderProps,
+  EntryCardRenderProps,
+  EntryListEmptyRenderProps,
+  LoaderRenderProps,
+  WorkflowCardRenderProps,
+  EditorToolbarRenderProps,
+  EditorViewControlsRenderProps,
+  MediaLibraryCardRenderProps,
+  MediaLibraryTopRenderProps,
+} from './components/index';
 
 /**
  * Get (or create) the DOM element the app mounts into.

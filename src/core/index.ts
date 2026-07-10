@@ -17,33 +17,11 @@ export { themeToCssVars } from '../ui/default/index';
 export type { DecapTheme } from '../ui/default/index';
 
 /**
- * Layout components. `App` is the default, self-contained CMS UI; the rest are
- * the building blocks for assembling a custom layout.
+ * Building blocks for assembling a custom layout. The routed `App` /
+ * `AppContent` layer — plus the `CmsSlots` render-slot surface it wires up —
+ * lives in `@laikacms/decap/app`, not here; `core` is the headless engine
+ * they're built on (DCMS-251).
  */
-export { default as App, AppContent } from './components/App/App';
-export type {
-  AppContentProps,
-  AppHeaderRenderProps,
-  AppLayoutRenderProps,
-  AppAuthRenderProps,
-  ExtraRoute,
-} from './components/App/App';
-export { CmsSlotsProvider, useCmsSlots } from './lib/slots';
-export type {
-  CmsSlots,
-  CollectionTopRenderProps,
-  CollectionSidebarRenderProps,
-  CollectionControlsRenderProps,
-  EntryCardRenderProps,
-  EntryListEmptyRenderProps,
-  LoaderRenderProps,
-  WorkflowCardRenderProps,
-  EditorToolbarRenderProps,
-  EditorViewControlsRenderProps,
-  MediaLibraryCardRenderProps,
-  MediaLibraryTopRenderProps,
-} from './lib/slots';
-export { default as Header } from './components/App/Header';
 export { default as Collection } from './components/Collection/Collection';
 export { default as Editor } from './components/Editor/Editor';
 export { default as Workflow } from './components/Workflow/Workflow';

@@ -20,20 +20,20 @@ vi.mock('react-polyglot', () => ({
 vi.mock('../Header', () => ({
   default: () => <header data-testid="app-header">App Header</header>,
 }));
-vi.mock('../../Collection/Collection', () => ({
+vi.mock('../../../core/components/Collection/Collection', () => ({
   default: () => <div data-testid="collection-view" />,
 }));
-vi.mock('../../Workflow/Workflow', () => ({
+vi.mock('../../../core/components/Workflow/Workflow', () => ({
   default: () => <div data-testid="workflow-view" />,
 }));
-vi.mock('../../Editor/Editor', () => ({
+vi.mock('../../../core/components/Editor/Editor', () => ({
   default: () => <div data-testid="editor-view" />,
 }));
-vi.mock('../../MediaLibrary/MediaLibrary', () => ({
+vi.mock('../../../core/components/MediaLibrary/MediaLibrary', () => ({
   default: () => <div data-testid="media-library" />,
 }));
-vi.mock('../../UI', async () => {
-  const actual = await vi.importActual<UIModule>('../../UI');
+vi.mock('../../../core/components/UI', async () => {
+  const actual = await vi.importActual<UIModule>('../../../core/components/UI');
   return {
     ...actual,
     Notifications: () => null,
@@ -42,10 +42,10 @@ vi.mock('../../UI', async () => {
 });
 
 import { AppContent } from '../App';
-import { context } from '../../../contexts/decap';
-import { defaultRoutingTable } from '../../../routing/router';
+import { context } from '../../../core/contexts/decap';
+import { defaultRoutingTable } from '../../../core/routing/router';
 
-import type * as UIModule from '../../UI';
+import type * as UIModule from '../../../core/components/UI';
 import type { AppLayoutRenderProps } from '../App';
 
 const mockStore = configureStore([]);
