@@ -34,6 +34,7 @@ function Widget(opts = {}) {
     controlComponent: MarkdownControl,
     previewComponent: MarkdownPreview,
     schema,
+    allowMapValue: true,
     ...opts,
   };
 }

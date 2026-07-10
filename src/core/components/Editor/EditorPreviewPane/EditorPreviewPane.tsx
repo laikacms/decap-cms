@@ -74,7 +74,8 @@ function inferFieldsForCollection(collection: Collection): Record<string, Infera
   return inferredFields;
 }
 
-function getWidget(
+// Exported for unit testing the `valueIsInMap` heuristic (DCMS-455).
+export function getWidget(
   field: EntryField,
   value: unknown,
   metadata: unknown,
