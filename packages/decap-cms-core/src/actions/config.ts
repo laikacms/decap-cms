@@ -564,8 +564,11 @@ export function loadConfig(manualConfig: Partial<CmsConfig> = {}, onLoad: () => 
           ? {}
           : await getConfigYaml(configUrl, hasManualConfig);
 
-      // Merge manual config into the config.yml one
-      const mergedConfig = deepmerge(configYaml, manualConfig);
+      // Merge manual config into the config.yml one. Arrays are replaced, not
+      // concatenated, per the Manual Initialization docs on decapcms.org.
+      const mergedConfig = deepmerge(configYaml, manualConfig, {
+        arrayMerge: (_target, source) => source,
+      });
 
       validateConfig(mergedConfig);
 
