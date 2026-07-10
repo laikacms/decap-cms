@@ -38,6 +38,26 @@ export default tseslint.config(
       '**/storybook-static/**',
       '**/.exclude*/**',
     ],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'Literal[value=/\\u2014/]',
+          // eslint-disable-next-line no-restricted-syntax
+          message: 'No em dashes (—): use a hyphen, comma, or reword.',
+        },
+        {
+          selector: 'TemplateElement[value.raw=/\\u2014/]',
+          // eslint-disable-next-line no-restricted-syntax
+          message: 'No em dashes (—): use a hyphen, comma, or reword.',
+        },
+        {
+          selector: 'JSXText[value=/\\u2014/]',
+          // eslint-disable-next-line no-restricted-syntax
+          message: 'No em dashes (—): use a hyphen, comma, or reword.',
+        },
+      ],
+    }
   },
 
   // Base ESLint recommended rules
@@ -67,7 +87,7 @@ export default tseslint.config(
       globals: {
         ...globals.node,
         ...globals.browser,
-       
+
         DECAP_CMS_VERSION: 'readonly',
         DECAP_CMS_APP_VERSION: 'readonly',
         DECAP_CMS_CORE_VERSION: 'readonly',
