@@ -29,4 +29,19 @@ test.describe('Laika navigation', () => {
     await expect(page.getByRole('heading', { name: 'Backend' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'About' })).toBeVisible();
   });
+
+  test('deep-linking to a nonexistent entry surfaces exactly one failure toast', async ({
+    page,
+  }) => {
+    // DCMS-447: the notifications reducer used to append unconditionally, so
+    // a single failed `loadEntry` dispatch (occasionally invoked more than
+    // once for one navigation, e.g. under React StrictMode) could stack
+    // duplicate identical "Failed to load entry" toasts. The reducer now
+    // dedups by (type, message) before appending.
+    await gotoRoute(page, '/collections/posts/entries/does-not-exist-slug');
+
+    const notificationRegion = page.getByRole('region', { name: /notification/i });
+    await expect(notificationRegion).toContainText(/Failed to load entry/i);
+    await expect(notificationRegion.getByRole('alert')).toHaveCount(1);
+  });
 });

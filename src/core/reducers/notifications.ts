@@ -28,6 +28,17 @@ const defaultState: NotificationsState = {
   notifications: [],
 };
 
+function messagesMatch(a: string | NotificationMessage, b: string | NotificationMessage): boolean {
+  if (typeof a === 'string' || typeof b === 'string') {
+    return a === b;
+  }
+  return a.key === b.key;
+}
+
+function isDuplicate(notification: Notification, payload: NotificationPayload): boolean {
+  return notification.type === payload.type && messagesMatch(notification.message, payload.message);
+}
+
 const notifications = produce((state: NotificationsState, action: NotificationsAction) => {
   switch (action.type) {
     case NOTIFICATIONS_CLEAR:
@@ -36,15 +47,21 @@ const notifications = produce((state: NotificationsState, action: NotificationsA
     case NOTIFICATION_DISMISS:
       state.notifications = state.notifications.filter(n => n.id !== action.id);
       break;
-    case NOTIFICATION_SEND:
+    case NOTIFICATION_SEND: {
+      const payload = action.payload as NotificationPayload;
+      const alreadyShown = state.notifications.some(n => isDuplicate(n, payload));
+      if (alreadyShown) {
+        break;
+      }
       state.notifications = [
         ...state.notifications,
         {
           id: uuid(),
-          ...(action.payload as NotificationPayload),
+          ...payload,
         },
       ];
       break;
+    }
   }
 }, defaultState);
 
