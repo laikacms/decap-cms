@@ -108,6 +108,11 @@ const SplitPaneWrapper = styled.div`
   height: 100%;
 `;
 
+// `EditorInterface` only ever renders on the two editor routes (`entryNew` /
+// `entry` — see `isEditorRouteKey` in `App.tsx`), where the app-shell header
+// is unmounted (DCMS-431). It used to reserve `padding-top` here to leave
+// room for that header; since the header no longer coexists with this
+// container, there's nothing to offset (DCMS-440).
 const EditorContainer = styled.div`
   width: 100%;
   min-width: 800px;
@@ -116,7 +121,6 @@ const EditorContainer = styled.div`
   top: 0;
   left: 0;
   overflow: hidden;
-  padding-top: 66px;
   background-color: ${colors.background};
 `;
 
