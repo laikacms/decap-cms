@@ -6,7 +6,7 @@ import { colors, lengths } from '../ui/default/index';
 import { LaikaBadge } from './ui';
 import { laikaShouldForwardProp } from './ui/styled-utils';
 
-import type { MediaLibraryCardRenderProps } from '../core/index';
+import type { MediaLibraryCardRenderProps } from '../app/components/index';
 
 /**
  * Laika-styled media library card. Replaces core's MediaLibraryCard via

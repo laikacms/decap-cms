@@ -5,7 +5,7 @@ import styled from '@emotion/styled';
 import { colors } from '../ui/default/index';
 import { LaikaSpinner } from './ui';
 
-import type { LoaderRenderProps } from '../core/index';
+import type { LoaderRenderProps } from '../app/components/index';
 
 /**
  * Laika-styled loading indicator. Slotted into core via `renderLoader`.

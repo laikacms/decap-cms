@@ -6,7 +6,7 @@ import { Icon, colors, lengths } from '../ui/default/index';
 import { createNewEntry } from '../core/actions/collections';
 import { LaikaButton } from './ui';
 
-import type { EntryListEmptyRenderProps } from '../core/index';
+import type { EntryListEmptyRenderProps } from '../app/components/index';
 
 /**
  * Laika-styled zero state for empty collection listings. Slotted into core

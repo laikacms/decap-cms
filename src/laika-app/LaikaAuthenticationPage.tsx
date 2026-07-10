@@ -4,7 +4,7 @@ import styled from '@emotion/styled';
 
 import { colors, lengths } from '../ui/default/index';
 
-import type { AppAuthRenderProps } from '../core/index';
+import type { AppAuthRenderProps } from '../app/components/index';
 
 /**
  * Laika-flavored authentication page. Receives the backend-supplied

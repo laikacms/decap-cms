@@ -6,7 +6,7 @@ import { useTranslate } from 'react-polyglot';
 import { Icon, colors } from '../ui/default/index';
 import { LaikaButton, LaikaIconButton, LaikaSearchInput, LaikaBadge } from './ui';
 
-import type { MediaLibraryTopRenderProps } from '../core/index';
+import type { MediaLibraryTopRenderProps } from '../app/components/index';
 
 /**
  * Laika-styled MediaLibrary header. Replaces core's MediaLibraryTop via

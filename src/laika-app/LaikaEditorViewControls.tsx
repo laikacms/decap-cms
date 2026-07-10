@@ -7,7 +7,7 @@ import { Icon, colors, zIndex } from '../ui/default/index';
 import { LaikaIconButton, LaikaTooltip } from './ui';
 
 import type { TranslateFunction } from '../ui/default/index';
-import type { EditorViewControlsRenderProps } from '../core/index';
+import type { EditorViewControlsRenderProps } from '../app/components/index';
 
 /**
  * Laika-styled floating view controls inside the editor — pinned to the

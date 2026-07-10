@@ -8,7 +8,7 @@ import { colors } from '../ui/default/index';
 import { LaikaButton } from './ui';
 
 import type { TranslateFunction } from '../ui/default/index';
-import type { CollectionTopRenderProps } from '../core/index';
+import type { CollectionTopRenderProps } from '../app/components/index';
 
 /**
  * Laika-styled collection header. Replaces core's `CollectionTop` via the
