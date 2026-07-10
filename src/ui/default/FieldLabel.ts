@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
 
 import { colors, colorsRaw, transitions, text } from './styles';
-import { laikaShouldForwardProp } from '../laika-app/ui/styled-utils';
+import { laikaShouldForwardProp } from '../../laika-app/ui/styled-utils';
 
 interface StateColors {
   background: string;
