@@ -1,4 +1,4 @@
-import { reactSelectStyles, borders } from '../ui-default/index';
+import { reactSelectStyles, borders } from '../../ui/default/index';
 
 import type { CSSObject } from '@emotion/react';
 

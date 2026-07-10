@@ -1,7 +1,7 @@
 import React from 'react';
 
-import type { TranslateFunction } from '../ui-default/index';
-import type { CmsFieldBase, CmsFieldNumber } from '../lib-util/index';
+import type { TranslateFunction } from '../../ui/default/index';
+import type { CmsFieldBase, CmsFieldNumber } from '../../lib/util/index';
 
 const ValidationErrorTypes = {
   PRESENCE: 'PRESENCE',

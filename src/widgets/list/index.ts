@@ -1,4 +1,4 @@
-import DecapCmsWidgetObject from '../widget-object/index';
+import DecapCmsWidgetObject from '../object/index';
 import controlComponent from './ListControl';
 import schema from './schema';
 

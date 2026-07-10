@@ -1,4 +1,4 @@
-vi.mock('../../widget-object/index', async () => {
+vi.mock('../../object/index', async () => {
   const React = await import('react');
   class MockObjectControl extends React.Component<any> {
     validate() {}
@@ -13,8 +13,8 @@ vi.mock('../../widget-object/index', async () => {
     controlComponent: MockObjectControl,
   };
 });
-vi.mock('../../ui-default/index', async () => {
-  const actual = await vi.importActual('../../ui-default/index');
+vi.mock('../../../ui/default/index', async () => {
+  const actual = await vi.importActual('../../../ui/default/index');
 
   function ListItemTopBar(props) {
     return (

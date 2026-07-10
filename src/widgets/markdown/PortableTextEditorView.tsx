@@ -13,7 +13,7 @@ import { type ReactNode, useEffect, useRef } from 'react';
 
 import { Toolbar } from './Toolbar';
 
-import type { PortableTextDocument } from '../lib-richtext/index';
+import type { PortableTextDocument } from '../../lib/richtext/index';
 
 
 /**

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { WidgetPreviewContainer } from '../ui-default/index';
+import { WidgetPreviewContainer } from '../../ui/default/index';
 
 interface MapPreviewProps {
   value?: string;

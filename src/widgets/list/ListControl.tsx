@@ -25,9 +25,9 @@ import {
   colors,
   lengths,
   FieldLabel,
-} from '../ui-default/index';
-import { stringTemplate, validations } from '../lib-widgets/index';
-import DecapCmsWidgetObject from '../widget-object/index';
+} from '../../ui/default/index';
+import { stringTemplate, validations } from '../../lib/widgets/index';
+import DecapCmsWidgetObject from '../object/index';
 import {
   TYPES_KEY,
   getTypedFieldForValue,
@@ -42,7 +42,7 @@ import type {
   CmsFieldList,
   CmsFieldObject,
   TranslateFunction,
-} from '../lib-util/index';
+} from '../../lib/util/index';
 import type { DragEndEvent } from '@dnd-kit/core';
 import type { ComponentType } from 'react';
 

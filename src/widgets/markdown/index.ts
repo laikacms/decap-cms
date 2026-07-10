@@ -3,7 +3,7 @@ import {
   markdownMapper,
   registerMapper,
   RichtextValue,
-} from '../lib-richtext/index';
+} from '../../lib/richtext/index';
 import MarkdownControl from './MarkdownControl';
 import MarkdownPreview from './MarkdownPreview';
 import { schema } from './schema';

@@ -18,7 +18,7 @@ import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 
-import { basename } from '../lib-util/index';
+import { basename } from '../../lib/util/index';
 import {
   lengths,
   components,
@@ -27,10 +27,10 @@ import {
   effects,
   shadows,
   IconButton,
-} from '../ui-default/index';
+} from '../../ui/default/index';
 
 import type { DragEndEvent } from '@dnd-kit/core';
-import type { CmsField, CmsFieldBase, CmsFieldFile } from '../lib-util/index';
+import type { CmsField, CmsFieldBase, CmsFieldFile } from '../../lib/util/index';
 
 const MAX_DISPLAY_LENGTH = 50;
 

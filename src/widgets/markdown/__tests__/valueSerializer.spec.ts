@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { RichtextValue } from '../../lib-richtext/index';
+import { RichtextValue } from '../../../lib/richtext/index';
 // Importing the widget registers the markdown mapper as a load-time side effect.
 import DecapCmsWidgetMarkdown from '../index';
 

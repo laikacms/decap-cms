@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { bidiControls } from '../lib-widgets/index';
-import { WidgetPreviewContainer } from '../ui-default/index';
+import { bidiControls } from '../../lib/widgets/index';
+import { WidgetPreviewContainer } from '../../ui/default/index';
 
 interface TextPreviewProps {
   value?: React.ReactNode;

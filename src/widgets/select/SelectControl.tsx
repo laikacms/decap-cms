@@ -3,10 +3,10 @@ import find from 'lodash/find';
 import Select from 'react-select';
 import isObject from 'lodash/isObject';
 
-import { reactSelectStyles } from '../ui-default/index';
-import { validations } from '../lib-widgets/index';
+import { reactSelectStyles } from '../../ui/default/index';
+import { validations } from '../../lib/widgets/index';
 
-import type { CmsFieldSelect, CmsFieldBase } from '../lib-util/index';
+import type { CmsFieldSelect, CmsFieldBase } from '../../lib/util/index';
 
 interface SelectOption {
   label: string;

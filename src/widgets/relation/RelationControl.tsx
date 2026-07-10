@@ -21,11 +21,11 @@ import { restrictToParentElement } from '@dnd-kit/modifiers';
 import { CSS } from '@dnd-kit/utilities';
 import { v4 as uuid } from 'uuid';
 
-import { stringTemplate, validations } from '../lib-widgets/index';
-import { reactSelectStyles } from '../ui-default/index';
+import { stringTemplate, validations } from '../../lib/widgets/index';
+import { reactSelectStyles } from '../../ui/default/index';
 import relationCache from './RelationCache';
 
-import type { CmsFieldBase, CmsFieldRelation } from '../lib-util/index';
+import type { CmsFieldBase, CmsFieldRelation } from '../../lib/util/index';
 import type { CSSProperties, ReactElement } from 'react';
 import type { MultiValueProps, MultiValueGenericProps, GroupBase } from 'react-select';
 
