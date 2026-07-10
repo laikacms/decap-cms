@@ -5,8 +5,6 @@ import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
 import { Icon, Dropdown, DropdownItem, DropdownButton, colors } from 'decap-cms-ui-default';
 
-import { stripProtocol } from '../../lib/urlHelper';
-
 const styles = {
   avatarImage: css`
     width: 32px;
@@ -73,7 +71,7 @@ function SettingsDropdown({ displayUrl, isTestRepo, imageUrl, onLogoutClick, t }
       )}
       {displayUrl ? (
         <AppHeaderSiteLink href={displayUrl} target="_blank">
-          {stripProtocol(displayUrl)}
+          {displayUrl}
         </AppHeaderSiteLink>
       ) : null}
       <Dropdown
