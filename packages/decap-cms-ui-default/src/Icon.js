@@ -36,7 +36,7 @@ const IconWrapper = styled.span`
  * Returned value is a string of shape `${degrees}deg`, for use in a CSS
  * transform.
  */
-function getRotation(iconDirection, newDirection) {
+export function getRotation(iconDirection, newDirection) {
   if (!iconDirection || !newDirection) {
     return '0deg';
   }
