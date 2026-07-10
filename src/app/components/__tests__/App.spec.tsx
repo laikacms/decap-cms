@@ -57,6 +57,7 @@ function baseState(overrides: Record<string, unknown> = {}) {
     collections: {
       posts: { name: 'posts', label: 'Posts', hide: false, create: true },
     },
+    entries: { entities: {} },
     globalUI: { isFetching: false },
     mediaLibrary: { externalLibrary: false, showMediaButton: true },
     ...overrides,
@@ -138,6 +139,46 @@ describe('AppContent — DCMS-431 editor-route header suppression', () => {
     renderAppContentAt('/collections/posts/new', { renderLayout });
 
     expect(seen).toEqual([false, true]);
+  });
+});
+
+describe('AppContent — DCMS-445 failed entry-load restores app chrome', () => {
+  it('mounts the app-shell header for an existing-entry route whose entry failed to load', () => {
+    const state = baseState({
+      entries: { entities: { 'posts.does-not-exist': { error: 'Entry not found: nope.md' } } },
+    });
+    const { getByTestId, queryByTestId } = renderAppContentAt(
+      '/collections/posts/entries/does-not-exist',
+      {},
+      state,
+    );
+
+    expect(getByTestId('app-header')).toBeInTheDocument();
+    expect(getByTestId('editor-view')).toBeInTheDocument();
+  });
+
+  it('reports isEditorRoute: false to a custom renderLayout when the entry failed to load', () => {
+    const seen: boolean[] = [];
+    const renderLayout = (renderProps: AppLayoutRenderProps) => {
+      seen.push(renderProps.isEditorRoute);
+      return <div data-testid="layout">{renderProps.main}</div>;
+    };
+    const state = baseState({
+      entries: { entities: { 'posts.does-not-exist': { error: 'Entry not found: nope.md' } } },
+    });
+
+    renderAppContentAt('/collections/posts/entries/does-not-exist', { renderLayout }, state);
+
+    expect(seen).toEqual([false]);
+  });
+
+  it('still suppresses the app-shell header for an entry route still loading (no error yet)', () => {
+    const { getByTestId, queryByTestId } = renderAppContentAt(
+      '/collections/posts/entries/still-loading',
+    );
+
+    expect(getByTestId('editor-view')).toBeInTheDocument();
+    expect(queryByTestId('app-header')).not.toBeInTheDocument();
   });
 });
 
