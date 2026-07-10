@@ -2,7 +2,7 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
 
-import { Loader, lengths } from '../../../../ui/default/index';
+import { Loader } from '../../../../ui/default/index';
 import EntryListing from './EntryListing';
 import { useCmsSlots } from '../../../lib/slots';
 
@@ -11,7 +11,6 @@ import type { Cursor } from '../../../../lib/util/index';
 import type { CmsCollectionState, CmsEntry } from '../../../../lib/util/index';
 
 const PaginationMessage = styled.div`
-  width: ${lengths.topCardWidth};
   padding: 16px;
   text-align: center;
 `;
