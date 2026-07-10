@@ -1,10 +1,10 @@
-import React from 'react';
 import { describe, expect, it } from 'vitest';
 
 import { registerWidget } from '../../../../lib/registry';
 import { RichtextValue, createRichtextValue, registerMapper, markdownMapper } from '../../../../../lib/richtext/index';
 import { getWidget } from '../EditorPreviewPane';
 
+import type React from 'react';
 import type { CmsEntryField } from '../../../../../lib/util/index';
 
 registerMapper(markdownMapper);
