@@ -144,6 +144,9 @@ export default class Widget extends Component {
     let value = this.innerWrappedControl?.getValidateValue?.() || this.props.value;
     // Convert list input widget value to string for validation test
     List.isList(value) && (value = value.join(','));
+    // Convert object (Map) widget value to a JSON string for validation test,
+    // instead of Immutable's debug-string toString() representation
+    Map.isMap(value) && (value = JSON.stringify(value.toJS()));
     return value;
   };
 
