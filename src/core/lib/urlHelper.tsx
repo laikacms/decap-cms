@@ -7,7 +7,7 @@ import urlJoin from './urlJoin';
 import { remove } from './diacritics.js';
 import sanitizeFilename from './sanitizeFilename';
 
-import type { CmsSlug } from '../../lib-util/index';
+import type { CmsSlug } from '../../lib/util/index';
 
 function getUrl(urlString: string, direct?: boolean) {
   return `${direct ? '/#' : ''}${urlString}`;

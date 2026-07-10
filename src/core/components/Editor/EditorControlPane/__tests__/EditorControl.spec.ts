@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { colors } from '../../../../../ui-default/index';
+import { colors } from '../../../../../ui/default/index';
 import { styleStrings } from '../EditorControl';
 
 /**

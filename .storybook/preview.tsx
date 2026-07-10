@@ -2,7 +2,7 @@ import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { Global, css } from '@emotion/react';
 
-import { GlobalStyles, themeToCssVars } from '../src/ui-default/index';
+import { GlobalStyles, themeToCssVars } from '../src/ui/default/index';
 import { laikaDarkTheme, laikaLightTheme } from '../src/laika-app/laikaThemes';
 
 import type { Preview } from '@storybook/react';

@@ -4,13 +4,13 @@ import { css } from '@emotion/react';
 import { translate } from 'react-polyglot';
 
 import { NavLink } from '../../routing/Link';
-import { Icon, components, colors } from '../../../ui-default/index';
+import { Icon, components, colors } from '../../../ui/default/index';
 import { searchCollections } from '../../actions/collections';
 import CollectionSearch from './CollectionSearch';
 import NestedCollection from './NestedCollection';
 
-import type { CmsCollectionState, CmsCollections } from '../../../lib-util/index';
-import type { TranslateFunction } from '../../../ui-default/index';
+import type { CmsCollectionState, CmsCollections } from '../../../lib/util/index';
+import type { TranslateFunction } from '../../../ui/default/index';
 
 const styles = {
   sidebarNavLinkActive: css`

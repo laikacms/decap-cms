@@ -1,7 +1,7 @@
 import { produce } from 'immer';
 import { v4 as uuid } from 'uuid';
 
-import { dirname } from '../../lib-util/index';
+import { dirname } from '../../lib/util/index';
 import {
   MEDIA_LIBRARY_OPEN,
   MEDIA_LIBRARY_CLOSE,
@@ -33,7 +33,7 @@ import type {
   CmsConfig,
   CmsCollections,
   CmsEntry,
-} from '../../lib-util/index';
+} from '../../lib/util/index';
 
 type DisplayURLState = {
   isFetching: boolean;

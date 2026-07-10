@@ -8,7 +8,7 @@ import {
   LOGOUT,
 } from '../actions/auth';
 
-import type { CmsUser as User } from '../../lib-util/index';
+import type { CmsUser as User } from '../../lib/util/index';
 import type { AuthAction } from '../actions/auth';
 
 export type Auth = {

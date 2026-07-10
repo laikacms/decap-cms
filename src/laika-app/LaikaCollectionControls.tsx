@@ -3,13 +3,13 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
 
-import { Icon, colors } from '../ui-default/index';
+import { Icon, colors } from '../ui/default/index';
 import SortControl from '../core/components/Collection/SortControl';
 import FilterControl from '../core/components/Collection/FilterControl';
 import GroupControl from '../core/components/Collection/GroupControl';
 import { LaikaIconButton } from './ui';
 
-import type { TranslateFunction } from '../ui-default/index';
+import type { TranslateFunction } from '../ui/default/index';
 import type { CollectionControlsRenderProps } from '../core/index';
 
 /**

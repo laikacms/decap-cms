@@ -5,10 +5,10 @@ import { describe, expect, it, vi } from 'vitest';
 import { RouterProvider } from '../../../routing/context';
 import { Sidebar } from '../Sidebar';
 
-import type * as DecapCmsUiDefault from '../../../../ui-default/index';
+import type * as DecapCmsUiDefault from '../../../../ui/default/index';
 
-vi.mock('../../../../ui-default/index', async () => {
-  const actual = await vi.importActual<typeof DecapCmsUiDefault>('../../../../ui-default/index');
+vi.mock('../../../../ui/default/index', async () => {
+  const actual = await vi.importActual<typeof DecapCmsUiDefault>('../../../../ui/default/index');
   return {
     ...actual,
     Icon: 'mocked-icon',

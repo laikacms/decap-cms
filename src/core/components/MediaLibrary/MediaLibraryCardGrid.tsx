@@ -4,7 +4,7 @@ import { Waypoint } from 'react-waypoint';
 import { Grid } from 'react-window';
 import { AutoSizer } from 'react-virtualized-auto-sizer';
 
-import { colors } from '../../../ui-default/index';
+import { colors } from '../../../ui/default/index';
 import MediaLibraryCard from './MediaLibraryCard';
 import { useCmsSlots } from '../../lib/slots';
 

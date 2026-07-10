@@ -6,7 +6,7 @@ import { selectAllowDeletion } from '../../reducers/collections';
 import { loadUnpublishedEntry, persistUnpublishedEntry } from '../../actions/editorialWorkflow';
 import { useAppDispatch, useAppSelector } from '../../hooks/useRedux';
 
-import type { CmsCollectionState } from '../../../lib-util/index';
+import type { CmsCollectionState } from '../../../lib/util/index';
 
 type Collection = CmsCollectionState;
 

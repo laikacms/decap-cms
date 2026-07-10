@@ -14,12 +14,12 @@ import {
   components,
   buttons,
   zIndex,
-} from '../../../ui-default/index';
+} from '../../../ui/default/index';
 import { status } from '../../constants/publishModes';
 import { SettingsDropdown } from '../UI';
 
-import type { TranslateFunction } from '../../../ui-default/index';
-import type { CmsCollectionState } from '../../../lib-util/index';
+import type { TranslateFunction } from '../../../ui/default/index';
+import type { CmsCollectionState } from '../../../lib/util/index';
 
 type Collection = CmsCollectionState;
 

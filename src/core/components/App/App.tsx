@@ -3,7 +3,7 @@ import { useTranslate } from 'react-polyglot';
 import styled from '@emotion/styled';
 import TopBarProgress from 'react-topbar-progress-indicator';
 
-import { Loader, colorsDefaults } from '../../../ui-default/index';
+import { Loader, colorsDefaults } from '../../../ui/default/index';
 import { useAppSelector, useAppDispatch } from '../../hooks/useRedux';
 import { loginUser, logoutUser } from '../../actions/auth';
 import { currentBackend } from '../../backend';
@@ -22,9 +22,9 @@ import { useDecap } from '../../hooks/useDecap';
 import { useNavigate } from '../../hooks/useNavigate';
 import { matchRoute } from '../../routing/router';
 
-import type { CmsConfig, CmsCredentials } from '../../../lib-util/index';
-import type { CmsCollectionState, CmsCollections } from '../../../lib-util/index';
-import type { TranslateFunction } from '../../../ui-default/index';
+import type { CmsConfig, CmsCredentials } from '../../../lib/util/index';
+import type { CmsCollectionState, CmsCollections } from '../../../lib/util/index';
+import type { TranslateFunction } from '../../../ui/default/index';
 import type { ErrorBoundaryRenderProps } from '../UI';
 import type { CmsSlots } from '../../lib/slots';
 

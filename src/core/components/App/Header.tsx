@@ -16,13 +16,13 @@ import {
   shadows,
   buttons,
   zIndex,
-} from '../../../ui-default/index';
+} from '../../../ui/default/index';
 import { SettingsDropdown } from '../UI';
 import { checkBackendStatus } from '../../actions/status';
 import { useAppDispatch } from '../../hooks/useRedux';
 
-import type { TranslateFunction } from '../../../ui-default/index';
-import type { CmsCollectionState, CmsCollections } from '../../../lib-util/index';
+import type { TranslateFunction } from '../../../ui/default/index';
+import type { CmsCollectionState, CmsCollections } from '../../../lib/util/index';
 
 type Collection = CmsCollectionState;
 type Collections = CmsCollections;

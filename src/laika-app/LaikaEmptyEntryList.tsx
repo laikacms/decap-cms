@@ -2,7 +2,7 @@
 import React from 'react';
 import styled from '@emotion/styled';
 
-import { Icon, colors, lengths } from '../ui-default/index';
+import { Icon, colors, lengths } from '../ui/default/index';
 import { createNewEntry } from '../core/actions/collections';
 import { LaikaButton } from './ui';
 

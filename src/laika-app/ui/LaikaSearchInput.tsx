@@ -2,7 +2,7 @@
 import React from 'react';
 import styled from '@emotion/styled';
 
-import { Icon, colors } from '../../ui-default/index';
+import { Icon, colors } from '../../ui/default/index';
 
 /**
  * Search-styled text input with a leading search icon. Used by

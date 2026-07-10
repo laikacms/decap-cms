@@ -4,7 +4,7 @@ import { addNotification } from './notifications';
 
 import type { ThunkDispatch } from 'redux-thunk';
 import type { AnyAction } from 'redux';
-import type { CmsCollectionState, CmsEntry } from '../../lib-util/index';
+import type { CmsCollectionState, CmsEntry } from '../../lib/util/index';
 
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;

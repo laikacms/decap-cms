@@ -43,7 +43,7 @@
     "build-storybook": "storybook build -o storybook-static",
     "dev": "vite build --config vite.config.demo.ts && (vite build --config vite.config.demo.ts --watch & BUILD_PID=$!; trap 'kill $BUILD_PID 2>/dev/null' EXIT INT TERM; npx --yes serve dev-test -l 5174)",
     "dev:lib": "pnpm copy:assets && tsc -p tsconfig.build.json --watch",
-    "copy:assets": "mkdir -p dist/widget-code/data && cp src/widget-code/data/languages.json dist/widget-code/data/languages.json",
+    "copy:assets": "mkdir -p dist/widgets/code/data && cp src/widgets/code/data/languages.json dist/widgets/code/data/languages.json",
     "typecheck": "tsc --noEmit",
     "lint": "eslint --color \"src/**/*.{ts,tsx,js,mjs}\"",
     "format": "prettier \"src/**/*.{ts,tsx,css}\" --write",
@@ -240,41 +240,41 @@
       "types": "./dist/app/index.d.ts",
       "import": "./dist/app/index.js"
     },
-    "./backend-aws-cognito-github-proxy": {
-      "types": "./dist/backend-aws-cognito-github-proxy/index.d.ts",
-      "import": "./dist/backend-aws-cognito-github-proxy/index.js"
+    "./backends/aws-cognito-github-proxy": {
+      "types": "./dist/backends/aws-cognito-github-proxy/index.d.ts",
+      "import": "./dist/backends/aws-cognito-github-proxy/index.js"
     },
-    "./backend-azure": {
-      "types": "./dist/backend-azure/index.d.ts",
-      "import": "./dist/backend-azure/index.js"
+    "./backends/azure": {
+      "types": "./dist/backends/azure/index.d.ts",
+      "import": "./dist/backends/azure/index.js"
     },
-    "./backend-bitbucket": {
-      "types": "./dist/backend-bitbucket/index.d.ts",
-      "import": "./dist/backend-bitbucket/index.js"
+    "./backends/bitbucket": {
+      "types": "./dist/backends/bitbucket/index.d.ts",
+      "import": "./dist/backends/bitbucket/index.js"
     },
-    "./backend-git-gateway": {
-      "types": "./dist/backend-git-gateway/index.d.ts",
-      "import": "./dist/backend-git-gateway/index.js"
+    "./backends/git-gateway": {
+      "types": "./dist/backends/git-gateway/index.d.ts",
+      "import": "./dist/backends/git-gateway/index.js"
     },
-    "./backend-gitea": {
-      "types": "./dist/backend-gitea/index.d.ts",
-      "import": "./dist/backend-gitea/index.js"
+    "./backends/gitea": {
+      "types": "./dist/backends/gitea/index.d.ts",
+      "import": "./dist/backends/gitea/index.js"
     },
-    "./backend-github": {
-      "types": "./dist/backend-github/index.d.ts",
-      "import": "./dist/backend-github/index.js"
+    "./backends/github": {
+      "types": "./dist/backends/github/index.d.ts",
+      "import": "./dist/backends/github/index.js"
     },
-    "./backend-gitlab": {
-      "types": "./dist/backend-gitlab/index.d.ts",
-      "import": "./dist/backend-gitlab/index.js"
+    "./backends/gitlab": {
+      "types": "./dist/backends/gitlab/index.d.ts",
+      "import": "./dist/backends/gitlab/index.js"
     },
-    "./backend-proxy": {
-      "types": "./dist/backend-proxy/index.d.ts",
-      "import": "./dist/backend-proxy/index.js"
+    "./backends/proxy": {
+      "types": "./dist/backends/proxy/index.d.ts",
+      "import": "./dist/backends/proxy/index.js"
     },
-    "./backend-test": {
-      "types": "./dist/backend-test/index.d.ts",
-      "import": "./dist/backend-test/index.js"
+    "./backends/test": {
+      "types": "./dist/backends/test/index.d.ts",
+      "import": "./dist/backends/test/index.js"
     },
     "./core": {
       "types": "./dist/core/index.d.ts",
@@ -288,41 +288,41 @@
       "types": "./dist/editor-component-image/index.d.ts",
       "import": "./dist/editor-component-image/index.js"
     },
-    "./lib-auth": {
-      "types": "./dist/lib-auth/index.d.ts",
-      "import": "./dist/lib-auth/index.js"
+    "./lib/auth": {
+      "types": "./dist/lib/auth/index.d.ts",
+      "import": "./dist/lib/auth/index.js"
     },
-    "./lib-richtext": {
-      "types": "./dist/lib-richtext/index.d.ts",
-      "import": "./dist/lib-richtext/index.js"
+    "./lib/richtext": {
+      "types": "./dist/lib/richtext/index.d.ts",
+      "import": "./dist/lib/richtext/index.js"
     },
-    "./lib-util": {
-      "types": "./dist/lib-util/index.d.ts",
-      "import": "./dist/lib-util/index.js"
+    "./lib/util": {
+      "types": "./dist/lib/util/index.d.ts",
+      "import": "./dist/lib/util/index.js"
     },
-    "./lib-widgets": {
-      "types": "./dist/lib-widgets/index.d.ts",
-      "import": "./dist/lib-widgets/index.js"
+    "./lib/widgets": {
+      "types": "./dist/lib/widgets/index.d.ts",
+      "import": "./dist/lib/widgets/index.js"
     },
     "./locales": {
       "types": "./dist/locales/index.d.ts",
       "import": "./dist/locales/index.js"
     },
-    "./media-library-cloudinary": {
-      "types": "./dist/media-library-cloudinary/index.d.ts",
-      "import": "./dist/media-library-cloudinary/index.js"
+    "./media/library-cloudinary": {
+      "types": "./dist/media/library-cloudinary/index.d.ts",
+      "import": "./dist/media/library-cloudinary/index.js"
     },
-    "./media-library-uploadcare": {
-      "types": "./dist/media-library-uploadcare/index.d.ts",
-      "import": "./dist/media-library-uploadcare/index.js"
+    "./media/library-uploadcare": {
+      "types": "./dist/media/library-uploadcare/index.d.ts",
+      "import": "./dist/media/library-uploadcare/index.js"
     },
     "./server": {
       "types": "./dist/server/index.d.ts",
       "import": "./dist/server/index.js"
     },
-    "./ui-auth": {
-      "types": "./dist/ui-auth/index.d.ts",
-      "import": "./dist/ui-auth/index.js"
+    "./ui/auth": {
+      "types": "./dist/ui/auth/index.d.ts",
+      "import": "./dist/ui/auth/index.js"
     },
     "./laika-app": {
       "types": "./dist/laika-app/index.d.ts",
@@ -332,69 +332,69 @@
       "types": "./dist/laika-app/bare.d.ts",
       "import": "./dist/laika-app/bare.js"
     },
-    "./ui-default": {
-      "types": "./dist/ui-default/index.d.ts",
-      "import": "./dist/ui-default/index.js"
+    "./ui/default": {
+      "types": "./dist/ui/default/index.d.ts",
+      "import": "./dist/ui/default/index.js"
     },
-    "./widget-boolean": {
-      "types": "./dist/widget-boolean/index.d.ts",
-      "import": "./dist/widget-boolean/index.js"
+    "./widgets/boolean": {
+      "types": "./dist/widgets/boolean/index.d.ts",
+      "import": "./dist/widgets/boolean/index.js"
     },
-    "./widget-code": {
-      "types": "./dist/widget-code/index.d.ts",
-      "import": "./dist/widget-code/index.js"
+    "./widgets/code": {
+      "types": "./dist/widgets/code/index.d.ts",
+      "import": "./dist/widgets/code/index.js"
     },
-    "./widget-colorstring": {
-      "types": "./dist/widget-colorstring/index.d.ts",
-      "import": "./dist/widget-colorstring/index.js"
+    "./widgets/colorstring": {
+      "types": "./dist/widgets/colorstring/index.d.ts",
+      "import": "./dist/widgets/colorstring/index.js"
     },
-    "./widget-datetime": {
-      "types": "./dist/widget-datetime/index.d.ts",
-      "import": "./dist/widget-datetime/index.js"
+    "./widgets/datetime": {
+      "types": "./dist/widgets/datetime/index.d.ts",
+      "import": "./dist/widgets/datetime/index.js"
     },
-    "./widget-file": {
-      "types": "./dist/widget-file/index.d.ts",
-      "import": "./dist/widget-file/index.js"
+    "./widgets/file": {
+      "types": "./dist/widgets/file/index.d.ts",
+      "import": "./dist/widgets/file/index.js"
     },
-    "./widget-image": {
-      "types": "./dist/widget-image/index.d.ts",
-      "import": "./dist/widget-image/index.js"
+    "./widgets/image": {
+      "types": "./dist/widgets/image/index.d.ts",
+      "import": "./dist/widgets/image/index.js"
     },
-    "./widget-list": {
-      "types": "./dist/widget-list/index.d.ts",
-      "import": "./dist/widget-list/index.js"
+    "./widgets/list": {
+      "types": "./dist/widgets/list/index.d.ts",
+      "import": "./dist/widgets/list/index.js"
     },
-    "./widget-map": {
-      "types": "./dist/widget-map/index.d.ts",
-      "import": "./dist/widget-map/index.js"
+    "./widgets/map": {
+      "types": "./dist/widgets/map/index.d.ts",
+      "import": "./dist/widgets/map/index.js"
     },
-    "./widget-markdown": {
-      "types": "./dist/widget-markdown/index.d.ts",
-      "import": "./dist/widget-markdown/index.js"
+    "./widgets/markdown": {
+      "types": "./dist/widgets/markdown/index.d.ts",
+      "import": "./dist/widgets/markdown/index.js"
     },
-    "./widget-number": {
-      "types": "./dist/widget-number/index.d.ts",
-      "import": "./dist/widget-number/index.js"
+    "./widgets/number": {
+      "types": "./dist/widgets/number/index.d.ts",
+      "import": "./dist/widgets/number/index.js"
     },
-    "./widget-object": {
-      "types": "./dist/widget-object/index.d.ts",
-      "import": "./dist/widget-object/index.js"
+    "./widgets/object": {
+      "types": "./dist/widgets/object/index.d.ts",
+      "import": "./dist/widgets/object/index.js"
     },
-    "./widget-relation": {
-      "types": "./dist/widget-relation/index.d.ts",
-      "import": "./dist/widget-relation/index.js"
+    "./widgets/relation": {
+      "types": "./dist/widgets/relation/index.d.ts",
+      "import": "./dist/widgets/relation/index.js"
     },
-    "./widget-select": {
-      "types": "./dist/widget-select/index.d.ts",
-      "import": "./dist/widget-select/index.js"
+    "./widgets/select": {
+      "types": "./dist/widgets/select/index.d.ts",
+      "import": "./dist/widgets/select/index.js"
     },
-    "./widget-string": {
-      "types": "./dist/widget-string/index.d.ts",
-      "import": "./dist/widget-string/index.js"
+    "./widgets/string": {
+      "types": "./dist/widgets/string/index.d.ts",
+      "import": "./dist/widgets/string/index.js"
     },
-    "./widget-text": {
-      "types": "./dist/widget-text/index.d.ts",
-      "import": "./dist/widget-text/index.js"
+    "./widgets/text": {
+      "types": "./dist/widgets/text/index.d.ts",
+      "import": "./dist/widgets/text/index.js"
     },
     "./package.json": "./package.json"
   },

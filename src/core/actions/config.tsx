@@ -25,7 +25,7 @@ import type {
   CmsI18nConfig,
   CmsPublishMode,
   CmsLocalBackend,
-} from '../../lib-util/index';
+} from '../../lib/util/index';
 
 type State = any;
 

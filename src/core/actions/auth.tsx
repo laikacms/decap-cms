@@ -1,7 +1,7 @@
 import { currentBackend } from '../backend';
 import { addNotification, clearNotifications } from './notifications';
 
-import type { CmsCredentials, CmsUser } from '../../lib-util/index';
+import type { CmsCredentials, CmsUser } from '../../lib/util/index';
 import type { ThunkDispatch } from 'redux-thunk';
 import type { AnyAction } from 'redux';
 

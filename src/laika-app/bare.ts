@@ -27,8 +27,8 @@ import type { CmsConfig } from '../core/index';
  *       LaikaCmsApp,
  *       CMS,
  *     } from '@laikacms/decap-cms/laika-app/bare';
- *     import { GitHubBackend } from '@laikacms/decap-cms/backend-github';
- *     import widgetString from '@laikacms/decap-cms/widget-string';
+ *     import { GitHubBackend } from '@laikacms/decap-cms/backends/github';
+ *     import widgetString from '@laikacms/decap-cms/widgets/string';
  *
  *     CMS.registerBackend('github', GitHubBackend);
  *     CMS.registerWidget(widgetString.Widget());
@@ -161,7 +161,7 @@ export { default as LaikaProvider } from './LaikaProvider';
 export type { LaikaProviderProps } from './LaikaProvider';
 export { laikaLightTheme, laikaDarkTheme, resolveTheme } from './laikaThemes';
 export type { LaikaThemeMode } from './laikaThemes';
-export { Icon, colors, colorsRaw, lengths, zIndex, shadows } from '../ui-default/index';
+export { Icon, colors, colorsRaw, lengths, zIndex, shadows } from '../ui/default/index';
 
 export const LaikaCmsApp = {
   ...CMS,

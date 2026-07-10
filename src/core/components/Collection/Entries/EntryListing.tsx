@@ -8,8 +8,8 @@ import EntryCard from './EntryCard';
 import { useCmsSlots } from '../../../lib/slots';
 
 import type { EntryCardRenderProps } from '../../../lib/slots';
-import type { CmsCollectionState, CmsCollections, CmsEntry } from '../../../../lib-util/index';
-import type { Cursor } from '../../../../lib-util/index';
+import type { CmsCollectionState, CmsCollections, CmsEntry } from '../../../../lib/util/index';
+import type { Cursor } from '../../../../lib/util/index';
 
 const CardsGrid = styled.ul`
   display: flex;

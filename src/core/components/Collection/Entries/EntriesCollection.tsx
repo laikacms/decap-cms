@@ -4,8 +4,8 @@ import { useTranslate } from 'react-polyglot';
 import partial from 'lodash/partial';
 import { useStore } from 'react-redux';
 
-import { Cursor } from '../../../../lib-util/index';
-import { colors } from '../../../../ui-default/index';
+import { Cursor } from '../../../../lib/util/index';
+import { colors } from '../../../../ui/default/index';
 import {
   loadEntries as actionLoadEntries,
   traverseCollectionCursor as actionTraverseCollectionCursor,
@@ -29,8 +29,8 @@ import type {
   CmsCollections,
   CmsEntry,
   CmsGroupOfEntries,
-} from '../../../../lib-util/index';
-import type { TranslateFunction } from '../../../../ui-default/index';
+} from '../../../../lib/util/index';
+import type { TranslateFunction } from '../../../../ui/default/index';
 
 const GroupHeading = styled.h2`
   font-size: 22px;

@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from '@emotion/styled';
 
-import type { CmsCollectionState, CmsEntry, CmsEntryField } from '../../../../lib-util/index';
+import type { CmsCollectionState, CmsEntry, CmsEntryField } from '../../../../lib/util/index';
 
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;

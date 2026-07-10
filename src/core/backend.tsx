@@ -20,8 +20,8 @@ import {
   join,
   extname,
   dirname,
-} from '../lib-util/index';
-import { stringTemplate } from '../lib-widgets/index';
+} from '../lib/util/index';
+import { stringTemplate } from '../lib/widgets/index';
 import { resolveFormat } from './formats/formats';
 import { selectUseWorkflow } from './reducers/config';
 import { selectMediaFilePath, selectEntry } from './reducers/entries';
@@ -70,7 +70,7 @@ import type {
   CmsImplementation as BackendImplementation,
   CmsConfig,
   CmsCollectionFile,
-} from '../lib-util/index';
+} from '../lib/util/index';
 import type { EntryValue } from './valueObjects/Entry';
 import type { EntryDraft } from './reducers/entryDraft';
 import type {
@@ -82,7 +82,7 @@ import type {
   CmsUnpublishedEntry,
   CmsDataFile,
   CmsUnpublishedEntryDiff,
-} from '../lib-util/index';
+} from '../lib/util/index';
 
 // State type used in this file - represents the Redux store shape
 interface State {

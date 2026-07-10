@@ -5,7 +5,7 @@ import { getIntegrationProvider } from '../integrations';
 import { selectIntegration } from '../reducers';
 
 import type { QueryRequest } from '../reducers/search';
-import type { CmsCollectionState } from '../../lib-util/index';
+import type { CmsCollectionState } from '../../lib/util/index';
 import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
 import type { EntryValue } from '../valueObjects/Entry';

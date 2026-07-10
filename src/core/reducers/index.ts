@@ -15,7 +15,7 @@ import status from './status';
 import notifications from './notifications';
 
 import type { Status } from '../constants/publishModes';
-import type { CmsCollectionState, CmsEntry } from '../../lib-util/index';
+import type { CmsCollectionState, CmsEntry } from '../../lib/util/index';
 
 type State = any;
 type Collection = CmsCollectionState;

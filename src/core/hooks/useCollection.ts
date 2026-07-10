@@ -11,7 +11,7 @@ import {
 } from '../reducers/entries';
 import { getNewEntryUrl } from '../lib/urlHelper';
 
-import type { CmsSortDirection, CmsViewFilter, CmsViewGroup } from '../../lib-util/index';
+import type { CmsSortDirection, CmsViewFilter, CmsViewGroup } from '../../lib/util/index';
 
 type SortDirection = CmsSortDirection;
 type ViewFilter = CmsViewFilter;

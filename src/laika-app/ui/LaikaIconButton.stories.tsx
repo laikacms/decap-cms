@@ -1,7 +1,7 @@
 import React from 'react';
 
 import LaikaIconButton from './LaikaIconButton';
-import { Icon } from '../../ui-default/index';
+import { Icon } from '../../ui/default/index';
 
 import type { Meta, StoryObj } from '@storybook/react';
 

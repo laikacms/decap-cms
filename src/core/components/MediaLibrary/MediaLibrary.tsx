@@ -4,7 +4,7 @@ import map from 'lodash/map';
 import { useTranslate } from 'react-polyglot';
 import fuzzy from 'fuzzy';
 
-import { fileExtension } from '../../../lib-util/index';
+import { fileExtension } from '../../../lib/util/index';
 import {
   loadMedia as loadMediaAction,
   persistMedia as persistMediaAction,
@@ -18,7 +18,7 @@ import MediaLibraryModal from './MediaLibraryModal';
 import { useAppDispatch, useAppSelector } from '../../hooks/useRedux';
 import { defaultRouter } from '../../routing/router';
 
-import type { TranslateFunction } from '../../../ui-default/index';
+import type { TranslateFunction } from '../../../ui/default/index';
 
 /**
  * Extensions used to determine which files to show when the media library is

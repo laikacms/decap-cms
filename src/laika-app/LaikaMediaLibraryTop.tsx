@@ -3,7 +3,7 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { useTranslate } from 'react-polyglot';
 
-import { Icon, colors } from '../ui-default/index';
+import { Icon, colors } from '../ui/default/index';
 import { LaikaButton, LaikaIconButton, LaikaSearchInput, LaikaBadge } from './ui';
 
 import type { MediaLibraryTopRenderProps } from '../core/index';

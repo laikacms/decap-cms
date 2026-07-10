@@ -1,4 +1,4 @@
-import { basename, getBlobSHA } from '../../lib-util/index';
+import { basename, getBlobSHA } from '../../lib/util/index';
 import { currentBackend } from '../backend';
 import { createAssetProxy } from '../valueObjects/AssetProxy';
 import { selectIntegration } from '../reducers';
@@ -15,7 +15,7 @@ import { sanitizeSlug } from '../lib/urlHelper';
 import { waitUntilWithTimeout } from './waitUntil';
 import { addNotification } from './notifications';
 
-import type { CmsMediaFile, CmsEntryField, CmsMediaLibraryInstance } from '../../lib-util/index';
+import type { CmsMediaFile, CmsEntryField, CmsMediaLibraryInstance } from '../../lib/util/index';
 import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
 import type AssetProxy from '../valueObjects/AssetProxy';

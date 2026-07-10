@@ -4,13 +4,13 @@ import styled from '@emotion/styled';
 import { useLocation, useParams } from 'react-router-dom';
 import { translate } from 'react-polyglot';
 
-import { colors } from '../ui-default/index';
+import { colors } from '../ui/default/index';
 import { searchCollections } from '../core/actions/collections';
 import { useAppSelector } from '../core/hooks/useRedux';
 import { LaikaSearchInput } from './ui';
 
-import type { TranslateFunction } from '../ui-default/index';
-import type { CmsCollections } from '../lib-util/index';
+import type { TranslateFunction } from '../ui/default/index';
+import type { CmsCollections } from '../lib/util/index';
 
 /**
  * Laika-side collection search. Lives in LaikaSidebar so it's accessible

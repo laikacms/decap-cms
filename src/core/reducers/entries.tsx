@@ -6,9 +6,9 @@ import set from 'lodash/set';
 import orderBy from 'lodash/orderBy';
 import groupBy from 'lodash/groupBy';
 
-import { isAbsolutePath, basename, dirname, join } from '../../lib-util/index';
-import { stringTemplate } from '../../lib-widgets/index';
-import { CmsSortDirection as SortDirection } from '../../lib-util/index';
+import { isAbsolutePath, basename, dirname, join } from '../../lib/util/index';
+import { stringTemplate } from '../../lib/widgets/index';
+import { CmsSortDirection as SortDirection } from '../../lib/util/index';
 import { folderFormatter } from '../lib/formatters';
 import { selectSortDataPath } from './collections';
 import { SEARCH_ENTRIES_SUCCESS } from '../actions/search';
@@ -45,7 +45,7 @@ import type {
   CmsSortObject,
   CmsViewFilter,
   CmsViewGroup,
-} from '../../lib-util/index';
+} from '../../lib/util/index';
 
 type SortMap = Record<string, CmsSortObject>;
 type Sort = Record<string, SortMap>;

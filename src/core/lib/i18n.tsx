@@ -5,7 +5,7 @@ import escapeRegExp from 'lodash/escapeRegExp';
 
 import { selectEntrySlug } from '../reducers/collections';
 
-import type { CmsCollectionState, CmsEntry, CmsEntryField } from '../../lib-util/index';
+import type { CmsCollectionState, CmsEntry, CmsEntryField } from '../../lib/util/index';
 import type { EntryValue } from '../valueObjects/Entry';
 
 type Collection = CmsCollectionState;

@@ -10,7 +10,7 @@ import {
 } from '../actions/media';
 
 import type { MediasAction } from '../actions/media';
-import type { CmsAssetProxy } from '../../lib-util/index';
+import type { CmsAssetProxy } from '../../lib/util/index';
 
 type AssetProxy = CmsAssetProxy;
 

@@ -11,7 +11,7 @@ import {
   transitions,
   IconButton,
   zIndex,
-} from '../../../ui-default/index';
+} from '../../../ui/default/index';
 import EditorControlPane, { type ControlPaneHandle } from './EditorControlPane/EditorControlPane';
 import EditorPreviewPane from './EditorPreviewPane/EditorPreviewPane';
 import EditorToolbar from './EditorToolbar';
@@ -22,8 +22,8 @@ import { getFileFromSlug } from '../../reducers/collections';
 
 import type { ReactNode } from 'react';
 import type { I18nInfo } from '../../lib/i18n';
-import type { CmsCollectionState, CmsEntry, CmsEntryField } from '../../../lib-util/index';
-import type { TranslateFunction } from '../../../ui-default/index';
+import type { CmsCollectionState, CmsEntry, CmsEntryField } from '../../../lib/util/index';
+import type { TranslateFunction } from '../../../ui/default/index';
 
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;

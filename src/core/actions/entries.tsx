@@ -1,7 +1,7 @@
 import isEqual from 'lodash/isEqual';
 
-import { Cursor } from '../../lib-util/index';
-import { CmsSortDirection } from '../../lib-util/index';
+import { Cursor } from '../../lib/util/index';
+import { CmsSortDirection } from '../../lib/util/index';
 import { selectCollectionEntriesCursor } from '../reducers/cursors';
 import { selectFields, updateFieldByKey, selectDefaultSortField } from '../reducers/collections';
 import { selectIntegration, selectPublishedSlugs } from '../reducers';
@@ -31,7 +31,7 @@ import type {
   CmsViewFilter,
   CmsViewGroup,
   CmsBackendMediaFile,
-} from '../../lib-util/index';
+} from '../../lib/util/index';
 import type { EntryValue } from '../valueObjects/Entry';
 import type { Backend } from '../backend';
 import type AssetProxy from '../valueObjects/AssetProxy';

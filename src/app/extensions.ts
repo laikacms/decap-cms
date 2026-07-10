@@ -1,31 +1,31 @@
 // Core
 import { DecapCmsCore as CMS } from '../core/index';
 // Backends
-import { AzureBackend } from '../backend-azure/index';
-import { AwsCognitoGitHubProxyBackend } from '../backend-aws-cognito-github-proxy/index';
-import { GitHubBackend } from '../backend-github/index';
-import { GitLabBackend } from '../backend-gitlab/index';
-import { GiteaBackend } from '../backend-gitea/index';
-import { GitGatewayBackend } from '../backend-git-gateway/index';
-import { BitbucketBackend } from '../backend-bitbucket/index';
-import { TestBackend } from '../backend-test/index';
-import { ProxyBackend } from '../backend-proxy/index';
+import { AzureBackend } from '../backends/azure/index';
+import { AwsCognitoGitHubProxyBackend } from '../backends/aws-cognito-github-proxy/index';
+import { GitHubBackend } from '../backends/github/index';
+import { GitLabBackend } from '../backends/gitlab/index';
+import { GiteaBackend } from '../backends/gitea/index';
+import { GitGatewayBackend } from '../backends/git-gateway/index';
+import { BitbucketBackend } from '../backends/bitbucket/index';
+import { TestBackend } from '../backends/test/index';
+import { ProxyBackend } from '../backends/proxy/index';
 // Widgets
-import DecapCmsWidgetString from '../widget-string/index';
-import DecapCmsWidgetNumber from '../widget-number/index';
-import DecapCmsWidgetText from '../widget-text/index';
-import DecapCmsWidgetImage from '../widget-image/index';
-import DecapCmsWidgetFile from '../widget-file/index';
-import DecapCmsWidgetSelect from '../widget-select/index';
-import DecapCmsWidgetList from '../widget-list/index';
-import DecapCmsWidgetObject from '../widget-object/index';
-import DecapCmsWidgetRelation from '../widget-relation/index';
-import DecapCmsWidgetBoolean from '../widget-boolean/index';
-import DecapCmsWidgetMap from '../widget-map/index';
-import DecapCmsWidgetDatetime from '../widget-datetime/index';
-import DecapCmsWidgetCode from '../widget-code/index';
-import DecapCmsWidgetColorString from '../widget-colorstring/index';
-import DecapCmsWidgetMarkdown from '../widget-markdown/index';
+import DecapCmsWidgetString from '../widgets/string/index';
+import DecapCmsWidgetNumber from '../widgets/number/index';
+import DecapCmsWidgetText from '../widgets/text/index';
+import DecapCmsWidgetImage from '../widgets/image/index';
+import DecapCmsWidgetFile from '../widgets/file/index';
+import DecapCmsWidgetSelect from '../widgets/select/index';
+import DecapCmsWidgetList from '../widgets/list/index';
+import DecapCmsWidgetObject from '../widgets/object/index';
+import DecapCmsWidgetRelation from '../widgets/relation/index';
+import DecapCmsWidgetBoolean from '../widgets/boolean/index';
+import DecapCmsWidgetMap from '../widgets/map/index';
+import DecapCmsWidgetDatetime from '../widgets/datetime/index';
+import DecapCmsWidgetCode from '../widgets/code/index';
+import DecapCmsWidgetColorString from '../widgets/colorstring/index';
+import DecapCmsWidgetMarkdown from '../widgets/markdown/index';
 // Editor Components
 import image from '../editor-component-image/index';
 // Locales

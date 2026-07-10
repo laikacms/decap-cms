@@ -9,7 +9,7 @@ import {
   changeDraftFieldValidation,
 } from '../actions/entries';
 
-import type { CmsCollectionState, CmsEntry, CmsEntryField } from '../../lib-util/index';
+import type { CmsCollectionState, CmsEntry, CmsEntryField } from '../../lib/util/index';
 
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;

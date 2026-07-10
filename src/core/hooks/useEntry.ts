@@ -15,7 +15,7 @@ import { status } from '../constants/publishModes';
 import { navigateToCollection, navigateToNewEntry } from '../routing/navigation';
 
 import type { Status } from '../constants/publishModes';
-import type { CmsEntry } from '../../lib-util/index';
+import type { CmsEntry } from '../../lib/util/index';
 type Entry = CmsEntry;
 
 interface UseEntryOptions {

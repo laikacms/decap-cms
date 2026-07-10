@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { EditorToolbar } from '../EditorToolbar';
 
-import type { CmsCollectionState } from '../../../../lib-util/index';
-import type { TranslateFunction } from '../../../../ui-default/index';
+import type { CmsCollectionState } from '../../../../lib/util/index';
+import type { TranslateFunction } from '../../../../ui/default/index';
 
 vi.mock('../../UI', () => ({
   SettingsDropdown: (props: Record<string, unknown>) => (
