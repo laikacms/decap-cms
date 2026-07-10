@@ -173,6 +173,70 @@ describe('GitLab API', () => {
     });
   });
 
+  describe('createMergeRequest', () => {
+    test('should pass squash: true when squashMerges is enabled', async () => {
+      const api = new API({ repo: 'repo', squashMerges: true });
+
+      api.requestJSON = jest.fn().mockResolvedValueOnce({});
+
+      await api.createMergeRequest('branch', 'commit message', 'draft');
+
+      expect(api.requestJSON).toHaveBeenCalledTimes(1);
+      expect(api.requestJSON).toHaveBeenCalledWith(
+        expect.objectContaining({
+          params: expect.objectContaining({ squash: true }),
+        }),
+      );
+    });
+
+    test('should pass squash: false when squashMerges is disabled', async () => {
+      const api = new API({ repo: 'repo', squashMerges: false });
+
+      api.requestJSON = jest.fn().mockResolvedValueOnce({});
+
+      await api.createMergeRequest('branch', 'commit message', 'draft');
+
+      expect(api.requestJSON).toHaveBeenCalledTimes(1);
+      expect(api.requestJSON).toHaveBeenCalledWith(
+        expect.objectContaining({
+          params: expect.objectContaining({ squash: false }),
+        }),
+      );
+    });
+  });
+
+  describe('mergeMergeRequest', () => {
+    test('should pass squash: true when squashMerges is enabled', async () => {
+      const api = new API({ repo: 'repo', squashMerges: true });
+
+      api.requestJSON = jest.fn().mockResolvedValueOnce({});
+
+      await api.mergeMergeRequest({ iid: 1 });
+
+      expect(api.requestJSON).toHaveBeenCalledTimes(1);
+      expect(api.requestJSON).toHaveBeenCalledWith(
+        expect.objectContaining({
+          params: expect.objectContaining({ squash: true }),
+        }),
+      );
+    });
+
+    test('should pass squash: false when squashMerges is disabled', async () => {
+      const api = new API({ repo: 'repo', squashMerges: false });
+
+      api.requestJSON = jest.fn().mockResolvedValueOnce({});
+
+      await api.mergeMergeRequest({ iid: 1 });
+
+      expect(api.requestJSON).toHaveBeenCalledTimes(1);
+      expect(api.requestJSON).toHaveBeenCalledWith(
+        expect.objectContaining({
+          params: expect.objectContaining({ squash: false }),
+        }),
+      );
+    });
+  });
+
   describe('getMaxAccess', () => {
     it('should return group with max access level', () => {
       const groups = [
