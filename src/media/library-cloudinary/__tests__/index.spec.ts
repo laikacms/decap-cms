@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { loadScript } from '../../lib-util/index';
+import { loadScript } from '../../../lib/util/index';
 import cloudinary from '../index';
 
-vi.mock('../../lib-util/index');
+vi.mock('../../../lib/util/index');
 
 describe('cloudinary media library', () => {
   let mediaLibrary;
