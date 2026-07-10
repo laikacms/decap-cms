@@ -1,5 +1,10 @@
 import React from 'react';
 
+// Fallback fields used by `selectIdentifier` (reducers/collections.ts) to name an entry
+// when a collection has no `identifier_field` configured, or its `identifier_field` names
+// a field that isn't present on the entry. Checked in order: `title`, then `path`. This
+// `path` fallback is not documented on decapcms.org and can surprise collections that
+// happen to define a field literally named `path` (DCMS-438).
 export const IDENTIFIER_FIELDS = ['title', 'path'] as const;
 
 export const SORTABLE_FIELDS = ['title', 'date', 'author', 'description'] as const;
