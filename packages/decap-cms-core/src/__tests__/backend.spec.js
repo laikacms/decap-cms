@@ -163,6 +163,70 @@ describe('Backend', () => {
     });
   });
 
+  describe('currentUser', () => {
+    // DCMS-439: a backend's restoreUser() resolving to undefined/null (test-repo,
+    // backend-proxy) must not wipe out the rest of the stored user object.
+    function makeBackendWithStoredUser(stored, restoreUserResult) {
+      const implementation = {
+        init: jest.fn(() => implementation),
+        restoreUser: jest.fn().mockResolvedValue(restoreUserResult),
+      };
+
+      const authStore = {
+        retrieve: jest.fn().mockReturnValue(stored),
+        store: jest.fn(),
+      };
+
+      const backend = new Backend(implementation, {
+        config: {},
+        backendName: stored.backendName,
+        authStore,
+      });
+
+      return { backend, authStore, implementation };
+    }
+
+    it('preserves stored fields when restoreUser() resolves undefined', async () => {
+      const stored = { backendName: 'test-repo', name: 'Alice', login: 'alice' };
+      const { backend, authStore } = makeBackendWithStoredUser(stored, undefined);
+
+      const user = await backend.currentUser();
+
+      expect(user).toEqual(stored);
+      expect(authStore.store).toHaveBeenCalledWith(stored);
+    });
+
+    it('preserves stored fields when restoreUser() resolves null', async () => {
+      const stored = { backendName: 'test-repo', name: 'Alice', login: 'alice' };
+      const { backend } = makeBackendWithStoredUser(stored, null);
+
+      const user = await backend.currentUser();
+
+      expect(user).toEqual(stored);
+    });
+
+    it('lets fields returned by restoreUser() override the stored equivalents', async () => {
+      const stored = { backendName: 'github', name: 'Alice', login: 'alice' };
+      const { backend } = makeBackendWithStoredUser(stored, { name: 'Alice Updated' });
+
+      const user = await backend.currentUser();
+
+      expect(user).toEqual({ backendName: 'github', name: 'Alice Updated', login: 'alice' });
+    });
+
+    it('returns null when nothing is stored', async () => {
+      const implementation = { init: jest.fn(() => implementation) };
+      const authStore = { retrieve: jest.fn().mockReturnValue(undefined), store: jest.fn() };
+      const backend = new Backend(implementation, {
+        config: {},
+        backendName: 'github',
+        authStore,
+      });
+
+      await expect(backend.currentUser()).resolves.toBeNull();
+    });
+  });
+
   describe('getLocalDraftBackup', () => {
     const { localForage, asyncLock } = require('decap-cms-lib-util');
 

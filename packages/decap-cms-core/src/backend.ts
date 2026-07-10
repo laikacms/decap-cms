@@ -398,7 +398,11 @@ export class Backend {
     const stored = this.authStore!.retrieve();
     if (stored && stored.backendName === this.backendName) {
       return Promise.resolve(this.implementation.restoreUser(stored)).then(user => {
-        this.user = { ...user, backendName: this.backendName };
+        // Preserve fields from the stored user so a backend whose restoreUser()
+        // resolves to undefined/null (e.g. test-repo, proxy) doesn't silently
+        // drop everything except backendName. A fully-hydrated user returned by
+        // restoreUser() still wins via later-spread precedence.
+        this.user = { ...stored, ...user, backendName: this.backendName };
         // return confirmed/rehydrated user object instead of stored
         this.authStore!.store(this.user as User);
         return this.user;
