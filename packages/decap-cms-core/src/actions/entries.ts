@@ -715,24 +715,23 @@ export function traverseCollectionCursor(collection: Collection, action: string)
   };
 }
 
-function escapeHtml(unsafe: string) {
-  return unsafe
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-
-function processValue(unsafe: string) {
-  if (['true', 'True', 'TRUE'].includes(unsafe)) {
+// DCMS-448: URL-param prefill values used to be HTML-entity-encoded here before
+// being written into the entry's default data, which meant the encoded string
+// (not the literal value) ended up persisted to the saved entry (e.g. an
+// apostrophe in `?title=O'Brien` was permanently saved as `O&#039;Brien`).
+// The decapcms.org "Dynamic Default Values" contract only promises URL-decoding,
+// not HTML-escaping, and nothing downstream renders these values as raw HTML
+// (React/markdown renderers already escape on render), so there's no XSS
+// benefit to buy back here - only data corruption. Pass the value through as-is.
+function processValue(value: string) {
+  if (['true', 'True', 'TRUE'].includes(value)) {
     return true;
   }
-  if (['false', 'False', 'FALSE'].includes(unsafe)) {
+  if (['false', 'False', 'FALSE'].includes(value)) {
     return false;
   }
 
-  return escapeHtml(unsafe);
+  return value;
 }
 
 function getDataFields(fields: EntryFields) {

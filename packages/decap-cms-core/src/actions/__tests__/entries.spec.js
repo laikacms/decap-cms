@@ -135,7 +135,7 @@ describe('entries', () => {
         });
     });
 
-    it('should html escape URL params', () => {
+    it('should not html escape URL params (DCMS-448)', () => {
       const store = mockStore({ mediaLibrary: fromJS({ files: [] }) });
 
       const collection = fromJS({
@@ -152,7 +152,7 @@ describe('entries', () => {
             payload: {
               author: '',
               collection: undefined,
-              data: { title: '&lt;script&gt;alert(&#039;hello&#039;)&lt;/script&gt;' },
+              data: { title: "<script>alert('hello')</script>" },
               meta: {},
               i18n: {},
               isModification: null,
@@ -167,6 +167,24 @@ describe('entries', () => {
             },
             type: 'DRAFT_CREATE_EMPTY',
           });
+        });
+    });
+
+    it('should round-trip punctuation in URL params as the literal value (DCMS-448)', () => {
+      const store = mockStore({ mediaLibrary: fromJS({ files: [] }) });
+
+      const collection = fromJS({
+        fields: [{ name: 'title' }],
+      });
+
+      const value = `O'Brien's "quoted" <tag> & more`;
+
+      return store
+        .dispatch(createEmptyDraft(collection, `?title=${encodeURIComponent(value)}`))
+        .then(() => {
+          const actions = store.getActions();
+          expect(actions).toHaveLength(1);
+          expect(actions[0].payload.data).toEqual({ title: value });
         });
     });
   });
