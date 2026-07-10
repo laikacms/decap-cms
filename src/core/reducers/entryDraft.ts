@@ -2,7 +2,7 @@ import { produce } from 'immer';
 import { v4 as uuid } from 'uuid';
 import get from 'lodash/get';
 
-import { join } from '../../lib-util/index';
+import { join } from '../../lib/util/index';
 import {
   DRAFT_CREATE_FROM_ENTRY,
   DRAFT_CREATE_EMPTY,
@@ -35,7 +35,7 @@ import { selectFolderEntryExtension, selectHasMetaPath } from './collections';
 import { getDataPath, duplicateI18nFields } from '../lib/i18n';
 
 import type { AnyAction } from 'redux';
-import type { CmsCollectionState, CmsEntry, CmsEntryField } from '../../lib-util/index';
+import type { CmsCollectionState, CmsEntry, CmsEntryField } from '../../lib/util/index';
 
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;

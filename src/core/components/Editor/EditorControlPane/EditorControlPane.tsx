@@ -10,7 +10,7 @@ import {
   DropdownItem,
   StyledDropdownButton,
   text,
-} from '../../../../ui-default/index';
+} from '../../../../ui/default/index';
 import EditorControl from './EditorControl';
 import {
   getI18nInfo,
@@ -21,7 +21,7 @@ import {
   isFieldTranslatable,
 } from '../../../lib/i18n';
 
-import type { CmsCollectionState, CmsEntry, CmsEntryField } from '../../../../lib-util/index';
+import type { CmsCollectionState, CmsEntry, CmsEntryField } from '../../../../lib/util/index';
 import type { I18nInfo } from '../../../lib/i18n';
 
 type Collection = CmsCollectionState;

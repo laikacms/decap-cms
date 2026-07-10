@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { I18n } from 'react-polyglot';
 
-import { GlobalStyles } from '../ui-default/index';
+import { GlobalStyles } from '../ui/default/index';
 import { useAppSelector } from './hooks/useRedux';
 import { store } from './redux';
 import { loadConfig } from './actions/config';
@@ -17,7 +17,7 @@ import './mediaLibrary';
 import 'what-input';
 
 import type { AppDispatch } from './redux';
-import type { CmsConfig } from '../lib-util/index';
+import type { CmsConfig } from '../lib/util/index';
 
 const ROOT_ID = 'nc-root';
 

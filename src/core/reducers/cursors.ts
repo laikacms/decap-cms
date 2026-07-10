@@ -1,6 +1,6 @@
 import { produce } from 'immer';
 
-import { Cursor } from '../../lib-util/index';
+import { Cursor } from '../../lib/util/index';
 import {
   ENTRIES_SUCCESS,
   SORT_ENTRIES_SUCCESS,

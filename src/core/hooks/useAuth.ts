@@ -3,7 +3,7 @@ import { useCallback } from 'react';
 import { useAppSelector, useAppDispatch } from './useRedux';
 import { loginUser, logoutUser } from '../actions/auth';
 
-import type { CmsCredentials as Credentials } from '../../lib-util/index';
+import type { CmsCredentials as Credentials } from '../../lib/util/index';
 
 /**
  * Hook for authentication state and actions

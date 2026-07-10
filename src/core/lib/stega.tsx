@@ -1,6 +1,6 @@
 import { vercelStegaEncode } from '@vercel/stega';
 
-import type { CmsField } from '../../lib-util/index';
+import type { CmsField } from '../../lib/util/index';
 
 /**
  * Context passed to encode functions, containing the current state of the encoding process

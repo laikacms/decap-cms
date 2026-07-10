@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { Cursor } from '../../../lib-util/index';
+import { Cursor } from '../../../lib/util/index';
 import * as actions from '../../actions/entries';
 import reducer, {
   selectMediaFolder,

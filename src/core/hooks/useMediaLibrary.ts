@@ -3,7 +3,7 @@ import { useCallback } from 'react';
 import { useAppSelector, useAppDispatch } from './useRedux';
 import { openMediaLibrary, closeMediaLibrary } from '../actions/mediaLibrary';
 
-import type { CmsEntryField } from '../../lib-util/index';
+import type { CmsEntryField } from '../../lib/util/index';
 
 type EntryField = CmsEntryField;
 

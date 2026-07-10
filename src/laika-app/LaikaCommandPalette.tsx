@@ -3,14 +3,14 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import { Icon, colors, lengths } from '../ui-default/index';
+import { Icon, colors, lengths } from '../ui/default/index';
 import { useAppSelector, useAppDispatch } from '../core/hooks/useRedux';
 import { openMediaLibrary as openMediaLibraryAction } from '../core/actions/mediaLibrary';
 import { searchCollections } from '../core/actions/collections';
 import { LaikaDialog, LaikaSearchInput, LaikaBadge } from './ui';
 import { laikaShouldForwardProp } from './ui/styled-utils';
 
-import type { CmsCollections, CmsCollectionState } from '../lib-util/index';
+import type { CmsCollections, CmsCollectionState } from '../lib/util/index';
 import type { LaikaBadgeIntent } from './ui';
 
 /**

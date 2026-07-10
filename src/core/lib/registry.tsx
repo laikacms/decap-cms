@@ -16,7 +16,7 @@ import type {
   CmsFormatter,
   CmsConfig,
   CmsImplementation,
-} from '../../lib-util/index';
+} from '../../lib/util/index';
 
 type CmsPreviewStyle = { raw?: boolean; value: string };
 

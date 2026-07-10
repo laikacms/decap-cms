@@ -10,7 +10,7 @@ import {
   persistEntry as persistEntryAction,
 } from '../actions/entries';
 
-import type { CmsCollectionState } from '../../lib-util/index';
+import type { CmsCollectionState } from '../../lib/util/index';
 
 type Collection = CmsCollectionState;
 

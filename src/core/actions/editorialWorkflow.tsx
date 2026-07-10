@@ -1,6 +1,6 @@
 import get from 'lodash/get';
 
-import { EDITORIAL_WORKFLOW_ERROR } from '../../lib-util/index';
+import { EDITORIAL_WORKFLOW_ERROR } from '../../lib/util/index';
 import { currentBackend, slugFromCustomPath } from '../backend';
 import {
   selectPublishedSlugs,
@@ -30,7 +30,7 @@ import type {
   CmsEntry,
   CmsCollections,
   CmsMediaFile,
-} from '../../lib-util/index';
+} from '../../lib/util/index';
 import type { AnyAction } from 'redux';
 import type { EntryValue } from '../valueObjects/Entry';
 import type { EntryDraft } from '../reducers/entryDraft';

@@ -2,7 +2,7 @@ import { produce } from 'immer';
 import get from 'lodash/get';
 import escapeRegExp from 'lodash/escapeRegExp';
 
-import { stringTemplate } from '../../lib-widgets/index';
+import { stringTemplate } from '../../lib/widgets/index';
 import { CONFIG_SUCCESS } from '../actions/config';
 import { FILES, FOLDER } from '../constants/collectionTypes';
 import { COMMIT_DATE, COMMIT_AUTHOR } from '../constants/commitProps';
@@ -20,7 +20,7 @@ import type {
   CmsViewFilter,
   CmsViewGroup,
   CmsConfig,
-} from '../../lib-util/index';
+} from '../../lib/util/index';
 import type { ConfigAction } from '../actions/config';
 import type { Backend } from '../backend';
 

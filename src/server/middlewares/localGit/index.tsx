@@ -12,7 +12,7 @@ import {
   statusToLabel,
   labelToStatus,
   parseContentKey,
-} from '../../../lib-util/index';
+} from '../../../lib/util/index';
 import { defaultSchema, joi } from '../joi';
 import { pathTraversal } from '../joi/customValidators';
 import { listRepoFiles, writeFile, move, deleteFile, getUpdateDate } from '../utils/fs';

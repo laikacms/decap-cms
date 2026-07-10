@@ -1,6 +1,6 @@
 import React from 'react';
 
-import type { CmsEntryField } from '../../../../lib-util/index';
+import type { CmsEntryField } from '../../../../lib/util/index';
 
 type EntryField = CmsEntryField;
 

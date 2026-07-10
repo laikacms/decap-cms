@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { localForage, asyncLock } from '../../lib-util/index';
+import { localForage, asyncLock } from '../../lib/util/index';
 import {
   resolveBackend,
   Backend,
@@ -13,7 +13,7 @@ import { FOLDER, FILES } from '../constants/collectionTypes';
 import { sanitizeSlug, sanitizeChar } from '../lib/urlHelper';
 
 vi.mock('../lib/registry');
-vi.mock('../../lib-util/index', () => ({
+vi.mock('../../lib/util/index', () => ({
   APIError: class APIError extends Error {
     status: number;
     api: string;

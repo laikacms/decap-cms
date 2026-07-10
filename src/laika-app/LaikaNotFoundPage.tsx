@@ -3,10 +3,10 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
 
-import { colors } from '../ui-default/index';
+import { colors } from '../ui/default/index';
 import { LaikaButton } from './ui';
 
-import type { TranslateFunction } from '../ui-default/index';
+import type { TranslateFunction } from '../ui/default/index';
 
 /**
  * Laika-styled 404 page. Centered card with a back-to-dashboard CTA.

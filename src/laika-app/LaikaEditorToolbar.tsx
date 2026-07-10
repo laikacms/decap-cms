@@ -4,12 +4,12 @@ import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
 import { translate } from 'react-polyglot';
 
-import { Dropdown, DropdownItem, Icon, colors, lengths, zIndex } from '../ui-default/index';
+import { Dropdown, DropdownItem, Icon, colors, lengths, zIndex } from '../ui/default/index';
 import { SettingsDropdown } from '../core/components/UI';
 import { LaikaButton, LaikaBadge } from './ui';
 
 import type { LaikaBadgeIntent } from './ui';
-import type { TranslateFunction } from '../ui-default/index';
+import type { TranslateFunction } from '../ui/default/index';
 import type { EditorToolbarRenderProps } from '../core/index';
 
 /**

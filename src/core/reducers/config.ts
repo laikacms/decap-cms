@@ -4,7 +4,7 @@ import { CONFIG_REQUEST, CONFIG_SUCCESS, CONFIG_FAILURE } from '../actions/confi
 import { EDITORIAL_WORKFLOW } from '../constants/publishModes';
 
 import type { ConfigAction } from '../actions/config';
-import type { CmsConfig } from '../../lib-util/index';
+import type { CmsConfig } from '../../lib/util/index';
 
 const defaultState = {
   isFetching: true,

@@ -3,10 +3,10 @@ import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
 
-import { Icon, Dropdown, DropdownItem, DropdownButton, colors } from '../../../ui-default/index';
+import { Icon, Dropdown, DropdownItem, DropdownButton, colors } from '../../../ui/default/index';
 import { stripProtocol } from '../../lib/urlHelper';
 
-import type { TranslateFunction } from '../../../ui-default/index';
+import type { TranslateFunction } from '../../../ui/default/index';
 
 const styles = {
   avatarImage: css`

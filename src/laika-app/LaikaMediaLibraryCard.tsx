@@ -2,7 +2,7 @@
 import React from 'react';
 import styled from '@emotion/styled';
 
-import { colors, lengths } from '../ui-default/index';
+import { colors, lengths } from '../ui/default/index';
 import { LaikaBadge } from './ui';
 import { laikaShouldForwardProp } from './ui/styled-utils';
 

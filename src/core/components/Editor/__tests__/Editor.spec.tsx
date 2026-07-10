@@ -9,7 +9,7 @@ import Editor from '../Editor';
 vi.mock('../EditorInterface', () => ({
   default: props => <mock-editor-interface {...props} />,
 }));
-vi.mock('../../../../ui-default/index', () => ({
+vi.mock('../../../../ui/default/index', () => ({
   Loader: props => <mock-loader {...props} />,
 }));
 vi.mock('../../../routing/context', () => ({

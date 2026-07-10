@@ -4,7 +4,7 @@ import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 import { Link } from 'react-router-dom';
 
-import { colors } from '../../ui-default/index';
+import { colors } from '../../ui/default/index';
 import { laikaShouldForwardProp } from './styled-utils';
 
 /**

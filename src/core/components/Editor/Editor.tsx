@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 
 import { useLocation } from '../../routing/context';
-import { Loader } from '../../../ui-default/index';
+import { Loader } from '../../../ui/default/index';
 import { useEditor } from '../../hooks/useEditor';
 import EditorInterface from './EditorInterface';
 import { useCmsSlots } from '../../lib/slots';

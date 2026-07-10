@@ -4,10 +4,10 @@ import styled from '@emotion/styled';
 import { useNavigate } from 'react-router-dom';
 import { translate } from 'react-polyglot';
 
-import { colors } from '../ui-default/index';
+import { colors } from '../ui/default/index';
 import { LaikaCard, LaikaButton, LaikaBadge } from './ui';
 
-import type { TranslateFunction } from '../ui-default/index';
+import type { TranslateFunction } from '../ui/default/index';
 import type { WorkflowCardRenderProps } from '../core/index';
 
 /**

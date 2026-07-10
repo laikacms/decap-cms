@@ -3,7 +3,7 @@ import { Provider } from 'react-redux';
 import { I18n } from 'react-polyglot';
 import { Global } from '@emotion/react';
 
-import { GlobalStyles, DefaultTokensGlobalStyle, themeToCssVars } from '../../../ui-default/index';
+import { GlobalStyles, DefaultTokensGlobalStyle, themeToCssVars } from '../../../ui/default/index';
 import { store } from '../../redux';
 import { useAppSelector, useAppDispatch } from '../../hooks/useRedux';
 import { loadConfig } from '../../actions/config';
@@ -27,9 +27,9 @@ import type {
   DecapNavigate,
   DecapParams,
 } from '../../contexts/decap';
-import type { DecapTheme } from '../../../ui-default/index';
+import type { DecapTheme } from '../../../ui/default/index';
 import type { AppDispatch } from '../../redux';
-import type { CmsConfig } from '../../../lib-util/index';
+import type { CmsConfig } from '../../../lib/util/index';
 
 export type { DecapCmsProviderProps } from '../../contexts/decap';
 

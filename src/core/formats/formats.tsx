@@ -11,7 +11,7 @@ import type {
   CmsCollectionState,
   CmsFormatterFunctions,
   CmsCollectionFormatType,
-} from '../../lib-util/index';
+} from '../../lib/util/index';
 import type { EntryValue } from '../valueObjects/Entry';
 
 type Collection = CmsCollectionState;

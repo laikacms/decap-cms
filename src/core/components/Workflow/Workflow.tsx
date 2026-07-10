@@ -10,7 +10,7 @@ import {
   lengths,
   components,
   shadows,
-} from '../../../ui-default/index';
+} from '../../../ui/default/index';
 import { createNewEntry } from '../../actions/collections';
 import {
   loadUnpublishedEntries,
@@ -25,8 +25,8 @@ import { useAppDispatch, useAppSelector } from '../../hooks/useRedux';
 import { useCmsSlots } from '../../lib/slots';
 
 import type { Status } from '../../constants/publishModes';
-import type { CmsCollections, CmsCollectionState } from '../../../lib-util/index';
-import type { TranslateFunction } from '../../../ui-default/index';
+import type { CmsCollections, CmsCollectionState } from '../../../lib/util/index';
+import type { TranslateFunction } from '../../../ui/default/index';
 
 type Collections = CmsCollections;
 type Collection = CmsCollectionState;

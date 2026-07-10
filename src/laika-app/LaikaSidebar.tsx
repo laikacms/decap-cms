@@ -4,14 +4,14 @@ import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
 import { NavLink } from 'react-router-dom';
 
-import { Icon, colors, lengths, zIndex } from '../ui-default/index';
+import { Icon, colors, lengths, zIndex } from '../ui/default/index';
 import LaikaCollectionSearch from './LaikaCollectionSearch';
 import { useLaikaShell, LAIKA_BREAKPOINT_MOBILE } from './LaikaShellContext';
 import { laikaShouldForwardProp } from './ui/styled-utils';
 
-import type { TranslateFunction } from '../ui-default/index';
-import type { IconName } from '../ui-default/Icon/icons';
-import type { CmsCollections, CmsCollectionState } from '../lib-util/index';
+import type { TranslateFunction } from '../ui/default/index';
+import type { IconName } from '../ui/default/Icon/icons';
+import type { CmsCollections, CmsCollectionState } from '../lib/util/index';
 
 /**
  * Laika-styled left sidebar, inspired by the Daniel-Mendes `next`-branch

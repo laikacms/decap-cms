@@ -8,7 +8,7 @@ import memoize from 'lodash/memoize';
 import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
 
-import { FieldLabel, colors, transitions, lengths, borders } from '../../../../ui-default/index';
+import { FieldLabel, colors, transitions, lengths, borders } from '../../../../ui/default/index';
 import { useAppDispatch, useAppSelector } from '../../../hooks/useRedux';
 import { resolveWidget, getEditorComponents } from '../../../lib/registry';
 import { clearFieldErrors, tryLoadEntry, validateMetaField } from '../../../actions/entries';
@@ -28,13 +28,13 @@ import Widget from './Widget';
 import type AssetProxy from '../../../valueObjects/AssetProxy';
 import type { Interpolation, Theme } from '@emotion/react';
 import type { Dispatch } from 'redux';
-import type { TranslateFunction } from '../../../../ui-default/index';
+import type { TranslateFunction } from '../../../../ui/default/index';
 import type {
   CmsCollectionState,
   CmsEntry,
   CmsEntryField,
   CmsConfig,
-} from '../../../../lib-util/index';
+} from '../../../../lib/util/index';
 
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;

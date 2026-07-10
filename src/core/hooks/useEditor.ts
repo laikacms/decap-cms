@@ -35,7 +35,7 @@ import { status, EDITORIAL_WORKFLOW } from '../constants/publishModes';
 
 import type { Status } from '../constants/publishModes';
 import type { RouterUpdate, RouterTransition } from '../routing/router';
-import type { CmsCollectionState, CmsEntry } from '../../lib-util/index';
+import type { CmsCollectionState, CmsEntry } from '../../lib/util/index';
 
 type Collection = CmsCollectionState;
 type Entry = CmsEntry;

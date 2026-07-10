@@ -2,7 +2,7 @@ import React from 'react';
 import styled from '@emotion/styled';
 import Frame, { FrameContextConsumer } from 'react-frame-component';
 
-import { lengths } from '../../../../ui-default/index';
+import { lengths } from '../../../../ui/default/index';
 import { encodeEntry } from '../../../lib/stega';
 import {
   resolveWidget,
@@ -32,7 +32,7 @@ import type {
   CmsEntry,
   CmsEntryField,
   CmsConfig,
-} from '../../../../lib-util/index';
+} from '../../../../lib/util/index';
 
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;
