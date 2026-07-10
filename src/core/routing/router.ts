@@ -92,6 +92,29 @@ export interface Router {
 }
 
 /**
+ * Every dynamic path segment is percent-encoded on `create` (via
+ * `encodeURIComponent`) and percent-decoded on `get` (via `decodeSegment`
+ * below), so a segment's value round-trips exactly through the URL — spaces,
+ * `/`, `#`, `?`, and unicode/emoji all survive, and a literal `/` inside a
+ * value (e.g. a free-text search query) is encoded to `%2F` and so cannot
+ * split the path into extra segments or break the anchored regexes.
+ */
+
+/**
+ * Decode a matched path segment, turning a malformed escape (`%ZZ`) into the
+ * route's own "invalid path" error instead of letting `decodeURIComponent`'s
+ * `URIError` escape — a corrupted hash should land on `NotFoundPage`
+ * (`matchRoute` returns `null`), not crash the app.
+ */
+function decodeSegment(segment: string, errorMessage: string): string {
+  try {
+    return decodeURIComponent(segment);
+  } catch {
+    throw new Error(errorMessage);
+  }
+}
+
+/**
  * The default URL scheme: one bidirectional entry per named route. `create`
  * builds a path from params; `get` parses params back out (throwing on a
  * non-match). They are inverses, so `RouteParams<T>` serves both directions.
@@ -105,53 +128,63 @@ export const defaultRoutingTable: RoutingTable = {
     },
   },
   collection: {
-    create: ({ collectionName }) => `/collections/${collectionName}`,
+    create: ({ collectionName }) => `/collections/${encodeURIComponent(collectionName)}`,
     get: path => {
       const match = path.match(/^\/collections\/([^/]+)$/);
       if (!match) throw new Error(`Invalid collection path: ${path}`);
-      return { collectionName: match[1] };
+      return { collectionName: decodeSegment(match[1], `Invalid collection path: ${path}`) };
     },
   },
   entryNew: {
-    create: ({ collectionName }) => `/collections/${collectionName}/new`,
+    create: ({ collectionName }) => `/collections/${encodeURIComponent(collectionName)}/new`,
     get: path => {
       const match = path.match(/^\/collections\/([^/]+)\/new$/);
       if (!match) throw new Error(`Invalid new entry path: ${path}`);
-      return { collectionName: match[1] };
+      return { collectionName: decodeSegment(match[1], `Invalid new entry path: ${path}`) };
     },
   },
   entry: {
-    create: ({ collectionName, slug }) => `/collections/${collectionName}/entries/${slug}`,
+    create: ({ collectionName, slug }) =>
+      `/collections/${encodeURIComponent(collectionName)}/entries/${encodeURIComponent(slug)}`,
     get: path => {
       const match = path.match(/^\/collections\/([^/]+)\/entries\/(.+)$/);
       if (!match) throw new Error(`Invalid entry path: ${path}`);
-      return { collectionName: match[1], slug: match[2] };
+      return {
+        collectionName: decodeSegment(match[1], `Invalid entry path: ${path}`),
+        slug: decodeSegment(match[2], `Invalid entry path: ${path}`),
+      };
     },
   },
   collectionSearch: {
     create: ({ collectionName, searchTerm }) =>
-      `/collections/${collectionName}/search/${searchTerm}`,
+      `/collections/${encodeURIComponent(collectionName)}/search/${encodeURIComponent(searchTerm)}`,
     get: path => {
       const match = path.match(/^\/collections\/([^/]+)\/search\/([^/]+)$/);
       if (!match) throw new Error(`Invalid collection search path: ${path}`);
-      return { collectionName: match[1], searchTerm: match[2] };
+      return {
+        collectionName: decodeSegment(match[1], `Invalid collection search path: ${path}`),
+        searchTerm: decodeSegment(match[2], `Invalid collection search path: ${path}`),
+      };
     },
   },
   collectionFilter: {
     create: ({ collectionName, filterTerm }) =>
-      `/collections/${collectionName}/filter/${filterTerm}`,
+      `/collections/${encodeURIComponent(collectionName)}/filter/${encodeURIComponent(filterTerm)}`,
     get: path => {
       const match = path.match(/^\/collections\/([^/]+)\/filter\/(.+)$/);
       if (!match) throw new Error(`Invalid collection filter path: ${path}`);
-      return { collectionName: match[1], filterTerm: match[2] };
+      return {
+        collectionName: decodeSegment(match[1], `Invalid collection filter path: ${path}`),
+        filterTerm: decodeSegment(match[2], `Invalid collection filter path: ${path}`),
+      };
     },
   },
   search: {
-    create: ({ searchTerm }) => `/search/${searchTerm}`,
+    create: ({ searchTerm }) => `/search/${encodeURIComponent(searchTerm)}`,
     get: path => {
       const match = path.match(/^\/search\/([^/]+)$/);
       if (!match) throw new Error(`Invalid search path: ${path}`);
-      return { searchTerm: match[1] };
+      return { searchTerm: decodeSegment(match[1], `Invalid search path: ${path}`) };
     },
   },
   workflow: {
@@ -162,11 +195,15 @@ export const defaultRoutingTable: RoutingTable = {
     },
   },
   editRedirect: {
-    create: ({ collectionName, slug }) => `/edit/${collectionName}/${slug}`,
+    create: ({ collectionName, slug }) =>
+      `/edit/${encodeURIComponent(collectionName)}/${encodeURIComponent(slug)}`,
     get: path => {
       const match = path.match(/^\/edit\/([^/]+)\/([^/]+)$/);
       if (!match) throw new Error(`Invalid edit path: ${path}`);
-      return { collectionName: match[1], slug: match[2] };
+      return {
+        collectionName: decodeSegment(match[1], `Invalid edit path: ${path}`),
+        slug: decodeSegment(match[2], `Invalid edit path: ${path}`),
+      };
     },
   },
 };

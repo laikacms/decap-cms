@@ -13,12 +13,15 @@ function getUrl(urlString: string, direct?: boolean) {
   return `${direct ? '/#' : ''}${urlString}`;
 }
 
+// Encoded the same way as `defaultRoutingTable.collection`/`entryNew` (DCMS-444):
+// `collectionName` is a dynamic segment, so it must survive spaces, `/`, `#`,
+// and unicode round-tripping through the URL bar.
 export function getCollectionUrl(collectionName: string, direct?: boolean) {
-  return getUrl(`/collections/${collectionName}`, direct);
+  return getUrl(`/collections/${encodeURIComponent(collectionName)}`, direct);
 }
 
 export function getNewEntryUrl(collectionName: string, direct?: boolean) {
-  return getUrl(`/collections/${collectionName}/new`, direct);
+  return getUrl(`/collections/${encodeURIComponent(collectionName)}/new`, direct);
 }
 
 export function addParams(urlString: string, params: Record<string, string>) {
