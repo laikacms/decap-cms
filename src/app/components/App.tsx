@@ -393,7 +393,11 @@ function AppRoutes({
           name={match.params.collectionName}
           renderNotFound={renderNotFound}
         >
-          <Editor newRecord collectionName={match.params.collectionName} />
+          <Editor
+            newRecord
+            collectionName={match.params.collectionName}
+            renderNotFound={renderNotFound}
+          />
         </CollectionGuard>
       );
     case 'entry':
@@ -403,7 +407,11 @@ function AppRoutes({
           name={match.params.collectionName}
           renderNotFound={renderNotFound}
         >
-          <Editor collectionName={match.params.collectionName} slug={match.params.slug} />
+          <Editor
+            collectionName={match.params.collectionName}
+            slug={match.params.slug}
+            renderNotFound={renderNotFound}
+          />
         </CollectionGuard>
       );
     case 'editRedirect':
@@ -472,11 +480,29 @@ function AppContent({
   const isFetching = useAppSelector(state => state.globalUI.isFetching);
   const mediaLibrary = useAppSelector(state => state.mediaLibrary);
 
+  const routeMatch = useMemo(() => matchRoute(routing, path), [routing, path]);
+  const entryRouteParams =
+    routeMatch?.key === 'entry'
+      ? (routeMatch.params as { collectionName: string; slug: string })
+      : undefined;
+
+  // A failed entry load (DCMS-445) never mounts `EditorInterface` — Editor.tsx
+  // renders `NotFoundPage` instead, which expects the normal app chrome
+  // around it, not the fullscreen editor layout `isEditorRouteKey` exists for.
+  const entryLoadFailed = useAppSelector(state =>
+    entryRouteParams && state.entries
+      ? Boolean(
+          state.entries.entities?.[`${entryRouteParams.collectionName}.${entryRouteParams.slug}`]
+            ?.error,
+        )
+      : false,
+  );
+
   // Drives whether the app-shell header mounts at all (DCMS-431) — see
   // `isEditorRouteKey`.
   const isEditorRoute = useMemo(
-    () => isEditorRouteKey(matchRoute(routing, path)?.key),
-    [routing, path],
+    () => isEditorRouteKey(routeMatch?.key) && !entryLoadFailed,
+    [routeMatch, entryLoadFailed],
   );
 
   // Derived state

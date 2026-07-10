@@ -5,6 +5,7 @@ import { Loader } from '../../../ui/default/index';
 import { useEditor } from '../../hooks/useEditor';
 import EditorInterface from './EditorInterface';
 import { useCmsSlots } from '../../lib/slots';
+import NotFoundPage from '../../../app/components/NotFoundPage';
 
 interface EditorProps {
   newRecord?: boolean;
@@ -12,9 +13,17 @@ interface EditorProps {
   collectionName: string;
   /** Entry slug; omitted for a new entry. Supplied by the route switch. */
   slug?: string;
+  /**
+   * Custom not-found renderer threaded down from `AppContent`/`AppRoutes`
+   * (the same prop `CollectionGuard` uses). Used in place of the default
+   * `NotFoundPage` when the entry fails to load (DCMS-445) — this route
+   * bypasses the app-shell chrome entirely otherwise, dead-ending the user
+   * with no way back to the collection list.
+   */
+  renderNotFound?: () => React.ReactNode;
 }
 
-function Editor({ newRecord = false, collectionName, slug }: EditorProps) {
+function Editor({ newRecord = false, collectionName, slug, renderNotFound }: EditorProps) {
   const { renderLoader } = useCmsSlots();
   const location = useLocation();
   const newEntry = newRecord === true;
@@ -109,12 +118,19 @@ function Editor({ newRecord = false, collectionName, slug }: EditorProps) {
 
   const isPublished = !newEntry && !unpublishedEntry;
 
-  // Render loading state
+  // Render the failed-load state. This route mounts under the fullscreen
+  // editor layout (which hides the app-shell top-nav, expecting
+  // `EditorInterface`'s own header instead — see `isEditorRouteKey` in
+  // `App.tsx`), so without this the user is left with zero app chrome and no
+  // in-app way back to the collection list (DCMS-445).
   if (entry && (entry as any).error) {
-    return (
-      <div>
-        <h3>{(entry as any).error}</h3>
-      </div>
+    return renderNotFound ? (
+      <>{renderNotFound()}</>
+    ) : (
+      <NotFoundPage
+        message={(entry as any).error}
+        backLink={{ to: editorBackLink, label: collection?.label ?? collectionName }}
+      />
     );
   }
 
