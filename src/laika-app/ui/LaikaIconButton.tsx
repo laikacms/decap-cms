@@ -50,6 +50,14 @@ const Button = styled('button', { shouldForwardProp: laikaShouldForwardProp })<{
     cursor: not-allowed;
   }
 
+  /* Icon (ui/default) wraps its svg in a fixed-size span; size the wrapper
+     too or the shrunken svg sits top-left inside it, off-center. */
+  > span {
+    width: ${({ $size }) => sizeMap[$size].icon};
+    height: ${({ $size }) => sizeMap[$size].icon};
+    line-height: 0;
+  }
+
   svg {
     width: ${({ $size }) => sizeMap[$size].icon};
     height: ${({ $size }) => sizeMap[$size].icon};
