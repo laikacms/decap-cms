@@ -86,7 +86,10 @@ function truthy() {
   return { error: false };
 }
 
-function isEmpty(value: unknown) {
+export function isEmpty(value: unknown) {
+  if (typeof value === 'string') {
+    return value.trim().length === 0;
+  }
   return (
     value === null ||
     value === undefined ||
