@@ -11,6 +11,7 @@ import collections, {
   getFieldsNames,
   selectField,
   updateFieldByKey,
+  selectIdentifier,
   selectInferredField,
   selectSortableFields,
   selectDefaultSortField,
@@ -612,6 +613,50 @@ describe('collections', () => {
       });
 
       expect(selectInferredField(collection, 'date')).toEqual('publishDate');
+    });
+  });
+
+  describe('selectIdentifier', () => {
+    it('should return the identifier_field if set and present', () => {
+      const collection = fromJS({
+        identifier_field: 'name',
+        fields: [{ name: 'name' }, { name: 'title' }],
+      });
+
+      expect(selectIdentifier(collection)).toEqual('name');
+    });
+
+    it('should return title if identifier_field is not set', () => {
+      const collection = fromJS({
+        fields: [{ name: 'title' }, { name: 'path' }],
+      });
+
+      expect(selectIdentifier(collection)).toEqual('title');
+    });
+
+    it('should fall back to a field named path if there is no title and no identifier_field', () => {
+      const collection = fromJS({
+        fields: [{ name: 'path' }, { name: 'body' }],
+      });
+
+      expect(selectIdentifier(collection)).toEqual('path');
+    });
+
+    it('should fall back to path if identifier_field is set but not present', () => {
+      const collection = fromJS({
+        identifier_field: 'name',
+        fields: [{ name: 'path' }, { name: 'body' }],
+      });
+
+      expect(selectIdentifier(collection)).toEqual('path');
+    });
+
+    it('should return undefined if no title, identifier_field, or path field is present', () => {
+      const collection = fromJS({
+        fields: [{ name: 'body' }],
+      });
+
+      expect(selectIdentifier(collection)).toEqual(undefined);
     });
   });
 
