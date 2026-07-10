@@ -213,7 +213,8 @@ const QuickAddButton = styled(StyledDropdownButton)`
   display: inline-flex;
   align-items: center;
   height: 36px;
-  padding: 0 16px 0 14px;
+  /* base caret sits at right: 10px and is 12px wide; keep clearance for it */
+  padding: 0 32px 0 14px;
   border-radius: 9999px;
   font-size: 14px;
   font-weight: 600;
