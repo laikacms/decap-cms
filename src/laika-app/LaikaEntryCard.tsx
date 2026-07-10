@@ -25,9 +25,13 @@ const VIEW_STYLE_LIST = 'VIEW_STYLE_LIST';
 const VIEW_STYLE_GRID = 'VIEW_STYLE_GRID';
 
 const ListCard = styled.li`
-  display: block;
+  /* Core's CardsGrid is a wrapping flex row (with margin-left: -12px);
+     claim the full row or list cards shrink-wrap side by side like grid
+     blocks. */
+  flex: 0 0 calc(100% - 12px);
+  max-width: calc(100% - 12px);
   list-style: none;
-  margin: 0 0 8px;
+  margin: 0 0 8px 12px;
 `;
 
 const ListCardLink = styled(Link)`
