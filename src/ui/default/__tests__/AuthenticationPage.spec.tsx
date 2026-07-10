@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import AuthenticationPage, { renderPageLogo } from '../AuthenticationPage';
+import { StandaloneAuthPage, renderPageLogo } from '../AuthenticationPage';
 import { colors } from '../styles';
 
 /**
@@ -46,9 +46,8 @@ describe('AuthenticationPage — default logo dark-theme contrast (DCMS-289)', (
     });
   });
 
-  it('AuthenticationPage renders the logo wrapper with an explicit themeable text color', () => {
-    const t = vi.fn((key: string) => key);
-    const { container } = render(<AuthenticationPage t={t} />);
+  it('StandaloneAuthPage renders the logo wrapper with an explicit themeable text color', () => {
+    const { container } = render(<StandaloneAuthPage>{null}</StandaloneAuthPage>);
 
     const iconWrapper = container.querySelector('span');
     expect(iconWrapper).toBeTruthy();

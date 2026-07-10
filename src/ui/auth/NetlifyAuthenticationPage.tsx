@@ -159,8 +159,6 @@ function NetlifyAuthenticationPage({
     if (errors.identity) {
       return (
         <AuthenticationPage
-          logoUrl={config.logo?.src} // Deprecated, replaced by `logo.src`
-          logo={config.logo}
           siteUrl={config.site_url}
           onLogin={handleIdentity}
           renderPageContent={() => (
@@ -178,8 +176,6 @@ function NetlifyAuthenticationPage({
     }
     return (
       <AuthenticationPage
-        logoUrl={config.logo?.src} // Deprecated, replaced by `logo.src`
-        logo={config.logo}
         siteUrl={config.site_url}
         onLogin={handleIdentity}
         renderButtonContent={() => t('auth.loginWithNetlifyIdentity')}
@@ -190,8 +186,6 @@ function NetlifyAuthenticationPage({
 
   return (
     <AuthenticationPage
-      logoUrl={config.logo?.src} // Deprecated, replaced by `logo.src`
-      logo={config.logo}
       siteUrl={config.site_url}
       renderPageContent={() => (
         <AuthForm onSubmit={handleLogin}>

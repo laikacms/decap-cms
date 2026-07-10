@@ -81,8 +81,6 @@ export default function AzureAuthenticationPage({
       onLogin={handleLogin}
       loginDisabled={inProgress}
       loginErrorMessage={loginError}
-      logoUrl={config.logo?.src}
-      logo={config.logo}
       renderButtonContent={() => (
         <React.Fragment>
           <LoginButtonIcon type="azure" />

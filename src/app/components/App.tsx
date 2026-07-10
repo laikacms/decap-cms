@@ -3,7 +3,7 @@ import { useTranslate } from 'react-polyglot';
 import styled from '@emotion/styled';
 import TopBarProgress from 'react-topbar-progress-indicator';
 
-import { Loader, colorsDefaults } from '../../ui/default/index';
+import { Loader, StandaloneAuthPage, colorsDefaults } from '../../ui/default/index';
 import { useAppSelector, useAppDispatch } from '../../core/hooks/useRedux';
 import { loginUser, logoutUser } from '../../core/actions/auth';
 import { currentBackend } from '../../core/backend';
@@ -591,17 +591,21 @@ function AppContent({
     return (
       <div>
         {renderNotifications ? renderNotifications() : <Notifications />}
-        <AuthComponent
-          onLogin={handleLogin}
-          error={auth.error}
-          inProgress={auth.isFetching}
-          siteId={config?.backend?.site_domain}
-          base_url={config?.backend?.base_url}
-          authEndpoint={config?.backend?.auth_endpoint}
-          config={config}
-          clearHash={handleClearHash}
-          t={t}
-        />
+        {/* Auth components are content-only; the default page supplies the
+            standalone chrome (brand logo, centering, credit). */}
+        <StandaloneAuthPage logoUrl={config?.logo_url} logo={config?.logo}>
+          <AuthComponent
+            onLogin={handleLogin}
+            error={auth.error}
+            inProgress={auth.isFetching}
+            siteId={config?.backend?.site_domain}
+            base_url={config?.backend?.base_url}
+            authEndpoint={config?.backend?.auth_endpoint}
+            config={config}
+            clearHash={handleClearHash}
+            t={t}
+          />
+        </StandaloneAuthPage>
       </div>
     );
   }, [

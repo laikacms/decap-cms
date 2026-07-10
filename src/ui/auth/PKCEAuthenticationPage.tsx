@@ -179,8 +179,6 @@ export default function PKCEAuthenticationPage({
       onLogin={handleLogin}
       loginDisabled={inProgress}
       loginErrorMessage={loginError}
-      logoUrl={config.logo?.src} // Deprecated, replaced by `logo.src`
-      logo={config.logo}
       siteUrl={config.site_url}
       renderButtonContent={() => (
         <React.Fragment>

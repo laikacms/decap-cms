@@ -159,8 +159,6 @@ export default function GitHubAuthenticationPage({
       onLogin={handleLogin}
       loginDisabled={inProgress || findingFork || requestingFork}
       loginErrorMessage={loginError}
-      logoUrl={config.logo?.src}
-      logo={config.logo}
       siteUrl={config.site_url}
       {...getAuthenticationPageRenderArgs()}
       t={t}

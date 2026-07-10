@@ -108,8 +108,6 @@ export default function BitbucketAuthenticationPage({
       onLogin={handleLogin}
       loginDisabled={inProgress}
       loginErrorMessage={loginError}
-      logoUrl={config.logo?.src}
-      logo={config.logo}
       siteUrl={config.site_url}
       renderButtonContent={() => (
         <React.Fragment>

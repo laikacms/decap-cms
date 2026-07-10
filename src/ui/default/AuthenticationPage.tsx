@@ -7,13 +7,27 @@ import GoBackButton from './GoBackButton';
 
 import type { TranslateFunction } from './GoBackButton';
 
+/**
+ * `AuthenticationPage` is content-only: the login error, the optional page
+ * content, the login button, and the go-back link. It never renders page
+ * chrome (brand logo, Decap credit, full-page centering) — that belongs to
+ * whatever hosts it: `StandaloneAuthPage` below on the default `app` path,
+ * or a custom `renderAuth` shell like laika-app's auth card.
+ */
 const StyledAuthenticationPage = styled.section`
   display: flex;
   flex-flow: column nowrap;
   align-items: center;
+  gap: 20px;
+`;
+
+const StyledStandaloneAuthPage = styled.section`
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
   justify-content: center;
+  min-height: 100vh;
   gap: 50px;
-  height: 100vh;
 `;
 
 const CustomIconWrapper = styled.span`
@@ -97,8 +111,6 @@ export interface AuthenticationPageProps {
   loginErrorMessage?: React.ReactNode;
   renderButtonContent?: () => React.ReactNode;
   renderPageContent?: (props: PageContentRenderProps) => React.ReactNode;
-  logoUrl?: string; // Deprecated, replaced by `logo.src`
-  logo?: LogoConfig;
   siteUrl?: string;
   t: TranslateFunction;
 }
@@ -109,12 +121,9 @@ function AuthenticationPage({
   loginErrorMessage,
   renderButtonContent,
   renderPageContent,
-  logoUrl, // Deprecated, replaced by `logo.src`
-  logo,
   siteUrl,
   t,
 }: AuthenticationPageProps): React.ReactElement {
-  const authLogoUrl = logoUrl || logo?.src;
   const handleLogin = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (onLogin) {
       e.preventDefault();
@@ -123,7 +132,6 @@ function AuthenticationPage({
   };
   return (
     <StyledAuthenticationPage>
-      {renderPageLogo(authLogoUrl)}
       {loginErrorMessage ? <p>{loginErrorMessage}</p> : null}
       {!renderPageContent
         ? null
@@ -134,9 +142,32 @@ function AuthenticationPage({
         </LoginButton>
       )}
       {siteUrl && <GoBackButton href={siteUrl} t={t} />}
-      {authLogoUrl ? <NetlifyCreditIcon size="100px" type="decap" /> : null}
     </StyledAuthenticationPage>
   );
 }
 
-export { AuthenticationPage as default, renderPageLogo, LoginButton, TextButton };
+export interface StandaloneAuthPageProps {
+  logoUrl?: string; // Deprecated, replaced by `logo.src`
+  logo?: LogoConfig;
+  children: React.ReactNode;
+}
+
+/**
+ * Full-page chrome around a backend's (content-only) auth component: viewport
+ * centering, the brand logo from config (falling back to the Decap logo), and
+ * the Decap credit when a custom logo displaces it. The default `app` auth
+ * path wraps `AuthComponent` with this; custom `renderAuth` shells supply
+ * their own chrome instead.
+ */
+function StandaloneAuthPage({ logoUrl, logo, children }: StandaloneAuthPageProps): React.ReactElement {
+  const authLogoUrl = logoUrl || logo?.src;
+  return (
+    <StyledStandaloneAuthPage>
+      {renderPageLogo(authLogoUrl)}
+      {children}
+      {authLogoUrl ? <NetlifyCreditIcon size="100px" type="decap" /> : null}
+    </StyledStandaloneAuthPage>
+  );
+}
+
+export { AuthenticationPage as default, StandaloneAuthPage, renderPageLogo, LoginButton, TextButton };

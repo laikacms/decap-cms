@@ -10,7 +10,7 @@ import Loader from './Loader';
 import FieldLabel from './FieldLabel';
 import IconButton from './IconButton';
 import Toggle, { ToggleContainer, ToggleBackground, ToggleHandle } from './Toggle';
-import AuthenticationPage, { renderPageLogo } from './AuthenticationPage';
+import AuthenticationPage, { StandaloneAuthPage, renderPageLogo } from './AuthenticationPage';
 import WidgetPreviewContainer from './WidgetPreviewContainer';
 import ObjectWidgetTopBar, { type TranslateFunction } from './ObjectWidgetTopBar';
 import GoBackButton from './GoBackButton';
@@ -92,6 +92,7 @@ export {
   ToggleBackground,
   ToggleHandle,
   AuthenticationPage,
+  StandaloneAuthPage,
   WidgetPreviewContainer,
   ObjectWidgetTopBar,
   fonts,

@@ -5,17 +5,13 @@ import { Icon, buttons, shadows, GoBackButton } from '../../ui/default/index';
 
 import type { TranslateFunction } from '../../ui/default/index';
 
+// Content-only (no logo / page centering): the standalone chrome comes from
+// the host — `StandaloneAuthPage` on the default app path, or a custom shell.
 const StyledAuthenticationPage = styled.section`
   display: flex;
   flex-flow: column nowrap;
   align-items: center;
-  justify-content: center;
-  gap: 50px;
-  height: 100vh;
-`;
-
-const PageLogoIcon = styled(Icon)`
-  height: auto;
+  gap: 20px;
 `;
 
 const LoginButton = styled.button`
@@ -74,7 +70,6 @@ export default function AuthenticationPage({
 
   return (
     <StyledAuthenticationPage>
-      <PageLogoIcon size="300px" type="decap" />
       <LoginButton disabled={inProgress} onClick={handleLogin}>
         {inProgress ? t('auth.loggingIn') : t('auth.login')}
       </LoginButton>
