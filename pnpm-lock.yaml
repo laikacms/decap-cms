@@ -203,12 +203,18 @@ catalogs:
     '@portabletext/editor':
       specifier: ^6.6.4
       version: 6.6.5
+    '@portabletext/html':
+      specifier: ^1.1.0
+      version: 1.1.0
     '@portabletext/markdown':
       specifier: ^1.2.0
       version: 1.4.1
     '@portabletext/react':
       specifier: ^6.2.0
       version: 6.2.0
+    '@portabletext/to-html':
+      specifier: ^5.0.2
+      version: 5.0.2
     '@portabletext/types':
       specifier: ^4.0.2
       version: 4.0.2
@@ -506,12 +512,18 @@ importers:
       '@portabletext/editor':
         specifier: catalog:portabletext
         version: 6.6.5(@types/react@19.2.14)(react@19.2.4)
+      '@portabletext/html':
+        specifier: catalog:portabletext
+        version: 1.1.0
       '@portabletext/markdown':
         specifier: catalog:portabletext
         version: 1.4.1
       '@portabletext/react':
         specifier: catalog:portabletext
         version: 6.2.0(react@19.2.4)
+      '@portabletext/to-html':
+        specifier: catalog:portabletext
+        version: 5.0.2
       '@portabletext/types':
         specifier: catalog:portabletext
         version: 4.0.2
@@ -2108,8 +2120,8 @@ packages:
     peerDependencies:
       react: ^19.2.3
 
-  '@portabletext/html@1.0.3':
-    resolution: {integrity: sha512-O7kHWwJKGK9iBw29Qk4qyklVPmGE2CdYAY1RlJWFV7JLxxFhrvxKq/tbGcg+FRUjnxTqrxxEAkmIcGWDAQX53A==}
+  '@portabletext/html@1.1.0':
+    resolution: {integrity: sha512-5+gl7vuB0xHuKcEnT0aI4w8/Ob4xa1zNnxNgOJ3u5flV20wIzFbFYlWa1+LTA21jMQwoGExg7T+cnelnnDO9kQ==}
     engines: {node: '>=20.19 <22 || >=22.12'}
 
   '@portabletext/keyboard-shortcuts@2.1.2':
@@ -2132,6 +2144,10 @@ packages:
 
   '@portabletext/schema@2.2.1':
     resolution: {integrity: sha512-sreO5HzSc+PDMiYFv4lyh+zpSLp3CFPkyW3gQA2PJ3RQ05pHL7Nbdoopn4B1RvgBPsb1EnmtsUTNcj3VtTLhiA==}
+    engines: {node: '>=20.19 <22 || >=22.12'}
+
+  '@portabletext/schema@2.2.2':
+    resolution: {integrity: sha512-nQ9g0c1RJZyObLsuNWecIgYl69Irimpf+m9g+u26mhtUFxS4kc6fjqZWtiJUowC5nUGIkjg+Pnr36WGxCE/65g==}
     engines: {node: '>=20.19 <22 || >=22.12'}
 
   '@portabletext/to-html@5.0.2':
@@ -7496,7 +7512,7 @@ snapshots:
 
   '@portabletext/editor@6.6.5(@types/react@19.2.14)(react@19.2.4)':
     dependencies:
-      '@portabletext/html': 1.0.3
+      '@portabletext/html': 1.1.0
       '@portabletext/keyboard-shortcuts': 2.1.2
       '@portabletext/markdown': 1.4.1
       '@portabletext/patches': 2.0.4
@@ -7511,9 +7527,9 @@ snapshots:
       - '@types/react'
       - supports-color
 
-  '@portabletext/html@1.0.3':
+  '@portabletext/html@1.1.0':
     dependencies:
-      '@portabletext/schema': 2.2.1
+      '@portabletext/schema': 2.2.2
       '@vercel/stega': 1.1.0
 
   '@portabletext/keyboard-shortcuts@2.1.2': {}
@@ -7536,6 +7552,8 @@ snapshots:
       react: 19.2.4
 
   '@portabletext/schema@2.2.1': {}
+
+  '@portabletext/schema@2.2.2': {}
 
   '@portabletext/to-html@5.0.2':
     dependencies:

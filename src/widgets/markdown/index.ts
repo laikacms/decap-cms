@@ -1,6 +1,9 @@
 import {
   createRichtextValue,
+  htmlMapper,
   markdownMapper,
+  plainTextMapper,
+  portableTextMapper,
   registerMapper,
   RichtextValue,
 } from '../../lib/richtext/index';
@@ -8,10 +11,13 @@ import MarkdownControl from './MarkdownControl';
 import MarkdownPreview from './MarkdownPreview';
 import { schema } from './schema';
 
-// Register the one Portable Text mapper so `RichtextValue` can resolve the
-// `markdown` format on construction. Module-load side effect: the widget is
-// always imported before its control/serializer build a `RichtextValue`.
+// Register the bundled Portable Text mappers so `RichtextValue` can resolve
+// any of their formats on construction. Module-load side effect: the widget
+// is always imported before its control/serializer build a `RichtextValue`.
 registerMapper(markdownMapper);
+registerMapper(htmlMapper);
+registerMapper(plainTextMapper);
+registerMapper(portableTextMapper);
 
 /**
  * Decap widget descriptor for the `markdown` widget — the dropped-widget
