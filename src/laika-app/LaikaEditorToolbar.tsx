@@ -10,7 +10,7 @@ import { LaikaButton, LaikaBadge } from './ui';
 
 import type { LaikaBadgeIntent } from './ui';
 import type { TranslateFunction } from '../ui/default/index';
-import type { EditorToolbarRenderProps } from '../core/index';
+import type { EditorToolbarRenderProps } from '../app/components/index';
 
 /**
  * Laika-styled editor toolbar. Slotted into core's `EditorInterface` via the

@@ -22,7 +22,7 @@ import { useLaikaShell, LAIKA_BREAKPOINT_MOBILE } from './LaikaShellContext';
 import { LaikaIconButton } from './ui';
 
 import type { TranslateFunction } from '../ui/default/index';
-import type { AppHeaderRenderProps } from '../core/components/App/App';
+import type { AppHeaderRenderProps } from '../app/components/App';
 
 /**
  * Laika-styled top app bar. Same surface area as the default Decap header —

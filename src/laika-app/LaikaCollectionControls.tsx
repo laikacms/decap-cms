@@ -10,7 +10,7 @@ import GroupControl from '../core/components/Collection/GroupControl';
 import { LaikaIconButton } from './ui';
 
 import type { TranslateFunction } from '../ui/default/index';
-import type { CollectionControlsRenderProps } from '../core/index';
+import type { CollectionControlsRenderProps } from '../app/components/index';
 
 /**
  * Laika-styled toolbar for collection listings. Re-uses core's Sort/Filter/

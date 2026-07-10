@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { App as DefaultApp } from '../core/index';
+import { App as DefaultApp } from '../app/components/index';
 import LaikaHeader from './LaikaHeader';
 import LaikaLayout from './LaikaLayout';
 import LaikaAuthenticationPage from './LaikaAuthenticationPage';
@@ -34,13 +34,13 @@ import type {
   EditorViewControlsRenderProps,
   EntryCardRenderProps,
   EntryListEmptyRenderProps,
-  ErrorBoundaryRenderProps,
   ExtraRoute,
   LoaderRenderProps,
   MediaLibraryCardRenderProps,
   MediaLibraryTopRenderProps,
   WorkflowCardRenderProps,
-} from '../core/index';
+} from '../app/components/index';
+import type { ErrorBoundaryRenderProps } from '../core/index';
 
 /**
  * Drop-in replacement for the default Decap `App`. Composes core's `App`

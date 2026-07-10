@@ -12,7 +12,7 @@ import { LaikaBadge } from './ui';
 import { laikaShouldForwardProp } from './ui/styled-utils';
 
 import type { LaikaBadgeIntent } from './ui';
-import type { EntryCardRenderProps } from '../core/index';
+import type { EntryCardRenderProps } from '../app/components/index';
 
 /**
  * Laika-styled entry card. Renders inside core's `EntryListing` via the

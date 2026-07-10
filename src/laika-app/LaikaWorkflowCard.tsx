@@ -8,7 +8,7 @@ import { colors } from '../ui/default/index';
 import { LaikaCard, LaikaButton, LaikaBadge } from './ui';
 
 import type { TranslateFunction } from '../ui/default/index';
-import type { WorkflowCardRenderProps } from '../core/index';
+import type { WorkflowCardRenderProps } from '../app/components/index';
 
 /**
  * Laika-styled editorial-workflow card. Replaces core's `WorkflowCard` via

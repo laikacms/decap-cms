@@ -6,7 +6,7 @@ import React from 'react';
 // slot/render-prop merging logic without mounting the entire CMS.
 const capturedProps: { current: any } = { current: null };
 
-vi.mock('../../core/index', () => ({
+vi.mock('../../app/components/index', () => ({
   App: function DefaultApp(props: any) {
     capturedProps.current = props;
     return null;
