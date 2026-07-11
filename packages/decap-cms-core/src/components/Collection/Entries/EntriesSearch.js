@@ -40,7 +40,7 @@ class EntriesSearch extends React.Component {
     if (prevProps.searchTerm === searchTerm && isEqual(prevProps.collectionNames, collectionNames))
       return;
 
-    const { searchEntries } = prevProps;
+    const { searchEntries } = this.props;
     searchEntries(searchTerm, collectionNames);
   }
 
