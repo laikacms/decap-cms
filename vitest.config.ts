@@ -37,7 +37,6 @@ export default defineConfig({
     // package aliases. Without this, Vite's lazy dep optimizer encounters them
     // mid-module-graph and deadlocks waiting for optimization to complete.
     include: [
-      'js-sha256',
       'lodash',
       'lodash/fp',
       'node-fetch',
