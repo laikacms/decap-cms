@@ -157,7 +157,7 @@ const tr = {
       deployButtonLabel: 'Canlı Görüntüle',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         bold: 'Kalın',
         italic: 'İtalik',
         code: 'Kod',

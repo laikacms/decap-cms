@@ -152,7 +152,7 @@ const pl = {
       deployButtonLabel: 'Zobacz na żywo',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         bold: 'Pogrubienie',
         italic: 'Kursywa',
         code: 'Kod',

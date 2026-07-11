@@ -5,16 +5,16 @@ import { type PortableTextDocument, RichtextValue } from '../../lib/richtext/ind
 import type { ReactNode } from 'react';
 
 
-interface MarkdownPreviewProps {
+interface RichtextPreviewProps {
   value?: string | RichtextValue;
 }
 
 /**
- * Decap preview pane for the markdown widget. Reuses `@portabletext/react` for
+ * Decap preview pane for the richtext widget. Reuses `@portabletext/react` for
  * the actual render — the same library Sanity uses, so what authors see here
  * matches what most portable-text-consuming sites produce.
  */
-export function MarkdownPreview({ value }: MarkdownPreviewProps): ReactNode {
+export function RichtextPreview({ value }: RichtextPreviewProps): ReactNode {
   if (value === undefined || value === null) return null;
   const doc: PortableTextDocument = value instanceof RichtextValue ? value.portableText : [];
   if (doc.length === 0) return null;
@@ -48,4 +48,4 @@ const components: PortableTextComponents = {
   },
 };
 
-export default MarkdownPreview;
+export default RichtextPreview;

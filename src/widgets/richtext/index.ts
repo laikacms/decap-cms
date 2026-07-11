@@ -1,38 +1,32 @@
 import {
   createRichtextValue,
-  htmlMapper,
   markdownMapper,
-  plainTextMapper,
-  portableTextMapper,
   registerMapper,
   RichtextValue,
 } from '../../lib/richtext/index';
-import MarkdownControl from './MarkdownControl';
-import MarkdownPreview from './MarkdownPreview';
+import RichtextControl from './RichtextControl';
+import RichtextPreview from './RichtextPreview';
 import { schema } from './schema';
 
-// Register the bundled Portable Text mappers so `RichtextValue` can resolve
-// any of their formats on construction. Module-load side effect: the widget
-// is always imported before its control/serializer build a `RichtextValue`.
+// Register the one Portable Text mapper so `RichtextValue` can resolve the
+// `markdown` format on construction. Module-load side effect: the widget is
+// always imported before its control/serializer build a `RichtextValue`.
 registerMapper(markdownMapper);
-registerMapper(htmlMapper);
-registerMapper(plainTextMapper);
-registerMapper(portableTextMapper);
 
 /**
- * Decap widget descriptor for the `markdown` widget — the dropped-widget
+ * Decap widget descriptor for the `richtext` widget — the dropped-widget
  * replacement (superstar OD-1). Backed by `@portabletext/editor` via the one
  * Portable Text markdown mapper.
  *
  * The control's value is a `RichtextValue`; the expensive `toString()` runs
  * once at persist time through {@link valueSerializer}, registered via
- * `CMS.registerWidgetValueSerializer('markdown', valueSerializer)`.
+ * `CMS.registerWidgetValueSerializer('richtext', valueSerializer)`.
  */
 function Widget(opts = {}) {
   return {
-    name: 'markdown',
-    controlComponent: MarkdownControl,
-    previewComponent: MarkdownPreview,
+    name: 'richtext',
+    controlComponent: RichtextControl,
+    previewComponent: RichtextPreview,
     schema,
     allowMapValue: true,
     ...opts,
@@ -40,7 +34,7 @@ function Widget(opts = {}) {
 }
 
 /**
- * Decap value serializer for the `markdown` widget.
+ * Decap value serializer for the `richtext` widget.
  *
  * - `deserialize` runs on entry load: stored markdown string → `RichtextValue`.
  * - `serialize` runs on persist: `RichtextValue` → markdown string (the single
@@ -57,13 +51,13 @@ const valueSerializer = {
   },
 };
 
-export const DecapCmsWidgetMarkdown = {
+export const DecapCmsWidgetRichtext = {
   Widget,
-  controlComponent: MarkdownControl,
-  previewComponent: MarkdownPreview,
+  controlComponent: RichtextControl,
+  previewComponent: RichtextPreview,
   valueSerializer,
 };
 
-export { MarkdownControl, MarkdownPreview, schema, Widget, valueSerializer };
+export { RichtextControl, RichtextPreview, schema, Widget, valueSerializer };
 
-export default DecapCmsWidgetMarkdown;
+export default DecapCmsWidgetRichtext;

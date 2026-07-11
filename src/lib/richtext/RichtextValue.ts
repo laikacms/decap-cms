@@ -19,7 +19,7 @@ export interface RichtextValueOptions {
 /**
  * A lazy rich-text value.
  *
- * This is the editor-agnostic object the markdown widget stores as its field
+ * This is the editor-agnostic object the richtext widget stores as its field
  * value. The expensive serialised string is produced only when `toString()` /
  * `toJSON()` is called — which the decap value-serializer pipeline does once,
  * at persist time — not on every keystroke.

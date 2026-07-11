@@ -6,7 +6,7 @@ export * from './file.js';
 export * from './hidden.js';
 export * from './list.js';
 export * from './map.js';
-export * from './markdown.js';
+export * from './richtext.js';
 export * from './number.js';
 export * from './object.js';
 export * from './relation.js';

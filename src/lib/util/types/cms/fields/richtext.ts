@@ -1,4 +1,4 @@
-export type CmsMarkdownWidgetButton =
+export type CmsRichtextWidgetButton =
   | 'bold'
   | 'italic'
   | 'code'
@@ -14,12 +14,12 @@ export type CmsMarkdownWidgetButton =
   | 'bulleted-list'
   | 'numbered-list';
 
-export interface CmsFieldMarkdown {
-  widget: 'markdown';
+export interface CmsFieldRichtext {
+  widget: 'richtext';
   default?: string;
 
   minimal?: boolean;
-  buttons?: CmsMarkdownWidgetButton[];
+  buttons?: CmsRichtextWidgetButton[];
   editor_components?: string[];
   modes?: ('raw' | 'rich_text')[];
 

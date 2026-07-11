@@ -294,7 +294,7 @@ catalogs:
     "@lexical/text": "^0.42.0"
     "@lexical/utils": "^0.42.0"
 
-  # Portable Text editor stack (the `markdown` widget — replaces the dropped
+  # Portable Text editor stack (the `richtext` widget — replaces the dropped
   # widget-markdown; backs the rich-text editor via Sanity's PT editor).
   portabletext:
     "@portabletext/editor": "^6.6.4"
@@ -304,6 +304,6 @@ catalogs:
     "@portabletext/html": "^1.1.0"
     "@portabletext/to-html": "^5.0.2"
 
-  # Icons (lucide-react — markdown widget toolbar).
+  # Icons (lucide-react — richtext widget toolbar).
   icons:
     "lucide-react": "^1.7.0"

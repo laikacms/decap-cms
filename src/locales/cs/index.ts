@@ -155,7 +155,7 @@ const cs = {
       deployButtonLabel: 'Zobrazit na webu',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         bold: 'Tučně',
         italic: 'Kurzíva',
         code: 'Kód',

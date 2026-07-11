@@ -53,7 +53,7 @@ describe('config', () => {
         preview_path: 'docs/{{slug}}'
         fields:
           - { label: Title, name: title }
-          - { label: Body, name: body, widget: markdown }
+          - { label: Body, name: body, widget: richtext }
       collections:
         - <<: *docs_collection
           name: docs_start
@@ -78,7 +78,7 @@ describe('config', () => {
           preview_path: 'docs/{{slug}}',
           fields: [
             { label: 'Title', name: 'title' },
-            { label: 'Body', name: 'body', widget: 'markdown' },
+            { label: 'Body', name: 'body', widget: 'richtext' },
           ],
         },
         collections: [
@@ -88,7 +88,7 @@ describe('config', () => {
             preview_path: 'docs/{{slug}}',
             fields: [
               { label: 'Title', name: 'title' },
-              { label: 'Body', name: 'body', widget: 'markdown' },
+              { label: 'Body', name: 'body', widget: 'richtext' },
             ],
             name: 'docs_start',
             label: 'Docs: Quick Start',
@@ -461,7 +461,7 @@ describe('config', () => {
                     file: 'src/file.json',
                     fields: [
                       {
-                        widget: 'markdown',
+                        widget: 'richtext',
                         editorComponents: ['code'],
                       },
                       {
@@ -514,7 +514,7 @@ describe('config', () => {
                 file: 'src/file.json',
                 fields: [
                   {
-                    widget: 'markdown',
+                    widget: 'richtext',
                     editor_components: ['code'],
                     editorComponents: ['code'],
                   },

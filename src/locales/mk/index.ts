@@ -156,7 +156,7 @@ const mk = {
       deployButtonLabel: 'Прикажи во живо',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         bold: 'Задебелено',
         italic: 'Косо',
         code: 'Код',

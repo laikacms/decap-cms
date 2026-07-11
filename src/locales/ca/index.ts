@@ -148,7 +148,7 @@ const ca = {
       deployButtonLabel: 'Veure publicació',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         bold: 'Negreta',
         italic: 'Cursiva',
         code: 'Codi',

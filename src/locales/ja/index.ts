@@ -152,7 +152,7 @@ const ja = {
       deployButtonLabel: 'ライブで見る',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         bold: '太字',
         italic: '斜体',
         code: 'コード',

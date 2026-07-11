@@ -127,7 +127,7 @@ const nn_no = {
       deployButtonLabel: 'Sjå i produksjon',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         richText: 'Rik-tekst',
         markdown: 'Markdown',
       },

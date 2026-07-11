@@ -145,7 +145,7 @@ const ua = {
       deployButtonLabel: 'Перегляд',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         bold: 'Напівжирний',
         italic: 'Курсив',
         code: 'Код',

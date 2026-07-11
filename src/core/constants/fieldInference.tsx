@@ -39,7 +39,7 @@ export const INFERABLE_FIELDS = {
   },
   description: {
     type: 'string',
-    secondaryTypes: ['text', 'markdown'],
+    secondaryTypes: ['text', 'richtext'],
     synonyms: [
       'shortDescription',
       'short_description',

@@ -135,7 +135,7 @@ const vi = {
       deployButtonLabel: 'Xem bản hoàn chỉnh',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         richText: 'Văn bản định dạng',
         markdown: 'Markdown',
       },

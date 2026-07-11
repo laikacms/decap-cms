@@ -1,5 +1,5 @@
 /**
- * Field-level JSON schema for the `markdown` widget. Decap reads this when
+ * Field-level JSON schema for the `richtext` widget. Decap reads this when
  * validating CMS configs.
  */
 export const schema = {

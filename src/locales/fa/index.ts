@@ -144,7 +144,7 @@ const fa = {
       deployButtonLabel: 'مشاهده زنده',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         bold: 'پررنگ',
         italic: 'کج',
         code: 'کد',

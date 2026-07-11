@@ -153,7 +153,7 @@ const ko = {
       deployButtonLabel: '라이브 보기',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         bold: '굵은체',
         italic: '기울임체',
         code: '코드',

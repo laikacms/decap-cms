@@ -154,7 +154,7 @@ const sl = {
       deployButtonLabel: 'Pogled v živo',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         bold: 'Debelo',
         italic: 'Poševno',
         code: 'Koda',

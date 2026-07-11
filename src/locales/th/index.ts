@@ -155,7 +155,7 @@ const th = {
       deployButtonLabel: 'ดูตัวอย่างจากหน้าจริง',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         bold: 'ตัวหนา',
         italic: 'ตัวเอียง',
         code: 'โคด',

@@ -150,7 +150,7 @@ const ro = {
       deployButtonLabel: 'Vezi publicarea',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         bold: 'Bold',
         italic: 'Italic',
         code: 'Cod sursă',

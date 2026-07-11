@@ -33,13 +33,13 @@ describe('EditorPreviewPane.getWidget valueIsInMap heuristic', () => {
 
   it('passes a RichtextValue instance through unchanged when the widget sets allowMapValue: true', () => {
     registerWidget({
-      name: 'markdown-test-allow-map',
+      name: 'richtext-test-allow-map',
       controlComponent: NoopControl,
       previewComponent: NoopPreview,
       allowMapValue: true,
     });
 
-    const field = { name: 'body', widget: 'markdown-test-allow-map' } as CmsEntryField;
+    const field = { name: 'body', widget: 'richtext-test-allow-map' } as CmsEntryField;
     const value = createRichtextValue('# Hello', { hint: 'markdown' });
 
     const element = getWidget(field, value, {}, baseProps) as React.ReactElement<{
@@ -53,12 +53,12 @@ describe('EditorPreviewPane.getWidget valueIsInMap heuristic', () => {
 
   it('unwraps the value to undefined for a plain-object-holding widget without allowMapValue (regression guard)', () => {
     registerWidget({
-      name: 'markdown-test-no-allow-map',
+      name: 'richtext-test-no-allow-map',
       controlComponent: NoopControl,
       previewComponent: NoopPreview,
     });
 
-    const field = { name: 'body', widget: 'markdown-test-no-allow-map' } as CmsEntryField;
+    const field = { name: 'body', widget: 'richtext-test-no-allow-map' } as CmsEntryField;
     const value = createRichtextValue('# Hello', { hint: 'markdown' });
 
     const element = getWidget(field, value, {}, baseProps) as React.ReactElement<{

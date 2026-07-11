@@ -129,7 +129,7 @@ const es = {
       deployButtonLabel: 'Ver publicación',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         richText: 'Texto enriquecido',
         markdown: 'Markdown',
       },

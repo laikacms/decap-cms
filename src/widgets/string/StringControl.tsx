@@ -18,7 +18,7 @@ interface StringControlProps {
 
 // NOTE: Tracking the selection manually prevents the cursor from jumping to
 // the end of the text for nested inputs (e.g. alt text on a block image
-// inside a markdown widget). See:
+// inside a richtext widget). See:
 // https://github.com/decaporg/decap-cms/issues/4539
 // https://github.com/decaporg/decap-cms/issues/3578
 export default function StringControl({

@@ -7,7 +7,7 @@ import type { PortableTextDocument } from './portable-text';
  * `Mapper` is an interface so multiple serializers for the same logical
  * format can coexist. A field's `format` property references a mapper by `id`.
  *
- * The decap markdown widget ships exactly one of these — the markdown mapper.
+ * The decap richtext widget ships exactly one of these — the markdown mapper.
  */
 export interface Mapper {
   /** Unique id, referenced by a field's `format` property. */

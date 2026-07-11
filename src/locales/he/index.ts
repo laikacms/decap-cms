@@ -151,7 +151,7 @@ const he = {
       deployButtonLabel: 'צפייה באתר',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         bold: 'מודגש',
         italic: 'נטוי',
         code: 'קוד',

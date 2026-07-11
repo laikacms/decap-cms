@@ -144,7 +144,7 @@ const hr = {
       deployButtonLabel: 'Pogledaj na produkciji',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         bold: 'Podebljano',
         italic: 'Kurziv',
         code: 'Kod',

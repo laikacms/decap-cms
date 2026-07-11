@@ -158,7 +158,7 @@ const de = {
       deployButtonLabel: 'Live ansehen',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         bold: 'Fett',
         italic: 'Kursiv',
         code: 'Code',

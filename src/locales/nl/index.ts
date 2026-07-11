@@ -147,7 +147,7 @@ const nl = {
       deployButtonLabel: 'Bekijk Live',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         bold: 'Vet',
         italic: 'Cursief',
         code: 'Code',

@@ -154,7 +154,7 @@ interface PortableTextEditorViewProps {
 }
 
 /**
- * The Decap markdown widget mounts this view inside its control. It owns the
+ * The Decap richtext widget mounts this view inside its control. It owns the
  * `EditorProvider`, subscribes to the editor's `mutation` event stream to
  * mirror snapshots upward, and renders a minimal toolbar above the editable
  * surface.

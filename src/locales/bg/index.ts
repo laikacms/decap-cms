@@ -149,7 +149,7 @@ const bg = {
       deployButtonLabel: 'Изглед',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         bold: 'Удебелен',
         italic: 'Курсив',
         code: 'Код',

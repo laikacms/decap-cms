@@ -139,7 +139,7 @@ const uk = {
       deployButtonLabel: 'Переглянути наживо',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         bold: 'Напівжирний',
         italic: 'Курсив',
         code: 'Код',

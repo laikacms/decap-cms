@@ -153,7 +153,7 @@ const da = {
       deployButtonLabel: 'Vis live',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         bold: 'Fed',
         italic: 'Kursiv',
         code: 'Kode',

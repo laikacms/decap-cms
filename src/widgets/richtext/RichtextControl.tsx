@@ -8,34 +8,34 @@ import { PortableTextEditorView } from './PortableTextEditorView';
  * plain object (immutable removal — DCMS-263), so `format`/`placeholder` are
  * read as plain props, NOT via `field.get(...)`.
  */
-interface MarkdownField {
+interface RichtextField {
   format?: string;
   placeholder?: string;
 }
 
-interface MarkdownControlProps {
+interface RichtextControlProps {
   /** Stored field value: either a raw string or a live `RichtextValue`. */
   value?: string | RichtextValue;
   /** The field's schema bag — we read `format` and `placeholder`. */
-  field?: MarkdownField;
+  field?: RichtextField;
   /** Called with the (mutated) `RichtextValue` on every editor change. */
   onChange: (value: RichtextValue) => void;
 }
 
 /**
  * Decap CMS control wrapping `@portabletext/editor`, registered as the
- * `markdown` widget.
+ * `richtext` widget.
  *
  * Builds a `RichtextValue` from the stored string on first render, hands the
  * canonical PT to `PortableTextEditorView`, and writes the editor's PT back
  * onto the proxy whenever the user types — so `toString()` (the expensive
  * serialise step) only fires at persist time via the widget value serializer.
  */
-export function MarkdownControl({
+export function RichtextControl({
   value,
   field,
   onChange,
-}: MarkdownControlProps): ReactNode {
+}: RichtextControlProps): ReactNode {
   const hint = field?.format ?? 'markdown';
   const placeholder = field?.placeholder;
 
@@ -62,4 +62,4 @@ export function MarkdownControl({
   );
 }
 
-export default MarkdownControl;
+export default RichtextControl;

@@ -2,18 +2,18 @@ import { describe, expect, it } from 'vitest';
 
 import { RichtextValue } from '../../../lib/richtext/index';
 // Importing the widget registers the markdown mapper as a load-time side effect.
-import DecapCmsWidgetMarkdown from '../index';
+import DecapCmsWidgetRichtext from '../index';
 
-const { valueSerializer } = DecapCmsWidgetMarkdown;
+const { valueSerializer } = DecapCmsWidgetRichtext;
 const norm = (s: string) => s.replace(/\s+/g, ' ').trim();
 
 /**
- * The `markdown` widget (DCMS-252 Portable Text editor) persists a lazy
+ * The `richtext` widget (DCMS-252 Portable Text editor) persists a lazy
  * `RichtextValue`. The decap value-serializer bridges it to/from the stored
  * markdown string: `deserialize` on load (read), `serialize` on persist (save).
  * This is the round-trip superstar OD-1 / #483 depends on.
  */
-describe('markdown widget valueSerializer round-trip', () => {
+describe('richtext widget valueSerializer round-trip', () => {
   const md = '# Hello\n\nA paragraph with **bold** text.';
 
   it('deserialize(string) builds a RichtextValue with non-empty Portable Text', () => {

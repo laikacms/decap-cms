@@ -46,7 +46,7 @@ function getNestedFields(f?: CmsField): CmsField[] {
 
 /**
  * Encode a string value by appending steganographic data
- * For markdown fields, encode each paragraph separately
+ * For richtext fields, encode each paragraph separately
  */
 function encodeString(value: string, { fields, path }: EncodeContext): string {
   const [field] = fields;
@@ -57,7 +57,7 @@ function encodeString(value: string, { fields, path }: EncodeContext): string {
     const stega = vercelStegaEncode({ decap: path });
     return value + stega;
   }
-  if (widget === 'markdown') {
+  if (widget === 'richtext') {
     const stega = vercelStegaEncode({ decap: path });
     const blocks = value.split(/(\n\n+)/);
     return blocks.map(block => (block.trim() ? block + stega : block)).join('');

@@ -150,7 +150,7 @@ const fr = {
       deployButtonLabel: 'Voir en direct',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         bold: 'Gras',
         italic: 'Italique',
         code: 'Code',

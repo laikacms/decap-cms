@@ -370,9 +370,9 @@
       "types": "./dist/widgets/map/index.d.ts",
       "import": "./dist/widgets/map/index.js"
     },
-    "./widgets/markdown": {
-      "types": "./dist/widgets/markdown/index.d.ts",
-      "import": "./dist/widgets/markdown/index.js"
+    "./widgets/richtext": {
+      "types": "./dist/widgets/richtext/index.d.ts",
+      "import": "./dist/widgets/richtext/index.js"
     },
     "./widgets/number": {
       "types": "./dist/widgets/number/index.d.ts",

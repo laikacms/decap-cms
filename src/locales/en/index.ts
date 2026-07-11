@@ -159,7 +159,7 @@ const en = {
       deployButtonLabel: 'View Live',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         bold: 'Bold',
         italic: 'Italic',
         strikethrough: 'Strikethrough',

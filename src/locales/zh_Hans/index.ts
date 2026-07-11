@@ -147,7 +147,7 @@ const zh_Hans = {
       deployButtonLabel: '查看发布',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         bold: '粗体',
         italic: '斜体',
         code: '代码',

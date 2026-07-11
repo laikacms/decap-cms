@@ -149,7 +149,7 @@ const sv = {
       deployButtonLabel: 'Visa Live',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         bold: 'Fetstil',
         italic: 'Kursiv',
         code: 'Kod',

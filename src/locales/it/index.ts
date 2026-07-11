@@ -155,7 +155,7 @@ const it = {
       deployButtonLabel: 'Guarda Live',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         bold: 'Grassetto',
         italic: 'Corsivo',
         code: 'Codice',

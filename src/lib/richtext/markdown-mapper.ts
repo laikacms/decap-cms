@@ -20,7 +20,7 @@ const MARKDOWN_PROBES: readonly RegExp[] = [
 
 /**
  * The Markdown mapper — the single Portable Text bridge that backs the decap
- * `markdown` widget. Wraps `@portabletext/markdown`.
+ * `richtext` widget. Wraps `@portabletext/markdown`.
  */
 export const markdownMapper: Mapper = {
   id: 'markdown',

@@ -140,7 +140,7 @@
       id: 'container-markdown',
       label: 'Container Markdown',
       fields: [
-        { name: 'inner', label: 'Body', widget: 'markdown', editor_components: [] },
+        { name: 'inner', label: 'Body', widget: 'richtext', editor_components: [] },
       ],
       pattern: /^{{< container-markdown >}}(.*?){{< \/container-markdown >}}/s,
       fromBlock (match) {

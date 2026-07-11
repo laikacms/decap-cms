@@ -146,7 +146,7 @@ const lt = {
       deployButtonLabel: 'Žiūrėti tiesiogiai tinklalapyje',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         bold: 'Paryškinta',
         italic: 'Pasvariu tekstu (italic)',
         code: 'Kodo šriftas',

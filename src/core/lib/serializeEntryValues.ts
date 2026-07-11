@@ -17,7 +17,7 @@ type ValuesMap = Record<string, any>;
  * handlers here are for widgets whose values require heavy serialization that
  * would hurt performance if run for every change.
 
- * An example of this is the markdown widget, whose value is stored as a
+ * An example of this is the richtext widget, whose value is stored as a
  * markdown string. Instead of stringifying on every change of that field, a
  * deserialization method is registered from the widget's control module that
  * converts the stored markdown string to an AST, and that AST serves as the

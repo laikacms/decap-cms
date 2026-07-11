@@ -196,7 +196,7 @@ export function resolveWidget(name: string | undefined) {
 }
 
 /**
- * Markdown Editor Custom Components
+ * Richtext Editor Custom Components
  */
 export function registerEditorComponent(
   component: Partial<CmsEditorComponentOptions> & {

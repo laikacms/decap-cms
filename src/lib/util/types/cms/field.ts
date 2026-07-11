@@ -8,7 +8,7 @@ import type {
   CmsFieldHidden,
   CmsFieldList,
   CmsFieldMap,
-  CmsFieldMarkdown,
+  CmsFieldRichtext,
   CmsFieldMeta,
   CmsFieldNumber,
   CmsFieldObject,
@@ -29,7 +29,7 @@ export type CmsField = CmsFieldBase &
     | CmsFieldFileOrImage
     | CmsFieldList
     | CmsFieldMap
-    | CmsFieldMarkdown
+    | CmsFieldRichtext
     | CmsFieldNumber
     | CmsFieldObject
     | CmsFieldRelation

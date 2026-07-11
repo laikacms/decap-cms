@@ -153,7 +153,7 @@ const pt = {
       deployButtonLabel: 'Ver em Produção',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         bold: 'Negrito',
         italic: 'Itálico',
         code: 'Código',

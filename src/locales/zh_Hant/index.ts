@@ -136,7 +136,7 @@ const zh_Hant = {
       deployButtonLabel: '觀看已發布的內容',
     },
     editorWidgets: {
-      markdown: {
+      richtext: {
         bold: '粗體',
         italic: '斜體',
         code: '程式碼',
