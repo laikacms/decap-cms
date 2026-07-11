@@ -85,25 +85,24 @@ describe('Number widget schema', () => {
     });
   });
 
-  it('unset value_type should produce integer result (parseInt fallback)', () => {
+  it('unset value_type should produce a number result for whole numbers', () => {
     const field = fromJS({});
     const { onChangeSpy, input } = setup({ field });
 
     fireEvent.change(input, { target: { value: '42' } });
 
     expect(onChangeSpy).toHaveBeenCalledWith(42);
-    expect(Number.isInteger(onChangeSpy.mock.calls[0][0])).toBe(true);
     expect(typeof onChangeSpy.mock.calls[0][0]).toBe('number');
   });
 
-  it('unset value_type with decimal input should truncate to integer', () => {
+  it('unset value_type with decimal input should preserve the decimal (DCMS-478)', () => {
     const field = fromJS({});
     const { onChangeSpy, input } = setup({ field });
 
-    fireEvent.change(input, { target: { value: '3.9' } });
+    fireEvent.change(input, { target: { value: '9.99' } });
 
-    expect(onChangeSpy).toHaveBeenCalledWith(3);
-    expect(Number.isInteger(onChangeSpy.mock.calls[0][0])).toBe(true);
+    expect(onChangeSpy).toHaveBeenCalledWith(9.99);
+    expect(onChangeSpy.mock.calls[0][0]).toBeCloseTo(9.99);
   });
 
   it('value_type int should produce integer result', () => {
@@ -305,14 +304,16 @@ describe('Number widget', () => {
       expect(onChangeSpy).toHaveBeenCalledWith(Number.MAX_SAFE_INTEGER);
     });
 
-    it('unset value_type (defaults to int path) also guards unsafe integers', () => {
+    it('unset value_type (defaults to float path, DCMS-478) is not subject to the int guard', () => {
       const field = fromJS({});
       const { input, onChangeSpy } = setup({ field });
 
       fireEvent.change(input, { target: { value: UNSAFE_INT } });
 
-      expect(onChangeSpy).not.toHaveBeenCalledWith(parseInt(UNSAFE_INT, 10));
-      expect(onChangeSpy).toHaveBeenCalledWith(UNSAFE_INT);
+      // Unset value_type now parses like float (matching the step="any" input
+      // it renders), so large-but-finite magnitudes pass through like the
+      // float case does, rather than being guarded as an unsafe integer.
+      expect(onChangeSpy).toHaveBeenCalledWith(parseFloat(UNSAFE_INT));
     });
   });
 

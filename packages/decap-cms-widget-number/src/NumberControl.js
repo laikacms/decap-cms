@@ -78,7 +78,10 @@ export default class NumberControl extends React.Component {
     const { onChange } = this.props;
     const raw = e.target.value;
 
-    if (valueType === 'float') {
+    // Only an explicit value_type: 'int' renders step="1" (see render() below);
+    // every other case (explicit 'float' or unset) renders step="any" and must
+    // parse with parseFloat so decimals typed into that input aren't truncated.
+    if (valueType !== 'int') {
       const value = parseFloat(raw);
       if (isNaN(value)) {
         onChange('');
@@ -121,12 +124,7 @@ export default class NumberControl extends React.Component {
 
     // Detect unsafe integer: value is a non-empty string that looks like an integer
     // and is only present because parseInt rounded it to an unsafe float.
-    if (
-      valueType !== 'float' &&
-      typeof value === 'string' &&
-      value !== '' &&
-      /^-?\d+$/.test(value)
-    ) {
+    if (valueType === 'int' && typeof value === 'string' && value !== '' && /^-?\d+$/.test(value)) {
       const parsed = parseInt(value, 10);
       if (!Number.isSafeInteger(parsed)) {
         return {
@@ -141,7 +139,7 @@ export default class NumberControl extends React.Component {
 
     // Detect float overflow: value is a non-empty string that is only present
     // because handleChange refused to store the non-finite parseFloat result.
-    if (valueType === 'float' && typeof value === 'string' && value !== '') {
+    if (valueType !== 'int' && typeof value === 'string' && value !== '') {
       const parsed = parseFloat(value);
       if (!isNaN(parsed) && !isFinite(parsed)) {
         return {
