@@ -108,6 +108,12 @@ const RightCluster = styled.div`
   flex-shrink: 0;
 `;
 
+const ChangesIndicator = styled.span<{ $changed: boolean }>`
+  font-size: 12px;
+  white-space: nowrap;
+  color: ${({ $changed }) => ($changed ? colors.errorText : colors.controlLabel)};
+`;
+
 function workflowIntent(status: string | undefined): LaikaBadgeIntent {
   switch (status) {
     case 'draft':
@@ -151,7 +157,11 @@ function LaikaEditorToolbar({
   isModification,
   currentStatus,
   onPersist,
+  onPersistAndNew,
+  onPersistAndDuplicate,
   onPublish,
+  onPublishAndNew,
+  onPublishAndDuplicate,
   onChangeStatus,
   unPublish,
   onDuplicate,

@@ -288,6 +288,7 @@ const en = {
       onFailToDelete: 'Failed to delete entry: %{details}',
       onFailToUpdateStatus: 'Failed to update status: %{details}',
       missingRequiredField: "Oops, you've missed a required field. Please complete before saving.",
+      invalidField: 'Oops, one or more fields are invalid. Please fix them before saving.',
       entrySaved: 'Entry saved',
       entryPublished: 'Entry published',
       entryUnpublished: 'Entry unpublished',

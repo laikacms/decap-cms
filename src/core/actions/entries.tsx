@@ -830,15 +830,20 @@ export function persistEntry(collection: Collection) {
         errors.some((error: any) => error.type && error.type === ValidationErrorTypes.PRESENCE),
       );
 
-      if (hasPresenceErrors) {
-        dispatch(
-          addNotification({
-            message: { key: 'ui.toast.missingRequiredField' },
-            type: 'error',
-            dismissAfter: 8000,
-          }),
-        );
-      }
+      // Always surface a notification when validation blocks the save - not
+      // just for missing-required-field errors. Without this, Save/Publish
+      // silently no-ops on any other validation failure (pattern mismatch,
+      // custom widget validators, etc.), which looks like a dead button
+      // (DCMS-484).
+      dispatch(
+        addNotification({
+          message: {
+            key: hasPresenceErrors ? 'ui.toast.missingRequiredField' : 'ui.toast.invalidField',
+          },
+          type: 'error',
+          dismissAfter: 8000,
+        }),
+      );
 
       return Promise.reject();
     }

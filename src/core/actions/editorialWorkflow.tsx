@@ -351,17 +351,18 @@ export function persistUnpublishedEntry(collection: Collection, existingUnpublis
         errors.some((error: any) => error.type && error.type === ValidationErrorTypes.PRESENCE),
       );
 
-      if (hasPresenceErrors) {
-        dispatch(
-          addNotification({
-            message: {
-              key: 'ui.toast.missingRequiredField',
-            },
-            type: 'error',
-            dismissAfter: 8000,
-          }),
-        );
-      }
+      // See entries.tsx `persistEntry` (DCMS-484): notify on any validation
+      // failure, not just missing-required-field, so Save never silently
+      // no-ops.
+      dispatch(
+        addNotification({
+          message: {
+            key: hasPresenceErrors ? 'ui.toast.missingRequiredField' : 'ui.toast.invalidField',
+          },
+          type: 'error',
+          dismissAfter: 8000,
+        }),
+      );
       return Promise.reject();
     }
 
