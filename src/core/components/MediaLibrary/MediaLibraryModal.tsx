@@ -58,7 +58,7 @@ const StyledModal = styled(Modal)<{ $isPrivate?: boolean }>`
 
   button:disabled,
   label[disabled] {
-    background-color: ${props => props.$isPrivate && `rgba(217, 217, 217, 0.15)`};
+    background-color: ${props => props.$isPrivate && colors.disabledOverlay};
   }
 `;
 

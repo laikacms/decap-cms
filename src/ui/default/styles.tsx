@@ -112,6 +112,7 @@ interface Colors {
   checkerboardDark: string;
   mediaDraftText: string;
   mediaDraftBackground: string;
+  disabledOverlay: string;
 }
 
 const colorsDefaults: Colors = {
@@ -146,6 +147,7 @@ const colorsDefaults: Colors = {
   checkerboardDark: '#e6e6e6',
   mediaDraftText: colorsRawDefaults.purple,
   mediaDraftBackground: colorsRawDefaults.purpleLight,
+  disabledOverlay: 'rgba(217, 217, 217, 0.15)',
 };
 
 /**
