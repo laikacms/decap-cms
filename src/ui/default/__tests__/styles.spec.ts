@@ -13,7 +13,7 @@ import { colors, components, reactSelectStyles } from '../styles';
  * through the themeable `colors` token layer (CSS custom properties) so
  * they follow the active theme instead of being hardcoded.
  */
-describe('ui-default styles — card theming (DCMS-290)', () => {
+describe('ui-default styles - card theming (DCMS-290)', () => {
   it('card background uses the themeable foreground token, not a hardcoded white', () => {
     const css = components.cardTop.styles;
 
@@ -39,7 +39,7 @@ describe('ui-default styles — card theming (DCMS-290)', () => {
  * all resolve backgroundColor/color through the themeable `colors` token
  * layer so the widget follows the active theme.
  */
-describe('ui-default styles — react-select theming (DCMS-299)', () => {
+describe('ui-default styles - react-select theming (DCMS-299)', () => {
   it('control uses the themeable input background and text color', () => {
     const styles = reactSelectStyles.control({});
 

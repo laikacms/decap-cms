@@ -1384,7 +1384,7 @@ export function resolveBackend(config: CmsConfig) {
   if (!backend) {
     const hint =
       (name as string) === 'laika'
-        ? ' The laika backend is not bundled here — install @laikacms/decap and' +
+        ? ' The laika backend is not bundled here - install @laikacms/decap and' +
           ' register it before init() via CMS.registerBackend("laika",' +
           ' createLaikaBackend) using the default export from' +
           ' @laikacms/decap/decap-cms-backend-laika.'

@@ -23,7 +23,7 @@ export const Removable: Story = {
             {t}
           </LaikaTag>
         ))}
-        {tags.length === 0 && <em style={{ opacity: 0.6 }}>(all removed — refresh to reset)</em>}
+        {tags.length === 0 && <em style={{ opacity: 0.6 }}>(all removed - refresh to reset)</em>}
       </div>
     );
   },

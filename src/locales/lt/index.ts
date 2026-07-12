@@ -243,7 +243,7 @@ const lt = {
       onFailToDelete: 'Nepayvko ištrinti: %{details}',
       onFailToUpdateStatus: 'Nepavyko pakeisti statusą: %{details}',
       missingRequiredField:
-        'Pasitikrinkite — kažkurio (ar kelių) laukelių neužpildėte. Tai padarius galėsite išsaugoti įrašą.',
+        'Pasitikrinkite - kažkurio (ar kelių) laukelių neužpildėte. Tai padarius galėsite išsaugoti įrašą.',
       entrySaved: 'Įrašas išsaugotos',
       entryPublished: 'Įrašas publikuotas',
       entryUnpublished: 'Įrašas nepublikuotas',
