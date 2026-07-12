@@ -60,6 +60,66 @@ describe('entryDraft reducer', () => {
     });
   });
 
+  describe('DRAFT_CHANGE_FIELD', () => {
+    const field = fromJS({ name: 'date' });
+
+    it('does not mark a fresh new-record draft as changed when the value comes from a framework default (DCMS-487)', () => {
+      const newRecordState = initialState
+        .set('entry', fromJS({ ...entry, data: {}, newRecord: true }))
+        .set('hasChanged', false);
+
+      const newState = reducer(
+        newRecordState,
+        actions.changeDraftField({
+          field,
+          value: '2026-07-12T00:00:00.000Z',
+          metadata: { fromDefault: true },
+          entries: [],
+        }),
+      );
+
+      expect(newState.get('hasChanged')).toBe(false);
+      expect(newState.getIn(['entry', 'data', 'date'])).toBe('2026-07-12T00:00:00.000Z');
+      expect(newState.get('fieldsMetaData')).toEqual(Map());
+    });
+
+    it('marks a fresh new-record draft as changed for a real user edit', () => {
+      const newRecordState = initialState
+        .set('entry', fromJS({ ...entry, data: {}, newRecord: true }))
+        .set('hasChanged', false);
+
+      const newState = reducer(
+        newRecordState,
+        actions.changeDraftField({
+          field,
+          value: 'typed by user',
+          metadata: {},
+          entries: [],
+        }),
+      );
+
+      expect(newState.get('hasChanged')).toBe(true);
+    });
+
+    it('still computes hasChanged normally for fromDefault changes on an existing record', () => {
+      const existingRecordState = initialState
+        .set('entry', fromJS({ ...entry, data: { date: 'old-value' }, newRecord: false }))
+        .set('hasChanged', false);
+
+      const newState = reducer(
+        existingRecordState,
+        actions.changeDraftField({
+          field,
+          value: 'new-value',
+          metadata: { fromDefault: true },
+          entries: [fromJS({ ...entry, data: { date: 'old-value' } })],
+        }),
+      );
+
+      expect(newState.get('hasChanged')).toBe(true);
+    });
+  });
+
   describe('DRAFT_DISCARD', () => {
     it('should discard the draft and return initial state', () => {
       expect(reducer(initialState, actions.discardDraft())).toEqual(initialState);

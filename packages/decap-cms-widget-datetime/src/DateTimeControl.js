@@ -71,7 +71,10 @@ class DateTimeControl extends React.Component {
 
     const { value } = this.props;
     if (value === '{{now}}') {
-      this.handleChange(this.getNow());
+      // This substitutes the framework-provided default; it is not a user
+      // edit, so it's flagged via metadata so the draft reducer does not
+      // mark a fresh entry as changed because of it (DCMS-416/DCMS-487).
+      this.handleChange(this.getNow(), true);
     }
   }
 
@@ -102,15 +105,19 @@ class DateTimeControl extends React.Component {
     return this.isUtc ? dayjs.utc(value).format(inputFormat) : dayjs(value).format(inputFormat);
   }
 
-  handleChange = datetime => {
+  handleChange = (datetime, fromDefault = false) => {
     if (!this.isValidDate(datetime)) return;
     const { onChange } = this.props;
 
-    if (datetime === '') {
-      onChange('');
-    } else {
+    let formattedValue = '';
+    if (datetime !== '') {
       const { format, inputFormat } = this.getFormat();
-      const formattedValue = dayjs(datetime, inputFormat).format(format);
+      formattedValue = dayjs(datetime, inputFormat).format(format);
+    }
+
+    if (fromDefault) {
+      onChange(formattedValue, { fromDefault: true });
+    } else {
       onChange(formattedValue);
     }
   };
