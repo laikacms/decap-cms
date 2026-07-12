@@ -4,7 +4,7 @@ import { translate } from 'react-polyglot';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import styled from '@emotion/styled';
 import { connect } from 'react-redux';
-import { Route, Switch, Redirect } from 'react-router-dom';
+import { Route, Switch, Redirect, Link } from 'react-router-dom';
 import TopBarProgress from 'react-topbar-progress-indicator';
 import { Loader, colors } from 'decap-cms-ui-default';
 
@@ -19,7 +19,7 @@ import { SIMPLE, EDITORIAL_WORKFLOW } from '../../constants/publishModes';
 import Collection from '../Collection/Collection';
 import Workflow from '../Workflow/Workflow';
 import Editor from '../Editor/Editor';
-import NotFoundPage from './NotFoundPage';
+import NotFoundPage, { NotFoundPage as NotFoundPageBase } from './NotFoundPage';
 import Header from './Header';
 
 TopBarProgress.config({
@@ -63,14 +63,21 @@ export function isSearchDisabled(config) {
   return Boolean(config) && config.search === false;
 }
 
-function RouteInCollection({ collections, render, ...props }) {
+export function RouteInCollection({ collections, render, t, ...props }) {
   const defaultPath = getDefaultPath(collections);
   return (
     <Route
       {...props}
       render={routeProps => {
         const collectionExists = collections.get(routeProps.match.params.name);
-        return collectionExists ? render(routeProps) : <Redirect to={defaultPath} />;
+        return collectionExists ? (
+          render(routeProps)
+        ) : (
+          <NotFoundPageBase
+            t={t}
+            backLink={<Link to={defaultPath}>{t('app.notFoundPage.backToHome')}</Link>}
+          />
+        );
       }}
     />
   );
@@ -215,6 +222,7 @@ class App extends React.Component {
             <Redirect exact from="/" to={defaultPath} />
             <Redirect exact from="/search/" to={defaultPath} />
             <RouteInCollection
+              t={t}
               exact
               collections={collections}
               path="/collections/:name/search/"
@@ -228,22 +236,26 @@ class App extends React.Component {
             />
             {hasWorkflow ? <Route path="/workflow" component={Workflow} /> : null}
             <RouteInCollection
+              t={t}
               exact
               collections={collections}
               path="/collections/:name"
               render={props => <Collection {...props} />}
             />
             <RouteInCollection
+              t={t}
               path="/collections/:name/new"
               collections={collections}
               render={props => <Editor {...props} newRecord />}
             />
             <RouteInCollection
+              t={t}
               path="/collections/:name/entries/*"
               collections={collections}
               render={props => <Editor {...props} />}
             />
             <RouteInCollection
+              t={t}
               path="/collections/:name/search/:searchTerm"
               collections={collections}
               render={props =>
@@ -255,6 +267,7 @@ class App extends React.Component {
               }
             />
             <RouteInCollection
+              t={t}
               collections={collections}
               path="/collections/:name/filter/:filterTerm*"
               render={props => <Collection {...props} />}
@@ -270,6 +283,7 @@ class App extends React.Component {
               }
             />
             <RouteInCollection
+              t={t}
               path="/edit/:name/:entryName"
               collections={collections}
               render={({ match }) => {
