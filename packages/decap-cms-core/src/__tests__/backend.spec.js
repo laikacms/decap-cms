@@ -163,6 +163,70 @@ describe('Backend', () => {
     });
   });
 
+  describe('currentUser', () => {
+    // DCMS-439: a backend's restoreUser() resolving to undefined/null (test-repo,
+    // backend-proxy) must not wipe out the rest of the stored user object.
+    function makeBackendWithStoredUser(stored, restoreUserResult) {
+      const implementation = {
+        init: jest.fn(() => implementation),
+        restoreUser: jest.fn().mockResolvedValue(restoreUserResult),
+      };
+
+      const authStore = {
+        retrieve: jest.fn().mockReturnValue(stored),
+        store: jest.fn(),
+      };
+
+      const backend = new Backend(implementation, {
+        config: {},
+        backendName: stored.backendName,
+        authStore,
+      });
+
+      return { backend, authStore, implementation };
+    }
+
+    it('preserves stored fields when restoreUser() resolves undefined', async () => {
+      const stored = { backendName: 'test-repo', name: 'Alice', login: 'alice' };
+      const { backend, authStore } = makeBackendWithStoredUser(stored, undefined);
+
+      const user = await backend.currentUser();
+
+      expect(user).toEqual(stored);
+      expect(authStore.store).toHaveBeenCalledWith(stored);
+    });
+
+    it('preserves stored fields when restoreUser() resolves null', async () => {
+      const stored = { backendName: 'test-repo', name: 'Alice', login: 'alice' };
+      const { backend } = makeBackendWithStoredUser(stored, null);
+
+      const user = await backend.currentUser();
+
+      expect(user).toEqual(stored);
+    });
+
+    it('lets fields returned by restoreUser() override the stored equivalents', async () => {
+      const stored = { backendName: 'github', name: 'Alice', login: 'alice' };
+      const { backend } = makeBackendWithStoredUser(stored, { name: 'Alice Updated' });
+
+      const user = await backend.currentUser();
+
+      expect(user).toEqual({ backendName: 'github', name: 'Alice Updated', login: 'alice' });
+    });
+
+    it('returns null when nothing is stored', async () => {
+      const implementation = { init: jest.fn(() => implementation) };
+      const authStore = { retrieve: jest.fn().mockReturnValue(undefined), store: jest.fn() };
+      const backend = new Backend(implementation, {
+        config: {},
+        backendName: 'github',
+        authStore,
+      });
+
+      await expect(backend.currentUser()).resolves.toBeNull();
+    });
+  });
+
   describe('getLocalDraftBackup', () => {
     const { localForage, asyncLock } = require('decap-cms-lib-util');
 
@@ -688,6 +752,48 @@ describe('Backend', () => {
         title: 'some post title',
       });
 
+      const backend = new Backend(implementation, { config: {}, backendName: 'github' });
+
+      await expect(backend.generateUniqueSlug(collection, entry, Map({}), [])).resolves.toBe(
+        'sub_dir/some-post-title-1',
+      );
+    });
+
+    // DCMS-395: exercise the REAL (unmocked) `urlHelper` so an unset
+    // `sanitize_replacement` genuinely falls back to '-' (matching the docs)
+    // instead of being masked by a hard-coded `sanitizeChar` mock.
+    it('should return a hyphen-separated unique slug using the real urlHelper default when sanitize_replacement is unset', async () => {
+      const urlHelper = require('../lib/urlHelper');
+      const actualUrlHelper = jest.requireActual('../lib/urlHelper');
+      urlHelper.sanitizeSlug.mockImplementation(actualUrlHelper.sanitizeSlug);
+      urlHelper.sanitizeChar.mockImplementation(actualUrlHelper.sanitizeChar);
+
+      const implementation = {
+        init: jest.fn(() => implementation),
+        getEntry: jest.fn(),
+      };
+
+      implementation.getEntry.mockResolvedValueOnce({ data: 'data' });
+      implementation.getEntry.mockResolvedValueOnce();
+
+      const collection = fromJS({
+        name: 'posts',
+        fields: [
+          {
+            name: 'title',
+          },
+        ],
+        type: FOLDER,
+        folder: 'posts',
+        slug: '{{slug}}',
+        path: 'sub_dir/{{slug}}',
+      });
+
+      const entry = Map({
+        title: 'some post title',
+      });
+
+      // `config: {}` leaves `config.slug` (and therefore `sanitize_replacement`) unset.
       const backend = new Backend(implementation, { config: {}, backendName: 'github' });
 
       await expect(backend.generateUniqueSlug(collection, entry, Map({}), [])).resolves.toBe(
@@ -1322,6 +1428,67 @@ describe('Backend', () => {
           hasSubfolders: true,
         }),
       );
+    });
+
+    // DCMS-373: relocating an existing nested entry (e.g. an `_index.md` node with children
+    // underneath it) via the `meta.path` field only moves that single index file. persistEntry
+    // builds exactly one dataFile (plus i18n variants) for the entry being saved; it does not
+    // enumerate or move any files that live in the entry's old folder. This test pins that
+    // current, documented-as-manual behavior so a future change to it is intentional.
+    it('only moves the single index file when relocating a nested entry, not its child entries', async () => {
+      const implementation = {
+        init: jest.fn(() => implementation),
+        persistEntry: jest.fn(),
+      };
+
+      const config = {
+        backend: { commit_messages: {} },
+      };
+      const collection = Map({
+        name: 'pages',
+        type: FOLDER,
+        folder: '_pages',
+        create: true,
+        fields: List([Map({ name: 'title', widget: 'string' })]),
+        nested: Map({ depth: 10, subfolders: true }),
+        meta: Map({ path: Map({ label: 'Path', widget: 'string', index_file: '_index' }) }),
+      });
+      // Existing entry at `_pages/section/_index.md`, being moved to `_pages/renamed/_index.md`.
+      // A child entry lives at `_pages/section/child/_index.md` and is not part of this draft.
+      const entryDraft = Map({
+        entry: Map({
+          slug: 'section',
+          path: '_pages/section/_index.md',
+          data: Map({ title: 'Section' }),
+          meta: Map({ path: 'renamed' }),
+          newRecord: false,
+        }),
+      });
+      const user = { login: 'user', name: 'User' };
+      const backend = new Backend(implementation, { config, backendName: 'test' });
+
+      backend.currentUser = jest.fn().mockResolvedValue(user);
+      backend.entryToRaw = jest.fn().mockReturnValue('content');
+      backend.invokePreSaveEvent = jest.fn().mockResolvedValue(entryDraft.get('entry'));
+      backend.invokePostSaveEvent = jest.fn().mockResolvedValue();
+
+      await backend.persistEntry({
+        config,
+        collection,
+        entryDraft,
+        assetProxies: [],
+        usedSlugs: List(),
+      });
+
+      const [{ dataFiles }] = implementation.persistEntry.mock.calls[0];
+
+      // Only the index file itself is included in the move — the child entry
+      // (`_pages/section/child/_index.md`) is never enumerated or renamed.
+      expect(dataFiles).toHaveLength(1);
+      expect(dataFiles[0]).toMatchObject({
+        path: '_pages/section/_index.md',
+        newPath: '_pages/renamed/_index.md',
+      });
     });
   });
 

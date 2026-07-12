@@ -56,7 +56,8 @@ const styleStrings = {
 
 export class Modal extends React.Component {
   static propTypes = {
-    children: PropTypes.node.isRequired,
+    // Accepts both plain ReactNode children and render-prop (function) children.
+    children: PropTypes.oneOfType([PropTypes.node, PropTypes.func]).isRequired,
     isOpen: PropTypes.bool.isRequired,
     className: PropTypes.string,
     onClose: PropTypes.func.isRequired,

@@ -33,6 +33,38 @@ describe('bitbucket API', () => {
     expect(api.getPullRequestStatuses).toHaveBeenCalledWith(pr);
   });
 
+  describe('mergePullRequest', () => {
+    test('should pass merge_strategy: squash when squashMerges is enabled', async () => {
+      const api = new API({ squashMerges: true });
+
+      api.requestJSON = jest.fn().mockResolvedValueOnce({});
+
+      const pullRequest = { id: 1 };
+      await api.mergePullRequest(pullRequest);
+
+      expect(api.requestJSON).toHaveBeenCalledTimes(1);
+      const request = api.requestJSON.mock.calls[0][0];
+      expect(JSON.parse(request.body)).toEqual(
+        expect.objectContaining({ merge_strategy: 'squash' }),
+      );
+    });
+
+    test('should pass merge_strategy: merge_commit when squashMerges is disabled', async () => {
+      const api = new API({ squashMerges: false });
+
+      api.requestJSON = jest.fn().mockResolvedValueOnce({});
+
+      const pullRequest = { id: 1 };
+      await api.mergePullRequest(pullRequest);
+
+      expect(api.requestJSON).toHaveBeenCalledTimes(1);
+      const request = api.requestJSON.mock.calls[0][0];
+      expect(JSON.parse(request.body)).toEqual(
+        expect.objectContaining({ merge_strategy: 'merge_commit' }),
+      );
+    });
+  });
+
   describe('replace404WithEmptyResponse', () => {
     test('returns empty result when status is 404', () => {
       const result = replace404WithEmptyResponse({ status: 404 });

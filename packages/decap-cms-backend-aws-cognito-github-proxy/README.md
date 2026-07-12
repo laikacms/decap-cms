@@ -4,6 +4,6 @@ An abstraction layer between the CMS and a proxied version of [Github](https://d
 
 ## Code structure
 
-`Implementation` - wraps [Github Backend](https://github.com/decaporg/decap-cms/tree/main/packages/decap-cms-lib-auth/README.md) for proxied version of Github.
+`Implementation` - wraps [Github Backend](https://github.com/decaporg/decap-cms/tree/main/packages/decap-cms-backend-github/README.md) for a proxied version of GitHub, and provides `authComponent()`.
 
-`AuthenticationPage` -  uses [lib-auth](https://github.com/decaporg/decap-cms/tree/main/packages/decap-cms-lib-auth/README.md) to create an AWS Cognito compatible generic Authentication page supporting PKCE.
+`authComponent()` - returns the [`PKCEAuthenticationPage`](https://github.com/decaporg/decap-cms/tree/main/packages/decap-cms-ui-auth/README.md) component from `decap-cms-ui-auth`, which uses [lib-auth](https://github.com/decaporg/decap-cms/tree/main/packages/decap-cms-lib-auth/README.md)'s `PkceAuthenticator` to create an AWS Cognito compatible generic Authentication page supporting PKCE.

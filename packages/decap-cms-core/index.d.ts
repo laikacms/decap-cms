@@ -39,7 +39,11 @@ declare module 'decap-cms-core' {
 
   export type CmsCollectionFormatType = string;
 
-  export type CmsAuthScope = 'repo' | 'public_repo';
+  // 'repo' and 'public_repo' are the documented defaults and autocomplete as
+  // literals, but the github backend passes auth_scope straight through to
+  // the OAuth `scope` param with no allowlist, so any GitHub OAuth scope
+  // string (e.g. 'repo:status', 'read:org') is valid at runtime. See DCMS-419.
+  export type CmsAuthScope = 'repo' | 'public_repo' | (string & {});
 
   export type CmsPublishMode = 'simple' | 'editorial_workflow' | '';
 
@@ -311,6 +315,13 @@ declare module 'decap-cms-core' {
     description?: string;
     preview_path?: string;
     preview_path_date_field?: string;
+    /**
+     * When `true`, preserves `/` characters in sanitized `preview_path`
+     * template segments (e.g. `{{dirname}}`) instead of stripping/replacing
+     * them. Defaults to `false`, unless the collection has `nested` set, in
+     * which case slashes are preserved by default. Overrides the
+     * collection-level setting when defined on a file.
+     */
     preview_path_preserve_slashes?: boolean;
     i18n?: boolean | CmsI18nConfig;
     media_folder?: string;
@@ -347,6 +358,13 @@ declare module 'decap-cms-core' {
     slug?: string;
     preview_path?: string;
     preview_path_date_field?: string;
+    /**
+     * When `true`, preserves `/` characters in sanitized `preview_path`
+     * template segments (e.g. `{{dirname}}`) instead of stripping/replacing
+     * them. Defaults to `false`, unless `nested` is set on the collection, in
+     * which case slashes are preserved by default. Can be overridden per
+     * file via `CmsCollectionFile.preview_path_preserve_slashes`.
+     */
     preview_path_preserve_slashes?: boolean;
     create?: boolean;
     delete?: boolean;
@@ -474,6 +492,7 @@ declare module 'decap-cms-core' {
     logo_url?: string; // Deprecated, replaced by `logo.src`
     logo?: {
       src: string;
+      /** Shown in the header by default once `src` is set; set to `false` to hide it there. */
       show_in_header?: boolean;
     };
     show_preview_links?: boolean;

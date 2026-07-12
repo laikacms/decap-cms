@@ -85,25 +85,24 @@ describe('Number widget schema', () => {
     });
   });
 
-  it('unset value_type should produce integer result (parseInt fallback)', () => {
+  it('unset value_type should produce a number result for whole numbers', () => {
     const field = fromJS({});
     const { onChangeSpy, input } = setup({ field });
 
     fireEvent.change(input, { target: { value: '42' } });
 
     expect(onChangeSpy).toHaveBeenCalledWith(42);
-    expect(Number.isInteger(onChangeSpy.mock.calls[0][0])).toBe(true);
     expect(typeof onChangeSpy.mock.calls[0][0]).toBe('number');
   });
 
-  it('unset value_type with decimal input should truncate to integer', () => {
+  it('unset value_type with decimal input should preserve the decimal (DCMS-478)', () => {
     const field = fromJS({});
     const { onChangeSpy, input } = setup({ field });
 
-    fireEvent.change(input, { target: { value: '3.9' } });
+    fireEvent.change(input, { target: { value: '9.99' } });
 
-    expect(onChangeSpy).toHaveBeenCalledWith(3);
-    expect(Number.isInteger(onChangeSpy.mock.calls[0][0])).toBe(true);
+    expect(onChangeSpy).toHaveBeenCalledWith(9.99);
+    expect(onChangeSpy.mock.calls[0][0]).toBeCloseTo(9.99);
   });
 
   it('value_type int should produce integer result', () => {
@@ -200,6 +199,30 @@ describe('Number widget', () => {
     expect(input.getAttribute('step')).toBe('1');
   });
 
+  it('field with no value_type and no explicit step renders with step="any" (DCMS-378)', () => {
+    const field = fromJS({});
+    const { input } = setup({ field });
+
+    expect(input.getAttribute('step')).toBe('any');
+  });
+
+  it('field with an unrecognized value_type and no explicit step renders with step="any" (DCMS-378)', () => {
+    const field = fromJS({ value_type: 'not-a-real-type' });
+    const { input } = setup({ field });
+
+    expect(input.getAttribute('step')).toBe('any');
+  });
+
+  it('explicit step overrides the value_type-derived default for every value_type (DCMS-378)', () => {
+    ['int', 'float', undefined].forEach(value_type => {
+      const field = fromJS(value_type === undefined ? { step: 0.5 } : { value_type, step: 0.5 });
+      const { input, unmount } = setup({ field });
+
+      expect(input.getAttribute('step')).toBe('0.5');
+      unmount();
+    });
+  });
+
   it('numeric default renders as a number value in the input (DCMS-240)', () => {
     const field = fromJS({ value_type: 'int' });
     const numericDefault = 42;
@@ -281,14 +304,105 @@ describe('Number widget', () => {
       expect(onChangeSpy).toHaveBeenCalledWith(Number.MAX_SAFE_INTEGER);
     });
 
-    it('unset value_type (defaults to int path) also guards unsafe integers', () => {
+    it('unset value_type (defaults to float path, DCMS-478) is not subject to the int guard', () => {
       const field = fromJS({});
       const { input, onChangeSpy } = setup({ field });
 
       fireEvent.change(input, { target: { value: UNSAFE_INT } });
 
-      expect(onChangeSpy).not.toHaveBeenCalledWith(parseInt(UNSAFE_INT, 10));
-      expect(onChangeSpy).toHaveBeenCalledWith(UNSAFE_INT);
+      // Unset value_type now parses like float (matching the step="any" input
+      // it renders), so large-but-finite magnitudes pass through like the
+      // float case does, rather than being guarded as an unsafe integer.
+      expect(onChangeSpy).toHaveBeenCalledWith(parseFloat(UNSAFE_INT));
+    });
+  });
+
+  describe('float infinity overflow guard (DCMS-408)', () => {
+    const OVERFLOW = '1e309'; // parses to Infinity via parseFloat
+
+    // jsdom's <input type="number"> value sanitization is stricter than real
+    // browsers: it rejects magnitude-overflowing (but syntactically valid)
+    // strings like "1e309" at DOM-assignment time, before a change event can
+    // ever reach our handler with that raw value. So we call handleChange
+    // directly (as isValid() is tested below) to reproduce what a real
+    // browser's change event delivers.
+    function makeInstance(onChange) {
+      const field = fromJS({ value_type: 'float' });
+      return new NumberControl({
+        field,
+        value: '',
+        t: jest.fn(key => key),
+        onChange,
+        classNameWrapper: '',
+        setActiveStyle: jest.fn(),
+        setInactiveStyle: jest.fn(),
+      });
+    }
+
+    it('does NOT pass Infinity to onChange when value overflows the float range', () => {
+      const onChange = jest.fn();
+      const instance = makeInstance(onChange);
+
+      instance.handleChange({ target: { value: OVERFLOW } });
+
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).not.toHaveBeenCalledWith(Infinity);
+    });
+
+    it('passes the raw string to onChange when value overflows the float range', () => {
+      const onChange = jest.fn();
+      const instance = makeInstance(onChange);
+
+      instance.handleChange({ target: { value: OVERFLOW } });
+
+      expect(onChange).toHaveBeenCalledWith(OVERFLOW);
+    });
+
+    it('also guards -Infinity overflow', () => {
+      const onChange = jest.fn();
+      const instance = makeInstance(onChange);
+
+      instance.handleChange({ target: { value: '-1e309' } });
+
+      expect(onChange).not.toHaveBeenCalledWith(-Infinity);
+      expect(onChange).toHaveBeenCalledWith('-1e309');
+    });
+
+    it('isValid returns a CUSTOM error when the stored value is a non-finite float string', () => {
+      const field = fromJS({ value_type: 'float' });
+      const instance = new NumberControl({
+        field,
+        value: OVERFLOW,
+        t: jest.fn(key => key),
+        onChange: jest.fn(),
+        classNameWrapper: '',
+        setActiveStyle: jest.fn(),
+        setInactiveStyle: jest.fn(),
+      });
+
+      const result = instance.isValid();
+      expect(result).not.toBe(true);
+      expect(result).toHaveProperty('error');
+      expect(result.error.type).toBe('CUSTOM');
+      expect(result.error.message).toMatch(/maximum representable number/i);
+    });
+
+    it('representable large floats are unaffected', () => {
+      const field = fromJS({ value_type: 'float' });
+      const { input, onChangeSpy } = setup({ field });
+
+      fireEvent.change(input, { target: { value: '1e300' } });
+
+      expect(onChangeSpy).toHaveBeenCalledWith(1e300);
+    });
+
+    it('normal float input still works', () => {
+      const field = fromJS({ value_type: 'float' });
+      const { input, onChangeSpy } = setup({ field });
+
+      fireEvent.change(input, { target: { value: '3.14' } });
+
+      expect(onChangeSpy).toHaveBeenCalledWith(3.14);
     });
   });
 

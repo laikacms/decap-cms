@@ -267,6 +267,9 @@ function getConfigSchema() {
                   file: { type: 'string' },
                   preview_path: { type: 'string' },
                   preview_path_date_field: { type: 'string' },
+                  // When `true`, preserves `/` in sanitized `preview_path` template
+                  // segments (e.g. `{{dirname}}`) instead of stripping/replacing them.
+                  // Defaults to `false` unless the collection is `nested`.
                   preview_path_preserve_slashes: { type: 'boolean' },
                   media_folder: { type: 'string' },
                   public_folder: { type: 'string' },
@@ -284,6 +287,11 @@ function getConfigSchema() {
             path: { type: 'string' },
             preview_path: { type: 'string' },
             preview_path_date_field: { type: 'string' },
+            // When `true`, preserves `/` in sanitized `preview_path` template
+            // segments (e.g. `{{dirname}}`) instead of stripping/replacing them.
+            // Defaults to `false` unless the collection is `nested` (nested
+            // collections preserve slashes by default even without setting
+            // this option explicitly).
             preview_path_preserve_slashes: { type: 'boolean' },
             create: { type: 'boolean' },
             publish: { type: 'boolean' },

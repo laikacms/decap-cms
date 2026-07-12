@@ -5,7 +5,7 @@ import { Dropdown, DropdownItem } from 'decap-cms-ui-default';
 import { SortDirection } from '../../types/redux';
 import { ControlButton } from './ControlButton';
 
-function nextSortDirection(direction) {
+export function nextSortDirection(direction) {
   switch (direction) {
     case SortDirection.Ascending:
       return SortDirection.Descending;
@@ -16,7 +16,7 @@ function nextSortDirection(direction) {
   }
 }
 
-function sortIconProps(sortDir) {
+export function sortIconProps(sortDir) {
   return {
     icon: 'chevron',
     iconDirection: sortIconDirections[sortDir],

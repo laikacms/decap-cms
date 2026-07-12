@@ -135,7 +135,7 @@ describe('entries', () => {
         });
     });
 
-    it('should html escape URL params', () => {
+    it('should not html escape URL params (DCMS-448)', () => {
       const store = mockStore({ mediaLibrary: fromJS({ files: [] }) });
 
       const collection = fromJS({
@@ -152,7 +152,7 @@ describe('entries', () => {
             payload: {
               author: '',
               collection: undefined,
-              data: { title: '&lt;script&gt;alert(&#039;hello&#039;)&lt;/script&gt;' },
+              data: { title: "<script>alert('hello')</script>" },
               meta: {},
               i18n: {},
               isModification: null,
@@ -167,6 +167,24 @@ describe('entries', () => {
             },
             type: 'DRAFT_CREATE_EMPTY',
           });
+        });
+    });
+
+    it('should round-trip punctuation in URL params as the literal value (DCMS-448)', () => {
+      const store = mockStore({ mediaLibrary: fromJS({ files: [] }) });
+
+      const collection = fromJS({
+        fields: [{ name: 'title' }],
+      });
+
+      const value = `O'Brien's "quoted" <tag> & more`;
+
+      return store
+        .dispatch(createEmptyDraft(collection, `?title=${encodeURIComponent(value)}`))
+        .then(() => {
+          const actions = store.getActions();
+          expect(actions).toHaveLength(1);
+          expect(actions[0].payload.data).toEqual({ title: value });
         });
     });
   });
@@ -274,7 +292,7 @@ describe('entries', () => {
       });
     });
 
-    it('should not set empty value for list fields widget', () => {
+    it('should default nested text fields with no default to an empty string for list fields widget', () => {
       const fields = fromJS([
         {
           name: 'images',
@@ -285,7 +303,9 @@ describe('entries', () => {
           ],
         },
       ]);
-      expect(createEmptyDraftData(fields)).toEqual({});
+      expect(createEmptyDraftData(fields)).toEqual({
+        images: [{ title: '', url: '' }],
+      });
     });
 
     it('should set default value for object field widget', () => {
@@ -315,7 +335,7 @@ describe('entries', () => {
       });
     });
 
-    it('should not set empty value for object fields widget', () => {
+    it('should default nested text fields with no default to an empty string for object fields widget', () => {
       const fields = fromJS([
         {
           name: 'post',
@@ -326,7 +346,9 @@ describe('entries', () => {
           ],
         },
       ]);
-      expect(createEmptyDraftData(fields)).toEqual({});
+      expect(createEmptyDraftData(fields)).toEqual({
+        post: { title: '', url: '' },
+      });
     });
 
     it('should populate nested fields', () => {
@@ -364,9 +386,14 @@ describe('entries', () => {
       expect(createEmptyDraftData(fields)).toEqual({});
     });
 
-    it('should not set a default for a required text field with no default', () => {
+    it('should default a text field with required omitted and no default to an empty string', () => {
       const fields = fromJS([{ name: 'subtitle', widget: 'text' }]);
-      expect(createEmptyDraftData(fields)).toEqual({});
+      expect(createEmptyDraftData(fields)).toEqual({ subtitle: '' });
+    });
+
+    it('should default a required text field with no default to an empty string', () => {
+      const fields = fromJS([{ name: 'subtitle', widget: 'text', required: true }]);
+      expect(createEmptyDraftData(fields)).toEqual({ subtitle: '' });
     });
 
     it('should not set a default for other optional widgets with no default', () => {
@@ -492,6 +519,35 @@ describe('entries', () => {
       return expect(store.dispatch(persistEntry(collection))).rejects.toEqual(
         new Error('Entry has validation errors'),
       );
+    });
+
+    it('should reject with the original Error (not the entryPersistFail action) when the backend persist fails', () => {
+      const { currentBackend } = require('../../backend');
+      const persistError = new Error('Failed to persist entry');
+      const backend = {
+        persistEntry: jest.fn(() => Promise.reject(persistError)),
+      };
+      currentBackend.mockReturnValue(backend);
+
+      const store = mockStore({
+        config: Map(),
+        entryDraft: fromJS({
+          entry: { data: {}, mediaFiles: [] },
+          fieldsErrors: {},
+        }),
+        entries: fromJS({}),
+        integrations: fromJS({}),
+        mediaLibrary: fromJS({ files: [] }),
+      });
+
+      const collection = fromJS({
+        name: 'posts',
+        type: 'folder_based_collection',
+        folder: 'posts',
+        fields: [{ name: 'title' }],
+      });
+
+      return expect(store.dispatch(persistEntry(collection))).rejects.toBe(persistError);
     });
   });
 

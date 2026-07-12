@@ -132,7 +132,9 @@ function RecoveredEntry({ entry, t }) {
 
 export class ErrorBoundary extends React.Component {
   static propTypes = {
-    children: PropTypes.node,
+    // Accepts both plain ReactNode children and render-prop (function) children,
+    // e.g. the FrameContextConsumer subtree in EditorPreviewPane.
+    children: PropTypes.oneOfType([PropTypes.node, PropTypes.func]),
     t: PropTypes.func.isRequired,
     config: PropTypes.object.isRequired,
   };

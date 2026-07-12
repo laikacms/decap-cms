@@ -9,7 +9,7 @@ The List widget allows you to author a repeatable list of items.
 | `allow_add`          | boolean           | `true`  | Allow adding new list items                                                |
 | `allow_remove`       | boolean           | `true`  | Allow removing list items                                                  |
 | `allow_reorder`      | boolean           | `true`  | Allow reordering list items                                                |
-| `collapsed`          | boolean           | `true`  | Render list items collapsed by default                                    |
+| `collapsed`          | boolean           | `false`  | Render list items collapsed by default                                    |
 | `summary`            | string            |         | Template for the summary shown on collapsed list items                    |
 | `minimize_collapsed` | boolean           | `false` | Render a minimized, single-line summary for collapsed list items          |
 | `label_singular`     | string            |         | Singular label used for the "Add" button and item summaries               |
@@ -17,7 +17,7 @@ The List widget allows you to author a repeatable list of items.
 | `min`                | integer           |         | Minimum number of list items. Independent of `max` — may be set alone.    |
 | `max`                | integer           |         | Maximum number of list items. Independent of `min` — may be set alone.    |
 | `add_to_top`         | boolean           | `false` | Add new list items to the top of the list instead of the bottom           |
-| `typeKey`            | string            |         | Key used to identify the widget/type of a variable list item              |
+| `typeKey`            | string            | `type`  | Key used to identify the widget/type of a variable list item              |
 
 ### `min` and `max`
 

@@ -224,6 +224,14 @@ export function previewUrlFormatter(
   fields = addFileTemplateFields(entry.get('path'), fields, collection.get('folder'));
   const dateFieldName = getDateField() || selectInferredField(collection, 'date');
   const date = parseDateFromEntryData(fields, dateFieldName);
+  /**
+   * `preview_path_preserve_slashes` (boolean, collection- or file-level, file
+   * overrides collection): when `true`, slug-sanitization of `preview_path`
+   * template segments (e.g. `{{dirname}}`) preserves `/` characters instead of
+   * stripping/replacing them per the collection's `slug` config. Defaults to
+   * `false`, except for `nested` collections, which preserve slashes by
+   * default even without setting this option explicitly.
+   */
   const previewPathPreserveSlashes =
     file?.get('preview_path_preserve_slashes') ?? collection.get('preview_path_preserve_slashes');
   const preserveSlashes = !!(previewPathPreserveSlashes ?? collection.has('nested'));

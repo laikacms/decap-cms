@@ -21,6 +21,9 @@ Number widget for [Decap CMS](https://decapcms.org).
 - omitted — stored as integer (`parseInt` fallback; **not** a string)
 
 > **Note:** Only `int` and `float` are valid `value_type` values. Any other value is rejected by schema validation.
+> The decapcms.org widget docs currently say "any other value results in saving as a string" —
+> that description is outdated for this codebase and needs a correction in the
+> [decap-website](https://github.com/decaporg/decap-website) repo (`content/docs/widgets/number.md`).
 
 ### Unsafe integer exception
 

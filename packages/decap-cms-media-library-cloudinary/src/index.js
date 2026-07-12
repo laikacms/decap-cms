@@ -51,10 +51,25 @@ async function init({ options = {}, handleInsert } = {}) {
    * integration.
    */
   const { config: providedConfig = {}, ...integrationOptions } = options;
-  const resolvedOptions = { ...defaultOptions, ...integrationOptions };
+  const globalOptions = { ...defaultOptions, ...integrationOptions };
+  /**
+   * The options actually used to build inserted asset URLs. Reassigned on each
+   * `show()` call so a field-level override is in effect by the time the user
+   * picks an asset, since `insertHandler` is only ever created once below.
+   */
+  let resolvedOptions = globalOptions;
   const cloudinaryConfig = { ...defaultConfig, ...providedConfig, ...enforcedConfig };
   const cloudinaryBehaviorConfigKeys = ['default_transformations', 'max_files', 'multiple'];
   const cloudinaryBehaviorConfig = pick(cloudinaryConfig, cloudinaryBehaviorConfigKeys);
+  /**
+   * Keys documented as overridable per-field, same shape as the global
+   * `media_library` options.
+   */
+  const fieldOverridableOptionKeys = [
+    'output_filename_only',
+    'use_transformations',
+    'use_secure_url',
+  ];
 
   await loadScript('https://media-library.cloudinary.com/global/all.js');
 
@@ -66,7 +81,7 @@ async function init({ options = {}, handleInsert } = {}) {
   const mediaLibrary = window.cloudinary.createMediaLibrary(cloudinaryConfig, { insertHandler });
 
   return {
-    show: ({ config: instanceConfig = {}, allowMultiple } = {}) => {
+    show: ({ config: instanceConfig = {}, allowMultiple, options: fieldOptions = {} } = {}) => {
       /**
        * Ensure multiple selection is not available if the field is configured
        * to disallow it.
@@ -74,6 +89,11 @@ async function init({ options = {}, handleInsert } = {}) {
       if (allowMultiple === false) {
         instanceConfig.multiple = false;
       }
+      /**
+       * Field-level `output_filename_only`/`use_transformations`/`use_secure_url`
+       * override the global values set at `init()` time.
+       */
+      resolvedOptions = { ...globalOptions, ...pick(fieldOptions, fieldOverridableOptionKeys) };
       return mediaLibrary.show({ ...cloudinaryBehaviorConfig, ...instanceConfig });
     },
     hide: () => mediaLibrary.hide(),

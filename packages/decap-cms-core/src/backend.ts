@@ -398,7 +398,11 @@ export class Backend {
     const stored = this.authStore!.retrieve();
     if (stored && stored.backendName === this.backendName) {
       return Promise.resolve(this.implementation.restoreUser(stored)).then(user => {
-        this.user = { ...user, backendName: this.backendName };
+        // Preserve fields from the stored user so a backend whose restoreUser()
+        // resolves to undefined/null (e.g. test-repo, proxy) doesn't silently
+        // drop everything except backendName. A fully-hydrated user returned by
+        // restoreUser() still wins via later-spread precedence.
+        this.user = { ...stored, ...user, backendName: this.backendName };
         // return confirmed/rehydrated user object instead of stored
         this.authStore!.store(this.user as User);
         return this.user;
@@ -1120,6 +1124,12 @@ export class Backend {
 
     const customPath = selectCustomPath(collection, entryDraft);
 
+    // NOTE (DCMS-373): when `customPath` relocates a nested folder-collection entry backed by
+    // `meta.path.index_file` (e.g. `_index.md`), only this single entry's dataFile is renamed
+    // below. Any child entries/subfolders that live underneath the entry's old path are never
+    // enumerated or moved and are left behind at their original location. Relocating such a
+    // node moves only its own index file, not the whole subtree; child entries must be
+    // relocated manually.
     let dataFile: DataFile;
     if (newEntry) {
       if (!selectAllowNewEntries(collection)) {

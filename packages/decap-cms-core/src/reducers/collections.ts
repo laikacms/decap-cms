@@ -309,6 +309,14 @@ export function updateFieldByKey(
   return collection;
 }
 
+/**
+ * Resolves the field used to identify/name an entry (entry-list titles, generated slugs).
+ * Resolution order: the collection's `identifier_field` (if set and present on the entry),
+ * then `title`, then `path`. Only `title`/`identifier_field` are documented on
+ * decapcms.org; the `path` fallback is undocumented (DCMS-438) — a collection with no
+ * `title` field and no matching `identifier_field`, but a field literally named `path`,
+ * will silently use that `path` field as the identifier.
+ */
 export function selectIdentifier(collection: Collection) {
   const identifier = collection.get('identifier_field');
   const identifierFields = identifier ? [identifier, ...IDENTIFIER_FIELDS] : [...IDENTIFIER_FIELDS];

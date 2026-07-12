@@ -1,4 +1,4 @@
-import { matchPath } from '../netlify-lfs-client';
+import { matchPath, getTransofrmationsParams } from '../netlify-lfs-client';
 
 function makeConfig(patterns) {
   return {
@@ -45,6 +45,25 @@ describe('netlify-lfs-client', () => {
     it('uses matchBase:true for nested paths with multi-pattern config', () => {
       const config = makeConfig(['*.pdf', '*.jpg']);
       expect(matchPath(config, 'uploads/docs/report.pdf')).toBe(true);
+    });
+  });
+
+  describe('getTransofrmationsParams', () => {
+    it('builds an nf_resize query string from a plain-object transform', () => {
+      const params = getTransofrmationsParams({ nf_resize: 'fit', w: 100, h: 200 });
+      expect(params).toBe('?nf_resize=fit&w=100&h=200');
+    });
+
+    it('returns an empty string for an empty object', () => {
+      expect(getTransofrmationsParams({})).toBe('');
+    });
+
+    it('returns an empty string for boolean true', () => {
+      expect(getTransofrmationsParams(true)).toBe('');
+    });
+
+    it('returns an empty string for boolean false', () => {
+      expect(getTransofrmationsParams(false)).toBe('');
     });
   });
 });

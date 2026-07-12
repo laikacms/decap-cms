@@ -141,7 +141,8 @@ function getI18nDefaults(
     return defaultI18n;
   } else {
     const locales = collectionOrFileI18n.locales || defaultI18n.locales;
-    const defaultLocale = collectionOrFileI18n.default_locale || locales[0];
+    const defaultLocale =
+      collectionOrFileI18n.default_locale || defaultI18n.default_locale || locales[0];
     const mergedI18n: CmsI18nConfig = deepmerge(defaultI18n, collectionOrFileI18n);
     mergedI18n.locales = locales;
     mergedI18n.default_locale = defaultLocale;
@@ -563,8 +564,11 @@ export function loadConfig(manualConfig: Partial<CmsConfig> = {}, onLoad: () => 
           ? {}
           : await getConfigYaml(configUrl, hasManualConfig);
 
-      // Merge manual config into the config.yml one
-      const mergedConfig = deepmerge(configYaml, manualConfig);
+      // Merge manual config into the config.yml one. Arrays are replaced, not
+      // concatenated, per the Manual Initialization docs on decapcms.org.
+      const mergedConfig = deepmerge(configYaml, manualConfig, {
+        arrayMerge: (_target, source) => source,
+      });
 
       validateConfig(mergedConfig);
 

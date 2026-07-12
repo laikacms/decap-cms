@@ -51,7 +51,7 @@ async function resourceExists(
   // to fit
 }
 
-function getTransofrmationsParams(t: boolean | ImageTransformations) {
+export function getTransofrmationsParams(t: boolean | ImageTransformations) {
   if (isPlainObject(t) && !isEmpty(t)) {
     const { nf_resize: resize, w, h } = t as ImageTransformations;
     return `?nf_resize=${resize}&w=${w}&h=${h}`;

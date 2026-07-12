@@ -33,7 +33,7 @@ import relationCache from './RelationCache';
  * The schema's oneOf allows both forms; the implementation reads only snake_case.
  * Coalescing here keeps backward compat and makes the schema promise real.
  */
-function normalizeField(field) {
+export function normalizeField(field) {
   let normalized = field;
   if (!normalized.get('value_field') && normalized.get('valueField')) {
     normalized = normalized.set('value_field', normalized.get('valueField'));
@@ -50,7 +50,7 @@ function normalizeField(field) {
   return normalized;
 }
 
-function arrayMove(array, from, to) {
+export function arrayMove(array, from, to) {
   const slicedArray = array.slice();
   slicedArray.splice(to < 0 ? array.length + to : to, 0, slicedArray.splice(from, 1)[0]);
   return slicedArray;
@@ -151,11 +151,11 @@ function MenuList(props) {
   );
 }
 
-function optionToString(option) {
+export function optionToString(option) {
   return option && option.value ? option.value : '';
 }
 
-function convertToOption(raw) {
+export function convertToOption(raw) {
   if (typeof raw === 'string') {
     return { label: raw, value: raw };
   }
@@ -163,7 +163,7 @@ function convertToOption(raw) {
   return Map.isMap(raw) ? raw.toJS() : raw;
 }
 
-function getSelectedOptions(value) {
+export function getSelectedOptions(value) {
   const selectedOptions = List.isList(value) ? value.toJS() : value;
 
   if (!selectedOptions || !Array.isArray(selectedOptions)) {
@@ -173,11 +173,11 @@ function getSelectedOptions(value) {
   return selectedOptions;
 }
 
-function uniqOptions(initial, current) {
+export function uniqOptions(initial, current) {
   return uniqBy(initial.concat(current), o => o.value);
 }
 
-function getFieldArray(field) {
+export function getFieldArray(field) {
   if (!field) {
     return [];
   }
@@ -185,7 +185,65 @@ function getFieldArray(field) {
   return List.isList(field) ? field.toJS() : [field];
 }
 
-function getSelectedValue({ value, options, isMultiple }) {
+/**
+ * Resolves a single (possibly templated) display/value field path against a
+ * plain entry data object. Shared by RelationControl (which has a full `hit`
+ * with `path`/`slug` available from a search result) and RelationPreview
+ * (which only has the raw entry data cached in `fieldsMetaData`, so `path`
+ * and `slug` are omitted).
+ */
+export function resolveTemplatedField(data, field, path, slug) {
+  const templateVars = stringTemplate.extractTemplateVars(field);
+  if (templateVars.length <= 0) {
+    return get(data, field);
+  }
+  const templatedData = stringTemplate.addFileTemplateFields(path, data);
+  return stringTemplate.compileStringTemplate(field, null, slug, templatedData);
+}
+
+/**
+ * Builds the human-readable `display_fields` label for a given entry data
+ * object, mirroring how RelationControl.parseHitOptions labels options.
+ * Falls back to an empty string per field when no data is found.
+ */
+export function getDisplayFieldsLabel(data, displayFields, path, slug) {
+  const fields = getFieldArray(displayFields);
+  return fields
+    .map(key => resolveTemplatedField(data, key, path, slug))
+    .filter(value => value !== undefined && value !== null && value !== '')
+    .join(' ');
+}
+
+/**
+ * Looks up the cached hit data for a relation's stored value from the
+ * `fieldsMetaData` tree built by RelationControl (`{ [collection]: { [value]:
+ * hitData } }`) and resolves it to a display label using `display_fields`.
+ * Returns `undefined` when no cached metadata exists for the value (e.g. the
+ * entry hasn't been searched/loaded yet), so callers can fall back to the
+ * raw stored value.
+ */
+export function getCachedDisplayLabel(fieldsMetaData, field, value) {
+  if (!fieldsMetaData || value == null || value === '') {
+    return undefined;
+  }
+
+  const collection = field.get('collection');
+  const hitData = Map.isMap(fieldsMetaData)
+    ? fieldsMetaData.getIn([collection, value])
+    : get(fieldsMetaData, [collection, value]);
+
+  if (hitData == null) {
+    return undefined;
+  }
+
+  const data = Map.isMap(hitData) ? hitData.toJS() : hitData;
+  const displayFields = field.get('display_fields') || List([field.get('value_field')]);
+  const label = getDisplayFieldsLabel(data, displayFields);
+
+  return label === '' ? undefined : label;
+}
+
+export function getSelectedValue({ value, options, isMultiple }) {
   if (isMultiple) {
     const selectedOptions = getSelectedOptions(value);
     if (selectedOptions === null) {
@@ -202,7 +260,7 @@ function getSelectedValue({ value, options, isMultiple }) {
   }
 }
 
-function convertToSortableOption(raw) {
+export function convertToSortableOption(raw) {
   const option = convertToOption(raw);
   return {
     ...option,
@@ -418,14 +476,7 @@ export default class RelationControl extends React.Component {
       locale != null && hit.i18n != null && hit.i18n[locale] != null
         ? hit.i18n[locale].data
         : hit.data;
-    const templateVars = stringTemplate.extractTemplateVars(field);
-    // return non template fields as is
-    if (templateVars.length <= 0) {
-      return get(hitData, field);
-    }
-    const data = stringTemplate.addFileTemplateFields(hit.path, hitData);
-    const value = stringTemplate.compileStringTemplate(field, null, hit.slug, data);
-    return value;
+    return resolveTemplatedField(hitData, field, hit.path, hit.slug);
   };
 
   isMultiple() {

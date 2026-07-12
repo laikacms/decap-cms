@@ -699,6 +699,62 @@ describe('config', () => {
         ).toEqual({ structure: 'multiple_folders', locales: ['en', 'fr'], default_locale: 'fr' });
       });
 
+      it('should inherit top-level default_locale when collection i18n object omits it (DCMS-404)', () => {
+        expect(
+          applyDefaults({
+            i18n: {
+              structure: 'multiple_folders',
+              locales: ['de', 'en'],
+              default_locale: 'en',
+            },
+            collections: [
+              {
+                folder: 'foo',
+                i18n: {},
+                fields: [{ name: 'title', widget: 'string' }],
+              },
+            ],
+          }).collections[0].i18n,
+        ).toEqual({ structure: 'multiple_folders', locales: ['de', 'en'], default_locale: 'en' });
+      });
+
+      it('should use collection default_locale when both collection and top-level set it', () => {
+        expect(
+          applyDefaults({
+            i18n: {
+              structure: 'multiple_folders',
+              locales: ['de', 'en'],
+              default_locale: 'en',
+            },
+            collections: [
+              {
+                folder: 'foo',
+                i18n: { default_locale: 'de' },
+                fields: [{ name: 'title', widget: 'string' }],
+              },
+            ],
+          }).collections[0].i18n,
+        ).toEqual({ structure: 'multiple_folders', locales: ['de', 'en'], default_locale: 'de' });
+      });
+
+      it('should fall back to locales[0] when neither collection nor top-level set default_locale', () => {
+        expect(
+          applyDefaults({
+            i18n: {
+              structure: 'multiple_folders',
+              locales: ['de', 'en'],
+            },
+            collections: [
+              {
+                folder: 'foo',
+                i18n: {},
+                fields: [{ name: 'title', widget: 'string' }],
+              },
+            ],
+          }).collections[0].i18n,
+        ).toEqual({ structure: 'multiple_folders', locales: ['de', 'en'], default_locale: 'de' });
+      });
+
       it('should throw when i18n structure is not single_file on files collection', () => {
         expect(() =>
           applyDefaults({
@@ -1150,6 +1206,35 @@ describe('config', () => {
         error: 'Error loading config',
         payload: new Error('Failed to load config.yml (Failed to fetch)'),
       });
+    });
+
+    test(`manual config collections should replace, not concatenate, config.yml collections (DCMS-452)`, async () => {
+      const dispatch = jest.fn();
+
+      global.fetch.mockResolvedValue({
+        status: 200,
+        text: () =>
+          Promise.resolve(
+            stringify({
+              backend: { name: 'test-backend' },
+              collections: [{ name: 'A', folder: 'a', fields: [{ name: 'title' }] }],
+            }),
+          ),
+        headers: new Headers({ 'Content-Type': 'text/yaml' }),
+      });
+
+      const manualConfig = {
+        backend: { name: 'test-backend' },
+        collections: [{ name: 'B', folder: 'b', fields: [{ name: 'title' }] }],
+      };
+
+      await loadConfig(manualConfig)(dispatch);
+
+      const successCall = dispatch.mock.calls.find(([action]) => action.type === 'CONFIG_SUCCESS');
+      expect(successCall).toBeDefined();
+      const [{ payload }] = successCall;
+      expect(payload.collections).toHaveLength(1);
+      expect(payload.collections.map(c => c.name)).toEqual(['B']);
     });
   });
 });
