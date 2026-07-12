@@ -12,7 +12,7 @@ const SearchContainer = styled.div`
 `;
 
 const SearchInput = styled.input`
-  background-color: #eff0f4;
+  background-color: ${colors.inputBackground};
   border-radius: ${lengths.borderRadius};
 
   font-size: 14px;
