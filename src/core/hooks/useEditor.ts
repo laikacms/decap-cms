@@ -425,7 +425,20 @@ export function useEditor({
   const handlePublishEntry = useCallback(
     async (opts: { createNew?: boolean; duplicate?: boolean } = {}) => {
       const { createNew = false, duplicate = false } = opts;
-      if (!collection || !slug) return;
+      if (!collection) return;
+
+      // Simple mode has no workflow status to gate on - "publish" IS the
+      // persist, exactly like classic decap's `renderSimpleControls` wiring
+      // `onPublish`/`onPublishAndNew`/`onPublishAndDuplicate` straight to
+      // `onPersist`. Without this check every publish attempt in simple mode
+      // dead-ends on the "not ready" alert below, because `currentStatus` is
+      // always `undefined` there (DCMS-484).
+      if (!hasWorkflow) {
+        await handlePersistEntry({ createNew, duplicate });
+        return;
+      }
+
+      if (!slug) return;
 
       if (currentStatus !== Object.values(status).pop()) {
         window.alert(t('editor.editor.onPublishingNotReady'));
@@ -448,7 +461,7 @@ export function useEditor({
         dispatch(createDraftDuplicateFromEntry(entryDraft.entry) as any);
       }
     },
-    [collection, slug, currentStatus, entryDraft, t, dispatch, deleteBackup],
+    [collection, slug, hasWorkflow, currentStatus, entryDraft, t, dispatch, deleteBackup, handlePersistEntry],
   );
 
   const handleUnpublishEntry = useCallback(async () => {
