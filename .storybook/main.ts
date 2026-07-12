@@ -1,4 +1,6 @@
+import { readFileSync } from 'fs';
 import type { StorybookConfig } from '@storybook/react-vite';
+import type { Plugin as EsbuildPlugin } from 'esbuild';
 
 /**
  * `@vitejs/plugin-react` v6 dropped Babel (it runs on OXC), so `@emotion/babel-plugin`
@@ -15,6 +17,30 @@ const emotionStyledProductionPlugin = {
     if (id.includes('emotion-styled-base') && id.includes('.development.')) {
       return code.replace('var isDevelopment = true;', 'var isDevelopment = false;');
     }
+  },
+};
+
+/**
+ * Storybook's Vite pipeline pre-bundles `node_modules` deps with esbuild *before* Vite's
+ * own `transform` hooks (including `emotionStyledProductionPlugin` above) ever run. By the
+ * time a source module reaches Vite's transform pipeline, `emotion-styled-base`'s dev build
+ * has already been folded into an esbuild dep chunk (e.g.
+ * `emotion-element-<hash>.browser.development.esm-*.js`), so the plain Rollup/Vite plugin
+ * never sees it and the `NO_COMPONENT_SELECTOR` crash survives. Registering the same
+ * `isDevelopment` patch as an esbuild `onLoad` plugin applies it during that pre-bundle pass
+ * instead, so the fix survives a clean `node_modules/.cache` wipe (unlike patching the
+ * cached pre-bundle output directly).
+ */
+const emotionStyledProductionEsbuildPlugin: EsbuildPlugin = {
+  name: 'emotion-styled-base-production-esbuild',
+  setup(build) {
+    build.onLoad({ filter: /emotion-styled-base.*\.development\./ }, args => {
+      const contents = readFileSync(args.path, 'utf8').replace(
+        'var isDevelopment = true;',
+        'var isDevelopment = false;',
+      );
+      return { contents, loader: 'js' };
+    });
   },
 };
 
@@ -53,6 +79,11 @@ const config: StorybookConfig = {
     };
     return mergeConfig(config, {
       plugins: [emotionStyledProductionPlugin],
+      optimizeDeps: {
+        esbuildOptions: {
+          plugins: [emotionStyledProductionEsbuildPlugin],
+        },
+      },
     });
   },
 };
