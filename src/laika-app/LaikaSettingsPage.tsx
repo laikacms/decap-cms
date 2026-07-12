@@ -14,7 +14,7 @@ import type { LaikaThemeMode } from './laikaThemes';
  * slot. Lets users pick a theme mode (light/dark/system) and surfaces
  * basic backend/config info.
  *
- * Pure laika — no core changes. State lives in `LaikaThemeContext`, which
+ * Pure laika - no core changes. State lives in `LaikaThemeContext`, which
  * persists the choice to localStorage; backend details are read from
  * Redux config state.
  */
@@ -167,11 +167,11 @@ function LaikaSettingsPage() {
           </LaikaCard.Header>
           <Row>
             <Label>Site</Label>
-            <Value>{config?.site_name ?? config?.name ?? '—'}</Value>
+            <Value>{config?.site_name ?? config?.name ?? '-'}</Value>
           </Row>
           <Row>
             <Label>Backend</Label>
-            <Value>{config?.backend?.name ?? '—'}</Value>
+            <Value>{config?.backend?.name ?? '-'}</Value>
           </Row>
           {config?.backend?.repo ? (
             <Row>

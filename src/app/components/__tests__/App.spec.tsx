@@ -15,7 +15,7 @@ vi.mock('react-polyglot', () => ({
     (props: any) => <Component {...props} t={(key: string) => key} />,
 }));
 
-// Stub the heavy page components — this spec only cares about which of the
+// Stub the heavy page components - this spec only cares about which of the
 // app-shell header / routed page mounts for a given route, not their guts.
 vi.mock('../Header', () => ({
   default: () => <header data-testid="app-header">App Header</header>,
@@ -93,7 +93,7 @@ function renderAppContentAt(
   };
 }
 
-describe('AppContent — DCMS-431 editor-route header suppression', () => {
+describe('AppContent - DCMS-431 editor-route header suppression', () => {
   it('mounts the app-shell header on a collection route', () => {
     const { getByTestId, queryByTestId } = renderAppContentAt('/collections/posts');
 
@@ -142,7 +142,7 @@ describe('AppContent — DCMS-431 editor-route header suppression', () => {
   });
 });
 
-describe('AppContent — DCMS-445 failed entry-load restores app chrome', () => {
+describe('AppContent - DCMS-445 failed entry-load restores app chrome', () => {
   it('mounts the app-shell header for an existing-entry route whose entry failed to load', () => {
     const state = baseState({
       entries: { entities: { 'posts.does-not-exist': { error: 'Entry not found: nope.md' } } },
@@ -182,7 +182,7 @@ describe('AppContent — DCMS-445 failed entry-load restores app chrome', () => 
   });
 });
 
-describe('AppContent — DCMS-432 unknown-collection deep-link', () => {
+describe('AppContent - DCMS-432 unknown-collection deep-link', () => {
   it('renders NotFound naming the missing collection instead of the collection view, for a bare collection route', () => {
     const { getByText, queryByTestId } = renderAppContentAt(
       '/collections/nonexistent_collection',

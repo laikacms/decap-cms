@@ -13,7 +13,7 @@ import { colors } from '../styles';
  * path out of the shared `IconWrapper` rule that resolves fill to
  * `currentColor`. On a dark login card (e.g. Laika's dark theme, which sets
  * `--decap-color-textLead` to a light value) that left the wordmark a fixed
- * near-black, unreadable against the dark background — while the pink "D"
+ * near-black, unreadable against the dark background - while the pink "D"
  * mark (intentionally `no-fill`, to preserve the brand color) stayed
  * visible.
  *
@@ -22,7 +22,7 @@ import { colors } from '../styles';
  * `color: ${colors.textLead}` so the wordmark follows the active theme
  * instead of being hardcoded.
  */
-describe('AuthenticationPage — default logo dark-theme contrast (DCMS-289)', () => {
+describe('AuthenticationPage - default logo dark-theme contrast (DCMS-289)', () => {
   it('renders the default Decap logo (no custom logoUrl) with a themeable wordmark color', () => {
     const { container } = render(<>{renderPageLogo(undefined)}</>);
 

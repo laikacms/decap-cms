@@ -9,7 +9,7 @@ import { styleStrings } from '../EditorControl';
  * through the themeable `colors` token layer. Every other token in the
  * same style block (`colors.inputBackground`, `borders.textField`, etc.)
  * already followed the theme, so on the laika-app dark theme the typed
- * value rendered at ~1.66:1 contrast against the dark input background —
+ * value rendered at ~1.66:1 contrast against the dark input background -
  * a WCAG AA (4.5:1) failure.
  *
  * `colors.textLead` is used (rather than `colors.text`) because it is the
@@ -18,7 +18,7 @@ import { styleStrings } from '../EditorControl';
  * laika-app dark theme override (~15:1), while `colors.text` only reaches
  * ~3.9:1 on light and fails AA there.
  */
-describe('EditorControl styleStrings — widget text theming (DCMS-421)', () => {
+describe('EditorControl styleStrings - widget text theming (DCMS-421)', () => {
   it('widget input color resolves through the themeable textLead token', () => {
     expect(styleStrings.widget).toContain(colors.textLead);
   });

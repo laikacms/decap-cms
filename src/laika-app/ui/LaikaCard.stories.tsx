@@ -38,7 +38,7 @@ export const Basic: Story = {
 export const StaticPanel: Story = {
   render: () => (
     <LaikaCard interactive={false} style={{ width: 320 }}>
-      <LaikaCard.Body>A static panel — no hover elevation.</LaikaCard.Body>
+      <LaikaCard.Body>A static panel - no hover elevation.</LaikaCard.Body>
     </LaikaCard>
   ),
 };

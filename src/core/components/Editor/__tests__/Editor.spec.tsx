@@ -89,7 +89,7 @@ describe('Editor', () => {
   });
 });
 
-describe('Editor — DCMS-445 failed entry load renders NotFoundPage, not a bare <h3>', () => {
+describe('Editor - DCMS-445 failed entry load renders NotFoundPage, not a bare <h3>', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useEditorModule.useEditor).mockReturnValue({

@@ -294,7 +294,7 @@ const ru = {
       workflowHeading: 'Рабочая область',
       newPost: 'Новая запись',
       description:
-        'Число записей, ожидающих проверки — %{smart_count}, готовых к публикации — %{readyCount}. |||| Число записей, ожидающих проверки — %{smart_count}, готовых к публикации — %{readyCount}. ',
+        'Число записей, ожидающих проверки - %{smart_count}, готовых к публикации - %{readyCount}. |||| Число записей, ожидающих проверки - %{smart_count}, готовых к публикации - %{readyCount}. ',
       dateFormat: 'MMMM D',
     },
     workflowCard: {

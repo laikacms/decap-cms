@@ -282,7 +282,7 @@ const uk = {
     workflowCard: {
       lastChange: '%{date}, %{author}',
       lastChangeNoAuthor: '%{date}',
-      lastChangeNoDate: '— %{author}',
+      lastChangeNoDate: '- %{author}',
       deleteChanges: 'Видалити зміни',
       deleteNewEntry: 'Видалити запис',
       publishChanges: 'Опублікувати зміни',
