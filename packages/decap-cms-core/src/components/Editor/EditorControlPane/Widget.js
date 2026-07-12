@@ -156,7 +156,12 @@ export default class Widget extends Component {
     const errors = [];
     const validations = [this.validatePresence, this.validatePattern];
     if (field.get('meta')) {
-      validations.push(this.props.validateMetaField);
+      // `validateMetaField` now takes `collection` explicitly (it's
+      // dispatch-bound in EditorControl.js so its identity stays stable
+      // across renders instead of being rebuilt on every store update);
+      // adapt it to the shared `(field, value, t) => response` shape used
+      // by the other validators here.
+      validations.push((f, v, t) => this.props.validateMetaField(this.props.collection, f, v, t));
     }
     validations.forEach(func => {
       const response = func(field, value, this.props.t);
@@ -358,7 +363,11 @@ export default class Widget extends Component {
       classNameLabel,
       classNameLabelActive,
       setActiveStyle,
-      setInactiveStyle: () => this.setInactiveStyle(),
+      // `this.setInactiveStyle` is already a stable, instance-bound class
+      // field method (see above); wrapping it in a fresh arrow function
+      // here on every render gave `controlComponent` a new prop identity
+      // for no reason, defeating memoization further down the widget tree.
+      setInactiveStyle: this.setInactiveStyle,
       hasActiveStyle,
       editorControl,
       resolveWidget,
