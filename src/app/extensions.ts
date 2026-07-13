@@ -57,10 +57,14 @@ CMS.registerBackend('proxy', ProxyBackend);
   DecapCmsWidgetCode.Widget(),
   DecapCmsWidgetColorString.Widget(),
   DecapCmsWidgetRichtext.Widget(),
+  // v1→v2 back-compat alias: `markdown` was renamed to `richtext` (DCMS-483).
+  // See BREAKING_CHANGES_V2_BETA.md for the migration note.
+  DecapCmsWidgetRichtext.Widget({ name: 'markdown' }),
 ].forEach(widget => CMS.registerWidget(widget));
 // The richtext widget stores a lazy `RichtextValue`; serialize it to a markdown
 // string at persist time (deserialize on load) via the value-serializer pipeline.
 CMS.registerWidgetValueSerializer('richtext', DecapCmsWidgetRichtext.valueSerializer);
+CMS.registerWidgetValueSerializer('markdown', DecapCmsWidgetRichtext.valueSerializer);
 CMS.registerEditorComponent(image as any); // TODO: fix type issue with editor components
 CMS.registerEditorComponent({
   id: 'code-block',
