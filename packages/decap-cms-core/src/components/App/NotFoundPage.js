@@ -14,10 +14,13 @@ const NotFoundContainer = styled.div`
   }
 `;
 
-export function NotFoundPage({ t, backLink }) {
+export function NotFoundPage({ t, backLink, collectionName }) {
+  const header = collectionName
+    ? t('app.notFoundPage.collectionNotFoundHeader', { name: collectionName })
+    : t('app.notFoundPage.header');
   return (
     <NotFoundContainer>
-      <h1>{t('app.notFoundPage.header')}</h1>
+      <h1>{header}</h1>
       {backLink || <Link to="/">{t('app.notFoundPage.backToHome')}</Link>}
     </NotFoundContainer>
   );
@@ -26,6 +29,7 @@ export function NotFoundPage({ t, backLink }) {
 NotFoundPage.propTypes = {
   t: PropTypes.func.isRequired,
   backLink: PropTypes.node,
+  collectionName: PropTypes.string,
 };
 
 export default translate()(NotFoundPage);

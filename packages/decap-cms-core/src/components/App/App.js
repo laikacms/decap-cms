@@ -69,12 +69,14 @@ export function RouteInCollection({ collections, render, t, ...props }) {
     <Route
       {...props}
       render={routeProps => {
-        const collectionExists = collections.get(routeProps.match.params.name);
+        const { name } = routeProps.match.params;
+        const collectionExists = collections.get(name);
         return collectionExists ? (
           render(routeProps)
         ) : (
           <NotFoundPageBase
             t={t}
+            collectionName={name}
             backLink={<Link to={defaultPath}>{t('app.notFoundPage.backToHome')}</Link>}
           />
         );
