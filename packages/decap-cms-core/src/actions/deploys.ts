@@ -58,6 +58,12 @@ export function loadDeployPreview(
   opts?: { maxAttempts?: number; interval?: number; signal?: AbortSignal },
 ) {
   return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
+    // No entry data to preview (e.g. the entry failed to load, DCMS-479) —
+    // skip the backend call rather than let it throw on the missing entry.
+    if (!entry) {
+      return;
+    }
+
     const state = getState();
     const backend = currentBackend(state.config);
     const collectionName = collection.get('name');

@@ -83,7 +83,7 @@ const DropdownButton = styled(StyledDropdownButton)`
   }
 `;
 
-const ToolbarContainer = styled.div`
+export const ToolbarContainer = styled.div`
   box-shadow: 0 2px 6px 0 rgba(68, 74, 87, 0.05), 0 1px 3px 0 rgba(68, 74, 87, 0.1),
     0 2px 54px rgba(0, 0, 0, 0.1);
   position: absolute;
@@ -115,7 +115,7 @@ const ToolbarSubSectionLast = styled(ToolbarSubSectionFirst)`
   justify-content: flex-end;
 `;
 
-const ToolbarSectionBackLink = styled(Link)`
+export const ToolbarSectionBackLink = styled(Link)`
   ${styles.toolbarSection};
   border-right-width: 1px;
   font-weight: normal;
@@ -141,14 +141,14 @@ const ToolbarDropdown = styled(Dropdown)`
   }
 `;
 
-const BackArrow = styled.div`
+export const BackArrow = styled.div`
   color: ${colors.textLead};
   font-size: 21px;
   font-weight: 600;
   margin-right: 16px;
 `;
 
-const BackCollection = styled.div`
+export const BackCollection = styled.div`
   color: ${colors.textLead};
   font-size: 14px;
 `;

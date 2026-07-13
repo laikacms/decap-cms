@@ -13,6 +13,8 @@ jest.mock('lodash/debounce', () => {
 });
 // eslint-disable-next-line react/display-name
 jest.mock('../EditorInterface', () => props => <mock-editor-interface {...props} />);
+// eslint-disable-next-line react/display-name
+jest.mock('../EntryNotFound', () => props => <mock-entry-not-found {...props} />);
 jest.mock('decap-cms-ui-default', () => {
   return {
     // eslint-disable-next-line react/display-name
@@ -92,6 +94,23 @@ describe('Editor', () => {
       />,
     );
     expect(asFragment()).toMatchSnapshot();
+  });
+
+  it('should render EntryNotFound instead of unmounting when entry failed to load', () => {
+    const { asFragment, container } = render(
+      <Editor
+        {...props}
+        entryDraft={fromJS({})}
+        entry={fromJS({ error: 'Entry not found: posts/missing.md' })}
+        editorBackLink="/collections/posts"
+      />,
+    );
+
+    expect(asFragment()).toMatchSnapshot();
+    const notFound = container.querySelector('mock-entry-not-found');
+    expect(notFound).toBeTruthy();
+    expect(notFound.getAttribute('message')).toBe('Entry not found: posts/missing.md');
+    expect(notFound.getAttribute('editorbacklink')).toBe('/collections/posts');
   });
 
   it('should call retrieveLocalBackup on mount', () => {

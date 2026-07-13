@@ -34,6 +34,7 @@ import { selectEntry, selectUnpublishedEntry, selectDeployPreview } from '../../
 import { selectFields } from '../../reducers/collections';
 import { status, EDITORIAL_WORKFLOW } from '../../constants/publishModes';
 import EditorInterface from './EditorInterface';
+import EntryNotFound from './EntryNotFound';
 import withWorkflow from './withWorkflow';
 
 export class Editor extends React.Component {
@@ -371,10 +372,17 @@ export class Editor extends React.Component {
     const isPublished = !newEntry && !unpublishedEntry;
 
     if (entry && entry.get('error')) {
+      // Keep the editor chrome (back link) in place instead of unmounting
+      // to a bare error string (DCMS-479). No EditorInterface/EditorToolbar
+      // is rendered here, so there is no entry data for the preview pane to
+      // choke on either.
       return (
-        <div>
-          <h3>{entry.get('error')}</h3>
-        </div>
+        <EntryNotFound
+          t={t}
+          collection={collection}
+          editorBackLink={editorBackLink}
+          message={entry.get('error')}
+        />
       );
     } else if (
       entryDraft == null ||

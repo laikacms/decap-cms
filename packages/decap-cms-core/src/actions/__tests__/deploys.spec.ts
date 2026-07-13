@@ -1,11 +1,41 @@
+import { fromJS } from 'immutable';
+import configureMockStore from 'redux-mock-store';
+import thunk from 'redux-thunk';
+
+import { currentBackend } from '../../backend';
 import {
   deployPreviewLoading,
   deployPreviewLoaded,
   deployPreviewError,
+  loadDeployPreview,
   DEPLOY_PREVIEW_REQUEST,
   DEPLOY_PREVIEW_SUCCESS,
   DEPLOY_PREVIEW_FAILURE,
 } from '../deploys';
+
+jest.mock('../../backend');
+
+const middlewares = [thunk];
+const mockStore = configureMockStore(middlewares);
+
+describe('loadDeployPreview', () => {
+  it('does not call the backend when entry is not loaded (DCMS-479)', async () => {
+    const backend = {
+      getDeploy: jest.fn(),
+      getDeployPreview: jest.fn(),
+    };
+    (currentBackend as jest.Mock).mockReturnValue(backend);
+
+    const store = mockStore({ config: fromJS({}) });
+    const collection = fromJS({ name: 'posts' });
+
+    await store.dispatch(loadDeployPreview(collection, 'missing-slug', undefined, false));
+
+    expect(backend.getDeploy).not.toHaveBeenCalled();
+    expect(backend.getDeployPreview).not.toHaveBeenCalled();
+    expect(store.getActions()).toEqual([]);
+  });
+});
 
 describe('deploy preview action creators', () => {
   it('deployPreviewLoading() returns DEPLOY_PREVIEW_REQUEST with collection and slug', () => {
