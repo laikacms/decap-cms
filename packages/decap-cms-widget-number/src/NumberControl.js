@@ -96,6 +96,14 @@ export default class NumberControl extends React.Component {
         return;
       }
 
+      // Integers above Number.MAX_SAFE_INTEGER are silently rounded by parseFloat too;
+      // store the raw string so isValid() can surface the error without corrupting data,
+      // mirroring the int path below.
+      if (/^-?\d+$/.test(raw.trim()) && !Number.isSafeInteger(value)) {
+        onChange(raw);
+        return;
+      }
+
       onChange(value);
       return;
     }
@@ -146,6 +154,23 @@ export default class NumberControl extends React.Component {
           error: {
             type: ValidationErrorTypes.CUSTOM,
             message: 'Value exceeds the maximum representable number.',
+          },
+        };
+      }
+    }
+
+    // Detect unsafe integer typed into a float/unset value_type: value is a
+    // non-empty string that looks like an integer and is only present because
+    // handleChange refused to store the unsafe parseFloat result, mirroring
+    // the int-path guard above.
+    if (valueType !== 'int' && typeof value === 'string' && value !== '' && /^-?\d+$/.test(value)) {
+      const parsed = parseFloat(value);
+      if (isFinite(parsed) && !Number.isSafeInteger(parsed)) {
+        return {
+          error: {
+            type: ValidationErrorTypes.CUSTOM,
+            message:
+              'Value exceeds the maximum safe integer. Use a string widget for arbitrary-precision IDs.',
           },
         };
       }
