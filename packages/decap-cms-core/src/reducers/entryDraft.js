@@ -114,17 +114,19 @@ function entryDraftReducer(state = Map(), action) {
         }
         // `fromDefault` marks a value substitution the framework performed
         // on mount (e.g. datetime's `{{now}}` default) rather than a user
-        // edit. On a brand-new entry it must not flip `hasChanged`,
-        // otherwise a freshly opened form shows "unsaved changes" before
-        // anyone types anything (DCMS-416/DCMS-487). The flag itself is
-        // not real field metadata, so it's stripped before merging into
-        // fieldsMetaData.
+        // edit. It must not flip `hasChanged`, otherwise a freshly opened
+        // form shows "unsaved changes" before anyone types anything. This
+        // applies to brand-new entries (DCMS-416/DCMS-487) as well as
+        // existing entries with a field left blank/default-driven
+        // (DCMS-528) — an unfilled field falls back to the same
+        // framework-provided default regardless of `newRecord`. The flag
+        // itself is not real field metadata, so it's stripped before
+        // merging into fieldsMetaData.
         const { fromDefault, ...restMetadata } = metadata ?? {};
-        const isNewRecord = state.getIn(['entry', 'newRecord']);
 
         state.mergeDeepIn(['fieldsMetaData'], fromJS(restMetadata));
 
-        if (!(fromDefault && isNewRecord)) {
+        if (!fromDefault) {
           const newData = state.getIn(['entry', ...dataPath]);
           const newMeta = state.getIn(['entry', 'meta']);
           state.set(
