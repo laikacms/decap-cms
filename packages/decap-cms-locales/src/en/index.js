@@ -31,6 +31,7 @@ const en = {
     },
     notFoundPage: {
       header: 'Not Found',
+      collectionNotFoundHeader: 'Collection "%{name}" not found',
       backToHome: 'Back to home',
     },
   },

@@ -34,27 +34,31 @@ describe('isSearchDisabled', () => {
   });
 });
 
-function t(key) {
-  return (
-    {
-      'app.notFoundPage.header': 'Not Found',
-      'app.notFoundPage.backToHome': 'Back to home',
-    }[key] || key
-  );
+function t(key, options) {
+  const strings = {
+    'app.notFoundPage.header': 'Not Found',
+    'app.notFoundPage.collectionNotFoundHeader': 'Collection "%{name}" not found',
+    'app.notFoundPage.backToHome': 'Back to home',
+  };
+  const template = strings[key] || key;
+  return options ? template.replace('%{name}', options.name) : template;
 }
 
 // Regression test for DCMS-489: deep-linking to a route in a collection that
 // doesn't exist used to silently <Redirect> to the first collection, rewriting
 // the URL bar so the NotFoundPage fallback route was never reached. It must
 // instead render NotFoundPage in place, leaving the URL untouched.
+//
+// DCMS-503: that NotFoundPage must also echo the unknown collection name, not
+// just a generic "Not Found" header, so a stale/renamed/typo'd URL is obvious.
 describe('RouteInCollection', () => {
   const collections = fromJS({
     posts: { name: 'posts' },
   });
 
-  it('renders NotFoundPage without redirecting when the collection does not exist', () => {
+  it('renders NotFoundPage naming the unknown collection without redirecting', () => {
     const history = createMemoryHistory({ initialEntries: ['/collections/BOGUS-xyz'] });
-    const { getByText } = render(
+    const { getByText, queryByText } = render(
       <Router history={history}>
         <Switch>
           <RouteInCollection
@@ -68,7 +72,8 @@ describe('RouteInCollection', () => {
       </Router>,
     );
 
-    expect(getByText('Not Found')).toBeInTheDocument();
+    expect(getByText('Collection "BOGUS-xyz" not found')).toBeInTheDocument();
+    expect(queryByText('Not Found')).not.toBeInTheDocument();
     expect(history.location.pathname).toBe('/collections/BOGUS-xyz');
   });
 
