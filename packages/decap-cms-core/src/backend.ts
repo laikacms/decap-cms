@@ -710,7 +710,13 @@ export class Backend {
 
   traverseCursor(cursor: Cursor, action: string) {
     const [data, unwrappedCursor] = cursor.unwrapData();
-    // TODO: stop assuming all cursors are for collections
+    if (data['cursorType'] !== 'collectionEntries') {
+      throw new Error(
+        `traverseCursor only supports cursors of type 'collectionEntries', got '${String(
+          data['cursorType'],
+        )}'`,
+      );
+    }
     const collection = data['collection'] as Collection;
     return this.implementation!.traverseCursor!(unwrappedCursor, action).then(
       async ({ entries, cursor: newCursor }) => ({
