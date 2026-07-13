@@ -831,6 +831,32 @@ describe('Backend', () => {
       );
       expect(implementation.getEntry).not.toHaveBeenCalled();
     });
+
+    // DCMS-481: a rejection from the underlying implementation for a missing
+    // folder-collection entry (e.g. a stale/mistyped deep link) must propagate
+    // as-is instead of the load flow attempting to keep processing an entry
+    // that was never returned.
+    it('propagates a clean not-found rejection for an unknown folder-collection slug', async () => {
+      const implementation = {
+        init: jest.fn(() => implementation),
+        getEntry: jest.fn(() => Promise.reject(new Error('Entry not found: faq/nope-9999.md'))),
+      };
+
+      const collection = fromJS({
+        name: 'faq',
+        type: FOLDER,
+        folder: 'faq',
+        extension: 'md',
+        fields: [{ name: 'title' }],
+      });
+
+      const backend = new Backend(implementation, { config: {}, backendName: 'github' });
+
+      await expect(backend.getEntry({}, collection, 'nope-9999')).rejects.toThrow(
+        'Entry not found: faq/nope-9999.md',
+      );
+      expect(implementation.getEntry).toHaveBeenCalledWith('faq/nope-9999.md');
+    });
   });
 
   describe('extractSearchFields', () => {
