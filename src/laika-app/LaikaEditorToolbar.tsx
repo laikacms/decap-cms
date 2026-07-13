@@ -4,7 +4,15 @@ import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
 import { translate } from 'react-polyglot';
 
-import { Dropdown, DropdownItem, Icon, colors, lengths, zIndex } from '../ui/default/index';
+import {
+  Dropdown,
+  DropdownItem,
+  DropdownButton,
+  Icon,
+  colors,
+  lengths,
+  zIndex,
+} from '../ui/default/index';
 import { SettingsDropdown } from '../core/components/UI';
 import { LaikaButton, LaikaBadge } from './ui';
 
@@ -114,6 +122,51 @@ const ChangesIndicator = styled.span<{ $changed: boolean }>`
   color: ${({ $changed }) => ($changed ? colors.errorText : colors.controlLabel)};
 `;
 
+/**
+ * Ghost-styled trigger for the toolbar's `Dropdown`s, built on
+ * react-aria-menubutton's `Button` primitive (via `DropdownButton`) so the
+ * click actually opens the menu — plain `LaikaButton`s render fine but never
+ * hook into the `Dropdown`'s open/close context (see `LaikaHeader`'s
+ * `QuickAddButton` for the same pattern applied to a filled variant).
+ */
+const ToolbarDropdownButton = styled(DropdownButton)`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  background-color: transparent;
+  color: ${colors.controlLabel};
+  border: 1px solid transparent;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    background-color: ${colors.activeBackground};
+    color: ${colors.active};
+    outline: none;
+  }
+
+  &[aria-disabled='true'] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
+
+const MoreActionsDropdownButton = styled(ToolbarDropdownButton)`
+  width: 28px;
+  padding: 0;
+`;
+
 function workflowIntent(status: string | undefined): LaikaBadgeIntent {
   switch (status) {
     case 'draft':
@@ -187,6 +240,8 @@ function LaikaEditorToolbar({
   const canPublish =
     !!hasChanged === false && (!hasWorkflow || currentStatus === 'pending_publish');
   const showStatusControls = hasWorkflow && !isNewEntry;
+  const showPublish = !hasWorkflow || (canPublish && !isNewEntry);
+  const canCreate = !!collection.create;
 
   const saveLabel = isPersisting
     ? t('editor.editorToolbar.saving')
@@ -229,18 +284,19 @@ function LaikaEditorToolbar({
           {saveLabel}
         </LaikaButton>
 
+        <ChangesIndicator $changed={!!hasChanged}>
+          {hasChanged
+            ? t('editor.editorToolbar.unsavedChanges')
+            : t('editor.editorToolbar.changesSaved')}
+        </ChangesIndicator>
+
         {showStatusControls ? (
           <Dropdown
             renderButton={() => (
-              <LaikaButton
-                variant="ghost"
-                size="sm"
-                disabled={isUpdatingStatus}
-                onClick={() => undefined}
-              >
+              <ToolbarDropdownButton disabled={isUpdatingStatus}>
                 Set status
                 <Icon type="chevron" direction="down" />
-              </LaikaButton>
+              </ToolbarDropdownButton>
             )}
             dropdownTopOverlap="32px"
             dropdownWidth="180px"
@@ -264,7 +320,7 @@ function LaikaEditorToolbar({
           </Dropdown>
         ) : null}
 
-        {(!hasWorkflow || canPublish) && !isNewEntry ? (
+        {showPublish ? (
           <LaikaButton size="sm" disabled={isPublishing} onClick={() => onPublish()}>
             {publishLabel}
           </LaikaButton>
@@ -272,9 +328,9 @@ function LaikaEditorToolbar({
 
         <Dropdown
           renderButton={() => (
-            <LaikaButton variant="ghost" size="sm" aria-label="More actions">
+            <MoreActionsDropdownButton aria-label="More actions">
               <Icon type="h-options" />
-            </LaikaButton>
+            </MoreActionsDropdownButton>
           )}
           dropdownTopOverlap="32px"
           dropdownWidth="220px"
@@ -289,6 +345,30 @@ function LaikaEditorToolbar({
             />
           ) : null}
           <DropdownItem label={t('editor.editorToolbar.duplicate')} onClick={onDuplicate} />
+          {canCreate ? (
+            <DropdownItem
+              label={t('editor.editorToolbar.saveAndCreateNew')}
+              onClick={onPersistAndNew}
+            />
+          ) : null}
+          {canCreate ? (
+            <DropdownItem
+              label={t('editor.editorToolbar.saveAndDuplicate')}
+              onClick={onPersistAndDuplicate}
+            />
+          ) : null}
+          {canCreate && showPublish ? (
+            <DropdownItem
+              label={t('editor.editorToolbar.publishAndCreateNew')}
+              onClick={onPublishAndNew}
+            />
+          ) : null}
+          {canCreate && showPublish ? (
+            <DropdownItem
+              label={t('editor.editorToolbar.publishAndDuplicate')}
+              onClick={onPublishAndDuplicate}
+            />
+          ) : null}
           {hasUnpublishedChanges && hasWorkflow ? (
             <DropdownItem
               label={t('editor.editorToolbar.deleteUnpublishedChanges')}

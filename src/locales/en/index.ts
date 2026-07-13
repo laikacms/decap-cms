@@ -134,6 +134,8 @@ const en = {
       unpublishing: 'Unpublishing...',
       publishAndCreateNew: 'Publish and create new',
       publishAndDuplicate: 'Publish and duplicate',
+      saveAndCreateNew: 'Save and create new',
+      saveAndDuplicate: 'Save and duplicate',
       deleteUnpublishedChanges: 'Delete unpublished changes',
       deleteUnpublishedEntry: 'Delete unpublished entry',
       deletePublishedEntry: 'Delete published entry',
