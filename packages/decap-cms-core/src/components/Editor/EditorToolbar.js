@@ -679,7 +679,6 @@ export class EditorToolbar extends React.Component {
     const {
       user,
       hasChanged,
-      isNewEntry,
       displayUrl,
       collection,
       hasWorkflow,
@@ -698,7 +697,15 @@ export class EditorToolbar extends React.Component {
                 collectionLabel: collection.get('label'),
               })}
             </BackCollection>
-            {hasChanged || isNewEntry ? (
+            {/*
+              hasChanged already reflects "did the user cause a change since
+              DRAFT_CREATE_EMPTY" for new entries too (see the `fromDefault`
+              gate in reducers/entryDraft.js, DCMS-487), so OR-ing in
+              isNewEntry here just relabels a pristine fresh draft as
+              "unsaved" (DCMS-508). Save button below still consults
+              isNewEntry on its own so it stays enabled for a pristine draft.
+            */}
+            {hasChanged ? (
               <BackStatusChanged>{t('editor.editorToolbar.unsavedChanges')}</BackStatusChanged>
             ) : (
               <BackStatusUnchanged>{t('editor.editorToolbar.changesSaved')}</BackStatusUnchanged>
