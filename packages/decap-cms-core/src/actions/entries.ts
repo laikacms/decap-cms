@@ -538,8 +538,17 @@ export function loadEntry(collection: Collection, slug: string) {
 
     try {
       const loadedEntry = await tryLoadEntry(getState(), collection, slug);
-      dispatch(entryLoaded(collection, loadedEntry));
-      dispatch(createDraftFromEntry(loadedEntry));
+      // DCMS-480: entries persisted before a field (e.g. `boolean` with
+      // `default: false`) existed in the config have no key for it at all.
+      // `createEmptyDraftData` only fills defaults for brand-new entries,
+      // so without this the missing key reads as `undefined`, which
+      // `validatePresence` treats as "empty" even though the field has a
+      // perfectly valid configured default. Backfill any keys the loaded
+      // entry doesn't already own; explicit values (including `false`,
+      // `''`, etc.) are left untouched by `createEmptyDraftData`.
+      const backfilledEntry = withDefaultsBackfilled(collection, loadedEntry);
+      dispatch(entryLoaded(collection, backfilledEntry));
+      dispatch(createDraftFromEntry(backfilledEntry));
     } catch (error) {
       dispatch(
         addNotification({
@@ -560,6 +569,27 @@ export async function tryLoadEntry(state: State, collection: Collection, slug: s
   const backend = currentBackend(state.config);
   const loadedEntry = await backend.getEntry(state, collection, slug);
   return loadedEntry;
+}
+
+// DCMS-480: fills in defaults for any data field the loaded entry doesn't
+// already have a key for, without touching fields the entry already has an
+// explicit (possibly empty-looking) value for. See `createEmptyDraftData`.
+export function withDefaultsBackfilled(collection: Collection, entry: EntryValue): EntryValue {
+  // `type` (folder vs. files collection) drives `selectFields`; callers
+  // that pass a partial/malformed collection (e.g. missing config) have no
+  // safe way to resolve fields, so leave the entry as loaded rather than
+  // throwing and failing the whole load.
+  if (!collection.get('type')) {
+    return entry;
+  }
+
+  const dataFields = getDataFields(selectFields(collection, entry.slug) || List());
+  if (dataFields.isEmpty()) {
+    return entry;
+  }
+
+  const data = createEmptyDraftData(dataFields, undefined, entry.data as DraftEntryData);
+  return { ...entry, data: data as Record<string, unknown> };
 }
 
 const appendActions: Record<string, { action: string; append: boolean }> = {
@@ -804,6 +834,12 @@ interface DraftEntryData {
 export function createEmptyDraftData(
   fields: EntryFields,
   skipField: (field: EntryField) => boolean = () => false,
+  // DCMS-480: when backfilling defaults onto an *existing* entry (as
+  // opposed to seeding a brand-new one), `baseData` carries the entry's
+  // already-loaded values. Any key it already owns - even an
+  // empty-looking one like `false`, `''`, or `{}` - is a real, explicit
+  // value and must win over the field's configured `default`.
+  baseData?: DraftEntryData,
 ) {
   return fields.reduce(
     (
@@ -817,9 +853,13 @@ export function createEmptyDraftData(
         return acc;
       }
 
+      const name = item.get('name');
+      if (baseData && Object.prototype.hasOwnProperty.call(baseData, name)) {
+        return acc;
+      }
+
       const subfields = item.get('field') || item.get('fields');
       const list = item.get('widget') == 'list';
-      const name = item.get('name');
       const defaultValue = item.get('default', null);
 
       function isEmptyDefaultValue(val: unknown) {
@@ -863,7 +903,7 @@ export function createEmptyDraftData(
 
       return acc;
     },
-    {} as DraftEntryData,
+    { ...(baseData || {}) } as DraftEntryData,
   );
 }
 
