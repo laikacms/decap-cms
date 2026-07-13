@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import styled from '@emotion/styled';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { colors, colorsRaw, components, lengths, zIndex } from 'decap-cms-ui-default';
+import { colors, colorsRaw, components, zIndex } from 'decap-cms-ui-default';
 import { translate } from 'react-polyglot';
 
 import { boundGetAsset } from '../../../actions/media';
@@ -12,9 +12,10 @@ import { selectEntryCollectionTitle } from '../../../reducers/collections';
 
 const ListCard = styled.li`
   ${components.card};
-  width: ${lengths.topCardWidth};
-  margin-left: 12px;
-  margin-bottom: 10px;
+  flex: 0 0 calc(100% - 12px);
+  max-width: calc(100% - 12px);
+  list-style: none;
+  margin: 0 0 10px 12px;
   overflow: hidden;
 `;
 
