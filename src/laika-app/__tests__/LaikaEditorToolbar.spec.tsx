@@ -124,4 +124,69 @@ describe('LaikaEditorToolbar', () => {
     );
     expect(getByTestId('settings-dropdown')).toBeInTheDocument();
   });
+
+  it('shows Publish for a new entry in simple mode (DCMS-511)', () => {
+    const { getByText } = render(
+      <MemoryRouter>
+        <LaikaEditorToolbar {...baseProps} hasWorkflow={false} isNewEntry />
+      </MemoryRouter>,
+    );
+    expect(getByText('editor.editorToolbar.publishNow')).toBeInTheDocument();
+  });
+
+  it('hides Publish for a new entry under editorial workflow', () => {
+    const { queryByText } = render(
+      <MemoryRouter>
+        <LaikaEditorToolbar {...baseProps} hasWorkflow isNewEntry />
+      </MemoryRouter>,
+    );
+    expect(queryByText('editor.editorToolbar.publishNow')).not.toBeInTheDocument();
+  });
+
+  it('wires the chain-create actions into the More actions menu when collection.create is on (DCMS-511)', () => {
+    const onPersistAndNew = vi.fn();
+    const onPersistAndDuplicate = vi.fn();
+    const onPublishAndNew = vi.fn();
+    const onPublishAndDuplicate = vi.fn();
+    const { getByLabelText, getByText } = render(
+      <MemoryRouter>
+        <LaikaEditorToolbar
+          {...baseProps}
+          collection={{ name: 'posts', label: 'Posts', create: true } as any}
+          onPersistAndNew={onPersistAndNew}
+          onPersistAndDuplicate={onPersistAndDuplicate}
+          onPublishAndNew={onPublishAndNew}
+          onPublishAndDuplicate={onPublishAndDuplicate}
+        />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(getByLabelText('More actions'));
+
+    fireEvent.click(getByText('editor.editorToolbar.saveAndCreateNew'));
+    expect(onPersistAndNew).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(getByLabelText('More actions'));
+    fireEvent.click(getByText('editor.editorToolbar.saveAndDuplicate'));
+    expect(onPersistAndDuplicate).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(getByLabelText('More actions'));
+    fireEvent.click(getByText('editor.editorToolbar.publishAndCreateNew'));
+    expect(onPublishAndNew).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(getByLabelText('More actions'));
+    fireEvent.click(getByText('editor.editorToolbar.publishAndDuplicate'));
+    expect(onPublishAndDuplicate).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not render chain-create actions when collection.create is off', () => {
+    const { queryByText } = render(
+      <MemoryRouter>
+        <LaikaEditorToolbar {...baseProps} />
+      </MemoryRouter>,
+    );
+    fireEvent.click(document.querySelector('[aria-label="More actions"]')!);
+    expect(queryByText('editor.editorToolbar.saveAndCreateNew')).not.toBeInTheDocument();
+    expect(queryByText('editor.editorToolbar.publishAndCreateNew')).not.toBeInTheDocument();
+  });
 });
