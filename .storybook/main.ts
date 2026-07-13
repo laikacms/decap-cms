@@ -47,10 +47,10 @@ const emotionStyledProductionEsbuildPlugin: EsbuildPlugin = {
 const config: StorybookConfig = {
   stories: ['../src/**/*.stories.@(ts|tsx)'],
   // Storybook 10 ships what used to be `@storybook/addon-essentials`
-  // (controls, viewport, backgrounds, …) inside the core package, so no
-  // addons are needed here. Add `@storybook/addon-a11y@^10` later if
-  // accessibility checks become a goal.
-  addons: [],
+  // (controls, viewport, backgrounds, …) inside the core package, so only
+  // `@storybook/addon-a11y` needs to be registered explicitly for
+  // accessibility checks.
+  addons: ['@storybook/addon-a11y'],
   framework: {
     name: '@storybook/react-vite',
     options: {},
