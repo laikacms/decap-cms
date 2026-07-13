@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import debounce from 'lodash/debounce';
 
 import { useAppDispatch, useAppSelector } from './useRedux';
@@ -76,6 +76,20 @@ export function useEditor({
     | Collection
     | undefined;
   const entryDraft = useAppSelector(state => state.entryDraft) as EntryDraft | undefined;
+
+  // `setup()` below (and the `exitBlocker`/`navigationBlocker`/`handleHashChange`
+  // closures it creates) is intentionally invoked once per edited-entry, not on
+  // every render — see the `editKey`-keyed effect in `Editor.tsx`. Reading
+  // `entryDraft` directly inside those closures would therefore freeze the
+  // unsaved-changes guard to whatever the draft was at mount (typically
+  // `hasChanged: false`, before the user has typed anything), so every guard
+  // path silently treats the entry as clean forever regardless of later edits
+  // (DCMS-456). Route every guard read through this ref instead, kept current
+  // on every render, so the guards always see the live draft.
+  const entryDraftRef = useRef<EntryDraft | undefined>(entryDraft);
+  useEffect(() => {
+    entryDraftRef.current = entryDraft;
+  }, [entryDraft]);
   const user = useAppSelector(state => state.auth.user);
   const displayUrl = useAppSelector(state => state.config.display_url);
   const hasWorkflow = useAppSelector(state => state.config.publish_mode === EDITORIAL_WORKFLOW);
@@ -170,7 +184,7 @@ export function useEditor({
 
     // Setup beforeunload handler
     function exitBlocker(event: BeforeUnloadEvent) {
-      const draft = entryDraft;
+      const draft = entryDraftRef.current;
       if (draft?.hasChanged) {
         event.returnValue = leaveMessage;
         return leaveMessage;
@@ -186,7 +200,7 @@ export function useEditor({
     // IMPORTANT: We must unblock BEFORE calling tx.retry() to prevent infinite loops,
     // because tx.retry() re-triggers the navigation which would call this blocker again.
     function navigationBlocker(tx: RouterTransition) {
-      const draft = entryDraft;
+      const draft = entryDraftRef.current;
       const isPersisting = draft?.entry?.isPersisting;
       const newRecord = draft?.entry?.newRecord;
       const newEntryPath = `/collections/${collection!.name}/new`;
@@ -262,33 +276,70 @@ export function useEditor({
       return raw.startsWith('#') ? raw.slice(1) || '/' : raw || '/';
     };
 
+    // Set right before we programmatically revert the URL bar on cancel
+    // (below), since that revert itself fires a native `hashchange` — without
+    // this, that synthetic event would re-enter this handler and prompt a
+    // second confirm for the same cancelled navigation.
+    let suppressNextHashChange = false;
+
+    // `history.replace()` still goes through the `block()` we installed above
+    // (history@5 runs every registered blocker for REPLACE too, see
+    // `allowTx` in history/hash.js), so calling it while `navigationBlocker`
+    // is still armed re-invokes that blocker for this resync and — now that
+    // it reads the live draft via `entryDraftRef` — prompts a second,
+    // redundant confirm for the exact navigation this safety net (or the
+    // user, just above) already resolved. Unblock only for the duration of
+    // the resync call, then immediately restore the block so later external
+    // hash mutations in this same edit session are still guarded.
+    const resyncHistory = (path: string) => {
+      unblockRef.current?.();
+      history.replace(path);
+      unblockRef.current = defaultRouter.block(navigationBlocker);
+    };
+
     const handleHashChange = () => {
+      if (suppressNextHashChange) {
+        suppressNextHashChange = false;
+        return;
+      }
       if (popSyncTimerRef.current) {
         clearTimeout(popSyncTimerRef.current);
       }
       popSyncTimerRef.current = setTimeout(() => {
         popSyncTimerRef.current = null;
-        if (isInSync()) {
-          return;
-        }
 
         const path = getHashPath();
-        const draft = entryDraft;
+        const draft = entryDraftRef.current;
         const newEntryPath = `/collections/${collection!.name}/new`;
         const isPersistingNewEntry =
           draft?.entry?.isPersisting && draft?.entry?.newRecord && path === newEntryPath;
 
         if (isPersistingNewEntry || !draft?.hasChanged) {
-          // Hands bookkeeping back to `history`, which fires the `listen`
-          // callback registered above as normal.
-          history.replace(path);
+          // Nothing to protect. Only hand bookkeeping back to `history` (which
+          // fires the `listen` callback registered above as normal) if it
+          // hasn't already resynced on its own — calling `history.replace`
+          // when already in sync would stamp a spurious extra entry.
+          if (!isInSync()) {
+            resyncHistory(path);
+          }
           return;
         }
 
+        // Deliberately do NOT gate on `isInSync()` here: a POP to a location
+        // `history` didn't create (the exact case this safety net exists for,
+        // e.g. the first browser Back after app boot) never calls `applyTx`,
+        // so `history.location` can legitimately stay desynced from
+        // `window.location` even after this debounce settles. Trusting
+        // `isInSync()` as "already handled, safe to skip" previously let a
+        // dirty draft's guard be silently bypassed on any such external hash
+        // mutation (DCMS-456) — the dirty-draft check below is the real
+        // guard, and it must always run.
+
         if (window.confirm(leaveMessage)) {
-          history.replace(path);
+          resyncHistory(path);
         } else {
           // Revert the URL bar back to where the app actually is.
+          suppressNextHashChange = true;
           window.location.href = history.createHref(history.location);
         }
       }, 50);
@@ -322,7 +373,6 @@ export function useEditor({
     createBackup,
     deleteBackup,
     dispatch,
-    entryDraft,
     locationPathname,
     locationSearch,
     newEntry,
