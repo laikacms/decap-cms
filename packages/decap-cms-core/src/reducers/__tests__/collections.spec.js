@@ -93,6 +93,20 @@ describe('collections', () => {
         ),
       ).toBe('posts/dir1/dir2/slug.md');
     });
+
+    // DCMS-481: a malformed/partial folder-collection config with no `folder`
+    // key used to crash with a raw TypeError (`Cannot read properties of
+    // undefined (reading 'replace')`) instead of a clean not-found result.
+    it('should return undefined when the collection has no folder', () => {
+      expect(
+        selectEntryPath(
+          fromJS({
+            type: FOLDER,
+          }),
+          'slug',
+        ),
+      ).toBeUndefined();
+    });
   });
 
   describe('selectEntrySlug', () => {
@@ -106,6 +120,20 @@ describe('collections', () => {
           'posts/dir1/dir2/slug.md',
         ),
       ).toBe('dir1/dir2/slug');
+    });
+
+    // DCMS-481: same guard as selectEntryPath, for the split-based selector
+    // that produced the reported `Cannot read properties of undefined
+    // (reading 'split')` crash.
+    it('should return undefined when the collection has no folder', () => {
+      expect(
+        selectEntrySlug(
+          fromJS({
+            type: FOLDER,
+          }),
+          'posts/dir1/dir2/slug.md',
+        ),
+      ).toBeUndefined();
     });
   });
 
