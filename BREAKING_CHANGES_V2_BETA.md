@@ -78,3 +78,18 @@ The singular `field` property on the object widget is no longer supported. You m
 +     widget: string
 ```
 
+## `markdown` widget renamed to `richtext`
+
+The Portable-Text-backed `markdown` widget is now registered as `richtext`.
+Persist-time serialization still emits a markdown string, so on-disk content
+is unaffected. A back-compat alias `markdown` remains registered (DCMS-483) for
+one minor version; a runtime deprecation warning fires once per session the
+first time a `markdown` field is resolved.
+
+**Migration:** Rename widget names in your `config.yml`:
+
+```diff
+- { label: 'Body', name: 'body', widget: 'markdown' }
++ { label: 'Body', name: 'body', widget: 'richtext' }
+```
+

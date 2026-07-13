@@ -191,7 +191,16 @@ export function getWidget(name: string) {
 export function getWidgets() {
   return Object.entries(registry.widgets).map(([key, value]) => ({ name: key, ...value }));
 }
+let warnedDeprecatedMarkdownWidget = false;
 export function resolveWidget(name: string | undefined) {
+  if (name === 'markdown' && !warnedDeprecatedMarkdownWidget) {
+    warnedDeprecatedMarkdownWidget = true;
+    console.warn(oneLine`
+      \`widget: markdown\` is deprecated and registered only as a back-compat alias for
+      \`richtext\` (DCMS-483). Update your config to \`widget: richtext\`. See
+      BREAKING_CHANGES_V2_BETA.md.
+    `);
+  }
   return getWidget(name || 'string') || getWidget('unknown');
 }
 

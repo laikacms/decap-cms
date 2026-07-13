@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.spyOn(console, 'error').mockImplementation(() => {});
+vi.spyOn(console, 'warn').mockImplementation(() => {});
 
 describe('registry', () => {
   beforeEach(() => {
@@ -43,6 +44,50 @@ describe('registry', () => {
       registerLocale('de', phrases);
 
       expect(getLocale('de')).toBe(phrases);
+    });
+  });
+
+  describe('registerWidget / resolveWidget', () => {
+    it('resolves widget: markdown to the richtext control via the back-compat alias (DCMS-483)', async () => {
+      const { registerWidget, resolveWidget } = await import('../registry');
+
+      const richtextControl = () => null;
+      const markdownAliasControl = () => null;
+
+      registerWidget({ name: 'richtext', controlComponent: richtextControl });
+      registerWidget({ name: 'markdown', controlComponent: markdownAliasControl });
+
+      const resolved = resolveWidget('markdown');
+
+      expect(resolved).toBeDefined();
+      expect(resolved?.control).toBe(markdownAliasControl);
+    });
+
+    it('warns once per session when a markdown widget field is resolved', async () => {
+      const { registerWidget, resolveWidget } = await import('../registry');
+
+      registerWidget({ name: 'markdown', controlComponent: () => null });
+
+      resolveWidget('markdown');
+      resolveWidget('markdown');
+
+      const deprecationWarnings = (console.warn as ReturnType<typeof vi.fn>).mock.calls.filter(
+        call => typeof call[0] === 'string' && call[0].includes('widget: markdown'),
+      );
+      expect(deprecationWarnings).toHaveLength(1);
+    });
+
+    it('does not warn for the richtext widget itself', async () => {
+      const { registerWidget, resolveWidget } = await import('../registry');
+
+      registerWidget({ name: 'richtext', controlComponent: () => null });
+
+      resolveWidget('richtext');
+
+      const deprecationWarnings = (console.warn as ReturnType<typeof vi.fn>).mock.calls.filter(
+        call => typeof call[0] === 'string' && call[0].includes('widget: markdown'),
+      );
+      expect(deprecationWarnings).toHaveLength(0);
     });
   });
 
