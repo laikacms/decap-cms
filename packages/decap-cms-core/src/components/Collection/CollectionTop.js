@@ -48,10 +48,8 @@ function getCollectionProps(collection) {
 }
 
 function CollectionTop({ collection, newEntryUrl, t }) {
-  const { collectionLabel, collectionLabelSingular, collectionDescription } = getCollectionProps(
-    collection,
-    t,
-  );
+  const { collectionLabel, collectionLabelSingular, collectionDescription } =
+    getCollectionProps(collection);
 
   return (
     <CollectionTopContainer>
