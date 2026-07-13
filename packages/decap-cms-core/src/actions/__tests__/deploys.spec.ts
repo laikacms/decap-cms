@@ -35,6 +35,27 @@ describe('loadDeployPreview', () => {
     expect(backend.getDeployPreview).not.toHaveBeenCalled();
     expect(store.getActions()).toEqual([]);
   });
+
+  it('does not call the backend when collection is not loaded (DCMS-504)', async () => {
+    const backend = {
+      getDeploy: jest.fn(),
+      getDeployPreview: jest.fn(),
+    };
+    (currentBackend as jest.Mock).mockReturnValue(backend);
+
+    const store = mockStore({ config: fromJS({}) });
+    const entry = fromJS({ slug: 'my-first-post' });
+
+    await store.dispatch(
+      // Mirrors the EditorToolbar mount race (DCMS-504): the collection has
+      // not resolved yet, so `collection` is undefined.
+      loadDeployPreview(undefined, 'my-first-post', entry, false),
+    );
+
+    expect(backend.getDeploy).not.toHaveBeenCalled();
+    expect(backend.getDeployPreview).not.toHaveBeenCalled();
+    expect(store.getActions()).toEqual([]);
+  });
 });
 
 describe('deploy preview action creators', () => {
