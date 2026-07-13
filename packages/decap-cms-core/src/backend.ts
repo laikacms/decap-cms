@@ -829,6 +829,15 @@ export class Backend {
 
   async getEntry(state: State, collection: Collection, slug: string) {
     const path = selectEntryPath(collection, slug) as string;
+    if (!path) {
+      // DCMS-481: for a `files` collection, `slug` may not match any
+      // configured file (e.g. a stale or hand-typed deep link), leaving
+      // `path` undefined. Fail with a friendly, sanitized message here
+      // instead of handing `undefined` to the backend implementation, which
+      // throws a raw TypeError (e.g. `undefined.split`) that would otherwise
+      // surface verbatim in the editor.
+      throw new Error(`Entry "${slug}" not found in collection "${collection.get('name')}"`);
+    }
     const label = selectFileEntryLabel(collection, slug);
     const extension = selectFolderEntryExtension(collection);
 

@@ -60,11 +60,14 @@ const selectors = {
       return collection.get('fields');
     },
     entryPath(collection: Collection, slug: string) {
-      const folder = (collection.get('folder') as string).replace(/\/$/, '');
+      // DCMS-481: `folder` is expected on every folder collection, but a
+      // malformed config could omit it. Guard rather than let `.replace`
+      // throw a raw TypeError into the editor.
+      const folder = ((collection.get('folder') as string | undefined) || '').replace(/\/$/, '');
       return `${folder}/${slug}.${this.entryExtension(collection)}`;
     },
     entrySlug(collection: Collection, path: string) {
-      const folder = (collection.get('folder') as string).replace(/\/$/, '');
+      const folder = ((collection.get('folder') as string | undefined) || '').replace(/\/$/, '');
       const slug = path
         .split(folder + '/')
         .pop()

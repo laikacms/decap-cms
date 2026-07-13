@@ -802,6 +802,42 @@ describe('Backend', () => {
     });
   });
 
+  describe('getEntry', () => {
+    beforeEach(() => {
+      jest.resetAllMocks();
+    });
+
+    // DCMS-481: deep-linking to a slug that doesn't match any configured
+    // file in a `files` collection left `path` undefined, and the backend
+    // implementation's `getEntry` threw a raw TypeError (e.g. calling
+    // `.split` on the undefined path) instead of a friendly not-found error.
+    it('should reject with a friendly error for a missing files-collection entry, without calling the implementation', async () => {
+      const implementation = {
+        init: jest.fn(() => implementation),
+        getEntry: jest.fn(),
+      };
+
+      const collection = fromJS({
+        name: 'settings',
+        type: FILES,
+        files: [
+          {
+            name: 'general',
+            file: 'data/general.json',
+            fields: [{ name: 'title' }],
+          },
+        ],
+      });
+
+      const backend = new Backend(implementation, { config: {}, backendName: 'github' });
+
+      await expect(backend.getEntry({ config: {} }, collection, 'nope')).rejects.toThrow(
+        'Entry "nope" not found in collection "settings"',
+      );
+      expect(implementation.getEntry).not.toHaveBeenCalled();
+    });
+  });
+
   describe('extractSearchFields', () => {
     it('should extract slug', () => {
       expect(extractSearchFields(['slug'])({ slug: 'entry-slug', data: {} })).toEqual(
