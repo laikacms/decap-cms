@@ -15,6 +15,8 @@ import {
   Underline,
 } from 'lucide-react';
 
+import { colors } from '../../ui/default/index';
+
 import type { MouseEvent, ReactNode } from 'react';
 
 const ToolbarWrap = styled.div`
@@ -22,8 +24,8 @@ const ToolbarWrap = styled.div`
   flex-wrap: wrap;
   gap: 2px;
   padding: 6px;
-  border-bottom: 1px solid var(--decap-richtext-border, #ddd);
-  background: var(--decap-richtext-toolbar-bg, #fafafa);
+  border-bottom: 1px solid ${colors.textFieldBorder};
+  background: ${colors.background};
 `;
 const ToolbarButton = styled.button`
   display: inline-flex;
@@ -34,19 +36,20 @@ const ToolbarButton = styled.button`
   border: 1px solid transparent;
   background: transparent;
   border-radius: 4px;
-  color: #333;
+  color: ${colors.controlLabel};
   cursor: pointer;
   &:hover {
-    background: rgba(0, 0, 0, 0.06);
+    background: ${colors.activeBackground};
   }
   &[data-active='true'] {
-    background: rgba(0, 0, 0, 0.1);
-    border-color: rgba(0, 0, 0, 0.15);
+    background: ${colors.activeBackground};
+    border-color: ${colors.active};
+    color: ${colors.active};
   }
 `;
 const Divider = styled.span`
   width: 1px;
-  background: #ddd;
+  background: ${colors.textFieldBorder};
   margin: 4px 4px;
 `;
 

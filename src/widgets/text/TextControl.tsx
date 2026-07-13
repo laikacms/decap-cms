@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useReducer, useRef } from 'react';
 import Textarea from 'react-textarea-autosize';
 
 import { bidiControls } from '../../lib/widgets/index';
@@ -27,9 +27,32 @@ export default function TextControl({
 }: TextControlProps) {
   const hasBidiControls = bidiControls.containsBidiControls(value);
 
+  // react-textarea-autosize only measures on render and window resize. When
+  // the field mounts before its pane has its final width (hidden, collapsed,
+  // mid-layout), the text wraps into a too-narrow column and the computed
+  // height is far too large until something re-renders the control. Force a
+  // re-measure whenever the textarea's width actually changes.
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const lastWidth = useRef(0);
+  const [, remeasure] = useReducer((n: number) => n + 1, 0);
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    lastWidth.current = el.offsetWidth;
+    const observer = new ResizeObserver(() => {
+      if (el.offsetWidth !== lastWidth.current) {
+        lastWidth.current = el.offsetWidth;
+        remeasure();
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <>
       <Textarea
+        ref={textareaRef}
         id={forID}
         value={value || ''}
         className={classNameWrapper}

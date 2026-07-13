@@ -12,6 +12,7 @@ import {
 import { type ReactNode, useEffect, useRef } from 'react';
 
 import { Toolbar } from './Toolbar';
+import { colors } from '../../ui/default/index';
 
 import type { PortableTextDocument } from '../../lib/richtext/index';
 
@@ -54,9 +55,9 @@ const schema = defineSchema({
 });
 
 const EditorShell = styled.div`
-  border: 1px solid var(--decap-richtext-border, #ddd);
+  border: 1px solid ${colors.textFieldBorder};
   border-radius: 4px;
-  background: var(--decap-richtext-bg, #fff);
+  background: ${colors.inputBackground};
   display: flex;
   flex-direction: column;
   font-family: inherit;
@@ -66,9 +67,10 @@ const StyledEditable = styled(PortableTextEditable)`
   min-height: 200px;
   font-size: 15px;
   line-height: 1.55;
+  color: ${colors.textLead};
   outline: none;
   &:focus-visible {
-    outline: 2px solid var(--decap-richtext-focus, #5b9dd9);
+    outline: 2px solid ${colors.active};
     outline-offset: -2px;
   }
   h1,
@@ -89,8 +91,8 @@ const StyledEditable = styled(PortableTextEditable)`
   blockquote {
     margin: 0.5em 0;
     padding-left: 0.8em;
-    border-left: 3px solid #ccc;
-    color: #555;
+    border-left: 3px solid ${colors.textFieldBorder};
+    color: ${colors.text};
   }
   ul,
   ol {

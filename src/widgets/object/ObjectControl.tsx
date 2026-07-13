@@ -44,7 +44,9 @@ export interface ObjectControlProps {
     | ((fieldId: string | CmsField, errors: Array<{ type: string; message: string }>) => void)
     | undefined;
   value?: CmsField | unknown;
-  field: CmsFieldObject & CmsFieldBase;
+  // Also accepts a list field with a singular `field` when used as the item
+  // shell of a single-field ListControl.
+  field: CmsFieldObject & CmsFieldBase & { field?: CmsField };
   forID?: string;
   classNameWrapper: string;
   forList?: boolean;
@@ -114,7 +116,7 @@ const ObjectControl = React.forwardRef<ObjectControlHandle, ObjectControlProps>(
       ref,
       () => ({
         validate() {
-          const fields = field.fields;
+          const fields = field.field ? [field.field] : (field.fields ?? []);
           fields.forEach((f: CmsField) => {
             if (f.widget === 'hidden') return;
             const control = childRefs.current[f.name];
@@ -145,7 +147,7 @@ const ObjectControl = React.forwardRef<ObjectControlHandle, ObjectControlProps>(
         },
         validationKey: props.validationKey,
       }),
-      [field.fields, props.validationKey],
+      [field.field, field.fields, props.validationKey],
     );
 
     // Track collapsed in a ref so the imperative handle can branch on it
@@ -170,7 +172,8 @@ const ObjectControl = React.forwardRef<ObjectControlHandle, ObjectControlProps>(
     function controlFor(f: CmsField, key?: number) {
       if (f.widget === 'hidden') return null;
       const fieldName = f.name;
-      const fieldValue = get(value, fieldName);
+      // Single-field list items are scalars; the value IS the field value.
+      const fieldValue = isObject(value) ? get(value, fieldName) : value;
       const isDuplicate = isFieldDuplicate?.(f);
       const isHidden = isFieldHidden?.(f);
 
@@ -210,9 +213,10 @@ const ObjectControl = React.forwardRef<ObjectControlHandle, ObjectControlProps>(
     }
 
     const renderedCollapsed = forList ? props.collapsed : collapsed;
-    const multiFields = field.fields as CmsField[];
+    const multiFields = field.fields as CmsField[] | undefined;
+    const singleField = field.field;
 
-    if (!multiFields) {
+    if (!multiFields && !singleField) {
       return <h3>No field(s) defined for this widget</h3>;
     }
 
@@ -253,7 +257,9 @@ const ObjectControl = React.forwardRef<ObjectControlHandle, ObjectControlProps>(
                 `]: renderedCollapsed,
               })}
             >
-              {multiFields.map((f, idx) => controlFor(f, idx))}
+              {multiFields
+                ? multiFields.map((f, idx) => controlFor(f, idx))
+                : controlFor(singleField as CmsField)}
             </div>
           </div>
         )}
