@@ -118,6 +118,7 @@ const en = {
         'All unpublished changes to this entry will be deleted. Do you still want to delete?',
       loadingEntry: 'Loading entry...',
       confirmLoadBackup: 'A local backup was recovered for this entry, would you like to use it?',
+      entryNotFoundHeader: 'Entry Not Found',
     },
     editorInterface: {
       toggleI18n: 'Toggle i18n',
