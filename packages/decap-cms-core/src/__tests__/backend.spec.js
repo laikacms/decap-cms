@@ -802,6 +802,37 @@ describe('Backend', () => {
     });
   });
 
+  // DCMS-514: an unknown slug in a files collection used to reach `getEntry` with
+  // an `undefined` path (silently cast `as string`), crashing deep in path parsing
+  // with a raw TypeError instead of a clean not-found error.
+  describe('getEntry', () => {
+    it('throws a clean not-found error for an unknown files-collection slug', async () => {
+      const implementation = {
+        init: jest.fn(() => implementation),
+        getEntry: jest.fn(),
+      };
+
+      const collection = fromJS({
+        name: 'settings',
+        type: FILES,
+        files: [
+          {
+            name: 'general',
+            file: 'data/general.json',
+            fields: [{ name: 'title' }],
+          },
+        ],
+      });
+
+      const backend = new Backend(implementation, { config: {}, backendName: 'github' });
+
+      await expect(backend.getEntry({}, collection, 'unknown-slug')).rejects.toThrow(
+        'Entry not found: settings/unknown-slug',
+      );
+      expect(implementation.getEntry).not.toHaveBeenCalled();
+    });
+  });
+
   describe('extractSearchFields', () => {
     it('should extract slug', () => {
       expect(extractSearchFields(['slug'])({ slug: 'entry-slug', data: {} })).toEqual(

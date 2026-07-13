@@ -828,7 +828,10 @@ export class Backend {
   }
 
   async getEntry(state: State, collection: Collection, slug: string) {
-    const path = selectEntryPath(collection, slug) as string;
+    const path = selectEntryPath(collection, slug);
+    if (!path) {
+      throw new Error(`Entry not found: ${collection.get('name')}/${slug}`);
+    }
     const label = selectFileEntryLabel(collection, slug);
     const extension = selectFolderEntryExtension(collection);
 
