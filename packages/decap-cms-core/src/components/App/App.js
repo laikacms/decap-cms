@@ -63,6 +63,13 @@ export function isSearchDisabled(config) {
   return Boolean(config) && config.search === false;
 }
 
+export function MediaRoute({ openMediaLibrary, defaultPath }) {
+  React.useEffect(() => {
+    openMediaLibrary();
+  }, [openMediaLibrary]);
+  return <Redirect to={defaultPath} />;
+}
+
 export function RouteInCollection({ collections, render, t, ...props }) {
   const defaultPath = getDefaultPath(collections);
   return (
@@ -221,6 +228,13 @@ class App extends React.Component {
           <Switch>
             <Redirect exact from="/" to={defaultPath} />
             <Redirect exact from="/search/" to={defaultPath} />
+            <Route
+              exact
+              path="/media"
+              render={() => (
+                <MediaRoute openMediaLibrary={openMediaLibrary} defaultPath={defaultPath} />
+              )}
+            />
             <RouteInCollection
               t={t}
               exact
