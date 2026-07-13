@@ -70,6 +70,20 @@ export function MediaRoute({ openMediaLibrary, defaultPath }) {
   return <Redirect to={defaultPath} />;
 }
 
+// The Editor route (`/collections/:name/entries/*` and `/collections/:name/new`)
+// keeps the same mounted instance across navigations that only change `:name`
+// or the entry slug, because it's the same Route/component at the same
+// position in the tree. Editor's lifecycle only ever loads the entry/creates
+// the draft on mount (componentDidMount), so switching collection or slug via
+// history without a remount left the previous collection's draft rendered
+// (and targeted by Save/Delete) under the new collection's header (DCMS-490).
+// Keying the element on collection name + slug forces React to unmount the
+// old Editor and mount a fresh one for every distinct target, which re-runs
+// componentDidMount and guarantees the draft always matches the route.
+export function getEditorKey(name, slug) {
+  return `${name}/${slug || ''}`;
+}
+
 export function RouteInCollection({ collections, render, t, ...props }) {
   const defaultPath = getDefaultPath(collections);
   return (
@@ -262,13 +276,24 @@ class App extends React.Component {
               t={t}
               path="/collections/:name/new"
               collections={collections}
-              render={props => <Editor {...props} newRecord />}
+              // key forces a full unmount/remount whenever the target collection
+              // changes; see getEditorKey (DCMS-490).
+              render={props => (
+                <Editor {...props} key={getEditorKey(props.match.params.name)} newRecord />
+              )}
             />
             <RouteInCollection
               t={t}
               path="/collections/:name/entries/*"
               collections={collections}
-              render={props => <Editor {...props} />}
+              // key forces a full unmount/remount whenever the target collection
+              // or slug changes; see getEditorKey (DCMS-490).
+              render={props => (
+                <Editor
+                  {...props}
+                  key={getEditorKey(props.match.params.name, props.match.params[0])}
+                />
+              )}
             />
             <RouteInCollection
               t={t}

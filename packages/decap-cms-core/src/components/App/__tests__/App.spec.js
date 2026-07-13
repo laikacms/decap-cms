@@ -10,11 +10,11 @@
  */
 import React from 'react';
 import { fromJS } from 'immutable';
-import { Router, Switch } from 'react-router-dom';
+import { Router, Switch, Route } from 'react-router-dom';
 import { createMemoryHistory } from 'history';
-import { render } from '@testing-library/react';
+import { render, act } from '@testing-library/react';
 
-import { isSearchDisabled, RouteInCollection } from '../App';
+import { isSearchDisabled, RouteInCollection, getEditorKey } from '../App';
 
 describe('isSearchDisabled', () => {
   it('is disabled when config.search is explicitly false', () => {
@@ -95,5 +95,89 @@ describe('RouteInCollection', () => {
 
     expect(getByText('Collection view')).toBeInTheDocument();
     expect(history.location.pathname).toBe('/collections/posts');
+  });
+});
+
+// Regression tests for DCMS-490: navigating between the Editor route for one
+// collection/entry to another used to keep the same mounted Editor instance
+// (only `:name`/slug changed), so componentDidMount never re-ran and the
+// previous entry's draft stayed on screen under the new collection's header,
+// with Save/Delete still targeting the stale entry. getEditorKey is what App
+// uses to key the <Editor> element so React remounts it on every distinct
+// collection/entry target.
+describe('getEditorKey', () => {
+  it('differs when the collection name changes', () => {
+    expect(getEditorKey('faq', 'entry-1')).not.toBe(getEditorKey('pages', 'entry-1'));
+  });
+
+  it('differs when the slug changes', () => {
+    expect(getEditorKey('faq', 'entry-1')).not.toBe(getEditorKey('faq', 'entry-2'));
+  });
+
+  it('is stable for the same collection and slug', () => {
+    expect(getEditorKey('faq', 'entry-1')).toBe(getEditorKey('faq', 'entry-1'));
+  });
+
+  it('treats a missing slug (new entry route) as distinct per collection', () => {
+    expect(getEditorKey('faq', undefined)).not.toBe(getEditorKey('pages', undefined));
+  });
+});
+
+describe('Editor route remount on collection/slug change', () => {
+  // Minimal stand-in for the real Editor: what matters for this regression is
+  // only that componentDidMount fires again (i.e. the instance remounted),
+  // which is what makes loadEntry/createEmptyDraft re-run against the new
+  // route params instead of leaving a stale draft rendered.
+  class TrackedEditor extends React.Component {
+    componentDidMount() {
+      this.props.onMount(`${this.props.match.params.name}/${this.props.match.params[0] || ''}`);
+    }
+    render() {
+      return (
+        <div>
+          Editing {this.props.match.params.name}/{this.props.match.params[0]}
+        </div>
+      );
+    }
+  }
+
+  it('remounts (fresh componentDidMount) when navigating to a different collection/entry', () => {
+    const history = createMemoryHistory({
+      initialEntries: ['/collections/faq/entries/entry-1'],
+    });
+    const mounts = [];
+    function onMount(key) {
+      mounts.push(key);
+    }
+
+    const { getByText } = render(
+      <Router history={history}>
+        <Switch>
+          <Route
+            path="/collections/:name/entries/*"
+            render={props => (
+              <TrackedEditor
+                {...props}
+                key={getEditorKey(props.match.params.name, props.match.params[0])}
+                onMount={onMount}
+              />
+            )}
+          />
+        </Switch>
+      </Router>,
+    );
+
+    expect(getByText('Editing faq/entry-1')).toBeInTheDocument();
+    expect(mounts).toEqual(['faq/entry-1']);
+
+    act(() => {
+      history.push('/collections/pages/entries/does-not-exist');
+    });
+
+    // A fresh instance mounted for the new collection/entry (second
+    // componentDidMount call) rather than the "faq/entry-1" instance being
+    // reused for "pages/does-not-exist".
+    expect(getByText('Editing pages/does-not-exist')).toBeInTheDocument();
+    expect(mounts).toEqual(['faq/entry-1', 'pages/does-not-exist']);
   });
 });
