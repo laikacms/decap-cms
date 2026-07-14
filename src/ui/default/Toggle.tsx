@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 
+import { Switch } from '@/lib/widgets/editor/ui/toggle';
 import { colors, colorsRaw, shadows, transitions } from './styles';
 import { laikaShouldForwardProp } from '@/laika-app/ui/styled-utils';
 
@@ -66,9 +67,17 @@ export interface ToggleProps {
   Handle?: React.ComponentType<ToggleActiveProps>;
 }
 
+/**
+ * Controlled on/off toggle built on the shared Base UI `Switch` primitive
+ * (see `src/lib/widgets/editor/ui/toggle.tsx`). The `active` prop drives the
+ * checked state directly (no internal `useState` seed), so re-rendering with
+ * a new `active` value always reflects it, fixing the prop-sync defect
+ * (DCMS-543). `Container`/`Background`/`Handle` stay swappable so existing
+ * callers (e.g. `BooleanControl`) keep their visual output unchanged.
+ */
 function Toggle({
   id,
-  active,
+  active = false,
   onChange,
   onFocus,
   onBlur,
@@ -77,29 +86,20 @@ function Toggle({
   Background = ToggleBackground,
   Handle = ToggleHandle,
 }: ToggleProps): React.ReactElement {
-  const [isActive, setIsActive] = useState<boolean | undefined>(active);
-
-  function handleToggle(): void {
-    setIsActive((prevIsActive: boolean | undefined) => !prevIsActive);
-    if (onChange) {
-      onChange(!isActive);
-    }
-  }
-
   return (
-    <Container
+    <Switch
+      nativeButton
       id={id}
-      onFocus={onFocus}
-      onBlur={onBlur}
+      checked={active}
+      onCheckedChange={onChange}
+      onFocus={event => onFocus?.(event as unknown as React.FocusEvent<HTMLButtonElement>)}
+      onBlur={event => onBlur?.(event as unknown as React.FocusEvent<HTMLButtonElement>)}
       className={className}
-      onClick={handleToggle}
-      role="switch"
-      aria-checked={isActive ? 'true' : 'false'}
-      aria-expanded={undefined}
+      render={<Container />}
     >
-      <Background $isActive={isActive} />
-      <Handle $isActive={isActive} />
-    </Container>
+      <Background $isActive={active} />
+      <Handle $isActive={active} />
+    </Switch>
   );
 }
 
