@@ -208,6 +208,17 @@ I get 10 times more traffic from [Google] than from [Yahoo] or [MSN].
       expect(img).not.toHaveAttribute('onerror');
     });
 
+    it('should sanitize HTML by default when sanitize_preview is unset', async () => {
+      const value = `<img src="foobar.png" onerror="alert('hello')">`;
+
+      const { container } = render(
+        <MarkdownPreview value={value} getAsset={jest.fn()} resolveWidget={jest.fn()} />,
+      );
+      const img = container.querySelector('img');
+      expect(img).toHaveAttribute('src', 'foobar.png');
+      expect(img).not.toHaveAttribute('onerror');
+    });
+
     it('should sanitize dangerous link protocols', () => {
       const value = '<a href="javascript:alert(1)">click</a>';
 
