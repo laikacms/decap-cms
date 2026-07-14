@@ -789,4 +789,61 @@ describe('ListControl', () => {
     listControl.validate();
     expect(props.onValidateObject).toHaveBeenCalledWith('forID', []);
   });
+
+  describe('heading pluralization (DCMS-526)', () => {
+    // The heading is only rendered by renderListControl(), which requires a
+    // nested `field`/`fields`/`types` schema (see getValueType()); a bare
+    // string-array list falls back to renderInput() and has no heading.
+    const nestedField = { name: 'name', widget: 'string' };
+
+    it('should pluralize the field name for the heading when no label is configured', () => {
+      const field = fromJS({ name: 'list', field: nestedField });
+      const { getByText } = render(
+        <ListControl {...props} field={field} value={fromJS([{ name: 'a' }, { name: 'b' }])} />,
+      );
+
+      expect(getByText('2 lists')).toBeInTheDocument();
+    });
+
+    it('should use the singular field name for a single item when no label is configured', () => {
+      const field = fromJS({ name: 'list', field: nestedField });
+      const { getByText } = render(
+        <ListControl {...props} field={field} value={fromJS([{ name: 'a' }])} />,
+      );
+
+      expect(getByText('1 list')).toBeInTheDocument();
+    });
+
+    it('should reuse an explicit label as-is for both singular and plural counts', () => {
+      const field = fromJS({ name: 'list', label: 'Custom Items', field: nestedField });
+      const { getByText } = render(
+        <ListControl {...props} field={field} value={fromJS([{ name: 'a' }])} />,
+      );
+
+      expect(getByText('1 custom items')).toBeInTheDocument();
+    });
+
+    it('should use label_plural for counts other than one', () => {
+      const field = fromJS({
+        name: 'category',
+        label_singular: 'Category',
+        label_plural: 'Categories',
+        field: nestedField,
+      });
+      const { getByText } = render(
+        <ListControl {...props} field={field} value={fromJS([{ name: 'a' }, { name: 'b' }])} />,
+      );
+
+      expect(getByText('2 categories')).toBeInTheDocument();
+    });
+
+    it('should naively pluralize field names ending in s/x/z/ch/sh', () => {
+      const field = fromJS({ name: 'box', field: nestedField });
+      const { getByText } = render(
+        <ListControl {...props} field={field} value={fromJS([{ name: 'a' }, { name: 'b' }])} />,
+      );
+
+      expect(getByText('2 boxes')).toBeInTheDocument();
+    });
+  });
 });

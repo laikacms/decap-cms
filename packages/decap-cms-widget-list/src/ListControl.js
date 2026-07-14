@@ -34,6 +34,7 @@ import {
   getTypedFieldForValue,
   resolveFieldKeyType,
   getErrorMessageForTypedFieldAndValue,
+  pluralize,
 } from './typedListHelpers';
 
 const ObjectControl = DecapCmsWidgetObject.controlComponent;
@@ -749,9 +750,15 @@ export default class ListControl extends React.Component {
     const { value, forID, field, classNameWrapper, t } = this.props;
     const { itemsCollapsed, listCollapsed, keys } = this.state;
     const items = value || List();
-    const label = field.get('label', field.get('name'));
-    const labelSingular = field.get('label_singular') || field.get('label', field.get('name'));
-    const listLabel = items.size === 1 ? labelSingular.toLowerCase() : label.toLowerCase();
+    const name = field.get('name');
+    // `label`, when explicitly configured, is treated as the author's own
+    // plural form (existing convention). Only when no `label` is configured
+    // do we fall back to the field `name`, in which case it must be
+    // pluralized rather than reused verbatim for counts > 1 (DCMS-526).
+    const explicitLabel = field.has('label') ? field.get('label') : undefined;
+    const labelSingular = field.get('label_singular') || explicitLabel || name;
+    const labelPlural = field.get('label_plural') || explicitLabel || pluralize(name);
+    const listLabel = items.size === 1 ? labelSingular.toLowerCase() : labelPlural.toLowerCase();
     const minimizeCollapsedItems = field.get('minimize_collapsed', false);
     const allItemsCollapsed = itemsCollapsed.every(val => val === true);
     const selfCollapsed = allItemsCollapsed && (listCollapsed || !minimizeCollapsedItems);
