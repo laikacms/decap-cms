@@ -21,12 +21,12 @@ import { Button } from '@/lib/widgets/editor/ui/button';
 export function FontColorToolbarPlugin() {
   const { activeEditor } = useToolbarContext();
 
-  const [fontColor, setFontColor] = useState('#000');
+  const [fontColor, setFontColor] = useState('#000000');
 
   const $updateToolbar = (selection: BaseSelection) => {
     if ($isRangeSelection(selection)) {
       setFontColor(
-        $getSelectionStyleValueForProperty(selection, 'color', '#000'),
+        $getSelectionStyleValueForProperty(selection, 'color', '#000000'),
       );
     }
   };

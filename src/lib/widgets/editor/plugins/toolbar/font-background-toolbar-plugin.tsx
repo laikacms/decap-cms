@@ -21,7 +21,7 @@ import { Button } from '@/lib/widgets/editor/ui/button';
 export function FontBackgroundToolbarPlugin() {
   const { activeEditor } = useToolbarContext();
 
-  const [bgColor, setBgColor] = useState('#fff');
+  const [bgColor, setBgColor] = useState('#ffffff');
 
   const $updateToolbar = (selection: BaseSelection) => {
     if ($isRangeSelection(selection)) {
@@ -29,7 +29,7 @@ export function FontBackgroundToolbarPlugin() {
         $getSelectionStyleValueForProperty(
           selection,
           'background-color',
-          '#fff',
+          '#ffffff',
         ),
       );
     }
