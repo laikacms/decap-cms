@@ -101,6 +101,31 @@ describe('withFileControl', () => {
     });
   });
 
+  // DCMS-552: decap-website docs claim allow_multiple defaults to true; the code (both
+  // handleChange's modal allowMultiple and allowsMultiple()) actually defaults to false
+  // when the key is unset at both the top level and under media_library. This pins the
+  // actual runtime default so a future change is deliberate, not accidental.
+  describe('DCMS-552 default when allow_multiple is unset everywhere', () => {
+    it('resolves handleChange allowMultiple to false', () => {
+      const onOpenMediaLibrary = jest.fn();
+      renderControl({ value: '', onOpenMediaLibrary });
+
+      fireEvent.click(screen.getByText('editor.editorWidgets.file.choose'));
+
+      expect(onOpenMediaLibrary).toHaveBeenCalledWith(
+        expect.objectContaining({ allowMultiple: false }),
+      );
+    });
+
+    it('resolves allowsMultiple() to false via single-select rendering', () => {
+      renderControl({ value: 'file.pdf' });
+
+      expect(screen.getByText('editor.editorWidgets.file.chooseDifferent')).toBeInTheDocument();
+      expect(screen.getByText('editor.editorWidgets.file.remove')).toBeInTheDocument();
+      expect(screen.queryByText('editor.editorWidgets.file.removeAll')).not.toBeInTheDocument();
+    });
+  });
+
   describe('top-level field.allow_multiple', () => {
     it('renders multi-select labels when allow_multiple is set directly on the field', () => {
       renderControl({ value: '', allowMultiple: true });
