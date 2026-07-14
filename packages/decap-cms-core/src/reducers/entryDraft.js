@@ -104,6 +104,12 @@ function entryDraftReducer(state = Map(), action) {
         const meta = field.get('meta');
 
         const dataPath = (i18n && getDataPath(i18n.currentLocale, i18n.defaultLocale)) || ['data'];
+        // Snapshot the pre-mutation values so a mount-time write that
+        // resolves to the exact same data/meta the draft already held can be
+        // recognized as a no-op below, regardless of which widget performed
+        // it or whether it tagged itself `fromDefault`.
+        const oldData = state.getIn(['entry', ...dataPath]);
+        const oldMeta = state.getIn(['entry', 'meta']);
         if (meta) {
           state.setIn(['entry', 'meta', name], value);
         } else {
@@ -126,13 +132,24 @@ function entryDraftReducer(state = Map(), action) {
 
         state.mergeDeepIn(['fieldsMetaData'], fromJS(restMetadata));
 
-        if (!fromDefault) {
-          const newData = state.getIn(['entry', ...dataPath]);
-          const newMeta = state.getIn(['entry', 'meta']);
+        const newData = state.getIn(['entry', ...dataPath]) ?? Map();
+        const newMeta = state.getIn(['entry', 'meta']) ?? Map();
+
+        // A widget can dispatch a mount-time write that resolves to the same
+        // effective data/meta the draft already held (e.g. re-serializing an
+        // already-loaded value, or filling in a default that matches what
+        // was already there) without tagging it `fromDefault` (DCMS-560:
+        // RichtextControl/BooleanControl/MarkdownControl/ListControl never
+        // did, unlike DateTimeControl). Detecting that generically — did
+        // this action actually change anything — means `hasChanged` no
+        // longer depends on every widget opting into the `fromDefault` tag.
+        const isNoOpWrite = newData.equals(oldData ?? Map()) && newMeta.equals(oldMeta ?? Map());
+
+        if (!fromDefault && !isNoOpWrite) {
           state.set(
             'hasChanged',
-            !entries.some(e => newData.equals(e.get(...dataPath))) ||
-              !entries.some(e => newMeta.equals(e.get('meta'))),
+            !entries.some(e => newData.equals(e.get(...dataPath) ?? Map())) ||
+              !entries.some(e => newMeta.equals(e.get('meta') ?? Map())),
           );
         }
       });
