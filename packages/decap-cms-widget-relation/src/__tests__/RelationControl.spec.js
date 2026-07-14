@@ -1,6 +1,6 @@
 import { fromJS, List, Map } from 'immutable';
 
-import {
+import RelationControl, {
   arrayMove,
   convertToOption,
   convertToSortableOption,
@@ -263,5 +263,46 @@ describe('convertToSortableOption', () => {
     const sortable = convertToSortableOption(Map({ value: 'a', label: 'A' }));
 
     expect(sortable).toEqual({ value: 'a', label: 'A', data: { id: 'generated-id' } });
+  });
+});
+
+describe('RelationControl#isValid', () => {
+  function t(key) {
+    return key;
+  }
+
+  // Pins current behavior (DCMS-506): `min`/`max` are documented in schema.js
+  // as only meaningful when `multiple: true`. isValid() short-circuits with
+  // `{ error: false }` whenever `!this.isMultiple()`, so `min`/`max` are
+  // silently ignored on single-select relation fields. If this ever changes,
+  // it should be a deliberate behavior change, not an accident.
+  it('ignores min/max and reports valid when multiple is not set', () => {
+    const control = new RelationControl({
+      field: fromJS({ name: 'author', min: 2, max: 3 }),
+      value: 'only-one-value',
+      t,
+    });
+
+    expect(control.isValid()).toEqual({ error: false });
+  });
+
+  it('ignores min/max and reports valid when multiple is explicitly false', () => {
+    const control = new RelationControl({
+      field: fromJS({ name: 'author', multiple: false, min: 2, max: 3 }),
+      value: 'only-one-value',
+      t,
+    });
+
+    expect(control.isValid()).toEqual({ error: false });
+  });
+
+  it('enforces min/max when multiple is true', () => {
+    const control = new RelationControl({
+      field: fromJS({ name: 'authors', multiple: true, min: 2, max: 3 }),
+      value: List(['only-one-value']),
+      t,
+    });
+
+    expect(control.isValid().error).toBeTruthy();
   });
 });
