@@ -71,9 +71,26 @@ function ColorPickerEyeDropper(): ReactNode {
 function ColorPickerFormatSelect(): ReactNode {
   return null;
 }
+const HEX_COLOR_PATTERN = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
+
+function normalizeHexColor(value: string): string {
+  if (!HEX_COLOR_PATTERN.test(value)) return '#000000';
+  if (value.length === 4) {
+    const [, r, g, b] = value;
+    return `#${r}${r}${g}${g}${b}${b}`;
+  }
+  return value;
+}
+
 function ColorPickerInput(): ReactNode {
   const { value, setValue } = useColorPickerStore();
-  return <input type="color" value={value} onChange={event => setValue(event.target.value)} />;
+  return (
+    <input
+      type="color"
+      value={normalizeHexColor(value)}
+      onChange={event => setValue(event.target.value)}
+    />
+  );
 }
 
 export {
