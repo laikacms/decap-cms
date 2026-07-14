@@ -55,11 +55,11 @@ describe('EditorToolbar', () => {
     expect(asFragment()).toMatchSnapshot();
   });
 
-  describe('DCMS-508: new entry status label reflects real hasChanged', () => {
-    it('should show "changesSaved" for a pristine new entry (isNewEntry=true, hasChanged=false)', () => {
+  describe('DCMS-547: status label matrix (isNewEntry x hasChanged)', () => {
+    it('should show neither label for a pristine new entry (isNewEntry=true, hasChanged=false)', () => {
       render(<EditorToolbar {...props} isNewEntry={true} hasChanged={false} />);
       expect(screen.queryByText('editor.editorToolbar.unsavedChanges')).not.toBeInTheDocument();
-      expect(screen.getByText('editor.editorToolbar.changesSaved')).toBeInTheDocument();
+      expect(screen.queryByText('editor.editorToolbar.changesSaved')).not.toBeInTheDocument();
     });
 
     it('should show "unsavedChanges" once a new entry actually changes (isNewEntry=true, hasChanged=true)', () => {
@@ -70,7 +70,14 @@ describe('EditorToolbar', () => {
 
     it('should show "changesSaved" for an existing, unchanged entry (isNewEntry=false, hasChanged=false)', () => {
       render(<EditorToolbar {...props} isNewEntry={false} hasChanged={false} />);
+      expect(screen.queryByText('editor.editorToolbar.unsavedChanges')).not.toBeInTheDocument();
       expect(screen.getByText('editor.editorToolbar.changesSaved')).toBeInTheDocument();
+    });
+
+    it('should show "unsavedChanges" for an existing, modified entry (isNewEntry=false, hasChanged=true)', () => {
+      render(<EditorToolbar {...props} isNewEntry={false} hasChanged={true} />);
+      expect(screen.queryByText('editor.editorToolbar.changesSaved')).not.toBeInTheDocument();
+      expect(screen.getByText('editor.editorToolbar.unsavedChanges')).toBeInTheDocument();
     });
 
     it('should enable the save button for a pristine new entry with workflow controls', () => {
