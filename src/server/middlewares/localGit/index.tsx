@@ -12,11 +12,17 @@ import {
   statusToLabel,
   labelToStatus,
   parseContentKey,
-} from '../../../lib/util/index';
-import { defaultSchema, joi } from '../joi';
-import { pathTraversal } from '../joi/customValidators';
-import { listRepoFiles, writeFile, move, deleteFile, getUpdateDate } from '../utils/fs';
-import { entriesFromFiles, readMediaFile } from '../utils/entries';
+} from '@/lib/util/index';
+import { defaultSchema, validateRequest } from '@/server/middlewares/validation';
+import { pathTraversal } from '@/server/middlewares/validation/customValidators';
+import {
+  listRepoFiles,
+  writeFile,
+  move,
+  deleteFile,
+  getUpdateDate,
+} from '@/server/middlewares/utils/fs';
+import { entriesFromFiles, readMediaFile } from '@/server/middlewares/utils/entries';
 
 import type {
   EntriesByFolderParams,
@@ -37,7 +43,7 @@ import type {
   DeleteFilesParams,
   UnpublishedEntryDataFileParams,
   UnpublishedEntryMediaFileParams,
-} from '../types';
+} from '@/server/middlewares/types';
 import type express from 'express';
 import type winston from 'winston';
 import type { SimpleGit } from 'simple-git';
@@ -458,7 +464,7 @@ export async function registerMiddleware(app: express.Express, options: Options)
   const { logger } = options;
   const repoPath = path.resolve(process.env.GIT_REPO_DIRECTORY || process.cwd());
   await validateRepo({ repoPath });
-  app.post('/api/v1', joi(getSchema({ repoPath })));
+  app.post('/api/v1', validateRequest(getSchema({ repoPath })));
   app.post('/api/v1', localGitMiddleware({ repoPath, logger }));
   logger.info(`Decap CMS Git Proxy Server configured with ${repoPath}`);
 }

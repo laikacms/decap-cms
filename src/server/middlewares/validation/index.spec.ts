@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { defaultSchema, joi } from '.';
+import { defaultSchema, validateRequest } from '.';
 
 import type express from 'express';
-import type Joi from '@hapi/joi';
+import type { ValidationResult } from '.';
 
-function assetFailure(result: Joi.ValidationResult, expectedMessage: string) {
+function assetFailure(result: ValidationResult, expectedMessage: string) {
   const { error } = result;
   expect(error).not.toBeNull();
   expect(error!.details).toHaveLength(1);
@@ -578,7 +578,7 @@ describe('defaultSchema', () => {
   });
 });
 
-describe('joi', () => {
+describe('validateRequest', () => {
   it('should call next on valid schema', () => {
     const next = vi.fn();
 
@@ -589,7 +589,7 @@ describe('joi', () => {
       },
     } as express.Request;
     const res: express.Response = {} as express.Response;
-    joi(defaultSchema())(req, res, next);
+    validateRequest(defaultSchema())(req, res, next);
 
     expect(next).toHaveBeenCalledTimes(1);
   });
@@ -606,7 +606,7 @@ describe('joi', () => {
     const status = vi.fn(() => ({ json }));
     const res: express.Response = { status } as unknown as express.Response;
 
-    joi(defaultSchema())(req, res, next);
+    validateRequest(defaultSchema())(req, res, next);
 
     expect(next).toHaveBeenCalledTimes(0);
 

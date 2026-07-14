@@ -2,9 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { getSchema } from '.';
 
-import type Joi from '@hapi/joi';
+import type { ValidationResult } from '@/server/middlewares/validation';
 
-function assetFailure(result: Joi.ValidationResult, expectedMessage: string) {
+function assetFailure(result: ValidationResult, expectedMessage: string) {
   const { error } = result;
   expect(error).not.toBeNull();
   expect(error!.details).toHaveLength(1);

@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import winston from 'winston';
 
-import type Joi from '@hapi/joi';
 import type express from 'express';
+import type { ValidationResult } from '@/server/middlewares/validation';
 
 // Create mock git object
 const git = {
@@ -21,7 +21,7 @@ vi.mock('simple-git', () => ({
 // Import after mocks are set up
 const { validateRepo, getSchema, localGitMiddleware } = await import('.');
 
-function assetFailure(result: Joi.ValidationResult, expectedMessage: string) {
+function assetFailure(result: ValidationResult, expectedMessage: string) {
   const { error } = result;
   expect(error).not.toBeNull();
   expect(error!.details).toHaveLength(1);

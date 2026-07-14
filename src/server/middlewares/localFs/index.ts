@@ -1,9 +1,9 @@
 import path from 'path';
 
-import { defaultSchema, joi } from '../joi';
-import { pathTraversal } from '../joi/customValidators';
-import { listRepoFiles, deleteFile, writeFile, move } from '../utils/fs';
-import { entriesFromFiles, readMediaFile } from '../utils/entries';
+import { defaultSchema, validateRequest } from '@/server/middlewares/validation';
+import { pathTraversal } from '@/server/middlewares/validation/customValidators';
+import { listRepoFiles, deleteFile, writeFile, move } from '@/server/middlewares/utils/fs';
+import { entriesFromFiles, readMediaFile } from '@/server/middlewares/utils/entries';
 
 import type {
   EntriesByFolderParams,
@@ -16,7 +16,7 @@ import type {
   DeleteFileParams,
   DeleteFilesParams,
   DataFile,
-} from '../types';
+} from '@/server/middlewares/types';
 import type express from 'express';
 import type winston from 'winston';
 
@@ -157,7 +157,7 @@ type Options = {
 export async function registerMiddleware(app: express.Express, options: Options) {
   const { logger } = options;
   const repoPath = path.resolve(process.env.GIT_REPO_DIRECTORY || process.cwd());
-  app.post('/api/v1', joi(getSchema({ repoPath })));
+  app.post('/api/v1', validateRequest(getSchema({ repoPath })));
   app.post('/api/v1', localFsMiddleware({ repoPath, logger }));
   logger.info(`Decap CMS File System Proxy Server configured with ${repoPath}`);
 }
