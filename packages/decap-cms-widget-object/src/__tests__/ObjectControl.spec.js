@@ -238,6 +238,23 @@ describe('ObjectControl', () => {
       expect(screen.getByText('object_name')).toBeInTheDocument();
     });
 
+    it('silently drops date tokens (e.g. {{year}}) since no date context is available (DCMS-507)', () => {
+      // `objectLabel` calls `compileStringTemplate(summary, null, '', data)` — the `date`
+      // arg is always `null` for object summaries, so any date-based token resolves to ''
+      // instead of erroring or rendering the token literally. This test pins that behavior.
+      const field = fromJS({
+        name: 'object',
+        collapsed: true,
+        summary: 'Posted {{year}}-{{month}}-{{day}}: {{title}}',
+        fields: [{ name: 'title', widget: 'string' }],
+      });
+      render(
+        <ObjectControl {...defaultProps} field={field} value={fromJS({ title: 'Hello World' })} />,
+      );
+
+      expect(screen.getByText('Posted --: Hello World')).toBeInTheDocument();
+    });
+
     it('does not show a heading when expanded', () => {
       const field = fromJS({
         name: 'object',
