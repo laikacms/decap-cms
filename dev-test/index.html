@@ -120,6 +120,19 @@
 
   <script src="dist/decap-cms.js"></script>
   <script>
+    // `dist/decap-cms.js` is built from an entry that may not attach the historical
+    // `window.createClass` global (see packages/decap-cms/src/index.js). Shim it here so the
+    // preview templates below, which use the legacy `createClass({ render })` API, keep working
+    // regardless of what the bundle defines (DCMS-555).
+    window.createClass = window.createClass || function(spec) {
+      function Component(props) {
+        this.props = props;
+      }
+      Object.assign(Component.prototype, spec, { isReactComponent: {} });
+      return Component;
+    };
+  </script>
+  <script>
     var PostPreview = createClass({
       render: function() {
         var entry = this.props.entry;
