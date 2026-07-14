@@ -340,6 +340,10 @@
       "types": "./dist/server/index.d.ts",
       "import": "./dist/server/index.js"
     },
+    "./ui": {
+      "types": "./dist/ui/index.d.ts",
+      "import": "./dist/ui/index.js"
+    },
     "./ui/auth": {
       "types": "./dist/ui/auth/index.d.ts",
       "import": "./dist/ui/auth/index.js"
