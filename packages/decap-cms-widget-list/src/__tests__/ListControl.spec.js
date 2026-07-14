@@ -85,7 +85,6 @@ describe('ListControl', () => {
     expect(asFragment()).toMatchSnapshot();
   });
 
-
   it('should render list with nested object expanded by default when collapsed is not set', () => {
     const field = fromJS({
       name: 'list',
