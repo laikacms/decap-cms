@@ -5,8 +5,6 @@ import tinycolor from 'tinycolor2';
 
 import { zIndex } from '@/ui/default/index';
 
-import 'react-colorful/dist/index.css';
-
 function ClearIcon() {
   return (
     <svg height="20" width="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false">

@@ -182,18 +182,29 @@ export function selectUnpublishedEntriesByStatus(state: EditorialWorkflow, statu
 // stable reference when `entities` hasn't changed, preventing the workflow
 // board from rerendering on every unrelated app-wide dispatch (DCMS-351,
 // porting the DCMS-077 fix).
-export const selectUnpublishedEntriesGroupedByStatus = createSelector(
-  (state: EditorialWorkflow) => state?.entities,
-  entities => {
-    const grouped: Record<string, WorkflowEntry[]> = {};
-    Object.values(statusValues).forEach(currStatus => {
-      grouped[currStatus] = entities
-        ? Object.values(entities).filter(entry => entry?.status === currStatus)
-        : [];
-    });
-    return grouped;
-  },
-);
+//
+// createSelector is lazily created on first call rather than at module init:
+// rolldown's lazy-init bundling hoists top-level createSelector(...) calls
+// ahead of reselect's own lazy init, crashing with
+// "createSelector$1 is not a function" (DCMS-565).
+let _selectUnpublishedEntriesGroupedByStatus: ReturnType<typeof createSelector> | undefined;
+export const selectUnpublishedEntriesGroupedByStatus = (state: EditorialWorkflow) => {
+  if (!_selectUnpublishedEntriesGroupedByStatus) {
+    _selectUnpublishedEntriesGroupedByStatus = createSelector(
+      (s: EditorialWorkflow) => s?.entities,
+      entities => {
+        const grouped: Record<string, WorkflowEntry[]> = {};
+        Object.values(statusValues).forEach(currStatus => {
+          grouped[currStatus] = entities
+            ? Object.values(entities).filter(entry => entry?.status === currStatus)
+            : [];
+        });
+        return grouped;
+      },
+    );
+  }
+  return _selectUnpublishedEntriesGroupedByStatus(state);
+};
 
 export function selectUnpublishedSlugs(state: EditorialWorkflow, collection: string) {
   if (!state?.entities) return null;
