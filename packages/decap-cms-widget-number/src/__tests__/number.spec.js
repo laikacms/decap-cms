@@ -105,6 +105,22 @@ describe('Number widget schema', () => {
     expect(onChangeSpy.mock.calls[0][0]).toBeCloseTo(9.99);
   });
 
+  it('pins README contract: omitted value_type parses via parseFloat, not parseInt (DCMS-484)', () => {
+    // README.md documents that an omitted `value_type` is parsed via the
+    // same `parseFloat` path as `value_type: 'float'` (not `parseInt`).
+    // This test exists solely to catch future drift between that doc claim
+    // and handleChange()'s actual behavior — if this breaks, either the
+    // code regressed to parseInt for the omitted case or the README needs
+    // to be re-updated to match a new intentional behavior change.
+    const field = fromJS({});
+    const { onChangeSpy, input } = setup({ field });
+
+    fireEvent.change(input, { target: { value: '9.99' } });
+
+    expect(onChangeSpy).toHaveBeenCalledWith(9.99);
+    expect(onChangeSpy).not.toHaveBeenCalledWith(parseInt('9.99', 10));
+  });
+
   it('value_type int should produce integer result', () => {
     const field = fromJS({ value_type: 'int' });
     const { onChangeSpy, input } = setup({ field });
