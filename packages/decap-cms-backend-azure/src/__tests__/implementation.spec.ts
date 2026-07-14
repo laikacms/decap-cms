@@ -141,3 +141,33 @@ describe('Azure.authenticate() branch resolution', () => {
     expect(backend.branch).toBe('master');
   });
 });
+
+describe('Azure backend config keys', () => {
+  it('applies documented defaults when config keys are not set', () => {
+    const backend = new Azure(makeConfig());
+
+    expect(backend.apiRoot).toBe('https://dev.azure.com');
+    expect(backend.apiVersion).toBe('6.1-preview');
+    expect(backend.squashMerges).toBe(false);
+    expect(backend.cmsLabelPrefix).toBe('');
+    expect(backend.previewContext).toBe('');
+  });
+
+  it('reads api_root, api_version, squash_merges, cms_label_prefix and preview_context from config.backend', () => {
+    const backend = new Azure(
+      makeConfig({
+        api_root: 'https://azure.example.com',
+        api_version: '7.0',
+        squash_merges: true,
+        cms_label_prefix: 'cms/',
+        preview_context: 'ci/preview',
+      }),
+    );
+
+    expect(backend.apiRoot).toBe('https://azure.example.com');
+    expect(backend.apiVersion).toBe('7.0');
+    expect(backend.squashMerges).toBe(true);
+    expect(backend.cmsLabelPrefix).toBe('cms/');
+    expect(backend.previewContext).toBe('ci/preview');
+  });
+});
