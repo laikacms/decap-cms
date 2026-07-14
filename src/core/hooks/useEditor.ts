@@ -69,6 +69,10 @@ export function useEditor({
   const unlistenRef = useRef<(() => void) | null>(null);
   const unblockRef = useRef<(() => void) | null>(null);
   const popSyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // The blocker function itself (stable per edit session, defined once in
+  // `setup()`), separate from whether it's currently *armed* on `history` —
+  // see the `hasChanged`-keyed effect below, which owns arming/disarming.
+  const navigationBlockerRef = useRef<((tx: RouterTransition) => void) | null>(null);
 
   // Selectors
   const collections = useAppSelector(state => state.collections);
@@ -227,8 +231,20 @@ export function useEditor({
       tx.retry();
     }
 
-    const unblock = defaultRouter.block(navigationBlocker);
-    unblockRef.current = unblock;
+    // `navigationBlocker` is only *armed* on `history` while the draft is
+    // actually dirty — see the `hasChanged`-keyed effect below. Keeping it
+    // armed unconditionally for the whole edit session (the previous
+    // behaviour) meant `history@5`'s `block()` intercepted every navigation
+    // attempt, including plain PUSH/REPLACE ones this guard was always going
+    // to allow through immediately, AND every POP-type navigation (browser
+    // back/forward, direct hash edits) whether or not there was anything to
+    // protect — the latter unconditionally hits the "block a POP navigation
+    // to a location that was not created by the history library" warning
+    // below (DCMS-569), since `history@5` can't resolve a POP's `idx` for a
+    // location it didn't create regardless of what the blocker would have
+    // decided. Only arming while dirty limits that warning to navigations
+    // that are actually guarding unsaved changes.
+    navigationBlockerRef.current = navigationBlocker;
 
     // Setup navigation listener (receives { location, action } on every navigation)
     const unlisten = defaultRouter.subscribe(({ location, action }: RouterUpdate) => {
@@ -244,7 +260,8 @@ export function useEditor({
       }
 
       deleteBackup();
-      unblock();
+      unblockRef.current?.();
+      unblockRef.current = null;
       unlisten();
     });
     unlistenRef.current = unlisten;
@@ -282,19 +299,24 @@ export function useEditor({
     // second confirm for the same cancelled navigation.
     let suppressNextHashChange = false;
 
-    // `history.replace()` still goes through the `block()` we installed above
-    // (history@5 runs every registered blocker for REPLACE too, see
-    // `allowTx` in history/hash.js), so calling it while `navigationBlocker`
-    // is still armed re-invokes that blocker for this resync and — now that
-    // it reads the live draft via `entryDraftRef` — prompts a second,
-    // redundant confirm for the exact navigation this safety net (or the
-    // user, just above) already resolved. Unblock only for the duration of
-    // the resync call, then immediately restore the block so later external
-    // hash mutations in this same edit session are still guarded.
+    // `history.replace()` still goes through `block()` while armed (history@5
+    // runs every registered blocker for REPLACE too, see `allowTx` in
+    // history/hash.js), so calling it while `navigationBlocker` is still
+    // armed re-invokes that blocker for this resync and — now that it reads
+    // the live draft via `entryDraftRef` — prompts a second, redundant
+    // confirm for the exact navigation this safety net (or the user, just
+    // above) already resolved. Unblock for the duration of the resync call,
+    // then only restore the block if the draft is still dirty (the
+    // `hasChanged`-keyed effect below owns arming otherwise; re-arming
+    // unconditionally here would defeat it and re-introduce a POP warning on
+    // the next browser back/forward for an already-pristine draft).
     const resyncHistory = (path: string) => {
       unblockRef.current?.();
+      unblockRef.current = null;
       history.replace(path);
-      unblockRef.current = defaultRouter.block(navigationBlocker);
+      if (entryDraftRef.current?.hasChanged) {
+        unblockRef.current = defaultRouter.block(navigationBlocker);
+      }
     };
 
     const handleHashChange = () => {
@@ -361,7 +383,9 @@ export function useEditor({
         }
         if (unblockRef.current) {
           unblockRef.current();
+          unblockRef.current = null;
         }
+        navigationBlockerRef.current = null;
         if (unlistenRef.current) {
           unlistenRef.current();
         }
@@ -380,6 +404,29 @@ export function useEditor({
     t,
     workflow,
   ]);
+
+  // Arm the navigation blocker on `history` only while there are unsaved
+  // changes to protect, and disarm it the moment they're gone (saved,
+  // discarded, or navigated away from). This is what keeps `history.block()`
+  // off `history` for the common pristine-editing case: an un-armed blocker
+  // means POP-type navigation (browser back/forward, direct hash edits) hits
+  // `history@5`'s normal `applyTx` path instead of its "block a POP
+  // navigation..." warning branch, which only fires when a blocker is
+  // registered (DCMS-569). `navigationBlockerRef` is set once per edit
+  // session in `setup()` above; this effect only toggles whether it's
+  // installed.
+  useEffect(() => {
+    if (!collection) return;
+
+    if (hasChanged) {
+      if (!unblockRef.current && navigationBlockerRef.current) {
+        unblockRef.current = defaultRouter.block(navigationBlockerRef.current);
+      }
+    } else {
+      unblockRef.current?.();
+      unblockRef.current = null;
+    }
+  }, [hasChanged, collection]);
 
   // Handle local backup confirmation
   const handleLocalBackupCheck = useCallback(
