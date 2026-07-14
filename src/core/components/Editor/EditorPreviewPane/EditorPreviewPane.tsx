@@ -40,6 +40,10 @@ type EntryField = CmsEntryField;
 
 type State = any;
 
+function isVisible(field: EntryField) {
+  return field.widget !== 'hidden';
+}
+
 const PreviewPaneFrame = styled(Frame)`
   width: 100%;
   height: 100%;
@@ -82,6 +86,17 @@ export function getWidget(
   props: PreviewPaneProps,
   idx: number | string | null = null,
 ) {
+  // The `hidden` widget has no registered control/preview, so resolving it
+  // would fall through to the generic "unknown widget" preview and leak a
+  // "No preview for widget 'hidden'." notice. Hidden fields must never
+  // produce preview output, regardless of which call site reaches here
+  // (top-level widgetFor, singular nested fields, or the widgetsFor API
+  // exposed to custom preview templates) or how deeply they're nested
+  // inside list/object fields.
+  if (!isVisible(field)) {
+    return null;
+  }
+
   const { getAsset, entry } = props;
   const widget = resolveWidget(field.widget);
   const key = idx ? field.name + '_' + idx : field.name;
@@ -131,7 +146,7 @@ export function PreviewPane(props: PreviewPaneProps) {
     fieldsMetaData: Record<string, unknown> = props.fieldsMetaData,
   ): React.ReactNode {
     let field = fields && fields.find(f => f.name === name);
-    if (!field) return null;
+    if (!field || !isVisible(field)) return null;
 
     let value: any =
       typeof values === 'object' && values !== null && !Array.isArray(values)
