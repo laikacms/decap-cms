@@ -647,7 +647,9 @@ export class Backend {
   async search(
     collections: Collection[],
     searchTerm: string,
-    getSearchFields: (collection: Collection) => (string | null | undefined)[] = getDefaultSearchFields,
+    getSearchFields: (
+      collection: Collection,
+    ) => (string | null | undefined)[] = getDefaultSearchFields,
   ) {
     // Perform a local search by requesting all entries. For each
     // collection, load it, search, and call onCollectionResults with
