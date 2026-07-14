@@ -7,6 +7,7 @@ import {
   expandSearchEntries,
   mergeExpandedEntries,
   slugFromCustomPath,
+  getDefaultSearchFields,
 } from '../backend';
 import { getBackend } from '../lib/registry';
 import { FOLDER, FILES } from '../constants/collectionTypes';
@@ -1095,6 +1096,26 @@ describe('Backend', () => {
       expect(typeof caught.message).toBe('string');
       expect(caught.message).toBe('Errors occurred while searching entries locally!');
       expect(caught.errors).toEqual([backendError, backendError]);
+    });
+
+    it('should use the default search fields when none are provided', () => {
+      expect(getDefaultSearchFields(collections[0])).toEqual(['title', 'short_title', 'author']);
+    });
+
+    it('should search using a caller-supplied getSearchFields override instead of the inline default', async () => {
+      const getSearchFields = jest.fn(collection => [selectField(collection)]);
+
+      const results = await backend.search(collections, 'find me by description', getSearchFields);
+
+      expect(getSearchFields).toHaveBeenCalledWith(collections[0]);
+      expect(getSearchFields).toHaveBeenCalledWith(collections[1]);
+      expect(results).toEqual({
+        entries: [posts[0], pages[0]],
+      });
+
+      function selectField() {
+        return 'description';
+      }
     });
   });
 
