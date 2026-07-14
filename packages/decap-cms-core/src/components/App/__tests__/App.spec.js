@@ -14,7 +14,13 @@ import { Router, Switch, Route } from 'react-router-dom';
 import { createMemoryHistory } from 'history';
 import { render, act } from '@testing-library/react';
 
-import { isSearchDisabled, RouteInCollection, getEditorKey, isEditorRoute } from '../App';
+import {
+  isSearchDisabled,
+  RouteInCollection,
+  getEditorKey,
+  isEditorRoute,
+  shouldCloseMediaLibraryOnLocationChange,
+} from '../App';
 
 describe('isSearchDisabled', () => {
   it('is disabled when config.search is explicitly false', () => {
@@ -209,5 +215,45 @@ describe('Editor route remount on collection/slug change', () => {
     // reused for "pages/does-not-exist".
     expect(getByText('Editing pages/does-not-exist')).toBeInTheDocument();
     expect(mounts).toEqual(['faq/entry-1', 'pages/does-not-exist']);
+  });
+});
+
+// Regression tests for DCMS-537: the Media Library modal used to only close
+// from its own × button, so address-bar/paste/bookmark/back-forward
+// navigation away from whatever route was open when it was shown left it
+// stranded on top of every subsequent view. App's componentDidUpdate uses
+// this predicate to decide when a route change should dismiss it.
+describe('shouldCloseMediaLibraryOnLocationChange', () => {
+  it('closes when the pathname changes while the modal is visible', () => {
+    expect(
+      shouldCloseMediaLibraryOnLocationChange('/collections/posts', '/collections/faqs', true),
+    ).toBe(true);
+  });
+
+  it('does not close when the modal is not visible', () => {
+    expect(
+      shouldCloseMediaLibraryOnLocationChange('/collections/posts', '/collections/faqs', false),
+    ).toBe(false);
+  });
+
+  it('does not close when the pathname is unchanged', () => {
+    expect(
+      shouldCloseMediaLibraryOnLocationChange('/collections/posts', '/collections/posts', true),
+    ).toBe(false);
+  });
+
+  // The `/media` deep-link route opens the modal and then immediately
+  // <Redirect>s to defaultPath (see MediaRoute); that self-triggered
+  // redirect away from `/media` must not close the modal it just opened.
+  it('does not close for the redirect that immediately follows opening via /media', () => {
+    expect(shouldCloseMediaLibraryOnLocationChange('/media', '/collections/posts', true)).toBe(
+      false,
+    );
+  });
+
+  it('closes for an unrelated route change away from /media once already settled', () => {
+    expect(
+      shouldCloseMediaLibraryOnLocationChange('/collections/posts', '/foo/bar/baz', true),
+    ).toBe(true);
   });
 });
