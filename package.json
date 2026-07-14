@@ -37,6 +37,7 @@
     "build:demo": "vite build --config vite.config.demo.ts",
     "build:laika-demo": "vite build --config vite.config.laika-demo.ts",
     "build:laika-bare-demo": "vite build --config vite.config.laika-bare-demo.ts",
+    "build:dev-test": "pnpm build:demo && pnpm build:laika-demo && pnpm build:laika-bare-demo",
     "serve:dev-test": "npx --yes serve dev-test -l 5174",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build -o storybook-static",
