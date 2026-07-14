@@ -133,6 +133,7 @@ function Editor(props) {
       ? markdownToSlate(props.value, {
           voidCodeBlock: !!codeBlockComponent,
           remarkPlugins: getRemarkPlugins(),
+          editorComponents,
         })
       : emptyValue,
   );
@@ -201,6 +202,7 @@ function Editor(props) {
         slateToMarkdown(newValue, {
           voidCodeBlock: !!codeBlockComponent,
           remarkPlugins: getRemarkPlugins(),
+          editorComponents,
         }),
       );
     }
