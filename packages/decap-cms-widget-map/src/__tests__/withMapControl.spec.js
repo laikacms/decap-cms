@@ -1,6 +1,8 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { Map } from 'immutable';
+import Draw from 'ol/interaction/Draw.js';
+import VectorSource from 'ol/source/Vector.js';
 
 // `withMapControl.js` unconditionally imports the `ol` (OpenLayers) ESM
 // package for its default map/format implementations, even though these
@@ -55,6 +57,8 @@ describe('withMapControl', () => {
     global.ResizeObserver = MockResizeObserver;
     observedTarget = undefined;
     resizeCallback = undefined;
+    Draw.mockClear();
+    VectorSource.mockReset();
 
     map = {
       getView: jest.fn().mockReturnValue({ fit: jest.fn() }),
@@ -164,5 +168,74 @@ describe('withMapControl', () => {
 
     expect(map.setTarget).toHaveBeenCalledWith(null);
     expect(disconnectSpy).toHaveBeenCalled();
+  });
+
+  it('writes the drawn geometry back through onChange using the field decimals option', () => {
+    const writeGeometry = jest.fn().mockReturnValue('written-geometry');
+    VectorSource.mockImplementation(() => ({ clear: jest.fn() }));
+    MapControl = withMapControl({
+      getFormat: () => ({ readFeature: jest.fn(), writeGeometry }),
+      getMap,
+    });
+
+    const onChange = jest.fn();
+    const field = Map({ name: 'map', widget: 'map', decimals: 3 });
+    render(<MapControl field={field} onChange={onChange} value="" classNameWrapper="control" />);
+
+    setContainerSize(observedTarget, { width: 300, height: 400 });
+    fireResize();
+
+    const drawInstance = Draw.mock.results[0].value;
+    const geometry = { fake: 'geometry' };
+    const drawendHandler = drawInstance.on.mock.calls.find(([event]) => event === 'drawend')[1];
+
+    drawendHandler({ feature: { getGeometry: () => geometry } });
+
+    expect(writeGeometry).toHaveBeenCalledWith(geometry, { decimals: 3 });
+    expect(onChange).toHaveBeenCalledWith('written-geometry');
+  });
+
+  it('constructs Draw with the type option from the field', () => {
+    renderControl({ type: 'Polygon' });
+    setContainerSize(observedTarget, { width: 300, height: 400 });
+    fireResize();
+
+    expect(Draw).toHaveBeenCalledWith(expect.objectContaining({ type: 'Polygon' }));
+  });
+
+  it('defaults the Draw type to Point when the field has no type option', () => {
+    renderControl();
+    setContainerSize(observedTarget, { width: 300, height: 400 });
+    fireResize();
+
+    expect(Draw).toHaveBeenCalledWith(expect.objectContaining({ type: 'Point' }));
+  });
+
+  it('loads a pre-existing field value onto the map on mount', () => {
+    const feature = { fake: 'feature' };
+    const readFeature = jest.fn().mockReturnValue(feature);
+    const extent = [0, 0, 1, 1];
+    VectorSource.mockImplementation(() => ({ getExtent: jest.fn().mockReturnValue(extent) }));
+
+    MapControl = withMapControl({
+      getFormat: () => ({ readFeature, writeGeometry: jest.fn() }),
+      getMap,
+    });
+
+    const field = Map({ name: 'map', widget: 'map' });
+    const value = '{"type":"Point","coordinates":[1,2]}';
+    render(
+      <MapControl field={field} onChange={jest.fn()} value={value} classNameWrapper="control" />,
+    );
+
+    expect(readFeature).toHaveBeenCalledWith(value);
+
+    setContainerSize(observedTarget, { width: 300, height: 400 });
+    fireResize();
+
+    expect(map.getView().fit).toHaveBeenCalledWith(extent, {
+      maxZoom: 16,
+      padding: [80, 80, 80, 80],
+    });
   });
 });
