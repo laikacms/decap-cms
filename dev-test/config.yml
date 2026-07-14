@@ -55,9 +55,9 @@ collections: # A list of collections the CMS should be able to edit
         required: false
         tagname: ''
 
-      - { label: 'Body', name: 'body', widget: 'text', hint: 'Main content goes here.' }
-      - { label: 'Body', name: 'bodyold', widget: 'text', hint: 'Main content goes here.' }
-      - { label: 'Body', name: 'bodyold2', widget: 'text', hint: 'Main content goes here 2.' }
+      - { label: 'Body', name: 'body', widget: 'richtext', hint: 'Main content goes here.' }
+      - { label: 'Body', name: 'bodyold', widget: 'markdown', hint: 'Main content goes here.' }
+      - { label: 'Body', name: 'bodyold2', widget: 'markdown', hint: 'Main content goes here 2.' }
 
   - name: 'restaurants' # Used in routes, ie.: /admin/collections/:slug/edit
     label: 'Restaurants' # Used in the UI
@@ -73,7 +73,7 @@ collections: # A list of collections the CMS should be able to edit
       visualEditing: true
     fields: # The fields each document in this collection have
       - { label: 'Title', name: 'title', widget: 'string', tagname: 'h1' }
-      - { label: 'Body', name: 'body', widget: 'text', hint: 'Main content goes here.' }
+      - { label: 'Body', name: 'body', widget: 'markdown', hint: 'Main content goes here.' }
       - { name: 'gallery', widget: 'image', choose_url: true, media_library: {config: {multiple: true, max_files: 999}}}
       - { name: 'post', widget: relation, collection: posts, multiple: true, search_fields: [ "title" ], display_fields: [ "title" ], value_field: "{{slug}}", filters: [ {field: "draft", values: [false]} ] }
       - name: authors
@@ -82,7 +82,7 @@ collections: # A list of collections the CMS should be able to edit
         widget: list
         fields:
           - { label: 'Name', name: 'name', widget: 'string', hint: 'First and Last' }
-          - { label: 'Description', name: 'description', widget: 'text' }
+          - { label: 'Description', name: 'description', widget: 'markdown' }
 
   - name: 'faq' # Used in routes, ie.: /admin/collections/:slug/edit
     label: 'FAQ' # Used in the UI
@@ -90,7 +90,7 @@ collections: # A list of collections the CMS should be able to edit
     create: true # Allow users to create new documents in this collection
     fields: # The fields each document in this collection have
       - { label: 'Question', name: 'title', widget: 'string', tagname: 'h1' }
-      - { label: 'Answer', name: 'body', widget: 'text' }
+      - { label: 'Answer', name: 'body', widget: 'markdown' }
 
   - name: 'settings'
     label: 'Settings'
@@ -135,7 +135,7 @@ collections: # A list of collections the CMS should be able to edit
             widget: list
             fields:
               - { label: 'Name', name: 'name', widget: 'string', hint: 'First and Last' }
-              - { label: 'Description', name: 'description', widget: 'text' }
+              - { label: 'Description', name: 'description', widget: 'markdown' }
 
   - name: 'kitchenSink' # all the things in one entry, for documentation and quick testing
     label: 'Kitchen Sink'
@@ -154,7 +154,7 @@ collections: # A list of collections the CMS should be able to edit
       - { label: 'Map', name: 'map', widget: 'map' }
       - { label: 'Text', name: 'text', widget: 'text', hint: 'Plain text, not markdown' }
       - { label: 'Number', name: 'number', widget: 'number', hint: 'To infinity and beyond!' }
-      - { label: 'Markdown', name: 'markdown', widget: 'text' }
+      - { label: 'Markdown', name: 'markdown', widget: 'markdown' }
       - { label: 'Datetime', name: 'datetime', widget: 'datetime' }
       - { label: 'Image', name: 'image', widget: 'image' }
       - { label: 'File', name: 'file', widget: 'file' }
@@ -187,7 +187,7 @@ collections: # A list of collections the CMS should be able to edit
           - { label: 'Boolean', name: 'boolean', widget: 'boolean', default: false }
           - { label: 'Text', name: 'text', widget: 'text' }
           - { label: 'Number', name: 'number', widget: 'number' }
-          - { label: 'Markdown', name: 'markdown', widget: 'text' }
+          - { label: 'Markdown', name: 'markdown', widget: 'markdown' }
           - { label: 'Datetime', name: 'datetime', widget: 'datetime' }
           - { label: 'Image', name: 'image', widget: 'image' }
           - { label: 'File', name: 'file', widget: 'file' }
@@ -200,7 +200,7 @@ collections: # A list of collections the CMS should be able to edit
           - { label: 'Boolean', name: 'boolean', widget: 'boolean' }
           - { label: 'Text', name: 'text', widget: 'text' }
           - { label: 'Number', name: 'number', widget: 'number' }
-          - { label: 'Markdown', name: 'markdown', widget: 'text' }
+          - { label: 'Markdown', name: 'markdown', widget: 'markdown' }
           - { label: 'Datetime', name: 'datetime', widget: 'datetime' }
           - { label: 'Image', name: 'image', widget: 'image' }
           - { label: 'File', name: 'file', widget: 'file' }
@@ -213,7 +213,7 @@ collections: # A list of collections the CMS should be able to edit
               - { label: 'Boolean', name: 'boolean', widget: 'boolean' }
               - { label: 'Text', name: 'text', widget: 'text' }
               - { label: 'Number', name: 'number', widget: 'number' }
-              - { label: 'Markdown', name: 'markdown', widget: 'text' }
+              - { label: 'Markdown', name: 'markdown', widget: 'markdown' }
               - { label: 'Datetime', name: 'datetime', widget: 'datetime' }
               - { label: 'Image', name: 'image', widget: 'image' }
               - { label: 'File', name: 'file', widget: 'file' }
@@ -232,7 +232,7 @@ collections: # A list of collections the CMS should be able to edit
                   - { label: 'Boolean', name: 'boolean', widget: 'boolean' }
                   - { label: 'Text', name: 'text', widget: 'text' }
                   - { label: 'Number', name: 'number', widget: 'number' }
-                  - { label: 'Markdown', name: 'markdown', widget: 'text' }
+                  - { label: 'Markdown', name: 'markdown', widget: 'markdown' }
                   - { label: 'Datetime', name: 'datetime', widget: 'datetime' }
                   - { label: 'Image', name: 'image', widget: 'image' }
                   - { label: 'File', name: 'file', widget: 'file' }
@@ -246,7 +246,7 @@ collections: # A list of collections the CMS should be able to edit
                       - { label: 'Boolean', name: 'boolean', widget: 'boolean' }
                       - { label: 'Text', name: 'text', widget: 'text' }
                       - { label: 'Number', name: 'number', widget: 'number' }
-                      - { label: 'Markdown', name: 'markdown', widget: 'text' }
+                      - { label: 'Markdown', name: 'markdown', widget: 'markdown' }
                       - { label: 'Datetime', name: 'datetime', widget: 'datetime' }
                       - { label: 'Image', name: 'image', widget: 'image' }
                       - { label: 'File', name: 'file', widget: 'file' }
@@ -274,7 +274,7 @@ collections: # A list of collections the CMS should be able to edit
               - { label: 'Number', name: 'number', widget: 'number' }
               - { label: 'Select', name: 'select', widget: 'select', options: ['a', 'b', 'c'] }
               - { label: 'Datetime', name: 'datetime', widget: 'datetime' }
-              - { label: 'Markdown', name: 'markdown', widget: 'text' }
+              - { label: 'Markdown', name: 'markdown', widget: 'markdown' }
           - label: 'Type 3 Object'
             name: 'type_3_object'
             widget: 'object'
