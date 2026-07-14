@@ -51,6 +51,8 @@ function Toggle({
   onFocus,
   onBlur,
   className,
+  'aria-label': ariaLabel,
+  'aria-labelledby': ariaLabelledBy,
   Container = ToggleContainer,
   Background = ToggleBackground,
   Handle = ToggleHandle,
@@ -73,6 +75,8 @@ function Toggle({
       onClick={handleToggle}
       role="switch"
       aria-checked={isActive?.toString()}
+      aria-label={ariaLabel}
+      aria-labelledby={ariaLabelledBy}
     >
       <Background isActive={isActive} />
       <Handle isActive={isActive} />
@@ -87,6 +91,8 @@ Toggle.propTypes = {
   onFocus: PropTypes.func,
   onBlur: PropTypes.func,
   className: PropTypes.string,
+  'aria-label': PropTypes.string,
+  'aria-labelledby': PropTypes.string,
   Container: PropTypes.func,
   Background: PropTypes.func,
   Handle: PropTypes.func,
