@@ -101,7 +101,26 @@ describe('entryDraft reducer', () => {
       expect(newState.get('hasChanged')).toBe(true);
     });
 
-    it('still computes hasChanged normally for fromDefault changes on an existing record', () => {
+    it('does not mark an existing, unchanged entry as changed when the value comes from a framework default (DCMS-528)', () => {
+      const existingRecordState = initialState
+        .set('entry', fromJS({ ...entry, data: {}, newRecord: false }))
+        .set('hasChanged', false);
+
+      const newState = reducer(
+        existingRecordState,
+        actions.changeDraftField({
+          field,
+          value: '2026-07-12T00:00:00.000Z',
+          metadata: { fromDefault: true },
+          entries: [fromJS({ ...entry, data: {} })],
+        }),
+      );
+
+      expect(newState.get('hasChanged')).toBe(false);
+      expect(newState.getIn(['entry', 'data', 'date'])).toBe('2026-07-12T00:00:00.000Z');
+    });
+
+    it('marks an existing record as changed for a real user edit', () => {
       const existingRecordState = initialState
         .set('entry', fromJS({ ...entry, data: { date: 'old-value' }, newRecord: false }))
         .set('hasChanged', false);
@@ -111,7 +130,7 @@ describe('entryDraft reducer', () => {
         actions.changeDraftField({
           field,
           value: 'new-value',
-          metadata: { fromDefault: true },
+          metadata: {},
           entries: [fromJS({ ...entry, data: { date: 'old-value' } })],
         }),
       );
