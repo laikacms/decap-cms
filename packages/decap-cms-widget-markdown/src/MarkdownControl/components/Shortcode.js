@@ -6,12 +6,12 @@ import omit from 'lodash/omit';
 import { ReactEditor, useSlate } from 'slate-react';
 import { Range, Transforms } from 'slate';
 
-import { getEditorControl, getEditorComponents } from '../index';
+import { useEditorContext } from '../editorContext';
 
 function Shortcode(props) {
   const editor = useSlate();
   const { element, dataKey = 'shortcodeData', children } = props;
-  const EditorControl = getEditorControl();
+  const { editorControl: EditorControl, getEditorComponents } = useEditorContext();
   const plugin = getEditorComponents().get(element.data.shortcode);
   const fieldKeys = ['id', 'fromBlock', 'toBlock', 'toPreview', 'pattern', 'icon'];
 

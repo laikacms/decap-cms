@@ -1,4 +1,5 @@
 import trimEnd from 'lodash/trimEnd';
+import { Map } from 'immutable';
 import unified from 'unified';
 import u from 'unist-builder';
 import markdownToRemarkPlugin from 'remark-parse';
@@ -21,7 +22,6 @@ import remarkEscapeMarkdownEntities from './remarkEscapeMarkdownEntities';
 import remarkStripTrailingBreaks from './remarkStripTrailingBreaks';
 import remarkAllowHtmlEntities from './remarkAllowHtmlEntities';
 import slateToRemark from './slateRemark';
-import { getEditorComponents } from '../MarkdownControl';
 
 /**
  * This module contains all serializers for the Markdown widget.
@@ -59,12 +59,18 @@ import { getEditorComponents } from '../MarkdownControl';
 
 /**
  * Deserialize a Markdown string to an MDAST.
+ *
+ * `editorComponents` is the immutable Map of registered shortcode/editor
+ * component plugins for the CMS instance that owns this document. Callers
+ * are responsible for supplying it explicitly (rather than this module
+ * reaching into shared mutable state) so behavior stays correct with
+ * multiple CMS instances on one page.
  */
-export function markdownToRemark(markdown, remarkPlugins) {
+export function markdownToRemark(markdown, remarkPlugins, editorComponents = Map()) {
   const processor = unified()
     .use(markdownToRemarkPlugin, { fences: true, commonmark: true })
     .use(markdownToRemarkRemoveTokenizers, { inlineTokenizers: ['url'] })
-    .use(remarkParseShortcodes, { plugins: getEditorComponents() })
+    .use(remarkParseShortcodes, { plugins: editorComponents })
     .use(remarkAllowHtmlEntities)
     .use(remarkSquashReferences)
     .use(remarkPlugins);
@@ -95,7 +101,7 @@ function markdownToRemarkRemoveTokenizers({ inlineTokenizers }) {
 /**
  * Serialize an MDAST to a Markdown string.
  */
-export function remarkToMarkdown(obj, remarkPlugins) {
+export function remarkToMarkdown(obj, remarkPlugins, editorComponents = Map()) {
   /**
    * Rewrite the remark-stringify text visitor to simply return the text value,
    * without encoding or escaping any characters. This means we're completely
@@ -133,7 +139,7 @@ export function remarkToMarkdown(obj, remarkPlugins) {
     .use(remarkStripTrailingBreaks)
     .use(remarkToMarkdownPlugin)
     .use(remarkAllowAllText)
-    .use(createRemarkShortcodeStringifier({ plugins: getEditorComponents() }))
+    .use(createRemarkShortcodeStringifier({ plugins: editorComponents }))
     .use(remarkPlugins);
 
   /**
@@ -155,17 +161,18 @@ export function remarkToMarkdown(obj, remarkPlugins) {
 /**
  * Convert Markdown to HTML.
  */
-export function markdownToHtml(markdown, { getAsset, resolveWidget, remarkPlugins = [] } = {}) {
-  const mdast = markdownToRemark(markdown, remarkPlugins);
-
-  const editorComponents = getEditorComponents();
+export function markdownToHtml(
+  markdown,
+  { getAsset, resolveWidget, remarkPlugins = [], editorComponents = Map() } = {},
+) {
+  const mdast = markdownToRemark(markdown, remarkPlugins, editorComponents);
 
   /**
    * Provide a `toHtml` callback so `remarkToRehypeShortcodes` can recursively
    * render markdown/richtext sub-fields of container editor components.
    */
   function toHtml(md) {
-    return markdownToHtml(md, { getAsset, resolveWidget });
+    return markdownToHtml(md, { getAsset, resolveWidget, editorComponents });
   }
 
   const hast = unified()
@@ -216,8 +223,11 @@ export function htmlToSlate(html) {
 /**
  * Convert Markdown to Slate's Raw AST.
  */
-export function markdownToSlate(markdown, { voidCodeBlock, remarkPlugins = [] } = {}) {
-  const mdast = markdownToRemark(markdown, remarkPlugins);
+export function markdownToSlate(
+  markdown,
+  { voidCodeBlock, remarkPlugins = [], editorComponents = Map() } = {},
+) {
+  const mdast = markdownToRemark(markdown, remarkPlugins, editorComponents);
 
   const slateRaw = unified()
     .use(remarkWrapHtml)
@@ -236,9 +246,12 @@ export function markdownToSlate(markdown, { voidCodeBlock, remarkPlugins = [] } 
  * MDAST. The conversion is manual because Unified can only operate on Unist
  * trees.
  */
-export function slateToMarkdown(raw, { voidCodeBlock, remarkPlugins = [] } = {}) {
+export function slateToMarkdown(
+  raw,
+  { voidCodeBlock, remarkPlugins = [], editorComponents = Map() } = {},
+) {
   const mdast = slateToRemark(raw, { voidCodeBlock });
-  const markdown = remarkToMarkdown(mdast, remarkPlugins);
+  const markdown = remarkToMarkdown(mdast, remarkPlugins, editorComponents);
 
   return markdown;
 }

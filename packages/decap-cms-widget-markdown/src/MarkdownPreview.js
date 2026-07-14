@@ -9,6 +9,7 @@ class MarkdownPreview extends React.Component {
   static propTypes = {
     getAsset: PropTypes.func.isRequired,
     resolveWidget: PropTypes.func.isRequired,
+    getEditorComponents: PropTypes.func,
     value: PropTypes.string,
   };
 
@@ -18,12 +19,18 @@ class MarkdownPreview extends React.Component {
   }
 
   render() {
-    const { value, getAsset, resolveWidget, field, getRemarkPlugins } = this.props;
+    const { value, getAsset, resolveWidget, field, getRemarkPlugins, getEditorComponents } =
+      this.props;
     if (value === null) {
       return null;
     }
 
-    const html = markdownToHtml(value, { getAsset, resolveWidget }, getRemarkPlugins?.());
+    const html = markdownToHtml(value, {
+      getAsset,
+      resolveWidget,
+      remarkPlugins: getRemarkPlugins?.(),
+      editorComponents: getEditorComponents?.(),
+    });
     const shouldSanitizePreview = field?.get('sanitize_preview') ?? true;
     const toRender = shouldSanitizePreview ? DOMPurify.sanitize(html) : html;
 
