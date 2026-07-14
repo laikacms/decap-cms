@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { detectMapper } from '../detect';
-import { htmlMapper } from '../html-mapper';
-import { markdownMapper } from '../markdown-mapper';
-import { plainTextMapper } from '../plaintext-mapper';
-import { portableTextMapper } from '../portable-text-mapper';
-import { registerMapper, unregisterMapper } from '../registry';
+import { detectMapper } from '@/lib/richtext/detect';
+import { htmlMapper } from '@/lib/richtext/html-mapper';
+import { markdownMapper } from '@/lib/richtext/markdown-mapper';
+import { plainTextMapper } from '@/lib/richtext/plaintext-mapper';
+import { portableTextMapper } from '@/lib/richtext/portable-text-mapper';
+import { registerMapper, unregisterMapper } from '@/lib/richtext/registry';
 
 /**
  * With all four bundled mappers registered (DCMS-253), `detectMapper` must

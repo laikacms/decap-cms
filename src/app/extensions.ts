@@ -1,35 +1,38 @@
 // Core
-import { DecapCmsCore as CMS } from '../core/index';
+import { DecapCmsCore as CMS } from '@/core/index';
 // Backends
-import { AzureBackend } from '../backends/azure/index';
-import { AwsCognitoGitHubProxyBackend } from '../backends/aws-cognito-github-proxy/index';
-import { GitHubBackend } from '../backends/github/index';
-import { GitLabBackend } from '../backends/gitlab/index';
-import { GiteaBackend } from '../backends/gitea/index';
-import { GitGatewayBackend } from '../backends/git-gateway/index';
-import { BitbucketBackend } from '../backends/bitbucket/index';
-import { TestBackend } from '../backends/test/index';
-import { ProxyBackend } from '../backends/proxy/index';
+import { AzureBackend } from '@/backends/azure/index';
+import { AwsCognitoGitHubProxyBackend } from '@/backends/aws-cognito-github-proxy/index';
+import { GitHubBackend } from '@/backends/github/index';
+import { GitLabBackend } from '@/backends/gitlab/index';
+import { GiteaBackend } from '@/backends/gitea/index';
+import { GitGatewayBackend } from '@/backends/git-gateway/index';
+import { BitbucketBackend } from '@/backends/bitbucket/index';
+import { TestBackend } from '@/backends/test/index';
+import { ProxyBackend } from '@/backends/proxy/index';
 // Widgets
-import DecapCmsWidgetString from '../widgets/string/index';
-import DecapCmsWidgetNumber from '../widgets/number/index';
-import DecapCmsWidgetText from '../widgets/text/index';
-import DecapCmsWidgetImage from '../widgets/image/index';
-import DecapCmsWidgetFile from '../widgets/file/index';
-import DecapCmsWidgetSelect from '../widgets/select/index';
-import DecapCmsWidgetList from '../widgets/list/index';
-import DecapCmsWidgetObject from '../widgets/object/index';
-import DecapCmsWidgetRelation from '../widgets/relation/index';
-import DecapCmsWidgetBoolean from '../widgets/boolean/index';
-import DecapCmsWidgetMap from '../widgets/map/index';
-import DecapCmsWidgetDatetime from '../widgets/datetime/index';
-import DecapCmsWidgetCode from '../widgets/code/index';
-import DecapCmsWidgetColorString from '../widgets/colorstring/index';
-import DecapCmsWidgetRichtext from '../widgets/richtext/index';
+import DecapCmsWidgetString from '@/widgets/string/index';
+import DecapCmsWidgetNumber from '@/widgets/number/index';
+import DecapCmsWidgetText from '@/widgets/text/index';
+import DecapCmsWidgetImage from '@/widgets/image/index';
+import DecapCmsWidgetFile from '@/widgets/file/index';
+import DecapCmsWidgetSelect from '@/widgets/select/index';
+import DecapCmsWidgetList from '@/widgets/list/index';
+import DecapCmsWidgetObject from '@/widgets/object/index';
+import DecapCmsWidgetRelation from '@/widgets/relation/index';
+import DecapCmsWidgetBoolean from '@/widgets/boolean/index';
+import DecapCmsWidgetMap from '@/widgets/map/index';
+import DecapCmsWidgetDatetime from '@/widgets/datetime/index';
+import DecapCmsWidgetCode from '@/widgets/code/index';
+import DecapCmsWidgetColorString from '@/widgets/colorstring/index';
+import {
+  passthroughSerializer as richtextPassthroughSerializer,
+  Widget as RichtextWidget,
+} from '@/widgets/richtext/index';
 // Editor Components
-import image from '../editor-component-image/index';
+import image from '@/editor-component-image/index';
 // Locales
-import * as locales from '../locales/index';
+import * as locales from '@/locales/index';
 
 // Register all the things
 CMS.registerBackend('git-gateway', GitGatewayBackend);
@@ -56,15 +59,17 @@ CMS.registerBackend('proxy', ProxyBackend);
   DecapCmsWidgetDatetime.Widget(),
   DecapCmsWidgetCode.Widget(),
   DecapCmsWidgetColorString.Widget(),
-  DecapCmsWidgetRichtext.Widget(),
+  RichtextWidget() as any,
   // v1→v2 back-compat alias: `markdown` was renamed to `richtext` (DCMS-483).
   // See BREAKING_CHANGES_V2_BETA.md for the migration note.
-  DecapCmsWidgetRichtext.Widget({ name: 'markdown' }),
+  { ...RichtextWidget(), name: 'markdown' } as any,
 ].forEach(widget => CMS.registerWidget(widget));
-// The richtext widget stores a lazy `RichtextValue`; serialize it to a markdown
-// string at persist time (deserialize on load) via the value-serializer pipeline.
-CMS.registerWidgetValueSerializer('richtext', DecapCmsWidgetRichtext.valueSerializer);
-CMS.registerWidgetValueSerializer('markdown', DecapCmsWidgetRichtext.valueSerializer);
+// The richtext widget stores a lazy `LexicalRichtextValue`; the passthrough
+// serializer keeps the proxy intact through Decap's value pipeline so its
+// `toString()` (Lexical -> Portable Text -> output format) fires once, at
+// file-write time.
+CMS.registerWidgetValueSerializer('richtext', richtextPassthroughSerializer);
+CMS.registerWidgetValueSerializer('markdown', richtextPassthroughSerializer);
 CMS.registerEditorComponent(image as any); // TODO: fix type issue with editor components
 CMS.registerEditorComponent({
   id: 'code-block',

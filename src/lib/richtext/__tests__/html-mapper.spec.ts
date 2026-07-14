@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { htmlMapper } from '../html-mapper';
+import { htmlMapper } from '@/lib/richtext/html-mapper';
 
 /**
  * The HTML mapper is one of the format adapters that route through Portable

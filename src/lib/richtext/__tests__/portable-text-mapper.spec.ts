@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { portableTextMapper } from '../portable-text-mapper';
+import { portableTextMapper } from '@/lib/richtext/portable-text-mapper';
 
-import type { PortableTextDocument } from '../portable-text';
+import type { PortableTextDocument } from '@/lib/richtext/portable-text';
 
 const doc: PortableTextDocument = [
   {

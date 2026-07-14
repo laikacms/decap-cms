@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { plainTextMapper } from '../plaintext-mapper';
+import { plainTextMapper } from '@/lib/richtext/plaintext-mapper';
 
 describe('plainTextMapper', () => {
   it('splits blank-line-separated paragraphs into normal-style blocks', () => {
