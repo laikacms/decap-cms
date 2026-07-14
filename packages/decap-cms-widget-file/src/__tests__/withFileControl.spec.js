@@ -4,6 +4,7 @@ import { List, Map } from 'immutable';
 
 import withFileControl, {
   isMultiple,
+  isSafeUrl,
   sizeOfValue,
   valueListToArray,
   valueListToSortableArray,
@@ -241,6 +242,133 @@ describe('valueListToArray', () => {
 
   it('falls back to an empty string for null', () => {
     expect(valueListToArray(null)).toBe('');
+  });
+});
+
+// DCMS-577: 'Insert from URL' must not persist javascript:/data:/vbscript: URLs, since
+// downstream (non-React) renderers of the saved entry have no equivalent runtime guard.
+describe('isSafeUrl', () => {
+  it('allows http URLs', () => {
+    expect(isSafeUrl('http://example.com/image.png')).toBe(true);
+  });
+
+  it('allows https URLs', () => {
+    expect(isSafeUrl('https://example.com/image.png')).toBe(true);
+  });
+
+  it('allows protocol-relative URLs', () => {
+    expect(isSafeUrl('//example.com/image.png')).toBe(true);
+  });
+
+  it('allows relative URLs (resolved against the page origin)', () => {
+    expect(isSafeUrl('/images/foo.png')).toBe(true);
+  });
+
+  it('rejects javascript: URLs', () => {
+    expect(isSafeUrl('javascript:alert(document.cookie)')).toBe(false);
+  });
+
+  it('rejects data: URLs', () => {
+    expect(isSafeUrl('data:text/html,<script>alert(1)</script>')).toBe(false);
+  });
+
+  it('rejects vbscript: URLs', () => {
+    expect(isSafeUrl('vbscript:msgbox(1)')).toBe(false);
+  });
+
+  it('rejects schemes outside the http(s) allowlist, e.g. ftp:', () => {
+    expect(isSafeUrl('ftp://example.com/image.png')).toBe(false);
+  });
+
+  it('rejects empty input', () => {
+    expect(isSafeUrl('')).toBe(false);
+  });
+});
+
+describe('handleUrl (Insert from URL prompt)', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('accepts a valid http(s) URL and forwards it to onChange', () => {
+    jest.spyOn(window, 'prompt').mockReturnValue('https://example.com/image.png');
+    const onChange = jest.fn();
+
+    render(
+      <FileControl
+        field={Map({ name: 'file', widget: 'file' })}
+        getAsset={() => null}
+        mediaPaths={Map()}
+        onAddAsset={noop}
+        onChange={onChange}
+        onRemoveInsertedMedia={noop}
+        onOpenMediaLibrary={noop}
+        onClearMediaControl={noop}
+        onRemoveMediaControl={noop}
+        classNameWrapper="control"
+        value=""
+        t={t}
+      />,
+    );
+
+    fireEvent.click(screen.getByText('editor.editorWidgets.file.chooseUrl'));
+
+    expect(onChange).toHaveBeenCalledWith('https://example.com/image.png');
+  });
+
+  it('rejects a javascript: URL, alerts, and does not call onChange', () => {
+    jest.spyOn(window, 'prompt').mockReturnValue('javascript:alert(document.cookie)');
+    const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
+    const onChange = jest.fn();
+
+    render(
+      <FileControl
+        field={Map({ name: 'file', widget: 'file' })}
+        getAsset={() => null}
+        mediaPaths={Map()}
+        onAddAsset={noop}
+        onChange={onChange}
+        onRemoveInsertedMedia={noop}
+        onOpenMediaLibrary={noop}
+        onClearMediaControl={noop}
+        onRemoveMediaControl={noop}
+        classNameWrapper="control"
+        value=""
+        t={t}
+      />,
+    );
+
+    fireEvent.click(screen.getByText('editor.editorWidgets.file.chooseUrl'));
+
+    expect(onChange).not.toHaveBeenCalled();
+    expect(alertSpy).toHaveBeenCalledWith('editor.editorWidgets.file.invalidUrl');
+  });
+
+  it('rejects a data: URL and does not call onChange', () => {
+    jest.spyOn(window, 'prompt').mockReturnValue('data:text/html,<script>alert(1)</script>');
+    jest.spyOn(window, 'alert').mockImplementation(() => {});
+    const onChange = jest.fn();
+
+    render(
+      <FileControl
+        field={Map({ name: 'file', widget: 'file' })}
+        getAsset={() => null}
+        mediaPaths={Map()}
+        onAddAsset={noop}
+        onChange={onChange}
+        onRemoveInsertedMedia={noop}
+        onOpenMediaLibrary={noop}
+        onClearMediaControl={noop}
+        onRemoveMediaControl={noop}
+        classNameWrapper="control"
+        value=""
+        t={t}
+      />,
+    );
+
+    fireEvent.click(screen.getByText('editor.editorWidgets.file.chooseUrl'));
+
+    expect(onChange).not.toHaveBeenCalled();
   });
 });
 
