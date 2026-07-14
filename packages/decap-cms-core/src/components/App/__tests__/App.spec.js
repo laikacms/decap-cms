@@ -14,7 +14,7 @@ import { Router, Switch, Route } from 'react-router-dom';
 import { createMemoryHistory } from 'history';
 import { render, act } from '@testing-library/react';
 
-import { isSearchDisabled, RouteInCollection, getEditorKey } from '../App';
+import { isSearchDisabled, RouteInCollection, getEditorKey, isEditorRoute } from '../App';
 
 describe('isSearchDisabled', () => {
   it('is disabled when config.search is explicitly false', () => {
@@ -95,6 +95,36 @@ describe('RouteInCollection', () => {
 
     expect(getByText('Collection view')).toBeInTheDocument();
     expect(history.location.pathname).toBe('/collections/posts');
+  });
+});
+
+// Regression tests for DCMS-535: the Header/top-nav must stay visible when an
+// Editor-shaped route (`/new` or `/entries/*`) points at a collection that
+// doesn't exist, because RouteInCollection falls back to NotFoundPage in that
+// case and the user would otherwise be stranded with only a "Back to home" link.
+describe('isEditorRoute', () => {
+  const collections = fromJS({
+    posts: { name: 'posts' },
+  });
+
+  it('is true for a /new route on an existing collection', () => {
+    expect(isEditorRoute('/collections/posts/new', collections)).toBe(true);
+  });
+
+  it('is true for an /entries/* route on an existing collection', () => {
+    expect(isEditorRoute('/collections/posts/entries/some-slug', collections)).toBe(true);
+  });
+
+  it('is false for a /new route on an unknown collection', () => {
+    expect(isEditorRoute('/collections/does-not-exist/new', collections)).toBe(false);
+  });
+
+  it('is false for an /entries/* route on an unknown collection', () => {
+    expect(isEditorRoute('/collections/does-not-exist/entries/anything', collections)).toBe(false);
+  });
+
+  it('is false for the list route even on an existing collection', () => {
+    expect(isEditorRoute('/collections/posts', collections)).toBe(false);
   });
 });
 
