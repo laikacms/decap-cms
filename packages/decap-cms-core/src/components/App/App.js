@@ -84,6 +84,20 @@ export function getEditorKey(name, slug) {
   return `${name}/${slug || ''}`;
 }
 
+// Determines whether `pathname` is an Editor route (`/collections/:name/new` or
+// `/collections/:name/entries/*`) for a collection that actually exists.
+// RouteInCollection falls back to NotFoundPage on these routes when the named
+// collection is unknown, and that fallback needs the Header/top-nav rendered so
+// the user isn't stranded with only a "Back to home" link (DCMS-535).
+export function isEditorRoute(pathname, collections) {
+  const [, base, collectionName, view] = pathname.split('/');
+  return (
+    base === 'collections' &&
+    (view === 'entries' || view === 'new') &&
+    Boolean(collections.get(collectionName))
+  );
+}
+
 export function RouteInCollection({ collections, render, t, ...props }) {
   const defaultPath = getDefaultPath(collections);
   return (
@@ -216,15 +230,12 @@ class App extends React.Component {
     const hasWorkflow = publishMode === EDITORIAL_WORKFLOW;
 
     // Work out if this is an editor route, following the same URL matching as the router.
-    // - /collections/:name/entries/*
-    // - /collections/:name/new
-    const [, base, , view] = location.pathname.split('/');
-    const isEditorRoute = base === 'collections' && (view === 'entries' || view === 'new');
+    const editorRoute = isEditorRoute(location.pathname, collections);
 
     return (
       <>
         <Notifications />
-        {!isEditorRoute && (
+        {!editorRoute && (
           <Header
             user={user}
             collections={collections}
