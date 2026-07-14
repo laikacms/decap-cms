@@ -511,6 +511,7 @@ type BackendObject = {
   gateway_url?: string;
   large_media_url?: string;
   use_large_media_transforms_in_media_library?: boolean;
+  netlify_api_token?: string;
   commit_messages: Map<string, string>;
 };
 

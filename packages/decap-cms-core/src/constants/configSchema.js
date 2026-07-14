@@ -178,6 +178,7 @@ function getConfigSchema() {
           status_page: { type: 'string' },
           identity_url: { type: 'string' },
           use_large_media_transforms_in_media_library: { type: 'boolean' },
+          netlify_api_token: { type: 'string' },
         },
         required: ['name'],
         if: { properties: { name: { const: 'proxy' } }, required: ['name'] },

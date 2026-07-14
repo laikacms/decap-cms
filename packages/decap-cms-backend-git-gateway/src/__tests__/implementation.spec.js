@@ -1,3 +1,5 @@
+import { PreviewState } from 'decap-cms-lib-util';
+
 import GitGateway from '../implementation';
 
 // Minimal config factory
@@ -31,8 +33,8 @@ afterAll(() => {
 beforeEach(() => {
   delete window.netlifyIdentity;
   global.fetch = jest.fn();
-  // Minimal localStorage stub
-  global.localStorage = { getItem: jest.fn(() => null) };
+  // jsdom's localStorage can't be reassigned (accessor, no setter); clear it instead
+  window.localStorage.clear();
 });
 
 afterEach(() => {
@@ -204,5 +206,75 @@ describe('GitGateway status()', () => {
     expect(result.api.status).toBe(true);
     // auth still checked since api=true
     expect(result.auth.status).toBe(true);
+  });
+});
+
+describe('GitGateway getDeployPreview()', () => {
+  function mockNetlifyResponses(site, deploys) {
+    fetch.mockImplementation(url => {
+      if (url.endsWith('/deploys?per_page=100')) {
+        return Promise.resolve({ json: () => Promise.resolve(deploys) });
+      }
+      return Promise.resolve({ json: () => Promise.resolve(site) });
+    });
+  }
+
+  it('returns the backend preview without falling back to the Netlify API', async () => {
+    const gw = new GitGateway(makeConfig());
+    gw.backend = { getDeployPreview: jest.fn().mockResolvedValue({ status: 'success', url: 'x' }) };
+
+    const preview = await gw.getDeployPreview('posts', 'my-slug');
+
+    expect(preview).toEqual({ status: 'success', url: 'x' });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('falls back to the public Netlify API without a token when none is configured', async () => {
+    const gw = new GitGateway(makeConfig());
+    gw.backend = { getDeployPreview: jest.fn().mockResolvedValue(undefined) };
+    gw.api = { getUnpublishedEntrySha: jest.fn().mockResolvedValue('abc123') };
+    localStorage.setItem('netlifySiteURL', 'https://my-site.netlify.app');
+
+    mockNetlifyResponses({ id: 'site-id' }, [
+      { state: 'ready', commit_ref: 'abc123', deploy_url: 'https://deploy.example.com' },
+    ]);
+
+    const preview = await gw.getDeployPreview('posts', 'my-slug');
+
+    expect(preview).toEqual({ status: PreviewState.Success, url: 'https://deploy.example.com' });
+    fetch.mock.calls.forEach(([, options]) => {
+      expect(options).toEqual({ headers: undefined });
+    });
+  });
+
+  it('sends the configured Netlify API token so private-log sites resolve', async () => {
+    const gw = new GitGateway(makeConfig({ netlify_api_token: 'secret-token' }));
+    gw.backend = { getDeployPreview: jest.fn().mockResolvedValue(undefined) };
+    gw.api = { getUnpublishedEntrySha: jest.fn().mockResolvedValue('abc123') };
+    localStorage.setItem('netlifySiteURL', 'https://my-site.netlify.app');
+
+    mockNetlifyResponses({ id: 'site-id' }, [
+      { state: 'ready', commit_ref: 'abc123', deploy_url: 'https://deploy.example.com' },
+    ]);
+
+    const preview = await gw.getDeployPreview('posts', 'my-slug');
+
+    expect(preview).toEqual({ status: PreviewState.Success, url: 'https://deploy.example.com' });
+    fetch.mock.calls.forEach(([, options]) => {
+      expect(options).toEqual({ headers: { Authorization: 'Bearer secret-token' } });
+    });
+  });
+
+  it('returns no preview (no crash) when the Netlify API call fails', async () => {
+    const gw = new GitGateway(makeConfig());
+    gw.backend = { getDeployPreview: jest.fn().mockResolvedValue(undefined) };
+    gw.api = { getUnpublishedEntrySha: jest.fn().mockResolvedValue('abc123') };
+    localStorage.setItem('netlifySiteURL', 'https://my-site.netlify.app');
+
+    fetch.mockRejectedValue(new Error('Network error'));
+
+    const preview = await gw.getDeployPreview('posts', 'my-slug');
+
+    expect(preview).toBeUndefined();
   });
 });
