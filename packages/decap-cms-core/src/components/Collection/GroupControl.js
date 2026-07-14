@@ -4,17 +4,26 @@ import { Dropdown, DropdownItem } from 'decap-cms-ui-default';
 
 import { ControlButton } from './ControlButton';
 
-function GroupControl({ viewGroups, t, onGroupClick, group }) {
-  const hasActiveGroup = group
+export function hasActiveGroup(group) {
+  return group
     ?.valueSeq()
     .toJS()
     .some(f => f.active === true);
+}
 
+export function isGroupActive(group, groupId) {
+  return group.getIn([groupId, 'active'], false);
+}
+
+function GroupControl({ viewGroups, t, onGroupClick, group }) {
   return (
     <Dropdown
       renderButton={() => {
         return (
-          <ControlButton active={hasActiveGroup} title={t('collection.collectionTop.groupBy')} />
+          <ControlButton
+            active={hasActiveGroup(group)}
+            title={t('collection.collectionTop.groupBy')}
+          />
         );
       }}
       closeOnSelection={false}
@@ -28,7 +37,7 @@ function GroupControl({ viewGroups, t, onGroupClick, group }) {
             key={viewGroup.id}
             label={viewGroup.label}
             onClick={() => onGroupClick(viewGroup)}
-            isActive={group.getIn([viewGroup.id, 'active'], false)}
+            isActive={isGroupActive(group, viewGroup.id)}
           />
         );
       })}
