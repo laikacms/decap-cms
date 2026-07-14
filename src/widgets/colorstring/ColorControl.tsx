@@ -1,11 +1,11 @@
 import React from 'react';
 import styled from '@emotion/styled';
-import { ChromePicker } from 'react-color';
+import { HexColorPicker, RgbaStringColorPicker } from 'react-colorful';
 import tinycolor from 'tinycolor2';
 
 import { zIndex } from '@/ui/default/index';
 
-import type { ColorResult } from 'react-color';
+import 'react-colorful/dist/index.css';
 
 function ClearIcon() {
   return (
@@ -108,15 +108,28 @@ export default function ColorControl({
     setShowColorPicker(false);
   }
 
-  function handleChange(color: ColorResult) {
-    const alpha = color.rgb.a ?? 1;
-    const formattedColor =
-      alpha < 1 ? `rgba(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${alpha})` : color.hex;
-    onChange(formattedColor);
+  const enableAlpha = Boolean(field.enableAlpha ?? false);
+
+  function handleChange(color: string) {
+    if (!enableAlpha) {
+      onChange(color);
+      return;
+    }
+    const parsed = tinycolor(color);
+    onChange(parsed.getAlpha() < 1 ? parsed.toRgbString() : parsed.toHexString());
   }
 
   const allowInput = field.allowInput ?? false;
   const showClearButton = !allowInput && value;
+
+  const parsedValue = tinycolor(value);
+  const pickerColor = enableAlpha
+    ? parsedValue.isValid()
+      ? parsedValue.toRgbString()
+      : 'rgba(0, 0, 0, 1)'
+    : parsedValue.isValid()
+      ? parsedValue.toHexString()
+      : '#000000';
 
   return (
     <>
@@ -139,11 +152,11 @@ export default function ColorControl({
       {showColorPicker && (
         <ColorPickerContainer>
           <ClickOutsideDiv onClick={handleClose} />
-          <ChromePicker
-            color={value || ''}
-            onChange={handleChange}
-            disableAlpha={!(field.enableAlpha ?? false)}
-          />
+          {enableAlpha ? (
+            <RgbaStringColorPicker color={pickerColor} onChange={handleChange} />
+          ) : (
+            <HexColorPicker color={pickerColor} onChange={handleChange} />
+          )}
         </ColorPickerContainer>
       )}
       <input
