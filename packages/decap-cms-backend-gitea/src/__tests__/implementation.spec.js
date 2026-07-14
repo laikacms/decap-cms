@@ -31,6 +31,14 @@ describe('gitea backend implementation', () => {
     jest.restoreAllMocks();
   });
 
+  describe('constructor', () => {
+    it('should throw when constructed with useWorkflow: true', () => {
+      expect(() => new GiteaImplementation(config, { useWorkflow: true })).toThrow(
+        'The Gitea backend does not support editorial workflow.',
+      );
+    });
+  });
+
   describe('persistMedia', () => {
     const persistFiles = jest.fn();
     const mockAPI = {
