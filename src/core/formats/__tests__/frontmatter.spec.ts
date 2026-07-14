@@ -122,6 +122,36 @@ describe('Frontmatter', () => {
       );
     });
 
+    // DCMS-574: widgets such as `richtext` may hand back a lazy value object
+    // (e.g. `RichtextValue`) instead of a plain string for `body`. Passing
+    // that object straight into `fromMarkdown` crashes deep inside micromark
+    // with a `TextDecoder` TypeError. `toFile` must coerce any non-string
+    // `body` (via its `toString()`) before rebuilding the markdown AST.
+    it('should stringify a non-string body by coercing it with String()', () => {
+      const lazyBody = {
+        toString: () => 'Some content\nOn another line',
+      };
+
+      expect(
+        FrontmatterInfer.toFile({
+          body: lazyBody as any,
+          tags: ['front matter', 'yaml'],
+          title: 'YAML',
+        }),
+      ).toEqual(
+        [
+          '---',
+          'tags:',
+          '  - front matter',
+          '  - yaml',
+          'title: YAML',
+          '---',
+          'Some content',
+          'On another line',
+        ].join('\n'),
+      );
+    });
+
     it('should stringify YAML with --- delimiters when it is explicitly set as the format without a custom delimiter', () => {
       expect(
         frontmatterYAML().toFile({

@@ -420,10 +420,24 @@ export function removeDraftEntryMediaFile({ id }: { id: string }) {
 }
 
 export function persistLocalBackup(entry: EntryMap, collection: Collection) {
-  return (_dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
     const state = getState();
     const backend = currentBackend(state.config);
-    return backend.persistLocalDraftBackup(entry, collection);
+    try {
+      return await backend.persistLocalDraftBackup(entry, collection);
+    } catch (error: unknown) {
+      dispatch(
+        addNotification({
+          message: {
+            details: error instanceof Error ? error.message : String(error),
+            key: 'ui.toast.onFailToPersistLocalBackup',
+          },
+          type: 'error',
+          dismissAfter: 8000,
+        }),
+      );
+      return undefined;
+    }
   };
 }
 

@@ -797,7 +797,11 @@ export class Backend {
       const result = await localForage.setItem(getEntryBackupKey(), raw);
       return result;
     } catch (e: unknown) {
-      console.warn('persistLocalDraftBackup', e);
+      // A failed local draft backup means the user's in-progress edits are not
+      // safely persisted to IndexedDB; this is a data-safety event, not a
+      // debug curiosity, so it must not be silently swallowed.
+      console.error('persistLocalDraftBackup', e);
+      throw e;
     } finally {
       this.backupSync.release();
     }

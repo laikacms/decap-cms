@@ -94,6 +94,15 @@ const parsers = {
   },
 };
 
+// DCMS-574: some widgets (e.g. `richtext`) hand back a lazy value object
+// instead of a plain string for `body` (its `toString()` fires only here, at
+// file-write time). Coerce defensively so `fromMarkdown` — and anything else
+// downstream that assumes a string — never receives a non-string body.
+function normalizeBody(rawBody: unknown): string {
+  if (typeof rawBody === 'string') return rawBody;
+  return rawBody == null ? '' : String(rawBody);
+}
+
 const objectToFrontmatter = (opts: {
   format: Language;
   sortedKeys?: string[];
@@ -111,7 +120,8 @@ const objectToFrontmatter = (opts: {
 
     if (!doc) return;
 
-    const { body = '', ...frontmatter } = doc;
+    const { body: rawBody, ...frontmatter } = doc;
+    const body = normalizeBody(rawBody);
 
     // rebuild markdown AST from body
     const newTree = fromMarkdown(body);
@@ -218,7 +228,7 @@ export class FrontmatterFormatter {
 
     // Match grey-matter behaviour: only emit a trailing newline when the body
     // actually ended with one (or when there is no body at all).
-    const body = typeof data?.body === 'string' ? data.body : '';
+    const body = normalizeBody(data?.body);
     if (body !== '' && !body.endsWith('\n') && result.endsWith('\n')) {
       result = result.slice(0, -1);
     }
