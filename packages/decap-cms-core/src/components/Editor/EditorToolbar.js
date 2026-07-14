@@ -679,6 +679,7 @@ export class EditorToolbar extends React.Component {
     const {
       user,
       hasChanged,
+      isNewEntry,
       displayUrl,
       collection,
       hasWorkflow,
@@ -704,10 +705,13 @@ export class EditorToolbar extends React.Component {
               isNewEntry here just relabels a pristine fresh draft as
               "unsaved" (DCMS-508). Save button below still consults
               isNewEntry on its own so it stays enabled for a pristine draft.
+              A pristine new entry (isNewEntry && !hasChanged) has never been
+              persisted though, so it must not claim "changesSaved" either
+              (DCMS-292) - render nothing for that cell (DCMS-547).
             */}
             {hasChanged ? (
               <BackStatusChanged>{t('editor.editorToolbar.unsavedChanges')}</BackStatusChanged>
-            ) : (
+            ) : isNewEntry ? null : (
               <BackStatusUnchanged>{t('editor.editorToolbar.changesSaved')}</BackStatusUnchanged>
             )}
           </div>
