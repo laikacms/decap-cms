@@ -72,3 +72,54 @@ describe('EditorPreviewPane.getWidget valueIsInMap heuristic', () => {
     expect(element!.props.value).toBeUndefined();
   });
 });
+
+/**
+ * DCMS-538: `EditorPreview`'s top-level `fields.filter(isVisible)` hid a
+ * top-level `widget: 'hidden'` field, but the recursion used by nested
+ * list/object previews (`widgetFor` -> `getSingleNested` -> `getWidget`, and
+ * the `widgetsFor` API exposed to custom preview templates) funnels every
+ * call, at every nesting depth, through this same `getWidget`. Without a
+ * guard there, `resolveWidget('hidden')` falls back to the 'unknown' widget
+ * and leaks "No preview for widget 'hidden'." into the preview iframe for a
+ * hidden field nested inside list -> object -> list.
+ */
+describe('PreviewPane.getWidget hidden widget filtering (DCMS-538)', () => {
+  const baseProps = {
+    getAsset: () => ({ url: '', path: '' }),
+    entry: {} as any,
+  } as any;
+
+  it('returns null for a hidden field instead of resolving the "unknown widget" fallback preview', () => {
+    const field = { name: 'secret', widget: 'hidden' } as CmsEntryField;
+
+    const result = getWidget(field, 'hidden', {}, baseProps);
+
+    expect(result).toBeNull();
+  });
+
+  it('returns null for a hidden field even when it carries a value nested via list/object recursion', () => {
+    // Mirrors the `list -> object -> list -> hidden` shape from the DCMS-538
+    // repro: getWidget is the single choke point every recursive call site
+    // (widgetFor, getSingleNested, widgetsFor) funnels through regardless of
+    // nesting depth, so this call is representative of the deeply-nested case.
+    const field = { name: 'hidden', widget: 'hidden' } as CmsEntryField;
+
+    const result = getWidget(field, 'hidden', {}, baseProps, 0);
+
+    expect(result).toBeNull();
+  });
+
+  it('still resolves a preview component for a visible field (regression guard)', () => {
+    registerWidget({
+      name: 'dcms-538-visible',
+      controlComponent: NoopControl,
+      previewComponent: NoopPreview,
+    });
+
+    const field = { name: 'title', widget: 'dcms-538-visible' } as CmsEntryField;
+
+    const result = getWidget(field, 'hello', {}, baseProps);
+
+    expect(result).not.toBeNull();
+  });
+});
