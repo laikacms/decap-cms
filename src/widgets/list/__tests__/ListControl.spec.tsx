@@ -37,7 +37,7 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react';
 import * as uuid from 'uuid';
 
-import ListControl from '../ListControl';
+import ListControl from '@/widgets/list/ListControl';
 
 describe('ListControl', () => {
   const props = {

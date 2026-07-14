@@ -8,35 +8,19 @@ import isEmpty from 'lodash/isEmpty';
 import last from 'lodash/last';
 import uniqBy from 'lodash/uniqBy';
 import { List as VirtualList } from 'react-window';
-import {
-  DndContext,
-  MouseSensor,
-  TouchSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import { SortableContext, horizontalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
-import { restrictToParentElement } from '@dnd-kit/modifiers';
-import { CSS } from '@dnd-kit/utilities';
-import { v4 as uuid } from 'uuid';
 
-import { stringTemplate, validations } from '../../lib/widgets/index';
-import { reactSelectStyles } from '../../ui/default/index';
+import { stringTemplate, validations } from '@/lib/widgets/index';
+import { colors, reactSelectStyles, SortableArea, SortableItem } from '@/ui/default/index';
 import relationCache from './RelationCache';
 
-import type { CmsFieldBase, CmsFieldRelation } from '../../lib/util/index';
+import type { CmsFieldBase, CmsFieldRelation } from '@/lib/util/index';
 import type { CSSProperties, ReactElement } from 'react';
-import type { MultiValueProps, MultiValueGenericProps, GroupBase } from 'react-select';
+import type { MultiValueProps, GroupBase } from 'react-select';
 
 interface RelationOption {
   label: string;
   value: string;
   data?: Record<string, unknown>;
-}
-
-interface SortableOption extends RelationOption {
-  data: Record<string, unknown> & { id: string };
 }
 
 interface HitData {
@@ -68,87 +52,43 @@ function arrayMove<T>(array: T[], from: number, to: number): T[] {
 }
 
 function MultiValue(props: MultiValueProps<unknown, boolean, GroupBase<unknown>>) {
-  const propsData = props.data as { data: { id: string } };
-  const { setNodeRef, transform, transition } = useSortable({
-    id: propsData.data.id,
-  });
-
   function onMouseDown(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
   }
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
   const innerProps = { ...props.innerProps, onMouseDown };
   return (
-    <div ref={setNodeRef} style={style}>
-      <components.MultiValue {...props} innerProps={innerProps} />
-    </div>
-  );
-}
-
-function MultiValueLabel(props: MultiValueGenericProps<unknown, boolean, GroupBase<unknown>>) {
-  const propsData = props.data as { data: { id: string } };
-  const { attributes, listeners } = useSortable({
-    id: propsData.data.id,
-  });
-
-  return (
-    <div {...attributes} {...listeners}>
-      <components.MultiValueLabel {...props} />
-    </div>
+    <SortableItem index={props.index}>
+      {(ref, { isDragging, isOver }) => (
+        <div
+          ref={ref}
+          style={{
+            opacity: isDragging ? 0.5 : undefined,
+            outline: isOver ? `2px solid ${colors.active}` : undefined,
+          }}
+        >
+          <components.MultiValue {...props} innerProps={innerProps} />
+        </div>
+      )}
+    </SortableItem>
   );
 }
 
 function SortableSelect(props: Record<string, unknown>) {
-  const { distance, value, onSortEnd, isMulti } = props as {
-    distance: number;
-    value: SortableOption[];
+  const { onSortEnd, isMulti } = props as {
     onSortEnd: (args: { oldIndex: number; newIndex: number }) => void;
     isMulti: boolean;
   };
-
-  const activationConstraint = { distance };
-  const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint }),
-    useSensor(TouchSensor, { activationConstraint }),
-  );
 
   if (!isMulti) {
     return <AsyncSelect {...(props as React.ComponentProps<typeof AsyncSelect>)} />;
   }
 
-  const keys = Array.isArray(value) ? value.map(({ data }) => data.id) : [];
-
-  function handleSortEnd({
-    active,
-    over,
-  }: {
-    active: { id: string | number };
-    over: { id: string | number } | null;
-  }) {
-    if (!over) return;
-    onSortEnd({
-      oldIndex: keys.indexOf(String(active.id)),
-      newIndex: keys.indexOf(String(over.id)),
-    });
-  }
-
   return (
-    <DndContext
-      modifiers={[restrictToParentElement]}
-      collisionDetection={closestCenter}
-      sensors={sensors}
-      onDragEnd={handleSortEnd}
-    >
-      <SortableContext items={keys} strategy={horizontalListSortingStrategy}>
-        <AsyncSelect {...(props as React.ComponentProps<typeof AsyncSelect>)} />
-      </SortableContext>
-    </DndContext>
+    <SortableArea onSortEnd={onSortEnd}>
+      <AsyncSelect {...(props as React.ComponentProps<typeof AsyncSelect>)} />
+    </SortableArea>
   );
 }
 
@@ -217,17 +157,6 @@ function getFieldArray(field: unknown): string[] {
   return Array.isArray(field) ? (field as string[]) : [field as string];
 }
 
-function convertToSortableOption(raw: unknown): SortableOption {
-  const option = convertToOption(raw);
-  return {
-    ...option,
-    data: {
-      ...option.data,
-      id: uuid(),
-    },
-  };
-}
-
 function getSelectedValue({
   value,
   options,
@@ -236,15 +165,14 @@ function getSelectedValue({
   value: unknown;
   options: RelationOption[];
   isMultiple: boolean;
-}): SortableOption[] | RelationOption | null {
+}): RelationOption[] | RelationOption | null {
   if (isMultiple) {
     const selectedOptions = getSelectedOptions(value);
     if (selectedOptions === null) return null;
 
     return selectedOptions
       .map((i: RelationOption) => options.find((o: RelationOption) => o.value === (i.value || i)))
-      .filter(Boolean)
-      .map(convertToSortableOption);
+      .filter(Boolean) as RelationOption[];
   }
   return find(options, ['value', value]) || null;
 }
@@ -586,10 +514,8 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
 
     return (
       <SortableSelect
-        useDragHandle
         onSortEnd={onSortEnd(selectedValue as RelationOption[])}
-        distance={4}
-        components={{ MenuList, MultiValue, MultiValueLabel }}
+        components={{ MenuList, MultiValue }}
         value={selectedValue}
         inputId={forID}
         cacheOptions

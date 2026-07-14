@@ -5,32 +5,22 @@ import { css } from '@emotion/react';
 import once from 'lodash/once';
 import { v4 as uuid } from 'uuid';
 import { oneLine } from 'common-tags';
-import { arrayMoveImmutable as arrayMove } from 'array-move';
-import {
-  DndContext,
-  MouseSensor,
-  TouchSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import { SortableContext, useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { restrictToParentElement } from '@dnd-kit/modifiers';
 
-import { basename } from '../../lib/util/index';
+import { basename } from '@/lib/util/index';
 import {
   lengths,
   components,
   buttons,
   borders,
+  colors,
   effects,
   shadows,
   IconButton,
-} from '../../ui/default/index';
+  SortableArea,
+  SortableItem as UISortableItem,
+} from '@/ui/default/index';
 
-import type { DragEndEvent } from '@dnd-kit/core';
-import type { CmsField, CmsFieldBase, CmsFieldFile } from '../../lib/util/index';
+import type { CmsField, CmsFieldBase, CmsFieldFile } from '@/lib/util/index';
 
 const MAX_DISPLAY_LENGTH = 50;
 
@@ -98,24 +88,25 @@ interface SortableImageProps {
 }
 
 function SortableImage(props: SortableImageProps) {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
-    id: props.id,
-  });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
-  const { itemValue, getAsset, field, onRemove, onReplace } = props;
+  const { index, itemValue, getAsset, field, onRemove, onReplace } = props;
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <ImageWrapper $sortable>
-        <Image src={getAsset(itemValue, field) || ''} />
-      </ImageWrapper>
-      <SortableImageButtons onRemove={onRemove} onReplace={onReplace}></SortableImageButtons>
-    </div>
+    <UISortableItem index={index}>
+      {(ref, { isDragging, isOver }) => (
+        <div
+          ref={ref}
+          style={{
+            opacity: isDragging ? 0.5 : undefined,
+            outline: isOver ? `2px solid ${colors.active}` : undefined,
+          }}
+        >
+          <ImageWrapper $sortable>
+            <Image src={getAsset(itemValue, field) || ''} />
+          </ImageWrapper>
+          <SortableImageButtons onRemove={onRemove} onReplace={onReplace}></SortableImageButtons>
+        </div>
+      )}
+    </UISortableItem>
   );
 }
 
@@ -141,19 +132,6 @@ function SortableMultiImageWrapper({
   onRemoveOne,
   onReplaceOne,
 }: SortableMultiImageWrapperProps) {
-  const activationConstraint = { distance: 4 };
-  const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint }),
-    useSensor(TouchSensor, { activationConstraint }),
-  );
-
-  function handleSortEnd({ active, over }: DragEndEvent) {
-    onSortEnd({
-      oldIndex: items.findIndex((item: SortableItem) => item.id === active.id),
-      newIndex: items.findIndex((item: SortableItem) => item.id === over?.id),
-    });
-  }
-
   return (
     <div
       css={css`
@@ -161,27 +139,20 @@ function SortableMultiImageWrapper({
         flex-wrap: wrap;
       `}
     >
-      <DndContext
-        modifiers={[restrictToParentElement]}
-        collisionDetection={closestCenter}
-        sensors={sensors}
-        onDragEnd={handleSortEnd}
-      >
-        <SortableContext items={items}>
-          {items.map((item: SortableItem, index: number) => (
-            <SortableImage
-              key={item.id}
-              id={item.id}
-              index={index}
-              itemValue={item.value}
-              getAsset={getAsset}
-              field={field}
-              onRemove={onRemoveOne(index)}
-              onReplace={onReplaceOne(index)}
-            ></SortableImage>
-          ))}
-        </SortableContext>
-      </DndContext>
+      <SortableArea onSortEnd={onSortEnd}>
+        {items.map((item: SortableItem, index: number) => (
+          <SortableImage
+            key={item.id}
+            id={item.id}
+            index={index}
+            itemValue={item.value}
+            getAsset={getAsset}
+            field={field}
+            onRemove={onRemoveOne(index)}
+            onReplace={onReplaceOne(index)}
+          ></SortableImage>
+        ))}
+      </SortableArea>
     </div>
   );
 }
@@ -218,6 +189,13 @@ const FileWidgetButtonRemove = styled.button`
 `;
 
 type FileValue = string | string[];
+
+function arrayMove<T>(array: T[], fromIndex: number, toIndex: number): T[] {
+  const newArray = [...array];
+  const [item] = newArray.splice(fromIndex, 1);
+  newArray.splice(toIndex, 0, item);
+  return newArray;
+}
 
 function isMultiple(value: FileValue): boolean {
   return Array.isArray(value);

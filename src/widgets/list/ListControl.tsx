@@ -6,17 +6,6 @@ import isEmpty from 'lodash/isEmpty';
 import memoize from 'lodash/memoize';
 import uniqueId from 'lodash/uniqueId';
 import { v4 as uuid } from 'uuid';
-import {
-  DndContext,
-  MouseSensor,
-  TouchSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import { SortableContext, useSortable } from '@dnd-kit/sortable';
-import { restrictToParentElement } from '@dnd-kit/modifiers';
-import { CSS } from '@dnd-kit/utilities';
 import { get, isObject, omit, set } from 'lodash';
 
 import {
@@ -25,9 +14,12 @@ import {
   colors,
   lengths,
   FieldLabel,
-} from '../../ui/default/index';
-import { stringTemplate, validations } from '../../lib/widgets/index';
-import DecapCmsWidgetObject from '../object/index';
+  SortableArea,
+  SortableItem,
+  SortableHandle,
+} from '@/ui/default/index';
+import { stringTemplate, validations } from '@/lib/widgets/index';
+import DecapCmsWidgetObject from '@/widgets/object/index';
 import {
   TYPES_KEY,
   getTypedFieldForValue,
@@ -42,8 +34,7 @@ import type {
   CmsFieldList,
   CmsFieldObject,
   TranslateFunction,
-} from '../../lib/util/index';
-import type { DragEndEvent } from '@dnd-kit/core';
+} from '@/lib/util/index';
 import type { ComponentType } from 'react';
 
 interface WidgetControlRef {
@@ -100,87 +91,44 @@ const styles = {
 };
 
 interface SortableListProps {
-  items: Array<{ id: string }>;
   children: React.ReactNode;
   onSortEnd: (args: { oldIndex: number; newIndex: number }) => void;
-  keys: string[];
 }
 
-function SortableList({ items, children, onSortEnd, keys }: SortableListProps) {
-  const activationConstraint = { distance: 4 };
-  const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint }),
-    useSensor(TouchSensor, { activationConstraint }),
-  );
-
-  function handleSortEnd({ active, over }: DragEndEvent) {
-    onSortEnd({
-      oldIndex: keys.indexOf(active.id as string),
-      newIndex: keys.indexOf(over?.id as string),
-    });
-  }
-
+function SortableList({ children, onSortEnd }: SortableListProps) {
   return (
     <div>
-      <DndContext
-        modifiers={[restrictToParentElement]}
-        collisionDetection={closestCenter}
-        sensors={sensors}
-        onDragEnd={handleSortEnd}
-      >
-        <SortableContext items={items}>{children}</SortableContext>
-      </DndContext>
+      <SortableArea onSortEnd={onSortEnd}>{children}</SortableArea>
     </div>
   );
 }
 
 interface SortableListItemProps {
-  id: string;
   index: number;
   collapsed?: boolean;
   children: React.ReactNode;
-  keys?: string[];
   css?: unknown;
 }
 
 function SortableListItem(props: SortableListItemProps) {
-  const { setNodeRef, transform, transition } = useSortable({
-    id: props.id,
-  });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
   const { collapsed } = props;
 
   return (
-    <ListItem
-      ref={setNodeRef}
-      style={style}
-      className="SortableListItem"
-      css={[styles.listControlItem, collapsed && styles.listControlItemCollapsed]}
-    >
-      {props.children}
-    </ListItem>
-  );
-}
-
-interface DragHandleProps {
-  children: React.ReactNode;
-  id?: string;
-}
-
-function DragHandle({ children, id }: DragHandleProps) {
-  const { attributes, listeners } = useSortable({
-    id: id ?? '',
-  });
-
-  return (
-    <div {...attributes} {...listeners}>
-      {children}
-    </div>
+    <SortableItem index={props.index} withHandle>
+      {(ref, { isDragging, isOver }) => (
+        <ListItem
+          ref={ref}
+          style={{
+            opacity: isDragging ? 0.5 : undefined,
+            boxShadow: isOver ? `0 0 0 2px ${colors.active}` : undefined,
+          }}
+          className="SortableListItem"
+          css={[styles.listControlItem, collapsed && styles.listControlItemCollapsed]}
+        >
+          {props.children}
+        </ListItem>
+      )}
+    </SortableItem>
   );
 }
 
@@ -709,7 +657,7 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
       const value =
         inputValue && Array.isArray(inputValue) ? inputValue : inputValue ? [inputValue] : [];
 
-      const val = { ...value };
+      const val = [...value];
       const item = val[oldIndex];
       val.splice(oldIndex, 1);
       val.splice(newIndex, 0, item);
@@ -770,8 +718,7 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
           css={[styles.listControlItem, collapsed && styles.listControlItemCollapsed]}
           index={index}
           key={key}
-          id={key}
-          keys={keys}
+          collapsed={collapsed}
         >
           {isVariableTypesList && (
             <LabelComponent
@@ -788,7 +735,7 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
             onCollapseToggle={() =>
               handleItemCollapseToggle(index, { preventDefault: () => {} } as React.MouseEvent)
             }
-            dragHandle={DragHandle}
+            dragHandle={SortableHandle}
             id={key}
             allowRemove={f!.allow_remove ?? true}
             allowReorder={f!.allow_reorder ?? true}
@@ -845,12 +792,12 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
           css={[styles.listControlItem, styles.listControlItemCollapsed]}
           index={index}
           key={key}
-          id={key}
+          collapsed
         >
           <StyledListItemTopBar
             onCollapseToggle={undefined}
             onRemove={() => handleRemove(index, { preventDefault: () => {} } as React.MouseEvent)}
-            dragHandle={DragHandle}
+            dragHandle={SortableHandle}
             id={key}
           />
           <NestedObjectLabel className="NestedObjectLabel" collapsed={true} error={true}>
@@ -870,8 +817,6 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
       const minimizeCollapsedItems = field.minimize_collapsed ?? false;
       const allItemsCollapsed = itemsCollapsed.every((val: boolean) => val === true);
       const selfCollapsed = allItemsCollapsed && (listCollapsed || !minimizeCollapsedItems);
-
-      const itemsArray = keys.map((key: string) => ({ id: key }));
 
       return (
         <ClassNames>
@@ -899,9 +844,7 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
                 t={t!}
               />
               {(!selfCollapsed || !minimizeCollapsedItems) && (
-                <SortableList items={itemsArray} keys={keys} onSortEnd={onSortEnd}>
-                  {items.map(renderItem)}
-                </SortableList>
+                <SortableList onSortEnd={onSortEnd}>{items.map(renderItem)}</SortableList>
               )}
             </div>
           )}

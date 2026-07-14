@@ -14,6 +14,7 @@ import AuthenticationPage, { StandaloneAuthPage, renderPageLogo } from './Authen
 import WidgetPreviewContainer from './WidgetPreviewContainer';
 import ObjectWidgetTopBar, { type TranslateFunction } from './ObjectWidgetTopBar';
 import GoBackButton from './GoBackButton';
+import { SortableArea, SortableItem, SortableHandle } from './Sortable';
 import {
   fonts,
   colorsRaw,
@@ -36,6 +37,7 @@ import {
 } from './styles';
 
 export type { DecapTheme } from './styles';
+export type { SortEndArgs, SortableItemState } from './Sortable';
 
 export const DecapCmsUiDefault = {
   Dropdown,
@@ -115,4 +117,7 @@ export {
   themeToCssVars,
   GoBackButton,
   renderPageLogo,
+  SortableArea,
+  SortableItem,
+  SortableHandle,
 };
