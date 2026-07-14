@@ -3,8 +3,8 @@ vi.mock('../registry');
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import merge from 'lodash/merge';
 
-import { validateConfig } from '../validateConfig';
-import { getWidgets } from '../registry';
+import { validateConfig } from '@/core/lib/validateConfig';
+import { getWidgets } from '@/core/lib/registry';
 
 describe('config', () => {
   /**

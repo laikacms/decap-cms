@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import LaikaToggleSwitch from '../LaikaToggleSwitch';
+import LaikaToggleSwitch from '@/laika-app/ui/LaikaToggleSwitch';
 
 describe('LaikaToggleSwitch', () => {
   it('renders an accessible switch input', () => {

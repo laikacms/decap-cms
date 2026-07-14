@@ -1,11 +1,11 @@
 import * as React from 'react';
 
-import { GitHubBackend } from '../github/index';
+import { GitHubBackend } from '@/backends/github/index';
 import GenericPKCEAuthenticationPage from './AuthenticationPage';
 
-import type { GitHubUser } from '../github/index';
-import type { CmsConfig } from '../../lib/util/index';
-import type { AuthenticationPageProps } from '../../ui/default/AuthenticationPage';
+import type { GitHubUser } from '@/backends/github/index';
+import type { CmsConfig } from '@/lib/util/index';
+import type { AuthenticationPageProps } from '@/ui/default/AuthenticationPage';
 import type { Endpoints } from '@octokit/types';
 
 export default class AwsCognitoGitHubProxyBackend extends GitHubBackend {

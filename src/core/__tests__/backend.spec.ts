@@ -1,16 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { localForage, asyncLock } from '../../lib/util/index';
+import { localForage, asyncLock } from '@/lib/util/index';
 import {
   resolveBackend,
   Backend,
   extractSearchFields,
   expandSearchEntries,
   mergeExpandedEntries,
-} from '../backend';
-import { getBackend } from '../lib/registry';
-import { FOLDER, FILES } from '../constants/collectionTypes';
-import { sanitizeSlug, sanitizeChar } from '../lib/urlHelper';
+} from '@/core/backend';
+import { getBackend } from '@/core/lib/registry';
+import { FOLDER, FILES } from '@/core/constants/collectionTypes';
+import { sanitizeSlug, sanitizeChar } from '@/core/lib/urlHelper';
 
 vi.mock('../lib/registry');
 vi.mock('../../lib/util/index', () => ({

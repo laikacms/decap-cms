@@ -31,10 +31,10 @@ vi.mock('../../../reducers/collections', () => ({
   getFileFromSlug: () => undefined,
 }));
 
-import EditorInterface from '../EditorInterface';
+import EditorInterface from '@/core/components/Editor/EditorInterface';
 
-import type { CmsCollectionState, CmsEntry } from '../../../../lib/util/index';
-import type { TranslateFunction } from '../../../../ui/default/index';
+import type { CmsCollectionState, CmsEntry } from '@/lib/util/index';
+import type { TranslateFunction } from '@/ui/default/index';
 
 describe('EditorInterface', () => {
   const props = {

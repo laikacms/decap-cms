@@ -2,7 +2,7 @@ import { produce } from 'immer';
 import { v4 as uuid } from 'uuid';
 import get from 'lodash/get';
 
-import { join } from '../../lib/util/index';
+import { join } from '@/lib/util/index';
 import {
   DRAFT_CREATE_FROM_ENTRY,
   DRAFT_CREATE_EMPTY,
@@ -19,7 +19,7 @@ import {
   ENTRY_DELETE_SUCCESS,
   ADD_DRAFT_ENTRY_MEDIA_FILE,
   REMOVE_DRAFT_ENTRY_MEDIA_FILE,
-} from '../actions/entries';
+} from '@/core/actions/entries';
 import {
   UNPUBLISHED_ENTRY_PERSIST_REQUEST,
   UNPUBLISHED_ENTRY_PERSIST_SUCCESS,
@@ -30,12 +30,12 @@ import {
   UNPUBLISHED_ENTRY_PUBLISH_REQUEST,
   UNPUBLISHED_ENTRY_PUBLISH_SUCCESS,
   UNPUBLISHED_ENTRY_PUBLISH_FAILURE,
-} from '../actions/editorialWorkflow';
+} from '@/core/actions/editorialWorkflow';
 import { selectFolderEntryExtension, selectHasMetaPath } from './collections';
-import { getDataPath, duplicateI18nFields } from '../lib/i18n';
+import { getDataPath, duplicateI18nFields } from '@/core/lib/i18n';
 
 import type { AnyAction } from 'redux';
-import type { CmsCollectionState, CmsEntry, CmsEntryField } from '../../lib/util/index';
+import type { CmsCollectionState, CmsEntry, CmsEntryField } from '@/lib/util/index';
 
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;

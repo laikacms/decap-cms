@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { filterNestedEntries } from '../EntriesCollection';
+import { filterNestedEntries } from '@/core/components/Collection/Entries/EntriesCollection';
 
 describe('filterNestedEntries', () => {
   it('should return only immediate children for non root path', () => {

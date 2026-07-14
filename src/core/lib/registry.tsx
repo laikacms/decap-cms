@@ -1,6 +1,6 @@
 import { oneLine } from 'common-tags';
 
-import EditorComponent from '../valueObjects/EditorComponent';
+import EditorComponent from '@/core/valueObjects/EditorComponent';
 
 import type { Pluggable } from 'unified';
 import type {
@@ -16,7 +16,7 @@ import type {
   CmsFormatter,
   CmsConfig,
   CmsImplementation,
-} from '../../lib/util/index';
+} from '@/lib/util/index';
 
 type CmsPreviewStyle = { raw?: boolean; value: string };
 

@@ -1,15 +1,15 @@
 import get from 'lodash/get';
 
-import { EDITORIAL_WORKFLOW_ERROR } from '../../lib/util/index';
-import { currentBackend, slugFromCustomPath } from '../backend';
+import { EDITORIAL_WORKFLOW_ERROR } from '@/lib/util/index';
+import { currentBackend, slugFromCustomPath } from '@/core/backend';
 import {
   selectPublishedSlugs,
   selectUnpublishedSlugs,
   selectEntry,
   selectUnpublishedEntry,
-} from '../reducers';
-import { selectEditingDraft } from '../reducers/entries';
-import { EDITORIAL_WORKFLOW, status } from '../constants/publishModes';
+} from '@/core/reducers';
+import { selectEditingDraft } from '@/core/reducers/entries';
+import { EDITORIAL_WORKFLOW, status } from '@/core/constants/publishModes';
 import {
   loadEntry,
   entryDeleted,
@@ -18,11 +18,11 @@ import {
   loadEntries,
   getSerializedEntry,
 } from './entries';
-import { createAssetProxy } from '../valueObjects/AssetProxy';
+import { createAssetProxy } from '@/core/valueObjects/AssetProxy';
 import { addAssets } from './media';
 import { loadMedia } from './mediaLibrary';
-import ValidationErrorTypes from '../constants/validationErrorTypes';
-import { navigateToEntry } from '../routing/navigation';
+import ValidationErrorTypes from '@/core/constants/validationErrorTypes';
+import { navigateToEntry } from '@/core/routing/navigation';
 import { addNotification } from './notifications';
 
 import type {
@@ -30,11 +30,11 @@ import type {
   CmsEntry,
   CmsCollections,
   CmsMediaFile,
-} from '../../lib/util/index';
+} from '@/lib/util/index';
 import type { AnyAction } from 'redux';
-import type { EntryValue } from '../valueObjects/Entry';
-import type { EntryDraft } from '../reducers/entryDraft';
-import type { Status } from '../constants/publishModes';
+import type { EntryValue } from '@/core/valueObjects/Entry';
+import type { EntryDraft } from '@/core/reducers/entryDraft';
+import type { Status } from '@/core/constants/publishModes';
 import type { ThunkDispatch } from 'redux-thunk';
 
 type Collection = CmsCollectionState;

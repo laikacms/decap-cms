@@ -2,9 +2,9 @@ import { describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import { render } from '@testing-library/react';
 
-import ObjectControl from '../ObjectControl';
+import ObjectControl from '@/widgets/object/ObjectControl';
 
-import type { ObjectControlHandle } from '../ObjectControl';
+import type { ObjectControlHandle } from '@/widgets/object/ObjectControl';
 
 function createMockEditorControl(validateSpy: (name: string, value: unknown) => void) {
   return function MockEditorControl(props: Record<string, any>) {

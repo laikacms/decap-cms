@@ -7,7 +7,7 @@ import {
   stripBidiControls,
   RLO,
   LRO,
-} from '../bidiControls';
+} from '@/lib/widgets/bidiControls';
 
 // "admin<RLO>txt.exe" built the same way the widget input would receive it
 // from a paste of the DCMS-415 / DCMS-429 repro string.

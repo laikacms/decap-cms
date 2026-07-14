@@ -3,7 +3,7 @@ import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
 
-import { Link } from '../../routing/Link';
+import { Link } from '@/core/routing/Link';
 import {
   Icon,
   Dropdown,
@@ -14,12 +14,12 @@ import {
   components,
   buttons,
   zIndex,
-} from '../../../ui/default/index';
-import { status } from '../../constants/publishModes';
-import { SettingsDropdown } from '../UI';
+} from '@/ui/default/index';
+import { status } from '@/core/constants/publishModes';
+import { SettingsDropdown } from '@/core/components/UI';
 
-import type { TranslateFunction } from '../../../ui/default/index';
-import type { CmsCollectionState } from '../../../lib/util/index';
+import type { TranslateFunction } from '@/ui/default/index';
+import type { CmsCollectionState } from '@/lib/util/index';
 
 type Collection = CmsCollectionState;
 

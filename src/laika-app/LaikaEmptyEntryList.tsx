@@ -2,11 +2,11 @@
 import React from 'react';
 import styled from '@emotion/styled';
 
-import { Icon, colors, lengths } from '../ui/default/index';
-import { createNewEntry } from '../core/actions/collections';
+import { Icon, colors, lengths } from '@/ui/default/index';
+import { createNewEntry } from '@/core/actions/collections';
 import { LaikaButton } from './ui';
 
-import type { EntryListEmptyRenderProps } from '../app/components/index';
+import type { EntryListEmptyRenderProps } from '@/app/components/index';
 
 /**
  * Laika-styled zero state for empty collection listings. Slotted into core

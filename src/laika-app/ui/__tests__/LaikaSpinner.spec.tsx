@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import LaikaSpinner from '../LaikaSpinner';
+import LaikaSpinner from '@/laika-app/ui/LaikaSpinner';
 
 describe('LaikaSpinner', () => {
   it('renders with role="status" and an accessible label', () => {

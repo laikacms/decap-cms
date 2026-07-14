@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import LaikaAvatar from '../LaikaAvatar';
+import LaikaAvatar from '@/laika-app/ui/LaikaAvatar';
 
 describe('LaikaAvatar', () => {
   it('falls back to the first letter of name when no src is supplied', () => {

@@ -2,8 +2,8 @@ vi.mock('../registry');
 
 import { describe, expect, it, vi } from 'vitest';
 
-import { getPhrases } from '../phrases';
-import { getLocale } from '../registry';
+import { getPhrases } from '@/core/lib/phrases';
+import { getLocale } from '@/core/lib/registry';
 
 describe('defaultPhrases', () => {
   it('should merge en locale with given locale', () => {

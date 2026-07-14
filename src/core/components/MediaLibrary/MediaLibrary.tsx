@@ -4,7 +4,7 @@ import map from 'lodash/map';
 import { useTranslate } from 'react-polyglot';
 import fuzzy from 'fuzzy';
 
-import { fileExtension } from '../../../lib/util/index';
+import { fileExtension } from '@/lib/util/index';
 import {
   loadMedia as loadMediaAction,
   persistMedia as persistMediaAction,
@@ -12,13 +12,13 @@ import {
   insertMedia as insertMediaAction,
   loadMediaDisplayURL as loadMediaDisplayURLAction,
   closeMediaLibrary as closeMediaLibraryAction,
-} from '../../actions/mediaLibrary';
-import { selectMediaFiles } from '../../reducers/mediaLibrary';
+} from '@/core/actions/mediaLibrary';
+import { selectMediaFiles } from '@/core/reducers/mediaLibrary';
 import MediaLibraryModal from './MediaLibraryModal';
-import { useAppDispatch, useAppSelector } from '../../hooks/useRedux';
-import { defaultRouter } from '../../routing/router';
+import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
+import { defaultRouter } from '@/core/routing/router';
 
-import type { TranslateFunction } from '../../../ui/default/index';
+import type { TranslateFunction } from '@/ui/default/index';
 
 /**
  * Extensions used to determine which files to show when the media library is

@@ -2,8 +2,8 @@ import React from 'react';
 import styled from '@emotion/styled';
 import Select from 'react-select';
 
-import { text, shadows, zIndex } from '../../ui/default/index';
-import { isHotkey } from '../../lib/util/index';
+import { text, shadows, zIndex } from '@/ui/default/index';
+import { isHotkey } from '@/lib/util/index';
 import SettingsButton from './SettingsButton';
 import languageSelectStyles from './languageSelectStyles';
 

@@ -5,7 +5,7 @@ import {
   frontmatterJSON,
   frontmatterTOML,
   frontmatterYAML,
-} from '../frontmatter';
+} from '@/core/formats/frontmatter';
 
 describe('Frontmatter', () => {
   describe('yaml', () => {

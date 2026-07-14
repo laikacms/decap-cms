@@ -1,7 +1,7 @@
 import { describe, expect, it, test } from 'vitest';
 
-import { extensionFormatters, resolveFormat } from '../formats';
-import { registerCustomFormat } from '../../lib/registry';
+import { extensionFormatters, resolveFormat } from '@/core/formats/formats';
+import { registerCustomFormat } from '@/core/lib/registry';
 
 describe('custom formats', () => {
   const testEntry = {

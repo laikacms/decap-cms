@@ -3,11 +3,11 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
 
-import { colors, lengths } from '../ui/default/index';
+import { colors, lengths } from '@/ui/default/index';
 import { LaikaButton } from './ui';
 
-import type { TranslateFunction } from '../ui/default/index';
-import type { ErrorBoundaryRenderProps } from '../core/index';
+import type { TranslateFunction } from '@/ui/default/index';
+import type { ErrorBoundaryRenderProps } from '@/core/index';
 
 /**
  * Laika-styled crash fallback. Slotted into core's ErrorBoundary via the

@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import LaikaSearchInput from '../LaikaSearchInput';
+import LaikaSearchInput from '@/laika-app/ui/LaikaSearchInput';
 
 describe('LaikaSearchInput', () => {
   it('renders a type="search" input', () => {

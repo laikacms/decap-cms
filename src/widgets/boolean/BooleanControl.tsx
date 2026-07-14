@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { Toggle, ToggleBackground, colors } from '../../ui/default/index';
+import { Toggle, ToggleBackground, colors } from '@/ui/default/index';
 
-import type { ToggleActiveProps } from '../../ui/default/Toggle';
+import type { ToggleActiveProps } from '@/ui/default/Toggle';
 
 function BooleanBackground({ $isActive, ...props }: ToggleActiveProps) {
   return (

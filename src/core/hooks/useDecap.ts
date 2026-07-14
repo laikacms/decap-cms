@@ -1,8 +1,8 @@
 import { useContext } from 'react';
 
-import { context } from '../contexts/decap';
+import { context } from '@/core/contexts/decap';
 
-import type { DecapCmsContext } from '../contexts/decap';
+import type { DecapCmsContext } from '@/core/contexts/decap';
 
 /**
  * Read the Decap routing/config context. Throws when rendered outside a

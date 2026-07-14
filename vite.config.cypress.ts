@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import path from 'path';
 
 /**
  * Minimal Vite configuration for Cypress test file preprocessing.
@@ -7,12 +8,14 @@ import { defineConfig } from 'vite';
  */
 export default defineConfig({
   resolve: {
-    alias: {
+    alias: [
+      // `@/*` -> `src/*` (mirrors tsconfig `paths`).
+      { find: /^@\//, replacement: path.resolve(__dirname, 'src') + '/' },
       // Node.js polyfills for browser
-      path: 'path-browserify',
-      stream: 'stream-browserify',
-      buffer: 'buffer',
-    },
+      { find: 'path', replacement: 'path-browserify' },
+      { find: 'stream', replacement: 'stream-browserify' },
+      { find: 'buffer', replacement: 'buffer' },
+    ],
   },
   define: {
     'process.env.NODE_ENV': JSON.stringify('development'),

@@ -1,8 +1,8 @@
-import { API as GithubAPI } from '../github/index';
-import { APIError } from '../../lib/util/index';
+import { API as GithubAPI } from '@/backends/github/index';
+import { APIError } from '@/lib/util/index';
 
-import type { Config as GitHubConfig, Diff } from '../github/index';
-import type { FetchError } from '../../lib/util/index';
+import type { Config as GitHubConfig, Diff } from '@/backends/github/index';
+import type { FetchError } from '@/lib/util/index';
 import type { Endpoints } from '@octokit/types';
 
 type Config = Omit<GitHubConfig, 'getUser'> & {

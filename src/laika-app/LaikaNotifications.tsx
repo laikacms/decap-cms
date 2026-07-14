@@ -3,8 +3,8 @@ import 'react-toastify/ReactToastify.css';
 import { toast, ToastContainer } from 'react-toastify';
 import { useTranslate } from 'react-polyglot';
 
-import { dismissNotification } from '../core/actions/notifications';
-import { useAppDispatch, useAppSelector } from '../core/hooks/useRedux';
+import { dismissNotification } from '@/core/actions/notifications';
+import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 import { useLaikaTheme } from './LaikaThemeContext';
 
 import type { Id, ToastItem } from 'react-toastify';

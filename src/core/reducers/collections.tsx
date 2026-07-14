@@ -2,14 +2,14 @@ import { produce } from 'immer';
 import get from 'lodash/get';
 import escapeRegExp from 'lodash/escapeRegExp';
 
-import { stringTemplate } from '../../lib/widgets/index';
-import { CONFIG_SUCCESS } from '../actions/config';
-import { FILES, FOLDER } from '../constants/collectionTypes';
-import { COMMIT_DATE, COMMIT_AUTHOR } from '../constants/commitProps';
-import { INFERABLE_FIELDS, IDENTIFIER_FIELDS, SORTABLE_FIELDS } from '../constants/fieldInference';
-import { getFormatExtensions } from '../formats/formats';
+import { stringTemplate } from '@/lib/widgets/index';
+import { CONFIG_SUCCESS } from '@/core/actions/config';
+import { FILES, FOLDER } from '@/core/constants/collectionTypes';
+import { COMMIT_DATE, COMMIT_AUTHOR } from '@/core/constants/commitProps';
+import { INFERABLE_FIELDS, IDENTIFIER_FIELDS, SORTABLE_FIELDS } from '@/core/constants/fieldInference';
+import { getFormatExtensions } from '@/core/formats/formats';
 import { selectMediaFolder } from './entries';
-import { summaryFormatter } from '../lib/formatters';
+import { summaryFormatter } from '@/core/lib/formatters';
 
 import type {
   CmsCollectionState,
@@ -20,9 +20,9 @@ import type {
   CmsViewFilter,
   CmsViewGroup,
   CmsConfig,
-} from '../../lib/util/index';
-import type { ConfigAction } from '../actions/config';
-import type { Backend } from '../backend';
+} from '@/lib/util/index';
+import type { ConfigAction } from '@/core/actions/config';
+import type { Backend } from '@/core/backend';
 
 type Collection = CmsCollectionState;
 type Collections = CmsCollections;

@@ -1,24 +1,24 @@
-import { basename, getBlobSHA } from '../../lib/util/index';
-import { currentBackend } from '../backend';
-import { createAssetProxy } from '../valueObjects/AssetProxy';
-import { selectIntegration } from '../reducers';
+import { basename, getBlobSHA } from '@/lib/util/index';
+import { currentBackend } from '@/core/backend';
+import { createAssetProxy } from '@/core/valueObjects/AssetProxy';
+import { selectIntegration } from '@/core/reducers';
 import {
   selectMediaFilePath,
   selectMediaFilePublicPath,
   selectEditingDraft,
-} from '../reducers/entries';
-import { selectMediaDisplayURL, selectMediaFiles } from '../reducers/mediaLibrary';
-import { getIntegrationProvider } from '../integrations';
+} from '@/core/reducers/entries';
+import { selectMediaDisplayURL, selectMediaFiles } from '@/core/reducers/mediaLibrary';
+import { getIntegrationProvider } from '@/core/integrations';
 import { addAsset, removeAsset } from './media';
 import { addDraftEntryMediaFile, removeDraftEntryMediaFile } from './entries';
-import { sanitizeSlug } from '../lib/urlHelper';
+import { sanitizeSlug } from '@/core/lib/urlHelper';
 import { waitUntilWithTimeout } from './waitUntil';
 import { addNotification } from './notifications';
 
-import type { CmsMediaFile, CmsEntryField, CmsMediaLibraryInstance } from '../../lib/util/index';
+import type { CmsMediaFile, CmsEntryField, CmsMediaLibraryInstance } from '@/lib/util/index';
 import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
-import type AssetProxy from '../valueObjects/AssetProxy';
+import type AssetProxy from '@/core/valueObjects/AssetProxy';
 
 type MediaFile = CmsMediaFile;
 type EntryField = CmsEntryField;

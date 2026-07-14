@@ -10,7 +10,7 @@ vi.mock('react-polyglot', () => ({
   },
 }));
 
-import { LaikaConfigLoading, LaikaConfigError } from '../LaikaBootstrapScreens';
+import { LaikaConfigLoading, LaikaConfigError } from '@/laika-app/LaikaBootstrapScreens';
 
 describe('LaikaConfigLoading', () => {
   it('shows the i18n loading title and a spinner', () => {

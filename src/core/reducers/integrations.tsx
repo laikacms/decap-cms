@@ -1,9 +1,9 @@
 import { produce } from 'immer';
 
-import { CONFIG_SUCCESS } from '../actions/config';
+import { CONFIG_SUCCESS } from '@/core/actions/config';
 
-import type { ConfigAction } from '../actions/config';
-import type { CmsConfig } from '../../lib/util/index';
+import type { ConfigAction } from '@/core/actions/config';
+import type { CmsConfig } from '@/lib/util/index';
 
 type Integrations = {
   hooks: { [collectionOrHook: string]: any };

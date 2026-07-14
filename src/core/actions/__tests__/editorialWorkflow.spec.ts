@@ -2,10 +2,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import configureMockStore from 'redux-mock-store';
 import { thunk } from 'redux-thunk';
 
-import { addAssets } from '../media';
-import * as actions from '../editorialWorkflow';
-import * as backendModule from '../../backend';
-import * as assetProxyModule from '../../valueObjects/AssetProxy';
+import { addAssets } from '@/core/actions/media';
+import * as actions from '@/core/actions/editorialWorkflow';
+import * as backendModule from '@/core/backend';
+import * as assetProxyModule from '@/core/valueObjects/AssetProxy';
 
 vi.mock('../../backend');
 vi.mock('../../valueObjects/AssetProxy');

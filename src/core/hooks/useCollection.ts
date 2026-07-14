@@ -1,17 +1,17 @@
 import { useCallback, useMemo } from 'react';
 
 import { useAppSelector, useAppDispatch } from './useRedux';
-import { sortByField, filterByField, changeViewStyle, groupByField } from '../actions/entries';
-import { selectSortableFields, selectViewFilters, selectViewGroups } from '../reducers/collections';
+import { sortByField, filterByField, changeViewStyle, groupByField } from '@/core/actions/entries';
+import { selectSortableFields, selectViewFilters, selectViewGroups } from '@/core/reducers/collections';
 import {
   selectEntriesSort,
   selectEntriesFilter,
   selectEntriesGroup,
   selectViewStyle,
-} from '../reducers/entries';
-import { getNewEntryUrl } from '../lib/urlHelper';
+} from '@/core/reducers/entries';
+import { getNewEntryUrl } from '@/core/lib/urlHelper';
 
-import type { CmsSortDirection, CmsViewFilter, CmsViewGroup } from '../../lib/util/index';
+import type { CmsSortDirection, CmsViewFilter, CmsViewGroup } from '@/lib/util/index';
 
 type SortDirection = CmsSortDirection;
 type ViewFilter = CmsViewFilter;

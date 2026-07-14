@@ -4,14 +4,14 @@ vi.mock('../integrations');
 
 import { describe, expect, it, vi } from 'vitest';
 
-import { mediaDeleted } from '../../actions/mediaLibrary';
+import { mediaDeleted } from '@/core/actions/mediaLibrary';
 import mediaLibrary, {
   selectMediaFiles,
   selectMediaFileByPath,
   selectMediaDisplayURL,
-} from '../mediaLibrary';
-import { selectEditingDraft, selectMediaFolder } from '../entries';
-import { selectIntegration } from '../integrations';
+} from '@/core/reducers/mediaLibrary';
+import { selectEditingDraft, selectMediaFolder } from '@/core/reducers/entries';
+import { selectIntegration } from '@/core/reducers/integrations';
 
 describe('mediaLibrary', () => {
   it('should remove media file by key', () => {

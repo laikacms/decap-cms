@@ -2,14 +2,14 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { Waypoint } from 'react-waypoint';
 
-import { selectFields, selectInferredField } from '../../../reducers/collections';
+import { selectFields, selectInferredField } from '@/core/reducers/collections';
 import { filterNestedEntries } from './EntriesCollection';
 import EntryCard from './EntryCard';
-import { useCmsSlots } from '../../../lib/slots';
+import { useCmsSlots } from '@/core/lib/slots';
 
-import type { EntryCardRenderProps } from '../../../lib/slots';
-import type { CmsCollectionState, CmsCollections, CmsEntry } from '../../../../lib/util/index';
-import type { Cursor } from '../../../../lib/util/index';
+import type { EntryCardRenderProps } from '@/core/lib/slots';
+import type { CmsCollectionState, CmsCollections, CmsEntry } from '@/lib/util/index';
+import type { Cursor } from '@/lib/util/index';
 
 const CardsGrid = styled.ul`
   display: flex;

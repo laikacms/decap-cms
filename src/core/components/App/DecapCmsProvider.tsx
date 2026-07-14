@@ -3,22 +3,22 @@ import { Provider } from 'react-redux';
 import { I18n } from 'react-polyglot';
 import { Global } from '@emotion/react';
 
-import { GlobalStyles, DefaultTokensGlobalStyle, themeToCssVars } from '../../../ui/default/index';
-import { store } from '../../redux';
-import { useAppSelector, useAppDispatch } from '../../hooks/useRedux';
-import { loadConfig } from '../../actions/config';
-import { authenticateUser } from '../../actions/auth';
-import { getPhrases } from '../../lib/phrases';
-import { selectLocale } from '../../reducers/config';
-import { context } from '../../contexts/decap';
-import { defaultRoutingTable } from '../../routing/router';
-import { RouterProvider, useRouter, useLocation } from '../../routing/context';
+import { GlobalStyles, DefaultTokensGlobalStyle, themeToCssVars } from '@/ui/default/index';
+import { store } from '@/core/redux';
+import { useAppSelector, useAppDispatch } from '@/core/hooks/useRedux';
+import { loadConfig } from '@/core/actions/config';
+import { authenticateUser } from '@/core/actions/auth';
+import { getPhrases } from '@/core/lib/phrases';
+import { selectLocale } from '@/core/reducers/config';
+import { context } from '@/core/contexts/decap';
+import { defaultRoutingTable } from '@/core/routing/router';
+import { RouterProvider, useRouter, useLocation } from '@/core/routing/context';
 
 // Side-effect registrations the CMS needs regardless of which layout renders
 // it: editor widgets, the media library, and the `what-input` accessibility
 // helper. Importing them here means every consumer of the provider gets them.
-import '../EditorWidgets';
-import '../../mediaLibrary';
+import '@/core/components/EditorWidgets';
+import '@/core/mediaLibrary';
 import 'what-input';
 
 import type {
@@ -26,12 +26,12 @@ import type {
   DecapCmsContext,
   DecapNavigate,
   DecapParams,
-} from '../../contexts/decap';
-import type { DecapTheme } from '../../../ui/default/index';
-import type { AppDispatch } from '../../redux';
-import type { CmsConfig } from '../../../lib/util/index';
+} from '@/core/contexts/decap';
+import type { DecapTheme } from '@/ui/default/index';
+import type { AppDispatch } from '@/core/redux';
+import type { CmsConfig } from '@/lib/util/index';
 
-export type { DecapCmsProviderProps } from '../../contexts/decap';
+export type { DecapCmsProviderProps } from '@/core/contexts/decap';
 
 /**
  * Dispatches `loadConfig` (and `authenticateUser` once config is ready) exactly

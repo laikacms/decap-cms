@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import unsentRequest from '../unsentRequest.js';
+import unsentRequest from '@/lib/util/unsentRequest.js';
 
 describe('unsentRequest', () => {
   describe('withHeaders', () => {

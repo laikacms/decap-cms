@@ -2,8 +2,8 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import LaikaBadge from '../LaikaBadge';
-import LaikaTag from '../LaikaTag';
+import LaikaBadge from '@/laika-app/ui/LaikaBadge';
+import LaikaTag from '@/laika-app/ui/LaikaTag';
 
 describe('LaikaBadge', () => {
   it('renders children inside a span', () => {

@@ -3,7 +3,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import dayjs from 'dayjs';
 
-import DateTimeControl from '../DateTimeControl';
+import DateTimeControl from '@/widgets/datetime/DateTimeControl';
 
 function setup(propsOverrides = {}) {
   const props = {

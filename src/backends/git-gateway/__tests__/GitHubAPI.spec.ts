@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import API from '../GitHubAPI';
+import API from '@/backends/git-gateway/GitHubAPI';
 
 describe('github API', () => {
   describe('request', () => {

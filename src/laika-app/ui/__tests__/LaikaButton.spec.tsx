@@ -3,7 +3,7 @@ import { render, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 
-import LaikaButton from '../LaikaButton';
+import LaikaButton from '@/laika-app/ui/LaikaButton';
 
 function renderInRouter(node: React.ReactNode) {
   return render(<MemoryRouter>{node}</MemoryRouter>);

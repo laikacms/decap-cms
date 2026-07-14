@@ -2,10 +2,10 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { RouterProvider } from '../../../routing/context';
-import { Sidebar } from '../Sidebar';
+import { RouterProvider } from '@/core/routing/context';
+import { Sidebar } from '@/core/components/Collection/Sidebar';
 
-import type * as DecapCmsUiDefault from '../../../../ui/default/index';
+import type * as DecapCmsUiDefault from '@/ui/default/index';
 
 vi.mock('../../../../ui/default/index', async () => {
   const actual = await vi.importActual<typeof DecapCmsUiDefault>('../../../../ui/default/index');

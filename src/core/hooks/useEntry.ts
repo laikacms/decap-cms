@@ -1,21 +1,21 @@
 import { useCallback } from 'react';
 
 import { useAppSelector, useAppDispatch } from './useRedux';
-import { loadEntry, loadEntries, persistEntry, deleteEntry } from '../actions/entries';
+import { loadEntry, loadEntries, persistEntry, deleteEntry } from '@/core/actions/entries';
 import {
   updateUnpublishedEntryStatus,
   publishUnpublishedEntry,
   unpublishPublishedEntry,
   deleteUnpublishedEntry,
-} from '../actions/editorialWorkflow';
-import { loadDeployPreview } from '../actions/deploys';
-import { selectEntry, selectUnpublishedEntry, selectDeployPreview } from '../reducers';
-import { selectFields } from '../reducers/collections';
-import { status } from '../constants/publishModes';
-import { navigateToCollection, navigateToNewEntry } from '../routing/navigation';
+} from '@/core/actions/editorialWorkflow';
+import { loadDeployPreview } from '@/core/actions/deploys';
+import { selectEntry, selectUnpublishedEntry, selectDeployPreview } from '@/core/reducers';
+import { selectFields } from '@/core/reducers/collections';
+import { status } from '@/core/constants/publishModes';
+import { navigateToCollection, navigateToNewEntry } from '@/core/routing/navigation';
 
-import type { Status } from '../constants/publishModes';
-import type { CmsEntry } from '../../lib/util/index';
+import type { Status } from '@/core/constants/publishModes';
+import type { CmsEntry } from '@/lib/util/index';
 type Entry = CmsEntry;
 
 interface UseEntryOptions {

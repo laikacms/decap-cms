@@ -4,11 +4,11 @@ import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
 import { translate } from 'react-polyglot';
 
-import { colors } from '../ui/default/index';
+import { colors } from '@/ui/default/index';
 import { LaikaButton } from './ui';
 
-import type { TranslateFunction } from '../ui/default/index';
-import type { CollectionTopRenderProps } from '../app/components/index';
+import type { TranslateFunction } from '@/ui/default/index';
+import type { CollectionTopRenderProps } from '@/app/components/index';
 
 /**
  * Laika-styled collection header. Replaces core's `CollectionTop` via the

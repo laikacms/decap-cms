@@ -11,7 +11,7 @@ import {
   InsertButton,
 } from './MediaLibraryButtons';
 
-import type { TranslateFunction } from '../../../ui/default/index';
+import type { TranslateFunction } from '@/ui/default/index';
 
 const LibraryTop = styled.div`
   position: relative;

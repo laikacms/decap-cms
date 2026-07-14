@@ -30,7 +30,7 @@ import {
   unsentRequest,
   throwOnConflictingBranches,
   createSemaphore,
-} from '../../lib/util/index';
+} from '@/lib/util/index';
 import { PullRequestState, GithubCommitStatusState } from './types/api';
 
 import type {
@@ -41,7 +41,7 @@ import type {
   ApiRequest,
   Semaphore,
   CmsConfig,
-} from '../../lib/util/index';
+} from '@/lib/util/index';
 import type { Endpoints } from '@octokit/types';
 import type {
   BlobArgs,

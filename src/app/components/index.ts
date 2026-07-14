@@ -16,7 +16,7 @@ export type {
 } from './App';
 export { default as Header } from './Header';
 export { default as NotFoundPage } from './NotFoundPage';
-export { CmsSlotsProvider, useCmsSlots } from '../../core/lib/slots';
+export { CmsSlotsProvider, useCmsSlots } from '@/core/lib/slots';
 export type {
   CmsSlots,
   CollectionTopRenderProps,
@@ -30,4 +30,4 @@ export type {
   EditorViewControlsRenderProps,
   MediaLibraryCardRenderProps,
   MediaLibraryTopRenderProps,
-} from '../../core/lib/slots';
+} from '@/core/lib/slots';

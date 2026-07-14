@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { serializeValues, deserializeValues } from '../serializeEntryValues';
+import { serializeValues, deserializeValues } from '@/core/lib/serializeEntryValues';
 
 const values = { title: 'New Post', unknown: 'Unknown Field' };
 const fields = [{ name: 'title', widget: 'string' }];

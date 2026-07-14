@@ -10,7 +10,7 @@ vi.mock('react-polyglot', () => ({
     (props: any) => <Component {...props} t={(key: string) => key} />,
 }));
 
-import { MediaLibrary } from '../MediaLibrary';
+import { MediaLibrary } from '@/core/components/MediaLibrary/MediaLibrary';
 
 const routerListeners: Array<() => void> = [];
 

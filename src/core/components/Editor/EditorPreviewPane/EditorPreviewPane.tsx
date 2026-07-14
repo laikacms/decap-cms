@@ -2,27 +2,27 @@ import React from 'react';
 import styled from '@emotion/styled';
 import Frame, { FrameContextConsumer } from 'react-frame-component';
 
-import { lengths } from '../../../../ui/default/index';
-import { encodeEntry } from '../../../lib/stega';
+import { lengths } from '@/ui/default/index';
+import { encodeEntry } from '@/core/lib/stega';
 import {
   resolveWidget,
   getPreviewTemplate,
   getPreviewStyles,
   getRemarkPlugins,
   getEditorComponents,
-} from '../../../lib/registry';
-import { getAllEntries, tryLoadEntry } from '../../../actions/entries';
-import { ErrorBoundary } from '../../UI';
+} from '@/core/lib/registry';
+import { getAllEntries, tryLoadEntry } from '@/core/actions/entries';
+import { ErrorBoundary } from '@/core/components/UI';
 import {
   selectTemplateName,
   selectInferredField,
   selectField,
-} from '../../../reducers/collections';
-import { boundGetAsset } from '../../../actions/media';
-import { selectIsLoadingAsset } from '../../../reducers/medias';
-import { INFERABLE_FIELDS } from '../../../constants/fieldInference';
+} from '@/core/reducers/collections';
+import { boundGetAsset } from '@/core/actions/media';
+import { selectIsLoadingAsset } from '@/core/reducers/medias';
+import { INFERABLE_FIELDS } from '@/core/constants/fieldInference';
 import EditorPreviewContent from './EditorPreviewContent.js';
-import { useAppDispatch, useAppSelector } from '../../../hooks/useRedux';
+import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 import PreviewHOC from './PreviewHOC';
 import EditorPreview from './EditorPreview';
 
@@ -32,7 +32,7 @@ import type {
   CmsEntry,
   CmsEntryField,
   CmsConfig,
-} from '../../../../lib/util/index';
+} from '@/lib/util/index';
 
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;

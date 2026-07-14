@@ -39,7 +39,7 @@ vi.mock('../LaikaBootstrapScreens', () => ({
 }));
 vi.mock('../LaikaErrorScreen', () => ({ default: () => null }));
 
-import LaikaApp from '../LaikaApp';
+import LaikaApp from '@/laika-app/LaikaApp';
 
 describe('LaikaApp', () => {
   it('wires every laika slot through to DefaultApp by default', () => {

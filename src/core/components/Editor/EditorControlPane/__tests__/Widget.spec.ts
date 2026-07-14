@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { isEmpty } from '../Widget';
+import { isEmpty } from '@/core/components/Editor/EditorControlPane/Widget';
 
 /**
  * Regression test for DCMS-449: a whitespace-only string (e.g. "   ") has a

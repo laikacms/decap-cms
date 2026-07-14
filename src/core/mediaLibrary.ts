@@ -9,7 +9,7 @@ import { store } from './redux';
 import { configFailed } from './actions/config';
 import { createMediaLibrary, insertMedia } from './actions/mediaLibrary';
 
-import type { CmsMediaLibraryInstance } from '../lib/util/index';
+import type { CmsMediaLibraryInstance } from '@/lib/util/index';
 
 type MediaLibraryInstance = CmsMediaLibraryInstance;
 type MediaLibraryOptions = Record<string, unknown>;

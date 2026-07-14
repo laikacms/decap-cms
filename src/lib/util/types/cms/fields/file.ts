@@ -1,4 +1,4 @@
-import type { CmsMediaLibrary } from '../media.js';
+import type { CmsMediaLibrary } from '@/lib/util/types/cms/media.js';
 import type { CmsFieldImage } from './image.js';
 
 export interface CmsFieldFile {

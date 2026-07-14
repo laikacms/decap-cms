@@ -2,7 +2,7 @@
 import React from 'react';
 import styled from '@emotion/styled';
 
-import { colors } from '../../ui/default/index';
+import { colors } from '@/ui/default/index';
 import { laikaShouldForwardProp } from './styled-utils';
 
 /**

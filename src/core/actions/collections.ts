@@ -1,5 +1,5 @@
-import { defaultRouter, defaultRoutingTable } from '../routing/router';
-import { getCollectionUrl, getNewEntryUrl } from '../lib/urlHelper';
+import { defaultRouter, defaultRoutingTable } from '@/core/routing/router';
+import { getCollectionUrl, getNewEntryUrl } from '@/core/lib/urlHelper';
 
 /**
  * Routes through `defaultRoutingTable`'s creators rather than hand-templating

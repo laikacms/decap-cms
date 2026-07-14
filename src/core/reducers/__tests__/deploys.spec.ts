@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import deploys, { selectDeployPreview } from '../deploys';
+import deploys, { selectDeployPreview } from '@/core/reducers/deploys';
 import {
   DEPLOY_PREVIEW_REQUEST,
   DEPLOY_PREVIEW_SUCCESS,
   DEPLOY_PREVIEW_FAILURE,
-} from '../../actions/deploys';
+} from '@/core/actions/deploys';
 
 describe('deploys reducer', () => {
   it('should return the default state', () => {

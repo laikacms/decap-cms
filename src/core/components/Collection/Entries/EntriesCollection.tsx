@@ -4,33 +4,33 @@ import { useTranslate } from 'react-polyglot';
 import partial from 'lodash/partial';
 import { useStore } from 'react-redux';
 
-import { Cursor } from '../../../../lib/util/index';
-import { colors } from '../../../../ui/default/index';
+import { Cursor } from '@/lib/util/index';
+import { colors } from '@/ui/default/index';
 import {
   loadEntries as actionLoadEntries,
   traverseCollectionCursor as actionTraverseCollectionCursor,
-} from '../../../actions/entries';
-import { loadUnpublishedEntries } from '../../../actions/editorialWorkflow';
+} from '@/core/actions/entries';
+import { loadUnpublishedEntries } from '@/core/actions/editorialWorkflow';
 import {
   selectEntries,
   selectEntriesLoaded,
   selectIsFetching,
   selectGroups,
-} from '../../../reducers/entries';
-import { selectUnpublishedEntry, selectUnpublishedEntriesByStatus } from '../../../reducers';
+} from '@/core/reducers/entries';
+import { selectUnpublishedEntry, selectUnpublishedEntriesByStatus } from '@/core/reducers';
 import Entries from './Entries';
 // `selectCollectionEntriesCursor` builds a fresh `Cursor` per call; we select
 // the raw stored data below and construct the `Cursor` in a memo instead.
-import { useAppDispatch, useAppSelector } from '../../../hooks/useRedux';
+import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 
-import type { Status } from '../../../constants/publishModes';
+import type { Status } from '@/core/constants/publishModes';
 import type {
   CmsCollectionState,
   CmsCollections,
   CmsEntry,
   CmsGroupOfEntries,
-} from '../../../../lib/util/index';
-import type { TranslateFunction } from '../../../../ui/default/index';
+} from '@/lib/util/index';
+import type { TranslateFunction } from '@/ui/default/index';
 
 const GroupHeading = styled.h2`
   font-size: 22px;

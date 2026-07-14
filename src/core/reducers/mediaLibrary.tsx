@@ -1,7 +1,7 @@
 import { produce } from 'immer';
 import { v4 as uuid } from 'uuid';
 
-import { dirname } from '../../lib/util/index';
+import { dirname } from '@/lib/util/index';
 import {
   MEDIA_LIBRARY_OPEN,
   MEDIA_LIBRARY_CLOSE,
@@ -20,11 +20,11 @@ import {
   MEDIA_DISPLAY_URL_REQUEST,
   MEDIA_DISPLAY_URL_SUCCESS,
   MEDIA_DISPLAY_URL_FAILURE,
-} from '../actions/mediaLibrary';
+} from '@/core/actions/mediaLibrary';
 import { selectEditingDraft, selectMediaFolder } from './entries';
 import { selectIntegration as selectIntegrationDirect } from './integrations';
 
-import type { MediaLibraryAction } from '../actions/mediaLibrary';
+import type { MediaLibraryAction } from '@/core/actions/mediaLibrary';
 import type {
   CmsMediaLibraryInstance,
   CmsMediaFile,
@@ -33,7 +33,7 @@ import type {
   CmsConfig,
   CmsCollections,
   CmsEntry,
-} from '../../lib/util/index';
+} from '@/lib/util/index';
 
 type DisplayURLState = {
   isFetching: boolean;

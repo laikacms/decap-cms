@@ -1,9 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 
-import { bidiControls } from '../../lib/widgets/index';
+import { bidiControls } from '@/lib/widgets/index';
 
-import type { TranslateFunction } from '../../ui/default/index';
-import type { CmsFieldBase, CmsFieldStringOrText } from '../../lib/util/index';
+import type { TranslateFunction } from '@/ui/default/index';
+import type { CmsFieldBase, CmsFieldStringOrText } from '@/lib/util/index';
 
 interface StringControlProps {
   onChange: (value: string) => void;

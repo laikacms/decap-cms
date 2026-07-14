@@ -4,11 +4,11 @@ import { Waypoint } from 'react-waypoint';
 import { Grid } from 'react-window';
 import { AutoSizer } from 'react-virtualized-auto-sizer';
 
-import { colors } from '../../../ui/default/index';
+import { colors } from '@/ui/default/index';
 import MediaLibraryCard from './MediaLibraryCard';
-import { useCmsSlots } from '../../lib/slots';
+import { useCmsSlots } from '@/core/lib/slots';
 
-import type { MediaLibraryCardRenderProps } from '../../lib/slots';
+import type { MediaLibraryCardRenderProps } from '@/core/lib/slots';
 
 /**
  * Picks between the slot-supplied media card renderer and the default

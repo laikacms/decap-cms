@@ -33,10 +33,11 @@ export default defineConfig({
     },
   },
   resolve: {
-    alias: {
-      path: 'path-browserify',
-      buffer: 'buffer',
-    },
+    alias: [
+      { find: /^@\//, replacement: path.resolve(__dirname, 'src') + '/' },
+      { find: 'path', replacement: 'path-browserify' },
+      { find: 'buffer', replacement: 'buffer' },
+    ],
   },
   define: {
     'process.env.NODE_ENV': JSON.stringify('development'),

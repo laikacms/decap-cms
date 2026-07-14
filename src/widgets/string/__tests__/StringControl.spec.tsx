@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import { render } from '@testing-library/react';
 
-import StringControl from '../StringControl';
+import StringControl from '@/widgets/string/StringControl';
 
 const RLO = String.fromCharCode(0x202e);
 

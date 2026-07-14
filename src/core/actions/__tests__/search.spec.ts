@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import configureMockStore from 'redux-mock-store';
 import { thunk } from 'redux-thunk';
 
-import { searchEntries } from '../search';
+import { searchEntries } from '@/core/actions/search';
 
 import type { Middleware } from 'redux';
 
@@ -21,9 +21,9 @@ describe('search', () => {
 
     beforeEach(async () => {
       vi.resetAllMocks();
-      const backend = await import('../../backend');
-      const reducers = await import('../../reducers');
-      const integrations = await import('../../integrations');
+      const backend = await import('@/core/backend');
+      const reducers = await import('@/core/reducers');
+      const integrations = await import('@/core/integrations');
       currentBackend = backend.currentBackend as ReturnType<typeof vi.fn>;
       selectIntegration = reducers.selectIntegration as ReturnType<typeof vi.fn>;
       getIntegrationProvider = integrations.getIntegrationProvider as ReturnType<typeof vi.fn>;

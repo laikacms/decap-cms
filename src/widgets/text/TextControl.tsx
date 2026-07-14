@@ -1,10 +1,10 @@
 import React, { useEffect, useReducer, useRef } from 'react';
 import Textarea from 'react-textarea-autosize';
 
-import { bidiControls } from '../../lib/widgets/index';
+import { bidiControls } from '@/lib/widgets/index';
 
-import type { TranslateFunction } from '../../ui/default/index';
-import type { CmsFieldBase, CmsFieldStringOrText } from '../../lib/util/index';
+import type { TranslateFunction } from '@/ui/default/index';
+import type { CmsFieldBase, CmsFieldStringOrText } from '@/lib/util/index';
 
 interface TextControlProps {
   onChange: (value: string) => void;

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { Cursor, CURSOR_COMPATIBILITY_SYMBOL } from '../../../lib/util/index';
-import GitHubImplementation from '../implementation';
+import { Cursor, CURSOR_COMPATIBILITY_SYMBOL } from '@/lib/util/index';
+import GitHubImplementation from '@/backends/github/implementation';
 
 vi.spyOn(console, 'error').mockImplementation(() => {});
 

@@ -5,11 +5,11 @@ import {
   addNotification,
   clearNotifications,
   dismissNotification,
-} from '../../actions/notifications';
-import notifications from '../notifications';
+} from '@/core/actions/notifications';
+import notifications from '@/core/reducers/notifications';
 
-import type { NotificationsState } from '../notifications';
-import type { NotificationsAction } from '../../actions/notifications';
+import type { NotificationsState } from '@/core/reducers/notifications';
+import type { NotificationsAction } from '@/core/actions/notifications';
 
 vi.mock('uuid', () => ({
   v4: vi.fn(() => 'mock-uuid'),

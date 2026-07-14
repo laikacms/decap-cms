@@ -10,23 +10,23 @@ import {
   lengths,
   components,
   shadows,
-} from '../../../ui/default/index';
-import { createNewEntry } from '../../actions/collections';
+} from '@/ui/default/index';
+import { createNewEntry } from '@/core/actions/collections';
 import {
   loadUnpublishedEntries,
   updateUnpublishedEntryStatus,
   publishUnpublishedEntry,
   deleteUnpublishedEntry,
-} from '../../actions/editorialWorkflow';
-import { selectUnpublishedEntriesGroupedByStatus } from '../../reducers';
-import { EDITORIAL_WORKFLOW } from '../../constants/publishModes';
+} from '@/core/actions/editorialWorkflow';
+import { selectUnpublishedEntriesGroupedByStatus } from '@/core/reducers';
+import { EDITORIAL_WORKFLOW } from '@/core/constants/publishModes';
 import WorkflowList from './WorkflowList';
-import { useAppDispatch, useAppSelector } from '../../hooks/useRedux';
-import { useCmsSlots } from '../../lib/slots';
+import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
+import { useCmsSlots } from '@/core/lib/slots';
 
-import type { Status } from '../../constants/publishModes';
-import type { CmsCollections, CmsCollectionState } from '../../../lib/util/index';
-import type { TranslateFunction } from '../../../ui/default/index';
+import type { Status } from '@/core/constants/publishModes';
+import type { CmsCollections, CmsCollectionState } from '@/lib/util/index';
+import type { TranslateFunction } from '@/ui/default/index';
 
 type Collections = CmsCollections;
 type Collection = CmsCollectionState;

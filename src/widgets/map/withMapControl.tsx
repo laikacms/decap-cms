@@ -11,7 +11,7 @@ import OSMSource from 'ol/source/OSM.js';
 import VectorSource from 'ol/source/Vector.js';
 
 import type { Type as GeometryType } from 'ol/geom/Geometry';
-import type { TranslateFunction } from '../../ui/default/index';
+import type { TranslateFunction } from '@/ui/default/index';
 
 const formatOptions = {
   dataProjection: 'EPSG:4326',

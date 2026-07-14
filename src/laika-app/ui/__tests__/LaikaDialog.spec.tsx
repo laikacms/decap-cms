@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import LaikaDialog from '../LaikaDialog';
+import LaikaDialog from '@/laika-app/ui/LaikaDialog';
 
 describe('LaikaDialog', () => {
   it('renders the title and children when open', () => {

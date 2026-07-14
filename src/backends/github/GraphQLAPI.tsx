@@ -17,7 +17,7 @@ import {
   branchFromContentKey,
   CMS_BRANCH_PREFIX,
   throwOnConflictingBranches,
-} from '../../lib/util/index';
+} from '@/lib/util/index';
 import introspectionQueryResultData from './fragmentTypes';
 import API, { API_NAME, MOCK_PULL_REQUEST } from './API';
 import * as queries from './queries';

@@ -23,7 +23,7 @@ vi.mock('react-polyglot', () => ({
   },
 }));
 
-import LaikaCollectionTop from '../LaikaCollectionTop';
+import LaikaCollectionTop from '@/laika-app/LaikaCollectionTop';
 
 describe('LaikaCollectionTop', () => {
   const collection = {

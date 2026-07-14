@@ -11,7 +11,7 @@ vi.mock('react-polyglot', () => ({
   },
 }));
 
-import LaikaWorkflowCard from '../LaikaWorkflowCard';
+import LaikaWorkflowCard from '@/laika-app/LaikaWorkflowCard';
 
 function LocationProbe() {
   const location = useLocation();

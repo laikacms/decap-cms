@@ -1,6 +1,6 @@
 import { useDecap } from './useDecap';
 
-import type { RoutingTable } from '../routing/table';
+import type { RoutingTable } from '@/core/routing/table';
 
 /**
  * Read the current route's params for `key`. Only valid when the current

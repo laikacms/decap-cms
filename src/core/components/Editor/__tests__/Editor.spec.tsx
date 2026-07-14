@@ -4,7 +4,7 @@ import { render } from '@testing-library/react';
 
 import React from 'react';
 
-import Editor from '../Editor';
+import Editor from '@/core/components/Editor/Editor';
 
 vi.mock('../EditorInterface', () => ({
   default: props => <mock-editor-interface {...props} />,
@@ -25,7 +25,7 @@ vi.mock('../../../routing/context', () => ({
 }));
 vi.mock('../../../hooks/useEditor');
 
-import * as useEditorModule from '../../../hooks/useEditor';
+import * as useEditorModule from '@/core/hooks/useEditor';
 
 const mockSetup = vi.fn().mockReturnValue({ cleanup: vi.fn() });
 const mockHandleLocalBackupCheck = vi.fn();

@@ -43,7 +43,7 @@ vi.mock('../../core/actions/collections', () => ({
 }));
 
 // Import after the mocks so they apply.
-import LaikaCommandPalette from '../LaikaCommandPalette';
+import LaikaCommandPalette from '@/laika-app/LaikaCommandPalette';
 
 function fireCmdK() {
   act(() => {

@@ -47,7 +47,7 @@ vi.mock('../LaikaShellContext', () => ({
   LAIKA_BREAKPOINT_MOBILE: 900,
 }));
 
-import LaikaHeader from '../LaikaHeader';
+import LaikaHeader from '@/laika-app/LaikaHeader';
 
 const baseProps = {
   user: { name: 'Alice' },

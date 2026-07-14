@@ -31,7 +31,7 @@ import {
   readFileMetadata,
   throwOnConflictingBranches,
   dirname,
-} from '../../lib/util/index';
+} from '@/lib/util/index';
 import * as queries from './queries';
 
 import type { ApolloQueryResult } from 'apollo-client';
@@ -43,7 +43,7 @@ import type {
   CmsPersistOptions,
   FetchError,
   CmsImplementationFile,
-} from '../../lib/util/index';
+} from '@/lib/util/index';
 
 const NO_CACHE = 'no-cache';
 

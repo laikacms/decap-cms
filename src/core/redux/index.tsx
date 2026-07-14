@@ -3,7 +3,7 @@ import { composeWithDevTools } from 'redux-devtools-extension';
 import { thunk as thunkMiddleware } from 'redux-thunk';
 
 import { waitUntilAction } from './middleware/waitUntilAction';
-import createRootReducer from '../reducers/combinedReducer';
+import createRootReducer from '@/core/reducers/combinedReducer';
 
 import type { ThunkDispatch } from 'redux-thunk';
 import type { AnyAction, Reducer, Middleware } from 'redux';

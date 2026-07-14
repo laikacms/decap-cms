@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import React from 'react';
 import { render } from '@testing-library/react';
 
-import StringPreview from '../StringPreview';
+import StringPreview from '@/widgets/string/StringPreview';
 
 const RLO = String.fromCharCode(0x202e);
 

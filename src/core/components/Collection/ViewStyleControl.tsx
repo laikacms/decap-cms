@@ -1,8 +1,8 @@
 import React from 'react';
 import styled from '@emotion/styled';
 
-import { Icon, buttons, colors } from '../../../ui/default/index';
-import { VIEW_STYLE_LIST, VIEW_STYLE_GRID } from '../../constants/collectionViews';
+import { Icon, buttons, colors } from '@/ui/default/index';
+import { VIEW_STYLE_LIST, VIEW_STYLE_GRID } from '@/core/constants/collectionViews';
 
 const ViewControlsSection = styled.div`
   display: flex;

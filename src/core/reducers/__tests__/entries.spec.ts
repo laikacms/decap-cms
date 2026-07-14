@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { Cursor } from '../../../lib/util/index';
-import * as actions from '../../actions/entries';
+import { Cursor } from '@/lib/util/index';
+import * as actions from '@/core/actions/entries';
 import reducer, {
   selectMediaFolder,
   selectMediaFilePath,
   selectMediaFilePublicPath,
   selectEntries,
-} from '../entries';
+} from '@/core/reducers/entries';
 
 const initialState = {
   entities: {},

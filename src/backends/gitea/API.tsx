@@ -15,7 +15,7 @@ import {
   readFileMetadata,
   requestWithBackoff,
   unsentRequest,
-} from '../../lib/util/index';
+} from '@/lib/util/index';
 
 import type {
   CmsDataFile,
@@ -24,7 +24,7 @@ import type {
   ApiRequest,
   FetchError,
   Semaphore,
-} from '../../lib/util/index';
+} from '@/lib/util/index';
 import type {
   FilesResponse,
   GitGetBlobResponse,

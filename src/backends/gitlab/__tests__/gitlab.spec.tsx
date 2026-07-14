@@ -4,12 +4,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('../../../core/backend');
 import { oneLine, stripIndent } from 'common-tags';
 import nock from 'nock';
-import { Cursor } from '../../../lib/util/index';
+import { Cursor } from '@/lib/util/index';
 
-import Gitlab from '../implementation';
-import AuthenticationPage from '../AuthenticationPage';
+import Gitlab from '@/backends/gitlab/implementation';
+import AuthenticationPage from '@/backends/gitlab/AuthenticationPage';
 
-import type * as BackendModule from '../../../core/backend';
+import type * as BackendModule from '@/core/backend';
 
 const { Backend, LocalStorageAuthStore } =
   await vi.importActual<typeof BackendModule>('../../../core/backend');

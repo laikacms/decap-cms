@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import { oneLine } from 'common-tags';
 
-import { getRemarkPlugins } from '../../../lib/registry';
-import ValidationErrorTypes from '../../../constants/validationErrorTypes';
+import { getRemarkPlugins } from '@/core/lib/registry';
+import ValidationErrorTypes from '@/core/constants/validationErrorTypes';
 
-import type { TranslateFunction } from '../../../../ui/default/index';
+import type { TranslateFunction } from '@/ui/default/index';
 
 // Local type definitions
 interface ValidationError {

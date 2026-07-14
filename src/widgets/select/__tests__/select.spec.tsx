@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 
-import { DecapCmsWidgetSelect } from '../';
+import { DecapCmsWidgetSelect } from '@/widgets/select';
 
 const SelectControl = DecapCmsWidgetSelect.controlComponent;
 

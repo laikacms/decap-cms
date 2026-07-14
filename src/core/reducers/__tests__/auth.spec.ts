@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { authenticating, authenticate, authError, logout } from '../../actions/auth';
-import auth, { defaultState } from '../auth';
+import { authenticating, authenticate, authError, logout } from '@/core/actions/auth';
+import auth, { defaultState } from '@/core/reducers/auth';
 
 describe('auth', () => {
   it('should handle an empty state', () => {

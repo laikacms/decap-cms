@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { configLoaded, configLoading, configFailed } from '../../actions/config';
-import config, { selectLocale } from '../config';
+import { configLoaded, configLoading, configFailed } from '@/core/actions/config';
+import config, { selectLocale } from '@/core/reducers/config';
 
 describe('config', () => {
   it('should handle an empty state', () => {

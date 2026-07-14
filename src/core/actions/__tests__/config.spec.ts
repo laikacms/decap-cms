@@ -9,7 +9,7 @@ import {
   applyDefaults,
   detectProxyServer,
   handleLocalBackend,
-} from '../config';
+} from '@/core/actions/config';
 
 vi.spyOn(console, 'log').mockImplementation(() => {});
 vi.spyOn(console, 'warn').mockImplementation(() => {});

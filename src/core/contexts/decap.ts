@@ -1,10 +1,10 @@
 import { createContext } from 'react';
 
 import type { ReactNode } from 'react';
-import type { RoutingTable } from '../routing/table';
-import type { Router } from '../routing/router';
-import type { CmsConfig } from '../../lib/util';
-import type { DecapTheme } from '../../ui/default';
+import type { RoutingTable } from '@/core/routing/table';
+import type { Router } from '@/core/routing/router';
+import type { CmsConfig } from '@/lib/util';
+import type { DecapTheme } from '@/ui/default';
 
 export interface NavigateOptions {
   /** Replace the current history entry instead of pushing a new one. */

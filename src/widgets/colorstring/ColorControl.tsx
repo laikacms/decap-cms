@@ -3,7 +3,7 @@ import styled from '@emotion/styled';
 import { ChromePicker } from 'react-color';
 import tinycolor from 'tinycolor2';
 
-import { zIndex } from '../../ui/default/index';
+import { zIndex } from '@/ui/default/index';
 
 import type { ColorResult } from 'react-color';
 

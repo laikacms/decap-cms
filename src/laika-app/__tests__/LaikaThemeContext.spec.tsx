@@ -8,7 +8,7 @@ vi.mock('../../core/index', () => ({
   DecapCmsProvider: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
 }));
 
-import { LaikaThemeProvider, useLaikaTheme } from '../LaikaThemeContext';
+import { LaikaThemeProvider, useLaikaTheme } from '@/laika-app/LaikaThemeContext';
 
 const STORAGE_KEY = 'laika-cms-theme-mode';
 

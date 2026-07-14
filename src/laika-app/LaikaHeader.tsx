@@ -13,16 +13,16 @@ import {
   colors,
   lengths,
   zIndex,
-} from '../ui/default/index';
-import { SettingsDropdown } from '../core/components/UI';
-import { useAppDispatch } from '../core/hooks/useRedux';
-import { checkBackendStatus } from '../core/actions/status';
+} from '@/ui/default/index';
+import { SettingsDropdown } from '@/core/components/UI';
+import { useAppDispatch } from '@/core/hooks/useRedux';
+import { checkBackendStatus } from '@/core/actions/status';
 import { useLaikaTheme } from './LaikaThemeContext';
 import { useLaikaShell, LAIKA_BREAKPOINT_MOBILE } from './LaikaShellContext';
 import { LaikaIconButton } from './ui';
 
-import type { TranslateFunction } from '../ui/default/index';
-import type { AppHeaderRenderProps } from '../app/components/App';
+import type { TranslateFunction } from '@/ui/default/index';
+import type { AppHeaderRenderProps } from '@/app/components/App';
 
 /**
  * Laika-styled top app bar. Same surface area as the default Decap header —

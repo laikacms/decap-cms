@@ -10,7 +10,7 @@ vi.mock('../../core/hooks/useRedux', () => {
   };
 });
 
-import LaikaFooter from '../LaikaFooter';
+import LaikaFooter from '@/laika-app/LaikaFooter';
 
 describe('LaikaFooter', () => {
   it('renders the site name and the laika label', () => {

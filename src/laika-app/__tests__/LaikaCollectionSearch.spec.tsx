@@ -28,7 +28,7 @@ vi.mock('../../core/hooks/useRedux', () => {
   };
 });
 
-import LaikaCollectionSearch from '../LaikaCollectionSearch';
+import LaikaCollectionSearch from '@/laika-app/LaikaCollectionSearch';
 
 describe('LaikaCollectionSearch', () => {
   it('renders the search input with global placeholder when not on a collection route', () => {

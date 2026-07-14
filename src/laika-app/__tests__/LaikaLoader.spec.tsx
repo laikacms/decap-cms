@@ -2,7 +2,7 @@ import React from 'react';
 import { render, act } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import LaikaLoader from '../LaikaLoader';
+import LaikaLoader from '@/laika-app/LaikaLoader';
 
 describe('LaikaLoader', () => {
   beforeEach(() => {

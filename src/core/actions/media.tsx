@@ -1,13 +1,13 @@
 import memoize from 'lodash/memoize';
 
-import { isAbsolutePath } from '../../lib/util/index';
-import { createAssetProxy } from '../valueObjects/AssetProxy';
-import { selectMediaFilePath } from '../reducers/entries';
-import { selectMediaFileByPath } from '../reducers/mediaLibrary';
+import { isAbsolutePath } from '@/lib/util/index';
+import { createAssetProxy } from '@/core/valueObjects/AssetProxy';
+import { selectMediaFilePath } from '@/core/reducers/entries';
+import { selectMediaFileByPath } from '@/core/reducers/mediaLibrary';
 import { getMediaFile, waitForMediaLibraryToLoad, getMediaDisplayURL } from './mediaLibrary';
 
-import type AssetProxy from '../valueObjects/AssetProxy';
-import type { CmsCollectionState, CmsEntry, CmsEntryField } from '../../lib/util/index';
+import type AssetProxy from '@/core/valueObjects/AssetProxy';
+import type { CmsCollectionState, CmsEntry, CmsEntryField } from '@/lib/util/index';
 import type { ThunkDispatch } from 'redux-thunk';
 import type { AnyAction } from 'redux';
 

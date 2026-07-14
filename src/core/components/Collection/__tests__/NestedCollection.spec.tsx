@@ -4,15 +4,15 @@ import configureStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { describe, expect, it, vi } from 'vitest';
 
-import { RouterProvider } from '../../../routing/context';
+import { RouterProvider } from '@/core/routing/context';
 import ConnectedNestedCollection, {
   NestedCollection,
   getTreeData,
   walk,
   updateNode,
-} from '../NestedCollection';
+} from '@/core/components/Collection/NestedCollection';
 
-import type * as DecapCmsUiDefault from '../../../../ui/default/index';
+import type * as DecapCmsUiDefault from '@/ui/default/index';
 
 vi.mock('../../../../ui/default/index', async () => {
   const actual = await vi.importActual<typeof DecapCmsUiDefault>('../../../../ui/default/index');

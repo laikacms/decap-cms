@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 
-import { DecapCmsWidgetNumber } from '../';
-import { validateMinMax } from '../NumberControl';
+import { DecapCmsWidgetNumber } from '@/widgets/number';
+import { validateMinMax } from '@/widgets/number/NumberControl';
 
 const NumberControl = DecapCmsWidgetNumber.controlComponent;
 

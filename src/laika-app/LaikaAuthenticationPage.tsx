@@ -2,9 +2,9 @@
 import React from 'react';
 import styled from '@emotion/styled';
 
-import { colors, lengths } from '../ui/default/index';
+import { colors, lengths } from '@/ui/default/index';
 
-import type { AppAuthRenderProps } from '../app/components/index';
+import type { AppAuthRenderProps } from '@/app/components/index';
 
 /**
  * Laika-flavored authentication page. Receives the backend-supplied

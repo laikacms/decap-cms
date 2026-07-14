@@ -1,7 +1,7 @@
 import trimStart from 'lodash/trimStart';
 import trim from 'lodash/trim';
 
-import { createSemaphore } from '../../lib/util/index';
+import { createSemaphore } from '@/lib/util/index';
 import {
   basename,
   getMediaDisplayURL,
@@ -17,11 +17,11 @@ import {
   entriesByFolder,
   contentKeyFromBranch,
   getBlobSHA,
-} from '../../lib/util/index';
+} from '@/lib/util/index';
 import AuthenticationPage from './AuthenticationPage';
 import API, { API_NAME } from './API';
 
-import type { CmsBackend, CmsFileEntry, Semaphore } from '../../lib/util/index';
+import type { CmsBackend, CmsFileEntry, Semaphore } from '@/lib/util/index';
 import type {
   CmsCredentials,
   CmsImplementation,
@@ -35,7 +35,7 @@ import type {
   AsyncLock,
   CmsUser,
   CmsUnpublishedEntryMediaFile,
-} from '../../lib/util/index';
+} from '@/lib/util/index';
 
 const MAX_CONCURRENT_DOWNLOADS = 10;
 

@@ -1,11 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 
-import { useLocation } from '../../routing/context';
-import { Loader } from '../../../ui/default/index';
-import { useEditor } from '../../hooks/useEditor';
+import { useLocation } from '@/core/routing/context';
+import { Loader } from '@/ui/default/index';
+import { useEditor } from '@/core/hooks/useEditor';
 import EditorInterface from './EditorInterface';
-import { useCmsSlots } from '../../lib/slots';
-import NotFoundPage from '../../../app/components/NotFoundPage';
+import { useCmsSlots } from '@/core/lib/slots';
+import NotFoundPage from '@/app/components/NotFoundPage';
 
 interface EditorProps {
   newRecord?: boolean;

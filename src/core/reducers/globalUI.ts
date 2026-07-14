@@ -1,6 +1,6 @@
 import { produce } from 'immer';
 
-import { USE_OPEN_AUTHORING } from '../actions/auth';
+import { USE_OPEN_AUTHORING } from '@/core/actions/auth';
 
 import type { AnyAction } from 'redux';
 

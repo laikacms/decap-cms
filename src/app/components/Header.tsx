@@ -4,8 +4,8 @@ import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 import { translate } from 'react-polyglot';
 
-import { NavLink } from '../../core/routing/Link';
-import { useLocation } from '../../core/routing/context';
+import { NavLink } from '@/core/routing/Link';
+import { useLocation } from '@/core/routing/context';
 import {
   Icon,
   Dropdown,
@@ -16,13 +16,13 @@ import {
   shadows,
   buttons,
   zIndex,
-} from '../../ui/default/index';
-import { SettingsDropdown } from '../../core/components/UI';
-import { checkBackendStatus } from '../../core/actions/status';
-import { useAppDispatch } from '../../core/hooks/useRedux';
+} from '@/ui/default/index';
+import { SettingsDropdown } from '@/core/components/UI';
+import { checkBackendStatus } from '@/core/actions/status';
+import { useAppDispatch } from '@/core/hooks/useRedux';
 
-import type { TranslateFunction } from '../../ui/default/index';
-import type { CmsCollectionState, CmsCollections } from '../../lib/util/index';
+import type { TranslateFunction } from '@/ui/default/index';
+import type { CmsCollectionState, CmsCollections } from '@/lib/util/index';
 
 type Collection = CmsCollectionState;
 type Collections = CmsCollections;

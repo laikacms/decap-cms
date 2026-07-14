@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { CopyToClipBoardButton } from '../MediaLibraryButtons';
+import { CopyToClipBoardButton } from '@/core/components/MediaLibrary/MediaLibraryButtons';
 
 describe('CopyToClipBoardButton', () => {
   const props = {

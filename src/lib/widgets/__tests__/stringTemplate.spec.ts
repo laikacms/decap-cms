@@ -6,7 +6,7 @@ import {
   extractTemplateVars,
   keyToPathArray,
   parseDateFromEntry,
-} from '../stringTemplate';
+} from '@/lib/widgets/stringTemplate';
 
 describe('stringTemplate', () => {
   describe('keyToPathArray', () => {

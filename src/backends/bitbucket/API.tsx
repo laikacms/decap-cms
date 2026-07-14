@@ -26,8 +26,8 @@ import {
   requestWithBackoff,
   readFileMetadata,
   throwOnConflictingBranches,
-} from '../../lib/util/index';
-import { dirname } from '../../lib/util/index';
+} from '@/lib/util/index';
+import { dirname } from '@/lib/util/index';
 
 import type {
   ApiRequest,
@@ -35,7 +35,7 @@ import type {
   CmsPersistOptions,
   FetchError,
   CmsDataFile,
-} from '../../lib/util/index';
+} from '@/lib/util/index';
 
 interface Config {
   apiRoot?: string;

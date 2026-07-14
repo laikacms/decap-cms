@@ -3,7 +3,7 @@ import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { Wrapper, Button as DropdownButton, Menu, MenuItem } from 'react-aria-menubutton';
 
-import { laikaShouldForwardProp } from '../../laika-app/ui/styled-utils';
+import { laikaShouldForwardProp } from '@/laika-app/ui/styled-utils';
 import { colors, buttons, components, zIndex } from './styles';
 import Icon from './Icon';
 

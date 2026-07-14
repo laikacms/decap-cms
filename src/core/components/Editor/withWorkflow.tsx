@@ -1,12 +1,12 @@
 import React from 'react';
 
-import { EDITORIAL_WORKFLOW } from '../../constants/publishModes';
-import { selectUnpublishedEntry } from '../../reducers';
-import { selectAllowDeletion } from '../../reducers/collections';
-import { loadUnpublishedEntry, persistUnpublishedEntry } from '../../actions/editorialWorkflow';
-import { useAppDispatch, useAppSelector } from '../../hooks/useRedux';
+import { EDITORIAL_WORKFLOW } from '@/core/constants/publishModes';
+import { selectUnpublishedEntry } from '@/core/reducers';
+import { selectAllowDeletion } from '@/core/reducers/collections';
+import { loadUnpublishedEntry, persistUnpublishedEntry } from '@/core/actions/editorialWorkflow';
+import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 
-import type { CmsCollectionState } from '../../../lib/util/index';
+import type { CmsCollectionState } from '@/lib/util/index';
 
 type Collection = CmsCollectionState;
 

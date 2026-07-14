@@ -11,7 +11,7 @@ describe('registry', () => {
 
   describe('registerLocale', () => {
     it('should log error when name is empty', async () => {
-      const { registerLocale } = await import('../registry');
+      const { registerLocale } = await import('@/core/lib/registry');
 
       registerLocale();
       expect(console.error).toHaveBeenCalledTimes(1);
@@ -21,7 +21,7 @@ describe('registry', () => {
     });
 
     it('should log error when phrases are undefined', async () => {
-      const { registerLocale } = await import('../registry');
+      const { registerLocale } = await import('@/core/lib/registry');
 
       registerLocale('fr');
       expect(console.error).toHaveBeenCalledTimes(1);
@@ -31,7 +31,7 @@ describe('registry', () => {
     });
 
     it('should register locale', async () => {
-      const { registerLocale, getLocale } = await import('../registry');
+      const { registerLocale, getLocale } = await import('@/core/lib/registry');
 
       const phrases = {
         app: {
@@ -49,7 +49,7 @@ describe('registry', () => {
 
   describe('registerWidget / resolveWidget', () => {
     it('resolves widget: markdown to the richtext control via the back-compat alias (DCMS-483)', async () => {
-      const { registerWidget, resolveWidget } = await import('../registry');
+      const { registerWidget, resolveWidget } = await import('@/core/lib/registry');
 
       const richtextControl = () => null;
       const markdownAliasControl = () => null;
@@ -64,7 +64,7 @@ describe('registry', () => {
     });
 
     it('warns once per session when a markdown widget field is resolved', async () => {
-      const { registerWidget, resolveWidget } = await import('../registry');
+      const { registerWidget, resolveWidget } = await import('@/core/lib/registry');
 
       registerWidget({ name: 'markdown', controlComponent: () => null });
 
@@ -78,7 +78,7 @@ describe('registry', () => {
     });
 
     it('does not warn for the richtext widget itself', async () => {
-      const { registerWidget, resolveWidget } = await import('../registry');
+      const { registerWidget, resolveWidget } = await import('@/core/lib/registry');
 
       registerWidget({ name: 'richtext', controlComponent: () => null });
 
@@ -93,7 +93,7 @@ describe('registry', () => {
 
   describe('registerCustomFormat', () => {
     it('can register a custom format', async () => {
-      const { getCustomFormats, registerCustomFormat } = await import('../registry');
+      const { getCustomFormats, registerCustomFormat } = await import('@/core/lib/registry');
 
       expect(Object.keys(getCustomFormats())).not.toContain('querystring');
 
@@ -118,7 +118,7 @@ describe('registry', () => {
 
     describe('registerEventListener', () => {
       it('should throw error on invalid event', async () => {
-        const { registerEventListener } = await import('../registry');
+        const { registerEventListener } = await import('@/core/lib/registry');
 
         expect(() => registerEventListener({ name: 'unknown' })).toThrow(
           new Error("Invalid event name 'unknown'"),
@@ -127,7 +127,7 @@ describe('registry', () => {
 
       events.forEach(name => {
         it(`should register '${name}' event`, async () => {
-          const { registerEventListener, getEventListeners } = await import('../registry');
+          const { registerEventListener, getEventListeners } = await import('@/core/lib/registry');
 
           const handler = vi.fn();
           registerEventListener({ name, handler });
@@ -139,7 +139,7 @@ describe('registry', () => {
 
     describe('removeEventListener', () => {
       it('should throw error on invalid event', async () => {
-        const { removeEventListener } = await import('../registry');
+        const { removeEventListener } = await import('@/core/lib/registry');
 
         expect(() => removeEventListener({ name: 'unknown' })).toThrow(
           new Error("Invalid event name 'unknown'"),
@@ -149,7 +149,7 @@ describe('registry', () => {
       events.forEach(name => {
         it(`should remove '${name}' event by handler`, async () => {
           const { registerEventListener, getEventListeners, removeEventListener } =
-            await import('../registry');
+            await import('@/core/lib/registry');
 
           const handler1 = vi.fn();
           const handler2 = vi.fn();
@@ -167,7 +167,7 @@ describe('registry', () => {
       events.forEach(name => {
         it(`should remove '${name}' event by name`, async () => {
           const { registerEventListener, getEventListeners, removeEventListener } =
-            await import('../registry');
+            await import('@/core/lib/registry');
 
           const handler1 = vi.fn();
           const handler2 = vi.fn();
@@ -185,7 +185,7 @@ describe('registry', () => {
 
     describe('invokeEvent', () => {
       it('should throw error on invalid event', async () => {
-        const { invokeEvent } = await import('../registry');
+        const { invokeEvent } = await import('@/core/lib/registry');
 
         await expect(invokeEvent({ name: 'unknown', data: {} })).rejects.toThrow(
           new Error("Invalid event name 'unknown'"),
@@ -194,7 +194,7 @@ describe('registry', () => {
 
       events.forEach(name => {
         it(`should invoke '${name}' event with data`, async () => {
-          const { registerEventListener, invokeEvent } = await import('../registry');
+          const { registerEventListener, invokeEvent } = await import('@/core/lib/registry');
 
           const options = { hello: 'world' };
           const handler = vi.fn();
@@ -209,7 +209,7 @@ describe('registry', () => {
         });
 
         it(`should invoke multiple handlers on '${name}`, async () => {
-          const { registerEventListener, invokeEvent } = await import('../registry');
+          const { registerEventListener, invokeEvent } = await import('@/core/lib/registry');
 
           const options1 = { hello: 'test1' };
           const options2 = { hello: 'test2' };
@@ -226,7 +226,7 @@ describe('registry', () => {
         });
 
         it(`should throw error when '${name}' handler throws error`, async () => {
-          const { registerEventListener, invokeEvent } = await import('../registry');
+          const { registerEventListener, invokeEvent } = await import('@/core/lib/registry');
 
           const handler = vi.fn(() => {
             throw new Error('handler failed!');
@@ -240,7 +240,7 @@ describe('registry', () => {
       });
 
       it(`should return the complete updated entry object`, async () => {
-        const { registerEventListener, invokeEvent } = await import('../registry');
+        const { registerEventListener, invokeEvent } = await import('@/core/lib/registry');
 
         const event = 'preSave';
         const options = { hello: 'world' };
@@ -274,7 +274,7 @@ describe('registry', () => {
       });
 
       it('should allow multiple events to not return a value', async () => {
-        const { registerEventListener, invokeEvent } = await import('../registry');
+        const { registerEventListener, invokeEvent } = await import('@/core/lib/registry');
 
         const event = 'prePublish';
         const options = { hello: 'world' };

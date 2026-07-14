@@ -27,7 +27,7 @@ vi.mock('../../core/reducers/collections', () => ({
     'Title for ' + entry.slug,
 }));
 
-import LaikaEntryCard from '../LaikaEntryCard';
+import LaikaEntryCard from '@/laika-app/LaikaEntryCard';
 
 const baseProps = {
   collection: {

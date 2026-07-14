@@ -1,11 +1,11 @@
 import React from 'react';
 import styled from '@emotion/styled';
 
-import { NetlifyAuthenticator, type NetlifyAuthResult } from '../../lib/auth/index';
-import { AuthenticationPage, Icon } from '../../ui/default/index';
+import { NetlifyAuthenticator, type NetlifyAuthResult } from '@/lib/auth/index';
+import { AuthenticationPage, Icon } from '@/ui/default/index';
 
 import type GitHub from './implementation';
-import type { CmsUser, TranslateFunction } from '../../lib/util/index';
+import type { CmsUser, TranslateFunction } from '@/lib/util/index';
 
 const LoginButtonIcon = styled(Icon)`
   margin-right: 18px;

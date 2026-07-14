@@ -26,6 +26,53 @@ const packages = (fs.existsSync(srcDir) ? fs.readdirSync(srcDir, { withFileTypes
   .filter(dirent => dirent.isDirectory())
   .map(dirent => (dirent.name === 'server' ? 'decap-server' : `decap-cms-${dirent.name}`));
 
+// Local plugin: rewrite parent-relative imports (`../…`) that point inside
+// `src/` to the `@/…` alias (mirrors tsconfig `paths` + the vite / tsc-alias
+// config). Same-folder imports (`./x`) are intentionally left alone. Ships a
+// fixer so `eslint --fix` / editor "fix on save" converts automatically.
+// Written inline because the published `eslint-plugin-no-relative-import-paths`
+// still calls the ESLint-10-removed `context.getCwd()`.
+const localImportAliasPlugin = {
+  rules: {
+    'prefer-alias': {
+      meta: {
+        type: 'suggestion',
+        fixable: 'code',
+        schema: [],
+        messages: {
+          preferAlias: "Use the '@/' alias instead of the relative parent import '{{ source }}'.",
+        },
+      },
+      create(context) {
+        const filename = context.filename ?? context.getFilename?.();
+        function check(node) {
+          const source = node.source;
+          if (!source || typeof source.value !== 'string') return;
+          const value = source.value;
+          if (!value.startsWith('../')) return;
+          const abs = path.resolve(path.dirname(filename), value);
+          // Only rewrite targets that live under src/.
+          if (abs !== srcDir && !abs.startsWith(srcDir + path.sep)) return;
+          const rel = path.relative(srcDir, abs).split(path.sep).join('/');
+          const aliased = `@/${rel}`;
+          context.report({
+            node: source,
+            messageId: 'preferAlias',
+            data: { source: value },
+            fix: fixer => fixer.replaceText(source, `'${aliased}'`),
+          });
+        }
+        return {
+          ImportDeclaration: check,
+          ExportNamedDeclaration: check,
+          ExportAllDeclaration: check,
+          ImportExpression: check,
+        };
+      },
+    },
+  },
+};
+
 export default tseslint.config(
   // Global ignores
   {
@@ -75,6 +122,7 @@ export default tseslint.config(
       import: importPlugin,
       unicorn: unicornPlugin,
       '@emotion': emotionPlugin,
+      local: localImportAliasPlugin,
     },
     languageOptions: {
       ecmaVersion: 2026,
@@ -130,6 +178,11 @@ export default tseslint.config(
 
       // Import rules
       'import/no-named-as-default': 'off',
+      // Auto-convert deep relative imports to the `@/` alias (autofix). Same-folder
+      // (`./x`) imports are left as-is; anything reaching into a parent (`../…`)
+      // that resolves inside `src/` becomes `@/…` (mirrors tsconfig `paths` +
+      // the vite / tsc-alias config).
+      'local/prefer-alias': 'error',
       'import/order': [
         'error',
         {
@@ -137,26 +190,6 @@ export default tseslint.config(
           groups: [['builtin', 'external'], ['internal', 'parent', 'sibling', 'index'], ['type']],
         },
       ],
-      'no-restricted-imports': [
-        'error',
-        {
-          paths: [
-            {
-              name: 'immutable',
-              message:
-                'Immutable.js is intentionally not used in this codebase. Use plain objects/arrays with the spread operator and optional chaining instead.',
-            },
-          ],
-          patterns: [
-            {
-              group: ['immutable/*'],
-              message:
-                'Immutable.js is intentionally not used in this codebase. Use plain objects/arrays with the spread operator and optional chaining instead.',
-            },
-          ],
-        },
-      ],
-
       // Emotion rules
       '@emotion/no-vanilla': 'error',
       '@emotion/pkg-renaming': 'error',

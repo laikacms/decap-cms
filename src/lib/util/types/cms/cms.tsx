@@ -17,7 +17,7 @@ import type { CmsBackend, CmsBackendClass, CmsLocalBackend, CmsRegistryBackend }
 import type { CmsMediaLibrary, CmsMediaLibraryOptions } from './media';
 import type { CmsCollection } from './collections';
 import type { CmsFieldBase } from './fields/base';
-import type { ComponentType } from '../core';
+import type { ComponentType } from '@/lib/util/types/core';
 
 export interface CmsIssueReports {
   url?: string;

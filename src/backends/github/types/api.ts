@@ -5,7 +5,7 @@ import type {
   FetchError,
   ApiRequest,
   Semaphore,
-} from '../../../lib/util/index';
+} from '@/lib/util/index';
 import type { Endpoints } from '@octokit/types';
 
 export type GitHubUser = Endpoints['GET /user']['response']['data'];

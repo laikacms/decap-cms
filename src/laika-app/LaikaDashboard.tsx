@@ -3,13 +3,13 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
 
-import { Icon, colors, lengths } from '../ui/default/index';
-import { useAppSelector } from '../core/hooks/useRedux';
-import { createNewEntry } from '../core/actions/collections';
+import { Icon, colors, lengths } from '@/ui/default/index';
+import { useAppSelector } from '@/core/hooks/useRedux';
+import { createNewEntry } from '@/core/actions/collections';
 import { LaikaButton, LaikaCard, LaikaBadge } from './ui';
 
-import type { TranslateFunction } from '../ui/default/index';
-import type { CmsCollections, CmsCollectionState } from '../lib/util/index';
+import type { TranslateFunction } from '@/ui/default/index';
+import type { CmsCollections, CmsCollectionState } from '@/lib/util/index';
 
 /**
  * Home page rendered at `/` when laika-app's `renderRoot` slot is mounted.

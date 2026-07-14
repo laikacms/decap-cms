@@ -3,7 +3,7 @@ import { v4 as uuid } from 'uuid';
 import uploadcare from 'uploadcare-widget';
 import uploadcareTabEffects from 'uploadcare-widget-tab-effects';
 
-import uploadcareMediaLibrary from '../index';
+import uploadcareMediaLibrary from '@/media/library-uploadcare/index';
 
 function generateMockUrl({ count = 1, cdnUrl } = {}) {
   const baseUrl = 'https://ucarecdn.com';

@@ -1,11 +1,11 @@
 import React, { createElement, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
-import { DecapCmsCore as CMS, DecapCmsProvider } from '../core/index';
+import { DecapCmsCore as CMS, DecapCmsProvider } from '@/core/index';
 import { App, AppContent } from './components/index';
 import './extensions.js';
 
-import type { CmsConfig } from '../core/index';
+import type { CmsConfig } from '@/core/index';
 
 const ROOT_ID = 'nc-root';
 

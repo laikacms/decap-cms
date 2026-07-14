@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { configLoaded } from '../../actions/config';
+import { configLoaded } from '@/core/actions/config';
 import collections, {
   selectAllowDeletion,
   selectEntryPath,
@@ -12,8 +12,8 @@ import collections, {
   selectField,
   updateFieldByKey,
   selectInferredField,
-} from '../collections';
-import { FILES, FOLDER } from '../../constants/collectionTypes';
+} from '@/core/reducers/collections';
+import { FILES, FOLDER } from '@/core/constants/collectionTypes';
 
 describe('collections', () => {
   it('should handle an empty state', () => {

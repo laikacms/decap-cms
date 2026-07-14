@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import * as api from '../API.js';
-import { PreviewState } from '../API.js';
+import * as api from '@/lib/util/API.js';
+import { PreviewState } from '@/lib/util/API.js';
 
 describe('Api', () => {
   describe('getPreviewStatus', () => {

@@ -3,7 +3,7 @@ import isObject from 'lodash/isObject';
 import isString from 'lodash/isString';
 import get from 'lodash/get';
 
-import { WidgetPreviewContainer } from '../../ui/default/index';
+import { WidgetPreviewContainer } from '@/ui/default/index';
 
 function toValue(
   value: Record<string, unknown> | string | undefined,

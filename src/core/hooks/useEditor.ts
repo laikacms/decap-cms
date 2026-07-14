@@ -4,9 +4,9 @@ import debounce from 'lodash/debounce';
 import { useAppDispatch, useAppSelector } from './useRedux';
 import { useWorkflow } from './useWorkflow';
 import { useTranslate } from './useTranslate';
-import { navigateToCollection, navigateToNewEntry } from '../routing/navigation';
-import { defaultRouter, routerHistory as history } from '../routing/router';
-import { logoutUser } from '../actions/auth';
+import { navigateToCollection, navigateToNewEntry } from '@/core/routing/navigation';
+import { defaultRouter, routerHistory as history } from '@/core/routing/router';
+import { logoutUser } from '@/core/actions/auth';
 import {
   loadEntry,
   loadEntries,
@@ -21,21 +21,21 @@ import {
   loadLocalBackup,
   retrieveLocalBackup,
   deleteLocalBackup,
-} from '../actions/entries';
+} from '@/core/actions/entries';
 import {
   updateUnpublishedEntryStatus,
   publishUnpublishedEntry,
   unpublishPublishedEntry,
   deleteUnpublishedEntry,
-} from '../actions/editorialWorkflow';
-import { loadDeployPreview } from '../actions/deploys';
-import { selectEntry, selectUnpublishedEntry, selectDeployPreview } from '../reducers';
-import { selectFields } from '../reducers/collections';
-import { status, EDITORIAL_WORKFLOW } from '../constants/publishModes';
+} from '@/core/actions/editorialWorkflow';
+import { loadDeployPreview } from '@/core/actions/deploys';
+import { selectEntry, selectUnpublishedEntry, selectDeployPreview } from '@/core/reducers';
+import { selectFields } from '@/core/reducers/collections';
+import { status, EDITORIAL_WORKFLOW } from '@/core/constants/publishModes';
 
-import type { Status } from '../constants/publishModes';
-import type { RouterUpdate, RouterTransition } from '../routing/router';
-import type { CmsCollectionState, CmsEntry } from '../../lib/util/index';
+import type { Status } from '@/core/constants/publishModes';
+import type { RouterUpdate, RouterTransition } from '@/core/routing/router';
+import type { CmsCollectionState, CmsEntry } from '@/lib/util/index';
 
 type Collection = CmsCollectionState;
 type Entry = CmsEntry;

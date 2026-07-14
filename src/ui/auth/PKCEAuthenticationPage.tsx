@@ -2,10 +2,10 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { jwtDecode } from 'jwt-decode';
 
-import { PkceAuthenticator } from '../../lib/auth/index';
-import { AuthenticationPage, Icon } from '../default/index';
+import { PkceAuthenticator } from '@/lib/auth/index';
+import { AuthenticationPage, Icon } from '@/ui/default/index';
 
-import type { PkceAuthResult } from '../../lib/auth/index';
+import type { PkceAuthResult } from '@/lib/auth/index';
 import type { JWTClaims, PKCEAuthenticationPageProps, PKCEUser } from './types';
 
 const LoginButtonIcon = styled(Icon)`

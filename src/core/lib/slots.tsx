@@ -7,7 +7,7 @@ import type {
   CmsSortDirection,
   CmsViewFilter,
   CmsViewGroup,
-} from '../../lib/util/index';
+} from '@/lib/util/index';
 
 /**
  * Render-slot extension surface for deep CMS components.

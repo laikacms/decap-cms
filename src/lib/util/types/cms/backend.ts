@@ -15,7 +15,7 @@ import type {
   CmsUnpublishedEntry,
 } from './entries.js';
 import type { CmsImplementationMediaFile } from './media.js';
-import type Cursor from '../../Cursor.js';
+import type Cursor from '@/lib/util/Cursor.js';
 
 export type CmsBackendType =
   | 'azure'

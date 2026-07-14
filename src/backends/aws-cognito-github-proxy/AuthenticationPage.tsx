@@ -1,9 +1,9 @@
 import React from 'react';
 import styled from '@emotion/styled';
 
-import { PkceAuthenticator } from '../../lib/auth/index';
-import { AuthenticationPage, Icon } from '../../ui/default/index';
-import { usePkceAuth, type PKCEAuthenticationPageProps, type PKCEUser } from '../../ui/auth/index';
+import { PkceAuthenticator } from '@/lib/auth/index';
+import { AuthenticationPage, Icon } from '@/ui/default/index';
+import { usePkceAuth, type PKCEAuthenticationPageProps, type PKCEUser } from '@/ui/auth/index';
 
 const LoginButtonIcon = styled(Icon)`
   margin-right: 18px;

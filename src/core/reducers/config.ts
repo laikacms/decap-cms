@@ -1,10 +1,10 @@
 import { produce } from 'immer';
 
-import { CONFIG_REQUEST, CONFIG_SUCCESS, CONFIG_FAILURE } from '../actions/config';
-import { EDITORIAL_WORKFLOW } from '../constants/publishModes';
+import { CONFIG_REQUEST, CONFIG_SUCCESS, CONFIG_FAILURE } from '@/core/actions/config';
+import { EDITORIAL_WORKFLOW } from '@/core/constants/publishModes';
 
-import type { ConfigAction } from '../actions/config';
-import type { CmsConfig } from '../../lib/util/index';
+import type { ConfigAction } from '@/core/actions/config';
+import type { CmsConfig } from '@/lib/util/index';
 
 const defaultState = {
   isFetching: true,

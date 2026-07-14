@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import LaikaCard from '../LaikaCard';
+import LaikaCard from '@/laika-app/ui/LaikaCard';
 
 describe('LaikaCard', () => {
   it('renders children', () => {

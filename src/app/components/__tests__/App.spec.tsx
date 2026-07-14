@@ -41,12 +41,12 @@ vi.mock('../../../core/components/UI', async () => {
   };
 });
 
-import { AppContent } from '../App';
-import { context } from '../../../core/contexts/decap';
-import { defaultRoutingTable } from '../../../core/routing/router';
+import { AppContent } from '@/app/components/App';
+import { context } from '@/core/contexts/decap';
+import { defaultRoutingTable } from '@/core/routing/router';
 
-import type * as UIModule from '../../../core/components/UI';
-import type { AppLayoutRenderProps } from '../App';
+import type * as UIModule from '@/core/components/UI';
+import type { AppLayoutRenderProps } from '@/app/components/App';
 
 const mockStore = configureStore([]);
 

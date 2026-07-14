@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { getMediaAsBlob, getMediaDisplayURL } from '../implementation.js';
+import { getMediaAsBlob, getMediaDisplayURL } from '@/lib/util/implementation.js';
 
 describe('implementation', () => {
   describe('getMediaAsBlob', () => {

@@ -2,8 +2,8 @@
 import React from 'react';
 import styled from '@emotion/styled';
 
-import { colors } from '../ui/default/index';
-import { useAppSelector } from '../core/hooks/useRedux';
+import { colors } from '@/ui/default/index';
+import { useAppSelector } from '@/core/hooks/useRedux';
 
 /**
  * Thin footer rendered below the routed content. Shows site name (when set

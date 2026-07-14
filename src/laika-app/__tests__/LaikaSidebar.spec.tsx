@@ -38,7 +38,7 @@ vi.mock('../../core/actions/collections', () => ({
   searchCollections: vi.fn(),
 }));
 
-import LaikaSidebar from '../LaikaSidebar';
+import LaikaSidebar from '@/laika-app/LaikaSidebar';
 
 describe('LaikaSidebar', () => {
   it('renders a link for every visible collection plus an App settings link', () => {

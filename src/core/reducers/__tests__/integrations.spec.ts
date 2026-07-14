@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import integrations from '../integrations';
-import { CONFIG_SUCCESS } from '../../actions/config';
-import { FOLDER } from '../../constants/collectionTypes';
+import integrations from '@/core/reducers/integrations';
+import { CONFIG_SUCCESS } from '@/core/actions/config';
+import { FOLDER } from '@/core/constants/collectionTypes';
 
-import type { ConfigAction } from '../../actions/config';
+import type { ConfigAction } from '@/core/actions/config';
 
 describe('integrations', () => {
   it('should return default state when no integrations', () => {

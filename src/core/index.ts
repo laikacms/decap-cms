@@ -1,6 +1,6 @@
 import Registry from './lib/registry';
 
-export type * from '../lib/util/index';
+export type * from '@/lib/util/index';
 
 /**
  * Context provider — sets up the store, config and i18n. Wrap your layout
@@ -13,8 +13,8 @@ export type { DecapCmsProviderProps } from './components/App/DecapCmsProvider';
  * Theming — pass a `DecapTheme` to `DecapCmsProvider`'s `theme` prop, or use
  * `themeToCssVars` to emit the `--decap-*` CSS variables yourself.
  */
-export { themeToCssVars } from '../ui/default/index';
-export type { DecapTheme } from '../ui/default/index';
+export { themeToCssVars } from '@/ui/default/index';
+export type { DecapTheme } from '@/ui/default/index';
 
 /**
  * Building blocks for assembling a custom layout. The routed `App` /

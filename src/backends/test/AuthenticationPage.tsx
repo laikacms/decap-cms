@@ -1,9 +1,9 @@
 import React from 'react';
 import styled from '@emotion/styled';
 
-import { Icon, buttons, shadows, GoBackButton } from '../../ui/default/index';
+import { Icon, buttons, shadows, GoBackButton } from '@/ui/default/index';
 
-import type { TranslateFunction } from '../../ui/default/index';
+import type { TranslateFunction } from '@/ui/default/index';
 
 // Content-only (no logo / page centering): the standalone chrome comes from
 // the host — `StandaloneAuthPage` on the default app path, or a custom shell.

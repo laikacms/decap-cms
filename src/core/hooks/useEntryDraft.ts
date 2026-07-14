@@ -7,9 +7,9 @@ import {
   discardDraft,
   changeDraftField,
   changeDraftFieldValidation,
-} from '../actions/entries';
+} from '@/core/actions/entries';
 
-import type { CmsCollectionState, CmsEntry, CmsEntryField } from '../../lib/util/index';
+import type { CmsCollectionState, CmsEntry, CmsEntryField } from '@/lib/util/index';
 
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;

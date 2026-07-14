@@ -12,7 +12,7 @@ import languageData from './data/languages.json';
 import { getLanguageExtension } from './languageLoaders';
 
 import type { Extension, ReactCodeMirrorRef } from '@uiw/react-codemirror';
-import type { CmsFieldBase, CmsFieldCode } from '../../lib/util/index';
+import type { CmsFieldBase, CmsFieldCode } from '@/lib/util/index';
 
 interface LanguageInfo {
   label: string;

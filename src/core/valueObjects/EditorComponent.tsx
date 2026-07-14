@@ -4,7 +4,7 @@ import type {
   CmsEditorComponentOptions,
   CmsEditorComponentPlugin,
   CmsEditorComponentField,
-} from '../../lib/util/index';
+} from '@/lib/util/index';
 
 type EditorComponentOptions = CmsEditorComponentOptions;
 type EditorComponentPlugin = CmsEditorComponentPlugin;

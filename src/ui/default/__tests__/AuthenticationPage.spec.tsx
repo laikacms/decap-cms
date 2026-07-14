@@ -2,8 +2,8 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { StandaloneAuthPage, renderPageLogo } from '../AuthenticationPage';
-import { colors } from '../styles';
+import { StandaloneAuthPage, renderPageLogo } from '@/ui/default/AuthenticationPage';
+import { colors } from '@/ui/default/styles';
 
 /**
  * Regression test for DCMS-289: the default Decap brand logo rendered by

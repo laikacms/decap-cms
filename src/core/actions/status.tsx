@@ -1,4 +1,4 @@
-import { currentBackend } from '../backend';
+import { currentBackend } from '@/core/backend';
 import { addNotification, dismissNotification } from './notifications';
 
 import type { ThunkDispatch } from 'redux-thunk';

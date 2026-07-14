@@ -7,9 +7,9 @@ import {
   loadAssetRequest,
   loadAssetSuccess,
   loadAssetFailure,
-} from '../../actions/media';
-import reducer from '../medias';
-import { createAssetProxy } from '../../valueObjects/AssetProxy';
+} from '@/core/actions/media';
+import reducer from '@/core/reducers/medias';
+import { createAssetProxy } from '@/core/valueObjects/AssetProxy';
 
 describe('medias', () => {
   const asset = createAssetProxy({ url: 'url', path: 'path' });

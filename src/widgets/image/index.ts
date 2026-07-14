@@ -1,4 +1,4 @@
-import DecapCmsWidgetFile from '../file/index';
+import DecapCmsWidgetFile from '@/widgets/file/index';
 import previewComponent from './ImagePreview';
 import schema from './schema';
 

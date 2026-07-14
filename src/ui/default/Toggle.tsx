@@ -3,7 +3,7 @@ import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 
 import { colors, colorsRaw, shadows, transitions } from './styles';
-import { laikaShouldForwardProp } from '../../laika-app/ui/styled-utils';
+import { laikaShouldForwardProp } from '@/laika-app/ui/styled-utils';
 
 export interface ToggleActiveProps {
   $isActive?: boolean;

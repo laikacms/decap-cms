@@ -5,13 +5,13 @@ import {
   NOTIFICATION_SEND,
   NOTIFICATION_DISMISS,
   NOTIFICATIONS_CLEAR,
-} from '../actions/notifications';
+} from '@/core/actions/notifications';
 
 import type {
   NotificationsAction,
   NotificationMessage,
   NotificationPayload,
-} from '../actions/notifications';
+} from '@/core/actions/notifications';
 
 export type Notification = {
   id: string;

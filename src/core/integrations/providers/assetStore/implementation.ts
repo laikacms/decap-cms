@@ -1,8 +1,8 @@
 import pickBy from 'lodash/pickBy';
 import trimEnd from 'lodash/trimEnd';
 
-import { unsentRequest } from '../../../../lib/util/index';
-import { addParams } from '../../../lib/urlHelper';
+import { unsentRequest } from '@/lib/util/index';
+import { addParams } from '@/core/lib/urlHelper';
 
 const { fetchWithTimeout: fetch } = unsentRequest;
 

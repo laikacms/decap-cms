@@ -21,7 +21,7 @@ describe('navigation', () => {
 
   describe('navigateToCollection', () => {
     it('should push the collection route', async () => {
-      const { navigateToCollection } = await import('../navigation');
+      const { navigateToCollection } = await import('@/core/routing/navigation');
 
       navigateToCollection('posts');
       expect(history.push).toHaveBeenCalledTimes(1);
@@ -31,7 +31,7 @@ describe('navigation', () => {
 
   describe('navigateToNewEntry', () => {
     it('should replace with the new entry route', async () => {
-      const { navigateToNewEntry } = await import('../navigation');
+      const { navigateToNewEntry } = await import('@/core/routing/navigation');
 
       navigateToNewEntry('posts');
       expect(history.replace).toHaveBeenCalledTimes(1);
@@ -41,7 +41,7 @@ describe('navigation', () => {
 
   describe('navigateToEntry', () => {
     it('should replace with the entry route', async () => {
-      const { navigateToEntry } = await import('../navigation');
+      const { navigateToEntry } = await import('@/core/routing/navigation');
 
       navigateToEntry('posts', 'index');
       expect(history.replace).toHaveBeenCalledTimes(1);

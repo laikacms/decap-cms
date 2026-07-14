@@ -1,11 +1,11 @@
-import { USE_OPEN_AUTHORING } from '../../actions/auth';
+import { USE_OPEN_AUTHORING } from '@/core/actions/auth';
 import {
   DEPLOY_PREVIEW_REQUEST,
   DEPLOY_PREVIEW_SUCCESS,
   DEPLOY_PREVIEW_FAILURE,
-} from '../../actions/deploys';
-import { ENTRY_REQUEST, ENTRY_SUCCESS, ENTRY_FAILURE } from '../../actions/entries';
-import reducer from '../globalUI';
+} from '@/core/actions/deploys';
+import { ENTRY_REQUEST, ENTRY_SUCCESS, ENTRY_FAILURE } from '@/core/actions/entries';
+import reducer from '@/core/reducers/globalUI';
 
 describe('globalUI', () => {
   it('should set isFetching to true on entry request', () => {

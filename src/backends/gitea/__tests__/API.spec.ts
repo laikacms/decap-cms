@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import API from '../API';
+import API from '@/backends/gitea/API';
 
 global.fetch = vi.fn().mockRejectedValue(new Error('should not call fetch inside tests'));
 

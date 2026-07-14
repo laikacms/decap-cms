@@ -10,7 +10,7 @@ vi.mock('react-polyglot', () => ({
   },
 }));
 
-import LaikaErrorScreen from '../LaikaErrorScreen';
+import LaikaErrorScreen from '@/laika-app/LaikaErrorScreen';
 
 describe('LaikaErrorScreen', () => {
   it('renders error title, message, and report link', () => {

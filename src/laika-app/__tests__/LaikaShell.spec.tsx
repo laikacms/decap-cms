@@ -2,7 +2,7 @@ import React from 'react';
 import { render, act, renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { LaikaShellProvider, useLaikaShell } from '../LaikaShellContext';
+import { LaikaShellProvider, useLaikaShell } from '@/laika-app/LaikaShellContext';
 
 describe('useLaikaShell', () => {
   it('reports closed and tolerates calls when outside the provider', () => {

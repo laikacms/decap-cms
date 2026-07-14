@@ -28,7 +28,7 @@ vi.mock('../../core/hooks/useRedux', () => {
   };
 });
 
-import LaikaSettingsPage from '../LaikaSettingsPage';
+import LaikaSettingsPage from '@/laika-app/LaikaSettingsPage';
 
 describe('LaikaSettingsPage', () => {
   it('renders backend config rows', () => {

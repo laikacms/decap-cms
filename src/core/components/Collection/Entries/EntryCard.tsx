@@ -2,14 +2,14 @@ import React, { useEffect, useState } from 'react';
 import styled from '@emotion/styled';
 import { useTranslate } from 'react-polyglot';
 
-import { Link } from '../../../routing/Link';
-import { colors, colorsRaw, components, lengths, zIndex } from '../../../../ui/default/index';
-import { boundGetAsset } from '../../../actions/media';
-import { VIEW_STYLE_LIST, VIEW_STYLE_GRID } from '../../../constants/collectionViews';
-import { selectEntryCollectionTitle } from '../../../reducers/collections';
-import { useAppDispatch } from '../../../hooks/useRedux';
+import { Link } from '@/core/routing/Link';
+import { colors, colorsRaw, components, lengths, zIndex } from '@/ui/default/index';
+import { boundGetAsset } from '@/core/actions/media';
+import { VIEW_STYLE_LIST, VIEW_STYLE_GRID } from '@/core/constants/collectionViews';
+import { selectEntryCollectionTitle } from '@/core/reducers/collections';
+import { useAppDispatch } from '@/core/hooks/useRedux';
 
-import type { CmsCollectionState, CmsEntry } from '../../../../lib/util/index';
+import type { CmsCollectionState, CmsEntry } from '@/lib/util/index';
 
 const ListCard = styled.li`
   ${components.card};

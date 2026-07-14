@@ -12,6 +12,9 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    },
     "types": ["@testing-library/jest-dom"]
   },
   "include": ["src/**/*", "vitest.globals.d.ts"],

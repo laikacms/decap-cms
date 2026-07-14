@@ -1,12 +1,12 @@
 import { produce } from 'immer';
 
-import { Cursor } from '../../lib/util/index';
+import { Cursor } from '@/lib/util/index';
 import {
   ENTRIES_SUCCESS,
   SORT_ENTRIES_SUCCESS,
   FILTER_ENTRIES_SUCCESS,
   GROUP_ENTRIES_SUCCESS,
-} from '../actions/entries';
+} from '@/core/actions/entries';
 
 import type { AnyAction } from 'redux';
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { css, Global, ClassNames } from '@emotion/react';
 import ReactModal from 'react-modal';
 
-import { transitions, shadows, lengths, zIndex } from '../../../ui/default/index';
+import { transitions, shadows, lengths, zIndex } from '@/ui/default/index';
 
 function ReactModalGlobalStyles() {
   return (

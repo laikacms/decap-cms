@@ -1,5 +1,5 @@
 import { useAppSelector } from './useRedux';
-import { EDITORIAL_WORKFLOW, SIMPLE } from '../constants/publishModes';
+import { EDITORIAL_WORKFLOW, SIMPLE } from '@/core/constants/publishModes';
 
 /**
  * Hook for accessing CMS configuration

@@ -2,11 +2,11 @@ import React from 'react';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 
-import { isAbsolutePath } from '../../../lib/util/index';
-import { buttons, shadows, zIndex } from '../../../ui/default/index';
-import { FileUploadButton } from '../UI';
+import { isAbsolutePath } from '@/lib/util/index';
+import { buttons, shadows, zIndex } from '@/ui/default/index';
+import { FileUploadButton } from '@/core/components/UI';
 
-import type { TranslateFunction } from '../../../ui/default/index';
+import type { TranslateFunction } from '@/ui/default/index';
 
 const styles = {
   button: css`

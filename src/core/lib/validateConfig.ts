@@ -3,7 +3,7 @@ import ajvKeywords from 'ajv-keywords/dist/keywords';
 import ajvErrors from 'ajv-errors';
 import { v4 as uuid } from 'uuid';
 
-import { frontmatterFormats, extensionFormatters } from '../formats/formats';
+import { frontmatterFormats, extensionFormatters } from '@/core/formats/formats';
 import { getWidgets } from './registry';
 import { I18N_STRUCTURE, I18N_FIELD } from './i18n';
 

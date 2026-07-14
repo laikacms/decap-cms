@@ -2,9 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import configureMockStore from 'redux-mock-store';
 import { thunk } from 'redux-thunk';
 
-import { getAsset, boundGetAsset, ADD_ASSET, LOAD_ASSET_REQUEST } from '../media';
-import { selectMediaFilePath } from '../../reducers/entries';
-import AssetProxy from '../../valueObjects/AssetProxy';
+import { getAsset, boundGetAsset, ADD_ASSET, LOAD_ASSET_REQUEST } from '@/core/actions/media';
+import { selectMediaFilePath } from '@/core/reducers/entries';
+import AssetProxy from '@/core/valueObjects/AssetProxy';
 
 import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';

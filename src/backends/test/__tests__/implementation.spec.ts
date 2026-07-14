@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import TestBackend, { getFolderFiles } from '../implementation';
+import TestBackend, { getFolderFiles } from '@/backends/test/implementation';
 
-import type { Config, PersistOptions } from '../../../lib/util/index';
+import type { Config, PersistOptions } from '@/lib/util/index';
 
 type RepoFile = { path?: string; content: string };
 type RepoTree = { [key: string]: RepoFile | RepoTree };

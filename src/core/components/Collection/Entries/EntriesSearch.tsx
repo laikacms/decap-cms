@@ -1,16 +1,16 @@
 import React from 'react';
 import { useStore } from 'react-redux';
 
-import { Cursor } from '../../../../lib/util/index';
-import { selectSearchedEntries, selectUnpublishedEntry } from '../../../reducers';
+import { Cursor } from '@/lib/util/index';
+import { selectSearchedEntries, selectUnpublishedEntry } from '@/core/reducers';
 import {
   searchEntries as actionSearchEntries,
   clearSearch as actionClearSearch,
-} from '../../../actions/search';
+} from '@/core/actions/search';
 import Entries from './Entries';
-import { useAppDispatch, useAppSelector } from '../../../hooks/useRedux';
+import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 
-import type { CmsCollections } from '../../../../lib/util/index';
+import type { CmsCollections } from '@/lib/util/index';
 
 interface EntriesSearchProps {
   collections: CmsCollections;

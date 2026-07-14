@@ -4,11 +4,11 @@ import styled from '@emotion/styled';
 import yaml from 'yaml';
 import truncate from 'lodash/truncate';
 
-import { localForage } from '../../../lib/util/index';
-import { buttons, colors } from '../../../ui/default/index';
+import { localForage } from '@/lib/util/index';
+import { buttons, colors } from '@/ui/default/index';
 
-import type { TranslateFunction } from '../../../ui/default/index';
-import type { CmsConfig } from '../../../lib/util/index';
+import type { TranslateFunction } from '@/ui/default/index';
+import type { CmsConfig } from '@/lib/util/index';
 
 const ISSUE_URL = 'https://github.com/decaporg/decap-cms/issues/new';
 

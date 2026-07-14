@@ -7,10 +7,10 @@ import {
   LOAD_ASSET_REQUEST,
   LOAD_ASSET_SUCCESS,
   LOAD_ASSET_FAILURE,
-} from '../actions/media';
+} from '@/core/actions/media';
 
-import type { MediasAction } from '../actions/media';
-import type { CmsAssetProxy } from '../../lib/util/index';
+import type { MediasAction } from '@/core/actions/media';
+import type { CmsAssetProxy } from '@/lib/util/index';
 
 type AssetProxy = CmsAssetProxy;
 

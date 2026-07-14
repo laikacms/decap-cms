@@ -6,7 +6,7 @@ vi.mock('react-polyglot', () => ({
   useTranslate: () => (key: string) => key,
 }));
 
-import LaikaMediaLibraryTop from '../LaikaMediaLibraryTop';
+import LaikaMediaLibraryTop from '@/laika-app/LaikaMediaLibraryTop';
 
 const baseProps = {
   onClose: vi.fn(),

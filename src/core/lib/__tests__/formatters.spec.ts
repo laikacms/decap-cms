@@ -17,8 +17,8 @@ import {
   previewUrlFormatter,
   summaryFormatter,
   folderFormatter,
-} from '../formatters';
-import { selectIdentifier, selectInferredField, getFileFromSlug } from '../../reducers/collections';
+} from '@/core/lib/formatters';
+import { selectIdentifier, selectInferredField, getFileFromSlug } from '@/core/reducers/collections';
 
 describe('formatters', () => {
   describe('commitMessageFormatter', () => {

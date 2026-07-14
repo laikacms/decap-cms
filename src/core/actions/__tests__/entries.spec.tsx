@@ -9,12 +9,12 @@ import {
   persistLocalBackup,
   getMediaAssets,
   validateMetaField,
-} from '../entries';
-import AssetProxy from '../../valueObjects/AssetProxy';
-import * as backendModule from '../../backend';
-import * as assetProxyModule from '../../valueObjects/AssetProxy';
-import * as entriesReducer from '../../reducers/entries';
-import * as entryDraftReducer from '../../reducers/entryDraft';
+} from '@/core/actions/entries';
+import AssetProxy from '@/core/valueObjects/AssetProxy';
+import * as backendModule from '@/core/backend';
+import * as assetProxyModule from '@/core/valueObjects/AssetProxy';
+import * as entriesReducer from '@/core/reducers/entries';
+import * as entryDraftReducer from '@/core/reducers/entryDraft';
 
 vi.mock('../../backend');
 vi.mock('decap-cms-lib-util');

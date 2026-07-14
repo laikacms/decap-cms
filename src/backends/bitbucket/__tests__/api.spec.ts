@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
-import API from '../API';
+import API from '@/backends/bitbucket/API';
 
 global.fetch = vi.fn().mockRejectedValue(new Error('should not call fetch inside tests'));
 

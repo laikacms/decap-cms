@@ -6,10 +6,10 @@ import {
   AUTH_FAILURE,
   AUTH_REQUEST_DONE,
   LOGOUT,
-} from '../actions/auth';
+} from '@/core/actions/auth';
 
-import type { CmsUser as User } from '../../lib/util/index';
-import type { AuthAction } from '../actions/auth';
+import type { CmsUser as User } from '@/lib/util/index';
+import type { AuthAction } from '@/core/actions/auth';
 
 export type Auth = {
   isFetching: boolean;

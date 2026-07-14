@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { sanitizeURI, sanitizeSlug, sanitizeChar } from '../urlHelper';
+import { sanitizeURI, sanitizeSlug, sanitizeChar } from '@/core/lib/urlHelper';
 
 describe('sanitizeURI', () => {
   // `sanitizeURI` tests from RFC 3987

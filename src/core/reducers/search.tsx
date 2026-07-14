@@ -9,10 +9,10 @@ import {
   SEARCH_ENTRIES_REQUEST,
   SEARCH_ENTRIES_SUCCESS,
   CLEAR_REQUESTS,
-} from '../actions/search';
+} from '@/core/actions/search';
 
-import type { SearchAction } from '../actions/search';
-import type { EntryValue } from '../valueObjects/Entry';
+import type { SearchAction } from '@/core/actions/search';
+import type { EntryValue } from '@/core/valueObjects/Entry';
 
 export type Search = {
   isFetching: boolean;

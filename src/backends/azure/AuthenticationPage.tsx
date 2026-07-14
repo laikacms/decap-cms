@@ -1,11 +1,11 @@
 import React from 'react';
 import styled from '@emotion/styled';
 
-import { ImplicitAuthenticator } from '../../lib/auth/index';
-import { AuthenticationPage, Icon } from '../../ui/default/index';
+import { ImplicitAuthenticator } from '@/lib/auth/index';
+import { AuthenticationPage, Icon } from '@/ui/default/index';
 
-import type { TranslateFunction } from '../../ui/default/index';
-import type { ImplicitAuthResult } from '../../lib/auth/index';
+import type { TranslateFunction } from '@/ui/default/index';
+import type { ImplicitAuthResult } from '@/lib/auth/index';
 
 const LoginButtonIcon = styled(Icon)`
   margin-right: 18px;

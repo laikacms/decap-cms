@@ -3,14 +3,14 @@ import styled from '@emotion/styled';
 import isEmpty from 'lodash/isEmpty';
 import { translate } from 'react-polyglot';
 
-import { colors } from '../../../ui/default/index';
-import { Modal } from '../UI';
+import { colors } from '@/ui/default/index';
+import { Modal } from '@/core/components/UI';
 import MediaLibraryTop from './MediaLibraryTop';
 import MediaLibraryCardGrid from './MediaLibraryCardGrid';
 import EmptyMessage from './EmptyMessage';
-import { useCmsSlots } from '../../lib/slots';
+import { useCmsSlots } from '@/core/lib/slots';
 
-import type { TranslateFunction } from '../../../ui/default/index';
+import type { TranslateFunction } from '@/ui/default/index';
 
 /**
  * Responsive styling needs to be overhauled. Current setup requires specifying

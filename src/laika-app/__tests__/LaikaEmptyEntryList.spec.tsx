@@ -8,7 +8,7 @@ vi.mock('../../core/actions/collections', () => ({
   createNewEntry: (...args: unknown[]) => createNewEntry(...args),
 }));
 
-import LaikaEmptyEntryList from '../LaikaEmptyEntryList';
+import LaikaEmptyEntryList from '@/laika-app/LaikaEmptyEntryList';
 
 describe('LaikaEmptyEntryList', () => {
   it('renders a friendly empty title for a collection', () => {

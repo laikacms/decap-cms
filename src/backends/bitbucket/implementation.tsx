@@ -26,13 +26,13 @@ import {
   allEntriesByFolder,
   AccessTokenError,
   branchFromContentKey,
-} from '../../lib/util/index';
-import { NetlifyAuthenticator } from '../../lib/auth/index';
+} from '@/lib/util/index';
+import { NetlifyAuthenticator } from '@/lib/auth/index';
 import AuthenticationPage from './AuthenticationPage';
 import API, { API_NAME } from './API';
 import { GitLfsClient } from './git-lfs-client';
 
-import type { NetlifyAuthResult } from '../../lib/auth/index';
+import type { NetlifyAuthResult } from '@/lib/auth/index';
 import type {
   CmsFileEntry,
   ApiRequest,
@@ -48,7 +48,7 @@ import type {
   AsyncLock,
   FetchError,
   Semaphore,
-} from '../../lib/util/index';
+} from '@/lib/util/index';
 
 const MAX_CONCURRENT_DOWNLOADS = 10;
 

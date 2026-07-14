@@ -4,15 +4,15 @@ import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
 import { useTranslate } from 'react-polyglot';
 
-import { colors, lengths } from '../ui/default/index';
-import { boundGetAsset } from '../core/actions/media';
-import { selectEntryCollectionTitle } from '../core/reducers/collections';
-import { useAppDispatch } from '../core/hooks/useRedux';
+import { colors, lengths } from '@/ui/default/index';
+import { boundGetAsset } from '@/core/actions/media';
+import { selectEntryCollectionTitle } from '@/core/reducers/collections';
+import { useAppDispatch } from '@/core/hooks/useRedux';
 import { LaikaBadge } from './ui';
 import { laikaShouldForwardProp } from './ui/styled-utils';
 
 import type { LaikaBadgeIntent } from './ui';
-import type { EntryCardRenderProps } from '../app/components/index';
+import type { EntryCardRenderProps } from '@/app/components/index';
 
 /**
  * Laika-styled entry card. Renders inside core's `EntryListing` via the

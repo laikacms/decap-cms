@@ -1,6 +1,6 @@
 import pick from 'lodash/pick';
 
-import { loadScript } from '../../lib/util/index';
+import { loadScript } from '@/lib/util/index';
 
 declare global {
   interface Window {

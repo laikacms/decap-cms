@@ -10,7 +10,7 @@ vi.mock('react-polyglot', () => ({
   },
 }));
 
-import LaikaEditorViewControls from '../LaikaEditorViewControls';
+import LaikaEditorViewControls from '@/laika-app/LaikaEditorViewControls';
 
 const baseProps = {
   i18nEnabled: true,

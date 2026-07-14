@@ -1,11 +1,11 @@
 import flatten from 'lodash/flatten';
 
-import { unsentRequest } from '../../../../lib/util/index';
-import { createEntry } from '../../../valueObjects/Entry';
-import { selectEntrySlug } from '../../../reducers/collections';
+import { unsentRequest } from '@/lib/util/index';
+import { createEntry } from '@/core/valueObjects/Entry';
+import { selectEntrySlug } from '@/core/reducers/collections';
 
-import type { EntryValue } from '../../../valueObjects/Entry';
-import type { CmsCollectionState } from '../../../../lib/util/index';
+import type { EntryValue } from '@/core/valueObjects/Entry';
+import type { CmsCollectionState } from '@/lib/util/index';
 
 type Collection = CmsCollectionState;
 

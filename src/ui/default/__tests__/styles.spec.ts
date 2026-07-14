@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { colors, components, reactSelectStyles } from '../styles';
+import { colors, components, reactSelectStyles } from '@/ui/default/styles';
 
 /**
  * Regression test for DCMS-290: the workflow/collection header card

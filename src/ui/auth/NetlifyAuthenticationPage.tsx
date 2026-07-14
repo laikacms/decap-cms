@@ -10,7 +10,7 @@ import {
   colorsRaw,
   lengths,
   zIndex,
-} from '../default/index';
+} from '@/ui/default/index';
 
 import type {
   AuthClient,

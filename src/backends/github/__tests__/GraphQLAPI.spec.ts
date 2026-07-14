@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import GraphQLAPI from '../GraphQLAPI';
+import GraphQLAPI from '@/backends/github/GraphQLAPI';
 
 global.fetch = vi.fn().mockRejectedValue(new Error('should not call fetch inside tests'));
 

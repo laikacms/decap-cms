@@ -1,7 +1,7 @@
 import get from 'lodash/get';
 import { isObject } from 'lodash';
 
-import type { CmsField, CmsFieldList } from '../../lib/util/index';
+import type { CmsField, CmsFieldList } from '@/lib/util/index';
 
 export const TYPES_KEY = 'types';
 export const TYPE_KEY = 'typeKey';

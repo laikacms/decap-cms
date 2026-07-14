@@ -1,6 +1,6 @@
 import isBoolean from 'lodash/isBoolean';
 
-import type { MediaFile } from '../backend';
+import type { MediaFile } from '@/core/backend';
 
 interface Options {
   partial?: boolean;

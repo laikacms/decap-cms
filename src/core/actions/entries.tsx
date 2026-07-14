@@ -1,24 +1,24 @@
 import isEqual from 'lodash/isEqual';
 
-import { Cursor } from '../../lib/util/index';
-import { CmsSortDirection } from '../../lib/util/index';
-import { selectCollectionEntriesCursor } from '../reducers/cursors';
-import { selectFields, updateFieldByKey, selectDefaultSortField } from '../reducers/collections';
-import { selectIntegration, selectPublishedSlugs } from '../reducers';
-import { getIntegrationProvider } from '../integrations';
-import { currentBackend } from '../backend';
-import { serializeValues } from '../lib/serializeEntryValues';
-import { createEntry } from '../valueObjects/Entry';
-import { createAssetProxy } from '../valueObjects/AssetProxy';
-import ValidationErrorTypes from '../constants/validationErrorTypes';
+import { Cursor } from '@/lib/util/index';
+import { CmsSortDirection } from '@/lib/util/index';
+import { selectCollectionEntriesCursor } from '@/core/reducers/cursors';
+import { selectFields, updateFieldByKey, selectDefaultSortField } from '@/core/reducers/collections';
+import { selectIntegration, selectPublishedSlugs } from '@/core/reducers';
+import { getIntegrationProvider } from '@/core/integrations';
+import { currentBackend } from '@/core/backend';
+import { serializeValues } from '@/core/lib/serializeEntryValues';
+import { createEntry } from '@/core/valueObjects/Entry';
+import { createAssetProxy } from '@/core/valueObjects/AssetProxy';
+import ValidationErrorTypes from '@/core/constants/validationErrorTypes';
 import { addAssets, getAsset } from './media';
 import { waitForMediaLibraryToLoad, loadMedia } from './mediaLibrary';
 import { waitUntil } from './waitUntil';
-import { selectIsFetching, selectEntriesSortFields, selectEntryByPath } from '../reducers/entries';
-import { selectCustomPath } from '../reducers/entryDraft';
-import { navigateToEntry } from '../routing/navigation';
-import { getProcessSegment } from '../lib/formatters';
-import { hasI18n, duplicateDefaultI18nFields, serializeI18n, I18N, I18N_FIELD } from '../lib/i18n';
+import { selectIsFetching, selectEntriesSortFields, selectEntryByPath } from '@/core/reducers/entries';
+import { selectCustomPath } from '@/core/reducers/entryDraft';
+import { navigateToEntry } from '@/core/routing/navigation';
+import { getProcessSegment } from '@/core/lib/formatters';
+import { hasI18n, duplicateDefaultI18nFields, serializeI18n, I18N, I18N_FIELD } from '@/core/lib/i18n';
 import { addNotification } from './notifications';
 
 import type { AnyAction } from 'redux';
@@ -31,10 +31,10 @@ import type {
   CmsViewFilter,
   CmsViewGroup,
   CmsBackendMediaFile,
-} from '../../lib/util/index';
-import type { EntryValue } from '../valueObjects/Entry';
-import type { Backend } from '../backend';
-import type AssetProxy from '../valueObjects/AssetProxy';
+} from '@/lib/util/index';
+import type { EntryValue } from '@/core/valueObjects/Entry';
+import type { Backend } from '@/core/backend';
+import type AssetProxy from '@/core/valueObjects/AssetProxy';
 
 type State = any;
 

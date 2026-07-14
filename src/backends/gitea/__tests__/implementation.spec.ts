@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { Cursor, CURSOR_COMPATIBILITY_SYMBOL } from '../../../lib/util/index';
-import GiteaImplementation from '../implementation';
+import { Cursor, CURSOR_COMPATIBILITY_SYMBOL } from '@/lib/util/index';
+import GiteaImplementation from '@/backends/gitea/implementation';
 
 vi.spyOn(console, 'error').mockImplementation(() => {});
 

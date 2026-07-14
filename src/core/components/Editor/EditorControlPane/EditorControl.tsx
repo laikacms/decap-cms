@@ -8,33 +8,33 @@ import memoize from 'lodash/memoize';
 import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
 
-import { FieldLabel, colors, transitions, lengths, borders } from '../../../../ui/default/index';
-import { useAppDispatch, useAppSelector } from '../../../hooks/useRedux';
-import { resolveWidget, getEditorComponents } from '../../../lib/registry';
-import { clearFieldErrors, tryLoadEntry, validateMetaField } from '../../../actions/entries';
-import { addAsset, boundGetAsset } from '../../../actions/media';
-import { selectIsLoadingAsset } from '../../../reducers/medias';
-import { query, clearSearch } from '../../../actions/search';
-import { store } from '../../../redux';
+import { FieldLabel, colors, transitions, lengths, borders } from '@/ui/default/index';
+import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
+import { resolveWidget, getEditorComponents } from '@/core/lib/registry';
+import { clearFieldErrors, tryLoadEntry, validateMetaField } from '@/core/actions/entries';
+import { addAsset, boundGetAsset } from '@/core/actions/media';
+import { selectIsLoadingAsset } from '@/core/reducers/medias';
+import { query, clearSearch } from '@/core/actions/search';
+import { store } from '@/core/redux';
 import {
   openMediaLibrary,
   removeInsertedMedia,
   clearMediaControl,
   removeMediaControl,
   persistMedia,
-} from '../../../actions/mediaLibrary';
+} from '@/core/actions/mediaLibrary';
 import Widget from './Widget';
 
-import type AssetProxy from '../../../valueObjects/AssetProxy';
+import type AssetProxy from '@/core/valueObjects/AssetProxy';
 import type { Interpolation, Theme } from '@emotion/react';
 import type { Dispatch } from 'redux';
-import type { TranslateFunction } from '../../../../ui/default/index';
+import type { TranslateFunction } from '@/ui/default/index';
 import type {
   CmsCollectionState,
   CmsEntry,
   CmsEntryField,
   CmsConfig,
-} from '../../../../lib/util/index';
+} from '@/lib/util/index';
 
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;

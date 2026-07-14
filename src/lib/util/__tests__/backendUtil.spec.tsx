@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import nock from 'nock';
 
-import { parseLinkHeader, getAllResponses, getPathDepth, filterByExtension } from '../backendUtil';
+import { parseLinkHeader, getAllResponses, getPathDepth, filterByExtension } from '@/lib/util/backendUtil';
 
 function oneLine(strings: TemplateStringsArray, ...values: unknown[]): string {
   return strings

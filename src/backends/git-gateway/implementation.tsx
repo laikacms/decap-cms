@@ -16,11 +16,11 @@ import {
   getLargeMediaFilteredMediaFiles,
   AccessTokenError,
   PreviewState,
-} from '../../lib/util/index';
-import { GitHubBackend } from '../github/index';
-import { GitLabBackend } from '../gitlab/index';
-import { BitbucketBackend, API as BitBucketAPI } from '../bitbucket/index';
-import { NetlifyAuthenticationPage, PKCEAuthenticationPage } from '../../ui/auth/index';
+} from '@/lib/util/index';
+import { GitHubBackend } from '@/backends/github/index';
+import { GitLabBackend } from '@/backends/gitlab/index';
+import { BitbucketBackend, API as BitBucketAPI } from '@/backends/bitbucket/index';
+import { NetlifyAuthenticationPage, PKCEAuthenticationPage } from '@/ui/auth/index';
 import GitHubAPI from './GitHubAPI';
 import GitLabAPI from './GitLabAPI';
 import { getClient } from './netlify-lfs-client';
@@ -40,7 +40,7 @@ import type {
   CmsConfig as Config,
   CmsImplementationFile as ImplementationFile,
   CmsDisplayURLObject as DisplayURLObject,
-} from '../../lib/util/index';
+} from '@/lib/util/index';
 
 const STATUS_PAGE = 'https://www.netlifystatus.com';
 const GIT_GATEWAY_STATUS_ENDPOINT = `${STATUS_PAGE}/api/v2/components.json`;

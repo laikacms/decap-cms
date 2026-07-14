@@ -1,11 +1,11 @@
 import React from 'react';
 import styled from '@emotion/styled';
 
-import { NetlifyAuthenticator, ImplicitAuthenticator, PkceAuthenticator } from '../../lib/auth/index';
-import { AuthenticationPage, Icon } from '../../ui/default/index';
+import { NetlifyAuthenticator, ImplicitAuthenticator, PkceAuthenticator } from '@/lib/auth/index';
+import { AuthenticationPage, Icon } from '@/ui/default/index';
 
-import type { TranslateFunction } from '../../ui/default/index';
-import type { ImplicitAuthResult, PkceAuthResult, NetlifyAuthResult } from '../../lib/auth/index';
+import type { TranslateFunction } from '@/ui/default/index';
+import type { ImplicitAuthResult, PkceAuthResult, NetlifyAuthResult } from '@/lib/auth/index';
 
 const LoginButtonIcon = styled(Icon)`
   margin-right: 18px;

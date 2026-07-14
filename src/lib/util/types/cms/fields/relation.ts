@@ -1,4 +1,4 @@
-import type { CmsFilterObj, CmsViewFilter, CmsViewGroup } from '../common.js';
+import type { CmsFilterObj, CmsViewFilter, CmsViewGroup } from '@/lib/util/types/cms/common.js';
 
 export type CmsFilterMap = CmsViewFilter & { active: boolean };
 

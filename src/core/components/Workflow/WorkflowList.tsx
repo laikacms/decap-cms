@@ -5,15 +5,15 @@ import styled from '@emotion/styled';
 import dayjs from 'dayjs';
 import { translate } from 'react-polyglot';
 
-import { colors, lengths } from '../../../ui/default/index';
-import { status } from '../../constants/publishModes';
-import { DragSource, DropTarget, HTML5DragDrop } from '../UI';
+import { colors, lengths } from '@/ui/default/index';
+import { status } from '@/core/constants/publishModes';
+import { DragSource, DropTarget, HTML5DragDrop } from '@/core/components/UI';
 import WorkflowCard from './WorkflowCard';
-import { selectEntryCollectionTitle } from '../../reducers/collections';
-import { useCmsSlots } from '../../lib/slots';
+import { selectEntryCollectionTitle } from '@/core/reducers/collections';
+import { useCmsSlots } from '@/core/lib/slots';
 
-import type { CmsCollections, CmsCollectionState } from '../../../lib/util/index';
-import type { TranslateFunction } from '../../../ui/default/index';
+import type { CmsCollections, CmsCollectionState } from '@/lib/util/index';
+import type { TranslateFunction } from '@/ui/default/index';
 
 const WorkflowListContainer = styled.div`
   min-height: 60%;

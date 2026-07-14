@@ -4,7 +4,7 @@ import ReactModal from 'react-modal';
 import { ClassNames } from '@emotion/react';
 import styled from '@emotion/styled';
 
-import { Icon, colors, lengths, zIndex } from '../../ui/default/index';
+import { Icon, colors, lengths, zIndex } from '@/ui/default/index';
 import LaikaIconButton from './LaikaIconButton';
 
 /**

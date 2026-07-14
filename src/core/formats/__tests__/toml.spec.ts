@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import tomlFormatter from '../toml';
+import tomlFormatter from '@/core/formats/toml';
 
 describe('tomlFormatter', () => {
   it('should output TOML integer values without decimals', () => {

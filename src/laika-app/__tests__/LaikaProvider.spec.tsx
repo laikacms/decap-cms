@@ -11,9 +11,9 @@ vi.mock('../../core/index', () => ({
   DecapCmsProvider: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
 }));
 
-import LaikaProvider from '../LaikaProvider';
-import { useLaikaTheme } from '../LaikaThemeContext';
-import { useLaikaShell } from '../LaikaShellContext';
+import LaikaProvider from '@/laika-app/LaikaProvider';
+import { useLaikaTheme } from '@/laika-app/LaikaThemeContext';
+import { useLaikaShell } from '@/laika-app/LaikaShellContext';
 
 function Probe() {
   const theme = useLaikaTheme();

@@ -70,6 +70,9 @@ export default defineConfig({
   },
   resolve: {
     alias: [
+      // `@/*` -> `src/*` (mirrors tsconfig `paths`). Regex form so it never
+      // matches scoped packages like `@emotion/react`. Listed first so it wins.
+      { find: /^@\//, replacement: path.resolve(__dirname, 'src') + '/' },
       // Cross-package imports were rewritten to relative paths in the single-package
       // restructure, so the former `decap-cms-*` → `packages/decap-cms-*/src` aliases
       // are gone. Only the path shim and emotion anchoring remain.

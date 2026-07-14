@@ -47,7 +47,7 @@ vi.mock('../../core/actions/collections', () => ({
   createNewEntry: (...args: unknown[]) => createNewEntry(...args),
 }));
 
-import LaikaDashboard from '../LaikaDashboard';
+import LaikaDashboard from '@/laika-app/LaikaDashboard';
 
 describe('LaikaDashboard', () => {
   it('renders a personalized greeting + site name', () => {

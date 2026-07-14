@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, test, vi } from 'vitest';
 
-import API, { getMaxAccess } from '../API';
+import API, { getMaxAccess } from '@/backends/gitlab/API';
 
 global.fetch = vi.fn().mockRejectedValue(new Error('should not call fetch inside tests'));
 

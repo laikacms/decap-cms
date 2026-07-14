@@ -23,7 +23,7 @@ vi.mock('../../core/components/Collection/GroupControl', () => ({
   default: () => <div data-testid="core-group" />,
 }));
 
-import LaikaCollectionControls from '../LaikaCollectionControls';
+import LaikaCollectionControls from '@/laika-app/LaikaCollectionControls';
 
 const baseProps = {
   viewStyle: 'VIEW_STYLE_LIST',

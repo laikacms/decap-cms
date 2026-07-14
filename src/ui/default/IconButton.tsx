@@ -3,7 +3,7 @@ import styled from '@emotion/styled';
 
 import Icon from './Icon';
 import { buttons, colors, colorsRaw, shadows } from './styles';
-import { laikaShouldForwardProp } from '../../laika-app/ui/styled-utils';
+import { laikaShouldForwardProp } from '@/laika-app/ui/styled-utils';
 
 import type { IconName } from './Icon/icons';
 

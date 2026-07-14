@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { laikaDarkTheme, laikaLightTheme, resolveTheme } from '../laikaThemes';
+import { laikaDarkTheme, laikaLightTheme, resolveTheme } from '@/laika-app/laikaThemes';
 
 describe('laika themes', () => {
   it('light theme overrides only active tokens', () => {

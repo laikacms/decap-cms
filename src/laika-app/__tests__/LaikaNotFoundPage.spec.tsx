@@ -11,7 +11,7 @@ vi.mock('react-polyglot', () => ({
   },
 }));
 
-import LaikaNotFoundPage from '../LaikaNotFoundPage';
+import LaikaNotFoundPage from '@/laika-app/LaikaNotFoundPage';
 
 describe('LaikaNotFoundPage', () => {
   it('shows the 404 mark + title + back-to-dashboard CTA', () => {

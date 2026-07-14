@@ -1,7 +1,7 @@
 import { parse, stringify } from 'smol-toml';
 import dayjs from 'dayjs';
 
-import AssetProxy from '../valueObjects/AssetProxy';
+import AssetProxy from '@/core/valueObjects/AssetProxy';
 import { sortKeys } from './helpers';
 
 function outputReplacer(_key: string, value: unknown) {

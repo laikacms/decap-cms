@@ -2,11 +2,11 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import { Global, css } from '@emotion/react';
 import { unstable_HistoryRouter as HistoryRouter } from 'react-router-dom';
 
-import { DecapCmsProvider } from '../core/index';
-import { routerHistory } from '../core/routing/router';
+import { DecapCmsProvider } from '@/core/index';
+import { routerHistory } from '@/core/routing/router';
 import { resolveTheme } from './laikaThemes';
 
-import type { DecapCmsProviderProps } from '../core/index';
+import type { DecapCmsProviderProps } from '@/core/index';
 import type { LaikaThemeMode } from './laikaThemes';
 
 /**

@@ -1,4 +1,4 @@
-import type { CmsAssetProxy } from '../../lib/util/index';
+import type { CmsAssetProxy } from '@/lib/util/index';
 
 type AssetProxyType = CmsAssetProxy;
 

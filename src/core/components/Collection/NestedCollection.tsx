@@ -3,15 +3,15 @@ import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import sortBy from 'lodash/sortBy';
 
-import { NavLink } from '../../routing/Link';
-import { dirname } from '../../../lib/util/index';
-import { stringTemplate } from '../../../lib/widgets/index';
-import { Icon, colors, components } from '../../../ui/default/index';
-import { selectEntries } from '../../reducers/entries';
-import { selectEntryCollectionTitle } from '../../reducers/collections';
-import { useAppSelector } from '../../hooks/useRedux';
+import { NavLink } from '@/core/routing/Link';
+import { dirname } from '@/lib/util/index';
+import { stringTemplate } from '@/lib/widgets/index';
+import { Icon, colors, components } from '@/ui/default/index';
+import { selectEntries } from '@/core/reducers/entries';
+import { selectEntryCollectionTitle } from '@/core/reducers/collections';
+import { useAppSelector } from '@/core/hooks/useRedux';
 
-import type { CmsCollectionState, CmsEntry } from '../../../lib/util/index';
+import type { CmsCollectionState, CmsEntry } from '@/lib/util/index';
 
 const sep = '/';
 

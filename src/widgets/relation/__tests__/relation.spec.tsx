@@ -32,7 +32,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react';
 
-import { DecapCmsWidgetRelation } from '../';
+import { DecapCmsWidgetRelation } from '@/widgets/relation';
 
 beforeEach(() => {
   vi.clearAllMocks();

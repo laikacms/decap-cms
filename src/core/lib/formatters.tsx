@@ -7,18 +7,18 @@ import isString from 'lodash/isString';
 import trimStart from 'lodash/trimStart';
 import { stripIndent } from 'common-tags';
 
-import { stringTemplate } from '../../lib/widgets/index';
+import { stringTemplate } from '@/lib/widgets/index';
 import {
   selectIdentifier,
   selectField,
   selectInferredField,
   getFileFromSlug,
-} from '../reducers/collections';
+} from '@/core/reducers/collections';
 import { sanitizeSlug } from './urlHelper';
-import { FILES } from '../constants/collectionTypes';
-import { COMMIT_AUTHOR, COMMIT_DATE } from '../constants/commitProps';
+import { FILES } from '@/core/constants/collectionTypes';
+import { COMMIT_AUTHOR, COMMIT_DATE } from '@/core/constants/commitProps';
 
-import type { CmsCollectionState, CmsEntry, CmsConfig, CmsSlug } from '../../lib/util/index';
+import type { CmsCollectionState, CmsEntry, CmsConfig, CmsSlug } from '@/lib/util/index';
 
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;

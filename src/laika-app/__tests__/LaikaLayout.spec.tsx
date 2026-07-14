@@ -12,7 +12,7 @@ vi.mock('../LaikaCommandPalette', () => ({
   default: () => <div data-testid="laika-palette" />,
 }));
 
-import LaikaLayout from '../LaikaLayout';
+import LaikaLayout from '@/laika-app/LaikaLayout';
 
 describe('LaikaLayout', () => {
   it('renders sidebar + main + command palette together', () => {

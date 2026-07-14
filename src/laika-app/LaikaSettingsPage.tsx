@@ -2,8 +2,8 @@
 import React from 'react';
 import styled from '@emotion/styled';
 
-import { colors } from '../ui/default/index';
-import { useAppSelector } from '../core/hooks/useRedux';
+import { colors } from '@/ui/default/index';
+import { useAppSelector } from '@/core/hooks/useRedux';
 import { useLaikaTheme } from './LaikaThemeContext';
 import { LaikaCard, LaikaButton, LaikaToggleSwitch } from './ui';
 

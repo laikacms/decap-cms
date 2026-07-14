@@ -2,7 +2,7 @@ import { createSelector } from '@reduxjs/toolkit';
 import { produce } from 'immer';
 import startsWith from 'lodash/startsWith';
 
-import { EDITORIAL_WORKFLOW, status as statusValues } from '../constants/publishModes';
+import { EDITORIAL_WORKFLOW, status as statusValues } from '@/core/constants/publishModes';
 import {
   UNPUBLISHED_ENTRY_REQUEST,
   UNPUBLISHED_ENTRY_REDIRECT,
@@ -19,8 +19,8 @@ import {
   UNPUBLISHED_ENTRY_PUBLISH_SUCCESS,
   UNPUBLISHED_ENTRY_PUBLISH_FAILURE,
   UNPUBLISHED_ENTRY_DELETE_SUCCESS,
-} from '../actions/editorialWorkflow';
-import { CONFIG_SUCCESS } from '../actions/config';
+} from '@/core/actions/editorialWorkflow';
+import { CONFIG_SUCCESS } from '@/core/actions/config';
 
 import type { AnyAction } from 'redux';
 

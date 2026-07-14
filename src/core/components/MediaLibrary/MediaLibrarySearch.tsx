@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from '@emotion/styled';
 
-import { Icon, lengths, colors, zIndex } from '../../../ui/default/index';
+import { Icon, lengths, colors, zIndex } from '@/ui/default/index';
 
 const SearchContainer = styled.div`
   height: 37px;

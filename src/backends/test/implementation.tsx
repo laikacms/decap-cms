@@ -13,7 +13,7 @@ import {
   extname,
   dirname,
   ConfigurationError,
-} from '../../lib/util/index';
+} from '@/lib/util/index';
 import AuthenticationPage from './AuthenticationPage';
 
 import type {
@@ -26,8 +26,8 @@ import type {
   CmsConfig,
   CmsImplementationFile,
   CmsDataFile,
-} from '../../lib/util/index';
-import type { CmsFileEntry, CmsImplementationMediaFile } from '../../lib/util/index';
+} from '@/lib/util/index';
+import type { CmsFileEntry, CmsImplementationMediaFile } from '@/lib/util/index';
 
 type RepoFile = { path: string; content: string | CmsAssetProxy };
 type RepoTree = { [key: string]: RepoFile | RepoTree };

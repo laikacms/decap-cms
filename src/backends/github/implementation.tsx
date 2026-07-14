@@ -21,7 +21,7 @@ import {
   unsentRequest,
   branchFromContentKey,
   createSemaphore,
-} from '../../lib/util/index';
+} from '@/lib/util/index';
 import AuthenticationPage from './AuthenticationPage';
 import API, { API_NAME } from './API';
 import GraphQLAPI from './GraphQLAPI';
@@ -40,9 +40,9 @@ import type {
   CmsUnpublishedEntryMediaFile,
   CmsEntry,
   CmsFileEntry,
-} from '../../lib/util/index';
-import type { Semaphore } from '../../lib/util/index';
-import type { AuthenticationPageProps } from '../../ui/default/AuthenticationPage';
+} from '@/lib/util/index';
+import type { Semaphore } from '@/lib/util/index';
+import type { AuthenticationPageProps } from '@/ui/default/AuthenticationPage';
 
 export type GitHubUser = Endpoints['GET /user']['response']['data'];
 

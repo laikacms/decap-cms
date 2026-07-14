@@ -1,6 +1,6 @@
 import { useDecap } from './useDecap';
 
-import type { DecapNavigate } from '../contexts/decap';
+import type { DecapNavigate } from '@/core/contexts/decap';
 
 /**
  * Returns the context `navigate(key, params?, options?)` function. Stable

@@ -23,9 +23,9 @@ import {
   readFileMetadata,
   branchFromContentKey,
   Path,
-} from '../../lib/util/index';
+} from '@/lib/util/index';
 
-import type { ApiRequest, CmsAssetProxy, CmsPersistOptions, CmsDataFile } from '../../lib/util/index';
+import type { ApiRequest, CmsAssetProxy, CmsPersistOptions, CmsDataFile } from '@/lib/util/index';
 
 export const API_NAME = 'Azure DevOps';
 

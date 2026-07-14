@@ -5,13 +5,13 @@ import trimStart from 'lodash/trimStart';
 import trim from 'lodash/trim';
 import isEmpty from 'lodash/isEmpty';
 
-import { SIMPLE as SIMPLE_PUBLISH_MODE } from '../constants/publishModes';
-import { validateConfig } from '../lib/validateConfig';
-import { selectDefaultSortableFields } from '../reducers/collections';
-import { getIntegrations, selectIntegration } from '../reducers/integrations';
-import { resolveBackend } from '../backend';
-import { I18N, I18N_FIELD, I18N_STRUCTURE } from '../lib/i18n';
-import { FILES, FOLDER } from '../constants/collectionTypes';
+import { SIMPLE as SIMPLE_PUBLISH_MODE } from '@/core/constants/publishModes';
+import { validateConfig } from '@/core/lib/validateConfig';
+import { selectDefaultSortableFields } from '@/core/reducers/collections';
+import { getIntegrations, selectIntegration } from '@/core/reducers/integrations';
+import { resolveBackend } from '@/core/backend';
+import { I18N, I18N_FIELD, I18N_STRUCTURE } from '@/core/lib/i18n';
+import { FILES, FOLDER } from '@/core/constants/collectionTypes';
 
 import type { ThunkDispatch } from 'redux-thunk';
 import type { AnyAction } from 'redux';
@@ -25,7 +25,7 @@ import type {
   CmsI18nConfig,
   CmsPublishMode,
   CmsLocalBackend,
-} from '../../lib/util/index';
+} from '@/lib/util/index';
 
 type State = any;
 

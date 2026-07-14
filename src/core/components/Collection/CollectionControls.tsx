@@ -1,14 +1,14 @@
 import React from 'react';
 import styled from '@emotion/styled';
 
-import { lengths } from '../../../ui/default/index';
+import { lengths } from '@/ui/default/index';
 import ViewStyleControl from './ViewStyleControl';
 import SortControl from './SortControl';
 import FilterControl from './FilterControl';
 import GroupControl from './GroupControl';
 
-import type { CmsViewFilter, CmsViewGroup, CmsSortDirection } from '../../../lib/util/index';
-import type { TranslateFunction } from '../../../ui/default/index';
+import type { CmsViewFilter, CmsViewGroup, CmsSortDirection } from '@/lib/util/index';
+import type { TranslateFunction } from '@/ui/default/index';
 
 const CollectionControlsContainer = styled.div`
   display: flex;

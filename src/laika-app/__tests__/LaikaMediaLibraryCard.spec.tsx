@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import LaikaMediaLibraryCard from '../LaikaMediaLibraryCard';
+import LaikaMediaLibraryCard from '@/laika-app/LaikaMediaLibraryCard';
 
 const baseProps = {
   text: 'hero.png',

@@ -32,7 +32,7 @@ describe('router', () => {
     ];
 
     it('round-trips search.searchTerm through create/get, encoding a literal "/"', async () => {
-      const { defaultRoutingTable } = await import('../router');
+      const { defaultRoutingTable } = await import('@/core/routing/router');
 
       for (const searchTerm of trickyValues) {
         const path = defaultRoutingTable.search.create({ searchTerm });
@@ -45,7 +45,7 @@ describe('router', () => {
     });
 
     it('encodes a space as %20 and decodes it back to a literal space', async () => {
-      const { defaultRoutingTable } = await import('../router');
+      const { defaultRoutingTable } = await import('@/core/routing/router');
 
       const path = defaultRoutingTable.search.create({ searchTerm: 'hello world' });
       expect(path).toBe('/search/hello%20world');
@@ -53,7 +53,7 @@ describe('router', () => {
     });
 
     it('encodes a "/" in the query as %2F so it still matches the search route', async () => {
-      const { defaultRoutingTable, matchRoute } = await import('../router');
+      const { defaultRoutingTable, matchRoute } = await import('@/core/routing/router');
 
       const path = defaultRoutingTable.search.create({ searchTerm: 'foo/bar' });
       expect(path).toBe('/search/foo%2Fbar');
@@ -64,14 +64,14 @@ describe('router', () => {
     });
 
     it('round-trips unicode and emoji query text', async () => {
-      const { defaultRoutingTable } = await import('../router');
+      const { defaultRoutingTable } = await import('@/core/routing/router');
 
       const path = defaultRoutingTable.search.create({ searchTerm: 'café 😀' });
       expect(defaultRoutingTable.search.get(path)).toEqual({ searchTerm: 'café 😀' });
     });
 
     it('decodes an already-encoded path (e.g. a deep link) back to the human-readable value', async () => {
-      const { defaultRoutingTable } = await import('../router');
+      const { defaultRoutingTable } = await import('@/core/routing/router');
 
       expect(defaultRoutingTable.search.get('/search/caf%C3%A9')).toEqual({
         searchTerm: 'café',
@@ -79,7 +79,7 @@ describe('router', () => {
     });
 
     it('raises the route-specific "Invalid ... path" error (not a raw URIError) on a malformed escape', async () => {
-      const { defaultRoutingTable } = await import('../router');
+      const { defaultRoutingTable } = await import('@/core/routing/router');
 
       expect(() => defaultRoutingTable.search.get('/search/%ZZ')).toThrow(
         'Invalid search path: /search/%ZZ',
@@ -88,7 +88,7 @@ describe('router', () => {
     });
 
     it('round-trips collection.collectionName', async () => {
-      const { defaultRoutingTable } = await import('../router');
+      const { defaultRoutingTable } = await import('@/core/routing/router');
 
       for (const collectionName of trickyValues.filter(v => !v.includes('/'))) {
         const path = defaultRoutingTable.collection.create({ collectionName });
@@ -97,14 +97,14 @@ describe('router', () => {
     });
 
     it('round-trips entryNew.collectionName', async () => {
-      const { defaultRoutingTable } = await import('../router');
+      const { defaultRoutingTable } = await import('@/core/routing/router');
 
       const path = defaultRoutingTable.entryNew.create({ collectionName: 'café-posts' });
       expect(defaultRoutingTable.entryNew.get(path)).toEqual({ collectionName: 'café-posts' });
     });
 
     it('round-trips entry.{collectionName,slug}', async () => {
-      const { defaultRoutingTable } = await import('../router');
+      const { defaultRoutingTable } = await import('@/core/routing/router');
 
       const path = defaultRoutingTable.entry.create({
         collectionName: 'posts',
@@ -117,7 +117,7 @@ describe('router', () => {
     });
 
     it('round-trips collectionSearch.{collectionName,searchTerm}, encoding a literal "/"', async () => {
-      const { defaultRoutingTable } = await import('../router');
+      const { defaultRoutingTable } = await import('@/core/routing/router');
 
       const path = defaultRoutingTable.collectionSearch.create({
         collectionName: 'posts',
@@ -131,7 +131,7 @@ describe('router', () => {
     });
 
     it('round-trips collectionFilter.{collectionName,filterTerm}', async () => {
-      const { defaultRoutingTable } = await import('../router');
+      const { defaultRoutingTable } = await import('@/core/routing/router');
 
       const path = defaultRoutingTable.collectionFilter.create({
         collectionName: 'posts',
@@ -144,7 +144,7 @@ describe('router', () => {
     });
 
     it('round-trips editRedirect.{collectionName,slug}', async () => {
-      const { defaultRoutingTable } = await import('../router');
+      const { defaultRoutingTable } = await import('@/core/routing/router');
 
       const path = defaultRoutingTable.editRedirect.create({
         collectionName: 'posts',
@@ -159,13 +159,13 @@ describe('router', () => {
 
   describe('matchRoute', () => {
     it('returns null (not a thrown error) for an unmatched path', async () => {
-      const { defaultRoutingTable, matchRoute } = await import('../router');
+      const { defaultRoutingTable, matchRoute } = await import('@/core/routing/router');
 
       expect(matchRoute(defaultRoutingTable, '/does/not/exist')).toBeNull();
     });
 
     it('lands a malformed-escape deep link on no match rather than throwing', async () => {
-      const { defaultRoutingTable, matchRoute } = await import('../router');
+      const { defaultRoutingTable, matchRoute } = await import('@/core/routing/router');
 
       expect(matchRoute(defaultRoutingTable, '/search/%ZZ')).toBeNull();
     });
@@ -173,7 +173,7 @@ describe('router', () => {
 
   describe('defaultRouter', () => {
     it('navigate() encodes the search term when pushing', async () => {
-      const { defaultRouter } = await import('../router');
+      const { defaultRouter } = await import('@/core/routing/router');
 
       defaultRouter.navigate('search', { searchTerm: 'hello world' });
       expect(history.push).toHaveBeenCalledWith('/search/hello%20world');
@@ -181,7 +181,7 @@ describe('router', () => {
 
     it('params() decodes the search term parsed from the current location', async () => {
       history.location = { pathname: '/search/hello%20world', search: '' } as History['location'];
-      const { defaultRouter } = await import('../router');
+      const { defaultRouter } = await import('@/core/routing/router');
 
       expect(defaultRouter.params('search')).toEqual({ searchTerm: 'hello world' });
     });

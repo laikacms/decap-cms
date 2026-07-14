@@ -16,7 +16,7 @@ import {
   getMediaDisplayURL,
   runWithLock,
   unsentRequest,
-} from '../../lib/util/index';
+} from '@/lib/util/index';
 import API, { API_NAME } from './API';
 import AuthenticationPage from './AuthenticationPage';
 
@@ -32,7 +32,7 @@ import type {
   CmsPersistOptions,
   CmsUser,
   Semaphore,
-} from '../../lib/util/index';
+} from '@/lib/util/index';
 import type { GiteaUser } from './types';
 
 const MAX_CONCURRENT_DOWNLOADS = 10;

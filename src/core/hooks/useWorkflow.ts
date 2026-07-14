@@ -1,16 +1,16 @@
 import { useMemo, useCallback } from 'react';
 
 import { useAppDispatch, useAppSelector } from './useRedux';
-import { EDITORIAL_WORKFLOW } from '../constants/publishModes';
-import { selectUnpublishedEntry } from '../reducers';
-import { selectAllowDeletion } from '../reducers/collections';
-import { loadUnpublishedEntry, persistUnpublishedEntry } from '../actions/editorialWorkflow';
+import { EDITORIAL_WORKFLOW } from '@/core/constants/publishModes';
+import { selectUnpublishedEntry } from '@/core/reducers';
+import { selectAllowDeletion } from '@/core/reducers/collections';
+import { loadUnpublishedEntry, persistUnpublishedEntry } from '@/core/actions/editorialWorkflow';
 import {
   loadEntry as loadEntryAction,
   persistEntry as persistEntryAction,
-} from '../actions/entries';
+} from '@/core/actions/entries';
 
-import type { CmsCollectionState } from '../../lib/util/index';
+import type { CmsCollectionState } from '@/lib/util/index';
 
 type Collection = CmsCollectionState;
 

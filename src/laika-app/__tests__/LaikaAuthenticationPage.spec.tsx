@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import LaikaAuthenticationPage from '../LaikaAuthenticationPage';
+import LaikaAuthenticationPage from '@/laika-app/LaikaAuthenticationPage';
 
 const baseProps = {
   AuthComponent: function MockAuth(props: { onLogin: () => void }) {

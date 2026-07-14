@@ -23,7 +23,7 @@ import {
   filterByExtension,
   branchFromContentKey,
   getDefaultBranchName,
-} from '../../lib/util/index';
+} from '@/lib/util/index';
 import AuthenticationPage from './AuthenticationPage';
 import API, { API_NAME } from './API';
 
@@ -41,7 +41,7 @@ import type {
   CmsUnpublishedEntryMediaFile,
   AsyncLock,
   Semaphore,
-} from '../../lib/util/index';
+} from '@/lib/util/index';
 
 const MAX_CONCURRENT_DOWNLOADS = 10;
 

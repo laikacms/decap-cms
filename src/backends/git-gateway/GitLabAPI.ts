@@ -1,8 +1,8 @@
-import { API as GitlabAPI } from '../gitlab/index';
-import { unsentRequest } from '../../lib/util/index';
+import { API as GitlabAPI } from '@/backends/gitlab/index';
+import { unsentRequest } from '@/lib/util/index';
 
-import type { Config as GitLabConfig, CommitAuthor } from '../gitlab/index';
-import type { ApiRequest } from '../../lib/util/index';
+import type { Config as GitLabConfig, CommitAuthor } from '@/backends/gitlab/index';
+import type { ApiRequest } from '@/lib/util/index';
 
 type Config = GitLabConfig & { tokenPromise: () => Promise<string>; commitAuthor: CommitAuthor };
 

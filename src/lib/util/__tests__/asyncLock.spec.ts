@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { asyncLock } from '../asyncLock.js';
+import { asyncLock } from '@/lib/util/asyncLock.js';
 
 vi.useFakeTimers();
 vi.spyOn(console, 'warn').mockImplementation(() => {});

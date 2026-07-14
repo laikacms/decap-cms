@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { colors } from '../../../../../ui/default/index';
-import { styleStrings } from '../EditorControl';
+import { colors } from '@/ui/default/index';
+import { styleStrings } from '@/core/components/Editor/EditorControlPane/EditorControl';
 
 /**
  * Regression test for DCMS-421: the widget input value text color was

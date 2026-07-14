@@ -1,14 +1,14 @@
 import isEqual from 'lodash/isEqual';
 
-import { currentBackend } from '../backend';
-import { getIntegrationProvider } from '../integrations';
-import { selectIntegration } from '../reducers';
+import { currentBackend } from '@/core/backend';
+import { getIntegrationProvider } from '@/core/integrations';
+import { selectIntegration } from '@/core/reducers';
 
-import type { QueryRequest } from '../reducers/search';
-import type { CmsCollectionState } from '../../lib/util/index';
+import type { QueryRequest } from '@/core/reducers/search';
+import type { CmsCollectionState } from '@/lib/util/index';
 import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
-import type { EntryValue } from '../valueObjects/Entry';
+import type { EntryValue } from '@/core/valueObjects/Entry';
 
 type State = any;
 type Collection = CmsCollectionState;

@@ -2,27 +2,27 @@ import React, { useCallback, useMemo } from 'react';
 import styled from '@emotion/styled';
 import { useTranslate } from 'react-polyglot';
 
-import { lengths, components } from '../../../ui/default/index';
-import { useAppSelector, useAppDispatch } from '../../hooks/useRedux';
-import { getNewEntryUrl } from '../../lib/urlHelper';
+import { lengths, components } from '@/ui/default/index';
+import { useAppSelector, useAppDispatch } from '@/core/hooks/useRedux';
+import { getNewEntryUrl } from '@/core/lib/urlHelper';
 import Sidebar from './Sidebar';
 import CollectionTop from './CollectionTop';
-import { useCmsSlots } from '../../lib/slots';
+import { useCmsSlots } from '@/core/lib/slots';
 import EntriesCollection from './Entries/EntriesCollection';
 import EntriesSearch from './Entries/EntriesSearch';
 import CollectionControls from './CollectionControls';
-import { sortByField, filterByField, changeViewStyle, groupByField } from '../../actions/entries';
+import { sortByField, filterByField, changeViewStyle, groupByField } from '@/core/actions/entries';
 import {
   selectSortableFields,
   selectViewFilters,
   selectViewGroups,
-} from '../../reducers/collections';
+} from '@/core/reducers/collections';
 import {
   selectEntriesSort,
   selectEntriesFilter,
   selectEntriesGroup,
   selectViewStyle,
-} from '../../reducers/entries';
+} from '@/core/reducers/entries';
 
 import type {
   CmsCollectionState,
@@ -30,7 +30,7 @@ import type {
   CmsViewFilter,
   CmsViewGroup,
   CmsSortDirection,
-} from '../../../lib/util/index';
+} from '@/lib/util/index';
 
 const CollectionContainer = styled.div`
   margin: ${lengths.pageMargin};

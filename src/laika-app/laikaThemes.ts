@@ -1,4 +1,4 @@
-import type { DecapTheme } from '../core/index';
+import type { DecapTheme } from '@/core/index';
 
 /**
  * Laika-flavored themes, expressed as `DecapTheme` overrides. Pass either to

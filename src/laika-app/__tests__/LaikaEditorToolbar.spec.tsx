@@ -17,7 +17,7 @@ vi.mock('../../core/components/UI', () => ({
   SettingsDropdown: () => <div data-testid="settings-dropdown" />,
 }));
 
-import LaikaEditorToolbar from '../LaikaEditorToolbar';
+import LaikaEditorToolbar from '@/laika-app/LaikaEditorToolbar';
 
 const baseProps = {
   collection: { name: 'posts', label: 'Posts' } as any,

@@ -1,6 +1,6 @@
 import isError from 'lodash/isError';
 
-import { EditorialWorkflowError, APIError, unsentRequest, blobToFileObj } from '../../lib/util/index';
+import { EditorialWorkflowError, APIError, unsentRequest, blobToFileObj } from '@/lib/util/index';
 import AuthenticationPage from './AuthenticationPage';
 
 import type {
@@ -14,7 +14,7 @@ import type {
   CmsUnpublishedEntry,
   CmsFileEntry,
   CmsDataFile,
-} from '../../lib/util/index';
+} from '@/lib/util/index';
 
 async function serializeAsset(assetProxy: CmsAssetProxy) {
   const base64content = await assetProxy.toBase64!();

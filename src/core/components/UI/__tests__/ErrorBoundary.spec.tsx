@@ -3,7 +3,7 @@ import { render } from '@testing-library/react';
 import { oneLineTrim } from 'common-tags';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ErrorBoundary } from '../ErrorBoundary';
+import { ErrorBoundary } from '@/core/components/UI/ErrorBoundary';
 
 function WithError() {
   throw new Error('Some unknown error');

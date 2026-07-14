@@ -1,11 +1,11 @@
 import React, { createElement, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
-import { DecapCmsCore as CMS } from '../core/index';
+import { DecapCmsCore as CMS } from '@/core/index';
 import LaikaApp from './LaikaApp';
 import LaikaProvider from './LaikaProvider';
 
-import type { CmsConfig } from '../core/index';
+import type { CmsConfig } from '@/core/index';
 
 /**
  * `@laikacms/decap-cms/laika-app/bare` — the same public API as `/laika-app`
@@ -161,7 +161,7 @@ export { default as LaikaProvider } from './LaikaProvider';
 export type { LaikaProviderProps } from './LaikaProvider';
 export { laikaLightTheme, laikaDarkTheme, resolveTheme } from './laikaThemes';
 export type { LaikaThemeMode } from './laikaThemes';
-export { Icon, colors, colorsRaw, lengths, zIndex, shadows } from '../ui/default/index';
+export { Icon, colors, colorsRaw, lengths, zIndex, shadows } from '@/ui/default/index';
 
 export const LaikaCmsApp = {
   ...CMS,

@@ -4,11 +4,11 @@ import memoize from 'lodash/memoize';
 import get from 'lodash/get';
 import isObject from 'lodash/isObject';
 
-import { colors, lengths, ObjectWidgetTopBar } from '../../ui/default/index';
-import { stringTemplate } from '../../lib/widgets/index';
+import { colors, lengths, ObjectWidgetTopBar } from '@/ui/default/index';
+import { stringTemplate } from '@/lib/widgets/index';
 
-import type { TranslateFunction } from '../../ui/default/index';
-import type { CmsField, CmsFieldBase, CmsFieldObject } from '../../lib/util/index';
+import type { TranslateFunction } from '@/ui/default/index';
+import type { CmsField, CmsFieldBase, CmsFieldObject } from '@/lib/util/index';
 
 const styleStrings = {
   nestedObjectControl: `s

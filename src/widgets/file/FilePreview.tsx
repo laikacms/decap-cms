@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from '@emotion/styled';
 
-import { WidgetPreviewContainer } from '../../ui/default/index';
+import { WidgetPreviewContainer } from '@/ui/default/index';
 
 interface FileLinkProps {
   href: string;

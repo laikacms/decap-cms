@@ -6,7 +6,7 @@ import customParseFormat from 'dayjs/plugin/customParseFormat';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import utc from 'dayjs/plugin/utc';
 
-import { buttons } from '../../ui/default/index';
+import { buttons } from '@/ui/default/index';
 
 dayjs.extend(customParseFormat);
 dayjs.extend(localizedFormat);

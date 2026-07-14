@@ -3,10 +3,10 @@ import get from 'lodash/get';
 import groupBy from 'lodash/groupBy';
 import escapeRegExp from 'lodash/escapeRegExp';
 
-import { selectEntrySlug } from '../reducers/collections';
+import { selectEntrySlug } from '@/core/reducers/collections';
 
-import type { CmsCollectionState, CmsEntry, CmsEntryField } from '../../lib/util/index';
-import type { EntryValue } from '../valueObjects/Entry';
+import type { CmsCollectionState, CmsEntry, CmsEntryField } from '@/lib/util/index';
+import type { EntryValue } from '@/core/valueObjects/Entry';
 
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;

@@ -1,6 +1,6 @@
-import { WAIT_UNTIL_ACTION } from '../redux/middleware/waitUntilAction';
+import { WAIT_UNTIL_ACTION } from '@/core/redux/middleware/waitUntilAction';
 
-import type { WaitActionArgs } from '../redux/middleware/waitUntilAction';
+import type { WaitActionArgs } from '@/core/redux/middleware/waitUntilAction';
 import type { ThunkDispatch } from 'redux-thunk';
 import type { AnyAction } from 'redux';
 

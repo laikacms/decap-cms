@@ -4,9 +4,9 @@ import {
   DEPLOY_PREVIEW_REQUEST,
   DEPLOY_PREVIEW_SUCCESS,
   DEPLOY_PREVIEW_FAILURE,
-} from '../actions/deploys';
+} from '@/core/actions/deploys';
 
-import type { DeploysAction } from '../actions/deploys';
+import type { DeploysAction } from '@/core/actions/deploys';
 
 export type Deploys = {
   [key: string]: {

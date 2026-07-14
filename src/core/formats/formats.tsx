@@ -4,15 +4,15 @@ import yamlFormatter from './yaml';
 import tomlFormatter from './toml';
 import jsonFormatter from './json';
 import { FrontmatterInfer, frontmatterJSON, frontmatterTOML, frontmatterYAML } from './frontmatter';
-import { getCustomFormatsExtensions, getCustomFormatsFormatters } from '../lib/registry';
+import { getCustomFormatsExtensions, getCustomFormatsFormatters } from '@/core/lib/registry';
 
 import type { Delimiter } from './frontmatter';
 import type {
   CmsCollectionState,
   CmsFormatterFunctions,
   CmsCollectionFormatType,
-} from '../../lib/util/index';
-import type { EntryValue } from '../valueObjects/Entry';
+} from '@/lib/util/index';
+import type { EntryValue } from '@/core/valueObjects/Entry';
 
 type Collection = CmsCollectionState;
 type Format = CmsCollectionFormatType;

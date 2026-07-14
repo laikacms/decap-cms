@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import component from '../index';
+import component from '@/editor-component-image/index';
 
 function getAsset(path) {
   return path;

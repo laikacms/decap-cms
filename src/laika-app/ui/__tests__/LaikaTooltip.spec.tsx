@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import LaikaTooltip from '../LaikaTooltip';
+import LaikaTooltip from '@/laika-app/ui/LaikaTooltip';
 
 describe('LaikaTooltip', () => {
   it('renders both the child and the bubble', () => {

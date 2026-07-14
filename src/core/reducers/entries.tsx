@@ -6,12 +6,12 @@ import set from 'lodash/set';
 import orderBy from 'lodash/orderBy';
 import groupBy from 'lodash/groupBy';
 
-import { isAbsolutePath, basename, dirname, join } from '../../lib/util/index';
-import { stringTemplate } from '../../lib/widgets/index';
-import { CmsSortDirection as SortDirection } from '../../lib/util/index';
-import { folderFormatter } from '../lib/formatters';
+import { isAbsolutePath, basename, dirname, join } from '@/lib/util/index';
+import { stringTemplate } from '@/lib/widgets/index';
+import { CmsSortDirection as SortDirection } from '@/lib/util/index';
+import { folderFormatter } from '@/core/lib/formatters';
 import { selectSortDataPath } from './collections';
-import { SEARCH_ENTRIES_SUCCESS } from '../actions/search';
+import { SEARCH_ENTRIES_SUCCESS } from '@/core/actions/search';
 import {
   ENTRY_REQUEST,
   ENTRY_SUCCESS,
@@ -30,9 +30,9 @@ import {
   GROUP_ENTRIES_SUCCESS,
   GROUP_ENTRIES_FAILURE,
   CHANGE_VIEW_STYLE,
-} from '../actions/entries';
-import { VIEW_STYLE_LIST } from '../constants/collectionViews';
-import { joinUrlPath } from '../lib/urlHelper';
+} from '@/core/actions/entries';
+import { VIEW_STYLE_LIST } from '@/core/constants/collectionViews';
+import { joinUrlPath } from '@/core/lib/urlHelper';
 
 import type { AnyAction } from 'redux';
 import type {
@@ -45,7 +45,7 @@ import type {
   CmsSortObject,
   CmsViewFilter,
   CmsViewGroup,
-} from '../../lib/util/index';
+} from '@/lib/util/index';
 
 type SortMap = Record<string, CmsSortObject>;
 type Sort = Record<string, SortMap>;

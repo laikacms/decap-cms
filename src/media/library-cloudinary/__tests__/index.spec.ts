@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { loadScript } from '../../../lib/util/index';
-import cloudinary from '../index';
+import { loadScript } from '@/lib/util/index';
+import cloudinary from '@/media/library-cloudinary/index';
 
 vi.mock('../../../lib/util/index');
 

@@ -6,7 +6,7 @@ import LaikaSidebar from './LaikaSidebar';
 import LaikaCommandPalette from './LaikaCommandPalette';
 import { LAIKA_BREAKPOINT_MOBILE } from './LaikaShellContext';
 
-import type { AppLayoutRenderProps } from '../app/components/index';
+import type { AppLayoutRenderProps } from '@/app/components/index';
 
 /**
  * Sidebar + main shell, supplied to `core.App` via `renderLayout`. The
