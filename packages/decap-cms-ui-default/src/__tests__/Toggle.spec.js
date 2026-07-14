@@ -58,6 +58,18 @@ describe('Toggle', () => {
     expect(toggle).toHaveAttribute('aria-checked', 'true');
   });
 
+  it('forwards aria-label to the underlying switch element', () => {
+    const { getByRole } = setup({ 'aria-label': 'Toggle to markdown mode' });
+    const toggle = getByRole('switch');
+    expect(toggle).toHaveAttribute('aria-label', 'Toggle to markdown mode');
+  });
+
+  it('forwards aria-labelledby to the underlying switch element', () => {
+    const { getByRole } = setup({ 'aria-labelledby': 'mode-label' });
+    const toggle = getByRole('switch');
+    expect(toggle).toHaveAttribute('aria-labelledby', 'mode-label');
+  });
+
   it('calls onFocus when focused', () => {
     const { getByRole, props } = setup();
     const toggle = getByRole('switch');
