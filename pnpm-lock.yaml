@@ -325,9 +325,6 @@ catalogs:
     react-topbar-progress-indicator:
       specifier: ^4.1.1
       version: 4.1.1
-    react-transition-group:
-      specifier: ^4.4.5
-      version: 4.4.5
     react-virtualized-auto-sizer:
       specifier: ^2.0.3
       version: 2.0.3
@@ -798,9 +795,6 @@ importers:
       react-topbar-progress-indicator:
         specifier: catalog:react
         version: 4.1.1(react@19.2.4)
-      react-transition-group:
-        specifier: catalog:react
-        version: 4.4.5(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react-virtualized-auto-sizer:
         specifier: catalog:react
         version: 2.0.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
