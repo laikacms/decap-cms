@@ -11,7 +11,7 @@ import { Loader, colors } from 'decap-cms-ui-default';
 import { loginUser, logoutUser } from '../../actions/auth';
 import { currentBackend } from '../../backend';
 import { createNewEntry } from '../../actions/collections';
-import { openMediaLibrary } from '../../actions/mediaLibrary';
+import { openMediaLibrary, closeMediaLibrary } from '../../actions/mediaLibrary';
 import MediaLibrary from '../MediaLibrary/MediaLibrary';
 import { Notifications } from '../UI';
 import { history } from '../../routing/history';
@@ -68,6 +68,24 @@ export function MediaRoute({ openMediaLibrary, defaultPath }) {
     openMediaLibrary();
   }, [openMediaLibrary]);
   return <Redirect to={defaultPath} />;
+}
+
+// Whether a route change should dismiss an open Media Library modal (DCMS-537).
+// Address-bar/paste/bookmark/back-forward navigation away from whatever route
+// was showing when the modal opened must close it, since nothing else does:
+// MediaLibrary only closes from its own × button (see MediaLibrary.js
+// handleClose). The one navigation that must NOT trigger this is the `/media`
+// deep-link route itself (MediaRoute above): it opens the modal and then
+// immediately <Redirect>s to defaultPath in the same update, and that
+// self-triggered redirect would otherwise close the modal it just opened.
+export function shouldCloseMediaLibraryOnLocationChange(
+  prevPathname,
+  nextPathname,
+  isMediaLibraryVisible,
+) {
+  return Boolean(
+    isMediaLibraryVisible && prevPathname !== nextPathname && prevPathname !== '/media',
+  );
 }
 
 // The Editor route (`/collections/:name/entries/*` and `/collections/:name/new`)
@@ -133,13 +151,28 @@ class App extends React.Component {
     siteId: PropTypes.string,
     useMediaLibrary: PropTypes.bool,
     openMediaLibrary: PropTypes.func.isRequired,
+    isMediaLibraryVisible: PropTypes.bool,
+    closeMediaLibrary: PropTypes.func.isRequired,
     showMediaButton: PropTypes.bool,
     t: PropTypes.func.isRequired,
+    location: PropTypes.shape({ pathname: PropTypes.string }).isRequired,
   };
 
   componentDidMount() {
     // Manually validate PropTypes - React 19 breaking change
     PropTypes.checkPropTypes(App.propTypes, this.props, 'prop', 'App');
+  }
+
+  componentDidUpdate(prevProps) {
+    if (
+      shouldCloseMediaLibraryOnLocationChange(
+        prevProps.location.pathname,
+        this.props.location.pathname,
+        this.props.isMediaLibraryVisible,
+      )
+    ) {
+      this.props.closeMediaLibrary();
+    }
   }
 
   configError(config) {
@@ -359,6 +392,7 @@ function mapStateToProps(state) {
   const publishMode = config.publish_mode;
   const useMediaLibrary = !mediaLibrary.get('externalLibrary');
   const showMediaButton = mediaLibrary.get('showMediaButton');
+  const isMediaLibraryVisible = mediaLibrary.get('isVisible');
   return {
     auth,
     config,
@@ -368,11 +402,13 @@ function mapStateToProps(state) {
     publishMode,
     showMediaButton,
     useMediaLibrary,
+    isMediaLibraryVisible,
   };
 }
 
 const mapDispatchToProps = {
   openMediaLibrary,
+  closeMediaLibrary,
   loginUser,
   logoutUser,
 };
