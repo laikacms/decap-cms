@@ -1,4 +1,4 @@
-import { getChangedProps, valueToOption } from '../helpers';
+import { getChangedProps, valueToOption, slugifyLabel } from '../helpers';
 
 describe('getChangedProps', () => {
   it('returns undefined when no props changed', () => {
@@ -39,5 +39,29 @@ describe('valueToOption', () => {
 
   it('falls back to val.name as label when val.label is absent', () => {
     expect(valueToOption({ name: 'ts' })).toEqual({ value: 'ts', label: 'ts' });
+  });
+});
+
+describe('slugifyLabel', () => {
+  it('lowercases and hyphenates a multi-word label', () => {
+    expect(slugifyLabel('Ant Build System')).toBe('ant-build-system');
+  });
+
+  it('strips non-alphanumeric characters', () => {
+    expect(slugifyLabel('JSON5')).toBe('json5');
+    expect(slugifyLabel('JavaScript+ERB')).toBe('javascript-erb');
+  });
+
+  it('produces distinct values for distinct labels (DCMS-485)', () => {
+    const labels = [
+      'Ant Build System',
+      'Cloud Firestore Security Rules',
+      'JSON5',
+      'JavaScript+ERB',
+      'Maven POM',
+    ];
+    const slugs = labels.map(slugifyLabel);
+    expect(new Set(slugs).size).toBe(labels.length);
+    expect(slugs).not.toContain(undefined);
   });
 });
