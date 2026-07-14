@@ -87,10 +87,28 @@ export interface LaikaToggleSwitchProps extends Omit<
 }
 
 const LaikaToggleSwitch = React.forwardRef<HTMLInputElement, LaikaToggleSwitchProps>(
-  function LaikaToggleSwitch({ size = 'md', disabled, className, style, ...rest }, ref) {
+  function LaikaToggleSwitch({ size = 'md', disabled, className, style, onKeyDown, ...rest }, ref) {
+    // Native checkboxes only toggle on Space, not Enter. Base UI's `Switch`
+    // (see `src/lib/widgets/editor/ui/toggle.tsx`) also toggles on Enter, so
+    // trigger a click here to keep both toggle implementations consistent.
+    function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>): void {
+      onKeyDown?.(event);
+      if (!event.defaultPrevented && event.key === 'Enter') {
+        event.preventDefault();
+        event.currentTarget.click();
+      }
+    }
+
     return (
       <Wrap $size={size} $disabled={disabled} className={className} style={style}>
-        <HiddenInput ref={ref} type="checkbox" disabled={disabled} role="switch" {...rest} />
+        <HiddenInput
+          ref={ref}
+          type="checkbox"
+          disabled={disabled}
+          role="switch"
+          onKeyDown={handleKeyDown}
+          {...rest}
+        />
         <Track $size={size} />
         <Knob $size={size} />
       </Wrap>

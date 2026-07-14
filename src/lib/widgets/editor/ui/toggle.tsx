@@ -1,9 +1,28 @@
+import { Switch as SwitchPrimitive } from '@base-ui/react/switch';
 import * as React from 'react';
 
-import { css, variants } from './_styled';
+import { css, variants, type WithClassName } from './_styled';
 
 export type ToggleVariant = 'default' | 'outline';
 export type ToggleSize = 'default' | 'sm' | 'lg';
+
+/**
+ * Shared, unstyled Base UI `Switch` parts. Consumers supply their own visual
+ * layer (via the `render` prop for the root element, and/or their own thumb
+ * markup) so on/off toggle implementations across the app converge on a
+ * single controlled, accessible primitive instead of hand-rolled state.
+ */
+export function Switch(
+  props: WithClassName<React.ComponentProps<typeof SwitchPrimitive.Root>>,
+): React.ReactNode {
+  return <SwitchPrimitive.Root data-slot="switch" {...props} />;
+}
+
+export function SwitchThumb(
+  props: WithClassName<React.ComponentProps<typeof SwitchPrimitive.Thumb>>,
+): React.ReactNode {
+  return <SwitchPrimitive.Thumb data-slot="switch-thumb" {...props} />;
+}
 
 const base = css`
   display: inline-flex;
