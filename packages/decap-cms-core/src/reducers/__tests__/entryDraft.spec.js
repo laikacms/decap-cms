@@ -137,6 +137,53 @@ describe('entryDraft reducer', () => {
 
       expect(newState.get('hasChanged')).toBe(true);
     });
+
+    it('does not mark an existing entry as changed when a widget mount write is a no-op, even without a fromDefault tag (DCMS-560)', () => {
+      // Reproduces widgets other than DateTimeControl (RichtextControl,
+      // BooleanControl, MarkdownControl, ListControl) that fire a
+      // mount-time onChange re-affirming the value already present in the
+      // loaded entry, without tagging the write `{ fromDefault: true }`.
+      // `entries` (the published/unpublished lookup used to detect
+      // reverted edits) is deliberately left empty here to simulate it
+      // being unavailable/stale, which used to force `hasChanged` to `true`
+      // unconditionally for any non-`fromDefault` write.
+      const booleanField = fromJS({ name: 'draft' });
+      const existingRecordState = initialState
+        .set('entry', fromJS({ ...entry, data: { draft: false }, newRecord: false }))
+        .set('hasChanged', false);
+
+      const newState = reducer(
+        existingRecordState,
+        actions.changeDraftField({
+          field: booleanField,
+          value: false,
+          metadata: {},
+          entries: [],
+        }),
+      );
+
+      expect(newState.get('hasChanged')).toBe(false);
+      expect(newState.getIn(['entry', 'data', 'draft'])).toBe(false);
+    });
+
+    it('still marks an existing entry as changed for a real edit even when entries is empty', () => {
+      const booleanField = fromJS({ name: 'draft' });
+      const existingRecordState = initialState
+        .set('entry', fromJS({ ...entry, data: { draft: false }, newRecord: false }))
+        .set('hasChanged', false);
+
+      const newState = reducer(
+        existingRecordState,
+        actions.changeDraftField({
+          field: booleanField,
+          value: true,
+          metadata: {},
+          entries: [],
+        }),
+      );
+
+      expect(newState.get('hasChanged')).toBe(true);
+    });
   });
 
   describe('DRAFT_DISCARD', () => {
