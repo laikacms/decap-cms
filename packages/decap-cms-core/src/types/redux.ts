@@ -774,7 +774,11 @@ export type Integrations = StaticallyTypedRecord<{
   hooks: { [collectionOrHook: string]: string | Record<string, string> };
 }>;
 
-export type Cursors = StaticallyTypedRecord<{}>;
+export interface Cursors {
+  cursorsByType: {
+    collectionEntries: Record<string, unknown>;
+  };
+}
 
 export interface State {
   auth: Auth;
