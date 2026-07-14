@@ -96,6 +96,62 @@ describe('Editor', () => {
     expect(asFragment()).toMatchSnapshot();
   });
 
+  it('should restore the URL when the leave-confirm dialog is cancelled and the editor stays dirty and mounted (DCMS-523)', () => {
+    jest.useFakeTimers();
+    try {
+      const { history } = require('../../../routing/history');
+      history.createHref.mockReturnValue('#/collections/posts/new');
+
+      render(
+        <Editor
+          {...props}
+          entryDraft={fromJS({ entry: { slug: 'slug' }, hasChanged: true })}
+          entry={fromJS({ isFetching: false })}
+          hasChanged={true}
+        />,
+      );
+
+      // Simulate a browser Back that already advanced the URL bar to the
+      // collection index before the leave-confirm dialog resolves, and the
+      // user cancels (editor stays mounted, dirty, and unaware of the
+      // dialog's outcome other than staying put).
+      window.location.hash = '#/collections/posts';
+      window.dispatchEvent(new Event('hashchange'));
+      jest.runAllTimers();
+
+      expect(window.location.hash).toBe('#/collections/posts/new');
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('should not touch the URL on hashchange once the editor has unmounted', () => {
+    jest.useFakeTimers();
+    try {
+      const { history } = require('../../../routing/history');
+      history.createHref.mockReturnValue('#/collections/posts/new');
+
+      const { unmount } = render(
+        <Editor
+          {...props}
+          entryDraft={fromJS({ entry: { slug: 'slug' }, hasChanged: true })}
+          entry={fromJS({ isFetching: false })}
+          hasChanged={true}
+        />,
+      );
+
+      unmount();
+
+      window.location.hash = '#/collections/posts';
+      window.dispatchEvent(new Event('hashchange'));
+      jest.runAllTimers();
+
+      expect(window.location.hash).toBe('#/collections/posts');
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('should render EntryNotFound instead of unmounting when entry failed to load', () => {
     const { asFragment, container } = render(
       <Editor
