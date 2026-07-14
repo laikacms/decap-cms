@@ -449,6 +449,8 @@ declare module 'decap-cms-core' {
     identity_url?: string;
     /** git-gateway: whether to apply large media transforms in the media library */
     use_large_media_transforms_in_media_library?: boolean;
+    /** git-gateway: Netlify personal access token used to look up deploy previews on sites with private deploy logs */
+    netlify_api_token?: string;
   }
 
   export interface CmsSlug {
