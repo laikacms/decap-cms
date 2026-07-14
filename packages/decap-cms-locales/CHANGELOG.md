@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## Unreleased
+
+### Bug Fixes
+
+- **locale/ua,uk:** `ua` and `uk` both shipped a full, diverged Ukrainian translation. `uk` (the correct ISO 639-1 code) is now the single canonical Ukrainian locale; `ua` is a deprecated alias that re-exports `uk` for back-compat with existing `registerLocale('ua', ...)` callers, and a pinning test guards against the two drifting apart again (DCMS-534).
+
 ## [3.5.1](https://github.com/decaporg/decap-cms/compare/decap-cms-locales@3.5.0...decap-cms-locales@3.5.1) (2026-02-23)
 
 ### Bug Fixes
