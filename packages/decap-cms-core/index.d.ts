@@ -379,6 +379,16 @@ declare module 'decap-cms-core' {
       subfolders?: boolean;
       summary?: string;
     };
+    /**
+     * Adds a `path` field to entries in a nested collection, letting editors
+     * choose which folder (relative to the collection's `folder`) an entry is
+     * saved under.
+     *
+     * `meta.path.index_file` sets the filename (without extension) used for
+     * every entry's data file within that directory, e.g. `_index` writes
+     * `_index.md`. If omitted, the filename is instead generated from the
+     * entry's `title` field, or preserved as-is for existing entries.
+     */
     meta?: { path?: { label: string; widget: string; index_file?: string } };
 
     /**

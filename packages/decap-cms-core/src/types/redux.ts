@@ -388,6 +388,13 @@ export interface CmsCollection {
     depth: number;
   };
   type: typeof FOLDER | typeof FILES;
+  /**
+   * `meta.path.index_file` sets the filename (without extension) used for
+   * every entry's data file within the directory chosen via the nested
+   * collection's `path` field, e.g. `_index` writes `_index.md`. If omitted,
+   * the filename is generated from the entry's `title` field, or preserved
+   * as-is for existing entries.
+   */
   meta?: { path?: { label: string; widget: string; index_file?: string } };
 
   /**
