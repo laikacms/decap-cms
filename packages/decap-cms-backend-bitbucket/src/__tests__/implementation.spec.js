@@ -94,3 +94,30 @@ describe('BitbucketBackend.authenticate()', () => {
     expect(backend.branch).toBe('master');
   });
 });
+
+describe('BitbucketBackend backend config keys', () => {
+  test('applies documented defaults when config keys are not set', () => {
+    const backend = new BitbucketBackend(makeConfig());
+
+    expect(backend.largeMediaURL).toBe('https://bitbucket.org/owner/repo/info/lfs');
+    expect(backend.squashMerges).toBe(false);
+    expect(backend.cmsLabelPrefix).toBe('');
+    expect(backend.previewContext).toBe('');
+  });
+
+  test('reads squash_merges, cms_label_prefix, preview_context and large_media_url from config.backend', () => {
+    const backend = new BitbucketBackend(
+      makeConfig({
+        large_media_url: 'https://lfs.example.com/owner/repo/info/lfs',
+        squash_merges: true,
+        cms_label_prefix: 'cms/',
+        preview_context: 'ci/preview',
+      }),
+    );
+
+    expect(backend.largeMediaURL).toBe('https://lfs.example.com/owner/repo/info/lfs');
+    expect(backend.squashMerges).toBe(true);
+    expect(backend.cmsLabelPrefix).toBe('cms/');
+    expect(backend.previewContext).toBe('ci/preview');
+  });
+});
