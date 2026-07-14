@@ -11,6 +11,7 @@ import type { Search } from '../reducers/search';
 import type { GlobalUI } from '../reducers/globalUI';
 import type { NotificationsState } from '../reducers/notifications';
 import type { formatExtensions } from '../formats/formats';
+import type { StandardSchemaV1 } from './standardSchema';
 
 export type CmsBackendType =
   | 'azure'
@@ -82,6 +83,15 @@ export interface CmsFieldBase {
   public_folder?: string;
   comment?: string;
   visualEditing?: boolean;
+  /**
+   * Opt-in field-level validation via any Standard Schema-compliant validator
+   * (zod, valibot, arktype, effect Schema, ...), see
+   * https://github.com/standard-schema/standard-schema. When set, this schema's
+   * `~standard.validate` issues become the field's error output, in place of
+   * (not in addition to) the built-in `required`/`pattern` checks. Fields that
+   * don't set `validate` keep the existing widget validation DSL unchanged.
+   */
+  validate?: StandardSchemaV1<unknown, unknown>;
 }
 
 export interface CmsFieldBoolean {
