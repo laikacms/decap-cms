@@ -132,7 +132,7 @@ const WorkflowBadge = styled.span`
   }};
 `;
 
-function CardImage({ getAsset, value, field }) {
+export function CardImage({ getAsset, value, field }) {
   const [asset, setAsset] = useState(null);
 
   useEffect(() => {
@@ -142,7 +142,7 @@ function CardImage({ getAsset, value, field }) {
   return asset ? <StyledImage src={asset.toString()} /> : null;
 }
 
-function EntryCard({
+export function EntryCard({
   path,
   summary,
   image,
@@ -210,7 +210,7 @@ function EntryCard({
   }
 }
 
-function mapStateToProps(state, ownProps) {
+export function mapStateToProps(state, ownProps) {
   const { entry, inferredFields, collection } = ownProps;
   const entryData = entry.get('data');
   const summary = selectEntryCollectionTitle(collection, entry);
@@ -233,13 +233,13 @@ function mapStateToProps(state, ownProps) {
   };
 }
 
-function mapDispatchToProps(dispatch) {
+export function mapDispatchToProps(dispatch) {
   return {
     boundGetAsset: (collection, entry) => boundGetAsset(dispatch, collection, entry),
   };
 }
 
-function mergeProps(stateProps, dispatchProps, ownProps) {
+export function mergeProps(stateProps, dispatchProps, ownProps) {
   return {
     ...stateProps,
     ...dispatchProps,
