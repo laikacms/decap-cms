@@ -1,19 +1,35 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { css, keyframes } from '@emotion/react';
-import { CSSTransition } from 'react-transition-group';
 
 import { colors, zIndex } from './styles';
 
 import type { SerializedStyles } from '@emotion/react';
 
+const FADE_ENTER_MS = 500;
+const FADE_EXIT_MS = 300;
+
+const fadeInKeyframes = keyframes`
+  from {
+    opacity: 0.01;
+  }
+  to {
+    opacity: 1;
+  }
+`;
+
+const fadeOutKeyframes = keyframes`
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.01;
+  }
+`;
+
 interface LoaderStyles {
   disabled: SerializedStyles;
   active: SerializedStyles;
-  enter: SerializedStyles;
-  enterActive: SerializedStyles;
-  exit: SerializedStyles;
-  exitActive: SerializedStyles;
 }
 
 const styles: LoaderStyles = {
@@ -22,20 +38,6 @@ const styles: LoaderStyles = {
   `,
   active: css`
     display: block;
-  `,
-  enter: css`
-    opacity: 0.01;
-  `,
-  enterActive: css`
-    opacity: 1;
-    transition: opacity 500ms ease-in;
-  `,
-  exit: css`
-    opacity: 1;
-  `,
-  exitActive: css`
-    opacity: 0.01;
-    transition: opacity 300ms ease-in;
   `,
 };
 
@@ -70,6 +72,14 @@ const LoaderItem = styled.div`
   transform: translateX(-50%);
 `;
 
+const LoaderItemEnter = styled(LoaderItem)`
+  animation: ${fadeInKeyframes} ${FADE_ENTER_MS}ms ease-in forwards;
+`;
+
+const LoaderItemExit = styled(LoaderItem)`
+  animation: ${fadeOutKeyframes} ${FADE_EXIT_MS}ms ease-in forwards;
+`;
+
 export interface LoaderProps {
   children?: React.ReactNode;
   className?: string;
@@ -78,14 +88,24 @@ export interface LoaderProps {
 
 export function Loader({ children, className }: LoaderProps) {
   const [currentItem, setCurrentItem] = React.useState(0);
+  const [exitingItem, setExitingItem] = React.useState<number | null>(null);
 
   React.useEffect(() => {
     if (!Array.isArray(children)) return;
     const interval = setInterval(() => {
-      setCurrentItem(prev => (prev === children.length - 1 ? 0 : prev + 1));
+      setCurrentItem(prev => {
+        setExitingItem(prev);
+        return prev === children.length - 1 ? 0 : prev + 1;
+      });
     }, 5000);
     return () => clearInterval(interval);
   }, [children]);
+
+  React.useEffect(() => {
+    if (exitingItem === null) return;
+    const timeout = setTimeout(() => setExitingItem(null), FADE_EXIT_MS);
+    return () => clearTimeout(timeout);
+  }, [exitingItem]);
 
   let content: React.ReactNode = null;
   if (typeof children === 'string') {
@@ -93,17 +113,10 @@ export function Loader({ children, className }: LoaderProps) {
   } else if (Array.isArray(children)) {
     content = (
       <LoaderText>
-        <CSSTransition
-          classNames={{
-            enter: styles.enter.name,
-            enterActive: styles.enterActive.name,
-            exit: styles.exit.name,
-            exitActive: styles.exitActive.name,
-          }}
-          timeout={500}
-        >
-          <LoaderItem key={currentItem}>{children[currentItem]}</LoaderItem>
-        </CSSTransition>
+        {exitingItem !== null && (
+          <LoaderItemExit key={`exit-${exitingItem}`}>{children[exitingItem]}</LoaderItemExit>
+        )}
+        <LoaderItemEnter key={`enter-${currentItem}`}>{children[currentItem]}</LoaderItemEnter>
       </LoaderText>
     );
   }
