@@ -12,7 +12,8 @@ The List widget allows you to author a repeatable list of items.
 | `collapsed`          | boolean           | `false`  | Render list items collapsed by default                                    |
 | `summary`            | string            |         | Template for the summary shown on collapsed list items                    |
 | `minimize_collapsed` | boolean           | `false` | Render a minimized, single-line summary for collapsed list items          |
-| `label_singular`     | string            |         | Singular label used for the "Add" button and item summaries               |
+| `label_singular`     | string            |         | Singular label used for the "Add" button and heading when there is 1 item |
+| `label_plural`       | string            |         | Plural label used for the heading when there are 0 or 2+ items. Defaults to `label` if set, otherwise a naive English pluralization of `name` (e.g. `list` → `lists`) |
 | `i18n`               | boolean or string |         | i18n behavior for this field: `true`, `translate`, `duplicate`, or `none` |
 | `min`                | integer           |         | Minimum number of list items. Independent of `max` — may be set alone.    |
 | `max`                | integer           |         | Maximum number of list items. Independent of `min` — may be set alone.    |
