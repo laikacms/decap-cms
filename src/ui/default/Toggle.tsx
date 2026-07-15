@@ -2,9 +2,9 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 
-import { Switch } from '@/lib/widgets/editor/ui/toggle';
+import { Switch } from '@/ui/Toggle';
 import { colors, colorsRaw, shadows, transitions } from './styles';
-import { laikaShouldForwardProp } from '@/laika-app/ui/styled-utils';
+import { laikaShouldForwardProp } from '@/ui/styled';
 
 export interface ToggleActiveProps {
   $isActive?: boolean;
@@ -69,7 +69,7 @@ export interface ToggleProps {
 
 /**
  * Controlled on/off toggle built on the shared Base UI `Switch` primitive
- * (see `src/lib/widgets/editor/ui/toggle.tsx`). The `active` prop drives the
+ * (see `src/ui/Toggle.tsx`). The `active` prop drives the
  * checked state directly (no internal `useState` seed), so re-rendering with
  * a new `active` value always reflects it, fixing the prop-sync defect
  * (DCMS-543). `Container`/`Background`/`Handle` stay swappable so existing

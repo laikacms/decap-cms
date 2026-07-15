@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
+import { Collapsible } from '@base-ui/react/collapsible';
 
 import Icon from './Icon';
 import { colors, buttons } from './styles';
@@ -66,6 +67,9 @@ export interface ObjectWidgetTopBarProps {
   onAdd?: () => void;
   onAddType?: (typeName: string) => void;
   onCollapseToggle?: () => void;
+  // Renders the chevron as a Base UI Collapsible.Trigger, which requires an
+  // enclosing Collapsible.Root; `onCollapseToggle` is ignored in that mode.
+  collapsibleTrigger?: boolean;
   collapsed?: boolean;
   heading?: React.ReactNode;
   label?: string;
@@ -78,6 +82,7 @@ function ObjectWidgetTopBar({
   onAdd,
   onAddType,
   onCollapseToggle,
+  collapsibleTrigger,
   collapsed,
   heading = null,
   label,
@@ -113,20 +118,31 @@ function ObjectWidgetTopBar({
     }
   }
 
+  const toggleLabel = collapsed
+    ? t('editor.editorWidgets.object.expand')
+    : t('editor.editorWidgets.object.collapse');
+  const chevron = <Icon type="chevron" direction={collapsed ? 'right' : 'down'} size="small" />;
+
   return (
     <TopBarContainer>
       <ExpandButtonContainer hasHeading={!!heading}>
-        <ExpandButton
-          onClick={onCollapseToggle}
-          data-testid="expand-button"
-          aria-label={
-            collapsed
-              ? t('editor.editorWidgets.object.expand')
-              : t('editor.editorWidgets.object.collapse')
-          }
-        >
-          <Icon type="chevron" direction={collapsed ? 'right' : 'down'} size="small" />
-        </ExpandButton>
+        {collapsibleTrigger ? (
+          <Collapsible.Trigger
+            data-testid="expand-button"
+            aria-label={toggleLabel}
+            render={<ExpandButton />}
+          >
+            {chevron}
+          </Collapsible.Trigger>
+        ) : (
+          <ExpandButton
+            onClick={onCollapseToggle}
+            data-testid="expand-button"
+            aria-label={toggleLabel}
+          >
+            {chevron}
+          </ExpandButton>
+        )}
         {heading}
       </ExpandButtonContainer>
       {addUI}

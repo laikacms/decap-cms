@@ -11,19 +11,19 @@
  *
  * Adaptations from upstream:
  *  - `useId` comes from `react` (this repo already relies on React 18+
- *    `React.useId`, see `src/lib/widgets/editor/ui/dialog.tsx`) instead of
+ *    `React.useId`, see `src/ui/Dialog.tsx`) instead of
  *    the `@base-ui/utils/useId` package, avoiding a new dependency.
  *  - The upstream `Command.Dialog` part (a Base UI `Dialog` wrapping
  *    `Command`) is omitted: this repo's command palette
- *    (`src/lib/widgets/editor/ui/command.tsx`) already composes `Command`
- *    with its own `Dialog` primitive (`react-modal`-backed, see
- *    `src/lib/widgets/editor/ui/dialog.tsx`) rather than a Base UI dialog,
- *    so the upstream `Dialog` part would be dead code here.
+ *    (`src/ui/Command.tsx`) already composes `Command`
+ *    with its own `Dialog` primitive (itself built on Base UI `Dialog`,
+ *    see `src/ui/Dialog.tsx`), so the upstream
+ *    `Dialog` part would be dead code here.
  *  - The `command-score` fuzzy-matching helper (a sibling file upstream)
  *    is inlined below to keep this a single vendored file, per DCMS-549.
  *  - No styling of any kind is applied here (this is the headless
  *    behavior layer); visual styling is layered on top in
- *    `src/lib/widgets/editor/ui/command.tsx` via Emotion, per the styling
+ *    `src/ui/Command.tsx` via Emotion, per the styling
  *    contract in `src/ui/README.md`.
  *
  * MIT License

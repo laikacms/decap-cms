@@ -5,11 +5,9 @@ primitive in this codebase. It is adapted to our stack:
 
 - **Behavior**: [Base UI](https://base-ui.com) (`@base-ui/react`) for
   anything interactive — dialogs, menus, popovers, selects, toggles, tabs,
-  tooltips. Wrap Base UI parts rather than inventing new behavior. Note:
-  as of #635 most existing wrappers under `src/lib/widgets/editor/ui/`
-  still use their pre-migration implementation (`react-modal`,
-  `react-aria-menubutton`, etc.) — #627-#632 are the phases that swap each
-  one onto Base UI.
+  tooltips. Wrap Base UI parts rather than inventing new behavior — #626
+  (#627-#632) tracks swapping any remaining pre-migration implementation
+  (`react-modal`, `react-aria-menubutton`, etc.) onto Base UI.
 - **Styling**: [Emotion](https://emotion.sh) — the `css` prop / `styled` API
   and the `variants` cva-style helper in [`styled.ts`](./styled.ts). No
   Tailwind, no CSS Modules.
@@ -20,14 +18,38 @@ primitive in this codebase. It is adapted to our stack:
 Tracked by #635 (DCMS-548), part of the Base UI migration tracked in #626
 (DCMS-540).
 
+## Component layering
+
+Component code is layered; lower layers are dependencies of higher ones and
+must never import upward. Enforced by the `local/layer-deps` ESLint rule in
+`eslint.config.mjs`:
+
+1. `src/ui/` (including `src/ui/editor/`)
+2. `src/ui/default/`, `src/ui/auth/`
+3. `src/widgets/`
+4. `src/core/components/` | `src/app/components/` | `src/laika-app/` —
+   siblings; they must not import each other's components. A component two
+   of them need belongs in layers 1-3. One sanctioned exception: the app
+   shell (`app/components`) may compose `core/components` pages (the
+   `allowed` edge in the rule config).
+
+Every layer should build on Base UI (via the layer-1 primitives) and on the
+layers below it rather than hand-rolling behavior. Non-component
+infrastructure (`core/actions`, `core/hooks`, `core/i18n`, `lib/`,
+`backends/`, …) sits outside this model. The pre-existing edges where
+laika-app wraps the app shell and core pages are grandfathered in the rule
+config as tracked debt - shrink that list, never grow it.
+
 ## Folder layout
 
-Each primitive is a flat file directly under `src/ui/`:
+Each primitive is a flat file directly under `src/ui/`. Unlike stock
+shadcn/ui, files containing React components are **PascalCase** (repo-wide
+convention), not kebab-case:
 
 ```
-src/ui/<primitive>.tsx              # the primitive itself
-src/ui/<primitive>.stories.tsx      # Storybook stories (sibling, optional but expected)
-src/ui/__tests__/<primitive>.spec.tsx  # behavior tests (sibling __tests__ dir)
+src/ui/<Primitive>.tsx              # the primitive itself, e.g. Button.tsx
+src/ui/<Primitive>.stories.tsx      # Storybook stories (sibling, optional but expected)
+src/ui/__tests__/<Primitive>.spec.tsx  # behavior tests (sibling __tests__ dir)
 ```
 
 - One primitive per file. Compound primitives (e.g. `Dialog` +
@@ -40,19 +62,21 @@ src/ui/__tests__/<primitive>.spec.tsx  # behavior tests (sibling __tests__ dir)
 
 ## Styling contract
 
-- Use the `css` / `cx` / `keyframes` re-exports from
-  [`./styled.ts`](./styled.ts) (backed by `@emotion/css`), or the
-  `@emotion/react` `css` prop directly. Don't reach for `styled-components`
-  or inline `style={{}}` for anything variant-driven.
+- Use the `css` / `keyframes` re-exports from [`./styled.ts`](./styled.ts)
+  (backed by `@emotion/react`) with the css prop — add the
+  `/** @jsxImportSource @emotion/react */` pragma at the top of the file.
+  `cx` joins plain class-name strings only (literal utility classes plus a
+  caller `className`); emotion merges the css prop with `className` itself.
+  Don't reach for `styled-components` or inline `style={{}}` for anything
+  variant-driven.
 - Use the `variants()` helper for `class-variance-authority`-shaped variant
-  props (see any existing primitive, e.g. `button.ts`'s `buttonVariants`,
-  for the pattern). It mirrors `cva` closely enough that porting a shadcn/ui
-  primitive is a near-mechanical find/replace of `cva` → `variants` and
-  `cn` → `cx`.
+  props (see any existing primitive, e.g. `Button.tsx`'s `buttonVariants`,
+  for the pattern). It returns styles for the css prop; a caller-supplied
+  `className` is passed through separately instead of being merged in.
 - Pull colors, spacing, typography from the existing theme tokens (see
   `src/ui/default/styles.tsx`) rather than hardcoding values. This is a
-  **styling contract, not a restyle** — when porting an existing wrapper
-  from `src/lib/widgets/editor/ui/`, its current Emotion output must stay
+  **styling contract, not a restyle** — when migrating an existing
+  primitive onto Base UI, its current Emotion output must stay
   pixel-identical.
 
 ## How to add a new primitive
@@ -62,9 +86,8 @@ Pick one:
 1. **Base UI wrap** (preferred). Import the Base UI part(s) from
    `@base-ui/react/<part>`, layer Emotion styling via `render`/
    `className`, expose a small typed API. This is the target shape for
-   every wrapper under `src/lib/widgets/editor/ui/` (soon to move here) —
-   see #626/#627-#632 for the per-primitive migration and copy the pattern
-   from whichever has already landed.
+   every primitive here — see #626/#627-#632 for the per-primitive
+   migration and copy the pattern from whichever has already landed.
 2. **Vendor**. If upstream (Base UI or elsewhere) doesn't cover the
    behavior, or the reference implementation is small/single-file/
    unmaintained, copy the source into `src/ui/<primitive>.tsx` and adapt it
@@ -99,38 +122,21 @@ re-grouping into a namespace object. Consumers import by name:
 import { Dialog, DialogContent, DialogTrigger } from '@/ui';
 ```
 
-`src/ui/default/` and `src/ui/auth/` are separate, pre-existing subtrees
-(presentational legacy components and auth screens — see #626's
-non-goals) and are **not** re-exported through `index.ts`; they keep their
-own `./ui/default` / `./ui/auth` package export subpaths.
+`src/ui/default/`, `src/ui/auth/`, and `src/ui/editor/` are separate,
+pre-existing subtrees (presentational legacy components, auth screens, and
+the Lexical rich-text editor — see #626's non-goals) and are **not**
+re-exported through `index.ts`; they keep their own `./ui/default` /
+`./ui/auth` / `./ui/editor` package export subpaths.
 
-## Current inventory and migration status
+## Current inventory
 
-Every primitive currently listed below is a **thin re-export**, not yet a
-physical move:
-
-```ts
-// src/ui/dialog.ts
-export * from '@/lib/widgets/editor/ui/dialog';
-```
-
-The implementation still lives at `src/lib/widgets/editor/ui/<name>.tsx`.
-This was a deliberate choice for #635/DCMS-548 (a foundation-only issue):
-
-- **Zero blast radius.** No consumer import changes, no risk of breaking
-  the in-progress Base UI migration (#627-#632) which is actively editing
-  those files.
-- **`src/ui/` becomes the canonical import path immediately** — new code
-  should `import { Button } from '@/ui'`, not reach into
-  `src/lib/widgets/editor/ui/` directly — without a risky mass `git mv`.
-- **Physical move happens per-phase.** Each of #627-#632 lifts the
-  primitive(s) it touches (file + `.stories.tsx` + `__tests__/*.spec.tsx`)
-  from `src/lib/widgets/editor/ui/` into `src/ui/` as part of that phase's
-  PR, and turns the corresponding `src/ui/<name>.ts` re-export into the
-  real file. Once every phase lands, `src/lib/widgets/editor/ui/` should be
-  empty and can be deleted.
-
-Primitives re-exported today: `button`, `button-group`, `checkbox`,
-`command`, `dialog`, `dropdown-menu`, `field`, `input`, `label`, `popover`,
+Every primitive is a physical file here (the #635/DCMS-548 re-export stubs
+have been replaced by the real implementations, moved up from the editor's
+old `ui/` subfolder): `button`, `button-group`, `checkbox`, `command`,
+`dialog`, `dropdown-menu`, `field`, `input`, `label`, `popover`,
 `scroll-area`, `select`, `separator`, `tabs`, `toggle`, `toggle-group`,
-`tooltip`, plus the `styled` helper module.
+`tooltip`, plus the `styled` helper module and the vendored `cmdk`.
+
+`src/ui/editor/` (the Lexical editor) is a *consumer* of these primitives —
+it imports them from `@/ui/<name>` like everyone else and holds no
+primitive implementations of its own.

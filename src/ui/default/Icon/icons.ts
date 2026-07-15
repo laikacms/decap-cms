@@ -1,4 +1,4 @@
-import mapValues from 'lodash/mapValues';
+import { mapValues } from 'lodash-es';
 
 import images from './images/icons.generated';
 

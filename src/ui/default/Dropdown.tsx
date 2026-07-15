@@ -1,18 +1,46 @@
 import React from 'react';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
-import { Wrapper, Button as DropdownButton, Menu, MenuItem } from 'react-aria-menubutton';
+import { Menu } from '@base-ui/react/menu';
 
-import { laikaShouldForwardProp } from '@/laika-app/ui/styled-utils';
 import { colors, buttons, components, zIndex } from './styles';
 import Icon from './Icon';
 
 import type { IconDirection, IconName } from './Icon/icons';
 
-const StyledWrapper = styled(Wrapper)`
+/**
+ * Legacy dropdown primitive, now built on Base UI's Menu (it used to wrap
+ * react-aria-menubutton). The exported API is source-compatible with the old
+ * implementation: `renderButton` must render a `DropdownButton` (or a styled
+ * derivative such as `StyledDropdownButton`) somewhere in its tree. The
+ * button is a `Menu.Trigger` under the hood, so it wires itself to the
+ * surrounding `Dropdown` through Base UI context, exactly like the old
+ * react-aria-menubutton `Button`/`Wrapper` pair did.
+ */
+
+/** Blocks emotion-only transient props from reaching Base UI components. */
+function forwardNonTransientProp(prop: string): boolean {
+  return !prop.startsWith('$');
+}
+
+const StyledWrapper = styled.div`
   position: relative;
   font-size: 14px;
   user-select: none;
+`;
+
+const DropdownButton = styled(Menu.Trigger)`
+  /* Reset native button chrome; the old react-aria-menubutton trigger was a
+     bare span, so derived styles expect an unstyled starting point. */
+  appearance: none;
+  background: none;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+  cursor: pointer;
 `;
 
 const StyledDropdownButton = styled(DropdownButton)`
@@ -34,73 +62,101 @@ const StyledDropdownButton = styled(DropdownButton)`
   }
 `;
 
-interface DropdownListProps {
-  width?: string;
-  top?: string;
-  position?: 'left' | 'right';
-}
-
-const DropdownList = styled.ul<DropdownListProps>`
-  ${components.dropdownList};
-  margin: 0;
-  position: absolute;
-  top: 0;
-  left: 0;
-  min-width: 100%;
-  z-index: ${zIndex.zIndex299};
-
-  ${(props: DropdownListProps) => css`
-    width: ${props.width};
-    top: ${props.top};
-    left: ${props.position === 'left' ? 0 : 'auto'};
-    right: ${props.position === 'right' ? 0 : 'auto'};
-  `};
+const DropdownPositioner = styled(Menu.Positioner)`
+  /* The popup is portaled to document.body now, so the old "z-index 299
+     inside the header's stacking context" trick no longer applies. Sticky
+     headers and the editor toolbar sit at zIndex300; the portal renders
+     later in the DOM, so the same z-index still paints on top of them. */
+  z-index: ${zIndex.zIndex300};
 `;
 
-interface StyledMenuItemProps {
-  isActive?: boolean;
-  isCheckedItem?: boolean;
-  value?: unknown;
-  className?: string;
-  children?: React.ReactNode;
-  onClick?: () => void;
+interface DropdownListProps {
+  $width?: string;
 }
+
+const DropdownList = styled(Menu.Popup, {
+  shouldForwardProp: forwardNonTransientProp,
+})<DropdownListProps>`
+  ${components.dropdownList};
+  margin: 0;
+  min-width: var(--anchor-width);
+  font-size: 14px;
+  user-select: none;
+  outline: none;
+
+  ${(props: DropdownListProps) => css`
+    width: ${props.$width};
+  `};
+`;
 
 interface StyledMenuItemWrapperProps {
   $isActive?: boolean;
   $isCheckedItem?: boolean;
 }
 
-const StyledMenuItemWrapper = styled(MenuItem, {
-  shouldForwardProp: prop => laikaShouldForwardProp(prop) || prop === 'value',
+function menuItemStyles(props: StyledMenuItemWrapperProps) {
+  return css`
+    ${components.dropdownItem};
+    &:focus,
+    &:active,
+    &:not(:focus),
+    &:not(:active) {
+      background-color: ${props.$isActive ? colors.activeBackground : 'inherit'};
+      color: ${props.$isActive ? colors.active : '#313d3e'};
+      ${props.$isCheckedItem ? 'display: flex; justify-content: start' : ''};
+    }
+    &:hover,
+    &[data-highlighted] {
+      color: ${colors.active};
+      background-color: ${colors.activeBackground};
+      outline: none;
+    }
+    &.active {
+      text-decoration: underline;
+    }
+  `;
+}
+
+const StyledMenuItemWrapper = styled(Menu.Item, {
+  shouldForwardProp: forwardNonTransientProp,
 })<StyledMenuItemWrapperProps>`
-  ${components.dropdownItem};
-  &:focus,
-  &:active,
-  &:not(:focus),
-  &:not(:active) {
-    background-color: ${(props: StyledMenuItemWrapperProps) =>
-      props.$isActive ? colors.activeBackground : 'inherit'};
-    color: ${(props: StyledMenuItemWrapperProps) =>
-      props.$isActive ? colors.active : '#313d3e'};
-    ${(props: StyledMenuItemWrapperProps) =>
-      props.$isCheckedItem ? 'display: flex; justify-content: start' : ''};
-  }
-  &:hover {
-    color: ${colors.active};
-    background-color: ${colors.activeBackground};
-  }
-  &.active {
-    text-decoration: underline;
-  }
+  ${menuItemStyles};
 `;
+
+const StyledCheckboxItemWrapper = styled(Menu.CheckboxItem, {
+  shouldForwardProp: forwardNonTransientProp,
+})<StyledMenuItemWrapperProps>`
+  ${menuItemStyles};
+`;
+
+interface DropdownContextValue {
+  closeOnSelection: boolean;
+}
+
+const DropdownContext = React.createContext<DropdownContextValue>({ closeOnSelection: true });
+
+interface StyledMenuItemProps {
+  isActive?: boolean;
+  isCheckedItem?: boolean;
+  className?: string;
+  children?: React.ReactNode;
+  onClick?: () => void;
+}
 
 function StyledMenuItem({
   isActive,
   isCheckedItem = false,
   ...props
 }: StyledMenuItemProps): React.ReactElement {
-  return <StyledMenuItemWrapper $isActive={isActive} $isCheckedItem={isCheckedItem} {...props} />;
+  const { closeOnSelection } = React.useContext(DropdownContext);
+  return (
+    <StyledMenuItemWrapper
+      $isActive={isActive}
+      $isCheckedItem={isCheckedItem}
+      closeOnClick={closeOnSelection}
+      {...props}
+    />
+  );
 }
 
 interface MenuItemIconContainerProps {
@@ -122,13 +178,17 @@ export interface DropdownProps {
   dropdownTopOverlap?: string;
   className?: string;
   children?: React.ReactNode;
-  // Optional id for the popover element. react-aria-menubutton's Button/Menu
-  // already wire up role="button", aria-haspopup, aria-expanded (on the
-  // trigger) and role="menu" / role="menuitem" (on the popover and its
-  // items) — the one piece they don't provide is the aria-controls link
-  // from trigger to popover. Callers that pass `menuId` here should also
-  // put the same id on their trigger's `aria-controls` prop.
+  // Optional id for the popover element. Base UI wires up role="button",
+  // aria-haspopup and aria-expanded on the trigger, role="menu" /
+  // role="menuitem" on the popover and its items, and links the trigger's
+  // aria-controls to the popover automatically while open. `menuId` remains
+  // for callers that want a stable, known id on the popover.
   menuId?: string;
+}
+
+function parsePx(value: string): number {
+  const parsed = parseFloat(value);
+  return Number.isNaN(parsed) ? 0 : parsed;
 }
 
 function Dropdown({
@@ -141,22 +201,31 @@ function Dropdown({
   children,
   menuId,
 }: DropdownProps): React.ReactElement {
+  const contextValue = React.useMemo(() => ({ closeOnSelection }), [closeOnSelection]);
+  const topOverlap = parsePx(dropdownTopOverlap);
   return (
-    <StyledWrapper
-      closeOnSelection={closeOnSelection}
-      onSelection={(handler: unknown) => {
-        if (typeof handler === 'function') {
-          handler();
-        }
-      }}
-      className={className}
-    >
-      {renderButton()}
-      <Menu id={menuId}>
-        <DropdownList width={dropdownWidth} top={dropdownTopOverlap} position={dropdownPosition}>
-          {children}
-        </DropdownList>
-      </Menu>
+    <StyledWrapper className={className}>
+      {/* modal={false} preserves the old react-aria-menubutton behavior:
+          the page keeps scrolling and outside elements stay interactive
+          while the menu is open (outside clicks still dismiss it). */}
+      <Menu.Root modal={false}>
+        {renderButton()}
+        <Menu.Portal>
+          <DropdownPositioner
+            side="bottom"
+            align={dropdownPosition === 'right' ? 'end' : 'start'}
+            // The old list was absolutely positioned at the top of the
+            // wrapper plus `dropdownTopOverlap`, i.e. it covered the trigger
+            // by default. Reproduce that geometry: distance below the
+            // trigger's bottom edge = overlap - trigger height.
+            sideOffset={({ anchor }) => topOverlap - anchor.height}
+          >
+            <DropdownList id={menuId} $width={dropdownWidth}>
+              <DropdownContext.Provider value={contextValue}>{children}</DropdownContext.Provider>
+            </DropdownList>
+          </DropdownPositioner>
+        </Menu.Portal>
+      </Menu.Root>
     </StyledWrapper>
   );
 }
@@ -181,7 +250,7 @@ function DropdownItem({
   className,
 }: DropdownItemProps): React.ReactElement {
   return (
-    <StyledMenuItem value={onClick} isActive={isActive} className={className}>
+    <StyledMenuItem onClick={onClick} isActive={isActive} className={className}>
       <span>{label}</span>
       {icon ? (
         <MenuItemIconContainer iconSmall={iconSmall}>
@@ -202,7 +271,7 @@ interface StyledDropdownCheckboxProps {
 }
 
 function StyledDropdownCheckbox({ checked, id }: StyledDropdownCheckboxProps): React.ReactElement {
-  return <StyledCheckboxInput readOnly type="checkbox" checked={checked} id={id} />;
+  return <StyledCheckboxInput readOnly tabIndex={-1} type="checkbox" checked={checked} id={id} />;
 }
 
 export interface DropdownCheckedItemProps {
@@ -218,11 +287,18 @@ function DropdownCheckedItem({
   checked,
   onClick,
 }: DropdownCheckedItemProps): React.ReactElement {
+  const { closeOnSelection } = React.useContext(DropdownContext);
   return (
-    <StyledMenuItem isCheckedItem={true} isActive={checked} onClick={onClick}>
+    <StyledCheckboxItemWrapper
+      $isCheckedItem={true}
+      $isActive={checked}
+      checked={checked}
+      closeOnClick={closeOnSelection}
+      onClick={onClick}
+    >
       <StyledDropdownCheckbox checked={checked} id={id} />
       <span>{label}</span>
-    </StyledMenuItem>
+    </StyledCheckboxItemWrapper>
   );
 }
 

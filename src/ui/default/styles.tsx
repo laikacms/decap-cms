@@ -736,7 +736,7 @@ function GlobalStyles(): React.ReactElement {
         /**
        * Don't show outlines if the user is utilizing mouse rather than keyboard.
        */
-        [data-whatintent='mouse'] *:focus {
+        :focus:not(:focus-visible) {
           outline: none;
         }
 

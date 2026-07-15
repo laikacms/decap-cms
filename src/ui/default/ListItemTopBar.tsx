@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from '@emotion/styled';
+import { Collapsible } from '@base-ui/react/collapsible';
 
 import Icon from './Icon';
 import { colors, lengths, buttons } from './styles';
@@ -52,6 +53,9 @@ function DragHandle({ Wrapper, id }: DragHandleProps): React.ReactElement {
 export interface ListItemTopBarProps {
   className?: string;
   collapsed?: boolean;
+  // Renders the chevron as a Base UI Collapsible.Trigger, which requires an
+  // enclosing Collapsible.Root; `onCollapseToggle` is ignored in that mode.
+  collapsibleTrigger?: boolean;
   onCollapseToggle?: () => void;
   onRemove?: () => void;
   allowRemove?: boolean;
@@ -64,6 +68,7 @@ function ListItemTopBar(props: ListItemTopBarProps): React.ReactElement {
   const {
     className,
     collapsed,
+    collapsibleTrigger,
     onCollapseToggle,
     onRemove,
     allowRemove,
@@ -71,16 +76,29 @@ function ListItemTopBar(props: ListItemTopBarProps): React.ReactElement {
     allowReorder,
     id,
   } = props;
+  const chevron = <Icon type="chevron" size="small" direction={collapsed ? 'right' : 'down'} />;
   return (
     <TopBar className={className}>
-      {onCollapseToggle ? (
+      {collapsibleTrigger ? (
+        <Collapsible.Trigger
+          render={
+            <TopBarButton
+              type="button"
+              className="TopBarButton-button"
+              aria-label={collapsed ? 'Expand' : 'Collapse'}
+            />
+          }
+        >
+          {chevron}
+        </Collapsible.Trigger>
+      ) : onCollapseToggle ? (
         <TopBarButton
           type="button"
           className="TopBarButton-button"
           aria-label={collapsed ? 'Expand' : 'Collapse'}
           onClick={onCollapseToggle}
         >
-          <Icon type="chevron" size="small" direction={collapsed ? 'right' : 'down'} />
+          {chevron}
         </TopBarButton>
       ) : null}
       {dragHandle && allowReorder ? <DragHandle Wrapper={dragHandle} id={id} /> : <span></span>}
