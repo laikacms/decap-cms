@@ -1,5 +1,7 @@
 import { css, Global } from '@emotion/react';
 
+import { utilityStyles } from './utility-styles';
+
 import type { ReactNode } from 'react';
 
 /**
@@ -143,7 +145,7 @@ const globalStyles = css`
   }
 `;
 
-/** Injects the editor's global design tokens and content styles. */
+/** Injects the editor's global design tokens, content styles, and utility classes. */
 export function EditorGlobalStyles(): ReactNode {
-  return <Global styles={globalStyles} />;
+  return <Global styles={[globalStyles, utilityStyles]} />;
 }
