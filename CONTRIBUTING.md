@@ -3,254 +3,78 @@
 Contributions are always welcome, no matter how large or small. Before contributing,
 please read the [code of conduct](CODE_OF_CONDUCT.md).
 
-For details on contributing to documentation, see [Website Readme](https://github.com/decaporg/decap-website/blob/main/README.md).
+This repository is a single-package fork of Decap CMS; the former monorepo packages live
+under `src/` and are published together as `@laikacms/decap-cms`. Background on the
+restructure is in [RESTRUCTURE.md](RESTRUCTURE.md).
 
 ## Setup
 
-> Install [Node.js (LTS)](https://nodejs.org/) on your system.
-
-### Install dependencies
+> Install [Node.js](https://nodejs.org/) 20 or later. The repo uses pnpm 9
+> (see `packageManager` in `package.json`; `corepack enable` sets it up).
 
 ```sh
-git clone https://github.com/decaporg/decap-cms
+git clone https://github.com/laikacms/decap-cms
 cd decap-cms
-npm install
-```
-
-### Run locally
-
-```sh
-npm run start
+pnpm install
 ```
 
 ## Available scripts
 
-### clean
+| Command | What it does |
+| --- | --- |
+| `pnpm typecheck` | TypeScript project check (`tsc --noEmit`) |
+| `pnpm lint` / `pnpm format` | ESLint / Prettier |
+| `pnpm test` | Vitest, single run (`pnpm test:watch` for watch mode) |
+| `pnpm test:ci` | lint + typecheck + unit tests; run this before opening a PR |
+| `pnpm test:e2e` | Playwright end-to-end tests (builds and serves the demo itself) |
+| `pnpm build` | Compiles the publishable package to `dist/` |
+| `pnpm build:demo && pnpm serve:dev-test` | Demo app on http://localhost:5174 |
 
-Removes all of the CMS package `dist` directories.
+The demo app uses the in-memory `test-repo` backend with fixtures from
+`dev-test/repo-fixtures.js` and the config in `dev-test/config.yml`, so you can exercise
+most of the CMS without any Git provider.
 
-```sh
-npm run clean
-```
-
-### reset
-
-Runs the `clean` script and removes all the `node_modules` from the CMS packages.
-
-```sh
-npm run reset
-```
-
-### build
-
-Runs the `clean` script and builds the CMS packages.
+To run a single test file, pass a path filter to Vitest:
 
 ```sh
-npm run build
+pnpm test src/core/lib/__tests__/registry.spec.ts
+pnpm test -- -t "name pattern"
 ```
 
-### build-preview
+## Pull requests
 
-Runs the `build` and `build-preview` scripts in each package and serves the resulting build locally.
+1. Fork the repo and create a branch from `main`.
+2. If you have added code that should be tested, add tests. Tests are colocated in
+   `__tests__/` directories as `*.spec.tsx` / `*.test.ts`.
+3. Follow [Conventional Commits](https://www.conventionalcommits.org/); commitlint runs on
+   the `commit-msg` hook. House style is `type(scope): subject (DCMS-nnn)` with an area slug
+   scope such as `core`, `app`, or `widget-richtext`.
+4. Run `pnpm test:ci` and make sure it passes.
+5. A maintainer reviews and merges; PRs should be rebased on `main` before merge.
 
-```sh
-npm run build-preview
-```
+## Debugging against a real backend
 
-### test
+`dev-test/config.yml` drives the demo. To test a real Git backend, point the `backend`
+section at your provider and repository:
 
-Runs linting and Jest tests.
-
-```sh
-npm run test
-```
-
-### test:all
-
-Runs linting, Jest, and Cypress tests.
-
-```sh
-npm run test:all
-```
-
-### test:e2e
-
-Runs Cypress e2e tests.
-
-```sh
-npm run test:e2e
-```
-
-### test:e2e:dev
-
-Runs Cypress e2e tests on watch mode with an open instance of Chrome.
-
-```sh
-npm run test:e2e:dev
-```
-
-### format
-
-Formats code and docs according to our style guidelines.
-
-```sh
-npm run format
-```
-
-## Pull Requests
-
-We actively welcome your pull requests!
-
-If you need help with Git or our workflow, please ask in our [community chat](https://decapcms.org/chat). We want your contributions even if you're just learning Git. Our maintainers are happy to help!
-
-Decap CMS uses the [Forking Workflow](https://www.atlassian.com/git/tutorials/comparing-workflows/forking-workflow) + [Feature Branches](https://www.atlassian.com/git/tutorials/comparing-workflows/feature-branch-workflow). Additionally, PR's should be [rebased](https://www.atlassian.com/git/tutorials/merging-vs-rebasing) on main when opened, and again before merging.
-
-1. Fork the repo.
-2. Create a branch from `main`. If you're addressing a specific issue, prefix your branch name with the issue number.
-3. If you've added code that should be tested, add tests.
-4. If you've changed APIs, update the documentation.
-5. Run `npm run test` and ensure the test suite passes.
-6. Use `npm run format` to format and lint your code.
-7. PR's must be rebased before merge (feel free to ask for help).
-8. PR should be reviewed by two maintainers prior to merging.
-
-## Debugging
-
-`npm run start` spawns a development server and uses `dev-test/config.yml` and `dev-test/index.html` to serve the CMS.
-In order to debug a specific issue follow the next steps:
-
-1. Replace `dev-test/config.yml` with the relevant `config.yml`. If you want to test the backend, make sure that the `backend` property of the config indicates which backend you use (GitHub, Gitlab, Bitbucket etc) and path to the repo.
-
-```js
+```yaml
 backend:
   name: github
   repo: owner-name/repo-name
 ```
 
-2. Change the content of `dev-test/index.html` to:
-
-```html
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Decap CMS</title>
-  </head>
-  <body>
-    <script src="dist/decap-cms.js"></script>
-    <!-- <script>
-      // this is the place to add CMS customizations if you need to, e.g.
-      CMS.registerPreviewTemplate('posts', PostPreview);
-    </script> -->
-  </body>
-</html>
-```
-The most important thing is to make sure that Decap CMS is loaded from the `dist` folder. This way, every time you make changes to the source code, they will be compiled and reflected immediately on `localhost`.
-
-3. Run `npm run start`
-4. Open `http://localhost:8080/` in the browser and you should have access to the CMS
-
-### Debugging Git Gateway
-
-When debugging the CMS with Git Gateway you must:
-
-1. Have a Netlify site with [Git Gateway](https://docs.netlify.com/visitor-access/git-gateway/) and [Netlify Identity](https://docs.netlify.com/visitor-access/identity/) enabled. An easy way to create such a site is to use a [template](https://www.decapcms.org/docs/start-with-a-template/), for example the [Gatsby template](https://app.netlify.com/start/deploy?repository=https://github.com/decaporg/gatsby-starter-decap-cms&stack=cms)
-2. Tell the CMS the URL of your Netlify site using a local storage item. To do so:
-
-    1. Open `http://localhost:8080/` in the browser
-    2. Open the Developer Console. Write the below command and press enter: `localStorage.setItem('netlifySiteURL', 'https://yourwebsiteurl.netlify.app/')`
-    3. To be sure, you can run this command as well: `localStorage.getItem('netlifySiteURL')`
-    4. Refresh the page
-    5. You should be able to log in via your Netlify Identity email/password
-
-### Fine tune the way you run unit tests
-
-There are situations where you would want to run a specific test file, or tests that match a certain pattern.
-
-To run all the tests for a specific file, use this command:
-
-```
-npx jest <filename or file path>
-```
-
-The first part of the command, `npx jest` means running the locally installed version of `jest`. It is equivalent to running `node_modules/.bin/jest`.
-
-Example for running all the tests for the file `gitlab.spec.js`: `npx jest gitlab.spec.js`
-
-Some test files like `API.spec.js` is available in several packages. You can pass a regexp pattern instead of file path to narrow down files.
-
-Example for running all the tests for the file `API.spec.js` in the `decap-cms-backend-gitlab` package:
-
-`npx jest ".+backend-gitlab/.+/API.spec.js`
-
-To run a specific test in a file, add the flag `--testNamePattern`, or `-t` for short followed by a regexp to match your test name.
-
-Example for running the test "should return true on project access_level >= 30" in the API.spec.js in `decap-cms-backend-gitlab` package:
-
-```
-npx jest -t "true on p" ".+backend-gitlab/.+/API.spec.js"
-```
-
-For more information about running tests exactly the way you want, check out the official documentation for [Jest CLI](https://jestjs.io/docs/cli).
+Then rebuild the demo (`pnpm build:demo`) and reload http://localhost:5174.
 
 ## Releasing
 
-Decap CMS uses NPM trusted publishers with OIDC for secure, automated package publishing.
+Publishing is automated with npm trusted publishing (OIDC); no npm tokens are involved.
 
-### How It Works
-
-- Publishing is automated via GitHub Actions when version tags are pushed
-- Uses OpenID Connect (OIDC) for authentication. No NPM tokens required
-- Each package has a trusted publisher configured on npmjs.com
-- Workflow generates short-lived, cryptographically-signed tokens automatically
-- Publishes all changed packages in the monorepo via Lerna
-
-### Release Process
-
-1. **Prepare the release:**
-  ```sh
-  # Ensure your local `main` branch is up to date
-  npm prune
-  npm install
-  npm run test
-
-  # Bump versions for changed packages
-  npx lerna version
-
-  # This will:
-  # - Detect changed packages since last release
-  # - Bump versions according to conventional commits
-  # - Update CHANGELOG.md
-  # - Create git commit and tags
-  # - Push to upstream
-  ```
-
-2. **Automated publishing:**
-   - Tags pushed to `main` trigger the publish workflow automatically
-   - GitHub Actions runs tests and builds packages
-   - Lerna publishes changed packages to npm using OIDC
-   - Provenance attestations are generated automatically
-
-3. **Create GitHub release:**
-   - Go to [Releases](https://github.com/decaporg/decap-cms/releases)
-   - Draft a new release from the tag
-   - Add release notes highlighting changes
-
-### Manual Publishing (Emergency Only)
-
-If automated publishing fails and you need to publish manually:
-
-```sh
-# Authenticate with npm (uses session-based auth with 2FA)
-npm login
-
-# Publish changed packages
-npm run lerna:publish
-```
-
-Note: Manual publishing still requires 2FA. Use recovery codes if you don't have access to your 2FA device.
+1. Bump `version` in `package.json` and commit.
+2. Tag the commit `v<version>` and push the tag.
+3. The `Publish` workflow runs `test:ci`, builds, and publishes to npm with provenance;
+   the `Create release` workflow generates the GitHub release notes.
 
 ## License
 
-By contributing to Decap CMS, you agree that your contributions will be licensed
-under its [MIT license](LICENSE).
+By contributing, you agree that your contributions will be licensed under the
+[MIT license](LICENSE).

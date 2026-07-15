@@ -83,6 +83,7 @@ collections: # A list of collections the CMS should be able to edit
         fields:
           - { label: 'Name', name: 'name', widget: 'string', hint: 'First and Last' }
           - { label: 'Description', name: 'description', widget: 'richtext' }
+      - { label: 'Snippet', name: 'snippet', widget: 'code', default_language: 'javascript', required: false }
 
   - name: 'faq' # Used in routes, ie.: /admin/collections/:slug/edit
     label: 'FAQ' # Used in the UI

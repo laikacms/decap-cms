@@ -238,7 +238,7 @@
         } else {
           fail('palette has no search input');
         }
-        // Close palette by clicking outside (or pressing Esc — but Esc is handled by react-modal which we can simulate)
+        // Close palette by toggling the shortcut again (Esc is handled by the Base UI dialog)
         iwin.dispatchEvent(new iwin.KeyboardEvent('keydown', { key: 'k', metaKey: true }));
         await sleep(300);
       }
@@ -777,8 +777,8 @@
       iwin.dispatchEvent(new iwin.KeyboardEvent('keydown', { key: 'k', metaKey: true }));
       await sleep(300);
       const paletteOpen = !!idoc.querySelector('[role="dialog"]');
-      // react-modal listens for Escape on document, not window — dispatch on
-      // the modal's currently-focused element so the event bubbles up.
+      // The Base UI dialog listens for Escape on the focused element inside
+      // the popup, so dispatch there and let the event bubble up.
       const focused = idoc.activeElement || idoc.body;
       focused.dispatchEvent(new iwin.KeyboardEvent('keydown', {
         key: 'Escape', code: 'Escape', keyCode: 27, which: 27,
@@ -876,7 +876,7 @@
 
       // === Test 19.16.305: focus returns to opener when palette closes ===
       // Standard a11y: when a modal closes, focus should return to the element
-      // that opened it. react-modal handles this by default — verify the
+      // that opened it. The Base UI dialog handles this by default; verify the
       // wiring isn't broken.
       iwin.location.hash = '#/';
       await sleep(500);
@@ -949,10 +949,15 @@
       await sleep(300);
       const paletteDialog = idoc.querySelector('[role="dialog"]');
       if (paletteDialog) {
-        // The overlay is react-modal's wrapper — find it as the outer .ReactModal__Overlay or by aria-modal
-        const overlay = idoc.querySelector('.ReactModal__Overlay') || paletteDialog.parentElement;
+        // The overlay is the Base UI viewport/backdrop wrapping the popup.
+        // Base UI dismisses on an outside press (pointer/mouse sequence), not
+        // a bare synthetic click, so dispatch the full sequence.
+        const overlay = paletteDialog.parentElement;
         if (overlay && overlay !== paletteDialog) {
-          overlay.click();
+          for (const type of ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click']) {
+            const Ctor = type.startsWith('pointer') && iwin.PointerEvent ? iwin.PointerEvent : iwin.MouseEvent;
+            overlay.dispatchEvent(new Ctor(type, { bubbles: true, composed: true, cancelable: true }));
+          }
           await sleep(400);
           const stillOpen = !!idoc.querySelector('[role="dialog"]');
           stillOpen

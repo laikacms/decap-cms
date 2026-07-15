@@ -22,7 +22,7 @@ and assemble its own `App` without taking on `@laikacms/decap-cms` as a barrel.
 | Before                                                                          | After                                               |
 | ------------------------------------------------------------------------------- | --------------------------------------------------- |
 | `packages/decap-cms-<name>/src/`                                                | `src/<name>/` (prefix `decap-cms-` stripped)        |
-| `packages/decap-server/src/`                                                    | `src/server/`                                       |
+| `packages/decap-server/src/`                                                    | `src/dev-server/`                                   |
 | Per-package `package.json`, `tsconfig.json`, `README.md`, `CHANGELOG.md`        | Deleted — single root `package.json`                |
 | `pnpm-workspace.yaml` (workspace + catalogs)                                    | Kept; `packages: []` so the `catalog:` protocol still resolves |
 | `lerna.json`                                                                    | Deleted                                             |

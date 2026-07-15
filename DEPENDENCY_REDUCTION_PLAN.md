@@ -26,13 +26,10 @@ Included:
 - Package boundaries and extension-loading behavior.
 - Build-time checks that prevent dependency and bundle-size regressions.
 
-Temporarily excluded because they are being changed separately:
-
-- `src/widgets/richtext/**`
-- `src/lib/richtext-lexical/**`
-
-Do not remove a dependency used by either excluded directory until the owner of that work confirms
-it is safe. Re-baseline the package after that work is merged.
+The temporary rich-text exclusion (formerly `src/widgets/richtext/**` and the old
+`src/lib/richtext-lexical/**` tree) is lifted as of 2026-07-15: the Lexical work has merged, and
+rich-text now lives in `src/widgets/richtext`, `src/lib/richtext`, and `src/ui/editor`. Its
+re-baseline trigger has fired; see the Baseline section.
 
 ## Baseline
 
@@ -47,12 +44,14 @@ Browser builds were minified with esbuild and measured without source maps:
 | `laika-app/bare` | 1.65 MB | 515 KB |
 | Eager extension difference | 3.88 MB | 1.20 MB |
 
-The package currently exposes roughly 100 direct production dependencies and resolves roughly 538
-production package snapshots. Exact counts will change as the lockfile changes.
+At that audit `HEAD` the package exposed 110 direct production dependencies and resolved roughly
+538 production package snapshots. These measurements predate both the Lexical merge and the
+v4.beta dependency overhaul; as of 2026-07-15 the working tree is down to 78 direct production
+dependencies, and the bundle figures above no longer describe the current tree.
 
-These figures are reference measurements, not permanent budgets. Before implementation begins:
+These figures are historical reference measurements, not permanent budgets. The re-baseline this
+section calls for is now due:
 
-- Merge or otherwise settle the concurrent rich-text work.
 - Build both entry points from a clean checkout.
 - Record raw, minified, gzip, and Brotli sizes.
 - Save bundle visualizer/metafile output as a CI artifact.
@@ -96,12 +95,23 @@ accessibility primitives merely to reduce the dependency count.
 This phase should be mechanical and split into small commits. For each dependency, delete it,
 regenerate the lockfile, run the full verification suite, and confirm the packed manifest.
 
-- [ ] Remove `redux-notifications`; no runtime imports were found.
-- [ ] Remove `copy-text-to-clipboard` and its stale ambient declaration; no runtime import was found.
-- [ ] Remove the direct `codemirror` declaration if `@uiw/react-codemirror` remains its only owner.
-- [ ] Remove the direct `node-polyglot` declaration if `react-polyglot` remains its only owner.
-- [ ] Remove the direct `prop-types` declaration if no public entry point imports it.
-- [ ] Confirm whether `@emotion/css` is needed by the concurrent rich-text work; otherwise remove it.
+- [x] Remove `redux-notifications`; no runtime imports were found.
+- [x] Remove `copy-text-to-clipboard` and its stale ambient declaration; no runtime import was found.
+- [x] Remove the direct `codemirror` declaration if `@uiw/react-codemirror` remains its only owner.
+  Superseded: all `@uiw/*` packages (and the `codemirror` meta package) were replaced with the
+  official `@codemirror/*` packages plus a local React wrapper in `src/widgets/code/`.
+- [x] Remove the direct `node-polyglot` declaration if `react-polyglot` remains its only owner.
+  Superseded: both `react-polyglot` and `node-polyglot` were removed in favor of the in-house
+  `src/core/i18n` module (same `%{token}` / `||||` phrase format, plural rules vendored from
+  node-polyglot).
+- [x] Remove the direct `prop-types` declaration if no public entry point imports it.
+- [x] Confirm whether `@emotion/css` is needed by the concurrent rich-text work; otherwise remove
+  it. It was needed by `src/ui/editor/**` (the `_styled.ts` helpers and the Lexical
+  theme's generated class names). Removed by restyling that tree onto `@emotion/react` like the
+  rest of the CMS: the UI primitives now use the css prop (per-file `@jsxImportSource` pragma,
+  `variants` returns `SerializedStyles[]`), the Lexical theme uses static `EditorTheme__*` class
+  names styled from the per-editor `Global` stylesheet, and ReactModal's `overlayClassName` uses
+  the `ClassNames` render prop.
 - [ ] Check every production dependency with no direct import and document why it is intentionally
   retained, moved, or removed.
 
@@ -136,16 +146,31 @@ operations.
 
 ### `common-tags`
 
-- [ ] Add whitespace-focused tests for all templates using `oneLine` and `stripIndent`.
-- [ ] Implement those two template helpers locally.
-- [ ] Remove `common-tags` and its type package.
+- [x] Add whitespace-focused tests for all templates using `oneLine` and `stripIndent`.
+- [x] Implement those two template helpers locally.
+- [x] Remove `common-tags` and its type package.
 
 ### `deepmerge`
 
-- [ ] Inventory the actual configuration value shapes passed to `deepmerge`.
-- [ ] Add tests for nested objects, arrays, `undefined`, and non-plain values.
-- [ ] Inline a configuration-specific merge only if the supported semantics are demonstrably small.
-- [ ] Otherwise retain `deepmerge` and document why.
+- [x] Inventory the actual configuration value shapes passed to `deepmerge` (two call sites:
+      i18n defaults and manual config merge in `src/core/actions/config.tsx`, both plain
+      config objects).
+- [x] Add tests for nested objects, arrays, `undefined`, and non-plain values.
+- [x] Inline a configuration-specific merge only if the supported semantics are demonstrably
+      small (`deepMerge` in `src/lib/util/core-utils/deep-merge.ts`, replicating `deepmerge`
+      default semantics: recursive plain-object merge, array concatenation, source wins).
+- [x] Remove `deepmerge`.
+
+### `gotrue-js`
+
+- [x] Inventory the used surface (one call site: the git-gateway identity fallback in
+      `src/backends/git-gateway/implementation.tsx` when the Netlify Identity widget is
+      absent, using `login`, `currentUser`, `user.jwt()` with refresh, and `user.logout()`).
+- [x] Implement a minimal client locally (`src/backends/git-gateway/GoTrue.ts`) that keeps
+      the `gotrue.user` localStorage key and session shape, so existing sessions survive.
+- [x] Add tests for login, session recovery, token refresh (including in-flight refresh
+      dedup and clearing the session on refresh failure), and logout.
+- [x] Remove `gotrue-js`.
 
 Expected result:
 
@@ -171,7 +196,7 @@ Expected result:
 
 ### Redux DevTools
 
-- [ ] Replace deprecated `redux-devtools-extension` usage with the maintained API or a guarded
+- [x] Replace deprecated `redux-devtools-extension` usage with the maintained API or a guarded
   browser DevTools compose hook.
 - [ ] Confirm production builds do not include development-only code.
 
@@ -198,21 +223,26 @@ the mechanical cleanup phases.
 
 ### Color widget
 
-`react-color` and `tinycolor2` contribute a comparatively large dependency cluster for one widget.
+Re-baselined 2026-07-15: `react-color` is already gone; the picker is `react-colorful` (small,
+dependency-free). What remains is `tinycolor2`, used only by
+`src/widgets/colorstring/ColorControl.tsx` for parsing and validity checks.
 
-- [ ] Document the color formats, alpha behavior, validation, and browser support required by the
-  widget.
-- [ ] Prototype a focused internal UI based on native color input plus explicit text/alpha controls.
-- [ ] Compare usability and accessibility with the current widget.
-- [ ] Remove both dependencies only if all required formats remain supported.
+- [x] Replace the `react-color` picker (superseded by `react-colorful`).
+- [ ] Document the color formats, alpha behavior, and validation the widget actually needs from
+  `tinycolor2`.
+- [ ] Replace the used `tinycolor2` surface with a small local parser/validator if those formats
+  are demonstrably narrow; otherwise document why it stays.
 
 ### Node polyfills in browser code
 
 - [ ] Replace Git repository use of `path.dirname` with a tested POSIX repository-path helper.
-- [ ] Remove the `path-browserify` alias and dependency.
-- [ ] Replace browser-externalized Node `crypto` usage in blob hashing with Web Crypto or another
-  browser-native implementation.
-- [ ] Remove the unused `buffer` alias and dependency after clean browser builds confirm it is safe.
+  One call site remains: `src/backends/github/API.tsx`.
+- [x] Replace browser-externalized Node `crypto` usage in blob hashing with Web Crypto or another
+  browser-native implementation. `src/lib/util/getBlobSHA.ts` uses Web Crypto with a guarded
+  Node fallback behind a dynamic import.
+- [x] Remove the unused `buffer` alias and dependency after clean browser builds confirm it is
+  safe. Removed in the v4.beta dependency overhaul; no polyfill aliases remain in the Vite
+  configs.
 - [ ] Add a build check that fails on browser externalization of Node built-ins.
 
 Expected result:
@@ -266,8 +296,11 @@ Treat these as separate investigations:
 
 ### Lodash migration
 
-Lodash is widely used: the initial audit found roughly 158 imports across 68 non-rich-text files.
-Do not attempt a single wholesale rewrite.
+Lodash is widely used: 159 imports across `src/` as of 2026-07-15, almost all already per-method
+(`lodash/get` style). The known leaks: seven files import from the full `lodash` package (which
+defeats consumer tree-shaking in the unbundled `dist/`), `src/default-exports/index.ts` re-exports
+all of lodash as public API (the blocker for full removal), and three inherited files use
+`lodash/fp/*` imports. Do not attempt a single wholesale rewrite.
 
 - [ ] Establish the minified and gzip contribution using a reproducible bundle experiment.
 - [ ] Group imports by operation and frequency.
@@ -286,7 +319,8 @@ Proposed package boundaries:
 
 - `@laikacms/decap-cms-core`: browser-safe core and public contracts.
 - `@laikacms/decap-cms-app`: React application shell and standard lightweight widgets.
-- `@laikacms/decap-cms-server`: Express, logging, Git process, and server-only dependencies.
+- `@laikacms/decap-cms-server`: the `node:http` dev/proxy server and any server-only
+  dependencies (Express is gone; winston is a type-only devDependency).
 - `@laikacms/decap-cms-widget-code`: CodeMirror and language modes.
 - `@laikacms/decap-cms-widget-map`: OpenLayers.
 - `@laikacms/decap-cms-media-uploadcare`: Uploadcare widget and effects.
@@ -294,6 +328,10 @@ Proposed package boundaries:
 
 The exact names are provisional. Choose boundaries using dependency closure and runtime ownership,
 not one package per source directory.
+
+Partially delivered ahead of this phase: `uploadcare-widget`, `uploadcare-widget-tab-effects`,
+`ol`, and the Apollo/GraphQL stack are now optional `peerDependencies`, so consumers no longer
+install them by default. CodeMirror remains a direct dependency cluster.
 
 Tasks:
 

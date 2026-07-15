@@ -18,7 +18,7 @@ Security updates are provided for:
 
 If you discover a security vulnerability in Decap CMS, please report it **confidentially** through GitHub Security Advisories. This allows us to investigate and address the issue without exposing it to the public until a fix is ready.
 
-**Submit your report at:** https://github.com/decaporg/decap-cms/security/advisories/new
+**Submit your report at:** https://github.com/laikacms/decap-cms/security/advisories/new
 
 ### What NOT to Do
 
