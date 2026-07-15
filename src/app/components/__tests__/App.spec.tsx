@@ -2,6 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
+import { thunk } from 'redux-thunk';
 import { describe, expect, it, vi } from 'vitest';
 
 
@@ -48,7 +49,9 @@ import { defaultRoutingTable } from '@/core/routing/router';
 import type * as UIModule from '@/core/components/UI';
 import type { AppLayoutRenderProps } from '@/app/components/App';
 
-const mockStore = configureStore([]);
+// Thunk middleware is required because `openMediaLibrary` (dispatched by the
+// DCMS-578 /media route) is a thunk, not a plain action.
+const mockStore = configureStore([thunk]);
 
 function baseState(overrides: Record<string, unknown> = {}) {
   return {
@@ -234,5 +237,47 @@ describe('AppContent - DCMS-432 unknown-collection deep-link', () => {
 
     expect(getByTestId('custom-not-found')).toBeInTheDocument();
     expect(queryByText('app.notFoundPage.header')).not.toBeInTheDocument();
+  });
+});
+
+describe('AppContent - DCMS-578 /media deep-link', () => {
+  it('does not render NotFound for the /media route', () => {
+    const { queryByText } = renderAppContentAt('/media');
+
+    expect(queryByText('app.notFoundPage.header')).not.toBeInTheDocument();
+  });
+
+  it('redirects to the default collection', () => {
+    const { navigate } = renderAppContentAt('/media');
+
+    expect(navigate).toHaveBeenCalledWith(
+      'collection',
+      { collectionName: 'posts' },
+      { replace: true },
+    );
+  });
+
+  it('dispatches openMediaLibrary so the modal opens on top of the redirected view', () => {
+    const state = baseState();
+    const store = mockStore(state);
+    const decapValue = {
+      config: state.config,
+      theme: {},
+      routing: defaultRoutingTable,
+      router: {} as any,
+      navigate: vi.fn(),
+      params: vi.fn(),
+      path: '/media',
+    };
+
+    render(
+      <Provider store={store}>
+        <context.Provider value={decapValue}>
+          <AppContent />
+        </context.Provider>
+      </Provider>,
+    );
+
+    expect(store.getActions().some(action => action.type === 'MEDIA_LIBRARY_OPEN')).toBe(true);
   });
 });

@@ -206,6 +206,13 @@ export const defaultRoutingTable: RoutingTable = {
       };
     },
   },
+  media: {
+    create: () => `/media`,
+    get: path => {
+      if (path !== '/media') throw new Error(`Invalid media path: ${path}`);
+      return {};
+    },
+  },
 };
 
 /**

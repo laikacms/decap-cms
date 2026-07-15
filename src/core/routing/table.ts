@@ -50,6 +50,8 @@ interface EditRouteParams {
 
 interface WorkflowRouteParams {}
 
+interface MediaRouteParams {}
+
 export interface RoutingTable {
   /** `/` — home; redirects to the first non-hidden collection (or `renderRoot`). */
   root: {
@@ -95,6 +97,15 @@ export interface RoutingTable {
   editRedirect: {
     create: (params: EditRouteParams) => string;
     get: (path: string) => EditRouteParams;
+  };
+  /**
+   * `/media` — opens the Media Library modal, then redirects to the default
+   * collection view (DCMS-578). Bookmarking or sharing this URL previously
+   * 404'd since no route matched it.
+   */
+  media: {
+    create: (params?: MediaRouteParams) => string;
+    get: (path: string) => MediaRouteParams;
   };
 }
 
