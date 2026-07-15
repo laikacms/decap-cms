@@ -183,7 +183,7 @@ export function Editor({
           KeywordsExtension,
           HashtagExtension,
           DateTimeExtension,
-          configExtension(MaxLengthExtension, { disabled: false, maxLength }),
+          configExtension(MaxLengthExtension, { disabled: true }),
           DragDropPasteExtension,
           EmojisExtension,
           configExtension(LinkExtension, {
