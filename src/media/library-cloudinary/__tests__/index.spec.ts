@@ -259,6 +259,31 @@ describe('cloudinary media library', () => {
       integration.show(showOptions);
       expect(mediaLibrary.show).toHaveBeenCalledWith(expectedOptions.config);
     });
+
+    // DCMS-591: allow_multiple being unset on the field must not force multiple: false
+    // when the user explicitly set media_library.config.multiple: true. Only an explicit
+    // allowMultiple === false (from an explicit allow_multiple: false) may override it.
+    it('does not override an explicit config.multiple: true when allowMultiple is undefined', async () => {
+      const options = {
+        config: {
+          multiple: true,
+        },
+      };
+      const showOptions = {
+        config: {
+          multiple: true,
+        },
+        allowMultiple: undefined,
+      };
+      const expectedOptions = {
+        config: {
+          multiple: true,
+        },
+      };
+      const integration = await cloudinary.init(options);
+      integration.show(showOptions);
+      expect(mediaLibrary.show).toHaveBeenCalledWith(expectedOptions.config);
+    });
   });
 
   describe('hide method', () => {
