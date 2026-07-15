@@ -29,6 +29,14 @@ type Collections = CmsCollections;
 
 const ACTIVE_CLASS_NAME = 'header-link-active';
 
+// Below this width the nav-list + quick-add + test-backend/site-url links +
+// avatar no longer fit next to each other (natural content width ≈ 720px at
+// the default sizing) and force the document into horizontal scroll
+// (DCMS-629). Collapse to icon-only nav buttons and hide the secondary
+// "Test Backend" / site-URL links (still reachable via the settings
+// dropdown avatar) so the header fits within any mobile viewport.
+const MOBILE_BREAKPOINT = 700;
+
 const styles = {
   buttonActive: css`
     color: ${colors.active};
@@ -55,9 +63,17 @@ function AppHeader(props: React.HTMLAttributes<HTMLElement>) {
 const AppHeaderContent = styled.div`
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
   max-width: 1440px;
   padding: 0 12px;
   margin: 0 auto;
+`;
+
+const AppHeaderButtonLabel = styled.span`
+  @media (max-width: ${MOBILE_BREAKPOINT}px) {
+    display: none;
+  }
 `;
 
 const AppHeaderButton = styled.button`
@@ -93,6 +109,14 @@ const AppHeaderButton = styled.button`
       ${styles.buttonActive};
     }
   }
+
+  @media (max-width: ${MOBILE_BREAKPOINT}px) {
+    padding: 12px;
+
+    ${Icon} {
+      margin-right: 0;
+    }
+  }
 `;
 
 const AppHeaderNavLink = AppHeaderButton.withComponent(NavLink);
@@ -100,6 +124,15 @@ const AppHeaderNavLink = AppHeaderButton.withComponent(NavLink);
 const AppHeaderActions = styled.div`
   display: inline-flex;
   align-items: center;
+
+  @media (max-width: ${MOBILE_BREAKPOINT}px) {
+    /* "Test Backend" and the site-URL link are informational shortcuts,
+       eating 200px+ of width they don't have on mobile. They stay reachable
+       via the settings dropdown itself, so only the inline links collapse. */
+    a[target='_blank'] {
+      display: none;
+    }
+  }
 `;
 
 const AppHeaderQuickNewButton = styled(StyledDropdownButton)`
@@ -205,9 +238,10 @@ function Header({
               <AppHeaderNavLink
                 to="/"
                 className={contentActive ? ACTIVE_CLASS_NAME : undefined}
+                aria-label={t('app.header.content')}
               >
                 <Icon type="page" />
-                {t('app.header.content')}
+                <AppHeaderButtonLabel>{t('app.header.content')}</AppHeaderButtonLabel>
               </AppHeaderNavLink>
             </li>
             {hasWorkflow && (
@@ -215,17 +249,18 @@ function Header({
                 <AppHeaderNavLink
                   to="/workflow"
                   className={workflowActive ? ACTIVE_CLASS_NAME : undefined}
+                  aria-label={t('app.header.workflow')}
                 >
                   <Icon type="workflow" />
-                  {t('app.header.workflow')}
+                  <AppHeaderButtonLabel>{t('app.header.workflow')}</AppHeaderButtonLabel>
                 </AppHeaderNavLink>
               </li>
             )}
             {showMediaButton && (
               <li>
-                <AppHeaderButton onClick={openMediaLibrary}>
+                <AppHeaderButton onClick={openMediaLibrary} aria-label={t('app.header.media')}>
                   <Icon type="media-alt" />
-                  {t('app.header.media')}
+                  <AppHeaderButtonLabel>{t('app.header.media')}</AppHeaderButtonLabel>
                 </AppHeaderButton>
               </li>
             )}
