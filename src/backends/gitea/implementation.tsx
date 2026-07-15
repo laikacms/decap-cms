@@ -28,9 +28,11 @@ import type {
   CmsDisplayURL,
   CmsFileEntry,
   CmsImplementation,
+  CmsImplementationEntry,
   CmsImplementationFile,
   CmsPersistOptions,
   CmsUser,
+  CursorCompatibleEntries,
   Semaphore,
 } from '@/lib/util/index';
 import type { GiteaUser } from './types';
@@ -250,8 +252,8 @@ export default class Gitea implements CmsImplementation {
       API_NAME,
     );
 
-    // @ts-expect-error -- TODO: fix underlying type issue
-    files[CURSOR_COMPATIBILITY_SYMBOL] = cursor;
+    (files as CursorCompatibleEntries<CmsImplementationEntry>)[CURSOR_COMPATIBILITY_SYMBOL] =
+      cursor!;
     return files;
   }
 

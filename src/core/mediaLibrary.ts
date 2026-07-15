@@ -10,6 +10,7 @@ import { configFailed } from './actions/config';
 import { createMediaLibrary, insertMedia } from './actions/mediaLibrary';
 
 import type { CmsMediaLibraryInstance } from '@/lib/util/index';
+import type { AppDispatch } from './hooks/useRedux';
 
 type MediaLibraryInstance = CmsMediaLibraryInstance;
 type MediaLibraryOptions = Record<string, unknown>;
@@ -22,8 +23,7 @@ interface MediaLibrary {
 }
 
 function handleInsert(url: string) {
-  // @ts-expect-error -- TODO: fix underlying type issue
-  return store.dispatch(insertMedia(url, undefined));
+  return (store.dispatch as AppDispatch)(insertMedia(url, undefined));
 }
 
 const initializeMediaLibrary = once(async function initializeMediaLibrary(name, options) {

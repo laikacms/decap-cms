@@ -4,10 +4,11 @@ import dayjs from 'dayjs';
 import AssetProxy from '@/core/valueObjects/AssetProxy';
 import { sortKeys } from './helpers';
 
+import type { Dayjs } from 'dayjs';
+
 function outputReplacer(_key: string, value: unknown) {
   if (dayjs.isDayjs(value)) {
-    // @ts-expect-error -- TODO: fix underlying type issue
-    return value.format(value._f);
+    return value.format((value as Dayjs & { _f?: string })._f);
   }
   if (value instanceof AssetProxy) {
     return `${value.path}`;

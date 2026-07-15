@@ -26,6 +26,7 @@ import type {
   CmsConfig,
   CmsImplementationFile,
   CmsDataFile,
+  CursorCompatibleEntries,
 } from '@/lib/util/index';
 import type { CmsFileEntry, CmsImplementationMediaFile } from '@/lib/util/index';
 
@@ -216,8 +217,7 @@ export default class TestBackend implements CmsImplementation {
     const cursor = getCursor(folder, extension, entries, 0, depth);
     const ret = take(entries, pageSize);
 
-    // @ts-expect-error -- TODO: fix underlying type issue
-    ret[CURSOR_COMPATIBILITY_SYMBOL] = cursor;
+    (ret as CursorCompatibleEntries<CmsImplementationEntry>)[CURSOR_COMPATIBILITY_SYMBOL] = cursor;
     return Promise.resolve(ret);
   }
 

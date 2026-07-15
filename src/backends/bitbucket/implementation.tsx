@@ -41,11 +41,13 @@ import type {
   CmsPersistOptions,
   CmsDisplayURL,
   CmsImplementation,
+  CmsImplementationEntry,
   CmsUser,
   CmsCredentials,
   CmsBackendInitConfig,
   CmsImplementationFile,
   AsyncLock,
+  CursorCompatibleEntries,
   FetchError,
   Semaphore,
 } from '@/lib/util/index';
@@ -349,8 +351,8 @@ export default class BitbucketBackend implements CmsImplementation {
       API_NAME,
     );
 
-    // @ts-expect-error -- TODO: fix underlying type issue
-    files[CURSOR_COMPATIBILITY_SYMBOL] = cursor;
+    (files as CursorCompatibleEntries<CmsImplementationEntry>)[CURSOR_COMPATIBILITY_SYMBOL] =
+      cursor!;
     return files;
   }
 

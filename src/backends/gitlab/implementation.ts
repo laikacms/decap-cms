@@ -33,6 +33,7 @@ import type {
   CmsPersistOptions,
   Cursor,
   CmsImplementation,
+  CmsImplementationEntry,
   CmsDisplayURL,
   CmsUser,
   CmsCredentials,
@@ -40,6 +41,7 @@ import type {
   CmsImplementationFile,
   CmsUnpublishedEntryMediaFile,
   AsyncLock,
+  CursorCompatibleEntries,
   Semaphore,
 } from '@/lib/util/index';
 
@@ -204,8 +206,8 @@ export default class GitLab implements CmsImplementation {
       API_NAME,
     );
 
-    // @ts-expect-error -- TODO: fix underlying type issue
-    files[CURSOR_COMPATIBILITY_SYMBOL] = cursor;
+    (files as CursorCompatibleEntries<CmsImplementationEntry>)[CURSOR_COMPATIBILITY_SYMBOL] =
+      cursor!;
     return files;
   }
 
