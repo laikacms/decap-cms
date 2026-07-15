@@ -168,7 +168,8 @@ describe('Dialog', () => {
 
       expect(dialog).toHaveAttribute('aria-labelledby', title.id);
       expect(dialog).toHaveAttribute('aria-describedby', description.id);
-      expect(dialog).toHaveAttribute('aria-modal', 'true');
+      // No aria-modal assertion: Base UI conveys modality by making outside
+      // content inert rather than via aria-modal (react-modal's approach).
       expect(title.id).toBeTruthy();
       expect(description.id).toBeTruthy();
     });

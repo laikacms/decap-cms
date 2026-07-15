@@ -2,46 +2,58 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { getLanguageExtension } from '@/widgets/code/languageLoaders';
 
-import type { Extension } from '@uiw/react-codemirror';
+import type { LanguageSupport } from '@codemirror/language';
+import type { Extension } from '@codemirror/state';
 
-const loadLanguageMock = vi.fn();
-
-vi.mock('@uiw/codemirror-extensions-langs', () => ({
-  loadLanguage: (id: string) => loadLanguageMock(id),
+const loaders = vi.hoisted(() => ({
+  js: vi.fn(),
+  c: vi.fn(),
+  h: vi.fn(),
 }));
+
+vi.mock('@codemirror/language-data', async () => {
+  const { LanguageDescription } = await import('@codemirror/language');
+  return {
+    languages: [
+      LanguageDescription.of({ name: 'JavaScript', alias: ['js'], load: loaders.js }),
+      LanguageDescription.of({ name: 'C', load: loaders.c }),
+      LanguageDescription.of({ name: 'H', load: loaders.h }),
+    ],
+  };
+});
 
 describe('getLanguageExtension', () => {
   beforeEach(() => {
-    loadLanguageMock.mockReset();
+    loaders.js.mockReset();
+    loaders.c.mockReset();
+    loaders.h.mockReset();
   });
 
-  it('resolves the extension for a known single identifier', () => {
-    const jsExtension = {} as Extension;
-    loadLanguageMock.mockImplementation((id: string) => (id === 'javascript' ? jsExtension : null));
+  it('resolves the extension for a known single identifier', async () => {
+    const jsExtension = [] as Extension as LanguageSupport;
+    loaders.js.mockResolvedValue(jsExtension);
 
-    expect(getLanguageExtension(['javascript'])).toBe(jsExtension);
-    expect(loadLanguageMock).toHaveBeenCalledWith('javascript');
+    await expect(getLanguageExtension(['javascript'])).resolves.toBe(jsExtension);
+    expect(loaders.js).toHaveBeenCalled();
   });
 
-  it('resolves via the first matching identifier when several match, e.g. C\'s ["c", "h"]', () => {
-    const cExtension = {} as Extension;
-    const hExtension = {} as Extension;
-    loadLanguageMock.mockImplementation((id: string) => {
-      if (id === 'c') return cExtension;
-      if (id === 'h') return hExtension;
-      return null;
-    });
+  it('resolves via the first matching identifier when several match, e.g. C\'s ["c", "h"]', async () => {
+    const cExtension = [] as Extension as LanguageSupport;
+    const hExtension = [] as Extension as LanguageSupport;
+    loaders.c.mockResolvedValue(cExtension);
+    loaders.h.mockResolvedValue(hExtension);
 
-    expect(getLanguageExtension(['c', 'h'])).toBe(cExtension);
-    expect(loadLanguageMock).toHaveBeenCalledWith('c');
-    expect(loadLanguageMock).not.toHaveBeenCalledWith('h');
+    await expect(getLanguageExtension(['c', 'h'])).resolves.toBe(cExtension);
+    expect(loaders.c).toHaveBeenCalled();
+    expect(loaders.h).not.toHaveBeenCalled();
   });
 
-  it('returns null when no identifier maps to a language', () => {
-    loadLanguageMock.mockReturnValue(null);
-
-    expect(getLanguageExtension(['not-a-real-language', 'also-not-real'])).toBeNull();
-    expect(loadLanguageMock).toHaveBeenCalledWith('not-a-real-language');
-    expect(loadLanguageMock).toHaveBeenCalledWith('also-not-real');
+  it('returns null when no identifier maps to a language', async () => {
+    await expect(
+      getLanguageExtension(['not-a-real-language', 'also-not-real']),
+    ).resolves.toBeNull();
+    expect(loaders.js).not.toHaveBeenCalled();
+    expect(loaders.c).not.toHaveBeenCalled();
+    expect(loaders.h).not.toHaveBeenCalled();
   });
 });

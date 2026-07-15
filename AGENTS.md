@@ -2,7 +2,7 @@
 
 Agent instructions for `@laikacms/decap-cms`, a single-package fork of Decap CMS v4.beta.
 The former monorepo is flattened: `packages/decap-cms-<name>/src` became `src/<name>/`, each
-exposed as a subpath export (38 total) in `package.json#exports`. The root export is the
+exposed as a subpath export (46 total) in `package.json#exports`. The root export is the
 `src/app` bootstrap. Background in RESTRUCTURE.md (one stale line there: `tsconfig.build.json`
 was NOT deleted; it exists and drives `pnpm build`).
 
