@@ -34,9 +34,11 @@ and assemble its own `App` without taking on `@laikacms/decap-cms` as a barrel.
 style logic during the restructure. Zero `from 'decap-cms-*'` strings remain
 inside `src/`.
 
-The new `package.json#exports` map has **38 subpaths**, one per `src/<name>/`
+The new `package.json#exports` map has **42 subpaths**, one per `src/<name>/`
 directory. The root export `.` points at `src/app/index.ts` (the
-old `decap-cms-app` bootstrap).
+old `decap-cms-app` bootstrap). This count drifts as subpaths are added — it's
+pinned by `src/__tests__/exports-count.test.ts`, so if that test fails, update
+both the test and this line together.
 
 ## What needs verification before merge
 
