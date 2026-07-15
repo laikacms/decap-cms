@@ -79,6 +79,16 @@ than one visual state worth demonstrating, add a spec covering the
 behavior contract (keyboard interaction, ARIA attributes, controlled/
 uncontrolled state), then export it from [`index.ts`](./index.ts).
 
+**Enforcement status (DCMS-600):** this bar applies to new/changed
+primitives going forward. It is not yet retroactively enforced — most of
+the primitives listed in "Current inventory" below predate this rule and
+don't have a `src/ui/__tests__/<primitive>.spec.tsx` yet. `dialog` has one
+(`src/ui/__tests__/dialog.spec.tsx`) as a reference example of the shape
+expected: keyboard (Escape), ARIA (`role`, `aria-modal`, `aria-labelledby`,
+`aria-describedby`), and controlled/uncontrolled (`open`/`defaultOpen`/
+`onOpenChange`) coverage. Backfilling the rest is tracked separately —
+don't assume a primitive has a spec just because it's listed here.
+
 ## Re-export policy
 
 [`index.ts`](./index.ts) is the only barrel. It does `export * from
