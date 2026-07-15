@@ -57,7 +57,12 @@ export function LexicalControl({
 
   const initialState = useMemo<SerializedEditorState | undefined>(
     () => proxy.editorState,
-    // Only compute once — re-mounting with a fresh state would lose user edits.
+    // Intentionally narrow: this must only ever run once per mount. Tracking
+    // `proxy.editorState` would recompute `initialState` on every keystroke (the proxy
+    // is mutated in place by `onSerializedChange` below) and feed the live state back
+    // into `Editor` as its *initial* state, resetting cursor position / undo history
+    // and effectively discarding in-progress user edits.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 
