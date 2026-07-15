@@ -13,6 +13,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   commitMessageFormatter,
   prepareSlug,
+  getProcessSegment,
   slugFormatter,
   previewUrlFormatter,
   summaryFormatter,
@@ -293,6 +294,35 @@ describe('formatters', () => {
 
     it('should replace periods with slashes', () => {
       expect(prepareSlug(`sl.ug`)).toBe('sl-ug');
+    });
+  });
+
+  describe('getProcessSegment', () => {
+    // Pins the slash-handling contract behind `preview_path_preserve_slashes`
+    // (DCMS-628): `getProcessSegment`'s `preserveSlashes` argument is what
+    // `previewUrlFormatter` resolves from
+    // `file/collection.preview_path_preserve_slashes ?? collection.nested`.
+    const slugConfig = {
+      encoding: 'unicode',
+      clean_accents: false,
+      sanitize_replacement: '-',
+    };
+
+    it('sanitizes an interior slash away when preserveSlashes is not set (non-nested default)', () => {
+      const processSegment = getProcessSegment(slugConfig);
+      expect(processSegment('nested/value')).toBe('nested-value');
+    });
+
+    it('preserves an interior slash when preserveSlashes is true (nested collection default)', () => {
+      const processSegment = getProcessSegment(slugConfig, undefined, true);
+      expect(processSegment('nested/value')).toBe('nested/value');
+    });
+
+    it('preserves an interior slash when preserveSlashes is explicitly true on a non-nested collection', () => {
+      // Same call shape as previewUrlFormatter would make for
+      // `preview_path_preserve_slashes: true` on a non-nested collection.
+      const processSegment = getProcessSegment(slugConfig, [], true);
+      expect(processSegment('nested/value')).toBe('nested/value');
     });
   });
 
