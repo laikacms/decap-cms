@@ -14,8 +14,7 @@ export function caretFromPoint(
       node: range.startContainer,
       offset: range.startOffset,
     };
-    // @ts-expect-error -- Firefox caretPositionFromPoint not in lib.dom types
-  } else if (document.caretPositionFromPoint !== 'undefined') {
+  } else if (typeof document.caretPositionFromPoint !== 'undefined') {
     const range = document.caretPositionFromPoint(x, y);
     if (range === null) {
       return null;
