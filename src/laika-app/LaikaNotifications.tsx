@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import 'react-toastify/ReactToastify.css';
 import { toast, ToastContainer } from 'react-toastify';
 import { useTranslate } from 'react-polyglot';
 
 import { dismissNotification } from '../core/actions/notifications';
 import { useAppDispatch, useAppSelector } from '../core/hooks/useRedux';
+import { useLocation } from '../core/routing/context';
 import { useLaikaTheme } from './LaikaThemeContext';
 
 import type { Id, ToastItem } from 'react-toastify';
@@ -33,9 +34,14 @@ function LaikaNotifications() {
   const notifications = useAppSelector(
     state => state.notifications.notifications as CmsNotification[],
   );
-  const [idMap, setIdMap] = React.useState<IdMap>({});
+  const { pathname } = useLocation();
+  // Bookkeeping only, never rendered - a ref avoids re-render churn and
+  // keeps this value out of the toast.onChange effect's dependency list.
+  const idMapRef = useRef<IdMap>({});
 
   useEffect(() => {
+    const idMap = idMapRef.current;
+
     notifications
       .filter(notification => !idMap[notification.id])
       .forEach(notification => {
@@ -49,7 +55,6 @@ function LaikaNotifications() {
           },
         );
         idMap[notification.id] = toastId;
-        setIdMap(idMap);
 
         if (notification.dismissAfter) {
           setTimeout(() => {
@@ -58,24 +63,48 @@ function LaikaNotifications() {
         }
       });
 
-    Object.entries(idMap).forEach(([id, toastId]) => {
+    Object.keys(idMap).forEach(id => {
       if (!notifications.find(notification => notification.id === id)) {
-        toast.dismiss(toastId);
+        toast.dismiss(idMap[id]);
         delete idMap[id];
-        setIdMap(idMap);
       }
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mirrors core's pattern; idMap is mutated in place
-  }, [notifications]);
+  }, [notifications, t, dispatch]);
 
-  toast.onChange((payload: ToastItem) => {
-    if (payload.status === 'removed') {
-      const id = Object.entries(idMap).find(([, toastId]) => toastId === payload.id)?.[0];
-      if (id) {
-        dispatch(dismissNotification(id));
+  // `toast.onChange` returns an unsubscribe function and must be registered
+  // exactly once, not on every render (leaked-listener bug, same class as
+  // decap-cms-core's #185).
+  useEffect(() => {
+    return toast.onChange((payload: ToastItem) => {
+      if (payload.status === 'removed') {
+        const idMap = idMapRef.current;
+        const id = Object.entries(idMap).find(([, toastId]) => toastId === payload.id)?.[0];
+        if (id) {
+          delete idMap[id];
+          dispatch(dismissNotification(id));
+        }
       }
+    });
+  }, [dispatch]);
+
+  // Validation/save toasts are scoped to the page that raised them. Route
+  // navigation is a strong enough signal that they're stale, so drop
+  // whatever is still showing rather than let it follow the user to an
+  // unrelated route (DCMS-579).
+  const isFirstPathnameRender = useRef(true);
+  useEffect(() => {
+    if (isFirstPathnameRender.current) {
+      isFirstPathnameRender.current = false;
+      return;
     }
-  });
+
+    const idMap = idMapRef.current;
+    Object.keys(idMap).forEach(id => {
+      toast.dismiss(idMap[id]);
+      delete idMap[id];
+      dispatch(dismissNotification(id));
+    });
+  }, [pathname, dispatch]);
 
   return (
     <ToastContainer
