@@ -37,8 +37,6 @@ export default defineConfig({
     // package aliases. Without this, Vite's lazy dep optimizer encounters them
     // mid-module-graph and deadlocks waiting for optimization to complete.
     include: [
-      'lodash',
-      'lodash/fp',
       'node-fetch',
       'nock',
     ],
@@ -76,7 +74,6 @@ export default defineConfig({
       // Cross-package imports were rewritten to relative paths in the single-package
       // restructure, so the former `decap-cms-*` → `packages/decap-cms-*/src` aliases
       // are gone. Only the path shim and emotion anchoring remain.
-      { find: 'path', replacement: 'path-browserify' },
       // Anchor emotion packages to concrete paths so packages without @emotion/* as
       // a direct dependency can still resolve them (pnpm strict isolation prevents
       // hoisting them to the workspace root node_modules).

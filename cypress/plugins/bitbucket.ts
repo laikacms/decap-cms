@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import fetch from 'node-fetch';
 import path from 'path';
-import { merge } from 'lodash';
+import { merge } from 'lodash-es';
 
 import { updateConfig } from '../utils/config';
 import { escapeRegExp } from '../utils/regexp';

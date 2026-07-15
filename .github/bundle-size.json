@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "label": "bundle size",
+  "message": "1.57 MB min+gzip",
+  "color": "informational",
+  "entries": {
+    ".": {
+      "minified": 5088453,
+      "gzip": 1568884,
+      "pretty": "5.09 MB min / 1.57 MB gzip"
+    },
+    "./laika-app": {
+      "minified": 5292734,
+      "gzip": 1634246,
+      "pretty": "5.29 MB min / 1.63 MB gzip"
+    },
+    "./laika-app/bare": {
+      "minified": 1297010,
+      "gzip": 421046,
+      "pretty": "1.30 MB min / 421 kB gzip"
+    }
+  },
+  "install": {
+    "bytes": 111358588,
+    "packages": 349,
+    "pretty": "111 MB"
+  }
+}

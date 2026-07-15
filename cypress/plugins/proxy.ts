@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'path';
 import { spawn } from 'child_process';
-import { merge } from 'lodash';
+import { merge } from 'lodash-es';
 
 import { updateConfig } from '../utils/config';
 import { getGitClient } from './common';
@@ -26,9 +26,9 @@ const initRepo = async (dir: string): Promise<void> => {
 
 const startServer = async (repoDir: string, mode: string): Promise<ChildProcess> => {
   const tsNode = path.join(__dirname, '..', '..', 'node_modules', '.bin', 'ts-node');
-  const serverDir = path.join(__dirname, '..', '..', 'packages', 'decap-server');
-  const distIndex = path.join(serverDir, 'dist', 'index.js');
-  const tsIndex = path.join(serverDir, 'src', 'index.ts');
+  const rootDir = path.join(__dirname, '..', '..');
+  const distIndex = path.join(rootDir, 'dist', 'dev-server', 'index.js');
+  const tsIndex = path.join(rootDir, 'src', 'dev-server', 'index.ts');
 
   const port = 8082;
   const env = {
@@ -41,9 +41,9 @@ const startServer = async (repoDir: string, mode: string): Promise<ChildProcess>
   console.log(`Starting proxy server on port '${port}' with mode ${mode}`);
   let childProcess: ChildProcess;
   if (await fsExists(distIndex)) {
-    childProcess = spawn('node', [distIndex], { env, cwd: serverDir });
+    childProcess = spawn('node', [distIndex], { env, cwd: rootDir });
   } else {
-    childProcess = spawn(tsNode, ['--files', tsIndex], { env, cwd: serverDir });
+    childProcess = spawn(tsNode, ['--files', tsIndex], { env, cwd: rootDir });
   }
 
   serverProcess = childProcess;

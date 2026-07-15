@@ -1,7 +1,7 @@
 import { Octokit } from '@octokit/rest';
 import fs from 'node:fs/promises';
 import path from 'path';
-import { merge } from 'lodash';
+import { merge } from 'lodash-es';
 
 import {
   getExpectationsFilename,

@@ -34,8 +34,6 @@ export default defineConfig({
   resolve: {
     alias: [
       { find: /^@\//, replacement: path.resolve(__dirname, 'src') + '/' },
-      { find: 'path', replacement: 'path-browserify' },
-      { find: 'buffer', replacement: 'buffer' },
     ],
   },
   define: {

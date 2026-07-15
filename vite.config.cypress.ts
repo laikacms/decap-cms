@@ -11,10 +11,6 @@ export default defineConfig({
     alias: [
       // `@/*` -> `src/*` (mirrors tsconfig `paths`).
       { find: /^@\//, replacement: path.resolve(__dirname, 'src') + '/' },
-      // Node.js polyfills for browser
-      { find: 'path', replacement: 'path-browserify' },
-      { find: 'stream', replacement: 'stream-browserify' },
-      { find: 'buffer', replacement: 'buffer' },
     ],
   },
   define: {

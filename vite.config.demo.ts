@@ -35,12 +35,13 @@ export default defineConfig({
   resolve: {
     alias: [
       { find: /^@\//, replacement: path.resolve(__dirname, 'src') + '/' },
-      { find: 'path', replacement: 'path-browserify' },
-      { find: 'buffer', replacement: 'buffer' },
     ],
   },
   define: {
-    'process.env.NODE_ENV': JSON.stringify('development'),
+    // DEMO_NODE_ENV=production is used by the backend-replay e2e suite: the
+    // recorded API fixtures predate StrictMode, whose dev-only double-invoked
+    // effects fetch everything twice and desync the consume-once replay.
+    'process.env.NODE_ENV': JSON.stringify(process.env.DEMO_NODE_ENV ?? 'development'),
     'process.env': '{}',
     global: 'globalThis',
     DECAP_CMS_APP_VERSION: JSON.stringify('dev'),

@@ -27,14 +27,17 @@
   },
   "files": [
     "dist",
+    "skills",
     "README.md",
     "RESTRUCTURE.md",
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json && node ./scripts/postbuild-emotion.mjs && pnpm copy:assets",
+    "build": "rimraf dist && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json && node ./scripts/postbuild-emotion.mjs && pnpm copy:assets",
+    "analyze": "node ./scripts/analyze.mjs",
     "prepack": "pnpm build",
     "build:demo": "vite build --config vite.config.demo.ts",
+    "build:demo-graphql": "vite build --config vite.config.demo-graphql.ts",
     "build:laika-demo": "vite build --config vite.config.laika-demo.ts",
     "build:laika-bare-demo": "vite build --config vite.config.laika-bare-demo.ts",
     "build:dev-test": "pnpm build:demo && pnpm build:laika-demo && pnpm build:laika-bare-demo",
@@ -44,9 +47,10 @@
     "dev": "vite build --config vite.config.demo.ts && vite build --config vite.config.laika-demo.ts && vite build --config vite.config.laika-bare-demo.ts && (vite build --config vite.config.demo.ts --watch & BUILD_PID=$!; trap 'kill $BUILD_PID 2>/dev/null' EXIT INT TERM; npx --yes serve dev-test -l 5174)",
     "dev:lib": "pnpm copy:assets && (tsc-alias -p tsconfig.build.json --watch & tsc -p tsconfig.build.json --watch)",
     "copy:assets": "mkdir -p dist/widgets/code/data && cp src/widgets/code/data/languages.json dist/widgets/code/data/languages.json",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p playwright --noEmit && tsc -p .storybook --noEmit && tsc -p tsconfig.node.json --noEmit",
     "lint": "eslint --color \"src/**/*.{ts,tsx,js,mjs}\"",
-    "format": "prettier \"src/**/*.{ts,tsx,css}\" --write",
+    "format": "dprint fmt",
+    "format:check": "dprint check",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -69,11 +73,57 @@
   "peerDependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "apollo-cache-inmemory": "^1.6.6",
+    "apollo-client": "^2.6.10",
+    "apollo-link-context": "^1.0.20",
+    "apollo-link-http": "^1.5.17",
+    "graphql": "^16.13.2",
+    "graphql-tag": "^2.12.6",
+    "ol": "^6.9.0",
     "react": "^19.2.4",
-    "react-dom": "^19.2.4"
+    "react-dom": "^19.2.4",
+    "uploadcare-widget": "^3.23.4",
+    "uploadcare-widget-tab-effects": "^1.7.2"
+  },
+  "peerDependenciesMeta": {
+    "apollo-cache-inmemory": {
+      "optional": true
+    },
+    "apollo-client": {
+      "optional": true
+    },
+    "apollo-link-context": {
+      "optional": true
+    },
+    "apollo-link-http": {
+      "optional": true
+    },
+    "graphql": {
+      "optional": true
+    },
+    "graphql-tag": {
+      "optional": true
+    },
+    "ol": {
+      "optional": true
+    },
+    "uploadcare-widget": {
+      "optional": true
+    },
+    "uploadcare-widget-tab-effects": {
+      "optional": true
+    }
   },
   "dependencies": {
-    "@emotion/css": "^11.13.5",
+    "@base-ui/react": "^1.6.0",
+    "@codemirror/autocomplete": "^6.0.0",
+    "@codemirror/commands": "^6.0.0",
+    "@codemirror/language": "^6.0.0",
+    "@codemirror/language-data": "^6.0.0",
+    "@codemirror/lint": "^6.0.0",
+    "@codemirror/search": "^6.0.0",
+    "@codemirror/state": "^6.0.0",
+    "@codemirror/view": "^6.0.0",
     "@emotion/is-prop-valid": "^1.4.0",
     "@lexical/code": "^0.42.0",
     "@lexical/code-prism": "^0.42.0",
@@ -92,96 +142,65 @@
     "@lexical/table": "^0.42.0",
     "@lexical/text": "^0.42.0",
     "@lexical/utils": "^0.42.0",
+    "@lezer/highlight": "^1.0.0",
     "@portabletext/html": "^1.1.0",
     "@portabletext/markdown": "^1.2.0",
     "@portabletext/react": "^6.2.0",
     "@portabletext/to-html": "^5.0.2",
     "@portabletext/types": "^4.0.2",
+    "@redux-devtools/extension": "^4.0.0",
     "@reduxjs/toolkit": "^2.11.2",
     "@replit/codemirror-emacs": "^6.1.0",
     "@replit/codemirror-vim": "^6.3.0",
     "@replit/codemirror-vscode-keymap": "^6.0.2",
-    "@uiw/codemirror-extensions-langs": "^4.25.9",
-    "@uiw/codemirror-theme-material": "^4.25.9",
-    "@uiw/react-codemirror": "^4.25.9",
     "@vercel/stega": "^1.1.0",
     "ajv": "^8.18.0",
     "ajv-errors": "^3.0.0",
     "ajv-keywords": "^5.1.0",
-    "apollo-cache-inmemory": "^1.6.6",
-    "apollo-client": "^2.6.10",
-    "apollo-link-context": "^1.0.20",
-    "apollo-link-http": "^1.5.17",
-    "async-mutex": "^0.5.0",
-    "buffer": "^6.0.3",
-    "codemirror": "^6.0.2",
-    "common-tags": "^1.8.2",
-    "copy-text-to-clipboard": "^3.2.2",
-    "cors": "^2.8.6",
     "dayjs": "^1.11.20",
-    "deepmerge": "^4.3.1",
-    "dotenv": "^17.4.0",
-    "express": "^5.2.1",
     "fuzzy": "^0.1.3",
-    "gotrue-js": "^1.0.1",
-    "graphql": "^16.13.2",
-    "graphql-tag": "^2.12.6",
-    "history": "^5.3.0",
     "immer": "^11.1.4",
     "ini": "^6.0.0",
-    "zod": "^4.4.3",
     "jwt-decode": "^4.0.0",
-    "@base-ui/react": "^1.6.0",
     "lexical": "^0.42.0",
-    "lodash": "^4.18.1",
+    "lodash-es": "^4.18.1",
     "lucide-react": "^1.7.0",
     "mdast-util-from-markdown": "^2.0.3",
+    "mdast-util-gfm": "^3.1.0",
+    "mdast-util-mdx-expression": "^2.0.1",
+    "mdast-util-mdx-jsx": "^3.2.0",
     "mdast-util-to-string": "^4.0.0",
+    "micromark-extension-gfm": "^3.0.0",
+    "micromark-extension-mdx-expression": "^3.0.1",
+    "micromark-extension-mdx-jsx": "^3.0.2",
+    "micromark-extension-mdx-md": "^2.0.0",
     "minimatch": "^10.2.5",
-    "morgan": "^1.10.1",
-    "node-polyglot": "^2.6.0",
-    "ol": "^6.9.0",
-    "path-browserify": "^1.0.1",
-    "prop-types": "^15.8.1",
-    "react-aria-menubutton": "^8.0.0",
     "react-colorful": "^5.8.0",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "react-frame-component": "^5.3.2",
     "react-is": "19.2.4",
     "react-markdown": "^10.1.0",
-    "react-modal": "^3.16.3",
-    "react-polyglot": "^0.7.2",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.14.0",
     "react-scroll-sync": "^1.0.2",
     "react-select": "^5.10.2",
     "react-split-pane": "^3.2.0",
     "react-textarea-autosize": "^8.5.9",
-    "react-toastify": "^11.0.5",
     "react-topbar-progress-indicator": "^4.1.1",
     "react-waypoint": "^10.3.0",
     "react-window": "^2.2.7",
     "redux": "^5.0.1",
-    "redux-devtools-extension": "^2.13.9",
-    "redux-notifications": "^4.0.1",
     "redux-thunk": "^3.1.0",
     "remark-frontmatter": "^5.0.0",
     "remark-gfm": "4.0.1",
     "remark-parse": "^11.0.0",
     "remark-stringify": "^11.0.0",
-    "simple-git": "^3.33.0",
     "smol-toml": "^1.6.1",
     "tinycolor2": "^1.6.0",
     "unified": "^11.0.5",
     "unist-util-visit": "^5.1.0",
-    "uploadcare-widget": "^3.23.4",
-    "uploadcare-widget-tab-effects": "^1.7.2",
     "uuid": "^13.0.0",
-    "vfile": "^6.0.3",
-    "what-input": "^5.2.12",
-    "what-the-diff": "^0.6.0",
-    "winston": "^3.19.0",
     "yaml": "^2.8.3"
   },
   "devDependencies": {
@@ -201,25 +220,23 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
-    "@types/common-tags": "^1.8.4",
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
     "@types/hast": "^3.0.5",
-    "@types/history": "^5.0.0",
-    "@types/jwt-decode": "^3.1.0",
-    "@types/lodash": "^4.17.24",
-    "@types/morgan": "^1.9.10",
+    "@types/lodash-es": "^4.17.12",
     "@types/node": "^25.9.5",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@types/react-is": "^19.0.0",
-    "@types/react-modal": "^3.16.3",
     "@types/redux-mock-store": "^1.5.0",
     "@types/tinycolor2": "^1.4.6",
     "@types/unist": "^3.0.3",
-    "@types/uuid": "^11.0.0",
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/coverage-v8": "^4.1.2",
+    "apollo-cache-inmemory": "^1.6.6",
+    "apollo-client": "^2.6.10",
+    "apollo-link-context": "^1.0.20",
+    "apollo-link-http": "^1.5.17",
+    "dotenv": "^17.4.0",
+    "dprint": "^0.54.0",
     "esbuild": "^0.27.4",
     "eslint": "^10.2.1",
     "eslint-config-prettier": "^10.1.8",
@@ -230,18 +247,27 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-unicorn": "^58.0.0",
     "globals": "^17.5.0",
+    "graphql": "^16.13.2",
+    "graphql-tag": "^2.12.6",
     "husky": "^9.1.7",
     "jsdom": "^29.0.1",
     "nock": "^14.0.13",
+    "ol": "^6.9.0",
     "prettier": "^3.8.1",
     "redux-mock-store": "^1.5.5",
     "rimraf": "^6.1.3",
+    "simple-git": "^3.33.0",
     "storybook": "^10.5.0",
     "tsc-alias": "^1.8.16",
     "typescript": "^6.0.2",
     "typescript-eslint": "^8.32.1",
+    "uploadcare-widget": "^3.23.4",
+    "uploadcare-widget-tab-effects": "^1.7.2",
+    "vfile": "^6.0.3",
     "vite": "^8.0.3",
-    "vitest": "^4.1.2"
+    "vitest": "^4.1.2",
+    "winston": "^3.19.0",
+    "zod": "^4.4.3"
   },
   "exports": {
     ".": {
@@ -277,9 +303,17 @@
       "types": "./dist/backends/github/index.d.ts",
       "import": "./dist/backends/github/index.js"
     },
+    "./backends/github/graphql": {
+      "types": "./dist/backends/github/graphql/index.d.ts",
+      "import": "./dist/backends/github/graphql/index.js"
+    },
     "./backends/gitlab": {
       "types": "./dist/backends/gitlab/index.d.ts",
       "import": "./dist/backends/gitlab/index.js"
+    },
+    "./backends/gitlab/graphql": {
+      "types": "./dist/backends/gitlab/graphql/index.d.ts",
+      "import": "./dist/backends/gitlab/graphql/index.js"
     },
     "./backends/proxy": {
       "types": "./dist/backends/proxy/index.d.ts",
@@ -301,6 +335,10 @@
       "types": "./dist/editor-component-image/index.d.ts",
       "import": "./dist/editor-component-image/index.js"
     },
+    "./format-packs/mdx": {
+      "types": "./dist/format-packs/mdx/index.d.ts",
+      "import": "./dist/format-packs/mdx/index.js"
+    },
     "./lib/auth": {
       "types": "./dist/lib/auth/index.d.ts",
       "import": "./dist/lib/auth/index.js"
@@ -317,13 +355,17 @@
       "types": "./dist/lib/widgets/index.d.ts",
       "import": "./dist/lib/widgets/index.js"
     },
-    "./lib/widgets/editor": {
-      "types": "./dist/lib/widgets/editor/index.d.ts",
-      "import": "./dist/lib/widgets/editor/index.js"
+    "./ui/editor": {
+      "types": "./dist/ui/editor/index.d.ts",
+      "import": "./dist/ui/editor/index.js"
     },
     "./locales": {
       "types": "./dist/locales/index.d.ts",
       "import": "./dist/locales/index.js"
+    },
+    "./locales/*": {
+      "types": "./dist/locales/*/index.d.ts",
+      "import": "./dist/locales/*/index.js"
     },
     "./media/library-cloudinary": {
       "types": "./dist/media/library-cloudinary/index.d.ts",
@@ -333,9 +375,9 @@
       "types": "./dist/media/library-uploadcare/index.d.ts",
       "import": "./dist/media/library-uploadcare/index.js"
     },
-    "./server": {
-      "types": "./dist/server/index.d.ts",
-      "import": "./dist/server/index.js"
+    "./dev-server": {
+      "types": "./dist/dev-server/index.d.ts",
+      "import": "./dist/dev-server/index.js"
     },
     "./ui": {
       "types": "./dist/ui/index.d.ts",

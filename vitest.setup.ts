@@ -2,6 +2,8 @@ import * as matchers from '@testing-library/jest-dom/matchers';
 import { cleanup } from '@testing-library/react';
 import { afterEach, expect, vi } from 'vitest';
 
+import type * as NodePath from 'path';
+
 expect.extend(matchers);
 
 // With `globals: false`, @testing-library/react cannot auto-register its
@@ -13,7 +15,7 @@ afterEach(() => {
 
 // Mock path module to use posix paths
 vi.mock('path', async () => {
-  const actual = await vi.importActual<typeof import('path')>('path');
+  const actual = await vi.importActual<typeof NodePath>('path');
   return {
     ...actual.posix,
     default: actual.posix,
@@ -33,4 +35,17 @@ class MockResizeObserver implements ResizeObserver {
   disconnect = vi.fn();
 }
 globalThis.ResizeObserver ??= MockResizeObserver;
+
+// jsdom's Range lacks getClientRects; Lexical's selection code calls it from
+// a MutationObserver after document edits, crashing as an unhandled error
+// outside any test. Layout is meaningless in jsdom, so empty rects suffice.
+// (Deliberately NOT stubbing Range#getBoundingClientRect: some Lexical
+// positioning code spins forever when it returns all-zero rects.)
+if (typeof Range !== 'undefined') {
+  Range.prototype.getClientRects ??= () => ({
+    length: 0,
+    item: () => null,
+    [Symbol.iterator]: [][Symbol.iterator],
+  }) as unknown as DOMRectList;
+}
 

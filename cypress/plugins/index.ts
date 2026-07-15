@@ -13,7 +13,7 @@
  
 import 'dotenv/config';
 import path from 'node:path';
-import { merge } from 'lodash';
+import { merge } from 'lodash-es';
 import { addMatchImageSnapshotPlugin } from '@simonsmith/cypress-image-snapshot/plugin';
 
 import {

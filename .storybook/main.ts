@@ -1,4 +1,5 @@
 import { readFileSync } from 'fs';
+
 import type { StorybookConfig } from '@storybook/react-vite';
 import type { Plugin as EsbuildPlugin } from 'esbuild';
 
@@ -72,14 +73,11 @@ const config: StorybookConfig = {
     reactDocgen: 'react-docgen',
   },
   // Same vite tweaks the demo IIFE bundle uses, so styled components +
-  // path-browserify resolve correctly inside Storybook.
   viteFinal: async config => {
     const { mergeConfig } = await import('vite');
     config.resolve = config.resolve ?? {};
     (config.resolve as { alias?: Record<string, string> }).alias = {
       ...((config.resolve as { alias?: Record<string, string> }).alias ?? {}),
-      path: 'path-browserify',
-      buffer: 'buffer',
     };
     config.define = {
       ...(config.define ?? {}),

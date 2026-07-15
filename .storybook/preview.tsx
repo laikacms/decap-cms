@@ -36,7 +36,7 @@ const preview: Preview = {
           { value: 'light', title: 'Light' },
           { value: 'dark', title: 'Dark' },
         ],
-        showName: true,
+        dynamicTitle: true,
       },
     },
   },

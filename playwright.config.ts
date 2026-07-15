@@ -38,9 +38,22 @@ export default defineConfig({
     {
       name: 'chromium',
       // Mobile-only specs assert on the collapsed-drawer chrome, which doesn't
-      // exist at desktop widths.
-      testIgnore: /.*\.mobile\.e2e\.ts/,
+      // exist at desktop widths. Backend replay specs run in their own project.
+      testIgnore: [/.*\.mobile\.e2e\.ts/, /backends\//],
       use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      // Recorded-backend editorial workflow specs: drive the classic
+      // `decap-cms.js` bundle against replayed API fixtures from
+      // `cypress/fixtures/` (see playwright/backends/replay.ts). The 1200px
+      // viewport matches what the recordings were captured under.
+      name: 'github-backend',
+      testMatch: /backends\/.*\.e2e\.ts/,
+      timeout: 90_000,
+      // Replay tests are cheap and deterministic in isolation but can flake
+      // under full-suite browser contention; one retry absorbs that.
+      retries: 1,
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1200, height: 1200 } },
     },
     {
       name: 'mobile',
@@ -49,10 +62,16 @@ export default defineConfig({
     },
   ],
   webServer: {
-    // Build the laika IIFE bundle into dev-test/dist, then serve dev-test/.
-    // The `&&` keeps `serve` as the long-lived foreground process Playwright
-    // waits on.
-    command: 'pnpm run build:laika-demo && npx --yes serve dev-test -l ' + PORT,
+    // Build the laika + classic IIFE bundles into dev-test/dist, then serve
+    // dev-test/. (The classic decap-cms.js bundle is what the backend replay
+    // specs drive.) The `&&` keeps `serve` as the long-lived foreground
+    // process Playwright waits on.
+    // DEMO_NODE_ENV=production: the replay fixtures predate StrictMode, whose
+    // dev-only double-invoked effects desync the consume-once replay (see
+    // playwright/backends/replay.ts).
+    command:
+      'pnpm run build:laika-demo && DEMO_NODE_ENV=production pnpm run build:demo && DEMO_NODE_ENV=production pnpm run build:demo-graphql && npx --yes serve dev-test -l ' +
+      PORT,
     url: `${baseURL}/config.yml`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

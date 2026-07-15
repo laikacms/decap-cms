@@ -1,4 +1,5 @@
 import { defineConfig } from 'cypress';
+
 import viteConfig from './vite.config.cypress.ts'
 
 export default defineConfig({
