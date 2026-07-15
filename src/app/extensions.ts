@@ -59,10 +59,10 @@ CMS.registerBackend('proxy', ProxyBackend);
   DecapCmsWidgetDatetime.Widget(),
   DecapCmsWidgetCode.Widget(),
   DecapCmsWidgetColorString.Widget(),
-  RichtextWidget() as any,
+  RichtextWidget(),
   // v1→v2 back-compat alias: `markdown` was renamed to `richtext` (DCMS-483).
   // See BREAKING_CHANGES_V2_BETA.md for the migration note.
-  { ...RichtextWidget(), name: 'markdown' } as any,
+  { ...RichtextWidget(), name: 'markdown' },
 ].forEach(widget => CMS.registerWidget(widget));
 // The richtext widget stores a lazy `LexicalRichtextValue`; the passthrough
 // serializer keeps the proxy intact through Decap's value pipeline so its
@@ -70,13 +70,13 @@ CMS.registerBackend('proxy', ProxyBackend);
 // file-write time.
 CMS.registerWidgetValueSerializer('richtext', richtextPassthroughSerializer);
 CMS.registerWidgetValueSerializer('markdown', richtextPassthroughSerializer);
-CMS.registerEditorComponent(image as any); // TODO: fix type issue with editor components
+CMS.registerEditorComponent(image);
 CMS.registerEditorComponent({
   id: 'code-block',
   label: 'Code Block',
   widget: 'code',
   type: 'code-block',
-} as any);
+});
 Object.keys(locales).forEach(locale => {
   CMS.registerLocale(locale, (locales as Record<string, unknown>)[locale]);
 });
