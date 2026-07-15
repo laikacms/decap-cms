@@ -5,8 +5,7 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import styled from '@emotion/styled';
 import { connect } from 'react-redux';
 import { Route, Switch, Redirect, Link } from 'react-router-dom';
-import TopBarProgress from 'react-topbar-progress-indicator';
-import { Loader, colors } from 'decap-cms-ui-default';
+import { Loader, colors, TopBarProgress } from 'decap-cms-ui-default';
 
 import { loginUser, logoutUser } from '../../actions/auth';
 import { currentBackend } from '../../backend';
