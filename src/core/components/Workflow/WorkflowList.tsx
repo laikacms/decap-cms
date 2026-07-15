@@ -235,7 +235,7 @@ function WorkflowList({
           const timestamp = dayjs(entry.updatedOn).format(t('workflow.workflow.dateFormat'));
           const slug = entry.slug;
           const collectionName = entry.collection;
-          const editLink = `collections/${collectionName}/entries/${slug}?ref=workflow`;
+          const editLink = `/collections/${collectionName}/entries/${slug}?ref=workflow`;
           const ownStatus = entry.status;
           const collection = Object.values(collections).find(
             (c: CmsCollectionState) => c.name === collectionName,
