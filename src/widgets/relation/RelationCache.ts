@@ -1,5 +1,10 @@
+interface CacheEntry {
+  collection: string;
+  value: unknown;
+}
+
 class RelationCache {
-  cache: Map<string, unknown>;
+  cache: Map<string, CacheEntry>;
   pendingRequests: Map<string, Promise<unknown>>;
 
   constructor() {
@@ -17,7 +22,7 @@ class RelationCache {
     const cacheKey = `${collection}-${searchFields.join(',')}-${term || ''}-${file || ''}`;
 
     if (this.cache.has(cacheKey)) {
-      return this.cache.get(cacheKey);
+      return this.cache.get(cacheKey)?.value;
     }
 
     if (this.pendingRequests.has(cacheKey)) {
@@ -29,7 +34,7 @@ class RelationCache {
 
     try {
       const result = await request;
-      this.cache.set(cacheKey, result);
+      this.cache.set(cacheKey, { collection, value: result });
       this.ensureCacheSize();
       return result;
     } finally {
@@ -38,8 +43,8 @@ class RelationCache {
   }
 
   invalidateCollection(collection: string) {
-    for (const [key] of this.cache.entries()) {
-      if (key.startsWith(`${collection}-`)) {
+    for (const [key, entry] of this.cache.entries()) {
+      if (entry.collection === collection) {
         this.cache.delete(key);
       }
     }

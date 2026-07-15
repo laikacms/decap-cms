@@ -50,4 +50,22 @@ describe('RelationCache', () => {
     expect(postsQueryFn).toHaveBeenCalledTimes(2);
     expect(authorsQueryFn).toHaveBeenCalledTimes(1);
   });
+
+  it('invalidateCollection() does not over-invalidate a collection whose name is a hyphen-prefix of another (DCMS-608)', async () => {
+    const blogQueryFn = vi.fn().mockResolvedValue(['blog-result']);
+    const blogPostsQueryFn = vi.fn().mockResolvedValue(['blog-posts-result']);
+
+    await relationCache.getOptions('blog', ['title'], 'foo', undefined, blogQueryFn);
+    await relationCache.getOptions('blog-posts', ['title'], 'foo', undefined, blogPostsQueryFn);
+
+    relationCache.invalidateCollection('blog');
+
+    await relationCache.getOptions('blog', ['title'], 'foo', undefined, blogQueryFn);
+    await relationCache.getOptions('blog-posts', ['title'], 'foo', undefined, blogPostsQueryFn);
+
+    // 'blog' was invalidated, so it must re-query.
+    expect(blogQueryFn).toHaveBeenCalledTimes(2);
+    // 'blog-posts' was not invalidated, so it must still be served from cache.
+    expect(blogPostsQueryFn).toHaveBeenCalledTimes(1);
+  });
 });
