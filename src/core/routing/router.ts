@@ -17,6 +17,44 @@ const history = createHashHistory();
 /** The underlying hash history, exposed solely for a consumer's router bridge. */
 export { history as routerHistory };
 
+/**
+ * `history@5`'s hash-history implementation (`handlePop` in `history/hash.js`)
+ * calls `console.warn` whenever a `block()` blocker is armed and a *foreign*
+ * POP navigation happens — one whose entry it didn't stamp with its own
+ * `idx`: the very first browser Back after boot, a deep link, `page.goto` to
+ * a hash URL, or any other `location.hash` change made outside this app. In
+ * that situation `history@5` cannot block the navigation regardless of what
+ * any blocker decides — its own warning text says so ("the block will fail
+ * silently in production") — and it never even invokes the registered
+ * blocker, so `useEditor.ts`'s dirty-nav guard is not consulted at all for
+ * this case. The CMS's *real* protection for exactly this case is the
+ * separate `hashchange`-driven safety net in `useEditor.ts`'s `setup()`
+ * (DCMS-286), which resyncs `history` and re-confirms independently of
+ * `block()`.
+ *
+ * So whenever the editor's guard is armed (any unsaved change), this warning
+ * is unavoidable, functionally meaningless console noise from the library
+ * itself — not a decap-cms bug the app can "handle" differently — every time
+ * a foreign POP occurs (DCMS-569 / DCMS-613). It is also dead code in
+ * production: `history`'s production bundle
+ * (`history/history.production.min.js`) compiles the whole `warning(...)`
+ * call out via `process.env.NODE_ENV !== "production"`, so it never reaches a
+ * real user's console — filtering it here only quiets local/dev/test
+ * consoles. Match on the message's stable, literal prefix so any other
+ * `console.warn` call — including a *different* `history` warning — still
+ * surfaces normally.
+ */
+const HISTORY_FOREIGN_POP_WARNING_PREFIX = 'You are trying to block a POP navigation';
+if (typeof console !== 'undefined' && typeof console.warn === 'function') {
+  const originalWarn = console.warn.bind(console);
+  console.warn = (...args: unknown[]) => {
+    if (typeof args[0] === 'string' && args[0].startsWith(HISTORY_FOREIGN_POP_WARNING_PREFIX)) {
+      return;
+    }
+    originalWarn(...args);
+  };
+}
+
 /** A navigation action, mirroring the history package's `Action`. */
 export type RouterAction = 'PUSH' | 'REPLACE' | 'POP';
 
