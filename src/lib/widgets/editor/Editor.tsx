@@ -28,6 +28,7 @@ import { RichTextExtension } from '@lexical/rich-text';
 import { TableCellNode, TableNode, TableRowNode } from '@lexical/table';
 import { configExtension, defineExtension, type EditorState, type SerializedEditorState } from 'lexical';
 
+import { BlockNode } from '@/lib/richtext';
 import { useBlockViewer } from './_block-viewer-stub';
 import { ContentEditable } from './editor-ui/content-editable';
 import { DateTimeExtension } from './extensions/date-time-extension';
@@ -214,12 +215,24 @@ export function Editor({
           YouTubeNode,
           AutocompleteNode,
           SpecialTextNode,
+          // Generic custom-block node (`decap-block`) emitted by the Portable
+          // Text bridge for any content that isn't plain text/code (e.g. an
+          // image or shortcode from imported Markdown). Must stay registered
+          // here or `parseEditorState` throws "type not found" on load.
+          BlockNode,
         ],
         $initialEditorState(editor) {
-          if (editorSerializedState) {
-            editor.parseEditorState(editorSerializedState);
-          } else if (editorState) {
-            editor.setEditorState(editorState);
+          try {
+            if (editorSerializedState) {
+              editor.parseEditorState(editorSerializedState);
+            } else if (editorState) {
+              editor.setEditorState(editorState);
+            }
+          } catch (error) {
+            // Never let a bad/unrecognised initial state crash the whole app
+            // into the top-level error boundary — fall back to an empty
+            // document and let the user keep editing.
+            console.warn('[richtext] failed to hydrate initial editor state, starting empty:', error);
           }
         },
         theme: editorTheme,
