@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('../../../core/backend');
-import { oneLine, stripIndent } from 'common-tags';
+import { oneLine, stripIndent } from '@/lib/util/index';
 import nock from 'nock';
 import { Cursor } from '@/lib/util/index';
 

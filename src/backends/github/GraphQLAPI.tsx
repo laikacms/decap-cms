@@ -6,8 +6,7 @@ import {
 } from 'apollo-cache-inmemory';
 import { createHttpLink } from 'apollo-link-http';
 import { setContext } from 'apollo-link-context';
-import trim from 'lodash/trim';
-import trimStart from 'lodash/trimStart';
+import { trim, trimStart } from 'lodash-es';
 
 import {
   APIError,

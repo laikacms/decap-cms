@@ -1,5 +1,6 @@
 import { gql } from 'graphql-tag';
-import { oneLine } from 'common-tags';
+
+import { oneLine } from '@/lib/util/index';
 
 export const files = gql`
   query files($repo: ID!, $branch: String!, $path: String!, $recursive: Boolean!, $cursor: String) {

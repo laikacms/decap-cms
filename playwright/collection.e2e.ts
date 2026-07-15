@@ -22,8 +22,10 @@ test.describe('Laika collection controls', () => {
   test('filter menu offers the configured view filters', async ({ page }) => {
     await page.getByRole('button', { name: 'Filter by' }).click();
 
+    // Filter entries are checkable, so Base UI exposes them as
+    // menuitemcheckbox rather than plain menuitem.
     for (const filter of ['Posts With Index', 'Posts Without Index', 'Drafts']) {
-      await expect(page.getByRole('menuitem', { name: filter })).toBeVisible();
+      await expect(page.getByRole('menuitemcheckbox', { name: filter })).toBeVisible();
     }
   });
 

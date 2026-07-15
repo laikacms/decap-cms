@@ -1,6 +1,6 @@
 import { test, authedTest, expect, LAIKA_PAGE, gotoRoute, sidebar } from './fixtures';
 
-test.describe('Laika shell — unauthenticated', () => {
+test.describe('Laika shell - unauthenticated', () => {
   test('renders the login screen', async ({ page }) => {
     await page.goto(LAIKA_PAGE);
 
@@ -22,7 +22,7 @@ test.describe('Laika shell — unauthenticated', () => {
   });
 });
 
-authedTest.describe('Laika shell — authenticated chrome', () => {
+authedTest.describe('Laika shell - authenticated chrome', () => {
   authedTest.beforeEach(async ({ page }) => {
     await gotoRoute(page, '/');
   });

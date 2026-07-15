@@ -1,7 +1,6 @@
-import trimStart from 'lodash/trimStart';
-import trim from 'lodash/trim';
-import { stripIndent } from 'common-tags';
+import { trim, trimStart } from 'lodash-es';
 
+import { stripIndent } from '@/lib/util/index';
 import {
   CURSOR_COMPATIBILITY_SYMBOL,
   basename,
@@ -38,6 +37,7 @@ import type {
   CmsUser,
   CmsCredentials,
   CmsBackendInitConfig,
+  CmsImplementationEntry,
   CmsImplementationFile,
   CmsUnpublishedEntryMediaFile,
   AsyncLock,
@@ -46,6 +46,25 @@ import type {
 } from '@/lib/util/index';
 
 const MAX_CONCURRENT_DOWNLOADS = 10;
+
+type GraphQLAPIInstance = API & {
+  readFilesGraphQL: (files: CmsImplementationFile[]) => Promise<CmsImplementationEntry[]>;
+};
+
+let registeredGraphQLAPI:
+  | (new (config: ConstructorParameters<typeof API>[0]) => GraphQLAPIInstance)
+  | null = null;
+
+/**
+ * Registers the API class used when the backend has `use_graphql` enabled. Wired up by
+ * importing '@laikacms/decap-cms/backends/gitlab/graphql', which is a separate entry so
+ * the GraphQL client libraries stay optional peer dependencies.
+ */
+export function registerGraphQLAPI(
+  graphQLAPI: new (config: ConstructorParameters<typeof API>[0]) => GraphQLAPIInstance,
+) {
+  registeredGraphQLAPI = graphQLAPI;
+}
 
 export default class GitLab implements CmsImplementation {
   lock: AsyncLock;
@@ -127,7 +146,15 @@ export default class GitLab implements CmsImplementation {
 
   async authenticate(state: CmsCredentials) {
     this.token = state.token as string;
-    this.api = new API({
+    if (this.useGraphQL && !registeredGraphQLAPI) {
+      throw new Error(
+        'The GitLab backend has `use_graphql` enabled, but no GraphQL API is registered. ' +
+          "Import '@laikacms/decap-cms/backends/gitlab/graphql' and install the optional " +
+          'GraphQL peer dependencies to use it.',
+      );
+    }
+    const ApiCtor = this.useGraphQL ? registeredGraphQLAPI! : API;
+    this.api = new ApiCtor({
       token: this.token,
       branch: this.branch,
       repo: this.repo,
@@ -135,7 +162,6 @@ export default class GitLab implements CmsImplementation {
       squashMerges: this.squashMerges,
       cmsLabelPrefix: this.cmsLabelPrefix,
       initialWorkflowStatus: this.options.initialWorkflowStatus,
-      useGraphQL: this.useGraphQL,
       graphQLAPIRoot: this.graphQLAPIRoot,
     });
     const user = await this.api.user();
@@ -234,7 +260,9 @@ export default class GitLab implements CmsImplementation {
       getDifferences: (to, from) => this.api!.getDifferences(to, from),
       getFileId: path => this.api!.getFileId(path, this.branch),
       filterFile: file => this.filterFile(folder, file, extension, depth),
-      customFetch: this.useGraphQL ? files => this.api!.readFilesGraphQL(files) : undefined,
+      customFetch: this.useGraphQL
+        ? files => (this.api as GraphQLAPIInstance).readFilesGraphQL(files)
+        : undefined,
     });
 
     return files;

@@ -13,7 +13,7 @@ import { authedTest as test, expect, gotoRoute } from './fixtures';
  * gone from the DOM (not just hidden) whenever the editor toolbar is up, and
  * comes back the moment the editor is left.
  */
-test.describe('Laika editor route — app top-nav suppression', () => {
+test.describe('Laika editor route - app top-nav suppression', () => {
   test('opening an existing entry removes the app header, not just covers it', async ({
     page,
   }) => {
@@ -30,7 +30,7 @@ test.describe('Laika editor route — app top-nav suppression', () => {
     // The editor's own toolbar is up …
     await expect(page.getByRole('button', { name: 'Save', exact: true })).toBeVisible();
 
-    // … and the app header's nav is gone from the DOM entirely — not present
+    // … and the app header's nav is gone from the DOM entirely, not present
     // (rather than present-but-invisible/unclickable), so there is nothing
     // left to tab-focus or mis-click into.
     await expect(page.getByRole('link', { name: 'Home' })).toHaveCount(0);

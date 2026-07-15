@@ -1,7 +1,7 @@
 import * as React from 'react';
-import trimStart from 'lodash/trimStart';
-import { stripIndent } from 'common-tags';
+import { trimStart } from 'lodash-es';
 
+import { stripIndent } from '@/lib/util/index';
 import {
   CURSOR_COMPATIBILITY_SYMBOL,
   Cursor,
@@ -24,7 +24,6 @@ import {
 } from '@/lib/util/index';
 import AuthenticationPage from './AuthenticationPage';
 import API, { API_NAME } from './API';
-import GraphQLAPI from './GraphQLAPI';
 
 import type { Endpoints } from '@octokit/types';
 import type {
@@ -62,6 +61,17 @@ type GitHubStatusComponent = {
   name: string;
   status: string;
 };
+
+let registeredGraphQLAPI: typeof API | null = null;
+
+/**
+ * Registers the API class used when the backend has `use_graphql` enabled. Wired up by
+ * importing '@laikacms/decap-cms/backends/github/graphql', which is a separate entry so
+ * the GraphQL client libraries stay optional peer dependencies.
+ */
+export function registerGraphQLAPI(graphQLAPI: typeof API) {
+  registeredGraphQLAPI = graphQLAPI;
+}
 
 export default class GitHub implements CmsImplementation {
   lock: AsyncLock;
@@ -348,7 +358,14 @@ export default class GitHub implements CmsImplementation {
         this.branch = repoInfo.default_branch;
       }
     }
-    const apiCtor = this.useGraphql ? GraphQLAPI : API;
+    if (this.useGraphql && !registeredGraphQLAPI) {
+      throw new Error(
+        'The GitHub backend has `use_graphql` enabled, but no GraphQL API is registered. ' +
+          "Import '@laikacms/decap-cms/backends/github/graphql' and install the optional " +
+          'GraphQL peer dependencies to use it.',
+      );
+    }
+    const apiCtor = this.useGraphql ? registeredGraphQLAPI! : API;
     this.api = new apiCtor({
       token: this.token,
       tokenKeyword: this.tokenKeyword,

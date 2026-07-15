@@ -1,5 +1,7 @@
 import { test as base, expect } from '@playwright/test';
 
+import type { Page } from '@playwright/test';
+
 /**
  * Shared Playwright fixtures for the Laika e2e suite.
  *
@@ -38,7 +40,7 @@ export const authedTest = base.extend({
  * `complementary`), distinct from the header's own `navigation` region. Scope
  * collection-link assertions to this so they don't match header links.
  */
-export function sidebar(page: import('@playwright/test').Page) {
+export function sidebar(page: Page) {
   return page.getByRole('complementary', { name: 'Collections' });
 }
 
@@ -47,10 +49,7 @@ export function sidebar(page: import('@playwright/test').Page) {
  * to be present. Uses the header brand "Home" link as the boot signal because
  * it stays visible at every viewport (the sidebar collapses on mobile).
  */
-export async function gotoRoute(
-  page: import('@playwright/test').Page,
-  hash = '/',
-): Promise<void> {
+export async function gotoRoute(page: Page, hash = '/'): Promise<void> {
   await page.goto(`${LAIKA_PAGE}#${hash}`);
   await expect(page.getByRole('link', { name: 'Home' })).toBeVisible();
 }
