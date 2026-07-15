@@ -37,7 +37,6 @@ import type {
   CmsUser,
   CmsCredentials,
   CmsBackendInitConfig,
-  CmsImplementationEntry,
   CmsImplementationFile,
   CmsUnpublishedEntryMediaFile,
   AsyncLock,
