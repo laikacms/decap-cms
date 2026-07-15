@@ -169,12 +169,6 @@ Expected result:
   browsers require it.
 - [ ] Remove `react-waypoint` and its `consolidated-events` subtree.
 
-### Element sizing
-
-- [ ] Evaluate the single `react-virtualized-auto-sizer` callsite.
-- [ ] Replace it with a `ResizeObserver` helper only if the local implementation remains smaller and
-  equally reliable.
-
 ### Redux DevTools
 
 - [ ] Replace deprecated `redux-devtools-extension` usage with the maintained API or a guarded

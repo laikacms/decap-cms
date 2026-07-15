@@ -160,7 +160,6 @@
     "react-textarea-autosize": "catalog:react",
     "react-toastify": "catalog:react",
     "react-topbar-progress-indicator": "catalog:react",
-    "react-virtualized-auto-sizer": "catalog:react",
     "react-waypoint": "catalog:react",
     "react-window": "catalog:react",
     "redux": "catalog:redux",
