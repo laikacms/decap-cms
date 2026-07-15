@@ -92,6 +92,29 @@ Not blocking the restructure, but they belong in the next pass:
   pin (not in the dependency tree, and pnpm reads `pnpm.overrides`, not the
   npm/yarn fields anyway).
 - ~~The lexical stubs~~ — deleted (see above).
+- **Per-package `README.md` deletion orphaned 14 doc-gap issues** (#786,
+  DCMS-605). The "What changed" table above says per-package READMEs were
+  "Deleted — single root `package.json`", but that left 14 open GitHub
+  issues (#571, #572, #583, #593, #625, #651, #657, #658, #668, #675, #676,
+  #686, #695, #696 — plus #598, which references SECURITY.md/CONTRIBUTING.md
+  claims that assume the old package layout) pointing at
+  `packages/decap-cms-<name>/README.md` paths that no longer exist. Anyone
+  resuming this doc debt should recreate the missing README content at
+  `src/<name>/README.md`, following the `packages/decap-cms-<name>/` →
+  `src/<name>/` rename from the "What changed" table above, e.g.:
+  - `decap-cms-widget-string` → `src/widgets/string/README.md`
+  - `decap-cms-widget-text` → `src/widgets/text/README.md`
+  - `decap-cms-widget-list` → `src/widgets/list/README.md`
+  - `decap-cms-widget-markdown` → `src/widgets/richtext/README.md` (the
+    markdown widget was renamed `richtext` during the restructure)
+  - `decap-cms-core` → `src/core/README.md`
+  - `decap-cms-lib-auth` → `src/lib/auth/README.md`
+  - `decap-cms-git-gateway` → `src/backends/git-gateway/README.md`
+  - `decap-cms-backend-gitlab` → `src/backends/gitlab/README.md`
+  - `decap-cms-backend-bitbucket` → `src/backends/bitbucket/README.md`
+
+  `src/ui/README.md` is the reference example of the new per-directory
+  README style to follow.
 
 ## Why this shape
 
