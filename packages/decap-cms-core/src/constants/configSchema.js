@@ -166,7 +166,6 @@ function getConfigSchema() {
           always_fork: { type: 'boolean' },
           api_root: { type: 'string' },
           base_url: { type: 'string' },
-          site_domain: { type: 'string' },
           auth_endpoint: { type: 'string' },
           auth_token_endpoint: { type: 'string' },
           app_id: { type: 'string' },

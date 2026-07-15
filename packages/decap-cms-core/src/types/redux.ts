@@ -429,7 +429,6 @@ export interface CmsBackend {
   repo?: string;
   branch?: string;
   api_root?: string;
-  site_domain?: string;
   base_url?: string;
   auth_endpoint?: string;
   cms_label_prefix?: string;

@@ -212,7 +212,6 @@ class App extends React.Component {
           onLogin: this.handleLogin.bind(this),
           error: auth.error,
           inProgress: auth.isFetching,
-          siteId: this.props.config.backend.site_domain,
           base_url: this.props.config.backend.base_url,
           authEndpoint: this.props.config.backend.auth_endpoint,
           config: this.props.config,
