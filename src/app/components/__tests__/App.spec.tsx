@@ -7,8 +7,8 @@ import { describe, expect, it, vi } from 'vitest';
 
 
 // Pass-through translate/useTranslate so `AppContent` doesn't need a real
-// `react-polyglot` `<I18n>` ancestor.
-vi.mock('react-polyglot', () => ({
+// `@/core/i18n` `<I18n>` ancestor.
+vi.mock('@/core/i18n', () => ({
   useTranslate: () => (key: string) => key,
   translate:
     () =>

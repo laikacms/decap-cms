@@ -27,10 +27,10 @@ import DecapCmsWidgetCode from '@/widgets/code/index';
 import DecapCmsWidgetColorString from '@/widgets/colorstring/index';
 import {
   passthroughSerializer as richtextPassthroughSerializer,
+  tweetBlock,
   Widget as RichtextWidget,
+  youtubeBlock,
 } from '@/widgets/richtext/index';
-// Editor Components
-import image from '@/editor-component-image/index';
 // Locales
 import * as locales from '@/locales/index';
 
@@ -72,13 +72,13 @@ CMS.registerBackend('proxy', ProxyBackend);
 // file-write time.
 CMS.registerWidgetValueSerializer('richtext', richtextPassthroughSerializer);
 CMS.registerWidgetValueSerializer('markdown', richtextPassthroughSerializer);
-CMS.registerEditorComponent(image);
-CMS.registerEditorComponent({
-  id: 'code-block',
-  label: 'Code Block',
-  widget: 'code',
-  type: 'code-block',
-});
+// The legacy `registerEditorComponent` API was removed: images and code
+// blocks are native Portable Text types; custom blocks register via
+// `CMS.registerBlock(...)` (see BREAKING_CHANGES_V2_BETA.md).
+// Default embed blocks (previously hardcoded Lexical nodes that lost their
+// content at persist). Re-register with the same id to customize.
+CMS.registerBlock(youtubeBlock);
+CMS.registerBlock(tweetBlock);
 Object.keys(locales).forEach(locale => {
   CMS.registerLocale(locale, (locales as Record<string, CmsLocalePhrases>)[locale]);
 });

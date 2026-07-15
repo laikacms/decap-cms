@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
-import { useTranslate } from 'react-polyglot';
 import styled from '@emotion/styled';
 import TopBarProgress from 'react-topbar-progress-indicator';
 
+import { useTranslate } from '@/core/i18n';
 import { Loader, StandaloneAuthPage, colorsDefaults } from '@/ui/default/index';
 import { useAppSelector, useAppDispatch } from '@/core/hooks/useRedux';
 import { loginUser, logoutUser } from '@/core/actions/auth';
@@ -15,7 +15,7 @@ import { EDITORIAL_WORKFLOW } from '@/core/constants/publishModes';
 import CollectionComponent from '@/core/components/Collection/Collection';
 import Workflow from '@/core/components/Workflow/Workflow';
 import Editor from '@/core/components/Editor/Editor';
-import NotFoundPage from './NotFoundPage';
+import NotFoundPage from '@/core/components/NotFoundPage';
 import Header from './Header';
 import { CmsSlotsProvider } from '@/core/lib/slots';
 import { useDecap } from '@/core/hooks/useDecap';
@@ -226,7 +226,7 @@ function RedirectToCollection({ collectionName }: { collectionName?: string }) {
  * redirects to the default collection view, mirroring the legacy monorepo
  * behavior (DCMS-482 / PR #564). The redirect is issued before the modal
  * opens: `MediaLibrary` closes itself on every router navigation (see its own
- * `defaultRouter.subscribe` effect), so dispatching `openMediaLibrary` first
+ * router-subscribe effect), so dispatching `openMediaLibrary` first
  * would have that same navigation immediately close the modal it just opened.
  */
 function OpenMediaLibraryAndRedirect({ collectionName }: { collectionName?: string }) {

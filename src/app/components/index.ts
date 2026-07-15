@@ -15,7 +15,7 @@ export type {
   ExtraRoute,
 } from './App';
 export { default as Header } from './Header';
-export { default as NotFoundPage } from './NotFoundPage';
+export { default as NotFoundPage } from '@/core/components/NotFoundPage';
 export { CmsSlotsProvider, useCmsSlots } from '@/core/lib/slots';
 export type {
   CmsSlots,
