@@ -1,7 +1,7 @@
 import { SearchIcon } from 'lucide-react';
 import * as React from 'react';
 
-import { Command as CommandPrimitive } from '@/ui/cmdk';
+import { CommandPrimitive } from '@/ui';
 import { css, cx } from './_styled';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './dialog';
 
