@@ -103,7 +103,7 @@ const NumberControl = React.forwardRef<NumberControlHandle, NumberControlProps>(
           // integer and is only present because parseInt rounded it to an unsafe
           // float (handleChange refused to store the rounded result).
           if (
-            valueType !== 'float' &&
+            valueType === 'int' &&
             typeof v === 'string' &&
             v !== '' &&
             /^-?\d+$/.test(v)
@@ -123,7 +123,7 @@ const NumberControl = React.forwardRef<NumberControlHandle, NumberControlProps>(
           // Detect float overflow: value is a non-empty string that is only
           // present because handleChange refused to store the non-finite
           // parseFloat result.
-          if (valueType === 'float' && typeof v === 'string' && v !== '') {
+          if (valueType !== 'int' && typeof v === 'string' && v !== '') {
             const parsed = parseFloat(v);
             if (!isNaN(parsed) && !isFinite(parsed)) {
               return {
@@ -153,7 +153,10 @@ const NumberControl = React.forwardRef<NumberControlHandle, NumberControlProps>(
       const valueType = field.value_type;
       const raw = e.target.value;
 
-      if (valueType === 'float') {
+      // Only an explicit value_type: 'int' renders step="1" (see render() below);
+      // every other case (explicit 'float' or unset) renders step="any" and must
+      // parse with parseFloat so decimals typed into that input aren't truncated.
+      if (valueType !== 'int') {
         const parsed = parseFloat(raw);
         if (isNaN(parsed)) {
           onChange('');
@@ -192,7 +195,7 @@ const NumberControl = React.forwardRef<NumberControlHandle, NumberControlProps>(
 
     const min = field.min ?? '';
     const max = field.max ?? '';
-    const step = field.step ?? (field.value_type === 'int' ? 1 : '');
+    const step = field.step ?? (field.value_type === 'int' ? 1 : 'any');
     return (
       <input
         type="number"
