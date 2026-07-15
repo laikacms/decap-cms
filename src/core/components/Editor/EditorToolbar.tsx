@@ -95,7 +95,6 @@ const ToolbarContainer = styled.div`
   position: relative;
   flex-shrink: 0;
   width: 100%;
-  min-width: 800px;
   z-index: ${zIndex.zIndex300};
   background-color: #fff;
   height: 66px;
