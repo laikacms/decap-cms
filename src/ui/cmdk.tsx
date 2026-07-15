@@ -956,17 +956,23 @@ const pkg = Object.assign(Command, {
   Empty,
 });
 
+// Exported under the `CommandPrimitive*` names (rather than bare `Command*`)
+// because `src/lib/widgets/editor/ui/command.tsx` (re-exported from the
+// `src/ui` barrel as `Command`, `CommandList`, etc.) already owns those
+// names for the styled composite built on top of this headless layer —
+// see `src/ui/README.md`'s re-export policy (single barrel, no
+// re-grouping) and DCMS-599.
 export { useCmdk as useCommandState };
-export { pkg as Command };
+export { pkg as CommandPrimitive };
 export { defaultFilter };
 
-export { Command as CommandRoot };
-export { List as CommandList };
-export { Item as CommandItem };
-export { Input as CommandInput };
-export { Group as CommandGroup };
-export { Separator as CommandSeparator };
-export { Empty as CommandEmpty };
+export { Command as CommandPrimitiveRoot };
+export { List as CommandPrimitiveList };
+export { Item as CommandPrimitiveItem };
+export { Input as CommandPrimitiveInput };
+export { Group as CommandPrimitiveGroup };
+export { Separator as CommandPrimitiveSeparator };
+export { Empty as CommandPrimitiveEmpty };
 
 /**
  * Helpers

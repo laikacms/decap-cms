@@ -4,6 +4,7 @@
 export * from './button';
 export * from './button-group';
 export * from './checkbox';
+export * from './cmdk';
 export * from './command';
 export * from './dialog';
 export * from './dropdown-menu';
