@@ -1,9 +1,9 @@
 import path from 'path';
 
-import { defaultSchema, validateRequest } from '@/server/middlewares/validation';
-import { pathTraversal } from '@/server/middlewares/validation/customValidators';
-import { listRepoFiles, deleteFile, writeFile, move } from '@/server/middlewares/utils/fs';
-import { entriesFromFiles, readMediaFile } from '@/server/middlewares/utils/entries';
+import { defaultSchema, validateRequest } from '@/dev-server/middlewares/validation';
+import { pathTraversal } from '@/dev-server/middlewares/validation/customValidators';
+import { listRepoFiles, deleteFile, writeFile, move } from '@/dev-server/middlewares/utils/fs';
+import { entriesFromFiles, readMediaFile } from '@/dev-server/middlewares/utils/entries';
 
 import type {
   EntriesByFolderParams,
@@ -16,8 +16,8 @@ import type {
   DeleteFileParams,
   DeleteFilesParams,
   DataFile,
-} from '@/server/middlewares/types';
-import type express from 'express';
+} from '@/dev-server/middlewares/types';
+import type { DevServerApp, DevServerRequest, DevServerResponse } from '@/dev-server/app';
 import type winston from 'winston';
 
 type FsOptions = {
@@ -26,7 +26,7 @@ type FsOptions = {
 };
 
 export function localFsMiddleware({ repoPath, logger }: FsOptions) {
-  return async function (req: express.Request, res: express.Response) {
+  return async function (req: DevServerRequest, res: DevServerResponse) {
     try {
       const { body } = req;
 
@@ -154,7 +154,7 @@ type Options = {
   logger: winston.Logger;
 };
 
-export async function registerMiddleware(app: express.Express, options: Options) {
+export function registerMiddleware(app: DevServerApp, options: Options) {
   const { logger } = options;
   const repoPath = path.resolve(process.env.GIT_REPO_DIRECTORY || process.cwd());
   app.post('/api/v1', validateRequest(getSchema({ repoPath })));

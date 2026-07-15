@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { defaultSchema, validateRequest } from '.';
 
-import type express from 'express';
+import type { DevServerRequest, DevServerResponse } from '@/dev-server/app';
 import type { ValidationResult } from '.';
 
 function assetFailure(result: ValidationResult, expectedMessage: string) {
@@ -587,8 +587,8 @@ describe('validateRequest', () => {
         action: 'entriesByFolder',
         params: { branch: 'master', folder: 'folder', extension: 'md', depth: 1 },
       },
-    } as express.Request;
-    const res: express.Response = {} as express.Response;
+    } as DevServerRequest;
+    const res: DevServerResponse = {} as DevServerResponse;
     validateRequest(defaultSchema())(req, res, next);
 
     expect(next).toHaveBeenCalledTimes(1);
@@ -601,10 +601,10 @@ describe('validateRequest', () => {
       body: {
         action: 'entriesByFolder',
       },
-    } as express.Request;
+    } as DevServerRequest;
     const json = vi.fn();
     const status = vi.fn(() => ({ json }));
-    const res: express.Response = { status } as unknown as express.Response;
+    const res: DevServerResponse = { status } as unknown as DevServerResponse;
 
     validateRequest(defaultSchema())(req, res, next);
 

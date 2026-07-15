@@ -1,8 +1,25 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import winston from 'winston';
 
-import { getSchema } from '.';
+import type { DevServerRequest, DevServerResponse } from '@/dev-server/app';
+import type { ValidationResult } from '@/dev-server/middlewares/validation';
 
-import type { ValidationResult } from '@/server/middlewares/validation';
+// Create mock git object
+const git = {
+  checkIsRepo: vi.fn(),
+  silent: vi.fn(),
+  branchLocal: vi.fn(),
+  checkout: vi.fn(),
+};
+git.silent.mockReturnValue(git);
+
+vi.mock('decap-cms-lib-util', () => ({ default: vi.fn() }));
+vi.mock('simple-git', () => ({
+  default: vi.fn(() => git),
+}));
+
+// Import after mocks are set up
+const { validateRepo, getSchema, localGitMiddleware } = await import('.');
 
 function assetFailure(result: ValidationResult, expectedMessage: string) {
   const { error } = result;
@@ -16,9 +33,24 @@ const defaultParams = {
   branch: 'master',
 };
 
-describe('localFsMiddleware', () => {
+describe('localGitMiddleware', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    git.silent.mockReturnValue(git);
+  });
+
+  describe('validateRepo', () => {
+    it('should throw on non valid git repo', async () => {
+      git.checkIsRepo.mockResolvedValue(false);
+      await expect(validateRepo({ repoPath: '/Users/user/code/repo' })).rejects.toEqual(
+        new Error('/Users/user/code/repo is not a valid git repository'),
+      );
+    });
+
+    it('should not throw on valid git repo', async () => {
+      git.checkIsRepo.mockResolvedValue(true);
+      await expect(validateRepo({ repoPath: '/Users/user/code/repo' })).resolves.toBeUndefined();
+    });
   });
 
   describe('getSchema', () => {
@@ -88,6 +120,36 @@ describe('localFsMiddleware', () => {
       });
 
       expect(error).toBeUndefined();
+    });
+  });
+
+  describe('localGitMiddleware', () => {
+    const json = vi.fn();
+    const status = vi.fn(() => ({ json }));
+    const res: DevServerResponse = { status } as unknown as DevServerResponse;
+
+    const repoPath = '.';
+
+    it("should return error when default branch doesn't exist", async () => {
+      git.branchLocal.mockResolvedValue({ all: ['master'] });
+
+      const req = {
+        body: {
+          action: 'getMedia',
+          params: {
+            mediaFolder: 'mediaFolder',
+            branch: 'develop',
+          },
+        },
+      } as DevServerRequest;
+
+      await localGitMiddleware({ repoPath, logger: winston.createLogger() })(req, res);
+
+      expect(status).toHaveBeenCalledTimes(1);
+      expect(status).toHaveBeenCalledWith(422);
+
+      expect(json).toHaveBeenCalledTimes(1);
+      expect(json).toHaveBeenCalledWith({ error: "Default branch 'develop' doesn't exist" });
     });
   });
 });

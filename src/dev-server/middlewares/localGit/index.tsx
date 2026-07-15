@@ -1,8 +1,6 @@
 import path from 'path';
 import { promises as fs } from 'fs';
-import { parse } from 'what-the-diff';
 import simpleGit from 'simple-git';
-import { Mutex, withTimeout } from 'async-mutex';
 
 import {
   branchFromContentKey,
@@ -13,16 +11,18 @@ import {
   labelToStatus,
   parseContentKey,
 } from '@/lib/util/index';
-import { defaultSchema, validateRequest } from '@/server/middlewares/validation';
-import { pathTraversal } from '@/server/middlewares/validation/customValidators';
+import { defaultSchema, validateRequest } from '@/dev-server/middlewares/validation';
+import { pathTraversal } from '@/dev-server/middlewares/validation/customValidators';
 import {
   listRepoFiles,
   writeFile,
   move,
   deleteFile,
   getUpdateDate,
-} from '@/server/middlewares/utils/fs';
-import { entriesFromFiles, readMediaFile } from '@/server/middlewares/utils/entries';
+} from '@/dev-server/middlewares/utils/fs';
+import { entriesFromFiles, readMediaFile } from '@/dev-server/middlewares/utils/entries';
+import { parse } from '@/lib/util/what-the-diff';
+import { createMutex } from '@/lib/util/mutex';
 
 import type {
   EntriesByFolderParams,
@@ -43,8 +43,8 @@ import type {
   DeleteFilesParams,
   UnpublishedEntryDataFileParams,
   UnpublishedEntryMediaFileParams,
-} from '@/server/middlewares/types';
-import type express from 'express';
+} from '@/dev-server/middlewares/types';
+import type { DevServerApp, DevServerRequest, DevServerResponse } from '@/dev-server/app';
 import type winston from 'winston';
 import type { SimpleGit } from 'simple-git';
 
@@ -146,9 +146,9 @@ async function isBranchExists(git: SimpleGit, branch: string) {
 async function getDiffs(git: SimpleGit, source: string, dest: string) {
   const rawDiff = await git.diff([source, dest]);
   const diffs = parse(rawDiff).map(d => {
-    const oldPath = d.oldPath?.replace(/b\//, '') || '';
-    const newPath = d.newPath?.replace(/b\//, '') || '';
-    const path = newPath || (oldPath as string);
+    const oldPath = ('oldPath' in d && d.oldPath?.replace(/b\//, '')) || '';
+    const newPath = ('newPath' in d && d.newPath?.replace(/b\//, '')) || '';
+    const path = newPath || oldPath;
     return {
       oldPath,
       newPath,
@@ -156,7 +156,7 @@ async function getDiffs(git: SimpleGit, source: string, dest: string) {
       newFile: d.status === 'added',
       path,
       id: path,
-      binary: d.binary || /.svg$/.test(path),
+      binary: ('binary' in d && d.binary) || /.svg$/.test(path),
     };
   });
   return diffs;
@@ -179,9 +179,9 @@ export function localGitMiddleware({ repoPath, logger }: GitOptions) {
   const git = simpleGit(repoPath);
 
   // we can only perform a single git operation at any given time
-  const mutex = withTimeout(new Mutex(), 3000, new Error('Request timed out'));
+  const mutex = createMutex({ timeout: 3000, timeoutError: new Error('Request timed out') });
 
-  return async function (req: express.Request, res: express.Response) {
+  return async function (req: DevServerRequest, res: DevServerResponse) {
     let release;
     try {
       release = await mutex.acquire();
@@ -460,7 +460,7 @@ type Options = {
   logger: winston.Logger;
 };
 
-export async function registerMiddleware(app: express.Express, options: Options) {
+export async function registerMiddleware(app: DevServerApp, options: Options) {
   const { logger } = options;
   const repoPath = path.resolve(process.env.GIT_REPO_DIRECTORY || process.cwd());
   await validateRepo({ repoPath });

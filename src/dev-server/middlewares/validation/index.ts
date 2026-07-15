@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import type express from 'express';
+import type { DevServerRequest, DevServerResponse, NextFunction } from '@/dev-server/app';
 
 const allowedActions = [
   'info',
@@ -234,7 +234,7 @@ export function defaultSchema({ path = requiredString }: { path?: z.ZodType<stri
 }
 
 export function validateRequest(schema: ValidationSchema) {
-  return (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  return (req: DevServerRequest, res: DevServerResponse, next: NextFunction) => {
     const { error } = schema.validate(req.body);
     if (error) {
       const message = error.details.map(detail => detail.message).join(',');
