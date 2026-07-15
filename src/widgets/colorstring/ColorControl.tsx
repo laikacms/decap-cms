@@ -134,7 +134,18 @@ export default function ColorControl({
       {' '}
       {showClearButton && (
         <ClearButtonWrapper>
-          <ClearButton onClick={handleClear}>
+          <ClearButton
+            role="button"
+            tabIndex={0}
+            aria-label="Clear color value"
+            onClick={handleClear}
+            onKeyDown={event => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                handleClear();
+              }
+            }}
+          >
             <ClearIcon />
           </ClearButton>
         </ClearButtonWrapper>
@@ -143,7 +154,16 @@ export default function ColorControl({
       <ColorSwatch
         background={tinycolor(value).isValid() ? value : '#fff'}
         color={tinycolor(value).isValid() ? 'rgba(255, 255, 255, 0)' : 'rgb(223, 223, 227)'}
+        role="button"
+        tabIndex={0}
+        aria-label="Open color picker"
         onClick={handleClick}
+        onKeyDown={event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            handleClick();
+          }
+        }}
       >
         ?
       </ColorSwatch>
