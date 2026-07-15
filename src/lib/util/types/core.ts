@@ -1,5 +1,7 @@
 // Core types
 
+import type { ComponentType as ReactComponentType, ReactElement } from 'react';
+
 export type TranslateFunction = (key: string, options?: Record<string, unknown>) => string;
 
 export interface FormatExtensions {
@@ -13,8 +15,8 @@ export interface FormatExtensions {
   'yaml-frontmatter': string;
 }
 
-export type ComponentType<P = unknown> = unknown; // TODO: type properly
+export type ComponentType<P = unknown> = ReactComponentType<P>;
 
-export type JSXElement = unknown; // TODO: type properly
+export type JSXElement = ReactElement;
 
 export type Pluggable = unknown; // Placeholder for Remark Pluggable
