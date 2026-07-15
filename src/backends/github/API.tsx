@@ -1,13 +1,7 @@
-import initial from 'lodash/initial';
-import last from 'lodash/last';
-import partial from 'lodash/partial';
-import result from 'lodash/result';
-import trimStart from 'lodash/trimStart';
-import trim from 'lodash/trim';
-import { oneLine } from 'common-tags';
+import { initial, isError, last, partial, result, trim, trimStart } from 'lodash-es';
 import { dirname } from 'path';
-import { isError } from 'lodash';
 
+import { oneLine } from '@/lib/util/index';
 import {
   getAllResponses,
   APIError,
@@ -32,6 +26,7 @@ import {
   createSemaphore,
 } from '@/lib/util/index';
 import { PullRequestState, GithubCommitStatusState } from './types/api';
+import { showAlert } from '@/ui/AlertDialog';
 
 import type {
   CmsAssetProxy,
@@ -785,7 +780,7 @@ export default class API {
       for (const pr of pullRequests) {
         if (!migrationNotified) {
           migrationNotified = true;
-          alert(oneLine`
+          showAlert(oneLine`
             Decap CMS is adding labels to ${pullRequests.length} of your Editorial Workflow
             entries. The "Workflow" tab will be unavailable during this migration. You may use other
             areas of the CMS during this time. Note that closing the CMS will pause the migration.

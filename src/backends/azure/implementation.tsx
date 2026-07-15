@@ -1,5 +1,4 @@
-import trimStart from 'lodash/trimStart';
-import trim from 'lodash/trim';
+import { trim, trimStart } from 'lodash-es';
 
 import { createSemaphore } from '@/lib/util/index';
 import {

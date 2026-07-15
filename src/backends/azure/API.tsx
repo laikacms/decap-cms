@@ -1,8 +1,4 @@
-import partial from 'lodash/partial';
-import result from 'lodash/result';
-import trim from 'lodash/trim';
-import trimStart from 'lodash/trimStart';
-import { isError } from 'lodash';
+import { isError, partial, result, trim, trimStart } from 'lodash-es';
 
 import {
   localForage,

@@ -2,6 +2,7 @@ import React from 'react';
 import styled from '@emotion/styled';
 
 import { ImplicitAuthenticator } from '@/lib/auth/index';
+import { showAlert } from '@/ui/AlertDialog';
 import { AuthenticationPage, Icon } from '@/ui/default/index';
 
 import type { TranslateFunction } from '@/ui/default/index';
@@ -47,7 +48,7 @@ export default function AzureAuthenticationPage({
     // Complete implicit authentication if we were redirected back from the provider.
     auth.completeAuth((err, data) => {
       if (err) {
-        alert(err);
+        showAlert(String(err));
         return;
       }
       if (data) {

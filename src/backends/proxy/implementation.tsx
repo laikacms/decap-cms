@@ -1,4 +1,4 @@
-import isError from 'lodash/isError';
+import { isError } from 'lodash-es';
 
 import { EditorialWorkflowError, APIError, unsentRequest, blobToFileObj } from '@/lib/util/index';
 import AuthenticationPage from './AuthenticationPage';

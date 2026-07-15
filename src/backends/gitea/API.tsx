@@ -1,9 +1,4 @@
-import trimStart from 'lodash/trimStart';
-import trim from 'lodash/trim';
-import result from 'lodash/result';
-import partial from 'lodash/partial';
-import last from 'lodash/last';
-import initial from 'lodash/initial';
+import { initial, last, partial, result, trim, trimStart } from 'lodash-es';
 
 import {
   APIError,

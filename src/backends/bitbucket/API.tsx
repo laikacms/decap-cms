@@ -1,8 +1,7 @@
-import flow from 'lodash/flow';
-import get from 'lodash/get';
-import { oneLine } from 'common-tags';
-import { parse } from 'what-the-diff';
+import { flow, get } from 'lodash-es';
 
+import { oneLine } from '@/lib/util/index';
+import { parse } from '@/lib/util/what-the-diff';
 import {
   localForage,
   unsentRequest,
@@ -583,16 +582,16 @@ export default class API {
     });
 
     const diffs = parse(rawDiff).map(d => {
-      const oldPath = d.oldPath?.replace(/b\//, '') || '';
-      const newPath = d.newPath?.replace(/b\//, '') || '';
-      const path = newPath || (oldPath as string);
+      const oldPath = ('oldPath' in d && d.oldPath?.replace(/b\//, '')) || '';
+      const newPath = ('newPath' in d && d.newPath?.replace(/b\//, '')) || '';
+      const path = newPath || oldPath;
       return {
         oldPath,
         newPath,
         status: d.status,
         newFile: d.status === 'added',
         path,
-        binary: d.binary || /.svg$/.test(path),
+        binary: ('binary' in d && d.binary) || /.svg$/.test(path),
       };
     });
     return diffs;

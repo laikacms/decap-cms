@@ -1,6 +1,6 @@
-import trimStart from 'lodash/trimStart';
-import { stripIndent } from 'common-tags';
+import { trimStart } from 'lodash-es';
 
+import { stripIndent } from '@/lib/util/index';
 import {
   CURSOR_COMPATIBILITY_SYMBOL,
   createSemaphore,

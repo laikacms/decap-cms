@@ -1,6 +1,6 @@
-import { stripIndent } from 'common-tags';
-import trimStart from 'lodash/trimStart';
+import { trimStart } from 'lodash-es';
 
+import { stripIndent } from '@/lib/util/index';
 import {
   asyncLock,
   basename,

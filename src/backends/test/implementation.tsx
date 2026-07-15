@@ -1,8 +1,4 @@
-import attempt from 'lodash/attempt';
-import isError from 'lodash/isError';
-import take from 'lodash/take';
-import unset from 'lodash/unset';
-import isEmpty from 'lodash/isEmpty';
+import { attempt, isEmpty, isError, take, unset } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
 
 import {
