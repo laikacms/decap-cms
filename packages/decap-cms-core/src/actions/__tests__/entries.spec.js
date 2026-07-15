@@ -137,6 +137,20 @@ describe('entries', () => {
         });
     });
 
+    it('should split a comma-separated URL param into a list for multiple: true fields (DCMS-575)', () => {
+      const store = mockStore({ mediaLibrary: fromJS({ files: [] }) });
+
+      const collection = fromJS({
+        fields: [{ name: 'tags', multiple: true }],
+      });
+
+      return store.dispatch(createEmptyDraft(collection, '?tags=a,b,c')).then(() => {
+        const actions = store.getActions();
+        expect(actions).toHaveLength(1);
+        expect(actions[0].payload.data).toEqual({ tags: List(['a', 'b', 'c']) });
+      });
+    });
+
     it('should not html escape URL params (DCMS-448)', () => {
       const store = mockStore({ mediaLibrary: fromJS({ files: [] }) });
 
