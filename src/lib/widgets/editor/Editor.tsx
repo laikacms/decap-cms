@@ -110,7 +110,6 @@ import { HistoryToolbarPlugin } from './plugins/toolbar/history-toolbar-plugin';
 import { LinkToolbarPlugin } from './plugins/toolbar/link-toolbar-plugin';
 import { SubSuperToolbarPlugin } from './plugins/toolbar/subsuper-toolbar-plugin';
 import { ToolbarPlugin } from './plugins/toolbar/toolbar-plugin';
-import { TypingPerfPlugin } from './plugins/typing-pref-plugin';
 import { editorTheme } from './themes/editor-theme';
 import { EMOJI } from './transformers/emoji-transformer';
 import { HR } from './transformers/hr-transformer';
@@ -471,8 +470,6 @@ export function Editor({
               {pluginItems.autoComplete && <AutoCompletePlugin />}
               {pluginItems.contextMenu && <ContextMenuPlugin />}
               {pluginItems.specialText && <SpecialTextPlugin />}
-
-              <TypingPerfPlugin />
             </div>
             <ActionsPlugin>
               <div className="clear-both flex items-center justify-between gap-2 overflow-auto border-t p-1">
