@@ -1,3 +1,5 @@
+import type { CmsEditorComponentOptions } from '@/lib/util/index';
+
 interface ImageData {
   image: string;
   alt: string;
@@ -9,7 +11,7 @@ interface FieldLike {
   [key: string]: unknown;
 }
 
-const image = {
+const image: CmsEditorComponentOptions = {
   label: 'Image',
   id: 'image',
   fromBlock: (match: RegExpMatchArray) =>
@@ -18,14 +20,21 @@ const image = {
       alt: match[1],
       title: match[4],
     },
-  toBlock: ({ alt, image, title }: ImageData) =>
-    `![${alt || ''}](${image || ''}${title ? ` "${title.replace(/"/g, '\\"')}"` : ''})`,
+  toBlock: (data: unknown) => {
+    // Narrow cast: `toBlock`'s public signature takes `unknown` (it's shared
+    // across all editor components), but this component is only ever invoked
+    // with the `ImageData` shape its own `fields`/`fromBlock` produce.
+    const { alt, image, title } = data as ImageData;
+    return `![${alt || ''}](${image || ''}${title ? ` "${title.replace(/"/g, '\\"')}"` : ''})`;
+  },
   toPreview: (
-    { alt, image, title }: ImageData,
-    getAsset: (value: string, field?: FieldLike) => string,
-    fields?: FieldLike[],
+    data: unknown,
+    getAsset: (value: string, field?: unknown) => string,
+    fields?: unknown[],
   ) => {
-    const imageField = fields?.find((f: FieldLike) => f.widget === 'image');
+    // Same narrow cast as `toBlock`, for the same reason.
+    const { alt, image, title } = data as ImageData;
+    const imageField = (fields as FieldLike[] | undefined)?.find(f => f.widget === 'image');
     const src = getAsset(image, imageField);
     return <img src={src || ''} alt={alt || ''} title={title || ''} />;
   },
