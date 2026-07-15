@@ -26,3 +26,11 @@ vi.mock('path', async () => {
 // Mock URL.createObjectURL
 URL.createObjectURL = vi.fn();
 
+// jsdom does not implement ResizeObserver.
+class MockResizeObserver implements ResizeObserver {
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+}
+globalThis.ResizeObserver ??= MockResizeObserver;
+

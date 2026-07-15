@@ -123,7 +123,6 @@ catalogs:
     'react-split-pane': '^3.2.0'
     'react-toastify': '^11.0.5'
     'react-topbar-progress-indicator': '^4.1.1'
-    'react-virtualized-auto-sizer': '^2.0.3'
     'react-waypoint': '^10.3.0'
     'react-window': '^2.2.7'
     'react-aria-menubutton': '^8.0.0'

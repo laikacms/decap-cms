@@ -1,12 +1,12 @@
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
 import styled from '@emotion/styled';
 import { Waypoint } from 'react-waypoint';
 import { Grid } from 'react-window';
-import { AutoSizer } from 'react-virtualized-auto-sizer';
 
 import { colors } from '@/ui/default/index';
 import MediaLibraryCard from './MediaLibraryCard';
 import { useCmsSlots } from '@/core/lib/slots';
+import { useElementSize } from '@/core/hooks/useElementSize';
 
 import type { MediaLibraryCardRenderProps } from '@/core/lib/slots';
 
@@ -121,50 +121,51 @@ function CardWrapper(
 function VirtualizedGrid(props: MediaLibraryCardGridProps) {
   const { mediaItems, setScrollContainerRef } = props;
 
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const { width, height } = useElementSize(containerRef);
+
+  const setContainerRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      containerRef.current = node;
+      setScrollContainerRef(node);
+    },
+    [setScrollContainerRef],
+  );
+
+  if (height === undefined || width === undefined) {
+    return <CardGridContainer ref={setContainerRef} />;
+  }
+
+  const cardWidthNum = parseInt(props.cardWidth, 10);
+  const cardHeightNum = parseInt(props.cardHeight, 10);
+  const gutter = parseInt(props.cardMargin, 10);
+  const columnWidth = cardWidthNum + gutter;
+  const rowHeight = cardHeightNum + gutter;
+  const columnCount = Math.floor(width / columnWidth);
+  const rowCount = Math.ceil(mediaItems.length / columnCount);
+
   return (
-    <CardGridContainer ref={setScrollContainerRef}>
-      <AutoSizer
-        renderProp={({
-          height,
-          width,
-        }: {
-          height: number | undefined;
-          width: number | undefined;
-        }) => {
-          if (height === undefined || width === undefined) {
-            return null;
-          }
-          const cardWidthNum = parseInt(props.cardWidth, 10);
-          const cardHeightNum = parseInt(props.cardHeight, 10);
-          const gutter = parseInt(props.cardMargin, 10);
-          const columnWidth = cardWidthNum + gutter;
-          const rowHeight = cardHeightNum + gutter;
-          const columnCount = Math.floor(width / columnWidth);
-          const rowCount = Math.ceil(mediaItems.length / columnCount);
-          return (
-            <Grid
-              columnCount={columnCount}
-              columnWidth={columnWidth}
-              rowCount={rowCount}
-              rowHeight={rowHeight}
-              defaultWidth={width}
-              defaultHeight={height}
-              cellComponent={CardWrapper}
-              cellProps={{
-                mediaItems: props.mediaItems,
-                isSelectedFile: props.isSelectedFile,
-                onAssetClick: props.onAssetClick,
-                cardDraftText: props.cardDraftText,
-                cardWidth: props.cardWidth,
-                cardHeight: props.cardHeight,
-                isPrivate: props.isPrivate,
-                displayURLs: props.displayURLs,
-                loadDisplayURL: props.loadDisplayURL,
-                columnCount,
-                gutter,
-              }}
-            />
-          );
+    <CardGridContainer ref={setContainerRef}>
+      <Grid
+        columnCount={columnCount}
+        columnWidth={columnWidth}
+        rowCount={rowCount}
+        rowHeight={rowHeight}
+        defaultWidth={width}
+        defaultHeight={height}
+        cellComponent={CardWrapper}
+        cellProps={{
+          mediaItems: props.mediaItems,
+          isSelectedFile: props.isSelectedFile,
+          onAssetClick: props.onAssetClick,
+          cardDraftText: props.cardDraftText,
+          cardWidth: props.cardWidth,
+          cardHeight: props.cardHeight,
+          isPrivate: props.isPrivate,
+          displayURLs: props.displayURLs,
+          loadDisplayURL: props.loadDisplayURL,
+          columnCount,
+          gutter,
         }}
       />
     </CardGridContainer>
