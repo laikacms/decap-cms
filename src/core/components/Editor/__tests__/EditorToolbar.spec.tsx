@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { EditorToolbar } from '@/core/components/Editor/EditorToolbar';
@@ -96,6 +96,29 @@ describe('EditorToolbar', () => {
       expect(firstSignal.aborted).toBe(true);
       const secondSignal = props.loadDeployPreview.mock.calls[1][0].signal;
       expect(secondSignal.aborted).toBe(false);
+    });
+  });
+
+  describe('Save button (editorial workflow)', () => {
+    it('is enabled on a pristine new entry so validation can surface (#757)', () => {
+      render(
+        <EditorToolbar {...props} hasWorkflow={true} isNewEntry={true} hasChanged={false} />,
+      );
+      expect(screen.getByRole('button', { name: 'editor.editorToolbar.save' })).toBeEnabled();
+    });
+
+    it('stays disabled on an unchanged existing entry', () => {
+      render(
+        <EditorToolbar {...props} hasWorkflow={true} isNewEntry={false} hasChanged={false} />,
+      );
+      expect(screen.getByRole('button', { name: 'editor.editorToolbar.save' })).toBeDisabled();
+    });
+
+    it('is enabled on a changed existing entry', () => {
+      render(
+        <EditorToolbar {...props} hasWorkflow={true} isNewEntry={false} hasChanged={true} />,
+      );
+      expect(screen.getByRole('button', { name: 'editor.editorToolbar.save' })).toBeEnabled();
     });
   });
 });
