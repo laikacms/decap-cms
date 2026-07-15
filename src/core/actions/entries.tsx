@@ -20,6 +20,7 @@ import { navigateToEntry } from '@/core/routing/navigation';
 import { getProcessSegment } from '@/core/lib/formatters';
 import { hasI18n, duplicateDefaultI18nFields, serializeI18n, I18N, I18N_FIELD } from '@/core/lib/i18n';
 import { addNotification } from './notifications';
+import relationCache from '@/widgets/relation/RelationCache';
 
 import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
@@ -889,6 +890,9 @@ export function persistEntry(collection: Collection) {
           await dispatch(loadMedia());
         }
         dispatch(entryPersisted(collection, serializedEntry, newSlug));
+        // Refresh relation widget search results now that this collection's
+        // data has changed (DCMS-606).
+        relationCache.invalidateCollection(collection.name);
         if (collection.nested != null) {
           await dispatch(loadEntries(collection));
         }
@@ -919,7 +923,10 @@ export function deleteEntry(collection: Collection, slug: string) {
     dispatch(entryDeleting(collection, slug));
     return backend
       .deleteEntry(state, collection, slug)
-      .then(() => dispatch(entryDeleted(collection, slug)))
+      .then(() => {
+        dispatch(entryDeleted(collection, slug));
+        relationCache.invalidateCollection(collection.name);
+      })
       .catch((error: Error) => {
         dispatch(
           addNotification({

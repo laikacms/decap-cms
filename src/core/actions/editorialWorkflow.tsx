@@ -24,6 +24,7 @@ import { loadMedia } from './mediaLibrary';
 import ValidationErrorTypes from '@/core/constants/validationErrorTypes';
 import { navigateToEntry } from '@/core/routing/navigation';
 import { addNotification } from './notifications';
+import relationCache from '@/widgets/relation/RelationCache';
 
 import type {
   CmsCollectionState,
@@ -398,6 +399,9 @@ export function persistUnpublishedEntry(collection: Collection, existingUnpublis
         }),
       );
       dispatch(unpublishedEntryPersisted(collection, serializedEntry));
+      // Refresh relation widget search results now that this collection's
+      // data has changed (DCMS-606).
+      relationCache.invalidateCollection(collection.name);
 
       if (entry.slug !== newSlug) {
         await dispatch(loadUnpublishedEntry(collection, newSlug));
@@ -484,6 +488,7 @@ export function deleteUnpublishedEntry(collection: string, slug: string) {
           }),
         );
         dispatch(unpublishedEntryDeleted(collection, slug));
+        relationCache.invalidateCollection(collection);
       })
       .catch((error: Error) => {
         dispatch(
@@ -517,6 +522,9 @@ export function publishUnpublishedEntry(collectionName: string, slug: string) {
         }),
       );
       dispatch(unpublishedEntryPublished(collectionName, slug));
+      // Refresh relation widget search results now that this collection's
+      // data has changed (DCMS-606).
+      relationCache.invalidateCollection(collectionName);
       const collection = collections[collectionName];
       if (collection.nested != null) {
         dispatch(loadEntries(collection));
@@ -564,6 +572,7 @@ export function unpublishPublishedEntry(collection: Collection, slug: string) {
         dispatch(unpublishedEntryPersisted(collection, entry));
         dispatch(entryDeleted(collection, slug));
         dispatch(loadUnpublishedEntry(collection, slug));
+        relationCache.invalidateCollection(collection.name);
         dispatch(
           addNotification({
             message: { key: 'ui.toast.entryUnpublished' },
