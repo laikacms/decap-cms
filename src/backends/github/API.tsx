@@ -1026,7 +1026,7 @@ export default class API {
      * return commits as is.
      */
     if (commits.length === 0 || commits[0].parents[0].sha === baseCommit.sha) {
-      const head = last(commits) as GitHubCompareCommit;
+      const head = (last(commits) as GitHubCompareCommit | undefined) ?? baseCommit;
       return head;
     } else {
       /**

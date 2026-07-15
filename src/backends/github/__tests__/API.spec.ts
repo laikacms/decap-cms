@@ -727,6 +727,35 @@ describe('github API', () => {
     });
   });
 
+  describe('rebaseCommits', () => {
+    it('should return the base commit when there are no commits to rebase', async () => {
+      const api = new API({ branch: 'master', repo: 'owner/repo' });
+
+      const baseCommit = { sha: 'base_commit_sha' };
+
+      await expect(api.rebaseCommits(baseCommit, [])).resolves.toBe(baseCommit);
+    });
+
+    it('should return the last commit as is when the first commit already has the base as a parent', async () => {
+      const api = new API({ branch: 'master', repo: 'owner/repo' });
+
+      const baseCommit = { sha: 'base_commit_sha' };
+      const commits = [
+        {
+          sha: 'sha',
+          parents: [{ sha: 'base_commit_sha' }],
+          commit: {
+            message: 'message',
+            author: { name: 'author' },
+            committer: { name: 'committer' },
+          },
+        },
+      ];
+
+      await expect(api.rebaseCommits(baseCommit, commits)).resolves.toBe(commits[0]);
+    });
+  });
+
   describe('listFiles', () => {
     it('should get files by depth', async () => {
       const api = new API({ branch: 'master', repo: 'owner/repo' });
