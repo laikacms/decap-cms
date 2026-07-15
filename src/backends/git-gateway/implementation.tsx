@@ -1,8 +1,5 @@
-import GoTrue from 'gotrue-js';
 import { jwtDecode } from 'jwt-decode';
-import get from 'lodash/get';
-import pick from 'lodash/pick';
-import intersection from 'lodash/intersection';
+import { get, intersection, pick } from 'lodash-es';
 import ini from 'ini';
 
 import {
@@ -23,6 +20,7 @@ import { BitbucketBackend, API as BitBucketAPI } from '@/backends/bitbucket/inde
 import { NetlifyAuthenticationPage, PKCEAuthenticationPage } from '@/ui/auth/index';
 import GitHubAPI from './GitHubAPI';
 import GitLabAPI from './GitLabAPI';
+import GoTrue from './GoTrue';
 import { getClient } from './netlify-lfs-client';
 
 import type { Client } from './netlify-lfs-client';
@@ -388,8 +386,7 @@ export default class GitGateway implements Implementation {
     try {
       client.logout();
     } catch (e: unknown) {
-      // due to a bug in the identity widget (gotrue-js actually) the store is not reset if logout fails
-      // TODO: remove after https://github.com/netlify/gotrue-js/pull/83 is merged
+      // due to a bug in the identity widget the store is not reset if logout fails
       client.clearStore();
     }
   }

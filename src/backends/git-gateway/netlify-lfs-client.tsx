@@ -1,8 +1,4 @@
-import flow from 'lodash/fp/flow.js';
-import fromPairs from 'lodash/fp/fromPairs.js';
-import map from 'lodash/fp/map.js';
-import isPlainObject from 'lodash/isPlainObject';
-import isEmpty from 'lodash/isEmpty';
+import { isEmpty, isPlainObject } from 'lodash-es';
 import { minimatch } from 'minimatch';
 
 import { unsentRequest } from '@/lib/util/index';
@@ -148,21 +144,9 @@ async function uploadResource(
 //
 // Create Large Media client
 
-function configureFn(config: ClientConfig, fn: Function) {
-  return (...args: unknown[]) => fn(config, ...args);
-}
-
-const clientFns: Record<string, Function> = {
-  resourceExists,
-  getResourceUploadURLs,
-  getDownloadURL,
-  uploadResource,
-  matchPath,
-};
-
 export type Client = {
   resourceExists: (pointer: PointerFile) => Promise<boolean | undefined>;
-  getResourceUploadURLs: (objects: PointerFile[]) => Promise<string>;
+  getResourceUploadURLs: (objects: PointerFile[]) => Promise<string[]>;
   getDownloadURL: (pointer: PointerFile) => Promise<{ url: string; blob: Blob }>;
   uploadResource: (pointer: PointerFile, blob: Blob) => Promise<string>;
   matchPath: (path: string) => boolean;
@@ -170,15 +154,14 @@ export type Client = {
   enabled: boolean;
 };
 
-export function getClient(clientConfig: ClientConfig) {
-  return flow([
-    Object.keys,
-    map((key: string) => [key, configureFn(clientConfig, clientFns[key])]),
-    fromPairs,
-    configuredFns => ({
-      ...configuredFns,
-      patterns: clientConfig.patterns,
-      enabled: clientConfig.enabled,
-    }),
-  ])(clientFns);
+export function getClient(clientConfig: ClientConfig): Client {
+  return {
+    resourceExists: pointer => resourceExists(clientConfig, pointer),
+    getResourceUploadURLs: objects => getResourceUploadURLs(clientConfig, objects),
+    getDownloadURL: pointer => getDownloadURL(clientConfig, pointer),
+    uploadResource: (pointer, blob) => uploadResource(clientConfig, pointer, blob),
+    matchPath: path => matchPath(clientConfig, path),
+    patterns: clientConfig.patterns,
+    enabled: clientConfig.enabled,
+  };
 }
