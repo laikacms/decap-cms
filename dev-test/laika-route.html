@@ -4,13 +4,15 @@
   <meta charset="utf-8" />
   <title>Laika CMS (routed)</title>
   <script>
-    // Seed auth + jump to whatever route the query string asks for.
-    // Use: /laika-route.html?to=/collections/posts
+    // Seed auth + jump to whatever route the URL fragment asks for.
+    // The fragment (not the query string) survives serve's clean-urls 301,
+    // so `to=` is threaded through location.hash instead of location.search.
+    // Use: /laika-route.html#to=/collections/posts
     localStorage.setItem(
       'decap-cms-user',
       JSON.stringify({ backendName: 'test-repo', name: 'Alice', login: 'alice' }),
     );
-    const route = new URLSearchParams(location.search).get('to') || '/';
+    const route = new URLSearchParams(location.hash.replace(/^#/, '')).get('to') || '/';
     window.location.replace('/laika#' + route);
   </script>
 </head>
