@@ -676,6 +676,28 @@ describe('formatters', () => {
         ),
       ).toBe('https://www.example.com/prefix/nested-value');
     });
+
+    it('should always preserve slashes in {{dirname}} even when preview_path_preserve_slashes is explicitly disabled', () => {
+      // Pins current behavior: `dirname` is passed into `getProcessSegment`'s
+      // `ignoreValues`, which short-circuits before `preserveSlashes` is ever
+      // consulted, so `preview_path_preserve_slashes: false` has no effect on
+      // `{{dirname}}` specifically (see docs/core/preview-path.md).
+      expect(
+        previewUrlFormatter(
+          'https://www.example.com',
+          {
+            folder: '_portfolio',
+            preview_path: 'portfolio/{{dirname}}',
+            nested: { depth: 100 },
+            preview_path_preserve_slashes: false,
+            meta: { path: { widget: 'string', label: 'Path', index_file: 'index' } },
+          },
+          'backendSlug',
+          { data: {}, path: '_portfolio/drawing/i-am-the-slug/index.md' },
+          slugConfig,
+        ),
+      ).toBe('https://www.example.com/portfolio/drawing/i-am-the-slug');
+    });
   });
 
   describe('summaryFormatter', () => {
