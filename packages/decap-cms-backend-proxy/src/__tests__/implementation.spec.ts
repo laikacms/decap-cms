@@ -47,4 +47,29 @@ describe('ProxyBackend', () => {
       'https://proxy.example.com/api/v1',
     );
   });
+
+  it('should reject non-http(s), non-root-relative proxy URLs', () => {
+    expect(() => new ProxyBackend(createConfig('ftp://x'))).toThrow(
+      'The Proxy backend requires an http(s) or root-relative "proxy_url".',
+    );
+    expect(() => new ProxyBackend(createConfig('not a url'))).toThrow(
+      'The Proxy backend requires an http(s) or root-relative "proxy_url".',
+    );
+  });
+
+  it('should default branch to "master" when omitted', () => {
+    expect(new ProxyBackend(createConfig('/api/v1')).branch).toBe('master');
+  });
+
+  it('should use the configured branch when provided', () => {
+    const config = createConfig('/api/v1');
+    config.backend.branch = 'main';
+    expect(new ProxyBackend(config).branch).toBe('main');
+  });
+
+  it('should read cms_label_prefix from config', () => {
+    const config = createConfig('/api/v1');
+    config.backend.cms_label_prefix = 'staging/';
+    expect(new ProxyBackend(config).cmsLabelPrefix).toBe('staging/');
+  });
 });
