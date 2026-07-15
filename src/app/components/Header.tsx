@@ -55,7 +55,6 @@ function AppHeader(props: React.HTMLAttributes<HTMLElement>) {
 const AppHeaderContent = styled.div`
   display: flex;
   justify-content: space-between;
-  min-width: 800px;
   max-width: 1440px;
   padding: 0 12px;
   margin: 0 auto;

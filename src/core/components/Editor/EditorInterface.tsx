@@ -116,7 +116,6 @@ const SplitPaneWrapper = styled.div`
 // no hardcoded offset (DCMS-440 removed a stale `padding-top: 66px`).
 const EditorContainer = styled.div`
   width: 100%;
-  min-width: 800px;
   height: 100%;
   position: absolute;
   top: 0;
