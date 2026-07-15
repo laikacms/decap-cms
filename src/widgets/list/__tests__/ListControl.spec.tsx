@@ -15,13 +15,17 @@ vi.mock('../../object/index', async () => {
 });
 vi.mock('../../../ui/default/index', async () => {
   const actual = await vi.importActual('../../../ui/default/index');
+  const { Collapsible } = await import('@base-ui/react/collapsible');
 
+  // Mirrors the real component's `collapsibleTrigger` mode: the top bar acts
+  // as a Base UI Collapsible.Trigger inside the item's Collapsible.Root, so
+  // clicking it toggles the surrounding collapsible.
   function ListItemTopBar(props) {
     return (
-      <mock-list-item-top-bar {...props} onClick={props.onCollapseToggle}>
+      <Collapsible.Trigger nativeButton={false} render={<mock-list-item-top-bar {...props} />}>
         <button onClick={props.onRemove}>Remove</button>
         {props.children}
-      </mock-list-item-top-bar>
+      </Collapsible.Trigger>
     );
   }
 

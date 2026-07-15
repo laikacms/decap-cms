@@ -1,5 +1,4 @@
-import get from 'lodash/get';
-import { isObject } from 'lodash';
+import { get, isObject } from 'lodash-es';
 
 import type { CmsField, CmsFieldList } from '@/lib/util/index';
 

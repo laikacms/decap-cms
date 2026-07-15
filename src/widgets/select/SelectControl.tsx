@@ -1,7 +1,6 @@
 import React from 'react';
-import find from 'lodash/find';
+import { find, isObject } from 'lodash-es';
 import Select from 'react-select';
-import isObject from 'lodash/isObject';
 
 import { reactSelectStyles } from '@/ui/default/index';
 import { validations } from '@/lib/widgets/index';

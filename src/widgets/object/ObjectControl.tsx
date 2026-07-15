@@ -1,8 +1,7 @@
 import React from 'react';
 import { ClassNames } from '@emotion/react';
-import memoize from 'lodash/memoize';
-import get from 'lodash/get';
-import isObject from 'lodash/isObject';
+import { Collapsible } from '@base-ui/react/collapsible';
+import { get, isObject, memoize } from 'lodash-es';
 
 import { colors, lengths, ObjectWidgetTopBar } from '@/ui/default/index';
 import { stringTemplate } from '@/lib/widgets/index';
@@ -11,7 +10,7 @@ import type { TranslateFunction } from '@/ui/default/index';
 import type { CmsField, CmsFieldBase, CmsFieldObject } from '@/lib/util/index';
 
 const styleStrings = {
-  nestedObjectControl: `s
+  nestedObjectControl: `
     padding: 6px 14px 14px;
     border-top: 0;
     border-top-left-radius: 0;
@@ -165,10 +164,6 @@ const ObjectControl = React.forwardRef<ObjectControlHandle, ObjectControlProps>(
       [],
     );
 
-    function handleCollapseToggle() {
-      setCollapsed(prev => !prev);
-    }
-
     function controlFor(f: CmsField, key?: number) {
       if (f.widget === 'hidden') return null;
       const fieldName = f.name;
@@ -220,49 +215,75 @@ const ObjectControl = React.forwardRef<ObjectControlHandle, ObjectControlProps>(
       return <h3>No field(s) defined for this widget</h3>;
     }
 
+    const renderedFields = multiFields
+      ? multiFields.map((f, idx) => controlFor(f, idx))
+      : controlFor(singleField as CmsField);
+
     return (
       <ClassNames>
-        {({ css, cx }) => (
-          <div
-            id={forID}
-            className={cx(
-              classNameWrapper,
-              css`
-                ${styleStrings.objectWidgetTopBarContainer}
-              `,
-              {
-                [css`
-                  ${styleStrings.nestedObjectControl}
-                `]: forList,
-              },
-              {
-                [css`
-                  border-color: ${colors.textFieldBorder};
-                `]: forList ? !hasError : false,
-              },
-            )}
-          >
-            {forList ? null : (
+        {({ css, cx }) => {
+          const wrapperClassName = cx(
+            classNameWrapper,
+            css`
+              ${styleStrings.objectWidgetTopBarContainer}
+            `,
+            {
+              [css`
+                ${styleStrings.nestedObjectControl}
+              `]: forList,
+            },
+            {
+              [css`
+                border-color: ${colors.textFieldBorder};
+              `]: forList ? !hasError : false,
+            },
+          );
+
+          // As a list item shell the collapse trigger and state live in the
+          // parent ListControl, which hides this whole control; only the
+          // standalone object widget owns its Collapsible.
+          if (forList) {
+            return (
+              <div id={forID} className={wrapperClassName}>
+                <div
+                  className={cx({
+                    [css`
+                      ${styleStrings.collapsedObjectControl}
+                    `]: renderedCollapsed,
+                  })}
+                >
+                  {renderedFields}
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <Collapsible.Root
+              id={forID}
+              className={wrapperClassName}
+              open={!collapsed}
+              onOpenChange={open => setCollapsed(!open)}
+            >
               <ObjectWidgetTopBar
+                collapsibleTrigger
                 collapsed={renderedCollapsed}
-                onCollapseToggle={handleCollapseToggle}
                 heading={renderedCollapsed && objectLabel()}
                 t={t}
               />
-            )}
-            <div
-              className={cx({
-                [css`
-                  ${styleStrings.collapsedObjectControl}
-                `]: renderedCollapsed,
-              })}
-            >
-              {multiFields
-                ? multiFields.map((f, idx) => controlFor(f, idx))
-                : controlFor(singleField as CmsField)}
-            </div>
-          </div>
-        )}
+              <Collapsible.Panel
+                keepMounted
+                className={css`
+                  &[hidden] {
+                    display: none;
+                  }
+                `}
+              >
+                {renderedFields}
+              </Collapsible.Panel>
+            </Collapsible.Root>
+          );
+        }}
       </ClassNames>
     );
   },

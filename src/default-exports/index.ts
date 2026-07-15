@@ -9,7 +9,7 @@ import {
   css,
 } from '@emotion/react';
 import EmotionStyled from '@emotion/styled';
-import Lodash from 'lodash';
+import * as Lodash from 'lodash-es';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import * as UUId from 'uuid';

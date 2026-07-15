@@ -1,7 +1,5 @@
 import React from 'react';
-import isObject from 'lodash/isObject';
-import isString from 'lodash/isString';
-import get from 'lodash/get';
+import { get, isObject, isString } from 'lodash-es';
 
 import { WidgetPreviewContainer } from '@/ui/default/index';
 

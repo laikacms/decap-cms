@@ -1,7 +1,6 @@
 import React from 'react';
 import { ClassNames } from '@emotion/react';
-import CodeMirror, { EditorView, keymap } from '@uiw/react-codemirror';
-import { material } from '@uiw/codemirror-theme-material';
+import { EditorView, keymap } from '@codemirror/view';
 import { emacs } from '@replit/codemirror-emacs';
 import { vim } from '@replit/codemirror-vim';
 import { vscodeKeymap } from '@replit/codemirror-vscode-keymap';
@@ -10,8 +9,11 @@ import SettingsPane from './SettingsPane';
 import SettingsButton from './SettingsButton';
 import languageData from './data/languages.json';
 import { getLanguageExtension } from './languageLoaders';
+import CodeMirrorEditor from './CodeMirrorEditor';
+import { materialBackground, materialTheme } from './materialTheme';
 
-import type { Extension, ReactCodeMirrorRef } from '@uiw/react-codemirror';
+import type { Extension } from '@codemirror/state';
+import type { CodeMirrorEditorRef } from './CodeMirrorEditor';
 import type { CmsFieldBase, CmsFieldCode } from '@/lib/util/index';
 
 interface LanguageInfo {
@@ -107,7 +109,7 @@ export default function CodeControl({
   setActiveStyle,
   setInactiveStyle,
 }: CodeControlProps) {
-  const cmRef = React.useRef<ReactCodeMirrorRef>(null);
+  const cmRef = React.useRef<CodeMirrorEditorRef>(null);
   const keys = React.useMemo(() => getKeys(field, isEditorComponent), [field, isEditorComponent]);
   const isMap = valueIsMap(field, isEditorComponent);
   const allowLanguageSelection = field.allow_language_selection ?? true;
@@ -115,7 +117,7 @@ export default function CodeControl({
   const initialLang =
     (isMap && value && (value as Record<string, unknown>)?.[keys.lang]) || field.default_language;
 
-  const [lang, setLang] = React.useState<string>('');
+  const [lang, setLang] = React.useState<string>((initialLang as string) || '');
   const [keyMap, setKeyMap] = React.useState<string>(
     () => localStorage.getItem(settingsPersistKeys['keyMap']) || 'default',
   );
@@ -126,11 +128,6 @@ export default function CodeControl({
   const [lastKnownValue, setLastKnownValue] = React.useState<unknown>(
     isMap ? (value as Record<string, unknown>)?.[keys.code] : value,
   );
-
-  const initialLangRef = React.useRef(initialLang);
-  React.useEffect(() => {
-    setLang((initialLangRef.current as string) || '');
-  }, []);
 
   function toValue(type: string, val: unknown) {
     if (isMap) {
@@ -149,18 +146,15 @@ export default function CodeControl({
     localStorage.setItem(settingsPersistKeys['keyMap'], keyMap);
   }, [keyMap]);
 
-  // The first language change is the initial value being applied, so it is not
-  // written back through onChange — only subsequent user selections are.
+  // `lang` starts at the initial value, so any observed change is a user
+  // selection and is written back through onChange.
   const prevLangRef = React.useRef(lang);
-  const langInitializedRef = React.useRef(false);
   React.useEffect(() => {
     if (prevLangRef.current === lang) {
       return;
     }
     prevLangRef.current = lang;
-    const isInitialLangChange = !langInitializedRef.current;
-    langInitializedRef.current = true;
-    if (!isInitialLangChange && isMap) {
+    if (isMap) {
       onChange(toValue('lang', lang));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- onChange/toValue are stable enough here
@@ -204,6 +198,34 @@ export default function CodeControl({
   focusHandlerRef.current = handleFocus;
   blurHandlerRef.current = handleBlur;
 
+  // Grammars are lazy-loaded (dynamic import), so the language extension
+  // arrives async; a response for a superseded language selection is dropped.
+  // The editor mounts only once the initial grammar has settled (`langReady`),
+  // so existing code never paints unhighlighted and then restyles — later
+  // language switches reconfigure the already-mounted editor instead.
+  const [langExtension, setLangExtension] = React.useState<Extension | null>(null);
+  const [langReady, setLangReady] = React.useState(() => !getLanguageByName(lang));
+  React.useEffect(() => {
+    const langInfo = getLanguageByName(lang);
+    if (!langInfo) {
+      setLangExtension(null);
+      setLangReady(true);
+      return;
+    }
+    let cancelled = false;
+    getLanguageExtension(langInfo.identifiers)
+      .catch(() => null)
+      .then(extension => {
+        if (!cancelled) {
+          setLangExtension(extension);
+          setLangReady(true);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [lang]);
+
   const extensions = React.useMemo<Extension[]>(() => {
     const exts: Extension[] = [
       EditorView.domEventHandlers({
@@ -217,12 +239,8 @@ export default function CodeControl({
         },
       }),
     ];
-    const langInfo = getLanguageByName(lang);
-    if (langInfo) {
-      const langExtension = getLanguageExtension(langInfo.identifiers);
-      if (langExtension) {
-        exts.push(langExtension);
-      }
+    if (langExtension) {
+      exts.push(langExtension);
     }
     if (keyMap === 'emacs') {
       exts.push(emacs());
@@ -232,7 +250,7 @@ export default function CodeControl({
       exts.push(keymap.of(vscodeKeymap));
     }
     return exts;
-  }, [lang, keyMap]);
+  }, [langExtension, keyMap]);
 
   const langInfo = getLanguageByName(lang);
   const codeMirrorConfig = (widget.codeMirrorConfig || {}) as Record<string, unknown>;
@@ -266,25 +284,35 @@ export default function CodeControl({
               onChangeKeyMap={(newKeyMap: string) => setKeyMap(newKeyMap)}
             />
           )}
-          <CodeMirror
-            ref={cmRef}
-            className={css`
-              height: 100%;
-              border-radius: 0 3px 3px;
-              overflow: hidden;
+          {langReady ? (
+            <CodeMirrorEditor
+              ref={cmRef}
+              className={css`
+                height: 100%;
+                border-radius: 0 3px 3px;
+                overflow: hidden;
 
-              .cm-editor {
-                cursor: text;
-              }
-            `}
-            value={(lastKnownValue as string) || ''}
-            theme={theme === 'material' ? material : 'light'}
-            extensions={extensions}
-            minHeight="300px"
-            autoFocus={isNewEditorComponent}
-            basicSetup={{ lineNumbers }}
-            onChange={handleChange}
-          />
+                .cm-editor {
+                  cursor: text;
+                }
+              `}
+              value={(lastKnownValue as string) || ''}
+              theme={theme === 'material' ? materialTheme : undefined}
+              extensions={extensions}
+              minHeight="300px"
+              autoFocus={isNewEditorComponent}
+              lineNumbers={lineNumbers}
+              onChange={handleChange}
+            />
+          ) : (
+            <div
+              className={css`
+                min-height: 300px;
+                border-radius: 0 3px 3px;
+                background: ${theme === 'material' ? materialBackground : 'transparent'};
+              `}
+            />
+          )}
         </div>
       )}
     </ClassNames>

@@ -1,4 +1,19 @@
-import type { CmsEditorComponentOptions } from '@/lib/util/index';
+// DEPRECATED: the editor-components API was removed with the PT-native block
+// API (CMS.registerBlock). This definition is kept only until its package
+// export is dropped (operator-gated package.json change); nothing imports it.
+interface LegacyEditorComponentOptions {
+  id: string;
+  label: string;
+  fields?: Array<Record<string, unknown>>;
+  pattern: RegExp;
+  fromBlock: (match: RegExpMatchArray) => unknown;
+  toBlock: (data: unknown) => string;
+  toPreview: (
+    data: unknown,
+    getAsset: (value: string, field?: unknown) => string,
+    fields?: unknown[],
+  ) => string | unknown;
+}
 
 interface ImageData {
   image: string;
@@ -11,7 +26,7 @@ interface FieldLike {
   [key: string]: unknown;
 }
 
-const image: CmsEditorComponentOptions = {
+const image: LegacyEditorComponentOptions = {
   label: 'Image',
   id: 'image',
   fromBlock: (match: RegExpMatchArray) =>

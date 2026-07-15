@@ -1,4 +1,4 @@
-import pick from 'lodash/pick';
+import { pick } from 'lodash-es';
 
 import { loadScript } from '@/lib/util/index';
 

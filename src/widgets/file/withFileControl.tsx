@@ -2,10 +2,10 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
-import once from 'lodash/once';
+import { once } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
-import { oneLine } from 'common-tags';
 
+import { oneLine } from '@/lib/util/index';
 import { basename } from '@/lib/util/index';
 import {
   lengths,

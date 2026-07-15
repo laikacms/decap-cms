@@ -2,11 +2,9 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { css, ClassNames } from '@emotion/react';
-import isEmpty from 'lodash/isEmpty';
-import memoize from 'lodash/memoize';
-import uniqueId from 'lodash/uniqueId';
+import { Collapsible } from '@base-ui/react/collapsible';
+import { get, isEmpty, isObject, memoize, omit, set, uniqueId } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
-import { get, isObject, omit, set } from 'lodash';
 
 import {
   ListItemTopBar,
@@ -69,9 +67,6 @@ const NestedObjectLabel = styled.div<NestedObjectLabelProps>`
 `;
 
 const styleStrings = {
-  collapsedObjectControl: `
-    display: none;
-  `,
   objectWidgetTopBarContainer: `
     padding: ${lengths.objectWidgetTopBarContainerPadding};
   `,
@@ -87,6 +82,11 @@ const styles = {
   `,
   listControlItemCollapsed: css`
     padding-bottom: 0;
+  `,
+  collapsiblePanel: css`
+    &[hidden] {
+      display: none;
+    }
   `,
 };
 
@@ -592,8 +592,7 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
       onChange(newValue, parsedMetadata);
     }
 
-    function handleItemCollapseToggle(index: number, event: React.MouseEvent) {
-      event.preventDefault();
+    function handleItemCollapseToggle(index: number) {
       setItemsCollapsed(prev =>
         prev.map((collapsed: boolean, i: number) => (i === index ? !collapsed : collapsed)),
       );
@@ -720,43 +719,37 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
           key={key}
           collapsed={collapsed}
         >
-          {isVariableTypesList && (
-            <LabelComponent
-              field={f!}
-              isActive={false}
-              hasErrors={itemHasError}
-              uniqueFieldId={uniqueFieldId}
-              isFieldOptional={f.required === false}
-              t={t}
+          <Collapsible.Root open={!collapsed} onOpenChange={() => handleItemCollapseToggle(index)}>
+            {isVariableTypesList && (
+              <LabelComponent
+                field={f!}
+                isActive={false}
+                hasErrors={itemHasError}
+                uniqueFieldId={uniqueFieldId}
+                isFieldOptional={f.required === false}
+                t={t}
+              />
+            )}
+            <StyledListItemTopBar
+              collapsibleTrigger
+              collapsed={collapsed}
+              dragHandle={SortableHandle}
+              id={key}
+              allowRemove={f!.allow_remove ?? true}
+              allowReorder={f!.allow_reorder ?? true}
+              onRemove={() => handleRemove(index, { preventDefault: () => {} } as React.MouseEvent)}
+              data-testid={`styled-list-item-top-bar-${key}`}
             />
-          )}
-          <StyledListItemTopBar
-            collapsed={collapsed}
-            onCollapseToggle={() =>
-              handleItemCollapseToggle(index, { preventDefault: () => {} } as React.MouseEvent)
-            }
-            dragHandle={SortableHandle}
-            id={key}
-            allowRemove={f!.allow_remove ?? true}
-            allowReorder={f!.allow_reorder ?? true}
-            onRemove={() => handleRemove(index, { preventDefault: () => {} } as React.MouseEvent)}
-            data-testid={`styled-list-item-top-bar-${key}`}
-          />
-          <NestedObjectLabel
-            className="NestedObjectLabel"
-            collapsed={collapsed}
-            error={itemHasError}
-          >
-            {objectLabel(item)}
-          </NestedObjectLabel>
-          <ClassNames>
-            {({ css: cn, cx }) => (
+            <NestedObjectLabel
+              className="NestedObjectLabel"
+              collapsed={collapsed}
+              error={itemHasError}
+            >
+              {objectLabel(item)}
+            </NestedObjectLabel>
+            <Collapsible.Panel keepMounted css={styles.collapsiblePanel}>
               <ObjectControl
-                classNameWrapper={cx(classNameWrapper, {
-                  [cn`
-                  ${styleStrings.collapsedObjectControl};
-                `]: collapsed,
-                })}
+                classNameWrapper={classNameWrapper}
                 value={item as Record<string, unknown>}
                 field={f as CmsFieldObject & CmsFieldBase}
                 onChangeObject={handleChangeFor(index) as (...args: unknown[]) => unknown}
@@ -775,8 +768,8 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
                 hasError={itemHasError}
                 parentIds={getStableParentIds(parentIds, forID, key)}
               />
-            )}
-          </ClassNames>
+            </Collapsible.Panel>
+          </Collapsible.Root>
         </SortableListItem>
       );
     }

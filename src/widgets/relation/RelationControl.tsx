@@ -1,12 +1,7 @@
 import React from 'react';
 import { components } from 'react-select';
 import AsyncSelect from 'react-select/async';
-import debounce from 'lodash/debounce';
-import find from 'lodash/find';
-import get from 'lodash/get';
-import isEmpty from 'lodash/isEmpty';
-import last from 'lodash/last';
-import uniqBy from 'lodash/uniqBy';
+import { debounce, find, get, isEmpty, last, uniqBy } from 'lodash-es';
 import { List as VirtualList } from 'react-window';
 
 import { stringTemplate, validations } from '@/lib/widgets/index';
