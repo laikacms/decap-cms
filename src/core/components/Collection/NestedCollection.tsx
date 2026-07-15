@@ -91,10 +91,11 @@ interface TreeNodeProps {
   depth?: number;
   treeData: TreeNodeData[];
   onToggle: (args: { node: TreeNodeData; expanded: boolean }) => void;
+  'data-testid'?: string;
 }
 
 function TreeNode(props: TreeNodeProps): React.ReactNode {
-  const { collection, treeData, depth = 0, onToggle } = props;
+  const { collection, treeData, depth = 0, onToggle, 'data-testid': testId } = props;
   const collectionName = collection.name;
 
   const sortedData = sortBy(treeData, getNodeTitle);
@@ -127,7 +128,7 @@ function TreeNode(props: TreeNodeProps): React.ReactNode {
           to={to}
           onClick={() => onToggle({ node, expanded: !node.expanded })}
           $depth={depth}
-          data-testid={node.path}
+          data-testid={node.isRoot && testId ? testId : node.path}
         >
           <Icon type="write" />
           <NodeTitleContainer>
@@ -283,6 +284,7 @@ interface NestedCollectionProps {
   collection: CmsCollectionState;
   entries: CmsEntry[];
   filterTerm?: string;
+  'data-testid'?: string;
 }
 
 function shallowArrayEqual(a: unknown[], b: unknown[]): boolean {
@@ -299,18 +301,32 @@ const EMPTY_ENTRIES: CmsEntry[] = [];
 export default function ConnectedNestedCollection({
   collection,
   filterTerm,
+  'data-testid': testId,
 }: {
   collection: CmsCollectionState;
   filterTerm?: string;
+  'data-testid'?: string;
 }) {
   const entries = useAppSelector(
     (state: any) => (selectEntries(state.entries, collection) || EMPTY_ENTRIES) as CmsEntry[],
     shallowArrayEqual,
   );
-  return <NestedCollection collection={collection} entries={entries} filterTerm={filterTerm} />;
+  return (
+    <NestedCollection
+      collection={collection}
+      entries={entries}
+      filterTerm={filterTerm}
+      data-testid={testId}
+    />
+  );
 }
 
-export function NestedCollection({ collection, entries, filterTerm }: NestedCollectionProps) {
+export function NestedCollection({
+  collection,
+  entries,
+  filterTerm,
+  'data-testid': testId,
+}: NestedCollectionProps) {
   // Mirror legacy behavior: when the tree is first built with non-empty
   // entries, expand any node whose path is a prefix of the current filter
   // URL (so '/' always matches the root, expanding it; '/dir' expands the
@@ -391,5 +407,12 @@ export function NestedCollection({ collection, entries, filterTerm }: NestedColl
     }
   }
 
-  return <TreeNode collection={collection} treeData={treeData} onToggle={onToggle} />;
+  return (
+    <TreeNode
+      collection={collection}
+      treeData={treeData}
+      onToggle={onToggle}
+      data-testid={testId}
+    />
+  );
 }
