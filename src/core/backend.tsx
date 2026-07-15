@@ -83,6 +83,7 @@ import type {
   CmsUnpublishedEntry,
   CmsDataFile,
   CmsUnpublishedEntryDiff,
+  CursorCompatibleEntries,
 } from '@/lib/util/index';
 
 // State type used in this file - represents the Redux store shape
@@ -577,8 +578,11 @@ export class Backend {
           `collection` argument.
         */
 
-    // @ts-expect-error -- TODO: fix underlying type issue
-    const cursor = Cursor.create(loadedEntries[CURSOR_COMPATIBILITY_SYMBOL]).wrapData({
+    const cursor = Cursor.create(
+      (loadedEntries as CursorCompatibleEntries<CmsImplementationEntry>)[
+        CURSOR_COMPATIBILITY_SYMBOL
+      ],
+    ).wrapData({
       cursorType: 'collectionEntries',
       collection,
     });

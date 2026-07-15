@@ -30,6 +30,7 @@ import type { Endpoints } from '@octokit/types';
 import type {
   AsyncLock,
   CmsImplementation,
+  CmsImplementationEntry,
   CmsAssetProxy,
   CmsPersistOptions,
   CmsDisplayURL,
@@ -40,6 +41,7 @@ import type {
   CmsUnpublishedEntryMediaFile,
   CmsEntry,
   CmsFileEntry,
+  CursorCompatibleEntries,
 } from '@/lib/util/index';
 import type { Semaphore } from '@/lib/util/index';
 import type { AuthenticationPageProps } from '@/ui/default/AuthenticationPage';
@@ -452,8 +454,8 @@ export default class GitHub implements CmsImplementation {
       API_NAME,
     );
 
-    // @ts-expect-error -- TODO: fix underlying type issue
-    files[CURSOR_COMPATIBILITY_SYMBOL] = cursor;
+    (files as CursorCompatibleEntries<CmsImplementationEntry>)[CURSOR_COMPATIBILITY_SYMBOL] =
+      cursor!;
     return files;
   }
 

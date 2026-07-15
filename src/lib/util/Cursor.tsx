@@ -154,4 +154,14 @@ export default class Cursor {
   }
 }
 
-export const CURSOR_COMPATIBILITY_SYMBOL = Symbol('cursor key for compatibility with old backends');
+export const CURSOR_COMPATIBILITY_SYMBOL: unique symbol = Symbol(
+  'cursor key for compatibility with old backends',
+);
+
+// Legacy backends stash the pagination cursor for a list of entries by
+// assigning it onto the entries array under CURSOR_COMPATIBILITY_SYMBOL,
+// rather than passing it through the type system properly. This type lets
+// call sites express that shape without resorting to `@ts-expect-error` or
+// `as any`. This should be removed in favor of wrapping old backends with a
+// compatibility layer, as part of the backend API refactor.
+export type CursorCompatibleEntries<T> = T[] & { [CURSOR_COMPATIBILITY_SYMBOL]?: Cursor };

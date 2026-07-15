@@ -3,6 +3,7 @@ export * from './errors/AccessTokenError.js';
 export * from './errors/ConfigurationError.js';
 export * from './errors/LocalSearchError.js';
 export { default as Cursor, CURSOR_COMPATIBILITY_SYMBOL } from './Cursor.js';
+export type { CursorCompatibleEntries } from './Cursor.js';
 export {
   default as EditorialWorkflowError,
   EDITORIAL_WORKFLOW_ERROR,
