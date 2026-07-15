@@ -6,6 +6,7 @@ import { connect, useDispatch } from 'react-redux';
 import { useTranslate } from 'react-polyglot';
 
 import { dismissNotification } from '../../actions/notifications';
+import { history } from '../../routing/history';
 
 import type { Id, ToastItem } from 'react-toastify';
 import type { State } from '../../types/redux';
@@ -21,6 +22,19 @@ type IdMap = {
   [id: string]: Id;
 };
 
+// Notification message keys that are scoped to whatever entry editor raised
+// them (e.g. a save-validation error) rather than being app-wide. These are
+// dismissed as soon as the user navigates away, so they don't linger on
+// unrelated routes like the Editorial Workflow board.
+const ROUTE_SCOPED_MESSAGE_KEYS = ['ui.toast.missingRequiredField'];
+
+function isRouteScopedNotification(notification: Notification): boolean {
+  return (
+    typeof notification.message !== 'string' &&
+    ROUTE_SCOPED_MESSAGE_KEYS.includes(notification.message.key)
+  );
+}
+
 export function Notifications({ notifications }: Props) {
   const t = useTranslate();
   const dispatch = useDispatch();
@@ -28,6 +42,11 @@ export function Notifications({ notifications }: Props) {
   // importantly, avoids this value being captured in the toast.onChange
   // effect's dependency list (see below).
   const idMapRef = useRef<IdMap>({});
+  // Mirrors `notifications` for the history listener below, which is
+  // registered once and must always see the latest list rather than the one
+  // captured at registration time.
+  const notificationsRef = useRef<Notification[]>(notifications);
+  notificationsRef.current = notifications;
 
   useEffect(() => {
     const idMap = idMapRef.current;
@@ -82,6 +101,19 @@ export function Notifications({ notifications }: Props) {
           dispatch(dismissNotification(id));
         }
       }
+    });
+  }, [dispatch]);
+
+  // Entry-editor-scoped notifications (e.g. a save-validation error) should
+  // not travel with the user to an unrelated route, such as the Editorial
+  // Workflow board (DCMS-579). Dismissing on every route change is cheap and
+  // correct here because dismissNotification is a no-op once the id is
+  // already gone.
+  useEffect(() => {
+    return history.listen(() => {
+      notificationsRef.current.filter(isRouteScopedNotification).forEach(notification => {
+        dispatch(dismissNotification(notification.id));
+      });
     });
   }, [dispatch]);
 
