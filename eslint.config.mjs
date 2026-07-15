@@ -171,7 +171,28 @@ export default tseslint.config(
       'react/prop-types': 'off',
       'react/no-unknown-property': [
         'error',
-        { ignore: ['css', 'bold', 'italic', 'delete', 'strikethrough'] },
+        {
+          ignore: [
+            'css',
+            'bold',
+            'italic',
+            'delete',
+            'strikethrough',
+            // Vendored cmdk-base primitive (src/ui/cmdk.tsx, DCMS-549) uses
+            // these as plain DOM attribute selectors instead of classes.
+            'cmdk-root',
+            'cmdk-label',
+            'cmdk-item',
+            'cmdk-group',
+            'cmdk-group-heading',
+            'cmdk-group-items',
+            'cmdk-separator',
+            'cmdk-input',
+            'cmdk-list',
+            'cmdk-list-sizer',
+            'cmdk-empty',
+          ],
+        },
       ],
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',

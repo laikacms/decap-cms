@@ -132,7 +132,6 @@
     "zod": "catalog:validation",
     "jwt-decode": "catalog:auth",
     "@base-ui/react": "catalog:editor-ui",
-    "cmdk": "catalog:editor-ui",
     "lexical": "catalog:lexical",
     "lodash": "catalog:utils",
     "lucide-react": "catalog:icons",
