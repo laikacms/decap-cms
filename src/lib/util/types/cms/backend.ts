@@ -16,6 +16,7 @@ import type {
 } from './entries.js';
 import type { CmsImplementationMediaFile } from './media.js';
 import type Cursor from '@/lib/util/Cursor.js';
+import type { CmsConfig } from './cms.js';
 
 export type CmsBackendType =
   | 'azure'
@@ -69,7 +70,15 @@ export interface CmsLocalBackend {
   allowed_hosts?: string[];
 }
 
-export type CmsBackendClass = unknown; // TODO: type properly
+/**
+ * The constructor `registerBackend(name, BackendClass)` expects: instantiated
+ * by core with the resolved config and any extra options, producing the
+ * `CmsImplementation` the backend registry wraps.
+ */
+export type CmsBackendClass = new (
+  config: CmsConfig,
+  opts?: Record<string, unknown>,
+) => CmsImplementation;
 
 export interface CmsRegistryBackend {
   init: (args: unknown) => CmsBackendClass;

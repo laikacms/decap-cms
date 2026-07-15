@@ -34,6 +34,8 @@ import image from '@/editor-component-image/index';
 // Locales
 import * as locales from '@/locales/index';
 
+import type { CmsLocalePhrases } from '@/lib/util/types/cms/common.js';
+
 CMS.registerBackend('git-gateway', GitGatewayBackend);
 CMS.registerBackend('azure', AzureBackend);
 CMS.registerBackend('aws-cognito-github-proxy', AwsCognitoGitHubProxyBackend);
@@ -77,5 +79,5 @@ CMS.registerEditorComponent({
   type: 'code-block',
 } as any);
 Object.keys(locales).forEach(locale => {
-  CMS.registerLocale(locale, (locales as Record<string, unknown>)[locale]);
+  CMS.registerLocale(locale, (locales as Record<string, CmsLocalePhrases>)[locale]);
 });

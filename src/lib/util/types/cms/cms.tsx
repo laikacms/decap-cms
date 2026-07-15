@@ -120,7 +120,10 @@ export interface CmsWidgetPreviewProps<T = unknown, F = CmsFieldBase> {
   getAsset?: CmsGetAssetFunction;
 }
 
-export type CmsWidgetValueSerializer = unknown; // TODO: type properly
+export type CmsWidgetValueSerializer = {
+  serialize: (value: unknown) => unknown;
+  deserialize: (value: unknown) => unknown;
+};
 
 export interface CmsMediaLibraryWithOptions extends CmsMediaLibrary {
   options?: CmsMediaLibraryOptions;

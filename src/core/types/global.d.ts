@@ -42,12 +42,13 @@ declare module 'url' {
 // react-polyglot: i18n HOC and hook for React
 declare module 'react-polyglot' {
   import type { ComponentType, ReactNode } from 'react';
+  import type { CmsLocalePhrases } from '@/lib/util/types/cms/common.js';
 
   export type TranslateFunction = (key: string, options?: Record<string, unknown>) => string;
 
   export interface I18nProps {
     locale: string;
-    messages: Record<string, string>;
+    messages: CmsLocalePhrases;
     children?: ReactNode;
   }
 

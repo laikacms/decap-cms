@@ -71,9 +71,14 @@ export interface CmsEventListener {
   }) => unknown;
 }
 
-export type CmsEventListenerOptions = unknown; // TODO: type properly
+export type CmsEventListenerOptions = Record<string, unknown>;
 
-export type CmsLocalePhrases = unknown; // TODO: type properly
+/**
+ * A locale's translation strings, keyed by (nested) namespace. Locale packs
+ * (see `src/locales/*`) are plain nested objects of strings; `registerLocale`
+ * and `getLocale` pass this shape through as-is.
+ */
+export type CmsLocalePhrases = { [key: string]: string | CmsLocalePhrases };
 
 export type CmsFormatterFunctions = {
   fromFile(content: string): unknown;
