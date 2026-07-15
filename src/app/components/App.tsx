@@ -223,6 +223,26 @@ function RedirectToCollection({ collectionName }: { collectionName?: string }) {
 }
 
 /**
+ * Backs the `/media` deep-link (DCMS-578): opens the Media Library modal and
+ * redirects to the default collection view, mirroring the legacy monorepo
+ * behavior (DCMS-482 / PR #564). The redirect is issued before the modal
+ * opens: `MediaLibrary` closes itself on every router navigation (see its own
+ * `defaultRouter.subscribe` effect), so dispatching `openMediaLibrary` first
+ * would have that same navigation immediately close the modal it just opened.
+ */
+function OpenMediaLibraryAndRedirect({ collectionName }: { collectionName?: string }) {
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  useEffect(() => {
+    if (collectionName) {
+      navigate('collection', { collectionName }, { replace: true });
+    }
+    dispatch(openMediaLibrary());
+  }, [navigate, dispatch, collectionName]);
+  return null;
+}
+
+/**
  * Imperatively redirect to an entry editor, replacing the current history
  * entry — backs the legacy `/edit/:name/:entryName` route.
  */
@@ -427,6 +447,8 @@ function AppRoutes({
           />
         </CollectionGuard>
       );
+    case 'media':
+      return <OpenMediaLibraryAndRedirect collectionName={defaultCollectionName} />;
     default:
       return renderNotFound ? <>{renderNotFound()}</> : <NotFoundPage />;
   }

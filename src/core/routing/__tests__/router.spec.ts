@@ -155,6 +155,17 @@ describe('router', () => {
         slug: 'café-story',
       });
     });
+
+    it('round-trips the media route (DCMS-578)', async () => {
+      const { defaultRoutingTable, matchRoute } = await import('@/core/routing/router');
+
+      const path = defaultRoutingTable.media.create();
+      expect(path).toBe('/media');
+      expect(defaultRoutingTable.media.get(path)).toEqual({});
+
+      const match = matchRoute(defaultRoutingTable, path);
+      expect(match).toEqual({ key: 'media', params: {} });
+    });
   });
 
   describe('matchRoute', () => {
