@@ -99,6 +99,29 @@ describe('EditorToolbar', () => {
     });
   });
 
+  describe('back status label (DCMS-612)', () => {
+    it('shows no status label on a pristine new entry', () => {
+      render(<EditorToolbar {...props} isNewEntry={true} hasChanged={false} />);
+      expect(screen.queryByText('editor.editorToolbar.changesSaved')).not.toBeInTheDocument();
+      expect(screen.queryByText('editor.editorToolbar.unsavedChanges')).not.toBeInTheDocument();
+    });
+
+    it('shows unsaved changes on a dirty new entry', () => {
+      render(<EditorToolbar {...props} isNewEntry={true} hasChanged={true} />);
+      expect(screen.getByText('editor.editorToolbar.unsavedChanges')).toBeInTheDocument();
+    });
+
+    it('shows changes saved on a clean existing entry', () => {
+      render(<EditorToolbar {...props} isNewEntry={false} hasChanged={false} />);
+      expect(screen.getByText('editor.editorToolbar.changesSaved')).toBeInTheDocument();
+    });
+
+    it('shows unsaved changes on a dirty existing entry', () => {
+      render(<EditorToolbar {...props} isNewEntry={false} hasChanged={true} />);
+      expect(screen.getByText('editor.editorToolbar.unsavedChanges')).toBeInTheDocument();
+    });
+  });
+
   describe('Save button (editorial workflow)', () => {
     it('is enabled on a pristine new entry so validation can surface (#757)', () => {
       render(
