@@ -33,7 +33,15 @@ test.describe('Laika entry editor', () => {
   });
 
   test('saving a blank new entry surfaces a validation notice', async ({ page }) => {
-    await gotoRoute(page, '/collections/posts/new');
+    // Deep-linking straight to `/collections/posts/new` via `gotoRoute` never
+    // works: per DCMS-431 the app-shell header (including the "Home" link
+    // `gotoRoute` waits on as its boot signal) is unmounted while an editor
+    // route is active, even on direct deep-link. Reach the route the same
+    // way `editor-topnav.e2e.ts` does — navigate to the collection list
+    // first (where the header is present) and click through.
+    await gotoRoute(page, '/collections/posts');
+    await page.getByRole('link', { name: /New Post/i }).click();
+    await expect(page).toHaveURL(/#\/collections\/posts\/new$/);
 
     await expect(page.getByRole('button', { name: 'Save', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Save', exact: true }).click();
