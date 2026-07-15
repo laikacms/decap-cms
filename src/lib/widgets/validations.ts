@@ -1,4 +1,4 @@
-import isNumber from 'lodash/isNumber';
+import { isNumber } from 'lodash-es';
 
 export function validateMinMax(
   t: (key: string, options: unknown) => string,

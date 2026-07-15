@@ -1,11 +1,6 @@
 //
 // Pointer file parsing
 
-import filter from 'lodash/fp/filter.js';
-import flow from 'lodash/fp/flow.js';
-import fromPairs from 'lodash/fp/fromPairs.js';
-import map from 'lodash/fp/map.js';
-
 import getBlobSHA from './getBlobSHA.js';
 
 import type { CmsAssetProxy as AssetProxy } from './types/cms';
@@ -27,18 +22,22 @@ function isNonEmptyString(str: string) {
   return str !== '';
 }
 
-const withoutEmptyLines = flow([map((str: string) => str.trim()), filter(isNonEmptyString)]);
-export const parsePointerFile: (data: string) => PointerFile = flow([
-  splitIntoLines,
-  withoutEmptyLines,
-  map(splitIntoWords),
-  fromPairs,
-  ({ size, oid, ...rest }) => ({
+function withoutEmptyLines(lines: string[]) {
+  return lines.map(line => line.trim()).filter(isNonEmptyString);
+}
+
+export function parsePointerFile(data: string): PointerFile {
+  const { size, oid, ...rest } = Object.fromEntries(
+    withoutEmptyLines(splitIntoLines(data)).map(
+      line => splitIntoWords(line) as [string, string],
+    ),
+  );
+  return {
     size: parseInt(size),
     sha: oid?.split(':')[1],
     ...rest,
-  }),
-]);
+  } as PointerFile;
+}
 
 //
 // .gitattributes file parsing
@@ -47,14 +46,14 @@ function removeGitAttributesCommentsFromLine(line: string) {
   return line.split('#')[0];
 }
 
-function parseGitPatternAttribute(attributeString: string) {
+function parseGitPatternAttribute(attributeString: string): [string, string | boolean] {
   // There are three kinds of attribute settings:
   // - a key=val pair sets an attribute to a specific value
   // - a key without a value and a leading hyphen sets an attribute to false
   // - a key without a value and no leading hyphen sets an attribute
   //   to true
   if (attributeString.includes('=')) {
-    return attributeString.split('=');
+    return attributeString.split('=') as [string, string];
   }
   if (attributeString.startsWith('-')) {
     return [attributeString.slice(1), false];
@@ -62,28 +61,29 @@ function parseGitPatternAttribute(attributeString: string) {
   return [attributeString, true];
 }
 
-const parseGitPatternAttributes = flow([map(parseGitPatternAttribute), fromPairs]);
+function parseGitPatternAttributes(attributeStrings: string[]) {
+  return Object.fromEntries(attributeStrings.map(parseGitPatternAttribute));
+}
 
-const parseGitAttributesPatternLine = flow([
-  splitIntoWords,
-  ([pattern, ...attributes]) => [pattern, parseGitPatternAttributes(attributes)],
-]);
+function parseGitAttributesPatternLine(line: string) {
+  const [pattern, ...attributeStrings] = splitIntoWords(line);
+  return [pattern, parseGitPatternAttributes(attributeStrings)] as const;
+}
 
-const parseGitAttributesFileToPatternAttributePairs = flow([
-  splitIntoLines,
-  map(removeGitAttributesCommentsFromLine),
-  withoutEmptyLines,
-  map(parseGitAttributesPatternLine),
-]);
+function parseGitAttributesFileToPatternAttributePairs(contents: string) {
+  return withoutEmptyLines(splitIntoLines(contents).map(removeGitAttributesCommentsFromLine)).map(
+    parseGitAttributesPatternLine,
+  );
+}
 
-export const getLargeMediaPatternsFromGitAttributesFile = flow([
-  parseGitAttributesFileToPatternAttributePairs,
-  filter(
-    ([, attributes]) =>
-      attributes.filter === 'lfs' && attributes.diff === 'lfs' && attributes.merge === 'lfs',
-  ),
-  map(([pattern]) => pattern),
-]);
+export function getLargeMediaPatternsFromGitAttributesFile(contents: string): string[] {
+  return parseGitAttributesFileToPatternAttributePairs(contents)
+    .filter(
+      ([, attributes]) =>
+        attributes.filter === 'lfs' && attributes.diff === 'lfs' && attributes.merge === 'lfs',
+    )
+    .map(([pattern]) => pattern);
+}
 
 export function createPointerFile({ size, sha }: PointerFile) {
   return `\

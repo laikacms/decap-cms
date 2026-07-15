@@ -25,7 +25,7 @@ describe('APIUtils', () => {
     });
 
     it('should return false for non CMS label', () => {
-      expect(apiUtils.isCMSLabel('other/label', 'decap-cms/')).toBe(false);
+      expect(apiUtils.isCMSLabel('other/Label', 'decap-cms/')).toBe(false);
     });
 
     it('should return true if the prefix not provided for CMS label', () => {

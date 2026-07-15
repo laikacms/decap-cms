@@ -1,5 +1,4 @@
-import trim from 'lodash/trim';
-import trimEnd from 'lodash/trimEnd';
+import { trim, trimEnd } from 'lodash-es';
 
 const NETLIFY_API = 'https://api.netlify.com';
 const AUTH_ENDPOINT = 'auth';

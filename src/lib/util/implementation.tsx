@@ -1,5 +1,4 @@
-import unionBy from 'lodash/unionBy';
-import sortBy from 'lodash/sortBy';
+import { sortBy, unionBy } from 'lodash-es';
 
 import createSemaphore from './semaphore';
 import { basename } from './core-utils/path.js';

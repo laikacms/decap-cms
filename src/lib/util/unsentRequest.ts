@@ -1,6 +1,4 @@
-import curry from 'lodash/curry';
-import flow from 'lodash/flow';
-import isString from 'lodash/isString';
+import { curry, flow, isString } from 'lodash-es';
 
 export type RequestObject = {
   url: string;

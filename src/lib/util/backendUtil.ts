@@ -1,7 +1,3 @@
-import flow from 'lodash/flow';
-import fromPairs from 'lodash/fromPairs';
-import map from 'lodash/fp/map.js';
-
 import unsentRequest from './unsentRequest.js';
 import { APIError } from './errors/APIError.js';
 
@@ -87,22 +83,21 @@ export function responseParser<F extends Format>(options: {
   return (res: Response) => parseResponse(res, options);
 }
 
-export function parseLinkHeader(header: string | null) {
+export function parseLinkHeader(header: string | null): Record<string, string> {
   if (!header) {
     return {};
   }
-  return flow([
-    linksString => linksString.split(','),
-    map((str: string) => str.trim().split(';')),
-    map(([linkStr, keyStr]) => [
-      keyStr.match(/rel="(.*?)"/)[1],
-      linkStr
+  return Object.fromEntries(
+    header.split(',').map(linksString => {
+      const [linkStr, keyStr] = linksString.trim().split(';');
+      const key = keyStr.match(/rel="(.*?)"/)![1];
+      const url = linkStr
         .trim()
-        .match(/<(.*?)>/)[1]
-        .replace(/\+/g, '%20'),
-    ]),
-    fromPairs,
-  ])(header);
+        .match(/<(.*?)>/)![1]
+        .replace(/\+/g, '%20');
+      return [key, url] as [string, string];
+    }),
+  );
 }
 
 export async function getAllResponses(
@@ -114,17 +109,20 @@ export async function getAllResponses(
   const maxResponses = 30;
   let responseCount = 1;
 
-  let req = unsentRequest.fromFetchArguments(url, options);
+  let req: ReturnType<typeof unsentRequest.fromFetchArguments> | null =
+    unsentRequest.fromFetchArguments(url, options);
 
   const pageResponses = [];
 
   while (req && responseCount < maxResponses) {
     const pageResponse = await unsentRequest.performRequest(req);
     const linkHeader = pageResponse.headers.get('Link');
-    const nextURL = linkHeader && parseLinkHeader(linkHeader)[linkHeaderRelName];
+    const nextURL = linkHeader ? parseLinkHeader(linkHeader)[linkHeaderRelName] : undefined;
 
     const { headers = {} } = options;
-    req = nextURL && unsentRequest.fromFetchArguments(nextUrlProcessor(nextURL), { headers });
+    req = nextURL
+      ? unsentRequest.fromFetchArguments(nextUrlProcessor(nextURL), { headers })
+      : null;
     pageResponses.push(pageResponse);
     responseCount++;
   }

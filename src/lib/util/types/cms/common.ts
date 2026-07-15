@@ -95,41 +95,6 @@ export interface CmsEventHandler {
   options: Record<string, unknown>;
 }
 
-export type CmsEditorComponentField =
-  | {
-      name: string;
-      label: string;
-      widget?: string;
-      [key: string]: unknown;
-    }
-  | {
-      widget: 'list';
-      field?: CmsEditorComponentField;
-      fields?: CmsEditorComponentField[];
-    };
-
-export interface CmsEditorComponentOptions {
-  id: string;
-  label: string;
-  fields?: CmsEditorComponentField[];
-  pattern: RegExp;
-  allow_add?: boolean;
-  fromBlock: (match: RegExpMatchArray) => unknown;
-  toBlock: (data: unknown) => string;
-  toPreview: (
-    data: unknown,
-    getAsset: (value: string, field?: unknown) => string,
-    fields?: unknown[],
-  ) => string | unknown;
-}
-
-export interface CmsEditorComponentPlugin extends Omit<CmsEditorComponentOptions, 'fields'> {
-  type?: 'code-block' | 'shortcode';
-  icon?: string;
-  widget?: string;
-  fields: CmsEditorComponentField[];
-}
-
 export type CmsDisplayURLObject = { id: string; path: string };
 
 export type CmsDisplayURL = CmsDisplayURLObject | string;

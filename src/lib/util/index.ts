@@ -20,6 +20,7 @@ export {
   join,
 } from './core-utils/path.js'; // Backwards compatibility - re-export path utilities at top level
 export * from './core-utils/index.js';
+export { oneLine, oneLineTrim, stripIndent } from './core-utils/template-literal.js';
 export { onlySuccessfulPromises, flowAsync, thenP as promiseThen } from './promise.js';
 export { default as unsentRequest } from './unsentRequest.js';
 export {

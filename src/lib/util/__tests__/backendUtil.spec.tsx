@@ -2,16 +2,7 @@ import { describe, expect, it } from 'vitest';
 import nock from 'nock';
 
 import { parseLinkHeader, getAllResponses, getPathDepth, filterByExtension } from '@/lib/util/backendUtil';
-
-function oneLine(strings: TemplateStringsArray, ...values: unknown[]): string {
-  return strings
-    .reduce(
-      (result, str, i) => result + str + (values[i] !== undefined ? String(values[i]) : ''),
-      '',
-    )
-    .replace(/\s+/g, ' ')
-    .trim();
-}
+import { oneLine } from '@/lib/util/core-utils/template-literal';
 
 describe('parseLinkHeader', () => {
   it('should return the right rel urls', () => {
