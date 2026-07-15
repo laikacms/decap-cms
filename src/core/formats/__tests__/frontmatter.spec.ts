@@ -248,6 +248,41 @@ describe('Frontmatter', () => {
         body: 'Content',
       });
     });
+
+    // DCMS-603: `frontmatterToObject` used to build `body` with
+    // `mdast-util-to-string`, which concatenates every text node with no
+    // separators — headings, paragraphs and list items collapsed into one
+    // run-on string with block structure (and whitespace) discarded
+    // entirely. `body` must preserve Markdown block boundaries so a
+    // `richtext` field parses it back into distinct blocks instead of one.
+    it('should preserve heading/paragraph/list block structure in the parsed body (DCMS-603)', () => {
+      const content = [
+        '---',
+        'title: This is a YAML front matter post',
+        '---',
+        '',
+        '# I Am a Title in Markdown',
+        '',
+        'Hello, world',
+        '',
+        '* One Thing',
+        '* Another Thing',
+        '* A Third Thing',
+      ].join('\n');
+
+      const { body } = FrontmatterInfer.fromFile(content);
+
+      expect(body).toContain('# I Am a Title in Markdown');
+      expect(body).toContain('Hello, world');
+      expect(body).toContain('One Thing');
+      expect(body).toContain('Another Thing');
+      expect(body).toContain('A Third Thing');
+      // The heading, paragraph and each list item must remain on separate
+      // lines — not glued together into a single run of text.
+      expect(body.split('\n').filter(line => line.trim() !== '').length).toBeGreaterThanOrEqual(5);
+      expect(body).not.toContain('MarkdownHello');
+      expect(body).not.toContain('worldOne Thing');
+    });
   });
 
   describe('toml', () => {

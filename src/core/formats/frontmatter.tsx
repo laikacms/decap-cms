@@ -3,7 +3,6 @@ import remarkParse from 'remark-parse';
 import remarkStringify from 'remark-stringify';
 import { unified } from 'unified';
 import { CONTINUE, EXIT, visit } from 'unist-util-visit';
-import { toString } from 'mdast-util-to-string';
 import { fromMarkdown } from 'mdast-util-from-markdown';
 
 import tomlFormatter from './toml';
@@ -140,6 +139,14 @@ const objectToFrontmatter = (opts: {
   };
 };
 
+// A standalone stringify-only processor for turning the post-frontmatter
+// remainder of the tree back into a Markdown string. `mdast-util-to-string`
+// (the previous approach) collapses every text node into one bare string
+// with no separators — it discards headings, paragraph breaks and list
+// markers entirely (DCMS-603). Re-serialising through `remark-stringify`
+// instead preserves the original block structure.
+const bodyStringifier = unified().use(remarkStringify);
+
 const frontmatterToObject = () => {
   return (tree: Node, file: VFile) => {
     let frontmatter = {};
@@ -160,9 +167,16 @@ const frontmatterToObject = () => {
       }
     });
 
+    // `remark-stringify` always terminates its output with a single trailing
+    // newline (even for a one-line body); strip that one newline back off so
+    // `body` matches the source text, mirroring the previous `toString`
+    // behaviour for simple bodies.
+    const stringified = String(bodyStringifier.stringify(tree as never));
+    const body = stringified.endsWith('\n') ? stringified.slice(0, -1) : stringified;
+
     file.result = {
       ...frontmatter,
-      body: toString(tree),
+      body,
     };
   };
 };
