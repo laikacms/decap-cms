@@ -440,6 +440,7 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
 
     function renderSelection(subject: string) {
       const multi = allowsMultiple();
+      const chooseUrl = field.choose_url !== false;
       return (
         <div>
           {forImage ? renderImages() : null}
@@ -448,7 +449,7 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
             <FileWidgetButton onClick={handleChange}>
               {t(`editor.editorWidgets.${subject}.${multi ? 'addMore' : 'chooseDifferent'}`)}
             </FileWidgetButton>
-            {field.choose_url && !multi ? (
+            {chooseUrl && !multi ? (
               <FileWidgetButton onClick={handleUrl(subject)}>
                 {t(`editor.editorWidgets.${subject}.replaceUrl`)}
               </FileWidgetButton>
@@ -462,12 +463,13 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
     }
 
     function renderNoSelection(subject: string) {
+      const chooseUrl = field.choose_url !== false;
       return (
         <>
           <FileWidgetButton onClick={handleChange}>
             {t(`editor.editorWidgets.${subject}.choose${allowsMultiple() ? 'Multiple' : ''}`)}
           </FileWidgetButton>
-          {field.choose_url ? (
+          {chooseUrl ? (
             <FileWidgetButton onClick={handleUrl(subject)}>
               {t(`editor.editorWidgets.${subject}.chooseUrl`)}
             </FileWidgetButton>
