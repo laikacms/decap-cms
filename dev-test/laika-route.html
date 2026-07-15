@@ -11,7 +11,7 @@
       JSON.stringify({ backendName: 'test-repo', name: 'Alice', login: 'alice' }),
     );
     const route = new URLSearchParams(location.search).get('to') || '/';
-    window.location.replace('/laika.html#' + route);
+    window.location.replace('/laika#' + route);
   </script>
 </head>
 <body>Seeding + routing…</body>
