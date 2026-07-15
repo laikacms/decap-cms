@@ -8,4 +8,5 @@ export interface CmsFieldImage {
   allow_multiple?: boolean;
   private?: boolean;
   config?: unknown;
+  choose_url?: boolean;
 }
