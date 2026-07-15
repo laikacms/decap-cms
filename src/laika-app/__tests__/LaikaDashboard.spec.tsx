@@ -3,10 +3,10 @@ import { render, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 
-// Mock react-polyglot's translate so the LaikaDashboard HOC wrapper receives
+// Mock the i18n translate so the LaikaDashboard HOC wrapper receives
 // a stub `t` that returns the key unchanged — no I18nProvider needed in the
 // test tree.
-vi.mock('react-polyglot', () => ({
+vi.mock('@/core/i18n', () => ({
   translate: () => (Component: React.ComponentType<any>) => {
     return function Translated(props: any) {
       return <Component {...props} t={(key: string) => key} />;

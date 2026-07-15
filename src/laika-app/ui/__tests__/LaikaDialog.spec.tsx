@@ -43,4 +43,34 @@ describe('LaikaDialog', () => {
     );
     expect(queryByText('body')).toBeNull();
   });
+
+  it('fires onClose when Escape is pressed', () => {
+    const onClose = vi.fn();
+    const { getByRole } = render(
+      <LaikaDialog isOpen onClose={onClose} title="Title">
+        <div>body</div>
+      </LaikaDialog>,
+    );
+    fireEvent.keyDown(getByRole('dialog'), { key: 'Escape' });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('labels the dialog with ariaLabel when there is no title', () => {
+    const { getByRole } = render(
+      <LaikaDialog isOpen onClose={vi.fn()} ariaLabel="Command palette" showCloseButton={false}>
+        <div>body</div>
+      </LaikaDialog>,
+    );
+    expect(getByRole('dialog')).toHaveAttribute('aria-label', 'Command palette');
+  });
+
+  it('labels the dialog via aria-labelledby when a title is set', () => {
+    const { getByRole, getByText } = render(
+      <LaikaDialog isOpen onClose={vi.fn()} title="Confirm delete">
+        <div>body</div>
+      </LaikaDialog>,
+    );
+    const dialog = getByRole('dialog');
+    expect(dialog).toHaveAttribute('aria-labelledby', getByText('Confirm delete').id);
+  });
 });

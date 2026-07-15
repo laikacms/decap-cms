@@ -2,14 +2,14 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
-import { useTranslate } from 'react-polyglot';
 
+import { useTranslate } from '@/core/i18n';
 import { colors, lengths } from '@/ui/default/index';
 import { boundGetAsset } from '@/core/actions/media';
 import { selectEntryCollectionTitle } from '@/core/reducers/collections';
 import { useAppDispatch } from '@/core/hooks/useRedux';
 import { LaikaBadge } from './ui';
-import { laikaShouldForwardProp } from './ui/styled-utils';
+import { laikaShouldForwardProp } from '@/ui/styled';
 
 import type { LaikaBadgeIntent } from './ui';
 import type { EntryCardRenderProps } from '@/app/components/index';

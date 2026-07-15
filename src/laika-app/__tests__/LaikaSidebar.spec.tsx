@@ -1,9 +1,9 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('react-polyglot', () => ({
+vi.mock('@/core/i18n', () => ({
   translate: () => (Component: React.ComponentType<any>) => {
     return function Translated(props: any) {
       return <Component {...props} t={(key: string) => key} />;
@@ -39,6 +39,7 @@ vi.mock('../../core/actions/collections', () => ({
 }));
 
 import LaikaSidebar from '@/laika-app/LaikaSidebar';
+import { LaikaShellProvider, useLaikaShell } from '@/laika-app/LaikaShellContext';
 
 describe('LaikaSidebar', () => {
   it('renders a link for every visible collection plus an App settings link', () => {
@@ -80,7 +81,7 @@ describe('LaikaSidebar', () => {
       </MemoryRouter>,
     );
     // The CMS collection keeps its user-defined "Settings" label, and it is
-    // the only element with that exact text — the app link no longer collides.
+    // the only element with that exact text; the app link no longer collides.
     const collectionLabels = getAllByText('Settings');
     expect(collectionLabels).toHaveLength(1);
     const collectionLink = collectionLabels[0].closest('a') as HTMLAnchorElement | null;
@@ -127,5 +128,89 @@ describe('LaikaSidebar', () => {
     );
     expect(getByText('Posts')).toBeInTheDocument();
     expect(queryByText('Hidden')).toBeNull();
+  });
+
+  describe('mobile drawer', () => {
+    const MOBILE_QUERY = '(max-width: 900px)';
+
+    beforeEach(() => {
+      // jsdom has no matchMedia; report the mobile breakpoint as matching so
+      // the sidebar takes the Base UI Drawer path.
+      vi.stubGlobal(
+        'matchMedia',
+        vi.fn((query: string) => ({
+          matches: query === MOBILE_QUERY,
+          media: query,
+          onchange: null,
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          dispatchEvent: vi.fn(),
+        })),
+      );
+    });
+
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    function OpenSidebarOnMount() {
+      const { openMobileSidebar } = useLaikaShell();
+      React.useEffect(() => {
+        openMobileSidebar();
+      }, [openMobileSidebar]);
+      return null;
+    }
+
+    function renderMobileSidebar({ open }: { open: boolean }) {
+      return render(
+        <MemoryRouter>
+          <LaikaShellProvider>
+            {open ? <OpenSidebarOnMount /> : null}
+            <LaikaSidebar
+              collections={{
+                posts: { name: 'posts', label: 'Posts', type: 'folder_based_collection' } as any,
+              }}
+            />
+          </LaikaShellProvider>
+        </MemoryRouter>,
+      );
+    }
+
+    it('renders the sidebar as a labelled dialog when open', async () => {
+      renderMobileSidebar({ open: true });
+      const dialog = await screen.findByRole('dialog', {
+        name: 'collection.sidebar.collections',
+      });
+      expect(dialog).toHaveAttribute('data-mobile-open', 'true');
+      expect(within(dialog).getByText('Posts')).toBeInTheDocument();
+      expect(within(dialog).getByText('App settings')).toBeInTheDocument();
+    });
+
+    it('does not expose a dialog while closed', () => {
+      renderMobileSidebar({ open: false });
+      expect(screen.queryByRole('dialog')).toBeNull();
+    });
+
+    it('closes when a nav link inside the drawer is clicked', async () => {
+      renderMobileSidebar({ open: true });
+      const dialog = await screen.findByRole('dialog', {
+        name: 'collection.sidebar.collections',
+      });
+      fireEvent.click(within(dialog).getByText('Posts'));
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).toBeNull();
+      });
+    });
+
+    it('closes when Escape is pressed', async () => {
+      renderMobileSidebar({ open: true });
+      await screen.findByRole('dialog', { name: 'collection.sidebar.collections' });
+      fireEvent.keyDown(window, { key: 'Escape' });
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).toBeNull();
+      });
+    });
   });
 });

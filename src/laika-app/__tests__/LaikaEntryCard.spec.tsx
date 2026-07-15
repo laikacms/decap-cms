@@ -3,8 +3,8 @@ import { render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 
-// Mock react-polyglot's useTranslate to return a passthrough.
-vi.mock('react-polyglot', () => ({
+// Mock the i18n useTranslate to return a passthrough.
+vi.mock('@/core/i18n', () => ({
   useTranslate: () => (key: string) => key,
   translate: () => (Component: React.ComponentType<any>) => {
     return function Translated(props: any) {

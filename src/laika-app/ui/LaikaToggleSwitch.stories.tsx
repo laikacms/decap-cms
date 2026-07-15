@@ -25,11 +25,7 @@ export const Controlled: Story = {
     return (
       <label style={{ display: 'inline-flex', alignItems: 'center', gap: 12 }}>
         <span>Match system theme</span>
-        <LaikaToggleSwitch
-          aria-label="Match system theme"
-          checked={on}
-          onChange={e => setOn(e.target.checked)}
-        />
+        <LaikaToggleSwitch aria-label="Match system theme" checked={on} onCheckedChange={setOn} />
         <span style={{ fontSize: 12, opacity: 0.6 }}>{on ? 'on' : 'off'}</span>
       </label>
     );

@@ -143,7 +143,7 @@ function LaikaSettingsPage() {
             <LaikaToggleSwitch
               aria-label="Match system theme"
               checked={mode === 'system'}
-              onChange={event => setMode(event.target.checked ? 'system' : 'light')}
+              onCheckedChange={checked => setMode(checked ? 'system' : 'light')}
             />
           </ToggleRow>
           {mode !== 'system' ? (

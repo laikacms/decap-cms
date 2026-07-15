@@ -4,7 +4,7 @@ import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 
 import { colors } from '@/ui/default/index';
-import { laikaShouldForwardProp } from './styled-utils';
+import { laikaShouldForwardProp } from '@/ui/styled';
 
 /**
  * Compact pill used for counts and status labels (entry counts in the sidebar,

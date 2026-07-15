@@ -1,42 +1,28 @@
 /** @jsxImportSource @emotion/react */
+import { Tooltip } from '@base-ui/react/tooltip';
 import React from 'react';
 import styled from '@emotion/styled';
 
 import { colors, zIndex } from '@/ui/default/index';
-import { laikaShouldForwardProp } from './styled-utils';
 
 /**
- * CSS-only tooltip. Wraps a single child and reveals `content` above (or
- * below) it on hover / focus. No portal — uses absolute positioning, so
- * place inside a container with `overflow: visible`.
+ * Tooltip built on Base UI's `Tooltip`. Wraps a single element child and
+ * reveals `content` above (or below) it on hover / keyboard focus. The
+ * trigger delegates to the child via Base UI's `render` prop, so the child
+ * stays the interactive element (no nested buttons). The popup renders in a
+ * portal, so it escapes `overflow: hidden` containers.
  *
- * For more complex needs (collision detection, click-triggered popovers,
- * etc.) compose a custom component on top of `LaikaDialog` instead.
+ * For more complex needs (click-triggered popovers, etc.) compose a custom
+ * component on top of `LaikaDialog` instead.
  */
 
 export type LaikaTooltipPlacement = 'top' | 'bottom';
 
-const Wrap = styled.span`
-  position: relative;
-  display: inline-flex;
-  align-items: center;
+const Positioner = styled(Tooltip.Positioner)`
+  z-index: ${zIndex.zIndex99999};
 `;
 
-const Bubble = styled('span', { shouldForwardProp: laikaShouldForwardProp })<{
-  $placement: LaikaTooltipPlacement;
-}>`
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  ${({ $placement }) =>
-    $placement === 'top'
-      ? `
-    bottom: calc(100% + 6px);
-  `
-      : `
-    top: calc(100% + 6px);
-  `}
-  pointer-events: none;
+const Bubble = styled(Tooltip.Popup)`
   white-space: nowrap;
   font-size: 11px;
   font-weight: 500;
@@ -45,34 +31,24 @@ const Bubble = styled('span', { shouldForwardProp: laikaShouldForwardProp })<{
   border-radius: 6px;
   background-color: ${colors.textLead};
   color: ${colors.foreground};
-  opacity: 0;
-  z-index: ${zIndex.zIndex99999};
-  transition: opacity 0.12s ease;
-`;
-
-const Target = styled.span`
-  display: inline-flex;
-  align-items: center;
-
-  &:hover + ${Bubble}, &:focus-within + ${Bubble} {
-    opacity: 1;
-  }
 `;
 
 export interface LaikaTooltipProps {
   content: React.ReactNode;
   placement?: LaikaTooltipPlacement;
-  children: React.ReactNode;
+  children: React.ReactElement;
 }
 
 function LaikaTooltip({ content, placement = 'top', children }: LaikaTooltipProps) {
   return (
-    <Wrap>
-      <Target>{children}</Target>
-      <Bubble role="tooltip" $placement={placement}>
-        {content}
-      </Bubble>
-    </Wrap>
+    <Tooltip.Root>
+      <Tooltip.Trigger delay={0} render={children} />
+      <Tooltip.Portal>
+        <Positioner side={placement} sideOffset={6}>
+          <Bubble role="tooltip">{content}</Bubble>
+        </Positioner>
+      </Tooltip.Portal>
+    </Tooltip.Root>
   );
 }
 

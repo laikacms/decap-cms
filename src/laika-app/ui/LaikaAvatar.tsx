@@ -1,14 +1,17 @@
 /** @jsxImportSource @emotion/react */
+import { Avatar } from '@base-ui/react/avatar';
 import React from 'react';
 import styled from '@emotion/styled';
 
 import { colors } from '@/ui/default/index';
-import { laikaShouldForwardProp } from './styled-utils';
+import { laikaShouldForwardProp } from '@/ui/styled';
 
 /**
- * Rounded avatar. When `src` is supplied and the image loads, renders it
- * cropped to a circle. Otherwise falls back to the first letter of `name`
- * (or `?` when no name is set) over the active-background tint.
+ * Rounded avatar built on Base UI's `Avatar`. When `src` is supplied and the
+ * image loads, renders it cropped to a circle. Otherwise falls back to the
+ * first letter of `name` (or `?` when no name is set) over the
+ * active-background tint. Base UI tracks the image loading status, so the
+ * fallback appears automatically while loading and on load errors.
  */
 
 export type LaikaAvatarSize = 'sm' | 'md' | 'lg';
@@ -19,7 +22,7 @@ const sizeMap: Record<LaikaAvatarSize, { box: string; font: string }> = {
   lg: { box: '56px', font: '20px' },
 };
 
-const Circle = styled('span', { shouldForwardProp: laikaShouldForwardProp })<{
+const Circle = styled(Avatar.Root, { shouldForwardProp: laikaShouldForwardProp })<{
   $size: LaikaAvatarSize;
 }>`
   display: inline-flex;
@@ -37,7 +40,7 @@ const Circle = styled('span', { shouldForwardProp: laikaShouldForwardProp })<{
   user-select: none;
 `;
 
-const Image = styled.img`
+const Image = styled(Avatar.Image)`
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -59,17 +62,12 @@ function initial(name?: string): string {
 }
 
 function LaikaAvatar({ size = 'md', src, name, alt, ...rest }: LaikaAvatarProps) {
-  const [errored, setErrored] = React.useState(false);
-  const showImage = !!src && !errored;
   const accessibleAlt = alt ?? name ?? 'Avatar';
 
   return (
-    <Circle $size={size} aria-label={!showImage ? accessibleAlt : undefined} {...rest}>
-      {showImage ? (
-        <Image src={src} alt={accessibleAlt} onError={() => setErrored(true)} />
-      ) : (
-        initial(name)
-      )}
+    <Circle $size={size} {...rest}>
+      {src ? <Image src={src} alt={accessibleAlt} /> : null}
+      <Avatar.Fallback aria-label={accessibleAlt}>{initial(name)}</Avatar.Fallback>
     </Circle>
   );
 }

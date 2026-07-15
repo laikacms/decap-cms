@@ -2,8 +2,8 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { useNavigate } from 'react-router-dom';
-import { translate } from 'react-polyglot';
 
+import { translate } from '@/core/i18n';
 import { colors } from '@/ui/default/index';
 import { LaikaCard, LaikaButton, LaikaBadge } from './ui';
 

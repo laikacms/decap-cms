@@ -1,8 +1,8 @@
 /** @jsxImportSource @emotion/react */
 import React from 'react';
 import styled from '@emotion/styled';
-import { translate } from 'react-polyglot';
 
+import { translate } from '@/core/i18n';
 import { Icon, colors, lengths } from '@/ui/default/index';
 import { useAppSelector } from '@/core/hooks/useRedux';
 import { createNewEntry } from '@/core/actions/collections';

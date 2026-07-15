@@ -2,8 +2,8 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { useLocation, useParams } from 'react-router-dom';
-import { translate } from 'react-polyglot';
 
+import { translate } from '@/core/i18n';
 import { colors } from '@/ui/default/index';
 import { searchCollections } from '@/core/actions/collections';
 import { useAppSelector } from '@/core/hooks/useRedux';

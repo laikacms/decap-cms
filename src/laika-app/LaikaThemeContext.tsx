@@ -3,7 +3,7 @@ import { Global, css } from '@emotion/react';
 import { unstable_HistoryRouter as HistoryRouter } from 'react-router-dom';
 
 import { DecapCmsProvider } from '@/core/index';
-import { routerHistory } from '@/core/routing/router';
+import { createDefaultRouter } from '@/core/routing/defaultRouter';
 import { resolveTheme } from './laikaThemes';
 
 import type { DecapCmsProviderProps } from '@/core/index';
@@ -85,6 +85,11 @@ export function LaikaThemeProvider({
   onModeChange,
   children,
 }: LaikaThemeProviderProps) {
+  // Laika owns its router: one hash-router instance for this shell's
+  // lifetime, handed to `DecapCmsProvider` below and to the react-router
+  // bridge, so core and laika's react-router components drive (and observe)
+  // the same history.
+  const [router] = useState(() => createDefaultRouter());
   const [internalMode, setInternalMode] = useState<LaikaThemeMode>(() => readStoredMode());
   const mode = modeProp ?? internalMode;
 
@@ -159,14 +164,14 @@ export function LaikaThemeProvider({
     <LaikaThemeContext.Provider value={value}>
       <Global styles={shadowVars} />
       <Global styles={reducedMotionStyles} />
-      <DecapCmsProvider config={config} theme={theme}>
+      <DecapCmsProvider config={config} theme={theme} router={router}>
         {/*
          * laika's own components still navigate via react-router-dom. Core no
          * longer provides a react-router context, so bridge one here, bound to
-         * the same hash history our `defaultRouter` drives, so both stay in
+         * the same hash history instance our router wraps, so both stay in
          * sync. Remove once laika's components move onto the in-house router.
          */}
-        <HistoryRouter history={routerHistory as never}>{children}</HistoryRouter>
+        <HistoryRouter history={router.history as never}>{children}</HistoryRouter>
       </DecapCmsProvider>
     </LaikaThemeContext.Provider>
   );

@@ -3,7 +3,7 @@ import React from 'react';
 import styled from '@emotion/styled';
 
 import { colors, lengths } from '@/ui/default/index';
-import { laikaShouldForwardProp } from './styled-utils';
+import { laikaShouldForwardProp } from '@/ui/styled';
 
 /**
  * Composable card surface used across LaikaDashboard, LaikaAuthenticationPage,

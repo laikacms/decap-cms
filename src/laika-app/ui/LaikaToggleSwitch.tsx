@@ -1,18 +1,20 @@
 /** @jsxImportSource @emotion/react */
+import { Switch } from '@base-ui/react/switch';
 import React from 'react';
 import styled from '@emotion/styled';
 
 import { colors } from '@/ui/default/index';
-import { laikaShouldForwardProp } from './styled-utils';
+import { laikaShouldForwardProp } from '@/ui/styled';
 
 /**
- * Accessible toggle switch. Renders a hidden native checkbox underneath a
- * styled track + knob so keyboard navigation, focus management, and form
- * submission behave like a normal `<input type="checkbox">`. Used for
- * binary preferences (light/dark, beta features, etc.).
+ * Accessible toggle switch built on Base UI's `Switch`. Renders a styled
+ * track + knob over Base UI's `role="switch"` element (with its hidden
+ * native input), so keyboard navigation (Space and Enter), focus
+ * management, and form submission come from the primitive. Used for binary
+ * preferences (light/dark, beta features, etc.).
  *
- * Pass `checked`/`onChange` for controlled mode, or just `defaultChecked`
- * for uncontrolled.
+ * Pass `checked`/`onCheckedChange` for controlled mode, or just
+ * `defaultChecked` for uncontrolled.
  */
 
 export type LaikaToggleSwitchSize = 'md' | 'sm';
@@ -22,46 +24,41 @@ const sizeMap: Record<LaikaToggleSwitchSize, { track: string; knob: string; knob
   sm: { track: '32px', knob: '12px', knobMove: '16px' },
 };
 
-const Wrap = styled('label', { shouldForwardProp: laikaShouldForwardProp })<{
+const Track = styled(Switch.Root, { shouldForwardProp: laikaShouldForwardProp })<{
   $size: LaikaToggleSwitchSize;
-  $disabled?: boolean;
 }>`
   position: relative;
   display: inline-flex;
   align-items: center;
+  box-sizing: border-box;
   width: ${({ $size }) => sizeMap[$size].track};
   height: calc(${({ $size }) => sizeMap[$size].knob} + 8px);
-  cursor: ${({ $disabled }) => ($disabled ? 'not-allowed' : 'pointer')};
-  opacity: ${({ $disabled }) => ($disabled ? 0.5 : 1)};
-`;
-
-const HiddenInput = styled.input`
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-`;
-
-const Track = styled.span<{ $size: LaikaToggleSwitchSize }>`
-  display: block;
-  width: 100%;
-  height: 100%;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  outline: none;
   background-color: ${colors.textFieldBorder};
   border-radius: 9999px;
+  cursor: pointer;
   transition: background-color 0.15s ease;
 
-  input:checked + & {
+  &[data-checked] {
     background-color: ${colors.active};
   }
 
-  input:focus-visible + & {
+  &:focus-visible {
     box-shadow: 0 0 0 3px ${colors.activeBackground};
+  }
+
+  &[data-disabled] {
+    cursor: not-allowed;
+    opacity: 0.5;
   }
 `;
 
-const Knob = styled.span<{ $size: LaikaToggleSwitchSize }>`
+const Knob = styled(Switch.Thumb, { shouldForwardProp: laikaShouldForwardProp })<{
+  $size: LaikaToggleSwitchSize;
+}>`
   position: absolute;
   top: 50%;
   left: 4px;
@@ -74,46 +71,32 @@ const Knob = styled.span<{ $size: LaikaToggleSwitchSize }>`
   transition: transform 0.15s ease;
   pointer-events: none;
 
-  input:checked ~ & {
+  &[data-checked] {
     transform: translateY(-50%) translateX(${({ $size }) => sizeMap[$size].knobMove});
   }
 `;
 
-export interface LaikaToggleSwitchProps extends Omit<
-  React.InputHTMLAttributes<HTMLInputElement>,
-  'size' | 'type'
-> {
+export interface LaikaToggleSwitchProps extends React.AriaAttributes {
   size?: LaikaToggleSwitchSize;
+  checked?: boolean;
+  defaultChecked?: boolean;
+  onCheckedChange?: (checked: boolean) => void;
+  disabled?: boolean;
+  id?: string;
+  className?: string;
+  style?: React.CSSProperties;
 }
 
-const LaikaToggleSwitch = React.forwardRef<HTMLInputElement, LaikaToggleSwitchProps>(
-  function LaikaToggleSwitch({ size = 'md', disabled, className, style, onKeyDown, ...rest }, ref) {
-    // Native checkboxes only toggle on Space, not Enter. Base UI's `Switch`
-    // (see `src/lib/widgets/editor/ui/toggle.tsx`) also toggles on Enter, so
-    // trigger a click here to keep both toggle implementations consistent.
-    function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>): void {
-      onKeyDown?.(event);
-      if (!event.defaultPrevented && event.key === 'Enter') {
-        event.preventDefault();
-        event.currentTarget.click();
-      }
-    }
-
-    return (
-      <Wrap $size={size} $disabled={disabled} className={className} style={style}>
-        <HiddenInput
-          ref={ref}
-          type="checkbox"
-          disabled={disabled}
-          role="switch"
-          onKeyDown={handleKeyDown}
-          {...rest}
-        />
-        <Track $size={size} />
-        <Knob $size={size} />
-      </Wrap>
-    );
-  },
-);
+function LaikaToggleSwitch({ size = 'md', onCheckedChange, ...rest }: LaikaToggleSwitchProps) {
+  return (
+    <Track
+      $size={size}
+      onCheckedChange={onCheckedChange ? (checked: boolean) => onCheckedChange(checked) : undefined}
+      {...rest}
+    >
+      <Knob $size={size} />
+    </Track>
+  );
+}
 
 export default LaikaToggleSwitch;

@@ -1,14 +1,14 @@
 /** @jsxImportSource @emotion/react */
 import React from 'react';
 import styled from '@emotion/styled';
+import { Autocomplete } from '@base-ui/react/autocomplete';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import { Icon, colors, lengths } from '@/ui/default/index';
+import { Icon, colors } from '@/ui/default/index';
 import { useAppSelector, useAppDispatch } from '@/core/hooks/useRedux';
 import { openMediaLibrary as openMediaLibraryAction } from '@/core/actions/mediaLibrary';
 import { searchCollections } from '@/core/actions/collections';
 import { LaikaDialog, LaikaSearchInput, LaikaBadge } from './ui';
-import { laikaShouldForwardProp } from './ui/styled-utils';
 
 import type { CmsCollections, CmsCollectionState } from '@/lib/util/index';
 import type { LaikaBadgeIntent } from './ui';
@@ -20,7 +20,13 @@ import type { LaikaBadgeIntent } from './ui';
  * jump to any collection, the dashboard, the workflow board, or open
  * the media library.
  *
- * Pure laika-app component — no core changes. State is local; navigation
+ * The listbox itself is a Base UI Autocomplete rendered inline (no
+ * popup): Base UI provides combobox a11y (aria-activedescendant,
+ * aria-expanded), keyboard navigation, hover highlighting, and
+ * scroll-into-view. Filtering stays in our own code (mode="none"),
+ * so the ranked `filtered` list is fed to Base UI as-is.
+ *
+ * Pure laika-app component, no core changes. State is local; navigation
  * goes through react-router; media library opens via the existing core
  * action so the modal logic is unchanged.
  */
@@ -44,29 +50,31 @@ const Body = styled.div`
   padding: 16px 16px 8px;
 `;
 
-const Results = styled.ul`
+const Results = styled(Autocomplete.List)`
   margin: 0;
   padding: 4px 0 8px;
-  list-style: none;
   max-height: 360px;
   overflow-y: auto;
+
+  &:empty {
+    display: none;
+  }
 `;
 
-const ResultItem = styled('li', { shouldForwardProp: laikaShouldForwardProp })<{
-  $isActive?: boolean;
-}>`
+const ResultItem = styled(Autocomplete.Item)`
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 10px 16px;
   cursor: pointer;
-  background-color: ${({ $isActive }) => ($isActive ? colors.activeBackground : 'transparent')};
-  color: ${({ $isActive }) => ($isActive ? colors.active : colors.textLead)};
+  background-color: transparent;
+  color: ${colors.textLead};
   transition:
     background-color 0.1s ease,
     color 0.1s ease;
 
-  &:hover {
+  &:hover,
+  &[data-highlighted] {
     background-color: ${colors.activeBackground};
     color: ${colors.active};
   }
@@ -102,11 +110,17 @@ const ItemHint = styled.div`
   color: ${colors.controlLabel};
 `;
 
-const Empty = styled.div`
-  padding: 32px 16px;
-  text-align: center;
-  color: ${colors.controlLabel};
-  font-size: 13px;
+/**
+ * Base UI's Empty part must stay mounted for screen-reader announcements,
+ * so the "no matches" chrome is only applied when it actually has content.
+ */
+const Empty = styled(Autocomplete.Empty)`
+  &:not(:empty) {
+    padding: 32px 16px;
+    text-align: center;
+    color: ${colors.controlLabel};
+    font-size: 13px;
+  }
 `;
 
 const Hint = styled.div`
@@ -153,12 +167,10 @@ function LaikaCommandPalette() {
 
   const [isOpen, setIsOpen] = React.useState(false);
   const [query, setQuery] = React.useState('');
-  const [activeIndex, setActiveIndex] = React.useState(0);
 
   const close = React.useCallback(() => {
     setIsOpen(false);
     setQuery('');
-    setActiveIndex(0);
   }, []);
 
   React.useEffect(() => {
@@ -261,32 +273,13 @@ function LaikaCommandPalette() {
     return [...searchActions, ...matchedNav];
   }, [items, query, location.pathname, params, collections]);
 
-  React.useEffect(() => {
-    if (activeIndex >= filtered.length) {
-      setActiveIndex(filtered.length === 0 ? 0 : filtered.length - 1);
-    }
-  }, [filtered.length, activeIndex]);
-
-  function selectActive() {
-    const item = filtered[activeIndex];
-    if (item) {
+  const runItem = React.useCallback(
+    (item: CommandItem) => {
       item.run();
       close();
-    }
-  }
-
-  function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
-    if (event.key === 'ArrowDown') {
-      event.preventDefault();
-      setActiveIndex(i => Math.min(i + 1, filtered.length - 1));
-    } else if (event.key === 'ArrowUp') {
-      event.preventDefault();
-      setActiveIndex(i => Math.max(i - 1, 0));
-    } else if (event.key === 'Enter') {
-      event.preventDefault();
-      selectActive();
-    }
-  }
+    },
+    [close],
+  );
 
   return (
     <LaikaDialog
@@ -296,35 +289,35 @@ function LaikaCommandPalette() {
       showCloseButton={false}
       ariaLabel="Command palette"
     >
-      <Body>
-        <LaikaSearchInput
-          autoFocus
-          value={query}
-          onChange={event => {
-            setQuery(event.target.value);
-            setActiveIndex(0);
-          }}
-          onKeyDown={handleKeyDown}
-          placeholder="Search collections, pages, actions…"
-          aria-label="Command palette"
-        />
-      </Body>
-      {filtered.length === 0 ? (
+      <Autocomplete.Root
+        inline
+        open
+        mode="none"
+        autoHighlight="always"
+        keepHighlight
+        items={filtered}
+        value={query}
+        onValueChange={setQuery}
+        onOpenChange={open => {
+          // The inline list is forced open; the only "close" Base UI can
+          // request is Escape, which should dismiss the whole palette.
+          if (!open) {
+            close();
+          }
+        }}
+      >
+        <Body>
+          <Autocomplete.Input
+            render={<LaikaSearchInput />}
+            autoFocus
+            placeholder="Search collections, pages, actions…"
+            aria-label="Command palette"
+          />
+        </Body>
         <Empty>No matches.</Empty>
-      ) : (
-        <Results role="listbox">
-          {filtered.map((item, index) => (
-            <ResultItem
-              role="option"
-              aria-selected={index === activeIndex}
-              key={item.id}
-              $isActive={index === activeIndex}
-              onMouseEnter={() => setActiveIndex(index)}
-              onClick={() => {
-                item.run();
-                close();
-              }}
-            >
+        <Results>
+          {(item: CommandItem) => (
+            <ResultItem key={item.id} value={item} onClick={() => runItem(item)}>
               <ItemIcon>
                 <Icon type={item.icon} />
               </ItemIcon>
@@ -336,24 +329,24 @@ function LaikaCommandPalette() {
                 <LaikaBadge intent={item.badge.intent}>{item.badge.text}</LaikaBadge>
               ) : null}
             </ResultItem>
-          ))}
+          )}
         </Results>
-      )}
-      <Hint>
-        <span>
-          <Kbd>↑</Kbd>
-          <Kbd>↓</Kbd>
-          to navigate
-        </span>
-        <span>
-          <Kbd>↵</Kbd>
-          to select
-        </span>
-        <span>
-          <Kbd>Esc</Kbd>
-          to close
-        </span>
-      </Hint>
+        <Hint>
+          <span>
+            <Kbd>↑</Kbd>
+            <Kbd>↓</Kbd>
+            to navigate
+          </span>
+          <span>
+            <Kbd>↵</Kbd>
+            to select
+          </span>
+          <span>
+            <Kbd>Esc</Kbd>
+            to close
+          </span>
+        </Hint>
+      </Autocomplete.Root>
     </LaikaDialog>
   );
 }

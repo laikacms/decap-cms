@@ -4,7 +4,7 @@ import styled from '@emotion/styled';
 
 import { colors, lengths } from '@/ui/default/index';
 import { LaikaBadge } from './ui';
-import { laikaShouldForwardProp } from './ui/styled-utils';
+import { laikaShouldForwardProp } from '@/ui/styled';
 
 import type { MediaLibraryCardRenderProps } from '@/app/components/index';
 

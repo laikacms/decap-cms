@@ -52,33 +52,40 @@ function fireCmdK() {
 }
 
 describe('LaikaCommandPalette', () => {
-  it('opens on Cmd+K and lists nav items', () => {
-    const { getByPlaceholderText, getByText, queryByPlaceholderText } = render(
+  it('opens on Cmd+K and lists nav items as combobox options', () => {
+    const { getByRole, getAllByRole, queryByRole } = render(
       <MemoryRouter>
         <LaikaCommandPalette />
       </MemoryRouter>,
     );
     // Closed initially.
-    expect(queryByPlaceholderText(/Search collections/i)).toBeNull();
+    expect(queryByRole('combobox')).toBeNull();
 
     fireCmdK();
 
-    // Input + at least one navigation entry is visible.
-    expect(getByPlaceholderText(/Search collections/i)).toBeInTheDocument();
-    expect(getByText('Dashboard')).toBeInTheDocument();
-    expect(getByText('Posts')).toBeInTheDocument();
-    expect(getByText('FAQs')).toBeInTheDocument();
-    expect(getByText('Media library')).toBeInTheDocument();
+    // Base UI Autocomplete wires the input up as a combobox over an inline
+    // listbox (no popup, so no aria-expanded) with the first item highlighted.
+    const input = getByRole('combobox');
+    expect(input.getAttribute('placeholder')).toMatch(/Search collections/i);
+    expect(input).toHaveAttribute('aria-controls', getByRole('listbox').id);
+    expect(input).toHaveAttribute('aria-activedescendant');
+
+    const options = getAllByRole('option');
+    const labels = options.map(option => option.textContent);
+    expect(labels.some(text => text?.includes('Dashboard'))).toBe(true);
+    expect(labels.some(text => text?.includes('Posts'))).toBe(true);
+    expect(labels.some(text => text?.includes('FAQs'))).toBe(true);
+    expect(labels.some(text => text?.includes('Media library'))).toBe(true);
   });
 
   it('filters results as the user types', () => {
-    const { getByPlaceholderText, queryByText } = render(
+    const { getByRole, queryByText } = render(
       <MemoryRouter>
         <LaikaCommandPalette />
       </MemoryRouter>,
     );
     fireCmdK();
-    const input = getByPlaceholderText(/Search collections/i);
+    const input = getByRole('combobox');
 
     fireEvent.change(input, { target: { value: 'faq' } });
     expect(queryByText('FAQs')).toBeInTheDocument();
@@ -87,15 +94,33 @@ describe('LaikaCommandPalette', () => {
   });
 
   it('surfaces a "search all" action when query is non-empty', () => {
-    const { getByPlaceholderText, getByText } = render(
+    const { getByRole, getByText } = render(
       <MemoryRouter>
         <LaikaCommandPalette />
       </MemoryRouter>,
     );
     fireCmdK();
-    const input = getByPlaceholderText(/Search collections/i);
+    const input = getByRole('combobox');
 
     fireEvent.change(input, { target: { value: 'taxes' } });
     expect(getByText(/Search all collections for "taxes"/)).toBeInTheDocument();
+  });
+
+  it('runs the item and closes the palette when an option is clicked', async () => {
+    const { searchCollections } = await import('@/core/actions/collections');
+    const { getByRole, getByText, queryByRole } = render(
+      <MemoryRouter>
+        <LaikaCommandPalette />
+      </MemoryRouter>,
+    );
+    fireCmdK();
+    const input = getByRole('combobox');
+
+    fireEvent.change(input, { target: { value: 'taxes' } });
+    fireEvent.click(getByText(/Search all collections for "taxes"/));
+
+    expect(searchCollections).toHaveBeenCalledWith('taxes', '');
+    // Selecting closes the palette.
+    expect(queryByRole('combobox')).toBeNull();
   });
 });

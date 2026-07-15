@@ -4,7 +4,7 @@ import styled from '@emotion/styled';
 import { keyframes } from '@emotion/react';
 
 import { colors } from '@/ui/default/index';
-import { laikaShouldForwardProp } from './styled-utils';
+import { laikaShouldForwardProp } from '@/ui/styled';
 
 /**
  * Lightweight CSS-only spinner. No animation libraries — just a rotating

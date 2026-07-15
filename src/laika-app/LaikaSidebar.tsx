@@ -1,13 +1,13 @@
 /** @jsxImportSource @emotion/react */
 import React from 'react';
 import styled from '@emotion/styled';
-import { translate } from 'react-polyglot';
 import { NavLink } from 'react-router-dom';
+import { Drawer } from '@base-ui/react/drawer';
 
+import { translate } from '@/core/i18n';
 import { Icon, colors, lengths, zIndex } from '@/ui/default/index';
 import LaikaCollectionSearch from './LaikaCollectionSearch';
 import { useLaikaShell, LAIKA_BREAKPOINT_MOBILE } from './LaikaShellContext';
-import { laikaShouldForwardProp } from './ui/styled-utils';
 
 import type { TranslateFunction } from '@/ui/default/index';
 import type { IconName } from '@/ui/default/Icon/icons';
@@ -15,17 +15,54 @@ import type { CmsCollections, CmsCollectionState } from '@/lib/util/index';
 
 /**
  * Laika-styled left sidebar, inspired by the Daniel-Mendes `next`-branch
- * NavMenu. Pure presentational unit — pass collections in, get a sidebar
+ * NavMenu. Pure presentational unit: pass collections in, get a sidebar
  * out. Highlights the active collection via `NavLink` and supports an
  * optional collection click handler for hosts that need custom routing.
+ *
+ * On desktop the sidebar renders as a static rail. At the mobile
+ * breakpoint it renders as a Base UI Drawer instead, which brings focus
+ * trapping, Esc-to-close, scroll locking, and swipe-to-dismiss for free.
+ * Open state still comes from LaikaShellContext so the header hamburger
+ * keeps working unchanged.
  *
  * Use via `renderLayout` on `core.App` / `core.AppContent`; the layout
  * supplies the collections list from the `headerProps` payload.
  */
 
-const SidebarShell = styled('aside', { shouldForwardProp: laikaShouldForwardProp })<{
-  $isMobileOpen?: boolean;
-}>`
+const MOBILE_MEDIA_QUERY = `(max-width: ${LAIKA_BREAKPOINT_MOBILE}px)`;
+
+function getIsMobileViewport(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia(MOBILE_MEDIA_QUERY).matches
+  );
+}
+
+/**
+ * Tracks whether the viewport is at or below the Laika mobile breakpoint.
+ * Falls back to desktop when `matchMedia` is unavailable (SSR, bare jsdom).
+ */
+function useIsMobileViewport(): boolean {
+  const [isMobile, setIsMobile] = React.useState(getIsMobileViewport);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return undefined;
+    }
+    const mq = window.matchMedia(MOBILE_MEDIA_QUERY);
+    function onChange(event: MediaQueryListEvent) {
+      setIsMobile(event.matches);
+    }
+    setIsMobile(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
+  return isMobile;
+}
+
+const SidebarShell = styled.aside`
   position: sticky;
   top: ${lengths.topBarHeight};
   align-self: flex-start;
@@ -37,34 +74,56 @@ const SidebarShell = styled('aside', { shouldForwardProp: laikaShouldForwardProp
   max-height: calc(100vh - ${lengths.topBarHeight});
   overflow-y: auto;
   box-sizing: border-box;
+`;
 
-  @media (max-width: ${LAIKA_BREAKPOINT_MOBILE}px) {
-    position: fixed;
-    top: ${lengths.topBarHeight};
-    left: 0;
-    bottom: 0;
-    max-height: calc(100vh - ${lengths.topBarHeight});
-    z-index: ${zIndex.zIndex299};
-    width: 280px;
-    transform: translateX(${({ $isMobileOpen }) => ($isMobileOpen ? '0' : '-100%')});
-    transition: transform 0.2s ease;
-    box-shadow: ${({ $isMobileOpen }) =>
-      $isMobileOpen ? 'var(--laika-shadow-strong, 12px 0 32px rgba(15, 23, 42, 0.18))' : 'none'};
+/**
+ * Recreates the old hand-rolled backdrop look on the drawer part: a dimmed
+ * overlay below the top bar. Fades with the panel via Base UI's transition
+ * style hooks.
+ */
+const MobileBackdrop = styled(Drawer.Backdrop)`
+  position: fixed;
+  top: ${lengths.topBarHeight};
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: ${zIndex.zIndex200};
+  background-color: var(--laika-shadow-overlay, rgba(15, 23, 42, 0.4));
+  opacity: 1;
+  transition: opacity 0.2s ease;
+
+  &[data-starting-style],
+  &[data-ending-style] {
+    opacity: 0;
   }
 `;
 
-const Backdrop = styled.div`
-  display: none;
+/** Positioning container for the drawer panel; also hosts swipe handling. */
+const MobileViewport = styled(Drawer.Viewport)`
+  position: fixed;
+  top: ${lengths.topBarHeight};
+  left: 0;
+  bottom: 0;
+  z-index: ${zIndex.zIndex299};
+  width: 280px;
+`;
 
-  @media (max-width: ${LAIKA_BREAKPOINT_MOBILE}px) {
-    display: block;
-    position: fixed;
-    top: ${lengths.topBarHeight};
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: ${zIndex.zIndex200};
-    background-color: var(--laika-shadow-overlay, rgba(15, 23, 42, 0.4));
+/** The sliding panel itself, styled like the old mobile SidebarShell state. */
+const MobilePanel = styled(Drawer.Popup)`
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 24px 12px;
+  border-right: 1px solid ${colors.textFieldBorder};
+  background-color: ${colors.background};
+  overflow-y: auto;
+  box-shadow: var(--laika-shadow-strong, 12px 0 32px rgba(15, 23, 42, 0.18));
+  transform: translateX(0);
+  transition: transform 0.2s ease;
+
+  &[data-starting-style],
+  &[data-ending-style] {
+    transform: translateX(-100%);
   }
 `;
 
@@ -163,7 +222,7 @@ export interface LaikaNavItem {
   /** `ui-default` `Icon` name; defaults to `'page'`. */
   icon?: IconName;
   badge?: React.ReactNode;
-  /** Match the route exactly — forwarded to `NavLink`'s `end`. */
+  /** Match the route exactly, forwarded to `NavLink`'s `end`. */
   end?: boolean;
 }
 
@@ -176,14 +235,14 @@ export interface LaikaNavSection {
 export interface LaikaSidebarProps {
   collections: CmsCollections;
   /**
-   * Optional click handler. The default behavior — navigation via `NavLink` —
+   * Optional click handler. The default behavior (navigation via `NavLink`)
    * still runs; this fires alongside for analytics or custom side-effects.
    */
   onCollectionClick?: (collection: CmsCollectionState) => void;
   /**
    * Extra nav sections rendered after the CMS collections and before the
    * Settings link. Lets a host mount custom admin pages (e.g. a shop admin)
-   * in the same sidebar as the collections — pair with `core.App`'s
+   * in the same sidebar as the collections; pair with `core.App`'s
    * `extraRoutes` to register the matching routes.
    */
   extraNavSections?: LaikaNavSection[];
@@ -194,6 +253,7 @@ function LaikaSidebar({ collections, onCollectionClick, extraNavSections, t }: L
   const { folders, files } = partitionCollections(collections);
   const showSectionHeadings = folders.length > 0 && files.length > 0;
   const { isMobileSidebarOpen, closeMobileSidebar } = useLaikaShell();
+  const isMobileViewport = useIsMobileViewport();
 
   const renderItem = (collection: CmsCollectionState) => (
     <SidebarListItem key={collection.name}>
@@ -220,57 +280,89 @@ function LaikaSidebar({ collections, onCollectionClick, extraNavSections, t }: L
     </SidebarListItem>
   );
 
-  return (
+  const navContent = (
     <>
-      {isMobileSidebarOpen ? <Backdrop aria-hidden="true" onClick={closeMobileSidebar} /> : null}
-      <SidebarShell
-        aria-label={t('collection.sidebar.collections')}
-        data-mobile-open={isMobileSidebarOpen ? 'true' : 'false'}
-        $isMobileOpen={isMobileSidebarOpen}
-        onClick={event => {
-          // Close the mobile drawer when any nav link inside is clicked —
-          // the popstate listener doesn't fire for `history.push` calls.
-          const target = event.target as HTMLElement;
-          if (target.closest('a[href]')) {
+      <LaikaCollectionSearch />
+      {folders.length > 0 ? (
+        <SidebarSection>
+          {showSectionHeadings ? <SidebarSectionHeading>Folders</SidebarSectionHeading> : null}
+          <SidebarList>{folders.map(renderItem)}</SidebarList>
+        </SidebarSection>
+      ) : null}
+      {files.length > 0 ? (
+        <SidebarSection>
+          {showSectionHeadings ? <SidebarSectionHeading>Files</SidebarSectionHeading> : null}
+          <SidebarList>{files.map(renderItem)}</SidebarList>
+        </SidebarSection>
+      ) : null}
+      {(extraNavSections ?? []).map((section, index) =>
+        section.items.length > 0 ? (
+          <SidebarSection key={`extra-${index}`}>
+            {section.heading ? (
+              <SidebarSectionHeading>{section.heading}</SidebarSectionHeading>
+            ) : null}
+            <SidebarList>{section.items.map(renderNavItem)}</SidebarList>
+          </SidebarSection>
+        ) : null,
+      )}
+      <SidebarSection>
+        <SidebarList>
+          <SidebarListItem>
+            <SidebarLink to="/settings">
+              <Icon type="settings" />
+              <SidebarLinkLabel>App settings</SidebarLinkLabel>
+            </SidebarLink>
+          </SidebarListItem>
+        </SidebarList>
+      </SidebarSection>
+    </>
+  );
+
+  if (isMobileViewport) {
+    return (
+      <Drawer.Root
+        open={isMobileSidebarOpen}
+        onOpenChange={open => {
+          if (!open) {
             closeMobileSidebar();
           }
         }}
+        swipeDirection="left"
       >
-        <LaikaCollectionSearch />
-        {folders.length > 0 ? (
-          <SidebarSection>
-            {showSectionHeadings ? <SidebarSectionHeading>Folders</SidebarSectionHeading> : null}
-            <SidebarList>{folders.map(renderItem)}</SidebarList>
-          </SidebarSection>
-        ) : null}
-        {files.length > 0 ? (
-          <SidebarSection>
-            {showSectionHeadings ? <SidebarSectionHeading>Files</SidebarSectionHeading> : null}
-            <SidebarList>{files.map(renderItem)}</SidebarList>
-          </SidebarSection>
-        ) : null}
-        {(extraNavSections ?? []).map((section, index) =>
-          section.items.length > 0 ? (
-            <SidebarSection key={`extra-${index}`}>
-              {section.heading ? (
-                <SidebarSectionHeading>{section.heading}</SidebarSectionHeading>
-              ) : null}
-              <SidebarList>{section.items.map(renderNavItem)}</SidebarList>
-            </SidebarSection>
-          ) : null,
-        )}
-        <SidebarSection>
-          <SidebarList>
-            <SidebarListItem>
-              <SidebarLink to="/settings">
-                <Icon type="settings" />
-                <SidebarLinkLabel>App settings</SidebarLinkLabel>
-              </SidebarLink>
-            </SidebarListItem>
-          </SidebarList>
-        </SidebarSection>
-      </SidebarShell>
-    </>
+        {/* keepMounted keeps the panel (and its data-mobile-open flag) in the
+            DOM while closed, matching the old off-canvas markup that tooling
+            like dev-test/laika-test-runner.html inspects. */}
+        <Drawer.Portal keepMounted>
+          <MobileBackdrop />
+          <MobileViewport>
+            <MobilePanel
+              render={<aside />}
+              aria-label={t('collection.sidebar.collections')}
+              data-mobile-open={isMobileSidebarOpen ? 'true' : 'false'}
+              onClick={(event: React.MouseEvent<HTMLElement>) => {
+                // Close the mobile drawer when any nav link inside is clicked;
+                // the popstate listener doesn't fire for `history.push` calls.
+                const target = event.target as HTMLElement;
+                if (target.closest('a[href]')) {
+                  closeMobileSidebar();
+                }
+              }}
+            >
+              {navContent}
+            </MobilePanel>
+          </MobileViewport>
+        </Drawer.Portal>
+      </Drawer.Root>
+    );
+  }
+
+  return (
+    <SidebarShell
+      aria-label={t('collection.sidebar.collections')}
+      data-mobile-open={isMobileSidebarOpen ? 'true' : 'false'}
+    >
+      {navContent}
+    </SidebarShell>
   );
 }
 

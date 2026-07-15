@@ -1,20 +1,20 @@
 /** @jsxImportSource @emotion/react */
 import React from 'react';
-import ReactModal from 'react-modal';
-import { ClassNames } from '@emotion/react';
+import { Dialog } from '@base-ui/react/dialog';
+import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 
 import { Icon, colors, lengths, zIndex } from '@/ui/default/index';
 import LaikaIconButton from './LaikaIconButton';
 
 /**
- * Laika-flavored modal dialog. Wraps `react-modal` so focus trapping,
+ * Laika-flavored modal dialog. Wraps Base UI's Dialog so focus trapping,
  * scroll lock, and close-on-escape behave correctly, with a laika-styled
  * surface on top: rounded corners, soft overlay, optional Header / Body
  * / Footer composition for consistent dialogs across the app.
  *
- * Mounts to `#nc-root` if present (matching core's Modal) — otherwise
- * react-modal falls back to `document.body`.
+ * Portals into `#nc-root` if present (matching core's Modal), otherwise
+ * Base UI falls back to `document.body`.
  */
 
 const ROOT_ID = 'nc-root';
@@ -28,11 +28,15 @@ const Header = styled.header`
   border-bottom: 1px solid ${colors.textFieldBorder};
 `;
 
-const Title = styled.h2`
+const titleStyles = css`
   margin: 0;
   font-size: 16px;
   font-weight: 600;
   color: ${colors.textLead};
+`;
+
+const Title = styled.h2`
+  ${titleStyles};
 `;
 
 const Body = styled.div`
@@ -66,7 +70,24 @@ export interface LaikaDialogProps {
   className?: string;
 }
 
-const baseClass = `
+const backdropStyles = css`
+  position: fixed;
+  inset: 0;
+  z-index: ${zIndex.zIndex99999};
+  background-color: var(--laika-shadow-overlay, rgba(15, 23, 42, 0.5));
+`;
+
+const viewportStyles = css`
+  position: fixed;
+  inset: 0;
+  z-index: ${zIndex.zIndex99999};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+`;
+
+const popupStyles = css`
   background-color: ${colors.foreground};
   border-radius: ${lengths.borderRadius};
   border: 1px solid ${colors.textFieldBorder};
@@ -76,17 +97,7 @@ const baseClass = `
   flex-direction: column;
   max-height: calc(100vh - 80px);
   overflow: hidden;
-`;
-
-const overlayBase = `
-  position: fixed;
-  inset: 0;
-  z-index: ${zIndex.zIndex99999};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 32px 16px;
-  background-color: var(--laika-shadow-overlay, rgba(15, 23, 42, 0.5));
+  width: 100%;
 `;
 
 function LaikaDialog({
@@ -99,61 +110,47 @@ function LaikaDialog({
   children,
   className,
 }: LaikaDialogProps) {
-  React.useEffect(() => {
-    if (typeof document !== 'undefined' && document.getElementById(ROOT_ID)) {
-      ReactModal.setAppElement('#' + ROOT_ID);
-    }
-  }, []);
+  const container =
+    typeof document !== 'undefined' ? (document.getElementById(ROOT_ID) ?? undefined) : undefined;
 
   return (
-    <ClassNames>
-      {({ css, cx }) => (
-        <ReactModal
-          isOpen={isOpen}
-          onRequestClose={onClose}
-          closeTimeoutMS={150}
-          ariaHideApp={typeof document !== 'undefined' && !!document.getElementById(ROOT_ID)}
-          aria={
-            title
-              ? { labelledby: 'laika-dialog-title' }
-              : ariaLabel
-                ? ({ label: ariaLabel } as ReactModal.Props['aria'])
-                : undefined
-          }
-          className={{
-            base: cx(
-              css`
-                ${baseClass};
-                width: 100%;
-                max-width: ${width};
-              `,
-              className,
-            ),
-            afterOpen: '',
-            beforeClose: '',
-          }}
-          overlayClassName={{
-            base: css`
-              ${overlayBase};
-            `,
-            afterOpen: '',
-            beforeClose: '',
-          }}
-        >
-          {title || showCloseButton ? (
-            <Header>
-              {title ? <Title id="laika-dialog-title">{title}</Title> : <span />}
-              {showCloseButton ? (
-                <LaikaIconButton aria-label="Close dialog" size="sm" onClick={onClose}>
-                  <Icon type="close" />
-                </LaikaIconButton>
-              ) : null}
-            </Header>
-          ) : null}
-          {children}
-        </ReactModal>
-      )}
-    </ClassNames>
+    <Dialog.Root
+      open={isOpen}
+      onOpenChange={open => {
+        if (!open) {
+          onClose();
+        }
+      }}
+    >
+      <Dialog.Portal container={container}>
+        <Dialog.Backdrop css={backdropStyles} />
+        <Dialog.Viewport css={viewportStyles}>
+          <Dialog.Popup
+            css={[popupStyles, { maxWidth: width }]}
+            className={className}
+            aria-label={!title && ariaLabel ? ariaLabel : undefined}
+          >
+            {title || showCloseButton ? (
+              <Header>
+                {title ? (
+                  <Dialog.Title id="laika-dialog-title" css={titleStyles}>
+                    {title}
+                  </Dialog.Title>
+                ) : (
+                  <span />
+                )}
+                {showCloseButton ? (
+                  <LaikaIconButton aria-label="Close dialog" size="sm" onClick={onClose}>
+                    <Icon type="close" />
+                  </LaikaIconButton>
+                ) : null}
+              </Header>
+            ) : null}
+            {children}
+          </Dialog.Popup>
+        </Dialog.Viewport>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
 

@@ -2,8 +2,8 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
-import { translate } from 'react-polyglot';
 
+import { translate } from '@/core/i18n';
 import {
   Dropdown,
   DropdownItem,
@@ -123,11 +123,11 @@ const ChangesIndicator = styled.span<{ $changed: boolean }>`
 `;
 
 /**
- * Ghost-styled trigger for the toolbar's `Dropdown`s, built on
- * react-aria-menubutton's `Button` primitive (via `DropdownButton`) so the
- * click actually opens the menu — plain `LaikaButton`s render fine but never
- * hook into the `Dropdown`'s open/close context (see `LaikaHeader`'s
- * `QuickAddButton` for the same pattern applied to a filled variant).
+ * Ghost-styled trigger for the toolbar's `Dropdown`s, built on Base UI's
+ * `Menu.Trigger` (via `DropdownButton`) so the click actually opens the
+ * menu; plain `LaikaButton`s render fine but never hook into the
+ * `Dropdown`'s open/close context (see `LaikaHeader`'s `QuickAddTrigger`
+ * for the same pattern applied to a filled variant).
  */
 const ToolbarDropdownButton = styled(DropdownButton)`
   display: inline-flex;
@@ -156,6 +156,8 @@ const ToolbarDropdownButton = styled(DropdownButton)`
     outline: none;
   }
 
+  &:disabled,
+  &[data-disabled],
   &[aria-disabled='true'] {
     opacity: 0.5;
     cursor: not-allowed;

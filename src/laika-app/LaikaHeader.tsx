@@ -2,18 +2,11 @@
 import React from 'react';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
-import { translate } from 'react-polyglot';
 import { NavLink } from 'react-router-dom';
+import { Menu } from '@base-ui/react/menu';
 
-import {
-  Icon,
-  Dropdown,
-  DropdownItem,
-  StyledDropdownButton,
-  colors,
-  lengths,
-  zIndex,
-} from '@/ui/default/index';
+import { translate } from '@/core/i18n';
+import { Icon, buttons, colors, components, lengths, zIndex } from '@/ui/default/index';
 import { SettingsDropdown } from '@/core/components/UI';
 import { useAppDispatch } from '@/core/hooks/useRedux';
 import { checkBackendStatus } from '@/core/actions/status';
@@ -209,13 +202,16 @@ function MoonIcon() {
   );
 }
 
-const QuickAddButton = styled(StyledDropdownButton)`
+const QuickAddTrigger = styled(Menu.Trigger)`
+  ${buttons.button};
+  position: relative;
   display: inline-flex;
   align-items: center;
   height: 36px;
-  /* base caret sits at right: 10px and is 12px wide; keep clearance for it */
+  /* the caret sits at right: 10px and is 12px wide; keep clearance for it */
   padding: 0 32px 0 14px;
   border-radius: 9999px;
+  font-family: inherit;
   font-size: 14px;
   font-weight: 600;
   color: ${colors.buttonText};
@@ -224,14 +220,46 @@ const QuickAddButton = styled(StyledDropdownButton)`
   cursor: pointer;
 
   &:hover,
-  &:focus-visible {
+  &:focus-visible,
+  &[data-popup-open] {
     background-color: ${colors.active};
     color: ${colors.foreground};
     outline: none;
   }
 
   &:after {
+    ${components.caretDown};
+    content: '';
+    display: block;
+    position: absolute;
     top: 14px;
+    right: 10px;
+    color: currentColor;
+  }
+`;
+
+const QuickAddPositioner = styled(Menu.Positioner)`
+  z-index: ${zIndex.zIndex300};
+`;
+
+const QuickAddMenu = styled(Menu.Popup)`
+  ${components.dropdownList};
+  width: 200px;
+  margin: 0;
+  font-size: 14px;
+  outline: none;
+`;
+
+const QuickAddMenuItem = styled(Menu.Item)`
+  ${components.dropdownItem};
+  width: 100%;
+  text-align: left;
+  font-size: 14px;
+
+  &[data-highlighted] {
+    color: ${colors.active};
+    background-color: ${colors.activeBackground};
+    outline: none;
   }
 `;
 
@@ -321,25 +349,25 @@ function LaikaHeader({
 
         <Actions>
           {creatableCollections.length > 0 ? (
-            <Dropdown
-              renderButton={() => (
-                <QuickAddButton aria-controls={quickAddMenuId}>
-                  {t('app.header.quickAdd')}
-                </QuickAddButton>
-              )}
-              menuId={quickAddMenuId}
-              dropdownTopOverlap="36px"
-              dropdownWidth="200px"
-              dropdownPosition="right"
-            >
-              {creatableCollections.map(collection => (
-                <DropdownItem
-                  key={collection.name}
-                  label={collection.label_singular || collection.label}
-                  onClick={() => onCreateEntryClick(collection.name)}
-                />
-              ))}
-            </Dropdown>
+            <Menu.Root>
+              <QuickAddTrigger>{t('app.header.quickAdd')}</QuickAddTrigger>
+              <Menu.Portal>
+                <QuickAddPositioner align="end" sideOffset={0}>
+                  {/* Base UI links the trigger's aria-controls to this id while
+                      the menu is open. */}
+                  <QuickAddMenu id={quickAddMenuId}>
+                    {creatableCollections.map(collection => (
+                      <QuickAddMenuItem
+                        key={collection.name}
+                        onClick={() => onCreateEntryClick(collection.name)}
+                      >
+                        {collection.label_singular || collection.label}
+                      </QuickAddMenuItem>
+                    ))}
+                  </QuickAddMenu>
+                </QuickAddPositioner>
+              </Menu.Portal>
+            </Menu.Root>
           ) : null}
           <LaikaIconButton
             onClick={toggleMode}

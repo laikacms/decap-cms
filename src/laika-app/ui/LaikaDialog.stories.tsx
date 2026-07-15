@@ -35,3 +35,26 @@ export const Default: Story = {
     );
   },
 };
+
+export const WithoutHeader: Story = {
+  render: () => {
+    const [open, setOpen] = useState(false);
+    return (
+      <div id="nc-root">
+        <LaikaButton onClick={() => setOpen(true)}>Open headerless dialog</LaikaButton>
+        <LaikaDialog
+          isOpen={open}
+          onClose={() => setOpen(false)}
+          ariaLabel="Quick actions"
+          showCloseButton={false}
+          width="560px"
+        >
+          <LaikaDialog.Body>
+            No title and no close button; labelled via aria-label. Press Esc or click outside to
+            close.
+          </LaikaDialog.Body>
+        </LaikaDialog>
+      </div>
+    );
+  },
+};

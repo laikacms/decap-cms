@@ -3,7 +3,7 @@ import { render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('react-polyglot', () => ({
+vi.mock('@/core/i18n', () => ({
   translate: () => (Component: React.ComponentType<any>) => {
     return function Translated(props: any) {
       // The default uses t('collection.collectionTop.newButton', { collectionLabel })

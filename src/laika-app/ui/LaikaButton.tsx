@@ -5,7 +5,7 @@ import { css } from '@emotion/react';
 import { Link } from 'react-router-dom';
 
 import { colors } from '@/ui/default/index';
-import { laikaShouldForwardProp } from './styled-utils';
+import { laikaShouldForwardProp } from '@/ui/styled';
 
 /**
  * Laika's primary button primitive. Four intents (`primary`, `secondary`,

@@ -1,9 +1,10 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react';
+import { render, fireEvent, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('react-polyglot', () => ({
+vi.mock('@/core/i18n', () => ({
   translate: () => (Component: React.ComponentType<any>) => {
     return function Translated(props: any) {
       return <Component {...props} t={(key: string) => key} />;
@@ -109,29 +110,41 @@ describe('LaikaHeader', () => {
     expect(getByText('app.header.quickAdd')).toBeInTheDocument();
   });
 
-  it('wires menu ARIA semantics on the quick-add trigger and its popover (DCMS-311)', () => {
-    const { getByText, container } = render(
+  it('wires menu ARIA semantics on the quick-add trigger and its popover (DCMS-311)', async () => {
+    const user = userEvent.setup();
+    render(
       <MemoryRouter>
         <LaikaHeader {...baseProps} />
       </MemoryRouter>,
     );
 
-    const trigger = getByText('app.header.quickAdd').closest('[role="button"]') as HTMLElement;
-    expect(trigger).toBeTruthy();
-    expect(trigger).toHaveAttribute('aria-haspopup', 'true');
+    const trigger = screen.getByRole('button', { name: 'app.header.quickAdd' });
+    expect(trigger).toHaveAttribute('aria-haspopup', 'menu');
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
 
-    const menuId = trigger.getAttribute('aria-controls');
-    expect(menuId).toBeTruthy();
+    await user.click(trigger);
 
-    fireEvent.click(trigger);
+    // Base UI portals the popup into document.body, so query the document.
+    const menu = await screen.findByRole('menu');
+    await waitFor(() => expect(trigger).toHaveAttribute('aria-expanded', 'true'));
+    expect(menu.id).toBeTruthy();
+    expect(trigger).toHaveAttribute('aria-controls', menu.id);
+    expect(within(menu).getAllByRole('menuitem').length).toBeGreaterThan(0);
+  });
 
-    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+  it('creates a new entry for the selected collection from the quick-add menu', async () => {
+    const user = userEvent.setup();
+    const onCreateEntryClick = vi.fn();
+    render(
+      <MemoryRouter>
+        <LaikaHeader {...baseProps} onCreateEntryClick={onCreateEntryClick} />
+      </MemoryRouter>,
+    );
 
-    const menu = container.querySelector('[role="menu"]');
-    expect(menu).toBeTruthy();
-    expect(menu?.id).toBe(menuId);
-    expect(menu?.querySelectorAll('[role="menuitem"]').length).toBeGreaterThan(0);
+    await user.click(screen.getByRole('button', { name: 'app.header.quickAdd' }));
+    await user.click(await screen.findByRole('menuitem', { name: 'Post' }));
+
+    expect(onCreateEntryClick).toHaveBeenCalledWith('posts');
   });
 
   it('hides the quick-add when no collection allows create', () => {
