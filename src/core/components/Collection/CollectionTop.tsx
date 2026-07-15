@@ -17,6 +17,11 @@ const CollectionTopRow = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
+
+  @media (max-width: 500px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
 `;
 
 const CollectionTopHeading = styled.h1`
@@ -30,6 +35,11 @@ const CollectionTopNewButton = styled(Link)`
   ${buttons.gray};
 
   padding: 0 30px;
+
+  @media (max-width: 500px) {
+    margin-top: 12px;
+    text-align: center;
+  }
 `;
 
 const CollectionTopDescription = styled.p`
