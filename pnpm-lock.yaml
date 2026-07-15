@@ -4,881 +4,376 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-catalogs:
-  auth:
-    gotrue-js:
-      specifier: ^1.0.1
-      version: 1.0.1
-    jwt-decode:
-      specifier: ^4.0.0
-      version: 4.0.0
-  build:
-    dotenv:
-      specifier: ^17.4.0
-      version: 17.4.0
-    globals:
-      specifier: ^17.5.0
-      version: 17.7.0
-    husky:
-      specifier: ^9.1.7
-      version: 9.1.7
-    prettier:
-      specifier: ^3.8.1
-      version: 3.8.1
-    rimraf:
-      specifier: ^6.1.3
-      version: 6.1.3
-    tsc-alias:
-      specifier: ^1.8.16
-      version: 1.9.1
-    typescript:
-      specifier: ^6.0.2
-      version: 6.0.2
-  codemirror:
-    '@replit/codemirror-emacs':
-      specifier: ^6.1.0
-      version: 6.1.0
-    '@replit/codemirror-vim':
-      specifier: ^6.3.0
-      version: 6.3.0
-    '@replit/codemirror-vscode-keymap':
-      specifier: ^6.0.2
-      version: 6.0.2
-    '@uiw/codemirror-extensions-langs':
-      specifier: ^4.25.9
-      version: 4.25.9
-    '@uiw/codemirror-theme-material':
-      specifier: ^4.25.9
-      version: 4.25.9
-    '@uiw/react-codemirror':
-      specifier: ^4.25.9
-      version: 4.25.9
-    codemirror:
-      specifier: ^6.0.2
-      version: 6.0.2
-  commitlint:
-    '@commitlint/cli':
-      specifier: ^20.5.0
-      version: 20.5.0
-    '@commitlint/config-conventional':
-      specifier: ^20.5.0
-      version: 20.5.0
-  cypress:
-    nock:
-      specifier: ^14.0.13
-      version: 14.0.15
-  editor-ui:
-    '@base-ui/react':
-      specifier: ^1.6.0
-      version: 1.6.0
-  emotion:
-    '@emotion/babel-plugin':
-      specifier: ^11.13.5
-      version: 11.13.5
-    '@emotion/css':
-      specifier: ^11.13.5
-      version: 11.13.5
-    '@emotion/eslint-plugin':
-      specifier: ^11.12.0
-      version: 11.12.0
-    '@emotion/react':
-      specifier: ^11.14.0
-      version: 11.14.0
-    '@emotion/styled':
-      specifier: ^11.14.1
-      version: 11.14.1
-  eslint:
-    '@eslint/js':
-      specifier: ^10.0.1
-      version: 10.0.1
-    eslint:
-      specifier: ^10.2.1
-      version: 10.2.1
-    eslint-config-prettier:
-      specifier: ^10.1.8
-      version: 10.1.8
-    eslint-import-resolver-typescript:
-      specifier: ^4.4.4
-      version: 4.4.4
-    eslint-plugin-cypress:
-      specifier: ^6.3.1
-      version: 6.4.1
-    eslint-plugin-import-x:
-      specifier: ^4.16.2
-      version: 4.16.2
-    eslint-plugin-react:
-      specifier: ^7.37.5
-      version: 7.37.5
-    eslint-plugin-react-hooks:
-      specifier: ^7.1.1
-      version: 7.1.1
-    eslint-plugin-unicorn:
-      specifier: ^58.0.0
-      version: 58.0.0
-    typescript-eslint:
-      specifier: ^8.32.1
-      version: 8.58.2
-  git:
-    '@octokit/rest':
-      specifier: ^22.0.1
-      version: 22.0.1
-    '@octokit/types':
-      specifier: ^16.0.0
-      version: 16.0.0
-    simple-git:
-      specifier: ^3.33.0
-      version: 3.33.0
-  graphql:
-    apollo-cache-inmemory:
-      specifier: ^1.6.6
-      version: 1.6.6
-    apollo-client:
-      specifier: ^2.6.10
-      version: 2.6.10
-    apollo-link-context:
-      specifier: ^1.0.20
-      version: 1.0.20
-    apollo-link-http:
-      specifier: ^1.5.17
-      version: 1.5.17
-    graphql:
-      specifier: ^16.13.2
-      version: 16.13.2
-    graphql-tag:
-      specifier: ^2.12.6
-      version: 2.12.6
-  icons:
-    lucide-react:
-      specifier: ^1.7.0
-      version: 1.21.0
-  lexical:
-    '@lexical/code':
-      specifier: ^0.42.0
-      version: 0.42.0
-    '@lexical/code-prism':
-      specifier: ^0.42.0
-      version: 0.42.0
-    '@lexical/extension':
-      specifier: ^0.42.0
-      version: 0.42.0
-    '@lexical/file':
-      specifier: ^0.42.0
-      version: 0.42.0
-    '@lexical/hashtag':
-      specifier: ^0.42.0
-      version: 0.42.0
-    '@lexical/headless':
-      specifier: ^0.42.0
-      version: 0.42.0
-    '@lexical/history':
-      specifier: ^0.42.0
-      version: 0.42.0
-    '@lexical/link':
-      specifier: ^0.42.0
-      version: 0.42.0
-    '@lexical/list':
-      specifier: ^0.42.0
-      version: 0.42.0
-    '@lexical/markdown':
-      specifier: ^0.42.0
-      version: 0.42.0
-    '@lexical/overflow':
-      specifier: ^0.42.0
-      version: 0.42.0
-    '@lexical/react':
-      specifier: ^0.42.0
-      version: 0.42.0
-    '@lexical/rich-text':
-      specifier: ^0.42.0
-      version: 0.42.0
-    '@lexical/selection':
-      specifier: ^0.42.0
-      version: 0.42.0
-    '@lexical/table':
-      specifier: ^0.42.0
-      version: 0.42.0
-    '@lexical/text':
-      specifier: ^0.42.0
-      version: 0.42.0
-    '@lexical/utils':
-      specifier: ^0.42.0
-      version: 0.42.0
-    lexical:
-      specifier: ^0.42.0
-      version: 0.42.0
-  markdown:
-    mdast-util-from-markdown:
-      specifier: ^2.0.3
-      version: 2.0.3
-    mdast-util-to-string:
-      specifier: ^4.0.0
-      version: 4.0.0
-    remark-frontmatter:
-      specifier: ^5.0.0
-      version: 5.0.0
-    remark-gfm:
-      specifier: 4.0.1
-      version: 4.0.1
-    remark-parse:
-      specifier: ^11.0.0
-      version: 11.0.0
-    remark-stringify:
-      specifier: ^11.0.0
-      version: 11.0.0
-    unified:
-      specifier: ^11.0.5
-      version: 11.0.5
-    vfile:
-      specifier: ^6.0.3
-      version: 6.0.3
-  media:
-    ol:
-      specifier: ^6.9.0
-      version: 6.15.1
-    uploadcare-widget:
-      specifier: ^3.23.4
-      version: 3.24.0
-    uploadcare-widget-tab-effects:
-      specifier: ^1.7.2
-      version: 1.7.2
-  polyfills:
-    buffer:
-      specifier: ^6.0.3
-      version: 6.0.3
-    path-browserify:
-      specifier: ^1.0.1
-      version: 1.0.1
-  portabletext:
-    '@portabletext/html':
-      specifier: ^1.1.0
-      version: 1.1.0
-    '@portabletext/markdown':
-      specifier: ^1.2.0
-      version: 1.4.1
-    '@portabletext/react':
-      specifier: ^6.2.0
-      version: 6.2.0
-    '@portabletext/to-html':
-      specifier: ^5.0.2
-      version: 5.0.2
-    '@portabletext/types':
-      specifier: ^4.0.2
-      version: 4.0.2
-  react:
-    react:
-      specifier: ^19.2.4
-      version: 19.2.4
-    react-aria-menubutton:
-      specifier: ^8.0.0
-      version: 8.0.0
-    react-colorful:
-      specifier: ^5.8.0
-      version: 5.8.0
-    react-dnd:
-      specifier: ^16.0.1
-      version: 16.0.1
-    react-dnd-html5-backend:
-      specifier: ^16.0.1
-      version: 16.0.1
-    react-dom:
-      specifier: ^19.2.4
-      version: 19.2.4
-    react-frame-component:
-      specifier: ^5.3.2
-      version: 5.3.2
-    react-is:
-      specifier: 19.2.4
-      version: 19.2.4
-    react-markdown:
-      specifier: ^10.1.0
-      version: 10.1.0
-    react-modal:
-      specifier: ^3.16.3
-      version: 3.16.3
-    react-polyglot:
-      specifier: ^0.7.2
-      version: 0.7.2
-    react-redux:
-      specifier: ^9.2.0
-      version: 9.3.0
-    react-router-dom:
-      specifier: ^7.14.0
-      version: 7.14.0
-    react-scroll-sync:
-      specifier: ^1.0.2
-      version: 1.0.2
-    react-select:
-      specifier: ^5.10.2
-      version: 5.10.2
-    react-split-pane:
-      specifier: ^3.2.0
-      version: 3.2.0
-    react-textarea-autosize:
-      specifier: ^8.5.9
-      version: 8.5.9
-    react-toastify:
-      specifier: ^11.0.5
-      version: 11.0.5
-    react-topbar-progress-indicator:
-      specifier: ^4.1.1
-      version: 4.1.1
-    react-waypoint:
-      specifier: ^10.3.0
-      version: 10.3.0
-    react-window:
-      specifier: ^2.2.7
-      version: 2.2.7
-    tinycolor2:
-      specifier: ^1.6.0
-      version: 1.6.0
-  redux:
-    '@reduxjs/toolkit':
-      specifier: ^2.11.2
-      version: 2.11.2
-    immer:
-      specifier: ^11.1.4
-      version: 11.1.4
-    redux:
-      specifier: ^5.0.1
-      version: 5.0.1
-    redux-devtools-extension:
-      specifier: ^2.13.9
-      version: 2.13.9
-    redux-notifications:
-      specifier: ^4.0.1
-      version: 4.0.1
-    redux-thunk:
-      specifier: ^3.1.0
-      version: 3.1.0
-  routing:
-    history:
-      specifier: ^5.3.0
-      version: 5.3.0
-    node-polyglot:
-      specifier: ^2.6.0
-      version: 2.6.0
-  server:
-    cors:
-      specifier: ^2.8.6
-      version: 2.8.6
-    express:
-      specifier: ^5.2.1
-      version: 5.2.1
-    morgan:
-      specifier: ^1.10.1
-      version: 1.10.1
-    winston:
-      specifier: ^3.19.0
-      version: 3.19.0
-  stega:
-    '@vercel/stega':
-      specifier: ^1.1.0
-      version: 1.1.0
-  types:
-    '@types/cors':
-      specifier: ^2.8.19
-      version: 2.8.19
-    '@types/express':
-      specifier: ^5.0.6
-      version: 5.0.6
-    '@types/history':
-      specifier: ^5.0.0
-      version: 5.0.0
-    '@types/jwt-decode':
-      specifier: ^3.1.0
-      version: 3.1.0
-    '@types/lodash':
-      specifier: ^4.17.24
-      version: 4.17.24
-    '@types/morgan':
-      specifier: ^1.9.10
-      version: 1.9.10
-    '@types/react':
-      specifier: ^19.2.14
-      version: 19.2.14
-    '@types/react-dom':
-      specifier: ^19.2.3
-      version: 19.2.3
-    '@types/react-is':
-      specifier: ^19.0.0
-      version: 19.2.0
-    '@types/react-modal':
-      specifier: ^3.16.3
-      version: 3.16.3
-    '@types/redux-mock-store':
-      specifier: ^1.5.0
-      version: 1.5.0
-    '@types/tinycolor2':
-      specifier: ^1.4.6
-      version: 1.4.6
-    '@types/unist':
-      specifier: ^3.0.3
-      version: 3.0.3
-    '@types/uuid':
-      specifier: ^11.0.0
-      version: 11.0.0
-  utils:
-    async-mutex:
-      specifier: ^0.5.0
-      version: 0.5.0
-    common-tags:
-      specifier: ^1.8.2
-      version: 1.8.2
-    copy-text-to-clipboard:
-      specifier: ^3.2.2
-      version: 3.2.2
-    dayjs:
-      specifier: ^1.11.20
-      version: 1.11.20
-    deepmerge:
-      specifier: ^4.3.1
-      version: 4.3.1
-    fuzzy:
-      specifier: ^0.1.3
-      version: 0.1.3
-    ini:
-      specifier: ^6.0.0
-      version: 6.0.0
-    lodash:
-      specifier: ^4.18.1
-      version: 4.18.1
-    minimatch:
-      specifier: ^10.2.5
-      version: 10.2.5
-    smol-toml:
-      specifier: ^1.6.1
-      version: 1.6.1
-    unist-util-visit:
-      specifier: ^5.1.0
-      version: 5.1.0
-    uuid:
-      specifier: ^13.0.0
-      version: 13.0.0
-    what-input:
-      specifier: ^5.2.12
-      version: 5.2.12
-    what-the-diff:
-      specifier: ^0.6.0
-      version: 0.6.0
-    yaml:
-      specifier: ^2.8.3
-      version: 2.8.3
-  validation:
-    ajv:
-      specifier: ^8.18.0
-      version: 8.18.0
-    ajv-errors:
-      specifier: ^3.0.0
-      version: 3.0.0
-    ajv-keywords:
-      specifier: ^5.1.0
-      version: 5.1.0
-    zod:
-      specifier: ^4.4.3
-      version: 4.4.3
-  vite:
-    '@vitejs/plugin-react':
-      specifier: ^6.0.1
-      version: 6.0.1
-    vite:
-      specifier: ^8.0.3
-      version: 8.0.3
-  vitest:
-    '@testing-library/dom':
-      specifier: ^10.4.1
-      version: 10.4.1
-    '@testing-library/jest-dom':
-      specifier: ^6.9.1
-      version: 6.9.1
-    '@testing-library/react':
-      specifier: ^16.3.2
-      version: 16.3.2
-    '@testing-library/user-event':
-      specifier: ^14.6.1
-      version: 14.6.1
-    '@vitest/coverage-v8':
-      specifier: ^4.1.2
-      version: 4.1.2
-    jsdom:
-      specifier: ^29.0.1
-      version: 29.0.1
-    redux-mock-store:
-      specifier: ^1.5.5
-      version: 1.5.5
-    vitest:
-      specifier: ^4.1.2
-      version: 4.1.2
-
 importers:
 
   .:
     dependencies:
       '@base-ui/react':
-        specifier: catalog:editor-ui
+        specifier: ^1.6.0
         version: 1.6.0(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@emotion/css':
-        specifier: catalog:emotion
+        specifier: ^11.13.5
         version: 11.13.5
       '@emotion/is-prop-valid':
         specifier: ^1.4.0
         version: 1.4.0
       '@emotion/react':
-        specifier: catalog:emotion
+        specifier: ^11.14.0
         version: 11.14.0(@types/react@19.2.14)(react@19.2.4)
       '@emotion/styled':
-        specifier: catalog:emotion
+        specifier: ^11.14.1
         version: 11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4)
       '@lexical/code':
-        specifier: catalog:lexical
+        specifier: ^0.42.0
         version: 0.42.0
       '@lexical/code-prism':
-        specifier: catalog:lexical
+        specifier: ^0.42.0
         version: 0.42.0
       '@lexical/extension':
-        specifier: catalog:lexical
+        specifier: ^0.42.0
         version: 0.42.0
       '@lexical/file':
-        specifier: catalog:lexical
+        specifier: ^0.42.0
         version: 0.42.0
       '@lexical/hashtag':
-        specifier: catalog:lexical
+        specifier: ^0.42.0
         version: 0.42.0
       '@lexical/headless':
-        specifier: catalog:lexical
+        specifier: ^0.42.0
         version: 0.42.0
       '@lexical/history':
-        specifier: catalog:lexical
+        specifier: ^0.42.0
         version: 0.42.0
       '@lexical/link':
-        specifier: catalog:lexical
+        specifier: ^0.42.0
         version: 0.42.0
       '@lexical/list':
-        specifier: catalog:lexical
+        specifier: ^0.42.0
         version: 0.42.0
       '@lexical/markdown':
-        specifier: catalog:lexical
+        specifier: ^0.42.0
         version: 0.42.0
       '@lexical/overflow':
-        specifier: catalog:lexical
+        specifier: ^0.42.0
         version: 0.42.0
       '@lexical/react':
-        specifier: catalog:lexical
+        specifier: ^0.42.0
         version: 0.42.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(yjs@13.6.31)
       '@lexical/rich-text':
-        specifier: catalog:lexical
+        specifier: ^0.42.0
         version: 0.42.0
       '@lexical/selection':
-        specifier: catalog:lexical
+        specifier: ^0.42.0
         version: 0.42.0
       '@lexical/table':
-        specifier: catalog:lexical
+        specifier: ^0.42.0
         version: 0.42.0
       '@lexical/text':
-        specifier: catalog:lexical
+        specifier: ^0.42.0
         version: 0.42.0
       '@lexical/utils':
-        specifier: catalog:lexical
+        specifier: ^0.42.0
         version: 0.42.0
       '@portabletext/html':
-        specifier: catalog:portabletext
+        specifier: ^1.1.0
         version: 1.1.0
       '@portabletext/markdown':
-        specifier: catalog:portabletext
+        specifier: ^1.2.0
         version: 1.4.1
       '@portabletext/react':
-        specifier: catalog:portabletext
+        specifier: ^6.2.0
         version: 6.2.0(react@19.2.4)
       '@portabletext/to-html':
-        specifier: catalog:portabletext
+        specifier: ^5.0.2
         version: 5.0.2
       '@portabletext/types':
-        specifier: catalog:portabletext
+        specifier: ^4.0.2
         version: 4.0.2
       '@reduxjs/toolkit':
-        specifier: catalog:redux
+        specifier: ^2.11.2
         version: 2.11.2(react-redux@9.3.0(@types/react@19.2.14)(react@19.2.4)(redux@5.0.1))(react@19.2.4)
       '@replit/codemirror-emacs':
-        specifier: catalog:codemirror
+        specifier: ^6.1.0
         version: 6.1.0(@codemirror/autocomplete@6.20.3)(@codemirror/commands@6.10.4)(@codemirror/search@6.7.1)(@codemirror/state@6.7.1)(@codemirror/view@6.43.6)
       '@replit/codemirror-vim':
-        specifier: catalog:codemirror
+        specifier: ^6.3.0
         version: 6.3.0(@codemirror/commands@6.10.4)(@codemirror/language@6.12.4)(@codemirror/search@6.7.1)(@codemirror/state@6.7.1)(@codemirror/view@6.43.6)
       '@replit/codemirror-vscode-keymap':
-        specifier: catalog:codemirror
+        specifier: ^6.0.2
         version: 6.0.2(@codemirror/autocomplete@6.20.3)(@codemirror/commands@6.10.4)(@codemirror/language@6.12.4)(@codemirror/lint@6.9.7)(@codemirror/search@6.7.1)(@codemirror/state@6.7.1)(@codemirror/view@6.43.6)
       '@uiw/codemirror-extensions-langs':
-        specifier: catalog:codemirror
+        specifier: ^4.25.9
         version: 4.25.9(@codemirror/autocomplete@6.20.3)(@codemirror/language@6.12.4)(@codemirror/state@6.7.1)(@codemirror/view@6.43.6)(@lezer/common@1.5.2)(@lezer/highlight@1.2.3)(@lezer/javascript@1.5.4)(@lezer/lr@1.4.10)
       '@uiw/codemirror-theme-material':
-        specifier: catalog:codemirror
+        specifier: ^4.25.9
         version: 4.25.9(@codemirror/language@6.12.4)(@codemirror/state@6.7.1)(@codemirror/view@6.43.6)
       '@uiw/react-codemirror':
-        specifier: catalog:codemirror
+        specifier: ^4.25.9
         version: 4.25.9(@babel/runtime@7.29.7)(@codemirror/autocomplete@6.20.3)(@codemirror/language@6.12.4)(@codemirror/lint@6.9.7)(@codemirror/search@6.7.1)(@codemirror/state@6.7.1)(@codemirror/theme-one-dark@6.1.3)(@codemirror/view@6.43.6)(codemirror@6.0.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@vercel/stega':
-        specifier: catalog:stega
+        specifier: ^1.1.0
         version: 1.1.0
       ajv:
-        specifier: catalog:validation
+        specifier: ^8.18.0
         version: 8.18.0
       ajv-errors:
-        specifier: catalog:validation
+        specifier: ^3.0.0
         version: 3.0.0(ajv@8.18.0)
       ajv-keywords:
-        specifier: catalog:validation
+        specifier: ^5.1.0
         version: 5.1.0(ajv@8.18.0)
       apollo-cache-inmemory:
-        specifier: catalog:graphql
+        specifier: ^1.6.6
         version: 1.6.6(graphql@16.13.2)
       apollo-client:
-        specifier: catalog:graphql
+        specifier: ^2.6.10
         version: 2.6.10(graphql@16.13.2)
       apollo-link-context:
-        specifier: catalog:graphql
+        specifier: ^1.0.20
         version: 1.0.20(graphql@16.13.2)
       apollo-link-http:
-        specifier: catalog:graphql
+        specifier: ^1.5.17
         version: 1.5.17(graphql@16.13.2)
       async-mutex:
-        specifier: catalog:utils
+        specifier: ^0.5.0
         version: 0.5.0
       buffer:
-        specifier: catalog:polyfills
+        specifier: ^6.0.3
         version: 6.0.3
       codemirror:
-        specifier: catalog:codemirror
+        specifier: ^6.0.2
         version: 6.0.2
       common-tags:
-        specifier: catalog:utils
+        specifier: ^1.8.2
         version: 1.8.2
       copy-text-to-clipboard:
-        specifier: catalog:utils
+        specifier: ^3.2.2
         version: 3.2.2
       cors:
-        specifier: catalog:server
+        specifier: ^2.8.6
         version: 2.8.6
       dayjs:
-        specifier: catalog:utils
+        specifier: ^1.11.20
         version: 1.11.20
       deepmerge:
-        specifier: catalog:utils
+        specifier: ^4.3.1
         version: 4.3.1
       dotenv:
-        specifier: catalog:build
+        specifier: ^17.4.0
         version: 17.4.0
       express:
-        specifier: catalog:server
+        specifier: ^5.2.1
         version: 5.2.1
       fuzzy:
-        specifier: catalog:utils
+        specifier: ^0.1.3
         version: 0.1.3
       gotrue-js:
-        specifier: catalog:auth
+        specifier: ^1.0.1
         version: 1.0.1
       graphql:
-        specifier: catalog:graphql
+        specifier: ^16.13.2
         version: 16.13.2
       graphql-tag:
-        specifier: catalog:graphql
+        specifier: ^2.12.6
         version: 2.12.6(graphql@16.13.2)
       history:
-        specifier: catalog:routing
+        specifier: ^5.3.0
         version: 5.3.0
       immer:
-        specifier: catalog:redux
+        specifier: ^11.1.4
         version: 11.1.4
       ini:
-        specifier: catalog:utils
+        specifier: ^6.0.0
         version: 6.0.0
       jwt-decode:
-        specifier: catalog:auth
+        specifier: ^4.0.0
         version: 4.0.0
       lexical:
-        specifier: catalog:lexical
+        specifier: ^0.42.0
         version: 0.42.0
       lodash:
-        specifier: catalog:utils
+        specifier: ^4.18.1
         version: 4.18.1
       lucide-react:
-        specifier: catalog:icons
+        specifier: ^1.7.0
         version: 1.21.0(react@19.2.4)
       mdast-util-from-markdown:
-        specifier: catalog:markdown
+        specifier: ^2.0.3
         version: 2.0.3
       mdast-util-to-string:
-        specifier: catalog:markdown
+        specifier: ^4.0.0
         version: 4.0.0
       minimatch:
-        specifier: catalog:utils
+        specifier: ^10.2.5
         version: 10.2.5
       morgan:
-        specifier: catalog:server
+        specifier: ^1.10.1
         version: 1.10.1
       node-polyglot:
-        specifier: catalog:routing
+        specifier: ^2.6.0
         version: 2.6.0
       ol:
-        specifier: catalog:media
+        specifier: ^6.9.0
         version: 6.15.1
       path-browserify:
-        specifier: catalog:polyfills
+        specifier: ^1.0.1
         version: 1.0.1
       prop-types:
         specifier: ^15.8.1
         version: 15.8.1
       react:
-        specifier: catalog:react
+        specifier: ^19.2.4
         version: 19.2.4
       react-aria-menubutton:
-        specifier: catalog:react
+        specifier: ^8.0.0
         version: 8.0.0(react@19.2.4)
       react-colorful:
-        specifier: catalog:react
+        specifier: ^5.8.0
         version: 5.8.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react-dnd:
-        specifier: catalog:react
+        specifier: ^16.0.1
         version: 16.0.1(@types/hoist-non-react-statics@3.3.7(@types/react@19.2.14))(@types/node@25.9.5)(@types/react@19.2.14)(react@19.2.4)
       react-dnd-html5-backend:
-        specifier: catalog:react
+        specifier: ^16.0.1
         version: 16.0.1
       react-dom:
-        specifier: catalog:react
+        specifier: ^19.2.4
         version: 19.2.4(react@19.2.4)
       react-frame-component:
-        specifier: catalog:react
+        specifier: ^5.3.2
         version: 5.3.2(prop-types@15.8.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react-is:
-        specifier: catalog:react
+        specifier: 19.2.4
         version: 19.2.4
       react-markdown:
-        specifier: catalog:react
+        specifier: ^10.1.0
         version: 10.1.0(@types/react@19.2.14)(react@19.2.4)
       react-modal:
-        specifier: catalog:react
+        specifier: ^3.16.3
         version: 3.16.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react-polyglot:
-        specifier: catalog:react
+        specifier: ^0.7.2
         version: 0.7.2(node-polyglot@2.6.0)(react@19.2.4)
       react-redux:
-        specifier: catalog:react
+        specifier: ^9.2.0
         version: 9.3.0(@types/react@19.2.14)(react@19.2.4)(redux@5.0.1)
       react-router-dom:
-        specifier: catalog:react
+        specifier: ^7.14.0
         version: 7.14.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react-scroll-sync:
-        specifier: catalog:react
+        specifier: ^1.0.2
         version: 1.0.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react-select:
-        specifier: catalog:react
+        specifier: ^5.10.2
         version: 5.10.2(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react-split-pane:
-        specifier: catalog:react
+        specifier: ^3.2.0
         version: 3.2.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react-textarea-autosize:
-        specifier: catalog:react
+        specifier: ^8.5.9
         version: 8.5.9(@types/react@19.2.14)(react@19.2.4)
       react-toastify:
-        specifier: catalog:react
+        specifier: ^11.0.5
         version: 11.0.5(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react-topbar-progress-indicator:
-        specifier: catalog:react
+        specifier: ^4.1.1
         version: 4.1.1(react@19.2.4)
       react-waypoint:
-        specifier: catalog:react
+        specifier: ^10.3.0
         version: 10.3.0(react@19.2.4)
       react-window:
-        specifier: catalog:react
+        specifier: ^2.2.7
         version: 2.2.7(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       redux:
-        specifier: catalog:redux
+        specifier: ^5.0.1
         version: 5.0.1
       redux-devtools-extension:
-        specifier: catalog:redux
+        specifier: ^2.13.9
         version: 2.13.9(redux@5.0.1)
       redux-notifications:
-        specifier: catalog:redux
+        specifier: ^4.0.1
         version: 4.0.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(redux@5.0.1)
       redux-thunk:
-        specifier: catalog:redux
+        specifier: ^3.1.0
         version: 3.1.0(redux@5.0.1)
       remark-frontmatter:
-        specifier: catalog:markdown
+        specifier: ^5.0.0
         version: 5.0.0
       remark-gfm:
-        specifier: catalog:markdown
+        specifier: 4.0.1
         version: 4.0.1
       remark-parse:
-        specifier: catalog:markdown
+        specifier: ^11.0.0
         version: 11.0.0
       remark-stringify:
-        specifier: catalog:markdown
+        specifier: ^11.0.0
         version: 11.0.0
       simple-git:
-        specifier: catalog:git
+        specifier: ^3.33.0
         version: 3.33.0
       smol-toml:
-        specifier: catalog:utils
+        specifier: ^1.6.1
         version: 1.6.1
       tinycolor2:
-        specifier: catalog:react
+        specifier: ^1.6.0
         version: 1.6.0
       unified:
-        specifier: catalog:markdown
+        specifier: ^11.0.5
         version: 11.0.5
       unist-util-visit:
-        specifier: catalog:utils
+        specifier: ^5.1.0
         version: 5.1.0
       uploadcare-widget:
-        specifier: catalog:media
+        specifier: ^3.23.4
         version: 3.24.0
       uploadcare-widget-tab-effects:
-        specifier: catalog:media
+        specifier: ^1.7.2
         version: 1.7.2(uploadcare-widget@3.24.0)
       uuid:
-        specifier: catalog:utils
+        specifier: ^13.0.0
         version: 13.0.0
       vfile:
-        specifier: catalog:markdown
+        specifier: ^6.0.3
         version: 6.0.3
       what-input:
-        specifier: catalog:utils
+        specifier: ^5.2.12
         version: 5.2.12
       what-the-diff:
-        specifier: catalog:utils
+        specifier: ^0.6.0
         version: 0.6.0
       winston:
-        specifier: catalog:server
+        specifier: ^3.19.0
         version: 3.19.0
       yaml:
-        specifier: catalog:utils
+        specifier: ^2.8.3
         version: 2.8.3
       zod:
-        specifier: catalog:validation
+        specifier: ^4.4.3
         version: 4.4.3
     devDependencies:
       '@babel/core':
         specifier: ^7.29.7
         version: 7.29.7
       '@commitlint/cli':
-        specifier: catalog:commitlint
+        specifier: ^20.5.0
         version: 20.5.0(@types/node@25.9.5)(conventional-commits-parser@6.4.0)(typescript@6.0.2)
       '@commitlint/config-conventional':
-        specifier: catalog:commitlint
+        specifier: ^20.5.0
         version: 20.5.0
       '@emotion/babel-plugin':
-        specifier: catalog:emotion
+        specifier: ^11.13.5
         version: 11.13.5
       '@emotion/eslint-plugin':
-        specifier: catalog:emotion
+        specifier: ^11.12.0
         version: 11.12.0(eslint@10.2.1(jiti@2.6.1))(typescript@6.0.2)
       '@eslint/js':
-        specifier: catalog:eslint
+        specifier: ^10.0.1
         version: 10.0.1(eslint@10.2.1(jiti@2.6.1))
       '@octokit/rest':
-        specifier: catalog:git
+        specifier: ^22.0.1
         version: 22.0.1
       '@octokit/types':
-        specifier: catalog:git
+        specifier: ^16.0.0
         version: 16.0.0
       '@playwright/test':
         specifier: ^1.61.1
@@ -893,139 +388,139 @@ importers:
         specifier: ^10.5.0
         version: 10.5.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(esbuild@0.27.7)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(storybook@10.5.0(@types/react@19.2.14)(prettier@3.8.1)(react@19.2.4))(typescript@6.0.2)(vite@8.0.3(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@25.9.5)(esbuild@0.27.7)(jiti@2.6.1)(terser@5.46.2)(yaml@2.8.3))
       '@testing-library/dom':
-        specifier: catalog:vitest
+        specifier: ^10.4.1
         version: 10.4.1
       '@testing-library/jest-dom':
-        specifier: catalog:vitest
+        specifier: ^6.9.1
         version: 6.9.1
       '@testing-library/react':
-        specifier: catalog:vitest
+        specifier: ^16.3.2
         version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@testing-library/user-event':
-        specifier: catalog:vitest
+        specifier: ^14.6.1
         version: 14.6.1(@testing-library/dom@10.4.1)
       '@types/common-tags':
         specifier: ^1.8.4
         version: 1.8.4
       '@types/cors':
-        specifier: catalog:types
+        specifier: ^2.8.19
         version: 2.8.19
       '@types/express':
-        specifier: catalog:types
+        specifier: ^5.0.6
         version: 5.0.6
       '@types/hast':
         specifier: ^3.0.5
         version: 3.0.5
       '@types/history':
-        specifier: catalog:types
+        specifier: ^5.0.0
         version: 5.0.0
       '@types/jwt-decode':
-        specifier: catalog:types
+        specifier: ^3.1.0
         version: 3.1.0
       '@types/lodash':
-        specifier: catalog:types
+        specifier: ^4.17.24
         version: 4.17.24
       '@types/morgan':
-        specifier: catalog:types
+        specifier: ^1.9.10
         version: 1.9.10
       '@types/node':
         specifier: ^25.9.5
         version: 25.9.5
       '@types/react':
-        specifier: catalog:types
+        specifier: ^19.2.14
         version: 19.2.14
       '@types/react-dom':
-        specifier: catalog:types
+        specifier: ^19.2.3
         version: 19.2.3(@types/react@19.2.14)
       '@types/react-is':
-        specifier: catalog:types
+        specifier: ^19.0.0
         version: 19.2.0
       '@types/react-modal':
-        specifier: catalog:types
+        specifier: ^3.16.3
         version: 3.16.3
       '@types/redux-mock-store':
-        specifier: catalog:types
+        specifier: ^1.5.0
         version: 1.5.0
       '@types/tinycolor2':
-        specifier: catalog:types
+        specifier: ^1.4.6
         version: 1.4.6
       '@types/unist':
-        specifier: catalog:types
+        specifier: ^3.0.3
         version: 3.0.3
       '@types/uuid':
-        specifier: catalog:types
+        specifier: ^11.0.0
         version: 11.0.0
       '@vitejs/plugin-react':
-        specifier: catalog:vite
+        specifier: ^6.0.1
         version: 6.0.1(vite@8.0.3(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@25.9.5)(esbuild@0.27.7)(jiti@2.6.1)(terser@5.46.2)(yaml@2.8.3))
       '@vitest/coverage-v8':
-        specifier: catalog:vitest
+        specifier: ^4.1.2
         version: 4.1.2(vitest@4.1.2(@types/node@25.9.5)(happy-dom@20.10.6)(jsdom@29.0.1)(vite@8.0.3(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@25.9.5)(esbuild@0.27.7)(jiti@2.6.1)(terser@5.46.2)(yaml@2.8.3)))
       esbuild:
         specifier: ^0.27.4
         version: 0.27.7
       eslint:
-        specifier: catalog:eslint
+        specifier: ^10.2.1
         version: 10.2.1(jiti@2.6.1)
       eslint-config-prettier:
-        specifier: catalog:eslint
+        specifier: ^10.1.8
         version: 10.1.8(eslint@10.2.1(jiti@2.6.1))
       eslint-import-resolver-typescript:
-        specifier: catalog:eslint
+        specifier: ^4.4.4
         version: 4.4.4(eslint-plugin-import-x@4.16.2(@typescript-eslint/utils@8.58.2(eslint@10.2.1(jiti@2.6.1))(typescript@6.0.2))(eslint-import-resolver-node@0.3.10)(eslint@10.2.1(jiti@2.6.1)))(eslint-plugin-import@2.32.0)(eslint@10.2.1(jiti@2.6.1))
       eslint-plugin-cypress:
-        specifier: catalog:eslint
+        specifier: ^6.3.1
         version: 6.4.1(@typescript-eslint/parser@8.58.2(eslint@10.2.1(jiti@2.6.1))(typescript@6.0.2))(eslint@10.2.1(jiti@2.6.1))
       eslint-plugin-import-x:
-        specifier: catalog:eslint
+        specifier: ^4.16.2
         version: 4.16.2(@typescript-eslint/utils@8.58.2(eslint@10.2.1(jiti@2.6.1))(typescript@6.0.2))(eslint-import-resolver-node@0.3.10)(eslint@10.2.1(jiti@2.6.1))
       eslint-plugin-react:
-        specifier: catalog:eslint
+        specifier: ^7.37.5
         version: 7.37.5(eslint@10.2.1(jiti@2.6.1))
       eslint-plugin-react-hooks:
-        specifier: catalog:eslint
+        specifier: ^7.1.1
         version: 7.1.1(eslint@10.2.1(jiti@2.6.1))
       eslint-plugin-unicorn:
-        specifier: catalog:eslint
+        specifier: ^58.0.0
         version: 58.0.0(eslint@10.2.1(jiti@2.6.1))
       globals:
-        specifier: catalog:build
+        specifier: ^17.5.0
         version: 17.7.0
       husky:
-        specifier: catalog:build
+        specifier: ^9.1.7
         version: 9.1.7
       jsdom:
-        specifier: catalog:vitest
+        specifier: ^29.0.1
         version: 29.0.1
       nock:
-        specifier: catalog:cypress
+        specifier: ^14.0.13
         version: 14.0.15
       prettier:
-        specifier: catalog:build
+        specifier: ^3.8.1
         version: 3.8.1
       redux-mock-store:
-        specifier: catalog:vitest
+        specifier: ^1.5.5
         version: 1.5.5(redux@5.0.1)
       rimraf:
-        specifier: catalog:build
+        specifier: ^6.1.3
         version: 6.1.3
       storybook:
         specifier: ^10.5.0
         version: 10.5.0(@types/react@19.2.14)(prettier@3.8.1)(react@19.2.4)
       tsc-alias:
-        specifier: catalog:build
+        specifier: ^1.8.16
         version: 1.9.1
       typescript:
-        specifier: catalog:build
+        specifier: ^6.0.2
         version: 6.0.2
       typescript-eslint:
-        specifier: catalog:eslint
+        specifier: ^8.32.1
         version: 8.58.2(eslint@10.2.1(jiti@2.6.1))(typescript@6.0.2)
       vite:
-        specifier: catalog:vite
+        specifier: ^8.0.3
         version: 8.0.3(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@25.9.5)(esbuild@0.27.7)(jiti@2.6.1)(terser@5.46.2)(yaml@2.8.3)
       vitest:
-        specifier: catalog:vitest
+        specifier: ^4.1.2
         version: 4.1.2(@types/node@25.9.5)(happy-dom@20.10.6)(jsdom@29.0.1)(vite@8.0.3(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@25.9.5)(esbuild@0.27.7)(jiti@2.6.1)(terser@5.46.2)(yaml@2.8.3))
 
 packages:
