@@ -5,6 +5,7 @@ import { HeadingNode, QuoteNode } from '@lexical/rich-text';
 import { TableCellNode, TableNode, TableRowNode } from '@lexical/table';
 
 import { BlockNode } from '@/lib/richtext/blocks/BlockNode';
+import { InlineBlockNode } from '@/lib/richtext/blocks/InlineBlockNode';
 
 import type { Klass, LexicalNode } from 'lexical';
 
@@ -26,4 +27,5 @@ export const DEFAULT_NODES: ReadonlyArray<Klass<LexicalNode>> = [
   TableRowNode,
   TableCellNode,
   BlockNode,
+  InlineBlockNode,
 ];

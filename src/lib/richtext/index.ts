@@ -12,6 +12,9 @@ export * from './types';
 export * from './registry';
 export * from './detect';
 
+// Format packs: a mapper plus optional Lexical extras and block encodings.
+export * from './formats';
+
 // Deterministic key helpers (shared by every mapper).
 export * from './keys';
 
@@ -20,7 +23,7 @@ export * from './RichtextValue';
 
 // The bundled mappers: markdown, HTML, plain text <-> Portable Text, plus the
 // Portable Text identity mapper (for values already stored as PT).
-export { markdownMapper } from './markdown-mapper';
+export { createMarkdownMapper, markdownFormat, markdownMapper } from './markdown-mapper';
 export { htmlMapper } from './html-mapper';
 export { plainTextMapper } from './plaintext-mapper';
 export { portableTextMapper } from './portable-text-mapper';
@@ -29,9 +32,16 @@ export { portableTextMapper } from './portable-text-mapper';
 // editor state on change and serialises to the field's format only at persist
 // time. These live alongside the core so `richtext` is one folder.
 
-// Custom blocks subsystem (Lexical-specific).
+// Custom blocks subsystem: definitions + registry (editor-agnostic), Lexical
+// nodes, insertion, and per-field resolution.
+export * from './blocks/BlockComponent';
 export * from './blocks/BlockNode';
+export * from './blocks/InlineBlockNode';
 export * from './blocks/blocksContext';
+export * from './blocks/insert';
+export * from './blocks/registry';
+export * from './blocks/resolve';
+export * from './blocks/serializeData';
 export * from './blocks/types';
 
 // Lexical node set and headless editor.
@@ -43,6 +53,7 @@ export * from './bridge/empty';
 export * from './bridge/lexicalToPortableText';
 export * from './bridge/marks';
 export * from './bridge/portableTextToLexical';
+export * from './bridge/source';
 export * from './bridge/types';
 
 // Lexical-bound `RichtextValue` subclass (carries `editorState` and derives

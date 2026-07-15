@@ -2,22 +2,29 @@ import { type ReactNode, useMemo, useRef } from 'react';
 
 import {
   createLexicalRichtextValue as createRichtextValue,
+  getFormat,
   LexicalRichtextValue as RichtextValue,
+  resolveBlocksForField,
 } from '@/lib/richtext';
-import { Editor, EditorGlobalStyles } from '@/lib/widgets/editor';
+import { Editor, EditorGlobalStyles } from '@/ui/editor';
+import { makeBlockFormRenderer } from './BlockForm';
 
 import type { SerializedEditorState } from 'lexical';
+import type { BlocksConfig, GetAssetFn } from '@/lib/richtext';
+import type { BlockFormDeps } from './BlockForm';
 
 interface DecapField {
   format?: string;
   placeholder?: string;
+  blocks?: string[];
   [key: string]: unknown;
 }
 
 interface LexicalControlProps {
-  /** Stored field value: either a raw string or a live `RichtextValue`. */
-  value?: string | RichtextValue;
-  /** Decap field-config object — we read `format` and `placeholder` here. */
+  /** Stored field value: a raw string, a live `RichtextValue`, or (for nested
+   * richtext fields inside a block) a Portable Text array. */
+  value?: string | RichtextValue | unknown[];
+  /** Decap field-config object — we read `format`, `placeholder`, `blocks`. */
   field: DecapField;
   /** Fires whenever the editor state changes — receives the same proxy each time. */
   onChange: (value: RichtextValue) => void;
@@ -26,6 +33,14 @@ interface LexicalControlProps {
   /** Wrapper class supplied by Decap. */
   classNameWrapper?: string;
   isDisabled?: boolean;
+  // Decap plumbing injected into every widget control by
+  // `EditorControlPane/Widget.tsx`; used for inline block prop forms.
+  editorControl?: BlockFormDeps['editorControl'];
+  resolveWidget?: BlockFormDeps['resolveWidget'];
+  clearFieldErrors?: BlockFormDeps['clearFieldErrors'];
+  getAsset?: (path: string, field?: unknown) => unknown;
+  t?: BlockFormDeps['t'];
+  locale?: string;
 }
 
 /**
@@ -33,7 +48,9 @@ interface LexicalControlProps {
  *
  * Wraps the reusable Lexical editor; threads the stored value through a
  * `RichtextValue` proxy so the expensive serialized string is produced
- * lazily, only when Decap reads it at file-write time.
+ * lazily, only when Decap reads it at file-write time. Custom blocks and
+ * format-pack extras resolve here (widget layer) and flow into the editor
+ * as props/context, never the other way around.
  */
 export function LexicalControl({
   value,
@@ -42,6 +59,12 @@ export function LexicalControl({
   forID,
   classNameWrapper,
   isDisabled,
+  editorControl,
+  resolveWidget,
+  clearFieldErrors,
+  getAsset,
+  t,
+  locale,
 }: LexicalControlProps): ReactNode {
   const hint = typeof field.format === 'string' ? field.format : undefined;
 
@@ -49,9 +72,13 @@ export function LexicalControl({
   // change identity — only its `editorState` mutates as the user types.
   const proxyRef = useRef<RichtextValue | null>(null);
   if (proxyRef.current === null) {
-    proxyRef.current = value instanceof RichtextValue
-      ? value
-      : createRichtextValue(typeof value === 'string' ? value : '', { hint });
+    proxyRef.current =
+      value instanceof RichtextValue
+        ? value
+        : Array.isArray(value)
+          ? // A nested richtext field inside a block stores canonical PT.
+            createRichtextValue(JSON.stringify(value), { hint: hint ?? 'portableText' })
+          : createRichtextValue(typeof value === 'string' ? value : '', { hint });
   }
   const proxy = proxyRef.current;
 
@@ -66,11 +93,39 @@ export function LexicalControl({
     [],
   );
 
+  const pack = getFormat(proxy.outputFormat);
+
+  const blocks = useMemo(() => resolveBlocksForField(field), [field]);
+
+  const renderBlockForm = useMemo(() => {
+    // Without the decap plumbing (e.g. the editor mounted standalone) blocks
+    // are still visible/insertable/deletable, just not editable.
+    if (!editorControl || !resolveWidget || !clearFieldErrors || !t) return undefined;
+    return makeBlockFormRenderer({
+      editorControl,
+      resolveWidget,
+      clearFieldErrors,
+      t,
+      locale,
+      classNameWrapper,
+    });
+  }, [editorControl, resolveWidget, clearFieldErrors, t, locale, classNameWrapper]);
+
+  const blocksConfig = useMemo<BlocksConfig>(() => {
+    const asset: GetAssetFn | undefined = getAsset
+      ? (path, assetField) => String(getAsset(path, assetField) ?? '')
+      : undefined;
+    return { blocks, getAsset: asset, renderBlockForm };
+  }, [blocks, getAsset, renderBlockForm]);
+
   return (
     <div id={forID} className={classNameWrapper}>
       <EditorGlobalStyles />
       <Editor
         editorSerializedState={initialState}
+        format={proxy.outputFormat}
+        extensions={pack?.lexical}
+        blocksConfig={blocksConfig}
         onSerializedChange={state => {
           proxy.setEditorState(state);
           onChange(proxy);

@@ -3,6 +3,7 @@ import { createKeyGenerator } from '@/lib/richtext/keys';
 import { formatToDecorators } from './marks';
 
 import type {
+  ArbitraryTypedObject,
   PortableTextBlock,
   PortableTextDocument,
   PortableTextMarkDefinition,
@@ -21,16 +22,39 @@ interface KeyGens {
   mark: () => string;
 }
 
+/** Extract the PT inline object for an inline Lexical node, or null. */
+function inlineObject(node: Lex, keys: KeyGens): ArbitraryTypedObject | null {
+  switch (node.type) {
+    case 'image':
+      return {
+        _type: 'image',
+        _key: keys.span(),
+        src: typeof node.src === 'string' ? node.src : '',
+        alt: typeof node.altText === 'string' ? node.altText : '',
+      };
+    case 'decap-inline-block':
+      return {
+        _type: typeof node.componentId === 'string' ? node.componentId : 'unknown',
+        // Restore the PT `_key` the object arrived with, if any.
+        _key: typeof node.blockKey === 'string' ? node.blockKey : keys.span(),
+        ...(node.data && typeof node.data === 'object' ? node.data : {}),
+      };
+    default:
+      return null;
+  }
+}
+
 /**
- * Collapse a list of inline Lexical nodes (text, linebreak, tab, link) into
- * Portable Text spans, appending any discovered link annotations to `markDefs`.
+ * Collapse a list of inline Lexical nodes (text, linebreak, tab, link, image,
+ * inline custom object) into Portable Text spans and inline objects,
+ * appending any discovered link annotations to `markDefs`.
  */
 function collectSpans(
   nodes: Lex[],
   markDefs: PortableTextMarkDefinition[],
   keys: KeyGens,
-): PortableTextSpan[] {
-  const spans: PortableTextSpan[] = [];
+): Array<PortableTextSpan | ArbitraryTypedObject> {
+  const spans: Array<PortableTextSpan | ArbitraryTypedObject> = [];
   let current: { text: string, marks: string[], marksKey: string } | null = null;
 
   const flush = (): void => {
@@ -85,8 +109,14 @@ function collectSpans(
           flush();
           break;
         }
-        default:
+        default: {
+          const object = inlineObject(node, keys);
+          if (object) {
+            flush();
+            spans.push(object);
+          }
           break;
+        }
       }
     }
   };
@@ -132,6 +162,64 @@ function flattenList(node: Lex, level: number, out: PortableTextDocument, keys: 
   }
 }
 
+/** One Lexical table cell's children as PT blocks (paragraphs, lists, ...). */
+function tableCellValue(cellNode: Lex, keys: KeyGens): PortableTextDocument {
+  const value: PortableTextDocument = [];
+  for (const child of Array.isArray(cellNode.children) ? cellNode.children : []) {
+    if (child.type === 'list') {
+      flattenList(child, 1, value, keys);
+      continue;
+    }
+    const block = convertBlock(child, keys);
+    if (block) value.push(block as PortableTextBlock);
+  }
+  return value;
+}
+
+/**
+ * Convert a Lexical table node to the PT table shape the markdown mapper
+ * round-trips (`{_type:'table', headerRows?, rows: [{cells: [{value}]}]}`).
+ * Previously tables were silently DROPPED at persist.
+ */
+function tableToPortableText(node: Lex, keys: KeyGens): Record<string, unknown> {
+  // Claim the table's `_key` first so key order stays document order.
+  const tableKey = keys.block();
+  const rowNodes = (Array.isArray(node.children) ? node.children : []).filter(
+    (child: Lex) => child.type === 'tablerow',
+  );
+
+  let headerRows = 0;
+  const rows = rowNodes.map((row: Lex, rowIndex: number) => {
+    const cellNodes = (Array.isArray(row.children) ? row.children : []).filter(
+      (child: Lex) => child.type === 'tablecell',
+    );
+    // Leading rows whose every cell is a row-header cell form the header.
+    if (
+      rowIndex === headerRows
+      && cellNodes.length > 0
+      && cellNodes.every((cell: Lex) => ((cell.headerState ?? 0) & 1) === 1)
+    ) {
+      headerRows += 1;
+    }
+    return {
+      _type: 'row',
+      _key: keys.span(),
+      cells: cellNodes.map((cell: Lex) => ({
+        _type: 'cell',
+        _key: keys.span(),
+        value: tableCellValue(cell, keys),
+      })),
+    };
+  });
+
+  return {
+    _type: 'table',
+    _key: tableKey,
+    ...(headerRows > 0 ? { headerRows } : {}),
+    rows,
+  };
+}
+
 /** Convert one non-list root node to a Portable Text block. */
 function convertBlock(node: Lex, keys: KeyGens): PortableTextBlock | Record<string, unknown> | null {
   switch (node.type) {
@@ -154,10 +242,22 @@ function convertBlock(node: Lex, keys: KeyGens): PortableTextBlock | Record<stri
         code: codeText(node),
         language: typeof node.language === 'string' ? node.language : null,
       };
+    case 'horizontalrule':
+      return { _type: 'horizontal-rule', _key: keys.block() };
+    case 'image':
+      // A root-level native image node (normally images sit inline inside a
+      // paragraph and are handled by `collectSpans`).
+      return {
+        _type: 'image',
+        _key: keys.block(),
+        src: typeof node.src === 'string' ? node.src : '',
+        alt: typeof node.altText === 'string' ? node.altText : '',
+      };
     case 'decap-block':
       return {
         _type: typeof node.componentId === 'string' ? node.componentId : 'unknown',
-        _key: keys.block(),
+        // Restore the PT `_key` the block arrived with, if any.
+        _key: typeof node.blockKey === 'string' ? node.blockKey : keys.block(),
         ...(node.data && typeof node.data === 'object' ? node.data : {}),
       };
     default:
@@ -181,6 +281,10 @@ export function lexicalToPortableText(state: SerializedEditorState): PortableTex
   for (const node of children) {
     if (node.type === 'list') {
       flattenList(node, 1, out, keys);
+      continue;
+    }
+    if (node.type === 'table') {
+      out.push(tableToPortableText(node, keys) as ArbitraryTypedObject);
       continue;
     }
     const block = convertBlock(node, keys);

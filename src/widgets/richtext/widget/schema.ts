@@ -1,15 +1,19 @@
 /**
  * Decap CMS field schema for the Lexical widget.
  *
- * Mirrors the recovered v4-era schema shape (format/placeholder/buttons/modes
- * /editor_components) and adds nothing Decap doesn't already know.
+ * Mirrors the recovered v4-era schema shape (format/placeholder/buttons/modes)
+ * plus the `blocks` allowlist for registered custom blocks. The legacy
+ * `editor_components` option was removed with the editor-components API;
+ * register blocks via `CMS.registerBlock(...)` and (optionally) allowlist
+ * them per field with `blocks`.
  */
 export const lexicalEditorWidgetSchema = {
   properties: {
     format: {
       type: 'string',
-      // The format id matched against the registered `Format` set. Defaults
-      // are: `markdown`, `html`, `portabletext`, `contentful-rtf`.
+      // Matched against registered mapper ids (see `@/lib/richtext`): `markdown`
+      // (registered by default), plus `html`, `plainText` and `portableText`
+      // when registered at call site via `registerMapper(...)`.
       description: 'Output format for this rich-text field.',
     },
     placeholder: { type: 'string' },
@@ -19,9 +23,12 @@ export const lexicalEditorWidgetSchema = {
       type: 'array',
       items: { type: 'string' },
     },
-    editor_components: {
+    blocks: {
       type: 'array',
-      items: { type: 'object' },
+      items: { type: 'string' },
+      description:
+        'Allowlist of registered block ids available in this field. Omit to allow all '
+        + 'registered blocks. UI-only: parsing always recognizes every registered block.',
     },
     modes: {
       type: 'array',

@@ -64,12 +64,30 @@ function spanToInline(span: PortableTextSpan, markDefs: PortableTextMarkDefiniti
   return inline;
 }
 
-/** Inline children of a text block. */
+/** Convert a PT inline object (non-span child of a text block) to a Lexical node. */
+function inlineObjectToLexical(child: Record<string, unknown>): Lex {
+  const { _type, _key, ...data } = child;
+  return {
+    type: 'decap-inline-block',
+    version: 1,
+    componentId: String(_type),
+    data,
+    // Preserve the PT `_key` so the object keeps its identity across the
+    // editor round-trip (stable keys are the diff/identity primitive).
+    ...(typeof _key === 'string' ? { blockKey: _key } : {}),
+  };
+}
+
+/** Inline children of a text block: spans plus inline custom objects. */
 function blockChildren(block: PortableTextBlock): Lex[] {
   const markDefs = block.markDefs ?? [];
   const children: Lex[] = [];
   for (const child of block.children ?? []) {
-    if (isSpan(child)) children.push(...spanToInline(child, markDefs));
+    if (isSpan(child)) {
+      children.push(...spanToInline(child, markDefs));
+    } else if (child && typeof child === 'object' && typeof child._type === 'string') {
+      children.push(inlineObjectToLexical(child));
+    }
   }
   return children;
 }
@@ -84,8 +102,57 @@ function codeNode(obj: Record<string, unknown>): Lex {
 /** Convert an arbitrary custom object to a Lexical BlockNode. */
 function customBlockNode(obj: Record<string, unknown>): Lex {
   const { _type, _key, ...data } = obj;
-  void _key;
-  return { type: 'decap-block', version: 1, componentId: String(_type), data };
+  return {
+    type: 'decap-block',
+    version: 1,
+    componentId: String(_type),
+    data,
+    // Preserve the PT `_key` so the block keeps its identity across the
+    // editor round-trip (stable keys are the diff/identity primitive).
+    ...(typeof _key === 'string' ? { blockKey: _key } : {}),
+  };
+}
+
+/** One table cell's PT blocks as Lexical children (min. one paragraph). */
+function tableCellChildren(cell: Record<string, unknown>): Lex[] {
+  const blocks = Array.isArray(cell.value) ? cell.value : [];
+  const children: Lex[] = [];
+  for (const block of blocks) {
+    if (block && typeof block === 'object' && (block as { _type?: string })._type === 'block') {
+      children.push(textBlockToLexical(block as PortableTextBlock));
+    }
+  }
+  if (children.length === 0) {
+    children.push(element('paragraph', [], { textFormat: 0, textStyle: '' }));
+  }
+  return children;
+}
+
+/**
+ * Convert a PT table (`{_type:'table', headerRows?, rows}` — the shape the
+ * markdown mapper emits) to a Lexical table node tree.
+ */
+function tableNode(obj: Record<string, unknown>): Lex {
+  const headerRows = typeof obj.headerRows === 'number' ? obj.headerRows : 0;
+  const rows = Array.isArray(obj.rows) ? obj.rows : [];
+  return element(
+    'table',
+    rows.map((row, rowIndex) => {
+      const cells = Array.isArray((row as { cells?: unknown[] })?.cells)
+        ? ((row as { cells: unknown[] }).cells as Array<Record<string, unknown>>)
+        : [];
+      return element(
+        'tablerow',
+        cells.map(cell =>
+          element('tablecell', tableCellChildren(cell), {
+            headerState: rowIndex < headerRows ? 1 : 0,
+            colSpan: 1,
+            rowSpan: 1,
+          }),
+        ),
+      );
+    }),
+  );
 }
 
 /** Convert a non-list text block to its Lexical element node. */
@@ -193,6 +260,8 @@ export function portableTextToLexical(doc: PortableTextDocument): SerializedEdit
       children.push(textBlockToLexical(block as PortableTextBlock));
     } else if (type === 'code') {
       children.push(codeNode(block as Record<string, unknown>));
+    } else if (type === 'table') {
+      children.push(tableNode(block as Record<string, unknown>));
     } else if (typeof type === 'string') {
       children.push(customBlockNode(block as Record<string, unknown>));
     }

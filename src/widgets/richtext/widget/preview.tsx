@@ -1,14 +1,41 @@
+import { useMemo } from 'react';
 import { PortableText } from '@portabletext/react';
 
-import { createRichtextValue, type PortableTextDocument, RichtextValue } from '@/lib/richtext';
+import {
+  createRichtextValue,
+  listBlocks,
+  type PortableTextDocument,
+  RichtextValue,
+} from '@/lib/richtext';
 
+import type { PortableTextReactComponents } from '@portabletext/react';
 import type { ReactNode } from 'react';
-
 
 interface LexicalPreviewProps {
   /** Stored field value — either a live `RichtextValue` proxy or a raw string. */
   value?: string | RichtextValue | PortableTextDocument;
   field?: { format?: string };
+}
+
+/** `@portabletext/react` renderers for every registered block with a preview. */
+function blockPreviewComponents(): Partial<PortableTextReactComponents> {
+  const types: PortableTextReactComponents['types'] = {};
+  for (const definition of listBlocks()) {
+    const Preview = definition.preview;
+    if (!Preview) continue;
+    types[definition.id] = ({ value }) => {
+      const { _type, _key, ...data } = (value ?? {}) as Record<string, unknown>;
+      void _type;
+      void _key;
+      return <Preview data={data} definition={definition} />;
+    };
+  }
+  return {
+    types,
+    // Preview approximates the published page; blocks without a preview
+    // component (including unknown types) simply don't render there.
+    unknownType: () => null,
+  };
 }
 
 /**
@@ -29,5 +56,9 @@ export function LexicalPreview({ value, field }: LexicalPreviewProps): ReactNode
     portableText = value;
   }
 
-  return <PortableText value={portableText} />;
+  // The block registry is boot-static; recompute only per mount.
+   
+  const components = useMemo(() => blockPreviewComponents(), []);
+
+  return <PortableText value={portableText} components={components} />;
 }

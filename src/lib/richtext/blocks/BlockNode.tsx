@@ -8,7 +8,9 @@ import {
   type Spread,
 } from 'lexical';
 
-import type { ComponentType, ReactNode } from 'react';
+import { BlockComponent } from './BlockComponent';
+
+import type { ReactNode } from 'react';
 import type { BlockData } from './types';
 
 /** Lexical's `_type` discriminator for custom blocks. */
@@ -16,27 +18,9 @@ export const BLOCK_NODE_TYPE = 'decap-block';
 
 /** Serialized form of a {@link BlockNode}. */
 export type SerializedBlockNode = Spread<
-  { componentId: string, data: BlockData },
+  { componentId: string, data: BlockData, blockKey?: string },
   SerializedLexicalNode
 >;
-
-/** Props passed to a registered block-renderer component. */
-export interface BlockComponentProps {
-  componentId: string;
-  data: BlockData;
-  nodeKey: NodeKey;
-}
-
-/**
- * The block UI lives in the widget package (emotion-styled), not in core.
- * The widget registers its renderer here; `decorate()` uses it.
- */
-let blockComponent: ComponentType<BlockComponentProps> | null = null;
-
-/** Register the React component used to render custom blocks in the editor. */
-export function registerBlockComponent(component: ComponentType<BlockComponentProps>): void {
-  blockComponent = component;
-}
 
 /**
  * A Lexical `DecoratorNode` embedding a custom, data-carrying block
@@ -45,11 +29,14 @@ export function registerBlockComponent(component: ComponentType<BlockComponentPr
 export class BlockNode extends DecoratorNode<ReactNode> {
   __componentId: string;
   __data: BlockData;
+  /** The Portable Text `_key` this block arrived with, if any. */
+  __blockKey?: string;
 
-  constructor(componentId: string, data: BlockData = {}, key?: NodeKey) {
+  constructor(componentId: string, data: BlockData = {}, blockKey?: string, key?: NodeKey) {
     super(key);
     this.__componentId = componentId;
     this.__data = data;
+    this.__blockKey = blockKey;
   }
 
   static getType(): string {
@@ -57,11 +44,11 @@ export class BlockNode extends DecoratorNode<ReactNode> {
   }
 
   static clone(node: BlockNode): BlockNode {
-    return new BlockNode(node.__componentId, node.__data, node.__key);
+    return new BlockNode(node.__componentId, node.__data, node.__blockKey, node.__key);
   }
 
   static importJSON(serialized: SerializedBlockNode): BlockNode {
-    return $createBlockNode(serialized.componentId, serialized.data);
+    return $createBlockNode(serialized.componentId, serialized.data, serialized.blockKey);
   }
 
   exportJSON(): SerializedBlockNode {
@@ -71,6 +58,7 @@ export class BlockNode extends DecoratorNode<ReactNode> {
       version: 1,
       componentId: this.__componentId,
       data: this.__data,
+      ...(this.__blockKey !== undefined ? { blockKey: this.__blockKey } : {}),
     };
   }
 
@@ -96,20 +84,32 @@ export class BlockNode extends DecoratorNode<ReactNode> {
     this.getWritable().__data = data;
   }
 
+  getBlockKey(): string | undefined {
+    return this.getLatest().__blockKey;
+  }
+
   isInline(): false {
     return false;
   }
 
   decorate(): ReactNode {
-    if (!blockComponent) return null;
-    const Component = blockComponent;
-    return <Component componentId={this.getComponentId()} data={this.getData()} nodeKey={this.getKey()} />;
+    return (
+      <BlockComponent
+        componentId={this.getComponentId()}
+        data={this.getData()}
+        nodeKey={this.getKey()}
+      />
+    );
   }
 }
 
 /** Create a {@link BlockNode}. */
-export function $createBlockNode(componentId: string, data: BlockData = {}): BlockNode {
-  return new BlockNode(componentId, data);
+export function $createBlockNode(
+  componentId: string,
+  data: BlockData = {},
+  blockKey?: string,
+): BlockNode {
+  return new BlockNode(componentId, data, blockKey);
 }
 
 /** Type guard for {@link BlockNode}. */
