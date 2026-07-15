@@ -38,6 +38,14 @@ vi.mock('../../lib/util/index', () => ({
     notUnderEditorialWorkflow = false;
   },
   EDITORIAL_WORKFLOW_ERROR: 'EDITORIAL_WORKFLOW_ERROR',
+  LocalSearchError: class LocalSearchError extends Error {
+    errors: Error[];
+    constructor(message: string, errors: Error[]) {
+      super(message);
+      this.errors = errors;
+      this.name = 'LOCAL_SEARCH_ERROR';
+    }
+  },
   CmsSortDirection: {
     Ascending: 'Ascending',
     Descending: 'Descending',
@@ -932,6 +940,24 @@ describe('Backend', () => {
       });
       expect(await backend.search(collections, 'find me by other')).toEqual({
         entries: [files[1]],
+      });
+    });
+
+    it('should reject with a readable error when a collection fails to load entries', async () => {
+      const loadError = new Error('failed to load pages entries');
+      backend.listAllEntries = vi.fn(collection => {
+        if (collection.name === 'posts') {
+          return Promise.resolve(posts);
+        }
+        if (collection.name === 'pages') {
+          return Promise.reject(loadError);
+        }
+        return Promise.resolve([]);
+      });
+
+      await expect(backend.search(collections, 'find me by title')).rejects.toMatchObject({
+        message: expect.stringContaining('failed to load pages entries'),
+        errors: [loadError],
       });
     });
 

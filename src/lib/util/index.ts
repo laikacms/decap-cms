@@ -1,6 +1,7 @@
 export * from './errors/APIError.js';
 export * from './errors/AccessTokenError.js';
 export * from './errors/ConfigurationError.js';
+export * from './errors/LocalSearchError.js';
 export { default as Cursor, CURSOR_COMPATIBILITY_SYMBOL } from './Cursor.js';
 export {
   default as EditorialWorkflowError,

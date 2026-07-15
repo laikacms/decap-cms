@@ -20,6 +20,7 @@ import {
   join,
   extname,
   dirname,
+  LocalSearchError,
 } from '@/lib/util/index';
 import { stringTemplate } from '@/lib/widgets/index';
 import { resolveFormat } from './formats/formats';
@@ -665,8 +666,12 @@ export class Backend {
     const entries = await Promise.all(collectionEntriesRequests).then(arrays => flatten(arrays));
 
     if (errors.length > 0) {
-      // @ts-expect-error -- TODO: fix underlying type issue
-      throw new Error({ message: 'Errors occurred while searching entries locally!', errors });
+      throw new LocalSearchError(
+        `Errors occurred while searching entries locally! Errors: ${errors
+          .map(err => err.message)
+          .join(', ')}`,
+        errors,
+      );
     }
 
     const hits = entries
