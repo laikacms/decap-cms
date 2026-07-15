@@ -288,7 +288,6 @@ catalogs:
   # Editor UI primitives (the Lexical widget's toolbar/menus).
   editor-ui:
     '@base-ui/react': '^1.6.0'
-    'cmdk': '^1.1.1'
 
   # Portable Text editor stack (the `richtext` widget — replaces the dropped
   # widget-markdown; backs the rich-text editor via Sanity's PT editor).

@@ -1,7 +1,7 @@
-import { Command as CommandPrimitive } from 'cmdk';
 import { SearchIcon } from 'lucide-react';
 import * as React from 'react';
 
+import { Command as CommandPrimitive } from '@/ui/cmdk';
 import { css, cx } from './_styled';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './dialog';
 
@@ -21,7 +21,9 @@ export function Command({
   className,
   ...props
 }: React.ComponentProps<typeof CommandPrimitive>): React.ReactNode {
-  return <CommandPrimitive data-slot="command" className={cx(commandClass, className)} {...props} />;
+  return (
+    <CommandPrimitive data-slot="command" className={cx(commandClass, className)} {...props} />
+  );
 }
 
 const srOnly = css`
@@ -47,10 +49,10 @@ export function CommandDialog({
   showCloseButton = false,
   ...props
 }: React.ComponentProps<typeof Dialog> & {
-  title?: string,
-  description?: string,
-  className?: string,
-  showCloseButton?: boolean,
+  title?: string;
+  description?: string;
+  className?: string;
+  showCloseButton?: boolean;
 }): React.ReactNode {
   return (
     <Dialog {...props}>
@@ -58,7 +60,10 @@ export function CommandDialog({
         <DialogTitle>{title}</DialogTitle>
         <DialogDescription>{description}</DialogDescription>
       </DialogHeader>
-      <DialogContent className={cx(dialogContentClass, className)} showCloseButton={showCloseButton}>
+      <DialogContent
+        className={cx(dialogContentClass, className)}
+        showCloseButton={showCloseButton}
+      >
         {children}
       </DialogContent>
     </Dialog>
@@ -100,7 +105,11 @@ export function CommandInput({
   return (
     <div data-slot="command-input-wrapper" className={inputWrapClass}>
       <SearchIcon size={16} />
-      <CommandPrimitive.Input data-slot="command-input" className={cx(inputClass, className)} {...props} />
+      <CommandPrimitive.Input
+        data-slot="command-input"
+        className={cx(inputClass, className)}
+        {...props}
+      />
     </div>
   );
 }
@@ -116,7 +125,13 @@ export function CommandList({
   className,
   ...props
 }: React.ComponentProps<typeof CommandPrimitive.List>): React.ReactNode {
-  return <CommandPrimitive.List data-slot="command-list" className={cx(listClass, className)} {...props} />;
+  return (
+    <CommandPrimitive.List
+      data-slot="command-list"
+      className={cx(listClass, className)}
+      {...props}
+    />
+  );
 }
 
 const emptyClass = css`
@@ -129,7 +144,13 @@ export function CommandEmpty({
   className,
   ...props
 }: React.ComponentProps<typeof CommandPrimitive.Empty>): React.ReactNode {
-  return <CommandPrimitive.Empty data-slot="command-empty" className={cx(emptyClass, className)} {...props} />;
+  return (
+    <CommandPrimitive.Empty
+      data-slot="command-empty"
+      className={cx(emptyClass, className)}
+      {...props}
+    />
+  );
 }
 
 const groupClass = css`
@@ -148,7 +169,13 @@ export function CommandGroup({
   className,
   ...props
 }: React.ComponentProps<typeof CommandPrimitive.Group>): React.ReactNode {
-  return <CommandPrimitive.Group data-slot="command-group" className={cx(groupClass, className)} {...props} />;
+  return (
+    <CommandPrimitive.Group
+      data-slot="command-group"
+      className={cx(groupClass, className)}
+      {...props}
+    />
+  );
 }
 
 const separatorClass = css`
@@ -162,7 +189,11 @@ export function CommandSeparator({
   ...props
 }: React.ComponentProps<typeof CommandPrimitive.Separator>): React.ReactNode {
   return (
-    <CommandPrimitive.Separator data-slot="command-separator" className={cx(separatorClass, className)} {...props} />
+    <CommandPrimitive.Separator
+      data-slot="command-separator"
+      className={cx(separatorClass, className)}
+      {...props}
+    />
   );
 }
 
@@ -214,6 +245,9 @@ const shortcutClass = css`
   color: var(--muted-foreground);
 `;
 
-export function CommandShortcut({ className, ...props }: React.ComponentProps<'span'>): React.ReactNode {
+export function CommandShortcut({
+  className,
+  ...props
+}: React.ComponentProps<'span'>): React.ReactNode {
   return <span data-slot="command-shortcut" className={cx(shortcutClass, className)} {...props} />;
 }
