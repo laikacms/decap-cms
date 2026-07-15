@@ -11,4 +11,3 @@ export { useLocalBackup } from './useLocalBackup';
 export { useTranslate } from './useTranslate';
 export { useWorkflow } from './useWorkflow';
 export { useEditor } from './useEditor';
-export { useElementSize } from './useElementSize';

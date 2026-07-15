@@ -3,14 +3,15 @@ import React from 'react';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import dayjs from 'dayjs';
-import { translate } from 'react-polyglot';
 
+import { translate } from '@/core/i18n';
 import { colors, lengths } from '@/ui/default/index';
 import { status } from '@/core/constants/publishModes';
 import { DragSource, DropTarget, HTML5DragDrop } from '@/core/components/UI';
 import WorkflowCard from './WorkflowCard';
 import { selectEntryCollectionTitle } from '@/core/reducers/collections';
 import { useCmsSlots } from '@/core/lib/slots';
+import { showAlert } from '@/ui/AlertDialog';
 
 import type { CmsCollections, CmsCollectionState } from '@/lib/util/index';
 import type { TranslateFunction } from '@/ui/default/index';
@@ -179,7 +180,7 @@ function WorkflowList({
 
   function requestPublish(collection: string, slug: string, ownStatus: string) {
     if (ownStatus !== Object.values(status).pop()) {
-      window.alert(t('workflow.workflowList.onPublishingNotReadyEntry'));
+      showAlert(t('workflow.workflowList.onPublishingNotReadyEntry'));
       return;
     } else if (!window.confirm(t('workflow.workflowList.onPublishEntry'))) {
       return;
@@ -235,6 +236,8 @@ function WorkflowList({
           const timestamp = dayjs(entry.updatedOn).format(t('workflow.workflow.dateFormat'));
           const slug = entry.slug;
           const collectionName = entry.collection;
+          // Must be absolute: the router matches anchored paths and (unlike the
+          // react-router-era history@4) does not resolve relative pushes.
           const editLink = `/collections/${collectionName}/entries/${slug}?ref=workflow`;
           const ownStatus = entry.status;
           const collection = Object.values(collections).find(

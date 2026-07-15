@@ -1,16 +1,6 @@
-import remarkFrontmatter, { type Options } from 'remark-frontmatter';
-import remarkParse from 'remark-parse';
-import remarkStringify from 'remark-stringify';
-import { unified } from 'unified';
-import { CONTINUE, EXIT, visit } from 'unist-util-visit';
-import { fromMarkdown } from 'mdast-util-from-markdown';
-
 import tomlFormatter from './toml';
 import yamlFormatter from './yaml';
 import jsonFormatter from './json';
-
-import type { VFile } from 'vfile';
-import type { Literal, Node, Parent } from 'unist';
 
 const Languages = {
   YAML: 'yaml',
@@ -21,7 +11,6 @@ const Languages = {
 type Language = (typeof Languages)[keyof typeof Languages];
 
 export type Delimiter = string | [string, string];
-type Format = { language: Language; delimiters: Delimiter };
 
 export type Content = {
   body: string;
@@ -32,20 +21,17 @@ export const isContent = (data: unknown): data is Content => {
   return typeof data === 'object' && data !== null;
 };
 
-const formatOpts: Record<Language, Options> = {
-  [Languages.YAML]: 'yaml',
-  [Languages.TOML]: 'toml',
-  [Languages.JSON]: { type: 'json', fence: { open: '{', close: '}' } },
+const defaultDelimiters: Record<Language, [string, string]> = {
+  [Languages.YAML]: ['---', '---'],
+  [Languages.TOML]: ['+++', '+++'],
+  [Languages.JSON]: ['{', '}'],
 };
 
-function buildOptions(format: Language, customDelimiter?: Delimiter): Options {
+function resolveDelimiters(format: Language, customDelimiter?: Delimiter): [string, string] {
   if (!customDelimiter) {
-    return formatOpts[format];
+    return defaultDelimiters[format];
   }
-  const [open, close] = Array.isArray(customDelimiter)
-    ? customDelimiter
-    : [customDelimiter, customDelimiter];
-  return { type: format, fence: { open, close } };
+  return Array.isArray(customDelimiter) ? customDelimiter : [customDelimiter, customDelimiter];
 }
 
 const parsers = {
@@ -95,97 +81,55 @@ const parsers = {
 
 // DCMS-574: some widgets (e.g. `richtext`) hand back a lazy value object
 // instead of a plain string for `body` (its `toString()` fires only here, at
-// file-write time). Coerce defensively so `fromMarkdown` — and anything else
-// downstream that assumes a string — never receives a non-string body.
+// file-write time). Coerce defensively so anything downstream that assumes a
+// string never receives a non-string body.
 function normalizeBody(rawBody: unknown): string {
   if (typeof rawBody === 'string') return rawBody;
   return rawBody == null ? '' : String(rawBody);
 }
 
-const objectToFrontmatter = (opts: {
-  format: Language;
-  sortedKeys?: string[];
-  comments?: Record<string, string>;
-}) => {
-  const { format, sortedKeys, comments } = opts;
-  return (tree: Node, file: VFile) => {
-    const doc = file.data.result;
+/**
+ * A frontmatter block split off the raw file content. `body` is everything
+ * after the closing delimiter line, VERBATIM — the body is opaque text here
+ * and must never be parsed or re-serialized as markdown (it may be MDX or any
+ * other format the richtext mappers handle downstream).
+ */
+interface SplitResult {
+  language: Language;
+  rawFrontmatter: string;
+  body: string;
+}
 
-    if (!isContent(doc)) {
-      throw new Error(
-        'Expected file data to contain a `body` property of type string, along with any frontmatter properties.',
-      );
+/** True when `line` is `delimiter`, allowing trailing whitespace only. */
+function isDelimiterLine(line: string, delimiter: string): boolean {
+  return line === delimiter || (line.startsWith(delimiter) && line.slice(delimiter.length).trim() === '');
+}
+
+/**
+ * Split `content` into frontmatter and an untouched body for one candidate
+ * format. The opening delimiter must be the first line; the closing delimiter
+ * is the next line consisting of only that delimiter.
+ */
+function splitFrontmatter(
+  content: string,
+  language: Language,
+  delimiters: [string, string],
+): SplitResult | null {
+  const [open, close] = delimiters;
+  const lines = content.split('\n');
+  if (!isDelimiterLine(lines[0], open)) return null;
+
+  for (let i = 1; i < lines.length; i += 1) {
+    if (isDelimiterLine(lines[i], close)) {
+      return {
+        language,
+        rawFrontmatter: lines.slice(1, i).join('\n'),
+        body: lines.slice(i + 1).join('\n'),
+      };
     }
-
-    if (!doc) return;
-
-    const { body: rawBody, ...frontmatter } = doc;
-    const body = normalizeBody(rawBody);
-
-    // rebuild markdown AST from body
-    const newTree = fromMarkdown(body);
-
-    if (Object.keys(frontmatter).length > 0) {
-      const value = parsers[format].stringify(frontmatter, { sortedKeys, comments });
-
-      newTree.children.unshift({
-        type: format as any,
-        value,
-      });
-    }
-
-    // replace original tree
-    (tree as Parent).children = newTree.children;
-  };
-};
-
-// A standalone stringify-only processor for turning the post-frontmatter
-// remainder of the tree back into a Markdown string. `mdast-util-to-string`
-// (the previous approach) collapses every text node into one bare string
-// with no separators — it discards headings, paragraph breaks and list
-// markers entirely (DCMS-603). Re-serialising through `remark-stringify`
-// instead preserves the original block structure.
-const bodyStringifier = unified().use(remarkStringify);
-
-const frontmatterToObject = () => {
-  return (tree: Node, file: VFile) => {
-    let frontmatter = {};
-
-    const formats = Object.keys(parsers);
-
-    visit(tree, formats, (node, index, parent) => {
-      if (Object.prototype.hasOwnProperty.call(parsers, node.type)) {
-        const parser = parsers[node.type as Language];
-        const nodeLiteral = node as Literal;
-
-        frontmatter = parser.parse(nodeLiteral.value as string);
-        (parent as Parent).children.splice(index as number, 1);
-
-        return EXIT;
-      } else {
-        return CONTINUE;
-      }
-    });
-
-    // `remark-stringify` always terminates its output with a single trailing
-    // newline (even for a one-line body); strip that one newline back off so
-    // `body` matches the source text, mirroring the previous `toString`
-    // behaviour for simple bodies.
-    const stringified = String(bodyStringifier.stringify(tree as never));
-    const body = stringified.endsWith('\n') ? stringified.slice(0, -1) : stringified;
-
-    file.result = {
-      ...frontmatter,
-      body,
-    };
-  };
-};
-
-const defaultOptions: Options = [
-  'yaml',
-  'toml',
-  { type: 'json', fence: { open: '{', close: '}' } },
-];
+  }
+  return null;
+}
 
 export class FrontmatterFormatter {
   format?: Language;
@@ -197,23 +141,36 @@ export class FrontmatterFormatter {
   }
 
   fromFile(content: string): Content {
-    const options = this.format ? buildOptions(this.format, this.customDelimiter) : defaultOptions;
-
     const normalized = this.format ? content : normalizeLanguageTaggedFrontmatter(content);
 
-    const result = unified()
-      .use(remarkParse)
-      .use(remarkStringify)
-      .use(remarkFrontmatter, options)
-      .use(frontmatterToObject)
-      .processSync(normalized);
+    const candidates: Array<[Language, [string, string]]> = this.format
+      ? [[this.format, resolveDelimiters(this.format, this.customDelimiter)]]
+      : [
+          [Languages.YAML, defaultDelimiters[Languages.YAML]],
+          [Languages.TOML, defaultDelimiters[Languages.TOML]],
+          [Languages.JSON, defaultDelimiters[Languages.JSON]],
+        ];
 
-    const obj = { ...(result.result as object) } as Content;
+    let split: SplitResult | null = null;
+    for (const [language, delimiters] of candidates) {
+      split = splitFrontmatter(normalized, language, delimiters);
+      if (split) break;
+    }
+
+    if (!split) {
+      // No frontmatter: the whole file is the body.
+      return normalized === '' ? ({} as Content) : ({ body: normalized } as Content);
+    }
+
+    const frontmatter = parsers[split.language].parse(split.rawFrontmatter);
+    const obj = { ...(frontmatter as object) } as Content;
 
     // Match grey-matter behaviour: omit `body` when there is no actual body
     // content. Without this, callers comparing parsed entries would see a
     // spurious empty `body` field for entries that only contain frontmatter.
-    if (typeof obj.body === 'string' && obj.body === '') {
+    if (split.body !== '') {
+      obj.body = split.body;
+    } else {
       delete (obj as Record<string, unknown>).body;
     }
 
@@ -222,51 +179,28 @@ export class FrontmatterFormatter {
 
   toFile(data: Content, sortedKeys?: string[], comments?: Record<string, string>) {
     const format = this.format || Languages.YAML;
-    const options = this.format ? buildOptions(this.format, this.customDelimiter) : defaultOptions;
+    const [open, close] = resolveDelimiters(format, this.customDelimiter);
 
-    const markdown = unified()
-      .use(remarkParse)
-      .use(objectToFrontmatter, { format, sortedKeys, comments })
-      .use(remarkFrontmatter, options)
-      .use(remarkStringify)
-      .processSync({ data: { result: data } });
+    const { body: rawBody, ...frontmatter } = data ?? {};
+    const body = normalizeBody(rawBody);
 
-    let result = String(markdown);
-
-    // remark-stringify inserts a blank line between the closing frontmatter
-    // delimiter and the body. Collapse that back to a single newline so the
-    // serialized output round-trips with the body the user supplied.
-    const closeDelim = getCloseDelimiter(format, this.customDelimiter);
-    const closeEscaped = escapeRegExp(closeDelim);
-    result = result.replace(new RegExp(`(\\n${closeEscaped}\\n)\\n`), '$1');
-
-    // Match grey-matter behaviour: only emit a trailing newline when the body
-    // actually ended with one (or when there is no body at all).
-    const body = normalizeBody(data?.body);
-    if (body !== '' && !body.endsWith('\n') && result.endsWith('\n')) {
-      result = result.slice(0, -1);
+    // Match grey-matter behaviour: no frontmatter keys -> emit the body alone.
+    if (Object.keys(frontmatter).length === 0) {
+      return body;
     }
 
-    return result;
-  }
-}
+    const value = parsers[format].stringify(frontmatter, { sortedKeys, comments });
 
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function getCloseDelimiter(format: Language, customDelimiter?: Delimiter): string {
-  if (customDelimiter) {
-    return Array.isArray(customDelimiter) ? customDelimiter[1] : customDelimiter;
+    // The body is appended VERBATIM (opaque; may be MDX). A body without a
+    // trailing newline yields a file without one — matching grey-matter.
+    return `${open}\n${value}\n${close}\n${body}`;
   }
-  if (format === Languages.TOML) return '+++';
-  if (format === Languages.JSON) return '}';
-  return '---';
 }
 
 // Decap historically supported language-tagged frontmatter fences such as
-// `---yaml`, `---toml`, and `---json`. remark-frontmatter does not understand
-// those tags directly, so rewrite them to canonical delimiters before parsing.
+// `---yaml`, `---toml`, and `---json`. The inferring parser does not
+// understand those tags directly, so rewrite them to canonical delimiters
+// before parsing.
 function normalizeLanguageTaggedFrontmatter(content: string): string {
   const match = content.match(/^---(yaml|toml|json)\n([\s\S]*?)\n---(\n[\s\S]*)?$/);
   if (!match) return content;

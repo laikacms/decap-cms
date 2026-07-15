@@ -1,6 +1,6 @@
 import { produce } from 'immer';
 import { v4 as uuid } from 'uuid';
-import get from 'lodash/get';
+import { get } from 'lodash-es';
 
 import { join } from '@/lib/util/index';
 import {

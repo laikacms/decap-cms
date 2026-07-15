@@ -1,4 +1,4 @@
-import isEqual from 'lodash/isEqual';
+import { isEqual } from 'lodash-es';
 
 import { currentBackend } from '@/core/backend';
 import { getIntegrationProvider } from '@/core/integrations';

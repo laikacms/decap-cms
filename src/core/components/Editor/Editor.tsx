@@ -5,7 +5,7 @@ import { Loader } from '@/ui/default/index';
 import { useEditor } from '@/core/hooks/useEditor';
 import EditorInterface from './EditorInterface';
 import { useCmsSlots } from '@/core/lib/slots';
-import NotFoundPage from '@/app/components/NotFoundPage';
+import NotFoundPage from '@/core/components/NotFoundPage';
 
 interface EditorProps {
   newRecord?: boolean;

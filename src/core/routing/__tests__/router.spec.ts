@@ -1,17 +1,21 @@
-vi.mock('history');
+vi.mock('@/lib/routing/hashHistory');
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createHashHistory } from 'history';
 
-import type { History } from 'history';
+import { createHashHistory } from '@/lib/routing/hashHistory';
+import { defaultRoutingTable, matchRoute } from '@/core/routing/router';
+import { createDefaultRouter } from '@/core/routing/defaultRouter';
+
+import type { HashHistory, HistoryListener, HistoryBlocker } from '@/lib/routing/hashHistory';
 
 const history = {
   push: vi.fn(),
   replace: vi.fn(),
   listen: vi.fn(),
   block: vi.fn(),
-  location: { pathname: '/', search: '' },
-} as unknown as History;
+  createHref: vi.fn((to: string) => `#${to}`),
+  location: { pathname: '/', search: '', hash: '', state: null, key: 'default' },
+} as unknown as HashHistory;
 vi.mocked(createHashHistory).mockReturnValue(history);
 
 describe('router', () => {
@@ -31,9 +35,7 @@ describe('router', () => {
       '100%-done',
     ];
 
-    it('round-trips search.searchTerm through create/get, encoding a literal "/"', async () => {
-      const { defaultRoutingTable } = await import('@/core/routing/router');
-
+    it('round-trips search.searchTerm through create/get, encoding a literal "/"', () => {
       for (const searchTerm of trickyValues) {
         const path = defaultRoutingTable.search.create({ searchTerm });
         // A literal "/" in the query must not appear unescaped in the path,
@@ -44,17 +46,13 @@ describe('router', () => {
       }
     });
 
-    it('encodes a space as %20 and decodes it back to a literal space', async () => {
-      const { defaultRoutingTable } = await import('@/core/routing/router');
-
+    it('encodes a space as %20 and decodes it back to a literal space', () => {
       const path = defaultRoutingTable.search.create({ searchTerm: 'hello world' });
       expect(path).toBe('/search/hello%20world');
       expect(defaultRoutingTable.search.get(path)).toEqual({ searchTerm: 'hello world' });
     });
 
-    it('encodes a "/" in the query as %2F so it still matches the search route', async () => {
-      const { defaultRoutingTable, matchRoute } = await import('@/core/routing/router');
-
+    it('encodes a "/" in the query as %2F so it still matches the search route', () => {
       const path = defaultRoutingTable.search.create({ searchTerm: 'foo/bar' });
       expect(path).toBe('/search/foo%2Fbar');
       expect(defaultRoutingTable.search.get(path)).toEqual({ searchTerm: 'foo/bar' });
@@ -63,49 +61,37 @@ describe('router', () => {
       expect(match).toEqual({ key: 'search', params: { searchTerm: 'foo/bar' } });
     });
 
-    it('round-trips unicode and emoji query text', async () => {
-      const { defaultRoutingTable } = await import('@/core/routing/router');
-
+    it('round-trips unicode and emoji query text', () => {
       const path = defaultRoutingTable.search.create({ searchTerm: 'café 😀' });
       expect(defaultRoutingTable.search.get(path)).toEqual({ searchTerm: 'café 😀' });
     });
 
-    it('decodes an already-encoded path (e.g. a deep link) back to the human-readable value', async () => {
-      const { defaultRoutingTable } = await import('@/core/routing/router');
-
+    it('decodes an already-encoded path (e.g. a deep link) back to the human-readable value', () => {
       expect(defaultRoutingTable.search.get('/search/caf%C3%A9')).toEqual({
         searchTerm: 'café',
       });
     });
 
-    it('raises the route-specific "Invalid ... path" error (not a raw URIError) on a malformed escape', async () => {
-      const { defaultRoutingTable } = await import('@/core/routing/router');
-
+    it('raises the route-specific "Invalid ... path" error (not a raw URIError) on a malformed escape', () => {
       expect(() => defaultRoutingTable.search.get('/search/%ZZ')).toThrow(
         'Invalid search path: /search/%ZZ',
       );
       expect(() => defaultRoutingTable.search.get('/search/%ZZ')).not.toThrow(URIError);
     });
 
-    it('round-trips collection.collectionName', async () => {
-      const { defaultRoutingTable } = await import('@/core/routing/router');
-
+    it('round-trips collection.collectionName', () => {
       for (const collectionName of trickyValues.filter(v => !v.includes('/'))) {
         const path = defaultRoutingTable.collection.create({ collectionName });
         expect(defaultRoutingTable.collection.get(path)).toEqual({ collectionName });
       }
     });
 
-    it('round-trips entryNew.collectionName', async () => {
-      const { defaultRoutingTable } = await import('@/core/routing/router');
-
+    it('round-trips entryNew.collectionName', () => {
       const path = defaultRoutingTable.entryNew.create({ collectionName: 'café-posts' });
       expect(defaultRoutingTable.entryNew.get(path)).toEqual({ collectionName: 'café-posts' });
     });
 
-    it('round-trips entry.{collectionName,slug}', async () => {
-      const { defaultRoutingTable } = await import('@/core/routing/router');
-
+    it('round-trips entry.{collectionName,slug}', () => {
       const path = defaultRoutingTable.entry.create({
         collectionName: 'posts',
         slug: 'café-story 😀',
@@ -116,9 +102,7 @@ describe('router', () => {
       });
     });
 
-    it('round-trips collectionSearch.{collectionName,searchTerm}, encoding a literal "/"', async () => {
-      const { defaultRoutingTable } = await import('@/core/routing/router');
-
+    it('round-trips collectionSearch.{collectionName,searchTerm}, encoding a literal "/"', () => {
       const path = defaultRoutingTable.collectionSearch.create({
         collectionName: 'posts',
         searchTerm: 'foo/bar baz',
@@ -130,9 +114,7 @@ describe('router', () => {
       });
     });
 
-    it('round-trips collectionFilter.{collectionName,filterTerm}', async () => {
-      const { defaultRoutingTable } = await import('@/core/routing/router');
-
+    it('round-trips collectionFilter.{collectionName,filterTerm}', () => {
       const path = defaultRoutingTable.collectionFilter.create({
         collectionName: 'posts',
         filterTerm: 'status: published',
@@ -143,9 +125,7 @@ describe('router', () => {
       });
     });
 
-    it('round-trips editRedirect.{collectionName,slug}', async () => {
-      const { defaultRoutingTable } = await import('@/core/routing/router');
-
+    it('round-trips editRedirect.{collectionName,slug}', () => {
       const path = defaultRoutingTable.editRedirect.create({
         collectionName: 'posts',
         slug: 'café-story',
@@ -156,9 +136,7 @@ describe('router', () => {
       });
     });
 
-    it('round-trips the media route (DCMS-578)', async () => {
-      const { defaultRoutingTable, matchRoute } = await import('@/core/routing/router');
-
+    it('round-trips the media route (DCMS-578)', () => {
       const path = defaultRoutingTable.media.create();
       expect(path).toBe('/media');
       expect(defaultRoutingTable.media.get(path)).toEqual({});
@@ -169,32 +147,69 @@ describe('router', () => {
   });
 
   describe('matchRoute', () => {
-    it('returns null (not a thrown error) for an unmatched path', async () => {
-      const { defaultRoutingTable, matchRoute } = await import('@/core/routing/router');
-
+    it('returns null (not a thrown error) for an unmatched path', () => {
       expect(matchRoute(defaultRoutingTable, '/does/not/exist')).toBeNull();
     });
 
-    it('lands a malformed-escape deep link on no match rather than throwing', async () => {
-      const { defaultRoutingTable, matchRoute } = await import('@/core/routing/router');
-
+    it('lands a malformed-escape deep link on no match rather than throwing', () => {
       expect(matchRoute(defaultRoutingTable, '/search/%ZZ')).toBeNull();
     });
   });
 
-  describe('defaultRouter', () => {
-    it('navigate() encodes the search term when pushing', async () => {
-      const { defaultRouter } = await import('@/core/routing/router');
+  describe('createDefaultRouter', () => {
+    it('creates one hash history per call and adapts push/replace/href to it', () => {
+      const router = createDefaultRouter();
+      expect(createHashHistory).toHaveBeenCalledTimes(1);
 
-      defaultRouter.navigate('search', { searchTerm: 'hello world' });
+      router.push('/search/hello%20world');
       expect(history.push).toHaveBeenCalledWith('/search/hello%20world');
+
+      router.replace('/workflow');
+      expect(history.replace).toHaveBeenCalledWith('/workflow');
+
+      expect(router.href('/media')).toBe('#/media');
+      expect(history.createHref).toHaveBeenCalledWith('/media');
     });
 
-    it('params() decodes the search term parsed from the current location', async () => {
-      history.location = { pathname: '/search/hello%20world', search: '' } as History['location'];
-      const { defaultRouter } = await import('@/core/routing/router');
+    it('narrows location() to pathname + search', () => {
+      const router = createDefaultRouter();
+      expect(router.location()).toEqual({ pathname: '/', search: '' });
+    });
 
-      expect(defaultRouter.params('search')).toEqual({ searchTerm: 'hello world' });
+    it('narrows subscribe payloads to { pathname, search } + action', () => {
+      const router = createDefaultRouter();
+      const seen: unknown[] = [];
+      router.subscribe(update => seen.push(update));
+
+      const historyListener = vi.mocked(history.listen).mock.calls[0][0] as HistoryListener;
+      historyListener({
+        action: 'PUSH',
+        location: { pathname: '/workflow', search: '?a=1', hash: '', state: null, key: 'k1' },
+      });
+
+      expect(seen).toEqual([
+        { action: 'PUSH', location: { pathname: '/workflow', search: '?a=1' } },
+      ]);
+    });
+
+    it('narrows block transitions and passes retry through', () => {
+      const router = createDefaultRouter();
+      const retry = vi.fn();
+      const seen: { retry: () => void }[] = [];
+      router.block(tx => seen.push(tx));
+
+      const historyBlocker = vi.mocked(history.block).mock.calls[0][0] as HistoryBlocker;
+      historyBlocker({
+        action: 'POP',
+        location: { pathname: '/', search: '', hash: '', state: null, key: 'k2' },
+        retry,
+      });
+
+      expect(seen).toEqual([
+        { action: 'POP', location: { pathname: '/', search: '' }, retry },
+      ]);
+      seen[0].retry();
+      expect(retry).toHaveBeenCalledTimes(1);
     });
   });
 });

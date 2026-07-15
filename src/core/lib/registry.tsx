@@ -1,16 +1,19 @@
-import { oneLine } from 'common-tags';
-
-import EditorComponent from '@/core/valueObjects/EditorComponent';
+import { oneLine } from '@/lib/util/index';
+import {
+  registerBlock as registerRichtextBlock,
+  registerFormat as registerRichtextFormatPack,
+  unregisterBlock as unregisterRichtextBlock,
+} from '@/lib/richtext';
 
 import type { Pluggable } from 'unified';
+import type { BlockDefinition, BlockPreviewProps, FormatPack } from '@/lib/richtext';
+import type { ComponentType } from 'react';
 import type {
   CmsWidgetParam,
   CmsMediaLibrary,
   CmsMediaLibraryOptions,
   CmsLocalePhrases,
   CmsWidgetValueSerializer,
-  CmsEditorComponentOptions,
-  CmsEditorComponentPlugin,
   CmsFormatterFunctions,
   CmsAllowedEvent,
   CmsFormatter,
@@ -43,7 +46,6 @@ interface Registry {
   templates: Record<string, React.ComponentType<unknown>>;
   previewStyles: CmsPreviewStyle[];
   widgets: Record<string, CmsWidget>;
-  editorComponents: Record<string, CmsEditorComponentPlugin>;
   remarkPlugins: unknown[];
   widgetValueSerializers: Record<string, CmsWidgetValueSerializer>;
   mediaLibraries: (CmsMediaLibrary & { options?: CmsMediaLibraryOptions })[];
@@ -78,7 +80,6 @@ const registry: Registry = {
   templates: {},
   previewStyles: [],
   widgets: {},
-  editorComponents: {},
   remarkPlugins: [],
   widgetValueSerializers: {},
   mediaLibraries: [],
@@ -96,8 +97,10 @@ export default {
   getWidget,
   getWidgets,
   resolveWidget,
-  registerEditorComponent,
-  getEditorComponents,
+  registerBlock,
+  unregisterBlock,
+  registerRichtextFormat,
+  registerBlockComponents,
   registerRemarkPlugin,
   getRemarkPlugins,
   registerWidgetValueSerializer,
@@ -205,36 +208,39 @@ export function resolveWidget(name: string | undefined) {
 }
 
 /**
- * Richtext Editor Custom Components
+ * Richtext custom blocks and format packs (PT-native replacement for the
+ * removed `registerEditorComponent` API; see BREAKING_CHANGES_V2_BETA.md).
+ * Register at boot, before entries load.
  */
-export function registerEditorComponent(
-  component: Partial<CmsEditorComponentOptions> & {
-    id?: string;
-    label?: string;
-    icon?: string;
-    widget?: string;
-    type?: 'code-block' | 'shortcode';
-  },
+export function registerBlock<TData extends Record<string, unknown>>(
+  definition: BlockDefinition<TData>,
 ) {
-  const plugin = EditorComponent(component) as CmsEditorComponentPlugin;
-  if (plugin.type === 'code-block') {
-    const codeBlock = Object.values(registry.editorComponents).find(
-      (c: CmsEditorComponentPlugin) => c.type === 'code-block',
-    );
-
-    if (codeBlock) {
-      console.warn(oneLine`
-        Only one editor component of type "code-block" may be registered. Previously registered code
-        block component(s) will be overwritten.
-      `);
-      delete registry.editorComponents[codeBlock.id];
-    }
-  }
-
-  registry.editorComponents[plugin.id] = plugin;
+  registerRichtextBlock(definition);
 }
-export function getEditorComponents() {
-  return registry.editorComponents;
+export function unregisterBlock(id: string) {
+  unregisterRichtextBlock(id);
+}
+export function registerRichtextFormat(pack: FormatPack) {
+  registerRichtextFormatPack(pack);
+}
+
+let warnedBlockComponentsReserved = false;
+/**
+ * Reserved: site-supplied React components rendered for blocks in place of
+ * their previews ("blocks are components"). Lands with the visual editor;
+ * calling it today has no effect.
+ */
+export function registerBlockComponents(
+  components: Record<string, ComponentType<BlockPreviewProps>>,
+) {
+  void components;
+  if (!warnedBlockComponentsReserved) {
+    warnedBlockComponentsReserved = true;
+    console.warn(oneLine`
+      CMS.registerBlockComponents is reserved for the upcoming visual editor and has no
+      effect yet. Use the \`preview\` property of a registered block instead.
+    `);
+  }
 }
 
 /**

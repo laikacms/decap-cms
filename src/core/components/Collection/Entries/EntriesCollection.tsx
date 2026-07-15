@@ -1,9 +1,9 @@
 import React from 'react';
 import styled from '@emotion/styled';
-import { useTranslate } from 'react-polyglot';
-import partial from 'lodash/partial';
+import { partial } from 'lodash-es';
 import { useStore } from 'react-redux';
 
+import { useTranslate } from '@/core/i18n';
 import { Cursor } from '@/lib/util/index';
 import { colors } from '@/ui/default/index';
 import {

@@ -1,9 +1,9 @@
 import React from 'react';
-import { translate } from 'react-polyglot';
 import styled from '@emotion/styled';
 import yaml from 'yaml';
-import truncate from 'lodash/truncate';
+import { truncate } from 'lodash-es';
 
+import { translate } from '@/core/i18n';
 import { localForage } from '@/lib/util/index';
 import { buttons, colors } from '@/ui/default/index';
 

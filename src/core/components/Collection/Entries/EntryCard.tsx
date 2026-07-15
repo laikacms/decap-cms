@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styled from '@emotion/styled';
-import { useTranslate } from 'react-polyglot';
 
+import { useTranslate } from '@/core/i18n';
 import { Link } from '@/core/routing/Link';
 import { colors, colorsRaw, components, lengths, zIndex } from '@/ui/default/index';
 import { boundGetAsset } from '@/core/actions/media';

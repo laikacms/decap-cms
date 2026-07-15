@@ -1,7 +1,7 @@
 vi.mock('../registry');
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import merge from 'lodash/merge';
+import { merge } from 'lodash-es';
 
 import { validateConfig } from '@/core/lib/validateConfig';
 import { getWidgets } from '@/core/lib/registry';

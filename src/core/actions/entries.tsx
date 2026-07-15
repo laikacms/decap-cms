@@ -1,4 +1,4 @@
-import isEqual from 'lodash/isEqual';
+import { isEqual } from 'lodash-es';
 
 import { Cursor } from '@/lib/util/index';
 import { CmsSortDirection } from '@/lib/util/index';

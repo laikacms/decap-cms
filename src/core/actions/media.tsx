@@ -1,4 +1,4 @@
-import memoize from 'lodash/memoize';
+import { memoize } from 'lodash-es';
 
 import { isAbsolutePath } from '@/lib/util/index';
 import { createAssetProxy } from '@/core/valueObjects/AssetProxy';
@@ -87,19 +87,27 @@ const emptyAsset = createAssetProxy({
   }),
 });
 
-export const boundGetAsset = memoize(
-  (dispatch: ThunkDispatch<State, {}, AnyAction>, collection: Collection, entry: EntryMap) => {
-    function bound(path: string, field: EntryField) {
-      const asset = dispatch(getAsset({ collection, entry, path, field }));
-      return asset;
-    }
+function getAssetFactory(
+  dispatch: ThunkDispatch<State, {}, AnyAction>,
+  collection: Collection,
+  entry: EntryMap,
+) {
+  function bound(path: string, field: EntryField) {
+    const asset = dispatch(getAsset({ collection, entry, path, field }));
+    return asset;
+  }
 
-    return bound;
-  },
+  return bound;
+}
+
+// Annotated explicitly: the inferred `memoize` type references MemoizedFunction,
+// which @types/lodash-es does not re-export, making the type non-portable.
+export const boundGetAsset = memoize(
+  getAssetFactory,
   // NOTE: despite the parameter name, this resolver keys on the 2nd positional
   // argument passed to the memoized function above, i.e. `collection`, not `entry`.
   (_, collection) => collection,
-);
+) as typeof getAssetFactory & { cache: Map<unknown, unknown> };
 
 // A `WeakMap` requires object keys and throws on nullish/primitive keys. The
 // resolver above can key on `collection`, which is nullish on new-entry mount

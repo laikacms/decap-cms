@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import { describe, expect, it, vi } from 'vitest';
 
 import { RouterProvider } from '@/core/routing/context';
+import { createDefaultRouter } from '@/core/routing/defaultRouter';
 import ConnectedNestedCollection, {
   NestedCollection,
   getTreeData,
@@ -47,7 +48,7 @@ describe('NestedCollection', () => {
   it('should render correctly with no entries', () => {
     const entries = [];
     const { getByTestId } = render(
-      <RouterProvider>
+      <RouterProvider router={createDefaultRouter()}>
         <NestedCollection collection={collection} entries={entries} />
       </RouterProvider>,
     );
@@ -65,7 +66,7 @@ describe('NestedCollection', () => {
       { path: 'src/pages/b/a/index.md', data: { title: 'File 4' } },
     ];
     const { getByTestId } = render(
-      <RouterProvider>
+      <RouterProvider router={createDefaultRouter()}>
         <NestedCollection collection={collection} entries={entries} />
       </RouterProvider>,
     );
@@ -89,7 +90,7 @@ describe('NestedCollection', () => {
       { path: 'src/pages/b/a/index.md', data: { title: 'File 4' } },
     ];
     const { getByTestId, rerender } = render(
-      <RouterProvider>
+      <RouterProvider router={createDefaultRouter()}>
         <NestedCollection collection={collection} entries={entries} />
       </RouterProvider>,
     );
@@ -110,7 +111,7 @@ describe('NestedCollection', () => {
     ];
 
     rerender(
-      <RouterProvider>
+      <RouterProvider router={createDefaultRouter()}>
         <NestedCollection collection={collection} entries={newEntries} />
       </RouterProvider>,
     );
@@ -127,7 +128,7 @@ describe('NestedCollection', () => {
     ];
 
     const { getByTestId, queryByTestId, rerender } = render(
-      <RouterProvider>
+      <RouterProvider router={createDefaultRouter()}>
         <NestedCollection collection={collection} entries={entries} />
       </RouterProvider>,
     );
@@ -135,7 +136,7 @@ describe('NestedCollection', () => {
     expect(queryByTestId('/a/a')).toBeNull();
 
     rerender(
-      <RouterProvider>
+      <RouterProvider router={createDefaultRouter()}>
         <NestedCollection collection={collection} entries={entries} filterTerm={'a/a'} />
       </RouterProvider>,
     );
@@ -152,13 +153,13 @@ describe('NestedCollection', () => {
     ];
 
     const { getByTestId, queryByTestId, rerender } = render(
-      <RouterProvider>
+      <RouterProvider router={createDefaultRouter()}>
         <NestedCollection collection={collection} entries={entries} />
       </RouterProvider>,
     );
 
     rerender(
-      <RouterProvider>
+      <RouterProvider router={createDefaultRouter()}>
         <NestedCollection collection={collection} entries={entries} filterTerm={'a/a'} />
       </RouterProvider>,
     );
@@ -168,7 +169,7 @@ describe('NestedCollection', () => {
     fireEvent.click(getByTestId('/a'));
 
     rerender(
-      <RouterProvider>
+      <RouterProvider router={createDefaultRouter()}>
         <NestedCollection collection={collection} entries={[...entries]} filterTerm={'a/a'} />
       </RouterProvider>,
     );
@@ -186,7 +187,7 @@ describe('NestedCollection', () => {
     ];
 
     const { getByTestId } = render(
-      <RouterProvider>
+      <RouterProvider router={createDefaultRouter()}>
         <NestedCollection collection={collection} entries={entries} />
       </RouterProvider>,
     );
@@ -210,7 +211,7 @@ describe('NestedCollection', () => {
     ];
 
     const { getByTestId, queryByTestId } = render(
-      <RouterProvider>
+      <RouterProvider router={createDefaultRouter()}>
         <NestedCollection collection={collection} entries={entries} />
       </RouterProvider>,
     );
@@ -244,7 +245,7 @@ describe('NestedCollection', () => {
     const store = mockStore({ entries });
 
     const { getByTestId } = renderWithRedux(
-      <RouterProvider>
+      <RouterProvider router={createDefaultRouter()}>
         <ConnectedNestedCollection collection={collection} entries={entries} />
       </RouterProvider>,
       { store },

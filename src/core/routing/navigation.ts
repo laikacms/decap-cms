@@ -1,19 +1,24 @@
-import { defaultRouter } from './router';
+import { getActiveRouting } from './registry';
 
 /**
  * Imperative navigation helpers for use outside React (Redux thunks and the
- * editor hooks). They drive the shared `defaultRouter` — the same router the
- * context hooks and `<Link>` use — so every navigation path stays in sync.
+ * editor hooks). They drive the active router + routing table registered by
+ * `DecapCmsProvider` — the same pair the context hooks and `<Link>` use — so
+ * every navigation path stays in sync, including when a consumer supplies a
+ * custom router or table.
  */
 
 export function navigateToCollection(collectionName: string) {
-  defaultRouter.navigate('collection', { collectionName });
+  const { router, routing } = getActiveRouting();
+  router.push(routing.collection.create({ collectionName }));
 }
 
 export function navigateToNewEntry(collectionName: string) {
-  defaultRouter.replace('entryNew', { collectionName });
+  const { router, routing } = getActiveRouting();
+  router.replace(routing.entryNew.create({ collectionName }));
 }
 
 export function navigateToEntry(collectionName: string, slug: string) {
-  defaultRouter.replace('entry', { collectionName, slug });
+  const { router, routing } = getActiveRouting();
+  router.replace(routing.entry.create({ collectionName, slug }));
 }

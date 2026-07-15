@@ -1,28 +1,31 @@
-import { defaultRouter, defaultRoutingTable } from '@/core/routing/router';
-import { getCollectionUrl, getNewEntryUrl } from '@/core/lib/urlHelper';
+import { getActiveRouting } from '@/core/routing/registry';
 
 /**
- * Routes through `defaultRoutingTable`'s creators rather than hand-templating
- * the URL, so the query (which may contain spaces, `/`, `#`, unicode, etc.)
- * goes through the single `encodeURIComponent` choke point (DCMS-444).
+ * Routes through the active routing table's creators rather than
+ * hand-templating the URL, so the query (which may contain spaces, `/`, `#`,
+ * unicode, etc.) goes through the single `encodeURIComponent` choke point
+ * (DCMS-444) — and a consumer-supplied router/table is honoured.
  */
 export function searchCollections(query: string, collection: string) {
+  const { router, routing } = getActiveRouting();
   if (collection) {
-    defaultRouter.push(
-      defaultRoutingTable.collectionSearch.create({
+    router.push(
+      routing.collectionSearch.create({
         collectionName: collection,
         searchTerm: query,
       }),
     );
   } else {
-    defaultRouter.push(defaultRoutingTable.search.create({ searchTerm: query }));
+    router.push(routing.search.create({ searchTerm: query }));
   }
 }
 
 export function showCollection(collectionName: string) {
-  defaultRouter.push(getCollectionUrl(collectionName));
+  const { router, routing } = getActiveRouting();
+  router.push(routing.collection.create({ collectionName }));
 }
 
 export function createNewEntry(collectionName: string) {
-  defaultRouter.push(getNewEntryUrl(collectionName));
+  const { router, routing } = getActiveRouting();
+  router.push(routing.entryNew.create({ collectionName }));
 }

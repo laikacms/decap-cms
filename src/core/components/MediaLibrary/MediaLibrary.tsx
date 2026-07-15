@@ -1,9 +1,8 @@
 import React from 'react';
-import orderBy from 'lodash/orderBy';
-import map from 'lodash/map';
-import { useTranslate } from 'react-polyglot';
+import { map, orderBy } from 'lodash-es';
 import fuzzy from 'fuzzy';
 
+import { useTranslate } from '@/core/i18n';
 import { fileExtension } from '@/lib/util/index';
 import {
   loadMedia as loadMediaAction,
@@ -16,7 +15,8 @@ import {
 import { selectMediaFiles } from '@/core/reducers/mediaLibrary';
 import MediaLibraryModal from './MediaLibraryModal';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
-import { defaultRouter } from '@/core/routing/router';
+import { useRouter } from '@/core/routing/context';
+import { showAlert } from '@/ui/AlertDialog';
 
 import type { TranslateFunction } from '@/ui/default/index';
 
@@ -134,6 +134,7 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
   const [isPersisted, setIsPersisted] = React.useState(false);
   const [sortFields] = React.useState<SortField[] | undefined>(undefined);
 
+  const router = useRouter();
   const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
   const wasVisibleRef = React.useRef(isVisible);
   const prevPrivateUploadRef = React.useRef(privateUpload);
@@ -146,17 +147,17 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
   /**
    * The modal is rendered via a `ReactModalPortal` that sits above the router's
    * own views, so navigating away (browser Back, hash change, or a programmatic
-   * `defaultRouter.navigate`) doesn't unmount it — `isVisible` just stays `true`
-   * and the portal keeps intercepting pointer events on the destination page.
+   * router push) doesn't unmount it — `isVisible` just stays `true` and the
+   * portal keeps intercepting pointer events on the destination page.
    * Mirrors the router-subscribe teardown pattern in `useEditor.ts`.
    */
   React.useEffect(() => {
-    return defaultRouter.subscribe(() => {
+    return router.subscribe(() => {
       if (isVisible) {
         closeMediaLibrary();
       }
     });
-  }, [isVisible, closeMediaLibrary]);
+  }, [isVisible, closeMediaLibrary, router]);
 
   /**
    * Replicates the prior UNSAFE_componentWillReceiveProps + componentDidUpdate
@@ -235,7 +236,7 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
       | undefined;
 
     if (maxFileSize && file.size > maxFileSize) {
-      window.alert(
+      showAlert(
         t('mediaLibrary.mediaLibrary.fileTooLarge', {
           size: Math.floor(maxFileSize / 1000),
         }),

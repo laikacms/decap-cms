@@ -1,7 +1,7 @@
 import yaml from 'yaml';
 import { createNode } from 'yaml/util';
 import { Schema } from 'yaml';
-import { isDate } from 'lodash';
+import { isDate } from 'lodash-es';
 
 import { sortKeys } from './helpers';
 

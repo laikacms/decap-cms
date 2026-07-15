@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
-import debounce from 'lodash/debounce';
+import { debounce } from 'lodash-es';
 
 import { useAppDispatch, useAppSelector } from './useRedux';
 import { useWorkflow } from './useWorkflow';
 import { useTranslate } from './useTranslate';
 import { navigateToCollection, navigateToNewEntry } from '@/core/routing/navigation';
-import { defaultRouter, routerHistory as history } from '@/core/routing/router';
+import { useRouter } from '@/core/routing/context';
 import { logoutUser } from '@/core/actions/auth';
 import {
   loadEntry,
@@ -32,6 +32,7 @@ import { loadDeployPreview } from '@/core/actions/deploys';
 import { selectEntry, selectUnpublishedEntry, selectDeployPreview } from '@/core/reducers';
 import { selectFields } from '@/core/reducers/collections';
 import { status, EDITORIAL_WORKFLOW } from '@/core/constants/publishModes';
+import { showAlert } from '@/ui/AlertDialog';
 
 import type { Status } from '@/core/constants/publishModes';
 import type { RouterUpdate, RouterTransition } from '@/core/routing/router';
@@ -63,14 +64,14 @@ export function useEditor({
 }: UseEditorOptions) {
   const dispatch = useAppDispatch();
   const t = useTranslate();
+  const router = useRouter();
 
   // Refs for cleanup functions
   const exitBlockerRef = useRef<((event: BeforeUnloadEvent) => string | undefined) | null>(null);
   const unlistenRef = useRef<(() => void) | null>(null);
   const unblockRef = useRef<(() => void) | null>(null);
-  const popSyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // The blocker function itself (stable per edit session, defined once in
-  // `setup()`), separate from whether it's currently *armed* on `history` —
+  // `setup()`), separate from whether it's currently *armed* on the router —
   // see the `hasChanged`-keyed effect below, which owns arming/disarming.
   const navigationBlockerRef = useRef<((tx: RouterTransition) => void) | null>(null);
 
@@ -198,7 +199,9 @@ export function useEditor({
     exitBlockerRef.current = exitBlocker;
     window.addEventListener('beforeunload', exitBlocker);
 
-    // Setup navigation blocker (history v5 API)
+    // Setup navigation blocker (router.block covers PUSH/REPLACE and POP-type
+    // navigation alike; a blocked POP's URL change is reverted before the
+    // blocker runs).
     // Note: The blocker prevents navigation by default. We only call tx.retry()
     // when we want to allow the navigation to proceed.
     // IMPORTANT: We must unblock BEFORE calling tx.retry() to prevent infinite loops,
@@ -231,23 +234,18 @@ export function useEditor({
       tx.retry();
     }
 
-    // `navigationBlocker` is only *armed* on `history` while the draft is
+    // `navigationBlocker` is only *armed* on the router while the draft is
     // actually dirty — see the `hasChanged`-keyed effect below. Keeping it
-    // armed unconditionally for the whole edit session (the previous
-    // behaviour) meant `history@5`'s `block()` intercepted every navigation
-    // attempt, including plain PUSH/REPLACE ones this guard was always going
-    // to allow through immediately, AND every POP-type navigation (browser
-    // back/forward, direct hash edits) whether or not there was anything to
-    // protect — the latter unconditionally hits the "block a POP navigation
-    // to a location that was not created by the history library" warning
-    // below (DCMS-569), since `history@5` can't resolve a POP's `idx` for a
-    // location it didn't create regardless of what the blocker would have
-    // decided. Only arming while dirty limits that warning to navigations
-    // that are actually guarding unsaved changes.
+    // armed unconditionally for the whole edit session would make `block()`
+    // intercept every navigation attempt, including plain PUSH/REPLACE ones
+    // this guard was always going to allow through immediately, and would run
+    // the router's revert-then-retry dance for every browser back/forward
+    // even with nothing to protect. Only arming while dirty keeps clean-draft
+    // navigation on the fast path.
     navigationBlockerRef.current = navigationBlocker;
 
     // Setup navigation listener (receives { location, action } on every navigation)
-    const unlisten = defaultRouter.subscribe(({ location, action }: RouterUpdate) => {
+    const unlisten = router.subscribe(({ location, action }: RouterUpdate) => {
       const newEntryPath = `/collections/${collection!.name}/new`;
       const entriesPath = `/collections/${collection!.name}/entries/`;
       const { pathname } = location;
@@ -266,108 +264,6 @@ export function useEditor({
     });
     unlistenRef.current = unlisten;
 
-    // POP-navigation safety net (DCMS-286).
-    //
-    // `history@5`'s `history.block()` above can only intercept a browser
-    // back/forward navigation when it can find the target location's `idx`
-    // in the native history state, i.e. a location it created itself (see
-    // history/hash.js `handlePop`). For any other POP — most notably the
-    // very first Back the user presses, landing on whatever history entry
-    // existed before this app took over — it just warns ("...block will
-    // fail silently in production...") and lets the browser navigate away
-    // without ever calling `navigationBlocker` above, so the unsaved-changes
-    // guard is silently skipped for exactly the case it exists to cover.
-    //
-    // The native `hashchange` event always fires, unlike `history.block()`/
-    // `history.listen` in this failure mode. Use it to detect when
-    // `history`'s internal bookkeeping has fallen out of sync with the real
-    // URL, then resync through the SAME shared `history` instance
-    // (`history.replace`), which re-stamps `idx` so this location blocks
-    // correctly on the next POP. Debounce so this doesn't race the
-    // multi-tick revert/retry dance `history.block()` runs for the case it
-    // CAN handle (idx known) — that dance always settles well within the
-    // debounce window.
-    const isInSync = () => window.location.href === history.createHref(history.location);
-    const getHashPath = () => {
-      const raw = window.location.hash;
-      return raw.startsWith('#') ? raw.slice(1) || '/' : raw || '/';
-    };
-
-    // Set right before we programmatically revert the URL bar on cancel
-    // (below), since that revert itself fires a native `hashchange` — without
-    // this, that synthetic event would re-enter this handler and prompt a
-    // second confirm for the same cancelled navigation.
-    let suppressNextHashChange = false;
-
-    // `history.replace()` still goes through `block()` while armed (history@5
-    // runs every registered blocker for REPLACE too, see `allowTx` in
-    // history/hash.js), so calling it while `navigationBlocker` is still
-    // armed re-invokes that blocker for this resync and — now that it reads
-    // the live draft via `entryDraftRef` — prompts a second, redundant
-    // confirm for the exact navigation this safety net (or the user, just
-    // above) already resolved. Unblock for the duration of the resync call,
-    // then only restore the block if the draft is still dirty (the
-    // `hasChanged`-keyed effect below owns arming otherwise; re-arming
-    // unconditionally here would defeat it and re-introduce a POP warning on
-    // the next browser back/forward for an already-pristine draft).
-    const resyncHistory = (path: string) => {
-      unblockRef.current?.();
-      unblockRef.current = null;
-      history.replace(path);
-      if (entryDraftRef.current?.hasChanged) {
-        unblockRef.current = defaultRouter.block(navigationBlocker);
-      }
-    };
-
-    const handleHashChange = () => {
-      if (suppressNextHashChange) {
-        suppressNextHashChange = false;
-        return;
-      }
-      if (popSyncTimerRef.current) {
-        clearTimeout(popSyncTimerRef.current);
-      }
-      popSyncTimerRef.current = setTimeout(() => {
-        popSyncTimerRef.current = null;
-
-        const path = getHashPath();
-        const draft = entryDraftRef.current;
-        const newEntryPath = `/collections/${collection!.name}/new`;
-        const isPersistingNewEntry =
-          draft?.entry?.isPersisting && draft?.entry?.newRecord && path === newEntryPath;
-
-        if (isPersistingNewEntry || !draft?.hasChanged) {
-          // Nothing to protect. Only hand bookkeeping back to `history` (which
-          // fires the `listen` callback registered above as normal) if it
-          // hasn't already resynced on its own — calling `history.replace`
-          // when already in sync would stamp a spurious extra entry.
-          if (!isInSync()) {
-            resyncHistory(path);
-          }
-          return;
-        }
-
-        // Deliberately do NOT gate on `isInSync()` here: a POP to a location
-        // `history` didn't create (the exact case this safety net exists for,
-        // e.g. the first browser Back after app boot) never calls `applyTx`,
-        // so `history.location` can legitimately stay desynced from
-        // `window.location` even after this debounce settles. Trusting
-        // `isInSync()` as "already handled, safe to skip" previously let a
-        // dirty draft's guard be silently bypassed on any such external hash
-        // mutation (DCMS-456) — the dirty-draft check below is the real
-        // guard, and it must always run.
-
-        if (window.confirm(leaveMessage)) {
-          resyncHistory(path);
-        } else {
-          // Revert the URL bar back to where the app actually is.
-          suppressNextHashChange = true;
-          window.location.href = history.createHref(history.location);
-        }
-      }, 50);
-    };
-    window.addEventListener('hashchange', handleHashChange);
-
     return {
       cleanup: () => {
         createBackup.flush();
@@ -375,11 +271,6 @@ export function useEditor({
         dispatch(discardDraft() as any);
         if (exitBlockerRef.current) {
           window.removeEventListener('beforeunload', exitBlockerRef.current);
-        }
-        window.removeEventListener('hashchange', handleHashChange);
-        if (popSyncTimerRef.current) {
-          clearTimeout(popSyncTimerRef.current);
-          popSyncTimerRef.current = null;
         }
         if (unblockRef.current) {
           unblockRef.current();
@@ -400,33 +291,34 @@ export function useEditor({
     locationPathname,
     locationSearch,
     newEntry,
+    router,
     slug,
     t,
     workflow,
   ]);
 
-  // Arm the navigation blocker on `history` only while there are unsaved
+  // Arm the navigation blocker on the router only while there are unsaved
   // changes to protect, and disarm it the moment they're gone (saved,
-  // discarded, or navigated away from). This is what keeps `history.block()`
-  // off `history` for the common pristine-editing case: an un-armed blocker
-  // means POP-type navigation (browser back/forward, direct hash edits) hits
-  // `history@5`'s normal `applyTx` path instead of its "block a POP
-  // navigation..." warning branch, which only fires when a blocker is
-  // registered (DCMS-569). `navigationBlockerRef` is set once per edit
-  // session in `setup()` above; this effect only toggles whether it's
-  // installed.
+  // discarded, or navigated away from). This keeps the common
+  // pristine-editing case on the fast path: an un-armed blocker means
+  // POP-type navigation (browser back/forward, direct hash edits) applies
+  // directly instead of going through the router's revert-then-retry
+  // interception. `navigationBlockerRef` is set once per edit session in
+  // `setup()` above; this effect only toggles whether it's installed.
   useEffect(() => {
     if (!collection) return;
 
     if (hasChanged) {
       if (!unblockRef.current && navigationBlockerRef.current) {
-        unblockRef.current = defaultRouter.block(navigationBlockerRef.current);
+        // `block` is optional on the Router port; without it the guard
+        // degrades to the `beforeunload` handler installed in `setup()`.
+        unblockRef.current = router.block?.(navigationBlockerRef.current) ?? null;
       }
     } else {
       unblockRef.current?.();
       unblockRef.current = null;
     }
-  }, [hasChanged, collection]);
+  }, [hasChanged, collection, router]);
 
   // Handle local backup confirmation
   const handleLocalBackupCheck = useCallback(
@@ -477,7 +369,7 @@ export function useEditor({
       if (!collection || !slug || !currentStatus) return;
 
       if (entryDraft?.hasChanged) {
-        window.alert(t('editor.editor.onUpdatingWithUnsavedChanges'));
+        showAlert(t('editor.editor.onUpdatingWithUnsavedChanges'));
         return;
       }
       const newStatus = (status as unknown as Record<string, string>)[newStatusName] as
@@ -538,10 +430,10 @@ export function useEditor({
       if (!slug) return;
 
       if (currentStatus !== Object.values(status).pop()) {
-        window.alert(t('editor.editor.onPublishingNotReady'));
+        showAlert(t('editor.editor.onPublishingNotReady'));
         return;
       } else if (entryDraft?.hasChanged) {
-        window.alert(t('editor.editor.onPublishingWithUnsavedChanges'));
+        showAlert(t('editor.editor.onPublishingWithUnsavedChanges'));
         return;
       } else if (!window.confirm(t('editor.editor.onPublishing'))) {
         return;

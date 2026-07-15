@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import styled from '@emotion/styled';
-import { useTranslate } from 'react-polyglot';
 
+import { useTranslate } from '@/core/i18n';
 import { lengths, components } from '@/ui/default/index';
 import { useAppSelector, useAppDispatch } from '@/core/hooks/useRedux';
 import { getNewEntryUrl } from '@/core/lib/urlHelper';

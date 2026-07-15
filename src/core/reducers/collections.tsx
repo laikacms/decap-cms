@@ -1,6 +1,5 @@
 import { produce } from 'immer';
-import get from 'lodash/get';
-import escapeRegExp from 'lodash/escapeRegExp';
+import { escapeRegExp, get } from 'lodash-es';
 
 import { stringTemplate } from '@/lib/widgets/index';
 import { CONFIG_SUCCESS } from '@/core/actions/config';

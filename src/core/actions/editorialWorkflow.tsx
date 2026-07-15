@@ -1,4 +1,4 @@
-import get from 'lodash/get';
+import { get } from 'lodash-es';
 
 import { EDITORIAL_WORKFLOW_ERROR } from '@/lib/util/index';
 import { currentBackend, slugFromCustomPath } from '@/core/backend';

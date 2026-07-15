@@ -1,4 +1,4 @@
-import flatten from 'lodash/flatten';
+import { flatten } from 'lodash-es';
 
 import { unsentRequest } from '@/lib/util/index';
 import { createEntry } from '@/core/valueObjects/Entry';

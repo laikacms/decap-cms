@@ -1,5 +1,5 @@
 import { createStore, applyMiddleware } from 'redux';
-import { composeWithDevTools } from 'redux-devtools-extension';
+import { composeWithDevTools } from '@redux-devtools/extension';
 import { thunk as thunkMiddleware } from 'redux-thunk';
 
 import { waitUntilAction } from './middleware/waitUntilAction';

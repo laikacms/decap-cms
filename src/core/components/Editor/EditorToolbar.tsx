@@ -1,8 +1,8 @@
 import React from 'react';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
-import { translate } from 'react-polyglot';
 
+import { translate } from '@/core/i18n';
 import { Link } from '@/core/routing/Link';
 import {
   Icon,
@@ -139,7 +139,12 @@ const ToolbarSectionMeta = styled.div`
 
 const ToolbarDropdown = styled(Dropdown)`
   ${styles.buttonMargin};
+`;
 
+/* The dropdown popup is portaled to document.body now, so the teal icon
+   color has to live on the items themselves instead of a descendant rule on
+   ToolbarDropdown. */
+const ToolbarDropdownItem = styled(DropdownItem)`
   ${Icon} {
     color: ${colorsRaw.teal};
   }
@@ -257,7 +262,7 @@ const RefreshPreviewButton = styled.button<{ $spinning?: boolean }>`
 
 const PreviewLink = RefreshPreviewButton.withComponent('a');
 
-const PublishDropDownItem = styled(DropdownItem)`
+const PublishDropDownItem = styled(ToolbarDropdownItem)`
   min-width: initial;
 `;
 
@@ -522,7 +527,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
         )}
       >
         {canDelete && canPublish && (
-          <DropdownItem
+          <ToolbarDropdownItem
             label={t('editor.editorToolbar.unpublish')}
             icon="arrow"
             iconDirection="right"
@@ -530,7 +535,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
           />
         )}
         {canCreate && (
-          <DropdownItem
+          <ToolbarDropdownItem
             label={t('editor.editorToolbar.duplicate')}
             icon="add"
             onClick={onDuplicate}
@@ -551,7 +556,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
           <PublishedToolbarButton>{t('editor.editorToolbar.published')}</PublishedToolbarButton>
         )}
       >
-        <DropdownItem
+        <ToolbarDropdownItem
           label={t('editor.editorToolbar.duplicate')}
           icon="add"
           onClick={onDuplicate}
@@ -576,7 +581,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
             </PublishButton>
           )}
         >
-          <DropdownItem
+          <ToolbarDropdownItem
             label={t('editor.editorToolbar.publishNow')}
             icon="arrow"
             iconDirection="right"
@@ -584,12 +589,12 @@ export function EditorToolbar(props: EditorToolbarProps) {
           />
           {canCreate ? (
             <>
-              <DropdownItem
+              <ToolbarDropdownItem
                 label={t('editor.editorToolbar.publishAndCreateNew')}
                 icon="add"
                 onClick={onPersistAndNew}
               />
-              <DropdownItem
+              <ToolbarDropdownItem
                 label={t('editor.editorToolbar.publishAndDuplicate')}
                 icon="add"
                 onClick={onPersistAndDuplicate}

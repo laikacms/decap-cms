@@ -1,5 +1,5 @@
 import React from 'react';
-import memoize from 'lodash/memoize';
+import { memoize } from 'lodash-es';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 

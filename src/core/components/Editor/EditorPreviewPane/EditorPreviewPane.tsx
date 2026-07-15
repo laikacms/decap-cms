@@ -9,7 +9,6 @@ import {
   getPreviewTemplate,
   getPreviewStyles,
   getRemarkPlugins,
-  getEditorComponents,
 } from '@/core/lib/registry';
 import { getAllEntries, tryLoadEntry } from '@/core/actions/entries';
 import { ErrorBoundary } from '@/core/components/UI';
@@ -122,7 +121,6 @@ export function getWidget(
         fieldsMetaData: metadata as Record<string, unknown>,
         resolveWidget,
         getRemarkPlugins,
-        getEditorComponents,
       } as any)}
     />
   );
@@ -329,7 +327,6 @@ export function PreviewPane(props: PreviewPaneProps) {
     ) => widgetFor(name, fields, values, fieldsMetaData),
     widgetsFor: (name: string) => widgetsFor(name),
     getCollection: (collectionName: string, slug?: string) => getCollection(collectionName, slug),
-    getEditorComponents,
   };
 
   const styleEls = getPreviewStyles().map((style, i) => {

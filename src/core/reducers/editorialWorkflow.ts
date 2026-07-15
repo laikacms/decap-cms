@@ -1,6 +1,6 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { produce } from 'immer';
-import startsWith from 'lodash/startsWith';
+import { startsWith } from 'lodash-es';
 
 import { EDITORIAL_WORKFLOW, status as statusValues } from '@/core/constants/publishModes';
 import {

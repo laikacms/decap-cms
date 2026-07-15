@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { oneLine } from 'common-tags';
 
 import { getRemarkPlugins } from '@/core/lib/registry';
 import ValidationErrorTypes from '@/core/constants/validationErrorTypes';
@@ -44,7 +43,6 @@ interface WidgetProps<T = unknown> {
   getAsset: (path: string, field: Record<string, unknown>) => unknown;
   resolveWidget: (name: string) => Record<string, unknown>;
   widget: Record<string, unknown>;
-  getEditorComponents: () => Record<string, unknown>;
   isFetching?: boolean;
   query: (
     namespace: string,
@@ -361,7 +359,6 @@ export default class Widget extends Component<WidgetProps> {
       uniqueFieldId,
       resolveWidget,
       widget,
-      getEditorComponents,
       query,
       queryHits,
       clearSearch,
@@ -414,7 +411,6 @@ export default class Widget extends Component<WidgetProps> {
       editorControl,
       resolveWidget,
       widget,
-      getEditorComponents,
       getRemarkPlugins,
       query,
       queryHits,

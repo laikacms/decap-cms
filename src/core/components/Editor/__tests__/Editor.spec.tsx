@@ -12,7 +12,7 @@ vi.mock('../EditorInterface', () => ({
 vi.mock('../../../../ui/default/index', () => ({
   Loader: props => <mock-loader {...props} />,
 }));
-vi.mock('../../../../app/components/NotFoundPage', () => ({
+vi.mock('@/core/components/NotFoundPage', () => ({
   default: ({ message, backLink }: { message?: string; backLink?: { to: string; label: string } }) => (
     <div data-testid="not-found-page">
       {message && <p>{message}</p>}

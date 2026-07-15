@@ -71,10 +71,11 @@ export interface DecapCmsProviderProps {
    */
   theme?: DecapTheme;
   /**
-   * Override the router — e.g. to route through a host app's own router or a
-   * non-hash URL scheme. Must satisfy the `Router` contract. Defaults to
-   * `defaultRouter` (hash history). A custom router should be paired with a
-   * matching `routing` table.
+   * Override the router — e.g. to route through a host app's own router or
+   * the History API instead of hash URLs. Must satisfy the (primitive)
+   * `Router` contract; the URL scheme itself is the `routing` table's job.
+   * When omitted, the provider creates its own hash router
+   * (`createDefaultRouter`). The router is fixed for the provider's lifetime.
    */
   router?: Router;
   children?: ReactNode;

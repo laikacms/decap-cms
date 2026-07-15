@@ -39,28 +39,6 @@ declare module 'url' {
   function resolve(from: string, to: string): string;
 }
 
-// react-polyglot: i18n HOC and hook for React
-declare module 'react-polyglot' {
-  import type { ComponentType, ReactNode } from 'react';
-  import type { CmsLocalePhrases } from '@/lib/util/types/cms/common.js';
-
-  export type TranslateFunction = (key: string, options?: Record<string, unknown>) => string;
-
-  export interface I18nProps {
-    locale: string;
-    messages: CmsLocalePhrases;
-    children?: ReactNode;
-  }
-
-  export const I18n: ComponentType<I18nProps>;
-
-  export function useTranslate(): TranslateFunction;
-
-  export function translate(): <P extends { t: TranslateFunction }>(
-    component: ComponentType<P>,
-  ) => ComponentType<Omit<P, 't'>>;
-}
-
 // fuzzy: fuzzy string matching library
 declare module 'fuzzy' {
   interface FilterOptions<T> {

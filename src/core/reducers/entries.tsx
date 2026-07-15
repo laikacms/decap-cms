@@ -1,10 +1,5 @@
 import { produce } from 'immer';
-import trim from 'lodash/trim';
-import once from 'lodash/once';
-import sortBy from 'lodash/sortBy';
-import set from 'lodash/set';
-import orderBy from 'lodash/orderBy';
-import groupBy from 'lodash/groupBy';
+import { groupBy, once, orderBy, set, sortBy, trim } from 'lodash-es';
 
 import { isAbsolutePath, basename, dirname, join } from '@/lib/util/index';
 import { stringTemplate } from '@/lib/widgets/index';

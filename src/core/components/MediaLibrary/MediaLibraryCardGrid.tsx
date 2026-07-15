@@ -6,7 +6,7 @@ import { Grid } from 'react-window';
 import { colors } from '@/ui/default/index';
 import MediaLibraryCard from './MediaLibraryCard';
 import { useCmsSlots } from '@/core/lib/slots';
-import { useElementSize } from '@/core/hooks/useElementSize';
+import { useElementSize } from '@/ui/hooks/useElementSize';
 
 import type { MediaLibraryCardRenderProps } from '@/core/lib/slots';
 

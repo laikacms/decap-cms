@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
-vi.mock('react-polyglot', () => ({
+vi.mock('@/core/i18n', () => ({
   useTranslate: () => (key: string) => key,
   translate:
     () =>
@@ -11,23 +11,32 @@ vi.mock('react-polyglot', () => ({
 }));
 
 import { MediaLibrary } from '@/core/components/MediaLibrary/MediaLibrary';
+import { RouterProvider } from '@/core/routing/context';
 
-const routerListeners: Array<() => void> = [];
+import type { Router, RouterUpdate } from '@/core/routing/router';
 
-vi.mock('../../../routing/router', () => ({
-  defaultRouter: {
-    subscribe: vi.fn((listener: () => void) => {
-      routerListeners.push(listener);
-      return () => {
-        const index = routerListeners.indexOf(listener);
-        if (index >= 0) routerListeners.splice(index, 1);
-      };
-    }),
-  },
-}));
+const routerListeners: Array<(update: RouterUpdate) => void> = [];
+
+// A minimal fake of the Router port: MediaLibrary only subscribes (to close
+// itself on navigation) and the RouterProvider ancestor reads `location()`.
+// `block` is deliberately omitted — it is optional on the port.
+const fakeRouter: Router = {
+  location: () => ({ pathname: '/', search: '' }),
+  push: vi.fn(),
+  replace: vi.fn(),
+  href: (path: string) => `#${path}`,
+  subscribe: vi.fn((listener: (update: RouterUpdate) => void) => {
+    routerListeners.push(listener);
+    return () => {
+      const index = routerListeners.indexOf(listener);
+      if (index >= 0) routerListeners.splice(index, 1);
+    };
+  }),
+};
 
 function fireRouterUpdate() {
-  routerListeners.forEach(listener => listener());
+  const update: RouterUpdate = { location: { pathname: '/', search: '' }, action: 'PUSH' };
+  routerListeners.forEach(listener => listener(update));
 }
 
 function renderMediaLibrary(overrides: Partial<React.ComponentProps<typeof MediaLibrary>> = {}) {
@@ -44,7 +53,11 @@ function renderMediaLibrary(overrides: Partial<React.ComponentProps<typeof Media
     ...overrides,
   };
 
-  const utils = render(<MediaLibrary {...props} />);
+  const utils = render(
+    <RouterProvider router={fakeRouter}>
+      <MediaLibrary {...props} />
+    </RouterProvider>,
+  );
   return { ...utils, props };
 }
 
@@ -79,7 +92,9 @@ describe('MediaLibrary', () => {
   it('unsubscribes from the router on unmount', () => {
     const { unmount } = renderMediaLibrary({ isVisible: true });
 
-    expect(routerListeners).toHaveLength(1);
+    // Two subscriptions while mounted: MediaLibrary's close-on-navigate
+    // listener plus the RouterProvider ancestor's location sync.
+    expect(routerListeners).toHaveLength(2);
 
     unmount();
 

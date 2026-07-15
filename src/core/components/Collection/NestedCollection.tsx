@@ -1,7 +1,7 @@
 import React from 'react';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
-import sortBy from 'lodash/sortBy';
+import { sortBy } from 'lodash-es';
 
 import { NavLink } from '@/core/routing/Link';
 import { dirname } from '@/lib/util/index';

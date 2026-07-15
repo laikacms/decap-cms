@@ -1,7 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
-import { defaultRouter } from './router';
-
 import type { Router, RouterLocation } from './router';
 
 interface RouterContextValue {
@@ -19,26 +17,23 @@ const RouterContext = createContext<RouterContextValue | null>(null);
 
 /**
  * Supplies the routing context. `DecapCmsProvider` renders this with the
- * default (or a consumer-supplied) router; tests can render it directly with a
- * router to exercise `<Link>` / `useLocation` in isolation.
+ * consumer-supplied router (or its default hash router); tests can render it
+ * directly with a router to exercise `<Link>` / `useLocation` in isolation.
  */
 export function RouterProvider({
-  router = defaultRouter,
+  router,
   children,
 }: {
-  router?: Router;
+  router: Router;
   children?: React.ReactNode;
 }) {
-  const [location, setLocation] = useState<RouterLocation>(() => ({
-    pathname: router.path(),
-    search: router.search(),
-  }));
+  const [location, setLocation] = useState<RouterLocation>(() => router.location());
 
   useEffect(() => {
     // Re-sync on mount: the location can change between the initial state and
     // this effect (a redirect fired during config load, or StrictMode's
     // double-invoke), then subscribe for every navigation afterwards.
-    setLocation({ pathname: router.path(), search: router.search() });
+    setLocation(router.location());
     return router.subscribe(({ location: next }) => setLocation(next));
   }, [router]);
 

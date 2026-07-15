@@ -1,6 +1,6 @@
-import { stripIndent } from 'common-tags';
 import { describe, expect, test, vi } from 'vitest';
 
+import { stripIndent } from '@/lib/util/index';
 import yaml from '@/core/formats/yaml';
 
 describe('yaml', () => {

@@ -1,7 +1,4 @@
-import isString from 'lodash/isString';
-import escapeRegExp from 'lodash/escapeRegExp';
-import flow from 'lodash/flow';
-import partialRight from 'lodash/partialRight';
+import { escapeRegExp, flow, isString, partialRight } from 'lodash-es';
 
 import urlJoin from './urlJoin';
 import { remove } from './diacritics.js';

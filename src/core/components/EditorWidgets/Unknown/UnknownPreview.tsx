@@ -1,5 +1,6 @@
 import React from 'react';
-import { translate } from 'react-polyglot';
+
+import { translate } from '@/core/i18n';
 
 import type { TranslateFunction } from '@/ui/default/index';
 import type { CmsEntryField } from '@/lib/util/index';

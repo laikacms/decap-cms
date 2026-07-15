@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from '@emotion/styled';
-import { translate } from 'react-polyglot';
 
+import { translate } from '@/core/i18n';
 import { Loader } from '@/ui/default/index';
 import EntryListing from './EntryListing';
 import { useCmsSlots } from '@/core/lib/slots';

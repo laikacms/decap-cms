@@ -43,7 +43,7 @@ export const Link = forwardRef<HTMLAnchorElement, LinkProps>(function Link(
     if (shouldHandleClick(event, target)) {
       event.preventDefault();
       if (replace) {
-        router.replacePath(to);
+        router.replace(to);
       } else {
         router.push(to);
       }

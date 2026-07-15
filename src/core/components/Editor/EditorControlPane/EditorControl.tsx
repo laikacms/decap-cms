@@ -1,16 +1,14 @@
 import React from 'react';
-import { useTranslate } from 'react-polyglot';
 import { ClassNames, Global, css as coreCss } from '@emotion/react';
 import styled from '@emotion/styled';
-import partial from 'lodash/partial';
-import uniqueId from 'lodash/uniqueId';
-import memoize from 'lodash/memoize';
+import { memoize, partial, uniqueId } from 'lodash-es';
 import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
 
+import { useTranslate } from '@/core/i18n';
 import { FieldLabel, colors, transitions, lengths, borders } from '@/ui/default/index';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
-import { resolveWidget, getEditorComponents } from '@/core/lib/registry';
+import { resolveWidget } from '@/core/lib/registry';
 import { clearFieldErrors, tryLoadEntry, validateMetaField } from '@/core/actions/entries';
 import { addAsset, boundGetAsset } from '@/core/actions/media';
 import { selectIsLoadingAsset } from '@/core/reducers/medias';
@@ -386,7 +384,6 @@ function EditorControl(props: EditorControlProps) {
             setInactiveStyle={() => setStyleActive(false)}
             resolveWidget={resolveWidget}
             widget={widget}
-            getEditorComponents={getEditorComponents}
             controlRef={controlRef}
             editorControl={ConnectedEditorControl}
             query={query}

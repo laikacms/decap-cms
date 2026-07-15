@@ -30,6 +30,26 @@ export { ErrorBoundary, Notifications } from './components/UI';
 export type { ErrorBoundaryRenderProps } from './components/UI';
 
 /**
+ * Routing — the `Router` port a consumer can implement to drive navigation
+ * through their own history mechanics (the URL scheme is the separate
+ * `routing` table axis), and `createDefaultRouter` for composing the default
+ * hash router explicitly (as the laika shell does).
+ */
+export { createDefaultRouter } from './routing/defaultRouter';
+export type { DefaultRouter } from './routing/defaultRouter';
+export { defaultRoutingTable, matchRoute } from './routing/router';
+export type {
+  Router,
+  RouterAction,
+  RouterBlocker,
+  RouterLocation,
+  RouterTransition,
+  RouterUpdate,
+  RouteMatch,
+} from './routing/router';
+export type { RoutingTable, Route, RouteParams } from './routing/table';
+
+/**
  * Hooks for reading and interacting with the CMS state as a consumer.
  * Includes the typed `useAppSelector` / `useAppDispatch` for direct store
  * access, plus higher-level domain hooks (`useConfig`, `useCollection`, …).

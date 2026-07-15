@@ -1,61 +1,6 @@
-import { createHashHistory } from 'history';
-
 import type { Route, RouteParams, RoutingTable } from './table';
 
-/**
- * The single hash `history` instance the whole CMS navigates through. It is a
- * private implementation detail of `defaultRouter`: nothing outside this module
- * should import it, so every navigation path (imperative helpers, the context
- * hooks, `<Link>`) funnels through the `Router` abstraction instead.
- *
- * The one sanctioned exception is a consumer that keeps its own react-router
- * bridge (e.g. laika): it re-exports as `routerHistory` so that bridge binds to
- * the same instance and stays in sync with our router.
- */
-const history = createHashHistory();
-
-/** The underlying hash history, exposed solely for a consumer's router bridge. */
-export { history as routerHistory };
-
-/**
- * `history@5`'s hash-history implementation (`handlePop` in `history/hash.js`)
- * calls `console.warn` whenever a `block()` blocker is armed and a *foreign*
- * POP navigation happens — one whose entry it didn't stamp with its own
- * `idx`: the very first browser Back after boot, a deep link, `page.goto` to
- * a hash URL, or any other `location.hash` change made outside this app. In
- * that situation `history@5` cannot block the navigation regardless of what
- * any blocker decides — its own warning text says so ("the block will fail
- * silently in production") — and it never even invokes the registered
- * blocker, so `useEditor.ts`'s dirty-nav guard is not consulted at all for
- * this case. The CMS's *real* protection for exactly this case is the
- * separate `hashchange`-driven safety net in `useEditor.ts`'s `setup()`
- * (DCMS-286), which resyncs `history` and re-confirms independently of
- * `block()`.
- *
- * So whenever the editor's guard is armed (any unsaved change), this warning
- * is unavoidable, functionally meaningless console noise from the library
- * itself — not a decap-cms bug the app can "handle" differently — every time
- * a foreign POP occurs (DCMS-569 / DCMS-613). It is also dead code in
- * production: `history`'s production bundle
- * (`history/history.production.min.js`) compiles the whole `warning(...)`
- * call out via `process.env.NODE_ENV !== "production"`, so it never reaches a
- * real user's console — filtering it here only quiets local/dev/test
- * consoles. Match on the message's stable, literal prefix so any other
- * `console.warn` call — including a *different* `history` warning — still
- * surfaces normally.
- */
-const HISTORY_FOREIGN_POP_WARNING_PREFIX = 'You are trying to block a POP navigation';
-if (typeof console !== 'undefined' && typeof console.warn === 'function') {
-  const originalWarn = console.warn.bind(console);
-  console.warn = (...args: unknown[]) => {
-    if (typeof args[0] === 'string' && args[0].startsWith(HISTORY_FOREIGN_POP_WARNING_PREFIX)) {
-      return;
-    }
-    originalWarn(...args);
-  };
-}
-
-/** A navigation action, mirroring the history package's `Action`. */
+/** A navigation action: how the current location was reached. */
 export type RouterAction = 'PUSH' | 'REPLACE' | 'POP';
 
 /** The current location, narrowed to the parts core reads. */
@@ -72,8 +17,11 @@ export interface RouterUpdate {
 
 /**
  * A pending navigation handed to a `block` blocker. The navigation is held
- * until `retry()` is called; not calling it cancels the navigation (that is how
- * the unsaved-changes guard vetoes a route change).
+ * until `retry()` is called; not calling it cancels the navigation (that is
+ * how the unsaved-changes guard vetoes a route change). Blocking covers every
+ * navigation kind, including browser back/forward and external hash edits
+ * (POP); by the time the blocker runs, a blocked POP's URL-bar change has
+ * already been reverted.
  */
 export interface RouterTransition {
   location: RouterLocation;
@@ -85,48 +33,42 @@ export interface RouterTransition {
 export type RouterBlocker = (transition: RouterTransition) => void;
 
 /**
- * A `Router` is the imperative driver a consumer plugs in so core can navigate
- * and read the current location without owning a router itself. The default
- * implementation (`defaultRouter`) wraps the shared hash `history` singleton; a
- * host app can supply its own (e.g. History-API / non-hash URLs, or one backed
- * by their framework's router) as long as it honours this contract.
+ * A `Router` is the history driver a consumer plugs in so core can navigate
+ * and read the current location without owning the history mechanics itself.
+ * It is deliberately a *primitive* port: paths in and out are opaque strings
+ * produced/parsed by the routing table (`RoutingTable`), which is the separate
+ * customization axis for the URL scheme. A custom router therefore only
+ * adapts history mechanics (hash vs. History API vs. a host framework's
+ * router); it never re-implements routing.
  *
- * The typed route API (`navigate`/`replace`/`match`/`params`) is the primary
- * surface; the location primitives (`path`/`search`/`href`/`push`/
- * `replacePath`) back the in-house `<Link>`/`<NavLink>` and the redirect
- * special-cases in `App`, and `block` backs the unsaved-changes guard.
+ * The default implementation (`createDefaultRouter` in `./defaultRouter`) is
+ * a leaf module wrapping the in-house hash history — nothing in core's engine
+ * imports it; the app shells create an instance and hand it to
+ * `DecapCmsProvider`.
  */
 export interface Router {
-  /** Push a new history entry for the named route. */
-  navigate<T extends Route>(route: T, params: RouteParams<T>): void;
-  /** Replace the current history entry (used for redirects). */
-  replace<T extends Route>(route: T, params: RouteParams<T>): void;
-  /** The key of the route the current location is on. Throws if none match. */
-  match(): Route;
-  /** Parse the current location's params for `route` (throws if not on it). */
-  params<T extends Route>(route: T): RouteParams<T>;
-  /** The current location pathname (the portion routes match on). */
-  path(): string;
-  /** The current location query string (leading `?` included, or empty). */
-  search(): string;
+  /** The current location (`pathname` is the portion routes match on). */
+  location(): RouterLocation;
+  /** Push a new history entry for `path`. */
+  push(path: string): void;
+  /** Replace the current history entry with `path` (used for redirects). */
+  replace(path: string): void;
   /** Turn a path into an `href` for an anchor (hash-prefixed for hash routing). */
   href(path: string): string;
-  /** Push a raw path (backs `<Link>` and path-based navigation). */
-  push(path: string): void;
-  /** Replace the current entry with a raw path. */
-  replacePath(path: string): void;
   /**
    * Subscribe to location changes (both programmatic navigation and browser
    * back/forward). Returns an unsubscribe function. Core uses this to re-render
-   * on navigation — without it the UI would not update after `navigate`.
+   * on navigation — without it the UI would not update after a push.
    */
   subscribe(listener: (update: RouterUpdate) => void): () => void;
   /**
    * Install a navigation guard. The blocker runs for every attempted
    * navigation and holds it until it calls `transition.retry()`. Returns an
-   * unblock function. Backs the editor's unsaved-changes prompt.
+   * unblock function. Backs the editor's unsaved-changes prompt. Optional: a
+   * router that cannot intercept navigation may omit it, degrading the guard
+   * to `beforeunload`-only protection.
    */
-  block(blocker: RouterBlocker): () => void;
+  block?(blocker: RouterBlocker): () => void;
 }
 
 /**
@@ -267,9 +209,9 @@ export type RouteMatch = {
  * them in turn and keep the first that parses. The default routes are mutually
  * exclusive (anchored patterns), so iteration order does not affect the result.
  *
- * This is the single matcher — `Router.match()` reuses it rather than
- * re-deriving the URL grammar (a hand-rolled matcher would drift from the
- * table).
+ * This is the single matcher — the route switch in `App` and the `params`
+ * context callback both reuse it rather than re-deriving the URL grammar (a
+ * hand-rolled matcher would drift from the table).
  */
 export function matchRoute(routing: RoutingTable, path: string): RouteMatch | null {
   for (const key of Object.keys(routing) as Route[]) {
@@ -283,59 +225,15 @@ export function matchRoute(routing: RoutingTable, path: string): RouteMatch | nu
 }
 
 /**
- * The default router wraps the shared hash `history` singleton — the same
- * instance a consumer's react-router bridge (bound to `routerHistory`) and the
- * imperative navigation helpers push to — so every navigation path stays in
- * sync (hash history's `location.pathname` is the part after the `#`).
- * `create`'s per-route input types form a union TS can't correlate with the
- * indexed `route` key, so the call is cast at this single choke point; the
- * public `navigate`/`replace` signatures stay fully typed for callers.
+ * Build a path for the named route via the table's `create`. The per-route
+ * input types form a union TS can't correlate with the indexed `route` key, so
+ * the call is cast at this single choke point; callers keep fully typed
+ * params.
  */
-export const defaultRouter: Router = {
-  navigate(route, params) {
-    history.push(defaultRoutingTable[route].create(params as never));
-  },
-  replace(route, params) {
-    history.replace(defaultRoutingTable[route].create(params as never));
-  },
-  match() {
-    const match = matchRoute(defaultRoutingTable, history.location.pathname);
-    if (!match) throw new Error(`No matching route for path: ${history.location.pathname}`);
-    return match.key;
-  },
-  params(route) {
-    return defaultRoutingTable[route].get(history.location.pathname) as RouteParams<typeof route>;
-  },
-  path() {
-    return history.location.pathname;
-  },
-  search() {
-    return history.location.search;
-  },
-  href(path) {
-    return `#${path}`;
-  },
-  push(path) {
-    history.push(path);
-  },
-  replacePath(path) {
-    history.replace(path);
-  },
-  subscribe(listener) {
-    return history.listen(({ location, action }) =>
-      listener({
-        location: { pathname: location.pathname, search: location.search },
-        action: action as RouterAction,
-      }),
-    );
-  },
-  block(blocker) {
-    return history.block(({ location, action, retry }) =>
-      blocker({
-        location: { pathname: location.pathname, search: location.search },
-        action: action as RouterAction,
-        retry,
-      }),
-    );
-  },
-};
+export function createRoutePath<T extends Route>(
+  routing: RoutingTable,
+  route: T,
+  params?: RouteParams<T>,
+): string {
+  return routing[route].create(params as never);
+}

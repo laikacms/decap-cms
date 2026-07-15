@@ -1,8 +1,8 @@
 import React from 'react';
 import { render } from '@testing-library/react';
-import { oneLineTrim } from 'common-tags';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { oneLineTrim } from '@/lib/util/index';
 import { ErrorBoundary } from '@/core/components/UI/ErrorBoundary';
 
 function WithError() {

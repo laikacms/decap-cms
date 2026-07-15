@@ -1,5 +1,4 @@
-import pickBy from 'lodash/pickBy';
-import trimEnd from 'lodash/trimEnd';
+import { pickBy, trimEnd } from 'lodash-es';
 
 import { unsentRequest } from '@/lib/util/index';
 import { addParams } from '@/core/lib/urlHelper';

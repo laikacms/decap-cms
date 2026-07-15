@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from '@emotion/styled';
-import { translate } from 'react-polyglot';
 
+import { translate } from '@/core/i18n';
 import { Link } from '@/core/routing/Link';
 import { components, buttons, shadows } from '@/ui/default/index';
 

@@ -1,51 +1,51 @@
-vi.mock('history');
-
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createHashHistory } from 'history';
 
-import type { History } from 'history';
+import {
+  navigateToCollection,
+  navigateToEntry,
+  navigateToNewEntry,
+} from '@/core/routing/navigation';
+import { setActiveRouting } from '@/core/routing/registry';
+import { defaultRoutingTable } from '@/core/routing/router';
 
-const history = {
+import type { Router } from '@/core/routing/router';
+
+const router: Router = {
+  location: () => ({ pathname: '/', search: '' }),
   push: vi.fn(),
   replace: vi.fn(),
-  listen: vi.fn(),
-  block: vi.fn(),
-  location: { pathname: '/', search: '' },
-} as unknown as History;
-vi.mocked(createHashHistory).mockReturnValue(history);
+  href: (path: string) => `#${path}`,
+  subscribe: vi.fn(() => () => {}),
+  block: vi.fn(() => () => {}),
+};
 
 describe('navigation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    setActiveRouting({ router, routing: defaultRoutingTable });
   });
 
   describe('navigateToCollection', () => {
-    it('should push the collection route', async () => {
-      const { navigateToCollection } = await import('@/core/routing/navigation');
-
+    it('should push the collection route', () => {
       navigateToCollection('posts');
-      expect(history.push).toHaveBeenCalledTimes(1);
-      expect(history.push).toHaveBeenCalledWith('/collections/posts');
+      expect(router.push).toHaveBeenCalledTimes(1);
+      expect(router.push).toHaveBeenCalledWith('/collections/posts');
     });
   });
 
   describe('navigateToNewEntry', () => {
-    it('should replace with the new entry route', async () => {
-      const { navigateToNewEntry } = await import('@/core/routing/navigation');
-
+    it('should replace with the new entry route', () => {
       navigateToNewEntry('posts');
-      expect(history.replace).toHaveBeenCalledTimes(1);
-      expect(history.replace).toHaveBeenCalledWith('/collections/posts/new');
+      expect(router.replace).toHaveBeenCalledTimes(1);
+      expect(router.replace).toHaveBeenCalledWith('/collections/posts/new');
     });
   });
 
   describe('navigateToEntry', () => {
-    it('should replace with the entry route', async () => {
-      const { navigateToEntry } = await import('@/core/routing/navigation');
-
+    it('should replace with the entry route', () => {
       navigateToEntry('posts', 'index');
-      expect(history.replace).toHaveBeenCalledTimes(1);
-      expect(history.replace).toHaveBeenCalledWith('/collections/posts/entries/index');
+      expect(router.replace).toHaveBeenCalledTimes(1);
+      expect(router.replace).toHaveBeenCalledWith('/collections/posts/entries/index');
     });
   });
 });

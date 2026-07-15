@@ -1,12 +1,6 @@
-import flow from 'lodash/flow';
-import get from 'lodash/get';
-import partialRight from 'lodash/partialRight';
-import trimEnd from 'lodash/trimEnd';
-import isError from 'lodash/isError';
-import isString from 'lodash/isString';
-import trimStart from 'lodash/trimStart';
-import { stripIndent } from 'common-tags';
+import { flow, get, isError, isString, partialRight, trimEnd, trimStart } from 'lodash-es';
 
+import { stripIndent } from '@/lib/util/index';
 import { stringTemplate } from '@/lib/widgets/index';
 import {
   selectIdentifier,

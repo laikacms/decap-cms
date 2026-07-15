@@ -1,19 +1,21 @@
 import { act, renderHook } from '@testing-library/react';
-import { createHashHistory } from 'history';
 import React from 'react';
 import { Provider } from 'react-redux';
-import { I18n } from 'react-polyglot';
 import { applyMiddleware, legacy_createStore as createStore, combineReducers } from 'redux';
 import { thunk } from 'redux-thunk';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { History, Listener, Transition } from 'history';
+import { I18n } from '@/core/i18n';
+import { RouterProvider } from '@/core/routing/context';
+import { useEditor } from '@/core/hooks/useEditor';
+import { changeDraftField } from '@/core/actions/entries';
+import reducers from '@/core/reducers';
+
+import type { Router, RouterBlocker, RouterTransition, RouterUpdate } from '@/core/routing/router';
 import type * as EntriesActions from '@/core/actions/entries';
 import type * as EditorialWorkflowActions from '@/core/actions/editorialWorkflow';
 import type * as DeploysActions from '@/core/actions/deploys';
 import type * as AuthActions from '@/core/actions/auth';
-
-vi.mock('history');
 
 // The action creators below dispatch real thunks (backend calls, media-library
 // waits, etc.) that are out of scope for this test — we only exercise the
@@ -64,78 +66,92 @@ vi.mock('@/core/actions/auth', async importOriginal => {
 });
 
 /**
- * A controllable fake of the `history` package's hash-history instance.
- * `src/core/routing/router.ts` creates its `history` singleton with
- * `createHashHistory()` exactly once, at module-evaluation time — so this
- * fake must be wired in via `createHashHistory.mockReturnValue` *before*
- * anything that transitively imports `router.ts` is loaded (mirrors
- * `navigation.spec.ts`'s pattern). `defaultRouter.block`/`.push`/`.subscribe`
- * are thin wrappers over this instance, so driving it directly here exercises
- * the exact same surface a real `<Link>` click or hash edit would.
+ * A controllable fake of the `Router` port, injected through `RouterProvider`
+ * (the same way a consumer-supplied router would be). It mirrors the real
+ * default router's blocking contract: with a blocker armed, `push` and POPs
+ * are held (the location does not advance) and only the transition's
+ * `retry()` re-performs them — so driving this fake exercises the exact same
+ * surface a real `<Link>` click or browser back would.
  */
-let blocker: ((tx: Transition) => void) | null = null;
-let listener: Listener | null = null;
-const fakeLocation = { pathname: '/collections/posts/new', search: '', hash: '', state: null };
+let blockers: RouterBlocker[] = [];
+let listeners: ((update: RouterUpdate) => void)[] = [];
+const fakeLocation = { pathname: '/collections/posts/new', search: '' };
 
-const fakeHistory = {
-  location: fakeLocation,
+function notify(action: RouterUpdate['action']) {
+  [...listeners].forEach(listener =>
+    listener({ location: { ...fakeLocation }, action }),
+  );
+}
+
+const fakeRouter: Router = {
+  location: () => ({ ...fakeLocation }),
   push: vi.fn((path: string) => {
-    const nextLocation = { ...fakeLocation, pathname: path };
-    if (blocker) {
-      blocker({
-        location: nextLocation as any,
+    const apply = () => {
+      fakeLocation.pathname = path;
+      notify('PUSH');
+    };
+    if (blockers.length) {
+      const tx: RouterTransition = {
+        location: { pathname: path, search: '' },
         action: 'PUSH',
-        retry: () => {
-          Object.assign(fakeLocation, nextLocation);
-          listener?.({ location: fakeLocation as any, action: 'PUSH' } as any);
-        },
-      } as any);
+        retry: apply,
+      };
+      [...blockers].forEach(blocker => blocker(tx));
       return;
     }
-    Object.assign(fakeLocation, nextLocation);
-    listener?.({ location: fakeLocation as any, action: 'PUSH' } as any);
+    apply();
   }),
   replace: vi.fn((path: string) => {
-    Object.assign(fakeLocation, { pathname: path });
-    listener?.({ location: fakeLocation as any, action: 'REPLACE' } as any);
+    fakeLocation.pathname = path;
+    notify('REPLACE');
   }),
-  listen: vi.fn((l: Listener) => {
-    listener = l;
+  href: (path: string) => `#${path}`,
+  subscribe: vi.fn((listener: (update: RouterUpdate) => void) => {
+    listeners.push(listener);
     return () => {
-      listener = null;
+      listeners = listeners.filter(l => l !== listener);
     };
   }),
-  block: vi.fn((b: (tx: Transition) => void) => {
-    blocker = b;
+  block: vi.fn((blocker: RouterBlocker) => {
+    blockers.push(blocker);
     return () => {
-      blocker = null;
+      blockers = blockers.filter(b => b !== blocker);
     };
   }),
-  createHref: vi.fn((loc: { pathname: string }) => `#${loc.pathname}`),
-} as unknown as History;
+};
 
-vi.mocked(createHashHistory).mockReturnValue(fakeHistory);
+/**
+ * Simulates a POP-type navigation (browser back/forward or a direct URL-bar
+ * hash edit) the way the real hash history delivers it: with a blocker armed
+ * the URL change is reverted first and the blocker receives the transition
+ * (`retry()` re-performs it); with no blocker the navigation just applies.
+ */
+function simulatePop(path: string) {
+  const apply = () => {
+    fakeLocation.pathname = path;
+    notify('POP');
+  };
+  if (blockers.length) {
+    const tx: RouterTransition = {
+      location: { pathname: path, search: '' },
+      action: 'POP',
+      retry: apply,
+    };
+    [...blockers].forEach(blocker => blocker(tx));
+    return;
+  }
+  apply();
+}
 
-// Deferred until after the mock above is wired: everything downstream of
-// `router.ts` (including `useEditor`) must only load once `createHashHistory`
-// is already stubbed.
-const { useEditor } = await import('@/core/hooks/useEditor');
-const { changeDraftField } = await import('@/core/actions/entries');
-const { default: reducers } = await import('@/core/reducers');
-
-function resetFakeHistory() {
-  blocker = null;
-  listener = null;
-  Object.assign(fakeLocation, {
-    pathname: '/collections/posts/new',
-    search: '',
-    hash: '',
-    state: null,
-  });
-  vi.mocked(fakeHistory.push).mockClear();
-  vi.mocked(fakeHistory.replace).mockClear();
-  vi.mocked(fakeHistory.listen).mockClear();
-  vi.mocked(fakeHistory.block).mockClear();
+function resetFakeRouter() {
+  blockers = [];
+  listeners = [];
+  fakeLocation.pathname = '/collections/posts/new';
+  fakeLocation.search = '';
+  vi.mocked(fakeRouter.push).mockClear();
+  vi.mocked(fakeRouter.replace).mockClear();
+  vi.mocked(fakeRouter.subscribe).mockClear();
+  vi.mocked(fakeRouter.block!).mockClear();
 }
 
 describe('useEditor dirty-navigation guard (DCMS-567)', () => {
@@ -143,16 +159,15 @@ describe('useEditor dirty-navigation guard (DCMS-567)', () => {
   let activeCleanup: (() => void) | null = null;
 
   beforeEach(() => {
-    resetFakeHistory();
+    resetFakeRouter();
     confirmSpy = vi.spyOn(window, 'confirm');
     activeCleanup = null;
   });
 
   afterEach(() => {
-    // Each test's `setup()` registers real `window` listeners
-    // (beforeunload/hashchange) — without tearing them down, a later test's
-    // hash-dispatch would also re-trigger every earlier test's still-live
-    // listener.
+    // Each test's `setup()` registers a real `window` beforeunload listener
+    // and arms the shared fake's blocker — tear both down so a later test
+    // doesn't re-trigger an earlier test's still-live guard.
     activeCleanup?.();
     vi.restoreAllMocks();
   });
@@ -180,9 +195,11 @@ describe('useEditor dirty-navigation guard (DCMS-567)', () => {
     const store = buildStore();
     const wrapper = ({ children }: { children: React.ReactNode }) => (
       <Provider store={store}>
-        <I18n locale="en" messages={{ 'editor.editor.onLeavePage': 'You have unsaved changes.' }}>
-          {children}
-        </I18n>
+        <RouterProvider router={fakeRouter}>
+          <I18n locale="en" messages={{ 'editor.editor.onLeavePage': 'You have unsaved changes.' }}>
+            {children}
+          </I18n>
+        </RouterProvider>
       </Provider>
     );
 
@@ -229,16 +246,18 @@ describe('useEditor dirty-navigation guard (DCMS-567)', () => {
     return { store, cleanup, rerender };
   }
 
-  it('arms history.block() once the new-entry draft becomes dirty', async () => {
+  it('arms router.block() once the new-entry draft becomes dirty', async () => {
     await setupDirtyNewEntryEditor();
-    expect(blocker).not.toBeNull();
+    expect(blockers.length).toBeGreaterThan(0);
   });
 
   it('shows a confirm dialog on a router Link (PUSH) navigation while dirty, and blocks it on Cancel', async () => {
     await setupDirtyNewEntryEditor();
     confirmSpy.mockReturnValue(false);
 
-    fakeHistory.push('/collections/posts');
+    act(() => {
+      fakeRouter.push('/collections/posts');
+    });
 
     expect(confirmSpy).toHaveBeenCalledTimes(1);
     // Cancelled: location must not have advanced.
@@ -249,29 +268,39 @@ describe('useEditor dirty-navigation guard (DCMS-567)', () => {
     await setupDirtyNewEntryEditor();
     confirmSpy.mockReturnValue(true);
 
-    fakeHistory.push('/collections/posts');
+    act(() => {
+      fakeRouter.push('/collections/posts');
+    });
 
     expect(confirmSpy).toHaveBeenCalledTimes(1);
     expect(fakeLocation.pathname).toBe('/collections/posts');
   });
 
-  it('shows a confirm dialog on a direct hash/URL change while dirty (DCMS-286 POP safety net)', async () => {
+  it('shows a confirm dialog on a POP (browser back / URL-bar edit) while dirty, and blocks it on Cancel (DCMS-286)', async () => {
     await setupDirtyNewEntryEditor();
     confirmSpy.mockReturnValue(false);
 
-    // Simulate the user editing the URL bar directly: the hash changes but
-    // `history`'s own POP handling never sees it (it didn't create this
-    // location), so only the native `hashchange` listener fires.
-    Object.defineProperty(window, 'location', {
-      value: { ...window.location, hash: '#/collections/other' },
-      writable: true,
-    });
-    window.dispatchEvent(new Event('hashchange'));
-
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 60));
+    // The in-house hash history routes every POP through the armed blocker
+    // (including entries it did not create), so a URL-bar edit or browser
+    // back arrives here as a POP transition.
+    act(() => {
+      simulatePop('/collections/other');
     });
 
     expect(confirmSpy).toHaveBeenCalledTimes(1);
+    // Cancelled: location must not have advanced.
+    expect(fakeLocation.pathname).toBe('/collections/posts/new');
+  });
+
+  it('allows a POP navigation while dirty once the user confirms', async () => {
+    await setupDirtyNewEntryEditor();
+    confirmSpy.mockReturnValue(true);
+
+    act(() => {
+      simulatePop('/collections/other');
+    });
+
+    expect(confirmSpy).toHaveBeenCalledTimes(1);
+    expect(fakeLocation.pathname).toBe('/collections/other');
   });
 });

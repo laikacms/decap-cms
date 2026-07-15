@@ -1,8 +1,8 @@
 import React from 'react';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
-import { translate } from 'react-polyglot';
 
+import { translate } from '@/core/i18n';
 import { Icon, Dropdown, DropdownItem, DropdownButton, colors } from '@/ui/default/index';
 import { stripProtocol } from '@/core/lib/urlHelper';
 

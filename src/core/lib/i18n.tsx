@@ -1,7 +1,4 @@
-import set from 'lodash/set';
-import get from 'lodash/get';
-import groupBy from 'lodash/groupBy';
-import escapeRegExp from 'lodash/escapeRegExp';
+import { escapeRegExp, get, groupBy, set } from 'lodash-es';
 
 import { selectEntrySlug } from '@/core/reducers/collections';
 

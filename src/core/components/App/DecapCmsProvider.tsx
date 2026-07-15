@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Provider } from 'react-redux';
-import { I18n } from 'react-polyglot';
 import { Global } from '@emotion/react';
 
+import { I18n } from '@/core/i18n';
+import { AlertDialogHost } from '@/ui/AlertDialog';
 import { GlobalStyles, DefaultTokensGlobalStyle, themeToCssVars } from '@/ui/default/index';
 import { store } from '@/core/redux';
 import { useAppSelector, useAppDispatch } from '@/core/hooks/useRedux';
@@ -11,15 +12,16 @@ import { authenticateUser } from '@/core/actions/auth';
 import { getPhrases } from '@/core/lib/phrases';
 import { selectLocale } from '@/core/reducers/config';
 import { context } from '@/core/contexts/decap';
-import { defaultRoutingTable } from '@/core/routing/router';
+import { defaultRoutingTable, createRoutePath } from '@/core/routing/router';
+import { createDefaultRouter } from '@/core/routing/defaultRouter';
+import { setActiveRouting } from '@/core/routing/registry';
 import { RouterProvider, useRouter, useLocation } from '@/core/routing/context';
 
 // Side-effect registrations the CMS needs regardless of which layout renders
-// it: editor widgets, the media library, and the `what-input` accessibility
-// helper. Importing them here means every consumer of the provider gets them.
+// it: editor widgets and the media library. Importing them here means every
+// consumer of the provider gets them.
 import '@/core/components/EditorWidgets';
 import '@/core/mediaLibrary';
-import 'what-input';
 
 import type {
   DecapCmsProviderProps,
@@ -57,7 +59,7 @@ function ConfigLoader({ config }: { config?: CmsConfig }) {
 }
 
 /**
- * Provides the `react-polyglot` translation context, with the locale and
+ * Provides the i18n translation context, with the locale and
  * phrases derived from the config in the store.
  */
 function I18nProvider({ children }: { children?: React.ReactNode }) {
@@ -88,18 +90,28 @@ function RoutingProvider({
   const router = useRouter();
   const { pathname } = useLocation();
 
+  // Register the pair for code that runs outside React (Redux thunks and the
+  // `routing/navigation` helpers). Done during render — a plain idempotent
+  // pointer swap — so it is set before any child can dispatch a navigating
+  // thunk.
+  setActiveRouting({ router, routing: resolvedRouting });
+
   const navigate = useCallback<DecapNavigate>(
     (key, params, options) => {
+      const path = createRoutePath(resolvedRouting, key, params as never);
       if (options?.replace) {
-        router.replace(key, params as never);
+        router.replace(path);
       } else {
-        router.navigate(key, params as never);
+        router.push(path);
       }
     },
-    [router],
+    [router, resolvedRouting],
   );
 
-  const params = useCallback<DecapParams>(key => router.params(key) as never, [router]);
+  const params = useCallback<DecapParams>(
+    key => resolvedRouting[key].get(pathname) as never,
+    [resolvedRouting, pathname],
+  );
 
   const value = useMemo<DecapCmsContext>(
     () => ({
@@ -124,8 +136,10 @@ function RoutingProvider({
  * components and hooks, as children.
  *
  * Navigation goes entirely through our own `Router` (the `RouterProvider`
- * below, defaulting to `defaultRouter`). Components read the location via
- * `useDecap`/`useNavigate`/`useParams` (or the in-house `<Link>`/`<NavLink>`).
+ * below; a hash router is created when no `router` prop is supplied — the
+ * router is fixed for the provider's lifetime). Components read the location
+ * via `useDecap`/`useNavigate`/`useParams` (or the in-house
+ * `<Link>`/`<NavLink>`).
  *
  * @example
  * <DecapCmsProvider config={config}>
@@ -139,14 +153,20 @@ export function DecapCmsProvider({
   routing,
   router,
 }: DecapCmsProviderProps) {
+  // Zero-config fallback: create one default hash router for this provider's
+  // lifetime. Created lazily so supplying a custom `router` never constructs
+  // (or attaches the window listeners of) the hash history at all.
+  const [resolvedRouter] = useState(() => router ?? createDefaultRouter());
+
   return (
     <Provider store={store}>
       <GlobalStyles />
       <DefaultTokensGlobalStyle />
       {theme ? <Global styles={{ ':root': themeToCssVars(theme) }} /> : null}
       <ConfigLoader config={config} />
+      <AlertDialogHost />
       <I18nProvider>
-        <RouterProvider router={router}>
+        <RouterProvider router={resolvedRouter}>
           <RoutingProvider routing={routing} theme={theme}>
             {children}
           </RoutingProvider>

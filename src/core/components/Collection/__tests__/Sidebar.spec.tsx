@@ -3,6 +3,7 @@ import { render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { RouterProvider } from '@/core/routing/context';
+import { createDefaultRouter } from '@/core/routing/defaultRouter';
 import { Sidebar } from '@/core/components/Collection/Sidebar';
 
 import type * as DecapCmsUiDefault from '@/ui/default/index';
@@ -28,7 +29,7 @@ describe('Sidebar', () => {
   it('should render sidebar with a simple collection', () => {
     const collections = { posts: { name: 'posts', label: 'Posts' } };
     const { getByTestId } = render(
-      <RouterProvider>
+      <RouterProvider router={createDefaultRouter()}>
         <Sidebar {...props} collections={collections} />
       </RouterProvider>,
     );
@@ -40,7 +41,7 @@ describe('Sidebar', () => {
   it('should not render a hidden collection', () => {
     const collections = { posts: { name: 'posts', label: 'Posts', hide: true } };
     const { queryByTestId } = render(
-      <RouterProvider>
+      <RouterProvider router={createDefaultRouter()}>
         <Sidebar {...props} collections={collections} />
       </RouterProvider>,
     );

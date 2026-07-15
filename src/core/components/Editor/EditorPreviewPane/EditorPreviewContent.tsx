@@ -10,7 +10,6 @@ import { vercelStegaDecode } from '@vercel/stega';
  */
 interface PreviewContentProps {
   previewComponent: React.ComponentType<Record<string, unknown>> | React.ReactElement;
-  getEditorComponents?: () => Map<string, unknown>;
   previewProps?: Record<string, any>;
   onFieldClick?: (fieldName: string) => void;
 }

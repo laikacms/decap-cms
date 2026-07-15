@@ -1,4 +1,8 @@
-import type { TypeOptions } from 'react-toastify';
+/**
+ * Notification severity. Mirrors react-toastify's former `TypeOptions`
+ * union so reducers and consumers keep the exact same shape.
+ */
+export type NotificationType = 'info' | 'success' | 'warning' | 'error' | 'default';
 
 export interface NotificationMessage {
   details?: unknown;
@@ -8,7 +12,7 @@ export interface NotificationMessage {
 export interface NotificationPayload {
   message: string | NotificationMessage;
   dismissAfter?: number;
-  type: TypeOptions | undefined;
+  type: NotificationType | undefined;
 }
 
 export const NOTIFICATION_SEND = 'NOTIFICATION_SEND';

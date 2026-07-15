@@ -1,6 +1,6 @@
 import { useRef, useCallback } from 'react';
 
-import { defaultRouter, routerHistory as history } from '@/core/routing/router';
+import { useRouter } from '@/core/routing/context';
 
 import type { RouterTransition, RouterUpdate } from '@/core/routing/router';
 
@@ -21,7 +21,9 @@ interface UseNavigationBlockerOptions {
  *
  * This hook sets up:
  * 1. beforeunload event listener for browser close/refresh
- * 2. router.block for in-app navigation
+ * 2. router.block for in-app navigation (covers PUSH/REPLACE and POP-type
+ *    navigation such as browser back/forward and direct hash edits; the
+ *    router reverts a blocked POP's URL change before the blocker runs)
  * 3. router.subscribe for cleanup after navigation
  */
 export function useNavigationBlocker({
@@ -30,9 +32,9 @@ export function useNavigationBlocker({
   onNavigate,
   allowedPaths = [],
 }: UseNavigationBlockerOptions) {
+  const router = useRouter();
   const unblockRef = useRef<(() => void) | null>(null);
   const unlistenRef = useRef<(() => void) | null>(null);
-  const popSyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const setupBlocker = useCallback(() => {
     // Browser close/refresh blocker
@@ -71,10 +73,12 @@ export function useNavigationBlocker({
       }
     };
 
-    unblockRef.current = defaultRouter.block(navigationBlocker);
+    // `block` is optional on the Router port; without it the guard degrades
+    // to the `beforeunload` handler above.
+    unblockRef.current = router.block?.(navigationBlocker) ?? null;
 
     // Cleanup listener (receives { location, action } on every navigation)
-    unlistenRef.current = defaultRouter.subscribe(({ location, action }: RouterUpdate) => {
+    unlistenRef.current = router.subscribe(({ location, action }: RouterUpdate) => {
       const pathname = location.pathname;
       const isAllowed = allowedPaths.some(path => pathname.startsWith(path));
 
@@ -86,75 +90,13 @@ export function useNavigationBlocker({
       cleanup();
     });
 
-    // POP-navigation safety net (DCMS-286).
-    //
-    // `history@5`'s own POP handling (used above via `history.block`) can only
-    // intercept a browser back/forward navigation when it can find the target
-    // location's `idx` in the native history state, i.e. a location it created
-    // itself (see history/hash.js `handlePop`). For any other POP — most
-    // notably the very first Back the user presses, which lands on whatever
-    // history entry existed before this app took over — it just warns
-    // ("...block will fail silently in production...") and lets the browser
-    // navigate away without ever invoking `navigationBlocker` above, so the
-    // guard is silently skipped for exactly the case this hook exists to
-    // cover.
-    //
-    // The native `hashchange` event, unlike `history.block()`/`history.listen`
-    // in this failure mode, always fires. Use it to detect when `history`'s
-    // internal bookkeeping has fallen out of sync with the real URL, then
-    // resync through the SAME shared `history` instance (`history.replace`),
-    // which re-stamps `idx` so this location blocks correctly on the next
-    // POP. Debounce the check so it doesn't race the multi-tick revert/retry
-    // dance `history.block()` runs for the case it CAN handle (idx known) —
-    // that dance always settles well within the debounce window.
-    const isInSync = () => window.location.href === history.createHref(history.location);
-    const getHashPath = () => {
-      const raw = window.location.hash;
-      return raw.startsWith('#') ? raw.slice(1) || '/' : raw || '/';
-    };
-
-    const handleHashChange = () => {
-      if (popSyncTimerRef.current) {
-        clearTimeout(popSyncTimerRef.current);
-      }
-      popSyncTimerRef.current = setTimeout(() => {
-        popSyncTimerRef.current = null;
-        if (isInSync()) {
-          return;
-        }
-
-        const path = getHashPath();
-        const isAllowed = allowedPaths.some(p => path.startsWith(p));
-
-        if (isAllowed || !shouldBlock()) {
-          // Hands bookkeeping back to `history`, which fires the `listen`
-          // callback registered above (onNavigate/cleanup) as normal.
-          history.replace(path);
-          return;
-        }
-
-        if (window.confirm(message)) {
-          history.replace(path);
-        } else {
-          // Revert the URL bar back to where the app actually is.
-          window.location.href = history.createHref(history.location);
-        }
-      }, 50);
-    };
-    window.addEventListener('hashchange', handleHashChange);
-
     // Return cleanup function
     return () => {
       window.removeEventListener('beforeunload', exitBlocker);
-      window.removeEventListener('hashchange', handleHashChange);
-      if (popSyncTimerRef.current) {
-        clearTimeout(popSyncTimerRef.current);
-        popSyncTimerRef.current = null;
-      }
       cleanup();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `cleanup` is defined below and itself depends only on stable refs
-  }, [shouldBlock, message, onNavigate, allowedPaths]);
+  }, [shouldBlock, message, onNavigate, allowedPaths, router]);
 
   const cleanup = useCallback(() => {
     unblockRef.current?.();

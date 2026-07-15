@@ -1,9 +1,6 @@
 import yaml from 'yaml';
-import deepmerge from 'deepmerge';
 import { produce } from 'immer';
-import trimStart from 'lodash/trimStart';
-import trim from 'lodash/trim';
-import isEmpty from 'lodash/isEmpty';
+import { isEmpty, trim, trimStart } from 'lodash-es';
 
 import { SIMPLE as SIMPLE_PUBLISH_MODE } from '@/core/constants/publishModes';
 import { validateConfig } from '@/core/lib/validateConfig';
@@ -12,6 +9,7 @@ import { getIntegrations, selectIntegration } from '@/core/reducers/integrations
 import { resolveBackend } from '@/core/backend';
 import { I18N, I18N_FIELD, I18N_STRUCTURE } from '@/core/lib/i18n';
 import { FILES, FOLDER } from '@/core/constants/collectionTypes';
+import { deepMerge } from '@/lib/util/index';
 
 import type { ThunkDispatch } from 'redux-thunk';
 import type { AnyAction } from 'redux';
@@ -126,7 +124,7 @@ function getI18nDefaults(
   } else {
     const locales = collectionOrFileI18n.locales || defaultI18n.locales;
     const defaultLocale = collectionOrFileI18n.default_locale || locales[0];
-    const mergedI18n: CmsI18nConfig = deepmerge(defaultI18n, collectionOrFileI18n);
+    const mergedI18n: CmsI18nConfig = deepMerge(defaultI18n, collectionOrFileI18n);
     mergedI18n.locales = locales;
     mergedI18n.default_locale = defaultLocale;
     throwOnMissingDefaultLocale(mergedI18n);
@@ -534,7 +532,7 @@ export function loadConfig(manualConfig: Partial<CmsConfig> = {}, onLoad: () => 
           : await getConfigYaml(configUrl, hasManualConfig);
 
       // Merge manual config into the config.yml one
-      const mergedConfig = deepmerge(configYaml, manualConfig);
+      const mergedConfig = deepMerge(configYaml, manualConfig);
 
       validateConfig(mergedConfig as unknown as Record<string, unknown>);
 

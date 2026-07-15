@@ -1,11 +1,4 @@
-import attempt from 'lodash/attempt';
-import flatten from 'lodash/flatten';
-import isError from 'lodash/isError';
-import uniq from 'lodash/uniq';
-import trim from 'lodash/trim';
-import sortBy from 'lodash/sortBy';
-import get from 'lodash/get';
-import set from 'lodash/set';
+import { attempt, flatten, get, isError, set, sortBy, trim, uniq } from 'lodash-es';
 import * as fuzzy from 'fuzzy';
 
 import {
