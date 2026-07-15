@@ -40,10 +40,16 @@ being spliced into the template. By default that sanitization also strips out an
 
 Setting `preview_path_preserve_slashes: true` disables that stripping for `/`
 characters, so `section/subsection` is kept as-is and becomes an extra path segment
-in the preview URL. This matters most for nested collections, where a field (for
-example a computed `dirname`) legitimately contains a multi-segment path that should
-be preserved rather than collapsed into one sanitized string — which is why nested
-collections default this to `true`.
+in the preview URL.
+
+`preview_path_preserve_slashes` only affects ordinary substituted values (for
+example `{{fields.category}}` or `{{value}}`). The `{{dirname}}` (and `{{filename}}`
+/ `{{extension}}`) variables are always exempt from slug-sanitization — their slashes
+(where applicable) are preserved unconditionally, regardless of what
+`preview_path_preserve_slashes` is set to. Nested collections default
+`preview_path_preserve_slashes` to `true` so that *other* fields referenced in
+`preview_path` (not `dirname`, which is unaffected either way) behave consistently
+with a multi-segment path.
 
 ```yaml
 collections:
@@ -52,8 +58,9 @@ collections:
       depth: 5
     preview_path: 'docs/{{dirname}}/{{slug}}'
     # preview_path_preserve_slashes defaults to true here because the
-    # collection is nested — a dirname like "guides/setup" is preserved
-    # instead of becoming "guides-setup".
+    # collection is nested. Note this has no effect on {{dirname}} itself —
+    # a dirname like "guides/setup" is always preserved as-is; setting
+    # preview_path_preserve_slashes: false would not change that.
 ```
 
 ```yaml
