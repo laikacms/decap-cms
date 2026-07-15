@@ -17,8 +17,7 @@
     "build:esm": "cross-env NODE_ENV=esm babel src --out-dir dist/esm --ignore \"**/__tests__\" --root-mode upward"
   },
   "dependencies": {
-    "react-aria-menubutton": "^7.0.0",
-    "react-transition-group": "^4.4.5"
+    "react-aria-menubutton": "^7.0.0"
   },
   "peerDependencies": {
     "@emotion/react": "^11.11.1",
