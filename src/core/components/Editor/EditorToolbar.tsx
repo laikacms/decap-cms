@@ -638,12 +638,15 @@ export function EditorToolbar(props: EditorToolbarProps) {
         t('editor.editorToolbar.deleteUnpublishedEntry')) ||
       (!hasUnpublishedChanges && !isModification && t('editor.editorToolbar.deletePublishedEntry'));
 
+    // A brand-new entry starts with `hasChanged: false` (DCMS-416, so a
+    // freshly opened form doesn't show "unsaved changes" before the user
+    // types anything). But that also disabled Save entirely, so a pristine
+    // new entry could never be submitted to surface validation errors
+    // (#757). New entries must stay saveable regardless of `hasChanged`;
+    // existing entries still require a real change first.
+    const canSave = isNewEntry || hasChanged;
     return [
-      <SaveButton
-        disabled={!hasChanged}
-        key="save-button"
-        onClick={() => hasChanged && onPersist()}
-      >
+      <SaveButton disabled={!canSave} key="save-button" onClick={() => canSave && onPersist()}>
         {isPersisting ? t('editor.editorToolbar.saving') : t('editor.editorToolbar.save')}
       </SaveButton>,
       currentStatus

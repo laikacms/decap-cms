@@ -243,6 +243,14 @@ function LaikaEditorToolbar({
   const showPublish = !hasWorkflow || (canPublish && !isNewEntry);
   const canCreate = !!collection.create;
 
+  // A brand-new entry starts with `hasChanged: false` (DCMS-416, so a
+  // freshly opened form doesn't show "unsaved changes" before the user types
+  // anything). But that also disabled Save entirely, so a pristine new entry
+  // could never be submitted to surface validation errors (#757). New
+  // entries must stay saveable regardless of `hasChanged`; existing entries
+  // still require a real change first.
+  const canSave = (isNewEntry || !!hasChanged) && !isPersisting;
+
   const saveLabel = isPersisting
     ? t('editor.editorToolbar.saving')
     : t('editor.editorToolbar.save');
@@ -278,7 +286,7 @@ function LaikaEditorToolbar({
         <LaikaButton
           variant="secondary"
           size="sm"
-          disabled={!hasChanged || isPersisting}
+          disabled={!canSave}
           onClick={() => onPersist()}
         >
           {saveLabel}

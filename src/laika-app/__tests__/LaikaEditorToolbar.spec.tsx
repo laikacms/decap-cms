@@ -91,6 +91,15 @@ describe('LaikaEditorToolbar', () => {
     expect(getByText('editor.editorToolbar.save').closest('button')).not.toBeDisabled();
   });
 
+  it('enables Save on a pristine new entry so validation can surface (#757)', () => {
+    const { getByText } = render(
+      <MemoryRouter>
+        <LaikaEditorToolbar {...baseProps} isNewEntry hasChanged={false} />
+      </MemoryRouter>,
+    );
+    expect(getByText('editor.editorToolbar.save').closest('button')).not.toBeDisabled();
+  });
+
   it('fires onPersist when Save is clicked', () => {
     const onPersist = vi.fn();
     const { getByText } = render(
