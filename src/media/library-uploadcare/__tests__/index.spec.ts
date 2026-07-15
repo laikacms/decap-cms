@@ -165,6 +165,21 @@ describe('uploadcare media library', () => {
       expect(uploadcare.openDialog).toHaveBeenCalledWith(null, expectedConfig);
     });
 
+    // DCMS-591: allow_multiple being unset on the field must not force multiple: false
+    // when the user explicitly set media_library.config.multiple: true. Only an explicit
+    // allowMultiple === false (from an explicit allow_multiple: false) may override it.
+    it('does not override an explicit config.multiple: true when allowMultiple is undefined', async () => {
+      options.config.multiple = true;
+      const expectedConfig = {
+        ...defaultConfig,
+        ...options.config,
+        multiple: true,
+      };
+      const integration = await uploadcareMediaLibrary.init({ options });
+      await integration.show({ config: options.config, allowMultiple: undefined });
+      expect(uploadcare.openDialog).toHaveBeenCalledWith(null, expectedConfig);
+    });
+
     it('passes selected image url to handleInsert', async () => {
       const url = generateMockUrl();
       const mockResult = { cdnUrl: url };

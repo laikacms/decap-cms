@@ -334,7 +334,7 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
         forImage,
         privateUpload: field.private,
         value: valueListToArray(value),
-        allowMultiple: !!opts?.allow_multiple,
+        allowMultiple: opts?.allow_multiple,
         config: opts?.config,
         field,
       });
