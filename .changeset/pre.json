@@ -1,0 +1,10 @@
+{
+  "mode": "pre",
+  "tag": "alpha",
+  "initialVersions": {
+    "@laikacms/decap-cms": "4.0.2"
+  },
+  "changesets": [
+    "wild-lions-count"
+  ]
+}
