@@ -121,7 +121,6 @@ catalogs:
     'react-polyglot': '^0.7.2'
     'react-scroll-sync': '^1.0.2'
     'react-split-pane': '^3.2.0'
-    'react-toastify': '^11.0.5'
     'react-topbar-progress-indicator': '^4.1.1'
     'react-waypoint': '^10.3.0'
     'react-window': '^2.2.7'

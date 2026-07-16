@@ -1,20 +1,17 @@
-import React, { useEffect } from 'react';
-import 'react-toastify/ReactToastify.css';
-import { toast, ToastContainer } from 'react-toastify';
+import React, { useEffect, useRef } from 'react';
 import { useTranslate } from 'react-polyglot';
 
 import { dismissNotification } from '@/core/actions/notifications';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
-import { useLaikaTheme } from './LaikaThemeContext';
-
-import type { Id, ToastItem } from 'react-toastify';
+import { toastManager, Toaster } from '@/ui/toast';
 
 /**
  * Laika-flavored notifications surface. Mirrors core's `Notifications`
- * Redux ↔ toast bridge logic, but configures the `ToastContainer` to
- * follow laika's theme (auto-switching between `'light'` and `'dark'`)
- * and uses a softer auto-close cadence + rounded corners via the inline
- * CSS injection. Slotted into `AppContentProps.renderNotifications`.
+ * Redux ↔ toast bridge logic, but positions the `Toaster` bottom-right with
+ * a softer auto-close cadence. Theming follows the shared `--popover` /
+ * `--foreground` CSS variable tokens, which already track laika's
+ * light/dark mode, so no explicit theme prop is needed. Slotted into
+ * `AppContentProps.renderNotifications`.
  */
 
 interface CmsNotification {
@@ -24,72 +21,44 @@ interface CmsNotification {
   dismissAfter?: number;
 }
 
-type IdMap = { [id: string]: Id };
+const DEFAULT_DISMISS_AFTER = 4500;
 
 function LaikaNotifications() {
   const t = useTranslate();
   const dispatch = useAppDispatch();
-  const { resolvedMode } = useLaikaTheme();
   const notifications = useAppSelector(
     state => state.notifications.notifications as CmsNotification[],
   );
-  const [idMap, setIdMap] = React.useState<IdMap>({});
+  const shownIds = useRef(new Set<string>());
 
   useEffect(() => {
-    notifications
-      .filter(notification => !idMap[notification.id])
-      .forEach(notification => {
-        const toastId = toast(
-          typeof notification.message === 'string'
-            ? notification.message
-            : t(notification.message.key, { ...notification.message }),
-          {
-            autoClose: notification.dismissAfter ?? 4500,
-            type: notification.type,
-          },
-        );
-        idMap[notification.id] = toastId;
-        setIdMap(idMap);
+    const currentIds = new Set(notifications.map(notification => notification.id));
 
-        if (notification.dismissAfter) {
-          setTimeout(() => {
-            dispatch(dismissNotification(notification.id));
-          }, notification.dismissAfter);
-        }
+    notifications
+      .filter(notification => !shownIds.current.has(notification.id))
+      .forEach(notification => {
+        shownIds.current.add(notification.id);
+        toastManager.add({
+          id: notification.id,
+          description:
+            typeof notification.message === 'string'
+              ? notification.message
+              : t(notification.message.key, { ...notification.message }),
+          type: notification.type,
+          timeout: notification.dismissAfter ?? DEFAULT_DISMISS_AFTER,
+          onRemove: () => dispatch(dismissNotification(notification.id)),
+        });
       });
 
-    Object.entries(idMap).forEach(([id, toastId]) => {
-      if (!notifications.find(notification => notification.id === id)) {
-        toast.dismiss(toastId);
-        delete idMap[id];
-        setIdMap(idMap);
+    shownIds.current.forEach(id => {
+      if (!currentIds.has(id)) {
+        shownIds.current.delete(id);
+        toastManager.close(id);
       }
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mirrors core's pattern; idMap is mutated in place
-  }, [notifications]);
+  }, [notifications, dispatch, t]);
 
-  toast.onChange((payload: ToastItem) => {
-    if (payload.status === 'removed') {
-      const id = Object.entries(idMap).find(([, toastId]) => toastId === payload.id)?.[0];
-      if (id) {
-        dispatch(dismissNotification(id));
-      }
-    }
-  });
-
-  return (
-    <ToastContainer
-      position="bottom-right"
-      theme={resolvedMode === 'dark' ? 'dark' : 'colored'}
-      className="laika-notif__container"
-      toastClassName="laika-notif__toast"
-      autoClose={4500}
-      pauseOnFocusLoss
-      hideProgressBar
-      closeOnClick
-      newestOnTop
-    />
-  );
+  return <Toaster position="bottom-right" className="laika-notif__container" />;
 }
 
 export default LaikaNotifications;

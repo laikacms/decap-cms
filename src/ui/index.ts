@@ -17,6 +17,7 @@ export * from './select';
 export * from './separator';
 export * from './styled';
 export * from './tabs';
+export * from './toast';
 export * from './toggle';
 export * from './toggle-group';
 export * from './tooltip';

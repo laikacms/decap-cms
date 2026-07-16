@@ -1,4 +1,4 @@
-import type { TypeOptions } from 'react-toastify';
+import type { ToastVariant } from '@/ui/toast';
 
 export interface NotificationMessage {
   details?: unknown;
@@ -8,7 +8,7 @@ export interface NotificationMessage {
 export interface NotificationPayload {
   message: string | NotificationMessage;
   dismissAfter?: number;
-  type: TypeOptions | undefined;
+  type: ToastVariant | undefined;
 }
 
 export const NOTIFICATION_SEND = 'NOTIFICATION_SEND';
