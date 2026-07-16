@@ -474,3 +474,77 @@ local_backend:
   `allowed_hosts` lets you develop against the local proxy from a hostname
   other than `localhost`/`127.0.0.1` (e.g. a LAN name or a tunneled
   domain) — it does not affect anything once the proxy has been detected.
+
+### `backend.commit_messages` / `backend.signoff_commits`
+
+Customizes the commit message text the backend uses for each kind of
+write operation, and optionally appends a `Signed-off-by` trailer.
+Implemented in
+[`src/core/lib/formatters.tsx`](./lib/formatters.tsx)
+(`commitMessageFormatter`) and typed on `CmsBackend` in
+[`src/lib/util/types/cms/backend.ts`](../lib/util/types/cms/backend.ts).
+
+```yaml
+# config.yml
+backend:
+  name: github
+  repo: my-org/my-repo
+  signoff_commits: true
+  commit_messages:
+    create: 'Create {{collection}} "{{slug}}"'
+    update: 'Update {{collection}} "{{slug}}"'
+    delete: 'Delete {{collection}} "{{slug}}"'
+    uploadMedia: 'Upload "{{path}}"'
+    deleteMedia: 'Delete "{{path}}"'
+    openAuthoring: '{{message}}'
+```
+
+`commit_messages` accepts any subset of six keys; any key you omit falls
+back to its built-in default (shown above, matching
+`commitMessageTemplates` in `formatters.tsx`) — you don't have to
+restate every key just to override one.
+
+Each template is a plain string with `{{placeholder}}` interpolation.
+This is a **separate, smaller placeholder syntax from the widget/slug
+`stringTemplate` filters** (`collections[].slug`, `preview_path`, etc.)
+— there is no `{{upper ...}}`, `{{lower ...}}`, `{{date(...)}}`, or
+other filter support here, only flat variable substitution. The
+supported placeholders are:
+
+- **`{{slug}}`** — the entry's slug. Available in `create`, `update`,
+  `delete`.
+- **`{{path}}`** — the file path being written. Available in
+  `uploadMedia`, `deleteMedia`.
+- **`{{collection}}`** — the collection's `label_singular` (falling back
+  to `label`). Available in `create`, `update`, `delete`.
+- **`{{author-login}}`** — the committing user's login/username.
+  Available in every template, but only ever populated for Open
+  Authoring commits (see below); otherwise resolves to `''`.
+- **`{{author-name}}`** — the committing user's display name. Same
+  availability as `{{author-login}}`.
+- **`{{message}}`** — the already-formatted commit message from
+  `create`/`update`/`delete`/`uploadMedia`/`deleteMedia`. Only
+  meaningful in `openAuthoring`, which wraps the other templates'
+  output for Open Authoring PRs/commits; its default is simply
+  `'{{message}}'` (passthrough).
+
+Any placeholder not in this list — a typo, or a filter borrowed from
+`stringTemplate` — is **silently replaced with an empty string** rather
+than left as literal `{{...}}` text, and logs a `console.warn` naming
+the unrecognized variable. This applies independently to
+`commit_messages.*` templates and to `commit_messages.openAuthoring`.
+
+`signoff_commits: true` appends a trailer to the formatted commit
+message:
+
+```
+<formatted commit message>
+
+Signed-off-by: <author name> <<author email>>
+```
+
+The trailer requires both the author's name **and** email to be known
+at commit time. If either is missing, the trailer is **silently
+skipped** — no error, only a `console.warn` (`Option signoff_commits is
+enabled, but author name/email is unknown`) — and the commit message is
+used as-is.
