@@ -23,6 +23,7 @@
     "storybook": "pnpm --filter @laikacms/decap-cms run storybook",
     "format": "dprint fmt",
     "format:check": "dprint check",
+    "release": "pnpm -r publish --publish-branch v4.beta",
     "clean": "rimraf --glob 'packages/*/dist' 'packages/*/.turbo' '**/node_modules'",
     "prepare": "husky"
   },
