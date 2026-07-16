@@ -1,0 +1,361 @@
+{
+  "name": "@laikacms/decap-cms",
+  "version": "4.0.2",
+  "description": "Single-package fork of Decap CMS v4.beta. Same components as the original monorepo, exposed through one package with subpath exports. Root export is the decap-cms-app bootstrap. See RESTRUCTURE.md.",
+  "license": "MIT",
+  "author": "Sem Postma <sem@laikacms.com> (based on Decap CMS by Netlify and contributors)",
+  "homepage": "https://github.com/laikacms/decap-cms",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/laikacms/decap-cms.git"
+  },
+  "bugs": {
+    "url": "https://github.com/laikacms/decap-cms/issues"
+  },
+  "keywords": [
+    "cms",
+    "decap",
+    "laikacms",
+    "headless-cms",
+    "content-management",
+    "git-based-cms",
+    "jamstack"
+  ],
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "files": [
+    "dist",
+    "skills",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "rimraf dist && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json && pnpm copy:assets",
+    "analyze": "node ./scripts/analyze.mjs",
+    "prepack": "pnpm build",
+    "build:demo": "vite build --config vite.config.demo.ts",
+    "build:demo-graphql": "vite build --config vite.config.demo-graphql.ts",
+    "build:laika-demo": "vite build --config vite.config.laika-demo.ts",
+    "build:laika-bare-demo": "vite build --config vite.config.laika-bare-demo.ts",
+    "build:dev-test": "pnpm build:demo && pnpm build:laika-demo && pnpm build:laika-bare-demo",
+    "serve:dev-test": "npx --yes serve dev-test -l 5174",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build -o storybook-static",
+    "dev": "vite build --config vite.config.demo.ts && vite build --config vite.config.laika-demo.ts && vite build --config vite.config.laika-bare-demo.ts && (vite build --config vite.config.demo.ts --watch & BUILD_PID=$!; trap 'kill $BUILD_PID 2>/dev/null' EXIT INT TERM; npx --yes serve dev-test -l 5174)",
+    "dev:lib": "pnpm copy:assets && (tsc-alias -p tsconfig.build.json --watch & tsc -p tsconfig.build.json --watch)",
+    "copy:assets": "mkdir -p dist/widgets/code/data && cp src/widgets/code/data/languages.json dist/widgets/code/data/languages.json",
+    "typecheck": "tsc --noEmit && tsc -p playwright --noEmit && tsc -p .storybook --noEmit && tsc -p tsconfig.node.json --noEmit",
+    "lint": "eslint --color \"src/**/*.{ts,tsx,js,mjs}\"",
+    "format": "dprint fmt",
+    "format:check": "dprint check",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ci": "pnpm run lint && pnpm run typecheck && pnpm run test",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:report": "playwright show-report",
+    "clean": "rimraf dist .turbo"
+  },
+  "browserslist": [
+    "last 2 Chrome versions",
+    "last 2 Opera versions",
+    "last 2 Firefox versions",
+    "last 2 Edge versions",
+    "last 2 Safari versions",
+    "last 2 iOS versions",
+    "last 2 ChromeAndroid versions"
+  ],
+  "peerDependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "apollo-cache-inmemory": "^1.6.6",
+    "apollo-client": "^2.6.10",
+    "apollo-link-context": "^1.0.20",
+    "apollo-link-http": "^1.5.17",
+    "graphql": "^16.13.2",
+    "graphql-tag": "^2.12.6",
+    "ol": "^6.9.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "uploadcare-widget": "^3.23.4",
+    "uploadcare-widget-tab-effects": "^1.7.2"
+  },
+  "peerDependenciesMeta": {
+    "apollo-cache-inmemory": {
+      "optional": true
+    },
+    "apollo-client": {
+      "optional": true
+    },
+    "apollo-link-context": {
+      "optional": true
+    },
+    "apollo-link-http": {
+      "optional": true
+    },
+    "graphql": {
+      "optional": true
+    },
+    "graphql-tag": {
+      "optional": true
+    },
+    "ol": {
+      "optional": true
+    },
+    "uploadcare-widget": {
+      "optional": true
+    },
+    "uploadcare-widget-tab-effects": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@base-ui/react": "^1.6.0",
+    "@codemirror/autocomplete": "^6.0.0",
+    "@codemirror/commands": "^6.0.0",
+    "@codemirror/language": "^6.0.0",
+    "@codemirror/language-data": "^6.0.0",
+    "@codemirror/lint": "^6.0.0",
+    "@codemirror/search": "^6.0.0",
+    "@codemirror/state": "^6.0.0",
+    "@codemirror/view": "^6.0.0",
+    "@emotion/is-prop-valid": "^1.4.0",
+    "@lexical/code": "^0.42.0",
+    "@lexical/code-prism": "^0.42.0",
+    "@lexical/extension": "^0.42.0",
+    "@lexical/file": "^0.42.0",
+    "@lexical/hashtag": "^0.42.0",
+    "@lexical/headless": "^0.42.0",
+    "@lexical/history": "^0.42.0",
+    "@lexical/link": "^0.42.0",
+    "@lexical/list": "^0.42.0",
+    "@lexical/markdown": "^0.42.0",
+    "@lexical/overflow": "^0.42.0",
+    "@lexical/react": "^0.42.0",
+    "@lexical/rich-text": "^0.42.0",
+    "@lexical/selection": "^0.42.0",
+    "@lexical/table": "^0.42.0",
+    "@lexical/text": "^0.42.0",
+    "@lexical/utils": "^0.42.0",
+    "@lezer/highlight": "^1.0.0",
+    "@portabletext/html": "^1.1.0",
+    "@portabletext/markdown": "^1.2.0",
+    "@portabletext/react": "^6.2.0",
+    "@portabletext/to-html": "^5.0.2",
+    "@portabletext/types": "^4.0.2",
+    "@redux-devtools/extension": "^4.0.0",
+    "@reduxjs/toolkit": "^2.11.2",
+    "@replit/codemirror-emacs": "^6.1.0",
+    "@replit/codemirror-vim": "^6.3.0",
+    "@replit/codemirror-vscode-keymap": "^6.0.2",
+    "@vercel/stega": "^1.1.0",
+    "dayjs": "^1.11.20",
+    "effect": "4.0.0-beta.66",
+    "fuzzy": "^0.1.3",
+    "immer": "^11.1.4",
+    "ini": "^6.0.0",
+    "jwt-decode": "^4.0.0",
+    "laikacms": "^1.1.0",
+    "lexical": "^0.42.0",
+    "lodash-es": "^4.18.1",
+    "lucide-react": "^1.7.0",
+    "mdast-util-from-markdown": "^2.0.3",
+    "mdast-util-gfm": "^3.1.0",
+    "mdast-util-mdx-expression": "^2.0.1",
+    "mdast-util-mdx-jsx": "^3.2.0",
+    "mdast-util-to-string": "^4.0.0",
+    "micromark-extension-gfm": "^3.0.0",
+    "micromark-extension-mdx-expression": "^3.0.1",
+    "micromark-extension-mdx-jsx": "^3.0.2",
+    "micromark-extension-mdx-md": "^2.0.0",
+    "minimatch": "^10.2.5",
+    "react-colorful": "^5.8.0",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
+    "react-frame-component": "^5.3.2",
+    "react-redux": "^9.2.0",
+    "react-router-dom": "^7.14.0",
+    "react-scroll-sync": "^1.0.2",
+    "react-select": "^5.10.2",
+    "react-split-pane": "^3.2.0",
+    "react-textarea-autosize": "^8.5.9",
+    "react-topbar-progress-indicator": "^4.1.1",
+    "react-waypoint": "^10.3.0",
+    "react-window": "^2.2.7",
+    "redux": "^5.0.1",
+    "redux-thunk": "^3.1.0",
+    "remark-frontmatter": "^5.0.0",
+    "remark-parse": "^11.0.0",
+    "remark-stringify": "^11.0.0",
+    "smol-toml": "^1.6.1",
+    "tinycolor2": "^1.6.0",
+    "unified": "^11.0.5",
+    "unist-util-visit": "^5.1.0",
+    "uuid": "^13.0.0",
+    "yaml": "^2.8.3"
+  },
+  "devDependencies": {
+    "@emotion/eslint-plugin": "^11.12.0",
+    "@eslint/js": "^10.0.1",
+    "@octokit/rest": "^22.0.1",
+    "@octokit/types": "^16.0.0",
+    "@playwright/test": "^1.61.1",
+    "@storybook/addon-a11y": "^10.5.0",
+    "@storybook/react": "^10.5.0",
+    "@storybook/react-vite": "^10.5.0",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/hast": "^3.0.5",
+    "@types/lodash-es": "^4.17.12",
+    "@types/mdast": "^4.0.4",
+    "@types/node": "^25.9.5",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@types/redux-mock-store": "^1.5.0",
+    "@types/tinycolor2": "^1.4.6",
+    "@types/unist": "^3.0.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "@vitest/coverage-v8": "^4.1.2",
+    "apollo-cache-inmemory": "^1.6.6",
+    "apollo-client": "^2.6.10",
+    "apollo-link-context": "^1.0.20",
+    "apollo-link-http": "^1.5.17",
+    "dotenv": "^17.4.0",
+    "dprint": "^0.54.0",
+    "esbuild": "^0.27.4",
+    "eslint": "^10.2.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-cypress": "^6.3.1",
+    "eslint-plugin-import-x": "^4.16.2",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-unicorn": "^58.0.0",
+    "globals": "^17.5.0",
+    "graphql": "^16.13.2",
+    "graphql-tag": "^2.12.6",
+    "jsdom": "^29.0.1",
+    "nock": "^14.0.13",
+    "ol": "^6.9.0",
+    "prettier": "^3.8.1",
+    "redux-mock-store": "^1.5.5",
+    "rimraf": "^6.1.3",
+    "simple-git": "^3.33.0",
+    "storybook": "^10.5.0",
+    "tsc-alias": "^1.8.16",
+    "typescript": "^6.0.2",
+    "typescript-eslint": "^8.32.1",
+    "uploadcare-widget": "^3.23.4",
+    "uploadcare-widget-tab-effects": "^1.7.2",
+    "vfile": "^6.0.3",
+    "vite": "^8.1.5",
+    "vitest": "^4.1.2",
+    "winston": "^3.19.0",
+    "zod": "^4.4.3"
+  },
+  "sideEffects": [
+    "./dist/app/index.js",
+    "./dist/laika-app/index.js",
+    "./dist/dev-server/**",
+    "./src/app/index.ts",
+    "./src/laika-app/index.ts",
+    "./src/dev-server/**"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/app/index.d.ts",
+      "import": "./dist/app/index.js",
+      "default": "./dist/app/index.js"
+    },
+    "./app": {
+      "types": "./dist/app/index.d.ts",
+      "import": "./dist/app/index.js"
+    },
+    "./backends/*": {
+      "types": "./dist/backends/*/index.d.ts",
+      "import": "./dist/backends/*/index.js"
+    },
+    "./core": {
+      "types": "./dist/core/index.d.ts",
+      "import": "./dist/core/index.js"
+    },
+    "./default-exports": {
+      "types": "./dist/default-exports/index.d.ts",
+      "import": "./dist/default-exports/index.js"
+    },
+    "./editor-component-image": {
+      "types": "./dist/editor-component-image/index.d.ts",
+      "import": "./dist/editor-component-image/index.js"
+    },
+    "./format-packs/*": {
+      "types": "./dist/format-packs/*/index.d.ts",
+      "import": "./dist/format-packs/*/index.js"
+    },
+    "./lib/auth": {
+      "types": "./dist/lib/auth/index.d.ts",
+      "import": "./dist/lib/auth/index.js"
+    },
+    "./lib/richtext": {
+      "types": "./dist/lib/richtext/index.d.ts",
+      "import": "./dist/lib/richtext/index.js"
+    },
+    "./lib/richtext/lexical": {
+      "types": "./dist/lib/richtext/lexical/index.d.ts",
+      "import": "./dist/lib/richtext/lexical/index.js"
+    },
+    "./lib/util": {
+      "types": "./dist/lib/util/index.d.ts",
+      "import": "./dist/lib/util/index.js"
+    },
+    "./lib/widgets": {
+      "types": "./dist/lib/widgets/index.d.ts",
+      "import": "./dist/lib/widgets/index.js"
+    },
+    "./ui/editor": {
+      "types": "./dist/ui/editor/index.d.ts",
+      "import": "./dist/ui/editor/index.js"
+    },
+    "./locales": {
+      "types": "./dist/locales/index.d.ts",
+      "import": "./dist/locales/index.js"
+    },
+    "./locales/*": {
+      "types": "./dist/locales/*/index.d.ts",
+      "import": "./dist/locales/*/index.js"
+    },
+    "./media/*": {
+      "types": "./dist/media/*/index.d.ts",
+      "import": "./dist/media/*/index.js"
+    },
+    "./dev-server": {
+      "types": "./dist/dev-server/index.d.ts",
+      "import": "./dist/dev-server/index.js"
+    },
+    "./ui": {
+      "types": "./dist/ui/index.d.ts",
+      "import": "./dist/ui/index.js"
+    },
+    "./ui/*": {
+      "types": "./dist/ui/*/index.d.ts",
+      "import": "./dist/ui/*/index.js"
+    },
+    "./laika-app": {
+      "types": "./dist/laika-app/index.d.ts",
+      "import": "./dist/laika-app/index.js"
+    },
+    "./laika-app/bare": {
+      "types": "./dist/laika-app/bare.d.ts",
+      "import": "./dist/laika-app/bare.js"
+    },
+    "./widgets/*": {
+      "types": "./dist/widgets/*/index.d.ts",
+      "import": "./dist/widgets/*/index.js"
+    },
+    "./package.json": "./package.json"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "jsx": "react-jsx",
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "noEmit": true,
+    "strict": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "types": ["@testing-library/jest-dom"]
+  },
+  "include": ["src/**/*", "vitest.globals.d.ts"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/__tests__/**",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "**/*.test.ts",
+    "**/*.test.tsx"
+  ]
+}

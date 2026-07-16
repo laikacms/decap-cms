@@ -1,0 +1,39 @@
+import styled from '@emotion/styled';
+import React from 'react';
+
+import { buttons, Icon, shadows, zIndex } from '@/ui/default/index';
+
+const StyledSettingsButton = styled.button`
+  ${buttons.button};
+  ${buttons.default};
+  ${shadows.drop};
+  display: block;
+  position: absolute;
+  z-index: ${zIndex.zIndex100};
+  right: 8px;
+  top: 8px;
+  opacity: 0.8;
+  padding: 2px 4px;
+  line-height: 1;
+  height: auto;
+
+  .decap-icon {
+    position: relative;
+    top: 1px;
+  }
+`;
+
+interface SettingsButtonProps {
+  showClose: boolean;
+  onClick: () => void;
+}
+
+function SettingsButton({ showClose, onClick }: SettingsButtonProps) {
+  return (
+    <StyledSettingsButton onClick={onClick}>
+      <Icon type={showClose ? 'close' : 'settings'} size="small" />
+    </StyledSettingsButton>
+  );
+}
+
+export default SettingsButton;

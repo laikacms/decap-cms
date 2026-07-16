@@ -1,0 +1,58 @@
+/**
+ * This module is currently concerned only with external media libraries
+ * registered via `registerMediaLibrary`.
+ */
+import { once } from 'lodash-es';
+
+import { configFailed } from './actions/config';
+import { createMediaLibrary, insertMedia } from './actions/mediaLibrary';
+import { getMediaLibrary } from './lib/registry';
+import { store } from './redux';
+
+import type { CmsMediaLibraryInstance } from '@/lib/util/index';
+import type { AppDispatch } from './hooks/useRedux';
+
+type MediaLibraryInstance = CmsMediaLibraryInstance;
+type MediaLibraryOptions = Record<string, unknown>;
+
+interface MediaLibrary {
+  init: (args: {
+    options: MediaLibraryOptions,
+    handleInsert: (url: string) => void,
+  }) => MediaLibraryInstance;
+}
+
+function handleInsert(url: string) {
+  return (store.dispatch as AppDispatch)(insertMedia(url, undefined));
+}
+
+const initializeMediaLibrary = once(async function initializeMediaLibrary(name, options) {
+  const lib = getMediaLibrary(name) as unknown as MediaLibrary | undefined;
+  if (!lib) {
+    const err = new Error(
+      `Missing external media library '${name}'. Please use 'registerMediaLibrary' to register it.`,
+    );
+    store.dispatch(configFailed(err));
+  } else {
+    const instance = await lib.init({ options, handleInsert });
+    store.dispatch(createMediaLibrary(instance));
+  }
+});
+
+/**
+ * Watch the store and initialize the configured external media library once
+ * config arrives. Called by `DecapCmsProvider` — this module has no
+ * import-time side effects, so the subscription is explicit and idempotent.
+ */
+export const connectMediaLibrary = once(function connectMediaLibrary(): void {
+  store.subscribe(() => {
+    const state = store.getState();
+    if (state) {
+      const mediaLibraryName = state.config.media_library?.name;
+      if (mediaLibraryName && !state.mediaLibrary.externalLibrary) {
+        const mediaLibraryConfig = state.config.media_library;
+        initializeMediaLibrary(mediaLibraryName, mediaLibraryConfig);
+      }
+    }
+  });
+});

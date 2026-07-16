@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Laika CMS Development Test</title>
+  <script src="repo-fixtures.js"></script>
+</head>
+<body>
+
+  <script src="dist/laika-cms.js"></script>
+  <script>
+    // The laika bundle exposes a `LaikaCms` global. Mirror the standard
+    // `CMS` / `h` shape that dev-test/index.html uses so the rest of this
+    // page reads identically.
+    var CMS = window.LaikaCms && window.LaikaCms.default
+      ? window.LaikaCms.default
+      : window.LaikaCms;
+    var h = window.LaikaCms.h;
+
+    var PostPreview = function(props) {
+      var entry = props.entry;
+      return h('div', {},
+        h('div', { className: 'cover' },
+          h('h1', {}, entry.data.title),
+          props.widgetFor('image'),
+        ),
+        h('p', {},
+          h('small', {}, 'Written ' + entry.data.date)
+        ),
+        h('div', { className: 'text' }, props.widgetFor('body')),
+      );
+    };
+
+    var GeneralPreview = function(props) {
+      var entry = props.entry;
+      return h('div', {},
+        h('h1', {}, entry.data.site_title),
+      );
+    };
+
+    var AuthorsPreview = function(props) {
+      return h('div', {},
+        h('h1', {}, 'Authors'),
+        props.widgetsFor('authors').map(function(author, index) {
+          return h('div', { key: index },
+            h('hr', {}),
+            h('strong', {}, author.data.name),
+            author.widgets.description
+          );
+        })
+      );
+    };
+
+    var RelationKitchenSinkPostPreview = function(props) {
+      var value = props.value;
+      var fieldsMetaData = props.fieldsMetaData;
+      var post = fieldsMetaData && fieldsMetaData.posts && fieldsMetaData.posts[value];
+      var style = { border: '2px solid #ccc', borderRadius: '8px', padding: '20px' };
+      return post ? h('div', { style: style },
+        h('h2', {}, 'Related Post'),
+        h('h3', {}, post.title),
+        h('img', { src: post.image }),
+        h('p', {}, (post.body || '').slice(0, 100) + '...'),
+      ) : null;
+    };
+
+    CMS.registerPreviewTemplate('posts', PostPreview);
+    CMS.registerPreviewTemplate('general', GeneralPreview);
+    CMS.registerPreviewTemplate('authors', AuthorsPreview);
+    CMS.registerWidget({
+      name: "relationKitchenSinkPost",
+      controlComponent: CMS.getWidget("relation").control,
+      previewComponent: RelationKitchenSinkPostPreview,
+    });
+  </script>
+</body>
+</html>
