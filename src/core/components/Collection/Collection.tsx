@@ -38,6 +38,10 @@ const CollectionContainer = styled.div`
 
 const CollectionMain = styled.main<{ $hasSidebar?: boolean }>`
   padding-left: ${({ $hasSidebar }) => ($hasSidebar === false ? '0' : '280px')};
+
+  @media (max-width: 600px) {
+    padding-left: 0;
+  }
 `;
 
 const SearchResultContainer = styled.div`
