@@ -257,6 +257,28 @@ describe('formatters', () => {
       );
     });
 
+    it('replaces an unknown placeholder in a user-supplied commit_messages.create template with an empty string (DCMS-562)', () => {
+      const config = {
+        backend: {
+          commit_messages: {
+            create: 'Create {{collection}}: {{not-a-real-placeholder}}',
+          },
+        },
+      };
+      const collection = { label_singular: 'Collection' };
+
+      expect(
+        commitMessageFormatter('create', config, {
+          slug: 'doc-slug',
+          path: 'file-path',
+          collection,
+        }),
+      ).toEqual('Create Collection: ');
+      expect(console.warn).toHaveBeenCalledWith(
+        'Ignoring unknown variable "not-a-real-placeholder" in commit message template.',
+      );
+    });
+
     it('should return commit with trailer when signoff_commits is enabled', () => {
       const collection = { label_singular: 'Collection' };
       const config = {
