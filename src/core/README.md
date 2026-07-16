@@ -9,7 +9,9 @@ built on top of this package (DCMS-251).
 This document covers the public **extension registration API** exposed
 from `src/core/lib/registry.tsx` and re-exported from
 [`src/core/index.ts`](./index.ts) as `Registry` (and spread onto the
-default export, `DecapCmsCore`):
+default export, `DecapCmsCore`), plus a [config reference](#config-reference)
+for collection/top-level `config.yml` keys that are implemented here but
+not documented anywhere else in the repo:
 
 ```ts
 import { Registry } from '@laikacms/decap-cms/core';
@@ -338,3 +340,103 @@ registerCustomFormat('my-format', 'myext', {
   toFile: data => JSON.stringify(data, null, 2),
 });
 ```
+
+## Config reference
+
+The keys below are validated by the JSON Schema in
+[`src/core/lib/validateConfig.ts`](./lib/validateConfig.ts) and applied in
+[`src/core/actions/config.tsx`](./actions/config.tsx), but aren't covered
+anywhere else (DCMS-556).
+
+### `collection.view_filters` / `collection.view_groups`
+
+Preset filter/group buttons shown above a collection's entry list by
+`CollectionControls` (only rendered when the array is non-empty). Each
+entry is an object with:
+
+- `label` (`string`, required) — button text shown to the user.
+- `field` (`string`, required) — entry field the filter/group applies to.
+- `pattern` (`string | boolean`) — required for `view_filters` (the
+  value/regex a filter matches against); optional `string` for
+  `view_groups`.
+
+```yaml
+collections:
+  - name: posts
+    label: Posts
+    folder: content/posts
+    view_filters:
+      - label: 'Drafts'
+        field: draft
+        pattern: true
+      - label: 'Published'
+        field: draft
+        pattern: false
+    view_groups:
+      - label: 'Year'
+        field: date
+        pattern: '\d{4}'
+    fields: [...]
+```
+
+At config-apply time each entry gets a derived `id: "${field}__${pattern}"`
+(`src/core/actions/config.tsx`); you don't set `id` yourself.
+
+### `collection.sortable_fields` (and deprecated `sortableFields`)
+
+Controls which fields can sort a collection's entry list. Accepts either
+plain field names or objects for finer control:
+
+```yaml
+collections:
+  - name: posts
+    label: Posts
+    folder: content/posts
+    sortable_fields:
+      - title
+      - field: date
+        label: 'Publish date'
+        default_sort: desc # or `asc` / boolean
+    fields: [...]
+```
+
+- `field` (required), `label` (optional, defaults to the field name),
+  `default_sort` (optional, `true`/`false` or `'asc'`/`'desc'`) are the
+  only allowed object keys; at most one field in the array may set
+  `default_sort`.
+- The camelCase alias `sortableFields` still works but is deprecated: it's
+  auto-migrated to `sortable_fields` at load time with a
+  `console.warn` (`normalizeConfig` in `src/core/actions/config.tsx`).
+  Configs may not set both keys at once (rejected by schema).
+- If omitted entirely, a default set is inferred from the collection's
+  identifier/date/author-shaped fields
+  (`selectDefaultSortableFields` in `src/core/reducers/collections.tsx`).
+
+### `local_backend`
+
+Enables detection of the local dev proxy server (`decap-server`). Accepts
+either a boolean or an object form:
+
+```yaml
+# shorthand — proxy expected at http://localhost:8081/api/v1
+local_backend: true
+
+# object form
+local_backend:
+  url: http://localhost:8082/api/v1
+  allowed_hosts:
+    - my-machine.local
+```
+
+- `local_backend: true` (or omitting `url`) assumes the proxy is at
+  `http://localhost:8081/api/v1`.
+- `url` overrides the proxy address. Only `http(s)://` URLs make sense
+  here; the request against an unreachable/invalid URL fails silently — it
+  just logs `Decap CMS Proxy Server not detected at '<url>'` to the console
+  and the app falls back to the configured non-local backend
+  (`detectProxyServer` in `src/core/actions/config.tsx`).
+- Proxy detection only runs when `location.hostname` is `localhost`,
+  `127.0.0.1`, **or** one of the hostnames listed in `allowed_hosts`.
+  `allowed_hosts` lets you develop against the local proxy from a hostname
+  other than `localhost`/`127.0.0.1` (e.g. a LAN name or a tunneled
+  domain) — it does not affect anything once the proxy has been detected.
