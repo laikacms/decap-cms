@@ -1,22 +1,26 @@
 # Security Policy
 
-Decap CMS takes security seriously. This document outlines our security policy, supported versions, and how to report security vulnerabilities.
+Decap CMS takes security seriously. This document outlines our security policy, supported versions,
+and how to report security vulnerabilities.
 
 ## Supported Versions
 
 Security updates are provided for:
 
-| Version | Status | Lifecycle |
-|---------|--------|-----------|
-| 3.x | ✅ Actively Supported | Current stable release |
-| 2.x (Netlify CMS) | ❌ Unsupported | Legacy - no updates |
-| 1.x (Netlify CMS) | ❌ Unsupported | Legacy - no updates |
+| Version           | Status                | Lifecycle              |
+| ----------------- | --------------------- | ---------------------- |
+| 3.x               | ✅ Actively Supported | Current stable release |
+| 2.x (Netlify CMS) | ❌ Unsupported        | Legacy - no updates    |
+| 1.x (Netlify CMS) | ❌ Unsupported        | Legacy - no updates    |
 
-**Note:** Decap CMS was renamed from Netlify CMS in February 2023. Versions 1.x and 2.x are no longer maintained. We recommend upgrading to version 3.x for security updates and new features.
+**Note:** Decap CMS was renamed from Netlify CMS in February 2023. Versions 1.x and 2.x are no
+longer maintained. We recommend upgrading to version 3.x for security updates and new features.
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in Decap CMS, please report it **confidentially** through GitHub Security Advisories. This allows us to investigate and address the issue without exposing it to the public until a fix is ready.
+If you discover a security vulnerability in Decap CMS, please report it **confidentially** through
+GitHub Security Advisories. This allows us to investigate and address the issue without exposing it
+to the public until a fix is ready.
 
 **Submit your report at:** https://github.com/laikacms/decap-cms/security/advisories/new
 
@@ -41,7 +45,10 @@ This project follows a 90-day disclosure timeline.
 
 ## Known Limitations
 
-- This is a **community-maintained open-source project**, not a commercial product with dedicated security resources
+- This is a **community-maintained open-source project**, not a commercial product with dedicated
+  security resources
 - Security depends on the stability and practices of underlying dependencies and backend providers
-- Some vulnerabilities in dependencies may not be immediately patchable if they break backwards compatibility
-- This is a project with a long history, and many legacy dependencies can't be updated without significant refactoring
+- Some vulnerabilities in dependencies may not be immediately patchable if they break backwards
+  compatibility
+- This is a project with a long history, and many legacy dependencies can't be updated without
+  significant refactoring
