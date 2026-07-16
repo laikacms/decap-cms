@@ -160,7 +160,6 @@
     "react-textarea-autosize": "^8.5.9",
     "react-toastify": "^11.0.5",
     "react-topbar-progress-indicator": "^4.1.1",
-    "react-waypoint": "^10.3.0",
     "react-window": "^2.2.7",
     "redux": "^5.0.1",
     "redux-devtools-extension": "^2.13.9",
