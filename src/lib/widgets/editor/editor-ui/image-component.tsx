@@ -4,6 +4,7 @@ import { useLexicalEditable } from '@lexical/react/useLexicalEditable';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
 import { mergeRegister } from '@lexical/utils';
 import {
+  $getNodeByKey,
   $getSelection,
   $isNodeSelection,
   $isRangeSelection,
@@ -16,6 +17,8 @@ import {
   KEY_ESCAPE_COMMAND,
   SELECTION_CHANGE_COMMAND,
 } from 'lexical';
+
+import { $isImageNode } from '@/lib/widgets/editor/nodes/image-node';
 
 import type { LexicalCommand, LexicalEditor, NodeKey } from 'lexical';
 import type { JSX } from 'react';
@@ -162,6 +165,32 @@ function LazyImage({
   );
 }
 
+function ConsentToLoadImage({ onLoad }: { onLoad: () => void }): JSX.Element {
+  return (
+    <button
+      type="button"
+      className="editor-image-consent-prompt"
+      onClick={onLoad}
+      style={{
+        alignItems: 'center',
+        background: 'transparent',
+        border: '1px dashed currentColor',
+        color: 'inherit',
+        cursor: 'pointer',
+        display: 'flex',
+        fontSize: '0.875rem',
+        gap: '0.5rem',
+        height: 120,
+        justifyContent: 'center',
+        opacity: 0.7,
+        width: '100%',
+      }}
+    >
+      This document contains an image hosted elsewhere. Click to load it.
+    </button>
+  );
+}
+
 function BrokenImage(): JSX.Element {
   // NOTE: never pass `src=""` here. An empty string `src` is treated by
   // browsers as "reload the current document URL", which (a) triggers a
@@ -188,11 +217,13 @@ export default function ImageComponent({
   width,
   height,
   maxWidth,
+  requiresConsent,
 }: {
   altText: string,
   height: 'inherit' | number,
   maxWidth: number,
   nodeKey: NodeKey,
+  requiresConsent: boolean,
   src: string,
   width: 'inherit' | number,
 }): JSX.Element {
@@ -339,25 +370,36 @@ export default function ImageComponent({
     );
   }, [editor, $onEnter, $onEscape, onClick, onRightClick]);
 
+  const onLoadConsent = useCallback(() => {
+    editor.update(() => {
+      const node = $getNodeByKey(nodeKey);
+      if ($isImageNode(node)) {
+        node.clearRequiresConsent();
+      }
+    });
+  }, [editor, nodeKey]);
+
   const draggable = isInNodeSelection;
   const isFocused = isSelected && isEditable;
   return (
     <Suspense fallback={null}>
       <>
         <div draggable={draggable}>
-          {isLoadError ? <BrokenImage /> : (
-            <LazyImage
-              className={isFocused
-                ? `focused ${isInNodeSelection ? 'draggable' : ''}`
-                : null}
-              src={src}
-              altText={altText}
-              imageRef={imageRef}
-              width={width}
-              height={height}
-              maxWidth={maxWidth}
-              onError={() => setIsLoadError(true)}
-            />
+          {requiresConsent ? <ConsentToLoadImage onLoad={onLoadConsent} /> : (
+            isLoadError ? <BrokenImage /> : (
+              <LazyImage
+                className={isFocused
+                  ? `focused ${isInNodeSelection ? 'draggable' : ''}`
+                  : null}
+                src={src}
+                altText={altText}
+                imageRef={imageRef}
+                width={width}
+                height={height}
+                maxWidth={maxWidth}
+                onError={() => setIsLoadError(true)}
+              />
+            )
           )}
         </div>
       </>
