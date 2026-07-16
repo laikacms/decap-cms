@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { $applyNodeReplacement, DecoratorNode } from 'lexical';
 
+import { sanitizeImageSrc } from '@/lib/widgets/editor/utils/url';
+
 import type { JSX } from 'react';
 import type {
   DOMConversionMap,
@@ -22,6 +24,7 @@ export interface ImagePayload {
   height?: number;
   key?: NodeKey;
   maxWidth?: number;
+  requiresConsent?: boolean;
   src: string;
   width?: number;
 }
@@ -37,12 +40,27 @@ function isGoogleDocCheckboxImg(img: HTMLImageElement): boolean {
 
 function $convertImageElement(domNode: Node): null | DOMConversionOutput {
   const img = domNode as HTMLImageElement;
-  const src = img.getAttribute('src');
-  if (!src || src.startsWith('file:///') || isGoogleDocCheckboxImg(img)) {
+  const rawSrc = img.getAttribute('src');
+  if (!rawSrc || isGoogleDocCheckboxImg(img)) {
+    return null;
+  }
+  // Sanitize BEFORE creating the node: `domNode` is part of a detached
+  // document produced by Lexical's clipboard DOMParser pass, so no
+  // subresource fetch has happened yet. Rejecting unsafe `src` values here
+  // (rather than after the ImageNode/ImageComponent render pipeline gets
+  // hold of them) guarantees a hostile pasted `src` never reaches a live,
+  // attached `<img>` — and therefore never gets fetched — at all.
+  const src = sanitizeImageSrc(rawSrc);
+  if (!src) {
     return null;
   }
   const { alt: altText, width, height } = img;
-  const node = $createImageNode({ altText, height, src, width });
+  // `data:` sources are self-contained (no network round-trip); http(s) and
+  // relative sources still require a live fetch to load/probe, so gate them
+  // behind explicit user consent rather than letting ImageComponent fetch
+  // them the instant the paste lands (DCMS-640).
+  const requiresConsent = !/^data:/i.test(src);
+  const node = $createImageNode({ altText, height, requiresConsent, src, width });
   return { node };
 }
 
@@ -63,6 +81,7 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
   __width: 'inherit' | number;
   __height: 'inherit' | number;
   __maxWidth: number;
+  __requiresConsent: boolean;
 
   static getType(): string {
     return 'image';
@@ -76,6 +95,7 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
       node.__width,
       node.__height,
       node.__key,
+      node.__requiresConsent,
     );
   }
 
@@ -122,6 +142,7 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
     width?: 'inherit' | number,
     height?: 'inherit' | number,
     key?: NodeKey,
+    requiresConsent?: boolean,
   ) {
     super(key);
     this.__src = src;
@@ -129,6 +150,7 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
     this.__maxWidth = maxWidth;
     this.__width = width || 'inherit';
     this.__height = height || 'inherit';
+    this.__requiresConsent = requiresConsent ?? false;
   }
 
   exportJSON(): SerializedImageNode {
@@ -176,6 +198,16 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
     return this.getLatest().__altText;
   }
 
+  getRequiresConsent(): boolean {
+    return this.getLatest().__requiresConsent;
+  }
+
+  clearRequiresConsent(): this {
+    const writable = this.getWritable();
+    writable.__requiresConsent = false;
+    return writable;
+  }
+
   decorate(): JSX.Element {
     return (
       <ImageComponent
@@ -185,6 +217,7 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
         height={this.__height}
         maxWidth={this.__maxWidth}
         nodeKey={this.getKey()}
+        requiresConsent={this.__requiresConsent}
       />
     );
   }
@@ -194,12 +227,13 @@ export function $createImageNode({
   altText,
   height,
   maxWidth = 500,
+  requiresConsent,
   src,
   width,
   key,
 }: ImagePayload): ImageNode {
   return $applyNodeReplacement(
-    new ImageNode(src, altText, maxWidth, width, height, key),
+    new ImageNode(src, altText, maxWidth, width, height, key, requiresConsent),
   );
 }
 

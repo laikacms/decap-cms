@@ -613,6 +613,7 @@ interface ReactSelectStyles {
   control: (styles: CSSObject) => CSSObject;
   option: (styles: CSSObject, state: ReactSelectStylesState) => CSSObject;
   menu: (styles: CSSObject) => CSSObject;
+  menuPortal: (styles: CSSObject) => CSSObject;
   menuList: (styles: CSSObject) => CSSObject;
   singleValue: (styles: CSSObject) => CSSObject;
   input: (styles: CSSObject) => CSSObject;
@@ -652,6 +653,14 @@ const reactSelectStyles: ReactSelectStyles = {
     backgroundColor: colors.inputBackground,
     right: 0,
     zIndex: zIndex.zIndex300,
+  }),
+  // Menus are portaled to document.body (see menuPortalTarget on the Select
+  // controls) so they always stack above sibling editor fields regardless of
+  // the field's own stacking context. zIndex99999 matches the portal's own
+  // stacking layer.
+  menuPortal: (styles: CSSObject): CSSObject => ({
+    ...styles,
+    zIndex: zIndex.zIndex99999,
   }),
   menuList: (styles: CSSObject): CSSObject => ({
     ...styles,

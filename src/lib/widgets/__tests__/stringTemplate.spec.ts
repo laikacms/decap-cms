@@ -172,6 +172,31 @@ describe('stringTemplate', () => {
         }),
       ).toBe('bac***');
     });
+
+    it('leaves value unfiltered when the filter name is unknown', () => {
+      expect(
+        compileStringTemplate('{{title | shout}}', date, 'backendSlug', { title: 'title' }),
+      ).toBe('title');
+    });
+
+    it('does not chain multiple filters on the same placeholder', () => {
+      expect(
+        compileStringTemplate('{{title | upper | lower}}', date, 'backendSlug', {
+          title: 'Title',
+        }),
+      ).toBe('Title');
+    });
+
+    it('does not treat an empty array or zero as falsy for default', () => {
+      expect(
+        compileStringTemplate(
+          "{{count | default('none')}}",
+          date,
+          'backendSlug',
+          { count: 0 },
+        ),
+      ).toBe('0');
+    });
   });
 
   describe('expandPath', () => {

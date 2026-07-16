@@ -34,6 +34,32 @@ const SCROLL_SYNC_ENABLED = 'cms.scroll-sync-enabled';
 const SPLIT_PANE_POSITION = 'cms.split-pane-position';
 const I18N_VISIBLE = 'cms.i18n-visible';
 
+// Below this width the side-by-side split leaves each pane too narrow to use
+// (DCMS-642); stack the panes vertically instead so each gets the full
+// viewport width.
+const NARROW_SPLIT_PANE_QUERY = '(max-width: 800px)';
+
+function supportsMatchMedia() {
+  return typeof window !== 'undefined' && typeof window.matchMedia === 'function';
+}
+
+function useIsNarrowSplitPaneViewport() {
+  const [isNarrow, setIsNarrow] = React.useState(
+    () => supportsMatchMedia() && window.matchMedia(NARROW_SPLIT_PANE_QUERY).matches,
+  );
+
+  React.useEffect(() => {
+    if (!supportsMatchMedia()) return;
+    const mediaQueryList = window.matchMedia(NARROW_SPLIT_PANE_QUERY);
+    const handleChange = (event: MediaQueryListEvent) => setIsNarrow(event.matches);
+    setIsNarrow(mediaQueryList.matches);
+    mediaQueryList.addEventListener('change', handleChange);
+    return () => mediaQueryList.removeEventListener('change', handleChange);
+  }, []);
+
+  return isNarrow;
+}
+
 const styles = {
   splitPane: css`
     ${components.card};
@@ -271,6 +297,8 @@ function EditorInterface(props: EditorInterfaceProps) {
     () => localStorage.getItem(I18N_VISIBLE) !== 'false',
   );
   const [leftPanelLocaleState, setLeftPanelLocale] = React.useState<string | undefined>(undefined);
+  const isNarrowSplitPaneViewport = useIsNarrowSplitPaneViewport();
+  const splitPaneDirection = isNarrowSplitPaneViewport ? 'vertical' : 'horizontal';
 
   function handleFieldClick(path: string) {
     controlPaneRef.current?.focus(path);
@@ -368,6 +396,7 @@ function EditorInterface(props: EditorInterfaceProps) {
       <SplitPaneWrapper>
         <ReactSplitPaneGlobalStyles />
         <StyledSplitPane
+          direction={splitPaneDirection}
           maxSize={-100}
           minSize={400}
           defaultSize={parseInt(localStorage.getItem(SPLIT_PANE_POSITION) || '0', 10) || '50%'}
@@ -399,6 +428,7 @@ function EditorInterface(props: EditorInterfaceProps) {
     <ScrollSync enabled={scrollSyncEnabled}>
       <SplitPaneWrapper>
         <StyledSplitPane
+          direction={splitPaneDirection}
           maxSize={-100}
           defaultSize={parseInt(localStorage.getItem(SPLIT_PANE_POSITION) || '0', 10) || '50%'}
           onChange={(size: number) => localStorage.setItem(SPLIT_PANE_POSITION, String(size))}

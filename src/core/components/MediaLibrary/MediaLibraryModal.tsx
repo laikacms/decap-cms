@@ -30,6 +30,7 @@ const StyledModal = styled(Modal)<{ $isPrivate?: boolean }>`
   display: grid;
   grid-template-rows: 120px auto;
   width: calc(${cardOutsideWidth} + 20px);
+  max-width: 100vw;
   background-color: ${props => props.$isPrivate && colors.inactive};
 
   @media (width >= 800px) {

@@ -1,9 +1,9 @@
 import React, { useCallback, useRef } from 'react';
 import styled from '@emotion/styled';
-import { Waypoint } from 'react-waypoint';
 import { Grid } from 'react-window';
 
 import { colors } from '@/ui/default/index';
+import InViewTrigger from '@/ui/default/InViewTrigger';
 import MediaLibraryCard from './MediaLibraryCard';
 import { useCmsSlots } from '@/core/lib/slots';
 import { useElementSize } from '@/ui/hooks/useElementSize';
@@ -210,7 +210,7 @@ function PaginatedGrid({
             isViewableImage={file.isViewableImage ?? false}
           />
         ))}
-        {!canLoadMore ? null : <Waypoint onEnter={onLoadMore} />}
+        {!canLoadMore ? null : <InViewTrigger onEnter={onLoadMore} />}
       </CardGrid>
       {!isPaginating ? null : (
         <PaginatingMessage $isPrivate={isPrivate}>{paginatingMessage}</PaginatingMessage>

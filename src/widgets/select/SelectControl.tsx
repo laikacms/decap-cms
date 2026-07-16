@@ -142,6 +142,8 @@ const SelectControl = React.forwardRef<SelectControlHandle, SelectControlProps>(
         isMulti={isMultiple}
         isClearable={isClearable}
         placeholder=""
+        menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+        menuPosition="fixed"
       />
     );
   },

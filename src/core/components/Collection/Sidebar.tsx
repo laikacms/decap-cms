@@ -28,6 +28,13 @@ const SidebarContainer = styled.aside`
   max-height: calc(100vh - 112px);
   display: flex;
   flex-direction: column;
+
+  @media (max-width: 600px) {
+    position: static;
+    width: 100%;
+    max-height: none;
+    margin-bottom: 12px;
+  }
 `;
 
 const SidebarHeading = styled.h2`
