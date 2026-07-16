@@ -23,7 +23,8 @@ const styleStrings = {
     border-radius: ${lengths.borderRadius};
     height: 80%;
     text-align: center;
-    max-width: 2200px;
+    max-width: min(2200px, 100vw);
+    box-sizing: border-box;
     padding: 20px;
 
     &:focus {
