@@ -40,6 +40,10 @@ are sanitized — it is **not** the same thing as a collection's
 (e.g. `'{{year}}-{{month}}-{{title}}'`) used to derive a slug's shape. The
 top-level object instead configures the character-sanitization rules
 applied to whatever slug/filename is produced, across every collection.
+The `collections[].slug` template also supports `{{ field | filter }}`
+pipe syntax (`upper`, `lower`, `date()`, `default()`, `ternary()`,
+`truncate()`) — see
+[`src/lib/widgets/README.md#template-filters`](../lib/widgets/README.md#template-filters).
 Defaults are filled in by `applyDefaults` in
 [`src/core/actions/config.tsx`](./actions/config.tsx), and the sanitization
 itself is implemented in
