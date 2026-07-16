@@ -16,6 +16,11 @@ searching that collection live and letting the editor pick a result.
   of the target collection matched against the search term.
 - `display_fields` (optional) — fields shown in the option list; defaults to
   `value_field` when omitted.
+
+Both `value_field` and `display_fields` are string templates and support
+`{{ field | filter }}` pipe syntax (`upper`, `lower`, `date()`, `default()`,
+`ternary()`, `truncate()`) — see
+[`src/lib/widgets/README.md#template-filters`](../../lib/widgets/README.md#template-filters).
 - `file` (optional) — restrict the search to a single file (file collections).
 - `filters` (optional) — `[{ field, values }]` pairs the results must match.
 - `multiple`, `min`, `max` — standard multi-value controls.

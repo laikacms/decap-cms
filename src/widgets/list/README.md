@@ -16,7 +16,9 @@ option is given.
 - `minimize_collapsed` (optional, default `false`) — whether to render only
   the summary line for collapsed items.
 - `summary` (optional) — template string used as the label for collapsed
-  items.
+  items. Supports `{{ field | filter }}` pipe syntax (`upper`, `lower`,
+  `date()`, `default()`, `ternary()`, `truncate()`) — see
+  [`src/lib/widgets/README.md#template-filters`](../../lib/widgets/README.md#template-filters).
 - `min` (optional) — minimum number of items in the list.
 - `max` (optional) — maximum number of items in the list.
 - `label_singular` (optional) — label to use for an individual item, in
