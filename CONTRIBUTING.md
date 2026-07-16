@@ -226,10 +226,9 @@ Decap CMS uses NPM trusted publishers with OIDC for secure, automated package pu
   ```
 
 2. **Automated publishing:**
-   - Tags pushed to `main` trigger the publish workflow automatically
-   - GitHub Actions runs tests and builds packages
-   - Lerna publishes changed packages to npm using OIDC
-   - Provenance attestations are generated automatically
+   - Tags matching `v*` pushed to `v4.beta` trigger the publish workflow automatically
+   - GitHub Actions runs tests, builds, and publishes the package to npm using OIDC
+   - Provenance attestations are generated automatically via `npm publish --provenance`
 
 3. **Create GitHub release:**
    - Go to [Releases](https://github.com/decaporg/decap-cms/releases)
