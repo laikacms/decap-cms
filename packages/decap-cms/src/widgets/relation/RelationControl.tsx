@@ -528,6 +528,8 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
         isMulti={isMulti}
         isClearable={isClearable}
         placeholder=""
+        menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+        menuPosition="fixed"
       />
     );
   },

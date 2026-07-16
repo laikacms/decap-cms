@@ -172,6 +172,7 @@
     "micromark-extension-mdx-jsx": "^3.0.2",
     "micromark-extension-mdx-md": "^2.0.0",
     "minimatch": "^10.2.5",
+    "prismjs": "^1.30.0",
     "react-colorful": "^5.8.0",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
@@ -183,7 +184,6 @@
     "react-split-pane": "^3.2.0",
     "react-textarea-autosize": "^8.5.9",
     "react-topbar-progress-indicator": "^4.1.1",
-    "react-waypoint": "^10.3.0",
     "react-window": "^2.2.7",
     "redux": "^5.0.1",
     "redux-thunk": "^3.1.0",
@@ -291,6 +291,10 @@
     "./editor-component-image": {
       "types": "./dist/editor-component-image/index.d.ts",
       "import": "./dist/editor-component-image/index.js"
+    },
+    "./entry-codecs/*": {
+      "types": "./dist/entry-codecs/*/index.d.ts",
+      "import": "./dist/entry-codecs/*/index.js"
     },
     "./format-packs/*": {
       "types": "./dist/format-packs/*/index.d.ts",

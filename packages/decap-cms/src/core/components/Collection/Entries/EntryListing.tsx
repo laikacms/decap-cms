@@ -1,9 +1,9 @@
 import styled from '@emotion/styled';
 import React from 'react';
-import { Waypoint } from 'react-waypoint';
 
 import { useCmsSlots } from '@/core/lib/slots';
 import { selectFields, selectInferredField } from '@/core/reducers/collections';
+import InViewTrigger from '@/ui/default/InViewTrigger';
 import { filterNestedEntries } from './EntriesCollection';
 import EntryCard from './EntryCard';
 
@@ -173,7 +173,7 @@ function EntryListing({
         : (
           <CardsGrid className="CardsGrid">
             {cards}
-            {hasMore && <Waypoint key={page} onEnter={handleLoadMore} />}
+            {hasMore && <InViewTrigger key={page} onEnter={handleLoadMore} />}
           </CardsGrid>
         )}
     </div>

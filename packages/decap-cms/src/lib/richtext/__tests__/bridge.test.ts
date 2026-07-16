@@ -4,6 +4,8 @@ import { lexicalToPortableText } from '@/lib/richtext/bridge/lexicalToPortableTe
 import { portableTextToLexical } from '@/lib/richtext/bridge/portableTextToLexical';
 import { type PortableTextDocument, stripKeys } from '@/lib/richtext/index';
 
+import type { SerializedEditorState } from 'lexical';
+
 /** PT -> Lexical -> PT, with keys stripped for comparison. */
 function roundTrip(doc: PortableTextDocument): PortableTextDocument {
   return stripKeys(lexicalToPortableText(portableTextToLexical(doc)));
@@ -144,6 +146,70 @@ describe('PT <-> Lexical round-trip', () => {
   it('normalizes an empty document to a single empty paragraph', () => {
     expect(stripKeys(lexicalToPortableText(portableTextToLexical([])))).toEqual([
       { _type: 'block', style: 'normal', markDefs: [], children: [] },
+    ]);
+  });
+
+  it('unwraps CharacterLimitPlugin OverflowNode content instead of dropping it (DCMS-636)', () => {
+    // Mirrors what @lexical/react/LexicalCharacterLimitPlugin produces: text
+    // past the limit is wrapped in a decorative, non-semantic `overflow` node.
+    const state: SerializedEditorState = {
+      root: {
+        type: 'root',
+        version: 1,
+        format: '',
+        indent: 0,
+        direction: null,
+        children: [
+          {
+            type: 'paragraph',
+            version: 1,
+            format: '',
+            indent: 0,
+            direction: null,
+            children: [
+              {
+                type: 'text',
+                version: 1,
+                format: 0,
+                detail: 0,
+                mode: 'normal',
+                style: '',
+                text: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123',
+              },
+              {
+                type: 'overflow',
+                version: 1,
+                format: '',
+                indent: 0,
+                direction: null,
+                children: [
+                  {
+                    type: 'text',
+                    version: 1,
+                    format: 0,
+                    detail: 0,
+                    mode: 'normal',
+                    style: '',
+                    text: '456789abcdefghij',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    } as unknown as SerializedEditorState;
+
+    const doc = stripKeys(lexicalToPortableText(state));
+    expect(doc).toEqual([
+      {
+        _type: 'block',
+        style: 'normal',
+        markDefs: [],
+        children: [
+          { _type: 'span', text: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghij', marks: [] },
+        ],
+      },
     ]);
   });
 });

@@ -9,6 +9,8 @@ const EmptyMessageContainer = styled.div<{ $isPrivate?: boolean }>`
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow-wrap: anywhere;
+  padding: 0 20px;
   color: ${props => props.$isPrivate && colors.textFieldBorder};
 `;
 

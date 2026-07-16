@@ -3,6 +3,7 @@ import { useLexicalEditable } from '@lexical/react/useLexicalEditable';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
 import { mergeRegister } from '@lexical/utils';
 import {
+  $getNodeByKey,
   $getSelection,
   $isNodeSelection,
   $isRangeSelection,
@@ -16,6 +17,8 @@ import {
   SELECTION_CHANGE_COMMAND,
 } from 'lexical';
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+import { $isImageNode } from '@/ui/editor/nodes/ImageNode';
 
 import type { LexicalCommand, LexicalEditor, NodeKey } from 'lexical';
 import type { JSX } from 'react';
@@ -35,6 +38,9 @@ function useSuspenseImage(src: string): ImageStatus {
   } else if (!cached) {
     cached = new Promise<ImageStatus>(resolve => {
       const img = new Image();
+      // Avoid leaking this document's URL to whatever host `src` points at
+      // (relevant for pasted, attacker-influenced image sources).
+      img.referrerPolicy = 'no-referrer';
       img.src = src;
       img.onload = () =>
         resolve({
@@ -153,15 +159,46 @@ function LazyImage({
       ref={imageRef}
       style={imageStyle}
       onError={onError}
+      referrerPolicy="no-referrer"
       draggable="false"
     />
   );
 }
 
+function ConsentToLoadImage({ onLoad }: { onLoad: () => void }): JSX.Element {
+  return (
+    <button
+      type="button"
+      className="editor-image-consent-prompt"
+      onClick={onLoad}
+      style={{
+        alignItems: 'center',
+        background: 'transparent',
+        border: '1px dashed currentColor',
+        color: 'inherit',
+        cursor: 'pointer',
+        display: 'flex',
+        fontSize: '0.875rem',
+        gap: '0.5rem',
+        height: 120,
+        justifyContent: 'center',
+        opacity: 0.7,
+        width: '100%',
+      }}
+    >
+      This document contains an image hosted elsewhere. Click to load it.
+    </button>
+  );
+}
+
 function BrokenImage(): JSX.Element {
+  // NOTE: never pass `src=""` here. An empty string `src` is treated by
+  // browsers as "reload the current document URL", which (a) triggers a
+  // spurious same-document request and (b) throws React's "An empty string
+  // was passed to the src attribute" warning. Omitting `src` entirely
+  // renders the broken-image placeholder without either side effect.
   return (
     <img
-      src={''}
       style={{
         height: 200,
         opacity: 0.2,
@@ -180,11 +217,13 @@ export default function ImageComponent({
   width,
   height,
   maxWidth,
+  requiresConsent,
 }: {
   altText: string,
   height: 'inherit' | number,
   maxWidth: number,
   nodeKey: NodeKey,
+  requiresConsent: boolean,
   src: string,
   width: 'inherit' | number,
 }): JSX.Element {
@@ -331,25 +370,36 @@ export default function ImageComponent({
     );
   }, [editor, $onEnter, $onEscape, onClick, onRightClick]);
 
+  const onLoadConsent = useCallback(() => {
+    editor.update(() => {
+      const node = $getNodeByKey(nodeKey);
+      if ($isImageNode(node)) {
+        node.clearRequiresConsent();
+      }
+    });
+  }, [editor, nodeKey]);
+
   const draggable = isInNodeSelection;
   const isFocused = isSelected && isEditable;
   return (
     <Suspense fallback={null}>
       <>
         <div draggable={draggable}>
-          {isLoadError ? <BrokenImage /> : (
-            <LazyImage
-              className={isFocused
-                ? `focused ${isInNodeSelection ? 'draggable' : ''}`
-                : null}
-              src={src}
-              altText={altText}
-              imageRef={imageRef}
-              width={width}
-              height={height}
-              maxWidth={maxWidth}
-              onError={() => setIsLoadError(true)}
-            />
+          {requiresConsent ? <ConsentToLoadImage onLoad={onLoadConsent} /> : (
+            isLoadError ? <BrokenImage /> : (
+              <LazyImage
+                className={isFocused
+                  ? `focused ${isInNodeSelection ? 'draggable' : ''}`
+                  : null}
+                src={src}
+                altText={altText}
+                imageRef={imageRef}
+                width={width}
+                height={height}
+                maxWidth={maxWidth}
+                onError={() => setIsLoadError(true)}
+              />
+            )
           )}
         </div>
       </>

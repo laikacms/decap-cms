@@ -44,6 +44,14 @@ export interface CmsCollection {
   editor?:
     | {
       preview?: boolean | undefined,
+      /**
+       * Enables steganographic Visual Editing for this collection's preview pane.
+       * When `true`, `string`, `text`, and `markdown` field values rendered in the
+       * live preview are encoded (via `@vercel/stega`) so a frontend can map
+       * on-page text back to its source field. Only affects the in-memory preview
+       * entry - saved entry data is never modified. Individual fields can opt out
+       * with `visualEditing: false`. Defaults to `false` (disabled).
+       */
       visualEditing?: boolean | undefined,
     }
     | undefined;

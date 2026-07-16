@@ -54,7 +54,9 @@ interface Registry {
   formats: Record<string, CmsFormatter>;
 }
 
-const allowedEvents: CmsAllowedEvent[] = [
+// Exported so `src/core/README.md`'s documented event list can be pinned
+// against this source of truth in tests (see `registry.spec.ts`).
+export const allowedEvents: CmsAllowedEvent[] = [
   'prePublish',
   'postPublish',
   'preUnpublish',

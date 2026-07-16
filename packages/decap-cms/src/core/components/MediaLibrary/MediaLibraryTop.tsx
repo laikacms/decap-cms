@@ -15,7 +15,9 @@ const LibraryTop = styled.div`
 
 const RowContainer = styled.div`
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
+  gap: 8px;
 `;
 
 const ButtonsContainer = styled.div`

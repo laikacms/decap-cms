@@ -22,6 +22,10 @@ collection live and letting the editor pick a result.
   this higher if a collection has many entries that share similar search terms and the default cuts
   off relevant results.
 
+Both `value_field` and `display_fields` are string templates and support `{{ field | filter }}` pipe
+syntax (`upper`, `lower`, `date()`, `default()`, `ternary()`, `truncate()`) - see
+[`src/lib/widgets/README.md#template-filters`](../../lib/widgets/README.md#template-filters).
+
 ## Search behavior
 
 - Typing in the search box is **debounced by 500ms** (`RelationControl.tsx`) before a query is

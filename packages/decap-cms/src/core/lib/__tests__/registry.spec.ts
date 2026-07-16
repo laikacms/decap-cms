@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -291,6 +294,24 @@ describe('registry', () => {
         expect(handler2).toHaveBeenCalledWith(data, options);
         expect(result).toEqual(data.entry);
       });
+    });
+  });
+
+  describe('README event documentation pinning (DCMS-529)', () => {
+    it('documents exactly the events in `allowedEvents`, in firing order', async () => {
+      const { allowedEvents } = await import('@/core/lib/registry');
+
+      const readmePath = path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        '../../README.md',
+      );
+      const readme = readFileSync(readmePath, 'utf-8');
+
+      // Pull the `| Event | Fires |` table rows out of the
+      // `registerEventListener` section of src/core/README.md.
+      const tableRows = [...readme.matchAll(/^\| `(\w+)`\s+\| .+ \|$/gm)].map(match => match[1]);
+
+      expect(tableRows).toEqual(allowedEvents);
     });
   });
 });

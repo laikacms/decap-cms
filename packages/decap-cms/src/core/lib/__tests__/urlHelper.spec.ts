@@ -41,6 +41,12 @@ describe('sanitizeURI', () => {
     expect(sanitizeURI('🎉')).toEqual('🎉');
     expect(sanitizeURI('🎉')).not.toEqual('%F0%9F%8E%89');
   });
+
+  it('throws for an invalid `encoding` option', () => {
+    expect(() => sanitizeURI('test', { encoding: 'latin1' })).toThrowError(
+      '`options.encoding` must be "unicode" or "ascii".',
+    );
+  });
 });
 
 const slugConfig = {

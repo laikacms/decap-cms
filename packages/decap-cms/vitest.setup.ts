@@ -49,3 +49,16 @@ if (typeof Range !== 'undefined') {
       [Symbol.iterator]: [][Symbol.iterator],
     }) as unknown as DOMRectList;
 }
+
+// jsdom does not implement IntersectionObserver.
+class MockIntersectionObserver implements IntersectionObserver {
+  readonly root = null;
+  readonly rootMargin = '';
+  readonly scrollMargin = '';
+  readonly thresholds: ReadonlyArray<number> = [];
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+  takeRecords = vi.fn(() => []);
+}
+globalThis.IntersectionObserver ??= MockIntersectionObserver as unknown as typeof IntersectionObserver;

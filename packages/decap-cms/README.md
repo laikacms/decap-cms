@@ -40,6 +40,37 @@ For configuration, content modeling, and backend setup, the upstream
 [Decap CMS documentation](https://www.decapcms.org/docs/intro/) applies to this fork unless noted in
 `BREAKING_CHANGES_V2_BETA.md`.
 
+## Visual Editing (Stega)
+
+The editor's live preview pane can steganographically encode field values (via `@vercel/stega`) so a
+frontend can detect which on-page text maps back to which CMS field, the same technique used by
+tools like Vercel's Visual Editing. This only changes what is rendered in the preview iframe; the
+entry data saved to your repository is never touched.
+
+Visual editing is opt-in at the collection level and opt-out at the field level:
+
+- `editor.visualEditing` (collection-level `boolean`, default `false`) enables steganographic
+  encoding of the preview entry for that collection. When left unset or `false`, the preview pane
+  renders the entry unmodified and no encoding happens.
+- `visualEditing` (field-level `boolean`, effectively `true` once the collection has opted in). Set
+  it to `false` on an individual field to exclude just that field's value from encoding. Any value
+  other than an explicit `false` is treated as enabled.
+
+```yaml
+collections:
+  - name: posts
+    label: Posts
+    editor:
+      visualEditing: true
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Body, name: body, widget: richtext }
+      - { label: Internal Note, name: note, widget: string, visualEditing: false }
+```
+
+Only text-producing widgets are affected: `string`, `text`, and `richtext` (including its legacy
+`markdown` alias). Other widget types are left untouched by the encoder.
+
 ## Development
 
 ```sh
