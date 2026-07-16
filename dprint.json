@@ -40,11 +40,11 @@
     "**/coverage",
     "**/tmp",
     "**/.temp",
-    "storybook-static",
-    "playwright-report",
-    "test-results",
-    "cypress/fixtures",
-    "CHANGELOG.md",
+    "**/storybook-static",
+    "**/playwright-report",
+    "**/test-results",
+    "**/cypress/fixtures",
+    "**/CHANGELOG.md",
     "pnpm-lock.yaml"
   ],
   "plugins": [

@@ -38,7 +38,9 @@ jobs:
       - name: Build
         run: pnpm run build
 
-      # Single package (@laikacms/decap-cms). npm publish picks up OIDC automatically
-      # via trusted publishers, so no NODE_AUTH_TOKEN is needed.
+      # The published package lives in packages/decap-cms (workspace root is
+      # private). npm publish picks up OIDC automatically via trusted
+      # publishers, so no NODE_AUTH_TOKEN is needed.
       - name: Publish to npm
+        working-directory: packages/decap-cms
         run: npm publish --provenance --access public

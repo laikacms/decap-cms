@@ -1,20 +1,22 @@
-# Single-package layout: the `packages:` list is intentionally empty —
-# this file is kept only so the `catalog:` protocol below keeps resolving.
-# See RESTRUCTURE.md.
-packages: []
+# pnpm workspace with a single (for now) self-named package: the published
+# `@laikacms/decap-cms` package lives in packages/decap-cms. The `packages/`
+# folder exists so sibling packages can be added later without another
+# restructure - same layout as the laikacms/laikacms repo. See RESTRUCTURE.md.
+packages:
+  - 'packages/*'
 
 catalogs:
   # TypeScript type definitions
   types:
     '@types/node': '^25.9.5'
     '@types/hast': '^3.0.5'
+    '@types/mdast': '^4.0.4'
     '@types/lodash-es': '^4.17.12'
     '@types/unist': '^3.0.3'
     '@types/redux-mock-store': '^1.5.0'
     '@types/react': '^19.2.14'
     '@types/react-dom': '^19.2.3'
     '@types/tinycolor2': '^1.4.6'
-    '@types/react-is': '^19.0.0'
 
   # Vite build tooling
   vite:
@@ -35,7 +37,6 @@ catalogs:
 
   # Emotion CSS-in-JS
   emotion:
-    '@emotion/babel-plugin': '^11.13.5'
     '@emotion/is-prop-valid': '^1.4.0'
     '@emotion/eslint-plugin': '^11.12.0'
     '@emotion/react': '^11.14.0'
@@ -78,11 +79,9 @@ catalogs:
     'react-dom': '^19.2.4'
     'react-redux': '^9.2.0'
     'react-router-dom': '^7.14.0'
-    'react-is': '19.2.4'
     'react-dnd': '^16.0.1'
     'react-dnd-html5-backend': '^16.0.1'
     'react-frame-component': '^5.3.2'
-    'react-markdown': '^10.1.0'
     'react-scroll-sync': '^1.0.2'
     'react-split-pane': '^3.2.0'
     'react-topbar-progress-indicator': '^4.1.1'
@@ -107,7 +106,6 @@ catalogs:
 
   # Build and development tools
   build:
-    '@babel/core': '^7.29.7'
     'esbuild': '^0.27.4'
     'globals': '^17.5.0'
     'dotenv': '^17.4.0'
@@ -120,9 +118,6 @@ catalogs:
 
   # Schema validation
   validation:
-    'ajv': '^8.18.0'
-    'ajv-errors': '^3.0.0'
-    'ajv-keywords': '^5.1.0'
     'zod': '^4.4.3'
 
   # Utility libraries
@@ -153,7 +148,6 @@ catalogs:
   # Markdown/Rich text processing (frontmatter parsing only — the WYSIWYG
   # editor stack was removed alongside widget-markdown and widget-richtext).
   markdown:
-    'remark-gfm': '4.0.1'
     'remark-parse': '^11.0.0'
     'remark-stringify': '^11.0.0'
     'remark-frontmatter': '^5.0.0'

@@ -2,8 +2,8 @@
 
 ## Purpose
 
-Reduce the browser bundle size and software-supply-chain exposure of
-`@laikacms/decap-cms` while preserving its public API and CMS behavior.
+Reduce the browser bundle size and software-supply-chain exposure of `@laikacms/decap-cms` while
+preserving its public API and CMS behavior.
 
 This plan addresses two related but distinct costs:
 
@@ -38,16 +38,16 @@ the concurrent rich-text work.
 
 Browser builds were minified with esbuild and measured without source maps:
 
-| Entry point | Minified JavaScript | Gzip |
-| --- | ---: | ---: |
-| `laika-app` | 5.52 MB | 1.71 MB |
-| `laika-app/bare` | 1.65 MB | 515 KB |
-| Eager extension difference | 3.88 MB | 1.20 MB |
+| Entry point                | Minified JavaScript |    Gzip |
+| -------------------------- | ------------------: | ------: |
+| `laika-app`                |             5.52 MB | 1.71 MB |
+| `laika-app/bare`           |             1.65 MB |  515 KB |
+| Eager extension difference |             3.88 MB | 1.20 MB |
 
-At that audit `HEAD` the package exposed 110 direct production dependencies and resolved roughly
-538 production package snapshots. These measurements predate both the Lexical merge and the
-v4.beta dependency overhaul; as of 2026-07-15 the working tree is down to 78 direct production
-dependencies, and the bundle figures above no longer describe the current tree.
+At that audit `HEAD` the package exposed 110 direct production dependencies and resolved roughly 538
+production package snapshots. These measurements predate both the Lexical merge and the v4.beta
+dependency overhaul; as of 2026-07-15 the working tree is down to 78 direct production dependencies,
+and the bundle figures above no longer describe the current tree.
 
 These figures are historical reference measurements, not permanent budgets. The re-baseline this
 section calls for is now due:
@@ -80,8 +80,8 @@ Evaluate every dependency against the same criteria:
    local code?
 4. **Correctness risk**: Does it implement parsing, accessibility, cryptography, internationalized
    date handling, or other deceptively complex behavior?
-5. **Maintenance health**: Consider release history, ownership, repository activity, provenance,
-   and ecosystem governance. Maintainer count alone is not sufficient.
+5. **Maintenance health**: Consider release history, ownership, repository activity, provenance, and
+   ecosystem governance. Maintainer count alone is not sufficient.
 6. **Platform availability**: Prefer stable browser or JavaScript APIs such as
    `IntersectionObserver`, `ResizeObserver`, Web Crypto, and immutable array operations.
 7. **Elimination test**: Do not inline a direct callsite if the dependency remains reachable through
@@ -96,24 +96,25 @@ This phase should be mechanical and split into small commits. For each dependenc
 regenerate the lockfile, run the full verification suite, and confirm the packed manifest.
 
 - [x] Remove `redux-notifications`; no runtime imports were found.
-- [x] Remove `copy-text-to-clipboard` and its stale ambient declaration; no runtime import was found.
+- [x] Remove `copy-text-to-clipboard` and its stale ambient declaration; no runtime import was
+      found.
 - [x] Remove the direct `codemirror` declaration if `@uiw/react-codemirror` remains its only owner.
-  Superseded: all `@uiw/*` packages (and the `codemirror` meta package) were replaced with the
-  official `@codemirror/*` packages plus a local React wrapper in `src/widgets/code/`.
+      Superseded: all `@uiw/*` packages (and the `codemirror` meta package) were replaced with the
+      official `@codemirror/*` packages plus a local React wrapper in `src/widgets/code/`.
 - [x] Remove the direct `node-polyglot` declaration if `react-polyglot` remains its only owner.
-  Superseded: both `react-polyglot` and `node-polyglot` were removed in favor of the in-house
-  `src/core/i18n` module (same `%{token}` / `||||` phrase format, plural rules vendored from
-  node-polyglot).
+      Superseded: both `react-polyglot` and `node-polyglot` were removed in favor of the in-house
+      `src/core/i18n` module (same `%{token}` / `||||` phrase format, plural rules vendored from
+      node-polyglot).
 - [x] Remove the direct `prop-types` declaration if no public entry point imports it.
 - [x] Confirm whether `@emotion/css` is needed by the concurrent rich-text work; otherwise remove
-  it. It was needed by `src/ui/editor/**` (the `_styled.ts` helpers and the Lexical
-  theme's generated class names). Removed by restyling that tree onto `@emotion/react` like the
-  rest of the CMS: the UI primitives now use the css prop (per-file `@jsxImportSource` pragma,
-  `variants` returns `SerializedStyles[]`), the Lexical theme uses static `EditorTheme__*` class
-  names styled from the per-editor `Global` stylesheet, and ReactModal's `overlayClassName` uses
-  the `ClassNames` render prop.
+      it. It was needed by `src/ui/editor/**` (the `_styled.ts` helpers and the Lexical theme's
+      generated class names). Removed by restyling that tree onto `@emotion/react` like the rest of
+      the CMS: the UI primitives now use the css prop (per-file `@jsxImportSource` pragma,
+      `variants` returns `SerializedStyles[]`), the Lexical theme uses static `EditorTheme__*` class
+      names styled from the per-editor `Global` stylesheet, and ReactModal's `overlayClassName` uses
+      the `ClassNames` render prop.
 - [ ] Check every production dependency with no direct import and document why it is intentionally
-  retained, moved, or removed.
+      retained, moved, or removed.
 
 Expected result:
 
@@ -130,7 +131,7 @@ local; do not recreate a general-purpose package API.
 ### `array-move`
 
 - [ ] Add tests for forward movement, backward movement, negative indices if currently relied upon,
-  missing items, and input immutability.
+      missing items, and input immutability.
 - [x] Replace the single file-widget callsite with a local immutable reorder helper.
 - [x] Remove `array-move` and regenerate the lockfile.
 
@@ -152,31 +153,29 @@ operations.
 
 ### `deepmerge`
 
-- [x] Inventory the actual configuration value shapes passed to `deepmerge` (two call sites:
-      i18n defaults and manual config merge in `src/core/actions/config.tsx`, both plain
-      config objects).
+- [x] Inventory the actual configuration value shapes passed to `deepmerge` (two call sites: i18n
+      defaults and manual config merge in `src/core/actions/config.tsx`, both plain config objects).
 - [x] Add tests for nested objects, arrays, `undefined`, and non-plain values.
-- [x] Inline a configuration-specific merge only if the supported semantics are demonstrably
-      small (`deepMerge` in `src/lib/util/core-utils/deep-merge.ts`, replicating `deepmerge`
-      default semantics: recursive plain-object merge, array concatenation, source wins).
+- [x] Inline a configuration-specific merge only if the supported semantics are demonstrably small
+      (`deepMerge` in `src/lib/util/core-utils/deep-merge.ts`, replicating `deepmerge` default
+      semantics: recursive plain-object merge, array concatenation, source wins).
 - [x] Remove `deepmerge`.
 
 ### `gotrue-js`
 
 - [x] Inventory the used surface (one call site: the git-gateway identity fallback in
-      `src/backends/git-gateway/implementation.tsx` when the Netlify Identity widget is
-      absent, using `login`, `currentUser`, `user.jwt()` with refresh, and `user.logout()`).
-- [x] Implement a minimal client locally (`src/backends/git-gateway/GoTrue.ts`) that keeps
-      the `gotrue.user` localStorage key and session shape, so existing sessions survive.
-- [x] Add tests for login, session recovery, token refresh (including in-flight refresh
-      dedup and clearing the session on refresh failure), and logout.
+      `src/backends/git-gateway/implementation.tsx` when the Netlify Identity widget is absent,
+      using `login`, `currentUser`, `user.jwt()` with refresh, and `user.logout()`).
+- [x] Implement a minimal client locally (`src/backends/git-gateway/GoTrue.ts`) that keeps the
+      `gotrue.user` localStorage key and session shape, so existing sessions survive.
+- [x] Add tests for login, session recovery, token refresh (including in-flight refresh dedup and
+      clearing the session on refresh failure), and logout.
 - [x] Remove `gotrue-js`.
 
 Expected result:
 
 - Several small external trust relationships removed.
-- Approximately 70 KB of reachable source removed before minification, primarily from
-  `common-tags`.
+- Approximately 70 KB of reachable source removed before minification, primarily from `common-tags`.
 - No generic local utility framework introduced.
 
 ## Phase 3: Replace small React wrappers and old transitive leaves
@@ -184,20 +183,20 @@ Expected result:
 ### Progress indicator
 
 - [ ] Replace `react-topbar-progress-indicator` and its `topbar` dependency with an internal
-  component and CSS.
+      component and CSS.
 - [ ] Test navigation start, completion, repeated navigation, reduced motion, and unmount cleanup.
 
 ### Viewport detection
 
 - [ ] Replace the two `react-waypoint` usages with a shared `IntersectionObserver` hook.
 - [ ] Provide a small fallback for environments without `IntersectionObserver` if tests or supported
-  browsers require it.
+      browsers require it.
 - [ ] Remove `react-waypoint` and its `consolidated-events` subtree.
 
 ### Redux DevTools
 
 - [x] Replace deprecated `redux-devtools-extension` usage with the maintained API or a guarded
-  browser DevTools compose hook.
+      browser DevTools compose hook.
 - [ ] Confirm production builds do not include development-only code.
 
 Expected result:
@@ -217,7 +216,7 @@ the mechanical cleanup phases.
 
 - [ ] Define the complete dropdown interaction contract.
 - [ ] Test keyboard navigation, focus return, escape, outside click, disabled items, screen-reader
-  labels, and nested interactive content.
+      labels, and nested interactive content.
 - [ ] Implement an internal component or choose a dependency already used by the CMS.
 - [ ] Remove `react-aria-menubutton` only after accessibility parity is demonstrated.
 
@@ -229,20 +228,19 @@ dependency-free). What remains is `tinycolor2`, used only by
 
 - [x] Replace the `react-color` picker (superseded by `react-colorful`).
 - [ ] Document the color formats, alpha behavior, and validation the widget actually needs from
-  `tinycolor2`.
-- [ ] Replace the used `tinycolor2` surface with a small local parser/validator if those formats
-  are demonstrably narrow; otherwise document why it stays.
+      `tinycolor2`.
+- [ ] Replace the used `tinycolor2` surface with a small local parser/validator if those formats are
+      demonstrably narrow; otherwise document why it stays.
 
 ### Node polyfills in browser code
 
-- [ ] Replace Git repository use of `path.dirname` with a tested POSIX repository-path helper.
-  One call site remains: `src/backends/github/API.tsx`.
+- [ ] Replace Git repository use of `path.dirname` with a tested POSIX repository-path helper. One
+      call site remains: `src/backends/github/API.tsx`.
 - [x] Replace browser-externalized Node `crypto` usage in blob hashing with Web Crypto or another
-  browser-native implementation. `src/lib/util/getBlobSHA.ts` uses Web Crypto with a guarded
-  Node fallback behind a dynamic import.
-- [x] Remove the unused `buffer` alias and dependency after clean browser builds confirm it is
-  safe. Removed in the v4.beta dependency overhaul; no polyfill aliases remain in the Vite
-  configs.
+      browser-native implementation. `src/lib/util/getBlobSHA.ts` uses Web Crypto with a guarded
+      Node fallback behind a dynamic import.
+- [x] Remove the unused `buffer` alias and dependency after clean browser builds confirm it is safe.
+      Removed in the v4.beta dependency overhaul; no polyfill aliases remain in the Vite configs.
 - [ ] Add a build check that fails on browser externalization of Node built-ins.
 
 Expected result:
@@ -271,7 +269,7 @@ Tasks:
 - [ ] Add a preset containing the common Laika production configuration.
 - [ ] Keep a compatibility entry that registers everything for existing users.
 - [ ] Ensure extension modules have no registration side effects until explicitly imported or
-  invoked.
+      invoked.
 - [ ] Export locales individually rather than through an eager locale namespace.
 - [ ] Add example applications for the full, recommended, and minimal compositions.
 - [ ] Measure every supported composition independently.
@@ -319,8 +317,8 @@ Proposed package boundaries:
 
 - `@laikacms/decap-cms-core`: browser-safe core and public contracts.
 - `@laikacms/decap-cms-app`: React application shell and standard lightweight widgets.
-- `@laikacms/decap-cms-server`: the `node:http` dev/proxy server and any server-only
-  dependencies (Express is gone; winston is a type-only devDependency).
+- `@laikacms/decap-cms-server`: the `node:http` dev/proxy server and any server-only dependencies
+  (Express is gone; winston is a type-only devDependency).
 - `@laikacms/decap-cms-widget-code`: CodeMirror and language modes.
 - `@laikacms/decap-cms-widget-map`: OpenLayers.
 - `@laikacms/decap-cms-media-uploadcare`: Uploadcare widget and effects.
@@ -329,9 +327,9 @@ Proposed package boundaries:
 The exact names are provisional. Choose boundaries using dependency closure and runtime ownership,
 not one package per source directory.
 
-Partially delivered ahead of this phase: `uploadcare-widget`, `uploadcare-widget-tab-effects`,
-`ol`, and the Apollo/GraphQL stack are now optional `peerDependencies`, so consumers no longer
-install them by default. CodeMirror remains a direct dependency cluster.
+Partially delivered ahead of this phase: `uploadcare-widget`, `uploadcare-widget-tab-effects`, `ol`,
+and the Apollo/GraphQL stack are now optional `peerDependencies`, so consumers no longer install
+them by default. CodeMirror remains a direct dependency cluster.
 
 Tasks:
 
@@ -341,9 +339,9 @@ Tasks:
 - [ ] Add compatibility reexports for one release cycle where practical.
 - [ ] Mark breaking moves clearly and publish a migration table.
 - [ ] Verify a browser-only installation does not install server, Uploadcare, OpenLayers, or
-  CodeMirror packages unless selected.
+      CodeMirror packages unless selected.
 - [ ] Avoid relying on `optionalDependencies` as the primary boundary because they are commonly
-  installed by default.
+      installed by default.
 
 Expected result:
 
@@ -359,13 +357,13 @@ Add automated evidence so the package does not slowly return to its current shap
 - [ ] Record total production package count and exclusive closure per direct dependency.
 - [ ] Add size-limit checks for full, recommended, minimal, and bare browser builds.
 - [ ] Upload bundle analysis artifacts in CI for pull requests that change dependencies or entry
-  points.
+      points.
 - [ ] Fail browser builds that externalize Node built-ins unexpectedly.
 - [ ] Run vulnerability audits and license checks in CI.
 - [ ] Review lockfile changes as code, including new package owners, lifecycle scripts, repository
-  provenance, and exclusive transitive cost.
+      provenance, and exclusive transitive cost.
 - [ ] Prefer exact lockfile-controlled versions and trusted publication provenance; do not use
-  maintainer count as the sole risk signal.
+      maintainer count as the sole risk signal.
 - [ ] Add a dependency decision note to pull requests that introduce a new production package.
 
 Suggested pull-request questions:
@@ -435,8 +433,8 @@ Good initial commit sequence:
   redesigned.
 - Concurrent rich-text work can invalidate dependency ownership conclusions from the initial audit.
 
-Mitigate these risks with characterization tests, isolated commits, reproducible measurements, and
-a compatibility period for public package changes.
+Mitigate these risks with characterization tests, isolated commits, reproducible measurements, and a
+compatibility period for public package changes.
 
 ## First milestone
 

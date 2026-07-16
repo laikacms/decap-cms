@@ -14,9 +14,11 @@ If you have an issue that can be shown visually, please provide a screenshot or 
 -->
 
 **Describe the bug**
+
 <!-- A clear and concise description of what the bug is. -->
 
 **To Reproduce**
+
 <!--
 Steps to reproduce the behavior. For example:
 1. Go to '...'
@@ -26,23 +28,30 @@ Steps to reproduce the behavior. For example:
 -->
 
 **Expected behavior**
+
 <!-- A clear and concise description of what you expected to happen. -->
 
 **Screenshots**
+
 <!-- If applicable, add screenshots to help explain your problem. -->
 
 **Applicable Versions:**
+
 <!--You can find the CMS version by checking your web browser's developer tools console while in the CMS. -->
- - Decap CMS version: [e.g. 2.0.4]
- - Git provider: [e.g. GitHub, BitBucket]
- - OS: [e.g. Windows 7]
- - Browser version [e.g. chrome 22, safari 11]
+
+- Decap CMS version: [e.g. 2.0.4]
+- Git provider: [e.g. GitHub, BitBucket]
+- OS: [e.g. Windows 7]
+- Browser version [e.g. chrome 22, safari 11]
+
 <!-- If using NPM: -->
- - Node.JS version:
+
+- Node.JS version:
 
 **CMS configuration**
+
 <!-- Please link or paste your CMS `config.yml` here. -->
 
-
 **Additional context**
+
 <!-- Add any other context about the problem here. -->

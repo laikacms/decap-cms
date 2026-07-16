@@ -28,5 +28,3 @@ storybook-static/
 *.tsbuildinfo
 *.exclude.*
 .ts-trace
-# Generated icon components (built from SVG files during build)
-packages/decap-cms-ui-default/src/Icon/images/icons.generated.tsx
