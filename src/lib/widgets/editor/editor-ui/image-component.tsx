@@ -35,6 +35,9 @@ function useSuspenseImage(src: string): ImageStatus {
   } else if (!cached) {
     cached = new Promise<ImageStatus>(resolve => {
       const img = new Image();
+      // Avoid leaking this document's URL to whatever host `src` points at
+      // (relevant for pasted, attacker-influenced image sources).
+      img.referrerPolicy = 'no-referrer';
       img.src = src;
       img.onload = () =>
         resolve({
@@ -153,15 +156,20 @@ function LazyImage({
       ref={imageRef}
       style={imageStyle}
       onError={onError}
+      referrerPolicy="no-referrer"
       draggable="false"
     />
   );
 }
 
 function BrokenImage(): JSX.Element {
+  // NOTE: never pass `src=""` here. An empty string `src` is treated by
+  // browsers as "reload the current document URL", which (a) triggers a
+  // spurious same-document request and (b) throws React's "An empty string
+  // was passed to the src attribute" warning. Omitting `src` entirely
+  // renders the broken-image placeholder without either side effect.
   return (
     <img
-      src={''}
       style={{
         height: 200,
         opacity: 0.2,

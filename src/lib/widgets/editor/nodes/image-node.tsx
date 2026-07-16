@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { $applyNodeReplacement, DecoratorNode } from 'lexical';
 
+import { sanitizeImageSrc } from '@/lib/widgets/editor/utils/url';
+
 import type { JSX } from 'react';
 import type {
   DOMConversionMap,
@@ -37,8 +39,18 @@ function isGoogleDocCheckboxImg(img: HTMLImageElement): boolean {
 
 function $convertImageElement(domNode: Node): null | DOMConversionOutput {
   const img = domNode as HTMLImageElement;
-  const src = img.getAttribute('src');
-  if (!src || src.startsWith('file:///') || isGoogleDocCheckboxImg(img)) {
+  const rawSrc = img.getAttribute('src');
+  if (!rawSrc || isGoogleDocCheckboxImg(img)) {
+    return null;
+  }
+  // Sanitize BEFORE creating the node: `domNode` is part of a detached
+  // document produced by Lexical's clipboard DOMParser pass, so no
+  // subresource fetch has happened yet. Rejecting unsafe `src` values here
+  // (rather than after the ImageNode/ImageComponent render pipeline gets
+  // hold of them) guarantees a hostile pasted `src` never reaches a live,
+  // attached `<img>` — and therefore never gets fetched — at all.
+  const src = sanitizeImageSrc(rawSrc);
+  if (!src) {
     return null;
   }
   const { alt: altText, width, height } = img;
