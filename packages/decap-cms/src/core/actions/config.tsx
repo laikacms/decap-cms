@@ -1,11 +1,11 @@
 import { produce } from 'immer';
 import { isEmpty, trim, trimStart } from 'lodash-es';
-import yaml from 'yaml';
 
 import { resolveBackend } from '@/core/backend';
 import { FILES, FOLDER } from '@/core/constants/collectionTypes';
 import { SIMPLE as SIMPLE_PUBLISH_MODE } from '@/core/constants/publishModes';
 import { I18N, I18N_FIELD, I18N_STRUCTURE } from '@/core/lib/i18n';
+import { getEntryCodec } from '@/core/lib/registry';
 import { validateConfig } from '@/core/lib/validateConfig';
 import { selectDefaultSortableFields } from '@/core/reducers/collections';
 import { getIntegrations, selectIntegration } from '@/core/reducers/integrations';
@@ -379,8 +379,31 @@ export function applyDefaults(originalConfig: CmsConfig) {
   });
 }
 
+// Config is TypeScript-first: pass a config object to `CMS.init({ config })`
+// (or set `window.CMS_CONFIG`). Loading a `config.yml` is still supported, but
+// core bundles no YAML parser; it requires the yaml entry codec to be
+// registered (`CMS.registerEntryCodec(yamlEntryCodec)` — the fat `/app` and
+// `/laika-app` entries do this out of the box).
+
+function getYamlCodec() {
+  return getEntryCodec('yaml');
+}
+
+function missingYamlCodecError() {
+  return new Error(
+    'Loading config.yml requires the yaml entry codec, and none is registered. '
+      + `Either pass a config object to CMS.init({ config }) or register the codec: `
+      + `import { yamlEntryCodec } from '@laikacms/decap-cms/entry-codecs/yaml'; `
+      + `CMS.registerEntryCodec(yamlEntryCodec).`,
+  );
+}
+
 export function parseConfig(data: string) {
-  const config = yaml.parse(data, { maxAliasCount: -1, prettyErrors: true, merge: true });
+  const codec = getYamlCodec();
+  if (!codec) {
+    throw missingYamlCodecError();
+  }
+  const config = (codec.parseConfig ?? codec.formatter.fromFile)(data) as Record<string, any>;
   if (
     typeof window !== 'undefined'
     && typeof window.CMS_ENV === 'string'
@@ -395,6 +418,13 @@ export function parseConfig(data: string) {
 }
 
 async function getConfigYaml(file: string, hasManualConfig: boolean) {
+  if (!getYamlCodec()) {
+    if (hasManualConfig) {
+      console.log(`Skipping ${file}: no yaml entry codec registered, using the provided config only.`);
+      return {};
+    }
+    throw missingYamlCodecError();
+  }
   const response = await fetch(file, { credentials: 'same-origin' }).catch(error => error as Error);
   if (response instanceof Error || response.status !== 200) {
     if (hasManualConfig) {

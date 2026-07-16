@@ -1,6 +1,29 @@
 import { describe, expect, it } from 'vitest';
 
-import { FrontmatterInfer, frontmatterJSON, frontmatterTOML, frontmatterYAML } from '@/core/formats/frontmatter';
+import { jsonEntryCodec, jsonFrontmatterCodec } from '@/entry-codecs/json/index';
+import { createMarkdownEntryCodec } from '@/entry-codecs/markdown/index';
+import { tomlEntryCodec, tomlFrontmatterCodec } from '@/entry-codecs/toml/index';
+import { yamlEntryCodec, yamlFrontmatterCodec } from '@/entry-codecs/yaml/index';
+
+import type { CmsEntryCodecDelimiter } from '@/lib/util/index';
+
+// The codec built the way the fat entries build it; no registry involved.
+const markdownEntryCodec = createMarkdownEntryCodec({
+  frontmatter: [yamlFrontmatterCodec, tomlFrontmatterCodec, jsonFrontmatterCodec],
+});
+const FrontmatterInfer = markdownEntryCodec.formatter;
+
+function frontmatterYAML(customDelimiter?: CmsEntryCodecDelimiter) {
+  return markdownEntryCodec.getFormatter!('yaml-frontmatter', { customDelimiter });
+}
+
+function frontmatterTOML(customDelimiter?: CmsEntryCodecDelimiter) {
+  return markdownEntryCodec.getFormatter!('toml-frontmatter', { customDelimiter });
+}
+
+function frontmatterJSON(customDelimiter?: CmsEntryCodecDelimiter) {
+  return markdownEntryCodec.getFormatter!('json-frontmatter', { customDelimiter });
+}
 
 describe('Frontmatter', () => {
   describe('yaml', () => {

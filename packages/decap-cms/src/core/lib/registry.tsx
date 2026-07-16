@@ -9,6 +9,7 @@ import type { BlockDefinition, BlockPreviewProps, FormatPack } from '@/lib/richt
 import type {
   CmsAllowedEvent,
   CmsConfig,
+  CmsEntryCodec,
   CmsFormatter,
   CmsFormatterFunctions,
   CmsImplementation,
@@ -52,6 +53,7 @@ interface Registry {
   locales: Record<string, CmsLocalePhrases>;
   eventHandlers: Record<CmsAllowedEvent, EventHandler[]>;
   formats: Record<string, CmsFormatter>;
+  entryCodecs: CmsEntryCodec[];
 }
 
 // Exported so `src/core/README.md`'s documented event list can be pinned
@@ -88,6 +90,7 @@ const registry: Registry = {
   locales: {},
   eventHandlers,
   formats: {},
+  entryCodecs: [],
 };
 
 export default {
@@ -121,6 +124,9 @@ export default {
   getCustomFormats,
   getCustomFormatsExtensions,
   getCustomFormatsFormatters,
+  registerEntryCodec,
+  getEntryCodecs,
+  getEntryCodec,
 };
 
 /**
@@ -406,4 +412,37 @@ export function getCustomFormatsFormatters(): Record<string, CmsFormatterFunctio
 
 export function getFormatter(name: string) {
   return registry.formats[name]?.formatter;
+}
+
+/**
+ * Entry codecs (yaml/toml/json — `src/entry-codecs/*`): whole-entry-file
+ * encodings, distinct from richtext format packs. Nothing is registered by
+ * default; the fat `/app` and `/laika-app` entries register all three,
+ * `/bare` consumers register only what their collections use. Registration
+ * order matters: the inferring `frontmatter` format tries fence languages in
+ * this order.
+ */
+export function registerEntryCodec(pack: CmsEntryCodec) {
+  if (!pack || !pack.name || !pack.formatter) {
+    console.error(
+      "Entry format parameters invalid. example: CMS.registerEntryCodec({ name: 'yaml', fileExtensions: ['yml'], defaultExtension: 'yml', formatter })",
+    );
+    return;
+  }
+  const existing = registry.entryCodecs.findIndex(p => p.name === pack.name);
+  if (existing !== -1) {
+    registry.entryCodecs.splice(existing, 1, pack);
+  } else {
+    registry.entryCodecs.push(pack);
+  }
+}
+
+/** Registered entry-format packs, in registration order. */
+export function getEntryCodecs(): CmsEntryCodec[] {
+  return registry.entryCodecs;
+}
+
+/** Look up an entry-format pack by canonical name or alias. */
+export function getEntryCodec(name: string): CmsEntryCodec | undefined {
+  return registry.entryCodecs.find(p => p.name === name || p.aliases?.includes(name));
 }

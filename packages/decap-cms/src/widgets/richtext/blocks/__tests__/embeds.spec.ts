@@ -1,13 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { markdownFormat } from '@/format-packs/markdown';
-import {
-  getMapper,
-  registerBlock,
-  registerFormat,
-  unregisterBlock,
-  unregisterFormat,
-} from '@/lib/richtext';
+import { getMapper, registerBlock, registerFormat, unregisterBlock, unregisterFormat } from '@/lib/richtext';
 import { tweetBlock } from '@/widgets/richtext/blocks/tweet';
 import { youtubeBlock } from '@/widgets/richtext/blocks/youtube';
 

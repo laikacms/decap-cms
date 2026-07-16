@@ -8,11 +8,40 @@ import {
   resolveBackend,
 } from '@/core/backend';
 import { FILES, FOLDER } from '@/core/constants/collectionTypes';
-import { getBackend } from '@/core/lib/registry';
+import {
+  getBackend,
+  getCustomFormatsExtensions,
+  getCustomFormatsFormatters,
+  getEntryCodec,
+  getEntryCodecs,
+} from '@/core/lib/registry';
 import { sanitizeChar, sanitizeSlug } from '@/core/lib/urlHelper';
+import { jsonEntryCodec, jsonFrontmatterCodec } from '@/entry-codecs/json/index';
+import { createMarkdownEntryCodec } from '@/entry-codecs/markdown/index';
+import { tomlEntryCodec, tomlFrontmatterCodec } from '@/entry-codecs/toml/index';
+import { yamlEntryCodec, yamlFrontmatterCodec } from '@/entry-codecs/yaml/index';
 import { asyncLock, localForage } from '@/lib/util/index';
 
 vi.mock('../lib/registry');
+
+// The registry is automocked; give the entry-format getters the state the fat
+// entries produce at runtime (all three built-in packs registered). Re-invoke
+// after `vi.resetAllMocks()`.
+function mockEntryCodecRegistry() {
+  const entryCodecs = [
+    yamlEntryCodec,
+    tomlEntryCodec,
+    jsonEntryCodec,
+    createMarkdownEntryCodec({ frontmatter: [yamlFrontmatterCodec, tomlFrontmatterCodec, jsonFrontmatterCodec] }),
+  ];
+  vi.mocked(getEntryCodecs).mockImplementation(() => entryCodecs);
+  vi.mocked(getEntryCodec).mockImplementation(
+    name => entryCodecs.find(pack => pack.name === name || pack.aliases?.includes(name)),
+  );
+  vi.mocked(getCustomFormatsExtensions).mockImplementation(() => ({}));
+  vi.mocked(getCustomFormatsFormatters).mockImplementation(() => ({}));
+}
+mockEntryCodecRegistry();
 vi.mock('../../lib/util/index', () => ({
   APIError: class APIError extends Error {
     status: number;
@@ -689,6 +718,7 @@ describe('Backend', () => {
   describe('generateUniqueSlug', () => {
     beforeEach(() => {
       vi.resetAllMocks();
+      mockEntryCodecRegistry();
     });
 
     it("should return unique slug when entry doesn't exist", async () => {

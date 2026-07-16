@@ -3,10 +3,19 @@ import yaml from 'yaml';
 import { Schema } from 'yaml';
 import { createNode } from 'yaml/util';
 
-import { sortKeys } from './helpers';
+import { sortKeys } from '@/core/formats/helpers';
 
+import type { CmsEntryCodec, CmsFormatterFunctions, CmsFrontmatterCodec } from '@/lib/util/index';
 import type { Node, Pair, YAMLMap, YAMLSeq } from 'yaml';
 import type { CreateNodeContext } from 'yaml/util';
+
+/**
+ * `@laikacms/decap-cms/entry-codecs/yaml` — the YAML entry codec
+ * (`format: yml`/`yaml`, `.yml`/`.yaml` files). Register with
+ * `CMS.registerEntryCodec(yamlEntryCodec)`; the fat `/app` and `/laika-app`
+ * entries do so out of the box. To use YAML as a frontmatter language, pass
+ * `yamlFrontmatterCodec` to `createMarkdownEntryCodec`.
+ */
 
 const createNodeContext: CreateNodeContext = {
   aliasDuplicateObjects: false,
@@ -48,7 +57,7 @@ const timestampTag = {
   stringify: (value: Node) => (isDate(value) ? value.toISOString() : ''),
 } as const;
 
-export default {
+export const yamlFormatter: CmsFormatterFunctions = {
   fromFile(content: string) {
     if (content && content.trim().endsWith('---')) {
       content = content.trim().slice(0, -3);
@@ -83,3 +92,22 @@ export default {
     return doc.toString();
   },
 };
+
+export const yamlEntryCodec: CmsEntryCodec = {
+  name: 'yaml',
+  aliases: ['yml'],
+  fileExtensions: ['yml', 'yaml'],
+  defaultExtension: 'yml',
+  formatter: yamlFormatter,
+  // CMS config files (config.yml) allow merge keys and unbounded aliases,
+  // which entry parsing does not.
+  parseConfig: (text: string) => yaml.parse(text, { maxAliasCount: -1, prettyErrors: true, merge: true }),
+};
+
+/** YAML as a frontmatter language (`---` fences) for `createMarkdownEntryCodec`. */
+export const yamlFrontmatterCodec: CmsFrontmatterCodec = {
+  codec: yamlEntryCodec,
+  delimiters: ['---', '---'],
+};
+
+export default yamlEntryCodec;

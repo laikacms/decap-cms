@@ -90,6 +90,71 @@ export type CmsFormatter = {
   formatter: CmsFormatterFunctions,
 };
 
+/**
+ * An entry codec (`src/entry-codecs/{yaml,toml,json}`): the encoding of a
+ * whole entry file, registered via `CMS.registerEntryCodec`. Distinct from
+ * richtext format packs (`registerRichtextFormat`), which serialize a single
+ * richtext field's body. Nothing is registered by default: the fat `/app` +
+ * `/laika-app` entries register all three built-ins; `/bare` consumers
+ * register only the codecs their collections use (laika-backend apps
+ * typically just JSON).
+ */
+export type CmsEntryCodecDelimiter = string | [string, string];
+
+export type CmsEntryCodec = {
+  /** Canonical format name for `collection.format` (e.g. 'yaml'). */
+  name: string,
+  /** Additional accepted `collection.format` names (e.g. ['yml']). */
+  aliases?: string[],
+  /** File extensions whose format is inferred to this codec (e.g. ['yml', 'yaml']). */
+  fileExtensions: string[],
+  /** Extension used when creating new files (e.g. 'yml'). */
+  defaultExtension: string,
+  formatter: CmsFormatterFunctions,
+  /**
+   * Per-format-name formatter resolution for codecs serving several format
+   * names (the markdown codec serves 'frontmatter', 'yaml-frontmatter', ...,
+   * each honoring `frontmatter_delimiter`). Falls back to `formatter`.
+   */
+  getFormatter?(
+    name: string,
+    opts?: { customDelimiter?: CmsEntryCodecDelimiter },
+  ): CmsFormatterFunctions,
+  /** Format names (of this codec) that accept `frontmatter_delimiter`. */
+  frontmatterFormats?: string[],
+  /**
+   * CMS-config-file parser (`config.yml` and friends), when it needs options
+   * beyond entry parsing (the yaml codec enables merge keys and unlimited
+   * aliases for configs only). Falls back to `formatter.fromFile`.
+   */
+  parseConfig?(text: string): unknown,
+};
+
+/**
+ * A frontmatter language configuration for `createMarkdownEntryCodec`: which
+ * entry codec parses the metadata block, and the markdown-level rules for
+ * embedding it (fence delimiters, plus optional parse/stringify overrides for
+ * languages whose fences interact with their syntax — JSON's braces ARE its
+ * fences). These rules belong to the markdown codec, not to the entry codec
+ * itself; each codec module exports a ready-made config
+ * (`yamlFrontmatterCodec`, `tomlFrontmatterCodec`, `jsonFrontmatterCodec`).
+ */
+export type CmsFrontmatterCodec = {
+  codec: CmsEntryCodec,
+  delimiters: [string, string],
+  /** Metadata-block parser; defaults to `codec.formatter.fromFile`. */
+  parse?(input: string): unknown,
+  /**
+   * Metadata-block serializer; defaults to `codec.formatter.toFile` with a
+   * single trailing newline stripped (it would render as a blank line before
+   * the closing fence).
+   */
+  stringify?(
+    metadata: object,
+    opts?: { sortedKeys?: string[], comments?: Record<string, string> },
+  ): string,
+};
+
 export interface CmsEventHandler {
   handler: (...args: unknown[]) => unknown;
   options: Record<string, unknown>;

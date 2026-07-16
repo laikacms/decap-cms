@@ -1,4 +1,4 @@
-import { extensionFormatters, frontmatterFormats } from '@/core/formats/formats';
+import { getExtensionFormatters, getFrontmatterFormats } from '@/core/formats/formats';
 import { I18N_FIELD, I18N_STRUCTURE } from './i18n';
 import { validateJSONSchema } from './jsonSchemaValidator';
 import { getWidgets } from './registry';
@@ -315,7 +315,7 @@ function getConfigSchema(): JSONSchema {
             // Cannot infer format from extension.
             if: {
               properties: {
-                extension: { enum: Object.keys(extensionFormatters) },
+                extension: { enum: Object.keys(getExtensionFormatters()) },
               },
             },
             else: { required: ['format'] },
@@ -323,7 +323,7 @@ function getConfigSchema(): JSONSchema {
           dependencies: {
             frontmatter_delimiter: {
               properties: {
-                format: { enum: frontmatterFormats },
+                format: { enum: getFrontmatterFormats() },
               },
               required: ['format'],
             },

@@ -9,6 +9,8 @@ import {
   normalizeConfig,
   parseConfig,
 } from '@/core/actions/config';
+import { registerEntryCodec } from '@/core/lib/registry';
+import { yamlEntryCodec } from '@/entry-codecs/yaml/index';
 import { stripIndent } from '@/lib/util/index';
 
 vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -19,6 +21,11 @@ vi.mock('../../backend', () => {
   };
 });
 vi.mock('../../lib/validateConfig');
+
+// Core no longer bundles a YAML parser; config.yml loading goes through the
+// registered yaml entry codec (the no-codec path is covered in
+// config-missing-codec.spec.ts).
+registerEntryCodec(yamlEntryCodec);
 
 describe('config', () => {
   describe('parseConfig', () => {

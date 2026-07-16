@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { detectMapper } from '@/lib/richtext/detect';
 import { htmlMapper } from '@/format-packs/html';
 import { markdownMapper } from '@/format-packs/markdown';
 import { plainTextMapper } from '@/format-packs/plaintext';
+import { detectMapper } from '@/lib/richtext/detect';
 import { portableTextMapper } from '@/lib/richtext/portable-text-mapper';
 import { registerMapper, unregisterMapper } from '@/lib/richtext/registry';
 

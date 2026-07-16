@@ -1,9 +1,9 @@
 import styled from '@emotion/styled';
 import { truncate } from 'lodash-es';
 import React from 'react';
-import yaml from 'yaml';
 
 import { translate } from '@/core/i18n';
+import { getEntryCodec } from '@/core/lib/registry';
 import { localForage } from '@/lib/util/index';
 import { buttons, colors } from '@/ui/default/index';
 
@@ -53,11 +53,14 @@ function buildIssueTemplate({ config }: { config: CmsConfig }) {
   } else if (typeof DECAP_CMS_APP_VERSION === 'string') {
     version = `decap-cms-app@${DECAP_CMS_APP_VERSION}`;
   }
+  const yamlCodec = getEntryCodec('yaml');
   const template = getIssueTemplate({
     version,
     provider: config.backend.name,
     browser: navigator.userAgent,
-    config: yaml.stringify(config),
+    config: yamlCodec
+      ? yamlCodec.formatter.toFile(config)
+      : JSON.stringify(config, null, 2),
   });
 
   return template;

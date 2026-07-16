@@ -8,10 +8,26 @@ import nock from 'nock';
 
 import AuthenticationPage from '@/backends/gitlab/AuthenticationPage';
 import Gitlab from '@/backends/gitlab/implementation';
+import { registerEntryCodec } from '@/core/lib/registry';
+import { jsonEntryCodec, jsonFrontmatterCodec } from '@/entry-codecs/json/index';
+import { createMarkdownEntryCodec } from '@/entry-codecs/markdown/index';
+import { tomlEntryCodec, tomlFrontmatterCodec } from '@/entry-codecs/toml/index';
+import { yamlEntryCodec, yamlFrontmatterCodec } from '@/entry-codecs/yaml/index';
 
 import type * as BackendModule from '@/core/backend';
 
 const { Backend, LocalStorageAuthStore } = await vi.importActual<typeof BackendModule>('../../../core/backend');
+
+// Entry parsing goes through the (real) registry; register the built-in entry
+// codecs the fat entries would provide at runtime.
+registerEntryCodec(yamlEntryCodec);
+registerEntryCodec(tomlEntryCodec);
+registerEntryCodec(jsonEntryCodec);
+registerEntryCodec(
+  createMarkdownEntryCodec({
+    frontmatter: [yamlFrontmatterCodec, tomlFrontmatterCodec, jsonFrontmatterCodec],
+  }),
+);
 
 function generateEntries(path, length) {
   const entries = Array.from({ length }, (val, idx) => {

@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
+import { createMarkdownMapper } from '@/format-packs/markdown';
 import { lexicalToPortableText } from '@/lib/richtext/bridge/lexicalToPortableText';
 import { portableTextToLexical } from '@/lib/richtext/bridge/portableTextToLexical';
 import { stripKeys } from '@/lib/richtext/keys';
-import { createMarkdownMapper } from '@/format-packs/markdown';
 
 const MARKDOWN_TABLE = '| a | b |\n| --- | --- |\n| c1 | **c2** |\n';
 

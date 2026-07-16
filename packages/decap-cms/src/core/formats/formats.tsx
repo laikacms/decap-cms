@@ -1,14 +1,19 @@
 import { get } from 'lodash-es';
 
-import { getCustomFormatsExtensions, getCustomFormatsFormatters } from '@/core/lib/registry';
-import { FrontmatterInfer, frontmatterJSON, frontmatterTOML, frontmatterYAML } from './frontmatter';
-import jsonFormatter from './json';
-import tomlFormatter from './toml';
-import yamlFormatter from './yaml';
+import {
+  getCustomFormatsExtensions,
+  getCustomFormatsFormatters,
+  getEntryCodec,
+  getEntryCodecs,
+} from '@/core/lib/registry';
 
 import type { EntryValue } from '@/core/valueObjects/Entry';
-import type { CmsCollectionFormatType, CmsCollectionState, CmsFormatterFunctions } from '@/lib/util/index';
-import type { Delimiter } from './frontmatter';
+import type {
+  CmsCollectionFormatType,
+  CmsCollectionState,
+  CmsEntryCodecDelimiter as Delimiter,
+  CmsFormatterFunctions,
+} from '@/lib/util/index';
 
 type Collection = CmsCollectionState;
 type Format = CmsCollectionFormatType;
@@ -16,49 +21,56 @@ type FormatterFunctions = CmsFormatterFunctions;
 
 type EntryObject = any;
 
-export const frontmatterFormats = ['yaml-frontmatter', 'toml-frontmatter', 'json-frontmatter'];
+// Entry-file encodings are registry-backed entry codecs
+// (`CMS.registerEntryCodec`, codecs in `src/entry-codecs/*`); nothing is
+// bundled here, not even frontmatter handling — markdown entries are served
+// by `createMarkdownEntryCodec` (`entry-codecs/markdown`), built explicitly
+// with the frontmatter languages a deployment uses.
 
-export const formatExtensions = {
-  yml: 'yml',
-  yaml: 'yml',
-  toml: 'toml',
-  json: 'json',
-  frontmatter: 'md',
-  'json-frontmatter': 'md',
-  'toml-frontmatter': 'md',
-  'yaml-frontmatter': 'md',
-};
-
-export function getFormatExtensions() {
-  return { ...formatExtensions, ...getCustomFormatsExtensions() };
+/** Format names accepting `frontmatter_delimiter` (e.g. 'yaml-frontmatter'). */
+export function getFrontmatterFormats(): string[] {
+  return getEntryCodecs().flatMap(codec => codec.frontmatterFormats ?? []);
 }
 
-export const extensionFormatters = {
-  yml: yamlFormatter,
-  yaml: yamlFormatter,
-  toml: tomlFormatter,
-  json: jsonFormatter,
-  md: FrontmatterInfer,
-  markdown: FrontmatterInfer,
-  html: FrontmatterInfer,
-};
+/** Map of format name -> extension used when creating new files. */
+export function getFormatExtensions(): Record<string, string> {
+  const extensions: Record<string, string> = {};
+  for (const codec of getEntryCodecs()) {
+    for (const name of [codec.name, ...(codec.aliases ?? [])]) {
+      extensions[name] = codec.defaultExtension;
+    }
+  }
+  return { ...extensions, ...getCustomFormatsExtensions() };
+}
+
+/** Map of file extension -> formatter, for inferring a format from a path. */
+export function getExtensionFormatters(): Record<string, FormatterFunctions> {
+  const formatters: Record<string, FormatterFunctions> = {};
+  for (const codec of getEntryCodecs()) {
+    for (const extension of codec.fileExtensions) {
+      formatters[extension] = codec.formatter;
+    }
+  }
+  return formatters;
+}
 
 function formatByName(name: Format, customDelimiter?: Delimiter): FormatterFunctions {
-  const formatters: Record<string, FormatterFunctions> = {
-    yml: yamlFormatter,
-    yaml: yamlFormatter,
-    toml: tomlFormatter,
-    json: jsonFormatter,
-    frontmatter: FrontmatterInfer,
-    'json-frontmatter': frontmatterJSON(customDelimiter),
-    'toml-frontmatter': frontmatterTOML(customDelimiter),
-    'yaml-frontmatter': frontmatterYAML(customDelimiter),
-    ...getCustomFormatsFormatters(),
-  };
-  if (name in formatters) {
-    return formatters[name];
+  // Custom formats (`registerCustomFormat`) intentionally shadow built-ins.
+  const custom = getCustomFormatsFormatters();
+  if (name in custom) {
+    return custom[name];
   }
-  throw new Error(`No formatter available with name: ${name}`);
+  const codec = getEntryCodec(name);
+  if (codec) {
+    return codec.getFormatter?.(name, { customDelimiter }) ?? codec.formatter;
+  }
+  const registered = getEntryCodecs().flatMap(entry => [entry.name, ...(entry.aliases ?? [])]);
+  throw new Error(
+    `No formatter available with name: ${name}. Registered entry codecs: ${registered.join(', ') || '(none)'}. `
+      + `Register one via CMS.registerEntryCodec (e.g. import { yamlEntryCodec } from `
+      + `'@laikacms/decap-cms/entry-codecs/yaml'; markdown/frontmatter entries come from `
+      + `createMarkdownEntryCodec in '@laikacms/decap-cms/entry-codecs/markdown').`,
+  );
 }
 
 function frontmatterDelimiterIsArray(
@@ -85,7 +97,7 @@ export function resolveFormat(collection: Collection, entry: EntryObject | Entry
   if (filePath) {
     const fileExtension = filePath.split('.').pop();
     if (fileExtension) {
-      return get(extensionFormatters, fileExtension);
+      return get(getExtensionFormatters(), fileExtension);
     }
   }
 
@@ -93,9 +105,10 @@ export function resolveFormat(collection: Collection, entry: EntryObject | Entry
   //   collection config, infer the format from that extension.
   const extension = collection.extension;
   if (extension) {
-    return get(extensionFormatters, extension);
+    return get(getExtensionFormatters(), extension);
   }
 
-  // If no format is specified and it cannot be inferred, return the default.
+  // If no format is specified and it cannot be inferred, fall back to the
+  // historical default: markdown with inferred frontmatter.
   return formatByName('frontmatter', customDelimiter);
 }

@@ -10,15 +10,9 @@ import {
 
 import { createKeyGenerator, resolveBlockCodecs } from '@/lib/richtext';
 
+import type { BlockData, BlockFormatCodec, FormatPack, Mapper, PortableTextDocument } from '@/lib/richtext';
 import type { PortableTextTypeRenderer } from '@portabletext/markdown';
 import type { TypedObject } from '@portabletext/types';
-import type {
-  BlockData,
-  BlockFormatCodec,
-  FormatPack,
-  Mapper,
-  PortableTextDocument,
-} from '@/lib/richtext';
 
 /** Markdown syntax probes; each hit raises the detection score. */
 const MARKDOWN_PROBES: readonly RegExp[] = [

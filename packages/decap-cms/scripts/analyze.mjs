@@ -203,5 +203,6 @@ const badge = {
   install,
 };
 
+mkdirSync(join(root, '.github'), { recursive: true });
 writeFileSync(join(root, '.github', 'bundle-size.json'), `${JSON.stringify(badge, null, 2)}\n`);
 console.log(`[analyze] wrote .github/bundle-size.json (badge: ${badge.message})`);

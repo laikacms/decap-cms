@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { registerBlock, unregisterBlock } from '@/lib/richtext/blocks/registry';
 import { createMarkdownMapper, markdownMapper } from '@/format-packs/markdown';
+import { registerBlock, unregisterBlock } from '@/lib/richtext/blocks/registry';
 
 import type { BlockDefinition, BlockFormatCodec } from '@/lib/richtext/blocks/types';
 

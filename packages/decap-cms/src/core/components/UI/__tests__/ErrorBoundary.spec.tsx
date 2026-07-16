@@ -3,7 +3,13 @@ import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ErrorBoundary } from '@/core/components/UI/ErrorBoundary';
+import { registerEntryCodec } from '@/core/lib/registry';
+import { yamlEntryCodec } from '@/entry-codecs/yaml/index';
 import { oneLineTrim } from '@/lib/util/index';
+
+// The issue template serializes the config with the yaml entry codec when one
+// is registered (JSON otherwise); this spec asserts the yaml rendering.
+registerEntryCodec(yamlEntryCodec);
 
 function WithError() {
   throw new Error('Some unknown error');

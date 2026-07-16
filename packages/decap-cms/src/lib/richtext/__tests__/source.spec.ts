@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { editorStateToSource, sourceToEditorState } from '@/lib/richtext/bridge/source';
 import { markdownMapper } from '@/format-packs/markdown';
+import { editorStateToSource, sourceToEditorState } from '@/lib/richtext/bridge/source';
 import { registerMapper } from '@/lib/richtext/registry';
 
 registerMapper(markdownMapper);

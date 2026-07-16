@@ -3,6 +3,7 @@ import type { CmsBackend, CmsBackendClass, CmsLocalBackend, CmsRegistryBackend }
 import type { CmsCollection } from './collections';
 import type {
   CmsAllowedEvent,
+  CmsEntryCodec,
   CmsEventHandler,
   CmsEventListener,
   CmsEventListenerOptions,
@@ -225,4 +226,5 @@ export interface CmsCMS {
   registerWidgetValueSerializer: (widgetName: string, serializer: CmsWidgetValueSerializer) => void;
   resolveWidget: (name: string) => CmsWidget | undefined;
   registerCustomFormat: (name: string, extension: string, formatter: CmsFormatterFunctions) => void;
+  registerEntryCodec: (pack: CmsEntryCodec) => void;
 }

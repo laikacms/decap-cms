@@ -1,9 +1,21 @@
-import { describe, expect, it, test } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 
-import { extensionFormatters, resolveFormat } from '@/core/formats/formats';
-import { registerCustomFormat } from '@/core/lib/registry';
+import { getExtensionFormatters, resolveFormat } from '@/core/formats/formats';
+import { registerCustomFormat, registerEntryCodec } from '@/core/lib/registry';
+import { jsonEntryCodec, jsonFrontmatterCodec } from '@/entry-codecs/json/index';
+import { createMarkdownEntryCodec } from '@/entry-codecs/markdown/index';
+import { tomlEntryCodec, tomlFrontmatterCodec } from '@/entry-codecs/toml/index';
+import { yamlEntryCodec, yamlFrontmatterCodec } from '@/entry-codecs/yaml/index';
 
 describe('custom formats', () => {
+  beforeAll(() => {
+    registerEntryCodec(yamlEntryCodec);
+    registerEntryCodec(tomlEntryCodec);
+    registerEntryCodec(jsonEntryCodec);
+    registerEntryCodec(
+      createMarkdownEntryCodec({ frontmatter: [yamlFrontmatterCodec, tomlFrontmatterCodec, jsonFrontmatterCodec] }),
+    );
+  });
   const testEntry = {
     collection: 'testCollection',
     data: { x: 1 },
@@ -23,6 +35,7 @@ describe('custom formats', () => {
     const collection = {
       name: 'posts',
     };
+    const extensionFormatters = getExtensionFormatters();
     expect(resolveFormat(collection, { ...testEntry, path: 'test.yml' })).toEqual(
       extensionFormatters.yml,
     );
@@ -44,6 +57,11 @@ describe('custom formats', () => {
     expect(resolveFormat(collection, { ...testEntry, path: 'test.html' })).toEqual(
       extensionFormatters.html,
     );
+  });
+
+  it('throws an informative error for an unregistered format name', () => {
+    const collection = { name: 'posts', format: 'csv' };
+    expect(() => resolveFormat(collection, testEntry)).toThrow(/registerEntryCodec/);
   });
 
   it('resolves custom format', () => {

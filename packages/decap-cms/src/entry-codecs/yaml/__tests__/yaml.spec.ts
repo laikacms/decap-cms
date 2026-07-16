@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from 'vitest';
 
-import yaml from '@/core/formats/yaml';
+import { yamlFormatter as yaml } from '@/entry-codecs/yaml/index';
 import { stripIndent } from '@/lib/util/index';
 
 describe('yaml', () => {

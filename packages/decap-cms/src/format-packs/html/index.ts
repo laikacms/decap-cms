@@ -3,8 +3,8 @@ import { toHTML } from '@portabletext/to-html';
 
 import { createKeyGenerator } from '@/lib/richtext';
 
-import type { PortableTextBlock } from '@portabletext/types';
 import type { FormatPack, Mapper, PortableTextDocument } from '@/lib/richtext';
+import type { PortableTextBlock } from '@portabletext/types';
 
 /** HTML tag/entity probes; each hit raises the detection score. */
 const HTML_PROBES: readonly RegExp[] = [

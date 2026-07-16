@@ -1,14 +1,16 @@
-// Must stay first: evaluates Prism core before the richtext widget's
-// '@lexical/code' imports; see the comment in prism-global.ts.
-import { ensurePrismGlobal } from '@/ui/editor/utils/prism-global';
-
-ensurePrismGlobal();
-
 // Core
 import { once } from 'lodash-es';
 
+// Must stay before any import that pulls the richtext editor: evaluates
+// Prism core before '@lexical/code'; see the comment in prism-global.ts.
 import { DecapCmsCore as CMS } from '@/core/index';
-// Format packs
+import { ensurePrismGlobal } from '@/ui/editor/utils/prism-global';
+// Entry codecs (whole-entry-file encodings)
+import { jsonEntryCodec, jsonFrontmatterCodec } from '@/entry-codecs/json/index';
+import { createMarkdownEntryCodec } from '@/entry-codecs/markdown/index';
+import { tomlEntryCodec, tomlFrontmatterCodec } from '@/entry-codecs/toml/index';
+import { yamlEntryCodec, yamlFrontmatterCodec } from '@/entry-codecs/yaml/index';
+// Richtext format packs (field-level text formats)
 import { markdownFormat } from '@/format-packs/markdown/index';
 // Backends
 import { AwsCognitoGitHubProxyBackend } from '@/backends/aws-cognito-github-proxy/index';
@@ -52,6 +54,8 @@ import type { CmsLocalePhrases } from '@/lib/util/types/cms/common.js';
  * package registers anything at import time; the entry point calls this.
  */
 export const registerExtensions = once(function registerExtensions(): void {
+  ensurePrismGlobal();
+
   // Register all the things
   CMS.registerBackend('git-gateway', GitGatewayBackend);
   CMS.registerBackend('azure', AzureBackend);
@@ -91,6 +95,17 @@ export const registerExtensions = once(function registerExtensions(): void {
   // The default output format. Formats are packs (`@/format-packs/*`) so bare
   // consumers can pick theirs; the fat app registers markdown out of the box.
   CMS.registerRichtextFormat(markdownFormat);
+  // Entry codecs (whole-entry-file encodings) are registerable too; bare
+  // consumers register only what their collections use. The markdown codec
+  // (frontmatter + opaque body) is built explicitly with its frontmatter
+  // languages — fences are tried in the order given, and the first language
+  // is the default when writing.
+  CMS.registerEntryCodec(yamlEntryCodec);
+  CMS.registerEntryCodec(tomlEntryCodec);
+  CMS.registerEntryCodec(jsonEntryCodec);
+  CMS.registerEntryCodec(
+    createMarkdownEntryCodec({ frontmatter: [yamlFrontmatterCodec, tomlFrontmatterCodec, jsonFrontmatterCodec] }),
+  );
   // The legacy `registerEditorComponent` API was removed: images and code
   // blocks are native Portable Text types; custom blocks register via
   // `CMS.registerBlock(...)` (see BREAKING_CHANGES_V2_BETA.md).

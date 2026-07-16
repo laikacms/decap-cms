@@ -3,8 +3,25 @@ vi.mock('../registry');
 import { merge } from 'lodash-es';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { getWidgets } from '@/core/lib/registry';
+import { getEntryCodec, getEntryCodecs, getWidgets } from '@/core/lib/registry';
 import { validateConfig } from '@/core/lib/validateConfig';
+import { jsonEntryCodec, jsonFrontmatterCodec } from '@/entry-codecs/json/index';
+import { createMarkdownEntryCodec } from '@/entry-codecs/markdown/index';
+import { tomlEntryCodec, tomlFrontmatterCodec } from '@/entry-codecs/toml/index';
+import { yamlEntryCodec, yamlFrontmatterCodec } from '@/entry-codecs/yaml/index';
+
+// The registry is automocked; give the entry-format getters the state the fat
+// entries produce at runtime (all three built-in packs registered).
+const entryCodecs = [
+  yamlEntryCodec,
+  tomlEntryCodec,
+  jsonEntryCodec,
+  createMarkdownEntryCodec({ frontmatter: [yamlFrontmatterCodec, tomlFrontmatterCodec, jsonFrontmatterCodec] }),
+];
+vi.mocked(getEntryCodecs).mockImplementation(() => entryCodecs);
+vi.mocked(getEntryCodec).mockImplementation(
+  name => entryCodecs.find(pack => pack.name === name || pack.aliases?.includes(name)),
+);
 
 describe('config', () => {
   /**

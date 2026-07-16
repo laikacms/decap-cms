@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { configLoaded } from '@/core/actions/config';
 import { FILES, FOLDER } from '@/core/constants/collectionTypes';
+import { registerEntryCodec } from '@/core/lib/registry';
 import collections, {
   getFieldsNames,
   selectAllowDeletion,
@@ -14,6 +15,21 @@ import collections, {
   selectMediaFolders,
   updateFieldByKey,
 } from '@/core/reducers/collections';
+import { jsonEntryCodec, jsonFrontmatterCodec } from '@/entry-codecs/json/index';
+import { createMarkdownEntryCodec } from '@/entry-codecs/markdown/index';
+import { tomlEntryCodec, tomlFrontmatterCodec } from '@/entry-codecs/toml/index';
+import { yamlEntryCodec, yamlFrontmatterCodec } from '@/entry-codecs/yaml/index';
+
+// Path/slug selectors resolve entry extensions through the (real) registry;
+// register the built-in entry codecs the fat entries would provide at runtime.
+registerEntryCodec(yamlEntryCodec);
+registerEntryCodec(tomlEntryCodec);
+registerEntryCodec(jsonEntryCodec);
+registerEntryCodec(
+  createMarkdownEntryCodec({
+    frontmatter: [yamlFrontmatterCodec, tomlFrontmatterCodec, jsonFrontmatterCodec],
+  }),
+);
 
 describe('collections', () => {
   it('should handle an empty state', () => {

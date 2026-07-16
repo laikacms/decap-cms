@@ -1,7 +1,7 @@
 import { createKeyGenerator } from '@/lib/richtext';
 
-import type { PortableTextBlock, PortableTextSpan } from '@portabletext/types';
 import type { FormatPack, Mapper, PortableTextDocument } from '@/lib/richtext';
+import type { PortableTextBlock, PortableTextSpan } from '@portabletext/types';
 
 const HTML_TAG = /<\/?[a-z][^>]*>/i;
 const MARKDOWN_SYNTAX = /^#{1,6}\s|^\s*[-*+]\s|^\s*\d+\.\s|^>\s|```|\*\*[^*\n]+\*\*|\[[^\]\n]+\]\([^)\n]+\)/m;

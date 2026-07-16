@@ -13,11 +13,12 @@ import type { CmsConfig } from '@/core/index';
  * auto-init at module load.
  *
  * Why this entry exists: the default `/laika-app` bundles every backend
- * (9), every widget (14), and every locale eagerly because Decap's
- * Registry pattern needs them registered at import time. For consumers
- * deploying laika with a known subset — say, just GitHub + a handful of
- * widgets — that's a lot of wasted bytes. Importing from `/bare` and
- * calling `CMS.registerBackend(…)` / `CMS.registerWidget(…)` only for the
+ * (9), every widget (14), every format pack, and every locale eagerly
+ * because Decap's Registry pattern needs them registered at import time.
+ * For consumers deploying laika with a known subset — say, just GitHub +
+ * JSON collections + a handful of widgets — that's a lot of wasted bytes.
+ * Importing from `/bare` and calling `CMS.registerBackend(…)` /
+ * `CMS.registerWidget(…)` / `CMS.registerEntryCodec(…)` only for the
  * surfaces actually needed lets the bundler tree-shake everything else.
  *
  * Usage:
@@ -28,9 +29,11 @@ import type { CmsConfig } from '@/core/index';
  *       CMS,
  *     } from '@laikacms/decap-cms/laika-app/bare';
  *     import { GitHubBackend } from '@laikacms/decap-cms/backends/github';
+ *     import { jsonEntryCodec } from '@laikacms/decap-cms/entry-codecs/json';
  *     import widgetString from '@laikacms/decap-cms/widgets/string';
  *
  *     CMS.registerBackend('github', GitHubBackend);
+ *     CMS.registerEntryCodec(jsonEntryCodec);
  *     CMS.registerWidget(widgetString.Widget());
  *
  *     init();
@@ -70,8 +73,9 @@ function ensureRoot(container: Element): ReturnType<typeof createRoot> {
  * and content routes all come from v4.beta `core` unchanged; only the
  * chrome and theme switching are laika-flavored.
  *
- * When using `/bare`, you are responsible for registering backends + widgets
- * via `CMS.registerBackend()` / `CMS.registerWidget()` before calling `init`.
+ * When using `/bare`, you are responsible for registering backends, widgets,
+ * and entry-file formats via `CMS.registerBackend()` / `CMS.registerWidget()`
+ * / `CMS.registerEntryCodec()` before calling `init`.
  *
  * Calling `init()` more than once reuses the same React root and re-renders,
  * so dynamic config swaps and HMR are safe.

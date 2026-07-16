@@ -889,7 +889,8 @@ export class Backend {
         if (isError(data)) console.error(data);
         return Object.assign(entry, { data: isError(data) ? {} : data });
       }
-      return format.fromFile(entry);
+      // Legacy path: hand the whole entry through the formatter unchanged.
+      return format.fromFile(entry as unknown as string) as EntryValue;
     };
   }
 
@@ -1375,7 +1376,7 @@ export class Backend {
     const format = resolveFormat(collection, entry);
     const fieldsOrder = this.fieldsOrder(collection, entry);
     const fieldsComments = selectFieldsComments(collection, entry);
-    let content = format.toFile(entry.data, fieldsOrder, fieldsComments);
+    let content = format.toFile(entry.data as object, fieldsOrder, fieldsComments);
     if (content.slice(-1) != '\n') {
       // add the EOL if it does not exist.
       content += '\n';

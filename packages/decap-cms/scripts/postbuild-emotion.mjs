@@ -23,8 +23,8 @@ const emotionPlugin = require.resolve('@emotion/babel-plugin');
 const distDir = fileURLToPath(new URL('../dist', import.meta.url));
 
 const jsFiles = readdirSync(distDir, { recursive: true, encoding: 'utf8' })
-  .filter((f) => f.endsWith('.js'))
-  .map((f) => join(distDir, f));
+  .filter(f => f.endsWith('.js'))
+  .map(f => join(distDir, f));
 
 let processed = 0;
 let changed = 0;
