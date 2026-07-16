@@ -22,7 +22,7 @@ npm run test:e2e # builds the demo site and runs Cypress in headless mode with m
 
 ```bash
 npm run develop # starts a local dev server with the demo site
-npm run test:e2e:exec # runs Cypress in non-headless mode with mock data
+npm run test:e2e:exec-dev # runs Cypress in non-headless mode with mock data
 ```
 
 ## Recording Tests Data
