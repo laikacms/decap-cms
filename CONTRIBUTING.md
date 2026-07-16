@@ -108,7 +108,7 @@ Decap CMS uses the [Forking Workflow](https://www.atlassian.com/git/tutorials/co
 5. Run `pnpm test:ci` and ensure lint, typecheck, and the test suite pass.
 6. Use `pnpm format` to format your code.
 7. PR's must be rebased before merge (feel free to ask for help).
-8. PR should be reviewed by two maintainers prior to merging.
+8. PRs are expected to be reviewed by a maintainer before merging. This is a contributor convention, not a platform-enforced gate — `main` currently has no GitHub branch-protection rule requiring review before merge.
 
 ## Debugging
 
