@@ -22,6 +22,40 @@ The registration functions below are how a consumer plugs custom
 widgets, backends, preview UI, editor components, remark plugins,
 media libraries, locales, event hooks, and file formats into the CMS.
 
+## Top-level `slug` config
+
+```yaml
+# config.yml
+slug:
+  encoding: unicode # or 'ascii'
+  clean_accents: false
+  sanitize_replacement: '-'
+```
+
+This top-level `slug` object controls how entry slugs and media filenames
+are sanitized — it is **not** the same thing as a collection's
+`collections[].slug` field, which is a per-collection template *string*
+(e.g. `'{{year}}-{{month}}-{{title}}'`) used to derive a slug's shape. The
+top-level object instead configures the character-sanitization rules
+applied to whatever slug/filename is produced, across every collection.
+Defaults are filled in by `applyDefaults` in
+[`src/core/actions/config.tsx`](./actions/config.tsx), and the sanitization
+itself is implemented in
+[`src/core/lib/urlHelper.tsx`](./lib/urlHelper.tsx). All three keys are
+optional:
+
+- **`encoding`** — `'unicode'` (default) or `'ascii'`. `'unicode'` keeps
+  any character allowed in an IRI (RFC 3987), including non-ASCII
+  letters; `'ascii'` restricts output to plain URI-safe characters
+  (`[\w\-.~]`) only. Any other value throws
+  `` `options.encoding` must be "unicode" or "ascii". ``
+- **`clean_accents`** — boolean, default `false`. When `true`, diacritics
+  are stripped from the generated slug before sanitization (e.g. `café`
+  becomes `cafe`) instead of being encoded or replaced.
+- **`sanitize_replacement`** — string, default `'-'`. The character(s)
+  substituted for any character disallowed by the `encoding` rule above
+  while sanitizing a slug or filename.
+
 ## `registerWidget`
 
 ```ts
