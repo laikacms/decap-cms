@@ -85,6 +85,12 @@ function collectSpans(
           flush();
           break;
         }
+        case 'overflow':
+          // `CharacterLimitPlugin` wraps text past its limit in an OverflowNode
+          // purely for decorative (over-limit) styling; it carries no semantic
+          // meaning of its own, so its children serialize as if unwrapped.
+          walk(Array.isArray(node.children) ? node.children : [], linkKey);
+          break;
         default:
           break;
       }
