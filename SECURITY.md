@@ -36,7 +36,7 @@ This project follows a 90-day disclosure timeline.
 - Dependabot is enabled for automated security update checks
 - All code changes are tested in CI, including linting
 - End-to-end tests provide coverage of critical functionality
-- All pull requests require code review before merging
+- Pull requests are expected to be reviewed by a maintainer before merging; this is a contributor convention, not a GitHub branch-protection rule (`main` currently has no required-review or required-status-check protection configured)
 - Passwords are not stored by Decap CMS; authentication is delegated to providers
 
 ## Known Limitations
