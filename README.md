@@ -32,6 +32,29 @@ The Decap CMS can be used in two different ways.
   To learn more about this installation method, refer to the [Quick Start Guide](https://www.decapcms.org/docs/quick-start/)
 * A complete, more complex install, that gives you more flexibility but requires that you use a static site builder with a build system that supports npm packages.
 
+## Visual Editing (Stega)
+
+Decap CMS can steganographically encode field values shown in the editor's live preview pane so that a frontend can detect which on-page text maps back to which CMS field (the same technique used by tools like Vercel's Visual Editing). This only changes what is rendered in the preview iframe — the entry data that gets saved to your repository is never touched.
+
+Visual editing is opt-in at the collection level and opt-out at the field level:
+
+* `editor.visualEditing` (collection-level `boolean`, default `false`) — enables steganographic encoding of the preview entry for that collection. When left unset or `false`, the preview pane renders the entry unmodified and no encoding happens.
+* `visualEditing` (field-level `boolean`, default effectively `true` once the collection has opted in) — set to `false` on an individual field to exclude just that field's value from encoding. Any value other than an explicit `false` is treated as enabled.
+
+```yaml
+collections:
+  - name: posts
+    label: Posts
+    editor:
+      visualEditing: true
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Body, name: body, widget: markdown }
+      - { label: Internal Note, name: note, widget: string, visualEditing: false }
+```
+
+Only text-producing widgets are affected: `string`, `text`, and `markdown` (aliased to the `richtext` widget). Other widget types are left untouched by the encoder.
+
 ## Sponsor
 
 Help support Decap CMS development by becoming a sponsor! Your contributions help us maintain and improve this open-source project.
