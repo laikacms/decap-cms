@@ -100,6 +100,13 @@ export default class PkceAuthenticator {
   constructor(config: PkceAuthenticatorConfig = {}) {
     const useOidc: boolean | undefined = config.use_oidc;
     const baseURL: string = trimEnd(config.base_url, '/') || '';
+    if (!baseURL) {
+      throw new Error(
+        "PkceAuthenticator: `base_url` is required (it is the provider's base URL, " +
+          'e.g. `https://gitlab.com`); omitting it produces a relative auth URL that ' +
+          'fails when passed to `new URL()`.',
+      );
+    }
     const authEndpoint: string = trim(config.auth_endpoint, '/') || '';
     const authTokenEndpoint: string = trim(config.auth_token_endpoint, '/') || '';
     if (useOidc) {
