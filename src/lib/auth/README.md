@@ -45,11 +45,16 @@ Config keys (source: `PkceAuthenticatorConfig` in `pkce-oauth.ts`):
   `client_id` in both the authorization redirect and the token exchange
   request. Defaults to `''` (an empty client ID) if omitted, which will
   fail against any real OAuth provider — set it in practice.
-- **`base_url`** (optional) — the provider's base URL, e.g.
+- **`base_url`** (required) — the provider's base URL, e.g.
   `https://gitlab.com` or `https://try.gitea.io`. Combined with
   `auth_endpoint`/`auth_token_endpoint` to build the full authorization and
   token URLs (`${base_url}/${auth_endpoint}`), unless `use_oidc` is set (see
-  below).
+  below), in which case it's the base URL used for OIDC discovery instead.
+  There's no sane absolute default to fall back to (it's an arbitrary
+  provider domain, not derivable from any other config key), so the
+  constructor throws immediately if it's omitted or empty, rather than
+  building a relative URL that fails later with a confusing `Invalid URL`
+  error from `new URL()`.
 - **`auth_endpoint`** (optional) — path (relative to `base_url`) of the
   provider's authorization endpoint, e.g. `oauth/authorize` or
   `login/oauth/authorize`. Ignored when `use_oidc` is true.
