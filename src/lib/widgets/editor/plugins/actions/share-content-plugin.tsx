@@ -7,11 +7,11 @@ import {
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { CLEAR_HISTORY_COMMAND } from 'lexical';
 import { SendIcon } from 'lucide-react';
-import { toast } from 'react-toastify';
 
 import { Button } from '@/lib/widgets/editor/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/lib/widgets/editor/ui/tooltip';
 import { docFromHash, docToHash } from '@/lib/widgets/editor/utils/doc-serialization';
+import { toast } from '@/ui/toast';
 
 export function ShareContentPlugin() {
   const [editor] = useLexicalComposerContext();
