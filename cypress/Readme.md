@@ -22,8 +22,12 @@ npm run test:e2e # builds the demo site and runs Cypress in headless mode with m
 
 ```bash
 npm run develop # starts a local dev server with the demo site
-npm run test:e2e:exec # runs Cypress in non-headless mode with mock data
+npm run test:e2e:exec-dev # runs Cypress in non-headless (interactive) mode with mock data
 ```
+
+> `npm run test:e2e:exec` runs Cypress headlessly (`cypress run --browser chrome --headless`) and is
+> used by `npm run test:e2e`/CI, not for interactive debugging. For interactive debugging, use the two
+> commands above, or run `npm run test:e2e:dev` (which wraps `develop` + `test:e2e:exec-dev`).
 
 ## Recording Tests Data
 
