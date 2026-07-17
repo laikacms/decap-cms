@@ -6,7 +6,7 @@ import { selectMediaDisplayURL, selectMediaFiles } from '@/core/reducers/mediaLi
 import { selectIntegration } from '@/core/reducers/selectors';
 import { createAssetProxy } from '@/core/valueObjects/AssetProxy';
 import { basename, getBlobSHA } from '@/lib/util/index';
-import { confirmDialog } from '@/ui/AlertDialog';
+import { confirmDialog } from '@/ui';
 import { addDraftEntryMediaFile, removeDraftEntryMediaFile } from './entries';
 import { addAsset, removeAsset } from './media';
 import { addNotification } from './notifications';

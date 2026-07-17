@@ -29,7 +29,7 @@ import { selectDeployPreview, selectEntry, selectUnpublishedEntry } from '@/core
 import { selectFields } from '@/core/reducers/collections';
 import { useRouter } from '@/core/routing/context';
 import { navigateToCollection, navigateToNewEntry } from '@/core/routing/navigation';
-import { confirmDialog, showAlert } from '@/ui/AlertDialog';
+import { confirmDialog, showAlert } from '@/ui';
 import { useAppDispatch, useAppSelector } from './useRedux';
 import { useTranslate } from './useTranslate';
 import { useWorkflow } from './useWorkflow';

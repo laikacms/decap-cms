@@ -11,7 +11,7 @@ import {
   isFieldHidden,
   isFieldTranslatable,
 } from '@/core/lib/i18n';
-import { confirmDialog } from '@/ui/AlertDialog';
+import { confirmDialog } from '@/ui';
 import { buttons, colors, Dropdown, DropdownItem, StyledDropdownButton, text } from '@/ui/default/index';
 import EditorControl from './EditorControl';
 

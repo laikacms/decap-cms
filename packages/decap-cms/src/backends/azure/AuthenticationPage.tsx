@@ -2,7 +2,7 @@ import styled from '@emotion/styled';
 import React from 'react';
 
 import { ImplicitAuthenticator } from '@/lib/auth/index';
-import { showAlert } from '@/ui/AlertDialog';
+import { showAlert } from '@/ui';
 import { AuthenticationPage, Icon } from '@/ui/default/index';
 
 import type { ImplicitAuthResult } from '@/lib/auth/index';

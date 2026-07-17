@@ -15,7 +15,7 @@ import { useTranslate } from '@/core/i18n';
 import { selectMediaFiles } from '@/core/reducers/mediaLibrary';
 import { useRouter } from '@/core/routing/context';
 import { fileExtension } from '@/lib/util/index';
-import { confirmDialog, showAlert } from '@/ui/AlertDialog';
+import { confirmDialog, showAlert } from '@/ui';
 import MediaLibraryModal from './MediaLibraryModal';
 
 import type { TranslateFunction } from '@/ui/default/index';

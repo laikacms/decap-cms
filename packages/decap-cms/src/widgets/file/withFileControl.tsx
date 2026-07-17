@@ -7,7 +7,7 @@ import { v4 as uuid } from 'uuid';
 
 import { oneLine } from '@/lib/util/index';
 import { basename } from '@/lib/util/index';
-import { promptDialog, showAlert } from '@/ui/AlertDialog';
+import { promptDialog, showAlert } from '@/ui';
 import {
   borders,
   buttons,

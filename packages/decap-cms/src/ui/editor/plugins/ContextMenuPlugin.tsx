@@ -18,7 +18,7 @@ import {
 import { Clipboard, ClipboardType, Copy, Link2Off, Scissors, Trash2 } from 'lucide-react';
 import { useMemo } from 'react';
 
-import { showAlert } from '@/ui/AlertDialog';
+import { showAlert } from '@/ui';
 
 import type { JSX } from 'react';
 
