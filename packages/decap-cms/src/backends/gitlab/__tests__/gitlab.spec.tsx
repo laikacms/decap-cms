@@ -348,6 +348,26 @@ describe('gitlab backend', () => {
     );
   });
 
+  describe('use_graphql / graphql_api_root config', () => {
+    it('defaults useGraphQL to false and graphQLAPIRoot to the GitLab public GraphQL endpoint', () => {
+      backend = resolveBackend(defaultConfig);
+      expect(backend.implementation.useGraphQL).toBe(false);
+      expect(backend.implementation.graphQLAPIRoot).toBe('https://gitlab.com/api/graphql');
+    });
+
+    it('reads use_graphql and graphql_api_root from the backend config', () => {
+      backend = resolveBackend({
+        backend: {
+          ...defaultConfig.backend,
+          use_graphql: true,
+          graphql_api_root: 'https://gitlab.example.com/api/graphql',
+        },
+      });
+      expect(backend.implementation.useGraphQL).toBe(true);
+      expect(backend.implementation.graphQLAPIRoot).toBe('https://gitlab.example.com/api/graphql');
+    });
+  });
+
   describe('authComponent', () => {
     it('returns authentication page component', () => {
       backend = resolveBackend(defaultConfig);
