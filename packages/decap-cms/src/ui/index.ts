@@ -1,6 +1,7 @@
 // Barrel for `src/ui/`, the in-house primitive library. See ./README.md for
 // the convention this barrel enforces (one file per primitive, `export *`,
 // no default exports).
+export * from './Avatar';
 export * from './Button';
 export * from './ButtonGroup';
 export * from './Checkbox';

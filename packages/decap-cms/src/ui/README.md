@@ -109,10 +109,13 @@ non-goals) and are **not** re-exported through `index.ts`; they keep their own `
 ## Current inventory
 
 Every primitive is a physical file here (the #635/DCMS-548 re-export stubs have been replaced by the
-real implementations, moved up from the editor's old `ui/` subfolder): `button`, `button-group`,
-`checkbox`, `command`, `dialog`, `dropdown-menu`, `field`, `input`, `label`, `popover`,
-`scroll-area`, `select`, `separator`, `tabs`, `toggle`, `toggle-group`, `tooltip`, plus the `styled`
-helper module and the vendored `cmdk`.
+real implementations, moved up from the editor's old `ui/` subfolder): `avatar`, `button`,
+`button-group`, `checkbox`, `command`, `dialog`, `dropdown-menu`, `field`, `input`, `label`,
+`popover`, `scroll-area`, `select`, `separator`, `tabs`, `toggle`, `toggle-group`, `tooltip`, plus
+the `styled` helper module and the vendored `cmdk`. `avatar` and laika-app's `LaikaTooltip`
+consumers were deduped onto these canonical implementations in #630/DCMS-544 —
+`src/laika-app/ui/LaikaTooltip.tsx` and `LaikaAvatar.tsx` are now thin backwards-compatible
+aliases, not separate Base UI wrappers.
 
 `src/ui/editor/` (the Lexical editor) is a _consumer_ of these primitives — it imports them from
 `@/ui/<name>` like everyone else and holds no primitive implementations of its own.
