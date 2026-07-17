@@ -1,6 +1,7 @@
 import { useCallback, useRef } from 'react';
 
 import { useRouter } from '@/core/routing/context';
+import { confirmDialog } from '@/ui/AlertDialog';
 
 import type { RouterTransition, RouterUpdate } from '@/core/routing/router';
 
@@ -49,7 +50,7 @@ export function useNavigationBlocker({
     // In-app navigation blocker.
     // IMPORTANT: We must unblock BEFORE calling tx.retry() to prevent infinite loops,
     // because tx.retry() re-triggers the navigation which would call this blocker again.
-    const navigationBlocker = (tx: RouterTransition) => {
+    const navigationBlocker = async (tx: RouterTransition) => {
       // Check if path is allowed
       const pathname = tx.location.pathname;
       const isAllowed = allowedPaths.some(path => pathname.startsWith(path));
@@ -62,8 +63,8 @@ export function useNavigationBlocker({
 
       if (shouldBlock()) {
         // Block by not calling tx.retry()
-        // Show confirmation via window.confirm
-        if (window.confirm(message)) {
+        // Show confirmation via the AlertDialog-backed confirm (DCMS-658)
+        if (await confirmDialog(message)) {
           unblockRef.current?.();
           tx.retry();
         }

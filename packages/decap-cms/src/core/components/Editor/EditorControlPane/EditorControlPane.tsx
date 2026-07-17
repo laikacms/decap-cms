@@ -11,6 +11,7 @@ import {
   isFieldHidden,
   isFieldTranslatable,
 } from '@/core/lib/i18n';
+import { confirmDialog } from '@/ui/AlertDialog';
 import { buttons, colors, Dropdown, DropdownItem, StyledDropdownButton, text } from '@/ui/default/index';
 import EditorControl from './EditorControl';
 
@@ -160,13 +161,13 @@ const ControlPane = React.forwardRef<ControlPaneHandle, ControlPaneProps>(
       targetLocale: string,
       t: (key: string, options?: Record<string, string>) => string,
     }) =>
-    (sourceLocale: string) => {
+    async (sourceLocale: string) => {
       if (
-        !window.confirm(
+        !(await confirmDialog(
           tt('editor.editorControlPane.i18n.copyFromLocaleConfirm', {
             locale: sourceLocale.toUpperCase(),
           }),
-        )
+        ))
       ) {
         return;
       }

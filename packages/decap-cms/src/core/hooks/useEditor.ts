@@ -200,7 +200,7 @@ export function useEditor({
     // when we want to allow the navigation to proceed.
     // IMPORTANT: We must unblock BEFORE calling tx.retry() to prevent infinite loops,
     // because tx.retry() re-triggers the navigation which would call this blocker again.
-    function navigationBlocker(tx: RouterTransition) {
+    async function navigationBlocker(tx: RouterTransition) {
       const draft = entryDraftRef.current;
       const isPersisting = draft?.entry?.isPersisting;
       const newRecord = draft?.entry?.newRecord;
@@ -215,7 +215,7 @@ export function useEditor({
 
       // Block navigation if there are unsaved changes (unless user confirms)
       if (draft?.hasChanged) {
-        if (window.confirm(leaveMessage)) {
+        if (await confirmDialog(leaveMessage)) {
           unblockRef.current?.();
           tx.retry();
         }

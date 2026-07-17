@@ -15,7 +15,7 @@ import { useTranslate } from '@/core/i18n';
 import { selectMediaFiles } from '@/core/reducers/mediaLibrary';
 import { useRouter } from '@/core/routing/context';
 import { fileExtension } from '@/lib/util/index';
-import { showAlert } from '@/ui/AlertDialog';
+import { confirmDialog, showAlert } from '@/ui/AlertDialog';
 import MediaLibraryModal from './MediaLibraryModal';
 
 import type { TranslateFunction } from '@/ui/default/index';
@@ -257,8 +257,8 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
     handleClose();
   }
 
-  function handleDelete() {
-    if (!window.confirm(t('mediaLibrary.mediaLibrary.onDelete'))) {
+  async function handleDelete() {
+    if (!(await confirmDialog(t('mediaLibrary.mediaLibrary.onDelete')))) {
       return;
     }
     const selectedKey = 'key' in selectedFile ? selectedFile.key : undefined;
