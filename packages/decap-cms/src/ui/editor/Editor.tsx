@@ -452,7 +452,17 @@ export function Editor({
 
             <OnChangePlugin
               ignoreSelectionChange={true}
-              onChange={editorState => {
+              onChange={(editorState, _editor, tags) => {
+                // `AutoFocusExtension` calls `editor.focus()` when the root
+                // element mounts, which flushes its own update tagged with
+                // Lexical's internal `FOCUS_TAG` ('focus'). That update isn't
+                // filtered by `ignoreSelectionChange` (it can mark nodes dirty
+                // while re-establishing the selection) or by the history-merge
+                // check, so it used to reach consumers as if the document had
+                // just been edited — flipping a freshly-opened, untouched
+                // entry's dirty flag before any keystroke (DCMS-654). A real
+                // edit is never tagged this way, so it's safe to always skip.
+                if (tags.has('focus')) return;
                 onChange?.(editorState);
                 if (!onSerializedChange) return;
                 if (isSourceViewRef.current) {
