@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { describe, expect, it } from 'vitest';
 
 import * as uiBarrel from '@/ui';
@@ -13,7 +12,7 @@ import * as uiBarrel from '@/ui';
  * primitive file with no `export * from './AlertDialog'` line.
  */
 describe('src/ui/index.ts barrel completeness', () => {
-  const uiDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+  const uiDir = path.resolve(process.cwd(), 'src', 'ui');
   const indexSource = fs.readFileSync(path.join(uiDir, 'index.ts'), 'utf8');
 
   const primitiveFiles = fs
