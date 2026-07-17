@@ -31,6 +31,11 @@ function Editor({ newRecord = false, collectionName, slug, renderNotFound }: Edi
   // Track previous values for update logic
   const prevLocalBackupRef = useRef<unknown>(undefined);
   const prevEntryRef = useRef<unknown>(undefined);
+  // Tracks the edit session (`editKey`) the local-backup-recovery prompt has
+  // already fired for, and the last `editKey` `setup()` ran against — see
+  // the guards in the two effects below (DCMS-655).
+  const backupPromptedKeyRef = useRef<string | null>(null);
+  const lastEditKeyRef = useRef<string | null>(null);
 
   const editor = useEditor({
     collectionName,
@@ -90,18 +95,53 @@ function Editor({ newRecord = false, collectionName, slug, renderNotFound }: Edi
   const editKey = `${collectionName}/${slug ?? ''}/${newEntry}`;
   useEffect(() => {
     if (!collection) return;
+    // Only reset the "already prompted for local backup" guard when this is
+    // genuinely a different edit session than the last one `setup()` ran
+    // for — not on every invocation of this effect. That distinction
+    // matters because `setup()` can be invoked twice in a row for the *same*
+    // `editKey` (React 18 StrictMode double-invokes mount effects, and this
+    // app renders under `StrictMode` — see `app/index.ts`), with its
+    // cleanup dispatching `discardDraft()` in between. See the comment on
+    // the local-backup effect below for why that matters.
+    if (lastEditKeyRef.current !== editKey) {
+      lastEditKeyRef.current = editKey;
+      backupPromptedKeyRef.current = null;
+    }
     const result = setup();
     return result.cleanup;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editKey]);
 
-  // Handle local backup check (replaces componentDidUpdate for localBackup)
+  // Handle local backup check (replaces componentDidUpdate for localBackup).
+  //
+  // Guarded on `editKey` via `backupPromptedKeyRef`, not just the
+  // previous-value ref-diff: `setup()`'s mount effect above can run twice
+  // for the same edit session (React 18 StrictMode double-invoke), and its
+  // cleanup dispatches `discardDraft()`, which resets the whole
+  // `entryDraft` — including `localBackup` — back to its initial
+  // `undefined` value in between the two invocations. Each invocation's
+  // `retrieveLocalBackup` dispatch then resolves asynchronously and sets
+  // `localBackup` again, so it crosses the `undefined -> backup` edge
+  // *twice* for one logical edit session. A guard that only remembers the
+  // immediately preceding value can't tell those two edges apart, so it
+  // fired `window.confirm` (and could run the mismatched-answer
+  // `deleteBackup()`) on both — silently discarding the just-restored draft
+  // if the user answered differently the second time (DCMS-655). Once
+  // we've prompted for a given `editKey`, later `undefined -> backup` edges
+  // within that same session are re-dispatch noise and are skipped.
   useEffect(() => {
     if (prevLocalBackupRef.current !== localBackup) {
-      handleLocalBackupCheck(prevLocalBackupRef.current);
+      const prevLocalBackup = prevLocalBackupRef.current;
       prevLocalBackupRef.current = localBackup;
+
+      if (!prevLocalBackup && localBackup) {
+        if (backupPromptedKeyRef.current === editKey) return;
+        backupPromptedKeyRef.current = editKey;
+      }
+
+      handleLocalBackupCheck(prevLocalBackup);
     }
-  }, [localBackup, handleLocalBackupCheck]);
+  }, [localBackup, handleLocalBackupCheck, editKey]);
 
   // Handle backup on change (replaces componentDidUpdate for hasChanged)
   useEffect(() => {

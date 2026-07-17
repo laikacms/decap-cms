@@ -145,3 +145,83 @@ describe('Editor - DCMS-445 failed entry load renders NotFoundPage, not a bare <
     expect(renderNotFound).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('Editor - DCMS-655 local backup recovery prompt does not double-fire', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  // Simulates the StrictMode double-invoke race from the bug report:
+  // `localBackup` crosses the `undefined -> backup` edge twice for the same
+  // edit session because `setup()`'s cleanup (`discardDraft()`) resets it to
+  // `undefined` in between the two `retrieveLocalBackup` dispatches
+  // resolving.
+  it('only calls handleLocalBackupCheck with a falsy previous value once per edit session', () => {
+    vi.mocked(useEditorModule.useEditor).mockReturnValue({
+      ...defaultEditorReturn,
+      localBackup: undefined,
+    } as any);
+
+    const { rerender } = render(<Editor collectionName="posts" slug="slug" />);
+
+    const backupA = { entry: { data: { title: 'A' } } };
+    vi.mocked(useEditorModule.useEditor).mockReturnValue({
+      ...defaultEditorReturn,
+      localBackup: backupA,
+    } as any);
+    rerender(<Editor collectionName="posts" slug="slug" />);
+
+    // Cleanup dispatched discardDraft() between the two StrictMode-invoked
+    // setup() calls, resetting localBackup back to undefined.
+    vi.mocked(useEditorModule.useEditor).mockReturnValue({
+      ...defaultEditorReturn,
+      localBackup: undefined,
+    } as any);
+    rerender(<Editor collectionName="posts" slug="slug" />);
+
+    // The second setup() invocation's retrieveLocalBackup resolves, setting
+    // localBackup again (a fresh object, same as the real DDB action would
+    // produce via immer).
+    const backupB = { entry: { data: { title: 'A' } } };
+    vi.mocked(useEditorModule.useEditor).mockReturnValue({
+      ...defaultEditorReturn,
+      localBackup: backupB,
+    } as any);
+    rerender(<Editor collectionName="posts" slug="slug" />);
+
+    const falsyPrevCalls = mockHandleLocalBackupCheck.mock.calls.filter(([prev]) => !prev);
+    expect(falsyPrevCalls).toHaveLength(1);
+  });
+
+  it('prompts again for a different entry navigated to afterwards', () => {
+    vi.mocked(useEditorModule.useEditor).mockReturnValue({
+      ...defaultEditorReturn,
+      localBackup: undefined,
+    } as any);
+
+    const { rerender } = render(<Editor collectionName="posts" slug="slug-one" />);
+
+    vi.mocked(useEditorModule.useEditor).mockReturnValue({
+      ...defaultEditorReturn,
+      localBackup: { entry: { data: { title: 'One' } } },
+    } as any);
+    rerender(<Editor collectionName="posts" slug="slug-one" />);
+
+    // Navigate to a different entry: editKey changes, backup prompt guard
+    // should reset.
+    vi.mocked(useEditorModule.useEditor).mockReturnValue({
+      ...defaultEditorReturn,
+      localBackup: undefined,
+    } as any);
+    rerender(<Editor collectionName="posts" slug="slug-two" />);
+
+    vi.mocked(useEditorModule.useEditor).mockReturnValue({
+      ...defaultEditorReturn,
+      localBackup: { entry: { data: { title: 'Two' } } },
+    } as any);
+    rerender(<Editor collectionName="posts" slug="slug-two" />);
+
+    const falsyPrevCalls = mockHandleLocalBackupCheck.mock.calls.filter(([prev]) => !prev);
+    expect(falsyPrevCalls).toHaveLength(2);
+  });
+});
