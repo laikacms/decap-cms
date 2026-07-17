@@ -8,6 +8,16 @@ import { css } from './styled';
 
 const ROOT_ID = 'nc-root';
 
+/**
+ * Raw Base UI dialog parts, re-exported so every dialog implementation in the
+ * app imports Base UI through this one wrapper (DCMS-542) instead of pulling
+ * `@base-ui/react/dialog` directly. Use this when a consumer needs a custom
+ * layout/portal-container (see `core/components/UI/Modal.tsx` and
+ * `laika-app/ui/LaikaDialog.tsx`) rather than the composed `DialogContent`
+ * above.
+ */
+export { DialogPrimitive };
+
 export function Dialog({
   open,
   defaultOpen = false,

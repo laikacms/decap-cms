@@ -1,17 +1,18 @@
 /** @jsxImportSource @emotion/react */
-import { Dialog } from '@base-ui/react/dialog';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import React from 'react';
 
+import { DialogPrimitive as Dialog } from '@/ui/Dialog';
 import { colors, Icon, lengths, zIndex } from '@/ui/default/index';
 import LaikaIconButton from './LaikaIconButton';
 
 /**
- * Laika-flavored modal dialog. Wraps Base UI's Dialog so focus trapping,
- * scroll lock, and close-on-escape behave correctly, with a laika-styled
- * surface on top: rounded corners, soft overlay, optional Header / Body
- * / Footer composition for consistent dialogs across the app.
+ * Laika-flavored modal dialog. Wraps Base UI's Dialog (via the
+ * `src/ui/Dialog.tsx` wrapper, DCMS-542) so focus trapping, scroll lock, and
+ * close-on-escape behave correctly, with a laika-styled surface on top:
+ * rounded corners, soft overlay, optional Header / Body / Footer
+ * composition for consistent dialogs across the app.
  *
  * Portals into `#nc-root` if present (matching core's Modal), otherwise
  * Base UI falls back to `document.body`.
