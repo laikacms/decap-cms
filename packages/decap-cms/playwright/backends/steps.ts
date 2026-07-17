@@ -21,6 +21,12 @@ import type { ReplayHandle } from './replay';
  *  - dialogs: the "load local backup?" confirm is dismissed (same as
  *    `cypress/utils/dismiss-local-backup.ts`), everything else (publish/delete
  *    confirms) is accepted.
+ *  - the "load local backup?" prompt is still a native `window.confirm`, so
+ *    it's handled by the `page.on('dialog', ...)` handler below. All other
+ *    confirms (delete/publish/leave-page) go through the `AlertDialog`
+ *    component (DCMS-658) instead of `window.confirm`, so they render a real
+ *    DOM modal and must be dismissed with `confirmAlertDialog`/
+ *    `confirmAlertDialogIfPresent` rather than relying on the dialog handler.
  */
 
 export const workflowStatus = { draft: 'Drafts', review: 'In Review', ready: 'Ready' } as const;
@@ -165,8 +171,37 @@ export async function createPost(page: Page, entry: Entry): Promise<void> {
   await populateEntry(page, entry);
 }
 
+/**
+ * Clicks OK on the `AlertDialog`-backed confirm (DCMS-658) that replaced
+ * `window.confirm` at most call sites — delete/publish/leave-page prompts
+ * all render this real DOM modal rather than a native dialog, so Playwright's
+ * `page.on('dialog', ...)` auto-accept handler never sees them.
+ */
+export async function confirmAlertDialog(page: Page, name = 'Confirm'): Promise<void> {
+  await page.getByRole('alertdialog', { name }).getByRole('button', { name: 'OK' }).click();
+}
+
+/**
+ * Same as {@link confirmAlertDialog}, but for confirms that only appear
+ * conditionally (e.g. the leave-page guard only fires when there are unsaved
+ * changes) — waits briefly for the dialog and no-ops if it never shows up.
+ */
+export async function confirmAlertDialogIfPresent(page: Page, name = 'Confirm'): Promise<void> {
+  const dialog = page.getByRole('alertdialog', { name });
+  try {
+    await dialog.waitFor({ state: 'visible', timeout: 2_000 });
+  } catch {
+    return;
+  }
+  await dialog.getByRole('button', { name: 'OK' }).click();
+}
+
 export async function exitEditor(page: Page): Promise<void> {
   await page.getByRole('link', { name: 'Writing in' }).click();
+  // Leaving the editor may trigger the unsaved-changes leave-page confirm
+  // (useNavigationBlocker.ts, DCMS-658's AlertDialog migration) — only when
+  // there are actually unsaved changes, so this is a no-op otherwise.
+  await confirmAlertDialogIfPresent(page);
 }
 
 export async function createPostAndExit(page: Page, entry: Entry): Promise<void> {
@@ -213,8 +248,10 @@ export async function publishWorkflowEntry(page: Page, { title }: Entry): Promis
     .locator(`a:has-text("${title}")`)
     .first()
     .locator('xpath=..');
-  // The confirm dialog is auto-accepted by the fixture's dialog handler.
   await card.getByRole('button', { name: 'Publish new entry' }).click({ force: true });
+  // Publish confirm is the AlertDialog-backed confirm (DCMS-658), not a
+  // native dialog — must be dismissed explicitly.
+  await confirmAlertDialog(page);
 }
 
 export async function updateExistingPostAndExit(
@@ -253,6 +290,9 @@ export async function assertPublishedEntry(page: Page, entries: Entry[]): Promis
 
 export async function deleteEntryInEditor(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Delete' }).first().click();
+  // Delete confirm is the AlertDialog-backed confirm (DCMS-658), not a
+  // native dialog — must be dismissed explicitly.
+  await confirmAlertDialog(page);
   await assertNotification(page, notifications.deletedUnpublished);
 }
 
