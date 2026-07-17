@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -140,6 +140,93 @@ describe('EditorToolbar', () => {
         <EditorToolbar {...props} hasWorkflow={true} isNewEntry={false} hasChanged={true} />,
       );
       expect(screen.getByRole('button', { name: 'editor.editorToolbar.save' })).toBeEnabled();
+    });
+  });
+
+  describe('Cmd/Ctrl+S save shortcut (DCMS-NEW-SAVE-SHORTCUT)', () => {
+    function press(init: Partial<KeyboardEventInit> = {}) {
+      const event = new KeyboardEvent('keydown', {
+        key: 's',
+        metaKey: true,
+        bubbles: true,
+        cancelable: true,
+        ...init,
+      });
+      act(() => {
+        window.dispatchEvent(event);
+      });
+      return event;
+    }
+
+    it('invokes onPersist and prevents the browser default on a saveable entry (Cmd+S)', () => {
+      render(
+        <EditorToolbar {...props} hasWorkflow={true} isNewEntry={false} hasChanged={true} />,
+      );
+      const event = press({ metaKey: true });
+      expect(event.defaultPrevented).toBe(true);
+      expect(props.onPersist).toHaveBeenCalledTimes(1);
+    });
+
+    it('invokes onPersist on Ctrl+S too', () => {
+      render(
+        <EditorToolbar {...props} hasWorkflow={true} isNewEntry={false} hasChanged={true} />,
+      );
+      press({ metaKey: false, ctrlKey: true });
+      expect(props.onPersist).toHaveBeenCalledTimes(1);
+    });
+
+    it('fires even while focus is inside a form input', () => {
+      render(
+        <EditorToolbar {...props} hasWorkflow={true} isNewEntry={false} hasChanged={true} />,
+      );
+      const input = document.createElement('input');
+      document.body.appendChild(input);
+      input.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 's', metaKey: true, bubbles: true, cancelable: true }),
+      );
+      expect(props.onPersist).toHaveBeenCalledTimes(1);
+      input.remove();
+    });
+
+    it('is a no-op when the entry is not dirty (nothing to save)', () => {
+      render(
+        <EditorToolbar {...props} hasWorkflow={true} isNewEntry={false} hasChanged={false} />,
+      );
+      press();
+      expect(props.onPersist).not.toHaveBeenCalled();
+    });
+
+    it('is a no-op while a save is already in flight', () => {
+      render(
+        <EditorToolbar {...props} hasWorkflow={true} isNewEntry={false} hasChanged={true} isPersisting={true} />,
+      );
+      press();
+      expect(props.onPersist).not.toHaveBeenCalled();
+    });
+
+    it('does not register the shortcut for non-workflow collections (no Save button rendered)', () => {
+      render(
+        <EditorToolbar {...props} hasWorkflow={false} isNewEntry={false} hasChanged={true} />,
+      );
+      press();
+      expect(props.onPersist).not.toHaveBeenCalled();
+    });
+
+    it('ignores plain "s" without a modifier key', () => {
+      render(
+        <EditorToolbar {...props} hasWorkflow={true} isNewEntry={false} hasChanged={true} />,
+      );
+      press({ metaKey: false, ctrlKey: false });
+      expect(props.onPersist).not.toHaveBeenCalled();
+    });
+
+    it('unregisters the shortcut on unmount', () => {
+      const { unmount } = render(
+        <EditorToolbar {...props} hasWorkflow={true} isNewEntry={false} hasChanged={true} />,
+      );
+      unmount();
+      press();
+      expect(props.onPersist).not.toHaveBeenCalled();
     });
   });
 });

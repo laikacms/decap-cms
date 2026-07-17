@@ -5,6 +5,7 @@ import React from 'react';
 
 import { SettingsDropdown } from '@/core/components/UI';
 import { status } from '@/core/constants/publishModes';
+import { useShortcut } from '@/core/hooks/useShortcut';
 import { translate } from '@/core/i18n';
 import { Link } from '@/core/routing/Link';
 import {
@@ -343,6 +344,27 @@ export function EditorToolbar(props: EditorToolbarProps) {
   const isPersistingRef = React.useRef(isPersisting);
   const loadDeployPreviewRef = React.useRef(loadDeployPreview);
   loadDeployPreviewRef.current = loadDeployPreview;
+
+  // Same gating the Save button itself uses (see `renderWorkflowControls`):
+  // a pristine new entry stays saveable so validation can surface (#757),
+  // an existing entry needs a real change first. Only workflow collections
+  // render a dedicated Save button, so that's the only case Cmd/Ctrl+S maps
+  // to `onPersist` (DCMS-NEW-SAVE-SHORTCUT). Registered on core's shared
+  // shortcut engine (`@/core/lib/shortcuts`) rather than a bare `keydown`
+  // listener, matching `LaikaEditorToolbar`'s `mod+s` registration, so it
+  // gets the same modal-suspension/typing-safe handling for free.
+  const canSave = hasWorkflow && (isNewEntry || !!hasChanged) && !isPersisting;
+  useShortcut({
+    id: 'editor.save',
+    sequence: 'mod+s',
+    label: t('editor.editorToolbar.save'),
+    group: 'Editor',
+    allowInInput: true,
+    when: () => hasWorkflow ?? false,
+    run: () => {
+      if (canSave) onPersist();
+    },
+  });
 
   React.useEffect(() => {
     if (!isNewEntry) {
