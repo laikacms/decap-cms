@@ -11,4 +11,9 @@ editorialWorkflowSuite({
   pageUrl: '/backends/git-gateway/',
   netlifySiteURL: 'https://fake-site-url.netlify.com/',
   credentials: { email: 'decap@p-m.si', password: '12345678' },
+  skips: {
+    // Skipped in the Cypress suite too: the recorded fixture is incomplete
+    // (no commit recording for the third entry), so it cannot replay.
+    'can change status on and publish multiple entries': 'incomplete recording',
+  },
 });
