@@ -1,6 +1,6 @@
 {
   "name": "@laikacms/decap-cms",
-  "version": "4.0.3-alpha.0",
+  "version": "4.0.4-alpha.0",
   "description": "Single-package fork of Decap CMS v4.beta. Same components as the original monorepo, exposed through one package with subpath exports. Root export is the decap-cms-app bootstrap. See RESTRUCTURE.md.",
   "license": "MIT",
   "author": "Sem Postma <sem@laikacms.com> (based on Decap CMS by Netlify and contributors)",
