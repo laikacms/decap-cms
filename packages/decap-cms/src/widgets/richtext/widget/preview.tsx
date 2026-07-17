@@ -59,7 +59,9 @@ interface TableRow {
  * are rejected at registration), but the loop below still runs after this
  * table so a future override remains possible.
  */
-function reservedBlockPreviewComponents(): PortableTextReactComponents['types'] {
+function reservedBlockPreviewComponents(
+  getComponents: () => Partial<PortableTextReactComponents>,
+): PortableTextReactComponents['types'] {
   return {
     image: ({ value }) => {
       const { src, alt } = value as { src?: string, alt?: string };
@@ -86,7 +88,16 @@ function reservedBlockPreviewComponents(): PortableTextReactComponents['types'] 
               return (
                 <tr key={row._key ?? rowIndex}>
                   {(row.cells ?? []).map((cell, cellIndex) => (
-                    <CellTag key={cell._key ?? cellIndex}>{String(cell.value ?? '')}</CellTag>
+                    <CellTag key={cell._key ?? cellIndex}>
+                      {Array.isArray(cell.value)
+                        ? (
+                          <PortableText
+                            value={cell.value as PortableTextDocument}
+                            components={getComponents()}
+                          />
+                        )
+                        : String(cell.value ?? '')}
+                    </CellTag>
                   ))}
                 </tr>
               );
@@ -109,7 +120,16 @@ function reservedBlockPreviewComponents(): PortableTextReactComponents['types'] 
 
 /** `@portabletext/react` renderers for every registered block with a preview. */
 function blockPreviewComponents(): Partial<PortableTextReactComponents> {
-  const types: PortableTextReactComponents['types'] = { ...reservedBlockPreviewComponents() };
+  // `components` is self-referencing: the `table` renderer nests a fresh
+  // `<PortableText>` per cell (cell.value is itself a PortableTextDocument,
+  // see `lib/richtext/bridge/lexicalToPortableText.ts` `tableCellValue`) and
+  // needs the very same component set it's part of. The getter breaks the
+  // circularity — by the time a cell actually renders, `components` below
+  // has been fully assigned.
+  const components: Partial<PortableTextReactComponents> = {};
+  const types: PortableTextReactComponents['types'] = {
+    ...reservedBlockPreviewComponents(() => components),
+  };
   for (const definition of listBlocks()) {
     const Preview = definition.preview;
     if (!Preview) continue;
@@ -120,13 +140,12 @@ function blockPreviewComponents(): Partial<PortableTextReactComponents> {
       return <Preview data={data} definition={definition} />;
     };
   }
-  return {
-    types,
-    // Preview approximates the published page; genuinely unknown block
-    // types (not owned by the bridge or a registered custom block) simply
-    // don't render there.
-    unknownType: () => null,
-  };
+  components.types = types;
+  // Preview approximates the published page; genuinely unknown block
+  // types (not owned by the bridge or a registered custom block) simply
+  // don't render there.
+  components.unknownType = () => null;
+  return components;
 }
 
 /**
