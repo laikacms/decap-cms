@@ -335,7 +335,24 @@ export function PreviewPane(props: PreviewPaneProps) {
   const initialContent = `
 <!DOCTYPE html>
 <html>
-  <head><base target="_blank"/></head>
+  <head>
+    <base target="_blank"/>
+    <style>
+      /*
+       * DCMS-NEW-PREVIEW-WRAP: preview content is arbitrary, user-supplied
+       * markup (the demo PostPreview's <h1>{entry.data.title}</h1>, or any
+       * other custom preview component). A long unbroken string (URL,
+       * token, or just a huge title) has no natural break point, so without
+       * this it overflows the iframe's initial containing block instead of
+       * wrapping or scrolling.
+       */
+      html, body {
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+    </style>
+  </head>
   <body><div></div></body>
 </html>
 `;
