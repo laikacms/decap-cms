@@ -36,12 +36,21 @@ export const authedTest = base.extend({
 });
 
 /**
- * The collections sidebar — an `<aside aria-label="Collections">` (role
- * `complementary`), distinct from the header's own `navigation` region. Scope
- * collection-link assertions to this so they don't match header links.
+ * The collections sidebar — an `<aside aria-label="Collections">`, distinct
+ * from the header's own `navigation` region. Scope collection-link
+ * assertions to this so they don't match header links.
+ *
+ * Desktop renders it as a persistent landmark (role `complementary`); mobile
+ * renders the same content inside a Base UI `Drawer.Popup`, which asserts
+ * dialog semantics (role `dialog`) regardless of the `render={<aside />}`
+ * override — see `LaikaSidebar.spec.tsx`'s `findByRole('dialog', ...)`
+ * assertions for the mobile panel. Match either role so this helper works
+ * at both viewports.
  */
 export function sidebar(page: Page) {
-  return page.getByRole('complementary', { name: 'Collections' });
+  return page
+    .getByRole('complementary', { name: 'Collections' })
+    .or(page.getByRole('dialog', { name: 'Collections' }));
 }
 
 /**
