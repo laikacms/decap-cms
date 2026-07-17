@@ -4,7 +4,7 @@ The richtext widget (registered as `richtext`, with `markdown` kept as a
 back-compat alias — see below) renders an emotion-styled Lexical rich-text
 editor. Its value is a lazy `LexicalRichtextValue` proxy that derives
 Portable Text as the user types and serializes to the field's output format
-(`markdown`, `html`, `portabletext`, `contentful-rtf`) only once, at
+(`markdown`, `html`, `portabletext`) only once, at
 file-write time.
 
 This widget used to ship as the separate `decap-cms-widget-markdown`
@@ -19,7 +19,7 @@ package. It was rebuilt on Lexical and merged into `src/widgets/richtext/`;
 ```
 
 - `format` (optional) — output format id matched against the registered
-  `Format` set (`markdown`, `html`, `portabletext`, `contentful-rtf`).
+  `Format` set (`markdown`, `html`, `portabletext`).
 - `placeholder` (optional) — placeholder text shown in the editor.
 
 ### Accepted-but-inert legacy keys
