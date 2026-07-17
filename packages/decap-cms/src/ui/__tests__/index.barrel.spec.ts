@@ -1,8 +1,10 @@
-import fs from 'fs';
 import path from 'path';
 import { describe, expect, it } from 'vitest';
 
 import * as uiBarrel from '@/ui';
+import indexSource from '@/ui/index.ts?raw';
+
+const primitiveModules = import.meta.glob('../*.tsx', { eager: false });
 
 /**
  * Pinning test for the `src/ui/README.md` "only barrel" contract: every
@@ -12,11 +14,8 @@ import * as uiBarrel from '@/ui';
  * primitive file with no `export * from './AlertDialog'` line.
  */
 describe('src/ui/index.ts barrel completeness', () => {
-  const uiDir = path.resolve(process.cwd(), 'src', 'ui');
-  const indexSource = fs.readFileSync(path.join(uiDir, 'index.ts'), 'utf8');
-
-  const primitiveFiles = fs
-    .readdirSync(uiDir)
+  const primitiveFiles = Object.keys(primitiveModules)
+    .map(p => path.basename(p))
     .filter(name => /^[A-Z][A-Za-z]*\.tsx?$/.test(name));
 
   it.each(primitiveFiles)('%s is re-exported from index.ts', fileName => {
