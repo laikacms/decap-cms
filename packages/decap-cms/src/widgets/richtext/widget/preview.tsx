@@ -12,9 +12,75 @@ interface LexicalPreviewProps {
   field?: { format?: string };
 }
 
+/** Row/cell shape emitted by the Lexical → PortableText table bridge. */
+interface TableCell {
+  _key?: string;
+  value?: unknown;
+}
+interface TableRow {
+  _key?: string;
+  cells?: TableCell[];
+}
+
+/**
+ * Renderers for the reserved PT block types the Lexical bridge itself emits
+ * (`lib/richtext/blocks/registry.ts` `RESERVED_BLOCK_TYPES`). These aren't
+ * custom blocks — they never go through `registerBlock` — so without an
+ * explicit renderer `@portabletext/react` treats them as unknown, drops
+ * them, and warns. Custom-block ids can't collide with these (reserved ids
+ * are rejected at registration), but the loop below still runs after this
+ * table so a future override remains possible.
+ */
+function reservedBlockPreviewComponents(): PortableTextReactComponents['types'] {
+  return {
+    image: ({ value }) => {
+      const { src, alt } = value as { src?: string, alt?: string };
+      if (!src) return null;
+      return <img src={src} alt={alt ?? ''} />;
+    },
+    code: ({ value }) => {
+      const { code, language } = value as { code?: string, language?: string | null };
+      return (
+        <pre>
+          <code className={language ? `language-${language}` : undefined}>{code ?? ''}</code>
+        </pre>
+      );
+    },
+    'horizontal-rule': () => <hr />,
+    table: ({ value }) => {
+      const { rows, headerRows } = value as { rows?: TableRow[], headerRows?: number };
+      if (!rows?.length) return null;
+      return (
+        <table>
+          <tbody>
+            {rows.map((row, rowIndex) => {
+              const CellTag = headerRows && rowIndex < headerRows ? 'th' : 'td';
+              return (
+                <tr key={row._key ?? rowIndex}>
+                  {(row.cells ?? []).map((cell, cellIndex) => (
+                    <CellTag key={cell._key ?? cellIndex}>{String(cell.value ?? '')}</CellTag>
+                  ))}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      );
+    },
+    callout: ({ value }) => {
+      const { text } = value as { text?: unknown };
+      return <div>{typeof text === 'string' ? text : JSON.stringify(value)}</div>;
+    },
+    html: ({ value }) => {
+      const { html } = value as { html?: unknown };
+      return typeof html === 'string' ? <div dangerouslySetInnerHTML={{ __html: html }} /> : null;
+    },
+  };
+}
+
 /** `@portabletext/react` renderers for every registered block with a preview. */
 function blockPreviewComponents(): Partial<PortableTextReactComponents> {
-  const types: PortableTextReactComponents['types'] = {};
+  const types: PortableTextReactComponents['types'] = { ...reservedBlockPreviewComponents() };
   for (const definition of listBlocks()) {
     const Preview = definition.preview;
     if (!Preview) continue;
@@ -27,8 +93,9 @@ function blockPreviewComponents(): Partial<PortableTextReactComponents> {
   }
   return {
     types,
-    // Preview approximates the published page; blocks without a preview
-    // component (including unknown types) simply don't render there.
+    // Preview approximates the published page; genuinely unknown block
+    // types (not owned by the bridge or a registered custom block) simply
+    // don't render there.
     unknownType: () => null,
   };
 }
