@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { registerBlock, unregisterBlock } from '@/lib/richtext';
 import { LexicalPreview } from '@/widgets/richtext/widget/preview';
@@ -35,5 +35,71 @@ describe('LexicalPreview custom blocks', () => {
       <LexicalPreview value={[{ _type: 'mystery', _key: 'k0', secret: 1 }]} />,
     );
     expect(container.textContent).toBe('');
+  });
+});
+
+describe('LexicalPreview reserved block types', () => {
+  it('renders an image block', () => {
+    const { container } = render(
+      <LexicalPreview
+        value={[{ _type: 'image', _key: 'k0', src: 'https://example.com/probe.png', alt: 'probe' }]}
+      />,
+    );
+    const img = container.querySelector('img');
+    expect(img).not.toBeNull();
+    expect(img).toHaveAttribute('src', 'https://example.com/probe.png');
+    expect(img).toHaveAttribute('alt', 'probe');
+  });
+
+  it('renders a code block, preserving the language', () => {
+    const { container } = render(
+      <LexicalPreview
+        value={[{ _type: 'code', _key: 'k0', code: 'const x = 1;', language: 'js' }]}
+      />,
+    );
+    const code = container.querySelector('pre > code');
+    expect(code).not.toBeNull();
+    expect(code).toHaveTextContent('const x = 1;');
+    expect(code).toHaveClass('language-js');
+  });
+
+  it('renders a horizontal-rule block', () => {
+    const { container } = render(
+      <LexicalPreview value={[{ _type: 'horizontal-rule', _key: 'k0' }]} />,
+    );
+    expect(container.querySelector('hr')).not.toBeNull();
+  });
+
+  it('renders a table block', () => {
+    render(
+      <LexicalPreview
+        value={[
+          {
+            _type: 'table',
+            _key: 'k0',
+            rows: [
+              { _type: 'row', _key: 'r0', cells: [{ _type: 'cell', _key: 'c0', value: 'PROBE_TABLE_CELL' }] },
+            ],
+          },
+        ]}
+      />,
+    );
+    expect(screen.getByText('PROBE_TABLE_CELL')).toBeInTheDocument();
+  });
+
+  it('does not warn for reserved block types', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    render(
+      <LexicalPreview
+        value={[
+          { _type: 'image', _key: 'k0', src: 'https://example.com/probe.png', alt: 'probe' },
+          { _type: 'code', _key: 'k1', code: 'x', language: null },
+          { _type: 'horizontal-rule', _key: 'k2' },
+          { _type: 'table', _key: 'k3', rows: [] },
+        ]}
+      />,
+    );
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
   });
 });
