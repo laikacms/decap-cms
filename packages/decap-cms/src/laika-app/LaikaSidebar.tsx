@@ -8,6 +8,7 @@ import { translate } from '@/core/i18n';
 import { colors, Icon, lengths, zIndex } from '@/ui/default/index';
 import LaikaCollectionSearch from './LaikaCollectionSearch';
 import { LAIKA_BREAKPOINT_MOBILE, useLaikaShell } from './LaikaShellContext';
+import { moveFocusWithinContainer } from './listNav';
 
 import type { CmsCollections, CmsCollectionState } from '@/lib/util/index';
 import type { IconName } from '@/ui/default/Icon/icons';
@@ -171,7 +172,6 @@ const SidebarLink = styled(NavLink)`
   &:focus-visible {
     color: ${colors.active};
     background-color: ${colors.activeBackground};
-    outline: none;
   }
 
   /* NavLink v6+ adds the .active class automatically when the route is
@@ -247,6 +247,23 @@ export interface LaikaSidebarProps {
    */
   extraNavSections?: LaikaNavSection[];
   t: TranslateFunction;
+}
+
+/**
+ * ArrowUp/ArrowDown walk the sidebar's interactive elements (search trigger,
+ * collection links, settings) once focus is inside it, e.g. after tabbing in.
+ */
+function onSidebarKeyDown(event: React.KeyboardEvent<HTMLElement>) {
+  if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+  const moved = moveFocusWithinContainer(
+    event.currentTarget,
+    'a[href], button:not([disabled])',
+    event.key === 'ArrowDown' ? 1 : -1,
+  );
+  if (moved) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
 }
 
 function LaikaSidebar({ collections, onCollectionClick, extraNavSections, t }: LaikaSidebarProps) {
@@ -345,6 +362,7 @@ function LaikaSidebar({ collections, onCollectionClick, extraNavSections, t }: L
               render={<aside />}
               aria-label={t('collection.sidebar.collections')}
               data-mobile-open={isMobileSidebarOpen ? 'true' : 'false'}
+              onKeyDown={onSidebarKeyDown}
               onClick={(event: React.MouseEvent<HTMLElement>) => {
                 // Close the mobile drawer when any nav link inside is clicked;
                 // the popstate listener doesn't fire for `history.push` calls.
@@ -366,6 +384,7 @@ function LaikaSidebar({ collections, onCollectionClick, extraNavSections, t }: L
     <SidebarShell
       aria-label={t('collection.sidebar.collections')}
       data-mobile-open={isMobileSidebarOpen ? 'true' : 'false'}
+      onKeyDown={onSidebarKeyDown}
     >
       {navContent}
     </SidebarShell>

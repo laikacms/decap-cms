@@ -57,6 +57,22 @@ export type { Route, RouteParams, RoutingTable } from './routing/table';
 export * from './hooks';
 
 /**
+ * Global keyboard shortcuts — app shells and hosts register their own
+ * shortcuts into one engine so chords, typing suppression, modal
+ * coordination, and help listings stay coherent. React consumers usually
+ * want the `useShortcut` / `useRegisteredShortcuts` hooks instead.
+ */
+export {
+  formatSequence,
+  getRegisteredShortcuts,
+  isApplePlatform,
+  registerShortcut,
+  subscribeToShortcuts,
+  suspendShortcuts,
+} from './lib/shortcuts';
+export type { Shortcut, ShortcutKeystroke } from './lib/shortcuts';
+
+/**
  * The raw Redux store, for interacting with CMS state outside of React.
  */
 export { store } from './redux';

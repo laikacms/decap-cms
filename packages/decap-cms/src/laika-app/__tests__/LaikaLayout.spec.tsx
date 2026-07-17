@@ -11,6 +11,12 @@ vi.mock('../LaikaSidebar', () => ({
 vi.mock('../LaikaCommandPalette', () => ({
   default: () => <div data-testid="laika-palette" />,
 }));
+vi.mock('../LaikaShortcuts', () => ({
+  default: () => <div data-testid="laika-shortcuts" />,
+}));
+vi.mock('../LaikaShortcutHelp', () => ({
+  default: () => <div data-testid="laika-shortcut-help" />,
+}));
 
 import LaikaLayout from '@/laika-app/LaikaLayout';
 
@@ -34,5 +40,7 @@ describe('LaikaLayout', () => {
     expect(getByTestId('laika-sidebar')).toBeInTheDocument();
     expect(getByText('main content')).toBeInTheDocument();
     expect(getByTestId('laika-palette')).toBeInTheDocument();
+    expect(getByTestId('laika-shortcuts')).toBeInTheDocument();
+    expect(getByTestId('laika-shortcut-help')).toBeInTheDocument();
   });
 });

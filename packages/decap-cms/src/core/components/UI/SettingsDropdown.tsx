@@ -21,6 +21,9 @@ const AvatarDropdownButton = styled(DropdownButton)`
   cursor: pointer;
   color: #1e2532;
   background-color: transparent;
+  /* Round like the avatar it contains, so keyboard-focus outlines (which
+     follow border-radius) draw a circle instead of a square box. */
+  border-radius: 9999px;
 `;
 
 const AvatarImage = styled.img`

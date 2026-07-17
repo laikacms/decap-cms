@@ -7,7 +7,11 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { searchCollections } from '@/core/actions/collections';
 import { openMediaLibrary as openMediaLibraryAction } from '@/core/actions/mediaLibrary';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
+import { useShortcut } from '@/core/hooks/useShortcut';
+import { formatSequence } from '@/core/lib/shortcuts';
 import { colors, Icon } from '@/ui/default/index';
+import { useLaikaShell } from './LaikaShellContext';
+import { collectionChordKeys, LAIKA_SHORTCUT_GROUPS } from './LaikaShortcuts';
 import { LaikaBadge, LaikaDialog, LaikaSearchInput } from './ui';
 
 import type { CmsCollections, CmsCollectionState } from '@/lib/util/index';
@@ -26,9 +30,11 @@ import type { LaikaBadgeIntent } from './ui';
  * scroll-into-view. Filtering stays in our own code (mode="none"),
  * so the ranked `filtered` list is fed to Base UI as-is.
  *
- * Pure laika-app component, no core changes. State is local; navigation
- * goes through react-router; media library opens via the existing core
- * action so the modal logic is unchanged.
+ * Pure laika-app component, no core changes. Open state lives in
+ * LaikaShellContext so other shell surfaces (e.g. the shortcut badge in
+ * the sidebar search bar) can open the palette too; navigation goes
+ * through react-router; media library opens via the existing core action
+ * so the modal logic is unchanged.
  */
 
 type CommandKind = 'page' | 'collection' | 'action';
@@ -38,8 +44,10 @@ interface CommandItem {
   label: string;
   hint?: string;
   kind: CommandKind;
-  icon: 'page' | 'write' | 'workflow' | 'media-alt' | 'home' | 'search';
+  icon: 'page' | 'write' | 'workflow' | 'media-alt' | 'home' | 'search' | 'settings' | 'info-circle';
   badge?: { intent: LaikaBadgeIntent, text: string };
+  /** Global shortcut sequence for this command, shown as a kbd hint. */
+  shortcut?: string;
   run: () => void;
 }
 
@@ -123,6 +131,13 @@ const Empty = styled(Autocomplete.Empty)`
   }
 `;
 
+const ItemShortcut = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+`;
+
 const Hint = styled.div`
   display: flex;
   align-items: center;
@@ -151,11 +166,6 @@ const Kbd = styled.kbd`
   color: ${colors.controlLabel};
 `;
 
-function isShortcut(event: KeyboardEvent): boolean {
-  // Cmd+K on macOS, Ctrl+K elsewhere; both safe to listen for in parallel.
-  return event.key.toLowerCase() === 'k' && (event.metaKey || event.ctrlKey);
-}
-
 function LaikaCommandPalette() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -164,25 +174,37 @@ function LaikaCommandPalette() {
   const collections = useAppSelector(state => state.collections) as CmsCollections | undefined;
   const hasWorkflow = useAppSelector(state => state.config?.publish_mode === 'editorial_workflow');
   const showMediaButton = useAppSelector(state => state.mediaLibrary?.showMediaButton);
+  const isSearchEnabled = useAppSelector(state => state.config?.search !== false);
 
-  const [isOpen, setIsOpen] = React.useState(false);
+  const {
+    isCommandPaletteOpen,
+    closeCommandPalette: close,
+    toggleCommandPalette,
+    openShortcutHelp,
+  } = useLaikaShell();
   const [query, setQuery] = React.useState('');
 
-  const close = React.useCallback(() => {
-    setIsOpen(false);
-    setQuery('');
-  }, []);
-
+  // Reset the query on close no matter how the palette was dismissed
+  // (Escape, item selection, Cmd+K toggle, or another shell surface).
   React.useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      if (isShortcut(event)) {
-        event.preventDefault();
-        setIsOpen(open => !open);
-      }
+    if (!isCommandPaletteOpen) {
+      setQuery('');
     }
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, []);
+  }, [isCommandPaletteOpen]);
+
+  // Cmd+K on macOS, Ctrl+K elsewhere ('mod' matches either). Registered
+  // through core's shortcut engine so it appears in the help dialog;
+  // `allowWhileSuspended` keeps the toggle working from inside the open
+  // palette (which, as a LaikaDialog, suspends everything else).
+  useShortcut({
+    id: 'laika.search.paletteToggle',
+    sequence: 'mod+k',
+    label: 'Toggle command palette',
+    group: LAIKA_SHORTCUT_GROUPS.search,
+    allowInInput: true,
+    allowWhileSuspended: true,
+    run: toggleCommandPalette,
+  });
 
   const items = React.useMemo<CommandItem[]>(() => {
     const list: CommandItem[] = [];
@@ -192,21 +214,24 @@ function LaikaCommandPalette() {
       hint: 'Go to home',
       kind: 'page',
       icon: 'home',
+      shortcut: 'g d',
       run: () => navigate('/'),
     });
     if (collections) {
-      Object.values(collections)
-        .filter((c: CmsCollectionState) => c.hide !== true)
-        .forEach((c: CmsCollectionState) => {
-          list.push({
-            id: 'collection:' + c.name,
-            label: c.label,
-            hint: c.type === 'file_based_collection' ? 'File collection' : 'Folder collection',
-            kind: 'collection',
-            icon: c.type === 'file_based_collection' ? 'page' : 'write',
-            run: () => navigate('/collections/' + c.name),
-          });
+      const visible = Object.values(collections).filter((c: CmsCollectionState) => c.hide !== true);
+      const chordKeys = collectionChordKeys(visible);
+      visible.forEach((c: CmsCollectionState) => {
+        const chordKey = chordKeys.get(c.name);
+        list.push({
+          id: 'collection:' + c.name,
+          label: c.label,
+          hint: c.type === 'file_based_collection' ? 'File collection' : 'Folder collection',
+          kind: 'collection',
+          icon: c.type === 'file_based_collection' ? 'page' : 'write',
+          shortcut: chordKey ? `g ${chordKey}` : undefined,
+          run: () => navigate('/collections/' + c.name),
         });
+      });
     }
     if (hasWorkflow) {
       list.push({
@@ -215,6 +240,7 @@ function LaikaCommandPalette() {
         hint: 'Editorial workflow board',
         kind: 'page',
         icon: 'workflow',
+        shortcut: 'g w',
         run: () => navigate('/workflow'),
       });
     }
@@ -225,13 +251,32 @@ function LaikaCommandPalette() {
         hint: 'Open media picker',
         kind: 'action',
         icon: 'media-alt',
+        shortcut: 'g m',
         run: () => {
           dispatch(openMediaLibraryAction());
         },
       });
     }
+    list.push({
+      id: 'settings',
+      label: 'App settings',
+      hint: 'Go to settings',
+      kind: 'page',
+      icon: 'settings',
+      shortcut: 'g s',
+      run: () => navigate('/settings'),
+    });
+    list.push({
+      id: 'shortcut-help',
+      label: 'Keyboard shortcuts',
+      hint: 'Show all shortcuts',
+      kind: 'action',
+      icon: 'info-circle',
+      shortcut: '?',
+      run: openShortcutHelp,
+    });
     return list;
-  }, [collections, hasWorkflow, showMediaButton, dispatch, navigate]);
+  }, [collections, hasWorkflow, showMediaButton, dispatch, navigate, openShortcutHelp]);
 
   const filtered = React.useMemo(() => {
     const trimmed = query.trim();
@@ -242,8 +287,13 @@ function LaikaCommandPalette() {
 
     // Surface "search for <query>" as the first action so users can always
     // pivot from the palette into a real search-results page even when
-    // their query doesn't match any nav item directly.
+    // their query doesn't match any nav item directly. Skipped entirely
+    // when entry search is disabled in config (`search: false`), same as
+    // the sidebar trigger.
     const searchActions: CommandItem[] = [];
+    if (!isSearchEnabled) {
+      return matchedNav;
+    }
     const onCollectionRoute = location.pathname.startsWith('/collections/');
     const scopedCollectionName = onCollectionRoute
       ? (params.name as string | undefined)
@@ -270,7 +320,7 @@ function LaikaCommandPalette() {
     });
 
     return [...searchActions, ...matchedNav];
-  }, [items, query, location.pathname, params, collections]);
+  }, [items, query, location.pathname, params, collections, isSearchEnabled]);
 
   const runItem = React.useCallback(
     (item: CommandItem) => {
@@ -282,7 +332,7 @@ function LaikaCommandPalette() {
 
   return (
     <LaikaDialog
-      isOpen={isOpen}
+      isOpen={isCommandPaletteOpen}
       onClose={close}
       width="560px"
       showCloseButton={false}
@@ -325,6 +375,13 @@ function LaikaCommandPalette() {
                 {item.hint ? <ItemHint>{item.hint}</ItemHint> : null}
               </ItemMeta>
               {item.badge ? <LaikaBadge intent={item.badge.intent}>{item.badge.text}</LaikaBadge> : null}
+              {item.shortcut
+                ? (
+                  <ItemShortcut aria-hidden="true">
+                    {formatSequence(item.shortcut).map((chunk, index) => <Kbd key={index}>{chunk}</Kbd>)}
+                  </ItemShortcut>
+                )
+                : null}
             </ResultItem>
           )}
         </Results>

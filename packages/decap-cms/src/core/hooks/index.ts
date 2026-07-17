@@ -9,5 +9,6 @@ export { useLocalBackup } from './useLocalBackup';
 export { useMediaLibrary } from './useMediaLibrary';
 export { useNavigationBlocker } from './useNavigationBlocker';
 export { useAppDispatch, useAppSelector } from './useRedux';
+export { useRegisteredShortcuts, useShortcut, useSuspendShortcuts } from './useShortcut';
 export { useTranslate } from './useTranslate';
 export { useWorkflow } from './useWorkflow';

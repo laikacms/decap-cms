@@ -50,7 +50,6 @@ const RemoveButton = styled.button`
   &:focus-visible {
     color: ${colors.errorText};
     background-color: ${colors.errorBackground};
-    outline: none;
   }
 `;
 

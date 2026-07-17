@@ -65,6 +65,26 @@ describe('LaikaSidebar', () => {
     expect(links?.getAttribute('href')).toBe('/settings');
   });
 
+  it('moves focus through sidebar links with ArrowDown/ArrowUp', () => {
+    const { getByText } = render(
+      <MemoryRouter>
+        <LaikaSidebar
+          collections={{
+            posts: { name: 'posts', label: 'Posts', type: 'folder_based_collection' } as any,
+            faqs: { name: 'faqs', label: 'FAQs', type: 'folder_based_collection' } as any,
+          }}
+        />
+      </MemoryRouter>,
+    );
+    const posts = getByText('Posts').closest('a') as HTMLAnchorElement;
+    const faqs = getByText('FAQs').closest('a') as HTMLAnchorElement;
+    posts.focus();
+    fireEvent.keyDown(posts, { key: 'ArrowDown' });
+    expect(document.activeElement).toBe(faqs);
+    fireEvent.keyDown(faqs, { key: 'ArrowUp' });
+    expect(document.activeElement).toBe(posts);
+  });
+
   it('keeps the built-in app link distinct from a collection labeled "Settings"', () => {
     const { getByText, getAllByText } = render(
       <MemoryRouter>

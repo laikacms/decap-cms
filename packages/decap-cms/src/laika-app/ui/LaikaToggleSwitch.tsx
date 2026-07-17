@@ -20,8 +20,8 @@ import { laikaShouldForwardProp } from '@/ui/styled';
 export type LaikaToggleSwitchSize = 'md' | 'sm';
 
 const sizeMap: Record<LaikaToggleSwitchSize, { track: string, knob: string, knobMove: string }> = {
-  md: { track: '40px', knob: '16px', knobMove: '20px' },
-  sm: { track: '32px', knob: '12px', knobMove: '16px' },
+  md: { track: '40px', knob: '16px', knobMove: '16px' },
+  sm: { track: '32px', knob: '12px', knobMove: '12px' },
 };
 
 const Track = styled(Switch.Root, { shouldForwardProp: laikaShouldForwardProp })<{
@@ -36,7 +36,6 @@ const Track = styled(Switch.Root, { shouldForwardProp: laikaShouldForwardProp })
   flex-shrink: 0;
   padding: 0;
   border: none;
-  outline: none;
   background-color: ${colors.textFieldBorder};
   border-radius: 9999px;
   cursor: pointer;

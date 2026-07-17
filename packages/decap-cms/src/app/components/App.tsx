@@ -18,12 +18,14 @@ import { useNavigate } from '@/core/hooks/useNavigate';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 import { useTranslate } from '@/core/i18n';
 import { CmsSlotsProvider } from '@/core/lib/slots';
+import { matchExtraRoute } from '@/core/routing/extraRoutes';
 import { matchRoute } from '@/core/routing/router';
 import { colorsDefaults, Loader, StandaloneAuthPage } from '@/ui/default/index';
 import Header from './Header';
 
 import type { ErrorBoundaryRenderProps } from '@/core/components/UI';
 import type { CmsSlots } from '@/core/lib/slots';
+import type { ExtraRouteParams } from '@/core/routing/extraRoutes';
 import type { CmsConfig, CmsCredentials } from '@/lib/util/index';
 import type { CmsCollections, CmsCollectionState } from '@/lib/util/index';
 import type { TranslateFunction } from '@/ui/default/index';
@@ -32,13 +34,17 @@ type Collection = CmsCollectionState;
 type Collections = CmsCollections;
 
 /**
- * A consumer-injected route: rendered when the current location path equals
- * `path` exactly. Kept intentionally simple (exact match, no params) — richer
- * matching can be added to the routing table when a use case needs it.
+ * A consumer-injected route: rendered when the current location path matches
+ * `path`. A pattern may capture segments — `:name` matches one segment, a
+ * trailing `*` matches the remainder (see `matchExtraRoutePattern` in
+ * `core/routing/extraRoutes` for the grammar). Routes are tried in
+ * declaration order, so put specific patterns (`/shop/orders/new`) before
+ * capturing ones (`/shop/orders/:id`). To receive the captured params, make
+ * `element` a function; a plain node stays valid for literal routes.
  */
 export interface ExtraRoute {
   path: string;
-  element: React.ReactNode;
+  element: React.ReactNode | ((params: ExtraRouteParams) => React.ReactNode);
 }
 
 /**
@@ -345,9 +351,10 @@ function AppRoutes({
   const match = matchRoute(routing, path);
 
   if (!match) {
-    const extra = extraRoutes?.find(route => route.path === path);
+    const extra = matchExtraRoute(extraRoutes, path);
     if (extra) {
-      return <>{extra.element}</>;
+      const { element } = extra.route;
+      return <>{typeof element === 'function' ? element(extra.params) : element}</>;
     }
     return renderNotFound ? <>{renderNotFound()}</> : <NotFoundPage />;
   }

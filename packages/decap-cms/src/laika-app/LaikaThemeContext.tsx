@@ -4,6 +4,7 @@ import { unstable_HistoryRouter as HistoryRouter } from 'react-router-dom';
 
 import { DecapCmsProvider } from '@/core/index';
 import { createDefaultRouter } from '@/core/routing/defaultRouter';
+import { colors } from '@/ui/default/index';
 import { resolveTheme } from './laikaThemes';
 
 import type { DecapCmsProviderProps, DecapTheme } from '@/core/index';
@@ -192,6 +193,7 @@ export function LaikaThemeProvider({
     <LaikaThemeContext.Provider value={value}>
       <Global styles={shadowVars} />
       <Global styles={reducedMotionStyles} />
+      <Global styles={focusRingStyles} />
       <DecapCmsProvider config={config} theme={theme} router={router}>
         {
           /*
@@ -214,6 +216,22 @@ export function LaikaThemeProvider({
  * dropdown opens, and theme transitions can all trigger symptoms. The
  * 0.01ms duration keeps the end state intact without animating to it.
  */
+/**
+ * Uniform keyboard-focus indicator across the whole laika shell. Individual
+ * components deliberately do NOT set `outline: none` on `:focus-visible`
+ * (their class-level rules would beat this global), so every button, link,
+ * card, and toggle shows the same ring when reached via keyboard, while
+ * mouse interaction stays ring-free per `:focus-visible` semantics. The
+ * ring follows the element's border-radius, so pills and avatars get round
+ * rings. Text inputs and dialog/menu surfaces keep their own treatments.
+ */
+const focusRingStyles = css`
+  :focus-visible {
+    outline: 2px solid ${colors.active};
+    outline-offset: 2px;
+  }
+`;
+
 const reducedMotionStyles = css`
   @media (prefers-reduced-motion: reduce) {
     *,

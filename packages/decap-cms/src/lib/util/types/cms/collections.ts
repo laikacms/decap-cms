@@ -41,6 +41,13 @@ export interface CmsCollection {
   create?: boolean | undefined;
   delete?: boolean | undefined;
   hide?: boolean | undefined;
+  /**
+   * Single character (letter or digit) used as the collection's global
+   * keyboard chord: `shortcut: p` makes 'g' then 'p' jump to this
+   * collection. Collections without one get a positional 'g 1'..'g 9'
+   * chord. A configured key overrides an app-shell default on conflict.
+   */
+  shortcut?: string | undefined;
   editor?:
     | {
       preview?: boolean | undefined,
@@ -134,6 +141,8 @@ export type CmsCollectionState = {
   meta?: CmsMetaObject,
   i18n: CmsI18nStructure,
   hide?: boolean,
+  /** See `CmsCollection.shortcut`; passed through config normalization untouched. */
+  shortcut?: string,
   [key: string]: unknown,
 };
 

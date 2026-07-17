@@ -5,33 +5,32 @@ import { describe, expect, it, vi } from 'vitest';
 
 // Mock the core redux hooks before importing the palette, so the palette
 // reads our fake collections + config without needing a real Provider.
-vi.mock('../../core/hooks/useRedux', () => {
-  const state = {
-    collections: {
-      posts: {
-        name: 'posts',
-        label: 'Posts',
-        type: 'folder_based_collection',
-      },
-      faqs: {
-        name: 'faqs',
-        label: 'FAQs',
-        type: 'folder_based_collection',
-      },
-      meta: {
-        name: 'meta',
-        label: 'Meta',
-        type: 'file_based_collection',
-      },
+const mockState = vi.hoisted(() => ({
+  collections: {
+    posts: {
+      name: 'posts',
+      label: 'Posts',
+      type: 'folder_based_collection',
     },
-    config: { publish_mode: 'simple' },
-    mediaLibrary: { showMediaButton: true },
-  };
-  return {
-    useAppDispatch: () => () => undefined,
-    useAppSelector: (selector: (s: typeof state) => unknown) => selector(state),
-  };
-});
+    faqs: {
+      name: 'faqs',
+      label: 'FAQs',
+      type: 'folder_based_collection',
+    },
+    meta: {
+      name: 'meta',
+      label: 'Meta',
+      type: 'file_based_collection',
+    },
+  },
+  config: { publish_mode: 'simple' } as { publish_mode: string, search?: boolean },
+  mediaLibrary: { showMediaButton: true },
+}));
+
+vi.mock('../../core/hooks/useRedux', () => ({
+  useAppDispatch: () => () => undefined,
+  useAppSelector: (selector: (s: typeof mockState) => unknown) => selector(mockState),
+}));
 
 // Stub the openMediaLibrary action so importing it works.
 vi.mock('../../core/actions/mediaLibrary', () => ({
@@ -44,6 +43,19 @@ vi.mock('../../core/actions/collections', () => ({
 
 // Import after the mocks so they apply.
 import LaikaCommandPalette from '@/laika-app/LaikaCommandPalette';
+import { LaikaShellProvider } from '@/laika-app/LaikaShellContext';
+
+// The palette's open state lives in LaikaShellContext, so every render
+// needs the provider (the out-of-provider fallback is a no-op).
+function renderPalette() {
+  return render(
+    <MemoryRouter>
+      <LaikaShellProvider>
+        <LaikaCommandPalette />
+      </LaikaShellProvider>
+    </MemoryRouter>,
+  );
+}
 
 function fireCmdK() {
   act(() => {
@@ -53,11 +65,7 @@ function fireCmdK() {
 
 describe('LaikaCommandPalette', () => {
   it('opens on Cmd+K and lists nav items as combobox options', () => {
-    const { getByRole, getAllByRole, queryByRole } = render(
-      <MemoryRouter>
-        <LaikaCommandPalette />
-      </MemoryRouter>,
-    );
+    const { getByRole, getAllByRole, queryByRole } = renderPalette();
     // Closed initially.
     expect(queryByRole('combobox')).toBeNull();
 
@@ -79,11 +87,7 @@ describe('LaikaCommandPalette', () => {
   });
 
   it('filters results as the user types', () => {
-    const { getByRole, queryByText } = render(
-      <MemoryRouter>
-        <LaikaCommandPalette />
-      </MemoryRouter>,
-    );
+    const { getByRole, queryByText } = renderPalette();
     fireCmdK();
     const input = getByRole('combobox');
 
@@ -94,11 +98,7 @@ describe('LaikaCommandPalette', () => {
   });
 
   it('surfaces a "search all" action when query is non-empty', () => {
-    const { getByRole, getByText } = render(
-      <MemoryRouter>
-        <LaikaCommandPalette />
-      </MemoryRouter>,
-    );
+    const { getByRole, getByText } = renderPalette();
     fireCmdK();
     const input = getByRole('combobox');
 
@@ -108,11 +108,7 @@ describe('LaikaCommandPalette', () => {
 
   it('runs the item and closes the palette when an option is clicked', async () => {
     const { searchCollections } = await import('@/core/actions/collections');
-    const { getByRole, getByText, queryByRole } = render(
-      <MemoryRouter>
-        <LaikaCommandPalette />
-      </MemoryRouter>,
-    );
+    const { getByRole, getByText, queryByRole } = renderPalette();
     fireCmdK();
     const input = getByRole('combobox');
 
@@ -122,5 +118,66 @@ describe('LaikaCommandPalette', () => {
     expect(searchCollections).toHaveBeenCalledWith('taxes', '');
     // Selecting closes the palette.
     expect(queryByRole('combobox')).toBeNull();
+  });
+
+  it('offers no search actions when search is disabled in config', () => {
+    mockState.config.search = false;
+    try {
+      const { getByRole, queryByText, getByText } = renderPalette();
+      fireCmdK();
+      fireEvent.change(getByRole('combobox'), { target: { value: 'faq' } });
+
+      // Nav matches still work, but the search pivots are gone.
+      expect(getByText('FAQs')).toBeInTheDocument();
+      expect(queryByText(/Search all collections for/)).toBeNull();
+    } finally {
+      delete mockState.config.search;
+    }
+  });
+
+  it('shows shortcut key hints on commands that have global shortcuts', () => {
+    const { getAllByRole } = renderPalette();
+    fireCmdK();
+    const options = getAllByRole('option');
+    const dashboard = options.find(option => option.textContent?.includes('Dashboard'));
+    const kbds = Array.from(dashboard!.querySelectorAll('kbd')).map(kbd => kbd.textContent);
+    expect(kbds).toEqual(['G', 'D']);
+  });
+
+  it('shows collection chord hints: configured key or positional number', () => {
+    (mockState.collections.posts as { shortcut?: string }).shortcut = 'p';
+    try {
+      const { getAllByRole } = renderPalette();
+      fireCmdK();
+      const options = getAllByRole('option');
+      const kbdsOf = (label: string) =>
+        Array.from(
+          options.find(option => option.textContent?.includes(label))!.querySelectorAll('kbd'),
+          kbd => kbd.textContent,
+        );
+      expect(kbdsOf('Posts')).toEqual(['G', 'P']);
+      expect(kbdsOf('FAQs')).toEqual(['G', '2']);
+    } finally {
+      delete (mockState.collections.posts as { shortcut?: string }).shortcut;
+    }
+  });
+
+  it('offers App settings and Keyboard shortcuts commands', () => {
+    const { getAllByRole } = renderPalette();
+    fireCmdK();
+    const labels = getAllByRole('option').map(option => option.textContent);
+    expect(labels.some(text => text?.includes('App settings'))).toBe(true);
+    expect(labels.some(text => text?.includes('Keyboard shortcuts'))).toBe(true);
+  });
+
+  it('resets the query when reopened after a Cmd+K toggle-close', () => {
+    const { getByRole } = renderPalette();
+    fireCmdK();
+    fireEvent.change(getByRole('combobox'), { target: { value: 'taxes' } });
+
+    fireCmdK(); // toggle closed
+    fireCmdK(); // reopen
+
+    expect((getByRole('combobox') as HTMLInputElement).value).toBe('');
   });
 });

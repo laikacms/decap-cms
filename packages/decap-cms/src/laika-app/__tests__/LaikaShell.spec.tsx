@@ -44,6 +44,20 @@ describe('useLaikaShell', () => {
     expect(result.current.isMobileSidebarOpen).toBe(false);
   });
 
+  it('toggles command palette state inside the provider', () => {
+    const wrapper = ({ children }: { children: React.ReactNode }) => <LaikaShellProvider>{children}
+    </LaikaShellProvider>;
+    const { result } = renderHook(() => useLaikaShell(), { wrapper });
+
+    expect(result.current.isCommandPaletteOpen).toBe(false);
+    act(() => result.current.openCommandPalette());
+    expect(result.current.isCommandPaletteOpen).toBe(true);
+    act(() => result.current.closeCommandPalette());
+    expect(result.current.isCommandPaletteOpen).toBe(false);
+    act(() => result.current.toggleCommandPalette());
+    expect(result.current.isCommandPaletteOpen).toBe(true);
+  });
+
   it('children render inside the provider', () => {
     const { getByText } = render(
       <LaikaShellProvider>

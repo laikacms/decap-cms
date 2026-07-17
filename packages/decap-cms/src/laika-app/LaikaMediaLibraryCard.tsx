@@ -4,6 +4,7 @@ import React from 'react';
 
 import { colors, lengths } from '@/ui/default/index';
 import { laikaShouldForwardProp } from '@/ui/styled';
+import { handleNavItemKeyDown, navItemProps } from './listNav';
 import { LaikaBadge } from './ui';
 
 import type { MediaLibraryCardRenderProps } from '@/app/components/index';
@@ -38,7 +39,6 @@ const Card = styled('button', { shouldForwardProp: laikaShouldForwardProp })<{
   &:hover,
   &:focus-visible {
     border-color: ${colors.active};
-    outline: none;
   }
 `;
 
@@ -116,9 +116,11 @@ function LaikaMediaLibraryCard({
     <Card
       type="button"
       onClick={onClick}
+      onKeyDown={handleNavItemKeyDown}
       $isSelected={isSelected}
       $isPrivate={isPrivate}
       style={{ width, height, margin }}
+      {...navItemProps}
     >
       <ImageWrap>
         {isDraft

@@ -40,7 +40,6 @@ const variantStyles: Record<LaikaButtonVariant, ReturnType<typeof css>> = {
     &:hover,
     &:focus-visible {
       background-color: ${colors.active};
-      outline: none;
     }
   `,
   secondary: css`
@@ -51,7 +50,6 @@ const variantStyles: Record<LaikaButtonVariant, ReturnType<typeof css>> = {
     &:focus-visible {
       background-color: ${colors.active};
       color: ${colors.foreground};
-      outline: none;
     }
   `,
   ghost: css`
@@ -62,7 +60,6 @@ const variantStyles: Record<LaikaButtonVariant, ReturnType<typeof css>> = {
     &:focus-visible {
       background-color: ${colors.activeBackground};
       color: ${colors.active};
-      outline: none;
     }
   `,
   danger: css`
@@ -73,7 +70,6 @@ const variantStyles: Record<LaikaButtonVariant, ReturnType<typeof css>> = {
     &:focus-visible {
       background-color: ${colors.errorText};
       color: ${colors.foreground};
-      outline: none;
     }
   `,
 };
@@ -153,7 +149,7 @@ export interface LaikaButtonOwnProps {
 
 export type LaikaButtonProps =
   | (LaikaButtonOwnProps & React.ButtonHTMLAttributes<HTMLButtonElement> & { to?: undefined })
-  | (LaikaButtonOwnProps & { to: string });
+  | (LaikaButtonOwnProps & React.AnchorHTMLAttributes<HTMLAnchorElement> & { to: string });
 
 const LaikaButton = React.forwardRef<HTMLElement, LaikaButtonProps>(function LaikaButton(
   { variant = 'primary', size = 'md', fullWidth, to, children, ...rest },

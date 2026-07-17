@@ -1,6 +1,6 @@
-import { fireEvent, render } from '@testing-library/react';
+import { act, fireEvent, render } from '@testing-library/react';
 import React from 'react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useLocation } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/core/i18n', () => ({
@@ -197,5 +197,76 @@ describe('LaikaEditorToolbar', () => {
     fireEvent.click(document.querySelector('[aria-label="More actions"]')!);
     expect(queryByText('editor.editorToolbar.saveAndCreateNew')).not.toBeInTheDocument();
     expect(queryByText('editor.editorToolbar.publishAndCreateNew')).not.toBeInTheDocument();
+  });
+
+  describe('keyboard shortcuts', () => {
+    function press(key: string, init: Partial<KeyboardEventInit> = {}) {
+      act(() => {
+        window.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...init }));
+      });
+    }
+
+    it('mod+S saves when the entry is saveable, even from an input', () => {
+      const onPersist = vi.fn();
+      render(
+        <MemoryRouter>
+          <LaikaEditorToolbar {...baseProps} hasChanged onPersist={onPersist} />
+        </MemoryRouter>,
+      );
+      const input = document.createElement('input');
+      document.body.appendChild(input);
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 's', metaKey: true, bubbles: true, cancelable: true }));
+      expect(onPersist).toHaveBeenCalledTimes(1);
+      input.remove();
+    });
+
+    it('mod+S is a no-op when there is nothing to save', () => {
+      const onPersist = vi.fn();
+      render(
+        <MemoryRouter>
+          <LaikaEditorToolbar {...baseProps} hasChanged={false} onPersist={onPersist} />
+        </MemoryRouter>,
+      );
+      press('s', { metaKey: true });
+      expect(onPersist).not.toHaveBeenCalled();
+    });
+
+    it('mod+shift+P publishes when publish is available', () => {
+      const onPublish = vi.fn();
+      render(
+        <MemoryRouter>
+          <LaikaEditorToolbar {...baseProps} onPublish={onPublish} />
+        </MemoryRouter>,
+      );
+      press('P', { metaKey: true, shiftKey: true });
+      expect(onPublish).toHaveBeenCalledTimes(1);
+    });
+
+    it('Escape navigates back to the collection', () => {
+      function LocationProbe() {
+        const location = useLocation();
+        return <div data-testid="pathname">{location.pathname}</div>;
+      }
+      const { getByTestId } = render(
+        <MemoryRouter initialEntries={['/collections/posts/entries/first']}>
+          <LaikaEditorToolbar {...baseProps} />
+          <LocationProbe />
+        </MemoryRouter>,
+      );
+      press('Escape');
+      expect(getByTestId('pathname').textContent).toBe('/collections/posts');
+    });
+
+    it('unregisters its shortcuts on unmount', () => {
+      const onPersist = vi.fn();
+      const { unmount } = render(
+        <MemoryRouter>
+          <LaikaEditorToolbar {...baseProps} hasChanged onPersist={onPersist} />
+        </MemoryRouter>,
+      );
+      unmount();
+      press('s', { metaKey: true });
+      expect(onPersist).not.toHaveBeenCalled();
+    });
   });
 });

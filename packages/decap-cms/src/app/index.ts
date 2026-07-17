@@ -33,6 +33,8 @@ export type {
   AppLayoutRenderProps,
   ExtraRoute,
 } from './components/index';
+export { matchExtraRoute, matchExtraRoutePattern } from './components/index';
+export type { ExtraRouteParams } from './components/index';
 export { CmsSlotsProvider, Header, NotFoundPage, useCmsSlots } from './components/index';
 export type {
   CmsSlots,

@@ -81,7 +81,6 @@ const BrandHomeLink = styled(NavLink)`
   &:hover,
   &:focus-visible {
     color: ${colors.active};
-    outline: none;
   }
 `;
 
@@ -130,7 +129,6 @@ const navItemStyles = css`
   &:focus-visible {
     color: ${colors.active};
     background-color: ${colors.activeBackground};
-    outline: none;
   }
 
   /* react-router NavLink v6+ auto-applies the .active class. We avoid
@@ -224,7 +222,6 @@ const QuickAddTrigger = styled(Menu.Trigger)`
   &[data-popup-open] {
     background-color: ${colors.active};
     color: ${colors.foreground};
-    outline: none;
   }
 
   &:after {

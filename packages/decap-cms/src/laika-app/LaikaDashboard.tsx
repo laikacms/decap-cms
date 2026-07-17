@@ -6,6 +6,7 @@ import { createNewEntry } from '@/core/actions/collections';
 import { useAppSelector } from '@/core/hooks/useRedux';
 import { translate } from '@/core/i18n';
 import { colors, Icon, lengths } from '@/ui/default/index';
+import { handleNavItemKeyDown, navItemProps } from './listNav';
 import { LaikaBadge, LaikaButton, LaikaCard } from './ui';
 
 import type { CmsCollections, CmsCollectionState } from '@/lib/util/index';
@@ -135,7 +136,13 @@ function LaikaDashboard({ t }: LaikaDashboardProps) {
                   : 'Folder-based collection.'}
               </LaikaCard.Body>
               <LaikaCard.Footer>
-                <LaikaButton variant="secondary" to={`/collections/${collection.name}`} fullWidth>
+                <LaikaButton
+                  variant="secondary"
+                  to={`/collections/${collection.name}`}
+                  fullWidth
+                  {...navItemProps}
+                  onKeyDown={handleNavItemKeyDown}
+                >
                   Browse
                 </LaikaButton>
                 {collection.create

@@ -16,8 +16,8 @@ export type { LaikaCardProps } from './LaikaCard';
 export { default as LaikaBadge } from './LaikaBadge';
 export type { LaikaBadgeIntent, LaikaBadgeProps } from './LaikaBadge';
 
-export { default as LaikaSearchInput } from './LaikaSearchInput';
-export type { LaikaSearchInputProps } from './LaikaSearchInput';
+export { default as LaikaSearchInput, LaikaSearchTrigger } from './LaikaSearchInput';
+export type { LaikaSearchInputProps, LaikaSearchTriggerProps } from './LaikaSearchInput';
 
 export { default as LaikaToggleSwitch } from './LaikaToggleSwitch';
 export type { LaikaToggleSwitchProps, LaikaToggleSwitchSize } from './LaikaToggleSwitch';

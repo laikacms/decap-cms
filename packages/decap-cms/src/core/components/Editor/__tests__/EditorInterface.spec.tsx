@@ -1,11 +1,22 @@
 /* eslint-disable import/order -- vi.mock calls must precede imports that depend on them */
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import React from 'react';
 
+// The mocked pane carries the same `data-field-name` wrappers the real
+// EditorControl renders, so the interface's focus behavior is testable.
 vi.mock('../EditorControlPane/EditorControlPane', () => ({
-  default: React.forwardRef((_props: unknown, _ref: unknown) => <div data-testid="control-pane" />),
+  default: React.forwardRef((_props: unknown, _ref: unknown) => (
+    <div data-testid="control-pane">
+      <div data-field-name="title">
+        <input data-testid="title-input" />
+      </div>
+      <div data-field-name="body">
+        <textarea data-testid="body-input" />
+      </div>
+    </div>
+  )),
 }));
 vi.mock('../EditorPreviewPane/EditorPreviewPane', () => ({
   default: () => <div data-testid="preview-pane" />,
@@ -162,5 +173,52 @@ describe('EditorInterface', () => {
 
     fireEvent.click(screen.getByTestId('trigger-resize-end'));
     expect(pointerEventsOf(previewPaneContainer())).toBe('auto');
+  });
+
+  describe('keyboard focus management', () => {
+    function nextFrame() {
+      return act(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
+    }
+
+    it('focuses the first field on mount so Tab navigation works immediately', async () => {
+      const { getByTestId } = render(<EditorInterface {...props} />);
+      await nextFrame();
+      expect(document.activeElement).toBe(getByTestId('title-input'));
+    });
+
+    it('restores focus to the last-focused field after a draftKey remount (save)', async () => {
+      const { getByTestId, rerender } = render(<EditorInterface {...props} />);
+      await nextFrame();
+      const body = getByTestId('body-input');
+      body.focus();
+      fireEvent.focusIn(body);
+
+      // A persist re-creates the draft under a new key, remounting the
+      // keyed subtree and dropping focus on document.body.
+      rerender(<EditorInterface {...props} draftKey="key-2" />);
+      expect(document.activeElement).toBe(document.body);
+      await nextFrame();
+      expect(document.activeElement).toBe(getByTestId('body-input'));
+    });
+
+    it('does not steal focus that survived outside the editor body', async () => {
+      const { getByTestId, rerender } = render(
+        <>
+          <button data-testid="save-button" />
+          <EditorInterface {...props} />
+        </>,
+      );
+      await nextFrame();
+      const saveButton = getByTestId('save-button');
+      saveButton.focus();
+      rerender(
+        <>
+          <button data-testid="save-button" />
+          <EditorInterface {...props} draftKey="key-2" />
+        </>,
+      );
+      await nextFrame();
+      expect(document.activeElement).toBe(saveButton);
+    });
   });
 });

@@ -77,7 +77,6 @@ const ReportLink = styled.a`
   &:hover,
   &:focus-visible {
     text-decoration: underline;
-    outline: none;
   }
 `;
 

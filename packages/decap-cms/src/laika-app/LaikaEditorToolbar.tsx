@@ -1,11 +1,13 @@
 /** @jsxImportSource @emotion/react */
 import styled from '@emotion/styled';
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { SettingsDropdown } from '@/core/components/UI';
+import { useShortcut } from '@/core/hooks/useShortcut';
 import { translate } from '@/core/i18n';
 import { colors, Dropdown, DropdownButton, DropdownItem, Icon, lengths, zIndex } from '@/ui/default/index';
+import { LAIKA_SHORTCUT_GROUPS } from './LaikaShortcuts';
 import { LaikaBadge, LaikaButton } from './ui';
 
 import type { EditorToolbarRenderProps } from '@/app/components/index';
@@ -22,6 +24,10 @@ import type { LaikaBadgeIntent } from './ui';
  * Built on `LaikaButton` + `LaikaBadge`. The "more actions" dropdown reuses
  * core's `Dropdown` primitive so the change-status / delete / open-preview
  * menu inherits the existing theme tokens.
+ *
+ * Registers the editor's keyboard shortcuts (mod+S save, mod+shift+P
+ * publish, Escape back to the collection) for as long as it is mounted,
+ * i.e. exactly while an entry is being edited.
  */
 
 const Bar = styled.div`
@@ -63,7 +69,6 @@ const BackLink = styled(Link)`
   &:focus-visible {
     color: ${colors.active};
     background-color: ${colors.activeBackground};
-    outline: none;
   }
 `;
 
@@ -84,7 +89,6 @@ const CollectionLabel = styled(Link)`
   &:hover,
   &:focus-visible {
     color: ${colors.active};
-    outline: none;
   }
 `;
 
@@ -145,7 +149,6 @@ const ToolbarDropdownButton = styled(DropdownButton)`
   &:focus-visible {
     background-color: ${colors.activeBackground};
     color: ${colors.active};
-    outline: none;
   }
 
   &:disabled,
@@ -243,6 +246,47 @@ function LaikaEditorToolbar({
   // entries must stay saveable regardless of `hasChanged`; existing entries
   // still require a real change first.
   const canSave = (isNewEntry || !!hasChanged) && !isPersisting;
+
+  const navigate = useNavigate();
+  const backLink = editorBackLink || `/collections/${collection.name}`;
+
+  useShortcut({
+    id: 'laika.editor.save',
+    sequence: 'mod+s',
+    label: 'Save entry',
+    group: LAIKA_SHORTCUT_GROUPS.editor,
+    // mod combos already run in inputs by default; spelled out because the
+    // whole point is saving mid-typing (and it beats the browser's dialog).
+    allowInInput: true,
+    run: () => {
+      if (canSave) onPersist();
+    },
+  });
+
+  useShortcut(
+    showPublish
+      ? {
+        id: 'laika.editor.publish',
+        sequence: 'mod+shift+p',
+        label: 'Publish entry',
+        group: LAIKA_SHORTCUT_GROUPS.editor,
+        allowInInput: true,
+        run: () => {
+          if (!isPublishing) onPublish();
+        },
+      }
+      : null,
+  );
+
+  useShortcut({
+    id: 'laika.editor.back',
+    sequence: 'escape',
+    label: 'Back to collection',
+    group: LAIKA_SHORTCUT_GROUPS.editor,
+    // Deliberately not allowed in inputs: Escape while typing should stay
+    // with the field (blur, close autocomplete), not navigate away.
+    run: () => navigate(backLink),
+  });
 
   const saveLabel = isPersisting
     ? t('editor.editorToolbar.saving')

@@ -1,7 +1,7 @@
 import { fireEvent, render } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/core/i18n', () => ({
   translate: () => (Component: React.ComponentType<any>) => {
@@ -11,57 +11,64 @@ vi.mock('@/core/i18n', () => ({
   },
 }));
 
-const searchCollections = vi.fn();
-vi.mock('../../core/actions/collections', () => ({
-  searchCollections: (...args: unknown[]) => searchCollections(...args),
+const mockState = vi.hoisted(() => ({
+  collections: {
+    posts: { name: 'posts', label: 'Posts', type: 'folder_based_collection' },
+  },
+  config: { search: true } as { search: boolean },
 }));
 
-vi.mock('../../core/hooks/useRedux', () => {
-  const state = {
-    collections: {
-      posts: { name: 'posts', label: 'Posts', type: 'folder_based_collection' },
-    },
-    config: { search: true },
-  };
-  return {
-    useAppSelector: (selector: (s: typeof state) => unknown) => selector(state),
-  };
-});
+vi.mock('../../core/hooks/useRedux', () => ({
+  useAppSelector: (selector: (s: typeof mockState) => unknown) => selector(mockState),
+}));
 
 import LaikaCollectionSearch from '@/laika-app/LaikaCollectionSearch';
+import { LaikaShellProvider, useLaikaShell } from '@/laika-app/LaikaShellContext';
+
+function renderSearch() {
+  function PaletteProbe() {
+    const { isCommandPaletteOpen } = useLaikaShell();
+    return <div data-testid="palette-state">{isCommandPaletteOpen ? 'open' : 'closed'}</div>;
+  }
+  return render(
+    <MemoryRouter initialEntries={['/']}>
+      <LaikaShellProvider>
+        <LaikaCollectionSearch />
+        <PaletteProbe />
+      </LaikaShellProvider>
+    </MemoryRouter>,
+  );
+}
 
 describe('LaikaCollectionSearch', () => {
-  it('renders the search input with global placeholder when not on a collection route', () => {
-    const { getByPlaceholderText } = render(
-      <MemoryRouter initialEntries={['/']}>
-        <LaikaCollectionSearch />
-      </MemoryRouter>,
-    );
-    expect(getByPlaceholderText('collection.sidebar.searchAll')).toBeInTheDocument();
+  afterEach(() => {
+    mockState.config.search = true;
   });
 
-  it('dispatches searchCollections on Enter with the query', () => {
-    searchCollections.mockClear();
-    const { getByPlaceholderText } = render(
-      <MemoryRouter initialEntries={['/']}>
-        <LaikaCollectionSearch />
-      </MemoryRouter>,
-    );
-    const input = getByPlaceholderText('collection.sidebar.searchAll');
-    fireEvent.change(input, { target: { value: 'hello' } });
-    fireEvent.keyDown(input, { key: 'Enter' });
-    expect(searchCollections).toHaveBeenCalledWith('hello', '');
+  it('renders a palette trigger button with the global search label', () => {
+    const { getByRole } = renderSearch();
+    const trigger = getByRole('button', { name: 'collection.sidebar.searchAll' });
+    expect(trigger).toHaveAttribute('aria-haspopup', 'dialog');
+    // A trigger, not a text input: there is nothing to type into here.
+    expect(trigger.tagName).toBe('BUTTON');
   });
 
-  it('ignores Enter when query is empty', () => {
-    searchCollections.mockClear();
-    const { getByPlaceholderText } = render(
-      <MemoryRouter initialEntries={['/']}>
-        <LaikaCollectionSearch />
-      </MemoryRouter>,
-    );
-    const input = getByPlaceholderText('collection.sidebar.searchAll');
-    fireEvent.keyDown(input, { key: 'Enter' });
-    expect(searchCollections).not.toHaveBeenCalled();
+  it('shows the command palette shortcut chip', () => {
+    const { getByText } = renderSearch();
+    // jsdom reports a non-Apple platform, so the chip reads Ctrl K.
+    expect(getByText('Ctrl K')).toBeInTheDocument();
+  });
+
+  it('opens the command palette via the shell context when clicked', () => {
+    const { getByRole, getByTestId } = renderSearch();
+    expect(getByTestId('palette-state').textContent).toBe('closed');
+    fireEvent.click(getByRole('button', { name: 'collection.sidebar.searchAll' }));
+    expect(getByTestId('palette-state').textContent).toBe('open');
+  });
+
+  it('renders nothing when search is disabled in config', () => {
+    mockState.config.search = false;
+    const { queryByRole } = renderSearch();
+    expect(queryByRole('button')).toBeNull();
   });
 });

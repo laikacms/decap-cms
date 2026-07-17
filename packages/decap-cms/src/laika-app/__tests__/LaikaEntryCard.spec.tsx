@@ -53,6 +53,8 @@ describe('LaikaEntryCard', () => {
     expect(getByText('Title for hello-world')).toBeInTheDocument();
     const link = getByRole('link') as HTMLAnchorElement;
     expect(link.getAttribute('href')).toBe('/collections/posts/entries/hello-world');
+    // Tagged for the shell's j/k + arrow-key list navigation.
+    expect(link).toHaveAttribute('data-laika-nav-item');
   });
 
   it('shows the workflow badge with the appropriate intent', () => {

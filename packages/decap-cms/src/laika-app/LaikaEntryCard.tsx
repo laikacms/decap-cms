@@ -9,6 +9,7 @@ import { useTranslate } from '@/core/i18n';
 import { selectEntryCollectionTitle } from '@/core/reducers/collections';
 import { colors, lengths } from '@/ui/default/index';
 import { laikaShouldForwardProp } from '@/ui/styled';
+import { handleNavItemKeyDown, navItemProps } from './listNav';
 import { LaikaBadge } from './ui';
 
 import type { EntryCardRenderProps } from '@/app/components/index';
@@ -53,7 +54,6 @@ const ListCardLink = styled(Link)`
   &:focus-visible {
     border-color: ${colors.active};
     box-shadow: var(--laika-shadow-soft, 0 6px 18px rgba(15, 23, 42, 0.06));
-    outline: none;
   }
 `;
 
@@ -106,7 +106,6 @@ const GridCardLink = styled(Link)`
   &:focus-visible {
     border-color: ${colors.active};
     box-shadow: var(--laika-shadow-soft, 0 6px 18px rgba(15, 23, 42, 0.06));
-    outline: none;
   }
 `;
 
@@ -217,7 +216,7 @@ function LaikaEntryCard({
     return (
       <GRID_CONTAINER_OVERRIDE>
         <GridCard>
-          <GridCardLink to={path}>
+          <GridCardLink to={path} {...navItemProps} onKeyDown={handleNavItemKeyDown}>
             {resolvedImageUrl ? <GridImage $src={resolvedImageUrl} /> : null}
             <GridBody>
               {collectionLabel ? <ListCollectionLabel>{collectionLabel}</ListCollectionLabel> : null}
@@ -240,7 +239,7 @@ function LaikaEntryCard({
 
   return (
     <ListCard>
-      <ListCardLink to={path}>
+      <ListCardLink to={path} {...navItemProps} onKeyDown={handleNavItemKeyDown}>
         <ListTitle>{summary}</ListTitle>
         <ListMeta>
           {collectionLabel ? <ListCollectionLabel>{collectionLabel}</ListCollectionLabel> : null}

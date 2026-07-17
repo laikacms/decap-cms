@@ -22,6 +22,8 @@ export type {
   MediaLibraryTopRenderProps,
   WorkflowCardRenderProps,
 } from '@/core/lib/slots';
+export { matchExtraRoute, matchExtraRoutePattern } from '@/core/routing/extraRoutes';
+export type { ExtraRouteParams } from '@/core/routing/extraRoutes';
 export { AppContent, default as App } from './App';
 export type {
   AppAuthRenderProps,

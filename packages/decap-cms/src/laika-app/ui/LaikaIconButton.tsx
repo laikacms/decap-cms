@@ -42,7 +42,6 @@ const Button = styled('button', { shouldForwardProp: laikaShouldForwardProp })<{
   &:focus-visible {
     color: ${colors.active};
     background-color: ${colors.activeBackground};
-    outline: none;
   }
 
   &:disabled {

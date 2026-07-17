@@ -3,33 +3,27 @@ import styled from '@emotion/styled';
 import React from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 
-import { searchCollections } from '@/core/actions/collections';
 import { useAppSelector } from '@/core/hooks/useRedux';
 import { translate } from '@/core/i18n';
-import { colors } from '@/ui/default/index';
-import { LaikaSearchInput } from './ui';
+import { formatSequence } from '@/core/lib/shortcuts';
+import { useLaikaShell } from './LaikaShellContext';
+import { LaikaSearchTrigger } from './ui';
 
 import type { CmsCollections } from '@/lib/util/index';
 import type { TranslateFunction } from '@/ui/default/index';
 
 /**
- * Laika-side collection search. Lives in LaikaSidebar so it's accessible
- * from every page. On Enter, dispatches `searchCollections` from core,
- * which pushes either `/search/:query` (global) or
- * `/collections/:name/search/:query` (when scoped to a collection by
- * the current URL).
+ * Sidebar entry point for search. Looks like a search field but is a
+ * button that opens LaikaCommandPalette (via the shell context), which is
+ * the single search surface: typing there and pressing Enter runs the
+ * same scoped/global entry search this component used to dispatch
+ * directly. The label mirrors the palette's scoping: "search in
+ * <collection>" on a `/collections/:name` route, "search all" elsewhere.
+ * Shows the palette shortcut (⌘K on Apple platforms, Ctrl K otherwise).
  */
 
 const Wrap = styled.div`
   margin: 0 4px 16px;
-`;
-
-const ScopeHint = styled.div`
-  font-size: 11px;
-  font-weight: 500;
-  margin-top: 6px;
-  padding-left: 14px;
-  color: ${colors.controlLabel};
 `;
 
 interface LaikaCollectionSearchProps {
@@ -41,44 +35,32 @@ function LaikaCollectionSearch({ t }: LaikaCollectionSearchProps) {
   const isSearchEnabled = useAppSelector(state => state.config?.search !== false);
   const location = useLocation();
   const params = useParams();
-
-  const [query, setQuery] = React.useState('');
+  const { openCommandPalette } = useLaikaShell();
 
   if (!isSearchEnabled) {
     return null;
   }
 
-  // Scope the search to the current collection when the URL is currently on
-  // a `/collections/:name` route — otherwise search across all collections.
+  // Mirror the palette's scoping so the label promises what the palette
+  // will offer first: an in-collection search on `/collections/:name`
+  // routes, a global search everywhere else.
   const onCollectionRoute = location.pathname.startsWith('/collections/');
   const scopedCollectionName = onCollectionRoute ? (params.name as string | undefined) : undefined;
   const scopedCollection = scopedCollectionName ? collections?.[scopedCollectionName] : undefined;
 
-  function handleSubmit(event: React.KeyboardEvent<HTMLInputElement>) {
-    if (event.key !== 'Enter' || query.trim() === '') return;
-    searchCollections(query.trim(), scopedCollectionName ?? '');
-  }
-
-  const placeholder = scopedCollection
+  const label = scopedCollection
     ? t('collection.sidebar.searchIn') + ' ' + scopedCollection.label
     : t('collection.sidebar.searchAll');
 
   return (
     <Wrap>
-      <LaikaSearchInput
-        value={query}
-        onChange={event => setQuery(event.target.value)}
-        onKeyDown={handleSubmit}
-        placeholder={placeholder}
-        aria-label={placeholder}
+      <LaikaSearchTrigger
+        label={label}
+        shortcut={formatSequence('mod+k')[0]}
+        onClick={openCommandPalette}
+        aria-label={label}
+        aria-haspopup="dialog"
       />
-      {scopedCollection
-        ? (
-          <ScopeHint>
-            ↩ {t('collection.sidebar.searchIn')} {scopedCollection.label}
-          </ScopeHint>
-        )
-        : null}
     </Wrap>
   );
 }

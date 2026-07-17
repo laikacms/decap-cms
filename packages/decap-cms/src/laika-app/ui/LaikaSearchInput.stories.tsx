@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import LaikaSearchInput from './LaikaSearchInput';
+import LaikaSearchInput, { LaikaSearchTrigger } from './LaikaSearchInput';
 
 import type { Meta, StoryObj } from '@storybook/react';
 
@@ -29,4 +29,16 @@ export const Default: Story = {
 
 export const Disabled: Story = {
   args: { placeholder: 'Search unavailable', disabled: true, 'aria-label': 'Disabled search' },
+};
+
+export const Trigger: StoryObj<typeof LaikaSearchTrigger> = {
+  render: () => (
+    <div style={{ width: 320 }}>
+      <LaikaSearchTrigger
+        label="Search all collections"
+        shortcut="⌘K"
+        aria-haspopup="dialog"
+      />
+    </div>
+  ),
 };

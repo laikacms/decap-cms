@@ -233,6 +233,8 @@ function getConfigSchema(): JSONSchema {
             create: { type: 'boolean' },
             publish: { type: 'boolean' },
             hide: { type: 'boolean' },
+            // Single letter/digit for the collection's 'g <key>' keyboard chord.
+            shortcut: { type: 'string', pattern: '^[a-zA-Z0-9]$' },
             editor: {
               type: 'object',
               properties: {

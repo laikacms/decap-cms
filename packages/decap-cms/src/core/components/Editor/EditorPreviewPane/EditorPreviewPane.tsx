@@ -8,6 +8,7 @@ import { ErrorBoundary } from '@/core/components/UI';
 import { INFERABLE_FIELDS } from '@/core/constants/fieldInference';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 import { getPreviewStyles, getPreviewTemplate, getRemarkPlugins, resolveWidget } from '@/core/lib/registry';
+import { attachShortcutTarget } from '@/core/lib/shortcuts';
 import { encodeEntry } from '@/core/lib/stega';
 import { selectField, selectInferredField, selectTemplateName } from '@/core/reducers/collections';
 import { selectIsLoadingAsset } from '@/core/reducers/medias';
@@ -38,6 +39,20 @@ const PreviewPaneFrame = styled(Frame)`
 `;
 
 type InferableFieldValue = (typeof INFERABLE_FIELDS)[keyof typeof INFERABLE_FIELDS];
+
+/**
+ * Routes keydown events from the preview iframe into the global shortcut
+ * engine. Without this, keyboard focus inside the frame swallows every
+ * shortcut — most noticeably mod+S, which falls through to the browser's
+ * native "save page as" instead of saving the entry.
+ */
+function PreviewShortcutBridge({ frameWindow }: { frameWindow?: Window | null }) {
+  React.useEffect(() => {
+    if (!frameWindow) return undefined;
+    return attachShortcutTarget(frameWindow);
+  }, [frameWindow]);
+  return null;
+}
 
 interface PreviewPaneProps {
   collection: Collection;
@@ -330,11 +345,14 @@ export function PreviewPane(props: PreviewPaneProps) {
       <PreviewPaneFrame id="preview-pane" head={styleEls} initialContent={initialContent}>
         <FrameContextConsumer>
           {({ document, window }) => (
-            <EditorPreviewContent
-              previewComponent={previewComponent}
-              previewProps={{ ...previewProps, document, window }}
-              onFieldClick={onFieldClick}
-            />
+            <>
+              <PreviewShortcutBridge frameWindow={window} />
+              <EditorPreviewContent
+                previewComponent={previewComponent}
+                previewProps={{ ...previewProps, document, window }}
+                onFieldClick={onFieldClick}
+              />
+            </>
           )}
         </FrameContextConsumer>
       </PreviewPaneFrame>

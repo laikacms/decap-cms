@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { translate } from '@/core/i18n';
 import { colors } from '@/ui/default/index';
+import { handleNavItemKeyDown, navItemProps } from './listNav';
 import { LaikaBadge, LaikaButton, LaikaCard } from './ui';
 
 import type { WorkflowCardRenderProps } from '@/app/components/index';
@@ -96,12 +97,15 @@ function LaikaWorkflowCard({
         <ClickableSurface
           role="link"
           tabIndex={0}
+          {...navItemProps}
           onClick={() => navigate(editLink)}
           onKeyDown={event => {
             if (event.key === 'Enter' || event.key === ' ') {
               event.preventDefault();
               navigate(editLink);
+              return;
             }
+            handleNavItemKeyDown(event);
           }}
         >
           <LaikaCard.Header>

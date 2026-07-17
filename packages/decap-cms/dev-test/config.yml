@@ -10,6 +10,7 @@ collections: # A list of collections the CMS should be able to edit
   - name: 'posts' # Used in routes, ie.: /admin/collections/:slug/edit
     label: 'Posts' # Used in the UI
     label_singular: 'Post' # Used in the UI, ie: "New Post"
+    shortcut: 'p' # 'g' then 'p' jumps here; collections without one get 'g 1'..'g 9'
     description: >
       The description is a great place for tone setting, high level information, and editing
       guidelines that are specific to a collection.

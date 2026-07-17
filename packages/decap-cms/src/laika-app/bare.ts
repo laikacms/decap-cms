@@ -125,6 +125,8 @@ export { default as LaikaProvider } from './LaikaProvider';
 export type { LaikaProviderProps } from './LaikaProvider';
 export { default as LaikaSettingsPage } from './LaikaSettingsPage';
 export { LAIKA_BREAKPOINT_MOBILE, LaikaShellProvider, useLaikaShell } from './LaikaShellContext';
+export { default as LaikaShortcutHelp } from './LaikaShortcutHelp';
+export { default as LaikaShortcuts, LAIKA_SHORTCUT_GROUPS } from './LaikaShortcuts';
 export { default as LaikaSidebar } from './LaikaSidebar';
 export type { LaikaNavItem, LaikaNavSection, LaikaSidebarProps } from './LaikaSidebar';
 export { default as LaikaThemeProvider, useLaikaTheme } from './LaikaThemeContext';
@@ -133,6 +135,14 @@ export { laikaDarkTheme, laikaLightTheme, resolveTheme } from './laikaThemes';
 export type { LaikaThemeMode } from './laikaThemes';
 export { default as LaikaWorkflowCard } from './LaikaWorkflowCard';
 export {
+  focusSiblingNavItem,
+  getNavItems,
+  handleNavItemKeyDown,
+  moveFocusWithinContainer,
+  NAV_ITEM_ATTRIBUTE,
+  navItemProps,
+} from './listNav';
+export {
   LaikaAvatar,
   LaikaBadge,
   LaikaButton,
@@ -140,6 +150,7 @@ export {
   LaikaDialog,
   LaikaIconButton,
   LaikaSearchInput,
+  LaikaSearchTrigger,
   LaikaSpinner,
   LaikaTag,
   LaikaToggleSwitch,
@@ -158,6 +169,7 @@ export type {
   LaikaIconButtonProps,
   LaikaIconButtonSize,
   LaikaSearchInputProps,
+  LaikaSearchTriggerProps,
   LaikaSpinnerProps,
   LaikaSpinnerSize,
   LaikaTagProps,

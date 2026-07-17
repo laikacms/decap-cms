@@ -199,6 +199,12 @@ function EditorContent({
   }
 }
 
+/**
+ * What counts as a keyboard landing spot inside the control pane, for the
+ * initial-focus and focus-restore behavior below.
+ */
+const FOCUSABLE_FIELD_SELECTOR = 'input:not([type="hidden"]), textarea, select, [contenteditable="true"]';
+
 function isPreviewEnabled(collection: Collection, entry: EntryMap) {
   if (collection.type === FILES) {
     const file = getFileFromSlug(collection, entry.slug);
@@ -279,6 +285,11 @@ function EditorInterface(props: EditorInterfaceProps) {
   } = props;
 
   const controlPaneRef = React.useRef<ControlPaneRef | null>(null);
+  const editorBodyRef = React.useRef<HTMLDivElement | null>(null);
+  // Which field (and which focusable within it) last held focus. Lives here,
+  // OUTSIDE the `key={draftKey}` subtree, so it survives the remount that a
+  // save triggers (persist success re-creates the draft with a new key).
+  const lastFocusedFieldRef = React.useRef<{ name: string, index: number } | null>(null);
   const [showEventBlocker, setShowEventBlocker] = React.useState(false);
   const [previewVisible, setPreviewVisible] = React.useState(
     () => localStorage.getItem(PREVIEW_VISIBLE) !== 'false',
@@ -296,6 +307,71 @@ function EditorInterface(props: EditorInterfaceProps) {
   function handleFieldClick(path: string) {
     controlPaneRef.current?.focus(path);
   }
+
+  // Remember where focus is whenever it lands inside the editor body, keyed
+  // by the field's `data-field-name` wrapper (set in EditorControl) plus the
+  // focusable's position within that field.
+  function handleEditorBodyFocus(event: React.FocusEvent<HTMLDivElement>) {
+    const target = event.target as HTMLElement;
+    const wrapper = target.closest?.('[data-field-name]');
+    if (!wrapper) return;
+    const focusables = Array.from(wrapper.querySelectorAll<HTMLElement>(FOCUSABLE_FIELD_SELECTOR));
+    lastFocusedFieldRef.current = {
+      name: wrapper.getAttribute('data-field-name') ?? '',
+      index: Math.max(0, focusables.indexOf(target)),
+    };
+  }
+
+  // Keyboard focus across the editor body's lifecycle: on first mount (e.g.
+  // arriving via the 'n' shortcut) put focus in the first field so Tab works
+  // immediately; when a save remounts the `key={draftKey}` subtree and drops
+  // focus on <body>, put it back where it was. Never steal focus that
+  // survived elsewhere (e.g. on the toolbar's Save button after a click).
+  React.useEffect(() => {
+    const container = editorBodyRef.current;
+    if (!container) return undefined;
+
+    // Returns true when this run is settled: either focus was placed, or
+    // someone else (toolbar button after a click, the user) holds focus and
+    // must not be robbed. Returns false while the fields aren't there yet.
+    function tryFocus(): boolean {
+      if (!container) return true;
+      const active = document.activeElement;
+      if (active && active !== document.body && !container.contains(active)) return true;
+      const remembered = lastFocusedFieldRef.current;
+      let target: HTMLElement | null = null;
+      if (remembered) {
+        const wrapper = container.querySelector(`[data-field-name="${CSS.escape(remembered.name)}"]`);
+        if (wrapper) {
+          const focusables = Array.from(wrapper.querySelectorAll<HTMLElement>(FOCUSABLE_FIELD_SELECTOR));
+          target = focusables[Math.min(remembered.index, focusables.length - 1)] ?? null;
+        }
+      }
+      target ??= container.querySelector<HTMLElement>(FOCUSABLE_FIELD_SELECTOR);
+      target?.focus();
+      return target !== null;
+    }
+
+    // The control pane's fields render whenever the entry/draft is ready —
+    // immediately for a new entry, seconds later for a slow backend fetch.
+    // Try once after the commit paints, then let a MutationObserver catch
+    // the moment the fields actually appear.
+    let observer: MutationObserver | null = null;
+    const frame = requestAnimationFrame(() => {
+      if (tryFocus()) return;
+      observer = new MutationObserver(() => {
+        if (tryFocus()) {
+          observer?.disconnect();
+          observer = null;
+        }
+      });
+      observer.observe(container, { childList: true, subtree: true });
+    });
+    return () => {
+      cancelAnimationFrame(frame);
+      observer?.disconnect();
+    };
+  }, [draftKey]);
 
   function handleSplitPaneResizeStart() {
     setShowEventBlocker(true);
@@ -484,7 +560,7 @@ function EditorInterface(props: EditorInterfaceProps) {
       {renderEditorToolbar
         ? renderEditorToolbar(toolbarProps as any)
         : React.createElement(EditorToolbar as any, { ...toolbarProps, t })}
-      <Editor key={draftKey}>
+      <Editor key={draftKey} ref={editorBodyRef} onFocus={handleEditorBodyFocus}>
         {(() => {
           const viewControlsProps = {
             i18nEnabled: !!collectionI18nEnabled,

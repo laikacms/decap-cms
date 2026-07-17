@@ -38,7 +38,6 @@ const Breadcrumb = styled.nav`
     &:hover,
     &:focus-visible {
       color: ${colors.active};
-      outline: none;
     }
   }
 `;

@@ -4,6 +4,8 @@ import React from 'react';
 
 import LaikaCommandPalette from './LaikaCommandPalette';
 import { LAIKA_BREAKPOINT_MOBILE } from './LaikaShellContext';
+import LaikaShortcutHelp from './LaikaShortcutHelp';
+import LaikaShortcuts from './LaikaShortcuts';
 import LaikaSidebar from './LaikaSidebar';
 
 import type { AppLayoutRenderProps } from '@/app/components/index';
@@ -45,6 +47,8 @@ function LaikaLayout({ main, headerProps }: AppLayoutRenderProps) {
         <MainArea>{main}</MainArea>
       </LayoutRow>
       <LaikaCommandPalette />
+      <LaikaShortcuts />
+      <LaikaShortcutHelp />
     </>
   );
 }

@@ -3,6 +3,7 @@ import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import React from 'react';
 
+import { useSuspendShortcuts } from '@/core/hooks/useShortcut';
 import { DialogPrimitive as Dialog } from '@/ui/Dialog';
 import { colors, Icon, lengths, zIndex } from '@/ui/default/index';
 import LaikaIconButton from './LaikaIconButton';
@@ -13,6 +14,10 @@ import LaikaIconButton from './LaikaIconButton';
  * close-on-escape behave correctly, with a laika-styled surface on top:
  * rounded corners, soft overlay, optional Header / Body / Footer
  * composition for consistent dialogs across the app.
+ *
+ * While open, the dialog suspends the global shortcut engine so bare-key
+ * shortcuts ('n', 'j', 'g' chords) can't fire behind the modal; shortcuts
+ * flagged `allowWhileSuspended` (the palette toggle) still work.
  *
  * Portals into `#nc-root` if present (matching core's Modal), otherwise
  * Base UI falls back to `document.body`.
@@ -112,6 +117,8 @@ function LaikaDialog({
   className,
 }: LaikaDialogProps) {
   const container = typeof document !== 'undefined' ? (document.getElementById(ROOT_ID) ?? undefined) : undefined;
+
+  useSuspendShortcuts(isOpen);
 
   return (
     <Dialog.Root

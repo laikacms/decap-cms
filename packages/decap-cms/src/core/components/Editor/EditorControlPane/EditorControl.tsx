@@ -294,6 +294,7 @@ function EditorControl(props: EditorControlProps) {
               `,
           )}
           aria-label={t('editor.editorControl.field.widgetLabel', { widgetLabel: widgetName })}
+          data-field-name={field.name}
         >
           <ControlTopbar>
             {widget.globalStyles
