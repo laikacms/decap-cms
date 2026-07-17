@@ -23,7 +23,7 @@ import { createRoutePath, defaultRoutingTable } from '@/core/routing/router';
 // import-time side effects anywhere in the module graph.
 import { registerCoreWidgets } from '@/core/components/EditorWidgets/index';
 import { connectMediaLibrary } from '@/core/mediaLibrary';
-import { AlertDialogHost, ConfirmDialogHost } from '@/ui/AlertDialog';
+import { AlertDialogHost, ConfirmDialogHost, PromptDialogHost } from '@/ui/AlertDialog';
 import { DefaultTokensGlobalStyle, GlobalStyles, themeToCssVars } from '@/ui/default/index';
 
 import type { DecapCmsContext, DecapCmsProviderProps, DecapNavigate, DecapParams } from '@/core/contexts/decap';
@@ -197,6 +197,7 @@ export function DecapCmsProvider({
         <FreshnessLoader />
         <AlertDialogHost />
         <ConfirmDialogHost />
+        <PromptDialogHost />
         <I18nProvider>
           <RouterProvider router={resolvedRouter}>
             <RoutingProvider routing={routing} theme={theme}>
