@@ -1,4 +1,4 @@
-import { fireEvent, render } from '@testing-library/react';
+import { act, fireEvent, render } from '@testing-library/react';
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -99,7 +99,12 @@ describe('handleUrl (Insert from URL prompt)', () => {
     vi.restoreAllMocks();
   });
 
-  it('accepts a valid http(s) URL and forwards it to onChange', () => {
+  // withFileControl migrated off native window.prompt/alert to the
+  // AlertDialog-backed promptDialog/showAlert primitives (DCMS-658). No
+  // PromptDialogHost/AlertDialogHost is mounted in these tests, so both fall
+  // back to window.prompt/window.alert, but the fallback still resolves via
+  // a promise, so clicks must be flushed with `await act(async () => {})`.
+  it('accepts a valid http(s) URL and forwards it to onChange', async () => {
     vi.spyOn(window, 'prompt').mockReturnValue('https://example.com/image.png');
     const onChange = vi.fn();
     const field = { name: 'file', widget: 'file' } as CmsFieldFile & CmsFieldBase;
@@ -121,12 +126,14 @@ describe('handleUrl (Insert from URL prompt)', () => {
       />,
     );
 
-    fireEvent.click(getByText('editor.editorWidgets.file.chooseUrl'));
+    await act(async () => {
+      fireEvent.click(getByText('editor.editorWidgets.file.chooseUrl'));
+    });
 
     expect(onChange).toHaveBeenCalledWith('https://example.com/image.png');
   });
 
-  it('rejects a javascript: URL, alerts, and does not call onChange', () => {
+  it('rejects a javascript: URL, alerts, and does not call onChange', async () => {
     vi.spyOn(window, 'prompt').mockReturnValue('javascript:alert(document.cookie)');
     const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
     const onChange = vi.fn();
@@ -149,13 +156,15 @@ describe('handleUrl (Insert from URL prompt)', () => {
       />,
     );
 
-    fireEvent.click(getByText('editor.editorWidgets.file.chooseUrl'));
+    await act(async () => {
+      fireEvent.click(getByText('editor.editorWidgets.file.chooseUrl'));
+    });
 
     expect(onChange).not.toHaveBeenCalled();
     expect(alertSpy).toHaveBeenCalledWith('editor.editorWidgets.file.invalidUrl');
   });
 
-  it('rejects a data: URL and does not call onChange', () => {
+  it('rejects a data: URL and does not call onChange', async () => {
     vi.spyOn(window, 'prompt').mockReturnValue('data:text/html,<script>alert(1)</script>');
     vi.spyOn(window, 'alert').mockImplementation(() => {});
     const onChange = vi.fn();
@@ -178,12 +187,14 @@ describe('handleUrl (Insert from URL prompt)', () => {
       />,
     );
 
-    fireEvent.click(getByText('editor.editorWidgets.file.chooseUrl'));
+    await act(async () => {
+      fireEvent.click(getByText('editor.editorWidgets.file.chooseUrl'));
+    });
 
     expect(onChange).not.toHaveBeenCalled();
   });
 
-  it('rejects a vbscript: URL and does not call onChange', () => {
+  it('rejects a vbscript: URL and does not call onChange', async () => {
     vi.spyOn(window, 'prompt').mockReturnValue('vbscript:msgbox(1)');
     vi.spyOn(window, 'alert').mockImplementation(() => {});
     const onChange = vi.fn();
@@ -206,7 +217,9 @@ describe('handleUrl (Insert from URL prompt)', () => {
       />,
     );
 
-    fireEvent.click(getByText('editor.editorWidgets.file.chooseUrl'));
+    await act(async () => {
+      fireEvent.click(getByText('editor.editorWidgets.file.chooseUrl'));
+    });
 
     expect(onChange).not.toHaveBeenCalled();
   });

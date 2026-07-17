@@ -3,6 +3,7 @@ import { AlertDialog as AlertDialogPrimitive } from '@base-ui/react/alert-dialog
 import * as React from 'react';
 
 import { Button, buttonVariants } from './Button';
+import { Input } from './Input';
 import { css, type WithClassName } from './styled';
 
 export function AlertDialog(
@@ -341,6 +342,124 @@ export function ConfirmDialogHost(): React.ReactNode {
             variant={current.destructive ? 'destructive' : 'default'}
             onClick={() => settle(true)}
           >
+            {current.confirmLabel ?? 'OK'}
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+export interface PromptOptions {
+  /** Dialog heading; defaults to "Prompt". */
+  title?: string;
+  /** Label for the affirmative action; defaults to "OK". */
+  confirmLabel?: string;
+  /** Label for the negative action; defaults to "Cancel". */
+  cancelLabel?: string;
+  /** Placeholder for the text input. */
+  placeholder?: string;
+  /** Initial value of the text input. */
+  defaultValue?: string;
+}
+
+interface PendingPrompt extends PromptOptions {
+  id: number;
+  message: string;
+  resolve: (value: string | null) => void;
+}
+
+let pendingPrompts: PendingPrompt[] = [];
+let nextPromptId = 1;
+const promptListeners = new Set<() => void>();
+
+function subscribeToPrompts(listener: () => void) {
+  promptListeners.add(listener);
+  return () => {
+    promptListeners.delete(listener);
+  };
+}
+
+function getPendingPrompts() {
+  return pendingPrompts;
+}
+
+function emitPromptsChanged() {
+  for (const listener of promptListeners) listener();
+}
+
+/**
+ * Imperative replacement for `window.prompt`, usable from non-React code
+ * (actions, hooks) and, like {@link confirmDialog}, can't be silenced by the
+ * browser's "Prevent this page from creating additional dialogs" checkbox
+ * (DCMS-658). Queues the prompt on the nearest mounted `PromptDialogHost` and
+ * resolves with the entered text, or `null` if cancelled/dismissed. Falls
+ * back to `window.prompt` when no host is mounted so callers (including
+ * tests that don't render the host) keep working.
+ */
+export function promptDialog(message: string, options: PromptOptions = {}): Promise<string | null> {
+  if (promptListeners.size === 0) {
+    return Promise.resolve(window.prompt(message, options.defaultValue));
+  }
+  return new Promise(resolve => {
+    pendingPrompts = [...pendingPrompts, { id: nextPromptId++, message, resolve, ...options }];
+    emitPromptsChanged();
+  });
+}
+
+/**
+ * Renders the queue fed by `promptDialog`, one prompt at a time. Mount
+ * exactly once, near the app root (`DecapCmsProvider` does this alongside
+ * `AlertDialogHost`/`ConfirmDialogHost`).
+ */
+export function PromptDialogHost(): React.ReactNode {
+  const queue = React.useSyncExternalStore(subscribeToPrompts, getPendingPrompts, getPendingPrompts);
+  const current = queue[0];
+  const [value, setValue] = React.useState(current?.defaultValue ?? '');
+
+  React.useEffect(() => {
+    setValue(current?.defaultValue ?? '');
+    // Reset only when a new prompt is queued, not on every keystroke.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current?.id]);
+
+  if (!current) return null;
+
+  const settle = (result: string | null) => {
+    pendingPrompts = pendingPrompts.filter(pending => pending.id !== current.id);
+    emitPromptsChanged();
+    current.resolve(result);
+  };
+
+  return (
+    <AlertDialog
+      key={current.id}
+      open
+      onOpenChange={open => {
+        // Escape / backdrop dismissal carries no explicit answer; treat it
+        // like Cancel rather than silently no-op'ing the caller's promise.
+        if (!open) settle(null);
+      }}
+    >
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{current.title ?? 'Prompt'}</AlertDialogTitle>
+          <AlertDialogDescription>{current.message}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <Input
+          autoFocus
+          value={value}
+          placeholder={current.placeholder}
+          onChange={e => setValue(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Enter') settle(value);
+          }}
+        />
+        <AlertDialogFooter>
+          <Button variant="outline" onClick={() => settle(null)}>
+            {current.cancelLabel ?? 'Cancel'}
+          </Button>
+          <Button variant="default" onClick={() => settle(value)}>
             {current.confirmLabel ?? 'OK'}
           </Button>
         </AlertDialogFooter>

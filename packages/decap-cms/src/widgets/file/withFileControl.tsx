@@ -7,6 +7,7 @@ import { v4 as uuid } from 'uuid';
 
 import { oneLine } from '@/lib/util/index';
 import { basename } from '@/lib/util/index';
+import { promptDialog, showAlert } from '@/ui/AlertDialog';
 import {
   borders,
   buttons,
@@ -371,17 +372,19 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
     function handleUrl(subject: string) {
       return (e: React.MouseEvent) => {
         e.preventDefault();
-        const url = window.prompt(t(`editor.editorWidgets.${subject}.promptUrl`));
-        if (!url) {
-          return;
-        }
+        void (async () => {
+          const url = await promptDialog(t(`editor.editorWidgets.${subject}.promptUrl`));
+          if (!url) {
+            return;
+          }
 
-        if (!isSafeUrl(url)) {
-          window.alert(t(`editor.editorWidgets.${subject}.invalidUrl`));
-          return;
-        }
+          if (!isSafeUrl(url)) {
+            await showAlert(t(`editor.editorWidgets.${subject}.invalidUrl`));
+            return;
+          }
 
-        return onChange(url);
+          onChange(url);
+        })();
       };
     }
 
