@@ -143,6 +143,26 @@ export function AlertDialogClose(
   return <AlertDialogPrimitive.Close data-slot="alert-dialog-close" {...props} />;
 }
 
+/**
+ * Captures the currently focused element so it can be restored once an
+ * imperative dialog (alert/confirm/prompt) is dismissed. These hosts settle
+ * by unmounting `<AlertDialog>` directly instead of transitioning Base UI's
+ * `open` prop to `false`, so Base UI's own `finalFocus` restore never fires
+ * (it only runs on an `open: true → false` transition, not on
+ * unmount-without-close) — see DCMS-674. Restoring focus ourselves,
+ * synchronously before the dialog unmounts, sidesteps that Base UI
+ * lifecycle gap entirely.
+ */
+function captureTriggerElement(): HTMLElement | null {
+  return document.activeElement instanceof HTMLElement ? document.activeElement : null;
+}
+
+function restoreTriggerFocus(triggerElement: HTMLElement | null): void {
+  if (triggerElement && triggerElement.isConnected) {
+    triggerElement.focus();
+  }
+}
+
 export interface AlertOptions {
   /** Dialog heading; defaults to "Alert". */
   title?: string;
@@ -154,6 +174,7 @@ interface PendingAlert extends AlertOptions {
   id: number;
   message: string;
   resolve: () => void;
+  triggerElement: HTMLElement | null;
 }
 
 let pendingAlerts: PendingAlert[] = [];
@@ -186,8 +207,12 @@ export function showAlert(message: string, options: AlertOptions = {}): Promise<
     window.alert(message);
     return Promise.resolve();
   }
+  const triggerElement = captureTriggerElement();
   return new Promise(resolve => {
-    pendingAlerts = [...pendingAlerts, { id: nextAlertId++, message, resolve, ...options }];
+    pendingAlerts = [
+      ...pendingAlerts,
+      { id: nextAlertId++, message, resolve, triggerElement, ...options },
+    ];
     emitAlertsChanged();
   });
 }
@@ -203,6 +228,7 @@ export function AlertDialogHost(): React.ReactNode {
   if (!current) return null;
 
   const dismiss = () => {
+    restoreTriggerFocus(current.triggerElement);
     pendingAlerts = pendingAlerts.filter(pending => pending.id !== current.id);
     emitAlertsChanged();
     current.resolve();
@@ -246,6 +272,7 @@ interface PendingConfirm extends ConfirmOptions {
   id: number;
   message: string;
   resolve: (confirmed: boolean) => void;
+  triggerElement: HTMLElement | null;
 }
 
 let pendingConfirms: PendingConfirm[] = [];
@@ -284,8 +311,12 @@ export function confirmDialog(message: string, options: ConfirmOptions = {}): Pr
   if (confirmListeners.size === 0) {
     return Promise.resolve(window.confirm(message));
   }
+  const triggerElement = captureTriggerElement();
   return new Promise(resolve => {
-    pendingConfirms = [...pendingConfirms, { id: nextConfirmId++, message, resolve, ...options }];
+    pendingConfirms = [
+      ...pendingConfirms,
+      { id: nextConfirmId++, message, resolve, triggerElement, ...options },
+    ];
     emitConfirmsChanged();
   });
 }
@@ -314,6 +345,7 @@ export function ConfirmDialogHost(): React.ReactNode {
   if (!current) return null;
 
   const settle = (confirmed: boolean) => {
+    restoreTriggerFocus(current.triggerElement);
     pendingConfirms = pendingConfirms.filter(pending => pending.id !== current.id);
     emitConfirmsChanged();
     current.resolve(confirmed);
@@ -367,6 +399,7 @@ interface PendingPrompt extends PromptOptions {
   id: number;
   message: string;
   resolve: (value: string | null) => void;
+  triggerElement: HTMLElement | null;
 }
 
 let pendingPrompts: PendingPrompt[] = [];
@@ -401,8 +434,12 @@ export function promptDialog(message: string, options: PromptOptions = {}): Prom
   if (promptListeners.size === 0) {
     return Promise.resolve(window.prompt(message, options.defaultValue));
   }
+  const triggerElement = captureTriggerElement();
   return new Promise(resolve => {
-    pendingPrompts = [...pendingPrompts, { id: nextPromptId++, message, resolve, ...options }];
+    pendingPrompts = [
+      ...pendingPrompts,
+      { id: nextPromptId++, message, resolve, triggerElement, ...options },
+    ];
     emitPromptsChanged();
   });
 }
@@ -426,6 +463,7 @@ export function PromptDialogHost(): React.ReactNode {
   if (!current) return null;
 
   const settle = (result: string | null) => {
+    restoreTriggerFocus(current.triggerElement);
     pendingPrompts = pendingPrompts.filter(pending => pending.id !== current.id);
     emitPromptsChanged();
     current.resolve(result);
