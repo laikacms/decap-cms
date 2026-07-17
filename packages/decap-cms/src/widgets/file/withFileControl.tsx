@@ -202,6 +202,33 @@ function isMultiple(value: FileValue): boolean {
   return Array.isArray(value);
 }
 
+const ALLOWED_URL_SCHEMES = new Set(['http:', 'https:']);
+
+// DCMS-577 / DCMS-668: 'Insert from URL' must not persist javascript:/data:/vbscript:
+// URLs, since downstream (non-React) renderers of the saved entry have no equivalent
+// runtime guard. Keep this allowlist in sync with the pre-v4.beta implementation this
+// widget was rewritten from (packages/decap-cms-widget-file/src/withFileControl.js).
+export function isSafeUrl(url: string): boolean {
+  if (!url) {
+    return false;
+  }
+
+  // Protocol-relative URLs (`//example.com/x`) inherit the page's scheme, which is
+  // always http(s) in a browser context, so they're safe to allow.
+  if (/^\/\//.test(url)) {
+    return true;
+  }
+
+  let parsed;
+  try {
+    parsed = new URL(url, window.location.href);
+  } catch {
+    return false;
+  }
+
+  return ALLOWED_URL_SCHEMES.has(parsed.protocol);
+}
+
 function sizeOfValue(value: FileValue): number {
   if (Array.isArray(value)) {
     return value.length;
@@ -345,9 +372,16 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
       return (e: React.MouseEvent) => {
         e.preventDefault();
         const url = window.prompt(t(`editor.editorWidgets.${subject}.promptUrl`));
-        if (url) {
-          return onChange(url);
+        if (!url) {
+          return;
         }
+
+        if (!isSafeUrl(url)) {
+          window.alert(t(`editor.editorWidgets.${subject}.invalidUrl`));
+          return;
+        }
+
+        return onChange(url);
       };
     }
 
