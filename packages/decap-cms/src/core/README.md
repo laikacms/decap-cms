@@ -508,3 +508,77 @@ missing, the trailer is **silently skipped** — no error, only a `console.warn`
 (`Option signoff_commits is
 enabled, but author name/email is unknown`) — and the commit message is
 used as-is.
+
+### `collection.filter`
+
+```yaml
+collections:
+  - name: posts
+    label: Posts
+    folder: content/posts
+    filter:
+      field: draft
+      value: false
+    fields: [...]
+```
+
+Restricts a collection's entry list to entries whose `field` matches `value`, applied in
+`Backend#filterEntries` (`src/core/backend.tsx`) after entries are loaded and before display.
+Non-matching entries are **silently dropped from the collection view** (list, search results,
+relation-widget options, etc.) — nothing is deleted from the repo. Unlike `view_filters` above,
+`filter` is unconditional: there's no toggle UI, it always applies. It's also not currently
+enumerated in the collection JSON Schema (`src/core/lib/validateConfig.ts`), so a malformed `filter`
+object isn't schema-rejected the way most other collection keys are.
+
+Matching rule, from `filterEntries`:
+
+- **Strict equality (`===`)** when the entry's `field` value is not an array — no type coercion, so
+  `value: '0'` never matches a numeric `0` field, and `value: false` never matches a falsy
+  non-boolean.
+- **Array `.includes()` membership** when the entry's `field` value is an array — `value` just needs
+  to be one of the array's elements, regardless of array order or length.
+
+### `collection.meta.path` (folder collections)
+
+```yaml
+collections:
+  - name: posts
+    label: Posts
+    folder: content/posts
+    meta:
+      path:
+        label: Path
+        widget: string
+        index_file: _index
+    fields: [...]
+```
+
+Only valid on folder collections (`collection.folder`, not `collection.files`) — it's stripped by
+`applyDefaults` for file collections. Lets editors rename or move an entry's on-disk location from
+within the entry form, instead of only through the auto-generated `slug`. All three sub-keys
+(`label`, `widget`, `index_file`) are required once `meta.path` is set at all
+(`src/core/lib/validateConfig.ts`).
+
+`applyDefaults` (`src/core/actions/config.tsx`) synthesizes `meta.path` into a real virtual field
+prepended to `collection.fields`:
+
+```ts
+{ name: 'path', meta: true, required: true, ...meta.path }
+```
+
+so `label`/`widget` behave like any other field's — the synthesized `path` field renders in the
+entry editor using whichever `widget` you choose (typically `string`) — while `index_file` is
+config-only and never rendered.
+
+`selectCustomPath` (`src/core/reducers/entryDraft.ts`) resolves the entry's on-disk path from the
+field's current value as:
+
+```
+<collection.folder>/<path field value>/<index_file>.<extension>
+```
+
+Only that single index file is renamed/moved when the `path` field changes — **sibling files in the
+same folder are left untouched**. This is meant for a "one subfolder per entry, with peer assets"
+layout, e.g. `content/posts/my-post/_index.md` next to `content/posts/my-post/cover.jpg`: renaming
+the entry via the `path` field moves `_index.md` to the new subfolder but leaves `cover.jpg` where it
+is.

@@ -278,6 +278,41 @@ describe('Backend', () => {
 
       expect(result.length).toBe(1);
     });
+
+    // Pinning test for DCMS-563: `filter` is undocumented, so pin the exact
+    // matching semantics here in addition to the README's `collection.filter`
+    // section (`src/core/README.md`) — strict equality for scalar fields, no
+    // type coercion, `.includes()` membership for array fields.
+    it('uses strict equality (no type coercion) for scalar fields', () => {
+      const result = backend.filterEntries(
+        {
+          entries: [
+            { data: { testField: 0 } },
+            { data: { testField: '0' } },
+            { data: { testField: false } },
+          ],
+        },
+        { field: 'testField', value: 0 },
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0].data.testField).toBe(0);
+    });
+
+    it('uses .includes() membership for array fields regardless of order', () => {
+      const result = backend.filterEntries(
+        {
+          entries: [
+            { data: { testField: ['a', 'testValue', 'b'] } },
+            { data: { testField: ['testValue'] } },
+            { data: { testField: ['other'] } },
+          ],
+        },
+        { field: 'testField', value: 'testValue' },
+      );
+
+      expect(result).toHaveLength(2);
+    });
   });
 
   describe('resolveBackend', () => {
