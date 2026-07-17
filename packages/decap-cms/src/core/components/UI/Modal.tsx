@@ -1,15 +1,16 @@
 /** @jsxImportSource @emotion/react */
-import { Dialog } from '@base-ui/react/dialog';
 import { css } from '@emotion/react';
 import React from 'react';
 
+import { DialogPrimitive as Dialog } from '@/ui/Dialog';
 import { lengths, shadows, transitions, zIndex } from '@/ui/default/index';
 
 /**
- * Core modal, backed by Base UI's Dialog: focus trap, Escape/outside-click
- * dismissal, and body scroll lock come from Base UI. Visuals match the old
- * react-modal implementation (centered white panel over a fading dark
- * overlay); the fade in/out is driven by Base UI's `data-starting-style` /
+ * Core modal, backed by Base UI's Dialog (via the `src/ui/Dialog.tsx`
+ * wrapper, DCMS-542): focus trap, Escape/outside-click dismissal, and body
+ * scroll lock come from Base UI. Visuals match the old react-modal
+ * implementation (centered white panel over a fading dark overlay); the
+ * fade in/out is driven by Base UI's `data-starting-style` /
  * `data-ending-style` transition hooks.
  *
  * Portals into `#nc-root` if present (the classic app mount point),
