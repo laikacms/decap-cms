@@ -77,7 +77,7 @@ interface StatePayload {
 }
 
 interface TokenRequestBody {
-  client_id: string | undefined;
+  client_id: string;
   code: string | null;
   grant_type: string;
   redirect_uri: string;
@@ -94,7 +94,7 @@ export default class PkceAuthenticator {
   auth_url?: string;
   auth_token_url?: string;
   auth_token_endpoint_content_type: string | undefined;
-  appID: string | undefined;
+  appID: string;
 
   constructor(config: PkceAuthenticatorConfig = {}) {
     const useOidc: boolean | undefined = config.use_oidc;
@@ -116,7 +116,7 @@ export default class PkceAuthenticator {
       this.auth_token_url = `${baseURL}/${authTokenEndpoint}`;
     }
     this.auth_token_endpoint_content_type = config.auth_token_endpoint_content_type;
-    this.appID = config.app_id;
+    this.appID = config.app_id || '';
   }
 
   async _loadOidcConfig(): Promise<void> {
@@ -152,7 +152,7 @@ export default class PkceAuthenticator {
     }
 
     const authURL = new URL(this.auth_url!);
-    authURL.searchParams.set('client_id', this.appID || '');
+    authURL.searchParams.set('client_id', this.appID);
     authURL.searchParams.set('redirect_uri', document.location.origin + document.location.pathname);
     authURL.searchParams.set('response_type', 'code');
     authURL.searchParams.set('scope', options.scope);
