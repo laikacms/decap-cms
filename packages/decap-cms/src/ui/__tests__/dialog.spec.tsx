@@ -11,7 +11,7 @@ import {
   DialogFooter,
   DialogTitle,
   DialogTrigger,
-} from '@/ui/dialog';
+} from '@/ui/Dialog';
 
 /**
  * Pinning behavior spec for `src/ui/dialog.ts` (currently a thin re-export
