@@ -40,6 +40,13 @@ test.describe('Laika navigation', () => {
 
     const notificationRegion = page.getByRole('region', { name: /notification/i });
     await expect(notificationRegion).toContainText(/Failed to load entry/i);
-    await expect(notificationRegion.getByRole('alert')).toHaveCount(1);
+
+    // DCMS-809: high-priority (error) toasts no longer carry role="alert" on
+    // the visible node — Base UI's ToastViewport mounts a separate hidden
+    // role="alert" announcer as a SIBLING of the role="region" viewport (not
+    // a descendant of it), so the query must not be scoped inside
+    // `notificationRegion`. `getByRole` also excludes elements hidden from
+    // the accessibility tree by default, hence `includeHidden: true`.
+    await expect(page.getByRole('alert', { includeHidden: true })).toHaveCount(1);
   });
 });
