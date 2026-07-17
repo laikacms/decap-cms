@@ -358,17 +358,17 @@ export function applyDefaults(originalConfig: CmsConfig) {
         );
       }
 
-      collection.view_filters = (view_filters || []).map(filter => {
+      collection.view_filters = (view_filters || []).map((filter, index) => {
         return {
           ...filter,
-          id: `${filter.field}__${filter.pattern}`,
+          id: `${filter.field}__${index}__${filter.pattern}`,
         };
       });
 
-      collection.view_groups = (view_groups || []).map(group => {
+      collection.view_groups = (view_groups || []).map((group, index) => {
         return {
           ...group,
-          id: `${group.field}__${group.pattern}`,
+          id: `${group.field}__${index}__${group.pattern}`,
         };
       });
 

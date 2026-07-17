@@ -390,8 +390,10 @@ collections:
     fields: [...]
 ```
 
-At config-apply time each entry gets a derived `id: "${field}__${pattern}"`
-(`src/core/actions/config.tsx`); you don't set `id` yourself.
+At config-apply time each entry gets a derived `id: "${field}__${index}__${pattern}"`
+(`src/core/actions/config.tsx`, `index` is the entry's position in its own `view_filters` /
+`view_groups` list); you don't set `id` yourself. The index keeps ids unique even when `pattern`
+is omitted (valid for `view_groups`) or repeated across entries on the same field.
 
 ### `collection.sortable_fields` (and deprecated `sortableFields`)
 
