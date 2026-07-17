@@ -21,9 +21,9 @@ export function validateMinMax(
 
   if ([min, max, value?.length].every(isNumber) && (value!.length < min! || value!.length > max!)) {
     return minMaxError(min === max ? 'rangeCountExact' : 'rangeCount');
-  } else if (isNumber(min) && min > 0 && value?.length && value.length < min) {
+  } else if (isNumber(min) && min > 0 && isNumber(value?.length) && value.length < min) {
     return minMaxError('rangeMin');
-  } else if (isNumber(max) && value?.length && value.length > max) {
+  } else if (isNumber(max) && isNumber(value?.length) && value.length > max) {
     return minMaxError('rangeMax');
   }
 }
