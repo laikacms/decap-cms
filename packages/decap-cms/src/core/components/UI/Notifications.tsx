@@ -172,7 +172,15 @@ function NotificationsBridge() {
             className="notif__toast"
             css={toastStyles(toastItem.type)}
             onClick={() => close(toastItem.id)}
-            role={toastItem.type === 'error' ? 'alert' : 'status'}
+            // DCMS-809: high-priority (error) toasts are already announced by
+            // Base UI's own hidden ToastViewport announcer (role="alert"),
+            // which only mounts for priority: 'high'. Overriding role here
+            // too would mount a second role="alert" region with identical
+            // text, so only non-high-priority toasts get the role="status"
+            // override (DCMS-659); high-priority ones fall back to Base UI's
+            // default (role="alertdialog"), which isn't a live region and
+            // won't duplicate the announcement.
+            role={toastItem.priority === 'high' ? undefined : 'status'}
             aria-hidden={false}
           >
             <Toast.Title css={titleStyles} />
