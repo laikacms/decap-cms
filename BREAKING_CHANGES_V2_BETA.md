@@ -61,22 +61,6 @@ import PropTypes from 'prop-types'; // add prop-types as a direct dep
 MyControl.propTypes = { value: PropTypes.string };
 ```
 
-## Object widget: `field` renamed to `fields`
-
-The singular `field` property on the object widget is no longer supported. You must use `fields`
-(plural) instead.
-
-**Migration:** Update your configuration to use `fields` instead of `field`:
-
-```diff
-- field:
--   name: author
--   widget: string
-+ fields:
-+   - name: author
-+     widget: string
-```
-
 ## `markdown` widget renamed to `richtext`
 
 The Portable-Text-backed `markdown` widget is now registered as `richtext`. Persist-time
