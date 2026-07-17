@@ -87,6 +87,41 @@ describe('LexicalPreview reserved block types', () => {
     expect(screen.getByText('PROBE_TABLE_CELL')).toBeInTheDocument();
   });
 
+  it('renders a table cell whose value is a PortableTextDocument (DCMS-978)', () => {
+    render(
+      <LexicalPreview
+        value={[
+          {
+            _type: 'table',
+            _key: 'k0',
+            rows: [
+              {
+                _type: 'row',
+                _key: 'r0',
+                cells: [
+                  {
+                    _type: 'cell',
+                    _key: 'c0',
+                    value: [
+                      {
+                        _type: 'block',
+                        _key: 'b0',
+                        style: 'normal',
+                        children: [{ _type: 'span', _key: 's0', text: 'c1', marks: [] }],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ]}
+      />,
+    );
+    expect(screen.getByText('c1')).toBeInTheDocument();
+    expect(screen.queryByText('[object Object]')).not.toBeInTheDocument();
+  });
+
   it('does not warn for reserved block types', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     render(
