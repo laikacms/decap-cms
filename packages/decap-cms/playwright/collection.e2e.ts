@@ -32,9 +32,13 @@ test.describe('Laika collection controls', () => {
   test('group menu offers the configured view groups', async ({ page }) => {
     await page.getByRole('button', { name: 'Group by' }).click();
 
-    for (const group of ['Year', 'Drafts']) {
+    for (const group of ['Year']) {
       await expect(page.getByRole('menuitem', { name: group })).toBeVisible();
     }
+
+    // Guard against the duplicate Drafts view_groups fixture entry (DCMS-812)
+    // reappearing: dev-test/config.yml intentionally has only one view group.
+    await expect(page.getByRole('menuitem', { name: 'Drafts' })).not.toBeVisible();
   });
 
   test('New Post opens the create form', async ({ page }) => {
