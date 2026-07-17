@@ -172,6 +172,8 @@ function NotificationsBridge() {
             className="notif__toast"
             css={toastStyles(toastItem.type)}
             onClick={() => close(toastItem.id)}
+            role={toastItem.type === 'error' ? 'alert' : 'status'}
+            aria-hidden={false}
           >
             <Toast.Title css={titleStyles} />
             <Toast.Close aria-label={'Close notification'} css={closeStyles}>

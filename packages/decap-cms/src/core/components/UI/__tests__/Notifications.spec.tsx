@@ -90,9 +90,18 @@ describe('Notifications (Base UI bridge)', () => {
       { id: 'i1', message: 'fyi', type: 'info' },
     ];
     render(<Notifications />);
-    // Base UI maps priority high -> role alertdialog, low -> role dialog.
-    expect(screen.getAllByText('boom').some(el => el.closest('[role="alertdialog"]'))).toBe(true);
-    expect(screen.getAllByText('fyi').some(el => el.closest('[role="dialog"]'))).toBe(true);
+    // DCMS-659/DCMS-673: error toasts expose role="alert" (assertive),
+    // everything else role="status" (polite) — matching the previous
+    // react-toastify behavior, not Base UI's default alertdialog/dialog.
+    const errorToast = screen.getAllByText('boom').map(el => el.closest('[role="alert"]')).find(Boolean);
+    const infoToast = screen.getAllByText('fyi').map(el => el.closest('[role="status"]')).find(Boolean);
+    expect(errorToast).toBeTruthy();
+    expect(infoToast).toBeTruthy();
+    // Base UI hides high-priority toasts with aria-hidden until focused,
+    // assuming alertdialog semantics; that would strip our alert/status
+    // live region out of the accessibility tree entirely.
+    expect(errorToast).toHaveAttribute('aria-hidden', 'false');
+    expect(infoToast).toHaveAttribute('aria-hidden', 'false');
   });
 
   it('renders toasts raised through the shared ui toastManager in the same viewport', () => {
@@ -116,7 +125,7 @@ describe('Notifications (Base UI bridge)', () => {
     expect(
       screen
         .getAllByText('URL could not be copied to clipboard')
-        .some(el => el.closest('[role="alertdialog"]')),
+        .some(el => el.closest('[role="alert"]')),
     ).toBe(true);
   });
 });
