@@ -2,7 +2,14 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-import { AlertDialogHost, ConfirmDialogHost, confirmDialog, showAlert } from '@/ui/AlertDialog';
+import {
+  AlertDialogHost,
+  ConfirmDialogHost,
+  confirmDialog,
+  promptDialog,
+  PromptDialogHost,
+  showAlert,
+} from '@/ui/AlertDialog';
 
 describe('AlertDialog imperative host (Base UI)', () => {
   it('shows a queued alert and resolves once dismissed', async () => {
@@ -129,5 +136,141 @@ describe('ConfirmDialog imperative host (Base UI), DCMS-658', () => {
 
     expect(windowConfirm).toHaveBeenCalledWith('Orphan confirm');
     windowConfirm.mockRestore();
+  });
+
+  it('restores focus to the trigger element on Cancel click (DCMS-674)', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <button>Open trigger</button>
+        <ConfirmDialogHost />
+      </>,
+    );
+
+    const trigger = screen.getByRole('button', { name: 'Open trigger' });
+    trigger.focus();
+    expect(document.activeElement).toBe(trigger);
+
+    confirmDialog('Delete this entry?');
+    await screen.findByRole('alertdialog');
+
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    expect(document.activeElement).toBe(trigger);
+  });
+});
+
+describe('PromptDialog imperative host (Base UI), DCMS-658/DCMS-674', () => {
+  it('resolves with the entered value when OK is clicked', async () => {
+    const user = userEvent.setup();
+    render(<PromptDialogHost />);
+
+    const resolved = vi.fn();
+    promptDialog('Insert image URL').then(resolved);
+
+    const dialog = await screen.findByRole('alertdialog');
+    expect(dialog).toHaveTextContent('Insert image URL');
+
+    await user.click(screen.getByRole('textbox'));
+    await user.type(screen.getByRole('textbox'), 'https://example.com/cat.png');
+    await user.click(screen.getByRole('button', { name: 'OK' }));
+
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    await waitFor(() => expect(resolved).toHaveBeenCalledWith('https://example.com/cat.png'));
+  });
+
+  it('resolves with null on Cancel click', async () => {
+    const user = userEvent.setup();
+    render(<PromptDialogHost />);
+
+    const resolved = vi.fn();
+    promptDialog('Insert image URL').then(resolved);
+
+    await screen.findByRole('alertdialog');
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    await waitFor(() => expect(resolved).toHaveBeenCalledWith(null));
+  });
+
+  it('falls back to window.prompt when no host is mounted', async () => {
+    const windowPrompt = vi.spyOn(window, 'prompt').mockReturnValue('fallback value');
+
+    await expect(promptDialog('Orphan prompt')).resolves.toBe('fallback value');
+
+    expect(windowPrompt).toHaveBeenCalledWith('Orphan prompt', undefined);
+    windowPrompt.mockRestore();
+  });
+
+  it('restores focus to the trigger element on Cancel click (DCMS-674)', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <button>Insert from URL</button>
+        <PromptDialogHost />
+      </>,
+    );
+
+    const trigger = screen.getByRole('button', { name: 'Insert from URL' });
+    trigger.focus();
+    expect(document.activeElement).toBe(trigger);
+
+    promptDialog('Insert image URL');
+    // The Input inside the popup steals focus into the popup on open
+    // (autoFocus). Confirming the trigger no longer holds focus reproduces
+    // the DCMS-674 setup before asserting the dismissal path restores it.
+    await waitFor(() => expect(document.activeElement).not.toBe(trigger));
+
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  it('restores focus to the trigger element on Escape dismissal (DCMS-674)', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <button>Insert from URL</button>
+        <PromptDialogHost />
+      </>,
+    );
+
+    const trigger = screen.getByRole('button', { name: 'Insert from URL' });
+    trigger.focus();
+
+    promptDialog('Insert image URL');
+    await waitFor(() => expect(document.activeElement).not.toBe(trigger));
+
+    await user.keyboard('{Escape}');
+
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  it('restores focus to the trigger element on Enter-key dismissal (DCMS-674)', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <button>Insert from URL</button>
+        <PromptDialogHost />
+      </>,
+    );
+
+    const trigger = screen.getByRole('button', { name: 'Insert from URL' });
+    trigger.focus();
+
+    const resolved = vi.fn();
+    promptDialog('Insert image URL').then(resolved);
+    await waitFor(() => expect(document.activeElement).not.toBe(trigger));
+
+    await user.type(screen.getByRole('textbox'), 'https://example.com/dog.png{Enter}');
+
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(resolved).toHaveBeenCalledWith('https://example.com/dog.png'),
+    );
+    expect(document.activeElement).toBe(trigger);
   });
 });
