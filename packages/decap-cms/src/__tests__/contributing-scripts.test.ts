@@ -1,10 +1,15 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 // CONTRIBUTING.md lives at the repo root, four levels up from this test file
 // (src/__tests__ -> src -> packages/decap-cms -> packages -> repo root).
-const REPO_ROOT = path.resolve(__dirname, '../../../..');
+// Anchor on import.meta.url instead of __dirname: the __dirname shim vitest
+// injects for ESM sources resolves to a different segment count on Windows,
+// which threw ENOENT for CONTRIBUTING.md in CI on windows-latest.
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = path.resolve(HERE, '../../../..');
 const CONTRIBUTING_PATH = path.join(REPO_ROOT, 'CONTRIBUTING.md');
 const ROOT_PACKAGE_JSON_PATH = path.join(REPO_ROOT, 'package.json');
 
