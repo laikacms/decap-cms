@@ -6,8 +6,15 @@ import { DecapCmsProvider } from '@/core/index';
 import { createDefaultRouter } from '@/core/routing/defaultRouter';
 import { resolveTheme } from './laikaThemes';
 
-import type { DecapCmsProviderProps } from '@/core/index';
+import type { DecapCmsProviderProps, DecapTheme } from '@/core/index';
 import type { LaikaThemeMode } from './laikaThemes';
+
+/**
+ * Brand overrides layered on top of the resolved laika mode theme. Either a
+ * plain `DecapTheme` (applied to both modes) or a function of the resolved
+ * mode, for brands whose palette differs between light and dark.
+ */
+export type LaikaBrandTheme = DecapTheme | ((mode: 'light' | 'dark') => DecapTheme);
 
 /**
  * Provides a Laika dark/light theme on top of `DecapCmsProvider` — without
@@ -76,6 +83,13 @@ export interface LaikaThemeProviderProps {
   mode?: LaikaThemeMode;
   /** Called whenever the mode changes (controlled or uncontrolled). */
   onModeChange?: (mode: LaikaThemeMode) => void;
+  /**
+   * Brand color overrides, merged over the laika light/dark theme for the
+   * active mode and passed to `DecapCmsProvider.theme`. Tokens omitted here
+   * keep the mode theme's value (or the stock default). This is the seam for
+   * re-skinning the CMS without forking the provider.
+   */
+  theme?: LaikaBrandTheme;
   children?: React.ReactNode;
 }
 
@@ -83,6 +97,7 @@ export function LaikaThemeProvider({
   config,
   mode: modeProp,
   onModeChange,
+  theme: brandTheme,
   children,
 }: LaikaThemeProviderProps) {
   // Laika owns its router: one hash-router instance for this shell's
@@ -131,7 +146,21 @@ export function LaikaThemeProvider({
     return systemDark ? 'dark' : 'light';
   }, [mode, systemDark]);
 
-  const theme = useMemo(() => resolveTheme(mode), [mode]);
+  // Resolve from `resolvedMode`, not `mode`: in `'system'` mode an OS
+  // color-scheme change updates `systemDark` (and the shadow vars below) —
+  // resolving from `mode` would leave the color theme stuck on whatever the
+  // OS preferred at mount.
+  const theme = useMemo(() => {
+    const base = resolveTheme(resolvedMode);
+    if (!brandTheme) {
+      return base;
+    }
+    const brand = typeof brandTheme === 'function' ? brandTheme(resolvedMode) : brandTheme;
+    return {
+      colors: { ...base.colors, ...brand.colors },
+      colorsRaw: { ...base.colorsRaw, ...brand.colorsRaw },
+    };
+  }, [resolvedMode, brandTheme]);
 
   const value = useMemo<LaikaThemeContextValue>(
     () => ({ mode, setMode, toggleMode, resolvedMode }),

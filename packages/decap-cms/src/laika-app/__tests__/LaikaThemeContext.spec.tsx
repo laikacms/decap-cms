@@ -3,9 +3,16 @@ import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Stub DecapCmsProvider so the test doesn't pull the full Redux store —
-// see LaikaProvider.spec.tsx for the same approach.
+// see LaikaProvider.spec.tsx for the same approach. The stub records the
+// props it receives so the brand-theme merge can be asserted on.
+const { decapProviderProps } = vi.hoisted(() => ({
+  decapProviderProps: [] as Array<Record<string, unknown>>,
+}));
 vi.mock('../../core/index', () => ({
-  DecapCmsProvider: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
+  DecapCmsProvider: (props: { children?: React.ReactNode }) => {
+    decapProviderProps.push(props);
+    return <>{props.children}</>;
+  },
 }));
 
 import { LaikaThemeProvider, useLaikaTheme } from '@/laika-app/LaikaThemeContext';
@@ -77,6 +84,39 @@ describe('LaikaThemeContext', () => {
     expect(result.current.mode).toBe('light');
     // But the consumer's onModeChange callback still fires with the request.
     expect(onModeChange).toHaveBeenCalledWith('dark');
+  });
+
+  it('merges a brand theme over the resolved mode theme', () => {
+    decapProviderProps.length = 0;
+    render(
+      <LaikaThemeProvider mode="dark" theme={{ colors: { button: '#1b6875' } }}>
+        <div />
+      </LaikaThemeProvider>,
+    );
+    const theme = decapProviderProps.at(-1)?.theme as {
+      colors: Record<string, string>,
+    };
+    // Brand override wins…
+    expect(theme.colors.button).toBe('#1b6875');
+    // …while unbranded tokens keep the laika dark theme's value.
+    expect(theme.colors.active).toBe('#6ea1ff');
+  });
+
+  it('resolves a function brand theme with the resolved mode', () => {
+    decapProviderProps.length = 0;
+    const brand = vi.fn((mode: 'light' | 'dark') => ({
+      colors: { button: mode === 'dark' ? '#2f97a8' : '#1b6875' },
+    }));
+    render(
+      <LaikaThemeProvider mode="dark" theme={brand}>
+        <div />
+      </LaikaThemeProvider>,
+    );
+    expect(brand).toHaveBeenCalledWith('dark');
+    const theme = decapProviderProps.at(-1)?.theme as {
+      colors: Record<string, string>,
+    };
+    expect(theme.colors.button).toBe('#2f97a8');
   });
 
   it('renders children through the provider', () => {

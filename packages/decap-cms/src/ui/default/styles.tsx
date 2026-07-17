@@ -97,6 +97,9 @@ interface Colors {
   inactive: string;
   button: string;
   buttonText: string;
+  buttonHover: string;
+  buttonDisabled: string;
+  buttonDisabledText: string;
   inputBackground: string;
   infoText: string;
   infoBackground: string;
@@ -132,6 +135,9 @@ const colorsDefaults: Colors = {
   inactive: colorsRawDefaults.gray,
   button: colorsRawDefaults.grayDark,
   buttonText: colorsRawDefaults.white,
+  buttonHover: '#555a65',
+  buttonDisabled: colorsRawDefaults.grayLight,
+  buttonDisabledText: colorsRawDefaults.gray,
   inputBackground: colorsRawDefaults.white,
   infoText: colorsRawDefaults.blue,
   infoBackground: colorsRawDefaults.blueLight,
@@ -431,8 +437,8 @@ const buttons: Buttons = {
 
     &:focus,
     &:hover {
-      color: ${colorsRaw.white};
-      background-color: #555a65;
+      color: ${colors.buttonText};
+      background-color: ${colors.buttonHover};
     }
   `,
   grayText: css`
@@ -460,8 +466,8 @@ const buttons: Buttons = {
     color: ${colorsRaw.white};
   `,
   disabled: css`
-    background-color: ${colorsRaw.grayLight};
-    color: ${colorsRaw.gray};
+    background-color: ${colors.buttonDisabled};
+    color: ${colors.buttonDisabledText};
     cursor: default;
   `,
 };

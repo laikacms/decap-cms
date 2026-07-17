@@ -128,7 +128,7 @@ export { LAIKA_BREAKPOINT_MOBILE, LaikaShellProvider, useLaikaShell } from './La
 export { default as LaikaSidebar } from './LaikaSidebar';
 export type { LaikaNavItem, LaikaNavSection, LaikaSidebarProps } from './LaikaSidebar';
 export { default as LaikaThemeProvider, useLaikaTheme } from './LaikaThemeContext';
-export type { LaikaThemeProviderProps } from './LaikaThemeContext';
+export type { LaikaBrandTheme, LaikaThemeProviderProps } from './LaikaThemeContext';
 export { laikaDarkTheme, laikaLightTheme, resolveTheme } from './laikaThemes';
 export type { LaikaThemeMode } from './laikaThemes';
 export { default as LaikaWorkflowCard } from './LaikaWorkflowCard';

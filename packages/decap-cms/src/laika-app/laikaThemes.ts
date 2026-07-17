@@ -33,6 +33,11 @@ export const laikaDarkTheme: DecapTheme = {
     inactive: '#5a6478',
     button: '#3a69c7',
     buttonText: '#ffffff',
+    buttonHover: '#4d79d9',
+    // Match the remapped raw grays above — before these tokens existed the
+    // disabled style read `colorsRaw.grayLight`/`gray` directly.
+    buttonDisabled: '#1c1f26',
+    buttonDisabledText: '#9aa3b2',
     inputBackground: '#1c1f26',
     infoText: '#6ea1ff',
     infoBackground: '#1d2a4a',
