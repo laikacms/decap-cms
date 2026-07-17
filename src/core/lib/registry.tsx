@@ -1,27 +1,27 @@
-import { oneLine } from '@/lib/util/index';
 import {
   registerBlock as registerRichtextBlock,
   registerFormat as registerRichtextFormatPack,
   unregisterBlock as unregisterRichtextBlock,
 } from '@/lib/richtext';
+import { oneLine } from '@/lib/util/index';
 
-import type { Pluggable } from 'unified';
 import type { BlockDefinition, BlockPreviewProps, FormatPack } from '@/lib/richtext';
-import type { ComponentType } from 'react';
 import type {
-  CmsWidgetParam,
+  CmsAllowedEvent,
+  CmsConfig,
+  CmsFormatter,
+  CmsFormatterFunctions,
+  CmsImplementation,
+  CmsLocalePhrases,
   CmsMediaLibrary,
   CmsMediaLibraryOptions,
-  CmsLocalePhrases,
+  CmsWidgetParam,
   CmsWidgetValueSerializer,
-  CmsFormatterFunctions,
-  CmsAllowedEvent,
-  CmsFormatter,
-  CmsConfig,
-  CmsImplementation,
 } from '@/lib/util/index';
+import type { ComponentType } from 'react';
+import type { Pluggable } from 'unified';
 
-type CmsPreviewStyle = { raw?: boolean; value: string };
+type CmsPreviewStyle = { raw?: boolean, value: string };
 
 interface EventHandler {
   handler: Function;
@@ -182,8 +182,7 @@ export function registerWidget(options: WidgetRegistrationOptions<any>) {
   }
   registry.widgets[widgetName] = {
     control,
-    preview:
-      preview && typeof preview !== 'function' && typeof preview !== 'object' ? undefined : preview,
+    preview: preview && typeof preview !== 'function' && typeof preview !== 'object' ? undefined : preview,
     schema,
     globalStyles,
     allowMapValue,
@@ -274,7 +273,7 @@ export function getWidgetValueSerializer(widgetName: string) {
 
 export function registerBackend(
   name: string,
-  BackendClass: new (config: CmsConfig, opts?: Record<string, unknown>) => CmsImplementation,
+  BackendClass: new(config: CmsConfig, opts?: Record<string, unknown>) => CmsImplementation,
 ) {
   if (!name || !BackendClass) {
     console.error(
@@ -284,8 +283,7 @@ export function registerBackend(
     console.error(`Backend [${name}] already registered. Please choose a different name.`);
   } else {
     registry.backends[name] = {
-      init: (config: CmsConfig, opts: Record<string, unknown> = {}) =>
-        new BackendClass(config, opts),
+      init: (config: CmsConfig, opts: Record<string, unknown> = {}) => new BackendClass(config, opts),
     };
   }
 }
@@ -341,7 +339,7 @@ interface EventData {
   [key: string]: any;
 }
 
-export async function invokeEvent({ name, data }: { name: string; data: EventData }) {
+export async function invokeEvent({ name, data }: { name: string, data: EventData }) {
   validateEventName(name);
   const handlers = registry.eventHandlers[name];
 
@@ -356,7 +354,7 @@ export async function invokeEvent({ name, data }: { name: string; data: EventDat
   return _data.entry;
 }
 
-export function removeEventListener({ name, handler }: { name: string; handler?: Function }) {
+export function removeEventListener({ name, handler }: { name: string, handler?: Function }) {
   validateEventName(name);
   if (handler) {
     registry.eventHandlers[name] = registry.eventHandlers[name].filter(
@@ -395,13 +393,13 @@ export function getCustomFormats() {
 }
 
 export function getCustomFormatsExtensions(): Record<string, string> {
-  return Object.entries(registry.formats).reduce(function (acc, [name, { extension }]) {
+  return Object.entries(registry.formats).reduce(function(acc, [name, { extension }]) {
     return { ...acc, [name]: extension };
   }, {});
 }
 
 export function getCustomFormatsFormatters(): Record<string, CmsFormatterFunctions> {
-  return Object.entries(registry.formats).reduce(function (acc, [name, { formatter }]) {
+  return Object.entries(registry.formats).reduce(function(acc, [name, { formatter }]) {
     return { ...acc, [name]: formatter };
   }, {});
 }

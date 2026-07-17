@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { API_ERROR, APIError } from '@/lib/util/errors/APIError.js';
 import { ACCESS_TOKEN_ERROR, AccessTokenError } from '@/lib/util/errors/AccessTokenError.js';
+import { API_ERROR, APIError } from '@/lib/util/errors/APIError.js';
 import { CONFIGURATION_ERROR, ConfigurationError } from '@/lib/util/errors/ConfigurationError.js';
 import { LOCAL_SEARCH_ERROR, LocalSearchError } from '@/lib/util/errors/LocalSearchError.js';
 

@@ -1,9 +1,9 @@
 /** @jsxImportSource @emotion/react */
-import React from 'react';
-import { css } from '@emotion/react';
 import { Dialog } from '@base-ui/react/dialog';
+import { css } from '@emotion/react';
+import React from 'react';
 
-import { transitions, shadows, lengths, zIndex } from '@/ui/default/index';
+import { lengths, shadows, transitions, zIndex } from '@/ui/default/index';
 
 /**
  * Core modal, backed by Base UI's Dialog: focus trap, Escape/outside-click
@@ -64,8 +64,7 @@ interface ModalProps {
 }
 
 export function Modal({ isOpen, children, className, onClose }: ModalProps) {
-  const container =
-    typeof document !== 'undefined' ? (document.getElementById(ROOT_ID) ?? undefined) : undefined;
+  const container = typeof document !== 'undefined' ? (document.getElementById(ROOT_ID) ?? undefined) : undefined;
 
   return (
     <Dialog.Root

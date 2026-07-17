@@ -1,11 +1,11 @@
-import React from 'react';
 import { find, isObject } from 'lodash-es';
+import React from 'react';
 import Select from 'react-select';
 
-import { reactSelectStyles } from '@/ui/default/index';
 import { validations } from '@/lib/widgets/index';
+import { reactSelectStyles } from '@/ui/default/index';
 
-import type { CmsFieldSelect, CmsFieldBase } from '@/lib/util/index';
+import type { CmsFieldBase, CmsFieldSelect } from '@/lib/util/index';
 
 interface SelectOption {
   label: string;
@@ -30,9 +30,9 @@ function getSelectedValue({
   options,
   isMultiple,
 }: {
-  value: unknown;
-  options: SelectOption[];
-  isMultiple: boolean;
+  value: unknown,
+  options: SelectOption[],
+  isMultiple: boolean,
 }): SelectOption | SelectOption[] | null {
   if (isMultiple) {
     if (value == null) return null;
@@ -62,13 +62,12 @@ export interface SelectControlProps {
 }
 
 export interface SelectControlHandle {
-  isValid(): { error: false | { type: string; message: string } };
+  isValid(): { error: false | { type: string, message: string } };
 }
 
 const SelectControl = React.forwardRef<SelectControlHandle, SelectControlProps>(
   function SelectControl(props, ref) {
-    const { field, value, forID, classNameWrapper, setActiveStyle, setInactiveStyle, onChange, t } =
-      props;
+    const { field, value, forID, classNameWrapper, setActiveStyle, setInactiveStyle, onChange, t } = props;
 
     // Read latest props from a ref so the imperative handle stays referentially
     // stable across renders. Callers that captured the ref once (e.g. in a test

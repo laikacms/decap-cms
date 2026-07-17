@@ -42,10 +42,10 @@ globalThis.ResizeObserver ??= MockResizeObserver;
 // (Deliberately NOT stubbing Range#getBoundingClientRect: some Lexical
 // positioning code spins forever when it returns all-zero rects.)
 if (typeof Range !== 'undefined') {
-  Range.prototype.getClientRects ??= () => ({
-    length: 0,
-    item: () => null,
-    [Symbol.iterator]: [][Symbol.iterator],
-  }) as unknown as DOMRectList;
+  Range.prototype.getClientRects ??= () =>
+    ({
+      length: 0,
+      item: () => null,
+      [Symbol.iterator]: [][Symbol.iterator],
+    }) as unknown as DOMRectList;
 }
-

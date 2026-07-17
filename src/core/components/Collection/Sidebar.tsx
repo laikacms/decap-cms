@@ -1,15 +1,15 @@
-import React from 'react';
-import styled from '@emotion/styled';
 import { css } from '@emotion/react';
+import styled from '@emotion/styled';
+import React from 'react';
 
+import { searchCollections } from '@/core/actions/collections';
 import { translate } from '@/core/i18n';
 import { NavLink } from '@/core/routing/Link';
-import { Icon, components, colors } from '@/ui/default/index';
-import { searchCollections } from '@/core/actions/collections';
+import { colors, components, Icon } from '@/ui/default/index';
 import CollectionSearch from './CollectionSearch';
 import NestedCollection from './NestedCollection';
 
-import type { CmsCollectionState, CmsCollections } from '@/lib/util/index';
+import type { CmsCollections, CmsCollectionState } from '@/lib/util/index';
 import type { TranslateFunction } from '@/ui/default/index';
 
 const styles = {

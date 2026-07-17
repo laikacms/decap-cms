@@ -1,6 +1,6 @@
 import { trim, trimEnd } from 'lodash-es';
 
-import { createNonce, validateNonce, isInsecureProtocol } from './utils';
+import { createNonce, isInsecureProtocol, validateNonce } from './utils';
 
 async function sha256(text: string): Promise<string> {
   const encoder = new TextEncoder();
@@ -101,9 +101,9 @@ export default class PkceAuthenticator {
     const baseURL: string = trimEnd(config.base_url, '/') || '';
     if (!baseURL) {
       throw new Error(
-        "PkceAuthenticator: `base_url` is required (it is the provider's base URL, " +
-          'e.g. `https://gitlab.com`); omitting it produces a relative auth URL that ' +
-          'fails when passed to `new URL()`.',
+        "PkceAuthenticator: `base_url` is required (it is the provider's base URL, "
+          + 'e.g. `https://gitlab.com`); omitting it produces a relative auth URL that '
+          + 'fails when passed to `new URL()`.',
       );
     }
     const authEndpoint: string = trim(config.auth_endpoint, '/') || '';
@@ -225,10 +225,10 @@ export default class PkceAuthenticator {
         method: 'POST',
         body: contentType.startsWith('application/x-www-form-urlencoded')
           ? new URLSearchParams(
-              Object.entries(token_request_body_object).filter(
-                (entry): entry is [string, string] => entry[1] != null,
-              ),
-            ).toString()
+            Object.entries(token_request_body_object).filter(
+              (entry): entry is [string, string] => entry[1] != null,
+            ),
+          ).toString()
           : JSON.stringify(token_request_body_object),
         headers: {
           'Content-Type': contentType,
@@ -236,7 +236,7 @@ export default class PkceAuthenticator {
       });
       const data: TokenResponse = await response.json();
 
-      //no need for verifier code so remove
+      // no need for verifier code so remove
       clearCodeVerifier();
       cb(null, { token: data.access_token, ...data });
     }

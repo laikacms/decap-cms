@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import {
   editorStateFromSerializedDocument,
   type SerializedDocument,
@@ -7,11 +6,12 @@ import {
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { CLEAR_HISTORY_COMMAND } from 'lexical';
 import { SendIcon } from 'lucide-react';
+import { useEffect } from 'react';
 
 import { Button } from '@/ui/Button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/Tooltip';
 import { docFromHash, docToHash } from '@/ui/editor/utils/doc-serialization';
 import { addToast } from '@/ui/toastManager';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/Tooltip';
 
 export function ShareContentPlugin() {
   const [editor] = useLexicalComposerContext();
@@ -45,8 +45,7 @@ export function ShareContentPlugin() {
               ).then(
                 () => addToast('URL copied to clipboard', 'success'),
                 () => addToast('URL could not be copied to clipboard', 'error'),
-              )
-            }
+              )}
             title="Share"
             aria-label="Share Playground link to current editor state"
             size={'sm'}

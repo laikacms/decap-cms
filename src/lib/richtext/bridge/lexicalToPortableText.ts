@@ -1,4 +1,3 @@
-
 import { createKeyGenerator } from '@/lib/richtext/keys';
 import { formatToDecorators } from './marks';
 

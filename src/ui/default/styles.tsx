@@ -1,5 +1,5 @@
-import React from 'react';
 import { css, Global } from '@emotion/react';
+import React from 'react';
 
 import type { CSSObject, SerializedStyles } from '@emotion/react';
 
@@ -605,7 +605,7 @@ interface ReactSelectStylesState {
   isFocused?: boolean;
   hasValue?: boolean;
   selectProps?: {
-    isClearable?: boolean;
+    isClearable?: boolean,
   };
 }
 
@@ -643,8 +643,8 @@ const reactSelectStyles: ReactSelectStyles = {
     backgroundColor: state.isSelected
       ? `${colors.active}`
       : state.isFocused
-        ? `${colors.activeBackground}`
-        : 'transparent',
+      ? `${colors.activeBackground}`
+      : 'transparent',
     color: state.isSelected ? colors.textLight : colors.text,
     paddingLeft: '22px',
   }),
@@ -823,39 +823,39 @@ function GlobalStyles(): React.ReactElement {
 }
 
 export {
-  fonts,
-  colorsRaw,
+  borders,
+  buttons,
   colors,
   // Raw default values, for the rare non-CSS context (e.g. a canvas API) that
   // cannot resolve a `var()` token. Prefer `colors` / `colorsRaw` everywhere
   // a CSS value is expected so the value stays themeable.
   colorsDefaults,
+  colorsRaw,
   colorsRawDefaults,
-  lengths,
   components,
-  buttons,
-  text,
-  shadows,
-  borders,
-  transitions,
   effects,
-  zIndex,
-  reactSelectStyles,
+  fonts,
   GlobalStyles,
+  lengths,
+  reactSelectStyles,
+  shadows,
+  text,
+  transitions,
+  zIndex,
 };
 
 export type {
-  Fonts,
-  ColorsRaw,
-  Colors,
-  Lengths,
   Borders,
-  Transitions,
+  Buttons,
+  Colors,
+  ColorsRaw,
+  Components,
+  Effects,
+  Fonts,
+  Lengths,
+  ReactSelectStyles,
   Shadows,
   Text,
-  Effects,
-  Buttons,
-  Components,
+  Transitions,
   ZIndex,
-  ReactSelectStyles,
 };

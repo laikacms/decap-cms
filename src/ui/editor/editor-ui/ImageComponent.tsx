@@ -1,4 +1,3 @@
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useLexicalEditable } from '@lexical/react/useLexicalEditable';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
@@ -17,6 +16,7 @@ import {
   KEY_ESCAPE_COMMAND,
   SELECTION_CHANGE_COMMAND,
 } from 'lexical';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { $isImageNode } from '@/lib/widgets/editor/nodes/image-node';
 

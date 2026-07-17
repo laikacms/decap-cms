@@ -25,12 +25,14 @@ export interface ToastOptions {
 export const toastManager: ToastManager = Toast.createToastManager();
 
 function add(description: React.ReactNode, options: ToastOptions = {}): string {
-  return toastManager.add({
-    description,
-    type: options.type,
-    timeout: options.timeout,
-    onRemove: options.onRemove,
-  } satisfies ToastManagerAddOptions<object>);
+  return toastManager.add(
+    {
+      description,
+      type: options.type,
+      timeout: options.timeout,
+      onRemove: options.onRemove,
+    } satisfies ToastManagerAddOptions<object>,
+  );
 }
 
 /** Imperative toast API. Usable from anywhere, no `<Toaster />` ancestor required. */
@@ -194,7 +196,7 @@ export interface ToasterProps {
   manager?: ToastManager;
 }
 
-function ToastList({ position, className }: { position: ToasterPosition; className?: string }) {
+function ToastList({ position, className }: { position: ToasterPosition, className?: string }) {
   const { toasts } = Toast.useToastManager();
 
   return (

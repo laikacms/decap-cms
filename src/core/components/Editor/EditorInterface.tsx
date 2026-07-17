@@ -1,29 +1,22 @@
-import React from 'react';
 import { css, Global } from '@emotion/react';
 import styled from '@emotion/styled';
-import { Pane, SplitPane } from 'react-split-pane';
+import React from 'react';
 import { ScrollSync, ScrollSyncPane } from 'react-scroll-sync';
+import { Pane, SplitPane } from 'react-split-pane';
 
-import {
-  colors,
-  colorsRaw,
-  components,
-  transitions,
-  IconButton,
-  zIndex,
-} from '@/ui/default/index';
+import { FILES } from '@/core/constants/collectionTypes';
+import { getI18nInfo, getPreviewEntry, hasI18n } from '@/core/lib/i18n';
+import { useCmsSlots } from '@/core/lib/slots';
+import { getFileFromSlug } from '@/core/reducers/collections';
+import { colors, colorsRaw, components, IconButton, transitions, zIndex } from '@/ui/default/index';
 import EditorControlPane, { type ControlPaneHandle } from './EditorControlPane/EditorControlPane';
 import EditorPreviewPane from './EditorPreviewPane/EditorPreviewPane';
 import EditorToolbar from './EditorToolbar';
-import { useCmsSlots } from '@/core/lib/slots';
-import { hasI18n, getI18nInfo, getPreviewEntry } from '@/core/lib/i18n';
-import { FILES } from '@/core/constants/collectionTypes';
-import { getFileFromSlug } from '@/core/reducers/collections';
 
-import type { ReactNode } from 'react';
 import type { I18nInfo } from '@/core/lib/i18n';
 import type { CmsCollectionState, CmsEntry, CmsEntryField } from '@/lib/util/index';
 import type { TranslateFunction } from '@/ui/default/index';
+import type { ReactNode } from 'react';
 
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;
@@ -220,18 +213,18 @@ interface EditorInterfaceProps {
   entry: EntryMap;
   fields: EntryField[];
   fieldsMetaData: Record<string, Record<string, unknown>>;
-  fieldsErrors: Record<string, { type: string; message: string }[]>;
+  fieldsErrors: Record<string, { type: string, message: string }[]>;
   onChange: (field: EntryField, value: unknown, metadata?: unknown, i18n?: unknown) => void;
-  onValidate: (fieldName: string, errors: { type: string; message: string }[]) => void;
-  onPersist: (opts?: { createNew?: boolean; duplicate?: boolean }) => void;
+  onValidate: (fieldName: string, errors: { type: string, message: string }[]) => void;
+  onPersist: (opts?: { createNew?: boolean, duplicate?: boolean }) => void;
   showDelete: boolean;
   onDelete: () => void;
   onDeleteUnpublishedChanges: () => void;
-  onPublish: (opts?: { createNew?: boolean; duplicate?: boolean }) => void;
+  onPublish: (opts?: { createNew?: boolean, duplicate?: boolean }) => void;
   unPublish: () => void;
   onDuplicate: () => void;
   onChangeStatus: (newStatus: string) => void;
-  user?: { login?: string; name?: string; avatar_url?: string; [key: string]: unknown };
+  user?: { login?: string, name?: string, avatar_url?: string, [key: string]: unknown };
   hasChanged?: boolean;
   displayUrl?: string;
   hasWorkflow?: boolean;
@@ -241,7 +234,7 @@ interface EditorInterfaceProps {
   isModification?: boolean;
   currentStatus?: string;
   onLogoutClick: () => void;
-  deployPreview?: { url?: string; status?: string; [key: string]: unknown };
+  deployPreview?: { url?: string, status?: string, [key: string]: unknown };
   loadDeployPreview: (...args: unknown[]) => void;
   draftKey: string;
   t: TranslateFunction;
@@ -313,14 +306,14 @@ function EditorInterface(props: EditorInterfaceProps) {
     localStorage.setItem(SPLIT_PANE_POSITION, String(sizes[0]));
   }
 
-  async function handleOnPersist(opts: { createNew?: boolean; duplicate?: boolean } = {}) {
+  async function handleOnPersist(opts: { createNew?: boolean, duplicate?: boolean } = {}) {
     const { createNew = false, duplicate = false } = opts;
     await controlPaneRef.current?.switchToDefaultLocale();
     controlPaneRef.current?.validate();
     onPersist({ createNew, duplicate });
   }
 
-  async function handleOnPublish(opts: { createNew?: boolean; duplicate?: boolean } = {}) {
+  async function handleOnPublish(opts: { createNew?: boolean, duplicate?: boolean } = {}) {
     const { createNew = false, duplicate = false } = opts;
     await controlPaneRef.current?.switchToDefaultLocale();
     controlPaneRef.current?.validate();

@@ -32,9 +32,9 @@ function clearNotifications() {
 }
 
 export type NotificationsAction = {
-  type: typeof NOTIFICATION_DISMISS | typeof NOTIFICATION_SEND | typeof NOTIFICATIONS_CLEAR;
-  payload?: NotificationPayload;
-  id?: string;
+  type: typeof NOTIFICATION_DISMISS | typeof NOTIFICATION_SEND | typeof NOTIFICATIONS_CLEAR,
+  payload?: NotificationPayload,
+  id?: string,
 };
 
-export { addNotification, dismissNotification, clearNotifications };
+export { addNotification, clearNotifications, dismissNotification };

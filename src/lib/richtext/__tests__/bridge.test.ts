@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { type PortableTextDocument, stripKeys } from '@/lib/richtext/index';
 import { lexicalToPortableText } from '@/lib/richtext/bridge/lexicalToPortableText';
 import { portableTextToLexical } from '@/lib/richtext/bridge/portableTextToLexical';
+import { type PortableTextDocument, stripKeys } from '@/lib/richtext/index';
 
 import type { SerializedEditorState } from 'lexical';
 
@@ -112,7 +112,7 @@ describe('PT <-> Lexical round-trip', () => {
     ]);
   });
 
-  it('preserves inline objects among a block\'s children', () => {
+  it("preserves inline objects among a block's children", () => {
     expectStable([
       {
         _type: 'block',
@@ -167,7 +167,15 @@ describe('PT <-> Lexical round-trip', () => {
             indent: 0,
             direction: null,
             children: [
-              { type: 'text', version: 1, format: 0, detail: 0, mode: 'normal', style: '', text: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123' },
+              {
+                type: 'text',
+                version: 1,
+                format: 0,
+                detail: 0,
+                mode: 'normal',
+                style: '',
+                text: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123',
+              },
               {
                 type: 'overflow',
                 version: 1,
@@ -175,7 +183,15 @@ describe('PT <-> Lexical round-trip', () => {
                 indent: 0,
                 direction: null,
                 children: [
-                  { type: 'text', version: 1, format: 0, detail: 0, mode: 'normal', style: '', text: '456789abcdefghij' },
+                  {
+                    type: 'text',
+                    version: 1,
+                    format: 0,
+                    detail: 0,
+                    mode: 'normal',
+                    style: '',
+                    text: '456789abcdefghij',
+                  },
                 ],
               },
             ],

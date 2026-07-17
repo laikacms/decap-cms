@@ -1,9 +1,9 @@
+import { Toast } from '@base-ui/react/toast';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it } from 'vitest';
-import { Toast } from '@base-ui/react/toast';
 
-import { Toaster, toast, toastManager } from '@/ui/toast';
+import { toast, Toaster, toastManager } from '@/ui/toast';
 
 /**
  * Behavior spec for `src/ui/toast.tsx` — the Base UI Toast wrapper that

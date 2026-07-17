@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { sanitizeURI, sanitizeSlug, sanitizeChar } from '@/core/lib/urlHelper';
+import { sanitizeChar, sanitizeSlug, sanitizeURI } from '@/core/lib/urlHelper';
 
 describe('sanitizeURI', () => {
   // `sanitizeURI` tests from RFC 3987
@@ -83,7 +83,7 @@ describe('sanitizeSlug', () => {
       '`options.replacement` must be a string.',
     );
     // do not test undefined for this variant since a default is set in the constructor.
-    //expect(() => sanitizeSlug('test', { sanitize_replacement: undefined })).toThrowError("`options.replacement` must be a string.");
+    // expect(() => sanitizeSlug('test', { sanitize_replacement: undefined })).toThrowError("`options.replacement` must be a string.");
     expect(() => sanitizeSlug('test', { sanitize_replacement: () => {} })).toThrowError(
       '`options.replacement` must be a string.',
     );

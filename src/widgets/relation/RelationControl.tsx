@@ -1,7 +1,7 @@
+import { debounce, find, get, isEmpty, last, uniqBy } from 'lodash-es';
 import React from 'react';
 import { components } from 'react-select';
 import AsyncSelect from 'react-select/async';
-import { debounce, find, get, isEmpty, last, uniqBy } from 'lodash-es';
 import { List as VirtualList } from 'react-window';
 
 import { stringTemplate, validations } from '@/lib/widgets/index';
@@ -10,7 +10,7 @@ import relationCache from './RelationCache';
 
 import type { CmsFieldBase, CmsFieldRelation } from '@/lib/util/index';
 import type { CSSProperties, ReactElement } from 'react';
-import type { MultiValueProps, GroupBase } from 'react-select';
+import type { GroupBase, MultiValueProps } from 'react-select';
 
 interface RelationOption {
   label: string;
@@ -31,7 +31,7 @@ interface Hit {
 
 interface QueryResult {
   payload: {
-    hits: Hit[];
+    hits: Hit[],
   };
 }
 
@@ -72,8 +72,8 @@ function MultiValue(props: MultiValueProps<unknown, boolean, GroupBase<unknown>>
 
 function SortableSelect(props: Record<string, unknown>) {
   const { onSortEnd, isMulti } = props as {
-    onSortEnd: (args: { oldIndex: number; newIndex: number }) => void;
-    isMulti: boolean;
+    onSortEnd: (args: { oldIndex: number, newIndex: number }) => void,
+    isMulti: boolean,
   };
 
   if (!isMulti) {
@@ -93,9 +93,9 @@ interface OptionRowProps {
 
 function OptionRow(
   props: {
-    ariaAttributes: { 'aria-posinset': number; 'aria-setsize': number; role: 'listitem' };
-    index: number;
-    style: CSSProperties;
+    ariaAttributes: { 'aria-posinset': number, 'aria-setsize': number, role: 'listitem' },
+    index: number,
+    style: CSSProperties,
   } & OptionRowProps,
 ): ReactElement | null {
   const { index, style, options } = props;
@@ -157,9 +157,9 @@ function getSelectedValue({
   options,
   isMultiple,
 }: {
-  value: unknown;
-  options: RelationOption[];
-  isMultiple: boolean;
+  value: unknown,
+  options: RelationOption[],
+  isMultiple: boolean,
 }): RelationOption[] | RelationOption | null {
   if (isMultiple) {
     const selectedOptions = getSelectedOptions(value);
@@ -188,7 +188,7 @@ export interface RelationControlProps {
 }
 
 export interface RelationControlHandle {
-  isValid(): { error: false | { type: string; message: string } };
+  isValid(): { error: false | { type: string, message: string } };
 }
 
 const RelationControl = React.forwardRef<RelationControlHandle, RelationControlProps>(
@@ -222,10 +222,9 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
     }
 
     function parseNestedFields(hit: Hit, fieldName: string): string {
-      const hitData =
-        locale != null && hit.i18n != null && hit.i18n[locale] != null
-          ? hit.i18n[locale].data
-          : hit.data;
+      const hitData = locale != null && hit.i18n != null && hit.i18n[locale] != null
+        ? hit.i18n[locale].data
+        : hit.data;
       const templateVars = stringTemplate.extractTemplateVars(fieldName);
       if (templateVars.length <= 0) {
         return get(hitData, fieldName) as string;
@@ -299,9 +298,7 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
         const selectedOptions = getSelectedOptions(v);
         if (selectedOptions && selectedOptions.length > 0) {
           const matchedOptions = selectedOptions
-            .map((val: RelationOption) =>
-              options.find((opt: RelationOption) => opt.value === (val.value || val)),
-            )
+            .map((val: RelationOption) => options.find((opt: RelationOption) => opt.value === (val.value || val)))
             .filter(Boolean) as RelationOption[];
 
           if (matchedOptions.length > 0) {
@@ -404,22 +401,21 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
     }, []);
 
     function onSortEnd(options: RelationOption[]) {
-      return ({ oldIndex, newIndex }: { oldIndex: number; newIndex: number }) => {
+      return ({ oldIndex, newIndex }: { oldIndex: number, newIndex: number }) => {
         const v = options.map(optionToString);
         const newValue = arrayMove(v, oldIndex, newIndex);
         const lastOption = last(options);
         const lastValue = last(newValue);
-        const metadata =
-          (!isEmpty(options) &&
-            lastOption &&
-            lastValue && {
-              [field.name]: {
-                [field.collection]: {
-                  [lastValue]: lastOption.data,
-                },
-              },
-            }) ||
-          {};
+        const metadata = (!isEmpty(options)
+          && lastOption
+          && lastValue && {
+          [field.name]: {
+            [field.collection]: {
+              [lastValue]: lastOption.data,
+            },
+          },
+        })
+          || {};
         onChange(newValue, metadata);
       };
     }
@@ -431,17 +427,16 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
         const v = options.map(optionToString);
         const lastOption = last(options);
         const lastValue = last(v);
-        const metadata =
-          (!isEmpty(options) &&
-            lastOption &&
-            lastValue && {
-              [field.name]: {
-                [field.collection]: {
-                  [lastValue]: lastOption.data,
-                },
-              },
-            }) ||
-          {};
+        const metadata = (!isEmpty(options)
+          && lastOption
+          && lastValue && {
+          [field.name]: {
+            [field.collection]: {
+              [lastValue]: lastOption.data,
+            },
+          },
+        })
+          || {};
         onChange(v, metadata);
       } else {
         const option = selectedOption as RelationOption | null;
@@ -482,8 +477,12 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
           const file = f.file as string | undefined;
 
           relationCache
-            .getOptions(collection, searchFieldsArray, term, file, () =>
-              q(id, collection, searchFieldsArray, term, file),
+            .getOptions(
+              collection,
+              searchFieldsArray,
+              term,
+              file,
+              () => q(id, collection, searchFieldsArray, term, file),
             )
             .then((result: unknown) => {
               const queryResult = result as QueryResult;

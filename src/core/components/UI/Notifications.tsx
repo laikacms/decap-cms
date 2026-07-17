@@ -1,11 +1,11 @@
 /** @jsxImportSource @emotion/react */
-import React, { useEffect, useRef } from 'react';
 import { Toast } from '@base-ui/react/toast';
 import { css } from '@emotion/react';
+import React, { useEffect, useRef } from 'react';
 
-import { useTranslate } from '@/core/i18n';
 import { dismissNotification } from '@/core/actions/notifications';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
+import { useTranslate } from '@/core/i18n';
 import { toastManager } from '@/ui/toastManager';
 
 /**
@@ -19,7 +19,7 @@ import { toastManager } from '@/ui/toastManager';
 
 interface CmsNotification {
   id: string;
-  message: string | { key: string; details?: string; [key: string]: unknown };
+  message: string | { key: string, details?: string, [key: string]: unknown };
   type: 'success' | 'error' | 'info' | 'warning';
   dismissAfter?: number;
 }
@@ -135,10 +135,9 @@ function NotificationsBridge() {
       .filter(notification => !idMap[notification.id])
       .forEach(notification => {
         const toastId = add({
-          title:
-            typeof notification.message === 'string'
-              ? notification.message
-              : t(notification.message.key, { ...notification.message }),
+          title: typeof notification.message === 'string'
+            ? notification.message
+            : t(notification.message.key, { ...notification.message }),
           type: notification.type,
           timeout: notification.dismissAfter ?? AUTO_DISMISS_MS,
           priority: notification.type === 'error' ? 'high' : 'low',

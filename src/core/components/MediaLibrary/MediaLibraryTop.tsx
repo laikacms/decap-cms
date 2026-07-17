@@ -1,15 +1,9 @@
-import React from 'react';
 import styled from '@emotion/styled';
+import React from 'react';
 
-import MediaLibrarySearch from './MediaLibrarySearch';
+import { CopyToClipBoardButton, DeleteButton, DownloadButton, InsertButton, UploadButton } from './MediaLibraryButtons';
 import MediaLibraryHeader from './MediaLibraryHeader';
-import {
-  UploadButton,
-  DeleteButton,
-  DownloadButton,
-  CopyToClipBoardButton,
-  InsertButton,
-} from './MediaLibraryButtons';
+import MediaLibrarySearch from './MediaLibrarySearch';
 
 import type { TranslateFunction } from '@/ui/default/index';
 
@@ -47,7 +41,7 @@ interface MediaLibraryTopProps {
   hasSelection: boolean;
   isPersisting?: boolean;
   isDeleting?: boolean;
-  selectedFile?: { path: string; draft: boolean; name: string } | Record<string, never>;
+  selectedFile?: { path: string, draft: boolean, name: string } | Record<string, never>;
 }
 
 function MediaLibraryTop({

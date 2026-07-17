@@ -12,14 +12,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   commitMessageFormatter,
-  prepareSlug,
-  getProcessSegment,
-  slugFormatter,
-  previewUrlFormatter,
-  summaryFormatter,
   folderFormatter,
+  getProcessSegment,
+  prepareSlug,
+  previewUrlFormatter,
+  slugFormatter,
+  summaryFormatter,
 } from '@/core/lib/formatters';
-import { selectIdentifier, selectInferredField, getFileFromSlug } from '@/core/reducers/collections';
+import { getFileFromSlug, selectIdentifier, selectInferredField } from '@/core/reducers/collections';
 
 describe('formatters', () => {
   describe('commitMessageFormatter', () => {

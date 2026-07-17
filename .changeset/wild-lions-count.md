@@ -17,14 +17,14 @@ New features:
 
 Fixes ported from the upstream fleet line (DCMS-525..651):
 
-- Responsive fixes on mobile viewports: collection sidebar, editor split pane, media library
-  modal and card grid (DCMS-641/642/643).
-- Richtext: pasted image `src` sanitization, beacon leak stopped for allowed-protocol pasted
-  images, `OverflowNode` content included in serialized output (DCMS-636/639/640).
-- Relation and select widgets portal their menus to `document.body` so options are not
-  overlaid by sibling fields (DCMS-U-0716a).
-- `PkceAuthenticator` now fails fast when `base_url` is missing, matching documented
-  behavior (DCMS-647).
+- Responsive fixes on mobile viewports: collection sidebar, editor split pane, media library modal
+  and card grid (DCMS-641/642/643).
+- Richtext: pasted image `src` sanitization, beacon leak stopped for allowed-protocol pasted images,
+  `OverflowNode` content included in serialized output (DCMS-636/639/640).
+- Relation and select widgets portal their menus to `document.body` so options are not overlaid by
+  sibling fields (DCMS-U-0716a).
+- `PkceAuthenticator` now fails fast when `base_url` is missing, matching documented behavior
+  (DCMS-647).
 
 The repository itself is now a pnpm workspace: the package moved from the repo root to
 `packages/decap-cms` with no change to the published package layout.

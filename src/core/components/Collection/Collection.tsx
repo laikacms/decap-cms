@@ -1,35 +1,26 @@
-import React, { useCallback, useMemo } from 'react';
 import styled from '@emotion/styled';
+import React, { useCallback, useMemo } from 'react';
 
+import { changeViewStyle, filterByField, groupByField, sortByField } from '@/core/actions/entries';
+import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 import { useTranslate } from '@/core/i18n';
-import { lengths, components } from '@/ui/default/index';
-import { useAppSelector, useAppDispatch } from '@/core/hooks/useRedux';
-import { getNewEntryUrl } from '@/core/lib/urlHelper';
-import Sidebar from './Sidebar';
-import CollectionTop from './CollectionTop';
 import { useCmsSlots } from '@/core/lib/slots';
+import { getNewEntryUrl } from '@/core/lib/urlHelper';
+import { selectSortableFields, selectViewFilters, selectViewGroups } from '@/core/reducers/collections';
+import { selectEntriesFilter, selectEntriesGroup, selectEntriesSort, selectViewStyle } from '@/core/reducers/entries';
+import { components, lengths } from '@/ui/default/index';
+import CollectionControls from './CollectionControls';
+import CollectionTop from './CollectionTop';
 import EntriesCollection from './Entries/EntriesCollection';
 import EntriesSearch from './Entries/EntriesSearch';
-import CollectionControls from './CollectionControls';
-import { sortByField, filterByField, changeViewStyle, groupByField } from '@/core/actions/entries';
-import {
-  selectSortableFields,
-  selectViewFilters,
-  selectViewGroups,
-} from '@/core/reducers/collections';
-import {
-  selectEntriesSort,
-  selectEntriesFilter,
-  selectEntriesGroup,
-  selectViewStyle,
-} from '@/core/reducers/entries';
+import Sidebar from './Sidebar';
 
 import type {
-  CmsCollectionState,
   CmsCollections,
+  CmsCollectionState,
+  CmsSortDirection,
   CmsViewFilter,
   CmsViewGroup,
-  CmsSortDirection,
 } from '@/lib/util/index';
 
 const CollectionContainer = styled.div`
@@ -56,10 +47,10 @@ const SearchResultHeading = styled.h1`
 interface CollectionProps {
   match: {
     params: {
-      name?: string;
-      searchTerm?: string;
-      filterTerm?: string;
-    };
+      name?: string,
+      searchTerm?: string,
+      filterTerm?: string,
+    },
   };
   isSearchResults?: boolean;
   isSingleSearchResult?: boolean;
@@ -182,16 +173,13 @@ function CmsCollection({
   // Render helpers
   const renderEntriesCollection = useCallback(() => {
     if (!collection) return null;
-    return (
-      <EntriesCollection collection={collection} viewStyle={viewStyle} filterTerm={filterTerm} />
-    );
+    return <EntriesCollection collection={collection} viewStyle={viewStyle} filterTerm={filterTerm} />;
   }, [collection, viewStyle, filterTerm]);
 
   const renderEntriesSearch = useCallback(() => {
-    const searchCollections =
-      isSingleSearchResult && collection
-        ? Object.fromEntries(Object.entries(collections).filter(([, c]) => c === collection))
-        : collections;
+    const searchCollections = isSingleSearchResult && collection
+      ? Object.fromEntries(Object.entries(collections).filter(([, c]) => c === collection))
+      : collections;
     return <EntriesSearch collections={searchCollections} searchTerm={searchTerm} />;
   }, [collections, collection, isSingleSearchResult, searchTerm]);
 
@@ -200,8 +188,7 @@ function CmsCollection({
     return null;
   }
 
-  const searchResultKey =
-    'collection.collectionTop.searchResults' + (isSingleSearchResult ? 'InCollection' : '');
+  const searchResultKey = 'collection.collectionTop.searchResults' + (isSingleSearchResult ? 'InCollection' : '');
 
   const sidebarProps = {
     collections,
@@ -210,62 +197,66 @@ function CmsCollection({
     searchTerm,
     filterTerm,
   };
-  const sidebarNode = renderCollectionSidebar ? (
-    renderCollectionSidebar(sidebarProps)
-  ) : (
-    <Sidebar {...sidebarProps} />
-  );
+  const sidebarNode = renderCollectionSidebar
+    ? (
+      renderCollectionSidebar(sidebarProps)
+    )
+    : <Sidebar {...sidebarProps} />;
   const hasSidebar = sidebarNode != null;
 
   return (
     <CollectionContainer>
       {sidebarNode}
       <CollectionMain $hasSidebar={hasSidebar}>
-        {isSearchResults ? (
-          <SearchResultContainer>
-            <SearchResultHeading className="SearchResultHeading">
-              {t(searchResultKey, { searchTerm, collection: collection.label })}
-            </SearchResultHeading>
-          </SearchResultContainer>
-        ) : (
-          <>
-            {renderCollectionTop ? (
-              renderCollectionTop({ collection, newEntryUrl })
-            ) : (
-              <CollectionTop collection={collection} newEntryUrl={newEntryUrl} />
-            )}
-            {renderCollectionControls ? (
-              renderCollectionControls({
-                viewStyle,
-                onChangeViewStyle,
-                sortableFields,
-                onSortClick,
-                sort,
-                viewFilters,
-                viewGroups,
-                onFilterClick,
-                onGroupClick,
-                filter,
-                group,
-              })
-            ) : (
-              <CollectionControls
-                viewStyle={viewStyle}
-                onChangeViewStyle={onChangeViewStyle}
-                sortableFields={sortableFields}
-                onSortClick={onSortClick}
-                sort={sort}
-                viewFilters={viewFilters}
-                viewGroups={viewGroups}
-                t={t}
-                onFilterClick={onFilterClick}
-                onGroupClick={onGroupClick}
-                filter={filter}
-                group={group}
-              />
-            )}
-          </>
-        )}
+        {isSearchResults
+          ? (
+            <SearchResultContainer>
+              <SearchResultHeading className="SearchResultHeading">
+                {t(searchResultKey, { searchTerm, collection: collection.label })}
+              </SearchResultHeading>
+            </SearchResultContainer>
+          )
+          : (
+            <>
+              {renderCollectionTop
+                ? (
+                  renderCollectionTop({ collection, newEntryUrl })
+                )
+                : <CollectionTop collection={collection} newEntryUrl={newEntryUrl} />}
+              {renderCollectionControls
+                ? (
+                  renderCollectionControls({
+                    viewStyle,
+                    onChangeViewStyle,
+                    sortableFields,
+                    onSortClick,
+                    sort,
+                    viewFilters,
+                    viewGroups,
+                    onFilterClick,
+                    onGroupClick,
+                    filter,
+                    group,
+                  })
+                )
+                : (
+                  <CollectionControls
+                    viewStyle={viewStyle}
+                    onChangeViewStyle={onChangeViewStyle}
+                    sortableFields={sortableFields}
+                    onSortClick={onSortClick}
+                    sort={sort}
+                    viewFilters={viewFilters}
+                    viewGroups={viewGroups}
+                    t={t}
+                    onFilterClick={onFilterClick}
+                    onGroupClick={onGroupClick}
+                    filter={filter}
+                    group={group}
+                  />
+                )}
+            </>
+          )}
         {isSearchResults ? renderEntriesSearch() : renderEntriesCollection()}
       </CollectionMain>
     </CollectionContainer>

@@ -1,14 +1,14 @@
-import React from 'react';
 import styled from '@emotion/styled';
 import { isEmpty } from 'lodash-es';
+import React from 'react';
 
-import { translate } from '@/core/i18n';
-import { colors } from '@/ui/default/index';
 import { Modal } from '@/core/components/UI';
-import MediaLibraryTop from './MediaLibraryTop';
-import MediaLibraryCardGrid from './MediaLibraryCardGrid';
-import EmptyMessage from './EmptyMessage';
+import { translate } from '@/core/i18n';
 import { useCmsSlots } from '@/core/lib/slots';
+import { colors } from '@/ui/default/index';
+import EmptyMessage from './EmptyMessage';
+import MediaLibraryCardGrid from './MediaLibraryCardGrid';
+import MediaLibraryTop from './MediaLibraryTop';
 
 import type { TranslateFunction } from '@/ui/default/index';
 
@@ -93,14 +93,14 @@ interface MediaLibraryModalProps {
   handleFilter: (files: MediaFile[]) => MediaFile[];
   handleQuery: (query: string, files: MediaFile[]) => MediaFile[];
   toTableData: (files: MediaFile[]) => {
-    displayURL?: string | Record<string, unknown>;
-    id: string;
-    key: string;
-    name: string;
-    type: string;
-    draft?: boolean;
-    url?: string;
-    isViewableImage?: boolean;
+    displayURL?: string | Record<string, unknown>,
+    id: string,
+    key: string,
+    name: string,
+    type: string,
+    draft?: boolean,
+    url?: string,
+    isViewableImage?: boolean,
   }[];
   handleClose: () => void;
   handleSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -158,12 +158,11 @@ function MediaLibraryModal({
   const hasSearchResults = queriedFiles && !!queriedFiles.length;
   const hasMedia = hasSearchResults;
   const shouldShowEmptyMessage = !hasMedia;
-  const emptyMessage =
-    (isLoading && !hasMedia && t('mediaLibrary.mediaLibraryModal.loading')) ||
-    (dynamicSearchActive && t('mediaLibrary.mediaLibraryModal.noResults')) ||
-    (!hasFiles && t('mediaLibrary.mediaLibraryModal.noAssetsFound')) ||
-    (!hasFilteredFiles && t('mediaLibrary.mediaLibraryModal.noImagesFound')) ||
-    (!hasSearchResults && t('mediaLibrary.mediaLibraryModal.noResults'));
+  const emptyMessage = (isLoading && !hasMedia && t('mediaLibrary.mediaLibraryModal.loading'))
+    || (dynamicSearchActive && t('mediaLibrary.mediaLibraryModal.noResults'))
+    || (!hasFiles && t('mediaLibrary.mediaLibraryModal.noAssetsFound'))
+    || (!hasFilteredFiles && t('mediaLibrary.mediaLibraryModal.noImagesFound'))
+    || (!hasSearchResults && t('mediaLibrary.mediaLibraryModal.noResults'));
 
   const hasSelection = hasMedia && !isEmpty(selectedFile);
 
@@ -187,34 +186,28 @@ function MediaLibraryModal({
           isPersisting,
           isDeleting,
           selectedFile: selectedFile as
-            | { path: string; draft: boolean; name: string }
+            | { path: string, draft: boolean, name: string }
             | Record<string, never>
             | undefined,
         };
-        return renderMediaLibraryTop ? (
-          renderMediaLibraryTop(topProps)
-        ) : (
-          <MediaLibraryTop {...topProps} t={t} />
-        );
+        return renderMediaLibraryTop
+          ? (
+            renderMediaLibraryTop(topProps)
+          )
+          : <MediaLibraryTop {...topProps} t={t} />;
       })()}
-      {!shouldShowEmptyMessage ? null : (
-        <EmptyMessage content={emptyMessage || ''} isPrivate={privateUpload} />
-      )}
+      {!shouldShowEmptyMessage ? null : <EmptyMessage content={emptyMessage || ''} isPrivate={privateUpload} />}
       <MediaLibraryCardGrid
         setScrollContainerRef={setScrollContainerRef}
         mediaItems={tableData}
-        isSelectedFile={file =>
-          !!selectedFile && 'key' in selectedFile && selectedFile.key === file.key
-        }
-        onAssetClick={
-          handleAssetClick as (asset: {
-            key: string;
-            name: string;
-            id: string;
-            type: string;
-            draft?: boolean;
-          }) => void
-        }
+        isSelectedFile={file => !!selectedFile && 'key' in selectedFile && selectedFile.key === file.key}
+        onAssetClick={handleAssetClick as (asset: {
+          key: string,
+          name: string,
+          id: string,
+          type: string,
+          draft?: boolean,
+        }) => void}
         canLoadMore={hasNextPage}
         onLoadMore={handleLoadMore}
         isPaginating={isPaginating}
@@ -224,7 +217,7 @@ function MediaLibraryModal({
         cardHeight={cardHeight}
         cardMargin={cardMargin}
         isPrivate={privateUpload}
-        loadDisplayURL={loadDisplayURL as (file: { id: string; url?: string }) => void}
+        loadDisplayURL={loadDisplayURL as (file: { id: string, url?: string }) => void}
         displayURLs={displayURLs}
       />
     </StyledModal>

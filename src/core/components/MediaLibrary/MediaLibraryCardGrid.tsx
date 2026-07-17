@@ -1,12 +1,12 @@
-import React, { useCallback, useRef } from 'react';
 import styled from '@emotion/styled';
+import React, { useCallback, useRef } from 'react';
 import { Grid } from 'react-window';
 
+import { useCmsSlots } from '@/core/lib/slots';
 import { colors } from '@/ui/default/index';
 import InViewTrigger from '@/ui/default/InViewTrigger';
-import MediaLibraryCard from './MediaLibraryCard';
-import { useCmsSlots } from '@/core/lib/slots';
 import { useElementSize } from '@/ui/hooks/useElementSize';
+import MediaLibraryCard from './MediaLibraryCard';
 
 import type { MediaLibraryCardRenderProps } from '@/core/lib/slots';
 
@@ -38,18 +38,18 @@ interface CardCellProps {
   mediaItems: MediaItem[];
   isSelectedFile: (file: { key: string }) => boolean;
   onAssetClick: (asset: {
-    key: string;
-    name: string;
-    id: string;
-    type: string;
-    draft?: boolean;
+    key: string,
+    name: string,
+    id: string,
+    type: string,
+    draft?: boolean,
   }) => void;
   cardDraftText: string;
   cardWidth: string;
   cardHeight: string;
   isPrivate?: boolean;
   displayURLs: Record<string, unknown>;
-  loadDisplayURL: (file: { id: string; url?: string }) => void;
+  loadDisplayURL: (file: { id: string, url?: string }) => void;
   columnCount: number;
   gutter: number;
 }
@@ -57,12 +57,12 @@ interface CardCellProps {
 function CardWrapper(
   props: {
     ariaAttributes: {
-      'aria-colindex': number;
-      role: 'gridcell';
-    };
-    columnIndex: number;
-    rowIndex: number;
-    style: React.CSSProperties;
+      'aria-colindex': number,
+      role: 'gridcell',
+    },
+    columnIndex: number,
+    rowIndex: number,
+    style: React.CSSProperties,
   } & CardCellProps,
 ) {
   const {
@@ -212,9 +212,7 @@ function PaginatedGrid({
         ))}
         {!canLoadMore ? null : <InViewTrigger onEnter={onLoadMore} />}
       </CardGrid>
-      {!isPaginating ? null : (
-        <PaginatingMessage $isPrivate={isPrivate}>{paginatingMessage}</PaginatingMessage>
-      )}
+      {!isPaginating ? null : <PaginatingMessage $isPrivate={isPrivate}>{paginatingMessage}</PaginatingMessage>}
     </CardGridContainer>
   );
 }
@@ -241,11 +239,11 @@ interface MediaLibraryCardGridProps {
   mediaItems: MediaItem[];
   isSelectedFile: (file: { key: string }) => boolean;
   onAssetClick: (asset: {
-    key: string;
-    name: string;
-    id: string;
-    type: string;
-    draft?: boolean;
+    key: string,
+    name: string,
+    id: string,
+    type: string,
+    draft?: boolean,
   }) => void;
   canLoadMore?: boolean;
   onLoadMore: () => void;
@@ -255,7 +253,7 @@ interface MediaLibraryCardGridProps {
   cardWidth: string;
   cardHeight: string;
   cardMargin: string;
-  loadDisplayURL: (file: { id: string; url?: string }) => void;
+  loadDisplayURL: (file: { id: string, url?: string }) => void;
   isPrivate?: boolean;
   displayURLs: Record<string, unknown>;
 }

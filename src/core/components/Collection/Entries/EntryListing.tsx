@@ -1,14 +1,14 @@
-import React from 'react';
 import styled from '@emotion/styled';
+import React from 'react';
 
-import InViewTrigger from '@/ui/default/InViewTrigger';
+import { useCmsSlots } from '@/core/lib/slots';
 import { selectFields, selectInferredField } from '@/core/reducers/collections';
+import InViewTrigger from '@/ui/default/InViewTrigger';
 import { filterNestedEntries } from './EntriesCollection';
 import EntryCard from './EntryCard';
-import { useCmsSlots } from '@/core/lib/slots';
 
 import type { EntryCardRenderProps } from '@/core/lib/slots';
-import type { CmsCollectionState, CmsCollections, CmsEntry } from '@/lib/util/index';
+import type { CmsCollections, CmsCollectionState, CmsEntry } from '@/lib/util/index';
 import type { Cursor } from '@/lib/util/index';
 
 const CardsGrid = styled.ul`
@@ -164,16 +164,18 @@ function EntryListing({
 
   return (
     <div>
-      {showEmptyState ? (
-        renderEntryListEmpty({
-          collection: isSingleCollection(collections) ? collections : undefined,
-        })
-      ) : (
-        <CardsGrid className="CardsGrid">
-          {cards}
-          {hasMore && <InViewTrigger key={page} onEnter={handleLoadMore} />}
-        </CardsGrid>
-      )}
+      {showEmptyState
+        ? (
+          renderEntryListEmpty({
+            collection: isSingleCollection(collections) ? collections : undefined,
+          })
+        )
+        : (
+          <CardsGrid className="CardsGrid">
+            {cards}
+            {hasMore && <InViewTrigger key={page} onEnter={handleLoadMore} />}
+          </CardsGrid>
+        )}
     </div>
   );
 }

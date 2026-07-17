@@ -1,9 +1,8 @@
-import * as React from 'react';
 import { $applyNodeReplacement, DecoratorNode } from 'lexical';
+import * as React from 'react';
 
 import { sanitizeImageSrc } from '@/lib/widgets/editor/utils/url';
 
-import type { JSX } from 'react';
 import type {
   DOMConversionMap,
   DOMConversionOutput,
@@ -15,7 +14,7 @@ import type {
   SerializedLexicalNode,
   Spread,
 } from 'lexical';
-
+import type { JSX } from 'react';
 
 const ImageComponent = React.lazy(() => import('@/ui/editor/editor-ui/ImageComponent'));
 
