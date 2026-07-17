@@ -6,6 +6,7 @@ import { selectMediaDisplayURL, selectMediaFiles } from '@/core/reducers/mediaLi
 import { selectIntegration } from '@/core/reducers/selectors';
 import { createAssetProxy } from '@/core/valueObjects/AssetProxy';
 import { basename, getBlobSHA } from '@/lib/util/index';
+import { confirmDialog } from '@/ui/AlertDialog';
 import { addDraftEntryMediaFile, removeDraftEntryMediaFile } from './entries';
 import { addAsset, removeAsset } from './media';
 import { addNotification } from './notifications';
@@ -234,7 +235,7 @@ export function persistMedia(file: File, opts: MediaOptions = {}) {
      * may not be unique, so we forego this check.
      */
     if (!integration && existingFile) {
-      if (!window.confirm(`${existingFile.name} already exists. Do you want to replace it?`)) {
+      if (!(await confirmDialog(`${existingFile.name} already exists. Do you want to replace it?`))) {
         return;
       } else {
         await dispatch(deleteMedia(existingFile, { privateUpload }));

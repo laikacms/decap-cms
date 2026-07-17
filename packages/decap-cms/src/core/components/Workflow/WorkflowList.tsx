@@ -9,7 +9,7 @@ import { status } from '@/core/constants/publishModes';
 import { translate } from '@/core/i18n';
 import { useCmsSlots } from '@/core/lib/slots';
 import { selectEntryCollectionTitle } from '@/core/reducers/collections';
-import { showAlert } from '@/ui/AlertDialog';
+import { confirmDialog, showAlert } from '@/ui/AlertDialog';
 import { colors, lengths } from '@/ui/default/index';
 import WorkflowCard from './WorkflowCard';
 
@@ -172,17 +172,17 @@ function WorkflowList({
     handleChangeStatus(dragProps.collection, dragProps.slug, dragProps.ownStatus, newStatus);
   }
 
-  function requestDelete(collection: string, slug: string, ownStatus: string) {
-    if (window.confirm(t('workflow.workflowList.onDeleteEntry'))) {
+  async function requestDelete(collection: string, slug: string, ownStatus: string) {
+    if (await confirmDialog(t('workflow.workflowList.onDeleteEntry'))) {
       handleDelete(collection, slug, ownStatus);
     }
   }
 
-  function requestPublish(collection: string, slug: string, ownStatus: string) {
+  async function requestPublish(collection: string, slug: string, ownStatus: string) {
     if (ownStatus !== Object.values(status).pop()) {
       showAlert(t('workflow.workflowList.onPublishingNotReadyEntry'));
       return;
-    } else if (!window.confirm(t('workflow.workflowList.onPublishEntry'))) {
+    } else if (!(await confirmDialog(t('workflow.workflowList.onPublishEntry')))) {
       return;
     }
     handlePublish(collection, slug);

@@ -266,7 +266,7 @@ describe('useEditor dirty-navigation guard (DCMS-567)', () => {
     await setupDirtyNewEntryEditor();
     confirmSpy.mockReturnValue(true);
 
-    act(() => {
+    await act(async () => {
       fakeRouter.push('/collections/posts');
     });
 
@@ -294,7 +294,7 @@ describe('useEditor dirty-navigation guard (DCMS-567)', () => {
     await setupDirtyNewEntryEditor();
     confirmSpy.mockReturnValue(true);
 
-    act(() => {
+    await act(async () => {
       simulatePop('/collections/other');
     });
 
