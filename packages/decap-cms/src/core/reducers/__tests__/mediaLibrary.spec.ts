@@ -4,7 +4,7 @@ vi.mock('../integrations');
 
 import { describe, expect, it, vi } from 'vitest';
 
-import { mediaDeleted } from '@/core/actions/mediaLibrary';
+import { mediaDeleted, mediaLoaded } from '@/core/actions/mediaLibrary';
 import { selectEditingDraft, selectMediaFolder } from '@/core/reducers/entries';
 import { selectIntegration } from '@/core/reducers/integrations';
 import mediaLibrary, {
@@ -147,5 +147,46 @@ describe('mediaLibrary', () => {
     };
 
     expect(selectMediaDisplayURL(state, 'id')).toEqual({ url: 'url' });
+  });
+
+  describe('cursor pagination on MEDIA_LOAD_SUCCESS', () => {
+    it('should store explicit hasNextPage and cursor from a paginated backend', () => {
+      const result = mediaLibrary(
+        { files: [], displayURLs: {} },
+        mediaLoaded([{ id: 'a' }], { page: 1, canPaginate: true, hasNextPage: true, cursor: 'C1' }),
+      );
+
+      expect(result.hasNextPage).toBe(true);
+      expect(result.cursor).toBe('C1');
+      expect(result.files).toHaveLength(1);
+      expect(result.files[0]).toEqual(expect.objectContaining({ id: 'a' }));
+    });
+
+    it('should concat files on page 2 and clear cursor when exhausted', () => {
+      const result = mediaLibrary(
+        { files: [{ key: 'k1', id: 'a' }], displayURLs: {} },
+        mediaLoaded([{ id: 'b' }], { page: 2, canPaginate: true, hasNextPage: false }),
+      );
+
+      expect(result.files).toHaveLength(2);
+      expect(result.files[0]).toEqual(expect.objectContaining({ id: 'a' }));
+      expect(result.files[1]).toEqual(expect.objectContaining({ id: 'b' }));
+      expect(result.hasNextPage).toBe(false);
+      expect(result.cursor).toBeUndefined();
+    });
+
+    it('should keep the legacy length heuristic when hasNextPage is absent', () => {
+      const withFiles = mediaLibrary(
+        { files: [], displayURLs: {} },
+        mediaLoaded([{ id: 'a' }, { id: 'b' }], { page: 1, canPaginate: true }),
+      );
+      expect(withFiles.hasNextPage).toBe(true);
+
+      const withoutFiles = mediaLibrary(
+        { files: [], displayURLs: {} },
+        mediaLoaded([], { page: 1, canPaginate: true }),
+      );
+      expect(withoutFiles.hasNextPage).toBe(false);
+    });
   });
 });

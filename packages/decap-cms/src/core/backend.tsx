@@ -69,6 +69,7 @@ import type {
   CmsCredentials,
   CmsDataFile,
   CmsDisplayURL,
+  CmsGetMediaPageOptions,
   CmsImplementationEntry,
   CmsUnpublishedEntry,
   CmsUnpublishedEntryDiff,
@@ -864,6 +865,29 @@ export class Backend {
 
   getMedia() {
     return this.implementation.getMedia();
+  }
+
+  /**
+   * True when the backend implements the paginated media surface
+   * (`getMediaPage` + `getMediaCapabilities`); the media library then loads
+   * pages on demand instead of the entire library via `getMedia()`.
+   */
+  supportsMediaPagination(): boolean {
+    return Boolean(this.implementation.getMediaPage && this.implementation.getMediaCapabilities);
+  }
+
+  getMediaCapabilities() {
+    if (!this.implementation.getMediaCapabilities) {
+      return Promise.resolve({ pagination: false, dynamicSearch: false });
+    }
+    return this.implementation.getMediaCapabilities();
+  }
+
+  getMediaPage(opts: CmsGetMediaPageOptions) {
+    if (!this.implementation.getMediaPage) {
+      return Promise.reject(new Error('getMediaPage is not implemented by the current backend'));
+    }
+    return this.implementation.getMediaPage(opts);
   }
 
   getMediaFile(path: string) {

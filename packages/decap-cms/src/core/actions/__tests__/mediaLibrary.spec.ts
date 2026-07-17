@@ -2,7 +2,13 @@ import configureMockStore from 'redux-mock-store';
 import { thunk } from 'redux-thunk';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { deleteMedia, insertMedia, persistMedia } from '@/core/actions/mediaLibrary';
+import {
+  deleteMedia,
+  insertMedia,
+  loadMedia,
+  MEDIA_LIBRARY_PAGE_SIZE,
+  persistMedia,
+} from '@/core/actions/mediaLibrary';
 import * as backendModule from '@/core/backend';
 import * as libUtil from '@/lib/util/index';
 
@@ -324,6 +330,155 @@ describe('mediaLibrary', () => {
 
         expect(backend.deleteMedia).toHaveBeenCalledTimes(0);
       });
+    });
+  });
+
+  describe('loadMedia pagination', () => {
+    function createPaginatedBackend({
+      capabilities = { pagination: true, dynamicSearch: true },
+      page = { files: [{ id: 'file1', path: 'file1.png' }], nextCursor: 'N1' },
+    } = {}) {
+      return {
+        supportsMediaPagination: vi.fn(() => true),
+        getMediaCapabilities: vi.fn().mockResolvedValue(capabilities),
+        getMediaPage: vi.fn().mockResolvedValue(page),
+        getMedia: vi.fn().mockResolvedValue([]),
+      };
+    }
+
+    function createStore(mediaLibraryState = {}) {
+      return mockStore({
+        config: {},
+        collections: {},
+        integrations: { providers: {}, hooks: {} },
+        mediaLibrary: { files: [], ...mediaLibraryState },
+        entryDraft: { entry: {} },
+      });
+    }
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('should load page 1 without a cursor and store the next cursor', async () => {
+      const paginatedBackend = createPaginatedBackend();
+      currentBackend.mockReturnValue(paginatedBackend);
+      const store = createStore();
+
+      await store.dispatch(loadMedia());
+
+      expect(paginatedBackend.getMediaPage).toHaveBeenCalledTimes(1);
+      expect(paginatedBackend.getMediaPage).toHaveBeenCalledWith({
+        cursor: undefined,
+        perPage: MEDIA_LIBRARY_PAGE_SIZE,
+      });
+
+      const actions = store.getActions();
+      expect(actions).toHaveLength(2);
+      expect(actions[0]).toEqual({ type: 'MEDIA_LOAD_REQUEST', payload: { page: 1 } });
+      expect(actions[1].type).toEqual('MEDIA_LOAD_SUCCESS');
+      expect(actions[1].payload).toEqual(
+        expect.objectContaining({
+          files: [{ id: 'file1', path: 'file1.png' }],
+          page: 1,
+          canPaginate: true,
+          hasNextPage: true,
+          cursor: 'N1',
+          dynamicSearch: true,
+        }),
+      );
+    });
+
+    it('should pass the stored cursor when loading page 2', async () => {
+      const paginatedBackend = createPaginatedBackend({
+        page: { files: [{ id: 'file2', path: 'file2.png' }], nextCursor: undefined },
+      });
+      currentBackend.mockReturnValue(paginatedBackend);
+      const store = createStore({ cursor: 'N1' });
+
+      await store.dispatch(loadMedia({ page: 2 }));
+
+      expect(paginatedBackend.getMediaPage).toHaveBeenCalledWith({
+        cursor: 'N1',
+        perPage: MEDIA_LIBRARY_PAGE_SIZE,
+      });
+
+      const actions = store.getActions();
+      expect(actions[1].type).toEqual('MEDIA_LOAD_SUCCESS');
+      expect(actions[1].payload).toEqual(
+        expect.objectContaining({ page: 2, hasNextPage: false }),
+      );
+    });
+
+    it('should not call getMediaPage on page 2 without a stored cursor', async () => {
+      const paginatedBackend = createPaginatedBackend();
+      currentBackend.mockReturnValue(paginatedBackend);
+      const store = createStore();
+
+      await store.dispatch(loadMedia({ page: 2 }));
+
+      expect(paginatedBackend.getMediaPage).not.toHaveBeenCalled();
+
+      const actions = store.getActions();
+      expect(actions).toHaveLength(2);
+      expect(actions[0]).toEqual({ type: 'MEDIA_LOAD_REQUEST', payload: { page: 2 } });
+      expect(actions[1].type).toEqual('MEDIA_LOAD_SUCCESS');
+      expect(actions[1].payload).toEqual(
+        expect.objectContaining({ files: [], page: 2, canPaginate: true, hasNextPage: false }),
+      );
+    });
+
+    it('should fall through to the legacy full load when pagination is not supported', async () => {
+      const paginatedBackend = createPaginatedBackend({
+        capabilities: { pagination: false, dynamicSearch: false },
+      });
+      currentBackend.mockReturnValue(paginatedBackend);
+      const store = createStore();
+
+      await store.dispatch(loadMedia());
+
+      expect(paginatedBackend.getMediaPage).not.toHaveBeenCalled();
+      expect(paginatedBackend.getMedia).toHaveBeenCalledTimes(1);
+
+      const actions = store.getActions();
+      expect(actions[0]).toEqual({ type: 'MEDIA_LOAD_REQUEST', payload: { page: 1 } });
+      expect(actions[1].type).toEqual('MEDIA_LOAD_SUCCESS');
+    });
+
+    it('should dispatch MEDIA_LOAD_FAILURE when getMediaPage rejects', async () => {
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const paginatedBackend = createPaginatedBackend();
+      paginatedBackend.getMediaPage.mockRejectedValue(new Error('boom'));
+      currentBackend.mockReturnValue(paginatedBackend);
+      const store = createStore();
+
+      await store.dispatch(loadMedia());
+
+      const actions = store.getActions();
+      expect(actions[0]).toEqual({ type: 'MEDIA_LOAD_REQUEST', payload: { page: 1 } });
+      expect(actions[1]).toEqual({ type: 'MEDIA_LOAD_FAILURE', payload: { privateUpload: undefined } });
+
+      consoleError.mockRestore();
+    });
+
+    it('should forward the query to a dynamicSearch backend', async () => {
+      const paginatedBackend = createPaginatedBackend();
+      currentBackend.mockReturnValue(paginatedBackend);
+      const store = createStore();
+
+      await store.dispatch(loadMedia({ query: 'logo' }));
+
+      expect(paginatedBackend.getMediaPage).toHaveBeenCalledWith({
+        cursor: undefined,
+        perPage: MEDIA_LIBRARY_PAGE_SIZE,
+        query: 'logo',
+      });
+
+      const actions = store.getActions();
+      expect(actions[1].type).toEqual('MEDIA_LOAD_SUCCESS');
+      expect(actions[1].payload).toEqual(
+        expect.objectContaining({ dynamicSearch: true, dynamicSearchQuery: 'logo' }),
+      );
     });
   });
 });

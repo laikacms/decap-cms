@@ -145,6 +145,23 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
   }, []);
 
   /**
+   * When the backend performs the search (dynamicSearch), follow typing with
+   * a debounced server query so the search box behaves like the client-side
+   * filter does for fully-loaded libraries. Enter still submits immediately
+   * via handleSearchKeyDown.
+   */
+  React.useEffect(() => {
+    if (!dynamicSearch) return;
+    if (query === (dynamicSearchQuery ?? '')) return;
+    const timeout = setTimeout(() => {
+      loadMedia({ query, privateUpload });
+      scrollToTop();
+    }, 300);
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run when the typed query changes
+  }, [query]);
+
+  /**
    * The modal is rendered via a `ReactModalPortal` that sits above the router's
    * own views, so navigating away (browser Back, hash change, or a programmatic
    * router push) doesn't unmount it — `isVisible` just stays `true` and the

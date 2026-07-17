@@ -669,16 +669,19 @@ describe('LaikaBackend.traverseCursor()', () => {
 
 describe('LaikaBackend.deleteFiles()', () => {
   let mockDocRepo: ReturnType<typeof makeMockDocumentsRepository>;
+  let mockAssetsRepo: ReturnType<typeof makeMockAssetsRepository>;
   let backend: any;
 
   beforeEach(() => {
     mockDocRepo = makeMockDocumentsRepository();
+    mockAssetsRepo = makeMockAssetsRepository();
     const LaikaBackend = createLaikaBackend({
       getDocumentsRepository: () => mockDocRepo as any,
-      getAssetsRepository: () => makeMockAssetsRepository() as any,
+      getAssetsRepository: () => mockAssetsRepo as any,
     });
     backend = new LaikaBackend(makeConfig());
     (backend as any).documentsRepository = mockDocRepo;
+    (backend as any).assetsRepository = mockAssetsRepo;
     (backend as any).tokenPromise = () => Promise.resolve('fake-token');
   });
 
@@ -716,6 +719,36 @@ describe('LaikaBackend.deleteFiles()', () => {
     expect(mockDocRepo.deleteDocument).toHaveBeenCalledTimes(2);
     expect(mockDocRepo.deleteDocument).toHaveBeenCalledWith('articles/a');
     expect(mockDocRepo.deleteDocument).toHaveBeenCalledWith('articles/b');
+  });
+
+  it('routes public_folder-prefixed paths to the assets repository', async () => {
+    mockAssetsRepo.deleteAsset.mockImplementation(() => succeed(undefined));
+
+    await backend.deleteFiles(['assets/uploads/logo.svg'], 'Delete media');
+
+    expect(mockAssetsRepo.deleteAsset).toHaveBeenCalledWith('logo.svg');
+    expect(mockDocRepo.deleteDocument).not.toHaveBeenCalled();
+    expect(mockDocRepo.deleteUnpublished).not.toHaveBeenCalled();
+  });
+
+  it('splits mixed batches between documents and assets repositories', async () => {
+    mockDocRepo.deleteDocument.mockImplementation(() => succeed(undefined));
+    mockAssetsRepo.deleteAsset.mockImplementation(() => succeed(undefined));
+
+    await backend.deleteFiles(['articles/a.json', 'assets/uploads/photo.jpg'], 'Delete mixed');
+
+    expect(mockDocRepo.deleteDocument).toHaveBeenCalledTimes(1);
+    expect(mockDocRepo.deleteDocument).toHaveBeenCalledWith('articles/a');
+    expect(mockAssetsRepo.deleteAsset).toHaveBeenCalledTimes(1);
+    expect(mockAssetsRepo.deleteAsset).toHaveBeenCalledWith('photo.jpg');
+  });
+
+  it('throws when a media delete fails instead of reporting silent success', async () => {
+    mockAssetsRepo.deleteAsset.mockImplementation(() => fail({ message: 'R2 says no' }));
+
+    await expect(
+      backend.deleteFiles(['assets/uploads/gone.png'], 'Delete media'),
+    ).rejects.toThrow(/Failed to delete media assets\/uploads\/gone\.png/);
   });
 });
 
@@ -1918,10 +1951,13 @@ describe('LaikaBackend.getMediaFile()', () => {
 
     const result = await backend.getMediaFile('photo.jpg');
 
+    // `path` is the public (media_folder-prefixed) path, not the bare
+    // storage key — it must match what content stores and what Decap's
+    // `dirname(path) === media_folder` picker filter expects.
     expect(result).toMatchObject({
       id: 'photo.jpg',
       name: 'photo.jpg',
-      path: 'photo.jpg',
+      path: 'assets/uploads/photo.jpg',
       displayURL: 'https://cdn.example.com/photo.jpg',
       url: 'https://cdn.example.com/photo.jpg',
     });
@@ -2012,10 +2048,12 @@ describe('LaikaBackend.persistMedia()', () => {
     expect(mockAssetsRepo.createAsset).toHaveBeenCalledWith(
       expect.objectContaining({ key: 'photo.jpg' }),
     );
+    // Stored flat under the bare filename, but reported back under the
+    // public (media_folder-prefixed) path — see getMediaFile shape test.
     expect(result).toMatchObject({
       id: 'photo.jpg',
       name: 'photo.jpg',
-      path: 'photo.jpg',
+      path: 'assets/uploads/photo.jpg',
       displayURL: 'https://cdn.example.com/photo.jpg',
       url: 'https://cdn.example.com/photo.jpg',
     });

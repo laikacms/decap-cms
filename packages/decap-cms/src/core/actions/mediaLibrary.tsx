@@ -135,6 +135,13 @@ export function removeInsertedMedia(controlID: string) {
   return { type: MEDIA_REMOVE_INSERTED, payload: { controlID } } as const;
 }
 
+/**
+ * Page size requested from backends that support paginated media loading.
+ * Backends may return slightly more or fewer items per page (e.g. when they
+ * filter server-side); the cursor, not the count, drives the iteration.
+ */
+export const MEDIA_LIBRARY_PAGE_SIZE = 100;
+
 export function loadMedia(
   opts: { delay?: number, query?: string, page?: number, privateUpload?: boolean } = {},
 ) {
@@ -164,6 +171,55 @@ export function loadMedia(
         return dispatch(mediaLoadFailed({ privateUpload }));
       }
     }
+
+    // Paginated backend surface: load one page at a time and remember the
+    // continuation cursor in state; the grid requests further pages as the
+    // user scrolls. Search is delegated to the backend when it declares
+    // dynamicSearch, so a query never requires the full library client-side.
+    // Capabilities are consulted first (they're cached backend-side): a
+    // backend may implement getMediaPage while its deployed server predates
+    // cursor listing, in which case we fall through to the legacy full load.
+    const capabilities = backend.supportsMediaPagination?.()
+      ? await backend.getMediaCapabilities().catch(() => ({ pagination: false, dynamicSearch: false }))
+      : { pagination: false, dynamicSearch: false };
+    if (capabilities.pagination) {
+      dispatch(mediaLoading(page));
+      try {
+        const cursor = page > 1 ? getState().mediaLibrary.cursor : undefined;
+        if (page > 1 && cursor === undefined) {
+          // Nothing to continue from (exhausted or reset mid-scroll): append
+          // nothing but keep pagination state consistent.
+          return dispatch(
+            mediaLoaded([], {
+              page,
+              canPaginate: true,
+              hasNextPage: false,
+              ...(capabilities.dynamicSearch ? { dynamicSearch: true, dynamicSearchQuery: query } : {}),
+              privateUpload,
+            }),
+          );
+        }
+        const mediaPage = await backend.getMediaPage({
+          cursor,
+          perPage: MEDIA_LIBRARY_PAGE_SIZE,
+          ...(capabilities.dynamicSearch && query ? { query } : {}),
+        });
+        return dispatch(
+          mediaLoaded(mediaPage.files, {
+            page,
+            canPaginate: true,
+            hasNextPage: mediaPage.nextCursor !== undefined,
+            cursor: mediaPage.nextCursor,
+            ...(capabilities.dynamicSearch ? { dynamicSearch: true, dynamicSearchQuery: query } : {}),
+            privateUpload,
+          }),
+        );
+      } catch (error) {
+        console.error(error);
+        return dispatch(mediaLoadFailed({ privateUpload }));
+      }
+    }
+
     dispatch(mediaLoading(page));
 
     function loadFunction() {
@@ -457,6 +513,14 @@ interface MediaOptions {
   canPaginate?: boolean;
   dynamicSearch?: boolean;
   dynamicSearchQuery?: string;
+  /**
+   * Authoritative "more pages exist" signal from a cursor-paginated backend.
+   * When absent the reducer falls back to the legacy heuristic
+   * (`canPaginate && files.length > 0`).
+   */
+  hasNextPage?: boolean;
+  /** Continuation cursor for the next `loadMedia` page; absent when exhausted. */
+  cursor?: string;
 }
 
 export function mediaLoaded(files: MediaFile[], opts: MediaOptions = {}) {

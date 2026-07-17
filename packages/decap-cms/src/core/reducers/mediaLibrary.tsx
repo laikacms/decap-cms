@@ -65,6 +65,8 @@ type MediaLibrary = {
   dynamicSearch?: boolean,
   dynamicSearchActive?: boolean,
   dynamicSearchQuery?: string,
+  /** Continuation cursor from a paginated backend; absent when exhausted. */
+  cursor?: string,
 };
 
 type Integrations = {
@@ -177,6 +179,8 @@ const mediaLibrary = produce((state: MediaLibrary, action: MediaLibraryAction) =
         dynamicSearch,
         dynamicSearchQuery,
         privateUpload,
+        hasNextPage,
+        cursor,
       } = action.payload;
       if (state.privateUpload !== privateUpload) break;
 
@@ -184,7 +188,10 @@ const mediaLibrary = produce((state: MediaLibrary, action: MediaLibraryAction) =
       state.isLoading = false;
       state.isPaginating = false;
       state.page = page ?? 1;
-      state.hasNextPage = !!(canPaginate && files.length > 0);
+      // Cursor-paginated backends state hasNextPage explicitly; the length
+      // heuristic stays for the integration path, which has no cursor.
+      state.hasNextPage = hasNextPage ?? !!(canPaginate && files.length > 0);
+      state.cursor = cursor;
       state.dynamicSearch = dynamicSearch ?? false;
       state.dynamicSearchQuery = dynamicSearchQuery ?? '';
       state.dynamicSearchActive = !!dynamicSearchQuery;

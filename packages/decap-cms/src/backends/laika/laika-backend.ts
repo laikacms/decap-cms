@@ -22,15 +22,18 @@ import type {
   CmsCredentials as Credentials,
   CmsDisplayURL as DisplayURL,
   CmsFileEntry as Entry,
+  CmsGetMediaPageOptions,
   CmsImplementation as Implementation,
   CmsImplementationEntry as ImplementationEntry,
   CmsImplementationFile as ImplementationFile,
   CmsImplementationMediaFile as ImplementationMediaFile,
+  CmsMediaCapabilities,
+  CmsMediaPage,
   CmsPersistOptions as PersistOptions,
   CmsUnpublishedEntry as UnpublishedEntry,
   CmsUser as User,
 } from '@/lib/util/index';
-import type { AssetCreate, AssetsRepository } from 'laikacms/assets';
+import type { Asset, AssetCreate, AssetsRepository, Resource } from 'laikacms/assets';
 import type { ErrorCode, LaikaResult, LaikaStream, LaikaTask } from 'laikacms/core';
 import type { Pagination } from 'laikacms/core';
 import type { DocumentsRepository } from 'laikacms/documents';
@@ -173,6 +176,31 @@ export default function createLaikaBackend(
         }
       }
       return Result.succeed(data);
+    } catch (err) {
+      if (err instanceof LaikaError) return Result.fail(err);
+      throw err;
+    }
+  };
+
+  /**
+   * Drain a LaikaStream collecting data items AND the stream's done value
+   * (which `for await` discards). The done value carries continuation
+   * pagination for cursor-paginated listings.
+   */
+  const collectStreamWithDone = async <A, D extends { total?: number, pagination?: Pagination }>(
+    stream: LaikaStream.LaikaStream<A, D>,
+  ): Promise<LaikaResult<{ data: ReadonlyArray<A>, done: D }>> => {
+    const data: A[] = [];
+    const it = stream[Symbol.asyncIterator]();
+    try {
+      while (true) {
+        const step = await it.next();
+        if (step.done) return Result.succeed({ data, done: step.value });
+        for (const el of step.value) {
+          if (el._tag === 'Data') data.push(el.value);
+          else if (el._tag === 'RecoverableError') handleRecoverableWarning(el.error);
+        }
+      }
     } catch (err) {
       if (err instanceof LaikaError) return Result.fail(err);
       throw err;
@@ -964,17 +992,45 @@ export default function createLaikaBackend(
     }
 
     async deleteFiles(paths: string[], _commitMessage: string): Promise<void> {
-      const repo = this.getDocumentsRepo();
+      // Media-library paths are public_folder-prefixed (see getMedia). The
+      // documents repository cannot delete those — and since document-delete
+      // failures fall through silently here, routing media paths to it made
+      // the UI report success while the stored asset survived. Split by the
+      // public-folder prefix and send media deletes to the assets repository.
+      const publicFolder = this.publicFolder;
+      const mediaPrefix = publicFolder && publicFolder !== '.'
+        ? `${publicFolder.replace(/\/$/, '')}/`
+        : '';
+      const mediaPaths = mediaPrefix ? paths.filter(path => path.startsWith(mediaPrefix)) : [];
+      const documentPaths = mediaPrefix ? paths.filter(path => !path.startsWith(mediaPrefix)) : paths;
 
-      for (const path of paths) {
-        const key = normalizeKey(path);
-        // Try to delete as document first
-        const docResult = await firstResult(repo.deleteDocument(key));
-        if (Result.isSuccess(docResult)) {
-          continue;
+      if (documentPaths.length > 0) {
+        const repo = this.getDocumentsRepo();
+
+        for (const path of documentPaths) {
+          const key = normalizeKey(path);
+          // Try to delete as document first
+          const docResult = await firstResult(repo.deleteDocument(key));
+          if (Result.isSuccess(docResult)) {
+            continue;
+          }
+          // Fall back to delete-as-unpublished
+          await firstResult(repo.deleteUnpublished(key));
         }
-        // Fall back to delete-as-unpublished
-        await firstResult(repo.deleteUnpublished(key));
+      }
+
+      if (mediaPaths.length === 0) return;
+
+      const assetsRepo = this.getAssetsRepo();
+      for (const path of mediaPaths) {
+        const result = await firstResult(assetsRepo.deleteAsset(this.getStorageKey(path)));
+        if (Result.isFailure(result)) {
+          throw new APIError(
+            `Failed to delete media ${path}: ${result.failure.message}`,
+            ErrorCodeToStatusMap[result.failure.code as ErrorCode],
+            'Laika Backend',
+          );
+        }
       }
     }
 
@@ -997,7 +1053,90 @@ export default function createLaikaBackend(
       return `${publicFolder.replace(/\/$/, '')}/${name}`;
     }
 
-    async getMedia(mediaFolder = this.mediaFolder): Promise<ImplementationMediaFile[]> {
+    /**
+     * Paginated media surface (see CmsImplementation). Pagination requires
+     * the assets backend to support cursor listing; dynamic search requires
+     * a declared `search` filter. When the deployed assets API predates
+     * either capability this reports false and the media library falls back
+     * to the legacy full `getMedia()` load.
+     */
+    async getMediaCapabilities(): Promise<CmsMediaCapabilities> {
+      const repo = this.getAssetsRepo();
+      const caps = await firstResult(repo.getCapabilities());
+      if (Result.isFailure(caps)) {
+        return { pagination: false, dynamicSearch: false };
+      }
+      const pagination = caps.success.pagination.supported && caps.success.pagination.styles.cursor;
+      const filtering = caps.success.filtering;
+      const dynamicSearch = !!(filtering?.supported && filtering.filters.some(f => f.name === 'search'));
+      return { pagination: !!pagination, dynamicSearch };
+    }
+
+    /**
+     * Fetch one page of media via the assets repo's cursor pagination: one
+     * listing request per page (plus cached URL resolution), instead of the
+     * legacy drain-everything loop in getMedia. Assets are stored FLAT at
+     * the storage root (see getMedia), so the listing queries the root and
+     * `path` carries the public_folder-prefixed public path.
+     */
+    async getMediaPage(opts: CmsGetMediaPageOptions): Promise<CmsMediaPage> {
+      const repo = this.getAssetsRepo();
+      const { cursor, query, perPage = 100 } = opts;
+
+      const result = await collectStreamWithDone(
+        repo.listResources('', {
+          depth: Infinity,
+          pagination: { after: cursor, perPage },
+          hints: { urls: true },
+          ...(query ? { filters: { search: query } } : {}),
+        }),
+      );
+      if (Result.isFailure(result)) {
+        throw new APIError(
+          `Failed to list media: ${result.failure.message}`,
+          ErrorCodeToStatusMap[result.failure.code as ErrorCode],
+          'Laika Backend',
+        );
+      }
+
+      const assets = result.success.data.filter((r: Resource): r is Asset => r.type === 'asset');
+
+      // One batched URL resolution for the whole page; the listing's
+      // `urls` hint already primed the proxy's cache, so this is local.
+      const urlsResult = await collectStream(repo.getUrls(assets));
+      if (Result.isFailure(urlsResult)) {
+        throw new APIError(
+          `Failed to get media URLs: ${urlsResult.failure.message}`,
+          ErrorCodeToStatusMap[urlsResult.failure.code as ErrorCode],
+          'Laika Backend',
+        );
+      }
+      const urlByKey = new Map(urlsResult.success.map(u => [u.key, u.url]));
+
+      const files = assets.map((resource): ImplementationMediaFile => {
+        const displayUrl = urlByKey.get(resource.key);
+        if (!displayUrl) {
+          throw new APIError(`No URL available for asset: ${resource.key}`, 500, 'Laika Backend');
+        }
+        // Same path semantics as getMedia: `path` must be the PUBLIC path
+        // (public_folder-prefixed) or the picker filters the file out;
+        // `displayURL`/`url` carry the publicly-loadable URL.
+        return {
+          id: resource.key,
+          name: resource.key.split('/').pop() || resource.key,
+          size: (resource.content as { size?: number })?.size || 0,
+          displayURL: displayUrl,
+          path: this.getPublicPath(resource.key),
+          url: displayUrl,
+        };
+      });
+
+      const donePagination = result.success.done.pagination;
+      const nextCursor = donePagination && 'after' in donePagination ? donePagination.after : undefined;
+      return { files, ...(nextCursor ? { nextCursor } : {}) };
+    }
+
+    async getMedia(_mediaFolder = this.mediaFolder): Promise<ImplementationMediaFile[]> {
       const repo = this.getAssetsRepo();
       const media: ImplementationMediaFile[] = [];
       const repoPageSize = 100;
@@ -1012,8 +1151,13 @@ export default function createLaikaBackend(
           const pagination: Pagination = { limit: repoPageSize, offset };
           let totalItemsThisPage = 0;
 
+          // Assets are stored FLAT at the storage root: persistMedia strips the
+          // media_folder from the storage key ("assets/uploads/x.jpg" is stored
+          // as "x.jpg"). Listing must therefore query the root — passing the
+          // media_folder as the folder key returns 0 results against a laika
+          // server, because no stored key carries that prefix.
           for await (
-            const chunk of repo.listResources(mediaFolder, {
+            const chunk of repo.listResources('', {
               depth: Infinity,
               pagination,
               hints: { urls: true },
@@ -1043,19 +1187,19 @@ export default function createLaikaBackend(
                   if (!displayUrl) {
                     throw new APIError(`No URL available for asset: ${resource.key}`, 500, 'Laika Backend');
                   }
-                  // Decap CMS's per-field media picker filters `entry.mediaFiles`
-                  // by `dirname(file.path) === media_folder` (see selector `mc` /
-                  // `Tp` in decap-cms-app). So `path` MUST be the media_folder
-                  // storage path (e.g. "content/uploads/logo.svg"), not the
-                  // public URL. `displayURL` and `url` carry the publicly-loadable
-                  // URL instead. Mixing the two up makes every existing media
-                  // file invisible in the picker.
+                  // Storage keys are flat (no folder prefix), but Decap filters
+                  // media by `dirname(file.path) === media_folder` and inserts
+                  // `path` into content. So `path` must be the PUBLIC path
+                  // (public_folder-prefixed, e.g. "assets/uploads/logo.svg"),
+                  // not the bare storage key. `displayURL` and `url` carry the
+                  // publicly-loadable URL instead. Mixing these up makes every
+                  // existing media file invisible in the picker.
                   media.push({
                     id: resource.key,
                     name: resource.key.split('/').pop() || resource.key,
                     size: (resource.content as { size?: number })?.size || 0,
                     displayURL: displayUrl,
-                    path: resource.key,
+                    path: this.getPublicPath(resource.key),
                     url: displayUrl,
                   });
                 }
@@ -1135,14 +1279,15 @@ export default function createLaikaBackend(
         const blob = new Blob([], { type: mimeType });
         const file = new File([blob], name, { type: mimeType });
 
-        // `path` is the media_folder storage path (see comment in getMedia
-        // above), `url`/`displayURL` carry the public URL.
+        // `path` is the public (public_folder-prefixed) path so it matches
+        // what's stored in content (see comment in getMedia above);
+        // `url`/`displayURL` carry the public URL.
         const actualFile = {
           id: asset.key,
           name,
           size: (asset.content as { size?: number })?.size || 0,
           displayURL: url,
-          path: asset.key,
+          path: this.getPublicPath(asset.key),
           file,
           url,
         };
@@ -1221,10 +1366,11 @@ export default function createLaikaBackend(
         throw new APIError(`No URL available for newly created asset: ${newAsset.key}`, 500, 'Laika Backend');
       }
 
-      // `path` is the media_folder storage path so Decap's per-field picker
-      // filter (`dirname(file.path) === media_folder`) accepts it; `url` /
-      // `displayURL` carry the publicly-loadable URL. See the comment in
-      // getMedia for the full reasoning.
+      // `path` is the public (public_folder-prefixed) path so Decap's
+      // per-field picker filter (`dirname(file.path) === media_folder`)
+      // accepts it and content references resolve; `url` / `displayURL`
+      // carry the publicly-loadable URL. See the comment in getMedia for
+      // the full reasoning.
       const name = newAsset.key.split('/').pop() || newAsset.key;
 
       const persistedFile: ImplementationMediaFile = {
@@ -1232,7 +1378,7 @@ export default function createLaikaBackend(
         name,
         size: fileBlob.size,
         displayURL: urlResult.url,
-        path: newAsset.key,
+        path: this.getPublicPath(newAsset.key),
         url: urlResult.url,
         file: fileBlob,
       };

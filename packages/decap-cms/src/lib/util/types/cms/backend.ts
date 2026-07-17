@@ -11,7 +11,12 @@ import type {
   CmsUser,
 } from './common.js';
 import type { CmsFileEntry, CmsImplementationEntry, CmsImplementationFile, CmsUnpublishedEntry } from './entries.js';
-import type { CmsImplementationMediaFile } from './media.js';
+import type {
+  CmsGetMediaPageOptions,
+  CmsImplementationMediaFile,
+  CmsMediaCapabilities,
+  CmsMediaPage,
+} from './media.js';
 
 export type CmsBackendType =
   | 'azure'
@@ -159,6 +164,22 @@ export interface CmsImplementation {
   getMediaDisplayURL?: (displayURL: CmsDisplayURL) => Promise<string>;
   getMedia: (folder?: string) => Promise<CmsImplementationMediaFile[]>;
   getMediaFile: (path: string) => Promise<CmsImplementationMediaFile>;
+
+  /**
+   * Paginated media surface (optional). Backends that implement both methods
+   * let the media library load pages on demand (infinite scroll) instead of
+   * calling `getMedia()` for the entire library up front. `getMedia` stays
+   * required — the per-entry media-folder path and older callers still use it.
+   */
+  getMediaCapabilities?: () => Promise<CmsMediaCapabilities>;
+  /**
+   * Fetch one page of media. `cursor` is the opaque continuation returned by
+   * the previous page (omit for the first page). `query` is only passed when
+   * `getMediaCapabilities().dynamicSearch` is true; the backend applies it
+   * server-side. A missing `nextCursor` on the result means the listing is
+   * exhausted.
+   */
+  getMediaPage?: (opts: CmsGetMediaPageOptions) => Promise<CmsMediaPage>;
 
   persistEntry: (entry: CmsFileEntry, opts: CmsPersistOptions) => Promise<void>;
   persistMedia: (

@@ -4,11 +4,17 @@ import { Grid } from 'react-window';
 
 import { useCmsSlots } from '@/core/lib/slots';
 import { colors } from '@/ui/default/index';
-import InViewTrigger from '@/ui/default/InViewTrigger';
 import { useElementSize } from '@/ui/hooks/useElementSize';
 import MediaLibraryCard from './MediaLibraryCard';
 
 import type { MediaLibraryCardRenderProps } from '@/core/lib/slots';
+
+/**
+ * Request the next page when the user has rendered cells within this many
+ * rows of the end of the loaded set, so scrolling never visibly hits the
+ * bottom before more items arrive.
+ */
+const PRELOAD_ROW_THRESHOLD = 3;
 
 /**
  * Picks between the slot-supplied media card renderer and the default
@@ -119,10 +125,15 @@ function CardWrapper(
 }
 
 function VirtualizedGrid(props: MediaLibraryCardGridProps) {
-  const { mediaItems, setScrollContainerRef } = props;
+  const { mediaItems, setScrollContainerRef, canLoadMore, onLoadMore, isPaginating, paginatingMessage } = props;
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const { width, height } = useElementSize(containerRef);
+
+  // One next-page request per loaded set: remember the item count we last
+  // requested more for, so re-renders and scroll jitter near the end don't
+  // fire duplicate loads while the same page is in flight.
+  const lastRequestedAtCountRef = useRef(-1);
 
   const setContainerRef = useCallback(
     (node: HTMLDivElement | null) => {
@@ -141,8 +152,19 @@ function VirtualizedGrid(props: MediaLibraryCardGridProps) {
   const gutter = parseInt(props.cardMargin, 10);
   const columnWidth = cardWidthNum + gutter;
   const rowHeight = cardHeightNum + gutter;
-  const columnCount = Math.floor(width / columnWidth);
+  const columnCount = Math.max(1, Math.floor(width / columnWidth));
   const rowCount = Math.ceil(mediaItems.length / columnCount);
+
+  function handleCellsRendered(
+    _visibleCells: { rowStartIndex: number, rowStopIndex: number },
+    allCells: { rowStartIndex: number, rowStopIndex: number },
+  ) {
+    if (!canLoadMore || isPaginating) return;
+    if (allCells.rowStopIndex < rowCount - 1 - PRELOAD_ROW_THRESHOLD) return;
+    if (lastRequestedAtCountRef.current === mediaItems.length) return;
+    lastRequestedAtCountRef.current = mediaItems.length;
+    onLoadMore();
+  }
 
   return (
     <CardGridContainer ref={setContainerRef}>
@@ -153,6 +175,7 @@ function VirtualizedGrid(props: MediaLibraryCardGridProps) {
         rowHeight={rowHeight}
         defaultWidth={width}
         defaultHeight={height}
+        onCellsRendered={handleCellsRendered}
         cellComponent={CardWrapper}
         cellProps={{
           mediaItems: props.mediaItems,
@@ -168,51 +191,7 @@ function VirtualizedGrid(props: MediaLibraryCardGridProps) {
           gutter,
         }}
       />
-    </CardGridContainer>
-  );
-}
-
-function PaginatedGrid({
-  setScrollContainerRef,
-  mediaItems,
-  isSelectedFile,
-  onAssetClick,
-  cardDraftText,
-  cardWidth,
-  cardHeight,
-  cardMargin,
-  isPrivate,
-  displayURLs,
-  loadDisplayURL,
-  canLoadMore,
-  onLoadMore,
-  isPaginating,
-  paginatingMessage,
-}: MediaLibraryCardGridProps) {
-  return (
-    <CardGridContainer ref={setScrollContainerRef}>
-      <CardGrid>
-        {mediaItems.map((file: MediaItem) => (
-          <MediaCardSlot
-            key={file.key}
-            isSelected={isSelectedFile(file)}
-            text={file.name}
-            onClick={() => onAssetClick(file)}
-            isDraft={file.draft}
-            draftText={cardDraftText}
-            width={cardWidth}
-            height={cardHeight}
-            margin={cardMargin}
-            isPrivate={isPrivate}
-            displayURL={(displayURLs[file.id] || (file.url ? { url: file.url } : {})) as any}
-            loadDisplayURL={() => loadDisplayURL(file)}
-            type={file.type}
-            isViewableImage={file.isViewableImage ?? false}
-          />
-        ))}
-        {!canLoadMore ? null : <InViewTrigger onEnter={onLoadMore} />}
-      </CardGrid>
-      {!isPaginating ? null : <PaginatingMessage $isPrivate={isPrivate}>{paginatingMessage}</PaginatingMessage>}
+      {!isPaginating ? null : <PaginatingMessage $isPrivate={props.isPrivate}>{paginatingMessage}</PaginatingMessage>}
     </CardGridContainer>
   );
 }
@@ -220,14 +199,6 @@ function PaginatedGrid({
 const CardGridContainer = styled.div`
   overflow: auto;
   overflow-x: hidden;
-`;
-
-const CardGrid = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-
-  margin-left: -10px;
-  margin-right: -10px;
 `;
 
 const PaginatingMessage = styled.h1<{ $isPrivate?: boolean }>`
@@ -259,10 +230,9 @@ interface MediaLibraryCardGridProps {
 }
 
 function MediaLibraryCardGrid(props: MediaLibraryCardGridProps) {
-  const { canLoadMore, isPaginating } = props;
-  if (canLoadMore || isPaginating) {
-    return <PaginatedGrid {...props} />;
-  }
+  // One grid for every mode: the virtualized grid handles both the
+  // fully-loaded case and cursor-paginated infinite scroll (it requests the
+  // next page via onCellsRendered as the user nears the end).
   return <VirtualizedGrid {...props} />;
 }
 
