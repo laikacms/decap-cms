@@ -104,7 +104,7 @@ function ReactSplitPaneGlobalStyles() {
   );
 }
 
-const StyledSplitPane = styled(SplitPane as any)`
+const StyledSplitPane = styled(SplitPane)`
   ${styles.splitPane};
 
   /**
@@ -297,12 +297,13 @@ function EditorInterface(props: EditorInterfaceProps) {
     controlPaneRef.current?.focus(path);
   }
 
-  function handleSplitPaneDragStart() {
+  function handleSplitPaneResizeStart() {
     setShowEventBlocker(true);
   }
 
-  function handleSplitPaneDragFinished() {
+  function handleSplitPaneResizeEnd(sizes: number[]) {
     setShowEventBlocker(false);
+    localStorage.setItem(SPLIT_PANE_POSITION, String(sizes[0]));
   }
 
   async function handleOnPersist(opts: { createNew?: boolean, duplicate?: boolean } = {}) {
@@ -390,14 +391,15 @@ function EditorInterface(props: EditorInterfaceProps) {
         <ReactSplitPaneGlobalStyles />
         <StyledSplitPane
           direction={splitPaneDirection}
-          maxSize={-100}
-          minSize={400}
-          defaultSize={parseInt(localStorage.getItem(SPLIT_PANE_POSITION) || '0', 10) || '50%'}
-          onChange={(size: number) => localStorage.setItem(SPLIT_PANE_POSITION, String(size))}
-          onDragStarted={handleSplitPaneDragStart}
-          onDragFinished={handleSplitPaneDragFinished}
+          onResizeStart={handleSplitPaneResizeStart}
+          onResizeEnd={handleSplitPaneResizeEnd}
         >
-          <Pane className="Pane1">
+          <Pane
+            className="Pane1"
+            maxSize={-100}
+            minSize={400}
+            defaultSize={parseInt(localStorage.getItem(SPLIT_PANE_POSITION) || '0', 10) || '50%'}
+          >
             <ScrollSyncPane>{editor}</ScrollSyncPane>
           </Pane>
           <Pane className="Pane2">
@@ -422,13 +424,14 @@ function EditorInterface(props: EditorInterfaceProps) {
       <SplitPaneWrapper>
         <StyledSplitPane
           direction={splitPaneDirection}
-          maxSize={-100}
-          defaultSize={parseInt(localStorage.getItem(SPLIT_PANE_POSITION) || '0', 10) || '50%'}
-          onChange={(size: number) => localStorage.setItem(SPLIT_PANE_POSITION, String(size))}
-          onDragStarted={handleSplitPaneDragStart}
-          onDragFinished={handleSplitPaneDragFinished}
+          onResizeStart={handleSplitPaneResizeStart}
+          onResizeEnd={handleSplitPaneResizeEnd}
         >
-          <Pane className="Pane1">
+          <Pane
+            className="Pane1"
+            maxSize={-100}
+            defaultSize={parseInt(localStorage.getItem(SPLIT_PANE_POSITION) || '0', 10) || '50%'}
+          >
             <ScrollSyncPane>{editor}</ScrollSyncPane>
           </Pane>
           <Pane className="Pane2">

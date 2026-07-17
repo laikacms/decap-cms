@@ -1,5 +1,5 @@
 /* eslint-disable import/order -- vi.mock calls must precede imports that depend on them */
-import { render } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import React from 'react';
@@ -27,6 +27,38 @@ vi.mock('../../../lib/i18n', () => ({
 // doesn't satisfy — stub it out rather than growing that mock to match.
 vi.mock('../../../reducers/collections', () => ({
   getFileFromSlug: () => undefined,
+}));
+// Stub the real react-split-pane@3.2.0 components with buttons that fire the
+// same callback shapes (`onResizeStart(event)`, `onResizeEnd(sizes, event)`)
+// so DCMS-942's resize-persistence and drag-blocker wiring can be exercised
+// without mounting the library's own pointer/keyboard resize machinery.
+vi.mock('react-split-pane', () => ({
+  SplitPane: ({
+    children,
+    onResizeStart,
+    onResizeEnd,
+  }: {
+    children: React.ReactNode,
+    onResizeStart?: (event: { sizes: number[], source: string }) => void,
+    onResizeEnd?: (sizes: number[], event: { sizes: number[], source: string }) => void,
+  }) => (
+    <div data-testid="split-pane">
+      <button
+        data-testid="trigger-resize-start"
+        onClick={() => onResizeStart?.({ sizes: [300, 300], source: 'pointer' })}
+      />
+      <button
+        data-testid="trigger-resize-end"
+        onClick={() =>
+          onResizeEnd?.([321, 279], { sizes: [321, 279], source: 'pointer' })
+        }
+      />
+      {children}
+    </div>
+  ),
+  Pane: ({ children, className }: { children: React.ReactNode, className?: string }) => (
+    <div className={className}>{children}</div>
+  ),
 }));
 
 import EditorInterface from '@/core/components/Editor/EditorInterface';
@@ -87,5 +119,48 @@ describe('EditorInterface', () => {
 
     expect(rule).toBeDefined();
     expect(rule).not.toMatch(/padding-top/);
+  });
+
+  // Renders the `editorWithPreview` split-pane branch: preview enabled, i18n
+  // disabled (see `../../../lib/i18n` mock above), so `EditorContent` picks
+  // `editorWithPreview` rather than `NoPreviewContainer`.
+  const previewProps = {
+    ...props,
+    collection: {
+      type: 'other',
+      editor: { preview: true },
+    } as unknown as CmsCollectionState,
+  };
+
+  function pointerEventsOf(el: HTMLElement) {
+    const emotionClass = Array.from(el.classList).find(cls => cls.startsWith('css-'));
+    expect(emotionClass).toBeDefined();
+    const emittedCss = Array.from(document.querySelectorAll('style[data-emotion]'))
+      .map(style => style.textContent ?? '')
+      .join('\n');
+    const rule = emittedCss.split('}').find(chunk => chunk.includes(`.${emotionClass}{`));
+    return rule?.match(/pointer-events:([a-z]+)/)?.[1];
+  }
+
+  it('persists the split-pane position to localStorage on resize end (DCMS-942)', () => {
+    localStorage.removeItem('cms.split-pane-position');
+    render(<EditorInterface {...previewProps} />);
+
+    fireEvent.click(screen.getByTestId('trigger-resize-end'));
+
+    expect(localStorage.getItem('cms.split-pane-position')).toBe('321');
+  });
+
+  it('shows the pointer-event blocker overlay during a split-pane drag and hides it after (DCMS-942)', () => {
+    render(<EditorInterface {...previewProps} />);
+    const previewPaneContainer = () => screen.getByTestId('preview-pane').parentElement as HTMLElement;
+
+    expect(pointerEventsOf(previewPaneContainer())).toBe('auto');
+
+    fireEvent.click(screen.getByTestId('trigger-resize-start'));
+    expect(pointerEventsOf(previewPaneContainer())).toBe('none');
+
+    fireEvent.click(screen.getByTestId('trigger-resize-end'));
+    expect(pointerEventsOf(previewPaneContainer())).toBe('auto');
   });
 });
