@@ -4,7 +4,8 @@ import React from 'react';
 
 import { translate } from '@/core/i18n';
 import { colors, Icon, zIndex } from '@/ui/default/index';
-import { LaikaIconButton, LaikaTooltip } from './ui';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/Tooltip';
+import { LaikaIconButton } from './ui';
 
 import type { EditorViewControlsRenderProps } from '@/app/components/index';
 import type { TranslateFunction } from '@/ui/default/index';
@@ -15,7 +16,8 @@ import type { TranslateFunction } from '@/ui/default/index';
  * Slotted into core via `renderEditorViewControls`.
  *
  * Each toggle uses LaikaIconButton with `active` state matching the
- * existing red Decap toggle, wrapped in LaikaTooltip for hover hints.
+ * existing red Decap toggle, wrapped in the canonical `@/ui` Tooltip
+ * (DCMS-544) for hover hints.
  */
 
 const Cluster = styled.div`
@@ -58,44 +60,64 @@ function LaikaEditorViewControls({
     <Cluster role="group" aria-label="Editor view controls">
       {i18nEnabled
         ? (
-          <LaikaTooltip content={t('editor.editorInterface.toggleI18n')} placement="bottom">
-            <LaikaIconButton
-              size="sm"
-              active={i18nVisible}
-              aria-label={t('editor.editorInterface.toggleI18n')}
-              onClick={onToggleI18n}
-            >
-              <Icon type="page" />
-            </LaikaIconButton>
-          </LaikaTooltip>
+          <Tooltip>
+            <TooltipTrigger
+              delay={0}
+              render={
+                <LaikaIconButton
+                  size="sm"
+                  active={i18nVisible}
+                  aria-label={t('editor.editorInterface.toggleI18n')}
+                  onClick={onToggleI18n}
+                >
+                  <Icon type="page" />
+                </LaikaIconButton>
+              }
+            />
+            <TooltipContent side="bottom">{t('editor.editorInterface.toggleI18n')}</TooltipContent>
+          </Tooltip>
         )
         : null}
       {previewEnabled
         ? (
-          <LaikaTooltip content={t('editor.editorInterface.togglePreview')} placement="bottom">
-            <LaikaIconButton
-              size="sm"
-              active={previewVisible}
-              aria-label={t('editor.editorInterface.togglePreview')}
-              onClick={onTogglePreview}
-            >
-              <Icon type="eye" />
-            </LaikaIconButton>
-          </LaikaTooltip>
+          <Tooltip>
+            <TooltipTrigger
+              delay={0}
+              render={
+                <LaikaIconButton
+                  size="sm"
+                  active={previewVisible}
+                  aria-label={t('editor.editorInterface.togglePreview')}
+                  onClick={onTogglePreview}
+                >
+                  <Icon type="eye" />
+                </LaikaIconButton>
+              }
+            />
+            <TooltipContent side="bottom">{t('editor.editorInterface.togglePreview')}</TooltipContent>
+          </Tooltip>
         )
         : null}
       {scrollSyncVisible
         ? (
-          <LaikaTooltip content={t('editor.editorInterface.toggleScrollSync')} placement="bottom">
-            <LaikaIconButton
-              size="sm"
-              active={scrollSyncEnabled}
-              aria-label={t('editor.editorInterface.toggleScrollSync')}
-              onClick={onToggleScrollSync}
-            >
-              <Icon type="scroll" />
-            </LaikaIconButton>
-          </LaikaTooltip>
+          <Tooltip>
+            <TooltipTrigger
+              delay={0}
+              render={
+                <LaikaIconButton
+                  size="sm"
+                  active={scrollSyncEnabled}
+                  aria-label={t('editor.editorInterface.toggleScrollSync')}
+                  onClick={onToggleScrollSync}
+                >
+                  <Icon type="scroll" />
+                </LaikaIconButton>
+              }
+            />
+            <TooltipContent side="bottom">
+              {t('editor.editorInterface.toggleScrollSync')}
+            </TooltipContent>
+          </Tooltip>
         )
         : null}
     </Cluster>

@@ -77,6 +77,26 @@ describe('editor popup primitives (Base UI)', () => {
     expect(await screen.findByText('Clear Editor')).toBeInTheDocument();
   });
 
+  it('shows a tooltip on keyboard focus, dismisses on Escape, and wires aria-describedby', async () => {
+    const user = userEvent.setup();
+    render(
+      <Tooltip>
+        <TooltipTrigger delay={0} render={<Button>Save</Button>} />
+        <TooltipContent side="bottom">Saves the entry</TooltipContent>
+      </Tooltip>,
+    );
+
+    await user.tab();
+    const trigger = screen.getByRole('button', { name: 'Save' });
+    expect(trigger).toHaveFocus();
+    const tooltip = await screen.findByRole('tooltip');
+    expect(tooltip).toHaveTextContent('Saves the entry');
+    expect(trigger).toHaveAttribute('aria-describedby', tooltip.id);
+
+    await user.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('tooltip')).not.toBeInTheDocument());
+  });
+
   it('opens and closes a popover from its trigger', async () => {
     const user = userEvent.setup();
     render(
