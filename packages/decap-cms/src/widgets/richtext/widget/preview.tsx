@@ -1,10 +1,38 @@
 import { PortableText } from '@portabletext/react';
 import { useMemo } from 'react';
+import sanitizeHtml from 'sanitize-html';
 
 import { createRichtextValue, listBlocks, type PortableTextDocument, RichtextValue } from '@/lib/richtext';
 
 import type { PortableTextReactComponents } from '@portabletext/react';
 import type { ReactNode } from 'react';
+
+/**
+ * Allowlist sanitizer for the reserved `html` PT block's raw markup before
+ * it is mounted via `dangerouslySetInnerHTML` in the preview iframe.
+ *
+ * The preview host (`EditorPreviewPane`) mounts via `react-frame-component`,
+ * whose default iframe is `about:blank` and therefore same-origin with the
+ * CMS admin — so an unsanitized `html` block is a same-origin admin-panel
+ * XSS vector (session cookie, redux store, `window.parent`). This strips
+ * `<script>`/`<iframe>`/`<object>`/`<embed>` entirely, drops every
+ * `on*` event-handler attribute, and only allows `href`/`src` values using
+ * `http:`, `https:`, `mailto:`, or same-document `#`/relative references —
+ * `javascript:`, `data:`, and `vbscript:` schemes are rejected.
+ */
+function sanitizeReservedHtmlBlock(html: string): string {
+  return sanitizeHtml(html, {
+    allowedTags: [...sanitizeHtml.defaults.allowedTags, 'img'],
+    allowedAttributes: {
+      ...sanitizeHtml.defaults.allowedAttributes,
+      '*': ['class', 'id', 'title', 'lang', 'dir'],
+      img: ['src', 'alt', 'title', 'width', 'height'],
+    },
+    allowedSchemes: ['http', 'https', 'mailto'],
+    allowProtocolRelative: false,
+    disallowedTagsMode: 'discard',
+  });
+}
 
 interface LexicalPreviewProps {
   /** Stored field value — either a live `RichtextValue` proxy or a raw string. */
@@ -73,7 +101,8 @@ function reservedBlockPreviewComponents(): PortableTextReactComponents['types'] 
     },
     html: ({ value }) => {
       const { html } = value as { html?: unknown };
-      return typeof html === 'string' ? <div dangerouslySetInnerHTML={{ __html: html }} /> : null;
+      if (typeof html !== 'string') return null;
+      return <div dangerouslySetInnerHTML={{ __html: sanitizeReservedHtmlBlock(html) }} />;
     },
   };
 }

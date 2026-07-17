@@ -103,3 +103,67 @@ describe('LexicalPreview reserved block types', () => {
     warn.mockRestore();
   });
 });
+
+describe('LexicalPreview html block sanitization (DCMS-672)', () => {
+  afterEach(() => {
+    delete (window as unknown as { __pwn?: unknown }).__pwn;
+  });
+
+  it('strips event-handler attributes so the onerror payload never fires', () => {
+    const { container } = render(
+      <LexicalPreview
+        value={[
+          { _type: 'html', _key: 'k0', html: '<img src=x onerror=window.__pwn=1>' },
+        ]}
+      />,
+    );
+    expect((window as unknown as { __pwn?: unknown }).__pwn).toBeUndefined();
+    const img = container.querySelector('img');
+    expect(img).not.toBeNull();
+    expect(img?.hasAttribute('onerror')).toBe(false);
+  });
+
+  it('drops <script> tags entirely', () => {
+    const { container } = render(
+      <LexicalPreview
+        value={[
+          { _type: 'html', _key: 'k0', html: '<p>hi</p><script>window.__pwn=1</script>' },
+        ]}
+      />,
+    );
+    expect((window as unknown as { __pwn?: unknown }).__pwn).toBeUndefined();
+    expect(container.querySelectorAll('script')).toHaveLength(0);
+    expect(container.textContent).toContain('hi');
+  });
+
+  it('rejects javascript: and data: URI schemes on href/src', () => {
+    const { container } = render(
+      <LexicalPreview
+        value={[
+          {
+            _type: 'html',
+            _key: 'k0',
+            html:
+              '<a href="javascript:window.__pwn=1">click</a><img src="data:text/html,<script>window.__pwn=1</script>">',
+          },
+        ]}
+      />,
+    );
+    expect((window as unknown as { __pwn?: unknown }).__pwn).toBeUndefined();
+    const anchor = container.querySelector('a');
+    expect(anchor?.getAttribute('href') ?? '').not.toMatch(/^javascript:/i);
+    const img = container.querySelector('img');
+    expect(img?.getAttribute('src') ?? '').not.toMatch(/^data:/i);
+  });
+
+  it('still renders safe markup untouched', () => {
+    const { container } = render(
+      <LexicalPreview
+        value={[
+          { _type: 'html', _key: 'k0', html: '<p>Hello <strong>world</strong></p>' },
+        ]}
+      />,
+    );
+    expect(container.querySelector('strong')).toHaveTextContent('world');
+  });
+});
