@@ -187,11 +187,20 @@ function LaikaToastBridge() {
             onClick={() => close(toastItem.id)}
             // Base UI's default is role="alertdialog" (high priority) or
             // role="dialog" (low priority) — neither matches the DCMS-546
-            // a11y contract (role="status", or "alert" for errors) that the
-            // previous react-toastify implementation satisfied. Overriding
-            // here wins because Toast.Root merges caller props after its
-            // internal defaults.
-            role={toastItem.type === 'error' ? 'alert' : 'status'}
+            // a11y contract (role="status" for non-errors) that the previous
+            // react-toastify implementation satisfied. Overriding here wins
+            // because Toast.Root merges caller props after its internal
+            // defaults.
+            //
+            // DCMS-809: high-priority (error) toasts are NOT given a
+            // role="alert" override here — Base UI's ToastViewport already
+            // mounts its own hidden role="alert" announcer for every
+            // priority: 'high' toast. Overriding role on the visible node
+            // too produced two role="alert" regions with identical text,
+            // double-announcing errors to screen readers. Falling back to
+            // Base UI's default (role="alertdialog") avoids the collision;
+            // it isn't a live region, so it doesn't announce on its own.
+            role={toastItem.priority === 'high' ? undefined : 'status'}
             // Base UI also hides high-priority (error) toasts from the
             // accessibility tree via aria-hidden until they receive focus,
             // since alertdialog semantics assume a focused modal. Live

@@ -84,24 +84,32 @@ describe('Notifications (Base UI bridge)', () => {
     expect(dispatchMock).not.toHaveBeenCalled();
   });
 
-  it('announces errors assertively and others politely', () => {
+  it('announces errors assertively (once) and others politely', () => {
     notificationsState = [
       { id: 'e1', message: 'boom', type: 'error' },
       { id: 'i1', message: 'fyi', type: 'info' },
     ];
     render(<Notifications />);
-    // DCMS-659/DCMS-673: error toasts expose role="alert" (assertive),
-    // everything else role="status" (polite) — matching the previous
-    // react-toastify behavior, not Base UI's default alertdialog/dialog.
-    const errorToast = screen.getAllByText('boom').map(el => el.closest('[role="alert"]')).find(Boolean);
+    // DCMS-659/DCMS-673: non-error toasts expose role="status" (polite) on
+    // the visible Toast.Root, matching the previous react-toastify behavior.
     const infoToast = screen.getAllByText('fyi').map(el => el.closest('[role="status"]')).find(Boolean);
-    expect(errorToast).toBeTruthy();
     expect(infoToast).toBeTruthy();
-    // Base UI hides high-priority toasts with aria-hidden until focused,
-    // assuming alertdialog semantics; that would strip our alert/status
-    // live region out of the accessibility tree entirely.
-    expect(errorToast).toHaveAttribute('aria-hidden', 'false');
     expect(infoToast).toHaveAttribute('aria-hidden', 'false');
+
+    // DCMS-809: error (high-priority) toasts must NOT get a role="alert"
+    // override on the visible Toast.Root — Base UI's ToastViewport already
+    // mounts a single hidden role="alert" announcer for high-priority
+    // toasts, and duplicating the role produced two live regions with
+    // identical text (double announcement to screen readers).
+    const alertRegions = screen.getAllByText('boom').map(el => el.closest('[role="alert"]')).filter(Boolean);
+    expect(alertRegions).toHaveLength(1);
+
+    const visibleErrorToast = screen.getAllByText('boom').map(el => el.closest('.notif__toast')).find(Boolean);
+    expect(visibleErrorToast).toBeTruthy();
+    // Visible node stays exposed to AT (not hidden), but must not itself
+    // carry role="alert" — that would re-introduce the duplicate.
+    expect(visibleErrorToast).toHaveAttribute('aria-hidden', 'false');
+    expect(visibleErrorToast).not.toHaveAttribute('role', 'alert');
   });
 
   it('renders toasts raised through the shared ui toastManager in the same viewport', () => {
