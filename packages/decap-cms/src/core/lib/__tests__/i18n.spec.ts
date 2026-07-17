@@ -761,4 +761,59 @@ describe('i18n', () => {
       expect(i18n.getPreviewEntry(entry, 'en', 'en')).toBe(entry);
     });
   });
+
+  describe('serializeI18n', () => {
+    const collection = {
+      i18n: {
+        structure: i18n.I18N_STRUCTURE.MULTIPLE_FOLDERS,
+        locales: ['en', 'nl'],
+        default_locale: 'en',
+      },
+    } as never;
+
+    it('serializes each non-default locale branch', () => {
+      const entry = {
+        data: { title: 'en' },
+        i18n: { nl: { data: { title: 'nl' } } },
+      } as never;
+      const result = i18n.serializeI18n(collection, entry, data => ({ ...data, serialized: true }));
+      expect(result.i18n.nl.data).toEqual({ title: 'nl', serialized: true });
+      // The default locale's own data is serialized upstream (getSerializedEntry),
+      // not here — this only touches the other-locale branches.
+      expect(result.data).toEqual({ title: 'en' });
+    });
+
+    it('does not mutate a deep-frozen entry (regression: frozen redux state)', () => {
+      // This fork deep-freezes redux state in development. The old lodash
+      // `set(entry, [...])` mutated the frozen nested branch in place and threw
+      // "Cannot assign to read only property 'data'", killing Save on every
+      // i18n collection.
+      const deepFreeze = (o: any): any => {
+        if (o && typeof o === 'object') {
+          Object.values(o).forEach(deepFreeze);
+          Object.freeze(o);
+        }
+        return o;
+      };
+      const entry = deepFreeze({
+        data: { title: 'en' },
+        i18n: { nl: { data: { title: 'nl' } } },
+      }) as never;
+
+      expect(() => i18n.serializeI18n(collection, entry, data => ({ ...data, serialized: true })))
+        .not.toThrow();
+      const result = i18n.serializeI18n(collection, entry, data => ({ ...data, serialized: true }));
+      expect(result.i18n.nl.data).toEqual({ title: 'nl', serialized: true });
+      // The frozen source is left untouched.
+      expect((entry as any).i18n.nl.data).toEqual({ title: 'nl' });
+    });
+
+    it('returns the entry unchanged when there is only a default locale', () => {
+      const single = {
+        i18n: { structure: i18n.I18N_STRUCTURE.SINGLE_FILE, locales: ['en'], default_locale: 'en' },
+      } as never;
+      const entry = { data: { title: 'en' } } as never;
+      expect(i18n.serializeI18n(single, entry, d => d)).toBe(entry);
+    });
+  });
 });

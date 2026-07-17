@@ -463,12 +463,23 @@ export function serializeI18n(
 ) {
   const { locales, defaultLocale } = getI18nInfo(collection) as I18nInfo;
 
-  locales
-    .filter(locale => locale !== defaultLocale)
-    .forEach(locale => {
-      const dataPath = getLocaleDataPath(locale);
-      set(entry, dataPath, serializeValues(get(entry, dataPath)));
-    });
+  const otherLocales = locales.filter(locale => locale !== defaultLocale);
+  if (otherLocales.length === 0) return entry;
 
-  return entry;
+  // Rebuild the i18n branch immutably instead of `set(entry, ...)`: the entry's
+  // nested `i18n[locale]` objects come straight from redux state, which this
+  // fork deep-freezes in development. lodash `set` mutates the existing frozen
+  // object in place → "Cannot assign to read only property 'data'", which threw
+  // before the network call and made Save/Publish a silent dead button on every
+  // i18n collection (DCMS-471 follow-up).
+  const i18nBranch = { ...(get(entry, [I18N]) as Record<string, any> | undefined) };
+  for (const locale of otherLocales) {
+    const localeEntry = i18nBranch[locale];
+    i18nBranch[locale] = {
+      ...(localeEntry ?? {}),
+      data: serializeValues(get(entry, getLocaleDataPath(locale))),
+    };
+  }
+
+  return { ...entry, [I18N]: i18nBranch };
 }
