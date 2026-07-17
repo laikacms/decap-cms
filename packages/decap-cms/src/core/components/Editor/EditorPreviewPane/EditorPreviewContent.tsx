@@ -43,7 +43,14 @@ function PreviewContent({ previewComponent, previewProps, onFieldClick }: Previe
     }
 
     return (
-      <div onClick={handleClick}>
+      <div
+        onClick={handleClick}
+        // DCMS-NEW-PREVIEW-WRAP: belt-and-braces alongside the iframe's
+        // base <style> — a custom preview component may reset its own
+        // wrap/word-break, so re-assert it on the immediate content
+        // wrapper too rather than relying solely on inheritance.
+        style={{ maxWidth: '100%', overflowWrap: 'anywhere', wordBreak: 'break-word' }}
+      >
         {React.isValidElement(previewComponent)
           ? React.cloneElement(previewComponent, previewProps)
           : React.createElement(
