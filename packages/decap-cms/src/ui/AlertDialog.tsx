@@ -2,7 +2,7 @@
 import { AlertDialog as AlertDialogPrimitive } from '@base-ui/react/alert-dialog';
 import * as React from 'react';
 
-import { buttonVariants } from './Button';
+import { Button, buttonVariants } from './Button';
 import { css, type WithClassName } from './styled';
 
 export function AlertDialog(
@@ -224,6 +224,125 @@ export function AlertDialogHost(): React.ReactNode {
           <AlertDialogClose css={buttonVariants({ variant: 'outline' })}>
             {current.okLabel ?? 'OK'}
           </AlertDialogClose>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+export interface ConfirmOptions {
+  /** Dialog heading; defaults to "Confirm". */
+  title?: string;
+  /** Label for the affirmative action; defaults to "OK". */
+  confirmLabel?: string;
+  /** Label for the negative action; defaults to "Cancel". */
+  cancelLabel?: string;
+  /** Styles the affirmative action as destructive (e.g. delete/unpublish). */
+  destructive?: boolean;
+}
+
+interface PendingConfirm extends ConfirmOptions {
+  id: number;
+  message: string;
+  resolve: (confirmed: boolean) => void;
+}
+
+let pendingConfirms: PendingConfirm[] = [];
+let nextConfirmId = 1;
+const confirmListeners = new Set<() => void>();
+
+function subscribeToConfirms(listener: () => void) {
+  confirmListeners.add(listener);
+  return () => {
+    confirmListeners.delete(listener);
+  };
+}
+
+function getPendingConfirms() {
+  return pendingConfirms;
+}
+
+function emitConfirmsChanged() {
+  for (const listener of confirmListeners) listener();
+}
+
+/**
+ * Imperative replacement for `window.confirm`, usable from non-React code
+ * (actions, hooks) and, unlike the native dialog, can't be silenced by the
+ * browser's "Prevent this page from creating additional dialogs" checkbox
+ * (DCMS-658). Queues the prompt on the nearest mounted `ConfirmDialogHost`
+ * and resolves once the user answers. Falls back to `window.confirm` when no
+ * host is mounted so callers (including tests that don't render the host)
+ * keep working.
+ *
+ * One in-flight prompt resolves per call, unlike `window.confirm`'s
+ * synchronous return, this is async, so callers must `await` it (or migrate
+ * to a `.then`) instead of branching on the return value directly.
+ */
+export function confirmDialog(message: string, options: ConfirmOptions = {}): Promise<boolean> {
+  if (confirmListeners.size === 0) {
+    return Promise.resolve(window.confirm(message));
+  }
+  return new Promise(resolve => {
+    pendingConfirms = [...pendingConfirms, { id: nextConfirmId++, message, resolve, ...options }];
+    emitConfirmsChanged();
+  });
+}
+
+/**
+ * React hook form of {@link confirmDialog}, memoized so it can be listed in
+ * `useCallback`/`useEffect` dependency arrays without re-triggering on every
+ * render.
+ */
+export function useConfirm(): (message: string, options?: ConfirmOptions) => Promise<boolean> {
+  return React.useCallback(
+    (message: string, options?: ConfirmOptions) => confirmDialog(message, options),
+    [],
+  );
+}
+
+/**
+ * Renders the queue fed by `confirmDialog`, one prompt at a time. Mount
+ * exactly once, near the app root (`DecapCmsProvider` does this alongside
+ * `AlertDialogHost`).
+ */
+export function ConfirmDialogHost(): React.ReactNode {
+  const queue = React.useSyncExternalStore(subscribeToConfirms, getPendingConfirms, getPendingConfirms);
+  const current = queue[0];
+
+  if (!current) return null;
+
+  const settle = (confirmed: boolean) => {
+    pendingConfirms = pendingConfirms.filter(pending => pending.id !== current.id);
+    emitConfirmsChanged();
+    current.resolve(confirmed);
+  };
+
+  return (
+    <AlertDialog
+      key={current.id}
+      open
+      onOpenChange={open => {
+        // Escape / backdrop dismissal carries no explicit answer; treat it
+        // like Cancel rather than silently no-op'ing the caller's promise.
+        if (!open) settle(false);
+      }}
+    >
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{current.title ?? 'Confirm'}</AlertDialogTitle>
+          <AlertDialogDescription>{current.message}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <Button variant="outline" onClick={() => settle(false)}>
+            {current.cancelLabel ?? 'Cancel'}
+          </Button>
+          <Button
+            variant={current.destructive ? 'destructive' : 'default'}
+            onClick={() => settle(true)}
+          >
+            {current.confirmLabel ?? 'OK'}
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

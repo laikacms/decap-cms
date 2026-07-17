@@ -29,7 +29,7 @@ import { selectDeployPreview, selectEntry, selectUnpublishedEntry } from '@/core
 import { selectFields } from '@/core/reducers/collections';
 import { useRouter } from '@/core/routing/context';
 import { navigateToCollection, navigateToNewEntry } from '@/core/routing/navigation';
-import { showAlert } from '@/ui/AlertDialog';
+import { confirmDialog, showAlert } from '@/ui/AlertDialog';
 import { useAppDispatch, useAppSelector } from './useRedux';
 import { useTranslate } from './useTranslate';
 import { useWorkflow } from './useWorkflow';
@@ -316,9 +316,9 @@ export function useEditor({
 
   // Handle local backup confirmation
   const handleLocalBackupCheck = useCallback(
-    (prevLocalBackup: unknown) => {
+    async (prevLocalBackup: unknown) => {
       if (!prevLocalBackup && localBackup) {
-        const confirmLoadBackup = window.confirm(t('editor.editor.confirmLoadBackup'));
+        const confirmLoadBackup = await confirmDialog(t('editor.editor.confirmLoadBackup'));
         if (confirmLoadBackup) {
           dispatch(loadLocalBackup() as any);
         } else {
@@ -429,7 +429,7 @@ export function useEditor({
       } else if (entryDraft?.hasChanged) {
         showAlert(t('editor.editor.onPublishingWithUnsavedChanges'));
         return;
-      } else if (!window.confirm(t('editor.editor.onPublishing'))) {
+      } else if (!(await confirmDialog(t('editor.editor.onPublishing')))) {
         return;
       }
 
@@ -450,7 +450,7 @@ export function useEditor({
   const handleUnpublishEntry = useCallback(async () => {
     if (!collection || !slug) return;
 
-    if (!window.confirm(t('editor.editor.onUnpublishing'))) return;
+    if (!(await confirmDialog(t('editor.editor.onUnpublishing'), { destructive: true }))) return;
 
     await dispatch(unpublishPublishedEntry(collection, slug) as any);
     return navigateToCollection(collection.name);
@@ -464,14 +464,14 @@ export function useEditor({
     dispatch(createDraftDuplicateFromEntry(entryDraft.entry) as any);
   }, [collection, entryDraft, dispatch]);
 
-  const handleDeleteEntry = useCallback(() => {
+  const handleDeleteEntry = useCallback(async () => {
     if (!collection) return;
 
     if (entryDraft?.hasChanged) {
-      if (!window.confirm(t('editor.editor.onDeleteWithUnsavedChanges'))) {
+      if (!(await confirmDialog(t('editor.editor.onDeleteWithUnsavedChanges'), { destructive: true }))) {
         return;
       }
-    } else if (!window.confirm(t('editor.editor.onDeletePublishedEntry'))) {
+    } else if (!(await confirmDialog(t('editor.editor.onDeletePublishedEntry'), { destructive: true }))) {
       return;
     }
 
@@ -493,10 +493,10 @@ export function useEditor({
 
     if (
       entryDraft?.hasChanged
-      && !window.confirm(t('editor.editor.onDeleteUnpublishedChangesWithUnsavedChanges'))
+      && !(await confirmDialog(t('editor.editor.onDeleteUnpublishedChangesWithUnsavedChanges'), { destructive: true }))
     ) {
       return;
-    } else if (!window.confirm(t('editor.editor.onDeleteUnpublishedChanges'))) {
+    } else if (!(await confirmDialog(t('editor.editor.onDeleteUnpublishedChanges'), { destructive: true }))) {
       return;
     }
 
