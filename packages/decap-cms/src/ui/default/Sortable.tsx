@@ -1,6 +1,7 @@
 import React from 'react';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+
+import { getDndManager } from './dndManager';
 
 import type { ConnectDragSource } from 'react-dnd';
 
@@ -24,8 +25,8 @@ export interface SortableAreaProps {
 /**
  * Enables drag-and-drop reordering for the `SortableItem`s rendered inside it.
  * Each area gets its own drag type, so sibling or nested areas never accept
- * each other's items. react-dnd's provider shares one HTML5 backend per
- * window, so mounting many areas at once is safe.
+ * each other's items. All areas share the one app-wide manager from
+ * `getDndManager`, so mounting many areas at once is safe.
  */
 export function SortableArea({ onSortEnd, children }: SortableAreaProps) {
   const namespace = React.useId();
@@ -40,7 +41,7 @@ export function SortableArea({ onSortEnd, children }: SortableAreaProps) {
   );
 
   return (
-    <DndProvider backend={HTML5Backend}>
+    <DndProvider manager={getDndManager()}>
       <SortableAreaContext.Provider value={value}>{children}</SortableAreaContext.Provider>
     </DndProvider>
   );

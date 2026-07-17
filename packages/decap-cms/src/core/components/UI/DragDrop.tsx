@@ -1,6 +1,7 @@
 import React from 'react';
 import { DndProvider as ReactDNDProvider, useDrag, useDrop } from 'react-dnd';
-import { HTML5Backend as ReactDNDHTML5Backend } from 'react-dnd-html5-backend';
+
+import { getDndManager } from '@/ui/default/dndManager';
 
 import type { ConnectDragSource, ConnectDropTarget } from 'react-dnd';
 
@@ -45,7 +46,7 @@ export function DropTarget({ onDrop, namespace, children }: DropTargetProps) {
 export function HTML5DragDrop<P extends object>(WrappedComponent: React.ComponentType<P>) {
   function HTML5DragDropWrapper(props: P) {
     return (
-      <ReactDNDProvider backend={ReactDNDHTML5Backend}>
+      <ReactDNDProvider manager={getDndManager()}>
         <WrappedComponent {...props} />
       </ReactDNDProvider>
     );
