@@ -353,6 +353,14 @@
       "types": "./dist/ui/*/index.d.ts",
       "import": "./dist/ui/*/index.js"
     },
+    "./ui-default": {
+      "types": "./dist/ui/default/index.d.ts",
+      "import": "./dist/ui/default/index.js"
+    },
+    "./ui-auth": {
+      "types": "./dist/ui/auth/index.d.ts",
+      "import": "./dist/ui/auth/index.js"
+    },
     "./laika-app": {
       "types": "./dist/laika-app/index.d.ts",
       "import": "./dist/laika-app/index.js"

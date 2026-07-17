@@ -73,7 +73,7 @@ Publishing: `publish.yml` runs `npm publish` from `packages/decap-cms`; the `fil
 **362 imports across 185 files** were rewritten by `scripts/rewrite-imports.py`- style logic during
 the restructure. Zero `from 'decap-cms-*'` strings remain inside `src/`.
 
-The new `package.json#exports` map has **22 subpaths** (wildcard entries like `./widgets/*`,
+The new `package.json#exports` map has **24 subpaths** (wildcard entries like `./widgets/*`,
 `./backends/*`, `./entry-codecs/*`, and `./format-packs/*` count as one each). The root export `.`
 points at `src/app/index.ts` (the old `decap-cms-app` bootstrap). This count drifts as subpaths are
 added — it's pinned by `src/__tests__/exports-count.test.ts`, so if that test fails, update both the

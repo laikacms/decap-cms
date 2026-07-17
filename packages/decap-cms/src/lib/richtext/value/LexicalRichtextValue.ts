@@ -20,6 +20,11 @@ export class LexicalRichtextValue extends RichtextValue {
   constructor(raw: string, options: RichtextValueOptions = {}) {
     super(raw, options);
     this.editorState = portableTextToLexical(this.portableText);
+    // The Lexical mount echo hands the initial state straight back through
+    // `setEditorState`; converting it re-generates `_key`s and merges span
+    // boundaries, so the pristine baseline must be that *bridged* document,
+    // not the construction-time Portable Text (DCMS-471).
+    this.primePristineBaseline(JSON.stringify(lexicalToPortableText(this.editorState)));
   }
 
   /**

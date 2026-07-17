@@ -58,7 +58,18 @@ describe('RichtextValue laziness', () => {
     const value = new RichtextValue('hello', { hint: 'spied' });
     expect(fromPortableText).not.toHaveBeenCalled();
 
+    // An editor-state echo is not a semantic change: the value stays pristine
+    // and serialises back to the original raw string without touching the
+    // mapper (DCMS-471).
     value.setEditorState({ ...value.editorState });
+    expect(fromPortableText).not.toHaveBeenCalled();
+    expect(value.toString()).toBe('hello');
+    expect(fromPortableText).not.toHaveBeenCalled();
+
+    // A real content change flips to mapper output — still lazily.
+    value.setPortableText([
+      { _type: 'block', style: 'normal', children: [{ _type: 'span', text: 'edited', marks: [] }] },
+    ]);
     expect(fromPortableText).not.toHaveBeenCalled();
 
     expect(value.toString()).toBe('<<spied>>');
