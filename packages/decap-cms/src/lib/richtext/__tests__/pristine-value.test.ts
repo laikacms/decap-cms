@@ -1,12 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { markdownFormat } from '../../../format-packs/markdown';
-import { plainTextFormat } from '../../../format-packs/plaintext';
-import {
-  registerFormat,
-  unregisterFormat,
-} from '@/lib/richtext/index';
+import { markdownFormat } from '@/format-packs/markdown';
+import { plainTextFormat } from '@/format-packs/plaintext';
 import { portableTextToLexical } from '@/lib/richtext/bridge/portableTextToLexical';
+import { registerFormat, unregisterFormat } from '@/lib/richtext/index';
 import { createLexicalRichtextValue } from '@/lib/richtext/value/LexicalRichtextValue';
 
 /**

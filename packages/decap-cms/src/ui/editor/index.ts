@@ -5,7 +5,7 @@
 // any widget can mount `<Editor>` and drive it via serialized editor state
 // without reaching into another widget's folder.
 
-export { Editor } from './Editor';
+export { Editor, type EditorFeatures } from './Editor';
 
 export * from './themes/editor-theme';
 export * from './themes/GlobalStyles';

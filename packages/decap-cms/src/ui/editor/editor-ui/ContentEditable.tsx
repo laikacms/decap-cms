@@ -9,6 +9,15 @@ interface Props {
   placeholder: string;
   className?: string;
   placeholderClassName?: string;
+  /**
+   * Reserve a left gutter wide enough for the draggable-block handle
+   * (+ and grip buttons, ~52px). Without it the handle overlays the first
+   * characters of every hovered line and swallows clicks aimed at the text.
+   * The gutter is part of these emotion styles rather than a utility class:
+   * a `.pl-14` on `className` ties with `padding` here on specificity, so
+   * which one wins depends on style-injection order.
+   */
+  hasDragGutter?: boolean;
 }
 
 const rootClass = css`
@@ -17,6 +26,7 @@ const rootClass = css`
   min-height: 18rem;
   overflow: auto;
   padding: 0.5rem 1rem;
+  cursor: text;
   &:focus {
     outline: none;
   }
@@ -34,18 +44,26 @@ const placeholderClass = css`
   user-select: none;
 `;
 
+const dragGutterClass = css`
+  padding-left: 3.5rem;
+`;
+
 export function ContentEditable({
   placeholder,
   className,
   placeholderClassName,
+  hasDragGutter = false,
 }: Props): ReactNode {
   return (
     <LexicalContentEditable
-      css={rootClass}
+      css={[rootClass, hasDragGutter && dragGutterClass]}
       className={cx('ContentEditable__root', className)}
       aria-placeholder={placeholder}
       placeholder={
-        <div css={placeholderClass} className={placeholderClassName}>
+        <div
+          css={[placeholderClass, hasDragGutter && dragGutterClass]}
+          className={placeholderClassName}
+        >
           {placeholder}
         </div>
       }

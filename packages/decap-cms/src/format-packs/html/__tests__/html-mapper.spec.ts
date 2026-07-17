@@ -36,6 +36,77 @@ describe('htmlMapper', () => {
     expect(first).toEqual(second);
   });
 
+  describe('tables', () => {
+    const tableHtml = '<table>'
+      + '<thead><tr><th>Name</th><th>Price</th></tr></thead>'
+      + '<tbody><tr><td>Widget</td><td><strong>10</strong></td></tr>'
+      + '<tr><td>Gadget</td><td>20</td></tr></tbody>'
+      + '</table>';
+
+    it('parses a table into the structured PT table shape the bridge round-trips', () => {
+      const doc = htmlMapper.toPortableText(tableHtml);
+
+      expect(doc.length).toBe(1);
+      const table = doc[0] as Record<string, any>;
+      expect(table).toMatchObject({ _type: 'table', headerRows: 1 });
+      expect(table.rows.length).toBe(3);
+      expect(table.rows[0]).toMatchObject({ _type: 'row' });
+      expect(table.rows[0].cells[0]).toMatchObject({ _type: 'cell' });
+      // Cell values are their own PT documents.
+      expect(table.rows[0].cells[0].value[0]).toMatchObject({ _type: 'block' });
+      expect(table.rows[0].cells[0].value[0].children[0].text).toBe('Name');
+      // Marks inside cells survive.
+      expect(table.rows[1].cells[1].value[0].children[0]).toMatchObject({
+        text: '10',
+        marks: ['strong'],
+      });
+      // Every row/cell carries a `_key` (the diff/identity primitive).
+      expect(typeof table.rows[0]._key).toBe('string');
+      expect(typeof table.rows[0].cells[0]._key).toBe('string');
+    });
+
+    it('round-trips table content through PT back to <table> markup', () => {
+      const doc = htmlMapper.toPortableText(tableHtml);
+      const out = htmlMapper.fromPortableText(doc);
+
+      expect(out).toContain('<table>');
+      expect(out).toContain('<thead><tr><th>Name</th><th>Price</th></tr></thead>');
+      expect(out).toContain('<tbody>');
+      expect(out).toContain('<td>Widget</td>');
+      expect(out).toContain('<td><strong>10</strong></td>');
+      expect(out).toContain('<td>Gadget</td>');
+    });
+
+    it('parses a headerless table without a headerRows field', () => {
+      const doc = htmlMapper.toPortableText('<table><tr><td>a</td><td>b</td></tr></table>');
+      const table = doc[0] as Record<string, any>;
+      expect(table._type).toBe('table');
+      expect(table.headerRows).toBeUndefined();
+      expect(table.rows.length).toBe(1);
+
+      const out = htmlMapper.fromPortableText(doc);
+      expect(out).toBe('<table><tbody><tr><td>a</td><td>b</td></tr></tbody></table>');
+    });
+
+    it('keeps multi-block cell content as block markup', () => {
+      const doc = htmlMapper.toPortableText(
+        '<table><tr><td><p>one</p><p>two</p></td></tr></table>',
+      );
+      const out = htmlMapper.fromPortableText(doc);
+      expect(out).toContain('<td><p>one</p><p>two</p></td>');
+    });
+
+    it('produces stable, deterministic keys across repeated table conversions', () => {
+      const first = htmlMapper.toPortableText(tableHtml);
+      const second = htmlMapper.toPortableText(tableHtml);
+      expect(first).toEqual(second);
+    });
+
+    it('scores table markup above zero', () => {
+      expect(htmlMapper.detect('<table><tr><td>x</td></tr></table>')).toBeGreaterThan(0);
+    });
+  });
+
   describe('detect', () => {
     it('scores tagged HTML above zero', () => {
       expect(htmlMapper.detect('<p>Hello <strong>world</strong></p>')).toBeGreaterThan(0);

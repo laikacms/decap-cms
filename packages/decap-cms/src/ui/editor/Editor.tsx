@@ -1,6 +1,5 @@
 import { CodeHighlightNode, CodeNode } from '@lexical/code';
 import {
-  AutoFocusExtension,
   ClearEditorExtension,
   DecoratorTextExtension,
   HorizontalRuleExtension,
@@ -12,6 +11,7 @@ import { AutoLinkExtension, ClickableLinkExtension, LinkExtension } from '@lexic
 import { CheckListExtension, ListExtension } from '@lexical/list';
 import {
   CHECK_LIST,
+  CODE,
   ELEMENT_TRANSFORMERS,
   MULTILINE_ELEMENT_TRANSFORMERS,
   TEXT_FORMAT_TRANSFORMERS,
@@ -115,6 +115,45 @@ import { validateUrl } from './utils/url';
 const placeholder = 'Press / for commands...';
 const maxLength = 30;
 
+/**
+ * Named editor capabilities, all enabled by default. Evolution is additive:
+ * new keys default to enabled, so passing an older object stays valid.
+ *
+ * Flags gate AUTHORING affordances only (toolbar buttons, slash-menu
+ * entries, markdown shortcuts, paste handling) — never node registration.
+ * Existing content using a disabled feature still loads and renders; the
+ * user just cannot create more of it.
+ */
+export interface EditorFeatures {
+  /** Image insertion: toolbar button, slash-menu entry, drag-drop paste, `![]()` shortcut. */
+  images?: boolean;
+  /** Table insertion: toolbar button, slash-menu entries (incl. `3x3` dynamic picker), `|…|` shortcut. */
+  tables?: boolean;
+  /** Code blocks: block-format dropdown, slash-menu entry, ``` shortcut. */
+  codeBlocks?: boolean;
+  /** Font family/size/color/background toolbar controls. */
+  fontStyling?: boolean;
+}
+
+/**
+ * Overlay feature denials on an item record without copying it (the records
+ * are all-true Proxies from `useBlockViewer`; spreading them would yield `{}`).
+ */
+function gateItems(
+  items: Record<string, boolean>,
+  denied: ReadonlySet<string>,
+): Record<string, boolean> {
+  if (denied.size === 0) return items;
+  return new Proxy(items, {
+    get: (target, key) => (typeof key === 'string' && denied.has(key) ? false : target[key as string]),
+  });
+}
+
+/** The given keys when `off`, nothing otherwise (denial-set builder). */
+function denyIf(off: boolean, ...keys: string[]): string[] {
+  return off ? keys : [];
+}
+
 export function Editor({
   editorState,
   editorSerializedState,
@@ -123,6 +162,7 @@ export function Editor({
   onSerializedChange,
   extensions,
   blocksConfig,
+  features,
 }: {
   editorState?: EditorState,
   editorSerializedState?: SerializedEditorState,
@@ -147,15 +187,48 @@ export function Editor({
    * block chrome is supplied here; `blocksConfig.renderBlockChrome` overrides it.
    */
   blocksConfig?: BlocksConfig,
+  /**
+   * Named capability toggles (see {@link EditorFeatures}); omitted keys are
+   * enabled. Object identity does not matter — only the resolved booleans
+   * feed the composer memo, so a fresh-but-equal object never remounts the
+   * editor.
+   */
+  features?: EditorFeatures,
 }) {
   const {
-    toolbarItems,
+    toolbarItems: rawToolbarItems,
     footerItems,
     pluginItems,
-    blockFormatItems,
-    blockInsertItems,
-    componentPickerItems,
+    blockFormatItems: rawBlockFormatItems,
+    blockInsertItems: rawBlockInsertItems,
+    componentPickerItems: rawComponentPickerItems,
   } = useBlockViewer();
+
+  const withImages = features?.images !== false;
+  const withTables = features?.tables !== false;
+  const withCodeBlocks = features?.codeBlocks !== false;
+  const withFontStyling = features?.fontStyling !== false;
+
+  const toolbarItems = gateItems(
+    rawToolbarItems,
+    new Set(denyIf(!withFontStyling, 'fontFamily', 'fontSize', 'fontColor', 'fontBackground')),
+  );
+  const blockFormatItems = gateItems(
+    rawBlockFormatItems,
+    new Set(denyIf(!withCodeBlocks, 'codeBlock')),
+  );
+  const blockInsertItems = gateItems(
+    rawBlockInsertItems,
+    new Set([...denyIf(!withImages, 'image'), ...denyIf(!withTables, 'table')]),
+  );
+  const componentPickerItems = gateItems(
+    rawComponentPickerItems,
+    new Set([
+      ...denyIf(!withImages, 'image'),
+      ...denyIf(!withTables, 'table'),
+      ...denyIf(!withCodeBlocks, 'codeBlock'),
+    ]),
+  );
 
   const [floatingAnchorElem, setFloatingAnchorElem] = useState<HTMLDivElement | null>(null);
   const [isLinkEditMode, setIsLinkEditMode] = useState<boolean>(false);
@@ -190,18 +263,24 @@ export function Editor({
             transformers: [
               // Format-pack transformers first so they can shadow built-ins.
               ...(extensions?.transformers ?? []),
-              TABLE,
+              ...(withTables ? [TABLE] : []),
               HR,
-              IMAGE,
+              ...(withImages ? [IMAGE] : []),
               EMOJI,
               CHECK_LIST,
               ...ELEMENT_TRANSFORMERS,
-              ...MULTILINE_ELEMENT_TRANSFORMERS,
+              // The ``` fence transformer follows the codeBlocks feature.
+              ...MULTILINE_ELEMENT_TRANSFORMERS.filter(t => withCodeBlocks || t !== CODE),
               ...TEXT_FORMAT_TRANSFORMERS,
               ...TEXT_MATCH_TRANSFORMERS,
             ],
           }),
-          AutoFocusExtension,
+          // No AutoFocusExtension: the editor is one field in a CMS form, and
+          // several instances can mount on one page (sibling richtext fields,
+          // nested block forms). Each mount's autofocus would steal focus to
+          // that editor's end — observed as "the caret jumps to the end a
+          // moment after clicking" and as the page scroll-jacking to the last
+          // richtext field when an entry opens.
           ClearEditorExtension,
           DecoratorTextExtension,
           HistoryExtension,
@@ -213,7 +292,8 @@ export function Editor({
           // hydrated or converted by the source toggle. Keep it off until a
           // real per-field character limit is threaded through the config.
           configExtension(MaxLengthExtension, { disabled: true, maxLength }),
-          DragDropPasteExtension,
+          // Drag-drop/paste creates image nodes, so it follows the images feature.
+          ...(withImages ? [DragDropPasteExtension] : []),
           EmojisExtension,
           configExtension(LinkExtension, {
             validateUrl,
@@ -277,7 +357,7 @@ export function Editor({
         },
         theme: editorTheme,
       }),
-    [editorState, editorSerializedState, extensions],
+    [editorState, editorSerializedState, extensions, withImages, withTables, withCodeBlocks],
   );
 
   // Fill in the default chrome; explicit blocksConfig entries win.
@@ -369,15 +449,15 @@ export function Editor({
                   <div className="" ref={onRef}>
                     <ContentEditable
                       placeholder={placeholder}
-                      placeholderClassName={`${pluginItems.draggableBlock ? 'pl-14' : 'pl-4'}`}
-                      className={`h-[calc(100vh-141px)] ${pluginItems.draggableBlock ? 'pl-14' : 'pl-4'}`}
+                      hasDragGutter={pluginItems.draggableBlock}
+                      className="h-[calc(100vh-141px)]"
                     />
                   </div>
                 </div>
                 {pluginItems.componentPicker && (
                   <ComponentPickerMenuPlugin
                     baseOptions={pickerOptions}
-                    dynamicOptionsFn={DynamicTablePickerPlugin}
+                    dynamicOptionsFn={withTables ? DynamicTablePickerPlugin : undefined}
                   />
                 )}
                 {pluginItems.emojiPicker && <EmojiPickerPlugin />}
@@ -400,7 +480,7 @@ export function Editor({
                   <DraggableBlockPlugin
                     anchorElem={floatingAnchorElem}
                     baseOptions={pickerOptions}
-                    dynamicOptionsFn={DynamicTablePickerPlugin}
+                    dynamicOptionsFn={withTables ? DynamicTablePickerPlugin : undefined}
                   />
                 )}
                 {blockFormatItems.codeBlock && <CodeActionMenuPlugin anchorElem={floatingAnchorElem} />}
