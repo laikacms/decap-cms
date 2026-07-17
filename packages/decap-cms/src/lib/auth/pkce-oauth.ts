@@ -30,6 +30,7 @@ async function createCodeChallenge(codeVerifier: string): Promise<string> {
 }
 
 const CODE_VERIFIER_STORAGE_KEY = 'decap-cms-pkce-verifier-code';
+const RETURN_HASH_STORAGE_KEY = 'decap-cms-pkce-return-hash';
 
 function createCodeVerifier(): string {
   const codeVerifier: string = generateVerifierCode();
@@ -166,6 +167,15 @@ export default class PkceAuthenticator {
     const codeChallenge: string = await createCodeChallenge(codeVerifier);
     authURL.searchParams.set('code_challenge', codeChallenge);
 
+    // The provider redirects back to a hash-less `redirect_uri`, so the hash
+    // route the user is on right now would be lost. Stash it for
+    // `completeAuth` to restore.
+    if (document.location.hash) {
+      window.sessionStorage.setItem(RETURN_HASH_STORAGE_KEY, document.location.hash);
+    } else {
+      window.sessionStorage.removeItem(RETURN_HASH_STORAGE_KEY);
+    }
+
     document.location.assign(authURL.href);
   }
 
@@ -175,11 +185,30 @@ export default class PkceAuthenticator {
   async completeAuth(cb: PkceAuthCallback): Promise<void> {
     const params = new URLSearchParams(document.location.search);
 
-    // Remove code from url
-    window.history.replaceState(null, '', document.location.pathname);
-
+    // Only touch the URL when we actually returned from the provider. This
+    // runs on every auth-page mount (i.e. every reload while a session is
+    // being restored), and unconditionally rewriting the URL here used to
+    // wipe the `#/...` route and the history state on every reload, breaking
+    // deep links and shareable URLs.
     if (!params.has('code') && !params.has('error')) {
       return;
+    }
+
+    // The hash route the user was on before `authenticate()` redirected away,
+    // falling back to whatever hash came back with the redirect.
+    const returnHash = window.sessionStorage.getItem(RETURN_HASH_STORAGE_KEY)
+      || document.location.hash;
+    window.sessionStorage.removeItem(RETURN_HASH_STORAGE_KEY);
+
+    // Scrub the one-time code/state params from the URL, keeping
+    // `window.history.state` intact (the hash history stamps its entry index
+    // there).
+    window.history.replaceState(window.history.state, '', document.location.pathname);
+    // Restore the pre-auth route via `location.replace` (not `replaceState`)
+    // so the change fires `hashchange` and the router picks it up; a
+    // hash-only replace does not reload the page.
+    if (returnHash && returnHash !== '#' && returnHash !== window.location.hash) {
+      window.location.replace(returnHash);
     }
 
     let nonce: string;

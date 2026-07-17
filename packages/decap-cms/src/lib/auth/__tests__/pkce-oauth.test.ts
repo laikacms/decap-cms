@@ -103,4 +103,50 @@ describe('PkceAuthenticator', () => {
       expect(params.get('client_id')).toBe('');
     });
   });
+
+  describe('completeAuth', () => {
+    function createAuthenticator() {
+      return new PkceAuthenticator({
+        base_url: 'https://provider.example.com',
+        auth_endpoint: 'oauth2/authorize',
+        auth_token_endpoint: 'oauth2/token',
+        app_id: 'client-id',
+      });
+    }
+
+    it('leaves the URL and history state untouched when not returning from a provider', async () => {
+      // The auth page mounts (and calls completeAuth) on every reload while a
+      // cached session is being restored. It used to rewrite the URL
+      // unconditionally, wiping the `#/...` route and `history.state` on
+      // every reload — breaking deep links and shareable URLs.
+      window.history.replaceState({ usr: null, key: 'abc', idx: 3 }, '', '/#/collections/posts');
+      const cb = vi.fn();
+
+      await createAuthenticator().completeAuth(cb);
+
+      expect(window.location.hash).toBe('#/collections/posts');
+      expect(window.history.state).toEqual({ usr: null, key: 'abc', idx: 3 });
+      expect(cb).not.toHaveBeenCalled();
+    });
+
+    it('scrubs the code params and restores the stashed hash route when returning from a provider', async () => {
+      window.sessionStorage.setItem('decap-cms-pkce-return-hash', '#/collections/posts');
+      const state = encodeURIComponent(JSON.stringify({ auth_type: 'pkce', nonce: 'nonce-value' }));
+      window.history.replaceState(
+        { usr: null, key: 'abc', idx: 0 },
+        '',
+        `/?code=one-time-code&state=${state}`,
+      );
+      const cb = vi.fn();
+
+      await createAuthenticator().completeAuth(cb);
+
+      expect(window.location.search).toBe('');
+      expect(window.location.hash).toBe('#/collections/posts');
+      expect(window.sessionStorage.getItem('decap-cms-pkce-return-hash')).toBeNull();
+      // No nonce was stashed by `authenticate()` in this test, so the flow
+      // stops at nonce validation — after the URL is already cleaned up.
+      expect(cb).toHaveBeenCalledWith(expect.objectContaining({ message: 'Invalid nonce' }));
+    });
+  });
 });
