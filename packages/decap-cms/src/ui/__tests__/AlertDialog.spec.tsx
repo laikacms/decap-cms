@@ -9,7 +9,7 @@ import {
   promptDialog,
   PromptDialogHost,
   showAlert,
-} from '@/ui/AlertDialog';
+} from '@/ui';
 
 describe('AlertDialog imperative host (Base UI)', () => {
   it('shows a queued alert and resolves once dismissed', async () => {

@@ -1,7 +1,7 @@
 import { useCallback, useRef } from 'react';
 
 import { useRouter } from '@/core/routing/context';
-import { confirmDialog } from '@/ui/AlertDialog';
+import { confirmDialog } from '@/ui';
 
 import type { RouterTransition, RouterUpdate } from '@/core/routing/router';
 

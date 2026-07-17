@@ -9,7 +9,7 @@ import { status } from '@/core/constants/publishModes';
 import { translate } from '@/core/i18n';
 import { useCmsSlots } from '@/core/lib/slots';
 import { selectEntryCollectionTitle } from '@/core/reducers/collections';
-import { confirmDialog, showAlert } from '@/ui/AlertDialog';
+import { confirmDialog, showAlert } from '@/ui';
 import { colors, lengths } from '@/ui/default/index';
 import WorkflowCard from './WorkflowCard';
 

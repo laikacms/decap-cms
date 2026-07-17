@@ -26,7 +26,7 @@ import {
   throwOnConflictingBranches,
   unsentRequest,
 } from '@/lib/util/index';
-import { showAlert } from '@/ui/AlertDialog';
+import { showAlert } from '@/ui';
 import { GithubCommitStatusState, PullRequestState } from './types/api';
 
 import type {
