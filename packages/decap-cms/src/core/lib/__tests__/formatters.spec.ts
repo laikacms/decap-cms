@@ -392,6 +392,18 @@ describe('formatters', () => {
       ).toBe('entry-slug');
     });
 
+    it('should allow filters in slug templates', () => {
+      vi.mocked(selectIdentifier).mockReturnValueOnce('published');
+
+      expect(
+        slugFormatter(
+          { slug: "{{published | date('MM-DD')}}" },
+          { title: 'Post Title', published: new Date(date) },
+          slugConfig,
+        ),
+      ).toBe('01-01');
+    });
+
     it('should see date filters applied to date from entry if it exists', () => {
       vi.mocked(selectInferredField).mockReturnValue('date');
       const entryDate = new Date('2026-10-20');
