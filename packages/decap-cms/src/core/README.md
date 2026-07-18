@@ -244,7 +244,11 @@ registerWidgetValueSerializer('rating', {
 
 ```ts
 function registerMediaLibrary(
-  mediaLibrary: { name: string, config?: { multiple?: boolean }, allow_multiple?: boolean },
+  mediaLibrary: {
+    name: string,
+    config?: { multiple?: boolean, max_file_size?: number },
+    allow_multiple?: boolean,
+  },
   options?: { multiple?: boolean },
 ): void;
 ```
@@ -265,6 +269,20 @@ registerMediaLibrary({ name: 'my-media-library' });
 # config.yml
 media_library:
   name: my-media-library
+```
+
+`media_library.config.max_file_size` caps uploads through the built-in media library at a size in
+**bytes**. Selecting or dropping a file larger than the configured value rejects the upload before
+it is persisted (`persistMedia` is never called) and shows the user an alert stating the limit in
+kB. Omitting `max_file_size` (or setting it to `0`/`undefined`) applies no limit — this is the
+default. The check only applies to the default upload flow in `MediaLibrary.tsx`; a custom
+`registerMediaLibrary` integration is responsible for enforcing its own limit if it wants one.
+
+```yaml
+# config.yml
+media_library:
+  config:
+    max_file_size: 5000000 # 5 MB, in bytes
 ```
 
 ## `registerLocale`

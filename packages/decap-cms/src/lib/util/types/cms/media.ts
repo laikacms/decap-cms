@@ -3,6 +3,7 @@ import type { CmsEntryField } from './entries.js';
 
 export type CmsMediaLibraryOptions = {
   multiple?: boolean | undefined,
+  max_file_size?: number | undefined,
 };
 
 export interface CmsMediaLibrary {
