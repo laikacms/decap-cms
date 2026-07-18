@@ -82,6 +82,16 @@ export function useEditor({
   const unmountControllerRef = useRef<AbortController>(new AbortController());
 
   useEffect(() => {
+    // Under React 18 StrictMode, this effect's cleanup fires once against
+    // the initial controller as part of the simulated mount-cleanup-remount
+    // cycle before the "real" edit session begins. Re-instantiate here if
+    // the current controller is already aborted, so the real mount doesn't
+    // inherit a permanently-aborted signal and silently resolve every
+    // `confirmDialog` call (e.g. the local-backup-recovery prompt below) as
+    // `false` with no dialog ever shown (DCMS-1141).
+    if (unmountControllerRef.current.signal.aborted) {
+      unmountControllerRef.current = new AbortController();
+    }
     const controller = unmountControllerRef.current;
     return () => controller.abort();
   }, []);
