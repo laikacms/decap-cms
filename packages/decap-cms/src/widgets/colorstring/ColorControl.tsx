@@ -82,6 +82,8 @@ interface ColorControlProps {
   setActiveStyle: () => void;
   setInactiveStyle: () => void;
   field: Record<string, unknown>;
+  hasErrors?: boolean;
+  errorListId?: string;
 }
 
 export default function ColorControl({
@@ -92,6 +94,8 @@ export default function ColorControl({
   classNameWrapper,
   setActiveStyle,
   setInactiveStyle,
+  hasErrors,
+  errorListId,
 }: ColorControlProps) {
   const [showColorPicker, setShowColorPicker] = React.useState(false);
 
@@ -191,6 +195,9 @@ export default function ColorControl({
         }}
         onClick={!allowInput ? handleClick : undefined}
         readOnly={!allowInput}
+        aria-required={field.required !== false}
+        aria-invalid={hasErrors || undefined}
+        aria-errormessage={hasErrors ? errorListId : undefined}
       />
     </>
   );

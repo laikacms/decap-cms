@@ -14,6 +14,8 @@ interface StringControlProps {
   setActiveStyle: () => void;
   setInactiveStyle: () => void;
   t: TranslateFunction;
+  hasErrors?: boolean;
+  errorListId?: string;
 }
 
 // NOTE: Tracking the selection manually prevents the cursor from jumping to
@@ -25,9 +27,12 @@ export default function StringControl({
   onChange,
   forID,
   value = '',
+  field,
   classNameWrapper,
   setActiveStyle,
   setInactiveStyle,
+  hasErrors,
+  errorListId,
 }: StringControlProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   // Only track the selection across re-renders that follow a user-initiated
@@ -65,6 +70,9 @@ export default function StringControl({
         onChange={handleChange}
         onFocus={setActiveStyle}
         onBlur={setInactiveStyle}
+        aria-required={field.required !== false}
+        aria-invalid={hasErrors || undefined}
+        aria-errormessage={hasErrors ? errorListId : undefined}
       />
       {hasBidiControls && (
         <span

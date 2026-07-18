@@ -84,6 +84,8 @@ export interface SelectControlProps {
   setInactiveStyle: () => void;
   field: CmsFieldSelect & CmsFieldBase;
   t: (key: string, options?: unknown) => string;
+  hasErrors?: boolean;
+  errorListId?: string;
 }
 
 export interface SelectControlHandle {
@@ -92,7 +94,18 @@ export interface SelectControlHandle {
 
 const SelectControl = React.forwardRef<SelectControlHandle, SelectControlProps>(
   function SelectControl(props, ref) {
-    const { field, value, forID, classNameWrapper, setActiveStyle, setInactiveStyle, onChange, t } = props;
+    const {
+      field,
+      value,
+      forID,
+      classNameWrapper,
+      setActiveStyle,
+      setInactiveStyle,
+      onChange,
+      t,
+      hasErrors,
+      errorListId,
+    } = props;
 
     // Read latest props from a ref so the imperative handle stays referentially
     // stable across renders. Callers that captured the ref once (e.g. in a test
@@ -153,6 +166,11 @@ const SelectControl = React.forwardRef<SelectControlHandle, SelectControlProps>(
     const options: SelectOption[] = [...fieldOptions.map(convertToOption)];
     const selectedValue = getSelectedValue({ options, value, isMultiple });
     const selectedList = isMultiple ? ((selectedValue as SelectOption[] | null) ?? []) : [];
+    const inputAriaProps = {
+      'aria-required': field.required !== false,
+      'aria-invalid': hasErrors || undefined,
+      'aria-errormessage': hasErrors ? errorListId : undefined,
+    };
 
     return (
       <div className={classNameWrapper}>
@@ -160,9 +178,7 @@ const SelectControl = React.forwardRef<SelectControlHandle, SelectControlProps>(
           multiple={isMultiple}
           items={options}
           value={selectedValue as SelectOption | SelectOption[] | null}
-          onValueChange={value =>
-            handleChange(value as readonly SelectOption[] | SelectOption | null)
-          }
+          onValueChange={value => handleChange(value as readonly SelectOption[] | SelectOption | null)}
           isItemEqualToValue={isSameOption}
           openOnInputClick
         >
@@ -175,10 +191,10 @@ const SelectControl = React.forwardRef<SelectControlHandle, SelectControlProps>(
                     <ComboboxChipRemove />
                   </ComboboxChip>
                 ))}
-                <ComboboxInput id={forID} placeholder="" />
+                <ComboboxInput id={forID} placeholder="" {...inputAriaProps} />
               </ComboboxChips>
             )}
-            {!isMultiple && <ComboboxInput id={forID} placeholder="" />}
+            {!isMultiple && <ComboboxInput id={forID} placeholder="" {...inputAriaProps} />}
             {isClearable && <ComboboxClear />}
             <ComboboxIcon />
           </ComboboxInputGroup>

@@ -382,10 +382,25 @@ function EditorInterface(props: EditorInterfaceProps) {
     localStorage.setItem(SPLIT_PANE_POSITION, String(sizes[0]));
   }
 
+  // WCAG 2.1 3.3.1 (Error Identification): after a failed Save/Publish,
+  // `validate()` flags invalid widgets with `aria-invalid="true"` (see
+  // EditorControl/leaf widget controls), but nothing moves focus there.
+  // Wait a frame for the resulting re-render to paint the attribute, then
+  // focus the first invalid control so screen-reader users land on it
+  // immediately instead of only hearing the "missed a required field" toast.
+  function focusFirstInvalidFieldSoon() {
+    requestAnimationFrame(() => {
+      const container = editorBodyRef.current;
+      if (!container) return;
+      container.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+    });
+  }
+
   async function handleOnPersist(opts: { createNew?: boolean, duplicate?: boolean } = {}) {
     const { createNew = false, duplicate = false } = opts;
     await controlPaneRef.current?.switchToDefaultLocale();
     controlPaneRef.current?.validate();
+    focusFirstInvalidFieldSoon();
     onPersist({ createNew, duplicate });
   }
 
@@ -393,6 +408,7 @@ function EditorInterface(props: EditorInterfaceProps) {
     const { createNew = false, duplicate = false } = opts;
     await controlPaneRef.current?.switchToDefaultLocale();
     controlPaneRef.current?.validate();
+    focusFirstInvalidFieldSoon();
     onPublish({ createNew, duplicate });
   }
 

@@ -39,7 +39,7 @@ class SelectController extends React.Component {
   }
 }
 
-function setup({ field, defaultValue }) {
+function setup({ field, defaultValue, hasErrors, errorListId }) {
   let renderArgs, ref;
   const stateChangeSpy = vi.fn();
   const setActiveSpy = vi.fn();
@@ -60,6 +60,8 @@ function setup({ field, defaultValue }) {
             setInactiveStyle={setInactiveSpy}
             ref={widgetRef => (ref = widgetRef)}
             t={msg => msg}
+            hasErrors={hasErrors}
+            errorListId={errorListId}
           />
         );
       }}
@@ -375,5 +377,26 @@ describe('Select widget', () => {
       clickClearButton(container);
       expect(ref.isValid().error?.message).toBeUndefined();
     });
+  });
+});
+
+// DCMS-1083: failed-save validation rendered a visible `ControlErrorsList`
+// with no programmatic error state on the underlying input, so
+// screen-reader users could not identify which field was invalid.
+describe('SelectControl aria validation wiring (DCMS-1083)', () => {
+  it('marks a required field as aria-required by default', () => {
+    const { input } = setup({ field: { options } });
+    expect(input).toHaveAttribute('aria-required', 'true');
+  });
+
+  it('has no aria-invalid when the field has no errors', () => {
+    const { input } = setup({ field: { options } });
+    expect(input).not.toHaveAttribute('aria-invalid');
+  });
+
+  it('sets aria-invalid and aria-errormessage when the field has errors', () => {
+    const { input } = setup({ field: { options }, hasErrors: true, errorListId: 'select-field-1-errors' });
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+    expect(input).toHaveAttribute('aria-errormessage', 'select-field-1-errors');
   });
 });

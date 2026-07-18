@@ -63,6 +63,8 @@ interface DateTimeControlProps {
   value?: string;
   t: (key: string, options?: Record<string, unknown>) => string;
   isDisabled?: boolean;
+  hasErrors?: boolean;
+  errorListId?: string;
 }
 
 function escapeZ(str: string): string {
@@ -122,6 +124,8 @@ export default function DateTimeControl({
   onChange,
   t,
   isDisabled = false,
+  hasErrors,
+  errorListId,
 }: DateTimeControlProps) {
   const isUtc = (field.picker_utc as boolean) || false;
 
@@ -198,6 +202,9 @@ export default function DateTimeControl({
         onFocus={setActiveStyle as React.FocusEventHandler<HTMLInputElement>}
         onBlur={setInactiveStyle as React.FocusEventHandler<HTMLInputElement>}
         disabled={isDisabled}
+        aria-required={field.required !== false}
+        aria-invalid={hasErrors || undefined}
+        aria-errormessage={hasErrors ? errorListId : undefined}
       />
       {isUtc && (
         <span

@@ -406,3 +406,37 @@ describe('Number widget', () => {
     });
   });
 });
+
+// DCMS-1083: failed-save validation rendered a visible `ControlErrorsList`
+// with no programmatic error state on the underlying input, so
+// screen-reader users could not identify which field was invalid.
+describe('NumberControl aria validation wiring (DCMS-1083)', () => {
+  const baseProps = {
+    field: fieldSettings,
+    onChange: vi.fn(),
+    forID: 'test-number',
+    classNameWrapper: '',
+    setActiveStyle: vi.fn(),
+    setInactiveStyle: vi.fn(),
+    t: (key: string) => key,
+  };
+
+  it('marks a required field as aria-required by default', () => {
+    const { container } = render(<NumberControl {...baseProps} value="" />);
+    expect(container.querySelector('input')).toHaveAttribute('aria-required', 'true');
+  });
+
+  it('has no aria-invalid when the field has no errors', () => {
+    const { container } = render(<NumberControl {...baseProps} value="" />);
+    expect(container.querySelector('input')).not.toHaveAttribute('aria-invalid');
+  });
+
+  it('sets aria-invalid and aria-errormessage when the field has errors', () => {
+    const { container } = render(
+      <NumberControl {...baseProps} value="" hasErrors errorListId="count-field-1-errors" />,
+    );
+    const input = container.querySelector('input');
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+    expect(input).toHaveAttribute('aria-errormessage', 'count-field-1-errors');
+  });
+});

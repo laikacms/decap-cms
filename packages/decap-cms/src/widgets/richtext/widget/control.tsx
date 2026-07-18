@@ -40,6 +40,11 @@ interface LexicalControlProps {
   getAsset?: (path: string, field?: unknown) => unknown;
   t?: BlockFormDeps['t'];
   locale?: string;
+  /** Whether this field currently has its own validation errors, and the id
+   * of the `<ul.ControlErrorsList>` describing them; threaded onto the
+   * editable region's `aria-invalid`/`aria-errormessage`. */
+  hasErrors?: boolean;
+  errorListId?: string;
 }
 
 /**
@@ -64,6 +69,8 @@ export function LexicalControl({
   getAsset,
   t,
   locale,
+  hasErrors,
+  errorListId,
 }: LexicalControlProps): ReactNode {
   const hint = typeof field.format === 'string' ? field.format : undefined;
 
@@ -128,6 +135,9 @@ export function LexicalControl({
           proxy.setEditorState(state);
           onChange(proxy);
         }}
+        ariaRequired={field.required !== false}
+        ariaInvalid={hasErrors}
+        ariaErrorMessage={errorListId}
       />
       {isDisabled ? <div aria-hidden style={{ position: 'absolute', inset: 0 }} /> : null}
     </div>

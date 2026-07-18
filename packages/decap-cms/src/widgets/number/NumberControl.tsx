@@ -70,6 +70,8 @@ export interface NumberControlProps {
   min?: number;
   max?: number;
   t: TranslateFunction;
+  hasErrors?: boolean;
+  errorListId?: string;
 }
 
 export interface NumberControlHandle {
@@ -86,6 +88,8 @@ const NumberControl = React.forwardRef<NumberControlHandle, NumberControlProps>(
       forID,
       setActiveStyle,
       setInactiveStyle,
+      hasErrors,
+      errorListId,
     } = props;
 
     // Stable handle: read latest field/value/t through a ref so callers that
@@ -207,6 +211,9 @@ const NumberControl = React.forwardRef<NumberControlHandle, NumberControlProps>(
         min={min}
         max={max}
         onChange={handleChange}
+        aria-required={field.required !== false}
+        aria-invalid={hasErrors || undefined}
+        aria-errormessage={hasErrors ? errorListId : undefined}
       />
     );
   },
