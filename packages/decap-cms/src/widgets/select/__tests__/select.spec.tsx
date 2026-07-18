@@ -205,6 +205,17 @@ describe('Select widget', () => {
       expect(onChangeSpy).toHaveBeenCalledWith(null);
     });
 
+    it('should not throw on Backspace/ArrowLeft in an empty input on a new (unselected) entry (DCMS-1027)', () => {
+      const field = { options, multiple: true };
+      const { input } = setup({ field });
+
+      fireEvent.focus(input);
+      expect(() => {
+        fireEvent.keyDown(input, { key: 'Backspace' });
+        fireEvent.keyDown(input, { key: 'ArrowLeft' });
+      }).not.toThrow();
+    });
+
     it('should call onChange with value in list on mount when value is not a list and required is true', () => {
       const field = { options, multiple: true, required: true };
       const { onChangeSpy } = setup({
