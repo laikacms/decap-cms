@@ -10,6 +10,10 @@ when a `fields` (or single-field `field`) option is given.
 ```
 
 - `allow_add` (optional, default `true`) — whether new items can be added.
+- `allow_remove` (optional, default `true`) — whether existing items can be removed. When `false`,
+  each item's remove button is hidden (`ListItemTopBar.tsx`).
+- `allow_reorder` (optional, default `true`) — whether existing items can be dragged into a new
+  order. When `false`, each item's drag handle is hidden (`ListItemTopBar.tsx`).
 - `collapsed` (optional, default `true`) — whether list items are collapsed by default.
 - `minimize_collapsed` (optional, default `false`) — whether to render only the summary line for
   collapsed items.
