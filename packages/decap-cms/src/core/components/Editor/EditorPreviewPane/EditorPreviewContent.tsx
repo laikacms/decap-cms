@@ -1,9 +1,10 @@
 import { vercelStegaDecode } from '@vercel/stega';
 import React from 'react';
 import { FrameContextConsumer } from 'react-frame-component';
-import type { FrameContextProps } from 'react-frame-component';
 
 import { ScrollSyncPane } from '@/ui';
+
+import type { FrameContextProps } from 'react-frame-component';
 
 /**
  * PreviewContent renders the preview component and optionally handles visual editing interactions.
