@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { WidgetPreviewContainer } from '@/ui/default/index';
 
@@ -22,14 +22,29 @@ interface StyledImageAssetProps {
   field?: unknown;
 }
 
+// DCMS-1036 / decaporg#7416: resolving getAsset() during render dispatches
+// redux actions synchronously, which triggers React's "Cannot update a
+// component while rendering a different component" warning. Resolve in an
+// effect instead, and revoke object URLs created for File values on cleanup.
 function StyledImageAsset({ getAsset, value, field }: StyledImageAssetProps) {
-  let src;
-  if (value instanceof File) {
-    src = URL.createObjectURL(value);
-  } else {
-    src = getAsset(value, field);
-  }
-  return <StyledImage src={src} />;
+  const [src, setSrc] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (!value) {
+      setSrc(undefined);
+      return;
+    }
+
+    if (value instanceof File) {
+      const objectUrl = URL.createObjectURL(value);
+      setSrc(objectUrl);
+      return () => URL.revokeObjectURL(objectUrl);
+    }
+
+    setSrc(getAsset(value, field));
+  }, [value, field, getAsset]);
+
+  return <StyledImage src={src || ''} />;
 }
 
 interface ImagePreviewContentProps {

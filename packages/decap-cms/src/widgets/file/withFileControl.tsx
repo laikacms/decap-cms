@@ -2,7 +2,7 @@
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { once } from 'lodash-es';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
 import { oneLine } from '@/lib/util/index';
@@ -64,6 +64,26 @@ function Image(props: ImageProps) {
   return <StyledImage role="presentation" {...props} />;
 }
 
+interface ImageAssetProps {
+  value: string;
+  field?: CmsField;
+  getAsset: (value: string, field?: CmsField) => string;
+}
+
+// DCMS-1036 / decaporg#7416: calling getAsset() during render dispatches
+// redux actions synchronously, which triggers React's "Cannot update a
+// component while rendering a different component" warning. Resolve the
+// asset in an effect instead.
+function ImageAsset({ value, field, getAsset }: ImageAssetProps) {
+  const [asset, setAsset] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    setAsset(value ? getAsset(value, field) : undefined);
+  }, [value, field, getAsset]);
+
+  return <Image src={asset || ''} />;
+}
+
 interface SortableImageButtonsProps {
   onRemove: () => void;
   onReplace: () => void;
@@ -102,7 +122,7 @@ function SortableImage(props: SortableImageProps) {
           }}
         >
           <ImageWrapper $sortable>
-            <Image src={getAsset(itemValue, field) || ''} />
+            <ImageAsset value={itemValue} field={field} getAsset={getAsset} />
           </ImageWrapper>
           <SortableImageButtons onRemove={onRemove} onReplace={onReplace}></SortableImageButtons>
         </div>
@@ -466,10 +486,9 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
         );
       }
 
-      const src = getAsset(value as string, field);
       return (
         <ImageWrapper>
-          <Image src={src || ''} />
+          <ImageAsset value={value as string} field={field} getAsset={getAsset} />
         </ImageWrapper>
       );
     }
