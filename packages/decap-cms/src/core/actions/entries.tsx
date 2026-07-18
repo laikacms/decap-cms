@@ -6,7 +6,7 @@ import { getIntegrationProvider } from '@/core/integrations';
 import { getProcessSegment } from '@/core/lib/formatters';
 import { duplicateDefaultI18nFields, hasI18n, I18N, I18N_FIELD, serializeI18n } from '@/core/lib/i18n';
 import { serializeValues } from '@/core/lib/serializeEntryValues';
-import { selectDefaultSortField, selectFields, updateFieldByKey } from '@/core/reducers/collections';
+import { selectDefaultSortField, selectField, selectFields, updateFieldByKey } from '@/core/reducers/collections';
 import { selectCollectionEntriesCursor } from '@/core/reducers/cursors';
 import {
   selectEntriesLoaded,
@@ -726,10 +726,18 @@ function getMetaFields(fields: EntryFields) {
 export function createEmptyDraft(collection: Collection, search: string) {
   return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
     const params = new URLSearchParams(search);
-    params.forEach((value, key) => {
+    const uniqueKeys = Array.from(new Set(params.keys()));
+
+    uniqueKeys.forEach(key => {
+      const field = selectField(collection, key);
+      const isMultiple = Boolean(field?.multiple);
+      const values = params.getAll(key);
+
       collection = updateFieldByKey(collection as any, key, field => ({
         ...field,
-        default: processValue(value),
+        default: isMultiple
+          ? values.flatMap(value => value.split(',')).map(processValue)
+          : processValue(values[values.length - 1]),
       }));
     });
 
