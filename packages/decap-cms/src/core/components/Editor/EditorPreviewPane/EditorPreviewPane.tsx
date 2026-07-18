@@ -289,11 +289,15 @@ export function PreviewPane(props: PreviewPaneProps) {
 
     if (typeof slug === 'undefined') {
       const entries = await getAllEntries(state, selectedCollection);
-      return entries.map((e: { data: unknown }) => ({ data: e.data }));
+      return entries.map((e: { data: unknown, slug: unknown, path: unknown }) => ({
+        data: e.data,
+        slug: e.slug,
+        path: e.path,
+      }));
     }
 
     const e = await tryLoadEntry(state, selectedCollection, slug);
-    return { data: e.data };
+    return { data: e.data, slug: e.slug, path: e.path };
   }
 
   if (!entry || !entry.data) {
