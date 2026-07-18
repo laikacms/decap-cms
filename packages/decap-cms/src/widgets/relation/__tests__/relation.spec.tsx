@@ -17,6 +17,7 @@ vi.mock('react-window', () => {
 });
 
 import { act, fireEvent, render, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -370,7 +371,7 @@ describe('Relation widget', () => {
   it('should update option list based on search term', async () => {
     const field = fieldConfig;
     const { getAllByText, input } = setup({ field });
-    fireEvent.change(input, { target: { value: 'YAML' } });
+    await userEvent.type(input, 'YAML');
 
     await waitFor(() => {
       expect(getAllByText('YAML post post-yaml')).toHaveLength(1);
@@ -400,7 +401,7 @@ describe('Relation widget', () => {
   it('should update metadata for initial preview 1', async () => {
     const field = fieldConfig;
     const value = 'Post # 1';
-    const { getByText, onChangeSpy } = setup({ field, value });
+    const { getByDisplayValue, onChangeSpy } = setup({ field, value });
     const label = 'Post # 1 post-number-1';
     const metadata = {
       post: {
@@ -410,7 +411,7 @@ describe('Relation widget', () => {
 
     await waitFor(
       () => {
-        expect(getByText(label)).toBeInTheDocument();
+        expect(getByDisplayValue(label)).toBeInTheDocument();
       },
       { timeout: 3000 },
     );
@@ -427,7 +428,7 @@ describe('Relation widget', () => {
   it('should update option list based on nested search term', async () => {
     const field = nestedFieldConfig;
     const { getAllByText, input } = setup({ field });
-    fireEvent.change(input, { target: { value: 'Nested' } });
+    await userEvent.type(input, 'Nested');
 
     await waitFor(() => {
       expect(getAllByText('Nested post post-nested Nested field 1')).toHaveLength(1);
@@ -437,7 +438,7 @@ describe('Relation widget', () => {
   it('should update option list based on deeply nested search term', async () => {
     const field = deeplyNestedFieldConfig;
     const { getAllByText, input } = setup({ field });
-    fireEvent.change(input, { target: { value: 'Deeply nested' } });
+    await userEvent.type(input, 'Deeply nested');
 
     await waitFor(() => {
       expect(

@@ -1,16 +1,29 @@
+/** @jsxImportSource @emotion/react */
 import { debounce, find, get, isEmpty, last, uniqBy } from 'lodash-es';
 import React from 'react';
-import { components } from 'react-select';
-import AsyncSelect from 'react-select/async';
-import { List as VirtualList } from 'react-window';
 
 import queryCore, { collectionTag } from '@/lib/util/queryCore';
 import { stringTemplate, validations } from '@/lib/widgets/index';
-import { colors, reactSelectStyles, SortableArea, SortableItem } from '@/ui/default/index';
+import { SortableArea, SortableItem } from '@/ui/default/index';
+import {
+  Combobox,
+  ComboboxChip,
+  ComboboxChipRemove,
+  ComboboxChips,
+  ComboboxClear,
+  ComboboxEmpty,
+  ComboboxIcon,
+  ComboboxInput,
+  ComboboxInputGroup,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxPopup,
+  ComboboxPortal,
+  ComboboxPositioner,
+  ComboboxStatus,
+} from '@/ui';
 
 import type { CmsFieldBase, CmsFieldRelation } from '@/lib/util/index';
-import type { CSSProperties, ReactElement } from 'react';
-import type { GroupBase, MultiValueProps } from 'react-select';
 
 interface RelationOption {
   label: string;
@@ -46,82 +59,8 @@ function arrayMove<T>(array: T[], from: number, to: number): T[] {
   return slicedArray;
 }
 
-function MultiValue(props: MultiValueProps<unknown, boolean, GroupBase<unknown>>) {
-  function onMouseDown(e: React.MouseEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-
-  const innerProps = { ...props.innerProps, onMouseDown };
-  return (
-    <SortableItem index={props.index}>
-      {(ref, { isDragging, isOver }) => (
-        <div
-          ref={ref}
-          style={{
-            opacity: isDragging ? 0.5 : undefined,
-            outline: isOver ? `2px solid ${colors.active}` : undefined,
-          }}
-        >
-          <components.MultiValue {...props} innerProps={innerProps} />
-        </div>
-      )}
-    </SortableItem>
-  );
-}
-
-function SortableSelect(props: Record<string, unknown>) {
-  const { onSortEnd, isMulti } = props as {
-    onSortEnd: (args: { oldIndex: number, newIndex: number }) => void,
-    isMulti: boolean,
-  };
-
-  if (!isMulti) {
-    return <AsyncSelect {...(props as React.ComponentProps<typeof AsyncSelect>)} />;
-  }
-
-  return (
-    <SortableArea onSortEnd={onSortEnd}>
-      <AsyncSelect {...(props as React.ComponentProps<typeof AsyncSelect>)} />
-    </SortableArea>
-  );
-}
-
-interface OptionRowProps {
-  options: React.ReactNode[];
-}
-
-function OptionRow(
-  props: {
-    ariaAttributes: { 'aria-posinset': number, 'aria-setsize': number, role: 'listitem' },
-    index: number,
-    style: CSSProperties,
-  } & OptionRowProps,
-): ReactElement | null {
-  const { index, style, options } = props;
-  return <div style={style}>{options[index]}</div>;
-}
-
-function MenuList(props: Record<string, unknown>) {
-  const isLoading = props.isLoading as boolean;
-  const options = props.options as unknown[];
-  const children = props.children;
-
-  if (isLoading || options.length <= 0 || !Array.isArray(children)) {
-    return children as React.ReactElement;
-  }
-  const rows = children as React.ReactNode[];
-  const itemSize = 30;
-  const listHeight = Math.min(300, rows.length * itemSize + itemSize / 3);
-  return (
-    <VirtualList<OptionRowProps>
-      style={{ width: '100%', height: listHeight }}
-      rowCount={rows.length}
-      rowHeight={itemSize}
-      rowProps={{ options: rows }}
-      rowComponent={OptionRow}
-    />
-  );
+function isSameOption(a: RelationOption, b: RelationOption): boolean {
+  return a.value === b.value;
 }
 
 function optionToString(option: RelationOption | null | undefined): string {
@@ -216,6 +155,8 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
     } = props;
 
     const [initialOptions, setInitialOptions] = React.useState<RelationOption[]>([]);
+    const [searchOptions, setSearchOptions] = React.useState<RelationOption[] | null>(null);
+    const [isLoading, setIsLoading] = React.useState(false);
     const mountedRef = React.useRef(false);
 
     function isMultiple(): boolean {
@@ -471,7 +412,7 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
 
     const loadOptions = React.useMemo(
       () =>
-        debounce((term: string, callback: (options: RelationOption[]) => void) => {
+        debounce((term: string) => {
           const {
             field: f,
             query: q,
@@ -483,6 +424,7 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
           const searchFieldsArray = getFieldArray(f.search_fields);
           const file = f.file as string | undefined;
 
+          setIsLoading(true);
           queryCore
             .fetch(
               relationOptionsKey(collection, searchFieldsArray, term, file),
@@ -490,47 +432,104 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
               { tags: [collectionTag(collection)], keepValue: true },
             )
             .then((result: unknown) => {
+              if (!mountedRef.current) return;
               const queryResult = result as QueryResult;
               const hits = queryResult.payload.hits || [];
               const options = pho(hits);
               const optionsLength = (f.options_length || 20) as number;
               const uniq = uniqOptions(io, options).slice(0, optionsLength);
-              callback(uniq);
+              setSearchOptions(uniq);
+              setIsLoading(false);
             })
             .catch((error: unknown) => {
               console.error('Failed to load options:', error);
-              callback([]);
+              if (!mountedRef.current) return;
+              setSearchOptions([]);
+              setIsLoading(false);
             });
         }, 500),
       [],
     );
 
+    // Load the default (unfiltered) options once on mount, mirroring
+    // react-select-async's `defaultOptions` behavior.
+    React.useEffect(() => {
+      loadOptions('');
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only default options load
+    }, []);
+
     const isMulti = isMultiple();
     const isClearable = !field.required || isMulti;
     const queryOptions = parseHitOptions(queryHits || []);
-    const options = uniqOptions(initialOptions, queryOptions);
+    const baseOptions = uniqOptions(initialOptions, queryOptions);
+    const options = searchOptions === null ? baseOptions : uniqOptions(initialOptions, searchOptions);
     const selectedValue = getSelectedValue({ options, value, isMultiple: isMulti });
+    const selectedList = isMulti ? ((selectedValue as RelationOption[] | null) ?? []) : [];
+
+    function handleInputValueChange(inputValue: string) {
+      loadOptions(inputValue);
+    }
+
+    const chipList = (
+      <>
+        {selectedList.map((option, index) => (
+          <SortableItem key={option.value} index={index}>
+            {(sortableRef, { isDragging }) => (
+              <ComboboxChip ref={sortableRef as React.Ref<HTMLDivElement>} style={{ opacity: isDragging ? 0.5 : undefined }}>
+                {option.label}
+                <ComboboxChipRemove />
+              </ComboboxChip>
+            )}
+          </SortableItem>
+        ))}
+        <ComboboxInput id={forID} placeholder="" />
+      </>
+    );
 
     return (
-      <SortableSelect
-        onSortEnd={onSortEnd(selectedValue as RelationOption[])}
-        components={{ MenuList, MultiValue }}
-        value={selectedValue}
-        inputId={forID}
-        cacheOptions
-        defaultOptions
-        loadOptions={loadOptions}
-        onChange={handleChange}
-        className={classNameWrapper}
-        onFocus={setActiveStyle}
-        onBlur={setInactiveStyle}
-        styles={reactSelectStyles}
-        isMulti={isMulti}
-        isClearable={isClearable}
-        placeholder=""
-        menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
-        menuPosition="fixed"
-      />
+      <div className={classNameWrapper}>
+        <Combobox<RelationOption, boolean>
+          multiple={isMulti}
+          items={options}
+          filter={null}
+          value={selectedValue as RelationOption | RelationOption[] | null}
+          onValueChange={selected =>
+            handleChange(selected as RelationOption | RelationOption[] | null)
+          }
+          onInputValueChange={handleInputValueChange}
+          isItemEqualToValue={isSameOption}
+          openOnInputClick
+        >
+          <ComboboxInputGroup onFocus={setActiveStyle} onBlur={setInactiveStyle}>
+            {isMulti
+              ? (
+                <SortableArea onSortEnd={onSortEnd(selectedList)}>
+                  <ComboboxChips>{chipList}</ComboboxChips>
+                </SortableArea>
+              )
+              : (
+                <ComboboxInput id={forID} placeholder="" />
+              )}
+            {isClearable && <ComboboxClear />}
+            <ComboboxIcon />
+          </ComboboxInputGroup>
+          <ComboboxPortal>
+            <ComboboxPositioner sideOffset={4}>
+              <ComboboxPopup>
+                <ComboboxStatus>{isLoading ? 'Loading…' : null}</ComboboxStatus>
+                <ComboboxEmpty>{isLoading ? 'Loading…' : 'No options'}</ComboboxEmpty>
+                <ComboboxList>
+                  {(option: RelationOption) => (
+                    <ComboboxItem key={option.value} value={option}>
+                      {option.label}
+                    </ComboboxItem>
+                  )}
+                </ComboboxList>
+              </ComboboxPopup>
+            </ComboboxPositioner>
+          </ComboboxPortal>
+        </Combobox>
+      </div>
     );
   },
 );

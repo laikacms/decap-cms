@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { colors, components, reactSelectStyles } from '@/ui/default/styles';
+import { colors, components } from '@/ui/default/styles';
 
 /**
  * Regression test for DCMS-290: the workflow/collection header card
@@ -28,38 +28,12 @@ describe('ui-default styles - card theming (DCMS-290)', () => {
   });
 });
 
-/**
- * Regression test for DCMS-299: the Select/Relation widget's react-select
- * `control` and `menu` never set a `backgroundColor`, so react-select's
- * default white background stayed put in dark theme, and `option` set
- * background per-state but never `color`, producing dark-text-on-dark-
- * background for focused/selected rows.
- *
- * `control`, `menu`, `menuList`, `singleValue`, `input` and `option` must
- * all resolve backgroundColor/color through the themeable `colors` token
- * layer so the widget follows the active theme.
- */
-describe('ui-default styles - react-select theming (DCMS-299)', () => {
-  it('control uses the themeable input background and text color', () => {
-    const styles = reactSelectStyles.control({});
-
-    expect(styles.backgroundColor).toBe(colors.inputBackground);
-    expect(styles.color).toBe(colors.text);
-  });
-
-  it('menu and menuList use the themeable input background', () => {
-    expect(reactSelectStyles.menu({}).backgroundColor).toBe(colors.inputBackground);
-    expect(reactSelectStyles.menuList({}).backgroundColor).toBe(colors.inputBackground);
-  });
-
-  it('singleValue and input use the themeable text color', () => {
-    expect(reactSelectStyles.singleValue({}).color).toBe(colors.text);
-    expect(reactSelectStyles.input({}).color).toBe(colors.text);
-  });
-
-  it('option sets a themeable text color for every state', () => {
-    expect(reactSelectStyles.option({}, { isSelected: true }).color).toBe(colors.textLight);
-    expect(reactSelectStyles.option({}, { isFocused: true }).color).toBe(colors.text);
-    expect(reactSelectStyles.option({}, {}).color).toBe(colors.text);
-  });
-});
+// DCMS-299 (dark-theme contrast for the Select/Relation widgets) predates the
+// Base UI migration and tested the now-removed `reactSelectStyles` per-state
+// style functions (#631/DCMS-545). The Select/Relation widgets now render
+// through `src/ui/Select.tsx` and `src/ui/Combobox.tsx`, which resolve their
+// background/text colors through the same `--popover` / `--popover-foreground`
+// / `--input` / `--accent` CSS custom properties as every other primitive in
+// `src/ui/`, so the intent of this regression test is covered structurally
+// rather than per-widget. See `src/ui/__tests__/ui-primitives.spec.tsx` for
+// primitive-level behavior coverage.

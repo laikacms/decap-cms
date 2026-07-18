@@ -80,12 +80,8 @@ function setup({ field, defaultValue }) {
 }
 
 function clickClearButton(container) {
-  const allSvgs = container.querySelectorAll('svg');
-  const clear = allSvgs[allSvgs.length - 2];
-
-  fireEvent.mouseDown(clear, {
-    button: 0,
-  });
+  const clear = container.querySelector('[data-slot="combobox-clear"]');
+  fireEvent.click(clear);
 }
 
 describe('Select widget', () => {
@@ -106,7 +102,7 @@ describe('Select widget', () => {
     const { input, onChangeSpy } = setup({ field, defaultValue: options[0].value });
 
     fireEvent.focus(input);
-    fireEvent.keyDown(input, { key: 'Delete' });
+    fireEvent.keyDown(input, { key: 'Escape' });
 
     expect(onChangeSpy).toHaveBeenCalledTimes(1);
     expect(onChangeSpy).toHaveBeenCalledWith(null);
@@ -124,19 +120,19 @@ describe('Select widget', () => {
 
   it('should respect default value', () => {
     const field = { options };
-    const { getByText } = setup({ field, defaultValue: options[2].value });
+    const { input } = setup({ field, defaultValue: options[2].value });
 
-    expect(getByText('Baz')).toBeInTheDocument();
+    expect(input.value).toBe('Baz');
   });
 
   it('should respect default value when options are string only', () => {
     const field = { options: stringOptions };
-    const { getByText } = setup({
+    const { input } = setup({
       field,
       defaultValue: stringOptions[2],
     });
 
-    expect(getByText('baz')).toBeInTheDocument();
+    expect(input.value).toBe('baz');
   });
 
   it('should call onChange with correct selectedItem when value is number 0', () => {
@@ -203,7 +199,7 @@ describe('Select widget', () => {
       });
 
       fireEvent.focus(input);
-      fireEvent.keyDown(input, { key: 'Delete' });
+      fireEvent.keyDown(input, { key: 'Backspace' });
 
       expect(onChangeSpy).toHaveBeenCalledTimes(1);
       expect(onChangeSpy).toHaveBeenCalledWith(null);

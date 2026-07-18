@@ -110,9 +110,13 @@ non-goals) and are **not** re-exported through `index.ts`; they keep their own `
 
 Every primitive is a physical file here (the #635/DCMS-548 re-export stubs have been replaced by the
 real implementations, moved up from the editor's old `ui/` subfolder): `alert-dialog`, `avatar`,
-`button`, `button-group`, `checkbox`, `command`, `dialog`, `dropdown-menu`, `field`, `input`, `label`,
-`popover`, `scroll-area`, `select`, `separator`, `tabs`, `toggle`, `toggle-group`, `tooltip`, plus
-the `styled` helper module and the vendored `cmdk`. `avatar` and laika-app's `LaikaTooltip`
+`button`, `button-group`, `checkbox`, `combobox`, `command`, `dialog`, `dropdown-menu`, `field`,
+`input`, `label`, `popover`, `scroll-area`, `select`, `separator`, `tabs`, `toggle`, `toggle-group`,
+`tooltip`, plus the `styled` helper module and the vendored `cmdk`. `combobox` wraps
+`@base-ui/react/combobox` and is the searchable/async/multi-select primitive used by
+`widgets/select` and `widgets/relation` (#631/DCMS-545) — reach for it instead of `select` whenever
+typeahead filtering, chip-based multi-select, or async option loading is needed. `avatar` and
+laika-app's `LaikaTooltip`
 consumers were deduped onto these canonical implementations in #630/DCMS-544 —
 `src/laika-app/ui/LaikaTooltip.tsx` and `LaikaAvatar.tsx` are now thin backwards-compatible
 aliases, not separate Base UI wrappers.
