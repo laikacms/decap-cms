@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { JSONSchema, validateJSONSchema } from '@/core/lib/jsonSchemaValidator';
+import { validateJSONSchema } from '@/core/lib/jsonSchemaValidator';
+
+import type { JSONSchema } from '@/core/lib/jsonSchemaValidator';
 
 describe('validateJSONSchema', () => {
   it('returns no errors for a valid value', () => {
