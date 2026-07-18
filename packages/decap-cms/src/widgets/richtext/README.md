@@ -19,6 +19,9 @@ for existing configs (`src/app/extensions.ts`).
   `html`, `plainText`). See [Format packs](#format-packs) below for what ships, which id is
   registered by default, and how to register the rest.
 - `placeholder` (optional) — placeholder text shown in the editor.
+- `blocks` (optional, array of strings) — allowlist of registered custom block ids available in
+  this field (see `src/widgets/richtext/widget/schema.ts`). Omit to allow all registered blocks.
+  This is UI-only: parsing always recognizes every registered block regardless of this allowlist.
 
 ## Format packs
 
@@ -66,9 +69,6 @@ isn't a hard error, and so nobody goes looking for behavior that isn't there:
 - `minimal` (boolean) — no effect.
 - `buttons` (array of strings) — no effect. In the old widget this restricted the visible toolbar
   buttons; the Lexical toolbar currently always shows its full fixed set.
-- `editor_components` (array of objects) — no effect. Also accepts the deprecated `editorComponents`
-  camelCase spelling in the legacy widget's history, but neither key does anything here. In the old
-  widget this registered custom Markdown block components.
 - `modes` (array, enum `rich_text` / `raw`, `minItems: 1`) — no effect. In the old widget this
   controlled whether the raw-text/rich-text mode toggle was shown and which modes were available.
 - `sanitize_preview` (boolean) — no effect. **This does not sanitize anything in the current
@@ -80,3 +80,12 @@ isn't a hard error, and so nobody goes looking for behavior that isn't there:
 
 If you need one of these behaviors restored, file an issue against this widget rather than assuming
 the config key still does what it did in `decap-cms-widget-markdown`.
+
+### Removed keys
+
+Unlike the keys above, `editor_components` (and its `editorComponents` camelCase alias) is not
+merely inert — it isn't declared in `schema.ts` at all. The legacy editor-components API it
+configured was removed along with it, so setting either key on a field config is just an unknown
+property to the schema (dropped/rejected as such, not validated-but-ignored). In the old widget
+this registered custom Markdown block components; that role is now filled by `CMS.registerBlock(...)`
+plus the `blocks` allowlist documented in [Config](#config) above.
