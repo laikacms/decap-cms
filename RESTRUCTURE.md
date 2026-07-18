@@ -140,20 +140,22 @@ Not blocking the restructure, but they belong in the next pass:
   #686, #695, #696 — plus #598, which references SECURITY.md/CONTRIBUTING.md claims that assume the
   old package layout) pointing at `packages/decap-cms-<name>/README.md` paths that no longer exist.
   Anyone resuming this doc debt should recreate the missing README content at
-  `src/<name>/README.md`, following the `packages/decap-cms-<name>/` → `src/<name>/` rename from the
-  "What changed" table above, e.g.:
-  - `decap-cms-widget-string` → `src/widgets/string/README.md`
-  - `decap-cms-widget-text` → `src/widgets/text/README.md`
-  - `decap-cms-widget-list` → `src/widgets/list/README.md`
-  - `decap-cms-widget-markdown` → `src/widgets/richtext/README.md` (the markdown widget was renamed
-    `richtext` during the restructure)
-  - `decap-cms-core` → `src/core/README.md`
-  - `decap-cms-lib-auth` → `src/lib/auth/README.md`
-  - `decap-cms-git-gateway` → `src/backends/git-gateway/README.md`
-  - `decap-cms-backend-gitlab` → `src/backends/gitlab/README.md`
-  - `decap-cms-backend-bitbucket` → `src/backends/bitbucket/README.md`
+  `packages/decap-cms/src/<name>/README.md`, following the `packages/decap-cms-<name>/` →
+  `src/<name>/` rename from the "What changed" table above, and the later workspace-revival move of
+  that `src/` into `packages/decap-cms/` (see the "workspace revival" section above), e.g.:
+  - `decap-cms-widget-string` → `packages/decap-cms/src/widgets/string/README.md`
+  - `decap-cms-widget-text` → `packages/decap-cms/src/widgets/text/README.md`
+  - `decap-cms-widget-list` → `packages/decap-cms/src/widgets/list/README.md`
+  - `decap-cms-widget-markdown` → `packages/decap-cms/src/widgets/richtext/README.md` (the markdown
+    widget was renamed `richtext` during the restructure)
+  - `decap-cms-core` → `packages/decap-cms/src/core/README.md`
+  - `decap-cms-lib-auth` → `packages/decap-cms/src/lib/auth/README.md`
+  - `decap-cms-git-gateway` → `packages/decap-cms/src/backends/git-gateway/README.md`
+  - `decap-cms-backend-gitlab` → `packages/decap-cms/src/backends/gitlab/README.md`
+  - `decap-cms-backend-bitbucket` → `packages/decap-cms/src/backends/bitbucket/README.md`
 
-  `src/ui/README.md` is the reference example of the new per-directory README style to follow.
+  `packages/decap-cms/src/ui/README.md` is the reference example of the new per-directory README
+  style to follow.
 
 ## Why this shape
 
