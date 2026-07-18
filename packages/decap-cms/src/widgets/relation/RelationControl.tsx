@@ -111,7 +111,12 @@ function getSelectedValue({
 }): RelationOption[] | RelationOption | null {
   if (isMultiple) {
     const selectedOptions = getSelectedOptions(value);
-    if (selectedOptions === null) return null;
+    // base-ui's Combobox root expects an array `value` whenever `multiple` is
+    // true; passing `null` leaves its internal `selectedValue` state as
+    // `null` instead of `[]`, which throws (`Cannot read properties of null
+    // (reading 'length')`) the first time the empty input's keydown handler
+    // reads `selectedValue.length` (e.g. on Backspace) (DCMS-1018).
+    if (selectedOptions === null) return [];
 
     return selectedOptions
       .map((i: RelationOption) => options.find((o: RelationOption) => o.value === (i.value || i)))
