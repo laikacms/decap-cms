@@ -128,3 +128,18 @@ describe('DateTimeControl aria validation wiring (DCMS-1083)', () => {
     expect(input).toHaveAttribute('aria-errormessage', 'date-field-1-errors');
   });
 });
+
+// DCMS-1030: date_format/time_format false pins the input-type-switching side
+// effect documented in the widget README (date_format: false -> time-only
+// input, time_format: false -> date-only input).
+describe('DateTimeControl date_format/time_format: false input-type switching (DCMS-1030)', () => {
+  test('date_format: false renders a time-only input', () => {
+    const { input } = setup({ field: { date_format: false } });
+    expect(input).toHaveAttribute('type', 'time');
+  });
+
+  test('time_format: false renders a date-only input', () => {
+    const { input } = setup({ field: { time_format: false } });
+    expect(input).toHaveAttribute('type', 'date');
+  });
+});
