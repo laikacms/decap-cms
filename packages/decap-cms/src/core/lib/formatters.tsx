@@ -1,4 +1,4 @@
-import { flow, get, isError, isString, partialRight, trimEnd, trimStart } from 'lodash-es';
+import { flow, get, isError, partialRight, trimEnd, trimStart } from 'lodash-es';
 
 import { FILES } from '@/core/constants/collectionTypes';
 import { COMMIT_AUTHOR, COMMIT_DATE } from '@/core/constants/commitProps';
@@ -114,11 +114,11 @@ export function prepareSlug(slug: string) {
 
 export function getProcessSegment(
   slugConfig?: CmsSlug,
-  ignoreValues?: string[],
+  ignoreKeys?: string[],
   preserveSlashes?: boolean,
 ) {
-  return (value: string) =>
-    ignoreValues && ignoreValues.includes(value)
+  return (value: string, key?: string) =>
+    ignoreKeys && key !== undefined && ignoreKeys.includes(key)
       ? value
       : flow([
         value => String(value),
@@ -161,7 +161,7 @@ export function slugFormatter(
       date,
       slug,
       entryData,
-      (value: string) => value === slug ? value : processSegment(value),
+      (value: string, key: string) => key === 'slug' ? value : processSegment(value, key),
     );
   }
 }
@@ -216,15 +216,14 @@ export function previewUrlFormatter(
   const preserveSlashes = !!(previewPathPreserveSlashes ?? collection.nested);
 
   // Prepare and sanitize slug variables only, leave the rest of the
-  // `preview_path` template as is. `dirname`, `filename`, and `extension`
-  // are always exempt from slug-sanitization (see docs/core/preview-path.md).
+  // `preview_path` template as is. The `{{dirname}}`, `{{filename}}`, and
+  // `{{extension}}` variables are always exempt from slug-sanitization (see
+  // docs/core/preview-path.md). The exemption is scoped to those specific
+  // template variables (by key), not to any field whose value happens to
+  // match one of their values.
   const processSegment = getProcessSegment(
     slugConfig,
-    [
-      (fields as Record<string, string>)['dirname'],
-      (fields as Record<string, string>)['filename'],
-      (fields as Record<string, string>)['extension'],
-    ].filter(isString),
+    ['dirname', 'filename', 'extension'],
     preserveSlashes,
   );
   let compiledPath;
@@ -289,17 +288,14 @@ export function folderFormatter(
     selectInferredField(collection, 'date'),
   ) || null;
   const identifier = get(fields, keyToPathArray(selectIdentifier(collection) as string));
-  // `dirname`, `filename`, and `extension` are always exempt from
-  // slug-sanitization, mirroring `previewUrlFormatter` (see
-  // docs/core/preview-path.md).
+  // `{{dirname}}`, `{{filename}}`, `{{extension}}`, and the folder's own
+  // variable (`{{media_folder}}` / `{{public_folder}}`) are always exempt
+  // from slug-sanitization, mirroring `previewUrlFormatter` (see
+  // docs/core/preview-path.md). The exemption is scoped by key, not by
+  // whichever value those variables happen to hold.
   const processSegment = getProcessSegment(
     slugConfig,
-    [
-      defaultFolder,
-      (fields as Record<string, string>)['dirname'],
-      (fields as Record<string, string>)['filename'],
-      (fields as Record<string, string>)['extension'],
-    ].filter(isString),
+    [folderKey, 'dirname', 'filename', 'extension'],
   );
 
   const mediaFolder = compileStringTemplate(

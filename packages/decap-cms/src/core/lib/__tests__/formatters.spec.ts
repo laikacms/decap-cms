@@ -752,6 +752,29 @@ describe('formatters', () => {
         ),
       ).toBe('https://www.example.com/portfolio/My Post.Ünïçödé');
     });
+
+    it('should still sanitize an unrelated field whose value collides with dirname, even with preserve_slashes: false (#1081)', () => {
+      // Regression test for #1081: the dirname/filename/extension exemption
+      // must be scoped to which `{{ }}` variable produced a segment, not to
+      // whether some other field's value happens to be string-identical to
+      // dirname/filename/extension. Here `fields.section` coincidentally
+      // equals the entry's `dirname` ("guides/setup"), but it must still be
+      // slug-sanitized because `preview_path_preserve_slashes` is explicitly
+      // `false` and `{{fields.section}}` isn't the `{{dirname}}` variable.
+      expect(
+        previewUrlFormatter(
+          'https://www.example.com',
+          {
+            folder: '_docs',
+            preview_path: 'archive/{{fields.section}}',
+            preview_path_preserve_slashes: false,
+          },
+          'backendSlug',
+          { data: { section: 'guides/setup' }, path: '_docs/guides/setup/entry.md' },
+          slugConfig,
+        ),
+      ).toBe('https://www.example.com/archive/guides-setup');
+    });
   });
 
   describe('summaryFormatter', () => {

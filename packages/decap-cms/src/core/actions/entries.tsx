@@ -1013,9 +1013,10 @@ export function validateMetaField(
   if (field.meta && field.name === 'path') {
     if (!value) return getPathError(value, 'invalidPath', t);
 
+    const processSegment = getProcessSegment(state.config.slug);
     const sanitizedPath = (value as string)
       .split('/')
-      .map(getProcessSegment(state.config.slug))
+      .map(segment => processSegment(segment))
       .join('/');
 
     if (value !== sanitizedPath) return getPathError(value, 'invalidPath', t);
