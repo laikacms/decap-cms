@@ -90,4 +90,26 @@ describe('block registry', () => {
     register(block('late'));
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('registered after'));
   });
+
+  // Pinning test (DCMS-1012): guards the documented public contract —
+  // registerBlock/unregisterBlock/hasBlock/listBlocks — against silent drift.
+  it('pins the documented registerBlock contract: rejects reserved ids and round-trips via hasBlock/listBlocks', () => {
+    for (const id of RESERVED_BLOCK_TYPES) {
+      expect(() => registerBlock(block(id))).toThrow(/reserved Portable Text type/);
+      expect(hasBlock(id)).toBe(false);
+    }
+
+    expect(hasBlock('custom-block')).toBe(false);
+    expect(listBlocks().some(definition => definition.id === 'custom-block')).toBe(false);
+
+    register(block('custom-block', { label: 'Custom' }));
+
+    expect(hasBlock('custom-block')).toBe(true);
+    expect(listBlocks().some(definition => definition.id === 'custom-block')).toBe(true);
+
+    unregisterBlock('custom-block');
+
+    expect(hasBlock('custom-block')).toBe(false);
+    expect(listBlocks().some(definition => definition.id === 'custom-block')).toBe(false);
+  });
 });
