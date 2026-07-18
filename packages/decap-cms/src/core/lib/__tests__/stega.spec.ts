@@ -177,6 +177,18 @@ describe('stega', () => {
       expect(second.startsWith('second paragraph')).toBe(true);
     });
 
+    it('encodes the legacy markdown alias the same as richtext (DCMS-NEW-STEGAMD)', () => {
+      const path = uniquePath();
+      const fields: CmsField[] = [{ name: path, widget: 'markdown' } as CmsField];
+      const value = 'first paragraph\n\nsecond paragraph';
+      const result = encodeEntry({ [path]: value }, fields) as Record<string, string>;
+      const [first, second] = result[path].split(/\n\n+/);
+      expect(vercelStegaDecode(first)).toEqual({ decap: path });
+      expect(vercelStegaDecode(second)).toEqual({ decap: path });
+      expect(first.startsWith('first paragraph')).toBe(true);
+      expect(second.startsWith('second paragraph')).toBe(true);
+    });
+
     it('preserves blank-line separators between richtext paragraphs', () => {
       const path = uniquePath();
       const fields: CmsField[] = [richtextField({ name: path })];
