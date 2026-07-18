@@ -138,6 +138,36 @@ Fields with `format: portableText` need no pack. If you imported Lexical helpers
 `@laikacms/decap-cms/lib/richtext`, import them from `@laikacms/decap-cms/lib/richtext/lexical`
 instead.
 
+If your config also used `editor_components` to register custom Markdown block components, that key
+is now inert (see the richtext widget README's "Accepted-but-inert legacy keys"). Its replacement is
+`CMS.registerBlock`, which — like `registerRichtextFormat` — must run before `init()`:
+
+```diff
+  import { init, CMS } from '@laikacms/decap-cms/laika-app/bare';
+  import richtextWidget from '@laikacms/decap-cms/widgets/richtext';
+  import { markdownFormat } from '@laikacms/decap-cms/format-packs/markdown';
+
+  CMS.registerWidget(richtextWidget.Widget());
+  CMS.registerRichtextFormat(markdownFormat);
++ CMS.registerBlock({
++   id: 'youtube',
++   label: 'YouTube',
++   fields: [{ name: 'videoId', label: 'Video ID', widget: 'string' }],
++   formats: {
++     markdown: {
++       pattern: /^{{< youtube (\S+) >}}/,
++       fromMatch: match => ({ videoId: match[1] }),
++       serialize: data => `{{< youtube ${data.videoId} >}}`,
++     },
++   },
++ });
+```
+
+`registerBlock` throws if `id` collides with a reserved Portable Text type (`block`, `span`, `link`,
+`code`, `image`, `html`, `table`, `callout`, `list`, `horizontal-rule`, `unknown`). See the richtext
+widget README's [Custom blocks](packages/decap-cms/src/widgets/richtext/README.md#custom-blocks)
+section for the full `BlockDefinition` shape and the boot-time registration contract.
+
 ## No import-time side effects — all registration is explicit
 
 No module in the package registers anything at import time anymore; the only side-effect modules
