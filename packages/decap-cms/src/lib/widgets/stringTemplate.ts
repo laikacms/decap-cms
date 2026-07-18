@@ -192,7 +192,7 @@ export function compileStringTemplate(
   date: Date | undefined | null,
   identifier = '',
   data: Record<string, unknown> = {},
-  processor?: (value: string) => string,
+  processor?: (value: string, key: string) => string,
 ) {
   let missingRequiredDate;
 
@@ -225,7 +225,7 @@ export function compileStringTemplate(
       }
 
       if (processor) {
-        return processor(replacement);
+        return processor(replacement, key);
       } else {
         const filterFunction = getFilterFunction(filter);
         if (filterFunction) {
