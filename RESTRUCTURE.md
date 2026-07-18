@@ -37,9 +37,10 @@ packages/
 - **Same layout as `laikacms/laikacms`.** The sister repo is a pnpm workspace with self-named
   packages under `packages/` (`packages/laikacms`, `packages/decap`, ...). Contributors and agents
   move between the two repos; one mental model for both.
-- **One package != one flat repo.** The "single package, 46 subpath exports" design is unchanged -
-  `@laikacms/decap-cms` is still the only published artifact, and nothing about its `exports` map,
-  build, or consumer-facing shape moved. Only the _repo_ gained a level of indirection.
+- **One package != one flat repo.** The "single package, many subpath exports" design is unchanged
+  (see "What changed" below for the current count) - `@laikacms/decap-cms` is still the only
+  published artifact, and nothing about its `exports` map, build, or consumer-facing shape moved.
+  Only the _repo_ gained a level of indirection.
 
 ### Who owns what
 
