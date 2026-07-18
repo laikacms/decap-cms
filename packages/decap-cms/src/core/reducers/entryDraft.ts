@@ -31,7 +31,8 @@ import {
   REMOVE_DRAFT_ENTRY_MEDIA_FILE,
 } from '@/core/actions/entries';
 import { duplicateI18nFields, getDataPath } from '@/core/lib/i18n';
-import { join } from '@/lib/util/index';
+import { sanitizeSlug } from '@/core/lib/urlHelper';
+import { basename, join } from '@/lib/util/index';
 import { selectFolderEntryExtension, selectHasMetaPath } from './collections';
 
 import type { CmsCollectionState, CmsEntry, CmsEntryField } from '@/lib/util/index';
@@ -276,6 +277,17 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
   }
 }, initialState);
 
+function cleanTitleForFilename(title?: string): string {
+  if (!title) return 'untitled';
+
+  const cleanedTitle = sanitizeSlug(title.toString().toLowerCase().trim(), {
+    sanitize_replacement: '-',
+    encoding: 'unicode',
+  });
+
+  return cleanedTitle || 'untitled';
+}
+
 export function selectCustomPath(
   collection: Collection,
   entryDraft: EntryDraft,
@@ -283,10 +295,32 @@ export function selectCustomPath(
   if (!selectHasMetaPath(collection)) return;
   const meta = entryDraft.entry?.meta;
   const path = meta?.path;
-  const indexFile = get(collection, ['meta', 'path', 'index_file']);
+
+  if (!path) return;
+
   const extension = selectFolderEntryExtension(collection);
-  const customPath = path && join(collection.folder as string, path, `${indexFile}.${extension}`);
-  return customPath;
+  const indexFile = get(collection, ['meta', 'path', 'index_file']);
+
+  // If index_file is specified, use the old behavior for backward compatibility
+  if (indexFile) {
+    return join(collection.folder as string, path, `${indexFile}.${extension}`);
+  }
+
+  // New behavior: generate filename from entry title
+  const isNewEntry = entryDraft.entry?.newRecord;
+  const currentPath = entryDraft.entry?.path;
+
+  let filename: string;
+  if (isNewEntry || !currentPath) {
+    const title = (entryDraft.entry?.data as Record<string, unknown> | undefined)?.title as
+      | string
+      | undefined;
+    filename = cleanTitleForFilename(title);
+  } else {
+    filename = basename(currentPath, `.${extension}`);
+  }
+
+  return join(collection.folder as string, path, `${filename}.${extension}`);
 }
 
 export default entryDraftReducer;

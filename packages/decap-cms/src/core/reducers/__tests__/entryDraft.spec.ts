@@ -3,7 +3,8 @@ vi.mock('uuid', () => ({ v4: vi.fn(() => '1') }));
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import * as actions from '@/core/actions/entries';
-import reducer from '@/core/reducers/entryDraft';
+import { FOLDER } from '@/core/constants/collectionTypes';
+import reducer, { selectCustomPath } from '@/core/reducers/entryDraft';
 
 const initialState = {
   entry: {},
@@ -258,6 +259,84 @@ describe('entryDraft reducer', () => {
         },
         key: '',
       });
+    });
+  });
+
+  describe('selectCustomPath', () => {
+    const collection = {
+      name: 'pages',
+      label: 'Pages',
+      folder: '_pages',
+      extension: 'md',
+      type: FOLDER,
+      meta: { path: { label: 'Path', widget: 'string' } },
+    } as any;
+
+    it('should generate dynamic filename for new entries without index_file', () => {
+      const entryDraft = {
+        entry: {
+          newRecord: true,
+          data: { title: 'My Great Article' },
+          meta: { path: 'blog' },
+        },
+      } as any;
+
+      expect(selectCustomPath(collection, entryDraft)).toBe('_pages/blog/my-great-article.md');
+    });
+
+    it('should preserve filename for existing entries without index_file', () => {
+      const entryDraft = {
+        entry: {
+          newRecord: false,
+          path: '_pages/old-folder/existing-file.md',
+          data: { title: 'Updated Title' },
+          meta: { path: 'new-folder' },
+        },
+      } as any;
+
+      expect(selectCustomPath(collection, entryDraft)).toBe(
+        '_pages/new-folder/existing-file.md',
+      );
+    });
+
+    it('should use index_file when specified (backward compatibility)', () => {
+      const collectionWithIndexFile = {
+        ...collection,
+        meta: { path: { label: 'Path', widget: 'string', index_file: 'index' } },
+      };
+      const entryDraft = {
+        entry: {
+          newRecord: true,
+          data: { title: 'My Article' },
+          meta: { path: 'blog' },
+        },
+      } as any;
+
+      expect(selectCustomPath(collectionWithIndexFile, entryDraft)).toBe('_pages/blog/index.md');
+    });
+
+    it('should return undefined when path is not set', () => {
+      const entryDraft = {
+        entry: {
+          newRecord: true,
+          data: { title: 'My Article' },
+          meta: {},
+        },
+      } as any;
+
+      expect(selectCustomPath(collection, entryDraft)).toBeUndefined();
+    });
+
+    it('should preserve non-latin characters in generated filename', () => {
+      const entryDraft = {
+        entry: {
+          newRecord: true,
+          data: { title: '日本語のタイトル' },
+          meta: { path: 'blog' },
+        },
+      } as any;
+
+      expect(selectCustomPath(collection, entryDraft)).toBe('_pages/blog/日本語のタイトル.md');
     });
   });
 });
