@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { portableTextMapper } from '@/lib/richtext/portable-text-mapper';
+import { getMapper, registerMapper, unregisterMapper } from '@/lib/richtext/registry';
 
 import type { PortableTextDocument } from '@/lib/richtext/portable-text';
 
@@ -40,6 +41,22 @@ describe('portableTextMapper (identity)', () => {
 
     it('scores well-formed JSON that is not a PT document at 0', () => {
       expect(portableTextMapper.detect('{"foo":"bar"}')).toBe(0);
+    });
+  });
+
+  describe('registry id casing', () => {
+    afterEach(() => {
+      unregisterMapper('portableText');
+    });
+
+    it("resolves the mapper under its registered id 'portableText'", () => {
+      registerMapper(portableTextMapper);
+      expect(getMapper('portableText')).toBe(portableTextMapper);
+    });
+
+    it("throws for the lowercase 'portabletext' id, since it is not a registered alias", () => {
+      registerMapper(portableTextMapper);
+      expect(() => getMapper('portabletext')).toThrow(/no mapper registered/);
     });
   });
 });
