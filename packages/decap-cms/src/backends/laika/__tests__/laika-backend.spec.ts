@@ -18,7 +18,7 @@
  */
 
 import * as Result from 'effect/Result';
-import { LaikaStream, LaikaTask, NotFoundError } from 'laikacms/core';
+import { InternalError, LaikaStream, LaikaTask, NotFoundError } from 'laikacms/core';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
@@ -130,6 +130,10 @@ function succeed<T>(value: T): LaikaTask.LaikaTask<T> {
 
 function fail(error: any): LaikaTask.LaikaTask<never> {
   return LaikaTask.fail(new NotFoundError(error?.message ?? String(error)));
+}
+
+function failWith(ErrorClass: new(message: string) => Error, message: string): LaikaTask.LaikaTask<never> {
+  return LaikaTask.fail(new ErrorClass(message));
 }
 
 function empty<T>(): LaikaStream.LaikaStream<T, object> {
@@ -312,6 +316,32 @@ describe('LaikaBackend.getEntry()', () => {
     );
 
     await expect(backend.getEntry('articles/missing')).rejects.toThrow();
+  });
+
+  it('does not console.error when both lookups miss with not_found (DCMS-1008: expected slug-collision probe)', async () => {
+    mockDocRepo.getDocument.mockReturnValue(fail({ message: 'Not found' }));
+    mockDocRepo.getUnpublished.mockReturnValue(fail({ message: 'Not found either' }));
+
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      await expect(backend.getEntry('articles/missing')).rejects.toThrow();
+      expect(errorSpy).not.toHaveBeenCalled();
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
+
+  it('logs console.error exactly once for a non-not_found failure', async () => {
+    mockDocRepo.getDocument.mockReturnValue(failWith(InternalError, 'boom'));
+    mockDocRepo.getUnpublished.mockReturnValue(fail({ message: 'Not found' }));
+
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      await expect(backend.getEntry('articles/broken')).rejects.toThrow();
+      expect(errorSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      errorSpy.mockRestore();
+    }
   });
 
   it('returns cached result on second call without hitting the repo again', async () => {

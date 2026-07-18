@@ -747,54 +747,56 @@ export default function createLaikaBackend(
     }
 
     async getEntry(path: string): Promise<ImplementationEntry> {
-      try {
-        const key = normalizeKey(path);
+      const key = normalizeKey(path);
 
-        // Use getOrFetch for request deduplication
-        return this.entryCache.getOrFetch(key, async () => {
-          const repo = this.getDocumentsRepo();
+      // Use getOrFetch for request deduplication
+      return this.entryCache.getOrFetch(key, async () => {
+        const repo = this.getDocumentsRepo();
 
-          const failedResults: LaikaError[] = [];
+        const failedResults: LaikaError[] = [];
 
-          const result = await firstResult(repo.getDocument(key));
+        const result = await firstResult(repo.getDocument(key));
 
-          if (Result.isSuccess(result)) {
-            return {
-              file: {
-                path: result.success.key,
-                id: recordVersion(result.success) ?? result.success.key,
-              },
-              data: contentToRawString(result.success.content),
-            };
-          } else {
-            failedResults.push(result.failure);
-          }
+        if (Result.isSuccess(result)) {
+          return {
+            file: {
+              path: result.success.key,
+              id: recordVersion(result.success) ?? result.success.key,
+            },
+            data: contentToRawString(result.success.content),
+          };
+        } else {
+          failedResults.push(result.failure);
+        }
 
-          const unpublishedResult = await firstResult(repo.getUnpublished(key));
+        const unpublishedResult = await firstResult(repo.getUnpublished(key));
 
-          if (Result.isSuccess(unpublishedResult)) {
-            return {
-              file: {
-                path: unpublishedResult.success.key,
-                id: recordVersion(unpublishedResult.success) ?? unpublishedResult.success.key,
-              },
-              data: contentToRawString(unpublishedResult.success.content),
-            };
-          } else {
-            failedResults.push(unpublishedResult.failure);
-          }
+        if (Result.isSuccess(unpublishedResult)) {
+          return {
+            file: {
+              path: unpublishedResult.success.key,
+              id: recordVersion(unpublishedResult.success) ?? unpublishedResult.success.key,
+            },
+            data: contentToRawString(unpublishedResult.success.content),
+          };
+        } else {
+          failedResults.push(unpublishedResult.failure);
+        }
 
-          const errors = failedResults.map(fr => `Code: ${fr.code}, Message: ${fr.message}`).join('; ');
-          const status: ErrorCode = failedResults[0]?.code ?? errorCode.INTERNAL_ERROR;
+        const errors = failedResults.map(fr => `Code: ${fr.code}, Message: ${fr.message}`).join('; ');
+        const status: ErrorCode = failedResults[0]?.code ?? errorCode.INTERNAL_ERROR;
 
+        // A miss here is the expected outcome whenever core's `entryExist` probes a
+        // fresh slug (e.g. new-entry save collision checks) — it always misses, and
+        // the caller already treats that as a normal "no such entry" via .catch().
+        // Only surface unexpected failures (auth, malformed responses, 5xx) as errors.
+        const allNotFound = failedResults.every(fr => fr.code === errorCode.NOT_FOUND);
+        if (!allNotFound) {
           console.error(`Failed to fetch entry for key: ${key}. Errors: ${errors}`);
+        }
 
-          throw new APIError(errors, ErrorCodeToStatusMap[status], 'Laika Backend');
-        });
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+        throw new APIError(errors, ErrorCodeToStatusMap[status], 'Laika Backend');
+      });
     }
 
     // ===== CONTENT SYNC (capability-gated; powers core's freshness polling) =====
