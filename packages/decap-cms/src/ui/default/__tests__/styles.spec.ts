@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { colors, components } from '@/ui/default/styles';
+import { colors, components, themeToCssVars } from '@/ui/default/styles';
 
 /**
  * Regression test for DCMS-290: the workflow/collection header card
@@ -25,6 +25,55 @@ describe('ui-default styles - card theming (DCMS-290)', () => {
     const css = components.cardTopHeading.styles;
 
     expect(css).toContain(colors.textLead);
+  });
+});
+
+/**
+ * Pinning test for `themeToCssVars` (DCMS-1133): the CSS-variable naming
+ * convention (`--decap-{prefix}-{key}`), the empty/undefined-group
+ * behavior, and the silent-drop-non-string-values behavior were previously
+ * unpinned by any test.
+ */
+describe('themeToCssVars', () => {
+  it('returns an empty object for an empty theme', () => {
+    expect(themeToCssVars({})).toEqual({});
+  });
+
+  it('emits only the vars for a partial `colors` group, using the `--decap-color-*` prefix', () => {
+    expect(themeToCssVars({ colors: { active: '#e91e63', text: '#111111' } })).toEqual({
+      '--decap-color-active': '#e91e63',
+      '--decap-color-text': '#111111',
+    });
+  });
+
+  it('emits `colorsRaw` under the `--decap-color-raw-*` prefix', () => {
+    expect(themeToCssVars({ colorsRaw: { blue: '#3a69c7' } })).toEqual({
+      '--decap-color-raw-blue': '#3a69c7',
+    });
+  });
+
+  it('merges `colors` and `colorsRaw` into a single vars object', () => {
+    expect(
+      themeToCssVars({
+        colors: { active: '#e91e63' },
+        colorsRaw: { blue: '#3a69c7' },
+      }),
+    ).toEqual({
+      '--decap-color-active': '#e91e63',
+      '--decap-color-raw-blue': '#3a69c7',
+    });
+  });
+
+  it('silently drops non-string values instead of emitting them', () => {
+    const theme = {
+      colors: {
+        active: '#e91e63',
+        // @ts-expect-error — exercising runtime behavior for non-string input
+        buttonHover: 42,
+      },
+    };
+
+    expect(themeToCssVars(theme)).toEqual({ '--decap-color-active': '#e91e63' });
   });
 });
 
