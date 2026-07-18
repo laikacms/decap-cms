@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -11,10 +11,20 @@ vi.mock('@/core/i18n', () => ({
     />
   ),
 }));
+vi.mock('@/ui', async () => {
+  const actual = await vi.importActual<typeof UiModule>('@/ui');
+  return {
+    ...actual,
+    showAlert: vi.fn(),
+    confirmDialog: vi.fn(),
+  };
+});
 
+import { showAlert } from '@/ui';
 import { MediaLibrary } from '@/core/components/MediaLibrary/MediaLibrary';
 import { RouterProvider } from '@/core/routing/context';
 
+import type * as UiModule from '@/ui';
 import type { Router, RouterUpdate } from '@/core/routing/router';
 
 const routerListeners: Array<(update: RouterUpdate) => void> = [];
@@ -110,5 +120,55 @@ describe('MediaLibrary', () => {
 
     expect(props.insertMedia).not.toHaveBeenCalled();
     expect(props.closeMediaLibrary).toHaveBeenCalledTimes(1);
+  });
+
+  describe('config.max_file_size', () => {
+    // MediaLibraryModal portals into #nc-root (created in the outer beforeEach),
+    // so the upload input lives outside the render() container.
+    function selectFile(file: File) {
+      const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+      Object.defineProperty(input, 'files', { value: [file], configurable: true });
+      fireEvent.change(input);
+    }
+
+    beforeEach(() => {
+      vi.mocked(showAlert).mockClear();
+    });
+
+    it('rejects an upload above the configured max_file_size', () => {
+      const { props } = renderMediaLibrary({
+        isVisible: true,
+        config: { max_file_size: 1000 },
+      });
+
+      const oversizedFile = new File(['a'.repeat(1001)], 'big.txt', { type: 'text/plain' });
+      selectFile(oversizedFile);
+
+      expect(props.persistMedia).not.toHaveBeenCalled();
+      expect(showAlert).toHaveBeenCalledTimes(1);
+    });
+
+    it('accepts an upload at or under the configured max_file_size', () => {
+      const { props } = renderMediaLibrary({
+        isVisible: true,
+        config: { max_file_size: 1000 },
+      });
+
+      const fittingFile = new File(['a'.repeat(1000)], 'ok.txt', { type: 'text/plain' });
+      selectFile(fittingFile);
+
+      expect(showAlert).not.toHaveBeenCalled();
+      expect(props.persistMedia).toHaveBeenCalledTimes(1);
+    });
+
+    it('applies no limit when max_file_size is not set', () => {
+      const { props } = renderMediaLibrary({ isVisible: true, config: {} });
+
+      const largeFile = new File(['a'.repeat(50_000)], 'unbounded.txt', { type: 'text/plain' });
+      selectFile(largeFile);
+
+      expect(showAlert).not.toHaveBeenCalled();
+      expect(props.persistMedia).toHaveBeenCalledTimes(1);
+    });
   });
 });
