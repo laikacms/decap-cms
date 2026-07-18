@@ -19,7 +19,7 @@ import {
   MEDIA_PERSIST_SUCCESS,
   MEDIA_REMOVE_INSERTED,
 } from '@/core/actions/mediaLibrary';
-import { dirname } from '@/lib/util/index';
+import { dirname, randomUUID } from '@/lib/util/index';
 import { selectEditingDraft, selectMediaFolder } from './entries';
 import { selectIntegration as selectIntegrationDirect } from './integrations';
 
@@ -183,7 +183,7 @@ const mediaLibrary = produce((state: MediaLibrary, action: MediaLibraryAction) =
       } = action.payload;
       if (state.privateUpload !== privateUpload) break;
 
-      const filesWithKeys = files.map((file: CmsMediaFile) => ({ ...file, key: crypto.randomUUID() }));
+      const filesWithKeys = files.map((file: CmsMediaFile) => ({ ...file, key: randomUUID() }));
       state.isLoading = false;
       state.isPaginating = false;
       state.page = page ?? 1;
@@ -214,7 +214,7 @@ const mediaLibrary = produce((state: MediaLibrary, action: MediaLibraryAction) =
     case MEDIA_PERSIST_SUCCESS: {
       const { file, privateUpload } = action.payload;
       if (state.privateUpload !== privateUpload) break;
-      const fileWithKey = { ...file, key: crypto.randomUUID() };
+      const fileWithKey = { ...file, key: randomUUID() };
       state.files = [fileWithKey, ...(state.files ?? [])];
       state.isPersisting = false;
       break;

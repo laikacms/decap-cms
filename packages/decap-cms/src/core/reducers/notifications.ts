@@ -1,6 +1,7 @@
 import { produce } from 'immer';
 
 import { NOTIFICATION_DISMISS, NOTIFICATION_SEND, NOTIFICATIONS_CLEAR } from '@/core/actions/notifications';
+import { randomUUID } from '@/lib/util/index';
 
 import type { NotificationMessage, NotificationPayload, NotificationsAction } from '@/core/actions/notifications';
 
@@ -47,7 +48,7 @@ const notifications = produce((state: NotificationsState, action: NotificationsA
       state.notifications = [
         ...state.notifications,
         {
-          id: crypto.randomUUID(),
+          id: randomUUID(),
           ...payload,
         },
       ];

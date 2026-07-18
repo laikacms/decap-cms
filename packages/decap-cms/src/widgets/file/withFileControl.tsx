@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react';
 
 import { oneLine } from '@/lib/util/index';
 import { basename } from '@/lib/util/index';
+import { randomUUID } from '@/lib/util/index';
 import { promptDialog, showAlert } from '@/ui';
 import {
   borders,
@@ -268,7 +269,7 @@ function valueListToSortableArray(value: FileValue): SortableItem[] | FileValue 
 
   const arr = valueListToArray(value);
   const valueArray = (Array.isArray(arr) ? arr : [arr]).map((v: string) => ({
-    id: crypto.randomUUID(),
+    id: randomUUID(),
     value: v,
   }));
 
@@ -335,7 +336,7 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
 
     const controlIDRef = React.useRef<string>('');
     if (!controlIDRef.current) {
-      controlIDRef.current = crypto.randomUUID();
+      controlIDRef.current = randomUUID();
     }
     const controlID = controlIDRef.current;
 

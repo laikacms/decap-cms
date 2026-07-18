@@ -1,9 +1,11 @@
+import { randomUUID } from '@/lib/util/index';
+
 interface AuthStorage {
   nonce: string;
 }
 
 export function createNonce(): string {
-  const nonce: string = crypto.randomUUID();
+  const nonce: string = randomUUID();
   window.sessionStorage.setItem('decap-cms-auth', JSON.stringify({ nonce }));
   return nonce;
 }

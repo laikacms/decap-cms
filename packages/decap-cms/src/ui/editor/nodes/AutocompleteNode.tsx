@@ -1,12 +1,12 @@
 import { TextNode } from 'lexical';
 
+import { randomUUID } from '@/lib/util/index';
+
 import type { DOMExportOutput, EditorConfig, LexicalEditor, NodeKey, SerializedTextNode, Spread } from 'lexical';
 
 // The auto-complete plugin generates a per-session uuid; we re-derive the same
 // scheme locally so this node compiles without the plugin (plugins land later).
-const UUID = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-  ? crypto.randomUUID()
-  : Math.random().toString(36).slice(2);
+const UUID = randomUUID();
 
 export type SerializedAutocompleteNode = Spread<
   {

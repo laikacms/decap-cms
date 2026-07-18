@@ -70,6 +70,7 @@ export { default as localForage } from './localForage.js';
 export type { LocalForage as LocalForageType } from './localForage.js';
 export { flowAsync, onlySuccessfulPromises, thenP as promiseThen } from './promise.js';
 export { default as unsentRequest } from './unsentRequest.js';
+export { randomUUID } from './uuid.js';
 
 export type { ApiRequest, FetchError } from './API.js';
 export type { AsyncLock } from './asyncLock.js';

@@ -31,7 +31,7 @@ import {
 } from '@/core/actions/entries';
 import { duplicateI18nFields, getDataPath } from '@/core/lib/i18n';
 import { sanitizeSlug } from '@/core/lib/urlHelper';
-import { basename, join } from '@/lib/util/index';
+import { basename, join, randomUUID } from '@/lib/util/index';
 import { selectFolderEntryExtension, selectHasMetaPath } from './collections';
 
 import type { CmsCollectionState, CmsEntry, CmsEntryField } from '@/lib/util/index';
@@ -97,14 +97,14 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
       return {
         ...initialState,
         entry: { ...action.payload.entry, newRecord: false },
-        key: crypto.randomUUID(),
+        key: randomUUID(),
       };
 
     case DRAFT_CREATE_EMPTY:
       return {
         ...initialState,
         entry: { ...action.payload, newRecord: true },
-        key: crypto.randomUUID(),
+        key: randomUUID(),
       };
 
     case DRAFT_CREATE_FROM_LOCAL_BACKUP: {
@@ -116,7 +116,7 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
         fieldsMetaData: {},
         fieldsErrors: {},
         hasChanged: true,
-        key: crypto.randomUUID(),
+        key: randomUUID(),
       };
     }
 
@@ -125,7 +125,7 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
         ...initialState,
         entry: { ...action.payload, newRecord: true },
         hasChanged: true,
-        key: crypto.randomUUID(),
+        key: randomUUID(),
       };
 
     case DRAFT_DISCARD:

@@ -8,6 +8,7 @@ import {
   dirname,
   EditorialWorkflowError,
   extname,
+  randomUUID,
 } from '@/lib/util/index';
 import AuthenticationPage from './AuthenticationPage';
 
@@ -408,7 +409,7 @@ export default class TestBackend implements CmsImplementation {
     const url = isError(objectUrl) ? '' : objectUrl;
 
     const normalizedAsset = {
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       name,
       size,
       path: assetProxy.path,
