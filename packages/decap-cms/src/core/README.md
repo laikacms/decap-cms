@@ -203,16 +203,20 @@ registerEditorComponent({
 function registerRemarkPlugin(plugin: Pluggable): void;
 ```
 
-Adds a [remark](https://github.com/remarkjs/remark) plugin to the markdown processing pipeline used
-by the richtext widget. `plugin` is whatever `remark().use()` accepts (a plugin function, or a
-`[plugin, options]` tuple). Plugins accumulate in registration order via `getRemarkPlugins()`; there
-is no de-duplication.
+Registers a [remark](https://github.com/remarkjs/remark) plugin in an internal list retrievable via
+`getRemarkPlugins()`. `plugin` is whatever `remark().use()` accepts (a plugin function, or a
+`[plugin, options]` tuple). Plugins accumulate in registration order; there is no de-duplication.
+
+**This API is currently unused / a no-op.** The richtext widget in this package is built on
+Portable Text, not a remark/markdown pipeline, and no shipped widget (richtext or otherwise) reads
+`getRemarkPlugins()` to configure a markdown processor. Calling `registerRemarkPlugin` records the
+plugin but has no observable effect on any widget's rendering or parsing today.
 
 ```ts
 import { registerRemarkPlugin } from '@laikacms/decap-cms/core';
-import remarkGfm from 'remark-gfm';
 
-registerRemarkPlugin(remarkGfm);
+// Currently has no effect on any widget; the registered plugin is never consumed.
+registerRemarkPlugin(myRemarkPlugin);
 ```
 
 ## `registerWidgetValueSerializer`
