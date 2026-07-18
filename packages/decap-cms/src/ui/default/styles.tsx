@@ -1,7 +1,7 @@
 import { css, Global } from '@emotion/react';
 import React from 'react';
 
-import type { CSSObject, SerializedStyles } from '@emotion/react';
+import type { SerializedStyles } from '@emotion/react';
 
 /**
  * Font Stacks
@@ -606,106 +606,6 @@ const components: Components = {
   `,
 };
 
-interface ReactSelectStylesState {
-  isSelected?: boolean;
-  isFocused?: boolean;
-  hasValue?: boolean;
-  selectProps?: {
-    isClearable?: boolean,
-  };
-}
-
-interface ReactSelectStyles {
-  control: (styles: CSSObject) => CSSObject;
-  option: (styles: CSSObject, state: ReactSelectStylesState) => CSSObject;
-  menu: (styles: CSSObject) => CSSObject;
-  menuPortal: (styles: CSSObject) => CSSObject;
-  menuList: (styles: CSSObject) => CSSObject;
-  singleValue: (styles: CSSObject) => CSSObject;
-  input: (styles: CSSObject) => CSSObject;
-  container: (styles: CSSObject) => CSSObject;
-  indicatorSeparator: (styles: CSSObject, state: ReactSelectStylesState) => CSSObject;
-  dropdownIndicator: (styles: CSSObject) => CSSObject;
-  clearIndicator: (styles: CSSObject) => CSSObject;
-  multiValue: (styles: CSSObject) => CSSObject;
-  multiValueLabel: (styles: CSSObject) => CSSObject;
-  multiValueRemove: (styles: CSSObject) => CSSObject;
-}
-
-const reactSelectStyles: ReactSelectStyles = {
-  control: (styles: CSSObject): CSSObject => ({
-    ...styles,
-    backgroundColor: colors.inputBackground,
-    color: colors.text,
-    border: 0,
-    boxShadow: 'none',
-    padding: '9px 0 9px 12px',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  }),
-  option: (styles: CSSObject, state: ReactSelectStylesState): CSSObject => ({
-    ...styles,
-    backgroundColor: state.isSelected
-      ? `${colors.active}`
-      : state.isFocused
-      ? `${colors.activeBackground}`
-      : 'transparent',
-    color: state.isSelected ? colors.textLight : colors.text,
-    paddingLeft: '22px',
-  }),
-  menu: (styles: CSSObject): CSSObject => ({
-    ...styles,
-    backgroundColor: colors.inputBackground,
-    right: 0,
-    zIndex: zIndex.zIndex300,
-  }),
-  // Menus are portaled to document.body (see menuPortalTarget on the Select
-  // controls) so they always stack above sibling editor fields regardless of
-  // the field's own stacking context. zIndex99999 matches the portal's own
-  // stacking layer.
-  menuPortal: (styles: CSSObject): CSSObject => ({
-    ...styles,
-    zIndex: zIndex.zIndex99999,
-  }),
-  menuList: (styles: CSSObject): CSSObject => ({
-    ...styles,
-    backgroundColor: colors.inputBackground,
-  }),
-  singleValue: (styles: CSSObject): CSSObject => ({ ...styles, color: colors.text }),
-  input: (styles: CSSObject): CSSObject => ({ ...styles, color: colors.text }),
-  container: (styles: CSSObject): CSSObject => ({ ...styles, padding: '0 !important' }),
-  indicatorSeparator: (styles: CSSObject, state: ReactSelectStylesState): CSSObject =>
-    state.hasValue && state.selectProps?.isClearable
-      ? { ...styles, backgroundColor: `${colors.textFieldBorder}` }
-      : { display: 'none' },
-  dropdownIndicator: (styles: CSSObject): CSSObject => ({
-    ...styles,
-    color: `${colors.controlLabel}`,
-  }),
-  clearIndicator: (styles: CSSObject): CSSObject => ({
-    ...styles,
-    color: `${colors.controlLabel}`,
-  }),
-  multiValue: (styles: CSSObject): CSSObject => ({
-    ...styles,
-    backgroundColor: colors.background,
-  }),
-  multiValueLabel: (styles: CSSObject): CSSObject => ({
-    ...styles,
-    color: colors.textLead,
-    fontWeight: 500,
-  }),
-  multiValueRemove: (styles: CSSObject): CSSObject => ({
-    ...styles,
-    color: colors.controlLabel,
-    ':hover': {
-      color: colors.errorText,
-      backgroundColor: colors.errorBackground,
-    },
-  }),
-};
-
 interface ZIndex {
   zIndex0: number;
   zIndex1: number;
@@ -843,7 +743,6 @@ export {
   fonts,
   GlobalStyles,
   lengths,
-  reactSelectStyles,
   shadows,
   text,
   transitions,
@@ -859,7 +758,6 @@ export type {
   Effects,
   Fonts,
   Lengths,
-  ReactSelectStyles,
   Shadows,
   Text,
   Transitions,
