@@ -868,6 +868,23 @@ describe('config', () => {
 
       assetFetchCalled('http://192.168.0.1:8081/api/v1');
     });
+
+    it('should return empty object when local_backend url uses an unsafe scheme', async () => {
+      const url = 'javascript:alert(1)';
+      window.location = { hostname: 'localhost' };
+      global.fetch = vi.fn();
+      await expect(detectProxyServer({ url })).resolves.toEqual({});
+
+      expect(global.fetch).toHaveBeenCalledTimes(0);
+    });
+
+    it('should return empty object when local_backend url is not a valid URL', async () => {
+      window.location = { hostname: 'localhost' };
+      global.fetch = vi.fn();
+      await expect(detectProxyServer({ url: 'not a url' })).resolves.toEqual({});
+
+      expect(global.fetch).toHaveBeenCalledTimes(0);
+    });
   });
 
   describe('handleLocalBackend', () => {
