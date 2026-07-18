@@ -586,6 +586,88 @@ describe('ListControl', () => {
     }
   });
 
+  // DCMS-984: pin the four structural mode config keys (`fields`, `field`, `types`,
+  // `add_to_top`) documented in ../README.md.
+
+  it('should use `fields` (multiple mode) defaults when adding an item', () => {
+    const field = {
+      name: 'list',
+      label: 'List',
+      fields: [{ label: 'String', name: 'string', widget: 'string' }],
+    };
+    const { getByText } = render(<ListControl {...props} field={field} value={[]} />);
+
+    fireEvent.click(getByText('editor.editorWidgets.list.add'));
+
+    expect(props.onChange).toHaveBeenCalledTimes(1);
+    expect(props.onChange).toHaveBeenCalledWith([{}]);
+  });
+
+  it('should use `field` (single mode) defaults when adding an item', () => {
+    const field = {
+      name: 'list',
+      label: 'List',
+      field: { label: 'Url', name: 'url', widget: 'string' },
+    };
+    const { getByText } = render(<ListControl {...props} field={field} value={[]} />);
+
+    fireEvent.click(getByText('editor.editorWidgets.list.add'));
+
+    expect(props.onChange).toHaveBeenCalledTimes(1);
+    expect(props.onChange).toHaveBeenCalledWith([null]);
+  });
+
+  it('should render an "add type" control instead of a plain add button when `types` is configured (mixed mode)', () => {
+    const field = {
+      name: 'list',
+      label: 'List',
+      types: [
+        {
+          name: 'type_1_object',
+          widget: 'object',
+          fields: [{ label: 'Text', name: 'text', widget: 'string' }],
+        },
+      ],
+    };
+    const { getByText, queryByText } = render(<ListControl {...props} field={field} value={[]} />);
+
+    expect(getByText('editor.editorWidgets.list.addType')).toBeInTheDocument();
+    expect(queryByText('editor.editorWidgets.list.add')).toBeNull();
+  });
+
+  it('should insert a new item at the top of the list when `add_to_top` is true', () => {
+    const field = {
+      name: 'list',
+      label: 'List',
+      add_to_top: true,
+      fields: [{ label: 'String', name: 'string', widget: 'string' }],
+    };
+    const { getByText } = render(
+      <ListControl {...props} field={field} value={[{ string: 'item 1' }]} />,
+    );
+
+    fireEvent.click(getByText('editor.editorWidgets.list.add'));
+
+    expect(props.onChange).toHaveBeenCalledTimes(1);
+    expect(props.onChange).toHaveBeenCalledWith([{}, { string: 'item 1' }]);
+  });
+
+  it('should append a new item at the bottom of the list when `add_to_top` is not set (default `false`)', () => {
+    const field = {
+      name: 'list',
+      label: 'List',
+      fields: [{ label: 'String', name: 'string', widget: 'string' }],
+    };
+    const { getByText } = render(
+      <ListControl {...props} field={field} value={[{ string: 'item 1' }]} />,
+    );
+
+    fireEvent.click(getByText('editor.editorWidgets.list.add'));
+
+    expect(props.onChange).toHaveBeenCalledTimes(1);
+    expect(props.onChange).toHaveBeenCalledWith([{ string: 'item 1' }, {}]);
+  });
+
   function renderAndValidate(field, value) {
     let handle;
     render(<ListControl {...props} field={field} value={value} ref={h => (handle = h)} />);
