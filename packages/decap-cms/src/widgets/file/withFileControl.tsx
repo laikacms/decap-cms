@@ -299,6 +299,9 @@ export interface FileControlProps {
   classNameWrapper: string;
   value: FileValue;
   t: (key: string) => string;
+  forID?: string;
+  hasErrors?: boolean;
+  errorListId?: string;
 }
 
 export interface FileControlHandle {
@@ -319,7 +322,17 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
       classNameWrapper,
       value = '',
       t,
+      forID,
+      hasErrors,
+      errorListId,
     } = props;
+
+    const chooseButtonAriaProps = {
+      id: forID,
+      'aria-required': field.required !== false,
+      'aria-invalid': hasErrors || undefined,
+      'aria-errormessage': hasErrors ? errorListId : undefined,
+    };
 
     const controlIDRef = React.useRef<string>('');
     if (!controlIDRef.current) {
@@ -501,7 +514,7 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
           {forImage ? renderImages() : null}
           <div>
             {forImage ? null : renderFileLinks()}
-            <FileWidgetButton onClick={handleChange}>
+            <FileWidgetButton onClick={handleChange} {...chooseButtonAriaProps}>
               {t(`editor.editorWidgets.${subject}.${multi ? 'addMore' : 'chooseDifferent'}`)}
             </FileWidgetButton>
             {chooseUrl && !multi
@@ -523,7 +536,7 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
       const chooseUrl = field.choose_url !== false;
       return (
         <>
-          <FileWidgetButton onClick={handleChange}>
+          <FileWidgetButton onClick={handleChange} {...chooseButtonAriaProps}>
             {t(`editor.editorWidgets.${subject}.choose${allowsMultiple() ? 'Multiple' : ''}`)}
           </FileWidgetButton>
           {chooseUrl

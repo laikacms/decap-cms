@@ -17,22 +17,27 @@ function BooleanBackground({ $isActive, ...props }: ToggleActiveProps) {
 }
 
 interface BooleanControlProps {
-  field: { get: (key: string, defaultValue?: unknown) => unknown };
+  field: { required?: boolean };
   onChange: (...args: unknown[]) => unknown;
   classNameWrapper: string;
   setActiveStyle: () => void;
   setInactiveStyle: () => void;
   forID?: string;
   value?: boolean;
+  hasErrors?: boolean;
+  errorListId?: string;
 }
 
 export default function BooleanControl({
   value = false,
   forID,
+  field,
   onChange,
   classNameWrapper,
   setActiveStyle,
   setInactiveStyle,
+  hasErrors,
+  errorListId,
 }: BooleanControlProps) {
   return (
     <div className={classNameWrapper}>
@@ -43,6 +48,9 @@ export default function BooleanControl({
         onFocus={setActiveStyle}
         onBlur={setInactiveStyle}
         Background={BooleanBackground}
+        ariaRequired={field.required !== false}
+        ariaInvalid={hasErrors}
+        ariaErrorMessage={errorListId}
       />
     </div>
   );

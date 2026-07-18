@@ -52,6 +52,57 @@ describe('file widget control', () => {
   });
 });
 
+// DCMS-1086: PR #1085 wired aria-invalid/aria-required/aria-errormessage
+// into string/text/number/colorstring/datetime/select/richtext, but missed
+// this widget, so the "focus first invalid control" heuristic silently
+// skipped past an invalid file field. The "Choose a file" button is the
+// perceived control here (the underlying <input type="file"> isn't
+// announced), so the aria state is applied to it.
+describe('FileControl aria validation wiring (DCMS-1086)', () => {
+  function setupWithAria(
+    overrides: { field?: Partial<CmsFieldFile>, hasErrors?: boolean, errorListId?: string } = {},
+  ) {
+    const field = { name: 'file', widget: 'file', ...overrides.field } as CmsFieldFile & CmsFieldBase;
+    return render(
+      <FileControl
+        field={field}
+        getAsset={() => ''}
+        mediaPaths={{}}
+        onAddAsset={vi.fn()}
+        onChange={vi.fn()}
+        onRemoveInsertedMedia={vi.fn()}
+        onOpenMediaLibrary={vi.fn()}
+        onClearMediaControl={vi.fn()}
+        onRemoveMediaControl={vi.fn()}
+        classNameWrapper=""
+        value={undefined}
+        t={key => key}
+        forID="file-field-1"
+        hasErrors={overrides.hasErrors}
+        errorListId={overrides.errorListId}
+      />,
+    );
+  }
+
+  it('marks a required field as aria-required by default', () => {
+    const { getByText } = setupWithAria();
+    expect(getByText('editor.editorWidgets.file.choose')).toHaveAttribute('aria-required', 'true');
+  });
+
+  it('has no aria-invalid when the field has no errors', () => {
+    const { getByText } = setupWithAria();
+    expect(getByText('editor.editorWidgets.file.choose')).not.toHaveAttribute('aria-invalid');
+  });
+
+  it('sets aria-invalid and aria-errormessage when the field has errors', () => {
+    const { getByText } = setupWithAria({ hasErrors: true, errorListId: 'file-field-1-errors' });
+    const button = getByText('editor.editorWidgets.file.choose');
+    expect(button).toHaveAttribute('aria-invalid', 'true');
+    expect(button).toHaveAttribute('aria-errormessage', 'file-field-1-errors');
+    expect(button).toHaveAttribute('id', 'file-field-1');
+  });
+});
+
 // DCMS-577 / DCMS-668: 'Insert from URL' must not persist javascript:/data:/vbscript: URLs,
 // since downstream (non-React) renderers of the saved entry have no equivalent runtime guard.
 // This guard regressed during the v4.beta rewrite that moved this widget out of the path

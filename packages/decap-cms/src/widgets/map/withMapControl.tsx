@@ -33,6 +33,7 @@ function getDefaultMap(target: HTMLElement, featuresLayer: VectorLayer<VectorSou
 export interface MapControlField {
   type?: string;
   decimals?: number;
+  required?: boolean;
   [key: string]: unknown;
 }
 
@@ -43,6 +44,9 @@ export interface MapControlProps {
   value?: React.ReactNode;
   classNameWrapper?: string;
   t: TranslateFunction;
+  forID?: string;
+  hasErrors?: boolean;
+  errorListId?: string;
 }
 
 export interface WithMapControlOptions {
@@ -57,6 +61,9 @@ export default function withMapControl({ getFormat, getMap }: WithMapControlOpti
     value = '',
     height = '400px',
     classNameWrapper,
+    forID,
+    hasErrors,
+    errorListId,
   }: MapControlProps) {
     const mapContainer = React.useRef<HTMLDivElement | null>(null);
 
@@ -182,6 +189,12 @@ export default function withMapControl({ getFormat, getMap }: WithMapControlOpti
       <ClassNames>
         {({ cx, css }) => (
           <div
+            id={forID}
+            role="application"
+            tabIndex={-1}
+            aria-required={field.required !== false}
+            aria-invalid={hasErrors || undefined}
+            aria-errormessage={hasErrors ? errorListId : undefined}
             className={cx(
               classNameWrapper,
               css`

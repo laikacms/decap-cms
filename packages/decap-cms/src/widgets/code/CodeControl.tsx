@@ -75,6 +75,8 @@ export interface CodeControlProps {
   isNewEditorComponent?: boolean;
   setActiveStyle: () => void;
   setInactiveStyle: () => void;
+  hasErrors?: boolean;
+  errorListId?: string;
 }
 
 function getKeys(
@@ -106,6 +108,8 @@ export default function CodeControl({
   isNewEditorComponent,
   setActiveStyle,
   setInactiveStyle,
+  hasErrors,
+  errorListId,
 }: CodeControlProps) {
   const cmRef = React.useRef<CodeMirrorEditorRef>(null);
   const keys = React.useMemo(() => getKeys(field, isEditorComponent), [field, isEditorComponent]);
@@ -315,6 +319,10 @@ export default function CodeControl({
                 autoFocus={isNewEditorComponent}
                 lineNumbers={lineNumbers}
                 onChange={handleChange}
+                id={forID}
+                ariaRequired={field.required !== false}
+                ariaInvalid={hasErrors}
+                ariaErrorMessage={errorListId}
               />
             )
             : (

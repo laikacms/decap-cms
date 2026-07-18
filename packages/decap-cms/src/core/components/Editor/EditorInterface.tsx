@@ -392,7 +392,22 @@ function EditorInterface(props: EditorInterfaceProps) {
     requestAnimationFrame(() => {
       const container = editorBodyRef.current;
       if (!container) return;
-      container.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+      const invalidControl = container.querySelector<HTMLElement>('[aria-invalid="true"]');
+      if (invalidControl) {
+        invalidControl.focus();
+        return;
+      }
+      // Fallback (DCMS-1086): a widget control that forgot to (or can't)
+      // announce its own `aria-invalid` still renders EditorControl's
+      // `<ul id="<field>-errors">`. Focus the nearest tabbable
+      // ancestor/descendant of the first rendered error list instead of
+      // silently leaving focus on the Save button.
+      const errorList = container.querySelector<HTMLElement>('[id$="-errors"]');
+      if (!errorList) return;
+      const fieldWrapper = errorList.closest<HTMLElement>('[data-field-name]') ?? errorList.parentElement;
+      fieldWrapper
+        ?.querySelector<HTMLElement>('input, textarea, select, button, [tabindex], [contenteditable="true"]')
+        ?.focus();
     });
   }
 
