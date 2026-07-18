@@ -9,12 +9,13 @@ Security updates are provided for:
 
 | Version           | Status                | Lifecycle              |
 | ----------------- | --------------------- | ---------------------- |
-| 3.x               | ✅ Actively Supported | Current stable release |
+| 4.x               | ✅ Actively Supported | Current stable release |
+| 3.x               | ❌ Unsupported        | Legacy - no updates    |
 | 2.x (Netlify CMS) | ❌ Unsupported        | Legacy - no updates    |
 | 1.x (Netlify CMS) | ❌ Unsupported        | Legacy - no updates    |
 
-**Note:** Decap CMS was renamed from Netlify CMS in February 2023. Versions 1.x and 2.x are no
-longer maintained. We recommend upgrading to version 3.x for security updates and new features.
+**Note:** Decap CMS was renamed from Netlify CMS in February 2023. Versions 1.x, 2.x, and 3.x are no
+longer maintained. We recommend upgrading to version 4.x for security updates and new features.
 
 ## Reporting a Vulnerability
 
