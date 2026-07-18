@@ -71,11 +71,19 @@ const TreeNavLink = styled(NavLink, {
   `};
 `;
 
-function getNodeTitle(node: TreeNodeData): string {
-  const title = node.isRoot
-    ? node.title
-    : node.children.find((c: TreeNodeData) => !c.isDir && c.title)?.title || node.title;
-  return title;
+function getNodeTitle(node: TreeNodeData, collection: CmsCollectionState): string {
+  // Backward compatibility: when `nested.subfolders` is true (default) or
+  // undefined, directory nodes should use the title of their index entry.
+  // Otherwise (subfolders: false), use the folder name already stored in
+  // `node.title`.
+  const subfolders = collection.nested?.subfolders !== false;
+  if (!node.isRoot && node.isDir && subfolders) {
+    const indexChild = node.children.find((c: TreeNodeData) => !c.isDir);
+    if (indexChild && indexChild.title) {
+      return indexChild.title;
+    }
+  }
+  return node.title;
 }
 
 interface TreeNodeData {
@@ -99,7 +107,7 @@ function TreeNode(props: TreeNodeProps): React.ReactNode {
   const { collection, treeData, depth = 0, onToggle, 'data-testid': testId } = props;
   const collectionName = collection.name;
 
-  const sortedData = sortBy(treeData, getNodeTitle);
+  const sortedData = sortBy(treeData, node => getNodeTitle(node, collection));
   const subfolders = collection.nested?.subfolders !== false;
   return sortedData.map(node => {
     const leaf = depth > 0
@@ -113,7 +121,7 @@ function TreeNode(props: TreeNodeProps): React.ReactNode {
     if (depth > 0) {
       to = `${to}/filter${node.path}`;
     }
-    const title = getNodeTitle(node);
+    const title = getNodeTitle(node, collection);
 
     const hasChildren = depth === 0
       || (subfolders

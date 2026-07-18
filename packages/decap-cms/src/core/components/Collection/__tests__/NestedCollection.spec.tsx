@@ -41,7 +41,7 @@ describe('NestedCollection', () => {
     folder: 'src/pages',
     fields: [{ name: 'title', widget: 'string' }],
     nested: {
-      subfolders: false,
+      subfolders: true,
     },
   };
 
