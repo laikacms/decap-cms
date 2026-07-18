@@ -242,7 +242,7 @@ export default class Widget extends Component<WidgetProps> {
 
   validatePattern = (field: Record<string, unknown>, value: unknown): ValidationResult => {
     const { t, parentIds } = this.props;
-    const pattern = (field.pattern || false) as string[] | false;
+    const pattern = (field.pattern || false) as (string | RegExp)[] | false;
 
     if (isEmpty(value)) {
       return { error: false };

@@ -31,14 +31,14 @@ export type CmsSortObject = { key: string, direction: CmsSortDirection };
 export interface CmsViewGroup {
   label: string;
   field: string;
-  pattern: string;
+  pattern?: string;
   id: string;
 }
 
 export interface CmsViewFilter {
   label: string;
   field: string;
-  pattern: string;
+  pattern: string | boolean;
   id: string;
 }
 
