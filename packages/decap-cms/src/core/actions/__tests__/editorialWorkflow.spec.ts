@@ -10,9 +10,6 @@ import * as assetProxyModule from '@/core/valueObjects/AssetProxy';
 vi.mock('../../backend');
 vi.mock('../../valueObjects/AssetProxy');
 vi.mock('decap-cms-lib-util');
-vi.mock('uuid', () => {
-  return { v4: vi.fn().mockReturnValue('000000000000000000000') };
-});
 
 const middlewares = [thunk];
 const mockStore = configureMockStore(middlewares);

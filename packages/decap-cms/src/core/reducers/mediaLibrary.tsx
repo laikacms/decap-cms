@@ -1,5 +1,4 @@
 import { produce } from 'immer';
-import { v4 as uuid } from 'uuid';
 
 import {
   MEDIA_DELETE_FAILURE,
@@ -184,7 +183,7 @@ const mediaLibrary = produce((state: MediaLibrary, action: MediaLibraryAction) =
       } = action.payload;
       if (state.privateUpload !== privateUpload) break;
 
-      const filesWithKeys = files.map((file: CmsMediaFile) => ({ ...file, key: uuid() }));
+      const filesWithKeys = files.map((file: CmsMediaFile) => ({ ...file, key: crypto.randomUUID() }));
       state.isLoading = false;
       state.isPaginating = false;
       state.page = page ?? 1;
@@ -215,7 +214,7 @@ const mediaLibrary = produce((state: MediaLibrary, action: MediaLibraryAction) =
     case MEDIA_PERSIST_SUCCESS: {
       const { file, privateUpload } = action.payload;
       if (state.privateUpload !== privateUpload) break;
-      const fileWithKey = { ...file, key: uuid() };
+      const fileWithKey = { ...file, key: crypto.randomUUID() };
       state.files = [fileWithKey, ...(state.files ?? [])];
       state.isPersisting = false;
       break;

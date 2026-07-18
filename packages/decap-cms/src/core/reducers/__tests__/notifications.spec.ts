@@ -1,4 +1,3 @@
-import { v4 as uuidMock } from 'uuid';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { addNotification, clearNotifications, dismissNotification } from '@/core/actions/notifications';
@@ -7,11 +6,11 @@ import notifications from '@/core/reducers/notifications';
 import type { NotificationsAction } from '@/core/actions/notifications';
 import type { NotificationsState } from '@/core/reducers/notifications';
 
-vi.mock('uuid', () => ({
-  v4: vi.fn(() => 'mock-uuid'),
-}));
+function asUuid(value: string): ReturnType<typeof crypto.randomUUID> {
+  return value as unknown as ReturnType<typeof crypto.randomUUID>;
+}
 
-const mockedUuid = uuidMock as unknown as ReturnType<typeof vi.fn>;
+const mockedUuid = vi.spyOn(crypto, 'randomUUID');
 
 const defaultState: NotificationsState = {
   notifications: [],
@@ -19,7 +18,7 @@ const defaultState: NotificationsState = {
 
 describe('notifications', () => {
   beforeEach(() => {
-    mockedUuid.mockReturnValue('mock-uuid');
+    mockedUuid.mockReturnValue(asUuid('mock-uuid'));
   });
 
   it('should return empty notifications array as default state', () => {
@@ -60,7 +59,7 @@ describe('notifications', () => {
   });
 
   it('should not append a duplicate notification with the same message and type on NOTIFICATION_SEND', () => {
-    mockedUuid.mockReturnValueOnce('id-one').mockReturnValueOnce('id-two');
+    mockedUuid.mockReturnValueOnce(asUuid('id-one')).mockReturnValueOnce(asUuid('id-two'));
 
     const state1 = notifications(
       undefined,
@@ -137,7 +136,7 @@ describe('notifications', () => {
   });
 
   it('should append a new notification once a duplicate has been dismissed', () => {
-    mockedUuid.mockReturnValueOnce('id-one').mockReturnValueOnce('id-two');
+    mockedUuid.mockReturnValueOnce(asUuid('id-one')).mockReturnValueOnce(asUuid('id-two'));
 
     const state1 = notifications(
       undefined,
@@ -157,7 +156,7 @@ describe('notifications', () => {
   });
 
   it('should remove only the matching notification on NOTIFICATION_DISMISS', () => {
-    mockedUuid.mockReturnValueOnce('id-one').mockReturnValueOnce('id-two');
+    mockedUuid.mockReturnValueOnce(asUuid('id-one')).mockReturnValueOnce(asUuid('id-two'));
 
     const state1 = notifications(
       undefined,

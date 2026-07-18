@@ -1,5 +1,4 @@
 import { attempt, isEmpty, isError, take, unset } from 'lodash-es';
-import { v4 as uuid } from 'uuid';
 
 import {
   basename,
@@ -409,7 +408,7 @@ export default class TestBackend implements CmsImplementation {
     const url = isError(objectUrl) ? '' : objectUrl;
 
     const normalizedAsset = {
-      id: uuid(),
+      id: crypto.randomUUID(),
       name,
       size,
       path: assetProxy.path,

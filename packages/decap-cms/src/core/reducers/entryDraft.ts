@@ -1,6 +1,5 @@
 import { produce } from 'immer';
 import { get } from 'lodash-es';
-import { v4 as uuid } from 'uuid';
 
 import {
   UNPUBLISHED_ENTRY_PERSIST_FAILURE,
@@ -98,14 +97,14 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
       return {
         ...initialState,
         entry: { ...action.payload.entry, newRecord: false },
-        key: uuid(),
+        key: crypto.randomUUID(),
       };
 
     case DRAFT_CREATE_EMPTY:
       return {
         ...initialState,
         entry: { ...action.payload, newRecord: true },
-        key: uuid(),
+        key: crypto.randomUUID(),
       };
 
     case DRAFT_CREATE_FROM_LOCAL_BACKUP: {
@@ -117,7 +116,7 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
         fieldsMetaData: {},
         fieldsErrors: {},
         hasChanged: true,
-        key: uuid(),
+        key: crypto.randomUUID(),
       };
     }
 
@@ -126,7 +125,7 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
         ...initialState,
         entry: { ...action.payload, newRecord: true },
         hasChanged: true,
-        key: uuid(),
+        key: crypto.randomUUID(),
       };
 
     case DRAFT_DISCARD:

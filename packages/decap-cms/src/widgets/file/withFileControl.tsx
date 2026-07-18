@@ -3,7 +3,6 @@ import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { once } from 'lodash-es';
 import React, { useEffect, useState } from 'react';
-import { v4 as uuid } from 'uuid';
 
 import { oneLine } from '@/lib/util/index';
 import { basename } from '@/lib/util/index';
@@ -269,7 +268,7 @@ function valueListToSortableArray(value: FileValue): SortableItem[] | FileValue 
 
   const arr = valueListToArray(value);
   const valueArray = (Array.isArray(arr) ? arr : [arr]).map((v: string) => ({
-    id: uuid(),
+    id: crypto.randomUUID(),
     value: v,
   }));
 
@@ -336,7 +335,7 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
 
     const controlIDRef = React.useRef<string>('');
     if (!controlIDRef.current) {
-      controlIDRef.current = uuid();
+      controlIDRef.current = crypto.randomUUID();
     }
     const controlID = controlIDRef.current;
 

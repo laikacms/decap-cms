@@ -4,7 +4,6 @@ import { ClassNames, css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { get, isEmpty, isObject, memoize, omit, set, uniqueId } from 'lodash-es';
 import React from 'react';
-import { v4 as uuid } from 'uuid';
 
 import { stringTemplate, validations } from '@/lib/widgets/index';
 import {
@@ -321,7 +320,7 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
       () => initialArrayValue.map(() => initialListCollapsed) || [],
     );
     const [stringValue, setStringValue] = React.useState<string>(() => valueToString(initialArrayValue, field.name));
-    const [keys, setKeys] = React.useState<string[]>(() => initialArrayValue.map(() => uuid()));
+    const [keys, setKeys] = React.useState<string[]>(() => initialArrayValue.map(() => crypto.randomUUID()));
 
     function getValueType(): string | null {
       if (field.fields) return valueTypes.MULTIPLE;
@@ -473,7 +472,7 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
 
     function addItem(parsedValue: unknown) {
       const addToTop = field.add_to_top ?? false;
-      const itemKey = uuid();
+      const itemKey = crypto.randomUUID();
       setItemsCollapsed(prev => (addToTop ? [false, ...prev] : [...prev, false]));
       setKeys(prev => (addToTop ? [itemKey, ...prev] : [...prev, itemKey]));
 
