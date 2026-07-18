@@ -306,16 +306,38 @@ function emitConfirmsChanged() {
  * One in-flight prompt resolves per call, unlike `window.confirm`'s
  * synchronous return, this is async, so callers must `await` it (or migrate
  * to a `.then`) instead of branching on the return value directly.
+ *
+ * Accepts an optional `signal`: callers that fire a confirm from an effect
+ * (e.g. `useEditor`'s local-backup check) can pass the same
+ * `AbortController` they abort on unmount, so a prompt whose caller has
+ * since unmounted (route changed away before the user answered) auto-
+ * settles as `false` and drains out of the queue instead of leaving a
+ * dangling, click-blocking `AlertDialog` mounted at the app root forever
+ * (DCMS-1063).
  */
-export function confirmDialog(message: string, options: ConfirmOptions = {}): Promise<boolean> {
+export function confirmDialog(
+  message: string,
+  options: ConfirmOptions = {},
+  signal?: AbortSignal,
+): Promise<boolean> {
   if (confirmListeners.size === 0) {
     return Promise.resolve(window.confirm(message));
   }
+  if (signal?.aborted) {
+    return Promise.resolve(false);
+  }
   const triggerElement = captureTriggerElement();
   return new Promise(resolve => {
+    const id = nextConfirmId++;
+    const settle = (confirmed: boolean) => {
+      pendingConfirms = pendingConfirms.filter(pending => pending.id !== id);
+      emitConfirmsChanged();
+      resolve(confirmed);
+    };
+    signal?.addEventListener('abort', () => settle(false), { once: true });
     pendingConfirms = [
       ...pendingConfirms,
-      { id: nextConfirmId++, message, resolve, triggerElement, ...options },
+      { id, message, resolve: settle, triggerElement, ...options },
     ];
     emitConfirmsChanged();
   });
@@ -326,9 +348,14 @@ export function confirmDialog(message: string, options: ConfirmOptions = {}): Pr
  * `useCallback`/`useEffect` dependency arrays without re-triggering on every
  * render.
  */
-export function useConfirm(): (message: string, options?: ConfirmOptions) => Promise<boolean> {
+export function useConfirm(): (
+  message: string,
+  options?: ConfirmOptions,
+  signal?: AbortSignal,
+) => Promise<boolean> {
   return React.useCallback(
-    (message: string, options?: ConfirmOptions) => confirmDialog(message, options),
+    (message: string, options?: ConfirmOptions, signal?: AbortSignal) =>
+      confirmDialog(message, options, signal),
     [],
   );
 }
