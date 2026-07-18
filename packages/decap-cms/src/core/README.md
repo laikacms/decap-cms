@@ -427,6 +427,95 @@ registerCustomFormat('my-format', 'myext', {
 });
 ```
 
+## `registerEntryCodec`
+
+```ts
+function registerEntryCodec(pack: CmsEntryCodec): void;
+```
+
+Registers a whole-entry-file encoding (as opposed to `registerCustomFormat`, which is a simpler,
+single-formatter shortcut for the same concept, or `registerRemarkPlugin`, which operates on a
+single richtext field's body). Entry codecs are what `collection.format` names resolve to, and what
+a file's extension is matched against to infer a format when `collection.format` isn't set. Nothing
+is registered by default — the fat `@laikacms/decap-cms/app` and `@laikacms/decap-cms/laika-app`
+entries register the three built-ins (`yaml`, `toml`, `json`) plus a markdown codec on startup;
+`bare` consumers register only the codecs their collections actually use.
+
+```ts
+type CmsEntryCodec = {
+  // Canonical format name for `collection.format` (e.g. 'yaml').
+  name: string;
+  // Additional accepted `collection.format` names (e.g. ['yml']).
+  aliases?: string[];
+  // File extensions whose format is inferred to this codec (e.g. ['yml', 'yaml']).
+  fileExtensions: string[];
+  // Extension used when creating new files (e.g. 'yml').
+  defaultExtension: string;
+  formatter: {
+    fromFile(content: string): unknown;
+    toFile(data: object, sortedKeys?: string[], comments?: Record<string, string>): string;
+  };
+  // Per-format-name formatter resolution for codecs serving several format
+  // names (the markdown codec serves 'frontmatter', 'yaml-frontmatter', etc.,
+  // each honoring `frontmatter_delimiter`). Falls back to `formatter`.
+  getFormatter?(
+    name: string,
+    opts?: { customDelimiter?: string | [string, string] },
+  ): CmsFormatterFunctions;
+  // Format names (of this codec) that accept `frontmatter_delimiter`.
+  frontmatterFormats?: string[];
+  // CMS-config-file parser (config.yml and friends), for codecs that need
+  // options beyond entry parsing (the yaml codec enables merge keys and
+  // unlimited aliases for configs only). Falls back to `formatter.fromFile`.
+  parseConfig?(text: string): unknown;
+};
+```
+
+Passing a `pack` missing `name` or `formatter` logs a `console.error` and registers nothing.
+Registering the same `name` twice keeps the last registration (replaces in place, doesn't append).
+**Registration order matters**: the inferring `frontmatter` format tries each registered codec's
+frontmatter fence language in registration order, and the first one registered becomes the default
+language used when writing a new file.
+
+```ts
+import { registerEntryCodec } from '@laikacms/decap-cms/core';
+import { yamlEntryCodec } from '@laikacms/decap-cms/entry-codecs/yaml';
+import { tomlEntryCodec } from '@laikacms/decap-cms/entry-codecs/toml';
+import { jsonEntryCodec } from '@laikacms/decap-cms/entry-codecs/json';
+import {
+  createMarkdownEntryCodec,
+} from '@laikacms/decap-cms/entry-codecs/markdown';
+import { yamlFrontmatterCodec } from '@laikacms/decap-cms/entry-codecs/yaml';
+import { tomlFrontmatterCodec } from '@laikacms/decap-cms/entry-codecs/toml';
+import { jsonFrontmatterCodec } from '@laikacms/decap-cms/entry-codecs/json';
+
+registerEntryCodec(yamlEntryCodec);
+registerEntryCodec(tomlEntryCodec);
+registerEntryCodec(jsonEntryCodec);
+// Fences are tried in the order given; yaml (`---`) becomes the default
+// frontmatter language for new files.
+registerEntryCodec(
+  createMarkdownEntryCodec({
+    frontmatter: [yamlFrontmatterCodec, tomlFrontmatterCodec, jsonFrontmatterCodec],
+  }),
+);
+```
+
+To write a custom codec from scratch (rather than reusing a built-in), implement `formatter.fromFile`
+/ `formatter.toFile` and register it the same way:
+
+```ts
+registerEntryCodec({
+  name: 'my-format',
+  fileExtensions: ['myext'],
+  defaultExtension: 'myext',
+  formatter: {
+    fromFile: content => JSON.parse(content),
+    toFile: data => JSON.stringify(data, null, 2),
+  },
+});
+```
+
 ## Keyboard shortcuts
 
 ```ts
