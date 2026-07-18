@@ -16,6 +16,7 @@ export * from './Input';
 export * from './Label';
 export * from './Popover';
 export * from './ScrollArea';
+export * from './ScrollSync';
 export * from './Select';
 export * from './Separator';
 export * from './styled';

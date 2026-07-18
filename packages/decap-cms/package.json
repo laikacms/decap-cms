@@ -183,7 +183,6 @@
     "react-frame-component": "^5.3.2",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.14.0",
-    "react-scroll-sync": "^1.0.2",
     "react-select": "^5.10.2",
     "react-split-pane": "^3.2.0",
     "react-textarea-autosize": "^8.5.9",

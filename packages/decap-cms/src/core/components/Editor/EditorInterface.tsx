@@ -1,13 +1,13 @@
 import { css, Global } from '@emotion/react';
 import styled from '@emotion/styled';
 import React from 'react';
-import { ScrollSync, ScrollSyncPane } from 'react-scroll-sync';
 import { Pane, SplitPane } from 'react-split-pane';
 
 import { FILES } from '@/core/constants/collectionTypes';
 import { getI18nInfo, getPreviewEntry, hasI18n } from '@/core/lib/i18n';
 import { useCmsSlots } from '@/core/lib/slots';
 import { getFileFromSlug } from '@/core/reducers/collections';
+import { ScrollSync, ScrollSyncPane } from '@/ui';
 import { colors, colorsRaw, components, IconButton, transitions, zIndex } from '@/ui/default/index';
 import EditorControlPane, { type ControlPaneHandle } from './EditorControlPane/EditorControlPane';
 import EditorPreviewPane from './EditorPreviewPane/EditorPreviewPane';
