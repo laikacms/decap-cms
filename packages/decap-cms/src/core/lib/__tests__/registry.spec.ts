@@ -109,6 +109,55 @@ describe('registry', () => {
     });
   });
 
+  describe('registerEntryCodec', () => {
+    it('logs an error and registers nothing when name is missing', async () => {
+      const { registerEntryCodec, getEntryCodecs } = await import('@/core/lib/registry');
+
+      const before = getEntryCodecs().length;
+
+      registerEntryCodec({ formatter: { fromFile: () => ({}), toFile: () => '' } } as any);
+
+      expect(console.error).toHaveBeenCalledTimes(1);
+      expect(console.error).toHaveBeenCalledWith(
+        "Entry format parameters invalid. example: CMS.registerEntryCodec({ name: 'yaml', fileExtensions: ['yml'], defaultExtension: 'yml', formatter })",
+      );
+      expect(getEntryCodecs()).toHaveLength(before);
+    });
+
+    it('logs an error and registers nothing when formatter is missing', async () => {
+      const { registerEntryCodec, getEntryCodecs } = await import('@/core/lib/registry');
+
+      const before = getEntryCodecs().length;
+
+      registerEntryCodec({ name: 'broken', fileExtensions: ['brk'], defaultExtension: 'brk' } as any);
+
+      expect(console.error).toHaveBeenCalledTimes(1);
+      expect(console.error).toHaveBeenCalledWith(
+        "Entry format parameters invalid. example: CMS.registerEntryCodec({ name: 'yaml', fileExtensions: ['yml'], defaultExtension: 'yml', formatter })",
+      );
+      expect(getEntryCodecs()).toHaveLength(before);
+    });
+
+    it('registers a valid codec, retrievable by name', async () => {
+      const { registerEntryCodec, getEntryCodec } = await import('@/core/lib/registry');
+
+      const formatter = { fromFile: () => ({}), toFile: () => '' };
+      registerEntryCodec({
+        name: 'my-format',
+        fileExtensions: ['myext'],
+        defaultExtension: 'myext',
+        formatter,
+      });
+
+      expect(getEntryCodec('my-format')).toEqual({
+        name: 'my-format',
+        fileExtensions: ['myext'],
+        defaultExtension: 'myext',
+        formatter,
+      });
+    });
+  });
+
   describe('eventHandlers', () => {
     const events = [
       'prePublish',
