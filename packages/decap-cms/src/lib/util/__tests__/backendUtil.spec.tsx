@@ -1,7 +1,14 @@
 import nock from 'nock';
 import { describe, expect, it } from 'vitest';
 
-import { filterByExtension, getAllResponses, getPathDepth, parseLinkHeader } from '@/lib/util/backendUtil';
+import { APIError } from '@/lib/util/errors/APIError';
+import {
+  filterByExtension,
+  getAllResponses,
+  getPathDepth,
+  parseLinkHeader,
+  parseResponse,
+} from '@/lib/util/backendUtil';
 import { oneLine } from '@/lib/util/core-utils/template-literal';
 
 describe('parseLinkHeader', () => {
@@ -19,6 +26,34 @@ describe('parseLinkHeader', () => {
     expect(linkHeader.last).toBe(`${url}?page=5`);
     expect(linkHeader.first).toBe(`${url}?page=1`);
     expect(linkHeader.prev).toBe(`${url}?page=2`);
+  });
+
+  it('should return an empty object for a null header', () => {
+    expect(parseLinkHeader(null)).toEqual({});
+  });
+
+  it('should return an empty object for an empty header', () => {
+    expect(parseLinkHeader('')).toEqual({});
+  });
+
+  it('should unescape + to %20 in urls', () => {
+    const link = '<https://api.github.com/resource?q=foo+bar>; rel="next"';
+    expect(parseLinkHeader(link)).toEqual({ next: 'https://api.github.com/resource?q=foo%20bar' });
+  });
+
+  it('should parse a single-link header', () => {
+    const link = '<https://api.github.com/resource?page=2>; rel="next"';
+    expect(parseLinkHeader(link)).toEqual({ next: 'https://api.github.com/resource?page=2' });
+  });
+
+  it('should throw for a malformed header missing rel', () => {
+    const link = '<https://api.github.com/resource?page=2>';
+    expect(() => parseLinkHeader(link)).toThrow();
+  });
+
+  it('should throw for a malformed header missing the url', () => {
+    const link = 'no-angle-brackets-here; rel="next"';
+    expect(() => parseLinkHeader(link)).toThrow();
   });
 });
 
@@ -98,5 +133,113 @@ describe('filterByExtension', () => {
   it("should return false when extension doesn't match", () => {
     expect(filterByExtension({ path: 'file.json' }, '.html.md')).toBe(false);
     expect(filterByExtension({ path: 'file.json' }, 'html.md')).toBe(false);
+  });
+});
+
+describe('parseResponse', () => {
+  it('should parse a successful json response', async () => {
+    const res = new Response(JSON.stringify({ foo: 'bar' }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    await expect(parseResponse(res, { format: 'json' })).resolves.toEqual({ foo: 'bar' });
+  });
+
+  it('should parse a successful text response', async () => {
+    const res = new Response('hello world', { status: 200 });
+
+    await expect(parseResponse(res, { format: 'text' })).resolves.toBe('hello world');
+  });
+
+  it('should parse a successful blob response', async () => {
+    const res = new Response('hello world', { status: 200 });
+
+    const body = await parseResponse(res, { format: 'blob' });
+    expect(typeof (body as Blob).text).toBe('function');
+    await expect((body as Blob).text()).resolves.toBe('hello world');
+  });
+
+  it('should default to text format when none is specified', async () => {
+    const res = new Response('plain text body', { status: 200 });
+
+    await expect(parseResponse(res, {})).resolves.toBe('plain text body');
+  });
+
+  it('should throw an APIError when the format is unsupported', async () => {
+    const res = new Response('body', { status: 200 });
+
+    await expect(
+      parseResponse(res, { format: 'xml' as unknown as 'text' }),
+    ).rejects.toThrow(APIError);
+  });
+
+  it('should wrap a formatter error (invalid json Content-Type) into an APIError', async () => {
+    const res = new Response('not json', {
+      status: 200,
+      headers: { 'Content-Type': 'text/plain' },
+    });
+
+    await expect(parseResponse(res, { format: 'json', apiName: 'github' })).rejects.toMatchObject({
+      name: 'API_ERROR',
+      api: 'github',
+      message: 'text/plain is not a valid JSON Content-Type',
+    });
+  });
+
+  it('should extract the error message from a json error body when expectingOk is true', async () => {
+    const res = new Response(JSON.stringify({ message: 'Not Found' }), {
+      status: 404,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    await expect(parseResponse(res, { format: 'json', apiName: 'github' })).rejects.toMatchObject({
+      message: 'Not Found',
+      status: 404,
+      api: 'github',
+    });
+  });
+
+  it('should fall back to msg or nested error.message for a json error body', async () => {
+    const res = new Response(JSON.stringify({ msg: 'bad request' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    await expect(parseResponse(res, { format: 'json' })).rejects.toMatchObject({
+      message: 'bad request',
+      status: 400,
+    });
+
+    const nestedRes = new Response(JSON.stringify({ error: { message: 'nested error' } }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    await expect(parseResponse(nestedRes, { format: 'json' })).rejects.toMatchObject({
+      message: 'nested error',
+      status: 400,
+    });
+  });
+
+  it('should use the raw body as the error message for non-json error responses', async () => {
+    const res = new Response('server exploded', { status: 500 });
+
+    await expect(parseResponse(res, { format: 'text', apiName: 'gitlab' })).rejects.toMatchObject({
+      message: 'server exploded',
+      status: 500,
+      api: 'gitlab',
+    });
+  });
+
+  it('should not throw for a non-ok response when expectingOk is false', async () => {
+    const res = new Response(JSON.stringify({ message: 'ignored' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    await expect(
+      parseResponse(res, { format: 'json', expectingOk: false }),
+    ).resolves.toEqual({ message: 'ignored' });
   });
 });
