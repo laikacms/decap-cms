@@ -84,5 +84,7 @@ executable versions of these):
   Object]'` or `'[]'` when stringified is still
   evaluated as truthy/falsy based on the original value.
 - A custom `processor` callback passed to `compileStringTemplate` (used internally for slug
-  sanitization) takes precedence over filters — when a `processor` is supplied, the `| filter`
-  suffix is ignored entirely.
+  sanitization) **composes** with filters rather than suppressing them: when both a `| filter`
+  suffix and a `processor` are present, the filter always runs first, and `processor` then runs on
+  the filter's output. The `| filter` suffix is never ignored just because a `processor` is
+  supplied.
