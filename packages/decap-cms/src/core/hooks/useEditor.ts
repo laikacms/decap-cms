@@ -74,6 +74,17 @@ export function useEditor({
   // `setup()`), separate from whether it's currently *armed* on the router —
   // see the `hasChanged`-keyed effect below, which owns arming/disarming.
   const navigationBlockerRef = useRef<((tx: RouterTransition) => void) | null>(null);
+  // Aborts any confirm/prompt dialog this hook instance has in flight (e.g.
+  // the local-backup-recovery prompt below) when the Editor unmounts, so
+  // navigating away mid-prompt settles it as `false` and drains it from
+  // `ConfirmDialogHost`'s queue instead of leaving a dangling `AlertDialog`
+  // mounted at the app root that outlives the route (DCMS-1063).
+  const unmountControllerRef = useRef<AbortController>(new AbortController());
+
+  useEffect(() => {
+    const controller = unmountControllerRef.current;
+    return () => controller.abort();
+  }, []);
 
   // Selectors
   const collections = useAppSelector(state => state.collections);
@@ -318,7 +329,11 @@ export function useEditor({
   const handleLocalBackupCheck = useCallback(
     async (prevLocalBackup: unknown) => {
       if (!prevLocalBackup && localBackup) {
-        const confirmLoadBackup = await confirmDialog(t('editor.editor.confirmLoadBackup'));
+        const confirmLoadBackup = await confirmDialog(
+          t('editor.editor.confirmLoadBackup'),
+          {},
+          unmountControllerRef.current.signal,
+        );
         if (confirmLoadBackup) {
           dispatch(loadLocalBackup() as any);
         } else {
