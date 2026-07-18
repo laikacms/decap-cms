@@ -22,6 +22,56 @@ The registration functions below are how a consumer plugs custom widgets, backen
 editor components, remark plugins, media libraries, locales, event hooks, and file formats into the
 CMS.
 
+## Theming
+
+The CMS's design tokens (currently colors) are resolved through CSS custom properties
+(`--decap-color-*` / `--decap-color-raw-*`), so every component that reads a token can be re-themed
+without touching component code. Two ways to plug in a theme:
+
+```tsx
+import { DecapCmsProvider } from '@laikacms/decap-cms/core';
+import type { DecapTheme } from '@laikacms/decap-cms/core';
+
+const theme: DecapTheme = {
+  colors: {
+    active: '#e91e63',
+    background: '#111111',
+  },
+};
+
+<DecapCmsProvider theme={theme}>{/* ... */}</DecapCmsProvider>;
+```
+
+- **`DecapTheme`** — the shape a consumer supplies. Both keys are optional; omitted tokens keep
+  their default:
+  ```ts
+  interface DecapTheme {
+    /** Semantic colors — `text`, `active`, `background`, `errorText`, … */
+    colors?: Partial<Colors>;
+    /** The raw color palette — `white`, `blue`, `purple`, … */
+    colorsRaw?: Partial<ColorsRaw>;
+  }
+  ```
+  `Colors` and `ColorsRaw` are defined in
+  [`src/ui/default/styles.tsx`](../ui/default/styles.tsx); see that file for the full token lists
+  and their defaults.
+- **`theme` prop on `DecapCmsProvider`** — the normal path. `DecapCmsProvider` converts the theme to
+  CSS variables internally (`<Global styles={{ ':root': themeToCssVars(theme) }} />`) and applies
+  them on top of the default token baseline, which is always emitted first so every token has a
+  defined value on first paint.
+- **`themeToCssVars(theme: DecapTheme): Record<string, string>`** — exported from
+  `@laikacms/decap-cms/core` (re-exported from
+  [`src/ui/default/styles.tsx`](../ui/default/styles.tsx)) for consumers who want to emit the
+  `--decap-*` variables themselves instead of going through the `theme` prop — e.g. to merge them
+  into a host app's own stylesheet or theming system, as `laika-app` does for its light/dark themes
+  (`laikaThemes.ts`, `LaikaThemeContext.tsx`). Only string values are emitted; non-string values on
+  the theme object are silently dropped. Naming convention: `theme.colors.active` becomes
+  `--decap-color-active`, `theme.colorsRaw.blue` becomes `--decap-color-raw-blue`.
+  ```ts
+  themeToCssVars({ colors: { active: '#e91e63' } });
+  // => { '--decap-color-active': '#e91e63' }
+  ```
+
 ## Top-level `slug` config
 
 ```yaml
