@@ -78,7 +78,7 @@ Only text-producing widgets are affected: `string`, `text`, and `richtext` (incl
 ```sh
 pnpm install        # Node >= 20, pnpm 9
 pnpm test:ci        # lint + typecheck + unit tests
-pnpm build:demo && pnpm serve:dev-test   # demo app on http://localhost:5174
+pnpm build:dev-test && pnpm serve:dev-test   # demo app on http://localhost:5174, Laika UI on /laika.html
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow.

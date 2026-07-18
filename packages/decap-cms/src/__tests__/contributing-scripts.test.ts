@@ -86,4 +86,29 @@ describe('CONTRIBUTING.md#scripts', () => {
       expect(typecheckRow?.toLowerCase()).toContain(label.toLowerCase());
     }
   });
+
+  it('documents `build:dev-test` (not bare `build:demo`) as the dev-server build step (DCMS-1117, #1145)', () => {
+    // `pnpm build:demo && pnpm serve:dev-test` was the documented dev workflow
+    // across README.md / packages/decap-cms/README.md / CONTRIBUTING.md, but
+    // `build:demo` alone never builds the Laika UI bundle
+    // (`dev-test/dist/laika-cms.js`, produced by `build:laika-demo`), so pages
+    // like `dev-test/laika.html` 404. `build:dev-test` is the combined script
+    // that already builds every bundle the served `dev-test/` pages load —
+    // assert the docs point at it instead of the classic-only command, and
+    // that the script itself still covers the laika bundle so this can't
+    // silently drift back apart.
+    const contributing = fs.readFileSync(CONTRIBUTING_PATH, 'utf8');
+    const decapCmsPackageJson = JSON.parse(
+      fs.readFileSync(DECAP_CMS_PACKAGE_JSON_PATH, 'utf8'),
+    ) as { scripts?: Record<string, string> };
+    const devTestScript = decapCmsPackageJson.scripts?.['build:dev-test'] ?? '';
+
+    expect(devTestScript).toContain('build:demo');
+    expect(devTestScript).toContain('build:laika-demo');
+
+    const devServerRow = contributing.split('\n').find(line => line.includes('serve:dev-test'));
+    expect(devServerRow).toBeDefined();
+    expect(devServerRow).toContain('build:dev-test');
+    expect(devServerRow).not.toMatch(/`pnpm build:demo &&/);
+  });
 });
