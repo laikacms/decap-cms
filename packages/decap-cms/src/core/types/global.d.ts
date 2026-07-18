@@ -72,27 +72,3 @@ declare module 'fuzzy' {
 declare module 'copy-text-to-clipboard' {
   export default function copyToClipboard(text: string): boolean;
 }
-
-// react-scroll-sync: synchronized scrolling between React components
-declare module 'react-scroll-sync' {
-  import type { ComponentType, ReactNode } from 'react';
-
-  export interface ScrollSyncProps {
-    children?: ReactNode;
-    onSync?: (el: Element) => void;
-    proportional?: boolean;
-    vertical?: boolean;
-    horizontal?: boolean;
-    enabled?: boolean;
-  }
-
-  export interface ScrollSyncPaneProps {
-    children?: ReactNode;
-    attachTo?: HTMLElement;
-    group?: string | string[];
-    enabled?: boolean;
-  }
-
-  export const ScrollSync: ComponentType<ScrollSyncProps>;
-  export const ScrollSyncPane: ComponentType<ScrollSyncPaneProps>;
-}
