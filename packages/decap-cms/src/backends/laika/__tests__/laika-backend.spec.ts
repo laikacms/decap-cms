@@ -226,6 +226,38 @@ describe('createLaikaBackend()', () => {
     expect(comp).toBeDefined();
   });
 
+  // Pins DCMS-925: config.backend.dev_token swaps the PKCE auth component for
+  // the dev-only auto-login one. See laika/README.md#Config for the operator-
+  // facing warning that this must never be set in production.
+  it('authComponent() returns PKCEAuthenticationPage when dev_token is unset', () => {
+    const LaikaBackend = createLaikaBackend();
+    const backend = new LaikaBackend(makeConfig()) as any;
+    const comp = backend.authComponent();
+    expect(comp.name).toBe('PKCEAuthenticationPage');
+  });
+
+  it('authComponent() returns the dev auth component when dev_token is set', () => {
+    const LaikaBackend = createLaikaBackend();
+    const backend = new LaikaBackend(
+      makeConfig({
+        backend: {
+          name: 'laika',
+          base_url: 'https://api.example.com',
+          api_root: '',
+          dev_token: 'dev-secret-token',
+        },
+      }),
+    ) as any;
+
+    const comp = backend.authComponent();
+
+    expect(comp.name).not.toBe('PKCEAuthenticationPage');
+    // The dev wrapper closes over devToken and forwards it to DevAuthenticationPage
+    // as a prop — rendering it returns a React element carrying that token.
+    const element = comp({ onLogin: vi.fn() }) as { props: { devToken?: string } };
+    expect(element.props.devToken).toBe('dev-secret-token');
+  });
+
   it('getToken() throws synchronously when not authenticated', () => {
     const LaikaBackend = createLaikaBackend();
     const backend = new LaikaBackend(makeConfig()) as any;
@@ -2362,6 +2394,46 @@ describe('LaikaBackend.restoreUser()', () => {
 
     expect(user).toMatchObject({ name: 'Alice' });
     expect(vi.mocked(unsentRequest.fetchWithTimeout)).toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Suite: api_url fallback (DCMS-925)
+//
+// Pins the documented behavior: `api_url` is a legacy alias for `api_root`,
+// honored only when `api_root` is absent. See laika/README.md#Config.
+// ---------------------------------------------------------------------------
+
+describe('LaikaBackend api_root / api_url resolution (DCMS-925)', () => {
+  it('uses api_root when both api_root and api_url are set', () => {
+    const LaikaBackend = createLaikaBackend();
+    const backend = new LaikaBackend(
+      makeConfig({
+        backend: {
+          name: 'laika',
+          base_url: 'https://api.example.com',
+          api_root: '/api',
+          api_url: '/legacy-api',
+        },
+      }),
+    ) as any;
+
+    expect(backend.apiUrl).toBe('https://api.example.com/api');
+  });
+
+  it('falls back to api_url when api_root is absent', () => {
+    const LaikaBackend = createLaikaBackend();
+    const backend = new LaikaBackend(
+      makeConfig({
+        backend: {
+          name: 'laika',
+          base_url: 'https://api.example.com',
+          api_url: '/legacy-api',
+        },
+      }),
+    ) as any;
+
+    expect(backend.apiUrl).toBe('https://api.example.com/legacy-api');
   });
 });
 
