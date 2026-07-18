@@ -1,7 +1,9 @@
 import { trim, trimStart } from 'lodash-es';
 
+import { PkceAuthenticator } from '@/lib/auth/index';
 import { stripIndent } from '@/lib/util/index';
 import {
+  AccessTokenError,
   allEntriesByFolder,
   asyncLock,
   basename,
@@ -22,11 +24,13 @@ import {
   localForage,
   runWithLock,
   unpublishedEntries,
+  unsentRequest,
 } from '@/lib/util/index';
 import API, { API_NAME } from './API';
 import AuthenticationPage from './AuthenticationPage';
 
 import type {
+  ApiRequest,
   AsyncLock,
   CmsAssetProxy,
   CmsBackendInitConfig,
@@ -68,9 +72,11 @@ export function registerGraphQLAPI(
 export default class GitLab implements CmsImplementation {
   lock: AsyncLock;
   api: API | null;
+  updateUserCredentials: (args: { token: string, refresh_token?: string }) => Promise<null>;
   options: {
     proxied: boolean,
     API: API | null,
+    updateUserCredentials: (args: { token: string, refresh_token?: string }) => Promise<null>,
     initialWorkflowStatus: string,
   };
   repo: string;
@@ -84,6 +90,13 @@ export default class GitLab implements CmsImplementation {
   previewContext: string;
   useGraphQL: boolean;
   graphQLAPIRoot: string;
+  authType: string;
+  baseUrl: string;
+  authEndpoint: string;
+  appID: string;
+  refreshToken?: string;
+  refreshedTokenPromise?: Promise<string>;
+  authenticator?: PkceAuthenticator;
 
   _mediaDisplayURLSem?: Semaphore;
 
@@ -91,6 +104,7 @@ export default class GitLab implements CmsImplementation {
     this.options = {
       proxied: false,
       API: null,
+      updateUserCredentials: async () => null,
       initialWorkflowStatus: '',
       ...options,
     };
@@ -104,6 +118,8 @@ export default class GitLab implements CmsImplementation {
 
     this.api = this.options.API || null;
 
+    this.updateUserCredentials = this.options.updateUserCredentials;
+
     this.repo = config.backend.repo || '';
     this.branch = config.backend.branch || 'master';
     this.isBranchConfigured = config.backend.branch ? true : false;
@@ -115,6 +131,10 @@ export default class GitLab implements CmsImplementation {
     this.previewContext = config.backend.preview_context || '';
     this.useGraphQL = config.backend.use_graphql || false;
     this.graphQLAPIRoot = config.backend.graphql_api_root || 'https://gitlab.com/api/graphql';
+    this.authType = config.backend.auth_type || '';
+    this.baseUrl = config.backend.base_url || 'https://gitlab.com';
+    this.authEndpoint = config.backend.auth_endpoint || 'oauth/authorize';
+    this.appID = config.backend.app_id || '';
     this.lock = asyncLock();
   }
 
@@ -144,6 +164,7 @@ export default class GitLab implements CmsImplementation {
 
   async authenticate(state: CmsCredentials) {
     this.token = state.token as string;
+    this.refreshToken = state.refresh_token;
     if (this.useGraphQL && !registeredGraphQLAPI) {
       throw new Error(
         'The GitLab backend has `use_graphql` enabled, but no GraphQL API is registered. '
@@ -161,6 +182,7 @@ export default class GitLab implements CmsImplementation {
       cmsLabelPrefix: this.cmsLabelPrefix,
       initialWorkflowStatus: this.options.initialWorkflowStatus,
       graphQLAPIRoot: this.graphQLAPIRoot,
+      requestFunction: this.apiRequestFunction,
     });
     const user = await this.api.user();
     const isCollab = await this.api.hasWriteAccess().catch((error: Error) => {
@@ -191,7 +213,48 @@ export default class GitLab implements CmsImplementation {
       }
     }
     // Authorized user
-    return { ...user, login: user.username, token: state.token as string };
+    return {
+      ...user,
+      login: user.username,
+      token: this.token as string,
+      refresh_token: this.refreshToken,
+    };
+  }
+
+  getRefreshedAccessToken() {
+    if (this.authType !== 'pkce' || !this.refreshToken) {
+      throw new AccessTokenError(`Can't refresh access token when using implicit auth`);
+    }
+    if (this.refreshedTokenPromise) {
+      return this.refreshedTokenPromise;
+    }
+
+    if (!this.authenticator) {
+      this.authenticator = new PkceAuthenticator({
+        base_url: this.baseUrl,
+        auth_endpoint: this.authEndpoint,
+        app_id: this.appID,
+        auth_token_endpoint: 'oauth/token',
+        auth_token_endpoint_content_type: 'application/json; charset=utf-8',
+      });
+    }
+
+    this.refreshedTokenPromise = this.authenticator!.refresh({
+      refresh_token: this.refreshToken,
+    }).then(({ token, refresh_token }) => {
+      const newRefreshToken = refresh_token as string | undefined;
+      this.token = token;
+      this.refreshToken = newRefreshToken;
+      this.refreshedTokenPromise = undefined;
+
+      this.updateUserCredentials({ token, refresh_token: newRefreshToken });
+      if (this.api) {
+        this.api.token = token;
+      }
+      return token;
+    });
+
+    return this.refreshedTokenPromise;
   }
 
   async logout() {
@@ -200,8 +263,38 @@ export default class GitLab implements CmsImplementation {
   }
 
   getToken() {
+    if (this.refreshedTokenPromise) {
+      return this.refreshedTokenPromise;
+    }
+
     return Promise.resolve(this.token);
   }
+
+  apiRequestFunction = async (req: ApiRequest) => {
+    const token = (
+      this.refreshedTokenPromise ? await this.refreshedTokenPromise : this.token
+    ) as string;
+
+    const authorizedRequest = unsentRequest.withHeaders({ Authorization: `Bearer ${token}` }, req);
+    const response: Response = await unsentRequest.performRequest(authorizedRequest);
+    if (response.status === 401) {
+      const json = await response
+        .clone()
+        .json()
+        .catch(() => null);
+      if (json && json.error === 'invalid_token') {
+        const newToken = await this.getRefreshedAccessToken();
+        const reqWithNewToken = unsentRequest.withHeaders(
+          {
+            Authorization: `Bearer ${newToken}`,
+          },
+          req,
+        ) as ApiRequest;
+        return unsentRequest.performRequest(reqWithNewToken);
+      }
+    }
+    return response;
+  };
 
   filterFile(
     folder: string,

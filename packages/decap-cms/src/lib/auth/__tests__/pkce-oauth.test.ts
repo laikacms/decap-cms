@@ -149,4 +149,111 @@ describe('PkceAuthenticator', () => {
       expect(cb).toHaveBeenCalledWith(expect.objectContaining({ message: 'Invalid nonce' }));
     });
   });
+
+  describe('refresh', () => {
+    function createAuthenticator() {
+      return new PkceAuthenticator({
+        use_oidc: false,
+        base_url: 'https://example.com',
+        auth_endpoint: 'authorize',
+        auth_token_endpoint: 'oauth/token',
+        auth_token_endpoint_content_type: 'application/json',
+        app_id: 'app-id',
+      });
+    }
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('exchanges a refresh token for new credentials', async () => {
+      const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            access_token: 'new-access-token',
+            refresh_token: 'new-refresh-token',
+            expires_in: 7200,
+          }),
+          { status: 200 },
+        ),
+      );
+
+      const authenticator = createAuthenticator();
+      const result = await authenticator.refresh({ refresh_token: 'old-refresh-token' });
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        'https://example.com/oauth/token',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({
+            client_id: 'app-id',
+            grant_type: 'refresh_token',
+            redirect_uri: document.location.origin + document.location.pathname,
+            refresh_token: 'old-refresh-token',
+          }),
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      );
+      expect(result).toEqual(
+        expect.objectContaining({
+          token: 'new-access-token',
+          refresh_token: 'new-refresh-token',
+        }),
+      );
+    });
+
+    it('sends a form encoded body when configured', async () => {
+      const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+        new Response(JSON.stringify({ access_token: 'new-access-token' }), { status: 200 }),
+      );
+
+      const authenticator = new PkceAuthenticator({
+        use_oidc: false,
+        base_url: 'https://example.com',
+        auth_endpoint: 'authorize',
+        auth_token_endpoint: 'oauth/token',
+        auth_token_endpoint_content_type: 'application/x-www-form-urlencoded; charset=utf-8',
+        app_id: 'app-id',
+      });
+      await authenticator.refresh({ refresh_token: 'old-refresh-token' });
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        'https://example.com/oauth/token',
+        expect.objectContaining({
+          body: new URLSearchParams(
+            Object.entries({
+              client_id: 'app-id',
+              grant_type: 'refresh_token',
+              redirect_uri: document.location.origin + document.location.pathname,
+              refresh_token: 'old-refresh-token',
+            }),
+          ).toString(),
+        }),
+      );
+    });
+
+    it('throws when the provider returns an error', async () => {
+      vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            error: 'invalid_grant',
+            error_description: 'Refresh token is invalid',
+          }),
+          { status: 400 },
+        ),
+      );
+
+      const authenticator = createAuthenticator();
+
+      await expect(authenticator.refresh({ refresh_token: 'expired' })).rejects.toThrow(
+        'Refresh token is invalid',
+      );
+    });
+
+    it('throws when no refresh token is available', async () => {
+      const authenticator = createAuthenticator();
+
+      await expect(authenticator.refresh({})).rejects.toThrow('Missing refresh token');
+    });
+  });
 });

@@ -396,6 +396,114 @@ describe('gitlab backend', () => {
     });
   });
 
+  describe('token refresh', () => {
+    const pkceConfig = {
+      backend: {
+        name: 'gitlab',
+        repo,
+        auth_type: 'pkce',
+        app_id: 'app-id',
+      },
+    };
+    const pkceCredentials = { token: 'EXPIRED_TOKEN', refresh_token: 'REFRESH_TOKEN' };
+    const expiredTokenResponse = {
+      error: 'invalid_token',
+      error_description: 'Token is expired. You can either do re-authorization or token refresh.',
+    };
+
+    it('stores the refresh token on login', async () => {
+      backend = resolveBackend(pkceConfig);
+      interceptAuth(backend);
+      await backend.authenticate(pkceCredentials);
+      expect(authStore.retrieve()).toEqual(expect.objectContaining(pkceCredentials));
+    });
+
+    it('refreshes the access token and retries the request on 401', async () => {
+      backend = resolveBackend(pkceConfig);
+      interceptAuth(backend);
+      await backend.authenticate(pkceCredentials);
+
+      backend.implementation.authenticator = {
+        refresh: vi
+          .fn()
+          .mockResolvedValue({ token: 'NEW_TOKEN', refresh_token: 'NEW_REFRESH_TOKEN' }),
+      };
+
+      const api = mockApi(backend);
+      api
+        .get('/user')
+        .matchHeader('authorization', 'Bearer EXPIRED_TOKEN')
+        .query(true)
+        .reply(401, expiredTokenResponse);
+      api
+        .get('/user')
+        .matchHeader('authorization', 'Bearer NEW_TOKEN')
+        .query(true)
+        .reply(200, resp.user.success);
+
+      const user = await backend.implementation.api.user();
+
+      expect(user).toEqual(resp.user.success);
+      expect(backend.implementation.authenticator.refresh).toHaveBeenCalledWith({
+        refresh_token: 'REFRESH_TOKEN',
+      });
+      expect(await backend.getToken()).toEqual('NEW_TOKEN');
+      expect(authStore.retrieve()).toEqual(
+        expect.objectContaining({ token: 'NEW_TOKEN', refresh_token: 'NEW_REFRESH_TOKEN' }),
+      );
+    });
+
+    it('returns and persists the refreshed credentials when the token is refreshed during login', async () => {
+      backend = resolveBackend(pkceConfig);
+
+      // authenticate() drives its own instance internally, so stub the
+      // authenticator ahead of time via the implementation constructor path.
+      const api = mockApi(backend);
+      api
+        .get('/user')
+        .matchHeader('authorization', 'Bearer EXPIRED_TOKEN')
+        .query(true)
+        .reply(401, expiredTokenResponse);
+      api
+        .get('/user')
+        .matchHeader('authorization', 'Bearer NEW_TOKEN')
+        .query(true)
+        .reply(200, resp.user.success);
+      api.get(expectedRepoUrl).times(2).query(true).reply(200, resp.project.success);
+
+      backend.implementation.authenticator = {
+        refresh: vi
+          .fn()
+          .mockResolvedValue({ token: 'NEW_TOKEN', refresh_token: 'NEW_REFRESH_TOKEN' }),
+      };
+
+      const user = await backend.authenticate(pkceCredentials);
+
+      expect(backend.implementation.authenticator.refresh).toHaveBeenCalledWith({
+        refresh_token: 'REFRESH_TOKEN',
+      });
+      expect(user).toEqual(
+        expect.objectContaining({ token: 'NEW_TOKEN', refresh_token: 'NEW_REFRESH_TOKEN' }),
+      );
+      expect(authStore.retrieve()).toEqual(
+        expect.objectContaining({ token: 'NEW_TOKEN', refresh_token: 'NEW_REFRESH_TOKEN' }),
+      );
+    });
+
+    it('does not try to refresh when not using pkce auth', async () => {
+      backend = resolveBackend(defaultConfig);
+      interceptAuth(backend);
+      await backend.authenticate(mockCredentials);
+
+      const api = mockApi(backend);
+      api.get('/user').query(true).reply(401, expiredTokenResponse);
+
+      await expect(backend.implementation.api.user()).rejects.toThrow(
+        "Can't refresh access token when using implicit auth",
+      );
+    });
+  });
+
   describe('currentUser', () => {
     it('returns null if no user', async () => {
       backend = resolveBackend(defaultConfig);

@@ -123,6 +123,7 @@ export type CmsBackendInitConfig = {
     auth_type?: string,
     app_id?: string,
     base_url?: string,
+    auth_endpoint?: string,
     cms_label_prefix?: string,
     api_version?: string,
     status_endpoint?: string,
