@@ -187,6 +187,19 @@ describe('stringTemplate', () => {
       ).toBe('Title');
     });
 
+    it('applies the filter before processor, not instead of it', () => {
+      const someProcessor = (value: string, key: string) => `${key}:${value.toUpperCase()}`;
+      expect(
+        compileStringTemplate(
+          "{{ subtitle | default('untitled') }}",
+          null,
+          '',
+          { subtitle: '' },
+          someProcessor,
+        ),
+      ).toBe(someProcessor('untitled', 'subtitle'));
+    });
+
     it('does not treat an empty array or zero as falsy for default', () => {
       expect(
         compileStringTemplate(
