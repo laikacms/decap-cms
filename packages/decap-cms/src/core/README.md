@@ -495,15 +495,22 @@ local_backend:
     - my-machine.local
 ```
 
-- `local_backend: true` (or omitting `url`) assumes the proxy is at `http://localhost:8081/api/v1`.
-- `url` overrides the proxy address. Only `http(s)://` URLs make sense here; the request against an
-  unreachable/invalid URL fails silently — it just logs
+- `local_backend: true` (the boolean shorthand) always assumes the proxy is at
+  `http://localhost:8081/api/v1`, regardless of which hostname the admin UI is loaded from.
+- Object form **without** `url` does *not* default to `localhost`: the proxy address is computed by
+  substituting the page's current `location.hostname` for `localhost` in the default
+  (`defaultUrl.replace('localhost', location.hostname)` in `detectProxyServer`,
+  `src/core/actions/config.tsx`). So loading the admin at `http://my-machine.local:8080` looks for
+  the proxy at `http://my-machine.local:8081/api/v1`, not `http://localhost:8081/api/v1`. This only
+  reads back as "localhost" when the admin itself is accessed from `localhost`/`127.0.0.1`.
+- `url` overrides the proxy address outright. Only `http(s)://` URLs make sense here; the request
+  against an unreachable/invalid URL fails silently — it just logs
   `Decap CMS Proxy Server not detected at '<url>'` to the console and the app falls back to the
   configured non-local backend (`detectProxyServer` in `src/core/actions/config.tsx`).
 - Proxy detection only runs when `location.hostname` is `localhost`, `127.0.0.1`, **or** one of the
   hostnames listed in `allowed_hosts`. `allowed_hosts` lets you develop against the local proxy from
-  a hostname other than `localhost`/`127.0.0.1` (e.g. a LAN name or a tunneled domain) — it does not
-  affect anything once the proxy has been detected.
+  a hostname other than `localhost`/`127.0.0.1` (e.g. a LAN name or a tunneled domain) — and, per the
+  above, that same hostname is what the object-form-without-`url` proxy address tracks.
 
 ### `backend.commit_messages` / `backend.signoff_commits`
 

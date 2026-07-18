@@ -869,6 +869,28 @@ describe('config', () => {
       assetFetchCalled('http://192.168.0.1:8081/api/v1');
     });
 
+    it('should substitute location.hostname for the object form without url (DCMS-653)', async () => {
+      const allowed_hosts = ['my-machine.local'];
+      window.location = { hostname: 'my-machine.local' };
+      global.fetch = vi.fn().mockResolvedValue({
+        json: vi.fn().mockResolvedValue({
+          repo: 'test-repo',
+          publish_modes: ['simple', 'editorial_workflow'],
+          type: 'local_git',
+        }),
+      });
+      // No `url` given: the README's "assumes localhost" wording only holds for the boolean
+      // `true` shorthand. Here the proxy address must track the current hostname instead of
+      // hardcoding `localhost`.
+      await expect(detectProxyServer({ allowed_hosts })).resolves.toEqual({
+        proxyUrl: 'http://my-machine.local:8081/api/v1',
+        publish_modes: ['simple', 'editorial_workflow'],
+        type: 'local_git',
+      });
+
+      assetFetchCalled('http://my-machine.local:8081/api/v1');
+    });
+
     it('should return empty object when local_backend url uses an unsafe scheme', async () => {
       const url = 'javascript:alert(1)';
       window.location = { hostname: 'localhost' };
