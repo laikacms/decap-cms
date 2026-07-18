@@ -47,14 +47,14 @@ pnpm test -- -t "name pattern"
 
 ## Pull requests
 
-1. Fork the repo and create a branch from `main`.
+1. Fork the repo and create a branch from `v4.beta`, the active development trunk.
 2. If you have added code that should be tested, add tests. Tests are colocated in `__tests__/`
    directories as `*.spec.tsx` / `*.test.ts`.
 3. Follow [Conventional Commits](https://www.conventionalcommits.org/); commitlint runs on the
    `commit-msg` hook. House style is `type(scope): subject (DCMS-nnn)` with an area slug scope such
    as `core`, `app`, or `widget-richtext`.
 4. Run `pnpm test:ci` and make sure it passes.
-5. A maintainer reviews and merges; PRs should be rebased on `main` before merge.
+5. A maintainer reviews and merges; PRs should be rebased on `v4.beta` before merge.
 
 ## Debugging against a real backend
 
