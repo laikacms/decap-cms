@@ -48,3 +48,9 @@ section of the main decapcms.org docs:
 - `graphql_api_root` (string, default `'https://gitlab.com/api/graphql'`): the GraphQL
   endpoint used when `use_graphql` is enabled. Passed to the GraphQL API constructor
   alongside the usual `apiRoot`/token/repo options.
+- `api_root` (string, default `'https://gitlab.com/api/v4'`): the REST API root used for
+  all GitLab API calls. Lets self-hosted GitLab instances point the backend at their own
+  API endpoint instead of gitlab.com.
+- `cms_label_prefix` (string, default `''`): a prefix prepended to the editorial workflow
+  merge request labels the backend creates and looks up to track unpublished entry
+  statuses.
