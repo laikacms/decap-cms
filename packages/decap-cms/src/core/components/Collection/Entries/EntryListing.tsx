@@ -1,14 +1,18 @@
 import styled from '@emotion/styled';
+import { orderBy } from 'lodash-es';
 import React from 'react';
 
+import { useTranslate } from '@/core/i18n';
 import { useCmsSlots } from '@/core/lib/slots';
-import { selectFields, selectInferredField } from '@/core/reducers/collections';
+import { selectFields, selectInferredField, selectSortDataPath } from '@/core/reducers/collections';
+import { CmsSortDirection } from '@/lib/util/index';
+import { colors } from '@/ui/default/index';
 import InViewTrigger from '@/ui/default/InViewTrigger';
 import { filterNestedEntries } from './EntriesCollection';
 import EntryCard from './EntryCard';
 
 import type { EntryCardRenderProps } from '@/core/lib/slots';
-import type { CmsCollections, CmsCollectionState, CmsEntry } from '@/lib/util/index';
+import type { CmsCollections, CmsCollectionState, CmsEntry, CmsSortObject } from '@/lib/util/index';
 import type { Cursor } from '@/lib/util/index';
 
 const CardsGrid = styled.ul`
@@ -18,6 +22,20 @@ const CardsGrid = styled.ul`
   margin-left: -12px;
   margin-top: 16px;
   margin-bottom: 16px;
+`;
+
+const SectionSeparator = styled.div`
+  display: flex;
+  align-items: center;
+  margin: 16px 0 8px;
+`;
+
+const SectionHeading = styled.h2`
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 37px;
+  padding-inline-start: 20px;
+  color: ${colors.textLead};
 `;
 
 interface EntryListingProps {
@@ -30,6 +48,9 @@ interface EntryListingProps {
   getUnpublishedEntries?: (collectionName: string) => CmsEntry[];
   getWorkflowStatus?: (collectionName: string, slug: string) => string | null;
   filterTerm?: string;
+  sortFields?: CmsSortObject[];
+  showPublishedEntries?: boolean;
+  showUnpublishedEntries?: boolean;
 }
 
 function isSingleCollection(
@@ -52,6 +73,20 @@ function inferFields(collection: CmsCollectionState) {
   return { titleField, descriptionField, imageField, remainingFields };
 }
 
+function sortEntries(
+  entries: CmsEntry[],
+  sortFields: CmsSortObject[] | undefined,
+  collection: CmsCollectionState,
+) {
+  if (!sortFields || sortFields.length === 0) {
+    return entries;
+  }
+
+  const keys = sortFields.map(v => selectSortDataPath(collection, v.key));
+  const orders = sortFields.map(v => v.direction === CmsSortDirection.Ascending ? 'asc' : 'desc');
+  return orderBy(entries, keys, orders);
+}
+
 function EntryListing({
   collections,
   entries,
@@ -62,9 +97,13 @@ function EntryListing({
   getUnpublishedEntries,
   getWorkflowStatus,
   filterTerm,
+  sortFields,
+  showPublishedEntries = true,
+  showUnpublishedEntries = true,
 }: EntryListingProps) {
   const hasMore = cursor?.actions?.has('append_next');
   const { renderEntryCard, renderEntryListEmpty } = useCmsSlots();
+  const t = useTranslate();
 
   function renderEntry(props: EntryCardRenderProps, key: string | number) {
     if (renderEntryCard) {
@@ -79,13 +118,13 @@ function EntryListing({
     }
   }
 
-  function getAllEntries() {
+  function getUnpublishedEntriesList(): CmsEntry[] {
     const collectionName = isSingleCollection(collections) ? collections.name : null;
-    if (!collectionName) return entries;
+    if (!collectionName) return [];
 
     const unpublishedEntries = getUnpublishedEntries?.(collectionName);
     if (!unpublishedEntries || unpublishedEntries.length === 0) {
-      return entries;
+      return [];
     }
 
     let unpublishedList = [...unpublishedEntries];
@@ -103,17 +142,12 @@ function EntryListing({
       );
     }
 
-    if (!entries) {
-      return unpublishedList as CmsEntry[];
-    }
-
-    const publishedSlugs = new Set(entries.map(entry => entry.slug));
+    const publishedSlugs = new Set((entries ?? []).map(entry => entry.slug));
     const uniqueUnpublished = unpublishedList.filter(entry => !publishedSlugs.has(entry.slug));
-    return [...entries, ...uniqueUnpublished];
+    return sortEntries(uniqueUnpublished as CmsEntry[], sortFields, collections as CmsCollectionState);
   }
 
   function renderCardsForSingleCollection() {
-    const allEntries = getAllEntries();
     const collectionFields = inferFields(collections as CmsCollectionState);
     const entryCardProps = {
       collection: collections as CmsCollectionState,
@@ -121,13 +155,26 @@ function EntryListing({
       viewStyle,
     };
 
-    return allEntries?.map((entry, idx) => {
+    const publishedCards = showPublishedEntries
+      ? entries?.map((entry, idx) => {
+        const workflowStatus = getWorkflowStatus?.(
+          (collections as CmsCollectionState).name,
+          entry.slug,
+        );
+        return renderEntry({ ...entryCardProps, entry, workflowStatus }, `published-${idx}`);
+      }) ?? []
+      : [];
+
+    const unpublishedEntries = showUnpublishedEntries ? getUnpublishedEntriesList() : [];
+    const unpublishedCards = unpublishedEntries.map((entry, idx) => {
       const workflowStatus = getWorkflowStatus?.(
         (collections as CmsCollectionState).name,
         entry.slug,
       );
-      return renderEntry({ ...entryCardProps, entry, workflowStatus }, idx);
+      return renderEntry({ ...entryCardProps, entry, workflowStatus }, `unpublished-${idx}`);
     });
+
+    return { publishedCards, unpublishedCards };
   }
 
   function renderCardsForMultipleCollections() {
@@ -156,25 +203,39 @@ function EntryListing({
     });
   }
 
-  const cards = isSingleCollection(collections)
+  const isSingle = isSingleCollection(collections);
+  const { publishedCards, unpublishedCards } = isSingle
     ? renderCardsForSingleCollection()
-    : renderCardsForMultipleCollections();
-  const cardCount = Array.isArray(cards) ? cards.filter(Boolean).length : 0;
-  const showEmptyState = !!renderEntryListEmpty && Array.isArray(cards) && cardCount === 0;
+    : { publishedCards: renderCardsForMultipleCollections() ?? [], unpublishedCards: [] };
+
+  const cardCount = publishedCards.filter(Boolean).length + unpublishedCards.filter(Boolean).length;
+  const showEmptyState = !!renderEntryListEmpty && cardCount === 0;
 
   return (
     <div>
       {showEmptyState
         ? (
           renderEntryListEmpty({
-            collection: isSingleCollection(collections) ? collections : undefined,
+            collection: isSingle ? collections : undefined,
           })
         )
         : (
-          <CardsGrid className="CardsGrid">
-            {cards}
-            {hasMore && <InViewTrigger key={page} onEnter={handleLoadMore} />}
-          </CardsGrid>
+          <>
+            {(!isSingle || showPublishedEntries) && (
+              <CardsGrid className="CardsGrid">
+                {publishedCards}
+                {hasMore && <InViewTrigger key={page} onEnter={handleLoadMore} />}
+              </CardsGrid>
+            )}
+            {isSingle && unpublishedCards.length > 0 && (
+              <>
+                <SectionSeparator>
+                  <SectionHeading>{t('collection.entries.unpublishedHeader')}</SectionHeading>
+                </SectionSeparator>
+                <CardsGrid className="CardsGrid">{unpublishedCards}</CardsGrid>
+              </>
+            )}
+          </>
         )}
     </div>
   );

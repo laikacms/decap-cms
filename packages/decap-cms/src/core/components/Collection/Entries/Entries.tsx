@@ -7,7 +7,7 @@ import { Loader } from '@/ui/default/index';
 import EntryListing from './EntryListing';
 
 import type { Cursor } from '@/lib/util/index';
-import type { CmsCollectionState, CmsEntry } from '@/lib/util/index';
+import type { CmsCollectionState, CmsEntry, CmsSortObject } from '@/lib/util/index';
 import type { TranslateFunction } from '@/ui/default/index';
 
 const PaginationMessage = styled.div`
@@ -31,6 +31,9 @@ interface EntriesProps {
   getWorkflowStatus?: (collectionName: string, slug: string) => string | null;
   getUnpublishedEntries?: (collectionName: string) => CmsEntry[];
   filterTerm?: string;
+  sortFields?: CmsSortObject[];
+  showPublishedEntries?: boolean;
+  showUnpublishedEntries?: boolean;
 }
 
 function Entries({
@@ -45,6 +48,9 @@ function Entries({
   getWorkflowStatus,
   getUnpublishedEntries,
   filterTerm,
+  sortFields,
+  showPublishedEntries = true,
+  showUnpublishedEntries = true,
 }: EntriesProps) {
   const { renderLoader } = useCmsSlots();
   const loadingMessages = [
@@ -53,14 +59,15 @@ function Entries({
     t('collection.entries.longerLoading'),
   ];
 
-  if (isFetching && page === undefined) {
+  if (showPublishedEntries && isFetching && page === undefined) {
     return renderLoader
       ? <>{renderLoader({ label: loadingMessages, context: 'entries' })}</>
       : <Loader active>{loadingMessages}</Loader>;
   }
 
-  const hasEntries = (entries && entries.length > 0) || cursor?.actions?.has('append_next');
-  if (hasEntries) {
+  const hasEntries = showPublishedEntries
+    && ((entries && entries.length > 0) || cursor?.actions?.has('append_next'));
+  if (hasEntries || !showPublishedEntries) {
     return (
       <>
         <EntryListing
@@ -73,8 +80,11 @@ function Entries({
           getWorkflowStatus={getWorkflowStatus}
           getUnpublishedEntries={getUnpublishedEntries}
           filterTerm={filterTerm}
+          sortFields={sortFields}
+          showPublishedEntries={showPublishedEntries}
+          showUnpublishedEntries={showUnpublishedEntries}
         />
-        {isFetching && page !== undefined && entries && entries.length > 0
+        {showPublishedEntries && isFetching && page !== undefined && entries && entries.length > 0
           ? <PaginationMessage>{t('collection.entries.loadingEntries')}</PaginationMessage>
           : null}
       </>

@@ -10,7 +10,13 @@ import {
 } from '@/core/actions/entries';
 import { useTranslate } from '@/core/i18n';
 import { selectUnpublishedEntriesByStatus, selectUnpublishedEntry } from '@/core/reducers';
-import { selectEntries, selectEntriesLoaded, selectGroups, selectIsFetching } from '@/core/reducers/entries';
+import {
+  selectEntries,
+  selectEntriesLoaded,
+  selectEntriesSortFields,
+  selectGroups,
+  selectIsFetching,
+} from '@/core/reducers/entries';
 import { Cursor } from '@/lib/util/index';
 import { colors } from '@/ui/default/index';
 import Entries from './Entries';
@@ -19,7 +25,7 @@ import Entries from './Entries';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 
 import type { Status } from '@/core/constants/publishModes';
-import type { CmsCollections, CmsCollectionState, CmsEntry, CmsGroupOfEntries } from '@/lib/util/index';
+import type { CmsCollections, CmsCollectionState, CmsEntry, CmsGroupOfEntries, CmsSortObject } from '@/lib/util/index';
 import type { TranslateFunction } from '@/ui/default/index';
 
 const GroupHeading = styled.h2`
@@ -47,10 +53,16 @@ function getGroupTitle(group: CmsGroupOfEntries, t: TranslateFunction) {
   return `${label} ${value}`.trim();
 }
 
+type EntriesToRenderProps = {
+  entries: CmsEntry[] | undefined,
+  showPublishedEntries?: boolean,
+  showUnpublishedEntries?: boolean,
+};
+
 function withGroups(
   groups: CmsGroupOfEntries[],
   entries: CmsEntry[] | undefined,
-  EntriesToRender: React.ComponentType<{ entries: CmsEntry[] | undefined }>,
+  EntriesToRender: React.ComponentType<EntriesToRenderProps>,
   t: TranslateFunction,
 ) {
   return groups.map((group: CmsGroupOfEntries) => {
@@ -58,7 +70,10 @@ function withGroups(
     return (
       <GroupContainer key={group.id} className="GroupContainer" id={group.id}>
         <GroupHeading>{title}</GroupHeading>
-        <EntriesToRender entries={getGroupEntries(entries, group.paths)} />
+        <EntriesToRender
+          entries={getGroupEntries(entries, group.paths)}
+          showUnpublishedEntries={false}
+        />
       </GroupContainer>
     );
   });
@@ -114,6 +129,7 @@ interface EntriesCollectionProps {
   t: TranslateFunction;
   getWorkflowStatus: (collectionName: string, slug: string) => string | null;
   getUnpublishedEntries: (collectionName: string) => CmsEntry[];
+  sortFields?: CmsSortObject[];
 }
 
 export function EntriesCollection({
@@ -134,6 +150,7 @@ export function EntriesCollection({
   t,
   getWorkflowStatus,
   getUnpublishedEntries,
+  sortFields,
 }: EntriesCollectionProps) {
   const loadEntriesRef = React.useRef(loadEntries);
   loadEntriesRef.current = loadEntries;
@@ -158,7 +175,9 @@ export function EntriesCollection({
     traverseCollectionCursor(collection, action);
   }
 
-  function EntriesToRender({ entries: entriesArg }: { entries: CmsEntry[] | undefined }) {
+  function EntriesToRender(
+    { entries: entriesArg, showPublishedEntries, showUnpublishedEntries }: EntriesToRenderProps,
+  ) {
     return (
       <Entries
         collections={collection}
@@ -171,12 +190,20 @@ export function EntriesCollection({
         getWorkflowStatus={getWorkflowStatus}
         getUnpublishedEntries={getUnpublishedEntries}
         filterTerm={filterTerm}
+        sortFields={sortFields}
+        showPublishedEntries={showPublishedEntries}
+        showUnpublishedEntries={showUnpublishedEntries}
       />
     );
   }
 
   if (groups && groups.length > 0) {
-    return withGroups(groups, entries, EntriesToRender, t);
+    return (
+      <>
+        {withGroups(groups, entries, EntriesToRender, t)}
+        <EntriesToRender entries={entries} showPublishedEntries={false} />
+      </>
+    );
   }
   return <EntriesToRender entries={entries} />;
 }
@@ -218,6 +245,10 @@ export default function ConnectedEntriesCollection({
   }, [collection, filterTerm, rawEntries]);
   const groups = useAppSelector(
     (state: any) => selectGroups(state.entries, collection),
+    shallowArrayEqual,
+  );
+  const sortFields = useAppSelector(
+    (state: any) => selectEntriesSortFields(state.entries, collection.name),
     shallowArrayEqual,
   );
   const entriesLoaded = useAppSelector((state: any) => selectEntriesLoaded(state.entries, collection.name));
@@ -274,6 +305,7 @@ export default function ConnectedEntriesCollection({
       page={page}
       entries={entries}
       groups={groups}
+      sortFields={sortFields}
       isFetching={isFetching}
       viewStyle={viewStyle}
       cursor={cursor}
