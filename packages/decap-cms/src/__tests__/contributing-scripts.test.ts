@@ -12,6 +12,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../../../..');
 const CONTRIBUTING_PATH = path.join(REPO_ROOT, 'CONTRIBUTING.md');
 const ROOT_PACKAGE_JSON_PATH = path.join(REPO_ROOT, 'package.json');
+const DECAP_CMS_PACKAGE_JSON_PATH = path.join(REPO_ROOT, 'packages/decap-cms/package.json');
 
 // CLI subcommands that follow `pnpm` but aren't scripts declared in
 // package.json (e.g. `pnpm install`, `pnpm 9` in a version reference).
@@ -42,5 +43,47 @@ describe('CONTRIBUTING.md#scripts', () => {
     // longer exists in package.json#scripts (or was renamed) — update
     // whichever one is stale so the docs can't silently re-drift again.
     expect(undeclared).toEqual([]);
+  });
+
+  it('describes the full scope of `packages/decap-cms#typecheck` (DCMS-1095, #1107)', () => {
+    // `pnpm typecheck` at the root delegates via `pnpm -r run typecheck` to
+    // this workspace's script, which chains multiple `tsc -p <config>`
+    // invocations. CONTRIBUTING.md's "Available scripts" table must mention
+    // every tsconfig it covers, not just the default `tsc --noEmit`, so the
+    // docs can't silently undersell the scope again.
+    const contributing = fs.readFileSync(CONTRIBUTING_PATH, 'utf8');
+    const decapCmsPackageJson = JSON.parse(
+      fs.readFileSync(DECAP_CMS_PACKAGE_JSON_PATH, 'utf8'),
+    ) as { scripts?: Record<string, string> };
+    const typecheckScript = decapCmsPackageJson.scripts?.typecheck ?? '';
+    expect(typecheckScript.length).toBeGreaterThan(0);
+
+    const invocationCount = typecheckScript.split('&&').filter(part => part.includes('tsc')).length;
+    // Every `-p <path>` project flag after the first bare `tsc --noEmit`
+    // invocation names a tsconfig the doc row should call out.
+    const projectConfigs = [...typecheckScript.matchAll(/tsc\s+-p\s+(\S+)/g)].map(match => match[1]);
+
+    expect(invocationCount).toBeGreaterThan(1);
+    expect(projectConfigs.length).toBeGreaterThan(0);
+
+    const typecheckRow = contributing
+      .split('\n')
+      .find(line => line.startsWith('| `pnpm typecheck`'));
+    expect(typecheckRow).toBeDefined();
+
+    // If this fails, either the doc row or the script drifted: update
+    // whichever one is stale, and keep the other's wording in sync.
+    expect(typecheckRow).toContain(String(invocationCount));
+    const GENERIC_CONFIG_SEGMENTS = new Set(['tsconfig', 'json']);
+    for (const configPath of projectConfigs) {
+      // Match on the meaningful segment of each tsconfig path (e.g.
+      // "playwright", "storybook", "node" out of "tsconfig.node.json")
+      // rather than the literal path, so trivial config renames don't force
+      // a doc rewrite for no reason.
+      const segments = configPath.split(/[/.]/).filter(Boolean);
+      const label = segments.find(segment => !GENERIC_CONFIG_SEGMENTS.has(segment.toLowerCase()))
+        ?? segments[0];
+      expect(typecheckRow?.toLowerCase()).toContain(label.toLowerCase());
+    }
   });
 });
