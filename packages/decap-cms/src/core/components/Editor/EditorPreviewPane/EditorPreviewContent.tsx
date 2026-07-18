@@ -1,6 +1,7 @@
 import { vercelStegaDecode } from '@vercel/stega';
 import React from 'react';
 import { FrameContextConsumer } from 'react-frame-component';
+import type { FrameContextProps } from 'react-frame-component';
 
 import { ScrollSyncPane } from '@/ui';
 
@@ -66,11 +67,11 @@ function PreviewContent({ previewComponent, previewProps, onFieldClick }: Previe
 
   return (
     <FrameContextConsumer>
-      {(context: any) => {
+      {(context: FrameContextProps) => {
         const preview = renderPreview();
         if (showScrollSync) {
           return (
-            <ScrollSyncPane attachTo={context?.document?.scrollingElement}>
+            <ScrollSyncPane attachTo={context?.document?.scrollingElement as HTMLElement | null}>
               {preview}
             </ScrollSyncPane>
           );
