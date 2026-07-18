@@ -54,7 +54,13 @@ function getSelectedValue({
   isMultiple: boolean,
 }): SelectOption | SelectOption[] | null {
   if (isMultiple) {
-    if (value == null) return null;
+    // base-ui's Combobox root expects an array `value` whenever `multiple` is
+    // true; passing `null` leaves its internal `selectedValue` state as
+    // `null` instead of `[]`, which throws (`Cannot read properties of null
+    // (reading 'length')`) the first time the empty input's keydown handler
+    // reads `selectedValue.length` (e.g. on Backspace) (DCMS-1018 recurrence,
+    // DCMS-1027).
+    if (value == null) return [];
     const selectedOptions = Array.isArray(value) ? value : [value];
 
     return selectedOptions
