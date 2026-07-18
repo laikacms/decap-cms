@@ -45,6 +45,29 @@ interface CodeMirrorEditorProps {
   minHeight?: string;
   autoFocus?: boolean;
   className?: string;
+  /** Id applied to the editable `.cm-content` element so the "focus first
+   * invalid control" heuristic and `aria-errormessage` (below) can locate it
+   * (WCAG 2.1 3.3.1 / 3.3.3). */
+  id?: string;
+  ariaRequired?: boolean;
+  ariaInvalid?: boolean;
+  ariaErrorMessage?: string;
+}
+
+function buildContentAttributes({
+  id,
+  ariaRequired,
+  ariaInvalid,
+  ariaErrorMessage,
+}: Pick<CodeMirrorEditorProps, 'id' | 'ariaRequired' | 'ariaInvalid' | 'ariaErrorMessage'>) {
+  const attrs: Record<string, string> = {};
+  if (id) attrs.id = id;
+  if (ariaRequired !== undefined) attrs['aria-required'] = String(ariaRequired);
+  if (ariaInvalid) {
+    attrs['aria-invalid'] = 'true';
+    if (ariaErrorMessage) attrs['aria-errormessage'] = ariaErrorMessage;
+  }
+  return attrs;
 }
 
 // The always-on part of `basicSetup` from the `codemirror` meta package; the
@@ -88,6 +111,10 @@ const CodeMirrorEditor = React.forwardRef<CodeMirrorEditorRef, CodeMirrorEditorP
       minHeight,
       autoFocus = false,
       className,
+      id,
+      ariaRequired,
+      ariaInvalid,
+      ariaErrorMessage,
     },
     ref,
   ) {
@@ -99,6 +126,7 @@ const CodeMirrorEditor = React.forwardRef<CodeMirrorEditorRef, CodeMirrorEditorP
         theme: Compartment,
         extra: Compartment,
         gutter: Compartment,
+        attrs: Compartment,
       } | null
     >(null);
     if (!compartmentsRef.current) {
@@ -106,6 +134,7 @@ const CodeMirrorEditor = React.forwardRef<CodeMirrorEditorRef, CodeMirrorEditorP
         theme: new Compartment(),
         extra: new Compartment(),
         gutter: new Compartment(),
+        attrs: new Compartment(),
       };
     }
     const compartments = compartmentsRef.current;
@@ -123,6 +152,10 @@ const CodeMirrorEditor = React.forwardRef<CodeMirrorEditorRef, CodeMirrorEditorP
       showLineNumbers,
       minHeight,
       autoFocus,
+      id,
+      ariaRequired,
+      ariaInvalid,
+      ariaErrorMessage,
     });
 
     React.useEffect(() => {
@@ -139,6 +172,7 @@ const CodeMirrorEditor = React.forwardRef<CodeMirrorEditorRef, CodeMirrorEditorP
               : [],
             compartments.theme.of(initial.theme ?? []),
             compartments.extra.of(initial.extensions),
+            compartments.attrs.of(EditorView.contentAttributes.of(buildContentAttributes(initial))),
             EditorView.updateListener.of(update => {
               if (update.docChanged) {
                 const doc = update.state.doc.toString();
@@ -184,6 +218,18 @@ const CodeMirrorEditor = React.forwardRef<CodeMirrorEditorRef, CodeMirrorEditorP
         effects: compartments.gutter.reconfigure(showLineNumbers ? lineNumbers() : []),
       });
     }, [compartments, showLineNumbers]);
+
+    // WCAG 2.1 3.3.1 (Error Identification): CodeMirror mounts its own
+    // `.cm-content` element rather than accepting a plain DOM prop, so the
+    // aria wiring other widget controls apply directly to their input must
+    // be pushed through a facet reconfigure instead (DCMS-1086).
+    React.useEffect(() => {
+      viewRef.current?.dispatch({
+        effects: compartments.attrs.reconfigure(
+          EditorView.contentAttributes.of(buildContentAttributes({ id, ariaRequired, ariaInvalid, ariaErrorMessage })),
+        ),
+      });
+    }, [compartments, id, ariaRequired, ariaInvalid, ariaErrorMessage]);
 
     React.useImperativeHandle(
       ref,

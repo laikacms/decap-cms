@@ -65,6 +65,11 @@ export interface ToggleProps {
   Container?: React.ComponentType<React.ComponentProps<typeof ToggleContainer>>;
   Background?: React.ComponentType<ToggleActiveProps>;
   Handle?: React.ComponentType<ToggleActiveProps>;
+  /** Threaded from the Decap widget layer's validation state onto the
+   * underlying switch button (WCAG 2.1 3.3.1 / 3.3.3). */
+  ariaRequired?: boolean;
+  ariaInvalid?: boolean;
+  ariaErrorMessage?: string;
 }
 
 /**
@@ -85,6 +90,9 @@ function Toggle({
   Container = ToggleContainer,
   Background = ToggleBackground,
   Handle = ToggleHandle,
+  ariaRequired,
+  ariaInvalid,
+  ariaErrorMessage,
 }: ToggleProps): React.ReactElement {
   return (
     <Switch
@@ -95,6 +103,9 @@ function Toggle({
       onFocus={event => onFocus?.(event as unknown as React.FocusEvent<HTMLButtonElement>)}
       onBlur={event => onBlur?.(event as unknown as React.FocusEvent<HTMLButtonElement>)}
       className={className}
+      aria-required={ariaRequired}
+      aria-invalid={ariaInvalid || undefined}
+      aria-errormessage={ariaInvalid ? ariaErrorMessage : undefined}
       render={<Container />}
     >
       <Background $isActive={active} />

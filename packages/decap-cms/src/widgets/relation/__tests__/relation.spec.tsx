@@ -310,7 +310,7 @@ class RelationController extends React.Component {
   }
 }
 
-function setup({ field, value }) {
+function setup({ field, value, hasErrors, errorListId }) {
   let renderArgs;
   const setActiveSpy = vi.fn();
   const setInactiveSpy = vi.fn();
@@ -330,6 +330,8 @@ function setup({ field, value }) {
             classNameWrapper=""
             setActiveStyle={setActiveSpy}
             setInactiveStyle={setInactiveSpy}
+            hasErrors={hasErrors}
+            errorListId={errorListId}
           />
         );
       }}
@@ -741,6 +743,44 @@ describe('Relation widget', () => {
         expect(() => getAllByText(/^Post # (\d{1,2}) post-number-\1$/)).toThrow(Error);
         expect(getAllByText('Deeply nested post post-deeply-nested')).toHaveLength(1);
       });
+    });
+  });
+
+  // DCMS-1086: PR #1085 wired aria-invalid/aria-required/aria-errormessage
+  // into string/text/number/colorstring/datetime/select/richtext, but missed
+  // this combobox input, so the "focus first invalid control" heuristic
+  // silently skipped past invalid relation fields.
+  describe('RelationControl aria validation wiring (DCMS-1086)', () => {
+    it('marks a required field as aria-required by default', () => {
+      const { input } = setup({ field: fieldConfig });
+      expect(input).toHaveAttribute('aria-required', 'true');
+    });
+
+    it('does not mark an explicitly optional field as aria-required', () => {
+      const { input } = setup({ field: { ...fieldConfig, required: false } });
+      expect(input).toHaveAttribute('aria-required', 'false');
+    });
+
+    it('has no aria-invalid when the field has no errors', () => {
+      const { input } = setup({ field: fieldConfig });
+      expect(input).not.toHaveAttribute('aria-invalid');
+    });
+
+    it('sets aria-invalid and aria-errormessage when the field has errors', () => {
+      const { input } = setup({ field: fieldConfig, hasErrors: true, errorListId: 'post-field-1-errors' });
+      expect(input).toHaveAttribute('aria-invalid', 'true');
+      expect(input).toHaveAttribute('aria-errormessage', 'post-field-1-errors');
+    });
+
+    it('sets aria-invalid on the chips input when the field is multiple', () => {
+      const { container } = setup({
+        field: { ...fieldConfig, multiple: true },
+        hasErrors: true,
+        errorListId: 'post-field-1-errors',
+      });
+      const input = container.querySelector('input');
+      expect(input).toHaveAttribute('aria-invalid', 'true');
+      expect(input).toHaveAttribute('aria-errormessage', 'post-field-1-errors');
     });
   });
 });

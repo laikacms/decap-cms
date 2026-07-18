@@ -266,3 +266,49 @@ describe('withMapControl', () => {
     warnSpy.mockRestore();
   });
 });
+
+// DCMS-1086: PR #1085 wired aria-invalid/aria-required/aria-errormessage
+// into string/text/number/colorstring/datetime/select/richtext, but missed
+// this widget - it had no queryable input surface at all, so the
+// "focus first invalid control" heuristic had nowhere to land. Applied to
+// the leaflet/OpenLayers container div (role="application"), which is now
+// also given a stable id from `forID`.
+describe('MapControl aria validation wiring (DCMS-1086)', () => {
+  beforeEach(() => {
+    vi.stubGlobal('ResizeObserver', MockResizeObserver);
+    vi.stubGlobal('requestAnimationFrame', vi.fn((cb: FrameRequestCallback) => {
+      rafCallbacks.push(cb);
+      return rafCallbacks.length;
+    }));
+    vi.stubGlobal('cancelAnimationFrame', vi.fn());
+    resizeObserverDisconnect = vi.fn();
+    rafCallbacks = [];
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  test('marks a required field as aria-required by default', () => {
+    const { target } = setup({ forID: 'location-field-1' });
+    expect(target).toHaveAttribute('aria-required', 'true');
+    expect(target).toHaveAttribute('role', 'application');
+    expect(target).toHaveAttribute('id', 'location-field-1');
+  });
+
+  test('does not mark an explicitly optional field as aria-required', () => {
+    const { target } = setup({ field: { type: 'Point', required: false } });
+    expect(target).toHaveAttribute('aria-required', 'false');
+  });
+
+  test('has no aria-invalid when the field has no errors', () => {
+    const { target } = setup();
+    expect(target).not.toHaveAttribute('aria-invalid');
+  });
+
+  test('sets aria-invalid and aria-errormessage when the field has errors', () => {
+    const { target } = setup({ hasErrors: true, errorListId: 'location-field-1-errors' });
+    expect(target).toHaveAttribute('aria-invalid', 'true');
+    expect(target).toHaveAttribute('aria-errormessage', 'location-field-1-errors');
+  });
+});

@@ -138,6 +138,8 @@ export interface RelationControlProps {
   locale?: string;
   hasActiveStyle?: boolean;
   t: (key: string, options?: unknown) => string;
+  hasErrors?: boolean;
+  errorListId?: string;
 }
 
 export interface RelationControlHandle {
@@ -157,6 +159,8 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
       query,
       onChange,
       locale,
+      hasErrors,
+      errorListId,
     } = props;
 
     const [initialOptions, setInitialOptions] = React.useState<RelationOption[]>([]);
@@ -465,6 +469,11 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
 
     const isMulti = isMultiple();
     const isClearable = !field.required || isMulti;
+    const inputAriaProps = {
+      'aria-required': field.required !== false,
+      'aria-invalid': hasErrors || undefined,
+      'aria-errormessage': hasErrors ? errorListId : undefined,
+    };
     const queryOptions = parseHitOptions(queryHits || []);
     const baseOptions = uniqOptions(initialOptions, queryOptions);
     const options = searchOptions === null ? baseOptions : uniqOptions(initialOptions, searchOptions);
@@ -487,7 +496,7 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
             )}
           </SortableItem>
         ))}
-        <ComboboxInput id={forID} placeholder="" />
+        <ComboboxInput id={forID} placeholder="" {...inputAriaProps} />
       </>
     );
 
@@ -513,7 +522,7 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
                 </SortableArea>
               )
               : (
-                <ComboboxInput id={forID} placeholder="" />
+                <ComboboxInput id={forID} placeholder="" {...inputAriaProps} />
               )}
             {isClearable && <ComboboxClear />}
             <ComboboxIcon />
