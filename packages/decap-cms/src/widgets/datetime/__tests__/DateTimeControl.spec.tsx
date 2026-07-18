@@ -107,3 +107,24 @@ describe('DateTimeControl', () => {
     expect(props.onChange).toHaveBeenCalledWith(dayjs().format('YYYY-MM-DDTHH:mm:ss.SSSZ'));
   });
 });
+
+// DCMS-1083: failed-save validation rendered a visible `ControlErrorsList`
+// with no programmatic error state on the underlying input, so
+// screen-reader users could not identify which field was invalid.
+describe('DateTimeControl aria validation wiring (DCMS-1083)', () => {
+  test('marks a required field as aria-required by default', () => {
+    const { input } = setup();
+    expect(input).toHaveAttribute('aria-required', 'true');
+  });
+
+  test('has no aria-invalid when the field has no errors', () => {
+    const { input } = setup();
+    expect(input).not.toHaveAttribute('aria-invalid');
+  });
+
+  test('sets aria-invalid and aria-errormessage when the field has errors', () => {
+    const { input } = setup({ hasErrors: true, errorListId: 'date-field-1-errors' });
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+    expect(input).toHaveAttribute('aria-errormessage', 'date-field-1-errors');
+  });
+});

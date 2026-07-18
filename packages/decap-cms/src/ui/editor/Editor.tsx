@@ -163,6 +163,9 @@ export function Editor({
   extensions,
   blocksConfig,
   features,
+  ariaRequired,
+  ariaInvalid,
+  ariaErrorMessage,
 }: {
   editorState?: EditorState,
   editorSerializedState?: SerializedEditorState,
@@ -194,6 +197,12 @@ export function Editor({
    * editor.
    */
   features?: EditorFeatures,
+  /** Threaded down from the Decap widget layer's validation state onto the
+   * editable region so screen readers can identify a failed-save required
+   * field (WCAG 2.1 3.3.1 / 3.3.3). */
+  ariaRequired?: boolean,
+  ariaInvalid?: boolean,
+  ariaErrorMessage?: string,
 }) {
   const {
     toolbarItems: rawToolbarItems,
@@ -451,6 +460,9 @@ export function Editor({
                       placeholder={placeholder}
                       hasDragGutter={pluginItems.draggableBlock}
                       className="h-[calc(100vh-141px)]"
+                      ariaRequired={ariaRequired}
+                      ariaInvalid={ariaInvalid}
+                      ariaErrorMessage={ariaErrorMessage}
                     />
                   </div>
                 </div>

@@ -281,6 +281,12 @@ function EditorControl(props: EditorControlProps) {
   const errors = fieldsErrors && fieldsErrors[uniqueFieldId];
   const childErrors = isAncestorOfFieldError();
   const hasErrors = !!errors || childErrors;
+  // Stable id for the <ul.ControlErrorsList>, so the widget input can point
+  // its `aria-errormessage` at it (WCAG 2.1 3.3.1 / 3.3.3). Only meaningful
+  // while this field actually has its own errors (not inherited from a
+  // descendant), matching the `errors && <ControlErrorsList>` render guard
+  // below.
+  const errorListId = errors ? `${uniqueFieldId}-errors` : undefined;
 
   return (
     <ClassNames>
@@ -309,12 +315,12 @@ function EditorControl(props: EditorControlProps) {
               t={t}
             />
             {errors && (
-              <ControlErrorsList className="ControlErrorsList">
+              <ControlErrorsList id={errorListId} className="ControlErrorsList">
                 {errors.map(
-                  (error: FieldError) =>
+                  (error: FieldError, index: number) =>
                     error.message
                     && typeof error.message === 'string' && (
-                      <li key={error.message.trim().replace(/[^a-z0-9]+/gi, '-')}>
+                      <li key={error.message.trim().replace(/[^a-z0-9]+/gi, '-')} id={`${errorListId}-${index}`}>
                         {error.message}
                       </li>
                     ),
@@ -367,6 +373,8 @@ function EditorControl(props: EditorControlProps) {
             config={config}
             field={field}
             uniqueFieldId={uniqueFieldId}
+            hasErrors={hasErrors}
+            errorListId={errorListId}
             value={value}
             mediaPaths={mediaPaths}
             metadata={metadata}

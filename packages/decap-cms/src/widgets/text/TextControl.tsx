@@ -15,15 +15,20 @@ interface TextControlProps {
   setInactiveStyle: () => void;
   field: CmsFieldStringOrText & CmsFieldBase;
   t: TranslateFunction;
+  hasErrors?: boolean;
+  errorListId?: string;
 }
 
 export default function TextControl({
   forID,
   value = '',
   onChange,
+  field,
   classNameWrapper,
   setActiveStyle,
   setInactiveStyle,
+  hasErrors,
+  errorListId,
 }: TextControlProps) {
   const hasBidiControls = bidiControls.containsBidiControls(value);
 
@@ -61,6 +66,9 @@ export default function TextControl({
         minRows={5}
         style={{ fontFamily: 'inherit' }}
         onChange={e => onChange(e.target.value)}
+        aria-required={field.required !== false}
+        aria-invalid={hasErrors || undefined}
+        aria-errormessage={hasErrors ? errorListId : undefined}
       />
       {hasBidiControls && (
         <span

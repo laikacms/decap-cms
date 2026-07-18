@@ -6,23 +6,39 @@ import React from 'react';
 
 // The mocked pane carries the same `data-field-name` wrappers the real
 // EditorControl renders, so the interface's focus behavior is testable.
+// `aria-invalid` on the body field mirrors `fieldsErrors` the same way the
+// real EditorControl/leaf widget controls do (DCMS-1083), so the
+// focus-first-invalid-field behavior can be exercised without mounting the
+// full widget stack.
 vi.mock('../EditorControlPane/EditorControlPane', () => ({
-  default: React.forwardRef((_props: unknown, _ref: unknown) => (
-    <div data-testid="control-pane">
-      <div data-field-name="title">
-        <input data-testid="title-input" />
-      </div>
-      <div data-field-name="body">
-        <textarea data-testid="body-input" />
-      </div>
-    </div>
-  )),
+  default: React.forwardRef(
+    ({ fieldsErrors }: { fieldsErrors?: Record<string, unknown[]> }, ref: unknown) => {
+      if (typeof ref === 'function') {
+        ref({ validate: () => {}, focus: () => {}, switchToDefaultLocale: () => Promise.resolve() });
+      }
+      const bodyHasErrors = Boolean(fieldsErrors?.body?.length);
+      return (
+        <div data-testid="control-pane">
+          <div data-field-name="title">
+            <input data-testid="title-input" />
+          </div>
+          <div data-field-name="body">
+            <textarea data-testid="body-input" aria-invalid={bodyHasErrors || undefined} />
+          </div>
+        </div>
+      );
+    },
+  ),
 }));
 vi.mock('../EditorPreviewPane/EditorPreviewPane', () => ({
   default: () => <div data-testid="preview-pane" />,
 }));
 vi.mock('../EditorToolbar', () => ({
-  default: () => <div data-testid="toolbar" />,
+  default: ({ onPersist }: { onPersist?: () => void }) => (
+    <div data-testid="toolbar">
+      <button data-testid="save-trigger" onClick={() => onPersist?.()} />
+    </div>
+  ),
 }));
 vi.mock('../../../lib/slots', () => ({
   useCmsSlots: () => ({}),
@@ -60,9 +76,7 @@ vi.mock('react-split-pane', () => ({
       />
       <button
         data-testid="trigger-resize-end"
-        onClick={() =>
-          onResizeEnd?.([321, 279], { sizes: [321, 279], source: 'pointer' })
-        }
+        onClick={() => onResizeEnd?.([321, 279], { sizes: [321, 279], source: 'pointer' })}
       />
       {children}
     </div>
@@ -219,6 +233,45 @@ describe('EditorInterface', () => {
       );
       await nextFrame();
       expect(document.activeElement).toBe(saveButton);
+    });
+  });
+
+  // WCAG 2.1 3.3.1 (Error Identification): a failed Save/Publish flags
+  // invalid widgets with `aria-invalid="true"` (EditorControl / leaf widget
+  // controls), but nothing moved focus there before this fix — the toast
+  // only said "you've missed a required field" with no way for a
+  // screen-reader user to find which one.
+  describe('failed-save focus management (DCMS-1083)', () => {
+    function nextFrame() {
+      return act(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
+    }
+
+    it('focuses the first invalid field after a failed Save', async () => {
+      const invalidProps = {
+        ...props,
+        fieldsErrors: {
+          body: [{ type: 'PRESENCE', message: 'Body is required.' }],
+        },
+      };
+      const { getByTestId } = render(<EditorInterface {...invalidProps} />);
+      await nextFrame();
+
+      fireEvent.click(getByTestId('save-trigger'));
+      await nextFrame();
+
+      expect(document.activeElement).toBe(getByTestId('body-input'));
+    });
+
+    it('does not move focus when Save succeeds with no field errors', async () => {
+      const { getByTestId } = render(<EditorInterface {...props} />);
+      await nextFrame();
+      const saveTrigger = getByTestId('save-trigger');
+      saveTrigger.focus();
+
+      fireEvent.click(saveTrigger);
+      await nextFrame();
+
+      expect(document.activeElement).toBe(saveTrigger);
     });
   });
 });

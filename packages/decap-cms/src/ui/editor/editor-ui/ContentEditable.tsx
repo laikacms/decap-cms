@@ -18,6 +18,11 @@ interface Props {
    * which one wins depends on style-injection order.
    */
   hasDragGutter?: boolean;
+  /** Applied to the editable `role="textbox"` element so failed-validation
+   * state is programmatically discoverable (WCAG 2.1 3.3.1 / 3.3.3). */
+  ariaRequired?: boolean;
+  ariaInvalid?: boolean;
+  ariaErrorMessage?: string;
 }
 
 const rootClass = css`
@@ -53,12 +58,18 @@ export function ContentEditable({
   className,
   placeholderClassName,
   hasDragGutter = false,
+  ariaRequired,
+  ariaInvalid,
+  ariaErrorMessage,
 }: Props): ReactNode {
   return (
     <LexicalContentEditable
       css={[rootClass, hasDragGutter && dragGutterClass]}
       className={cx('ContentEditable__root', className)}
       aria-placeholder={placeholder}
+      aria-required={ariaRequired}
+      aria-invalid={ariaInvalid || undefined}
+      aria-errormessage={ariaInvalid ? ariaErrorMessage : undefined}
       placeholder={
         <div
           css={[placeholderClass, hasDragGutter && dragGutterClass]}

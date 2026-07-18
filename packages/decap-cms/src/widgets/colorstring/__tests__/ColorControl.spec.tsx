@@ -5,11 +5,15 @@ import { describe, expect, it, vi } from 'vitest';
 import ColorControl from '@/widgets/colorstring/ColorControl';
 
 vi.mock('react-colorful', () => ({
-  HexColorPicker: ({ color, onChange }: { color: string; onChange: (color: string) => void }) => (
-    <button data-testid="hex-picker" data-color={color} onClick={() => onChange('#123456')} />
+  HexColorPicker: ({ color, onChange }: { color: string, onChange: (color: string) => void }) => (
+    <button
+      data-testid="hex-picker"
+      data-color={color}
+      onClick={() => onChange('#123456')}
+    />
   ),
   RgbaStringColorPicker: (
-    { color, onChange }: { color: string; onChange: (color: string) => void },
+    { color, onChange }: { color: string, onChange: (color: string) => void },
   ) => (
     <div data-testid="rgba-picker" data-color={color}>
       <button data-testid="rgba-picker-emit-translucent" onClick={() => onChange('rgba(1, 2, 3, 0.5)')} />
@@ -119,5 +123,27 @@ describe('ColorControl', () => {
       openPicker(utils);
       expect(utils.getByTestId('hex-picker')).toHaveAttribute('data-color', '#0000ff');
     });
+  });
+});
+
+// DCMS-1083: failed-save validation rendered a visible `ControlErrorsList`
+// with no programmatic error state on the underlying input, so
+// screen-reader users could not identify which field was invalid.
+describe('ColorControl aria validation wiring (DCMS-1083)', () => {
+  it('marks a required field as aria-required by default', () => {
+    const { container } = setup();
+    expect(container.querySelector('input')).toHaveAttribute('aria-required', 'true');
+  });
+
+  it('has no aria-invalid when the field has no errors', () => {
+    const { container } = setup();
+    expect(container.querySelector('input')).not.toHaveAttribute('aria-invalid');
+  });
+
+  it('sets aria-invalid and aria-errormessage when the field has errors', () => {
+    const { container } = setup({ hasErrors: true, errorListId: 'color-field-1-errors' });
+    const input = container.querySelector('input');
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+    expect(input).toHaveAttribute('aria-errormessage', 'color-field-1-errors');
   });
 });

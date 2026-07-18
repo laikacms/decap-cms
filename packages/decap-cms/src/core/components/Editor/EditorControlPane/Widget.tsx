@@ -57,6 +57,12 @@ interface WidgetProps<T = unknown> {
   queryHits?: unknown[] | Record<string, unknown>;
   editorControl: React.ComponentType<Record<string, unknown>>;
   uniqueFieldId: string;
+  /** Whether this field currently has its own validation errors (not just
+   * an errored descendant). Widgets use it to set `aria-invalid`. */
+  hasErrors?: boolean;
+  /** Id of the `<ul.ControlErrorsList>` rendered by `EditorControl`, when
+   * `hasErrors` is true. Widgets point `aria-errormessage` at it. */
+  errorListId?: string;
   loadEntry: (collectionName: string, slug: string) => void;
   t: TranslateFunction;
   onValidateObject?: (errors: { type: string, message: string }[]) => void;
@@ -126,6 +132,8 @@ export default class Widget extends Component<WidgetProps> {
       // changing means a descendant's error state changed and we need to
       // propagate the new value.
       || this.props.fieldsErrors !== nextProps.fieldsErrors
+      || this.props.hasErrors !== nextProps.hasErrors
+      || this.props.errorListId !== nextProps.errorListId
     );
   }
 
@@ -357,6 +365,8 @@ export default class Widget extends Component<WidgetProps> {
       hasActiveStyle,
       editorControl,
       uniqueFieldId,
+      hasErrors,
+      errorListId,
       resolveWidget,
       widget,
       query,
@@ -398,6 +408,8 @@ export default class Widget extends Component<WidgetProps> {
       onRemoveInsertedMedia,
       getAsset,
       forID: uniqueFieldId,
+      hasErrors,
+      errorListId,
       ref: this.processInnerControlRef,
       validate: this.validate,
       classNameWrapper,

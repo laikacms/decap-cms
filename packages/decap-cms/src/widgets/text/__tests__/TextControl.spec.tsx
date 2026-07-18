@@ -37,3 +37,27 @@ describe('TextControl bidi control warning (DCMS-415 / DCMS-429)', () => {
     expect(textarea?.value).toBe(trojanValue);
   });
 });
+
+// DCMS-1083: failed-save validation rendered a visible `ControlErrorsList`
+// with no programmatic error state on the underlying textarea, so
+// screen-reader users could not identify which field was invalid.
+describe('TextControl aria validation wiring (DCMS-1083)', () => {
+  it('marks a required field as aria-required by default', () => {
+    const { container } = render(<TextControl {...defaultProps} value="" />);
+    expect(container.querySelector('textarea')).toHaveAttribute('aria-required', 'true');
+  });
+
+  it('has no aria-invalid when the field has no errors', () => {
+    const { container } = render(<TextControl {...defaultProps} value="" />);
+    expect(container.querySelector('textarea')).not.toHaveAttribute('aria-invalid');
+  });
+
+  it('sets aria-invalid and aria-errormessage when the field has errors', () => {
+    const { container } = render(
+      <TextControl {...defaultProps} value="" hasErrors errorListId="body-field-1-errors" />,
+    );
+    const textarea = container.querySelector('textarea');
+    expect(textarea).toHaveAttribute('aria-invalid', 'true');
+    expect(textarea).toHaveAttribute('aria-errormessage', 'body-field-1-errors');
+  });
+});
