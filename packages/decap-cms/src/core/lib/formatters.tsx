@@ -289,9 +289,17 @@ export function folderFormatter(
     selectInferredField(collection, 'date'),
   ) || null;
   const identifier = get(fields, keyToPathArray(selectIdentifier(collection) as string));
+  // `dirname`, `filename`, and `extension` are always exempt from
+  // slug-sanitization, mirroring `previewUrlFormatter` (see
+  // docs/core/preview-path.md).
   const processSegment = getProcessSegment(
     slugConfig,
-    [defaultFolder, (fields as Record<string, string>)['dirname']].filter(isString),
+    [
+      defaultFolder,
+      (fields as Record<string, string>)['dirname'],
+      (fields as Record<string, string>)['filename'],
+      (fields as Record<string, string>)['extension'],
+    ].filter(isString),
   );
 
   const mediaFolder = compileStringTemplate(

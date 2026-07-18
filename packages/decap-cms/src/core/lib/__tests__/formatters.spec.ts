@@ -928,5 +928,45 @@ describe('formatters', () => {
         ),
       ).toBe('drawing/i-am-the-slug');
     });
+
+    it('should exempt {{filename}} from slug-sanitization, preserving slug-unsafe characters (DCMS-992)', () => {
+      // Mirrors previewUrlFormatter: `filename`/`extension` are always
+      // exempt from slug-sanitization, same as `dirname`.
+      const entry = {
+        path: 'content/My Café Post.md',
+        data: { category: 'Hosting And Deployment' },
+      };
+      const collection = {};
+
+      expect(
+        folderFormatter(
+          '{{filename}}',
+          entry,
+          collection,
+          'static/images',
+          'media_folder',
+          slugConfig,
+        ),
+      ).toBe('My Café Post');
+    });
+
+    it('should exempt {{extension}} from slug-sanitization, preserving slug-unsafe characters (DCMS-992)', () => {
+      const entry = {
+        path: 'content/My Post.Ünïçödé',
+        data: { category: 'Hosting And Deployment' },
+      };
+      const collection = {};
+
+      expect(
+        folderFormatter(
+          '{{extension}}',
+          entry,
+          collection,
+          'static/images',
+          'media_folder',
+          slugConfig,
+        ),
+      ).toBe('Ünïçödé');
+    });
   });
 });
