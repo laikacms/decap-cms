@@ -35,21 +35,26 @@ syntax (`upper`, `lower`, `date()`, `default()`, `ternary()`, `truncate()`) - se
 
 ## Caching and staleness
 
-Search results are cached by `RelationCache` (`RelationCache.ts`) in a single module-level singleton
-shared for the whole admin session. Cache entries are keyed by
-`${collection}-${searchFields}-${term}-${file}`, so the exact same search (same collection, search
-fields, term and file) returns the cached result set instead of re-querying the backend.
+Search results are cached by the shared query coordinator, `queryCore`
+(`src/lib/util/queryCore.ts`). `RelationControl.tsx` calls
+`queryCore.fetch(key, () => query(...), { tags: [collectionTag(collection)], keepValue: true })`
+for both the initial-value lookup and debounced searches (`RelationControl.tsx:334-337,
+437-441`). The cache key is built by `relationOptionsKey(collection, searchFields, term, file)`
+(`RelationControl.tsx:94`), so the exact same search (same collection, search fields, term and
+file) returns the cached result set — via `keepValue: true` — instead of re-querying the backend.
 
-There is no time-based expiry. The cache is bounded to the 100 most recently-inserted entries (FIFO
-eviction via `ensureCacheSize`), and is invalidated for a given collection — via
-`relationCache.invalidateCollection(collection)` — whenever an entry in that collection is saved,
-deleted, published, or unpublished (wired into the relevant success paths in
-`src/core/actions/entries.tsx` and `src/core/actions/editorialWorkflow.tsx`).
+`queryCore` entries are fresh for a 30s TTL by default and are also bounded to the 100 most
+recently-inserted kept values (`QueryCore.ensureValueCap`, `src/lib/util/queryCore.ts`), evicting
+the oldest entry once the cap is exceeded. Beyond the TTL, invalidation is tag-based: every relation
+query is tagged with `collectionTag(collection)`, and `queryCore.invalidateTags([...])` clears every
+cached key sharing a tag. This is called on entry save, delete, publish, and unpublish:
+`src/core/actions/entries.tsx:937` (save) and `src/core/actions/editorialWorkflow.tsx:417` (save
+draft), `:507` (delete unpublished), and `:543` (publish).
 
-Because invalidation is keyed by collection name, it clears every cached search for that collection,
-not just the specific entry that changed — searches are re-issued the next time they're typed rather
-than proactively refetched.
+Because invalidation is keyed by collection name (`collectionTag`), it clears every cached search
+for that collection, not just the specific entry that changed — searches are re-issued the next
+time they're typed rather than proactively refetched.
 
-`RelationCache` also exposes a `clear()` method that empties the whole cache, but nothing in the
-codebase calls it today — the only invalidation path is `invalidateCollection()` on entry
-save/delete/publish/unpublish.
+`queryCore` also exposes a `clear()` method that resets all in-flight/cached state (used between
+tests), and `invalidateKey()` for invalidating a single query key; relation search invalidation
+uses only the tag-based `invalidateTags()` path described above.

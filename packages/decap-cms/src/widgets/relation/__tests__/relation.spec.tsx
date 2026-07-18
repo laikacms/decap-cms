@@ -21,7 +21,7 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import queryCore from '@/lib/util/queryCore';
+import queryCore, { collectionTag } from '@/lib/util/queryCore';
 import { DecapCmsWidgetRelation } from '@/widgets/relation';
 
 beforeEach(() => {
@@ -318,7 +318,12 @@ function setup({ field, value, hasErrors, errorListId }) {
   const helpers = render(
     <RelationController value={value}>
       {({ handleOnChange, value, query, queryHits, setQueryHits }) => {
-        renderArgs = { value, onChangeSpy: handleOnChange, setQueryHitsSpy: setQueryHits };
+        renderArgs = {
+          value,
+          onChangeSpy: handleOnChange,
+          setQueryHitsSpy: setQueryHits,
+          querySpy: query,
+        };
         return (
           <RelationControl
             field={field}
@@ -377,6 +382,40 @@ describe('Relation widget', () => {
 
     await waitFor(() => {
       expect(getAllByText('YAML post post-yaml')).toHaveLength(1);
+    });
+  });
+
+  it('caches relation search results and invalidates them via queryCore.invalidateTags on entry save (DCMS-663)', async () => {
+    const field = fieldConfig;
+    const { getAllByText, input, querySpy } = setup({ field });
+    const searchCallsFor = (term: string) =>
+      querySpy.mock.calls.filter((args: unknown[]) => args[3] === term).length;
+
+    await userEvent.type(input, 'YAML');
+    await waitFor(() => {
+      expect(getAllByText('YAML post post-yaml')).toHaveLength(1);
+    });
+    expect(searchCallsFor('YAML')).toBe(1);
+
+    // Same term again: served from the queryCore cache (RelationControl.tsx
+    // calls queryCore.fetch(..., { tags: [collectionTag(collection)], keepValue: true })),
+    // so the query function is not invoked a second time.
+    await userEvent.clear(input);
+    await userEvent.type(input, 'YAML');
+    await waitFor(() => {
+      expect(getAllByText('YAML post post-yaml')).toHaveLength(1);
+    });
+    expect(searchCallsFor('YAML')).toBe(1);
+
+    // Simulate the invalidation an entry save performs (see
+    // src/core/actions/entries.tsx and src/core/actions/editorialWorkflow.tsx,
+    // which call queryCore.invalidateTags([collectionTag(collection.name), ...])).
+    queryCore.invalidateTags([collectionTag('posts')]);
+
+    await userEvent.clear(input);
+    await userEvent.type(input, 'YAML');
+    await waitFor(() => {
+      expect(searchCallsFor('YAML')).toBe(2);
     });
   });
 
