@@ -1,10 +1,10 @@
+/** @jsxImportSource @emotion/react */
 import styled from '@emotion/styled';
 import React from 'react';
-import Select from 'react-select';
 
 import { isHotkey } from '@/lib/util/index';
 import { shadows, text, zIndex } from '@/ui/default/index';
-import languageSelectStyles from './languageSelectStyles';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/ui';
 import SettingsButton from './SettingsButton';
 
 interface SelectOption {
@@ -55,16 +55,18 @@ interface SettingsSelectProps {
 
 function SettingsSelect({ value, options, onChange, forID, type, autoFocus }: SettingsSelectProps) {
   return (
-    <Select<SelectOption>
-      inputId={`${forID}-select-${type}`}
-      styles={languageSelectStyles}
-      value={value}
-      options={options}
-      onChange={opt => onChange(opt!.value)}
-      menuPlacement="auto"
-      captureMenuScroll={false}
-      autoFocus={autoFocus}
-    />
+    <Select value={value.value} onValueChange={onChange}>
+      <SelectTrigger id={`${forID}-select-${type}`} autoFocus={autoFocus}>
+        <SelectValue>{value.label}</SelectValue>
+      </SelectTrigger>
+      <SelectContent>
+        {options.map(option => (
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
 
