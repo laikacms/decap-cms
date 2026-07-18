@@ -16,6 +16,29 @@ import type {
   CmsUser,
 } from '@/lib/util/index';
 
+function normalizeProxyUrl(proxyUrl: string) {
+  const normalizedProxyUrl = proxyUrl.trim();
+
+  if (!normalizedProxyUrl) {
+    return null;
+  }
+
+  if (normalizedProxyUrl.startsWith('/') && !normalizedProxyUrl.startsWith('//')) {
+    return normalizedProxyUrl;
+  }
+
+  try {
+    const parsed = new URL(normalizedProxyUrl);
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+      return normalizedProxyUrl;
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 async function serializeAsset(assetProxy: CmsAssetProxy) {
   const base64content = await assetProxy.toBase64!();
   return { path: assetProxy.path, content: base64content, encoding: 'base64' };
@@ -58,8 +81,14 @@ export default class ProxyBackend implements CmsImplementation {
       throw new Error('The Proxy backend needs a "proxy_url" in the backend configuration.');
     }
 
+    const normalizedProxyUrl = normalizeProxyUrl(config.backend.proxy_url);
+
+    if (!normalizedProxyUrl) {
+      throw new Error('The Proxy backend requires an http(s) or root-relative "proxy_url".');
+    }
+
     this.branch = config.backend.branch || 'master';
-    this.proxyUrl = config.backend.proxy_url;
+    this.proxyUrl = normalizedProxyUrl;
     this.mediaFolder = config.media_folder ?? '';
     this.options = options;
     this.cmsLabelPrefix = config.backend.cms_label_prefix;
