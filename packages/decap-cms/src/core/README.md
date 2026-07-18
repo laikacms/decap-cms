@@ -413,6 +413,45 @@ At config-apply time each entry gets a derived `id: "${field}__${index}__${patte
 `view_groups` list); you don't set `id` yourself. The index keeps ids unique even when `pattern`
 is omitted (valid for `view_groups`) or repeated across entries on the same field.
 
+### `collection.nested`
+
+Turns a `folder` collection into a nested (tree-structured) collection, browsable by directory in
+the `NestedCollection` sidebar tree instead of a flat entry list. Config keys:
+
+- `depth` (`number`, **required**, `1`–`1000`) — maximum folder-nesting depth shown in the
+  collection UI. Consumed by `collectionDepth` in
+  [`src/core/backend.tsx`](./backend.tsx) (around line 320) to build the path-matching regex/rules
+  for the collection, and takes precedence over the depth otherwise inferred from `collection.path`
+  (`getPathDepth`). When the collection is also i18n-enabled, this depth is further adjusted by
+  `getI18nFilesDepth`.
+- `subfolders` (`boolean`, optional, default `true`) — whether entries may live in nested
+  subfolders at all. When `false`, the sidebar tree in
+  [`src/core/components/Collection/NestedCollection.tsx`](./components/Collection/NestedCollection.tsx)
+  falls back to plain folder names for directory node titles (instead of using the title of an
+  index entry inside that directory), and other nested-aware call sites
+  (`src/core/backend.tsx`, `src/core/components/Collection/Entries/EntryListing.tsx`,
+  `src/core/components/Collection/Entries/EntriesCollection.tsx`) treat the collection as flat for
+  path-building purposes.
+- `summary` (`string`, optional) — entry-summary template used for tree/list display of entries in
+  this collection, overriding the collection's own `summary` for that purpose. Applied in
+  `getTreeData` (`NestedCollection.tsx`), which swaps `collection.summary` for `nested.summary`
+  before resolving each node's title.
+
+```yaml
+collections:
+  - name: docs
+    label: Docs
+    folder: content/docs
+    nested:
+      depth: 5
+      subfolders: true
+      summary: '{{title}}'
+    fields: [...]
+```
+
+Nested collections also change the default for `preview_path_preserve_slashes` (see
+[`docs/core/preview-path.md`](../../../../docs/core/preview-path.md#preview_path_preserve_slashes)).
+
 ### `collection.sortable_fields` (and deprecated `sortableFields`)
 
 Controls which fields can sort a collection's entry list. Accepts either plain field names or
