@@ -1,9 +1,24 @@
+/** @jsxImportSource @emotion/react */
 import { find, isObject } from 'lodash-es';
 import React from 'react';
-import Select from 'react-select';
 
 import { validations } from '@/lib/widgets/index';
-import { reactSelectStyles } from '@/ui/default/index';
+import {
+  Combobox,
+  ComboboxChip,
+  ComboboxChipRemove,
+  ComboboxChips,
+  ComboboxClear,
+  ComboboxEmpty,
+  ComboboxIcon,
+  ComboboxInput,
+  ComboboxInputGroup,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxPopup,
+  ComboboxPortal,
+  ComboboxPositioner,
+} from '@/ui';
 
 import type { CmsFieldBase, CmsFieldSelect } from '@/lib/util/index';
 
@@ -23,6 +38,10 @@ function convertToOption(raw: unknown): SelectOption {
     return { label: raw, value: raw };
   }
   return isObject(raw) ? (raw as SelectOption) : (raw as SelectOption);
+}
+
+function isSameOption(a: SelectOption, b: SelectOption): boolean {
+  return a.value === b.value;
 }
 
 function getSelectedValue({
@@ -127,23 +146,52 @@ const SelectControl = React.forwardRef<SelectControlHandle, SelectControlProps>(
 
     const options: SelectOption[] = [...fieldOptions.map(convertToOption)];
     const selectedValue = getSelectedValue({ options, value, isMultiple });
+    const selectedList = isMultiple ? ((selectedValue as SelectOption[] | null) ?? []) : [];
 
     return (
-      <Select<SelectOption, boolean>
-        inputId={forID}
-        value={selectedValue}
-        onChange={handleChange as (newValue: readonly SelectOption[] | SelectOption | null) => void}
-        className={classNameWrapper}
-        onFocus={setActiveStyle}
-        onBlur={setInactiveStyle}
-        options={options}
-        styles={reactSelectStyles}
-        isMulti={isMultiple}
-        isClearable={isClearable}
-        placeholder=""
-        menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
-        menuPosition="fixed"
-      />
+      <div className={classNameWrapper}>
+        <Combobox<SelectOption, boolean>
+          multiple={isMultiple}
+          items={options}
+          value={selectedValue as SelectOption | SelectOption[] | null}
+          onValueChange={value =>
+            handleChange(value as readonly SelectOption[] | SelectOption | null)
+          }
+          isItemEqualToValue={isSameOption}
+          openOnInputClick
+        >
+          <ComboboxInputGroup onFocus={setActiveStyle} onBlur={setInactiveStyle}>
+            {isMultiple && (
+              <ComboboxChips>
+                {selectedList.map(option => (
+                  <ComboboxChip key={option.value}>
+                    {option.label}
+                    <ComboboxChipRemove />
+                  </ComboboxChip>
+                ))}
+                <ComboboxInput id={forID} placeholder="" />
+              </ComboboxChips>
+            )}
+            {!isMultiple && <ComboboxInput id={forID} placeholder="" />}
+            {isClearable && <ComboboxClear />}
+            <ComboboxIcon />
+          </ComboboxInputGroup>
+          <ComboboxPortal>
+            <ComboboxPositioner sideOffset={4}>
+              <ComboboxPopup>
+                <ComboboxEmpty>No options</ComboboxEmpty>
+                <ComboboxList>
+                  {(option: SelectOption) => (
+                    <ComboboxItem key={option.value} value={option}>
+                      {option.label}
+                    </ComboboxItem>
+                  )}
+                </ComboboxList>
+              </ComboboxPopup>
+            </ComboboxPositioner>
+          </ComboboxPortal>
+        </Combobox>
+      </div>
     );
   },
 );
