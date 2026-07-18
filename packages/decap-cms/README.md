@@ -47,14 +47,16 @@ frontend can detect which on-page text maps back to which CMS field, the same te
 tools like Vercel's Visual Editing. This only changes what is rendered in the preview iframe; the
 entry data saved to your repository is never touched.
 
-Visual editing is opt-in at the collection level and opt-out at the field level:
+Visual editing is opt-in at the collection level, with a field-level opt-out available only for
+`string`/`text` widgets:
 
 - `editor.visualEditing` (collection-level `boolean`, default `false`) enables steganographic
   encoding of the preview entry for that collection. When left unset or `false`, the preview pane
   renders the entry unmodified and no encoding happens.
 - `visualEditing` (field-level `boolean`, effectively `true` once the collection has opted in). Set
-  it to `false` on an individual field to exclude just that field's value from encoding. Any value
-  other than an explicit `false` is treated as enabled.
+  it to `false` on an individual `string` or `text` field to exclude just that field's value from
+  encoding. This opt-out is only checked for `string`/`text` fields; other widget types (including
+  `richtext`) have no field-level opt-out and, once encoded, are always encoded.
 
 ```yaml
 collections:
