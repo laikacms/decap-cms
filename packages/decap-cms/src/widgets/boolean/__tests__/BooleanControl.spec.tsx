@@ -13,6 +13,16 @@ const defaultProps = {
   field: { name: 'published', widget: 'boolean' },
 };
 
+// DCMS-1029: pin the documented `value = false` fallback (see README.md) so
+// a field with no `default:` key and no saved value renders as an unchecked
+// toggle rather than blank/indeterminate.
+describe('BooleanControl default value fallback (DCMS-1029)', () => {
+  it('renders unchecked when no value prop is passed', () => {
+    const { container } = render(<BooleanControl {...defaultProps} />);
+    expect(container.querySelector('button')).toHaveAttribute('aria-checked', 'false');
+  });
+});
+
 // DCMS-1086: PR #1085 wired aria-invalid/aria-required/aria-errormessage
 // into string/text/number/colorstring/datetime/select/richtext, but skipped
 // boolean entirely. Threading the same wiring through the underlying switch
