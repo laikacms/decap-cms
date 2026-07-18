@@ -693,3 +693,73 @@ The status dropdown (`renderWorkflowStatusControls` in
 [`src/core/components/Editor/EditorToolbar.tsx`](./components/Editor/EditorToolbar.tsx)) only offers
 `DRAFT` and `PENDING_REVIEW` directly; `PENDING_PUBLISH` is hidden when open authoring is active
 (external contributors can request review but not mark an entry ready to publish).
+
+### `i18n` (multi-locale entries)
+
+Not to be confused with [`registerLocale`](#registerlocale) above, which registers **UI chrome**
+translations (button labels, etc.). `i18n` here is entry-**content** translation: the same
+collection edited in multiple locales. Settable at the config root and/or per-collection, and
+schema-validated in [`src/core/lib/validateConfig.ts`](./lib/validateConfig.ts) against the enums in
+[`src/core/lib/i18n.tsx`](./lib/i18n.tsx).
+
+```yaml
+# config.yml
+i18n:
+  structure: multiple_folders # or multiple_files / single_file
+  locales: [en, de, fr]
+  default_locale: en
+
+collections:
+  - name: posts
+    label: Posts
+    folder: content/posts
+    i18n: true # inherits the root i18n block as-is
+    fields:
+      - { name: title, label: Title, widget: string, i18n: true }
+      - { name: slug, label: Slug, widget: string, i18n: duplicate }
+      - { name: author, label: Author, widget: string, i18n: false }
+```
+
+At the config root, `i18n.structure` and `i18n.locales` are **required**; `default_locale` is
+optional and defaults to `locales[0]` (`defaultPreview`/config-apply logic in
+`src/core/actions/config.tsx`). At the collection level, `i18n` is either a boolean (`true` inherits
+the root block unchanged, `false`/omitted disables i18n for that collection) or an object with the
+same three keys, letting a collection override `structure`/`locales`/`default_locale` independently
+of the root.
+
+- **`i18n.structure`** — where the JSON Schema restricts it to `Object.values(I18N_STRUCTURE)`
+  (`multiple_folders`, `multiple_files`, `single_file`). Controls on-disk layout, computed by
+  `getFilePath`/`getLocaleFromPath`/`normalizeFilePath` in `src/core/lib/i18n.tsx`:
+  - **`multiple_folders`** — one subfolder per locale, filename unchanged:
+    `content/posts/{locale}/{slug}.md` (e.g. `content/posts/de/my-post.md`). The default locale's
+    file also moves under its own locale subfolder — there's no unprefixed "base" copy.
+  - **`multiple_files`** — flat folder, locale appended before the extension:
+    `content/posts/{slug}.{locale}.md` (e.g. `content/posts/my-post.de.md`).
+  - **`single_file`** — one file for all locales; entry data is nested under
+    `{ [locale]: { ...fields } }` internally to (de)serialize it into a single on-disk document.
+    `getFilePaths` returns just the one un-suffixed path (`content/posts/my-post.md`), and there's no
+    separate on-disk file per locale to browse.
+- **`i18n.locales`** — non-empty array of locale codes (schema: 2–10 chars, `[a-zA-Z-_]+`, unique).
+  One entry form tab is rendered per locale; `multiple_folders`/`multiple_files` each locale after
+  the first is loaded/saved as its own backend file, merged into one in-memory entry by
+  `getI18nBackup`/`groupEntries`.
+- **`i18n.default_locale`** — which locale in `locales` is the "primary" one: its tab is shown first,
+  its file is the one new entries are created from, and (for `multiple_folders`/`multiple_files`) its
+  on-disk file is the target when other collection features (media library base path, slug
+  generation from the entry, etc.) need a single canonical path. Must be one of `locales` — an
+  unlisted value is simply never treated as the default (no validation error).
+
+**Field-level `i18n`** (`collections[].fields[].i18n`) controls how one field behaves across
+locales, checked by `isFieldTranslatable`/`isFieldDuplicate`/`isFieldHidden` in
+`src/core/lib/i18n.tsx`. It only has an effect on non-default-locale tabs — the default locale's tab
+always shows and edits every field regardless of this setting. Accepts a boolean or one of
+`Object.values(I18N_FIELD)`:
+
+- **`i18n: true` / `'translate'`** — field is editable independently per locale (its own value in
+  each locale's tab). `true` and `'translate'` are equivalent.
+- **`'duplicate'`** — field is shown but **disabled** (read-only) on non-default-locale tabs
+  (`ObjectControl` passes `isDisabled: isFieldDuplicate(...)`). Its value is copied in from the
+  default locale whenever the field is empty on that locale's entry (`applyDefaultI18nValues` in
+  `src/core/lib/i18n.tsx`).
+- **`false` / `'none'` / omitted** — field is hidden entirely on non-default-locale tabs; only the
+  default locale edits it.

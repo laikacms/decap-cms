@@ -9,6 +9,23 @@ vi.mock('../../reducers/collections', () => {
 });
 
 describe('i18n', () => {
+  // Pinning test: src/core/README.md documents these exact enum values under the `i18n` config
+  // reference section (collection-level `i18n.structure` and field-level `i18n`). If either enum
+  // drifts, update README.md alongside the source and this test.
+  describe('documented enum values (README.md `i18n` section)', () => {
+    it('I18N_STRUCTURE matches the documented structure values', () => {
+      expect(Object.values(i18n.I18N_STRUCTURE).sort()).toEqual(
+        ['multiple_folders', 'multiple_files', 'single_file'].sort(),
+      );
+    });
+
+    it('I18N_FIELD matches the documented field values', () => {
+      expect(Object.values(i18n.I18N_FIELD).sort()).toEqual(
+        ['translate', 'duplicate', 'none'].sort(),
+      );
+    });
+  });
+
   describe('hasI18n', () => {
     it('should return false for collection with no i18n', () => {
       expect(i18n.hasI18n({})).toBe(false);
