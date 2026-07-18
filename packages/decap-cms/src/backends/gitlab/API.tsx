@@ -39,6 +39,7 @@ export interface Config {
   squashMerges: boolean;
   initialWorkflowStatus: string;
   cmsLabelPrefix: string;
+  requestFunction?: (req: ApiRequest) => Promise<Response>;
 }
 
 export interface CommitAuthor {
@@ -191,11 +192,13 @@ export default class API {
   squashMerges: boolean;
   initialWorkflowStatus: string;
   cmsLabelPrefix: string;
+  requestFunction?: (req: ApiRequest) => Promise<Response>;
 
   constructor(config: Config) {
     this.apiRoot = config.apiRoot || 'https://gitlab.com/api/v4';
     this.graphQLAPIRoot = config.graphQLAPIRoot || 'https://gitlab.com/api/graphql';
     this.token = config.token || false;
+    this.requestFunction = config.requestFunction;
     this.branch = config.branch || 'master';
     this.repo = config.repo || '';
     this.repoURL = `/projects/${encodeURIComponent(this.repo)}`;

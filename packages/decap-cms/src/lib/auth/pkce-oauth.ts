@@ -77,16 +77,19 @@ interface StatePayload {
   nonce: string;
 }
 
-interface TokenRequestBody {
+interface TokenRequestParams {
   client_id: string;
-  code: string | null;
   grant_type: string;
   redirect_uri: string;
-  code_verifier: string | null;
+  code?: string | null;
+  code_verifier?: string | null;
+  refresh_token?: string;
 }
 
 interface TokenResponse {
   access_token: string;
+  error?: string;
+  error_description?: string;
   [key: string]: unknown;
 }
 
@@ -239,35 +242,70 @@ export default class PkceAuthenticator {
       }
 
       const code: string | null = params.get('code');
-      const authURL = new URL(this.auth_token_url!);
 
-      const token_request_body_object: TokenRequestBody = {
-        client_id: this.appID,
-        code,
-        grant_type: 'authorization_code',
-        redirect_uri: document.location.origin + document.location.pathname,
-        code_verifier: getCodeVerifier(),
-      };
-
-      const contentType: string = this.auth_token_endpoint_content_type || 'application/json';
-      const response: Response = await fetch(authURL.href, {
-        method: 'POST',
-        body: contentType.startsWith('application/x-www-form-urlencoded')
-          ? new URLSearchParams(
-            Object.entries(token_request_body_object).filter(
-              (entry): entry is [string, string] => entry[1] != null,
-            ),
-          ).toString()
-          : JSON.stringify(token_request_body_object),
-        headers: {
-          'Content-Type': contentType,
-        },
-      });
-      const data: TokenResponse = await response.json();
+      let data: TokenResponse;
+      try {
+        data = await this._requestToken({
+          client_id: this.appID,
+          code,
+          grant_type: 'authorization_code',
+          redirect_uri: document.location.origin + document.location.pathname,
+          code_verifier: getCodeVerifier(),
+        });
+      } catch (err: unknown) {
+        clearCodeVerifier();
+        return cb(err as Error);
+      }
 
       // no need for verifier code so remove
       clearCodeVerifier();
       cb(null, { token: data.access_token, ...data });
     }
+  }
+
+  /**
+   * Exchange a refresh token for a new access token. Used to recover from an
+   * expired PKCE access token without forcing the user to re-authenticate.
+   * Returns the new credentials so callers can persist them.
+   */
+  async refresh({ refresh_token }: { refresh_token?: string }): Promise<PkceAuthResult> {
+    if (!refresh_token) {
+      throw new Error('Missing refresh token');
+    }
+    await this._loadOidcConfig();
+
+    const data = await this._requestToken({
+      client_id: this.appID,
+      grant_type: 'refresh_token',
+      redirect_uri: document.location.origin + document.location.pathname,
+      refresh_token,
+    });
+
+    return { token: data.access_token, ...data };
+  }
+
+  async _requestToken(params: TokenRequestParams): Promise<TokenResponse> {
+    const authURL = new URL(this.auth_token_url!);
+    const contentType: string = this.auth_token_endpoint_content_type || 'application/json';
+    const response: Response = await fetch(authURL.href, {
+      method: 'POST',
+      body: contentType.startsWith('application/x-www-form-urlencoded')
+        ? new URLSearchParams(
+          Object.entries(params).filter(
+            (entry): entry is [string, string] => entry[1] != null,
+          ),
+        ).toString()
+        : JSON.stringify(params),
+      headers: {
+        'Content-Type': contentType,
+      },
+    });
+    const data: TokenResponse = await response.json();
+    if (!response.ok || data.error) {
+      throw new Error(
+        data.error_description || data.error || `Failed to get token: ${response.status}`,
+      );
+    }
+    return data;
   }
 }
