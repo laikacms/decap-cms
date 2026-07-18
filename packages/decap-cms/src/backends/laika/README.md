@@ -77,7 +77,14 @@ The factory receives a `GetDocumentsRepositoryOptions` object:
 interface GetDocumentsRepositoryOptions {
   /** Resolves to the current bearer token. */
   tokenPromise: () => Promise<string>;
-  /** The `base_url` value from the Decap config (same as `documentsApiBaseUrl` when set). */
+  /**
+   * The backend's resolved API URL: `base_url` combined with `api_root`/`api_url`
+   * (i.e. the same value the default proxy repositories hit at `${baseUrl}/session`,
+   * `${baseUrl}/health`, etc). This is **not** `documentsApiBaseUrl` — that option is
+   * only consumed by the built-in `defaultGetDocumentsRepository` and is never passed
+   * to a custom factory. If you need a different origin for documents, read it from
+   * your own config/closure instead of from `opts.baseUrl`.
+   */
   baseUrl: string;
 }
 ```
@@ -105,7 +112,14 @@ The factory receives a `GetAssetsRepositoryOptions` object:
 interface GetAssetsRepositoryOptions {
   /** Resolves to the current bearer token. */
   tokenPromise: () => Promise<string>;
-  /** The `base_url` value from the Decap config (same as `assetsApiBaseUrl` when set). */
+  /**
+   * The backend's resolved API URL: `base_url` combined with `api_root`/`api_url`
+   * (the same value used internally as `this.apiUrl`). This is **not**
+   * `assetsApiBaseUrl` — that option is only consumed by the built-in
+   * `defaultGetAssetsRepository` and is never passed to a custom factory. To point
+   * assets at a different origin (as in the example below), pass it explicitly
+   * rather than relying on `opts.baseUrl`.
+   */
   baseUrl: string;
 }
 ```

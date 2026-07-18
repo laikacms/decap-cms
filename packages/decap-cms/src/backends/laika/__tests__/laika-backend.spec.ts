@@ -2366,6 +2366,82 @@ describe('LaikaBackend.restoreUser()', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Suite: custom getDocumentsRepository/getAssetsRepository baseUrl (DCMS-656)
+//
+// Pins the documented behavior of `GetDocumentsRepositoryOptions.baseUrl` /
+// `GetAssetsRepositoryOptions.baseUrl`: a custom factory always receives the
+// backend's resolved `apiUrl` (base_url + api_root), never the
+// `documentsApiBaseUrl` / `assetsApiBaseUrl` override — those options are only
+// consumed by the built-in default factories.
+// ---------------------------------------------------------------------------
+
+describe('LaikaBackend custom repository factories receive apiUrl as baseUrl (DCMS-656)', () => {
+  const okSessionResponse = {
+    ok: true,
+    json: () =>
+      Promise.resolve({
+        data: { attributes: { name: 'Alice', email: 'alice@example.com' } },
+      }),
+  } as any;
+
+  beforeEach(() => {
+    vi.mocked(unsentRequest.fetchWithTimeout).mockReset();
+    vi.mocked(unsentRequest.fetchWithTimeout).mockResolvedValue(okSessionResponse);
+  });
+
+  it('passes this.apiUrl (base_url + api_root), not documentsApiBaseUrl, to a custom getDocumentsRepository', async () => {
+    const receivedOptions: Array<{ tokenPromise: () => Promise<string>, baseUrl: string }> = [];
+    const mockDocRepo = makeMockDocumentsRepository();
+
+    const LaikaBackend = createLaikaBackend({
+      documentsApiBaseUrl: 'https://documents-override.example.com',
+      getDocumentsRepository: opts => {
+        receivedOptions.push(opts);
+        return mockDocRepo as any;
+      },
+      getAssetsRepository: () => makeMockAssetsRepository() as any,
+    });
+    const backend = new LaikaBackend(
+      makeConfig({
+        backend: { name: 'laika', base_url: 'https://api.example.com', api_root: '/api' },
+      }),
+    ) as any;
+
+    await backend.authenticate({ token: 'fake-token' });
+
+    expect(receivedOptions).toHaveLength(1);
+    // this.apiUrl === base_url combined with api_root
+    expect(receivedOptions[0].baseUrl).toBe('https://api.example.com/api');
+    expect(receivedOptions[0].baseUrl).not.toBe('https://documents-override.example.com');
+  });
+
+  it('passes this.apiUrl (base_url + api_root), not assetsApiBaseUrl, to a custom getAssetsRepository', async () => {
+    const receivedOptions: Array<{ tokenPromise: () => Promise<string>, baseUrl: string }> = [];
+    const mockAssetsRepo = makeMockAssetsRepository();
+
+    const LaikaBackend = createLaikaBackend({
+      assetsApiBaseUrl: 'https://assets-override.example.com',
+      getDocumentsRepository: () => makeMockDocumentsRepository() as any,
+      getAssetsRepository: opts => {
+        receivedOptions.push(opts);
+        return mockAssetsRepo as any;
+      },
+    });
+    const backend = new LaikaBackend(
+      makeConfig({
+        backend: { name: 'laika', base_url: 'https://api.example.com', api_root: '/api' },
+      }),
+    ) as any;
+
+    await backend.authenticate({ token: 'fake-token' });
+
+    expect(receivedOptions).toHaveLength(1);
+    expect(receivedOptions[0].baseUrl).toBe('https://api.example.com/api');
+    expect(receivedOptions[0].baseUrl).not.toBe('https://assets-override.example.com');
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Suite: content sync (getSyncToken / getChanges)
 // ---------------------------------------------------------------------------
 
