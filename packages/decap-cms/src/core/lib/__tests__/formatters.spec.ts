@@ -720,6 +720,38 @@ describe('formatters', () => {
         ),
       ).toBe('https://www.example.com/portfolio/drawing/i-am-the-slug');
     });
+
+    it('should exempt {{filename}} from slug-sanitization, preserving slug-unsafe characters', () => {
+      // docs/core/preview-path.md promises `{{filename}}` is always exempt
+      // from slug-sanitization, same as `{{dirname}}`.
+      expect(
+        previewUrlFormatter(
+          'https://www.example.com',
+          {
+            preview_path: 'portfolio/{{filename}}',
+          },
+          'backendSlug',
+          { data: {}, path: 'src/content/My Café Post.md' },
+          slugConfig,
+        ),
+      ).toBe('https://www.example.com/portfolio/My Café Post');
+    });
+
+    it('should exempt {{extension}} from slug-sanitization, preserving slug-unsafe characters', () => {
+      // docs/core/preview-path.md promises `{{extension}}` is always exempt
+      // from slug-sanitization, same as `{{dirname}}`.
+      expect(
+        previewUrlFormatter(
+          'https://www.example.com',
+          {
+            preview_path: 'portfolio/{{filename}}.{{extension}}',
+          },
+          'backendSlug',
+          { data: {}, path: 'src/content/My Post.Ünïçödé' },
+          slugConfig,
+        ),
+      ).toBe('https://www.example.com/portfolio/My Post.Ünïçödé');
+    });
   });
 
   describe('summaryFormatter', () => {

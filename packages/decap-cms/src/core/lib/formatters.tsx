@@ -216,10 +216,15 @@ export function previewUrlFormatter(
   const preserveSlashes = !!(previewPathPreserveSlashes ?? collection.nested);
 
   // Prepare and sanitize slug variables only, leave the rest of the
-  // `preview_path` template as is.
+  // `preview_path` template as is. `dirname`, `filename`, and `extension`
+  // are always exempt from slug-sanitization (see docs/core/preview-path.md).
   const processSegment = getProcessSegment(
     slugConfig,
-    [(fields as Record<string, string>)['dirname']].filter(isString),
+    [
+      (fields as Record<string, string>)['dirname'],
+      (fields as Record<string, string>)['filename'],
+      (fields as Record<string, string>)['extension'],
+    ].filter(isString),
     preserveSlashes,
   );
   let compiledPath;
