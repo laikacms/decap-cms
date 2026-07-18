@@ -4,6 +4,8 @@ import { FrameContextConsumer } from 'react-frame-component';
 
 import { ScrollSyncPane } from '@/ui';
 
+import type { FrameContextProps } from 'react-frame-component';
+
 /**
  * PreviewContent renders the preview component and optionally handles visual editing interactions.
  * By default it uses scroll sync, but can be configured to use visual editing instead.
@@ -66,11 +68,11 @@ function PreviewContent({ previewComponent, previewProps, onFieldClick }: Previe
 
   return (
     <FrameContextConsumer>
-      {(context: any) => {
+      {(context: FrameContextProps) => {
         const preview = renderPreview();
         if (showScrollSync) {
           return (
-            <ScrollSyncPane attachTo={context?.document?.scrollingElement}>
+            <ScrollSyncPane attachTo={context?.document?.scrollingElement as HTMLElement | null}>
               {preview}
             </ScrollSyncPane>
           );

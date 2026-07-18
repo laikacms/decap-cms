@@ -234,10 +234,11 @@ export const ScrollSync: FC<PropsWithChildren<ScrollSyncProps>> = ({
 
 export interface ScrollSyncPaneProps {
   /**
-   * Optionally attach scroll sync to an external HTMLElement ref or callback.
-   * If provided, the pane will sync scroll with this element instead of the child.
+   * Optionally attach scroll sync to an external HTMLElement, ref, or ref
+   * callback. If provided, the pane will sync scroll with this element
+   * instead of the child.
    */
-  attachTo?: RefCallback<HTMLElement> | RefObject<HTMLElement>,
+  attachTo?: HTMLElement | null | RefCallback<HTMLElement> | RefObject<HTMLElement>,
 
   /**
    * The scrollable child element to be synchronized.
@@ -279,7 +280,13 @@ export const ScrollSyncPane: FC<ScrollSyncPaneProps> = ({
 
   const updateNode = useCallback(() => {
     if (attachTo) {
-      nodeRef.current = typeof attachTo === 'function' ? null : attachTo.current;
+      if (attachTo instanceof Element) {
+        nodeRef.current = attachTo as HTMLElement;
+      } else if (typeof attachTo === 'function') {
+        nodeRef.current = null;
+      } else {
+        nodeRef.current = attachTo.current;
+      }
     } else {
       nodeRef.current = childRef.current;
     }
