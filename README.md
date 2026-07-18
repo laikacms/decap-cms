@@ -28,7 +28,7 @@ Everything runs from the root through pnpm:
 pnpm install
 pnpm test:ci      # lint + typecheck + unit tests, per package
 pnpm build        # builds every package
-pnpm build:demo && pnpm serve:dev-test   # demo app on http://localhost:5174
+pnpm build:dev-test && pnpm serve:dev-test   # demo app on http://localhost:5174, Laika UI on /laika.html
 ```
 
 Repo-wide tooling (formatting via dprint, git hooks via husky, commit linting) lives at the root;

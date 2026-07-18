@@ -30,12 +30,17 @@ pnpm install
 | `pnpm test:ci`                           | lint + typecheck + unit tests; run this before opening a PR     |
 | `pnpm test:e2e`                          | Playwright end-to-end tests (builds and serves the demo itself) |
 | `pnpm build`                             | Compiles the publishable package to `packages/decap-cms/dist/`  |
-| `pnpm build:demo && pnpm serve:dev-test` | Demo app on http://localhost:5174                               |
+| `pnpm build:dev-test && pnpm serve:dev-test` | Demo app on http://localhost:5174                           |
 
 The demo app uses the in-memory `test-repo` backend with fixtures from
 `packages/decap-cms/dev-test/repo-fixtures.js` and the config in
 `packages/decap-cms/dev-test/config.yml`, so you can exercise most of the CMS without any Git
 provider.
+
+`build:dev-test` builds every `dev-test/dist/*.js` bundle the served pages load
+(`decap-cms.js`, `laika-cms.js`, `laika-cms-bare.js`) — running only `pnpm build:demo` builds the
+classic bundle and leaves the Laika UI pages (e.g. `/laika.html`) 404ing on the missing
+`laika-cms.js`.
 
 To run a single test file, pass a path filter to Vitest (from `packages/decap-cms/`):
 
