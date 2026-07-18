@@ -377,6 +377,122 @@ registerCustomFormat('my-format', 'myext', {
 });
 ```
 
+## Keyboard shortcuts
+
+```ts
+function registerShortcut(shortcut: Shortcut): () => void;
+function getRegisteredShortcuts(): Shortcut[];
+function subscribeToShortcuts(listener: () => void): () => void;
+function suspendShortcuts(): () => void;
+function isApplePlatform(): boolean;
+function formatSequence(sequence: string): string[];
+
+interface Shortcut {
+  id: string;
+  sequence: string;
+  label: string;
+  group?: string;
+  when?: () => boolean;
+  allowInInput?: boolean;
+  allowWhileSuspended?: boolean;
+  run: (event: KeyboardEvent) => void;
+}
+```
+
+The global keyboard-shortcut engine, in `src/core/lib/shortcuts.ts`. App shells (`laika-app`, host
+apps) register shortcuts here and the engine owns the single `window` `keydown` listener, multi-key
+chord state, typing suppression, and modal coordination — core owns the mechanism, apps own the
+policy. It's what `laika-app`'s command palette and shortcut-help dialog (`LaikaShortcuts.tsx`,
+`LaikaShortcutHelp.tsx`) are built on.
+
+React consumers should reach for the hooks in [`src/core/hooks/useShortcut.ts`](./hooks/useShortcut.ts)
+instead of calling `registerShortcut` directly:
+
+```ts
+function useShortcut(shortcut: Shortcut | null | undefined): void;
+function useRegisteredShortcuts(): Shortcut[];
+function useSuspendShortcuts(active: boolean): void;
+```
+
+```tsx
+import { useShortcut } from '@laikacms/decap-cms/core';
+
+function SaveButton({ onSave, disabled }: { onSave: () => void, disabled: boolean }) {
+  useShortcut({
+    id: 'entry.save',
+    sequence: 'mod+s',
+    label: 'Save entry',
+    group: 'Editor',
+    when: () => !disabled,
+    run: event => {
+      event.preventDefault();
+      onSave();
+    },
+  });
+  return null;
+}
+```
+
+`useShortcut(null)` is a valid no-op call, so a shortcut can be disabled conditionally without
+breaking the rules of hooks. `run` and `when` always see the latest render's closures without
+re-registering — only changes to `id`/`sequence`/`label`/`group`/`allowInInput`/`allowWhileSuspended`
+cause a re-registration.
+
+### Sequence syntax
+
+`sequence` is a space-separated chord of keystrokes, each keystroke a `+`-separated combo of
+modifiers and a key, parsed by `parseSequence`:
+
+- `'mod+s'` — a single keystroke with a modifier. `mod` matches **Cmd** on Apple platforms and
+  **Ctrl** elsewhere (`isApplePlatform()` decides which); `cmd`, `ctrl`, and `meta` are accepted as
+  aliases for `mod` and are treated identically (there is no way to require literally-Ctrl-only on
+  macOS).
+- `'g d'` — a two-key chord: press `g`, then `d` within `SHORTCUT_CHORD_TIMEOUT_MS` (1200ms). A
+  broken chord (e.g. `g` `g` `d`) drops the stale prefix and re-reads the last key fresh, so `g d`
+  still fires.
+- `'?'` / `'mod+shift+p'` — `shift` is only enforced when the token asks for it; keys that already
+  require Shift to type (like `?`) work without a `shift` token, and `alt`/`option` are accepted as
+  aliases for each other.
+- `formatSequence(sequence)` renders a sequence as display chunks per keystroke (e.g. `'mod+s'` →
+  `['⌘S']` on Apple platforms, `['Ctrl S']` elsewhere) for help surfaces.
+
+### Scoping and suspension
+
+- **Typing suppression**: bare-key shortcuts (no `mod`) do not fire while focus is on an
+  `<input>`/`<textarea>`/`<select>`/`contenteditable` element (`isEditableTarget`). A shortcut where
+  every keystroke carries `mod` runs in inputs by default; `allowInInput` overrides this default
+  either way.
+- **Modal coordination**: keystrokes originating inside `[role="dialog"]`, `[aria-modal="true"]`, or
+  `<dialog>` are ignored even without an explicit suspension, so modals that don't know about this
+  engine (e.g. core's media library) are still safe.
+- **`suspendShortcuts()`** pauses every shortcut except ones with `allowWhileSuspended: true` until
+  the returned release function is called; it's re-entrant (each suspension must be released
+  independently, and `suspendCount` tracks nesting). `LaikaDialog` calls this automatically for
+  laika-app dialogs; the `useSuspendShortcuts(active)` hook wraps it for other modal surfaces.
+  `allowWhileSuspended` is for toggles that must keep working from within their own dialog (e.g. the
+  command palette's `mod+k` to close itself).
+- **`when`** is an extra per-keystroke enablement gate evaluated on every matching keydown, checked
+  after the suspension/input checks.
+- **Conflicts and overrides**: registering a shortcut with an `id` that's already registered replaces
+  it — this is how a host overrides an app-shell default without coordinating removal. When multiple
+  eligible shortcuts share the same full sequence, the **last-registered** one wins. When one eligible
+  sequence is a strict prefix of another (a chord in progress), the engine waits for the longer match
+  before dispatching.
+- **`attachShortcutTarget(target: Window): () => void`** routes a secondary same-origin window's
+  `keydown` events through the engine — used for the editor's preview iframe, which otherwise
+  swallows keystrokes so e.g. `mod+s` inside the preview pane would trigger the browser's "save page"
+  instead of saving the entry.
+
+`registerShortcut` returns a dispose function; disposing only removes the registration if it's still
+the current one for that `id` (so a replacement by a host survives the original registrant's
+cleanup). `subscribeToShortcuts(listener)` notifies on every register/unregister/suspend change — it
+backs `useRegisteredShortcuts()` and any custom help/palette surface.
+
+Behavior above is pinned by unit tests in
+[`src/core/lib/__tests__/shortcuts.spec.ts`](./lib/__tests__/shortcuts.spec.ts) and
+[`src/core/hooks/__tests__/useShortcut.spec.tsx`](./hooks/__tests__/useShortcut.spec.tsx) — treat
+those as the source of truth if this section and the code ever drift.
+
 ## Config reference
 
 The keys below are validated by the JSON Schema in
