@@ -602,3 +602,55 @@ same folder are left untouched**. This is meant for a "one subfolder per entry, 
 layout, e.g. `content/posts/my-post/_index.md` next to `content/posts/my-post/cover.jpg`: renaming
 the entry via the `path` field moves `_index.md` to the new subfolder but leaves `cover.jpg` where it
 is.
+
+### `publish_mode: editorial_workflow`
+
+Top-level config option (default is `simple`, i.e. every save publishes straight to the target
+branch). Validated as an enum in
+[`src/core/lib/validateConfig.ts`](./lib/validateConfig.ts) (`['simple', 'editorial_workflow', '']`).
+Setting `publish_mode: editorial_workflow` routes entry saves through a draft → review → publish
+state machine instead of publishing immediately: each save creates or updates an "unpublished
+entry" that editors move between statuses (via the entry editor's status dropdown, described below)
+until someone explicitly publishes it.
+
+```yaml
+publish_mode: editorial_workflow
+collections:
+  - name: posts
+    label: Posts
+    folder: content/posts
+    fields: [...]
+```
+
+#### Statuses
+
+The three statuses an unpublished entry can hold, defined in
+[`src/core/constants/publishModes.ts`](./constants/publishModes.ts) (`Statuses`, with
+`statusDescriptions` holding the human-readable labels used in the UI):
+
+| Status                    | Value              | Meaning                                                        |
+| --------------------------| ------------------ | ---------------------------------------------------------------- |
+| `Statuses.DRAFT`          | `draft`            | Work in progress; not yet submitted for review.                  |
+| `Statuses.PENDING_REVIEW` | `pending_review`   | Submitted and waiting for a reviewer to look at it.               |
+| `Statuses.PENDING_PUBLISH`| `pending_publish`  | Reviewed and approved; waiting to be published.                   |
+
+An unpublished entry's status lives on `entry.status` in the `editorialWorkflow` reducer state
+([`src/core/reducers/editorialWorkflow.ts`](./reducers/editorialWorkflow.ts)), keyed by
+`${collection}.${slug}`. `selectUnpublishedEntriesByStatus` and
+`selectUnpublishedEntriesGroupedByStatus` (same file) read entries back out by status — the latter
+backs the workflow board's per-column entry lists.
+
+#### Transitions
+
+| Trigger                                                              | Action                                                                          | Effect                                                                                                  |
+| ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Editor saves a new entry (`publish_mode: editorial_workflow` active) | `persistUnpublishedEntry` (`src/core/actions/editorialWorkflow.tsx`)             | Creates the entry in the `editorialWorkflow` store; the backend assigns it its initial status (`DRAFT`).  |
+| Editor picks a status from the entry editor's status dropdown          | `updateUnpublishedEntryStatus` (`src/core/actions/editorialWorkflow.tsx`)        | Applies the new status optimistically, persists it via `backend.updateUnpublishedEntryStatus`, and rolls back to the previous status if the backend call fails. |
+| Editor/reviewer clicks Publish on an entry in `PENDING_PUBLISH`        | `publishUnpublishedEntry` (`src/core/actions/editorialWorkflow.tsx`)             | Publishes the entry via `backend.publishUnpublishedEntry` and removes it from the unpublished-entries store. |
+| Editor deletes an unpublished entry                                    | `deleteUnpublishedEntry` (`src/core/actions/editorialWorkflow.tsx`)              | Removes the entry from the unpublished-entries store without publishing it.                                  |
+| Editor unpublishes an already-published entry                          | `unpublishPublishedEntry` (`src/core/actions/editorialWorkflow.tsx`)             | Deletes the published entry and re-persists it as an unpublished entry with status `PENDING_PUBLISH`.        |
+
+The status dropdown (`renderWorkflowStatusControls` in
+[`src/core/components/Editor/EditorToolbar.tsx`](./components/Editor/EditorToolbar.tsx)) only offers
+`DRAFT` and `PENDING_REVIEW` directly; `PENDING_PUBLISH` is hidden when open authoring is active
+(external contributors can request review but not mark an entry ready to publish).
