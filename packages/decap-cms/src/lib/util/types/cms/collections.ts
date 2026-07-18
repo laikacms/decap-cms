@@ -69,7 +69,7 @@ export interface CmsCollection {
       subfolders?: boolean | undefined,
     }
     | undefined;
-  meta?: { path?: { label: string, widget: string, index_file: string } } | undefined;
+  meta?: { path?: { label: string, widget: string, index_file?: string } } | undefined;
   extension?: string | undefined;
   format?: CmsCollectionFormatType | undefined;
   frontmatter_delimiter?: string[] | string | undefined;
@@ -99,7 +99,7 @@ export type CmsCollectionFileState = {
   preview_path_preserve_slashes?: boolean,
 };
 
-export type CmsPathObject = { label: string, widget: string, index_file: string };
+export type CmsPathObject = { label: string, widget: string, index_file?: string };
 
 export type CmsMetaObject = { path?: CmsPathObject };
 

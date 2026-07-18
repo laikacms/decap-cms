@@ -203,6 +203,7 @@ export type CmsPersistOptions = {
   useWorkflow?: boolean,
   unpublished?: boolean,
   status?: string,
+  hasSubfolders?: boolean,
 };
 
 export type CmsDeleteOptions = Record<string, unknown>;

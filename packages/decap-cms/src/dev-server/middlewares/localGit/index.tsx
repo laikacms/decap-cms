@@ -85,6 +85,7 @@ async function commitEntry(
   dataFiles: DataFile[],
   assets: Asset[],
   commitMessage: string,
+  hasSubfolders = true,
 ) {
   // save entry content
   await Promise.all(
@@ -96,7 +97,11 @@ async function commitEntry(
   );
   if (dataFiles.every(dataFile => dataFile.newPath)) {
     dataFiles.forEach(async dataFile => {
-      await move(path.join(repoPath, dataFile.path), path.join(repoPath, dataFile.newPath!));
+      await move(
+        path.join(repoPath, dataFile.path),
+        path.join(repoPath, dataFile.newPath!),
+        hasSubfolders,
+      );
     });
   }
 
@@ -305,10 +310,18 @@ export function localGitMiddleware({ repoPath, logger }: GitOptions) {
             assets,
             options,
           } = body.params as PersistEntryParams;
+          const hasSubfolders = options?.hasSubfolders !== false;
 
           if (!options.useWorkflow) {
             await runOnBranch(git, branch, async () => {
-              await commitEntry(git, repoPath, dataFiles, assets, options.commitMessage);
+              await commitEntry(
+                git,
+                repoPath,
+                dataFiles,
+                assets,
+                options.commitMessage,
+                hasSubfolders,
+              );
             });
           } else {
             const slug = dataFiles[0].slug;
@@ -329,7 +342,14 @@ export function localGitMiddleware({ repoPath, logger }: GitOptions) {
                 d => d.binary && !assets.map(a => a.path).includes(d.path),
               );
               await Promise.all(toDelete.map(f => fs.unlink(path.join(repoPath, f.path))));
-              await commitEntry(git, repoPath, dataFiles, assets, options.commitMessage);
+              await commitEntry(
+                git,
+                repoPath,
+                dataFiles,
+                assets,
+                options.commitMessage,
+                hasSubfolders,
+              );
 
               // add status for new entries
               if (!branchExists) {
