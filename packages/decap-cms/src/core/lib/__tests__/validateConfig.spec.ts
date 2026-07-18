@@ -4,7 +4,7 @@ import { merge } from 'lodash-es';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { getEntryCodec, getEntryCodecs, getWidgets } from '@/core/lib/registry';
-import { validateConfig } from '@/core/lib/validateConfig';
+import { getConfigSchema, validateConfig } from '@/core/lib/validateConfig';
 import { jsonEntryCodec, jsonFrontmatterCodec } from '@/entry-codecs/json/index';
 import { createMarkdownEntryCodec } from '@/entry-codecs/markdown/index';
 import { tomlEntryCodec, tomlFrontmatterCodec } from '@/entry-codecs/toml/index';
@@ -556,6 +556,55 @@ describe('config', () => {
           }),
         );
       }).not.toThrow();
+    });
+
+    describe('collection.nested schema (docs pinning, DCMS-1101)', () => {
+      // Pins the `nested` JSON schema against packages/decap-cms/src/core/README.md's
+      // `collection.nested` section: if this test breaks, the schema changed and the
+      // README section needs to be updated to match (and vice versa).
+      it('documents exactly depth (required), subfolders, and summary', () => {
+        const nestedSchema = (getConfigSchema().properties as any).collections.items.properties
+          .nested;
+
+        expect(nestedSchema.type).toBe('object');
+        expect(Object.keys(nestedSchema.properties).sort()).toEqual([
+          'depth',
+          'subfolders',
+          'summary',
+        ]);
+        expect(nestedSchema.required).toEqual(['depth']);
+        expect(nestedSchema.properties.depth).toEqual({
+          type: 'number',
+          minimum: 1,
+          maximum: 1000,
+        });
+        expect(nestedSchema.properties.subfolders).toEqual({ type: 'boolean' });
+        expect(nestedSchema.properties.summary).toEqual({ type: 'string' });
+      });
+
+      it('accepts a valid nested config', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [
+                {
+                  nested: { depth: 5, subfolders: true, summary: '{{title}}' },
+                },
+              ],
+            }),
+          );
+        }).not.toThrow();
+      });
+
+      it('throws when nested.depth is missing', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [{ nested: { subfolders: true } }],
+            }),
+          );
+        }).toThrowError("'collections[0].nested' must have required property 'depth'");
+      });
     });
 
     describe('i18n', () => {

@@ -113,8 +113,13 @@ const viewGroups = {
  * The schema had to be wrapped in a function to
  * fix a circular dependency problem for WebPack,
  * where the imports get resolved asynchronously.
+ *
+ * Exported (in addition to the default-exported `validateConfig`) so tests
+ * can pin documentation against the live schema instead of a hand-copied
+ * duplicate — see `__tests__/validateConfig.spec.ts`'s `collection.nested`
+ * docs-pinning test.
  */
-function getConfigSchema(): JSONSchema {
+export function getConfigSchema(): JSONSchema {
   return {
     type: 'object',
     properties: {

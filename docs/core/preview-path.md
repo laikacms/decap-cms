@@ -24,8 +24,9 @@ via `files[].preview_path` / `files[].preview_path_date_field`.
 ## `preview_path_preserve_slashes`
 
 - Type: `boolean`
-- Default: `false`, unless the collection is nested (`collection.nested` set), in which case it
-  defaults to `true`
+- Default: `false`, unless the collection is nested
+  ([`collection.nested`](../../packages/decap-cms/src/core/README.md#collectionnested) set), in
+  which case it defaults to `true`
 - Scope: collection-level (`collection.preview_path_preserve_slashes`), with an optional per-file
   override (`files[].preview_path_preserve_slashes`) for `files`-type collections
 
