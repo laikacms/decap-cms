@@ -1,10 +1,10 @@
-vi.mock('uuid', () => ({ v4: vi.fn(() => '1') }));
-
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import * as actions from '@/core/actions/entries';
 import { FOLDER } from '@/core/constants/collectionTypes';
 import reducer, { selectCustomPath } from '@/core/reducers/entryDraft';
+
+vi.spyOn(crypto, 'randomUUID').mockImplementation(() => '1' as unknown as ReturnType<typeof crypto.randomUUID>);
 
 const initialState = {
   entry: {},

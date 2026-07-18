@@ -34,11 +34,8 @@ vi.mock('../../../ui/default/index', async () => {
     ListItemTopBar,
   };
 });
-vi.mock('uuid');
-
 import { fireEvent, render } from '@testing-library/react';
 import React from 'react';
-import * as uuid from 'uuid';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import ListControl from '@/widgets/list/ListControl';
@@ -71,7 +68,7 @@ describe('ListControl', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     let id = 0;
-    vi.mocked(uuid.v4).mockImplementation(() => String(id++));
+    vi.spyOn(crypto, 'randomUUID').mockImplementation(() => String(id++) as unknown as ReturnType<typeof crypto.randomUUID>);
   });
   it('should render list with nested object', () => {
     const field = {

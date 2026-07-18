@@ -3,7 +3,6 @@ import EmotionStyled from '@emotion/styled';
 import * as Lodash from 'lodash-es';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import * as UUId from 'uuid';
 
 const EmotionCore = {
   css,
@@ -21,5 +20,4 @@ export const DecapCmsDefaultExports = {
   Lodash,
   React,
   ReactDOM,
-  UUId,
 };

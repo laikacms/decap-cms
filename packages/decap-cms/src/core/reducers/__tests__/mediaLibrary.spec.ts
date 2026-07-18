@@ -1,4 +1,3 @@
-vi.mock('uuid');
 vi.mock('../entries');
 vi.mock('../integrations');
 
