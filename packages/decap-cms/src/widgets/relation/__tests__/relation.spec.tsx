@@ -547,6 +547,16 @@ describe('Relation widget', () => {
       expect(onChangeSpy).toHaveBeenCalledWith(['Post # 1', 'Post # 2'], metadata2);
     });
 
+    it('should not throw on Backspace/ArrowLeft in an empty input on a new (unselected) entry (DCMS-1018)', async () => {
+      const field = { ...fieldConfig, multiple: true };
+      const { input } = setup({ field });
+      input.focus();
+      expect(() => {
+        fireEvent.keyDown(input, { key: 'Backspace' });
+        fireEvent.keyDown(input, { key: 'ArrowLeft' });
+      }).not.toThrow();
+    });
+
     it('should update metadata for initial preview 2', async () => {
       const field = { ...fieldConfig, multiple: true };
       const value = ['YAML post', 'JSON post'];
