@@ -224,13 +224,13 @@ export function compileStringTemplate(
         replacement = String(rawValue ?? '');
       }
 
+      const filterFunction = getFilterFunction(filter);
+      if (filterFunction) {
+        replacement = filterFunction(replacement, rawValue);
+      }
+
       if (processor) {
-        return processor(replacement, key);
-      } else {
-        const filterFunction = getFilterFunction(filter);
-        if (filterFunction) {
-          replacement = filterFunction(replacement, rawValue);
-        }
+        replacement = processor(replacement, key);
       }
 
       return replacement;
