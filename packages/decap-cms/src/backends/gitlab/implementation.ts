@@ -385,12 +385,22 @@ export default class GitLab implements CmsImplementation {
   getMediaDisplayURL(displayURL: CmsDisplayURL) {
     const sem = this._mediaDisplayURLSem || createSemaphore(MAX_CONCURRENT_DOWNLOADS);
     this._mediaDisplayURLSem = sem;
-    return getMediaDisplayURL(displayURL, this.api!.readFile.bind(this.api!), sem);
+    const readMediaFile = (
+      path: string,
+      id: string | null | undefined,
+      { parseText }: { parseText: boolean },
+    ) => this.api!.readFile(path, id, { parseText, lfs: true });
+    return getMediaDisplayURL(displayURL, readMediaFile, sem);
   }
 
   async getMediaFile(path: string) {
     const name = basename(path);
-    const blob = await getMediaAsBlob(path, null, this.api!.readFile.bind(this.api!));
+    const readMediaFile = (
+      path: string,
+      id: string | null | undefined,
+      { parseText }: { parseText: boolean },
+    ) => this.api!.readFile(path, id, { parseText, lfs: true });
+    const blob = await getMediaAsBlob(path, null, readMediaFile);
     const fileObj = blobToFileObj(name, blob);
     const url = URL.createObjectURL(fileObj);
     const id = await getBlobSHA(blob);
@@ -470,7 +480,7 @@ export default class GitLab implements CmsImplementation {
       path: string,
       id: string | null | undefined,
       { parseText }: { parseText: boolean },
-    ) => this.api!.readFile(path, id, { branch, parseText });
+    ) => this.api!.readFile(path, id, { branch, parseText, lfs: true });
 
     return getMediaAsBlob(file.path, null, readFile).then(blob => {
       const name = basename(file.path);
