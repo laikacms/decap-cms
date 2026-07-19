@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { registerBlock, unregisterBlock } from '@/lib/richtext';
@@ -39,15 +40,16 @@ describe('LexicalPreview custom blocks', () => {
 });
 
 describe('LexicalPreview reserved block types', () => {
-  it('renders an image block', () => {
+  it('renders a data: image block immediately (no consent gate needed)', () => {
+    const dataSrc = 'data:image/png;base64,iVBORw0KGgo=';
     const { container } = render(
       <LexicalPreview
-        value={[{ _type: 'image', _key: 'k0', src: 'https://example.com/probe.png', alt: 'probe' }]}
+        value={[{ _type: 'image', _key: 'k0', src: dataSrc, alt: 'probe' }]}
       />,
     );
     const img = container.querySelector('img');
     expect(img).not.toBeNull();
-    expect(img).toHaveAttribute('src', 'https://example.com/probe.png');
+    expect(img).toHaveAttribute('src', dataSrc);
     expect(img).toHaveAttribute('alt', 'probe');
   });
 
@@ -136,6 +138,55 @@ describe('LexicalPreview reserved block types', () => {
     );
     expect(warn).not.toHaveBeenCalled();
     warn.mockRestore();
+  });
+});
+
+describe('LexicalPreview image block consent gating (DCMS-1166 / GH #1166)', () => {
+  /**
+   * `ImageNode.__requiresConsent` (DCMS-640) only lives in transient Lexical
+   * editor state — it's never part of the persisted `image` PortableText
+   * block. The preview pane (`EditorPreviewPane`) renders directly from that
+   * persisted block, so without its own gate it fetched an unconsented
+   * http(s) `src` the instant the block appeared in preview (e.g. right
+   * after a hostile paste, since the preview re-renders on every editor
+   * change). This regression-tests that the preview never mounts a live
+   * `<img src>` for a remote source until the user explicitly consents.
+   */
+  it('does not mount a live <img> for an http(s) src until the user consents', () => {
+    const { container } = render(
+      <LexicalPreview
+        value={[{ _type: 'image', _key: 'k0', src: 'http://evil.example.com/beacon', alt: 'probe' }]}
+      />,
+    );
+    expect(container.querySelector('img')).toBeNull();
+    expect(screen.getByRole('button', { name: /click to load it/i })).toBeInTheDocument();
+  });
+
+  it('mounts the <img> only after the consent button is clicked', async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      <LexicalPreview
+        value={[{ _type: 'image', _key: 'k0', src: 'https://example.com/probe.png', alt: 'probe' }]}
+      />,
+    );
+    expect(container.querySelector('img')).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: /click to load it/i }));
+
+    const img = container.querySelector('img');
+    expect(img).not.toBeNull();
+    expect(img).toHaveAttribute('src', 'https://example.com/probe.png');
+    expect(img).toHaveAttribute('referrerpolicy', 'no-referrer');
+  });
+
+  it('rejects a javascript: src without ever rendering an <img> or a consent gate', () => {
+    const { container } = render(
+      <LexicalPreview
+        value={[{ _type: 'image', _key: 'k0', src: 'javascript:alert(1)', alt: 'probe' }]}
+      />,
+    );
+    expect(container.querySelector('img')).toBeNull();
+    expect(screen.queryByRole('button', { name: /click to load it/i })).toBeNull();
   });
 });
 
