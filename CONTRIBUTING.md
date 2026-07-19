@@ -25,7 +25,7 @@ pnpm install
 | Command                                  | What it does                                                    |
 | ---------------------------------------- | --------------------------------------------------------------- |
 | `pnpm typecheck`                         | TypeScript check across src, playwright, storybook, and node configs (4 `tsc` invocations) |
-| `pnpm lint` / `pnpm format`              | ESLint / Prettier                                               |
+| `pnpm lint` / `pnpm format`              | ESLint / dprint                                                 |
 | `pnpm test`                              | Vitest, single run (`pnpm test:watch` for watch mode)           |
 | `pnpm test:ci`                           | lint + typecheck + unit tests; run this before opening a PR     |
 | `pnpm test:e2e`                          | Playwright end-to-end tests (builds and serves the demo itself) |
