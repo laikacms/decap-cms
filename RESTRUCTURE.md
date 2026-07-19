@@ -8,8 +8,9 @@ The goal is so a downstream consumer (e.g. `laikacms/laikacms`'s forthcoming `la
 do:
 
 ```ts
-import { App, DecapCmsCore, DecapCmsProvider } from '@laikacms/decap-cms/core';
-import { widget as stringWidget } from '@laikacms/decap-cms/widget-string';
+import { App } from '@laikacms/decap-cms/app';
+import { DecapCmsCore, DecapCmsProvider } from '@laikacms/decap-cms/core';
+import { DecapCmsWidgetString } from '@laikacms/decap-cms/widgets/string';
 // ...etc — same shape as the old `decap-cms-app/src/extensions.ts`,
 // minus the multi-package workspace.
 ```
