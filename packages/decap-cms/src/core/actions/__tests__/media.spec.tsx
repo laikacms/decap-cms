@@ -6,11 +6,24 @@ import { ADD_ASSET, boundGetAsset, getAsset, LOAD_ASSET_REQUEST } from '@/core/a
 import { selectMediaFilePath } from '@/core/reducers/entries';
 import AssetProxy from '@/core/valueObjects/AssetProxy';
 
+import type { Medias } from '@/core/reducers/medias';
+import type { CmsConfig } from '@/lib/util/index';
 import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
 import type { Mock } from 'vitest';
 
-type State = any;
+// Minimal slice of the root reducer state actually touched by these tests
+// (`getAsset` only reads `state.config` and `state.medias`).
+type State = {
+  config: Partial<CmsConfig>;
+  medias: Medias;
+};
+
+// `getAsset`'s own args are typed against the real (non-test) `collection`/
+// `entry` shapes, which don't model the null/partial fixtures these tests
+// exercise (e.g. DCMS-313's nullish-collection-on-mount case), so payloads
+// are cast to this alias rather than widening the production types.
+type GetAssetPayload = Parameters<typeof getAsset>[0];
 
 const middlewares = [thunk];
 const mockStore = configureMockStore<Partial<State>, ThunkDispatch<State, {}, AnyAction>>(
@@ -30,8 +43,7 @@ describe('media', () => {
   });
 
   describe('getAsset', () => {
-    // @ts-expect-error -- TODO: fix underlying type issue
-    global.URL = { createObjectURL: vi.fn() };
+    global.URL = { createObjectURL: vi.fn() } as unknown as typeof URL;
 
     beforeEach(() => {
       vi.resetAllMocks();
@@ -40,9 +52,13 @@ describe('media', () => {
     it('should return empty asset for null path', () => {
       const store = mockStore({});
 
-      const payload = { collection: null, entryPath: null, entry: null, path: null };
+      const payload = {
+        collection: null,
+        entryPath: null,
+        entry: null,
+        path: null,
+      } as unknown as GetAssetPayload;
 
-      // @ts-expect-error -- TODO: fix underlying type issue
       const result = store.dispatch(getAsset(payload));
       const actions = store.getActions();
       expect(actions).toHaveLength(0);
@@ -53,7 +69,6 @@ describe('media', () => {
       const path = 'static/media/image.png';
       const asset = new AssetProxy({ file: new File([], 'empty'), path });
       const store = mockStore({
-        // @ts-expect-error -- TODO: fix underlying type issue
         config: {},
         medias: {
           [path]: { asset, isLoading: false, error: null },
@@ -61,9 +76,12 @@ describe('media', () => {
       });
 
       mockedSelectMediaFilePath.mockReturnValue(path);
-      const payload = { collection: {}, entry: { path: 'entryPath' }, path };
+      const payload = {
+        collection: {},
+        entry: { path: 'entryPath' },
+        path,
+      } as unknown as GetAssetPayload;
 
-      // @ts-expect-error -- TODO: fix underlying type issue
       const result = store.dispatch(getAsset(payload));
       const actions = store.getActions();
       expect(actions).toHaveLength(0);
@@ -88,9 +106,12 @@ describe('media', () => {
       });
 
       mockedSelectMediaFilePath.mockReturnValue(path);
-      const payload = { collection: null, entryPath: null, path };
+      const payload = {
+        collection: null,
+        entryPath: null,
+        path,
+      } as unknown as GetAssetPayload;
 
-      // @ts-expect-error -- TODO: fix underlying type issue
       const result = store.dispatch(getAsset(payload));
       const actions = store.getActions();
       expect(actions).toHaveLength(1);
@@ -108,9 +129,8 @@ describe('media', () => {
       });
 
       mockedSelectMediaFilePath.mockReturnValue(path);
-      const payload = { path };
+      const payload = { path } as unknown as GetAssetPayload;
 
-      // @ts-expect-error -- TODO: fix underlying type issue
       const result = store.dispatch(getAsset(payload));
       const actions = store.getActions();
       expect(actions).toHaveLength(1);
@@ -135,9 +155,8 @@ describe('media', () => {
       });
 
       mockedSelectMediaFilePath.mockReturnValue(resolvePath);
-      const payload = { path };
+      const payload = { path } as unknown as GetAssetPayload;
 
-      // @ts-expect-error -- TODO: fix underlying type issue
       const result = store.dispatch(getAsset(payload));
       const actions = store.getActions();
 
