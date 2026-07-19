@@ -43,6 +43,19 @@ vi.mock('../../../core/components/UI', async () => {
   };
 });
 
+// AppContent mounts an onSessionExpired subscription via currentBackend()
+// (added in 85416b22, DCMS silent token refresh). resolveBackend throws when
+// no backend named `test-repo` is registered — which is intentional at runtime
+// but noise here, since this spec only exercises routing/header behaviour and
+// never authenticates. Stub currentBackend to a no-op subscription so the
+// useEffect can run without a real backend registration.
+vi.mock('@/core/backend', () => ({
+  currentBackend: () => ({
+    onSessionExpired: () => () => {},
+    authComponent: () => null,
+  }),
+}));
+
 import { AppContent } from '@/app/components/App';
 import { context } from '@/core/contexts/decap';
 import { defaultRoutingTable } from '@/core/routing/router';
