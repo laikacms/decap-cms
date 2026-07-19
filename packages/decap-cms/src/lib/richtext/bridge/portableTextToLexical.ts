@@ -99,6 +99,31 @@ function codeNode(obj: Record<string, unknown>): Lex {
   return element('code', inlineFromText(code, 0), { language });
 }
 
+/**
+ * Convert a PT image block (`{_type:'image', src, alt}`) to a Lexical
+ * `ImageNode`. Consent is re-derived from `src` rather than trusted from
+ * storage: `data:` sources are self-contained, http(s)/relative sources
+ * still need a live fetch, so gate those behind the same consent the
+ * paste-time path applies (`$convertImageElement`, DCMS-640 / DCMS-1166).
+ */
+function imageNode(obj: Record<string, unknown>): Lex {
+  const src = typeof obj.src === 'string' ? obj.src : '';
+  const alt = typeof obj.alt === 'string' ? obj.alt : '';
+  return {
+    type: 'image',
+    version: 1,
+    src,
+    altText: alt,
+    maxWidth: 500,
+    requiresConsent: !/^data:/i.test(src),
+  };
+}
+
+/** Convert a PT horizontal-rule block to a Lexical horizontal-rule node. */
+function horizontalRuleNode(): Lex {
+  return { type: 'horizontalrule', version: 1 };
+}
+
 /** Convert an arbitrary custom object to a Lexical BlockNode. */
 function customBlockNode(obj: Record<string, unknown>): Lex {
   const { _type, _key, ...data } = obj;
@@ -262,6 +287,10 @@ export function portableTextToLexical(doc: PortableTextDocument): SerializedEdit
       children.push(codeNode(block as Record<string, unknown>));
     } else if (type === 'table') {
       children.push(tableNode(block as Record<string, unknown>));
+    } else if (type === 'image') {
+      children.push(imageNode(block as Record<string, unknown>));
+    } else if (type === 'horizontal-rule') {
+      children.push(horizontalRuleNode());
     } else if (typeof type === 'string') {
       children.push(customBlockNode(block as Record<string, unknown>));
     }
