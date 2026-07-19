@@ -6,6 +6,7 @@
   },
   "changesets": [
     "proud-falcons-listen",
+    "silent-token-refresh",
     "wild-lions-count"
   ]
 }

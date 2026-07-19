@@ -1,5 +1,5 @@
 ---
-"@laikacms/decap-cms": minor
+"@laikacms/decap-cms": patch
 ---
 
 laika backend: silently refresh expired access tokens via the OAuth refresh grant.
