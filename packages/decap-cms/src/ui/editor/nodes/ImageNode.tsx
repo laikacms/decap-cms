@@ -68,6 +68,12 @@ export type SerializedImageNode = Spread<
     altText: string,
     height?: number,
     maxWidth: number,
+    // Never produced by `exportJSON` (see the test asserting reloading a
+    // saved *editor* doc never re-gates) — but the Portable Text bridge
+    // builds this JSON shape directly from persisted PT data and needs a
+    // way to hand `importJSON` a freshly-computed consent decision
+    // (DCMS-1183). `undefined` preserves the existing "no re-gate" default.
+    requiresConsent?: boolean,
     src: string,
     width?: number,
   },
@@ -99,11 +105,12 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
   }
 
   static importJSON(serializedNode: SerializedImageNode): ImageNode {
-    const { altText, height, width, maxWidth, src } = serializedNode;
+    const { altText, height, width, maxWidth, requiresConsent, src } = serializedNode;
     return $createImageNode({
       altText,
       height,
       maxWidth,
+      requiresConsent,
       src,
       width,
     }).updateFromJSON(serializedNode);
