@@ -5,6 +5,7 @@
     "@laikacms/decap-cms": "4.0.2"
   },
   "changesets": [
+    "proud-falcons-listen",
     "wild-lions-count"
   ]
 }
