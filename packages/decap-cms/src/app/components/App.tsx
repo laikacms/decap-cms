@@ -550,6 +550,15 @@ function AppContent({
     dispatch(logoutUser());
   }, [dispatch]);
 
+  // Backends report unrecoverable session expiry (e.g. the laika backend's
+  // refresh grant came back invalid_grant) through the Backend subscription.
+  // Without it the store keeps its stale user and every failed load renders
+  // as a 404; a logout puts the login screen up instead.
+  useEffect(() => {
+    if (config == null || config.isFetching || config.error) return;
+    return currentBackend(config).onSessionExpired(() => dispatch(logoutUser()));
+  }, [config, dispatch]);
+
   const handleOpenMediaLibrary = useCallback(
     (payload?: Parameters<typeof openMediaLibrary>[0]) => {
       dispatch(openMediaLibrary(payload));

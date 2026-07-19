@@ -301,6 +301,13 @@ interface ImplementationInitOptions {
   useWorkflow: boolean;
   updateUserCredentials: (credentials: CmsCredentials) => void;
   initialWorkflowStatus: string;
+  /**
+   * For the implementation to signal that the user's session ended
+   * unrecoverably outside a user action (e.g. an expired access token whose
+   * refresh grant was rejected). The app treats it as a logout, so the user
+   * gets the login screen instead of every subsequent request failing.
+   */
+  onSessionExpired: () => void;
 }
 
 type Implementation = BackendImplementation & {
@@ -360,6 +367,20 @@ export class Backend {
   user?: CmsUser | null;
   backupSync: AsyncLock;
 
+  private sessionExpiredListeners = new Set<() => void>();
+
+  /**
+   * Subscribe to unrecoverable session expiry reported by the implementation
+   * (see `ImplementationInitOptions.onSessionExpired`). Returns the
+   * unsubscribe function. The app layer wires this to a logout dispatch.
+   */
+  onSessionExpired(listener: () => void): () => void {
+    this.sessionExpiredListeners.add(listener);
+    return () => {
+      this.sessionExpiredListeners.delete(listener);
+    };
+  }
+
   constructor(implementation: Implementation, { backendName, authStore, config }: BackendOptions) {
     // We can't reliably run this on exit, so we do cleanup on load.
     this.deleteAnonymousBackup();
@@ -368,6 +389,9 @@ export class Backend {
       useWorkflow: selectUseWorkflow(this.config),
       updateUserCredentials: this.updateUserCredentials,
       initialWorkflowStatus: Object.values(status)[0] ?? '',
+      onSessionExpired: () => {
+        for (const listener of this.sessionExpiredListeners) listener();
+      },
     });
     this.backendName = backendName;
     this.authStore = authStore;

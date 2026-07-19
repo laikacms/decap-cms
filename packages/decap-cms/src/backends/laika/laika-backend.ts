@@ -383,6 +383,24 @@ export default function createLaikaBackend(
     acceptRoles?: string[];
     tokenPromise?: () => Promise<string>;
     baseUrl: string;
+    /** OAuth client_id — the token endpoint validates it on every grant, including refresh. */
+    appId?: string;
+    tokenUrl: string;
+    tokenContentType: string;
+
+    /**
+     * The live token triple. `tokenPromise` re-reads this on every call, so a
+     * page left open past the access token's lifetime transparently refreshes
+     * instead of replaying a stale closure-captured token forever.
+     */
+    private tokenState?: { accessToken: string, refreshToken?: string, expiresAt?: number };
+    /**
+     * The server ROTATES the pair on refresh (the old session is revoked
+     * server-side), so concurrent callers must share one in-flight refresh —
+     * a second request with the same refresh token is an invalid_grant.
+     */
+    private refreshInFlight?: Promise<string>;
+    private onSessionExpired?: () => void;
 
     assetsRepository?: AssetsRepository;
     documentsRepository?: DocumentsRepository;
@@ -408,8 +426,12 @@ export default function createLaikaBackend(
      */
     devToken?: string;
 
-    constructor(config: Config, _options: Record<string, unknown> = {}) {
+    constructor(config: Config, options: Record<string, unknown> = {}) {
       this.config = config;
+      // Core's `ImplementationInitOptions.onSessionExpired` — how we report
+      // an unrecoverable session expiry (dead refresh grant) upward so the
+      // app can log the user out.
+      this.onSessionExpired = options.onSessionExpired as (() => void) | undefined;
       this.mediaFolder = config.media_folder ?? '';
       // IMPORTANT
       // public_folder is used for the path that appears in content
@@ -423,6 +445,15 @@ export default function createLaikaBackend(
       const apiPath = (backendExt.api_root ?? backendExt.api_url) as string | undefined;
       this.apiUrl = Url.combine(this.baseUrl, apiPath);
       this.devToken = (config.backend as { dev_token?: unknown }).dev_token as string | undefined;
+      // Same fields/defaults as PKCEAuthenticationPage, so the refresh grant
+      // hits the endpoint the login grant used.
+      this.appId = backendExt.app_id as string | undefined;
+      this.tokenUrl = Url.combine(
+        this.baseUrl,
+        (backendExt.auth_token_endpoint as string | undefined) ?? 'oauth2/token',
+      );
+      this.tokenContentType = (backendExt.auth_token_endpoint_content_type as string | undefined)
+        ?? 'application/x-www-form-urlencoded; charset=utf-8';
     }
 
     isGitBackend() {
@@ -505,6 +536,132 @@ export default function createLaikaBackend(
     }
 
     private static SESSION_TOKEN_KEY = 'laika_access_token';
+    private static REFRESH_TOKEN_KEY = 'laika_refresh_token';
+    private static TOKEN_EXPIRES_AT_KEY = 'laika_token_expires_at';
+    /** Refresh this long before actual expiry so in-flight requests don't race the deadline. */
+    private static TOKEN_REFRESH_SKEW_MS = 60_000;
+
+    private loadStoredTokenState(): { accessToken: string, refreshToken?: string, expiresAt?: number } | null {
+      if (typeof sessionStorage === 'undefined') return null;
+      const accessToken = sessionStorage.getItem(LaikaBackend.SESSION_TOKEN_KEY);
+      if (!accessToken) return null;
+      const refreshToken = sessionStorage.getItem(LaikaBackend.REFRESH_TOKEN_KEY) ?? undefined;
+      const rawExpiresAt = sessionStorage.getItem(LaikaBackend.TOKEN_EXPIRES_AT_KEY);
+      const parsedExpiresAt = rawExpiresAt === null ? NaN : Number(rawExpiresAt);
+      return {
+        accessToken,
+        refreshToken,
+        expiresAt: Number.isFinite(parsedExpiresAt) ? parsedExpiresAt : undefined,
+      };
+    }
+
+    private persistTokenState(state: { accessToken: string, refreshToken?: string, expiresAt?: number }) {
+      if (typeof sessionStorage === 'undefined') return;
+      // SESSION_TOKEN_KEY is a public contract: host apps read it directly to
+      // authorize their own API calls, so a refresh must rewrite it in place.
+      sessionStorage.setItem(LaikaBackend.SESSION_TOKEN_KEY, state.accessToken);
+      if (state.refreshToken) {
+        sessionStorage.setItem(LaikaBackend.REFRESH_TOKEN_KEY, state.refreshToken);
+      } else {
+        sessionStorage.removeItem(LaikaBackend.REFRESH_TOKEN_KEY);
+      }
+      if (state.expiresAt != null) {
+        sessionStorage.setItem(LaikaBackend.TOKEN_EXPIRES_AT_KEY, String(state.expiresAt));
+      } else {
+        sessionStorage.removeItem(LaikaBackend.TOKEN_EXPIRES_AT_KEY);
+      }
+    }
+
+    private clearStoredTokenState() {
+      if (typeof sessionStorage === 'undefined') return;
+      sessionStorage.removeItem(LaikaBackend.SESSION_TOKEN_KEY);
+      sessionStorage.removeItem(LaikaBackend.REFRESH_TOKEN_KEY);
+      sessionStorage.removeItem(LaikaBackend.TOKEN_EXPIRES_AT_KEY);
+    }
+
+    /**
+     * The session is definitively over (no refresh token, or the grant came
+     * back invalid). Clear everything and report upward, so the app can swap
+     * to the login screen instead of rendering dead 401s as not-found pages.
+     */
+    private dropExpiredSession() {
+      this.tokenState = undefined;
+      this.clearStoredTokenState();
+      this.onSessionExpired?.();
+    }
+
+    /**
+     * Returns a currently-valid access token, refreshing via the OAuth
+     * refresh grant when the stored one is at/near expiry. This is what
+     * `tokenPromise` points at — evaluated per call, never a cached token.
+     */
+    private async ensureActiveToken(): Promise<string> {
+      if (this.devToken) return this.devToken;
+      const state = this.tokenState;
+      if (!state) {
+        throw new AccessTokenError('Not authenticated');
+      }
+      const usable = state.expiresAt == null
+        || Date.now() < state.expiresAt - LaikaBackend.TOKEN_REFRESH_SKEW_MS;
+      if (usable) return state.accessToken;
+
+      if (!state.refreshToken) {
+        this.dropExpiredSession();
+        throw new AccessTokenError('User session expired. Please log in again.');
+      }
+
+      this.refreshInFlight ??= this.refreshAccessToken(state.refreshToken)
+        .finally(() => {
+          this.refreshInFlight = undefined;
+        });
+      return this.refreshInFlight;
+    }
+
+    private async refreshAccessToken(refreshToken: string): Promise<string> {
+      const body = new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken,
+        ...(this.appId ? { client_id: this.appId } : {}),
+      });
+
+      let response: Response;
+      try {
+        response = await unsentRequest.fetchWithTimeout(this.tokenUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': this.tokenContentType },
+          body: body.toString(),
+        });
+      } catch (error) {
+        // Network failure: keep the stored pair so a later call can retry.
+        throw new AccessTokenError(`Token refresh failed: ${(error as Error).message}`);
+      }
+
+      if (!response.ok) {
+        // 400/401 = the grant itself is dead (expired, revoked, or rotated
+        // away by another refresh). Anything else may be transient — keep
+        // the pair so the next call retries.
+        if (response.status === 400 || response.status === 401) {
+          this.dropExpiredSession();
+        }
+        throw new AccessTokenError(`Token refresh failed (HTTP ${response.status})`);
+      }
+
+      const data = await response.json() as {
+        access_token: string,
+        refresh_token?: string,
+        expires_in?: number,
+      };
+      const next = {
+        accessToken: data.access_token,
+        refreshToken: data.refresh_token ?? refreshToken,
+        expiresAt: typeof data.expires_in === 'number'
+          ? Date.now() + data.expires_in * 1000
+          : undefined,
+      };
+      this.tokenState = next;
+      this.persistTokenState(next);
+      return next.accessToken;
+    }
 
     restoreUser() {
       // Dev mode: always use the dev token — ignore whatever happens to be
@@ -513,44 +670,63 @@ export default function createLaikaBackend(
         return this.authenticate({ token: this.devToken } as Credentials);
       }
       // Try to restore user from session storage
-      const storedToken = typeof sessionStorage !== 'undefined'
-        ? sessionStorage.getItem(LaikaBackend.SESSION_TOKEN_KEY)
-        : null;
+      const stored = this.loadStoredTokenState();
 
-      if (!storedToken) {
+      if (!stored) {
         return Promise.reject(
           new AccessTokenError('User session expired. Please log in again.'),
         );
       }
 
-      // Re-authenticate with the stored token
-      return this.authenticate({ token: storedToken } as Credentials);
+      // Re-authenticate with the stored triple; authenticate() refreshes
+      // first when the access token already sat out its lifetime.
+      return this.authenticate({
+        token: stored.accessToken,
+        refresh_token: stored.refreshToken,
+        token_expires_at: stored.expiresAt,
+      } as unknown as Credentials);
     }
 
     async authenticate(credentials: Credentials) {
-      const user = credentials;
-      const token = user.token || (user as Credentials & { access_token?: string }).access_token;
+      const user = credentials as Credentials & {
+        access_token?: string,
+        refresh_token?: string,
+        expires_in?: number,
+        token_expires_at?: number,
+      };
+      const token = user.token || user.access_token;
 
       if (!token) {
         throw new AccessTokenError('No access token provided');
       }
 
-      this.tokenPromise = () => Promise.resolve(token as string);
+      // `expires_in` (seconds) comes from a fresh token-endpoint response;
+      // `token_expires_at` (epoch ms) from restoreUser's stored state.
+      this.tokenState = {
+        accessToken: token as string,
+        refreshToken: user.refresh_token,
+        expiresAt: user.token_expires_at
+          ?? (typeof user.expires_in === 'number' ? Date.now() + user.expires_in * 1000 : undefined),
+      };
+      this.tokenPromise = () => this.ensureActiveToken();
 
       try {
+        // Refreshes first when the token we were handed is already expired
+        // (e.g. a tab reopened hours later restoring from sessionStorage).
+        const activeToken = await this.ensureActiveToken();
+
         // Fetch session data from the /session endpoint
         const sessionResponse = await unsentRequest.fetchWithTimeout(
           TL.url`${this.apiUrl}/session`,
           {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: { Authorization: `Bearer ${activeToken}` },
           },
         );
 
         if (!sessionResponse.ok) {
           // If token is invalid, clear stored token
-          if (typeof sessionStorage !== 'undefined') {
-            sessionStorage.removeItem(LaikaBackend.SESSION_TOKEN_KEY);
-          }
+          this.tokenState = undefined;
+          this.clearStoredTokenState();
           const errorText = await sessionResponse.text();
           throw new AccessTokenError(
             `Laika Backend Error: ${errorText}`,
@@ -568,9 +744,11 @@ export default function createLaikaBackend(
           metadata: {},
         };
 
-        // Store the access token in session storage for restoreUser
-        if (typeof sessionStorage !== 'undefined') {
-          sessionStorage.setItem(LaikaBackend.SESSION_TOKEN_KEY, token as string);
+        // Persist the full triple for restoreUser (ensureActiveToken may
+        // have rotated it above, in which case this is already stored —
+        // persisting the current state is idempotent either way).
+        if (this.tokenState) {
+          this.persistTokenState(this.tokenState);
         }
 
         // Initialize repositories
@@ -605,10 +783,9 @@ export default function createLaikaBackend(
     }
 
     async logout() {
-      // Clear stored token from session storage
-      if (typeof sessionStorage !== 'undefined') {
-        sessionStorage.removeItem(LaikaBackend.SESSION_TOKEN_KEY);
-      }
+      // Clear stored tokens from session storage
+      this.clearStoredTokenState();
+      this.tokenState = undefined;
       this.tokenPromise = undefined;
       this.assetsRepository = undefined;
       this.documentsRepository = undefined;

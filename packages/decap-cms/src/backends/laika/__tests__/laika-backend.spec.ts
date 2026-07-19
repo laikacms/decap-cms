@@ -2621,3 +2621,199 @@ describe('LaikaBackend content sync', () => {
     expect(entry.file).toEqual({ path: 'articles/hello', id: 'v7' });
   });
 });
+
+// ---------------------------------------------------------------------------
+// Suite: access-token refresh (DCMS: expired-token → silent refresh)
+//
+// `tokenPromise` is a callback evaluated on EVERY call, so the expiry check
+// happens per request — a page left open past the access token's lifetime
+// mints a fresh token via the refresh grant instead of replaying a stale one.
+// The server rotates the pair on refresh, hence the single-flight assertions.
+// ---------------------------------------------------------------------------
+
+describe('LaikaBackend token refresh', () => {
+  let sessionStorageMock: ReturnType<typeof makeSessionStorageMock>;
+  let backend: any;
+  let now: number;
+  let nowSpy: ReturnType<typeof vi.spyOn>;
+  let onSessionExpired: ReturnType<typeof vi.fn>;
+
+  const okSessionResponse = {
+    ok: true,
+    json: () =>
+      Promise.resolve({
+        data: { attributes: { name: 'Alice', email: 'alice@example.com' } },
+      }),
+  } as any;
+
+  function tokenEndpointResponse(body: Record<string, unknown>) {
+    return { ok: true, json: () => Promise.resolve(body) } as any;
+  }
+
+  /** Routes /session vs the token endpoint; records token-endpoint calls. */
+  function routeFetch(tokenHandler: () => Promise<any> | any) {
+    const tokenCalls: Array<{ url: string, opts: any }> = [];
+    vi.mocked(unsentRequest.fetchWithTimeout).mockImplementation(async (url: any, opts?: any) => {
+      const u = String(url);
+      if (u.includes('/oauth2/token')) {
+        tokenCalls.push({ url: u, opts });
+        return tokenHandler();
+      }
+      if (u.includes('/session')) return okSessionResponse;
+      throw new Error(`Unexpected fetch: ${u}`);
+    });
+    return tokenCalls;
+  }
+
+  beforeEach(() => {
+    sessionStorageMock = makeSessionStorageMock();
+    (globalThis as any).sessionStorage = sessionStorageMock;
+    now = 1_000_000_000;
+    nowSpy = vi.spyOn(Date, 'now').mockImplementation(() => now) as any;
+
+    const LaikaBackend = createLaikaBackend({
+      getDocumentsRepository: () => makeMockDocumentsRepository() as any,
+      getAssetsRepository: () => makeMockAssetsRepository() as any,
+    });
+    onSessionExpired = vi.fn();
+    backend = new LaikaBackend(
+      makeConfig({
+        backend: {
+          name: 'laika',
+          base_url: 'https://api.example.com',
+          api_root: '',
+          app_id: 'decap-cms',
+          auth_token_endpoint: '/oauth2/token',
+        },
+      }),
+      // Core's Backend wrapper passes this via ImplementationInitOptions.
+      { onSessionExpired },
+    );
+    vi.mocked(unsentRequest.fetchWithTimeout).mockReset();
+  });
+
+  afterEach(() => {
+    nowSpy.mockRestore();
+    delete (globalThis as any).sessionStorage;
+  });
+
+  it('authenticate() persists the refresh token and expiry for restoreUser', async () => {
+    routeFetch(() => {
+      throw new Error('no refresh expected');
+    });
+
+    await backend.authenticate({ token: 't1', refresh_token: 'r1', expires_in: 3600 });
+
+    expect(sessionStorageMock.getItem('laika_access_token')).toBe('t1');
+    expect(sessionStorageMock.getItem('laika_refresh_token')).toBe('r1');
+    expect(sessionStorageMock.getItem('laika_token_expires_at')).toBe(String(now + 3600_000));
+  });
+
+  it('getToken() returns the current token while it is still fresh', async () => {
+    const tokenCalls = routeFetch(() => tokenEndpointResponse({}));
+    await backend.authenticate({ token: 't1', refresh_token: 'r1', expires_in: 3600 });
+
+    await expect(backend.getToken()).resolves.toBe('t1');
+    expect(tokenCalls).toHaveLength(0);
+  });
+
+  it('getToken() past expiry refreshes via the token endpoint and rewrites storage', async () => {
+    const tokenCalls = routeFetch(() =>
+      tokenEndpointResponse({ access_token: 't2', refresh_token: 'r2', expires_in: 3600 }),
+    );
+    await backend.authenticate({ token: 't1', refresh_token: 'r1', expires_in: 3600 });
+
+    now += 3600_000; // past expiry (and skew)
+
+    await expect(backend.getToken()).resolves.toBe('t2');
+    expect(tokenCalls).toHaveLength(1);
+    const body = String(tokenCalls[0].opts.body);
+    expect(body).toContain('grant_type=refresh_token');
+    expect(body).toContain('refresh_token=r1');
+    expect(body).toContain('client_id=decap-cms');
+    expect(sessionStorageMock.getItem('laika_access_token')).toBe('t2');
+    expect(sessionStorageMock.getItem('laika_refresh_token')).toBe('r2');
+  });
+
+  it('concurrent getToken() calls share a single in-flight refresh (server rotates the pair)', async () => {
+    let resolveToken!: (v: any) => void;
+    const tokenCalls = routeFetch(() => new Promise(resolve => {
+      resolveToken = resolve;
+    }));
+    await backend.authenticate({ token: 't1', refresh_token: 'r1', expires_in: 3600 });
+
+    now += 3600_000;
+
+    const first = backend.getToken();
+    const second = backend.getToken();
+    resolveToken(tokenEndpointResponse({ access_token: 't2', refresh_token: 'r2', expires_in: 3600 }));
+
+    await expect(first).resolves.toBe('t2');
+    await expect(second).resolves.toBe('t2');
+    expect(tokenCalls).toHaveLength(1);
+  });
+
+  it('a dead refresh grant (400) clears the session and reports onSessionExpired', async () => {
+    routeFetch(() => ({ ok: false, status: 400 }) as any);
+    await backend.authenticate({ token: 't1', refresh_token: 'r1', expires_in: 3600 });
+
+    now += 3600_000;
+
+    await expect(backend.getToken()).rejects.toMatchObject({ name: ACCESS_TOKEN_ERROR });
+
+    expect(onSessionExpired).toHaveBeenCalledTimes(1);
+    expect(sessionStorageMock.getItem('laika_access_token')).toBeNull();
+    expect(sessionStorageMock.getItem('laika_refresh_token')).toBeNull();
+  });
+
+  it('a transient refresh failure (500) keeps the stored pair so a later call can retry', async () => {
+    routeFetch(() => ({ ok: false, status: 500 }) as any);
+    await backend.authenticate({ token: 't1', refresh_token: 'r1', expires_in: 3600 });
+
+    now += 3600_000;
+
+    await expect(backend.getToken()).rejects.toMatchObject({ name: ACCESS_TOKEN_ERROR });
+
+    expect(onSessionExpired).not.toHaveBeenCalled();
+    expect(sessionStorageMock.getItem('laika_refresh_token')).toBe('r1');
+  });
+
+  it('expired token with no refresh token drops the session and reports onSessionExpired', async () => {
+    routeFetch(() => {
+      throw new Error('no refresh possible');
+    });
+    await backend.authenticate({ token: 't1', expires_in: 3600 });
+
+    now += 3600_000;
+
+    await expect(backend.getToken()).rejects.toMatchObject({ name: ACCESS_TOKEN_ERROR });
+
+    expect(onSessionExpired).toHaveBeenCalledTimes(1);
+    expect(sessionStorageMock.getItem('laika_access_token')).toBeNull();
+  });
+
+  it('restoreUser() with an expired stored token refreshes before validating the session', async () => {
+    sessionStorageMock.setItem('laika_access_token', 'stale');
+    sessionStorageMock.setItem('laika_refresh_token', 'r1');
+    sessionStorageMock.setItem('laika_token_expires_at', String(now - 1000));
+
+    const sessionAuthHeaders: string[] = [];
+    vi.mocked(unsentRequest.fetchWithTimeout).mockImplementation(async (url: any, opts?: any) => {
+      const u = String(url);
+      if (u.includes('/oauth2/token')) {
+        return tokenEndpointResponse({ access_token: 't2', refresh_token: 'r2', expires_in: 3600 });
+      }
+      if (u.includes('/session')) {
+        sessionAuthHeaders.push(opts?.headers?.Authorization);
+        return okSessionResponse;
+      }
+      throw new Error(`Unexpected fetch: ${u}`);
+    });
+
+    const user = await backend.restoreUser();
+
+    expect(user).toMatchObject({ name: 'Alice' });
+    expect(sessionAuthHeaders).toEqual(['Bearer t2']);
+    expect(sessionStorageMock.getItem('laika_access_token')).toBe('t2');
+  });
+});

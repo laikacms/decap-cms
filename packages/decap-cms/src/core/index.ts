@@ -79,6 +79,16 @@ export { store } from './redux';
 export type { AppDispatch, RootState } from './redux';
 
 /**
+ * The (singleton) Backend wrapper for the configured backend. Hosts that make
+ * their own API calls with the CMS identity should get the token through
+ * `currentBackend(store.getState().config).getToken()` rather than reading
+ * stored tokens directly — `getToken()` is refresh-aware, and refresh grants
+ * ROTATE the token pair, so a second independent refresher would revoke the
+ * backend's session (and vice versa).
+ */
+export { currentBackend } from './backend';
+
+/**
  * The extension registry (`registerWidget`, `registerBackend`, …).
  */
 export { Registry };
