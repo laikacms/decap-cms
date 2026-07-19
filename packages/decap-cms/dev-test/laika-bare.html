@@ -37,11 +37,11 @@ import {
   init,
 } from '@laikacms/decap-cms/laika-app/bare';
 import { GitHubBackend } from '@laikacms/decap-cms/backend-github';
-import widgetString from '@laikacms/decap-cms/widget-string';
+import { DecapCmsWidgetString } from '@laikacms/decap-cms/widgets/string';
 import widgetRichtext from '@laikacms/decap-cms/widget-richtext';
 
 CMS.registerBackend('github', GitHubBackend);
-CMS.registerWidget(widgetString.Widget());
+CMS.registerWidget(DecapCmsWidgetString.Widget());
 CMS.registerWidget(widgetRichtext.Widget());
 init();
   </pre>
