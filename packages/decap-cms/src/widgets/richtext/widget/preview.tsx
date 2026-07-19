@@ -1,8 +1,9 @@
 import { PortableText } from '@portabletext/react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import sanitizeHtml from 'sanitize-html';
 
 import { createRichtextValue, listBlocks, type PortableTextDocument, RichtextValue } from '@/lib/richtext';
+import { sanitizeImageSrc } from '@/ui/editor/utils/url';
 
 import type { PortableTextReactComponents } from '@portabletext/react';
 import type { ReactNode } from 'react';
@@ -51,6 +52,59 @@ interface TableRow {
 }
 
 /**
+ * Renders a persisted `image` block's `src` in the preview pane.
+ *
+ * The preview pane is a passive, read-only mirror of the persisted document
+ * (see `LexicalPreview` below) — it has no equivalent of the editor's
+ * `ImageNode.__requiresConsent` gate, because that flag lives only in
+ * transient Lexical editor state and is never part of the persisted
+ * PortableText `image` block (DCMS-640 gates the *editor's* `<img>`, not
+ * the data model). Without this gate, mounting `<img src>` directly here
+ * fires an unconsented network request for any http(s) `src` the instant
+ * the preview re-renders — including immediately after a hostile paste,
+ * since the preview updates on every editor change (DCMS-1166 / GH #1166).
+ * `data:` sources are self-contained and safe to render immediately;
+ * everything else is gated behind an explicit click, mirroring the editor.
+ */
+function PreviewImage({ src, alt }: { alt: string, src: string }): ReactNode {
+  const sanitized = sanitizeImageSrc(src);
+  const [consented, setConsented] = useState(false);
+
+  if (!sanitized) {
+    return null;
+  }
+
+  const requiresConsent = !/^data:/i.test(sanitized);
+
+  if (requiresConsent && !consented) {
+    return (
+      <button
+        type="button"
+        onClick={() => setConsented(true)}
+        style={{
+          alignItems: 'center',
+          background: 'transparent',
+          border: '1px dashed currentColor',
+          color: 'inherit',
+          cursor: 'pointer',
+          display: 'flex',
+          fontSize: '0.875rem',
+          gap: '0.5rem',
+          height: 120,
+          justifyContent: 'center',
+          opacity: 0.7,
+          width: '100%',
+        }}
+      >
+        This document contains an image hosted elsewhere. Click to load it.
+      </button>
+    );
+  }
+
+  return <img src={sanitized} alt={alt} referrerPolicy="no-referrer" />;
+}
+
+/**
  * Renderers for the reserved PT block types the Lexical bridge itself emits
  * (`lib/richtext/blocks/registry.ts` `RESERVED_BLOCK_TYPES`). These aren't
  * custom blocks — they never go through `registerBlock` — so without an
@@ -66,7 +120,7 @@ function reservedBlockPreviewComponents(
     image: ({ value }) => {
       const { src, alt } = value as { src?: string, alt?: string };
       if (!src) return null;
-      return <img src={src} alt={alt ?? ''} />;
+      return <PreviewImage src={src} alt={alt ?? ''} />;
     },
     code: ({ value }) => {
       const { code, language } = value as { code?: string, language?: string | null };
