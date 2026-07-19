@@ -28,6 +28,7 @@ import { loadMedia, waitForMediaLibraryToLoad } from './mediaLibrary';
 import { addNotification } from './notifications';
 import { waitUntil } from './waitUntil';
 
+import type Algolia from '@/core/integrations/providers/algolia/implementation';
 import type { Backend } from '@/core/backend';
 import type AssetProxy from '@/core/valueObjects/AssetProxy';
 import type { EntryValue } from '@/core/valueObjects/Entry';
@@ -175,8 +176,8 @@ export async function getAllEntries(state: State, collection: Collection) {
   const backend = currentBackend(state.config);
   const integration = selectIntegration(state, collection.name, 'listEntries');
 
-  const provider: any = integration
-    ? getIntegrationProvider(state.integrations, backend.getToken as any, integration)
+  const provider: Algolia | Backend = integration
+    ? (getIntegrationProvider(state.integrations, backend.getToken as any, integration) as Algolia)
     : backend;
   // Full-collection listings are requested from several places (sort/filter/group,
   // search, relation lookups); dedup them and reuse the result within the TTL window.
