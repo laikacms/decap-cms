@@ -186,4 +186,47 @@ describe('validateJSONSchema, edge cases', () => {
     expect(validateJSONSchema(schema, { widget: 123 })).toEqual([]);
     expect(validateJSONSchema(schema, {})).toEqual([]);
   });
+
+  // DCMS-1161: the richtext README's "Removed keys" section implied
+  // `editor_components`/`editorComponents` are actively rejected by config
+  // validation, distinct from the "inert" keys documented just above it.
+  // Neither the field schema below nor `lexicalEditorWidgetSchema` (see
+  // `widgets/richtext/widget/schema.ts`) sets `additionalProperties: false`,
+  // so an unknown key is accepted silently, same as the inert keys. This
+  // pins that behavior so the README claim can't silently regress either way.
+  it('accepts a richtext field config with an unknown editor_components key (DCMS-1161)', () => {
+    const richtextWidgetSchema: JSONSchema = {
+      properties: {
+        format: { type: 'string' },
+        minimal: { type: 'boolean' },
+        buttons: { type: 'array', items: { type: 'string' } },
+        modes: { type: 'array', items: { type: 'string', enum: ['rich_text', 'raw'] } },
+      },
+    };
+    const fieldSchema: JSONSchema = {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+        widget: { type: 'string' },
+      },
+      required: ['name'],
+      widgets: { richtext: richtextWidgetSchema },
+    };
+
+    const fieldConfig = {
+      name: 'body',
+      widget: 'richtext',
+      editor_components: ['image', 'code-block'],
+    };
+
+    expect(validateJSONSchema(fieldSchema, fieldConfig)).toEqual([]);
+
+    const camelCaseFieldConfig = {
+      name: 'body',
+      widget: 'richtext',
+      editorComponents: ['image', 'code-block'],
+    };
+
+    expect(validateJSONSchema(fieldSchema, camelCaseFieldConfig)).toEqual([]);
+  });
 });

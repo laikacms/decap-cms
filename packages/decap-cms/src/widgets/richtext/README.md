@@ -160,9 +160,11 @@ the config key still does what it did in `decap-cms-widget-markdown`.
 
 ### Removed keys
 
-Unlike the keys above, `editor_components` (and its `editorComponents` camelCase alias) is not
-merely inert — it isn't declared in `schema.ts` at all. The legacy editor-components API it
-configured was removed along with it, so setting either key on a field config is just an unknown
-property to the schema (dropped/rejected as such, not validated-but-ignored). In the old widget
-this registered custom Markdown block components; that role is now filled by `CMS.registerBlock(...)`
-plus the `blocks` allowlist documented in [Config](#config) above.
+`editor_components` (and its `editorComponents` camelCase alias) isn't declared in `schema.ts` at
+all — the legacy editor-components API it configured was removed along with it. Like the inert keys
+above, neither the base field schema nor the richtext widget schema sets
+`additionalProperties: false`, so setting either key on a field config is accepted-but-unused: schema
+validation does not reject it, it simply has no reader (`registry.tsx` never looks at it), so it's
+silently ignored at runtime. In the old widget this registered custom Markdown block components;
+that role is now filled by `CMS.registerBlock(...)` plus the `blocks` allowlist documented in
+[Config](#config) above.
