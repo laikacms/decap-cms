@@ -98,6 +98,14 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
         ...initialState,
         entry: { ...action.payload.entry, newRecord: false },
         key: randomUUID(),
+        // Carry over a not-yet-decided `localBackup` (DCMS-1157): this
+        // dispatch and `retrieveLocalBackup`'s `DRAFT_LOCAL_BACKUP_RETRIEVED`
+        // both fire from `useEditor`'s mount `setup()` with no ordering
+        // guarantee between them. Replacing the whole slice with
+        // `...initialState` when this one lands second would silently drop
+        // the backup the user hasn't been asked about yet, leaving the
+        // eventual OK click on the recovery dialog with nothing to restore.
+        localBackup: state.localBackup,
       };
 
     case DRAFT_CREATE_EMPTY:
@@ -105,6 +113,13 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
         ...initialState,
         entry: { ...action.payload, newRecord: true },
         key: randomUUID(),
+        // See the comment on `DRAFT_CREATE_FROM_ENTRY` above — same race,
+        // same fix, for the new-entry path (DCMS-1157). Without this,
+        // `createEmptyDraft`'s DCMS-1149 guard doesn't help: it only bails
+        // once `hasChanged` is `true`, which only happens after the user
+        // clicks OK; a backup that has merely been *retrieved* still gets
+        // wiped out here if `createEmptyDraft` resolves before that click.
+        localBackup: state.localBackup,
       };
 
     case DRAFT_CREATE_FROM_LOCAL_BACKUP: {
