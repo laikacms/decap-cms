@@ -122,27 +122,37 @@ For whole-collection previews use `CMS.registerPreviewTemplate(collectionName, C
 component receives `entry`, `widgetFor`/`widgetsFor`, `getAsset`, `fields`. Entry data is plain JS:
 `entry.data.title`, not `entry.getIn([...])`.
 
-## Editor components (rich-text embeds)
+## Custom blocks (rich-text embeds)
 
-`CMS.registerEditorComponent(def)` adds a block type to the `richtext` widget:
+`registerEditorComponent` was removed. `CMS.registerBlock(definition)` adds a custom block type to
+the `richtext` widget instead — a PT-native (Portable Text) mechanism, not a `pattern`/`fromBlock`/
+`toBlock`/`toPreview` shortcode. Full docs: `src/widgets/richtext/README.md` ("Custom blocks").
 
 ```ts
-CMS.registerEditorComponent({
+import { markdownFormat } from '@laikacms/decap-cms/format-packs/markdown';
+import { CMS } from '@laikacms/decap-cms/laika-app/bare';
+
+CMS.registerBlock({
   id: 'youtube',
   label: 'YouTube',
-  fields: [{ name: 'id', label: 'Video ID', widget: 'string' }],
-  pattern: /^{{< youtube (\S+) >}}$/,
-  fromBlock: match => ({ id: match[1] }),
-  toBlock: data => `{{< youtube ${data.id} >}}`,
-  toPreview: data => `<img src="https://img.youtube.com/vi/${data.id}/0.jpg"/>`,
+  fields: [{ name: 'videoId', label: 'Video ID', widget: 'string' }],
+  formats: {
+    markdown: {
+      pattern: /^{{< youtube (\S+) >}}/,
+      fromMatch: match => ({ videoId: match[1] }),
+      serialize: data => `{{< youtube ${data.videoId} >}}`,
+    },
+  },
 });
+CMS.registerRichtextFormat(markdownFormat);
 ```
 
 - `id` doubles as the Portable Text custom-block `_type` (see the `decap-portable-text` skill):
   agent- or code-authored content targets the component by that id.
-- `type: 'code-block'` is special: only one code-block component may be registered; a second
-  replaces the first with a warning.
-- Omitted fields get defaults (`type: 'shortcode'`, `widget: 'object'`, a never-matching `pattern`).
+- `fields` are decap fields editing the block data (`[]` = no editable props); `formats.markdown`
+  is the codec (`pattern`/`fromMatch`/`serialize`) that (de)serializes the block for the markdown
+  format pack — other format packs plug in the same way under their own key.
+- `CMS.unregisterBlock(id)` removes a block. Register at boot, before any entry is parsed.
 
 ## Styling and layering rules
 

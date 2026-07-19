@@ -204,47 +204,49 @@ backend:
   name: my-backend
 ```
 
-## `registerEditorComponent`
+## `registerBlock`
+
+`registerEditorComponent` was removed; custom richtext embeds/shortcodes are now registered as
+**blocks** — a PT-native (Portable Text) replacement documented in full at
+`src/widgets/richtext/README.md` ("Custom blocks"). See `BREAKING_CHANGES_V2_BETA.md` for the
+removal context.
 
 ```ts
-function registerEditorComponent(component: {
-  id?: string,
-  label?: string,
-  icon?: string,
-  widget?: string,
-  type?: 'code-block' | 'shortcode',
-  pattern: RegExp,
-  fields?: { name: string, label: string, widget?: string, [key: string]: unknown }[],
-  allow_add?: boolean,
-  fromBlock: (match: RegExpMatchArray) => unknown,
-  toBlock: (data: unknown) => string,
-  toPreview: (
-    data: unknown,
-    getAsset: (value: string, field?: unknown) => string,
-    fields?: unknown[],
-  ) => string | unknown,
-}): void;
+interface BlockDefinition<TData extends Record<string, unknown> = Record<string, unknown>> {
+  id: string; // PT `_type` and stable id — reserved ids are rejected on register
+  label?: string;
+  icon?: ReactNode; // slash menu / toolbar / block chrome
+  inline?: boolean; // inline object (child of a text block) instead of block-level
+  fields: BlockFieldConfig[]; // decap fields editing the block data; [] = no editable props
+  defaultData?: TData | (() => TData);
+  keywords?: string[]; // extra slash-menu search keywords
+  preview?: ComponentType<BlockPreviewProps<TData>>; // editor AND preview pane; fallback chrome if absent
+  editableRegions?: string[]; // reserved for the visual editor; currently unused
+  formats?: { markdown?: BlockFormatCodec<TData>, [formatId: string]: unknown }; // per-format serialization
+}
 ```
 
-Registers a custom shortcode/embed for the richtext editor. `pattern` is the regex the editor uses
-to detect the component's raw-markdown representation; `fromBlock` parses a regex match into the
-component's data, `toBlock` serializes that data back to markdown, and `toPreview` renders it in the
-preview pane. Only one component of `type:
-'code-block'` may be registered at a time — registering a
-second one logs a warning and silently replaces the first.
+`registerBlock` — and `unregisterBlock` — are public methods on the `CMS` object; the
+implementation lives in `src/core/lib/registry.tsx` and delegates to
+`src/lib/richtext/blocks/registry.ts`. Register at boot, before any entry is parsed.
 
 ```ts
-import { registerEditorComponent } from '@laikacms/decap-cms/core';
+import { markdownFormat } from '@laikacms/decap-cms/format-packs/markdown';
+import { CMS } from '@laikacms/decap-cms/laika-app/bare';
 
-registerEditorComponent({
+CMS.registerBlock({
   id: 'youtube',
   label: 'YouTube',
-  fields: [{ name: 'id', label: 'Video ID', widget: 'string' }],
-  pattern: /^{{< youtube (\S+) >}}$/,
-  fromBlock: match => ({ id: match[1] }),
-  toBlock: data => `{{< youtube ${data.id} >}}`,
-  toPreview: data => `<img src="https://img.youtube.com/vi/${data.id}/0.jpg" />`,
+  fields: [{ name: 'videoId', label: 'Video ID', widget: 'string' }],
+  formats: {
+    markdown: {
+      pattern: /^{{< youtube (\S+) >}}/,
+      fromMatch: match => ({ videoId: match[1] }),
+      serialize: data => `{{< youtube ${data.videoId} >}}`,
+    },
+  },
 });
+CMS.registerRichtextFormat(markdownFormat);
 ```
 
 ## `registerRemarkPlugin`
