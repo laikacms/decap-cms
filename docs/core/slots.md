@@ -17,7 +17,7 @@ nested inside the collection/editor/media-library routes that a top-level prop c
    changes nothing about default behavior.
 
 ```tsx
-import { CmsSlotsProvider } from 'decap-cms-app';
+import { CmsSlotsProvider } from '@laikacms/decap-cms/app';
 
 function renderCollectionTop({ collection, newEntryUrl }) {
   return <MyCustomCollectionHeader collection={collection} newEntryUrl={newEntryUrl} />;
