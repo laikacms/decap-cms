@@ -764,6 +764,20 @@ export function createEmptyDraft(collection: Collection, search: string) {
       meta: meta as any,
     });
     newEntry = await backend.processEntry(state, collection, newEntry);
+
+    // `processEntry` above (and, for collections with no `media_folder`,
+    // `waitForMediaLibraryToLoad`) can take real async time — e.g. a
+    // network-backed media-folder listing. On a fresh new-entry mount,
+    // `useEditor` fires this thunk at the same time it starts reading any
+    // local backup out of IndexedDB, which is typically much faster. If the
+    // user confirms restoring that backup (`DRAFT_CREATE_FROM_LOCAL_BACKUP`)
+    // before this call finishes, dispatching the empty draft here would
+    // silently discard the just-restored draft back to empty (DCMS-1149).
+    // Bail once something else has already populated a real, changed draft.
+    if (getState().entryDraft?.hasChanged) {
+      return;
+    }
+
     dispatch(emptyDraftCreated(newEntry));
   };
 }
