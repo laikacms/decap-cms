@@ -148,6 +148,35 @@ function getEntryField(field: string, entry: EntryValue) {
   }
 }
 
+export function getDefaultSearchFields(collection: Collection): (string | null | undefined)[] {
+  const summary = collection.get('summary', '') as string;
+  const summaryFields = extractTemplateVars(summary);
+
+  if (collection.get('type') === FILES) {
+    let searchFields: (string | null | undefined)[] = [];
+    collection.get('files')?.forEach(f => {
+      const topLevelFields = f!
+        .get('fields')
+        .map(f => f!.get('name'))
+        .toArray();
+      searchFields = [...searchFields, ...topLevelFields];
+    });
+    return searchFields;
+  }
+
+  return [
+    selectInferredField(collection, 'title'),
+    selectInferredField(collection, 'shortTitle'),
+    selectInferredField(collection, 'author'),
+    ...summaryFields.map(elem => {
+      if (dateParsers[elem]) {
+        return selectInferredField(collection, 'date');
+      }
+      return elem;
+    }),
+  ];
+}
+
 export function extractSearchFields(searchFields: string[]) {
   return (entry: EntryValue) =>
     searchFields.reduce((acc, field) => {
@@ -615,40 +644,20 @@ export class Backend {
     return entries;
   }
 
-  async search(collections: Collection[], searchTerm: string) {
+  async search(
+    collections: Collection[],
+    searchTerm: string,
+    getSearchFields: (
+      collection: Collection,
+    ) => (string | null | undefined)[] = getDefaultSearchFields,
+  ) {
     // Perform a local search by requesting all entries. For each
     // collection, load it, search, and call onCollectionResults with
     // its results.
     const errors: Error[] = [];
     const collectionEntriesRequests = collections
       .map(async collection => {
-        const summary = collection.get('summary', '') as string;
-        const summaryFields = extractTemplateVars(summary);
-
-        // TODO: pass search fields in as an argument
-        let searchFields: (string | null | undefined)[] = [];
-
-        if (collection.get('type') === FILES) {
-          collection.get('files')?.forEach(f => {
-            const topLevelFields = f!
-              .get('fields')
-              .map(f => f!.get('name'))
-              .toArray();
-            searchFields = [...searchFields, ...topLevelFields];
-          });
-        } else {
-          searchFields = [
-            selectInferredField(collection, 'title'),
-            selectInferredField(collection, 'shortTitle'),
-            selectInferredField(collection, 'author'),
-            ...summaryFields.map(elem => {
-              if (dateParsers[elem]) {
-                return selectInferredField(collection, 'date');
-              }
-              return elem;
-            }),
-          ];
-        }
+        const searchFields = getSearchFields(collection);
         const filteredSearchFields = searchFields.filter(Boolean) as string[];
         const collectionEntries = await this.listAllEntries(collection);
         return fuzzy.filter(searchTerm, collectionEntries, {
@@ -710,7 +719,13 @@ export class Backend {
 
   traverseCursor(cursor: Cursor, action: string) {
     const [data, unwrappedCursor] = cursor.unwrapData();
-    // TODO: stop assuming all cursors are for collections
+    if (data['cursorType'] !== 'collectionEntries') {
+      throw new Error(
+        `traverseCursor only supports cursors of type 'collectionEntries', got '${String(
+          data['cursorType'],
+        )}'`,
+      );
+    }
     const collection = data['collection'] as Collection;
     return this.implementation!.traverseCursor!(unwrappedCursor, action).then(
       async ({ entries, cursor: newCursor }) => ({
@@ -828,7 +843,10 @@ export class Backend {
   }
 
   async getEntry(state: State, collection: Collection, slug: string) {
-    const path = selectEntryPath(collection, slug) as string;
+    const path = selectEntryPath(collection, slug);
+    if (!path) {
+      throw new Error(`Entry not found: ${collection.get('name')}/${slug}`);
+    }
     const label = selectFileEntryLabel(collection, slug);
     const extension = selectFolderEntryExtension(collection);
 

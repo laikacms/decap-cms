@@ -128,9 +128,10 @@ interface GitGatewayUser extends Credentials {
   user_metadata: { full_name: string; avatar_url: string };
 }
 
-async function apiGet(path: string) {
+async function apiGet(path: string, token?: string) {
   const apiRoot = 'https://api.netlify.com/api/v1/sites';
-  const response = await fetch(`${apiRoot}/${path}`).then(res => res.json());
+  const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+  const response = await fetch(`${apiRoot}/${path}`, { headers }).then(res => res.json());
   return response;
 }
 
@@ -147,6 +148,7 @@ export default class GitGateway implements Implementation {
   gitGatewayStatusPage: string;
   gitGatewayStatusComponentName: string;
   netlifyLargeMediaURL: string;
+  netlifyApiToken: string;
   backendType: string | null;
   apiUrl: string;
   authType: 'pkce' | 'netlify';
@@ -183,6 +185,7 @@ export default class GitGateway implements Implementation {
         : DEFAULT_STATUS_PAGE);
     const { use_large_media_transforms_in_media_library: transformImages = true } = config.backend;
     this.transformImages = transformImages;
+    this.netlifyApiToken = config.backend.netlify_api_token || '';
 
     const netlifySiteURL = localStorage.getItem('netlifySiteURL');
     this.apiUrl = getEndpoint(config.backend.identity_url || defaults.identity, netlifySiteURL);
@@ -613,12 +616,14 @@ export default class GitGateway implements Implementation {
       try {
         // if the commit doesn't have a status, try to use Netlify API directly
         // this is useful when builds are queue up in Netlify and don't have a commit status yet
-        // and only works with public logs at the moment
-        // TODO: get Netlify API Token and use it to access private logs
+        // without a token this only works for sites with public deploy logs; when
+        // `backend.netlify_api_token` is configured it is sent along so private-log
+        // sites can be looked up too
         const siteId = new URL(localStorage.getItem('netlifySiteURL') || '').hostname;
-        const site = await apiGet(siteId);
+        const site = await apiGet(siteId, this.netlifyApiToken);
         const deploys: { state: string; commit_ref: string; deploy_url: string }[] = await apiGet(
           `${site.id}/deploys?per_page=100`,
+          this.netlifyApiToken,
         );
         if (deploys.length > 0) {
           const ref = await this.api!.getUnpublishedEntrySha(collection, slug);

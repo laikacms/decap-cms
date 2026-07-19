@@ -29,11 +29,29 @@ jest.mock('react-polyglot', () => ({
   useTranslate: () => (key: string) => key,
 }));
 
+let mockHistoryListeners: Array<() => void> = [];
+
+jest.mock('../../../routing/history', () => ({
+  history: {
+    listen: jest.fn((listener: () => void) => {
+      mockHistoryListeners.push(listener);
+      return () => {
+        mockHistoryListeners = mockHistoryListeners.filter(l => l !== listener);
+      };
+    }),
+  },
+}));
+
 const mockOnChange = toast.onChange as jest.Mock;
+
+function fireRouteChange() {
+  mockHistoryListeners.forEach(listener => listener());
+}
 
 describe('Notifications', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHistoryListeners = [];
     (useDispatch as jest.Mock).mockReturnValue(jest.fn());
   });
 
@@ -68,5 +86,42 @@ describe('Notifications', () => {
 
     unmount();
     expect(unsubscribe).toHaveBeenCalledTimes(1);
+  });
+
+  it('dismisses the missing-required-field validation toast on route change (DCMS-579)', () => {
+    const dispatch = jest.fn();
+    (useDispatch as jest.Mock).mockReturnValue(dispatch);
+
+    const notifications: Notification[] = [
+      {
+        id: 'validation-toast',
+        message: { key: 'ui.toast.missingRequiredField' },
+        type: 'error',
+        dismissAfter: 8000,
+      },
+    ];
+    render(<Notifications notifications={notifications} />);
+    dispatch.mockClear();
+
+    fireRouteChange();
+
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'NOTIFICATION_DISMISS', id: 'validation-toast' }),
+    );
+  });
+
+  it('does not dismiss unrelated toasts on route change', () => {
+    const dispatch = jest.fn();
+    (useDispatch as jest.Mock).mockReturnValue(dispatch);
+
+    const notifications: Notification[] = [
+      { id: 'save-success', message: 'Entry saved', type: 'success', dismissAfter: undefined },
+    ];
+    render(<Notifications notifications={notifications} />);
+    dispatch.mockClear();
+
+    fireRouteChange();
+
+    expect(dispatch).not.toHaveBeenCalled();
   });
 });

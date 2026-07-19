@@ -2,32 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import styled from '@emotion/styled';
 import { css, keyframes } from '@emotion/react';
-import { CSSTransition } from 'react-transition-group';
 
 import { colors, zIndex } from './styles';
-
-const styles = {
-  disabled: css`
-    display: none;
-  `,
-  active: css`
-    display: block;
-  `,
-  enter: css`
-    opacity: 0.01;
-  `,
-  enterActive: css`
-    opacity: 1;
-    transition: opacity 500ms ease-in;
-  `,
-  exit: css`
-    opacity: 1;
-  `,
-  exitActive: css`
-    opacity: 0.01;
-    transition: opacity 300ms ease-in;
-  `,
-};
 
 const animations = {
   loader: keyframes`
@@ -39,7 +15,20 @@ const animations = {
       transform: rotate(360deg);
     }
   `,
+  itemEnter: keyframes`
+    from {
+      opacity: 0.01;
+    }
+
+    to {
+      opacity: 1;
+    }
+  `,
 };
+
+const itemFadeIn = css`
+  animation: ${animations.itemEnter} 500ms ease-in forwards;
+`;
 
 const LoaderText = styled.div`
   width: auto !important;
@@ -99,17 +88,9 @@ export class Loader extends React.Component {
       this.setAnimation();
       return (
         <LoaderText>
-          <CSSTransition
-            className={{
-              enter: styles.enter,
-              enterActive: styles.enterActive,
-              exit: styles.exit,
-              exitActive: styles.exitActive,
-            }}
-            timeout={500}
-          >
-            <LoaderItem key={currentItem}>{children[currentItem]}</LoaderItem>
-          </CSSTransition>
+          <LoaderItem key={currentItem} css={itemFadeIn}>
+            {children[currentItem]}
+          </LoaderItem>
         </LoaderText>
       );
     }

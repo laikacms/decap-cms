@@ -61,6 +61,24 @@ describe('DateTimeControl', () => {
     expect(props.onChange).toHaveBeenCalledWith(dayjs().format('DD.MM.YYYY'));
   });
 
+  test('substitutes {{now}} on mount and flags the change as a framework default (DCMS-487)', () => {
+    const { props } = setup({ value: '{{now}}' });
+
+    expect(props.onChange).toHaveBeenCalledTimes(1);
+    expect(props.onChange).toHaveBeenCalledWith(dayjs().format('DD.MM.YYYY'), {
+      fromDefault: true,
+    });
+  });
+
+  test('does not flag user-initiated now-button clicks as a framework default (DCMS-487)', () => {
+    const { nowButton, props } = setup({ value: '{{now}}' });
+
+    props.onChange.mockClear();
+    fireEvent.click(nowButton);
+
+    expect(props.onChange).toHaveBeenCalledWith(dayjs().format('DD.MM.YYYY'));
+  });
+
   test('set value to empty string if clear button is clicked', () => {
     const { clearButton, props } = setup({ value: '1970-01-01' });
     fireEvent.click(clearButton);

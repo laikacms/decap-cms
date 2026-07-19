@@ -6,6 +6,7 @@ import {
   TYPES_KEY,
   getErrorMessageForTypedFieldAndValue,
   getTypedFieldForValue,
+  pluralize,
   resolveFunctionForTypedField,
   resolveFieldKeyType,
 } from '../typedListHelpers';
@@ -92,6 +93,39 @@ describe('resolveFunctionForTypedField', () => {
     const field = makeField();
     const resolve = resolveFunctionForTypedField(field);
     expect(resolve(fromJS({ [DEFAULT_TYPE_KEY]: 'nope' }))).toBeUndefined();
+  });
+});
+
+describe('pluralize', () => {
+  it('returns falsy input as-is', () => {
+    expect(pluralize('')).toBe('');
+    expect(pluralize(undefined)).toBeUndefined();
+  });
+
+  it('appends "s" for regular nouns', () => {
+    expect(pluralize('list')).toBe('lists');
+    expect(pluralize('item')).toBe('items');
+    expect(pluralize('author')).toBe('authors');
+    expect(pluralize('tag')).toBe('tags');
+    expect(pluralize('photo')).toBe('photos');
+  });
+
+  it('appends "es" for nouns ending in s/x/z/ch/sh', () => {
+    expect(pluralize('box')).toBe('boxes');
+    expect(pluralize('bus')).toBe('buses');
+    expect(pluralize('buzz')).toBe('buzzes');
+    expect(pluralize('match')).toBe('matches');
+    expect(pluralize('dish')).toBe('dishes');
+  });
+
+  it('replaces trailing consonant+y with "ies"', () => {
+    expect(pluralize('category')).toBe('categories');
+    expect(pluralize('story')).toBe('stories');
+  });
+
+  it('does not apply the consonant+y rule after a vowel', () => {
+    expect(pluralize('day')).toBe('days');
+    expect(pluralize('toy')).toBe('toys');
   });
 });
 

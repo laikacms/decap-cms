@@ -64,9 +64,6 @@ export class Modal extends React.Component {
   };
 
   componentDidMount() {
-    // Manually validate PropTypes - React 19 breaking change
-    PropTypes.checkPropTypes(Modal.propTypes, this.props, 'prop', 'Modal');
-
     ReactModal.setAppElement('#nc-root');
   }
 

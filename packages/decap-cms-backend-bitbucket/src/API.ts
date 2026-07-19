@@ -227,7 +227,7 @@ export default class API {
 
   buildRequest = (req: ApiRequest) => {
     const withRoot = unsentRequest.withRoot(this.apiRoot)(req);
-    if (withRoot.has('cache')) {
+    if (typeof withRoot !== 'string' && 'cache' in withRoot) {
       return withRoot;
     } else {
       const withNoCache = unsentRequest.withNoCache(withRoot);

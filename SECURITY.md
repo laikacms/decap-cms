@@ -33,9 +33,9 @@ This project follows a 90-day disclosure timeline.
 
 ## Security Practices
 
-- Dependabot is enabled for automated security update checks
-- All code changes are tested in CI, including linting
-- End-to-end tests provide coverage of critical functionality
+- Dependabot alerts and automated security-fix PRs are not currently enabled on this repository; dependency vulnerabilities are tracked and patched manually
+- Code changes are gated by a local pre-push hook (`.husky/pre-push`) that runs linting, type-checking, and unit tests; the "Node CI" GitHub Actions workflow itself is manual-dispatch-only (`workflow_dispatch`) and does not run automatically on push or pull request, for cost reasons
+- There is no automated end-to-end test run; end-to-end tests exist but must be run manually
 - All pull requests require code review before merging
 - Passwords are not stored by Decap CMS; authentication is delegated to providers
 

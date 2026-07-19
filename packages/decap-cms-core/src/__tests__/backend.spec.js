@@ -7,6 +7,7 @@ import {
   expandSearchEntries,
   mergeExpandedEntries,
   slugFromCustomPath,
+  getDefaultSearchFields,
 } from '../backend';
 import { getBackend } from '../lib/registry';
 import { FOLDER, FILES } from '../constants/collectionTypes';
@@ -802,6 +803,63 @@ describe('Backend', () => {
     });
   });
 
+  // DCMS-514: an unknown slug in a files collection used to reach `getEntry` with
+  // an `undefined` path (silently cast `as string`), crashing deep in path parsing
+  // with a raw TypeError instead of a clean not-found error.
+  describe('getEntry', () => {
+    it('throws a clean not-found error for an unknown files-collection slug', async () => {
+      const implementation = {
+        init: jest.fn(() => implementation),
+        getEntry: jest.fn(),
+      };
+
+      const collection = fromJS({
+        name: 'settings',
+        type: FILES,
+        files: [
+          {
+            name: 'general',
+            file: 'data/general.json',
+            fields: [{ name: 'title' }],
+          },
+        ],
+      });
+
+      const backend = new Backend(implementation, { config: {}, backendName: 'github' });
+
+      await expect(backend.getEntry({}, collection, 'unknown-slug')).rejects.toThrow(
+        'Entry not found: settings/unknown-slug',
+      );
+      expect(implementation.getEntry).not.toHaveBeenCalled();
+    });
+
+    // DCMS-481: a rejection from the underlying implementation for a missing
+    // folder-collection entry (e.g. a stale/mistyped deep link) must propagate
+    // as-is instead of the load flow attempting to keep processing an entry
+    // that was never returned.
+    it('propagates a clean not-found rejection for an unknown folder-collection slug', async () => {
+      const implementation = {
+        init: jest.fn(() => implementation),
+        getEntry: jest.fn(() => Promise.reject(new Error('Entry not found: faq/nope-9999.md'))),
+      };
+
+      const collection = fromJS({
+        name: 'faq',
+        type: FOLDER,
+        folder: 'faq',
+        extension: 'md',
+        fields: [{ name: 'title' }],
+      });
+
+      const backend = new Backend(implementation, { config: {}, backendName: 'github' });
+
+      await expect(backend.getEntry({}, collection, 'nope-9999')).rejects.toThrow(
+        'Entry not found: faq/nope-9999.md',
+      );
+      expect(implementation.getEntry).toHaveBeenCalledWith('faq/nope-9999.md');
+    });
+  });
+
   describe('extractSearchFields', () => {
     it('should extract slug', () => {
       expect(extractSearchFields(['slug'])({ slug: 'entry-slug', data: {} })).toEqual(
@@ -1038,6 +1096,26 @@ describe('Backend', () => {
       expect(typeof caught.message).toBe('string');
       expect(caught.message).toBe('Errors occurred while searching entries locally!');
       expect(caught.errors).toEqual([backendError, backendError]);
+    });
+
+    it('should use the default search fields when none are provided', () => {
+      expect(getDefaultSearchFields(collections[0])).toEqual(['title', 'short_title', 'author']);
+    });
+
+    it('should search using a caller-supplied getSearchFields override instead of the inline default', async () => {
+      const getSearchFields = jest.fn(collection => [selectField(collection)]);
+
+      const results = await backend.search(collections, 'find me by description', getSearchFields);
+
+      expect(getSearchFields).toHaveBeenCalledWith(collections[0]);
+      expect(getSearchFields).toHaveBeenCalledWith(collections[1]);
+      expect(results).toEqual({
+        entries: [posts[0], pages[0]],
+      });
+
+      function selectField() {
+        return 'description';
+      }
     });
   });
 

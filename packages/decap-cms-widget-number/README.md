@@ -9,7 +9,7 @@ Number widget for [Decap CMS](https://decapcms.org).
 | `label`      | string  | Field `name` | Label for the field in the editor UI. |
 | `name`       | string  | —       | Unique field identifier. |
 | `default`    | number  | —       | Default value. |
-| `value_type` | string  | —       | How the stored value is typed. Valid values: `int`, `float`. When omitted, the value is stored as an integer via `parseInt`, except when the entered digits exceed `Number.MAX_SAFE_INTEGER` (see below). |
+| `value_type` | string  | —       | How the stored value is typed. Valid values: `int`, `float`. When omitted, the value is stored as a float via `parseFloat` (same path as `float`), except when the result is non-finite or exceeds `Number.MAX_SAFE_INTEGER` (see below). |
 | `min`        | number  | —       | Minimum allowed value. |
 | `max`        | number  | —       | Maximum allowed value. |
 | `step`       | number \| `'any'`  | `1` for `int`, `any` for `float` or omitted | Input step size. Use `'any'` to allow any decimal value. |
@@ -18,7 +18,7 @@ Number widget for [Decap CMS](https://decapcms.org).
 
 - `int` — stored as integer (`parseInt`)
 - `float` — stored as float (`parseFloat`)
-- omitted — stored as integer (`parseInt` fallback; **not** a string)
+- omitted — stored as float (`parseFloat`, same code path as `float`; **not** `parseInt`)
 
 > **Note:** Only `int` and `float` are valid `value_type` values. Any other value is rejected by schema validation.
 > The decapcms.org widget docs currently say "any other value results in saving as a string" —
@@ -27,13 +27,19 @@ Number widget for [Decap CMS](https://decapcms.org).
 
 ### Unsafe integer exception
 
-For `int` (and omitted) `value_type`, `parseInt` silently rounds digit strings once they exceed
+For `int` `value_type`, `parseInt` silently rounds digit strings once they exceed
 `Number.MAX_SAFE_INTEGER`, which would corrupt the entered value. To avoid that, the widget
 detects this case and keeps the **raw input string** instead of coercing it to a (corrupted)
 number. The field's `isValid()` check then flags the stored string as a `CUSTOM` range error
 ("Value exceeds the maximum safe integer. Use a string widget for arbitrary-precision IDs."),
 so the out-of-range entry is surfaced to the user rather than silently saved as wrong data.
-`float` fields are not affected by this guard.
+
+For `float` (and omitted) `value_type`, the equivalent guard is on `parseFloat`'s result instead:
+if the parsed value is non-finite (e.g. an entry like `1e309` that overflows to `Infinity`), the
+widget keeps the raw input string and `isValid()` flags it as a `CUSTOM` error ("Value exceeds
+the maximum representable number."). A digit string that parses to a safe finite float but is
+itself outside `Number.MAX_SAFE_INTEGER` is caught the same way as the `int` case above, reusing
+the "maximum safe integer" message.
 
 ## Example
 

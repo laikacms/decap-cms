@@ -190,6 +190,16 @@ describe('config', () => {
       }).toThrowError("'backend.always_fork' must be boolean");
     });
 
+    it('should not type-validate backend.site_domain (removed dead config key, DCMS-580)', () => {
+      // site_domain used to be declared as `{ type: 'string' }`, so a non-string
+      // value would throw a type error. Now that the key has been removed from
+      // the schema, it's an untyped extra property (backend allows additional
+      // properties) and setting it to a non-string must no longer throw.
+      expect(() => {
+        validateConfig(merge({}, validConfig, { backend: { site_domain: 123 } }));
+      }).not.toThrowError();
+    });
+
     it('should not throw if backend.repo is a string in config', () => {
       expect(() => {
         validateConfig(merge({}, validConfig, { backend: { repo: 'owner/repo' } }));

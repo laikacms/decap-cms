@@ -10,8 +10,10 @@ import {
   getMediaAssets,
   validateMetaField,
   persistEntry,
+  withDefaultsBackfilled,
 } from '../entries';
 import AssetProxy from '../../valueObjects/AssetProxy';
+import { FOLDER } from '../../constants/collectionTypes';
 
 jest.mock('../../backend');
 jest.mock('decap-cms-lib-util');
@@ -133,6 +135,20 @@ describe('entries', () => {
             type: 'DRAFT_CREATE_EMPTY',
           });
         });
+    });
+
+    it('should split a comma-separated URL param into a list for multiple: true fields (DCMS-575)', () => {
+      const store = mockStore({ mediaLibrary: fromJS({ files: [] }) });
+
+      const collection = fromJS({
+        fields: [{ name: 'tags', multiple: true }],
+      });
+
+      return store.dispatch(createEmptyDraft(collection, '?tags=a,b,c')).then(() => {
+        const actions = store.getActions();
+        expect(actions).toHaveLength(1);
+        expect(actions[0].payload.data).toEqual({ tags: List(['a', 'b', 'c']) });
+      });
     });
 
     it('should not html escape URL params (DCMS-448)', () => {
@@ -400,6 +416,68 @@ describe('entries', () => {
       const fields = fromJS([{ name: 'count', widget: 'number', required: false }]);
       expect(createEmptyDraftData(fields)).toEqual({});
     });
+
+    // DCMS-480
+    it('should backfill a missing key from baseData with the field default', () => {
+      const fields = fromJS([{ name: 'draft', widget: 'boolean', default: false }]);
+      expect(createEmptyDraftData(fields, undefined, {})).toEqual({ draft: false });
+    });
+
+    // DCMS-480
+    it('should not overwrite an explicit false value already present in baseData', () => {
+      const fields = fromJS([{ name: 'draft', widget: 'boolean', default: true }]);
+      expect(createEmptyDraftData(fields, undefined, { draft: false })).toEqual({ draft: false });
+    });
+
+    // DCMS-480
+    it('should not overwrite any explicit value already present in baseData', () => {
+      const fields = fromJS([{ name: 'subtitle', widget: 'text', default: 'fallback' }]);
+      expect(createEmptyDraftData(fields, undefined, { subtitle: 'existing' })).toEqual({
+        subtitle: 'existing',
+      });
+    });
+
+    // DCMS-480
+    it('should preserve baseData keys not covered by any field', () => {
+      const fields = fromJS([{ name: 'draft', widget: 'boolean', default: false }]);
+      expect(createEmptyDraftData(fields, undefined, { title: 'existing' })).toEqual({
+        title: 'existing',
+        draft: false,
+      });
+    });
+  });
+
+  describe('withDefaultsBackfilled', () => {
+    it('should fill in a missing boolean key using the field default, without flagging it required-empty', () => {
+      const collection = fromJS({
+        name: 'posts',
+        type: FOLDER,
+        folder: '_posts',
+        fields: [
+          { name: 'title', widget: 'string' },
+          { name: 'draft', widget: 'boolean', default: false },
+        ],
+      });
+      const entry = { slug: 'legacy-post', data: { title: 'A legacy post' } };
+
+      const result = withDefaultsBackfilled(collection, entry);
+
+      expect(result.data).toEqual({ title: 'A legacy post', draft: false });
+    });
+
+    it('should not overwrite an entry that already has an explicit value for the field', () => {
+      const collection = fromJS({
+        name: 'posts',
+        type: FOLDER,
+        folder: '_posts',
+        fields: [{ name: 'draft', widget: 'boolean', default: false }],
+      });
+      const entry = { slug: 'a-post', data: { draft: true } };
+
+      const result = withDefaultsBackfilled(collection, entry);
+
+      expect(result.data).toEqual({ draft: true });
+    });
   });
 
   describe('persistLocalBackup', () => {
@@ -542,7 +620,7 @@ describe('entries', () => {
 
       const collection = fromJS({
         name: 'posts',
-        type: 'folder_based_collection',
+        type: FOLDER,
         folder: 'posts',
         fields: [{ name: 'title' }],
       });
@@ -564,7 +642,7 @@ describe('entries', () => {
     };
     const collection = fromJS({
       folder: 'folder',
-      type: 'folder_based_collection',
+      type: FOLDER,
       name: 'name',
     });
     const t = jest.fn((key, args) => ({ key, args }));

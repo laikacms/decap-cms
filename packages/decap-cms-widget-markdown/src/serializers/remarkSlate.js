@@ -75,13 +75,38 @@ export function mergeAdjacentTexts(children) {
 }
 
 /**
+ * Hard ceiling on how many levels of MDAST nesting (blockquote-in-blockquote,
+ * list-in-list, etc.) will be walked recursively when converting to Slate's
+ * Raw AST. Well beyond any legitimate document structure - it exists purely
+ * to keep pathological inputs (e.g. thousands of nested blockquotes) from
+ * recursing until the call stack overflows. Beyond the limit, remaining
+ * descendants are flattened to plain text rather than dropped.
+ */
+const MAX_NESTING_DEPTH = 500;
+
+/**
  * A Remark plugin for converting an MDAST to Slate Raw AST. Remark plugins
  * return a `transformNode` function that receives the MDAST as it's first argument.
  */
 export default function remarkToSlate({ voidCodeBlock } = {}) {
-  return transformNode;
+  return node => transformNode(node, 0);
 
-  function transformNode(node) {
+  /**
+   * Flattens an MDAST subtree to its plain text content once
+   * `MAX_NESTING_DEPTH` has been reached, so deeply nested descendants are
+   * preserved as text instead of being recursed into (or dropped).
+   */
+  function mdastNodeToString(node) {
+    if (typeof node.value === 'string') {
+      return node.value;
+    }
+    if (Array.isArray(node.children)) {
+      return node.children.map(mdastNodeToString).join('');
+    }
+    return '';
+  }
+
+  function transformNode(node, depth) {
     /**
      * Call `transformNode` recursively on child nodes.
      *
@@ -92,7 +117,9 @@ export default function remarkToSlate({ voidCodeBlock } = {}) {
     let children =
       !['strong', 'emphasis', 'delete'].includes(node.type) &&
       !isEmpty(node.children) &&
-      flatMap(node.children, transformNode).filter(val => val);
+      (depth < MAX_NESTING_DEPTH
+        ? flatMap(node.children, child => transformNode(child, depth + 1)).filter(val => val)
+        : [{ text: mdastNodeToString(node) }]);
 
     if (Array.isArray(children)) {
       // Merge adjacent text nodes with the same marks to conform to slate schema
@@ -195,7 +222,7 @@ export default function remarkToSlate({ voidCodeBlock } = {}) {
        * added into the cumulative children array.
        */
       default:
-        return transformNode({ ...childNode, data: { ...childNode.data, marks } });
+        return transformNode({ ...childNode, data: { ...childNode.data, marks } }, 0);
     }
   }
 

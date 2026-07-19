@@ -14,6 +14,7 @@ import AuthenticationPage, { renderPageLogo } from './AuthenticationPage';
 import WidgetPreviewContainer from './WidgetPreviewContainer';
 import ObjectWidgetTopBar from './ObjectWidgetTopBar';
 import GoBackButton from './GoBackButton';
+import TopBarProgress from './TopBarProgress';
 import {
   fonts,
   colorsRaw,
@@ -49,6 +50,7 @@ export const DecapCmsUiDefault = {
   AuthenticationPage,
   WidgetPreviewContainer,
   ObjectWidgetTopBar,
+  TopBarProgress,
   fonts,
   colorsRaw,
   colors,
@@ -83,6 +85,7 @@ export {
   AuthenticationPage,
   WidgetPreviewContainer,
   ObjectWidgetTopBar,
+  TopBarProgress,
   fonts,
   colorsRaw,
   colors,

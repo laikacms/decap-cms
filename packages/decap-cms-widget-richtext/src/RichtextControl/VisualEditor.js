@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { KEYS } from 'platejs';
 import { usePlateEditor, Plate, ParagraphPlugin, PlateLeaf } from 'platejs/react';
 import {
@@ -94,25 +94,48 @@ export default function VisualEditor(props) {
     changeGuardRef.current = createChangeGuard(currentValue);
   }
 
-  function handleChange({ value }) {
-    const mdValue = slateToMarkdown(
-      value,
-      { voidCodeBlock: !!codeBlockComponent },
-      editorComponents,
-    );
-    // Guards against DCMS-307/DCMS-337: Plate fires onChange on selection-only
-    // changes too, and the store may notify back a value this editor instance
-    // already emitted (possibly re-serialized slightly differently).
-    changeGuardRef.current(mdValue, onChange);
-  }
+  // DCMS-583: keep this handler's identity stable across renders. A fresh
+  // closure on every render (re-created solely because the parent's redux
+  // round trip re-rendered this component) churns the onChange the Plate
+  // store atom is synced to, widening the window in which a re-entrant
+  // notification from Plate can slip in before this component has settled.
+  // The `changeGuardRef` reentrancy guard (see valueSync.js) is what
+  // actually makes re-entrancy structurally harmless; this is a
+  // belt-and-suspenders reduction of unnecessary churn.
+  const handleChange = useCallback(
+    ({ value }) => {
+      const mdValue = slateToMarkdown(
+        value,
+        { voidCodeBlock: !!codeBlockComponent },
+        editorComponents,
+      );
+      // Guards against DCMS-307/DCMS-337/DCMS-583: Plate fires onChange on
+      // selection-only changes too, the store may notify back a value this
+      // editor instance already emitted (possibly re-serialized slightly
+      // differently), and a re-entrant call may arrive synchronously while
+      // a previous emit for this instance is still in flight.
+      changeGuardRef.current(mdValue, onChange);
+    },
+    [codeBlockComponent, editorComponents, onChange],
+  );
 
   function handlePaste(event) {
     handlePasteHtml({ event, editor, isDisabled });
   }
 
-  const initialValue = props.value
-    ? markdownToSlate(props.value, { editorComponents, voidCodeBlock: !!codeBlockComponent })
-    : emptyValue;
+  // DCMS-583: memoize so this only re-parses when the underlying markdown
+  // actually changes, instead of on every parent re-render (e.g. a toast
+  // dismissing or an unrelated field updating). `usePlateEditor` below only
+  // consumes this once, at editor creation, but recomputing (and allocating
+  // a new Slate tree) on every render was needless churn that widened the
+  // timing window this issue's guard now closes structurally.
+  const initialValue = useMemo(
+    () =>
+      props.value
+        ? markdownToSlate(props.value, { editorComponents, voidCodeBlock: !!codeBlockComponent })
+        : emptyValue,
+    [props.value, editorComponents, codeBlockComponent],
+  );
 
   const editor = usePlateEditor({
     override: {

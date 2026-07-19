@@ -17,13 +17,13 @@ import SettingsPane from './SettingsPane';
 import SettingsButton from './SettingsButton';
 import languageData from '../data/languages.json';
 import { getLanguageLoader } from './languageLoaders';
-import { getChangedProps, valueToOption } from './helpers';
+import { getChangedProps, valueToOption, slugifyLabel } from './helpers';
 
 export { getChangedProps, valueToOption };
 
-const languages = languageData.map(lang => ({
+export const languages = languageData.map(lang => ({
   label: lang.label,
-  name: lang.identifiers[0],
+  name: lang.identifiers[0] || slugifyLabel(lang.label),
   mode: lang.codemirror_mode,
   mimeType: lang.codemirror_mime_type,
 }));

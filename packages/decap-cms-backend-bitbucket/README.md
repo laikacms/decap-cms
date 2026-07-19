@@ -12,6 +12,17 @@ An abstraction layer between the CMS and [Bitbucket](https://developer.atlassian
 
 Look at tests or types for more info.
 
+## `backend:` config keys
+
+Beyond `name`, `repo` and `branch`, the `backend:` block also supports the following options:
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `large_media_url` | string | `https://bitbucket.org/{repo}/info/lfs` | Base URL used to fetch Git LFS pointer file contents for media stored via Large Media. Override when LFS is served from a different host (e.g. a self-hosted LFS server). |
+| `squash_merges` | boolean | `false` | When `true`, squashes commits when merging editorial workflow pull requests (`mergeStrategy` becomes `'squash'` instead of `'merge_commit'`). |
+| `cms_label_prefix` | string | `''` | Prefix added to the labels the CMS uses to track editorial workflow status on pull requests. |
+| `preview_context` | string | `''` | Context string used to look up the deploy preview status/link shown in the editorial workflow. |
+
 ## Branch resolution
 
 The `branch` config option is optional. Resolution order on login:

@@ -11,6 +11,7 @@ import type { Search } from '../reducers/search';
 import type { GlobalUI } from '../reducers/globalUI';
 import type { NotificationsState } from '../reducers/notifications';
 import type { formatExtensions } from '../formats/formats';
+import type { StandardSchemaV1 } from './standardSchema';
 
 export type CmsBackendType =
   | 'azure'
@@ -82,6 +83,15 @@ export interface CmsFieldBase {
   public_folder?: string;
   comment?: string;
   visualEditing?: boolean;
+  /**
+   * Opt-in field-level validation via any Standard Schema-compliant validator
+   * (zod, valibot, arktype, effect Schema, ...), see
+   * https://github.com/standard-schema/standard-schema. When set, this schema's
+   * `~standard.validate` issues become the field's error output, in place of
+   * (not in addition to) the built-in `required`/`pattern` checks. Fields that
+   * don't set `validate` keep the existing widget validation DSL unchanged.
+   */
+  validate?: StandardSchemaV1<unknown, unknown>;
 }
 
 export interface CmsFieldBoolean {
@@ -378,6 +388,13 @@ export interface CmsCollection {
     depth: number;
   };
   type: typeof FOLDER | typeof FILES;
+  /**
+   * `meta.path.index_file` sets the filename (without extension) used for
+   * every entry's data file within the directory chosen via the nested
+   * collection's `path` field, e.g. `_index` writes `_index.md`. If omitted,
+   * the filename is generated from the entry's `title` field, or preserved
+   * as-is for existing entries.
+   */
   meta?: { path?: { label: string; widget: string; index_file?: string } };
 
   /**
@@ -412,7 +429,6 @@ export interface CmsBackend {
   repo?: string;
   branch?: string;
   api_root?: string;
-  site_domain?: string;
   base_url?: string;
   auth_endpoint?: string;
   cms_label_prefix?: string;
@@ -511,6 +527,7 @@ type BackendObject = {
   gateway_url?: string;
   large_media_url?: string;
   use_large_media_transforms_in_media_library?: boolean;
+  netlify_api_token?: string;
   commit_messages: Map<string, string>;
 };
 
@@ -756,7 +773,11 @@ export type Integrations = StaticallyTypedRecord<{
   hooks: { [collectionOrHook: string]: string | Record<string, string> };
 }>;
 
-export type Cursors = StaticallyTypedRecord<{}>;
+export interface Cursors {
+  cursorsByType: {
+    collectionEntries: Record<string, unknown>;
+  };
+}
 
 export interface State {
   auth: Auth;

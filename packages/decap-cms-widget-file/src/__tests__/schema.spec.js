@@ -43,8 +43,21 @@ describe('file widget schema', () => {
       });
     });
 
-    it('allow_multiple is NOT a top-level schema property', () => {
-      expect(schema.properties.allow_multiple).toBeUndefined();
+    it('is also defined as a boolean top-level schema property (DCMS-552)', () => {
+      // withFileControl reads field.get('allow_multiple') before falling back to
+      // media_library.allow_multiple, so the top-level key must be schema-validated too.
+      expect(schema.properties.allow_multiple).toEqual({ type: 'boolean' });
+    });
+
+    it('accepts a top-level allow_multiple boolean as a valid value', () => {
+      const valid = ajv.validate(widgetSchema, { allow_multiple: true });
+      expect(valid).toBe(true);
+    });
+
+    it('rejects a top-level allow_multiple string (wrong type)', () => {
+      const valid = ajv.validate(widgetSchema, { allow_multiple: 'yes' });
+      expect(valid).toBe(false);
+      expect(ajv.errors.some(e => e.instancePath === '/allow_multiple')).toBe(true);
     });
 
     it('allow_multiple:false in media_library is read by getMediaLibraryFieldOptions', () => {

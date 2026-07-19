@@ -67,6 +67,17 @@ const inlineTypes = ['link', 'image', 'break'];
 const leadingWhitespaceExp = /^\s+\S/;
 const trailingWhitespaceExp = /(?!\S)\s+$/;
 
+/**
+ * Hard ceiling on how many levels of block nesting (blockquote-in-blockquote,
+ * list-in-list, etc.) will be walked recursively. This is well beyond any
+ * legitimate document structure - it exists purely to keep pathological
+ * inputs (e.g. thousands of nested blockquotes from a paste or corrupted
+ * value) from recursing until the call stack overflows. Once the limit is
+ * reached, remaining block descendants are converted to plain text rather
+ * than being recursed into further, so no content is silently dropped.
+ */
+const MAX_NESTING_DEPTH = 500;
+
 export default function slateToRemark(value, { voidCodeBlock }) {
   /**
    * The Slate Raw AST generally won't have a top level type, so we set it to
@@ -77,28 +88,53 @@ export default function slateToRemark(value, { voidCodeBlock }) {
     children: value,
   };
 
-  return transform(root);
+  return transform(root, 0);
 
   /**
    * The transform function mimics the approach of a Remark plugin for
    * conformity with the other serialization functions. This function converts
    * Slate nodes to MDAST nodes, and recursively calls itself to process child
-   * nodes to arbitrary depth.
+   * nodes to arbitrary depth (bounded by `MAX_NESTING_DEPTH`, see above).
    */
-  function transform(node) {
+  function transform(node, depth) {
     /**
      * Combine adjacent text and inline nodes before processing so they can
      * share marks.
      */
     const hasBlockChildren =
       node.children && node.children[0] && blockTypes.includes(node.children[0].type);
-    const children = hasBlockChildren
-      ? node.children.map(transform).filter(v => v)
-      : convertInlineAndTextChildren(node.children);
+
+    const children =
+      hasBlockChildren && depth < MAX_NESTING_DEPTH
+        ? node.children.map(child => transform(child, depth + 1)).filter(v => v)
+        : convertInlineAndTextChildren(
+            hasBlockChildren ? flattenToText(node.children) : node.children,
+          );
 
     const output = convertBlockNode(node, children);
     //console.log(JSON.stringify(output, null, 2));
     return output;
+  }
+
+  /**
+   * Once `MAX_NESTING_DEPTH` is reached, stop descending into further block
+   * nesting and instead collect the remaining text content of each subtree
+   * (still Slate Raw AST at this point, not MDAST) into flat text nodes, so
+   * pathologically deep input degrades gracefully instead of overflowing the
+   * stack.
+   */
+  function flattenToText(nodes) {
+    return nodes.map(node => ({ text: slateNodeToString(node) }));
+  }
+
+  function slateNodeToString(node) {
+    if (typeof node.text === 'string') {
+      return node.text;
+    }
+    if (Array.isArray(node.children)) {
+      return node.children.map(slateNodeToString).join('');
+    }
+    return '';
   }
 
   function removeMarkFromNodes(nodes, markType) {

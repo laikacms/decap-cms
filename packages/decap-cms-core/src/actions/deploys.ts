@@ -58,6 +58,14 @@ export function loadDeployPreview(
   opts?: { maxAttempts?: number; interval?: number; signal?: AbortSignal },
 ) {
   return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
+    // No collection/entry data to preview yet (e.g. the entry failed to
+    // load, DCMS-479, or the toolbar mounted before Redux state settled
+    // during a router transition, DCMS-504) — skip the backend call rather
+    // than let it throw on the missing collection/entry.
+    if (!entry || !collection) {
+      return;
+    }
+
     const state = getState();
     const backend = currentBackend(state.config);
     const collectionName = collection.get('name');

@@ -120,6 +120,7 @@ export type Config = {
     status_endpoint?: string;
     status_component_name?: string;
     status_page?: string;
+    netlify_api_token?: string;
   };
   auth: {
     use_oidc?: boolean;

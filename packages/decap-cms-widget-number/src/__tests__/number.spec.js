@@ -105,6 +105,22 @@ describe('Number widget schema', () => {
     expect(onChangeSpy.mock.calls[0][0]).toBeCloseTo(9.99);
   });
 
+  it('pins README contract: omitted value_type parses via parseFloat, not parseInt (DCMS-484)', () => {
+    // README.md documents that an omitted `value_type` is parsed via the
+    // same `parseFloat` path as `value_type: 'float'` (not `parseInt`).
+    // This test exists solely to catch future drift between that doc claim
+    // and handleChange()'s actual behavior — if this breaks, either the
+    // code regressed to parseInt for the omitted case or the README needs
+    // to be re-updated to match a new intentional behavior change.
+    const field = fromJS({});
+    const { onChangeSpy, input } = setup({ field });
+
+    fireEvent.change(input, { target: { value: '9.99' } });
+
+    expect(onChangeSpy).toHaveBeenCalledWith(9.99);
+    expect(onChangeSpy).not.toHaveBeenCalledWith(parseInt('9.99', 10));
+  });
+
   it('value_type int should produce integer result', () => {
     const field = fromJS({ value_type: 'int' });
     const { onChangeSpy, input } = setup({ field });
@@ -304,16 +320,69 @@ describe('Number widget', () => {
       expect(onChangeSpy).toHaveBeenCalledWith(Number.MAX_SAFE_INTEGER);
     });
 
-    it('unset value_type (defaults to float path, DCMS-478) is not subject to the int guard', () => {
+    it('unset value_type (defaults to float path, DCMS-478) still guards unsafe-integer-looking input (DCMS-505)', () => {
       const field = fromJS({});
       const { input, onChangeSpy } = setup({ field });
 
       fireEvent.change(input, { target: { value: UNSAFE_INT } });
 
-      // Unset value_type now parses like float (matching the step="any" input
-      // it renders), so large-but-finite magnitudes pass through like the
-      // float case does, rather than being guarded as an unsafe integer.
-      expect(onChangeSpy).toHaveBeenCalledWith(parseFloat(UNSAFE_INT));
+      // Unset value_type parses via parseFloat (matching the step="any" input
+      // it renders), but an integer-looking string that parseFloat would
+      // silently round must be guarded the same way the int path guards it.
+      expect(onChangeSpy).not.toHaveBeenCalledWith(parseFloat(UNSAFE_INT));
+      expect(onChangeSpy).toHaveBeenCalledWith(UNSAFE_INT);
+    });
+  });
+
+  describe('unsafe integer precision guard on float/unset value_type (DCMS-505)', () => {
+    // 26 nines: parses via parseFloat to 1e+26, silently losing precision,
+    // matching the example from the reported issue.
+    const UNSAFE_INT_26_DIGITS = '9'.repeat(26);
+
+    it('does NOT pass a corrupted (rounded) number to onChange for a 26-digit integer typed into a float field', () => {
+      const field = fromJS({ value_type: 'float' });
+      const { input, onChangeSpy } = setup({ field });
+
+      fireEvent.change(input, { target: { value: UNSAFE_INT_26_DIGITS } });
+
+      expect(onChangeSpy).not.toHaveBeenCalledWith(parseFloat(UNSAFE_INT_26_DIGITS));
+    });
+
+    it('passes the raw string to onChange for a 26-digit integer typed into a float field', () => {
+      const field = fromJS({ value_type: 'float' });
+      const { input, onChangeSpy } = setup({ field });
+
+      fireEvent.change(input, { target: { value: UNSAFE_INT_26_DIGITS } });
+
+      expect(onChangeSpy).toHaveBeenCalledWith(UNSAFE_INT_26_DIGITS);
+    });
+
+    it('isValid returns a CUSTOM error when the stored value is an unsafe integer string on a float field', () => {
+      const field = fromJS({ value_type: 'float' });
+      const instance = new NumberControl({
+        field,
+        value: UNSAFE_INT_26_DIGITS,
+        t: jest.fn(key => key),
+        onChange: jest.fn(),
+        classNameWrapper: '',
+        setActiveStyle: jest.fn(),
+        setInactiveStyle: jest.fn(),
+      });
+
+      const result = instance.isValid();
+      expect(result).not.toBe(true);
+      expect(result).toHaveProperty('error');
+      expect(result.error.type).toBe('CUSTOM');
+      expect(result.error.message).toMatch(/maximum safe integer/i);
+    });
+
+    it('decimal input on a float field is unaffected by the unsafe-integer guard', () => {
+      const field = fromJS({ value_type: 'float' });
+      const { input, onChangeSpy } = setup({ field });
+
+      fireEvent.change(input, { target: { value: '3.14' } });
+
+      expect(onChangeSpy).toHaveBeenCalledWith(3.14);
     });
   });
 

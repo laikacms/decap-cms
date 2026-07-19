@@ -1,4 +1,4 @@
-import { matchPath, getTransofrmationsParams } from '../netlify-lfs-client';
+import { matchPath, getTransofrmationsParams, getClient } from '../netlify-lfs-client';
 
 function makeConfig(patterns) {
   return {
@@ -64,6 +64,41 @@ describe('netlify-lfs-client', () => {
 
     it('returns an empty string for boolean false', () => {
       expect(getTransofrmationsParams(false)).toBe('');
+    });
+  });
+
+  describe('resourceExists', () => {
+    it('resolves true when the verify response is ok', async () => {
+      const config = makeConfig([]);
+      config.makeAuthorizedRequest.mockResolvedValue({ ok: true, status: 200 });
+      const client = getClient(config);
+      await expect(client.resourceExists({ sha: 'abc123', size: 10 })).resolves.toBe(true);
+    });
+
+    it('resolves false when the verify response is a 404', async () => {
+      const config = makeConfig([]);
+      config.makeAuthorizedRequest.mockResolvedValue({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+      });
+      const client = getClient(config);
+      await expect(client.resourceExists({ sha: 'abc123', size: 10 })).resolves.toBe(false);
+    });
+
+    it('throws an APIError when the verify response is a non-404 error', async () => {
+      const config = makeConfig([]);
+      config.makeAuthorizedRequest.mockResolvedValue({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+      });
+      const client = getClient(config);
+      await expect(client.resourceExists({ sha: 'abc123', size: 10 })).rejects.toMatchObject({
+        name: 'API_ERROR',
+        status: 500,
+        api: 'Git Gateway',
+      });
     });
   });
 });

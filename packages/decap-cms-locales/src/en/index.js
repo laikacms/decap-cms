@@ -31,6 +31,7 @@ const en = {
     },
     notFoundPage: {
       header: 'Not Found',
+      collectionNotFoundHeader: 'Collection "%{name}" not found',
       backToHome: 'Back to home',
     },
   },
@@ -118,6 +119,7 @@ const en = {
         'All unpublished changes to this entry will be deleted. Do you still want to delete?',
       loadingEntry: 'Loading entry...',
       confirmLoadBackup: 'A local backup was recovered for this entry, would you like to use it?',
+      entryNotFoundHeader: 'Entry Not Found',
     },
     editorInterface: {
       toggleI18n: 'Toggle i18n',
@@ -183,6 +185,7 @@ const en = {
         chooseUrl: 'Insert from URL',
         replaceUrl: 'Replace with URL',
         promptUrl: 'Enter the URL of the image',
+        invalidUrl: 'Invalid URL. Only http:// and https:// URLs are allowed.',
         chooseDifferent: 'Choose different image',
         addMore: 'Add more images',
         remove: 'Remove image',
@@ -194,6 +197,7 @@ const en = {
         chooseMultiple: 'Choose files',
         replaceUrl: 'Replace with URL',
         promptUrl: 'Enter the URL of the file',
+        invalidUrl: 'Invalid URL. Only http:// and https:// URLs are allowed.',
         chooseDifferent: 'Choose different file',
         addMore: 'Add more files',
         remove: 'Remove file',

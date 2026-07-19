@@ -60,6 +60,132 @@ describe('entryDraft reducer', () => {
     });
   });
 
+  describe('DRAFT_CHANGE_FIELD', () => {
+    const field = fromJS({ name: 'date' });
+
+    it('does not mark a fresh new-record draft as changed when the value comes from a framework default (DCMS-487)', () => {
+      const newRecordState = initialState
+        .set('entry', fromJS({ ...entry, data: {}, newRecord: true }))
+        .set('hasChanged', false);
+
+      const newState = reducer(
+        newRecordState,
+        actions.changeDraftField({
+          field,
+          value: '2026-07-12T00:00:00.000Z',
+          metadata: { fromDefault: true },
+          entries: [],
+        }),
+      );
+
+      expect(newState.get('hasChanged')).toBe(false);
+      expect(newState.getIn(['entry', 'data', 'date'])).toBe('2026-07-12T00:00:00.000Z');
+      expect(newState.get('fieldsMetaData')).toEqual(Map());
+    });
+
+    it('marks a fresh new-record draft as changed for a real user edit', () => {
+      const newRecordState = initialState
+        .set('entry', fromJS({ ...entry, data: {}, newRecord: true }))
+        .set('hasChanged', false);
+
+      const newState = reducer(
+        newRecordState,
+        actions.changeDraftField({
+          field,
+          value: 'typed by user',
+          metadata: {},
+          entries: [],
+        }),
+      );
+
+      expect(newState.get('hasChanged')).toBe(true);
+    });
+
+    it('does not mark an existing, unchanged entry as changed when the value comes from a framework default (DCMS-528)', () => {
+      const existingRecordState = initialState
+        .set('entry', fromJS({ ...entry, data: {}, newRecord: false }))
+        .set('hasChanged', false);
+
+      const newState = reducer(
+        existingRecordState,
+        actions.changeDraftField({
+          field,
+          value: '2026-07-12T00:00:00.000Z',
+          metadata: { fromDefault: true },
+          entries: [fromJS({ ...entry, data: {} })],
+        }),
+      );
+
+      expect(newState.get('hasChanged')).toBe(false);
+      expect(newState.getIn(['entry', 'data', 'date'])).toBe('2026-07-12T00:00:00.000Z');
+    });
+
+    it('marks an existing record as changed for a real user edit', () => {
+      const existingRecordState = initialState
+        .set('entry', fromJS({ ...entry, data: { date: 'old-value' }, newRecord: false }))
+        .set('hasChanged', false);
+
+      const newState = reducer(
+        existingRecordState,
+        actions.changeDraftField({
+          field,
+          value: 'new-value',
+          metadata: {},
+          entries: [fromJS({ ...entry, data: { date: 'old-value' } })],
+        }),
+      );
+
+      expect(newState.get('hasChanged')).toBe(true);
+    });
+
+    it('does not mark an existing entry as changed when a widget mount write is a no-op, even without a fromDefault tag (DCMS-560)', () => {
+      // Reproduces widgets other than DateTimeControl (RichtextControl,
+      // BooleanControl, MarkdownControl, ListControl) that fire a
+      // mount-time onChange re-affirming the value already present in the
+      // loaded entry, without tagging the write `{ fromDefault: true }`.
+      // `entries` (the published/unpublished lookup used to detect
+      // reverted edits) is deliberately left empty here to simulate it
+      // being unavailable/stale, which used to force `hasChanged` to `true`
+      // unconditionally for any non-`fromDefault` write.
+      const booleanField = fromJS({ name: 'draft' });
+      const existingRecordState = initialState
+        .set('entry', fromJS({ ...entry, data: { draft: false }, newRecord: false }))
+        .set('hasChanged', false);
+
+      const newState = reducer(
+        existingRecordState,
+        actions.changeDraftField({
+          field: booleanField,
+          value: false,
+          metadata: {},
+          entries: [],
+        }),
+      );
+
+      expect(newState.get('hasChanged')).toBe(false);
+      expect(newState.getIn(['entry', 'data', 'draft'])).toBe(false);
+    });
+
+    it('still marks an existing entry as changed for a real edit even when entries is empty', () => {
+      const booleanField = fromJS({ name: 'draft' });
+      const existingRecordState = initialState
+        .set('entry', fromJS({ ...entry, data: { draft: false }, newRecord: false }))
+        .set('hasChanged', false);
+
+      const newState = reducer(
+        existingRecordState,
+        actions.changeDraftField({
+          field: booleanField,
+          value: true,
+          metadata: {},
+          entries: [],
+        }),
+      );
+
+      expect(newState.get('hasChanged')).toBe(true);
+    });
+  });
+
   describe('DRAFT_DISCARD', () => {
     it('should discard the draft and return initial state', () => {
       expect(reducer(initialState, actions.discardDraft())).toEqual(initialState);

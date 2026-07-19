@@ -16,6 +16,21 @@ An abstraction layer between the CMS and [GitHub](https://docs.github.com/en/res
 
 Look at tests or types for more info.
 
+## `backend:` config keys
+
+Beyond `name`, `repo` and `branch`, the `backend:` block also supports the following options:
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `open_authoring` | boolean | `false` | Enables the [Open Authoring](https://www.decapcms.org/docs/open-authoring/) workflow, where users without write access fork the repo and contribute via pull requests. Requires `publish_mode: editorial_workflow`; the `Implementation` constructor throws otherwise. |
+| `always_fork` | boolean | `false` | When `true`, forces all users (including those with write access) to work from a fork rather than committing directly to the origin repo. |
+| `api_root` | string | `https://api.github.com` | Base URL for GitHub REST API requests. Override for GitHub Enterprise. |
+| `graphql_api_root` | string | value of `api_root` | Base URL for GitHub GraphQL API requests. Override for GitHub Enterprise when it differs from the REST root. |
+| `squash_merges` | boolean | `false` | When `true`, squashes commits when merging editorial workflow pull requests. |
+| `cms_label_prefix` | string | `''` | Prefix added to the labels the CMS uses to track editorial workflow status on pull requests. |
+| `use_graphql` | boolean | `false` | When `true`, uses `GraphQLApi` instead of `Api` for read operations. |
+| `preview_context` | string | `''` | Context string used for the GitHub commit status/deployment preview link shown in the editorial workflow. |
+
 ## Branch resolution
 
 The `branch` config option is optional. Resolution order on login:

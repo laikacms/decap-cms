@@ -379,6 +379,16 @@ declare module 'decap-cms-core' {
       subfolders?: boolean;
       summary?: string;
     };
+    /**
+     * Adds a `path` field to entries in a nested collection, letting editors
+     * choose which folder (relative to the collection's `folder`) an entry is
+     * saved under.
+     *
+     * `meta.path.index_file` sets the filename (without extension) used for
+     * every entry's data file within that directory, e.g. `_index` writes
+     * `_index.md`. If omitted, the filename is instead generated from the
+     * entry's `title` field, or preserved as-is for existing entries.
+     */
     meta?: { path?: { label: string; widget: string; index_file?: string } };
 
     /**
@@ -449,6 +459,8 @@ declare module 'decap-cms-core' {
     identity_url?: string;
     /** git-gateway: whether to apply large media transforms in the media library */
     use_large_media_transforms_in_media_library?: boolean;
+    /** git-gateway: Netlify personal access token used to look up deploy previews on sites with private deploy logs */
+    netlify_api_token?: string;
   }
 
   export interface CmsSlug {

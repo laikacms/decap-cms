@@ -133,6 +133,7 @@ function Editor(props) {
       ? markdownToSlate(props.value, {
           voidCodeBlock: !!codeBlockComponent,
           remarkPlugins: getRemarkPlugins(),
+          editorComponents,
         })
       : emptyValue,
   );
@@ -194,8 +195,6 @@ function Editor(props) {
     Transforms.select(editor, { path: [0, 0], offset: 0 });
     Transforms.select(editor, SlateEditor.end(editor, []));
   }
-  const [toolbarKey, setToolbarKey] = useState(0);
-
   function handleChange(newValue) {
     if (!isEqual(newValue, editorValue)) {
       setEditorValue(() => newValue);
@@ -203,10 +202,23 @@ function Editor(props) {
         slateToMarkdown(newValue, {
           voidCodeBlock: !!codeBlockComponent,
           remarkPlugins: getRemarkPlugins(),
+          editorComponents,
         }),
       );
     }
-    setToolbarKey(prev => prev + 1);
+    // `Toolbar` is a plain (non-pure) class component, so it already
+    // re-renders whenever `Editor` re-renders - which happens on every
+    // Slate `onChange`, including pure selection changes - picking up fresh
+    // `hasMark`/`hasBlock`/`hasQuote` results without needing to be
+    // remounted. Previously this handler force-remounted `Toolbar` via a
+    // `key` bump on *every* keystroke and cursor move (not just content
+    // changes), tearing down and rebuilding its subtree (including the
+    // heading `Dropdown`, which registers its own mount-time listeners) on
+    // every single Slate operation. Under fast/bursty input that remount
+    // cascade could re-arm itself faster than React could settle, tripping
+    // React's "Maximum update depth exceeded" (#185) and leaving Slate's
+    // DOM<->model mapping desynced. Since the remount was never required
+    // for correctness, it has been removed rather than throttled.
   }
 
   function hasMark(format) {
@@ -240,7 +252,6 @@ function Editor(props) {
         <EditorControlBar>
           {
             <Toolbar
-              key={toolbarKey}
               onMarkClick={handleMarkClick}
               onBlockClick={handleBlockClick}
               onLinkClick={handleLinkClick}

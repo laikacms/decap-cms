@@ -22,7 +22,7 @@
     "test:e2e:serve": "http-server -c-1 dev-test",
     "test:e2e:exec": "cypress run --browser chrome --headless",
     "test:e2e:exec-ci": "node cypress/run.mjs",
-    "test:e2e:exec-dev": "cypress open",
+    "test:e2e:exec-dev": "cypress open --browser chrome",
     "test:e2e:record-fixtures:dev": "HTTP_PROXY=http://localhost:1080 RECORD_FIXTURES=true cypress open",
     "test:e2e:run": "start-test test:e2e:serve 8080 test:e2e:exec",
     "test:e2e:run-ci": "start-test test:e2e:serve 8080 test:e2e:exec-ci",
@@ -115,7 +115,7 @@
     "jest-cli": "^27.0.0",
     "jest-environment-jsdom": "^27.0.0",
     "mockserver-client": "^5.8.0",
-    "mockserver-node": "^5.8.0",
+    "mockserver-node": "^6.1.0",
     "ncp": "^2.0.0",
     "nock": "^13.0.0",
     "node-fetch": "^2.3.0",
@@ -180,7 +180,8 @@
     },
     "nx": {
       "minimatch": "9.0.9"
-    }
+    },
+    "codemirror": "^5.65.0"
   },
   "version": "0.0.0",
   "packageManager": "npm@11.12.0+sha512.c4f84e6a9e196c95b277b0c03ae90fe7ae161703521aeff615e4d114786288ab6171abb1847fcda64240426db8c43f9c027f1abf9b50d34a618bdf03aad7cbb2"

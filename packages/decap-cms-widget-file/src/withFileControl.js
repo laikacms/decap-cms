@@ -215,6 +215,29 @@ export function valueListToArray(value) {
   return List.isList(value) ? value.toArray() : value ?? '';
 }
 
+const ALLOWED_URL_SCHEMES = new Set(['http:', 'https:']);
+
+export function isSafeUrl(url) {
+  if (!url) {
+    return false;
+  }
+
+  // Protocol-relative URLs (`//example.com/x`) inherit the page's scheme, which is
+  // always http(s) in a browser context, so they're safe to allow.
+  if (/^\/\//.test(url)) {
+    return true;
+  }
+
+  let parsed;
+  try {
+    parsed = new URL(url, window.location.href);
+  } catch {
+    return false;
+  }
+
+  return ALLOWED_URL_SCHEMES.has(parsed.protocol);
+}
+
 export function valueListToSortableArray(value) {
   if (!isMultiple(value)) {
     return value;
@@ -330,9 +353,16 @@ export default function withFileControl({ forImage } = {}) {
 
       const url = window.prompt(this.props.t(`editor.editorWidgets.${subject}.promptUrl`));
 
-      if (url) {
-        return this.props.onChange(url);
+      if (!url) {
+        return;
       }
+
+      if (!isSafeUrl(url)) {
+        window.alert(this.props.t(`editor.editorWidgets.${subject}.invalidUrl`));
+        return;
+      }
+
+      return this.props.onChange(url);
     };
 
     handleRemove = e => {

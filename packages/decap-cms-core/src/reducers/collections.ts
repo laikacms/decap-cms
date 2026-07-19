@@ -59,12 +59,20 @@ const selectors = {
     fields(collection: Collection) {
       return collection.get('fields');
     },
-    entryPath(collection: Collection, slug: string) {
-      const folder = (collection.get('folder') as string).replace(/\/$/, '');
+    entryPath(collection: Collection, slug: string): string | undefined {
+      const rawFolder = collection.get('folder') as string | undefined;
+      if (!rawFolder) {
+        return undefined;
+      }
+      const folder = rawFolder.replace(/\/$/, '');
       return `${folder}/${slug}.${this.entryExtension(collection)}`;
     },
-    entrySlug(collection: Collection, path: string) {
-      const folder = (collection.get('folder') as string).replace(/\/$/, '');
+    entrySlug(collection: Collection, path: string): string | undefined {
+      const rawFolder = collection.get('folder') as string | undefined;
+      if (!rawFolder) {
+        return undefined;
+      }
+      const folder = rawFolder.replace(/\/$/, '');
       const slug = path
         .split(folder + '/')
         .pop()
@@ -91,7 +99,7 @@ const selectors = {
       const file = this.fileForEntry(collection, slug);
       return file && file.get('fields');
     },
-    entryPath(collection: Collection, slug: string) {
+    entryPath(collection: Collection, slug: string): string | undefined {
       const file = this.fileForEntry(collection, slug);
       return file && file.get('file');
     },
@@ -189,7 +197,7 @@ export function selectFileEntryLabel(collection: Collection, slug: string) {
   return selectors[FILES].entryLabel(collection, slug);
 }
 
-export function selectEntryPath(collection: Collection, slug: string) {
+export function selectEntryPath(collection: Collection, slug: string): string | undefined {
   return selectors[collection.get('type')].entryPath(collection, slug);
 }
 

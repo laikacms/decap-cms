@@ -20,3 +20,14 @@ export function valueToOption(val) {
   }
   return { value: val.name, label: val.label || val.name };
 }
+
+// Derive a stable, unique identifier from a language's label. Used as a
+// fallback for languages that ship with an empty `identifiers` array, so
+// they don't all collapse to the same `undefined` dropdown value.
+export function slugifyLabel(label) {
+  return label
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}

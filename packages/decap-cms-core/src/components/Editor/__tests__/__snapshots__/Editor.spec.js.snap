@@ -1,5 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Editor should render EntryNotFound instead of unmounting when entry failed to load 1`] = `
+<DocumentFragment>
+  <mock-entry-not-found
+    collection="Map { \\"name\\": \\"posts\\" }"
+    editorbacklink="/collections/posts"
+    message="Entry not found: posts/missing.md"
+  />
+</DocumentFragment>
+`;
+
 exports[`Editor should render editor interface when entry is not fetching 1`] = `
 <DocumentFragment>
   <mock-editor-interface

@@ -12,6 +12,18 @@ An abstraction layer between the CMS and [Azure DevOps](https://docs.microsoft.c
 
 Look at tests or types for more info.
 
+## `backend:` config keys
+
+Beyond `name`, `repo` and `branch`, the `backend:` block also supports the following options:
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `api_root` | string | `https://dev.azure.com` | Base URL used to build the Azure DevOps REST API endpoint. Override when using an Azure DevOps Server (on-premises) instance instead of the `dev.azure.com` cloud service. |
+| `api_version` | string | `6.1-preview` | Azure DevOps REST API version sent as the `api-version` query parameter on every request. |
+| `squash_merges` | boolean | `false` | When `true`, squashes commits when completing editorial workflow pull requests (`mergeStrategy` becomes `'squash'` instead of `'noFastForward'`). |
+| `cms_label_prefix` | string | `''` | Prefix added to the labels the CMS uses to track editorial workflow status on pull requests. |
+| `preview_context` | string | `''` | Context string used to look up the deploy preview status/link shown in the editorial workflow. |
+
 ## Branch resolution
 
 The `branch` config option is optional. Resolution order on login:

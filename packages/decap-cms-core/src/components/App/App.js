@@ -4,14 +4,13 @@ import { translate } from 'react-polyglot';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import styled from '@emotion/styled';
 import { connect } from 'react-redux';
-import { Route, Switch, Redirect } from 'react-router-dom';
-import TopBarProgress from 'react-topbar-progress-indicator';
-import { Loader, colors } from 'decap-cms-ui-default';
+import { Route, Switch, Redirect, Link } from 'react-router-dom';
+import { Loader, colors, TopBarProgress } from 'decap-cms-ui-default';
 
 import { loginUser, logoutUser } from '../../actions/auth';
 import { currentBackend } from '../../backend';
 import { createNewEntry } from '../../actions/collections';
-import { openMediaLibrary } from '../../actions/mediaLibrary';
+import { openMediaLibrary, closeMediaLibrary } from '../../actions/mediaLibrary';
 import MediaLibrary from '../MediaLibrary/MediaLibrary';
 import { Notifications } from '../UI';
 import { history } from '../../routing/history';
@@ -19,7 +18,7 @@ import { SIMPLE, EDITORIAL_WORKFLOW } from '../../constants/publishModes';
 import Collection from '../Collection/Collection';
 import Workflow from '../Workflow/Workflow';
 import Editor from '../Editor/Editor';
-import NotFoundPage from './NotFoundPage';
+import NotFoundPage, { NotFoundPage as NotFoundPageBase } from './NotFoundPage';
 import Header from './Header';
 
 TopBarProgress.config({
@@ -63,14 +62,76 @@ export function isSearchDisabled(config) {
   return Boolean(config) && config.search === false;
 }
 
-function RouteInCollection({ collections, render, ...props }) {
+export function MediaRoute({ openMediaLibrary, defaultPath }) {
+  React.useEffect(() => {
+    openMediaLibrary();
+  }, [openMediaLibrary]);
+  return <Redirect to={defaultPath} />;
+}
+
+// Whether a route change should dismiss an open Media Library modal (DCMS-537).
+// Address-bar/paste/bookmark/back-forward navigation away from whatever route
+// was showing when the modal opened must close it, since nothing else does:
+// MediaLibrary only closes from its own × button (see MediaLibrary.js
+// handleClose). The one navigation that must NOT trigger this is the `/media`
+// deep-link route itself (MediaRoute above): it opens the modal and then
+// immediately <Redirect>s to defaultPath in the same update, and that
+// self-triggered redirect would otherwise close the modal it just opened.
+export function shouldCloseMediaLibraryOnLocationChange(
+  prevPathname,
+  nextPathname,
+  isMediaLibraryVisible,
+) {
+  return Boolean(
+    isMediaLibraryVisible && prevPathname !== nextPathname && prevPathname !== '/media',
+  );
+}
+
+// The Editor route (`/collections/:name/entries/*` and `/collections/:name/new`)
+// keeps the same mounted instance across navigations that only change `:name`
+// or the entry slug, because it's the same Route/component at the same
+// position in the tree. Editor's lifecycle only ever loads the entry/creates
+// the draft on mount (componentDidMount), so switching collection or slug via
+// history without a remount left the previous collection's draft rendered
+// (and targeted by Save/Delete) under the new collection's header (DCMS-490).
+// Keying the element on collection name + slug forces React to unmount the
+// old Editor and mount a fresh one for every distinct target, which re-runs
+// componentDidMount and guarantees the draft always matches the route.
+export function getEditorKey(name, slug) {
+  return `${name}/${slug || ''}`;
+}
+
+// Determines whether `pathname` is an Editor route (`/collections/:name/new` or
+// `/collections/:name/entries/*`) for a collection that actually exists.
+// RouteInCollection falls back to NotFoundPage on these routes when the named
+// collection is unknown, and that fallback needs the Header/top-nav rendered so
+// the user isn't stranded with only a "Back to home" link (DCMS-535).
+export function isEditorRoute(pathname, collections) {
+  const [, base, collectionName, view] = pathname.split('/');
+  return (
+    base === 'collections' &&
+    (view === 'entries' || view === 'new') &&
+    Boolean(collections.get(collectionName))
+  );
+}
+
+export function RouteInCollection({ collections, render, t, ...props }) {
   const defaultPath = getDefaultPath(collections);
   return (
     <Route
       {...props}
       render={routeProps => {
-        const collectionExists = collections.get(routeProps.match.params.name);
-        return collectionExists ? render(routeProps) : <Redirect to={defaultPath} />;
+        const { name } = routeProps.match.params;
+        const collectionExists = collections.get(name);
+        return collectionExists ? (
+          render(routeProps)
+        ) : (
+          <NotFoundPageBase
+            t={t}
+            collectionName={name}
+            backLink={<Link to={defaultPath}>{t('app.notFoundPage.backToHome')}</Link>}
+          />
+        );
       }}
     />
   );
@@ -89,13 +150,28 @@ class App extends React.Component {
     siteId: PropTypes.string,
     useMediaLibrary: PropTypes.bool,
     openMediaLibrary: PropTypes.func.isRequired,
+    isMediaLibraryVisible: PropTypes.bool,
+    closeMediaLibrary: PropTypes.func.isRequired,
     showMediaButton: PropTypes.bool,
     t: PropTypes.func.isRequired,
+    location: PropTypes.shape({ pathname: PropTypes.string }).isRequired,
   };
 
   componentDidMount() {
     // Manually validate PropTypes - React 19 breaking change
     PropTypes.checkPropTypes(App.propTypes, this.props, 'prop', 'App');
+  }
+
+  componentDidUpdate(prevProps) {
+    if (
+      shouldCloseMediaLibraryOnLocationChange(
+        prevProps.location.pathname,
+        this.props.location.pathname,
+        this.props.isMediaLibraryVisible,
+      )
+    ) {
+      this.props.closeMediaLibrary();
+    }
   }
 
   configError(config) {
@@ -135,7 +211,6 @@ class App extends React.Component {
           onLogin: this.handleLogin.bind(this),
           error: auth.error,
           inProgress: auth.isFetching,
-          siteId: this.props.config.backend.site_domain,
           base_url: this.props.config.backend.base_url,
           authEndpoint: this.props.config.backend.auth_endpoint,
           config: this.props.config,
@@ -186,15 +261,12 @@ class App extends React.Component {
     const hasWorkflow = publishMode === EDITORIAL_WORKFLOW;
 
     // Work out if this is an editor route, following the same URL matching as the router.
-    // - /collections/:name/entries/*
-    // - /collections/:name/new
-    const [, base, , view] = location.pathname.split('/');
-    const isEditorRoute = base === 'collections' && (view === 'entries' || view === 'new');
+    const editorRoute = isEditorRoute(location.pathname, collections);
 
     return (
       <>
         <Notifications />
-        {!isEditorRoute && (
+        {!editorRoute && (
           <Header
             user={user}
             collections={collections}
@@ -214,7 +286,15 @@ class App extends React.Component {
           <Switch>
             <Redirect exact from="/" to={defaultPath} />
             <Redirect exact from="/search/" to={defaultPath} />
+            <Route
+              exact
+              path="/media"
+              render={() => (
+                <MediaRoute openMediaLibrary={openMediaLibrary} defaultPath={defaultPath} />
+              )}
+            />
             <RouteInCollection
+              t={t}
               exact
               collections={collections}
               path="/collections/:name/search/"
@@ -228,22 +308,37 @@ class App extends React.Component {
             />
             {hasWorkflow ? <Route path="/workflow" component={Workflow} /> : null}
             <RouteInCollection
+              t={t}
               exact
               collections={collections}
               path="/collections/:name"
               render={props => <Collection {...props} />}
             />
             <RouteInCollection
+              t={t}
               path="/collections/:name/new"
               collections={collections}
-              render={props => <Editor {...props} newRecord />}
+              // key forces a full unmount/remount whenever the target collection
+              // changes; see getEditorKey (DCMS-490).
+              render={props => (
+                <Editor {...props} key={getEditorKey(props.match.params.name)} newRecord />
+              )}
             />
             <RouteInCollection
+              t={t}
               path="/collections/:name/entries/*"
               collections={collections}
-              render={props => <Editor {...props} />}
+              // key forces a full unmount/remount whenever the target collection
+              // or slug changes; see getEditorKey (DCMS-490).
+              render={props => (
+                <Editor
+                  {...props}
+                  key={getEditorKey(props.match.params.name, props.match.params[0])}
+                />
+              )}
             />
             <RouteInCollection
+              t={t}
               path="/collections/:name/search/:searchTerm"
               collections={collections}
               render={props =>
@@ -255,6 +350,7 @@ class App extends React.Component {
               }
             />
             <RouteInCollection
+              t={t}
               collections={collections}
               path="/collections/:name/filter/:filterTerm*"
               render={props => <Collection {...props} />}
@@ -270,6 +366,7 @@ class App extends React.Component {
               }
             />
             <RouteInCollection
+              t={t}
               path="/edit/:name/:entryName"
               collections={collections}
               render={({ match }) => {
@@ -293,6 +390,7 @@ function mapStateToProps(state) {
   const publishMode = config.publish_mode;
   const useMediaLibrary = !mediaLibrary.get('externalLibrary');
   const showMediaButton = mediaLibrary.get('showMediaButton');
+  const isMediaLibraryVisible = mediaLibrary.get('isVisible');
   return {
     auth,
     config,
@@ -302,11 +400,13 @@ function mapStateToProps(state) {
     publishMode,
     showMediaButton,
     useMediaLibrary,
+    isMediaLibraryVisible,
   };
 }
 
 const mapDispatchToProps = {
   openMediaLibrary,
+  closeMediaLibrary,
   loginUser,
   logoutUser,
 };

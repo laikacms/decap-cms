@@ -51,3 +51,34 @@ describe('PreviewPane.getWidget (DCMS-301)', () => {
     expect(result).not.toBeNull();
   });
 });
+
+describe('PreviewPane.widgetsForNestedFields (DCMS-538)', () => {
+  beforeAll(() => {
+    registerWidget('string', NoopControl, NoopPreview);
+  });
+
+  function makeInstance() {
+    return new PreviewPane({
+      getAsset: jest.fn(),
+      entry: fromJS({ data: {} }),
+    });
+  }
+
+  it('never resolves a fallback preview for a hidden field reached via nested recursion', () => {
+    // Mirrors the `list -> object -> list -> hidden` repro from the issue:
+    // a hidden field nested inside sibling fields must be skipped by the
+    // same recursive resolver (`widgetFor` via `widgetsForNestedFields`)
+    // that resolves its visible siblings, not just by the top-level filter.
+    const instance = makeInstance();
+    const fields = fromJS([
+      { name: 'secret', widget: 'hidden' },
+      { name: 'title', widget: 'string' },
+    ]);
+    const values = fromJS({ secret: 'hidden', title: 'hello' });
+
+    const results = instance.widgetsForNestedFields(fields, values, Map());
+
+    expect(results.get(0)).toBeNull();
+    expect(results.get(1)).not.toBeNull();
+  });
+});

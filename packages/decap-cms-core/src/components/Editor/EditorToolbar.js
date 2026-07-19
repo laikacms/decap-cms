@@ -83,7 +83,7 @@ const DropdownButton = styled(StyledDropdownButton)`
   }
 `;
 
-const ToolbarContainer = styled.div`
+export const ToolbarContainer = styled.div`
   box-shadow: 0 2px 6px 0 rgba(68, 74, 87, 0.05), 0 1px 3px 0 rgba(68, 74, 87, 0.1),
     0 2px 54px rgba(0, 0, 0, 0.1);
   position: absolute;
@@ -115,7 +115,7 @@ const ToolbarSubSectionLast = styled(ToolbarSubSectionFirst)`
   justify-content: flex-end;
 `;
 
-const ToolbarSectionBackLink = styled(Link)`
+export const ToolbarSectionBackLink = styled(Link)`
   ${styles.toolbarSection};
   border-right-width: 1px;
   font-weight: normal;
@@ -141,14 +141,14 @@ const ToolbarDropdown = styled(Dropdown)`
   }
 `;
 
-const BackArrow = styled.div`
+export const BackArrow = styled.div`
   color: ${colors.textLead};
   font-size: 21px;
   font-weight: 600;
   margin-right: 16px;
 `;
 
-const BackCollection = styled.div`
+export const BackCollection = styled.div`
   color: ${colors.textLead};
   font-size: 14px;
 `;
@@ -698,9 +698,20 @@ export class EditorToolbar extends React.Component {
                 collectionLabel: collection.get('label'),
               })}
             </BackCollection>
-            {hasChanged || isNewEntry ? (
+            {/*
+              hasChanged already reflects "did the user cause a change since
+              DRAFT_CREATE_EMPTY" for new entries too (see the `fromDefault`
+              gate in reducers/entryDraft.js, DCMS-487), so OR-ing in
+              isNewEntry here just relabels a pristine fresh draft as
+              "unsaved" (DCMS-508). Save button below still consults
+              isNewEntry on its own so it stays enabled for a pristine draft.
+              A pristine new entry (isNewEntry && !hasChanged) has never been
+              persisted though, so it must not claim "changesSaved" either
+              (DCMS-292) - render nothing for that cell (DCMS-547).
+            */}
+            {hasChanged ? (
               <BackStatusChanged>{t('editor.editorToolbar.unsavedChanges')}</BackStatusChanged>
-            ) : (
+            ) : isNewEntry ? null : (
               <BackStatusUnchanged>{t('editor.editorToolbar.changesSaved')}</BackStatusUnchanged>
             )}
           </div>

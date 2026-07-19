@@ -4,17 +4,26 @@ import { Dropdown, DropdownCheckedItem } from 'decap-cms-ui-default';
 
 import { ControlButton } from './ControlButton';
 
-function FilterControl({ viewFilters, t, onFilterClick, filter }) {
-  const hasActiveFilter = filter
+export function hasActiveFilter(filter) {
+  return filter
     ?.valueSeq()
     .toJS()
     .some(f => f.active === true);
+}
 
+export function isFilterActive(filter, filterId) {
+  return filter.getIn([filterId, 'active'], false);
+}
+
+function FilterControl({ viewFilters, t, onFilterClick, filter }) {
   return (
     <Dropdown
       renderButton={() => {
         return (
-          <ControlButton active={hasActiveFilter} title={t('collection.collectionTop.filterBy')} />
+          <ControlButton
+            active={hasActiveFilter(filter)}
+            title={t('collection.collectionTop.filterBy')}
+          />
         );
       }}
       closeOnSelection={false}
@@ -27,7 +36,7 @@ function FilterControl({ viewFilters, t, onFilterClick, filter }) {
             key={viewFilter.id}
             label={viewFilter.label}
             id={viewFilter.id}
-            checked={filter.getIn([viewFilter.id, 'active'], false)}
+            checked={isFilterActive(filter, viewFilter.id)}
             onClick={() => onFilterClick(viewFilter)}
           />
         );

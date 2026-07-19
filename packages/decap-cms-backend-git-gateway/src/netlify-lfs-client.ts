@@ -2,7 +2,7 @@ import { flow, fromPairs, map } from 'lodash/fp';
 import isPlainObject from 'lodash/isPlainObject';
 import isEmpty from 'lodash/isEmpty';
 import { minimatch } from 'minimatch';
-import { unsentRequest } from 'decap-cms-lib-util';
+import { unsentRequest, APIError } from 'decap-cms-lib-util';
 
 import type { ApiRequest, PointerFile } from 'decap-cms-lib-util';
 
@@ -47,8 +47,11 @@ async function resourceExists(
     return false;
   }
 
-  // TODO: what kind of error to throw here? APIError doesn't seem
-  // to fit
+  throw new APIError(
+    `Failed to verify large media resource '${sha}': ${response.status} ${response.statusText}`,
+    response.status,
+    'Git Gateway',
+  );
 }
 
 export function getTransofrmationsParams(t: boolean | ImageTransformations) {
@@ -158,7 +161,7 @@ const clientFns: Record<string, Function> = {
 };
 
 export type Client = {
-  resourceExists: (pointer: PointerFile) => Promise<boolean | undefined>;
+  resourceExists: (pointer: PointerFile) => Promise<boolean>;
   getResourceUploadURLs: (objects: PointerFile[]) => Promise<string[]>;
   getDownloadURL: (pointer: PointerFile) => Promise<{ url: string; blob: Blob }>;
   uploadResource: (pointer: PointerFile, blob: Blob) => Promise<string>;

@@ -34,6 +34,7 @@ import { selectEntry, selectUnpublishedEntry, selectDeployPreview } from '../../
 import { selectFields } from '../../reducers/collections';
 import { status, EDITORIAL_WORKFLOW } from '../../constants/publishModes';
 import EditorInterface from './EditorInterface';
+import EntryNotFound from './EntryNotFound';
 import withWorkflow from './withWorkflow';
 
 export class Editor extends React.Component {
@@ -161,6 +162,40 @@ export class Editor extends React.Component {
       this.unlisten();
     });
 
+    /**
+     * Safety net for a browser Back navigation that gets Cancelled (DCMS-523).
+     *
+     * `history@4`'s hash-history `block()` above relies on its own internal
+     * `revertPop` bookkeeping to restore the URL bar when the user declines
+     * the leave-confirm dialog for a POP (browser Back/Forward). That
+     * bookkeeping can silently no-op — e.g. after `navigateToNewEntry`'s
+     * `history.replace`, the blocked POP's origin and target paths end up
+     * sharing the same internal history slot, so the computed revert delta
+     * is 0 and nothing happens. The dialog fires and Cancel is honored (this
+     * component stays mounted with the draft intact), but the browser's
+     * address bar is left pointing at the collection index, desynced from
+     * the still-mounted editor.
+     *
+     * Rather than fight that internal bookkeeping, detect the desync
+     * directly off the native `hashchange` event: if this editor is still
+     * mounted with unsaved changes (i.e. the navigation was in fact
+     * cancelled) but the visible hash no longer matches the route `history`
+     * itself considers current, force the address bar back in sync.
+     */
+    this.handleHashChange = () => {
+      clearTimeout(this.hashResyncTimer);
+      this.hashResyncTimer = setTimeout(() => {
+        if (this.unmounted || !this.props.hasChanged) {
+          return;
+        }
+        const expectedHref = history.createHref(history.location);
+        if (typeof expectedHref === 'string' && window.location.hash !== expectedHref) {
+          window.location.hash = expectedHref.replace(/^#/, '');
+        }
+      }, 0);
+    };
+    window.addEventListener('hashchange', this.handleHashChange);
+
     if (!collectionEntriesLoaded) {
       loadEntries(collection);
     }
@@ -190,9 +225,12 @@ export class Editor extends React.Component {
   }
 
   componentWillUnmount() {
+    this.unmounted = true;
+    clearTimeout(this.hashResyncTimer);
     this.createBackup.flush();
     this.props.discardDraft();
     window.removeEventListener('beforeunload', this.exitBlocker);
+    window.removeEventListener('hashchange', this.handleHashChange);
   }
 
   createBackup = debounce(function (entry, collection) {
@@ -371,10 +409,17 @@ export class Editor extends React.Component {
     const isPublished = !newEntry && !unpublishedEntry;
 
     if (entry && entry.get('error')) {
+      // Keep the editor chrome (back link) in place instead of unmounting
+      // to a bare error string (DCMS-479). No EditorInterface/EditorToolbar
+      // is rendered here, so there is no entry data for the preview pane to
+      // choke on either.
       return (
-        <div>
-          <h3>{entry.get('error')}</h3>
-        </div>
+        <EntryNotFound
+          t={t}
+          collection={collection}
+          editorBackLink={editorBackLink}
+          message={entry.get('error')}
+        />
       );
     } else if (
       entryDraft == null ||

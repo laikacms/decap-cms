@@ -57,6 +57,21 @@ To use a custom Git-Gateway implementation with PKCE authentication, use a confi
         # Optional: defaults to "master"
         branch: main
 
+## Additional `backend:` config keys
+
+Beyond the keys shown in the examples above, the `backend:` block also supports the following options:
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `status_endpoint` | string | `https://www.netlifystatus.com/api/v2/components.json` | URL polled to check whether the Git Gateway service is up before attempting authentication. |
+| `status_component_name` | string | `Git Gateway` | Component name matched against the status API response to determine service health. |
+| `status_page` | string | Origin of `status_endpoint` when set, otherwise `https://www.netlifystatus.com` | URL of the status page shown to users when the service is reported as down. |
+| `squash_merges` | boolean | `false` | When `true`, squashes commits when merging editorial workflow pull requests. |
+| `cms_label_prefix` | string | `''` | Prefix added to the labels the CMS uses to track editorial workflow status on pull requests. |
+| `use_large_media_transforms_in_media_library` | boolean | `true` | When `false`, disables Netlify Large Media image transform query params (e.g. resizing) for assets shown in the media library. |
+| `identity_url` | string | `/.netlify/identity` | Base path (or absolute URL) of the Netlify Identity endpoint. |
+| `large_media_url` | string | `/.netlify/large-media` | Base path (or absolute URL) of the Netlify Large Media endpoint. |
+
 ## Top-level `auth:` block (PKCE)
 
 When `auth_type: pkce` is set, a top-level `auth:` block can be used to configure PKCE authentication independently of the `backend:` block. Keys in `auth:` take **priority** over the corresponding keys in `backend:` when both are present.

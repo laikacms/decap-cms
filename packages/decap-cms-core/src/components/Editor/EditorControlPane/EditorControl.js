@@ -13,7 +13,11 @@ import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
 
 import { resolveWidget, getEditorComponents } from '../../../lib/registry';
-import { clearFieldErrors, tryLoadEntry, validateMetaField } from '../../../actions/entries';
+import {
+  clearFieldErrors,
+  tryLoadEntry,
+  validateMetaField as validateMetaFieldAction,
+} from '../../../actions/entries';
 import { addAsset, boundGetAsset } from '../../../actions/media';
 import { selectIsLoadingAsset } from '../../../reducers/medias';
 import { query, clearSearch } from '../../../actions/search';
@@ -103,7 +107,14 @@ export const ControlHint = styled.p`
   transition: color ${transitions.main};
 `;
 
-function LabelComponent({ field, isActive, hasErrors, uniqueFieldId, isFieldOptional, t }) {
+const LabelComponent = React.memo(function LabelComponent({
+  field,
+  isActive,
+  hasErrors,
+  uniqueFieldId,
+  isFieldOptional,
+  t,
+}) {
   const label = `${field.get('label', field.get('name'))}`;
   const labelComponent = (
     <FieldLabel isActive={isActive} hasErrors={hasErrors} htmlFor={uniqueFieldId}>
@@ -119,7 +130,7 @@ function LabelComponent({ field, isActive, hasErrors, uniqueFieldId, isFieldOpti
   );
 
   return labelComponent;
-}
+});
 
 class EditorControl extends React.Component {
   static propTypes = {
@@ -187,6 +198,53 @@ class EditorControl extends React.Component {
     return false;
   };
 
+  /**
+   * Stable (created once per instance, not per render) callbacks handed to
+   * `Widget`/`controlComponent`. Previously these were declared inline in
+   * JSX during `render()`, so every EditorControl render (which itself was
+   * happening on every keystroke, see `loadEntryFromCollection` comment
+   * above) produced brand new function identities for `onChange`,
+   * `setActiveStyle` and `setInactiveStyle`, defeating any memoization
+   * (`React.memo`/`PureComponent`) further down the control tree. Reading
+   * `this.props`/`this.state` fresh inside the body keeps behavior
+   * identical.
+   */
+  handleWidgetChange = (newValue, newMetadata) => {
+    const { field, onChange, clearFieldErrors } = this.props;
+    onChange(field, newValue, newMetadata);
+    clearFieldErrors(this.uniqueFieldId);
+  };
+
+  setActiveStyle = () => {
+    this.setState({ styleActive: true });
+  };
+
+  setInactiveStyle = () => {
+    this.setState({ styleActive: false });
+  };
+
+  /**
+   * `partial(onValidate, this.uniqueFieldId)` (lodash) allocates a new
+   * bound function every call. `uniqueFieldId` never changes for the
+   * lifetime of this instance, so the only thing that should invalidate
+   * the memoized value is the `onValidate` prop itself changing identity
+   * (it's a stable dispatch-bound action creator from the parent, so in
+   * practice this only computes once).
+   */
+  getBoundOnValidate = () => {
+    const { onValidate } = this.props;
+    if (!onValidate) {
+      return undefined;
+    }
+    if (!this._boundOnValidate || this._boundOnValidate.source !== onValidate) {
+      this._boundOnValidate = {
+        source: onValidate,
+        fn: partial(onValidate, this.uniqueFieldId),
+      };
+    }
+    return this._boundOnValidate.fn;
+  };
+
   render() {
     const {
       value,
@@ -198,7 +256,6 @@ class EditorControl extends React.Component {
       fieldsErrors,
       mediaPaths,
       boundGetAsset,
-      onChange,
       openMediaLibrary,
       clearMediaControl,
       removeMediaControl,
@@ -316,11 +373,8 @@ class EditorControl extends React.Component {
               value={value}
               mediaPaths={mediaPaths}
               metadata={metadata}
-              onChange={(newValue, newMetadata) => {
-                onChange(field, newValue, newMetadata);
-                clearFieldErrors(this.uniqueFieldId); // Видаляємо помилки лише для цього поля
-              }}
-              onValidate={onValidate && partial(onValidate, this.uniqueFieldId)}
+              onChange={this.handleWidgetChange}
+              onValidate={this.getBoundOnValidate()}
               onOpenMediaLibrary={openMediaLibrary}
               onClearMediaControl={clearMediaControl}
               onRemoveMediaControl={removeMediaControl}
@@ -329,8 +383,8 @@ class EditorControl extends React.Component {
               onAddAsset={addAsset}
               getAsset={boundGetAsset}
               hasActiveStyle={isSelected || this.state.styleActive}
-              setActiveStyle={() => this.setState({ styleActive: true })}
-              setInactiveStyle={() => this.setState({ styleActive: false })}
+              setActiveStyle={this.setActiveStyle}
+              setInactiveStyle={this.setInactiveStyle}
               resolveWidget={resolveWidget}
               widget={widget}
               getEditorComponents={getEditorComponents}
@@ -390,16 +444,6 @@ function mapStateToProps(state) {
   const collection = collections.get(entryDraft.getIn(['entry', 'collection']));
   const isLoadingAsset = selectIsLoadingAsset(state.medias);
 
-  async function loadEntry(collectionName, slug) {
-    const targetCollection = collections.get(collectionName);
-    if (targetCollection) {
-      const loadedEntry = await tryLoadEntry(state, targetCollection, slug);
-      return loadedEntry;
-    } else {
-      throw new Error(`Can't find collection '${collectionName}'`);
-    }
-  }
-
   return {
     mediaPaths: state.mediaLibrary.get('controlMedia'),
     isFetching: state.search.isFetching,
@@ -408,11 +452,30 @@ function mapStateToProps(state) {
     entry,
     collection,
     isLoadingAsset,
-    loadEntry,
-    validateMetaField: (field, value, t) => validateMetaField(state, collection, field, value, t),
   };
 }
 
+/**
+ * `loadEntry` and `validateMetaField` used to be declared inside
+ * `mapStateToProps` (closing over that call's `state`/`collection`). That
+ * meant a brand new function was handed to every `EditorControl` instance
+ * on *every* store update, regardless of whether anything relevant to that
+ * field actually changed. Since `connect` bails out of re-rendering based
+ * on a shallow-equal check of the merged props, a prop that is never equal
+ * to its previous value (a fresh function reference every time) defeats
+ * that bail-out entirely, forcing every field's control to re-render on
+ * every keystroke typed anywhere in the form.
+ *
+ * `mapDispatchToProps` only runs once per connected component instance
+ * (react-redux memoizes it against the stable `dispatch` reference), so
+ * building these here instead gives them a permanently stable identity.
+ * They still need *fresh* state at call time (not whatever state existed
+ * when the component last rendered), which is what dispatching a thunk
+ * gets us: redux-thunk calls the thunk with `(dispatch, getState)` and
+ * passes back whatever it returns, so `getState()` here always reflects
+ * the store at the moment `loadEntry`/`validateMetaField` are actually
+ * invoked, not at the moment they were created.
+ */
 function mapDispatchToProps(dispatch) {
   const creators = bindActionCreators(
     {
@@ -431,6 +494,19 @@ function mapDispatchToProps(dispatch) {
   return {
     ...creators,
     boundGetAsset: (collection, entry) => boundGetAsset(dispatch, collection, entry),
+    loadEntry: (collectionName, slug) =>
+      dispatch((_dispatch, getState) => {
+        const state = getState();
+        const targetCollection = state.collections.get(collectionName);
+        if (targetCollection) {
+          return tryLoadEntry(state, targetCollection, slug);
+        }
+        throw new Error(`Can't find collection '${collectionName}'`);
+      }),
+    validateMetaField: (collection, field, value, t) =>
+      dispatch((_dispatch, getState) =>
+        validateMetaFieldAction(getState(), collection, field, value, t),
+      ),
   };
 }
 

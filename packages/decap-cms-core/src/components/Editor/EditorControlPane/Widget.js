@@ -150,13 +150,85 @@ export default class Widget extends Component {
     return value;
   };
 
-  validate = (skipWrapped = false) => {
+  // DCMS-458: a Standard Schema-compliant validator (zod/valibot/arktype/effect
+  // Schema/...) set as `field.validate` takes over as the sole source of field
+  // errors for this field, in place of the built-in required/pattern checks -
+  // see `~standard.validate` at https://github.com/standard-schema/standard-schema.
+  // Fields without `validate` are unaffected and keep running the checks below.
+  getStandardSchema = field => {
+    const schema = field.get('validate');
+    if (schema && schema['~standard'] && typeof schema['~standard'].validate === 'function') {
+      return schema;
+    }
+    return undefined;
+  };
+
+  validateStandardSchema = standardSchema => {
+    const { t, field, parentIds } = this.props;
     const value = this.getValidateValue();
+    const result = standardSchema['~standard'].validate(value);
+
+    const applyResult = resolved => {
+      const issues = resolved && resolved.issues;
+      if (!issues || issues.length === 0) {
+        this.props.onValidate([]);
+        return;
+      }
+      this.props.onValidate(
+        issues.map(issue => ({
+          type: ValidationErrorTypes.CUSTOM,
+          parentIds,
+          message: issue.message,
+        })),
+      );
+    };
+
+    if (result instanceof Promise) {
+      // Surface a transient "processing" error while the async validator
+      // resolves, mirroring `validateWrappedControl`'s async handling below.
+      this.props.onValidate([
+        {
+          type: ValidationErrorTypes.CUSTOM,
+          parentIds,
+          message: t('editor.editorControlPane.widget.processing', {
+            fieldLabel: field.get('label', field.get('name')),
+          }),
+        },
+      ]);
+      result.then(applyResult, err => {
+        this.props.onValidate([
+          {
+            type: ValidationErrorTypes.CUSTOM,
+            parentIds,
+            message: `${field.get('label', field.get('name'))} - ${err}.`,
+          },
+        ]);
+      });
+      return;
+    }
+
+    applyResult(result);
+  };
+
+  validate = (skipWrapped = false) => {
     const field = this.props.field;
+
+    const standardSchema = this.getStandardSchema(field);
+    if (standardSchema) {
+      this.validateStandardSchema(standardSchema);
+      return;
+    }
+
+    const value = this.getValidateValue();
     const errors = [];
     const validations = [this.validatePresence, this.validatePattern];
     if (field.get('meta')) {
-      validations.push(this.props.validateMetaField);
+      // `validateMetaField` now takes `collection` explicitly (it's
+      // dispatch-bound in EditorControl.js so its identity stays stable
+      // across renders instead of being rebuilt on every store update);
+      // adapt it to the shared `(field, value, t) => response` shape used
+      // by the other validators here.
+      validations.push((f, v, t) => this.props.validateMetaField(this.props.collection, f, v, t));
     }
     validations.forEach(func => {
       const response = func(field, value, this.props.t);
@@ -358,7 +430,11 @@ export default class Widget extends Component {
       classNameLabel,
       classNameLabelActive,
       setActiveStyle,
-      setInactiveStyle: () => this.setInactiveStyle(),
+      // `this.setInactiveStyle` is already a stable, instance-bound class
+      // field method (see above); wrapping it in a fresh arrow function
+      // here on every render gave `controlComponent` a new prop identity
+      // for no reason, defeating memoization further down the widget tree.
+      setInactiveStyle: this.setInactiveStyle,
       hasActiveStyle,
       editorControl,
       resolveWidget,

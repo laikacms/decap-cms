@@ -112,3 +112,74 @@ describe('createChangeGuard (DCMS-337: handleChange store-feedback loop)', () =>
     expect(guardChange(secondMdValue, () => {})).toBe(true);
   });
 });
+
+// DCMS-583: React error #185 ("Maximum update depth exceeded") while typing
+// multi-paragraph text into the richtext body, reproducible only after a
+// save-with-empty-required-fields validation toast plus a >=120-char Title.
+// That specific combination isn't what matters (it's just what widens the
+// render-timing window); the actual bug is that `onEmit` (the parent's
+// onChange -> redux dispatch) can re-enter `guardChange` *synchronously*,
+// before the first call returns, with a genuinely different value that the
+// DCMS-337 value-equality guard alone would happily let through - each
+// re-entrant emit re-entering again until React trips its update-depth
+// guard. These tests exercise that re-entrancy directly, independent of any
+// toast/title/paragraph-count trigger, proving the guard suppresses it
+// structurally.
+describe('createChangeGuard (DCMS-583: re-entrant onChange during value/prop churn)', () => {
+  it('suppresses a synchronous re-entrant emit even when its value differs from the in-flight one', () => {
+    const guardChange = createChangeGuard('');
+    const calls = [];
+
+    let reentered = false;
+    function onEmit(value) {
+      calls.push(value);
+      if (!reentered) {
+        reentered = true;
+        // Simulate Plate/React re-notifying this same editor instance
+        // synchronously while this onEmit call (standing in for the
+        // parent's onChange -> redux round trip) is still on the stack -
+        // with a value that has genuinely moved on, not a stale duplicate.
+        expect(guardChange('Second paragraph typed during the re-entrant call.', onEmit)).toBe(
+          false,
+        );
+      }
+    }
+
+    expect(guardChange('First paragraph.', onEmit)).toBe(true);
+    expect(calls).toEqual(['First paragraph.']);
+  });
+
+  it('accepts the next real change once the in-flight emit has returned', () => {
+    const guardChange = createChangeGuard('');
+    const calls = [];
+
+    function onEmit(value) {
+      calls.push(value);
+    }
+
+    expect(guardChange('First paragraph.', onEmit)).toBe(true);
+    // Not reentrant - this call happens after the previous onEmit returned,
+    // e.g. on the next real keystroke.
+    expect(guardChange('First paragraph.\n\nSecond paragraph.', onEmit)).toBe(true);
+    expect(calls).toEqual(['First paragraph.', 'First paragraph.\n\nSecond paragraph.']);
+  });
+
+  it('does not deadlock: a guard that swallowed a re-entrant call still accepts later changes', () => {
+    const guardChange = createChangeGuard('');
+    const calls = [];
+
+    let reentered = false;
+    function onEmit(value) {
+      calls.push(value);
+      if (!reentered) {
+        reentered = true;
+        guardChange('Reentrant value, swallowed.', onEmit);
+      }
+    }
+
+    expect(guardChange('First paragraph.', onEmit)).toBe(true);
+    // The guard must not be left "stuck" thinking it's still emitting.
+    expect(guardChange('First paragraph.\n\nA later, real edit.', onEmit)).toBe(true);
+    expect(calls).toEqual(['First paragraph.', 'First paragraph.\n\nA later, real edit.']);
+  });
+});

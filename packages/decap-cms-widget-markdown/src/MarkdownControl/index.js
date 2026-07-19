@@ -5,22 +5,9 @@ import { List, Map } from 'immutable';
 
 import RawEditor from './RawEditor';
 import VisualEditor from './VisualEditor';
+import { EditorProvider } from './editorContext';
 
 const MODE_STORAGE_KEY = 'cms.md-mode';
-
-// TODO: passing the editorControl and components like this is horrible, should
-// be handled through Redux and a separate registry store for instances
-let editorControl;
-// eslint-disable-next-line func-style
-let _getEditorComponents = () => Map();
-
-export function getEditorControl() {
-  return editorControl;
-}
-
-export function getEditorComponents() {
-  return _getEditorComponents();
-}
 
 export default class MarkdownControl extends React.Component {
   static propTypes = {
@@ -37,14 +24,13 @@ export default class MarkdownControl extends React.Component {
 
   static defaultProps = {
     value: '',
+    getEditorComponents: () => Map(),
   };
 
   constructor(props) {
     super(props);
-    editorControl = props.editorControl;
     const preferredMode = localStorage.getItem(MODE_STORAGE_KEY) ?? 'rich_text';
 
-    _getEditorComponents = props.getEditorComponents;
     this.state = {
       mode:
         // When used inside a container/shortcode editor component, default to
@@ -94,6 +80,7 @@ export default class MarkdownControl extends React.Component {
       value,
       classNameWrapper,
       field,
+      editorControl,
       getEditorComponents,
       getRemarkPlugins,
       resolveWidget,
@@ -140,6 +127,10 @@ export default class MarkdownControl extends React.Component {
         />
       </div>
     );
-    return mode === 'rich_text' ? visualEditor : rawEditor;
+    return (
+      <EditorProvider editorControl={editorControl} getEditorComponents={getEditorComponents}>
+        {mode === 'rich_text' ? visualEditor : rawEditor}
+      </EditorProvider>
+    );
   }
 }
