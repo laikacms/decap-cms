@@ -1,4 +1,6 @@
-import { USE_OPEN_AUTHORING } from '@/core/actions/auth';
+import { describe, expect, it } from 'vitest';
+
+import { useOpenAuthoring } from '@/core/actions/auth';
 import { DEPLOY_PREVIEW_FAILURE, DEPLOY_PREVIEW_REQUEST, DEPLOY_PREVIEW_SUCCESS } from '@/core/actions/deploys';
 import { ENTRY_FAILURE, ENTRY_REQUEST, ENTRY_SUCCESS } from '@/core/actions/entries';
 import reducer from '@/core/reducers/globalUI';
@@ -32,7 +34,7 @@ describe('globalUI', () => {
   });
 
   it('should set useOpenAuthoring to true on USE_OPEN_AUTHORING', () => {
-    expect(reducer({ useOpenAuthoring: false }, { type: USE_OPEN_AUTHORING })).toEqual({
+    expect(reducer({ useOpenAuthoring: false }, useOpenAuthoring())).toEqual({
       useOpenAuthoring: true,
     });
   });
