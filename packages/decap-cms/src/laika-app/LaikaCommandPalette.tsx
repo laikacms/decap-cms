@@ -1,4 +1,4 @@
-/** @jsxImportSource @emotion/react */
+
 import { Autocomplete } from '@base-ui/react/autocomplete';
 import styled from '@emotion/styled';
 import React from 'react';

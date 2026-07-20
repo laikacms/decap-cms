@@ -1,4 +1,4 @@
-/** @jsxImportSource @emotion/react */
+
 import { Switch } from '@base-ui/react/switch';
 import styled from '@emotion/styled';
 import React from 'react';

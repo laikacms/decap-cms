@@ -1,4 +1,4 @@
-/** @jsxImportSource @emotion/react */
+
 import { Avatar as AvatarPrimitive } from '@base-ui/react/avatar';
 import * as React from 'react';
 

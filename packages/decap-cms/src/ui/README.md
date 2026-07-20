@@ -52,7 +52,7 @@ src/ui/__tests__/<Primitive>.spec.tsx  # behavior tests (sibling __tests__ dir)
 ## Styling contract
 
 - Use the `css` / `keyframes` re-exports from [`./styled.ts`](./styled.ts) (backed by
-  `@emotion/react`) with the css prop — add the `/** @jsxImportSource @emotion/react */` pragma at
+  `@emotion/react`) with the css prop — add the `` pragma at
   the top of the file. `cx` joins plain class-name strings only (literal utility classes plus a
   caller `className`); emotion merges the css prop with `className` itself. Don't reach for
   `styled-components` or inline `style={{}}` for anything variant-driven.

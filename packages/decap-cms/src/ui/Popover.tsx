@@ -1,4 +1,4 @@
-/** @jsxImportSource @emotion/react */
+
 import { Popover as PopoverPrimitive } from '@base-ui/react/popover';
 import * as React from 'react';
 

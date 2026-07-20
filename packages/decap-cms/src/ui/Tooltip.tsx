@@ -1,4 +1,4 @@
-/** @jsxImportSource @emotion/react */
+
 import { Tooltip as TooltipPrimitive } from '@base-ui/react/tooltip';
 import * as React from 'react';
 

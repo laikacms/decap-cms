@@ -1,4 +1,4 @@
-/** @jsxImportSource @emotion/react */
+
 import { Switch as SwitchPrimitive } from '@base-ui/react/switch';
 import { Toggle as TogglePrimitive } from '@base-ui/react/toggle';
 import * as React from 'react';

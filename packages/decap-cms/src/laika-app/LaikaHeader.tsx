@@ -1,4 +1,4 @@
-/** @jsxImportSource @emotion/react */
+
 import { Menu } from '@base-ui/react/menu';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
