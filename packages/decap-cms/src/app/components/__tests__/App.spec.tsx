@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
@@ -46,12 +46,16 @@ vi.mock('../../../core/components/UI', async () => {
 // AppContent mounts an onSessionExpired subscription via currentBackend()
 // (added in 85416b22, DCMS silent token refresh). resolveBackend throws when
 // no backend named `test-repo` is registered — which is intentional at runtime
-// but noise here, since this spec only exercises routing/header behaviour and
-// never authenticates. Stub currentBackend to a no-op subscription so the
-// useEffect can run without a real backend registration.
+// but noise here, since this spec mostly exercises routing/header behaviour
+// and never authenticates. Stub currentBackend to a subscription that records
+// its listeners, so the session-expiry specs below can fire the event.
+const sessionExpiredListeners = vi.hoisted(() => [] as Array<() => void>);
 vi.mock('@/core/backend', () => ({
   currentBackend: () => ({
-    onSessionExpired: () => () => {},
+    onSessionExpired: (listener: () => void) => {
+      sessionExpiredListeners.push(listener);
+      return () => {};
+    },
     authComponent: () => null,
   }),
 }));
@@ -251,6 +255,79 @@ describe('AppContent - DCMS-432 unknown-collection deep-link', () => {
 
     expect(getByTestId('custom-not-found')).toBeInTheDocument();
     expect(queryByText('app.notFoundPage.header')).not.toBeInTheDocument();
+  });
+});
+
+describe('AppContent - session-expired re-auth overlay', () => {
+  it('keeps the app mounted and renders a blocking overlay when the session expired', () => {
+    const state = baseState({
+      auth: {
+        user: { name: 'Alice', login: 'alice' },
+        isFetching: false,
+        error: null,
+        sessionExpired: true,
+      },
+    });
+    const { getByRole, getByTestId } = renderAppContentAt('/collections/posts', {}, state);
+
+    // The routed app is still there (an open editor would keep its draft)...
+    expect(getByTestId('collection-view')).toBeInTheDocument();
+    // ...with the re-auth dialog blocking it.
+    expect(getByRole('dialog', { name: 'app.app.sessionExpiredTitle' })).toBeInTheDocument();
+  });
+
+  it('renders no overlay while the session is healthy', () => {
+    const { queryByRole } = renderAppContentAt('/collections/posts');
+
+    expect(queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('passes sessionExpired to a custom renderAuth inside the overlay', () => {
+    const renderAuth = vi.fn(() => <div data-testid="custom-auth" />);
+    const state = baseState({
+      auth: {
+        user: { name: 'Alice', login: 'alice' },
+        isFetching: false,
+        error: null,
+        sessionExpired: true,
+      },
+    });
+    const { getByTestId } = renderAppContentAt('/collections/posts', { renderAuth }, state);
+
+    expect(getByTestId('custom-auth')).toBeInTheDocument();
+    expect(renderAuth).toHaveBeenCalledWith(expect.objectContaining({ sessionExpired: true }));
+  });
+
+  it('dispatches auth/sessionExpired (not a logout) when the backend reports expiry', () => {
+    const state = baseState();
+    const store = mockStore(state);
+    const decapValue = {
+      config: state.config,
+      theme: {},
+      routing: defaultRoutingTable,
+      router: {} as any,
+      navigate: vi.fn(),
+      params: vi.fn(),
+      path: '/collections/posts',
+    };
+    sessionExpiredListeners.length = 0;
+
+    render(
+      <Provider store={store}>
+        <context.Provider value={decapValue}>
+          <AppContent />
+        </context.Provider>
+      </Provider>,
+    );
+
+    expect(sessionExpiredListeners.length).toBeGreaterThan(0);
+    act(() => {
+      for (const listener of sessionExpiredListeners) listener();
+    });
+
+    const types = store.getActions().map(action => action.type);
+    expect(types).toContain('auth/sessionExpired');
+    expect(types.some(type => String(type).startsWith('auth/logoutUser'))).toBe(false);
   });
 });
 

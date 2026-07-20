@@ -28,6 +28,8 @@ const en = {
       checkConfigYml: 'Check your config.yml file.',
       loadingConfig: 'Loading configuration...',
       waitingBackend: 'Waiting for backend...',
+      sessionExpiredTitle: 'Your session has expired',
+      sessionExpiredBody: 'Log in again to continue where you left off. Unsaved changes are kept safe on this device.',
     },
     notFoundPage: {
       header: 'Not Found',

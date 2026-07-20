@@ -1,8 +1,7 @@
 import styled from '@emotion/styled';
 import React, { useCallback, useEffect, useMemo } from 'react';
-import TopBarProgress from 'react-topbar-progress-indicator';
 
-import { loginUser, logoutUser } from '@/core/actions/auth';
+import { loginUser, logoutUser, sessionExpired } from '@/core/actions/auth';
 import { createNewEntry } from '@/core/actions/collections';
 import { openMediaLibrary } from '@/core/actions/mediaLibrary';
 import { currentBackend } from '@/core/backend';
@@ -20,7 +19,8 @@ import { useTranslate } from '@/core/i18n';
 import { CmsSlotsProvider } from '@/core/lib/slots';
 import { matchExtraRoute } from '@/core/routing/extraRoutes';
 import { matchRoute } from '@/core/routing/router';
-import { colorsDefaults, Loader, StandaloneAuthPage } from '@/ui/default/index';
+import { Loader, StandaloneAuthPage } from '@/ui/default/index';
+import { TopBarProgress } from '@/ui/TopBarProgress';
 import Header from './Header';
 
 import type { ErrorBoundaryRenderProps } from '@/core/components/UI';
@@ -101,6 +101,14 @@ export interface AppAuthRenderProps {
   config: CmsConfig;
   clearHash: () => void;
   t: TranslateFunction;
+  /**
+   * `true` when this page is being rendered inside the blocking re-auth
+   * overlay: the user was logged in but the backend session expired, and the
+   * app (with any unsaved work) is still mounted underneath. Custom renderers
+   * should tell the user their work is safe and offer re-login, not a
+   * first-visit welcome.
+   */
+  sessionExpired?: boolean;
 }
 
 export interface AppContentProps {
@@ -175,17 +183,6 @@ export interface AppContentProps {
   renderError?: (props: ErrorBoundaryRenderProps) => React.ReactNode;
 }
 
-TopBarProgress.config({
-  // Rendered to a <canvas>, which cannot resolve CSS `var()` tokens — use the
-  // raw default color value here.
-  barColors: {
-    0: colorsDefaults.active,
-    '1.0': colorsDefaults.active,
-  },
-  shadowBlur: 0,
-  barThickness: 2,
-});
-
 const AppMainContainer = styled.div`
   max-width: 1440px;
   margin: 0 auto;
@@ -199,6 +196,40 @@ const ErrorCodeBlock = styled.pre`
   margin-left: 20px;
   font-size: 15px;
   line-height: 1.5;
+`;
+
+/**
+ * Full-viewport blocking layer for the session-expired re-auth flow. The app
+ * (and any editor with unsaved work) stays mounted underneath; only the
+ * scrim and the auth page above it are interactive.
+ */
+const SessionExpiredScrim = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 10500;
+  overflow-y: auto;
+  background-color: rgba(49, 61, 62, 0.8);
+  backdrop-filter: blur(2px);
+`;
+
+const SessionExpiredNotice = styled.div`
+  max-width: 440px;
+  padding: 16px 20px;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 2px 6px rgba(68, 74, 87, 0.2);
+  text-align: center;
+
+  strong {
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.4;
+  }
 `;
 
 function getDefaultCollectionName(collections: Collections): string | undefined {
@@ -553,10 +584,13 @@ function AppContent({
   // Backends report unrecoverable session expiry (e.g. the laika backend's
   // refresh grant came back invalid_grant) through the Backend subscription.
   // Without it the store keeps its stale user and every failed load renders
-  // as a 404; a logout puts the login screen up instead.
+  // as a 404. Deliberately NOT a logout: `sessionExpired` keeps the user in
+  // the store so the app tree (and any editor holding unsaved work) stays
+  // mounted behind a blocking re-auth overlay, and a successful re-login
+  // resumes in place.
   useEffect(() => {
     if (config == null || config.isFetching || config.error) return;
-    return currentBackend(config).onSessionExpired(() => dispatch(logoutUser()));
+    return currentBackend(config).onSessionExpired(() => dispatch(sessionExpired()));
   }, [config, dispatch]);
 
   const handleOpenMediaLibrary = useCallback(
@@ -584,27 +618,26 @@ function AppContent({
     );
   }, [t, config?.error]);
 
-  const renderAuthenticating = useCallback(() => {
+  // The auth page content, shared between the standalone login screen (no
+  // user in the store) and the session-expired re-auth overlay (user still
+  // set, app mounted underneath).
+  const renderAuthPage = useCallback((expired: boolean) => {
     const backend = currentBackend(config);
     const AuthComponent = backend == null
       ? null
       : (backend.authComponent() as any as React.ComponentType<Record<string, unknown>>);
 
     if (renderAuth) {
-      return (
-        <>
-          {renderNotifications ? renderNotifications() : <Notifications />}
-          {renderAuth({
-            AuthComponent,
-            onLogin: handleLogin,
-            error: auth.error,
-            inProgress: auth.isFetching,
-            config: config as CmsConfig,
-            clearHash: handleClearHash,
-            t,
-          })}
-        </>
-      );
+      return renderAuth({
+        AuthComponent,
+        onLogin: handleLogin,
+        error: auth.error,
+        inProgress: auth.isFetching,
+        config: config as CmsConfig,
+        clearHash: handleClearHash,
+        t,
+        sessionExpired: expired,
+      });
     }
 
     if (AuthComponent == null) {
@@ -616,26 +649,27 @@ function AppContent({
     }
 
     return (
-      <div>
-        {renderNotifications ? renderNotifications() : <Notifications />}
-        {
-          /* Auth components are content-only; the default page supplies the
-            standalone chrome (brand logo, centering, credit). */
-        }
-        <StandaloneAuthPage logoUrl={config?.logo_url} logo={config?.logo}>
-          <AuthComponent
-            onLogin={handleLogin}
-            error={auth.error}
-            inProgress={auth.isFetching}
-            siteId={config?.backend?.site_domain}
-            base_url={config?.backend?.base_url}
-            authEndpoint={config?.backend?.auth_endpoint}
-            config={config}
-            clearHash={handleClearHash}
-            t={t}
-          />
-        </StandaloneAuthPage>
-      </div>
+      /* Auth components are content-only; the default page supplies the
+        standalone chrome (brand logo, centering, credit). */
+      <StandaloneAuthPage logoUrl={config?.logo_url} logo={config?.logo}>
+        {expired && (
+          <SessionExpiredNotice>
+            <strong>{t('app.app.sessionExpiredTitle')}</strong>
+            <p>{t('app.app.sessionExpiredBody')}</p>
+          </SessionExpiredNotice>
+        )}
+        <AuthComponent
+          onLogin={handleLogin}
+          error={auth.error}
+          inProgress={auth.isFetching}
+          siteId={config?.backend?.site_domain}
+          base_url={config?.backend?.base_url}
+          authEndpoint={config?.backend?.auth_endpoint}
+          config={config}
+          clearHash={handleClearHash}
+          t={t}
+        />
+      </StandaloneAuthPage>
     );
   }, [
     config,
@@ -645,8 +679,16 @@ function AppContent({
     handleClearHash,
     t,
     renderAuth,
-    renderNotifications,
   ]);
+
+  const renderAuthenticating = useCallback(() => {
+    return (
+      <div>
+        {renderNotifications ? renderNotifications() : <Notifications />}
+        {renderAuthPage(false)}
+      </div>
+    );
+  }, [renderAuthPage, renderNotifications]);
 
   // Early returns for loading/error states
   if (config === null) {
@@ -715,6 +757,21 @@ function AppContent({
           renderLayout({ main: routedContent, headerProps, isEditorRoute })
         )
         : <AppMainContainer>{routedContent}</AppMainContainer>}
+      {
+        /* Session expired while logged in: block the app with a re-auth
+          overlay instead of swapping to the login screen. The tree above
+          stays mounted, so an open editor keeps its draft; a successful
+          login clears `auth.sessionExpired` and resumes in place. */
+      }
+      {auth.sessionExpired && (
+        <SessionExpiredScrim
+          role="dialog"
+          aria-modal="true"
+          aria-label={t('app.app.sessionExpiredTitle')}
+        >
+          {renderAuthPage(true)}
+        </SessionExpiredScrim>
+      )}
     </CmsSlotsProvider>
   );
 }

@@ -617,6 +617,19 @@ export default function createLaikaBackend(
       return this.refreshInFlight;
     }
 
+    /**
+     * `CmsImplementation.ensureFreshSession`: refresh now (instead of on the
+     * next request) when the token is at/near expiry. Resolves without a
+     * network call while the token is fresh. A dead refresh grant surfaces
+     * through `dropExpiredSession` -> `onSessionExpired` inside
+     * `ensureActiveToken`; the rejection itself is for transient errors,
+     * which callers may ignore (the lazy per-request refresh retries later).
+     */
+    async ensureFreshSession(): Promise<void> {
+      if (!this.tokenState && !this.devToken) return;
+      await this.ensureActiveToken();
+    }
+
     private async refreshAccessToken(refreshToken: string): Promise<string> {
       const body = new URLSearchParams({
         grant_type: 'refresh_token',

@@ -1,6 +1,6 @@
 import { produce } from 'immer';
 
-import { USE_OPEN_AUTHORING } from '@/core/actions/auth';
+import { useOpenAuthoring } from '@/core/actions/auth';
 
 import type { AnyAction } from 'redux';
 
@@ -37,7 +37,7 @@ const globalUI = produce((state: GlobalUI, action: AnyAction) => {
     && (action.type.includes('SUCCESS') || action.type.includes('FAILURE'))
   ) {
     state.isFetching = false;
-  } else if (action.type === USE_OPEN_AUTHORING) {
+  } else if (useOpenAuthoring.match(action)) {
     state.useOpenAuthoring = true;
   }
 }, defaultState);

@@ -1,4 +1,4 @@
-/** @jsxImportSource @emotion/react */
+
 import styled from '@emotion/styled';
 import React from 'react';
 
@@ -83,6 +83,27 @@ const WaitingMessage = styled.p`
   text-align: center;
 `;
 
+const SessionNotice = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background-color: ${colors.background};
+  text-align: center;
+
+  strong {
+    font-size: 14px;
+    color: ${colors.textLead};
+  }
+
+  span {
+    font-size: 13px;
+    line-height: 1.4;
+    color: ${colors.controlLabel};
+  }
+`;
+
 function deriveSiteName(config: AppAuthRenderProps['config']): string | undefined {
   const cfg = config as unknown as Record<string, unknown>;
   if (typeof cfg.site_name === 'string') return cfg.site_name as string;
@@ -109,18 +130,29 @@ function LaikaAuthenticationPage({
   clearHash,
   t,
   tagline,
+  sessionExpired,
 }: LaikaAuthenticationPageProps) {
   const siteName = deriveSiteName(config);
   const logoUrl = deriveLogoUrl(config);
 
   return (
-    <Page>
+    // Inside the session-expired overlay the scrim supplies the backdrop; a
+    // solid page background would hide the (still mounted) app behind it.
+    <Page style={sessionExpired ? { backgroundColor: 'transparent' } : undefined}>
       <Card>
         <BrandBlock>
           {logoUrl ? <BrandLogo src={logoUrl} alt={siteName ?? 'CMS'} /> : null}
           <BrandTitle>{siteName ?? 'Content Manager'}</BrandTitle>
           {tagline ? <BrandTagline>{tagline}</BrandTagline> : null}
         </BrandBlock>
+        {sessionExpired
+          ? (
+            <SessionNotice>
+              <strong>{t('app.app.sessionExpiredTitle')}</strong>
+              <span>{t('app.app.sessionExpiredBody')}</span>
+            </SessionNotice>
+          )
+          : null}
         <AuthSlot>
           {AuthComponent
             ? (

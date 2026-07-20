@@ -28,6 +28,8 @@ const nl = {
       checkConfigYml: 'Controleer je config.yml bestand',
       loadingConfig: 'Configuatie laden...',
       waitingBackend: 'Wachten op server...',
+      sessionExpiredTitle: 'Je sessie is verlopen',
+      sessionExpiredBody: 'Log opnieuw in om verder te gaan waar je gebleven was. Niet-opgeslagen wijzigingen blijven veilig bewaard op dit apparaat.',
     },
     notFoundPage: {
       header: 'Niet gevonden',
@@ -264,7 +266,7 @@ const nl = {
       onDeleteUnpublishedChanges: 'Niet-gepubliceerde wijzigingen verwijderd',
       onFailToAuth: '%{details}',
       onLoggedOut: 'Je bent uitgelogd, back-up alstublieft uw data log daarna in',
-      onBackendDown: 'De backend-service ondervindt een storing. Zie% {details} voor meer informatie',
+      onBackendDown: 'De backend-service ondervindt een storing. Zie %{details} voor meer informatie',
     },
   },
   workflow: {

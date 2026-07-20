@@ -154,6 +154,17 @@ export interface CmsImplementation {
   logout: () => Promise<void> | void | null;
   getToken: () => Promise<string | null>;
 
+  /**
+   * Proactively refresh credentials so they are valid *now* (optional).
+   * Called by the app when the user plausibly returns from being away (tab
+   * becomes visible, network comes back online, periodic check) so that the
+   * next user action doesn't run into an expired token. Implementations
+   * should resolve without a network call when the current credentials are
+   * still fresh, and report an unrecoverably dead session through
+   * `onSessionExpired` rather than by rejecting.
+   */
+  ensureFreshSession?: () => Promise<void>;
+
   getEntry: (path: string) => Promise<CmsImplementationEntry>;
   entriesByFolder: (
     folder: string,
