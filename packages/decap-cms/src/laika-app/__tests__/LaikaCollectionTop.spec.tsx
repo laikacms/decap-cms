@@ -75,4 +75,44 @@ describe('LaikaCollectionTop', () => {
     );
     expect(queryByText('New Post')).toBeNull();
   });
+
+  describe('nested collection tree path', () => {
+    const nestedCollection = {
+      name: 'shop',
+      label: 'Shop',
+      label_singular: 'Product',
+      type: 'folder_based_collection',
+      nested: { depth: 100 },
+    } as any;
+
+    function renderWithFilterTerm(filterTerm?: string) {
+      const { getByRole } = render(
+        <MemoryRouter>
+          <LaikaCollectionTop collection={nestedCollection} filterTerm={filterTerm} />
+        </MemoryRouter>,
+      );
+      return getByRole('navigation');
+    }
+
+    function crumbLinks(nav: HTMLElement) {
+      return Array.from(nav.querySelectorAll('a')).map(a => [a.textContent, a.getAttribute('href')]);
+    }
+
+    it('renders each ancestor folder as a crumb linking up the tree', () => {
+      const nav = renderWithFilterTerm('categories/shoes');
+      expect(crumbLinks(nav)).toEqual([
+        ['Dashboard', '/'],
+        ['Shop', '/collections/shop'],
+        ['categories', '/collections/shop/filter/categories'],
+      ]);
+      // The current folder is the page itself: plain text, not a link.
+      expect(nav.textContent).toContain('shoes');
+    });
+
+    it('keeps the collection crumb unlinked at the tree root', () => {
+      const nav = renderWithFilterTerm(undefined);
+      expect(crumbLinks(nav)).toEqual([['Dashboard', '/']]);
+      expect(nav.textContent).toContain('Shop');
+    });
+  });
 });

@@ -220,7 +220,7 @@ function CmsCollection({
             <>
               {renderCollectionTop
                 ? (
-                  renderCollectionTop({ collection, newEntryUrl })
+                  renderCollectionTop({ collection, newEntryUrl, filterTerm })
                 )
                 : <CollectionTop collection={collection} newEntryUrl={newEntryUrl} />}
               {renderCollectionControls

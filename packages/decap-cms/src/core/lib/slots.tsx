@@ -30,6 +30,8 @@ import type {
 export interface CollectionTopRenderProps {
   collection: CmsCollectionState;
   newEntryUrl?: string;
+  /** Current nested-collection tree path ('' or undefined at the root). */
+  filterTerm?: string;
 }
 
 export interface CollectionSidebarRenderProps {

@@ -79,16 +79,37 @@ interface LaikaCollectionTopProps extends CollectionTopRenderProps {
   t: TranslateFunction;
 }
 
-function LaikaCollectionTop({ collection, newEntryUrl, t }: LaikaCollectionTopProps) {
+function LaikaCollectionTop({ collection, newEntryUrl, filterTerm, t }: LaikaCollectionTopProps) {
   const labelSingular = collection.label_singular || collection.label;
   const description = collection.description as React.ReactNode | undefined;
+
+  // Inside a nested collection the sidebar tree filters by folder path
+  // (/collections/<name>/filter/<path>); mirror that path here so every
+  // ancestor folder is one crumb up the tree, with the current folder last.
+  const pathSegments = filterTerm ? filterTerm.split('/').filter(Boolean) : [];
+  const currentFolder = pathSegments[pathSegments.length - 1];
 
   return (
     <Container>
       <Breadcrumb aria-label="Breadcrumb">
         <Crumb to="/">Dashboard</Crumb>
         <Separator>/</Separator>
-        <span>{collection.label}</span>
+        {pathSegments.length === 0 ? <span>{collection.label}</span> : (
+          <>
+            <Crumb to={`/collections/${collection.name}`}>{collection.label}</Crumb>
+            {pathSegments.slice(0, -1).map((segment, i) => {
+              const ancestorPath = pathSegments.slice(0, i + 1).join('/');
+              return (
+                <React.Fragment key={ancestorPath}>
+                  <Separator>/</Separator>
+                  <Crumb to={`/collections/${collection.name}/filter/${ancestorPath}`}>{segment}</Crumb>
+                </React.Fragment>
+              );
+            })}
+            <Separator>/</Separator>
+            <span>{currentFolder}</span>
+          </>
+        )}
       </Breadcrumb>
       <Row>
         <TitleBlock>
