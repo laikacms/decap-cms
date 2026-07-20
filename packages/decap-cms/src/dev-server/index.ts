@@ -1,16 +1,14 @@
 import 'dotenv/config';
 
 import { createApp } from './app';
-import { createLogger } from './logger';
 import { registerMiddleware as registerLocalFs } from './middlewares/localFs';
 import { registerMiddleware as registerLocalGit } from './middlewares/localGit';
 
 const port = parseInt(process.env.PORT || '8081', 10);
 const host = process.env.BIND_HOST;
-const level = process.env.LOG_LEVEL || 'info';
 
 (async () => {
-  const logger = createLogger({ level });
+  const logger = console;
   const app = createApp({ logger });
   const options = {
     logger,

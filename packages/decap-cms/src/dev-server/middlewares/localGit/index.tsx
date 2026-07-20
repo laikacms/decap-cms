@@ -40,7 +40,6 @@ import type {
   UpdateUnpublishedEntryStatusParams,
 } from '@/dev-server/middlewares/types';
 import type { SimpleGit } from 'simple-git';
-import type winston from 'winston';
 
 async function commit(git: SimpleGit, commitMessage: string) {
   await git.add('.');
@@ -76,7 +75,7 @@ function branchDescription(branch: string) {
 
 type GitOptions = {
   repoPath: string,
-  logger: winston.Logger,
+  logger: Pick<Console, 'log' | 'info' | 'error' | 'warn' | 'debug'>,
 };
 
 async function commitEntry(
@@ -464,7 +463,7 @@ export function localGitMiddleware({ repoPath, logger }: GitOptions) {
 }
 
 type Options = {
-  logger: winston.Logger,
+  logger: Pick<Console, 'log' | 'info' | 'error' | 'warn' | 'debug'>,
 };
 
 export async function registerMiddleware(app: DevServerApp, options: Options) {

@@ -18,11 +18,10 @@ import type {
   PersistEntryParams,
   PersistMediaParams,
 } from '@/dev-server/middlewares/types';
-import type winston from 'winston';
 
 type FsOptions = {
   repoPath: string,
-  logger: winston.Logger,
+  logger: Pick<Console, 'log' | 'info' | 'error' | 'warn' | 'debug'>;
 };
 
 export function localFsMiddleware({ repoPath, logger }: FsOptions) {
@@ -150,7 +149,7 @@ export function getSchema({ repoPath }: { repoPath: string }) {
 }
 
 type Options = {
-  logger: winston.Logger,
+  logger: Pick<Console, 'log' | 'info' | 'error' | 'warn' | 'debug'>,
 };
 
 export function registerMiddleware(app: DevServerApp, options: Options) {

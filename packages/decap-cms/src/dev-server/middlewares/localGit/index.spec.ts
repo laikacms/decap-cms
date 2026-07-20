@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import winston from 'winston';
 
 import type { DevServerRequest, DevServerResponse } from '@/dev-server/app';
 import type { ValidationResult } from '@/dev-server/middlewares/validation';
@@ -143,7 +142,7 @@ describe('localGitMiddleware', () => {
         },
       } as DevServerRequest;
 
-      await localGitMiddleware({ repoPath, logger: winston.createLogger() })(req, res);
+      await localGitMiddleware({ repoPath, logger: console })(req, res);
 
       expect(status).toHaveBeenCalledTimes(1);
       expect(status).toHaveBeenCalledWith(422);

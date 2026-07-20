@@ -1,7 +1,5 @@
 import http from 'node:http';
 
-import type winston from 'winston';
-
 // Matches the 50mb limit the proxy server historically allowed for base64 asset payloads.
 const MAX_BODY_BYTES = 50 * 1024 * 1024;
 
@@ -33,7 +31,7 @@ export interface DevServerApp {
 }
 
 type AppOptions = {
-  logger: winston.Logger,
+  logger: Pick<Console, 'log' | 'info' | 'error' | 'warn' | 'debug'>;
 };
 
 function sendJson(res: http.ServerResponse, code: number, payload: unknown) {
