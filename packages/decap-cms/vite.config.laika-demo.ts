@@ -1,5 +1,6 @@
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import { visualizer } from 'rollup-plugin-visualizer';
 import { defineConfig } from 'vite';
 
 /**
@@ -9,7 +10,13 @@ import { defineConfig } from 'vite';
  * default decap-cms.js bundle.
  */
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    // ANALYZE=1 (pnpm analyze:demo) → interactive treemap next to the bundle.
+    ...(process.env.ANALYZE
+      ? [visualizer({ emitFile: true, filename: 'bundle-report-laika-cms.html', gzipSize: true })]
+      : []),
+  ],
   build: {
     outDir: 'dev-test/dist',
     emptyOutDir: false,
@@ -37,12 +44,12 @@ export default defineConfig({
     ],
   },
   define: {
-    'process.env.NODE_ENV': JSON.stringify('development'),
+    // Lib-mode builds preserve `process.env.NODE_ENV` for downstream bundlers,
+    // but this IIFE loads straight in a browser where `process` is undefined,
+    // so it must be statically replaced.
+    'process.env.NODE_ENV': JSON.stringify('production'),
     'process.env': '{}',
     global: 'globalThis',
-    DECAP_CMS_APP_VERSION: JSON.stringify('dev'),
-    DECAP_CMS_CORE_VERSION: JSON.stringify('dev'),
-    DECAP_CMS_VERSION: JSON.stringify('dev'),
   },
   optimizeDeps: {
     include: ['buffer', 'process'],
