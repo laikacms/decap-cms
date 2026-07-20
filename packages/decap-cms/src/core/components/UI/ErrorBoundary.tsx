@@ -13,12 +13,10 @@ import type { TranslateFunction } from '@/ui/default/index';
 const ISSUE_URL = 'https://github.com/decaporg/decap-cms/issues/new';
 
 function getIssueTemplate({
-  version,
   provider,
   browser,
   config,
 }: {
-  version: string,
   provider: string,
   browser: string,
   config: string,
@@ -33,7 +31,6 @@ function getIssueTemplate({
 **Screenshots**
 
 **Applicable Versions:**
- - Decap CMS version: \`${version}\`
  - Git provider: \`${provider}\`
  - Browser version: \`${browser}\`
 
@@ -47,15 +44,8 @@ ${config}
 }
 
 function buildIssueTemplate({ config }: { config: CmsConfig }) {
-  let version = '';
-  if (typeof DECAP_CMS_VERSION === 'string') {
-    version = `decap-cms@${DECAP_CMS_VERSION}`;
-  } else if (typeof DECAP_CMS_APP_VERSION === 'string') {
-    version = `decap-cms-app@${DECAP_CMS_APP_VERSION}`;
-  }
   const yamlCodec = getEntryCodec('yaml');
   const template = getIssueTemplate({
-    version,
     provider: config.backend.name,
     browser: navigator.userAgent,
     config: yamlCodec

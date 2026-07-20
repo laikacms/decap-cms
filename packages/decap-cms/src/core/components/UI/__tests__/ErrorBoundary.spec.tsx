@@ -53,7 +53,6 @@ describe('Editor', () => {
         title=Error%3A+Some+unknown+error&
         body=%0A**Describe+the+bug**%0A%0A**To+Reproduce**%0A%0A**Expected+behavior**%0A%0A**
         Screenshots**%0A%0A**Applicable+Versions%3A**%0A+-+
-        Decap+CMS+version%3A+%60%60%0A+-+
         Git+provider%3A+%60github%60%0A+-+
         Browser+version%3A+%60Test+User+Agent%60%0A%0A**
         CMS+configuration**%0A%60%60%60%0Abackend%3A%0A++name%3A+github%0A%0A%60%60%60%0A%0A**

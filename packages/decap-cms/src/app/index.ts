@@ -83,11 +83,6 @@ export function init(opts: { config?: CmsConfig } = {}) {
   );
 }
 
-// Log version
-if (typeof window !== 'undefined' && typeof window.DECAP_CMS_APP_VERSION === 'string') {
-  console.log(`decap-cms-app ${window.DECAP_CMS_APP_VERSION}`);
-}
-
 // Expose React.createElement as `h` for custom preview templates
 export const h = createElement;
 
@@ -112,10 +107,6 @@ if (typeof window !== 'undefined') {
   window.CMS = DecapCmsApp;
   window.initCMS = init;
   window.h = window.h || React.createElement;
-
-  if (typeof window.DECAP_CMS_VERSION === 'string') {
-    console.log(`decap-cms ${window.DECAP_CMS_VERSION}`);
-  }
 }
 
 export default DecapCmsApp;

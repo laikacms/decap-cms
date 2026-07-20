@@ -18,11 +18,4 @@ describe('LaikaFooter', () => {
     expect(getByText('Demo Site')).toBeInTheDocument();
     expect(getByText('laika-cms-app')).toBeInTheDocument();
   });
-
-  it('renders the package version when DECAP_CMS_APP_VERSION is set', () => {
-    (window as { DECAP_CMS_APP_VERSION?: string }).DECAP_CMS_APP_VERSION = '4.0.0-test';
-    const { getByText } = render(<LaikaFooter />);
-    expect(getByText(/4\.0\.0-test/)).toBeInTheDocument();
-    delete (window as { DECAP_CMS_APP_VERSION?: string }).DECAP_CMS_APP_VERSION;
-  });
 });

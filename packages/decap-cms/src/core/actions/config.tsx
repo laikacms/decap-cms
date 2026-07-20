@@ -407,6 +407,7 @@ export function parseConfig(data: string) {
   const config = (codec.parseConfig ?? codec.formatter.fromFile)(data) as Record<string, any>;
   if (
     typeof window !== 'undefined'
+    && 'CMS_ENV' in window
     && typeof window.CMS_ENV === 'string'
     && config[window.CMS_ENV]
   ) {
@@ -556,8 +557,8 @@ export async function handleLocalBackend(originalConfig: CmsConfig) {
 }
 
 export function loadConfig(manualConfig: Partial<CmsConfig> = {}, onLoad: () => unknown) {
-  if (window.CMS_CONFIG) {
-    return configLoaded(window.CMS_CONFIG);
+  if (typeof window !== 'undefined' && 'CMS_CONFIG' in window && window.CMS_CONFIG) {
+    return configLoaded(window.CMS_CONFIG as CmsConfig);
   }
   return async (dispatch: ThunkDispatch<State, {}, AnyAction>) => {
     dispatch(configLoading());

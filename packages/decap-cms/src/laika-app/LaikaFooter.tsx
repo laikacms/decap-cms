@@ -1,4 +1,4 @@
-/** @jsxImportSource @emotion/react */
+
 import styled from '@emotion/styled';
 import React from 'react';
 
@@ -6,8 +6,8 @@ import { useAppSelector } from '@/core/hooks/useRedux';
 import { colors } from '@/ui/default/index';
 
 /**
- * Thin footer rendered below the routed content. Shows site name (when set
- * in config) and the package version so the bundle build is identifiable.
+ * Thin footer rendered below the routed content. Shows the site name (when
+ * set in config) and the package label.
  */
 
 const Bar = styled.footer`
@@ -34,16 +34,12 @@ function LaikaFooter() {
     | null
     | undefined;
   const siteName = config?.site_name ?? config?.name;
-  const version = typeof window !== 'undefined' && typeof window.DECAP_CMS_APP_VERSION === 'string'
-    ? window.DECAP_CMS_APP_VERSION
-    : undefined;
 
   return (
     <Bar>
       <FooterSide>{siteName ? <span>{siteName}</span> : null}</FooterSide>
       <FooterSide>
         <span>laika-cms-app</span>
-        {version ? <span>· {version}</span> : null}
       </FooterSide>
     </Bar>
   );

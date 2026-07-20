@@ -1,4 +1,4 @@
-/** @jsxImportSource @emotion/react */
+
 import styled from '@emotion/styled';
 import React from 'react';
 
@@ -118,10 +118,6 @@ function LaikaSettingsPage() {
     }
     | null
     | undefined;
-  const version = typeof window !== 'undefined' && typeof window.DECAP_CMS_APP_VERSION === 'string'
-    ? window.DECAP_CMS_APP_VERSION
-    : undefined;
-
   return (
     <Page>
       <Header>
@@ -204,14 +200,6 @@ function LaikaSettingsPage() {
             <Label>Package</Label>
             <Value>laika-cms-app</Value>
           </Row>
-          {version
-            ? (
-              <Row>
-                <Label>Version</Label>
-                <Value>{version}</Value>
-              </Row>
-            )
-            : null}
         </LaikaCard>
       </SectionGrid>
     </Page>

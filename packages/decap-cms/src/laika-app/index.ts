@@ -10,10 +10,6 @@ import { registerExtensions } from './extensions.js';
 
 registerExtensions();
 
-if (typeof window !== 'undefined' && typeof window.DECAP_CMS_APP_VERSION === 'string') {
-  console.log(`laika-cms-app ${window.DECAP_CMS_APP_VERSION}`);
-}
-
 if (typeof window !== 'undefined') {
   if (!window.CMS_MANUAL_INIT) {
     init();
