@@ -82,7 +82,6 @@ constitutional docs (`RESTRUCTURE.md`, `BREAKING_CHANGES_V2_BETA.md`, `SECURITY.
 ## Other docs
 
 - `CONTRIBUTING.md`: setup, PR process, release
-- `WORKLIST.md`: v4.beta task queue (DCB-xxx) and fleet workflow
 - `BREAKING_CHANGES_V2_BETA.md`: v2 breaking changes (e.g. `markdown` widget renamed `richtext`)
 - `DEPENDENCY_REDUCTION_PLAN.md`: active dependency-trimming plan
 - `TECH_DEBT.md`: remaining debt checklist
