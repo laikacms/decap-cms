@@ -139,12 +139,12 @@ const valueTypes = {
 
 function handleSummary(
   summary: string,
-  entry: CmsEntry,
+  entry: CmsEntry | undefined,
   label: string,
   item: Record<string, string>,
 ): string {
   set(item, 'fields.label', label);
-  const data = stringTemplate.addFileTemplateFields(entry.path, item);
+  const data = stringTemplate.addFileTemplateFields(entry?.path ?? '', item);
   return stringTemplate.compileStringTemplate(summary, null, '', data);
 }
 
@@ -220,7 +220,9 @@ export interface ListControlProps {
   resolveWidget: (name: string) => Record<string, unknown>;
   clearFieldErrors: (fieldId: string | undefined) => void;
   fieldsErrors: Record<string, Array<{ type: string, message: string, parentIds?: string[] }>>;
-  entry: CmsEntry;
+  /** Deprecated upstream (can contain stale data); fresh data comes from `getEntry`. */
+  entry?: CmsEntry;
+  getEntry?: () => CmsEntry | undefined;
   t: TranslateFunction;
   parentIds?: string[];
 }
@@ -295,11 +297,14 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
       resolveWidget,
       parentIds = [],
       entry,
+      getEntry,
       t,
       setActiveStyle,
       setInactiveStyle,
       onChange,
     } = props;
+
+    const resolvedEntry = getEntry?.() ?? entry;
 
     const childRefs = React.useRef<Record<string, ChildRef>>({});
     const uniqueFieldIdRef = React.useRef<string>('');
@@ -616,7 +621,7 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
           const label = itemType?.label ?? itemType?.name ?? '';
           const summary = get(itemType, 'summary', field?.summary);
           return summary
-            ? handleSummary(summary, entry, label, item as Record<string, string>)
+            ? handleSummary(summary, resolvedEntry, label, item as Record<string, string>)
             : label;
         }
         case valueTypes.SINGLE: {
@@ -624,7 +629,7 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
           const label = singleField?.label ?? singleField?.name ?? '';
           const summary = field?.summary;
           const data = { [singleField?.name ?? '']: item as string };
-          return summary ? handleSummary(summary, entry, label, data) : label;
+          return summary ? handleSummary(summary, resolvedEntry, label, data) : label;
         }
         case valueTypes.MULTIPLE: {
           if (!validateItem(field, item)) return;
@@ -633,7 +638,7 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
           const value = get(item, labelField?.name ?? '', '');
           const summary = field?.summary;
           const labelReturn = summary
-            ? handleSummary(summary, entry, value, item as Record<string, string>)
+            ? handleSummary(summary, resolvedEntry, value, item as Record<string, string>)
             : value;
           return (labelReturn || `No ${labelField?.name}`).toString();
         }
