@@ -263,7 +263,7 @@ export function applyDefaults(originalConfig: CmsConfig) {
 
     const backend = resolveBackend(config);
 
-    for (const collection of config.collections as CmsCollection[] /* TODO: Fix WritableNonArrayDraft */) {
+    for (const collection of config.collections) {
       if (!('publish' in collection)) {
         collection.publish = true;
       }
