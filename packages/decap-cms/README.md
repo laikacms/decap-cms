@@ -81,7 +81,7 @@ pnpm test:ci        # lint + typecheck + unit tests
 pnpm build:dev-test && pnpm serve:dev-test   # demo app on http://localhost:5174, Laika UI on /laika.html
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow.
+See [CONTRIBUTING.md](../../CONTRIBUTING.md) for the full workflow.
 
 ## Credits
 
