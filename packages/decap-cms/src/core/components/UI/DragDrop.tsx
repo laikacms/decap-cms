@@ -44,10 +44,13 @@ export function DropTarget({ onDrop, namespace, children }: DropTargetProps) {
 }
 
 export function HTML5DragDrop<P extends object>(WrappedComponent: React.ComponentType<P>) {
+  // TS defers LibraryManagedAttributes while P is generic, so JSX rejects the
+  // spread; erase the generic once here instead.
+  const Component = WrappedComponent as React.ComponentType<object>;
   function HTML5DragDropWrapper(props: P) {
     return (
       <ReactDNDProvider manager={getDndManager()}>
-        <WrappedComponent {...props} />
+        <Component {...props} />
       </ReactDNDProvider>
     );
   }

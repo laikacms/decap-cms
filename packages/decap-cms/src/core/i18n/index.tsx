@@ -42,9 +42,12 @@ export function translate() {
   return function wrap<P extends { t: TranslateFunction }>(
     WrappedComponent: ComponentType<P>,
   ): ComponentType<Omit<P, 't'>> {
+    // TS defers LibraryManagedAttributes while P is generic, so JSX rejects
+    // the spread; erase the generic once here instead.
+    const Component = WrappedComponent as ComponentType<{ t: TranslateFunction }>;
     function Translated(props: Omit<P, 't'>) {
       const t = useTranslate();
-      return <WrappedComponent {...(props as P)} t={t} />;
+      return <Component {...props} t={t} />;
     }
     Translated.displayName = `Translate(${WrappedComponent.displayName || WrappedComponent.name || 'Component'})`;
     return Translated;
