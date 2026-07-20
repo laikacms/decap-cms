@@ -35,10 +35,15 @@ Paths below (and in most other docs) are relative to `packages/decap-cms/`.
 - `core/`: engine, with `actions/`, `reducers/`, `redux/`, `hooks/`, `components/`, `formats/`,
   `lib/` (registry, validateConfig, i18n), `routing/` (custom router), `types/`
 - `backends/`: github, gitlab, gitea, bitbucket, azure, git-gateway, proxy, test, ...
-- `widgets/`: field widgets (string, richtext, list, object, relation, ...)
+- `widgets/`: field widgets (string, richtext, list, object, relation, lucide-icon, radix-icon,
+  aichat, ...)
+- `ai/`: server-side AI chat adapter (fetch handler, providers, tools); widget half lives in
+  `widgets/aichat/` (moved here from `@laikacms/decap-ai`, DCMS-492)
+- `config-types/`: TS utility types deriving entry shapes from a const-asserted Decap config
 - `ui/`: design-system primitives (layering documented in `src/ui/README.md`)
 - `lib/`: shared libs: auth, richtext, util, widgets
-- `locales/`, `media/`, `dev-server/`, `editor-component-image/`, `default-exports/`
+- `locales/`, `media/`, `dev-server/`, `editor-component-image/`,
+  `editor-component-embedded-entry/`, `default-exports/`
 
 ## Conventions
 
@@ -64,7 +69,8 @@ Paths below (and in most other docs) are relative to `packages/decap-cms/`.
 - Vitest + jsdom, `globals: false`, so import `describe/it/expect` from `vitest`.
 - Tests are colocated in `__tests__/` dirs as `*.spec.tsx` / `*.test.ts`; setup in `vitest.setup.ts`
   (jest-dom, explicit cleanup, ResizeObserver/URL mocks).
-- Playwright is the active e2e suite; the `cypress/` dir is legacy, don't extend it.
+- Playwright is the e2e suite (`playwright/*.e2e.ts`); recorded backend fixtures live in
+  `playwright/fixtures/`.
 
 ## Gated paths: operator approval required
 

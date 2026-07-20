@@ -12,12 +12,6 @@ plus `src/ui/styled.ts`.
 
 ### CSS-in-JS with Emotion, two flavors
 
-- The css prop (preferred in `src/ui/` primitives). Files start with the
-  `/** @jsxImportSource @emotion/react */` pragma and pass `css={...}` styles directly to Base UI
-  parts. Example: `src/ui/DropdownMenu.tsx` puts `contentClass` on `MenuPrimitive.Popup`
-  (src/ui/DropdownMenu.tsx:74) and `itemClass` on `MenuPrimitive.Item`
-  (src/ui/DropdownMenu.tsx:158). A caller-supplied `className` is passed through separately; Emotion
-  merges the css prop with it.
 - `styled()` wrapping of Base UI parts, exactly the handbook's CSS-in-JS example. Examples:
   `styled(Menu.Trigger)` / `styled(Menu.Popup)` / `styled(Menu.Item)` in
   `src/laika-app/LaikaHeader.tsx:205-253` and `src/ui/default/Dropdown.tsx:32-126`, and

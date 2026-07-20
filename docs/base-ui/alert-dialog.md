@@ -26,7 +26,7 @@ The single wrapper is `src/ui/AlertDialog.tsx`. It has two layers:
 ## Styling and props
 
 - Styled with Emotion `css` template literals (the file uses
-  `/** @jsxImportSource @emotion/react */`), themed via CSS variables (`--popover`,
+  ``), themed via CSS variables (`--popover`,
   `--popover-foreground`, `--muted-foreground`).
 - Each wrapper is typed as `React.ComponentProps<typeof AlertDialogPrimitive.X>`, widened with the
   local `WithClassName` helper so Emotion's generated class merges with a caller-supplied one.
