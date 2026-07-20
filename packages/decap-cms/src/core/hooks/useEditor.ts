@@ -272,7 +272,12 @@ export function useEditor({
         return;
       }
 
-      deleteBackup();
+      // Leaving the entry keeps the backup (flushing any pending debounced
+      // write) instead of deleting it. A user who confirmed "discard
+      // changes?" on the way out still gets a restore prompt when they
+      // reopen the entry; the backup is only deleted by a successful
+      // persist/publish/delete.
+      createBackup.flush();
       unblockRef.current?.();
       unblockRef.current = null;
       unlisten();
@@ -301,7 +306,6 @@ export function useEditor({
     collection,
     collectionEntriesLoaded,
     createBackup,
-    deleteBackup,
     dispatch,
     locationPathname,
     locationSearch,
@@ -346,12 +350,16 @@ export function useEditor({
         );
         if (confirmLoadBackup) {
           dispatch(loadLocalBackup() as any);
-        } else {
-          deleteBackup();
         }
+        // Declining deliberately does NOT delete the backup: this dialog is
+        // the only thing standing between a misclick and the only surviving
+        // copy of unsaved work. The backup is deleted when the entry is
+        // successfully persisted/published/deleted, and overwritten as soon
+        // as the user edits - a declined backup only costs a repeat of this
+        // prompt next time the entry opens.
       }
     },
-    [localBackup, t, dispatch, deleteBackup],
+    [localBackup, t, dispatch],
   );
 
   // Handle backup creation when changed
