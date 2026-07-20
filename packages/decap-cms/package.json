@@ -305,18 +305,6 @@
       "types": "./dist/core/index.d.ts",
       "import": "./dist/core/index.js"
     },
-    "./default-exports": {
-      "types": "./dist/default-exports/index.d.ts",
-      "import": "./dist/default-exports/index.js"
-    },
-    "./editor-component-embedded-entry": {
-      "types": "./dist/editor-component-embedded-entry/index.d.ts",
-      "import": "./dist/editor-component-embedded-entry/index.js"
-    },
-    "./editor-component-image": {
-      "types": "./dist/editor-component-image/index.d.ts",
-      "import": "./dist/editor-component-image/index.js"
-    },
     "./entry-codecs/*": {
       "types": "./dist/entry-codecs/*/index.d.ts",
       "import": "./dist/entry-codecs/*/index.js"
