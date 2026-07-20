@@ -1,4 +1,3 @@
-import * as fuzzy from 'fuzzy';
 import { attempt, flatten, get, isError, set, sortBy, trim, uniq } from 'lodash-es';
 
 import {
@@ -10,6 +9,7 @@ import {
   dirname,
   EDITORIAL_WORKFLOW_ERROR,
   extname,
+  fuzzyFilter,
   getPathDepth,
   join,
   localForage,
@@ -63,6 +63,7 @@ import type {
   CmsEntryField,
   CmsFilterRule,
   CmsImplementation as BackendImplementation,
+  FuzzyFilterResult,
 } from '@/lib/util/index';
 import type {
   AsyncLock,
@@ -243,7 +244,7 @@ export function mergeExpandedEntries(entries: (EntryValue & { field: string })[]
   return Object.values(merged);
 }
 
-function sortByScore(a: fuzzy.FilterResult<EntryValue>, b: fuzzy.FilterResult<EntryValue>) {
+function sortByScore(a: FuzzyFilterResult<EntryValue>, b: FuzzyFilterResult<EntryValue>) {
   if (a.score > b.score) return -1;
   if (a.score < b.score) return 1;
   return 0;
@@ -379,6 +380,21 @@ export class Backend {
     return () => {
       this.sessionExpiredListeners.delete(listener);
     };
+  }
+
+  /**
+   * Ask the implementation to proactively refresh its credentials (no-op for
+   * backends without refreshable sessions). Transient failures are swallowed:
+   * the lazy per-request refresh remains the fallback, and an unrecoverably
+   * dead session is reported through `onSessionExpired` by the
+   * implementation itself.
+   */
+  async ensureFreshSession(): Promise<void> {
+    try {
+      await this.implementation.ensureFreshSession?.();
+    } catch (e: unknown) {
+      console.warn('ensureFreshSession', (e as Error).message);
+    }
   }
 
   constructor(implementation: Implementation, { backendName, authStore, config }: BackendOptions) {
@@ -674,14 +690,12 @@ export class Backend {
         }
         const filteredSearchFields = searchFields.filter(Boolean) as string[];
         const collectionEntries = await this.listAllEntries(collection);
-        return fuzzy.filter(searchTerm, collectionEntries, {
-          extract: extractSearchFields(uniq(filteredSearchFields)),
-        });
+        return fuzzyFilter(searchTerm, collectionEntries, extractSearchFields(uniq(filteredSearchFields)));
       })
       .map(p =>
         p.catch(err => {
           errors.push(err);
-          return [] as fuzzy.FilterResult<EntryValue>[];
+          return [] as FuzzyFilterResult<EntryValue>[];
         })
       );
 
@@ -699,9 +713,9 @@ export class Backend {
     }
 
     const hits = entries
-      .filter(({ score }: fuzzy.FilterResult<EntryValue>) => score > 5)
+      .filter(({ score }: FuzzyFilterResult<EntryValue>) => score > 5)
       .sort(sortByScore)
-      .map((f: fuzzy.FilterResult<EntryValue>) => f.original);
+      .map((f: FuzzyFilterResult<EntryValue>) => f.original);
     return { entries: hits };
   }
 
@@ -719,12 +733,7 @@ export class Backend {
 
     const expandedEntries = expandSearchEntries(entries, searchFields);
 
-    let hits = fuzzy
-      .filter(searchTerm, expandedEntries, {
-        extract: entry => {
-          return getEntryField(entry.field, entry);
-        },
-      })
+    let hits = fuzzyFilter(searchTerm, expandedEntries, entry => getEntryField(entry.field, entry))
       .sort(sortByScore)
       .map(f => f.original);
 

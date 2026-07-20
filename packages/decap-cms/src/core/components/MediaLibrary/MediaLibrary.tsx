@@ -1,4 +1,3 @@
-import fuzzy from 'fuzzy';
 import { map, orderBy } from 'lodash-es';
 import React from 'react';
 
@@ -14,7 +13,7 @@ import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 import { useTranslate } from '@/core/i18n';
 import { selectMediaFiles } from '@/core/reducers/mediaLibrary';
 import { useRouter } from '@/core/routing/context';
-import { fileExtension } from '@/lib/util/index';
+import { fileExtension, fuzzyFilter } from '@/lib/util/index';
 import { confirmDialog, showAlert } from '@/ui';
 import MediaLibraryModal from './MediaLibraryModal';
 
@@ -326,9 +325,7 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
 
   function queryFilter(q: string, filesList: MediaFile[]) {
     const strippedQuery = q.replace(/ /g, '');
-    const matches = fuzzy.filter(strippedQuery, filesList, {
-      extract: (file: MediaFile) => file.name,
-    });
+    const matches = fuzzyFilter(strippedQuery, filesList, (file: MediaFile) => file.name);
     return matches.map((match, queryIndex) => {
       const file = filesList[match.index];
       return { ...file, queryIndex };

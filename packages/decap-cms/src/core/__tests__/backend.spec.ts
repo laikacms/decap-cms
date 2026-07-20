@@ -42,7 +42,8 @@ function mockEntryCodecRegistry() {
   vi.mocked(getCustomFormatsFormatters).mockImplementation(() => ({}));
 }
 mockEntryCodecRegistry();
-vi.mock('../../lib/util/index', () => ({
+vi.mock('../../lib/util/index', async () => ({
+  fuzzyFilter: (await import('@/lib/util/core-utils/fuzzy')).fuzzyFilter,
   APIError: class APIError extends Error {
     status: number;
     api: string;
