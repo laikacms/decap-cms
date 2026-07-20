@@ -441,8 +441,8 @@ export function AiChatControl(props: AiChatControlProps) {
   const getEntryProp = props.getEntry;
   const getLiveEntry = useCallback(() => getEntryProp?.() ?? entry, [getEntryProp, entry]);
 
-  const documentContext = useMemo(() => getDocumentContext(entry, locale, defaultLocale), [
-    entry,
+  const documentContext = useMemo(() => getDocumentContext(getLiveEntry(), locale, defaultLocale), [
+    getLiveEntry,
     locale,
     defaultLocale,
   ]);

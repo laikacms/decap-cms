@@ -339,7 +339,6 @@ export default class Widget extends Component<WidgetProps> {
   render() {
     const {
       controlComponent,
-      entry, // TODO: Remove this prop in favor of getEntry
       getEntry,
       collection,
       config,
@@ -389,7 +388,6 @@ export default class Widget extends Component<WidgetProps> {
     } = this.props;
 
     return React.createElement(controlComponent as React.ComponentType<Record<string, unknown>>, {
-      entry, // TODO: Remove this deprecated prop in favor of getEntry
       getEntry,
       collection,
       config,
