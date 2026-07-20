@@ -1,9 +1,10 @@
 import styled from '@emotion/styled';
 import React from 'react';
-import { HexColorPicker, RgbaStringColorPicker } from 'react-colorful';
-import tinycolor from 'tinycolor2';
+import { HexAlphaColorPicker, HexColorPicker } from 'react-colorful';
 
 import { zIndex } from '@/ui/default/index';
+
+import type { CmsFieldBase, CmsFieldColor } from '@/lib/util/index';
 
 function ClearIcon() {
   return (
@@ -81,7 +82,7 @@ interface ColorControlProps {
   classNameWrapper: string;
   setActiveStyle: () => void;
   setInactiveStyle: () => void;
-  field: Record<string, unknown>;
+  field: CmsFieldColor & CmsFieldBase;
   hasErrors?: boolean;
   errorListId?: string;
 }
@@ -112,27 +113,19 @@ export default function ColorControl({
   }
 
   const enableAlpha = Boolean(field.enableAlpha ?? false);
+  const isValidColor = value && (enableAlpha ? /^#([A-Fa-f0-9]{8})$/.test(value) : /^#([A-Fa-f0-9]{6})$/.test(value));
+  const pickerColor = isValidColor ? value : enableAlpha ? '#00000000' : '#000000';
 
   function handleChange(color: string) {
     if (!enableAlpha) {
       onChange(color);
       return;
     }
-    const parsed = tinycolor(color);
-    onChange(parsed.getAlpha() < 1 ? parsed.toRgbString() : parsed.toHexString());
+    onChange(color);
   }
 
   const allowInput = field.allowInput ?? false;
   const showClearButton = !allowInput && value;
-
-  const parsedValue = tinycolor(value);
-  const pickerColor = enableAlpha
-    ? parsedValue.isValid()
-      ? parsedValue.toRgbString()
-      : 'rgba(0, 0, 0, 1)'
-    : parsedValue.isValid()
-    ? parsedValue.toHexString()
-    : '#000000';
 
   return (
     <>
@@ -157,8 +150,8 @@ export default function ColorControl({
       )}
       <ColorSwatchBackground />
       <ColorSwatch
-        background={tinycolor(value).isValid() ? value : '#fff'}
-        color={tinycolor(value).isValid() ? 'rgba(255, 255, 255, 0)' : 'rgb(223, 223, 227)'}
+        background={value ?? '#fff'}
+        color={isValidColor ? 'rgba(255, 255, 255, 0)' : 'rgb(223, 223, 227)'}
         role="button"
         tabIndex={0}
         aria-label="Open color picker"
@@ -176,7 +169,7 @@ export default function ColorControl({
         <ColorPickerContainer>
           <ClickOutsideDiv onClick={handleClose} />
           {enableAlpha
-            ? <RgbaStringColorPicker color={pickerColor} onChange={handleChange} />
+            ? <HexAlphaColorPicker color={pickerColor} onChange={handleChange} />
             : <HexColorPicker color={pickerColor} onChange={handleChange} />}
         </ColorPickerContainer>
       )}

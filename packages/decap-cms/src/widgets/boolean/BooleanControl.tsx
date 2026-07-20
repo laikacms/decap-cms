@@ -2,6 +2,7 @@ import React from 'react';
 
 import { colors, Toggle, ToggleBackground } from '@/ui/default/index';
 
+import type { CmsFieldBase, CmsFieldBoolean } from '@/lib/util/index';
 import type { ToggleActiveProps } from '@/ui/default/Toggle';
 
 function BooleanBackground({ $isActive, ...props }: ToggleActiveProps) {
@@ -17,7 +18,7 @@ function BooleanBackground({ $isActive, ...props }: ToggleActiveProps) {
 }
 
 interface BooleanControlProps {
-  field: { required?: boolean };
+  field: CmsFieldBoolean & CmsFieldBase;
   onChange: (...args: unknown[]) => unknown;
   classNameWrapper: string;
   setActiveStyle: () => void;

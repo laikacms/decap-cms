@@ -10,8 +10,8 @@ import VectorSource from 'ol/source/Vector.js';
 import View from 'ol/View.js';
 import React from 'react';
 
+import type { CmsFieldBase, CmsFieldMap } from '@/lib/util/index';
 import type { TranslateFunction } from '@/ui/default/index';
-import type { Type as GeometryType } from 'ol/geom/Geometry';
 
 const formatOptions = {
   dataProjection: 'EPSG:4326',
@@ -30,12 +30,7 @@ function getDefaultMap(target: HTMLElement, featuresLayer: VectorLayer<VectorSou
   });
 }
 
-export interface MapControlField {
-  type?: string;
-  decimals?: number;
-  required?: boolean;
-  [key: string]: unknown;
-}
+export type MapControlField = CmsFieldMap & CmsFieldBase;
 
 export interface MapControlProps {
   onChange: (...args: unknown[]) => unknown;
@@ -115,11 +110,11 @@ export default function withMapControl({ getFormat, getMap }: WithMapControlOpti
 
         const draw = new Draw({
           source: featuresSource,
-          type: (f.type ?? 'Point') as GeometryType,
+          type: f.type ?? 'Point',
         });
         map.addInteraction(draw);
 
-        const writeOptions = { decimals: (f.decimals ?? 7) as number };
+        const writeOptions = { decimals: f.decimals ?? 7 };
         draw.on('drawend', ({ feature }) => {
           featuresSource.clear();
           initRef.current.onChange(format.writeGeometry(feature.getGeometry()!, writeOptions));

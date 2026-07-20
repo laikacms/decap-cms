@@ -1,4 +1,4 @@
-/** @jsxImportSource @emotion/react */
+
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { once } from 'lodash-es';
@@ -21,7 +21,13 @@ import {
   SortableItem as UISortableItem,
 } from '@/ui/default/index';
 
-import type { CmsField, CmsFieldBase, CmsFieldFile } from '@/lib/util/index';
+import type { CmsField, CmsFieldBase, CmsFieldFileOrImage } from '@/lib/util/index';
+
+/**
+ * Field config for the `file` widget, and (via `withFileControl({ forImage:
+ * true })`) the `image` widget that shares this control.
+ */
+export type FileControlField = CmsFieldFileOrImage & CmsFieldBase;
 
 const MAX_DISPLAY_LENGTH = 50;
 
@@ -66,7 +72,7 @@ function Image(props: ImageProps) {
 
 interface ImageAssetProps {
   value: string;
-  field?: CmsField;
+  field?: FileControlField;
   getAsset: (value: string, field?: CmsField) => string;
 }
 
@@ -103,7 +109,7 @@ interface SortableImageProps {
   index: number;
   itemValue: string;
   getAsset: (value: string, field?: CmsField) => string;
-  field: CmsField;
+  field: FileControlField;
   onRemove: () => void;
   onReplace: () => void;
 }
@@ -139,7 +145,7 @@ interface SortableItem {
 interface SortableMultiImageWrapperProps {
   items: SortableItem[];
   getAsset: (value: string, field?: CmsField) => string;
-  field: CmsField;
+  field: FileControlField;
   onSortEnd: (args: { oldIndex: number, newIndex: number }) => void;
   onRemoveOne: (index: number) => () => void;
   onReplaceOne: (index: number) => () => void;
@@ -276,7 +282,7 @@ function valueListToSortableArray(value: FileValue): SortableItem[] | FileValue 
   return valueArray;
 }
 
-const warnDeprecatedOptions = once((field: CmsField) =>
+const warnDeprecatedOptions = once((field: FileControlField) =>
   console.warn(oneLine`
   Decap CMS config: ${field.name} field: property "options" has been deprecated for the
   ${field.widget} widget and will be removed in the next major release. Rather than
@@ -287,7 +293,7 @@ const warnDeprecatedOptions = once((field: CmsField) =>
 void warnDeprecatedOptions;
 
 export interface FileControlProps {
-  field: CmsFieldFile & CmsFieldBase;
+  field: FileControlField;
   getAsset: (value: string, field?: CmsField) => string;
   mediaPaths: Record<string, string>;
   onAddAsset: (asset: unknown) => void;

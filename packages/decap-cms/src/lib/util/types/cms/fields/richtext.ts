@@ -14,17 +14,30 @@ export type CmsRichtextWidgetButton =
   | 'bulleted-list'
   | 'numbered-list';
 
+/**
+ * Options for the `richtext` widget. Mirrors the widget schema in
+ * `@/widgets/richtext/widget/schema.ts`.
+ */
 export interface CmsFieldRichtext {
   widget: 'richtext';
   default?: string;
 
-  minimal?: boolean;
-  buttons?: CmsRichtextWidgetButton[];
-  editor_components?: string[];
-  modes?: ('raw' | 'rich_text')[];
-
   /**
-   * @deprecated Use editor_components instead
+   * Output format for this rich-text field. Matched against registered mapper
+   * ids (see `@/lib/richtext`): `markdown` (registered by default), plus
+   * `html`, `plainText` and `portableText` when registered at call site via
+   * `registerMapper(...)`.
    */
-  editorComponents?: string[];
+  format?: string;
+  placeholder?: string;
+  minimal?: boolean;
+  sanitize_preview?: boolean;
+  buttons?: CmsRichtextWidgetButton[];
+  /**
+   * Allowlist of registered block ids available in this field. Omit to allow
+   * all registered blocks. UI-only: parsing always recognizes every registered
+   * block.
+   */
+  blocks?: string[];
+  modes?: ('raw' | 'rich_text')[];
 }

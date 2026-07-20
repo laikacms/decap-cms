@@ -9,15 +9,11 @@ import { Editor, EditorGlobalStyles } from '@/ui/editor';
 import { makeBlockFormRenderer } from './BlockForm';
 
 import type { BlocksConfig, GetAssetFn } from '@/lib/richtext';
+import type { CmsFieldBase, CmsFieldRichtext } from '@/lib/util/index';
 import type { SerializedEditorState } from 'lexical';
 import type { BlockFormDeps } from './BlockForm';
 
-interface DecapField {
-  format?: string;
-  placeholder?: string;
-  blocks?: string[];
-  [key: string]: unknown;
-}
+type DecapField = CmsFieldRichtext & CmsFieldBase;
 
 interface LexicalControlProps {
   /** Stored field value: a raw string, a live `RichtextValue`, or (for nested

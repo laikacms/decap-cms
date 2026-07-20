@@ -1,4 +1,4 @@
-/** @jsxImportSource @emotion/react */
+
 import { css } from '@emotion/react';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
@@ -7,6 +7,8 @@ import utc from 'dayjs/plugin/utc';
 import React from 'react';
 
 import { buttons } from '@/ui/default/index';
+
+import type { CmsFieldBase, CmsFieldDateTime } from '@/lib/util/index';
 
 dayjs.extend(customParseFormat);
 dayjs.extend(localizedFormat);
@@ -54,7 +56,7 @@ function Buttons({ t, fieldName, handleChange, getNow }: ButtonsProps) {
 }
 
 interface DateTimeControlProps {
-  field: Record<string, unknown>;
+  field: CmsFieldDateTime & CmsFieldBase;
   forID?: string;
   onChange: (value: string, metadata?: Record<string, unknown>) => void;
   classNameWrapper: string;
@@ -74,13 +76,13 @@ function escapeZ(str: string): string {
   return str;
 }
 
-function getFormat(field: Record<string, unknown>, isUtc: boolean) {
+function getFormat(field: CmsFieldDateTime, isUtc: boolean) {
   let inputType = 'datetime-local';
   let inputFormat = 'YYYY-MM-DDTHH:mm';
   let format = `YYYY-MM-DDTHH:mm:ss.SSS${isUtc ? '[Z]' : 'Z'}`;
-  let userFormat = field.format as string | undefined;
-  let dateFormat = field.date_format as string | boolean | undefined;
-  let timeFormat = field.time_format as string | boolean | undefined;
+  let userFormat = field.format;
+  let dateFormat = field.date_format;
+  let timeFormat = field.time_format;
   if (dateFormat === true) dateFormat = 'YYYY-MM-DD';
   if (timeFormat === true) timeFormat = 'HH:mm';
 
@@ -127,7 +129,7 @@ export default function DateTimeControl({
   hasErrors,
   errorListId,
 }: DateTimeControlProps) {
-  const isUtc = (field.picker_utc as boolean) || false;
+  const isUtc = field.picker_utc || false;
 
   function isValidDate(dt: string) {
     return dayjs(dt, getFormat(field, isUtc).inputFormat).isValid() || dt === '';
@@ -219,7 +221,7 @@ export default function DateTimeControl({
       {!isDisabled && (
         <Buttons
           t={t}
-          fieldName={field.name as string}
+          fieldName={field.name}
           handleChange={handleChange}
           getNow={getNow}
         />
