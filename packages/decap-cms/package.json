@@ -215,7 +215,6 @@
     "@types/react-dom": "catalog:",
     "@types/redux-mock-store": "catalog:",
     "@types/sanitize-html": "catalog:",
-    "@types/tinycolor2": "catalog:",
     "@types/unist": "catalog:",
     "@vitejs/plugin-react": "catalog:",
     "@vitest/coverage-v8": "catalog:",

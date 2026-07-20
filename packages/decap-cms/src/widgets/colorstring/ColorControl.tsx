@@ -1,8 +1,9 @@
 import styled from '@emotion/styled';
 import React from 'react';
-import { HexAlphaColorPicker, HexColorPicker } from 'react-colorful';
+import { HexColorPicker, RgbaStringColorPicker } from 'react-colorful';
 
 import { zIndex } from '@/ui/default/index';
+import { parseColor, toHexString, toRgbaString } from './parseColor';
 
 import type { CmsFieldBase, CmsFieldColor } from '@/lib/util/index';
 
@@ -113,15 +114,26 @@ export default function ColorControl({
   }
 
   const enableAlpha = Boolean(field.enableAlpha ?? false);
-  const isValidColor = value && (enableAlpha ? /^#([A-Fa-f0-9]{8})$/.test(value) : /^#([A-Fa-f0-9]{6})$/.test(value));
-  const pickerColor = isValidColor ? value : enableAlpha ? '#00000000' : '#000000';
+  const parsedValue = parseColor(value);
+  const pickerColor = enableAlpha
+    ? parsedValue ? toRgbaString(parsedValue) : 'rgba(0, 0, 0, 1)'
+    : parsedValue
+    ? toHexString(parsedValue)
+    : '#000000';
 
   function handleChange(color: string) {
     if (!enableAlpha) {
       onChange(color);
       return;
     }
-    onChange(color);
+    // Store fully opaque colors in the shorter hex form; only keep rgba()
+    // when the alpha channel actually carries information.
+    const parsed = parseColor(color);
+    if (!parsed) {
+      onChange(color);
+      return;
+    }
+    onChange(parsed.a < 1 ? toRgbaString(parsed) : toHexString(parsed));
   }
 
   const allowInput = field.allowInput ?? false;
@@ -151,7 +163,7 @@ export default function ColorControl({
       <ColorSwatchBackground />
       <ColorSwatch
         background={value ?? '#fff'}
-        color={isValidColor ? 'rgba(255, 255, 255, 0)' : 'rgb(223, 223, 227)'}
+        color={parsedValue ? 'rgba(255, 255, 255, 0)' : 'rgb(223, 223, 227)'}
         role="button"
         tabIndex={0}
         aria-label="Open color picker"
@@ -169,7 +181,7 @@ export default function ColorControl({
         <ColorPickerContainer>
           <ClickOutsideDiv onClick={handleClose} />
           {enableAlpha
-            ? <HexAlphaColorPicker color={pickerColor} onChange={handleChange} />
+            ? <RgbaStringColorPicker color={pickerColor} onChange={handleChange} />
             : <HexColorPicker color={pickerColor} onChange={handleChange} />}
         </ColorPickerContainer>
       )}
