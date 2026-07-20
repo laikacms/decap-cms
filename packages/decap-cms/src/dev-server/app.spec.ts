@@ -2,13 +2,14 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { createApp } from './app';
-import { createLogger } from './logger';
 import { registerMiddleware as registerLocalFs } from './middlewares/localFs';
 
 import type http from 'node:http';
 import type { DevServerApp } from './app';
 
-const logger = createLogger({ level: 'error' });
+// Console-shaped no-op logger: keeps expected 4xx responses out of the test output.
+const noop = () => {};
+const logger = { log: noop, info: noop, error: noop, warn: noop, debug: noop };
 
 let server: http.Server;
 

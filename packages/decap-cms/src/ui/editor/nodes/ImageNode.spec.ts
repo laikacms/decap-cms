@@ -1,4 +1,4 @@
-import { $getRoot } from 'lexical';
+import { $getRoot, $nodesOfType } from 'lexical';
 import { describe, expect, it } from 'vitest';
 
 import { createHeadlessEditor } from '@/lib/richtext/lexical/headlessEditor';
@@ -169,9 +169,12 @@ describe('ImageNode.importDOM ($convertImageElement)', () => {
     let requiresConsentAfterReimport: boolean | null = null;
     editor.update(
       () => {
-        const [imageNode] = $getRoot().getChildren();
-        if (!$isImageNode(imageNode)) {
-          throw new Error('expected an ImageNode as the root child');
+        // Lexical normalizes a bare inline ImageNode under root by wrapping
+        // it in a paragraph on commit, so look the node up by type instead of
+        // assuming it stayed a direct root child.
+        const [imageNode] = $nodesOfType(ImageNode);
+        if (!imageNode) {
+          throw new Error('expected an ImageNode in the committed document');
         }
         const serialized = imageNode.exportJSON();
         expect('requiresConsent' in serialized).toBe(false);

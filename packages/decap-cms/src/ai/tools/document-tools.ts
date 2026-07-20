@@ -8,11 +8,15 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 
+import type { Tool } from 'ai';
+
 /**
  * Get the full document data
  * CLIENT-SIDE ONLY - handled by widget's onToolCall
  */
-export const getDocumentData = tool({
+// Explicit Tool annotations keep the emitted declarations from referencing
+// @ai-sdk/provider-utils internals (TS2883, "cannot be named").
+export const getDocumentData: Tool = tool({
   description: `Get the complete document data as JSON.
 
 Returns:
@@ -38,7 +42,7 @@ const jsonPatchOperationSchema = z.object({
  * Update document using JSON Patch (RFC 6902)
  * CLIENT-SIDE ONLY - handled by widget's onToolCall
  */
-export const updateDocument = tool({
+export const updateDocument: Tool = tool({
   description:
     `Update the document using JSON Patch operations (RFC 6902). This tool modifies the document directly in the CMS.
 
@@ -73,7 +77,7 @@ IMPORTANT: This tool executes on the client and directly modifies the CMS entry.
  * Client-side document tools
  * These are handled by the widget's onToolCall handler
  */
-export const documentTools = {
+export const documentTools: Record<string, Tool> = {
   getDocumentData,
   updateDocument,
 };

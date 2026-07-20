@@ -71,7 +71,9 @@ export default function withMapControl({ getFormat, getMap }: WithMapControlOpti
     React.useEffect(() => {
       const { field: f, value: v } = initRef.current;
       const format = getFormat ? getFormat(f) : getDefaultFormat();
-      const features = v ? [format.readFeature(v)] : [];
+      // readFeature returns a single feature or an array; flatten so the
+      // VectorSource generic infers plain Feature instead of FeatureLike.
+      const features = v ? [format.readFeature(v)].flat() : [];
 
       const featuresSource = new VectorSource({ features, wrapX: false });
       const featuresLayer = new VectorLayer({ source: featuresSource });
@@ -105,7 +107,8 @@ export default function withMapControl({ getFormat, getMap }: WithMapControlOpti
         }
         map = getMap ? getMap(target, featuresLayer) : getDefaultMap(target, featuresLayer);
         if (features.length > 0) {
-          map.getView().fit(featuresSource.getExtent(), { maxZoom: 16, padding: [80, 80, 80, 80] });
+          // getExtent() is only null for an empty source; guarded by features.length above.
+          map.getView().fit(featuresSource.getExtent()!, { maxZoom: 16, padding: [80, 80, 80, 80] });
         }
 
         const draw = new Draw({
