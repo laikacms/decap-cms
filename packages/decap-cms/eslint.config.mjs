@@ -1,7 +1,6 @@
 import eslint from '@eslint/js';
 import prettierConfig from 'eslint-config-prettier';
 import { createTypeScriptImportResolver } from 'eslint-import-resolver-typescript';
-import cypressPlugin from 'eslint-plugin-cypress';
 import importPlugin from 'eslint-plugin-import-x';
 import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
@@ -356,7 +355,7 @@ export default tseslint.config(
     },
   },
   // The `@/` alias convention applies inside `src/` only: files outside it
-  // (.storybook, cypress, dev-test) are bundled/type-checked without the
+  // (.storybook, playwright, dev-test) are bundled/type-checked without the
   // alias, so parent-relative imports into `src/` are correct there.
   {
     files: ['src/**/*.{ts,tsx,js,mjs}'],
@@ -385,32 +384,6 @@ export default tseslint.config(
       // CSF `render` functions legitimately call hooks to drive interactive
       // demos; the rule only flags them because `render` isn't capitalized.
       'react-hooks/rules-of-hooks': 'off',
-    },
-  },
-  // Cypress test files
-  {
-    files: ['cypress/**/*.ts', 'cypress/**/*.tsx'],
-    plugins: {
-      cypress: cypressPlugin,
-    },
-    languageOptions: {
-      globals: {
-        cy: 'readonly',
-        Cypress: 'readonly',
-        describe: 'readonly',
-        it: 'readonly',
-        before: 'readonly',
-        beforeEach: 'readonly',
-        after: 'readonly',
-        afterEach: 'readonly',
-        expect: 'readonly',
-      },
-    },
-    rules: {
-      ...cypressPlugin.configs.recommended.rules,
-      // Custom Cypress commands are legitimately chained after built-in commands;
-      // the rule gives false positives for prevSubject:true custom commands.
-      'cypress/unsafe-to-chain-command': 'warn',
     },
   },
   // Prettier config (must be last to override other formatting rules)

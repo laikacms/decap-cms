@@ -6,8 +6,8 @@ import type { Page } from '@playwright/test';
 import type { ReplayHandle } from './replay';
 
 /**
- * Playwright port of the recorded-backend editorial workflow suite
- * (`cypress/e2e/common/editorial_workflow.ts` + `cypress/utils/steps.ts`).
+ * Playwright port of the recorded-backend editorial workflow suite from the
+ * retired Cypress e2e setup.
  *
  * Tests replay recorded API fixtures (see `./replay.ts`), so they run fully
  * offline against the classic `decap-cms.js` bundle. Two environmental
@@ -18,9 +18,8 @@ import type { ReplayHandle } from './replay';
  *    (`1970-01-01-first-title`) and branch names are derived from it, and the
  *    recorded request bodies/URLs only match when it's frozen. Timers keep
  *    running; `advanceClock` bumps the fixed time so debounced inputs flush.
- *  - dialogs: the "load local backup?" confirm is dismissed (same as
- *    `cypress/utils/dismiss-local-backup.ts`), everything else (publish/delete
- *    confirms) is accepted.
+ *  - dialogs: the "load local backup?" confirm is dismissed, everything else
+ *    (publish/delete confirms) is accepted.
  *  - the "load local backup?" prompt is still a native `window.confirm`, so
  *    it's handled by the `page.on('dialog', ...)` handler below. All other
  *    confirms (delete/publish/leave-page) go through the `AlertDialog`

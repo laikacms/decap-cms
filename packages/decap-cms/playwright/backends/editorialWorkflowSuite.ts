@@ -27,10 +27,10 @@ import type { Entry } from './steps';
 
 /**
  * The editorial workflow suite shared by every recorded backend — the
- * Playwright port of `cypress/e2e/common/editorial_workflow.ts`. Each backend
+ * Playwright port of the retired Cypress editorial workflow suite. Each backend
  * spec instantiates it with its page and recorded identity; the describe
  * `title` must match the fixture filename prefix
- * (`<title>__<test title>.json` in `cypress/fixtures/`).
+ * (`<title>__<test title>.json` in `playwright/fixtures/`).
  */
 export interface EditorialWorkflowSuiteOptions {
   /** Describe title == fixture filename prefix. */

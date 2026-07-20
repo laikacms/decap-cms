@@ -2,15 +2,14 @@ import { editorialWorkflowSuite } from './editorialWorkflowSuite';
 
 /**
  * Editorial workflow against the GitHub backend (GraphQL API), replaying the
- * recorded fixtures in `cypress/fixtures/`. Drives the same page as the REST
+ * recorded fixtures in `playwright/fixtures/`. Drives the same page as the REST
  * suite but with `backend.use_graphql: true`
  * (dev-test/backends/github-graphql/config.yml).
  */
 editorialWorkflowSuite({
   title: 'GitHub Backend Editorial Workflow - GraphQL API',
   pageUrl: '/backends/github-graphql/',
-  // The sanitized identity the fixtures were recorded under
-  // (see FAKE_OWNER_USER in cypress/plugins/github.ts).
+  // The sanitized identity the fixtures were recorded under.
   user: {
     login: 'owner',
     id: 1,

@@ -45,7 +45,7 @@ export default defineConfig({
     {
       // Recorded-backend editorial workflow specs: drive the classic
       // `decap-cms.js` bundle against replayed API fixtures from
-      // `cypress/fixtures/` (see playwright/backends/replay.ts). The 1200px
+      // `playwright/fixtures/` (see playwright/backends/replay.ts). The 1200px
       // viewport matches what the recordings were captured under.
       name: 'github-backend',
       testMatch: /backends\/.*\.e2e\.ts/,
@@ -65,12 +65,12 @@ export default defineConfig({
     // Build the laika + classic IIFE bundles into dev-test/dist, then serve
     // dev-test/. (The classic decap-cms.js bundle is what the backend replay
     // specs drive.) The `&&` keeps `serve` as the long-lived foreground
-    // process Playwright waits on.
-    // DEMO_NODE_ENV=production: the replay fixtures predate StrictMode, whose
-    // dev-only double-invoked effects desync the consume-once replay (see
+    // process Playwright waits on. The demo bundles build as production React
+    // (vite build default), which the consume-once replay fixtures require:
+    // StrictMode's dev-only double-invoked effects would desync them (see
     // playwright/backends/replay.ts).
     command:
-      'pnpm run build:laika-demo && DEMO_NODE_ENV=production pnpm run build:demo && DEMO_NODE_ENV=production pnpm run build:demo-graphql && npx --yes serve dev-test -l '
+      'pnpm run build:laika-demo && pnpm run build:demo && pnpm run build:demo-graphql && npx --yes serve dev-test -l '
       + PORT,
     url: `${baseURL}/config.yml`,
     reuseExistingServer: !process.env.CI,

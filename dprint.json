@@ -43,7 +43,7 @@
     "**/storybook-static",
     "**/playwright-report",
     "**/test-results",
-    "**/cypress/fixtures",
+    "**/playwright/fixtures",
     "**/CHANGELOG.md",
     "pnpm-lock.yaml"
   ],

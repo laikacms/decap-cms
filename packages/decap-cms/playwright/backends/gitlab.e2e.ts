@@ -2,13 +2,12 @@ import { editorialWorkflowSuite } from './editorialWorkflowSuite';
 
 /**
  * Editorial workflow against the GitLab backend, replaying the recorded
- * fixtures in `cypress/fixtures/`.
+ * fixtures in `playwright/fixtures/`.
  */
 editorialWorkflowSuite({
   title: 'GitLab Backend Editorial Workflow',
   pageUrl: '/backends/gitlab/',
-  // The sanitized identity the fixtures were recorded under
-  // (see FAKE_OWNER_USER in cypress/plugins/gitlab.ts).
+  // The sanitized identity the fixtures were recorded under.
   user: {
     id: 1,
     name: 'owner',

@@ -5,13 +5,13 @@ import { fileURLToPath } from 'node:url';
 import type { Page, Request, Route } from '@playwright/test';
 
 /**
- * Replays the recorded backend API fixtures in `cypress/fixtures/` through
+ * Replays the recorded backend API fixtures in `playwright/fixtures/` through
  * Playwright's network interception layer.
  *
  * Each fixture file is an ordered array of request/response pairs captured
- * from a real backend (via the mockserver proxy in `cypress/utils/mock-server.ts`)
- * and sanitized to `owner/repo` + fake tokens. Matching mirrors the old
- * `stubFetch` command in `cypress/support/commands.ts`:
+ * from a real backend (via a mockserver proxy in the retired Cypress suite)
+ * and sanitized to `owner/repo` + fake tokens. Matching mirrors that suite's
+ * `stubFetch` command:
  *
  *  - a recording is consumed exactly once (spliced on match), so stateful
  *    flows replay correctly — e.g. the entries list is empty before a create
@@ -35,7 +35,7 @@ export interface RecordedRoute {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const FIXTURES_DIR = path.join(__dirname, '..', '..', 'cypress', 'fixtures');
+const FIXTURES_DIR = path.join(__dirname, '..', 'fixtures');
 const DIST_DIR = path.join(__dirname, '..', '..', 'dev-test', 'dist');
 
 /** Hosts the recordings cover; unmatched requests to these must not escape. */

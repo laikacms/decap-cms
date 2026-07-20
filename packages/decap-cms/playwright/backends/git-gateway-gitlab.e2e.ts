@@ -2,9 +2,9 @@ import { editorialWorkflowSuite } from './editorialWorkflowSuite';
 
 /**
  * Editorial workflow against git-gateway backed by GitLab, replaying the
- * recorded fixtures in `cypress/fixtures/`. Logs in through the Netlify
+ * recorded fixtures in `playwright/fixtures/`. Logs in through the Netlify
  * Identity email/password form (credentials are the sanitized values the
- * fixtures were recorded under, see cypress/plugins/gitGateway.ts).
+ * fixtures were recorded under).
  */
 editorialWorkflowSuite({
   title: 'Git Gateway (GitLab) Backend Editorial Workflow',

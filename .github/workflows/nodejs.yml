@@ -36,15 +36,10 @@ jobs:
           cache: 'pnpm'
       - name: log versions
         run: node --version && pnpm --version
-      - name: install dependencies (skip Cypress binary)
+      - name: install dependencies
         run: pnpm install --frozen-lockfile
-        env:
-          CYPRESS_INSTALL_BINARY: 0
       - name: run lint + types + unit tests
         run: pnpm run test:ci
 
-  # NOTE: the Cypress e2e job was dropped during the single-package restructure.
-  # Its orchestration scripts (test:e2e:run-ci, test:package-integrity) were
-  # removed along with the old workspace, so the job could no longer run. Restore
-  # a pnpm-based e2e job once the cypress + mockserver run scripts are rebuilt for
-  # the src/ layout.
+  # NOTE: there is no e2e job yet; the Playwright suite (pnpm test:e2e) runs
+  # locally only. Add a CI job for it once it is stable enough to gate merges.

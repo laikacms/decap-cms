@@ -2,13 +2,12 @@ import { editorialWorkflowSuite } from './editorialWorkflowSuite';
 
 /**
  * Editorial workflow against the Bitbucket backend, replaying the recorded
- * fixtures in `cypress/fixtures/`.
+ * fixtures in `playwright/fixtures/`.
  */
 editorialWorkflowSuite({
   title: 'BitBucket Backend Editorial Workflow',
   pageUrl: '/backends/bitbucket/',
-  // The sanitized identity the fixtures were recorded under
-  // (see FAKE_OWNER_USER in cypress/plugins/bitbucket.ts).
+  // The sanitized identity the fixtures were recorded under.
   user: {
     name: 'owner',
     display_name: 'owner',
