@@ -5,6 +5,8 @@
     "@laikacms/decap-cms": "4.0.2"
   },
   "changesets": [
+    "ai-widget-icon-pickers",
+    "apollo-client-v4",
     "proud-falcons-listen",
     "silent-token-refresh",
     "wild-lions-count"
