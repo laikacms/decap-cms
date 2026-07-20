@@ -1,0 +1,36 @@
+import { AiChatControl } from './AiChatControl';
+import { AiChatPreview } from './AiChatPreview';
+
+import type { AiChatWidgetOptions } from './types';
+
+export { AiChatControl } from './AiChatControl';
+export { AiChatPreview } from './AiChatPreview';
+export type { AiChatWidgetOptions, DocumentContext, SessionSummary } from './types';
+
+// i18n exports
+export type { Translation, TranslationKey } from './i18n/types';
+
+// React AI SDK runtime re-exports; keeps consumers off direct `@ai-sdk/react`.
+export { useChat } from '@ai-sdk/react';
+export type { UIMessage } from '@ai-sdk/react';
+
+function Widget(opts: AiChatWidgetOptions = {}) {
+  return {
+    name: 'ai-chat',
+    controlComponent: AiChatControl,
+    previewComponent: AiChatPreview,
+    ...opts,
+  };
+}
+
+export const DecapCmsWidgetAiChat = {
+  name: 'ai-chat',
+  Widget,
+  controlComponent: AiChatControl,
+  previewComponent: AiChatPreview,
+};
+
+// Kept for consumers migrating from @laikacms/decap-ai/widget.
+export const WidgetAiChat = DecapCmsWidgetAiChat;
+
+export default DecapCmsWidgetAiChat;
