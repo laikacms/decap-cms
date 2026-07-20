@@ -1,8 +1,8 @@
-/** @jsxImportSource @emotion/react */
+
 import { Menu as MenuPrimitive } from '@base-ui/react/menu';
-import { CheckIcon, ChevronRightIcon } from 'lucide-react';
 import * as React from 'react';
 
+import { CheckIcon, ChevronRightIcon } from '@/ui/icons/index';
 import { css, type WithClassName } from './styled';
 
 export function DropdownMenu(

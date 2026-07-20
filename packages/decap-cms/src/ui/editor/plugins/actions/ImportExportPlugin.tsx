@@ -1,7 +1,7 @@
 import { exportFile, importFile } from '@lexical/file';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { DownloadIcon, UploadIcon } from 'lucide-react';
 
+import { DownloadIcon, UploadIcon } from '@/ui/icons/index';
 import { Button } from '@/ui/Button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/Tooltip';
 

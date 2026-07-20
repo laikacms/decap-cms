@@ -1,8 +1,8 @@
 import { $isTableSelection } from '@lexical/table';
 import { $isRangeSelection, type BaseSelection, FORMAT_TEXT_COMMAND } from 'lexical';
-import { SubscriptIcon, SuperscriptIcon } from 'lucide-react';
 import { useState } from 'react';
 
+import { SubscriptIcon, SuperscriptIcon } from '@/ui/icons/index';
 import { useToolbarContext } from '@/ui/editor/context/ToolbarContext';
 import { useUpdateToolbarHandler } from '@/ui/editor/editor-hooks/useUpdateToolbar';
 import { ToggleGroup, ToggleGroupItem } from '@/ui/ToggleGroup';

@@ -1,4 +1,4 @@
-import { MessageCircleIcon } from 'lucide-react';
+import { MessageCircleIcon } from '@/ui/icons/index';
 
 import type { BlockDefinition, BlockPreviewProps } from '@/lib/richtext';
 

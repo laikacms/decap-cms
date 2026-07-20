@@ -1,6 +1,6 @@
 import { INSERT_HORIZONTAL_RULE_COMMAND } from '@lexical/react/LexicalHorizontalRuleNode';
-import { MinusIcon } from 'lucide-react';
 
+import { MinusIcon } from '@/ui/icons/index';
 import { ComponentPickerOption } from '@/ui/editor/plugins/picker/ComponentPickerOption';
 
 export function DividerPickerPlugin() {

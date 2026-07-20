@@ -12,6 +12,9 @@ import {
   type LexicalEditor,
   SELECTION_CHANGE_COMMAND,
 } from 'lexical';
+import { type Dispatch, type JSX, useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+
 import {
   BoldIcon,
   CodeIcon,
@@ -21,10 +24,7 @@ import {
   SubscriptIcon,
   SuperscriptIcon,
   UnderlineIcon,
-} from 'lucide-react';
-import { type Dispatch, type JSX, useCallback, useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-
+} from '@/ui/icons/index';
 import { getDOMRangeRect } from '@/ui/editor/utils/get-dom-range-rect';
 import { getSelectedNode } from '@/ui/editor/utils/get-selected-node';
 import { setFloatingElemPosition } from '@/ui/editor/utils/set-floating-elem-position';

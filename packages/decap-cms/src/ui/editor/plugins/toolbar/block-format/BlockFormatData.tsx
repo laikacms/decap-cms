@@ -8,7 +8,7 @@ import {
   ListTodoIcon,
   QuoteIcon,
   TextIcon,
-} from 'lucide-react';
+} from '@/ui/icons/index';
 
 export const blockTypeToBlockName: Record<
   string,

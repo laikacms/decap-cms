@@ -1,7 +1,7 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { LockIcon, UnlockIcon } from 'lucide-react';
 import { useState } from 'react';
 
+import { LockIcon, UnlockIcon } from '@/ui/icons/index';
 import { Button } from '@/ui/Button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/Tooltip';
 

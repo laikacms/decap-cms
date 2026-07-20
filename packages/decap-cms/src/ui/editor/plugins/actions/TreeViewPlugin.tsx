@@ -1,7 +1,7 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { TreeView } from '@lexical/react/LexicalTreeView';
-import { NotebookPenIcon } from 'lucide-react';
 
+import { NotebookPenIcon } from '@/ui/icons/index';
 import { Button } from '@/ui/Button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/ui/Dialog';
 import { ScrollArea, ScrollBar } from '@/ui/ScrollArea';

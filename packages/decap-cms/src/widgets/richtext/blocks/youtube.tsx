@@ -1,4 +1,4 @@
-import { VideoIcon } from 'lucide-react';
+import { VideoIcon } from '@/ui/icons/index';
 
 import type { BlockDefinition, BlockPreviewProps } from '@/lib/richtext';
 

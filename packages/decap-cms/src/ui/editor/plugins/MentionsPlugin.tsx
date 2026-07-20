@@ -5,10 +5,10 @@ import {
   useBasicTypeaheadTriggerMatch,
 } from '@lexical/react/LexicalTypeaheadMenuPlugin';
 import { LexicalTypeaheadMenuPlugin } from '@lexical/react/LexicalTypeaheadMenuPlugin';
-import { CircleUserRoundIcon } from 'lucide-react';
 import { type JSX, useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+import { CircleUserRoundIcon } from '@/ui/icons/index';
 import { Command, CommandGroup, CommandItem, CommandList } from '@/ui/Command';
 import { $createMentionNode } from '@/ui/editor/nodes/mention-node';
 

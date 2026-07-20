@@ -1,8 +1,8 @@
 import { $createCodeNode } from '@lexical/code';
 import { $setBlocksType } from '@lexical/selection';
 import { $getSelection, $isRangeSelection } from 'lexical';
-import { CodeIcon } from 'lucide-react';
 
+import { CodeIcon } from '@/ui/icons/index';
 import { ComponentPickerOption } from '@/ui/editor/plugins/picker/ComponentPickerOption';
 
 export function CodePickerPlugin() {

@@ -1,5 +1,4 @@
-import { TableIcon } from 'lucide-react';
-
+import { TableIcon } from '@/ui/icons/index';
 import { DropdownMenuItem } from '@/ui/DropdownMenu';
 import { useToolbarContext } from '@/ui/editor/context/ToolbarContext';
 import { InsertTableDialog } from '@/ui/editor/plugins/TablePlugin';

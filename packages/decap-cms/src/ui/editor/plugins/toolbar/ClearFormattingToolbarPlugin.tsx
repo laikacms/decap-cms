@@ -3,9 +3,9 @@ import { $isHeadingNode, $isQuoteNode } from '@lexical/rich-text';
 import { $isTableSelection } from '@lexical/table';
 import { $getNearestBlockElementAncestorOrThrow } from '@lexical/utils';
 import { $createParagraphNode, $getSelection, $isRangeSelection, $isTextNode } from 'lexical';
-import { EraserIcon } from 'lucide-react';
 import { useCallback } from 'react';
 
+import { EraserIcon } from '@/ui/icons/index';
 import { Button } from '@/ui/Button';
 import { useToolbarContext } from '@/ui/editor/context/ToolbarContext';
 

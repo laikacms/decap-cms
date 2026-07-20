@@ -1,6 +1,6 @@
 import { INSERT_CHECK_LIST_COMMAND } from '@lexical/list';
-import { ListTodoIcon } from 'lucide-react';
 
+import { ListTodoIcon } from '@/ui/icons/index';
 import { ComponentPickerOption } from '@/ui/editor/plugins/picker/ComponentPickerOption';
 
 export function CheckListPickerPlugin() {

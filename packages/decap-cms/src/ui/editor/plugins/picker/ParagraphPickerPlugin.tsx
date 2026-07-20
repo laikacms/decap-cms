@@ -1,7 +1,7 @@
 import { $setBlocksType } from '@lexical/selection';
 import { $createParagraphNode, $getSelection, $isRangeSelection } from 'lexical';
-import { TextIcon } from 'lucide-react';
 
+import { TextIcon } from '@/ui/icons/index';
 import { ComponentPickerOption } from '@/ui/editor/plugins/picker/ComponentPickerOption';
 
 export function ParagraphPickerPlugin() {

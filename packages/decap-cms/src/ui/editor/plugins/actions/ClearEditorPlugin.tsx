@@ -1,7 +1,7 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { CLEAR_EDITOR_COMMAND } from 'lexical';
-import { Trash2Icon } from 'lucide-react';
 
+import { Trash2Icon } from '@/ui/icons/index';
 import { Button } from '@/ui/Button';
 import {
   Dialog,

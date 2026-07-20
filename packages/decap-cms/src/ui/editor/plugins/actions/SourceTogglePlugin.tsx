@@ -1,9 +1,9 @@
 import { $createCodeNode } from '@lexical/code';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { $createTextNode, $getRoot, $setSelection } from 'lexical';
-import { FileTextIcon } from 'lucide-react';
 import { useCallback } from 'react';
 
+import { FileTextIcon } from '@/ui/icons/index';
 import { hasMapper } from '@/lib/richtext';
 import { editorStateToSource, sourceToEditorState } from '@/lib/richtext/lexical';
 import { Button } from '@/ui/Button';

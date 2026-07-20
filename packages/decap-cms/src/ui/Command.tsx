@@ -1,7 +1,7 @@
-/** @jsxImportSource @emotion/react */
-import { SearchIcon } from 'lucide-react';
+
 import * as React from 'react';
 
+import { SearchIcon } from '@/ui/icons/index';
 import { CommandPrimitive } from './cmdk';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './Dialog';
 import { css } from './styled';

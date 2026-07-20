@@ -1,8 +1,8 @@
 import { $getSelectionStyleValueForProperty, $patchStyleText } from '@lexical/selection';
 import { $getSelection, $isRangeSelection, type BaseSelection } from 'lexical';
-import { ChevronDownIcon, TypeIcon } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
+import { ChevronDownIcon, TypeIcon } from '@/ui/icons/index';
 import { Button } from '@/ui/Button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/ui/DropdownMenu';
 import { useToolbarContext } from '@/ui/editor/context/ToolbarContext';

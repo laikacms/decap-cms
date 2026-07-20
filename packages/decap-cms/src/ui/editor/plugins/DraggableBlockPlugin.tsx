@@ -9,10 +9,10 @@ import {
   $isTextNode,
   type NodeKey,
 } from 'lexical';
-import { GripVerticalIcon, PlusIcon } from 'lucide-react';
 import { type JSX, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as ReactDOM from 'react-dom';
 
+import { GripVerticalIcon, PlusIcon } from '@/ui/icons/index';
 import { Button } from '@/ui/Button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/ui/Command';
 import { useEditorModal } from '@/ui/editor/editor-hooks/useModal';

@@ -1,6 +1,6 @@
 import { INSERT_ORDERED_LIST_COMMAND } from '@lexical/list';
-import { ListOrderedIcon } from 'lucide-react';
 
+import { ListOrderedIcon } from '@/ui/icons/index';
 import { ComponentPickerOption } from '@/ui/editor/plugins/picker/ComponentPickerOption';
 
 export function NumberedListPickerPlugin() {

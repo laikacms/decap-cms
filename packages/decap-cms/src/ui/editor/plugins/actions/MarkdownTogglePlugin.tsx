@@ -2,9 +2,9 @@ import { $createCodeNode, $isCodeNode } from '@lexical/code';
 import { $convertFromMarkdownString, $convertToMarkdownString, type Transformer } from '@lexical/markdown';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { $createTextNode, $getRoot } from 'lexical';
-import { FileTextIcon } from 'lucide-react';
 import { useCallback } from 'react';
 
+import { FileTextIcon } from '@/ui/icons/index';
 import { Button } from '@/ui/Button';
 
 export function MarkdownTogglePlugin({

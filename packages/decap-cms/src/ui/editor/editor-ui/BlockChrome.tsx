@@ -1,7 +1,7 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { $getNodeByKey } from 'lexical';
-import { PencilIcon, PuzzleIcon, Trash2Icon, XIcon } from 'lucide-react';
 
+import { PencilIcon, PuzzleIcon, Trash2Icon, XIcon } from '@/ui/icons/index';
 import { useBlocksConfig } from '@/lib/richtext/lexical';
 import { Button } from '@/ui/Button';
 

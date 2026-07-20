@@ -7,9 +7,9 @@ import {
   REDO_COMMAND,
   UNDO_COMMAND,
 } from 'lexical';
-import { MicIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
+import { MicIcon } from '@/ui/icons/index';
 import { Button } from '@/ui/Button';
 import { useReport } from '@/ui/editor/editor-hooks/useReport';
 import { CAN_USE_DOM } from '@/ui/editor/shared/can-use-dom';

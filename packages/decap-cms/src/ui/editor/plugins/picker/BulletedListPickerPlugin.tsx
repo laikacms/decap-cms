@@ -1,6 +1,6 @@
 import { INSERT_UNORDERED_LIST_COMMAND } from '@lexical/list';
-import { ListIcon } from 'lucide-react';
 
+import { ListIcon } from '@/ui/icons/index';
 import { ComponentPickerOption } from '@/ui/editor/plugins/picker/ComponentPickerOption';
 
 export function BulletedListPickerPlugin() {

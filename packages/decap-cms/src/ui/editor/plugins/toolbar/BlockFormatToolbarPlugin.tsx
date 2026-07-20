@@ -2,8 +2,8 @@ import { $isListNode, ListNode } from '@lexical/list';
 import { $isHeadingNode } from '@lexical/rich-text';
 import { $findMatchingParent, $getNearestNodeOfType } from '@lexical/utils';
 import { $isRangeSelection, $isRootOrShadowRoot, type BaseSelection } from 'lexical';
-import { ChevronDownIcon } from 'lucide-react';
 
+import { ChevronDownIcon } from '@/ui/icons/index';
 import { Button } from '@/ui/Button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/ui/DropdownMenu';
 import { useToolbarContext } from '@/ui/editor/context/ToolbarContext';

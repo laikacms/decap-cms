@@ -1,5 +1,4 @@
-import { PuzzleIcon } from 'lucide-react';
-
+import { PuzzleIcon } from '@/ui/icons/index';
 import { $insertBlock } from '@/lib/richtext/lexical';
 import { DropdownMenuItem } from '@/ui/DropdownMenu';
 import { useToolbarContext } from '@/ui/editor/context/ToolbarContext';

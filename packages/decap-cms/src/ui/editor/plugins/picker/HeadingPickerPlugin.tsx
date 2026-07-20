@@ -1,8 +1,8 @@
 import { $createHeadingNode } from '@lexical/rich-text';
 import { $setBlocksType } from '@lexical/selection';
 import { $getSelection, $isRangeSelection } from 'lexical';
-import { Heading1Icon, Heading2Icon, Heading3Icon } from 'lucide-react';
 
+import { Heading1Icon, Heading2Icon, Heading3Icon } from '@/ui/icons/index';
 import { ComponentPickerOption } from '@/ui/editor/plugins/picker/ComponentPickerOption';
 
 export function HeadingPickerPlugin({ n }: { n: 1 | 2 | 3 }) {

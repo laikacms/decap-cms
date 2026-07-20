@@ -1,8 +1,8 @@
 import { $getSelectionStyleValueForProperty, $patchStyleText } from '@lexical/selection';
 import { $getSelection, $isRangeSelection, type BaseSelection } from 'lexical';
-import { Minus, Plus } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
+import { Minus, Plus } from '@/ui/icons/index';
 import { Button } from '@/ui/Button';
 import { ButtonGroup } from '@/ui/ButtonGroup';
 import { useToolbarContext } from '@/ui/editor/context/ToolbarContext';

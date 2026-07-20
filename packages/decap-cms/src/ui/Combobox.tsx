@@ -1,8 +1,8 @@
-/** @jsxImportSource @emotion/react */
+
 import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox';
-import { CheckIcon, ChevronDownIcon, XIcon } from 'lucide-react';
 import * as React from 'react';
 
+import { CheckIcon, ChevronDownIcon, XIcon } from '@/ui/icons/index';
 import { css, type WithClassName } from './styled';
 
 export function Combobox<Value, Multiple extends boolean | undefined = false>(

@@ -1,9 +1,9 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { IS_APPLE, mergeRegister } from '@lexical/utils';
 import { CAN_REDO_COMMAND, CAN_UNDO_COMMAND, COMMAND_PRIORITY_CRITICAL, REDO_COMMAND, UNDO_COMMAND } from 'lexical';
-import { RedoIcon, UndoIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import { RedoIcon, UndoIcon } from '@/ui/icons/index';
 import { Button } from '@/ui/Button';
 import { ButtonGroup } from '@/ui/ButtonGroup';
 import { useToolbarContext } from '@/ui/editor/context/ToolbarContext';

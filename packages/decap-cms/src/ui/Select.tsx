@@ -1,8 +1,8 @@
-/** @jsxImportSource @emotion/react */
+
 import { Select as SelectPrimitive } from '@base-ui/react/select';
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 import * as React from 'react';
 
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from '@/ui/icons/index';
 import { css, type WithClassName } from './styled';
 
 export function Select({

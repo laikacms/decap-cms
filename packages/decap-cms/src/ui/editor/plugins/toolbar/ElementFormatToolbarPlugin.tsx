@@ -9,6 +9,8 @@ import {
   INDENT_CONTENT_COMMAND,
   OUTDENT_CONTENT_COMMAND,
 } from 'lexical';
+import { useState } from 'react';
+
 import {
   AlignCenterIcon,
   AlignJustifyIcon,
@@ -16,9 +18,7 @@ import {
   AlignRightIcon,
   IndentDecreaseIcon,
   IndentIncreaseIcon,
-} from 'lucide-react';
-import { useState } from 'react';
-
+} from '@/ui/icons/index';
 import { useToolbarContext } from '@/ui/editor/context/ToolbarContext';
 import { useUpdateToolbarHandler } from '@/ui/editor/editor-hooks/useUpdateToolbar';
 import { getSelectedNode } from '@/ui/editor/utils/get-selected-node';

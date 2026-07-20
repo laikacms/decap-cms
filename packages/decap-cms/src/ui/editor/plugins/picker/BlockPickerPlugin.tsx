@@ -1,5 +1,4 @@
-import { PuzzleIcon } from 'lucide-react';
-
+import { PuzzleIcon } from '@/ui/icons/index';
 import { $insertBlock } from '@/lib/richtext/lexical';
 import { ComponentPickerOption } from './ComponentPickerOption';
 

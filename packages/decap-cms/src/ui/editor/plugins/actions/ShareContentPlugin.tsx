@@ -5,9 +5,9 @@ import {
 } from '@lexical/file';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { CLEAR_HISTORY_COMMAND } from 'lexical';
-import { SendIcon } from 'lucide-react';
 import { useEffect } from 'react';
 
+import { SendIcon } from '@/ui/icons/index';
 import { Button } from '@/ui/Button';
 import { docFromHash, docToHash } from '@/ui/editor/utils/doc-serialization';
 import { addToast } from '@/ui/toastManager';

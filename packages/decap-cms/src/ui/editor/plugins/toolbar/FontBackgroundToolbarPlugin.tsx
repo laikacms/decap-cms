@@ -1,8 +1,8 @@
 import { $getSelectionStyleValueForProperty, $patchStyleText } from '@lexical/selection';
 import { $getSelection, $isRangeSelection, type BaseSelection } from 'lexical';
-import { PaintBucketIcon } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
+import { PaintBucketIcon } from '@/ui/icons/index';
 import { Button } from '@/ui/Button';
 import { useToolbarContext } from '@/ui/editor/context/ToolbarContext';
 import { useUpdateToolbarHandler } from '@/ui/editor/editor-hooks/useUpdateToolbar';

@@ -1,8 +1,8 @@
-/** @jsxImportSource @emotion/react */
+
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog';
-import { XIcon } from 'lucide-react';
 import * as React from 'react';
 
+import { XIcon } from '@/ui/icons/index';
 import { Button } from './Button';
 import { css } from './styled';
 

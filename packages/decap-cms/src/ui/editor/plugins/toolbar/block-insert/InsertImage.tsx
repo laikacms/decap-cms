@@ -1,5 +1,4 @@
-import { ImageIcon } from 'lucide-react';
-
+import { ImageIcon } from '@/ui/icons/index';
 import { DropdownMenuItem } from '@/ui/DropdownMenu';
 import { useToolbarContext } from '@/ui/editor/context/ToolbarContext';
 import { InsertImageDialog } from '@/ui/editor/extensions/ImagesExtension';

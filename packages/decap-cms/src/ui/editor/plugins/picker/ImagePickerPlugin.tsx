@@ -1,5 +1,4 @@
-import { ImageIcon } from 'lucide-react';
-
+import { ImageIcon } from '@/ui/icons/index';
 import { InsertImageDialog } from '@/ui/editor/extensions/ImagesExtension';
 import { ComponentPickerOption } from '@/ui/editor/plugins/picker/ComponentPickerOption';
 

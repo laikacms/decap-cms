@@ -15,9 +15,9 @@ import {
   type LexicalNode,
   PASTE_COMMAND,
 } from 'lexical';
-import { Clipboard, ClipboardType, Copy, Link2Off, Scissors, Trash2 } from 'lucide-react';
 import { useMemo } from 'react';
 
+import { Clipboard, ClipboardType, Copy, Link2Off, Scissors, Trash2 } from '@/ui/icons/index';
 import { showAlert } from '@/ui';
 
 import type { JSX } from 'react';

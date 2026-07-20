@@ -15,10 +15,10 @@ import {
   type LexicalEditor,
   SELECTION_CHANGE_COMMAND,
 } from 'lexical';
-import { Check, Pencil, Trash, X } from 'lucide-react';
 import { type Dispatch, type JSX, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+import { Check, Pencil, Trash, X } from '@/ui/icons/index';
 import { Button } from '@/ui/Button';
 import { getSelectedNode } from '@/ui/editor/utils/get-selected-node';
 import { setFloatingElemPositionForLinkEditor } from '@/ui/editor/utils/set-floating-elem-position-for-link-editor';

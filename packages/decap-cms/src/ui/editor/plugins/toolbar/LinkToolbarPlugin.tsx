@@ -5,9 +5,9 @@ import {
   // KEY_MODIFIER_COMMAND,
   type BaseSelection,
 } from 'lexical';
-import { LinkIcon } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
+import { LinkIcon } from '@/ui/icons/index';
 import { useToolbarContext } from '@/ui/editor/context/ToolbarContext';
 import { useUpdateToolbarHandler } from '@/ui/editor/editor-hooks/useUpdateToolbar';
 import { getSelectedNode } from '@/ui/editor/utils/get-selected-node';
