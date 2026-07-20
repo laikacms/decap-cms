@@ -77,17 +77,18 @@ once per session the first time a `markdown` field is resolved.
 
 ## GraphQL client libraries are now optional peer dependencies
 
-The Apollo client packages (`apollo-client`, `apollo-cache-inmemory`, `apollo-link-http`,
-`apollo-link-context`) and `graphql`/`graphql-tag` are no longer installed with the package. They
-are only needed by the GitHub and GitLab backends when `use_graphql: true` is set, so they are now
-declared as optional peer dependencies and the GraphQL API classes moved to opt-in entry points.
-Backends with `use_graphql` enabled throw at authentication time if no GraphQL API is registered.
+The GraphQL client (`@apollo/client` v4, which replaced the legacy `apollo-client`/
+`apollo-cache-inmemory`/`apollo-link-http`/`apollo-link-context` stack) and `graphql`/`graphql-tag`
+are no longer installed with the package. They are only needed by the GitHub and GitLab backends
+when `use_graphql: true` is set, so they are now declared as optional peer dependencies and the
+GraphQL API classes moved to opt-in entry points. Backends with `use_graphql` enabled throw at
+authentication time if no GraphQL API is registered.
 
 **Migration:** Only if you use `use_graphql: true` — install the peers and import the matching entry
 point before `init()`:
 
 ```sh
-pnpm add apollo-client apollo-cache-inmemory apollo-link-http apollo-link-context graphql graphql-tag
+pnpm add @apollo/client rxjs graphql graphql-tag
 ```
 
 ```diff

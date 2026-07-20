@@ -1,7 +1,5 @@
-import { defaultDataIdFromObject, InMemoryCache, IntrospectionFragmentMatcher } from 'apollo-cache-inmemory';
-import { ApolloClient, type ApolloError } from 'apollo-client';
-import { setContext } from 'apollo-link-context';
-import { createHttpLink } from 'apollo-link-http';
+import { ApolloClient, CombinedGraphQLErrors, defaultDataIdFromObject, HttpLink, InMemoryCache } from '@apollo/client';
+import { SetContextLink } from '@apollo/client/link/context';
 import { trim, trimStart } from 'lodash-es';
 
 import {
@@ -14,22 +12,17 @@ import {
   throwOnConflictingBranches,
 } from '@/lib/util/index';
 import API, { API_NAME, MOCK_PULL_REQUEST } from './API';
-import introspectionQueryResultData from './fragmentTypes';
+import possibleTypes from './fragmentTypes';
 import * as mutations from './mutations';
 import * as queries from './queries';
 import { type BlobArgs, type Config, PullRequestState } from './types/api';
 
+import type { OperationVariables } from '@apollo/client';
 import type { Endpoints } from '@octokit/types';
-import type { NormalizedCacheObject } from 'apollo-cache-inmemory';
-import type { MutationOptions, OperationVariables, QueryOptions } from 'apollo-client';
-import type { GraphQLError } from 'graphql';
+import type { GraphQLFormattedError } from 'graphql';
 
 const NO_CACHE = 'no-cache';
 const CACHE_FIRST = 'cache-first';
-
-const fragmentMatcher = new IntrospectionFragmentMatcher({
-  introspectionQueryResultData,
-});
 
 interface TreeEntry {
   object?: {
@@ -87,11 +80,11 @@ function transformPullRequest(pr: GraphQLPullRequest) {
   };
 }
 
-type Error = GraphQLError & { type: string };
+type GitHubGraphQLError = GraphQLFormattedError & { type: string };
 type GitHubPull = Endpoints['GET /repos/{owner}/{repo}/pulls']['response']['data'][0];
 
 export default class GraphQLAPI extends API {
-  client: ApolloClient<NormalizedCacheObject>;
+  client: ApolloClient;
 
   constructor(config: Config) {
     super(config);
@@ -100,7 +93,7 @@ export default class GraphQLAPI extends API {
   }
 
   getApolloClient() {
-    const authLink = setContext((_, { headers }) => {
+    const authLink = new SetContextLink(({ headers }) => {
       return {
         headers: {
           'Content-Type': 'application/json; charset=utf-8',
@@ -109,20 +102,12 @@ export default class GraphQLAPI extends API {
         },
       };
     });
-    const httpLink = createHttpLink({ uri: `${this.apiRoot}/graphql` });
+    const httpLink = new HttpLink({ uri: `${this.apiRoot}/graphql` });
     return new ApolloClient({
       link: authLink.concat(httpLink),
-      cache: new InMemoryCache({ fragmentMatcher }),
-      defaultOptions: {
-        watchQuery: {
-          fetchPolicy: NO_CACHE,
-          errorPolicy: 'ignore',
-        },
-        query: {
-          fetchPolicy: NO_CACHE,
-          errorPolicy: 'all',
-        },
-      },
+      cache: new InMemoryCache({ possibleTypes }),
+      // don't append the extensions.clientLibrary telemetry blob to requests
+      enhancedClientAwareness: { transport: false },
     });
   }
 
@@ -139,27 +124,28 @@ export default class GraphQLAPI extends API {
     return data.repository;
   }
 
-  query(options: QueryOptions<OperationVariables>) {
-    return this.client.query(options).catch(error => {
+  query(options: ApolloClient.QueryOptions<any, OperationVariables>) {
+    // no-cache/all mirror the old client-wide defaultOptions; v4 gates typed
+    // defaultOptions behind a global module augmentation we don't want to ship
+    return this.client.query<any>({ fetchPolicy: NO_CACHE, errorPolicy: 'all', ...options }).catch(error => {
       throw new APIError(error.message, 500, 'GitHub');
     });
   }
 
-  async mutate(options: MutationOptions<OperationVariables>): Promise<any> {
+  async mutate(options: ApolloClient.MutateOptions<any, OperationVariables, InMemoryCache>): Promise<any> {
     try {
       const result = await this.client.mutate(options);
       return result;
     } catch (error: unknown) {
-      const errors = (error as ApolloError).graphQLErrors;
-      if (Array.isArray(errors) && errors.some(e => e.message === 'Ref cannot be created.')) {
+      const errors = CombinedGraphQLErrors.is(error) ? error.errors : [];
+      if (errors.some(e => e.message === 'Ref cannot be created.')) {
         const refName = options?.variables?.createRefInput?.name || '';
         const branchName = trimStart(refName, 'refs/heads/');
         if (branchName) {
           await throwOnConflictingBranches(branchName, name => this.getBranch(name), API_NAME);
         }
       } else if (
-        Array.isArray(errors)
-        && errors.some(e =>
+        errors.some(e =>
           new RegExp(
             `A ref named "refs/heads/${CMS_BRANCH_PREFIX}/.+?" already exists in the repository.`,
           ).test(e.message)
@@ -181,7 +167,7 @@ export default class GraphQLAPI extends API {
           }
         }
       }
-      throw new APIError((error as ApolloError).message, 500, 'GitHub');
+      throw new APIError((error as Error).message, 500, 'GitHub');
     }
   }
 
@@ -449,7 +435,12 @@ export default class GraphQLAPI extends API {
         deleteRefInput: { refId: branch.id },
       },
 
-      update: (store: any) => store.data.delete(defaultDataIdFromObject(branch)),
+      update: cache => {
+        const id = defaultDataIdFromObject(branch);
+        if (id) {
+          cache.evict({ id });
+        }
+      },
     });
 
     return data!.deleteRef;
@@ -567,9 +558,13 @@ export default class GraphQLAPI extends API {
             closePullRequestInput: { pullRequestId: pullRequest.id },
           },
 
-          update: (store: any) => {
-            store.data.delete(defaultDataIdFromObject(branch));
-            store.data.delete(defaultDataIdFromObject(pullRequest));
+          update: cache => {
+            for (const entity of [branch, pullRequest]) {
+              const id = defaultDataIdFromObject(entity);
+              if (id) {
+                cache.evict({ id });
+              }
+            }
           },
         });
 
@@ -578,9 +573,8 @@ export default class GraphQLAPI extends API {
         return await this.deleteBranch(branchName);
       }
     } catch (e: unknown) {
-      const { graphQLErrors } = e as ApolloError;
-      if (graphQLErrors && graphQLErrors.length > 0) {
-        const branchNotFound = graphQLErrors.some(e => (e as Error).type === 'NOT_FOUND');
+      if (CombinedGraphQLErrors.is(e)) {
+        const branchNotFound = e.errors.some(error => (error as GitHubGraphQLError).type === 'NOT_FOUND');
         if (branchNotFound) {
           return;
         }
