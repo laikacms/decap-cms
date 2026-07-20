@@ -1,8 +1,8 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useState } from 'react';
 
-import { LockIcon, UnlockIcon } from '@/ui/icons/index';
 import { Button } from '@/ui/Button';
+import { LockIcon, UnlockIcon } from '@/ui/icons/index';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/Tooltip';
 
 export function EditModeTogglePlugin() {

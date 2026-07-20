@@ -2,7 +2,6 @@ import { $getSelectionStyleValueForProperty, $patchStyleText } from '@lexical/se
 import { $getSelection, $isRangeSelection, type BaseSelection } from 'lexical';
 import { useCallback, useState } from 'react';
 
-import { BaselineIcon } from '@/ui/icons/index';
 import { Button } from '@/ui/Button';
 import { useToolbarContext } from '@/ui/editor/context/ToolbarContext';
 import { useUpdateToolbarHandler } from '@/ui/editor/editor-hooks/useUpdateToolbar';
@@ -17,6 +16,7 @@ import {
   ColorPickerInput,
   ColorPickerTrigger,
 } from '@/ui/editor/editor-ui/ColorPicker';
+import { BaselineIcon } from '@/ui/icons/index';
 
 export function FontColorToolbarPlugin() {
   const { activeEditor } = useToolbarContext();

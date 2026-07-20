@@ -1,10 +1,9 @@
-
 import styled from '@emotion/styled';
 import React from 'react';
 
 import { isHotkey } from '@/lib/util/index';
-import { shadows, text, zIndex } from '@/ui/default/index';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/ui';
+import { shadows, text, zIndex } from '@/ui/default/index';
 import SettingsButton from './SettingsButton';
 
 interface SelectOption {

@@ -89,21 +89,23 @@ test and this line together.
 2. **`pnpm typecheck`**. With cross-package imports now relative and one tsconfig covering
    everything, type errors caused by the move (extension mismatches, missing index files in
    formerly-empty packages, etc.) will surface here.
-3. **`pnpm build`** (`rimraf dist && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json
-   && pnpm copy:assets` — plain `tsc`, not tsup; there is no tsup dependency or config anywhere in
-   this repo). `tsconfig.build.json` compiles the whole `src/` tree (`include: ["src/**/*"]`,
-   `rootDir: src`, `outDir: dist`) file-by-file into `dist/`, mirroring the source layout 1:1 —
-   it does not discover or bundle per-entry-point like tsup would. `tsc-alias` then rewrites the
-   `@/*` path-alias imports tsc leaves untouched, and `copy:assets` copies non-TS static files
-   (e.g. `widgets/code/data/languages.json`) that `tsc` doesn't emit.
-   Because `tsc` happily compiles *any* `.ts`/`.tsx` under `src/` (not just `index.*`), a bad
-   `exports` subpath does **not** fail the build. If a subpath points at a `dist/` file with no
-   corresponding compiled `src/` file (typo'd name, deleted/renamed directory, wrong path), the
-   build succeeds silently and the failure only shows up later, at runtime import resolution
-   (`ERR_PACKAGE_PATH_NOT_EXPORTED` / module-not-found). `src/__tests__/exports-dist-targets.test.ts`
-   pins this: after a real `pnpm build`, it asserts every `exports` subpath's target file(s)
-   actually exist in `dist/`. (It's skipped on a clean checkout with no `dist/` yet, so it doesn't
-   force a build into `pnpm test`/`test:ci` — run `pnpm build` first to exercise it.)
+3. **`pnpm build`**
+   (`rimraf dist && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json
+   && pnpm copy:assets`
+   — plain `tsc`, not tsup; there is no tsup dependency or config anywhere in this repo).
+   `tsconfig.build.json` compiles the whole `src/` tree (`include: ["src/**/*"]`, `rootDir: src`,
+   `outDir: dist`) file-by-file into `dist/`, mirroring the source layout 1:1 — it does not discover
+   or bundle per-entry-point like tsup would. `tsc-alias` then rewrites the `@/*` path-alias imports
+   tsc leaves untouched, and `copy:assets` copies non-TS static files (e.g.
+   `widgets/code/data/languages.json`) that `tsc` doesn't emit. Because `tsc` happily compiles _any_
+   `.ts`/`.tsx` under `src/` (not just `index.*`), a bad `exports` subpath does **not** fail the
+   build. If a subpath points at a `dist/` file with no corresponding compiled `src/` file (typo'd
+   name, deleted/renamed directory, wrong path), the build succeeds silently and the failure only
+   shows up later, at runtime import resolution (`ERR_PACKAGE_PATH_NOT_EXPORTED` /
+   module-not-found). `src/__tests__/exports-dist-targets.test.ts` pins this: after a real
+   `pnpm build`, it asserts every `exports` subpath's target file(s) actually exist in `dist/`.
+   (It's skipped on a clean checkout with no `dist/` yet, so it doesn't force a build into
+   `pnpm test`/`test:ci` — run `pnpm build` first to exercise it.)
 4. **`pnpm test`**. Vitest config will need its include patterns checked — old patterns globbed
    `packages/**/*.test.{ts,tsx}` which is gone.
 

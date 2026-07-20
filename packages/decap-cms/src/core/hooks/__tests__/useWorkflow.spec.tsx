@@ -56,9 +56,9 @@ const postsCollection = {
 } as any;
 
 type TestState = {
-  collections: Record<string, unknown>;
-  config: { publish_mode?: string };
-  editorialWorkflow: { entities: Record<string, unknown> };
+  collections: Record<string, unknown>,
+  config: { publish_mode?: string },
+  editorialWorkflow: { entities: Record<string, unknown> },
 };
 
 function buildStore(initial: TestState) {
@@ -74,11 +74,9 @@ function buildStore(initial: TestState) {
   );
 }
 
-function setup(initial: TestState, options: { collectionName: string; slug?: string; newEntry: boolean }) {
+function setup(initial: TestState, options: { collectionName: string, slug?: string, newEntry: boolean }) {
   const store = buildStore(initial);
-  const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <Provider store={store}>{children}</Provider>
-  );
+  const wrapper = ({ children }: { children: React.ReactNode }) => <Provider store={store}>{children}</Provider>;
   const { result, rerender } = renderHook(() => useWorkflow(options), { wrapper });
   return { store, result, rerender };
 }

@@ -1,7 +1,7 @@
 import { INSERT_ORDERED_LIST_COMMAND } from '@lexical/list';
 
-import { ListOrderedIcon } from '@/ui/icons/index';
 import { ComponentPickerOption } from '@/ui/editor/plugins/picker/ComponentPickerOption';
+import { ListOrderedIcon } from '@/ui/icons/index';
 
 export function NumberedListPickerPlugin() {
   return new ComponentPickerOption('Numbered List', {

@@ -2,11 +2,11 @@ import { $getSelectionStyleValueForProperty, $patchStyleText } from '@lexical/se
 import { $getSelection, $isRangeSelection, type BaseSelection } from 'lexical';
 import { useCallback, useState } from 'react';
 
-import { Minus, Plus } from '@/ui/icons/index';
 import { Button } from '@/ui/Button';
 import { ButtonGroup } from '@/ui/ButtonGroup';
 import { useToolbarContext } from '@/ui/editor/context/ToolbarContext';
 import { useUpdateToolbarHandler } from '@/ui/editor/editor-hooks/useUpdateToolbar';
+import { Minus, Plus } from '@/ui/icons/index';
 import { Input } from '@/ui/Input';
 
 const DEFAULT_FONT_SIZE = 16;

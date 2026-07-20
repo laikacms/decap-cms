@@ -5,9 +5,9 @@ import { $getNearestBlockElementAncestorOrThrow } from '@lexical/utils';
 import { $createParagraphNode, $getSelection, $isRangeSelection, $isTextNode } from 'lexical';
 import { useCallback } from 'react';
 
-import { EraserIcon } from '@/ui/icons/index';
 import { Button } from '@/ui/Button';
 import { useToolbarContext } from '@/ui/editor/context/ToolbarContext';
+import { EraserIcon } from '@/ui/icons/index';
 
 export function ClearFormattingToolbarPlugin() {
   const { activeEditor } = useToolbarContext();

@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  ExtractAuthorizationApiKey,
-  ExtractAuthorizationBearerToken,
-} from '@/lib/util/core-utils/http.js';
+import { ExtractAuthorizationApiKey, ExtractAuthorizationBearerToken } from '@/lib/util/core-utils/http.js';
 
 describe('ExtractAuthorizationBearerToken', () => {
   it('should extract the token from a valid Bearer header', () => {

@@ -12,14 +12,14 @@ combobox/dropdown UI. It supports choosing a single value or multiple values.
   options: ['draft', 'published']
 ```
 
-- `options` (**required**) — the list of choices. See "Option formats" below. Source:
-  `schema.ts` (`required: ['options']`).
-- `multiple` (optional, default `false`) — allow selecting more than one value instead of a
-  single value. Source: `schema.ts`.
-- `min` (optional) — minimum number of selected options. Only enforced when `multiple: true` —
-  see "`min` and `max` require `multiple: true`" below.
-- `max` (optional) — maximum number of selected options. Only enforced when `multiple: true` —
-  see "`min` and `max` require `multiple: true`" below.
+- `options` (**required**) — the list of choices. See "Option formats" below. Source: `schema.ts`
+  (`required: ['options']`).
+- `multiple` (optional, default `false`) — allow selecting more than one value instead of a single
+  value. Source: `schema.ts`.
+- `min` (optional) — minimum number of selected options. Only enforced when `multiple: true` — see
+  "`min` and `max` require `multiple: true`" below.
+- `max` (optional) — maximum number of selected options. Only enforced when `multiple: true` — see
+  "`min` and `max` require `multiple: true`" below.
 
 ## Option formats
 
@@ -75,15 +75,15 @@ non-array value is wrapped in an array) on mount rather than left as `null`/a ba
 and no validation error or warning is raised. Source: `SelectControl.tsx` (`isValid()` returns
 `{ error: false }` immediately when `!field.multiple`, before `min`/`max` are ever checked).
 
-`min` and `max` do not require each other when `multiple: true` — either one can be set on its
-own, or both can be set together:
+`min` and `max` do not require each other when `multiple: true` — either one can be set on its own,
+or both can be set together:
 
 - only `min` — at least `min` options must be selected; there's no upper bound.
 - only `max` — at most `max` options may be selected; there's no lower bound.
 - both `min` and `max` — between `min` and `max` options (inclusive) must be selected.
 
-Source: `validateMinMax` (`src/lib/widgets/validations.ts`) checks each bound independently
-rather than treating them as a pair.
+Source: `validateMinMax` (`src/lib/widgets/validations.ts`) checks each bound independently rather
+than treating them as a pair.
 
 ```yaml
 - label: 'Tags'

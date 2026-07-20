@@ -18,12 +18,12 @@ export default defineConfig({
     // ANALYZE=1 (pnpm analyze:demo) → interactive treemap next to the bundle.
     ...(process.env.ANALYZE
       ? [
-          visualizer({
-            emitFile: true,
-            filename: 'bundle-report-laika-cms-bare.html',
-            gzipSize: true,
-          }),
-        ]
+        visualizer({
+          emitFile: true,
+          filename: 'bundle-report-laika-cms-bare.html',
+          gzipSize: true,
+        }),
+      ]
       : []),
   ],
   build: {

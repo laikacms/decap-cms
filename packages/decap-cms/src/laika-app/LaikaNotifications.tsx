@@ -1,4 +1,3 @@
-
 import { Toast } from '@base-ui/react/toast';
 import { css } from '@emotion/react';
 import React, { useEffect, useRef } from 'react';

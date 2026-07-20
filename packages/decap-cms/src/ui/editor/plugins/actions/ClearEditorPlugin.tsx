@@ -1,7 +1,6 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { CLEAR_EDITOR_COMMAND } from 'lexical';
 
-import { Trash2Icon } from '@/ui/icons/index';
 import { Button } from '@/ui/Button';
 import {
   Dialog,
@@ -13,6 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/ui/Dialog';
+import { Trash2Icon } from '@/ui/icons/index';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/Tooltip';
 
 export function ClearEditorActionPlugin() {

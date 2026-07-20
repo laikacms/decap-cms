@@ -7,11 +7,11 @@ import {
 } from 'lexical';
 import { useCallback, useState } from 'react';
 
-import { LinkIcon } from '@/ui/icons/index';
 import { useToolbarContext } from '@/ui/editor/context/ToolbarContext';
 import { useUpdateToolbarHandler } from '@/ui/editor/editor-hooks/useUpdateToolbar';
 import { getSelectedNode } from '@/ui/editor/utils/get-selected-node';
 import { sanitizeUrl } from '@/ui/editor/utils/url';
+import { LinkIcon } from '@/ui/icons/index';
 import { Toggle } from '@/ui/Toggle';
 
 export function LinkToolbarPlugin({

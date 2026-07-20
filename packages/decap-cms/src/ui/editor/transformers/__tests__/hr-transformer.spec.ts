@@ -1,8 +1,4 @@
-import {
-  $createHorizontalRuleNode,
-  $isHorizontalRuleNode,
-  HorizontalRuleNode,
-} from '@lexical/extension';
+import { $createHorizontalRuleNode, $isHorizontalRuleNode, HorizontalRuleNode } from '@lexical/extension';
 import { $createParagraphNode, $getRoot, $isParagraphNode } from 'lexical';
 import { describe, expect, it } from 'vitest';
 

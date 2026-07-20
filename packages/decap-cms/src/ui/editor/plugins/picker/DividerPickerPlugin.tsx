@@ -1,7 +1,7 @@
 import { INSERT_HORIZONTAL_RULE_COMMAND } from '@lexical/react/LexicalHorizontalRuleNode';
 
-import { MinusIcon } from '@/ui/icons/index';
 import { ComponentPickerOption } from '@/ui/editor/plugins/picker/ComponentPickerOption';
+import { MinusIcon } from '@/ui/icons/index';
 
 export function DividerPickerPlugin() {
   return new ComponentPickerOption('Divider', {

@@ -149,8 +149,8 @@ CMS.registerRichtextFormat(markdownFormat);
 
 - `id` doubles as the Portable Text custom-block `_type` (see the `decap-portable-text` skill):
   agent- or code-authored content targets the component by that id.
-- `fields` are decap fields editing the block data (`[]` = no editable props); `formats.markdown`
-  is the codec (`pattern`/`fromMatch`/`serialize`) that (de)serializes the block for the markdown
+- `fields` are decap fields editing the block data (`[]` = no editable props); `formats.markdown` is
+  the codec (`pattern`/`fromMatch`/`serialize`) that (de)serializes the block for the markdown
   format pack — other format packs plug in the same way under their own key.
 - `CMS.unregisterBlock(id)` removes a block. Register at boot, before any entry is parsed.
 

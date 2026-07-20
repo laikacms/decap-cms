@@ -3,10 +3,10 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { $createTextNode, $getRoot, $setSelection } from 'lexical';
 import { useCallback } from 'react';
 
-import { FileTextIcon } from '@/ui/icons/index';
 import { hasMapper } from '@/lib/richtext';
 import { editorStateToSource, sourceToEditorState } from '@/lib/richtext/lexical';
 import { Button } from '@/ui/Button';
+import { FileTextIcon } from '@/ui/icons/index';
 
 /**
  * Toggle between the rich-text view and the field's *source* view.

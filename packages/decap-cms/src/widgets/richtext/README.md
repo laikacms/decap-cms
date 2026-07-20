@@ -19,9 +19,9 @@ for existing configs (`src/app/extensions.ts`).
   `html`, `plainText`). See [Format packs](#format-packs) below for what ships, which id is
   registered by default, and how to register the rest.
 - `placeholder` (optional) — placeholder text shown in the editor.
-- `blocks` (optional, array of strings) — allowlist of registered custom block ids available in
-  this field (see `src/widgets/richtext/widget/schema.ts`). Omit to allow all registered blocks.
-  This is UI-only: parsing always recognizes every registered block regardless of this allowlist.
+- `blocks` (optional, array of strings) — allowlist of registered custom block ids available in this
+  field (see `src/widgets/richtext/widget/schema.ts`). Omit to allow all registered blocks. This is
+  UI-only: parsing always recognizes every registered block regardless of this allowlist.
 
 ## Format packs
 
@@ -163,8 +163,8 @@ the config key still does what it did in `decap-cms-widget-markdown`.
 `editor_components` (and its `editorComponents` camelCase alias) isn't declared in `schema.ts` at
 all — the legacy editor-components API it configured was removed along with it. Like the inert keys
 above, neither the base field schema nor the richtext widget schema sets
-`additionalProperties: false`, so setting either key on a field config is accepted-but-unused: schema
-validation does not reject it, it simply has no reader (`registry.tsx` never looks at it), so it's
-silently ignored at runtime. In the old widget this registered custom Markdown block components;
-that role is now filled by `CMS.registerBlock(...)` plus the `blocks` allowlist documented in
-[Config](#config) above.
+`additionalProperties: false`, so setting either key on a field config is accepted-but-unused:
+schema validation does not reject it, it simply has no reader (`registry.tsx` never looks at it), so
+it's silently ignored at runtime. In the old widget this registered custom Markdown block
+components; that role is now filled by `CMS.registerBlock(...)` plus the `blocks` allowlist
+documented in [Config](#config) above.

@@ -11,6 +11,9 @@ import {
 } from 'lexical';
 import { useState } from 'react';
 
+import { useToolbarContext } from '@/ui/editor/context/ToolbarContext';
+import { useUpdateToolbarHandler } from '@/ui/editor/editor-hooks/useUpdateToolbar';
+import { getSelectedNode } from '@/ui/editor/utils/get-selected-node';
 import {
   AlignCenterIcon,
   AlignJustifyIcon,
@@ -19,9 +22,6 @@ import {
   IndentDecreaseIcon,
   IndentIncreaseIcon,
 } from '@/ui/icons/index';
-import { useToolbarContext } from '@/ui/editor/context/ToolbarContext';
-import { useUpdateToolbarHandler } from '@/ui/editor/editor-hooks/useUpdateToolbar';
-import { getSelectedNode } from '@/ui/editor/utils/get-selected-node';
 import { Separator } from '@/ui/Separator';
 import { ToggleGroup, ToggleGroupItem } from '@/ui/ToggleGroup';
 

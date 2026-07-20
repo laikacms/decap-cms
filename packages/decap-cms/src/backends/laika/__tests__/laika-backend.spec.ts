@@ -2719,7 +2719,7 @@ describe('LaikaBackend token refresh', () => {
 
   it('getToken() past expiry refreshes via the token endpoint and rewrites storage', async () => {
     const tokenCalls = routeFetch(() =>
-      tokenEndpointResponse({ access_token: 't2', refresh_token: 'r2', expires_in: 3600 }),
+      tokenEndpointResponse({ access_token: 't2', refresh_token: 'r2', expires_in: 3600 })
     );
     await backend.authenticate({ token: 't1', refresh_token: 'r1', expires_in: 3600 });
 
@@ -2737,9 +2737,11 @@ describe('LaikaBackend token refresh', () => {
 
   it('concurrent getToken() calls share a single in-flight refresh (server rotates the pair)', async () => {
     let resolveToken!: (v: any) => void;
-    const tokenCalls = routeFetch(() => new Promise(resolve => {
-      resolveToken = resolve;
-    }));
+    const tokenCalls = routeFetch(() =>
+      new Promise(resolve => {
+        resolveToken = resolve;
+      })
+    );
     await backend.authenticate({ token: 't1', refresh_token: 'r1', expires_in: 3600 });
 
     now += 3600_000;

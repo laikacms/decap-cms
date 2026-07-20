@@ -9,10 +9,10 @@ import {
 } from 'lexical';
 import { useEffect, useRef, useState } from 'react';
 
-import { MicIcon } from '@/ui/icons/index';
 import { Button } from '@/ui/Button';
 import { useReport } from '@/ui/editor/editor-hooks/useReport';
 import { CAN_USE_DOM } from '@/ui/editor/shared/can-use-dom';
+import { MicIcon } from '@/ui/icons/index';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/Tooltip';
 
 import type { LexicalCommand, LexicalEditor, RangeSelection } from 'lexical';

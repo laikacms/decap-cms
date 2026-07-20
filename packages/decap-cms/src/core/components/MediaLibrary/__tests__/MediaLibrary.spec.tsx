@@ -20,12 +20,12 @@ vi.mock('@/ui', async () => {
   };
 });
 
-import { showAlert } from '@/ui';
 import { MediaLibrary } from '@/core/components/MediaLibrary/MediaLibrary';
 import { RouterProvider } from '@/core/routing/context';
+import { showAlert } from '@/ui';
 
-import type * as UiModule from '@/ui';
 import type { Router, RouterUpdate } from '@/core/routing/router';
+import type * as UiModule from '@/ui';
 
 const routerListeners: Array<(update: RouterUpdate) => void> = [];
 

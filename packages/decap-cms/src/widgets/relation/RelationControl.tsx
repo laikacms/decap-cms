@@ -1,10 +1,8 @@
-
 import { debounce, find, get, isEmpty, last, uniqBy } from 'lodash-es';
 import React from 'react';
 
 import queryCore, { collectionTag } from '@/lib/util/queryCore';
 import { stringTemplate, validations } from '@/lib/widgets/index';
-import { SortableArea, SortableItem } from '@/ui/default/index';
 import {
   Combobox,
   ComboboxChip,
@@ -22,6 +20,7 @@ import {
   ComboboxPositioner,
   ComboboxStatus,
 } from '@/ui';
+import { SortableArea, SortableItem } from '@/ui/default/index';
 
 import type { CmsFieldBase, CmsFieldRelation } from '@/lib/util/index';
 
@@ -489,7 +488,10 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
         {selectedList.map((option, index) => (
           <SortableItem key={option.value} index={index}>
             {(sortableRef, { isDragging }) => (
-              <ComboboxChip ref={sortableRef as React.Ref<HTMLDivElement>} style={{ opacity: isDragging ? 0.5 : undefined }}>
+              <ComboboxChip
+                ref={sortableRef as React.Ref<HTMLDivElement>}
+                style={{ opacity: isDragging ? 0.5 : undefined }}
+              >
                 {option.label}
                 <ComboboxChipRemove />
               </ComboboxChip>
@@ -507,9 +509,7 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
           items={options}
           filter={null}
           value={selectedValue as RelationOption | RelationOption[] | null}
-          onValueChange={selected =>
-            handleChange(selected as RelationOption | RelationOption[] | null)
-          }
+          onValueChange={selected => handleChange(selected as RelationOption | RelationOption[] | null)}
           onInputValueChange={handleInputValueChange}
           isItemEqualToValue={isSameOption}
           openOnInputClick
@@ -521,9 +521,7 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
                   <ComboboxChips>{chipList}</ComboboxChips>
                 </SortableArea>
               )
-              : (
-                <ComboboxInput id={forID} placeholder="" {...inputAriaProps} />
-              )}
+              : <ComboboxInput id={forID} placeholder="" {...inputAriaProps} />}
             {isClearable && <ComboboxClear />}
             <ComboboxIcon />
           </ComboboxInputGroup>

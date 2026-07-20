@@ -36,8 +36,8 @@ The list widget has four mutually-exclusive structural modes, resolved in this o
 
 1. `fields` set → **multiple** — each item is an object holding the given fields.
 2. else `field` set → **single** — each item holds a single value described by one field.
-3. else `types` set → **mixed (variable types)** — each item is an object whose shape depends on
-   its own `type`.
+3. else `types` set → **mixed (variable types)** — each item is an object whose shape depends on its
+   own `type`.
 4. none set → **plain** — each item is a bare string (the default, original list behavior).
 
 Only one of `fields` / `field` / `types` should be given per list field; if more than one is set,
@@ -77,7 +77,8 @@ none (`singleDefault()`, `ListControl.tsx:459-461`).
 ```
 
 Each item is an object holding all of the given `fields`. A new item's default is built from each
-field's own `default` (`multipleDefault()` / `getFieldsDefault()`, `ListControl.tsx:249-280,
+field's own `default` (`multipleDefault()` / `getFieldsDefault()`,
+`ListControl.tsx:249-280,
 463-464`); the collapsed-item label falls back to the first field's value
 (`objectLabel()`, `ListControl.tsx:630-638`).
 
@@ -100,8 +101,8 @@ field's own `default` (`multipleDefault()` / `getFieldsDefault()`, `ListControl.
 
 Each item can be one of several shapes, picked from the `types` list when the item is added. The
 "Add" button becomes a dropdown listing each type's `label` (or `name`); adding one seeds a default
-object tagged with a type key so existing items can be matched back to their type
-(`handleAddType()` / `mixedDefault()`, `ListControl.tsx:466-472, 494-495`).
+object tagged with a type key so existing items can be matched back to their type (`handleAddType()`
+/ `mixedDefault()`, `ListControl.tsx:466-472, 494-495`).
 
 The tag key stored on each item defaults to `type`, but can be overridden per-list with `typeKey`
 (`resolveFieldKeyType()`, `typedListHelpers.ts`):

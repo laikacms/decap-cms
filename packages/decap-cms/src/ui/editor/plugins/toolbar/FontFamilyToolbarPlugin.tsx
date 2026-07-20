@@ -2,11 +2,11 @@ import { $getSelectionStyleValueForProperty, $patchStyleText } from '@lexical/se
 import { $getSelection, $isRangeSelection, type BaseSelection } from 'lexical';
 import { useCallback, useState } from 'react';
 
-import { ChevronDownIcon, TypeIcon } from '@/ui/icons/index';
 import { Button } from '@/ui/Button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/ui/DropdownMenu';
 import { useToolbarContext } from '@/ui/editor/context/ToolbarContext';
 import { useUpdateToolbarHandler } from '@/ui/editor/editor-hooks/useUpdateToolbar';
+import { ChevronDownIcon, TypeIcon } from '@/ui/icons/index';
 
 const FONT_FAMILY_OPTIONS = [
   'Arial',

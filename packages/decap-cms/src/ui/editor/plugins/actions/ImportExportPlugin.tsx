@@ -1,8 +1,8 @@
 import { exportFile, importFile } from '@lexical/file';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 
-import { DownloadIcon, UploadIcon } from '@/ui/icons/index';
 import { Button } from '@/ui/Button';
+import { DownloadIcon, UploadIcon } from '@/ui/icons/index';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/Tooltip';
 
 export function ImportExportPlugin() {

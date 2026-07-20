@@ -40,9 +40,7 @@ function buildStore() {
 
 function setup() {
   const store = buildStore();
-  const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <Provider store={store}>{children}</Provider>
-  );
+  const wrapper = ({ children }: { children: React.ReactNode }) => <Provider store={store}>{children}</Provider>;
   const { result, rerender } = renderHook(() => useEntryDraft(), { wrapper });
   return { store, result, rerender };
 }

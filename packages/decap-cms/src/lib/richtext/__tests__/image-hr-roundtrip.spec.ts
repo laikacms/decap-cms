@@ -12,7 +12,9 @@ import type { PortableTextDocument } from '@/lib/richtext/portable-text';
 function withHeadlessEditor<T>(fn: () => T): T {
   const editor = createHeadlessEditor([ImageNode]);
   let result!: T;
-  editor.update(() => { result = fn(); }, { discrete: true });
+  editor.update(() => {
+    result = fn();
+  }, { discrete: true });
   return result;
 }
 

@@ -26,9 +26,9 @@ three-state ("unset") rendering for this widget: the toggle is always either on 
 ## Toggle UI
 
 The control renders a `Toggle` (`src/ui/default/Toggle.tsx`), a switch-style button, not a
-`<input type="checkbox">`. The rendered element is a `<button>` with `role="switch"` semantics
-(via the shared `Switch` primitive in `src/ui/Toggle.tsx`); `checked` mirrors the `value` prop
-directly, so the visual state always matches the field's current value, on every re-render.
+`<input type="checkbox">`. The rendered element is a `<button>` with `role="switch"` semantics (via
+the shared `Switch` primitive in `src/ui/Toggle.tsx`); `checked` mirrors the `value` prop directly,
+so the visual state always matches the field's current value, on every re-render.
 
 ## Accessibility wiring (DCMS-1086)
 

@@ -1,6 +1,6 @@
-import { Columns3Icon } from '@/ui/icons/index';
 import { InsertLayoutDialog } from '@/ui/editor/plugins/LayoutPlugin';
 import { ComponentPickerOption } from '@/ui/editor/plugins/picker/ComponentPickerOption';
+import { Columns3Icon } from '@/ui/icons/index';
 
 export function ColumnsLayoutPickerPlugin() {
   return new ComponentPickerOption('Columns Layout', {

@@ -1,4 +1,3 @@
-
 import { calculateZoomLevel } from '@lexical/utils';
 import * as React from 'react';
 import { type JSX, useRef } from 'react';

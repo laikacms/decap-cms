@@ -37,9 +37,7 @@ function extractFormatLists(readme: string): string[][] {
 
 describe('richtext widget README format list', () => {
   const actualFormatIds = new Set(
-    [markdownFormat.id, htmlFormat.id, plainTextFormat.id, portableTextMapper.id].map(id =>
-      id.toLowerCase()
-    ),
+    [markdownFormat.id, htmlFormat.id, plainTextFormat.id, portableTextMapper.id].map(id => id.toLowerCase()),
   );
 
   it('never documents contentful-rtf (no mapper exists for it)', () => {

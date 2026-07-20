@@ -31,7 +31,7 @@ export interface DevServerApp {
 }
 
 type AppOptions = {
-  logger: Pick<Console, 'log' | 'info' | 'error' | 'warn' | 'debug'>;
+  logger: Pick<Console, 'log' | 'info' | 'error' | 'warn' | 'debug'>,
 };
 
 function sendJson(res: http.ServerResponse, code: number, payload: unknown) {

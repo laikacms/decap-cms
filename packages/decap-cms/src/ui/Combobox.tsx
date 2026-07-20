@@ -1,4 +1,3 @@
-
 import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox';
 import * as React from 'react';
 
@@ -249,9 +248,7 @@ export function ComboboxPositioner({
   className,
   ...props
 }: ComboboxPositionerProps): React.ReactNode {
-  return (
-    <ComboboxPrimitive.Positioner data-slot="combobox-positioner" className={className} {...props} />
-  );
+  return <ComboboxPrimitive.Positioner data-slot="combobox-positioner" className={className} {...props} />;
 }
 
 const popupClass = css`

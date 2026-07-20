@@ -619,9 +619,12 @@ describe('gitlab backend', () => {
       global.URL.createObjectURL = vi.fn().mockReturnValue('blob:http://localhost/image');
 
       await expect(
-        backend.implementation.loadMediaFile('cms/posts/example', {
-          path: 'static/uploads/image.png',
-        } as Parameters<Gitlab['loadMediaFile']>[1]),
+        backend.implementation.loadMediaFile(
+          'cms/posts/example',
+          {
+            path: 'static/uploads/image.png',
+          } as Parameters<Gitlab['loadMediaFile']>[1],
+        ),
       ).resolves.toEqual(
         expect.objectContaining({
           displayURL: 'blob:http://localhost/image',

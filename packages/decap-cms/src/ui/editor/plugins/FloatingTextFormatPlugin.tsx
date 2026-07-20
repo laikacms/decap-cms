@@ -15,6 +15,9 @@ import {
 import { type Dispatch, type JSX, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+import { getDOMRangeRect } from '@/ui/editor/utils/get-dom-range-rect';
+import { getSelectedNode } from '@/ui/editor/utils/get-selected-node';
+import { setFloatingElemPosition } from '@/ui/editor/utils/set-floating-elem-position';
 import {
   BoldIcon,
   CodeIcon,
@@ -25,9 +28,6 @@ import {
   SuperscriptIcon,
   UnderlineIcon,
 } from '@/ui/icons/index';
-import { getDOMRangeRect } from '@/ui/editor/utils/get-dom-range-rect';
-import { getSelectedNode } from '@/ui/editor/utils/get-selected-node';
-import { setFloatingElemPosition } from '@/ui/editor/utils/set-floating-elem-position';
 import { Separator } from '@/ui/Separator';
 import { ToggleGroup, ToggleGroupItem } from '@/ui/ToggleGroup';
 

@@ -1,8 +1,8 @@
 import { INSERT_HORIZONTAL_RULE_COMMAND } from '@lexical/react/LexicalHorizontalRuleNode';
 
-import { ScissorsIcon } from '@/ui/icons/index';
 import { DropdownMenuItem } from '@/ui/DropdownMenu';
 import { useToolbarContext } from '@/ui/editor/context/ToolbarContext';
+import { ScissorsIcon } from '@/ui/icons/index';
 
 export function InsertHorizontalRule() {
   const { activeEditor } = useToolbarContext();

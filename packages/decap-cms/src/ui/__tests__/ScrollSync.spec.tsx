@@ -95,7 +95,7 @@ describe('ScrollSync / ScrollSyncPane', () => {
         <ScrollSyncPane>
           <div>orphan pane</div>
         </ScrollSyncPane>,
-      ),
+      )
     ).toThrow('useScrollSyncContext must be used within a ScrollSync');
     spy.mockRestore();
   });

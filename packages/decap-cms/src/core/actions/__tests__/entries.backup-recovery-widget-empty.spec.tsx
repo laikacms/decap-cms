@@ -5,11 +5,11 @@ import { describe, expect, it, vi } from 'vitest';
 import { createEmptyDraft, loadLocalBackup, retrieveLocalBackup } from '@/core/actions/entries';
 import * as backendModule from '@/core/backend';
 import { resolveFormat } from '@/core/formats/formats';
-import { yamlEntryCodec, yamlFrontmatterCodec } from '@/entry-codecs/yaml/index';
-import { createMarkdownEntryCodec } from '@/entry-codecs/markdown/index';
 import { registerEntryCodec } from '@/core/lib/registry';
-import { createEntry } from '@/core/valueObjects/Entry';
 import entryDraft from '@/core/reducers/entryDraft';
+import { createEntry } from '@/core/valueObjects/Entry';
+import { createMarkdownEntryCodec } from '@/entry-codecs/markdown/index';
+import { yamlEntryCodec, yamlFrontmatterCodec } from '@/entry-codecs/yaml/index';
 
 vi.mock('../../backend');
 

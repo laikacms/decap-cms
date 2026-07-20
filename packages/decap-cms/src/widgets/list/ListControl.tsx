@@ -1,4 +1,3 @@
-
 import { Collapsible } from '@base-ui/react/collapsible';
 import { ClassNames, css } from '@emotion/react';
 import styled from '@emotion/styled';

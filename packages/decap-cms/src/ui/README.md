@@ -52,10 +52,10 @@ src/ui/__tests__/<Primitive>.spec.tsx  # behavior tests (sibling __tests__ dir)
 ## Styling contract
 
 - Use the `css` / `keyframes` re-exports from [`./styled.ts`](./styled.ts) (backed by
-  `@emotion/react`) with the css prop — add the `` pragma at
-  the top of the file. `cx` joins plain class-name strings only (literal utility classes plus a
-  caller `className`); emotion merges the css prop with `className` itself. Don't reach for
-  `styled-components` or inline `style={{}}` for anything variant-driven.
+  `@emotion/react`) with the css prop — add the `` pragma at the top of the file. `cx` joins plain
+  class-name strings only (literal utility classes plus a caller `className`); emotion merges the
+  css prop with `className` itself. Don't reach for `styled-components` or inline `style={{}}` for
+  anything variant-driven.
 - Use the `variants()` helper for `class-variance-authority`-shaped variant props (see any existing
   primitive, e.g. `Button.tsx`'s `buttonVariants`, for the pattern). It returns styles for the css
   prop; a caller-supplied `className` is passed through separately instead of being merged in.
@@ -116,10 +116,9 @@ real implementations, moved up from the editor's old `ui/` subfolder): `alert-di
 `@base-ui/react/combobox` and is the searchable/async/multi-select primitive used by
 `widgets/select` and `widgets/relation` (#631/DCMS-545) — reach for it instead of `select` whenever
 typeahead filtering, chip-based multi-select, or async option loading is needed. `avatar` and
-laika-app's `LaikaTooltip`
-consumers were deduped onto these canonical implementations in #630/DCMS-544 —
-`src/laika-app/ui/LaikaTooltip.tsx` and `LaikaAvatar.tsx` are now thin backwards-compatible
-aliases, not separate Base UI wrappers.
+laika-app's `LaikaTooltip` consumers were deduped onto these canonical implementations in
+#630/DCMS-544 — `src/laika-app/ui/LaikaTooltip.tsx` and `LaikaAvatar.tsx` are now thin
+backwards-compatible aliases, not separate Base UI wrappers.
 
 `src/ui/editor/` (the Lexical editor) is a _consumer_ of these primitives — it imports them from
 `@/ui/<name>` like everyone else and holds no primitive implementations of its own.

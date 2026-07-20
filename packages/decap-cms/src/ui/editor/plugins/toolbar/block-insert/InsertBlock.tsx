@@ -1,7 +1,7 @@
-import { PuzzleIcon } from '@/ui/icons/index';
 import { $insertBlock } from '@/lib/richtext/lexical';
 import { DropdownMenuItem } from '@/ui/DropdownMenu';
 import { useToolbarContext } from '@/ui/editor/context/ToolbarContext';
+import { PuzzleIcon } from '@/ui/icons/index';
 
 import type { BlockDefinition } from '@/lib/richtext';
 

@@ -1,4 +1,3 @@
-
 import { AlertDialog as AlertDialogPrimitive } from '@base-ui/react/alert-dialog';
 import * as React from 'react';
 
@@ -354,8 +353,7 @@ export function useConfirm(): (
   signal?: AbortSignal,
 ) => Promise<boolean> {
   return React.useCallback(
-    (message: string, options?: ConfirmOptions, signal?: AbortSignal) =>
-      confirmDialog(message, options, signal),
+    (message: string, options?: ConfirmOptions, signal?: AbortSignal) => confirmDialog(message, options, signal),
     [],
   );
 }

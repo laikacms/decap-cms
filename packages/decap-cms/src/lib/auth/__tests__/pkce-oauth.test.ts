@@ -69,7 +69,7 @@ describe('PkceAuthenticator', () => {
         .mockResolvedValue(new Response(JSON.stringify({ access_token: 'token' })));
 
       await new Promise<void>((resolve, reject) => {
-        void authenticator.completeAuth((err) => (err ? reject(err) : resolve()));
+        void authenticator.completeAuth(err => (err ? reject(err) : resolve()));
       });
 
       expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -93,7 +93,7 @@ describe('PkceAuthenticator', () => {
         .mockResolvedValue(new Response(JSON.stringify({ access_token: 'token' })));
 
       await new Promise<void>((resolve, reject) => {
-        void authenticator.completeAuth((err) => (err ? reject(err) : resolve()));
+        void authenticator.completeAuth(err => (err ? reject(err) : resolve()));
       });
 
       expect(fetchMock).toHaveBeenCalledTimes(1);

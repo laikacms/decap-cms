@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import EditorialWorkflowError, {
-  EDITORIAL_WORKFLOW_ERROR,
-} from '@/lib/util/EditorialWorkflowError.js';
+import EditorialWorkflowError, { EDITORIAL_WORKFLOW_ERROR } from '@/lib/util/EditorialWorkflowError.js';
 
 describe('EditorialWorkflowError', () => {
   it('sets message and name, and notUnderEditorialWorkflow to true', () => {

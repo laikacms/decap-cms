@@ -1,5 +1,5 @@
-import { PuzzleIcon } from '@/ui/icons/index';
 import { $insertBlock } from '@/lib/richtext/lexical';
+import { PuzzleIcon } from '@/ui/icons/index';
 import { ComponentPickerOption } from './ComponentPickerOption';
 
 import type { BlockDefinition, EditorInsertOption } from '@/lib/richtext';

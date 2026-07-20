@@ -68,7 +68,9 @@ describe('ListControl', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     let id = 0;
-    vi.spyOn(crypto, 'randomUUID').mockImplementation(() => String(id++) as unknown as ReturnType<typeof crypto.randomUUID>);
+    vi.spyOn(crypto, 'randomUUID').mockImplementation(() =>
+      String(id++) as unknown as ReturnType<typeof crypto.randomUUID>
+    );
   });
   it('should render list with nested object', () => {
     const field = {

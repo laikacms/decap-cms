@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 
 import { SearchIcon } from '@/ui/icons/index';

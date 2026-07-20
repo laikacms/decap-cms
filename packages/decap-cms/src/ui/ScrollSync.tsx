@@ -41,27 +41,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-import {
-  Children,
-  cloneElement,
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-} from 'react';
+import { Children, cloneElement, createContext, useCallback, useContext, useEffect, useRef } from 'react';
 
-import type {
-  FC,
-  PropsWithChildren,
-  ReactElement,
-  RefCallback,
-  RefObject,
-} from 'react';
+import type { FC, PropsWithChildren, ReactElement, RefCallback, RefObject } from 'react';
 
 interface ScrollSyncContextValue {
-  registerPane: (node: HTMLElement, groups: string[]) => void,
-  unregisterPane: (node: HTMLElement, groups: string[]) => void,
+  registerPane: (node: HTMLElement, groups: string[]) => void;
+  unregisterPane: (node: HTMLElement, groups: string[]) => void;
 }
 
 const ScrollSyncContext = createContext<ScrollSyncContextValue | undefined>(undefined);
@@ -79,32 +65,32 @@ export interface ScrollSyncProps {
    * Whether scroll synchronization is enabled.
    * @default true
    */
-  enabled?: boolean,
+  enabled?: boolean;
 
   /**
    * Enable horizontal scroll synchronization.
    * @default true
    */
-  horizontal?: boolean,
+  horizontal?: boolean;
 
   /**
    * Callback fired after panes are synchronized.
    * Receives the scrolled HTMLElement as an argument.
    */
-  onSync?: (el: HTMLElement) => void,
+  onSync?: (el: HTMLElement) => void;
 
   /**
    * Whether to synchronize scroll positions proportionally.
    * If false, uses absolute scroll values.
    * @default true
    */
-  proportional?: boolean,
+  proportional?: boolean;
 
   /**
    * Enable vertical scroll synchronization.
    * @default true
    */
-  vertical?: boolean,
+  vertical?: boolean;
 }
 
 export const ScrollSync: FC<PropsWithChildren<ScrollSyncProps>> = ({
@@ -238,34 +224,33 @@ export interface ScrollSyncPaneProps {
    * callback. If provided, the pane will sync scroll with this element
    * instead of the child.
    */
-  attachTo?: HTMLElement | null | RefCallback<HTMLElement> | RefObject<HTMLElement>,
+  attachTo?: HTMLElement | null | RefCallback<HTMLElement> | RefObject<HTMLElement>;
 
   /**
    * The scrollable child element to be synchronized.
    */
-  children: ReactElement<any>,
+  children: ReactElement<any>;
 
   /**
    * Whether scroll synchronization is enabled for this pane.
    * @default true
    */
-  enabled?: boolean,
+  enabled?: boolean;
 
   /**
    * Group or groups this pane belongs to for scroll synchronization.
    * Panes in the same group will sync scroll positions.
    * @default 'default'
    */
-  group?: string | string[],
+  group?: string | string[];
 
   /**
    * Ref or callback to access the underlying HTMLElement of the pane.
    */
-  innerRef?: RefCallback<HTMLElement> | RefObject<HTMLElement>,
+  innerRef?: RefCallback<HTMLElement> | RefObject<HTMLElement>;
 }
 
-const castArray = (groups: string | string[]): string[] =>
-  Array.isArray(groups) ? groups : [groups];
+const castArray = (groups: string | string[]): string[] => Array.isArray(groups) ? groups : [groups];
 
 export const ScrollSyncPane: FC<ScrollSyncPaneProps> = ({
   attachTo,

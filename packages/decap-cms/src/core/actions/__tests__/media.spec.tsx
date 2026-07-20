@@ -15,8 +15,8 @@ import type { Mock } from 'vitest';
 // Minimal slice of the root reducer state actually touched by these tests
 // (`getAsset` only reads `state.config` and `state.medias`).
 type State = {
-  config: Partial<CmsConfig>;
-  medias: Medias;
+  config: Partial<CmsConfig>,
+  medias: Medias,
 };
 
 // `getAsset`'s own args are typed against the real (non-test) `collection`/

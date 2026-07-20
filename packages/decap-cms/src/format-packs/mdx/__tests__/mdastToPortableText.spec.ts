@@ -288,7 +288,7 @@ describe('mdastToPortableText: tables', () => {
     expect(table.headerRows).toBe(1);
     const rows = table.rows as Array<Record<string, unknown>>;
     expect(rows).toHaveLength(2);
-    expect((rows[0].cells as unknown[])).toHaveLength(2);
+    expect(rows[0].cells as unknown[]).toHaveLength(2);
   });
 
   it('unwraps a single-image table cell into the bare image object', () => {

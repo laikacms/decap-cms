@@ -14,21 +14,21 @@ instead of file links.)
 - { label: 'Attachment', name: 'attachment', widget: 'file' }
 ```
 
-- `choose_url` (optional, default `true`) — whether the "Choose URL" button is rendered, letting
-  the editor paste a URL instead of picking a file from the media library. Set to `false` to hide
-  it. Source: `withFileControl.tsx` — `const chooseUrl = field.choose_url !== false;` — the check
-  is against `false`, not truthiness of `true`, so omitting the key or setting anything other than
+- `choose_url` (optional, default `true`) — whether the "Choose URL" button is rendered, letting the
+  editor paste a URL instead of picking a file from the media library. Set to `false` to hide it.
+  Source: `withFileControl.tsx` — `const chooseUrl = field.choose_url !== false;` — the check is
+  against `false`, not truthiness of `true`, so omitting the key or setting anything other than
   literal `false` keeps the button enabled.
 - `allow_multiple` (optional) — allows selecting more than one file for this field; the value
-  becomes an array of paths instead of a single string. This is read from the media-library
-  override object (`field.media_library.allow_multiple`), not a bare top-level `field` property —
-  see "media_library overrides" below.
+  becomes an array of paths instead of a single string. This is read from the media-library override
+  object (`field.media_library.allow_multiple`), not a bare top-level `field` property — see
+  "media_library overrides" below.
 - `private` (optional, boolean) — passed straight through to the configured media library as
-  `privateUpload` when opening it (see `handleChange`/`onReplaceOne` in `withFileControl.tsx`),
-  for backends that support separate public/private asset storage (e.g. an S3-backed media
-  library with a private bucket). Whether it does anything depends on the media library
-  implementation in use; see that implementation's own docs. Declared in the JSON-schema
-  `properties` below so it validates the same as the widget's other keys.
+  `privateUpload` when opening it (see `handleChange`/`onReplaceOne` in `withFileControl.tsx`), for
+  backends that support separate public/private asset storage (e.g. an S3-backed media library with
+  a private bucket). Whether it does anything depends on the media library implementation in use;
+  see that implementation's own docs. Declared in the JSON-schema `properties` below so it validates
+  the same as the widget's other keys.
 
 ## `media_library` overrides
 
@@ -48,10 +48,10 @@ sub-keys are consumed here:
   media-library-specific settings (e.g. `max_file_size`).
 
 There is a second, older override path — `field.options.media_library` — referenced only in an
-unused `warnDeprecatedOptions` deprecation-warning helper left over from before the v4.beta
-rewrite. That helper is never invoked anywhere in this file (or elsewhere), so
-`field.options.media_library` is not currently read by this widget at all; treat it as dead code,
-not a supported second mechanism. Configure media-library overrides via `field.media_library` only.
+unused `warnDeprecatedOptions` deprecation-warning helper left over from before the v4.beta rewrite.
+That helper is never invoked anywhere in this file (or elsewhere), so `field.options.media_library`
+is not currently read by this widget at all; treat it as dead code, not a supported second
+mechanism. Configure media-library overrides via `field.media_library` only.
 
 For the shape and behavior of the media library itself (global collection/registered media
 libraries, `config`, upload flow), see `src/core/mediaLibrary.ts` and

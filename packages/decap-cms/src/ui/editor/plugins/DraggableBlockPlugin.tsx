@@ -12,10 +12,10 @@ import {
 import { type JSX, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as ReactDOM from 'react-dom';
 
-import { GripVerticalIcon, PlusIcon } from '@/ui/icons/index';
 import { Button } from '@/ui/Button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/ui/Command';
 import { useEditorModal } from '@/ui/editor/editor-hooks/useModal';
+import { GripVerticalIcon, PlusIcon } from '@/ui/icons/index';
 
 import type { ComponentPickerOption } from './picker/ComponentPickerOption';
 

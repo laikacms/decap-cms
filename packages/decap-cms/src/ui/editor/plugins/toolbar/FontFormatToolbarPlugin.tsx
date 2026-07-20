@@ -2,9 +2,9 @@ import { $isTableSelection } from '@lexical/table';
 import { $isRangeSelection, type BaseSelection, FORMAT_TEXT_COMMAND, type TextFormatType } from 'lexical';
 import { useCallback, useState } from 'react';
 
-import { BoldIcon, ItalicIcon, StrikethroughIcon, UnderlineIcon } from '@/ui/icons/index';
 import { useToolbarContext } from '@/ui/editor/context/ToolbarContext';
 import { useUpdateToolbarHandler } from '@/ui/editor/editor-hooks/useUpdateToolbar';
+import { BoldIcon, ItalicIcon, StrikethroughIcon, UnderlineIcon } from '@/ui/icons/index';
 import { ToggleGroup, ToggleGroupItem } from '@/ui/ToggleGroup';
 
 const FORMATS = [

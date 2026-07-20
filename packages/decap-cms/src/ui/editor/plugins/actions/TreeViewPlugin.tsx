@@ -1,9 +1,9 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { TreeView } from '@lexical/react/LexicalTreeView';
 
-import { NotebookPenIcon } from '@/ui/icons/index';
 import { Button } from '@/ui/Button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/ui/Dialog';
+import { NotebookPenIcon } from '@/ui/icons/index';
 import { ScrollArea, ScrollBar } from '@/ui/ScrollArea';
 
 import type { JSX } from 'react';

@@ -21,7 +21,7 @@ import type {
 
 type FsOptions = {
   repoPath: string,
-  logger: Pick<Console, 'log' | 'info' | 'error' | 'warn' | 'debug'>;
+  logger: Pick<Console, 'log' | 'info' | 'error' | 'warn' | 'debug'>,
 };
 
 export function localFsMiddleware({ repoPath, logger }: FsOptions) {

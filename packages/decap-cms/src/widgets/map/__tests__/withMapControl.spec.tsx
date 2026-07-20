@@ -276,10 +276,13 @@ describe('withMapControl', () => {
 describe('MapControl aria validation wiring (DCMS-1086)', () => {
   beforeEach(() => {
     vi.stubGlobal('ResizeObserver', MockResizeObserver);
-    vi.stubGlobal('requestAnimationFrame', vi.fn((cb: FrameRequestCallback) => {
-      rafCallbacks.push(cb);
-      return rafCallbacks.length;
-    }));
+    vi.stubGlobal(
+      'requestAnimationFrame',
+      vi.fn((cb: FrameRequestCallback) => {
+        rafCallbacks.push(cb);
+        return rafCallbacks.length;
+      }),
+    );
     vi.stubGlobal('cancelAnimationFrame', vi.fn());
     resizeObserverDisconnect = vi.fn();
     rafCallbacks = [];

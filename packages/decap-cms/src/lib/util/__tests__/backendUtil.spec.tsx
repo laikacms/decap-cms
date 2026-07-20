@@ -1,7 +1,6 @@
 import nock from 'nock';
 import { describe, expect, it } from 'vitest';
 
-import { APIError } from '@/lib/util/errors/APIError';
 import {
   filterByExtension,
   getAllResponses,
@@ -10,6 +9,7 @@ import {
   parseResponse,
 } from '@/lib/util/backendUtil';
 import { oneLine } from '@/lib/util/core-utils/template-literal';
+import { APIError } from '@/lib/util/errors/APIError';
 
 describe('parseLinkHeader', () => {
   it('should return the right rel urls', () => {

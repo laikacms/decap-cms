@@ -534,9 +534,11 @@ export default class API {
 
     // move children when subfolders is true (legacy/default behavior)
     if (hasSubfolders) {
-      for (const item of items.filter(
-        i => i.oldPath && i.action === AzureCommitChangeType.RENAME,
-      )) {
+      for (
+        const item of items.filter(
+          i => i.oldPath && i.action === AzureCommitChangeType.RENAME,
+        )
+      ) {
         const sourceDir = Path.dirname(item.oldPath as string);
         const destDir = Path.dirname(item.path);
         const children = await this.listFiles(sourceDir, true, branch);

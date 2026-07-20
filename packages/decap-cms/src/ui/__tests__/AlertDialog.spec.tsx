@@ -2,14 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-import {
-  AlertDialogHost,
-  ConfirmDialogHost,
-  confirmDialog,
-  promptDialog,
-  PromptDialogHost,
-  showAlert,
-} from '@/ui';
+import { AlertDialogHost, confirmDialog, ConfirmDialogHost, promptDialog, PromptDialogHost, showAlert } from '@/ui';
 
 describe('AlertDialog imperative host (Base UI)', () => {
   it('shows a queued alert and resolves once dismissed', async () => {
@@ -268,9 +261,7 @@ describe('PromptDialog imperative host (Base UI), DCMS-658/DCMS-674', () => {
     await user.type(screen.getByRole('textbox'), 'https://example.com/dog.png{Enter}');
 
     await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
-    await waitFor(() =>
-      expect(resolved).toHaveBeenCalledWith('https://example.com/dog.png'),
-    );
+    await waitFor(() => expect(resolved).toHaveBeenCalledWith('https://example.com/dog.png'));
     expect(document.activeElement).toBe(trigger);
   });
 });

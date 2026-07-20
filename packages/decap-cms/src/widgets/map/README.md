@@ -1,7 +1,7 @@
 # Map widget
 
-The map widget renders an interactive [OpenLayers](https://openlayers.org/) map for drawing a
-single geometry (point, line, or polygon) and stores the result as a GeoJSON string.
+The map widget renders an interactive [OpenLayers](https://openlayers.org/) map for drawing a single
+geometry (point, line, or polygon) and stores the result as a GeoJSON string.
 
 ## Config
 
@@ -12,13 +12,13 @@ single geometry (point, line, or polygon) and stores the result as a GeoJSON str
 - `type` (optional, default `Point`) — the geometry the draw interaction produces. One of `Point`,
   `LineString`, or `Polygon` (`schema.ts`). Read in `withMapControl.tsx` as `field.type ?? 'Point'`
   and passed straight through to OpenLayers' `Draw` interaction.
-- `decimals` (optional, default `7`) — the coordinate precision (number of decimal places) used
-  when the drawn geometry is serialized back to GeoJSON. Read as `field.decimals ?? 7` and passed to
+- `decimals` (optional, default `7`) — the coordinate precision (number of decimal places) used when
+  the drawn geometry is serialized back to GeoJSON. Read as `field.decimals ?? 7` and passed to
   `GeoJSON#writeGeometry` as `{ decimals }`.
 - `default` (optional) — a GeoJSON string seed value for new entries. This isn't read by the map
-  widget itself; like every other widget it's applied generically by
-  `createEmptyDraftData` (`src/core/actions/entries.tsx`), which seeds a new entry's field value
-  from `field.default` when present.
+  widget itself; like every other widget it's applied generically by `createEmptyDraftData`
+  (`src/core/actions/entries.tsx`), which seeds a new entry's field value from `field.default` when
+  present.
 
 ## Lazy mount / ResizeObserver lifecycle
 
@@ -39,9 +39,9 @@ To avoid that, construction is deferred until the container actually has a non-z
   been torn down (see below), so both paths can race without double-constructing the map.
 
 A `disposed` flag, set in the effect's cleanup function, gates every entry point into `initMap()`
-(the `ResizeObserver` callback and each `requestAnimationFrame` step). This matters because
-React's `StrictMode` — and, per DCMS-430, the shipped v4.beta demo bundle running React in dev mode
-— invokes an effect, its cleanup, and then the effect again on mount. Each invocation gets its own
+(the `ResizeObserver` callback and each `requestAnimationFrame` step). This matters because React's
+`StrictMode` — and, per DCMS-430, the shipped v4.beta demo bundle running React in dev mode —
+invokes an effect, its cleanup, and then the effect again on mount. Each invocation gets its own
 `map` closure, so without `disposed` a callback scheduled by the first (torn-down) invocation could
 still fire after cleanup and construct a second, undersized map.
 

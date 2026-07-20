@@ -28,8 +28,8 @@ import { loadMedia, waitForMediaLibraryToLoad } from './mediaLibrary';
 import { addNotification } from './notifications';
 import { waitUntil } from './waitUntil';
 
-import type Algolia from '@/core/integrations/providers/algolia/implementation';
 import type { Backend } from '@/core/backend';
+import type Algolia from '@/core/integrations/providers/algolia/implementation';
 import type AssetProxy from '@/core/valueObjects/AssetProxy';
 import type { EntryValue } from '@/core/valueObjects/Entry';
 import type {

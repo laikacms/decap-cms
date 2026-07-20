@@ -1,6 +1,6 @@
-import { ImageIcon } from '@/ui/icons/index';
 import { InsertImageDialog } from '@/ui/editor/extensions/ImagesExtension';
 import { ComponentPickerOption } from '@/ui/editor/plugins/picker/ComponentPickerOption';
+import { ImageIcon } from '@/ui/icons/index';
 
 export function ImagePickerPlugin() {
   return new ComponentPickerOption('Image', {

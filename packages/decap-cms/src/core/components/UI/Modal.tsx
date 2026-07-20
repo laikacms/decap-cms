@@ -1,9 +1,8 @@
-
 import { css } from '@emotion/react';
 import React from 'react';
 
-import { DialogPrimitive as Dialog } from '@/ui/Dialog';
 import { lengths, shadows, transitions, zIndex } from '@/ui/default/index';
+import { DialogPrimitive as Dialog } from '@/ui/Dialog';
 
 /**
  * Core modal, backed by Base UI's Dialog (via the `src/ui/Dialog.tsx`

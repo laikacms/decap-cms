@@ -25,7 +25,7 @@ describe('richtext/bridge/marks', () => {
       'sub',
       'sup',
       'highlight',
-    ])('returns true for known decorator %s', (mark) => {
+    ])('returns true for known decorator %s', mark => {
       expect(isDecorator(mark)).toBe(true);
     });
 

@@ -7,7 +7,6 @@ import {
 } from '@lexical/react/LexicalAutoEmbedPlugin';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { type JSX, useMemo, useState } from 'react';
-// import { TwitterIcon, YoutubeIcon } from "lucide-react"
 
 import { Button } from '@/ui/Button';
 import { Command, CommandGroup, CommandItem, CommandList } from '@/ui/Command';

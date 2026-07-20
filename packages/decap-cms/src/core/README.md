@@ -52,9 +52,8 @@ const theme: DecapTheme = {
     colorsRaw?: Partial<ColorsRaw>;
   }
   ```
-  `Colors` and `ColorsRaw` are defined in
-  [`src/ui/default/styles.tsx`](../ui/default/styles.tsx); see that file for the full token lists
-  and their defaults.
+  `Colors` and `ColorsRaw` are defined in [`src/ui/default/styles.tsx`](../ui/default/styles.tsx);
+  see that file for the full token lists and their defaults.
 - **`theme` prop on `DecapCmsProvider`** — the normal path. `DecapCmsProvider` converts the theme to
   CSS variables internally (`<Global styles={{ ':root': themeToCssVars(theme) }} />`) and applies
   them on top of the default token baseline, which is always emitted first so every token has a
@@ -226,9 +225,9 @@ interface BlockDefinition<TData extends Record<string, unknown> = Record<string,
 }
 ```
 
-`registerBlock` — and `unregisterBlock` — are public methods on the `CMS` object; the
-implementation lives in `src/core/lib/registry.tsx` and delegates to
-`src/lib/richtext/blocks/registry.ts`. Register at boot, before any entry is parsed.
+`registerBlock` — and `unregisterBlock` — are public methods on the `CMS` object; the implementation
+lives in `src/core/lib/registry.tsx` and delegates to `src/lib/richtext/blocks/registry.ts`.
+Register at boot, before any entry is parsed.
 
 ```ts
 import { markdownFormat } from '@laikacms/decap-cms/format-packs/markdown';
@@ -259,8 +258,8 @@ Registers a [remark](https://github.com/remarkjs/remark) plugin in an internal l
 `getRemarkPlugins()`. `plugin` is whatever `remark().use()` accepts (a plugin function, or a
 `[plugin, options]` tuple). Plugins accumulate in registration order; there is no de-duplication.
 
-**This API is currently unused / a no-op.** The richtext widget in this package is built on
-Portable Text, not a remark/markdown pipeline, and no shipped widget (richtext or otherwise) reads
+**This API is currently unused / a no-op.** The richtext widget in this package is built on Portable
+Text, not a remark/markdown pipeline, and no shipped widget (richtext or otherwise) reads
 `getRemarkPlugins()` to configure a markdown processor. Calling `registerRemarkPlugin` records the
 plugin but has no observable effect on any widget's rendering or parsing today.
 
@@ -446,30 +445,30 @@ entries register the three built-ins (`yaml`, `toml`, `json`) plus a markdown co
 ```ts
 type CmsEntryCodec = {
   // Canonical format name for `collection.format` (e.g. 'yaml').
-  name: string;
+  name: string,
   // Additional accepted `collection.format` names (e.g. ['yml']).
-  aliases?: string[];
+  aliases?: string[],
   // File extensions whose format is inferred to this codec (e.g. ['yml', 'yaml']).
-  fileExtensions: string[];
+  fileExtensions: string[],
   // Extension used when creating new files (e.g. 'yml').
-  defaultExtension: string;
+  defaultExtension: string,
   formatter: {
-    fromFile(content: string): unknown;
-    toFile(data: object, sortedKeys?: string[], comments?: Record<string, string>): string;
-  };
+    fromFile(content: string): unknown,
+    toFile(data: object, sortedKeys?: string[], comments?: Record<string, string>): string,
+  },
   // Per-format-name formatter resolution for codecs serving several format
   // names (the markdown codec serves 'frontmatter', 'yaml-frontmatter', etc.,
   // each honoring `frontmatter_delimiter`). Falls back to `formatter`.
   getFormatter?(
     name: string,
     opts?: { customDelimiter?: string | [string, string] },
-  ): CmsFormatterFunctions;
+  ): CmsFormatterFunctions,
   // Format names (of this codec) that accept `frontmatter_delimiter`.
-  frontmatterFormats?: string[];
+  frontmatterFormats?: string[],
   // CMS-config-file parser (config.yml and friends), for codecs that need
   // options beyond entry parsing (the yaml codec enables merge keys and
   // unlimited aliases for configs only). Falls back to `formatter.fromFile`.
-  parseConfig?(text: string): unknown;
+  parseConfig?(text: string): unknown,
 };
 ```
 
@@ -481,15 +480,13 @@ language used when writing a new file.
 
 ```ts
 import { registerEntryCodec } from '@laikacms/decap-cms/core';
-import { yamlEntryCodec } from '@laikacms/decap-cms/entry-codecs/yaml';
-import { tomlEntryCodec } from '@laikacms/decap-cms/entry-codecs/toml';
 import { jsonEntryCodec } from '@laikacms/decap-cms/entry-codecs/json';
-import {
-  createMarkdownEntryCodec,
-} from '@laikacms/decap-cms/entry-codecs/markdown';
-import { yamlFrontmatterCodec } from '@laikacms/decap-cms/entry-codecs/yaml';
-import { tomlFrontmatterCodec } from '@laikacms/decap-cms/entry-codecs/toml';
 import { jsonFrontmatterCodec } from '@laikacms/decap-cms/entry-codecs/json';
+import { createMarkdownEntryCodec } from '@laikacms/decap-cms/entry-codecs/markdown';
+import { tomlEntryCodec } from '@laikacms/decap-cms/entry-codecs/toml';
+import { tomlFrontmatterCodec } from '@laikacms/decap-cms/entry-codecs/toml';
+import { yamlEntryCodec } from '@laikacms/decap-cms/entry-codecs/yaml';
+import { yamlFrontmatterCodec } from '@laikacms/decap-cms/entry-codecs/yaml';
 
 registerEntryCodec(yamlEntryCodec);
 registerEntryCodec(tomlEntryCodec);
@@ -503,8 +500,8 @@ registerEntryCodec(
 );
 ```
 
-To write a custom codec from scratch (rather than reusing a built-in), implement `formatter.fromFile`
-/ `formatter.toFile` and register it the same way:
+To write a custom codec from scratch (rather than reusing a built-in), implement
+`formatter.fromFile` / `formatter.toFile` and register it the same way:
 
 ```ts
 registerEntryCodec({
@@ -546,8 +543,9 @@ chord state, typing suppression, and modal coordination — core owns the mechan
 policy. It's what `laika-app`'s command palette and shortcut-help dialog (`LaikaShortcuts.tsx`,
 `LaikaShortcutHelp.tsx`) are built on.
 
-React consumers should reach for the hooks in [`src/core/hooks/useShortcut.ts`](./hooks/useShortcut.ts)
-instead of calling `registerShortcut` directly:
+React consumers should reach for the hooks in
+[`src/core/hooks/useShortcut.ts`](./hooks/useShortcut.ts) instead of calling `registerShortcut`
+directly:
 
 ```ts
 function useShortcut(shortcut: Shortcut | null | undefined): void;
@@ -576,8 +574,8 @@ function SaveButton({ onSave, disabled }: { onSave: () => void, disabled: boolea
 
 `useShortcut(null)` is a valid no-op call, so a shortcut can be disabled conditionally without
 breaking the rules of hooks. `run` and `when` always see the latest render's closures without
-re-registering — only changes to `id`/`sequence`/`label`/`group`/`allowInInput`/`allowWhileSuspended`
-cause a re-registration.
+re-registering — only changes to
+`id`/`sequence`/`label`/`group`/`allowInInput`/`allowWhileSuspended` cause a re-registration.
 
 ### Sequence syntax
 
@@ -614,15 +612,15 @@ modifiers and a key, parsed by `parseSequence`:
   command palette's `mod+k` to close itself).
 - **`when`** is an extra per-keystroke enablement gate evaluated on every matching keydown, checked
   after the suspension/input checks.
-- **Conflicts and overrides**: registering a shortcut with an `id` that's already registered replaces
-  it — this is how a host overrides an app-shell default without coordinating removal. When multiple
-  eligible shortcuts share the same full sequence, the **last-registered** one wins. When one eligible
-  sequence is a strict prefix of another (a chord in progress), the engine waits for the longer match
-  before dispatching.
+- **Conflicts and overrides**: registering a shortcut with an `id` that's already registered
+  replaces it — this is how a host overrides an app-shell default without coordinating removal. When
+  multiple eligible shortcuts share the same full sequence, the **last-registered** one wins. When
+  one eligible sequence is a strict prefix of another (a chord in progress), the engine waits for
+  the longer match before dispatching.
 - **`attachShortcutTarget(target: Window): () => void`** routes a secondary same-origin window's
   `keydown` events through the engine — used for the editor's preview iframe, which otherwise
-  swallows keystrokes so e.g. `mod+s` inside the preview pane would trigger the browser's "save page"
-  instead of saving the entry.
+  swallows keystrokes so e.g. `mod+s` inside the preview pane would trigger the browser's "save
+  page" instead of saving the entry.
 
 `registerShortcut` returns a dispose function; disposing only removes the registration if it's still
 the current one for that `id` (so a replacement by a host survives the original registrant's
@@ -671,8 +669,8 @@ collections:
 
 At config-apply time each entry gets a derived `id: "${field}__${index}__${pattern}"`
 (`src/core/actions/config.tsx`, `index` is the entry's position in its own `view_filters` /
-`view_groups` list); you don't set `id` yourself. The index keeps ids unique even when `pattern`
-is omitted (valid for `view_groups`) or repeated across entries on the same field.
+`view_groups` list); you don't set `id` yourself. The index keeps ids unique even when `pattern` is
+omitted (valid for `view_groups`) or repeated across entries on the same field.
 
 ### `collection.nested`
 
@@ -680,17 +678,16 @@ Turns a `folder` collection into a nested (tree-structured) collection, browsabl
 the `NestedCollection` sidebar tree instead of a flat entry list. Config keys:
 
 - `depth` (`number`, **required**, `1`–`1000`) — maximum folder-nesting depth shown in the
-  collection UI. Consumed by `collectionDepth` in
-  [`src/core/backend.tsx`](./backend.tsx) (around line 320) to build the path-matching regex/rules
-  for the collection, and takes precedence over the depth otherwise inferred from `collection.path`
-  (`getPathDepth`). When the collection is also i18n-enabled, this depth is further adjusted by
-  `getI18nFilesDepth`.
-- `subfolders` (`boolean`, optional, default `true`) — whether entries may live in nested
-  subfolders at all. When `false`, the sidebar tree in
+  collection UI. Consumed by `collectionDepth` in [`src/core/backend.tsx`](./backend.tsx) (around
+  line 320) to build the path-matching regex/rules for the collection, and takes precedence over the
+  depth otherwise inferred from `collection.path` (`getPathDepth`). When the collection is also
+  i18n-enabled, this depth is further adjusted by `getI18nFilesDepth`.
+- `subfolders` (`boolean`, optional, default `true`) — whether entries may live in nested subfolders
+  at all. When `false`, the sidebar tree in
   [`src/core/components/Collection/NestedCollection.tsx`](./components/Collection/NestedCollection.tsx)
-  falls back to plain folder names for directory node titles (instead of using the title of an
-  index entry inside that directory), and other nested-aware call sites
-  (`src/core/backend.tsx`, `src/core/components/Collection/Entries/EntryListing.tsx`,
+  falls back to plain folder names for directory node titles (instead of using the title of an index
+  entry inside that directory), and other nested-aware call sites (`src/core/backend.tsx`,
+  `src/core/components/Collection/Entries/EntryListing.tsx`,
   `src/core/components/Collection/Entries/EntriesCollection.tsx`) treat the collection as flat for
   path-building purposes.
 - `summary` (`string`, optional) — entry-summary template used for tree/list display of entries in
@@ -758,7 +755,7 @@ local_backend:
 
 - `local_backend: true` (the boolean shorthand) always assumes the proxy is at
   `http://localhost:8081/api/v1`, regardless of which hostname the admin UI is loaded from.
-- Object form **without** `url` does *not* default to `localhost`: the proxy address is computed by
+- Object form **without** `url` does _not_ default to `localhost`: the proxy address is computed by
   substituting the page's current `location.hostname` for `localhost` in the default
   (`defaultUrl.replace('localhost', location.hostname)` in `detectProxyServer`,
   `src/core/actions/config.tsx`). So loading the admin at `http://my-machine.local:8080` looks for
@@ -770,8 +767,8 @@ local_backend:
   configured non-local backend (`detectProxyServer` in `src/core/actions/config.tsx`).
 - Proxy detection only runs when `location.hostname` is `localhost`, `127.0.0.1`, **or** one of the
   hostnames listed in `allowed_hosts`. `allowed_hosts` lets you develop against the local proxy from
-  a hostname other than `localhost`/`127.0.0.1` (e.g. a LAN name or a tunneled domain) — and, per the
-  above, that same hostname is what the object-form-without-`url` proxy address tracks.
+  a hostname other than `localhost`/`127.0.0.1` (e.g. a LAN name or a tunneled domain) — and, per
+  the above, that same hostname is what the object-form-without-`url` proxy address tracks.
 
 ### `backend.commit_messages` / `backend.signoff_commits`
 
@@ -907,18 +904,17 @@ field's current value as:
 Only that single index file is renamed/moved when the `path` field changes — **sibling files in the
 same folder are left untouched**. This is meant for a "one subfolder per entry, with peer assets"
 layout, e.g. `content/posts/my-post/_index.md` next to `content/posts/my-post/cover.jpg`: renaming
-the entry via the `path` field moves `_index.md` to the new subfolder but leaves `cover.jpg` where it
-is.
+the entry via the `path` field moves `_index.md` to the new subfolder but leaves `cover.jpg` where
+it is.
 
 ### `publish_mode: editorial_workflow`
 
 Top-level config option (default is `simple`, i.e. every save publishes straight to the target
-branch). Validated as an enum in
-[`src/core/lib/validateConfig.ts`](./lib/validateConfig.ts) (`['simple', 'editorial_workflow', '']`).
-Setting `publish_mode: editorial_workflow` routes entry saves through a draft → review → publish
-state machine instead of publishing immediately: each save creates or updates an "unpublished
-entry" that editors move between statuses (via the entry editor's status dropdown, described below)
-until someone explicitly publishes it.
+branch). Validated as an enum in [`src/core/lib/validateConfig.ts`](./lib/validateConfig.ts)
+(`['simple', 'editorial_workflow', '']`). Setting `publish_mode: editorial_workflow` routes entry
+saves through a draft → review → publish state machine instead of publishing immediately: each save
+creates or updates an "unpublished entry" that editors move between statuses (via the entry editor's
+status dropdown, described below) until someone explicitly publishes it.
 
 ```yaml
 publish_mode: editorial_workflow
@@ -935,11 +931,11 @@ The three statuses an unpublished entry can hold, defined in
 [`src/core/constants/publishModes.ts`](./constants/publishModes.ts) (`Statuses`, with
 `statusDescriptions` holding the human-readable labels used in the UI):
 
-| Status                    | Value              | Meaning                                                        |
-| --------------------------| ------------------ | ---------------------------------------------------------------- |
-| `Statuses.DRAFT`          | `draft`            | Work in progress; not yet submitted for review.                  |
-| `Statuses.PENDING_REVIEW` | `pending_review`   | Submitted and waiting for a reviewer to look at it.               |
-| `Statuses.PENDING_PUBLISH`| `pending_publish`  | Reviewed and approved; waiting to be published.                   |
+| Status                     | Value             | Meaning                                             |
+| -------------------------- | ----------------- | --------------------------------------------------- |
+| `Statuses.DRAFT`           | `draft`           | Work in progress; not yet submitted for review.     |
+| `Statuses.PENDING_REVIEW`  | `pending_review`  | Submitted and waiting for a reviewer to look at it. |
+| `Statuses.PENDING_PUBLISH` | `pending_publish` | Reviewed and approved; waiting to be published.     |
 
 An unpublished entry's status lives on `entry.status` in the `editorialWorkflow` reducer state
 ([`src/core/reducers/editorialWorkflow.ts`](./reducers/editorialWorkflow.ts)), keyed by
@@ -949,13 +945,13 @@ backs the workflow board's per-column entry lists.
 
 #### Transitions
 
-| Trigger                                                              | Action                                                                          | Effect                                                                                                  |
-| ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Editor saves a new entry (`publish_mode: editorial_workflow` active) | `persistUnpublishedEntry` (`src/core/actions/editorialWorkflow.tsx`)             | Creates the entry in the `editorialWorkflow` store; the backend assigns it its initial status (`DRAFT`).  |
-| Editor picks a status from the entry editor's status dropdown          | `updateUnpublishedEntryStatus` (`src/core/actions/editorialWorkflow.tsx`)        | Applies the new status optimistically, persists it via `backend.updateUnpublishedEntryStatus`, and rolls back to the previous status if the backend call fails. |
-| Editor/reviewer clicks Publish on an entry in `PENDING_PUBLISH`        | `publishUnpublishedEntry` (`src/core/actions/editorialWorkflow.tsx`)             | Publishes the entry via `backend.publishUnpublishedEntry` and removes it from the unpublished-entries store. |
-| Editor deletes an unpublished entry                                    | `deleteUnpublishedEntry` (`src/core/actions/editorialWorkflow.tsx`)              | Removes the entry from the unpublished-entries store without publishing it.                                  |
-| Editor unpublishes an already-published entry                          | `unpublishPublishedEntry` (`src/core/actions/editorialWorkflow.tsx`)             | Deletes the published entry and re-persists it as an unpublished entry with status `PENDING_PUBLISH`.        |
+| Trigger                                                              | Action                                                                    | Effect                                                                                                                                                          |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Editor saves a new entry (`publish_mode: editorial_workflow` active) | `persistUnpublishedEntry` (`src/core/actions/editorialWorkflow.tsx`)      | Creates the entry in the `editorialWorkflow` store; the backend assigns it its initial status (`DRAFT`).                                                        |
+| Editor picks a status from the entry editor's status dropdown        | `updateUnpublishedEntryStatus` (`src/core/actions/editorialWorkflow.tsx`) | Applies the new status optimistically, persists it via `backend.updateUnpublishedEntryStatus`, and rolls back to the previous status if the backend call fails. |
+| Editor/reviewer clicks Publish on an entry in `PENDING_PUBLISH`      | `publishUnpublishedEntry` (`src/core/actions/editorialWorkflow.tsx`)      | Publishes the entry via `backend.publishUnpublishedEntry` and removes it from the unpublished-entries store.                                                    |
+| Editor deletes an unpublished entry                                  | `deleteUnpublishedEntry` (`src/core/actions/editorialWorkflow.tsx`)       | Removes the entry from the unpublished-entries store without publishing it.                                                                                     |
+| Editor unpublishes an already-published entry                        | `unpublishPublishedEntry` (`src/core/actions/editorialWorkflow.tsx`)      | Deletes the published entry and re-persists it as an unpublished entry with status `PENDING_PUBLISH`.                                                           |
 
 The status dropdown (`renderWorkflowStatusControls` in
 [`src/core/components/Editor/EditorToolbar.tsx`](./components/Editor/EditorToolbar.tsx)) only offers
@@ -1005,17 +1001,18 @@ of the root.
     `content/posts/{slug}.{locale}.md` (e.g. `content/posts/my-post.de.md`).
   - **`single_file`** — one file for all locales; entry data is nested under
     `{ [locale]: { ...fields } }` internally to (de)serialize it into a single on-disk document.
-    `getFilePaths` returns just the one un-suffixed path (`content/posts/my-post.md`), and there's no
-    separate on-disk file per locale to browse.
+    `getFilePaths` returns just the one un-suffixed path (`content/posts/my-post.md`), and there's
+    no separate on-disk file per locale to browse.
 - **`i18n.locales`** — non-empty array of locale codes (schema: 2–10 chars, `[a-zA-Z-_]+`, unique).
   One entry form tab is rendered per locale; `multiple_folders`/`multiple_files` each locale after
   the first is loaded/saved as its own backend file, merged into one in-memory entry by
   `getI18nBackup`/`groupEntries`.
-- **`i18n.default_locale`** — which locale in `locales` is the "primary" one: its tab is shown first,
-  its file is the one new entries are created from, and (for `multiple_folders`/`multiple_files`) its
-  on-disk file is the target when other collection features (media library base path, slug
-  generation from the entry, etc.) need a single canonical path. Must be one of `locales` — an
-  unlisted value is simply never treated as the default (no validation error).
+- **`i18n.default_locale`** — which locale in `locales` is the "primary" one: its tab is shown
+  first, its file is the one new entries are created from, and (for
+  `multiple_folders`/`multiple_files`) its on-disk file is the target when other collection features
+  (media library base path, slug generation from the entry, etc.) need a single canonical path. Must
+  be one of `locales` — an unlisted value is simply never treated as the default (no validation
+  error).
 
 **Field-level `i18n`** (`collections[].fields[].i18n`) controls how one field behaves across
 locales, checked by `isFieldTranslatable`/`isFieldDuplicate`/`isFieldHidden` in

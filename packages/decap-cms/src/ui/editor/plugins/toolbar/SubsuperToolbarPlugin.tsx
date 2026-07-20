@@ -2,9 +2,9 @@ import { $isTableSelection } from '@lexical/table';
 import { $isRangeSelection, type BaseSelection, FORMAT_TEXT_COMMAND } from 'lexical';
 import { useState } from 'react';
 
-import { SubscriptIcon, SuperscriptIcon } from '@/ui/icons/index';
 import { useToolbarContext } from '@/ui/editor/context/ToolbarContext';
 import { useUpdateToolbarHandler } from '@/ui/editor/editor-hooks/useUpdateToolbar';
+import { SubscriptIcon, SuperscriptIcon } from '@/ui/icons/index';
 import { ToggleGroup, ToggleGroupItem } from '@/ui/ToggleGroup';
 
 export function SubSuperToolbarPlugin() {

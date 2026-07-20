@@ -29,7 +29,8 @@ const nl = {
       loadingConfig: 'Configuatie laden...',
       waitingBackend: 'Wachten op server...',
       sessionExpiredTitle: 'Je sessie is verlopen',
-      sessionExpiredBody: 'Log opnieuw in om verder te gaan waar je gebleven was. Niet-opgeslagen wijzigingen blijven veilig bewaard op dit apparaat.',
+      sessionExpiredBody:
+        'Log opnieuw in om verder te gaan waar je gebleven was. Niet-opgeslagen wijzigingen blijven veilig bewaard op dit apparaat.',
     },
     notFoundPage: {
       header: 'Niet gevonden',

@@ -1,11 +1,10 @@
-
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import React from 'react';
 
 import { useSuspendShortcuts } from '@/core/hooks/useShortcut';
-import { DialogPrimitive as Dialog } from '@/ui/Dialog';
 import { colors, Icon, lengths, zIndex } from '@/ui/default/index';
+import { DialogPrimitive as Dialog } from '@/ui/Dialog';
 import LaikaIconButton from './LaikaIconButton';
 
 /**

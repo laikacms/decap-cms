@@ -1,4 +1,3 @@
-
 import { Field as FieldPrimitive } from '@base-ui/react/field';
 import { Fieldset as FieldsetPrimitive } from '@base-ui/react/fieldset';
 import * as React from 'react';

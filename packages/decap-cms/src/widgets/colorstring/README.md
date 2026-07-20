@@ -1,8 +1,9 @@
 # Color widget
 
-Shows a color swatch that opens a picker ([`react-colorful`](https://www.npmjs.com/package/react-colorful))
-and a text input for the color value. Registered as `widget: 'color'` (the source directory is
-still named `colorstring` from before the widget was renamed).
+Shows a color swatch that opens a picker
+([`react-colorful`](https://www.npmjs.com/package/react-colorful)) and a text input for the color
+value. Registered as `widget: 'color'` (the source directory is still named `colorstring` from
+before the widget was renamed).
 
 ## Config
 
@@ -49,9 +50,9 @@ When `false` (the default):
 When `true`:
 
 - The picker is `RgbaStringColorPicker`.
-- A picked color is re-parsed with `tinycolor`: if its alpha is `< 1` it's stored as an
-  `rgba(...)` string, otherwise it's stored as a hex string. This means a fully-opaque color picked
-  with `enableAlpha: true` still ends up stored as hex, not `rgba(r, g, b, 1)`.
+- A picked color is re-parsed with `tinycolor`: if its alpha is `< 1` it's stored as an `rgba(...)`
+  string, otherwise it's stored as a hex string. This means a fully-opaque color picked with
+  `enableAlpha: true` still ends up stored as hex, not `rgba(r, g, b, 1)`.
 
 Whichever picker is active also determines the color format shown to seed it: the current value is
 parsed and re-serialized as `rgba(...)` when `enableAlpha` is `true`, or as hex otherwise. An

@@ -1,9 +1,9 @@
 import { createAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
+import { addNotification, clearNotifications } from '@/core/actions/notifications';
 import { currentBackend } from '@/core/backend';
 import { ACCESS_TOKEN_ERROR } from '@/lib/util/index';
 import queryCore from '@/lib/util/queryCore';
-import { addNotification, clearNotifications } from '@/core/actions/notifications';
 
 import type { CmsCredentials, CmsUser as User } from '@/lib/util/index';
 

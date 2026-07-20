@@ -13,12 +13,12 @@ export default defineConfig({
     // ANALYZE=1 → interactive treemap next to the bundle.
     ...(process.env.ANALYZE
       ? [
-          visualizer({
-            emitFile: true,
-            filename: 'bundle-report-decap-cms-graphql.html',
-            gzipSize: true,
-          }),
-        ]
+        visualizer({
+          emitFile: true,
+          filename: 'bundle-report-decap-cms-graphql.html',
+          gzipSize: true,
+        }),
+      ]
       : []),
   ],
   build: {

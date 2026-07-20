@@ -14,18 +14,18 @@ or, for values that can't be safely represented as one, the raw string the edito
   the literal string `'int'` (including unset/`undefined`) takes the float path.
   - `'int'` — input renders `step="1"`. Typed values are parsed with `parseInt`. If the parsed
     integer exceeds `Number.MAX_SAFE_INTEGER` (i.e. `parseInt` would have silently rounded it), the
-    raw string is stored instead of the rounded number, and `isValid()` reports a
-    "Value exceeds the maximum safe integer. Use a string widget for arbitrary-precision IDs."
-    error rather than persisting the corrupted value.
+    raw string is stored instead of the rounded number, and `isValid()` reports a "Value exceeds the
+    maximum safe integer. Use a string widget for arbitrary-precision IDs." error rather than
+    persisting the corrupted value.
   - `'float'` / unset — input renders `step="any"`. Typed values are parsed with `parseFloat`,
-    preserving decimals. If the parsed value overflows to `Infinity`/`-Infinity` (e.g. `1e309`),
-    the raw string is stored instead, and `isValid()` reports a
-    "Value exceeds the maximum representable number." error.
+    preserving decimals. If the parsed value overflows to `Infinity`/`-Infinity` (e.g. `1e309`), the
+    raw string is stored instead, and `isValid()` reports a "Value exceeds the maximum representable
+    number." error.
 - `step` (optional) — overrides the `step` attribute on the `<input>`. When unset, `step` defaults
   to `1` for `value_type: 'int'` and `any` otherwise.
 - `min` / `max` (optional) — numeric bounds. Enforced on save via `validateMinMax`, which emits a
-  translated range/min/max validation error when the value falls outside the bounds; not enforced
-  as the user types.
+  translated range/min/max validation error when the value falls outside the bounds; not enforced as
+  the user types.
 - `default` (optional) — pre-filled value for new entries.
 
 Note: `CmsFieldNumber` also has a deprecated `valueType` (camelCase) type field, but nothing in the

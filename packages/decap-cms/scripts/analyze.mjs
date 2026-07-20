@@ -32,7 +32,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 
-const root = fileURLToPath(new URL('..', import.meta.url));
+const root = fileURLToPath(new URL('../../..', import.meta.url));
 const explore = process.argv.includes('--explore');
 const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 
@@ -203,6 +203,5 @@ const badge = {
   install,
 };
 
-mkdirSync(join(root, '.github'), { recursive: true });
 writeFileSync(join(root, '.github', 'bundle-size.json'), `${JSON.stringify(badge, null, 2)}\n`);
 console.log(`[analyze] wrote .github/bundle-size.json (badge: ${badge.message})`);

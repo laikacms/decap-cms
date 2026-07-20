@@ -1,8 +1,8 @@
 import { INSERT_TABLE_COMMAND } from '@lexical/table';
 
-import { TableIcon } from '@/ui/icons/index';
 import { ComponentPickerOption } from '@/ui/editor/plugins/picker/ComponentPickerOption';
 import { InsertTableDialog } from '@/ui/editor/plugins/TablePlugin';
+import { TableIcon } from '@/ui/icons/index';
 
 export function TablePickerPlugin() {
   return new ComponentPickerOption('Table', {

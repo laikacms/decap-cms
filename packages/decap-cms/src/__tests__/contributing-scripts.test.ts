@@ -22,7 +22,7 @@ describe('CONTRIBUTING.md#scripts', () => {
   it('only documents `pnpm <script>` commands that exist in the root package.json', () => {
     const contributing = fs.readFileSync(CONTRIBUTING_PATH, 'utf8');
     const rootPackageJson = JSON.parse(fs.readFileSync(ROOT_PACKAGE_JSON_PATH, 'utf8')) as {
-      scripts?: Record<string, string>;
+      scripts?: Record<string, string>,
     };
     const declaredScripts = new Set(Object.keys(rootPackageJson.scripts ?? {}));
 

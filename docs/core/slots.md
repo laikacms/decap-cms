@@ -12,9 +12,9 @@ nested inside the collection/editor/media-library routes that a top-level prop c
 
 1. Supply a `CmsSlots` object once, at the app root, via `CmsSlotsProvider`.
 2. Any descendant component calls `useCmsSlots()` and reads its own slot.
-3. Slots are optional. A component that finds its slot `undefined` falls back to its default
-   Decap CMS rendering — so omitting `CmsSlotsProvider` entirely, or omitting individual keys,
-   changes nothing about default behavior.
+3. Slots are optional. A component that finds its slot `undefined` falls back to its default Decap
+   CMS rendering — so omitting `CmsSlotsProvider` entirely, or omitting individual keys, changes
+   nothing about default behavior.
 
 ```tsx
 import { CmsSlotsProvider } from '@laikacms/decap-cms/app';
@@ -59,8 +59,8 @@ Replaces the heading + "new entry" button rendered above a collection's entry li
 
 Replaces the per-page collection sidebar — the left rail inside a collection's entry listing that
 shows the collection list and in-collection search. Return `null` to suppress it entirely (useful
-when the app-level layout already supplies a sidebar via its own `renderLayout` prop); the main
-pane reflows to fill the row when this slot returns `null`.
+when the app-level layout already supplies a sidebar via its own `renderLayout` prop); the main pane
+reflows to fill the row when this slot returns `null`.
 
 - Props: `CollectionSidebarRenderProps` (`collections`, `collection?`, `isSearchEnabled?`,
   `searchTerm?`, `filterTerm?`)
@@ -68,8 +68,8 @@ pane reflows to fill the row when this slot returns `null`.
 
 ### `renderCollectionControls`
 
-Replaces the view-style / sort / filter / group toolbar rendered above a collection's entry
-listing. Handlers and current state are pre-resolved, so the renderer stays presentational.
+Replaces the view-style / sort / filter / group toolbar rendered above a collection's entry listing.
+Handlers and current state are pre-resolved, so the renderer stays presentational.
 
 - Props: `CollectionControlsRenderProps` (`viewStyle`, `onChangeViewStyle`, `sortableFields`,
   `onSortClick`, `sort?`, `viewFilters?`, `viewGroups?`, `onFilterClick`, `onGroupClick`, `filter?`,
@@ -79,8 +79,8 @@ listing. Handlers and current state are pre-resolved, so the renderer stays pres
 ### `renderEntryCard`
 
 Replaces the entry-card visual used in collection listings. Receives fully resolved entry data —
-collection, entry, inferred image field, active view style (list/grid), and workflow status when
-the editorial workflow is enabled.
+collection, entry, inferred image field, active view style (list/grid), and workflow status when the
+editorial workflow is enabled.
 
 - Props: `EntryCardRenderProps` (`collection`, `entry`, `inferredFields`, `collectionLabel?`,
   `viewStyle?`, `workflowStatus?`)
@@ -97,9 +97,9 @@ loading.
 
 ### `renderLoader`
 
-Replaces the generic `<Loader>` shown while collection entries, an individual entry, or the
-workflow board is loading. Receives the already-translated label and a `context` hint identifying
-where the loader is being shown. Omit to keep the default `<Loader>`.
+Replaces the generic `<Loader>` shown while collection entries, an individual entry, or the workflow
+board is loading. Receives the already-translated label and a `context` hint identifying where the
+loader is being shown. Omit to keep the default `<Loader>`.
 
 - Props: `LoaderRenderProps` (`label?`, `context?: 'config' | 'entries' | 'entry' | 'workflow'`)
 - Consumers:
@@ -110,8 +110,8 @@ where the loader is being shown. Omit to keep the default `<Loader>`.
 ### `renderWorkflowCard`
 
 Replaces the editorial-workflow card visual on the Workflow board. Receives the same data as the
-default `WorkflowCard` — title, body, author, edit link, publish/delete handlers — so consumers
-can re-skin it without re-implementing drag-and-drop or Redux integration.
+default `WorkflowCard` — title, body, author, edit link, publish/delete handlers — so consumers can
+re-skin it without re-implementing drag-and-drop or Redux integration.
 
 - Props: `WorkflowCardRenderProps` (`collectionLabel`, `title?`, `authorLastChange?`, `body?`,
   `isModification?`, `editLink`, `timestamp`, `onDelete`, `allowPublish`, `canPublish`, `onPublish`,
@@ -120,9 +120,8 @@ can re-skin it without re-implementing drag-and-drop or Redux integration.
 
 ### `renderEditorToolbar`
 
-Replaces the editor screen's top toolbar — the bar with save/publish/delete actions above an
-entry's edit form. The full prop bundle is pre-resolved so the renderer stays presentational and
-Redux-free.
+Replaces the editor screen's top toolbar — the bar with save/publish/delete actions above an entry's
+edit form. The full prop bundle is pre-resolved so the renderer stays presentational and Redux-free.
 
 - Props: `EditorToolbarRenderProps` (persist/publish/delete state and handlers, `user?`,
   `hasChanged?`, `displayUrl?`, `collection`, `hasWorkflow?`, `useOpenAuthoring?`, and more — see
@@ -131,8 +130,8 @@ Redux-free.
 
 ### `renderEditorViewControls`
 
-Replaces the floating view-controls cluster inside the editor — the pinned toggles for i18n,
-preview pane, and scroll-sync. Each toggle arrives as `<feature>Enabled` (should it render at all),
+Replaces the floating view-controls cluster inside the editor — the pinned toggles for i18n, preview
+pane, and scroll-sync. Each toggle arrives as `<feature>Enabled` (should it render at all),
 `<feature>Visible` (is it currently active), and the click handler.
 
 - Props: `EditorViewControlsRenderProps` (`i18nEnabled`, `i18nVisible`, `onToggleI18n`,
@@ -142,14 +141,14 @@ preview pane, and scroll-sync. Each toggle arrives as `<feature>Enabled` (should
 
 ### `renderMediaLibraryCard`
 
-Replaces each card in the MediaLibrary grid — the modal that opens when picking an image/file from
-a widget. Receives the file's display URL, display name, selection state, click handler, and a
-lazy display-URL loader, so consumers can re-skin without re-implementing async asset loading or
+Replaces each card in the MediaLibrary grid — the modal that opens when picking an image/file from a
+widget. Receives the file's display URL, display name, selection state, click handler, and a lazy
+display-URL loader, so consumers can re-skin without re-implementing async asset loading or
 selection wiring.
 
-- Props: `MediaLibraryCardRenderProps` (`isSelected?`, `displayURL`, `text`, `onClick`,
-  `draftText`, `width`, `height`, `margin`, `isPrivate?`, `type?`, `isViewableImage`,
-  `loadDisplayURL`, `isDraft?`)
+- Props: `MediaLibraryCardRenderProps` (`isSelected?`, `displayURL`, `text`, `onClick`, `draftText`,
+  `width`, `height`, `margin`, `isPrivate?`, `type?`, `isViewableImage`, `loadDisplayURL`,
+  `isDraft?`)
 - Consumer: `packages/decap-cms/src/core/components/MediaLibrary/MediaLibraryCardGrid.tsx:25`
 
 ### `renderMediaLibraryTop`
@@ -166,9 +165,9 @@ delete/insert buttons. All click and search-input handlers are pre-resolved.
 
 Add a typed field to the `CmsSlots` interface in `slots.tsx` (e.g. `renderMyThing`) plus its
 render-props interface. The consuming component should call `useCmsSlots()`, branch on whether the
-slot is set, and fall back to the default rendering when it's omitted — that keeps default Decap
-CMS behavior unchanged for anyone who doesn't supply a `CmsSlotsProvider`. Add both a pinning test
-in `src/core/lib/__tests__/slots.spec.tsx` and an entry in this doc for the new key.
+slot is set, and fall back to the default rendering when it's omitted — that keeps default Decap CMS
+behavior unchanged for anyone who doesn't supply a `CmsSlotsProvider`. Add both a pinning test in
+`src/core/lib/__tests__/slots.spec.tsx` and an entry in this doc for the new key.
 
 ## Provider wiring
 
@@ -177,8 +176,8 @@ content:
 
 ```tsx
 // packages/decap-cms/src/app/components/App.tsx
-<CmsSlotsProvider slots={slots}>{/* ...routed app content... */}</CmsSlotsProvider>
+<CmsSlotsProvider slots={slots}>{/* ...routed app content... */}</CmsSlotsProvider>;
 ```
 
-Everything rendered below that point — collections, entries, the editor, the workflow board, and
-the media library — can read from the same `slots` object via `useCmsSlots()`.
+Everything rendered below that point — collections, entries, the editor, the workflow board, and the
+media library — can read from the same `slots` object via `useCmsSlots()`.

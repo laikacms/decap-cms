@@ -1,7 +1,7 @@
 import { INSERT_UNORDERED_LIST_COMMAND } from '@lexical/list';
 
-import { ListIcon } from '@/ui/icons/index';
 import { ComponentPickerOption } from '@/ui/editor/plugins/picker/ComponentPickerOption';
+import { ListIcon } from '@/ui/icons/index';
 
 export function BulletedListPickerPlugin() {
   return new ComponentPickerOption('Bulleted List', {

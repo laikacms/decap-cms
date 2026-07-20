@@ -1,4 +1,3 @@
-
 import { ContentEditable as LexicalContentEditable } from '@lexical/react/LexicalContentEditable';
 
 import { css, cx } from '@/ui/styled';

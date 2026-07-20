@@ -1,7 +1,7 @@
 import { INSERT_CHECK_LIST_COMMAND } from '@lexical/list';
 
-import { ListTodoIcon } from '@/ui/icons/index';
 import { ComponentPickerOption } from '@/ui/editor/plugins/picker/ComponentPickerOption';
+import { ListTodoIcon } from '@/ui/icons/index';
 
 export function CheckListPickerPlugin() {
   return new ComponentPickerOption('Check List', {

@@ -2,8 +2,8 @@ import { act, fireEvent, render } from '@testing-library/react';
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { isSafeUrl } from '@/widgets/file/withFileControl';
 import { DecapCmsWidgetFile } from '@/widgets/file/index';
+import { isSafeUrl } from '@/widgets/file/withFileControl';
 
 import type { CmsFieldBase, CmsFieldFile } from '@/lib/util/index';
 

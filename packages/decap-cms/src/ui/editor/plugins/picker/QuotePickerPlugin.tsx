@@ -2,8 +2,8 @@ import { $createQuoteNode } from '@lexical/rich-text';
 import { $setBlocksType } from '@lexical/selection';
 import { $getSelection, $isRangeSelection } from 'lexical';
 
-import { QuoteIcon } from '@/ui/icons/index';
 import { ComponentPickerOption } from '@/ui/editor/plugins/picker/ComponentPickerOption';
+import { QuoteIcon } from '@/ui/icons/index';
 
 export function QuotePickerPlugin() {
   return new ComponentPickerOption('Quote', {

@@ -1,6 +1,6 @@
-import { CalendarIcon } from '@/ui/icons/index';
 import { INSERT_DATETIME_COMMAND } from '@/ui/editor/extensions/DateTimeExtension';
 import { ComponentPickerOption } from '@/ui/editor/plugins/picker/ComponentPickerOption';
+import { CalendarIcon } from '@/ui/icons/index';
 
 export function DateTimePickerPlugin() {
   return new ComponentPickerOption('Date', {

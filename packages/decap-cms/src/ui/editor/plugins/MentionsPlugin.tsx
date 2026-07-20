@@ -8,9 +8,9 @@ import { LexicalTypeaheadMenuPlugin } from '@lexical/react/LexicalTypeaheadMenuP
 import { type JSX, useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-import { CircleUserRoundIcon } from '@/ui/icons/index';
 import { Command, CommandGroup, CommandItem, CommandList } from '@/ui/Command';
 import { $createMentionNode } from '@/ui/editor/nodes/mention-node';
+import { CircleUserRoundIcon } from '@/ui/icons/index';
 
 import type { TextNode } from 'lexical';
 

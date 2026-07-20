@@ -37,11 +37,12 @@ syntax (`upper`, `lower`, `date()`, `default()`, `ternary()`, `truncate()`) - se
 
 Search results are cached by the shared query coordinator, `queryCore`
 (`src/lib/util/queryCore.ts`). `RelationControl.tsx` calls
-`queryCore.fetch(key, () => query(...), { tags: [collectionTag(collection)], keepValue: true })`
-for both the initial-value lookup and debounced searches (`RelationControl.tsx:334-337,
-437-441`). The cache key is built by `relationOptionsKey(collection, searchFields, term, file)`
-(`RelationControl.tsx:94`), so the exact same search (same collection, search fields, term and
-file) returns the cached result set — via `keepValue: true` — instead of re-querying the backend.
+`queryCore.fetch(key, () => query(...), { tags: [collectionTag(collection)], keepValue: true })` for
+both the initial-value lookup and debounced searches (`RelationControl.tsx:334-337,
+437-441`). The
+cache key is built by `relationOptionsKey(collection, searchFields, term, file)`
+(`RelationControl.tsx:94`), so the exact same search (same collection, search fields, term and file)
+returns the cached result set — via `keepValue: true` — instead of re-querying the backend.
 
 `queryCore` entries are fresh for a 30s TTL by default and are also bounded to the 100 most
 recently-inserted kept values (`QueryCore.ensureValueCap`, `src/lib/util/queryCore.ts`), evicting
@@ -52,9 +53,9 @@ cached key sharing a tag. This is called on entry save, delete, publish, and unp
 draft), `:507` (delete unpublished), and `:543` (publish).
 
 Because invalidation is keyed by collection name (`collectionTag`), it clears every cached search
-for that collection, not just the specific entry that changed — searches are re-issued the next
-time they're typed rather than proactively refetched.
+for that collection, not just the specific entry that changed — searches are re-issued the next time
+they're typed rather than proactively refetched.
 
 `queryCore` also exposes a `clear()` method that resets all in-flight/cached state (used between
-tests), and `invalidateKey()` for invalidating a single query key; relation search invalidation
-uses only the tag-based `invalidateTags()` path described above.
+tests), and `invalidateKey()` for invalidating a single query key; relation search invalidation uses
+only the tag-based `invalidateTags()` path described above.

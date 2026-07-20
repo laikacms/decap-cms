@@ -47,11 +47,9 @@ function buildStore() {
   return createStore((state = {}) => state, applyMiddleware(thunk));
 }
 
-function setup(overrides?: { debounceMs?: number; slug?: string }) {
+function setup(overrides?: { debounceMs?: number, slug?: string }) {
   const store = buildStore();
-  const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <Provider store={store}>{children}</Provider>
-  );
+  const wrapper = ({ children }: { children: React.ReactNode }) => <Provider store={store}>{children}</Provider>;
   const { result } = renderHook(
     () => useLocalBackup({ collection, slug: overrides?.slug ?? 'my-post', debounceMs: overrides?.debounceMs }),
     { wrapper },
@@ -93,9 +91,7 @@ describe('useLocalBackup', () => {
 
   it('retrieve() falls back to an empty slug when none is given', () => {
     const store = buildStore();
-    const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <Provider store={store}>{children}</Provider>
-    );
+    const wrapper = ({ children }: { children: React.ReactNode }) => <Provider store={store}>{children}</Provider>;
     const { result } = renderHook(() => useLocalBackup({ collection }), { wrapper });
     act(() => {
       result.current.retrieve();

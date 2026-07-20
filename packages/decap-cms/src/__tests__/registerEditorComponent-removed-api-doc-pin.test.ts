@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
@@ -73,10 +73,10 @@ describe(`removed API "${REMOVED_API_NAME}" doc pin (DCMS-1150/#1151)`, () => {
 
     expect(
       offenders,
-      `expected no doc to call/define ${REMOVED_API_NAME}(...), it was removed in favor of ` +
-        `CMS.registerBlock (see src/widgets/richtext/README.md "Custom blocks"). Found call-syntax ` +
-        `mentions in: ${offenders.join(', ')}. If this API is ever reintroduced, first add a matching ` +
-        `export under src/ so the sibling test above passes, then remove this pin.`,
+      `expected no doc to call/define ${REMOVED_API_NAME}(...), it was removed in favor of `
+        + `CMS.registerBlock (see src/widgets/richtext/README.md "Custom blocks"). Found call-syntax `
+        + `mentions in: ${offenders.join(', ')}. If this API is ever reintroduced, first add a matching `
+        + `export under src/ so the sibling test above passes, then remove this pin.`,
     ).toEqual([]);
   });
 });

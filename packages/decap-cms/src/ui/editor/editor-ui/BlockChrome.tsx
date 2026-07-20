@@ -1,9 +1,9 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { $getNodeByKey } from 'lexical';
 
-import { PencilIcon, PuzzleIcon, Trash2Icon, XIcon } from '@/ui/icons/index';
 import { useBlocksConfig } from '@/lib/richtext/lexical';
 import { Button } from '@/ui/Button';
+import { PencilIcon, PuzzleIcon, Trash2Icon, XIcon } from '@/ui/icons/index';
 
 import type { BlockChromeProps } from '@/lib/richtext';
 import type { ReactNode } from 'react';

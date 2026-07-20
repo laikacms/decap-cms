@@ -1,10 +1,9 @@
-
 import { $isCodeNode } from '@lexical/code';
 import { $getNearestNodeFromDOMNode, $getSelection, $setSelection, type LexicalEditor } from 'lexical';
 import { useState } from 'react';
 
-import { CircleCheckIcon, CopyIcon } from '@/ui/icons/index';
 import { useDebounce } from '@/ui/editor/editor-hooks/useDebounce';
+import { CircleCheckIcon, CopyIcon } from '@/ui/icons/index';
 import { css } from '@/ui/styled';
 
 interface Props {

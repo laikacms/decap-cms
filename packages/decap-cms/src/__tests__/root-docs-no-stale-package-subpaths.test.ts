@@ -39,17 +39,14 @@ function listDevTestHtmlFiles(): string[] {
 }
 
 function listScannedFiles(): string[] {
-  const rootDocs = ROOT_DOC_FILES.map(name => path.join(REPO_ROOT, name)).filter(file =>
-    fs.existsSync(file),
-  );
+  const rootDocs = ROOT_DOC_FILES.map(name => path.join(REPO_ROOT, name)).filter(file => fs.existsSync(file));
   return [...rootDocs, ...listDevTestHtmlFiles()];
 }
 
 // Matches any `import { ... } from '@laikacms/decap-cms/core'` (or `"..."`)
 // statement whose named-import clause includes the bare identifier `App`
 // (not `AppContent`, `AppLayoutRenderProps`, etc.).
-const STALE_CORE_APP_IMPORT =
-  /import\s*\{([^}]*)\}\s*from\s+['"]@laikacms\/decap-cms\/core['"]/g;
+const STALE_CORE_APP_IMPORT = /import\s*\{([^}]*)\}\s*from\s+['"]@laikacms\/decap-cms\/core['"]/g;
 
 // Matches an import from the nonexistent `/widget-string` subpath (correct
 // subpath is the plural `/widgets/string`).

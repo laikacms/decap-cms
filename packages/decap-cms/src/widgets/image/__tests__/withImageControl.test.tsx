@@ -59,7 +59,9 @@ describe('image widget control', () => {
 // invalid image field. The "Choose an image" button is the perceived
 // control here (the underlying <input type="file"> isn't announced).
 describe('ImageControl aria validation wiring (DCMS-1086)', () => {
-  function setupWithAria(overrides: { field?: Partial<CmsFieldImage>, hasErrors?: boolean, errorListId?: string } = {}) {
+  function setupWithAria(
+    overrides: { field?: Partial<CmsFieldImage>, hasErrors?: boolean, errorListId?: string } = {},
+  ) {
     const field = { name: 'image', widget: 'image', ...overrides.field } as CmsFieldImage & CmsFieldBase;
     return render(
       <ImageControl

@@ -60,5 +60,6 @@ is present:
   bar and collapse chrome; collapse state and the toggle itself live in the parent `ListControl`
   instead (`renderedCollapsed = forList ? props.collapsed : collapsed`).
 
-If neither `field` nor `fields` is present, the control renders `<h3>No field(s) defined for this
+If neither `field` nor `fields` is present, the control renders
+`<h3>No field(s) defined for this
 widget</h3>` instead of throwing.

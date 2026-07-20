@@ -388,8 +388,7 @@ describe('Relation widget', () => {
   it('caches relation search results and invalidates them via queryCore.invalidateTags on entry save (DCMS-663)', async () => {
     const field = fieldConfig;
     const { getAllByText, input, querySpy } = setup({ field });
-    const searchCallsFor = (term: string) =>
-      querySpy.mock.calls.filter((args: unknown[]) => args[3] === term).length;
+    const searchCallsFor = (term: string) => querySpy.mock.calls.filter((args: unknown[]) => args[3] === term).length;
 
     await userEvent.type(input, 'YAML');
     await waitFor(() => {

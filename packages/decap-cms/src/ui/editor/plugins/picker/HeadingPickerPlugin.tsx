@@ -2,8 +2,8 @@ import { $createHeadingNode } from '@lexical/rich-text';
 import { $setBlocksType } from '@lexical/selection';
 import { $getSelection, $isRangeSelection } from 'lexical';
 
-import { Heading1Icon, Heading2Icon, Heading3Icon } from '@/ui/icons/index';
 import { ComponentPickerOption } from '@/ui/editor/plugins/picker/ComponentPickerOption';
+import { Heading1Icon, Heading2Icon, Heading3Icon } from '@/ui/icons/index';
 
 export function HeadingPickerPlugin({ n }: { n: 1 | 2 | 3 }) {
   return new ComponentPickerOption(`Heading ${n}`, {

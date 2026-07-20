@@ -18,11 +18,11 @@ import {
 import { type Dispatch, type JSX, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-import { Check, Pencil, Trash, X } from '@/ui/icons/index';
 import { Button } from '@/ui/Button';
 import { getSelectedNode } from '@/ui/editor/utils/get-selected-node';
 import { setFloatingElemPositionForLinkEditor } from '@/ui/editor/utils/set-floating-elem-position-for-link-editor';
 import { sanitizeUrl } from '@/ui/editor/utils/url';
+import { Check, Pencil, Trash, X } from '@/ui/icons/index';
 import { Input } from '@/ui/Input';
 
 function FloatingLinkEditor({

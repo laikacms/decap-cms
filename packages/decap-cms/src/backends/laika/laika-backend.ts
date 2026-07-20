@@ -1262,7 +1262,8 @@ export default function createLaikaBackend(
       // `filtering` is not yet declared on AssetsCapabilities in the pinned
       // laikacms version; structural read keeps dynamicSearch off today and
       // flips it on automatically once the assets API advertises it.
-      const filtering = (caps.success as { filtering?: { supported?: boolean; filters?: ReadonlyArray<{ name: string }> } }).filtering;
+      const filtering =
+        (caps.success as { filtering?: { supported?: boolean, filters?: ReadonlyArray<{ name: string }> } }).filtering;
       const dynamicSearch = !!(filtering?.supported && filtering.filters?.some(f => f.name === 'search'));
       return { pagination: !!pagination, dynamicSearch };
     }

@@ -1,7 +1,7 @@
-import { PlusIcon } from '@/ui/icons/index';
 import { Button } from '@/ui/Button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/ui/DropdownMenu';
 import { useEditorModal } from '@/ui/editor/editor-hooks/useModal';
+import { PlusIcon } from '@/ui/icons/index';
 
 export function BlockInsertPlugin({ children }: { children: React.ReactNode }) {
   const [modal] = useEditorModal();

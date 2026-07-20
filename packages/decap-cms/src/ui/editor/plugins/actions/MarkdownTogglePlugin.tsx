@@ -4,8 +4,8 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { $createTextNode, $getRoot } from 'lexical';
 import { useCallback } from 'react';
 
-import { FileTextIcon } from '@/ui/icons/index';
 import { Button } from '@/ui/Button';
+import { FileTextIcon } from '@/ui/icons/index';
 
 export function MarkdownTogglePlugin({
   shouldPreserveNewLinesInMarkdown,

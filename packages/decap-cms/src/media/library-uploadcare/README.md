@@ -45,10 +45,10 @@ This integration also always sets `window.UPLOADCARE_LIVE = false` and
 A second, sibling top-level key (not nested under `config`) for behavior this integration adds on
 top of the raw Uploadcare widget — `index.ts:44-47`, `Settings`:
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `defaultOperations` | string | none | A [CDN operations](https://uploadcare.com/docs/transformations/image/) string appended to the CDN URL of inserted **images** only (`isImage` must be `true`), e.g. `'/preview/-/resize/800x/'`. Must start with `/` — if it doesn't, a `console.warn` is logged at `index.ts:66-69` (the value is still used as-is; the widget does not throw or strip it). |
-| `autoFilename` | boolean | `false` | When `true` and the resulting URL has no filename segment (i.e. it ends in `/`), appends the original file's name to the URL. Applied after `defaultOperations`, so the filename lands after the operations path. |
+| Key                 | Type    | Default | Description                                                                                                                                                                                                                                                                                                                                                 |
+| ------------------- | ------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `defaultOperations` | string  | none    | A [CDN operations](https://uploadcare.com/docs/transformations/image/) string appended to the CDN URL of inserted **images** only (`isImage` must be `true`), e.g. `'/preview/-/resize/800x/'`. Must start with `/` — if it doesn't, a `console.warn` is logged at `index.ts:66-69` (the value is still used as-is; the widget does not throw or strip it). |
+| `autoFilename`      | boolean | `false` | When `true` and the resulting URL has no filename segment (i.e. it ends in `/`), appends the original file's name to the URL. Applied after `defaultOperations`, so the filename lands after the operations path.                                                                                                                                           |
 
 ```yaml
 # config.yml
@@ -69,10 +69,10 @@ directly:
 - `allowMultiple` — when explicitly `false`, forces `multiple: false` for that `show()` call
   regardless of `config.multiple` (`index.ts:132`). An `allowMultiple` of `undefined` never
   overrides an explicit `config.multiple: true` (DCMS-591).
-- `imagesOnly` — defaults to `false`; forwarded to the widget as `imagesOnly` to restrict the
-  picker to image files for that field.
-- `value` — the field's current value (a CDN URL, an array of them, or an Uploadcare file-group
-  URL pattern); used to preload already-selected files into the dialog via `getFiles()`
+- `imagesOnly` — defaults to `false`; forwarded to the widget as `imagesOnly` to restrict the picker
+  to image files for that field.
+- `value` — the field's current value (a CDN URL, an array of them, or an Uploadcare file-group URL
+  pattern); used to preload already-selected files into the dialog via `getFiles()`
   (`index.ts:31-42`).
 
 ## `enableStandalone()`
