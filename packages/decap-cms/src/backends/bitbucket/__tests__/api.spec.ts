@@ -34,4 +34,33 @@ describe('bitbucket API', () => {
     expect(api.getPullRequestStatuses).toHaveBeenCalledTimes(1);
     expect(api.getPullRequestStatuses).toHaveBeenCalledWith(pr);
   });
+
+  test('should retrieve unpublished entry data with stable, non-empty diff ids', async () => {
+    const api = new API({});
+
+    const pr = { id: 1, updated_on: '2020-01-01T00:00:00Z', author: { display_name: 'author' } };
+    const diffs = [
+      { path: 'content/posts/title.md', newFile: false, status: 'modified' },
+      { path: 'content/posts/removed.md', newFile: false, status: 'deleted' },
+    ];
+    const branchSha = 'abc123';
+
+    api.getBranchPullRequest = vi.fn(() => Promise.resolve(pr));
+    api.getDifferences = vi.fn(() => Promise.resolve(diffs));
+    api.getPullRequestLabel = vi.fn(() => Promise.resolve('draft'));
+    api.branchCommitSha = vi.fn(() => Promise.resolve(branchSha));
+
+    const result = await api.retrieveUnpublishedEntryData('posts/title');
+
+    expect(result.diffs).toEqual([
+      {
+        path: 'content/posts/title.md',
+        newFile: false,
+        id: `${branchSha}/content/posts/title.md`,
+      },
+    ]);
+    result.diffs.forEach(diff => {
+      expect(diff.id).not.toEqual('');
+    });
+  });
 });
