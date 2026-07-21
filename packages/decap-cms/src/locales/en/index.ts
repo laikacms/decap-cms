@@ -126,6 +126,8 @@ const en = {
       toggleI18n: 'Toggle i18n',
       togglePreview: 'Toggle preview',
       toggleScrollSync: 'Sync scrolling',
+      noPreviewRegistered:
+        'No preview available for this collection. Register one with CMS.registerPreviewTemplate().',
     },
     editorToolbar: {
       publishing: 'Publishing...',
