@@ -612,6 +612,7 @@ function EditorInterface(props: EditorInterfaceProps) {
               {collectionI18nEnabled && (
                 <EditorToggle
                   isActive={i18nVisible}
+                  isToggle
                   onClick={handleToggleI18n}
                   size="large"
                   type="page"
@@ -621,6 +622,7 @@ function EditorInterface(props: EditorInterfaceProps) {
               {previewEnabled && (
                 <EditorToggle
                   isActive={previewVisibleResolved}
+                  isToggle
                   onClick={handleTogglePreview}
                   size="large"
                   type="eye"
@@ -630,6 +632,7 @@ function EditorInterface(props: EditorInterfaceProps) {
               {scrollSyncVisible && !(collection as any).editor?.visualEditing && (
                 <EditorToggle
                   isActive={scrollSyncEnabled}
+                  isToggle
                   onClick={handleToggleScrollSync}
                   size="large"
                   type="scroll"
