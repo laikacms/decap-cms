@@ -25,7 +25,7 @@ import { SEARCH_ENTRIES_SUCCESS } from '@/core/actions/search';
 import { VIEW_STYLE_LIST } from '@/core/constants/collectionViews';
 import { folderFormatter } from '@/core/lib/formatters';
 import { joinUrlPath } from '@/core/lib/urlHelper';
-import { basename, dirname, isAbsolutePath, join } from '@/lib/util/index';
+import { basename, dirname, getNestedValue, isAbsolutePath, join } from '@/lib/util/index';
 import { CmsSortDirection as SortDirection } from '@/lib/util/index';
 import { stringTemplate } from '@/lib/widgets/index';
 import { selectSortDataPath } from './collections';
@@ -167,10 +167,6 @@ const defaultState: Entries = {
   group: {},
   viewStyle: loadViewStyle(),
 };
-
-function getNestedValue(obj: any, path: string[]): any {
-  return path.reduce((cur, key) => (cur != null ? cur[key] : undefined), obj);
-}
 
 const entries = produce((state: Entries, action: EntriesAction) => {
   switch (action.type) {
