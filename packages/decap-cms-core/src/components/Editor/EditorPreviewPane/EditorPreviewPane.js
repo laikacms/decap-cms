@@ -38,6 +38,28 @@ const PreviewPaneFrame = styled(Frame)`
   border-radius: ${lengths.borderRadius};
 `;
 
+// DCMS-1289: preview content is arbitrary, user-supplied markup (a custom
+// preview component, or the demo PostPreview's <h1>{entry.data.title}</h1>).
+// A long unbroken string (URL, API token, hex digest) has no natural break
+// point, so without this it overflows the iframe's initial containing block
+// instead of wrapping. Mirrors the fix landed on v4.beta in PR #982.
+export const PREVIEW_FRAME_INITIAL_CONTENT = `
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_blank"/>
+    <style>
+      html, body {
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+    </style>
+  </head>
+  <body><div></div></body>
+</html>
+`;
+
 export class PreviewPane extends React.Component {
   getWidget = (field, value, metadata, props, idx = null) => {
     // The `hidden` widget has no registered control/preview, so resolving it
@@ -292,13 +314,7 @@ export class PreviewPane extends React.Component {
       <PreviewPaneFrame id="preview-pane" head={styleEls} />;
     }
 
-    const initialContent = `
-<!DOCTYPE html>
-<html>
-  <head><base target="_blank"/></head>
-  <body><div></div></body>
-</html>
-`;
+    const initialContent = PREVIEW_FRAME_INITIAL_CONTENT;
 
     return (
       <ErrorBoundary config={config}>
