@@ -98,7 +98,14 @@ export const NavLink = forwardRef<HTMLAnchorElement, NavLinkProps>(function NavL
   const resolvedChildren = typeof children === 'function' ? children({ isActive }) : children;
 
   return (
-    <Link ref={ref} to={to} className={resolvedClassName} style={resolvedStyle} {...rest}>
+    <Link
+      ref={ref}
+      to={to}
+      className={resolvedClassName}
+      style={resolvedStyle}
+      aria-current={isActive ? 'page' : undefined}
+      {...rest}
+    >
       {resolvedChildren}
     </Link>
   );
