@@ -5,6 +5,7 @@ import { Button } from '@/ui/Button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/ui/Dialog';
 import { NotebookPenIcon } from '@/ui/icons/index';
 import { ScrollArea, ScrollBar } from '@/ui/ScrollArea';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/Tooltip';
 
 import type { JSX } from 'react';
 
@@ -12,11 +13,23 @@ export function TreeViewPlugin(): JSX.Element {
   const [editor] = useLexicalComposerContext();
   return (
     <Dialog>
-      <DialogTrigger asChild>
-        <Button size={'sm'} variant={'ghost'} className="p-2">
-          <NotebookPenIcon className="h-4 w-4" />
-        </Button>
-      </DialogTrigger>
+      <Tooltip disableHoverablePopup>
+        <TooltipTrigger
+          render={
+            <DialogTrigger asChild>
+              <Button
+                size={'sm'}
+                variant={'ghost'}
+                className="p-2"
+                aria-label="Open editor tree view"
+              >
+                <NotebookPenIcon className="h-4 w-4" />
+              </Button>
+            </DialogTrigger>
+          }
+        />
+        <TooltipContent>Tree View</TooltipContent>
+      </Tooltip>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Tree View</DialogTitle>
