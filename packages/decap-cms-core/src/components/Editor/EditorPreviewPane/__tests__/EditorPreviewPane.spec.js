@@ -1,6 +1,6 @@
 import { fromJS, Map } from 'immutable';
 
-import { PreviewPane } from '../EditorPreviewPane';
+import { PreviewPane, PREVIEW_FRAME_INITIAL_CONTENT } from '../EditorPreviewPane';
 import { registerWidget } from '../../../../lib/registry';
 
 jest.mock('@emotion/styled', () => {
@@ -80,5 +80,23 @@ describe('PreviewPane.widgetsForNestedFields (DCMS-538)', () => {
 
     expect(results.get(0)).toBeNull();
     expect(results.get(1)).not.toBeNull();
+  });
+});
+
+describe('PreviewPane preview iframe wrap CSS (DCMS-1289)', () => {
+  // The preview iframe is a fresh document (via react-frame-component's
+  // `initialContent`), so page-level CSS never reaches it — any wrap rule
+  // has to be injected directly into this HTML string's <style> block.
+  // A long unbroken string (API token, hex digest) pasted into a widget
+  // otherwise overflows the iframe's initial containing block instead of
+  // wrapping, same defect PR #982 fixed on the v4.beta component layout.
+  it('injects overflow-wrap/word-break rules into the iframe head', () => {
+    expect(PREVIEW_FRAME_INITIAL_CONTENT).toContain('overflow-wrap: anywhere');
+    expect(PREVIEW_FRAME_INITIAL_CONTENT).toContain('word-break: break-word');
+    expect(PREVIEW_FRAME_INITIAL_CONTENT).toContain('max-width: 100%');
+  });
+
+  it('preserves the base target="_blank" tag used for outbound preview links', () => {
+    expect(PREVIEW_FRAME_INITIAL_CONTENT).toContain('<base target="_blank"/>');
   });
 });
