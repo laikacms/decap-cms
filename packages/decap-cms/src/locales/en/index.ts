@@ -127,8 +127,7 @@ const en = {
       toggleI18n: 'Toggle i18n',
       togglePreview: 'Toggle preview',
       toggleScrollSync: 'Sync scrolling',
-      noPreviewRegistered:
-        'No preview available for this collection. Register one with CMS.registerPreviewTemplate().',
+      noPreviewRegistered: 'No preview available for this collection. Register one with CMS.registerPreviewTemplate().',
     },
     editorToolbar: {
       publishing: 'Publishing...',
@@ -341,6 +340,11 @@ const en = {
       inReviewHeader: 'In Review',
       readyHeader: 'Ready',
       currentEntries: '%{smart_count} entry |||| %{smart_count} entries',
+      moveToPreviousStatusShort: '← Previous status',
+      moveToNextStatusShort: 'Next status →',
+      moveToPreviousStatus: 'Move to previous status (%{status})',
+      moveToNextStatus: 'Move to next status (%{status})',
+      movedAnnouncement: 'Card %{slug} moved to %{status}',
     },
   },
 };
