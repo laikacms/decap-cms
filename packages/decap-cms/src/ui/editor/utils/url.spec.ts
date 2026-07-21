@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { sanitizeImageSrc } from './url';
+import { sanitizeImageSrc, validateUrl } from './url';
 
 /**
  * Regression coverage for DCMS-639 / GH #841: pasted `<img>` `src` values
@@ -42,5 +42,31 @@ describe('sanitizeImageSrc', () => {
   it('rejects empty and unparseable values', () => {
     expect(sanitizeImageSrc('', 'https://cms.example.com/')).toBeNull();
     expect(sanitizeImageSrc('   ', 'https://cms.example.com/')).toBeNull();
+  });
+});
+
+/**
+ * Regression coverage for GH #1257: a bare `https://` must never validate
+ * as a linkable URL. Previously `validateUrl` hard-coded `url === 'https://'`
+ * as always valid, which let the Lexical link plugin auto-linkify a bare
+ * `https://` into an unusable link.
+ */
+describe('validateUrl', () => {
+  it('rejects a bare https:// with no host', () => {
+    expect(validateUrl('https://')).toBe(false);
+  });
+
+  it('allows well-formed http(s) URLs', () => {
+    expect(validateUrl('https://example.com')).toBe(true);
+    expect(validateUrl('http://example.com/path?query=1#hash')).toBe(true);
+  });
+
+  it('allows www-prefixed and mailto URLs', () => {
+    expect(validateUrl('www.example.com')).toBe(true);
+    expect(validateUrl('mailto:foo@example.com')).toBe(true);
+  });
+
+  it('rejects an empty string', () => {
+    expect(validateUrl('')).toBe(false);
   });
 });
