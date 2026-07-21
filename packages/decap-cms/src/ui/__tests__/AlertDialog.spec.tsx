@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -171,6 +171,23 @@ describe('PromptDialog imperative host (Base UI), DCMS-658/DCMS-674', () => {
 
     await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
     await waitFor(() => expect(resolved).toHaveBeenCalledWith('https://example.com/cat.png'));
+  });
+
+  it('exposes an accessible name on the input derived from the message (DCMS-1333)', async () => {
+    const user = userEvent.setup();
+    render(<PromptDialogHost />);
+
+    const resolved = vi.fn();
+    promptDialog('Enter the URL of the image').then(resolved);
+
+    const dialog = await screen.findByRole('alertdialog');
+    const input = within(dialog).getByRole('textbox', { name: 'Enter the URL of the image' });
+    expect(input).toBeInTheDocument();
+
+    // Settle the prompt so its module-level queue entry doesn't leak into
+    // subsequent tests (the queue lives outside React state).
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    await waitFor(() => expect(resolved).toHaveBeenCalledWith(null));
   });
 
   it('resolves with null on Cancel click', async () => {

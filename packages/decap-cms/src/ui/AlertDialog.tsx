@@ -478,6 +478,12 @@ export function PromptDialogHost(): React.ReactNode {
   const queue = React.useSyncExternalStore(subscribeToPrompts, getPendingPrompts, getPendingPrompts);
   const current = queue[0];
   const [value, setValue] = React.useState(current?.defaultValue ?? '');
+  // DCMS-1333: the `<Input>` below has no `<label>`/placeholder/name of its
+  // own, so screen readers announced it as bare "edit". The description
+  // already carries the caller's message (e.g. "Enter the URL of the
+  // image"), so point the input's accessible name at it via
+  // `aria-labelledby` rather than duplicating the text as a visible label.
+  const descriptionId = React.useId();
 
   React.useEffect(() => {
     setValue(current?.defaultValue ?? '');
@@ -507,12 +513,13 @@ export function PromptDialogHost(): React.ReactNode {
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{current.title ?? 'Prompt'}</AlertDialogTitle>
-          <AlertDialogDescription>{current.message}</AlertDialogDescription>
+          <AlertDialogDescription id={descriptionId}>{current.message}</AlertDialogDescription>
         </AlertDialogHeader>
         <Input
           autoFocus
           value={value}
           placeholder={current.placeholder}
+          aria-labelledby={descriptionId}
           onChange={e => setValue(e.target.value)}
           onKeyDown={e => {
             if (e.key === 'Enter') settle(value);
