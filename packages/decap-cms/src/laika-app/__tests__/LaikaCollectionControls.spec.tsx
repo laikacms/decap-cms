@@ -80,4 +80,30 @@ describe('LaikaCollectionControls', () => {
     );
     expect(queryByTestId('core-sort')).toBeNull();
   });
+
+  it('omits the search field entirely when onSearchChange is not provided (DCMS-1229)', () => {
+    const { queryByPlaceholderText, queryByRole } = render(
+      <LaikaCollectionControls {...baseProps} />,
+    );
+    expect(queryByPlaceholderText('collection.collectionTop.searchEntries')).toBeNull();
+    expect(queryByRole('searchbox')).toBeNull();
+  });
+
+  it('renders a labeled, placeholder-bearing search field when onSearchChange is provided (DCMS-1229)', () => {
+    const { getByRole } = render(
+      <LaikaCollectionControls {...baseProps} searchQuery="" onSearchChange={vi.fn()} />,
+    );
+    const input = getByRole('searchbox', { name: 'collection.collectionTop.searchEntries' });
+    expect(input).toHaveAttribute('placeholder', 'collection.collectionTop.searchEntries');
+  });
+
+  it('calls onSearchChange as the user types, so it can filter the entry list (DCMS-1229)', () => {
+    const onSearchChange = vi.fn();
+    const { getByRole } = render(
+      <LaikaCollectionControls {...baseProps} searchQuery="" onSearchChange={onSearchChange} />,
+    );
+    const input = getByRole('searchbox', { name: 'collection.collectionTop.searchEntries' });
+    fireEvent.change(input, { target: { value: 'hello' } });
+    expect(onSearchChange).toHaveBeenCalledWith('hello');
+  });
 });
