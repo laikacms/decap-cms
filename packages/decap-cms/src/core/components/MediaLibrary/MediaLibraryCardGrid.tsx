@@ -72,6 +72,7 @@ function CardWrapper(
   } & CardCellProps,
 ) {
   const {
+    ariaAttributes,
     rowIndex,
     columnIndex,
     style,
@@ -95,6 +96,7 @@ function CardWrapper(
 
   return (
     <div
+      {...ariaAttributes}
       tabIndex={0}
       style={{
         ...style,
@@ -169,6 +171,7 @@ function VirtualizedGrid(props: MediaLibraryCardGridProps) {
   return (
     <CardGridContainer ref={setContainerRef}>
       <Grid
+        aria-label="Media assets"
         columnCount={columnCount}
         columnWidth={columnWidth}
         rowCount={rowCount}
