@@ -388,6 +388,21 @@ function collectionRegex(collection: CmsCollectionState): RegExp | undefined {
   return ruleString ? new RegExp(ruleString) : undefined;
 }
 
+// Discriminates the `collectionEntries` cursor data shape (the only cursor
+// shape wrapData/unwrapData currently produce) from any other cursor data
+// that might reach traverseCursor, so an unexpected cursor shape fails
+// loudly instead of silently misbehaving via an unchecked type assertion.
+type CollectionEntriesCursorData = {
+  cursorType: 'collectionEntries',
+  collection: CmsCollectionState,
+};
+
+function isCollectionEntriesCursorData(
+  data: Record<string, unknown>,
+): data is CollectionEntriesCursorData {
+  return data['cursorType'] === 'collectionEntries' && data['collection'] != null;
+}
+
 export class Backend {
   implementation: Implementation;
   backendName: string;
@@ -759,8 +774,14 @@ export class Backend {
 
   traverseCursor(cursor: Cursor, action: string) {
     const [data, unwrappedCursor] = cursor.unwrapData();
-    // TODO: stop assuming all cursors are for collections
-    const collection = data['collection'] as CmsCollectionState;
+    if (!isCollectionEntriesCursorData(data)) {
+      throw new Error(
+        `traverseCursor: expected a "collectionEntries" cursor, but received cursor data with cursorType "${String(
+          data['cursorType'],
+        )}"`,
+      );
+    }
+    const { collection } = data;
     return this.implementation!.traverseCursor!(unwrappedCursor, action).then(
       async ({ entries, cursor: newCursor }) => ({
         entries: this.processEntries(entries, collection),

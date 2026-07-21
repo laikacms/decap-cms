@@ -82,6 +82,31 @@ function deleteFile(path: string, tree: RepoTree) {
 
 const pageSize = 10;
 
+// Discriminates the folder-listing cursor data shape produced by getCursor
+// (the only cursor shape this test backend's traverseCursor understands)
+// from any other cursor data it might be handed, so an unexpected cursor
+// shape fails loudly instead of silently misbehaving via an unchecked type
+// assertion.
+type FolderCursorData = {
+  folder: string,
+  extension: string,
+  index: number,
+  pageCount: number,
+  depth: number,
+};
+
+function isFolderCursorData(data: unknown): data is FolderCursorData {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    typeof (data as Record<string, unknown>)['folder'] === 'string' &&
+    typeof (data as Record<string, unknown>)['extension'] === 'string' &&
+    typeof (data as Record<string, unknown>)['index'] === 'number' &&
+    typeof (data as Record<string, unknown>)['pageCount'] === 'number' &&
+    typeof (data as Record<string, unknown>)['depth'] === 'number'
+  );
+}
+
 function getCursor(
   folder: string,
   extension: string,
@@ -171,19 +196,18 @@ export default class TestBackend implements CmsImplementation {
   }
 
   traverseCursor(cursor: Cursor, action: string) {
-    const { folder, extension, index, pageCount, depth } = cursor.data as {
-      folder: string,
-      extension: string,
-      index: number,
-      pageCount: number,
-      depth: number,
-    };
+    if (!isFolderCursorData(cursor.data)) {
+      throw new Error(
+        'traverseCursor: expected a folder-listing cursor produced by this backend, but received an incompatible cursor shape',
+      );
+    }
+    const { folder, extension, index, pageCount, depth } = cursor.data;
     const newIndex = (() => {
       if (action === 'next') {
-        return (index as number) + 1;
+        return index + 1;
       }
       if (action === 'prev') {
-        return (index as number) - 1;
+        return index - 1;
       }
       if (action === 'first') {
         return 0;
@@ -193,7 +217,6 @@ export default class TestBackend implements CmsImplementation {
       }
       return 0;
     })();
-    // TODO: stop assuming cursors are for collections
     const allFiles = getFolderFiles(window.repoFiles, folder, extension, depth);
     const allEntries = allFiles.map(f => ({
       data: f.content as string,
