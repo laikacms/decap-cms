@@ -57,6 +57,7 @@ function IconButton({
       className={className}
       onClick={onClick}
       title={title}
+      aria-label={title}
     >
       <Icon type={type} size={size} />
     </ButtonRound>
