@@ -87,7 +87,7 @@ function SettingsDropdown({
       )}
       {displayUrl
         ? (
-          <AppHeaderSiteLink href={displayUrl} target="_blank">
+          <AppHeaderSiteLink href={displayUrl} target="_blank" rel="noopener noreferrer">
             {stripProtocol(displayUrl)}
           </AppHeaderSiteLink>
         )
