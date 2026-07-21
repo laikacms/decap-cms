@@ -164,6 +164,7 @@ function CollectionSearch(props: CollectionSearchProps) {
         <Icon type="search" />
         <SearchInput
           className="SearchInput"
+          aria-label={t('collection.sidebar.searchAll')}
           onChange={e => handleQueryChange(e.target.value)}
           onKeyDown={handleKeyDown}
           onClick={() => setSuggestionsVisible(true)}
