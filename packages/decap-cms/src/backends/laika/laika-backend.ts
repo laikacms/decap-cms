@@ -1271,16 +1271,17 @@ export default function createLaikaBackend(
     /**
      * Fetch one page of media via the assets repo's cursor pagination: one
      * listing request per page (plus cached URL resolution), instead of the
-     * legacy drain-everything loop in getMedia. Assets are stored FLAT at
-     * the storage root (see getMedia), so the listing queries the root and
-     * `path` carries the public_folder-prefixed public path.
+     * legacy drain-everything loop in getMedia. The server's assets domain
+     * requires the folder key to carry a collection prefix (DCMS-1063), so
+     * the listing is scoped to the configured `media_folder` rather than the
+     * bare root; `path` carries the public_folder-prefixed public path.
      */
     async getMediaPage(opts: CmsGetMediaPageOptions): Promise<CmsMediaPage> {
       const repo = this.getAssetsRepo();
       const { cursor, query, perPage = 100 } = opts;
 
       const result = await collectStreamWithDone(
-        repo.listResources('', {
+        repo.listResources(this.mediaFolder, {
           depth: Infinity,
           pagination: { after: cursor, perPage },
           hints: { urls: true },
@@ -1332,28 +1333,28 @@ export default function createLaikaBackend(
       return { files, ...(nextCursor ? { nextCursor } : {}) };
     }
 
-    async getMedia(_mediaFolder = this.mediaFolder): Promise<ImplementationMediaFile[]> {
+    async getMedia(mediaFolder = this.mediaFolder): Promise<ImplementationMediaFile[]> {
       const repo = this.getAssetsRepo();
       const media: ImplementationMediaFile[] = [];
       const repoPageSize = 100;
       let offset = 0;
 
-      // Match the old behaviour: if listResources fails (e.g. caller passes an
-      // invalid empty folderKey), log and return whatever we have so far.
-      // The old AsyncGenerator yielded a Result.fail that the loop ignored;
-      // the new stream THROWS the LaikaError instead.
+      // Match the old behaviour: if listResources fails (e.g. the caller has
+      // no configured media_folder), route the failure through the warning
+      // handler and return whatever we have so far. The old AsyncGenerator
+      // yielded a Result.fail that the loop ignored; the new stream THROWS
+      // the LaikaError instead.
       try {
         while (true) {
           const pagination: Pagination = { limit: repoPageSize, offset };
           let totalItemsThisPage = 0;
 
-          // Assets are stored FLAT at the storage root: persistMedia strips the
-          // media_folder from the storage key ("assets/uploads/x.jpg" is stored
-          // as "x.jpg"). Listing must therefore query the root — passing the
-          // media_folder as the folder key returns 0 results against a laika
-          // server, because no stored key carries that prefix.
+          // The server's assets domain requires the folder key to carry a
+          // collection prefix (DCMS-1063: an unscoped '' folderKey 400s with
+          // "missing a collection prefix"), so the listing is scoped to the
+          // configured media_folder rather than the bare root.
           for await (
-            const chunk of repo.listResources('', {
+            const chunk of repo.listResources(mediaFolder, {
               depth: Infinity,
               pagination,
               hints: { urls: true },
@@ -1408,7 +1409,7 @@ export default function createLaikaBackend(
         }
       } catch (err) {
         if (err instanceof LaikaError) {
-          console.error('Error listing media:', err);
+          handleRecoverableWarning(err);
         } else {
           throw err;
         }
