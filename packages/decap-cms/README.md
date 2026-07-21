@@ -55,8 +55,8 @@ Visual editing is opt-in at the collection level, with a field-level opt-out ava
   renders the entry unmodified and no encoding happens.
 - `visualEditing` (field-level `boolean`, effectively `true` once the collection has opted in). Set
   it to `false` on an individual `string` or `text` field to exclude just that field's value from
-  encoding. This opt-out is only checked for `string`/`text` fields; other widget types (including
-  `richtext`) have no field-level opt-out and, once encoded, are always encoded.
+  encoding. This opt-out is only checked for `string`/`text` fields, since those are the only
+  widgets ever encoded in the first place.
 
 ```yaml
 collections:
@@ -70,8 +70,13 @@ collections:
       - { label: Internal Note, name: note, widget: string, visualEditing: false }
 ```
 
-Only text-producing widgets are affected: `string`, `text`, and `richtext` (including its legacy
-`markdown` alias). Other widget types are left untouched by the encoder.
+Only `string` and `text` widgets are encoded. `richtext` fields (including their legacy `markdown`
+alias) are deliberately excluded and never encoded, regardless of the collection- or field-level
+settings above: their raw value is markdown source that still has to pass through the markdown ->
+Portable Text -> preview-HTML pipeline, and appending a stega block per paragraph would survive
+that pipeline as literal zero-width characters sitting inside the rendered preview's prose text
+nodes — poisoning copy-paste out of the preview and diverging from what a reader actually sees. All
+other widget types are likewise left untouched by the encoder.
 
 ## Development
 
