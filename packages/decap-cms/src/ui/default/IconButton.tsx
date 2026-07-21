@@ -36,6 +36,13 @@ const ButtonRound = styled('button', { shouldForwardProp: laikaShouldForwardProp
 export interface IconButtonProps {
   size: IconButtonSize;
   isActive?: boolean;
+  /**
+   * Marks this instance as a binary on/off toggle (e.g. "Toggle preview"),
+   * so its active state is exposed to assistive tech via `aria-pressed`.
+   * Leave unset for "one of many" selection controls (sort direction,
+   * group-by) where `isActive` means "currently selected", not "pressed".
+   */
+  isToggle?: boolean;
   type: IconName;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
   className?: string;
@@ -45,6 +52,7 @@ export interface IconButtonProps {
 function IconButton({
   size,
   isActive,
+  isToggle,
   type,
   onClick,
   className,
@@ -58,6 +66,7 @@ function IconButton({
       onClick={onClick}
       title={title}
       aria-label={title}
+      aria-pressed={isToggle ? !!isActive : undefined}
     >
       <Icon type={type} size={size} />
     </ButtonRound>
