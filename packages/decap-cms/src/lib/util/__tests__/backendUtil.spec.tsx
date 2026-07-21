@@ -46,14 +46,33 @@ describe('parseLinkHeader', () => {
     expect(parseLinkHeader(link)).toEqual({ next: 'https://api.github.com/resource?page=2' });
   });
 
-  it('should throw for a malformed header missing rel', () => {
+  it('should skip a malformed segment missing rel instead of throwing', () => {
     const link = '<https://api.github.com/resource?page=2>';
-    expect(() => parseLinkHeader(link)).toThrow();
+    expect(() => parseLinkHeader(link)).not.toThrow();
+    expect(parseLinkHeader(link)).toEqual({});
   });
 
-  it('should throw for a malformed header missing the url', () => {
+  it('should skip a malformed segment missing the url instead of throwing', () => {
     const link = 'no-angle-brackets-here; rel="next"';
-    expect(() => parseLinkHeader(link)).toThrow();
+    expect(() => parseLinkHeader(link)).not.toThrow();
+    expect(parseLinkHeader(link)).toEqual({});
+  });
+
+  it('should skip malformed segments while still parsing well-formed ones in the same header', () => {
+    const url = 'https://api.github.com/resource';
+    const link = oneLine`
+      <${url}?page=1>; rel="first",
+      no-angle-brackets-here; rel="prev",
+      <${url}?page=4>,
+      <${url}?page=5>; rel="last"
+    `;
+    const linkHeader = parseLinkHeader(link);
+
+    expect(linkHeader).toEqual({
+      first: `${url}?page=1`,
+      last: `${url}?page=5`,
+    });
+    expect(linkHeader.prev).toBeUndefined();
   });
 });
 
