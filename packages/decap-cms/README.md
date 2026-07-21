@@ -4,7 +4,6 @@
 
 [![npm version](https://img.shields.io/npm/v/@laikacms/decap-cms.svg?style=flat)](https://www.npmjs.com/package/@laikacms/decap-cms)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/laikacms/decap-cms/blob/main/LICENSE)
-[![Build Status](https://github.com/laikacms/decap-cms/workflows/Node%20CI/badge.svg)](https://github.com/laikacms/decap-cms/actions?query=workflow%3A%22Node+CI%22)
 
 A single-package fork of [Decap CMS](https://decapcms.org/), the open-source, Git-based CMS for
 static site generators. It presents a clean UI for editing content stored in a Git repository: you

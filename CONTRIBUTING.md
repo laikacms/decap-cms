@@ -75,12 +75,14 @@ Then rebuild the demo (`pnpm build:demo`) and reload http://localhost:5174.
 
 ## Releasing
 
-Publishing is automated with npm trusted publishing (OIDC); no npm tokens are involved.
+There is no CI or publish automation on `v4.beta` yet (`.github/workflows/` is empty on this
+branch) — releasing is a manual process for now:
 
 1. Bump `version` in `packages/decap-cms/package.json` and commit.
-2. Tag the commit `v<version>` and push the tag.
-3. The `Publish` workflow runs `test:ci`, builds, and publishes to npm with provenance; the
-   `Create release` workflow generates the GitHub release notes.
+2. Run `pnpm test:ci` and make sure it passes.
+3. Tag the commit `v<version>` and push the tag.
+4. Build and publish to npm manually (e.g. `pnpm build` then `npm publish` from
+   `packages/decap-cms`), and write the GitHub release notes by hand.
 
 ## License
 
