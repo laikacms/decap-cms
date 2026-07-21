@@ -168,6 +168,24 @@ describe('Modal', () => {
     }
   });
 
+  it('DCMS-1278: forwards ariaLabel to the dialog popup as aria-label', () => {
+    const { getByRole } = render(
+      <Modal isOpen onClose={vi.fn()} ariaLabel="Media Library">
+        <div>modal content</div>
+      </Modal>,
+    );
+    expect(getByRole('dialog')).toHaveAttribute('aria-label', 'Media Library');
+  });
+
+  it('DCMS-1278: forwards ariaLabelledby to the dialog popup as aria-labelledby', () => {
+    const { getByRole } = render(
+      <Modal isOpen onClose={vi.fn()} ariaLabelledby="modal-title">
+        <h1 id="modal-title">Media Library</h1>
+      </Modal>,
+    );
+    expect(getByRole('dialog')).toHaveAttribute('aria-labelledby', 'modal-title');
+  });
+
   it('portals into #nc-root when it exists', () => {
     const root = document.createElement('div');
     root.id = 'nc-root';
