@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { ACCESS_TOKEN_ERROR, AccessTokenError } from '@/lib/util/errors/AccessTokenError.js';
 import { API_ERROR, APIError } from '@/lib/util/errors/APIError.js';
 import { CONFIGURATION_ERROR, ConfigurationError } from '@/lib/util/errors/ConfigurationError.js';
+import { LFS_VERIFY_ERROR, LfsVerifyError } from '@/lib/util/errors/LfsVerifyError.js';
 import { LOCAL_SEARCH_ERROR, LocalSearchError } from '@/lib/util/errors/LocalSearchError.js';
 
 describe('APIError', () => {
@@ -52,6 +53,18 @@ describe('ConfigurationError', () => {
     expect(error).toBeInstanceOf(ConfigurationError);
     expect(error.message).toBe('missing backend config');
     expect(error.name).toBe(CONFIGURATION_ERROR);
+  });
+});
+
+describe('LfsVerifyError', () => {
+  it('sets message, name, and status, including the status in the message', () => {
+    const error = new LfsVerifyError(500);
+
+    expect(error).toBeInstanceOf(Error);
+    expect(error).toBeInstanceOf(LfsVerifyError);
+    expect(error.name).toBe(LFS_VERIFY_ERROR);
+    expect(error.status).toBe(500);
+    expect(error.message).toContain('500');
   });
 });
 

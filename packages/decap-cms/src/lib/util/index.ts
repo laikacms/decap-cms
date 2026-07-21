@@ -46,6 +46,7 @@ export { default as EditorialWorkflowError, EDITORIAL_WORKFLOW_ERROR } from './E
 export * from './errors/AccessTokenError.js';
 export * from './errors/APIError.js';
 export * from './errors/ConfigurationError.js';
+export * from './errors/LfsVerifyError.js';
 export * from './errors/LocalSearchError.js';
 export { default as getBlobSHA } from './getBlobSHA.js';
 export {
