@@ -1034,52 +1034,37 @@ describe('LaikaBackend.persistEntry()', () => {
     );
   });
 
-  it('persists a markdown/frontmatter entry as a raw string without JSON.parse', async () => {
+  // DCMS-1254: the documents API 400s on non-object `content`, and
+  // `parseJsonEntryContent` only produces an object for JSON-format
+  // collections. Markdown/frontmatter (Decap's default when no `format:` is
+  // set) and YAML must now fail fast client-side with an actionable error
+  // instead of reaching the server as a raw string.
+  it('throws a clear client-side error for a markdown/frontmatter entry instead of 400ing at the server (DCMS-1254)', async () => {
     mockDocRepo.createDocument.mockImplementation(() => succeed(undefined));
 
     const raw = '---\ntitle: My Post\n---\n\nBody text here.';
-    // This must NOT throw SyntaxError (JSON.parse would throw on non-JSON input)
     await expect(
       backend.persistEntry(
         { dataFiles: [{ path: 'posts/my-post.md', raw }], assets: [] },
-        { newEntry: true, useWorkflow: false },
+        { newEntry: true, useWorkflow: false, collectionName: 'posts' },
       ),
-    ).resolves.toBeUndefined();
+    ).rejects.toThrow(/only supports JSON-format collections.*`format: json`.*`posts`/s);
 
-    expect(mockDocRepo.createDocument).toHaveBeenCalledWith(
-      expect.objectContaining({ content: raw }),
-    );
+    expect(mockDocRepo.createDocument).not.toHaveBeenCalled();
   });
 
-  it('round-trips a markdown entry: persist then read back the same raw string', async () => {
-    const raw = '---\ntitle: Round-trip\ndate: 2024-01-01\n---\n\nContent body.';
-
-    mockDocRepo.createDocument.mockImplementation(() => succeed(undefined));
-    mockDocRepo.getDocument.mockReturnValue(
-      succeed({ key: 'posts/round-trip', content: raw, type: 'published' }),
-    );
-
-    await backend.persistEntry(
-      { dataFiles: [{ path: 'posts/round-trip.md', raw }], assets: [] },
-      { newEntry: true, useWorkflow: false },
-    );
-
-    const entry = await backend.getEntry('posts/round-trip.md');
-    expect(entry.data).toBe(raw);
-  });
-
-  it('persists a YAML entry as a raw string', async () => {
+  it('throws a clear client-side error for a YAML entry instead of 400ing at the server (DCMS-1254)', async () => {
     mockDocRepo.createDocument.mockImplementation(() => succeed(undefined));
 
     const raw = 'title: My Config\nvalue: 42\n';
-    await backend.persistEntry(
-      { dataFiles: [{ path: 'config/settings.yaml', raw }], assets: [] },
-      { newEntry: true, useWorkflow: false },
-    );
+    await expect(
+      backend.persistEntry(
+        { dataFiles: [{ path: 'config/settings.yaml', raw }], assets: [] },
+        { newEntry: true, useWorkflow: false, collectionName: 'config' },
+      ),
+    ).rejects.toThrow(/only supports JSON-format collections/);
 
-    expect(mockDocRepo.createDocument).toHaveBeenCalledWith(
-      expect.objectContaining({ content: raw }),
-    );
+    expect(mockDocRepo.createDocument).not.toHaveBeenCalled();
   });
 
   it('uses "und" as the language when content has no language field', async () => {
@@ -1088,20 +1073,6 @@ describe('LaikaBackend.persistEntry()', () => {
     const raw = JSON.stringify({ title: 'No language field' });
     await backend.persistEntry(
       { dataFiles: [{ path: 'articles/no-lang.json', raw }], assets: [] },
-      { newEntry: true, useWorkflow: false },
-    );
-
-    expect(mockDocRepo.createDocument).toHaveBeenCalledWith(
-      expect.objectContaining({ language: 'und' }),
-    );
-  });
-
-  it('uses "und" as the language when content is a non-object (string)', async () => {
-    mockDocRepo.createDocument.mockImplementation(() => succeed(undefined));
-
-    const raw = '---\ntitle: Markdown post\n---\n\nBody.';
-    await backend.persistEntry(
-      { dataFiles: [{ path: 'posts/no-lang.md', raw }], assets: [] },
       { newEntry: true, useWorkflow: false },
     );
 
@@ -1179,21 +1150,38 @@ describe('LaikaBackend.persistEntry()', () => {
   it('calls updateUnpublished when newEntry:false, useWorkflow:true, status:draft', async () => {
     mockDocRepo.updateUnpublished.mockReturnValue(succeed(undefined));
 
-    const raw = '---\ntitle: Updated Draft\n---\n\nBody.';
+    const raw = JSON.stringify({ title: 'Updated Draft', language: 'en' });
     await backend.persistEntry(
-      { dataFiles: [{ path: 'posts/existing-draft.md', raw }], assets: [] },
+      { dataFiles: [{ path: 'posts/existing-draft.json', raw }], assets: [] },
       { newEntry: false, useWorkflow: true, status: 'draft' },
     );
 
     expect(mockDocRepo.updateUnpublished).toHaveBeenCalledWith(
       expect.objectContaining({
         key: 'posts/existing-draft',
-        content: raw,
+        content: { title: 'Updated Draft', language: 'en' },
         status: 'draft',
       }),
     );
     expect(mockDocRepo.createUnpublished).not.toHaveBeenCalled();
     expect(mockDocRepo.createDocument).not.toHaveBeenCalled();
+  });
+
+  // DCMS-1254: the same client-side guard must apply to the unpublished
+  // (draft/workflow) persist path, not just the published create/update path
+  // — `createUnpublished`/`updateUnpublished` reject non-object content too.
+  it('throws a clear client-side error for a markdown draft entry (useWorkflow:true) (DCMS-1254)', async () => {
+    mockDocRepo.createUnpublished.mockReturnValue(succeed(undefined));
+
+    const raw = '---\ntitle: Draft Post\n---\n\nBody.';
+    await expect(
+      backend.persistEntry(
+        { dataFiles: [{ path: 'posts/new-draft.md', raw }], assets: [] },
+        { newEntry: true, useWorkflow: true, status: 'draft', collectionName: 'posts' },
+      ),
+    ).rejects.toThrow(/only supports JSON-format collections/);
+
+    expect(mockDocRepo.createUnpublished).not.toHaveBeenCalled();
   });
 
   it('uploads each asset via persistMedia before writing the document', async () => {
