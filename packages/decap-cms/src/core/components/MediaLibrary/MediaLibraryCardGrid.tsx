@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
-import React, { useCallback, useRef } from 'react';
-import { Grid } from 'react-window';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Grid, useGridRef } from 'react-window';
 
 import { useCmsSlots } from '@/core/lib/slots';
 import { colors } from '@/ui/default/index';
@@ -58,6 +58,9 @@ interface CardCellProps {
   loadDisplayURL: (file: { id: string, url?: string }) => void;
   columnCount: number;
   gutter: number;
+  activeIndex: number;
+  registerCellRef: (index: number, node: HTMLDivElement | null) => void;
+  onCellFocus: (index: number) => void;
 }
 
 function CardWrapper(
@@ -87,17 +90,32 @@ function CardWrapper(
     loadDisplayURL,
     columnCount,
     gutter,
+    activeIndex,
+    registerCellRef,
+    onCellFocus,
   } = props;
   const index = rowIndex * columnCount + columnIndex;
   if (index >= mediaItems.length) {
     return null;
   }
   const file = mediaItems[index];
+  const isActive = index === activeIndex;
 
   return (
     <div
       {...ariaAttributes}
-      tabIndex={0}
+      ref={node => registerCellRef(index, node)}
+      data-cell-index={index}
+      // Roving tabindex (WAI-ARIA Grid pattern): only the active cell is a
+      // Tab stop; arrow keys move which cell is active. Without this every
+      // cell would be its own Tab stop, so leaving an N-item grid via Tab
+      // would take N presses.
+      tabIndex={isActive ? 0 : -1}
+      onFocus={() => {
+        if (!isActive) {
+          onCellFocus(index);
+        }
+      }}
       style={{
         ...style,
         left: (typeof style.left === 'number' ? style.left : 0) + gutter * columnIndex,
@@ -137,6 +155,14 @@ function VirtualizedGrid(props: MediaLibraryCardGridProps) {
   // fire duplicate loads while the same page is in flight.
   const lastRequestedAtCountRef = useRef(-1);
 
+  // Roving-tabindex state (WAI-ARIA Grid pattern): `activeIndex` is the one
+  // cell that is a Tab stop; arrow/Home/End keys move it, and DOM focus is
+  // synced to match via the effect below.
+  const [activeIndex, setActiveIndex] = useState(0);
+  const cellRefsRef = useRef(new Map<number, HTMLDivElement>());
+  const pendingFocusRef = useRef(false);
+  const gridRef = useGridRef(null);
+
   const setContainerRef = useCallback(
     (node: HTMLDivElement | null) => {
       containerRef.current = node;
@@ -145,17 +171,123 @@ function VirtualizedGrid(props: MediaLibraryCardGridProps) {
     [setScrollContainerRef],
   );
 
-  if (height === undefined || width === undefined) {
-    return <CardGridContainer ref={setContainerRef} />;
-  }
-
   const cardWidthNum = parseInt(props.cardWidth, 10);
   const cardHeightNum = parseInt(props.cardHeight, 10);
   const gutter = parseInt(props.cardMargin, 10);
   const columnWidth = cardWidthNum + gutter;
   const rowHeight = cardHeightNum + gutter;
-  const columnCount = Math.max(1, Math.floor(width / columnWidth));
+  const columnCount = Math.max(1, Math.floor((width ?? 0) / columnWidth));
   const rowCount = Math.ceil(mediaItems.length / columnCount);
+
+  const clampedActiveIndex =
+    mediaItems.length === 0 ? 0 : Math.max(0, Math.min(activeIndex, mediaItems.length - 1));
+
+  const registerCellRef = useCallback((index: number, node: HTMLDivElement | null) => {
+    if (node) {
+      cellRefsRef.current.set(index, node);
+    } else {
+      cellRefsRef.current.delete(index);
+    }
+  }, []);
+
+  const focusActiveCell = useCallback(() => {
+    const node = cellRefsRef.current.get(clampedActiveIndex);
+    if (node) {
+      node.focus();
+      return true;
+    }
+    return false;
+  }, [clampedActiveIndex]);
+
+  // Only (re)focus the DOM when navigation actually requested it
+  // (`pendingFocusRef`) — otherwise mounting/resizing would steal focus from
+  // whatever the user was last interacting with (e.g. the Search input).
+  useEffect(() => {
+    if (!pendingFocusRef.current) return;
+    pendingFocusRef.current = false;
+    if (focusActiveCell()) return;
+    // The target cell may not be mounted yet if scrollToCell just moved it
+    // into the virtualized window; retry on the next frame once it renders.
+    const raf = requestAnimationFrame(() => {
+      focusActiveCell();
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [clampedActiveIndex, focusActiveCell]);
+
+  const moveActiveIndex = useCallback(
+    (nextIndex: number) => {
+      if (mediaItems.length === 0) return;
+      const clamped = Math.max(0, Math.min(nextIndex, mediaItems.length - 1));
+      const rowIndex = Math.floor(clamped / columnCount);
+      const columnIndex = clamped % columnCount;
+      gridRef.current?.scrollToCell({ rowIndex, columnIndex, behavior: 'auto' });
+      pendingFocusRef.current = true;
+      setActiveIndex(clamped);
+    },
+    [mediaItems.length, columnCount, gridRef],
+  );
+
+  // Mouse clicks (and any other means) can move DOM focus to a non-active
+  // cell (tabindex=-1 is still focusable by click); keep the roving-tabindex
+  // marker in sync so a later Tab press leaves from the right place.
+  const handleCellFocus = useCallback((index: number) => {
+    pendingFocusRef.current = false;
+    setActiveIndex(index);
+  }, []);
+
+  const onAssetClick = props.onAssetClick;
+  const handleGridKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (mediaItems.length === 0) return;
+      const currentIndex = clampedActiveIndex;
+      const rowStart = Math.floor(currentIndex / columnCount) * columnCount;
+      const rowEnd = Math.min(rowStart + columnCount - 1, mediaItems.length - 1);
+
+      switch (event.key) {
+        case 'ArrowRight':
+          event.preventDefault();
+          moveActiveIndex(Math.min(currentIndex + 1, rowEnd));
+          break;
+        case 'ArrowLeft':
+          event.preventDefault();
+          moveActiveIndex(Math.max(currentIndex - 1, rowStart));
+          break;
+        case 'ArrowDown':
+          event.preventDefault();
+          moveActiveIndex(Math.min(currentIndex + columnCount, mediaItems.length - 1));
+          break;
+        case 'ArrowUp':
+          event.preventDefault();
+          moveActiveIndex(Math.max(currentIndex - columnCount, 0));
+          break;
+        case 'Home':
+          event.preventDefault();
+          moveActiveIndex(event.ctrlKey ? 0 : rowStart);
+          break;
+        case 'End':
+          event.preventDefault();
+          moveActiveIndex(event.ctrlKey ? mediaItems.length - 1 : rowEnd);
+          break;
+        case 'Enter':
+        case ' ':
+        case 'Spacebar': {
+          event.preventDefault();
+          const file = mediaItems[currentIndex];
+          if (file) {
+            onAssetClick(file);
+          }
+          break;
+        }
+        default:
+          break;
+      }
+    },
+    [mediaItems, columnCount, clampedActiveIndex, moveActiveIndex, onAssetClick],
+  );
+
+  if (height === undefined || width === undefined) {
+    return <CardGridContainer ref={setContainerRef} />;
+  }
 
   function handleCellsRendered(
     _visibleCells: { rowStartIndex: number, rowStopIndex: number },
@@ -179,6 +311,8 @@ function VirtualizedGrid(props: MediaLibraryCardGridProps) {
         defaultWidth={width}
         defaultHeight={height}
         onCellsRendered={handleCellsRendered}
+        onKeyDown={handleGridKeyDown}
+        gridRef={gridRef}
         cellComponent={CardWrapper}
         cellProps={{
           mediaItems: props.mediaItems,
@@ -192,6 +326,9 @@ function VirtualizedGrid(props: MediaLibraryCardGridProps) {
           loadDisplayURL: props.loadDisplayURL,
           columnCount,
           gutter,
+          activeIndex: clampedActiveIndex,
+          registerCellRef,
+          onCellFocus: handleCellFocus,
         }}
       />
       {!isPaginating ? null : <PaginatingMessage $isPrivate={props.isPrivate}>{paginatingMessage}</PaginatingMessage>}
