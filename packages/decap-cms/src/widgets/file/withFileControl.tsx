@@ -217,7 +217,10 @@ const FileWidgetButtonRemove = styled.button`
 
 type FileValue = string | string[];
 
-function arrayMove<T>(array: T[], fromIndex: number, toIndex: number): T[] {
+// DCMS-1292: exported (like isSafeUrl below) so these pure helpers driving
+// the sortable multi-image UI can be unit tested directly instead of only
+// through full component + drag-and-drop simulation.
+export function arrayMove<T>(array: T[], fromIndex: number, toIndex: number): T[] {
   const newArray = [...array];
   const [item] = newArray.splice(fromIndex, 1);
   newArray.splice(toIndex, 0, item);
@@ -255,7 +258,8 @@ export function isSafeUrl(url: string): boolean {
   return ALLOWED_URL_SCHEMES.has(parsed.protocol);
 }
 
-function sizeOfValue(value: FileValue): number {
+// DCMS-1292: exported for direct unit testing, see arrayMove above.
+export function sizeOfValue(value: FileValue): number {
   if (Array.isArray(value)) {
     return value.length;
   }
@@ -263,7 +267,8 @@ function sizeOfValue(value: FileValue): number {
   return value ? 1 : 0;
 }
 
-function valueListToArray(value: FileValue): string[] | string {
+// DCMS-1292: exported for direct unit testing, see arrayMove above.
+export function valueListToArray(value: FileValue): string[] | string {
   return value ?? '';
 }
 
