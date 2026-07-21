@@ -25,7 +25,8 @@ decade of groundwork goes to the Decap CMS team; see [Credits](#credits) below.
   and Playwright for testing, plain objects instead of Immutable.js, and an ongoing
   dependency-reduction effort.
 - **Richtext on Portable Text.** The `markdown` widget is replaced by a `richtext` widget backed by
-  the Portable Text editor. See `BREAKING_CHANGES_V2_BETA.md` for the full list of breaking changes.
+  the Portable Text editor. See [BREAKING_CHANGES_V2_BETA.md](../../BREAKING_CHANGES_V2_BETA.md) for
+  the full list of breaking changes.
 
 ## Installation
 
@@ -38,7 +39,7 @@ primitives) are importable through subpath exports so you can assemble your own 
 
 For configuration, content modeling, and backend setup, the upstream
 [Decap CMS documentation](https://www.decapcms.org/docs/intro/) applies to this fork unless noted in
-`BREAKING_CHANGES_V2_BETA.md`.
+[BREAKING_CHANGES_V2_BETA.md](../../BREAKING_CHANGES_V2_BETA.md).
 
 ## Visual Editing (Stega)
 

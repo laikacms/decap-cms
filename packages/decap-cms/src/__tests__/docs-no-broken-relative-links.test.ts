@@ -12,6 +12,13 @@ import { describe, expect, it } from 'vitest';
 // This test scans every `*.md` file under `packages/decap-cms` for
 // Markdown-link-syntax relative paths (`[text](path)`) and fails if the
 // target doesn't exist on disk, resolved relative to the linking file.
+//
+// DCMS-1303 hit the same bug a second time in the same README: two more
+// `BREAKING_CHANGES_V2_BETA.md` references (as bare filenames, not yet
+// Markdown links) implied the file lived next to the README instead of at
+// the repo root. They're now proper `[..](../../BREAKING_CHANGES_V2_BETA.md)`
+// links, so this generic scanner covers them too — no second link checker
+// needed.
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../../../..');
 const DOCS_ROOT = path.join(REPO_ROOT, 'packages/decap-cms');
