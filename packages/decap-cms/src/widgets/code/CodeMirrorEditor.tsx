@@ -52,6 +52,10 @@ interface CodeMirrorEditorProps {
   ariaRequired?: boolean;
   ariaInvalid?: boolean;
   ariaErrorMessage?: string;
+  /** Accessible name for the `.cm-content` editable div, since `<label
+   * htmlFor>` silently fails to associate with non-labelable elements like
+   * `<div>` (WCAG 4.1.2 / DCMS-1275). */
+  ariaLabel?: string;
 }
 
 function buildContentAttributes({
@@ -59,9 +63,11 @@ function buildContentAttributes({
   ariaRequired,
   ariaInvalid,
   ariaErrorMessage,
-}: Pick<CodeMirrorEditorProps, 'id' | 'ariaRequired' | 'ariaInvalid' | 'ariaErrorMessage'>) {
+  ariaLabel,
+}: Pick<CodeMirrorEditorProps, 'id' | 'ariaRequired' | 'ariaInvalid' | 'ariaErrorMessage' | 'ariaLabel'>) {
   const attrs: Record<string, string> = {};
   if (id) attrs.id = id;
+  if (ariaLabel) attrs['aria-label'] = ariaLabel;
   if (ariaRequired !== undefined) attrs['aria-required'] = String(ariaRequired);
   if (ariaInvalid) {
     attrs['aria-invalid'] = 'true';
@@ -115,6 +121,7 @@ const CodeMirrorEditor = React.forwardRef<CodeMirrorEditorRef, CodeMirrorEditorP
       ariaRequired,
       ariaInvalid,
       ariaErrorMessage,
+      ariaLabel,
     },
     ref,
   ) {
@@ -156,6 +163,7 @@ const CodeMirrorEditor = React.forwardRef<CodeMirrorEditorRef, CodeMirrorEditorP
       ariaRequired,
       ariaInvalid,
       ariaErrorMessage,
+      ariaLabel,
     });
 
     React.useEffect(() => {
@@ -226,10 +234,12 @@ const CodeMirrorEditor = React.forwardRef<CodeMirrorEditorRef, CodeMirrorEditorP
     React.useEffect(() => {
       viewRef.current?.dispatch({
         effects: compartments.attrs.reconfigure(
-          EditorView.contentAttributes.of(buildContentAttributes({ id, ariaRequired, ariaInvalid, ariaErrorMessage })),
+          EditorView.contentAttributes.of(
+            buildContentAttributes({ id, ariaRequired, ariaInvalid, ariaErrorMessage, ariaLabel }),
+          ),
         ),
       });
-    }, [compartments, id, ariaRequired, ariaInvalid, ariaErrorMessage]);
+    }, [compartments, id, ariaRequired, ariaInvalid, ariaErrorMessage, ariaLabel]);
 
     React.useImperativeHandle(
       ref,

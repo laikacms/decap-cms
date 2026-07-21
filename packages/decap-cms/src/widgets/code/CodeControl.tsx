@@ -320,6 +320,7 @@ export default function CodeControl({
                 lineNumbers={lineNumbers}
                 onChange={handleChange}
                 id={forID}
+                ariaLabel={`${field.label || field.name}`}
                 ariaRequired={field.required !== false}
                 ariaInvalid={hasErrors}
                 ariaErrorMessage={errorListId}

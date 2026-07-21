@@ -166,6 +166,7 @@ export function Editor({
   ariaRequired,
   ariaInvalid,
   ariaErrorMessage,
+  ariaLabel,
 }: {
   editorState?: EditorState,
   editorSerializedState?: SerializedEditorState,
@@ -203,6 +204,10 @@ export function Editor({
   ariaRequired?: boolean,
   ariaInvalid?: boolean,
   ariaErrorMessage?: string,
+  /** Accessible name for the editable `role="textbox"` div, since `<label
+   * htmlFor>` silently fails to associate with non-labelable elements like
+   * `<div>` (WCAG 4.1.2 / DCMS-1275). */
+  ariaLabel?: string,
 }) {
   const {
     toolbarItems: rawToolbarItems,
@@ -463,6 +468,7 @@ export function Editor({
                       ariaRequired={ariaRequired}
                       ariaInvalid={ariaInvalid}
                       ariaErrorMessage={ariaErrorMessage}
+                      ariaLabel={ariaLabel}
                     />
                   </div>
                 </div>

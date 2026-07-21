@@ -22,6 +22,10 @@ interface Props {
   ariaRequired?: boolean;
   ariaInvalid?: boolean;
   ariaErrorMessage?: string;
+  /** Accessible name for the `role="textbox"` div, since `<label htmlFor>`
+   * silently fails to associate with non-labelable elements like `<div>`
+   * (WCAG 4.1.2 / DCMS-1275). */
+  ariaLabel?: string;
 }
 
 const rootClass = css`
@@ -60,12 +64,14 @@ export function ContentEditable({
   ariaRequired,
   ariaInvalid,
   ariaErrorMessage,
+  ariaLabel,
 }: Props): ReactNode {
   return (
     <LexicalContentEditable
       css={[rootClass, hasDragGutter && dragGutterClass]}
       className={cx('ContentEditable__root', className)}
       aria-placeholder={placeholder}
+      aria-label={ariaLabel}
       aria-required={ariaRequired}
       aria-invalid={ariaInvalid || undefined}
       aria-errormessage={ariaInvalid ? ariaErrorMessage : undefined}

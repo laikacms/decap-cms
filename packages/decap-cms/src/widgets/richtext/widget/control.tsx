@@ -134,6 +134,7 @@ export function LexicalControl({
         ariaRequired={field.required !== false}
         ariaInvalid={hasErrors}
         ariaErrorMessage={errorListId}
+        ariaLabel={`${field.label || field.name}`}
       />
       {isDisabled ? <div aria-hidden style={{ position: 'absolute', inset: 0 }} /> : null}
     </div>
