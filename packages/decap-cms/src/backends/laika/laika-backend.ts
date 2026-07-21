@@ -263,6 +263,36 @@ export default function createLaikaBackend(
   };
 
   /**
+   * The inverse of `contentToRawString` for `persistEntry`: turns a data
+   * file's raw serialized text back into the object shape the documents API
+   * expects for JSON-format entries. `pathLooksJson` (a `.json`-extension
+   * check on `dataFile.path`) is a reliable signal on the create path, but
+   * NOT on update — see the comment at the persistEntry call site for why.
+   * When the extension check is inconclusive, fall back to sniffing the raw
+   * text itself: only parse it as JSON if it actually looks like a JSON
+   * object/array, so markdown/frontmatter/YAML raw text (which won't look
+   * like JSON and would fail to parse anyway) is safely left as a string.
+   */
+  const parseJsonEntryContent = (raw: string, pathLooksJson: boolean): unknown => {
+    if (pathLooksJson) {
+      return JSON.parse(raw);
+    }
+    const trimmed = raw.trimStart();
+    if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+      try {
+        const parsed: unknown = JSON.parse(raw);
+        if (parsed !== null && typeof parsed === 'object') {
+          return parsed;
+        }
+      } catch {
+        // Not actually JSON (e.g. a markdown body that happens to start
+        // with a brace) — fall through and keep it as raw text.
+      }
+    }
+    return raw;
+  };
+
+  /**
    * Reads the protocol's opaque per-record content-version token. Typed
    * structurally because repositories built against older laikacms versions
    * (which predate the `version` field) are still valid injections here.
@@ -1099,10 +1129,24 @@ export default function createLaikaBackend(
         // dataFile.raw is the serialized file content as Decap produced it:
         // - JSON collections: a JSON string that should be parsed back to an object
         // - Markdown/YAML/TOML collections: the raw file text, passed through as-is
+        //
+        // dataFile.path is NOT a reliable signal for this on every call: on
+        // create it comes from selectEntryPath and carries the collection's
+        // extension (e.g. "posts/slug.json"), but on update Decap's core
+        // (core/backend.tsx persistEntry-caller) takes it straight from the
+        // entry it fetched back — and this backend's own getEntry/list calls
+        // set that `path` to the storage-repo record key, which normalizeKey
+        // below stores WITHOUT an extension. So `/\.json$/.test(dataFile.path)`
+        // is true on the create-time POST but false on the update-time PATCH
+        // for the exact same JSON-format entry, leaving `content` as a raw
+        // stringified-JSON string on update (DCMS-1062). Sniff the payload
+        // shape instead of trusting the path: only object/array-looking raw
+        // text is a JSON.parse candidate, and anything that fails to parse
+        // (markdown/frontmatter, YAML) falls through as the raw string.
         const isJsonFile = /\.json$/i.test(dataFile.path);
 
         const content: any = typeof dataFile.raw === 'string'
-          ? isJsonFile ? JSON.parse(dataFile.raw) : dataFile.raw
+          ? parseJsonEntryContent(dataFile.raw, isJsonFile)
           : dataFile.raw ?? {};
 
         const entryKey = normalizeKey(dataFile.path);
