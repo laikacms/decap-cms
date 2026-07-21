@@ -77,6 +77,7 @@ export interface CodeControlProps {
   setInactiveStyle: () => void;
   hasErrors?: boolean;
   errorListId?: string;
+  hintId?: string;
 }
 
 function getKeys(
@@ -110,6 +111,7 @@ export default function CodeControl({
   setInactiveStyle,
   hasErrors,
   errorListId,
+  hintId,
 }: CodeControlProps) {
   const cmRef = React.useRef<CodeMirrorEditorRef>(null);
   const keys = React.useMemo(() => getKeys(field, isEditorComponent), [field, isEditorComponent]);
@@ -324,6 +326,7 @@ export default function CodeControl({
                 ariaRequired={field.required !== false}
                 ariaInvalid={hasErrors}
                 ariaErrorMessage={errorListId}
+                ariaDescribedBy={hintId}
               />
             )
             : (

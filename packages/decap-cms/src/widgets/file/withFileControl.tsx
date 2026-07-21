@@ -312,6 +312,7 @@ export interface FileControlProps {
   forID?: string;
   hasErrors?: boolean;
   errorListId?: string;
+  hintId?: string;
 }
 
 export interface FileControlHandle {
@@ -335,6 +336,7 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
       forID,
       hasErrors,
       errorListId,
+      hintId,
     } = props;
 
     const chooseButtonAriaProps = {
@@ -342,6 +344,7 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
       'aria-required': field.required !== false,
       'aria-invalid': hasErrors || undefined,
       'aria-errormessage': hasErrors ? errorListId : undefined,
+      'aria-describedby': hintId,
     };
 
     const controlIDRef = React.useRef<string>('');

@@ -27,6 +27,7 @@ interface BooleanControlProps {
   value?: boolean;
   hasErrors?: boolean;
   errorListId?: string;
+  hintId?: string;
 }
 
 export default function BooleanControl({
@@ -39,6 +40,7 @@ export default function BooleanControl({
   setInactiveStyle,
   hasErrors,
   errorListId,
+  hintId,
 }: BooleanControlProps) {
   return (
     <div className={classNameWrapper}>
@@ -52,6 +54,7 @@ export default function BooleanControl({
         ariaRequired={field.required !== false}
         ariaInvalid={hasErrors}
         ariaErrorMessage={errorListId}
+        ariaDescribedBy={hintId}
       />
     </div>
   );

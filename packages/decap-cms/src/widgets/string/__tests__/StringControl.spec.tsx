@@ -67,4 +67,11 @@ describe('StringControl aria validation wiring (DCMS-1083)', () => {
     expect(input).toHaveAttribute('aria-invalid', 'true');
     expect(input).toHaveAttribute('aria-errormessage', 'title-field-1-errors');
   });
+
+  it('sets aria-describedby to the hint id when the field has a hint (DCMS-1298)', () => {
+    const { container } = render(
+      <StringControl {...defaultProps} value="" hintId="title-field-1-hint" />,
+    );
+    expect(container.querySelector('input')).toHaveAttribute('aria-describedby', 'title-field-1-hint');
+  });
 });

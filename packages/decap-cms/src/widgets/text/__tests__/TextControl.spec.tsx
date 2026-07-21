@@ -60,4 +60,11 @@ describe('TextControl aria validation wiring (DCMS-1083)', () => {
     expect(textarea).toHaveAttribute('aria-invalid', 'true');
     expect(textarea).toHaveAttribute('aria-errormessage', 'body-field-1-errors');
   });
+
+  it('sets aria-describedby to the hint id when the field has a hint (DCMS-1298)', () => {
+    const { container } = render(
+      <TextControl {...defaultProps} value="" hintId="body-field-1-hint" />,
+    );
+    expect(container.querySelector('textarea')).toHaveAttribute('aria-describedby', 'body-field-1-hint');
+  });
 });

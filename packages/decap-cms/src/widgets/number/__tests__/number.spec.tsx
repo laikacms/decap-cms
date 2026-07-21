@@ -439,4 +439,16 @@ describe('NumberControl aria validation wiring (DCMS-1083)', () => {
     expect(input).toHaveAttribute('aria-invalid', 'true');
     expect(input).toHaveAttribute('aria-errormessage', 'count-field-1-errors');
   });
+
+  it('sets aria-describedby to the hint id when the field has a hint (DCMS-1298)', () => {
+    const { container } = render(
+      <NumberControl {...baseProps} value="" hintId="count-field-1-hint" />,
+    );
+    expect(container.querySelector('input')).toHaveAttribute('aria-describedby', 'count-field-1-hint');
+  });
+
+  it('has no aria-describedby when the field has no hint (DCMS-1298)', () => {
+    const { container } = render(<NumberControl {...baseProps} value="" />);
+    expect(container.querySelector('input')).not.toHaveAttribute('aria-describedby');
+  });
 });

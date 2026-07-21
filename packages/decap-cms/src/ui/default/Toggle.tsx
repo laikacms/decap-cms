@@ -70,6 +70,7 @@ export interface ToggleProps {
   ariaRequired?: boolean;
   ariaInvalid?: boolean;
   ariaErrorMessage?: string;
+  ariaDescribedBy?: string;
 }
 
 /**
@@ -93,6 +94,7 @@ function Toggle({
   ariaRequired,
   ariaInvalid,
   ariaErrorMessage,
+  ariaDescribedBy,
 }: ToggleProps): React.ReactElement {
   return (
     <Switch
@@ -106,6 +108,7 @@ function Toggle({
       aria-required={ariaRequired}
       aria-invalid={ariaInvalid || undefined}
       aria-errormessage={ariaInvalid ? ariaErrorMessage : undefined}
+      aria-describedby={ariaDescribedBy}
       render={<Container />}
     >
       <Background $isActive={active} />

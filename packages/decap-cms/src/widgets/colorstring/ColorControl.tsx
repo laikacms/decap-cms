@@ -86,6 +86,7 @@ interface ColorControlProps {
   field: CmsFieldColor & CmsFieldBase;
   hasErrors?: boolean;
   errorListId?: string;
+  hintId?: string;
 }
 
 export default function ColorControl({
@@ -98,6 +99,7 @@ export default function ColorControl({
   setInactiveStyle,
   hasErrors,
   errorListId,
+  hintId,
 }: ColorControlProps) {
   const [showColorPicker, setShowColorPicker] = React.useState(false);
 
@@ -203,6 +205,7 @@ export default function ColorControl({
         aria-required={field.required !== false}
         aria-invalid={hasErrors || undefined}
         aria-errormessage={hasErrors ? errorListId : undefined}
+        aria-describedby={hintId}
       />
     </>
   );

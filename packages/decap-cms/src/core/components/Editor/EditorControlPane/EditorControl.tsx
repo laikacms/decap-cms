@@ -287,6 +287,11 @@ function EditorControl(props: EditorControlProps) {
   // descendant), matching the `errors && <ControlErrorsList>` render guard
   // below.
   const errorListId = errors ? `${uniqueFieldId}-errors` : undefined;
+  // Stable id for the <ControlHint>, so the widget input can point its
+  // `aria-describedby` at it (WCAG 2.1 1.3.1 / 3.3.2). Only meaningful while
+  // the field actually has a hint, matching the `fieldHint && <ControlHint>`
+  // render guard below.
+  const hintId = fieldHint ? `${uniqueFieldId}-hint` : undefined;
 
   return (
     <ClassNames>
@@ -375,6 +380,7 @@ function EditorControl(props: EditorControlProps) {
             uniqueFieldId={uniqueFieldId}
             hasErrors={hasErrors}
             errorListId={errorListId}
+            hintId={hintId}
             value={value}
             mediaPaths={mediaPaths}
             metadata={metadata}
@@ -416,7 +422,7 @@ function EditorControl(props: EditorControlProps) {
             isParentListCollapsed={isParentListCollapsed}
           />
           {fieldHint && (
-            <ControlHint active={isSelected || styleActive} error={hasErrors}>
+            <ControlHint id={hintId} active={isSelected || styleActive} error={hasErrors}>
               <HintMarkdown source={fieldHint} />
             </ControlHint>
           )}
