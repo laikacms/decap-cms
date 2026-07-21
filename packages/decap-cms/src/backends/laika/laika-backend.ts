@@ -1149,6 +1149,24 @@ export default function createLaikaBackend(
           ? parseJsonEntryContent(dataFile.raw, isJsonFile)
           : dataFile.raw ?? {};
 
+        // The documents API rejects non-object `content` outright (DCMS-1254).
+        // `parseJsonEntryContent` only produces an object for JSON-format
+        // collections; markdown/YAML/TOML (frontmatter — Decap's default when
+        // no `format:` is set) fall through and land here as a raw string.
+        // Surface that as an actionable client-side error instead of letting
+        // the raw string reach the server, where it would 400 with an opaque
+        // "content must be a plain object; got string" message the Decap user
+        // has no way to act on.
+        if (typeof content === 'string') {
+          const collectionName = options.collectionName ?? dataFile.path.split('/')[0];
+          throw new APIError(
+            `Laika backend currently only supports JSON-format collections; `
+              + `set \`format: json\` on collection \`${collectionName}\`.`,
+            400,
+            'Laika Backend',
+          );
+        }
+
         const entryKey = normalizeKey(dataFile.path);
         const language: string = typeof content === 'object' && content !== null
           ? (content as Record<string, unknown>).language as string | undefined ?? 'und'

@@ -194,3 +194,29 @@ const LaikaBackend = createLaikaBackend({
 - Media library integration
 - i18n support (multiple folders)
 - Custom repository injection
+
+## Supported collection formats
+
+**Only `format: json` collections are currently supported.** The laikacms documents API requires
+`content` to be a plain object; this backend can only produce that shape for JSON-format entries.
+
+```yaml
+collections:
+  - name: posts
+    label: Posts
+    folder: _posts
+    format: json # required — Decap's default (markdown-frontmatter) is not yet supported
+    fields:
+      - { label: Title, name: title, widget: string }
+```
+
+If a collection omits `format:`, Decap defaults to markdown-frontmatter — the most common source of
+this limitation, since it isn't obvious from the config that a format even needs to be set. Saving an
+entry in a non-JSON collection (`format: yaml`, `format: yaml-frontmatter`, `format: toml`, or the
+frontmatter default) now fails fast with a client-side error before any request reaches the server:
+
+```
+Laika backend currently only supports JSON-format collections; set `format: json` on collection `posts`.
+```
+
+Tracking issue: [DCMS-1254](https://github.com/laikacms/decap-cms/issues/1254).
