@@ -64,6 +64,15 @@ interface ModalProps {
   isOpen: boolean;
   className?: string;
   onClose: () => void;
+  /**
+   * DCMS-1278: Base UI's `Dialog.Popup` gets `role="dialog"` automatically
+   * but doesn't derive an accessible name from its subtree, so callers must
+   * provide one via `ariaLabel` or `ariaLabelledby` (id of a heading already
+   * rendered inside `children`) — otherwise screen readers announce a
+   * nameless dialog.
+   */
+  ariaLabel?: string;
+  ariaLabelledby?: string;
 }
 
 /**
@@ -107,7 +116,7 @@ export function replayOutsidePress(eventDetails: DialogRoot.ChangeEventDetails) 
   });
 }
 
-export function Modal({ isOpen, children, className, onClose }: ModalProps) {
+export function Modal({ isOpen, children, className, onClose, ariaLabel, ariaLabelledby }: ModalProps) {
   const container = typeof document !== 'undefined' ? (document.getElementById(ROOT_ID) ?? undefined) : undefined;
 
   return (
@@ -123,7 +132,12 @@ export function Modal({ isOpen, children, className, onClose }: ModalProps) {
       <Dialog.Portal container={container}>
         <Dialog.Backdrop css={backdropStyles} data-testid="modal-backdrop" />
         <Dialog.Viewport css={viewportStyles}>
-          <Dialog.Popup css={popupStyles} className={className}>
+          <Dialog.Popup
+            css={popupStyles}
+            className={className}
+            aria-label={ariaLabel}
+            aria-labelledby={ariaLabelledby}
+          >
             {children}
           </Dialog.Popup>
         </Dialog.Viewport>
