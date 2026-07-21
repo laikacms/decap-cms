@@ -1938,6 +1938,98 @@ describe('LaikaBackend.getMedia()', () => {
       expect.objectContaining({ pagination: { limit: 100, offset: 100 } }),
     );
   });
+
+  // DCMS-1063: the assets domain 400s on an unscoped '' folderKey ("missing
+  // a collection prefix"). getMedia must scope the listing to the configured
+  // media_folder instead of always querying the bare root.
+  it('scopes listResources to the configured media_folder by default (DCMS-1063)', async () => {
+    mockAssetsRepo.listResources.mockReturnValue(LaikaStream.empty({ total: 0 }));
+
+    await backend.getMedia();
+
+    expect(mockAssetsRepo.listResources).toHaveBeenCalledWith(
+      'assets/uploads',
+      expect.anything(),
+    );
+  });
+
+  it('scopes listResources to an explicitly passed folder (DCMS-1063)', async () => {
+    mockAssetsRepo.listResources.mockReturnValue(LaikaStream.empty({ total: 0 }));
+
+    await backend.getMedia('posts/media');
+
+    expect(mockAssetsRepo.listResources).toHaveBeenCalledWith(
+      'posts/media',
+      expect.anything(),
+    );
+  });
+
+  it('routes a listResources failure to the warning handler instead of console.error (DCMS-1063)', async () => {
+    const { NotFoundError } = await import('laikacms/core');
+    const observed: unknown[] = [];
+    const localMockAssetsRepo = makeMockAssetsRepository();
+    const LaikaBackend = createLaikaBackend({
+      getDocumentsRepository: () => makeMockDocumentsRepository() as any,
+      getAssetsRepository: () => localMockAssetsRepo as any,
+      onWarning: (e: unknown) => {
+        observed.push(e);
+      },
+    });
+    const localBackend = new LaikaBackend(makeConfig()) as any;
+    (localBackend as any).assetsRepository = localMockAssetsRepo;
+    (localBackend as any).tokenPromise = () => Promise.resolve('fake-token');
+
+    localMockAssetsRepo.listResources.mockReturnValue(
+      LaikaStream.fail(new NotFoundError('folder not found')),
+    );
+
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const media = await localBackend.getMedia('assets/uploads');
+      expect(media).toEqual([]);
+      expect(observed).toHaveLength(1);
+      expect(observed[0]).toBeInstanceOf(NotFoundError);
+      expect(errorSpy).not.toHaveBeenCalled();
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Suite: getMediaPage
+// ---------------------------------------------------------------------------
+
+describe('LaikaBackend.getMediaPage()', () => {
+  let mockAssetsRepo: ReturnType<typeof makeMockAssetsRepository>;
+  let backend: any;
+
+  beforeEach(() => {
+    mockAssetsRepo = makeMockAssetsRepository();
+    const LaikaBackend = createLaikaBackend({
+      getDocumentsRepository: () => makeMockDocumentsRepository() as any,
+      getAssetsRepository: () => mockAssetsRepo as any,
+    });
+    backend = new LaikaBackend(makeConfig());
+    (backend as any).assetsRepository = mockAssetsRepo;
+    (backend as any).tokenPromise = () => Promise.resolve('fake-token');
+  });
+
+  // DCMS-1063: same unscoped-folderKey 400 as getMedia — the dashboard/media
+  // modal prefetch must not query the bare root.
+  it('scopes listResources to the configured media_folder (DCMS-1063)', async () => {
+    mockAssetsRepo.listResources.mockReturnValue(
+      LaikaStream.succeedMany([], { pagination: {} }),
+    );
+    mockAssetsRepo.getUrls.mockReturnValue(LaikaStream.succeedMany([], { total: 0 }));
+
+    await backend.getMediaPage({ perPage: 100 });
+
+    expect(mockAssetsRepo.listResources).toHaveBeenCalledWith(
+      'assets/uploads',
+      expect.objectContaining({ depth: Infinity }),
+    );
+  });
 });
 
 // ---------------------------------------------------------------------------

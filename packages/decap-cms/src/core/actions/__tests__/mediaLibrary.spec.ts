@@ -456,7 +456,29 @@ describe('mediaLibrary', () => {
 
       const actions = store.getActions();
       expect(actions[0]).toEqual({ type: 'MEDIA_LOAD_REQUEST', payload: { page: 1 } });
-      expect(actions[1]).toEqual({ type: 'MEDIA_LOAD_FAILURE', payload: { privateUpload: undefined } });
+      expect(actions[2]).toEqual({ type: 'MEDIA_LOAD_FAILURE', payload: { privateUpload: undefined } });
+
+      consoleError.mockRestore();
+    });
+
+    // DCMS-1063: a failed media listing must surface to the user (toast),
+    // not just land in devtools via console.error.
+    it('should surface a notification toast when getMediaPage rejects', async () => {
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const paginatedBackend = createPaginatedBackend();
+      paginatedBackend.getMediaPage.mockRejectedValue(new Error('boom'));
+      currentBackend.mockReturnValue(paginatedBackend);
+      const store = createStore();
+
+      await store.dispatch(loadMedia());
+
+      const actions = store.getActions();
+      expect(actions[1]).toEqual(
+        expect.objectContaining({
+          type: 'NOTIFICATION_SEND',
+          payload: expect.objectContaining({ type: 'error' }),
+        }),
+      );
 
       consoleError.mockRestore();
     });
@@ -479,6 +501,70 @@ describe('mediaLibrary', () => {
       expect(actions[1].payload).toEqual(
         expect.objectContaining({ dynamicSearch: true, dynamicSearchQuery: 'logo' }),
       );
+    });
+  });
+
+  // DCMS-1063: legacy (non-paginated) backends fall through to the plain
+  // `backend.getMedia()` load; a non-404 failure there must also surface a
+  // notification toast, not just a console.error.
+  describe('loadMedia legacy (non-paginated) failure', () => {
+    function createLegacyBackend() {
+      return {
+        supportsMediaPagination: vi.fn(() => false),
+        getMedia: vi.fn(),
+      };
+    }
+
+    function createStore() {
+      return mockStore({
+        config: {},
+        collections: {},
+        integrations: { providers: {}, hooks: {} },
+        mediaLibrary: { files: [] },
+        entryDraft: { entry: {} },
+      });
+    }
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('should surface a notification toast and dispatch MEDIA_LOAD_FAILURE on a non-404 error', async () => {
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const backend = createLegacyBackend();
+      backend.getMedia.mockRejectedValue({ status: 500, message: 'boom' });
+      currentBackend.mockReturnValue(backend);
+      const store = createStore();
+
+      await store.dispatch(loadMedia());
+
+      const actions = store.getActions();
+      expect(actions[0]).toEqual({ type: 'MEDIA_LOAD_REQUEST', payload: { page: 1 } });
+      expect(actions[1]).toEqual(
+        expect.objectContaining({
+          type: 'NOTIFICATION_SEND',
+          payload: expect.objectContaining({ type: 'error' }),
+        }),
+      );
+      expect(actions[2]).toEqual({ type: 'MEDIA_LOAD_FAILURE', payload: { privateUpload: undefined } });
+
+      consoleError.mockRestore();
+    });
+
+    it('should not surface a notification on an expected 404', async () => {
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const backend = createLegacyBackend();
+      backend.getMedia.mockRejectedValue({ status: 404 });
+      currentBackend.mockReturnValue(backend);
+      const store = createStore();
+
+      await store.dispatch(loadMedia());
+
+      const actions = store.getActions();
+      expect(actions.some(a => a.type === 'NOTIFICATION_SEND')).toBe(false);
+      expect(actions[1]).toEqual({ type: 'MEDIA_LOAD_SUCCESS', payload: { files: [] } });
+
+      consoleError.mockRestore();
     });
   });
 });
