@@ -202,6 +202,8 @@ function WorkflowList({
               connect(
                 <div style={{ height: '100%' }}>
                   <div
+                    role="region"
+                    aria-labelledby={`workflow-column-heading-${currColumn}`}
                     css={[
                       styles.column,
                       styles.columnPosition(idx),
@@ -212,7 +214,7 @@ function WorkflowList({
                       && styles.hiddenRightBorder,
                     ]}
                   >
-                    <ColumnHeader $name={currColumn}>
+                    <ColumnHeader id={`workflow-column-heading-${currColumn}`} $name={currColumn}>
                       {getColumnHeaderText(currColumn, t)}
                     </ColumnHeader>
                     <ColumnCount>
@@ -229,7 +231,7 @@ function WorkflowList({
       );
     }
     return (
-      <div>
+      <div role="list">
         {entriesArg.map((entry: any) => {
           const timestamp = dayjs(entry.updatedOn).format(t('workflow.workflow.dateFormat'));
           const slug = entry.slug;
@@ -272,7 +274,13 @@ function WorkflowList({
                   postAuthor,
                 };
                 return connect(
-                  <div>
+                  <div
+                    role="listitem"
+                    tabIndex={0}
+                    aria-label={`${cardProps.collectionLabel}: ${cardProps.title} (${
+                      getColumnHeaderText(ownStatus, t)
+                    })`}
+                  >
                     {renderWorkflowCard
                       ? (
                         renderWorkflowCard(cardProps)
