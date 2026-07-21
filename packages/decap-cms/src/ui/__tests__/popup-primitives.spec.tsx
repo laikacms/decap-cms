@@ -113,4 +113,32 @@ describe('editor popup primitives (Base UI)', () => {
     await user.keyboard('{Escape}');
     await waitFor(() => expect(screen.queryByText('Pick a date')).not.toBeInTheDocument());
   });
+
+  it('DCMS-1283: forwards aria-label to the popover popup', async () => {
+    const user = userEvent.setup();
+    render(
+      <Popover>
+        <PopoverTrigger render={<Button>Text color</Button>} />
+        <PopoverContent aria-label="Text color">Pick a color</PopoverContent>
+      </Popover>,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Text color' }));
+    expect(await screen.findByRole('dialog')).toHaveAttribute('aria-label', 'Text color');
+  });
+
+  it('DCMS-1283: forwards aria-labelledby to the popover popup', async () => {
+    const user = userEvent.setup();
+    render(
+      <Popover>
+        <PopoverTrigger render={<Button>Text color</Button>} />
+        <PopoverContent aria-labelledby="color-picker-title">
+          <span id="color-picker-title">Text color</span>
+        </PopoverContent>
+      </Popover>,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Text color' }));
+    expect(await screen.findByRole('dialog')).toHaveAttribute('aria-labelledby', 'color-picker-title');
+  });
 });

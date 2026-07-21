@@ -88,9 +88,28 @@ const contentClass = css`
   width: auto;
 `;
 
-function ColorPickerContent({ children }: { children?: ReactNode }): ReactNode {
+interface ColorPickerContentProps {
+  children?: ReactNode;
+  /**
+   * DCMS-1283: `PopoverPrimitive.Popup` gets `role="dialog"` automatically
+   * but doesn't derive an accessible name from its subtree, so callers must
+   * provide one via `ariaLabel` or `ariaLabelledby` — otherwise screen
+   * readers announce a nameless dialog. Mirrors the `Modal` fix for
+   * DCMS-1278.
+   */
+  ariaLabel?: string;
+  ariaLabelledby?: string;
+}
+
+function ColorPickerContent({ children, ariaLabel, ariaLabelledby }: ColorPickerContentProps): ReactNode {
   return (
-    <PopoverContent align="start" sideOffset={8} css={contentClass}>
+    <PopoverContent
+      align="start"
+      sideOffset={8}
+      css={contentClass}
+      aria-label={ariaLabel}
+      aria-labelledby={ariaLabelledby}
+    >
       {children}
     </PopoverContent>
   );

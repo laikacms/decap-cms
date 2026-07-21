@@ -83,7 +83,7 @@ export function FontBackgroundToolbarPlugin() {
           <PaintBucketIcon className="size-4" />
         </Button>
       </ColorPickerTrigger>
-      <ColorPickerContent>
+      <ColorPickerContent ariaLabel="Text background color">
         <ColorPickerArea />
         <div className="flex items-center gap-2">
           <ColorPickerEyeDropper />

@@ -71,7 +71,7 @@ export function FontColorToolbarPlugin() {
           <BaselineIcon className="size-4" />
         </Button>
       </ColorPickerTrigger>
-      <ColorPickerContent>
+      <ColorPickerContent ariaLabel="Text color">
         <ColorPickerArea />
         <div className="flex items-center gap-2">
           <ColorPickerEyeDropper />
