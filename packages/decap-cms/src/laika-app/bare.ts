@@ -13,7 +13,7 @@ import type { CmsConfig } from '@/core/index';
  * auto-init at module load.
  *
  * Why this entry exists: the default `/laika-app` bundles every backend
- * (9), every widget (14), every format pack, and every locale eagerly
+ * (10), every widget (14), every format pack, and every locale eagerly
  * because Decap's Registry pattern needs them registered at import time.
  * For consumers deploying laika with a known subset — say, just GitHub +
  * JSON collections + a handful of widgets — that's a lot of wasted bytes.
