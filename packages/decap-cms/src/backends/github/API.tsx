@@ -1,5 +1,4 @@
 import { initial, isError, last, partial, result, trim, trimStart } from 'lodash-es';
-import { dirname } from 'path';
 
 import { oneLine } from '@/lib/util/index';
 import {
@@ -10,6 +9,7 @@ import {
   contentKeyFromBranch,
   createSemaphore,
   DEFAULT_PR_BODY,
+  dirname,
   EditorialWorkflowError,
   generateContentKey,
   getAllResponses,
