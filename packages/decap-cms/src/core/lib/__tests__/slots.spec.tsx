@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react';
 import React from 'react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { CmsSlotsProvider, useCmsSlots } from '@/core/lib/slots';
 
@@ -104,6 +104,79 @@ describe('slots', () => {
 
       expect(captured?.renderLoader).toBe(outerLoader);
       expect(captured?.renderEntryCard).toBe(innerEntryCard);
+    });
+  });
+
+  describe('renderCollectionControls', () => {
+    it('receives searchQuery and onSearchChange when invoked from Collection.tsx', async () => {
+      vi.resetModules();
+
+      vi.doMock('@/core/hooks/useRedux', () => ({
+        useAppDispatch: () => vi.fn(),
+        useAppSelector: (selector: (state: any) => any) =>
+          selector({
+            collections: {
+              shop: { name: 'shop', label: 'Shop', nested: { depth: 100 }, create: true },
+            },
+            entries: {},
+            config: {},
+          }),
+      }));
+
+      vi.doMock('@/core/i18n', () => ({
+        useTranslate: () => (key: string) => key,
+      }));
+
+      vi.doMock('@/core/reducers/collections', () => ({
+        selectSortableFields: () => [],
+        selectViewFilters: () => undefined,
+        selectViewGroups: () => undefined,
+      }));
+
+      vi.doMock('@/core/reducers/entries', () => ({
+        selectEntriesFilter: () => undefined,
+        selectEntriesGroup: () => undefined,
+        selectEntriesSort: () => undefined,
+        selectViewStyle: () => 'list',
+      }));
+
+      vi.doMock('@/core/components/Collection/Sidebar', () => ({ default: () => null }));
+      vi.doMock('@/core/components/Collection/CollectionTop', () => ({ default: () => null }));
+      vi.doMock('@/core/components/Collection/CollectionControls', () => ({ default: () => null }));
+      vi.doMock('@/core/components/Collection/Entries/EntriesCollection', () => ({
+        default: () => null,
+      }));
+      vi.doMock('@/core/components/Collection/Entries/EntriesSearch', () => ({
+        default: () => null,
+      }));
+
+      const renderCollectionControls = vi.fn(() => null);
+      vi.doMock('@/core/lib/slots', () => ({
+        useCmsSlots: () => ({ renderCollectionControls }),
+      }));
+
+      const { default: CmsCollection } = await import('@/core/components/Collection/Collection');
+
+      render(<CmsCollection match={{ params: { name: 'shop' } }} />);
+
+      expect(renderCollectionControls).toHaveBeenCalledWith(
+        expect.objectContaining({
+          searchQuery: expect.any(String),
+          onSearchChange: expect.any(Function),
+        }),
+      );
+
+      vi.doUnmock('@/core/hooks/useRedux');
+      vi.doUnmock('@/core/i18n');
+      vi.doUnmock('@/core/reducers/collections');
+      vi.doUnmock('@/core/reducers/entries');
+      vi.doUnmock('@/core/components/Collection/Sidebar');
+      vi.doUnmock('@/core/components/Collection/CollectionTop');
+      vi.doUnmock('@/core/components/Collection/CollectionControls');
+      vi.doUnmock('@/core/components/Collection/Entries/EntriesCollection');
+      vi.doUnmock('@/core/components/Collection/Entries/EntriesSearch');
+      vi.doUnmock('@/core/lib/slots');
+      vi.resetModules();
     });
   });
 });
