@@ -10,6 +10,7 @@ import {
 } from '@/core/actions/entries';
 import { useTranslate } from '@/core/i18n';
 import { selectUnpublishedEntriesByStatus, selectUnpublishedEntry } from '@/core/reducers';
+import { selectEntryCollectionTitle } from '@/core/reducers/collections';
 import {
   selectEntries,
   selectEntriesLoaded,
@@ -99,6 +100,27 @@ export function filterNestedEntries(
     return !entryPath.includes('/');
   });
   return filtered;
+}
+
+/**
+ * Client-side text filter over already-loaded entries, matched against each
+ * entry's inferred title/summary (the same value shown on its card). Backs
+ * the collection toolbar's search field (DCMS-1229) — not a full-text
+ * search index, just a filter over the currently rendered page.
+ */
+export function filterEntriesBySearchQuery(
+  collection: CmsCollectionState,
+  entries: CmsEntry[],
+  searchQuery: string | undefined,
+): CmsEntry[] {
+  const query = searchQuery?.trim().toLowerCase();
+  if (!query) {
+    return entries;
+  }
+  return entries.filter(entry => {
+    const title = selectEntryCollectionTitle(collection, entry);
+    return typeof title === 'string' && title.toLowerCase().includes(query);
+  });
 }
 
 function shallowArrayEqual<T>(a: T[] | undefined, b: T[] | undefined): boolean {
@@ -211,12 +233,20 @@ interface ConnectedProps {
   collection: CmsCollectionState;
   viewStyle?: string;
   filterTerm?: string;
+  /**
+   * Free-text query from the collection toolbar's search field. Matched
+   * client-side against each entry's inferred title/summary (the same value
+   * shown on its card) — this is a filter over the currently loaded page,
+   * not a full-text search index.
+   */
+  searchQuery?: string;
 }
 
 export default function ConnectedEntriesCollection({
   collection,
   viewStyle,
   filterTerm,
+  searchQuery,
 }: ConnectedProps) {
   const t = useTranslate();
   const dispatch = useAppDispatch();
@@ -230,18 +260,19 @@ export default function ConnectedEntriesCollection({
     shallowArrayEqual,
   );
   const entries = React.useMemo(() => {
+    let result = rawEntries;
     if (collection.nested) {
       const collectionFolder = collection.folder as string;
       const nested = collection.nested;
-      return filterNestedEntries(
+      result = filterNestedEntries(
         filterTerm || '',
         collectionFolder,
-        rawEntries || [],
+        result || [],
         nested ? nested.subfolders !== false : true,
       );
     }
-    return rawEntries;
-  }, [collection, filterTerm, rawEntries]);
+    return filterEntriesBySearchQuery(collection, result || [], searchQuery);
+  }, [collection, filterTerm, rawEntries, searchQuery]);
   const groups = useAppSelector(
     (state: any) => selectGroups(state.entries, collection),
     shallowArrayEqual,

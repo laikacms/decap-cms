@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
 import React from 'react';
 
-import { lengths } from '@/ui/default/index';
+import { colors, Icon, lengths } from '@/ui/default/index';
 import FilterControl from './FilterControl';
 import GroupControl from './GroupControl';
 import SortControl from './SortControl';
@@ -23,6 +23,41 @@ const CollectionControlsContainer = styled.div`
   }
 `;
 
+const SearchWrap = styled.div`
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 6px;
+  padding: 0 6px;
+  border: 1px solid ${colors.textFieldBorder};
+  border-radius: ${lengths.borderRadius};
+  color: ${colors.controlLabel};
+
+  .decap-icon {
+    flex: 0 0 auto;
+    display: flex;
+  }
+`;
+
+const SearchField = styled.input`
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  font-size: 14px;
+  color: inherit;
+  padding: 8px 0;
+
+  &::placeholder {
+    color: ${colors.controlLabel};
+  }
+
+  &:focus {
+    outline: none;
+  }
+`;
+
 interface CollectionControlsProps {
   viewStyle: string;
   onChangeViewStyle: (style: string) => void;
@@ -36,6 +71,9 @@ interface CollectionControlsProps {
   t: TranslateFunction;
   filter?: Record<string, unknown>;
   group?: Record<string, unknown>;
+  searchQuery?: string;
+  /** Omit to hide the search field entirely (e.g. no searchable entries). */
+  onSearchChange?: (query: string) => void;
 }
 
 function CollectionControls({
@@ -51,7 +89,10 @@ function CollectionControls({
   t,
   filter,
   group,
+  searchQuery,
+  onSearchChange,
 }: CollectionControlsProps) {
+  const searchLabel = t('collection.collectionTop.searchEntries');
   return (
     <CollectionControlsContainer>
       <ViewStyleControl viewStyle={viewStyle} onChangeViewStyle={onChangeViewStyle} t={t} />
@@ -64,6 +105,20 @@ function CollectionControls({
       {sortableFields && sortableFields.length > 0 && (
         <SortControl fields={sortableFields} sort={sort} onSortClick={onSortClick} />
       )}
+      {onSearchChange
+        ? (
+          <SearchWrap>
+            <Icon type="search" size="xsmall" />
+            <SearchField
+              type="search"
+              value={searchQuery ?? ''}
+              onChange={e => onSearchChange(e.target.value)}
+              placeholder={searchLabel}
+              aria-label={searchLabel}
+            />
+          </SearchWrap>
+        )
+        : null}
     </CollectionControlsContainer>
   );
 }

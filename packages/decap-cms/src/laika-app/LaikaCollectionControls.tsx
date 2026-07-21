@@ -46,6 +46,39 @@ const ViewToggleGroup = styled.div`
   gap: 2px;
 `;
 
+const SearchWrap = styled.div`
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 6px;
+  padding: 0 4px 0 8px;
+  color: ${colors.controlLabel};
+
+  .decap-icon {
+    flex: 0 0 auto;
+    display: flex;
+  }
+`;
+
+const SearchField = styled.input`
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  font-size: 14px;
+  color: inherit;
+  padding: 6px 0;
+
+  &::placeholder {
+    color: ${colors.controlLabel};
+  }
+
+  &:focus {
+    outline: none;
+  }
+`;
+
 interface LaikaCollectionControlsProps extends CollectionControlsRenderProps {
   t: TranslateFunction;
 }
@@ -62,14 +95,31 @@ function LaikaCollectionControls({
   onGroupClick,
   filter,
   group,
+  searchQuery,
+  onSearchChange,
   t,
 }: LaikaCollectionControlsProps) {
   const hasFilter = viewFilters && viewFilters.length > 0 && filter;
   const hasGroup = viewGroups && viewGroups.length > 0 && group;
   const hasSort = sortableFields && sortableFields.length > 0;
+  const searchLabel = t('collection.collectionTop.searchEntries');
 
   return (
     <Bar role="toolbar" aria-label={t('collection.collectionTop.sortBy')}>
+      {onSearchChange
+        ? (
+          <SearchWrap>
+            <Icon type="search" size="xsmall" />
+            <SearchField
+              type="search"
+              value={searchQuery ?? ''}
+              onChange={e => onSearchChange(e.target.value)}
+              placeholder={searchLabel}
+              aria-label={searchLabel}
+            />
+          </SearchWrap>
+        )
+        : null}
       {hasGroup
         ? (
           <GroupControl

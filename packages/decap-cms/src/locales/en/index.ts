@@ -56,6 +56,7 @@ const en = {
       searchResultsInCollection: 'Search Results for "%{searchTerm}" in %{collection}',
       filterBy: 'Filter by',
       groupBy: 'Group by',
+      searchEntries: 'Search entries…',
     },
     entries: {
       loadingEntries: 'Loading Entries...',

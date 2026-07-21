@@ -54,6 +54,10 @@ export interface CollectionControlsRenderProps {
   onGroupClick: (group: CmsViewGroup) => void;
   filter?: Record<string, unknown>;
   group?: Record<string, unknown>;
+  /** Current free-text entry search query, lifted from `Collection`. */
+  searchQuery?: string;
+  /** Omit to hide the search field entirely (e.g. no searchable entries). */
+  onSearchChange?: (query: string) => void;
 }
 
 export interface LoaderRenderProps {

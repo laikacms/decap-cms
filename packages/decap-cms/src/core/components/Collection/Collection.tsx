@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 
 import { changeViewStyle, filterByField, groupByField, sortByField } from '@/core/actions/entries';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
@@ -72,6 +72,12 @@ function CmsCollection({
 
   // Extract params from match
   const { name, searchTerm = '', filterTerm = '' } = match.params;
+
+  // Free-text filter over the currently rendered entry list (client-side,
+  // matched against each entry's inferred title/summary). Separate from
+  // `searchTerm`, which drives the dedicated cross-collection search-results
+  // route.
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Select state from Redux store
   const collections = useAppSelector(state => state.collections) as CmsCollections;
@@ -173,8 +179,15 @@ function CmsCollection({
   // Render helpers
   const renderEntriesCollection = useCallback(() => {
     if (!collection) return null;
-    return <EntriesCollection collection={collection} viewStyle={viewStyle} filterTerm={filterTerm} />;
-  }, [collection, viewStyle, filterTerm]);
+    return (
+      <EntriesCollection
+        collection={collection}
+        viewStyle={viewStyle}
+        filterTerm={filterTerm}
+        searchQuery={searchQuery}
+      />
+    );
+  }, [collection, viewStyle, filterTerm, searchQuery]);
 
   const renderEntriesSearch = useCallback(() => {
     const searchCollections = isSingleSearchResult && collection
@@ -237,6 +250,8 @@ function CmsCollection({
                     onGroupClick,
                     filter,
                     group,
+                    searchQuery,
+                    onSearchChange: setSearchQuery,
                   })
                 )
                 : (
@@ -253,6 +268,8 @@ function CmsCollection({
                     onGroupClick={onGroupClick}
                     filter={filter}
                     group={group}
+                    searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
                   />
                 )}
             </>
