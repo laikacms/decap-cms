@@ -216,6 +216,13 @@ export function loadMedia(
         );
       } catch (error) {
         console.error(error);
+        dispatch(
+          addNotification({
+            message: `Failed to load media library: ${error}`,
+            type: 'error',
+            dismissAfter: 8000,
+          }),
+        );
         return dispatch(mediaLoadFailed({ privateUpload }));
       }
     }
@@ -232,6 +239,13 @@ export function loadMedia(
             console.log('This 404 was expected and handled appropriately.');
             dispatch(mediaLoaded([]));
           } else {
+            dispatch(
+              addNotification({
+                message: `Failed to load media library: ${error}`,
+                type: 'error',
+                dismissAfter: 8000,
+              }),
+            );
             dispatch(mediaLoadFailed());
           }
         });
