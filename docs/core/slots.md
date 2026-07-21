@@ -73,7 +73,7 @@ Handlers and current state are pre-resolved, so the renderer stays presentationa
 
 - Props: `CollectionControlsRenderProps` (`viewStyle`, `onChangeViewStyle`, `sortableFields`,
   `onSortClick`, `sort?`, `viewFilters?`, `viewGroups?`, `onFilterClick`, `onGroupClick`, `filter?`,
-  `group?`)
+  `group?`, `searchQuery?`, `onSearchChange?`)
 - Consumer: `packages/decap-cms/src/core/components/Collection/Collection.tsx:71`
 
 ### `renderEntryCard`
@@ -116,7 +116,7 @@ re-skin it without re-implementing drag-and-drop or Redux integration.
 - Props: `WorkflowCardRenderProps` (`collectionLabel`, `title?`, `authorLastChange?`, `body?`,
   `isModification?`, `editLink`, `timestamp`, `onDelete`, `allowPublish`, `canPublish`, `onPublish`,
   `postAuthor?`)
-- Consumer: `packages/decap-cms/src/core/components/Workflow/WorkflowList.tsx:169`
+- Consumer: `packages/decap-cms/src/core/components/Workflow/WorkflowList.tsx:168`
 
 ### `renderEditorToolbar`
 
