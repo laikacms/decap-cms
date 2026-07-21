@@ -77,8 +77,15 @@ interface ModalProps {
  * the same viewport coordinates once the backdrop has been removed from the
  * DOM, so a single click both dismisses the modal and completes the
  * navigation/action underneath it.
+ *
+ * DCMS-1251: a single `requestAnimationFrame` is not sufficient — React's
+ * portal unmount is not guaranteed to have committed to the DOM by the next
+ * animation frame, so `elementFromPoint` can still hit the (soon-to-be
+ * removed) Base UI portal wrapper instead of the element underneath it.
+ * React guarantees the unmount commits before the *next* frame is requested
+ * from within a frame callback, so wait two animation frames instead of one.
  */
-function replayOutsidePress(eventDetails: DialogRoot.ChangeEventDetails) {
+export function replayOutsidePress(eventDetails: DialogRoot.ChangeEventDetails) {
   if (eventDetails.reason !== 'outside-press' || typeof document === 'undefined') {
     return;
   }
@@ -90,11 +97,13 @@ function replayOutsidePress(eventDetails: DialogRoot.ChangeEventDetails) {
   const { clientX, clientY } = nativeEvent;
 
   requestAnimationFrame(() => {
-    const target = document.elementFromPoint(clientX, clientY);
-    const link = target?.closest('a[href]');
-    if (link instanceof HTMLElement) {
-      link.click();
-    }
+    requestAnimationFrame(() => {
+      const target = document.elementFromPoint(clientX, clientY);
+      const link = target?.closest('a[href]');
+      if (link instanceof HTMLElement) {
+        link.click();
+      }
+    });
   });
 }
 
