@@ -9,7 +9,7 @@ import { translate } from '@/core/i18n';
 import { useCmsSlots } from '@/core/lib/slots';
 import { selectEntryCollectionTitle } from '@/core/reducers/collections';
 import { confirmDialog, showAlert } from '@/ui';
-import { colors, lengths } from '@/ui/default/index';
+import { buttons, colors, lengths } from '@/ui/default/index';
 import WorkflowCard from './WorkflowCard';
 
 import type { CmsCollections, CmsCollectionState } from '@/lib/util/index';
@@ -80,6 +80,35 @@ const styles = {
   `,
 };
 
+const visuallyHiddenStyle: React.CSSProperties = {
+  position: 'absolute',
+  width: 1,
+  height: 1,
+  padding: 0,
+  margin: -1,
+  overflow: 'hidden',
+  clip: 'rect(0, 0, 0, 0)',
+  whiteSpace: 'nowrap',
+  border: 0,
+};
+
+const StatusActions = styled.div`
+  display: flex;
+  gap: 8px;
+  padding: 4px 18px 18px;
+`;
+
+const StatusActionButton = styled.button`
+  ${buttons.button};
+  flex: 1 0 0;
+  font-size: 12px;
+  padding: 6px 0;
+
+  &[disabled] {
+    ${buttons.disabled};
+  }
+`;
+
 interface ColumnHeaderProps {
   $name?: string;
 }
@@ -135,6 +164,18 @@ function getColumnHeaderText(columnName: string, t: TranslateFunction) {
   }
 }
 
+// Columns are ordered Draft -> Review -> Ready; keyboard "move to
+// previous/next status" steps one position along this same order.
+const STATUS_ORDER = Object.values(status);
+
+function getAdjacentStatus(currentStatus: string, direction: -1 | 1): string | undefined {
+  const index = STATUS_ORDER.indexOf(currentStatus as (typeof STATUS_ORDER)[number]);
+  if (index === -1) return undefined;
+  const adjacentIndex = index + direction;
+  if (adjacentIndex < 0 || adjacentIndex >= STATUS_ORDER.length) return undefined;
+  return STATUS_ORDER[adjacentIndex];
+}
+
 interface DragProps {
   slug: string;
   collection: string;
@@ -166,9 +207,19 @@ function WorkflowList({
   collections,
 }: WorkflowListProps) {
   const { renderWorkflowCard } = useCmsSlots();
+  // Announces every status change (keyboard-driven or drag-and-drop) via the
+  // shared `onChangeStatus` dispatch path below, satisfying AC5 without a
+  // second code path.
+  const [announcement, setAnnouncement] = React.useState('');
 
   function onChangeStatus(newStatus: string, dragProps: DragProps) {
     handleChangeStatus(dragProps.collection, dragProps.slug, dragProps.ownStatus, newStatus);
+    setAnnouncement(
+      t('workflow.workflowList.movedAnnouncement', {
+        slug: dragProps.slug,
+        status: getColumnHeaderText(newStatus, t),
+      }),
+    );
   }
 
   async function requestDelete(collection: string, slug: string, ownStatus: string) {
@@ -249,6 +300,13 @@ function WorkflowList({
           const allowPublish = (collection?.publish ?? true) as boolean;
           const canPublish = ownStatus === Object.values(status).pop() && !(entry.isPersisting ?? false);
           const postAuthor = entry.author;
+          const previousStatus = getAdjacentStatus(ownStatus, -1);
+          const nextStatus = getAdjacentStatus(ownStatus, 1);
+
+          function moveTo(newStatus: string | undefined) {
+            if (!newStatus) return;
+            onChangeStatus(newStatus, { slug, collection: collectionName, ownStatus });
+          }
 
           return (
             <DragSource
@@ -286,6 +344,28 @@ function WorkflowList({
                         renderWorkflowCard(cardProps)
                       )
                       : <WorkflowCard {...cardProps} />}
+                    <StatusActions>
+                      <StatusActionButton
+                        type="button"
+                        disabled={!previousStatus}
+                        onClick={() => moveTo(previousStatus)}
+                        aria-label={t('workflow.workflowList.moveToPreviousStatus', {
+                          status: previousStatus ? getColumnHeaderText(previousStatus, t) : '',
+                        })}
+                      >
+                        {t('workflow.workflowList.moveToPreviousStatusShort')}
+                      </StatusActionButton>
+                      <StatusActionButton
+                        type="button"
+                        disabled={!nextStatus}
+                        onClick={() => moveTo(nextStatus)}
+                        aria-label={t('workflow.workflowList.moveToNextStatus', {
+                          status: nextStatus ? getColumnHeaderText(nextStatus, t) : '',
+                        })}
+                      >
+                        {t('workflow.workflowList.moveToNextStatusShort')}
+                      </StatusActionButton>
+                    </StatusActions>
                   </div>,
                 );
               }}
@@ -300,7 +380,14 @@ function WorkflowList({
   const ListContainer = isOpenAuthoring
     ? WorkflowListContainerOpenAuthoring
     : WorkflowListContainer;
-  return <ListContainer>{columns}</ListContainer>;
+  return (
+    <>
+      <span role="status" aria-live="polite" style={visuallyHiddenStyle}>
+        {announcement}
+      </span>
+      <ListContainer>{columns}</ListContainer>
+    </>
+  );
 }
 
 export default HTML5DragDrop(translate()(WorkflowList as any));
