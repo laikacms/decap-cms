@@ -1,11 +1,24 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { registerBlock, unregisterBlock } from '@/lib/richtext';
+import { markdownMapper } from '@/format-packs/markdown';
+import { registerBlock, registerMapper, unregisterBlock } from '@/lib/richtext';
 import { LexicalPreview } from '@/widgets/richtext/widget/preview';
 
 import type { BlockDefinition } from '@/lib/richtext';
+
+/** ZWSP, ZWNJ, ZWJ, BOM/ZWNBSP, word-joiner: the codepoints DCMS-1325 found leaking into preview text nodes. */
+const ZERO_WIDTH_CODEPOINTS = new Set([0x200b, 0x200c, 0x200d, 0xfeff, 0x2060]);
+
+function countZeroWidthChars(text: string): number {
+  let count = 0;
+  for (const ch of text) {
+    const codePoint = ch.codePointAt(0);
+    if (codePoint !== undefined && ZERO_WIDTH_CODEPOINTS.has(codePoint)) count += 1;
+  }
+  return count;
+}
 
 const youtube: BlockDefinition = {
   id: 'youtube',
@@ -16,6 +29,35 @@ const youtube: BlockDefinition = {
 
 afterEach(() => {
   unregisterBlock('youtube');
+});
+
+/**
+ * DCMS-1325: opening an existing entry rendered hundreds of invisible
+ * Unicode characters (ZWSP U+200B, ZWNJ U+200C, ZWJ U+200D, BOM U+FEFF,
+ * U+2060) into the preview iframe's text nodes, but only for content
+ * loaded from the backend, never for freshly typed content. Root cause was
+ * `encodeEntry` (`@/core/lib/stega`) appending a `@vercel/stega`-encoded
+ * visual-editing marker after every markdown paragraph before the string
+ * ever reached this widget's markdown -> Portable Text -> preview pipeline;
+ * the markers survived parsing as literal characters inside the rendered
+ * heading/paragraph text. Fixed by excluding richtext/markdown fields from
+ * that encoding (`stega.tsx`); this guards the richtext preview pipeline
+ * itself against ever reintroducing zero-width noise, independent of the
+ * stega encoder.
+ */
+describe('LexicalPreview markdown rendering has no zero-width pollution (DCMS-1325)', () => {
+  beforeAll(() => {
+    registerMapper(markdownMapper);
+  });
+
+  it('renders a plain-text markdown fixture to preview HTML with zero zero-width control characters', () => {
+    const md = '# heading\n\nparagraph';
+    const { container } = render(<LexicalPreview value={md} field={{ format: 'markdown' }} />);
+
+    expect(container.querySelector('h1')).toHaveTextContent('heading');
+    expect(container.querySelector('p')).toHaveTextContent('paragraph');
+    expect(countZeroWidthChars(container.innerHTML)).toBe(0);
+  });
 });
 
 describe('LexicalPreview custom blocks', () => {

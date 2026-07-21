@@ -45,9 +45,20 @@ function getNestedFields(f?: CmsField): CmsField[] {
 }
 
 /**
- * Encode a string value by appending steganographic data
- * For richtext fields (and its deprecated `markdown` alias), encode each
- * paragraph separately
+ * Encode a string value by appending steganographic data.
+ *
+ * `richtext` (and its deprecated `markdown` alias) fields are deliberately
+ * excluded (DCMS-1325): their raw string is markdown source that still has
+ * to pass through the markdown -> Portable Text -> preview-HTML pipeline.
+ * Appending a stega block per paragraph, as used to happen here, survives
+ * that pipeline as literal zero-width characters (ZWSP/ZWNJ/ZWJ/BOM) sitting
+ * inside the rendered preview's flowing prose text nodes, invisible on
+ * screen, but present in `innerHTML`/`textContent` for every paragraph of
+ * real article content. That poisons copy-paste out of the preview, adds
+ * screen-reader noise, and makes the preview diverge from what a reader of
+ * the rendered content would ever see. Scalar `string`/`text` fields don't
+ * have this problem: they render as a single opaque value (e.g. a title),
+ * so click-to-edit there stays intact.
  */
 function encodeString(value: string, { fields, path }: EncodeContext): string {
   const [field] = fields;
@@ -57,11 +68,6 @@ function encodeString(value: string, { fields, path }: EncodeContext): string {
     if ('visualEditing' in field && field.visualEditing === false) return value;
     const stega = vercelStegaEncode({ decap: path });
     return value + stega;
-  }
-  if (widget === 'richtext' || widget === 'markdown') {
-    const stega = vercelStegaEncode({ decap: path });
-    const blocks = value.split(/(\n\n+)/);
-    return blocks.map(block => (block.trim() ? block + stega : block)).join('');
   }
   return value;
 }
