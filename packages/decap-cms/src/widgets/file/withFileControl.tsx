@@ -478,7 +478,7 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
       }
       const text = `${v.slice(0, size / 2)}…${v.slice(-(size / 2) + 1)}`;
       return (
-        <FileLink href={v} rel="noopener" target="_blank">
+        <FileLink href={v} rel="noopener noreferrer" target="_blank">
           {text}
         </FileLink>
       );
