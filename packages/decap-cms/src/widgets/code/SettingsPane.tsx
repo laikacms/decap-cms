@@ -107,7 +107,11 @@ function SettingsPane({
         }
       }}
     >
-      <SettingsButton onClick={hideSettings} showClose={true} />
+      <SettingsButton
+        onClick={hideSettings}
+        showClose={true}
+        ariaLabel="Close code widget settings"
+      />
       {allowLanguageSelection && (
         <>
           <SettingsSectionTitle>Field Settings</SettingsSectionTitle>

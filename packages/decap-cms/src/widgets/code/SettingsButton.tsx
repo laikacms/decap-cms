@@ -26,11 +26,12 @@ const StyledSettingsButton = styled.button`
 interface SettingsButtonProps {
   showClose: boolean;
   onClick: () => void;
+  ariaLabel: string;
 }
 
-function SettingsButton({ showClose, onClick }: SettingsButtonProps) {
+function SettingsButton({ showClose, onClick, ariaLabel }: SettingsButtonProps) {
   return (
-    <StyledSettingsButton onClick={onClick}>
+    <StyledSettingsButton type="button" onClick={onClick} aria-label={ariaLabel}>
       <Icon type={showClose ? 'close' : 'settings'} size="small" />
     </StyledSettingsButton>
   );
