@@ -138,6 +138,9 @@ export const IconControl: React.FC<IconControlProps> = props => {
                 <div
                   key={iconName}
                   title={iconName}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={iconName === props.value}
                   style={{
                     cursor: 'pointer',
                     backgroundColor: iconName === props.value ? colors.active : colors.inputBackground,
@@ -148,6 +151,12 @@ export const IconControl: React.FC<IconControlProps> = props => {
                   }}
                   onMouseDown={e => e.preventDefault()}
                   onClick={() => props.onChange(iconName)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      props.onChange(iconName);
+                    }
+                  }}
                 >
                   <Icon width={24} height={24} color={iconName === props.value ? colors.textLight : colors.text} />
                 </div>
