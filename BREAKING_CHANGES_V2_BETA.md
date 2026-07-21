@@ -88,7 +88,7 @@ authentication time if no GraphQL API is registered.
 point before `init()`:
 
 ```sh
-pnpm add @apollo/client rxjs graphql graphql-tag
+pnpm add @apollo/client graphql graphql-tag
 ```
 
 ```diff
