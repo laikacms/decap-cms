@@ -7,13 +7,13 @@ import { boundGetAsset } from '@/core/actions/media';
 import { ErrorBoundary } from '@/core/components/UI';
 import { INFERABLE_FIELDS } from '@/core/constants/fieldInference';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
+import { useTranslate } from '@/core/i18n';
 import { getPreviewStyles, getPreviewTemplate, getRemarkPlugins, resolveWidget } from '@/core/lib/registry';
 import { attachShortcutTarget } from '@/core/lib/shortcuts';
 import { encodeEntry } from '@/core/lib/stega';
 import { selectField, selectInferredField, selectTemplateName } from '@/core/reducers/collections';
 import { selectIsLoadingAsset } from '@/core/reducers/medias';
-import { lengths } from '@/ui/default/index';
-import EditorPreview from './EditorPreview';
+import { colors, lengths } from '@/ui/default/index';
 import EditorPreviewContent from './EditorPreviewContent.js';
 import PreviewHOC from './PreviewHOC';
 
@@ -36,6 +36,21 @@ const PreviewPaneFrame = styled(Frame)`
   border: none;
   background: #fff;
   border-radius: ${lengths.borderRadius};
+`;
+
+// DCMS-1230: shown in place of the preview iframe when the collection has no
+// preview component registered via `CMS.registerPreviewTemplate`. Without
+// this, the pane rendered an iframe with nothing meaningful in it — a large
+// blank void eating half the viewport.
+const NoPreviewMessage = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  color: ${colors.textFieldBorder};
 `;
 
 type InferableFieldValue = (typeof INFERABLE_FIELDS)[keyof typeof INFERABLE_FIELDS];
@@ -128,6 +143,7 @@ export function getWidget(
 
 export function PreviewPane(props: PreviewPaneProps) {
   const { entry, collection, config, onFieldClick } = props;
+  const t = useTranslate();
 
   const inferredFields = inferFieldsForCollection(collection);
 
@@ -304,7 +320,15 @@ export function PreviewPane(props: PreviewPaneProps) {
     return null;
   }
 
-  const previewComponent = getPreviewTemplate(selectTemplateName(collection, entry.slug)) || EditorPreview;
+  const previewComponent = getPreviewTemplate(selectTemplateName(collection, entry.slug));
+
+  // DCMS-1230: no `CMS.registerPreviewTemplate` call for this collection —
+  // render an inline empty state instead of an iframe with nothing in it.
+  if (!previewComponent) {
+    return (
+      <NoPreviewMessage>{t('editor.editorInterface.noPreviewRegistered')}</NoPreviewMessage>
+    );
+  }
 
   const visualEditing = (collection as any)?.editor?.visualEditing ?? false;
 
