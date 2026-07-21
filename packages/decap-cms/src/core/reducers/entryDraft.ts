@@ -31,7 +31,7 @@ import {
 } from '@/core/actions/entries';
 import { duplicateI18nFields, getDataPath } from '@/core/lib/i18n';
 import { sanitizeSlug } from '@/core/lib/urlHelper';
-import { basename, join, randomUUID } from '@/lib/util/index';
+import { basename, getNestedValue, join, randomUUID } from '@/lib/util/index';
 import { selectFolderEntryExtension, selectHasMetaPath } from './collections';
 
 import type { CmsCollectionState, CmsEntry, CmsEntryField } from '@/lib/util/index';
@@ -85,10 +85,6 @@ function deleteNestedKey(obj: any, path: string[]): any {
   }
   const [head, ...rest] = path;
   return { ...obj, [head]: deleteNestedKey(obj?.[head], rest) };
-}
-
-function getNestedValue(obj: any, path: string[]): any {
-  return path.reduce((cur, key) => (cur != null ? cur[key] : undefined), obj);
 }
 
 const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryDraft | void => {

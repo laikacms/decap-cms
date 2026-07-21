@@ -7,6 +7,7 @@ import { COMMIT_AUTHOR, COMMIT_DATE } from '@/core/constants/commitProps';
 import { IDENTIFIER_FIELDS, INFERABLE_FIELDS, SORTABLE_FIELDS } from '@/core/constants/fieldInference';
 import { getFormatExtensions } from '@/core/formats/formats';
 import { summaryFormatter } from '@/core/lib/formatters';
+import { getNestedValue } from '@/lib/util/index';
 import { stringTemplate } from '@/lib/widgets/index';
 import { selectMediaFolder } from './entries';
 
@@ -314,12 +315,9 @@ export function selectEntryCollectionTitle(collection: Collection, entry: EntryM
 
   const entryData = entry.data;
   const titleField = selectInferredField(collection, 'title') as string;
-  function getNestedValue(obj: any, path: string[]) {
-    return path.reduce((cur, key) => (cur != null ? cur[key] : undefined), obj);
-  }
-  const result = titleField && getNestedValue(entryData, keyToPathArray(titleField));
+  const result = titleField && getNestedValue<string>(entryData, keyToPathArray(titleField));
   if (!result && titleField !== 'title') {
-    return getNestedValue(entryData, keyToPathArray('title'));
+    return getNestedValue<string>(entryData, keyToPathArray('title'));
   }
   return result;
 }
