@@ -88,15 +88,18 @@ export function parseLinkHeader(header: string | null): Record<string, string> {
     return {};
   }
   return Object.fromEntries(
-    header.split(',').map(linksString => {
-      const [linkStr, keyStr] = linksString.trim().split(';');
-      const key = keyStr.match(/rel="(.*?)"/)![1];
-      const url = linkStr
-        .trim()
-        .match(/<(.*?)>/)![1]
-        .replace(/\+/g, '%20');
-      return [key, url] as [string, string];
-    }),
+    header
+      .split(',')
+      .map((linksString): [string, string] | null => {
+        const [linkStr, keyStr] = linksString.trim().split(';');
+        const keyMatch = keyStr?.match(/rel="(.*?)"/);
+        const urlMatch = linkStr?.trim().match(/<(.*?)>/);
+        if (!keyMatch || !urlMatch) {
+          return null;
+        }
+        return [keyMatch[1], urlMatch[1].replace(/\+/g, '%20')];
+      })
+      .filter((entry): entry is [string, string] => entry !== null),
   );
 }
 
