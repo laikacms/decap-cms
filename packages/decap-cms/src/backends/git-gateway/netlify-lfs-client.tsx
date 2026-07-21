@@ -1,7 +1,7 @@
 import { isEmpty, isPlainObject } from 'lodash-es';
 import { minimatch } from 'minimatch';
 
-import { unsentRequest } from '@/lib/util/index';
+import { LfsVerifyError, unsentRequest } from '@/lib/util/index';
 
 import type { ApiRequest, PointerFile } from '@/lib/util/index';
 
@@ -46,8 +46,7 @@ async function resourceExists(
     return false;
   }
 
-  // TODO: what kind of error to throw here? APIError doesn't seem
-  // to fit
+  throw new LfsVerifyError(response.status);
 }
 
 function getTransofrmationsParams(t: boolean | ImageTransformations) {
