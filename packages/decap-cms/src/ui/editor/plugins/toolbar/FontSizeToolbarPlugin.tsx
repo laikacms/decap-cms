@@ -66,6 +66,8 @@ export function FontSizeToolbarPlugin() {
         className="w-12 text-center h-8"
         min={MIN_FONT_SIZE}
         max={MAX_FONT_SIZE}
+        aria-label="Font size"
+        title="Font size"
       />
       <Button
         variant="outline"

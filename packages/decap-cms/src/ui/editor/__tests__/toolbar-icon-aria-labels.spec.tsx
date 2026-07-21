@@ -43,4 +43,11 @@ describe('Editor toolbar icon buttons - accessible name (DCMS-1062)', () => {
     expect(button.getAttribute('aria-label')).toBe('Text background color');
     expect(button.getAttribute('title')).toBe('Text background color');
   });
+
+  it('exposes a non-empty aria-label on the font size input (DCMS-1316)', () => {
+    render(<Editor />);
+    const input = screen.getByLabelText('Font size');
+    expect(input.getAttribute('aria-label')).toBe('Font size');
+    expect(input.getAttribute('title')).toBe('Font size');
+  });
 });
