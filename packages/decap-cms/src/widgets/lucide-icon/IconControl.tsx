@@ -71,7 +71,7 @@ export const IconControl: React.FC<IconControlProps> = props => {
           })}
         <button
           type="button"
-          aria-label={t('editor.editorWidgets.datetime.clear')}
+          aria-label={t('editor.editorWidgets.iconPicker.toggle')}
           onClick={() => setIsOpen(isOpen => !isOpen)}
           style={{
             background: 'none',
