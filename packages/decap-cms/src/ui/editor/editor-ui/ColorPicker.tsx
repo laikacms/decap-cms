@@ -1,10 +1,22 @@
 /**
- * Stub for the full color-picker (the original is 1938 lines of custom HSL
- * picker UI). This minimal version preserves the same export surface so the
- * toolbar plugins compile; the real emotion-styled picker lands later.
+ * Color-picker popover for the richtext toolbar's text-color / background-color
+ * controls.
+ *
+ * Built on the shared `Popover` primitive (portal + outside-click / Escape
+ * handling already implemented there) and `react-colorful` for the actual
+ * hue/saturation/alpha picking surface. `react-colorful` doesn't expose the
+ * hue and alpha sliders as standalone components, so `ColorPickerArea` mounts
+ * the whole `HexAlphaColorPicker` widget (which renders a saturation area, a
+ * hue slider and an alpha slider, each keyboard-operable via arrow keys) and
+ * `ColorPickerHueSlider` / `ColorPickerAlphaSlider` stay no-ops to avoid
+ * rendering duplicate controls.
  */
 import * as React from 'react';
 import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from 'react';
+import { HexAlphaColorPicker, HexColorInput } from 'react-colorful';
+
+import { css } from '@/ui/styled';
+import { Popover, PopoverContent, PopoverTrigger } from '@/ui/Popover';
 
 interface ColorPickerStore {
   value: string;
@@ -29,7 +41,14 @@ interface RootProps {
   children?: ReactNode;
 }
 
-function ColorPickerRoot({ value, defaultValue = '#000000', onValueChange, children }: RootProps): ReactNode {
+function ColorPickerRoot({
+  value,
+  defaultValue = '#000000',
+  modal,
+  onValueChange,
+  onOpenChange,
+  children,
+}: RootProps): ReactNode {
   const [internal, setInternal] = useState(defaultValue);
   const current = value ?? internal;
   const setValue = useCallback(
@@ -40,22 +59,59 @@ function ColorPickerRoot({ value, defaultValue = '#000000', onValueChange, child
     [onValueChange],
   );
   const store = useMemo(() => ({ value: current, setValue }), [current, setValue]);
-  return <ColorPickerContext.Provider value={store}>{children}</ColorPickerContext.Provider>;
+  return (
+    <ColorPickerContext.Provider value={store}>
+      <Popover modal={modal} onOpenChange={onOpenChange}>
+        {children}
+      </Popover>
+    </ColorPickerContext.Provider>
+  );
 }
 
-function passThrough({ children }: { children?: ReactNode }): ReactNode {
-  return <>{children}</>;
+function ColorPickerTrigger({
+  asChild,
+  children,
+}: {
+  children?: ReactNode,
+  asChild?: boolean,
+}): ReactNode {
+  if (asChild && React.isValidElement(children)) {
+    return <PopoverTrigger render={children} />;
+  }
+  return <PopoverTrigger>{children}</PopoverTrigger>;
 }
 
-function ColorPickerTrigger(props: { children?: ReactNode, asChild?: boolean }): ReactNode {
-  return passThrough({ children: props.children });
+const contentClass = css`
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: auto;
+`;
+
+function ColorPickerContent({ children }: { children?: ReactNode }): ReactNode {
+  return (
+    <PopoverContent align="start" sideOffset={8} css={contentClass}>
+      {children}
+    </PopoverContent>
+  );
 }
-function ColorPickerContent(props: { children?: ReactNode }): ReactNode {
-  return passThrough(props);
-}
+
+const areaClass = css`
+  .react-colorful {
+    width: 200px;
+    height: 160px;
+  }
+`;
+
 function ColorPickerArea(): ReactNode {
-  return null;
+  const { value, setValue } = useColorPickerStore();
+  return (
+    <div css={areaClass}>
+      <HexAlphaColorPicker color={value} onChange={setValue} />
+    </div>
+  );
 }
+
 function ColorPickerHueSlider(): ReactNode {
   return null;
 }
@@ -71,25 +127,35 @@ function ColorPickerEyeDropper(): ReactNode {
 function ColorPickerFormatSelect(): ReactNode {
   return null;
 }
-const HEX_COLOR_PATTERN = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
-function normalizeHexColor(value: string): string {
-  if (!HEX_COLOR_PATTERN.test(value)) return '#000000';
-  if (value.length === 4) {
-    const [, r, g, b] = value;
-    return `#${r}${r}${g}${g}${b}${b}`;
-  }
-  return value;
-}
+const hexRowClass = css`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+`;
 
 function ColorPickerInput(): ReactNode {
   const { value, setValue } = useColorPickerStore();
   return (
-    <input
-      type="color"
-      value={normalizeHexColor(value)}
-      onChange={event => setValue(event.target.value)}
-    />
+    <div css={hexRowClass}>
+      <span aria-hidden="true">Hex</span>
+      <HexColorInput
+        aria-label="Hex color value"
+        color={value}
+        onChange={setValue}
+        prefixed
+        alpha
+        style={{
+          flex: 1,
+          minWidth: 0,
+          borderRadius: '0.25rem',
+          border: '1px solid rgba(127, 127, 127, 0.35)',
+          padding: '0.25rem 0.5rem',
+          font: 'inherit',
+        }}
+      />
+    </div>
   );
 }
 
