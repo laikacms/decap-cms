@@ -166,6 +166,34 @@ export function extractSearchFields(searchFields: string[]) {
     }, '');
 }
 
+export function getCollectionSearchFields(collection: CmsCollectionState): string[] {
+  const summary = (collection.summary || '') as string;
+  const summaryFields = extractTemplateVars(summary);
+
+  let searchFields: (string | null | undefined)[] = [];
+
+  if (collection.type === FILES) {
+    (collection.files || []).forEach((f: CmsCollectionFileState) => {
+      const topLevelFields = (f.fields || []).map((field: CmsEntryField) => field.name);
+      searchFields = [...searchFields, ...topLevelFields];
+    });
+  } else {
+    searchFields = [
+      selectInferredField(collection, 'title'),
+      selectInferredField(collection, 'shortTitle'),
+      selectInferredField(collection, 'author'),
+      ...summaryFields.map(elem => {
+        if (dateParsers[elem]) {
+          return selectInferredField(collection, 'date');
+        }
+        return elem;
+      }),
+    ];
+  }
+
+  return uniq(searchFields.filter(Boolean) as string[]);
+}
+
 export function expandSearchEntries(entries: EntryValue[], searchFields: string[]) {
   // expand the entries for the purpose of the search
   const expandedEntries = entries.reduce(
@@ -657,40 +685,24 @@ export class Backend {
     return entries;
   }
 
+  async searchCollectionEntries(
+    collection: CmsCollectionState,
+    searchFields: string[],
+    searchTerm: string,
+  ) {
+    const collectionEntries = await this.listAllEntries(collection);
+    return fuzzyFilter(searchTerm, collectionEntries, extractSearchFields(searchFields));
+  }
+
   async search(collections: CmsCollectionState[], searchTerm: string) {
     // Perform a local search by requesting all entries. For each
     // collection, load it, search, and call onCollectionResults with
     // its results.
     const errors: Error[] = [];
     const collectionEntriesRequests = collections
-      .map(async collection => {
-        const summary = (collection.summary || '') as string;
-        const summaryFields = extractTemplateVars(summary);
-
-        // TODO: pass search fields in as an argument
-        let searchFields: (string | null | undefined)[] = [];
-
-        if (collection.type === FILES) {
-          (collection.files || []).forEach((f: CmsCollectionFileState) => {
-            const topLevelFields = (f.fields || []).map((field: CmsEntryField) => field.name);
-            searchFields = [...searchFields, ...topLevelFields];
-          });
-        } else {
-          searchFields = [
-            selectInferredField(collection, 'title'),
-            selectInferredField(collection, 'shortTitle'),
-            selectInferredField(collection, 'author'),
-            ...summaryFields.map(elem => {
-              if (dateParsers[elem]) {
-                return selectInferredField(collection, 'date');
-              }
-              return elem;
-            }),
-          ];
-        }
-        const filteredSearchFields = searchFields.filter(Boolean) as string[];
-        const collectionEntries = await this.listAllEntries(collection);
-        return fuzzyFilter(searchTerm, collectionEntries, extractSearchFields(uniq(filteredSearchFields)));
+      .map(collection => {
+        const searchFields = getCollectionSearchFields(collection);
+        return this.searchCollectionEntries(collection, searchFields, searchTerm);
       })
       .map(p =>
         p.catch(err => {

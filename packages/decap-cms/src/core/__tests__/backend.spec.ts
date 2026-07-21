@@ -4,6 +4,7 @@ import {
   Backend,
   expandSearchEntries,
   extractSearchFields,
+  getCollectionSearchFields,
   mergeExpandedEntries,
   resolveBackend,
 } from '@/core/backend';
@@ -849,6 +850,60 @@ describe('Backend', () => {
       expect(
         extractSearchFields(['nested.title'])({ data: { nested: { title: 'nested title' } } }),
       ).toEqual(' nested title');
+    });
+  });
+
+  describe('getCollectionSearchFields', () => {
+    it('should derive search fields from inferred title/shortTitle/author fields', () => {
+      const collection = {
+        name: 'posts',
+        folder: 'posts',
+        fields: [
+          { name: 'title', widget: 'string' },
+          { name: 'short_title', widget: 'string' },
+          { name: 'author', widget: 'string' },
+        ],
+      };
+
+      expect(getCollectionSearchFields(collection)).toEqual(['title', 'short_title', 'author']);
+    });
+
+    it('should include summary template fields', () => {
+      const collection = {
+        name: 'posts',
+        folder: 'posts',
+        summary: '{{description}}',
+        fields: [
+          { name: 'title', widget: 'string' },
+          { name: 'description', widget: 'string' },
+        ],
+      };
+
+      expect(getCollectionSearchFields(collection)).toEqual(['title', 'description']);
+    });
+
+    it('should derive search fields from top level file fields for file collections', () => {
+      const collection = {
+        name: 'files',
+        type: FILES,
+        files: [
+          { name: 'file1', fields: [{ name: 'author', widget: 'string' }] },
+          { name: 'file2', fields: [{ name: 'other', widget: 'string' }] },
+        ],
+      };
+
+      expect(getCollectionSearchFields(collection)).toEqual(['author', 'other']);
+    });
+
+    it('should de-duplicate and drop falsy fields', () => {
+      const collection = {
+        name: 'posts',
+        folder: 'posts',
+        summary: '{{title}}',
+        fields: [{ name: 'title', widget: 'string' }],
+      };
+
+      expect(getCollectionSearchFields(collection)).toEqual(['title']);
     });
   });
 
