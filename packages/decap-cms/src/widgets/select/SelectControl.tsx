@@ -85,6 +85,7 @@ export interface SelectControlProps {
   t: (key: string, options?: unknown) => string;
   hasErrors?: boolean;
   errorListId?: string;
+  hintId?: string;
 }
 
 export interface SelectControlHandle {
@@ -104,6 +105,7 @@ const SelectControl = React.forwardRef<SelectControlHandle, SelectControlProps>(
       t,
       hasErrors,
       errorListId,
+      hintId,
     } = props;
 
     // Read latest props from a ref so the imperative handle stays referentially
@@ -169,6 +171,7 @@ const SelectControl = React.forwardRef<SelectControlHandle, SelectControlProps>(
       'aria-required': field.required !== false,
       'aria-invalid': hasErrors || undefined,
       'aria-errormessage': hasErrors ? errorListId : undefined,
+      'aria-describedby': hintId,
     };
 
     return (

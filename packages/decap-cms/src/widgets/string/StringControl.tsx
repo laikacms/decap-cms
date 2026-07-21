@@ -16,6 +16,7 @@ interface StringControlProps {
   t: TranslateFunction;
   hasErrors?: boolean;
   errorListId?: string;
+  hintId?: string;
 }
 
 // NOTE: Tracking the selection manually prevents the cursor from jumping to
@@ -33,6 +34,7 @@ export default function StringControl({
   setInactiveStyle,
   hasErrors,
   errorListId,
+  hintId,
 }: StringControlProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   // Only track the selection across re-renders that follow a user-initiated
@@ -73,6 +75,7 @@ export default function StringControl({
         aria-required={field.required !== false}
         aria-invalid={hasErrors || undefined}
         aria-errormessage={hasErrors ? errorListId : undefined}
+        aria-describedby={hintId}
       />
       {hasBidiControls && (
         <span

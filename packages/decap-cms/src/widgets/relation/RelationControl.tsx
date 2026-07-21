@@ -139,6 +139,7 @@ export interface RelationControlProps {
   t: (key: string, options?: unknown) => string;
   hasErrors?: boolean;
   errorListId?: string;
+  hintId?: string;
 }
 
 export interface RelationControlHandle {
@@ -160,6 +161,7 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
       locale,
       hasErrors,
       errorListId,
+      hintId,
     } = props;
 
     const [initialOptions, setInitialOptions] = React.useState<RelationOption[]>([]);
@@ -472,6 +474,7 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
       'aria-required': field.required !== false,
       'aria-invalid': hasErrors || undefined,
       'aria-errormessage': hasErrors ? errorListId : undefined,
+      'aria-describedby': hintId,
     };
     const queryOptions = parseHitOptions(queryHits || []);
     const baseOptions = uniqOptions(initialOptions, queryOptions);

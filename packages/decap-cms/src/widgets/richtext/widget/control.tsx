@@ -41,6 +41,7 @@ interface LexicalControlProps {
    * editable region's `aria-invalid`/`aria-errormessage`. */
   hasErrors?: boolean;
   errorListId?: string;
+  hintId?: string;
 }
 
 /**
@@ -67,6 +68,7 @@ export function LexicalControl({
   locale,
   hasErrors,
   errorListId,
+  hintId,
 }: LexicalControlProps): ReactNode {
   const hint = typeof field.format === 'string' ? field.format : undefined;
 
@@ -134,6 +136,7 @@ export function LexicalControl({
         ariaRequired={field.required !== false}
         ariaInvalid={hasErrors}
         ariaErrorMessage={errorListId}
+        ariaDescribedBy={hintId}
         ariaLabel={`${field.label || field.name}`}
       />
       {isDisabled ? <div aria-hidden style={{ position: 'absolute', inset: 0 }} /> : null}

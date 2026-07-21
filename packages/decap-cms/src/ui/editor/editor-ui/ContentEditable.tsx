@@ -26,6 +26,9 @@ interface Props {
    * silently fails to associate with non-labelable elements like `<div>`
    * (WCAG 4.1.2 / DCMS-1275). */
   ariaLabel?: string;
+  /** Id of the field's hint text, wired to the editable `role="textbox"` div
+   * via `aria-describedby` (DCMS-1298). */
+  ariaDescribedBy?: string;
 }
 
 const rootClass = css`
@@ -65,6 +68,7 @@ export function ContentEditable({
   ariaInvalid,
   ariaErrorMessage,
   ariaLabel,
+  ariaDescribedBy,
 }: Props): ReactNode {
   return (
     <LexicalContentEditable
@@ -75,6 +79,7 @@ export function ContentEditable({
       aria-required={ariaRequired}
       aria-invalid={ariaInvalid || undefined}
       aria-errormessage={ariaInvalid ? ariaErrorMessage : undefined}
+      aria-describedby={ariaDescribedBy}
       placeholder={
         <div
           css={[placeholderClass, hasDragGutter && dragGutterClass]}

@@ -63,6 +63,9 @@ interface WidgetProps<T = unknown> {
   /** Id of the `<ul.ControlErrorsList>` rendered by `EditorControl`, when
    * `hasErrors` is true. Widgets point `aria-errormessage` at it. */
   errorListId?: string;
+  /** Id of the `<ControlHint>` rendered by `EditorControl`, when the field
+   * has a `hint`. Widgets point `aria-describedby` at it. */
+  hintId?: string;
   loadEntry: (collectionName: string, slug: string) => void;
   t: TranslateFunction;
   onValidateObject?: (errors: { type: string, message: string }[]) => void;
@@ -134,6 +137,7 @@ export default class Widget extends Component<WidgetProps> {
       || this.props.fieldsErrors !== nextProps.fieldsErrors
       || this.props.hasErrors !== nextProps.hasErrors
       || this.props.errorListId !== nextProps.errorListId
+      || this.props.hintId !== nextProps.hintId
     );
   }
 
@@ -366,6 +370,7 @@ export default class Widget extends Component<WidgetProps> {
       uniqueFieldId,
       hasErrors,
       errorListId,
+      hintId,
       resolveWidget,
       widget,
       query,
@@ -408,6 +413,7 @@ export default class Widget extends Component<WidgetProps> {
       forID: uniqueFieldId,
       hasErrors,
       errorListId,
+      hintId,
       ref: this.processInnerControlRef,
       validate: this.validate,
       classNameWrapper,

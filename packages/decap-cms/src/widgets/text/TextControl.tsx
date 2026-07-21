@@ -17,6 +17,7 @@ interface TextControlProps {
   t: TranslateFunction;
   hasErrors?: boolean;
   errorListId?: string;
+  hintId?: string;
 }
 
 export default function TextControl({
@@ -29,6 +30,7 @@ export default function TextControl({
   setInactiveStyle,
   hasErrors,
   errorListId,
+  hintId,
 }: TextControlProps) {
   const hasBidiControls = bidiControls.containsBidiControls(value);
 
@@ -69,6 +71,7 @@ export default function TextControl({
         aria-required={field.required !== false}
         aria-invalid={hasErrors || undefined}
         aria-errormessage={hasErrors ? errorListId : undefined}
+        aria-describedby={hintId}
       />
       {hasBidiControls && (
         <span

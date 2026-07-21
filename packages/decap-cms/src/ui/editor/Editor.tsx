@@ -167,6 +167,7 @@ export function Editor({
   ariaInvalid,
   ariaErrorMessage,
   ariaLabel,
+  ariaDescribedBy,
 }: {
   editorState?: EditorState,
   editorSerializedState?: SerializedEditorState,
@@ -208,6 +209,9 @@ export function Editor({
    * htmlFor>` silently fails to associate with non-labelable elements like
    * `<div>` (WCAG 4.1.2 / DCMS-1275). */
   ariaLabel?: string,
+  /** Id of the field's hint text, threaded onto the editable region via
+   * `aria-describedby` (DCMS-1298). */
+  ariaDescribedBy?: string,
 }) {
   const {
     toolbarItems: rawToolbarItems,
@@ -469,6 +473,7 @@ export function Editor({
                       ariaInvalid={ariaInvalid}
                       ariaErrorMessage={ariaErrorMessage}
                       ariaLabel={ariaLabel}
+                      ariaDescribedBy={ariaDescribedBy}
                     />
                   </div>
                 </div>

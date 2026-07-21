@@ -66,6 +66,7 @@ interface DateTimeControlProps {
   isDisabled?: boolean;
   hasErrors?: boolean;
   errorListId?: string;
+  hintId?: string;
 }
 
 function escapeZ(str: string): string {
@@ -127,6 +128,7 @@ export default function DateTimeControl({
   isDisabled = false,
   hasErrors,
   errorListId,
+  hintId,
 }: DateTimeControlProps) {
   const isUtc = field.picker_utc || false;
 
@@ -206,6 +208,7 @@ export default function DateTimeControl({
         aria-required={field.required !== false}
         aria-invalid={hasErrors || undefined}
         aria-errormessage={hasErrors ? errorListId : undefined}
+        aria-describedby={hintId}
       />
       {isUtc && (
         <span

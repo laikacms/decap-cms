@@ -42,6 +42,7 @@ export interface MapControlProps {
   forID?: string;
   hasErrors?: boolean;
   errorListId?: string;
+  hintId?: string;
 }
 
 export interface WithMapControlOptions {
@@ -59,6 +60,7 @@ export default function withMapControl({ getFormat, getMap }: WithMapControlOpti
     forID,
     hasErrors,
     errorListId,
+    hintId,
   }: MapControlProps) {
     const mapContainer = React.useRef<HTMLDivElement | null>(null);
 
@@ -194,6 +196,7 @@ export default function withMapControl({ getFormat, getMap }: WithMapControlOpti
             aria-required={field.required !== false}
             aria-invalid={hasErrors || undefined}
             aria-errormessage={hasErrors ? errorListId : undefined}
+            aria-describedby={hintId}
             className={cx(
               classNameWrapper,
               css`
