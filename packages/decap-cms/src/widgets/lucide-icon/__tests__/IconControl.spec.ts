@@ -6,13 +6,20 @@
  * verify that icons excluded by the filter are absent from the filtered list.
  */
 
+import { fireEvent, render, screen } from '@testing-library/react';
 import { icons as lucideIcons } from 'lucide-react';
+import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
+
+import type * as IconControlModule from '@/widgets/lucide-icon/IconControl';
 
 vi.mock('@/widgets/lucide-icon/IconControl', () => ({ IconControl: () => null }));
 vi.mock('@/widgets/lucide-icon/IconPreview', () => ({ IconPreview: () => null }));
 
 const { default: WidgetIcon } = await import('@/widgets/lucide-icon/index');
+const { IconControl } = await vi.importActual<typeof IconControlModule>(
+  '@/widgets/lucide-icon/IconControl',
+);
 
 // Mirror the allIcons computation from IconControl.tsx
 const allIcons = Object.fromEntries(Object.entries(lucideIcons));
@@ -89,5 +96,55 @@ describe('IconControl filter logic (lucide-icon)', () => {
     const filter = /^ThisPatternMatchesNoLucideIcon_xyz123$/;
     const icons = computeFilteredIcons('', filter);
     expect(icons).toHaveLength(0);
+  });
+});
+
+/**
+ * Regression test for DCMS-1290: icon grid options were plain `<div>`s with
+ * only `onClick`/`onMouseDown`, so keyboard-only users could never select an
+ * icon once the grid was open.
+ */
+describe('IconControl keyboard operability (lucide-icon, DCMS-1290)', () => {
+  const baseProps = {
+    field: {} as never,
+    classNameWrapper: '',
+    setActiveStyle: () => {},
+    setInactiveStyle: () => {},
+    t: (key: string) => key,
+    filter: /^Arrow/,
+  };
+
+  it('activates an icon option via Enter and calls onChange', () => {
+    const onChange = vi.fn();
+    render(React.createElement(IconControl, { ...baseProps, onChange, value: undefined }));
+
+    fireEvent.click(screen.getByRole('button', { name: 'editor.editorWidgets.iconPicker.toggle' }));
+
+    const option = screen.getAllByRole('button', { name: 'ArrowUp' })[0];
+    fireEvent.keyDown(option, { key: 'Enter' });
+
+    expect(onChange).toHaveBeenCalledWith('ArrowUp');
+  });
+
+  it('activates an icon option via Space and calls onChange', () => {
+    const onChange = vi.fn();
+    render(React.createElement(IconControl, { ...baseProps, onChange, value: undefined }));
+
+    fireEvent.click(screen.getByRole('button', { name: 'editor.editorWidgets.iconPicker.toggle' }));
+
+    const option = screen.getAllByRole('button', { name: 'ArrowDown' })[0];
+    fireEvent.keyDown(option, { key: ' ' });
+
+    expect(onChange).toHaveBeenCalledWith('ArrowDown');
+  });
+
+  it('exposes icon options as focusable via tabIndex', () => {
+    const onChange = vi.fn();
+    render(React.createElement(IconControl, { ...baseProps, onChange, value: undefined }));
+
+    fireEvent.click(screen.getByRole('button', { name: 'editor.editorWidgets.iconPicker.toggle' }));
+
+    const option = screen.getAllByRole('button', { name: 'ArrowUp' })[0];
+    expect(option.getAttribute('tabindex')).toBe('0');
   });
 });
