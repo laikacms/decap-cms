@@ -43,4 +43,12 @@ describe('MediaLibraryCard', () => {
 
     expect(loadDisplayURL).toHaveBeenCalledTimes(1);
   });
+
+  it('should render the image with an accessible alt attribute set to the filename', () => {
+    const { container } = render(<MediaLibraryCard {...props} />);
+    const img = container.querySelector('img.CardImage');
+
+    expect(img).not.toBeNull();
+    expect(img).toHaveAttribute('alt', props.text);
+  });
 });

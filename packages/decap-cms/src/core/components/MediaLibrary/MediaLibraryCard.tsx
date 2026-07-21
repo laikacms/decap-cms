@@ -122,7 +122,7 @@ function MediaLibraryCard({
       <CardImageWrapper>
         {isDraft ? <DraftText data-testid="draft-text">{draftText}</DraftText> : null}
         {url && isViewableImage
-          ? <CardImage className="CardImage" loading="lazy" src={url} />
+          ? <CardImage className="CardImage" loading="lazy" src={url} alt={text} />
           : <CardFileIcon data-testid="card-file-icon">{type}</CardFileIcon>}
       </CardImageWrapper>
       <CardText>{text}</CardText>
