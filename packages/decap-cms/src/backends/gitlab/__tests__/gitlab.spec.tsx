@@ -394,6 +394,25 @@ describe('gitlab backend', () => {
       expect(authStore.retrieve()).toEqual(user);
       expect(user).toEqual({ ...resp.user.success, ...mockCredentials, backendName });
     });
+
+    // DCMS-1263: `getDefaultBranchName` (lib/util/API) throws on a failed
+    // fetch instead of resolving to null/undefined. `authenticate` must not
+    // let that rejection propagate -- it should fall back to the
+    // constructor-default branch, same as the github/bitbucket backends.
+    it('falls back to the constructor-default branch when the branch-resolve request fails', async () => {
+      const backendName = defaultConfig.backend.name;
+      backend = resolveBackend(defaultConfig);
+      const api = mockApi(backend);
+      api.get('/user').query(true).reply(200, resp.user.success);
+      // First hit is `this.api.hasWriteAccess()`, second is `getDefaultBranchName`.
+      api.get(expectedRepoUrl).query(true).reply(200, resp.project.success);
+      api.get(expectedRepoUrl).query(true).reply(500);
+
+      const user = await backend.authenticate(mockCredentials);
+
+      expect(backend.implementation.branch).toBe('master');
+      expect(user).toEqual({ ...resp.user.success, ...mockCredentials, backendName });
+    });
   });
 
   describe('token refresh', () => {

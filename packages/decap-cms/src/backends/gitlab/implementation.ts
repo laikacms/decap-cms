@@ -207,7 +207,7 @@ export default class GitLab implements CmsImplementation {
         repo: this.repo,
         token: this.token,
         apiRoot: this.apiRoot,
-      });
+      }).catch(() => undefined);
       if (defaultBranchName) {
         this.branch = defaultBranchName;
       }
