@@ -284,7 +284,13 @@ export default function CodeControl({
             `,
           )}
         >
-          {!settingsVisible && <SettingsButton onClick={showSettings} showClose={false} />}
+          {!settingsVisible && (
+            <SettingsButton
+              onClick={showSettings}
+              showClose={false}
+              ariaLabel="Code widget settings"
+            />
+          )}
           {settingsVisible && (
             <SettingsPane
               hideSettings={hideSettings}
