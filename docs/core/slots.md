@@ -52,7 +52,8 @@ Each entry below lists the slot, the component it replaces, and the file where i
 
 Replaces the heading + "new entry" button rendered above a collection's entry listing.
 
-- Props: `CollectionTopRenderProps` (`collection`, `newEntryUrl?`)
+- Props: `CollectionTopRenderProps` (`collection`, `newEntryUrl?`, `filterTerm?`)
+  - `filterTerm?`: current nested-collection tree path (`''` or `undefined` at the root).
 - Consumer: `packages/decap-cms/src/core/components/Collection/Collection.tsx:71`
 
 ### `renderCollectionSidebar`
