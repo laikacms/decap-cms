@@ -1128,6 +1128,34 @@ describe('LaikaBackend.persistEntry()', () => {
     expect(mockDocRepo.createDocument).not.toHaveBeenCalled();
   });
 
+  // DCMS-1062 / #1239: on update, Decap's core takes `dataFile.path` straight
+  // from the entry it fetched back via getEntry(), and this backend's own
+  // getEntry sets `path` to the storage-repo record key — which is stored
+  // WITHOUT an extension (see normalizeKey). So a real UPDATE PATCH for a
+  // JSON-format entry arrives here with an extension-less path (unlike the
+  // synthetic 'articles/existing.json' case above), and the old
+  // `/\.json$/.test(dataFile.path)` check silently failed, sending
+  // `content` as a raw stringified-JSON string instead of an object.
+  it('persists an existing JSON entry as a parsed object even when dataFile.path has no extension (DCMS-1062)', async () => {
+    mockDocRepo.updateDocument.mockReturnValue(succeed(undefined));
+
+    const raw = JSON.stringify({ title: 'Updated Title', body: 'BODYINT', tags: [], language: 'en' });
+    await backend.persistEntry(
+      { dataFiles: [{ path: 'articles/existing', raw }], assets: [] },
+      { newEntry: false, useWorkflow: false },
+    );
+
+    expect(mockDocRepo.updateDocument).toHaveBeenCalledWith(
+      expect.objectContaining({
+        key: 'articles/existing',
+        content: { title: 'Updated Title', body: 'BODYINT', tags: [], language: 'en' },
+      }),
+    );
+    const call = mockDocRepo.updateDocument.mock.calls[0][0];
+    expect(typeof call.content).not.toBe('string');
+    expect(mockDocRepo.createDocument).not.toHaveBeenCalled();
+  });
+
   it('calls createUnpublished when newEntry:true, useWorkflow:true, status:draft', async () => {
     mockDocRepo.createUnpublished.mockReturnValue(succeed(undefined));
 
