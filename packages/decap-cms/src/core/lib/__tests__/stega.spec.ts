@@ -21,6 +21,17 @@ function richtextField(overrides: Partial<CmsField> = {}): CmsField {
   return { name: 'body', widget: 'richtext', ...overrides } as CmsField;
 }
 
+/** ZWSP, ZWNJ, ZWJ, BOM/ZWNBSP, word-joiner: the codepoints DCMS-1325 found leaking into preview text nodes. */
+const ZERO_WIDTH_CODEPOINTS = new Set([0x200b, 0x200c, 0x200d, 0xfeff, 0x2060]);
+
+function hasZeroWidthChar(text: string): boolean {
+  for (const ch of text) {
+    const codePoint = ch.codePointAt(0);
+    if (codePoint !== undefined && ZERO_WIDTH_CODEPOINTS.has(codePoint)) return true;
+  }
+  return false;
+}
+
 describe('stega', () => {
   describe('encodeEntry / isPlainObject / getNestedFields (via public API)', () => {
     it('encodes a top-level plain-object entry using the field lookup', () => {
@@ -165,35 +176,30 @@ describe('stega', () => {
       expect(result[path]).toBe('hello');
     });
 
-    it('encodes richtext by appending steganographic data to every non-blank paragraph', () => {
+    it('leaves richtext values unencoded, so no zero-width chars leak into preview text nodes (DCMS-1325)', () => {
       const path = uniquePath();
       const fields: CmsField[] = [richtextField({ name: path })];
       const value = 'first paragraph\n\nsecond paragraph';
       const result = encodeEntry({ [path]: value }, fields) as Record<string, string>;
-      const [first, second] = result[path].split(/\n\n+/);
-      expect(vercelStegaDecode(first)).toEqual({ decap: path });
-      expect(vercelStegaDecode(second)).toEqual({ decap: path });
-      expect(first.startsWith('first paragraph')).toBe(true);
-      expect(second.startsWith('second paragraph')).toBe(true);
+      expect(result[path]).toBe(value);
+      expect(hasZeroWidthChar(result[path])).toBe(false);
     });
 
-    it('encodes the legacy markdown alias the same as richtext (DCMS-NEW-STEGAMD)', () => {
+    it('leaves the legacy markdown alias unencoded the same as richtext (DCMS-1325)', () => {
       const path = uniquePath();
       const fields: CmsField[] = [{ name: path, widget: 'markdown' } as CmsField];
       const value = 'first paragraph\n\nsecond paragraph';
       const result = encodeEntry({ [path]: value }, fields) as Record<string, string>;
-      const [first, second] = result[path].split(/\n\n+/);
-      expect(vercelStegaDecode(first)).toEqual({ decap: path });
-      expect(vercelStegaDecode(second)).toEqual({ decap: path });
-      expect(first.startsWith('first paragraph')).toBe(true);
-      expect(second.startsWith('second paragraph')).toBe(true);
+      expect(result[path]).toBe(value);
+      expect(hasZeroWidthChar(result[path])).toBe(false);
     });
 
-    it('preserves blank-line separators between richtext paragraphs', () => {
+    it('preserves blank-line separators between richtext paragraphs unchanged', () => {
       const path = uniquePath();
       const fields: CmsField[] = [richtextField({ name: path })];
       const value = 'a\n\n\nb';
       const result = encodeEntry({ [path]: value }, fields) as Record<string, string>;
+      expect(result[path]).toBe(value);
       expect(result[path]).toContain('\n\n\n');
     });
 
