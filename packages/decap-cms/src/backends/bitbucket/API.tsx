@@ -722,14 +722,17 @@ export default class API {
     const status = labelToStatus(label, this.cmsLabelPrefix);
     const updatedAt = pullRequest.updated_on;
     const pullRequestAuthor = pullRequest.author.display_name;
+    const branchSha = await this.branchCommitSha(branch);
     return {
       collection,
       slug,
       status,
-      // TODO: get real id
+      // BitBucket's diffstat response has no per-entry id, so derive a
+      // stable one from the branch's commit sha and the entry's path
+      // (mirrors processFile's file id derivation above).
       diffs: diffs
         .filter(d => d.status !== 'deleted')
-        .map(d => ({ path: d.path, newFile: d.newFile, id: '' })),
+        .map(d => ({ path: d.path, newFile: d.newFile, id: this.getFileId(branchSha, d.path) })),
       updatedAt,
       pullRequestAuthor,
     };
