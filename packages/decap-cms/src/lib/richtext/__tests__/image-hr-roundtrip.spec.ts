@@ -90,6 +90,34 @@ describe('reserved image/horizontal-rule blocks (PT <-> Lexical bridge)', () => 
     expect(stripKeys(back)).toEqual(stripKeys(doc));
   });
 
+  it('maps a reserved inline image PT object to ImageNode, not decap-inline-block (DCMS-1198)', () => {
+    const doc: PortableTextDocument = [
+      {
+        _type: 'block',
+        style: 'normal',
+        markDefs: [],
+        children: [
+          { _type: 'image', src: 'data:image/png;base64,iVBORw0KGgo=', alt: 'data-uri' },
+          { _type: 'image', src: 'https://example.com/b.png', alt: 'B' },
+        ],
+      },
+    ];
+
+    const state = portableTextToLexical(doc);
+    const paragraph = (state as unknown as { root: { children: Array<Record<string, unknown>> } })
+      .root.children[0]!;
+    const inlineNodes = paragraph.children as Array<Record<string, unknown>>;
+
+    expect(inlineNodes).toHaveLength(2);
+    expect(inlineNodes.map(node => node.type)).toEqual(['image', 'image']);
+    expect(inlineNodes.some(node => node.type === 'decap-inline-block')).toBe(false);
+    expect(inlineNodes[0]!.requiresConsent).toBe(false);
+    expect(inlineNodes[1]!.requiresConsent).toBe(true);
+
+    const back = lexicalToPortableText(state);
+    expect(stripKeys(back)).toEqual(stripKeys(doc));
+  });
+
   it('round-trips a document mixing text, an image, and a horizontal rule', () => {
     const doc: PortableTextDocument = [
       {

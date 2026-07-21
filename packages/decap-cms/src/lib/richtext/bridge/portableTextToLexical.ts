@@ -67,6 +67,12 @@ function spanToInline(span: PortableTextSpan, markDefs: PortableTextMarkDefiniti
 /** Convert a PT inline object (non-span child of a text block) to a Lexical node. */
 function inlineObjectToLexical(child: Record<string, unknown>): Lex {
   const { _type, _key, ...data } = child;
+  // Reserved types get their proper Lexical node (same as the block-level
+  // dispatcher below) instead of falling through to a generic pill — an
+  // `ImageNode` supports being used inline inside a paragraph, so two
+  // adjacent inline images each still carry `src`/consent-gate metadata
+  // through the round-trip (DCMS-1198, follow-up to a1c3a0c03 / DCMS-1183).
+  if (_type === 'image') return imageNode(child);
   return {
     type: 'decap-inline-block',
     version: 1,
