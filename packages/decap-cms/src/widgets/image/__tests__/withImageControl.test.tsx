@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -8,6 +8,39 @@ import type { CmsFieldBase } from '@/lib/util/index';
 import type { CmsFieldImage } from '@/lib/util/types/cms/fields/image';
 
 const ImageControl = DecapCmsWidgetImage.controlComponent;
+
+function galleryField(overrides: Partial<CmsFieldImage> = {}): CmsFieldImage & CmsFieldBase {
+  return {
+    name: 'gallery',
+    widget: 'image',
+    media_library: { name: 'test', config: { multiple: true }, allow_multiple: true },
+    ...overrides,
+  } as CmsFieldImage & CmsFieldBase;
+}
+
+function renderGallery(value: string[], overrides: Partial<CmsFieldImage> & {
+  onOpenMediaLibrary?: ReturnType<typeof vi.fn>,
+  onChange?: ReturnType<typeof vi.fn>,
+} = {}) {
+  const { onOpenMediaLibrary = vi.fn(), onChange = vi.fn(), ...fieldOverrides } = overrides;
+  const utils = render(
+    <ImageControl
+      field={galleryField(fieldOverrides)}
+      getAsset={() => ''}
+      mediaPaths={{}}
+      onAddAsset={vi.fn()}
+      onChange={onChange}
+      onRemoveInsertedMedia={vi.fn()}
+      onOpenMediaLibrary={onOpenMediaLibrary}
+      onClearMediaControl={vi.fn()}
+      onRemoveMediaControl={vi.fn()}
+      classNameWrapper=""
+      value={value}
+      t={key => key}
+    />,
+  );
+  return { ...utils, onOpenMediaLibrary, onChange };
+}
 
 function setup(field: CmsFieldImage & CmsFieldBase) {
   return render(
@@ -100,5 +133,53 @@ describe('ImageControl aria validation wiring (DCMS-1086)', () => {
     expect(button).toHaveAttribute('aria-invalid', 'true');
     expect(button).toHaveAttribute('aria-errormessage', 'image-field-1-errors');
     expect(button).toHaveAttribute('id', 'image-field-1');
+  });
+});
+
+// DCMS-1292: `image` is the only widget that renders the sortable gallery
+// (`forImage: true` in withFileControl.tsx gates `renderImages`), so
+// onRemoveOne/onReplaceOne's real per-item wiring can only be exercised
+// here. Each gallery item renders exactly two unlabeled icon buttons in
+// DOM order — [replace, remove] — so item N's buttons sit at indices
+// [2N, 2N + 1] of getAllByRole('button'). onSortEnd itself just forwards
+// arrayMove's result through onChange (see withFileControl.test.tsx for
+// arrayMove's direct coverage); simulating real HTML5 drag-and-drop here
+// would need a react-dnd test backend, which isn't wired up in this repo.
+describe('gallery reorder/remove/replace (DCMS-1292)', () => {
+  it('onReplaceOne opens the media library scoped to the clicked item\'s index', () => {
+    const value = ['a.png', 'b.png', 'c.png'];
+    const { getAllByRole, onOpenMediaLibrary } = renderGallery(value);
+
+    const buttons = getAllByRole('button');
+    fireEvent.click(buttons[2]); // item index 1's replace button
+
+    expect(onOpenMediaLibrary).toHaveBeenCalledWith(
+      expect.objectContaining({
+        replaceIndex: 1,
+        value,
+        allowMultiple: false,
+        forImage: true,
+      }),
+    );
+  });
+
+  it('onRemoveOne splices out the clicked index and keeps the rest as an array', () => {
+    const value = ['a.png', 'b.png', 'c.png'];
+    const { getAllByRole, onChange } = renderGallery(value);
+
+    const buttons = getAllByRole('button');
+    fireEvent.click(buttons[3]); // item index 1's remove button
+
+    expect(onChange).toHaveBeenCalledWith(['a.png', 'c.png']);
+  });
+
+  it('onRemoveOne calls onChange(null), not [], when removing the last remaining item', () => {
+    const value = ['only.png'];
+    const { getAllByRole, onChange } = renderGallery(value);
+
+    const buttons = getAllByRole('button');
+    fireEvent.click(buttons[1]); // the sole item's remove button
+
+    expect(onChange).toHaveBeenCalledWith(null);
   });
 });

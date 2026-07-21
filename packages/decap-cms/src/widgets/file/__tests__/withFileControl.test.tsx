@@ -3,7 +3,7 @@ import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { DecapCmsWidgetFile } from '@/widgets/file/index';
-import { isSafeUrl } from '@/widgets/file/withFileControl';
+import { arrayMove, isSafeUrl, sizeOfValue, valueListToArray } from '@/widgets/file/withFileControl';
 
 import type { CmsFieldBase, CmsFieldFile } from '@/lib/util/index';
 
@@ -142,6 +142,65 @@ describe('isSafeUrl', () => {
 
   it('rejects empty input', () => {
     expect(isSafeUrl('')).toBe(false);
+  });
+});
+
+// DCMS-1292: direct coverage for the pure helpers driving the sortable
+// multi-image gallery (arrayMove/sizeOfValue/valueListToArray), previously
+// exercised only implicitly (or not at all) via onSortEnd/onRemoveOne/
+// handleChange. See withImageControl.test.tsx for onRemoveOne/onReplaceOne
+// coverage through the gallery UI, which only the `image` widget renders.
+describe('arrayMove', () => {
+  it('moves an item forward, preserving the rest in order', () => {
+    expect(arrayMove(['a', 'b', 'c', 'd'], 0, 2)).toEqual(['b', 'c', 'a', 'd']);
+  });
+
+  it('moves an item backward, preserving the rest in order', () => {
+    expect(arrayMove(['a', 'b', 'c', 'd'], 3, 1)).toEqual(['a', 'd', 'b', 'c']);
+  });
+
+  it('is a no-op when fromIndex equals toIndex', () => {
+    expect(arrayMove(['a', 'b', 'c'], 1, 1)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('does not mutate the input array', () => {
+    const input = ['a', 'b', 'c'];
+    arrayMove(input, 0, 2);
+    expect(input).toEqual(['a', 'b', 'c']);
+  });
+});
+
+describe('sizeOfValue', () => {
+  it('returns the length of an array value', () => {
+    expect(sizeOfValue(['a', 'b', 'c'])).toBe(3);
+  });
+
+  it('returns 0 for an empty array', () => {
+    expect(sizeOfValue([])).toBe(0);
+  });
+
+  it('returns 1 for a non-empty single string value', () => {
+    expect(sizeOfValue('a.png')).toBe(1);
+  });
+
+  it('returns 0 for an empty string value', () => {
+    expect(sizeOfValue('')).toBe(0);
+  });
+});
+
+describe('valueListToArray', () => {
+  it('passes an array value through unchanged', () => {
+    const value = ['a.png', 'b.png'];
+    expect(valueListToArray(value)).toBe(value);
+  });
+
+  it('passes a non-empty string value through unchanged', () => {
+    expect(valueListToArray('a.png')).toBe('a.png');
+  });
+
+  it('coerces null/undefined to an empty string', () => {
+    expect(valueListToArray(null as unknown as string)).toBe('');
+    expect(valueListToArray(undefined as unknown as string)).toBe('');
   });
 });
 
