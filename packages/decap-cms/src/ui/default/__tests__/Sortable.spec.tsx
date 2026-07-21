@@ -1,8 +1,8 @@
-import { render } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
-import { describe, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
-import { SortableArea, SortableItem } from '@/ui/default/Sortable';
+import { SortableArea, SortableHandle, SortableItem } from '@/ui/default/Sortable';
 
 function Area({ items }: { items: string[] }) {
   return (
@@ -57,5 +57,70 @@ describe('SortableArea - shared drag-and-drop manager', () => {
       </React.StrictMode>,
     );
     getByText('b1');
+  });
+});
+
+function HandleArea({ items, onSortEnd }: { items: string[]; onSortEnd: (args: { oldIndex: number, newIndex: number }) => void }) {
+  return (
+    <SortableArea onSortEnd={onSortEnd}>
+      {items.map((label, index) => (
+        <SortableItem key={label} index={index} withHandle>
+          {ref => (
+            <div ref={ref}>
+              <SortableHandle>
+                <span>{label}</span>
+              </SortableHandle>
+            </div>
+          )}
+        </SortableItem>
+      ))}
+    </SortableArea>
+  );
+}
+
+describe('SortableHandle - keyboard reordering', () => {
+  it('is focusable and exposes a descriptive aria-label', () => {
+    render(<HandleArea items={['a1', 'a2', 'a3']} onSortEnd={() => {}} />);
+
+    const handle = screen.getByRole('button', { name: /position 1 of 3/i });
+    expect(handle).toHaveAttribute('tabIndex', '0');
+  });
+
+  it('calls onSortEnd with the next index on ArrowDown and stays focused', () => {
+    const onSortEnd = vi.fn();
+    render(<HandleArea items={['a1', 'a2', 'a3']} onSortEnd={onSortEnd} />);
+
+    const handle = screen.getByRole('button', { name: /position 1 of 3/i });
+    handle.focus();
+    fireEvent.keyDown(handle, { key: 'ArrowDown' });
+
+    expect(onSortEnd).toHaveBeenCalledWith({ oldIndex: 0, newIndex: 1 });
+    expect(document.activeElement).toBe(handle);
+  });
+
+  it('calls onSortEnd with the previous index on ArrowUp', () => {
+    const onSortEnd = vi.fn();
+    render(<HandleArea items={['a1', 'a2', 'a3']} onSortEnd={onSortEnd} />);
+
+    const handle = screen.getByRole('button', { name: /position 2 of 3/i });
+    handle.focus();
+    fireEvent.keyDown(handle, { key: 'ArrowUp' });
+
+    expect(onSortEnd).toHaveBeenCalledWith({ oldIndex: 1, newIndex: 0 });
+  });
+
+  it('does not call onSortEnd when already at the first or last position', () => {
+    const onSortEnd = vi.fn();
+    render(<HandleArea items={['a1', 'a2', 'a3']} onSortEnd={onSortEnd} />);
+
+    const first = screen.getByRole('button', { name: /position 1 of 3/i });
+    first.focus();
+    fireEvent.keyDown(first, { key: 'ArrowUp' });
+
+    const last = screen.getByRole('button', { name: /position 3 of 3/i });
+    last.focus();
+    fireEvent.keyDown(last, { key: 'ArrowDown' });
+
+    expect(onSortEnd).not.toHaveBeenCalled();
   });
 });
