@@ -166,8 +166,21 @@ function MediaLibraryModal({
 
   const hasSelection = hasMedia && !isEmpty(selectedFile);
 
+  // DCMS-1278: mirrors the title text MediaLibraryTop/MediaLibraryHeader
+  // renders, so the dialog's accessible name matches what's visible.
+  const modalAriaLabel = `${privateUpload ? t('mediaLibrary.mediaLibraryModal.private') : ''}${
+    forImage
+      ? t('mediaLibrary.mediaLibraryModal.images')
+      : t('mediaLibrary.mediaLibraryModal.mediaAssets')
+  }`;
+
   return (
-    <StyledModal isOpen={!!isVisible} onClose={handleClose} $isPrivate={privateUpload}>
+    <StyledModal
+      isOpen={!!isVisible}
+      onClose={handleClose}
+      $isPrivate={privateUpload}
+      ariaLabel={modalAriaLabel}
+    >
       {(() => {
         const topProps = {
           onClose: handleClose,
