@@ -190,6 +190,7 @@ export default function withMapControl({ getFormat, getMap }: WithMapControlOpti
             id={forID}
             role="application"
             tabIndex={-1}
+            aria-label={`${field.label || field.name}`}
             aria-required={field.required !== false}
             aria-invalid={hasErrors || undefined}
             aria-errormessage={hasErrors ? errorListId : undefined}
