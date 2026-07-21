@@ -3,6 +3,7 @@ import React from 'react';
 
 import { lengths, shadows, transitions, zIndex } from '@/ui/default/index';
 import { DialogPrimitive as Dialog } from '@/ui/Dialog';
+
 import type { DialogRoot } from '@base-ui/react/dialog';
 
 /**
