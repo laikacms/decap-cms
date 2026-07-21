@@ -44,24 +44,35 @@ const countWords = (text: string) => {
   return text.split(/\s+/).filter(word => word.length > 0).length;
 };
 
+function computeStats(text: string, charset: 'UTF-8' | 'UTF-16') {
+  return {
+    characters: strlen(text, charset),
+    words: countWords(text),
+  };
+}
+
 export function CounterCharacterPlugin({
   charset = 'UTF-16',
 }: CounterCharacterPluginProps) {
   const [editor] = useLexicalComposerContext();
-  const [stats, setStats] = useState(() => {
-    const initialText = editor.getEditorState().read($rootTextContent);
-    return {
-      characters: strlen(initialText, charset),
-      words: countWords(initialText),
-    };
-  });
+  const [stats, setStats] = useState(() =>
+    computeStats(editor.getEditorState().read($rootTextContent), charset)
+  );
 
   useEffect(() => {
+    // Re-seed from whatever the editor currently holds. `InitialStateExtension`
+    // hydrates an entry's stored content via `editor.update()`, which commits
+    // asynchronously (microtask) rather than synchronously during render — so
+    // the `useState` initializer above can run and capture an empty document
+    // before that hydration lands. `registerTextContentListener` only reports
+    // FUTURE updates, so without this seed the footer stays at
+    // "0 characters | 0 words" until the user's first edit (DCMS-1237). This
+    // effect runs after the hydration microtask has flushed, so it always
+    // observes the up-to-date text.
+    setStats(computeStats(editor.getEditorState().read($rootTextContent), charset));
+
     return editor.registerTextContentListener((currentText: string) => {
-      setStats({
-        characters: strlen(currentText, charset),
-        words: countWords(currentText),
-      });
+      setStats(computeStats(currentText, charset));
     });
   }, [editor, charset]);
 
