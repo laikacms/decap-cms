@@ -3,6 +3,7 @@ import React from 'react';
 
 import { lengths, shadows, transitions, zIndex } from '@/ui/default/index';
 import { DialogPrimitive as Dialog } from '@/ui/Dialog';
+import type { DialogRoot } from '@base-ui/react/dialog';
 
 /**
  * Core modal, backed by Base UI's Dialog (via the `src/ui/Dialog.tsx`
@@ -64,20 +65,53 @@ interface ModalProps {
   onClose: () => void;
 }
 
+/**
+ * DCMS-1241: Base UI's modal Dialog is `modal` by default, so the backdrop
+ * sits above (and absorbs clicks meant for) whatever is visually underneath
+ * it — e.g. a sidebar collection link. Dismissing on that click closes the
+ * dialog but the click never reaches the link, so navigation only happens on
+ * a second click.
+ *
+ * When the dialog closes because of an outside press, replay the click at
+ * the same viewport coordinates once the backdrop has been removed from the
+ * DOM, so a single click both dismisses the modal and completes the
+ * navigation/action underneath it.
+ */
+function replayOutsidePress(eventDetails: DialogRoot.ChangeEventDetails) {
+  if (eventDetails.reason !== 'outside-press' || typeof document === 'undefined') {
+    return;
+  }
+
+  const nativeEvent = eventDetails.event;
+  if (!('clientX' in nativeEvent) || !('clientY' in nativeEvent)) {
+    return;
+  }
+  const { clientX, clientY } = nativeEvent;
+
+  requestAnimationFrame(() => {
+    const target = document.elementFromPoint(clientX, clientY);
+    const link = target?.closest('a[href]');
+    if (link instanceof HTMLElement) {
+      link.click();
+    }
+  });
+}
+
 export function Modal({ isOpen, children, className, onClose }: ModalProps) {
   const container = typeof document !== 'undefined' ? (document.getElementById(ROOT_ID) ?? undefined) : undefined;
 
   return (
     <Dialog.Root
       open={isOpen}
-      onOpenChange={open => {
+      onOpenChange={(open, eventDetails) => {
         if (!open) {
           onClose();
+          replayOutsidePress(eventDetails);
         }
       }}
     >
       <Dialog.Portal container={container}>
-        <Dialog.Backdrop css={backdropStyles} />
+        <Dialog.Backdrop css={backdropStyles} data-testid="modal-backdrop" />
         <Dialog.Viewport css={viewportStyles}>
           <Dialog.Popup css={popupStyles} className={className}>
             {children}
