@@ -414,7 +414,11 @@ export function Editor({
             <div className="relative">
               <ToolbarPlugin>
                 {({ blockType }) => (
-                  <div className="vertical-align-middle sticky top-0 z-10 flex items-center gap-2 overflow-auto border-b p-1">
+                  <div
+                    role="toolbar"
+                    aria-label="Text formatting"
+                    className="vertical-align-middle sticky top-0 z-10 flex items-center gap-2 overflow-auto border-b p-1"
+                  >
                     {toolbarItems.undoRedo && <HistoryToolbarPlugin />}
                     {toolbarItems.undoRedo && <Separator orientation="vertical" className="h-7!" />}
                     {toolbarItems.blockFormat && (
@@ -531,7 +535,11 @@ export function Editor({
                 {pluginItems.specialText && <SpecialTextPlugin />}
               </div>
               <ActionsPlugin>
-                <div className="clear-both flex items-center justify-between gap-2 overflow-auto border-t p-1">
+                <div
+                  role="toolbar"
+                  aria-label="Editor actions"
+                  className="clear-both flex items-center justify-between gap-2 overflow-auto border-t p-1"
+                >
                   <div className="flex flex-1 justify-start text-xs text-gray-500">
                     {
                       /* CharacterLimitPlugin (playground leftover, maxLength 30) is
