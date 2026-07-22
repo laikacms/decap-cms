@@ -14,6 +14,7 @@
 export * from '@/lib/richtext/blocks/BlockComponent';
 export * from '@/lib/richtext/blocks/BlockNode';
 export * from '@/lib/richtext/blocks/blocksContext';
+export * from '@/lib/richtext/blocks/historyCoalesce';
 export * from '@/lib/richtext/blocks/InlineBlockNode';
 export * from '@/lib/richtext/blocks/insert';
 

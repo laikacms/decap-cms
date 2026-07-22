@@ -30,13 +30,20 @@ import {
   configExtension,
   defineExtension,
   type EditorState,
+  HISTORY_MERGE_TAG,
   type SerializedEditorState,
   type SerializedLexicalNode,
 } from 'lexical';
 import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { type BlocksConfig, type FormatLexicalExtras } from '@/lib/richtext';
-import { BlockNode, BlocksProvider, InlineBlockNode, sourceToEditorState } from '@/lib/richtext/lexical';
+import {
+  BLOCK_HISTORY_MERGE_TAG,
+  BlockNode,
+  BlocksProvider,
+  InlineBlockNode,
+  sourceToEditorState,
+} from '@/lib/richtext/lexical';
 import { Separator } from '@/ui/Separator';
 import { TooltipProvider } from '@/ui/Tooltip';
 import { useBlockViewer } from './_block-viewer-stub';
@@ -560,6 +567,16 @@ export function Editor({
 
             <OnChangePlugin
               ignoreSelectionChange={true}
+              // `BlockComponent.updateData` (DCMS-1489) tags rapid successive
+              // edits to the same block with `HISTORY_MERGE_TAG` so they
+              // coalesce into one undo entry, plus `BLOCK_HISTORY_MERGE_TAG`
+              // as a marker. `OnChangePlugin`'s built-in
+              // `ignoreHistoryMergeTagChange` can't tell that apart from
+              // other history-merge-tagged updates that *should* stay hidden
+              // from persist (`LexicalComposer`'s initial-state hydration,
+              // `AutoCompletePlugin`'s ghost suggestion), so it's disabled
+              // here and reimplemented below with that one exception.
+              ignoreHistoryMergeTagChange={false}
               onChange={(editorState, _editor, tags) => {
                 // `AutoFocusExtension` calls `editor.focus()` when the root
                 // element mounts, which flushes its own update tagged with
@@ -571,6 +588,12 @@ export function Editor({
                 // entry's dirty flag before any keystroke (DCMS-654). A real
                 // edit is never tagged this way, so it's safe to always skip.
                 if (tags.has('focus')) return;
+                // Reimplements `OnChangePlugin`'s default
+                // `ignoreHistoryMergeTagChange` filtering: skip history-merge
+                // updates unless they're a coalesced block edit (DCMS-1489),
+                // which must still reach persist despite merging into the
+                // undo history.
+                if (tags.has(HISTORY_MERGE_TAG) && !tags.has(BLOCK_HISTORY_MERGE_TAG)) return;
                 onChange?.(editorState);
                 if (!onSerializedChange) return;
                 if (isSourceViewRef.current) {
