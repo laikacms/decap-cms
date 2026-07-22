@@ -339,9 +339,17 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
       hintId,
     } = props;
 
+    // `role="button"` (the implicit role of a native <button>) does not
+    // permit `aria-required` per ARIA 1.3 (see DCMS-1389, a sibling
+    // regression of DCMS-1086's aria-required rollout). Required-ness is
+    // instead conveyed by appending a "required" cue to the button's
+    // accessible name via `aria-label`, applied at each call site so it can
+    // be combined with that button's own visible label text.
+    const isRequired = field.required !== false;
+    const requiredCue = isRequired ? ` (${t('editor.editorControl.field.required')})` : '';
+
     const chooseButtonAriaProps = {
       id: forID,
-      'aria-required': field.required !== false,
       'aria-invalid': hasErrors || undefined,
       'aria-errormessage': hasErrors ? errorListId : undefined,
       'aria-describedby': hintId,
@@ -522,13 +530,20 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
     function renderSelection(subject: string) {
       const multi = allowsMultiple();
       const chooseUrl = field.choose_url !== false;
+      const chooseLabel = t(
+        `editor.editorWidgets.${subject}.${multi ? 'addMore' : 'chooseDifferent'}`,
+      );
       return (
         <div>
           {forImage ? renderImages() : null}
           <div>
             {forImage ? null : renderFileLinks()}
-            <FileWidgetButton onClick={handleChange} {...chooseButtonAriaProps}>
-              {t(`editor.editorWidgets.${subject}.${multi ? 'addMore' : 'chooseDifferent'}`)}
+            <FileWidgetButton
+              onClick={handleChange}
+              {...chooseButtonAriaProps}
+              aria-label={isRequired ? `${chooseLabel}${requiredCue}` : undefined}
+            >
+              {chooseLabel}
             </FileWidgetButton>
             {chooseUrl && !multi
               ? (
@@ -547,10 +562,17 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
 
     function renderNoSelection(subject: string) {
       const chooseUrl = field.choose_url !== false;
+      const chooseLabel = t(
+        `editor.editorWidgets.${subject}.choose${allowsMultiple() ? 'Multiple' : ''}`,
+      );
       return (
         <>
-          <FileWidgetButton onClick={handleChange} {...chooseButtonAriaProps}>
-            {t(`editor.editorWidgets.${subject}.choose${allowsMultiple() ? 'Multiple' : ''}`)}
+          <FileWidgetButton
+            onClick={handleChange}
+            {...chooseButtonAriaProps}
+            aria-label={isRequired ? `${chooseLabel}${requiredCue}` : undefined}
+          >
+            {chooseLabel}
           </FileWidgetButton>
           {chooseUrl
             ? (

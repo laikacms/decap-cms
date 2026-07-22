@@ -84,9 +84,26 @@ describe('FileControl aria validation wiring (DCMS-1086)', () => {
     );
   }
 
-  it('marks a required field as aria-required by default', () => {
+  // DCMS-1389: `aria-required` is not an allowed attribute on the
+  // "Choose a file" button's implicit `role="button"` (ARIA 1.3
+  // aria-allowed-attr), so required-ness is conveyed via the button's
+  // accessible name instead.
+  it('never sets aria-required on the choose button, even when required', () => {
     const { getByText } = setupWithAria();
-    expect(getByText('editor.editorWidgets.file.choose')).toHaveAttribute('aria-required', 'true');
+    expect(getByText('editor.editorWidgets.file.choose')).not.toHaveAttribute('aria-required');
+  });
+
+  it('conveys required-ness through the accessible name by default', () => {
+    const { getByText } = setupWithAria();
+    expect(getByText('editor.editorWidgets.file.choose')).toHaveAttribute(
+      'aria-label',
+      'editor.editorWidgets.file.choose (editor.editorControl.field.required)',
+    );
+  });
+
+  it('omits the required accessible-name cue when the field is optional', () => {
+    const { getByText } = setupWithAria({ field: { required: false } });
+    expect(getByText('editor.editorWidgets.file.choose')).not.toHaveAttribute('aria-label');
   });
 
   it('has no aria-invalid when the field has no errors', () => {
