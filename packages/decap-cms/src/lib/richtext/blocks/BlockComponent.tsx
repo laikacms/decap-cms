@@ -1,14 +1,16 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
-import { $getNodeByKey } from 'lexical';
-import { useCallback, useState } from 'react';
+import { $getNodeByKey, HISTORY_MERGE_TAG } from 'lexical';
+import { useCallback, useRef, useState } from 'react';
 
 import { $isBlockNode } from './BlockNode';
 import { useBlocksConfig } from './blocksContext';
+import { BLOCK_HISTORY_MERGE_TAG, shouldCoalesceHistoryEdit } from './historyCoalesce';
 import { $isInlineBlockNode } from './InlineBlockNode';
 
 import type { NodeKey } from 'lexical';
 import type { ReactNode } from 'react';
+import type { LastHistoryEdit } from './historyCoalesce';
 import type { BlockChromeProps, BlockData } from './types';
 
 /** Props `BlockNode`/`InlineBlockNode` pass from `decorate()`. */
@@ -41,15 +43,32 @@ export function BlockComponent({
   const config = useBlocksConfig();
   const definition = config.blocks?.[componentId];
 
+  // Tracks the last edit tagged for history-merge purposes (DCMS-1489), so
+  // rapid successive edits to the *same* block coalesce into one undo entry
+  // instead of one per keystroke.
+  //
+  // Coalesced updates carry both `HISTORY_MERGE_TAG` (so Lexical's history
+  // plugin folds them into the current undo entry) and `BLOCK_HISTORY_MERGE_TAG`
+  // (a marker `Editor.tsx`'s `OnChangePlugin` handler checks for). Untagged
+  // `HISTORY_MERGE_TAG` updates — e.g. `LexicalComposer`'s initial-state
+  // hydration, `AutoCompletePlugin`'s ghost suggestion — are still hidden
+  // from persist; ours, marked, are not, so the persist path keeps seeing
+  // every prop edit regardless of undo grouping.
+  const lastHistoryEditRef = useRef<LastHistoryEdit | null>(null);
+
   const updateData = useCallback(
     (next: BlockData) => {
-      // Deliberately untagged: OnChangePlugin ignores 'history-merge'-tagged
-      // updates by default, and the persist path must see every prop edit.
-      // Trade-off: block prop edits get per-change undo entries.
-      editor.update(() => {
-        const node = $getNodeByKey(nodeKey);
-        if ($isBlockNode(node) || $isInlineBlockNode(node)) node.setData(next);
-      });
+      const now = Date.now();
+      const coalesce = shouldCoalesceHistoryEdit(lastHistoryEditRef.current, nodeKey, now);
+      lastHistoryEditRef.current = { nodeKey, time: now };
+
+      editor.update(
+        () => {
+          const node = $getNodeByKey(nodeKey);
+          if ($isBlockNode(node) || $isInlineBlockNode(node)) node.setData(next);
+        },
+        coalesce ? { tag: [HISTORY_MERGE_TAG, BLOCK_HISTORY_MERGE_TAG] } : undefined,
+      );
     },
     [editor, nodeKey],
   );
