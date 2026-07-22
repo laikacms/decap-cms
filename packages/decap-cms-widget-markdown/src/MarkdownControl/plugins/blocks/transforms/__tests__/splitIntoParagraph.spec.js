@@ -53,10 +53,10 @@ describe('splitIntoParagraph', () => {
   });
 
   it('deletes an expanded selection before splitting', () => {
-    const editor = buildEditor(
-      [{ type: 'heading-one', children: [{ text: 'hello world' }] }],
-      { anchor: { path: [0, 0], offset: 2 }, focus: { path: [0, 0], offset: 5 } },
-    );
+    const editor = buildEditor([{ type: 'heading-one', children: [{ text: 'hello world' }] }], {
+      anchor: { path: [0, 0], offset: 2 },
+      focus: { path: [0, 0], offset: 5 },
+    });
 
     splitIntoParagraph(editor);
 
