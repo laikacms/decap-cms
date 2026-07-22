@@ -1,5 +1,6 @@
 import { Map } from 'immutable';
 import { basename, getBlobSHA } from 'decap-cms-lib-util';
+import { confirmDialog } from 'decap-cms-ui-default';
 
 import { currentBackend } from '../backend';
 import { createAssetProxy } from '../valueObjects/AssetProxy';
@@ -252,7 +253,9 @@ export function persistMedia(file: File, opts: MediaOptions = {}) {
      * may not be unique, so we forego this check.
      */
     if (!integration && existingFile) {
-      if (!window.confirm(`${existingFile.name} already exists. Do you want to replace it?`)) {
+      if (
+        !(await confirmDialog(`${existingFile.name} already exists. Do you want to replace it?`))
+      ) {
         return;
       } else {
         await dispatch(deleteMedia(existingFile, { privateUpload }));

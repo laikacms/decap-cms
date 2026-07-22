@@ -5,7 +5,7 @@ import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import dayjs from 'dayjs';
 import { translate } from 'react-polyglot';
-import { colors, lengths } from 'decap-cms-ui-default';
+import { colors, confirmDialog, lengths, showAlert } from 'decap-cms-ui-default';
 
 import { status } from '../../constants/publishModes';
 import { DragSource, DropTarget, HTML5DragDrop } from '../UI';
@@ -151,17 +151,21 @@ class WorkflowList extends React.Component {
     this.props.handleChangeStatus(collection, slug, oldStatus, newStatus);
   };
 
-  requestDelete = (collection, slug, ownStatus) => {
-    if (window.confirm(this.props.t('workflow.workflowList.onDeleteEntry'))) {
+  requestDelete = async (collection, slug, ownStatus) => {
+    if (
+      await confirmDialog(this.props.t('workflow.workflowList.onDeleteEntry'), {
+        destructive: true,
+      })
+    ) {
       this.props.handleDelete(collection, slug, ownStatus);
     }
   };
 
-  requestPublish = (collection, slug, ownStatus) => {
+  requestPublish = async (collection, slug, ownStatus) => {
     if (ownStatus !== status.last()) {
-      window.alert(this.props.t('workflow.workflowList.onPublishingNotReadyEntry'));
+      await showAlert(this.props.t('workflow.workflowList.onPublishingNotReadyEntry'));
       return;
-    } else if (!window.confirm(this.props.t('workflow.workflowList.onPublishEntry'))) {
+    } else if (!(await confirmDialog(this.props.t('workflow.workflowList.onPublishEntry')))) {
       return;
     }
     this.props.handlePublish(collection, slug);
