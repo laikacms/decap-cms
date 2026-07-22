@@ -2,7 +2,7 @@
 
 This branch converts the Decap CMS v4.beta monorepo into a single published package —
 **`@laikacms/decap-cms`** — that exposes every former workspace package through a subpath export.
-The root export is the `decap-cms-app` bootstrap (not a barrel re-export).
+The root export is the old `decap-cms-app` bootstrap (not a barrel re-export).
 
 The goal is so a downstream consumer (e.g. `laikacms/laikacms`'s forthcoming `laika-cms-app`) can
 do:
