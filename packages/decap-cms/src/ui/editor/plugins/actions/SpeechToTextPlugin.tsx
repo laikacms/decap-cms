@@ -117,7 +117,7 @@ function SpeechToTextPluginImpl() {
             }}
             variant={isSpeechToText ? 'secondary' : 'ghost'}
             title="Speech To Text"
-            aria-label={`${isSpeechToText ? 'Enable' : 'Disable'} speech to text`}
+            aria-label={`${isSpeechToText ? 'Disable' : 'Enable'} speech to text`}
             className="p-2"
             size={'sm'}
           >
