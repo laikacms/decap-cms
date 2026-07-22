@@ -5,6 +5,7 @@ import React, { useEffect, useRef } from 'react';
 import { dismissNotification } from '@/core/actions/notifications';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 import { useTranslate } from '@/core/i18n';
+import { useRouter } from '@/core/routing/context';
 import { toastManager } from '@/ui/toastManager';
 
 /**
@@ -40,6 +41,28 @@ const ACCENTS: Record<string, string> = {
 };
 
 const NEUTRAL_ACCENT = '#757575';
+
+/**
+ * Notification message keys scoped to whatever entry editor raised them
+ * (a save-validation error, or a failed entry/entries load) rather than
+ * being app-wide. Left alone, their `dismissAfter` window (commonly 8s) lets
+ * them travel with the user to an unrelated route - a NotFoundPage, or a
+ * different collection's entry - still showing the stale path/details from
+ * the route that raised them. Dismissed as soon as the user navigates away
+ * instead (DCMS-579, DCMS-1408).
+ */
+const ROUTE_SCOPED_MESSAGE_KEYS = [
+  'ui.toast.missingRequiredField',
+  'ui.toast.invalidField',
+  'ui.toast.onFailToLoadEntries',
+];
+
+function isRouteScopedNotification(notification: CmsNotification): boolean {
+  return (
+    typeof notification.message !== 'string'
+    && ROUTE_SCOPED_MESSAGE_KEYS.includes(notification.message.key)
+  );
+}
 
 const viewportStyles = css`
   position: fixed;
@@ -121,11 +144,29 @@ const closeStyles = css`
 function NotificationsBridge() {
   const t = useTranslate();
   const dispatch = useAppDispatch();
+  const router = useRouter();
   const notifications = useAppSelector(
     state => state.notifications.notifications as CmsNotification[],
   );
   const { toasts, add, close } = Toast.useToastManager();
   const idMapRef = useRef<IdMap>({});
+  // Mirrors `notifications` for the router-subscribe listener below, which
+  // is registered once and must always see the latest list rather than the
+  // one captured at registration time.
+  const notificationsRef = useRef<CmsNotification[]>(notifications);
+  notificationsRef.current = notifications;
+
+  // Entry-editor-scoped notifications (validation errors, failed entry
+  // loads) should not travel with the user to an unrelated route. Dismissing
+  // on every navigation is cheap and correct here because dismissNotification
+  // is a no-op once the id is already gone (DCMS-579, DCMS-1408).
+  useEffect(() => {
+    return router.subscribe(() => {
+      notificationsRef.current.filter(isRouteScopedNotification).forEach(notification => {
+        dispatch(dismissNotification(notification.id));
+      });
+    });
+  }, [dispatch, router]);
 
   useEffect(() => {
     const idMap = idMapRef.current;
