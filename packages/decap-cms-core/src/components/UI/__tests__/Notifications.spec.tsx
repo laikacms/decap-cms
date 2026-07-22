@@ -110,6 +110,28 @@ describe('Notifications', () => {
     );
   });
 
+  it('dismisses the onFailToLoadEntries toast on route change (DCMS-1408)', () => {
+    const dispatch = jest.fn();
+    (useDispatch as jest.Mock).mockReturnValue(dispatch);
+
+    const notifications: Notification[] = [
+      {
+        id: 'load-entry-error',
+        message: { key: 'ui.toast.onFailToLoadEntries', details: 'Entry not found: _posts/foo.md' },
+        type: 'error',
+        dismissAfter: 8000,
+      },
+    ];
+    render(<Notifications notifications={notifications} />);
+    dispatch.mockClear();
+
+    fireRouteChange();
+
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'NOTIFICATION_DISMISS', id: 'load-entry-error' }),
+    );
+  });
+
   it('does not dismiss unrelated toasts on route change', () => {
     const dispatch = jest.fn();
     (useDispatch as jest.Mock).mockReturnValue(dispatch);
