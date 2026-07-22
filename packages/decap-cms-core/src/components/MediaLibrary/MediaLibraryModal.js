@@ -110,8 +110,21 @@ function MediaLibraryModal({
 
   const hasSelection = hasMedia && !isEmpty(selectedFile);
 
+  // Mirrors the title MediaLibraryTop renders into MediaLibraryHeader's <h1>,
+  // so the dialog's accessible name matches what's visible.
+  const modalAriaLabel = `${privateUpload ? t('mediaLibrary.mediaLibraryModal.private') : ''}${
+    forImage
+      ? t('mediaLibrary.mediaLibraryModal.images')
+      : t('mediaLibrary.mediaLibraryModal.mediaAssets')
+  }`;
+
   return (
-    <StyledModal isOpen={isVisible} onClose={handleClose} isPrivate={privateUpload}>
+    <StyledModal
+      isOpen={isVisible}
+      onClose={handleClose}
+      isPrivate={privateUpload}
+      ariaLabel={modalAriaLabel}
+    >
       <MediaLibraryTop
         t={t}
         onClose={handleClose}

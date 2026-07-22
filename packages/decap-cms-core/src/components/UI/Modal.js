@@ -61,6 +61,16 @@ export class Modal extends React.Component {
     isOpen: PropTypes.bool.isRequired,
     className: PropTypes.string,
     onClose: PropTypes.func.isRequired,
+    /**
+     * `react-modal`'s content element gets `role="dialog"` automatically but
+     * doesn't derive an accessible name from its subtree, so callers must
+     * provide one via `ariaLabel` (forwarded as `contentLabel`, which
+     * `react-modal` renders as `aria-label`) or `ariaLabelledby` (id of a
+     * heading already rendered inside `children`) — otherwise screen
+     * readers announce a nameless dialog.
+     */
+    ariaLabel: PropTypes.string,
+    ariaLabelledby: PropTypes.string,
   };
 
   componentDidMount() {
@@ -68,7 +78,7 @@ export class Modal extends React.Component {
   }
 
   render() {
-    const { isOpen, children, className, onClose } = this.props;
+    const { isOpen, children, className, onClose, ariaLabel, ariaLabelledby } = this.props;
     return (
       <>
         <ReactModalGlobalStyles />
@@ -78,6 +88,8 @@ export class Modal extends React.Component {
               isOpen={isOpen}
               onRequestClose={onClose}
               closeTimeoutMS={300}
+              contentLabel={ariaLabel}
+              aria={{ labelledby: ariaLabelledby }}
               className={{
                 base: cx(
                   css`
