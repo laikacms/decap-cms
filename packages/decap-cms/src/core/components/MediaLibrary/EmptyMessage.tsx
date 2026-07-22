@@ -14,6 +14,12 @@ const EmptyMessageContainer = styled.div<{ $isPrivate?: boolean }>`
   color: ${props => props.$isPrivate && colors.textFieldBorder};
 `;
 
+const EmptyMessageText = styled.p`
+  margin: 0;
+  font-size: 2em;
+  font-weight: bold;
+`;
+
 interface EmptyMessageProps {
   content: string;
   isPrivate?: boolean;
@@ -22,7 +28,9 @@ interface EmptyMessageProps {
 function EmptyMessage({ content, isPrivate }: EmptyMessageProps) {
   return (
     <EmptyMessageContainer $isPrivate={isPrivate}>
-      <h1>{content}</h1>
+      <EmptyMessageText role="status" aria-live="polite">
+        {content}
+      </EmptyMessageText>
     </EmptyMessageContainer>
   );
 }
