@@ -1,3 +1,4 @@
+import { Menu } from '@base-ui/react/menu';
 import { Tooltip } from '@base-ui/react/tooltip';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
@@ -15,6 +16,7 @@ import {
   components,
   Dropdown,
   DropdownItem,
+  DropdownRadioItem,
   Icon,
   StyledDropdownButton,
   zIndex,
@@ -265,7 +267,7 @@ const PublishDropDownItem = styled(ToolbarDropdownItem)`
   min-width: initial;
 `;
 
-const StatusDropdownItem = styled(DropdownItem)`
+const StatusDropdownItem = styled(DropdownRadioItem)`
   .decap-icon {
     color: ${colors.infoText};
   }
@@ -463,27 +465,29 @@ export function EditorToolbar(props: EditorToolbarProps) {
           dropdownWidth="120px"
           renderButton={() => <StatusButton>{buttonText}</StatusButton>}
         >
-          <StatusDropdownItem
-            label={t('editor.editorToolbar.draft')}
-            onClick={() => onChangeStatus('DRAFT')}
-            icon={currentStatus === status.DRAFT ? 'check' : undefined}
-          />
-          <StatusDropdownItem
-            label={t('editor.editorToolbar.inReview')}
-            onClick={() => onChangeStatus('PENDING_REVIEW')}
-            icon={currentStatus === status.PENDING_REVIEW ? 'check' : undefined}
-          />
-          {useOpenAuthoring
-            ? (
-              ''
-            )
-            : (
-              <StatusDropdownItem
-                label={t('editor.editorToolbar.ready')}
-                onClick={() => onChangeStatus('PENDING_PUBLISH')}
-                icon={currentStatus === status.PENDING_PUBLISH ? 'check' : undefined}
-              />
-            )}
+          <Menu.RadioGroup value={currentStatus}>
+            <StatusDropdownItem
+              label={t('editor.editorToolbar.draft')}
+              onClick={() => onChangeStatus('DRAFT')}
+              value={status.DRAFT}
+            />
+            <StatusDropdownItem
+              label={t('editor.editorToolbar.inReview')}
+              onClick={() => onChangeStatus('PENDING_REVIEW')}
+              value={status.PENDING_REVIEW}
+            />
+            {useOpenAuthoring
+              ? (
+                ''
+              )
+              : (
+                <StatusDropdownItem
+                  label={t('editor.editorToolbar.ready')}
+                  onClick={() => onChangeStatus('PENDING_PUBLISH')}
+                  value={status.PENDING_PUBLISH}
+                />
+              )}
+          </Menu.RadioGroup>
         </ToolbarDropdown>
         {useOpenAuthoring && renderStatusInfoTooltip()}
       </>

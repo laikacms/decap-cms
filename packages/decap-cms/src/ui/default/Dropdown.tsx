@@ -307,4 +307,57 @@ function DropdownCheckedItem({
   );
 }
 
-export { Dropdown as default, DropdownButton, DropdownCheckedItem, DropdownItem, StyledDropdownButton };
+const StyledRadioItemWrapper = styled(Menu.RadioItem, {
+  shouldForwardProp: forwardNonTransientProp,
+})`
+  ${menuItemStyles};
+`;
+
+export interface DropdownRadioItemProps {
+  label?: string;
+  value: string;
+  iconSmall?: boolean;
+  onClick?: () => void;
+  className?: string;
+}
+
+/**
+ * A single choice within a `Menu.RadioGroup` (e.g. a workflow status
+ * picker). Renders `role="menuitemradio"` + `aria-checked` via Base UI's
+ * `Menu.RadioItem`, so assistive tech announces the mutually-exclusive
+ * selection state instead of a plain `menuitem` with a sighted-only check
+ * icon.
+ */
+function DropdownRadioItem({
+  label,
+  value,
+  iconSmall,
+  onClick,
+  className,
+}: DropdownRadioItemProps): React.ReactElement {
+  const { closeOnSelection } = React.useContext(DropdownContext);
+  return (
+    <StyledRadioItemWrapper
+      value={value}
+      closeOnClick={closeOnSelection}
+      onClick={onClick}
+      className={className}
+    >
+      <span>{label}</span>
+      <MenuItemIconContainer iconSmall={iconSmall}>
+        <Menu.RadioItemIndicator>
+          <Icon type="check" size={iconSmall ? 'xsmall' : 'small'} />
+        </Menu.RadioItemIndicator>
+      </MenuItemIconContainer>
+    </StyledRadioItemWrapper>
+  );
+}
+
+export {
+  Dropdown as default,
+  DropdownButton,
+  DropdownCheckedItem,
+  DropdownItem,
+  DropdownRadioItem,
+  StyledDropdownButton,
+};
