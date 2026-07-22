@@ -56,8 +56,9 @@ packages/
 - The empty `packages: []` workaround (kept only so `catalog:` resolved) is gone; the catalogs now
   serve a real workspace member list.
 
-Publishing: `publish.yml` runs `npm publish` from `packages/decap-cms`; the `files` allowlist and
-`prepack` build are unchanged.
+Publishing: there is no CI or publish automation on `v4.beta` yet (`.github/workflows/` is empty
+on this branch) — releasing is a manual process (see `CONTRIBUTING.md`'s "Releasing" section); the
+`files` allowlist and `prepack` build are unchanged.
 
 ## What changed
 
@@ -128,12 +129,12 @@ Not blocking the restructure, but they belong in the next pass:
   `vitest.config.ts`.
 - ~~ESLint config lints `packages/**`~~ — done; config repaired to read `src/**`, missing plugins
   added, import-x resolver wired up.
-- ~~Publish + CI workflows~~ — done. `publish.yml` rewritten for the single `@laikacms/decap-cms`
-  package (pnpm install/build/test, `v*` tag trigger, `npm publish --provenance --access public` via
-  OIDC). `nodejs.yml` switched from `npm ci` to pnpm and now runs the new `test:ci` script. The
-  Cypress e2e job was dropped — its orchestration scripts (`test:e2e:run-ci`,
-  `test:package-integrity`) are gone; rebuild it for the `src/` layout when e2e coverage is wanted
-  again.
+- Publish + CI workflows — still open. There is no CI or publish automation on `v4.beta` yet
+  (`.github/workflows/` is empty on this branch); releasing is a manual process for now (see
+  `CONTRIBUTING.md`). `origin/main` has its own `publish.yml`/`nodejs.yml`, but those haven't been
+  ported to this branch's `src/` layout. The Cypress e2e job's old orchestration scripts
+  (`test:e2e:run-ci`, `test:package-integrity`) are gone; rebuild it for the `src/` layout when e2e
+  coverage and CI are wanted again.
 - ~~Sort the deps~~ — the `dependencies` block is already alphabetised.
 - ~~`overrides`/`resolutions` review~~ — done; removed the dead `clean-stack` pin (not in the
   dependency tree, and pnpm reads `pnpm.overrides`, not the npm/yarn fields anyway).
