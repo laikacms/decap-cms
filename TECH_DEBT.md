@@ -50,8 +50,12 @@
       (`resolveBlockCodecs`); only blocks WITHOUT a codec fall back to a warned ```json fence.
       Per-format encodings are the `BlockFormatCodec` / `FormatPack.blockSupport` API
       (FORMAT_PACKS_PLAN.md Phase 1).
-- [ ] Block prop edits create per-change undo entries (plain `editor.update`; `history-merge` is
-      invisible to OnChangePlugin). Add custom history coalescing for block forms.
+- [x] Block prop edits create per-change undo entries (plain `editor.update`; `history-merge` is
+      invisible to OnChangePlugin). Fixed (DCMS-1489): `BlockComponent.updateData` tags rapid
+      successive edits to the same block within a coalescing window with `HISTORY_MERGE_TAG` +
+      a `BLOCK_HISTORY_MERGE_TAG` marker; `Editor.tsx`'s `OnChangePlugin` handler lets the marked
+      updates through to persist while still ignoring other history-merge-tagged updates (composer
+      init, autocomplete ghost text).
 - [ ] URL-paste auto-embed was removed with AutoEmbedPlugin (it targeted the deleted
       TweetNode/YouTubeNode). Re-implement it to insert registry blocks from pasted URLs.
 - [x] Block-field validation does not gate entry save yet (EditorControl self-validates per field
