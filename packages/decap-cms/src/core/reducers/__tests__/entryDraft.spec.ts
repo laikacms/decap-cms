@@ -235,6 +235,65 @@ describe('entryDraft reducer', () => {
 
       expect(newState.hasChanged).toBe(true);
     });
+
+    it('does not flip hasChanged back to true for a no-op field write right after a persist (DCMS-1363)', () => {
+      const persistedRecordState = {
+        ...initialState,
+        entry: { ...entry, data: { date: 'old-value' }, newRecord: false, isPersisting: true },
+      };
+
+      // The persist resolves and resets hasChanged, as it already does today.
+      const persistedState = reducer(
+        persistedRecordState,
+        actions.entryPersisted({ name: 'posts' }, { ...entry, data: { date: 'old-value' } }, 'slug'),
+      );
+      expect(persistedState.hasChanged).toBe(false);
+      expect((persistedState.entry as any).data.date).toBe('old-value');
+
+      // A widget re-dispatches a write for the same field as a side effect
+      // of the post-save reload (e.g. a datetime widget's `{{now}}`
+      // default), reproducing the value already sitting in the draft. The
+      // `entries` baseline passed along is stale (it was built from
+      // selectors closed over before the persist landed) and still holds
+      // the pre-save value, so a naive diff against it would look like a
+      // real change even though nothing actually changed in the draft.
+      const rewriteState = reducer(
+        persistedState,
+        actions.changeDraftField({
+          field,
+          value: 'old-value',
+          metadata: {},
+          entries: [{ ...entry, data: { date: 'stale-pre-persist-value' } } as any],
+        }),
+      );
+
+      expect(rewriteState.hasChanged).toBe(false);
+    });
+
+    it('still marks a real user edit as changed immediately after a persist (DCMS-1363)', () => {
+      const persistedRecordState = {
+        ...initialState,
+        entry: { ...entry, data: { date: 'old-value' }, newRecord: false, isPersisting: true },
+      };
+
+      const persistedState = reducer(
+        persistedRecordState,
+        actions.entryPersisted({ name: 'posts' }, { ...entry, data: { date: 'old-value' } }, 'slug'),
+      );
+      expect(persistedState.hasChanged).toBe(false);
+
+      const editState = reducer(
+        persistedState,
+        actions.changeDraftField({
+          field,
+          value: 'new-value-typed-by-user',
+          metadata: {},
+          entries: [{ ...entry, data: { date: 'old-value' } } as any],
+        }),
+      );
+
+      expect(editState.hasChanged).toBe(true);
+    });
   });
 
   describe('DRAFT_LOCAL_BACKUP_RETRIEVED', () => {

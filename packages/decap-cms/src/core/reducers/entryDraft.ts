@@ -172,6 +172,8 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
       // it's stripped before merging into fieldsMetaData.
       const { fromDefault, ...restMetadata } = metadata ?? {};
       const isNewRecord = (state.entry as any).newRecord;
+      const previousData = getNestedValue(state.entry, dataPath);
+      const previousMeta = (state.entry as any).meta;
 
       if (meta) {
         state.entry = setNestedValue(state.entry, ['meta', name as string], value) as EntryMap;
@@ -186,10 +188,26 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
       if (!(fromDefault && isNewRecord)) {
         const newData = getNestedValue(state.entry, dataPath);
         const newMeta = (state.entry as any).meta;
-        state.hasChanged = !entries.some((e: any) => {
-          const eData = getNestedValue(e, dataPath);
-          return JSON.stringify(newData) === JSON.stringify(eData);
-        }) || !entries.some((e: any) => JSON.stringify(newMeta) === JSON.stringify(e.meta));
+
+        // A write that reproduces exactly what's already in the draft is a
+        // no-op regardless of what the (possibly stale) `entries` baseline
+        // says (DCMS-1363). This matters right after a persist: widgets can
+        // re-dispatch a field write as a side effect of the post-save reload
+        // (e.g. a datetime widget's `{{now}}` default), and `entries` here
+        // is a snapshot closed over before the persist landed, so it can
+        // still hold the pre-save value. Diffing against that stale
+        // snapshot made an identical rewrite look like a real edit and
+        // flipped `hasChanged` back to `true` immediately after save.
+        const isNoOpWrite =
+          JSON.stringify(newData) === JSON.stringify(previousData) &&
+          JSON.stringify(newMeta) === JSON.stringify(previousMeta);
+
+        if (!isNoOpWrite) {
+          state.hasChanged = !entries.some((e: any) => {
+            const eData = getNestedValue(e, dataPath);
+            return JSON.stringify(newData) === JSON.stringify(eData);
+          }) || !entries.some((e: any) => JSON.stringify(newMeta) === JSON.stringify(e.meta));
+        }
       }
       break;
     }
