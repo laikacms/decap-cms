@@ -21,6 +21,7 @@ export function EditModeTogglePlugin() {
             }}
             title="Read-Only Mode"
             aria-label={`${!isEditable ? 'Unlock' : 'Lock'} read-only mode`}
+            aria-pressed={!isEditable}
             size={'sm'}
             className="p-2"
           >
