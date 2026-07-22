@@ -65,7 +65,7 @@ export function ContextMenuPlugin(): JSX.Element {
               name: 'clipboard-read',
             });
             if (permission.state === 'denied') {
-              showAlert('Not allowed to paste from clipboard.');
+              showAlert('Not allowed to paste from clipboard.', { title: 'Clipboard blocked' });
               return;
             }
 
@@ -93,7 +93,7 @@ export function ContextMenuPlugin(): JSX.Element {
             });
 
             if (permission.state === 'denied') {
-              showAlert('Not allowed to paste from clipboard.');
+              showAlert('Not allowed to paste from clipboard.', { title: 'Clipboard blocked' });
               return;
             }
 
