@@ -827,6 +827,38 @@ describe('Backend', () => {
     });
   });
 
+  // DCMS-1354 / DCMS-1352: port of DCMS-514 (#560) to v4.beta. An unknown slug in
+  // a files collection used to reach `implementation.getEntry` with an `undefined`
+  // path (silently cast `as string`), crashing deep in path parsing with a raw
+  // TypeError instead of a clean not-found error.
+  describe('getEntry', () => {
+    it('throws a clean not-found error for an unknown files-collection slug', async () => {
+      const implementation = {
+        init: vi.fn(() => implementation),
+        getEntry: vi.fn(),
+      };
+
+      const collection = {
+        name: 'settings',
+        type: FILES,
+        files: [
+          {
+            name: 'general',
+            file: 'data/general.json',
+            fields: [{ name: 'title' }],
+          },
+        ],
+      };
+
+      const backend = new Backend(implementation, { config: {}, backendName: 'github' });
+
+      await expect(backend.getEntry({}, collection, 'unknown-slug')).rejects.toThrow(
+        'Entry not found: settings/unknown-slug',
+      );
+      expect(implementation.getEntry).not.toHaveBeenCalled();
+    });
+  });
+
   describe('extractSearchFields', () => {
     it('should extract slug', () => {
       expect(extractSearchFields(['slug'])({ slug: 'entry-slug', data: {} })).toEqual(
