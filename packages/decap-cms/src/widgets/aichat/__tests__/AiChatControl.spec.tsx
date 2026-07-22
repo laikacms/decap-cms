@@ -36,22 +36,26 @@ const mockSendMessage = vi.fn();
 const mockSetMessages = vi.fn();
 const mockAddToolOutput = vi.fn();
 
-let capturedUseChatOptions: { onError?: (err: Error) => void } | undefined;
+let capturedUseChatOptions:
+  | { onError?: (err: Error) => void; onFinish?: (event: unknown) => void }
+  | undefined;
 
 function configureUseChat(overrides: {
   messages?: unknown[];
   status?: string;
 } = {}) {
-  useChatMock.mockImplementation((options: { onError?: (err: Error) => void }) => {
-    capturedUseChatOptions = options;
-    return {
-      messages: overrides.messages ?? [],
-      sendMessage: mockSendMessage,
-      status: overrides.status ?? 'ready',
-      setMessages: mockSetMessages,
-      addToolOutput: mockAddToolOutput,
-    };
-  });
+  useChatMock.mockImplementation(
+    (options: { onError?: (err: Error) => void; onFinish?: (event: unknown) => void }) => {
+      capturedUseChatOptions = options;
+      return {
+        messages: overrides.messages ?? [],
+        sendMessage: mockSendMessage,
+        status: overrides.status ?? 'ready',
+        setMessages: mockSetMessages,
+        addToolOutput: mockAddToolOutput,
+      };
+    },
+  );
 }
 
 const field = {
@@ -211,5 +215,19 @@ describe('AiChatControl error state', () => {
     });
 
     expect(onError).toHaveBeenCalledWith(error);
+  });
+});
+
+describe('AiChatControl finish state', () => {
+  it('forwards the finish event to the widget-level aiSdk.onFinish callback', () => {
+    const onFinish = vi.fn();
+    renderControl({ widget: buildWidget({ onFinish }) });
+
+    const event = { message: { id: 'm1', role: 'assistant', parts: [] } };
+    act(() => {
+      capturedUseChatOptions?.onFinish?.(event);
+    });
+
+    expect(onFinish).toHaveBeenCalledWith(event);
   });
 });
