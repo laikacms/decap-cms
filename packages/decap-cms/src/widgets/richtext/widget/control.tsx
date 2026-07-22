@@ -36,6 +36,8 @@ interface LexicalControlProps {
   getAsset?: (path: string, field?: unknown) => unknown;
   t?: BlockFormDeps['t'];
   locale?: string;
+  /** Forwarded from `Widget.tsx`; see `BlockFormDeps['onValidateObject']`. */
+  onValidateObject?: BlockFormDeps['onValidateObject'];
   /** Whether this field currently has its own validation errors, and the id
    * of the `<ul.ControlErrorsList>` describing them; threaded onto the
    * editable region's `aria-invalid`/`aria-errormessage`. */
@@ -69,6 +71,7 @@ export function LexicalControl({
   hasErrors,
   errorListId,
   hintId,
+  onValidateObject,
 }: LexicalControlProps): ReactNode {
   const hint = typeof field.format === 'string' ? field.format : undefined;
 
@@ -111,8 +114,9 @@ export function LexicalControl({
       t,
       locale,
       classNameWrapper,
+      onValidateObject,
     });
-  }, [editorControl, resolveWidget, clearFieldErrors, t, locale, classNameWrapper]);
+  }, [editorControl, resolveWidget, clearFieldErrors, t, locale, classNameWrapper, onValidateObject]);
 
   const blocksConfig = useMemo<BlocksConfig>(() => {
     const asset: GetAssetFn | undefined = getAsset

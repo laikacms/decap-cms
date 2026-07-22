@@ -54,8 +54,10 @@
       invisible to OnChangePlugin). Add custom history coalescing for block forms.
 - [ ] URL-paste auto-embed was removed with AutoEmbedPlugin (it targeted the deleted
       TweetNode/YouTubeNode). Re-implement it to insert registry blocks from pasted URLs.
-- [ ] Block-field validation does not gate entry save yet (EditorControl self-validates per field
-      only).
+- [x] Block-field validation does not gate entry save yet (EditorControl self-validates per field
+      only). Fixed: `BlockForm`/`LexicalControl` now thread `onValidateObject` into the block's
+      `ObjectControl` so a `required` sub-field left empty registers against the entry-level
+      validation state, the same as a top-level object field's nested fields (#1442).
 - [ ] Inline (`inline: true`) blocks render read-only chips in the editor (delete only); markdown
       PARSING of inline block codecs is unsupported (serialize works).
 - [ ] Editor `maxLength`/`CharacterLimitPlugin` are playground leftovers (hardcoded 30).

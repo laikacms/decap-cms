@@ -19,6 +19,14 @@ export interface BlockFormDeps {
   t: ObjectControlProps['t'];
   locale?: string;
   classNameWrapper?: string;
+  /**
+   * Threaded from `EditorControlPane/Widget.tsx` down through the richtext
+   * field's own `onValidateObject`; forwarded to the block's `ObjectControl`
+   * so a required sub-field left empty registers its error against the
+   * entry-level validation state the same way a top-level object field's
+   * nested fields do, instead of validating in isolation.
+   */
+  onValidateObject?: ObjectControlProps['onValidateObject'];
 }
 
 type BlockFormProps = BlockFormRenderProps & BlockFormDeps;
@@ -39,6 +47,7 @@ export function BlockForm({
   t,
   locale,
   classNameWrapper,
+  onValidateObject,
 }: BlockFormProps): ReactNode {
   const field = useMemo(
     () => ({
@@ -63,6 +72,7 @@ export function BlockForm({
       resolveWidget={resolveWidget}
       clearFieldErrors={clearFieldErrors}
       classNameWrapper={classNameWrapper ?? ''}
+      onValidateObject={onValidateObject}
       t={t}
       locale={locale}
     />
