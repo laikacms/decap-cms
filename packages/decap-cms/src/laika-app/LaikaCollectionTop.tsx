@@ -118,7 +118,11 @@ function LaikaCollectionTop({ collection, newEntryUrl, filterTerm, t }: LaikaCol
         </TitleBlock>
         {newEntryUrl
           ? (
-            <LaikaButton to={newEntryUrl}>
+            <LaikaButton
+              to={newEntryUrl}
+              dir="auto"
+              aria-label={t('collection.collectionTop.newButtonAriaLabel', { collectionLabel: labelSingular })}
+            >
               {t('collection.collectionTop.newButton', { collectionLabel: labelSingular })}
             </LaikaButton>
           )
