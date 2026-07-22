@@ -78,7 +78,7 @@ const AppHeaderButtonLabel = styled.span`
 const AppHeaderButton = styled.button`
   ${buttons.button};
   background: none;
-  color: #7b8290;
+  color: ${colors.controlLabel};
   font-family: inherit;
   font-size: 16px;
   font-weight: 500;
@@ -88,7 +88,7 @@ const AppHeaderButton = styled.button`
 
   .decap-icon {
     margin-right: 4px;
-    color: #b3b9c4;
+    color: ${colors.controlLabel};
   }
 
   &:hover,

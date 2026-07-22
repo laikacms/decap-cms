@@ -40,14 +40,14 @@ const AvatarPlaceholderIcon = styled(Icon)`
 const AppHeaderSiteLink = styled.a`
   font-size: 14px;
   font-weight: 400;
-  color: #7b8290;
+  color: ${colors.controlLabel};
   padding: 10px 16px;
 `;
 
 const AppHeaderTestRepoIndicator = styled.a`
   font-size: 14px;
   font-weight: 400;
-  color: #7b8290;
+  color: ${colors.controlLabel};
   padding: 10px 16px;
 `;
 
