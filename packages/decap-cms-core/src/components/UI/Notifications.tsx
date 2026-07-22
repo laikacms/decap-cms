@@ -23,10 +23,11 @@ type IdMap = {
 };
 
 // Notification message keys that are scoped to whatever entry editor raised
-// them (e.g. a save-validation error) rather than being app-wide. These are
-// dismissed as soon as the user navigates away, so they don't linger on
-// unrelated routes like the Editorial Workflow board.
-const ROUTE_SCOPED_MESSAGE_KEYS = ['ui.toast.missingRequiredField'];
+// them (e.g. a save-validation error, or a failed entry/entries load) rather
+// than being app-wide. These are dismissed as soon as the user navigates
+// away, so they don't linger on unrelated routes like the Editorial
+// Workflow board or the Media Library (DCMS-579, DCMS-1408).
+const ROUTE_SCOPED_MESSAGE_KEYS = ['ui.toast.missingRequiredField', 'ui.toast.onFailToLoadEntries'];
 
 function isRouteScopedNotification(notification: Notification): boolean {
   return (
