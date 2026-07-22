@@ -1,11 +1,13 @@
+import { promptDialog } from 'decap-cms-ui-default';
+
 import getActiveLink from '../selectors/getActiveLink';
 import unwrapLink from '../transforms/unwrapLink';
 import wrapLink from '../transforms/wrapLink';
 
-function toggleLink(editor, promptText) {
+async function toggleLink(editor, promptText) {
   const activeLink = getActiveLink(editor);
   const activeUrl = activeLink ? activeLink[0]?.data?.url : '';
-  const url = window.prompt(promptText, activeUrl);
+  const url = await promptDialog(promptText, { defaultValue: activeUrl });
   if (url == null) return;
   if (url === '') {
     unwrapLink(editor);
