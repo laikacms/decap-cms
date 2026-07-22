@@ -349,9 +349,13 @@ function WorkflowList({
                         type="button"
                         disabled={!previousStatus}
                         onClick={() => moveTo(previousStatus)}
-                        aria-label={t('workflow.workflowList.moveToPreviousStatus', {
-                          status: previousStatus ? getColumnHeaderText(previousStatus, t) : '',
-                        })}
+                        aria-label={
+                          previousStatus
+                            ? t('workflow.workflowList.moveToPreviousStatus', {
+                                status: getColumnHeaderText(previousStatus, t),
+                              })
+                            : t('workflow.workflowList.moveToPreviousStatusShort')
+                        }
                       >
                         {t('workflow.workflowList.moveToPreviousStatusShort')}
                       </StatusActionButton>
@@ -359,9 +363,13 @@ function WorkflowList({
                         type="button"
                         disabled={!nextStatus}
                         onClick={() => moveTo(nextStatus)}
-                        aria-label={t('workflow.workflowList.moveToNextStatus', {
-                          status: nextStatus ? getColumnHeaderText(nextStatus, t) : '',
-                        })}
+                        aria-label={
+                          nextStatus
+                            ? t('workflow.workflowList.moveToNextStatus', {
+                                status: getColumnHeaderText(nextStatus, t),
+                              })
+                            : t('workflow.workflowList.moveToNextStatusShort')
+                        }
                       >
                         {t('workflow.workflowList.moveToNextStatusShort')}
                       </StatusActionButton>
