@@ -1,9 +1,15 @@
+import { Menu } from '@base-ui/react/menu';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React, { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-import Dropdown, { DropdownCheckedItem, DropdownItem, StyledDropdownButton } from '@/ui/default/Dropdown';
+import Dropdown, {
+  DropdownCheckedItem,
+  DropdownItem,
+  DropdownRadioItem,
+  StyledDropdownButton,
+} from '@/ui/default/Dropdown';
 
 describe('Dropdown', () => {
   it('renders the trigger as a button with menu ARIA wiring', async () => {
@@ -107,6 +113,56 @@ describe('Dropdown', () => {
       await screen.findByRole('menuitemcheckbox', { name: /Show drafts/, checked: true }),
     ).toBeInTheDocument();
     expect(screen.getByRole('menu')).toBeInTheDocument();
+  });
+
+  it('renders radio items with menuitemradio semantics and a single checked item (DCMS-1470)', async () => {
+    const user = userEvent.setup();
+
+    function Harness() {
+      const [selected, setSelected] = useState('draft');
+      return (
+        <Dropdown
+          closeOnSelection={false}
+          renderButton={() => <StyledDropdownButton>Status</StyledDropdownButton>}
+        >
+          <Menu.RadioGroup value={selected}>
+            <DropdownRadioItem label="Draft" value="draft" onClick={() => setSelected('draft')} />
+            <DropdownRadioItem
+              label="In review"
+              value="pending_review"
+              onClick={() => setSelected('pending_review')}
+            />
+            <DropdownRadioItem
+              label="Ready"
+              value="pending_publish"
+              onClick={() => setSelected('pending_publish')}
+            />
+          </Menu.RadioGroup>
+        </Dropdown>
+      );
+    }
+
+    render(<Harness />);
+
+    await user.click(screen.getByRole('button', { name: 'Status' }));
+
+    const draft = await screen.findByRole('menuitemradio', { name: 'Draft' });
+    const inReview = screen.getByRole('menuitemradio', { name: 'In review' });
+    const ready = screen.getByRole('menuitemradio', { name: 'Ready' });
+
+    expect(draft).toHaveAttribute('aria-checked', 'true');
+    expect(inReview).toHaveAttribute('aria-checked', 'false');
+    expect(ready).toHaveAttribute('aria-checked', 'false');
+
+    await user.click(inReview);
+
+    expect(
+      await screen.findByRole('menuitemradio', { name: 'In review', checked: true }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('menuitemradio', { name: 'Draft' })).toHaveAttribute(
+      'aria-checked',
+      'false',
+    );
   });
 
   it('puts menuId on the popover when provided', async () => {

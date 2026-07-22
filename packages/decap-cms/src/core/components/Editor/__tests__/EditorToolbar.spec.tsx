@@ -1,8 +1,10 @@
 import { act, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { EditorToolbar } from '@/core/components/Editor/EditorToolbar';
+import { status } from '@/core/constants/publishModes';
 
 import type { CmsCollectionState } from '@/lib/util/index';
 import type { TranslateFunction } from '@/ui/default/index';
@@ -227,6 +229,50 @@ describe('EditorToolbar', () => {
       unmount();
       press();
       expect(props.onPersist).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('status dropdown a11y (DCMS-1470)', () => {
+    it('exposes each status option as menuitemradio with aria-checked on the current status', async () => {
+      const user = userEvent.setup();
+      render(
+        <EditorToolbar
+          {...props}
+          hasWorkflow={true}
+          isNewEntry={false}
+          currentStatus={status.PENDING_REVIEW}
+        />,
+      );
+
+      await user.click(screen.getByRole('button', { name: /editor.editorToolbar.status/ }));
+
+      const draft = await screen.findByRole('menuitemradio', { name: 'editor.editorToolbar.draft' });
+      const inReview = screen.getByRole('menuitemradio', { name: 'editor.editorToolbar.inReview' });
+      const ready = screen.getByRole('menuitemradio', { name: 'editor.editorToolbar.ready' });
+
+      expect(draft).toHaveAttribute('aria-checked', 'false');
+      expect(inReview).toHaveAttribute('aria-checked', 'true');
+      expect(ready).toHaveAttribute('aria-checked', 'false');
+
+      // No plain, state-less menuitem left over from the old markup.
+      expect(screen.queryByRole('menuitem', { name: 'editor.editorToolbar.draft' })).not.toBeInTheDocument();
+    });
+
+    it('calls onChangeStatus with the same status keys as before when a radio item is clicked', async () => {
+      const user = userEvent.setup();
+      render(
+        <EditorToolbar
+          {...props}
+          hasWorkflow={true}
+          isNewEntry={false}
+          currentStatus={status.DRAFT}
+        />,
+      );
+
+      await user.click(screen.getByRole('button', { name: /editor.editorToolbar.status/ }));
+      await user.click(await screen.findByRole('menuitemradio', { name: 'editor.editorToolbar.inReview' }));
+
+      expect(props.onChangeStatus).toHaveBeenCalledWith('PENDING_REVIEW');
     });
   });
 });

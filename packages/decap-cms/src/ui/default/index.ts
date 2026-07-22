@@ -1,5 +1,11 @@
 import AuthenticationPage, { renderPageLogo, StandaloneAuthPage } from './AuthenticationPage';
-import Dropdown, { DropdownButton, DropdownCheckedItem, DropdownItem, StyledDropdownButton } from './Dropdown';
+import Dropdown, {
+  DropdownButton,
+  DropdownCheckedItem,
+  DropdownItem,
+  DropdownRadioItem,
+  StyledDropdownButton,
+} from './Dropdown';
 import FieldLabel from './FieldLabel';
 import GoBackButton from './GoBackButton';
 import Icon from './Icon';
@@ -37,6 +43,7 @@ export const DecapCmsUiDefault = {
   Dropdown,
   DropdownItem,
   DropdownCheckedItem,
+  DropdownRadioItem,
   DropdownButton,
   StyledDropdownButton,
   ListItemTopBar,
@@ -84,6 +91,7 @@ export {
   DropdownButton,
   DropdownCheckedItem,
   DropdownItem,
+  DropdownRadioItem,
   effects,
   FieldLabel,
   fonts,
