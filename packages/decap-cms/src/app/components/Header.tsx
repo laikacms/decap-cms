@@ -198,7 +198,9 @@ function Header({
   // A function `className` passed to a `styled(NavLink)` is stringified by
   // emotion before NavLink can call it, so the active class was never applied.
   // Derive the active state from the current route instead.
-  const contentActive = pathname === '/' || pathname.startsWith('/collections');
+  const contentActive = pathname === '/'
+    || pathname.startsWith('/collections')
+    || pathname.startsWith('/media');
   const workflowActive = pathname.startsWith('/workflow');
 
   React.useEffect(() => {
@@ -237,6 +239,7 @@ function Header({
               <AppHeaderNavLink
                 to="/"
                 className={contentActive ? ACTIVE_CLASS_NAME : undefined}
+                aria-current={contentActive ? 'page' : undefined}
                 aria-label={t('app.header.content')}
               >
                 <Icon type="page" />
@@ -248,6 +251,7 @@ function Header({
                 <AppHeaderNavLink
                   to="/workflow"
                   className={workflowActive ? ACTIVE_CLASS_NAME : undefined}
+                  aria-current={workflowActive ? 'page' : undefined}
                   aria-label={t('app.header.workflow')}
                 >
                   <Icon type="workflow" />
