@@ -577,6 +577,9 @@ export function AiChatControl(props: AiChatControlProps) {
       setError(err.message);
       widget.aiSdk?.onError?.(err);
     },
+    onFinish: (event: unknown) => {
+      widget.aiSdk?.onFinish?.(event);
+    },
     // Automatically continue after tool calls are completed
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
   });

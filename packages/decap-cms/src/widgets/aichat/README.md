@@ -40,9 +40,9 @@ CMS.registerWidget(
 - `aiSdk.onError` (optional) — called with the `Error` whenever `useChat`'s `onError` fires (e.g. a
   failed request or stream error). Invoked as `widget.aiSdk?.onError?.(err)` in the `useChat`
   `onError` handler in `AiChatControl.tsx`, after the widget sets its own local error state.
-- `aiSdk.onFinish` (optional) — declared on `AiSdkOptions` in `types.ts` for callers who want a
-  finish-event hook. It is not yet wired to `useChat` in `AiChatControl.tsx`; setting it currently
-  has no effect.
+- `aiSdk.onFinish` (optional) — called with the finish event whenever `useChat`'s `onFinish` fires
+  (i.e. the chat stream has finished). Invoked as `widget.aiSdk?.onFinish?.(event)` in the `useChat`
+  `onFinish` handler in `AiChatControl.tsx`.
 - `messages` (optional) — a `Translation` object (see `i18n/types.ts`, shape defined by `en.ts`) that
   overrides the widget's UI strings (button labels, placeholders, error text, etc.) for
   localization. Read in `AiChatControl.tsx` as `const t = widget.messages ?? en`, falling back to
