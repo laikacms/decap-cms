@@ -14,6 +14,7 @@ const messages = {
     editorInterface: {
       noPreviewRegistered:
         'No preview available for this collection. Register one with CMS.registerPreviewTemplate().',
+      previewPaneTitle: 'Preview pane',
     },
   },
 };
@@ -77,5 +78,28 @@ describe('PreviewPane (DCMS-1230)', () => {
 
     expect(screen.queryByText(/No preview available/)).not.toBeInTheDocument();
     expect(document.querySelectorAll('iframe')).toHaveLength(1);
+  });
+
+  /**
+   * DCMS-1338: the preview iframe had no `title`/`aria-label`, so assistive
+   * tech announced it as an unnamed frame (WCAG 4.1.2 Name/Role/Value).
+   */
+  it('gives the preview iframe an accessible name via title (DCMS-1338)', () => {
+    function CustomPreview() {
+      return <div>custom preview</div>;
+    }
+    registerPreviewTemplate('titled-preview-collection', CustomPreview);
+
+    const collection = {
+      type: FOLDER,
+      name: 'titled-preview-collection',
+      fields: baseProps.fields,
+    } as unknown as CmsCollectionState;
+
+    renderPreviewPane(collection);
+
+    const iframe = document.querySelector('iframe');
+    expect(iframe).not.toBeNull();
+    expect(iframe).toHaveAttribute('title', 'Preview pane');
   });
 });

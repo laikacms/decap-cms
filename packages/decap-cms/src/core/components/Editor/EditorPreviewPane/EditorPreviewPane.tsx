@@ -387,7 +387,12 @@ export function PreviewPane(props: PreviewPaneProps) {
 
   return (
     <ErrorBoundary config={config}>
-      <PreviewPaneFrame id="preview-pane" head={styleEls} initialContent={initialContent}>
+      <PreviewPaneFrame
+        id="preview-pane"
+        title={t('editor.editorInterface.previewPaneTitle')}
+        head={styleEls}
+        initialContent={initialContent}
+      >
         <FrameContextConsumer>
           {({ document, window }) => (
             <>
