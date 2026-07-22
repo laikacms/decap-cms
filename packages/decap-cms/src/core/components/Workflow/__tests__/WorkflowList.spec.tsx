@@ -120,6 +120,38 @@ describe('WorkflowList keyboard status change + SR announcement', () => {
     unmount();
   });
 
+  it('never renders empty parens in the disabled "previous status" button aria-label', () => {
+    const { getAllByText, unmount } = renderWorkflowList({
+      entries: makeEntries('draft'),
+      handleChangeStatus: vi.fn(),
+      handlePublish: vi.fn(),
+      handleDelete: vi.fn(),
+      collections,
+    });
+    const button = getAllByText('workflow.workflowList.moveToPreviousStatusShort')[0];
+    expect(button).toBeDisabled();
+    const ariaLabel = button.getAttribute('aria-label');
+    expect(ariaLabel).not.toContain('()');
+    expect(ariaLabel).toBe('workflow.workflowList.moveToPreviousStatusShort');
+    unmount();
+  });
+
+  it('never renders empty parens in the disabled "next status" button aria-label', () => {
+    const { getAllByText, unmount } = renderWorkflowList({
+      entries: makeEntries('pending_publish'),
+      handleChangeStatus: vi.fn(),
+      handlePublish: vi.fn(),
+      handleDelete: vi.fn(),
+      collections,
+    });
+    const button = getAllByText('workflow.workflowList.moveToNextStatusShort')[0];
+    expect(button).toBeDisabled();
+    const ariaLabel = button.getAttribute('aria-label');
+    expect(ariaLabel).not.toContain('()');
+    expect(ariaLabel).toBe('workflow.workflowList.moveToNextStatusShort');
+    unmount();
+  });
+
   it('announces the move via the aria-live status region after a keyboard status change', () => {
     const { getAllByText, getByRole } = renderWorkflowList({
       entries: makeEntries('draft'),
