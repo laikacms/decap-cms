@@ -90,6 +90,18 @@ function getFieldArray(field: unknown): string[] {
   return Array.isArray(field) ? (field as string[]) : [field as string];
 }
 
+// `value_field`/`search_fields` and their camelCase equivalents
+// (`valueField`/`searchFields`) are both accepted by schema.ts's `oneOf` and
+// documented in README.md as interchangeable, so the control must resolve
+// either naming convention rather than only the snake_case one (DCMS-1458).
+function getValueField(field: CmsFieldRelation & CmsFieldBase): string {
+  return (field.value_field ?? field.valueField) as string;
+}
+
+function getSearchFieldsArray(field: CmsFieldRelation & CmsFieldBase): string[] {
+  return getFieldArray(field.search_fields ?? field.searchFields);
+}
+
 function relationOptionsKey(
   collection: string,
   searchFields: string[],
@@ -197,8 +209,8 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
     }
 
     function parseHitOptions(hits: Hit[]): RelationOption[] {
-      const valueField = field.value_field as string;
-      const displayField = (field.display_fields || [field.value_field]) as string[];
+      const valueField = getValueField(field);
+      const displayField = (field.display_fields || [valueField]) as string[];
       const filters = getFieldArray(field.filters);
 
       return hits.reduce((acc: RelationOption[], hit: Hit) => {
@@ -329,7 +341,7 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
       if (v && hiv(v)) {
         (async () => {
           const collection = f.collection;
-          const searchFieldsArray = getFieldArray(f.search_fields);
+          const searchFieldsArray = getSearchFieldsArray(f);
           const file = f.file;
           try {
             const result = (await queryCore.fetch(
@@ -431,7 +443,7 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
             parseHitOptions: pho,
           } = loadOptionsCtxRef.current;
           const collection = f.collection;
-          const searchFieldsArray = getFieldArray(f.search_fields);
+          const searchFieldsArray = getSearchFieldsArray(f);
           const file = f.file as string | undefined;
 
           setIsLoading(true);

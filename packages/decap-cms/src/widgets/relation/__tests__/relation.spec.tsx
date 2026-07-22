@@ -516,6 +516,41 @@ describe('Relation widget', () => {
     });
   });
 
+  // DCMS-1458: README.md and schema.ts's `oneOf` both document `valueField`/
+  // `searchFields` (camelCase) as an equally valid alternative to
+  // `value_field`/`search_fields`, but RelationControl.tsx only read the
+  // snake_case keys, so a camelCase-only config passed schema validation and
+  // then silently returned no options/search results at runtime.
+  it('resolves options and search results from a camelCase-only config (valueField/searchFields, DCMS-1458)', async () => {
+    const camelCaseFieldConfig = {
+      name: 'post',
+      collection: 'posts',
+      display_fields: ['title', 'slug'],
+      searchFields: ['title', 'body'],
+      valueField: 'title',
+    };
+
+    const field = camelCaseFieldConfig;
+    const { getAllByText, getByText, input, onChangeSpy } = setup({ field });
+
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    await waitFor(() => {
+      expect(getAllByText(/^Post # (\d{1,2}) post-number-\1$/)).toHaveLength(20);
+    });
+
+    await userEvent.type(input, 'YAML');
+    await waitFor(() => {
+      expect(getAllByText('YAML post post-yaml')).toHaveLength(1);
+    });
+
+    fireEvent.click(getByText('YAML post post-yaml'));
+    expect(onChangeSpy).toHaveBeenCalledWith('YAML post', {
+      post: {
+        posts: { 'YAML post': { title: 'YAML post', slug: 'post-yaml', body: 'Body yaml' } },
+      },
+    });
+  });
+
   it('should default display_fields to value_field', async () => {
     const { display_fields: _d, ...fieldConfigWithoutDisplay } = fieldConfig;
     const field = fieldConfigWithoutDisplay;

@@ -9,8 +9,13 @@ export interface CmsFieldRelation {
   default?: string | string[];
 
   collection: string;
-  value_field: string;
-  search_fields: string[];
+  // `value_field`/`search_fields` and their camelCase equivalents are
+  // equally valid per the JSON schema's `oneOf` (schema.ts) and README; one
+  // of each pair is required, so both are typed optional here (DCMS-1458).
+  value_field?: string;
+  valueField?: string;
+  search_fields?: string[];
+  searchFields?: string[];
   file?: string;
   display_fields?: string[];
   multiple?: boolean;
