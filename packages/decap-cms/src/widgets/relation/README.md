@@ -28,29 +28,31 @@ syntax (`upper`, `lower`, `date()`, `default()`, `ternary()`, `truncate()`) - se
 
 ## Search behavior
 
-- Typing in the search box is **debounced by 500ms** (`RelationControl.tsx`) before a query is
-  issued, to avoid firing a request per keystroke.
+- Typing in the search box is **debounced by 500ms** (the `loadOptions` callback in
+  `src/widgets/relation/RelationControl.tsx`) before a query is issued, to avoid firing a request per
+  keystroke.
 - Query results are capped client-side to `options_length` (default `20`) after being deduplicated
   against any already-selected options.
 
 ## Caching and staleness
 
 Search results are cached by the shared query coordinator, `queryCore`
-(`src/lib/util/queryCore.ts`). `RelationControl.tsx` calls
+(`src/lib/util/queryCore.ts`). `src/widgets/relation/RelationControl.tsx` calls
 `queryCore.fetch(key, () => query(...), { tags: [collectionTag(collection)], keepValue: true })` for
-both the initial-value lookup and debounced searches (`RelationControl.tsx:334-337,
-437-441`). The
-cache key is built by `relationOptionsKey(collection, searchFields, term, file)`
-(`RelationControl.tsx:94`), so the exact same search (same collection, search fields, term and file)
-returns the cached result set — via `keepValue: true` — instead of re-querying the backend.
+both the initial-value lookup (in the mount effect) and debounced searches (in `loadOptions`). The
+cache key is built by the `relationOptionsKey(collection, searchFields, term, file)` helper in the
+same file, so the exact same search (same collection, search fields, term and file) returns the
+cached result set — via `keepValue: true` — instead of re-querying the backend.
 
 `queryCore` entries are fresh for a 30s TTL by default and are also bounded to the 100 most
 recently-inserted kept values (`QueryCore.ensureValueCap`, `src/lib/util/queryCore.ts`), evicting
 the oldest entry once the cap is exceeded. Beyond the TTL, invalidation is tag-based: every relation
 query is tagged with `collectionTag(collection)`, and `queryCore.invalidateTags([...])` clears every
 cached key sharing a tag. This is called on entry save, delete, publish, and unpublish:
-`src/core/actions/entries.tsx:937` (save) and `src/core/actions/editorialWorkflow.tsx:417` (save
-draft), `:507` (delete unpublished), and `:543` (publish).
+`persistEntry` and `deleteEntry` in `src/core/actions/entries.tsx` (save, and delete of a published
+entry, respectively), and `persistUnpublishedEntry` (save draft), `deleteUnpublishedEntry` (delete
+unpublished), `publishUnpublishedEntry` (publish), and `unpublishPublishedEntry` (unpublish) in
+`src/core/actions/editorialWorkflow.tsx`.
 
 Because invalidation is keyed by collection name (`collectionTag`), it clears every cached search
 for that collection, not just the specific entry that changed — searches are re-issued the next time
