@@ -81,8 +81,9 @@ branch) — releasing is a manual process for now:
 1. Bump `version` in `packages/decap-cms/package.json` and commit.
 2. Run `pnpm test:ci` and make sure it passes.
 3. Tag the commit `v<version>` and push the tag.
-4. Build and publish to npm manually (e.g. `pnpm build` then `npm publish` from
-   `packages/decap-cms`), and write the GitHub release notes by hand.
+4. Run `pnpm release` from the repo root (root `package.json`'s `release` script, currently
+   `pnpm -r publish --publish-branch v4.beta`) to publish to npm, and write the GitHub release
+   notes by hand.
 
 ## License
 
