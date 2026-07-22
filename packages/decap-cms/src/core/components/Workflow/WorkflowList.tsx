@@ -223,16 +223,26 @@ function WorkflowList({
   }
 
   async function requestDelete(collection: string, slug: string, ownStatus: string) {
-    if (await confirmDialog(t('workflow.workflowList.onDeleteEntry'))) {
+    if (
+      await confirmDialog(t('workflow.workflowList.onDeleteEntry'), {
+        title: t('workflow.workflowList.onDeleteEntryTitle'),
+      })
+    ) {
       handleDelete(collection, slug, ownStatus);
     }
   }
 
   async function requestPublish(collection: string, slug: string, ownStatus: string) {
     if (ownStatus !== Object.values(status).pop()) {
-      showAlert(t('workflow.workflowList.onPublishingNotReadyEntry'));
+      showAlert(t('workflow.workflowList.onPublishingNotReadyEntry'), {
+        title: t('workflow.workflowList.onPublishingNotReadyEntryTitle'),
+      });
       return;
-    } else if (!(await confirmDialog(t('workflow.workflowList.onPublishEntry')))) {
+    } else if (
+      !(await confirmDialog(t('workflow.workflowList.onPublishEntry'), {
+        title: t('workflow.workflowList.onPublishEntryTitle'),
+      }))
+    ) {
       return;
     }
     handlePublish(collection, slug);

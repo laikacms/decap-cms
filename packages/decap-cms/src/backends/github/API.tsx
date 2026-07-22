@@ -788,11 +788,14 @@ export default class API {
       for (const pr of pullRequests) {
         if (!migrationNotified) {
           migrationNotified = true;
-          showAlert(oneLine`
+          showAlert(
+            oneLine`
             Decap CMS is adding labels to ${pullRequests.length} of your Editorial Workflow
             entries. The "Workflow" tab will be unavailable during this migration. You may use other
             areas of the CMS during this time. Note that closing the CMS will pause the migration.
-          `);
+          `,
+            { title: 'Migrating workflow labels' },
+          );
         }
         prCount = prCount + 1;
         await this.migratePullRequest(pr, `${prCount} of ${pullRequests.length}`);

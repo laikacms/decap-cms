@@ -433,7 +433,9 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
           }
 
           if (!isSafeUrl(url)) {
-            await showAlert(t(`editor.editorWidgets.${subject}.invalidUrl`));
+            await showAlert(t(`editor.editorWidgets.${subject}.invalidUrl`), {
+              title: t(`editor.editorWidgets.${subject}.invalidUrlTitle`),
+            });
             return;
           }
 

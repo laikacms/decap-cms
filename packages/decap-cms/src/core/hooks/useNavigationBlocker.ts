@@ -10,6 +10,8 @@ interface UseNavigationBlockerOptions {
   shouldBlock: () => boolean;
   /** Message to show when blocking navigation */
   message: string;
+  /** Confirm dialog heading; defaults to "Unsaved changes" (DCMS-1471) */
+  title?: string;
   /** Callback when navigation is allowed (unblocked) */
   onNavigate?: () => void;
   /** Paths that should not trigger the blocker */
@@ -30,6 +32,7 @@ interface UseNavigationBlockerOptions {
 export function useNavigationBlocker({
   shouldBlock,
   message,
+  title = 'Unsaved changes',
   onNavigate,
   allowedPaths = [],
 }: UseNavigationBlockerOptions) {
@@ -64,7 +67,7 @@ export function useNavigationBlocker({
       if (shouldBlock()) {
         // Block by not calling tx.retry()
         // Show confirmation via the AlertDialog-backed confirm (DCMS-658)
-        if (await confirmDialog(message)) {
+        if (await confirmDialog(message, { title })) {
           unblockRef.current?.();
           tx.retry();
         }
@@ -97,7 +100,7 @@ export function useNavigationBlocker({
       cleanup();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `cleanup` is defined below and itself depends only on stable refs
-  }, [shouldBlock, message, onNavigate, allowedPaths, router]);
+  }, [shouldBlock, message, title, onNavigate, allowedPaths, router]);
 
   const cleanup = useCallback(() => {
     unblockRef.current?.();

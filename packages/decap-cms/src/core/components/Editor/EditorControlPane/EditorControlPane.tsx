@@ -167,6 +167,7 @@ const ControlPane = React.forwardRef<ControlPaneHandle, ControlPaneProps>(
           tt('editor.editorControlPane.i18n.copyFromLocaleConfirm', {
             locale: sourceLocale.toUpperCase(),
           }),
+          { title: tt('editor.editorControlPane.i18n.copyFromLocaleConfirmTitle') },
         ))
       ) {
         return;

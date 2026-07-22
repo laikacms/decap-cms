@@ -48,7 +48,7 @@ export default function AzureAuthenticationPage({
     // Complete implicit authentication if we were redirected back from the provider.
     auth.completeAuth((err, data) => {
       if (err) {
-        showAlert(String(err));
+        showAlert(String(err), { title: 'Authentication failed' });
         return;
       }
       if (data) {

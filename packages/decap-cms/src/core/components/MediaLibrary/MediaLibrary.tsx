@@ -255,6 +255,7 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
         t('mediaLibrary.mediaLibrary.fileTooLarge', {
           size: Math.floor(maxFileSize / 1000),
         }),
+        { title: t('mediaLibrary.mediaLibrary.fileTooLargeTitle') },
       );
     } else {
       await persistMedia(file, { privateUpload, field });
@@ -274,7 +275,11 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
   }
 
   async function handleDelete() {
-    if (!(await confirmDialog(t('mediaLibrary.mediaLibrary.onDelete')))) {
+    if (
+      !(await confirmDialog(t('mediaLibrary.mediaLibrary.onDelete'), {
+        title: t('mediaLibrary.mediaLibrary.onDeleteTitle'),
+      }))
+    ) {
       return;
     }
     const selectedKey = 'key' in selectedFile ? selectedFile.key : undefined;

@@ -236,7 +236,7 @@ export function useEditor({
 
       // Block navigation if there are unsaved changes (unless user confirms)
       if (draft?.hasChanged) {
-        if (await confirmDialog(leaveMessage)) {
+        if (await confirmDialog(leaveMessage, { title: t('editor.editor.onLeavePageTitle') })) {
           unblockRef.current?.();
           tx.retry();
         }
@@ -345,7 +345,7 @@ export function useEditor({
       if (!prevLocalBackup && localBackup) {
         const confirmLoadBackup = await confirmDialog(
           t('editor.editor.confirmLoadBackup'),
-          {},
+          { title: t('editor.editor.confirmLoadBackupTitle') },
           unmountControllerRef.current.signal,
         );
         if (confirmLoadBackup) {
@@ -396,7 +396,9 @@ export function useEditor({
       if (!collection || !slug || !currentStatus) return;
 
       if (entryDraft?.hasChanged) {
-        showAlert(t('editor.editor.onUpdatingWithUnsavedChanges'));
+        showAlert(t('editor.editor.onUpdatingWithUnsavedChanges'), {
+          title: t('editor.editor.onUpdatingWithUnsavedChangesTitle'),
+        });
         return;
       }
       const newStatus = (status as unknown as Record<string, string>)[newStatusName] as
@@ -457,12 +459,20 @@ export function useEditor({
       if (!slug) return;
 
       if (currentStatus !== Object.values(status).pop()) {
-        showAlert(t('editor.editor.onPublishingNotReady'));
+        showAlert(t('editor.editor.onPublishingNotReady'), {
+          title: t('editor.editor.onPublishingNotReadyTitle'),
+        });
         return;
       } else if (entryDraft?.hasChanged) {
-        showAlert(t('editor.editor.onPublishingWithUnsavedChanges'));
+        showAlert(t('editor.editor.onPublishingWithUnsavedChanges'), {
+          title: t('editor.editor.onPublishingWithUnsavedChangesTitle'),
+        });
         return;
-      } else if (!(await confirmDialog(t('editor.editor.onPublishing')))) {
+      } else if (
+        !(await confirmDialog(t('editor.editor.onPublishing'), {
+          title: t('editor.editor.onPublishingTitle'),
+        }))
+      ) {
         return;
       }
 
@@ -483,7 +493,12 @@ export function useEditor({
   const handleUnpublishEntry = useCallback(async () => {
     if (!collection || !slug) return;
 
-    if (!(await confirmDialog(t('editor.editor.onUnpublishing'), { destructive: true }))) return;
+    if (
+      !(await confirmDialog(t('editor.editor.onUnpublishing'), {
+        destructive: true,
+        title: t('editor.editor.onUnpublishingTitle'),
+      }))
+    ) return;
 
     await dispatch(unpublishPublishedEntry(collection, slug) as any);
     return navigateToCollection(collection.name);
@@ -501,10 +516,20 @@ export function useEditor({
     if (!collection) return;
 
     if (entryDraft?.hasChanged) {
-      if (!(await confirmDialog(t('editor.editor.onDeleteWithUnsavedChanges'), { destructive: true }))) {
+      if (
+        !(await confirmDialog(t('editor.editor.onDeleteWithUnsavedChanges'), {
+          destructive: true,
+          title: t('editor.editor.onDeleteWithUnsavedChangesTitle'),
+        }))
+      ) {
         return;
       }
-    } else if (!(await confirmDialog(t('editor.editor.onDeletePublishedEntry'), { destructive: true }))) {
+    } else if (
+      !(await confirmDialog(t('editor.editor.onDeletePublishedEntry'), {
+        destructive: true,
+        title: t('editor.editor.onDeletePublishedEntryTitle'),
+      }))
+    ) {
       return;
     }
 
@@ -526,10 +551,18 @@ export function useEditor({
 
     if (
       entryDraft?.hasChanged
-      && !(await confirmDialog(t('editor.editor.onDeleteUnpublishedChangesWithUnsavedChanges'), { destructive: true }))
+      && !(await confirmDialog(t('editor.editor.onDeleteUnpublishedChangesWithUnsavedChanges'), {
+        destructive: true,
+        title: t('editor.editor.onDeleteUnpublishedChangesWithUnsavedChangesTitle'),
+      }))
     ) {
       return;
-    } else if (!(await confirmDialog(t('editor.editor.onDeleteUnpublishedChanges'), { destructive: true }))) {
+    } else if (
+      !(await confirmDialog(t('editor.editor.onDeleteUnpublishedChanges'), {
+        destructive: true,
+        title: t('editor.editor.onDeleteUnpublishedChangesTitle'),
+      }))
+    ) {
       return;
     }
 
