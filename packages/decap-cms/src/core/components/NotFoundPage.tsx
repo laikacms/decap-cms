@@ -37,7 +37,7 @@ interface NotFoundPageProps {
 function NotFoundPage({ t, collectionName, message, backLink }: NotFoundPageProps) {
   return (
     <NotFoundContainer>
-      <h2>{t('app.notFoundPage.header')}</h2>
+      <h1>{t('app.notFoundPage.header')}</h1>
       {collectionName && <p>{t('app.notFoundPage.collectionNotFound', { name: collectionName })}</p>}
       {message && <p>{message}</p>}
       {backLink && (
