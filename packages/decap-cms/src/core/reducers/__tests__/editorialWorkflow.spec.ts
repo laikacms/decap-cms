@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
 import { UNPUBLISHED_ENTRIES_SUCCESS } from '@/core/actions/editorialWorkflow';
-import unpublishedEntries from '@/core/reducers/editorialWorkflow';
+import { status as statusValues } from '@/core/constants/publishModes';
+import unpublishedEntries, {
+  selectUnpublishedEntriesByStatus,
+  selectUnpublishedEntriesGroupedByStatus,
+  selectUnpublishedEntry,
+  selectUnpublishedSlugs,
+} from '@/core/reducers/editorialWorkflow';
+
+import type { EditorialWorkflow } from '@/core/reducers/editorialWorkflow';
 
 describe('unpublishedEntries reducer', () => {
   it('should return the default state on an empty action', () => {
@@ -57,6 +65,116 @@ describe('unpublishedEntries reducer', () => {
         'posts.fresh-post': { ...entries[0], isFetching: false },
       });
       expect(result.pages).toEqual({ ids: ['fresh-post'] });
+    });
+  });
+
+  describe('selectUnpublishedEntry', () => {
+    const state: EditorialWorkflow = {
+      entities: {
+        'posts.first-post': { collection: 'posts', slug: 'first-post', status: 'draft' },
+      },
+      pages: {},
+    };
+
+    it('should return the entry when found', () => {
+      expect(selectUnpublishedEntry(state, 'posts', 'first-post')).toEqual(
+        state.entities['posts.first-post'],
+      );
+    });
+
+    it('should return undefined when the entry is not found', () => {
+      expect(selectUnpublishedEntry(state, 'posts', 'missing-post')).toBeUndefined();
+    });
+  });
+
+  describe('selectUnpublishedEntriesByStatus', () => {
+    const state: EditorialWorkflow = {
+      entities: {
+        'posts.first-post': { collection: 'posts', slug: 'first-post', status: 'draft' },
+        'posts.second-post': {
+          collection: 'posts',
+          slug: 'second-post',
+          status: 'pending_review',
+        },
+        'posts.third-post': { collection: 'posts', slug: 'third-post', status: 'draft' },
+      },
+      pages: {},
+    };
+
+    it('should return only entries matching the given status', () => {
+      expect(selectUnpublishedEntriesByStatus(state, 'draft')).toEqual([
+        state.entities['posts.first-post'],
+        state.entities['posts.third-post'],
+      ]);
+    });
+
+    it('should return an empty array when no entries match the status', () => {
+      expect(selectUnpublishedEntriesByStatus(state, 'pending_publish')).toEqual([]);
+    });
+  });
+
+  describe('selectUnpublishedEntriesGroupedByStatus', () => {
+    it('should group entries by every known status', () => {
+      const state: EditorialWorkflow = {
+        entities: {
+          'posts.first-post': { collection: 'posts', slug: 'first-post', status: 'draft' },
+          'posts.second-post': {
+            collection: 'posts',
+            slug: 'second-post',
+            status: 'pending_review',
+          },
+        },
+        pages: {},
+      };
+
+      const result = selectUnpublishedEntriesGroupedByStatus(state);
+
+      expect(result).toEqual({
+        [statusValues.DRAFT]: [state.entities['posts.first-post']],
+        [statusValues.PENDING_REVIEW]: [state.entities['posts.second-post']],
+        [statusValues.PENDING_PUBLISH]: [],
+      });
+    });
+
+    it('should return empty arrays for every status when there are no entities', () => {
+      const state: EditorialWorkflow = { entities: {}, pages: {} };
+
+      const result = selectUnpublishedEntriesGroupedByStatus(state);
+
+      expect(result).toEqual({
+        [statusValues.DRAFT]: [],
+        [statusValues.PENDING_REVIEW]: [],
+        [statusValues.PENDING_PUBLISH]: [],
+      });
+    });
+  });
+
+  describe('selectUnpublishedSlugs', () => {
+    const state: EditorialWorkflow = {
+      entities: {
+        'posts.first-post': { collection: 'posts', slug: 'first-post', status: 'draft' },
+        'posts.second-post': {
+          collection: 'posts',
+          slug: 'second-post',
+          status: 'pending_review',
+        },
+        'pages.about': { collection: 'pages', slug: 'about', status: 'draft' },
+      },
+      pages: {},
+    };
+
+    it('should return the slugs for entries belonging to the given collection', () => {
+      expect(selectUnpublishedSlugs(state, 'posts')).toEqual(['first-post', 'second-post']);
+    });
+
+    it('should return an empty array when no entities match the collection', () => {
+      expect(selectUnpublishedSlugs(state, 'videos')).toEqual([]);
+    });
+
+    it('should return null when state has no entities', () => {
+      expect(
+        selectUnpublishedSlugs({ entities: undefined } as unknown as EditorialWorkflow, 'posts'),
+      ).toBeNull();
     });
   });
 });
