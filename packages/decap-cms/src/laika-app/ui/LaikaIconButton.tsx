@@ -79,7 +79,14 @@ export interface LaikaIconButtonProps extends
 const LaikaIconButton = React.forwardRef<HTMLButtonElement, LaikaIconButtonProps>(
   function LaikaIconButton({ size = 'md', active, type = 'button', children, ...rest }, ref) {
     return (
-      <Button ref={ref} $size={size} $active={active} type={type} {...rest}>
+      <Button
+        ref={ref}
+        $size={size}
+        $active={active}
+        type={type}
+        aria-pressed={active}
+        {...rest}
+      >
         {children}
       </Button>
     );
