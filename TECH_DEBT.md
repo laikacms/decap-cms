@@ -28,7 +28,7 @@
 
 - [x] Put shared types in `decap-cms-lib-util` package
 - [x] Remove Immutable.js
-- [ ] Add ESLint rules for import patterns
+- [x] Add ESLint rules for import patterns (see `packages/decap-cms/eslint.config.mjs` — `local/layer-deps`, `local/prefer-alias`, `import/order`)
 - [x] Constants contain non-constants: packages/decap-cms-core/src/constants/configSchema.ts
 - [x] Immutable.js is causing to many problems, policy is to try and avoid using it and replacing it
       with ES6 syntax (spread operator, ?. operator)
