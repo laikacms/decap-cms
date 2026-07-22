@@ -81,6 +81,48 @@ describe('PreviewPane (DCMS-1230)', () => {
   });
 
   /**
+   * DCMS-1391: the empty-state message used `colors.textFieldBorder`
+   * (`#dfdfe3`, a 1px input-border colour) as its text colour, yielding a
+   * 1.32:1 contrast ratio against the white pane background — effectively
+   * invisible. It must use a text-appropriate token that reaches the WCAG
+   * 2.1 AA threshold of 4.5:1 for normal text.
+   */
+  it('renders the empty-state message with a legible text colour (DCMS-1391)', () => {
+    const collection = {
+      type: FOLDER,
+      name: 'no-preview-collection',
+      fields: baseProps.fields,
+    } as unknown as CmsCollectionState;
+
+    renderPreviewPane(collection);
+
+    const message = screen.getByText(
+      'No preview available for this collection. Register one with CMS.registerPreviewTemplate().',
+    );
+    // jsdom doesn't resolve `var(--token, #fallback)`, so the computed
+    // `color` comes back as that raw CSS custom-property expression. Pull
+    // the fallback hex out of it directly rather than relying on jsdom to
+    // resolve the variable.
+    const { color } = getComputedStyle(message);
+    const hexMatch = color.match(/#([0-9a-fA-F]{6})/);
+    expect(hexMatch).not.toBeNull();
+    const hex = hexMatch![1];
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex.slice(2, 4), 16);
+    const b = parseInt(hex.slice(4, 6), 16);
+
+    const toLinear = (channel: number) => {
+      const c = channel / 255;
+      return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    };
+    const luminance = 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+    // Background is white (#fff), whose relative luminance is 1.
+    const contrastOnWhite = (1 + 0.05) / (luminance + 0.05);
+
+    expect(contrastOnWhite).toBeGreaterThanOrEqual(4.5);
+  });
+
+  /**
    * DCMS-1338: the preview iframe had no `title`/`aria-label`, so assistive
    * tech announced it as an unnamed frame (WCAG 4.1.2 Name/Role/Value).
    */

@@ -50,7 +50,7 @@ const NoPreviewMessage = styled.div`
   justify-content: center;
   text-align: center;
   padding: 20px;
-  color: ${colors.textFieldBorder};
+  color: ${colors.controlLabel};
 `;
 
 type InferableFieldValue = (typeof INFERABLE_FIELDS)[keyof typeof INFERABLE_FIELDS];
