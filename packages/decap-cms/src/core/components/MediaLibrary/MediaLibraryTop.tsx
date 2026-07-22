@@ -97,7 +97,7 @@ function MediaLibraryTop({
             draft={selectedFile?.draft}
             t={t}
           />
-          <DownloadButton onClick={onDownload} disabled={!hasSelection}>
+          <DownloadButton onClick={onDownload} disabled={!hasSelection} aria-disabled={!hasSelection}>
             {downloadButtonLabel}
           </DownloadButton>
           <UploadButton
@@ -117,11 +117,11 @@ function MediaLibraryTop({
           disabled={searchDisabled}
         />
         <ButtonsContainer>
-          <DeleteButton onClick={onDelete} disabled={!deleteEnabled}>
+          <DeleteButton onClick={onDelete} disabled={!deleteEnabled} aria-disabled={!deleteEnabled}>
             {deleteButtonLabel}
           </DeleteButton>
           {!canInsert ? null : (
-            <InsertButton onClick={onInsert} disabled={!hasSelection}>
+            <InsertButton onClick={onInsert} disabled={!hasSelection} aria-disabled={!hasSelection}>
               {insertButtonLabel}
             </InsertButton>
           )}
