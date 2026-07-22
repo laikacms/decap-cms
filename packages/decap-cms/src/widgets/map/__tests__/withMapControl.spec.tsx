@@ -292,16 +292,27 @@ describe('MapControl aria validation wiring (DCMS-1086)', () => {
     vi.unstubAllGlobals();
   });
 
-  test('marks a required field as aria-required by default', () => {
+  // DCMS-1389: `role="application"` does not allow `aria-required` (ARIA
+  // 1.3 aria-allowed-attr), so the container never carries it; required-ness
+  // is instead conveyed via a suffix on the accessible name (`aria-label`).
+  test('never sets aria-required on the application container, even when required', () => {
     const { target } = setup({ forID: 'location-field-1' });
-    expect(target).toHaveAttribute('aria-required', 'true');
+    expect(target).not.toHaveAttribute('aria-required');
     expect(target).toHaveAttribute('role', 'application');
     expect(target).toHaveAttribute('id', 'location-field-1');
   });
 
-  test('does not mark an explicitly optional field as aria-required', () => {
-    const { target } = setup({ field: { type: 'Point', required: false } });
-    expect(target).toHaveAttribute('aria-required', 'false');
+  test('conveys required-ness through the accessible name by default', () => {
+    const { target } = setup({ field: { type: 'Point', name: 'location' } });
+    expect(target).toHaveAttribute(
+      'aria-label',
+      'location (editor.editorControl.field.required)',
+    );
+  });
+
+  test('omits the required accessible-name cue when the field is optional', () => {
+    const { target } = setup({ field: { type: 'Point', name: 'location', required: false } });
+    expect(target).toHaveAttribute('aria-label', 'location');
   });
 
   test('has no aria-invalid when the field has no errors', () => {

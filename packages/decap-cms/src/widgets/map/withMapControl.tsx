@@ -61,6 +61,7 @@ export default function withMapControl({ getFormat, getMap }: WithMapControlOpti
     hasErrors,
     errorListId,
     hintId,
+    t,
   }: MapControlProps) {
     const mapContainer = React.useRef<HTMLDivElement | null>(null);
 
@@ -192,8 +193,11 @@ export default function withMapControl({ getFormat, getMap }: WithMapControlOpti
             id={forID}
             role="application"
             tabIndex={-1}
-            aria-label={`${field.label || field.name}`}
-            aria-required={field.required !== false}
+            aria-label={
+              field.required !== false
+                ? `${field.label || field.name} (${t('editor.editorControl.field.required')})`
+                : `${field.label || field.name}`
+            }
             aria-invalid={hasErrors || undefined}
             aria-errormessage={hasErrors ? errorListId : undefined}
             aria-describedby={hintId}
