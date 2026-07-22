@@ -96,3 +96,53 @@ describe('ui-default color-contrast (DCMS-1436)', () => {
     expect(resolveHex(colors.buttonDisabledText).toLowerCase()).not.toBe(subAaGray);
   });
 });
+
+/**
+ * Regression test for DCMS-1459: `buttons.default` (styles.tsx), `buttons.grayText`
+ * (styles.tsx), and `GoBackButton`'s `ButtonText` all still referenced
+ * `colorsRaw.gray` (`#798291`) directly as a text color / background-under-white-text,
+ * missed by the DCMS-1436 token remap because they read the raw palette instead of
+ * the semantic `colors.*` tokens. Same 3.87:1 (on `#fff`) / 3.40:1 (on `#eff0f4`)
+ * sub-AA failure as DCMS-1436.
+ *
+ * Fix mirrors the pattern `buttons.gray` already used: `buttons.default` now sources
+ * its background/foreground pair from `colors.button` / `colors.buttonText` (same
+ * tokens as `buttons.gray`), and `buttons.grayText` / `GoBackButton`'s `ButtonText`
+ * now source their foreground from `colors.text` (`colorsRawDefaults.grayDark`,
+ * `#313d3e`) — the same token DCMS-1436 already verified clears 4.5:1 against both
+ * `colors.background` and `colors.foreground`.
+ */
+describe('ui-default button color-contrast (DCMS-1459)', () => {
+  it('buttons.default background/foreground pair (colors.button / colors.buttonText) reaches AA contrast (>= 4.5:1)', () => {
+    const ratio = contrastRatio(colors.button, colors.buttonText);
+
+    expect(ratio).toBeGreaterThanOrEqual(AA_MIN_CONTRAST);
+  });
+
+  it.each(backdropsForButtonText())(
+    'buttons.grayText / GoBackButton ButtonText foreground (colors.text) reaches AA contrast (>= 4.5:1) against colors.%s (%s)',
+    (_bgName, bgValue) => {
+      const ratio = contrastRatio(colors.text, bgValue);
+
+      expect(ratio).toBeGreaterThanOrEqual(AA_MIN_CONTRAST);
+    },
+  );
+
+  it('no longer resolves buttons.default/grayText or GoBackButton text color to the sub-AA raw gray', () => {
+    const subAaGray = '#798291';
+
+    // buttons.default and buttons.gray share the same colors.button/colors.buttonText
+    // tokens, so asserting on the tokens covers both call-sites.
+    expect(resolveHex(colors.button).toLowerCase()).not.toBe(subAaGray);
+    expect(resolveHex(colors.buttonText).toLowerCase()).not.toBe(subAaGray);
+    // buttons.grayText and GoBackButton's ButtonText both now resolve to colors.text.
+    expect(resolveHex(colors.text).toLowerCase()).not.toBe(subAaGray);
+  });
+});
+
+function backdropsForButtonText(): Array<[string, string]> {
+  return [
+    ['background', colors.background],
+    ['foreground', colors.foreground],
+  ];
+}
