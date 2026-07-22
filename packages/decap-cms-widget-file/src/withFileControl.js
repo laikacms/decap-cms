@@ -15,6 +15,8 @@ import {
   effects,
   shadows,
   IconButton,
+  promptDialog,
+  showAlert,
 } from 'decap-cms-ui-default';
 import { basename } from 'decap-cms-lib-util';
 import { arrayMoveImmutable as arrayMove } from 'array-move';
@@ -348,17 +350,17 @@ export default function withFileControl({ forImage } = {}) {
       });
     };
 
-    handleUrl = subject => e => {
+    handleUrl = subject => async e => {
       e.preventDefault();
 
-      const url = window.prompt(this.props.t(`editor.editorWidgets.${subject}.promptUrl`));
+      const url = await promptDialog(this.props.t(`editor.editorWidgets.${subject}.promptUrl`));
 
       if (!url) {
         return;
       }
 
       if (!isSafeUrl(url)) {
-        window.alert(this.props.t(`editor.editorWidgets.${subject}.invalidUrl`));
+        await showAlert(this.props.t(`editor.editorWidgets.${subject}.invalidUrl`));
         return;
       }
 

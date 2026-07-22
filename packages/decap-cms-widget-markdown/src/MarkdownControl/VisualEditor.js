@@ -168,8 +168,8 @@ function Editor(props) {
     }
   }
 
-  function handleLinkClick() {
-    toggleLink(editor, t('editor.editorWidgets.markdown.linkPrompt'));
+  async function handleLinkClick() {
+    await toggleLink(editor, t('editor.editorWidgets.markdown.linkPrompt'));
     ReactEditor.focus(editor);
   }
 

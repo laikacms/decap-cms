@@ -7,6 +7,7 @@ import map from 'lodash/map';
 import { translate } from 'react-polyglot';
 import fuzzy from 'fuzzy';
 import { fileExtension } from 'decap-cms-lib-util';
+import { confirmDialog, showAlert } from 'decap-cms-ui-default';
 
 import {
   loadMedia as loadMediaAction,
@@ -197,7 +198,7 @@ class MediaLibrary extends React.Component {
     const maxFileSize = config.get('max_file_size');
 
     if (maxFileSize && file.size > maxFileSize) {
-      window.alert(
+      await showAlert(
         t('mediaLibrary.mediaLibrary.fileTooLarge', {
           size: Math.floor(maxFileSize / 1000),
         }),
@@ -228,10 +229,10 @@ class MediaLibrary extends React.Component {
   /**
    * Removes the selected file from the backend.
    */
-  handleDelete = () => {
+  handleDelete = async () => {
     const { selectedFile } = this.state;
     const { files, deleteMedia, privateUpload, t } = this.props;
-    if (!window.confirm(t('mediaLibrary.mediaLibrary.onDelete'))) {
+    if (!(await confirmDialog(t('mediaLibrary.mediaLibrary.onDelete'), { destructive: true }))) {
       return;
     }
     const file = files.find(file => selectedFile.key === file.key);
