@@ -12,7 +12,7 @@ import { currentBackend } from '../../backend';
 import { createNewEntry } from '../../actions/collections';
 import { openMediaLibrary, closeMediaLibrary } from '../../actions/mediaLibrary';
 import MediaLibrary from '../MediaLibrary/MediaLibrary';
-import { Notifications } from '../UI';
+import { AlertDialogHost, ConfirmDialogHost, Notifications, PromptDialogHost } from '../UI';
 import { history } from '../../routing/history';
 import { SIMPLE, EDITORIAL_WORKFLOW } from '../../constants/publishModes';
 import Collection from '../Collection/Collection';
@@ -266,6 +266,9 @@ class App extends React.Component {
     return (
       <>
         <Notifications />
+        <AlertDialogHost />
+        <ConfirmDialogHost />
+        <PromptDialogHost />
         {!editorRoute && (
           <Header
             user={user}
