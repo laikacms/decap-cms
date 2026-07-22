@@ -58,6 +58,15 @@ declare module 'decap-cms-core' {
   export interface CmsFieldBase {
     name: string;
     label?: string;
+    /**
+     * Defaults to `true`. The editor form marks required fields with a
+     * visible `*` next to the label (optional fields carry no marker) — this
+     * mirrors the native HTML `required` attribute already applied to the
+     * underlying widget input, so `aria-required`/screen-reader behavior is
+     * unaffected. Custom widgets that render their own label should follow
+     * the same asterisk-on-required convention instead of labelling
+     * optional fields.
+     */
     required?: boolean;
     hint?: string;
     /** RegExp is only valid when using the JS API; YAML/JSON config only supports string patterns. */

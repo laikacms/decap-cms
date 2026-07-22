@@ -107,24 +107,27 @@ export const ControlHint = styled.p`
   transition: color ${transitions.main};
 `;
 
+const RequiredFieldMarker = styled.span`
+  color: ${colors.errorText};
+  margin-left: 2px;
+`;
+
 const LabelComponent = React.memo(function LabelComponent({
   field,
   isActive,
   hasErrors,
   uniqueFieldId,
-  isFieldOptional,
+  isFieldRequired,
   t,
 }) {
   const label = `${field.get('label', field.get('name'))}`;
   const labelComponent = (
     <FieldLabel isActive={isActive} hasErrors={hasErrors} htmlFor={uniqueFieldId}>
-      {isFieldOptional ? (
-        <>
-          {label}
-          <span>{` (${t('editor.editorControl.field.optional')})`}</span>
-        </>
-      ) : (
-        label
+      {label}
+      {isFieldRequired && (
+        <RequiredFieldMarker aria-hidden="true" title={t('editor.editorControl.field.required')}>
+          {' *'}
+        </RequiredFieldMarker>
       )}
     </FieldLabel>
   );
@@ -290,7 +293,7 @@ class EditorControl extends React.Component {
     const widget = resolveWidget(widgetName);
     const fieldName = field.get('name');
     const fieldHint = field.get('hint');
-    const isFieldOptional = field.get('required') === false;
+    const isFieldRequired = field.get('required') !== false;
     const onValidateObject = onValidate;
     const metadata = fieldsMetaData && fieldsMetaData.get(fieldName);
     const errors = fieldsErrors && fieldsErrors.get(this.uniqueFieldId);
@@ -314,7 +317,7 @@ class EditorControl extends React.Component {
                 isActive={isSelected || this.state.styleActive}
                 hasErrors={hasErrors}
                 uniqueFieldId={this.uniqueFieldId}
-                isFieldOptional={isFieldOptional}
+                isFieldRequired={isFieldRequired}
                 t={t}
               />
               {errors && (
