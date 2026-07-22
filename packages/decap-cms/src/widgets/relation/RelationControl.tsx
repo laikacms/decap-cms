@@ -20,7 +20,7 @@ import {
   ComboboxPositioner,
   ComboboxStatus,
 } from '@/ui';
-import { SortableArea, SortableItem } from '@/ui/default/index';
+import { SortableArea, SortableHandle, SortableItem } from '@/ui/default/index';
 
 import type { CmsFieldBase, CmsFieldRelation } from '@/lib/util/index';
 
@@ -501,13 +501,13 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
     const chipList = (
       <>
         {selectedList.map((option, index) => (
-          <SortableItem key={option.value} index={index}>
+          <SortableItem key={option.value} index={index} withHandle>
             {(sortableRef, { isDragging }) => (
               <ComboboxChip
                 ref={sortableRef as React.Ref<HTMLDivElement>}
                 style={{ opacity: isDragging ? 0.5 : undefined }}
               >
-                {option.label}
+                <SortableHandle>{option.label}</SortableHandle>
                 <ComboboxChipRemove />
               </ComboboxChip>
             )}
