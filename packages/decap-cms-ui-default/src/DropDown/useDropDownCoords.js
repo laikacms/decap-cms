@@ -32,7 +32,7 @@ function initObserver() {
  * @param {(viewport: DOMRect | undefined) => void} callback
  * @returns {() => void} An unsubscribe function to stop listening for viewport changes.
  */
-function subscribeToViewportRect(callback) {
+export function subscribeToViewportRect(callback) {
   initObserver();
   callback(viewportState.viewport);
   viewportState.callbacks.set(callback, callback);
