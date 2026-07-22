@@ -12,10 +12,18 @@ const EmptyMessageContainer = styled.div`
   color: ${props => (props.isPrivate ? colors.textFieldBorder : colors.text)};
 `;
 
+const EmptyMessageText = styled.p`
+  margin: 0;
+  font-size: 2em;
+  font-weight: bold;
+`;
+
 function EmptyMessage({ content, isPrivate }) {
   return (
     <EmptyMessageContainer isPrivate={isPrivate}>
-      <h1>{content}</h1>
+      <EmptyMessageText role="status" aria-live="polite">
+        {content}
+      </EmptyMessageText>
     </EmptyMessageContainer>
   );
 }
