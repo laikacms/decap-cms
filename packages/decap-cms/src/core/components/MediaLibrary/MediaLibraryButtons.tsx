@@ -21,6 +21,15 @@ const styles = {
       cursor: default;
     }
   `,
+  // Applied instead of the enabled variant color (buttons.gray / buttons.lightRed / …)
+  // whenever the button is disabled, so the muted disabled palette always wins
+  // regardless of variant-specific declaration order. Kept local to this file so it
+  // only affects the MediaLibrary toolbar, not shared button styles elsewhere.
+  disabled: css`
+    ${buttons.disabled};
+    opacity: 0.55;
+    cursor: default;
+  `,
 };
 
 export const UploadButton = styled(FileUploadButton)`
@@ -52,21 +61,17 @@ export const UploadButton = styled(FileUploadButton)`
 
 export const DeleteButton = styled.button`
   ${styles.button};
-  ${buttons.lightRed};
+  ${props => (props.disabled ? styles.disabled : css`${buttons.lightRed}`)};
 `;
 
 export const InsertButton = styled.button`
   ${styles.button};
-  ${buttons.green};
+  ${props => (props.disabled ? styles.disabled : css`${buttons.green}`)};
 `;
 
 const ActionButton = styled.button`
   ${styles.button};
-  ${props =>
-  !props.disabled
-  && css`
-      ${buttons.gray}
-    `}
+  ${props => (props.disabled ? styles.disabled : css`${buttons.gray}`)};
 `;
 
 export const DownloadButton = ActionButton;
@@ -118,7 +123,7 @@ export function CopyToClipBoardButton({
   }
 
   return (
-    <ActionButton disabled={disabled} onClick={handleCopy}>
+    <ActionButton disabled={disabled} aria-disabled={disabled} onClick={handleCopy}>
       {title}
     </ActionButton>
   );

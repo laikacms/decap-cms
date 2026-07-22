@@ -133,16 +133,29 @@ function LaikaMediaLibraryTop({
           />
         </SearchSlot>
         <ButtonGroup>
-          <LaikaButton variant="ghost" size="sm" disabled={!hasSelection} onClick={onDownload}>
+          <LaikaButton
+            variant="ghost"
+            size="sm"
+            disabled={!hasSelection}
+            aria-disabled={!hasSelection}
+            onClick={onDownload}
+          >
             {downloadLabel}
           </LaikaButton>
-          <LaikaButton variant="danger" size="sm" disabled={deleteDisabled} onClick={onDelete}>
+          <LaikaButton
+            variant="danger"
+            size="sm"
+            disabled={deleteDisabled}
+            aria-disabled={deleteDisabled}
+            onClick={onDelete}
+          >
             {deleteLabel}
           </LaikaButton>
           <LaikaButton
             variant="secondary"
             size="sm"
             disabled={uploadDisabled}
+            aria-disabled={uploadDisabled}
             onClick={() => fileInputRef.current?.click()}
           >
             {uploadLabel}
@@ -156,7 +169,12 @@ function LaikaMediaLibraryTop({
           />
           {canInsert
             ? (
-              <LaikaButton size="sm" disabled={!hasSelection} onClick={onInsert}>
+              <LaikaButton
+                size="sm"
+                disabled={!hasSelection}
+                aria-disabled={!hasSelection}
+                onClick={onInsert}
+              >
                 {insertLabel}
               </LaikaButton>
             )
