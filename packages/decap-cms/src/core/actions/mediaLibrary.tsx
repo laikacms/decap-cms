@@ -305,7 +305,11 @@ export function persistMedia(file: File, opts: MediaOptions = {}) {
      * may not be unique, so we forego this check.
      */
     if (!integration && existingFile) {
-      if (!(await confirmDialog(`${existingFile.name} already exists. Do you want to replace it?`))) {
+      if (
+        !(await confirmDialog(`${existingFile.name} already exists. Do you want to replace it?`, {
+          title: `Replace ${existingFile.name}?`,
+        }))
+      ) {
         return;
       } else {
         await dispatch(deleteMedia(existingFile, { privateUpload }));
