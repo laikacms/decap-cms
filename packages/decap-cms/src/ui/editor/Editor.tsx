@@ -112,7 +112,7 @@ import { IMAGE } from './transformers/image-transformer';
 import { TABLE } from './transformers/table-transformer';
 import { validateUrl } from './utils/url';
 
-const placeholder = 'Press / for commands...';
+const defaultPlaceholder = 'Press / for commands...';
 const maxLength = 30;
 
 /**
@@ -163,6 +163,7 @@ export function Editor({
   extensions,
   blocksConfig,
   features,
+  placeholder = defaultPlaceholder,
   ariaRequired,
   ariaInvalid,
   ariaErrorMessage,
@@ -199,6 +200,10 @@ export function Editor({
    * editor.
    */
   features?: EditorFeatures,
+  /** Empty-state placeholder text shown in the editable region. Threaded
+   * down from the Decap field's `placeholder` config; falls back to the
+   * built-in default when unset. */
+  placeholder?: string,
   /** Threaded down from the Decap widget layer's validation state onto the
    * editable region so screen readers can identify a failed-save required
    * field (WCAG 2.1 3.3.1 / 3.3.3). */
