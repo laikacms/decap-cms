@@ -8,7 +8,7 @@ import {
   loadAssetSuccess,
   removeAsset,
 } from '@/core/actions/media';
-import reducer from '@/core/reducers/medias';
+import reducer, { selectIsLoadingAsset } from '@/core/reducers/medias';
 import { createAssetProxy } from '@/core/valueObjects/AssetProxy';
 
 describe('medias', () => {
@@ -46,6 +46,26 @@ describe('medias', () => {
     const error = new Error('some error');
     expect(reducer({}, loadAssetFailure(asset.path, error))).toEqual({
       path: { isLoading: false, error },
+    });
+  });
+
+  describe('selectIsLoadingAsset', () => {
+    it('should return true when at least one media entry is loading', () => {
+      expect(
+        selectIsLoadingAsset({
+          path: { asset, isLoading: false, error: null },
+          other: { asset, isLoading: true, error: null },
+        }),
+      ).toBe(true);
+    });
+
+    it('should return false when no media entries are loading', () => {
+      expect(
+        selectIsLoadingAsset({
+          path: { asset, isLoading: false, error: null },
+        }),
+      ).toBe(false);
+      expect(selectIsLoadingAsset({})).toBe(false);
     });
   });
 });
