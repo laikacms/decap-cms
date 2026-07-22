@@ -90,7 +90,7 @@ const selectors = {
       const file = this.fileForEntry(collection, slug);
       return file && file.fields;
     },
-    entryPath(collection: Collection, slug: string) {
+    entryPath(collection: Collection, slug: string): string | undefined {
       const file = this.fileForEntry(collection, slug);
       return file && file.file;
     },
@@ -166,7 +166,7 @@ export function selectFileEntryLabel(collection: Collection, slug: string) {
   return selectors[FILES].entryLabel(collection, slug);
 }
 
-export function selectEntryPath(collection: Collection, slug: string) {
+export function selectEntryPath(collection: Collection, slug: string): string | undefined {
   return selectors[collection.type].entryPath(collection, slug);
 }
 
