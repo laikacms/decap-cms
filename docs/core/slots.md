@@ -117,7 +117,7 @@ re-skin it without re-implementing drag-and-drop or Redux integration.
 - Props: `WorkflowCardRenderProps` (`collectionLabel`, `title?`, `authorLastChange?`, `body?`,
   `isModification?`, `editLink`, `timestamp`, `onDelete`, `allowPublish`, `canPublish`, `onPublish`,
   `postAuthor?`)
-- Consumer: `packages/decap-cms/src/core/components/Workflow/WorkflowList.tsx:168`
+- Consumer: `packages/decap-cms/src/core/components/Workflow/WorkflowList.tsx:209`
 
 ### `renderEditorToolbar`
 
