@@ -761,10 +761,17 @@ local_backend:
   `src/core/actions/config.tsx`). So loading the admin at `http://my-machine.local:8080` looks for
   the proxy at `http://my-machine.local:8081/api/v1`, not `http://localhost:8081/api/v1`. This only
   reads back as "localhost" when the admin itself is accessed from `localhost`/`127.0.0.1`.
-- `url` overrides the proxy address outright. Only `http(s)://` URLs make sense here; the request
-  against an unreachable/invalid URL fails silently — it just logs
-  `Decap CMS Proxy Server not detected at '<url>'` to the console and the app falls back to the
-  configured non-local backend (`detectProxyServer` in `src/core/actions/config.tsx`).
+- `url` overrides the proxy address outright, and `detectProxyServer` (`src/core/actions/config.tsx`)
+  validates it before ever attempting a fetch. There are three distinct failure paths, each with its
+  own console message, and the app falls back to the configured non-local backend in all of them:
+  - A scheme other than `http:`/`https:` (e.g. `url: 'javascript:alert(1)'`) is rejected outright —
+    logs `Decap CMS local_backend url must use http or https, ignoring '<url>'` — and no fetch is
+    attempted.
+  - A malformed URL that `new URL()` can't parse — logs `Decap CMS local_backend url '<url>' is not
+    a valid URL` — and no fetch is attempted either.
+  - Only once a syntactically valid `http(s)://` URL is actually fetched and the request fails (or
+    the response isn't a recognizable Decap CMS proxy) does it log
+    `Decap CMS Proxy Server not detected at '<url>'`.
 - Proxy detection only runs when `location.hostname` is `localhost`, `127.0.0.1`, **or** one of the
   hostnames listed in `allowed_hosts`. `allowed_hosts` lets you develop against the local proxy from
   a hostname other than `localhost`/`127.0.0.1` (e.g. a LAN name or a tunneled domain) — and, per
