@@ -6,7 +6,7 @@ import { Pane, SplitPane } from 'react-split-pane';
 import { FILES } from '@/core/constants/collectionTypes';
 import { getI18nInfo, getPreviewEntry, hasI18n } from '@/core/lib/i18n';
 import { useCmsSlots } from '@/core/lib/slots';
-import { getFileFromSlug } from '@/core/reducers/collections';
+import { getFileFromSlug, selectEntryCollectionTitle } from '@/core/reducers/collections';
 import { ScrollSync, ScrollSyncPane } from '@/ui';
 import { colors, colorsRaw, components, IconButton, transitions, zIndex } from '@/ui/default/index';
 import EditorControlPane, { type ControlPaneHandle } from './EditorControlPane/EditorControlPane';
@@ -150,6 +150,40 @@ const Editor = styled.div`
   min-height: 0;
   position: relative;
 `;
+
+// Screen-reader-only page title. The toolbar's `<BackCollection>` already
+// shows "Writing in %{collectionLabel} collection" visually, so a redesign
+// isn't warranted here (DCMS-1370) — this just gives every entry-editor
+// route the `<h1>` that WCAG 2.4.6 and screen-reader `H`-key navigation
+// require, without touching the existing visible chrome.
+const PageTitle = styled.h1`
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+`;
+
+// Entry-editor page title (DCMS-1370): reuses `selectEntryCollectionTitle`
+// (same title logic as entry cards / workflow list) so folder-collection
+// entries get their title field, files-collection entries get the file's
+// `label`, and everything else falls back to a collection-scoped default.
+function getEditorPageTitle(
+  t: TranslateFunction,
+  collection: Collection,
+  entry: EntryMap,
+  isNewEntry?: boolean,
+) {
+  if (isNewEntry) {
+    return t('editor.editorInterface.newEntryTitle', { collectionLabel: collection.label });
+  }
+  const title = selectEntryCollectionTitle(collection, entry);
+  return title || t('editor.editorInterface.untitledEntryTitle', { collectionLabel: collection.label });
+}
 
 interface PreviewPaneContainerProps {
   $blockEntry?: boolean;
@@ -588,6 +622,7 @@ function EditorInterface(props: EditorInterfaceProps) {
 
   return (
     <EditorContainer>
+      <PageTitle>{getEditorPageTitle(t, collection, entry, isNewEntry)}</PageTitle>
       {renderEditorToolbar
         ? renderEditorToolbar(toolbarProps as any)
         : React.createElement(EditorToolbar as any, { ...toolbarProps, t })}
