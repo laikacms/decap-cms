@@ -129,6 +129,7 @@ export function LexicalControl({
         format={proxy.outputFormat}
         extensions={pack?.lexical}
         blocksConfig={blocksConfig}
+        placeholder={field.placeholder}
         onSerializedChange={state => {
           proxy.setEditorState(state);
           onChange(proxy);
