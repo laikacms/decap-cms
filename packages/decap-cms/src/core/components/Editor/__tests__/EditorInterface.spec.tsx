@@ -48,12 +48,19 @@ vi.mock('../../../lib/i18n', () => ({
   getI18nInfo: () => ({ locales: [], defaultLocale: '' }),
   getPreviewEntry: (entry: unknown) => entry,
 }));
-// `EditorInterface` pulls this in only for `getFileFromSlug`. The real
-// module also drags in `actions/config` -> `validateConfig`, which has an
-// unrelated static dependency on `lib/i18n`'s enums that the mock above
-// doesn't satisfy — stub it out rather than growing that mock to match.
+// `EditorInterface` pulls this in only for `getFileFromSlug` and
+// `selectEntryCollectionTitle`. The real module also drags in
+// `actions/config` -> `validateConfig`, which has an unrelated static
+// dependency on `lib/i18n`'s enums that the mock above doesn't satisfy —
+// stub it out rather than growing that mock to match. The stub mirrors just
+// enough of the real title-field lookup (DCMS-1370) for the page-title h1
+// tests below.
 vi.mock('../../../reducers/collections', () => ({
   getFileFromSlug: () => undefined,
+  selectEntryCollectionTitle: (
+    _collection: unknown,
+    entry: { data?: Record<string, unknown> },
+  ) => entry?.data?.title as string | undefined,
 }));
 // Stub the real react-split-pane@3.2.0 components with buttons that fire the
 // same callback shapes (`onResizeStart(event)`, `onResizeEnd(sizes, event)`)
@@ -187,6 +194,56 @@ describe('EditorInterface', () => {
 
     fireEvent.click(screen.getByTestId('trigger-resize-end'));
     expect(pointerEventsOf(previewPaneContainer())).toBe('auto');
+  });
+
+  // No route rendering `EditorInterface` had a page-title `<h1>` at all
+  // (DCMS-1370, sibling of the NotFoundPage fix DCMS-1347): the toolbar's
+  // "Writing in %{collectionLabel} collection" text is a plain
+  // `styled.div`, not a heading, so WCAG 2.4.6 / screen-reader `H`-key
+  // navigation had nothing to land on.
+  describe('page-title h1 (DCMS-1370)', () => {
+    it('renders exactly one h1 with a new-entry title for a new entry', () => {
+      const newEntryProps = {
+        ...props,
+        collection: { ...props.collection, label: 'Posts' } as unknown as CmsCollectionState,
+        entry: { slug: '', data: {}, isPersisting: false } as unknown as CmsEntry,
+        isNewEntry: true,
+      };
+      const { container } = render(<EditorInterface {...newEntryProps} />);
+      const h1s = container.querySelectorAll('h1');
+      expect(h1s).toHaveLength(1);
+      expect(h1s[0]).toHaveTextContent('editor.editorInterface.newEntryTitle');
+    });
+
+    it('renders exactly one h1 reflecting the entry title for an existing entry', () => {
+      const existingEntryProps = {
+        ...props,
+        collection: { ...props.collection, label: 'Posts' } as unknown as CmsCollectionState,
+        entry: {
+          slug: 'hello-world',
+          data: { title: 'Hello World' },
+          isPersisting: false,
+        } as unknown as CmsEntry,
+        isNewEntry: false,
+      };
+      const { container, getByRole } = render(<EditorInterface {...existingEntryProps} />);
+      const h1s = container.querySelectorAll('h1');
+      expect(h1s).toHaveLength(1);
+      expect(getByRole('heading', { level: 1 })).toHaveTextContent('Hello World');
+    });
+
+    it('falls back to an "untitled" h1 when the entry has no title', () => {
+      const untitledEntryProps = {
+        ...props,
+        collection: { ...props.collection, label: 'Posts' } as unknown as CmsCollectionState,
+        entry: { slug: 'no-title', data: {}, isPersisting: false } as unknown as CmsEntry,
+        isNewEntry: false,
+      };
+      const { container } = render(<EditorInterface {...untitledEntryProps} />);
+      const h1s = container.querySelectorAll('h1');
+      expect(h1s).toHaveLength(1);
+      expect(h1s[0]).toHaveTextContent('editor.editorInterface.untitledEntryTitle');
+    });
   });
 
   describe('keyboard focus management', () => {

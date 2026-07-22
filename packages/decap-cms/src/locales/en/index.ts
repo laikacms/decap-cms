@@ -129,6 +129,8 @@ const en = {
       toggleScrollSync: 'Sync scrolling',
       noPreviewRegistered: 'No preview available for this collection. Register one with CMS.registerPreviewTemplate().',
       previewPaneTitle: 'Preview pane',
+      newEntryTitle: 'New - %{collectionLabel}',
+      untitledEntryTitle: 'Untitled - %{collectionLabel}',
     },
     editorToolbar: {
       publishing: 'Publishing...',
