@@ -128,6 +128,7 @@ const en = {
       togglePreview: 'Toggle preview',
       toggleScrollSync: 'Sync scrolling',
       noPreviewRegistered: 'No preview available for this collection. Register one with CMS.registerPreviewTemplate().',
+      previewPaneTitle: 'Preview pane',
     },
     editorToolbar: {
       publishing: 'Publishing...',
