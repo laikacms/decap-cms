@@ -39,6 +39,7 @@ function ViewStyleControl({ viewStyle, onChangeViewStyle, t }: ViewStyleControlP
     <ViewControlsSection className="ViewControls">
       <ViewControlsButton
         aria-label={t('collection.collectionTop.viewAsList')}
+        aria-pressed={viewStyle === VIEW_STYLE_LIST}
         $isActive={viewStyle === VIEW_STYLE_LIST}
         onClick={() => onChangeViewStyle(VIEW_STYLE_LIST)}
       >
@@ -46,6 +47,7 @@ function ViewStyleControl({ viewStyle, onChangeViewStyle, t }: ViewStyleControlP
       </ViewControlsButton>
       <ViewControlsButton
         aria-label={t('collection.collectionTop.viewAsGrid')}
+        aria-pressed={viewStyle === VIEW_STYLE_GRID}
         $isActive={viewStyle === VIEW_STYLE_GRID}
         onClick={() => onChangeViewStyle(VIEW_STYLE_GRID)}
       >
