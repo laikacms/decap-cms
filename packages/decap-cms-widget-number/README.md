@@ -25,6 +25,15 @@ Number widget for [Decap CMS](https://decapcms.org).
 > that description is outdated for this codebase and needs a correction in the
 > [decap-website](https://github.com/decaporg/decap-website) repo (`content/docs/widgets/number.md`).
 
+### Deprecated camelCase alias
+
+`valueType` is a deprecated camelCase alias for `value_type`. It is **not** inert: config
+normalization (`normalizeConfig`/`setSnakeCaseConfig` in `decap-cms-core`) copies any present
+`valueType` onto `value_type` for every field at config-load time, logging a `console.warn`
+deprecation notice, before the widget ever reads the field. So `{ widget: 'number', valueType:
+'int' }` behaves identically to `{ widget: 'number', value_type: 'int' }` — same `parseInt`
+parsing path, same `step="1"` default. Prefer `value_type` in new configs.
+
 ### Unsafe integer exception
 
 For `int` `value_type`, `parseInt` silently rounds digit strings once they exceed
