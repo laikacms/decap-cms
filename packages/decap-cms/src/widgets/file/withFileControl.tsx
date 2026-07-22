@@ -17,6 +17,7 @@ import {
   lengths,
   shadows,
   SortableArea,
+  SortableHandle,
   SortableItem as UISortableItem,
 } from '@/ui/default/index';
 
@@ -117,7 +118,7 @@ function SortableImage(props: SortableImageProps) {
   const { index, itemValue, getAsset, field, onRemove, onReplace } = props;
 
   return (
-    <UISortableItem index={index}>
+    <UISortableItem index={index} withHandle>
       {(ref, { isDragging, isOver }) => (
         <div
           ref={ref}
@@ -126,9 +127,11 @@ function SortableImage(props: SortableImageProps) {
             outline: isOver ? `2px solid ${colors.active}` : undefined,
           }}
         >
-          <ImageWrapper $sortable>
-            <ImageAsset value={itemValue} field={field} getAsset={getAsset} />
-          </ImageWrapper>
+          <SortableHandle>
+            <ImageWrapper $sortable>
+              <ImageAsset value={itemValue} field={field} getAsset={getAsset} />
+            </ImageWrapper>
+          </SortableHandle>
           <SortableImageButtons onRemove={onRemove} onReplace={onReplace}></SortableImageButtons>
         </div>
       )}

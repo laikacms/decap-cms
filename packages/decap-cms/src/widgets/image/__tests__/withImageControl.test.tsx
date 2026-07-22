@@ -156,19 +156,21 @@ describe('ImageControl aria validation wiring (DCMS-1086)', () => {
 // DCMS-1292: `image` is the only widget that renders the sortable gallery
 // (`forImage: true` in withFileControl.tsx gates `renderImages`), so
 // onRemoveOne/onReplaceOne's real per-item wiring can only be exercised
-// here. Each gallery item renders exactly two unlabeled icon buttons in
-// DOM order — [replace, remove] — so item N's buttons sit at indices
-// [2N, 2N + 1] of getAllByRole('button'). onSortEnd itself just forwards
-// arrayMove's result through onChange (see withFileControl.test.tsx for
-// arrayMove's direct coverage); simulating real HTML5 drag-and-drop here
-// would need a react-dnd test backend, which isn't wired up in this repo.
+// here. Each gallery item renders exactly three focusable controls in DOM
+// order — [drag handle, replace, remove] (DCMS-1475 added the keyboard-
+// reachable `SortableHandle` drag handle) — so item N's replace/remove
+// buttons sit at indices [3N + 1, 3N + 2] of getAllByRole('button').
+// onSortEnd itself just forwards arrayMove's result through onChange (see
+// withFileControl.test.tsx for arrayMove's direct coverage); simulating
+// real HTML5 drag-and-drop here would need a react-dnd test backend, which
+// isn't wired up in this repo.
 describe('gallery reorder/remove/replace (DCMS-1292)', () => {
   it('onReplaceOne opens the media library scoped to the clicked item\'s index', () => {
     const value = ['a.png', 'b.png', 'c.png'];
     const { getAllByRole, onOpenMediaLibrary } = renderGallery(value);
 
     const buttons = getAllByRole('button');
-    fireEvent.click(buttons[2]); // item index 1's replace button
+    fireEvent.click(buttons[4]); // item index 1's replace button
 
     expect(onOpenMediaLibrary).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -185,7 +187,7 @@ describe('gallery reorder/remove/replace (DCMS-1292)', () => {
     const { getAllByRole, onChange } = renderGallery(value);
 
     const buttons = getAllByRole('button');
-    fireEvent.click(buttons[3]); // item index 1's remove button
+    fireEvent.click(buttons[5]); // item index 1's remove button
 
     expect(onChange).toHaveBeenCalledWith(['a.png', 'c.png']);
   });
@@ -195,7 +197,7 @@ describe('gallery reorder/remove/replace (DCMS-1292)', () => {
     const { getAllByRole, onChange } = renderGallery(value);
 
     const buttons = getAllByRole('button');
-    fireEvent.click(buttons[1]); // the sole item's remove button
+    fireEvent.click(buttons[2]); // the sole item's remove button
 
     expect(onChange).toHaveBeenCalledWith(null);
   });
