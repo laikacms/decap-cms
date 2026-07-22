@@ -898,14 +898,28 @@ describe('config', () => {
       await expect(detectProxyServer({ url })).resolves.toEqual({});
 
       expect(global.fetch).toHaveBeenCalledTimes(0);
+      // Pinning test (DCMS-1428): this scheme-rejection path logs a message distinct from the
+      // generic "Proxy Server not detected" message logged after an actual fetch attempt. Since
+      // no fetch happens, this must be the last (and only) console.log call this path produces.
+      const logCalls = vi.mocked(console.log).mock.calls;
+      expect(logCalls.at(-1)).toEqual([
+        `Decap CMS local_backend url must use http or https, ignoring '${url}'`,
+      ]);
     });
 
     it('should return empty object when local_backend url is not a valid URL', async () => {
+      const url = 'not a url';
       window.location = { hostname: 'localhost' };
       global.fetch = vi.fn();
-      await expect(detectProxyServer({ url: 'not a url' })).resolves.toEqual({});
+      await expect(detectProxyServer({ url })).resolves.toEqual({});
 
       expect(global.fetch).toHaveBeenCalledTimes(0);
+      // Pinning test (DCMS-1428): malformed URLs log a message distinct from both the
+      // scheme-rejection message above and the generic "Proxy Server not detected" message.
+      const logCalls = vi.mocked(console.log).mock.calls;
+      expect(logCalls.at(-1)).toEqual([
+        `Decap CMS local_backend url '${url}' is not a valid URL`,
+      ]);
     });
   });
 
