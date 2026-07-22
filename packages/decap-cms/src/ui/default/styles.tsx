@@ -406,8 +406,8 @@ const buttons: Buttons = {
     line-height: 36px;
     font-weight: 500;
     padding: 0 15px;
-    background-color: ${colorsRaw.gray};
-    color: ${colorsRaw.white};
+    background-color: ${colors.button};
+    color: ${colors.buttonText};
   `,
   widget: css`
     display: flex;
@@ -443,7 +443,7 @@ const buttons: Buttons = {
   `,
   grayText: css`
     background-color: transparent;
-    color: ${colorsRaw.gray};
+    color: ${colors.text};
   `,
   green: css`
     background-color: #aae31f;

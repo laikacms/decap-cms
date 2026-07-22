@@ -2,7 +2,7 @@ import styled from '@emotion/styled';
 import React from 'react';
 
 import Icon from './Icon';
-import { colorsRaw } from './styles';
+import { colors } from './styles';
 
 const GoBackButtonStyle = styled.a`
   display: flex;
@@ -15,7 +15,7 @@ const GoBackButtonStyle = styled.a`
 `;
 
 const ButtonText = styled.p`
-  color: ${colorsRaw.gray};
+  color: ${colors.text};
   margin: 0 10px;
 `;
 
