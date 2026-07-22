@@ -111,4 +111,26 @@ describe('CONTRIBUTING.md#scripts', () => {
     expect(devServerRow).toContain('build:dev-test');
     expect(devServerRow).not.toMatch(/`pnpm build:demo &&/);
   });
+
+  it('documents the root `release` script in the Releasing section (#1350)', () => {
+    // Root package.json#scripts.release is the only wired publish command in
+    // the workspace, but the "Releasing" section used to tell contributors to
+    // `npm publish` from packages/decap-cms by hand instead, silently
+    // diverging from the real script. Pin both: the script must still exist,
+    // and the docs must name it, so they can't drift apart again unnoticed.
+    const contributing = fs.readFileSync(CONTRIBUTING_PATH, 'utf8');
+    const rootPackageJson = JSON.parse(fs.readFileSync(ROOT_PACKAGE_JSON_PATH, 'utf8')) as {
+      scripts?: Record<string, string>,
+    };
+    const releaseScript = rootPackageJson.scripts?.release;
+    expect(releaseScript).toBeDefined();
+
+    const releasingSection = contributing.split(/^## /m).find(section => section.startsWith('Releasing'));
+    expect(releasingSection).toBeDefined();
+
+    // If this fails, either the "Releasing" section stopped mentioning
+    // `pnpm release`, or the script was renamed/removed — update whichever
+    // one is stale so they stay in sync.
+    expect(releasingSection).toContain('pnpm release');
+  });
 });
