@@ -7,6 +7,16 @@ import { addToast } from '@/ui/toastManager';
 
 const dispatchMock = vi.fn();
 let notificationsState: unknown[] = [];
+let routerListeners: Array<() => void> = [];
+
+const routerMock = {
+  subscribe: vi.fn((listener: () => void) => {
+    routerListeners.push(listener);
+    return () => {
+      routerListeners = routerListeners.filter(l => l !== listener);
+    };
+  }),
+};
 
 vi.mock('@/core/hooks/useRedux', () => ({
   useAppDispatch: () => dispatchMock,
@@ -18,10 +28,20 @@ vi.mock('@/core/i18n', () => ({
   useTranslate: () => (key: string) => `translated:${key}`,
 }));
 
+vi.mock('@/core/routing/context', () => ({
+  useRouter: () => routerMock,
+}));
+
+function fireRouteChange() {
+  routerListeners.forEach(listener => listener());
+}
+
 describe('Notifications (Base UI bridge)', () => {
   beforeEach(() => {
     notificationsState = [];
+    routerListeners = [];
     dispatchMock.mockClear();
+    routerMock.subscribe.mockClear();
   });
 
   afterEach(() => {
@@ -135,5 +155,56 @@ describe('Notifications (Base UI bridge)', () => {
         .getAllByText('URL could not be copied to clipboard')
         .some(el => el.closest('[role="alert"]')),
     ).toBe(true);
+  });
+
+  it('dismisses the onFailToLoadEntries toast on route change (DCMS-1408)', () => {
+    notificationsState = [
+      {
+        id: 'load-entry-error',
+        message: { key: 'ui.toast.onFailToLoadEntries', details: 'Entry not found: _posts/foo.md' },
+        type: 'error',
+        dismissAfter: 8000,
+      },
+    ];
+    render(<Notifications />);
+    dispatchMock.mockClear();
+
+    fireRouteChange();
+
+    expect(dispatchMock).toHaveBeenCalledWith({ type: 'NOTIFICATION_DISMISS', id: 'load-entry-error' });
+  });
+
+  it('dismisses the missing-required-field validation toast on route change (DCMS-579)', () => {
+    notificationsState = [
+      {
+        id: 'validation-toast',
+        message: { key: 'ui.toast.missingRequiredField' },
+        type: 'error',
+        dismissAfter: 8000,
+      },
+    ];
+    render(<Notifications />);
+    dispatchMock.mockClear();
+
+    fireRouteChange();
+
+    expect(dispatchMock).toHaveBeenCalledWith({ type: 'NOTIFICATION_DISMISS', id: 'validation-toast' });
+  });
+
+  it('does not dismiss unrelated toasts on route change', () => {
+    notificationsState = [{ id: 'save-success', message: 'Entry saved', type: 'success' }];
+    render(<Notifications />);
+    dispatchMock.mockClear();
+
+    fireRouteChange();
+
+    expect(dispatchMock).not.toHaveBeenCalled();
+  });
+
+  it('unsubscribes from the router when unmounted', () => {
+    const { unmount } = render(<Notifications />);
+    expect(routerListeners).toHaveLength(1);
+    unmount();
+    expect(routerListeners).toHaveLength(0);
   });
 });
