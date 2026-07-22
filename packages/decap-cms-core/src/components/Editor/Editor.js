@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
-import { Loader } from 'decap-cms-ui-default';
+import { Loader, confirmDialog, showAlert } from 'decap-cms-ui-default';
 import { translate } from 'react-polyglot';
 import debounce from 'lodash/debounce';
 
@@ -203,12 +203,13 @@ export class Editor extends React.Component {
 
   componentDidUpdate(prevProps) {
     if (!prevProps.localBackup && this.props.localBackup) {
-      const confirmLoadBackup = window.confirm(this.props.t('editor.editor.confirmLoadBackup'));
-      if (confirmLoadBackup) {
-        this.props.loadLocalBackup();
-      } else {
-        this.deleteBackup();
-      }
+      confirmDialog(this.props.t('editor.editor.confirmLoadBackup')).then(confirmLoadBackup => {
+        if (confirmLoadBackup) {
+          this.props.loadLocalBackup();
+        } else {
+          this.deleteBackup();
+        }
+      });
     }
 
     if (this.props.hasChanged) {
@@ -242,11 +243,11 @@ export class Editor extends React.Component {
     this.props.changeDraftField({ field, value, metadata, entries, i18n });
   };
 
-  handleChangeStatus = newStatusName => {
+  handleChangeStatus = async newStatusName => {
     const { entryDraft, updateUnpublishedEntryStatus, collection, slug, currentStatus, t } =
       this.props;
     if (entryDraft.get('hasChanged')) {
-      window.alert(t('editor.editor.onUpdatingWithUnsavedChanges'));
+      await showAlert(t('editor.editor.onUpdatingWithUnsavedChanges'));
       return;
     }
     const newStatus = status.get(newStatusName);
@@ -303,12 +304,12 @@ export class Editor extends React.Component {
       t,
     } = this.props;
     if (currentStatus !== status.last()) {
-      window.alert(t('editor.editor.onPublishingNotReady'));
+      await showAlert(t('editor.editor.onPublishingNotReady'));
       return;
     } else if (entryDraft.get('hasChanged')) {
-      window.alert(t('editor.editor.onPublishingWithUnsavedChanges'));
+      await showAlert(t('editor.editor.onPublishingWithUnsavedChanges'));
       return;
-    } else if (!window.confirm(t('editor.editor.onPublishing'))) {
+    } else if (!(await confirmDialog(t('editor.editor.onPublishing')))) {
       return;
     }
 
@@ -325,7 +326,7 @@ export class Editor extends React.Component {
 
   handleUnpublishEntry = async () => {
     const { unpublishPublishedEntry, collection, slug, t } = this.props;
-    if (!window.confirm(t('editor.editor.onUnpublishing'))) return;
+    if (!(await confirmDialog(t('editor.editor.onUnpublishing')))) return;
 
     await unpublishPublishedEntry(collection, slug);
 
@@ -339,13 +340,17 @@ export class Editor extends React.Component {
     createDraftDuplicateFromEntry(entryDraft.get('entry'));
   };
 
-  handleDeleteEntry = () => {
+  handleDeleteEntry = async () => {
     const { entryDraft, newEntry, collection, deleteEntry, slug, t } = this.props;
     if (entryDraft.get('hasChanged')) {
-      if (!window.confirm(t('editor.editor.onDeleteWithUnsavedChanges'))) {
+      if (
+        !(await confirmDialog(t('editor.editor.onDeleteWithUnsavedChanges'), { destructive: true }))
+      ) {
         return;
       }
-    } else if (!window.confirm(t('editor.editor.onDeletePublishedEntry'))) {
+    } else if (
+      !(await confirmDialog(t('editor.editor.onDeletePublishedEntry'), { destructive: true }))
+    ) {
       return;
     }
     if (newEntry) {
@@ -364,10 +369,14 @@ export class Editor extends React.Component {
       this.props;
     if (
       entryDraft.get('hasChanged') &&
-      !window.confirm(t('editor.editor.onDeleteUnpublishedChangesWithUnsavedChanges'))
+      !(await confirmDialog(t('editor.editor.onDeleteUnpublishedChangesWithUnsavedChanges'), {
+        destructive: true,
+      }))
     ) {
       return;
-    } else if (!window.confirm(t('editor.editor.onDeleteUnpublishedChanges'))) {
+    } else if (
+      !(await confirmDialog(t('editor.editor.onDeleteUnpublishedChanges'), { destructive: true }))
+    ) {
       return;
     }
     await deleteUnpublishedEntry(collection.get('name'), slug);

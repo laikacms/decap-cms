@@ -6,6 +6,7 @@ import styled from '@emotion/styled';
 import {
   buttons,
   colors,
+  confirmDialog,
   Dropdown,
   DropdownItem,
   StyledDropdownButton,
@@ -119,13 +120,13 @@ export default class ControlPane extends React.Component {
 
   copyFromOtherLocale =
     ({ targetLocale, t }) =>
-    sourceLocale => {
+    async sourceLocale => {
       if (
-        !window.confirm(
+        !(await confirmDialog(
           t('editor.editorControlPane.i18n.copyFromLocaleConfirm', {
             locale: sourceLocale.toUpperCase(),
           }),
-        )
+        ))
       ) {
         return;
       }
