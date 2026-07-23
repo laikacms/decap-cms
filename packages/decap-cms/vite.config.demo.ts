@@ -34,8 +34,8 @@ export default defineConfig({
     sourcemap: true,
     minify: false,
     rollupOptions: {
-      // The entry has both named exports (`init`, `h`, …) and a default; tell
-      // Rollup to emit named exports (default is available as `.default`).
+      // The entry only has named exports (`init`, `h`, `DecapCmsApp`, …); tell
+      // Rollup to emit named exports.
       output: { exports: 'named' },
     },
   },

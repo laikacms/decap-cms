@@ -21,8 +21,10 @@
 - [x] Redux 5 peer dependency mismatches (redux-devtools-extension)
 - [x] Slate version mismatches (slate-base64-serializer, slate-plain-serializer)
 - [x] @iarna+toml uses unsafe eval (remove)
-- [ ] Entry module "packages/decap-cms/src/app/index.ts" is using named (including "DecapCmsApp",
-      "default", "h") and default exports together.
+- [x] Entry module "packages/decap-cms/src/app/index.ts" is using named (including "DecapCmsApp",
+      "default", "h") and default exports together. Resolved (DCMS-1515): adopted named-only
+      exports for the composition root — `export default DecapCmsApp` removed, `DecapCmsApp`
+      stays a named export alongside `App`/`AppContent`/`init`/`h`/etc.
 
 ## Architecture
 

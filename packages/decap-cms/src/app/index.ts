@@ -108,5 +108,3 @@ if (typeof window !== 'undefined') {
   window.initCMS = init;
   window.h = window.h || React.createElement;
 }
-
-export default DecapCmsApp;
