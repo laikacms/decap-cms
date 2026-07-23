@@ -73,7 +73,7 @@ const da = {
   editor: {
     editorControl: {
       field: {
-        optional: 'kan udelades',
+        required: 'påkrævet',
       },
     },
     editorControlPane: {

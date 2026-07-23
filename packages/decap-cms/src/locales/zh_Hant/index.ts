@@ -66,7 +66,7 @@ const zh_Hant = {
   editor: {
     editorControl: {
       field: {
-        optional: '選填',
+        required: '必填',
       },
     },
     editorControlPane: {

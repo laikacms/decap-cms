@@ -73,7 +73,7 @@ const zh_Hans = {
   editor: {
     editorControl: {
       field: {
-        optional: '可选',
+        required: '必填',
       },
     },
     editorControlPane: {

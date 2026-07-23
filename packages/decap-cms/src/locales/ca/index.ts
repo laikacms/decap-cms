@@ -72,7 +72,7 @@ const ca = {
   editor: {
     editorControl: {
       field: {
-        optional: 'opcional',
+        required: 'obligatori',
       },
     },
     editorControlPane: {

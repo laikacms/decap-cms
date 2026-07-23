@@ -73,7 +73,7 @@ const pl = {
   editor: {
     editorControl: {
       field: {
-        optional: 'opcjonalne',
+        required: 'wymagane',
       },
     },
     editorControlPane: {

@@ -74,7 +74,7 @@ const cs = {
   editor: {
     editorControl: {
       field: {
-        optional: 'volitelný',
+        required: 'povinné',
       },
     },
     editorControlPane: {

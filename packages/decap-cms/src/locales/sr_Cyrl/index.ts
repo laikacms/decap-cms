@@ -75,7 +75,7 @@ const sr_Cyrl = {
   editor: {
     editorControl: {
       field: {
-        optional: 'опционо',
+        required: 'обавезно',
         widgetLabel: '%{widgetLabel} поље',
       },
     },

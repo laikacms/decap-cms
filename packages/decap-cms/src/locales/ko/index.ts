@@ -73,7 +73,7 @@ const ko = {
   editor: {
     editorControl: {
       field: {
-        optional: '선택사항',
+        required: '필수',
       },
     },
     editorControlPane: {

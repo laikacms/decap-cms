@@ -73,7 +73,7 @@ const th = {
   editor: {
     editorControl: {
       field: {
-        optional: 'ทางเลือก',
+        required: 'จำเป็น',
       },
     },
     editorControlPane: {

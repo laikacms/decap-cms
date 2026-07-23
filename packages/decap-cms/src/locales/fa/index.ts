@@ -62,7 +62,7 @@ const fa = {
     },
   },
   editor: {
-    editorControl: { field: { optional: 'اختیاری' } },
+    editorControl: { field: { required: 'الزامی' } },
     editorControlPane: {
       widget: {
         required: '%{fieldLabel} مورد نیاز است.',

@@ -62,7 +62,7 @@ const nb_no = {
   editor: {
     editorControl: {
       field: {
-        optional: 'valgfritt',
+        required: 'påkrevd',
       },
     },
     editorControlPane: {

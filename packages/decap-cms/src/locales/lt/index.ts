@@ -73,7 +73,7 @@ const lt = {
   editor: {
     editorControl: {
       field: {
-        optional: 'neprivaloma',
+        required: 'privaloma',
       },
     },
     editorControlPane: {

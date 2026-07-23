@@ -35,7 +35,7 @@ const hu = {
   editor: {
     editorControl: {
       field: {
-        optional: 'választható',
+        required: 'kötelező',
       },
     },
     editorControlPane: {

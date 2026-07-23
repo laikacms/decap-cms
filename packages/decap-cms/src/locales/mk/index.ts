@@ -73,7 +73,7 @@ const mk = {
   editor: {
     editorControl: {
       field: {
-        optional: 'незадолжително',
+        required: 'задолжително',
       },
     },
     editorControlPane: {

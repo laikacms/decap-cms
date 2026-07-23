@@ -73,7 +73,7 @@ const ja = {
   editor: {
     editorControl: {
       field: {
-        optional: '任意',
+        required: '必須',
       },
     },
     editorControlPane: {

@@ -83,7 +83,6 @@ const en = {
   editor: {
     editorControl: {
       field: {
-        optional: 'optional',
         required: 'required',
         widgetLabel: '%{widgetLabel} field',
       },

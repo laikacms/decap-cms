@@ -73,7 +73,7 @@ const ua = {
   editor: {
     editorControl: {
       field: {
-        optional: 'необов’язковий',
+        required: 'обов\'язково',
       },
     },
     editorControlPane: {

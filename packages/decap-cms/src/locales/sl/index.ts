@@ -72,7 +72,7 @@ const sl = {
   editor: {
     editorControl: {
       field: {
-        optional: 'opcijsko',
+        required: 'obvezno',
       },
     },
     editorControlPane: {

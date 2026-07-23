@@ -73,7 +73,7 @@ const ro = {
   editor: {
     editorControl: {
       field: {
-        optional: 'opțional',
+        required: 'obligatoriu',
       },
     },
     editorControlPane: {

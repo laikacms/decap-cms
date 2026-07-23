@@ -61,7 +61,7 @@ const uk = {
   editor: {
     editorControl: {
       field: {
-        optional: 'необов’язково',
+        required: 'обов\'язково',
       },
     },
     editorControlPane: {
