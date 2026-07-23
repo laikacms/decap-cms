@@ -23,6 +23,7 @@ export { default as pl } from './pl';
 export { default as pt } from './pt';
 export { default as ro } from './ro';
 export { default as ru } from './ru';
+export { default as sk } from './sk';
 export { default as sl } from './sl';
 export { default as sr_Cyrl } from './sr_Cyrl';
 export { default as sv } from './sv';
