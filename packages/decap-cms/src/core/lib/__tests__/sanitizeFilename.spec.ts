@@ -36,6 +36,55 @@ describe('sanitizeFilename', () => {
     });
   });
 
+  describe('bidi/zero-width format code stripping (Trojan-Source, DCMS-1506)', () => {
+    it('removes U+202E RIGHT-TO-LEFT OVERRIDE', () => {
+      const rlo = String.fromCharCode(0x202e);
+      const result = sanitizeFilename(`${rlo}hello`);
+      expect(result).toBe('hello');
+      expect(result).not.toContain(rlo);
+    });
+
+    it('removes the other bidi embedding/override/isolate controls (U+200E-U+200F, U+202A-U+202E, U+2066-U+2069)', () => {
+      const bidiChars = [
+        0x200e, // LEFT-TO-RIGHT MARK
+        0x200f, // RIGHT-TO-LEFT MARK
+        0x202a, // LEFT-TO-RIGHT EMBEDDING
+        0x202b, // RIGHT-TO-LEFT EMBEDDING
+        0x202c, // POP DIRECTIONAL FORMATTING
+        0x202d, // LEFT-TO-RIGHT OVERRIDE
+        0x202e, // RIGHT-TO-LEFT OVERRIDE
+        0x2066, // LEFT-TO-RIGHT ISOLATE
+        0x2067, // RIGHT-TO-LEFT ISOLATE
+        0x2068, // FIRST STRONG ISOLATE
+        0x2069, // POP DIRECTIONAL ISOLATE
+      ].map(code => String.fromCharCode(code));
+
+      for (const char of bidiChars) {
+        const result = sanitizeFilename(`a${char}b`);
+        expect(result).toBe('ab');
+      }
+    });
+
+    it('removes zero-width joiner/non-joiner/space characters (U+200B-U+200D)', () => {
+      const zeroWidthSpace = String.fromCharCode(0x200b);
+      const zeroWidthNonJoiner = String.fromCharCode(0x200c);
+      const zeroWidthJoiner = String.fromCharCode(0x200d);
+      expect(sanitizeFilename(`a${zeroWidthSpace}b${zeroWidthNonJoiner}c${zeroWidthJoiner}d`)).toBe(
+        'abcd',
+      );
+    });
+
+    it('removes the byte order mark / zero width no-break space (U+FEFF)', () => {
+      const bom = String.fromCharCode(0xfeff);
+      expect(sanitizeFilename(`${bom}file.txt`)).toBe('file.txt');
+    });
+
+    it('substitutes format codes with a custom replacement', () => {
+      const rlo = String.fromCharCode(0x202e);
+      expect(sanitizeFilename(`a${rlo}b`, { replacement: '_' })).toBe('a_b');
+    });
+  });
+
   describe('Windows reserved device names', () => {
     it.each(['CON', 'PRN', 'AUX', 'NUL', 'COM1', 'COM9', 'LPT1', 'LPT9'])(
       'sanitizes the reserved device name %s',
