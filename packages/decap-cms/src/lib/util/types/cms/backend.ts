@@ -24,6 +24,7 @@ export type CmsBackendType =
   | 'github'
   | 'gitlab'
   | 'gitea'
+  | 'forgejo'
   | 'bitbucket'
   | 'test-repo'
   | 'proxy';

@@ -18,6 +18,7 @@ describe('laika-app extensions', () => {
       'github',
       'gitlab',
       'gitea',
+      'forgejo',
       'bitbucket',
       'test-repo',
       'proxy',

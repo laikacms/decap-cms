@@ -16,6 +16,7 @@ import { markdownFormat } from '@/format-packs/markdown/index';
 import { AwsCognitoGitHubProxyBackend } from '@/backends/aws-cognito-github-proxy/index';
 import { AzureBackend } from '@/backends/azure/index';
 import { BitbucketBackend } from '@/backends/bitbucket/index';
+import { ForgejoBackend } from '@/backends/forgejo/index';
 import { GitGatewayBackend } from '@/backends/git-gateway/index';
 import { GiteaBackend } from '@/backends/gitea/index';
 import { GitHubBackend } from '@/backends/github/index';
@@ -64,6 +65,7 @@ export const registerExtensions = once(function registerExtensions(): void {
   CMS.registerBackend('github', GitHubBackend);
   CMS.registerBackend('gitlab', GitLabBackend);
   CMS.registerBackend('gitea', GiteaBackend);
+  CMS.registerBackend('forgejo', ForgejoBackend);
   CMS.registerBackend('bitbucket', BitbucketBackend);
   CMS.registerBackend('test-repo', TestBackend);
   CMS.registerBackend('proxy', ProxyBackend);

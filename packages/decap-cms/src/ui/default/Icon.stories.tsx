@@ -21,6 +21,7 @@ const iconNames: IconName[] = [
   'drag-handle',
   'eye',
   'folder',
+  'forgejo',
   'gitea',
   'github',
   'gitlab',
