@@ -14,3 +14,4 @@ export * from './richtext.js';
 export * from './select.js';
 export * from './string.js';
 export * from './text.js';
+export * from './uuid.js';
