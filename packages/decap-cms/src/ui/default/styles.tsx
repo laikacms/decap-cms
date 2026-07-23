@@ -252,6 +252,7 @@ interface Lengths {
   borderWidth: string;
   topCardWidth: string;
   pageMargin: string;
+  pageMarginMobile: string;
   objectWidgetTopBarContainerPadding: string;
 }
 
@@ -263,6 +264,7 @@ const lengths: Lengths = {
   borderWidth: '2px',
   topCardWidth: '682px',
   pageMargin: '28px 18px',
+  pageMarginMobile: '12px 8px',
   objectWidgetTopBarContainerPadding: '0 14px 14px',
 };
 
@@ -551,9 +553,13 @@ const components: Components = {
     margin-bottom: 28px;
   `,
   cardTopHeading: css`
-    font-size: 22px;
+    font-size: 20px;
+    line-height: 24px;
+    @media (min-width: 500px) {
+      font-size: 22px;
+      line-height: 26px;
+    }
     font-weight: 600;
-    line-height: 37px;
     margin: 0;
     padding: 0;
     color: ${colors.textLead};
@@ -563,6 +569,7 @@ const components: Components = {
     color: ${colors.text};
     font-size: 14px;
     margin-top: 8px;
+    margin-bottom: 0;
   `,
   objectWidgetTopBarContainer: css`
     padding: ${lengths.objectWidgetTopBarContainerPadding};
