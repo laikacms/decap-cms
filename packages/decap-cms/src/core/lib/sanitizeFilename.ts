@@ -4,6 +4,8 @@
  * Handles:
  *  - Characters forbidden by Windows, macOS, and Linux (/ ? < > \ : * | ")
  *  - ASCII control characters (0x00–0x1F) and Latin-1 control range (0x80–0x9F)
+ *  - Unicode bidi format controls, zero-width characters, and the BOM
+ *    (Trojan-Source spoofing vector — see FORMAT_CODES below)
  *  - Windows reserved device names (CON, PRN, AUX, NUL, COM0–9, LPT0–9)
  *  - Names consisting entirely of dots (e.g. ".", "..")
  *  - Trailing dots and spaces (invalid on NTFS/FAT)
@@ -24,6 +26,23 @@ const UNSAFE_CHARS = /[/<>?\\:*|"]/g;
  */
 // eslint-disable-next-line no-control-regex
 const CONTROL_CODES = new RegExp('[\\x00-\\x1f\\x80-\\x9f]', 'g');
+
+/**
+ * Unicode bidi format controls, zero-width characters, and the BOM.
+ * These are invisible or directionality-altering (Cf category) and are never
+ * safe to embed in a filename: they enable "Trojan Source"-style spoofing in
+ * file listings, git logs, and PR diffs (CVE-2021-42574 class), and zero-width
+ * joiners can make visually distinct filenames byte-identical or vice versa.
+ *
+ *  - U+200B–U+200F: zero width space/non-joiner/joiner, LTR/RTL marks
+ *  - U+202A–U+202E: LTR/RTL embedding, pop directional formatting, LTR/RTL override
+ *  - U+2066–U+2069: LTR/RTL/first-strong isolate, pop directional isolate
+ *  - U+FEFF: byte order mark / zero width no-break space
+ */
+const FORMAT_CODES = new RegExp(
+  '[\\u200B-\\u200F\\u202A-\\u202E\\u2066-\\u2069\\uFEFF]',
+  'g',
+);
 
 /** A name made up of only dots is reserved on Unix-like systems. */
 const DOTS_ONLY = /^\.+$/;
@@ -101,6 +120,7 @@ function clean(raw: string, substitute: string): string {
   let result = raw
     .replace(UNSAFE_CHARS, substitute)
     .replace(CONTROL_CODES, substitute)
+    .replace(FORMAT_CODES, substitute)
     .replace(DOTS_ONLY, substitute)
     .replace(WINDOWS_DEVICE_NAME, substitute);
 
