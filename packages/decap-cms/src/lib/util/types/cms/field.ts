@@ -16,6 +16,7 @@ import type {
   CmsFieldSelect,
   CmsFieldString,
   CmsFieldText,
+  CmsFieldUuid,
 } from './fields';
 
 export type CmsFieldStringOrText = CmsFieldString | CmsFieldText;
@@ -37,5 +38,6 @@ export type CmsField =
     | CmsFieldSelect
     | CmsFieldHidden
     | CmsFieldStringOrText
+    | CmsFieldUuid
     | CmsFieldMeta
   );

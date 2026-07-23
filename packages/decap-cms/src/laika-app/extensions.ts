@@ -44,6 +44,7 @@ import {
 import DecapCmsWidgetSelect from '@/widgets/select/index';
 import DecapCmsWidgetString from '@/widgets/string/index';
 import DecapCmsWidgetText from '@/widgets/text/index';
+import DecapCmsWidgetUuid from '@/widgets/uuid/index';
 // Locales
 import * as locales from '@/locales/index';
 
@@ -82,6 +83,7 @@ export const registerExtensions = once(function registerExtensions(): void {
     DecapCmsWidgetDatetime.Widget(),
     DecapCmsWidgetCode.Widget(),
     DecapCmsWidgetColorString.Widget(),
+    DecapCmsWidgetUuid.Widget(),
     RichtextWidget() as any,
     // v1→v2 back-compat alias: `markdown` was renamed to `richtext` (DCMS-483).
     // See BREAKING_CHANGES_V2_BETA.md for the migration note.
