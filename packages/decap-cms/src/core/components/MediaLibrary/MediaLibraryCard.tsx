@@ -6,7 +6,6 @@ import { borders, colors, effects, lengths, shadows } from '@/ui/default/index';
 const IMAGE_HEIGHT = 160;
 
 interface CardStyleProps {
-  $width: string;
   $height: string;
   $margin: string;
   $isSelected?: boolean;
@@ -14,7 +13,10 @@ interface CardStyleProps {
 }
 
 const Card = styled.div<CardStyleProps>`
-  width: ${props => props.$width};
+  /* Fills the width the grid cell allocates instead of a fixed px value, so a
+     single-column layout at small viewports (see MediaLibraryCardGrid's
+     columnCount clamp) doesn't overflow its container. */
+  width: 100%;
   height: ${props => props.$height};
   margin: ${props => props.$margin};
   border: ${borders.textField};
@@ -91,7 +93,6 @@ function MediaLibraryCard({
   text,
   onClick,
   draftText,
-  width,
   height,
   margin,
   isPrivate,
@@ -113,7 +114,6 @@ function MediaLibraryCard({
     <Card
       $isSelected={isSelected}
       onClick={onClick}
-      $width={width}
       $height={height}
       $margin={margin}
       tabIndex={-1}
