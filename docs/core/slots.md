@@ -54,7 +54,7 @@ Replaces the heading + "new entry" button rendered above a collection's entry li
 
 - Props: `CollectionTopRenderProps` (`collection`, `newEntryUrl?`, `filterTerm?`)
   - `filterTerm?`: current nested-collection tree path (`''` or `undefined` at the root).
-- Consumer: `packages/decap-cms/src/core/components/Collection/Collection.tsx:71`
+- Consumer: `packages/decap-cms/src/core/components/Collection/Collection.tsx:74`
 
 ### `renderCollectionSidebar`
 
@@ -65,7 +65,7 @@ reflows to fill the row when this slot returns `null`.
 
 - Props: `CollectionSidebarRenderProps` (`collections`, `collection?`, `isSearchEnabled?`,
   `searchTerm?`, `filterTerm?`)
-- Consumer: `packages/decap-cms/src/core/components/Collection/Collection.tsx:71`
+- Consumer: `packages/decap-cms/src/core/components/Collection/Collection.tsx:74`
 
 ### `renderCollectionControls`
 
@@ -75,7 +75,7 @@ Handlers and current state are pre-resolved, so the renderer stays presentationa
 - Props: `CollectionControlsRenderProps` (`viewStyle`, `onChangeViewStyle`, `sortableFields`,
   `onSortClick`, `sort?`, `viewFilters?`, `viewGroups?`, `onFilterClick`, `onGroupClick`, `filter?`,
   `group?`, `searchQuery?`, `onSearchChange?`)
-- Consumer: `packages/decap-cms/src/core/components/Collection/Collection.tsx:71`
+- Consumer: `packages/decap-cms/src/core/components/Collection/Collection.tsx:74`
 
 ### `renderEntryCard`
 
@@ -105,7 +105,7 @@ loader is being shown. Omit to keep the default `<Loader>`.
 - Props: `LoaderRenderProps` (`label?`, `context?: 'config' | 'entries' | 'entry' | 'workflow'`)
 - Consumers:
   - `packages/decap-cms/src/core/components/Collection/Entries/Entries.tsx:55`
-  - `packages/decap-cms/src/core/components/Workflow/Workflow.tsx:57`
+  - `packages/decap-cms/src/core/components/Workflow/Workflow.tsx:63`
   - `packages/decap-cms/src/core/components/Editor/Editor.tsx:27`
 
 ### `renderWorkflowCard`
@@ -117,7 +117,7 @@ re-skin it without re-implementing drag-and-drop or Redux integration.
 - Props: `WorkflowCardRenderProps` (`collectionLabel`, `title?`, `authorLastChange?`, `body?`,
   `isModification?`, `editLink`, `timestamp`, `onDelete`, `allowPublish`, `canPublish`, `onPublish`,
   `postAuthor?`)
-- Consumer: `packages/decap-cms/src/core/components/Workflow/WorkflowList.tsx:209`
+- Consumer: `packages/decap-cms/src/core/components/Workflow/WorkflowList.tsx:229`
 
 ### `renderEditorToolbar`
 

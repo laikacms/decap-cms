@@ -18,47 +18,57 @@ import type { TranslateFunction } from '@/ui/default/index';
 const WorkflowListContainer = styled.div`
   min-height: 60%;
   display: grid;
-  grid-template-columns: 33.3% 33.3% 33.3%;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  @media (min-width: 500px) {
+    gap: 14px;
+  }
+  @media (min-width: 800px) {
+    gap: 40px;
+  }
 `;
 
 const WorkflowListContainerOpenAuthoring = styled.div`
   min-height: 60%;
   display: grid;
-  grid-template-columns: 50% 50% 0%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  @media (min-width: 500px) {
+    gap: 14px;
+  }
+  @media (min-width: 800px) {
+    gap: 40px;
+  }
 `;
 
 const styles = {
   columnPosition: (idx: number) =>
-    (idx === 0
-      && css`
-        margin-left: 0;
-      `)
-    || (idx === 2
-      && css`
-        margin-right: 0;
-      `)
-    || css`
-      &:before,
-      &:after {
+    idx > 0
+    && css`
+      &:before {
         content: '';
         display: block;
         position: absolute;
         width: 2px;
         height: 80%;
-        top: 76px;
+        top: 36px;
         background-color: ${colors.textFieldBorder};
+        @media (min-width: 800px) {
+          top: 76px;
+        }
       }
 
       &:before {
-        left: -23px;
-      }
-
-      &:after {
-        right: -23px;
+        left: -7px;
+        @media (min-width: 500px) {
+          left: -10px;
+        }
+        @media (min-width: 800px) {
+          left: -23px;
+        }
       }
     `,
   column: css`
-    margin: 0 20px;
     transition: background-color 0.5s ease;
     border: 2px dashed transparent;
     border-radius: 4px;
@@ -70,13 +80,6 @@ const styles = {
   `,
   hiddenColumn: css`
     display: none;
-  `,
-  hiddenRightBorder: css`
-    &:not(:first-child:last-child) {
-      &:after {
-        display: none;
-      }
-    }
   `,
 };
 
@@ -114,11 +117,18 @@ interface ColumnHeaderProps {
 }
 
 const ColumnHeader = styled.h2<ColumnHeaderProps>`
-  font-size: 20px;
+  font-size: 16px;
   font-weight: normal;
-  padding: 4px 14px;
+  padding: 2px 6px;
   border-radius: ${lengths.borderRadius};
-  margin-bottom: 28px;
+  white-space: nowrap;
+  margin-bottom: 6px;
+
+  @media (min-width: 800px) {
+    font-size: 20px;
+    padding: 4px 12px;
+    margin-bottom: 28px;
+  }
 
   ${(props: ColumnHeaderProps) =>
   props.$name === 'draft'
@@ -143,11 +153,21 @@ const ColumnHeader = styled.h2<ColumnHeaderProps>`
 `;
 
 const ColumnCount = styled.p`
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 500;
   color: ${colors.text};
   text-transform: uppercase;
   margin-bottom: 6px;
+  padding-inline: 6px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  min-width: 0;
+
+  @media (min-width: 800px) {
+    font-size: 13px;
+    padding-inline: 12px;
+  }
 `;
 
 // This is a namespace so that we can only drop these elements on a DropTarget with the same
@@ -270,9 +290,6 @@ function WorkflowList({
                       styles.columnPosition(idx),
                       isHovered && styles.columnHovered,
                       isOpenAuthoring && currColumn === 'pending_publish' && styles.hiddenColumn,
-                      isOpenAuthoring
-                      && currColumn === 'pending_review'
-                      && styles.hiddenRightBorder,
                     ]}
                   >
                     <ColumnHeader id={`workflow-column-heading-${currColumn}`} $name={currColumn}>

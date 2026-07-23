@@ -24,8 +24,11 @@ type Collections = CmsCollections;
 type Collection = CmsCollectionState;
 
 const WorkflowContainer = styled.div`
-  padding: ${lengths.pageMargin} 0;
   height: 100vh;
+  margin: ${lengths.pageMarginMobile};
+  @media (min-width: 500px) {
+    margin: ${lengths.pageMargin};
+  }
 `;
 
 const WorkflowTop = styled.div`
@@ -34,6 +37,9 @@ const WorkflowTop = styled.div`
 
 const WorkflowTopRow = styled.div`
   display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
   justify-content: space-between;
 
   span[role='button'] {
