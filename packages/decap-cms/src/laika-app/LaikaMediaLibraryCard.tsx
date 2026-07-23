@@ -93,7 +93,6 @@ function LaikaMediaLibraryCard({
   text,
   onClick,
   draftText,
-  width,
   height,
   margin,
   isPrivate,
@@ -118,7 +117,10 @@ function LaikaMediaLibraryCard({
       onKeyDown={handleNavItemKeyDown}
       $isSelected={isSelected}
       $isPrivate={isPrivate}
-      style={{ width, height, margin }}
+      // Fills the grid cell width instead of the fixed cardWidth constant, so
+      // single-column layouts at small viewports don't overflow (mirrors
+      // core MediaLibraryCard).
+      style={{ width: '100%', height, margin }}
       {...navItemProps}
     >
       <ImageWrap>
