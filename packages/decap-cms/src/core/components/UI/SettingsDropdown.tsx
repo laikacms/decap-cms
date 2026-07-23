@@ -37,11 +37,25 @@ const AvatarPlaceholderIcon = styled(Icon)`
   background-color: ${colors.textFieldBorder};
 `;
 
+// Truncated with an ellipsis rather than left to overflow (DCMS-1049, ported
+// from upstream 64118e404) — the header collapses these links entirely below
+// AppHeader's MOBILE_BREAKPOINT, but a long `display_url` or repo name can
+// still overflow the header at wider widths where they stay visible.
+const headerLinkTruncation = css`
+  display: inline-block;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+`;
+
 const AppHeaderSiteLink = styled.a`
   font-size: 14px;
   font-weight: 400;
   color: ${colors.controlLabel};
   padding: 10px 16px;
+  ${headerLinkTruncation};
 `;
 
 const AppHeaderTestRepoIndicator = styled.a`
@@ -49,6 +63,7 @@ const AppHeaderTestRepoIndicator = styled.a`
   font-weight: 400;
   color: ${colors.controlLabel};
   padding: 10px 16px;
+  ${headerLinkTruncation};
 `;
 
 interface AvatarProps {
