@@ -163,13 +163,114 @@ describe('IconControl keyboard operability (radix-icon, DCMS-1290)', () => {
     expect(onChange).toHaveBeenCalledWith('ArrowDownIcon');
   });
 
-  it('exposes icon options as focusable via tabIndex', async () => {
+  it('exposes the initially-active icon option as focusable via tabIndex', async () => {
     const onChange = vi.fn();
     render(React.createElement(IconControl, { ...baseProps, onChange, value: undefined }));
 
     fireEvent.click(screen.getByRole('button', { name: 'editor.editorWidgets.iconPicker.toggle' }));
 
-    const option = await waitFor(() => screen.getAllByRole('button', { name: 'ArrowUpIcon' })[0]);
+    // First alphabetically among `/^Arrow/` matches, i.e. roving-tabindex's
+    // default active cell (DCMS-1462).
+    const option = await waitFor(() => screen.getAllByRole('button', { name: 'ArrowBottomLeftIcon' })[0]);
     expect(option.getAttribute('tabindex')).toBe('0');
+  });
+});
+
+/**
+ * Regression test for DCMS-1462: the Tab-only fix from DCMS-1290 left every
+ * one of the ~1500 icons individually Tab-reachable. Roving tabindex should
+ * move focus with the arrow keys within the 4-column grid while keeping only
+ * one cell in the Tab order at a time.
+ */
+describe('IconControl arrow-key roving tabindex (radix-icon, DCMS-1462)', () => {
+  const baseProps = {
+    field: {} as never,
+    classNameWrapper: '',
+    setActiveStyle: () => {},
+    setInactiveStyle: () => {},
+    t: (key: string) => key,
+    filter: /^Arrow/,
+  };
+
+  // The real `@radix-ui/react-icons` package exposes exactly 8 "Arrow*Icon"
+  // names, rendered in a 4-column grid (2 full rows), giving deterministic
+  // indices without narrowing further via the search box.
+  const gridIconNames = [
+    'ArrowBottomLeftIcon',
+    'ArrowBottomRightIcon',
+    'ArrowDownIcon',
+    'ArrowLeftIcon',
+    'ArrowRightIcon',
+    'ArrowTopLeftIcon',
+    'ArrowTopRightIcon',
+    'ArrowUpIcon',
+  ];
+
+  async function renderGrid() {
+    const onChange = vi.fn();
+    render(React.createElement(IconControl, { ...baseProps, onChange, value: undefined }));
+
+    fireEvent.click(screen.getByRole('button', { name: 'editor.editorWidgets.iconPicker.toggle' }));
+
+    const options = await waitFor(() => gridIconNames.map(name => screen.getByRole('button', { name })));
+    expect(options).toHaveLength(8);
+    return options;
+  }
+
+  it('only the first cell is in the Tab order initially', async () => {
+    const options = await renderGrid();
+
+    expect(options[0].getAttribute('tabindex')).toBe('0');
+    for (const option of options.slice(1)) {
+      expect(option.getAttribute('tabindex')).toBe('-1');
+    }
+  });
+
+  it('ArrowRight moves focus and tabindex to the next cell', async () => {
+    const options = await renderGrid();
+
+    fireEvent.keyDown(options[0], { key: 'ArrowRight' });
+
+    expect(options[1]).toHaveFocus();
+    expect(options[1].getAttribute('tabindex')).toBe('0');
+    expect(options[0].getAttribute('tabindex')).toBe('-1');
+  });
+
+  it('ArrowDown moves focus by one full row (4 columns)', async () => {
+    const options = await renderGrid();
+
+    fireEvent.keyDown(options[0], { key: 'ArrowDown' });
+
+    expect(options[4]).toHaveFocus();
+    expect(options[4].getAttribute('tabindex')).toBe('0');
+  });
+
+  it('ArrowUp/ArrowLeft move focus back', async () => {
+    const options = await renderGrid();
+
+    fireEvent.keyDown(options[0], { key: 'ArrowDown' });
+    fireEvent.keyDown(options[4], { key: 'ArrowUp' });
+    expect(options[0]).toHaveFocus();
+
+    fireEvent.keyDown(options[0], { key: 'ArrowRight' });
+    fireEvent.keyDown(options[1], { key: 'ArrowLeft' });
+    expect(options[0]).toHaveFocus();
+  });
+
+  it('clamps at the grid edges instead of wrapping or leaving the grid', async () => {
+    const options = await renderGrid();
+
+    fireEvent.keyDown(options[0], { key: 'ArrowLeft' });
+    expect(options[0]).toHaveFocus();
+
+    fireEvent.keyDown(options[7], { key: 'ArrowRight' });
+    expect(options[7]).toHaveFocus();
+  });
+
+  it('Tab exits the grid after only one stop (single 0-tabindex cell)', async () => {
+    const options = await renderGrid();
+
+    const tabbableCells = options.filter(option => option.getAttribute('tabindex') === '0');
+    expect(tabbableCells).toHaveLength(1);
   });
 });

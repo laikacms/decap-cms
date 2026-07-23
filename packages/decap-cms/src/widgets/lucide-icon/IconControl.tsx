@@ -3,11 +3,14 @@ import { ChevronDownIcon, ChevronUpIcon, icons as lucideIcons } from 'lucide-rea
 import React, { useMemo, useState } from 'react';
 
 import { colors, shadows } from '@/ui/default/index';
+import { useRovingTabIndex } from '@/ui/hooks/index';
 
 import type { CmsWidgetControlProps } from '@/lib/util/index';
 import type { IconWidgetOptions } from './types';
 
 const allIcons = Object.fromEntries(Object.entries(lucideIcons));
+
+const ICON_GRID_COLUMNS = 4;
 
 const IconGrid = styled.div`
   ${shadows.inset};
@@ -38,6 +41,11 @@ export const IconControl: React.FC<IconControlProps> = props => {
       return true;
     });
   }, [search, filter]);
+
+  const { getTabIndex, registerItem, setActiveIndex, onKeyDown } = useRovingTabIndex({
+    itemCount: filteredIcons.length,
+    columns: ICON_GRID_COLUMNS,
+  });
 
   const onFocus = () => {
     setIsOpen(true);
@@ -120,13 +128,14 @@ export const IconControl: React.FC<IconControlProps> = props => {
               background: colors.textFieldBorder,
             }}
           >
-            {filteredIcons.map(iconName => {
+            {filteredIcons.map((iconName, index) => {
               return (
                 <div
                   key={iconName}
+                  ref={registerItem(index)}
                   title={iconName}
                   role="button"
-                  tabIndex={0}
+                  tabIndex={getTabIndex(index)}
                   aria-pressed={iconName === props.value}
                   style={{
                     cursor: 'pointer',
@@ -137,12 +146,18 @@ export const IconControl: React.FC<IconControlProps> = props => {
                     justifyContent: 'center',
                   }}
                   onMouseDown={e => e.preventDefault()}
-                  onClick={() => props.onChange(iconName)}
+                  onClick={() => {
+                    setActiveIndex(index);
+                    props.onChange(iconName);
+                  }}
+                  onFocus={() => setActiveIndex(index)}
                   onKeyDown={e => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
                       props.onChange(iconName);
+                      return;
                     }
+                    onKeyDown(e, index);
                   }}
                 >
                   {allIcons[iconName]

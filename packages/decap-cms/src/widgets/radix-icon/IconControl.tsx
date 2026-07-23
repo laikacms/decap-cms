@@ -2,6 +2,7 @@ import { ChevronDownIcon, ChevronUpIcon } from '@radix-ui/react-icons';
 import React, { useEffect, useMemo, useState } from 'react';
 
 import { colors } from '@/ui/default/index';
+import { useRovingTabIndex } from '@/ui/hooks/index';
 
 import type { CmsWidgetControlProps } from '@/lib/util/index';
 import type { IconWidgetOptions } from './types';
@@ -10,6 +11,8 @@ import type { IconWidgetOptions } from './types';
 // so we don't depend on the package's internal file layout.
 type RadixIconProps = React.SVGAttributes<SVGElement> & { color?: string };
 type RadixIconComponent = React.ForwardRefExoticComponent<RadixIconProps & React.RefAttributes<SVGSVGElement>>;
+
+const ICON_GRID_COLUMNS = 4;
 
 export type IconControlProps = CmsWidgetControlProps<string> & Pick<IconWidgetOptions, 'filter'>;
 
@@ -45,6 +48,11 @@ export const IconControl: React.FC<IconControlProps> = props => {
       return true;
     });
   }, [search, allIcons, filter]);
+
+  const { getTabIndex, registerItem, setActiveIndex, onKeyDown } = useRovingTabIndex({
+    itemCount: icons.length,
+    columns: ICON_GRID_COLUMNS,
+  });
 
   const onFocus = () => {
     setIsOpen(true);
@@ -132,14 +140,15 @@ export const IconControl: React.FC<IconControlProps> = props => {
               background: colors.textFieldBorder,
             }}
           >
-            {icons.map(iconName => {
+            {icons.map((iconName, index) => {
               const Icon = allIcons[iconName as keyof typeof allIcons];
               return (
                 <div
                   key={iconName}
+                  ref={registerItem(index)}
                   title={iconName}
                   role="button"
-                  tabIndex={0}
+                  tabIndex={getTabIndex(index)}
                   aria-pressed={iconName === props.value}
                   style={{
                     cursor: 'pointer',
@@ -150,12 +159,18 @@ export const IconControl: React.FC<IconControlProps> = props => {
                     justifyContent: 'center',
                   }}
                   onMouseDown={e => e.preventDefault()}
-                  onClick={() => props.onChange(iconName)}
+                  onClick={() => {
+                    setActiveIndex(index);
+                    props.onChange(iconName);
+                  }}
+                  onFocus={() => setActiveIndex(index)}
                   onKeyDown={e => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
                       props.onChange(iconName);
+                      return;
                     }
+                    onKeyDown(e, index);
                   }}
                 >
                   <Icon width={24} height={24} color={iconName === props.value ? colors.textLight : colors.text} />

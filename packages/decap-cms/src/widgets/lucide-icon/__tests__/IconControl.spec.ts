@@ -138,13 +138,116 @@ describe('IconControl keyboard operability (lucide-icon, DCMS-1290)', () => {
     expect(onChange).toHaveBeenCalledWith('ArrowDown');
   });
 
-  it('exposes icon options as focusable via tabIndex', () => {
+  it('exposes the initially-active icon option as focusable via tabIndex', () => {
     const onChange = vi.fn();
     render(React.createElement(IconControl, { ...baseProps, onChange, value: undefined }));
 
     fireEvent.click(screen.getByRole('button', { name: 'editor.editorWidgets.iconPicker.toggle' }));
 
-    const option = screen.getAllByRole('button', { name: 'ArrowUp' })[0];
+    // First alphabetically among `/^Arrow/` matches, i.e. roving-tabindex's
+    // default active cell (DCMS-1462).
+    const option = screen.getAllByRole('button', { name: 'ArrowBigDown' })[0];
     expect(option.getAttribute('tabindex')).toBe('0');
+  });
+});
+
+/**
+ * Regression test for DCMS-1462: the Tab-only fix from DCMS-1290 left every
+ * one of the ~1500 icons individually Tab-reachable. Roving tabindex should
+ * move focus with the arrow keys within the 4-column grid while keeping only
+ * one cell in the Tab order at a time.
+ */
+describe('IconControl arrow-key roving tabindex (lucide-icon, DCMS-1462)', () => {
+  const baseProps = {
+    field: {} as never,
+    classNameWrapper: '',
+    setActiveStyle: () => {},
+    setInactiveStyle: () => {},
+    t: (key: string) => key,
+    filter: /^Arrow/,
+  };
+
+  // Search narrows the `/^Arrow/` filter to exactly the 8 "ArrowBig*" icons,
+  // rendered in a 4-column grid (2 full rows), giving deterministic indices.
+  const gridIconNames = [
+    'ArrowBigDown',
+    'ArrowBigDownDash',
+    'ArrowBigLeft',
+    'ArrowBigLeftDash',
+    'ArrowBigRight',
+    'ArrowBigRightDash',
+    'ArrowBigUp',
+    'ArrowBigUpDash',
+  ];
+
+  function renderNarrowedGrid() {
+    const onChange = vi.fn();
+    render(React.createElement(IconControl, { ...baseProps, onChange, value: undefined }));
+
+    fireEvent.click(screen.getByRole('button', { name: 'editor.editorWidgets.iconPicker.toggle' }));
+    fireEvent.change(screen.getByPlaceholderText('mediaLibrary.mediaLibraryModal.search'), {
+      target: { value: 'ArrowBig' },
+    });
+
+    const options = gridIconNames.map(name => screen.getByRole('button', { name }));
+    expect(options).toHaveLength(8);
+    return options;
+  }
+
+  it('only the first cell is in the Tab order initially', () => {
+    const options = renderNarrowedGrid();
+
+    expect(options[0].getAttribute('tabindex')).toBe('0');
+    for (const option of options.slice(1)) {
+      expect(option.getAttribute('tabindex')).toBe('-1');
+    }
+  });
+
+  it('ArrowRight moves focus and tabindex to the next cell', () => {
+    const options = renderNarrowedGrid();
+
+    fireEvent.keyDown(options[0], { key: 'ArrowRight' });
+
+    expect(options[1]).toHaveFocus();
+    expect(options[1].getAttribute('tabindex')).toBe('0');
+    expect(options[0].getAttribute('tabindex')).toBe('-1');
+  });
+
+  it('ArrowDown moves focus by one full row (4 columns)', () => {
+    const options = renderNarrowedGrid();
+
+    fireEvent.keyDown(options[0], { key: 'ArrowDown' });
+
+    expect(options[4]).toHaveFocus();
+    expect(options[4].getAttribute('tabindex')).toBe('0');
+  });
+
+  it('ArrowUp/ArrowLeft move focus back', () => {
+    const options = renderNarrowedGrid();
+
+    fireEvent.keyDown(options[0], { key: 'ArrowDown' });
+    fireEvent.keyDown(options[4], { key: 'ArrowUp' });
+    expect(options[0]).toHaveFocus();
+
+    fireEvent.keyDown(options[0], { key: 'ArrowRight' });
+    fireEvent.keyDown(options[1], { key: 'ArrowLeft' });
+    expect(options[0]).toHaveFocus();
+  });
+
+  it('clamps at the grid edges instead of wrapping or leaving the grid', () => {
+    const options = renderNarrowedGrid();
+
+    fireEvent.keyDown(options[0], { key: 'ArrowLeft' });
+    expect(options[0]).toHaveFocus();
+
+    fireEvent.keyDown(options[7], { key: 'ArrowRight' });
+    expect(options[7]).toHaveFocus();
+  });
+
+  it('Tab exits the grid after only one stop (single 0-tabindex cell)', () => {
+    const options = renderNarrowedGrid();
+
+    const tabbableCells = options.filter(option => option.getAttribute('tabindex') === '0');
+    expect(tabbableCells).toHaveLength(1);
   });
 });
