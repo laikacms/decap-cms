@@ -76,7 +76,7 @@ const nl = {
   editor: {
     editorControl: {
       field: {
-        optional: 'optioneel',
+        required: 'verplicht',
       },
     },
     editorControlPane: {

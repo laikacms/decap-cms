@@ -67,7 +67,7 @@ const vi = {
   editor: {
     editorControl: {
       field: {
-        optional: 'không bắt buộc',
+        required: 'bắt buộc',
       },
     },
     editorControlPane: {

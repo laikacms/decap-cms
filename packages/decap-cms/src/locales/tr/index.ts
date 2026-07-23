@@ -73,7 +73,7 @@ const tr = {
   editor: {
     editorControl: {
       field: {
-        optional: 'isteğe bağlı',
+        required: 'zorunlu',
       },
     },
     editorControlPane: {

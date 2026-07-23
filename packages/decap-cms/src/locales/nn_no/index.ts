@@ -62,7 +62,7 @@ const nn_no = {
   editor: {
     editorControl: {
       field: {
-        optional: 'valfritt',
+        required: 'påkravd',
       },
     },
     editorControlPane: {

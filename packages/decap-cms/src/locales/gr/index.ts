@@ -50,7 +50,7 @@ const gr = {
   editor: {
     editorControl: {
       field: {
-        optional: 'προαιρετικός',
+        required: 'υποχρεωτικό',
       },
     },
     editorControlPane: {

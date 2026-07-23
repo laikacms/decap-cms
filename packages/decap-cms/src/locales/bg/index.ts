@@ -73,7 +73,7 @@ const bg = {
   editor: {
     editorControl: {
       field: {
-        optional: 'незадължителен',
+        required: 'задължително',
       },
     },
     editorControlPane: {

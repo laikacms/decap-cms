@@ -75,7 +75,7 @@ const hr = {
   editor: {
     editorControl: {
       field: {
-        optional: 'opcionalno',
+        required: 'obavezno',
         widgetLabel: '%{widgetLabel} polje',
       },
     },

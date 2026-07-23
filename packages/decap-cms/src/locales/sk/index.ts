@@ -75,7 +75,7 @@ const sk = {
   editor: {
     editorControl: {
       field: {
-        optional: 'voliteľné',
+        required: 'povinné',
         widgetLabel: 'Pole %{widgetLabel}',
       },
     },

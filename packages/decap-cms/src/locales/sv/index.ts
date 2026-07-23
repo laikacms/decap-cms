@@ -73,7 +73,7 @@ const sv = {
   editor: {
     editorControl: {
       field: {
-        optional: 'frivillig',
+        required: 'obligatoriskt',
       },
     },
     editorControlPane: {

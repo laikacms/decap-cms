@@ -73,7 +73,7 @@ const he = {
   editor: {
     editorControl: {
       field: {
-        optional: 'רשות',
+        required: 'חובה',
       },
     },
     editorControlPane: {

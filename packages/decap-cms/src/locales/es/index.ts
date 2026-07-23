@@ -62,7 +62,7 @@ const es = {
   editor: {
     editorControl: {
       field: {
-        optional: 'opcional',
+        required: 'obligatorio',
       },
     },
     editorControlPane: {
