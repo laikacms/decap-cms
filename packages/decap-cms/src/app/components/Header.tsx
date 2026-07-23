@@ -47,12 +47,19 @@ function AppHeader(props: React.HTMLAttributes<HTMLElement>) {
     <header
       css={css`
         ${shadows.dropMain};
-        position: sticky;
         width: 100%;
-        top: 0;
         background-color: ${colors.foreground};
         z-index: ${zIndex.zIndex300};
         height: ${lengths.topBarHeight};
+
+        /* Sticking the header costs a fixed slice of the viewport (DCMS-1049,
+           ported from upstream 64118e404). On a short or heavily zoomed
+           viewport that slice can outweigh the convenience of a persistent
+           header, so only stick it once there's enough height to spare. */
+        @media (min-height: 500px) {
+          position: sticky;
+          top: 0;
+        }
       `}
       {...props}
     />
