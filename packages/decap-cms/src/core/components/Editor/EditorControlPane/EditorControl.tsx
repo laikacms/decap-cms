@@ -114,34 +114,37 @@ export const ControlHint = styled.p<{ active?: boolean, error?: boolean }>`
   transition: color ${transitions.main};
 `;
 
+const RequiredFieldMarker = styled.span`
+  color: ${colors.errorText};
+  margin-left: 2px;
+`;
+
 interface LabelComponentProps {
   field: EntryField;
   isActive: boolean;
   hasErrors: boolean;
   uniqueFieldId: string;
-  isFieldOptional: boolean;
+  isFieldRequired: boolean;
   t: TranslateFunction;
 }
 
-function LabelComponent({
+export function LabelComponent({
   field,
   isActive,
   hasErrors,
   uniqueFieldId,
-  isFieldOptional,
+  isFieldRequired,
   t,
 }: LabelComponentProps) {
   const label = `${(field as any).label || field.name}`;
   const labelComponent = (
     <FieldLabel $isActive={isActive} $hasErrors={hasErrors} htmlFor={uniqueFieldId}>
-      {isFieldOptional
-        ? (
-          <>
-            {label}
-            <span>{` (${t('editor.editorControl.field.optional')})`}</span>
-          </>
-        )
-        : label}
+      {label}
+      {isFieldRequired && (
+        <RequiredFieldMarker aria-hidden="true" title={t('editor.editorControl.field.required')}>
+          {' *'}
+        </RequiredFieldMarker>
+      )}
     </FieldLabel>
   );
 
@@ -275,7 +278,7 @@ function EditorControl(props: EditorControlProps) {
   const widget = resolveWidget(widgetName);
   const fieldName = field.name;
   const fieldHint = (field as any).hint as string | undefined;
-  const isFieldOptional = (field as any).required === false;
+  const isFieldRequired = (field as any).required !== false;
   const onValidateObject = onValidate;
   const metadata = fieldsMetaData && fieldsMetaData[fieldName];
   const errors = fieldsErrors && fieldsErrors[uniqueFieldId];
@@ -316,7 +319,7 @@ function EditorControl(props: EditorControlProps) {
               isActive={!!(isSelected || styleActive)}
               hasErrors={hasErrors}
               uniqueFieldId={uniqueFieldId}
-              isFieldOptional={isFieldOptional}
+              isFieldRequired={isFieldRequired}
               t={t}
             />
             {errors && (
