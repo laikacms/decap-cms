@@ -42,7 +42,7 @@ function LaikaLayout({ main, headerProps }: AppLayoutRenderProps) {
   return (
     <>
       <LayoutRow>
-        <LaikaSidebar collections={headerProps.collections} />
+        <LaikaSidebar collections={headerProps.collections} userScopes={headerProps.user.scopes} />
         <MainArea>{main}</MainArea>
       </LayoutRow>
       <LaikaCommandPalette />

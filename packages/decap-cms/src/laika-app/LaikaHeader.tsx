@@ -8,6 +8,7 @@ import { checkBackendStatus } from '@/core/actions/status';
 import { SettingsDropdown } from '@/core/components/UI';
 import { useAppDispatch } from '@/core/hooks/useRedux';
 import { translate } from '@/core/i18n';
+import { canEditCollection } from '@/core/lib/collectionAccess';
 import { buttons, colors, components, Icon, lengths, zIndex } from '@/ui/default/index';
 import { LAIKA_BREAKPOINT_MOBILE, useLaikaShell } from './LaikaShellContext';
 import { useLaikaTheme } from './LaikaThemeContext';
@@ -292,7 +293,9 @@ function LaikaHeader({
     return () => clearInterval(id);
   }, [dispatch]);
 
-  const creatableCollections = Object.values(collections).filter(c => !!c.create);
+  const creatableCollections = Object.values(collections).filter(
+    c => !!c.create && canEditCollection(c, user.scopes),
+  );
   const brandLogo = logo?.show_in_header && (logo?.src || logoUrl);
 
   return (

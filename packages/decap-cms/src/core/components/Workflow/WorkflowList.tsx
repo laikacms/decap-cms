@@ -6,6 +6,7 @@ import React from 'react';
 import { DragSource, DropTarget, HTML5DragDrop } from '@/core/components/UI';
 import { status } from '@/core/constants/publishModes';
 import { translate } from '@/core/i18n';
+import { canEditCollection } from '@/core/lib/collectionAccess';
 import { useCmsSlots } from '@/core/lib/slots';
 import { selectEntryCollectionTitle } from '@/core/reducers/collections';
 import { confirmDialog, showAlert } from '@/ui';
@@ -215,6 +216,7 @@ interface WorkflowListProps {
   t: TranslateFunction;
   isOpenAuthoring?: boolean;
   collections: CmsCollections;
+  userScopes?: string[];
 }
 
 function WorkflowList({
@@ -225,6 +227,7 @@ function WorkflowList({
   t,
   isOpenAuthoring,
   collections,
+  userScopes,
 }: WorkflowListProps) {
   const { renderWorkflowCard } = useCmsSlots();
   // Announces every status change (keyboard-driven or drag-and-drop) via the
@@ -277,7 +280,12 @@ function WorkflowList({
           <DropTarget
             namespace={DNDNamespace}
             key={currColumn}
-            onDrop={(dragProps: any) => onChangeStatus(currColumn, dragProps)}
+            onDrop={(dragProps: any) => {
+              const collection = collections[dragProps.collection];
+              if (collection && canEditCollection(collection, userScopes)) {
+                onChangeStatus(currColumn, dragProps);
+              }
+            }}
           >
             {(connect: any, { isHovered }: { isHovered: boolean }) =>
               connect(
@@ -322,16 +330,19 @@ function WorkflowList({
             (c: CmsCollectionState) => c.name === collectionName,
           );
           const collectionLabel = collection?.label;
+          const hasEditAccess = !!collection && canEditCollection(collection, userScopes);
           const isModification = entry.isModification;
 
-          const allowPublish = (collection?.publish ?? true) as boolean;
-          const canPublish = ownStatus === Object.values(status).pop() && !(entry.isPersisting ?? false);
+          const allowPublish = hasEditAccess && ((collection?.publish ?? true) as boolean);
+          const canPublish = hasEditAccess
+            && ownStatus === Object.values(status).pop()
+            && !(entry.isPersisting ?? false);
           const postAuthor = entry.author;
           const previousStatus = getAdjacentStatus(ownStatus, -1);
           const nextStatus = getAdjacentStatus(ownStatus, 1);
 
           function moveTo(newStatus: string | undefined) {
-            if (!newStatus) return;
+            if (!newStatus || !hasEditAccess) return;
             onChangeStatus(newStatus, { slug, collection: collectionName, ownStatus });
           }
 
@@ -342,6 +353,7 @@ function WorkflowList({
               slug={slug}
               collection={collectionName}
               ownStatus={ownStatus}
+              canDrag={hasEditAccess}
             >
               {(connect: any) => {
                 const cardProps = {
@@ -353,6 +365,7 @@ function WorkflowList({
                   editLink,
                   timestamp,
                   onDelete: () => requestDelete(collectionName, slug, ownStatus),
+                  canDelete: hasEditAccess,
                   allowPublish,
                   canPublish,
                   onPublish: () => requestPublish(collectionName, slug, ownStatus),
@@ -374,29 +387,25 @@ function WorkflowList({
                     <StatusActions>
                       <StatusActionButton
                         type="button"
-                        disabled={!previousStatus}
+                        disabled={!hasEditAccess || !previousStatus}
                         onClick={() => moveTo(previousStatus)}
-                        aria-label={
-                          previousStatus
-                            ? t('workflow.workflowList.moveToPreviousStatus', {
-                                status: getColumnHeaderText(previousStatus, t),
-                              })
-                            : t('workflow.workflowList.moveToPreviousStatusShort')
-                        }
+                        aria-label={previousStatus
+                          ? t('workflow.workflowList.moveToPreviousStatus', {
+                            status: getColumnHeaderText(previousStatus, t),
+                          })
+                          : t('workflow.workflowList.moveToPreviousStatusShort')}
                       >
                         {t('workflow.workflowList.moveToPreviousStatusShort')}
                       </StatusActionButton>
                       <StatusActionButton
                         type="button"
-                        disabled={!nextStatus}
+                        disabled={!hasEditAccess || !nextStatus}
                         onClick={() => moveTo(nextStatus)}
-                        aria-label={
-                          nextStatus
-                            ? t('workflow.workflowList.moveToNextStatus', {
-                                status: getColumnHeaderText(nextStatus, t),
-                              })
-                            : t('workflow.workflowList.moveToNextStatusShort')
-                        }
+                        aria-label={nextStatus
+                          ? t('workflow.workflowList.moveToNextStatus', {
+                            status: getColumnHeaderText(nextStatus, t),
+                          })
+                          : t('workflow.workflowList.moveToNextStatusShort')}
                       >
                         {t('workflow.workflowList.moveToNextStatusShort')}
                       </StatusActionButton>

@@ -4,6 +4,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { changeViewStyle, filterByField, groupByField, sortByField } from '@/core/actions/entries';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 import { useTranslate } from '@/core/i18n';
+import { canEditCollection } from '@/core/lib/collectionAccess';
 import { useCmsSlots } from '@/core/lib/slots';
 import { getNewEntryUrl } from '@/core/lib/urlHelper';
 import { selectSortableFields, selectViewFilters, selectViewGroups } from '@/core/reducers/collections';
@@ -86,6 +87,7 @@ function CmsCollection({
   const collections = useAppSelector(state => state.collections) as CmsCollections;
   const entries = useAppSelector(state => state.entries);
   const isSearchEnabled = useAppSelector(state => state.config?.search !== false);
+  const userScopes = useAppSelector(state => state.auth?.user?.scopes);
 
   // Get the collection
   const collection = useMemo(() => {
@@ -134,7 +136,7 @@ function CmsCollection({
 
   // Compute new entry URL
   const newEntryUrl = useMemo(() => {
-    if (!collection?.create || !collectionName) {
+    if (!collection?.create || !collectionName || !canEditCollection(collection, userScopes)) {
       return '';
     }
     let url = getNewEntryUrl(collectionName);
@@ -142,7 +144,7 @@ function CmsCollection({
       url = `${url}?path=${filterTerm}`;
     }
     return url;
-  }, [collection, collectionName, filterTerm]);
+  }, [collection, collectionName, filterTerm, userScopes]);
 
   // Handlers using useCallback
   const onSortClick = useCallback(
@@ -212,6 +214,7 @@ function CmsCollection({
     isSearchEnabled,
     searchTerm,
     filterTerm,
+    userScopes,
   };
   const sidebarNode = renderCollectionSidebar
     ? (
@@ -236,7 +239,7 @@ function CmsCollection({
             <>
               {renderCollectionTop
                 ? (
-                  renderCollectionTop({ collection, newEntryUrl, filterTerm })
+                  renderCollectionTop({ collection, newEntryUrl, filterTerm, userScopes })
                 )
                 : <CollectionTop collection={collection} newEntryUrl={newEntryUrl} />}
               {renderCollectionControls

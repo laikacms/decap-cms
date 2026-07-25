@@ -59,6 +59,7 @@ type TestState = {
   collections: Record<string, unknown>,
   config: { publish_mode?: string },
   editorialWorkflow: { entities: Record<string, unknown> },
+  auth?: { user?: { scopes?: string[] } },
 };
 
 function buildStore(initial: TestState) {
@@ -69,6 +70,7 @@ function buildStore(initial: TestState) {
       config: (state = initial.config, action: any) => (action.type === 'TEST_SET_CONFIG' ? action.payload : state),
       editorialWorkflow: (state = initial.editorialWorkflow, action: any) =>
         action.type === 'TEST_SET_EDITORIAL_WORKFLOW' ? action.payload : state,
+      auth: (state = initial.auth ?? {}) => state,
     }),
     applyMiddleware(thunk),
   );
@@ -129,6 +131,22 @@ describe('useWorkflow', () => {
         collections: { posts: { ...postsCollection, delete: false } },
         config: { publish_mode: 'simple' },
         editorialWorkflow: { entities: {} },
+      },
+      { collectionName: 'posts', newEntry: false },
+    );
+
+    expect(result.current.showDelete).toBe(false);
+  });
+
+  it('showDelete is false when the user lacks the collection edit scope', () => {
+    const { result } = setup(
+      {
+        collections: {
+          posts: { ...postsCollection, edit_scopes: ['content:write'] },
+        },
+        config: { publish_mode: 'simple' },
+        editorialWorkflow: { entities: {} },
+        auth: { user: { scopes: ['content:read'] } },
       },
       { collectionName: 'posts', newEntry: false },
     );

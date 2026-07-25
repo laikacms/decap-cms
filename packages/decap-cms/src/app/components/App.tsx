@@ -16,6 +16,7 @@ import { useDecap } from '@/core/hooks/useDecap';
 import { useNavigate } from '@/core/hooks/useNavigate';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 import { useTranslate } from '@/core/i18n';
+import { isCollectionVisible } from '@/core/lib/collectionAccess';
 import { CmsSlotsProvider } from '@/core/lib/slots';
 import { matchExtraRoute } from '@/core/routing/extraRoutes';
 import { matchRoute } from '@/core/routing/router';
@@ -26,7 +27,7 @@ import Header from './Header';
 import type { ErrorBoundaryRenderProps } from '@/core/components/UI';
 import type { CmsSlots } from '@/core/lib/slots';
 import type { ExtraRouteParams } from '@/core/routing/extraRoutes';
-import type { CmsConfig, CmsCredentials } from '@/lib/util/index';
+import type { CmsConfig, CmsCredentials, CmsUser } from '@/lib/util/index';
 import type { CmsCollections, CmsCollectionState } from '@/lib/util/index';
 import type { TranslateFunction } from '@/ui/default/index';
 
@@ -53,7 +54,7 @@ export interface ExtraRoute {
  * Redux is pre-resolved so the renderer stays a plain function.
  */
 export interface AppHeaderRenderProps {
-  user: { avatar_url?: string, [key: string]: unknown };
+  user: CmsUser;
   collections: Collections;
   onCreateEntryClick: (collectionName: string) => void;
   onLogoutClick: () => void;
@@ -557,6 +558,15 @@ function AppContent({
 
   // Derived state
   const user = auth.user;
+  const visibleCollections = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries((collections ?? {}) as Collections).filter(([, collection]) =>
+          isCollectionVisible(collection, user?.scopes)
+        ),
+      ) as Collections,
+    [collections, user?.scopes],
+  );
   const publishMode = config?.publish_mode;
   const useMediaLibraryFlag = !mediaLibrary.externalLibrary;
   const showMediaButton = mediaLibrary.showMediaButton;
@@ -711,7 +721,7 @@ function AppContent({
 
   const headerProps: AppHeaderRenderProps = {
     user,
-    collections,
+    collections: visibleCollections,
     onCreateEntryClick: createNewEntry,
     onLogoutClick: handleLogout,
     openMediaLibrary: handleOpenMediaLibrary,

@@ -202,6 +202,29 @@ describe('config', () => {
       }).not.toThrowError();
     });
 
+    it('allows collection view_scopes and edit_scopes string arrays', () => {
+      expect(() => {
+        validateConfig(
+          merge({}, validConfig, {
+            collections: [{
+              view_scopes: ['content:read'],
+              edit_scopes: ['content:write'],
+            }],
+          }),
+        );
+      }).not.toThrowError();
+    });
+
+    it('rejects non-string collection scopes', () => {
+      expect(() => {
+        validateConfig(
+          merge({}, validConfig, {
+            collections: [{ edit_scopes: ['content:write', 42] }],
+          }),
+        );
+      }).toThrowError("'collections[0].edit_scopes[1]' must be string");
+    });
+
     it('should throw if collections sortable_fields is not a boolean or a string array', () => {
       expect(() => {
         validateConfig(merge({}, validConfig, { collections: [{ sortable_fields: 'title' }] }));

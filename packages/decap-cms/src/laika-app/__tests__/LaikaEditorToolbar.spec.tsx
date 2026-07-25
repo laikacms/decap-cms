@@ -143,6 +143,29 @@ describe('LaikaEditorToolbar', () => {
     expect(getByText('editor.editorToolbar.publishNow')).toBeInTheDocument();
   });
 
+  it('disables save and hides mutation actions when the user lacks the collection edit scope', () => {
+    const { getByLabelText, getByText, queryByText } = render(
+      <MemoryRouter>
+        <LaikaEditorToolbar
+          {...baseProps}
+          collection={{
+            ...baseProps.collection,
+            edit_scopes: ['content:write'],
+          }}
+          user={{ ...baseProps.user, token: '', scopes: ['content:read'] }}
+          hasChanged
+        />
+      </MemoryRouter>,
+    );
+
+    expect(getByText('editor.editorToolbar.save').closest('button')).toBeDisabled();
+    expect(queryByText('editor.editorToolbar.publishNow')).not.toBeInTheDocument();
+
+    fireEvent.click(getByLabelText('More actions'));
+    expect(queryByText('editor.editorToolbar.duplicate')).not.toBeInTheDocument();
+    expect(queryByText('editor.editorToolbar.deleteEntry')).not.toBeInTheDocument();
+  });
+
   it('hides Publish for a new entry under editorial workflow', () => {
     const { queryByText } = render(
       <MemoryRouter>

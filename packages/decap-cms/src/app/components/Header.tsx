@@ -6,6 +6,7 @@ import { checkBackendStatus } from '@/core/actions/status';
 import { SettingsDropdown } from '@/core/components/UI';
 import { useAppDispatch } from '@/core/hooks/useRedux';
 import { translate } from '@/core/i18n';
+import { canEditCollection } from '@/core/lib/collectionAccess';
 import { useLocation } from '@/core/routing/context';
 import { NavLink } from '@/core/routing/Link';
 import {
@@ -20,7 +21,7 @@ import {
   zIndex,
 } from '@/ui/default/index';
 
-import type { CmsCollections, CmsCollectionState } from '@/lib/util/index';
+import type { CmsCollections, CmsCollectionState, CmsUser } from '@/lib/util/index';
 import type { TranslateFunction } from '@/ui/default/index';
 
 type Collection = CmsCollectionState;
@@ -172,7 +173,7 @@ const AppHeaderLogo = styled.li`
 `;
 
 interface HeaderProps {
-  user: { avatar_url?: string, [key: string]: unknown };
+  user: CmsUser;
   collections: Collections;
   onCreateEntryClick: (collectionName: string) => void;
   onLogoutClick: () => void;
@@ -227,7 +228,7 @@ function Header({
   }
 
   const creatableCollections = Object.values(collections).filter(
-    (collection: Collection) => !!collection.create,
+    (collection: Collection) => !!collection.create && canEditCollection(collection, user.scopes),
   );
 
   const shouldShowLogo = logo?.show_in_header && logo?.src;

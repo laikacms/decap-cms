@@ -4,6 +4,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 
 import { translate } from '@/core/i18n';
+import { isCollectionVisible } from '@/core/lib/collectionAccess';
 import { colors, Icon, lengths, zIndex } from '@/ui/default/index';
 import LaikaCollectionSearch from './LaikaCollectionSearch';
 import { LAIKA_BREAKPOINT_MOBILE, useLaikaShell } from './LaikaShellContext';
@@ -206,8 +207,8 @@ const SidebarLinkBadge = styled.span`
  * collections each get their own labeled group when both are present, so the
  * sidebar reads like a navigable map rather than a flat dump.
  */
-function partitionCollections(collections: CmsCollections) {
-  const visible = Object.values(collections).filter(c => c.hide !== true);
+function partitionCollections(collections: CmsCollections, userScopes?: string[]) {
+  const visible = Object.values(collections).filter(c => isCollectionVisible(c, userScopes));
   const folders = visible.filter(c => c.type === 'folder_based_collection');
   const files = visible.filter(c => c.type === 'file_based_collection');
   return { folders, files };
@@ -233,6 +234,8 @@ export interface LaikaNavSection {
 
 export interface LaikaSidebarProps {
   collections: CmsCollections;
+  /** Authenticated user's scopes, used to omit inaccessible collections. */
+  userScopes?: string[];
   /**
    * Optional click handler. The default behavior (navigation via `NavLink`)
    * still runs; this fires alongside for analytics or custom side-effects.
@@ -265,8 +268,8 @@ function onSidebarKeyDown(event: React.KeyboardEvent<HTMLElement>) {
   }
 }
 
-function LaikaSidebar({ collections, onCollectionClick, extraNavSections, t }: LaikaSidebarProps) {
-  const { folders, files } = partitionCollections(collections);
+function LaikaSidebar({ collections, userScopes, onCollectionClick, extraNavSections, t }: LaikaSidebarProps) {
+  const { folders, files } = partitionCollections(collections, userScopes);
   const showSectionHeadings = folders.length > 0 && files.length > 0;
   const { isMobileSidebarOpen, closeMobileSidebar } = useLaikaShell();
   const isMobileViewport = useIsMobileViewport();

@@ -4,6 +4,7 @@ import React from 'react';
 import { createNewEntry } from '@/core/actions/collections';
 import { useAppSelector } from '@/core/hooks/useRedux';
 import { translate } from '@/core/i18n';
+import { canEditCollection, isCollectionVisible } from '@/core/lib/collectionAccess';
 import { colors, Icon, lengths } from '@/ui/default/index';
 import { handleNavItemKeyDown, navItemProps } from './listNav';
 import { LaikaBadge, LaikaButton, LaikaCard } from './ui';
@@ -90,12 +91,15 @@ interface LaikaDashboardProps {
 
 function LaikaDashboard({ t }: LaikaDashboardProps) {
   const collections = useAppSelector(state => state.collections) as CmsCollections | undefined;
-  const user = useAppSelector(state => state.auth?.user) as { name?: string } | undefined;
+  const user = useAppSelector(state => state.auth?.user);
   const config = useAppSelector(state => state.config);
 
   const visibleCollections = React.useMemo<CmsCollectionState[]>(
-    () => Object.values((collections ?? {}) as CmsCollections).filter(c => c.hide !== true),
-    [collections],
+    () =>
+      Object.values((collections ?? {}) as CmsCollections).filter(
+        c => isCollectionVisible(c, user?.scopes),
+      ),
+    [collections, user?.scopes],
   );
 
   const greeting = user?.name ? `Welcome back, ${user.name}` : 'Welcome';
@@ -144,7 +148,7 @@ function LaikaDashboard({ t }: LaikaDashboardProps) {
                 >
                   Browse
                 </LaikaButton>
-                {collection.create
+                {collection.create && canEditCollection(collection, user?.scopes)
                   ? (
                     <LaikaButton onClick={() => createNewEntry(collection.name)}>
                       {t('app.header.quickAdd')}

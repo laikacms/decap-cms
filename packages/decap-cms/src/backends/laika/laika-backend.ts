@@ -778,12 +778,18 @@ export default function createLaikaBackend(
 
         const sessionData = await sessionResponse.json();
         const userAttributes = sessionData.data?.attributes || sessionData;
+        const rawScopes = userAttributes.scopes ?? userAttributes.scope;
 
         // Extract user data from session response
         const userData = {
           name: userAttributes.name || userAttributes.email || 'Unknown',
           email: userAttributes.email || '',
           avatar_url: userAttributes.avatar_url || userAttributes.picture,
+          scopes: Array.isArray(rawScopes)
+            ? rawScopes.filter((scope): scope is string => typeof scope === 'string')
+            : typeof rawScopes === 'string'
+            ? rawScopes.split(/\s+/).filter(Boolean)
+            : [],
           metadata: {},
         };
 
@@ -809,6 +815,7 @@ export default function createLaikaBackend(
           name: userData.name,
           login: userData.email,
           avatar_url: userData.avatar_url,
+          scopes: userData.scopes,
         } as unknown as User;
 
         return authUser;

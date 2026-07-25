@@ -5,6 +5,7 @@ import type {
   CmsCollectionState,
   CmsEntry,
   CmsSortDirection,
+  CmsUser,
   CmsViewFilter,
   CmsViewGroup,
 } from '@/lib/util/index';
@@ -32,6 +33,7 @@ export interface CollectionTopRenderProps {
   newEntryUrl?: string;
   /** Current nested-collection tree path ('' or undefined at the root). */
   filterTerm?: string;
+  userScopes?: string[];
 }
 
 export interface CollectionSidebarRenderProps {
@@ -40,6 +42,7 @@ export interface CollectionSidebarRenderProps {
   isSearchEnabled?: boolean;
   searchTerm?: string;
   filterTerm?: string;
+  userScopes?: string[];
 }
 
 export interface CollectionControlsRenderProps {
@@ -104,7 +107,7 @@ export interface EditorToolbarRenderProps {
   onDuplicate: () => void;
   onPublishAndNew: () => void;
   onPublishAndDuplicate: () => void;
-  user?: { login?: string, name?: string, avatar_url?: string };
+  user?: CmsUser;
   hasChanged?: boolean;
   displayUrl?: string;
   collection: CmsCollectionState;
@@ -176,6 +179,7 @@ export interface WorkflowCardRenderProps {
   editLink: string;
   timestamp: string;
   onDelete: () => void;
+  canDelete: boolean;
   allowPublish: boolean;
   canPublish: boolean;
   onPublish: () => void;

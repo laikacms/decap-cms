@@ -2311,6 +2311,7 @@ describe('LaikaBackend.authenticate()', () => {
               name: 'Alice',
               email: 'alice@example.com',
               avatar_url: 'https://example.com/avatar.png',
+              scopes: ['content:read', 'content:write'],
             },
           },
         }),
@@ -2322,6 +2323,7 @@ describe('LaikaBackend.authenticate()', () => {
       name: 'Alice',
       login: 'alice@example.com',
       avatar_url: 'https://example.com/avatar.png',
+      scopes: ['content:read', 'content:write'],
     });
   });
 
@@ -2340,6 +2342,26 @@ describe('LaikaBackend.authenticate()', () => {
     // After auth: repositories are set and getters no longer throw
     expect(() => backend.getDocumentsRepo()).not.toThrow();
     expect(() => backend.getAssetsRepo()).not.toThrow();
+  });
+
+  it('success: normalizes an OAuth scope string from the session', async () => {
+    vi.mocked(unsentRequest.fetchWithTimeout).mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          data: {
+            attributes: {
+              name: 'Alice',
+              email: 'alice@example.com',
+              scope: 'content:read content:write',
+            },
+          },
+        }),
+    } as any);
+
+    const user = await backend.authenticate({ token: 'valid-token-abc' });
+
+    expect(user.scopes).toEqual(['content:read', 'content:write']);
   });
 
   it('success: getToken() resolves to the authenticated token', async () => {

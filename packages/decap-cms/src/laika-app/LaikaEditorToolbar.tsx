@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { SettingsDropdown } from '@/core/components/UI';
 import { useShortcut } from '@/core/hooks/useShortcut';
 import { translate } from '@/core/i18n';
+import { canEditCollection } from '@/core/lib/collectionAccess';
 import { colors, Dropdown, DropdownButton, DropdownItem, Icon, lengths, zIndex } from '@/ui/default/index';
 import { LAIKA_SHORTCUT_GROUPS } from './LaikaShortcuts';
 import { LaikaBadge, LaikaButton } from './ui';
@@ -233,10 +234,11 @@ function LaikaEditorToolbar({
     }
   }, [deployPreview, loadDeployPreview]);
 
-  const canPublish = !!hasChanged === false && (!hasWorkflow || currentStatus === 'pending_publish');
-  const showStatusControls = hasWorkflow && !isNewEntry;
-  const showPublish = !hasWorkflow || (canPublish && !isNewEntry);
-  const canCreate = !!collection.create;
+  const hasEditAccess = canEditCollection(collection, user?.scopes);
+  const canPublish = hasEditAccess && !!hasChanged === false && (!hasWorkflow || currentStatus === 'pending_publish');
+  const showStatusControls = hasEditAccess && hasWorkflow && !isNewEntry;
+  const showPublish = hasEditAccess && (!hasWorkflow || (canPublish && !isNewEntry));
+  const canCreate = hasEditAccess && !!collection.create;
 
   // A brand-new entry starts with `hasChanged: false` (DCMS-416, so a
   // freshly opened form doesn't show "unsaved changes" before the user types
@@ -244,7 +246,7 @@ function LaikaEditorToolbar({
   // could never be submitted to surface validation errors (#757). New
   // entries must stay saveable regardless of `hasChanged`; existing entries
   // still require a real change first.
-  const canSave = (isNewEntry || !!hasChanged) && !isPersisting;
+  const canSave = hasEditAccess && (isNewEntry || !!hasChanged) && !isPersisting;
 
   const navigate = useNavigate();
   const backLink = editorBackLink || `/collections/${collection.name}`;
@@ -396,7 +398,9 @@ function LaikaEditorToolbar({
               />
             )
             : null}
-          <DropdownItem label={t('editor.editorToolbar.duplicate')} onClick={onDuplicate} />
+          {hasEditAccess
+            ? <DropdownItem label={t('editor.editorToolbar.duplicate')} onClick={onDuplicate} />
+            : null}
           {canCreate
             ? (
               <DropdownItem
@@ -429,7 +433,7 @@ function LaikaEditorToolbar({
               />
             )
             : null}
-          {hasUnpublishedChanges && hasWorkflow
+          {hasEditAccess && hasUnpublishedChanges && hasWorkflow
             ? (
               <DropdownItem
                 label={t('editor.editorToolbar.deleteUnpublishedChanges')}
@@ -437,10 +441,10 @@ function LaikaEditorToolbar({
               />
             )
             : null}
-          {hasWorkflow && !isNewEntry
+          {hasEditAccess && hasWorkflow && !isNewEntry
             ? <DropdownItem label={t('editor.editorToolbar.unpublish')} onClick={unPublish} />
             : null}
-          {showDelete
+          {hasEditAccess && showDelete
             ? (
               <DropdownItem
                 label={isDeleting

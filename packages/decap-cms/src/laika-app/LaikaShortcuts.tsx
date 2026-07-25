@@ -5,6 +5,7 @@ import { createNewEntry } from '@/core/actions/collections';
 import { openMediaLibrary as openMediaLibraryAction } from '@/core/actions/mediaLibrary';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 import { useShortcut } from '@/core/hooks/useShortcut';
+import { isCollectionVisible } from '@/core/lib/collectionAccess';
 import { registerShortcut } from '@/core/lib/shortcuts';
 import { useLaikaShell } from './LaikaShellContext';
 import { focusSiblingNavItem } from './listNav';
@@ -65,6 +66,7 @@ function LaikaShortcuts() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const collections = useAppSelector(state => state.collections) as CmsCollections | undefined;
+  const userScopes = useAppSelector(state => state.auth?.user?.scopes);
   const hasWorkflow = useAppSelector(state => state.config?.publish_mode === 'editorial_workflow');
   const showMediaButton = useAppSelector(state => state.mediaLibrary?.showMediaButton);
   const routeCollection = useRouteCollection();
@@ -165,8 +167,11 @@ function LaikaShortcuts() {
   // Registered imperatively (not via useShortcut) because the set varies
   // with config.
   const visibleCollections = React.useMemo<CmsCollectionState[]>(
-    () => Object.values((collections ?? {}) as CmsCollections).filter(c => c.hide !== true),
-    [collections],
+    () =>
+      Object.values((collections ?? {}) as CmsCollections).filter(
+        c => isCollectionVisible(c, userScopes),
+      ),
+    [collections, userScopes],
   );
   React.useEffect(() => {
     const chordKeys = collectionChordKeys(visibleCollections);

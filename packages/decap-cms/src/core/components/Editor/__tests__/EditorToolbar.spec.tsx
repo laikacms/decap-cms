@@ -123,6 +123,26 @@ describe('EditorToolbar', () => {
   });
 
   describe('Save button (editorial workflow)', () => {
+    it('hides mutation controls when the user lacks the collection edit scope', () => {
+      render(
+        <EditorToolbar
+          {...props}
+          collection={{
+            ...props.collection,
+            create: true,
+            edit_scopes: ['content:write'],
+          }}
+          user={{ name: 'Viewer', token: '', scopes: ['content:read'] }}
+          hasWorkflow={false}
+          isNewEntry={false}
+          hasChanged
+        />,
+      );
+
+      expect(screen.queryByText('editor.editorToolbar.publish')).not.toBeInTheDocument();
+      expect(screen.queryByText('editor.editorToolbar.deleteEntry')).not.toBeInTheDocument();
+    });
+
     it('is enabled on a pristine new entry so validation can surface (#757)', () => {
       render(
         <EditorToolbar {...props} hasWorkflow={true} isNewEntry={true} hasChanged={false} />,

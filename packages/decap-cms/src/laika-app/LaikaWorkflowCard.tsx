@@ -82,6 +82,7 @@ function LaikaWorkflowCard({
   editLink,
   timestamp,
   onDelete,
+  canDelete,
   allowPublish,
   canPublish,
   onPublish,
@@ -122,11 +123,15 @@ function LaikaWorkflowCard({
         </ClickableSurface>
         <LaikaCard.Footer>
           <ButtonRow>
-            <LaikaButton variant="ghost" size="sm" onClick={onDelete}>
-              {isModification
-                ? t('workflow.workflowCard.deleteChanges')
-                : t('workflow.workflowCard.deleteNewEntry')}
-            </LaikaButton>
+            {canDelete
+              ? (
+                <LaikaButton variant="ghost" size="sm" onClick={onDelete}>
+                  {isModification
+                    ? t('workflow.workflowCard.deleteChanges')
+                    : t('workflow.workflowCard.deleteNewEntry')}
+                </LaikaButton>
+              )
+              : null}
             {allowPublish
               ? (
                 <LaikaButton variant="primary" size="sm" disabled={!canPublish} onClick={onPublish}>

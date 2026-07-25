@@ -761,13 +761,15 @@ local_backend:
   `src/core/actions/config.tsx`). So loading the admin at `http://my-machine.local:8080` looks for
   the proxy at `http://my-machine.local:8081/api/v1`, not `http://localhost:8081/api/v1`. This only
   reads back as "localhost" when the admin itself is accessed from `localhost`/`127.0.0.1`.
-- `url` overrides the proxy address outright, and `detectProxyServer` (`src/core/actions/config.tsx`)
-  validates it before ever attempting a fetch. There are three distinct failure paths, each with its
-  own console message, and the app falls back to the configured non-local backend in all of them:
+- `url` overrides the proxy address outright, and `detectProxyServer`
+  (`src/core/actions/config.tsx`) validates it before ever attempting a fetch. There are three
+  distinct failure paths, each with its own console message, and the app falls back to the
+  configured non-local backend in all of them:
   - A scheme other than `http:`/`https:` (e.g. `url: 'javascript:alert(1)'`) is rejected outright —
     logs `Decap CMS local_backend url must use http or https, ignoring '<url>'` — and no fetch is
     attempted.
-  - A malformed URL that `new URL()` can't parse — logs `Decap CMS local_backend url '<url>' is not
+  - A malformed URL that `new URL()` can't parse — logs
+    `Decap CMS local_backend url '<url>' is not
     a valid URL` — and no fetch is attempted either.
   - Only once a syntactically valid `http(s)://` URL is actually fetched and the request fails (or
     the response isn't a recognizable Decap CMS proxy) does it log
@@ -1035,3 +1037,16 @@ always shows and edits every field regardless of this setting. Accepts a boolean
   `src/core/lib/i18n.tsx`).
 - **`false` / `'none'` / omitted** — field is hidden entirely on non-default-locale tabs; only the
   default locale edits it.
+
+### Collection scope affordances
+
+Collections may declare `view_scopes` and `edit_scopes` as arrays of OAuth-style scope strings.
+Every configured scope is required. A user with the `admin` scope satisfies every requirement. When
+either setting is absent or empty, that access remains unrestricted for backwards compatibility.
+
+`view_scopes` filters collection navigation in the classic and Laika shells. `edit_scopes` hides or
+disables create, save, publish, status-change, and delete affordances. These checks are UX guidance
+only. They are not an authorization boundary, because a caller can invoke the API without using the
+CMS interface. Server-side enforcement must be configured independently through the decap API
+authorization work tracked by `laikacms/laikacms#793` and the tenant policy tracked by
+`sempostma/superstar.nl#1019`.

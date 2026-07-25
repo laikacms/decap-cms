@@ -8,6 +8,7 @@ import { SettingsDropdown } from '@/core/components/UI';
 import { status } from '@/core/constants/publishModes';
 import { useShortcut } from '@/core/hooks/useShortcut';
 import { translate } from '@/core/i18n';
+import { canEditCollection } from '@/core/lib/collectionAccess';
 import { Link } from '@/core/routing/Link';
 import {
   buttons,
@@ -22,7 +23,7 @@ import {
   zIndex,
 } from '@/ui/default/index';
 
-import type { CmsCollectionState } from '@/lib/util/index';
+import type { CmsCollectionState, CmsUser } from '@/lib/util/index';
 import type { TranslateFunction } from '@/ui/default/index';
 
 type Collection = CmsCollectionState;
@@ -290,7 +291,7 @@ interface EditorToolbarProps {
   onDuplicate: () => void;
   onPublishAndNew: () => void;
   onPublishAndDuplicate: () => void;
-  user?: { login?: string, name?: string, avatar_url?: string };
+  user?: CmsUser;
   hasChanged?: boolean;
   displayUrl?: string;
   collection: Collection;
@@ -341,6 +342,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
     editorBackLink,
     t,
   } = props;
+  const hasEditAccess = canEditCollection(collection, user?.scopes);
 
   const pollControllerRef = React.useRef<AbortController | null>(null);
   const isPersistingRef = React.useRef(isPersisting);
@@ -355,7 +357,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
   // shortcut engine (`@/core/lib/shortcuts`) rather than a bare `keydown`
   // listener, matching `LaikaEditorToolbar`'s `mod+s` registration, so it
   // gets the same modal-suspension/typing-safe handling for free.
-  const canSave = hasWorkflow && (isNewEntry || !!hasChanged) && !isPersisting;
+  const canSave = hasEditAccess && hasWorkflow && (isNewEntry || !!hasChanged) && !isPersisting;
   useShortcut({
     id: 'editor.save',
     sequence: 'mod+s',
@@ -648,6 +650,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
   }
 
   function renderSimpleControls() {
+    if (!hasEditAccess) return null;
     const canCreate = collection.create;
     return (
       <>
@@ -668,6 +671,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
   }
 
   function renderWorkflowControls() {
+    if (!hasEditAccess) return null;
     const canCreate = collection.create;
     const canPublish = !!(collection.publish && !useOpenAuthoring);
     const canDelete = collection.delete ?? true;

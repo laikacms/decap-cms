@@ -7,10 +7,17 @@ vi.mock('@/core/hooks/useRedux', () => ({
   useAppSelector: (selector: (state: any) => any) =>
     selector({
       collections: {
-        shop: { name: 'shop', label: 'Shop', nested: { depth: 100 }, create: true },
+        shop: {
+          name: 'shop',
+          label: 'Shop',
+          nested: { depth: 100 },
+          create: true,
+          edit_scopes: ['content:write'],
+        },
       },
       entries: {},
       config: {},
+      auth: { user: { scopes: ['content:read'] } },
     }),
 }));
 
@@ -51,6 +58,16 @@ describe('Collection', () => {
     );
     expect(renderCollectionTop).toHaveBeenCalledWith(
       expect.objectContaining({ filterTerm: 'categories/shoes' }),
+    );
+  });
+
+  it('hides the create URL when the user lacks the collection edit scope', () => {
+    render(
+      <CmsCollection match={{ params: { name: 'shop' } }} />,
+    );
+
+    expect(renderCollectionTop).toHaveBeenCalledWith(
+      expect.objectContaining({ newEntryUrl: '' }),
     );
   });
 });

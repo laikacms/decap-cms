@@ -4,6 +4,7 @@ import React from 'react';
 
 import { searchCollections } from '@/core/actions/collections';
 import { translate } from '@/core/i18n';
+import { isCollectionVisible } from '@/core/lib/collectionAccess';
 import { NavLink } from '@/core/routing/Link';
 import { colors, components, Icon } from '@/ui/default/index';
 import CollectionSearch from './CollectionSearch';
@@ -79,6 +80,7 @@ interface SidebarProps {
   isSearchEnabled?: boolean;
   searchTerm?: string;
   filterTerm?: string;
+  userScopes?: string[];
   t: TranslateFunction;
 }
 
@@ -112,22 +114,24 @@ export function Sidebar({
   searchTerm,
   t,
   filterTerm,
+  userScopes,
 }: SidebarProps) {
+  const visibleCollections = Object.fromEntries(
+    Object.entries(collections).filter(([, candidate]) => isCollectionVisible(candidate, userScopes)),
+  ) as CmsCollections;
   return (
     <SidebarContainer>
       <SidebarHeading>{t('collection.sidebar.collections')}</SidebarHeading>
       {isSearchEnabled && (
         <CollectionSearch
           searchTerm={searchTerm || ''}
-          collections={collections}
+          collections={visibleCollections}
           collection={collection}
           onSubmit={(query: string, c?: string) => searchCollections(query, c as string)}
         />
       )}
       <SidebarNavList className="SidebarNavList">
-        {Object.values(collections)
-          .filter((c: CmsCollectionState) => c.hide !== true)
-          .map((c: CmsCollectionState) => renderLink(c, filterTerm))}
+        {Object.values(visibleCollections).map((c: CmsCollectionState) => renderLink(c, filterTerm))}
       </SidebarNavList>
     </SidebarContainer>
   );

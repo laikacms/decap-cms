@@ -179,6 +179,7 @@ interface WorkflowCardProps {
   editLink: string;
   timestamp: string;
   onDelete: () => void;
+  canDelete: boolean;
   allowPublish: boolean;
   canPublish: boolean;
   onPublish: () => void;
@@ -195,6 +196,7 @@ function WorkflowCard({
   editLink,
   timestamp,
   onDelete,
+  canDelete,
   allowPublish,
   canPublish,
   onPublish,
@@ -211,11 +213,15 @@ function WorkflowCard({
         <CardBody>{body}</CardBody>
       </WorkflowLink>
       <CardButtonContainer className="workflow-card-buttons">
-        <DeleteButton onClick={onDelete}>
-          {isModification
-            ? t('workflow.workflowCard.deleteChanges')
-            : t('workflow.workflowCard.deleteNewEntry')}
-        </DeleteButton>
+        {canDelete
+          ? (
+            <DeleteButton onClick={onDelete}>
+              {isModification
+                ? t('workflow.workflowCard.deleteChanges')
+                : t('workflow.workflowCard.deleteNewEntry')}
+            </DeleteButton>
+          )
+          : null}
         {allowPublish && (
           <PublishButton disabled={!canPublish} onClick={onPublish}>
             {isModification

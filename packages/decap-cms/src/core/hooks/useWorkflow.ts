@@ -3,6 +3,7 @@ import { useCallback, useMemo } from 'react';
 import { loadUnpublishedEntry, persistUnpublishedEntry } from '@/core/actions/editorialWorkflow';
 import { loadEntry as loadEntryAction, persistEntry as persistEntryAction } from '@/core/actions/entries';
 import { EDITORIAL_WORKFLOW } from '@/core/constants/publishModes';
+import { canEditCollection } from '@/core/lib/collectionAccess';
 import { selectUnpublishedEntry } from '@/core/reducers';
 import { selectAllowDeletion } from '@/core/reducers/collections';
 import { useAppDispatch, useAppSelector } from './useRedux';
@@ -29,11 +30,12 @@ export function useWorkflow({ collectionName, slug, newEntry }: UseWorkflowOptio
   const unpublishedEntry = useAppSelector(state =>
     isEditorialWorkflow && slug ? selectUnpublishedEntry(state, collectionName, slug) : null
   );
+  const userScopes = useAppSelector(state => state.auth?.user?.scopes);
 
   const showDelete = useMemo(() => {
     if (!collection) return false;
-    return !newEntry && selectAllowDeletion(collection);
-  }, [collection, newEntry]);
+    return !newEntry && selectAllowDeletion(collection) && canEditCollection(collection, userScopes);
+  }, [collection, newEntry, userScopes]);
 
   const hasUnpublishedEntry = Boolean(unpublishedEntry);
 

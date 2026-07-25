@@ -41,6 +41,10 @@ export interface CmsCollection {
   create?: boolean | undefined;
   delete?: boolean | undefined;
   hide?: boolean | undefined;
+  /** Scopes required to discover and open this collection in the CMS UI. */
+  view_scopes?: string[] | undefined;
+  /** Scopes required for create, update, publish, and delete affordances. */
+  edit_scopes?: string[] | undefined;
   /**
    * Single character (letter or digit) used as the collection's global
    * keyboard chord: `shortcut: p` makes 'g' then 'p' jump to this
@@ -142,6 +146,8 @@ export type CmsCollectionState = {
   meta?: CmsMetaObject,
   i18n: CmsI18nStructure,
   hide?: boolean,
+  view_scopes?: string[],
+  edit_scopes?: string[],
   /** See `CmsCollection.shortcut`; passed through config normalization untouched. */
   shortcut?: string,
   [key: string]: unknown,

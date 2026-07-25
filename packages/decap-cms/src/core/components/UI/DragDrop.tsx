@@ -7,14 +7,16 @@ import type { ConnectDragSource, ConnectDropTarget } from 'react-dnd';
 
 export interface DragSourceProps {
   namespace: string;
+  canDrag?: boolean;
   children: (connectDragComponent: ConnectDragSource) => React.ReactNode;
   [key: string]: unknown;
 }
 
-export function DragSource({ namespace, children, ...ownProps }: DragSourceProps) {
+export function DragSource({ namespace, canDrag = true, children, ...ownProps }: DragSourceProps) {
   const [, connectDragSource] = useDrag({
     type: namespace,
     item: () => ownProps,
+    canDrag,
   });
 
   return <>{children(connectDragSource)}</>;

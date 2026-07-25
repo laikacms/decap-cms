@@ -7,6 +7,7 @@ import { searchCollections } from '@/core/actions/collections';
 import { openMediaLibrary as openMediaLibraryAction } from '@/core/actions/mediaLibrary';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 import { useShortcut } from '@/core/hooks/useShortcut';
+import { isCollectionVisible } from '@/core/lib/collectionAccess';
 import { formatSequence } from '@/core/lib/shortcuts';
 import { colors, Icon } from '@/ui/default/index';
 import { useLaikaShell } from './LaikaShellContext';
@@ -171,6 +172,7 @@ function LaikaCommandPalette() {
   const location = useLocation();
   const params = useParams();
   const collections = useAppSelector(state => state.collections) as CmsCollections | undefined;
+  const userScopes = useAppSelector(state => state.auth?.user?.scopes);
   const hasWorkflow = useAppSelector(state => state.config?.publish_mode === 'editorial_workflow');
   const showMediaButton = useAppSelector(state => state.mediaLibrary?.showMediaButton);
   const isSearchEnabled = useAppSelector(state => state.config?.search !== false);
@@ -217,7 +219,9 @@ function LaikaCommandPalette() {
       run: () => navigate('/'),
     });
     if (collections) {
-      const visible = Object.values(collections).filter((c: CmsCollectionState) => c.hide !== true);
+      const visible = Object.values(collections).filter(
+        (c: CmsCollectionState) => isCollectionVisible(c, userScopes),
+      );
       const chordKeys = collectionChordKeys(visible);
       visible.forEach((c: CmsCollectionState) => {
         const chordKey = chordKeys.get(c.name);
@@ -275,7 +279,7 @@ function LaikaCommandPalette() {
       run: openShortcutHelp,
     });
     return list;
-  }, [collections, hasWorkflow, showMediaButton, dispatch, navigate, openShortcutHelp]);
+  }, [collections, userScopes, hasWorkflow, showMediaButton, dispatch, navigate, openShortcutHelp]);
 
   const filtered = React.useMemo(() => {
     const trimmed = query.trim();

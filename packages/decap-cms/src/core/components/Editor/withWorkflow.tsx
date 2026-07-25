@@ -3,6 +3,7 @@ import React from 'react';
 import { loadUnpublishedEntry, persistUnpublishedEntry } from '@/core/actions/editorialWorkflow';
 import { EDITORIAL_WORKFLOW } from '@/core/constants/publishModes';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
+import { canEditCollection } from '@/core/lib/collectionAccess';
 import { selectUnpublishedEntry } from '@/core/reducers';
 import { selectAllowDeletion } from '@/core/reducers/collections';
 
@@ -29,13 +30,16 @@ export default function withWorkflow(Editor: React.ComponentType<any>) {
       (state: any) => state.config.publish_mode === EDITORIAL_WORKFLOW,
     );
     const collection = useAppSelector((state: any) => state.collections[match.params.name]);
+    const userScopes = useAppSelector((state: any) => state.auth?.user?.scopes);
     const unpublishedEntry = useAppSelector((state: any) =>
       isEditorialWorkflow && collection
         ? selectUnpublishedEntry(state, (collection as Collection).name, match.params[0])
         : undefined
     );
 
-    const showDelete = !newEntry && selectAllowDeletion(collection as Collection);
+    const showDelete = !newEntry
+      && selectAllowDeletion(collection as Collection)
+      && canEditCollection(collection as Collection, userScopes);
 
     const extraProps: {
       loadEntry?: (collection: Collection, slug: string) => void,

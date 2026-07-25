@@ -238,6 +238,16 @@ export function getConfigSchema(): JSONSchema {
             create: { type: 'boolean' },
             publish: { type: 'boolean' },
             hide: { type: 'boolean' },
+            view_scopes: {
+              type: 'array',
+              items: { type: 'string' },
+              uniqueItems: true,
+            },
+            edit_scopes: {
+              type: 'array',
+              items: { type: 'string' },
+              uniqueItems: true,
+            },
             // Single letter/digit for the collection's 'g <key>' keyboard chord.
             shortcut: { type: 'string', pattern: '^[a-zA-Z0-9]$' },
             editor: {

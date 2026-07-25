@@ -150,6 +150,33 @@ describe('LaikaSidebar', () => {
     expect(queryByText('Hidden')).toBeNull();
   });
 
+  it('hides collections when the user lacks a required view scope', () => {
+    const { queryByText, getByText } = render(
+      <MemoryRouter>
+        <LaikaSidebar
+          userScopes={['content:read']}
+          collections={{
+            posts: {
+              name: 'posts',
+              label: 'Posts',
+              type: 'folder_based_collection',
+              view_scopes: ['content:read'],
+            } as any,
+            private: {
+              name: 'private',
+              label: 'Private',
+              type: 'folder_based_collection',
+              view_scopes: ['admin:read'],
+            } as any,
+          }}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(getByText('Posts')).toBeInTheDocument();
+    expect(queryByText('Private')).toBeNull();
+  });
+
   describe('mobile drawer', () => {
     const MOBILE_QUERY = '(max-width: 900px)';
 

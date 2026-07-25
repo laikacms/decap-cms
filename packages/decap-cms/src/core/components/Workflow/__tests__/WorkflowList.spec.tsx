@@ -64,6 +64,29 @@ function entry(status: string) {
 }
 
 describe('WorkflowList keyboard status change + SR announcement', () => {
+  it('disables status changes and hides delete/publish without the collection edit scope', () => {
+    const restrictedCollections = {
+      posts: {
+        name: 'posts',
+        label: 'Posts',
+        publish: true,
+        edit_scopes: ['content:write'],
+      },
+    } as unknown as CmsCollections;
+    const { getAllByText, queryByText } = renderWorkflowList({
+      entries: makeEntries('draft'),
+      handleChangeStatus: vi.fn(),
+      handlePublish: vi.fn(),
+      handleDelete: vi.fn(),
+      collections: restrictedCollections,
+      userScopes: ['content:read'],
+    });
+
+    expect(getAllByText('workflow.workflowList.moveToNextStatusShort')[0]).toBeDisabled();
+    expect(queryByText('workflow.workflowCard.deleteNewEntry')).not.toBeInTheDocument();
+    expect(queryByText('workflow.workflowCard.publishNewEntry')).not.toBeInTheDocument();
+  });
+
   it('dispatches updateUnpublishedEntryStatus via the shared handleChangeStatus path when "next status" is clicked', () => {
     const handleChangeStatus = vi.fn();
     const { getAllByText } = renderWorkflowList({

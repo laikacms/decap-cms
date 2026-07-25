@@ -177,6 +177,8 @@ export type CmsUser = CmsCredentials & {
   login?: string,
   email?: string,
   name: string,
+  avatar_url?: string,
+  scopes?: string[],
   useOpenAuthoring?: boolean,
 };
 

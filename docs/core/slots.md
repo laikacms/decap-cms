@@ -52,9 +52,10 @@ Each entry below lists the slot, the component it replaces, and the file where i
 
 Replaces the heading + "new entry" button rendered above a collection's entry listing.
 
-- Props: `CollectionTopRenderProps` (`collection`, `newEntryUrl?`, `filterTerm?`)
+- Props: `CollectionTopRenderProps` (`collection`, `newEntryUrl?`, `filterTerm?`, `userScopes?`)
   - `filterTerm?`: current nested-collection tree path (`''` or `undefined` at the root).
-- Consumer: `packages/decap-cms/src/core/components/Collection/Collection.tsx:74`
+  - `userScopes?`: authenticated user's scopes for custom affordance gating.
+- Consumer: `packages/decap-cms/src/core/components/Collection/Collection.tsx:75`
 
 ### `renderCollectionSidebar`
 
@@ -64,8 +65,8 @@ when the app-level layout already supplies a sidebar via its own `renderLayout` 
 reflows to fill the row when this slot returns `null`.
 
 - Props: `CollectionSidebarRenderProps` (`collections`, `collection?`, `isSearchEnabled?`,
-  `searchTerm?`, `filterTerm?`)
-- Consumer: `packages/decap-cms/src/core/components/Collection/Collection.tsx:74`
+  `searchTerm?`, `filterTerm?`, `userScopes?`)
+- Consumer: `packages/decap-cms/src/core/components/Collection/Collection.tsx:75`
 
 ### `renderCollectionControls`
 
@@ -75,7 +76,7 @@ Handlers and current state are pre-resolved, so the renderer stays presentationa
 - Props: `CollectionControlsRenderProps` (`viewStyle`, `onChangeViewStyle`, `sortableFields`,
   `onSortClick`, `sort?`, `viewFilters?`, `viewGroups?`, `onFilterClick`, `onGroupClick`, `filter?`,
   `group?`, `searchQuery?`, `onSearchChange?`)
-- Consumer: `packages/decap-cms/src/core/components/Collection/Collection.tsx:74`
+- Consumer: `packages/decap-cms/src/core/components/Collection/Collection.tsx:75`
 
 ### `renderEntryCard`
 
@@ -105,7 +106,7 @@ loader is being shown. Omit to keep the default `<Loader>`.
 - Props: `LoaderRenderProps` (`label?`, `context?: 'config' | 'entries' | 'entry' | 'workflow'`)
 - Consumers:
   - `packages/decap-cms/src/core/components/Collection/Entries/Entries.tsx:55`
-  - `packages/decap-cms/src/core/components/Workflow/Workflow.tsx:63`
+  - `packages/decap-cms/src/core/components/Workflow/Workflow.tsx:64`
   - `packages/decap-cms/src/core/components/Editor/Editor.tsx:27`
 
 ### `renderWorkflowCard`
@@ -115,9 +116,9 @@ default `WorkflowCard` — title, body, author, edit link, publish/delete handle
 re-skin it without re-implementing drag-and-drop or Redux integration.
 
 - Props: `WorkflowCardRenderProps` (`collectionLabel`, `title?`, `authorLastChange?`, `body?`,
-  `isModification?`, `editLink`, `timestamp`, `onDelete`, `allowPublish`, `canPublish`, `onPublish`,
-  `postAuthor?`)
-- Consumer: `packages/decap-cms/src/core/components/Workflow/WorkflowList.tsx:229`
+  `isModification?`, `editLink`, `timestamp`, `onDelete`, `canDelete`, `allowPublish`, `canPublish`,
+  `onPublish`, `postAuthor?`)
+- Consumer: `packages/decap-cms/src/core/components/Workflow/WorkflowList.tsx:232`
 
 ### `renderEditorToolbar`
 

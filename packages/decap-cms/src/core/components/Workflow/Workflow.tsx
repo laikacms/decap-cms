@@ -11,6 +11,7 @@ import {
 import { EDITORIAL_WORKFLOW } from '@/core/constants/publishModes';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 import { translate } from '@/core/i18n';
+import { canEditCollection } from '@/core/lib/collectionAccess';
 import { useCmsSlots } from '@/core/lib/slots';
 import { selectUnpublishedEntriesGroupedByStatus } from '@/core/reducers';
 import { components, Dropdown, DropdownItem, lengths, Loader, shadows, StyledDropdownButton } from '@/ui/default/index';
@@ -67,6 +68,7 @@ function Workflow({ t }: WorkflowProps) {
     (state: any) => state.config.publish_mode === EDITORIAL_WORKFLOW,
   );
   const isOpenAuthoring = useAppSelector((state: any) => state.globalUI.useOpenAuthoring);
+  const userScopes = useAppSelector((state: any) => state.auth?.user?.scopes);
   const isFetching = useAppSelector((state: any) =>
     isEditorialWorkflow ? (state.editorialWorkflow?.pages?.isFetching ?? false) : false
   );
@@ -89,28 +91,33 @@ function Workflow({ t }: WorkflowProps) {
   }
   const reviewCount = unpublishedEntries ? (unpublishedEntries['pending_review']?.length ?? 0) : 0;
   const readyCount = unpublishedEntries ? (unpublishedEntries['pending_publish']?.length ?? 0) : 0;
+  const creatableCollections = Object.values(collections).filter(
+    (collection: Collection) => !!collection.create && canEditCollection(collection, userScopes),
+  );
 
   return (
     <WorkflowContainer>
       <WorkflowTop>
         <WorkflowTopRow>
           <WorkflowTopHeading>{t('workflow.workflow.workflowHeading')}</WorkflowTopHeading>
-          <Dropdown
-            dropdownWidth="160px"
-            dropdownPosition="left"
-            dropdownTopOverlap="40px"
-            renderButton={() => <StyledDropdownButton>{t('workflow.workflow.newPost')}</StyledDropdownButton>}
-          >
-            {Object.values(collections)
-              .filter((collection: Collection) => !!collection.create)
-              .map((collection: Collection) => (
-                <DropdownItem
-                  key={collection.name}
-                  label={collection.label}
-                  onClick={() => createNewEntry(collection.name)}
-                />
-              ))}
-          </Dropdown>
+          {creatableCollections.length > 0
+            ? (
+              <Dropdown
+                dropdownWidth="160px"
+                dropdownPosition="left"
+                dropdownTopOverlap="40px"
+                renderButton={() => <StyledDropdownButton>{t('workflow.workflow.newPost')}</StyledDropdownButton>}
+              >
+                {creatableCollections.map((collection: Collection) => (
+                  <DropdownItem
+                    key={collection.name}
+                    label={collection.label}
+                    onClick={() => createNewEntry(collection.name)}
+                  />
+                ))}
+              </Dropdown>
+            )
+            : null}
         </WorkflowTopRow>
         <WorkflowTopDescription>
           {t('workflow.workflow.description', {
@@ -131,6 +138,7 @@ function Workflow({ t }: WorkflowProps) {
         handleDelete: (collection: string, slug: string) => dispatch(deleteUnpublishedEntry(collection, slug)),
         isOpenAuthoring,
         collections,
+        userScopes,
       })}
     </WorkflowContainer>
   );

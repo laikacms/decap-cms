@@ -27,6 +27,7 @@ const baseProps = {
   editLink: '/collections/posts/entries/hello-world',
   isModification: false,
   onDelete: vi.fn(),
+  canDelete: true,
   allowPublish: true,
   canPublish: true,
   onPublish: vi.fn(),

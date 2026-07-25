@@ -2,6 +2,7 @@
 export { useAuth } from './useAuth';
 export { useCollection } from './useCollection';
 export { useConfig } from './useConfig';
+export { useCurrentUserScopes } from './useCurrentUserScopes';
 export { useEditor } from './useEditor';
 export { useEntry } from './useEntry';
 export { useEntryDraft } from './useEntryDraft';
