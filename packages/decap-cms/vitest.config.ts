@@ -9,6 +9,11 @@ export default defineConfig({
   test: {
     globals: false,
     environment: 'jsdom',
+    // Node 25's experimental global localStorage shadows jsdom's implementation
+    // unless it is disabled for the test workers.
+    execArgv: process.allowedNodeEnvironmentFlags.has('--no-experimental-webstorage')
+      ? ['--no-experimental-webstorage']
+      : [],
     setupFiles: ['./vitest.setup.ts'],
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
     exclude: ['**/node_modules/**', '**/dist/**', '**/.nx/**'],
