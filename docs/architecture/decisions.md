@@ -31,3 +31,10 @@ project:
 - Fit: We are dealing mostly with UI and state. The place where Effect-ts would shine the most is
   for CRUD. Which is mostly done by [laikacms](https://github.com/laikacms/laikacms) code, which
   already uses Effect-TS.
+
+## Why `yaml` over `js-yaml` or `yamljs`
+
+Because YAML is already used in `decap-cms` to parse YAML comments, something js-yaml or yamljs don't do.
+
+We might as well reuse a dependency that's already used.
+
