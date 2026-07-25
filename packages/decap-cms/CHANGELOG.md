@@ -1,5 +1,27 @@
 # Changelog
 
+## 4.1.0-alpha.5
+
+### Minor Changes
+
+- c82687e: Add Slovak (`sk`) UI locale, ported from decaporg/decap-cms#7844 (DCMS-1053).
+
+### Patch Changes
+
+- 32a9e83: Media library modal: made the card grid, search box, and close-button/title layout responsive at
+  small viewport widths — cards fill their grid cell instead of a fixed 280px width, the search input
+  shrinks instead of overflowing at a fixed 400px, and the close button sits inline with the title
+  below 500px instead of being clipped off-screen by its -40px offset (DCMS-1051, ports upstream
+  3c3fd819f / decaporg#7820).
+- 863867a: laika backend: fail fast with an actionable client-side error when persisting a non-JSON-format
+  collection (markdown/frontmatter — Decap's default when no `format:` is set — YAML, or TOML), instead
+  of sending a raw string as `content` and getting an opaque 400 from the documents API. Set
+  `format: json` on the collection to use the laika backend today.
+- db31ceb: Editorial workflow board: added a per-card "move to previous/next status" keyboard action (dispatching
+  the same `updateUnpublishedEntryStatus` code path as drag-and-drop) plus an `aria-live` region that
+  announces every status change, whether triggered by keyboard or drag (DCMS-1305 AC4-5).
+- Localization, accessibility, responsive UI, Laika validation, and dependency cleanup improvements.
+
 ## 4.0.4-alpha.4
 
 ### Patch Changes

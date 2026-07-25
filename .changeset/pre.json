@@ -1,5 +1,5 @@
 {
-  "mode": "pre",
+  "mode": "exit",
   "tag": "alpha",
   "initialVersions": {
     "@laikacms/decap-cms": "4.0.2"
@@ -7,6 +7,11 @@
   "changesets": [
     "ai-widget-icon-pickers",
     "apollo-client-v4",
+    "dcms-1051-media-library-responsive",
+    "dcms-1053-slovak-locale",
+    "dcms-1254-laika-nonjson-content",
+    "dcms-1315-workflow-keyboard-status",
+    "plenty-facts-wait",
     "proud-falcons-listen",
     "silent-token-refresh",
     "wild-lions-count"
