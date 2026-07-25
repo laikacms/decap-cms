@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 
 import createRootReducer from '@/core/reducers/combinedReducer';
+import { createCrossTabSyncMiddleware } from './middleware/crossTabSync';
 import { sessionListener } from './middleware/sessionListener';
 import { waitUntilAction } from './middleware/waitUntilAction';
 
@@ -26,7 +27,10 @@ const store = configureStore({
       // Listeners run before reducers so `condition()` predicates see every
       // action, including ones the wait-service middleware would swallow.
       .prepend(sessionListener.middleware)
-      .concat(waitUntilAction as unknown as Middleware),
+      .concat(waitUntilAction as unknown as Middleware)
+      // Mirrors durable data mutations and auth session events to other tabs
+      // over a BroadcastChannel (no-op where unsupported).
+      .concat(createCrossTabSyncMiddleware()),
 });
 
 // Export types for typed hooks
