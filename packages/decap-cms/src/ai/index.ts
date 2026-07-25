@@ -8,9 +8,8 @@
  *
  * @example
  * ```typescript
- * import { decapAi, tool } from '@laikacms/decap-cms/ai';
+ * import { decapAi, jsonSchema, tool } from '@laikacms/decap-cms/ai';
  * import { anthropic } from '@laikacms/decap-cms/ai/providers';
- * import { z } from 'zod';
  *
  * const ai = decapAi({
  *   authenticateAccessToken: async (token) => ({ id: '1', email: 'u@x' }),
@@ -19,7 +18,11 @@
  *   tools: {
  *     hello: tool({
  *       description: 'say hi',
- *       inputSchema: z.object({}),
+ *       inputSchema: jsonSchema({
+ *         type: 'object',
+ *         properties: {},
+ *         additionalProperties: false,
+ *       }),
  *       execute: async () => ({ greeting: 'hi' }),
  *     }),
  *   },
@@ -59,6 +62,7 @@ export {
   generateId,
   isTextUIPart,
   isToolUIPart,
+  jsonSchema,
   lastAssistantMessageIsCompleteWithToolCalls,
   streamText,
   tool,

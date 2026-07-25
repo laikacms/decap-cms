@@ -151,13 +151,16 @@ export interface DecapAiConfig {
    *
    * @example
    * ```typescript
-   * import { tool } from '@laikacms/decap-cms/ai';
-   * import { z } from 'zod';
+   * import { jsonSchema, tool } from '@laikacms/decap-cms/ai';
    *
    * tools: {
    *   getCmsConfig: tool({
    *     description: 'Get the CMS configuration',
-   *     inputSchema: z.object({}),
+   *     inputSchema: jsonSchema({
+   *       type: 'object',
+   *       properties: {},
+   *       additionalProperties: false,
+   *     }),
    *     execute: async () => ({ configYaml: myConfigYaml }),
    *   }),
    * }

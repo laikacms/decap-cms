@@ -5,10 +5,61 @@
  * They have no execute function, so the AI SDK will send them to the client.
  */
 
-import { tool } from 'ai';
-import { z } from 'zod';
+import { jsonSchema, tool } from 'ai';
 
 import type { Tool } from 'ai';
+
+const jsonPatchOperationNames = ['add', 'remove', 'replace', 'move', 'copy', 'test'] as const;
+const jsonPatchOperationKeys = ['op', 'path', 'value', 'from'] as const;
+
+type JsonPatchOperation = {
+  op: typeof jsonPatchOperationNames[number],
+  path: string,
+  value?: unknown,
+  from?: string,
+};
+
+type UpdateDocumentInput = {
+  operations: JsonPatchOperation[],
+};
+
+const jsonPatchOperations = new Set<JsonPatchOperation['op']>(jsonPatchOperationNames);
+const jsonPatchOperationKeySet = new Set<string>(jsonPatchOperationKeys);
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function validateEmptyObject(value: unknown) {
+  return isRecord(value) && Object.keys(value).length === 0
+    ? { success: true as const, value }
+    : { success: false as const, error: new Error('Expected an empty object') };
+}
+
+function isJsonPatchOperation(value: unknown): value is JsonPatchOperation {
+  if (!isRecord(value)) return false;
+  const keys = Object.keys(value);
+  return keys.every(key => jsonPatchOperationKeySet.has(key))
+    && typeof value.op === 'string'
+    && jsonPatchOperations.has(value.op as JsonPatchOperation['op'])
+    && typeof value.path === 'string'
+    && (value.from === undefined || typeof value.from === 'string');
+}
+
+function validateUpdateDocumentInput(value: unknown) {
+  if (
+    isRecord(value)
+    && Object.keys(value).every(key => key === 'operations')
+    && Array.isArray(value.operations)
+    && value.operations.every(isJsonPatchOperation)
+  ) {
+    return { success: true as const, value: value as UpdateDocumentInput };
+  }
+  return {
+    success: false as const,
+    error: new Error('Expected an object containing valid JSON Patch operations'),
+  };
+}
 
 /**
  * Get the full document data
@@ -24,19 +75,43 @@ Returns:
 - slug: string - document identifier
 - collection: string - collection name
 - data: object - the full document data`,
-  inputSchema: z.object({}),
+  inputSchema: jsonSchema(
+    {
+      type: 'object',
+      properties: {},
+      additionalProperties: false,
+    },
+    { validate: validateEmptyObject },
+  ),
   // No execute - client-side only
 });
 
 /**
  * JSON Patch operation schema (RFC 6902)
  */
-const jsonPatchOperationSchema = z.object({
-  op: z.enum(['add', 'remove', 'replace', 'move', 'copy', 'test']).describe('The operation to perform'),
-  path: z.string().describe('JSON Pointer path (e.g., "/title" or "/blocks/0/content")'),
-  value: z.unknown().optional().describe('The value for add/replace/test operations'),
-  from: z.string().optional().describe('Source path for move/copy operations'),
-});
+const jsonPatchOperationSchema = {
+  type: 'object' as const,
+  properties: {
+    op: {
+      type: 'string' as const,
+      enum: [...jsonPatchOperationNames],
+      description: 'The operation to perform',
+    },
+    path: {
+      type: 'string' as const,
+      description: 'JSON Pointer path (e.g., "/title" or "/blocks/0/content")',
+    },
+    value: {
+      description: 'The value for add/replace/test operations',
+    },
+    from: {
+      type: 'string' as const,
+      description: 'Source path for move/copy operations',
+    },
+  },
+  required: ['op', 'path'],
+  additionalProperties: false,
+};
 
 /**
  * Update document using JSON Patch (RFC 6902)
@@ -67,9 +142,21 @@ Returns:
 - error: string (on failure) - error message describing what went wrong
 
 IMPORTANT: This tool executes on the client and directly modifies the CMS entry.`,
-  inputSchema: z.object({
-    operations: z.array(jsonPatchOperationSchema).describe('Array of JSON Patch operations to apply'),
-  }),
+  inputSchema: jsonSchema<UpdateDocumentInput>(
+    {
+      type: 'object',
+      properties: {
+        operations: {
+          type: 'array',
+          items: jsonPatchOperationSchema,
+          description: 'Array of JSON Patch operations to apply',
+        },
+      },
+      required: ['operations'],
+      additionalProperties: false,
+    },
+    { validate: validateUpdateDocumentInput },
+  ),
   // No execute - client-side only
 });
 
