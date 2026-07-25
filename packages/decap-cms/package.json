@@ -247,8 +247,7 @@
     "uploadcare-widget": "catalog:",
     "uploadcare-widget-tab-effects": "catalog:",
     "vite": "catalog:",
-    "vitest": "catalog:",
-    "zod": "catalog:"
+    "vitest": "catalog:"
   },
   "sideEffects": [
     "./dist/app/index.js",

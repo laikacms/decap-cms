@@ -66,6 +66,13 @@ describe('defaultSchema', () => {
         }),
         '"params.depth" is required',
       );
+      assetFailure(
+        schema.validate({
+          action: 'entriesByFolder',
+          params: { ...defaultParams, folder: 'folder', extension: 'md', depth: Infinity },
+        }),
+        '"params.depth" must be a number',
+      );
     });
 
     it('should pass on valid params', () => {
