@@ -2,6 +2,7 @@ import { ChevronDownIcon, ChevronUpIcon } from '@radix-ui/react-icons';
 import React, { useEffect, useMemo, useState } from 'react';
 
 import { colors } from '@/ui/default/index';
+import { useRovingIconFocus } from '@/widgets/icon-picker/useRovingIconFocus';
 
 import type { CmsWidgetControlProps } from '@/lib/util/index';
 import type { IconWidgetOptions } from './types';
@@ -45,6 +46,7 @@ export const IconControl: React.FC<IconControlProps> = props => {
       return true;
     });
   }, [search, allIcons, filter]);
+  const { onArrowKeyDown, onIconFocus, rovingIconName } = useRovingIconFocus(icons, value);
 
   const onFocus = () => {
     setIsOpen(true);
@@ -132,14 +134,14 @@ export const IconControl: React.FC<IconControlProps> = props => {
               background: colors.textFieldBorder,
             }}
           >
-            {icons.map(iconName => {
+            {icons.map((iconName, index) => {
               const Icon = allIcons[iconName as keyof typeof allIcons];
               return (
                 <div
                   key={iconName}
                   title={iconName}
                   role="button"
-                  tabIndex={0}
+                  tabIndex={iconName === rovingIconName ? 0 : -1}
                   aria-pressed={iconName === props.value}
                   style={{
                     cursor: 'pointer',
@@ -150,12 +152,16 @@ export const IconControl: React.FC<IconControlProps> = props => {
                     justifyContent: 'center',
                   }}
                   onMouseDown={e => e.preventDefault()}
+                  onFocus={() => onIconFocus(iconName)}
                   onClick={() => props.onChange(iconName)}
                   onKeyDown={e => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
                       props.onChange(iconName);
+                      return;
                     }
+
+                    onArrowKeyDown(e, index);
                   }}
                 >
                   <Icon width={24} height={24} color={iconName === props.value ? colors.textLight : colors.text} />

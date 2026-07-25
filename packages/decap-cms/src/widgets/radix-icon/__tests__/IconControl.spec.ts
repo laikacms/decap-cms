@@ -163,13 +163,29 @@ describe('IconControl keyboard operability (radix-icon, DCMS-1290)', () => {
     expect(onChange).toHaveBeenCalledWith('ArrowDownIcon');
   });
 
-  it('exposes icon options as focusable via tabIndex', async () => {
+  it('moves focus with arrow keys while keeping a single grid tab stop', async () => {
     const onChange = vi.fn();
     render(React.createElement(IconControl, { ...baseProps, onChange, value: undefined }));
 
     fireEvent.click(screen.getByRole('button', { name: 'editor.editorWidgets.iconPicker.toggle' }));
 
-    const option = await waitFor(() => screen.getAllByRole('button', { name: 'ArrowUpIcon' })[0]);
-    expect(option.getAttribute('tabindex')).toBe('0');
+    const options = await waitFor(() => {
+      const iconOptions = screen.getAllByRole('button').filter(option => option.title.startsWith('Arrow'));
+      expect(iconOptions.length).toBeGreaterThan(5);
+      return iconOptions;
+    });
+    expect(options.filter(option => option.tabIndex === 0)).toHaveLength(1);
+
+    const first = options.find(option => option.tabIndex === 0) as HTMLElement;
+    const firstIndex = options.indexOf(first);
+    first.focus();
+    fireEvent.keyDown(first, { key: 'ArrowRight' });
+
+    expect(options[firstIndex + 1]).toHaveFocus();
+    expect(options[firstIndex + 1]).toHaveAttribute('tabindex', '0');
+    expect(first).toHaveAttribute('tabindex', '-1');
+
+    fireEvent.keyDown(options[firstIndex + 1], { key: 'ArrowDown' });
+    expect(options[firstIndex + 5]).toHaveFocus();
   });
 });

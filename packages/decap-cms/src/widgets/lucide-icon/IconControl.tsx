@@ -3,6 +3,7 @@ import { ChevronDownIcon, ChevronUpIcon, icons as lucideIcons } from 'lucide-rea
 import React, { useMemo, useState } from 'react';
 
 import { colors, shadows } from '@/ui/default/index';
+import { useRovingIconFocus } from '@/widgets/icon-picker/useRovingIconFocus';
 
 import type { CmsWidgetControlProps } from '@/lib/util/index';
 import type { IconWidgetOptions } from './types';
@@ -38,6 +39,7 @@ export const IconControl: React.FC<IconControlProps> = props => {
       return true;
     });
   }, [search, filter]);
+  const { onArrowKeyDown, onIconFocus, rovingIconName } = useRovingIconFocus(filteredIcons, value);
 
   const onFocus = () => {
     setIsOpen(true);
@@ -120,13 +122,13 @@ export const IconControl: React.FC<IconControlProps> = props => {
               background: colors.textFieldBorder,
             }}
           >
-            {filteredIcons.map(iconName => {
+            {filteredIcons.map((iconName, index) => {
               return (
                 <div
                   key={iconName}
                   title={iconName}
                   role="button"
-                  tabIndex={0}
+                  tabIndex={iconName === rovingIconName ? 0 : -1}
                   aria-pressed={iconName === props.value}
                   style={{
                     cursor: 'pointer',
@@ -137,12 +139,16 @@ export const IconControl: React.FC<IconControlProps> = props => {
                     justifyContent: 'center',
                   }}
                   onMouseDown={e => e.preventDefault()}
+                  onFocus={() => onIconFocus(iconName)}
                   onClick={() => props.onChange(iconName)}
                   onKeyDown={e => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
                       props.onChange(iconName);
+                      return;
                     }
+
+                    onArrowKeyDown(e, index);
                   }}
                 >
                   {allIcons[iconName]
