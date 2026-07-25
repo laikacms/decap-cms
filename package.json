@@ -23,7 +23,9 @@
     "storybook": "pnpm --filter @laikacms/decap-cms run storybook",
     "format": "dprint fmt",
     "format:check": "dprint check",
-    "release": "pnpm -r publish --publish-branch v4.beta",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "node scripts/assert-release-branch.mjs && changeset publish",
     "clean": "rimraf --glob 'packages/*/dist' 'packages/*/.turbo' '**/node_modules'",
     "prepare": "husky"
   },
