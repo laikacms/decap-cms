@@ -1,3 +1,12 @@
+import {
+  AlertDialogHost,
+  ConfirmDialogHost,
+  PromptDialogHost,
+  confirmDialog,
+  promptDialog,
+  showAlert,
+  useConfirm,
+} from './AlertDialog';
 import Dropdown, {
   DropdownItem,
   DropdownCheckedItem,
@@ -33,6 +42,13 @@ import {
 } from './styles';
 
 export const DecapCmsUiDefault = {
+  AlertDialogHost,
+  ConfirmDialogHost,
+  PromptDialogHost,
+  confirmDialog,
+  promptDialog,
+  showAlert,
+  useConfirm,
   Dropdown,
   DropdownItem,
   DropdownCheckedItem,
@@ -68,6 +84,13 @@ export const DecapCmsUiDefault = {
   renderPageLogo,
 };
 export {
+  AlertDialogHost,
+  ConfirmDialogHost,
+  PromptDialogHost,
+  confirmDialog,
+  promptDialog,
+  showAlert,
+  useConfirm,
   Dropdown,
   DropdownItem,
   DropdownCheckedItem,

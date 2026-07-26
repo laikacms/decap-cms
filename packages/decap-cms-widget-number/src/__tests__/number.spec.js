@@ -2,6 +2,7 @@ import React from 'react';
 import { fromJS } from 'immutable';
 import { render, fireEvent } from '@testing-library/react';
 
+import { normalizeConfig } from '../../../decap-cms-core/src/actions/config';
 import { DecapCmsWidgetNumber } from '../';
 import { validateMinMax } from '../NumberControl';
 import schema from '../schema';
@@ -139,6 +140,48 @@ describe('Number widget schema', () => {
 
     expect(onChangeSpy).toHaveBeenCalledWith(3.7);
     expect(onChangeSpy.mock.calls[0][0]).toBeCloseTo(3.7);
+  });
+});
+
+describe('deprecated camelCase valueType alias (DCMS-1485)', () => {
+  // README.md documents `valueType` (camelCase) as a deprecated-but-functional
+  // alias for `value_type`, auto-migrated by decap-cms-core's normalizeConfig
+  // at config-load time. This pins the end-to-end doc claim by running a real
+  // config through normalizeConfig (not hand-authoring value_type directly)
+  // and asserting NumberControl's int parsing path is actually engaged.
+  function normalizedNumberField(fieldConfig) {
+    const config = normalizeConfig({
+      collections: [
+        {
+          folder: 'src',
+          fields: [{ name: 'count', ...fieldConfig }],
+        },
+      ],
+    });
+    return fromJS(config.collections[0].fields[0]);
+  }
+
+  it('normalizes camelCase valueType onto snake_case value_type', () => {
+    const field = normalizedNumberField({ widget: 'number', valueType: 'int' });
+
+    expect(field.get('value_type')).toBe('int');
+  });
+
+  it('renders step="1" for a field normalized from valueType: int', () => {
+    const field = normalizedNumberField({ widget: 'number', valueType: 'int' });
+    const { input } = setup({ field });
+
+    expect(input.getAttribute('step')).toBe('1');
+  });
+
+  it('parses input as an integer for a field normalized from valueType: int', () => {
+    const field = normalizedNumberField({ widget: 'number', valueType: 'int' });
+    const { input, onChangeSpy } = setup({ field });
+
+    fireEvent.change(input, { target: { value: '3.7' } });
+
+    expect(onChangeSpy).toHaveBeenCalledWith(3);
+    expect(Number.isInteger(onChangeSpy.mock.calls[0][0])).toBe(true);
   });
 });
 

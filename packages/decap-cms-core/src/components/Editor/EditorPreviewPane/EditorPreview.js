@@ -7,6 +7,9 @@ import { isVisible } from '../../../lib/widgets';
 
 const PreviewContainer = styled.div`
   font-family: Roboto, 'Helvetica Neue', HelveticaNeue, Helvetica, Arial, sans-serif;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 `;
 
 /**

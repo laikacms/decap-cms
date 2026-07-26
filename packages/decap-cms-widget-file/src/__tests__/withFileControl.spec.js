@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { List, Map } from 'immutable';
 
 import withFileControl, {
@@ -290,7 +290,7 @@ describe('handleUrl (Insert from URL prompt)', () => {
     jest.restoreAllMocks();
   });
 
-  it('accepts a valid http(s) URL and forwards it to onChange', () => {
+  it('accepts a valid http(s) URL and forwards it to onChange', async () => {
     jest.spyOn(window, 'prompt').mockReturnValue('https://example.com/image.png');
     const onChange = jest.fn();
 
@@ -313,10 +313,10 @@ describe('handleUrl (Insert from URL prompt)', () => {
 
     fireEvent.click(screen.getByText('editor.editorWidgets.file.chooseUrl'));
 
-    expect(onChange).toHaveBeenCalledWith('https://example.com/image.png');
+    await waitFor(() => expect(onChange).toHaveBeenCalledWith('https://example.com/image.png'));
   });
 
-  it('rejects a javascript: URL, alerts, and does not call onChange', () => {
+  it('rejects a javascript: URL, alerts, and does not call onChange', async () => {
     jest.spyOn(window, 'prompt').mockReturnValue('javascript:alert(document.cookie)');
     const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
     const onChange = jest.fn();
@@ -340,11 +340,13 @@ describe('handleUrl (Insert from URL prompt)', () => {
 
     fireEvent.click(screen.getByText('editor.editorWidgets.file.chooseUrl'));
 
+    await waitFor(() =>
+      expect(alertSpy).toHaveBeenCalledWith('editor.editorWidgets.file.invalidUrl'),
+    );
     expect(onChange).not.toHaveBeenCalled();
-    expect(alertSpy).toHaveBeenCalledWith('editor.editorWidgets.file.invalidUrl');
   });
 
-  it('rejects a data: URL and does not call onChange', () => {
+  it('rejects a data: URL and does not call onChange', async () => {
     jest.spyOn(window, 'prompt').mockReturnValue('data:text/html,<script>alert(1)</script>');
     jest.spyOn(window, 'alert').mockImplementation(() => {});
     const onChange = jest.fn();
@@ -368,6 +370,9 @@ describe('handleUrl (Insert from URL prompt)', () => {
 
     fireEvent.click(screen.getByText('editor.editorWidgets.file.chooseUrl'));
 
+    await waitFor(() =>
+      expect(window.alert).toHaveBeenCalledWith('editor.editorWidgets.file.invalidUrl'),
+    );
     expect(onChange).not.toHaveBeenCalled();
   });
 });

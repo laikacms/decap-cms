@@ -27,4 +27,28 @@ describe('Modal', () => {
 
     expect(console.error).not.toHaveBeenCalledWith(expect.stringContaining('Failed prop type'));
   });
+
+  it('should give the dialog an accessible name via ariaLabel', () => {
+    render(
+      <Modal isOpen onClose={jest.fn()} ariaLabel="Media assets">
+        <div>content</div>
+      </Modal>,
+    );
+
+    const dialog = document.querySelector('[role="dialog"]');
+    expect(dialog).not.toBeNull();
+    expect(dialog.getAttribute('aria-label')).toBe('Media assets');
+  });
+
+  it('should give the dialog an accessible name via ariaLabelledby', () => {
+    render(
+      <Modal isOpen onClose={jest.fn()} ariaLabelledby="modal-title">
+        <h1 id="modal-title">Media assets</h1>
+      </Modal>,
+    );
+
+    const dialog = document.querySelector('[role="dialog"]');
+    expect(dialog).not.toBeNull();
+    expect(dialog.getAttribute('aria-labelledby')).toBe('modal-title');
+  });
 });

@@ -13,6 +13,7 @@ The Image widget allows editors to upload an image or select one from the config
 | `media_library`               | object  |         | Field-level overrides for the active media library implementation, applied only to this field                                        |
 | `media_library.allow_multiple`| boolean | `false` | Allow selecting more than one image, used as a fallback when the top-level `allow_multiple` is not set                                |
 | `media_library.config`        | object  |         | Configuration object passed straight through to the media library implementation for this field, overriding the collection-level config |
+| `tagname`                     | string  |         | Wrap the rendered preview in this custom HTML tag name instead of the default preview container                                      |
 
 ### `class`
 
@@ -37,6 +38,18 @@ Use `media_library` to override the media library configuration for this field o
     allow_multiple: true
     config:
       multiple: true
+```
+
+### `tagname`
+
+By default, the entry editor's preview pane wraps the rendered image preview in a
+`WidgetPreviewContainer`. Set `tagname` to wrap it in a custom HTML tag name instead:
+
+```yaml
+- label: 'Hero Image'
+  name: 'hero'
+  widget: 'image'
+  tagname: 'figure'
 ```
 
 ## Learn more
