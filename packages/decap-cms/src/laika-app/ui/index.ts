@@ -8,7 +8,13 @@ export { default as LaikaButton } from './LaikaButton';
 export type { LaikaButtonProps, LaikaButtonSize, LaikaButtonVariant } from './LaikaButton';
 
 export { default as LaikaIconButton } from './LaikaIconButton';
-export type { LaikaIconButtonProps, LaikaIconButtonSize } from './LaikaIconButton';
+export type { LaikaIconButtonIntent, LaikaIconButtonProps, LaikaIconButtonSize } from './LaikaIconButton';
+
+export { default as LaikaAlert } from './LaikaAlert';
+export type { LaikaAlertIntent, LaikaAlertProps } from './LaikaAlert';
+
+export { LaikaFormField, LaikaSelect, LaikaTextArea, LaikaTextField } from './LaikaFormField';
+export type { LaikaFormFieldProps, LaikaSelectProps, LaikaTextAreaProps, LaikaTextFieldProps } from './LaikaFormField';
 
 export { default as LaikaCard } from './LaikaCard';
 export type { LaikaCardProps } from './LaikaCard';

@@ -19,4 +19,12 @@ describe('LaikaIconButton', () => {
     render(<LaikaIconButton aria-label="Close" />);
     expect(screen.getByRole('button')).not.toHaveAttribute('aria-pressed');
   });
+
+  it('exposes the danger intent without forwarding the intent prop', () => {
+    render(<LaikaIconButton aria-label="Delete entry" intent="danger" />);
+    const button = screen.getByRole('button');
+
+    expect(button).toHaveAttribute('data-intent', 'danger');
+    expect(button).not.toHaveAttribute('intent');
+  });
 });

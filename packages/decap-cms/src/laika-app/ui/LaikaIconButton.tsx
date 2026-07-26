@@ -12,6 +12,7 @@ import { laikaShouldForwardProp } from '@/ui/styled';
  */
 
 export type LaikaIconButtonSize = 'md' | 'sm';
+export type LaikaIconButtonIntent = 'neutral' | 'danger';
 
 const sizeMap: Record<LaikaIconButtonSize, { box: string, icon: string }> = {
   md: { box: '36px', icon: '18px' },
@@ -20,6 +21,7 @@ const sizeMap: Record<LaikaIconButtonSize, { box: string, icon: string }> = {
 
 const Button = styled('button', { shouldForwardProp: laikaShouldForwardProp })<{
   $size: LaikaIconButtonSize,
+  $intent: LaikaIconButtonIntent,
   $active?: boolean,
 }>`
   display: inline-flex;
@@ -28,8 +30,10 @@ const Button = styled('button', { shouldForwardProp: laikaShouldForwardProp })<{
   width: ${({ $size }) => sizeMap[$size].box};
   height: ${({ $size }) => sizeMap[$size].box};
   border-radius: 9999px;
-  background: ${({ $active }) => ($active ? colors.activeBackground : 'transparent')};
-  color: ${({ $active }) => ($active ? colors.active : colors.controlLabel)};
+  background: ${({ $active, $intent }) =>
+  $active ? ($intent === 'danger' ? colors.errorBackground : colors.activeBackground) : 'transparent'};
+  color: ${({ $active, $intent }) =>
+  $intent === 'danger' ? colors.errorText : $active ? colors.active : colors.controlLabel};
   border: none;
   cursor: pointer;
   font-family: inherit;
@@ -39,8 +43,8 @@ const Button = styled('button', { shouldForwardProp: laikaShouldForwardProp })<{
 
   &:hover,
   &:focus-visible {
-    color: ${colors.active};
-    background-color: ${colors.activeBackground};
+    color: ${({ $intent }) => ($intent === 'danger' ? colors.errorText : colors.active)};
+    background-color: ${({ $intent }) => $intent === 'danger' ? colors.errorBackground : colors.activeBackground};
   }
 
   &:disabled {
@@ -70,6 +74,7 @@ export interface LaikaIconButtonProps extends
   >
 {
   size?: LaikaIconButtonSize;
+  intent?: LaikaIconButtonIntent;
   /** Whether this button shows in an "active" toggled state. */
   active?: boolean;
   /** Always required — icon-only buttons need an accessible label. */
@@ -77,12 +82,17 @@ export interface LaikaIconButtonProps extends
 }
 
 const LaikaIconButton = React.forwardRef<HTMLButtonElement, LaikaIconButtonProps>(
-  function LaikaIconButton({ size = 'md', active, type = 'button', children, ...rest }, ref) {
+  function LaikaIconButton(
+    { size = 'md', intent = 'neutral', active, type = 'button', children, ...rest },
+    ref,
+  ) {
     return (
       <Button
         ref={ref}
         $size={size}
+        $intent={intent}
         $active={active}
+        data-intent={intent}
         type={type}
         aria-pressed={active}
         {...rest}
