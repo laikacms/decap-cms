@@ -57,17 +57,44 @@ function traverseFieldsJS<Field extends CmsField>(
   });
 }
 
-function getConfigUrl() {
-  const validTypes: { [type: string]: string } = {
-    'text/yaml': 'yaml',
-    'application/x-yaml': 'yaml',
-  };
-  const configLinkEl = document.querySelector<HTMLLinkElement>('link[rel="cms-config-url"]');
-  if (configLinkEl && validTypes[configLinkEl.type] && configLinkEl.href) {
-    console.log(`Using config file path: "${configLinkEl.href}"`);
-    return configLinkEl.href;
+type ConfigFormat = 'yaml' | 'json' | 'toml';
+
+const CONFIG_CONTENT_TYPES: Record<string, ConfigFormat> = {
+  'text/yaml': 'yaml',
+  'application/x-yaml': 'yaml',
+  'application/yaml': 'yaml',
+  'application/json': 'json',
+  'text/json': 'json',
+  'application/toml': 'toml',
+  'text/toml': 'toml',
+  'application/x-toml': 'toml',
+};
+
+function getConfigFormatFromContentType(contentType: string): ConfigFormat | undefined {
+  return CONFIG_CONTENT_TYPES[contentType.split(';', 1)[0].trim().toLowerCase()];
+}
+
+function getConfigFormatFromUrl(url: string): ConfigFormat | undefined {
+  const pathname = url.split(/[?#]/, 1)[0].toLowerCase();
+  const extension = pathname.match(/\.([^.\\/]+)$/)?.[1];
+  if (extension === 'yml' || extension === 'yaml') {
+    return 'yaml';
   }
-  return 'config.yml';
+  if (extension === 'json' || extension === 'toml') {
+    return extension;
+  }
+  return undefined;
+}
+
+function getConfigSource() {
+  const configLinkEl = document.querySelector<HTMLLinkElement>('link[rel="cms-config-url"]');
+  if (configLinkEl?.href) {
+    const format = getConfigFormatFromUrl(configLinkEl.href)
+      ?? getConfigFormatFromContentType(configLinkEl.type);
+    console.log(`Using config file path: "${configLinkEl.href}"`);
+    return { url: configLinkEl.href, format };
+  }
+  return { url: 'config.yml' as const, format: 'yaml' as const };
 }
 
 function setDefaultPublicFolderForField<T extends CmsField>(field: T) {
@@ -381,28 +408,27 @@ export function applyDefaults(originalConfig: CmsConfig) {
 }
 
 // Config is TypeScript-first: pass a config object to `CMS.init({ config })`
-// (or set `window.CMS_CONFIG`). Loading a `config.yml` is still supported, but
-// core bundles no YAML parser; it requires the yaml entry codec to be
-// registered (`CMS.registerEntryCodec(yamlEntryCodec)` — the fat `/app` and
-// `/laika-app` entries do this out of the box).
+// (or set `window.CMS_CONFIG`). Loading YAML, JSON, or TOML config files
+// requires the matching entry codec to be registered. The fat `/app` and
+// `/laika-app` entries register all three out of the box.
 
-function getYamlCodec() {
-  return getEntryCodec('yaml');
+function getConfigCodec(format: ConfigFormat) {
+  return getEntryCodec(format);
 }
 
-function missingYamlCodecError() {
+function missingConfigCodecError(format: ConfigFormat) {
   return new Error(
-    'Loading config.yml requires the yaml entry codec, and none is registered. '
+    `Loading a ${format.toUpperCase()} config requires the ${format} entry codec, and none is registered. `
       + `Either pass a config object to CMS.init({ config }) or register the codec: `
-      + `import { yamlEntryCodec } from '@laikacms/decap-cms/entry-codecs/yaml'; `
-      + `CMS.registerEntryCodec(yamlEntryCodec).`,
+      + `import { ${format}EntryCodec } from '@laikacms/decap-cms/entry-codecs/${format}'; `
+      + `CMS.registerEntryCodec(${format}EntryCodec).`,
   );
 }
 
-export function parseConfig(data: string) {
-  const codec = getYamlCodec();
+export function parseConfig(data: string, format: ConfigFormat = 'yaml') {
+  const codec = getConfigCodec(format);
   if (!codec) {
-    throw missingYamlCodecError();
+    throw missingConfigCodecError(format);
   }
   const config = (codec.parseConfig ?? codec.formatter.fromFile)(data) as Record<string, any>;
   if (
@@ -419,13 +445,14 @@ export function parseConfig(data: string) {
   return config as Partial<CmsConfig>;
 }
 
-async function getConfigYaml(file: string, hasManualConfig: boolean) {
-  if (!getYamlCodec()) {
+async function getConfigFile(file: string, hintedFormat: ConfigFormat | undefined, hasManualConfig: boolean) {
+  const urlFormat = getConfigFormatFromUrl(file);
+  if (urlFormat && !getConfigCodec(urlFormat)) {
     if (hasManualConfig) {
-      console.log(`Skipping ${file}: no yaml entry codec registered, using the provided config only.`);
+      console.log(`Skipping ${file}: no ${urlFormat} entry codec registered, using the provided config only.`);
       return {};
     }
-    throw missingYamlCodecError();
+    throw missingConfigCodecError(urlFormat);
   }
   const response = await fetch(file, { credentials: 'same-origin' }).catch(error => error as Error);
   if (response instanceof Error || response.status !== 200) {
@@ -433,17 +460,21 @@ async function getConfigYaml(file: string, hasManualConfig: boolean) {
       return {};
     }
     const message = response instanceof Error ? response.message : response.status;
-    throw new Error(`Failed to load config.yml (${message})`);
+    throw new Error(`Failed to load ${file} (${message})`);
   }
-  const contentType = response.headers.get('Content-Type') || 'Not-Found';
-  const isYaml = contentType.indexOf('yaml') !== -1;
-  if (!isYaml) {
-    console.log(`Response for ${file} was not yaml. (Content-Type: ${contentType})`);
+  const contentType = response.headers.get('Content-Type') || '';
+  const format = urlFormat
+    ?? getConfigFormatFromContentType(contentType)
+    ?? hintedFormat
+    ?? 'yaml';
+  if (!getConfigCodec(format)) {
     if (hasManualConfig) {
+      console.log(`Skipping ${file}: no ${format} entry codec registered, using the provided config only.`);
       return {};
     }
+    throw missingConfigCodecError(format);
   }
-  return parseConfig(await response.text());
+  return parseConfig(await response.text(), format);
 }
 
 export function configLoaded(config: CmsConfig) {
@@ -564,14 +595,14 @@ export function loadConfig(manualConfig: Partial<CmsConfig> = {}, onLoad: () => 
     dispatch(configLoading());
 
     try {
-      const configUrl = getConfigUrl();
+      const configSource = getConfigSource();
       const hasManualConfig = !isEmpty(manualConfig);
-      const configYaml = manualConfig.load_config_file === false
+      const configFile = manualConfig.load_config_file === false
         ? {}
-        : await getConfigYaml(configUrl, hasManualConfig);
+        : await getConfigFile(configSource.url, configSource.format, hasManualConfig);
 
-      // Merge manual config into the config.yml one
-      const mergedConfig = deepMerge(configYaml, manualConfig);
+      // Merge manual config into the config-file one.
+      const mergedConfig = deepMerge(configFile, manualConfig);
 
       validateConfig(mergedConfig as unknown as Record<string, unknown>);
 

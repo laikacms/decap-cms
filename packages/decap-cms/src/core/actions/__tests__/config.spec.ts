@@ -10,6 +10,8 @@ import {
   parseConfig,
 } from '@/core/actions/config';
 import { registerEntryCodec } from '@/core/lib/registry';
+import { jsonEntryCodec } from '@/entry-codecs/json/index';
+import { tomlEntryCodec } from '@/entry-codecs/toml/index';
 import { yamlEntryCodec } from '@/entry-codecs/yaml/index';
 import { stripIndent } from '@/lib/util/index';
 
@@ -26,6 +28,8 @@ vi.mock('../../lib/validateConfig');
 // registered yaml entry codec (the no-codec path is covered in
 // config-missing-codec.spec.ts).
 registerEntryCodec(yamlEntryCodec);
+registerEntryCodec(tomlEntryCodec);
+registerEntryCodec(jsonEntryCodec);
 
 describe('config', () => {
   describe('parseConfig', () => {
@@ -39,6 +43,18 @@ describe('config', () => {
       expect(parseConfig(file)).toEqual({
         backend: { name: 'test-repo' },
         media_folder: 'static/images',
+      });
+    });
+
+    it('can parse a JSON config with the registered JSON codec', () => {
+      expect(parseConfig('{"backend":{"name":"test-repo"}}', 'json')).toEqual({
+        backend: { name: 'test-repo' },
+      });
+    });
+
+    it('can parse a TOML config with the registered TOML codec', () => {
+      expect(parseConfig('[backend]\nname = "test-repo"', 'toml')).toEqual({
+        backend: { name: 'test-repo' },
       });
     });
 
@@ -1049,6 +1065,78 @@ describe('config', () => {
           public_folder: '/',
         },
       });
+    });
+
+    test('should detect a JSON config from the custom URL extension', async () => {
+      const dispatch = vi.fn();
+
+      (document.querySelector as ReturnType<typeof vi.fn>).mockReturnValue({
+        type: '',
+        href: 'custom-config.json?version=1',
+      });
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        status: 200,
+        text: () => Promise.resolve('{"backend":{"repo":"json-repo"}}'),
+        headers: new Headers({ 'Content-Type': 'text/plain' }),
+      });
+
+      await loadConfig()(dispatch);
+
+      expect(global.fetch).toHaveBeenCalledWith('custom-config.json?version=1', {
+        credentials: 'same-origin',
+      });
+      expect(dispatch).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          type: 'CONFIG_SUCCESS',
+          payload: expect.objectContaining({ backend: { repo: 'json-repo' } }),
+        }),
+      );
+    });
+
+    test('should detect a TOML config from the declared link content type', async () => {
+      const dispatch = vi.fn();
+
+      (document.querySelector as ReturnType<typeof vi.fn>).mockReturnValue({
+        type: 'application/toml',
+        href: 'https://example.com/cms-config',
+      });
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        status: 200,
+        text: () => Promise.resolve('[backend]\nrepo = "toml-repo"'),
+        headers: new Headers({ 'Content-Type': 'text/plain' }),
+      });
+
+      await loadConfig()(dispatch);
+
+      expect(dispatch).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          type: 'CONFIG_SUCCESS',
+          payload: expect.objectContaining({ backend: { repo: 'toml-repo' } }),
+        }),
+      );
+    });
+
+    test('should prefer a recognized response content type for an extensionless URL', async () => {
+      const dispatch = vi.fn();
+
+      (document.querySelector as ReturnType<typeof vi.fn>).mockReturnValue({
+        type: '',
+        href: 'https://example.com/cms-config',
+      });
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        status: 200,
+        text: () => Promise.resolve('{"backend":{"repo":"response-json-repo"}}'),
+        headers: new Headers({ 'Content-Type': 'application/json; charset=utf-8' }),
+      });
+
+      await loadConfig()(dispatch);
+
+      expect(dispatch).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          type: 'CONFIG_SUCCESS',
+          payload: expect.objectContaining({ backend: { repo: 'response-json-repo' } }),
+        }),
+      );
     });
 
     test(`should throw on failure to fetch 'config.yml'`, async () => {
