@@ -886,6 +886,20 @@ describe('Backend', () => {
   });
 
   describe('getCollectionSearchFields', () => {
+    it('uses explicitly configured search fields', () => {
+      const collection = {
+        name: 'posts',
+        folder: 'posts',
+        search_fields: ['description', 'nested.title'],
+        fields: [
+          { name: 'title', widget: 'string' },
+          { name: 'description', widget: 'text' },
+        ],
+      };
+
+      expect(getCollectionSearchFields(collection)).toEqual(['description', 'nested.title']);
+    });
+
     it('should derive search fields from inferred title/shortTitle/author fields', () => {
       const collection = {
         name: 'posts',
@@ -1055,6 +1069,81 @@ describe('Backend', () => {
       expect(results).toEqual({
         entries: [posts[0], pages[0]],
       });
+    });
+
+    it('should constrain a search to an explicitly named field', async () => {
+      const results = await backend.search(collections, 'author:"find me by author"');
+
+      expect(results).toEqual({
+        entries: [posts[0], pages[0]],
+      });
+    });
+
+    it('should combine field clauses with ordinary fuzzy terms', async () => {
+      const results = await backend.search(collections, 'author:author short');
+
+      expect(results).toEqual({
+        entries: [posts[0], pages[0]],
+      });
+    });
+
+    it('should require quoted phrases to match exactly', async () => {
+      const results = await backend.search(collections, '"me by title"');
+
+      expect(results).toEqual({
+        entries: [posts[0], pages[0]],
+      });
+    });
+
+    it('should not match a quoted phrase across separate fields', async () => {
+      const results = await backend.search(collections, '"title find"');
+
+      expect(results).toEqual({ entries: [] });
+    });
+
+    it('should apply inclusive date ranges', async () => {
+      const datedPosts = [
+        { ...posts[0], data: { ...posts[0].data, date: '2025-12-31T12:00:00Z' } },
+        { ...posts[1], data: { ...posts[1].data, date: '2023-06-01' } },
+        { path: 'posts/no-date.md', slug: 'no-date', data: { title: 'No date' } },
+      ];
+      backend.listAllEntries = vi.fn(collection => {
+        if (collection.name === 'posts') {
+          return Promise.resolve(datedPosts);
+        }
+        return Promise.resolve([]);
+      });
+
+      const results = await backend.search(
+        [{ ...collections[0], search_fields: ['title', 'date'] }],
+        'date:2025-01-01..2025-12-31',
+      );
+
+      expect(results).toEqual({ entries: [datedPosts[0]] });
+    });
+
+    it('should not include missing fields in numeric ranges', async () => {
+      const rangedPosts = [
+        { ...posts[0], data: { ...posts[0].data, count: 5 } },
+        { ...posts[1], data: { ...posts[1].data } },
+      ];
+      backend.listAllEntries = vi.fn().mockResolvedValue(rangedPosts);
+
+      const results = await backend.search(
+        [{ ...collections[0], search_fields: ['title', 'count'] }],
+        'count:0..10',
+      );
+
+      expect(results).toEqual({ entries: [rangedPosts[0]] });
+    });
+
+    it('should limit ordinary fuzzy searches to configured fields', async () => {
+      const results = await backend.search(
+        collections.map(collection => ({ ...collection, search_fields: ['description'] })),
+        'find me by title',
+      );
+
+      expect(results).toEqual({ entries: [] });
     });
 
     it('should search collections by summary description', async () => {

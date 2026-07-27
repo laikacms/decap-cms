@@ -737,6 +737,40 @@ collections:
 - If omitted entirely, a default set is inferred from the collection's identifier/date/author-shaped
   fields (`selectDefaultSortableFields` in `src/core/reducers/collections.tsx`).
 
+### `collection.search_fields` and advanced search
+
+`search_fields` selects the entry field paths included in collection search. Nested paths use dot
+notation. When omitted, search fields continue to be inferred from title, short-title, author, and
+summary fields (or all top-level fields in a files collection).
+
+```yaml
+collections:
+  - name: posts
+    label: Posts
+    folder: content/posts
+    search_fields:
+      - title
+      - author.name
+      - date
+    fields: [...]
+```
+
+The collection search box accepts the following query forms:
+
+- `migration guide` uses the existing case-insensitive fuzzy search.
+- `"migration guide"` requires that exact phrase within one searchable field.
+- `author.name:ada` limits a case-insensitive substring match to one configured field.
+- `title:"migration guide"` combines a field restriction with an exact phrase.
+- `date:2025-01-01..2025-12-31` applies an inclusive range. Open ranges such as `date:2025-01-01..`
+  and `date:..2025-12-31` are also supported. Numeric values use numeric comparison, date-like
+  values use date comparison, and other values use lexical comparison.
+- Clauses may be combined with fuzzy terms, for example `author.name:ada migration`.
+
+Advanced queries and collections with explicit `search_fields` use local search, even when a search
+integration is configured, so the syntax has consistent semantics. Local search loads the selected
+collections before filtering and may therefore be slower for large repositories. Ordinary fuzzy
+queries on collections without `search_fields` keep using the configured integration.
+
 ### `local_backend`
 
 Enables detection of the local dev proxy server (`decap-server`). Accepts either a boolean or an

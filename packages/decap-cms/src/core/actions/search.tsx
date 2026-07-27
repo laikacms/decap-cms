@@ -1,6 +1,6 @@
 import { isEqual } from 'lodash-es';
 
-import { currentBackend } from '@/core/backend';
+import { currentBackend, isAdvancedSearchTerm } from '@/core/backend';
 import { getIntegrationProvider } from '@/core/integrations';
 import { selectIntegration } from '@/core/reducers/selectors';
 import queryCore, { collectionTag } from '@/lib/util/queryCore';
@@ -111,6 +111,12 @@ export function searchEntries(searchTerm: string, searchCollections: string[], p
     const allCollections = searchCollections || Object.keys(state.collections);
     const collections = allCollections.filter(collection => selectIntegration(state, collection, 'search'));
     const integration = selectIntegration(state, collections[0], 'search');
+    const selectedCollections = Object.entries(state.collections)
+      .filter(([key]) => allCollections.includes(key))
+      .map(([, collection]) => collection) as Collection[];
+    const requiresLocalSearch = isAdvancedSearchTerm(searchTerm)
+      || selectedCollections.some(collection => collection.search_fields?.length);
+    const useIntegration = integration && !requiresLocalSearch;
 
     // avoid duplicate searches
     if (
@@ -118,22 +124,20 @@ export function searchEntries(searchTerm: string, searchCollections: string[], p
       && search.term === searchTerm
       && isEqual(allCollections, search.collections)
       // if an integration doesn't exist, 'page' is not used
-      && (search.page === page || !integration)
+      && (search.page === page || !useIntegration)
     ) {
       return;
     }
 
     dispatch(searchingEntries(searchTerm, allCollections, page));
 
-    const integrationProvider: any = integration
+    const integrationProvider: any = useIntegration
       ? getIntegrationProvider(state.integrations, backend.getToken as any, integration)
       : null;
     const searchPromise = integrationProvider
       ? integrationProvider.search(collections, searchTerm, page)
       : backend.search(
-        Object.entries(state.collections)
-          .filter(([key]) => allCollections.indexOf(key) !== -1)
-          .map(([, collection]) => collection) as Collection[],
+        selectedCollections,
         searchTerm,
       );
 

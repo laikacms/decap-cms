@@ -287,6 +287,12 @@ export function getConfigSchema(): JSONSchema {
                 ],
               },
             },
+            search_fields: {
+              type: 'array',
+              minItems: 1,
+              items: { type: 'string', minLength: 1 },
+              uniqueItems: true,
+            },
             sortableFields: {
               type: 'array',
               items: {

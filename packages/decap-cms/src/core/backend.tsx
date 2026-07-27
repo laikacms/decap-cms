@@ -141,7 +141,7 @@ function getEntryBackupKey(collectionName?: string, slug?: string) {
 
 function getEntryField(field: string, entry: EntryValue) {
   const value = get(entry.data, field);
-  if (value) {
+  if (value !== undefined && value !== null) {
     return String(value);
   } else {
     const firstFieldPart = field.split('.')[0];
@@ -152,6 +152,84 @@ function getEntryField(field: string, entry: EntryValue) {
       return '';
     }
   }
+}
+
+type SearchClause =
+  | { field: string, value: string, range?: undefined }
+  | { field: string, value?: undefined, range: [string, string] }
+  | { field?: undefined, value: string, range?: undefined };
+
+function parseSearchTerm(searchTerm: string) {
+  const clauses: SearchClause[] = [];
+  const freeTerms: string[] = [];
+  const tokenPattern = /([A-Za-z0-9_.-]+):(?:"([^"]*)"|(\S+))|"([^"]+)"|(\S+)/g;
+
+  for (const match of searchTerm.matchAll(tokenPattern)) {
+    const [, field, quotedFieldValue, fieldValue, quotedValue, freeTerm] = match;
+    if (field) {
+      const value = quotedFieldValue ?? fieldValue ?? '';
+      const range = value.split('..');
+      clauses.push(
+        range.length === 2
+          ? { field, range: [range[0], range[1]] }
+          : { field, value },
+      );
+    } else if (quotedValue) {
+      clauses.push({ value: quotedValue });
+    } else if (freeTerm) {
+      freeTerms.push(freeTerm);
+    }
+  }
+
+  return { clauses, freeText: freeTerms.join(' ') };
+}
+
+export function isAdvancedSearchTerm(searchTerm: string) {
+  return parseSearchTerm(searchTerm).clauses.length > 0;
+}
+
+function compareRangeValue(value: string, boundary: string, upperBoundary = false) {
+  const valueNumber = Number(value);
+  const boundaryNumber = Number(boundary);
+  if (Number.isFinite(valueNumber) && Number.isFinite(boundaryNumber)) {
+    return valueNumber - boundaryNumber;
+  }
+
+  const valueDate = Date.parse(value);
+  let boundaryDate = Date.parse(boundary);
+  if (!Number.isNaN(valueDate) && !Number.isNaN(boundaryDate)) {
+    if (upperBoundary && /^\d{4}-\d{2}-\d{2}$/.test(boundary)) {
+      boundaryDate += 24 * 60 * 60 * 1000 - 1;
+    }
+    return valueDate - boundaryDate;
+  }
+
+  return value.localeCompare(boundary);
+}
+
+function matchesSearchClauses(entry: EntryValue, searchFields: string[], clauses: SearchClause[]) {
+  return clauses.every(clause => {
+    if (!clause.field) {
+      const phrase = (clause.value ?? '').toLowerCase();
+      return searchFields.some(field => String(getEntryField(field, entry)).toLowerCase().includes(phrase));
+    }
+    if (!searchFields.includes(clause.field)) {
+      return false;
+    }
+
+    const fieldValue = String(getEntryField(clause.field, entry));
+    if (clause.range) {
+      if (!fieldValue) {
+        return false;
+      }
+      const [start, end] = clause.range;
+      return (
+        (!start || compareRangeValue(fieldValue, start) >= 0)
+        && (!end || compareRangeValue(fieldValue, end, true) <= 0)
+      );
+    }
+    return fieldValue.toLowerCase().includes(clause.value.toLowerCase());
+  });
 }
 
 export function extractSearchFields(searchFields: string[]) {
@@ -167,6 +245,10 @@ export function extractSearchFields(searchFields: string[]) {
 }
 
 export function getCollectionSearchFields(collection: CmsCollectionState): string[] {
+  if (collection.search_fields?.length) {
+    return uniq(collection.search_fields);
+  }
+
   const summary = (collection.summary || '') as string;
   const summaryFields = extractTemplateVars(summary);
 
@@ -706,7 +788,12 @@ export class Backend {
     searchTerm: string,
   ) {
     const collectionEntries = await this.listAllEntries(collection);
-    return fuzzyFilter(searchTerm, collectionEntries, extractSearchFields(searchFields));
+    const { clauses, freeText } = parseSearchTerm(searchTerm);
+    const matchingEntries = collectionEntries.filter(entry => matchesSearchClauses(entry, searchFields, clauses));
+    if (!freeText) {
+      return matchingEntries.map((original, index) => ({ original, score: 100, index }));
+    }
+    return fuzzyFilter(freeText, matchingEntries, extractSearchFields(searchFields));
   }
 
   async search(collections: CmsCollectionState[], searchTerm: string) {
@@ -776,9 +863,11 @@ export class Backend {
     const [data, unwrappedCursor] = cursor.unwrapData();
     if (!isCollectionEntriesCursorData(data)) {
       throw new Error(
-        `traverseCursor: expected a "collectionEntries" cursor, but received cursor data with cursorType "${String(
-          data['cursorType'],
-        )}"`,
+        `traverseCursor: expected a "collectionEntries" cursor, but received cursor data with cursorType "${
+          String(
+            data['cursorType'],
+          )
+        }"`,
       );
     }
     const { collection } = data;

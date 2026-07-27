@@ -84,6 +84,8 @@ export interface CmsCollection {
   media_folder?: string | undefined;
   public_folder?: string | undefined;
   sortable_fields?: (string | CmsSortableField)[] | undefined;
+  /** Entry field paths included in collection search. Inferred when omitted. */
+  search_fields?: string[] | undefined;
   view_filters?: CmsViewFilter[] | undefined;
   view_groups?: CmsViewGroup[] | undefined;
   i18n?: boolean | CmsI18nConfig | undefined;
@@ -140,6 +142,7 @@ export type CmsCollectionState = {
   label_singular?: string,
   label: string,
   sortable_fields: CmsSortableField[],
+  search_fields?: string[],
   view_filters: CmsViewFilter[],
   view_groups: CmsViewGroup[],
   nested?: { depth: number, subfolders?: boolean },

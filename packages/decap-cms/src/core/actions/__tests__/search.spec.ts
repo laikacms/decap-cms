@@ -16,6 +16,7 @@ vi.mock('../../integrations');
 describe('search', () => {
   describe('searchEntries', () => {
     let currentBackend: ReturnType<typeof vi.fn>;
+    let isAdvancedSearchTerm: ReturnType<typeof vi.fn>;
     let selectIntegration: ReturnType<typeof vi.fn>;
     let getIntegrationProvider: ReturnType<typeof vi.fn>;
 
@@ -25,6 +26,8 @@ describe('search', () => {
       const reducers = await import('@/core/reducers/selectors');
       const integrations = await import('@/core/integrations');
       currentBackend = backend.currentBackend as ReturnType<typeof vi.fn>;
+      isAdvancedSearchTerm = backend.isAdvancedSearchTerm as ReturnType<typeof vi.fn>;
+      isAdvancedSearchTerm.mockImplementation(term => /[:"]/.test(term));
       selectIntegration = reducers.selectIntegration as ReturnType<typeof vi.fn>;
       getIntegrationProvider = integrations.getIntegrationProvider as ReturnType<typeof vi.fn>;
     });
@@ -137,6 +140,42 @@ describe('search', () => {
         [{ name: 'posts' }, { name: 'pages' }],
         'find me',
       );
+    });
+
+    it('should use local search for advanced syntax when an integration exists', async () => {
+      const store = mockStore({
+        collections: { posts: { name: 'posts' } },
+        search: {},
+      });
+      const response = { entries: [{ name: '1' }] };
+      const backend = { search: vi.fn().mockResolvedValue(response) };
+      const integration = { search: vi.fn() };
+      selectIntegration.mockReturnValue('search_integration');
+      currentBackend.mockReturnValue(backend);
+      getIntegrationProvider.mockReturnValue(integration);
+
+      await store.dispatch(searchEntries('title:"Exact title"', ['posts']) as any);
+
+      expect(backend.search).toHaveBeenCalledWith([{ name: 'posts' }], 'title:"Exact title"');
+      expect(integration.search).not.toHaveBeenCalled();
+    });
+
+    it('should use local search when a collection configures search_fields', async () => {
+      const collection = { name: 'posts', search_fields: ['title'] };
+      const store = mockStore({
+        collections: { posts: collection },
+        search: {},
+      });
+      const backend = { search: vi.fn().mockResolvedValue({ entries: [] }) };
+      const integration = { search: vi.fn() };
+      selectIntegration.mockReturnValue('search_integration');
+      currentBackend.mockReturnValue(backend);
+      getIntegrationProvider.mockReturnValue(integration);
+
+      await store.dispatch(searchEntries('ordinary fuzzy query', ['posts']) as any);
+
+      expect(backend.search).toHaveBeenCalledWith([collection], 'ordinary fuzzy query');
+      expect(integration.search).not.toHaveBeenCalled();
     });
 
     it('should search entries in a subset of collections using backend', async () => {

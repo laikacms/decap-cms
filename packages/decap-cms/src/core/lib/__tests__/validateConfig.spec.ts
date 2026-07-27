@@ -237,6 +237,17 @@ describe('config', () => {
       }).not.toThrow();
     });
 
+    it('should allow collection search_fields to be a non-empty string array', () => {
+      expect(() => validateConfig(merge({}, validConfig, { collections: [{ search_fields: ['title', 'author'] }] })))
+        .not.toThrow();
+    });
+
+    it('should reject invalid collection search_fields', () => {
+      expect(() => validateConfig(merge({}, validConfig, { collections: [{ search_fields: 'title' }] }))).toThrowError(
+        "'collections[0].search_fields' must be array",
+      );
+    });
+
     it('should allow sortable_fields to be a an empty array', () => {
       expect(() => {
         validateConfig(merge({}, validConfig, { collections: [{ sortable_fields: [] }] }));
