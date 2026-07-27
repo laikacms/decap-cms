@@ -24,6 +24,14 @@ describe('fileExtensionWithSeparator', () => {
   it('should return an empty string if the file has no extension', () => {
     expect(fileExtensionWithSeparator('/src/main/index')).toEqual('');
   });
+
+  it('should return an empty string for a dotfile', () => {
+    expect(fileExtensionWithSeparator('.htaccess')).toEqual('');
+  });
+
+  it('should return the extension for a nested path', () => {
+    expect(fileExtensionWithSeparator('src/main/assets/images/photo.png')).toEqual('.png');
+  });
 });
 
 describe('fileExtension', () => {
@@ -50,6 +58,14 @@ describe('fileExtension', () => {
   it('should return an empty string if the file has no extension', () => {
     expect(fileExtension('/src/main/index')).toEqual('');
   });
+
+  it('should return an empty string for a dotfile', () => {
+    expect(fileExtension('.htaccess')).toEqual('');
+  });
+
+  it('should return the extension for a nested path', () => {
+    expect(fileExtension('src/main/assets/images/photo.png')).toEqual('png');
+  });
 });
 
 describe('isAbsolutePath', () => {
@@ -71,6 +87,10 @@ describe('isAbsolutePath', () => {
 
   it('should return true for a blob:// URL', () => {
     expect(isAbsolutePath('blob://something')).toBe(true);
+  });
+
+  it('should return true for a protocol-relative // URL', () => {
+    expect(isAbsolutePath('//example.com/foo')).toBe(true);
   });
 
   it('should return false for an empty string', () => {
@@ -97,5 +117,9 @@ describe('basename', () => {
 
   it('should return the filename when there is no slash', () => {
     expect(basename('foo')).toEqual('foo');
+  });
+
+  it('should return the filename unchanged when the given extension does not match', () => {
+    expect(basename('/foo/bar/quux.html', '.png')).toEqual('quux.html');
   });
 });
