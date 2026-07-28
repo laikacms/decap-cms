@@ -465,6 +465,7 @@ function getConfigSchema() {
         type: 'object',
         properties: {
           preview: { type: 'boolean' },
+          visualEditing: { type: 'boolean' },
         },
       },
       search: { type: 'boolean' },
