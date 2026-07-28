@@ -242,6 +242,12 @@ function getConfigSchema() {
           url: { type: 'string', examples: ['https://example.com/report-issue'] },
         },
       },
+      // URL of the auth-gated credential store endpoint. Widgets and media
+      // libraries reference secrets by name (`{ credential: 'name' }`) instead
+      // of embedding them in this public config; the referenced value is only
+      // fetched, over this URL, once the user is authenticated with the
+      // backend. See docs/security for details.
+      credentials_url: { type: 'string', examples: ['https://example.com/api/v1/credentials'] },
       collections: {
         type: 'array',
         minItems: 1,

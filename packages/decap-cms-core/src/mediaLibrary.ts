@@ -8,6 +8,7 @@ import { getMediaLibrary } from './lib/registry';
 import { store } from './redux';
 import { configFailed } from './actions/config';
 import { createMediaLibrary, insertMedia } from './actions/mediaLibrary';
+import { resolveCredentialRefs } from './lib/resolveCredentialRefs';
 
 import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
@@ -34,7 +35,15 @@ const initializeMediaLibrary = once(async function initializeMediaLibrary(name, 
     );
     store.dispatch(configFailed(err));
   } else {
-    const instance = await lib.init({ options, handleInsert });
+    // Resolve any `{ credential: 'name' }` references (e.g. an API key kept
+    // out of the public config.yml) before handing the config to the
+    // integration, so provider packages never need to know about the
+    // credential store themselves.
+    const resolvedOptions = await resolveCredentialRefs(
+      store.dispatch as ThunkDispatch<State, {}, AnyAction>,
+      options,
+    );
+    const instance = await lib.init({ options: resolvedOptions, handleInsert });
     store.dispatch(createMediaLibrary(instance));
   }
 });

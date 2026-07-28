@@ -4,6 +4,7 @@ import type { Map, List, OrderedMap, Set } from 'immutable';
 import type { FILES, FOLDER } from '../constants/collectionTypes';
 import type { MediaFile as BackendMediaFile } from '../backend';
 import type { Auth } from '../reducers/auth';
+import type { CredentialsState } from '../reducers/credentials';
 import type { Status } from '../reducers/status';
 import type { Medias } from '../reducers/medias';
 import type { Deploys } from '../reducers/deploys';
@@ -502,8 +503,19 @@ export interface CmsConfig {
     preview?: boolean;
   };
   search?: boolean;
+  /**
+   * URL of the auth-gated credential store endpoint used to resolve
+   * `{ credential: string }` references in the (public) config, e.g. inside
+   * `media_library.config`. See `actions/credentials.ts`.
+   */
+  credentials_url?: string;
   error: string | undefined;
   isFetching: boolean;
+}
+
+/** A reference to a named secret, resolved via the credential store instead of being embedded in the public config. */
+export interface CmsCredentialRef {
+  credential: string;
 }
 
 export type CmsMediaLibraryOptions = Record<string, unknown>;
@@ -796,6 +808,7 @@ export interface Cursors {
 export interface State {
   auth: Auth;
   config: CmsConfig;
+  credentials: CredentialsState;
   cursors: Cursors;
   collections: Collections;
   deploys: Deploys;

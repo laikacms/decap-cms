@@ -7,6 +7,9 @@ jest.mock('../middlewares/localGit', () => ({
 jest.mock('../middlewares/localFs', () => ({
   registerMiddleware: jest.fn().mockResolvedValue(undefined),
 }));
+jest.mock('../middlewares/credentials', () => ({
+  registerMiddleware: jest.fn(),
+}));
 jest.mock('../logger', () => ({
   createLogger: jest.fn().mockReturnValue('mock-logger'),
 }));
@@ -14,6 +17,7 @@ jest.mock('../logger', () => ({
 import { registerCommonMiddlewares } from '../middlewares/common';
 import { registerMiddleware as localGit } from '../middlewares/localGit';
 import { registerMiddleware as localFs } from '../middlewares/localFs';
+import { registerMiddleware as credentials } from '../middlewares/credentials';
 import { createLogger } from '../logger';
 import { registerLocalGit, registerLocalFs } from '../middlewares';
 
@@ -48,6 +52,7 @@ describe('middlewares', () => {
 
       expect(createLogger).toHaveBeenCalledWith({ level: 'debug' });
       expect(registerCommonMiddlewares).toHaveBeenCalledWith(app, builtOptions);
+      expect(credentials).toHaveBeenCalledWith(app, builtOptions);
       expect(localGit).toHaveBeenCalledWith(app, builtOptions);
       expect(localFs).not.toHaveBeenCalled();
 
@@ -65,6 +70,7 @@ describe('middlewares', () => {
 
       expect(createLogger).toHaveBeenCalledWith({ level: 'debug' });
       expect(registerCommonMiddlewares).toHaveBeenCalledWith(app, builtOptions);
+      expect(credentials).toHaveBeenCalledWith(app, builtOptions);
       expect(localFs).toHaveBeenCalledWith(app, builtOptions);
       expect(localGit).not.toHaveBeenCalled();
 
