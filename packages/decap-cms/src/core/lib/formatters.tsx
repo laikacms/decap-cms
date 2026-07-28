@@ -7,7 +7,7 @@ import { stripIndent } from '@/lib/util/index';
 import { stringTemplate } from '@/lib/widgets/index';
 import { sanitizeSlug } from './urlHelper';
 
-import type { CmsCollectionState, CmsConfig, CmsEntry, CmsSlug } from '@/lib/util/index';
+import type { CmsAssetCollection, CmsCollectionState, CmsConfig, CmsEntry, CmsSlug } from '@/lib/util/index';
 
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;
@@ -307,4 +307,43 @@ export function folderFormatter(
   );
 
   return mediaFolder;
+}
+
+/**
+ * Applies an asset collection's `filename_template` (DCMS-1412) to a
+ * sanitized upload filename. The template must produce the whole filename
+ * (see `CmsAssetCollection.filename_template`'s doc comment); when unset the
+ * original filename passes through unchanged. `{{index}}` is resolved by
+ * incrementing a 1-based counter until the result doesn't collide (case
+ * insensitively) with `existingNames`, so templates that don't reference it
+ * are only ever compiled once.
+ */
+export function assetFilenameFormatter(
+  assetCollection: Pick<CmsAssetCollection, 'filename_template'>,
+  originalFileName: string,
+  opts: { entrySlug?: string, date?: Date, existingNames?: Iterable<string> } = {},
+): string {
+  const template = assetCollection.filename_template;
+  if (!template) {
+    return originalFileName;
+  }
+
+  const fields = addFileTemplateFields(originalFileName, {});
+  fields.entry_slug = opts.entrySlug ?? fields.filename;
+
+  const existing = new Set(Array.from(opts.existingNames ?? [], name => name.toLowerCase()));
+  const date = opts.date ?? new Date();
+  const usesIndex = template.includes('{{index}}');
+
+  let index = 1;
+  let resolved: string;
+  do {
+    resolved = compileStringTemplate(template, date, fields.filename, {
+      ...fields,
+      index: String(index),
+    });
+    index += 1;
+  } while (usesIndex && existing.has(resolved.toLowerCase()) && index < 10000);
+
+  return resolved;
 }

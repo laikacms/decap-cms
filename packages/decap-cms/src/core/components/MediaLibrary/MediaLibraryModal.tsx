@@ -9,12 +9,14 @@ import { basename } from '@/lib/util/index';
 import { selectMediaFolderEntries } from '@/core/reducers/mediaLibrary';
 import { colors } from '@/ui/default/index';
 import EmptyMessage from './EmptyMessage';
+import MediaLibraryAssetCollections from './MediaLibraryAssetCollections';
 import MediaLibraryBreadcrumbs from './MediaLibraryBreadcrumbs';
 import MediaLibraryCardGrid from './MediaLibraryCardGrid';
 import MediaLibraryFolders from './MediaLibraryFolders';
 import MediaLibraryTop from './MediaLibraryTop';
 
 import type { MediaFolderBreadcrumb } from '@/core/reducers/mediaLibrary';
+import type { CmsAssetCollection } from '@/lib/util/index';
 import type { TranslateFunction } from '@/ui/default/index';
 
 /**
@@ -123,6 +125,9 @@ interface MediaLibraryModalProps {
   displayURLs: Record<string, unknown>;
   breadcrumbs?: MediaFolderBreadcrumb[];
   onNavigateFolder?: (path: string) => void;
+  assetCollections?: CmsAssetCollection[];
+  activeAssetCollectionName?: string;
+  onSelectAssetCollection?: (assetCollection: CmsAssetCollection) => void;
 }
 
 function MediaLibraryModal({
@@ -157,6 +162,9 @@ function MediaLibraryModal({
   displayURLs,
   breadcrumbs,
   onNavigateFolder,
+  assetCollections = [],
+  activeAssetCollectionName,
+  onSelectAssetCollection,
   t,
 }: MediaLibraryModalProps) {
   const { renderMediaLibraryTop } = useCmsSlots();
@@ -221,6 +229,15 @@ function MediaLibraryModal({
           )
           : <MediaLibraryTop {...topProps} t={t} />;
       })()}
+      {!onSelectAssetCollection
+        ? null
+        : (
+          <MediaLibraryAssetCollections
+            assetCollections={assetCollections}
+            activeCollectionName={activeAssetCollectionName}
+            onSelect={onSelectAssetCollection}
+          />
+        )}
       {!onNavigateFolder || !breadcrumbs
         ? null
         : (

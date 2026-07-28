@@ -1,7 +1,14 @@
 import { currentBackend } from '@/core/backend';
 import { getIntegrationProvider } from '@/core/integrations';
+import { selectAssetCollectionForFolder } from '@/core/lib/assetCollections';
+import { assetFilenameFormatter } from '@/core/lib/formatters';
 import { sanitizeSlug } from '@/core/lib/urlHelper';
-import { selectEditingDraft, selectMediaFilePath, selectMediaFilePublicPath } from '@/core/reducers/entries';
+import {
+  selectEditingDraft,
+  selectMediaFilePath,
+  selectMediaFilePublicPath,
+  selectMediaFolder,
+} from '@/core/reducers/entries';
 import { selectMediaDisplayURL, selectMediaFiles } from '@/core/reducers/mediaLibrary';
 import { selectIntegration } from '@/core/reducers/selectors';
 import { createAssetProxy } from '@/core/valueObjects/AssetProxy';
@@ -351,7 +358,29 @@ export function persistMedia(file: File, opts: MediaOptions = {}) {
       file = await optimizeImageFile(file, imageOptimizationConfig);
     }
 
-    const fileName = sanitizeSlug(file.name.toLowerCase(), state.config.slug);
+    let fileName = sanitizeSlug(file.name.toLowerCase(), state.config.slug);
+
+    // Asset-collection filename renaming (DCMS-1412): only applies to the
+    // plain git-backed upload path (no integration, no private upload),
+    // matching the same scope selectMediaFilePath/selectMediaFolder apply to
+    // below. Resolved against the target upload's own media folder, which
+    // may differ per field/collection, so it's recomputed here rather than
+    // reused from elsewhere.
+    if (!integration && !privateUpload) {
+      const uploadEntry = state.entryDraft.entry;
+      const uploadCollection = uploadEntry?.collection != null
+        ? state.collections[uploadEntry.collection]
+        : null;
+      const targetFolder = selectMediaFolder(state.config, uploadCollection as any, uploadEntry, field as any);
+      const assetCollection = selectAssetCollectionForFolder(state.config, targetFolder);
+      if (assetCollection?.filename_template) {
+        fileName = assetFilenameFormatter(assetCollection, fileName, {
+          entrySlug: uploadEntry?.slug,
+          existingNames: files.map(existingFile => existingFile.name),
+        });
+      }
+    }
+
     const existingFile = files.find(existingFile => existingFile.name.toLowerCase() === fileName);
 
     const editingDraft = selectEditingDraft(state.entryDraft);
