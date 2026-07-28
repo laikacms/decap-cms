@@ -793,7 +793,15 @@ export class Backend {
     if (!freeText) {
       return matchingEntries.map((original, index) => ({ original, score: 100, index }));
     }
-    return fuzzyFilter(freeText, matchingEntries, extractSearchFields(searchFields));
+    const fuzzyResults = fuzzyFilter(freeText, matchingEntries, extractSearchFields(searchFields));
+    if (clauses.length > 0) {
+      // Field clauses have already narrowed the candidate set, so the noise
+      // guard below would only serve to silently drop legitimate short
+      // free-text matches (e.g. `title:post 20`). Once clauses are present,
+      // the fuzzy score is a rank-only signal rather than a relevance gate.
+      return fuzzyResults;
+    }
+    return fuzzyResults.filter(({ score }) => score > 5);
   }
 
   async search(collections: CmsCollectionState[], searchTerm: string) {
@@ -826,8 +834,10 @@ export class Backend {
       );
     }
 
+    // Score-based noise filtering already happened per collection in
+    // searchCollectionEntries, where clause presence is known; this stage
+    // only ranks the combined results.
     const hits = entries
-      .filter(({ score }: FuzzyFilterResult<EntryValue>) => score > 5)
       .sort(sortByScore)
       .map((f: FuzzyFilterResult<EntryValue>) => f.original);
     return { entries: hits };

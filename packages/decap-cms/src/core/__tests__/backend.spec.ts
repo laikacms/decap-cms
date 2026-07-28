@@ -1087,6 +1087,29 @@ describe('Backend', () => {
       });
     });
 
+    it('should not drop a clause match because of a short free-text term (DCMS-1540)', async () => {
+      const clauseOnly = await backend.search(collections, 'title:find');
+      const clauseAndShortTerm = await backend.search(collections, 'title:find by');
+
+      expect(clauseAndShortTerm).toEqual({
+        entries: [posts[0], pages[0]],
+      });
+      // combining a clause with free text must never return more matches
+      // than the clause alone would - only narrow it further.
+      expect(clauseAndShortTerm.entries.length).toBeLessThanOrEqual(clauseOnly.entries.length);
+    });
+
+    it('should return a subset of the clause-only result for a 1-character free-text term', async () => {
+      const clauseOnly = await backend.search(collections, 'title:find');
+      const clauseAndOneChar = await backend.search(collections, 'title:find m');
+
+      expect(clauseAndOneChar.entries.length).toBeGreaterThan(0);
+      expect(clauseAndOneChar.entries.length).toBeLessThanOrEqual(clauseOnly.entries.length);
+      expect(clauseAndOneChar).toEqual({
+        entries: [posts[0], pages[0]],
+      });
+    });
+
     it('should require quoted phrases to match exactly', async () => {
       const results = await backend.search(collections, '"me by title"');
 
