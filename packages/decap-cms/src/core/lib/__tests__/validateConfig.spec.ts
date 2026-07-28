@@ -791,5 +791,54 @@ describe('config', () => {
         }).not.toThrow();
       });
     });
+
+    describe('field_groups', () => {
+      it('allows a top-level field_groups map', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              field_groups: {
+                seo: [{ name: 'seo_title', label: 'SEO Title', widget: 'string' }],
+              },
+            }),
+          );
+        }).not.toThrow();
+      });
+
+      it('allows a `{ group }` reference in place of a regular field', () => {
+        expect(() => {
+          validateConfig({
+            ...validConfig,
+            field_groups: {
+              seo: [{ name: 'seo_title', label: 'SEO Title', widget: 'string' }],
+            },
+            collections: [
+              {
+                name: 'posts',
+                label: 'Posts',
+                folder: '_posts',
+                fields: [{ group: 'seo' }],
+              },
+            ],
+          });
+        }).not.toThrow();
+      });
+
+      it('still throws if a field has neither name nor group', () => {
+        expect(() => {
+          validateConfig({
+            ...validConfig,
+            collections: [
+              {
+                name: 'posts',
+                label: 'Posts',
+                folder: '_posts',
+                fields: [{ label: 'Title', widget: 'string' }],
+              },
+            ],
+          });
+        }).toThrowError(/must match exactly one schema in oneOf/);
+      });
+    });
   });
 });

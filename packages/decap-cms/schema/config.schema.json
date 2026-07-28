@@ -136,9 +136,13 @@
         "types": {
           "$ref": "#/definitions/fields",
           "description": "Used by the `list` widget for variable-type (typed) list items."
+        },
+        "group": {
+          "type": "string",
+          "description": "Reusable-field-group reference: expands to `field_groups[group]`'s field list in place of this entry. Mutually exclusive with `name` and all other field properties."
         }
       },
-      "required": ["name"]
+      "oneOf": [{ "required": ["name"] }, { "required": ["group"] }]
     },
     "fields": {
       "type": "array",
@@ -362,6 +366,11 @@
       "properties": {
         "url": { "type": "string", "examples": ["https://example.com/report-issue"] }
       }
+    },
+    "field_groups": {
+      "type": "object",
+      "description": "Named, reusable field lists referenced from collection/file/nested fields via `{ group: '<name>' }`. Keys are group names, values are regular field arrays. Expanded in place during config normalization.",
+      "additionalProperties": { "$ref": "#/definitions/fields" }
     },
     "collections": {
       "type": "array",

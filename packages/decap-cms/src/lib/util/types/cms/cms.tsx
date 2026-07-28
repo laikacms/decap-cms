@@ -1,6 +1,7 @@
 import type { ComponentType } from '@/lib/util/types/core';
 import type { CmsBackend, CmsBackendClass, CmsLocalBackend, CmsRegistryBackend } from './backend';
 import type { CmsCollection } from './collections';
+import type { CmsField } from './field';
 import type {
   CmsAllowedEvent,
   CmsEntryCodec,
@@ -57,6 +58,14 @@ export interface CmsConfig<Backend extends CmsBackend = CmsBackend> {
   }[];
   slug?: CmsSlug;
   i18n?: CmsI18nConfig;
+  /**
+   * Named, reusable field lists referenceable from any collection/file/
+   * nested `object`/`list` field via `{ group: '<name>' }` in place of a
+   * regular field entry. Expanded in place during config normalization
+   * (`core/actions/config.tsx`'s `normalizeConfig`); the rest of the app
+   * only ever sees plain expanded fields.
+   */
+  field_groups?: Record<string, CmsField[]>;
   issue_reports?: CmsIssueReports;
   local_backend?: boolean | CmsLocalBackend;
   editor?: {
