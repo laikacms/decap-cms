@@ -7,6 +7,7 @@ import {
   getCollectionSearchFields,
   mergeExpandedEntries,
   resolveBackend,
+  SERIALIZED_FILE_TYPE,
 } from '@/core/backend';
 import { FILES, FOLDER } from '@/core/constants/collectionTypes';
 import {
@@ -475,6 +476,81 @@ describe('Backend', () => {
       });
       expect(localForage.getItem).toHaveBeenCalledTimes(1);
       expect(localForage.getItem).toHaveBeenCalledWith('backup.posts.slug');
+    });
+
+    // Regression for DCMS-1427 / GH #1581: the `localStorage` + `JSON.stringify` backed
+    // localForage shim (src/lib/util/localForage.ts) can't persist `File` bytes, so a
+    // previously-written media `file` deserializes as a plain, non-Blob object (`{}`).
+    // `getLocalDraftBackup` must not throw from `URL.createObjectURL` in that case.
+    it('should not throw and should drop the file when a persisted media file deserialized as a non-Blob object', async () => {
+      const implementation = {
+        init: vi.fn(() => implementation),
+      };
+
+      const backend = new Backend(implementation, { config: {}, backendName: 'github' });
+
+      const collection = {
+        name: 'posts',
+      };
+      const slug = 'slug';
+
+      localForage.getItem.mockReturnValue({
+        raw: '---\ntitle: "Hello World"\n---\n',
+        // Simulates `JSON.parse(JSON.stringify(new File([...], 'nf-logo.png')))`,
+        // which loses all of `File`'s properties since it has none of its own.
+        mediaFiles: [{ id: '1', name: 'nf-logo.png', file: {} }],
+      });
+
+      const result = await backend.getLocalDraftBackup(collection, slug);
+
+      expect(URL.createObjectURL).not.toHaveBeenCalled();
+      expect((result as { entry: { mediaFiles: Array<{ file?: unknown }> } }).entry.mediaFiles).toEqual([
+        { id: '1', name: 'nf-logo.png', file: undefined },
+      ]);
+    });
+
+    it('should restore a real Blob/File from a properly serialized media file and call createObjectURL', async () => {
+      const implementation = {
+        init: vi.fn(() => implementation),
+      };
+
+      const backend = new Backend(implementation, { config: {}, backendName: 'github' });
+
+      const collection = {
+        name: 'posts',
+      };
+      const slug = 'slug';
+
+      const base64 = btoa('hello world');
+
+      localForage.getItem.mockReturnValue({
+        raw: '---\ntitle: "Hello World"\n---\n',
+        mediaFiles: [
+          {
+            id: '1',
+            name: 'nf-logo.png',
+            file: {
+              __type: SERIALIZED_FILE_TYPE,
+              name: 'nf-logo.png',
+              type: 'image/png',
+              lastModified: 12345,
+              base64,
+            },
+          },
+        ],
+      });
+
+      const result = await backend.getLocalDraftBackup(collection, slug);
+
+      expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
+      const restoredFile = (URL.createObjectURL as ReturnType<typeof vi.fn>).mock.calls[0][0] as File;
+      expect(restoredFile).toBeInstanceOf(File);
+      expect(restoredFile.name).toBe('nf-logo.png');
+      expect(restoredFile.type).toBe('image/png');
+      await expect(restoredFile.text()).resolves.toBe('hello world');
+
+      const mediaFiles = (result as { entry: { mediaFiles: Array<{ file?: unknown }> } }).entry.mediaFiles;
+      expect(mediaFiles[0].file).toBeInstanceOf(File);
     });
   });
 
