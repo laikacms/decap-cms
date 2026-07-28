@@ -35,7 +35,14 @@ const cardOutsideWidth = `300px`;
 
 const StyledModal = styled(Modal)<{ $isPrivate?: boolean }>`
   display: grid;
-  grid-template-rows: 120px auto;
+  /*
+   * Explicit row per top-level child (Top | AssetCollections | Breadcrumbs |
+   * Folders | EmptyMessage | CardGrid) so leftover height only ever flows
+   * into the last (card grid) track instead of being distributed across
+   * every "auto" row - see DCMS-1637. Unrendered optional rows collapse to
+   * 0 since they receive no content.
+   */
+  grid-template-rows: 120px repeat(4, auto) 1fr;
   width: calc(${cardOutsideWidth} + 20px);
   max-width: 100vw;
   background-color: ${props => props.$isPrivate && colors.inactive};
