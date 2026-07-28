@@ -57,8 +57,12 @@ pnpm test -- -t "name pattern"
 3. Follow [Conventional Commits](https://www.conventionalcommits.org/); commitlint runs on the
    `commit-msg` hook. House style is `type(scope): subject (DCMS-nnn)` with an area slug scope such
    as `core`, `app`, or `widget-richtext`.
-4. Run `pnpm test:ci` and make sure it passes.
-5. A maintainer reviews and merges; PRs should be rebased on `v4.beta` before merge.
+4. If your change should ship in the next release, run `pnpm changeset` (a.k.a. `pnpm changeset add`)
+   from the repo root and follow the prompts to add a changeset entry describing the change. This is
+   what the release tooling reads to bump versions and generate `CHANGELOG.md` — see
+   [Releasing](#releasing).
+5. Run `pnpm test:ci` and make sure it passes.
+6. A maintainer reviews and merges; PRs should be rebased on `v4.beta` before merge.
 
 ## Debugging against a real backend
 
@@ -75,15 +79,22 @@ Then rebuild the demo (`pnpm build:demo`) and reload http://localhost:5174.
 
 ## Releasing
 
-There is no CI or publish automation on `v4.beta` yet (`.github/workflows/` is empty on this
-branch) — releasing is a manual process for now:
+Releases are managed by [changesets](https://github.com/changesets/changesets) via the root
+`package.json` scripts, not a manual version bump:
 
-1. Bump `version` in `packages/decap-cms/package.json` and commit.
-2. Run `pnpm test:ci` and make sure it passes.
-3. Tag the commit `v<version>` and push the tag.
-4. Run `pnpm release` from the repo root (root `package.json`'s `release` script, currently
-   `pnpm -r publish --publish-branch v4.beta`) to publish to npm, and write the GitHub release
-   notes by hand.
+1. Every PR that should ship in the next release adds a changeset entry with `pnpm changeset`
+   (see [Pull requests](#pull-requests) above); this is stored as a markdown file under
+   `.changeset/` and describes the bump type (patch/minor/major) and a changelog blurb.
+2. When it's time to release, a maintainer runs `pnpm version-packages` from the repo root
+   (root `package.json`'s `version-packages` script, currently `changeset version`) to consume the
+   pending `.changeset/*.md` files, bump `packages/decap-cms/package.json`'s `version`, and update
+   `CHANGELOG.md` — then commits the result.
+3. Run `pnpm test:ci` and make sure it passes.
+4. A maintainer runs `pnpm release` from the repo root (root `package.json`'s `release` script,
+   currently `node scripts/assert-release-branch.mjs && changeset publish`) to publish to npm.
+   `scripts/assert-release-branch.mjs` guards this so it only runs from `v4.beta`; `changeset
+   publish` also tags the published version and reads the changelog straight from the changeset
+   entries consumed in step 2, so there's no hand-written GitHub release notes step.
 
 ## License
 
