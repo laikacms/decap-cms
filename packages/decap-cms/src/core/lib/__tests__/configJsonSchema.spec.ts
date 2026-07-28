@@ -165,5 +165,23 @@ describe('shipped config.schema.json (DCMS-1402)', () => {
       const errors = validateJSONSchema(schema, invalidConfig);
       expect(errors.length).toBeGreaterThan(0);
     });
+
+    it('accepts a top-level field_groups map with a `{ group }` field reference', () => {
+      const configWithFieldGroups = {
+        ...validConfig,
+        field_groups: {
+          seo: [{ name: 'seo_title', label: 'SEO Title', widget: 'string' }],
+        },
+        collections: [
+          {
+            name: 'posts',
+            label: 'Posts',
+            folder: '_posts',
+            fields: [{ name: 'title', label: 'Title', widget: 'string' }, { group: 'seo' }],
+          },
+        ],
+      };
+      expect(validateJSONSchema(schema, configWithFieldGroups)).toEqual([]);
+    });
   });
 });

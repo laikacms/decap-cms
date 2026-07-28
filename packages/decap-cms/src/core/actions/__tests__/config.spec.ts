@@ -791,6 +791,156 @@ describe('config', () => {
     });
   });
 
+  describe('normalizeConfig field_groups', () => {
+    it('expands a top-level group reference into the group fields', () => {
+      const config = normalizeConfig({
+        backend: { name: 'test-repo' },
+        field_groups: {
+          seo: [
+            { name: 'seo_title', widget: 'string' },
+            { name: 'seo_description', widget: 'text' },
+          ],
+        },
+        collections: [
+          {
+            name: 'posts',
+            label: 'Posts',
+            folder: 'posts',
+            fields: [{ name: 'title', widget: 'string' }, { group: 'seo' }],
+          },
+        ],
+      } as any);
+
+      expect(config.collections[0].fields).toEqual([
+        { name: 'title', widget: 'string' },
+        { name: 'seo_title', widget: 'string' },
+        { name: 'seo_description', widget: 'text' },
+      ]);
+    });
+
+    it('expands group references inside collection files', () => {
+      const config = normalizeConfig({
+        backend: { name: 'test-repo' },
+        field_groups: {
+          seo: [{ name: 'seo_title', widget: 'string' }],
+        },
+        collections: [
+          {
+            name: 'settings',
+            label: 'Settings',
+            files: [
+              {
+                name: 'general',
+                label: 'General',
+                file: 'general.yml',
+                fields: [{ group: 'seo' }],
+              },
+            ],
+          },
+        ],
+      } as any);
+
+      expect(config.collections[0].files![0].fields).toEqual([
+        { name: 'seo_title', widget: 'string' },
+      ]);
+    });
+
+    it('throws a clear error when a group is unknown', () => {
+      expect(() =>
+        normalizeConfig({
+          backend: { name: 'test-repo' },
+          collections: [
+            {
+              name: 'posts',
+              label: 'Posts',
+              folder: 'posts',
+              fields: [{ group: 'missing' }],
+            },
+          ],
+        } as any)
+      ).toThrow(/Field group 'missing' is referenced but not defined in 'field_groups'/);
+    });
+
+    it('expands group references nested inside object/list widget fields', () => {
+      const config = normalizeConfig({
+        backend: { name: 'test-repo' },
+        field_groups: {
+          seo: [{ name: 'seo_title', widget: 'string' }],
+        },
+        collections: [
+          {
+            name: 'posts',
+            label: 'Posts',
+            folder: 'posts',
+            fields: [
+              {
+                name: 'meta',
+                widget: 'object',
+                fields: [{ name: 'author', widget: 'string' }, { group: 'seo' }],
+              },
+              {
+                name: 'sections',
+                widget: 'list',
+                fields: [{ name: 'heading', widget: 'string' }, { group: 'seo' }],
+              },
+            ],
+          },
+        ],
+      } as any);
+
+      expect(config.collections[0].fields).toEqual([
+        {
+          name: 'meta',
+          widget: 'object',
+          fields: [
+            { name: 'author', widget: 'string' },
+            { name: 'seo_title', widget: 'string' },
+          ],
+        },
+        {
+          name: 'sections',
+          widget: 'list',
+          fields: [
+            { name: 'heading', widget: 'string' },
+            { name: 'seo_title', widget: 'string' },
+          ],
+        },
+      ]);
+    });
+
+    it('deep-clones group fields so one collection cannot mutate another', () => {
+      const config = normalizeConfig({
+        backend: { name: 'test-repo' },
+        field_groups: {
+          seo: [{ name: 'seo_title', widget: 'string', pattern: ['^.+$', 'Required'] }],
+        },
+        collections: [
+          {
+            name: 'posts',
+            label: 'Posts',
+            folder: 'posts',
+            fields: [{ group: 'seo' }],
+          },
+          {
+            name: 'pages',
+            label: 'Pages',
+            folder: 'pages',
+            fields: [{ group: 'seo' }],
+          },
+        ],
+      } as any);
+
+      const postsSeoField = config.collections[0].fields[0] as any;
+      const pagesSeoField = config.collections[1].fields[0] as any;
+
+      expect(postsSeoField).not.toBe(pagesSeoField);
+      expect(postsSeoField.pattern).not.toBe(pagesSeoField.pattern);
+
+      postsSeoField.pattern.push('mutated');
+      expect(pagesSeoField.pattern).toEqual(['^.+$', 'Required']);
+    });
+  });
+
   describe('detectProxyServer', () => {
     function assetFetchCalled(url = 'http://localhost:8081/api/v1') {
       expect(global.fetch).toHaveBeenCalledTimes(1);

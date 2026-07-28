@@ -1,5 +1,5 @@
 import { produce } from 'immer';
-import { isEmpty, trim, trimStart } from 'lodash-es';
+import { cloneDeep, isEmpty, trim, trimStart } from 'lodash-es';
 
 import { resolveBackend } from '@/core/backend';
 import { FILES, FOLDER } from '@/core/constants/collectionTypes';
@@ -55,6 +55,105 @@ function traverseFieldsJS<Field extends CmsField>(
 
     return newField;
   });
+}
+
+/**
+ * Shorthand for referencing a top-level `field_groups` entry in place of a
+ * regular field: `{ group: 'seo' }`. Only valid pre-expansion, i.e. before
+ * `expandFieldGroups` runs as part of `normalizeConfig` - nothing past that
+ * point should ever see one of these.
+ */
+export interface CmsFieldGroupRef {
+  group: string;
+}
+
+type CmsFieldOrGroupRef = CmsField | CmsFieldGroupRef;
+
+function isFieldGroupRef(field: CmsFieldOrGroupRef): field is CmsFieldGroupRef {
+  return typeof (field as CmsFieldGroupRef).group === 'string' && !('name' in field);
+}
+
+/**
+ * Expands `{ group: '<name>' }` field references into the corresponding
+ * `field_groups[name]` field list, recursing into nested `object`/`list`
+ * fields so groups can be used anywhere a field list appears, not only at
+ * the top of a collection/file. Group fields are deep-cloned on every
+ * expansion so multiple collections (or repeated uses within one
+ * collection) never share the same field objects.
+ */
+export function expandFieldGroups(
+  fields: CmsFieldOrGroupRef[],
+  fieldGroups: Record<string, CmsField[]>,
+  stack: string[] = [],
+): CmsField[] {
+  const expanded: CmsField[] = [];
+
+  for (const field of fields) {
+    if (isFieldGroupRef(field)) {
+      const groupName = field.group;
+      const group = fieldGroups[groupName];
+
+      if (!group) {
+        const available = Object.keys(fieldGroups);
+        throw new Error(
+          `Field group '${groupName}' is referenced but not defined in 'field_groups'.`
+            + (available.length > 0
+              ? ` Available groups: ${available.join(', ')}.`
+              : ` No 'field_groups' are configured.`),
+        );
+      }
+
+      if (stack.includes(groupName)) {
+        throw new Error(
+          `Circular 'field_groups' reference detected: ${[...stack, groupName].join(' -> ')}`,
+        );
+      }
+
+      const clonedGroupFields = cloneDeep(group) as CmsFieldOrGroupRef[];
+      expanded.push(...expandFieldGroups(clonedGroupFields, fieldGroups, [...stack, groupName]));
+      continue;
+    }
+
+    if (isObjectField(field)) {
+      expanded.push({
+        ...field,
+        fields: expandFieldGroups(field.fields as CmsFieldOrGroupRef[], fieldGroups, stack),
+      });
+    } else if (isFieldList(field)) {
+      let newField = field;
+
+      if (newField.field) {
+        newField = {
+          ...newField,
+          field: expandFieldGroups([newField.field] as CmsFieldOrGroupRef[], fieldGroups, stack)[0],
+        };
+      }
+
+      if (newField.fields) {
+        newField = {
+          ...newField,
+          fields: expandFieldGroups(newField.fields as CmsFieldOrGroupRef[], fieldGroups, stack),
+        };
+      }
+
+      if (newField.types) {
+        newField = {
+          ...newField,
+          types: expandFieldGroups(
+            newField.types as CmsFieldOrGroupRef[],
+            fieldGroups,
+            stack,
+          ) as typeof newField.types,
+        };
+      }
+
+      expanded.push(newField);
+    } else {
+      expanded.push(field);
+    }
+  }
+
+  return expanded;
 }
 
 type ConfigFormat = 'yaml' | 'json' | 'toml';
@@ -208,20 +307,22 @@ function normalizeSortableFields(
 }
 
 export function normalizeConfig(config: CmsConfig) {
-  const { collections = [] } = config;
+  const { collections = [], field_groups: fieldGroups = {} } = config;
 
   const normalizedCollections = collections.map(collection => {
     const { fields, files } = collection;
 
     let normalizedCollection = collection;
     if (fields) {
-      const normalizedFields = traverseFieldsJS(fields, setSnakeCaseConfig);
+      const expandedFields = expandFieldGroups(fields as CmsFieldOrGroupRef[], fieldGroups);
+      const normalizedFields = traverseFieldsJS(expandedFields, setSnakeCaseConfig);
       normalizedCollection = { ...normalizedCollection, fields: normalizedFields };
     }
 
     if (files) {
       const normalizedFiles = files.map(file => {
-        const normalizedFileFields = traverseFieldsJS(file.fields, setSnakeCaseConfig);
+        const expandedFileFields = expandFieldGroups(file.fields as CmsFieldOrGroupRef[], fieldGroups);
+        const normalizedFileFields = traverseFieldsJS(expandedFileFields, setSnakeCaseConfig);
         return { ...file, fields: normalizedFileFields };
       });
       normalizedCollection = { ...normalizedCollection, files: normalizedFiles };

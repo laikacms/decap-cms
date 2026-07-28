@@ -52,12 +52,19 @@ function fieldsConfig(): JSONSchema {
       minItems: 2,
       items: [{ oneOf: [{ type: 'string' }, { instanceof: 'RegExp' }] }, { type: 'string' }],
     },
+    // Reusable-field-group reference shorthand, e.g. `{ group: 'seo' }` in
+    // place of a regular field. Expanded away by `normalizeConfig` before
+    // the rest of the app ever sees a field, so `group` never coexists with
+    // widget-specific properties in practice - see the `oneOf` below.
+    group: { type: 'string' },
   };
   const field: JSONSchema = {
     // ------- Each field: -------
     type: 'object',
     properties: fieldProperties,
-    required: ['name'],
+    // A field is either a regular, named field, or a `{ group: '<name>' }`
+    // reference into the top-level `field_groups` map.
+    oneOf: [{ required: ['name'] }, { required: ['group'] }],
     widgets: getWidgetSchemas(),
   };
   const fields: JSONSchema = {
@@ -220,6 +227,15 @@ export function getConfigSchema(): JSONSchema {
           url: { type: 'string', examples: ['https://example.com/report-issue'] },
         },
       },
+      // Named, reusable field lists referenced from collections/files/nested
+      // fields via `{ group: '<name>' }`. Keys are group names, values are
+      // regular field arrays. This interpreter can't express "validate every
+      // property value against a schema" for an object with unknown key
+      // names (no ajv-style `additionalProperties: <schema>` support - see
+      // `jsonSchemaValidator.ts`'s doc comment), so only the container shape
+      // is checked here; unknown-group and per-field errors surface from
+      // `expandFieldGroups` in `core/actions/config.tsx` instead.
+      field_groups: { type: 'object' },
       collections: {
         type: 'array',
         minItems: 1,
