@@ -1,9 +1,29 @@
 import type { CmsDisplayURL } from './common.js';
 import type { CmsEntryField } from './entries.js';
 
+/**
+ * Opt-in client-side raster image optimization applied at upload time,
+ * before the file is handed to the backend. Resolution order (most to
+ * least specific): field-level `media_library.config.image_optimization`,
+ * then the global `media_library.config.image_optimization`.
+ */
+export type CmsImageOptimizationConfig = {
+  /** Master switch; defaults to `false` (opt-in). */
+  enabled?: boolean | undefined,
+  /** Max output width in px; the image is scaled down to fit, preserving aspect ratio. */
+  max_width?: number | undefined,
+  /** Max output height in px; the image is scaled down to fit, preserving aspect ratio. */
+  max_height?: number | undefined,
+  /** Output format. `'original'` keeps the source format but still resizes. */
+  format?: 'webp' | 'jpeg' | 'png' | 'original' | undefined,
+  /** Encoder quality in the 0-1 range; ignored for lossless formats like png. */
+  quality?: number | undefined,
+};
+
 export type CmsMediaLibraryOptions = {
   multiple?: boolean | undefined,
   max_file_size?: number | undefined,
+  image_optimization?: CmsImageOptimizationConfig | undefined,
 };
 
 export interface CmsMediaLibrary {

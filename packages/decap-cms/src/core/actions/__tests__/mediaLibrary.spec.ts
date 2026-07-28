@@ -247,6 +247,74 @@ describe('mediaLibrary', () => {
         );
       });
     });
+
+    it('should optimize and convert raster images before persisting when enabled (DCMS-1397)', () => {
+      const drawImage = vi.fn();
+      const outputBlob = new Blob(['optimized'], { type: 'image/webp' });
+      const convertToBlob = vi.fn().mockResolvedValue(outputBlob);
+      vi.stubGlobal(
+        'createImageBitmap',
+        vi.fn().mockResolvedValue({ width: 2000, height: 1000, close: vi.fn() }),
+      );
+      class FakeOffscreenCanvas {
+        constructor(
+          public width: number,
+          public height: number,
+        ) {}
+        getContext() {
+          return { drawImage };
+        }
+        convertToBlob = convertToBlob;
+      }
+      vi.stubGlobal('OffscreenCanvas', FakeOffscreenCanvas);
+
+      const store = mockStore({
+        config: {
+          media_folder: 'static/media',
+          slug: {
+            encoding: 'unicode',
+            clean_accents: false,
+            sanitize_replacement: '-',
+          },
+          media_library: {
+            name: 'default',
+            config: {
+              image_optimization: { enabled: true, max_width: 1000, format: 'webp' },
+            },
+          },
+        },
+        collections: {
+          posts: { name: 'posts' },
+        },
+        integrations: { providers: {}, hooks: {} },
+        mediaLibrary: {
+          files: [],
+        },
+        entryDraft: {
+          entry: {},
+        },
+      });
+
+      const file = new File(['original'], 'photo.png', { type: 'image/png' });
+
+      return store
+        .dispatch(persistMedia(file))
+        .then(() => {
+          expect(drawImage).toHaveBeenCalledWith(expect.anything(), 0, 0, 1000, 500);
+          expect(convertToBlob).toHaveBeenCalledWith({ type: 'image/webp', quality: undefined });
+
+          expect(backend.persistMedia).toHaveBeenCalledTimes(1);
+          expect(backend.persistMedia).toHaveBeenCalledWith(
+            store.getState().config,
+            expect.objectContaining({
+              path: 'static/media/photo.webp',
+            }),
+          );
+        })
+        .finally(() => {
+          vi.unstubAllGlobals();
+        });
+    });
   });
 
   describe('deleteMedia', () => {
