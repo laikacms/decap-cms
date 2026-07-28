@@ -310,22 +310,33 @@ const STATUS_BUTTON_TEXT = 'Status:';
  * works for both native-button triggers (Base UI) and `role="button"` divs
  * (react-aria-menubutton), and finds the menu globally because Base UI
  * portals the popup out of the trigger's subtree.
+ *
+ * `itemRole` defaults to `menuitem` (independent-action items, e.g. Publish)
+ * but the workflow-status dropdown uses Base UI's `Menu.RadioGroup`, whose
+ * options expose `role="menuitemradio"` (see #1472).
  */
-async function selectDropdownItem(page: Page, label: string, item: string): Promise<void> {
+async function selectDropdownItem(
+  page: Page,
+  label: string,
+  item: string,
+  itemRole: 'menuitem' | 'menuitemradio' = 'menuitem',
+): Promise<void> {
   await page.getByRole('button', { name: label }).first().click();
-  await page.getByRole('menu').getByRole('menuitem', { name: item }).first().click();
+  await page.getByRole('menu').getByRole(itemRole, { name: item }).first().click();
 }
 
 export async function updateWorkflowStatusInEditor(page: Page, newStatus: string): Promise<void> {
-  await selectDropdownItem(page, STATUS_BUTTON_TEXT, newStatus);
+  await selectDropdownItem(page, STATUS_BUTTON_TEXT, newStatus, 'menuitemradio');
   await assertNotification(page, notifications.updated);
 }
 
 export async function assertWorkflowStatusInEditor(page: Page, status: string): Promise<void> {
   await page.getByRole('button', { name: STATUS_BUTTON_TEXT }).first().click();
-  // The active status menu item carries a checkmark svg.
+  // The active status menu item carries a checkmark svg. The status options
+  // are a Base UI Menu.RadioGroup, so they expose role="menuitemradio", not
+  // the plain "menuitem" role used by independent-action dropdowns (#1472).
   await expect(
-    page.getByRole('menu').getByRole('menuitem', { name: status }).first().locator('svg').first(),
+    page.getByRole('menu').getByRole('menuitemradio', { name: status }).first().locator('svg').first(),
   ).toBeVisible();
   await page.keyboard.press('Escape');
 }
