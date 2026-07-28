@@ -798,6 +798,9 @@ importers:
       eslint-plugin-unicorn:
         specifier: 'catalog:'
         version: 72.0.0(eslint@10.7.0(jiti@2.6.1))
+      fake-indexeddb:
+        specifier: ^6.2.5
+        version: 6.2.5
       globals:
         specifier: 'catalog:'
         version: 17.7.0
@@ -4006,6 +4009,10 @@ packages:
 
   extendable-error@0.1.7:
     resolution: {integrity: sha512-UOiS2in6/Q0FK0R0q6UY9vYpQ21mr/Qn1KOnte7vsACuNJf514WvCCUHSRCPcgjPT2bAhNIJdlE6bVap1GKmeg==}
+
+  fake-indexeddb@6.2.5:
+    resolution: {integrity: sha512-CGnyrvbhPlWYMngksqrSSUT1BAVP49dZocrHuK0SvtR0D5TMs5wP0o3j7jexDJW01KSadjBp1M/71o/KR3nD1w==}
+    engines: {node: '>=18'}
 
   fast-check@4.9.0:
     resolution: {integrity: sha512-7ms6T7SybUev/PQITciI0yLM2pOSFy5zpG8Ty7tQofcVaQUvrMXp6CBwqF6fThLCLOrfBtuHAtwq6Yu4XPCllg==}
@@ -9824,6 +9831,8 @@ snapshots:
   extend@3.0.2: {}
 
   extendable-error@0.1.7: {}
+
+  fake-indexeddb@6.2.5: {}
 
   fast-check@4.9.0:
     dependencies:

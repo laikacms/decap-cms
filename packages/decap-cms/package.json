@@ -74,9 +74,9 @@
     "last 2 ChromeAndroid versions"
   ],
   "peerDependencies": {
+    "@apollo/client": "^4.2.7",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@apollo/client": "^4.2.7",
     "@radix-ui/react-icons": "^1.3.2",
     "graphql": "^16.13.2 || ^17.0.0",
     "graphql-tag": "^2.12.6",
@@ -203,8 +203,8 @@
     "@hono/node-server": "catalog:",
     "@octokit/rest": "catalog:",
     "@octokit/types": "catalog:",
-    "@radix-ui/react-icons": "catalog:",
     "@playwright/test": "catalog:",
+    "@radix-ui/react-icons": "catalog:",
     "@storybook/addon-a11y": "catalog:",
     "@storybook/react": "catalog:",
     "@storybook/react-vite": "catalog:",
@@ -233,6 +233,7 @@
     "eslint-plugin-react": "catalog:",
     "eslint-plugin-react-hooks": "catalog:",
     "eslint-plugin-unicorn": "catalog:",
+    "fake-indexeddb": "^6.2.5",
     "globals": "catalog:",
     "graphql": "catalog:",
     "graphql-tag": "catalog:",
