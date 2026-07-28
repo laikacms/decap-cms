@@ -55,6 +55,10 @@ describe('escapeZ', () => {
     expect(escapeZ(true)).toBe(true);
     expect(escapeZ(false)).toBe(false);
   });
+
+  test('escapes a bare Z without re-bracketing an already-escaped [Z]', () => {
+    expect(escapeZ('YYYY-MM-DD[Z]HH:mm:ssZ')).toBe('YYYY-MM-DD[Z]HH:mm:ss[Z]');
+  });
 });
 
 describe('getFormat', () => {

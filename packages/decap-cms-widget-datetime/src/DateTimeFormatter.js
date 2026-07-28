@@ -29,7 +29,7 @@ export function normalizeField(field) {
 
 export function escapeZ(str) {
   if (typeof str === 'string' && /Z(?![\]])/.test(str)) {
-    return str.replace('Z', '[Z]');
+    return str.replace(/Z(?![\]])/g, '[Z]');
   }
   return str;
 }
