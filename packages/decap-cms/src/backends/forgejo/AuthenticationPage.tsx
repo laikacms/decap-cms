@@ -2,7 +2,7 @@ import styled from '@emotion/styled';
 import React from 'react';
 
 import { PkceAuthenticator } from '@/lib/auth/index';
-import { AuthenticationPage, Icon } from '@/ui/default/index';
+import { AuthenticationPage, Icon, PatLoginForm } from '@/ui/default/index';
 
 import type { PkceAuthResult } from '@/lib/auth/index';
 import type { TranslateFunction } from '@/ui/default/index';
@@ -14,7 +14,7 @@ const LoginButtonIcon = styled(Icon)`
 interface ForgejoAuthenticationPageProps {
   inProgress?: boolean;
   config: {
-    backend: { api_root?: string, base_url?: string, app_id?: string },
+    backend: { api_root?: string, base_url?: string, app_id?: string, pat_auth?: boolean },
     logo_url?: string,
     logo?: { src?: string, show_in_header?: boolean },
     site_url?: string,
@@ -76,12 +76,21 @@ export default function ForgejoAuthenticationPage({
     });
   }
 
+  function handlePatLogin(token: string) {
+    onLogin({ token } as PkceAuthResult);
+  }
+
   return (
     <AuthenticationPage
       onLogin={handleLogin}
       loginDisabled={inProgress}
       loginErrorMessage={loginError}
       siteUrl={config.site_url}
+      renderPageContent={
+        config.backend.pat_auth
+          ? () => <PatLoginForm onSubmit={handlePatLogin} disabled={inProgress} t={t} />
+          : undefined
+      }
       renderButtonContent={() => (
         <React.Fragment>
           <LoginButtonIcon type="forgejo" />{' '}

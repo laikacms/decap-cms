@@ -2,7 +2,7 @@ import styled from '@emotion/styled';
 import React from 'react';
 
 import { NetlifyAuthenticator, type NetlifyAuthResult } from '@/lib/auth/index';
-import { AuthenticationPage, Icon } from '@/ui/default/index';
+import { AuthenticationPage, Icon, PatLoginForm } from '@/ui/default/index';
 
 import type { CmsUser, TranslateFunction } from '@/lib/util/index';
 import type GitHub from './implementation';
@@ -109,6 +109,10 @@ export default function GitHubAuthenticationPage({
     });
   }
 
+  function handlePatLogin(token: string) {
+    onLogin?.({ token });
+  }
+
   function renderLoginButton() {
     return inProgress || findingFork
       ? (
@@ -150,6 +154,16 @@ export default function GitHubAuthenticationPage({
 
     return {
       renderButtonContent: renderLoginButton,
+      renderPageContent: backend.config.backend.pat_auth
+        ? () => (
+          <PatLoginForm
+            onSubmit={handlePatLogin}
+            disabled={inProgress || findingFork}
+            t={t}
+            placeholder="ghp_... or github_pat_..."
+          />
+        )
+        : undefined,
     };
   }
 

@@ -50,6 +50,15 @@ export interface CmsBackend {
   api_version?: string;
   proxy_url?: string;
   auth_type?: string;
+  /**
+   * Offers a "log in with a personal access token" form alongside the
+   * backend's normal OAuth button (DCMS-1400). Opt-in: useful for local
+   * dev, self-hosted GitLab/Gitea/Forgejo, and CI-less setups where
+   * standing up an OAuth app or auth proxy is overkill. The pasted token
+   * is used exactly like an OAuth-obtained token — no separate code path
+   * in the backend implementations.
+   */
+  pat_auth?: boolean;
   large_media_url?: string;
   use_large_media_transforms_in_media_library?: boolean;
   identity_url?: string;

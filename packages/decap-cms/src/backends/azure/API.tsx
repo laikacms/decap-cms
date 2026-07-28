@@ -240,7 +240,12 @@ export default class API {
   withHeaders = (req: ApiRequest) => {
     const withHeaders = unsentRequest.withHeaders(
       {
-        Authorization: `Bearer ${this.token}`,
+        // Azure DevOps' OAuth access tokens use the `Bearer` scheme, but its
+        // REST API only accepts a personal access token (DCMS-1400) via HTTP
+        // Basic auth (`Basic base64(":<pat>")`, empty username). The PAT
+        // login form pre-builds that full header value and passes it through
+        // as `token`; anything else is assumed to be an OAuth bearer token.
+        Authorization: this.token.startsWith('Basic ') ? this.token : `Bearer ${this.token}`,
         'Content-Type': 'application/json; charset=utf-8',
       },
       req,

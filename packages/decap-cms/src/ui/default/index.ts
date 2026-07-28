@@ -13,6 +13,7 @@ import IconButton from './IconButton';
 import ListItemTopBar from './ListItemTopBar';
 import Loader from './Loader';
 import ObjectWidgetTopBar, { type TranslateFunction } from './ObjectWidgetTopBar';
+import PatLoginForm from './PatLoginForm';
 import { SortableArea, SortableHandle, SortableItem } from './Sortable';
 import {
   borders,
@@ -56,6 +57,7 @@ export const DecapCmsUiDefault = {
   ToggleBackground,
   ToggleHandle,
   AuthenticationPage,
+  PatLoginForm,
   WidgetPreviewContainer,
   ObjectWidgetTopBar,
   fonts,
@@ -103,6 +105,7 @@ export {
   ListItemTopBar,
   Loader,
   ObjectWidgetTopBar,
+  PatLoginForm,
   renderPageLogo,
   shadows,
   SortableArea,
