@@ -25,7 +25,8 @@ or, for values that can't be safely represented as one, the raw string the edito
   to `1` for `value_type: 'int'` and `any` otherwise.
 - `min` / `max` (optional) — numeric bounds. Enforced on save via `validateMinMax`, which emits a
   translated range/min/max validation error when the value falls outside the bounds; not enforced as
-  the user types.
+  the user types. This runs independently of `pattern` (a generic `CmsFieldBase` option) — combining
+  both on a `number` field enforces both checks, and each surfaces its own validation error.
 - `default` (optional) — pre-filled value for new entries.
 
 Note: `CmsFieldNumber` also has a deprecated `valueType` (camelCase) type field, but nothing in the
