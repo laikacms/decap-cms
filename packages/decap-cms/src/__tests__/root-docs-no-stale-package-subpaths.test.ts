@@ -32,7 +32,7 @@ const ROOT_DOC_FILES = [
   'README.md',
   'RESTRUCTURE.md',
   'CONTRIBUTING.md',
-  'BREAKING_CHANGES_V2_BETA.md',
+  'BREAKING_CHANGES_V4_BETA.md',
 ];
 
 function listDevTestHtmlFiles(): string[] {
