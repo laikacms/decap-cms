@@ -40,6 +40,41 @@ For configuration, content modeling, and backend setup, the upstream
 [Decap CMS documentation](https://www.decapcms.org/docs/intro/) applies to this fork unless noted in
 [BREAKING_CHANGES_V4_BETA.md](../../BREAKING_CHANGES_V4_BETA.md).
 
+## JSON Schema (editor autocompletion)
+
+The package ships a [JSON Schema](./schema/config.schema.json) for `config.yml` at
+`@laikacms/decap-cms/schema/config.schema.json`, so editors with
+[yaml-language-server](https://github.com/redhat-developer/yaml-language-server) support (VS Code's
+[YAML extension](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml), most
+JetBrains IDEs, etc.) can offer autocompletion and inline validation while you write `config.yml`.
+Point at it with the `$schema` comment convention at the top of the file:
+
+```yaml
+# yaml-language-server: $schema=./node_modules/@laikacms/decap-cms/schema/config.schema.json
+backend:
+  name: git-gateway
+collections:
+  - name: posts
+    label: Posts
+    folder: _posts
+    fields:
+      - { label: Title, name: title, widget: string }
+```
+
+A CDN URL works too, if you'd rather not depend on the path to `node_modules`:
+
+```yaml
+# yaml-language-server: $schema=https://unpkg.com/@laikacms/decap-cms/schema/config.schema.json
+```
+
+This schema is hand-maintained to mirror the structural shape of the runtime validator
+(`src/core/lib/validateConfig.ts`'s `getConfigSchema()`) — the runtime validator is still the source
+of truth and the only thing that actually blocks the app from booting with a bad config. The schema
+intentionally leaves field objects open (`additionalProperties` unset) since valid keys on a field
+depend on its `widget`, which is only known once widgets are registered at runtime; it isn't (yet)
+published to [SchemaStore](https://www.schemastore.org/), so the explicit `$schema` comment above is
+required rather than automatic filename matching.
+
 ## Visual Editing (Stega)
 
 The editor's live preview pane can steganographically encode field values (via `@vercel/stega`) so a
@@ -73,10 +108,10 @@ collections:
 Only `string` and `text` widgets are encoded. `richtext` fields (including their legacy `markdown`
 alias) are deliberately excluded and never encoded, regardless of the collection- or field-level
 settings above: their raw value is markdown source that still has to pass through the markdown ->
-Portable Text -> preview-HTML pipeline, and appending a stega block per paragraph would survive
-that pipeline as literal zero-width characters sitting inside the rendered preview's prose text
-nodes — poisoning copy-paste out of the preview and diverging from what a reader actually sees. All
-other widget types are likewise left untouched by the encoder.
+Portable Text -> preview-HTML pipeline, and appending a stega block per paragraph would survive that
+pipeline as literal zero-width characters sitting inside the rendered preview's prose text nodes —
+poisoning copy-paste out of the preview and diverging from what a reader actually sees. All other
+widget types are likewise left untouched by the encoder.
 
 ## Development
 
