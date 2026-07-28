@@ -3,6 +3,7 @@ import React from 'react';
 
 import { useAppSelector } from '@/core/hooks/useRedux';
 import { colors } from '@/ui/default/index';
+import LaikaQrLoginCard from './LaikaQrLoginCard';
 import { useLaikaTheme } from './LaikaThemeContext';
 import { LaikaButton, LaikaCard, LaikaToggleSwitch } from './ui';
 
@@ -190,6 +191,8 @@ function LaikaSettingsPage() {
             <Value>{config?.publish_mode ?? 'simple'}</Value>
           </Row>
         </LaikaCard>
+
+        <LaikaQrLoginCard />
 
         <LaikaCard padding="20px">
           <LaikaCard.Header>
