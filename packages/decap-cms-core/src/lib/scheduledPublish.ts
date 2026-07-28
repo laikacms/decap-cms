@@ -26,7 +26,11 @@ function getStorage(): Storage | null {
 }
 
 function storageKey(collection: string, slug: string) {
-  return `${collection}.${slug}`;
+  // JSON-encode the pair rather than joining with a plain separator: a naive
+  // `${collection}.${slug}` join is ambiguous whenever either value contains a
+  // literal `.` (e.g. collection="a.b", slug="c" collides with collection="a",
+  // slug="b.c", both producing "a.b.c").
+  return JSON.stringify([collection, slug]);
 }
 
 function readAll(): ScheduledPublishMap {

@@ -27,6 +27,16 @@ describe('lib/scheduledPublish', () => {
       expect(getScheduledPublishAt('posts', 'a')).toBe('2026-08-01T00:00:00.000Z');
       expect(getScheduledPublishAt('posts', 'b')).toBe('2026-09-01T00:00:00.000Z');
     });
+
+    it('does not collide when a collection name contains a literal "."', () => {
+      // Prior to the storageKey fix, `${collection}.${slug}` joined both of
+      // these pairs into the same "a.b.c" key, so one write clobbered the
+      // other's read.
+      setScheduledPublishAt('a.b', 'c', '2026-08-01T00:00:00.000Z');
+      setScheduledPublishAt('a', 'b.c', '2026-09-01T00:00:00.000Z');
+      expect(getScheduledPublishAt('a.b', 'c')).toBe('2026-08-01T00:00:00.000Z');
+      expect(getScheduledPublishAt('a', 'b.c')).toBe('2026-09-01T00:00:00.000Z');
+    });
   });
 
   describe('clearScheduledPublishAt', () => {
@@ -42,12 +52,12 @@ describe('lib/scheduledPublish', () => {
   });
 
   describe('getAllScheduledPublishes', () => {
-    it('returns every stored schedule keyed by collection.slug', () => {
+    it('returns every stored schedule keyed by an unambiguous collection/slug encoding', () => {
       setScheduledPublishAt('posts', 'a', '2026-08-01T00:00:00.000Z');
       setScheduledPublishAt('pages', 'b', '2026-09-01T00:00:00.000Z');
       expect(getAllScheduledPublishes()).toEqual({
-        'posts.a': '2026-08-01T00:00:00.000Z',
-        'pages.b': '2026-09-01T00:00:00.000Z',
+        [JSON.stringify(['posts', 'a'])]: '2026-08-01T00:00:00.000Z',
+        [JSON.stringify(['pages', 'b'])]: '2026-09-01T00:00:00.000Z',
       });
     });
   });
