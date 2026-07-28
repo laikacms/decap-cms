@@ -1159,7 +1159,9 @@ export function validateUniqueField(
       return false;
     }
     const otherValue = entry?.getIn(['data', fieldName]);
-    return otherValue !== undefined && otherValue !== null && String(otherValue) === comparableValue;
+    return (
+      otherValue !== undefined && otherValue !== null && String(otherValue) === comparableValue
+    );
   });
 
   if (duplicate) {

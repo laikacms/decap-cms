@@ -1,11 +1,19 @@
 import get from 'lodash/get';
 import { List, Map } from 'immutable';
 
-import IntegrityIssueTypes, { IntegrityIssueType } from '../constants/integrityIssueTypes';
+import IntegrityIssueTypes from '../constants/integrityIssueTypes';
 import { selectEntries } from '../reducers/entries';
 import { selectFields } from '../reducers/collections';
 
-import type { Collection, Collections, EntryField, EntryFields, EntryMap, State } from '../types/redux';
+import type { IntegrityIssueType } from '../constants/integrityIssueTypes';
+import type {
+  Collection,
+  Collections,
+  EntryField,
+  EntryFields,
+  EntryMap,
+  State,
+} from '../types/redux';
 
 export type IntegrityIssue = {
   type: IntegrityIssueType;
