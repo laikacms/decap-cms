@@ -1089,6 +1089,38 @@ describe('config', () => {
       });
     });
 
+    describe('top-level editor', () => {
+      it('should not throw when editor is absent', () => {
+        expect(() => {
+          validateConfig(merge({}, validConfig));
+        }).not.toThrow();
+      });
+
+      it('should not throw when editor.preview is true', () => {
+        expect(() => {
+          validateConfig(merge({}, validConfig, { editor: { preview: true } }));
+        }).not.toThrow();
+      });
+
+      it('should not throw when editor.visualEditing is true', () => {
+        expect(() => {
+          validateConfig(merge({}, validConfig, { editor: { visualEditing: true } }));
+        }).not.toThrow();
+      });
+
+      it('should not throw when editor.visualEditing is false', () => {
+        expect(() => {
+          validateConfig(merge({}, validConfig, { editor: { visualEditing: false } }));
+        }).not.toThrow();
+      });
+
+      it('should throw when editor.visualEditing is not a boolean', () => {
+        expect(() => {
+          validateConfig(merge({}, validConfig, { editor: { visualEditing: 'yes' } }));
+        }).toThrowError("'editor.visualEditing' must be boolean");
+      });
+    });
+
     describe('i18n', () => {
       it('should throw error when locale has invalid characters', () => {
         expect(() => {
