@@ -50,6 +50,14 @@ export * from './errors/LfsVerifyError.js';
 export * from './errors/LocalSearchError.js';
 export { default as getBlobSHA } from './getBlobSHA.js';
 export {
+  calculateTargetDimensions,
+  isImageOptimizationEnabled,
+  isOptimizableImage,
+  optimizeImageFile,
+  resolveTargetMimeType,
+} from './imageOptimization.js';
+export type { TargetDimensions } from './imageOptimization.js';
+export {
   createPointerFile,
   getLargeMediaFilteredMediaFiles,
   getLargeMediaPatternsFromGitAttributesFile,

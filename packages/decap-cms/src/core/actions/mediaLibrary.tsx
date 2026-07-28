@@ -5,7 +5,7 @@ import { selectEditingDraft, selectMediaFilePath, selectMediaFilePublicPath } fr
 import { selectMediaDisplayURL, selectMediaFiles } from '@/core/reducers/mediaLibrary';
 import { selectIntegration } from '@/core/reducers/selectors';
 import { createAssetProxy } from '@/core/valueObjects/AssetProxy';
-import { basename, getBlobSHA } from '@/lib/util/index';
+import { basename, getBlobSHA, isImageOptimizationEnabled, optimizeImageFile } from '@/lib/util/index';
 import { confirmDialog } from '@/ui';
 import { addDraftEntryMediaFile, removeDraftEntryMediaFile } from './entries';
 import { addAsset, removeAsset } from './media';
@@ -13,7 +13,12 @@ import { addNotification } from './notifications';
 import { waitUntilWithTimeout } from './waitUntil';
 
 import type AssetProxy from '@/core/valueObjects/AssetProxy';
-import type { CmsEntryField, CmsMediaFile, CmsMediaLibraryInstance } from '@/lib/util/index';
+import type {
+  CmsEntryField,
+  CmsImageOptimizationConfig,
+  CmsMediaFile,
+  CmsMediaLibraryInstance,
+} from '@/lib/util/index';
 import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
 
@@ -286,6 +291,23 @@ function createMediaFileFromAsset({
   return mediaFile;
 }
 
+/**
+ * Resolves the effective image optimization config for an upload: the
+ * field's own `media_library.config.image_optimization` wins over the
+ * site-wide `media_library.config.image_optimization` default, matching how
+ * other per-field media_library settings already override the global ones.
+ */
+function selectImageOptimizationConfig(
+  config: State['config'],
+  field: EntryField | undefined,
+): CmsImageOptimizationConfig | undefined {
+  const fieldMediaLibrary = field?.media_library as
+    | { config?: { image_optimization?: CmsImageOptimizationConfig } }
+    | undefined;
+  return fieldMediaLibrary?.config?.image_optimization
+    ?? config.media_library?.config?.image_optimization;
+}
+
 export function persistMedia(file: File, opts: MediaOptions = {}) {
   const { privateUpload, field } = opts;
   return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
@@ -293,6 +315,12 @@ export function persistMedia(file: File, opts: MediaOptions = {}) {
     const backend = currentBackend(state.config);
     const integration = selectIntegration(state, null, 'assetStore');
     const files: MediaFile[] = selectMediaFiles(state, field);
+
+    const imageOptimizationConfig = selectImageOptimizationConfig(state.config, field);
+    if (isImageOptimizationEnabled(imageOptimizationConfig)) {
+      file = await optimizeImageFile(file, imageOptimizationConfig);
+    }
+
     const fileName = sanitizeSlug(file.name.toLowerCase(), state.config.slug);
     const existingFile = files.find(existingFile => existingFile.name.toLowerCase() === fileName);
 
