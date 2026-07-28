@@ -356,6 +356,10 @@ function getConfigSchema() {
                 ],
               },
             },
+            search_fields: {
+              type: 'array',
+              items: { type: 'string' },
+            },
             view_filters: viewFilters,
             view_groups: viewGroups,
             nested: {

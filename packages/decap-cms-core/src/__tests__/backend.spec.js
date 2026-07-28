@@ -1102,6 +1102,27 @@ describe('Backend', () => {
       expect(getDefaultSearchFields(collections[0])).toEqual(['title', 'short_title', 'author']);
     });
 
+    it('should use the collection `search_fields` config over the inferred fields', () => {
+      const collection = collections[0].set('search_fields', fromJS(['description']));
+
+      expect(getDefaultSearchFields(collection)).toEqual(['description']);
+    });
+
+    it('should search collections using the configured `search_fields` instead of inference', async () => {
+      const searchableCollections = collections.map(c =>
+        c.set('search_fields', fromJS(['description'])),
+      );
+
+      const byInferredField = await backend.search(searchableCollections, 'find me by title');
+      expect(byInferredField).toEqual({ entries: [] });
+
+      const byConfiguredField = await backend.search(
+        searchableCollections,
+        'find me by description',
+      );
+      expect(byConfiguredField).toEqual({ entries: [posts[0], pages[0]] });
+    });
+
     it('should search using a caller-supplied getSearchFields override instead of the inline default', async () => {
       const getSearchFields = jest.fn(collection => [selectField(collection)]);
 

@@ -149,6 +149,13 @@ function getEntryField(field: string, entry: EntryValue) {
 }
 
 export function getDefaultSearchFields(collection: Collection): (string | null | undefined)[] {
+  // Collections can declare exactly which fields should be searched via
+  // `search_fields:`. When present, it overrides the inferred fields below.
+  const configuredSearchFields = collection.get('search_fields') as List<string> | undefined;
+  if (configuredSearchFields && configuredSearchFields.size > 0) {
+    return configuredSearchFields.toArray();
+  }
+
   const summary = collection.get('summary', '') as string;
   const summaryFields = extractTemplateVars(summary);
 

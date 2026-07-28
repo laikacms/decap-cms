@@ -417,6 +417,14 @@ export interface CmsCollection {
   i18n?: boolean | CmsI18nConfig;
 
   /**
+   * Explicit list of field names searched by the sidebar search box and the
+   * `search`/`query` backend methods. When omitted, search fields are
+   * inferred from `summary`/`title`/`shortTitle`/`author` (or, for `files`
+   * collections, all top-level fields).
+   */
+  search_fields?: string[];
+
+  /**
    * @deprecated Use sortable_fields instead
    */
   sortableFields?: (string | SortableField)[];
@@ -710,6 +718,7 @@ type CollectionObject = {
   label_singular?: string;
   label: string;
   sortable_fields: List<StaticallyTypedRecord<SortableField>>;
+  search_fields?: List<string>;
   view_filters: List<StaticallyTypedRecord<ViewFilter>>;
   view_groups: List<StaticallyTypedRecord<ViewGroup>>;
   nested?: Nested;
