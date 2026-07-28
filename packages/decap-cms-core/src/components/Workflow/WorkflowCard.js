@@ -188,23 +188,23 @@ function WorkflowCard({
   const [isScheduling, setIsScheduling] = useState(false);
   const [pendingPublishAt, setPendingPublishAt] = useState('');
 
-  const openSchedulePicker = event => {
+  function openSchedulePicker(event) {
     event.preventDefault();
     setPendingPublishAt(publishAt ? dayjs(publishAt).format('YYYY-MM-DDTHH:mm') : '');
     setIsScheduling(true);
-  };
+  }
 
-  const confirmSchedule = event => {
+  function confirmSchedule(event) {
     event.preventDefault();
     if (!pendingPublishAt) return;
     onSchedulePublish(new Date(pendingPublishAt).toISOString());
     setIsScheduling(false);
-  };
+  }
 
-  const cancelSchedule = event => {
+  function cancelSchedule(event) {
     event.preventDefault();
     setIsScheduling(false);
-  };
+  }
 
   return (
     <WorkflowCardContainer>
@@ -213,7 +213,10 @@ function WorkflowCard({
           {t('workflow.workflowCard.scheduledFor', {
             date: dayjs(publishAt).format(t('workflow.workflow.dateFormat')),
           })}
-          <UnscheduleLink onClick={onUnschedulePublish} title={t('workflow.workflowCard.unschedule')}>
+          <UnscheduleLink
+            onClick={onUnschedulePublish}
+            title={t('workflow.workflowCard.unschedule')}
+          >
             &times;
           </UnscheduleLink>
         </ScheduledBadge>
