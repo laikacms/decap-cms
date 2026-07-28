@@ -10,7 +10,7 @@ jest.mock('decap-cms-ui-default', () => {
   };
 });
 
-// eslint-disable-next-line import/first
+// eslint-disable-next-line import/first, import/order
 import { cropImage } from 'decap-cms-ui-default';
 
 function makeInstance(overrides = {}) {
