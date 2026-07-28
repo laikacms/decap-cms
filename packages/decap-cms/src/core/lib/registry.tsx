@@ -208,7 +208,7 @@ export function resolveWidget(name: string | undefined) {
     console.warn(oneLine`
       \`widget: markdown\` is deprecated and registered only as a back-compat alias for
       \`richtext\` (DCMS-483). Update your config to \`widget: richtext\`. See
-      BREAKING_CHANGES_V2_BETA.md.
+      BREAKING_CHANGES_V4_BETA.md.
     `);
   }
   return getWidget(name || 'string') || getWidget('unknown');
@@ -216,7 +216,7 @@ export function resolveWidget(name: string | undefined) {
 
 /**
  * Richtext custom blocks and format packs (PT-native replacement for the
- * removed `registerEditorComponent` API; see BREAKING_CHANGES_V2_BETA.md).
+ * removed `registerEditorComponent` API; see BREAKING_CHANGES_V4_BETA.md).
  * Register at boot, before entries load.
  */
 export function registerBlock<TData extends Record<string, unknown>>(

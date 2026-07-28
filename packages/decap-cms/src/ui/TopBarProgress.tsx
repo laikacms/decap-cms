@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 
 // Internal replacement for `react-topbar-progress-indicator` (and its `topbar`
-// transitive dependency, see DEPENDENCY_REDUCTION_PLAN.md phase 3): a thin
+// transitive dependency, dropped to shrink the dependency tree): a thin
 // fixed bar across the top of the viewport that trickles toward completion
 // while at least one `<TopBarProgress />` is mounted, then fills to 100% and
 // fades out when the last one unmounts.
