@@ -400,6 +400,69 @@ interface BackupEntry {
   i18n?: Record<string, { raw: string }>;
 }
 
+// `localForage.ts` may be backed by a `localStorage` + `JSON.stringify`/`JSON.parse`
+// shim (see `src/lib/util/localForage.ts`) rather than a store that supports structured
+// cloning. `File`/`Blob` instances have no own enumerable properties, so they would
+// otherwise round-trip as `{}`. Encode/decode them explicitly so draft backups survive
+// a JSON round-trip.
+export const SERIALIZED_FILE_TYPE = 'DecapCmsSerializedFile';
+
+interface SerializedFile {
+  __type: typeof SERIALIZED_FILE_TYPE;
+  name: string;
+  type: string;
+  lastModified: number;
+  base64: string;
+}
+
+function isSerializedFile(value: unknown): value is SerializedFile {
+  return (
+    !!value &&
+    typeof value === 'object' &&
+    (value as Partial<SerializedFile>).__type === SERIALIZED_FILE_TYPE &&
+    typeof (value as Partial<SerializedFile>).base64 === 'string'
+  );
+}
+
+async function serializeFileForBackup(file: File): Promise<SerializedFile> {
+  const buffer = await file.arrayBuffer();
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i += 1) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return {
+    __type: SERIALIZED_FILE_TYPE,
+    name: file.name,
+    type: file.type,
+    lastModified: file.lastModified,
+    base64: btoa(binary),
+  };
+}
+
+function deserializeFileFromBackup(data: SerializedFile): File {
+  const binary = atob(data.base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return new File([bytes], data.name, { type: data.type, lastModified: data.lastModified });
+}
+
+// Recover a `File`/`Blob` from a raw draft-backup media entry, tolerating both
+// serialized descriptors written by `persistLocalDraftBackup` and legacy/corrupted
+// entries (e.g. a `File` that lost its bytes to a lossy JSON round-trip and
+// deserialized as a plain, non-Blob object).
+function restoreBackupFile(rawFile: unknown): File | Blob | undefined {
+  if (isSerializedFile(rawFile)) {
+    return deserializeFileFromBackup(rawFile);
+  }
+  if (rawFile instanceof Blob) {
+    return rawFile;
+  }
+  return undefined;
+}
+
 interface PersistArgs {
   config: CmsConfig;
   collection: CmsCollectionState;
@@ -906,7 +969,18 @@ export class Backend {
     mediaFiles = mediaFiles.map(file => {
       // de-serialize the file object
       if (file.file) {
-        return { ...file, url: URL.createObjectURL(file.file) };
+        const restoredFile = restoreBackupFile(file.file);
+        if (!restoredFile) {
+          // Corrupted/legacy entry: the persisted `file` is neither our serialized
+          // descriptor nor a real Blob (e.g. a `File` that round-tripped through
+          // `JSON.stringify`/`JSON.parse` and lost its bytes). Drop it instead of
+          // throwing from `URL.createObjectURL`.
+          console.warn(
+            `Local draft backup media file "${file.name}" could not be restored and will be skipped.`,
+          );
+          return { ...file, file: undefined };
+        }
+        return { ...file, file: restoredFile as File, url: URL.createObjectURL(restoredFile) };
       }
       return file;
     });
@@ -949,7 +1023,11 @@ export class Backend {
           // make sure to serialize the file
           if (file.url?.startsWith('blob:')) {
             const blob = await fetch(file.url as string).then(res => res.blob());
-            return { ...file, file: blobToFileObj(file.name, blob) };
+            const fileObj = blobToFileObj(file.name, blob);
+            // `localForage` here may be the `localStorage` + `JSON.stringify` shim, which
+            // can't persist `File`/`Blob` bytes directly (see `restoreBackupFile` above).
+            const serialized = await serializeFileForBackup(fileObj);
+            return { ...file, file: serialized as unknown as File };
           }
           return file;
         }),
