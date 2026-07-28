@@ -294,7 +294,8 @@ export function selectMediaFileByPath(state: State, path: string) {
 
 /**
  * Splits a loaded listing into subfolders and regular files. Only backends
- * that populate `isDirectory` (currently gitea/forgejo, via
+ * that populate `isDirectory` (azure, bitbucket, git-gateway, github, gitea,
+ * forgejo, gitlab, laika, proxy, dev-server, test, via
  * `getMedia(folder, folderSupport: true)`) contribute entries to `folders`;
  * everywhere else it's simply empty and the UI shows breadcrumbs only.
  */
