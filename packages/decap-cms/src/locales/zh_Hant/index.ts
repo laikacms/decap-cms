@@ -88,6 +88,10 @@ const zh_Hant = {
         writingInLocale: '以 %{locale} 書寫',
         copyFromLocale: '用其他語言進行填充',
         copyFromLocaleConfirm: '你確定要用“%{locale}”進行填充嗎？\n這將會覆蓋所有現有的內容。',
+        translateFromDefault: '從%{locale}翻譯',
+        translatingFromDefault: '正在翻譯…',
+        translateFromDefaultConfirm: '是否要使用AI翻譯填入%{locale}？\n所有現有內容將被覆蓋。',
+        translateFromDefaultConfirmTitle: '從預設語言翻譯',
       },
     },
     editor: {

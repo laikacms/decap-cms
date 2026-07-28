@@ -47,6 +47,13 @@ const hu = {
         min: '%{fieldLabel} legalább %{minValue} kell legyen vagy több.',
         max: '%{fieldLabel} legalabb %{maxValue} vagy kevesebb kell legyen.',
       },
+      i18n: {
+        translateFromDefault: 'Fordítás innen: %{locale}',
+        translatingFromDefault: 'Fordítás…',
+        translateFromDefaultConfirm:
+          'Szeretné kitölteni a(z) %{locale} nyelvet MI-fordítás segítségével?\nMinden meglévő tartalom felülíródik.',
+        translateFromDefaultConfirmTitle: 'Fordítás az alapértelmezett nyelvről',
+      },
     },
     editor: {
       onLeavePage: 'Biztos hogy el akarod hagyni az oldalt?',

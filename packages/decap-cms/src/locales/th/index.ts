@@ -95,6 +95,10 @@ const th = {
         writingInLocale: 'กำลังเขียนด้วยภาษา %{locale}',
         copyFromLocale: 'คัดลอกจากภาษาอื่น',
         copyFromLocaleConfirm: 'คุณต้องการคัดลอกข้อมูลจากภาษา %{locale} หรือไม่?\nเนื้อหาทั้งหมดจะถูกแทนที่',
+        translateFromDefault: 'แปลจาก %{locale}',
+        translatingFromDefault: 'กำลังแปล…',
+        translateFromDefaultConfirm: 'คุณต้องการกรอกข้อมูล %{locale} โดยใช้การแปลด้วย AI หรือไม่?\nเนื้อหาที่มีอยู่ทั้งหมดจะถูกเขียนทับ',
+        translateFromDefaultConfirmTitle: 'แปลจากภาษาเริ่มต้น',
       },
     },
     editor: {

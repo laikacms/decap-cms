@@ -96,6 +96,11 @@ const da = {
         copyFromLocale: 'Kopier fra et andet sprog',
         copyFromLocaleConfirm:
           'Vil du indsætte data fra sproget %{locale}?\nAlt eksisterende indhold vil blive overskrevet.',
+        translateFromDefault: 'Oversæt fra %{locale}',
+        translatingFromDefault: 'Oversætter…',
+        translateFromDefaultConfirm:
+          'Vil du udfylde %{locale} ved hjælp af en AI-oversættelse?\nAlt eksisterende indhold vil blive overskrevet.',
+        translateFromDefaultConfirmTitle: 'Oversæt fra standardsprog',
       },
     },
     editor: {

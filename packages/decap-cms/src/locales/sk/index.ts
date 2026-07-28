@@ -98,6 +98,11 @@ const sk = {
         writingInLocale: 'Píše sa v jazyku %{locale}',
         copyFromLocale: 'Vyplniť z iného jazyka',
         copyFromLocaleConfirm: 'Chcete vyplniť údaje z jazyka %{locale}?\nVšetok existujúci obsah bude prepísaný.',
+        translateFromDefault: 'Preložiť z %{locale}',
+        translatingFromDefault: 'Prekladá sa…',
+        translateFromDefaultConfirm:
+          'Chcete vyplniť %{locale} pomocou AI prekladu?\nVšetok existujúci obsah bude prepísaný.',
+        translateFromDefaultConfirmTitle: 'Preložiť z predvoleného jazyka',
       },
     },
     editor: {

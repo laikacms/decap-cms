@@ -96,6 +96,11 @@ const mk = {
         copyFromLocale: 'Пополнете од друг јазик',
         copyFromLocaleConfirm:
           'Дали сакате да ги пополните податоците од јазикот %{locale}?\nСите постоечки содржини ќе бидат презапишани.',
+        translateFromDefault: 'Преведи од %{locale}',
+        translatingFromDefault: 'Преведува…',
+        translateFromDefaultConfirm:
+          'Дали сакате да го пополните %{locale} со помош на AI превод?\nСета постоечка содржина ќе биде презапишана.',
+        translateFromDefaultConfirmTitle: 'Преведи од стандардниот јазик',
       },
     },
     editor: {

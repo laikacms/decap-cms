@@ -93,6 +93,11 @@ const fr = {
       },
       i18n: {
         writingInLocale: 'Écrire en %{locale}',
+        translateFromDefault: 'Traduire depuis %{locale}',
+        translatingFromDefault: 'Traduction en cours…',
+        translateFromDefaultConfirm:
+          "Voulez-vous remplir %{locale} à l'aide d'une traduction par IA ?\nTout le contenu existant sera écrasé.",
+        translateFromDefaultConfirmTitle: 'Traduire depuis la langue par défaut',
       },
     },
     editor: {

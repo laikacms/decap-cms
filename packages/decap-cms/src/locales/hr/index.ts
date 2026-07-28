@@ -99,6 +99,11 @@ const hr = {
         copyFromLocale: 'Popuni iz drugog jezika',
         copyFromLocaleConfirm:
           'Želite li popuniti podatke iz %{locale} jezika?\nSav postojeći sadržaj bit će prepisan.',
+        translateFromDefault: 'Prevedi iz %{locale}',
+        translatingFromDefault: 'Prevođenje…',
+        translateFromDefaultConfirm:
+          'Želite li popuniti %{locale} pomoću AI prijevoda?\nSav postojeći sadržaj bit će prepisan.',
+        translateFromDefaultConfirmTitle: 'Prevedi iz zadanog jezika',
       },
     },
     editor: {

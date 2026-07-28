@@ -83,6 +83,11 @@ const fa = {
         copyFromLocale: 'از محلی دیگر پر کنید',
         copyFromLocaleConfirm:
           'آیا می خواهید داده ها را از %{locale} محلی پر کنید؟\nتمام محتوای موجود رونویسی خواهد شد.',
+        translateFromDefault: 'ترجمه از %{locale}',
+        translatingFromDefault: 'در حال ترجمه…',
+        translateFromDefaultConfirm:
+          'آیا می‌خواهید %{locale} را با استفاده از ترجمه هوش مصنوعی پر کنید؟\nتمام محتوای موجود بازنویسی خواهد شد.',
+        translateFromDefaultConfirmTitle: 'ترجمه از زبان پیش‌فرض',
       },
     },
     editor: {

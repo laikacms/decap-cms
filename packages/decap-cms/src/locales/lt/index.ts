@@ -93,6 +93,11 @@ const lt = {
       },
       i18n: {
         writingInLocale: 'Rašome %{locale} kalboje',
+        translateFromDefault: 'Versti iš %{locale}',
+        translatingFromDefault: 'Verčiama…',
+        translateFromDefaultConfirm:
+          'Ar norite užpildyti %{locale} naudojant DI vertimą?\nVisas esamas turinys bus perrašytas.',
+        translateFromDefaultConfirmTitle: 'Versti iš numatytosios kalbos',
       },
     },
     editor: {

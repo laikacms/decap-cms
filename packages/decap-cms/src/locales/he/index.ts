@@ -93,6 +93,10 @@ const he = {
       },
       i18n: {
         writingInLocale: 'כתיבה בשפה ה%{locale}',
+        translateFromDefault: 'תרגם מ-%{locale}',
+        translatingFromDefault: 'מתרגם…',
+        translateFromDefaultConfirm: 'האם למלא את %{locale} באמצעות תרגום בינה מלאכותית?\nכל התוכן הקיים יוחלף.',
+        translateFromDefaultConfirmTitle: 'תרגם מהשפה המוגדרת כברירת מחדל',
       },
     },
     editor: {

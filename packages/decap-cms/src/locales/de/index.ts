@@ -96,6 +96,11 @@ const de = {
         copyFromLocale: 'Aus anderer Sprache übernehmen',
         copyFromLocaleConfirm:
           'Wollen Sie wirklich die Daten aus der Sprache %{locale} übernehmen?\nAlle bishergen Inhalte werden überschrieben.',
+        translateFromDefault: 'Aus %{locale} übersetzen',
+        translatingFromDefault: 'Übersetzung läuft…',
+        translateFromDefaultConfirm:
+          'Möchten Sie %{locale} mithilfe einer KI-Übersetzung befüllen?\nAlle vorhandenen Inhalte werden überschrieben.',
+        translateFromDefaultConfirmTitle: 'Aus Standardsprache übersetzen',
       },
     },
     editor: {

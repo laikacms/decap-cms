@@ -96,6 +96,11 @@ const tr = {
         copyFromLocale: 'Başka bir dilden doldurun',
         copyFromLocaleConfirm:
           'Verileri %{locale} dilinden mi doldurmak istiyorsun?\nVarolan bütün verilerin üzerine yazılacak.',
+        translateFromDefault: '%{locale} dilinden çevir',
+        translatingFromDefault: 'Çevriliyor…',
+        translateFromDefaultConfirm:
+          '%{locale} içeriğini AI çevirisi kullanarak doldurmak ister misiniz?\nMevcut tüm içerik üzerine yazılacaktır.',
+        translateFromDefaultConfirmTitle: 'Varsayılan dilden çevir',
       },
     },
     editor: {

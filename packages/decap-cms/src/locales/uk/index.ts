@@ -61,7 +61,7 @@ const uk = {
   editor: {
     editorControl: {
       field: {
-        required: 'обов\'язково',
+        required: "обов'язково",
       },
     },
     editorControlPane: {
@@ -83,6 +83,11 @@ const uk = {
         writingInLocale: 'Мова запису %{locale}',
         copyFromLocale: 'Заповнити з іншої мови',
         copyFromLocaleConfirm: 'Дійсно бажаєте заповнити дані з мови %{locale}?\nУсі наявні дані буде перезаписано.',
+        translateFromDefault: 'Перекласти з %{locale}',
+        translatingFromDefault: 'Переклад…',
+        translateFromDefaultConfirm:
+          'Заповнити %{locale} за допомогою перекладу ШІ?\nВесь наявний вміст буде перезаписано.',
+        translateFromDefaultConfirmTitle: 'Перекласти з мови за замовчуванням',
       },
     },
     editor: {
