@@ -1092,7 +1092,10 @@ export function persistQuickCreateEntry(collection: Collection, data: Record<str
     const rawEntry = fromJS(entryValue).set('newRecord', true) as unknown as Entry;
     const serializedEntry = getSerializedEntry(collection, rawEntry);
     const usedSlugs = selectPublishedSlugs(state, collection.get('name'));
-    const syntheticDraft = Map({ entry: serializedEntry, fieldsErrors: Map() }) as unknown as EntryDraft;
+    const syntheticDraft = Map({
+      entry: serializedEntry,
+      fieldsErrors: Map(),
+    }) as unknown as EntryDraft;
 
     const newSlug = await backend.persistEntry({
       config: state.config,

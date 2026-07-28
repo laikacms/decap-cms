@@ -12,7 +12,14 @@ import isEmpty from 'lodash/isEmpty';
 import last from 'lodash/last';
 import uniqBy from 'lodash/uniqBy';
 import { fromJS, List, Map } from 'immutable';
-import { reactSelectStyles, colors, colorsRaw, lengths, shadows, buttons } from 'decap-cms-ui-default';
+import {
+  reactSelectStyles,
+  colors,
+  colorsRaw,
+  lengths,
+  shadows,
+  buttons,
+} from 'decap-cms-ui-default';
 import { stringTemplate, validations } from 'decap-cms-lib-widgets';
 import { FixedSizeList } from 'react-window';
 import {
@@ -412,12 +419,7 @@ function QuickAddModal({ collection, values, submitting, error, onChange, onCanc
         }
       }}
     >
-      <QuickAddPanel
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-        onSubmit={onSubmit}
-      >
+      <QuickAddPanel role="dialog" aria-modal="true" aria-label={title} onSubmit={onSubmit}>
         <QuickAddTitle>{title}</QuickAddTitle>
         {fieldNames.map(name => (
           <div key={name}>
