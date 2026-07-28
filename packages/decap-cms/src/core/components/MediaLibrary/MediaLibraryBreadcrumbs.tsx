@@ -1,6 +1,7 @@
 import styled from '@emotion/styled';
 import React from 'react';
 
+import { useTranslate } from '@/core/i18n';
 import { colors } from '@/ui/default/index';
 
 import type { MediaFolderBreadcrumb } from '@/core/reducers/mediaLibrary';
@@ -44,12 +45,14 @@ interface MediaLibraryBreadcrumbsProps {
  * crumb with nowhere to go.
  */
 function MediaLibraryBreadcrumbs({ breadcrumbs, onNavigate }: MediaLibraryBreadcrumbsProps) {
+  const t = useTranslate();
+
   if (breadcrumbs.length <= 1) {
     return null;
   }
 
   return (
-    <BreadcrumbsContainer aria-label="Media folder breadcrumbs">
+    <BreadcrumbsContainer aria-label={t('mediaLibrary.mediaLibraryBreadcrumbs.regionLabel')}>
       {breadcrumbs.map((crumb, index) => {
         const isCurrent = index === breadcrumbs.length - 1;
         return (

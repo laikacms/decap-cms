@@ -407,7 +407,11 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
       handleLoadMore={handleLoadMore}
       displayURLs={displayURLs as any}
       loadDisplayURL={loadDisplayURL}
-      breadcrumbs={getMediaFolderBreadcrumbs(rootFolder, currentFolder)}
+      breadcrumbs={getMediaFolderBreadcrumbs(
+        rootFolder,
+        currentFolder,
+        t('mediaLibrary.mediaLibraryBreadcrumbs.rootLabel'),
+      )}
       onNavigateFolder={handleNavigateFolder}
       assetCollections={assetCollections}
       activeAssetCollectionName={activeAssetCollection?.name}

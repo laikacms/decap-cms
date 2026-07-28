@@ -1,6 +1,7 @@
 import styled from '@emotion/styled';
 import React from 'react';
 
+import { useTranslate } from '@/core/i18n';
 import { colors, Icon, lengths } from '@/ui/default/index';
 
 const FoldersContainer = styled.div`
@@ -45,12 +46,14 @@ interface MediaLibraryFoldersProps {
  * nothing when there's nothing to browse into.
  */
 function MediaLibraryFolders({ folders, onNavigate }: MediaLibraryFoldersProps) {
+  const t = useTranslate();
+
   if (!folders.length) {
     return null;
   }
 
   return (
-    <FoldersContainer aria-label="Subfolders">
+    <FoldersContainer aria-label={t('mediaLibrary.mediaLibraryFolders.regionLabel')}>
       {folders.map(folder => (
         <FolderChip key={folder.path} type="button" onClick={() => onNavigate(folder.path)}>
           <Icon type="folder" size="small" />
