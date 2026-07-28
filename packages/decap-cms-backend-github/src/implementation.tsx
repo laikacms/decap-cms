@@ -20,11 +20,16 @@ import {
   contentKeyFromBranch,
   unsentRequest,
   branchFromContentKey,
+  getLargeMediaPatternsFromGitAttributesFile,
+  getPointerFileForMediaFileObj,
+  getLargeMediaFilteredMediaFiles,
+  parsePointerFile,
 } from 'decap-cms-lib-util';
 
 import AuthenticationPage from './AuthenticationPage';
 import API, { API_NAME } from './API';
 import GraphQLAPI from './GraphQLAPI';
+import { GitLfsClient } from './git-lfs-client';
 
 import type { Endpoints } from '@octokit/types';
 import type {
@@ -41,8 +46,20 @@ import type {
   ImplementationFile,
   UnpublishedEntryMediaFile,
   Entry,
+  FetchError,
+  ApiRequest,
 } from 'decap-cms-lib-util';
 import type { Semaphore } from 'semaphore';
+
+// Pointer files are tiny plaintext blobs (a handful of `key value` lines), so
+// anything larger than this can't be one and isn't worth parsing.
+const MAX_POINTER_FILE_SIZE = 1024;
+
+type ReadFile = (
+  path: string,
+  id: string | null | undefined,
+  options: { parseText: boolean },
+) => Promise<string | Blob>;
 
 export type GitHubUser = Endpoints['GET /user']['response']['data'];
 
@@ -94,6 +111,8 @@ export default class GitHub implements Implementation {
     [key: string]: Promise<boolean>;
   };
   _mediaDisplayURLSem?: Semaphore;
+  largeMediaURL: string;
+  _largeMediaClientPromise?: Promise<GitLfsClient>;
 
   constructor(config: Config, options = {}) {
     this.options = {
@@ -135,6 +154,7 @@ export default class GitHub implements Implementation {
     this.useGraphql = config.backend.use_graphql || false;
     this.mediaFolder = config.media_folder;
     this.previewContext = config.backend.preview_context || '';
+    this.largeMediaURL = config.backend.large_media_url || '';
     this.lock = asyncLock();
   }
 
@@ -520,8 +540,96 @@ export default class GitHub implements Implementation {
     );
   }
 
+  // Memoized so there's only one LFS client (and one .gitattributes fetch) per session.
+  getLargeMediaClient() {
+    if (!this._largeMediaClientPromise) {
+      this._largeMediaClientPromise = (async (): Promise<GitLfsClient> => {
+        const patterns = await this.api!.readFile('.gitattributes')
+          .then(attributes => getLargeMediaPatternsFromGitAttributesFile(attributes as string))
+          .catch((err: FetchError) => {
+            if (err.status === 404) {
+              console.log('This 404 was expected and handled appropriately.');
+            } else {
+              console.error(err);
+            }
+            return [];
+          });
+
+        // GitHub's own LFS batch endpoint for a repo, per the Git LFS Batch API spec:
+        // https://github.com/<owner>/<repo>.git/info/lfs/objects/batch
+        // `large_media_url` in the backend config overrides this (e.g. for GitHub Enterprise).
+        const rootURL = this.largeMediaURL || `https://github.com/${this.api!.repo}.git/info/lfs`;
+
+        return new GitLfsClient(
+          !!(rootURL && patterns.length > 0),
+          rootURL,
+          patterns,
+          this.lfsRequestFunction,
+        );
+      })();
+    }
+    return this._largeMediaClientPromise;
+  }
+
+  // Reuses the exact same Authorization header the GitHub REST API calls already use
+  // (see API#requestHeaders) — no new token handling or scopes.
+  // NOTE: GitHub's LFS HTTPS endpoint conventionally expects `Authorization: Basic
+  // <base64(username:token)>` for git/LFS operations, unlike the `token <PAT>` header the
+  // REST API accepts. This has not been verified against a live LFS-enabled repo; if it
+  // turns out the batch API rejects this header format, switching the encoding (same
+  // token, no new scope) is a follow-up.
+  private lfsRequestFunction = async (req: ApiRequest) => {
+    const authorizedRequest = unsentRequest.withHeaders(
+      { Authorization: `${this.tokenKeyword} ${this.token}` },
+      req,
+    );
+    return unsentRequest.performRequest(authorizedRequest);
+  };
+
+  // If `path` is LFS-tracked and `content` is an LFS pointer file, resolves it to the
+  // real object content via the LFS batch API. Otherwise returns `content` unchanged.
+  private async resolveLfsPointer(
+    path: string,
+    content: string | Blob,
+    parseText: boolean,
+  ): Promise<string | Blob> {
+    const client = await this.getLargeMediaClient();
+    if (!client.enabled) {
+      return content;
+    }
+    const fixedPath = path.startsWith('/') ? path.slice(1) : path;
+    if (!client.matchPath(fixedPath)) {
+      return content;
+    }
+
+    const size = typeof content === 'string' ? content.length : content.size;
+    if (size > MAX_POINTER_FILE_SIZE) {
+      return content;
+    }
+
+    const text = typeof content === 'string' ? content : await content.text();
+    const pointer = parsePointerFile(text);
+    if (!pointer.sha || !pointer.size) {
+      // Not an LFS pointer file (probably the real, small content already).
+      return content;
+    }
+
+    const blob = await client.downloadResource(pointer);
+    return parseText ? blob.text() : blob;
+  }
+
+  // Wraps a readFile function (matching API#readFile's signature) so any LFS pointer
+  // file it returns is transparently resolved to the real media content.
+  private withLfsResolution =
+    (readFile: ReadFile): ReadFile =>
+    async (path, id, options) => {
+      const content = await readFile(path, id, options);
+      return this.resolveLfsPointer(path, content, options.parseText);
+    };
+
   async getMediaFile(path: string) {
-    const blob = await getMediaAsBlob(path, null, this.api!.readFile.bind(this.api!));
+    const readFile = this.withLfsResolution(this.api!.readFile.bind(this.api!) as ReadFile);
+    const blob = await getMediaAsBlob(path, null, readFile);
 
     const name = basename(path);
     const fileObj = blobToFileObj(name, blob);
@@ -541,26 +649,37 @@ export default class GitHub implements Implementation {
 
   getMediaDisplayURL(displayURL: DisplayURL) {
     this._mediaDisplayURLSem = this._mediaDisplayURLSem || semaphore(MAX_CONCURRENT_DOWNLOADS);
-    return getMediaDisplayURL(
-      displayURL,
-      this.api!.readFile.bind(this.api!),
-      this._mediaDisplayURLSem,
-    );
+    const readFile = this.withLfsResolution(this.api!.readFile.bind(this.api!) as ReadFile);
+    return getMediaDisplayURL(displayURL, readFile, this._mediaDisplayURLSem);
   }
 
-  persistEntry(entry: Entry, options: PersistOptions) {
+  async persistEntry(entry: Entry, options: PersistOptions) {
+    const client = await this.getLargeMediaClient();
     // persistEntry is a transactional operation
     return runWithLock(
       this.lock,
-      () => this.api!.persistFiles(entry.dataFiles, entry.assets, options),
+      async () =>
+        this.api!.persistFiles(
+          entry.dataFiles,
+          client.enabled ? await getLargeMediaFilteredMediaFiles(client, entry.assets) : entry.assets,
+          options,
+        ),
       'Failed to acquire persist entry lock',
     );
   }
 
   async persistMedia(mediaFile: AssetProxy, options: PersistOptions) {
     try {
-      await this.api!.persistFiles([], [mediaFile], options);
-      const { sha, path, fileObj } = mediaFile as AssetProxy & { sha: string };
+      const client = await this.getLargeMediaClient();
+      const { path, fileObj } = mediaFile;
+      const fixedPath = path.startsWith('/') ? path.slice(1) : path;
+      const fileToPersist =
+        client.enabled && client.matchPath(fixedPath)
+          ? await getPointerFileForMediaFileObj(client, fileObj as File, path)
+          : mediaFile;
+
+      await this.api!.persistFiles([], [fileToPersist], options);
+      const { sha } = fileToPersist as AssetProxy & { sha: string };
       const displayURL = fileObj ? URL.createObjectURL(fileObj) : '';
       return {
         id: sha,
@@ -626,11 +745,11 @@ export default class GitHub implements Implementation {
   }
 
   async loadMediaFile(branch: string, file: UnpublishedEntryMediaFile) {
-    const readFile = (
+    const readFile = this.withLfsResolution(((
       path: string,
       id: string | null | undefined,
       { parseText }: { parseText: boolean },
-    ) => this.api!.readFile(path, id, { branch, parseText });
+    ) => this.api!.readFile(path, id, { branch, parseText })) as ReadFile);
 
     const blob = await getMediaAsBlob(file.path, file.id, readFile);
     const name = basename(file.path);
