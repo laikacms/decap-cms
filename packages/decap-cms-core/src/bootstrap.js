@@ -14,7 +14,6 @@ import { getPhrases } from './lib/phrases';
 import { selectLocale } from './reducers/config';
 import { ErrorBoundary } from './components/UI';
 import App from './components/App/App';
-import { registerServiceWorker } from './serviceWorker/registerServiceWorker';
 import './components/EditorWidgets';
 import './mediaLibrary';
 import 'what-input';
@@ -48,12 +47,6 @@ function bootstrap(opts = {}) {
   if (typeof DECAP_CMS_CORE_VERSION === 'string') {
     console.log(`decap-cms-core ${DECAP_CMS_CORE_VERSION}`);
   }
-
-  /**
-   * Cache the app shell so a previously-loaded admin page can reload while
-   * offline (DCMS-1420).
-   */
-  registerServiceWorker();
 
   /**
    * Get DOM element where app will mount.
