@@ -374,10 +374,10 @@ export default class GitLab implements CmsImplementation {
     }));
   }
 
-  getMedia(mediaFolder = this.mediaFolder) {
-    return this.api!.listAllFiles(mediaFolder).then(files =>
-      files.map(({ id, name, path }) => {
-        return { id, name, path, displayURL: { id, name, path } };
+  getMedia(mediaFolder = this.mediaFolder, folderSupport?: boolean) {
+    return this.api!.listAllFiles(mediaFolder, false, undefined, folderSupport).then(files =>
+      files.map(({ id, name, path, type }) => {
+        return { id, name, path, displayURL: { id, name, path }, isDirectory: type === 'tree' };
       })
     );
   }

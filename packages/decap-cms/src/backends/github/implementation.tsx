@@ -516,12 +516,12 @@ export default class GitHub implements CmsImplementation {
       .catch(() => ({ file: { path, id: null }, data: '' }));
   }
 
-  getMedia(mediaFolder = this.mediaFolder) {
-    return this.api!.listFiles(mediaFolder).then(files =>
-      files.map(({ id, name, size, path }) => {
+  getMedia(mediaFolder = this.mediaFolder, folderSupport?: boolean) {
+    return this.api!.listFiles(mediaFolder, undefined, folderSupport).then(files =>
+      files.map(({ id, name, size, path, type }) => {
         // load media using getMediaDisplayURL to avoid token expiration with GitHub raw content urls
         // for private repositories
-        return { id, name, size, displayURL: { id, path }, path };
+        return { id, name, size, displayURL: { id, path }, path, isDirectory: type === 'tree' };
       })
     );
   }

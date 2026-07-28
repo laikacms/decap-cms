@@ -63,4 +63,26 @@ describe('bitbucket API', () => {
       expect(diff.id).not.toEqual('');
     });
   });
+
+  describe('processFiles', () => {
+    const rawFiles = [
+      { id: 'a1', type: 'commit_file', path: 'media/image.png' },
+      { id: 'a2', type: 'commit_directory', path: 'media/dir1' },
+    ];
+
+    test('filters out directories by default', () => {
+      const api = new API({});
+      expect(api.processFiles(rawFiles)).toEqual([
+        { id: 'a1', type: 'commit_file', path: 'media/image.png', name: 'image.png' },
+      ]);
+    });
+
+    test('includes directories as isDirectory-detectable entries when folderSupport is set', () => {
+      const api = new API({});
+      expect(api.processFiles(rawFiles, true)).toEqual([
+        { id: 'a1', type: 'commit_file', path: 'media/image.png', name: 'image.png' },
+        { id: 'a2', type: 'commit_directory', path: 'media/dir1', name: 'dir1' },
+      ]);
+    });
+  });
 });

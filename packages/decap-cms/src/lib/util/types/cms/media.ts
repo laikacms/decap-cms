@@ -44,9 +44,10 @@ export interface CmsBackendMediaFile {
   field?: CmsEntryField;
   /**
    * Set when this entry represents a folder rather than an asset. Only
-   * populated by backends that already list directory entries alongside
-   * files (currently gitea/forgejo); other backends simply never set it, so
-   * consumers should treat its absence the same as `false`.
+   * populated when `folderSupport` was requested from a backend that can
+   * list directory entries alongside files; other backends (or calls
+   * without `folderSupport`) simply never set it, so consumers should treat
+   * its absence the same as `false`.
    */
   isDirectory?: boolean;
 }

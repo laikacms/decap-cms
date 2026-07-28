@@ -1,7 +1,13 @@
 import path from 'path';
 
-import { entriesFromFiles, readMediaFile } from '@/dev-server/middlewares/utils/entries';
-import { deleteFile, listRepoFiles, move, writeFile } from '@/dev-server/middlewares/utils/fs';
+import { entriesFromFiles, normalizePath, readMediaFile } from '@/dev-server/middlewares/utils/entries';
+import {
+  deleteFile,
+  listRepoFiles,
+  listRepoFolders,
+  move,
+  writeFile,
+} from '@/dev-server/middlewares/utils/fs';
 import { defaultSchema, validateRequest } from '@/dev-server/middlewares/validation';
 import { pathTraversal } from '@/dev-server/middlewares/validation/customValidators';
 
@@ -90,10 +96,21 @@ export function localFsMiddleware({ repoPath, logger }: FsOptions) {
           break;
         }
         case 'getMedia': {
-          const { mediaFolder } = body.params as GetMediaParams;
+          const { mediaFolder, folderSupport } = body.params as GetMediaParams;
           const files = await listRepoFiles(repoPath, mediaFolder, '', 1);
           const mediaFiles = await Promise.all(files.map(file => readMediaFile(repoPath, file)));
-          res.json(mediaFiles);
+          if (!folderSupport) {
+            res.json(mediaFiles);
+            break;
+          }
+          const folders = await listRepoFolders(repoPath, mediaFolder);
+          const folderEntries = folders.map(folder => ({
+            id: normalizePath(folder),
+            name: path.basename(folder),
+            path: normalizePath(folder),
+            isDirectory: true,
+          }));
+          res.json([...mediaFiles, ...folderEntries]);
           break;
         }
         case 'getMediaFile': {

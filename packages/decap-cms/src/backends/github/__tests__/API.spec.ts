@@ -849,6 +849,42 @@ describe('github API', () => {
         params: { recursive: 1 },
       });
     });
+
+    it('should get files and folders when folderSupport is set', async () => {
+      const api = new API({ branch: 'master', repo: 'owner/repo' });
+
+      const tree = [
+        { path: 'image.png', type: 'blob' },
+        { path: 'dir1', type: 'tree' },
+        { path: 'dir1/nested-image.png', type: 'blob' },
+        { path: 'dir1/dir2', type: 'tree' },
+        { path: 'dir1/dir2/nested-image.png', type: 'blob' },
+      ];
+      api.request = vi.fn().mockResolvedValue({ tree });
+
+      await expect(api.listFiles('media', { depth: 1 }, true)).resolves.toEqual([
+        { path: 'media/image.png', type: 'blob', name: 'image.png', id: undefined, size: 0 },
+        { path: 'media/dir1', type: 'tree', name: 'dir1', id: undefined, size: 0 },
+      ]);
+      expect(api.request).toHaveBeenCalledTimes(1);
+      expect(api.request).toHaveBeenCalledWith('/repos/owner/repo/git/trees/master:media', {
+        params: {},
+      });
+    });
+
+    it('should not include folders when folderSupport is not set', async () => {
+      const api = new API({ branch: 'master', repo: 'owner/repo' });
+
+      const tree = [
+        { path: 'image.png', type: 'blob' },
+        { path: 'dir1', type: 'tree' },
+      ];
+      api.request = vi.fn().mockResolvedValue({ tree });
+
+      await expect(api.listFiles('media', { depth: 1 })).resolves.toEqual([
+        { path: 'media/image.png', type: 'blob', name: 'image.png', id: undefined, size: 0 },
+      ]);
+    });
   });
 
   test('should get preview statuses', async () => {

@@ -32,6 +32,15 @@ export async function listRepoFiles(
   return files.map(f => f.slice(repoPath.length + 1));
 }
 
+export async function listRepoFolders(repoPath: string, folder: string) {
+  try {
+    const dirents = await fs.readdir(path.join(repoPath, folder), { withFileTypes: true });
+    return dirents.filter(dirent => dirent.isDirectory()).map(dirent => path.join(folder, dirent.name));
+  } catch (e: unknown) {
+    return [];
+  }
+}
+
 export async function writeFile(filePath: string, content: Buffer | string) {
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   await fs.writeFile(filePath, content);

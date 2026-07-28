@@ -432,8 +432,8 @@ export default class GitGateway implements Implementation {
     }
   }
 
-  getMedia(mediaFolder = this.mediaFolder) {
-    return this.backend!.getMedia(mediaFolder);
+  getMedia(mediaFolder = this.mediaFolder, folderSupport?: boolean) {
+    return this.backend!.getMedia(mediaFolder, folderSupport);
   }
 
   // this method memoizes this._getLargeMediaClient so that there can

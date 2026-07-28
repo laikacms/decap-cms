@@ -190,12 +190,15 @@ export default class Azure implements CmsImplementation {
     };
   }
 
-  async getMedia() {
-    const files = await this.api!.listFiles(this.mediaFolder, false);
+  async getMedia(mediaFolder = this.mediaFolder, folderSupport?: boolean) {
+    const files = await this.api!.listFiles(mediaFolder, false, undefined, folderSupport);
     const mediaFiles = await Promise.all(
-      files.map(async ({ id, path, name }) => {
+      files.map(async ({ id, path, name, isDirectory }) => {
+        if (isDirectory) {
+          return { id, name, displayURL: { id, path }, path, isDirectory };
+        }
         const blobUrl = await this.getMediaDisplayURL({ id, path });
-        return { id, name, displayURL: blobUrl, path };
+        return { id, name, displayURL: blobUrl, path, isDirectory };
       }),
     );
     return mediaFiles;
