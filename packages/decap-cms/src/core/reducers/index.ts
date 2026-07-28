@@ -6,6 +6,7 @@ import deploys from './deploys';
 import editorialWorkflow from './editorialWorkflow';
 import entries from './entries';
 import entryDraft from './entryDraft';
+import entryLock from './entryLock';
 import globalUI from './globalUI';
 import integrations from './integrations';
 import mediaLibrary from './mediaLibrary';
@@ -29,6 +30,7 @@ const reducers = {
   cursors,
   editorialWorkflow,
   entryDraft,
+  entryLock,
   medias,
   mediaLibrary,
   deploys,

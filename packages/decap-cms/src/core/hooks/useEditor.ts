@@ -24,6 +24,7 @@ import {
   persistLocalBackup,
   retrieveLocalBackup,
 } from '@/core/actions/entries';
+import { acquireEntryLock, releaseEntryLock, refreshEntryLock } from '@/core/actions/entryLock';
 import { EDITORIAL_WORKFLOW, status } from '@/core/constants/publishModes';
 import { selectDeployPreview, selectEntry, selectUnpublishedEntry } from '@/core/reducers';
 import { selectFields } from '@/core/reducers/collections';
@@ -42,6 +43,13 @@ type Collection = CmsCollectionState;
 type Entry = CmsEntry;
 
 type EntryDraft = any;
+
+// How often to renew the advisory entry lock while the editor stays open.
+// Comfortably inside the reference implementation's default TTL
+// (`DEFAULT_ENTRY_LOCK_TTL_MS`, 5 minutes) so a normal editing session never
+// goes stale; a backend with a shorter TTL should document that in its own
+// README (see `LaikaBackend`'s for the server-arbitrated follow-up notes).
+const ENTRY_LOCK_REFRESH_INTERVAL_MS = 60_000;
 
 interface UseEditorOptions {
   collectionName: string;
@@ -80,6 +88,7 @@ export function useEditor({
   // `ConfirmDialogHost`'s queue instead of leaving a dangling `AlertDialog`
   // mounted at the app root that outlives the route (DCMS-1063).
   const unmountControllerRef = useRef<AbortController>(new AbortController());
+  const lockRefreshIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     // Under React 18 StrictMode, this effect's cleanup fires once against
@@ -193,6 +202,15 @@ export function useEditor({
       dispatch(createEmptyDraft(collection, locationSearch) as any);
     } else if (slug) {
       workflow.loadEntry(collection, slug);
+
+      // Advisory entry lock (DCMS-1414): acquire on open, periodically
+      // renew while the editor stays mounted, release on close. Inert
+      // no-op for backends that don't implement the optional locking
+      // capability -- see `acquireEntryLock`/`refreshEntryLock`.
+      dispatch(acquireEntryLock(collection, slug) as any);
+      lockRefreshIntervalRef.current = setInterval(() => {
+        dispatch(refreshEntryLock(collection, slug) as any);
+      }, ENTRY_LOCK_REFRESH_INTERVAL_MS);
     }
 
     // Load collection entries if not loaded
@@ -299,6 +317,13 @@ export function useEditor({
         navigationBlockerRef.current = null;
         if (unlistenRef.current) {
           unlistenRef.current();
+        }
+        if (lockRefreshIntervalRef.current) {
+          clearInterval(lockRefreshIntervalRef.current);
+          lockRefreshIntervalRef.current = null;
+        }
+        if (!newEntry && slug) {
+          dispatch(releaseEntryLock(collection, slug) as any);
         }
       },
     };
