@@ -21,6 +21,7 @@ const en = {
       workflow: 'Workflow',
       media: 'Media',
       quickAdd: 'Quick add',
+      offline: 'Offline',
     },
     app: {
       errorHeader: 'Error loading the CMS configuration',
