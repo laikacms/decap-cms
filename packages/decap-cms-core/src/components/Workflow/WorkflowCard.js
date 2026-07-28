@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
+import dayjs from 'dayjs';
 import { translate } from 'react-polyglot';
 import { Link } from 'react-router-dom';
 import { components, colors, colorsRaw, transitions, buttons } from 'decap-cms-ui-default';
@@ -86,6 +87,15 @@ const PublishButton = styled.button`
   }
 `;
 
+const ScheduleToggleButton = styled.button`
+  ${styles.button};
+  background-color: ${colors.textFieldBorder};
+  color: ${colors.text};
+  flex: 0 0 auto;
+  width: 34px;
+  margin-left: 6px;
+`;
+
 const WorkflowCardContainer = styled.div`
   ${components.card};
   margin-bottom: 24px;
@@ -95,6 +105,47 @@ const WorkflowCardContainer = styled.div`
   &:hover ${CardButtonContainer} {
     opacity: 1;
   }
+`;
+
+const ScheduledBadge = styled.div`
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background-color: ${colorsRaw.teal};
+  color: ${colors.textLight};
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 3px;
+  z-index: 1;
+`;
+
+const UnscheduleLink = styled.button`
+  background: none;
+  border: none;
+  padding: 0;
+  margin-left: 6px;
+  font-size: 11px;
+  text-decoration: underline;
+  cursor: pointer;
+  color: inherit;
+`;
+
+const SchedulePopover = styled.div`
+  background-color: ${colors.foreground};
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  z-index: 2;
+`;
+
+const ScheduleInput = styled.input`
+  flex: 1 1 auto;
+  margin-right: 6px;
 `;
 
 function lastChangePhraseKey(date, author) {
@@ -128,11 +179,45 @@ function WorkflowCard({
   allowPublish,
   canPublish,
   onPublish,
+  publishAt,
+  onSchedulePublish,
+  onUnschedulePublish,
   postAuthor,
   t,
 }) {
+  const [isScheduling, setIsScheduling] = useState(false);
+  const [pendingPublishAt, setPendingPublishAt] = useState('');
+
+  const openSchedulePicker = event => {
+    event.preventDefault();
+    setPendingPublishAt(publishAt ? dayjs(publishAt).format('YYYY-MM-DDTHH:mm') : '');
+    setIsScheduling(true);
+  };
+
+  const confirmSchedule = event => {
+    event.preventDefault();
+    if (!pendingPublishAt) return;
+    onSchedulePublish(new Date(pendingPublishAt).toISOString());
+    setIsScheduling(false);
+  };
+
+  const cancelSchedule = event => {
+    event.preventDefault();
+    setIsScheduling(false);
+  };
+
   return (
     <WorkflowCardContainer>
+      {publishAt && (
+        <ScheduledBadge>
+          {t('workflow.workflowCard.scheduledFor', {
+            date: dayjs(publishAt).format(t('workflow.workflow.dateFormat')),
+          })}
+          <UnscheduleLink onClick={onUnschedulePublish} title={t('workflow.workflowCard.unschedule')}>
+            &times;
+          </UnscheduleLink>
+        </ScheduledBadge>
+      )}
       <WorkflowLink to={editLink}>
         <CardCollection>{collectionLabel}</CardCollection>
         {postAuthor}
@@ -140,20 +225,48 @@ function WorkflowCard({
         {(timestamp || authorLastChange) && <CardDate date={timestamp} author={authorLastChange} />}
         <CardBody>{body}</CardBody>
       </WorkflowLink>
-      <CardButtonContainer>
-        <DeleteButton onClick={onDelete}>
-          {isModification
-            ? t('workflow.workflowCard.deleteChanges')
-            : t('workflow.workflowCard.deleteNewEntry')}
-        </DeleteButton>
-        {allowPublish && (
-          <PublishButton disabled={!canPublish} onClick={onPublish}>
-            {isModification
-              ? t('workflow.workflowCard.publishChanges')
-              : t('workflow.workflowCard.publishNewEntry')}
+      {isScheduling ? (
+        <SchedulePopover>
+          <ScheduleInput
+            type="datetime-local"
+            value={pendingPublishAt}
+            min={dayjs().format('YYYY-MM-DDTHH:mm')}
+            onChange={event => setPendingPublishAt(event.target.value)}
+            aria-label={t('workflow.workflowCard.schedulePublish')}
+          />
+          <PublishButton onClick={confirmSchedule} disabled={!pendingPublishAt}>
+            {t('workflow.workflowCard.confirmSchedule')}
           </PublishButton>
-        )}
-      </CardButtonContainer>
+          <DeleteButton onClick={cancelSchedule}>
+            {t('workflow.workflowCard.cancelSchedule')}
+          </DeleteButton>
+        </SchedulePopover>
+      ) : (
+        <CardButtonContainer>
+          <DeleteButton onClick={onDelete}>
+            {isModification
+              ? t('workflow.workflowCard.deleteChanges')
+              : t('workflow.workflowCard.deleteNewEntry')}
+          </DeleteButton>
+          {allowPublish && (
+            <>
+              <PublishButton disabled={!canPublish} onClick={onPublish}>
+                {isModification
+                  ? t('workflow.workflowCard.publishChanges')
+                  : t('workflow.workflowCard.publishNewEntry')}
+              </PublishButton>
+              <ScheduleToggleButton
+                disabled={!canPublish}
+                onClick={openSchedulePicker}
+                title={t('workflow.workflowCard.schedulePublish')}
+                aria-label={t('workflow.workflowCard.schedulePublish')}
+              >
+                &#128337;
+              </ScheduleToggleButton>
+            </>
+          )}
+        </CardButtonContainer>
+      )}
     </WorkflowCardContainer>
   );
 }
@@ -170,6 +283,9 @@ WorkflowCard.propTypes = {
   allowPublish: PropTypes.bool.isRequired,
   canPublish: PropTypes.bool.isRequired,
   onPublish: PropTypes.func.isRequired,
+  publishAt: PropTypes.string,
+  onSchedulePublish: PropTypes.func.isRequired,
+  onUnschedulePublish: PropTypes.func.isRequired,
   postAuthor: PropTypes.string,
   t: PropTypes.func.isRequired,
 };

@@ -612,6 +612,11 @@ export type EntryObject = {
   author?: string;
   updatedOn?: string;
   status: string;
+  publishAt?: string;
+  isFetching?: boolean;
+  isPersisting?: boolean;
+  isPublishing?: boolean;
+  isUpdatingStatus?: boolean;
   meta: StaticallyTypedRecord<{ path: string }>;
 };
 
@@ -901,5 +906,9 @@ export interface EditorialWorkflowAction extends Action<string> {
     collection: string;
     slug: string;
     newStatus: string;
+  } & {
+    collection: string;
+    slug: string;
+    publishAt?: string;
   };
 }
