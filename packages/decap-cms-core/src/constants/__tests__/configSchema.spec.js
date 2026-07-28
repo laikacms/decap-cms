@@ -400,6 +400,26 @@ describe('config', () => {
       }).not.toThrow();
     });
 
+    it('should throw if collections search_fields is not a string array', () => {
+      expect(() => {
+        validateConfig(merge({}, validConfig, { collections: [{ search_fields: 'title' }] }));
+      }).toThrowError("'collections[0].search_fields' must be array");
+    });
+
+    it('should allow search_fields to be a string array', () => {
+      expect(() => {
+        validateConfig(
+          merge({}, validConfig, { collections: [{ search_fields: ['title', 'body'] }] }),
+        );
+      }).not.toThrow();
+    });
+
+    it('should allow search_fields to be an empty array', () => {
+      expect(() => {
+        validateConfig(merge({}, validConfig, { collections: [{ search_fields: [] }] }));
+      }).not.toThrow();
+    });
+
     it('should allow sortableFields instead of sortable_fields', () => {
       expect(() => {
         validateConfig(merge({}, validConfig, { collections: [{ sortableFields: [] }] }));
