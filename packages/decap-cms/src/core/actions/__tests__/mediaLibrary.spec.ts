@@ -439,6 +439,7 @@ describe('mediaLibrary', () => {
       expect(paginatedBackend.getMediaPage).toHaveBeenCalledWith({
         cursor: undefined,
         perPage: MEDIA_LIBRARY_PAGE_SIZE,
+        folderSupport: true,
       });
 
       const actions = store.getActions();
@@ -469,6 +470,7 @@ describe('mediaLibrary', () => {
       expect(paginatedBackend.getMediaPage).toHaveBeenCalledWith({
         cursor: 'N1',
         perPage: MEDIA_LIBRARY_PAGE_SIZE,
+        folderSupport: true,
       });
 
       const actions = store.getActions();
@@ -507,6 +509,10 @@ describe('mediaLibrary', () => {
 
       expect(paginatedBackend.getMediaPage).not.toHaveBeenCalled();
       expect(paginatedBackend.getMedia).toHaveBeenCalledTimes(1);
+      // DCMS-1575: the legacy (non-paginated) root load must also request
+      // folderSupport so subfolders surface as isDirectory entries instead
+      // of being flattened by the backend.
+      expect(paginatedBackend.getMedia).toHaveBeenCalledWith(undefined, true);
 
       const actions = store.getActions();
       expect(actions[0]).toEqual({ type: 'MEDIA_LOAD_REQUEST', payload: { page: 1 } });
@@ -561,6 +567,7 @@ describe('mediaLibrary', () => {
       expect(paginatedBackend.getMediaPage).toHaveBeenCalledWith({
         cursor: undefined,
         perPage: MEDIA_LIBRARY_PAGE_SIZE,
+        folderSupport: true,
         query: 'logo',
       });
 

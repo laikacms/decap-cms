@@ -91,6 +91,13 @@ export type CmsGetMediaPageOptions = {
   query?: string,
   /** Requested page size; backends may return slightly more or fewer items. */
   perPage?: number,
+  /**
+   * When true, backends that distinguish files from directories should
+   * surface directory entries (`isDirectory: true`) instead of flattening
+   * them, mirroring `CmsImplementation.getMedia`'s `folderSupport` param.
+   * Backends that don't support this keep their current flattened behavior.
+   */
+  folderSupport?: boolean,
 };
 
 export type CmsMediaPage = {

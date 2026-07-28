@@ -2046,6 +2046,54 @@ describe('LaikaBackend.getMediaPage()', () => {
       expect.objectContaining({ depth: Infinity }),
     );
   });
+
+  // DCMS-1575: folder resources are filtered out of the paginated surface by
+  // default (matching pre-fix behavior for callers that don't understand
+  // isDirectory), but surfaced as isDirectory entries when the caller opts
+  // in via folderSupport, mirroring getMedia's folderSupport handling.
+  it('omits folder resources when folderSupport is not requested', async () => {
+    const folder = { key: 'assets/uploads/subfolder', type: 'folder', content: {} };
+    const asset = { key: 'assets/uploads/image.png', type: 'asset', content: { size: 500 } };
+    mockAssetsRepo.listResources.mockReturnValue(
+      LaikaStream.succeedMany([folder as any, asset as any], { pagination: {} }),
+    );
+    mockAssetsRepo.getUrls.mockReturnValue(
+      LaikaStream.succeedMany([{ key: 'assets/uploads/image.png', url: 'https://cdn.example.com/image.png' }] as any, {
+        total: 1,
+      }),
+    );
+
+    const page = await backend.getMediaPage({ perPage: 100 });
+
+    expect(page.files).toHaveLength(1);
+    expect(page.files[0]).toMatchObject({ name: 'image.png' });
+    expect(page.files[0].isDirectory).toBeUndefined();
+  });
+
+  it('surfaces folder resources as isDirectory entries when folderSupport is true (DCMS-1575)', async () => {
+    const folder = { key: 'assets/uploads/subfolder', type: 'folder', content: {} };
+    const asset = { key: 'assets/uploads/image.png', type: 'asset', content: { size: 500 } };
+    mockAssetsRepo.listResources.mockReturnValue(
+      LaikaStream.succeedMany([folder as any, asset as any], { pagination: {} }),
+    );
+    mockAssetsRepo.getUrls.mockReturnValue(
+      LaikaStream.succeedMany([{ key: 'assets/uploads/image.png', url: 'https://cdn.example.com/image.png' }] as any, {
+        total: 1,
+      }),
+    );
+
+    const page = await backend.getMediaPage({ perPage: 100, folderSupport: true });
+
+    expect(page.files).toHaveLength(2);
+    const folderEntry = page.files.find(f => f.isDirectory);
+    expect(folderEntry).toMatchObject({
+      id: 'assets/uploads/subfolder',
+      name: 'subfolder',
+      isDirectory: true,
+    });
+    const fileEntry = page.files.find(f => !f.isDirectory);
+    expect(fileEntry).toMatchObject({ name: 'image.png' });
+  });
 });
 
 // ---------------------------------------------------------------------------
