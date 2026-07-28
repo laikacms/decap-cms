@@ -17,6 +17,7 @@ import { ScrollSync, ScrollSyncPane } from 'react-scroll-sync';
 
 import EditorControlPane from './EditorControlPane/EditorControlPane';
 import EditorPreviewPane from './EditorPreviewPane/EditorPreviewPane';
+import EditorFieldNavigator from './EditorFieldNavigator/EditorFieldNavigator';
 import EditorToolbar from './EditorToolbar';
 import { hasI18n, getI18nInfo, getPreviewEntry } from '../../lib/i18n';
 import { FILES } from '../../constants/collectionTypes';
@@ -26,6 +27,7 @@ const PREVIEW_VISIBLE = 'cms.preview-visible';
 const SCROLL_SYNC_ENABLED = 'cms.scroll-sync-enabled';
 const SPLIT_PANE_POSITION = 'cms.split-pane-position';
 const I18N_VISIBLE = 'cms.i18n-visible';
+const FIELD_NAVIGATOR_VISIBLE = 'cms.field-navigator-visible';
 
 const styles = {
   splitPane: css`
@@ -111,6 +113,25 @@ const Editor = styled.div`
   position: relative;
 `;
 
+const EditorLayout = styled.div`
+  display: flex;
+  height: 100%;
+`;
+
+const FieldNavigatorContainer = styled.div`
+  width: 240px;
+  min-width: 240px;
+  height: 100%;
+  overflow-y: auto;
+  border-right: 1px solid ${colors.textFieldBorder};
+`;
+
+const EditorContentContainer = styled.div`
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+`;
+
 const PreviewPaneContainer = styled.div`
   height: 100%;
   pointer-events: ${props => (props.blockEntry ? 'none' : 'auto')};
@@ -161,6 +182,7 @@ class EditorInterface extends Component {
     previewVisible: localStorage.getItem(PREVIEW_VISIBLE) !== 'false',
     scrollSyncEnabled: localStorage.getItem(SCROLL_SYNC_ENABLED) !== 'false',
     i18nVisible: localStorage.getItem(I18N_VISIBLE) !== 'false',
+    fieldNavigatorVisible: localStorage.getItem(FIELD_NAVIGATOR_VISIBLE) === 'true',
   };
 
   handleFieldClick = path => {
@@ -207,6 +229,12 @@ class EditorInterface extends Component {
     localStorage.setItem(I18N_VISIBLE, newI18nVisible);
   };
 
+  handleToggleFieldNavigator = () => {
+    const newFieldNavigatorVisible = !this.state.fieldNavigatorVisible;
+    this.setState({ fieldNavigatorVisible: newFieldNavigatorVisible });
+    localStorage.setItem(FIELD_NAVIGATOR_VISIBLE, newFieldNavigatorVisible);
+  };
+
   handleLeftPanelLocaleChange = locale => {
     this.setState({ leftPanelLocale: locale });
   };
@@ -244,7 +272,7 @@ class EditorInterface extends Component {
       t,
     } = this.props;
 
-    const { scrollSyncEnabled, showEventBlocker } = this.state;
+    const { scrollSyncEnabled, showEventBlocker, fieldNavigatorVisible } = this.state;
 
     const previewEnabled = isPreviewEnabled(collection, entry);
 
@@ -368,6 +396,13 @@ class EditorInterface extends Component {
         />
         <Editor key={draftKey}>
           <ViewControls>
+            <EditorToggle
+              isActive={fieldNavigatorVisible}
+              onClick={this.handleToggleFieldNavigator}
+              size="large"
+              type="list-bulleted"
+              title={t('editor.editorInterface.toggleFieldNavigator')}
+            />
             {collectionI18nEnabled && (
               <EditorToggle
                 isActive={i18nVisible}
@@ -397,13 +432,22 @@ class EditorInterface extends Component {
               />
             )}
           </ViewControls>
-          <EditorContent
-            i18nVisible={i18nVisible}
-            previewVisible={previewVisible}
-            editor={editor}
-            editorWithEditor={editorWithEditor}
-            editorWithPreview={editorWithPreview}
-          />
+          <EditorLayout>
+            {fieldNavigatorVisible && (
+              <FieldNavigatorContainer>
+                <EditorFieldNavigator fields={fields} onFieldClick={this.handleFieldClick} t={t} />
+              </FieldNavigatorContainer>
+            )}
+            <EditorContentContainer>
+              <EditorContent
+                i18nVisible={i18nVisible}
+                previewVisible={previewVisible}
+                editor={editor}
+                editorWithEditor={editorWithEditor}
+                editorWithPreview={editorWithPreview}
+              />
+            </EditorContentContainer>
+          </EditorLayout>
         </Editor>
       </EditorContainer>
     );

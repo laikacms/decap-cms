@@ -122,10 +122,14 @@ const en = {
       confirmLoadBackup: 'A local backup was recovered for this entry, would you like to use it?',
       entryNotFoundHeader: 'Entry Not Found',
     },
+    editorFieldNavigator: {
+      title: 'Field outline',
+    },
     editorInterface: {
       toggleI18n: 'Toggle i18n',
       togglePreview: 'Toggle preview',
       toggleScrollSync: 'Sync scrolling',
+      toggleFieldNavigator: 'Toggle field outline',
     },
     editorToolbar: {
       publishing: 'Publishing...',
