@@ -1,0 +1,23 @@
+{
+  "name": "decap-cms-oauth-provider",
+  "description": "Edge-deployable OAuth callback/token-exchange handler for Decap CMS's GitHub backend (Cloudflare Workers, Vercel Edge, Netlify Edge, Deno).",
+  "version": "1.0.0",
+  "repository": "https://github.com/laikacms/decap-cms/tree/main/packages/decap-cms-oauth-provider",
+  "bugs": "https://github.com/laikacms/decap-cms/issues",
+  "license": "MIT",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "files": [
+    "src/"
+  ],
+  "keywords": [
+    "decap-cms",
+    "oauth",
+    "edge",
+    "cloudflare-workers"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  }
+}
