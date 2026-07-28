@@ -47,6 +47,17 @@ For configuration, content modeling, and backend setup, the upstream
 [Decap CMS documentation](https://www.decapcms.org/docs/intro/) applies to this fork unless noted in
 [BREAKING_CHANGES_V4_BETA.md](../../BREAKING_CHANGES_V4_BETA.md).
 
+If you use the `laika` backend, read
+[src/backends/laika/README.md](./src/backends/laika/README.md) first — it diverges from the upstream
+backend docs in two ways that aren't obvious from the standard config reference:
+
+- **Only `format: json` collections are supported.** Decap's default (markdown-frontmatter) is not
+  yet supported; omitting `format:` now fails fast client-side with an actionable error before any
+  request reaches the server.
+- **Entry locking is not yet implemented.** The advisory "Being edited by X" locking that Decap core
+  supports (`getEntryLock`/`acquireEntryLock`/`releaseEntryLock`/`refreshEntryLock`) has no effect on
+  this backend yet.
+
 ## JSON Schema (editor autocompletion)
 
 The package ships a [JSON Schema](./schema/config.schema.json) for `config.yml` at

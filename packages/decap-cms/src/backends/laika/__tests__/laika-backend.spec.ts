@@ -1053,6 +1053,25 @@ describe('LaikaBackend.persistEntry()', () => {
     expect(mockDocRepo.createDocument).not.toHaveBeenCalled();
   });
 
+  // DCMS-1602: this exact error string is documented in
+  // src/backends/laika/README.md and linked from the main package README, so
+  // integrators can search for it. Pin the literal text (not just a regex
+  // shape) so a future refactor can't silently reword or drop it without
+  // this test and the docs going out of sync.
+  it('pins the exact fail-fast error message text for a non-JSON collection (DCMS-1602)', async () => {
+    mockDocRepo.createDocument.mockImplementation(() => succeed(undefined));
+
+    const raw = '---\ntitle: My Post\n---\n\nBody text here.';
+    await expect(
+      backend.persistEntry(
+        { dataFiles: [{ path: 'posts/my-post.md', raw }], assets: [] },
+        { newEntry: true, useWorkflow: false, collectionName: 'posts' },
+      ),
+    ).rejects.toThrow(
+      'Laika backend currently only supports JSON-format collections; set `format: json` on collection `posts`.',
+    );
+  });
+
   it('throws a clear client-side error for a YAML entry instead of 400ing at the server (DCMS-1254)', async () => {
     mockDocRepo.createDocument.mockImplementation(() => succeed(undefined));
 
