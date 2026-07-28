@@ -70,6 +70,8 @@ import type {
   CmsCredentials,
   CmsDataFile,
   CmsDisplayURL,
+  CmsEntryLock,
+  CmsEntryLockOwner,
   CmsGetMediaPageOptions,
   CmsImplementationEntry,
   CmsUnpublishedEntry,
@@ -1200,6 +1202,40 @@ export class Backend {
   async getChanges(since: string) {
     if (!this.implementation.getChanges) return null;
     return this.implementation.getChanges(since);
+  }
+
+  /**
+   * Advisory entry-locking surface (optional). See the `CmsImplementation`
+   * lock methods for the contract; this class only feature-detects and
+   * forwards, so backends without lock support (the default) leave every
+   * one of these inert and the editor never surfaces lock UI for them.
+   */
+  supportsEntryLocking() {
+    return typeof this.implementation.acquireEntryLock === 'function';
+  }
+
+  async getEntryLock(path: string): Promise<CmsEntryLock | null> {
+    if (!this.implementation.getEntryLock) return null;
+    return this.implementation.getEntryLock(path);
+  }
+
+  async acquireEntryLock(
+    path: string,
+    owner: CmsEntryLockOwner,
+    force = false,
+  ): Promise<CmsEntryLock | null> {
+    if (!this.implementation.acquireEntryLock) return null;
+    return this.implementation.acquireEntryLock(path, owner, { force });
+  }
+
+  async releaseEntryLock(path: string, owner: CmsEntryLockOwner): Promise<void> {
+    if (!this.implementation.releaseEntryLock) return;
+    return this.implementation.releaseEntryLock(path, owner);
+  }
+
+  async refreshEntryLock(path: string, owner: CmsEntryLockOwner): Promise<CmsEntryLock | null> {
+    if (!this.implementation.refreshEntryLock) return null;
+    return this.implementation.refreshEntryLock(path, owner);
   }
 
   async processEntry(state: State, collection: CmsCollectionState, entry: EntryValue) {

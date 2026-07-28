@@ -43,6 +43,15 @@ export { oneLine, oneLineTrim, stripIndent } from './core-utils/template-literal
 export { CURSOR_COMPATIBILITY_SYMBOL, default as Cursor } from './Cursor.js';
 export type { CursorCompatibleEntries } from './Cursor.js';
 export { default as EditorialWorkflowError, EDITORIAL_WORKFLOW_ERROR } from './EditorialWorkflowError.js';
+export {
+  createAnonymousLockOwnerId,
+  createInMemoryStore as createInMemoryEntryLockStore,
+  createLocalStorageStore as createLocalStorageEntryLockStore,
+  DEFAULT_ENTRY_LOCK_TTL_MS,
+  EntryLockConflictError,
+  EntryLockManager,
+} from './entryLockManager.js';
+export type { EntryLockStore } from './entryLockManager.js';
 export * from './errors/AccessTokenError.js';
 export * from './errors/APIError.js';
 export * from './errors/ConfigurationError.js';

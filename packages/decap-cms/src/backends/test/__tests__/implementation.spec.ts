@@ -304,4 +304,46 @@ describe('test backend implementation', () => {
       ]);
     });
   });
+
+  describe('entry locking', () => {
+    beforeEach(() => {
+      localStorage.clear();
+    });
+
+    it('exposes the optional lock capability', () => {
+      const backend = new TestBackend(mockConfig);
+      expect(typeof backend.acquireEntryLock).toBe('function');
+      expect(typeof backend.releaseEntryLock).toBe('function');
+      expect(typeof backend.refreshEntryLock).toBe('function');
+      expect(typeof backend.getEntryLock).toBe('function');
+    });
+
+    it('reports no lock for an untouched entry', async () => {
+      const backend = new TestBackend(mockConfig);
+      await expect(backend.getEntryLock('posts/lock-test-a.md')).resolves.toBeNull();
+    });
+
+    it('acquires and releases a lock, surfacing conflicts to a second owner', async () => {
+      const backend = new TestBackend(mockConfig);
+      const alice = { id: 'alice', name: 'Alice' };
+      const bob = { id: 'bob', name: 'Bob' };
+
+      const lock = await backend.acquireEntryLock('posts/lock-test-b.md', alice);
+      expect(lock.owner).toEqual(alice);
+
+      await expect(backend.acquireEntryLock('posts/lock-test-b.md', bob)).rejects.toThrow();
+
+      await backend.releaseEntryLock('posts/lock-test-b.md', alice);
+      await expect(backend.getEntryLock('posts/lock-test-b.md')).resolves.toBeNull();
+    });
+
+    it('shares locks across TestBackend instances (same-origin tabs)', async () => {
+      const owner = { id: 'alice', name: 'Alice' };
+      const tabA = new TestBackend(mockConfig);
+      const tabB = new TestBackend(mockConfig);
+
+      await tabA.acquireEntryLock('posts/lock-test-c.md', owner);
+      await expect(tabB.getEntryLock('posts/lock-test-c.md')).resolves.toMatchObject({ owner });
+    });
+  });
 });

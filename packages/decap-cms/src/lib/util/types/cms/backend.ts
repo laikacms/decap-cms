@@ -72,6 +72,35 @@ export interface CmsLocalBackend {
 }
 
 /**
+ * The user identity an entry lock is held (or requested) under. `id` should
+ * be a stable per-user identifier (e.g. login/email) so a lock survives a
+ * display-name change and so the acquiring tab can recognize a lock as its
+ * own on refresh/reconnect.
+ */
+export type CmsEntryLockOwner = {
+  id: string;
+  name: string;
+};
+
+/**
+ * An advisory lock on a single entry path. Locks are cooperative — nothing
+ * stops a backend/storage layer from accepting a write from a non-holder —
+ * they exist purely to surface "someone else has this open" in the UI and
+ * let the CMS warn/block before a save silently clobbers a concurrent edit.
+ *
+ * `expiresAt` implements stale-lock expiry: a lock past its expiry is
+ * treated as free (auto-released) without requiring the original holder's
+ * tab to still be around to release it explicitly (crashed tab, closed
+ * laptop, lost network, etc).
+ */
+export type CmsEntryLock = {
+  path: string;
+  owner: CmsEntryLockOwner;
+  acquiredAt: string;
+  expiresAt: string;
+};
+
+/**
  * The constructor `registerBackend(name, BackendClass)` expects: instantiated
  * by core with the resolved config and any extra options, producing the
  * `CmsImplementation` the backend registry wraps.
@@ -270,4 +299,40 @@ export interface CmsImplementation {
   getChanges?: (
     since: string,
   ) => Promise<{ changes: { path: string, deleted: boolean }[], token: string } | null>;
+
+  /**
+   * Advisory entry locking (optional capability). A backend declares support
+   * by implementing all four methods below (core feature-detects via
+   * `acquireEntryLock`) — see `src/lib/util/entryLockManager.ts` for a
+   * reusable local/in-memory reference implementation any backend can
+   * delegate to (used by the `test-repo` backend), and `LaikaBackend`'s
+   * README for the follow-up needed to arbitrate locks server-side.
+   *
+   * Locks are advisory only: nothing here blocks a write, it only informs
+   * the UI so it can warn the user before they clobber a concurrent edit.
+   */
+  getEntryLock?: (path: string) => Promise<CmsEntryLock | null>;
+  /**
+   * Acquire (or renew) the lock for `path` under `owner`. Succeeds and
+   * returns the caller's own lock when the path is unlocked, already held by
+   * `owner`, or `opts.force` is set (an explicit user override of someone
+   * else's lock). Rejects when held by a different, non-expired owner and
+   * `opts.force` is not set.
+   */
+  acquireEntryLock?: (
+    path: string,
+    owner: CmsEntryLockOwner,
+    opts?: { force?: boolean },
+  ) => Promise<CmsEntryLock>;
+  /**
+   * Release the lock for `path`, but only if currently held by `owner` — a
+   * release from a stale tab that lost a force-override race must not evict
+   * the new holder.
+   */
+  releaseEntryLock?: (path: string, owner: CmsEntryLockOwner) => Promise<void>;
+  /**
+   * Extend the lock's TTL. Called periodically by the editor while an entry
+   * stays open, so a long editing session doesn't go stale mid-edit.
+   */
+  refreshEntryLock?: (path: string, owner: CmsEntryLockOwner) => Promise<CmsEntryLock>;
 }
