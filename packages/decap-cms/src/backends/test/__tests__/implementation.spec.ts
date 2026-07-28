@@ -358,6 +358,39 @@ describe('test backend implementation', () => {
     });
   });
 
+  describe('authenticate', () => {
+    it('resolves a synthetic user with a stable login when no credentials are given', async () => {
+      const backend = new TestBackend(mockConfig);
+      const user = await backend.authenticate();
+      expect(user).toMatchObject({ login: 'test-user', name: 'test-user' });
+    });
+
+    it('uses the supplied login/name so different tabs can authenticate as different users', async () => {
+      const backend = new TestBackend(mockConfig);
+      const user = await backend.authenticate({ login: 'alice', name: 'Alice' });
+      expect(user).toMatchObject({ login: 'alice', name: 'Alice' });
+    });
+
+    it('falls back to the login when no name is given', async () => {
+      const backend = new TestBackend(mockConfig);
+      const user = await backend.authenticate({ login: 'bob' });
+      expect(user).toMatchObject({ login: 'bob', name: 'bob' });
+    });
+
+    it('ignores blank credential fields and falls back to the default identity', async () => {
+      const backend = new TestBackend(mockConfig);
+      const user = await backend.authenticate({ login: '  ', name: '  ' });
+      expect(user).toMatchObject({ login: 'test-user', name: 'test-user' });
+    });
+
+    it('restoreUser rehydrates the same identity it was given (round-trips across reload)', async () => {
+      const backend = new TestBackend(mockConfig);
+      const stored = await backend.authenticate({ login: 'carol', name: 'Carol' });
+      const restored = await backend.restoreUser(stored);
+      expect(restored).toMatchObject({ login: 'carol', name: 'Carol' });
+    });
+  });
+
   describe('entry locking', () => {
     beforeEach(() => {
       localStorage.clear();

@@ -208,12 +208,25 @@ export default class TestBackend implements CmsImplementation {
     return AuthenticationPage;
   }
 
-  restoreUser() {
-    return this.authenticate();
+  restoreUser(user?: CmsUser) {
+    return this.authenticate(user ? { login: user.login, name: user.name } : undefined);
   }
 
-  authenticate() {
-    return Promise.resolve() as unknown as Promise<CmsUser>;
+  // Synthetic auth for the dev-test demo: there's no real credential
+  // exchange here, just a stable `CmsUser`-shaped identity so anything
+  // gated on `state.auth.user` (e.g. DCMS-1414 advisory entry locking, see
+  // ENTRY LOCKING below) is actually reachable from this backend. Falls
+  // back to a fixed `test-user` identity when no login/name is supplied so
+  // existing callers (and `authenticate()` with no args) keep working.
+  // `AuthenticationPage` lets a user type a login/name so two tabs of the
+  // same dev-test profile can sign in as different identities and
+  // reproduce a lock conflict (see `dev-test/config.yml`).
+  authenticate(
+    credentials?: { token?: string | Record<string, unknown>, login?: string, name?: string } | null,
+  ) {
+    const login = credentials?.login?.trim() || 'test-user';
+    const name = credentials?.name?.trim() || login;
+    return Promise.resolve({ login, name, token: 'test-repo-token' } as unknown as CmsUser);
   }
 
   logout() {
