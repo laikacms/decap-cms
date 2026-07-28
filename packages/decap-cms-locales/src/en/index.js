@@ -347,6 +347,16 @@ const en = {
       currentEntries: '%{smart_count} entry |||| %{smart_count} entries',
     },
   },
+  widget: {
+    relation: {
+      quickAdd: {
+        action: '+ Create new %{collection}',
+        title: 'Create new %{collection}',
+        save: 'Save',
+        cancel: 'Cancel',
+      },
+    },
+  },
 };
 
 export default en;
