@@ -94,6 +94,11 @@ const nl = {
       },
       i18n: {
         writingInLocale: '%{locale} aan het bewerken',
+        translateFromDefault: 'Vertalen vanuit %{locale}',
+        translatingFromDefault: 'Bezig met vertalen…',
+        translateFromDefaultConfirm:
+          'Wil je %{locale} invullen met een AI-vertaling?\nAlle bestaande inhoud wordt overschreven.',
+        translateFromDefaultConfirmTitle: 'Vertalen vanuit standaardtaal',
       },
     },
     editor: {

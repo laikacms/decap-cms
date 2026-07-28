@@ -95,6 +95,10 @@ const zh_Hans = {
         writingInLocale: '正在使用%{locale}撰写',
         copyFromLocale: '用其他语言进行填充',
         copyFromLocaleConfirm: '你确定要用“%{locale}”进行填充吗？\n这将会覆盖所有现有的内容。',
+        translateFromDefault: '从%{locale}翻译',
+        translatingFromDefault: '正在翻译…',
+        translateFromDefaultConfirm: '是否使用AI翻译填充%{locale}？\n所有现有内容将被覆盖。',
+        translateFromDefaultConfirmTitle: '从默认语言翻译',
       },
     },
     editor: {

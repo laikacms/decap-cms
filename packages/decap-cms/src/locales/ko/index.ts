@@ -95,6 +95,11 @@ const ko = {
         writingInLocale: '%{locale}로 작성 중',
         copyFromLocale: '다른 로케일로부터 채우기',
         copyFromLocaleConfirm: '%{locale} 로케일로부터 데이터를 채우시겠습니까?\n모든 기존 내용을 덮어쓰기 합니다.',
+        translateFromDefault: '%{locale}에서 번역',
+        translatingFromDefault: '번역 중…',
+        translateFromDefaultConfirm:
+          'AI 번역을 사용하여 %{locale}을(를) 채우시겠습니까?\n기존 콘텐츠가 모두 덮어씌워집니다.',
+        translateFromDefaultConfirmTitle: '기본 언어에서 번역',
       },
     },
     editor: {

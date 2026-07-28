@@ -99,12 +99,16 @@ const sr_Cyrl = {
         copyFromLocale: 'Попуни из другог језика',
         copyFromLocaleConfirm:
           'Да ли желите да попуните податке из %{locale} локала?\nСав постојећи садржај ће бити преписан.',
+        translateFromDefault: 'Преведи са %{locale}',
+        translatingFromDefault: 'Превођење…',
+        translateFromDefaultConfirm:
+          'Да ли желите да попуните %{locale} користећи AI превод?\nСав постојећи садржај ће бити преписан.',
+        translateFromDefaultConfirmTitle: 'Преведи са подразумеваног језика',
       },
     },
     editor: {
       onLeavePage: 'Да ли сте сигурни да желите да напустите ову страницу?',
-      onUpdatingWithUnsavedChanges:
-        'Имате несачуване измене, молимо сачувајте пре ажурирања статуса.',
+      onUpdatingWithUnsavedChanges: 'Имате несачуване измене, молимо сачувајте пре ажурирања статуса.',
       onPublishingNotReady: 'Молимо ажурирајте статус на „Спремно" пре објављивања.',
       onPublishingWithUnsavedChanges: 'Имате несачуване измене, молимо сачувајте пре објављивања.',
       onPublishing: 'Да ли сте сигурни да желите да објавите овај унос?',
@@ -117,8 +121,7 @@ const sr_Cyrl = {
       onDeleteUnpublishedChanges:
         'Све необјављене измене на овом уносу ће бити избрисане. Да ли и даље желите да избришете?',
       loadingEntry: 'Учитавање уноса...',
-      confirmLoadBackup:
-        'Пронађена је локална резервна копија за овај унос, да ли желите да је користите?',
+      confirmLoadBackup: 'Пронађена је локална резервна копија за овај унос, да ли желите да је користите?',
     },
     editorInterface: {
       toggleI18n: 'Укључи/искључи i18n',
@@ -240,8 +243,7 @@ const sr_Cyrl = {
     },
     mediaLibrary: {
       onDelete: 'Да ли сте сигурни да желите да избришете одабране медијске датотеке?',
-      fileTooLarge:
-        'Датотека је превелика.\nКонфигурисано да не дозвољава датотеке веће од %{size} kB.',
+      fileTooLarge: 'Датотека је превелика.\nКонфигурисано да не дозвољава датотеке веће од %{size} kB.',
     },
     mediaLibraryModal: {
       loading: 'Учитавање...',

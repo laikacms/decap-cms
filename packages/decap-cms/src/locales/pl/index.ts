@@ -93,6 +93,11 @@ const pl = {
       },
       i18n: {
         writingInLocale: 'Pisz w języku %{locale}',
+        translateFromDefault: 'Przetłumacz z %{locale}',
+        translatingFromDefault: 'Tłumaczenie…',
+        translateFromDefaultConfirm:
+          'Czy chcesz wypełnić %{locale} przy użyciu tłumaczenia AI?\nCała istniejąca zawartość zostanie nadpisana.',
+        translateFromDefaultConfirmTitle: 'Przetłumacz z domyślnego języka',
       },
     },
     editor: {

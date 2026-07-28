@@ -95,6 +95,11 @@ const it = {
         copyFromLocale: "Compila con un'altra lingua",
         copyFromLocaleConfirm:
           "Vuoi compilare usando i dati in lingua %{locale}?\nL'intero contenuto verrà sovrascritto.",
+        translateFromDefault: 'Traduci da %{locale}',
+        translatingFromDefault: 'Traduzione in corso…',
+        translateFromDefaultConfirm:
+          'Vuoi compilare %{locale} usando una traduzione IA?\nTutto il contenuto esistente verrà sovrascritto.',
+        translateFromDefaultConfirmTitle: 'Traduci dalla lingua predefinita',
       },
     },
     editor: {

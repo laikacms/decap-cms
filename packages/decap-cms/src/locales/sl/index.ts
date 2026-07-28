@@ -94,6 +94,11 @@ const sl = {
         writingInLocale: 'Pisanje v %{locale}',
         copyFromLocale: 'Izpolnite iz drugega jezika',
         copyFromLocaleConfirm: 'Ali želiš izpolniti podatke iz %{locale} jezika?\nVsa obstoječa vsebina bo prepisana.',
+        translateFromDefault: 'Prevedi iz %{locale}',
+        translatingFromDefault: 'Prevajanje…',
+        translateFromDefaultConfirm:
+          'Ali želite izpolniti %{locale} z uporabo prevoda AI?\nVsa obstoječa vsebina bo prepisana.',
+        translateFromDefaultConfirmTitle: 'Prevedi iz privzetega jezika',
       },
     },
     editor: {

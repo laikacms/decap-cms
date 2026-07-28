@@ -93,6 +93,11 @@ const sv = {
       },
       i18n: {
         writingInLocale: 'Skriver i %{locale}',
+        translateFromDefault: 'Översätt från %{locale}',
+        translatingFromDefault: 'Översätter…',
+        translateFromDefaultConfirm:
+          'Vill du fylla i %{locale} med hjälp av en AI-översättning?\nAllt befintligt innehåll kommer att skrivas över.',
+        translateFromDefaultConfirmTitle: 'Översätt från standardspråk',
       },
     },
     editor: {

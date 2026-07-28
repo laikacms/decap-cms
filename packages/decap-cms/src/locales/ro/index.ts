@@ -93,6 +93,11 @@ const ro = {
       },
       i18n: {
         writingInLocale: 'Scrii în limba %{locale}',
+        translateFromDefault: 'Tradu din %{locale}',
+        translatingFromDefault: 'Se traduce…',
+        translateFromDefaultConfirm:
+          'Dorești să completezi %{locale} folosind o traducere AI?\nTot conținutul existent va fi suprascris.',
+        translateFromDefaultConfirmTitle: 'Tradu din limba implicită',
       },
     },
     editor: {

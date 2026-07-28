@@ -96,6 +96,11 @@ const cs = {
         writingInLocale: 'Psát v %{locale}',
         copyFromLocale: 'Vyplnit z jiného jazyka',
         copyFromLocaleConfirm: 'Chcete vyplnit data z jazyka %{locale}?\nVeškerý současný obsah bude přepsán.',
+        translateFromDefault: 'Přeložit z %{locale}',
+        translatingFromDefault: 'Překládání…',
+        translateFromDefaultConfirm:
+          'Chcete vyplnit %{locale} pomocí AI překladu?\nVeškerý stávající obsah bude přepsán.',
+        translateFromDefaultConfirmTitle: 'Přeložit z výchozího jazyka',
       },
     },
     editor: {

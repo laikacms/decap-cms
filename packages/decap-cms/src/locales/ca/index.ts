@@ -92,6 +92,11 @@ const ca = {
       },
       i18n: {
         writingInLocale: 'Escriure en %{locale}',
+        translateFromDefault: 'Tradueix des de %{locale}',
+        translatingFromDefault: 'Traduint…',
+        translateFromDefaultConfirm:
+          'Vols emplenar %{locale} mitjançant una traducció per IA?\nTot el contingut existent se sobreescriurà.',
+        translateFromDefaultConfirmTitle: "Tradueix des de l'idioma per defecte",
       },
     },
     editor: {

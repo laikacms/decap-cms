@@ -93,6 +93,11 @@ const bg = {
       },
       i18n: {
         writingInLocale: 'Писане на %{locale}',
+        translateFromDefault: 'Преведи от %{locale}',
+        translatingFromDefault: 'Превежда се…',
+        translateFromDefaultConfirm:
+          'Искате ли да попълните %{locale}, използвайки AI превод?\nВсичкото съществуващо съдържание ще бъде презаписано.',
+        translateFromDefaultConfirmTitle: 'Превод от езика по подразбиране',
       },
     },
     editor: {

@@ -9,7 +9,15 @@ import * as locales from '@/locales';
  * `Missing translation for key` warning (see DCMS-1518) — track new
  * safety-critical keys here as they're added.
  */
-const CRITICAL_KEYS = ['editor.editorControl.field.required'];
+const CRITICAL_KEYS = [
+  'editor.editorControl.field.required',
+  // DCMS-1556: AI "Translate from <default locale>" button (DCMS-1395 / #1548)
+  // shipped only to en, leaking English into every other locale's editor chrome.
+  'editor.editorControlPane.i18n.translateFromDefault',
+  'editor.editorControlPane.i18n.translatingFromDefault',
+  'editor.editorControlPane.i18n.translateFromDefaultConfirm',
+  'editor.editorControlPane.i18n.translateFromDefaultConfirmTitle',
+];
 
 describe('locale packs', () => {
   const { en, ...otherLocales } = locales;

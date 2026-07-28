@@ -96,6 +96,11 @@ const ru = {
         copyFromLocale: 'Заполнить из другого региона',
         copyFromLocaleConfirm:
           'Вы хотите заполнять данные используя %{locale} локализацию?\nВесь существующий контент будет перезаписан.',
+        translateFromDefault: 'Перевести с %{locale}',
+        translatingFromDefault: 'Перевод…',
+        translateFromDefaultConfirm:
+          'Заполнить %{locale} с помощью ИИ-перевода?\nВесь существующий контент будет перезаписан.',
+        translateFromDefaultConfirmTitle: 'Перевести с языка по умолчанию',
       },
     },
     editor: {

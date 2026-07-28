@@ -73,7 +73,7 @@ const ua = {
   editor: {
     editorControl: {
       field: {
-        required: 'обов\'язково',
+        required: "обов'язково",
       },
     },
     editorControlPane: {
@@ -93,6 +93,11 @@ const ua = {
       },
       i18n: {
         writingInLocale: 'Пишемо на %{locale}',
+        translateFromDefault: 'Перекласти з %{locale}',
+        translatingFromDefault: 'Переклад…',
+        translateFromDefaultConfirm:
+          'Заповнити %{locale} за допомогою перекладу ШІ?\nВесь наявний вміст буде перезаписано.',
+        translateFromDefaultConfirmTitle: 'Перекласти з мови за замовчуванням',
       },
     },
     editor: {

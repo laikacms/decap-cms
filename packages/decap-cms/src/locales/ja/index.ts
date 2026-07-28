@@ -93,6 +93,11 @@ const ja = {
       },
       i18n: {
         writingInLocale: '言語: %{locale}',
+        translateFromDefault: '%{locale}から翻訳',
+        translatingFromDefault: '翻訳中…',
+        translateFromDefaultConfirm:
+          'AI翻訳を使用して%{locale}に入力しますか？\n既存のコンテンツはすべて上書きされます。',
+        translateFromDefaultConfirmTitle: 'デフォルト言語から翻訳',
       },
     },
     editor: {
