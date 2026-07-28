@@ -76,8 +76,10 @@ on this branch) — releasing is a manual process (see `CONTRIBUTING.md`'s "Rele
 **362 imports across 185 files** were rewritten by `scripts/rewrite-imports.py`- style logic during
 the restructure. Zero `from 'decap-cms-*'` strings remain inside `src/`.
 
-The new `package.json#exports` map has **32 subpaths** (wildcard entries like `./widgets/*`,
-`./backends/*`, `./entry-codecs/*`, and `./format-packs/*` count as one each). The root export `.`
+The new `package.json#exports` map has **33 subpaths** (wildcard entries like `./widgets/*`,
+`./backends/*`, `./entry-codecs/*`, and `./format-packs/*` count as one each; the explicit
+`"./format-packs/mdx": null` block that excludes the not-yet-implemented mdx pack from the
+`./format-packs/*` wildcard counts as its own subpath — see DCMS-1613). The root export `.`
 points at `src/app/index.ts` (the old `decap-cms-app` bootstrap). This count drifts as subpaths are
 added — it's pinned by `src/__tests__/exports-count.test.ts`, so if that test fails, update both the
 test and this line together.
