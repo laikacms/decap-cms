@@ -11,6 +11,7 @@
 import * as fromDeploys from './deploys';
 import * as fromEditorialWorkflow from './editorialWorkflow';
 import * as fromEntries from './entries';
+import * as fromEntryLock from './entryLock';
 import * as fromIntegrations from './integrations';
 
 import type { Status } from '@/core/constants/publishModes';
@@ -65,4 +66,8 @@ export function selectUnpublishedSlugs(state: State, collection: string) {
 
 export function selectIntegration(state: State, collection: string | null, hook: string) {
   return fromIntegrations.selectIntegration(state.integrations, collection, hook);
+}
+
+export function selectEntryLock(state: State, collection: string, slug: string) {
+  return fromEntryLock.selectEntryLock(state.entryLock, collection, slug);
 }

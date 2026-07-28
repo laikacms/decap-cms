@@ -12,6 +12,7 @@ import { colors, colorsRaw, components, IconButton, transitions, zIndex } from '
 import EditorControlPane, { type ControlPaneHandle } from './EditorControlPane/EditorControlPane';
 import EditorPreviewPane from './EditorPreviewPane/EditorPreviewPane';
 import EditorToolbar from './EditorToolbar';
+import EntryLockBanner from './EntryLockBanner';
 
 import type { I18nInfo } from '@/core/lib/i18n';
 import type { CmsCollectionState, CmsEntry, CmsEntryField } from '@/lib/util/index';
@@ -623,6 +624,7 @@ function EditorInterface(props: EditorInterfaceProps) {
   return (
     <EditorContainer>
       <PageTitle>{getEditorPageTitle(t, collection, entry, isNewEntry)}</PageTitle>
+      {!isNewEntry && entry.slug && <EntryLockBanner collection={collection} slug={entry.slug} />}
       {renderEditorToolbar
         ? renderEditorToolbar(toolbarProps as any)
         : React.createElement(EditorToolbar as any, { ...toolbarProps, t })}

@@ -7,6 +7,7 @@ import {
   CURSOR_COMPATIBILITY_SYMBOL,
   dirname,
   EditorialWorkflowError,
+  EntryLockManager,
   extname,
   randomUUID,
 } from '@/lib/util/index';
@@ -17,6 +18,7 @@ import type {
   CmsConfig,
   CmsDataFile,
   CmsEntry,
+  CmsEntryLockOwner,
   CmsImplementation,
   CmsImplementationEntry,
   CmsImplementationFile,
@@ -55,6 +57,11 @@ declare global {
 
 window.repoFiles = window.repoFiles || {};
 window.repoFilesUnpublished = window.repoFilesUnpublished || [];
+
+// Module-level singleton (not per-instance) so every tab of the same
+// dev-test/demo origin arbitrates against the same locks, mirroring how
+// `window.repoFiles` above is shared content state rather than per-backend.
+const entryLockManager = new EntryLockManager();
 
 function getFile(path: string, tree: RepoTree) {
   const segments = path.split('/');
@@ -97,13 +104,13 @@ type FolderCursorData = {
 
 function isFolderCursorData(data: unknown): data is FolderCursorData {
   return (
-    typeof data === 'object' &&
-    data !== null &&
-    typeof (data as Record<string, unknown>)['folder'] === 'string' &&
-    typeof (data as Record<string, unknown>)['extension'] === 'string' &&
-    typeof (data as Record<string, unknown>)['index'] === 'number' &&
-    typeof (data as Record<string, unknown>)['pageCount'] === 'number' &&
-    typeof (data as Record<string, unknown>)['depth'] === 'number'
+    typeof data === 'object'
+    && data !== null
+    && typeof (data as Record<string, unknown>)['folder'] === 'string'
+    && typeof (data as Record<string, unknown>)['extension'] === 'string'
+    && typeof (data as Record<string, unknown>)['index'] === 'number'
+    && typeof (data as Record<string, unknown>)['pageCount'] === 'number'
+    && typeof (data as Record<string, unknown>)['depth'] === 'number'
   );
 }
 
@@ -463,5 +470,30 @@ export default class TestBackend implements CmsImplementation {
 
   async getDeployPreview() {
     return null;
+  }
+
+  // ===== ENTRY LOCKING (reference implementation, DCMS-1414) =====
+  //
+  // Delegates to `EntryLockManager` against `localStorage` — locks are
+  // therefore visible across every same-origin tab of this dev-test/demo
+  // instance, which is enough to demo/exercise "being edited by X" and
+  // stale-lock expiry without a server. A real multi-user backend needs a
+  // server-arbitrated store instead (see `LaikaBackend`'s README) so two
+  // different *browsers*, not only two tabs of one, see the same lock.
+
+  async getEntryLock(path: string) {
+    return entryLockManager.get(path);
+  }
+
+  async acquireEntryLock(path: string, owner: CmsEntryLockOwner, opts?: { force?: boolean }) {
+    return entryLockManager.acquire(path, owner, opts);
+  }
+
+  async releaseEntryLock(path: string, owner: CmsEntryLockOwner) {
+    return entryLockManager.release(path, owner);
+  }
+
+  async refreshEntryLock(path: string, owner: CmsEntryLockOwner) {
+    return entryLockManager.refresh(path, owner);
   }
 }
