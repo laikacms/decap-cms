@@ -10,8 +10,8 @@ import {
   ENTRY_LOCK_REQUEST,
   ENTRY_LOCK_UNSUPPORTED,
   overrideEntryLock,
-  releaseEntryLock,
   refreshEntryLock,
+  releaseEntryLock,
 } from '@/core/actions/entryLock';
 import * as backendModule from '@/core/backend';
 
@@ -184,7 +184,9 @@ describe('entryLock actions', () => {
       } as any);
       const store = mockStore({
         auth: { user: { login: 'alice', name: 'Alice' } },
-        entryLock: { 'posts.my-post': { status: 'locked-by-me', lock: { ...lock, owner: { id: 'alice', name: 'Alice' } } } },
+        entryLock: {
+          'posts.my-post': { status: 'locked-by-me', lock: { ...lock, owner: { id: 'alice', name: 'Alice' } } },
+        },
       });
 
       await store.dispatch(refreshEntryLock(collection, 'my-post') as any);

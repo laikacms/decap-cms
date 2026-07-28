@@ -104,13 +104,13 @@ type FolderCursorData = {
 
 function isFolderCursorData(data: unknown): data is FolderCursorData {
   return (
-    typeof data === 'object' &&
-    data !== null &&
-    typeof (data as Record<string, unknown>)['folder'] === 'string' &&
-    typeof (data as Record<string, unknown>)['extension'] === 'string' &&
-    typeof (data as Record<string, unknown>)['index'] === 'number' &&
-    typeof (data as Record<string, unknown>)['pageCount'] === 'number' &&
-    typeof (data as Record<string, unknown>)['depth'] === 'number'
+    typeof data === 'object'
+    && data !== null
+    && typeof (data as Record<string, unknown>)['folder'] === 'string'
+    && typeof (data as Record<string, unknown>)['extension'] === 'string'
+    && typeof (data as Record<string, unknown>)['index'] === 'number'
+    && typeof (data as Record<string, unknown>)['pageCount'] === 'number'
+    && typeof (data as Record<string, unknown>)['depth'] === 'number'
   );
 }
 

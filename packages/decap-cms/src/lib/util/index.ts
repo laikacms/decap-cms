@@ -59,6 +59,13 @@ export * from './errors/LfsVerifyError.js';
 export * from './errors/LocalSearchError.js';
 export { default as getBlobSHA } from './getBlobSHA.js';
 export {
+  createPointerFile,
+  getLargeMediaFilteredMediaFiles,
+  getLargeMediaPatternsFromGitAttributesFile,
+  getPointerFileForMediaFileObj,
+  parsePointerFile,
+} from './git-lfs.js';
+export {
   calculateTargetDimensions,
   isImageOptimizationEnabled,
   isOptimizableImage,
@@ -66,13 +73,6 @@ export {
   resolveTargetMimeType,
 } from './imageOptimization.js';
 export type { TargetDimensions } from './imageOptimization.js';
-export {
-  createPointerFile,
-  getLargeMediaFilteredMediaFiles,
-  getLargeMediaPatternsFromGitAttributesFile,
-  getPointerFileForMediaFileObj,
-  parsePointerFile,
-} from './git-lfs.js';
 export {
   allEntriesByFolder,
   blobToFileObj,

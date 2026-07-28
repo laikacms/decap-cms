@@ -220,3 +220,30 @@ Laika backend currently only supports JSON-format collections; set `format: json
 ```
 
 Tracking issue: [DCMS-1254](https://github.com/laikacms/decap-cms/issues/1254).
+
+## Entry locking (not yet implemented)
+
+Decap core supports an optional advisory entry-locking capability
+(`getEntryLock`/`acquireEntryLock`/`releaseEntryLock`/`refreshEntryLock` on
+`CmsImplementation` — see `src/lib/util/types/cms/backend.ts`) so the editor
+can show "Being edited by X" and warn before two users clobber each other's
+changes. `LaikaBackend` does not implement it yet.
+
+This backend is the natural place to add server-arbitrated locking (the
+issue that motivated the capability — DCMS-1414 — calls this out
+specifically: "Multi-user locking likely lands first on the laika backend
+where a server can arbitrate"), because it already has a real
+`DocumentsRepository` talking to a stateful server, unlike the git-based
+backends. Implementing it here needs:
+
+- A lock endpoint/resource on the laikacms documents protocol (acquire,
+  release, refresh, get) that this adapter's `LaikaBackend` class can call
+  the same way it calls `repo.getDocument`/`repo.updateDocument` today.
+- Wiring those calls into the four `CmsImplementation` lock methods,
+  following the same `firstResult`/`APIError` conventions already used
+  throughout this file for every other repository call.
+
+Until that protocol surface exists, `src/lib/util/entryLockManager.ts` (used
+by the `test-repo` backend) is a reference *local* implementation only —
+useful for exercising the editor UI, but not a substitute for real
+server-side arbitration across different browsers/users.

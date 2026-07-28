@@ -24,7 +24,7 @@ import {
   persistLocalBackup,
   retrieveLocalBackup,
 } from '@/core/actions/entries';
-import { acquireEntryLock, releaseEntryLock, refreshEntryLock } from '@/core/actions/entryLock';
+import { acquireEntryLock, refreshEntryLock, releaseEntryLock } from '@/core/actions/entryLock';
 import { EDITORIAL_WORKFLOW, status } from '@/core/constants/publishModes';
 import { selectDeployPreview, selectEntry, selectUnpublishedEntry } from '@/core/reducers';
 import { selectFields } from '@/core/reducers/collections';

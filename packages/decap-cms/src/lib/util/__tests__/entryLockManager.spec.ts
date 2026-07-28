@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  createInMemoryStore,
-  EntryLockConflictError,
-  EntryLockManager,
-} from '@/lib/util/entryLockManager.js';
+import { createInMemoryStore, EntryLockConflictError, EntryLockManager } from '@/lib/util/entryLockManager.js';
 
 const alice = { id: 'alice', name: 'Alice' };
 const bob = { id: 'bob', name: 'Bob' };

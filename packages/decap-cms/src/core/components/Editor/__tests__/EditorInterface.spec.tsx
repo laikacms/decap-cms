@@ -40,6 +40,14 @@ vi.mock('../EditorToolbar', () => ({
     </div>
   ),
 }));
+// `EntryLockBanner` pulls in `reducers/selectors` -> `reducers/editorialWorkflow`
+// -> `actions/config` -> `validateConfig`, the same unrelated `lib/i18n`-enum
+// dependency the `reducers/collections` stub below works around. This test
+// suite isn't exercising lock UI, so stub it out the same way rather than
+// growing the `lib/i18n` mock to satisfy an unrelated import chain.
+vi.mock('../EntryLockBanner', () => ({
+  default: () => null,
+}));
 vi.mock('../../../lib/slots', () => ({
   useCmsSlots: () => ({}),
 }));

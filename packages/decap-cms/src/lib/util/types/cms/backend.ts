@@ -78,8 +78,8 @@ export interface CmsLocalBackend {
  * own on refresh/reconnect.
  */
 export type CmsEntryLockOwner = {
-  id: string;
-  name: string;
+  id: string,
+  name: string,
 };
 
 /**
@@ -94,10 +94,10 @@ export type CmsEntryLockOwner = {
  * laptop, lost network, etc).
  */
 export type CmsEntryLock = {
-  path: string;
-  owner: CmsEntryLockOwner;
-  acquiredAt: string;
-  expiresAt: string;
+  path: string,
+  owner: CmsEntryLockOwner,
+  acquiredAt: string,
+  expiresAt: string,
 };
 
 /**
