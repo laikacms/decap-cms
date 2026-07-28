@@ -1,4 +1,5 @@
 import { produce } from 'immer';
+import { trim } from 'lodash-es';
 
 import {
   MEDIA_DELETE_FAILURE,
@@ -289,6 +290,63 @@ export function selectMediaFiles(state: State, field?: CmsEntryField) {
 export function selectMediaFileByPath(state: State, path: string) {
   const files = selectMediaFiles(state);
   return files.find(file => file.path === path);
+}
+
+/**
+ * Splits a loaded listing into subfolders and regular files. Only backends
+ * that populate `isDirectory` (currently gitea/forgejo, via
+ * `getMedia(folder, folderSupport: true)`) contribute entries to `folders`;
+ * everywhere else it's simply empty and the UI shows breadcrumbs only.
+ */
+export function selectMediaFolderEntries<T extends { isDirectory?: boolean }>(files: T[]) {
+  const folders: T[] = [];
+  const regularFiles: T[] = [];
+  for (const file of files) {
+    (file.isDirectory ? folders : regularFiles).push(file);
+  }
+  return { folders, regularFiles };
+}
+
+export interface MediaFolderBreadcrumb {
+  label: string;
+  path: string;
+}
+
+/**
+ * Builds the breadcrumb trail from a configured/effective root folder down to
+ * the folder currently being browsed. `currentFolder` must be `rootFolder`
+ * itself or nested under it (as produced by navigating via
+ * `selectMediaFolderEntries`' folder paths) — anything else is treated
+ * defensively as its own single-segment root.
+ */
+export function getMediaFolderBreadcrumbs(
+  rootFolder: string | undefined,
+  currentFolder: string | undefined,
+  rootLabel = 'Media',
+): MediaFolderBreadcrumb[] {
+  const root = trim(rootFolder ?? '', '/');
+  const current = trim(currentFolder ?? root, '/');
+
+  if (!current || current === root) {
+    return [{ label: rootLabel, path: root }];
+  }
+
+  if (root && !(current === root || current.startsWith(`${root}/`))) {
+    // currentFolder isn't nested under rootFolder; show it standalone rather
+    // than guessing at a relationship that doesn't hold.
+    return [{ label: rootLabel, path: root }, { label: current, path: current }];
+  }
+
+  const relative = root ? current.slice(root.length) : current;
+  const segments = trim(relative, '/').split('/').filter(Boolean);
+
+  const crumbs: MediaFolderBreadcrumb[] = [{ label: rootLabel, path: root }];
+  let acc = root;
+  for (const segment of segments) {
+    acc = acc ? `${acc}/${segment}` : segment;
+    crumbs.push({ label: segment, path: acc });
+  }
+  return crumbs;
 }
 
 export function selectMediaDisplayURL(state: State, id: string): DisplayURLState {

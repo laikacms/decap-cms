@@ -175,7 +175,14 @@ export interface CmsImplementation {
   entriesByFiles: (files: CmsImplementationFile[]) => Promise<CmsImplementationEntry[]>;
 
   getMediaDisplayURL?: (displayURL: CmsDisplayURL) => Promise<string>;
-  getMedia: (folder?: string) => Promise<CmsImplementationMediaFile[]>;
+  /**
+   * `folderSupport` asks the backend to also return directory entries
+   * (`isDirectory: true`) alongside files, when it's able to do so from the
+   * same listing call it would make anyway (gitea/forgejo already do this).
+   * Backends that can't populate directories cheaply may ignore the flag and
+   * return files only; callers must not assume directories are present.
+   */
+  getMedia: (folder?: string, folderSupport?: boolean) => Promise<CmsImplementationMediaFile[]>;
   getMediaFile: (path: string) => Promise<CmsImplementationMediaFile>;
 
   /**

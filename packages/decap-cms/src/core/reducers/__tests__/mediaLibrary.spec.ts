@@ -7,9 +7,11 @@ import { mediaDeleted, mediaLoaded } from '@/core/actions/mediaLibrary';
 import { selectEditingDraft, selectMediaFolder } from '@/core/reducers/entries';
 import { selectIntegration } from '@/core/reducers/integrations';
 import mediaLibrary, {
+  getMediaFolderBreadcrumbs,
   selectMediaDisplayURL,
   selectMediaFileByPath,
   selectMediaFiles,
+  selectMediaFolderEntries,
 } from '@/core/reducers/mediaLibrary';
 
 describe('mediaLibrary', () => {
@@ -186,6 +188,71 @@ describe('mediaLibrary', () => {
         mediaLoaded([], { page: 1, canPaginate: true }),
       );
       expect(withoutFiles.hasNextPage).toBe(false);
+    });
+  });
+
+  describe('selectMediaFolderEntries', () => {
+    it('splits directory entries from regular files', () => {
+      const files = [
+        { id: '1', name: 'logos', path: 'static/media/logos', isDirectory: true },
+        { id: '2', name: 'a.png', path: 'static/media/a.png' },
+        { id: '3', name: 'general', path: 'static/media/general', isDirectory: true },
+        { id: '4', name: 'b.png', path: 'static/media/b.png', isDirectory: false },
+      ];
+
+      const { folders, regularFiles } = selectMediaFolderEntries(files);
+
+      expect(folders.map(f => f.name)).toEqual(['logos', 'general']);
+      expect(regularFiles.map(f => f.name)).toEqual(['a.png', 'b.png']);
+    });
+
+    it('treats every file as a regular file when isDirectory is never set', () => {
+      const files = [{ id: '1', name: 'a.png', path: 'static/media/a.png' }];
+
+      const { folders, regularFiles } = selectMediaFolderEntries(files);
+
+      expect(folders).toEqual([]);
+      expect(regularFiles).toEqual(files);
+    });
+  });
+
+  describe('getMediaFolderBreadcrumbs', () => {
+    it('collapses to a single root crumb when browsing the root folder', () => {
+      expect(getMediaFolderBreadcrumbs('static/media', 'static/media')).toEqual([
+        { label: 'Media', path: 'static/media' },
+      ]);
+      expect(getMediaFolderBreadcrumbs('static/media', undefined)).toEqual([
+        { label: 'Media', path: 'static/media' },
+      ]);
+    });
+
+    it('builds one crumb per path segment below the root', () => {
+      expect(getMediaFolderBreadcrumbs('static/media', 'static/media/posts/logos')).toEqual([
+        { label: 'Media', path: 'static/media' },
+        { label: 'posts', path: 'static/media/posts' },
+        { label: 'logos', path: 'static/media/posts/logos' },
+      ]);
+    });
+
+    it('tolerates leading/trailing slashes on both root and current folder', () => {
+      expect(getMediaFolderBreadcrumbs('/static/media/', '/static/media/posts/')).toEqual([
+        { label: 'Media', path: 'static/media' },
+        { label: 'posts', path: 'static/media/posts' },
+      ]);
+    });
+
+    it('falls back to a standalone crumb when currentFolder is not nested under root', () => {
+      expect(getMediaFolderBreadcrumbs('static/media', 'other/place')).toEqual([
+        { label: 'Media', path: 'static/media' },
+        { label: 'other/place', path: 'other/place' },
+      ]);
+    });
+
+    it('supports a custom root label', () => {
+      expect(getMediaFolderBreadcrumbs('static/media', 'static/media/posts', 'Posts folder')).toEqual([
+        { label: 'Posts folder', path: 'static/media' },
+        { label: 'posts', path: 'static/media/posts' },
+      ]);
     });
   });
 });

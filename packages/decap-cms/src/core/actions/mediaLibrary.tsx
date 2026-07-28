@@ -148,13 +148,43 @@ export function removeInsertedMedia(controlID: string) {
 export const MEDIA_LIBRARY_PAGE_SIZE = 100;
 
 export function loadMedia(
-  opts: { delay?: number, query?: string, page?: number, privateUpload?: boolean } = {},
+  opts: {
+    delay?: number,
+    query?: string,
+    page?: number,
+    privateUpload?: boolean,
+    /**
+     * Lists a specific folder instead of the configured root media_folder
+     * (breadcrumb/subfolder navigation). Folder-scoped requests always use
+     * the single-shot `backend.getMedia` listing below, bypassing the asset
+     * store integration and cursor-paginated backend surfaces below, neither
+     * of which support scoping to an arbitrary folder today.
+     */
+    folder?: string,
+  } = {},
 ) {
-  const { delay = 0, query = '', page = 1, privateUpload } = opts;
+  const { delay = 0, query = '', page = 1, privateUpload, folder } = opts;
   return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
     const state = getState();
     const backend = currentBackend(state.config);
     const integration = selectIntegration(state, null, 'assetStore');
+    if (!integration && folder !== undefined) {
+      dispatch(mediaLoading(page));
+      try {
+        const files = await backend.getMedia(folder, true);
+        return dispatch(mediaLoaded(files));
+      } catch (error: unknown) {
+        console.error(error);
+        dispatch(
+          addNotification({
+            message: `Failed to load media library: ${error}`,
+            type: 'error',
+            dismissAfter: 8000,
+          }),
+        );
+        return dispatch(mediaLoadFailed({ privateUpload }));
+      }
+    }
     if (integration) {
       const provider: any = getIntegrationProvider(
         state.integrations,

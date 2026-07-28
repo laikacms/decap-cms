@@ -635,4 +635,67 @@ describe('mediaLibrary', () => {
       consoleError.mockRestore();
     });
   });
+
+  // Folder-scoped navigation (DCMS-1398): passing `folder` always uses the
+  // single-shot `backend.getMedia(folder, true)` listing, bypassing
+  // pagination/integration surfaces that don't support scoping to an
+  // arbitrary folder.
+  describe('loadMedia folder navigation', () => {
+    function createStore() {
+      return mockStore({
+        config: {},
+        collections: {},
+        integrations: { providers: {}, hooks: {} },
+        mediaLibrary: { files: [] },
+        entryDraft: { entry: {} },
+      });
+    }
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('lists the requested folder via getMedia(folder, true) and skips getMediaPage', async () => {
+      const files = [{ id: '1', name: 'a.png', path: 'static/media/posts/a.png' }];
+      const backend = {
+        supportsMediaPagination: vi.fn(() => true),
+        getMediaCapabilities: vi.fn().mockResolvedValue({ pagination: true, dynamicSearch: false }),
+        getMediaPage: vi.fn(),
+        getMedia: vi.fn().mockResolvedValue(files),
+      };
+      currentBackend.mockReturnValue(backend);
+      const store = createStore();
+
+      await store.dispatch(loadMedia({ folder: 'static/media/posts' }));
+
+      expect(backend.getMedia).toHaveBeenCalledWith('static/media/posts', true);
+      expect(backend.getMediaPage).not.toHaveBeenCalled();
+      const actions = store.getActions();
+      expect(actions[0]).toEqual({ type: 'MEDIA_LOAD_REQUEST', payload: { page: 1 } });
+      expect(actions[1]).toEqual({ type: 'MEDIA_LOAD_SUCCESS', payload: { files } });
+    });
+
+    it('surfaces a notification and dispatches MEDIA_LOAD_FAILURE when the folder listing fails', async () => {
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const backend = {
+        supportsMediaPagination: vi.fn(() => false),
+        getMedia: vi.fn().mockRejectedValue(new Error('boom')),
+      };
+      currentBackend.mockReturnValue(backend);
+      const store = createStore();
+
+      await store.dispatch(loadMedia({ folder: 'static/media/posts' }));
+
+      const actions = store.getActions();
+      expect(actions[1]).toEqual(
+        expect.objectContaining({
+          type: 'NOTIFICATION_SEND',
+          payload: expect.objectContaining({ type: 'error' }),
+        }),
+      );
+      expect(actions[2]).toEqual({ type: 'MEDIA_LOAD_FAILURE', payload: { privateUpload: undefined } });
+
+      consoleError.mockRestore();
+    });
+  });
 });

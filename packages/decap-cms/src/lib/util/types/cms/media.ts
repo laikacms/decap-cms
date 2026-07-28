@@ -42,6 +42,13 @@ export interface CmsBackendMediaFile {
   url?: string;
   file?: File;
   field?: CmsEntryField;
+  /**
+   * Set when this entry represents a folder rather than an asset. Only
+   * populated by backends that already list directory entries alongside
+   * files (currently gitea/forgejo); other backends simply never set it, so
+   * consumers should treat its absence the same as `false`.
+   */
+  isDirectory?: boolean;
 }
 
 export type CmsMediaFile = CmsBackendMediaFile & { key?: string };
@@ -57,6 +64,8 @@ export type CmsImplementationMediaFile = {
   draft?: boolean,
   url?: string,
   file?: File,
+  /** See `CmsBackendMediaFile.isDirectory`. */
+  isDirectory?: boolean,
 };
 
 /**
