@@ -78,6 +78,15 @@ export function acquireEntryLock(collection: Collection, slug: string, opts: { f
 
     const owner = currentLockOwner(state);
     if (!owner) {
+      // The backend supports locking but there's no signed-in identity to
+      // lock under yet (e.g. auth hasn't resolved). Without this, the
+      // ENTRY_LOCK_UNSUPPORTED short-circuit is otherwise silent, leaving a
+      // developer with no signal that the lock UI is inert (DCMS-1562).
+      console.warn(
+        `acquireEntryLock: backend supports entry locking but no user is signed in yet; skipping lock for ${
+          entryLockPath(collectionName, slug)
+        }`,
+      );
       dispatch(entryLockUnsupported(collectionName, slug));
       return;
     }

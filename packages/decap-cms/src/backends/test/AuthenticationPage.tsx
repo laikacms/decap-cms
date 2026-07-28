@@ -31,6 +31,27 @@ const LoginButton = styled.button`
   }
 `;
 
+// Optional identity fields: letting a dev-test user pick a login/name means
+// two tabs of the same demo profile can sign in as different synthetic
+// users (different `owner.id` for advisory entry locking, DCMS-1414)
+// against the same shared `localStorage`, instead of always colliding on a
+// single hardcoded identity.
+const IdentityFields = styled.div`
+  display: flex;
+  flex-flow: column nowrap;
+  gap: 10px;
+  width: 100%;
+  max-width: 320px;
+`;
+
+const IdentityInput = styled.input`
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 4px;
+  border: 1px solid #dfdfe3;
+  font-size: 14px;
+`;
+
 interface AuthenticationPageConfig {
   site_url: string;
   logo?: {
@@ -55,6 +76,9 @@ export default function AuthenticationPage({
   config,
   t,
 }: AuthenticationPageProps) {
+  const [login, setLogin] = React.useState('');
+  const [name, setName] = React.useState('');
+
   React.useEffect(() => {
     // Allow login screen to be skipped for demo purposes.
     if (config.backend.login === false) {
@@ -65,11 +89,27 @@ export default function AuthenticationPage({
 
   function handleLogin(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
-    onLogin(null);
+    onLogin({ login: login.trim() || undefined, name: name.trim() || undefined });
   }
 
   return (
     <StyledAuthenticationPage>
+      <IdentityFields>
+        <IdentityInput
+          type="text"
+          placeholder="test-user"
+          aria-label="Login (optional, for testing multi-user entry locking)"
+          value={login}
+          onChange={e => setLogin(e.target.value)}
+        />
+        <IdentityInput
+          type="text"
+          placeholder="Test User"
+          aria-label="Display name (optional)"
+          value={name}
+          onChange={e => setName(e.target.value)}
+        />
+      </IdentityFields>
       <LoginButton disabled={inProgress} onClick={handleLogin}>
         {inProgress ? t('auth.loggingIn') : t('auth.login')}
       </LoginButton>

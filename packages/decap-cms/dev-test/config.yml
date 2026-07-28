@@ -1,6 +1,20 @@
 backend:
   name: test-repo
 
+# --- Exercising DCMS-1414 advisory entry locking in this demo (DCMS-1562) ---
+# The `test-repo` backend has no real auth, but its login screen has an
+# optional "Login" / "Display name" input specifically so you can simulate
+# two different users:
+#   1. Open the demo, log in as `alice` (type `alice` in the Login field).
+#   2. Open a collection entry (e.g. Posts) to acquire the advisory lock.
+#   3. Log out (or open a private/incognito window against the same URL,
+#      since `test-repo` shares its lock store via `localStorage`), then
+#      log in as `bob`.
+#   4. Open the SAME entry as `bob` — the `EntryLockBanner` ("Being edited
+#      by alice" + a "Take over" override button) should render.
+# Leaving the Login field blank on both tabs always signs in as the same
+# `test-user` identity and will never show a conflict, since there's only
+# one lock owner.
 site_url: https://example.com
 
 publish_mode: editorial_workflow
