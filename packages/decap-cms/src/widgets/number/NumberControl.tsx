@@ -1,7 +1,20 @@
+import styled from '@emotion/styled';
 import React from 'react';
 
 import type { CmsFieldBase, CmsFieldNumber } from '@/lib/util/index';
 import type { TranslateFunction } from '@/ui/default/index';
+
+const SliderWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+`;
+
+const SliderInput = styled.input`
+  flex: 1;
+  width: 100%;
+`;
 
 const ValidationErrorTypes = {
   PRESENCE: 'PRESENCE',
@@ -200,7 +213,8 @@ const NumberControl = React.forwardRef<NumberControlHandle, NumberControlProps>(
     const min = field.min ?? '';
     const max = field.max ?? '';
     const step = field.step ?? (field.value_type === 'int' ? 1 : 'any');
-    return (
+
+    const numberInput = (
       <input
         type="number"
         id={forID}
@@ -217,6 +231,39 @@ const NumberControl = React.forwardRef<NumberControlHandle, NumberControlProps>(
         aria-errormessage={hasErrors ? errorListId : undefined}
         aria-describedby={hintId}
       />
+    );
+
+    if (!field.slider) {
+      return numberInput;
+    }
+
+    // A range input needs concrete numeric bounds; fall back to a 0-100
+    // range when the field doesn't define min/max.
+    const sliderMin = field.min ?? 0;
+    const sliderMax = field.max ?? 100;
+    const sliderValue = typeof value === 'number' && !isNaN(value)
+      ? value
+      : (typeof value === 'string' && value !== '' && !isNaN(Number(value)))
+      ? Number(value)
+      : sliderMin;
+
+    return (
+      <>
+        {numberInput}
+        <SliderWrapper>
+          <SliderInput
+            type="range"
+            aria-label={field.label || field.name}
+            step={step}
+            min={sliderMin}
+            max={sliderMax}
+            value={sliderValue}
+            onFocus={setActiveStyle as React.FocusEventHandler<HTMLInputElement>}
+            onBlur={setInactiveStyle as React.FocusEventHandler<HTMLInputElement>}
+            onChange={handleChange}
+          />
+        </SliderWrapper>
+      </>
     );
   },
 );

@@ -7,6 +7,7 @@ or, for values that can't be safely represented as one, the raw string the edito
 
 ```yaml
 - { label: 'Priority', name: 'priority', widget: 'number', value_type: 'int', min: 1, max: 5 }
+- { label: 'Volume', name: 'volume', widget: 'number', min: 0, max: 100, step: 1, slider: true }
 ```
 
 - `value_type` (optional, one of `'int'` or `'float'`, default `'float'`) — controls both parsing
@@ -27,6 +28,10 @@ or, for values that can't be safely represented as one, the raw string the edito
   translated range/min/max validation error when the value falls outside the bounds; not enforced as
   the user types. This runs independently of `pattern` (a generic `CmsFieldBase` option) — combining
   both on a `number` field enforces both checks, and each surfaces its own validation error.
+- `slider` (optional, boolean, default `false`) — when `true`, renders a native range slider input
+  alongside the number input, sharing the same `min`/`max`/`step` values (falling back to a
+  `0`-`100` range when `min`/`max` are unset). Both inputs stay in sync through the same `onChange`
+  handler.
 - `default` (optional) — pre-filled value for new entries.
 
 Note: `CmsFieldNumber` also has a deprecated `valueType` (camelCase) type field, but nothing in the
