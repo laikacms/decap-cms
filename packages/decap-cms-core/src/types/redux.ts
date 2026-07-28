@@ -736,6 +736,7 @@ type CollectionObject = {
   frontmatter_delimiter?: List<string> | string | [string, string];
   create?: boolean;
   delete?: boolean;
+  publish?: boolean;
   create_scope?: CmsScope;
   delete_scope?: CmsScope;
   publish_scope?: CmsScope;
