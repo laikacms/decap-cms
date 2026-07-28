@@ -108,6 +108,12 @@ const en = {
         copyFromLocaleConfirm:
           'Do you want to fill in data from %{locale} locale?\nAll existing content will be overwritten.',
         copyFromLocaleConfirmTitle: 'Copy from locale',
+        translateFromDefault: 'Translate from %{locale}',
+        translatingFromDefault: 'Translating…',
+        translateFromDefaultConfirm:
+          'Do you want to fill in %{locale} using AI translation?\nAll existing content will be overwritten.',
+        translateFromDefaultConfirmTitle: 'Translate from default locale',
+        translateFailed: 'AI translation failed: %{error}',
       },
     },
     editor: {
