@@ -480,7 +480,7 @@ function getWidgetSchemas() {
   return Object.assign(...schemas);
 }
 
-class ConfigError extends Error {
+export class ConfigError extends Error {
   constructor(errors, ...args) {
     const message = errors
       .map(({ message, instancePath }) => {

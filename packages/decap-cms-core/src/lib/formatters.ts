@@ -46,6 +46,7 @@ const commitMessageTemplates = {
   delete: 'Delete {{collection}} “{{slug}}”',
   uploadMedia: 'Upload “{{path}}”',
   deleteMedia: 'Delete “{{path}}”',
+  updateConfig: 'Update config “{{path}}”',
   openAuthoring: '{{message}}',
 } as const;
 

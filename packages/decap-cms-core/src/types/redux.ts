@@ -441,6 +441,7 @@ export interface CmsBackend {
     delete?: string;
     uploadMedia?: string;
     deleteMedia?: string;
+    updateConfig?: string;
     openAuthoring?: string;
   };
 }

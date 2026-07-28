@@ -59,7 +59,7 @@ function traverseFieldsJS<Field extends CmsField>(
   });
 }
 
-function getConfigUrl() {
+export function getConfigUrl() {
   const validTypes: { [type: string]: string } = {
     'text/yaml': 'yaml',
     'application/x-yaml': 'yaml',
