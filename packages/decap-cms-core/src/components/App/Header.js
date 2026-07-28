@@ -17,7 +17,7 @@ import {
 } from 'decap-cms-ui-default';
 import { connect } from 'react-redux';
 
-import { SettingsDropdown } from '../UI';
+import { OfflineIndicator, SettingsDropdown } from '../UI';
 import { checkBackendStatus } from '../../actions/status';
 
 const styles = {
@@ -273,6 +273,7 @@ class Header extends React.Component {
                 ))}
               </Dropdown>
             )}
+            <OfflineIndicator />
             <SettingsDropdown
               displayUrl={displayUrl}
               isTestRepo={isTestRepo}
