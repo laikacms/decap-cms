@@ -1203,6 +1203,33 @@ describe('LaikaBackend.persistEntry()', () => {
     expect(mockDocRepo.createUnpublished).not.toHaveBeenCalled();
   });
 
+  // DCMS-1638: README.md promises the format check fails fast "before any
+  // request reaches the server". persistMedia is a real network upload, so
+  // it must never run for a collection that is about to fail the
+  // format:json check — otherwise a markdown/frontmatter entry with an
+  // image/file field orphans an uploaded asset server-side even though the
+  // entry save itself fails.
+  it('never calls persistMedia for a non-JSON-format collection, even with assets attached (DCMS-1638)', async () => {
+    const mockPersistMedia = vi.spyOn(backend, 'persistMedia').mockResolvedValue({
+      id: 'asset-1',
+      name: 'image.jpg',
+      url: 'http://example.com/image.jpg',
+    } as any);
+
+    const raw = '---\ntitle: My Post\n---\n\nBody text here.';
+    const asset = { path: 'uploads/image.jpg', fileObj: new File(['a'], 'image.jpg', { type: 'image/jpeg' }) } as any;
+
+    await expect(
+      backend.persistEntry(
+        { dataFiles: [{ path: 'posts/my-post.md', raw }], assets: [asset] },
+        { newEntry: true, useWorkflow: false, collectionName: 'posts' },
+      ),
+    ).rejects.toThrow(/only supports JSON-format collections/);
+
+    expect(mockPersistMedia).not.toHaveBeenCalled();
+    expect(mockDocRepo.createDocument).not.toHaveBeenCalled();
+  });
+
   it('uploads each asset via persistMedia before writing the document', async () => {
     mockDocRepo.createDocument.mockImplementation(() => succeed(undefined));
 
