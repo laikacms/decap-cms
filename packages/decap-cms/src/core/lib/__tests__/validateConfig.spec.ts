@@ -641,6 +641,90 @@ describe('config', () => {
       });
     });
 
+    describe('asset_collections (DCMS-1412)', () => {
+      it('accepts a minimal asset collection (name, label, media_folder)', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              asset_collections: [
+                { name: 'photos', label: 'Photos', media_folder: 'static/uploads/photos' },
+              ],
+            }),
+          );
+        }).not.toThrow();
+      });
+
+      it('accepts the full asset collection shape', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              asset_collections: [
+                {
+                  name: 'photos',
+                  label: 'Photos',
+                  label_singular: 'Photo',
+                  description: 'Site photography',
+                  media_folder: 'static/uploads/photos',
+                  public_folder: '/uploads/photos',
+                  allowed_file_types: ['jpg', 'png', 'webp'],
+                  filename_template: '{{entry_slug}}-{{index}}.{{extension}}',
+                },
+              ],
+            }),
+          );
+        }).not.toThrow();
+      });
+
+      it('throws when an asset collection is missing name', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              asset_collections: [{ label: 'Photos', media_folder: 'static/uploads/photos' }],
+            }),
+          );
+        }).toThrowError("'asset_collections[0]' must have required property 'name'");
+      });
+
+      it('throws when an asset collection is missing label', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              asset_collections: [{ name: 'photos', media_folder: 'static/uploads/photos' }],
+            }),
+          );
+        }).toThrowError("'asset_collections[0]' must have required property 'label'");
+      });
+
+      it('throws when an asset collection is missing media_folder', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              asset_collections: [{ name: 'photos', label: 'Photos' }],
+            }),
+          );
+        }).toThrowError("'asset_collections[0]' must have required property 'media_folder'");
+      });
+
+      it('throws when two asset collections share a name', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              asset_collections: [
+                { name: 'photos', label: 'Photos', media_folder: 'a' },
+                { name: 'photos', label: 'Photos 2', media_folder: 'b' },
+              ],
+            }),
+          );
+        }).toThrowError("'asset_collections' must pass \"uniqueItemProperties\" keyword validation");
+      });
+
+      it('is optional: config without asset_collections still validates', () => {
+        expect(() => {
+          validateConfig(validConfig);
+        }).not.toThrow();
+      });
+    });
+
     describe('i18n', () => {
       it('should throw error when locale has invalid characters', () => {
         expect(() => {

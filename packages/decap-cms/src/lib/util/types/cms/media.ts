@@ -99,6 +99,37 @@ export type CmsMediaPage = {
   nextCursor?: string,
 };
 
+/**
+ * Config-defined, named group of assets, surfaced as a section in the media
+ * library (mirrors entry `collections`, minus anything entry-specific). See
+ * `getConfigSchema`'s `asset_collections` for the validated shape and
+ * `docs/core/asset-collections.md` for user-facing docs.
+ */
+export interface CmsAssetCollection {
+  name: string;
+  label: string;
+  label_singular?: string;
+  description?: string;
+  /** Folder this collection's assets live in; also scopes uploads made while it's selected. */
+  media_folder: string;
+  public_folder?: string;
+  /** Extensions (without the leading dot) accepted for this collection; unset allows any type. */
+  allowed_file_types?: string[];
+  /**
+   * Slug-template (reuses the entry `slug`/`media_folder` template engine,
+   * `compileStringTemplate`) applied to the sanitized upload filename on
+   * persist, e.g. `{{entry_slug}}-{{index}}.{{extension}}`. The template
+   * produces the whole filename, so it must include `{{extension}}` (or a
+   * literal extension) itself. Supports the standard placeholders
+   * (`{{year}}`, `{{month}}`, `{{filename}}`, `{{extension}}`, `{{slug}}`
+   * meaning the original filename's basename, ...) plus two asset-collection
+   * specific ones: `{{entry_slug}}` (the entry the upload was made from, when
+   * any) and `{{index}}`, a 1-based counter that increments until the
+   * resolved filename is unique among the collection's existing files.
+   */
+  filename_template?: string;
+}
+
 export interface CmsMediaLibraryInstance {
   show: (args: {
     id?: string,

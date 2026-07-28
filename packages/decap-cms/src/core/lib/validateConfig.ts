@@ -178,6 +178,30 @@ export function getConfigSchema(): JSONSchema {
         },
         required: ['name'],
       },
+      asset_collections: {
+        type: 'array',
+        minItems: 1,
+        items: {
+          // ------- Each asset collection: -------
+          type: 'object',
+          properties: {
+            name: { type: 'string' },
+            label: { type: 'string' },
+            label_singular: { type: 'string' },
+            description: { type: 'string' },
+            media_folder: { type: 'string', examples: ['assets/images'] },
+            public_folder: { type: 'string' },
+            allowed_file_types: {
+              type: 'array',
+              items: { type: 'string' },
+              uniqueItems: true,
+            },
+            filename_template: { type: 'string', examples: ['{{slug}}-{{index}}'] },
+          },
+          required: ['name', 'label', 'media_folder'],
+        },
+        uniqueItemProperties: ['name'],
+      },
       publish_mode: {
         type: 'string',
         enum: ['simple', 'editorial_workflow', ''],
