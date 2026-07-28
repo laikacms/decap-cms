@@ -14,7 +14,12 @@ jest.mock('decap-cms-lib-util', () => ({
 const makeAuthorizedRequest = jest.fn();
 
 function makeClient(patterns: string[], enabled = true) {
-  return new GitLfsClient(enabled, 'https://github.com/owner/repo.git/info/lfs', patterns, makeAuthorizedRequest);
+  return new GitLfsClient(
+    enabled,
+    'https://github.com/owner/repo.git/info/lfs',
+    patterns,
+    makeAuthorizedRequest,
+  );
 }
 
 function jsonResponse(body: unknown) {

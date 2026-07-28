@@ -661,7 +661,9 @@ export default class GitHub implements Implementation {
       async () =>
         this.api!.persistFiles(
           entry.dataFiles,
-          client.enabled ? await getLargeMediaFilteredMediaFiles(client, entry.assets) : entry.assets,
+          client.enabled
+            ? await getLargeMediaFilteredMediaFiles(client, entry.assets)
+            : entry.assets,
           options,
         ),
       'Failed to acquire persist entry lock',
