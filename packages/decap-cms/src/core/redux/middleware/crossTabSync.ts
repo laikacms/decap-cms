@@ -53,6 +53,61 @@ function isRemote(action: AnyAction) {
 }
 
 /**
+ * Deep-clones a broadcast payload, dropping function-valued keys and
+ * File/Blob references so it round-trips structured clone. Backends attach
+ * non-cloneable closures to entry payloads (e.g. AssetProxy.toBase64 via
+ * normalizeAsset in test/azure/gitlab/github backends); receiving tabs
+ * already have their own mediaLibrary.files, so these are never needed.
+ */
+function sanitizeForBroadcast(value: unknown, seen = new WeakMap<object, unknown>()): unknown {
+  if (typeof value === 'function') return undefined;
+  if (value === null || typeof value !== 'object') return value;
+  if (typeof File !== 'undefined' && value instanceof File) return undefined;
+  if (typeof Blob !== 'undefined' && value instanceof Blob) return undefined;
+  if (value instanceof Date || value instanceof RegExp) return value;
+
+  if (seen.has(value)) return seen.get(value);
+
+  if (Array.isArray(value)) {
+    const result: unknown[] = [];
+    seen.set(value, result);
+    for (const item of value) {
+      const sanitized = sanitizeForBroadcast(item, seen);
+      result.push(sanitized === undefined ? null : sanitized);
+    }
+    return result;
+  }
+
+  if (value instanceof Map) {
+    const result = new Map();
+    seen.set(value, result);
+    for (const [key, val] of value) {
+      const sanitized = sanitizeForBroadcast(val, seen);
+      if (sanitized !== undefined) result.set(key, sanitized);
+    }
+    return result;
+  }
+
+  if (value instanceof Set) {
+    const result = new Set();
+    seen.set(value, result);
+    for (const item of value) {
+      const sanitized = sanitizeForBroadcast(item, seen);
+      if (sanitized !== undefined) result.add(sanitized);
+    }
+    return result;
+  }
+
+  const result: Record<string, unknown> = {};
+  seen.set(value, result);
+  for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
+    const sanitized = sanitizeForBroadcast(val, seen);
+    if (sanitized !== undefined) result[key] = sanitized;
+  }
+  return result;
+}
+
+/**
  * The queryCore invalidations the originating thunk performs alongside each
  * success action, mirrored here because only the action crosses the channel.
  * UNPUBLISHED_TAG is deliberately untouched for the same reason local writes
@@ -129,11 +184,23 @@ export function createCrossTabSyncMiddleware(): Middleware {
         && BROADCAST_TYPES.has(candidate.type)
         && !isRemote(candidate)
       ) {
+        // structuredClone is a cheap preflight: if it throws, the payload
+        // carries a non-cloneable value (e.g. an AssetProxy.toBase64
+        // closure) and must be sanitized before postMessage can accept it.
+        let payload: AnyAction = candidate;
         try {
-          channel.postMessage(candidate);
+          structuredClone(candidate);
+        } catch {
+          payload = sanitizeForBroadcast(candidate) as AnyAction;
+        }
+
+        try {
+          channel.postMessage(payload);
         } catch (error) {
           // A non-cloneable payload must never break the local dispatch.
-          console.warn(`Failed to broadcast ${candidate.type} to other tabs`, error);
+          // This should be unreachable once sanitizeForBroadcast has run,
+          // but log at debug (not warn) rather than fail the dispatch.
+          console.debug(`Skipped broadcasting ${candidate.type} to other tabs: not cloneable`, error);
         }
       }
       return result;

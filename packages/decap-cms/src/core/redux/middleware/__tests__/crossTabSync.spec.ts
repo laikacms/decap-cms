@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { loginUser, logoutUser, sessionExpired } from '@/core/actions/auth';
+import {
+  UNPUBLISHED_ENTRY_DELETE_SUCCESS,
+  UNPUBLISHED_ENTRY_PERSIST_SUCCESS,
+  UNPUBLISHED_ENTRY_PUBLISH_SUCCESS,
+  UNPUBLISHED_ENTRY_STATUS_CHANGE_SUCCESS,
+} from '@/core/actions/editorialWorkflow';
 import { DRAFT_CHANGE_FIELD, ENTRY_DELETE_SUCCESS, ENTRY_PERSIST_SUCCESS } from '@/core/actions/entries';
 import queryCore from '@/lib/util/queryCore';
 import { createCrossTabSyncMiddleware } from '@/core/redux/middleware/crossTabSync';
@@ -166,7 +172,7 @@ describe('crossTabSync middleware', () => {
     expect(loggedInTab.api.dispatch).not.toHaveBeenCalled();
   });
 
-  it('keeps the local dispatch alive when a payload is not cloneable', () => {
+  it('sanitizes a function-valued payload instead of dropping the broadcast', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const tabA = createTab();
     const tabB = createTab();
@@ -178,8 +184,76 @@ describe('crossTabSync middleware', () => {
     expect(() => tabA.invoke(action)).not.toThrow();
 
     expect(tabA.next).toHaveBeenCalledWith(action);
-    expect(tabB.api.dispatch).not.toHaveBeenCalled();
-    expect(warn).toHaveBeenCalledTimes(1);
+    // Local dispatch keeps the untouched action (function included) — only
+    // the broadcast copy is sanitized.
+    expect(action.payload.oops).toEqual(expect.any(Function));
+
+    // The sibling tab still receives a replayed action, with the
+    // non-cloneable key stripped rather than the whole broadcast dropped.
+    expect(tabB.api.dispatch).toHaveBeenCalledTimes(1);
+    const replayed = tabB.api.dispatch.mock.calls[0][0];
+    expect(replayed.type).toBe(ENTRY_DELETE_SUCCESS);
+    expect(replayed.payload).toEqual({ collectionName: 'posts', entrySlug: 'hello' });
+    expect('oops' in replayed.payload).toBe(false);
+
+    // No more silent-warn spam on every save.
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it('strips an AssetProxy-shaped toBase64 closure from mediaFiles before broadcasting', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const tabA = createTab();
+    const tabB = createTab();
+
+    const action = {
+      type: UNPUBLISHED_ENTRY_PERSIST_SUCCESS,
+      payload: {
+        collection: 'faq',
+        entry: {
+          slug: 'hello',
+          path: 'faq/hello.md',
+          mediaFiles: [
+            { id: 'asset-1', name: 'logo.png', url: '/media/logo.png', toBase64: async () => 'ZmFrZQ==' },
+          ],
+        },
+      },
+    };
+    expect(() => tabA.invoke(action)).not.toThrow();
+
+    expect(tabB.api.dispatch).toHaveBeenCalledTimes(1);
+    const replayed = tabB.api.dispatch.mock.calls[0][0];
+    expect(replayed.payload.entry.mediaFiles).toEqual([
+      { id: 'asset-1', name: 'logo.png', url: '/media/logo.png' },
+    ]);
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    UNPUBLISHED_ENTRY_PERSIST_SUCCESS,
+    UNPUBLISHED_ENTRY_STATUS_CHANGE_SUCCESS,
+    UNPUBLISHED_ENTRY_PUBLISH_SUCCESS,
+    UNPUBLISHED_ENTRY_DELETE_SUCCESS,
+    ENTRY_PERSIST_SUCCESS,
+    ENTRY_DELETE_SUCCESS,
+  ])('broadcasts %s with a function-valued payload without warning', type => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const tabA = createTab();
+    const tabB = createTab();
+
+    const action = {
+      type,
+      payload: {
+        collection: 'posts',
+        collectionName: 'posts',
+        slug: 'hello',
+        entrySlug: 'hello',
+        entry: { slug: 'hello', path: 'x.md', mediaFiles: [{ id: 'a', toBase64: async () => '' }] },
+      },
+    };
+    expect(() => tabA.invoke(action)).not.toThrow();
+
+    expect(tabB.api.dispatch).toHaveBeenCalledTimes(1);
+    expect(warn).not.toHaveBeenCalled();
   });
 
   it('is a pass-through when BroadcastChannel is unavailable', () => {
