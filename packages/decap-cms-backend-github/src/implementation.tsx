@@ -55,6 +55,17 @@ import type { Semaphore } from 'semaphore';
 // anything larger than this can't be one and isn't worth parsing.
 const MAX_POINTER_FILE_SIZE = 1024;
 
+// `Blob#text()` isn't implemented by every jsdom version this repo's tests run
+// under, so read via `FileReader` instead (works in real browsers too).
+function blobToText(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = ({ target }) => resolve(target!.result as string);
+    fr.onerror = reject;
+    fr.readAsText(blob);
+  });
+}
+
 type ReadFile = (
   path: string,
   id: string | null | undefined,
@@ -607,7 +618,7 @@ export default class GitHub implements Implementation {
       return content;
     }
 
-    const text = typeof content === 'string' ? content : await content.text();
+    const text = typeof content === 'string' ? content : await blobToText(content);
     const pointer = parsePointerFile(text);
     if (!pointer.sha || !pointer.size) {
       // Not an LFS pointer file (probably the real, small content already).
@@ -615,7 +626,7 @@ export default class GitHub implements Implementation {
     }
 
     const blob = await client.downloadResource(pointer);
-    return parseText ? blob.text() : blob;
+    return parseText ? blobToText(blob) : blob;
   }
 
   // Wraps a readFile function (matching API#readFile's signature) so any LFS pointer

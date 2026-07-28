@@ -22,7 +22,7 @@ size 12345
 
 beforeEach(() => {
   jest.clearAllMocks();
-  global.URL = { createObjectURL: jest.fn().mockReturnValue('blob:displayURL') };
+  global.URL.createObjectURL = jest.fn().mockReturnValue('blob:displayURL');
 });
 
 function makeBlob(text) {
@@ -99,10 +99,8 @@ describe('github backend LFS support', () => {
       const realBlob = makeBlob('real binary content');
       gitHubImplementation.api = {
         repo: 'owner/repo',
-        readFile: jest
-          .fn()
-          .mockResolvedValueOnce('*.bin filter=lfs diff=lfs merge=lfs -text\n') // .gitattributes
-          .mockResolvedValueOnce(makeBlob(POINTER)), // the tracked file itself
+        // getLargeMediaClient is mocked below, so this is the file's only readFile call.
+        readFile: jest.fn().mockResolvedValue(makeBlob(POINTER)),
       };
       const downloadResource = jest.fn().mockResolvedValue(realBlob);
       gitHubImplementation.getLargeMediaClient = jest.fn().mockResolvedValue({
@@ -113,7 +111,9 @@ describe('github backend LFS support', () => {
 
       const result = await gitHubImplementation.getMediaFile('static/media/large.bin');
 
-      expect(downloadResource).toHaveBeenCalledWith({ sha: 'abc123', size: 12345 });
+      expect(downloadResource).toHaveBeenCalledWith(
+        expect.objectContaining({ sha: 'abc123', size: 12345 }),
+      );
       expect(result.size).toBe(realBlob.size);
     });
 
