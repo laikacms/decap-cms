@@ -493,3 +493,73 @@ describe('NumberControl aria validation wiring (DCMS-1083)', () => {
     expect(container.querySelector('input')).not.toHaveAttribute('aria-describedby');
   });
 });
+
+// DCMS-1424: slider option for the number widget
+describe('NumberControl slider option (DCMS-1424)', () => {
+  const baseProps = {
+    onChange: vi.fn(),
+    forID: 'test-number',
+    classNameWrapper: '',
+    setActiveStyle: vi.fn(),
+    setInactiveStyle: vi.fn(),
+    t: (key: string) => key,
+  };
+
+  it('does not render a range input when slider is unset', () => {
+    const { container } = render(
+      <NumberControl {...baseProps} field={fieldSettings} value="" />,
+    );
+    expect(container.querySelector('input[type="range"]')).toBeNull();
+  });
+
+  it('renders a range input alongside the number input when slider is true', () => {
+    const field = { ...fieldSettings, slider: true };
+    const { container } = render(<NumberControl {...baseProps} field={field} value={5} />);
+
+    const inputs = container.querySelectorAll('input');
+    expect(inputs).toHaveLength(2);
+    expect(inputs[0]).toHaveAttribute('type', 'number');
+    expect(inputs[1]).toHaveAttribute('type', 'range');
+  });
+
+  it('range input respects the field min/max/step', () => {
+    const field = { ...fieldSettings, min: -20, max: 20, step: 5, slider: true };
+    const { container } = render(<NumberControl {...baseProps} field={field} value={10} />);
+
+    const range = container.querySelector('input[type="range"]');
+    expect(range).toHaveAttribute('min', '-20');
+    expect(range).toHaveAttribute('max', '20');
+    expect(range).toHaveAttribute('step', '5');
+    expect(range).toHaveValue('10');
+  });
+
+  it('range input falls back to a 0-100 range when min/max are unset', () => {
+    const field = { slider: true };
+    const { container } = render(<NumberControl {...baseProps} field={field} value="" />);
+
+    const range = container.querySelector('input[type="range"]');
+    expect(range).toHaveAttribute('min', '0');
+    expect(range).toHaveAttribute('max', '100');
+  });
+
+  it('changing the range input calls onChange like the number input', () => {
+    const field = { ...fieldSettings, min: 0, max: 20, slider: true };
+    const onChange = vi.fn();
+    const { container } = render(
+      <NumberControl {...baseProps} field={field} value={5} onChange={onChange} />,
+    );
+
+    const range = container.querySelector('input[type="range"]');
+    fireEvent.change(range, { target: { value: '15' } });
+
+    expect(onChange).toHaveBeenCalledWith(15);
+  });
+
+  it('range input has an accessible label', () => {
+    const field = { ...fieldSettings, label: 'Priority', slider: true };
+    const { container } = render(<NumberControl {...baseProps} field={field} value={1} />);
+
+    const range = container.querySelector('input[type="range"]');
+    expect(range).toHaveAttribute('aria-label', 'Priority');
+  });
+});
