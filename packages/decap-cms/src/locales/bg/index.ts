@@ -231,6 +231,13 @@ const bg = {
       deleteSelected: 'Изтрай избрани',
       chooseSelected: 'Избери избрани',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Медия',
+      regionLabel: 'Пътека на папката с медия',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Подпапки',
+    },
   },
   ui: {
     default: {

@@ -261,6 +261,13 @@ const sk = {
       deleteSelected: 'Vymazať vybrané',
       chooseSelected: 'Zvoliť vybrané',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Médiá',
+      regionLabel: 'Navigačná cesta priečinka médií',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Podpriečinky',
+    },
   },
   ui: {
     default: {

@@ -152,6 +152,13 @@ const hu = {
       deleteSelected: 'Kijelöltek törlése',
       chooseSelected: 'Kijelöl',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Média',
+      regionLabel: 'Médiamappa morzsamenü',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Almappák',
+    },
   },
   ui: {
     errorBoundary: {

@@ -197,6 +197,13 @@ const vi = {
       deleteSelected: 'Xoá những cái đã chọn',
       chooseSelected: 'Lấy những cái đã chọn',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Phương tiện',
+      regionLabel: 'Đường dẫn điều hướng thư mục phương tiện',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Thư mục con',
+    },
   },
   ui: {
     default: {

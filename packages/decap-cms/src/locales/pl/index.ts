@@ -239,6 +239,13 @@ const pl = {
       deleteSelected: 'Usuń zaznaczone',
       chooseSelected: 'Wybierz zaznaczone',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Media',
+      regionLabel: 'Ścieżka nawigacji folderu mediów',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Podfoldery',
+    },
   },
   ui: {
     default: {

@@ -241,6 +241,13 @@ const tr = {
       deleteSelected: 'Seçileni sil',
       chooseSelected: 'Seçileni kullan',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Medya',
+      regionLabel: 'Medya klasörü gezinme yolu',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Alt klasörler',
+    },
   },
   ui: {
     default: {

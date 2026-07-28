@@ -233,6 +233,13 @@ const zh_Hans = {
       deleteSelected: '删除已选中项目',
       chooseSelected: '选用已选中项目',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: '媒体',
+      regionLabel: '媒体文件夹导航路径',
+    },
+    mediaLibraryFolders: {
+      regionLabel: '子文件夹',
+    },
   },
   ui: {
     default: {

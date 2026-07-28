@@ -239,6 +239,13 @@ const pt = {
       deleteSelected: 'Excluir selecionado',
       chooseSelected: 'Escolher selecionado',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Mídia',
+      regionLabel: 'Trilha de navegação da pasta de mídia',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Subpastas',
+    },
   },
   ui: {
     default: {

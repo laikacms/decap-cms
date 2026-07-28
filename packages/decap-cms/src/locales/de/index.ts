@@ -243,6 +243,13 @@ const de = {
       deleteSelected: 'Ausgewähltes Element löschen',
       chooseSelected: 'Ausgewähltes Element verwenden',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Medien',
+      regionLabel: 'Breadcrumb-Navigation für Medienordner',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Unterordner',
+    },
   },
   ui: {
     default: {

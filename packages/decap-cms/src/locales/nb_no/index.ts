@@ -191,6 +191,13 @@ const nb_no = {
       deleteSelected: 'Slett markert',
       chooseSelected: 'Velg markert',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Media',
+      regionLabel: 'Brødsmulesti for mediemappe',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Undermapper',
+    },
   },
   ui: {
     default: {

@@ -229,6 +229,13 @@ const uk = {
       deleteSelected: 'Видалити',
       chooseSelected: 'Обрати виділені',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Медіа',
+      regionLabel: 'Шлях навігації по папці медіа',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Підпапки',
+    },
   },
   ui: {
     default: {

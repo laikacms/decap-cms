@@ -248,6 +248,13 @@ const ru = {
       deleteSelected: 'Удалить помеченные',
       chooseSelected: 'Выбрать помеченные',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Медиа',
+      regionLabel: 'Путь навигации по папке медиа',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Подпапки',
+    },
   },
   ui: {
     default: {

@@ -231,6 +231,13 @@ const fa = {
       deleteSelected: 'انتخاب شده را پاک کن',
       chooseSelected: 'انتخاب شده را انتخاب کنید',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'رسانه',
+      regionLabel: 'مسیر پوشه رسانه',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'زیرپوشه‌ها',
+    },
   },
   ui: {
     default: { goBackToSite: 'به سایت برگردید' },

@@ -244,6 +244,13 @@ const th = {
       deleteSelected: 'ลบข้อมูลที่เลือก',
       chooseSelected: 'เลือกข้อมูลที่ถูกเลือก',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'สื่อ',
+      regionLabel: 'เส้นทางนำทางโฟลเดอร์สื่อ',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'โฟลเดอร์ย่อย',
+    },
   },
   ui: {
     default: {

@@ -245,6 +245,13 @@ const sl = {
       deleteSelected: 'Izbriši izbrano',
       chooseSelected: 'Dodaj izbrano',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Mediji',
+      regionLabel: 'Navigacijska pot mape medijev',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Podmape',
+    },
   },
   ui: {
     default: {
