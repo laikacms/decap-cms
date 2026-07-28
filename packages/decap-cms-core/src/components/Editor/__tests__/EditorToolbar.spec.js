@@ -205,13 +205,17 @@ describe('EditorToolbar', () => {
 
     it('hides the create-new-entry affordance when the user has no matching scope', () => {
       render(<EditorToolbar {...scopedProps} user={{ name: 'Jane' }} />);
-      expect(
-        screen.queryByText('editor.editorToolbar.duplicate'),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText('editor.editorToolbar.duplicate')).not.toBeInTheDocument();
     });
 
     it('shows the create-new-entry affordance once the user holds the required scope', () => {
-      render(<EditorToolbar {...scopedProps} user={{ name: 'Jane', role: 'editor' }} userScopes={['content:read', 'content:write']} />);
+      render(
+        <EditorToolbar
+          {...scopedProps}
+          user={{ name: 'Jane', role: 'editor' }}
+          userScopes={['content:read', 'content:write']}
+        />,
+      );
       expect(screen.getByText('editor.editorToolbar.duplicate')).toBeInTheDocument();
     });
 

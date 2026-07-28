@@ -1,4 +1,10 @@
-import { BUILTIN_ROLES, hasScope, resolveUserScopes, scopeAllows, userCanPerform } from '../permissions';
+import {
+  BUILTIN_ROLES,
+  hasScope,
+  resolveUserScopes,
+  scopeAllows,
+  userCanPerform,
+} from '../permissions';
 
 describe('permissions', () => {
   describe('BUILTIN_ROLES', () => {

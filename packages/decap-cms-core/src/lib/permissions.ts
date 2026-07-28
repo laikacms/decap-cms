@@ -52,7 +52,10 @@ export function hasScope(scopes: CmsScope[] | undefined, required: CmsScope): bo
  * a caller across several checks) satisfy `required`. `required` being unset
  * always passes — the collection hasn't opted into the role model.
  */
-export function scopeAllows(scopes: CmsScope[] | undefined, required: CmsScope | undefined): boolean {
+export function scopeAllows(
+  scopes: CmsScope[] | undefined,
+  required: CmsScope | undefined,
+): boolean {
   if (!required) {
     return true;
   }

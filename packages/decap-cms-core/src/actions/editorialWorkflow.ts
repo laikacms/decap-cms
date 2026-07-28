@@ -491,7 +491,10 @@ export function publishUnpublishedEntry(collectionName: string, slug: string) {
     if (!selectAllowPublish(collections.get(collectionName), state.auth.user, state.config)) {
       dispatch(
         addNotification({
-          message: { key: 'ui.toast.onFailToPublishEntry', details: 'Not allowed to publish entries in this collection' },
+          message: {
+            key: 'ui.toast.onFailToPublishEntry',
+            details: 'Not allowed to publish entries in this collection',
+          },
           type: 'error',
           dismissAfter: 8000,
         }),
