@@ -19,6 +19,8 @@ import {
   UNPUBLISHED_ENTRY_PUBLISH_SUCCESS,
   UNPUBLISHED_ENTRY_PUBLISH_FAILURE,
   UNPUBLISHED_ENTRY_DELETE_SUCCESS,
+  UNPUBLISHED_ENTRY_PUBLISH_SCHEDULE_SUCCESS,
+  UNPUBLISHED_ENTRY_PUBLISH_UNSCHEDULE_SUCCESS,
 } from '../actions/editorialWorkflow';
 import { CONFIG_SUCCESS } from '../actions/config';
 
@@ -135,6 +137,19 @@ function unpublishedEntries(state = Map(), action: EditorialWorkflowAction) {
 
     case UNPUBLISHED_ENTRY_DELETE_SUCCESS:
       return state.deleteIn(['entities', `${action.payload!.collection}.${action.payload!.slug}`]);
+
+    case UNPUBLISHED_ENTRY_PUBLISH_SCHEDULE_SUCCESS:
+      return state.setIn(
+        ['entities', `${action.payload!.collection}.${action.payload!.slug}`, 'publishAt'],
+        action.payload!.publishAt,
+      );
+
+    case UNPUBLISHED_ENTRY_PUBLISH_UNSCHEDULE_SUCCESS:
+      return state.deleteIn([
+        'entities',
+        `${action.payload!.collection}.${action.payload!.slug}`,
+        'publishAt',
+      ]);
 
     case UNPUBLISHED_ENTRY_PUBLISH_FAILURE:
     default:

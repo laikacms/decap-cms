@@ -12,6 +12,7 @@ interface Options {
   author?: string;
   updatedOn?: string;
   status?: string;
+  publishAt?: string;
   meta?: { path?: string };
   i18n?: { [locale: string]: { data: Record<string, unknown> } };
 }
@@ -29,6 +30,7 @@ export interface EntryValue {
   author: string;
   updatedOn: string;
   status?: string;
+  publishAt?: string;
   meta: { path?: string };
   i18n?: { [locale: string]: { data: Record<string, unknown> } };
 }
