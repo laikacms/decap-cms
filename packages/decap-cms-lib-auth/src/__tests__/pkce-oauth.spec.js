@@ -44,6 +44,7 @@ describe('PkceAuthenticator', () => {
             for (let i = 0; i < buf.length; i++) buf[i] = i % 256;
             return buf;
           },
+          randomUUID: jest.fn(() => 'mock-uuid'),
           subtle: {
             digest: jest.fn().mockResolvedValue(new Uint8Array(32).fill(1).buffer),
           },

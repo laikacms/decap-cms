@@ -1,5 +1,3 @@
-import { v4 as uuidMock } from 'uuid';
-
 import {
   addNotification,
   clearNotifications,
@@ -10,11 +8,7 @@ import notifications from '../notifications';
 import type { NotificationsState } from '../notifications';
 import type { NotificationsAction } from '../../actions/notifications';
 
-jest.mock('uuid', () => ({
-  v4: jest.fn(() => 'mock-uuid'),
-}));
-
-const mockedUuid = uuidMock as jest.MockedFunction<typeof uuidMock>;
+const mockedUuid = jest.spyOn(crypto, 'randomUUID') as unknown as jest.Mock<string, []>;
 
 const defaultState: NotificationsState = {
   notifications: [],

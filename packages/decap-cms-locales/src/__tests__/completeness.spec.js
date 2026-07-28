@@ -67,6 +67,7 @@ const BASELINE_DRIFT = {
   pt: { missing: 40, extra: 0 },
   ro: { missing: 46, extra: 2 },
   ru: { missing: 32, extra: 0 },
+  sk: { missing: 21, extra: 0 },
   sl: { missing: 33, extra: 0 },
   sr_Cyrl: { missing: 21, extra: 0 },
   sv: { missing: 44, extra: 0 },

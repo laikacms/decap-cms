@@ -10,8 +10,6 @@ import withFileControl, {
   valueListToSortableArray,
 } from '../withFileControl';
 
-jest.mock('uuid');
-
 const FileControl = withFileControl();
 
 function t(key) {
@@ -380,9 +378,8 @@ describe('handleUrl (Insert from URL prompt)', () => {
 describe('valueListToSortableArray', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    const uuid = require('uuid');
     let counter = 0;
-    uuid.v4.mockImplementation(() => `generated-id-${++counter}`);
+    jest.spyOn(crypto, 'randomUUID').mockImplementation(() => `generated-id-${++counter}`);
   });
 
   it('wraps each item of a plain array in an { id, value } object', () => {
