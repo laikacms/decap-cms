@@ -20,7 +20,7 @@ const packageRoot = path.resolve(__dirname, '../..');
 const distDir = path.join(packageRoot, 'dist');
 const distExists = existsSync(distDir);
 
-type ExportsTarget = string | { types?: string, import?: string, default?: string };
+type ExportsTarget = string | { types?: string, import?: string, default?: string } | null;
 const exportsMap = packageJson.exports as Record<string, ExportsTarget>;
 
 function targetFiles(target: ExportsTarget): string[] {
@@ -39,6 +39,11 @@ describe.skipIf(!distExists)('package.json#exports dist targets (post `pnpm buil
 
   for (const key of subpaths) {
     const target = exportsMap[key];
+
+    // `null` targets (e.g. "./format-packs/mdx") are explicit blocks that
+    // override a wildcard sibling — Node refuses to resolve them on
+    // purpose, there's no dist file to check for.
+    if (target === null) continue;
 
     if (!key.includes('*')) {
       it(`"${key}" resolves to files that exist in dist/`, () => {

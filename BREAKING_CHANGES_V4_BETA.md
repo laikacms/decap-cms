@@ -116,8 +116,10 @@ currently require `ol` to be installed. If you use the Uploadcare media library,
 The `@/lib/richtext` barrel is Portable Text-only: it no longer exports the markdown/html/plaintext
 mappers or any Lexical bindings, so importing `core` (as `/laika-app/bare` does) no longer drags
 markdown-it and the Lexical editor into the bundle. The bundled formats moved to pack entry points —
-`format-packs/markdown`, `format-packs/html`, `format-packs/plaintext` (and `format-packs/mdx` when
-it lands) — and the Lexical bindings (PT<->Lexical bridge, block nodes, `LexicalRichtextValue`)
+`format-packs/markdown`, `format-packs/html`, `format-packs/plaintext` (mdx is not a format pack yet
+— `src/format-packs/mdx/` only has parse/attribute helpers, no `FormatPack` export, and
+`./format-packs/mdx` is explicitly blocked in `package.json#exports` until it lands) — and the
+Lexical bindings (PT<->Lexical bridge, block nodes, `LexicalRichtextValue`)
 moved to `lib/richtext/lexical`. The richtext widget also stopped auto-registering the markdown
 format at import; it only registers the zero-cost `portableText` identity mapper. The fat `/app` and
 `/laika-app` entries register markdown for you, so full-app consumers are unaffected.

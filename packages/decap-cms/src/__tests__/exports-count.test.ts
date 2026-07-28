@@ -11,6 +11,6 @@ describe('package.json#exports', () => {
     // If this fails, `package.json#exports` gained or lost subpaths. Update
     // this expected count *and* the "N subpaths" line in RESTRUCTURE.md
     // together so the doc never re-drifts from reality.
-    expect(subpaths.length).toBe(32);
+    expect(subpaths.length).toBe(33);
   });
 });
