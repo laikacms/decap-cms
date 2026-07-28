@@ -140,7 +140,6 @@ const NumberControl = React.forwardRef<NumberControlHandle, NumberControlProps>(
             }
           }
 
-          if (f.pattern) return true;
           const error = validateMinMax(
             v ?? '',
             (f.min ?? false) as number | false,

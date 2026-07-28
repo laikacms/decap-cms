@@ -407,6 +407,47 @@ describe('Number widget', () => {
   });
 });
 
+// DCMS-1624: isValid() used to early-return true whenever the field had a
+// `pattern`, skipping validateMinMax entirely, so min/max bounds were silently
+// unenforced on any field that also set `pattern` (a generic CmsFieldBase
+// option applicable to any widget). Both checks must now run.
+describe('isValid with both pattern and min/max set (DCMS-1624)', () => {
+  const field = {
+    label: 'Priority',
+    min: 1,
+    max: 5,
+    pattern: ['^[0-9]+$', 'must be numeric'],
+  };
+
+  it('rejects an out-of-range value even though it matches the pattern', () => {
+    const { ref } = setup({ field, defaultValue: 99 });
+
+    const result = ref().isValid();
+
+    expect(result).not.toBe(true);
+    expect(result).toHaveProperty('error');
+    expect(result.error.type).toBe('RANGE');
+  });
+
+  it('rejects a negative out-of-range value even though it matches the pattern', () => {
+    // Note: '-5' would not actually match `^[0-9]+$`, but the numeric value -5
+    // is used directly here to isolate the min/max check from the pattern check.
+    const { ref } = setup({ field, defaultValue: -5 });
+
+    const result = ref().isValid();
+
+    expect(result).not.toBe(true);
+    expect(result).toHaveProperty('error');
+    expect(result.error.type).toBe('RANGE');
+  });
+
+  it('passes when the value matches the pattern and is within range', () => {
+    const { ref } = setup({ field, defaultValue: 3 });
+
+    expect(ref().isValid()).toBe(true);
+  });
+});
+
 // DCMS-1083: failed-save validation rendered a visible `ControlErrorsList`
 // with no programmatic error state on the underlying input, so
 // screen-reader users could not identify which field was invalid.
