@@ -7,7 +7,7 @@ import map from 'lodash/map';
 import { translate } from 'react-polyglot';
 import fuzzy from 'fuzzy';
 import { fileExtension } from 'decap-cms-lib-util';
-import { confirmDialog, showAlert } from 'decap-cms-ui-default';
+import { confirmDialog, cropImage, showAlert } from 'decap-cms-ui-default';
 
 import {
   loadMedia as loadMediaAction,
@@ -37,7 +37,7 @@ const IMAGE_EXTENSIONS_VIEWABLE = [
 ];
 const IMAGE_EXTENSIONS = [...IMAGE_EXTENSIONS_VIEWABLE];
 
-class MediaLibrary extends React.Component {
+export class MediaLibrary extends React.Component {
   static propTypes = {
     isVisible: PropTypes.bool,
     loadMediaDisplayURL: PropTypes.func,
@@ -61,6 +61,7 @@ class MediaLibrary extends React.Component {
     deleteMedia: PropTypes.func.isRequired,
     insertMedia: PropTypes.func.isRequired,
     closeMediaLibrary: PropTypes.func.isRequired,
+    field: ImmutablePropTypes.map,
     t: PropTypes.func.isRequired,
   };
 
@@ -191,10 +192,10 @@ class MediaLibrary extends React.Component {
     event.persist();
     event.stopPropagation();
     event.preventDefault();
-    const { persistMedia, privateUpload, config, t, field } = this.props;
+    const { persistMedia, privateUpload, config, t, field, forImage } = this.props;
     const { files: fileList } = event.dataTransfer || event.target;
     const files = [...fileList];
-    const file = files[0];
+    let file = files[0];
     const maxFileSize = config.get('max_file_size');
 
     if (maxFileSize && file.size > maxFileSize) {
@@ -204,6 +205,19 @@ class MediaLibrary extends React.Component {
         }),
       );
     } else {
+      const cropBeforeUpload =
+        forImage && field && field.get('crop_before_upload') && /^image\//.test(file.type);
+
+      if (cropBeforeUpload) {
+        const croppedFile = await cropImage(file);
+        if (!croppedFile) {
+          // User cancelled the crop step; abort the upload entirely.
+          event.target.value = null;
+          return;
+        }
+        file = croppedFile;
+      }
+
       await persistMedia(file, { privateUpload, field });
 
       this.setState({ isPersisted: true });

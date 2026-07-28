@@ -61,6 +61,7 @@ export default class NumberControl extends React.Component {
     step: PropTypes.oneOfType([PropTypes.number, PropTypes.oneOf(['any'])]),
     min: PropTypes.number,
     max: PropTypes.number,
+    slider: PropTypes.bool,
     t: PropTypes.func.isRequired,
   };
 
@@ -185,6 +186,46 @@ export default class NumberControl extends React.Component {
     const min = field.get('min', '');
     const max = field.get('max', '');
     const step = field.get('step', field.get('value_type') === 'int' ? 1 : 'any');
+    const slider = field.get('slider', false);
+    const numericValue = value || (value === 0 ? value : '');
+
+    if (slider) {
+      // `<input type="range">` can't be a controlled component with an empty
+      // string value (it would warn and fall back to the browser default),
+      // so an unset value falls back to `min` (or 0 when `min` is also
+      // unset, matching the native range-input default) purely for the
+      // slider thumb's position; the paired number input still shows the
+      // real (possibly empty) value, and onChange/handleChange is untouched
+      // either way.
+      const sliderValue = numericValue === '' ? min || 0 : numericValue;
+      return (
+        <div className={classNameWrapper}>
+          <input
+            type="range"
+            id={forID}
+            onFocus={setActiveStyle}
+            onBlur={setInactiveStyle}
+            value={sliderValue}
+            step={step}
+            min={min}
+            max={max}
+            onChange={this.handleChange}
+          />
+          <input
+            type="number"
+            aria-label={field.get('label', field.get('name'))}
+            onFocus={setActiveStyle}
+            onBlur={setInactiveStyle}
+            value={numericValue}
+            step={step}
+            min={min}
+            max={max}
+            onChange={this.handleChange}
+          />
+        </div>
+      );
+    }
+
     return (
       <input
         type="number"
@@ -192,7 +233,7 @@ export default class NumberControl extends React.Component {
         className={classNameWrapper}
         onFocus={setActiveStyle}
         onBlur={setInactiveStyle}
-        value={value || (value === 0 ? value : '')}
+        value={numericValue}
         step={step}
         min={min}
         max={max}

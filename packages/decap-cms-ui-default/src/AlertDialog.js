@@ -45,14 +45,14 @@ const Panel = styled.div`
   }
 `;
 
-const Title = styled.h2`
+export const Title = styled.h2`
   margin: 0 0 8px;
   font-size: 16px;
   font-weight: 600;
   color: ${colors.textLead};
 `;
 
-const Message = styled.p`
+export const Message = styled.p`
   margin: 0 0 20px;
   font-size: 14px;
   line-height: 1.5;
@@ -60,13 +60,13 @@ const Message = styled.p`
   white-space: pre-wrap;
 `;
 
-const Footer = styled.div`
+export const Footer = styled.div`
   display: flex;
   justify-content: flex-end;
   gap: 8px;
 `;
 
-const DialogButton = styled.button`
+export const DialogButton = styled.button`
   ${buttons.button};
   height: 36px;
   line-height: 36px;
@@ -114,7 +114,7 @@ function restoreTriggerFocus(triggerElement) {
   }
 }
 
-function DialogFrame({ titleId, descriptionId, onDismiss, children, initialFocusRef }) {
+export function DialogFrame({ titleId, descriptionId, onDismiss, children, initialFocusRef }) {
   const panelRef = React.useRef(null);
 
   React.useEffect(() => {
@@ -156,7 +156,7 @@ function DialogFrame({ titleId, descriptionId, onDismiss, children, initialFocus
 }
 
 let dialogIdCounter = 0;
-function useDialogIds() {
+export function useDialogIds() {
   return React.useMemo(() => {
     dialogIdCounter += 1;
     return {

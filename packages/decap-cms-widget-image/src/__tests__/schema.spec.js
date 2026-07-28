@@ -34,6 +34,28 @@ describe('image widget schema', () => {
     });
   });
 
+  describe('crop_before_upload', () => {
+    it('is defined as a boolean top-level property in the schema', () => {
+      expect(schema.properties.crop_before_upload).toEqual({ type: 'boolean' });
+    });
+
+    it('accepts true as a valid value', () => {
+      const valid = ajv.validate(widgetSchema, { crop_before_upload: true });
+      expect(valid).toBe(true);
+    });
+
+    it('accepts false as a valid value', () => {
+      const valid = ajv.validate(widgetSchema, { crop_before_upload: false });
+      expect(valid).toBe(true);
+    });
+
+    it('rejects a string value (wrong type)', () => {
+      const valid = ajv.validate(widgetSchema, { crop_before_upload: 'yes' });
+      expect(valid).toBe(false);
+      expect(ajv.errors.some(e => e.instancePath === '/crop_before_upload')).toBe(true);
+    });
+  });
+
   describe('media_library.allow_multiple', () => {
     it('is defined as a boolean under media_library in the schema', () => {
       expect(schema.properties.media_library).toBeDefined();

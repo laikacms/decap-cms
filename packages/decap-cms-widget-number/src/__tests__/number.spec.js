@@ -86,6 +86,10 @@ describe('Number widget schema', () => {
     });
   });
 
+  it('should accept slider as a boolean schema value', () => {
+    expect(schema.properties.slider).toEqual({ type: 'boolean' });
+  });
+
   it('unset value_type should produce a number result for whole numbers', () => {
     const field = fromJS({});
     const { onChangeSpy, input } = setup({ field });
@@ -621,5 +625,91 @@ describe('Number widget', () => {
 
       expect(error).toBeNull();
     });
+  });
+});
+
+describe('Number widget slider option (DCMS-1424)', () => {
+  it('renders a single plain number input when slider is unset (default, unchanged behavior)', () => {
+    const field = fromJS(fieldSettings);
+    const { container } = setup({ field });
+
+    const inputs = container.querySelectorAll('input');
+    expect(inputs).toHaveLength(1);
+    expect(inputs[0].getAttribute('type')).toBe('number');
+  });
+
+  it('renders a single plain number input when slider is explicitly false', () => {
+    const field = fromJS({ ...fieldSettings, slider: false });
+    const { container } = setup({ field });
+
+    const inputs = container.querySelectorAll('input');
+    expect(inputs).toHaveLength(1);
+    expect(inputs[0].getAttribute('type')).toBe('number');
+  });
+
+  it('renders a paired range + number input when slider is true', () => {
+    const field = fromJS({ ...fieldSettings, slider: true });
+    const { container } = setup({ field });
+
+    const inputs = container.querySelectorAll('input');
+    expect(inputs).toHaveLength(2);
+    expect(inputs[0].getAttribute('type')).toBe('range');
+    expect(inputs[1].getAttribute('type')).toBe('number');
+  });
+
+  it('slider range input carries the field min/max/step', () => {
+    const field = fromJS({ ...fieldSettings, slider: true });
+    const { container } = setup({ field });
+
+    const range = container.querySelector('input[type="range"]');
+    expect(range.getAttribute('min')).toBe('-20');
+    expect(range.getAttribute('max')).toBe('20');
+    expect(range.getAttribute('step')).toBe('1');
+  });
+
+  it('dragging the range input calls onChange like the plain input', () => {
+    const field = fromJS({ ...fieldSettings, slider: true });
+    const { container, onChangeSpy } = setup({ field });
+
+    const range = container.querySelector('input[type="range"]');
+    fireEvent.change(range, { target: { value: '5' } });
+
+    expect(onChangeSpy).toHaveBeenCalledWith(5);
+  });
+
+  it('editing the paired number input calls onChange like the plain input', () => {
+    const field = fromJS({ ...fieldSettings, slider: true });
+    const { container, onChangeSpy } = setup({ field });
+
+    const number = container.querySelector('input[type="number"]');
+    fireEvent.change(number, { target: { value: '-7' } });
+
+    expect(onChangeSpy).toHaveBeenCalledWith(-7);
+  });
+
+  it('range input falls back to min (not empty string) when value is unset, avoiding an uncontrolled-input warning', () => {
+    const field = fromJS({ min: -10, max: 10, slider: true });
+    const { container } = setup({ field });
+
+    const range = container.querySelector('input[type="range"]');
+    expect(range.value).toBe('-10');
+  });
+
+  it('range input falls back to 0 when both value and min are unset', () => {
+    const field = fromJS({ slider: true });
+    const { container } = setup({ field });
+
+    const range = container.querySelector('input[type="range"]');
+    expect(range.value).toBe('0');
+  });
+
+  it('both inputs reflect a numeric default value', () => {
+    const field = fromJS({ ...fieldSettings, slider: true });
+    const { container } = setup({ field, defaultValue: 12 });
+
+    const range = container.querySelector('input[type="range"]');
+    const number = container.querySelector('input[type="number"]');
+    expect(range.value).toBe('12');
+    expect(number.value).toBe('12');
   });
 });

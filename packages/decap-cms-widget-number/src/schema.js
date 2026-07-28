@@ -9,5 +9,6 @@ export default {
     value_type: { type: 'string', enum: ['int', 'float'] },
     min: { type: 'number' },
     max: { type: 'number' },
+    slider: { type: 'boolean' },
   },
 };

@@ -7,6 +7,7 @@ import {
   showAlert,
   useConfirm,
 } from './AlertDialog';
+import { CropDialogHost, cropImage } from './CropDialog';
 import Dropdown, {
   DropdownItem,
   DropdownCheckedItem,
@@ -45,9 +46,11 @@ export const DecapCmsUiDefault = {
   AlertDialogHost,
   ConfirmDialogHost,
   PromptDialogHost,
+  CropDialogHost,
   confirmDialog,
   promptDialog,
   showAlert,
+  cropImage,
   useConfirm,
   Dropdown,
   DropdownItem,
@@ -87,9 +90,11 @@ export {
   AlertDialogHost,
   ConfirmDialogHost,
   PromptDialogHost,
+  CropDialogHost,
   confirmDialog,
   promptDialog,
   showAlert,
+  cropImage,
   useConfirm,
   Dropdown,
   DropdownItem,

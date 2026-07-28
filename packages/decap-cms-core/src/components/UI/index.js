@@ -2,6 +2,7 @@ export {
   AlertDialogHost,
   ConfirmDialogHost,
   PromptDialogHost,
+  CropDialogHost,
   confirmDialog,
   promptDialog,
   showAlert,

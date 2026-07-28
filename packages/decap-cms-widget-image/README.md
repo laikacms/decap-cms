@@ -14,6 +14,7 @@ The Image widget allows editors to upload an image or select one from the config
 | `media_library.allow_multiple`| boolean | `false` | Allow selecting more than one image, used as a fallback when the top-level `allow_multiple` is not set                                |
 | `media_library.config`        | object  |         | Configuration object passed straight through to the media library implementation for this field, overriding the collection-level config |
 | `tagname`                     | string  |         | Wrap the rendered preview in this custom HTML tag name instead of the default preview container                                      |
+| `crop_before_upload`          | boolean | `false` | Show a canvas-based crop step before an uploaded/dropped image is persisted, letting editors drag-select the area to keep or use the original |
 
 ### `class`
 
@@ -51,6 +52,25 @@ By default, the entry editor's preview pane wraps the rendered image preview in 
   widget: 'image'
   tagname: 'figure'
 ```
+
+### `crop_before_upload`
+
+When set, choosing a file to upload (or dropping one) opens a crop dialog before the image is
+persisted to the media library backend. Editors can drag a rectangle over the image and confirm
+to upload only that region, or click "Use original" to skip cropping for that upload:
+
+```yaml
+- label: 'Hero Image'
+  name: 'hero'
+  widget: 'image'
+  crop_before_upload: true
+```
+
+Only applies to actual file uploads (drag-drop or the file picker); it has no effect when
+inserting an existing asset from the media library or via "Insert from URL". Camera capture,
+screen capture, QR-code scanning, AI image generation, and on-upload resizing are not covered by
+this option — see [issue #1424](https://github.com/laikacms/decap-cms/issues/1424) for that
+broader roadmap.
 
 ## Learn more
 

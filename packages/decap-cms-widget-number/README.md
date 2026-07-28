@@ -13,6 +13,7 @@ Number widget for [Decap CMS](https://decapcms.org).
 | `min`        | number  | —       | Minimum allowed value. |
 | `max`        | number  | —       | Maximum allowed value. |
 | `step`       | number \| `'any'`  | `1` for `int`, `any` for `float` or omitted | Input step size. Use `'any'` to allow any decimal value. |
+| `slider`     | boolean | `false` | Render a range slider (paired with a number input showing the exact value) instead of a plain number input. Reuses `min`/`max`/`step`. |
 
 ### `value_type` behavior
 
@@ -60,4 +61,17 @@ the "maximum safe integer" message.
   min: 0
   max: 100
   step: 1
+```
+
+### Slider example
+
+```yaml
+- label: "Volume"
+  name: "volume"
+  widget: "number"
+  value_type: "int"
+  min: 0
+  max: 100
+  step: 1
+  slider: true
 ```

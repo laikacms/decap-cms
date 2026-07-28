@@ -4,6 +4,7 @@ export default {
     private: { type: 'boolean' },
     class: { type: 'string' },
     allow_multiple: { type: 'boolean' },
+    crop_before_upload: { type: 'boolean' },
     media_library: {
       type: 'object',
       properties: {

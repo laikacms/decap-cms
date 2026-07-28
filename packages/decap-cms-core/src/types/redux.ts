@@ -158,6 +158,11 @@ export interface CmsFieldFileOrImage {
   class?: string;
   choose_url?: boolean;
   private?: boolean;
+  /**
+   * Image widget only: show a canvas-based crop step before an
+   * uploaded/dropped image is persisted. Ignored by the `file` widget.
+   */
+  crop_before_upload?: boolean;
 }
 
 export interface CmsFieldObject {
@@ -236,6 +241,12 @@ export interface CmsFieldNumber {
   max?: number;
 
   step?: number | 'any';
+
+  /**
+   * Renders a range slider (paired with a number input showing the exact
+   * value) instead of a plain number input. Reuses `min`/`max`/`step`.
+   */
+  slider?: boolean;
 
   /**
    * @deprecated Use value_type instead
