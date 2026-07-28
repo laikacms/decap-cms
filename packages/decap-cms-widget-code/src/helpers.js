@@ -2,7 +2,7 @@ import uniq from 'lodash/uniq';
 import isEmpty from 'lodash/isEmpty';
 
 export function getChangedProps(previous, next, keys) {
-  const propNames = keys || uniq(Object.keys(previous), Object.keys(next));
+  const propNames = keys || uniq([...Object.keys(previous), ...Object.keys(next)]);
   const changedProps = propNames.reduce((acc, prop) => {
     if (previous[prop] !== next[prop]) {
       acc[prop] = next[prop];
