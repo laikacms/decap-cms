@@ -124,9 +124,9 @@ describe('cropImage / CropDialogHost', () => {
 
     const stage = screen.getByTestId('crop-stage');
     const image = screen.getByTestId('crop-image');
-    jest.spyOn(stage, 'getBoundingClientRect').mockReturnValue(
-      mockRect({ left: 0, top: 0, width: 200, height: 100 }),
-    );
+    jest
+      .spyOn(stage, 'getBoundingClientRect')
+      .mockReturnValue(mockRect({ left: 0, top: 0, width: 200, height: 100 }));
     jest
       .spyOn(image, 'getBoundingClientRect')
       .mockReturnValue(mockRect({ left: 0, top: 0, width: 200, height: 100 }));
