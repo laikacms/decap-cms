@@ -13,10 +13,17 @@ Current skills:
   `src/lib/richtext/`).
 - `decap-widget-development`: building custom widgets and editor components against the plain-JS
   widget contracts.
+- `decap-api-driving`: driving a running CMS instance through the documents/assets JSON:API (the
+  protocol behind the MCP `api_request` tool and the `laika` backend), covering finding/listing
+  entries, the editorial workflow state machine, the `content` JSON codec, and media upload
+  (DCMS-1410).
 
 Authoring rules: keep them accurate to the source they document (the type definitions and
 `src/core/lib/registry.tsx` are the source of truth), use consumer-facing `@laikacms/decap-cms/*`
 subpath imports in examples, and no em dashes (repo-wide convention).
 
-Companion skills covering MCP tool usage, the revision (`rev`) protocol, and editorial-workflow
-semantics are authored in the laikacms package, not here.
+`decap-api-driving` documents the `laikacms` package's protocol surface (routes and schemas read
+from the installed `laikacms` dependency), grounded here rather than in the `laikacms` package
+itself because that package has no skills directory of its own yet. Revisit whether it should move
+there once it does; a repo-reachable MCP `read_skill`/`list_skills` tool is a separate follow-up
+(DCMS-1410).
