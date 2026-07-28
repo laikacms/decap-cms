@@ -89,6 +89,12 @@ export function useEditor({
   // mounted at the app root that outlives the route (DCMS-1063).
   const unmountControllerRef = useRef<AbortController>(new AbortController());
   const lockRefreshIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pageHideHandlerRef = useRef<(() => void) | null>(null);
+  // Guards against releasing the lock twice (once from `pagehide`, once from
+  // the React cleanup effect) -- harmless either way since the backend
+  // release is a no-op once we no longer hold the lock, but avoids a
+  // pointless second dispatch/network call.
+  const lockReleasedRef = useRef(false);
 
   useEffect(() => {
     // Under React 18 StrictMode, this effect's cleanup fires once against
@@ -193,6 +199,8 @@ export function useEditor({
       return { cleanup: () => {} };
     }
 
+    lockReleasedRef.current = false;
+
     // Retrieve local backup
 
     dispatch(retrieveLocalBackup(collection, slug || '') as any);
@@ -231,6 +239,34 @@ export function useEditor({
     }
     exitBlockerRef.current = exitBlocker;
     window.addEventListener('beforeunload', exitBlocker);
+
+    // Release the advisory entry lock (DCMS-1414) on tab-close / off-site
+    // navigation (DCMS-1578). The React cleanup effect below also releases
+    // the lock, but it never runs when the browser tears down the JS
+    // context outright (tab close, browser quit, crash, `location.href =
+    // ...`) -- only on in-app (router) navigation. `pagehide` fires
+    // reliably for both cases *and*, unlike `beforeunload`, only when the
+    // navigation actually goes through (it does not fire if the user
+    // cancels an unsaved-changes prompt), so releasing here can't strand a
+    // tab that's staying open without its lock.
+    //
+    // `dispatch(releaseEntryLock(...))` is written as an async thunk, but
+    // for every backend that currently implements entry locking (`test`/
+    // `dev-test`, backed by `EntryLockManager` over `localStorage`) the
+    // actual release is synchronous -- there's no `await` before the store
+    // write completes, so the write has already happened by the time this
+    // handler returns, well before the page is torn down. We deliberately
+    // don't `await` it here: `beforeunload`/`pagehide` handlers can't rely
+    // on pending async work (e.g. a future HTTP-backed lock backend)
+    // completing, so this is a best-effort release, not a guaranteed one --
+    // the 5-minute TTL remains the backstop.
+    const releaseLockOnPageHide = () => {
+      if (lockReleasedRef.current || newEntry || !slug) return;
+      lockReleasedRef.current = true;
+      dispatch(releaseEntryLock(collection, slug) as any);
+    };
+    pageHideHandlerRef.current = releaseLockOnPageHide;
+    window.addEventListener('pagehide', releaseLockOnPageHide);
 
     // Setup navigation blocker (router.block covers PUSH/REPLACE and POP-type
     // navigation alike; a blocked POP's URL change is reverted before the
@@ -310,6 +346,10 @@ export function useEditor({
         if (exitBlockerRef.current) {
           window.removeEventListener('beforeunload', exitBlockerRef.current);
         }
+        if (pageHideHandlerRef.current) {
+          window.removeEventListener('pagehide', pageHideHandlerRef.current);
+          pageHideHandlerRef.current = null;
+        }
         if (unblockRef.current) {
           unblockRef.current();
           unblockRef.current = null;
@@ -322,7 +362,8 @@ export function useEditor({
           clearInterval(lockRefreshIntervalRef.current);
           lockRefreshIntervalRef.current = null;
         }
-        if (!newEntry && slug) {
+        if (!newEntry && slug && !lockReleasedRef.current) {
+          lockReleasedRef.current = true;
           dispatch(releaseEntryLock(collection, slug) as any);
         }
       },
