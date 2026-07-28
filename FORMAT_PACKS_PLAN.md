@@ -277,7 +277,7 @@ Phase 4 shipped with these follow-ups parked on gated files:
 1. `package.json`: remove the `./editor-component-image` export subpath, then delete
    `src/editor-component-image/` (kept on disk so the export stays buildable meanwhile; nothing
    imports it anymore and its type is inlined).
-2. `BREAKING_CHANGES_V2_BETA.md` (constitutional doc): add the entry below.
+2. `BREAKING_CHANGES_V4_BETA.md` (constitutional doc): add the entry below.
 
    > ### `registerEditorComponent` / `editor_components` removed
    >

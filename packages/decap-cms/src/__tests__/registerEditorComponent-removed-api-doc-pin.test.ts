@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 // `registerEditorComponent` (the pre-Lexical shortcode/embed API, keyed on
 // `pattern`/`fromBlock`/`toBlock`/`toPreview`) was removed and replaced by
 // `CMS.registerBlock` (PT-native custom blocks, see
-// `src/widgets/richtext/README.md` "Custom blocks" and BREAKING_CHANGES_V2_BETA.md).
+// `src/widgets/richtext/README.md` "Custom blocks" and BREAKING_CHANGES_V4_BETA.md).
 // DCMS-1150/#1151 found two live docs still teaching the removed API verbatim
 // (core/README.md, skills/decap-widget-development/SKILL.md) years after the
 // removal, because nothing checked docs against the actual exports.

@@ -87,7 +87,7 @@ export const registerExtensions = once(function registerExtensions(): void {
     DecapCmsWidgetUuid.Widget(),
     RichtextWidget(),
     // v1→v2 back-compat alias: `markdown` was renamed to `richtext` (DCMS-483).
-    // See BREAKING_CHANGES_V2_BETA.md for the migration note.
+    // See BREAKING_CHANGES_V4_BETA.md for the migration note.
     { ...RichtextWidget(), name: 'markdown' },
   ].forEach(widget => CMS.registerWidget(widget));
   // The richtext widget stores a lazy `LexicalRichtextValue`; the passthrough
@@ -112,7 +112,7 @@ export const registerExtensions = once(function registerExtensions(): void {
   );
   // The legacy `registerEditorComponent` API was removed: images and code
   // blocks are native Portable Text types; custom blocks register via
-  // `CMS.registerBlock(...)` (see BREAKING_CHANGES_V2_BETA.md).
+  // `CMS.registerBlock(...)` (see BREAKING_CHANGES_V4_BETA.md).
   // Default embed blocks (previously hardcoded Lexical nodes that lost their
   // content at persist). Re-register with the same id to customize.
   CMS.registerBlock(youtubeBlock);

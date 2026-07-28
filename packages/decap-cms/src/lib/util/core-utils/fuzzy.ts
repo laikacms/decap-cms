@@ -1,5 +1,5 @@
 // Inlined replacement for the `fuzzy` package (0.1.3), keeping only the
-// subsequence matching and ordering the CMS uses (DEPENDENCY_REDUCTION_PLAN.md
+// subsequence matching and ordering the CMS uses (dependency-reduction
 // Phase 2). Scoring must stay bit-identical to the original: `Backend.search`
 // filters on `score > 5`, and an exact match scores `Infinity`.
 

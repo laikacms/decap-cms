@@ -49,6 +49,5 @@ Migrate the two `react-select` widgets to Base UI Combobox, dropping the `react-
 Why not done now: this is a behavioral rewrite of two config-driven widgets with a wide
 compatibility surface (string vs object option values, `multiple` with `min`/`max` validation, i18n
 hit mapping, entry-draft value shapes, paginated `loadOptions`, drag sorting) that is covered by
-widget specs and e2e flows. It is multi-day work, not a low-risk swap, and `react-select` is not
-currently targeted by DEPENDENCY_REDUCTION_PLAN.md, so there is no forcing function to do it in this
-pass.
+widget specs and e2e flows. It is multi-day work, not a low-risk swap, and there is no forcing
+function to do it in this pass.

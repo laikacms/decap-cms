@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-// DCMS-1233: `BREAKING_CHANGES_V2_BETA.md`'s "GraphQL client libraries are
+// DCMS-1233: `BREAKING_CHANGES_V4_BETA.md`'s "GraphQL client libraries are
 // now optional peer dependencies" migration snippet used to tell adopters to
 // `pnpm add @apollo/client rxjs graphql graphql-tag`, but `rxjs` is not
 // declared anywhere in `packages/decap-cms/package.json` (not a peer dep,
@@ -22,7 +22,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../../../..');
 
 const PACKAGE_JSON_PATH = path.join(REPO_ROOT, 'packages/decap-cms/package.json');
-const BREAKING_CHANGES_DOC_PATH = path.join(REPO_ROOT, 'BREAKING_CHANGES_V2_BETA.md');
+const BREAKING_CHANGES_DOC_PATH = path.join(REPO_ROOT, 'BREAKING_CHANGES_V4_BETA.md');
 
 describe('rxjs is not part of the @laikacms/decap-cms GraphQL contract (DCMS-1233)', () => {
   it('is absent from packages/decap-cms/package.json dependency fields', () => {
@@ -42,7 +42,7 @@ describe('rxjs is not part of the @laikacms/decap-cms GraphQL contract (DCMS-123
     });
 
     // If this fails, something re-added `rxjs` to package.json. Either it's
-    // genuinely needed now (in which case BREAKING_CHANGES_V2_BETA.md's
+    // genuinely needed now (in which case BREAKING_CHANGES_V4_BETA.md's
     // migration snippet should list it again), or it's an accidental/stale
     // entry that should be removed.
     expect(offenders).toEqual([]);
@@ -70,7 +70,7 @@ describe('rxjs is not part of the @laikacms/decap-cms GraphQL contract (DCMS-123
     expect(offenders).toEqual([]);
   });
 
-  it("is absent from BREAKING_CHANGES_V2_BETA.md's GraphQL migration `pnpm add` line", () => {
+  it("is absent from BREAKING_CHANGES_V4_BETA.md's GraphQL migration `pnpm add` line", () => {
     const contents = fs.readFileSync(BREAKING_CHANGES_DOC_PATH, 'utf8');
 
     const pnpmAddLines = contents

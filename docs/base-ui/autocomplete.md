@@ -65,6 +65,6 @@ attribute alongside `:hover`, using the shared `colors` tokens from `@/ui/defaul
 
 `src/widgets/relation/RelationControl.tsx` and `src/widgets/select/SelectControl.tsx` still use
 `react-select` (async, multi-value, virtualized via `react-window`). Base UI Autocomplete (or,
-better for selection semantics, Combobox) is the natural replacement if `react-select` is targeted
-by DEPENDENCY_REDUCTION_PLAN.md, but the multi-value, sortable, async-paginated behavior there makes
-that a separate, larger effort.
+better for selection semantics, Combobox) is the natural replacement if `react-select` is ever
+targeted for removal, but the multi-value, sortable, async-paginated behavior there makes that a
+separate, larger effort.

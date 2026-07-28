@@ -207,7 +207,7 @@ backend:
 
 `registerEditorComponent` was removed; custom richtext embeds/shortcodes are now registered as
 **blocks** — a PT-native (Portable Text) replacement documented in full at
-`src/widgets/richtext/README.md` ("Custom blocks"). See `BREAKING_CHANGES_V2_BETA.md` for the
+`src/widgets/richtext/README.md` ("Custom blocks"). See `BREAKING_CHANGES_V4_BETA.md` for the
 removal context.
 
 ```ts
