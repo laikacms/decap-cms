@@ -160,6 +160,28 @@ export function getFolderFiles(
   return files;
 }
 
+// Returns the *direct* children of `folder` only — subdirectories tagged
+// `{ isDirectory: true }`, leaf files carrying their proxy `content` —
+// without recursively flattening deeper descendants the way `getFolderFiles`
+// does. Backs `getMedia(folder, folderSupport: true)`, mirroring the
+// single-folder listing contract azure/bitbucket/git-gateway/github/gitlab/
+// laika/proxy/dev-server all emit after PR #1554 (DCMS-1573).
+export function getFolderChildren(tree: RepoTree, folder: string) {
+  const segments = folder ? folder.split('/') : [];
+  let node: RepoTree = tree;
+  while (node && segments.length) {
+    node = node[segments.shift() as string] as RepoTree;
+  }
+
+  return Object.keys(node || {}).map(name => {
+    const path = folder ? `${folder}/${name}` : name;
+    const value = node[name];
+    return extname(name)
+      ? { path, name, isDirectory: false as const, content: (value as RepoFile).content }
+      : { path, name, isDirectory: true as const };
+  });
+}
+
 export default class TestBackend implements CmsImplementation {
   mediaFolder: string;
   options: { initialWorkflowStatus?: string };
@@ -405,7 +427,27 @@ export default class TestBackend implements CmsImplementation {
     return Promise.resolve();
   }
 
-  getMedia(mediaFolder = this.mediaFolder) {
+  getMedia(mediaFolder = this.mediaFolder, folderSupport?: boolean) {
+    if (folderSupport) {
+      const children = getFolderChildren(window.repoFiles, mediaFolder);
+      const assets = children.map(child => {
+        if (child.isDirectory) {
+          return {
+            id: child.path,
+            name: child.name,
+            path: child.path,
+            displayURL: { id: child.path, path: child.path },
+            isDirectory: true,
+          };
+        }
+        return {
+          ...this.normalizeAsset(child.content as CmsAssetProxy),
+          isDirectory: false,
+        };
+      });
+      return Promise.resolve(assets);
+    }
+
     const files = getFolderFiles(window.repoFiles, mediaFolder.split('/')[0], '', 100).filter(f =>
       f.path.startsWith(mediaFolder)
     );
