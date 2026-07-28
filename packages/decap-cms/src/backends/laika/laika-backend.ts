@@ -1115,6 +1115,29 @@ export default function createLaikaBackend(
     // unpublished: true
     // useWorkflow: true
     async persistEntry(entry: Entry, options: PersistOptions): Promise<void> {
+      // Fail fast, before any network request, if any data file for this entry
+      // is not JSON-format (DCMS-1638). This mirrors the format check further
+      // down (guarding the actual content persist) but must run BEFORE the
+      // asset-upload loop below: uploading an asset for an entry whose content
+      // persist is doomed to fail orphans that asset server-side and
+      // contradicts this backend's README promise that no request reaches the
+      // server before the format check.
+      for (const dataFile of entry.dataFiles) {
+        const isJsonFile = /\.json$/i.test(dataFile.path);
+        const content: any = typeof dataFile.raw === 'string'
+          ? parseJsonEntryContent(dataFile.raw, isJsonFile)
+          : dataFile.raw ?? {};
+        if (typeof content === 'string') {
+          const collectionName = options.collectionName ?? dataFile.path.split('/')[0];
+          throw new APIError(
+            `Laika backend currently only supports JSON-format collections; `
+              + `set \`format: json\` on collection \`${collectionName}\`.`,
+            400,
+            'Laika Backend',
+          );
+        }
+      }
+
       // First, persist any assets (images, files) that are part of this entry
       // These are AssetProxy objects that need to be uploaded before the entry is saved
       if (entry.assets && entry.assets.length > 0) {
