@@ -631,7 +631,7 @@ export function checkScheduledPublishes() {
     entities
       .keySeq()
       .toArray()
-      .forEach((key: string) => {
+      .forEach((key: string | number) => {
         const entry = entities.get(key);
         if (!entry) return;
         const entryStatus = entry.get('status');
@@ -642,7 +642,7 @@ export function checkScheduledPublishes() {
           !isPublishing &&
           isPublishAtDue(publishAt)
         ) {
-          const [collectionName, ...slugParts] = key.split('.');
+          const [collectionName, ...slugParts] = String(key).split('.');
           const slug = slugParts.join('.');
           dispatch(publishUnpublishedEntry(collectionName, slug));
         }
