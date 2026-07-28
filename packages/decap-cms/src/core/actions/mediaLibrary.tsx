@@ -244,6 +244,7 @@ export function loadMedia(
         const mediaPage = await backend.getMediaPage({
           cursor,
           perPage: MEDIA_LIBRARY_PAGE_SIZE,
+          folderSupport: true,
           ...(capabilities.dynamicSearch && query ? { query } : {}),
         });
         return dispatch(
@@ -273,7 +274,7 @@ export function loadMedia(
 
     function loadFunction() {
       return backend
-        .getMedia()
+        .getMedia(undefined, true)
         .then((files: MediaFile[]) => dispatch(mediaLoaded(files)))
         .catch((error: { status?: number }) => {
           console.error(error);

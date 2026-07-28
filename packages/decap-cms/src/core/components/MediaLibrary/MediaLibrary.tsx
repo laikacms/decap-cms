@@ -156,9 +156,10 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
   React.useEffect(() => {
     // Deliberately no `folder` here: the initial/default listing must keep
     // going through loadMedia's normal pagination/integration/legacy paths
-    // (only explicit folder navigation below bypasses those). `rootFolder`
-    // otherwise matches what the backend already defaults to, so this stays
-    // consistent with what actually loaded.
+    // (only explicit folder navigation below bypasses those). Those paths
+    // now pass folderSupport through to the backend as well, so the root
+    // listing surfaces directory entries (isDirectory) instead of a
+    // flattened recursive listing, same as explicit folder navigation.
     loadMedia();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
   }, []);

@@ -1347,7 +1347,7 @@ export default function createLaikaBackend(
      */
     async getMediaPage(opts: CmsGetMediaPageOptions): Promise<CmsMediaPage> {
       const repo = this.getAssetsRepo();
-      const { cursor, query, perPage = 100 } = opts;
+      const { cursor, query, perPage = 100, folderSupport } = opts;
 
       const result = await collectStreamWithDone(
         repo.listResources(this.mediaFolder, {
@@ -1397,9 +1397,25 @@ export default function createLaikaBackend(
         };
       });
 
+      // Mirrors getMedia's folder handling: only surface directory entries
+      // when the caller opts in via folderSupport, so callers that don't
+      // understand isDirectory keep seeing the flattened file list.
+      const folderFiles: ImplementationMediaFile[] = folderSupport
+        ? result.success.data
+          .filter((r: Resource): r is Resource & { type: 'folder' } => r.type === 'folder')
+          .map(resource => ({
+            id: resource.key,
+            name: resource.key.split('/').pop() || resource.key,
+            size: 0,
+            displayURL: this.getPublicPath(resource.key),
+            path: this.getPublicPath(resource.key),
+            isDirectory: true,
+          }))
+        : [];
+
       const donePagination = result.success.done.pagination;
       const nextCursor = donePagination && 'after' in donePagination ? donePagination.after : undefined;
-      return { files, ...(nextCursor ? { nextCursor } : {}) };
+      return { files: [...folderFiles, ...files], ...(nextCursor ? { nextCursor } : {}) };
     }
 
     async getMedia(
