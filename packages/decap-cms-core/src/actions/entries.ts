@@ -8,6 +8,7 @@ import {
   selectField,
   updateFieldByKey,
   selectDefaultSortField,
+  selectAllowNewEntries,
 } from '../reducers/collections';
 import { selectIntegration, selectPublishedSlugs } from '../reducers';
 import { getIntegrationProvider } from '../integrations';
@@ -33,6 +34,7 @@ import type { ThunkDispatch } from 'redux-thunk';
 import type {
   Collection,
   EntryMap,
+  EntryDraft,
   State,
   EntryFields,
   EntryField,
@@ -1043,6 +1045,69 @@ export function persistEntry(collection: Collection) {
         dispatch(entryPersistFail(collection, serializedEntry, error));
         return Promise.reject(error);
       });
+  };
+}
+
+/**
+ * Builds a brand-new `EntryValue` for `collection`, backfilling any field
+ * not present in `data` with the same defaulting logic `createEmptyDraft`
+ * uses, then overlaying the caller-supplied `data` on top. Used by the
+ * relation widget's "quick add" flow (DCMS-1421) to seed a new entry from
+ * only the handful of fields it collected in its minimal-fields form.
+ */
+export function createQuickCreateEntryData(
+  collection: Collection,
+  data: Record<string, unknown>,
+): EntryValue {
+  const fields = collection.get('fields', List());
+  const dataFields = getDataFields(fields);
+  const defaultData = createEmptyDraftData(dataFields);
+  return createEntry(collection.get('name'), '', '', {
+    data: { ...defaultData, ...data } as Record<string, unknown>,
+  });
+}
+
+/**
+ * Persists a new entry for `collection` built from `data`, entirely outside
+ * of `state.entryDraft` (DCMS-1421). The main editor keeps exactly one
+ * in-flight draft in that slice; reusing it here (as `persistEntry` above
+ * does) would clobber whatever entry the user is currently editing when
+ * they quick-add a referenced entry from a relation field without leaving
+ * the page. Instead this builds a throwaway `entryDraft`-shaped Immutable
+ * Map with just the `entry` key `backend.persistEntry` actually reads, so
+ * the real editing session is untouched.
+ */
+export function persistQuickCreateEntry(collection: Collection, data: Record<string, unknown>) {
+  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+    if (!selectAllowNewEntries(collection)) {
+      throw new Error('Not allowed to create new entries in this collection');
+    }
+
+    const state = getState();
+    const backend = currentBackend(state.config);
+
+    let entryValue = createQuickCreateEntryData(collection, data);
+    entryValue = await backend.processEntry(state, collection, entryValue);
+
+    const rawEntry = fromJS(entryValue).set('newRecord', true) as unknown as Entry;
+    const serializedEntry = getSerializedEntry(collection, rawEntry);
+    const usedSlugs = selectPublishedSlugs(state, collection.get('name'));
+    const syntheticDraft = Map({ entry: serializedEntry, fieldsErrors: Map() }) as unknown as EntryDraft;
+
+    const newSlug = await backend.persistEntry({
+      config: state.config,
+      collection,
+      entryDraft: syntheticDraft,
+      assetProxies: [],
+      usedSlugs,
+    });
+
+    dispatch(entryPersisted(collection, serializedEntry, newSlug));
+
+    const createdData = serializedEntry.get('data') as unknown;
+    return (
+      Map.isMap(createdData) ? (createdData as Map<string, unknown>).toJS() : createdData
+    ) as Record<string, unknown>;
   };
 }
 

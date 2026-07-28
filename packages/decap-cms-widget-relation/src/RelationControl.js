@@ -1,8 +1,10 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { components } from 'react-select';
 import AsyncSelect from 'react-select/async';
+import styled from '@emotion/styled';
 import debounce from 'lodash/debounce';
 import find from 'lodash/find';
 import get from 'lodash/get';
@@ -10,7 +12,7 @@ import isEmpty from 'lodash/isEmpty';
 import last from 'lodash/last';
 import uniqBy from 'lodash/uniqBy';
 import { fromJS, List, Map } from 'immutable';
-import { reactSelectStyles } from 'decap-cms-ui-default';
+import { reactSelectStyles, colors, colorsRaw, lengths, shadows, buttons } from 'decap-cms-ui-default';
 import { stringTemplate, validations } from 'decap-cms-lib-widgets';
 import { FixedSizeList } from 'react-window';
 import {
@@ -215,6 +217,44 @@ export function getDisplayFieldsLabel(data, displayFields, path, slug) {
 }
 
 /**
+ * Field keys usable in the quick-add minimal-fields form: plain top-level
+ * field names only. Templated (`{{...}}`) or dotted/nested paths can't be
+ * mapped back to a single input the way `value_field`/`display_fields`
+ * can be resolved for an existing, already-saved hit, so they're left out
+ * here - filling those in is part of the "advanced options" follow-up
+ * (DCMS-1421 scope note), not this quick-add slice.
+ */
+function isSimpleFieldKey(key) {
+  return typeof key === 'string' && key.length > 0 && !key.includes('.') && !key.includes('{{');
+}
+
+/**
+ * The set of field names the quick-add form should collect: the relation's
+ * `value_field` plus its `display_fields`, deduplicated, restricted to
+ * `isSimpleFieldKey`. Exported for testing.
+ */
+export function getQuickAddFieldNames(field) {
+  const valueField = field.get('value_field');
+  const displayFields = getFieldArray(field.get('display_fields'));
+  const candidates = [valueField, ...displayFields].filter(isSimpleFieldKey);
+  return Array.from(new Set(candidates));
+}
+
+/**
+ * Turns the plain `data` object returned by a successful quick-add persist
+ * into the same `{ label, value, data }` option shape `parseHitOptions`
+ * builds for search hits, so it can be selected via the normal
+ * `handleChange` path.
+ */
+export function buildQuickAddOption(field, data) {
+  const valueField = field.get('value_field');
+  const displayFields = field.get('display_fields') || List([valueField]);
+  const value = resolveTemplatedField(data, valueField);
+  const label = getDisplayFieldsLabel(data, displayFields) || value;
+  return { data, value, label };
+}
+
+/**
  * Looks up the cached hit data for a relation's stored value from the
  * `fieldsMetaData` tree built by RelationControl (`{ [collection]: { [value]:
  * hitData } }`) and resolves it to a display label using `display_fields`.
@@ -271,11 +311,158 @@ export function convertToSortableOption(raw) {
   };
 }
 
+const QuickAddButton = styled.button`
+  ${buttons.button};
+  margin-top: 8px;
+  height: 32px;
+  line-height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 500;
+  background-color: ${colorsRaw.grayLight};
+  color: ${colors.textLead};
+`;
+
+const QuickAddBackdrop = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+const QuickAddPanel = styled.form`
+  ${shadows.dropDeep};
+  background-color: ${colorsRaw.white};
+  border-radius: ${lengths.borderRadius};
+  max-width: 480px;
+  width: calc(100% - 2rem);
+  padding: 20px;
+  box-sizing: border-box;
+`;
+
+const QuickAddTitle = styled.h2`
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: ${colors.textLead};
+`;
+
+const QuickAddFieldLabel = styled.label`
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: ${colors.controlLabel};
+  margin-bottom: 4px;
+`;
+
+const QuickAddInput = styled.input`
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 14px;
+  padding: 8px 10px;
+  font-size: 14px;
+  border: 1px solid ${colors.textFieldBorder};
+  border-radius: ${lengths.borderRadius};
+
+  &:focus {
+    outline: 2px solid ${colors.active};
+    outline-offset: 1px;
+  }
+`;
+
+const QuickAddError = styled.p`
+  color: ${colors.errorText};
+  font-size: 12px;
+  margin: 0 0 12px;
+`;
+
+const QuickAddFooter = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+`;
+
+const QuickAddDialogButton = styled.button`
+  ${buttons.button};
+  height: 36px;
+  line-height: 36px;
+  padding: 0 15px;
+  font-weight: 500;
+  font-size: 14px;
+  background-color: ${props => (props.variant === 'primary' ? colors.active : colorsRaw.grayLight)};
+  color: ${props => (props.variant === 'primary' ? colorsRaw.white : colors.textLead)};
+`;
+
+function QuickAddModal({ collection, values, submitting, error, onChange, onCancel, onSubmit, t }) {
+  const fieldNames = Object.keys(values);
+  const title = t
+    ? t('widget.relation.quickAdd.title', { collection })
+    : `Create new ${collection}`;
+  const saveLabel = t ? t('widget.relation.quickAdd.save') : 'Save';
+  const cancelLabel = t ? t('widget.relation.quickAdd.cancel') : 'Cancel';
+
+  return ReactDOM.createPortal(
+    <QuickAddBackdrop
+      onMouseDown={event => {
+        if (event.target === event.currentTarget) {
+          onCancel();
+        }
+      }}
+    >
+      <QuickAddPanel
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        onSubmit={onSubmit}
+      >
+        <QuickAddTitle>{title}</QuickAddTitle>
+        {fieldNames.map(name => (
+          <div key={name}>
+            <QuickAddFieldLabel htmlFor={`quick-add-${name}`}>{name}</QuickAddFieldLabel>
+            <QuickAddInput
+              id={`quick-add-${name}`}
+              type="text"
+              value={values[name]}
+              disabled={submitting}
+              onChange={event => onChange(name, event.target.value)}
+            />
+          </div>
+        ))}
+        {error && <QuickAddError>{error}</QuickAddError>}
+        <QuickAddFooter>
+          <QuickAddDialogButton type="button" onClick={onCancel} disabled={submitting}>
+            {cancelLabel}
+          </QuickAddDialogButton>
+          <QuickAddDialogButton type="submit" variant="primary" disabled={submitting}>
+            {saveLabel}
+          </QuickAddDialogButton>
+        </QuickAddFooter>
+      </QuickAddPanel>
+    </QuickAddBackdrop>,
+    document.body,
+  );
+}
+
+QuickAddModal.propTypes = {
+  collection: PropTypes.string.isRequired,
+  values: PropTypes.objectOf(PropTypes.string).isRequired,
+  submitting: PropTypes.bool.isRequired,
+  error: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired,
+  t: PropTypes.func,
+};
+
 export default class RelationControl extends React.Component {
   mounted = false;
 
   state = {
     initialOptions: [],
+    quickAdd: null,
   };
 
   get field() {
@@ -293,6 +480,7 @@ export default class RelationControl extends React.Component {
     setActiveStyle: PropTypes.func.isRequired,
     setInactiveStyle: PropTypes.func.isRequired,
     locale: PropTypes.string,
+    onQuickCreateEntry: PropTypes.func,
   };
 
   isValid = () => {
@@ -316,11 +504,16 @@ export default class RelationControl extends React.Component {
     return error ? { error } : { error: false };
   };
 
-  shouldComponentUpdate(nextProps) {
+  shouldComponentUpdate(nextProps, nextState) {
     return (
       this.props.value !== nextProps.value ||
       this.props.hasActiveStyle !== nextProps.hasActiveStyle ||
-      this.props.queryHits !== nextProps.queryHits
+      this.props.queryHits !== nextProps.queryHits ||
+      // The quick-add modal (DCMS-1421) is driven entirely by local state -
+      // opening it, typing into its fields, submitting - none of which
+      // touches `value`/`hasActiveStyle`/`queryHits`, so it must be checked
+      // here too or the modal would never visibly open/update.
+      this.state.quickAdd !== nextState.quickAdd
     );
   }
 
@@ -470,6 +663,75 @@ export default class RelationControl extends React.Component {
     }
   };
 
+  canQuickAdd = () => Boolean(this.props.onQuickCreateEntry);
+
+  openQuickAdd = () => {
+    const values = {};
+    getQuickAddFieldNames(this.field).forEach(name => {
+      values[name] = '';
+    });
+    this.setState({ quickAdd: { values, submitting: false, error: null } });
+  };
+
+  closeQuickAdd = () => {
+    this.setState({ quickAdd: null });
+  };
+
+  updateQuickAddValue = (name, value) => {
+    this.setState(state => ({
+      quickAdd: { ...state.quickAdd, values: { ...state.quickAdd.values, [name]: value } },
+    }));
+  };
+
+  /**
+   * Selects a freshly quick-added entry in place, reusing the normal
+   * `handleChange` path so metadata/onChange behave exactly as they would
+   * for a search result the user picked from the dropdown.
+   */
+  selectQuickAddOption = option => {
+    if (this.isMultiple()) {
+      const pool = uniqOptions(this.state.initialOptions, [option]);
+      const currentSelected =
+        getSelectedValue({ options: pool, value: this.props.value, isMultiple: true }) || [];
+      this.handleChange([...currentSelected, convertToSortableOption(option)]);
+    } else {
+      this.handleChange(option);
+    }
+  };
+
+  submitQuickAdd = event => {
+    event.preventDefault();
+    const { onQuickCreateEntry } = this.props;
+    const { quickAdd } = this.state;
+    if (!onQuickCreateEntry || !quickAdd || quickAdd.submitting) {
+      return;
+    }
+
+    const field = this.field;
+    const collection = field.get('collection');
+
+    this.setState(state => ({ quickAdd: { ...state.quickAdd, submitting: true, error: null } }));
+
+    Promise.resolve(onQuickCreateEntry(collection, quickAdd.values))
+      .then(data => {
+        if (!this.mounted) {
+          return;
+        }
+        const option = buildQuickAddOption(field, data);
+        this.selectQuickAddOption(option);
+        this.setState({ quickAdd: null });
+      })
+      .catch(error => {
+        if (!this.mounted) {
+          return;
+        }
+        const message = (error && error.message) || String(error);
+        this.setState(state => ({
+          quickAdd: { ...state.quickAdd, submitting: false, error: message },
+        }));
+      });
+  };
+
   parseNestedFields = (hit, field) => {
     const { locale } = this.props;
     const hitData =
@@ -550,11 +812,12 @@ export default class RelationControl extends React.Component {
   }, 500);
 
   render() {
-    const { value, forID, classNameWrapper, setActiveStyle, setInactiveStyle, queryHits } =
+    const { value, forID, classNameWrapper, setActiveStyle, setInactiveStyle, queryHits, t } =
       this.props;
     const field = this.field;
     const isMultiple = this.isMultiple();
     const isClearable = !field.get('required', true) || isMultiple;
+    const collectionName = field.get('collection');
 
     const queryOptions = this.parseHitOptions(queryHits);
     const options = uniqOptions(this.state.initialOptions, queryOptions);
@@ -564,27 +827,50 @@ export default class RelationControl extends React.Component {
       isMultiple,
     });
 
+    const { quickAdd } = this.state;
+
     return (
-      <SortableSelect
-        useDragHandle
-        onSortEnd={this.onSortEnd(selectedValue)}
-        distance={4}
-        // react-select props:
-        components={{ MenuList, MultiValue, MultiValueLabel }}
-        value={selectedValue}
-        inputId={forID}
-        cacheOptions
-        defaultOptions
-        loadOptions={this.loadOptions}
-        onChange={this.handleChange}
-        className={classNameWrapper}
-        onFocus={setActiveStyle}
-        onBlur={setInactiveStyle}
-        styles={reactSelectStyles}
-        isMulti={isMultiple}
-        isClearable={isClearable}
-        placeholder=""
-      />
+      <>
+        <SortableSelect
+          useDragHandle
+          onSortEnd={this.onSortEnd(selectedValue)}
+          distance={4}
+          // react-select props:
+          components={{ MenuList, MultiValue, MultiValueLabel }}
+          value={selectedValue}
+          inputId={forID}
+          cacheOptions
+          defaultOptions
+          loadOptions={this.loadOptions}
+          onChange={this.handleChange}
+          className={classNameWrapper}
+          onFocus={setActiveStyle}
+          onBlur={setInactiveStyle}
+          styles={reactSelectStyles}
+          isMulti={isMultiple}
+          isClearable={isClearable}
+          placeholder=""
+        />
+        {this.canQuickAdd() && (
+          <QuickAddButton type="button" onClick={this.openQuickAdd}>
+            {t
+              ? t('widget.relation.quickAdd.action', { collection: collectionName })
+              : `+ Create new ${collectionName}`}
+          </QuickAddButton>
+        )}
+        {quickAdd && (
+          <QuickAddModal
+            collection={collectionName}
+            values={quickAdd.values}
+            submitting={quickAdd.submitting}
+            error={quickAdd.error}
+            onChange={this.updateQuickAddValue}
+            onCancel={this.closeQuickAdd}
+            onSubmit={this.submitQuickAdd}
+            t={t}
+          />
+        )}
+      </>
     );
   }
 }
