@@ -17,10 +17,18 @@ export function AlertDialogTrigger(
   return <AlertDialogPrimitive.Trigger data-slot="alert-dialog-trigger" {...props} />;
 }
 
+// Editor chrome (toolbar, header, sidebar) uses z-index up to 300, and some
+// app-level portals (App.tsx modal root, third-party media widgets) go as
+// high as 10500. z-index: 50 let those layers ride above this "modal"
+// backdrop, so the backdrop failed to actually cover — and therefore
+// couldn't intercept clicks on — the underlying chrome (DCMS-1632). Both the
+// backdrop and popup need to clear every other stacking context in the app.
+const modalZIndex = 100000;
+
 const backdropClass = css`
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: ${modalZIndex};
   background-color: rgb(0 0 0 / 0.1);
 `;
 
@@ -28,7 +36,7 @@ const popupClass = css`
   position: fixed;
   top: 50%;
   left: 50%;
-  z-index: 50;
+  z-index: ${modalZIndex};
   display: grid;
   width: 100%;
   max-width: calc(100% - 2rem);
@@ -55,6 +63,7 @@ export function AlertDialogContent({
       <AlertDialogPrimitive.Backdrop data-slot="alert-dialog-backdrop" css={backdropClass} />
       <AlertDialogPrimitive.Popup
         data-slot="alert-dialog-content"
+        aria-modal="true"
         css={popupClass}
         className={className}
         {...props}

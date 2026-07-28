@@ -53,6 +53,36 @@ describe('AlertDialog imperative host (Base UI)', () => {
   });
 });
 
+describe('AlertDialog modality (DCMS-1632)', () => {
+  it('exposes aria-modal="true" on the popup for assistive tech', async () => {
+    render(<AlertDialogHost />);
+    showAlert('Just a message');
+
+    const dialog = await screen.findByRole('alertdialog');
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+
+    await userEvent.setup().click(screen.getByRole('button', { name: 'OK' }));
+  });
+
+  it('stacks the backdrop and popup above the editor top-bar (z-index: 300)', async () => {
+    render(<AlertDialogHost />);
+    showAlert('Just a message');
+
+    const dialog = await screen.findByRole('alertdialog');
+    const backdrop = document.querySelector('[data-slot="alert-dialog-backdrop"]');
+    expect(backdrop).not.toBeNull();
+
+    // The editor's top toolbar (Save, back arrow) sits at z-index: 300
+    // (EditorToolbar.tsx). If the "modal" backdrop/popup don't clear every
+    // editor-chrome layer, the toolbar wins the stacking order and its
+    // buttons stay clickable through the dialog (DCMS-1632).
+    expect(Number(getComputedStyle(dialog).zIndex)).toBeGreaterThan(300);
+    expect(Number(getComputedStyle(backdrop as Element).zIndex)).toBeGreaterThan(300);
+
+    await userEvent.setup().click(screen.getByRole('button', { name: 'OK' }));
+  });
+});
+
 describe('ConfirmDialog imperative host (Base UI), DCMS-658', () => {
   it('resolves true when the confirm action is clicked', async () => {
     const user = userEvent.setup();
