@@ -1031,8 +1031,8 @@ export class Backend {
     return entryValue;
   }
 
-  getMedia() {
-    return this.implementation.getMedia();
+  getMedia(folder?: string, folderSupport?: boolean) {
+    return this.implementation.getMedia(folder, folderSupport);
   }
 
   /**

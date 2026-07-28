@@ -5,11 +5,16 @@ import React from 'react';
 import { Modal } from '@/core/components/UI';
 import { translate } from '@/core/i18n';
 import { useCmsSlots } from '@/core/lib/slots';
+import { basename } from '@/lib/util/index';
+import { selectMediaFolderEntries } from '@/core/reducers/mediaLibrary';
 import { colors } from '@/ui/default/index';
 import EmptyMessage from './EmptyMessage';
+import MediaLibraryBreadcrumbs from './MediaLibraryBreadcrumbs';
 import MediaLibraryCardGrid from './MediaLibraryCardGrid';
+import MediaLibraryFolders from './MediaLibraryFolders';
 import MediaLibraryTop from './MediaLibraryTop';
 
+import type { MediaFolderBreadcrumb } from '@/core/reducers/mediaLibrary';
 import type { TranslateFunction } from '@/ui/default/index';
 
 /**
@@ -73,6 +78,7 @@ interface MediaFile {
   url?: string;
   key?: string;
   type?: string;
+  isDirectory?: boolean;
 }
 
 interface MediaLibraryModalProps {
@@ -115,6 +121,8 @@ interface MediaLibraryModalProps {
   loadDisplayURL: (file: MediaFile) => void;
   t: TranslateFunction;
   displayURLs: Record<string, unknown>;
+  breadcrumbs?: MediaFolderBreadcrumb[];
+  onNavigateFolder?: (path: string) => void;
 }
 
 function MediaLibraryModal({
@@ -147,16 +155,20 @@ function MediaLibraryModal({
   handleLoadMore,
   loadDisplayURL,
   displayURLs,
+  breadcrumbs,
+  onNavigateFolder,
   t,
 }: MediaLibraryModalProps) {
   const { renderMediaLibraryTop } = useCmsSlots();
-  const filteredFiles = forImage ? handleFilter(files) : files;
+  const { folders, regularFiles } = selectMediaFolderEntries(files);
+  const folderItems = folders.map(folder => ({ path: folder.path, name: basename(folder.path) }));
+  const filteredFiles = forImage ? handleFilter(regularFiles) : regularFiles;
   const queriedFiles = !dynamicSearch && query ? handleQuery(query, filteredFiles) : filteredFiles;
   const tableData = toTableData(queriedFiles);
-  const hasFiles = files && !!files.length;
+  const hasFiles = regularFiles && !!regularFiles.length;
   const hasFilteredFiles = filteredFiles && !!filteredFiles.length;
   const hasSearchResults = queriedFiles && !!queriedFiles.length;
-  const hasMedia = hasSearchResults;
+  const hasMedia = hasSearchResults || !!folderItems.length;
   const shouldShowEmptyMessage = !hasMedia;
   const emptyMessage = (isLoading && !hasMedia && t('mediaLibrary.mediaLibraryModal.loading'))
     || (dynamicSearchActive && t('mediaLibrary.mediaLibraryModal.noResults'))
@@ -209,6 +221,14 @@ function MediaLibraryModal({
           )
           : <MediaLibraryTop {...topProps} t={t} />;
       })()}
+      {!onNavigateFolder || !breadcrumbs
+        ? null
+        : (
+          <MediaLibraryBreadcrumbs breadcrumbs={breadcrumbs} onNavigate={onNavigateFolder} />
+        )}
+      {!onNavigateFolder
+        ? null
+        : <MediaLibraryFolders folders={folderItems} onNavigate={onNavigateFolder} />}
       {!shouldShowEmptyMessage ? null : <EmptyMessage content={emptyMessage || ''} isPrivate={privateUpload} />}
       <MediaLibraryCardGrid
         setScrollContainerRef={setScrollContainerRef}

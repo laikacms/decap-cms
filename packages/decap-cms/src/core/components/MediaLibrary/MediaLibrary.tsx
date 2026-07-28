@@ -11,7 +11,7 @@ import {
 } from '@/core/actions/mediaLibrary';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 import { useTranslate } from '@/core/i18n';
-import { selectMediaFiles } from '@/core/reducers/mediaLibrary';
+import { getMediaFolderBreadcrumbs, selectMediaFiles } from '@/core/reducers/mediaLibrary';
 import { useRouter } from '@/core/routing/context';
 import { fileExtension, fuzzyFilter } from '@/lib/util/index';
 import { confirmDialog, showAlert } from '@/ui';
@@ -82,6 +82,7 @@ interface MediaLibraryProps {
     query?: string,
     page?: number,
     privateUpload?: boolean,
+    folder?: string,
   }) => void;
   dynamicSearchQuery?: string;
   page?: number;
@@ -90,6 +91,13 @@ interface MediaLibraryProps {
   insertMedia: (mediaPath: string | string[], field?: unknown) => void;
   closeMediaLibrary: () => void;
   field?: unknown;
+  /**
+   * The effective media folder this session of the library is scoped to —
+   * the field/collection's configured media_folder when opened from an
+   * entry field, otherwise the site-wide `config.media_folder`. Used as the
+   * top of the breadcrumb trail and re-requested on open.
+   */
+  rootFolder?: string;
   t: TranslateFunction;
 }
 
@@ -119,6 +127,7 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
     page,
     config,
     field,
+    rootFolder,
     loadMedia,
     persistMedia,
     deleteMedia,
@@ -132,6 +141,7 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
   const [query, setQuery] = React.useState('');
   const [isPersisted, setIsPersisted] = React.useState(false);
   const [sortFields] = React.useState<SortField[] | undefined>(undefined);
+  const [currentFolder, setCurrentFolder] = React.useState<string | undefined>(rootFolder);
 
   const router = useRouter();
   const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
@@ -139,9 +149,21 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
   const prevPrivateUploadRef = React.useRef(privateUpload);
 
   React.useEffect(() => {
+    // Deliberately no `folder` here: the initial/default listing must keep
+    // going through loadMedia's normal pagination/integration/legacy paths
+    // (only explicit folder navigation below bypasses those). `rootFolder`
+    // otherwise matches what the backend already defaults to, so this stays
+    // consistent with what actually loaded.
     loadMedia();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
   }, []);
+
+  function handleNavigateFolder(path: string) {
+    setCurrentFolder(path);
+    setSelectedFile({});
+    loadMedia({ folder: path, privateUpload });
+    scrollToTop();
+  }
 
   /**
    * When the backend performs the search (dynamicSearch), follow typing with
@@ -188,6 +210,7 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
     if (isOpening) {
       setSelectedFile({});
       setQuery('');
+      setCurrentFolder(rootFolder);
       if (prevPrivateUploadRef.current !== privateUpload) {
         loadMedia({ privateUpload });
       }
@@ -370,6 +393,8 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
       handleLoadMore={handleLoadMore}
       displayURLs={displayURLs as any}
       loadDisplayURL={loadDisplayURL}
+      breadcrumbs={getMediaFolderBreadcrumbs(rootFolder, currentFolder)}
+      onNavigateFolder={handleNavigateFolder}
     />
   );
 }
@@ -379,6 +404,14 @@ export default function ConnectedMediaLibrary() {
   const dispatch = useAppDispatch();
   const mediaLibrary = useAppSelector((state: any) => state.mediaLibrary);
   const files = useAppSelector((state: any) => selectMediaFiles(state, state.mediaLibrary.field));
+  // Breadcrumb root: matches exactly what the initial (folder-less)
+  // `loadMedia()` call already lists (backends default `getMedia()` to
+  // `config.media_folder`), so the trail never disagrees with what's shown.
+  // Per-field/per-collection media folder roots are a further scoping this
+  // pass doesn't attempt — see the DCMS-1398 PR notes.
+  const rootFolder = useAppSelector((state: any) =>
+    typeof state.config?.media_folder === 'string' ? state.config.media_folder : undefined
+  );
 
   const props: any = {
     isVisible: mediaLibrary.isVisible,
@@ -398,6 +431,7 @@ export default function ConnectedMediaLibrary() {
     hasNextPage: mediaLibrary.hasNextPage,
     isPaginating: mediaLibrary.isPaginating,
     field: mediaLibrary.field,
+    rootFolder,
     loadMedia: (opts?: any) => dispatch(loadMediaAction(opts)),
     persistMedia: (file: File, opts?: any) => dispatch(persistMediaAction(file, opts)),
     deleteMedia: (file: any, opts?: any) => dispatch(deleteMediaAction(file, opts)),
