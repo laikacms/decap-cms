@@ -125,3 +125,41 @@ window.repoFiles._pages = {
     content: '---\ntitle: "Root Page"\n---\n',
   },
 };
+
+// Seeds `assets/uploads` (the `media_folder`) with a leaf image plus a
+// non-empty subfolder, so the DCMS-1552 folder-nav/breadcrumb UI has
+// something to render locally instead of an empty Media library (DCMS-1573).
+const ONE_PIXEL_PNG_BASE64 =
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+
+function makeImageAssetProxy(path, base64) {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  const fileObj = new File([bytes], path.split('/').pop(), { type: 'image/png' });
+
+  return {
+    content: {
+      path,
+      fileObj,
+      toString() {
+        return URL.createObjectURL(this.fileObj);
+      },
+      toBase64: async () => base64,
+    },
+  };
+}
+
+window.repoFiles.assets = {
+  uploads: {
+    'nf-logo.png': makeImageAssetProxy('assets/uploads/nf-logo.png', ONE_PIXEL_PNG_BASE64),
+    photos: {
+      'sample-photo.png': makeImageAssetProxy(
+        'assets/uploads/photos/sample-photo.png',
+        ONE_PIXEL_PNG_BASE64,
+      ),
+    },
+  },
+};
