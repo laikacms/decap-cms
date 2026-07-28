@@ -81,6 +81,25 @@ describe('shipped config.schema.json (DCMS-1402)', () => {
     expect(rawSchema.properties?.backend).toBeDefined();
   });
 
+  it('has a top-level asset_collections property mirroring getConfigSchema() (DCMS-1626)', () => {
+    const assetCollections = rawSchema.properties?.asset_collections as JSONSchema | undefined;
+    expect(assetCollections).toBeDefined();
+    expect(assetCollections?.type).toBe('array');
+    expect(assetCollections?.minItems).toBe(1);
+
+    const items = assetCollections?.items as JSONSchema;
+    expect(items.type).toBe('object');
+    expect(items.required).toEqual(['name', 'label', 'media_folder']);
+    expect(items.properties?.name).toBeDefined();
+    expect(items.properties?.label).toBeDefined();
+    expect(items.properties?.label_singular).toBeDefined();
+    expect(items.properties?.description).toBeDefined();
+    expect(items.properties?.media_folder).toBeDefined();
+    expect(items.properties?.public_folder).toBeDefined();
+    expect(items.properties?.allowed_file_types).toBeDefined();
+    expect(items.properties?.filename_template).toBeDefined();
+  });
+
   it('every $ref points at a declared definition', () => {
     const definitions = rawSchema.definitions as Record<string, JSONSchema>;
     expect(Object.keys(definitions).length).toBeGreaterThan(0);
@@ -182,6 +201,26 @@ describe('shipped config.schema.json (DCMS-1402)', () => {
         ],
       };
       expect(validateJSONSchema(schema, configWithFieldGroups)).toEqual([]);
+    });
+
+    it('accepts a top-level asset_collections array (DCMS-1626)', () => {
+      const configWithAssetCollections = {
+        ...validConfig,
+        asset_collections: [
+          { name: 'images', label: 'Images', media_folder: 'assets/images' },
+        ],
+      };
+      expect(validateJSONSchema(schema, configWithAssetCollections)).toEqual([]);
+    });
+
+    it('rejects an asset_collections entry missing a required field (DCMS-1626)', () => {
+      const invalidConfig = {
+        ...validConfig,
+        asset_collections: [{ name: 'images', label: 'Images' }],
+      };
+      const errors = validateJSONSchema(schema, invalidConfig);
+      expect(errors.length).toBeGreaterThan(0);
+      expect(errors.some(error => error.keyword === 'required')).toBe(true);
     });
   });
 });
