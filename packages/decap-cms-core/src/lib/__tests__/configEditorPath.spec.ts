@@ -17,8 +17,6 @@ describe('resolveConfigFilePath', () => {
   });
 
   it('resolves a fully-qualified URL by its pathname', () => {
-    expect(resolveConfigFilePath('https://example.com/admin/config.yml')).toBe(
-      'admin/config.yml',
-    );
+    expect(resolveConfigFilePath('https://example.com/admin/config.yml')).toBe('admin/config.yml');
   });
 });
