@@ -46,18 +46,23 @@ async function serializeAsset(assetProxy: CmsAssetProxy) {
 
 type MediaFile = {
   id: string,
-  content: string,
-  encoding: string,
+  content?: string,
+  encoding?: string,
   name: string,
   path: string,
+  isDirectory?: boolean,
 };
 
-function deserializeMediaFile({ id, content, encoding, path, name }: MediaFile) {
+function deserializeMediaFile({ id, content, encoding, path, name, isDirectory }: MediaFile) {
+  if (isDirectory) {
+    return { id, name, path, displayURL: { id, path }, isDirectory };
+  }
+
   let byteArray = new Uint8Array(0);
   if (encoding !== 'base64') {
     console.error(`Unsupported encoding '${encoding}' for file '${path}'`);
   } else {
-    const decodedContent = atob(content);
+    const decodedContent = atob(content!);
     byteArray = new Uint8Array(decodedContent.length);
     for (let i = 0; i < decodedContent.length; i++) {
       byteArray[i] = decodedContent.charCodeAt(i);
@@ -66,7 +71,7 @@ function deserializeMediaFile({ id, content, encoding, path, name }: MediaFile) 
   const blob = new Blob([byteArray]);
   const file = blobToFileObj(name, blob);
   const url = URL.createObjectURL(file);
-  return { id, name, path, file, size: file.size, url, displayURL: url };
+  return { id, name, path, file, size: file.size, url, displayURL: url, isDirectory };
 }
 
 export default class ProxyBackend implements CmsImplementation {
@@ -252,10 +257,10 @@ export default class ProxyBackend implements CmsImplementation {
     });
   }
 
-  async getMedia(mediaFolder = this.mediaFolder) {
+  async getMedia(mediaFolder = this.mediaFolder, folderSupport?: boolean) {
     const files: MediaFile[] = await this.request({
       action: 'getMedia',
-      params: { branch: this.branch, mediaFolder },
+      params: { branch: this.branch, mediaFolder, folderSupport },
     });
 
     return files.map(deserializeMediaFile);

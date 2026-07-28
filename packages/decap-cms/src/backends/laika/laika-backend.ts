@@ -1402,7 +1402,10 @@ export default function createLaikaBackend(
       return { files, ...(nextCursor ? { nextCursor } : {}) };
     }
 
-    async getMedia(mediaFolder = this.mediaFolder): Promise<ImplementationMediaFile[]> {
+    async getMedia(
+      mediaFolder = this.mediaFolder,
+      folderSupport?: boolean,
+    ): Promise<ImplementationMediaFile[]> {
       const repo = this.getAssetsRepo();
       const media: ImplementationMediaFile[] = [];
       const repoPageSize = 100;
@@ -1437,6 +1440,18 @@ export default function createLaikaBackend(
               if (el._tag !== 'Data') continue;
               totalItemsThisPage++;
               const resource = el.value;
+              if (resource.type === 'folder') {
+                if (!folderSupport) continue;
+                media.push({
+                  id: resource.key,
+                  name: resource.key.split('/').pop() || resource.key,
+                  size: 0,
+                  displayURL: this.getPublicPath(resource.key),
+                  path: this.getPublicPath(resource.key),
+                  isDirectory: true,
+                });
+                continue;
+              }
               if (resource.type !== 'asset') continue;
               // Get the URL for display
               for await (const urlsChunk of repo.getUrls([resource])) {

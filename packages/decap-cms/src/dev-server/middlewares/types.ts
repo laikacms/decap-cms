@@ -74,6 +74,7 @@ export type PersistEntryParams = {
 
 export type GetMediaParams = {
   mediaFolder: string,
+  folderSupport?: boolean,
 };
 
 export type GetMediaFileParams = {

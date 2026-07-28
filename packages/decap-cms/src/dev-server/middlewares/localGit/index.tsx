@@ -2,8 +2,15 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import simpleGit from 'simple-git';
 
-import { entriesFromFiles, readMediaFile } from '@/dev-server/middlewares/utils/entries';
-import { deleteFile, getUpdateDate, listRepoFiles, move, writeFile } from '@/dev-server/middlewares/utils/fs';
+import { entriesFromFiles, normalizePath, readMediaFile } from '@/dev-server/middlewares/utils/entries';
+import {
+  deleteFile,
+  getUpdateDate,
+  listRepoFiles,
+  listRepoFolders,
+  move,
+  writeFile,
+} from '@/dev-server/middlewares/utils/fs';
 import { defaultSchema, validateRequest } from '@/dev-server/middlewares/validation';
 import { pathTraversal } from '@/dev-server/middlewares/validation/customValidators';
 import {
@@ -379,13 +386,23 @@ export function localGitMiddleware({ repoPath, logger }: GitOptions) {
           break;
         }
         case 'getMedia': {
-          const { mediaFolder } = body.params as GetMediaParams;
+          const { mediaFolder, folderSupport } = body.params as GetMediaParams;
           const mediaFiles = await runOnBranch(git, branch, async () => {
             const files = await listRepoFiles(repoPath, mediaFolder, '', 1);
             const serializedFiles = await Promise.all(
               files.map(file => readMediaFile(repoPath, file)),
             );
-            return serializedFiles;
+            if (!folderSupport) {
+              return serializedFiles;
+            }
+            const folders = await listRepoFolders(repoPath, mediaFolder);
+            const folderEntries = folders.map(folder => ({
+              id: normalizePath(folder),
+              name: path.basename(folder),
+              path: normalizePath(folder),
+              isDirectory: true,
+            }));
+            return [...serializedFiles, ...folderEntries];
           });
           res.json(mediaFiles);
           break;

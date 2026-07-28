@@ -401,9 +401,15 @@ export default class BitbucketBackend implements CmsImplementation {
     }));
   }
 
-  getMedia(mediaFolder = this.mediaFolder) {
-    return this.api!.listAllFiles(mediaFolder, 1, this.branch).then(files =>
-      files.map(({ id, name, path }) => ({ id, name, path, displayURL: { id, path } }))
+  getMedia(mediaFolder = this.mediaFolder, folderSupport?: boolean) {
+    return this.api!.listAllFiles(mediaFolder, 1, this.branch, folderSupport).then(files =>
+      files.map(({ id, name, path, type }) => ({
+        id,
+        name,
+        path,
+        displayURL: { id, path },
+        isDirectory: type === 'commit_directory',
+      }))
     );
   }
 

@@ -364,7 +364,12 @@ export default class API {
     return readFile(sha, fetchContent, localForage, parseText);
   };
 
-  listFiles = async (path: string, recursive: boolean, branch = this.branch) => {
+  listFiles = async (
+    path: string,
+    recursive: boolean,
+    branch = this.branch,
+    folderSupport?: boolean,
+  ) => {
     try {
       const { value: items } = await this.requestJSON<AzureArray<AzureGitItem>>({
         url: `${this.endpointUrl}/items/`,
@@ -375,12 +380,20 @@ export default class API {
         },
       });
 
+      const scopePath = trimStart(path, '/');
       const files = items
-        .filter(item => item.gitObjectType === AzureObjectType.BLOB)
+        .filter(
+          item =>
+            item.gitObjectType === AzureObjectType.BLOB
+            || (folderSupport
+              && item.gitObjectType === AzureObjectType.TREE
+              && trimStart(item.path, '/') !== scopePath),
+        )
         .map(file => ({
           id: file.objectId,
           path: trimStart(file.path, '/'),
           name: Path.basename(file.path),
+          isDirectory: file.gitObjectType === AzureObjectType.TREE,
         }));
       return files;
     } catch (err: unknown) {

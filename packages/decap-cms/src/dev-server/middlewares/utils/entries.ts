@@ -7,7 +7,7 @@ function sha256(buffer: Buffer) {
 }
 
 // normalize windows os path format
-function normalizePath(path: string) {
+export function normalizePath(path: string) {
   return path.replace(/\\/g, '/');
 }
 

@@ -369,27 +369,32 @@ export default class API {
       promiseThen(([cursor, entries]: [Cursor, {}[]]) => ({ cursor, entries })),
     ])(req);
 
-  listFiles = async (path: string, recursive = false) => {
+  listFiles = async (path: string, recursive = false, folderSupport?: boolean) => {
     const { entries, cursor } = await this.fetchCursorAndEntries({
       url: `${this.repoURL}/repository/tree`,
       params: { path, ref: this.branch, recursive },
     });
     return {
-      files: entries.filter(({ type }) => type === 'blob'),
+      files: entries.filter(({ type }) => (folderSupport ? true : type === 'blob')),
       cursor,
     };
   };
 
-  traverseCursor = async (cursor: Cursor, action: string) => {
+  traverseCursor = async (cursor: Cursor, action: string, folderSupport?: boolean) => {
     const link = (cursor.data!['links'] as Record<string, unknown>)[action] as ApiRequest;
     const { entries, cursor: newCursor } = await this.fetchCursorAndEntries(link);
     return {
-      entries: entries.filter(({ type }) => type === 'blob'),
+      entries: entries.filter(({ type }) => (folderSupport ? true : type === 'blob')),
       cursor: newCursor,
     };
   };
 
-  listAllFiles = async (path: string, recursive = false, branch = this.branch) => {
+  listAllFiles = async (
+    path: string,
+    recursive = false,
+    branch = this.branch,
+    folderSupport?: boolean,
+  ) => {
     const entries = [];
 
     let { cursor, entries: initialEntries } = await this.fetchCursorAndEntries({
@@ -404,7 +409,7 @@ export default class API {
       entries.push(...newEntries);
       cursor = newCursor;
     }
-    return entries.filter(({ type }) => type === 'blob');
+    return entries.filter(({ type }) => (folderSupport ? true : type === 'blob'));
   };
 
   toBase64 = (str: string) => Promise.resolve(btoa(str));

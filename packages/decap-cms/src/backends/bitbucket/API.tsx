@@ -274,6 +274,7 @@ export default class API {
   };
 
   isFile = ({ type }: BitBucketFile) => type === 'commit_file';
+  isDirectory = ({ type }: BitBucketFile) => type === 'commit_directory';
 
   getFileId = (commitHash: string, path: string) => {
     return `${commitHash}/${path}`;
@@ -293,7 +294,10 @@ export default class API {
     // doesn't.)
     ...(file.commit && file.commit.hash ? { id: this.getFileId(file.commit.hash, file.path) } : {}),
   });
-  processFiles = (files: BitBucketFile[]) => files.filter(this.isFile).map(this.processFile);
+  processFiles = (files: BitBucketFile[], folderSupport?: boolean) =>
+    files
+      .filter(file => (folderSupport ? this.isFile(file) || this.isDirectory(file) : this.isFile(file)))
+      .map(this.processFile);
 
   readFile = async (
     path: string,
@@ -366,7 +370,13 @@ export default class API {
     };
   };
 
-  listFiles = async (path: string, depth = 1, pagelen: number, branch: string) => {
+  listFiles = async (
+    path: string,
+    depth = 1,
+    pagelen: number,
+    branch: string,
+    folderSupport?: boolean,
+  ) => {
     const node = await this.branchCommitSha(branch);
     const result: BitBucketSrcResult = await this.requestJSON({
       url: `${this.repoURL}/src/${node}/${path}`,
@@ -377,12 +387,13 @@ export default class API {
     }).catch(replace404WithEmptyResponse);
     const { entries, cursor } = this.getEntriesAndCursor(result);
 
-    return { entries: this.processFiles(entries), cursor: cursor as Cursor };
+    return { entries: this.processFiles(entries, folderSupport), cursor: cursor as Cursor };
   };
 
   traverseCursor = async (
     cursor: Cursor,
     action: string,
+    folderSupport?: boolean,
   ): Promise<{
     cursor: Cursor,
     entries: { path: string, name: string, type: string, id: string }[],
@@ -393,17 +404,18 @@ export default class API {
       promiseThen(
         ({ cursor: newCursor, entries }: { cursor: Cursor, entries: BitBucketFile[] }) => ({
           cursor: newCursor,
-          entries: this.processFiles(entries),
+          entries: this.processFiles(entries, folderSupport),
         }),
       ),
     ])((cursor.data!['links'] as Record<string, unknown>)[action] as ApiRequest);
 
-  listAllFiles = async (path: string, depth: number, branch: string) => {
+  listAllFiles = async (path: string, depth: number, branch: string, folderSupport?: boolean) => {
     const { cursor: initialCursor, entries: initialEntries } = await this.listFiles(
       path,
       depth,
       100,
       branch,
+      folderSupport,
     );
     const entries = [...initialEntries];
     let currentCursor = initialCursor;
@@ -411,11 +423,12 @@ export default class API {
       const { cursor: newCursor, entries: newEntries } = await this.traverseCursor(
         currentCursor,
         'next',
+        folderSupport,
       );
       entries.push(...newEntries);
       currentCursor = newCursor;
     }
-    return this.processFiles(entries);
+    return this.processFiles(entries, folderSupport);
   };
 
   async uploadFiles(
