@@ -228,6 +228,7 @@ class EditorInterface extends Component {
       onDuplicate,
       onValidate,
       user,
+      userScopes,
       hasChanged,
       displayUrl,
       hasWorkflow,
@@ -352,6 +353,7 @@ class EditorInterface extends Component {
           onPublishAndNew={() => this.handleOnPublish({ createNew: true })}
           onPublishAndDuplicate={() => this.handleOnPublish({ createNew: true, duplicate: true })}
           user={user}
+          userScopes={userScopes}
           hasChanged={hasChanged}
           displayUrl={displayUrl}
           collection={collection}
@@ -427,6 +429,7 @@ EditorInterface.propTypes = {
   onDuplicate: PropTypes.func.isRequired,
   onChangeStatus: PropTypes.func.isRequired,
   user: PropTypes.object,
+  userScopes: PropTypes.array,
   hasChanged: PropTypes.bool,
   displayUrl: PropTypes.string,
   hasWorkflow: PropTypes.bool,

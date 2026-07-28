@@ -94,6 +94,13 @@ export type User = Credentials & {
   email?: string;
   name: string;
   useOpenAuthoring?: boolean;
+  /**
+   * Name of a role granting this user a bundle of scopes (see
+   * `CmsScope`/`CmsConfig.roles` in `decap-cms-core`). Populated by a
+   * consumer's backend/config, not by any git-hosting OAuth flow; absent by
+   * default, in which case scope-gated actions are unrestricted (DCMS-1405).
+   */
+  role?: string;
 };
 
 export type Config = {

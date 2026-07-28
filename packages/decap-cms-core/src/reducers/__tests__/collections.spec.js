@@ -3,6 +3,8 @@ import { fromJS, Map } from 'immutable';
 import { configLoaded } from '../../actions/config';
 import collections, {
   selectAllowDeletion,
+  selectAllowNewEntries,
+  selectAllowPublish,
   selectEntryPath,
   selectEntrySlug,
   selectFieldsWithMediaFolders,
@@ -78,6 +80,73 @@ describe('collections', () => {
           }),
         ),
       ).toBe(false);
+    });
+
+    it('is unaffected by scopes when the collection has no delete_scope (DCMS-1405)', () => {
+      const collection = fromJS({ name: 'posts', type: FOLDER, delete: true });
+      expect(selectAllowDeletion(collection)).toBe(true);
+      expect(selectAllowDeletion(collection, undefined, undefined)).toBe(true);
+      expect(selectAllowDeletion(collection, {}, {})).toBe(true);
+    });
+
+    it('denies deletion when delete_scope is configured and the user lacks it', () => {
+      const collection = fromJS({
+        name: 'posts',
+        type: FOLDER,
+        delete: true,
+        delete_scope: 'content:write',
+      });
+      expect(selectAllowDeletion(collection, {}, {})).toBe(false);
+      expect(selectAllowDeletion(collection, { role: 'contributor' }, {})).toBe(true);
+      expect(selectAllowDeletion(collection, { role: 'unknown-role' }, {})).toBe(false);
+    });
+  });
+
+  describe('selectAllowNewEntries', () => {
+    it('is unaffected by scopes when the collection has no create_scope (DCMS-1405)', () => {
+      const collection = fromJS({ name: 'posts', type: FOLDER, create: true });
+      expect(selectAllowNewEntries(collection)).toBe(true);
+      expect(selectAllowNewEntries(collection, {}, {})).toBe(true);
+    });
+
+    it('denies creation when create_scope is configured and the user lacks it', () => {
+      const collection = fromJS({
+        name: 'posts',
+        type: FOLDER,
+        create: true,
+        create_scope: 'content:write',
+      });
+      expect(selectAllowNewEntries(collection, {}, {})).toBe(false);
+      expect(selectAllowNewEntries(collection, { role: 'contributor' }, {})).toBe(true);
+    });
+
+    it('still respects the underlying create boolean even when scoped', () => {
+      const collection = fromJS({
+        name: 'posts',
+        type: FOLDER,
+        create: false,
+        create_scope: 'content:write',
+      });
+      expect(selectAllowNewEntries(collection, { role: 'admin' }, {})).toBe(false);
+    });
+  });
+
+  describe('selectAllowPublish', () => {
+    it('is unaffected by scopes when the collection has no publish_scope (DCMS-1405)', () => {
+      const collection = fromJS({ name: 'posts', type: FOLDER, publish: true });
+      expect(selectAllowPublish(collection)).toBe(true);
+      expect(selectAllowPublish(collection, {}, {})).toBe(true);
+    });
+
+    it('denies publish when publish_scope is configured and the user lacks it', () => {
+      const collection = fromJS({
+        name: 'posts',
+        type: FOLDER,
+        publish: true,
+        publish_scope: 'content:write',
+      });
+      expect(selectAllowPublish(collection, {}, {})).toBe(false);
+      expect(selectAllowPublish(collection, { role: 'editor' }, {})).toBe(true);
     });
   });
 

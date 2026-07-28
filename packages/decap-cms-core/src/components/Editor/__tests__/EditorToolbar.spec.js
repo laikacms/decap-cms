@@ -194,4 +194,38 @@ describe('EditorToolbar', () => {
       expect(secondSignal.aborted).toBe(false);
     });
   });
+
+  describe('DCMS-1405: create_scope gates the create affordance', () => {
+    const scopedProps = {
+      ...props,
+      isNewEntry: false,
+      hasChanged: false,
+      collection: fromJS({ name: 'posts', create: true, create_scope: 'content:write' }),
+    };
+
+    it('hides the create-new-entry affordance when the user has no matching scope', () => {
+      render(<EditorToolbar {...scopedProps} user={{ name: 'Jane' }} />);
+      expect(
+        screen.queryByText('editor.editorToolbar.duplicate'),
+      ).not.toBeInTheDocument();
+    });
+
+    it('shows the create-new-entry affordance once the user holds the required scope', () => {
+      render(<EditorToolbar {...scopedProps} user={{ name: 'Jane', role: 'editor' }} userScopes={['content:read', 'content:write']} />);
+      expect(screen.getByText('editor.editorToolbar.duplicate')).toBeInTheDocument();
+    });
+
+    it('is unaffected when the collection has no create_scope configured', () => {
+      render(
+        <EditorToolbar
+          {...props}
+          isNewEntry={false}
+          hasChanged={false}
+          collection={fromJS({ name: 'posts', create: true })}
+          user={{ name: 'Jane' }}
+        />,
+      );
+      expect(screen.getByText('editor.editorToolbar.duplicate')).toBeInTheDocument();
+    });
+  });
 });

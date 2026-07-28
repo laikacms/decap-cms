@@ -10,6 +10,7 @@ import {
   selectUnpublishedEntry,
 } from '../reducers';
 import { selectEditingDraft } from '../reducers/entries';
+import { selectAllowPublish } from '../reducers/collections';
 import { EDITORIAL_WORKFLOW, status } from '../constants/publishModes';
 import {
   loadEntry,
@@ -486,6 +487,19 @@ export function publishUnpublishedEntry(collectionName: string, slug: string) {
     const collections = state.collections;
     const backend = currentBackend(state.config);
     const entry = selectUnpublishedEntry(state, collectionName, slug);
+
+    if (!selectAllowPublish(collections.get(collectionName), state.auth.user, state.config)) {
+      dispatch(
+        addNotification({
+          message: { key: 'ui.toast.onFailToPublishEntry', details: 'Not allowed to publish entries in this collection' },
+          type: 'error',
+          dismissAfter: 8000,
+        }),
+      );
+      dispatch(unpublishedEntryPublishError(collectionName, slug));
+      return;
+    }
+
     dispatch(unpublishedEntryPublishRequest(collectionName, slug));
     try {
       await backend.publishUnpublishedEntry(entry);

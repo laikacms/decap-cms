@@ -32,6 +32,7 @@ import {
 import { loadDeployPreview } from '../../actions/deploys';
 import { selectEntry, selectUnpublishedEntry, selectDeployPreview } from '../../reducers';
 import { selectFields } from '../../reducers/collections';
+import { resolveUserScopes } from '../../lib/permissions';
 import { status, EDITORIAL_WORKFLOW } from '../../constants/publishModes';
 import EditorInterface from './EditorInterface';
 import EntryNotFound from './EntryNotFound';
@@ -69,6 +70,7 @@ export class Editor extends React.Component {
     loadDeployPreview: PropTypes.func.isRequired,
     currentStatus: PropTypes.string,
     user: PropTypes.object,
+    userScopes: PropTypes.array,
     location: PropTypes.shape({
       pathname: PropTypes.string,
       search: PropTypes.string,
@@ -398,6 +400,7 @@ export class Editor extends React.Component {
       collection,
       changeDraftFieldValidation,
       user,
+      userScopes,
       hasChanged,
       displayUrl,
       hasWorkflow,
@@ -457,6 +460,7 @@ export class Editor extends React.Component {
         onDuplicate={this.handleDuplicateEntry}
         showDelete={this.props.showDelete}
         user={user}
+        userScopes={userScopes}
         hasChanged={hasChanged}
         displayUrl={displayUrl}
         hasWorkflow={hasWorkflow}
@@ -484,6 +488,7 @@ function mapStateToProps(state, ownProps) {
   const fields = selectFields(collection, slug);
   const entry = newEntry ? null : selectEntry(state, collectionName, slug);
   const user = auth.user;
+  const userScopes = resolveUserScopes(user, config);
   const hasChanged = entryDraft.get('hasChanged');
   const displayUrl = config.display_url;
   const hasWorkflow = config.publish_mode === EDITORIAL_WORKFLOW;
@@ -517,6 +522,7 @@ function mapStateToProps(state, ownProps) {
     slug,
     entry,
     user,
+    userScopes,
     hasChanged,
     displayUrl,
     hasWorkflow,

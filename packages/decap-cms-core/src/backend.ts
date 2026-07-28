@@ -1127,6 +1127,7 @@ export class Backend {
     unpublished = false,
     status,
   }: PersistArgs) {
+    const user = (await this.currentUser()) as User;
     const updatedEntity = await this.invokePreSaveEvent(draft.get('entry'));
 
     let entryDraft;
@@ -1150,7 +1151,7 @@ export class Backend {
     // relocated manually.
     let dataFile: DataFile;
     if (newEntry) {
-      if (!selectAllowNewEntries(collection)) {
+      if (!selectAllowNewEntries(collection, user, config)) {
         throw new Error('Not allowed to create new entries in this collection');
       }
       const slug = await this.generateUniqueSlug(
@@ -1196,7 +1197,6 @@ export class Backend {
       );
     }
 
-    const user = (await this.currentUser()) as User;
     const commitMessage = commitMessageFormatter(
       newEntry ? 'create' : 'update',
       config,
@@ -1296,12 +1296,12 @@ export class Backend {
     const config = state.config;
     const path = selectEntryPath(collection, slug) as string;
     const extension = selectFolderEntryExtension(collection) as string;
+    const user = (await this.currentUser()) as User;
 
-    if (!selectAllowDeletion(collection)) {
+    if (!selectAllowDeletion(collection, user, config)) {
       throw new Error('Not allowed to delete entries in this collection');
     }
 
-    const user = (await this.currentUser()) as User;
     const commitMessage = commitMessageFormatter(
       'delete',
       config,

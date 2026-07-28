@@ -1089,6 +1089,52 @@ describe('config', () => {
       });
     });
 
+    describe('roles and per-collection scope gates (DCMS-1405)', () => {
+      it('should not throw when roles is absent', () => {
+        expect(() => {
+          validateConfig(merge({}, validConfig));
+        }).not.toThrow();
+      });
+
+      it('should not throw for a valid top-level roles map', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              roles: { editor: ['content:read', 'content:write'], admin: ['admin'] },
+            }),
+          );
+        }).not.toThrow();
+      });
+
+      it('should throw when a role is not an array of strings', () => {
+        expect(() => {
+          validateConfig(merge({}, validConfig, { roles: { editor: 'content:write' } }));
+        }).toThrowError("'roles.editor' must be array");
+      });
+
+      it('should not throw when a collection sets create_scope/delete_scope/publish_scope', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [
+                {
+                  create_scope: 'content:write',
+                  delete_scope: 'content:write',
+                  publish_scope: 'content:write',
+                },
+              ],
+            }),
+          );
+        }).not.toThrow();
+      });
+
+      it('should throw when create_scope is not a string', () => {
+        expect(() => {
+          validateConfig(merge({}, validConfig, { collections: [{ create_scope: true }] }));
+        }).toThrowError("'collections[0].create_scope' must be string");
+      });
+    });
+
     describe('top-level editor', () => {
       it('should not throw when editor is absent', () => {
         expect(() => {

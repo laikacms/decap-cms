@@ -242,6 +242,17 @@ function getConfigSchema() {
           url: { type: 'string', examples: ['https://example.com/report-issue'] },
         },
       },
+      // Named roles for the in-CMS role model (DCMS-1405), each a bundle of
+      // `resource:verb` scopes (or the blanket `admin` scope). Merged over the
+      // built-in admin/editor/contributor roles at runtime; a collection opts
+      // into enforcement via `create_scope`/`delete_scope`/`publish_scope`.
+      roles: {
+        type: 'object',
+        additionalProperties: {
+          type: 'array',
+          items: { type: 'string' },
+        },
+      },
       collections: {
         type: 'array',
         minItems: 1,
@@ -297,6 +308,12 @@ function getConfigSchema() {
             publish: { type: 'boolean' },
             hide: { type: 'boolean' },
             delete: { type: 'boolean' },
+            // Additionally require this scope (see top-level `roles`) to
+            // create/delete/publish in this collection. Unset by default,
+            // in which case the boolean above is the only gate (DCMS-1405).
+            create_scope: { type: 'string' },
+            delete_scope: { type: 'string' },
+            publish_scope: { type: 'string' },
             editor: {
               type: 'object',
               properties: {

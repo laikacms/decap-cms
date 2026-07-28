@@ -19,6 +19,7 @@ import {
 } from 'decap-cms-ui-default';
 
 import { status } from '../../constants/publishModes';
+import { scopeAllows } from '../../lib/permissions';
 import { SettingsDropdown } from '../UI';
 
 const styles = {
@@ -282,6 +283,7 @@ export class EditorToolbar extends React.Component {
     onPublishAndNew: PropTypes.func.isRequired,
     onPublishAndDuplicate: PropTypes.func.isRequired,
     user: PropTypes.object,
+    userScopes: PropTypes.array,
     hasChanged: PropTypes.bool,
     displayUrl: PropTypes.string,
     collection: ImmutablePropTypes.map.isRequired,
@@ -331,8 +333,9 @@ export class EditorToolbar extends React.Component {
   }
 
   renderSimpleControls = () => {
-    const { collection, hasChanged, isNewEntry, showDelete, onDelete, t } = this.props;
-    const canCreate = collection.get('create');
+    const { collection, userScopes, hasChanged, isNewEntry, showDelete, onDelete, t } = this.props;
+    const canCreate =
+      collection.get('create') && scopeAllows(userScopes, collection.get('create_scope'));
 
     return (
       <>
@@ -609,12 +612,18 @@ export class EditorToolbar extends React.Component {
       isModification,
       currentStatus,
       collection,
+      userScopes,
       t,
     } = this.props;
 
-    const canCreate = collection.get('create');
-    const canPublish = collection.get('publish') && !useOpenAuthoring;
-    const canDelete = collection.get('delete', true);
+    const canCreate =
+      collection.get('create') && scopeAllows(userScopes, collection.get('create_scope'));
+    const canPublish =
+      collection.get('publish') &&
+      !useOpenAuthoring &&
+      scopeAllows(userScopes, collection.get('publish_scope'));
+    const canDelete =
+      collection.get('delete', true) && scopeAllows(userScopes, collection.get('delete_scope'));
 
     const deleteLabel =
       (hasUnpublishedChanges &&

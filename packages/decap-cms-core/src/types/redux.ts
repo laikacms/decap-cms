@@ -62,6 +62,19 @@ export type CmsCollectionFormatType =
 // (e.g. 'repo:status', 'read:org') is valid at runtime. See DCMS-419.
 export type CmsAuthScope = 'repo' | 'public_repo' | (string & {});
 
+// Resource x verb permission vocabulary for the in-CMS role model (DCMS-1405).
+// Unrelated to `CmsAuthScope` above, which is a git-hosting OAuth scope string.
+// 'admin' grants every scope. Open-ended so consumers can define custom scopes.
+export type CmsScope =
+  | 'content:read'
+  | 'content:write'
+  | 'media:read'
+  | 'media:write'
+  | 'config:read'
+  | 'config:write'
+  | 'admin'
+  | (string & {});
+
 export type CmsPublishMode = 'simple' | 'editorial_workflow';
 
 export type CmsSlugEncoding = 'unicode' | 'ascii';
@@ -384,6 +397,16 @@ export interface CmsCollection {
     visualEditing?: boolean;
   };
   publish?: boolean;
+  /**
+   * When set, creating an entry in this collection additionally requires the
+   * current user to hold this scope (see `CmsConfig.roles`, DCMS-1405). If
+   * unset, `create` above is the only gate — fully backwards-compatible.
+   */
+  create_scope?: CmsScope;
+  /** Same as `create_scope`, gating deletion. */
+  delete_scope?: CmsScope;
+  /** Same as `create_scope`, gating publish. */
+  publish_scope?: CmsScope;
   nested?: {
     depth: number;
   };
@@ -494,6 +517,15 @@ export interface CmsConfig {
     preview?: boolean;
   };
   search?: boolean;
+  /**
+   * Named roles, each a bundle of `CmsScope`s, merged over the built-in
+   * `admin`/`editor`/`contributor` roles (see `lib/permissions.ts`,
+   * DCMS-1405). A collection opts into enforcement via `create_scope` /
+   * `delete_scope` / `publish_scope`; the current user's role comes from
+   * `User.role`, sourced from CMS config/consumer state, never from a git
+   * backend's OAuth/token flow.
+   */
+  roles?: Record<string, CmsScope[]>;
   error: string | undefined;
   isFetching: boolean;
 }
@@ -704,6 +736,9 @@ type CollectionObject = {
   frontmatter_delimiter?: List<string> | string | [string, string];
   create?: boolean;
   delete?: boolean;
+  create_scope?: CmsScope;
+  delete_scope?: CmsScope;
+  publish_scope?: CmsScope;
   identifier_field?: string;
   path?: string;
   slug?: string;

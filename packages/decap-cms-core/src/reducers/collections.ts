@@ -11,6 +11,7 @@ import { INFERABLE_FIELDS, IDENTIFIER_FIELDS, SORTABLE_FIELDS } from '../constan
 import { getFormatExtensions } from '../formats/formats';
 import { selectMediaFolder } from './entries';
 import { summaryFormatter } from '../lib/formatters';
+import { userCanPerform } from '../lib/permissions';
 
 import type {
   Collection,
@@ -24,6 +25,7 @@ import type {
 } from '../types/redux';
 import type { ConfigAction } from '../actions/config';
 import type { Backend } from '../backend';
+import type { User } from 'decap-cms-lib-util';
 
 const { keyToPathArray } = stringTemplate;
 
@@ -205,12 +207,44 @@ export function selectEntrySlug(collection: Collection, path: string) {
   return selectors[collection.get('type')].entrySlug(collection, path);
 }
 
-export function selectAllowNewEntries(collection: Collection) {
-  return selectors[collection.get('type')].allowNewEntries(collection);
+/**
+ * `user`/`config` are optional so every existing call site keeps working
+ * unchanged; passing them additionally requires the collection's
+ * `create_scope` (DCMS-1405), if one is configured.
+ */
+export function selectAllowNewEntries(
+  collection: Collection,
+  user?: Pick<User, 'role'>,
+  config?: Pick<CmsConfig, 'roles'>,
+) {
+  return (
+    selectors[collection.get('type')].allowNewEntries(collection) &&
+    userCanPerform(collection.get('create_scope'), user, config)
+  );
 }
 
-export function selectAllowDeletion(collection: Collection) {
-  return selectors[collection.get('type')].allowDeletion(collection);
+/** See `selectAllowNewEntries`; gates on `delete_scope` instead. */
+export function selectAllowDeletion(
+  collection: Collection,
+  user?: Pick<User, 'role'>,
+  config?: Pick<CmsConfig, 'roles'>,
+) {
+  return (
+    selectors[collection.get('type')].allowDeletion(collection) &&
+    userCanPerform(collection.get('delete_scope'), user, config)
+  );
+}
+
+/** See `selectAllowNewEntries`; gates `publish` (defaulted `true` at config-load) on `publish_scope`. */
+export function selectAllowPublish(
+  collection: Collection,
+  user?: Pick<User, 'role'>,
+  config?: Pick<CmsConfig, 'roles'>,
+) {
+  return (
+    (collection.get('publish') as boolean) &&
+    userCanPerform(collection.get('publish_scope'), user, config)
+  );
 }
 
 export function selectTemplateName(collection: Collection, slug: string) {

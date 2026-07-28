@@ -17,6 +17,7 @@ import {
   selectSortableFields,
   selectViewFilters,
   selectViewGroups,
+  selectAllowNewEntries,
 } from '../../reducers/collections';
 import {
   selectEntriesSort,
@@ -51,6 +52,7 @@ export class Collection extends React.Component {
     collection: ImmutablePropTypes.map.isRequired,
     collections: ImmutablePropTypes.map.isRequired,
     sortableFields: PropTypes.array,
+    allowNewEntries: PropTypes.bool,
     sort: ImmutablePropTypes.orderedMap,
     onSortClick: PropTypes.func.isRequired,
   };
@@ -99,9 +101,10 @@ export class Collection extends React.Component {
       group,
       onChangeViewStyle,
       viewStyle,
+      allowNewEntries,
     } = this.props;
 
-    let newEntryUrl = collection.get('create') ? getNewEntryUrl(collectionName) : '';
+    let newEntryUrl = allowNewEntries ? getNewEntryUrl(collectionName) : '';
     if (newEntryUrl && filterTerm) {
       newEntryUrl = getNewEntryUrl(collectionName);
       if (filterTerm) {
@@ -155,11 +158,12 @@ export class Collection extends React.Component {
 }
 
 function mapStateToProps(state, ownProps) {
-  const { collections } = state;
+  const { collections, auth, config } = state;
   const isSearchEnabled = state.config && state.config.search != false;
   const { isSearchResults, match, t } = ownProps;
   const { name, searchTerm = '', filterTerm = '' } = match.params;
   const collection = name ? collections.get(name) : collections.first();
+  const allowNewEntries = selectAllowNewEntries(collection, auth.user, config);
   const sort = selectEntriesSort(state.entries, collection.get('name'));
   const sortableFields = selectSortableFields(collection, t);
   const viewFilters = selectViewFilters(collection);
@@ -176,6 +180,7 @@ function mapStateToProps(state, ownProps) {
     isSearchResults,
     searchTerm,
     filterTerm,
+    allowNewEntries,
     sort,
     sortableFields,
     viewFilters,
