@@ -305,6 +305,59 @@ describe('test backend implementation', () => {
     });
   });
 
+  describe('getMedia', () => {
+    const makeAssetProxy = (path: string) => ({
+      path,
+      fileObj: new File([new Uint8Array([137, 80, 78, 71])], path.split('/').pop() as string, {
+        type: 'image/png',
+      }),
+      toString() {
+        return `blob:${path}`;
+      },
+      toBase64: async () => 'iVBORw0K',
+    });
+
+    beforeEach(() => {
+      window.repoFiles = {
+        assets: {
+          uploads: {
+            'top.png': { content: makeAssetProxy('assets/uploads/top.png') },
+            photos: {
+              'nested.png': { content: makeAssetProxy('assets/uploads/photos/nested.png') },
+            },
+          },
+        },
+      } as unknown as typeof window.repoFiles;
+    });
+
+    it('returns a recursively-flattened file list when folderSupport is falsy', async () => {
+      const backend = new TestBackend({ ...mockConfig, media_folder: 'assets/uploads' } as Config);
+
+      const assets = await backend.getMedia('assets/uploads');
+
+      expect(assets).toHaveLength(2);
+      expect(assets.every(a => !a.isDirectory)).toBe(true);
+      expect(assets.map(a => a.path).sort()).toEqual([
+        'assets/uploads/photos/nested.png',
+        'assets/uploads/top.png',
+      ]);
+    });
+
+    it('returns only direct children, tagging subfolders as isDirectory, when folderSupport is true', async () => {
+      const backend = new TestBackend({ ...mockConfig, media_folder: 'assets/uploads' } as Config);
+
+      const assets = await backend.getMedia('assets/uploads', true);
+
+      expect(assets).toHaveLength(2);
+
+      const folder = assets.find(a => a.isDirectory);
+      expect(folder).toMatchObject({ isDirectory: true, path: 'assets/uploads/photos', name: 'photos' });
+
+      const file = assets.find(a => !a.isDirectory);
+      expect(file).toMatchObject({ isDirectory: false, path: 'assets/uploads/top.png', name: 'top.png' });
+    });
+  });
+
   describe('entry locking', () => {
     beforeEach(() => {
       localStorage.clear();
