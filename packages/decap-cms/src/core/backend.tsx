@@ -154,12 +154,12 @@ function getEntryField(field: string, entry: EntryValue) {
   }
 }
 
-type SearchClause =
+export type SearchClause =
   | { field: string, value: string, range?: undefined }
   | { field: string, value?: undefined, range: [string, string] }
   | { field?: undefined, value: string, range?: undefined };
 
-function parseSearchTerm(searchTerm: string) {
+export function parseSearchTerm(searchTerm: string) {
   const clauses: SearchClause[] = [];
   const freeTerms: string[] = [];
   const tokenPattern = /([A-Za-z0-9_.-]+):(?:"([^"]*)"|(\S+))|"([^"]+)"|(\S+)/g;
@@ -207,7 +207,7 @@ function compareRangeValue(value: string, boundary: string, upperBoundary = fals
   return value.localeCompare(boundary);
 }
 
-function matchesSearchClauses(entry: EntryValue, searchFields: string[], clauses: SearchClause[]) {
+export function matchesSearchClauses(entry: EntryValue, searchFields: string[], clauses: SearchClause[]) {
   return clauses.every(clause => {
     if (!clause.field) {
       const phrase = (clause.value ?? '').toLowerCase();

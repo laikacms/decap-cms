@@ -8,6 +8,12 @@ import {
   loadEntries as actionLoadEntries,
   traverseCollectionCursor as actionTraverseCollectionCursor,
 } from '@/core/actions/entries';
+import {
+  extractSearchFields,
+  getCollectionSearchFields,
+  matchesSearchClauses,
+  parseSearchTerm,
+} from '@/core/backend';
 import { useTranslate } from '@/core/i18n';
 import { selectUnpublishedEntriesByStatus, selectUnpublishedEntry } from '@/core/reducers';
 import { selectEntryCollectionTitle } from '@/core/reducers/collections';
@@ -26,6 +32,7 @@ import Entries from './Entries';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 
 import type { Status } from '@/core/constants/publishModes';
+import type { EntryValue } from '@/core/valueObjects/Entry';
 import type { CmsCollections, CmsCollectionState, CmsEntry, CmsGroupOfEntries, CmsSortObject } from '@/lib/util/index';
 import type { TranslateFunction } from '@/ui/default/index';
 
@@ -103,23 +110,49 @@ export function filterNestedEntries(
 }
 
 /**
- * Client-side text filter over already-loaded entries, matched against each
- * entry's inferred title/summary (the same value shown on its card). Backs
- * the collection toolbar's search field (DCMS-1229) — not a full-text
- * search index, just a filter over the currently rendered page.
+ * Client-side filter over already-loaded entries. Backs the collection
+ * toolbar's search field (DCMS-1229) — not a full-text search index, just a
+ * filter over the currently rendered page. Reuses the same query grammar
+ * (`field:value`, `field:"exact phrase"`, quoted phrases, `date:a..b` ranges,
+ * combined with fuzzy free text) that the header "Search all" box sends
+ * through `Backend.searchCollectionEntries` (see `core/backend.tsx` and
+ * `core/README.md` §`search_fields and advanced search`), so both boxes
+ * agree on the same collection's entries (DCMS-1545). A clause on a field
+ * outside the collection's effective `search_fields` intentionally matches
+ * nothing, same as the header path.
  */
 export function filterEntriesBySearchQuery(
   collection: CmsCollectionState,
   entries: CmsEntry[],
   searchQuery: string | undefined,
 ): CmsEntry[] {
-  const query = searchQuery?.trim().toLowerCase();
-  if (!query) {
+  const trimmed = searchQuery?.trim();
+  if (!trimmed) {
     return entries;
   }
+
+  const searchFields = getCollectionSearchFields(collection);
+  const { clauses, freeText } = parseSearchTerm(trimmed);
+  const freeTextQuery = freeText.trim().toLowerCase();
+  const extractFields = extractSearchFields(searchFields);
+
   return entries.filter(entry => {
+    // CmsEntry and EntryValue both carry `data`/`slug`/`path`; the shared
+    // clause matcher only reads those, so the cast is safe at runtime.
+    const entryValue = entry as unknown as EntryValue;
+
+    if (!matchesSearchClauses(entryValue, searchFields, clauses)) {
+      return false;
+    }
+    if (!freeTextQuery) {
+      return true;
+    }
+
     const title = selectEntryCollectionTitle(collection, entry);
-    return typeof title === 'string' && title.toLowerCase().includes(query);
+    if (typeof title === 'string' && title.toLowerCase().includes(freeTextQuery)) {
+      return true;
+    }
+    return extractFields(entryValue).toLowerCase().includes(freeTextQuery);
   });
 }
 
@@ -234,10 +267,10 @@ interface ConnectedProps {
   viewStyle?: string;
   filterTerm?: string;
   /**
-   * Free-text query from the collection toolbar's search field. Matched
-   * client-side against each entry's inferred title/summary (the same value
-   * shown on its card) — this is a filter over the currently loaded page,
-   * not a full-text search index.
+   * Query from the collection toolbar's search field. Parsed with the same
+   * advanced-search grammar as the header "Search all" box and matched
+   * client-side (see `filterEntriesBySearchQuery`) — this is a filter over
+   * the currently loaded page, not a full-text search index.
    */
   searchQuery?: string;
 }
