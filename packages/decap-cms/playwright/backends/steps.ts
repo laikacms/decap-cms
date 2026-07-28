@@ -198,9 +198,11 @@ export async function confirmAlertDialogIfPresent(page: Page, name = 'Confirm'):
 export async function exitEditor(page: Page): Promise<void> {
   await page.getByRole('link', { name: 'Writing in' }).click();
   // Leaving the editor may trigger the unsaved-changes leave-page confirm
-  // (useNavigationBlocker.ts, DCMS-658's AlertDialog migration) — only when
-  // there are actually unsaved changes, so this is a no-op otherwise.
-  await confirmAlertDialogIfPresent(page);
+  // (useEditor.ts's navigation blocker, DCMS-658's AlertDialog migration) —
+  // only when there are actually unsaved changes, so this is a no-op
+  // otherwise. Its title is `editor.editor.onLeavePageTitle` ("Unsaved
+  // changes", DCMS-1471), not the generic "Confirm" default.
+  await confirmAlertDialogIfPresent(page, 'Unsaved changes');
 }
 
 export async function createPostAndExit(page: Page, entry: Entry): Promise<void> {
@@ -249,8 +251,10 @@ export async function publishWorkflowEntry(page: Page, { title }: Entry): Promis
     .locator('xpath=..');
   await card.getByRole('button', { name: 'Publish new entry' }).click({ force: true });
   // Publish confirm is the AlertDialog-backed confirm (DCMS-658), not a
-  // native dialog — must be dismissed explicitly.
-  await confirmAlertDialog(page);
+  // native dialog — must be dismissed explicitly. Its title is
+  // `workflow.workflowList.onPublishEntryTitle` ("Publish entry", DCMS-1471),
+  // not the generic "Confirm" default.
+  await confirmAlertDialog(page, 'Publish entry');
 }
 
 export async function updateExistingPostAndExit(
@@ -289,9 +293,14 @@ export async function assertPublishedEntry(page: Page, entries: Entry[]): Promis
 
 export async function deleteEntryInEditor(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Delete' }).first().click();
-  // Delete confirm is the AlertDialog-backed confirm (DCMS-658), not a
-  // native dialog — must be dismissed explicitly.
-  await confirmAlertDialog(page);
+  // This suite always calls in on an unpublished draft (via `createPost`,
+  // never published), so the editor renders the "Delete unpublished entry"
+  // button, wired to `handleDeleteUnpublishedChanges` (useEditor.ts) rather
+  // than `handleDeleteEntry`. Delete confirm is the AlertDialog-backed
+  // confirm (DCMS-658), not a native dialog — must be dismissed explicitly.
+  // Its title is `editor.editor.onDeleteUnpublishedChangesTitle` ("Delete
+  // unpublished changes", DCMS-1471), not the generic "Confirm" default.
+  await confirmAlertDialog(page, 'Delete unpublished changes');
   await assertNotification(page, notifications.deletedUnpublished);
 }
 
