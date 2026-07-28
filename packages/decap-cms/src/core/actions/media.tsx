@@ -57,7 +57,15 @@ export function loadAsset(resolvedPath: string) {
       await waitForMediaLibraryToLoad(dispatch, getState());
       const file = selectMediaFileByPath(getState(), resolvedPath);
 
-      if (file) {
+      // Belt-and-suspenders: selectMediaFileByPath already excludes folder
+      // entries, but guard here too in case a future caller bypasses it —
+      // folders aren't media files and backends aren't guaranteed to
+      // implement getMediaDisplayURL for tree paths (DCMS-1617).
+      if (file && file.isDirectory) {
+        const { url } = await getMediaFile(getState(), resolvedPath);
+        const asset = createAssetProxy({ path: resolvedPath, url });
+        dispatch(addAsset(asset));
+      } else if (file) {
         const url = await getMediaDisplayURL(dispatch, getState(), file);
         const asset = createAssetProxy({ path: resolvedPath, url: url || resolvedPath });
         dispatch(addAsset(asset));

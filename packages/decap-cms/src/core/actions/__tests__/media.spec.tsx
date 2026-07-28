@@ -2,7 +2,8 @@ import configureMockStore from 'redux-mock-store';
 import { thunk } from 'redux-thunk';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ADD_ASSET, boundGetAsset, getAsset, LOAD_ASSET_REQUEST } from '@/core/actions/media';
+import { ADD_ASSET, boundGetAsset, getAsset, loadAsset, LOAD_ASSET_REQUEST } from '@/core/actions/media';
+import { getMediaDisplayURL, getMediaFile, waitForMediaLibraryToLoad } from '@/core/actions/mediaLibrary';
 import { selectMediaFilePath } from '@/core/reducers/entries';
 import AssetProxy from '@/core/valueObjects/AssetProxy';
 
@@ -13,10 +14,14 @@ import type { ThunkDispatch } from 'redux-thunk';
 import type { Mock } from 'vitest';
 
 // Minimal slice of the root reducer state actually touched by these tests
-// (`getAsset` only reads `state.config` and `state.medias`).
+// (`getAsset` only reads `state.config` and `state.medias`; `loadAsset` also
+// reads `state.mediaLibrary` and `state.integrations` via the real,
+// unmocked `selectMediaFileByPath`).
 type State = {
   config: Partial<CmsConfig>,
   medias: Medias,
+  mediaLibrary?: { files: unknown[] },
+  integrations?: { hooks: Record<string, unknown> },
 };
 
 // `getAsset`'s own args are typed against the real (non-test) `collection`/
@@ -180,6 +185,57 @@ describe('media', () => {
 
       const bound = boundGetAsset(dispatch, undefined as unknown as never, undefined as unknown as never);
       expect(typeof bound).toBe('function');
+    });
+  });
+
+  describe('loadAsset', () => {
+    const mockedWaitForMediaLibraryToLoad = waitForMediaLibraryToLoad as Mock;
+    const mockedGetMediaDisplayURL = getMediaDisplayURL as Mock;
+    const mockedGetMediaFile = getMediaFile as Mock;
+
+    beforeEach(() => {
+      vi.resetAllMocks();
+      mockedWaitForMediaLibraryToLoad.mockResolvedValue(undefined);
+    });
+
+    // DCMS-1617: since PR #1579, `state.mediaLibrary.files` interleaves
+    // folder entries (`isDirectory: true`, `displayURL: { id, path }`)
+    // alongside leaf files. Before the fix, `selectMediaFileByPath` returned
+    // the folder entry and `loadAsset` handed it to `getMediaDisplayURL`,
+    // which dispatches `MEDIA_DISPLAY_URL_FAILURE` once the backend rejects
+    // the non-string `displayURL`.
+    it('does not resolve a folder entry as the media file for a matching path', async () => {
+      const folderPath = 'assets/uploads/photos';
+      const folderEntry = {
+        id: 'folder-1',
+        name: 'photos',
+        path: folderPath,
+        displayURL: { id: 'folder-1', path: folderPath },
+        isDirectory: true,
+      };
+      mockedGetMediaFile.mockResolvedValue({ url: 'fallback-url' });
+
+      const store = mockStore({
+        config: {},
+        medias: {},
+        mediaLibrary: { files: [folderEntry] },
+        integrations: { hooks: {} },
+      });
+
+      await store.dispatch(loadAsset(folderPath) as unknown as AnyAction);
+
+      const actions = store.getActions();
+      // The folder must never reach getMediaDisplayURL...
+      expect(mockedGetMediaDisplayURL).not.toHaveBeenCalled();
+      // ...and no MEDIA_DISPLAY_URL_FAILURE (or any load failure) should be dispatched.
+      expect(actions.some(a => a.type === 'MEDIA_DISPLAY_URL_FAILURE')).toBe(false);
+      expect(actions.some(a => a.type === 'LOAD_ASSET_FAILURE')).toBe(false);
+      // Falls through to the leaf-file lookup instead.
+      expect(mockedGetMediaFile).toHaveBeenCalledWith(store.getState(), folderPath);
+      expect(actions).toContainEqual({
+        type: ADD_ASSET,
+        payload: new AssetProxy({ path: folderPath, url: 'fallback-url' }),
+      });
     });
   });
 });

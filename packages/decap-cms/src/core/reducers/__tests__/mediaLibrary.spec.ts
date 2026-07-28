@@ -142,6 +142,31 @@ describe('mediaLibrary', () => {
     expect(selectMediaFileByPath(state, 'path')).toEqual({ id: 1, path: 'path' });
   });
 
+  it('excludes folder entries when matching by path (DCMS-1617)', () => {
+    vi.mocked(selectEditingDraft).mockReturnValue(false);
+
+    const state = {
+      mediaLibrary: {
+        files: [
+          {
+            id: 'folder-1',
+            name: 'photos',
+            path: 'assets/uploads/photos',
+            displayURL: { id: 'folder-1', path: 'assets/uploads/photos' },
+            isDirectory: true,
+          },
+          { id: 'file-1', name: 'top.png', path: 'assets/uploads/top.png', isDirectory: false },
+        ],
+      },
+      integrations: { hooks: {} },
+    };
+
+    expect(selectMediaFileByPath(state, 'assets/uploads/photos')).toBeUndefined();
+    expect(selectMediaFileByPath(state, 'assets/uploads/top.png')).toEqual(
+      expect.objectContaining({ id: 'file-1', path: 'assets/uploads/top.png' }),
+    );
+  });
+
   it('should return media display URL state', () => {
     const state = {
       mediaLibrary: { displayURLs: { id: { url: 'url' } } },
