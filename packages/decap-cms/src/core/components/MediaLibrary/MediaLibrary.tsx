@@ -11,12 +11,14 @@ import {
 } from '@/core/actions/mediaLibrary';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 import { useTranslate } from '@/core/i18n';
+import { selectAssetCollectionForFolder } from '@/core/lib/assetCollections';
 import { getMediaFolderBreadcrumbs, selectMediaFiles } from '@/core/reducers/mediaLibrary';
 import { useRouter } from '@/core/routing/context';
 import { fileExtension, fuzzyFilter } from '@/lib/util/index';
 import { confirmDialog, showAlert } from '@/ui';
 import MediaLibraryModal from './MediaLibraryModal';
 
+import type { CmsAssetCollection, CmsConfig } from '@/lib/util/index';
 import type { TranslateFunction } from '@/ui/default/index';
 
 /**
@@ -98,6 +100,8 @@ interface MediaLibraryProps {
    * top of the breadcrumb trail and re-requested on open.
    */
   rootFolder?: string;
+  /** Site-wide config-defined asset collections (DCMS-1412); see `siteConfig.asset_collections`. */
+  assetCollections?: CmsAssetCollection[];
   t: TranslateFunction;
 }
 
@@ -128,6 +132,7 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
     config,
     field,
     rootFolder,
+    assetCollections = [],
     loadMedia,
     persistMedia,
     deleteMedia,
@@ -164,6 +169,15 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
     loadMedia({ folder: path, privateUpload });
     scrollToTop();
   }
+
+  function handleSelectAssetCollection(assetCollection: CmsAssetCollection) {
+    handleNavigateFolder(assetCollection.media_folder);
+  }
+
+  const activeAssetCollection = selectAssetCollectionForFolder(
+    { asset_collections: assetCollections } as CmsConfig,
+    currentFolder,
+  );
 
   /**
    * When the backend performs the search (dynamicSearch), follow typing with
@@ -395,6 +409,9 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
       loadDisplayURL={loadDisplayURL}
       breadcrumbs={getMediaFolderBreadcrumbs(rootFolder, currentFolder)}
       onNavigateFolder={handleNavigateFolder}
+      assetCollections={assetCollections}
+      activeAssetCollectionName={activeAssetCollection?.name}
+      onSelectAssetCollection={handleSelectAssetCollection}
     />
   );
 }
@@ -411,6 +428,9 @@ export default function ConnectedMediaLibrary() {
   // pass doesn't attempt — see the DCMS-1398 PR notes.
   const rootFolder = useAppSelector((state: any) =>
     typeof state.config?.media_folder === 'string' ? state.config.media_folder : undefined
+  );
+  const assetCollections = useAppSelector((state: any) =>
+    Array.isArray(state.config?.asset_collections) ? state.config.asset_collections : []
   );
 
   const props: any = {
@@ -432,6 +452,7 @@ export default function ConnectedMediaLibrary() {
     isPaginating: mediaLibrary.isPaginating,
     field: mediaLibrary.field,
     rootFolder,
+    assetCollections,
     loadMedia: (opts?: any) => dispatch(loadMediaAction(opts)),
     persistMedia: (file: File, opts?: any) => dispatch(persistMediaAction(file, opts)),
     deleteMedia: (file: any, opts?: any) => dispatch(deleteMediaAction(file, opts)),

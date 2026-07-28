@@ -11,6 +11,7 @@ vi.mock('../../reducers/collections', () => ({
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  assetFilenameFormatter,
   commitMessageFormatter,
   folderFormatter,
   getProcessSegment,
@@ -1002,6 +1003,76 @@ describe('formatters', () => {
           slugConfig,
         ),
       ).toBe('Ünïçödé');
+    });
+  });
+
+  describe('assetFilenameFormatter', () => {
+    it('returns the original filename unchanged when no template is set', () => {
+      expect(assetFilenameFormatter({}, 'my-photo.jpg')).toBe('my-photo.jpg');
+    });
+
+    it('compiles {{filename}} and {{extension}}', () => {
+      expect(
+        assetFilenameFormatter({ filename_template: '{{filename}}-renamed.{{extension}}' }, 'photo.jpg'),
+      ).toBe('photo-renamed.jpg');
+    });
+
+    it('compiles {{entry_slug}} from the associated entry', () => {
+      expect(
+        assetFilenameFormatter(
+          { filename_template: '{{entry_slug}}.{{extension}}' },
+          'IMG_0001.png',
+          { entrySlug: 'my-post' },
+        ),
+      ).toBe('my-post.png');
+    });
+
+    it('falls back to the original basename for {{entry_slug}} when no entry is given', () => {
+      expect(
+        assetFilenameFormatter({ filename_template: '{{entry_slug}}.{{extension}}' }, 'IMG_0001.png'),
+      ).toBe('IMG_0001.png');
+    });
+
+    it('increments {{index}} to avoid colliding with existing files', () => {
+      const result = assetFilenameFormatter(
+        { filename_template: '{{entry_slug}}-{{index}}.{{extension}}' },
+        'photo.jpg',
+        {
+          entrySlug: 'gallery',
+          existingNames: ['gallery-1.jpg', 'gallery-2.jpg'],
+        },
+      );
+      expect(result).toBe('gallery-3.jpg');
+    });
+
+    it('compiles once (index stays 1) when the template does not reference {{index}}', () => {
+      const result = assetFilenameFormatter(
+        { filename_template: '{{entry_slug}}.{{extension}}' },
+        'photo.jpg',
+        { entrySlug: 'gallery', existingNames: ['gallery.jpg'] },
+      );
+      // No {{index}} in the template, so collision avoidance never kicks in;
+      // upstream duplicate-name handling (the existing "replace?" confirm
+      // dialog) still applies to the result.
+      expect(result).toBe('gallery.jpg');
+    });
+
+    it('is case-insensitive when checking for collisions', () => {
+      const result = assetFilenameFormatter(
+        { filename_template: '{{entry_slug}}-{{index}}.{{extension}}' },
+        'photo.jpg',
+        { entrySlug: 'gallery', existingNames: ['Gallery-1.JPG'] },
+      );
+      expect(result).toBe('gallery-2.jpg');
+    });
+
+    it('supports date placeholders', () => {
+      const result = assetFilenameFormatter(
+        { filename_template: '{{year}}-{{month}}-{{filename}}.{{extension}}' },
+        'photo.jpg',
+        { date: new Date(Date.UTC(2026, 6, 28)) },
+      );
+      expect(result).toBe('2026-07-photo.jpg');
     });
   });
 });

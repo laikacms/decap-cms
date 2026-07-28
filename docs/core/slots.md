@@ -161,7 +161,7 @@ delete/insert buttons. All click and search-input handlers are pre-resolved.
 - Props: `MediaLibraryTopRenderProps` (`onClose`, `privateUpload?`, `forImage?`, `onDownload`,
   `onUpload`, `query?`, `onSearchChange`, `onSearchKeyDown`, `searchDisabled`, `onDelete`,
   `canInsert?`, `onInsert`, `hasSelection`, `isPersisting?`, `isDeleting?`, `selectedFile?`)
-- Consumer: `packages/decap-cms/src/core/components/MediaLibrary/MediaLibraryModal.tsx:162`
+- Consumer: `packages/decap-cms/src/core/components/MediaLibrary/MediaLibraryModal.tsx:170`
 
 ## Adding a new slot
 

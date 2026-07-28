@@ -16,7 +16,7 @@ import type {
 } from './common';
 import type { CmsFieldBase } from './fields/base';
 import type { CmsI18nConfig } from './i18n';
-import type { CmsMediaLibrary, CmsMediaLibraryOptions } from './media';
+import type { CmsAssetCollection, CmsMediaLibrary, CmsMediaLibraryOptions } from './media';
 
 export interface CmsIssueReports {
   url?: string;
@@ -43,6 +43,8 @@ export interface CmsConfig<Backend extends CmsBackend = CmsBackend> {
   site_id?: string;
   media_folder_relative?: boolean;
   media_library?: CmsMediaLibrary;
+  /** Named, config-defined asset groupings surfaced as sections in the media library. */
+  asset_collections?: CmsAssetCollection[];
   publish_mode?: CmsPublishMode;
   load_config_file?: boolean;
   integrations?: {
