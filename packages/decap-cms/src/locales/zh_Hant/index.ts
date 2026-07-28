@@ -210,6 +210,13 @@ const zh_Hant = {
       deleteSelected: '刪除已選擇的項目',
       chooseSelected: '選擇已選擇的項目',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: '媒體',
+      regionLabel: '媒體資料夾導覽路徑',
+    },
+    mediaLibraryFolders: {
+      regionLabel: '子資料夾',
+    },
   },
   ui: {
     default: {

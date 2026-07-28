@@ -236,6 +236,13 @@ const fr = {
       deleteSelected: 'Supprimer les éléments sélectionnés',
       chooseSelected: 'Choisir les éléments sélectionnés',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Médias',
+      regionLabel: "Fil d'Ariane du dossier de médias",
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Sous-dossiers',
+    },
   },
   ui: {
     default: {

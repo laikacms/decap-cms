@@ -241,6 +241,13 @@ const ko = {
       deleteSelected: '선택항목 삭제',
       chooseSelected: '선택한 것으로 결정',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: '미디어',
+      regionLabel: '미디어 폴더 경로',
+    },
+    mediaLibraryFolders: {
+      regionLabel: '하위 폴더',
+    },
   },
   ui: {
     default: {

@@ -233,6 +233,13 @@ const ja = {
       deleteSelected: '削除する',
       chooseSelected: '選択する',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'メディア',
+      regionLabel: 'メディアフォルダのパンくずリスト',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'サブフォルダ',
+    },
   },
   ui: {
     default: {

@@ -235,6 +235,13 @@ const nl = {
       deleteSelected: 'Verwijder selectie',
       chooseSelected: 'Gebruik selectie',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Media',
+      regionLabel: 'Broodkruimelpad van mediamap',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Submappen',
+    },
   },
   ui: {
     default: {

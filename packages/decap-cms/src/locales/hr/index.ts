@@ -262,6 +262,13 @@ const hr = {
       deleteSelected: 'Obriši označeno',
       chooseSelected: 'Odaberi označeno',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Mediji',
+      regionLabel: 'Navigacijska staza mape medija',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Podmape',
+    },
   },
   ui: {
     default: {

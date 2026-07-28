@@ -247,6 +247,13 @@ const cs = {
       deleteSelected: 'Smazat označené',
       chooseSelected: 'Vybrat označené',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Média',
+      regionLabel: 'Navigační cesta složky médií',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Podsložky',
+    },
   },
   ui: {
     default: {

@@ -190,6 +190,13 @@ const nn_no = {
       deleteSelected: 'Slett markert',
       chooseSelected: 'Vel markert',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Media',
+      regionLabel: 'Brødsmulesti for mediemappe',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Undermapper',
+    },
   },
   ui: {
     default: {

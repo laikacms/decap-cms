@@ -17,6 +17,11 @@ const CRITICAL_KEYS = [
   'editor.editorControlPane.i18n.translatingFromDefault',
   'editor.editorControlPane.i18n.translateFromDefaultConfirm',
   'editor.editorControlPane.i18n.translateFromDefaultConfirmTitle',
+  // DCMS-1555: MediaLibrary folder-nav aria-labels (DCMS-1398 / #1552)
+  // shipped hardcoded English; without these keys every non-en locale falls back.
+  'mediaLibrary.mediaLibraryBreadcrumbs.rootLabel',
+  'mediaLibrary.mediaLibraryBreadcrumbs.regionLabel',
+  'mediaLibrary.mediaLibraryFolders.regionLabel',
 ];
 
 describe('locale packs', () => {

@@ -167,6 +167,13 @@ const gr = {
       deleteSelected: 'Διαγραφή επιλεγμένου',
       chooseSelected: 'Επιλέξτε επιλεγμένο',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Πολυμέσα',
+      regionLabel: 'Διαδρομή φακέλου πολυμέσων',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Υποφάκελοι',
+    },
   },
   ui: {
     errorBoundary: {

@@ -262,6 +262,13 @@ const sr_Cyrl = {
       deleteSelected: 'Избриши означено',
       chooseSelected: 'Одабери означено',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Медији',
+      regionLabel: 'Путања навигације фасцикле медија',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Подфасцикле',
+    },
   },
   ui: {
     default: {

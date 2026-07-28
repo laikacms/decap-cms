@@ -244,6 +244,13 @@ const da = {
       deleteSelected: 'Slet valgte',
       chooseSelected: 'Anvend valgte',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Medier',
+      regionLabel: 'Brødkrumme for mediemappe',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Undermapper',
+    },
   },
   ui: {
     default: {

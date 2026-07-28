@@ -247,6 +247,13 @@ const mk = {
       deleteSelected: 'Избриши ги селектираните',
       chooseSelected: 'Избери од селектираните',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Медиуми',
+      regionLabel: 'Патека на папката со медиуми',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Потпапки',
+    },
   },
   ui: {
     default: {

@@ -228,6 +228,13 @@ const ca = {
       deleteSelected: 'Eliminar selecció',
       chooseSelected: 'Confirmar selecció',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Mitjans',
+      regionLabel: 'Ruta de navegació de la carpeta de mitjans',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Subcarpetes',
+    },
   },
   ui: {
     default: {

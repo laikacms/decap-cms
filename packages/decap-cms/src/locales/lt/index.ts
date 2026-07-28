@@ -214,6 +214,13 @@ const lt = {
       deleteSelected: 'Ištrinti parinktus',
       chooseSelected: 'Pasirinkti parinktus',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Medija',
+      regionLabel: 'Medijos aplanko naršymo kelias',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Poaplankiai',
+    },
   },
   ui: {
     default: {

@@ -231,6 +231,13 @@ const ro = {
       deleteSelected: 'Șterge fișierele selectate',
       chooseSelected: 'Alege fișierele selectate',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Media',
+      regionLabel: 'Traseu de navigare al folderului media',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Subfoldere',
+    },
   },
   ui: {
     default: {

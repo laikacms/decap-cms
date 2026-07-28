@@ -300,6 +300,13 @@ const en = {
       deleteSelected: 'Delete selected',
       chooseSelected: 'Choose selected',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Media',
+      regionLabel: 'Media folder breadcrumbs',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Subfolders',
+    },
   },
   ui: {
     default: {

@@ -230,6 +230,13 @@ const sv = {
       deleteSelected: 'Radera markerad',
       chooseSelected: 'Välj markerad',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Media',
+      regionLabel: 'Sökväg för mediemapp',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Undermappar',
+    },
   },
   ui: {
     default: {

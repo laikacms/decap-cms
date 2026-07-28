@@ -224,6 +224,13 @@ const ua = {
       deleteSelected: 'Видалити позначені',
       chooseSelected: 'Вибрати позначені',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Медіа',
+      regionLabel: 'Шлях навігації по папці медіа',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Підпапки',
+    },
   },
 
   ui: {

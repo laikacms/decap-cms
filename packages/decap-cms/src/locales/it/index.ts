@@ -248,6 +248,13 @@ const it = {
       deleteSelected: 'Cancella selezionato',
       chooseSelected: 'Prendi selezionato',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Media',
+      regionLabel: 'Percorso della cartella media',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Sottocartelle',
+    },
   },
   ui: {
     default: {

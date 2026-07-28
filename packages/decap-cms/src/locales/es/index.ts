@@ -191,6 +191,13 @@ const es = {
       deleteSelected: 'Eliminar selección',
       chooseSelected: 'Confirmar selección',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'Multimedia',
+      regionLabel: 'Ruta de navegación de la carpeta multimedia',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'Subcarpetas',
+    },
   },
   ui: {
     default: {

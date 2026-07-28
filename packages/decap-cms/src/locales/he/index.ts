@@ -236,6 +236,13 @@ const he = {
       deleteSelected: 'למחוק את הקובץ המסומן',
       chooseSelected: 'לבחור את הקובץ המסומן',
     },
+    mediaLibraryBreadcrumbs: {
+      rootLabel: 'מדיה',
+      regionLabel: 'נתיב ניווט בתיקיית המדיה',
+    },
+    mediaLibraryFolders: {
+      regionLabel: 'תיקיות משנה',
+    },
   },
   ui: {
     default: {
