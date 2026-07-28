@@ -62,4 +62,66 @@ describe('filterEntriesBySearchQuery (DCMS-1229)', () => {
   it('returns an empty array when nothing matches', () => {
     expect(filterEntriesBySearchQuery(collection, entries, 'no such entry')).toEqual([]);
   });
+
+  describe('DCMS-1545: advanced-search grammar parity with the header search box', () => {
+    const advancedCollection = {
+      name: 'posts',
+      label: 'Posts',
+      folder: 'src/posts',
+      search_fields: ['title', 'author', 'date'],
+      fields: [
+        { name: 'title', widget: 'string' },
+        { name: 'author', widget: 'string' },
+        { name: 'date', widget: 'datetime' },
+      ],
+    } as any;
+
+    const advancedEntries = [
+      {
+        slug: 'post-1',
+        path: 'src/posts/post-1.md',
+        data: { title: 'This is post # 1', author: 'Ada', date: '2020-05-01' },
+      },
+      {
+        slug: 'post-2',
+        path: 'src/posts/post-2.md',
+        data: { title: 'This is post # 2', author: 'Grace', date: '2021-06-01' },
+      },
+    ] as any;
+
+    it('matches a field:value clause against entry data, not just the title', () => {
+      expect(filterEntriesBySearchQuery(advancedCollection, advancedEntries, 'author:ada')).toEqual([
+        advancedEntries[0],
+      ]);
+    });
+
+    it('matches a quoted field:"phrase" clause', () => {
+      expect(filterEntriesBySearchQuery(advancedCollection, advancedEntries, 'title:"post # 2"')).toEqual([
+        advancedEntries[1],
+      ]);
+    });
+
+    it('matches an unquoted phrase against any configured search field', () => {
+      expect(filterEntriesBySearchQuery(advancedCollection, advancedEntries, '"This is post"')).toEqual(
+        advancedEntries,
+      );
+    });
+
+    it('matches a date:a..b range clause', () => {
+      expect(
+        filterEntriesBySearchQuery(advancedCollection, advancedEntries, 'date:2021-01-01..2021-12-31'),
+      ).toEqual([advancedEntries[1]]);
+    });
+
+    it('combines a field clause with a fuzzy free-text term', () => {
+      expect(filterEntriesBySearchQuery(advancedCollection, advancedEntries, 'author:ada post')).toEqual([
+        advancedEntries[0],
+      ]);
+      expect(filterEntriesBySearchQuery(advancedCollection, advancedEntries, 'author:ada nomatch')).toEqual([]);
+    });
+
+    it('silently matches nothing for a clause on a field outside search_fields, same as the header box', () => {
+      expect(filterEntriesBySearchQuery(advancedCollection, advancedEntries, 'bogusfield:x')).toEqual([]);
+    });
+  });
 });
