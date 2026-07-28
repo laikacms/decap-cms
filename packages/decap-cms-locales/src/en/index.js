@@ -96,6 +96,7 @@ const en = {
         rangeMax: '%{fieldLabel} must be %{maxCount} or less item(s).',
         invalidPath: `'%{path}' is not a valid path`,
         pathExists: `Path '%{path}' already exists`,
+        fieldNotUnique: '%{fieldLabel} must be unique. Another entry already uses this value.',
       },
       i18n: {
         writingInLocale: 'Writing in %{locale}',

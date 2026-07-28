@@ -230,6 +230,9 @@ export default class Widget extends Component {
       // by the other validators here.
       validations.push((f, v, t) => this.props.validateMetaField(this.props.collection, f, v, t));
     }
+    if (field.get('unique')) {
+      validations.push((f, v, t) => this.props.validateUniqueField(this.props.collection, f, v, t));
+    }
     validations.forEach(func => {
       const response = func(field, value, this.props.t);
       if (response.error) errors.push(response.error);

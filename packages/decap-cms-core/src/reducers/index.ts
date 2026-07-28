@@ -15,6 +15,7 @@ import deploys, * as fromDeploys from './deploys';
 import globalUI from './globalUI';
 import status from './status';
 import notifications from './notifications';
+import { selectIntegrityIssues as selectIntegrityIssuesImpl } from '../lib/integrityCheck';
 
 import type { Status } from '../constants/publishModes';
 import type { State, Collection } from '../types/redux';
@@ -48,6 +49,10 @@ export function selectEntry(state: State, collection: string, slug: string) {
 
 export function selectEntries(state: State, collection: Collection) {
   return fromEntries.selectEntries(state.entries, collection);
+}
+
+export function selectIntegrityIssues(state: State) {
+  return selectIntegrityIssuesImpl(state);
 }
 
 export function selectPublishedSlugs(state: State, collection: string) {

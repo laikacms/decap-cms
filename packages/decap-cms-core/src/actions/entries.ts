@@ -20,7 +20,12 @@ import { addAssets, getAsset } from './media';
 import { SortDirection } from '../types/redux';
 import { waitForMediaLibraryToLoad, loadMedia } from './mediaLibrary';
 import { waitUntil } from './waitUntil';
-import { selectIsFetching, selectEntriesSortFields, selectEntryByPath } from '../reducers/entries';
+import {
+  selectIsFetching,
+  selectEntriesSortFields,
+  selectEntryByPath,
+  selectEntries,
+} from '../reducers/entries';
 import { selectCustomPath } from '../reducers/entryDraft';
 import { navigateToEntry } from '../routing/history';
 import { getProcessSegment } from '../lib/formatters';
@@ -1121,5 +1126,52 @@ export function validateMetaField(
       return getPathError(value, 'pathExists', t);
     }
   }
+  return { error: false };
+}
+
+/**
+ * `unique: true` (DCMS-1422) only guards the field's own top-level data path
+ * across sibling entries in the same collection - like `validateMetaField`'s
+ * path check above, it can't see into list/object sub-field paths, since
+ * those don't have a stable dotted key here (see `EditorControl`/`Widget`
+ * wiring). The batch integrity scan (`lib/integrityCheck.ts`) does walk
+ * nested fields, so duplicates there are still caught, just not live as you
+ * type.
+ */
+export function validateUniqueField(
+  state: State,
+  collection: Collection,
+  field: EntryField,
+  value: unknown,
+  t: (key: string, args: Record<string, unknown>) => string,
+) {
+  if (!field.get('unique') || value === undefined || value === null || value === '') {
+    return { error: false };
+  }
+
+  const fieldName = field.get('name');
+  const draftSlug = state.entryDraft?.getIn(['entry', 'slug']);
+  const entries = selectEntries(state.entries, collection);
+  const comparableValue = String(value);
+
+  const duplicate = entries?.find(entry => {
+    if (entry?.get('slug') === draftSlug) {
+      return false;
+    }
+    const otherValue = entry?.getIn(['data', fieldName]);
+    return otherValue !== undefined && otherValue !== null && String(otherValue) === comparableValue;
+  });
+
+  if (duplicate) {
+    return {
+      error: {
+        type: ValidationErrorTypes.CUSTOM,
+        message: t('editor.editorControlPane.widget.fieldNotUnique', {
+          fieldLabel: field.get('label', fieldName),
+        }),
+      },
+    };
+  }
+
   return { error: false };
 }

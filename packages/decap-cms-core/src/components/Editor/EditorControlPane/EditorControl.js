@@ -17,6 +17,7 @@ import {
   clearFieldErrors,
   tryLoadEntry,
   validateMetaField as validateMetaFieldAction,
+  validateUniqueField as validateUniqueFieldAction,
 } from '../../../actions/entries';
 import { addAsset, boundGetAsset } from '../../../actions/media';
 import { selectIsLoadingAsset } from '../../../reducers/medias';
@@ -280,6 +281,7 @@ class EditorControl extends React.Component {
       parentIds,
       t,
       validateMetaField,
+      validateUniqueField,
       isLoadingAsset,
       isDisabled,
       isHidden,
@@ -406,6 +408,7 @@ class EditorControl extends React.Component {
               parentIds={parentIds}
               t={t}
               validateMetaField={validateMetaField}
+              validateUniqueField={validateUniqueField}
               isDisabled={isDisabled}
               isFieldDuplicate={isFieldDuplicate}
               isFieldHidden={isFieldHidden}
@@ -509,6 +512,10 @@ function mapDispatchToProps(dispatch) {
     validateMetaField: (collection, field, value, t) =>
       dispatch((_dispatch, getState) =>
         validateMetaFieldAction(getState(), collection, field, value, t),
+      ),
+    validateUniqueField: (collection, field, value, t) =>
+      dispatch((_dispatch, getState) =>
+        validateUniqueFieldAction(getState(), collection, field, value, t),
       ),
   };
 }

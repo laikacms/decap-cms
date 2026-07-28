@@ -641,6 +641,7 @@ export type EntryField = StaticallyTypedRecord<{
   meta?: boolean;
   i18n: boolean | 'translate' | 'duplicate' | 'none';
   required?: boolean;
+  unique?: boolean;
   media_library?: StaticallyTypedRecord<CmsMediaLibrary & { allow_multiple?: boolean }>;
 }>;
 

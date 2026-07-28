@@ -59,6 +59,7 @@ function fieldsConfig() {
         label: { type: 'string' },
         widget: { type: 'string' },
         required: { type: 'boolean' },
+        unique: { type: 'boolean' },
         i18n: i18nField,
         hint: { type: 'string' },
         pattern: {
