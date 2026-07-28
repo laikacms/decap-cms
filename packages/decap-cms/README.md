@@ -26,6 +26,13 @@ decade of groundwork goes to the Decap CMS team; see [Credits](#credits) below.
 - **Richtext on Portable Text.** The `markdown` widget is replaced by a `richtext` widget backed by
   the Portable Text editor. See [BREAKING_CHANGES_V4_BETA.md](../../BREAKING_CHANGES_V4_BETA.md) for
   the full list of breaking changes.
+- **AI chat.** A document-scoped `ai-chat` widget streams assistant replies and can apply proposed
+  edits back onto the current entry's draft fields; see
+  [src/widgets/aichat/README.md](./src/widgets/aichat/README.md) for widget setup. The server side
+  is powered by `decapAi()` from the `@laikacms/decap-cms/ai` subpath export, which bundles the
+  Vercel AI SDK (model provider factories, `tool`/`jsonSchema` re-exports) so consumers share one
+  `ai` runtime instead of installing it themselves; see
+  [src/ai/index.ts](./src/ai/index.ts) for usage.
 
 ## Installation
 
