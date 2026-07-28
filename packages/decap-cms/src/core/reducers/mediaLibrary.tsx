@@ -288,8 +288,8 @@ export function selectMediaFiles(state: State, field?: CmsEntryField) {
 }
 
 export function selectMediaFileByPath(state: State, path: string) {
-  const files = selectMediaFiles(state);
-  return files.find(file => file.path === path);
+  const { regularFiles } = selectMediaFolderEntries(selectMediaFiles(state));
+  return regularFiles.find(file => file.path === path);
 }
 
 /**
