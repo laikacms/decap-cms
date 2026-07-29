@@ -87,6 +87,11 @@ const styles = {
       display: none;
     }
   `,
+  collapsiblePanelAlwaysVisible: css`
+    &[hidden] {
+      display: block !important;
+    }
+  `,
 };
 
 interface SortableListProps {
@@ -593,8 +598,7 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
       setItemsCollapsed(prev => prev.map((collapsed: boolean, i: number) => (i === index ? !collapsed : collapsed)));
     }
 
-    function handleCollapseAllToggle(e: React.MouseEvent) {
-      e.preventDefault();
+    function performCollapseAllToggle() {
       const value = inputValue && Array.isArray(inputValue) ? inputValue : inputValue ? [inputValue] : [];
       const minimizeCollapsedItems = field.minimize_collapsed ?? false;
       const listCollapsedByDefault = field.collapsed ?? true;
@@ -610,6 +614,11 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
       } else {
         setItemsCollapsed(Array(value.length).fill(!allItemsCollapsed));
       }
+    }
+
+    function handleCollapseAllToggle(e: React.MouseEvent) {
+      e.preventDefault();
+      performCollapseAllToggle();
     }
 
     function objectLabel(item: unknown) {
@@ -806,7 +815,7 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
       return (
         <ClassNames>
           {({ cx, css: cn }) => (
-            <div
+            <Collapsible.Root
               id={forID}
               className={cx(
                 classNameWrapper,
@@ -814,6 +823,8 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
                 ${styleStrings.objectWidgetTopBarContainer}
               `,
               )}
+              open={!selfCollapsed}
+              onOpenChange={() => performCollapseAllToggle()}
             >
               <ObjectWidgetTopBar
                 allowAdd={field.allow_add ?? true}
@@ -822,14 +833,21 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
                 onAddType={(type: string) => handleAddType(type, resolveFieldKeyType(field))}
                 heading={`${items.length} ${listLabel}`}
                 label={labelSingular.toLowerCase()}
-                onCollapseToggle={() => handleCollapseAllToggle({ preventDefault: () => {} } as React.MouseEvent)}
+                collapsibleTrigger
                 collapsed={selfCollapsed}
                 t={t!}
               />
               {(!selfCollapsed || !minimizeCollapsedItems) && (
-                <SortableList onSortEnd={onSortEnd}>{items.map(renderItem)}</SortableList>
+                <Collapsible.Panel
+                  keepMounted
+                  css={minimizeCollapsedItems
+                    ? styles.collapsiblePanel
+                    : styles.collapsiblePanelAlwaysVisible}
+                >
+                  <SortableList onSortEnd={onSortEnd}>{items.map(renderItem)}</SortableList>
+                </Collapsible.Panel>
               )}
-            </div>
+            </Collapsible.Root>
           )}
         </ClassNames>
       );
