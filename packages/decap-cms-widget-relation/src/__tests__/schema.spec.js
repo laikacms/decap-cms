@@ -124,6 +124,32 @@ describe('relation widget schema', () => {
     });
   });
 
+  describe('camelCase alias field types (DCMS-1677)', () => {
+    it('rejects valueField with the wrong type', () => {
+      expect(validate({ ...baseCamel, valueField: 123 })).toBe(false);
+    });
+
+    it('rejects searchFields with the wrong type', () => {
+      expect(validate({ ...baseCamel, searchFields: 'notAnArray' })).toBe(false);
+    });
+
+    it('rejects searchFields with an empty array', () => {
+      expect(validate({ ...baseCamel, searchFields: [] })).toBe(false);
+    });
+
+    it('rejects searchFields with non-string items', () => {
+      expect(validate({ ...baseCamel, searchFields: [1, 2] })).toBe(false);
+    });
+
+    it('rejects displayFields with the wrong type', () => {
+      expect(validate({ ...baseCamel, displayFields: 'notAnArray' })).toBe(false);
+    });
+
+    it('accepts displayFields with a valid array', () => {
+      expect(validate({ ...baseCamel, displayFields: ['title', 'date'] })).toBe(true);
+    });
+  });
+
   describe('filters field', () => {
     it('passes with valid filters array', () => {
       expect(
