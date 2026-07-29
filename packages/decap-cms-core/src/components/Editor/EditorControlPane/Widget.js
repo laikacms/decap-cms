@@ -81,21 +81,29 @@ export default class Widget extends Component {
     PropTypes.checkPropTypes(Widget.propTypes, this.props, 'prop', 'Widget');
   }
 
-  shouldComponentUpdate(nextProps, nextState, nextContext) {
+  shouldComponentUpdate(nextProps) {
     /**
      * Avoid unnecessary rerenders while loading assets.
      */
     if (this.props.isLoadingAsset && nextProps.isLoadingAsset) return false;
     /**
-     * Allow widgets to provide their own `shouldComponentUpdate` method. Some
-     * wrapped controls (e.g. decap-cms-widget-relation's quick-add modal,
-     * DCMS-1421) read `nextState` themselves, so it must be forwarded along
-     * with `nextProps`/`nextContext` or the delegated call throws trying to
-     * read off `undefined` and crashes the app to the error boundary.
+     * DCMS-1691/DCMS-1693: this used to delegate to the wrapped control's own
+     * `shouldComponentUpdate` (e.g. decap-cms-widget-relation's quick-add
+     * modal, DCMS-1421) as a manual optimization, splicing this `Widget`
+     * wrapper's own `nextState`/`nextContext` into the call. That's unsound:
+     * `nextState` there is `Widget`'s own next state - always `null`, since
+     * `Widget` never calls `setState` - not the wrapped control's, so any
+     * wrapped control whose `shouldComponentUpdate` reads `nextState` (like
+     * `RelationControl`) crashed reading off `null`/`undefined`.
+     *
+     * The wrapped control is a real `React.Component` rendered as a child
+     * (see `render()` below), so React already calls its own
+     * `shouldComponentUpdate` with its own correct `nextState` whenever it
+     * needs to update - no manual delegation required. Falling through to
+     * the default comparison below just decides whether `Widget` itself
+     * bails out early; it no longer needs to (and must not) speak for the
+     * wrapped control.
      */
-    if (this.wrappedControlShouldComponentUpdate) {
-      return this.wrappedControlShouldComponentUpdate(nextProps, nextState, nextContext);
-    }
     return (
       this.props.value !== nextProps.value ||
       this.props.classNameWrapper !== nextProps.classNameWrapper ||
@@ -115,13 +123,6 @@ export default class Widget extends Component {
     this.innerWrappedControl = ref.getWrappedInstance ? ref.getWrappedInstance() : ref;
 
     this.wrappedControlValid = this.innerWrappedControl.isValid || truthy;
-
-    /**
-     * Get the `shouldComponentUpdate` method from the wrapped control, and
-     * provide the control instance is the `this` binding.
-     */
-    const { shouldComponentUpdate: scu } = this.innerWrappedControl;
-    this.wrappedControlShouldComponentUpdate = scu && scu.bind(this.innerWrappedControl);
 
     // Call the control ref if provided, passing this Widget instance
     if (this.props.controlRef) {
