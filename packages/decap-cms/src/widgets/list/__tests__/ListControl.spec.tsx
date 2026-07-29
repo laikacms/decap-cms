@@ -160,6 +160,40 @@ describe('ListControl', () => {
     expect(getByTestId('object-control-1')).toHaveAttribute('collapsed');
   });
 
+  it('should set aria-expanded/aria-controls on the top-bar expand button and toggle them on click (DCMS-1673)', () => {
+    const field = {
+      name: 'list',
+      label: 'List',
+      collapsed: false,
+      field: {
+        name: 'object',
+        widget: 'object',
+        label: 'Object',
+        fields: [{ name: 'title', widget: 'string', label: 'Title' }],
+      },
+    };
+    const { getByTestId } = render(
+      <ListControl
+        {...props}
+        field={field}
+        value={[{ object: { title: 'item 1' } }, { object: { title: 'item 2' } }]}
+      />,
+    );
+
+    const expandButton = getByTestId('expand-button');
+
+    expect(expandButton).toHaveAttribute('aria-expanded', 'true');
+    expect(expandButton.getAttribute('aria-controls')).toBeTruthy();
+
+    fireEvent.click(expandButton);
+
+    expect(expandButton).toHaveAttribute('aria-expanded', 'false');
+
+    fireEvent.click(expandButton);
+
+    expect(expandButton).toHaveAttribute('aria-expanded', 'true');
+  });
+
   it('should collapse a single item on collapse item click', () => {
     const field = {
       name: 'list',
