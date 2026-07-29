@@ -3,6 +3,14 @@ import { Map } from 'immutable';
 import { shouldEmitChange, createChangeGuard } from '../valueSync';
 import { markdownToSlate, slateToMarkdown } from '../../serializers';
 
+// DCMS-1694: the guard now reopens on a macrotask (`setTimeout(fn, 0)`)
+// rather than a microtask, so tests that need to wait for it to "settle"
+// must yield a real macrotask, not just drain the microtask queue
+// (`await Promise.resolve()`). This helper does that.
+function settle() {
+  return new Promise(resolve => setTimeout(resolve, 0));
+}
+
 const MULTI_SENTENCE_BODY =
   'This is the first sentence of a longer body. This is the second sentence, ' +
   'with a comma and more words to make the string non-trivial.\n\n' +
@@ -106,13 +114,11 @@ describe('createChangeGuard (DCMS-337: handleChange store-feedback loop)', () =>
     // Let the first emit settle (DCMS-1661: the guard reopens on the next
     // microtask, not synchronously) before asserting the duplicate-value
     // guard against it.
-    await Promise.resolve();
-    await Promise.resolve();
+    await settle();
 
     expect(guardChange(firstMdValue, () => {})).toBe(false);
 
-    await Promise.resolve();
-    await Promise.resolve();
+    await settle();
 
     const secondBody = `${MULTI_SENTENCE_BODY}\n\nAnd now a third paragraph was added.`;
     const secondSlateValue = markdownToSlate(secondBody, { editorComponents: Map() });
@@ -176,8 +182,7 @@ describe('createChangeGuard (DCMS-583: re-entrant onChange during value/prop chu
     expect(guardChange('First paragraph.\n\nSecond paragraph.', onEmit)).toBe(false);
     expect(calls).toEqual(['First paragraph.']);
 
-    await Promise.resolve();
-    await Promise.resolve();
+    await settle();
 
     expect(calls).toEqual(['First paragraph.', 'First paragraph.\n\nSecond paragraph.']);
   });
@@ -201,8 +206,7 @@ describe('createChangeGuard (DCMS-583: re-entrant onChange during value/prop chu
     // synchronously, but it must still make it through once settled.
     expect(guardChange('First paragraph.\n\nA later, real edit.', onEmit)).toBe(false);
 
-    await Promise.resolve();
-    await Promise.resolve();
+    await settle();
 
     expect(calls).toEqual(['First paragraph.', 'First paragraph.\n\nA later, real edit.']);
   });
@@ -244,10 +248,8 @@ describe('createChangeGuard (DCMS-1661: coalescing rapid non-nested onChange bur
     // long the burst is, structurally preventing React error #185.
     expect(calls).toEqual(['abc. ']);
 
-    // Let the guard's deferred release/flush microtasks drain.
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
+    // Let the guard's deferred release/flush macrotask fire.
+    await settle();
 
     // The burst still converges on the true final value - no keystrokes are
     // silently lost - it just takes one extra (coalesced) emit instead of
@@ -271,10 +273,108 @@ describe('createChangeGuard (DCMS-1661: coalescing rapid non-nested onChange bur
       guardChange(`value-${i}`, onEmit);
     }
 
-    for (let i = 0; i < 10; i += 1) {
+    for (let i = 0; i < 3; i += 1) {
       // eslint-disable-next-line no-await-in-loop
-      await Promise.resolve();
+      await settle();
     }
+
+    expect(maxObservedDepth).toBe(1);
+  });
+});
+
+// DCMS-1694: the DCMS-1661 fix above bounds re-entrancy that resolves
+// within the current task's microtask checkpoint - its own regression
+// tests prove that by awaiting `Promise.resolve()` (a microtask) between
+// calls. But the real-world crash it was meant to prevent (Playwright's
+// `keyboard.type()` with 0ms inter-key delay, or a real held-down key
+// repeat) dispatches each keystroke's onChange from a genuinely separate
+// *macrotask* - each one arrives as its own task on the event loop, not
+// nested inside another call and not merely awaiting a microtask.
+//
+// A NOTE ON TEST SHAPE: it's tempting to simulate that by awaiting a fresh
+// `new Promise(r => setTimeout(r, 0))` *between* each `guardChange` call
+// (mirroring the microtask-based DCMS-1661 tests above, just swapping
+// `Promise.resolve()` for a macrotask). That pattern does NOT discriminate
+// here, though: a macrotask-reopening guard schedules its own
+// `setTimeout(fn, 0)` the instant a call is emitted, and that timer gets
+// queued *before* the test's own "wait one macrotask" timer for the next
+// iteration - so by construction the guard would already have reopened by
+// the time the next call fires, on both the fixed and the pre-fix code,
+// and the test would never observe a difference. What actually reproduces
+// the bug is many keystroke-tasks landing in the macrotask queue *ahead
+// of* the guard's own reopen callback - i.e. queued back-to-back, the way
+// a burst of real/CDP-dispatched key events actually arrives, faster than
+// a fresh JS timer can be scheduled and fire in response to each one. So
+// these tests pre-schedule every keystroke's `guardChange` call as its own
+// `setTimeout(fn, 0)` macrotask up front (all enqueued before any of them
+// run), then let the event loop drain: each callback is a separate task
+// (never nested, never just a microtask away from the last one), but
+// enough of them are already queued ahead of the guard's own reopen timer
+// to reproduce the burst. Against the pre-DCMS-1694 code (reopen on
+// `queueMicrotask`, which drains completely before the next queued
+// `setTimeout` task even runs), every one of these calls passes the guard
+// as "clean" and the assertions below fail - exactly the runaway pattern
+// that trips React #185.
+describe('createChangeGuard (DCMS-1694: coalescing bursts across macrotask-separated keystrokes)', () => {
+  async function flushMacrotasks(count) {
+    for (let i = 0; i < count; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise(resolve => setTimeout(resolve, 0));
+    }
+  }
+
+  it('bounds a burst of macrotask-scheduled keystrokes to far fewer emits than keystrokes', async () => {
+    const guardChange = createChangeGuard('');
+    const calls = [];
+    function onEmit(value) {
+      calls.push(value);
+    }
+
+    // Exact DCMS-1661/DCMS-1694 repro shape: 60 chars, 'abc. ' x 12 - each
+    // keystroke's onChange dispatched from its own macrotask (a distinct
+    // `setTimeout(fn, 0)` task), all scheduled up front so they queue up
+    // ahead of the guard's own reopen callback, matching how Playwright's
+    // keyboard.type()/real key-repeat delivers a 0ms-delay burst as many
+    // separate tasks rather than one synchronous script execution.
+    const total = 12;
+    for (let i = 1; i <= total; i += 1) {
+      const value = 'abc. '.repeat(i);
+      setTimeout(() => guardChange(value, onEmit), 0);
+    }
+
+    // Let the burst of scheduled tasks run, then let any coalesced replay
+    // (itself deferred by one more macrotask) flush too.
+    await flushMacrotasks(total + 3);
+
+    // On the pre-fix (queueMicrotask) guard, isEmitting is reset before
+    // the next queued macrotask ever runs, so every one of the 12
+    // keystrokes passes the guard and emits - calls.length === 12. The fix
+    // must collapse this cross-tick burst the same way the guard already
+    // collapses a same-tick one: far fewer emits than keystrokes, and the
+    // final emitted value must still be the fully-typed string (no
+    // keystrokes silently dropped).
+    expect(calls.length).toBeLessThan(total);
+    expect(calls[calls.length - 1]).toBe('abc. '.repeat(total));
+  });
+
+  it('never lets two macrotask-scheduled onEmit calls stack synchronously', async () => {
+    const guardChange = createChangeGuard('');
+    let maxObservedDepth = 0;
+    let currentDepth = 0;
+
+    function onEmit() {
+      currentDepth += 1;
+      maxObservedDepth = Math.max(maxObservedDepth, currentDepth);
+      currentDepth -= 1;
+    }
+
+    const total = 20;
+    for (let i = 1; i <= total; i += 1) {
+      const value = `value-${i}`;
+      setTimeout(() => guardChange(value, onEmit), 0);
+    }
+
+    await flushMacrotasks(total + 3);
 
     expect(maxObservedDepth).toBe(1);
   });
