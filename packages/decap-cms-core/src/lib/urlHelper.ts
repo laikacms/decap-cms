@@ -112,6 +112,25 @@ export function sanitizeChar(char: string, options?: CmsSlug) {
   return getCharReplacer(encoding, { replacement })(char);
 }
 
+// DCMS-1669: without a length cap, an arbitrarily long title produces an
+// equally long slug that real backends reject (GitHub's create-file API
+// returns 422 above 255 UTF-8 bytes; most filesystems enforce a 255-byte
+// NAME_MAX), even though the demo/test-repo backend accepts it silently.
+// 100 matches the value documented on decapcms.org for `slug.max_length`.
+export const DEFAULT_SLUG_MAX_LENGTH = 100;
+// Hard ceiling regardless of `max_length` config, matching the common
+// filesystem NAME_MAX (255 bytes); protects against misconfiguration.
+const SLUG_MAX_LENGTH_CEILING = 255;
+
+function truncateSlugSegment(segment: string, maxLength: number, replacement: string) {
+  if (segment.length <= maxLength) {
+    return segment;
+  }
+
+  const trailingReplacement = new RegExp(`${escapeRegExp(replacement)}+$`);
+  return segment.slice(0, maxLength).replace(trailingReplacement, '');
+}
+
 export function sanitizeSlug(str: string, options?: CmsSlug, preserveSlashes?: boolean) {
   if (!isString(str)) {
     throw new Error('The input slug must be a string.');
@@ -122,7 +141,10 @@ export function sanitizeSlug(str: string, options?: CmsSlug, preserveSlashes?: b
     clean_accents: stripDiacritics,
     // Default matches decapcms.org docs (DCMS-306)
     sanitize_replacement: replacement = '-',
+    max_length: maxLength = DEFAULT_SLUG_MAX_LENGTH,
   } = options || {};
+
+  const effectiveMaxLength = Math.min(maxLength, SLUG_MAX_LENGTH_CEILING);
 
   const sanitizedSlug = flow([
     ...(stripDiacritics ? [diacritics.remove] : []),
@@ -147,7 +169,17 @@ export function sanitizeSlug(str: string, options?: CmsSlug, preserveSlashes?: b
     .replace(leadingReplacement, '')
     .replace(trailingReplacement, '');
 
-  return normalizedSlug;
+  // Cap the output length so it stays within what real backends accept
+  // (see DCMS-1669). When slashes are preserved (segment-based slugs), the
+  // cap applies per path segment rather than to the joined path as a whole.
+  if (preserveSlashes) {
+    return normalizedSlug
+      .split('/')
+      .map(segment => truncateSlugSegment(segment, effectiveMaxLength, replacement))
+      .join('/');
+  }
+
+  return truncateSlugSegment(normalizedSlug, effectiveMaxLength, replacement);
 }
 
 export function joinUrlPath(base: string, ...path: string[]) {

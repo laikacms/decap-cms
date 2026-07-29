@@ -457,6 +457,7 @@ export interface CmsSlug {
   encoding?: CmsSlugEncoding;
   clean_accents?: boolean;
   sanitize_replacement?: string;
+  max_length?: number;
 }
 
 export interface CmsLocalBackend {

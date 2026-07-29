@@ -157,6 +157,48 @@ describe('sanitizeSlug', () => {
     expect(sanitizeSlug('Hello World! Foo & Bar', {})).toEqual('Hello-World-Foo-Bar');
     expect(sanitizeSlug('Hello World! Foo & Bar')).toEqual('Hello-World-Foo-Bar');
   });
+
+  // DCMS-1669: a 3,000+ char title must not produce an equally long slug
+  // (real backends reject it — GitHub 422, filesystem ENAMETOOLONG).
+  describe('max_length (DCMS-1669)', () => {
+    it('applies the default 100 char cap when max_length is unset', () => {
+      const longTitle = 'a'.repeat(3000);
+      const result = sanitizeSlug(longTitle, slugConfig);
+
+      expect(result.length).toBeLessThanOrEqual(100);
+      expect(result).toEqual('a'.repeat(100));
+    });
+
+    it('honors a custom max_length config value', () => {
+      const longTitle = 'a'.repeat(3000);
+      const result = sanitizeSlug(longTitle, { ...slugConfig, max_length: 20 });
+
+      expect(result.length).toBeLessThanOrEqual(20);
+      expect(result).toEqual('a'.repeat(20));
+    });
+
+    it('does not leave a trailing replacement char after truncation', () => {
+      // Cut right where a run of spaces (converted to '-') would land.
+      const title = `${'a'.repeat(19)}   more text after`;
+      const result = sanitizeSlug(title, { ...slugConfig, max_length: 20 });
+
+      expect(result.endsWith('-')).toBe(false);
+      expect(result).toEqual('a'.repeat(19));
+    });
+
+    it('applies the cap per segment when preserveSlashes is set', () => {
+      const longSegment = 'b'.repeat(3000);
+      const input = `${longSegment}/${longSegment}`;
+      const result = sanitizeSlug(input, { ...slugConfig, max_length: 10 }, true);
+
+      const segments = result.split('/');
+      expect(segments).toHaveLength(2);
+      segments.forEach(segment => {
+        expect(segment.length).toBeLessThanOrEqual(10);
+        expect(segment).toEqual('b'.repeat(10));
+      });
+    });
+  });
 });
 
 describe('sanitizeChar', () => {

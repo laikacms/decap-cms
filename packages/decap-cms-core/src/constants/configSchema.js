@@ -234,6 +234,7 @@ function getConfigSchema() {
           encoding: { type: 'string', enum: ['unicode', 'ascii'] },
           clean_accents: { type: 'boolean' },
           sanitize_replacement: { type: 'string' },
+          max_length: { type: 'number', examples: [100] },
         },
       },
       issue_reports: {
