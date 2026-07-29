@@ -815,20 +815,32 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
               `,
               )}
             >
-              <ObjectWidgetTopBar
-                allowAdd={field.allow_add ?? true}
-                onAdd={() => handleAdd({ preventDefault: () => {} } as React.MouseEvent)}
-                types={field[TYPES_KEY] as unknown as TypeItem[]}
-                onAddType={(type: string) => handleAddType(type, resolveFieldKeyType(field))}
-                heading={`${items.length} ${listLabel}`}
-                label={labelSingular.toLowerCase()}
-                onCollapseToggle={() => handleCollapseAllToggle({ preventDefault: () => {} } as React.MouseEvent)}
-                collapsed={selfCollapsed}
-                t={t!}
-              />
-              {(!selfCollapsed || !minimizeCollapsedItems) && (
-                <SortableList onSortEnd={onSortEnd}>{items.map(renderItem)}</SortableList>
-              )}
+              <Collapsible.Root
+                open={!selfCollapsed}
+                onOpenChange={() =>
+                  handleCollapseAllToggle({ preventDefault: () => {} } as React.MouseEvent)}
+              >
+                <ObjectWidgetTopBar
+                  allowAdd={field.allow_add ?? true}
+                  onAdd={() => handleAdd({ preventDefault: () => {} } as React.MouseEvent)}
+                  types={field[TYPES_KEY] as unknown as TypeItem[]}
+                  onAddType={(type: string) => handleAddType(type, resolveFieldKeyType(field))}
+                  heading={`${items.length} ${listLabel}`}
+                  label={labelSingular.toLowerCase()}
+                  collapsibleTrigger
+                  collapsed={selfCollapsed}
+                  t={t!}
+                />
+                {(!selfCollapsed || !minimizeCollapsedItems) && (
+                  <Collapsible.Panel
+                    id={`${forID}-list-items`}
+                    keepMounted={!minimizeCollapsedItems}
+                    hidden={false}
+                  >
+                    <SortableList onSortEnd={onSortEnd}>{items.map(renderItem)}</SortableList>
+                  </Collapsible.Panel>
+                )}
+              </Collapsible.Root>
             </div>
           )}
         </ClassNames>

@@ -230,6 +230,75 @@ describe('ListControl', () => {
     expect(getByTestId('object-control-1')).not.toHaveAttribute('collapsed');
   });
 
+  it('should toggle aria-expanded on the top-level Expand/Collapse button across a collapse/expand cycle', () => {
+    const field = {
+      name: 'list',
+      label: 'List',
+      collapsed: false,
+      field: {
+        name: 'object',
+        widget: 'object',
+        label: 'Object',
+        fields: [{ name: 'title', widget: 'string', label: 'Title' }],
+      },
+    };
+    const { getByTestId } = render(
+      <ListControl
+        {...props}
+        field={field}
+        value={[{ object: { title: 'item 1' } }, { object: { title: 'item 2' } }]}
+      />,
+    );
+
+    const expandButton = getByTestId('expand-button');
+    expect(expandButton).toHaveAttribute('aria-expanded', 'true');
+    expect(expandButton).toHaveAttribute('aria-controls');
+
+    fireEvent.click(expandButton);
+    expect(expandButton).toHaveAttribute('aria-expanded', 'false');
+
+    fireEvent.click(expandButton);
+    expect(expandButton).toHaveAttribute('aria-expanded', 'true');
+    expect(expandButton).toHaveAttribute('aria-controls');
+  });
+
+  it('should keep the inner list-item Expand button working alongside the top-level fix', () => {
+    const field = {
+      name: 'list',
+      label: 'List',
+      collapsed: true,
+      field: {
+        name: 'object',
+        widget: 'object',
+        label: 'Object',
+        fields: [{ name: 'title', widget: 'string', label: 'Title' }],
+      },
+    };
+    const { getByTestId } = render(
+      <ListControl
+        {...props}
+        field={field}
+        value={[{ object: { title: 'item 1' } }, { object: { title: 'item 2' } }]}
+      />,
+    );
+
+    const topLevelExpandButton = getByTestId('expand-button');
+    expect(topLevelExpandButton).toHaveAttribute('aria-expanded', 'false');
+    expect(getByTestId('styled-list-item-top-bar-0')).toHaveAttribute('collapsed');
+
+    // The item-level top bar already uses Collapsible.Trigger internally
+    // (mocked in this spec file to wrap the whole bar as the trigger button);
+    // clicking it must keep expanding just that item, independent of the
+    // top-level Collapsible.Root added by this fix.
+    fireEvent.click(getByTestId('styled-list-item-top-bar-0'));
+
+    expect(getByTestId('styled-list-item-top-bar-0')).not.toHaveAttribute('collapsed');
+    expect(getByTestId('styled-list-item-top-bar-1')).toHaveAttribute('collapsed');
+    // Not all items are collapsed anymore, so the top-level button now
+    // reports expanded, in sync with its existing chevron/label state.
+    expect(topLevelExpandButton).toHaveAttribute('aria-expanded', 'true');
+  });
+
   it('should expand a single item on expand item click', () => {
     const field = {
       name: 'list',
