@@ -39,6 +39,51 @@ test.describe('Laika editor route - app top-nav suppression', () => {
     await expect(page.getByRole('link', { name: 'Home' })).toBeVisible();
   });
 
+  /**
+   * DCMS-1651 — the editor toolbar's own `Posts / Editing` breadcrumb has
+   * the same problem `editorBackLink` (the "Back" icon, above) already
+   * solves for the app-shell header: the Laika sidebar (an `<aside
+   * aria-label="Collections">`, rendered by `LaikaLayout` regardless of
+   * route) used to stay mounted underneath the editor's full-bleed toolbar,
+   * occupying the same top-left screen region as the breadcrumb's
+   * `Posts` link and intercepting its clicks — visually invisible (the
+   * editor toolbar painted over it) but still in the DOM and hit-testable.
+   * Fixed by unmounting the sidebar for editor routes too (mirroring the
+   * header's DCMS-431 fix above), via the `isEditorRoute` flag `LaikaLayout`
+   * receives from `renderLayout`.
+   */
+  test('the breadcrumb "Posts" link survives a save and navigates back to the collection', async ({ page }) => {
+    await gotoRoute(page, '/collections/posts');
+    // An existing entry already has every required field filled (Body
+    // included), so a title edit is a clean, guaranteed-valid save — unlike
+    // a brand-new entry, which needs Body/Draft/Publish Date filled in too
+    // before Save clears validation.
+    await page.getByRole('link', { name: /This is post #/ }).first().click();
+    await expect(page).toHaveURL(/#\/collections\/posts\/entries\//);
+
+    // Let the Body richtext (Lexical) editor finish mounting/hydrating its
+    // existing content before touching Title — editing too early races a
+    // late-mounting editor (see `richtext-editor.e2e.ts`) and can leave Body
+    // looking empty/required at save time, unrelated to the bug under test.
+    await page.locator('[contenteditable="true"][data-lexical-editor="true"]').first()
+      .locator(':scope > p').first().waitFor();
+
+    await page.getByLabel('Title').first().fill('DCMS-1651 breadcrumb regression check');
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(page.getByText('Changes saved')).toBeVisible();
+
+    const breadcrumbCollectionLink = page.locator('a[href="#/collections/posts"]');
+    await expect(breadcrumbCollectionLink).toBeVisible();
+
+    // A single click must land on the link and navigate — not get
+    // intercepted by a sibling overlay, which is what made this flaky/dead
+    // before the fix (Playwright would time out retrying the click).
+    await breadcrumbCollectionLink.click({ timeout: 10000 });
+
+    await expect(page).toHaveURL(/#\/collections\/posts$/);
+    await expect(page.getByRole('heading', { name: 'Posts' })).toBeVisible();
+  });
+
   test('the new-entry editor route also removes the app header', async ({ page }) => {
     // Deep-linking straight to `#/collections/posts/new` never renders the
     // header to begin with (that's the fix); reach the route by navigating

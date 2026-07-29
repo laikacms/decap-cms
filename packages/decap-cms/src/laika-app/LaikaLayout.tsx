@@ -38,11 +38,26 @@ const MainArea = styled.div`
   }
 `;
 
-function LaikaLayout({ main, headerProps }: AppLayoutRenderProps) {
+function LaikaLayout({ main, headerProps, isEditorRoute }: AppLayoutRenderProps) {
   return (
     <>
       <LayoutRow>
-        <LaikaSidebar collections={headerProps.collections} userScopes={headerProps.user.scopes} />
+        {
+          /* The entry editor renders its own full-bleed header/toolbar over
+            the same viewport region as this sidebar (`EditorContainer` is
+            `position: absolute; top: 0; left: 0; width: 100%`, per
+            `EditorInterface.tsx` — see DCMS-431). Mounting the sidebar
+            underneath it leaves an invisible-yet-focusable/clickable `<aside>`
+            occupying the editor toolbar's top-left corner, intercepting
+            pointer events aimed at the breadcrumb `Posts` link (DCMS-1651).
+            `isEditorRoute` exists on `AppLayoutRenderProps` for exactly this
+            case (see its doc comment in `App.tsx`); unmount rather than layer
+            a z-index/pointer-events patch on top of it, matching how the
+            app-shell header is already unmounted for editor routes. */
+        }
+        {!isEditorRoute && (
+          <LaikaSidebar collections={headerProps.collections} userScopes={headerProps.user.scopes} />
+        )}
         <MainArea>{main}</MainArea>
       </LayoutRow>
       <LaikaCommandPalette />
