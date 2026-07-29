@@ -91,21 +91,68 @@ export function shouldEmitChange(nextValue, currentValue) {
 // or cross-tick - land in between, closing the gap the microtask-only
 // bound left open. The tradeoff (per the issue) is a small, sub-frame
 // ceiling on value round-trip cadence, which is not perceptible in the UI.
+//
+// DCMS-1701: the macrotask reopen above bounds the *rate* of emits (at most
+// one in flight, one coalesced pending value per macrotask), but it never
+// bounded the *length* of a replay chain. A compound burst that combines
+// inline autoformat shortcut resolution (`**bold**` + `_italic_`) with a
+// paragraph-terminating period + blank line + multi-item list transition,
+// all in the same burst, drives more re-normalize passes than either
+// ingredient alone - and, critically, those passes don't necessarily
+// converge to a stable serialized value on the first, or even second,
+// macrotask-boundary replay. Each replay still carries a genuinely
+// *different* value from the last (that's exactly what `shouldEmitChange`
+// is designed to let through), so the DCMS-1694 guard keeps replaying
+// forever, once per macrotask, with no ceiling at all - which is what spins
+// the update-depth guard into React error #185, just on a macrotask cadence
+// instead of a synchronous one.
+//
+// The fix: track how many *consecutive* replays (calls made from this
+// guard's own reopen callback, as opposed to a fresh call arriving while
+// idle) have fired without the chain going idle in between. `nextValue` is
+// always the full current serialized document, never a diff, so once that
+// count exceeds MAX_CHAIN_REPLAYS the guard drops the in-flight pending
+// value instead of replaying it again: the last value that WAS actually
+// emitted stands, the chain stops, and the guard goes idle. Because it's
+// idle (not still "isEmitting"), the very next call - whether it's the
+// user's next keystroke or the next round of the same feedback loop -
+// starts a fresh chain rather than being permanently wedged. This bounds
+// the total number of replays any single burst can ever produce, on top of
+// the existing per-macrotask rate bound, closing the gap the rate bound
+// alone left open.
+const MAX_CHAIN_REPLAYS = 4;
+
 export function createChangeGuard(initialValue) {
   let lastEmittedValue = initialValue ?? '';
   let isEmitting = false;
   let hasPending = false;
   let pendingValue;
+  let chainDepth = 0;
 
-  function guardChange(nextValue, onEmit) {
+  function guardChange(nextValue, onEmit, isReplay = false) {
     if (isEmitting) {
       hasPending = true;
       pendingValue = nextValue;
       return false;
     }
+
+    chainDepth = isReplay ? chainDepth + 1 : 0;
+
     if (!shouldEmitChange(nextValue, lastEmittedValue)) {
       return false;
     }
+
+    if (isReplay && chainDepth > MAX_CHAIN_REPLAYS) {
+      // DCMS-1701: this burst has replayed too many times in a row without
+      // ever going idle - a non-converging feedback loop, not real user
+      // input. Drop the pending value and stop the chain here rather than
+      // replaying it again; `lastEmittedValue` is left as the last value
+      // that genuinely made it out, so a later, real change can still be
+      // detected and emitted once the guard is idle again.
+      chainDepth = 0;
+      return false;
+    }
+
     lastEmittedValue = nextValue;
     isEmitting = true;
     try {
@@ -117,7 +164,9 @@ export function createChangeGuard(initialValue) {
           const next = pendingValue;
           hasPending = false;
           pendingValue = undefined;
-          guardChange(next, onEmit);
+          guardChange(next, onEmit, true);
+        } else {
+          chainDepth = 0;
         }
       }, 0);
     }

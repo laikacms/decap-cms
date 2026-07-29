@@ -379,3 +379,107 @@ describe('createChangeGuard (DCMS-1694: coalescing bursts across macrotask-separ
     expect(maxObservedDepth).toBe(1);
   });
 });
+
+// DCMS-1701: React error #185 still fires on a compound burst that combines
+// BOTH (1) inline autoformat shortcut resolution in the same paragraph
+// (`**bold**` + `_italic_`) and (2) a paragraph-terminating period + blank
+// line + multi-item `- ` list block transition, in the same input burst.
+// Neither ingredient alone reproduces it - each settles in one or two
+// macrotask-boundary replays, well within what DCMS-1694's guard bounds.
+//
+// The DCMS-1694 guard (reopen on `setTimeout(fn, 0)`, coalesce into a
+// single `pendingValue`) bounds the *rate* of emits to roughly one per
+// macrotask, and every existing regression test above confirms a burst
+// converges to a stable final value within a couple of those macrotask
+// replays. What none of them exercise is what happens when the value
+// *never* converges - when each replay's `onEmit` (standing in for the
+// parent's onChange -> redux round trip) is itself what schedules the next
+// re-notification, and that re-notification's serialized value keeps
+// changing (as the compound autoformat-then-list-transition normalize
+// passes settle marks/list nesting across more than one hop). The rate
+// guard alone does not help here: it happily keeps emitting once per
+// macrotask forever, because each one legitimately "differs" from the
+// last per `shouldEmitChange` - there was never a ceiling on the total
+// *length* of a replay chain, only on how many calls land in any single
+// macrotask window. That unbounded chain is what spins the update-depth
+// guard into React error #185, exactly as an unbounded *rate* did before
+// DCMS-1694.
+describe('createChangeGuard (DCMS-1701: compound autoformat + block-transition non-converging burst)', () => {
+  async function flushMacrotasks(count) {
+    for (let i = 0; i < count; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise(resolve => setTimeout(resolve, 0));
+    }
+  }
+
+  it('bounds a chain of replays whose onEmit round trip never settles on a stable value', async () => {
+    const guardChange = createChangeGuard('');
+    const calls = [];
+
+    // Simulates the DCMS-1701 repro shape: "Hello **bold** and _italic_
+    // end.\n\n- One\n- Two" typed as one burst. VisualEditor has no re-sync
+    // effect from props back into the Slate document, but the compound
+    // inline-mark-resolution + paragraph -> list block-transition normalize
+    // pass settles across more than one macrotask-boundary replay, and each
+    // settled value differs slightly from the last (e.g. trailing
+    // whitespace on the last list item flips as marks/list nesting
+    // re-normalize) before truly stabilizing - it never actually converges
+    // to a fixed point within any bound the DCMS-1694 guard enforces.
+    const VALUES = [
+      'Hello **bold** and _italic_ end.\n\n- One\n- Two',
+      'Hello **bold** and _italic_ end.\n\n- One\n- Two ',
+    ];
+    const HARD_TEST_CUTOFF = 40; // only so a pre-fix run terminates at all
+
+    function onEmit(value) {
+      calls.push(value);
+      if (calls.length < HARD_TEST_CUTOFF) {
+        // Re-notify with the NEXT (still-different, non-converging) value -
+        // arriving nested on this onEmit's own call stack, the same shape
+        // as the DCMS-583 re-entrancy the guard already coalesces.
+        guardChange(VALUES[calls.length % VALUES.length], onEmit);
+      }
+    }
+
+    guardChange(VALUES[0], onEmit);
+
+    await flushMacrotasks(HARD_TEST_CUTOFF + 5);
+
+    // Pre-fix: every replay's value is genuinely different from the last
+    // (an A/B oscillation still passes `shouldEmitChange` every time), so
+    // nothing in the DCMS-1694 guard ever stops the chain - it runs all the
+    // way to this test's own artificial cutoff (calls.length reaches 40).
+    // The fix must cut the chain off itself, structurally, long before
+    // that - a handful of replays at most, not dozens.
+    expect(calls.length).toBeLessThan(10);
+  });
+
+  it('still emits a genuinely new edit after a non-converging chain has been cut off', async () => {
+    const guardChange = createChangeGuard('');
+    const calls = [];
+    let loops = 0;
+
+    const VALUES = ['Value A', 'Value B'];
+
+    function onEmit(value) {
+      calls.push(value);
+      loops += 1;
+      if (loops < 40) {
+        guardChange(VALUES[loops % VALUES.length], onEmit);
+      }
+    }
+
+    guardChange(VALUES[0], onEmit);
+
+    await flushMacrotasks(45);
+
+    const emitsDuringOscillation = calls.length;
+    expect(emitsDuringOscillation).toBeLessThan(10);
+
+    // The guard must not be left permanently wedged after cutting off the
+    // non-converging chain - a later, genuinely new edit (unrelated to the
+    // oscillating pair above) must still make it through once the guard is
+    // idle again.
+    expect(guardChange('A brand new, unrelated edit.', () => {})).toBe(true);
+  });
+});
