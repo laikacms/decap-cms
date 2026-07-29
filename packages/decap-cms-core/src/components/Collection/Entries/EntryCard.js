@@ -224,11 +224,11 @@ export function mapStateToProps(state, ownProps) {
 
   return {
     summary,
-    path: `/collections/${collection.get('name')}/entries/${entry.get('slug')}`,
+    path: `/collections/${collection.name}/entries/${entry.get('slug')}`,
     image,
-    imageFolder: collection
-      .get('fields')
-      ?.find(f => f.get('name') === inferredFields.imageField && f.get('widget') === 'image'),
+    imageFolder: collection.fields?.find(
+      f => f.get('name') === inferredFields.imageField && f.get('widget') === 'image',
+    ),
     isLoadingAsset,
   };
 }

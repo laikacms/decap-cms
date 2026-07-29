@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
-import { fromJS } from 'immutable';
 
 jest.mock('react-polyglot', () => ({
   translate: () => Component => Component,
@@ -19,10 +18,10 @@ import CollectionSearch from '../CollectionSearch';
 describe('CollectionSearch', () => {
   const t = jest.fn(key => key);
 
-  const collections = fromJS({
+  const collections = {
     posts: { name: 'posts', label: 'Posts' },
     pages: { name: 'pages', label: 'Pages' },
-  });
+  };
 
   const defaultProps = {
     collections,
@@ -152,7 +151,7 @@ describe('CollectionSearch', () => {
   });
 
   it('defaults the selected suggestion to the currently active collection', () => {
-    const collection = collections.get('pages');
+    const collection = collections.pages;
     const { getByPlaceholderText } = render(
       <CollectionSearch {...defaultProps} collection={collection} />,
     );

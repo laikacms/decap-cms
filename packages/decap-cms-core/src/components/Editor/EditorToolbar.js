@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
@@ -284,7 +283,7 @@ export class EditorToolbar extends React.Component {
     user: PropTypes.object,
     hasChanged: PropTypes.bool,
     displayUrl: PropTypes.string,
-    collection: ImmutablePropTypes.map.isRequired,
+    collection: PropTypes.object.isRequired,
     hasWorkflow: PropTypes.bool,
     useOpenAuthoring: PropTypes.bool,
     hasUnpublishedChanges: PropTypes.bool,
@@ -332,7 +331,7 @@ export class EditorToolbar extends React.Component {
 
   renderSimpleControls = () => {
     const { collection, hasChanged, isNewEntry, showDelete, onDelete, t } = this.props;
-    const canCreate = collection.get('create');
+    const canCreate = collection.create;
 
     return (
       <>
@@ -612,9 +611,9 @@ export class EditorToolbar extends React.Component {
       t,
     } = this.props;
 
-    const canCreate = collection.get('create');
-    const canPublish = collection.get('publish') && !useOpenAuthoring;
-    const canDelete = collection.get('delete', true);
+    const canCreate = collection.create;
+    const canPublish = collection.publish && !useOpenAuthoring;
+    const canDelete = collection.delete ?? true;
 
     const deleteLabel =
       (hasUnpublishedChanges &&
@@ -695,7 +694,7 @@ export class EditorToolbar extends React.Component {
           <div>
             <BackCollection>
               {t('editor.editorToolbar.backCollection', {
-                collectionLabel: collection.get('label'),
+                collectionLabel: collection.label,
               })}
             </BackCollection>
             {/*

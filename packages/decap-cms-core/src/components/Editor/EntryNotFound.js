@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import styled from '@emotion/styled';
 import { lengths } from 'decap-cms-ui-default';
 
@@ -46,7 +45,7 @@ function EntryNotFound({ t, collection, editorBackLink, message }) {
           <div>
             <BackCollection>
               {t('editor.editorToolbar.backCollection', {
-                collectionLabel: collection.get('label'),
+                collectionLabel: collection.label,
               })}
             </BackCollection>
           </div>
@@ -62,7 +61,7 @@ function EntryNotFound({ t, collection, editorBackLink, message }) {
 
 EntryNotFound.propTypes = {
   t: PropTypes.func.isRequired,
-  collection: ImmutablePropTypes.map.isRequired,
+  collection: PropTypes.object.isRequired,
   editorBackLink: PropTypes.string.isRequired,
   message: PropTypes.string,
 };

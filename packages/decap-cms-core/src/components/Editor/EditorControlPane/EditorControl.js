@@ -168,7 +168,7 @@ class EditorControl extends React.Component {
     isNewEditorComponent: PropTypes.bool,
     parentIds: PropTypes.arrayOf(PropTypes.string),
     entry: ImmutablePropTypes.map.isRequired,
-    collection: ImmutablePropTypes.map.isRequired,
+    collection: PropTypes.object.isRequired,
     isDisabled: PropTypes.bool,
     isHidden: PropTypes.bool,
     isFieldDuplicate: PropTypes.func,
@@ -448,7 +448,7 @@ class EditorControl extends React.Component {
 function mapStateToProps(state) {
   const { collections, entryDraft } = state;
   const entry = entryDraft.get('entry');
-  const collection = collections.get(entryDraft.getIn(['entry', 'collection']));
+  const collection = collections[entryDraft.getIn(['entry', 'collection'])];
   const isLoadingAsset = selectIsLoadingAsset(state.medias);
 
   return {
@@ -504,7 +504,7 @@ function mapDispatchToProps(dispatch) {
     loadEntry: (collectionName, slug) =>
       dispatch((_dispatch, getState) => {
         const state = getState();
-        const targetCollection = state.collections.get(collectionName);
+        const targetCollection = state.collections[collectionName];
         if (targetCollection) {
           return tryLoadEntry(state, targetCollection, slug);
         }
@@ -513,7 +513,7 @@ function mapDispatchToProps(dispatch) {
     quickCreateEntry: (collectionName, data) =>
       dispatch((dispatchInner, getState) => {
         const state = getState();
-        const targetCollection = state.collections.get(collectionName);
+        const targetCollection = state.collections[collectionName];
         if (!targetCollection) {
           throw new Error(`Can't find collection '${collectionName}'`);
         }
