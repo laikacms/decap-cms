@@ -38,6 +38,7 @@ interface MediaItem {
   draft?: boolean;
   url?: string;
   isViewableImage?: boolean;
+  isDirectory?: boolean;
 }
 
 interface CardCellProps {
@@ -100,10 +101,14 @@ function CardWrapper(
   }
   const file = mediaItems[index];
   const isActive = index === activeIndex;
+  // Folders/directories aren't selectable (they navigate instead), so they
+  // get no aria-selected at all per the WAI-ARIA Grid pattern.
+  const isSelectable = !file.isDirectory && file.type !== 'folder';
 
   return (
     <div
       {...ariaAttributes}
+      aria-selected={isSelectable ? (isSelectedFile(file) ? 'true' : 'false') : undefined}
       ref={node => registerCellRef(index, node)}
       data-cell-index={index}
       // Roving tabindex (WAI-ARIA Grid pattern): only the active cell is a
@@ -115,6 +120,12 @@ function CardWrapper(
         if (!isActive) {
           onCellFocus(index);
         }
+      }}
+      onClick={event => {
+        // Sync focus with the pointer-selected cell so the roving-tabindex
+        // active cell (and screen reader announcement) tracks the user's
+        // most recent interaction, matching keyboard selection behavior.
+        event.currentTarget.focus();
       }}
       style={{
         ...style,
