@@ -398,6 +398,7 @@
       "types": "./dist/widgets/aichat/i18n/types.d.ts",
       "import": "./dist/widgets/aichat/i18n/types.js"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./schema/*": "./schema/*"
   }
 }
