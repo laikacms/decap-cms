@@ -33,4 +33,30 @@ describe('colorstring widget schema', () => {
       expect(validate({ enable_alpha: 'yes' })).toBe(false);
     });
   });
+
+  describe('camelCase alias field types (DCMS-1683)', () => {
+    it('accepts allowInput: true', () => {
+      expect(validate({ allowInput: true })).toBe(true);
+    });
+
+    it('accepts allowInput: false', () => {
+      expect(validate({ allowInput: false })).toBe(true);
+    });
+
+    it('rejects allowInput with the wrong type', () => {
+      expect(validate({ allowInput: 'yes' })).toBe(false);
+    });
+
+    it('accepts enableAlpha: true', () => {
+      expect(validate({ enableAlpha: true })).toBe(true);
+    });
+
+    it('accepts enableAlpha: false', () => {
+      expect(validate({ enableAlpha: false })).toBe(true);
+    });
+
+    it('rejects enableAlpha with the wrong type', () => {
+      expect(validate({ enableAlpha: 'yes' })).toBe(false);
+    });
+  });
 });
