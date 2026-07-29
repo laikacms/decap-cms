@@ -181,13 +181,13 @@ describe('EntryCard', () => {
   describe('mapStateToProps', () => {
     it('derives summary, path and image from the entry and collection', () => {
       const jestFromJS = require('immutable').fromJS;
-      const collection = jestFromJS({
+      const collection = {
         name: 'posts',
-        fields: [
+        fields: jestFromJS([
           { name: 'title', widget: 'string' },
           { name: 'hero', widget: 'image' },
-        ],
-      });
+        ]),
+      };
       const entry = jestFromJS({
         slug: 'hello-world',
         data: { title: 'Hello World', hero: 'my image.png' },
