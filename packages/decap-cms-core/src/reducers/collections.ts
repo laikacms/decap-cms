@@ -374,7 +374,10 @@ export function selectInferredField(collection: Collection, fieldName: string) {
   if (inferableField.fallbackToFirstField && mainTypeFields.size > 0) return mainTypeFields.first();
 
   // Coundn't infer the field. Show error and return null.
-  if (inferableField.showError) {
+  // Files-collections resolve their displayed title via `selectFileEntryLabel`
+  // in `selectEntryCollectionTitle` (see below), so a missing inferred title
+  // is never actually surfaced to the user for them — don't warn about it.
+  if (inferableField.showError && collection.type !== FILES) {
     consoleError(
       `The Field ${fieldName} is missing for the collection “${collection.name}”`,
       `Decap CMS tries to infer the entry ${fieldName} automatically, but one couldn't be found for entries of the collection “${collection.name}”. Please check your site configuration.`,
