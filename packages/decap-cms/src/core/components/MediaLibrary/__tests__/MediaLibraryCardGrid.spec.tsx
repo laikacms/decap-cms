@@ -135,4 +135,66 @@ describe('MediaLibraryCardGrid', () => {
 
     expect(onAssetClick).toHaveBeenCalledWith(multiItemProps.mediaItems[2]);
   });
+
+  it('sets aria-selected="true" on the gridcell for the selected file and "false" for the rest', () => {
+    const isSelectedFile = vi.fn((file: { key: string }) => file.key === '2');
+    const { container } = render(
+      <MediaLibraryCardGrid {...multiItemProps} isSelectedFile={isSelectedFile} />,
+    );
+
+    expect(container.querySelector('[data-cell-index="0"]')).toHaveAttribute(
+      'aria-selected',
+      'false',
+    );
+    expect(container.querySelector('[data-cell-index="1"]')).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(container.querySelector('[data-cell-index="2"]')).toHaveAttribute(
+      'aria-selected',
+      'false',
+    );
+  });
+
+  it('toggles aria-selected as isSelectedFile changes for the same file across re-renders', () => {
+    const { container, rerender } = render(
+      <MediaLibraryCardGrid {...props} isSelectedFile={() => false} />,
+    );
+
+    expect(container.querySelector('[data-cell-index="0"]')).toHaveAttribute(
+      'aria-selected',
+      'false',
+    );
+
+    rerender(<MediaLibraryCardGrid {...props} isSelectedFile={() => true} />);
+
+    expect(container.querySelector('[data-cell-index="0"]')).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+  });
+
+  it('omits aria-selected on folder/directory items since they are not selectable', () => {
+    const folderProps = {
+      ...props,
+      mediaItems: [
+        { id: '1', key: '1', name: 'images', type: 'folder', isDirectory: true },
+      ],
+      isSelectedFile: vi.fn(() => false),
+    };
+    const { container } = render(<MediaLibraryCardGrid {...folderProps} />);
+
+    const cell = container.querySelector('[data-cell-index="0"]') as HTMLElement;
+    expect(cell).not.toHaveAttribute('aria-selected');
+  });
+
+  it('focuses the gridcell on click so the active cell tracks the pointer interaction', () => {
+    const { container } = render(<MediaLibraryCardGrid {...multiItemProps} />);
+
+    const cell2 = container.querySelector('[data-cell-index="2"]') as HTMLElement;
+    fireEvent.click(cell2.querySelector('*') as HTMLElement);
+
+    expect(document.activeElement).toBe(cell2);
+    expect(cell2).toHaveAttribute('tabindex', '0');
+  });
 });
