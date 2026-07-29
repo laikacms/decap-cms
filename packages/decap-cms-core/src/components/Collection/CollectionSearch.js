@@ -3,7 +3,6 @@ import styled from '@emotion/styled';
 import { colorsRaw, colors, Icon, lengths, zIndex } from 'decap-cms-ui-default';
 import { translate } from 'react-polyglot';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 
 const SearchContainer = styled.div`
   margin: 0 12px;
@@ -88,8 +87,8 @@ const SuggestionDivider = styled.div`
 
 class CollectionSearch extends React.Component {
   static propTypes = {
-    collections: ImmutablePropTypes.map.isRequired,
-    collection: ImmutablePropTypes.map,
+    collections: PropTypes.object.isRequired,
+    collection: PropTypes.object,
     searchTerm: PropTypes.string.isRequired,
     onSubmit: PropTypes.func.isRequired,
     t: PropTypes.func.isRequired,
@@ -116,7 +115,7 @@ class CollectionSearch extends React.Component {
 
   getSelectedSelectionBasedOnProps() {
     const { collection, collections } = this.props;
-    return collection ? collections.keySeq().indexOf(collection.get('name')) : -1;
+    return collection ? Object.keys(collections).indexOf(collection.name) : -1;
   }
 
   toggleSuggestions(visible) {
@@ -127,7 +126,7 @@ class CollectionSearch extends React.Component {
     const { collections } = this.props;
     const { selectedCollectionIdx } = this.state;
     this.setState({
-      selectedCollectionIdx: Math.min(selectedCollectionIdx + 1, collections.size - 1),
+      selectedCollectionIdx: Math.min(selectedCollectionIdx + 1, Object.keys(collections).length - 1),
     });
   }
 
@@ -150,7 +149,7 @@ class CollectionSearch extends React.Component {
 
     this.toggleSuggestions(false);
     if (selectedCollectionIdx !== -1) {
-      onSubmit(query, collections.toIndexedSeq().getIn([selectedCollectionIdx, 'name']));
+      onSubmit(query, Object.values(collections)[selectedCollectionIdx]?.name);
     } else {
       onSubmit(query);
     }
@@ -222,14 +221,14 @@ class CollectionSearch extends React.Component {
                 {t('collection.sidebar.allCollections')}
               </SuggestionItem>
               <SuggestionDivider />
-              {collections.toIndexedSeq().map((collection, idx) => (
+              {Object.values(collections).map((collection, idx) => (
                 <SuggestionItem
                   key={idx}
                   isActive={idx === selectedCollectionIdx}
                   onClick={e => this.handleSuggestionClick(e, idx)}
                   onMouseDown={e => e.preventDefault()}
                 >
-                  {collection.get('label')}
+                  {collection.label}
                 </SuggestionItem>
               ))}
             </Suggestions>

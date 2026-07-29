@@ -41,7 +41,7 @@ export class Editor extends React.Component {
   static propTypes = {
     changeDraftField: PropTypes.func.isRequired,
     changeDraftFieldValidation: PropTypes.func.isRequired,
-    collection: ImmutablePropTypes.map.isRequired,
+    collection: PropTypes.object.isRequired,
     createDraftDuplicateFromEntry: PropTypes.func.isRequired,
     createEmptyDraft: PropTypes.func.isRequired,
     discardDraft: PropTypes.func.isRequired,
@@ -124,7 +124,7 @@ export class Editor extends React.Component {
        */
       const isPersisting = this.props.entryDraft.getIn(['entry', 'isPersisting']);
       const newRecord = this.props.entryDraft.getIn(['entry', 'newRecord']);
-      const newEntryPath = `/collections/${collection.get('name')}/new`;
+      const newEntryPath = `/collections/${collection.name}/new`;
       if (
         isPersisting &&
         newRecord &&
@@ -146,8 +146,8 @@ export class Editor extends React.Component {
      * a new post. The confirmation above will run first.
      */
     this.unlisten = history.listen((location, action) => {
-      const newEntryPath = `/collections/${collection.get('name')}/new`;
-      const entriesPath = `/collections/${collection.get('name')}/entries/`;
+      const newEntryPath = `/collections/${collection.name}/new`;
+      const entriesPath = `/collections/${collection.name}/entries/`;
       const { pathname } = location;
       if (
         pathname.startsWith(newEntryPath) ||
@@ -251,7 +251,7 @@ export class Editor extends React.Component {
       return;
     }
     const newStatus = status.get(newStatusName);
-    updateUnpublishedEntryStatus(collection.get('name'), slug, currentStatus, newStatus);
+    updateUnpublishedEntryStatus(collection.name, slug, currentStatus, newStatus);
   };
 
   deleteBackup() {
@@ -285,7 +285,7 @@ export class Editor extends React.Component {
     this.deleteBackup();
 
     if (createNew) {
-      navigateToNewEntry(collection.get('name'));
+      navigateToNewEntry(collection.name);
       duplicate && createDraftDuplicateFromEntry(entryDraft.get('entry'));
     } else if (slug && hasWorkflow && !currentStatus) {
       loadEntry(collection, slug);
@@ -313,12 +313,12 @@ export class Editor extends React.Component {
       return;
     }
 
-    await publishUnpublishedEntry(collection.get('name'), slug);
+    await publishUnpublishedEntry(collection.name, slug);
 
     this.deleteBackup();
 
     if (createNew) {
-      navigateToNewEntry(collection.get('name'));
+      navigateToNewEntry(collection.name);
     }
 
     duplicate && createDraftDuplicateFromEntry(entryDraft.get('entry'));
@@ -330,13 +330,13 @@ export class Editor extends React.Component {
 
     await unpublishPublishedEntry(collection, slug);
 
-    return navigateToCollection(collection.get('name'));
+    return navigateToCollection(collection.name);
   };
 
   handleDuplicateEntry = () => {
     const { createDraftDuplicateFromEntry, collection, entryDraft } = this.props;
 
-    navigateToNewEntry(collection.get('name'));
+    navigateToNewEntry(collection.name);
     createDraftDuplicateFromEntry(entryDraft.get('entry'));
   };
 
@@ -354,13 +354,13 @@ export class Editor extends React.Component {
       return;
     }
     if (newEntry) {
-      return navigateToCollection(collection.get('name'));
+      return navigateToCollection(collection.name);
     }
 
     setTimeout(async () => {
       await deleteEntry(collection, slug);
       this.deleteBackup();
-      return navigateToCollection(collection.get('name'));
+      return navigateToCollection(collection.name);
     }, 0);
   };
 
@@ -379,14 +379,14 @@ export class Editor extends React.Component {
     ) {
       return;
     }
-    await deleteUnpublishedEntry(collection.get('name'), slug);
+    await deleteUnpublishedEntry(collection.name, slug);
 
     this.deleteBackup();
 
     if (isModification) {
       loadEntry(collection, slug);
     } else {
-      navigateToCollection(collection.get('name'));
+      navigateToCollection(collection.name);
     }
   };
 
@@ -478,8 +478,8 @@ export class Editor extends React.Component {
 function mapStateToProps(state, ownProps) {
   const { collections, entryDraft, auth, config, entries, globalUI } = state;
   const slug = ownProps.match.params[0];
-  const collection = collections.get(ownProps.match.params.name);
-  const collectionName = collection.get('name');
+  const collection = collections[ownProps.match.params.name];
+  const collectionName = collection.name;
   const newEntry = ownProps.newRecord === true;
   const fields = selectFields(collection, slug);
   const entry = newEntry ? null : selectEntry(state, collectionName, slug);
@@ -501,7 +501,7 @@ function mapStateToProps(state, ownProps) {
     editorBackLink = `/workflow`;
   }
 
-  if (collection.has('nested') && slug) {
+  if (collection.nested !== undefined && slug) {
     const pathParts = slug.split('/');
     if (pathParts.length > 2) {
       editorBackLink = `${editorBackLink}/filter/${pathParts.slice(0, -2).join('/')}`;

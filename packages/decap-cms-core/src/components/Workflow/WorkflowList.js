@@ -228,13 +228,13 @@ class WorkflowList extends React.Component {
           const collectionName = entry.get('collection');
           const editLink = `collections/${collectionName}/entries/${slug}?ref=workflow`;
           const ownStatus = entry.get('status');
-          const collection = collections.find(
-            collection => collection.get('name') === collectionName,
+          const collection = Object.values(collections).find(
+            collection => collection.name === collectionName,
           );
-          const collectionLabel = collection?.get('label');
+          const collectionLabel = collection?.label;
           const isModification = entry.get('isModification');
 
-          const allowPublish = collection?.get('publish');
+          const allowPublish = collection?.publish;
           const canPublish = ownStatus === status.last() && !entry.get('isPersisting', false);
           const postAuthor = entry.get('author');
           const publishAt = entry.get('publishAt');

@@ -262,7 +262,7 @@ export class PreviewPane extends React.Component {
    */
   getCollection = async (collectionName, slugToLoad) => {
     const { state } = this.props;
-    const selectedCollection = state.collections.get(collectionName);
+    const selectedCollection = state.collections[collectionName];
 
     if (typeof slugToLoad === 'undefined') {
       const entries = await getAllEntries(state, selectedCollection);
@@ -286,7 +286,7 @@ export class PreviewPane extends React.Component {
 
     this.inferFields();
 
-    const visualEditing = collection.getIn(['editor', 'visualEditing'], false);
+    const visualEditing = collection.editor?.get('visualEditing', false) ?? false;
 
     // Only encode entry data if visual editing is enabled
     const previewEntry = visualEditing
@@ -336,7 +336,7 @@ export class PreviewPane extends React.Component {
 }
 
 PreviewPane.propTypes = {
-  collection: ImmutablePropTypes.map.isRequired,
+  collection: PropTypes.object.isRequired,
   fields: ImmutablePropTypes.list.isRequired,
   entry: ImmutablePropTypes.map.isRequired,
   fieldsMetaData: ImmutablePropTypes.map.isRequired,
@@ -351,7 +351,7 @@ function mapStateToProps(state) {
   //
   // Slices included and why:
   //   config       — currentBackend(state.config) in getAllEntries + tryLoadEntry
-  //   collections  — state.collections.get(collectionName) in getCollection itself
+  //   collections  — state.collections[collectionName] in getCollection itself
   //   integrations — selectIntegration(state, …) / getIntegrationProvider(state.integrations, …)
   //   mediaLibrary — processEntry reads state.mediaLibrary.get('files')
   //   entries      — selectIsFetching / selectEntriesSortFields read state.entries in the

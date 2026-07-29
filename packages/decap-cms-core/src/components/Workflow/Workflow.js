@@ -56,7 +56,7 @@ const WorkflowTopDescription = styled.p`
 
 class Workflow extends Component {
   static propTypes = {
-    collections: ImmutablePropTypes.map.isRequired,
+    collections: PropTypes.object.isRequired,
     isEditorialWorkflow: PropTypes.bool.isRequired,
     isOpenAuthoring: PropTypes.bool,
     isFetching: PropTypes.bool,
@@ -131,14 +131,13 @@ class Workflow extends Component {
                 <StyledDropdownButton>{t('workflow.workflow.newPost')}</StyledDropdownButton>
               )}
             >
-              {collections
-                .filter(collection => collection.get('create'))
-                .toList()
+              {Object.values(collections)
+                .filter(collection => collection.create)
                 .map(collection => (
                   <DropdownItem
-                    key={collection.get('name')}
-                    label={collection.get('label')}
-                    onClick={() => createNewEntry(collection.get('name'))}
+                    key={collection.name}
+                    label={collection.label}
+                    onClick={() => createNewEntry(collection.name)}
                   />
                 ))}
             </Dropdown>

@@ -168,12 +168,12 @@ function EditorContent({
 }
 
 function isPreviewEnabled(collection, entry) {
-  if (collection.get('type') === FILES) {
+  if (collection.type === FILES) {
     const file = getFileFromSlug(collection, entry.get('slug'));
     const previewEnabled = file?.getIn(['editor', 'preview']);
     if (previewEnabled != null) return previewEnabled;
   }
-  return collection.getIn(['editor', 'preview'], true);
+  return collection.editor ? collection.editor.get('preview', true) : true;
 }
 
 class EditorInterface extends Component {
@@ -422,7 +422,7 @@ class EditorInterface extends Component {
                 title={t('editor.editorInterface.togglePreview')}
               />
             )}
-            {scrollSyncVisible && !collection.getIn(['editor', 'visualEditing']) && (
+            {scrollSyncVisible && !collection.editor?.get('visualEditing') && (
               <EditorToggle
                 isActive={scrollSyncEnabled}
                 onClick={this.handleToggleScrollSync}
@@ -455,7 +455,7 @@ class EditorInterface extends Component {
 }
 
 EditorInterface.propTypes = {
-  collection: ImmutablePropTypes.map.isRequired,
+  collection: PropTypes.object.isRequired,
   entry: ImmutablePropTypes.map.isRequired,
   fields: ImmutablePropTypes.list.isRequired,
   fieldsMetaData: ImmutablePropTypes.map.isRequired,
