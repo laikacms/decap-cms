@@ -59,6 +59,38 @@ export function shouldEmitChange(nextValue, currentValue) {
 // regardless of how many onChange calls land in between - structurally
 // preventing the update-depth cascade - while still converging on the
 // final, fully-typed value (unlike silently dropping it).
+//
+// DCMS-1694: the microtask deferral above only bounds re-entrancy that
+// resolves within the current task's microtask checkpoint. A burst of
+// separate keystroke events (Playwright's `keyboard.type()` with 0ms
+// inter-key delay, or a real held-down key repeat) is NOT one task with
+// nested/queued microtask re-entrancy - it is a run of genuinely separate
+// macrotasks, one per key event. The microtask queue fully drains between
+// every one of them, so by the time the next keystroke's `onChange` runs,
+// the previous microtask has already flipped `isEmitting` back to `false`.
+// Every keystroke in the burst therefore sees a "clean" guard and passes
+// straight through - nothing coalesces across keystrokes at all, and the
+// microtask-based guard provides no protection against this burst shape,
+// even though it fully closes the single-tick DCMS-583 window. The
+// onEmit -> redux dispatch -> prop-value-change -> Plate re-notify chain
+// then widens on every keystroke exactly as it did pre-DCMS-1661, until
+// React trips error #185.
+//
+// The fix: reopen the gate on a macrotask boundary (`setTimeout(fn, 0)`)
+// instead of a microtask (`queueMicrotask`). A macrotask-scheduled
+// callback is only run once the event loop has finished processing the
+// *current* task and moved on to the next entry in the macrotask queue -
+// it does not resolve just because the microtask queue drained, the way
+// `queueMicrotask` does. Back-to-back keystroke tasks that arrive faster
+// than that timer fires (which is exactly the 0ms-delay burst shape that
+// trips #185) now land while `isEmitting` is still `true` and get
+// coalesced into `pendingValue`, the same as same-tick re-entrancy was
+// before. This bounds the emit rate to roughly one per macrotask tick
+// (browsers typically clamp `setTimeout(fn, 0)` to ~1-4ms, well under a
+// single animation frame) regardless of how many keystrokes - same-tick
+// or cross-tick - land in between, closing the gap the microtask-only
+// bound left open. The tradeoff (per the issue) is a small, sub-frame
+// ceiling on value round-trip cadence, which is not perceptible in the UI.
 export function createChangeGuard(initialValue) {
   let lastEmittedValue = initialValue ?? '';
   let isEmitting = false;
@@ -79,7 +111,7 @@ export function createChangeGuard(initialValue) {
     try {
       onEmit(nextValue);
     } finally {
-      queueMicrotask(() => {
+      setTimeout(() => {
         isEmitting = false;
         if (hasPending) {
           const next = pendingValue;
@@ -87,7 +119,7 @@ export function createChangeGuard(initialValue) {
           pendingValue = undefined;
           guardChange(next, onEmit);
         }
-      });
+      }, 0);
     }
     return true;
   }
