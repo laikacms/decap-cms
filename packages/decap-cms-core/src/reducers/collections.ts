@@ -51,7 +51,8 @@ function collections(state = defaultState, action: ConfigAction): Collections {
 const selectors = {
   [FOLDER]: {
     entryExtension(collection: Collection) {
-      const ext = collection.extension || get(getFormatExtensions(), collection.format || 'frontmatter');
+      const ext =
+        collection.extension || get(getFormatExtensions(), collection.format || 'frontmatter');
       if (!ext) {
         throw new Error(`No extension found for format ${collection.format}`);
       }
@@ -106,7 +107,9 @@ const selectors = {
       return file && file.get('file');
     },
     entrySlug(collection: Collection, path: string) {
-      const file = (collection.files as CollectionFiles).filter(f => f?.get('file') === path).get(0);
+      const file = (collection.files as CollectionFiles)
+        .filter(f => f?.get('file') === path)
+        .get(0);
       return file && file.get('name');
     },
     entryLabel(collection: Collection, slug: string) {
@@ -149,9 +152,7 @@ function getFieldsWithMediaFolders(fields: EntryField[]) {
 }
 
 export function getFileFromSlug(collection: Collection, slug: string) {
-  return collection.files
-    ?.toArray()
-    .find(f => f.get('name') === slug);
+  return collection.files?.toArray().find(f => f.get('name') === slug);
 }
 
 export function selectFieldsWithMediaFolders(collection: Collection, slug: string) {
