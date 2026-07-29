@@ -43,4 +43,36 @@ describe('LaikaLayout', () => {
     expect(getByTestId('laika-shortcuts')).toBeInTheDocument();
     expect(getByTestId('laika-shortcut-help')).toBeInTheDocument();
   });
+
+  // DCMS-1651: the entry editor renders its own full-bleed toolbar over the
+  // same viewport region as the sidebar (`EditorContainer` is
+  // `position: absolute; top: 0; left: 0; width: 100%`). Leaving the sidebar
+  // mounted there put an invisible `<aside>` on top of the editor's
+  // breadcrumb `Posts` link, intercepting its clicks. The sidebar must be
+  // unmounted (not just hidden) whenever `isEditorRoute` is true, mirroring
+  // how the app-shell header is already unmounted for editor routes
+  // (DCMS-431).
+  it('unmounts the sidebar while an editor route is active', () => {
+    const headerProps = {
+      user: {},
+      collections: {},
+      onCreateEntryClick: () => undefined,
+      onLogoutClick: () => undefined,
+      openMediaLibrary: () => undefined,
+      hasWorkflow: false,
+    } as any;
+
+    const { queryByTestId, getByText } = render(
+      <MemoryRouter>
+        <LaikaLayout
+          headerProps={headerProps}
+          main={<div>editor content</div>}
+          isEditorRoute
+        />
+      </MemoryRouter>,
+    );
+
+    expect(queryByTestId('laika-sidebar')).not.toBeInTheDocument();
+    expect(getByText('editor content')).toBeInTheDocument();
+  });
 });
