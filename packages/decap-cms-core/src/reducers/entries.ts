@@ -424,7 +424,7 @@ function getPublishedEntries(state: Entries, collectionName: string) {
 }
 
 export function selectEntries(state: Entries, collection: Collection) {
-  const collectionName = collection.get('name');
+  const collectionName = collection.name;
   let entries = getPublishedEntries(state, collectionName);
 
   const sortFields = selectEntriesSortFields(state, collectionName);
@@ -503,7 +503,7 @@ function getGroup(entry: EntryMap, selectedGroup: GroupMap) {
 }
 
 export function selectGroups(state: Entries, collection: Collection) {
-  const collectionName = collection.get('name');
+  const collectionName = collection.name;
   const entries = getPublishedEntries(state, collectionName);
 
   const selectedGroup = selectEntriesGroupField(state, collectionName);
@@ -564,14 +564,14 @@ function hasCustomFolder(
     return true;
   }
 
-  if (collection.has('files')) {
-    const file = getFileField(collection.get('files')!, slug);
+  if (collection.files !== undefined) {
+    const file = getFileField(collection.files!, slug);
     if (file && file.has(folderKey)) {
       return true;
     }
   }
 
-  if (collection.has(folderKey)) {
+  if (collection[folderKey] !== undefined) {
     return true;
   }
 
@@ -662,15 +662,15 @@ function evaluateFolder(
   let currentFolder = config[folderKey]!;
 
   // add identity template if doesn't exist
-  if (!collection.has(folderKey)) {
-    collection = collection.set(folderKey, `{{${folderKey}}}`);
+  if (collection[folderKey] === undefined) {
+    collection = { ...collection, [folderKey]: `{{${folderKey}}}` };
   }
 
-  if (collection.has('files')) {
+  if (collection.files !== undefined) {
     // files collection evaluate the collection template
     // then move on to the specific file configuration denoted by the slug
     currentFolder = folderFormatter(
-      collection.get(folderKey)!,
+      collection[folderKey]!,
       entryMap,
       collection,
       currentFolder,
@@ -678,7 +678,7 @@ function evaluateFolder(
       config.slug,
     );
 
-    let file = getFileField(collection.get('files')!, entryMap?.get('slug'));
+    let file = getFileField(collection.files!, entryMap?.get('slug'));
     if (file) {
       if (!file.has(folderKey)) {
         // add identity template if doesn't exist
@@ -715,7 +715,7 @@ function evaluateFolder(
     // folder collection, evaluate the collection template
     // and keep evaluating until we match our field
     currentFolder = folderFormatter(
-      collection.get(folderKey)!,
+      collection[folderKey]!,
       entryMap,
       collection,
       currentFolder,
@@ -730,7 +730,7 @@ function evaluateFolder(
         collection,
         entryMap,
         field,
-        collection.get('fields')!.toArray(),
+        collection.fields!.toArray(),
         currentFolder,
       );
 
@@ -761,9 +761,7 @@ export function selectMediaFolder(
       mediaFolder = join(folder);
     } else {
       const entryPath = entryMap?.get('path');
-      mediaFolder = entryPath
-        ? join(dirname(entryPath), folder)
-        : (collection!.get('folder') as string);
+      mediaFolder = entryPath ? join(dirname(entryPath), folder) : (collection!.folder as string);
     }
   }
 

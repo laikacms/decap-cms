@@ -27,7 +27,7 @@ describe('loadDeployPreview', () => {
     (currentBackend as jest.Mock).mockReturnValue(backend);
 
     const store = mockStore({ config: fromJS({}) });
-    const collection = fromJS({ name: 'posts' });
+    const collection = { name: 'posts' };
 
     await store.dispatch(loadDeployPreview(collection, 'missing-slug', undefined, false));
 
@@ -64,7 +64,7 @@ describe('loadDeployPreview', () => {
     };
     (currentBackend as jest.Mock).mockReturnValue(backend);
 
-    const collection = fromJS({ name: 'posts' });
+    const collection = { name: 'posts' };
     const entry = fromJS({ slug: 'my-first-post' });
     const store = mockStore({
       config: fromJS({}),
@@ -87,7 +87,7 @@ describe('loadDeployPreview', () => {
     };
     (currentBackend as jest.Mock).mockReturnValue(backend);
 
-    const collection = fromJS({ name: 'posts' });
+    const collection = { name: 'posts' };
     const entry = fromJS({ slug: 'my-first-post' });
     const store = mockStore({
       config: fromJS({}),
@@ -112,7 +112,7 @@ describe('loadDeployPreview', () => {
     };
     (currentBackend as jest.Mock).mockReturnValue(backend);
 
-    const collection = fromJS({ name: 'posts' });
+    const collection = { name: 'posts' };
     const entry = fromJS({ slug: 'my-first-post' });
     const store = mockStore({ config: fromJS({}), deploys: {} });
 
@@ -134,7 +134,7 @@ describe('loadDeployPreview', () => {
     };
     (currentBackend as jest.Mock).mockReturnValue(backend);
 
-    const collection = fromJS({ name: 'posts' });
+    const collection = { name: 'posts' };
     const entry = fromJS({ slug: 'my-first-post' });
     const store = mockStore({ config: fromJS({}), deploys: {} });
 
@@ -160,7 +160,7 @@ describe('loadDeployPreview', () => {
     };
     (currentBackend as jest.Mock).mockReturnValue(backend);
 
-    const collection = fromJS({ name: 'posts' });
+    const collection = { name: 'posts' };
     const entry = fromJS({ slug: 'my-first-post' });
     const store = mockStore({ config: fromJS({}), deploys: {} });
 
@@ -180,7 +180,7 @@ describe('loadDeployPreview', () => {
     };
     (currentBackend as jest.Mock).mockReturnValue(backend);
 
-    const collection = fromJS({ name: 'posts' });
+    const collection = { name: 'posts' };
     const entry = fromJS({ slug: 'my-first-post' });
     const store = mockStore({ config: fromJS({}), deploys: {} });
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);

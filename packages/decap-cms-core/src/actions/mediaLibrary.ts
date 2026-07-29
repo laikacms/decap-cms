@@ -141,7 +141,7 @@ export function insertMedia(mediaPath: string | string[], field: EntryField | un
     const config = state.config;
     const entry = state.entryDraft.get('entry');
     const collectionName = state.entryDraft.getIn(['entry', 'collection']);
-    const collection = state.collections.get(collectionName);
+    const collection = state.collections[collectionName];
     if (Array.isArray(mediaPath)) {
       mediaPath = mediaPath.map(path =>
         selectMediaFilePublicPath(config, collection, path, entry, field),
@@ -290,7 +290,7 @@ export function persistMedia(file: File, opts: MediaOptions = {}) {
         throw new Error('The Private Upload option is only available for Asset Store Integration');
       } else {
         const entry = state.entryDraft.get('entry');
-        const collection = state.collections.get(entry?.get('collection'));
+        const collection = state.collections[entry?.get('collection')];
         const path = selectMediaFilePath(state.config, collection, entry, fileName, field);
         assetProxy = createAssetProxy({
           file,

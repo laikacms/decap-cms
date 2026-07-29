@@ -68,7 +68,7 @@ export function loadDeployPreview(
 
     const state = getState();
     const backend = currentBackend(state.config);
-    const collectionName = collection.get('name');
+    const collectionName = collection.name;
 
     // Exit if currently fetching, unless the caller provides a signal
     // (indicating it manages cancellation of the previous poll externally).

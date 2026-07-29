@@ -26,7 +26,7 @@ describe('formatters', () => {
     });
 
     it('should return default commit message on create, label_singular', () => {
-      const collection = Map({ label_singular: 'Collection' });
+      const collection = { label_singular: 'Collection' };
 
       expect(
         commitMessageFormatter('create', config, {
@@ -38,7 +38,7 @@ describe('formatters', () => {
     });
 
     it('should return default commit message on create, label', () => {
-      const collection = Map({ label: 'Collections' });
+      const collection = { label: 'Collections' };
 
       expect(
         commitMessageFormatter('update', config, {
@@ -50,7 +50,7 @@ describe('formatters', () => {
     });
 
     it('should return default commit message on delete', () => {
-      const collection = Map({ label_singular: 'Collection' });
+      const collection = { label_singular: 'Collection' };
 
       expect(
         commitMessageFormatter('delete', config, {
@@ -62,7 +62,7 @@ describe('formatters', () => {
     });
 
     it('should return default commit message on uploadMedia', () => {
-      const collection = Map({});
+      const collection = {};
 
       expect(
         commitMessageFormatter('uploadMedia', config, {
@@ -74,7 +74,7 @@ describe('formatters', () => {
     });
 
     it('should return default commit message on deleteMedia', () => {
-      const collection = Map({});
+      const collection = {};
 
       expect(
         commitMessageFormatter('deleteMedia', config, {
@@ -93,7 +93,7 @@ describe('formatters', () => {
           },
         },
       };
-      const collection = Map({ label_singular: 'Collection' });
+      const collection = { label_singular: 'Collection' };
       expect(
         commitMessageFormatter('create', config, {
           slug: 'doc-slug',
@@ -115,7 +115,7 @@ describe('formatters', () => {
           },
         },
       };
-      const collection = Map({});
+      const collection = {};
       expect(
         commitMessageFormatter('update', config, {
           slug: 'doc-slug',
@@ -133,7 +133,7 @@ describe('formatters', () => {
           },
         },
       };
-      const collection = Map({ label_singular: 'Collection' });
+      const collection = { label_singular: 'Collection' };
       expect(
         commitMessageFormatter(
           'update',
@@ -156,7 +156,7 @@ describe('formatters', () => {
           },
         },
       };
-      const collection = Map({ label_singular: 'Collection' });
+      const collection = { label_singular: 'Collection' };
       expect(
         commitMessageFormatter(
           'create',
@@ -181,7 +181,7 @@ describe('formatters', () => {
           },
         },
       };
-      const collection = Map({ label_singular: 'Collection' });
+      const collection = { label_singular: 'Collection' };
       expect(
         commitMessageFormatter(
           'create',
@@ -206,7 +206,7 @@ describe('formatters', () => {
           },
         },
       };
-      const collection = Map({ label_singular: 'Collection' });
+      const collection = { label_singular: 'Collection' };
       expect(
         commitMessageFormatter(
           'create',
@@ -229,7 +229,7 @@ describe('formatters', () => {
           },
         },
       };
-      const collection = Map({ label_singular: 'Collection' });
+      const collection = { label_singular: 'Collection' };
       commitMessageFormatter(
         'create',
         config,
@@ -250,7 +250,7 @@ describe('formatters', () => {
     });
 
     it('should return commit with trailer when signoff_commits is enabled', () => {
-      const collection = Map({ label_singular: 'Collection' });
+      const collection = { label_singular: 'Collection' };
       const config = {
         backend: {
           signoff_commits: true,
@@ -335,7 +335,7 @@ describe('formatters', () => {
 
     it('should format with default pattern', () => {
       selectIdentifier.mockReturnValueOnce('title');
-      expect(slugFormatter(Map(), Map({ title: 'Post Title' }), slugConfig)).toBe('post-title');
+      expect(slugFormatter({}, Map({ title: 'Post Title' }), slugConfig)).toBe('post-title');
     });
 
     it('should format with date', () => {
@@ -343,7 +343,7 @@ describe('formatters', () => {
 
       expect(
         slugFormatter(
-          Map({ slug: '{{year}}-{{month}}-{{day}}_{{slug}}' }),
+          { slug: '{{year}}-{{month}}-{{day}}_{{slug}}' },
           Map({ title: 'Post Title' }),
           slugConfig,
         ),
@@ -355,7 +355,7 @@ describe('formatters', () => {
 
       expect(
         slugFormatter(
-          Map({ slug: '{{fields.slug}}' }),
+          { slug: '{{fields.slug}}' },
           Map({ title: 'Post Title', slug: 'entry-slug' }),
           slugConfig,
         ),
@@ -367,7 +367,7 @@ describe('formatters', () => {
 
       expect(
         slugFormatter(
-          Map({ slug: "{{published | date('MM-DD')}}" }),
+          { slug: "{{published | date('MM-DD')}}" },
           Map({ title: 'Post Title', published: new Date(date) }),
           slugConfig,
         ),
@@ -382,7 +382,7 @@ describe('formatters', () => {
 
       expect(
         slugFormatter(
-          Map({ slug: '{{year}}-{{month}}-{{day}}-{{title}}' }),
+          { slug: '{{year}}-{{month}}-{{day}}-{{title}}' },
           { date: entryDate, title: 'post title' },
           slugConfig,
         ),
@@ -397,7 +397,7 @@ describe('formatters', () => {
 
       expect(
         slugFormatter(
-          Map({ slug: '{{year}}-{{month}}-{{day}}-{{title}}' }),
+          { slug: '{{year}}-{{month}}-{{day}}-{{title}}' },
           { publishDate: entryDate, title: 'post title' },
           slugConfig,
         ),
@@ -407,9 +407,9 @@ describe('formatters', () => {
     it('should return slug', () => {
       selectIdentifier.mockReturnValueOnce('title');
 
-      expect(
-        slugFormatter(Map({ slug: '{{slug}}' }), Map({ title: 'Post Title' }), slugConfig),
-      ).toBe('post-title');
+      expect(slugFormatter({ slug: '{{slug}}' }, Map({ title: 'Post Title' }), slugConfig)).toBe(
+        'post-title',
+      );
     });
 
     it('should return slug with path', () => {
@@ -417,7 +417,7 @@ describe('formatters', () => {
 
       expect(
         slugFormatter(
-          Map({ slug: '{{year}}-{{month}}-{{day}}-{{slug}}', path: 'sub_dir/{{year}}/{{slug}}' }),
+          { slug: '{{year}}-{{month}}-{{day}}-{{slug}}', path: 'sub_dir/{{year}}/{{slug}}' },
           Map({ title: 'Post Title' }),
           slugConfig,
         ),
@@ -429,10 +429,10 @@ describe('formatters', () => {
 
       expect(
         slugFormatter(
-          Map({
+          {
             slug: '{{year}}-{{month}}-{{day}}-{{slug}}.en',
             path: 'sub_dir/{{year}}/{{slug}}',
-          }),
+          },
           Map({ title: 'Post Title' }),
           slugConfig,
         ),
@@ -444,10 +444,10 @@ describe('formatters', () => {
 
       expect(
         slugFormatter(
-          Map({
+          {
             slug: '{{slug}}.en',
             path: '../dir/{{slug}}',
-          }),
+          },
           Map({ title: 'Post Title' }),
           slugConfig,
         ),
@@ -461,9 +461,7 @@ describe('formatters', () => {
     });
 
     it('should return baseUrl for collection with no preview_path', () => {
-      expect(previewUrlFormatter('https://www.example.com', Map({}))).toBe(
-        'https://www.example.com',
-      );
+      expect(previewUrlFormatter('https://www.example.com', {})).toBe('https://www.example.com');
     });
 
     it('should return preview url based on preview_path and preview_path_date_field', () => {
@@ -471,10 +469,10 @@ describe('formatters', () => {
       expect(
         previewUrlFormatter(
           'https://www.example.com',
-          Map({
+          {
             preview_path: '{{year}}/{{slug}}/{{title}}/{{fields.slug}}',
             preview_path_date_field: 'customDateField',
-          }),
+          },
           'backendSlug',
           Map({ data: Map({ customDateField: date, slug: 'entrySlug', title: 'title' }) }),
           slugConfig,
@@ -491,11 +489,11 @@ describe('formatters', () => {
       expect(
         previewUrlFormatter(
           'https://www.example.com',
-          Map({
+          {
             preview_path: '{{slug}}/{{title}}/{{fields.slug}}',
             type: 'file_based_collection',
             files: List([file]),
-          }),
+          },
           'backendSlug',
           Map({ data: Map({ slug: 'about-the-project', title: 'title' }), slug: 'about-file' }),
           slugConfig,
@@ -512,10 +510,10 @@ describe('formatters', () => {
       expect(
         previewUrlFormatter(
           'https://www.example.com',
-          Map({
+          {
             type: 'file_based_collection',
             files: List([file]),
-          }),
+          },
           'backendSlug',
           Map({ data: Map({ slug: 'about-the-project', title: 'title' }), slug: 'about-file' }),
           slugConfig,
@@ -532,11 +530,11 @@ describe('formatters', () => {
       expect(
         previewUrlFormatter(
           'https://www.example.com',
-          Map({
+          {
             preview_path: '{{slug}}/{{title}}/{{fields.slug}}',
             type: 'file_based_collection',
             files: List([file]),
-          }),
+          },
           'backendSlug',
           Map({ data: Map({ slug: 'about-the-project', title: 'title' }), slug: 'about-file' }),
           slugConfig,
@@ -555,7 +553,7 @@ describe('formatters', () => {
           fromJS({
             name: 'posts',
             preview_path: '{{year}}/{{month}}/{{slug}}/{{title}}/{{fields.slug}}',
-          }),
+          }).toObject(),
           'backendSlug',
           Map({ data: Map({ date, slug: 'entrySlug', title: 'title' }) }),
           slugConfig,
@@ -567,9 +565,9 @@ describe('formatters', () => {
       expect(
         previewUrlFormatter(
           'https://www.example.com',
-          Map({
+          {
             preview_path: 'posts/{{filename}}.{{extension}}',
-          }),
+          },
           'backendSlug',
           Map({ data: Map({}), path: 'src/content/posts/title.md' }),
           slugConfig,
@@ -581,10 +579,10 @@ describe('formatters', () => {
       expect(
         previewUrlFormatter(
           'https://www.example.com',
-          Map({
+          {
             folder: '_portfolio',
             preview_path: 'portfolio/{{dirname}}',
-          }),
+          },
           'backendSlug',
           Map({ data: Map({}), path: '_portfolio/i-am-the-slug.md' }),
           slugConfig,
@@ -596,12 +594,12 @@ describe('formatters', () => {
       expect(
         previewUrlFormatter(
           'https://www.example.com',
-          Map({
+          {
             folder: '_portfolio',
             preview_path: 'portfolio/{{dirname}}',
             nested: { depth: 100 },
             meta: { path: { widget: 'string', label: 'Path', index_file: 'index' } },
-          }),
+          },
           'backendSlug',
           Map({ data: Map({}), path: '_portfolio/drawing/i-am-the-slug/index.md' }),
           slugConfig,
@@ -614,11 +612,11 @@ describe('formatters', () => {
       expect(
         previewUrlFormatter(
           'https://www.example.com',
-          Map({
+          {
             name: 'posts',
             preview_path: '{{year}}',
             preview_path_date_field: 'date',
-          }),
+          },
           'backendSlug',
           Map({ data: Map({}) }),
           slugConfig,
@@ -635,10 +633,10 @@ describe('formatters', () => {
       expect(
         previewUrlFormatter(
           'https://www.example.com',
-          Map({
+          {
             preview_path: 'prefix/{{value}}',
             preview_path_preserve_slashes: true,
-          }),
+          },
           'backendSlug',
           Map({ data: Map({ value: 'nested/value' }) }),
           slugConfig,
@@ -650,9 +648,9 @@ describe('formatters', () => {
       expect(
         previewUrlFormatter(
           'https://www.example.com',
-          Map({
+          {
             preview_path: 'prefix/{{value}}',
-          }),
+          },
           'backendSlug',
           Map({ data: Map({ value: 'nested/value' }) }),
           slugConfig,
@@ -673,10 +671,10 @@ describe('formatters', () => {
       expect(
         previewUrlFormatter(
           'https://www.example.com',
-          Map({
+          {
             type: 'file_based_collection',
             files: List([file]),
-          }),
+          },
           'backendSlug',
           Map({ data: Map({ value: 'nested/value' }), slug: 'about-file' }),
           slugConfig,
@@ -696,11 +694,11 @@ describe('formatters', () => {
       expect(
         previewUrlFormatter(
           'https://www.example.com',
-          Map({
+          {
             type: 'file_based_collection',
             preview_path_preserve_slashes: true,
             files: List([file]),
-          }),
+          },
           'backendSlug',
           Map({ data: Map({ value: 'nested/value' }), slug: 'about-file' }),
           slugConfig,
@@ -712,10 +710,10 @@ describe('formatters', () => {
       expect(
         previewUrlFormatter(
           'https://www.example.com',
-          Map({
+          {
             preview_path: 'prefix/{{value}}',
             nested: { depth: 10 },
-          }),
+          },
           'backendSlug',
           Map({ data: Map({ value: 'nested/value' }) }),
           slugConfig,
@@ -727,11 +725,11 @@ describe('formatters', () => {
       expect(
         previewUrlFormatter(
           'https://www.example.com',
-          Map({
+          {
             preview_path: 'prefix/{{value}}',
             nested: { depth: 10 },
             preview_path_preserve_slashes: false,
-          }),
+          },
           'backendSlug',
           Map({ data: Map({ value: 'nested/value' }) }),
           slugConfig,
@@ -747,7 +745,7 @@ describe('formatters', () => {
 
       const date = new Date('2020-01-02T13:28:27.679Z');
       const entry = fromJS({ data: { date, title: 'title' } });
-      const collection = fromJS({ fields: [{ name: 'date', widget: 'date' }] });
+      const collection = fromJS({ fields: [{ name: 'date', widget: 'date' }] }).toObject();
 
       expect(summaryFormatter('{{title}}-{{year}}', entry, collection)).toBe('title-2020');
     });
@@ -758,7 +756,7 @@ describe('formatters', () => {
 
       const date = new Date('2020-01-02T13:28:27.679Z');
       const entry = fromJS({ path: 'post.md', data: { date, title: 'title' } });
-      const collection = fromJS({ fields: [{ name: 'date', widget: 'date' }] });
+      const collection = fromJS({ fields: [{ name: 'date', widget: 'date' }] }).toObject();
 
       expect(
         summaryFormatter('{{title}}-{{year}}-{{filename}}.{{extension}}', entry, collection),
@@ -777,7 +775,7 @@ describe('formatters', () => {
       const collection = fromJS({
         folder: '_portfolio',
         fields: [{ name: 'date', widget: 'date' }],
-      });
+      }).toObject();
 
       expect(summaryFormatter('{{dirname}}/{{title}}-{{year}}', entry, collection)).toBe(
         '/title-2020',
@@ -798,7 +796,7 @@ describe('formatters', () => {
         nested: { depth: 100 },
         meta: { path: { widget: 'string', label: 'Path', index_file: 'index' } },
         fields: [{ name: 'date', widget: 'date' }],
-      });
+      }).toObject();
 
       expect(summaryFormatter('{{dirname}}/{{title}}-{{year}}', entry, collection)).toBe(
         'drawing/title-2020',
@@ -823,7 +821,7 @@ describe('formatters', () => {
         path: 'content/en/hosting-and-deployment/deployment-with-nanobox.md',
         data: { title: 'Deployment With NanoBox', category: 'Hosting And Deployment' },
       });
-      const collection = fromJS({});
+      const collection = fromJS({}).toObject();
 
       expect(
         folderFormatter(
@@ -842,7 +840,7 @@ describe('formatters', () => {
         path: 'content/en/hosting-and-deployment/deployment-with-nanobox.md',
         data: { category: 'Hosting And Deployment' },
       });
-      const collection = fromJS({});
+      const collection = fromJS({}).toObject();
 
       expect(
         folderFormatter(
@@ -861,7 +859,7 @@ describe('formatters', () => {
         path: 'content/en/hosting-and-deployment/deployment-with-nanobox.md',
         data: { category: 'Hosting And Deployment' },
       });
-      const collection = fromJS({});
+      const collection = fromJS({}).toObject();
 
       expect(
         folderFormatter(
@@ -882,7 +880,7 @@ describe('formatters', () => {
       });
       const collection = fromJS({
         folder: 'content/en/',
-      });
+      }).toObject();
 
       expect(
         folderFormatter(
@@ -906,7 +904,7 @@ describe('formatters', () => {
         nested: { depth: 100 },
         meta: { path: { widget: 'string', label: 'Path', index_file: 'index' } },
         fields: [{ name: 'date', widget: 'date' }],
-      });
+      }).toObject();
 
       expect(
         folderFormatter(

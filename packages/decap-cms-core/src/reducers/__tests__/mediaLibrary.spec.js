@@ -51,7 +51,7 @@ describe('mediaLibrary', () => {
     selectMediaFolder.mockReturnValue('/static/images/posts/logos');
 
     const imageField = fromJS({ name: 'image' });
-    const collection = fromJS({ fields: [imageField] });
+    const collection = fromJS({ fields: [imageField] }).toObject();
     const entry = fromJS({
       collection: 'posts',
       mediaFiles: [
@@ -63,7 +63,7 @@ describe('mediaLibrary', () => {
     });
     const state = {
       config: {},
-      collections: fromJS({ posts: collection }),
+      collections: { posts: collection },
       entryDraft: fromJS({
         entry,
       }),
@@ -83,7 +83,7 @@ describe('mediaLibrary', () => {
     selectMediaFolder.mockReturnValue('/static/images/posts');
 
     const imageField = fromJS({ name: 'image' });
-    const collection = fromJS({ fields: [imageField] });
+    const collection = fromJS({ fields: [imageField] }).toObject();
     const entry = fromJS({
       collection: 'posts',
       mediaFiles: [
@@ -95,7 +95,7 @@ describe('mediaLibrary', () => {
     });
     const state = {
       config: {},
-      collections: fromJS({ posts: collection }),
+      collections: { posts: collection },
       entryDraft: fromJS({
         entry,
       }),

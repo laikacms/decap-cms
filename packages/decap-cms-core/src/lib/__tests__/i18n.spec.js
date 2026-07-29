@@ -11,19 +11,19 @@ jest.mock('../../reducers/collections', () => {
 describe('i18n', () => {
   describe('hasI18n', () => {
     it('should return false for collection with no i18n', () => {
-      expect(i18n.hasI18n(fromJS({}))).toBe(false);
+      expect(i18n.hasI18n(fromJS({}).toObject())).toBe(false);
     });
 
     it('should return true for collection with i18n', () => {
-      expect(i18n.hasI18n(fromJS({ i18n: { structure: i18n.I18N_STRUCTURE.SINGLE_FILE } }))).toBe(
-        true,
-      );
+      expect(
+        i18n.hasI18n(fromJS({ i18n: { structure: i18n.I18N_STRUCTURE.SINGLE_FILE } }).toObject()),
+      ).toBe(true);
     });
   });
 
   describe('getI18nInfo', () => {
     it('should return empty object for collection with no i18n', () => {
-      expect(i18n.getI18nInfo(fromJS({}))).toEqual({});
+      expect(i18n.getI18nInfo(fromJS({}).toObject())).toEqual({});
     });
 
     it('should return i18n object for collection with i18n', () => {
@@ -32,7 +32,7 @@ describe('i18n', () => {
         default_locale: 'en',
         structure: i18n.I18N_STRUCTURE.MULTIPLE_FOLDERS,
       };
-      expect(i18n.getI18nInfo(fromJS({ i18n: i18nObject }))).toEqual({
+      expect(i18n.getI18nInfo(fromJS({ i18n: i18nObject }).toObject())).toEqual({
         locales: ['en', 'de'],
         defaultLocale: 'en',
         structure: i18n.I18N_STRUCTURE.MULTIPLE_FOLDERS,
@@ -44,7 +44,7 @@ describe('i18n', () => {
     it('should increase depth when i18n structure is I18N_STRUCTURE.MULTIPLE_FOLDERS', () => {
       expect(
         i18n.getI18nFilesDepth(
-          fromJS({ i18n: { structure: i18n.I18N_STRUCTURE.MULTIPLE_FOLDERS } }),
+          fromJS({ i18n: { structure: i18n.I18N_STRUCTURE.MULTIPLE_FOLDERS } }).toObject(),
           5,
         ),
       ).toBe(6);
@@ -53,14 +53,17 @@ describe('i18n', () => {
     it('should return current depth when i18n structure is not I18N_STRUCTURE.MULTIPLE_FOLDERS', () => {
       expect(
         i18n.getI18nFilesDepth(
-          fromJS({ i18n: { structure: i18n.I18N_STRUCTURE.MULTIPLE_FILES } }),
+          fromJS({ i18n: { structure: i18n.I18N_STRUCTURE.MULTIPLE_FILES } }).toObject(),
           5,
         ),
       ).toBe(5);
       expect(
-        i18n.getI18nFilesDepth(fromJS({ i18n: { structure: i18n.I18N_STRUCTURE.SINGLE_FILE } }), 5),
+        i18n.getI18nFilesDepth(
+          fromJS({ i18n: { structure: i18n.I18N_STRUCTURE.SINGLE_FILE } }).toObject(),
+          5,
+        ),
       ).toBe(5);
-      expect(i18n.getI18nFilesDepth(fromJS({}), 5)).toBe(5);
+      expect(i18n.getI18nFilesDepth(fromJS({}).toObject(), 5)).toBe(5);
     });
   });
 
@@ -204,7 +207,7 @@ describe('i18n', () => {
         i18n.getFilePaths(
           fromJS({
             i18n: { structure: i18n.I18N_STRUCTURE.MULTIPLE_FOLDERS, locales: ['en', 'de'] },
-          }),
+          }).toObject(),
           ...args,
         ),
       ).toEqual(['src/content/en/index.md', 'src/content/de/index.md']);
@@ -215,7 +218,7 @@ describe('i18n', () => {
         i18n.getFilePaths(
           fromJS({
             i18n: { structure: i18n.I18N_STRUCTURE.SINGLE_FILE, locales: ['en', 'de'] },
-          }),
+          }).toObject(),
           ...args,
         ),
       ).toEqual(['src/content/index.md']);
@@ -292,7 +295,9 @@ describe('i18n', () => {
     it('should return a single file when structure is I18N_STRUCTURE.SINGLE_FILE', () => {
       expect(
         i18n.getI18nFiles(
-          fromJS({ i18n: { structure: i18n.I18N_STRUCTURE.SINGLE_FILE, locales, default_locale } }),
+          fromJS({
+            i18n: { structure: i18n.I18N_STRUCTURE.SINGLE_FILE, locales, default_locale },
+          }).toObject(),
           ...args,
         ),
       ).toEqual([
@@ -313,7 +318,7 @@ describe('i18n', () => {
         i18n.getI18nFiles(
           fromJS({
             i18n: { structure: i18n.I18N_STRUCTURE.MULTIPLE_FOLDERS, locales, default_locale },
-          }),
+          }).toObject(),
           ...args,
         ),
       ).toEqual([
@@ -340,7 +345,7 @@ describe('i18n', () => {
         i18n.getI18nFiles(
           fromJS({
             i18n: { structure: i18n.I18N_STRUCTURE.MULTIPLE_FILES, locales, default_locale },
-          }),
+          }).toObject(),
           ...args,
         ),
       ).toEqual([
@@ -394,7 +399,7 @@ describe('i18n', () => {
         i18n.getI18nEntry(
           fromJS({
             i18n: { structure: i18n.I18N_STRUCTURE.MULTIPLE_FOLDERS, locales, default_locale },
-          }),
+          }).toObject(),
           ...args,
           getEntryValue,
         ),
@@ -436,7 +441,7 @@ describe('i18n', () => {
         i18n.getI18nEntry(
           fromJS({
             i18n: { structure: i18n.I18N_STRUCTURE.MULTIPLE_FILES, locales, default_locale },
-          }),
+          }).toObject(),
           ...args,
           getEntryValue,
         ),
@@ -470,7 +475,7 @@ describe('i18n', () => {
         i18n.getI18nEntry(
           fromJS({
             i18n: { structure: i18n.I18N_STRUCTURE.SINGLE_FILE, locales, default_locale },
-          }),
+          }).toObject(),
           ...args,
           getEntryValue,
         ),
@@ -502,7 +507,7 @@ describe('i18n', () => {
         i18n.getI18nEntry(
           fromJS({
             i18n: { structure: i18n.I18N_STRUCTURE.SINGLE_FILE, locales, default_locale },
-          }),
+          }).toObject(),
           ...args,
           getEntryValue,
         ),
@@ -544,7 +549,7 @@ describe('i18n', () => {
         i18n.groupEntries(
           fromJS({
             i18n: { structure: i18n.I18N_STRUCTURE.MULTIPLE_FOLDERS, locales, default_locale },
-          }),
+          }).toObject(),
           extension,
           entries,
         ),
@@ -582,7 +587,7 @@ describe('i18n', () => {
         i18n.groupEntries(
           fromJS({
             i18n: { structure: i18n.I18N_STRUCTURE.MULTIPLE_FILES, locales, default_locale },
-          }),
+          }).toObject(),
           extension,
           entries,
         ),
@@ -614,7 +619,7 @@ describe('i18n', () => {
         i18n.groupEntries(
           fromJS({
             i18n: { structure: i18n.I18N_STRUCTURE.SINGLE_FILE, locales, default_locale },
-          }),
+          }).toObject(),
           extension,
           entries,
         ),
@@ -643,7 +648,7 @@ describe('i18n', () => {
         i18n.getI18nDataFiles(
           fromJS({
             i18n: { structure: i18n.I18N_STRUCTURE.MULTIPLE_FOLDERS, locales, default_locale },
-          }),
+          }).toObject(),
           ...args,
           [{ path: 'src/content/fr/index.md', id: 'id', newFile: false }],
         ),
@@ -659,7 +664,7 @@ describe('i18n', () => {
         i18n.getI18nDataFiles(
           fromJS({
             i18n: { structure: i18n.I18N_STRUCTURE.MULTIPLE_FILES, locales, default_locale },
-          }),
+          }).toObject(),
           ...args,
           [{ path: 'src/content/index.fr.md', id: 'id', newFile: false }],
         ),
@@ -675,7 +680,7 @@ describe('i18n', () => {
         i18n.getI18nDataFiles(
           fromJS({
             i18n: { structure: i18n.I18N_STRUCTURE.SINGLE_FILE, locales, default_locale },
-          }),
+          }).toObject(),
           ...args,
           [{ path: 'src/content/index.md', id: 'id', newFile: false }],
         ),
@@ -692,7 +697,7 @@ describe('i18n', () => {
         i18n.getI18nBackup(
           fromJS({
             i18n: { structure: i18n.I18N_STRUCTURE.MULTIPLE_FILES, locales, default_locale },
-          }),
+          }).toObject(),
           fromJS({
             data: 'raw_en',
             i18n: {
@@ -799,7 +804,7 @@ describe('i18n', () => {
           locales: ['en', 'de'],
           default_locale: 'en',
         },
-      });
+      }).toObject();
       const dataFields = { title: 'hello' };
 
       expect(i18n.duplicateDefaultI18nFields(collection, dataFields)).toEqual({
@@ -814,7 +819,7 @@ describe('i18n', () => {
           locales: ['en', 'de', 'fr'],
           default_locale: 'en',
         },
-      });
+      }).toObject();
       const dataFields = { title: 'hello', body: 'world' };
 
       const result = i18n.duplicateDefaultI18nFields(collection, dataFields);
@@ -833,7 +838,7 @@ describe('i18n', () => {
           locales: ['en'],
           default_locale: 'en',
         },
-      });
+      }).toObject();
 
       expect(i18n.duplicateDefaultI18nFields(collection, { title: 'hello' })).toEqual({});
     });
@@ -847,7 +852,7 @@ describe('i18n', () => {
           locales: ['en'],
           default_locale: 'en',
         },
-      });
+      }).toObject();
       const entry = fromJS({ data: { title: 'hello' } });
       const serializeValues = jest.fn(data => data);
 
@@ -864,7 +869,7 @@ describe('i18n', () => {
           locales: ['en', 'de', 'fr'],
           default_locale: 'en',
         },
-      });
+      }).toObject();
       const entry = fromJS({
         data: { title: 'en_title' },
         i18n: {
@@ -888,7 +893,7 @@ describe('i18n', () => {
           locales: ['en', 'de'],
           default_locale: 'en',
         },
-      });
+      }).toObject();
       const entry = fromJS({
         data: { title: 'en_title' },
         i18n: {

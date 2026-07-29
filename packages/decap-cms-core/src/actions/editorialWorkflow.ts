@@ -85,7 +85,7 @@ function unpublishedEntryLoading(collection: Collection, slug: string) {
   return {
     type: UNPUBLISHED_ENTRY_REQUEST,
     payload: {
-      collection: collection.get('name'),
+      collection: collection.name,
       slug,
     },
   };
@@ -107,7 +107,7 @@ function unpublishedEntryLoaded(
   return {
     type: UNPUBLISHED_ENTRY_SUCCESS,
     payload: {
-      collection: collection.get('name'),
+      collection: collection.name,
       entry: withScheduledPublishAt(entry),
     },
   };
@@ -117,7 +117,7 @@ function unpublishedEntryRedirected(collection: Collection, slug: string) {
   return {
     type: UNPUBLISHED_ENTRY_REDIRECT,
     payload: {
-      collection: collection.get('name'),
+      collection: collection.name,
       slug,
     },
   };
@@ -151,7 +151,7 @@ function unpublishedEntryPersisting(collection: Collection, slug: string) {
   return {
     type: UNPUBLISHED_ENTRY_PERSIST_REQUEST,
     payload: {
-      collection: collection.get('name'),
+      collection: collection.name,
       slug,
     },
   };
@@ -161,7 +161,7 @@ function unpublishedEntryPersisted(collection: Collection, entry: EntryMap) {
   return {
     type: UNPUBLISHED_ENTRY_PERSIST_SUCCESS,
     payload: {
-      collection: collection.get('name'),
+      collection: collection.name,
       entry,
     },
   };
@@ -172,7 +172,7 @@ function unpublishedEntryPersistedFail(error: Error, collection: Collection, slu
     type: UNPUBLISHED_ENTRY_PERSIST_FAILURE,
     payload: {
       error,
-      collection: collection.get('name'),
+      collection: collection.name,
       slug,
     },
     error,
@@ -360,8 +360,8 @@ export function persistUnpublishedEntry(collection: Collection, existingUnpublis
     const state = getState();
     const entryDraft = state.entryDraft;
     const fieldsErrors = entryDraft.get('fieldsErrors');
-    const unpublishedSlugs = selectUnpublishedSlugs(state, collection.get('name'));
-    const publishedSlugs = selectPublishedSlugs(state, collection.get('name'));
+    const unpublishedSlugs = selectUnpublishedSlugs(state, collection.name);
+    const publishedSlugs = selectPublishedSlugs(state, collection.name);
     const usedSlugs = publishedSlugs.concat(unpublishedSlugs) as List<string>;
     const entriesLoaded = get(state.editorialWorkflow.toJS(), 'pages.ids', false);
 
@@ -423,7 +423,7 @@ export function persistUnpublishedEntry(collection: Collection, existingUnpublis
 
       if (entry.get('slug') !== newSlug) {
         await dispatch(loadUnpublishedEntry(collection, newSlug));
-        navigateToEntry(collection.get('name'), newSlug);
+        navigateToEntry(collection.name, newSlug);
       }
     } catch (error) {
       dispatch(
@@ -536,13 +536,13 @@ export function publishUnpublishedEntry(collectionName: string, slug: string) {
       // the entry is gone from the editorial workflow once published, drop any
       // leftover schedule so a re-created entry with the same slug doesn't inherit it
       clearScheduledPublishAt(collectionName, slug);
-      const collection = collections.get(collectionName);
-      if (collection.has('nested')) {
+      const collection = collections[collectionName];
+      if (collection.nested !== undefined) {
         dispatch(loadEntries(collection));
         const newSlug = slugFromCustomPath(collection, entry.get('path'));
         loadEntry(collection, newSlug);
         if (slug !== newSlug && selectEditingDraft(state.entryDraft)) {
-          navigateToEntry(collection.get('name'), newSlug);
+          navigateToEntry(collection.name, newSlug);
         }
       } else {
         return dispatch(loadEntry(collection, slug));
@@ -654,7 +654,7 @@ export function unpublishPublishedEntry(collection: Collection, slug: string) {
   return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
     const state = getState();
     const backend = currentBackend(state.config);
-    const entry = selectEntry(state, collection.get('name'), slug);
+    const entry = selectEntry(state, collection.name, slug);
     const entryDraft = Map().set('entry', entry) as unknown as EntryDraft;
     dispatch(unpublishedEntryPersisting(collection, slug));
     return backend

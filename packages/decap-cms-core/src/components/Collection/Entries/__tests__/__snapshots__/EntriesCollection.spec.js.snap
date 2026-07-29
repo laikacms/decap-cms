@@ -4,7 +4,7 @@ exports[`EntriesCollection should render connected component 1`] = `
 <DocumentFragment>
   <mock-entries
     collectionname="Pages"
-    collections="Map { \\"name\\": \\"pages\\", \\"label\\": \\"Pages\\", \\"folder\\": \\"src/pages\\" }"
+    collections="[object Object]"
     cursor="[object Object]"
     entries="List [ Map { \\"slug\\": \\"index\\", \\"path\\": \\"src/pages/index.md\\", \\"data\\": Map { \\"title\\": \\"Root\\" } }, Map { \\"slug\\": \\"dir1/index\\", \\"path\\": \\"src/pages/dir1/index.md\\", \\"data\\": Map { \\"title\\": \\"File 1\\" } }, Map { \\"slug\\": \\"dir2/index\\", \\"path\\": \\"src/pages/dir2/index.md\\", \\"data\\": Map { \\"title\\": \\"File 2\\" } } ]"
   />
@@ -15,7 +15,7 @@ exports[`EntriesCollection should render show only immediate children for nested
 <DocumentFragment>
   <mock-entries
     collectionname="Pages"
-    collections="Map { \\"name\\": \\"pages\\", \\"label\\": \\"Pages\\", \\"folder\\": \\"src/pages\\", \\"nested\\": Map { \\"depth\\": 10, \\"subfolders\\": false } }"
+    collections="[object Object]"
     cursor="[object Object]"
     entries="List [ Map { \\"slug\\": \\"index\\", \\"path\\": \\"src/pages/index.md\\", \\"data\\": Map { \\"title\\": \\"Root\\" } } ]"
   />
@@ -26,7 +26,7 @@ exports[`EntriesCollection should render with applied filter term for nested col
 <DocumentFragment>
   <mock-entries
     collectionname="Pages"
-    collections="Map { \\"name\\": \\"pages\\", \\"label\\": \\"Pages\\", \\"folder\\": \\"src/pages\\", \\"nested\\": Map { \\"depth\\": 10, \\"subfolders\\": false } }"
+    collections="[object Object]"
     cursor="[object Object]"
     entries="List [ Map { \\"slug\\": \\"dir3/dir4/index\\", \\"path\\": \\"src/pages/dir3/dir4/index.md\\", \\"data\\": Map { \\"title\\": \\"File 4\\" } } ]"
     filterterm="dir3/dir4"
@@ -38,7 +38,7 @@ exports[`EntriesCollection should render with entries 1`] = `
 <DocumentFragment>
   <mock-entries
     collectionname="Pages"
-    collections="Map { \\"name\\": \\"pages\\", \\"label\\": \\"Pages\\", \\"folder\\": \\"src/pages\\" }"
+    collections="[object Object]"
     cursor="[object Object]"
     entries="List [ Map { \\"slug\\": \\"index\\" } ]"
   />
