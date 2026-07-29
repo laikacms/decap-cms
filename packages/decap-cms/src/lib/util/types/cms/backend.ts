@@ -195,7 +195,14 @@ export interface CmsImplementation {
    */
   ensureFreshSession?: () => Promise<void>;
 
-  getEntry: (path: string) => Promise<CmsImplementationEntry>;
+  /**
+   * `useWorkflow` is an optional hint for implementations that probe both
+   * published and unpublished storage: when `false`, the caller knows the
+   * collection has no editorial workflow, so an unpublished-only lookup can
+   * be skipped. Implementations that don't distinguish published/unpublished
+   * storage may ignore it.
+   */
+  getEntry: (path: string, useWorkflow?: boolean) => Promise<CmsImplementationEntry>;
   entriesByFolder: (
     folder: string,
     extension: string,

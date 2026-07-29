@@ -350,6 +350,62 @@ describe('LaikaBackend.getEntry()', () => {
     await expect(backend.getEntry('articles/missing')).rejects.toThrow();
   });
 
+  // -------------------------------------------------------------------------
+  // DCMS-1663: `useWorkflow` gates the getUnpublished fallback probe
+  // -------------------------------------------------------------------------
+
+  it('(useWorkflow=true, default) still falls back to getUnpublished when published lookup misses', async () => {
+    const unpubDoc = { key: 'articles/draft', content: { title: 'Draft' }, type: 'unpublished' };
+    mockDocRepo.getDocument.mockReturnValue(fail({ code: 'NOT_FOUND', message: 'Not found' }));
+    mockDocRepo.getUnpublished.mockReturnValue(succeed(unpubDoc));
+
+    const entry = await backend.getEntry('articles/draft', true);
+
+    expect(mockDocRepo.getUnpublished).toHaveBeenCalledWith('articles/draft');
+    expect(entry.file.path).toBe('articles/draft');
+  });
+
+  it('(useWorkflow=false) does NOT call getUnpublished when published lookup misses, and rejects', async () => {
+    mockDocRepo.getDocument.mockReturnValue(fail({ code: 'NOT_FOUND', message: 'Not found' }));
+
+    await expect(backend.getEntry('articles/no-workflow', false)).rejects.toThrow();
+
+    expect(mockDocRepo.getUnpublished).not.toHaveBeenCalled();
+  });
+
+  it('(useWorkflow=false) does not console.error on a plain not_found miss (still the expected slug-collision probe)', async () => {
+    mockDocRepo.getDocument.mockReturnValue(fail({ code: 'NOT_FOUND', message: 'Not found' }));
+
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      await expect(backend.getEntry('articles/no-workflow', false)).rejects.toThrow();
+      expect(errorSpy).not.toHaveBeenCalled();
+      expect(mockDocRepo.getUnpublished).not.toHaveBeenCalled();
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
+
+  it('(useWorkflow=false) skips getUnpublished even when it would have succeeded', async () => {
+    const unpubDoc = { key: 'articles/would-hit', content: { title: 'Draft' }, type: 'unpublished' };
+    mockDocRepo.getDocument.mockReturnValue(fail({ code: 'NOT_FOUND', message: 'Not found' }));
+    mockDocRepo.getUnpublished.mockReturnValue(succeed(unpubDoc));
+
+    await expect(backend.getEntry('articles/would-hit', false)).rejects.toThrow();
+
+    expect(mockDocRepo.getUnpublished).not.toHaveBeenCalled();
+  });
+
+  it('(useWorkflow=false) never touches getUnpublished when the published document is found', async () => {
+    const doc = { key: 'articles/hit', content: { title: 'Hit' }, type: 'published' };
+    mockDocRepo.getDocument.mockReturnValue(succeed(doc));
+
+    const entry = await backend.getEntry('articles/hit', false);
+
+    expect(entry.file.path).toBe('articles/hit');
+    expect(mockDocRepo.getUnpublished).not.toHaveBeenCalled();
+  });
+
   it('does not console.error when both lookups miss with not_found (DCMS-1008: expected slug-collision probe)', async () => {
     mockDocRepo.getDocument.mockReturnValue(fail({ message: 'Not found' }));
     mockDocRepo.getUnpublished.mockReturnValue(fail({ message: 'Not found either' }));
