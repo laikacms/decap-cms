@@ -26,6 +26,7 @@ import type {
   CmsI18nConfig,
   CmsPublishMode,
   CmsLocalBackend,
+  Collection,
   State,
 } from '../types/redux';
 
@@ -374,8 +375,10 @@ export function applyDefaults(originalConfig: CmsConfig) {
 
       if (!collection.sortable_fields) {
         collection.sortable_fields = selectDefaultSortableFields(
-          // TODO remove fromJS when Immutable is removed from the collections state slice
-          fromJS(collection),
+          // Collection itself is a plain object (DCMS-1667); only its `fields` are
+          // still Immutable (EntryField migration is out of scope for DCMS-1667 —
+          // EntryField is shared across the whole form/widget system).
+          { ...collection, fields: fromJS(collection.fields || []) } as unknown as Collection,
           backend,
           hasIntegration(config, collection),
         );
