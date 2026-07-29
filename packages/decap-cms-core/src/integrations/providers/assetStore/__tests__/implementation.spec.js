@@ -1,13 +1,11 @@
-import { fromJS } from 'immutable';
-
 import AssetStore from '../implementation';
 
 function createAssetStore(config = {}, getToken = jest.fn()) {
   return new AssetStore(
-    fromJS({
+    {
       getSignedFormURL: 'https://api.example.com/sign',
       ...config,
-    }),
+    },
     getToken,
   );
 }
@@ -15,7 +13,7 @@ function createAssetStore(config = {}, getToken = jest.fn()) {
 describe('AssetStore integration', () => {
   describe('constructor', () => {
     it('throws when getSignedFormURL is missing from the config', () => {
-      expect(() => new AssetStore(fromJS({}), jest.fn())).toThrow(
+      expect(() => new AssetStore({}, jest.fn())).toThrow(
         'The AssetStore integration needs the getSignedFormURL in the integration configuration.',
       );
     });

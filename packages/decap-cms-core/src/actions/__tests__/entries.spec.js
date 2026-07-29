@@ -590,7 +590,7 @@ describe('entries', () => {
           },
         }),
         entries: fromJS({}),
-        integrations: fromJS({}),
+        integrations: {},
         mediaLibrary: fromJS({ files: [] }),
       });
 
@@ -616,7 +616,7 @@ describe('entries', () => {
           fieldsErrors: {},
         }),
         entries: fromJS({}),
-        integrations: fromJS({}),
+        integrations: {},
         mediaLibrary: fromJS({ files: [] }),
       });
 
@@ -671,7 +671,7 @@ describe('entries', () => {
       const store = mockStore({
         config: Map(),
         entries: fromJS({}),
-        integrations: fromJS({}),
+        integrations: {},
         mediaLibrary: fromJS({ files: [] }),
       });
 
@@ -702,7 +702,7 @@ describe('entries', () => {
       const store = mockStore({
         config: Map(),
         entries: fromJS({}),
-        integrations: fromJS({}),
+        integrations: {},
         mediaLibrary: fromJS({ files: [] }),
       });
 
@@ -749,7 +749,7 @@ describe('entries', () => {
         config: Map(),
         entryDraft: openEntryDraft,
         entries: fromJS({}),
-        integrations: fromJS({}),
+        integrations: {},
         mediaLibrary: fromJS({ files: [] }),
       });
 
@@ -780,7 +780,7 @@ describe('entries', () => {
       const store = mockStore({
         config: Map(),
         entries: fromJS({}),
-        integrations: fromJS({}),
+        integrations: {},
         mediaLibrary: fromJS({ files: [] }),
       });
 

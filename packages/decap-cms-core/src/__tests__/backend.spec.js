@@ -659,7 +659,7 @@ describe('Backend', () => {
 
       const state = {
         config,
-        integrations: Map({}),
+        integrations: {},
         mediaLibrary: Map({}),
       };
 

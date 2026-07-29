@@ -91,7 +91,7 @@ describe('editorialWorkflow actions', () => {
 
       const store = mockStore({
         config: fromJS({}),
-        integrations: fromJS([]),
+        integrations: {},
         mediaLibrary: fromJS({
           isLoading: false,
         }),
@@ -300,7 +300,7 @@ describe('editorialWorkflow actions', () => {
 
       const store = mockStore({
         config: fromJS({}),
-        integrations: fromJS([]),
+        integrations: {},
         mediaLibrary: fromJS({ isLoading: false }),
         collections: fromJS({ posts: { name: 'posts' } }),
         editorialWorkflow: fromJS({
