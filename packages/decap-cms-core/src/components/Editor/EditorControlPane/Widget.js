@@ -81,16 +81,20 @@ export default class Widget extends Component {
     PropTypes.checkPropTypes(Widget.propTypes, this.props, 'prop', 'Widget');
   }
 
-  shouldComponentUpdate(nextProps) {
+  shouldComponentUpdate(nextProps, nextState, nextContext) {
     /**
      * Avoid unnecessary rerenders while loading assets.
      */
     if (this.props.isLoadingAsset && nextProps.isLoadingAsset) return false;
     /**
-     * Allow widgets to provide their own `shouldComponentUpdate` method.
+     * Allow widgets to provide their own `shouldComponentUpdate` method. Some
+     * wrapped controls (e.g. decap-cms-widget-relation's quick-add modal,
+     * DCMS-1421) read `nextState` themselves, so it must be forwarded along
+     * with `nextProps`/`nextContext` or the delegated call throws trying to
+     * read off `undefined` and crashes the app to the error boundary.
      */
     if (this.wrappedControlShouldComponentUpdate) {
-      return this.wrappedControlShouldComponentUpdate(nextProps);
+      return this.wrappedControlShouldComponentUpdate(nextProps, nextState, nextContext);
     }
     return (
       this.props.value !== nextProps.value ||

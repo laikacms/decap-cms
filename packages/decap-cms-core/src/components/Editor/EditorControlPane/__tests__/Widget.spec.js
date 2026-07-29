@@ -67,6 +67,35 @@ describe('Widget', () => {
     });
   });
 
+  describe('shouldComponentUpdate delegation (DCMS-1689)', () => {
+    it('forwards nextState to a wrapped control shouldComponentUpdate that reads it', () => {
+      // Regression test: widget-relation's RelationControl.shouldComponentUpdate
+      // reads `nextState.quickAdd` (DCMS-1421). Widget.shouldComponentUpdate used
+      // to only forward `nextProps`, so `nextState` was `undefined` in the
+      // delegated call and `nextState.quickAdd` threw, crashing the app to the
+      // top-level error boundary on any props update.
+      const field = fromJS({ name: 'title' });
+      const widget = createWidget({ field, value: 'a', isLoadingAsset: false });
+
+      const wrappedControlShouldComponentUpdate = jest.fn((nextProps, nextState) => {
+        // Would throw here if nextState were undefined, as it did pre-fix.
+        return nextState.foo !== 'bar';
+      });
+      widget.wrappedControlShouldComponentUpdate = wrappedControlShouldComponentUpdate;
+
+      const nextProps = { ...widget.props, value: 'b' };
+      const nextState = { foo: 'baz' };
+
+      expect(() => widget.shouldComponentUpdate(nextProps, nextState)).not.toThrow();
+      expect(widget.shouldComponentUpdate(nextProps, nextState)).toBe(true);
+      expect(wrappedControlShouldComponentUpdate).toHaveBeenCalledWith(
+        nextProps,
+        nextState,
+        undefined,
+      );
+    });
+  });
+
   describe('validate (DCMS-458 Standard Schema field validation)', () => {
     // zod is the reference implementation of the Standard Schema protocol
     // (https://github.com/standard-schema/standard-schema); this test proves
