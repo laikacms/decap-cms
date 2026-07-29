@@ -96,13 +96,23 @@ describe('createChangeGuard (DCMS-337: handleChange store-feedback loop)', () =>
     expect(emitCount).toBe(5);
   });
 
-  it('keeps emitting when the editor content actually changes again after converging', () => {
+  it('keeps emitting when the editor content actually changes again after converging', async () => {
     const guardChange = createChangeGuard('');
 
     const firstSlateValue = markdownToSlate(MULTI_SENTENCE_BODY, { editorComponents: Map() });
     const firstMdValue = slateToMarkdown(firstSlateValue, {}, Map());
     expect(guardChange(firstMdValue, () => {})).toBe(true);
+
+    // Let the first emit settle (DCMS-1661: the guard reopens on the next
+    // microtask, not synchronously) before asserting the duplicate-value
+    // guard against it.
+    await Promise.resolve();
+    await Promise.resolve();
+
     expect(guardChange(firstMdValue, () => {})).toBe(false);
+
+    await Promise.resolve();
+    await Promise.resolve();
 
     const secondBody = `${MULTI_SENTENCE_BODY}\n\nAnd now a third paragraph was added.`;
     const secondSlateValue = markdownToSlate(secondBody, { editorComponents: Map() });
@@ -149,7 +159,7 @@ describe('createChangeGuard (DCMS-583: re-entrant onChange during value/prop chu
     expect(calls).toEqual(['First paragraph.']);
   });
 
-  it('accepts the next real change once the in-flight emit has returned', () => {
+  it('accepts the next real change once the in-flight emit has settled', async () => {
     const guardChange = createChangeGuard('');
     const calls = [];
 
@@ -158,13 +168,21 @@ describe('createChangeGuard (DCMS-583: re-entrant onChange during value/prop chu
     }
 
     expect(guardChange('First paragraph.', onEmit)).toBe(true);
-    // Not reentrant - this call happens after the previous onEmit returned,
-    // e.g. on the next real keystroke.
-    expect(guardChange('First paragraph.\n\nSecond paragraph.', onEmit)).toBe(true);
+    // DCMS-1661: this call is not nested inside the previous onEmit, but it
+    // arrives in the same synchronous tick (before that emit has "settled" -
+    // see the DCMS-1661 describe block below), so it is coalesced into a
+    // pending value and flushed on the next microtask tick rather than
+    // re-entering synchronously.
+    expect(guardChange('First paragraph.\n\nSecond paragraph.', onEmit)).toBe(false);
+    expect(calls).toEqual(['First paragraph.']);
+
+    await Promise.resolve();
+    await Promise.resolve();
+
     expect(calls).toEqual(['First paragraph.', 'First paragraph.\n\nSecond paragraph.']);
   });
 
-  it('does not deadlock: a guard that swallowed a re-entrant call still accepts later changes', () => {
+  it('does not deadlock: a guard that swallowed a re-entrant call still accepts later changes', async () => {
     const guardChange = createChangeGuard('');
     const calls = [];
 
@@ -178,8 +196,86 @@ describe('createChangeGuard (DCMS-583: re-entrant onChange during value/prop chu
     }
 
     expect(guardChange('First paragraph.', onEmit)).toBe(true);
-    // The guard must not be left "stuck" thinking it's still emitting.
-    expect(guardChange('First paragraph.\n\nA later, real edit.', onEmit)).toBe(true);
+    // The guard must not be left "stuck" thinking it's still emitting -
+    // this later, real edit is coalesced (DCMS-1661) rather than accepted
+    // synchronously, but it must still make it through once settled.
+    expect(guardChange('First paragraph.\n\nA later, real edit.', onEmit)).toBe(false);
+
+    await Promise.resolve();
+    await Promise.resolve();
+
     expect(calls).toEqual(['First paragraph.', 'First paragraph.\n\nA later, real edit.']);
+  });
+});
+
+// DCMS-1661: React error #185 while burst-typing (>=60 chars, 0ms
+// inter-keystroke delay) natural sentence text into a fresh richtext body.
+// The DCMS-583 guard above only swallows calls literally nested on
+// `onEmit`'s own call stack; it reopens the gate synchronously the instant
+// `onEmit` returns. A rapid burst produces a tight run of onChange calls
+// that are NOT nested in each other (each arrives after the previous
+// `onEmit` already returned) while Plate/Slate is still settling the
+// previous keystroke's normalization/commit - so the DCMS-583 guard waves
+// every one of them through as a "fresh" change, and each one's onEmit (the
+// parent onChange -> redux round trip) widens the window further until
+// React trips the update-depth guard. These tests exercise that exact
+// codepath: many back-to-back (non-nested), genuinely-different-valued
+// calls arriving within the same synchronous burst.
+describe('createChangeGuard (DCMS-1661: coalescing rapid non-nested onChange bursts)', () => {
+  it('bounds a large synchronous burst to a single immediate emit, converging to the final value once settled', async () => {
+    const guardChange = createChangeGuard('');
+    const calls = [];
+    function onEmit(value) {
+      calls.push(value);
+    }
+
+    // Simulate ~70 chars of burst-typed content: one onChange per keystroke,
+    // each with a genuinely different (longer) serialized value, all
+    // arriving back-to-back in the same synchronous script execution - as
+    // Playwright's `keyboard.type(text)` with no `delay` would produce.
+    const total = 70;
+    for (let i = 1; i <= total; i += 1) {
+      guardChange('abc. '.repeat(i), onEmit);
+    }
+
+    // Only the very first keystroke's change may emit synchronously. Every
+    // other call in the burst must be coalesced, never run synchronously -
+    // this is what bounds the synchronous update-depth regardless of how
+    // long the burst is, structurally preventing React error #185.
+    expect(calls).toEqual(['abc. ']);
+
+    // Let the guard's deferred release/flush microtasks drain.
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    // The burst still converges on the true final value - no keystrokes are
+    // silently lost - it just takes one extra (coalesced) emit instead of
+    // `total` synchronous re-entrant ones.
+    expect(calls).toEqual(['abc. ', 'abc. '.repeat(total)]);
+  });
+
+  it('never nests onEmit calls, even under a burst, so a real, misbehaving onEmit cannot blow the stack', async () => {
+    const guardChange = createChangeGuard('');
+    let maxObservedDepth = 0;
+    let currentDepth = 0;
+
+    function onEmit() {
+      currentDepth += 1;
+      maxObservedDepth = Math.max(maxObservedDepth, currentDepth);
+      // Nothing else to do; just record how deep we are while "in" onEmit.
+      currentDepth -= 1;
+    }
+
+    for (let i = 1; i <= 100; i += 1) {
+      guardChange(`value-${i}`, onEmit);
+    }
+
+    for (let i = 0; i < 10; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.resolve();
+    }
+
+    expect(maxObservedDepth).toBe(1);
   });
 });
