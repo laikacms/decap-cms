@@ -17,6 +17,7 @@ import {
   clearFieldErrors,
   tryLoadEntry,
   validateMetaField as validateMetaFieldAction,
+  persistQuickCreateEntry,
 } from '../../../actions/entries';
 import { addAsset, boundGetAsset } from '../../../actions/media';
 import { selectIsLoadingAsset } from '../../../reducers/medias';
@@ -161,6 +162,7 @@ class EditorControl extends React.Component {
     clearSearch: PropTypes.func.isRequired,
     clearFieldErrors: PropTypes.func.isRequired,
     loadEntry: PropTypes.func.isRequired,
+    quickCreateEntry: PropTypes.func.isRequired,
     t: PropTypes.func.isRequired,
     isEditorComponent: PropTypes.bool,
     isNewEditorComponent: PropTypes.bool,
@@ -273,6 +275,7 @@ class EditorControl extends React.Component {
       clearSearch,
       clearFieldErrors,
       loadEntry,
+      quickCreateEntry,
       className,
       isSelected,
       isEditorComponent,
@@ -395,6 +398,7 @@ class EditorControl extends React.Component {
               editorControl={ConnectedEditorControl}
               query={query}
               loadEntry={loadEntry}
+              onQuickCreateEntry={quickCreateEntry}
               queryHits={queryHits[this.uniqueFieldId] || []}
               clearSearch={clearSearch}
               clearFieldErrors={clearFieldErrors}
@@ -505,6 +509,15 @@ function mapDispatchToProps(dispatch) {
           return tryLoadEntry(state, targetCollection, slug);
         }
         throw new Error(`Can't find collection '${collectionName}'`);
+      }),
+    quickCreateEntry: (collectionName, data) =>
+      dispatch((dispatchInner, getState) => {
+        const state = getState();
+        const targetCollection = state.collections.get(collectionName);
+        if (!targetCollection) {
+          throw new Error(`Can't find collection '${collectionName}'`);
+        }
+        return dispatchInner(persistQuickCreateEntry(targetCollection, data));
       }),
     validateMetaField: (collection, field, value, t) =>
       dispatch((_dispatch, getState) =>

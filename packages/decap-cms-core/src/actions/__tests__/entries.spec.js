@@ -10,6 +10,8 @@ import {
   getMediaAssets,
   validateMetaField,
   persistEntry,
+  persistQuickCreateEntry,
+  createQuickCreateEntryData,
   withDefaultsBackfilled,
 } from '../entries';
 import AssetProxy from '../../valueObjects/AssetProxy';
@@ -626,6 +628,173 @@ describe('entries', () => {
       });
 
       return expect(store.dispatch(persistEntry(collection))).rejects.toBe(persistError);
+    });
+  });
+
+  describe('createQuickCreateEntryData', () => {
+    it('backfills fields missing from data with the same defaults createEmptyDraft uses', () => {
+      const collection = fromJS({
+        name: 'posts',
+        fields: [{ name: 'title' }, { name: 'draft', widget: 'boolean', default: false }],
+      });
+
+      const entry = createQuickCreateEntryData(collection, { title: 'Quick post' });
+
+      expect(entry.data).toEqual({ title: 'Quick post', draft: false });
+    });
+
+    it('lets caller-supplied data override a field default', () => {
+      const collection = fromJS({
+        name: 'posts',
+        fields: [{ name: 'draft', widget: 'boolean', default: false }],
+      });
+
+      const entry = createQuickCreateEntryData(collection, { draft: true });
+
+      expect(entry.data).toEqual({ draft: true });
+    });
+  });
+
+  describe('persistQuickCreateEntry (DCMS-1421)', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('rejects without touching the backend when the collection disallows new entries', () => {
+      const { currentBackend } = require('../../backend');
+      const backend = {
+        processEntry: jest.fn(),
+        persistEntry: jest.fn(),
+      };
+      currentBackend.mockReturnValue(backend);
+
+      const store = mockStore({
+        config: Map(),
+        entries: fromJS({}),
+        integrations: fromJS({}),
+        mediaLibrary: fromJS({ files: [] }),
+      });
+
+      const collection = fromJS({
+        name: 'pages',
+        type: FOLDER,
+        folder: 'pages',
+        create: false,
+        fields: [{ name: 'title' }],
+      });
+
+      return expect(store.dispatch(persistQuickCreateEntry(collection, { title: 'x' })))
+        .rejects.toEqual(new Error('Not allowed to create new entries in this collection'))
+        .then(() => {
+          expect(backend.processEntry).not.toHaveBeenCalled();
+          expect(backend.persistEntry).not.toHaveBeenCalled();
+        });
+    });
+
+    it('persists a new entry built from the quick-add data and returns its saved data', async () => {
+      const { currentBackend } = require('../../backend');
+      const backend = {
+        processEntry: jest.fn((_state, _collection, entry) => Promise.resolve(entry)),
+        persistEntry: jest.fn(() => Promise.resolve('post-slug')),
+      };
+      currentBackend.mockReturnValue(backend);
+
+      const store = mockStore({
+        config: Map(),
+        entries: fromJS({}),
+        integrations: fromJS({}),
+        mediaLibrary: fromJS({ files: [] }),
+      });
+
+      const collection = fromJS({
+        name: 'posts',
+        type: FOLDER,
+        folder: 'posts',
+        create: true,
+        fields: [{ name: 'title' }, { name: 'slug' }],
+      });
+
+      const result = await store.dispatch(
+        persistQuickCreateEntry(collection, { title: 'Quick post', slug: 'quick-post' }),
+      );
+
+      expect(result).toEqual({ title: 'Quick post', slug: 'quick-post' });
+      expect(backend.persistEntry).toHaveBeenCalledTimes(1);
+
+      const persistCall = backend.persistEntry.mock.calls[0][0];
+      expect(persistCall.collection).toBe(collection);
+      expect(persistCall.entryDraft.getIn(['entry', 'data']).toJS()).toEqual({
+        title: 'Quick post',
+        slug: 'quick-post',
+      });
+
+      const actions = store.getActions();
+      expect(actions).toEqual([expect.objectContaining({ type: 'ENTRY_PERSIST_SUCCESS' })]);
+    });
+
+    it('does not touch state.entryDraft, leaving the currently open entry untouched', async () => {
+      const { currentBackend } = require('../../backend');
+      const backend = {
+        processEntry: jest.fn((_state, _collection, entry) => Promise.resolve(entry)),
+        persistEntry: jest.fn(() => Promise.resolve('post-slug')),
+      };
+      currentBackend.mockReturnValue(backend);
+
+      const openEntryDraft = fromJS({
+        entry: { slug: 'currently-open', data: { title: 'Do not touch' } },
+        fieldsErrors: {},
+      });
+
+      const store = mockStore({
+        config: Map(),
+        entryDraft: openEntryDraft,
+        entries: fromJS({}),
+        integrations: fromJS({}),
+        mediaLibrary: fromJS({ files: [] }),
+      });
+
+      const collection = fromJS({
+        name: 'posts',
+        type: FOLDER,
+        folder: 'posts',
+        create: true,
+        fields: [{ name: 'title' }],
+      });
+
+      await store.dispatch(persistQuickCreateEntry(collection, { title: 'Quick post' }));
+
+      const persistCall = backend.persistEntry.mock.calls[0][0];
+      expect(persistCall.entryDraft).not.toBe(openEntryDraft);
+      expect(persistCall.entryDraft.getIn(['entry', 'slug'])).not.toBe('currently-open');
+    });
+
+    it('propagates the original error when the backend persist fails', () => {
+      const { currentBackend } = require('../../backend');
+      const persistError = new Error('Failed to persist entry');
+      const backend = {
+        processEntry: jest.fn((_state, _collection, entry) => Promise.resolve(entry)),
+        persistEntry: jest.fn(() => Promise.reject(persistError)),
+      };
+      currentBackend.mockReturnValue(backend);
+
+      const store = mockStore({
+        config: Map(),
+        entries: fromJS({}),
+        integrations: fromJS({}),
+        mediaLibrary: fromJS({ files: [] }),
+      });
+
+      const collection = fromJS({
+        name: 'posts',
+        type: FOLDER,
+        folder: 'posts',
+        create: true,
+        fields: [{ name: 'title' }],
+      });
+
+      return expect(
+        store.dispatch(persistQuickCreateEntry(collection, { title: 'Quick post' })),
+      ).rejects.toBe(persistError);
     });
   });
 
