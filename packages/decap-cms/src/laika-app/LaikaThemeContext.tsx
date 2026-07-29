@@ -168,6 +168,26 @@ export function LaikaThemeProvider({
     [mode, setMode, toggleMode, resolvedMode],
   );
 
+  // Toggle the `.dark` class on the document element in dark mode. The
+  // richtext editor and the shared `src/ui/*` primitives theme off their own
+  // `--background`/`--foreground`/... token set (declared in the editor's
+  // GlobalStyles), whose dark values only apply under `.dark`. Without this
+  // the editor stays on its light tokens no matter the app theme. Also set
+  // `color-scheme` so native form controls (the date/time inputs, scrollbars)
+  // render their dark variant.
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      return;
+    }
+    const root = document.documentElement;
+    root.classList.toggle('dark', resolvedMode === 'dark');
+    root.style.colorScheme = resolvedMode;
+    return () => {
+      root.classList.remove('dark');
+      root.style.colorScheme = '';
+    };
+  }, [resolvedMode]);
+
   // Shadow tokens — emitted as CSS custom properties so laika components can
   // reference them without each one needing to read the theme context. The
   // dark mode values are darker + heavier so elevation reads on the

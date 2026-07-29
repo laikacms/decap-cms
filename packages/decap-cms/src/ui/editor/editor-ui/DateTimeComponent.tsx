@@ -46,9 +46,12 @@ const strikeClass = css`
   text-decoration: line-through;
 `;
 const highlightClass = css`
-  background-color: #fef08a;
+  /* A highlighter mark: dark ink on the amber wash regardless of theme, so
+     the label stays legible even when the surrounding text is light. */
+  background-color: var(--editor-highlight);
+  color: #1c1f26;
   &:hover {
-    background-color: rgb(254 240 138 / 0.8);
+    background-color: color-mix(in srgb, var(--editor-highlight), transparent 20%);
   }
 `;
 

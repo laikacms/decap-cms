@@ -250,7 +250,7 @@ export const utilityStyles = css`
     color: var(--accent-foreground);
   }
   .text-gray-500 {
-    color: #6b7280;
+    color: var(--muted-foreground);
   }
   .hover\:bg-accent:hover {
     background-color: var(--accent);

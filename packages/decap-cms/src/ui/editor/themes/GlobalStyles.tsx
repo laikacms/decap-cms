@@ -35,28 +35,64 @@ const globalStyles = css`
     --input: #e2e8f0;
     --ring: #0f172a;
     --radius: 0.5rem;
+
+    /*
+     * Editor content colours: link, inline highlight, and the prism
+     * syntax-highlight tokens. Kept as variables so the dark block can
+     * retune them for contrast on the near-black surface instead of leaving
+     * the light hues (which go muddy and low-contrast in dark mode).
+     */
+    --editor-link: #2563eb;
+    --editor-highlight: #fef08a;
+    --editor-syntax-comment: slategray;
+    --editor-syntax-punctuation: #999999;
+    --editor-syntax-property: #990055;
+    --editor-syntax-selector: #669900;
+    --editor-syntax-operator: #9a6e3a;
+    --editor-syntax-attr: #0077aa;
+    --editor-syntax-variable: #ee9900;
+    --editor-syntax-function: #dd4a68;
+    --editor-syntax-keyword: #581c87;
   }
 
+  /*
+   * Dark tokens aligned with the laika dark palette (see laikaThemes.ts) so
+   * the editor surface matches the rest of the shell rather than shadcn
+   * near-black defaults. Activated by the dark class that LaikaThemeProvider
+   * toggles on the document element.
+   */
   .dark {
-    --background: #020817;
-    --foreground: #f8fafc;
-    --card: #020817;
-    --card-foreground: #f8fafc;
-    --popover: #020817;
-    --popover-foreground: #f8fafc;
-    --primary: #f8fafc;
-    --primary-foreground: #0f172a;
-    --secondary: #1e293b;
-    --secondary-foreground: #f8fafc;
-    --muted: #1e293b;
-    --muted-foreground: #94a3b8;
-    --accent: #1e293b;
-    --accent-foreground: #f8fafc;
-    --destructive: #7f1d1d;
-    --destructive-foreground: #f8fafc;
-    --border: #1e293b;
-    --input: #1e293b;
-    --ring: #cbd5e1;
+    --background: #11141a;
+    --foreground: #c8ced8;
+    --card: #1c1f26;
+    --card-foreground: #c8ced8;
+    --popover: #1c1f26;
+    --popover-foreground: #c8ced8;
+    --primary: #f3f4f6;
+    --primary-foreground: #11141a;
+    --secondary: #1c1f26;
+    --secondary-foreground: #f3f4f6;
+    --muted: #1c1f26;
+    --muted-foreground: #9aa3b2;
+    --accent: #1d2a4a;
+    --accent-foreground: #f3f4f6;
+    --destructive: #ff8a8a;
+    --destructive-foreground: #11141a;
+    --border: #2a2f3a;
+    --input: #2a2f3a;
+    --ring: #6ea1ff;
+
+    --editor-link: #6ea1ff;
+    --editor-highlight: #fef08a;
+    --editor-syntax-comment: #7d8799;
+    --editor-syntax-punctuation: #a9b2c3;
+    --editor-syntax-property: #e78bc9;
+    --editor-syntax-selector: #9bdc7c;
+    --editor-syntax-operator: #d4a373;
+    --editor-syntax-attr: #6ea1ff;
+    --editor-syntax-variable: #f0c674;
+    --editor-syntax-function: #ff8a8a;
+    --editor-syntax-keyword: #cda1ff;
   }
 
   .EditorTheme__code {
@@ -68,7 +104,7 @@ const globalStyles = css`
     font-size: 13px;
     margin: 8px 0;
     overflow-x: auto;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border);
     position: relative;
     border-radius: 8px;
     tab-size: 2;
@@ -77,11 +113,11 @@ const globalStyles = css`
     content: attr(data-gutter);
     position: absolute;
     background-color: transparent;
-    border-right: 1px solid #ccc;
+    border-right: 1px solid var(--border);
     left: 0;
     top: 0;
     padding: 8px;
-    color: #777;
+    color: var(--muted-foreground);
     white-space: pre-wrap;
     text-align: right;
     min-width: 25px;
@@ -96,33 +132,33 @@ const globalStyles = css`
     margin: 0 0 30px 0;
   }
   .EditorTheme__tokenComment {
-    color: slategray;
+    color: var(--editor-syntax-comment);
   }
   .EditorTheme__tokenPunctuation {
-    color: #999;
+    color: var(--editor-syntax-punctuation);
   }
   .EditorTheme__tokenProperty {
-    color: #905;
+    color: var(--editor-syntax-property);
   }
   .EditorTheme__tokenSelector {
-    color: #690;
+    color: var(--editor-syntax-selector);
   }
   .EditorTheme__tokenOperator {
-    color: #9a6e3a;
+    color: var(--editor-syntax-operator);
   }
   .EditorTheme__tokenAttr {
-    color: #07a;
+    color: var(--editor-syntax-attr);
   }
   .EditorTheme__tokenVariable {
-    color: #e90;
+    color: var(--editor-syntax-variable);
   }
   .EditorTheme__tokenFunction {
-    color: #dd4a68;
+    color: var(--editor-syntax-function);
   }
 
   .Collapsible__container {
     background-color: var(--background);
-    border: 1px solid #ccc;
+    border: 1px solid var(--border);
     border-radius: 0.5rem;
     margin-bottom: 0.5rem;
   }

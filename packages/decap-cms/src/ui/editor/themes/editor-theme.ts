@@ -202,7 +202,7 @@ export const editorThemeStyles = css`
     font-style: italic;
   }
   .EditorTheme__link {
-    color: #2563eb;
+    color: var(--editor-link);
     &:hover {
       text-decoration: underline;
       cursor: pointer;
@@ -239,7 +239,7 @@ export const editorThemeStyles = css`
     &::after {
       content: '';
       cursor: pointer;
-      border-color: #fff;
+      border-color: var(--primary-foreground);
       border-style: solid;
       position: absolute;
       display: block;
@@ -320,8 +320,8 @@ export const editorThemeStyles = css`
     list-style-type: disc !important;
   }
   .EditorTheme__hashtag {
-    color: #2563eb;
-    background-color: #dbeafe;
+    color: var(--editor-link);
+    background-color: color-mix(in srgb, var(--editor-link), transparent 82%);
     border-radius: 0.375rem;
     padding: 0 0.25rem;
   }
@@ -329,7 +329,7 @@ export const editorThemeStyles = css`
     font-weight: 700;
   }
   .EditorTheme__textCode {
-    background-color: #f3f4f6;
+    background-color: var(--muted);
     padding: 0.25rem;
     border-radius: 0.375rem;
   }
@@ -366,7 +366,7 @@ export const editorThemeStyles = css`
     cursor: default;
   }
   .EditorTheme__keyword {
-    color: #581c87;
+    color: var(--editor-syntax-keyword);
     font-weight: 700;
   }
   .EditorTheme__characterLimit {
