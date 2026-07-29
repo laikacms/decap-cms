@@ -126,7 +126,10 @@ class CollectionSearch extends React.Component {
     const { collections } = this.props;
     const { selectedCollectionIdx } = this.state;
     this.setState({
-      selectedCollectionIdx: Math.min(selectedCollectionIdx + 1, Object.keys(collections).length - 1),
+      selectedCollectionIdx: Math.min(
+        selectedCollectionIdx + 1,
+        Object.keys(collections).length - 1,
+      ),
     });
   }
 
