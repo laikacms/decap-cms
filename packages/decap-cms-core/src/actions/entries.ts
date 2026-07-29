@@ -100,7 +100,7 @@ export function entryLoading(collection: Collection, slug: string) {
   return {
     type: ENTRY_REQUEST,
     payload: {
-      collection: collection.get('name'),
+      collection: collection.name,
       slug,
     },
   };
@@ -110,7 +110,7 @@ export function entryLoaded(collection: Collection, entry: EntryValue) {
   return {
     type: ENTRY_SUCCESS,
     payload: {
-      collection: collection.get('name'),
+      collection: collection.name,
       entry,
     },
   };
@@ -121,7 +121,7 @@ export function entryLoadError(error: Error, collection: Collection, slug: strin
     type: ENTRY_FAILURE,
     payload: {
       error,
-      collection: collection.get('name'),
+      collection: collection.name,
       slug,
     },
   };
@@ -131,7 +131,7 @@ export function entriesLoading(collection: Collection) {
   return {
     type: ENTRIES_REQUEST,
     payload: {
-      collection: collection.get('name'),
+      collection: collection.name,
     },
   };
 }
@@ -146,7 +146,7 @@ export function entriesLoaded(
   return {
     type: ENTRIES_SUCCESS,
     payload: {
-      collection: collection.get('name'),
+      collection: collection.name,
       entries,
       page: pagination,
       cursor: Cursor.create(cursor),
@@ -160,13 +160,13 @@ export function entriesFailed(collection: Collection, error: Error) {
     type: ENTRIES_FAILURE,
     error: 'Failed to load entries',
     payload: error.toString(),
-    meta: { collection: collection.get('name') },
+    meta: { collection: collection.name },
   };
 }
 
 export async function getAllEntries(state: State, collection: Collection) {
   const backend = currentBackend(state.config);
-  const integration = selectIntegration(state, collection.get('name'), 'listEntries');
+  const integration = selectIntegration(state, collection.name, 'listEntries');
   const provider: Backend = integration
     ? getIntegrationProvider(state.integrations, backend.getToken, integration)
     : backend;
@@ -182,11 +182,11 @@ export function sortByField(
   return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
     const state = getState();
     // if we're already fetching we update the sort key, but skip loading entries
-    const isFetching = selectIsFetching(state.entries, collection.get('name'));
+    const isFetching = selectIsFetching(state.entries, collection.name);
     dispatch({
       type: SORT_ENTRIES_REQUEST,
       payload: {
-        collection: collection.get('name'),
+        collection: collection.name,
         key,
         direction,
       },
@@ -200,7 +200,7 @@ export function sortByField(
       dispatch({
         type: SORT_ENTRIES_SUCCESS,
         payload: {
-          collection: collection.get('name'),
+          collection: collection.name,
           key,
           direction,
           entries,
@@ -210,7 +210,7 @@ export function sortByField(
       dispatch({
         type: SORT_ENTRIES_FAILURE,
         payload: {
-          collection: collection.get('name'),
+          collection: collection.name,
           key,
           direction,
           error,
@@ -224,11 +224,11 @@ export function filterByField(collection: Collection, filter: ViewFilter) {
   return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
     const state = getState();
     // if we're already fetching we update the filter key, but skip loading entries
-    const isFetching = selectIsFetching(state.entries, collection.get('name'));
+    const isFetching = selectIsFetching(state.entries, collection.name);
     dispatch({
       type: FILTER_ENTRIES_REQUEST,
       payload: {
-        collection: collection.get('name'),
+        collection: collection.name,
         filter,
       },
     });
@@ -241,7 +241,7 @@ export function filterByField(collection: Collection, filter: ViewFilter) {
       dispatch({
         type: FILTER_ENTRIES_SUCCESS,
         payload: {
-          collection: collection.get('name'),
+          collection: collection.name,
           filter,
           entries,
         },
@@ -250,7 +250,7 @@ export function filterByField(collection: Collection, filter: ViewFilter) {
       dispatch({
         type: FILTER_ENTRIES_FAILURE,
         payload: {
-          collection: collection.get('name'),
+          collection: collection.name,
           filter,
           error,
         },
@@ -262,11 +262,11 @@ export function filterByField(collection: Collection, filter: ViewFilter) {
 export function groupByField(collection: Collection, group: ViewGroup) {
   return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
     const state = getState();
-    const isFetching = selectIsFetching(state.entries, collection.get('name'));
+    const isFetching = selectIsFetching(state.entries, collection.name);
     dispatch({
       type: GROUP_ENTRIES_REQUEST,
       payload: {
-        collection: collection.get('name'),
+        collection: collection.name,
         group,
       },
     });
@@ -279,7 +279,7 @@ export function groupByField(collection: Collection, group: ViewGroup) {
       dispatch({
         type: GROUP_ENTRIES_SUCCESS,
         payload: {
-          collection: collection.get('name'),
+          collection: collection.name,
           group,
           entries,
         },
@@ -288,7 +288,7 @@ export function groupByField(collection: Collection, group: ViewGroup) {
       dispatch({
         type: GROUP_ENTRIES_FAILURE,
         payload: {
-          collection: collection.get('name'),
+          collection: collection.name,
           group,
           error,
         },
@@ -310,7 +310,7 @@ export function entryPersisting(collection: Collection, entry: EntryMap) {
   return {
     type: ENTRY_PERSIST_REQUEST,
     payload: {
-      collectionName: collection.get('name'),
+      collectionName: collection.name,
       entrySlug: entry.get('slug'),
     },
   };
@@ -320,7 +320,7 @@ export function entryPersisted(collection: Collection, entry: EntryMap, slug: st
   return {
     type: ENTRY_PERSIST_SUCCESS,
     payload: {
-      collectionName: collection.get('name'),
+      collectionName: collection.name,
       entrySlug: entry.get('slug'),
 
       /**
@@ -336,7 +336,7 @@ export function entryPersistFail(collection: Collection, entry: EntryMap, error:
     type: ENTRY_PERSIST_FAILURE,
     error: 'Failed to persist entry',
     payload: {
-      collectionName: collection.get('name'),
+      collectionName: collection.name,
       entrySlug: entry.get('slug'),
       error: error.toString(),
     },
@@ -347,7 +347,7 @@ export function entryDeleting(collection: Collection, slug: string) {
   return {
     type: ENTRY_DELETE_REQUEST,
     payload: {
-      collectionName: collection.get('name'),
+      collectionName: collection.name,
       entrySlug: slug,
     },
   };
@@ -357,7 +357,7 @@ export function entryDeleted(collection: Collection, slug: string) {
   return {
     type: ENTRY_DELETE_SUCCESS,
     payload: {
-      collectionName: collection.get('name'),
+      collectionName: collection.name,
       entrySlug: slug,
     },
   };
@@ -367,7 +367,7 @@ export function entryDeleteFail(collection: Collection, slug: string, error: Err
   return {
     type: ENTRY_DELETE_FAILURE,
     payload: {
-      collectionName: collection.get('name'),
+      collectionName: collection.name,
       entrySlug: slug,
       error: error.toString(),
     },
@@ -581,7 +581,7 @@ export function withDefaultsBackfilled(collection: Collection, entry: EntryValue
   // that pass a partial/malformed collection (e.g. missing config) have no
   // safe way to resolve fields, so leave the entry as loaded rather than
   // throwing and failing the whole load.
-  if (!collection.get('type')) {
+  if (!collection.type) {
     return entry;
   }
 
@@ -613,11 +613,11 @@ function addAppendActionsToCursor(cursor: Cursor) {
 
 export function loadEntries(collection: Collection, page = 0) {
   return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
-    if (collection.get('isFetching')) {
+    if (collection.isFetching) {
       return;
     }
     const state = getState();
-    const sortFields = selectEntriesSortFields(state.entries, collection.get('name'));
+    const sortFields = selectEntriesSortFields(state.entries, collection.name);
 
     // If user has already set a sort, use it
     if (sortFields && sortFields.length > 0) {
@@ -634,7 +634,7 @@ export function loadEntries(collection: Collection, page = 0) {
     }
 
     const backend = currentBackend(state.config);
-    const integration = selectIntegration(state, collection.get('name'), 'listEntries');
+    const integration = selectIntegration(state, collection.name, 'listEntries');
     const provider = integration
       ? getIntegrationProvider(state.integrations, backend.getToken, integration)
       : backend;
@@ -642,7 +642,7 @@ export function loadEntries(collection: Collection, page = 0) {
     dispatch(entriesLoading(collection));
 
     try {
-      const loadAllEntries = collection.has('nested') || hasI18n(collection);
+      const loadAllEntries = collection.nested !== undefined || hasI18n(collection);
 
       let response: {
         cursor: Cursor;
@@ -706,7 +706,7 @@ function traverseCursor(backend: Backend, cursor: Cursor, action: string) {
 export function traverseCollectionCursor(collection: Collection, action: string) {
   return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
     const state = getState();
-    const collectionName = collection.get('name');
+    const collectionName = collection.name;
     if (state.entries.getIn(['pages', `${collectionName}`, 'isFetching'])) {
       return;
     }
@@ -714,7 +714,7 @@ export function traverseCollectionCursor(collection: Collection, action: string)
 
     const { action: realAction, append } =
       action in appendActions ? appendActions[action] : { action, append: false };
-    const cursor = selectCollectionEntriesCursor(state.cursors, collection.get('name'));
+    const cursor = selectCollectionEntriesCursor(state.cursors, collection.name);
 
     // Handle cursors representing pages in the old, integer-based
     // pagination API
@@ -794,7 +794,7 @@ export function createEmptyDraft(collection: Collection, search: string) {
       });
     });
 
-    const fields = collection.get('fields', List());
+    const fields = collection.fields ?? List();
 
     const dataFields = getDataFields(fields);
     const data = createEmptyDraftData(dataFields);
@@ -805,13 +805,13 @@ export function createEmptyDraft(collection: Collection, search: string) {
     const state = getState();
     const backend = currentBackend(state.config);
 
-    if (!collection.has('media_folder')) {
+    if (collection.media_folder === undefined) {
       await waitForMediaLibraryToLoad(dispatch, getState());
     }
 
     const i18nFields = createEmptyDraftI18nData(collection, dataFields);
 
-    let newEntry = createEntry(collection.get('name'), '', '', {
+    let newEntry = createEntry(collection.name, '', '', {
       data,
       i18n: i18nFields,
       mediaFiles: [],
@@ -966,7 +966,7 @@ export function persistEntry(collection: Collection) {
     const state = getState();
     const entryDraft = state.entryDraft;
     const fieldsErrors = entryDraft.get('fieldsErrors');
-    const usedSlugs = selectPublishedSlugs(state, collection.get('name'));
+    const usedSlugs = selectPublishedSlugs(state, collection.name);
 
     // Early return if draft contains validation errors
     if (!fieldsErrors.isEmpty()) {
@@ -1022,12 +1022,12 @@ export function persistEntry(collection: Collection) {
           await dispatch(loadMedia());
         }
         dispatch(entryPersisted(collection, serializedEntry, newSlug));
-        if (collection.has('nested')) {
+        if (collection.nested !== undefined) {
           await dispatch(loadEntries(collection));
         }
         if (entry.get('slug') !== newSlug) {
           await dispatch(loadEntry(collection, newSlug));
-          navigateToEntry(collection.get('name'), newSlug);
+          navigateToEntry(collection.name, newSlug);
         }
       })
       .catch((error: Error) => {
@@ -1059,10 +1059,10 @@ export function createQuickCreateEntryData(
   collection: Collection,
   data: Record<string, unknown>,
 ): EntryValue {
-  const fields = collection.get('fields', List());
+  const fields = collection.fields ?? List();
   const dataFields = getDataFields(fields);
   const defaultData = createEmptyDraftData(dataFields);
-  return createEntry(collection.get('name'), '', '', {
+  return createEntry(collection.name, '', '', {
     data: { ...defaultData, ...data } as Record<string, unknown>,
   });
 }
@@ -1091,7 +1091,7 @@ export function persistQuickCreateEntry(collection: Collection, data: Record<str
 
     const rawEntry = fromJS(entryValue).set('newRecord', true) as unknown as Entry;
     const serializedEntry = getSerializedEntry(collection, rawEntry);
-    const usedSlugs = selectPublishedSlugs(state, collection.get('name'));
+    const usedSlugs = selectPublishedSlugs(state, collection.name);
     const syntheticDraft = Map({
       entry: serializedEntry,
       fieldsErrors: Map(),
@@ -1179,7 +1179,7 @@ export function validateMetaField(
 
     const customPath = selectCustomPath(collection, fromJS({ entry: { meta: { path: value } } }));
     const existingEntry = customPath
-      ? selectEntryByPath(state.entries, collection.get('name'), customPath)
+      ? selectEntryByPath(state.entries, collection.name, customPath)
       : undefined;
 
     const existingEntryPath = existingEntry?.get('path');

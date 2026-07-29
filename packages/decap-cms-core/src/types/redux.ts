@@ -732,9 +732,9 @@ type CollectionObject = {
   i18n: i18n;
 };
 
-export type Collection = StaticallyTypedRecord<CollectionObject>;
+export type Collection = CollectionObject;
 
-export type Collections = StaticallyTypedRecord<{ [path: string]: Collection & CollectionObject }>;
+export type Collections = { [path: string]: Collection };
 
 export interface MediaLibraryInstance {
   show: (args: {

@@ -1,6 +1,5 @@
 import { Map, List, fromJS } from 'immutable';
 import { v4 as uuid } from 'uuid';
-import get from 'lodash/get';
 import { join, basename } from 'path';
 
 import { sanitizeSlug } from '../lib/urlHelper';
@@ -260,11 +259,11 @@ export function selectCustomPath(collection, entryDraft) {
   }
 
   const extension = selectFolderEntryExtension(collection);
-  const indexFile = get(collection.toJS(), ['meta', 'path', 'index_file']);
+  const indexFile = collection.meta?.get('path')?.get('index_file');
 
   // If index_file is specified, use the old behavior for backward compatibility
   if (indexFile) {
-    const customPath = join(collection.get('folder'), path, `${indexFile}.${extension}`);
+    const customPath = join(collection.folder, path, `${indexFile}.${extension}`);
     return customPath;
   }
 
@@ -284,7 +283,7 @@ export function selectCustomPath(collection, entryDraft) {
     filename = currentFilename;
   }
 
-  const customPath = join(collection.get('folder'), path, `${filename}.${extension}`);
+  const customPath = join(collection.folder, path, `${filename}.${extension}`);
   return customPath;
 }
 

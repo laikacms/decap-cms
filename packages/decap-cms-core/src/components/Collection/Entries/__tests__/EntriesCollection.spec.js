@@ -19,7 +19,7 @@ function createMockStore(collection, entriesArray, additionalState = {}) {
     entries: toEntriesState(collection, entriesArray),
     cursors: fromJS({}),
     config: fromJS({ publish_mode: 'simple' }),
-    collections: fromJS({ [collection.get('name')]: collection }),
+    collections: { [collection.name]: collection },
     editorialWorkflow: fromJS({
       pages: { ids: [] },
     }),
@@ -38,11 +38,11 @@ function renderWithRedux(component, { store } = {}) {
 function toEntriesState(collection, entriesArray) {
   const entries = entriesArray.reduce(
     (acc, entry) => {
-      acc.entities[`${collection.get('name')}.${entry.slug}`] = entry;
-      acc.pages[collection.get('name')].ids.push(entry.slug);
+      acc.entities[`${collection.name}.${entry.slug}`] = entry;
+      acc.pages[collection.name].ids.push(entry.slug);
       return acc;
     },
-    { pages: { [collection.get('name')]: { ids: [] } }, entities: {} },
+    { pages: { [collection.name]: { ids: [] } }, entities: {} },
   );
   return fromJS(entries);
 }
@@ -78,7 +78,7 @@ describe('filterNestedEntries', () => {
 });
 
 describe('EntriesCollection', () => {
-  const collection = fromJS({ name: 'pages', label: 'Pages', folder: 'src/pages' });
+  const collection = fromJS({ name: 'pages', label: 'Pages', folder: 'src/pages' }).toObject();
   const props = {
     t: jest.fn(),
     loadEntries: jest.fn(),
@@ -87,7 +87,7 @@ describe('EntriesCollection', () => {
     isFetching: false,
     cursor: {},
     collection,
-    collections: fromJS({ pages: collection }),
+    collections: { pages: collection },
     entriesLoaded: true,
     unpublishedEntriesLoaded: true,
     isEditorialWorkflowEnabled: false,
@@ -131,7 +131,7 @@ describe('EntriesCollection', () => {
 
     const { asFragment } = renderWithRedux(
       <ConnectedEntriesCollection
-        collection={collection.set('nested', fromJS({ depth: 10, subfolders: false }))}
+        collection={{ ...collection, nested: fromJS({ depth: 10, subfolders: false }) }}
       />,
       { store },
     );
@@ -152,7 +152,7 @@ describe('EntriesCollection', () => {
 
     const { asFragment } = renderWithRedux(
       <ConnectedEntriesCollection
-        collection={collection.set('nested', fromJS({ depth: 10, subfolders: false }))}
+        collection={{ ...collection, nested: fromJS({ depth: 10, subfolders: false }) }}
         filterTerm="dir3/dir4"
       />,
       { store },

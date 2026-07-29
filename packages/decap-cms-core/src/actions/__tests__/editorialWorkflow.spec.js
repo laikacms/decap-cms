@@ -33,9 +33,9 @@ describe('editorialWorkflow actions', () => {
 
       const store = mockStore({
         config: fromJS({}),
-        collections: fromJS({
+        collections: {
           posts: { name: 'posts' },
-        }),
+        },
         mediaLibrary: fromJS({
           isLoading: false,
         }),
@@ -48,7 +48,7 @@ describe('editorialWorkflow actions', () => {
       createAssetProxy.mockResolvedValue(assetProxy);
 
       const slug = 'slug';
-      const collection = store.getState().collections.get('posts');
+      const collection = store.getState().collections.posts;
 
       return store.dispatch(actions.loadUnpublishedEntry(collection, slug)).then(() => {
         const actions = store.getActions();
@@ -95,9 +95,9 @@ describe('editorialWorkflow actions', () => {
         mediaLibrary: fromJS({
           isLoading: false,
         }),
-        collections: fromJS({
+        collections: {
           posts: { name: 'posts' },
-        }),
+        },
       });
 
       currentBackend.mockReturnValue(backend);
@@ -176,9 +176,9 @@ describe('editorialWorkflow actions', () => {
 
       const store = mockStore({
         config: fromJS({}),
-        collections: fromJS({
+        collections: {
           posts: { name: 'posts' },
-        }),
+        },
       });
 
       currentBackend.mockReturnValue(backend);
@@ -302,7 +302,7 @@ describe('editorialWorkflow actions', () => {
         config: fromJS({}),
         integrations: {},
         mediaLibrary: fromJS({ isLoading: false }),
-        collections: fromJS({ posts: { name: 'posts' } }),
+        collections: { posts: { name: 'posts' } },
         editorialWorkflow: fromJS({
           entities: {
             'posts.due-post': {
