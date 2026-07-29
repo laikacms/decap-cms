@@ -9,6 +9,8 @@ jest.mock('decap-cms-widget-object', () => {
 
   class MockObjectControl extends React.Component {
     render() {
+      global.__mockObjectControlProps = global.__mockObjectControlProps || {};
+      global.__mockObjectControlProps[this.props['data-testid']] = this.props;
       return <mock-object-control {...this.props}>{this.props.children}</mock-object-control>;
     }
   }
@@ -845,5 +847,38 @@ describe('ListControl', () => {
 
       expect(getByText('2 boxes')).toBeInTheDocument();
     });
+  });
+
+  it('should forward isFieldDuplicate, isFieldHidden and locale to nested item object controls', () => {
+    const field = fromJS({
+      name: 'list',
+      label: 'List',
+      i18n: 'duplicate',
+      field: {
+        name: 'object',
+        widget: 'object',
+        label: 'Object',
+        fields: [{ name: 'title', widget: 'string', label: 'Title' }],
+      },
+    });
+    const isFieldDuplicate = jest.fn();
+    const isFieldHidden = jest.fn();
+
+    const { getByTestId } = render(
+      <ListControl
+        {...props}
+        field={field}
+        value={fromJS([{ object: { title: 'item 1' } }])}
+        isFieldDuplicate={isFieldDuplicate}
+        isFieldHidden={isFieldHidden}
+        locale="de"
+      />,
+    );
+
+    const objectControl = getByTestId('object-control-0');
+    expect(objectControl).toHaveAttribute('locale', 'de');
+    const capturedProps = global.__mockObjectControlProps['object-control-0'];
+    expect(capturedProps.isFieldDuplicate).toBe(isFieldDuplicate);
+    expect(capturedProps.isFieldHidden).toBe(isFieldHidden);
   });
 });

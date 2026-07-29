@@ -201,6 +201,9 @@ export default class ListControl extends React.Component {
     fieldsErrors: ImmutablePropTypes.map.isRequired,
     entry: ImmutablePropTypes.map.isRequired,
     t: PropTypes.func,
+    isFieldDuplicate: PropTypes.func,
+    isFieldHidden: PropTypes.func,
+    locale: PropTypes.string,
   };
 
   static defaultProps = {
@@ -645,6 +648,9 @@ export default class ListControl extends React.Component {
       parentIds,
       forID,
       t,
+      isFieldDuplicate,
+      isFieldHidden,
+      locale,
     } = this.props;
 
     const { itemsCollapsed, keys } = this.state;
@@ -716,6 +722,9 @@ export default class ListControl extends React.Component {
               data-testid={`object-control-${key}`}
               hasError={hasError}
               parentIds={[...parentIds, forID, key]}
+              isFieldDuplicate={isFieldDuplicate}
+              isFieldHidden={isFieldHidden}
+              locale={locale}
             />
           )}
         </ClassNames>
