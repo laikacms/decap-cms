@@ -705,7 +705,7 @@ export class Backend {
     if (unpublishedEntry) return unpublishedEntry;
 
     const publishedEntry = await this.implementation
-      .getEntry(path)
+      .getEntry(path, useWorkflow)
       .then(({ data }) => data)
       .catch(() => {
         return Promise.resolve(false);

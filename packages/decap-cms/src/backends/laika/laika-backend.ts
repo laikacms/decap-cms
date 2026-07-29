@@ -973,7 +973,14 @@ export default function createLaikaBackend(
       return entries;
     }
 
-    async getEntry(path: string): Promise<ImplementationEntry> {
+    // `useWorkflow` defaults to `true` so every existing call site (entriesByFiles,
+    // EditorControl, actions/entries.tsx, ...) keeps probing both published and
+    // unpublished storage, since those callers don't know the entry's actual
+    // publish state up front. Only `Backend.entryExist` (core/backend.tsx) passes
+    // the collection's real editorial-workflow flag, so it can skip the
+    // `getUnpublished` probe for non-workflow collections, where an unpublished
+    // record can never exist (DCMS-1663).
+    async getEntry(path: string, useWorkflow = true): Promise<ImplementationEntry> {
       const key = normalizeKey(path);
 
       // Use getOrFetch for request deduplication
@@ -996,18 +1003,20 @@ export default function createLaikaBackend(
           failedResults.push(result.failure);
         }
 
-        const unpublishedResult = await firstResult(repo.getUnpublished(key));
+        if (useWorkflow) {
+          const unpublishedResult = await firstResult(repo.getUnpublished(key));
 
-        if (Result.isSuccess(unpublishedResult)) {
-          return {
-            file: {
-              path: unpublishedResult.success.key,
-              id: recordVersion(unpublishedResult.success) ?? unpublishedResult.success.key,
-            },
-            data: contentToRawString(unpublishedResult.success.content),
-          };
-        } else {
-          failedResults.push(unpublishedResult.failure);
+          if (Result.isSuccess(unpublishedResult)) {
+            return {
+              file: {
+                path: unpublishedResult.success.key,
+                id: recordVersion(unpublishedResult.success) ?? unpublishedResult.success.key,
+              },
+              data: contentToRawString(unpublishedResult.success.content),
+            };
+          } else {
+            failedResults.push(unpublishedResult.failure);
+          }
         }
 
         const errors = failedResults.map(fr => `Code: ${fr.code}, Message: ${fr.message}`).join('; ');
