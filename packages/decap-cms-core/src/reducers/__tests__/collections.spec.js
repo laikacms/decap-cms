@@ -640,6 +640,45 @@ describe('collections', () => {
     });
   });
 
+  describe("selectInferredField(collection, 'title')", () => {
+    it('should not call consoleError for a files-collection with no title synonym field', () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+
+      const collection = fromJS({
+        name: 'settings',
+        type: FILES,
+        fields: [
+          { name: 'site_title', widget: 'markdown' },
+          { name: 'posts', widget: 'list' },
+          { name: 'authors', widget: 'list' },
+        ],
+      }).toObject();
+
+      expect(selectInferredField(collection, 'title')).toBeNull();
+      expect(consoleErrorSpy).not.toHaveBeenCalled();
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should still call consoleError for a folder-collection with no title synonym field', () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+
+      const collection = fromJS({
+        name: 'posts',
+        type: FOLDER,
+        fields: [
+          { name: 'site_title', widget: 'markdown' },
+          { name: 'authors', widget: 'list' },
+        ],
+      }).toObject();
+
+      expect(selectInferredField(collection, 'title')).toBeNull();
+      expect(consoleErrorSpy).toHaveBeenCalled();
+
+      consoleErrorSpy.mockRestore();
+    });
+  });
+
   describe('selectIdentifier', () => {
     it('should return the identifier_field if set and present', () => {
       const collection = fromJS({
