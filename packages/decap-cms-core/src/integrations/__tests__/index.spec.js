@@ -1,47 +1,45 @@
-import { fromJS } from 'immutable';
-
 import { resolveIntegrations } from '../index';
 import Algolia from '../providers/algolia/implementation';
 import AssetStore from '../providers/assetStore/implementation';
 
 describe('integrations', () => {
   describe('resolveIntegrations', () => {
-    it('returns a Map with an algolia entry when configured', () => {
-      const integrationsConfig = fromJS({
+    it('returns an object with an algolia entry when configured', () => {
+      const integrationsConfig = {
         providers: {
           algolia: { applicationID: 'app-id', apiKey: 'api-key' },
         },
-      });
+      };
 
       const integrations = resolveIntegrations(integrationsConfig, jest.fn());
 
-      expect(integrations.get('algolia')).toBeInstanceOf(Algolia);
+      expect(integrations.algolia).toBeInstanceOf(Algolia);
     });
 
-    it('returns a Map with an assetStore entry when configured', () => {
-      const integrationsConfig = fromJS({
+    it('returns an object with an assetStore entry when configured', () => {
+      const integrationsConfig = {
         providers: {
           assetStore: { getSignedFormURL: 'https://example.com/sign' },
         },
-      });
+      };
       const getToken = jest.fn();
 
       const integrations = resolveIntegrations(integrationsConfig, getToken);
 
-      expect(integrations.get('assetStore')).toBeInstanceOf(AssetStore);
+      expect(integrations.assetStore).toBeInstanceOf(AssetStore);
     });
 
     it('does not add an entry for an unrecognized provider name', () => {
-      const integrationsConfig = fromJS({
+      const integrationsConfig = {
         providers: {
           unknownProvider: { foo: 'bar' },
         },
-      });
+      };
 
       const integrations = resolveIntegrations(integrationsConfig, jest.fn());
 
-      expect(integrations.has('unknownProvider')).toBe(false);
-      expect(integrations.isEmpty()).toBe(true);
+      expect(integrations.unknownProvider).toBeUndefined();
+      expect(Object.keys(integrations)).toHaveLength(0);
     });
   });
 
@@ -61,21 +59,21 @@ describe('integrations', () => {
         IsolatedAlgolia = require('../providers/algolia/implementation').default;
       });
 
-      const firstConfig = fromJS({
+      const firstConfig = {
         providers: {
           algolia: { applicationID: 'app-id', apiKey: 'api-key' },
         },
-      });
+      };
       const firstGetToken = jest.fn();
 
       const firstResult = freshGetIntegrationProvider(firstConfig, firstGetToken, 'algolia');
       expect(firstResult).toBeInstanceOf(IsolatedAlgolia);
 
-      const secondConfig = fromJS({
+      const secondConfig = {
         providers: {
           assetStore: { getSignedFormURL: 'https://example.com/sign' },
         },
-      });
+      };
       const secondGetToken = jest.fn();
 
       const secondResult = freshGetIntegrationProvider(secondConfig, secondGetToken, 'algolia');

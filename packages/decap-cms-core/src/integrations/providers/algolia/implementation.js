@@ -16,14 +16,14 @@ function getSlug(path) {
 export default class Algolia {
   constructor(config) {
     this.config = config;
-    if (config.get('applicationID') == null || config.get('apiKey') == null) {
+    if (config.applicationID == null || config.apiKey == null) {
       throw 'The Algolia search integration needs the credentials (applicationID and apiKey) in the integration configuration.';
     }
 
-    this.applicationID = config.get('applicationID');
-    this.apiKey = config.get('apiKey');
+    this.applicationID = config.applicationID;
+    this.apiKey = config.apiKey;
 
-    const prefix = config.get('indexPrefix');
+    const prefix = config.indexPrefix;
     this.indexPrefix = prefix ? `${prefix}-` : '';
 
     this.searchURL = `https://${this.applicationID}-dsn.algolia.net/1`;

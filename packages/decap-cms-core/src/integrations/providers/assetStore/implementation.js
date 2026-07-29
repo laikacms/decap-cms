@@ -9,13 +9,13 @@ const { fetchWithTimeout: fetch } = unsentRequest;
 export default class AssetStore {
   constructor(config, getToken) {
     this.config = config;
-    if (config.get('getSignedFormURL') == null) {
+    if (config.getSignedFormURL == null) {
       throw 'The AssetStore integration needs the getSignedFormURL in the integration configuration.';
     }
     this.getToken = getToken;
 
-    this.shouldConfirmUpload = config.get('shouldConfirmUpload', false);
-    this.getSignedFormURL = trimEnd(config.get('getSignedFormURL'), '/');
+    this.shouldConfirmUpload = config.shouldConfirmUpload ?? false;
+    this.getSignedFormURL = trimEnd(config.getSignedFormURL, '/');
   }
 
   parseJsonResponse(response) {

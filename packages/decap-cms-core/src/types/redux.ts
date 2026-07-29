@@ -783,9 +783,10 @@ export type MediaLibrary = StaticallyTypedRecord<{
 
 export type Hook = string | boolean;
 
-export type Integrations = StaticallyTypedRecord<{
+export type Integrations = {
+  providers: Record<string, {}>;
   hooks: { [collectionOrHook: string]: string | Record<string, string> };
-}>;
+};
 
 export interface Cursors {
   cursorsByType: {

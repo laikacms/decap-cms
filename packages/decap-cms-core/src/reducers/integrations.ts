@@ -1,18 +1,11 @@
-import { fromJS } from 'immutable';
-
 import { CONFIG_SUCCESS } from '../actions/config';
 
 import type { ConfigAction } from '../actions/config';
 import type { Integrations, CmsConfig } from '../types/redux';
 
-interface Acc {
-  providers: Record<string, {}>;
-  hooks: Record<string, string | Record<string, string>>;
-}
-
-export function getIntegrations(config: CmsConfig) {
+export function getIntegrations(config: CmsConfig): Integrations {
   const integrations = config.integrations || [];
-  const newState = integrations.reduce(
+  return integrations.reduce(
     (acc, integration) => {
       const { hooks, collections, provider, ...providerData } = integration;
       acc.providers[provider] = { ...providerData };
@@ -33,14 +26,13 @@ export function getIntegrations(config: CmsConfig) {
       });
       return acc;
     },
-    { providers: {}, hooks: {} } as Acc,
+    { providers: {}, hooks: {} } as Integrations,
   );
-  return fromJS(newState);
 }
 
-const defaultState = fromJS({ providers: {}, hooks: {} });
+const defaultState: Integrations = { providers: {}, hooks: {} };
 
-function integrations(state = defaultState, action: ConfigAction): Integrations | null {
+function integrations(state = defaultState, action: ConfigAction): Integrations {
   switch (action.type) {
     case CONFIG_SUCCESS: {
       return getIntegrations(action.payload);
@@ -55,17 +47,17 @@ export function selectIntegration(
   collection: string | null,
   hook: string,
 ): string | false {
-  const hooks = state.get('hooks');
+  const hooks = state?.hooks;
   if (!hooks) return false;
   if (collection) {
-    const collectionHooks = (hooks as unknown as { get(key: string): unknown }).get(collection);
+    const collectionHooks = hooks[collection];
     if (collectionHooks && typeof collectionHooks === 'object') {
-      const value = (collectionHooks as { get(key: string): unknown }).get(hook);
+      const value = collectionHooks[hook];
       return typeof value === 'string' ? value : false;
     }
     return false;
   }
-  const value = (hooks as unknown as { get(key: string): unknown }).get(hook);
+  const value = hooks[hook];
   return typeof value === 'string' ? value : false;
 }
 
