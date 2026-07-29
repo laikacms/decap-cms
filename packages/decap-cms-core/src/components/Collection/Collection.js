@@ -48,8 +48,8 @@ export class Collection extends React.Component {
     collectionName: PropTypes.string,
     isSearchResults: PropTypes.bool,
     isSingleSearchResult: PropTypes.bool,
-    collection: ImmutablePropTypes.map.isRequired,
-    collections: ImmutablePropTypes.map.isRequired,
+    collection: PropTypes.object.isRequired,
+    collections: PropTypes.object.isRequired,
     sortableFields: PropTypes.array,
     sort: ImmutablePropTypes.orderedMap,
     onSortClick: PropTypes.func.isRequired,
@@ -71,7 +71,11 @@ export class Collection extends React.Component {
     const { searchTerm, collections, collection, isSingleSearchResult } = this.props;
     return (
       <EntriesSearch
-        collections={isSingleSearchResult ? collections.filter(c => c === collection) : collections}
+        collections={
+          isSingleSearchResult
+            ? Object.fromEntries(Object.entries(collections).filter(([, c]) => c === collection))
+            : collections
+        }
         searchTerm={searchTerm}
       />
     );
@@ -101,7 +105,7 @@ export class Collection extends React.Component {
       viewStyle,
     } = this.props;
 
-    let newEntryUrl = collection.get('create') ? getNewEntryUrl(collectionName) : '';
+    let newEntryUrl = collection.create ? getNewEntryUrl(collectionName) : '';
     if (newEntryUrl && filterTerm) {
       newEntryUrl = getNewEntryUrl(collectionName);
       if (filterTerm) {
@@ -125,7 +129,7 @@ export class Collection extends React.Component {
           {isSearchResults ? (
             <SearchResultContainer>
               <SearchResultHeading>
-                {t(searchResultKey, { searchTerm, collection: collection.get('label') })}
+                {t(searchResultKey, { searchTerm, collection: collection.label })}
               </SearchResultHeading>
             </SearchResultContainer>
           ) : (
@@ -159,13 +163,13 @@ function mapStateToProps(state, ownProps) {
   const isSearchEnabled = state.config && state.config.search != false;
   const { isSearchResults, match, t } = ownProps;
   const { name, searchTerm = '', filterTerm = '' } = match.params;
-  const collection = name ? collections.get(name) : collections.first();
-  const sort = selectEntriesSort(state.entries, collection.get('name'));
+  const collection = name ? collections[name] : Object.values(collections)[0];
+  const sort = selectEntriesSort(state.entries, collection.name);
   const sortableFields = selectSortableFields(collection, t);
   const viewFilters = selectViewFilters(collection);
   const viewGroups = selectViewGroups(collection);
-  const filter = selectEntriesFilter(state.entries, collection.get('name'));
-  const group = selectEntriesGroup(state.entries, collection.get('name'));
+  const filter = selectEntriesFilter(state.entries, collection.name);
+  const group = selectEntriesGroup(state.entries, collection.name);
   const viewStyle = selectViewStyle(state.entries);
 
   return {

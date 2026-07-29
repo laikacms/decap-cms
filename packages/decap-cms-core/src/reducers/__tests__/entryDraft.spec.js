@@ -330,9 +330,9 @@ describe('entryDraft reducer', () => {
     beforeEach(() => {
       jest.resetModules();
       selectHasMetaPath = jest.fn(
-        collection => collection.has('meta') && collection.get('meta').has('path'),
+        collection => collection.meta !== undefined && collection.meta.has('path'),
       );
-      selectFolderEntryExtension = jest.fn(collection => collection.get('extension') || 'md');
+      selectFolderEntryExtension = jest.fn(collection => collection.extension || 'md');
 
       jest.doMock('../collections', () => ({
         selectHasMetaPath,
@@ -352,7 +352,7 @@ describe('entryDraft reducer', () => {
         folder: '_pages',
         extension: 'md',
         meta: { path: { label: 'Path', widget: 'string' } },
-      });
+      }).toObject();
       const entryDraft = fromJS({
         entry: {
           newRecord: true,
@@ -370,7 +370,7 @@ describe('entryDraft reducer', () => {
         folder: '_pages',
         extension: 'md',
         meta: { path: { label: 'Path', widget: 'string' } },
-      });
+      }).toObject();
       const entryDraft = fromJS({
         entry: {
           newRecord: false,
@@ -389,7 +389,7 @@ describe('entryDraft reducer', () => {
         folder: '_pages',
         extension: 'md',
         meta: { path: { label: 'Path', widget: 'string', index_file: 'index' } },
-      });
+      }).toObject();
       const entryDraft = fromJS({
         entry: {
           newRecord: true,
@@ -407,7 +407,7 @@ describe('entryDraft reducer', () => {
         folder: '_pages',
         extension: 'md',
         meta: { path: { label: 'Path', widget: 'string' } },
-      });
+      }).toObject();
       const entryDraft = fromJS({
         entry: {
           newRecord: true,
@@ -425,7 +425,7 @@ describe('entryDraft reducer', () => {
         folder: '_pages',
         extension: 'md',
         meta: { path: { label: 'Path', widget: 'string' } },
-      });
+      }).toObject();
       const entryDraft = fromJS({
         entry: {
           newRecord: true,

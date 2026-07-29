@@ -244,9 +244,7 @@ describe('Backend', () => {
 
       const backend = new Backend(implementation, { config: {}, backendName: 'github' });
 
-      const collection = Map({
-        name: 'posts',
-      });
+      const collection = { name: 'posts' };
       const slug = 'slug';
 
       localForage.getItem.mockReturnValue();
@@ -264,9 +262,7 @@ describe('Backend', () => {
       };
       const backend = new Backend(implementation, { config: {}, backendName: 'github' });
 
-      const collection = Map({
-        name: 'posts',
-      });
+      const collection = { name: 'posts' };
       const slug = 'slug';
 
       localForage.getItem.mockReturnValue({ raw: '' });
@@ -285,9 +281,7 @@ describe('Backend', () => {
 
       const backend = new Backend(implementation, { config: {}, backendName: 'github' });
 
-      const collection = Map({
-        name: 'posts',
-      });
+      const collection = { name: 'posts' };
       const slug = 'slug';
 
       localForage.getItem.mockReturnValue({
@@ -325,9 +319,7 @@ describe('Backend', () => {
 
       const backend = new Backend(implementation, { config: {}, backendName: 'github' });
 
-      const collection = Map({
-        name: 'posts',
-      });
+      const collection = { name: 'posts' };
       const slug = 'slug';
 
       localForage.getItem.mockReturnValue({
@@ -366,9 +358,7 @@ describe('Backend', () => {
 
       const backend = new Backend(implementation, { config: {}, backendName: 'github' });
 
-      const collection = Map({
-        name: 'posts',
-      });
+      const collection = { name: 'posts' };
       const slug = 'slug';
 
       localForage.getItem.mockReturnValue({
@@ -418,9 +408,7 @@ describe('Backend', () => {
 
       backend.entryToRaw = jest.fn().mockReturnValue('');
 
-      const collection = Map({
-        name: 'posts',
-      });
+      const collection = { name: 'posts' };
 
       const slug = 'slug';
 
@@ -444,9 +432,7 @@ describe('Backend', () => {
 
       backend.entryToRaw = jest.fn().mockReturnValue('content');
 
-      const collection = Map({
-        name: 'posts',
-      });
+      const collection = { name: 'posts' };
 
       const slug = 'slug';
 
@@ -482,9 +468,7 @@ describe('Backend', () => {
           commit_messages: 'commit-messages',
         },
       };
-      const collection = Map({
-        name: 'posts',
-      });
+      const collection = { name: 'posts' };
       const entry = Map({
         data: 'old_data',
       });
@@ -518,9 +502,7 @@ describe('Backend', () => {
           commit_messages: 'commit-messages',
         },
       };
-      const collection = Map({
-        name: 'posts',
-      });
+      const collection = { name: 'posts' };
       const entry = Map({
         data: Map({}),
       });
@@ -655,7 +637,7 @@ describe('Backend', () => {
         name: 'posts',
         folder: 'src/posts',
         fields: [],
-      });
+      }).toObject();
 
       const state = {
         config,
@@ -710,7 +692,7 @@ describe('Backend', () => {
         folder: 'posts',
         slug: '{{slug}}',
         path: 'sub_dir/{{slug}}',
-      });
+      }).toObject();
 
       const entry = Map({
         title: 'some post title',
@@ -747,7 +729,7 @@ describe('Backend', () => {
         folder: 'posts',
         slug: '{{slug}}',
         path: 'sub_dir/{{slug}}',
-      });
+      }).toObject();
 
       const entry = Map({
         title: 'some post title',
@@ -788,7 +770,7 @@ describe('Backend', () => {
         folder: 'posts',
         slug: '{{slug}}',
         path: 'sub_dir/{{slug}}',
-      });
+      }).toObject();
 
       const entry = Map({
         title: 'some post title',
@@ -823,7 +805,7 @@ describe('Backend', () => {
             fields: [{ name: 'title' }],
           },
         ],
-      });
+      }).toObject();
 
       const backend = new Backend(implementation, { config: {}, backendName: 'github' });
 
@@ -849,7 +831,7 @@ describe('Backend', () => {
         folder: 'faq',
         extension: 'md',
         fields: [{ name: 'title' }],
-      });
+      }).toObject();
 
       const backend = new Backend(implementation, { config: {}, backendName: 'github' });
 
@@ -898,7 +880,7 @@ describe('Backend', () => {
           { name: 'description', widget: 'string' },
           { name: 'nested', widget: 'object', fields: { name: 'title', widget: 'string' } },
         ],
-      }),
+      }).toObject(),
       fromJS({
         name: 'pages',
         folder: 'pages',
@@ -909,7 +891,7 @@ describe('Backend', () => {
           { name: 'description', widget: 'string' },
           { name: 'nested', widget: 'object', fields: { name: 'title', widget: 'string' } },
         ],
-      }),
+      }).toObject(),
     ];
 
     const posts = [
@@ -967,13 +949,13 @@ describe('Backend', () => {
     beforeEach(() => {
       backend = new Backend(implementation, { config: {}, backendName: 'github' });
       backend.listAllEntries = jest.fn(collection => {
-        if (collection.get('name') === 'posts') {
+        if (collection.name === 'posts') {
           return Promise.resolve(posts);
         }
-        if (collection.get('name') === 'pages') {
+        if (collection.name === 'pages') {
           return Promise.resolve(pages);
         }
-        if (collection.get('name') === 'files') {
+        if (collection.name === 'files') {
           return Promise.resolve(files);
         }
         return Promise.resolve([]);
@@ -1006,7 +988,7 @@ describe('Backend', () => {
 
     it('should search collections by summary description', async () => {
       const results = await backend.search(
-        collections.map(c => c.set('summary', '{{description}}')),
+        collections.map(c => ({ ...c, summary: '{{description}}' })),
         'find me by description',
       );
 
@@ -1030,7 +1012,7 @@ describe('Backend', () => {
             },
           ],
           type: FILES,
-        }),
+        }).toObject(),
       ];
 
       expect(await backend.search(collections, 'find me by author')).toEqual({
@@ -1103,15 +1085,16 @@ describe('Backend', () => {
     });
 
     it('should use the collection `search_fields` config over the inferred fields', () => {
-      const collection = collections[0].set('search_fields', fromJS(['description']));
+      const collection = { ...collections[0], search_fields: fromJS(['description']) };
 
       expect(getDefaultSearchFields(collection)).toEqual(['description']);
     });
 
     it('should search collections using the configured `search_fields` instead of inference', async () => {
-      const searchableCollections = collections.map(c =>
-        c.set('search_fields', fromJS(['description'])),
-      );
+      const searchableCollections = collections.map(c => ({
+        ...c,
+        search_fields: fromJS(['description']),
+      }));
 
       const byInferredField = await backend.search(searchableCollections, 'find me by title');
       expect(byInferredField).toEqual({ entries: [] });
@@ -1388,7 +1371,7 @@ describe('Backend', () => {
       const config = {
         backend: { commit_messages: {} },
       };
-      const collection = Map({
+      const collection = {
         name: 'pages',
         type: FOLDER,
         folder: '_pages',
@@ -1396,7 +1379,7 @@ describe('Backend', () => {
         fields: List([Map({ name: 'title', widget: 'string' })]),
         nested: Map({ depth: 10, subfolders: true }),
         meta: Map({ path: Map({ label: 'Path', widget: 'string' }) }),
-      });
+      };
       const entryDraft = Map({
         entry: Map({
           data: Map({ title: 'Test' }),
@@ -1438,7 +1421,7 @@ describe('Backend', () => {
       const config = {
         backend: { commit_messages: {} },
       };
-      const collection = Map({
+      const collection = {
         name: 'pages',
         type: FOLDER,
         folder: '_pages',
@@ -1446,7 +1429,7 @@ describe('Backend', () => {
         fields: List([Map({ name: 'title', widget: 'string' })]),
         nested: Map({ depth: 10, subfolders: false }),
         meta: Map({ path: Map({ label: 'Path', widget: 'string' }) }),
-      });
+      };
       const entryDraft = Map({
         entry: Map({
           data: Map({ title: 'Test' }),
@@ -1488,7 +1471,7 @@ describe('Backend', () => {
       const config = {
         backend: { commit_messages: {} },
       };
-      const collection = Map({
+      const collection = {
         name: 'pages',
         type: FOLDER,
         folder: '_pages',
@@ -1496,7 +1479,7 @@ describe('Backend', () => {
         fields: List([Map({ name: 'title', widget: 'string' })]),
         nested: Map({ depth: 10 }),
         meta: Map({ path: Map({ label: 'Path', widget: 'string' }) }),
-      });
+      };
       const entryDraft = Map({
         entry: Map({
           data: Map({ title: 'Test' }),
@@ -1543,7 +1526,7 @@ describe('Backend', () => {
       const config = {
         backend: { commit_messages: {} },
       };
-      const collection = Map({
+      const collection = {
         name: 'pages',
         type: FOLDER,
         folder: '_pages',
@@ -1551,7 +1534,7 @@ describe('Backend', () => {
         fields: List([Map({ name: 'title', widget: 'string' })]),
         nested: Map({ depth: 10, subfolders: true }),
         meta: Map({ path: Map({ label: 'Path', widget: 'string', index_file: '_index' }) }),
-      });
+      };
       // Existing entry at `_pages/section/_index.md`, being moved to `_pages/renamed/_index.md`.
       // A child entry lives at `_pages/section/child/_index.md` and is not part of this draft.
       const entryDraft = Map({
@@ -1593,7 +1576,7 @@ describe('Backend', () => {
 
   describe('slugFromCustomPath', () => {
     function makeCollection(folder) {
-      return Map({ folder });
+      return { folder };
     }
 
     it('strips folder prefix and .md extension to produce slug', () => {

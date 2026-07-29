@@ -71,7 +71,7 @@ function getNodeTitle(node, collection) {
   // Backward compatibility: when `nested.subfolders` is true(default) or undefined,
   // directory nodes should use the title of their index entry.
   // Otherwise, use the folder name already stored in `node.title`.
-  const subfolders = collection.getIn(['nested', 'subfolders']) !== false;
+  const subfolders = collection.nested?.get('subfolders') !== false;
   if (!node.isRoot && node.isDir && subfolders) {
     const indexChild = node.children.find(child => !child.isDir);
     if (indexChild && indexChild.title) {
@@ -83,10 +83,10 @@ function getNodeTitle(node, collection) {
 
 function TreeNode(props) {
   const { collection, treeData, depth = 0, onToggle } = props;
-  const collectionName = collection.get('name');
+  const collectionName = collection.name;
 
   const sortedData = sortBy(treeData, node => getNodeTitle(node, collection));
-  const subfolders = collection.get('nested')?.get('subfolders') !== false;
+  const subfolders = collection.nested?.get('subfolders') !== false;
   return sortedData.map(node => {
     const leaf =
       depth > 0 &&
@@ -138,7 +138,7 @@ function TreeNode(props) {
 }
 
 TreeNode.propTypes = {
-  collection: ImmutablePropTypes.map.isRequired,
+  collection: PropTypes.object.isRequired,
   depth: PropTypes.number,
   treeData: PropTypes.array.isRequired,
   onToggle: PropTypes.func.isRequired,
@@ -156,7 +156,7 @@ export function walk(treeData, callback) {
 }
 
 export function getTreeData(collection, entries) {
-  const collectionFolder = collection.get('folder');
+  const collectionFolder = collection.folder;
   const rootFolder = '/';
   const entriesObj = entries
     .toJS()
@@ -172,15 +172,16 @@ export function getTreeData(collection, entries) {
     return acc;
   }, {});
 
-  if (collection.getIn(['nested', 'summary'])) {
-    collection = collection.set('summary', collection.getIn(['nested', 'summary']));
+  if (collection.nested?.get('summary')) {
+    collection = { ...collection, summary: collection.nested.get('summary') };
   } else {
-    collection = collection.delete('summary');
+    collection = { ...collection };
+    delete collection.summary;
   }
 
   const flatData = [
     {
-      title: collection.get('label'),
+      title: collection.label,
       path: rootFolder,
       isDir: true,
       isRoot: true,
@@ -257,7 +258,7 @@ export function updateNode(treeData, node, callback) {
 
 export class NestedCollection extends React.Component {
   static propTypes = {
-    collection: ImmutablePropTypes.map.isRequired,
+    collection: PropTypes.object.isRequired,
     entries: ImmutablePropTypes.list.isRequired,
     filterTerm: PropTypes.string,
   };

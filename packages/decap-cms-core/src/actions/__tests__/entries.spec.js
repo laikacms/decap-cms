@@ -43,7 +43,7 @@ describe('entries', () => {
 
       const collection = fromJS({
         fields: [{ name: 'title' }],
-      });
+      }).toObject();
 
       return store.dispatch(createEmptyDraft(collection, '')).then(() => {
         const actions = store.getActions();
@@ -76,7 +76,7 @@ describe('entries', () => {
 
       const collection = fromJS({
         fields: [{ name: 'title' }, { name: 'boolean' }],
-      });
+      }).toObject();
 
       return store.dispatch(createEmptyDraft(collection, '?title=title&boolean=True')).then(() => {
         const actions = store.getActions();
@@ -109,7 +109,7 @@ describe('entries', () => {
 
       const collection = fromJS({
         fields: [{ name: 'post', multiple: true }],
-      });
+      }).toObject();
 
       return store
         .dispatch(createEmptyDraft(collection, '?post=2026-05-07-test&post=2026-05-08-test'))
@@ -144,7 +144,7 @@ describe('entries', () => {
 
       const collection = fromJS({
         fields: [{ name: 'tags', multiple: true }],
-      });
+      }).toObject();
 
       return store.dispatch(createEmptyDraft(collection, '?tags=a,b,c')).then(() => {
         const actions = store.getActions();
@@ -158,7 +158,7 @@ describe('entries', () => {
 
       const collection = fromJS({
         fields: [{ name: 'title' }],
-      });
+      }).toObject();
 
       return store
         .dispatch(createEmptyDraft(collection, "?title=<script>alert('hello')</script>"))
@@ -193,7 +193,7 @@ describe('entries', () => {
 
       const collection = fromJS({
         fields: [{ name: 'title' }],
-      });
+      }).toObject();
 
       const value = `O'Brien's "quoted" <tag> & more`;
 
@@ -459,7 +459,7 @@ describe('entries', () => {
           { name: 'title', widget: 'string' },
           { name: 'draft', widget: 'boolean', default: false },
         ],
-      });
+      }).toObject();
       const entry = { slug: 'legacy-post', data: { title: 'A legacy post' } };
 
       const result = withDefaultsBackfilled(collection, entry);
@@ -473,7 +473,7 @@ describe('entries', () => {
         type: FOLDER,
         folder: '_posts',
         fields: [{ name: 'draft', widget: 'boolean', default: false }],
-      });
+      }).toObject();
       const entry = { slug: 'a-post', data: { draft: true } };
 
       const result = withDefaultsBackfilled(collection, entry);
@@ -594,7 +594,10 @@ describe('entries', () => {
         mediaLibrary: fromJS({ files: [] }),
       });
 
-      const collection = fromJS({ name: 'posts', fields: [{ name: 'title', required: true }] });
+      const collection = fromJS({
+        name: 'posts',
+        fields: [{ name: 'title', required: true }],
+      }).toObject();
 
       return expect(store.dispatch(persistEntry(collection))).rejects.toEqual(
         new Error('Entry has validation errors'),
@@ -625,7 +628,7 @@ describe('entries', () => {
         type: FOLDER,
         folder: 'posts',
         fields: [{ name: 'title' }],
-      });
+      }).toObject();
 
       return expect(store.dispatch(persistEntry(collection))).rejects.toBe(persistError);
     });
@@ -636,7 +639,7 @@ describe('entries', () => {
       const collection = fromJS({
         name: 'posts',
         fields: [{ name: 'title' }, { name: 'draft', widget: 'boolean', default: false }],
-      });
+      }).toObject();
 
       const entry = createQuickCreateEntryData(collection, { title: 'Quick post' });
 
@@ -647,7 +650,7 @@ describe('entries', () => {
       const collection = fromJS({
         name: 'posts',
         fields: [{ name: 'draft', widget: 'boolean', default: false }],
-      });
+      }).toObject();
 
       const entry = createQuickCreateEntryData(collection, { draft: true });
 
@@ -681,7 +684,7 @@ describe('entries', () => {
         folder: 'pages',
         create: false,
         fields: [{ name: 'title' }],
-      });
+      }).toObject();
 
       return expect(store.dispatch(persistQuickCreateEntry(collection, { title: 'x' })))
         .rejects.toEqual(new Error('Not allowed to create new entries in this collection'))
@@ -712,7 +715,7 @@ describe('entries', () => {
         folder: 'posts',
         create: true,
         fields: [{ name: 'title' }, { name: 'slug' }],
-      });
+      }).toObject();
 
       const result = await store.dispatch(
         persistQuickCreateEntry(collection, { title: 'Quick post', slug: 'quick-post' }),
@@ -759,7 +762,7 @@ describe('entries', () => {
         folder: 'posts',
         create: true,
         fields: [{ name: 'title' }],
-      });
+      }).toObject();
 
       await store.dispatch(persistQuickCreateEntry(collection, { title: 'Quick post' }));
 
@@ -790,7 +793,7 @@ describe('entries', () => {
         folder: 'posts',
         create: true,
         fields: [{ name: 'title' }],
-      });
+      }).toObject();
 
       return expect(
         store.dispatch(persistQuickCreateEntry(collection, { title: 'Quick post' })),
@@ -813,7 +816,7 @@ describe('entries', () => {
       folder: 'folder',
       type: FOLDER,
       name: 'name',
-    });
+    }).toObject();
     const t = jest.fn((key, args) => ({ key, args }));
 
     const { selectCustomPath } = require('../../reducers/entryDraft');
@@ -916,7 +919,7 @@ describe('entries', () => {
       expect(selectEntryByPath).toHaveBeenCalledTimes(1);
       expect(selectEntryByPath).toHaveBeenCalledWith(
         state.entries,
-        collection.get('name'),
+        collection.name,
         'existing-path',
       );
     });
