@@ -72,7 +72,11 @@ test.describe('Laika editor route - app top-nav suppression', () => {
     await page.getByRole('button', { name: 'Save', exact: true }).click();
     await expect(page.getByText('Changes saved')).toBeVisible();
 
-    const breadcrumbCollectionLink = page.locator('a[href="#/collections/posts"]');
+    // Scope to the breadcrumb's "Posts" text link, not `a[href="#/collections/posts"]`
+    // generally — the toolbar's "Back" arrow (`aria-label="Back"`) points at
+    // the same href, so that broader selector resolves to two elements and
+    // trips Playwright's strict-mode check.
+    const breadcrumbCollectionLink = page.getByRole('link', { name: 'Posts', exact: true });
     await expect(breadcrumbCollectionLink).toBeVisible();
 
     // A single click must land on the link and navigate — not get
