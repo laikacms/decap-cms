@@ -476,6 +476,8 @@ declare module 'decap-cms-core' {
     encoding?: CmsSlugEncoding;
     clean_accents?: boolean;
     sanitize_replacement?: string;
+    /** Maximum length (in characters) of a generated slug segment. Defaults to 100, hard-capped at 255. */
+    max_length?: number;
   }
 
   export interface CmsLocalBackend {
