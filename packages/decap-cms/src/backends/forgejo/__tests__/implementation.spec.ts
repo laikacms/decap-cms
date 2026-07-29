@@ -46,6 +46,13 @@ describe('forgejo backend implementation', () => {
       const implementation = new ForgejoImplementation(config);
       expect(implementation.branch).toEqual('main');
     });
+
+    it('defaults apiRoot to codeberg.org when proxied and api_root is unset', () => {
+      const implementation = new ForgejoImplementation({ backend: { repo: 'owner/repo' } }, {
+        proxied: true,
+      });
+      expect(implementation.apiRoot).toEqual('https://codeberg.org/api/v1');
+    });
   });
 
   describe('persistMedia', () => {
