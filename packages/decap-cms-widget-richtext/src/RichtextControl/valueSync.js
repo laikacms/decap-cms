@@ -33,12 +33,42 @@ export function shouldEmitChange(nextValue, currentValue) {
 // call for this editor instance is on the stack, any further call is
 // swallowed unconditionally, regardless of whether its value differs from
 // `lastEmittedValue`.
+//
+// DCMS-1661: the DCMS-583 guard above only covers calls literally nested
+// on `onEmit`'s own call stack. A rapid (0ms inter-keystroke) burst of
+// >=60 chars produces a tight run of onChange calls that are NOT nested in
+// each other - each keystroke's onChange arrives *after* the previous
+// call's `onEmit` has already returned (so `isEmitting` was already reset
+// back to `false` synchronously in the `finally` block), while Plate/Slate
+// is still settling the previous keystroke's normalization/commit. Because
+// each of those calls carries a genuinely different serialized value, the
+// DCMS-337 equality check alone waves every one of them through, and each
+// one's `onEmit` (the parent onChange -> redux round trip) widens the
+// window further, until React trips error #185. Short bursts (<60 chars)
+// stay under whatever timing threshold makes this observable, which is why
+// this slipped past the DCMS-583 fix's re-entrancy tests.
+//
+// The fix: keep the "swallow while emitting" behaviour, but don't reopen
+// the gate the instant `onEmit` returns - defer reopening it to a
+// microtask. Any call that arrives before that microtask runs (whether
+// nested inside `onEmit` or merely arriving moments later in the same
+// burst) is coalesced into a single pending value instead of being run
+// synchronously or dropped outright, and exactly one follow-up emit is
+// flushed once the microtask fires. This bounds the number of synchronous,
+// same-tick emits this guard can ever produce to one per microtask tick,
+// regardless of how many onChange calls land in between - structurally
+// preventing the update-depth cascade - while still converging on the
+// final, fully-typed value (unlike silently dropping it).
 export function createChangeGuard(initialValue) {
   let lastEmittedValue = initialValue ?? '';
   let isEmitting = false;
+  let hasPending = false;
+  let pendingValue;
 
-  return function guardChange(nextValue, onEmit) {
+  function guardChange(nextValue, onEmit) {
     if (isEmitting) {
+      hasPending = true;
+      pendingValue = nextValue;
       return false;
     }
     if (!shouldEmitChange(nextValue, lastEmittedValue)) {
@@ -49,8 +79,18 @@ export function createChangeGuard(initialValue) {
     try {
       onEmit(nextValue);
     } finally {
-      isEmitting = false;
+      queueMicrotask(() => {
+        isEmitting = false;
+        if (hasPending) {
+          const next = pendingValue;
+          hasPending = false;
+          pendingValue = undefined;
+          guardChange(next, onEmit);
+        }
+      });
     }
     return true;
-  };
+  }
+
+  return guardChange;
 }
