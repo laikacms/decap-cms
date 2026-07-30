@@ -6,6 +6,7 @@ import trim from 'lodash/trim';
 import sortBy from 'lodash/sortBy';
 import get from 'lodash/get';
 import set from 'lodash/set';
+import omit from 'lodash/omit';
 import { List, fromJS, Set } from 'immutable';
 import * as fuzzy from 'fuzzy';
 import {
@@ -222,8 +223,7 @@ export function mergeExpandedEntries(entries: (EntryValue & { field: string })[]
 
   const merged = entries.reduce((acc, e) => {
     if (!acc[e.slug]) {
-      const { field: _field, ...rest } = e;
-      acc[e.slug] = rest;
+      acc[e.slug] = omit(e, ['field']);
       arrayPaths[e.slug] = Set();
     }
 

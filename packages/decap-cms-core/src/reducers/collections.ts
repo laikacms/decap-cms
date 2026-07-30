@@ -1,6 +1,7 @@
 import { List, Set, fromJS } from 'immutable';
 import get from 'lodash/get';
 import escapeRegExp from 'lodash/escapeRegExp';
+import omit from 'lodash/omit';
 import { stringTemplate } from 'decap-cms-lib-widgets';
 
 import consoleError from '../lib/consoleError';
@@ -178,8 +179,7 @@ export function selectMediaFolders(config: CmsConfig, collection: Collection, en
   }
   if ('media_folder' in collection) {
     // stop evaluating media folders at collection level
-    const { files: _files, ...withoutFiles } = collection;
-    collection = withoutFiles as Collection;
+    collection = omit(collection, ['files']) as Collection;
     folders.unshift(selectMediaFolder(config, collection, entry, undefined));
   }
 
