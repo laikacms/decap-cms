@@ -51,8 +51,8 @@ export function BlockComponent({
   // plugin folds them into the current undo entry) and `BLOCK_HISTORY_MERGE_TAG`
   // (a marker `Editor.tsx`'s `OnChangePlugin` handler checks for). Untagged
   // `HISTORY_MERGE_TAG` updates — e.g. `LexicalComposer`'s initial-state
-  // hydration, `AutoCompletePlugin`'s ghost suggestion — are still hidden
-  // from persist; ours, marked, are not, so the persist path keeps seeing
+  // hydration — are still hidden from persist; ours, marked, are not, so
+  // the persist path keeps seeing
   // every prop edit regardless of undo grouping.
   const lastHistoryEditRef = useRef<LastHistoryEdit | null>(null);
 

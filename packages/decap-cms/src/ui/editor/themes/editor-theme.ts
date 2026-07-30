@@ -114,7 +114,6 @@ export const editorTheme: EditorThemeClasses = {
   tableSelection: 'EditorTheme__tableSelection',
   layoutItem: 'EditorTheme__layoutItem',
   layoutContainer: 'EditorTheme__layoutContainer',
-  autocomplete: 'EditorTheme__autocomplete',
   blockCursor: '',
   embedBlock: {
     base: 'EditorTheme__embedBlockBase',
@@ -488,9 +487,6 @@ export const editorThemeStyles = css`
     display: grid;
     gap: 0.625rem;
     margin: 0.625rem 0;
-  }
-  .EditorTheme__autocomplete {
-    color: var(--muted-foreground);
   }
   .EditorTheme__embedBlockBase {
     user-select: none;

@@ -11,10 +11,10 @@ export const HISTORY_COALESCE_WINDOW_MS = 750;
  * Rides alongside Lexical's own `HISTORY_MERGE_TAG` on coalesced block edits
  * (`BlockComponent.updateData`). `OnChangePlugin`'s default
  * `ignoreHistoryMergeTagChange` filter can't distinguish *why* an update is
- * tagged `history-merge` — `LexicalComposer`'s initial-state hydration and
- * `AutoCompletePlugin`'s ghost-suggestion preview use the same tag to hide
- * from the persist path on purpose. `Editor.tsx` disables that blanket
- * filter and reimplements it, using this tag as the one exception: present
+ * tagged `history-merge` — `LexicalComposer`'s initial-state hydration uses
+ * the same tag to hide from the persist path on purpose. `Editor.tsx`
+ * disables that blanket filter and reimplements it, using this tag as the
+ * one exception: present
  * ⇒ still a real prop edit that must reach persist; absent ⇒ keep ignoring
  * history-merge updates as before.
  */
