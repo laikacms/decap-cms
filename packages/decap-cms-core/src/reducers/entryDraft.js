@@ -98,7 +98,7 @@ function entryDraftReducer(state = Map(), action) {
     }
     case DRAFT_CHANGE_FIELD: {
       return state.withMutations(state => {
-        const { field, value, metadata, entries, i18n } = action.payload;
+        const { field, value, metadata, i18n } = action.payload;
         const name = field.get('name');
         const meta = field.get('meta');
 
@@ -144,12 +144,26 @@ function entryDraftReducer(state = Map(), action) {
         // longer depends on every widget opting into the `fromDefault` tag.
         const isNoOpWrite = newData.equals(oldData ?? Map()) && newMeta.equals(oldMeta ?? Map());
 
+        // `hasChanged` used to be recomputed here by diffing `newData`
+        // against the `entries` baseline (the redux-selected
+        // published/unpublished entry) rather than against the draft
+        // itself. That baseline can lag a beat behind an
+        // ENTRY_PERSIST_SUCCESS/UNPUBLISHED_ENTRY_PERSIST_SUCCESS +
+        // reload-from-backend cycle for editorial-workflow entries: the
+        // reload dispatches DRAFT_CREATE_FROM_ENTRY (new `key`, remounting
+        // every widget) before the unpublished/published entry selectors
+        // catch up, so a widget's post-reload mount write that merely
+        // re-affirms the just-persisted value could be diffed against a
+        // stale pre-persist baseline and wrongly flip `hasChanged` back to
+        // `true` right after a successful save (DCMS-1727, a main-branch
+        // regression of the same class of bug DCMS-1363/#1364 fixed on
+        // v4.beta). `oldData`/`oldMeta` (the draft's own value the instant
+        // before this write) is always current, so once we already know
+        // this write isn't a no-op against it, that's sufficient on its own
+        // to call it a real change — no separate, potentially-stale
+        // baseline is needed.
         if (!fromDefault && !isNoOpWrite) {
-          state.set(
-            'hasChanged',
-            !entries.some(e => newData.equals(e.get(...dataPath) ?? Map())) ||
-              !entries.some(e => newMeta.equals(e.get('meta') ?? Map())),
-          );
+          state.set('hasChanged', true);
         }
       });
     }
