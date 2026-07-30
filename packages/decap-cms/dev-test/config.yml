@@ -11,7 +11,7 @@ backend:
 #      since `test-repo` shares its lock store via `localStorage`), then
 #      log in as `bob`.
 #   4. Open the SAME entry as `bob` — the `EntryLockBanner` ("Being edited
-#      by alice" + a "Take over" override button) should render.
+#      by alice" + an "Edit anyway" override button) should render.
 # Leaving the Login field blank on both tabs always signs in as the same
 # `test-user` identity and will never show a conflict, since there's only
 # one lock owner.
