@@ -483,3 +483,98 @@ describe('createChangeGuard (DCMS-1701: compound autoformat + block-transition n
     expect(guardChange('A brand new, unrelated edit.', () => {})).toBe(true);
   });
 });
+
+// DCMS-1717: React error #185 still fires (3x) on a plain-text ". "-heavy
+// burst (e.g. "abc. " x 12, typed 6 times back-to-back with 0ms inter-key
+// delay) that contains NONE of the DCMS-1701 ingredients (no **bold**,
+// no _italic_, no `- ` list transitions). The DCMS-1701 chain-depth cap only
+// ever counted a call as part of a replay chain if it arrived nested on
+// `onEmit`'s own stack, or while `isEmitting` was still `true` (i.e. within
+// the single macrotask-tick reopen window). Sentence/paragraph-close
+// normalization can re-fire `onChange` with a still-different value slightly
+// *later* than that - after the single-tick reopen has already flipped
+// `isEmitting` back to `false` - at which point VisualEditor's handleChange
+// calls `guardChange` with the default `isReplay = false`, indistinguishable
+// from a genuinely new, idle keystroke: `chainDepth` resets to 0 and the
+// non-converging value sails through, exactly the loop the cap was supposed
+// to bound.
+describe('createChangeGuard (DCMS-1717: plain-text period-burst replay arriving past a single-tick reopen)', () => {
+  async function flushMacrotasks(count) {
+    for (let i = 0; i < count; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise(resolve => setTimeout(resolve, 0));
+    }
+  }
+
+  it('bounds a non-converging chain whose re-notification lands one tick after the reopen fires', async () => {
+    const guardChange = createChangeGuard('');
+    const calls = [];
+
+    // Simulates the DCMS-1717 repro shape: a plain, period-heavy burst with
+    // no inline formatting or list markers. Each "settled" paragraph-close
+    // normalize pass produces a genuinely different value from the last
+    // (e.g. trailing whitespace/mark state flips), and - critically - each
+    // re-notification is scheduled two macrotask ticks out from the previous
+    // onEmit (`setTimeout(() => setTimeout(fn, 0), 0)`), landing *after* a
+    // single-tick reopen would already have gone idle, rather than nested on
+    // `onEmit`'s own stack or coalesced within a single tick the way the
+    // DCMS-1701 test simulates it.
+    const VALUES = ['abc. abc. abc. abc. ', 'abc. abc. abc. abc.  '];
+    const HARD_TEST_CUTOFF = 40; // only so a pre-fix run terminates at all
+
+    function onEmit(value) {
+      calls.push(value);
+      if (calls.length < HARD_TEST_CUTOFF) {
+        setTimeout(() => {
+          setTimeout(() => {
+            guardChange(VALUES[calls.length % VALUES.length], onEmit);
+          }, 0);
+        }, 0);
+      }
+    }
+
+    guardChange(VALUES[0], onEmit);
+
+    await flushMacrotasks(HARD_TEST_CUTOFF * 3 + 5);
+
+    // Pre-fix: a single-tick reopen has already gone idle by the time each
+    // two-tick-delayed re-notification lands, so every one of them looks
+    // like a fresh, idle call - chainDepth resets every time and nothing
+    // ever bounds the chain; it runs all the way to this test's artificial
+    // cutoff. The fix must cut the chain off itself, structurally, long
+    // before that.
+    expect(calls.length).toBeLessThan(10);
+  });
+
+  it('still emits a genuinely new edit after a delayed non-converging chain has been cut off', async () => {
+    const guardChange = createChangeGuard('');
+    const calls = [];
+    let loops = 0;
+
+    const VALUES = ['Value A', 'Value B'];
+
+    function onEmit(value) {
+      calls.push(value);
+      loops += 1;
+      if (loops < 40) {
+        setTimeout(() => {
+          setTimeout(() => {
+            guardChange(VALUES[loops % VALUES.length], onEmit);
+          }, 0);
+        }, 0);
+      }
+    }
+
+    guardChange(VALUES[0], onEmit);
+
+    await flushMacrotasks(130);
+
+    const emitsDuringOscillation = calls.length;
+    expect(emitsDuringOscillation).toBeLessThan(10);
+
+    // The guard must not be left permanently wedged after cutting off the
+    // delayed non-converging chain - a later, genuinely new edit must still
+    // make it through once the guard is idle again.
+    expect(guardChange('A brand new, unrelated edit.', () => {})).toBe(true);
+  });
+});
