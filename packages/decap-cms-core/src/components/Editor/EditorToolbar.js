@@ -314,6 +314,11 @@ export class EditorToolbar extends React.Component {
 
   componentDidUpdate(prevProps) {
     const { isNewEntry, isPersisting, loadDeployPreview } = this.props;
+    if (prevProps.isPersisting && !isPersisting) {
+      // Re-arm the Save button once the in-flight persist actually resolves
+      // (success or failure) so the next real click isn't swallowed.
+      this._persistInFlight = false;
+    }
     if (!isNewEntry && prevProps.isPersisting && !isPersisting) {
       // Abort any in-flight poll before starting a new one.
       this._pollController?.abort();
@@ -324,6 +329,22 @@ export class EditorToolbar extends React.Component {
       loadDeployPreview({ maxAttempts: 3, signal: this._pollController.signal });
     }
   }
+
+  // DCMS-1763: `isPersisting` only reaches this component on the *next*
+  // render after the persist action dispatches, so a rapid second click
+  // that lands before that render commits would still see the stale
+  // `disabled={false}` and fire a second `onPersist`, racing the widgets'
+  // pre-serialize state and triggering a spurious "field is required"
+  // validation error. `_persistInFlight` flips synchronously in the click
+  // handler itself, closing that window; the `disabled` prop below only
+  // keeps the button visually/accessibly in sync once the render catches up.
+  _persistInFlight = false;
+
+  triggerPersist = onPersist => {
+    if (this._persistInFlight) return;
+    this._persistInFlight = true;
+    onPersist();
+  };
 
   componentWillUnmount() {
     this._pollController?.abort();
@@ -626,9 +647,11 @@ export class EditorToolbar extends React.Component {
 
     return [
       <SaveButton
-        disabled={!hasChanged && !isNewEntry}
+        disabled={(!hasChanged && !isNewEntry) || isPersisting}
         key="save-button"
-        onClick={() => (hasChanged || isNewEntry) && onPersist()}
+        onClick={() =>
+          (hasChanged || isNewEntry) && !isPersisting && this.triggerPersist(onPersist)
+        }
       >
         {isPersisting ? t('editor.editorToolbar.saving') : t('editor.editorToolbar.save')}
       </SaveButton>,

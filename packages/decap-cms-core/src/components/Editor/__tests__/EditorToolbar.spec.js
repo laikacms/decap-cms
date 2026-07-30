@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { fromJS } from 'immutable';
 
 import { EditorToolbar } from '../EditorToolbar';
@@ -192,6 +192,51 @@ describe('EditorToolbar', () => {
       expect(firstSignal.aborted).toBe(true);
       const secondSignal = props.loadDeployPreview.mock.calls[1][0].signal;
       expect(secondSignal.aborted).toBe(false);
+    });
+  });
+
+  describe('DCMS-1763: disable Save while in-flight / double-click race', () => {
+    it('should disable the workflow Save button while isPersisting is true', () => {
+      render(<EditorToolbar {...props} hasWorkflow={true} hasChanged={true} isPersisting={true} />);
+      expect(screen.getByText('editor.editorToolbar.saving')).toBeDisabled();
+    });
+
+    it('should enable the workflow Save button once isPersisting resolves', () => {
+      render(<EditorToolbar {...props} hasWorkflow={true} hasChanged={true} isPersisting={false} />);
+      expect(screen.getByText('editor.editorToolbar.save')).not.toBeDisabled();
+    });
+
+    it('should call onPersist once for a single click', () => {
+      render(<EditorToolbar {...props} hasWorkflow={true} hasChanged={true} isPersisting={false} />);
+      fireEvent.click(screen.getByText('editor.editorToolbar.save'));
+      expect(props.onPersist).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not double-dispatch onPersist on a rapid double-click before isPersisting re-renders', () => {
+      const { container } = render(
+        <EditorToolbar {...props} hasWorkflow={true} hasChanged={true} isPersisting={false} />,
+      );
+      const saveButton = screen.getByText('editor.editorToolbar.save');
+      // Two clicks land back-to-back, before any prop update from the store
+      // (the button's `disabled` prop is still stale `false` for both).
+      fireEvent.click(saveButton);
+      fireEvent.click(saveButton);
+      expect(props.onPersist).toHaveBeenCalledTimes(1);
+      expect(container).toBeTruthy();
+    });
+
+    it('should re-arm the double-click guard once a completed persist resolves', () => {
+      const { rerender } = render(
+        <EditorToolbar {...props} hasWorkflow={true} hasChanged={true} isPersisting={false} />,
+      );
+      fireEvent.click(screen.getByText('editor.editorToolbar.save'));
+      expect(props.onPersist).toHaveBeenCalledTimes(1);
+
+      rerender(<EditorToolbar {...props} hasWorkflow={true} hasChanged={true} isPersisting={true} />);
+      rerender(<EditorToolbar {...props} hasWorkflow={true} hasChanged={true} isPersisting={false} />);
+
+      fireEvent.click(screen.getByText('editor.editorToolbar.save'));
+      expect(props.onPersist).toHaveBeenCalledTimes(2);
     });
   });
 });
