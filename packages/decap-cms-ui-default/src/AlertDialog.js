@@ -114,6 +114,25 @@ function restoreTriggerFocus(triggerElement) {
   }
 }
 
+/**
+ * Focusable elements within the dialog panel, used to keep `Tab`/`Shift+Tab`
+ * cycling inside the dialog instead of escaping into the app tree behind it
+ * (DCMS-1765 — the dialog previously had no focus trap, so keyboard users
+ * could tab straight past it into the editor fields underneath).
+ */
+function getFocusableElements(container) {
+  if (!container) return [];
+  const selector = [
+    'a[href]',
+    'button:not([disabled])',
+    'textarea:not([disabled])',
+    'input:not([disabled])',
+    'select:not([disabled])',
+    '[tabindex]:not([tabindex="-1"])',
+  ].join(',');
+  return Array.from(container.querySelectorAll(selector));
+}
+
 function DialogFrame({ titleId, descriptionId, onDismiss, children, initialFocusRef }) {
   const panelRef = React.useRef(null);
 
@@ -128,6 +147,30 @@ function DialogFrame({ titleId, descriptionId, onDismiss, children, initialFocus
     if (event.key === 'Escape') {
       event.stopPropagation();
       onDismiss();
+      return;
+    }
+
+    if (event.key === 'Tab') {
+      const focusable = getFocusableElements(panelRef.current);
+      if (focusable.length === 0) {
+        event.preventDefault();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+      const withinPanel = panelRef.current && panelRef.current.contains(active);
+
+      if (event.shiftKey) {
+        if (!withinPanel || active === first) {
+          event.preventDefault();
+          last.focus();
+        }
+      } else if (!withinPanel || active === last) {
+        event.preventDefault();
+        first.focus();
+      }
     }
   }
 
