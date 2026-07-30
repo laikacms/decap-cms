@@ -184,6 +184,80 @@ describe('entryDraft reducer', () => {
 
       expect(newState.get('hasChanged')).toBe(true);
     });
+
+    it('keeps hasChanged false for a post-persist-reload no-op write even with a stale entries baseline (DCMS-1727)', () => {
+      // Reproduces the editorial-workflow regression: after a successful
+      // persist, DRAFT_CREATE_FROM_ENTRY reloads the entry and remounts the
+      // form (new `key`), which can cause a widget to re-dispatch the value
+      // it was just handed as a mount-time write. `entries` (the
+      // redux-selected published/unpublished baseline used by the caller)
+      // can still be the stale pre-persist entry at that point, since it's
+      // populated by a separate selector than the one that just resolved
+      // the reload. The write itself is a no-op against what's already in
+      // the draft, so it must not flip `hasChanged` back to `true` even
+      // though it doesn't match the stale `entries` baseline.
+      const persistingState = initialState
+        .set(
+          'entry',
+          fromJS({ ...entry, data: { date: 'old-value' }, newRecord: false, isPersisting: true }),
+        )
+        .set('hasChanged', true);
+
+      const afterPersistSuccess = reducer(
+        persistingState,
+        actions.entryPersisted(
+          Map({ name: 'posts' }),
+          fromJS({ ...entry, data: { date: 'old-value' } }),
+          'slug',
+        ),
+      );
+      expect(afterPersistSuccess.get('hasChanged')).toBe(false);
+
+      const afterReloadMountWrite = reducer(
+        afterPersistSuccess,
+        actions.changeDraftField({
+          field,
+          value: 'old-value',
+          metadata: {},
+          // Deliberately stale: still holds the pre-persist value, unlike
+          // the draft, which already reflects the reload.
+          entries: [fromJS({ ...entry, data: { date: 'stale-pre-persist-value' } })],
+        }),
+      );
+
+      expect(afterReloadMountWrite.get('hasChanged')).toBe(false);
+    });
+
+    it('still marks a genuine edit as changed immediately after a persist (DCMS-1727)', () => {
+      const persistingState = initialState
+        .set(
+          'entry',
+          fromJS({ ...entry, data: { date: 'old-value' }, newRecord: false, isPersisting: true }),
+        )
+        .set('hasChanged', true);
+
+      const afterPersistSuccess = reducer(
+        persistingState,
+        actions.entryPersisted(
+          Map({ name: 'posts' }),
+          fromJS({ ...entry, data: { date: 'old-value' } }),
+          'slug',
+        ),
+      );
+      expect(afterPersistSuccess.get('hasChanged')).toBe(false);
+
+      const afterUserEdit = reducer(
+        afterPersistSuccess,
+        actions.changeDraftField({
+          field,
+          value: 'typed-by-user-after-save',
+          metadata: {},
+          entries: [fromJS({ ...entry, data: { date: 'old-value' } })],
+        }),
+      );
+
+      expect(afterUserEdit.get('hasChanged')).toBe(true);
+    });
   });
 
   describe('DRAFT_DISCARD', () => {
