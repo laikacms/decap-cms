@@ -91,6 +91,79 @@ describe('confirmDialog / ConfirmDialogHost', () => {
 
     await waitFor(() => expect(resolved).toHaveBeenCalledWith(false));
   });
+
+  it('exposes the WAI-ARIA modal contract (DCMS-1765)', async () => {
+    render(<ConfirmDialogHost />);
+
+    act(() => {
+      confirmDialog('A local backup was recovered for this entry, would you like to use it?');
+    });
+
+    const dialog = await screen.findByRole('alertdialog');
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+    const titleId = dialog.getAttribute('aria-labelledby');
+    expect(titleId).toBeTruthy();
+    expect(document.getElementById(titleId)).toHaveTextContent('Confirm');
+
+    fireEvent.click(screen.getByText('Cancel'));
+  });
+
+  it('traps Tab so it never escapes into the app tree behind the dialog (DCMS-1765)', async () => {
+    const before = document.createElement('button');
+    before.textContent = 'before';
+    document.body.appendChild(before);
+
+    render(<ConfirmDialogHost />);
+
+    const after = document.createElement('button');
+    after.textContent = 'after';
+    document.body.appendChild(after);
+
+    act(() => {
+      confirmDialog('A local backup was recovered for this entry, would you like to use it?');
+    });
+
+    const cancelButton = await screen.findByText('Cancel');
+    const okButton = screen.getByText('OK');
+
+    okButton.focus();
+    expect(document.activeElement).toBe(okButton);
+    fireEvent.keyDown(okButton, { key: 'Tab' });
+    expect(document.activeElement).toBe(cancelButton);
+    expect(document.activeElement).not.toBe(after);
+
+    cancelButton.focus();
+    fireEvent.keyDown(cancelButton, { key: 'Tab', shiftKey: true });
+    expect(document.activeElement).toBe(okButton);
+    expect(document.activeElement).not.toBe(before);
+
+    fireEvent.click(cancelButton);
+    document.body.removeChild(before);
+    document.body.removeChild(after);
+  });
+
+  it('restores focus to the trigger element after Cancel/OK (DCMS-1765)', async () => {
+    render(<ConfirmDialogHost />);
+
+    const trigger = document.createElement('button');
+    trigger.textContent = 'New Post';
+    document.body.appendChild(trigger);
+    trigger.focus();
+    expect(document.activeElement).toBe(trigger);
+
+    const resolved = jest.fn();
+    act(() => {
+      confirmDialog('A local backup was recovered for this entry, would you like to use it?').then(
+        resolved,
+      );
+    });
+
+    await screen.findByText('Cancel');
+    fireEvent.click(screen.getByText('Cancel'));
+
+    await waitFor(() => expect(resolved).toHaveBeenCalledWith(false));
+    expect(document.activeElement).toBe(trigger);
+  });
 });
 
 describe('promptDialog / PromptDialogHost', () => {
