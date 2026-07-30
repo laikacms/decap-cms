@@ -98,9 +98,7 @@ export class GitLfsClient {
       headers: download.header,
     });
     if (!response.ok) {
-      throw new Error(
-        `Failed to download LFS object: ${response.status} ${response.statusText}`,
-      );
+      throw new Error(`Failed to download LFS object: ${response.status} ${response.statusText}`);
     }
     return response.blob();
   }
