@@ -122,6 +122,36 @@ export function shouldEmitChange(nextValue, currentValue) {
 // alone left open.
 const MAX_CHAIN_REPLAYS = 4;
 
+// DCMS-1717: React error #185 still fires on a plain-text ". "-heavy burst
+// (e.g. "abc. abc. abc. " x 12, 0ms inter-key delay) even though none of the
+// DCMS-1701 ingredients (inline autoformat shortcuts, list block transitions)
+// are present. The DCMS-1701 chain-depth cap above only counts a call as part
+// of a replay chain (`isReplay = true`) if it arrives literally nested on
+// `onEmit`'s own stack, or coalesced while `isEmitting` is still `true`. The
+// single `setTimeout(fn, 0)` reopen assumed that was the only window a
+// self-triggered re-notification could arrive in. Sentence/paragraph-close
+// normalization apparently isn't - Plate/Slate can re-fire `onChange` with a
+// still-different value a tick *after* that single reopen has already run,
+// by which point `isEmitting` is back to `false` and the call looks
+// indistinguishable from a genuinely new, idle keystroke: `guardChange` (via
+// VisualEditor's `handleChange`, which always passes the default
+// `isReplay = false`) resets `chainDepth` to 0 and lets it straight through,
+// so the cap never engages and the loop repeats until React trips #185.
+//
+// The fix: don't declare the chain "genuinely idle" the instant the first
+// reopen finds nothing pending. Hold the gate open (still coalescing any
+// call that arrives) for a bounded number of additional macrotask ticks
+// (`IDLE_CONFIRM_TICKS`) and only reset `chainDepth` once that many
+// consecutive ticks all found nothing pending. Any re-notification that
+// lands within that grace window - whether it's the guard's own delayed
+// echo or a genuinely new keystroke - is coalesced and replayed through the
+// existing `isReplay` path, so it counts toward `MAX_CHAIN_REPLAYS` exactly
+// like the DCMS-1701 nested/same-tick case already does. This costs at most
+// a couple of extra macrotask ticks of latency before the guard considers
+// itself idle again - imperceptible in the UI - while closing the gap a
+// single-tick reopen left open.
+const IDLE_CONFIRM_TICKS = 2;
+
 export function createChangeGuard(initialValue) {
   let lastEmittedValue = initialValue ?? '';
   let isEmitting = false;
@@ -158,19 +188,37 @@ export function createChangeGuard(initialValue) {
     try {
       onEmit(nextValue);
     } finally {
-      setTimeout(() => {
-        isEmitting = false;
-        if (hasPending) {
-          const next = pendingValue;
-          hasPending = false;
-          pendingValue = undefined;
-          guardChange(next, onEmit, true);
-        } else {
-          chainDepth = 0;
-        }
-      }, 0);
+      scheduleReopen(onEmit, IDLE_CONFIRM_TICKS);
     }
     return true;
+  }
+
+  // DCMS-1717: repeatedly checks, on its own macrotask tick, whether anything
+  // arrived while the gate was held open. If something did, it's coalesced
+  // and replayed (same as before). If nothing has, but there are still ticks
+  // left in the confirmation window, it re-arms for one more tick instead of
+  // immediately declaring the chain idle - keeping `isEmitting` true so a
+  // late-arriving re-notification is still coalesced rather than treated as
+  // a fresh, chain-resetting call.
+  function scheduleReopen(onEmit, ticksRemaining) {
+    setTimeout(() => {
+      if (hasPending) {
+        isEmitting = false;
+        const next = pendingValue;
+        hasPending = false;
+        pendingValue = undefined;
+        guardChange(next, onEmit, true);
+        return;
+      }
+
+      if (ticksRemaining > 1) {
+        scheduleReopen(onEmit, ticksRemaining - 1);
+        return;
+      }
+
+      isEmitting = false;
+      chainDepth = 0;
+    }, 0);
   }
 
   return guardChange;
