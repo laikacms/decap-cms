@@ -42,6 +42,13 @@ export default class Widget extends Component {
     mediaPaths: ImmutablePropTypes.map.isRequired,
     metadata: ImmutablePropTypes.map,
     fieldsErrors: ImmutablePropTypes.map,
+    // Whether this field currently has its own validation errors (not just
+    // an errored descendant). Widgets use it to set `aria-invalid`.
+    hasErrors: PropTypes.bool,
+    // Id of the `<ul.ControlErrorsList>` rendered by `EditorControl`, when
+    // `hasErrors` is true. Widgets point `aria-errormessage`/
+    // `aria-describedby` at it.
+    errorListId: PropTypes.string,
     onChange: PropTypes.func.isRequired,
     onValidate: PropTypes.func,
     controlRef: PropTypes.func,
@@ -107,7 +114,9 @@ export default class Widget extends Component {
     return (
       this.props.value !== nextProps.value ||
       this.props.classNameWrapper !== nextProps.classNameWrapper ||
-      this.props.hasActiveStyle !== nextProps.hasActiveStyle
+      this.props.hasActiveStyle !== nextProps.hasActiveStyle ||
+      this.props.hasErrors !== nextProps.hasErrors ||
+      this.props.errorListId !== nextProps.errorListId
     );
   }
 
@@ -392,6 +401,8 @@ export default class Widget extends Component {
       hasActiveStyle,
       editorControl,
       uniqueFieldId,
+      hasErrors,
+      errorListId,
       resolveWidget,
       widget,
       getEditorComponents,
@@ -434,6 +445,8 @@ export default class Widget extends Component {
       onRemoveInsertedMedia,
       getAsset,
       forID: uniqueFieldId,
+      hasErrors,
+      errorListId,
       ref: this.processInnerControlRef,
       validate: this.validate,
       classNameWrapper,

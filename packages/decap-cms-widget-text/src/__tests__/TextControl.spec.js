@@ -1,9 +1,11 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
+import { fromJS } from 'immutable';
 
 import TextControl from '../TextControl';
 
 const defaultProps = {
+  field: fromJS({ name: 'test-field' }),
   onChange: jest.fn(),
   forID: 'test-field',
   value: 'hello',

@@ -483,6 +483,8 @@ export default class RelationControl extends React.Component {
     setInactiveStyle: PropTypes.func.isRequired,
     locale: PropTypes.string,
     onQuickCreateEntry: PropTypes.func,
+    hasErrors: PropTypes.bool,
+    errorListId: PropTypes.string,
   };
 
   isValid = () => {
@@ -814,8 +816,17 @@ export default class RelationControl extends React.Component {
   }, 500);
 
   render() {
-    const { value, forID, classNameWrapper, setActiveStyle, setInactiveStyle, queryHits, t } =
-      this.props;
+    const {
+      value,
+      forID,
+      classNameWrapper,
+      setActiveStyle,
+      setInactiveStyle,
+      queryHits,
+      t,
+      hasErrors,
+      errorListId,
+    } = this.props;
     const field = this.field;
     const isMultiple = this.isMultiple();
     const isClearable = !field.get('required', true) || isMultiple;
@@ -852,6 +863,9 @@ export default class RelationControl extends React.Component {
           isMulti={isMultiple}
           isClearable={isClearable}
           placeholder=""
+          required={field.get('required') !== false}
+          aria-invalid={hasErrors || undefined}
+          aria-errormessage={hasErrors ? errorListId : undefined}
         />
         {this.canQuickAdd() && (
           <QuickAddButton type="button" onClick={this.openQuickAdd}>

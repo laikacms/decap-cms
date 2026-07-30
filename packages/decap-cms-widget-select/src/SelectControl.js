@@ -67,6 +67,8 @@ export default class SelectControl extends React.Component {
         ]),
       ).isRequired,
     }),
+    hasErrors: PropTypes.bool,
+    errorListId: PropTypes.string,
   };
 
   isValid = () => {
@@ -121,7 +123,16 @@ export default class SelectControl extends React.Component {
   }
 
   render() {
-    const { field, value, forID, classNameWrapper, setActiveStyle, setInactiveStyle } = this.props;
+    const {
+      field,
+      value,
+      forID,
+      classNameWrapper,
+      setActiveStyle,
+      setInactiveStyle,
+      hasErrors,
+      errorListId,
+    } = this.props;
     const fieldOptions = field.get('options');
     const isMultiple = field.get('multiple', false);
     const isClearable = !field.get('required', true) || isMultiple;
@@ -146,6 +157,9 @@ export default class SelectControl extends React.Component {
         isMulti={isMultiple}
         isClearable={isClearable}
         placeholder=""
+        required={field.get('required') !== false}
+        aria-invalid={hasErrors || undefined}
+        aria-errormessage={hasErrors ? errorListId : undefined}
       />
     );
   }

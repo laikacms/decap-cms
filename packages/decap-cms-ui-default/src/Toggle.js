@@ -53,6 +53,10 @@ function Toggle({
   className,
   'aria-label': ariaLabel,
   'aria-labelledby': ariaLabelledBy,
+  'aria-required': ariaRequired,
+  'aria-invalid': ariaInvalid,
+  'aria-errormessage': ariaErrorMessage,
+  'aria-describedby': ariaDescribedBy,
   Container = ToggleContainer,
   Background = ToggleBackground,
   Handle = ToggleHandle,
@@ -77,6 +81,10 @@ function Toggle({
       aria-checked={isActive?.toString()}
       aria-label={ariaLabel}
       aria-labelledby={ariaLabelledBy}
+      aria-required={ariaRequired}
+      aria-invalid={ariaInvalid || undefined}
+      aria-errormessage={ariaInvalid ? ariaErrorMessage : undefined}
+      aria-describedby={ariaInvalid ? ariaDescribedBy : undefined}
     >
       <Background isActive={isActive} />
       <Handle isActive={isActive} />
@@ -93,6 +101,10 @@ Toggle.propTypes = {
   className: PropTypes.string,
   'aria-label': PropTypes.string,
   'aria-labelledby': PropTypes.string,
+  'aria-required': PropTypes.bool,
+  'aria-invalid': PropTypes.bool,
+  'aria-errormessage': PropTypes.string,
+  'aria-describedby': PropTypes.string,
   Container: PropTypes.func,
   Background: PropTypes.func,
   Handle: PropTypes.func,

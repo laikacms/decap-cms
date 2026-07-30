@@ -25,7 +25,8 @@ function editorStyles({ minimal }) {
 }
 
 function RawEditor(props) {
-  const { className, field, isShowModeToggle, t, onChange, value } = props;
+  const { className, field, isShowModeToggle, t, onChange, value, forID, hasErrors, errorListId } =
+    props;
 
   const initialValue = [defaultEmptyBlock(value || '')];
 
@@ -77,7 +78,12 @@ function RawEditor(props) {
               />
             </EditorControlBar>
             <div css={editorStyles({ minimal: field.get('minimal') })}>
-              <Editor />
+              <Editor
+                forID={forID}
+                ariaRequired={field.get('required') !== false}
+                ariaInvalid={hasErrors}
+                ariaErrorMessage={errorListId}
+              />
             </div>
           </div>
         )}

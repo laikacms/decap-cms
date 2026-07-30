@@ -1,9 +1,11 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
+import { fromJS } from 'immutable';
 
 import BooleanControl from '../BooleanControl';
 
 const defaultProps = {
+  field: fromJS({ name: 'test-field' }),
   forID: 'test-field',
   classNameWrapper: 'wrapper',
   onChange: jest.fn(),

@@ -7,6 +7,7 @@ import customParseFormat from 'dayjs/plugin/customParseFormat';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import utc from 'dayjs/plugin/utc';
 import { buttons } from 'decap-cms-ui-default';
+import { getFieldAriaProps } from 'decap-cms-lib-widgets';
 
 import { normalizeField, getFormat } from './DateTimeFormatter';
 
@@ -59,6 +60,8 @@ class DateTimeControl extends React.Component {
     value: PropTypes.oneOfType([PropTypes.object, PropTypes.string]),
     t: PropTypes.func.isRequired,
     isDisabled: PropTypes.bool,
+    hasErrors: PropTypes.bool,
+    errorListId: PropTypes.string,
   };
 
   static defaultProps = {
@@ -137,6 +140,8 @@ class DateTimeControl extends React.Component {
       setInactiveStyle,
       t,
       isDisabled,
+      hasErrors,
+      errorListId,
     } = this.props;
     const { inputType } = this.getFormat();
 
@@ -158,6 +163,7 @@ class DateTimeControl extends React.Component {
           onFocus={setActiveStyle}
           onBlur={setInactiveStyle}
           disabled={isDisabled}
+          {...getFieldAriaProps(field, hasErrors, errorListId)}
         />
         {this.isUtc && (
           <span

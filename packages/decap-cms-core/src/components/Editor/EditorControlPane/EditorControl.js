@@ -136,7 +136,11 @@ const LabelComponent = React.memo(function LabelComponent({
   return labelComponent;
 });
 
-class EditorControl extends React.Component {
+// Named export of the unconnected class purely for unit testing (see
+// EditorControl.spec.js) - rendering the `connect()`-wrapped default export
+// would require a full mock Redux store for no benefit, since none of the
+// aria-threading behavior under test touches redux state.
+export class EditorControl extends React.Component {
   static propTypes = {
     value: PropTypes.oneOfType([
       PropTypes.node,
@@ -302,6 +306,12 @@ class EditorControl extends React.Component {
     const errors = fieldsErrors && fieldsErrors.get(this.uniqueFieldId);
     const childErrors = this.isAncestorOfFieldError();
     const hasErrors = !!errors || childErrors;
+    // Stable id for the <ul.ControlErrorsList>, so the widget input can point
+    // its `aria-errormessage`/`aria-describedby` at it (WCAG 2.1 3.3.1 /
+    // 3.3.3). Only meaningful while this field actually has its own errors
+    // (not inherited from a descendant), matching the `errors &&
+    // <ControlErrorsList>` render guard below.
+    const errorListId = errors ? `${this.uniqueFieldId}-errors` : undefined;
 
     return (
       <ClassNames>
@@ -324,12 +334,15 @@ class EditorControl extends React.Component {
                 t={t}
               />
               {errors && (
-                <ControlErrorsList>
+                <ControlErrorsList id={errorListId}>
                   {errors.map(
-                    error =>
+                    (error, index) =>
                       error.message &&
                       typeof error.message === 'string' && (
-                        <li key={error.message.trim().replace(/[^a-z0-9]+/gi, '-')}>
+                        <li
+                          key={error.message.trim().replace(/[^a-z0-9]+/gi, '-')}
+                          id={`${errorListId}-${index}`}
+                        >
                           {error.message}
                         </li>
                       ),
@@ -376,6 +389,8 @@ class EditorControl extends React.Component {
               config={config}
               field={field}
               uniqueFieldId={this.uniqueFieldId}
+              hasErrors={hasErrors}
+              errorListId={errorListId}
               value={value}
               mediaPaths={mediaPaths}
               metadata={metadata}

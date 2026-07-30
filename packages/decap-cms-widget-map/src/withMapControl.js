@@ -34,6 +34,9 @@ export default function withMapControl({ getFormat, getMap } = {}) {
       onChange: PropTypes.func.isRequired,
       field: PropTypes.object.isRequired,
       value: PropTypes.node,
+      forID: PropTypes.string,
+      hasErrors: PropTypes.bool,
+      errorListId: PropTypes.string,
     };
 
     static defaultProps = {
@@ -111,13 +114,20 @@ export default function withMapControl({ getFormat, getMap } = {}) {
     }
 
     render() {
-      const { field } = this.props;
+      const { field, forID, hasErrors, errorListId } = this.props;
       const height = field.get('height', '400px');
 
       return (
         <ClassNames>
           {({ cx, css }) => (
             <div
+              id={forID}
+              role="application"
+              tabIndex={-1}
+              aria-required={field.get('required') !== false}
+              aria-invalid={hasErrors || undefined}
+              aria-errormessage={hasErrors ? errorListId : undefined}
+              aria-describedby={hasErrors ? errorListId : undefined}
               className={cx(
                 this.props.classNameWrapper,
                 css`

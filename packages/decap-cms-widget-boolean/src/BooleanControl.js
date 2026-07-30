@@ -17,8 +17,17 @@ function BooleanBackground({ isActive, ...props }) {
 
 export default class BooleanControl extends React.Component {
   render() {
-    const { value, forID, onChange, classNameWrapper, setActiveStyle, setInactiveStyle } =
-      this.props;
+    const {
+      field,
+      value,
+      forID,
+      onChange,
+      classNameWrapper,
+      setActiveStyle,
+      setInactiveStyle,
+      hasErrors,
+      errorListId,
+    } = this.props;
     return (
       <div className={classNameWrapper}>
         <Toggle
@@ -28,6 +37,10 @@ export default class BooleanControl extends React.Component {
           onFocus={setActiveStyle}
           onBlur={setInactiveStyle}
           Background={BooleanBackground}
+          aria-required={field.get('required') !== false}
+          aria-invalid={hasErrors || undefined}
+          aria-errormessage={hasErrors ? errorListId : undefined}
+          aria-describedby={hasErrors ? errorListId : undefined}
         />
       </div>
     );
@@ -42,6 +55,8 @@ BooleanControl.propTypes = {
   setInactiveStyle: PropTypes.func.isRequired,
   forID: PropTypes.string,
   value: PropTypes.bool,
+  hasErrors: PropTypes.bool,
+  errorListId: PropTypes.string,
 };
 
 BooleanControl.defaultProps = {

@@ -1,16 +1,20 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import ImmutablePropTypes from 'react-immutable-proptypes';
 import Textarea from 'react-textarea-autosize';
-import { bidiControls } from 'decap-cms-lib-widgets';
+import { bidiControls, getFieldAriaProps } from 'decap-cms-lib-widgets';
 
 export default class TextControl extends React.Component {
   static propTypes = {
+    field: ImmutablePropTypes.map.isRequired,
     onChange: PropTypes.func.isRequired,
     forID: PropTypes.string,
     value: PropTypes.node,
     classNameWrapper: PropTypes.string.isRequired,
     setActiveStyle: PropTypes.func.isRequired,
     setInactiveStyle: PropTypes.func.isRequired,
+    hasErrors: PropTypes.bool,
+    errorListId: PropTypes.string,
   };
 
   static defaultProps = {
@@ -34,8 +38,17 @@ export default class TextControl extends React.Component {
   }
 
   render() {
-    const { forID, value, onChange, classNameWrapper, setActiveStyle, setInactiveStyle } =
-      this.props;
+    const {
+      field,
+      forID,
+      value,
+      onChange,
+      classNameWrapper,
+      setActiveStyle,
+      setInactiveStyle,
+      hasErrors,
+      errorListId,
+    } = this.props;
     const hasBidiControls = bidiControls.containsBidiControls(value);
 
     return (
@@ -49,6 +62,7 @@ export default class TextControl extends React.Component {
           minRows={5}
           css={{ fontFamily: 'inherit' }}
           onChange={e => onChange(e.target.value)}
+          {...getFieldAriaProps(field, hasErrors, errorListId)}
         />
         {hasBidiControls && (
           <span

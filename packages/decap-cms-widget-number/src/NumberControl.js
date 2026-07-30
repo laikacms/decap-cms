@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
+import { getFieldAriaProps } from 'decap-cms-lib-widgets';
 const ValidationErrorTypes = {
   PRESENCE: 'PRESENCE',
   PATTERN: 'PATTERN',
@@ -62,6 +63,8 @@ export default class NumberControl extends React.Component {
     min: PropTypes.number,
     max: PropTypes.number,
     t: PropTypes.func.isRequired,
+    hasErrors: PropTypes.bool,
+    errorListId: PropTypes.string,
   };
 
   static defaultProps = {
@@ -181,7 +184,16 @@ export default class NumberControl extends React.Component {
   };
 
   render() {
-    const { field, value, classNameWrapper, forID, setActiveStyle, setInactiveStyle } = this.props;
+    const {
+      field,
+      value,
+      classNameWrapper,
+      forID,
+      setActiveStyle,
+      setInactiveStyle,
+      hasErrors,
+      errorListId,
+    } = this.props;
     const min = field.get('min', '');
     const max = field.get('max', '');
     const step = field.get('step', field.get('value_type') === 'int' ? 1 : 'any');
@@ -197,6 +209,7 @@ export default class NumberControl extends React.Component {
         min={min}
         max={max}
         onChange={this.handleChange}
+        {...getFieldAriaProps(field, hasErrors, errorListId)}
       />
     );
   }

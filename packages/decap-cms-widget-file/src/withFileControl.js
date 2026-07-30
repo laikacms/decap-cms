@@ -281,6 +281,9 @@ export default function withFileControl({ forImage } = {}) {
         ImmutablePropTypes.listOf(PropTypes.string),
       ]),
       t: PropTypes.func.isRequired,
+      forID: PropTypes.string,
+      hasErrors: PropTypes.bool,
+      errorListId: PropTypes.string,
     };
 
     static defaultProps = {
@@ -420,6 +423,20 @@ export default function withFileControl({ forImage } = {}) {
       return this.props.onChange(newValue);
     };
 
+    // Aria attributes for the "Choose"/"Choose different" button, which is the
+    // closest thing this widget has to a leaf input — there is no native
+    // form control to attach `aria-invalid`/`aria-required` to otherwise.
+    get chooseButtonAriaProps() {
+      const { field, forID, hasErrors, errorListId } = this.props;
+      return {
+        id: forID,
+        'aria-required': field.get('required') !== false,
+        'aria-invalid': hasErrors || undefined,
+        'aria-errormessage': hasErrors ? errorListId : undefined,
+        'aria-describedby': hasErrors ? errorListId : undefined,
+      };
+    }
+
     getValidateValue = () => {
       const { value } = this.props;
       if (value) {
@@ -494,7 +511,7 @@ export default function withFileControl({ forImage } = {}) {
           {forImage ? this.renderImages() : null}
           <div>
             {forImage ? null : this.renderFileLinks()}
-            <FileWidgetButton onClick={this.handleChange}>
+            <FileWidgetButton onClick={this.handleChange} {...this.chooseButtonAriaProps}>
               {t(
                 `editor.editorWidgets.${subject}.${
                   this.allowsMultiple() ? 'addMore' : 'chooseDifferent'
@@ -518,7 +535,7 @@ export default function withFileControl({ forImage } = {}) {
       const { t, field } = this.props;
       return (
         <>
-          <FileWidgetButton onClick={this.handleChange}>
+          <FileWidgetButton onClick={this.handleChange} {...this.chooseButtonAriaProps}>
             {t(`editor.editorWidgets.${subject}.choose${this.allowsMultiple() ? 'Multiple' : ''}`)}
           </FileWidgetButton>
           {field.get('choose_url', true) ? (

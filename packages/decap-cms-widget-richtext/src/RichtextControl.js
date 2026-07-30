@@ -21,6 +21,9 @@ export default class RichtextControl extends React.Component {
     getEditorComponents: PropTypes.func,
     t: PropTypes.func.isRequired,
     isDisabled: PropTypes.bool,
+    forID: PropTypes.string,
+    hasErrors: PropTypes.bool,
+    errorListId: PropTypes.string,
   };
 
   static defaultProps = {
@@ -81,6 +84,9 @@ export default class RichtextControl extends React.Component {
       onAddAsset,
       getAsset,
       value,
+      forID,
+      hasErrors,
+      errorListId,
     } = this.props;
 
     const isEditorComponent = this.props.isEditorComponent;
@@ -104,6 +110,9 @@ export default class RichtextControl extends React.Component {
             getAsset={getAsset}
             pendingFocus={pendingFocus && this.setFocusReceived}
             value={value}
+            forID={forID}
+            hasErrors={hasErrors}
+            errorListId={errorListId}
           />
         </div>
       </EditorProvider>
@@ -122,6 +131,9 @@ export default class RichtextControl extends React.Component {
           field={field}
           pendingFocus={pendingFocus && this.setFocusReceived}
           t={t}
+          forID={forID}
+          hasErrors={hasErrors}
+          errorListId={errorListId}
         />
       </div>
     );

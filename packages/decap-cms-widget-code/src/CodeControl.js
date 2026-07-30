@@ -52,6 +52,8 @@ export default class CodeControl extends React.Component {
     classNameWrapper: PropTypes.string.isRequired,
     widget: PropTypes.object.isRequired,
     isParentListCollapsed: PropTypes.bool,
+    hasErrors: PropTypes.bool,
+    errorListId: PropTypes.string,
   };
 
   keys = this.getKeys(this.props.field);
@@ -77,9 +79,35 @@ export default class CodeControl extends React.Component {
     return (
       !isEqual(this.state, nextState) ||
       this.props.classNameWrapper !== nextProps.classNameWrapper ||
+      this.props.hasErrors !== nextProps.hasErrors ||
+      this.props.errorListId !== nextProps.errorListId ||
+      this.props.field !== nextProps.field ||
       (this.visibility.isInvisibleOnInit && !this.visibility.isRefreshedAfterInvisible)
     );
   }
+
+  // react-codemirror2's wrapper `<div>` doesn't forward `id`/`aria-*` props
+  // (see its `render()`) - it only reads `className` off `this.props`. The
+  // real leaf control is the CodeMirror-managed input field
+  // (`cm.getInputField()`, a hidden textarea in most modes / a
+  // contenteditable in some), so aria attributes are applied to it
+  // imperatively once the CodeMirror instance exists.
+  applyAriaAttributes = () => {
+    const inputField = this.cm?.getInputField?.();
+    if (!inputField) return;
+    const { field, forID, hasErrors, errorListId } = this.props;
+    inputField.id = forID;
+    inputField.setAttribute('aria-required', field.get('required') !== false);
+    if (hasErrors) {
+      inputField.setAttribute('aria-invalid', 'true');
+      inputField.setAttribute('aria-errormessage', errorListId);
+      inputField.setAttribute('aria-describedby', errorListId);
+    } else {
+      inputField.removeAttribute('aria-invalid');
+      inputField.removeAttribute('aria-errormessage');
+      inputField.removeAttribute('aria-describedby');
+    }
+  };
 
   componentDidMount() {
     // Manually validate PropTypes - React 19 breaking change
@@ -92,6 +120,7 @@ export default class CodeControl extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     this.updateCodeMirrorProps(prevState);
+    this.applyAriaAttributes();
     // when initially hidden and then shown, codeMirror content is not visible
     if (
       this.visibility.isInvisibleOnInit &&
@@ -324,6 +353,7 @@ export default class CodeControl extends React.Component {
               detach={true}
               editorDidMount={cm => {
                 this.cm = cm;
+                this.applyAriaAttributes();
                 if (isNewEditorComponent) {
                   this.handleFocus();
                 }

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { act, render } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { fromJS, List } from 'immutable';
 import { z } from 'zod';
 
@@ -160,6 +160,82 @@ describe('Widget', () => {
       expect(nextState).toEqual({ quickAdd: false });
 
       scuSpy.mockRestore();
+    });
+  });
+
+  describe('hasErrors/errorListId threading (DCMS-1743)', () => {
+    // EditorControl computes `hasErrors`/`errorListId` and hands them to
+    // Widget as props; Widget's only job here is to forward them unchanged
+    // to `controlComponent` (alongside `field`, from which each leaf control
+    // derives its own `aria-required`) so the real widgets (StringControl,
+    // NumberControl, ...) can set aria-invalid/aria-required/aria-errormessage.
+    function LeafControl(props) {
+      return (
+        <div
+          data-testid="leaf"
+          data-has-errors={String(!!props.hasErrors)}
+          data-error-list-id={props.errorListId || ''}
+        />
+      );
+    }
+
+    const baseProps = {
+      field: fromJS({ name: 'title', required: true }),
+      controlComponent: LeafControl,
+      classNameWrapper: '',
+      classNameWidget: '',
+      classNameWidgetActive: '',
+      classNameLabel: '',
+      classNameLabelActive: '',
+      mediaPaths: fromJS({}),
+      entry: fromJS({}),
+      widget: {},
+      resolveWidget: () => {},
+      getEditorComponents: () => {},
+      query: () => {},
+      clearSearch: () => {},
+      clearFieldErrors: () => {},
+      editorControl: 'div',
+      uniqueFieldId: 'title-field',
+      loadEntry: () => {},
+      t: key => key,
+      onChange: () => {},
+      onOpenMediaLibrary: () => {},
+      onClearMediaControl: () => {},
+      onRemoveMediaControl: () => {},
+      onPersistMedia: () => {},
+      onAddAsset: () => {},
+      onRemoveInsertedMedia: () => {},
+      getAsset: () => {},
+      setActiveStyle: () => {},
+      setInactiveStyle: () => {},
+    };
+
+    it('forwards hasErrors=false/no errorListId through to the leaf control before save', () => {
+      render(<Widget {...baseProps} value="" hasErrors={false} />);
+
+      const leaf = screen.getByTestId('leaf');
+      expect(leaf.dataset.hasErrors).toBe('false');
+      expect(leaf.dataset.errorListId).toBe('');
+    });
+
+    it('forwards hasErrors=true and the errorListId through to the leaf control on failed save', () => {
+      render(<Widget {...baseProps} value="" hasErrors={true} errorListId="title-field-errors" />);
+
+      const leaf = screen.getByTestId('leaf');
+      expect(leaf.dataset.hasErrors).toBe('true');
+      expect(leaf.dataset.errorListId).toBe('title-field-errors');
+    });
+
+    it('re-renders the leaf control when only hasErrors/errorListId change', () => {
+      const { rerender } = render(<Widget {...baseProps} value="" hasErrors={false} />);
+      expect(screen.getByTestId('leaf').dataset.hasErrors).toBe('false');
+
+      rerender(
+        <Widget {...baseProps} value="" hasErrors={true} errorListId="title-field-errors" />,
+      );
+      expect(screen.getByTestId('leaf').dataset.hasErrors).toBe('true');
+      expect(screen.getByTestId('leaf').dataset.errorListId).toBe('title-field-errors');
     });
   });
 

@@ -4,6 +4,7 @@ import styled from '@emotion/styled';
 import ChromePicker from 'react-color';
 import tinycolor from 'tinycolor2';
 import { zIndex } from 'decap-cms-ui-default';
+import { getFieldAriaProps } from 'decap-cms-lib-widgets';
 
 function ClearIcon() {
   return (
@@ -99,6 +100,8 @@ export default class ColorControl extends React.Component {
     classNameWrapper: PropTypes.string.isRequired,
     setActiveStyle: PropTypes.func.isRequired,
     setInactiveStyle: PropTypes.func.isRequired,
+    hasErrors: PropTypes.bool,
+    errorListId: PropTypes.string,
   };
 
   static defaultProps = {
@@ -130,8 +133,17 @@ export default class ColorControl extends React.Component {
     this.props.onChange(formattedColor);
   };
   render() {
-    const { forID, value, field, onChange, classNameWrapper, setActiveStyle, setInactiveStyle } =
-      this.props;
+    const {
+      forID,
+      value,
+      field,
+      onChange,
+      classNameWrapper,
+      setActiveStyle,
+      setInactiveStyle,
+      hasErrors,
+      errorListId,
+    } = this.props;
 
     const normalizedField = normalizeField(field);
     const allowInput = normalizedField.get('allow_input', false);
@@ -206,6 +218,7 @@ export default class ColorControl extends React.Component {
           // make readonly and open color picker on click if set to allowInput: false
           onClick={!allowInput ? this.handleClick : undefined}
           readOnly={!allowInput}
+          {...getFieldAriaProps(field, hasErrors, errorListId)}
         />
       </>
     );

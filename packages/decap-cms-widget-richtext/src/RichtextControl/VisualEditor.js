@@ -67,6 +67,9 @@ export default function VisualEditor(props) {
     getEditorComponents,
     getAsset,
     value: currentValue,
+    forID,
+    hasErrors,
+    errorListId,
   } = props;
 
   const field = normalizeField(rawField);
@@ -235,7 +238,14 @@ export default function VisualEditor(props) {
               />
             </EditorControlBar>
             <div css={editorStyles({ minimal: field.get('minimal') })}>
-              <Editor isDisabled={isDisabled} onPaste={handlePaste} />
+              <Editor
+                isDisabled={isDisabled}
+                onPaste={handlePaste}
+                forID={forID}
+                ariaRequired={field.get('required') !== false}
+                ariaInvalid={hasErrors}
+                ariaErrorMessage={errorListId}
+              />
             </div>
           </Plate>
         </div>
