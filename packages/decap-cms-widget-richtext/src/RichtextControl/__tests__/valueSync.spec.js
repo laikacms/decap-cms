@@ -515,7 +515,7 @@ describe('createChangeGuard (DCMS-1717: plain-text period-burst replay arriving 
     // normalize pass produces a genuinely different value from the last
     // (e.g. trailing whitespace/mark state flips), and - critically - each
     // re-notification is scheduled two macrotask ticks out from the previous
-        // onEmit (`setTimeout(() => setTimeout(fn, 0), 0)`), landing *after* a
+    // onEmit (`setTimeout(() => setTimeout(fn, 0), 0)`), landing *after* a
     // single-tick reopen would already have gone idle, rather than nested on
     // `onEmit`'s own stack or coalesced within a single tick the way the
     // DCMS-1701 test simulates it.
