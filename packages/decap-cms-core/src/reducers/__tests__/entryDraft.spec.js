@@ -37,6 +37,7 @@ describe('entryDraft reducer', () => {
           fieldsErrors: Map(),
           hasChanged: false,
           key: '1',
+          mountedFields: [],
         }),
       );
     });
@@ -257,6 +258,124 @@ describe('entryDraft reducer', () => {
       );
 
       expect(afterUserEdit.get('hasChanged')).toBe(true);
+    });
+
+    it('keeps hasChanged false after the loadUnpublishedEntry reload remount even when a widget mount-time write is not byte-equal to the reloaded value (DCMS-1737)', () => {
+      // Reproduces the gap DCMS-1727/#1736 didn't cover: after a successful
+      // editorial-workflow persist, the follow-up loadUnpublishedEntry
+      // dispatches DRAFT_CREATE_FROM_ENTRY, which remounts every widget
+      // against the reloaded entry. A widget whose serialize/parse round
+      // trip isn't byte-exact (richtext's slateToMarkdown(markdownToSlate())
+      // for content like em dashes or paragraph breaks) can re-dispatch a
+      // mount-time write that fails `isNoOpWrite`'s strict Immutable.equals
+      // check even though it isn't a real edit. This must not flip
+      // hasChanged back to true.
+      const bodyField = fromJS({ name: 'body' });
+      const storedMarkdown = 'Foo — bar.\n\nBaz.';
+      const roundTrippedMarkdown = 'Foo -- bar.\n\nBaz.';
+
+      const persistingState = initialState
+        .set(
+          'entry',
+          fromJS({
+            ...entry,
+            data: { body: storedMarkdown },
+            newRecord: false,
+            isPersisting: true,
+          }),
+        )
+        .set('hasChanged', true);
+
+      const afterPersistSuccess = reducer(
+        persistingState,
+        actions.entryPersisted(
+          Map({ name: 'posts' }),
+          fromJS({ ...entry, data: { body: storedMarkdown } }),
+          'slug',
+        ),
+      );
+      expect(afterPersistSuccess.get('hasChanged')).toBe(false);
+
+      // loadUnpublishedEntry's reload: DRAFT_CREATE_FROM_ENTRY remounts the
+      // form against the freshly reloaded entry.
+      const afterReload = reducer(
+        afterPersistSuccess,
+        actions.createDraftFromEntry(fromJS({ ...entry, data: { body: storedMarkdown } })),
+      );
+      expect(afterReload.get('hasChanged')).toBe(false);
+
+      // The richtext widget mounts and re-dispatches its round-tripped
+      // value, which is not byte-equal to the stored markdown.
+      const afterMountTimeWrite = reducer(
+        afterReload,
+        actions.changeDraftField({
+          field: bodyField,
+          value: roundTrippedMarkdown,
+          metadata: {},
+          entries: [],
+        }),
+      );
+
+      expect(afterMountTimeWrite.get('hasChanged')).toBe(false);
+      expect(afterMountTimeWrite.getIn(['entry', 'data', 'body'])).toBe(roundTrippedMarkdown);
+    });
+
+    it('still flips hasChanged true for a genuine edit to the same field right after the mount-time replay (bidirectional guard, DCMS-1737)', () => {
+      const bodyField = fromJS({ name: 'body' });
+      const storedMarkdown = 'Foo — bar.\n\nBaz.';
+      const roundTrippedMarkdown = 'Foo -- bar.\n\nBaz.';
+
+      const persistingState = initialState
+        .set(
+          'entry',
+          fromJS({
+            ...entry,
+            data: { body: storedMarkdown },
+            newRecord: false,
+            isPersisting: true,
+          }),
+        )
+        .set('hasChanged', true);
+
+      const afterPersistSuccess = reducer(
+        persistingState,
+        actions.entryPersisted(
+          Map({ name: 'posts' }),
+          fromJS({ ...entry, data: { body: storedMarkdown } }),
+          'slug',
+        ),
+      );
+
+      const afterReload = reducer(
+        afterPersistSuccess,
+        actions.createDraftFromEntry(fromJS({ ...entry, data: { body: storedMarkdown } })),
+      );
+
+      const afterMountTimeWrite = reducer(
+        afterReload,
+        actions.changeDraftField({
+          field: bodyField,
+          value: roundTrippedMarkdown,
+          metadata: {},
+          entries: [],
+        }),
+      );
+      expect(afterMountTimeWrite.get('hasChanged')).toBe(false);
+
+      // A real user edit to the very same field right after the mount-time
+      // replay must still flip hasChanged - the exemption above is
+      // one-shot per field, not a blanket suppression window.
+      const afterRealEdit = reducer(
+        afterMountTimeWrite,
+        actions.changeDraftField({
+          field: bodyField,
+          value: 'the user actually typed this',
+          metadata: {},
+          entries: [],
+        }),
+      );
+
+      expect(afterRealEdit.get('hasChanged')).toBe(true);
     });
   });
 

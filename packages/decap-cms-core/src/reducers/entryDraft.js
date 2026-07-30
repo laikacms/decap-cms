@@ -53,6 +53,23 @@ function entryDraftReducer(state = Map(), action) {
         state.set('fieldsErrors', Map());
         state.set('hasChanged', false);
         state.set('key', uuid());
+        // DCMS-1737: this reload/remount (e.g. the loadUnpublishedEntry
+        // reload that follows a successful editorial-workflow persist, or a
+        // plain entry load) is about to cause every widget to mount fresh
+        // against `entry`'s stored values. A widget's mount-time write can
+        // legitimately fail `isNoOpWrite`'s `Immutable.equals` check below
+        // even though it isn't a real edit, when the widget's
+        // serialize/parse round trip isn't byte-exact for the stored value
+        // (richtext's `slateToMarkdown(markdownToSlate(stored))` is the
+        // clear offender: em dashes, paragraph breaks, etc. can shift).
+        // `mountedFields` tracks, per field, whether its first write since
+        // this reload has already been seen; that first write is presumed
+        // to be the widget re-affirming its mount value rather than a user
+        // edit and is exempted from flipping `hasChanged` below, regardless
+        // of whether it's byte-equal to the draft's stored value. Any
+        // further write to the same field is a genuine subsequent
+        // interaction and is judged the normal way.
+        state.set('mountedFields', List());
       });
     case DRAFT_CREATE_EMPTY:
       // New Entry
@@ -63,6 +80,12 @@ function entryDraftReducer(state = Map(), action) {
         state.set('fieldsErrors', Map());
         state.set('hasChanged', false);
         state.set('key', uuid());
+        // A brand-new empty entry has no stored values for widgets to
+        // re-affirm on mount, so the first write to any field here is a
+        // real user edit (or an explicit `fromDefault` substitution,
+        // handled separately below) - don't carry over mount-replay
+        // tracking from a previous entry.
+        state.delete('mountedFields');
       });
     case DRAFT_CREATE_FROM_LOCAL_BACKUP:
       // Local Backup
@@ -76,6 +99,7 @@ function entryDraftReducer(state = Map(), action) {
         state.set('fieldsErrors', Map());
         state.set('hasChanged', true);
         state.set('key', uuid());
+        state.delete('mountedFields');
       });
     case DRAFT_CREATE_DUPLICATE_FROM_ENTRY:
       // Duplicate Entry
@@ -86,6 +110,7 @@ function entryDraftReducer(state = Map(), action) {
         state.set('fieldsMetaData', Map());
         state.set('fieldsErrors', Map());
         state.set('hasChanged', true);
+        state.delete('mountedFields');
       });
     case DRAFT_DISCARD:
       return initialState;
@@ -109,6 +134,19 @@ function entryDraftReducer(state = Map(), action) {
         // it or whether it tagged itself `fromDefault`.
         const oldData = state.getIn(['entry', ...dataPath]);
         const oldMeta = state.getIn(['entry', 'meta']);
+
+        // DCMS-1737: `mountedFields` only exists while we're within a
+        // reload/remount cascade (set by DRAFT_CREATE_FROM_ENTRY, above).
+        // Track first-writes per field+locale so a richtext field in one
+        // locale mounting doesn't accidentally "use up" the exemption for
+        // the same field name in a different locale.
+        const mountedFields = state.get('mountedFields');
+        const mountKey = `${meta ? 'meta' : 'data'}:${name}${i18n ? `:${i18n.currentLocale}` : ''}`;
+        const isMountTimeReplay = mountedFields !== undefined && !mountedFields.includes(mountKey);
+        if (mountedFields !== undefined && isMountTimeReplay) {
+          state.set('mountedFields', mountedFields.push(mountKey));
+        }
+
         if (meta) {
           state.setIn(['entry', 'meta', name], value);
         } else {
@@ -162,7 +200,18 @@ function entryDraftReducer(state = Map(), action) {
         // this write isn't a no-op against it, that's sufficient on its own
         // to call it a real change — no separate, potentially-stale
         // baseline is needed.
-        if (!fromDefault && !isNoOpWrite) {
+        //
+        // `isMountTimeReplay` covers the remaining gap (DCMS-1737): a
+        // widget's *first* write for a field since the current
+        // reload/remount can still fail `isNoOpWrite` above even though
+        // it's not a real edit, when that widget's serialize/parse round
+        // trip isn't a byte-exact identity for the stored value (richtext
+        // being the clear offender). Such a write is presumed to be the
+        // widget re-affirming its mount value, not user input, and is
+        // exempted here; any later write to the same field no longer
+        // qualifies (`mountedFields` above already recorded it), so a real
+        // edit performed right after still flips `hasChanged` normally.
+        if (!fromDefault && !isNoOpWrite && !isMountTimeReplay) {
           state.set('hasChanged', true);
         }
       });
