@@ -184,6 +184,7 @@ export default class Widget extends Component {
         issues.map(issue => ({
           type: ValidationErrorTypes.CUSTOM,
           parentIds,
+          fieldName: field.get('name'),
           message: issue.message,
         })),
       );
@@ -196,6 +197,7 @@ export default class Widget extends Component {
         {
           type: ValidationErrorTypes.CUSTOM,
           parentIds,
+          fieldName: field.get('name'),
           message: t('editor.editorControlPane.widget.processing', {
             fieldLabel: field.get('label', field.get('name')),
           }),
@@ -206,6 +208,7 @@ export default class Widget extends Component {
           {
             type: ValidationErrorTypes.CUSTOM,
             parentIds,
+            fieldName: field.get('name'),
             message: `${field.get('label', field.get('name'))} - ${err}.`,
           },
         ]);
@@ -257,6 +260,7 @@ export default class Widget extends Component {
       const error = {
         type: ValidationErrorTypes.PRESENCE,
         parentIds,
+        fieldName: field.get('name'),
         message: t('editor.editorControlPane.widget.required', {
           fieldLabel: field.get('label', field.get('name')),
         }),
@@ -279,6 +283,7 @@ export default class Widget extends Component {
       const error = {
         type: ValidationErrorTypes.PATTERN,
         parentIds,
+        fieldName: field.get('name'),
         message: t('editor.editorControlPane.widget.regexPattern', {
           fieldLabel: field.get('label', field.get('name')),
           pattern: pattern.last(),

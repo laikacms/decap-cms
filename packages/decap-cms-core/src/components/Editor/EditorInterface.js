@@ -189,6 +189,15 @@ class EditorInterface extends Component {
     this.controlPaneRef?.focus(path);
   };
 
+  // DCMS-1684: called by `Editor.handlePersistEntry` after a failed save so
+  // the first invalid field (whatever its widget type) gets scrolled/
+  // focused instead of leaving focus stranded on the Save button.
+  focusFirstInvalidField = fieldName => {
+    if (fieldName) {
+      this.controlPaneRef?.focus(fieldName);
+    }
+  };
+
   handleSplitPaneDragStart = () => {
     this.setState({ showEventBlocker: true });
   };

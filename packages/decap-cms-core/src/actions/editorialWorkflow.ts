@@ -10,6 +10,7 @@ import {
   selectUnpublishedEntry,
 } from '../reducers';
 import { selectEditingDraft } from '../reducers/entries';
+import { selectFields } from '../reducers/collections';
 import { EDITORIAL_WORKFLOW, status } from '../constants/publishModes';
 import {
   loadEntry,
@@ -23,6 +24,7 @@ import { createAssetProxy } from '../valueObjects/AssetProxy';
 import { addAssets } from './media';
 import { loadMedia } from './mediaLibrary';
 import ValidationErrorTypes from '../constants/validationErrorTypes';
+import { getFirstInvalidFieldName, EntryValidationError } from '../lib/fieldValidationErrors';
 import { navigateToEntry } from '../routing/history';
 import { addNotification } from './notifications';
 import {
@@ -385,7 +387,14 @@ export function persistUnpublishedEntry(collection: Collection, existingUnpublis
           }),
         );
       }
-      return Promise.reject(new Error('Entry has validation errors'));
+
+      // DCMS-1684: editorial-workflow collections must scroll/focus the
+      // first invalid field on save failure the same as non-workflow ones.
+      const fields = selectFields(collection, entryDraft.getIn(['entry', 'slug']));
+      const firstInvalidFieldName = getFirstInvalidFieldName(fieldsErrors, fields);
+      return Promise.reject(
+        new EntryValidationError('Entry has validation errors', firstInvalidFieldName),
+      );
     }
 
     const backend = currentBackend(state.config);

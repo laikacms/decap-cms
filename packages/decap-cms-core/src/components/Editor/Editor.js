@@ -277,6 +277,9 @@ export class Editor extends React.Component {
       await persistEntry(collection);
     } catch (e) {
       if (e instanceof Error && e.message === 'Entry has validation errors') {
+        // DCMS-1684: scroll/focus the first invalid field (of any widget
+        // type) instead of leaving focus stranded on the Save button.
+        this.editorInterfaceRef?.focusFirstInvalidField(e.fieldName);
         return;
       }
       throw e;
@@ -440,6 +443,7 @@ export class Editor extends React.Component {
 
     return (
       <EditorInterface
+        ref={c => (this.editorInterfaceRef = c)}
         draftKey={draftKey}
         entry={entryDraft.get('entry')}
         collection={collection}

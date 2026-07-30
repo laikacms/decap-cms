@@ -633,7 +633,9 @@ export type EntryMap = StaticallyTypedRecord<EntryObject>;
 
 export type Entry = EntryMap & EntryObject;
 
-export type FieldsErrors = StaticallyTypedRecord<{ [field: string]: { type: string }[] }>;
+export type FieldsErrors = StaticallyTypedRecord<{
+  [field: string]: { type: string; message?: string; parentIds?: string[]; fieldName?: string }[];
+}>;
 
 export type EntryDraft = StaticallyTypedRecord<{
   entry: Entry;
