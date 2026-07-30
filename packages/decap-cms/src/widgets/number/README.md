@@ -34,5 +34,12 @@ or, for values that can't be safely represented as one, the raw string the edito
   handler.
 - `default` (optional) — pre-filled value for new entries.
 
-Note: `CmsFieldNumber` also has a deprecated `valueType` (camelCase) type field, but nothing in the
-widget reads it — only the snake_case `value_type` documented above has any effect.
+### Deprecated camelCase alias
+
+`valueType` is a deprecated camelCase alias for `value_type`. It is **not** inert: config
+normalization (`normalizeConfig`/`setSnakeCaseConfig`/`WIDGET_KEY_MAP` in
+`src/core/actions/config.tsx`) copies any present `valueType` onto `value_type` for every field at
+config-load time, logging a `console.warn` deprecation notice, before `NumberControl` ever reads the
+field. So `{ widget: 'number', valueType: 'int' }` behaves identically to `{ widget: 'number',
+value_type: 'int' }` — same `parseInt` parsing path, same `step="1"` default. Prefer `value_type` in
+new configs.
