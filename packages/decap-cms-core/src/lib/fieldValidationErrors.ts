@@ -35,7 +35,10 @@ export function getFirstInvalidFieldName(
       });
     });
 
-  const firstField = fields.find(field => fieldNamesWithErrors.has(field.get('name')));
+  const firstField = fields.find(field => {
+    const name = field?.get('name');
+    return name !== undefined && fieldNamesWithErrors.has(name);
+  });
   return firstField?.get('name');
 }
 
