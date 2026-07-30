@@ -185,7 +185,13 @@ function getConfigFormatFromUrl(url: string): ConfigFormat | undefined {
   return undefined;
 }
 
-function getConfigSource() {
+/**
+ * Resolved once here and reused by the in-CMS config editor (DCMS-1418) so it
+ * reads/writes the same file `loadConfig` booted from, instead of hardcoding
+ * `config.yml` and silently ignoring a `<link rel="cms-config-url">`
+ * override.
+ */
+export function getConfigSource() {
   const configLinkEl = document.querySelector<HTMLLinkElement>('link[rel="cms-config-url"]');
   if (configLinkEl?.href) {
     const format = getConfigFormatFromUrl(configLinkEl.href)

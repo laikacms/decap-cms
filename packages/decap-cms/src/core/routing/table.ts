@@ -52,6 +52,8 @@ interface WorkflowRouteParams {}
 
 interface MediaRouteParams {}
 
+interface ConfigEditorRouteParams {}
+
 export interface RoutingTable {
   /** `/` — home; redirects to the first non-hidden collection (or `renderRoot`). */
   root: {
@@ -106,6 +108,14 @@ export interface RoutingTable {
   media: {
     create: (params?: MediaRouteParams) => string,
     get: (path: string) => MediaRouteParams,
+  };
+  /**
+   * `/admin/config` — the in-CMS `config.yml` editor (DCMS-1418). Gated to
+   * users whose auth scopes include `admin`; see `ConfigEditor`.
+   */
+  configEditor: {
+    create: (params?: ConfigEditorRouteParams) => string,
+    get: (path: string) => ConfigEditorRouteParams,
   };
 }
 
