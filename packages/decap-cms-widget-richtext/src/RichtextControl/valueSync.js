@@ -236,11 +236,13 @@ export function createChangeGuard(initialValue) {
 
     lastEmittedValue = nextValue;
     isEmitting = true;
-    try {
-      onEmit(nextValue);
-    } finally {
-      scheduleReopen(onEmit);
-    }
+    setTimeout(() => {
+      try {
+        onEmit(nextValue);
+      } finally {
+        scheduleReopen(onEmit);
+      }
+    }, 0);
     return true;
   }
 
