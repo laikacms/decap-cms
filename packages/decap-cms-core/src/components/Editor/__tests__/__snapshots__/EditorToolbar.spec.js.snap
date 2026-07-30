@@ -232,6 +232,7 @@ exports[`EditorToolbar should render normal save button 1`] = `
         </div>
         <div
           class="emotion-8 emotion-9"
+          role="status"
         >
           editor.editorToolbar.unsavedChanges
         </div>
@@ -513,6 +514,7 @@ exports[`EditorToolbar should render normal save button 2`] = `
         </div>
         <div
           class="emotion-8 emotion-9"
+          role="status"
         >
           editor.editorToolbar.unsavedChanges
         </div>
@@ -761,6 +763,7 @@ exports[`EditorToolbar should render with default props 1`] = `
         </div>
         <div
           class="emotion-8 emotion-9"
+          role="status"
         >
           editor.editorToolbar.changesSaved
         </div>
@@ -1062,6 +1065,7 @@ exports[`EditorToolbar should render with status=draft,useOpenAuthoring=false 1`
         </div>
         <div
           class="emotion-8 emotion-9"
+          role="status"
         >
           editor.editorToolbar.changesSaved
         </div>
@@ -1411,6 +1415,7 @@ exports[`EditorToolbar should render with status=draft,useOpenAuthoring=true 1`]
         </div>
         <div
           class="emotion-8 emotion-9"
+          role="status"
         >
           editor.editorToolbar.changesSaved
         </div>
@@ -1753,6 +1758,7 @@ exports[`EditorToolbar should render with status=pending_publish,useOpenAuthorin
         </div>
         <div
           class="emotion-8 emotion-9"
+          role="status"
         >
           editor.editorToolbar.changesSaved
         </div>
@@ -2084,6 +2090,7 @@ exports[`EditorToolbar should render with status=pending_publish,useOpenAuthorin
         </div>
         <div
           class="emotion-8 emotion-9"
+          role="status"
         >
           editor.editorToolbar.changesSaved
         </div>
@@ -2421,6 +2428,7 @@ exports[`EditorToolbar should render with status=pending_review,useOpenAuthoring
         </div>
         <div
           class="emotion-8 emotion-9"
+          role="status"
         >
           editor.editorToolbar.changesSaved
         </div>
@@ -2770,6 +2778,7 @@ exports[`EditorToolbar should render with status=pending_review,useOpenAuthoring
         </div>
         <div
           class="emotion-8 emotion-9"
+          role="status"
         >
           editor.editorToolbar.changesSaved
         </div>
@@ -3053,6 +3062,7 @@ exports[`EditorToolbar should render with workflow controls hasUnpublishedChange
         </div>
         <div
           class="emotion-8 emotion-9"
+          role="status"
         >
           editor.editorToolbar.changesSaved
         </div>
@@ -3269,6 +3279,7 @@ exports[`EditorToolbar should render with workflow controls hasUnpublishedChange
         </div>
         <div
           class="emotion-8 emotion-9"
+          role="status"
         >
           editor.editorToolbar.changesSaved
         </div>
@@ -3505,6 +3516,7 @@ exports[`EditorToolbar should render with workflow controls hasUnpublishedChange
         </div>
         <div
           class="emotion-8 emotion-9"
+          role="status"
         >
           editor.editorToolbar.changesSaved
         </div>
@@ -3746,6 +3758,7 @@ exports[`EditorToolbar should render with workflow controls hasUnpublishedChange
         </div>
         <div
           class="emotion-8 emotion-9"
+          role="status"
         >
           editor.editorToolbar.changesSaved
         </div>
@@ -3987,6 +4000,7 @@ exports[`EditorToolbar should render with workflow controls hasUnpublishedChange
         </div>
         <div
           class="emotion-8 emotion-9"
+          role="status"
         >
           editor.editorToolbar.changesSaved
         </div>
@@ -4228,6 +4242,7 @@ exports[`EditorToolbar should render with workflow controls hasUnpublishedChange
         </div>
         <div
           class="emotion-8 emotion-9"
+          role="status"
         >
           editor.editorToolbar.changesSaved
         </div>
