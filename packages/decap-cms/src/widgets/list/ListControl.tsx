@@ -714,6 +714,12 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
         }
       }
 
+      // Explicit, known panel id: Base UI's Collapsible.Trigger only emits
+      // `aria-controls` when `open` is true (upstream gap, see DCMS-1725),
+      // so we own the id and backfill `aria-controls` on the trigger
+      // ourselves in ListItemTopBar regardless of state.
+      const itemPanelId = `${key}-panel`;
+
       return (
         <SortableListItem
           css={[styles.listControlItem, collapsed && styles.listControlItemCollapsed]}
@@ -734,6 +740,7 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
             )}
             <StyledListItemTopBar
               collapsibleTrigger
+              panelId={itemPanelId}
               collapsed={collapsed}
               dragHandle={SortableHandle}
               id={key}
@@ -749,7 +756,7 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
             >
               {objectLabel(item)}
             </NestedObjectLabel>
-            <Collapsible.Panel keepMounted css={styles.collapsiblePanel}>
+            <Collapsible.Panel id={itemPanelId} keepMounted css={styles.collapsiblePanel}>
               <ObjectControl
                 classNameWrapper={classNameWrapper}
                 value={item as Record<string, unknown>}
@@ -812,6 +819,12 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
       const allItemsCollapsed = itemsCollapsed.every((val: boolean) => val === true);
       const selfCollapsed = allItemsCollapsed && (listCollapsed || !minimizeCollapsedItems);
 
+      // Explicit, known panel id: Base UI's Collapsible.Trigger only emits
+      // `aria-controls` when `open` is true (upstream gap, see DCMS-1725),
+      // so we own the id and backfill `aria-controls` on the trigger
+      // ourselves in ObjectWidgetTopBar regardless of state.
+      const listPanelId = `${forID}-panel`;
+
       return (
         <ClassNames>
           {({ cx, css: cn }) => (
@@ -834,19 +847,29 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
                 heading={`${items.length} ${listLabel}`}
                 label={labelSingular.toLowerCase()}
                 collapsibleTrigger
+                panelId={listPanelId}
                 collapsed={selfCollapsed}
                 t={t!}
               />
-              {(!selfCollapsed || !minimizeCollapsedItems) && (
-                <Collapsible.Panel
-                  keepMounted
-                  css={minimizeCollapsedItems
-                    ? styles.collapsiblePanel
-                    : styles.collapsiblePanelAlwaysVisible}
-                >
+              {
+                /*
+                 * Always render the panel (even when its contents are
+                 * skipped below for perf) so the trigger's `aria-controls`
+                 * set above never dangles: it must reference an id that
+                 * actually exists in the DOM (DCMS-1725).
+                 */
+              }
+              <Collapsible.Panel
+                id={listPanelId}
+                keepMounted
+                css={minimizeCollapsedItems
+                  ? styles.collapsiblePanel
+                  : styles.collapsiblePanelAlwaysVisible}
+              >
+                {(!selfCollapsed || !minimizeCollapsedItems) && (
                   <SortableList onSortEnd={onSortEnd}>{items.map(renderItem)}</SortableList>
-                </Collapsible.Panel>
-              )}
+                )}
+              </Collapsible.Panel>
             </Collapsible.Root>
           )}
         </ClassNames>

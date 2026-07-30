@@ -194,6 +194,45 @@ describe('ListControl', () => {
     expect(expandButton).toHaveAttribute('aria-expanded', 'true');
   });
 
+  it('keeps aria-controls on the top-bar expand button pointed at an existing panel id in both open and closed states (DCMS-1725)', () => {
+    const field = {
+      name: 'list',
+      label: 'List',
+      collapsed: false,
+      field: {
+        name: 'object',
+        widget: 'object',
+        label: 'Object',
+        fields: [{ name: 'title', widget: 'string', label: 'Title' }],
+      },
+    };
+    const { container, getByTestId } = render(
+      <ListControl
+        {...props}
+        field={field}
+        value={[{ object: { title: 'item 1' } }, { object: { title: 'item 2' } }]}
+      />,
+    );
+
+    const expandButton = getByTestId('expand-button');
+
+    // Open state: Base UI already wires this up correctly on its own.
+    expect(expandButton).toHaveAttribute('aria-expanded', 'true');
+    const openPanelId = expandButton.getAttribute('aria-controls');
+    expect(openPanelId).toBeTruthy();
+    expect(container.querySelector(`#${CSS.escape(openPanelId!)}`)).not.toBeNull();
+
+    fireEvent.click(expandButton);
+
+    // Closed state: upstream Base UI drops aria-controls here unless we
+    // backfill it (the DCMS-1725 bug); it must still reference a real node.
+    expect(expandButton).toHaveAttribute('aria-expanded', 'false');
+    const closedPanelId = expandButton.getAttribute('aria-controls');
+    expect(closedPanelId).toBeTruthy();
+    expect(closedPanelId).toBe(openPanelId);
+    expect(container.querySelector(`#${CSS.escape(closedPanelId!)}`)).not.toBeNull();
+  });
+
   it('should collapse a single item on collapse item click', () => {
     const field = {
       name: 'list',

@@ -70,6 +70,11 @@ export interface ObjectWidgetTopBarProps {
   // Renders the chevron as a Base UI Collapsible.Trigger, which requires an
   // enclosing Collapsible.Root; `onCollapseToggle` is ignored in that mode.
   collapsibleTrigger?: boolean;
+  // The `id` of the associated Collapsible.Panel. Required when
+  // `collapsibleTrigger` is set so the trigger can keep `aria-controls`
+  // pointed at the panel even while collapsed (Base UI only emits
+  // `aria-controls` when `open`, see DCMS-1725).
+  panelId?: string;
   collapsed?: boolean;
   heading?: React.ReactNode;
   label?: string;
@@ -83,6 +88,7 @@ function ObjectWidgetTopBar({
   onAddType,
   onCollapseToggle,
   collapsibleTrigger,
+  panelId,
   collapsed,
   heading = null,
   label,
@@ -131,7 +137,15 @@ function ObjectWidgetTopBar({
             <Collapsible.Trigger
               data-testid="expand-button"
               aria-label={toggleLabel}
-              render={<ExpandButton />}
+              render={(triggerProps: React.ComponentPropsWithRef<'button'>) => (
+                // Base UI's Collapsible.Trigger only sets `aria-controls` when
+                // `open` is true; backfill it here so the trigger keeps
+                // pointing at the panel while collapsed too (DCMS-1725).
+                <ExpandButton
+                  {...triggerProps}
+                  aria-controls={triggerProps['aria-controls'] ?? panelId}
+                />
+              )}
             >
               {chevron}
             </Collapsible.Trigger>

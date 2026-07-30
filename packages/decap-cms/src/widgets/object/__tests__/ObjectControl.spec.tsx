@@ -1,4 +1,4 @@
-import { render, within } from '@testing-library/react';
+import { fireEvent, render, within } from '@testing-library/react';
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -145,6 +145,42 @@ describe('ObjectControl', () => {
     pluralHandle!.validate();
     expect(singularValidateSpy).toHaveBeenCalledWith('first_name', 'hello');
     expect(pluralValidateSpy).toHaveBeenCalledWith('first_name', 'hello');
+  });
+
+  it('keeps aria-controls on the top-bar expand button pointed at an existing panel id in both open and closed states (DCMS-1725)', () => {
+    const field = {
+      name: 'author',
+      widget: 'object',
+      collapsed: false,
+      fields: [{ name: 'first_name', widget: 'string' }],
+    };
+
+    const { container, getByTestId } = render(
+      <ObjectControl
+        {...(baseProps as any)}
+        field={field}
+        value={{ first_name: 'hello' }}
+        editorControl={createMockEditorControl(vi.fn())}
+      />,
+    );
+
+    const expandButton = getByTestId('expand-button');
+
+    // Open state: Base UI already wires this up correctly on its own.
+    expect(expandButton).toHaveAttribute('aria-expanded', 'true');
+    const openPanelId = expandButton.getAttribute('aria-controls');
+    expect(openPanelId).toBeTruthy();
+    expect(container.querySelector(`#${CSS.escape(openPanelId!)}`)).not.toBeNull();
+
+    fireEvent.click(expandButton);
+
+    // Closed state: upstream Base UI drops aria-controls here unless we
+    // backfill it (the DCMS-1725 bug); it must still reference a real node.
+    expect(expandButton).toHaveAttribute('aria-expanded', 'false');
+    const closedPanelId = expandButton.getAttribute('aria-controls');
+    expect(closedPanelId).toBeTruthy();
+    expect(closedPanelId).toBe(openPanelId);
+    expect(container.querySelector(`#${CSS.escape(closedPanelId!)}`)).not.toBeNull();
   });
 
   it('renders a message when neither `field` nor `fields` is defined', () => {

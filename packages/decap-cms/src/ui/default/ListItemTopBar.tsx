@@ -56,6 +56,11 @@ export interface ListItemTopBarProps {
   // Renders the chevron as a Base UI Collapsible.Trigger, which requires an
   // enclosing Collapsible.Root; `onCollapseToggle` is ignored in that mode.
   collapsibleTrigger?: boolean;
+  // The `id` of the associated Collapsible.Panel. Required when
+  // `collapsibleTrigger` is set so the trigger can keep `aria-controls`
+  // pointed at the panel even while collapsed (Base UI only emits
+  // `aria-controls` when `open`, see DCMS-1725).
+  panelId?: string;
   onCollapseToggle?: () => void;
   onRemove?: () => void;
   allowRemove?: boolean;
@@ -69,6 +74,7 @@ function ListItemTopBar(props: ListItemTopBarProps): React.ReactElement {
     className,
     collapsed,
     collapsibleTrigger,
+    panelId,
     onCollapseToggle,
     onRemove,
     allowRemove,
@@ -82,13 +88,19 @@ function ListItemTopBar(props: ListItemTopBarProps): React.ReactElement {
       {collapsibleTrigger
         ? (
           <Collapsible.Trigger
-            render={
+            data-testid="expand-button"
+            aria-label={collapsed ? 'Expand' : 'Collapse'}
+            render={(triggerProps: React.ComponentPropsWithRef<'button'>) => (
+              // Base UI's Collapsible.Trigger only sets `aria-controls` when
+              // `open` is true; backfill it here so the trigger keeps
+              // pointing at the panel while collapsed too (DCMS-1725).
               <TopBarButton
+                {...triggerProps}
                 type="button"
                 className="TopBarButton-button"
-                aria-label={collapsed ? 'Expand' : 'Collapse'}
+                aria-controls={triggerProps['aria-controls'] ?? panelId}
               />
-            }
+            )}
           >
             {chevron}
           </Collapsible.Trigger>
