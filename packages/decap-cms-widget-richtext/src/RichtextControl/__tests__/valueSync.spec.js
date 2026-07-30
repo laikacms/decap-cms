@@ -578,3 +578,104 @@ describe('createChangeGuard (DCMS-1717: plain-text period-burst replay arriving 
     expect(guardChange('A brand new, unrelated edit.', () => {})).toBe(true);
   });
 });
+
+// DCMS-1733: React error #185 still fires on the exact DCMS-1717 recipe on
+// the commit that closed it, AND crashes 10-15x harder on plain-text burst
+// shapes that have no autoformat surface at all - `space-only` (no periods,
+// no `. ` autoformat trigger) and `long-word` (one contiguous run with no
+// separators whatsoever: no space, no period, no newline). Both prove the
+// bug was never actually specific to the `. `-triggered normalize path
+// DCMS-1717 targeted: `IDLE_CONFIRM_TICKS` counted a fixed number of
+// macrotask ticks before declaring the chain idle, and any content shape
+// whose self-notify timing didn't line up with that count sailed straight
+// through, chainDepth reset to 0, cap never engaged.
+//
+// These tests exercise those two burst shapes directly, using the same
+// "re-notification lands some macrotasks after the reopen" simulation as
+// the DCMS-1717 tests above, but with delays that do NOT match a fixed tick
+// count - proving the guard now bounds the chain off of real elapsed time
+// rather than a specific number of the guard's own ticks.
+describe('createChangeGuard (DCMS-1733: burst shapes without a `. ` autoformat trigger)', () => {
+  async function flushMacrotasks(count) {
+    for (let i = 0; i < count; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise(resolve => setTimeout(resolve, 0));
+    }
+  }
+
+  it('bounds a non-converging chain for a space-only burst (no periods, no autoformat trigger)', async () => {
+    const guardChange = createChangeGuard('');
+    const calls = [];
+
+    // Simulates the `space-only` repro shape: 'lorem '.repeat(400) - no
+    // periods, no list markers, nothing that triggers Plate's inline
+    // autoformat shortcuts. Each settled normalize pass still produces a
+    // genuinely different value from the last (e.g. trailing whitespace
+    // flips), and each re-notification lands a single macrotask tick after
+    // the previous emit - a shorter, differently-timed gap than the
+    // DCMS-1717 test's two-tick delay, to prove the fix isn't keyed to any
+    // particular tick count.
+    const VALUES = ['lorem lorem lorem ', 'lorem lorem lorem  '];
+    const HARD_TEST_CUTOFF = 40; // only so a pre-fix run terminates at all
+
+    function onEmit(value) {
+      calls.push(value);
+      if (calls.length < HARD_TEST_CUTOFF) {
+        setTimeout(() => {
+          guardChange(VALUES[calls.length % VALUES.length], onEmit);
+        }, 0);
+      }
+    }
+
+    guardChange(VALUES[0], onEmit);
+
+    await flushMacrotasks(HARD_TEST_CUTOFF * 2 + 5);
+
+    // Pre-fix (or a fix that only bounds the exact DCMS-1717 tick shape):
+    // this runs all the way to the test's artificial cutoff. The fix must
+    // cut the chain off itself, structurally, long before that.
+    expect(calls.length).toBeLessThan(10);
+
+    // The guard must not be left permanently wedged - a later, genuinely
+    // new edit must still make it through once the guard is idle again.
+    expect(guardChange('A brand new space-only edit.', () => {})).toBe(true);
+  });
+
+  it('bounds a non-converging chain for a contiguous no-separator burst (single unbroken word)', async () => {
+    const guardChange = createChangeGuard('');
+    const calls = [];
+
+    // Simulates the `long-word` repro shape: 'x'.repeat(2400) - a single
+    // contiguous run with no space, no period, no newline: no separator of
+    // any kind for autoformat or block-transition logic to key off of. This
+    // was the worst-crashing pattern in the filed issue (44 crashes vs. 3
+    // for the `. `-triggered control), proving the loop isn't gated by
+    // sentence/paragraph-close normalization at all.
+    const VALUES = ['xxxxxxxxxx', 'xxxxxxxxxxx'];
+    const HARD_TEST_CUTOFF = 40; // only so a pre-fix run terminates at all
+
+    function onEmit(value) {
+      calls.push(value);
+      if (calls.length < HARD_TEST_CUTOFF) {
+        setTimeout(() => {
+          setTimeout(() => {
+            setTimeout(() => {
+              guardChange(VALUES[calls.length % VALUES.length], onEmit);
+            }, 0);
+          }, 0);
+        }, 0);
+      }
+    }
+
+    guardChange(VALUES[0], onEmit);
+
+    await flushMacrotasks(HARD_TEST_CUTOFF * 4 + 5);
+
+    // A three-tick delay - different again from both the DCMS-1717 (two
+    // ticks) and space-only (one tick) cases above - still must not let the
+    // chain run unbounded.
+    expect(calls.length).toBeLessThan(10);
+
+    expect(guardChange('A brand new no-separator edit.', () => {})).toBe(true);
+  });
+});
