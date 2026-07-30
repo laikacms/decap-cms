@@ -57,7 +57,6 @@ import { ImagesExtension } from './extensions/ImagesExtension';
 import { KeywordsExtension } from './extensions/KeywordsExtension';
 import { MarkdownShortcutsExtension } from './extensions/MarkdownShortcutsExtension';
 import { MaxLengthExtension } from './extensions/MaxLengthExtension';
-import { AutocompleteNode } from './nodes/AutocompleteNode';
 import { EmojiNode } from './nodes/EmojiNode';
 import { LayoutContainerNode } from './nodes/LayoutContainerNode';
 import { LayoutItemNode } from './nodes/LayoutItemNode';
@@ -72,7 +71,6 @@ import { ShareContentPlugin } from './plugins/actions/ShareContentPlugin';
 import { SourceTogglePlugin } from './plugins/actions/SourceTogglePlugin';
 import { SpeechToTextPlugin } from './plugins/actions/SpeechToTextPlugin';
 import { TreeViewPlugin } from './plugins/actions/TreeViewPlugin';
-import { AutoCompletePlugin } from './plugins/AutoCompletePlugin';
 import { CodeActionMenuPlugin } from './plugins/CodeActionMenuPlugin';
 import { CodeHighlightPlugin } from './plugins/CodeHighlightPlugin';
 import { ComponentPickerMenuPlugin } from './plugins/ComponentPickerMenuPlugin';
@@ -351,7 +349,6 @@ export function Editor({
           EmojiNode,
           LayoutContainerNode,
           LayoutItemNode,
-          AutocompleteNode,
           SpecialTextNode,
           // Generic custom-block node (`decap-block`) emitted by the Portable
           // Text bridge for any content that isn't plain text/code (e.g. an
@@ -533,7 +530,6 @@ export function Editor({
                     setIsLinkEditMode={setIsLinkEditMode}
                   />
                 )}
-                {pluginItems.autoComplete && <AutoCompletePlugin />}
                 {pluginItems.contextMenu && <ContextMenuPlugin />}
                 {pluginItems.specialText && <SpecialTextPlugin />}
               </div>
@@ -586,9 +582,9 @@ export function Editor({
               // as a marker. `OnChangePlugin`'s built-in
               // `ignoreHistoryMergeTagChange` can't tell that apart from
               // other history-merge-tagged updates that *should* stay hidden
-              // from persist (`LexicalComposer`'s initial-state hydration,
-              // `AutoCompletePlugin`'s ghost suggestion), so it's disabled
-              // here and reimplemented below with that one exception.
+              // from persist (`LexicalComposer`'s initial-state hydration),
+              // so it's disabled here and reimplemented below with that one
+              // exception.
               ignoreHistoryMergeTagChange={false}
               onChange={(editorState, _editor, tags) => {
                 // `AutoFocusExtension` calls `editor.focus()` when the root
