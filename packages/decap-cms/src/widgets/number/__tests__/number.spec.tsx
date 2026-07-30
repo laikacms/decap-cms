@@ -2,6 +2,7 @@ import { fireEvent, render } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { normalizeConfig } from '@/core/actions/config';
 import { DecapCmsWidgetNumber } from '@/widgets/number';
 import { validateMinMax } from '@/widgets/number/NumberControl';
 
@@ -76,6 +77,52 @@ function setup({ field, defaultValue }) {
     ref: () => ref,
   };
 }
+
+describe('deprecated camelCase valueType alias (DCMS-1750)', () => {
+  // README.md documents `valueType` (camelCase) as a deprecated-but-functional
+  // alias for `value_type`, auto-migrated by `normalizeConfig`
+  // (`src/core/actions/config.tsx`) at config-load time. This pins the
+  // end-to-end doc claim by running a real config through `normalizeConfig`
+  // (not hand-authoring `value_type` directly) and asserting `NumberControl`'s
+  // int parsing path is actually engaged.
+  function normalizedNumberField(fieldConfig: Record<string, unknown>) {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const config = normalizeConfig({
+      collections: [
+        {
+          name: 'items',
+          label: 'Items',
+          folder: 'src',
+          fields: [{ name: 'count', ...fieldConfig }],
+        },
+      ],
+    } as never);
+    return config.collections[0].fields[0];
+  }
+
+  it('normalizes camelCase valueType onto snake_case value_type', () => {
+    const field = normalizedNumberField({ widget: 'number', valueType: 'int' });
+
+    expect(field.value_type).toBe('int');
+  });
+
+  it('renders step="1" for a field normalized from valueType: int', () => {
+    const field = normalizedNumberField({ widget: 'number', valueType: 'int' });
+    const { input } = setup({ field });
+
+    expect(input.getAttribute('step')).toBe('1');
+  });
+
+  it('parses input as an integer for a field normalized from valueType: int', () => {
+    const field = normalizedNumberField({ widget: 'number', valueType: 'int' });
+    const { input, onChangeSpy } = setup({ field });
+
+    fireEvent.change(input, { target: { value: '3.7' } });
+
+    expect(onChangeSpy).toHaveBeenCalledWith(3);
+    expect(Number.isInteger(onChangeSpy.mock.calls[0][0])).toBe(true);
+  });
+});
 
 describe('Number widget', () => {
   it('should call onChange when input changes', () => {
