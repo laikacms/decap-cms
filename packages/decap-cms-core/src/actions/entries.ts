@@ -17,6 +17,7 @@ import { serializeValues } from '../lib/serializeEntryValues';
 import { createEntry } from '../valueObjects/Entry';
 import { createAssetProxy } from '../valueObjects/AssetProxy';
 import ValidationErrorTypes from '../constants/validationErrorTypes';
+import { getFirstInvalidFieldName, EntryValidationError } from '../lib/fieldValidationErrors';
 import { addAssets, getAsset } from './media';
 import { SortDirection } from '../types/redux';
 import { waitForMediaLibraryToLoad, loadMedia } from './mediaLibrary';
@@ -986,7 +987,14 @@ export function persistEntry(collection: Collection) {
         );
       }
 
-      return Promise.reject(new Error('Entry has validation errors'));
+      // DCMS-1684: surface which top-level field to scroll/focus, regardless
+      // of its widget type, so the caller (EditorInterface) can jump the
+      // user straight to it instead of leaving focus on the Save button.
+      const fields = selectFields(collection, entryDraft.getIn(['entry', 'slug']));
+      const firstInvalidFieldName = getFirstInvalidFieldName(fieldsErrors, fields);
+      return Promise.reject(
+        new EntryValidationError('Entry has validation errors', firstInvalidFieldName),
+      );
     }
 
     const backend = currentBackend(state.config);
