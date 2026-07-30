@@ -1,11 +1,13 @@
 import controlComponent from './UuidControl';
 import previewComponent from './UuidPreview';
+import schema from './schema';
 
 function Widget(opts = {}) {
   return {
     name: 'uuid',
     controlComponent,
     previewComponent,
+    schema,
     ...opts,
   };
 }
