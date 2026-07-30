@@ -731,10 +731,21 @@ export class EditorToolbar extends React.Component {
               persisted though, so it must not claim "changesSaved" either
               (DCMS-292) - render nothing for that cell (DCMS-547).
             */}
+            {/*
+              role="status" (an implicit aria-live="polite" region) announces
+              the dirty <-> clean transition to screen readers, mirroring the
+              role="alert" already used for the "missed a required field"
+              toast (Notifications.tsx) - "status" rather than "alert" since
+              this isn't an error and shouldn't interrupt (DCMS-1774).
+            */}
             {hasChanged ? (
-              <BackStatusChanged>{t('editor.editorToolbar.unsavedChanges')}</BackStatusChanged>
+              <BackStatusChanged role="status">
+                {t('editor.editorToolbar.unsavedChanges')}
+              </BackStatusChanged>
             ) : isNewEntry ? null : (
-              <BackStatusUnchanged>{t('editor.editorToolbar.changesSaved')}</BackStatusUnchanged>
+              <BackStatusUnchanged role="status">
+                {t('editor.editorToolbar.changesSaved')}
+              </BackStatusUnchanged>
             )}
           </div>
         </ToolbarSectionBackLink>

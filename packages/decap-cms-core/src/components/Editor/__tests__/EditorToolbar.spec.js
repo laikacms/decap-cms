@@ -86,6 +86,35 @@ describe('EditorToolbar', () => {
     });
   });
 
+  describe('DCMS-1774: dirty-state indicator is announced to screen readers', () => {
+    it('should expose the "unsavedChanges" indicator as a role="status" live region', () => {
+      render(<EditorToolbar {...props} isNewEntry={false} hasChanged={true} />);
+      const indicator = screen.getByRole('status');
+      expect(indicator).toHaveTextContent('editor.editorToolbar.unsavedChanges');
+    });
+
+    it('should expose the "changesSaved" indicator as a role="status" live region', () => {
+      render(<EditorToolbar {...props} isNewEntry={false} hasChanged={false} />);
+      const indicator = screen.getByRole('status');
+      expect(indicator).toHaveTextContent('editor.editorToolbar.changesSaved');
+    });
+
+    it('should re-announce via the same live region when transitioning from dirty back to clean', () => {
+      const { rerender } = render(
+        <EditorToolbar {...props} isNewEntry={false} hasChanged={true} />,
+      );
+      expect(screen.getByRole('status')).toHaveTextContent('editor.editorToolbar.unsavedChanges');
+
+      rerender(<EditorToolbar {...props} isNewEntry={false} hasChanged={false} />);
+      expect(screen.getByRole('status')).toHaveTextContent('editor.editorToolbar.changesSaved');
+    });
+
+    it('should not render a status live region for a pristine new entry (nothing to announce)', () => {
+      render(<EditorToolbar {...props} isNewEntry={true} hasChanged={false} />);
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    });
+  });
+
   [false, true].forEach(useOpenAuthoring => {
     it(`should render with workflow controls hasUnpublishedChanges=true,isNewEntry=false,isModification=true,useOpenAuthoring=${useOpenAuthoring}`, () => {
       const { asFragment } = render(
