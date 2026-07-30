@@ -679,3 +679,74 @@ describe('createChangeGuard (DCMS-1733: burst shapes without a `. ` autoformat t
     expect(guardChange('A brand new no-separator edit.', () => {})).toBe(true);
   });
 });
+
+// DCMS-1755: a live-browser Playwright soak (real headless Chromium, not
+// this file's simulated `setTimeout` ticks) still reproduces 26+6 uncaught
+// React #185 pageerrors against the DCMS-1733 guard on origin/main. Every
+// unit test above passes today, on both the pre- and post-DCMS-1755 guard,
+// because they run fast enough in Node/Jest that the real elapsed
+// wall-clock time between simulated ticks never comes close to tripping
+// `SETTLE_WINDOW_MS` (150ms) - the whole point of the DCMS-1733 tick-delay
+// variety (1/2/3 ticks) was only ever to prove the fix isn't keyed to a
+// *specific tick count*, not to exercise real elapsed time anywhere near
+// the window itself. This test closes that gap: it forces the guard's
+// re-notification to arrive after a REAL 220ms delay (`setTimeout(fn, 220)`,
+// not `setTimeout(fn, 0)`) - comfortably past `SETTLE_WINDOW_MS` - which is
+// exactly the kind of jank-widened gap Chromium's coalesced input-event
+// flushing produces under a fast synthetic keystroke burst. Against the
+// wall-clock guard this reproduces the bug directly in Node (no browser
+// required): `withinSettleWindow` reads false, `chainDepth` resets to 0,
+// and the non-converging chain runs unbounded. The DCMS-1755 fix replaces
+// that wall-clock window with a value-convergence check that cannot be
+// raced by elapsed time at all, so this passes regardless of the delay.
+describe('createChangeGuard (DCMS-1755: chain bound must survive delays well past any wall-clock/tick window)', () => {
+  const REAL_REPLAY_DELAY_MS = 220; // > the old SETTLE_WINDOW_MS = 150
+
+  function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  it(
+    'bounds a non-converging chain even when each re-notification arrives a real 220ms ' +
+      'after the previous emit (comfortably past the retired 150ms settle window)',
+    async () => {
+      const guardChange = createChangeGuard('');
+      const calls = [];
+
+      // Simulates the `space-only` repro shape from the live-browser soak:
+      // each "settled" normalize pass still produces a genuinely different
+      // value from the last, and each re-notification lands a REAL 220ms
+      // after the previous emit - not a fast macrotask tick, but still well
+      // within what a real burst's self-notify cascade would look like
+      // under heavy browser jank.
+      const VALUES = ['lorem lorem lorem ', 'lorem lorem lorem  '];
+      const HARD_TEST_CUTOFF = 10; // only so a pre-fix run terminates at all
+
+      function onEmit(value) {
+        calls.push(value);
+        if (calls.length < HARD_TEST_CUTOFF) {
+          setTimeout(() => {
+            guardChange(VALUES[calls.length % VALUES.length], onEmit);
+          }, REAL_REPLAY_DELAY_MS);
+        }
+      }
+
+      guardChange(VALUES[0], onEmit);
+
+      await wait(HARD_TEST_CUTOFF * REAL_REPLAY_DELAY_MS + 500);
+
+      // Pre-fix (wall-clock `SETTLE_WINDOW_MS = 150`): each 220ms-delayed
+      // re-notification arrives well outside the settle window, so
+      // `chainDepth` resets to 0 every time and the cap never engages -
+      // this runs all the way to the test's artificial cutoff (10). The
+      // fix must cut the chain off itself, structurally, regardless of how
+      // much real time elapses between re-notifications.
+      expect(calls.length).toBeLessThan(10);
+
+      // The guard must not be left permanently wedged - a later, genuinely
+      // new edit must still make it through once a fresh chain starts.
+      expect(guardChange('A brand new space-only edit.', () => {})).toBe(true);
+    },
+    10000,
+  );
+});

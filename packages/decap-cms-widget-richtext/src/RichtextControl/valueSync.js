@@ -158,70 +158,78 @@ const MAX_CHAIN_REPLAYS = 4;
 // engages. Bumping the tick count higher doesn't fix this, it just moves
 // where the race is lost.
 //
-// The fix: stop keying "is this call still part of the same replay chain" off
-// of how many of the guard's *own* macrotask ticks have elapsed. Key it off
-// of real elapsed wall-clock time since the *last call of any kind* arrived
-// (fresh, coalesced, or replayed). `lastActivityAt` is stamped on every call
-// to `guardChange`, not just on the guard's internal reopen callback, so it
-// can't be raced by however many macrotasks a given browser/document/burst
-// shape happens to take between one onChange and the next. As long as calls
-// keep landing within `SETTLE_WINDOW_MS` of each other, they all count
-// toward `MAX_CHAIN_REPLAYS`, regardless of whether the guard's own
-// `isEmitting` flag has already flipped back to `false` in between - closing
-// exactly the gap a tick-counted reopen could not. Once real time exceeds
-// that window with no call arriving at all, the guard lets the *next* call
-// start a genuinely fresh chain. This generalizes past the `. `-triggered
-// path DCMS-1717 targeted: it doesn't care what triggers the re-notify
-// (period, space, or no separator at all), only how close together in real
-// time the calls land.
-const SETTLE_WINDOW_MS = 150;
-
-function nowMs() {
-  return typeof performance !== 'undefined' && typeof performance.now === 'function'
-    ? performance.now()
-    : Date.now();
-}
-
+// The fix (as shipped): stop keying "is this call still part of the same
+// replay chain" off of how many of the guard's *own* macrotask ticks have
+// elapsed. Key it off of real elapsed wall-clock time since the *last call
+// of any kind* arrived (fresh, coalesced, or replayed), via a
+// `SETTLE_WINDOW_MS` window.
+//
+// DCMS-1755: that wall-clock window is *also* the wrong knob, for the exact
+// same underlying reason DCMS-1733 rejected a fixed tick count - it's still
+// racing browser event-loop/paint timing instead of bounding it. A
+// live-browser Playwright soak (not the unit specs below, which run fast
+// enough in Node that they never come close to tripping 150ms) still
+// reproduces 26+6 React #185 pageerrors on this exact guard: Chromium can
+// coalesce input-event flushes on a fast synthetic keystroke burst such that
+// a self-triggered re-notification lands *more* than `SETTLE_WINDOW_MS`
+// after the previous call (GC pause, layout, Slate normalize), at which
+// point `withinSettleWindow` reads false, `chainDepth` resets to 0, and the
+// cap never engages - identical failure shape to the `IDLE_CONFIRM_TICKS`
+// bug DCMS-1733 fixed, just with a bigger, still-finite knob. No finite
+// wall-clock (or tick-count) window can be proven sufficient, because the
+// browser can jank past any fixed bound.
+//
+// The fix: stop trying to detect "has this chain gone idle" via a timer at
+// all. Key `chainDepth` off of an observable, timing-independent fact
+// instead: whether the call's value has actually *converged* with what this
+// instance last emitted. `shouldEmitChange` returning false is not a guess -
+// it means Plate/Slate genuinely stopped mutating the document as far as
+// this guard can see (this is exactly what fires on selection-only
+// re-notifications, focus/blur, etc. once a burst is done settling), so it
+// is the one signal that can't be raced by scheduling jitter: it only fires
+// once real convergence has happened, however many macrotasks or however
+// much wall-clock time that took. A non-converging feedback loop (the bug
+// class this guard exists to catch) by definition never produces that
+// signal - every call in it carries a genuinely different value - so it
+// still hits the `MAX_CHAIN_REPLAYS` ceiling exactly as before, just counted
+// by value-equality instead of elapsed time. This generalizes past every
+// burst shape DCMS-1701/1717/1733 enumerated (autoformat-triggered,
+// plain-text period-heavy, space-only, contiguous no-separator): none of
+// them depend on *when* the re-notification lands, only on whether it
+// eventually repeats a value.
 export function createChangeGuard(initialValue) {
   let lastEmittedValue = initialValue ?? '';
   let isEmitting = false;
   let hasPending = false;
   let pendingValue;
   let chainDepth = 0;
-  let lastActivityAt = 0;
 
-  function guardChange(nextValue, onEmit, isReplay = false) {
-    const now = nowMs();
-    const withinSettleWindow = lastActivityAt !== 0 && now - lastActivityAt < SETTLE_WINDOW_MS;
-    lastActivityAt = now;
-
+  function guardChange(nextValue, onEmit) {
     if (isEmitting) {
       hasPending = true;
       pendingValue = nextValue;
       return false;
     }
 
-    // DCMS-1733: a call counts toward the replay chain if it's an explicit
-    // internal replay (`isReplay`, same as before DCMS-1701/1717) OR if it
-    // simply arrived soon enough after the last activity to plausibly be
-    // part of the same burst/self-notify cascade rather than a genuinely
-    // separate, idle keystroke. This is what lets a call that arrives after
-    // `isEmitting` has already gone back to `false` still be recognized as
-    // "the same chain" instead of silently resetting the counter.
-    const continuesChain = isReplay || withinSettleWindow;
-    chainDepth = continuesChain ? chainDepth + 1 : 0;
-
     if (!shouldEmitChange(nextValue, lastEmittedValue)) {
+      // DCMS-1755: a call carrying the same value as what this instance
+      // last emitted means the chain has genuinely converged - not "enough
+      // time has passed to presume so". Reset here, unconditionally; there
+      // is nothing left in flight to bound.
+      chainDepth = 0;
       return false;
     }
 
-    if (continuesChain && chainDepth > MAX_CHAIN_REPLAYS) {
-      // DCMS-1701/1733: this burst has replayed too many times in a row
-      // without ever going idle - a non-converging feedback loop, not real
-      // user input. Drop the pending value and stop the chain here rather
-      // than replaying it again; `lastEmittedValue` is left as the last
-      // value that genuinely made it out, so a later, real change can still
-      // be detected and emitted once the guard is idle again.
+    chainDepth += 1;
+
+    if (chainDepth > MAX_CHAIN_REPLAYS) {
+      // DCMS-1701/1717/1733/1755: this burst has produced more
+      // consecutive, genuinely different values in a row than any real
+      // convergence has interrupted - a non-converging feedback loop, not
+      // real user input. Drop this value and stop the chain here rather
+      // than emitting it; `lastEmittedValue` is left as the last value
+      // that genuinely made it out, so a later, real change can still be
+      // detected and emitted once a fresh chain starts.
       chainDepth = 0;
       return false;
     }
@@ -236,12 +244,13 @@ export function createChangeGuard(initialValue) {
     return true;
   }
 
-  // DCMS-1733: a single macrotask tick is now enough to reopen the gate -
-  // unlike the old `IDLE_CONFIRM_TICKS` loop, this reopen no longer has to
-  // hold `isEmitting` true across multiple ticks to catch a late-arriving
-  // re-notification, because `guardChange`'s own wall-clock chain tracking
-  // (`SETTLE_WINDOW_MS` above) does that job regardless of `isEmitting`'s
-  // state by the time the call lands.
+  // DCMS-1694: reopening on a macrotask (rather than a microtask) is still
+  // what bounds the synchronous/rapid-fire rate of emits to roughly one per
+  // tick. DCMS-1755 no longer depends on this reopen's timing to decide
+  // whether a later call is "part of the same chain" - `chainDepth` above
+  // does that job regardless of how many ticks (or how much wall-clock
+  // time) elapse before the next call lands - so this only has to coalesce
+  // same-tick bursts, not also serve as an idle detector.
   function scheduleReopen(onEmit) {
     setTimeout(() => {
       isEmitting = false;
@@ -249,7 +258,7 @@ export function createChangeGuard(initialValue) {
         const next = pendingValue;
         hasPending = false;
         pendingValue = undefined;
-        guardChange(next, onEmit, true);
+        guardChange(next, onEmit);
       }
     }, 0);
   }
