@@ -1084,3 +1084,53 @@ only. They are not an authorization boundary, because a caller can invoke the AP
 CMS interface. Server-side enforcement must be configured independently through the decap API
 authorization work tracked by `laikacms/laikacms#793` and the tenant policy tracked by
 `sempostma/superstar.nl#1019`.
+
+### Top-level `field_groups`
+
+A top-level `field_groups` map defines reusable field lists that can be referenced from anywhere a
+regular field entry is allowed, via the `{ group: '<name>' }` shorthand:
+
+```yaml
+field_groups:
+  seo:
+    - { name: seo_title, label: 'SEO Title', widget: string, required: false }
+    - { name: seo_description, label: 'SEO Description', widget: text, required: false }
+
+collections:
+  - name: posts
+    label: Posts
+    folder: content/posts
+    fields:
+      - { name: title, label: Title, widget: string }
+      - { group: seo }
+      - name: sections
+        label: Sections
+        widget: list
+        fields:
+          - { group: seo } # groups also work nested inside `object`/`list` fields
+```
+
+`{ group: '<name>' }` is expanded by `expandFieldGroups()` in
+[`src/core/actions/config.tsx`](./actions/config.tsx) as part of `normalizeConfig`, before any other
+config normalization runs — nothing downstream of that point ever sees a group reference. Expansion
+is recursive: a `{ group: ... }` entry is resolved wherever it appears in a collection's or file's
+top-level `fields`, and also inside the `fields` of nested `object` widgets and the `field`/`fields`/
+`types` of `list` widgets, so groups can be reused arbitrarily deep in the field tree.
+
+Each expansion deep-clones the group's field definitions (`cloneDeep(group)`,
+`src/core/actions/config.tsx:112`), so multiple uses of the same group — across different
+collections, or repeated within one collection — never share the same field objects; editing one
+expanded copy (e.g. via widget defaults set at runtime) cannot affect another.
+
+Two config errors are reported with fixed message shapes:
+
+- Referencing an undefined group throws
+  `Field group '<name>' is referenced but not defined in 'field_groups'. Available groups: <name1>, <name2>.`
+  (or `... No 'field_groups' are configured.` when the map is empty).
+- A group that (directly or transitively) references itself throws
+  `Circular 'field_groups' reference detected: <name1> -> <name2> -> <name1>`, printing the full
+  reference chain that closed the loop.
+
+Behavior above is pinned by unit tests in
+[`src/core/actions/__tests__/config.spec.ts`](./actions/__tests__/config.spec.ts) and
+[`src/core/actions/__tests__/readme-field-groups.spec.ts`](./actions/__tests__/readme-field-groups.spec.ts).
