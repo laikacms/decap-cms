@@ -20,6 +20,133 @@ function makeAuthenticator() {
   });
 }
 
+describe('ImplicitAuthenticator.authenticate', () => {
+  let navigatedUrl;
+
+  beforeEach(() => {
+    navigatedUrl = null;
+    // jsdom stores the Location impl on document.location via a unique Symbol.
+    // We can retrieve the impl without importing jsdom's utils (which has module-cache issues in Jest)
+    // by using Object.getOwnPropertySymbols — there is exactly one Symbol on the wrapper.
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { serializeURL } = require('whatwg-url');
+    const implSymbol = Object.getOwnPropertySymbols(document.location)[0];
+    const locationImpl = document.location[implSymbol];
+    const origNavigate = locationImpl._locationObjectNavigate;
+    locationImpl._locationObjectNavigate = function interceptedNavigate(urlRecord) {
+      navigatedUrl = typeof urlRecord === 'string' ? urlRecord : serializeURL(urlRecord);
+    };
+    locationImpl.__origNavigate__ = origNavigate;
+  });
+
+  afterEach(() => {
+    const implSymbol = Object.getOwnPropertySymbols(document.location)[0];
+    const locationImpl = document.location[implSymbol];
+    if (locationImpl && locationImpl.__origNavigate__) {
+      locationImpl._locationObjectNavigate = locationImpl.__origNavigate__;
+      delete locationImpl.__origNavigate__;
+    }
+  });
+
+  it('builds the authorization URL with the required params', () => {
+    const authenticator = makeAuthenticator();
+    const cb = jest.fn();
+
+    authenticator.authenticate({ scope: 'repo' }, cb);
+
+    expect(cb).not.toHaveBeenCalled();
+    expect(navigatedUrl).not.toBeNull();
+    const url = new URL(navigatedUrl);
+    expect(url.origin + url.pathname).toBe('https://example.com/oauth/authorize');
+    expect(url.searchParams.get('client_id')).toBe('app-id');
+    expect(url.searchParams.get('redirect_uri')).toBe(
+      document.location.origin + document.location.pathname,
+    );
+    expect(url.searchParams.get('response_type')).toBe('token');
+    expect(url.searchParams.get('scope')).toBe('repo');
+  });
+
+  it('includes prompt in the authorization URL when provided', () => {
+    const authenticator = makeAuthenticator();
+    const cb = jest.fn();
+
+    authenticator.authenticate({ scope: 'repo', prompt: 'select_account' }, cb);
+
+    const url = new URL(navigatedUrl);
+    expect(url.searchParams.get('prompt')).toBe('select_account');
+  });
+
+  it('does not include prompt in the authorization URL when not provided', () => {
+    const authenticator = makeAuthenticator();
+    const cb = jest.fn();
+
+    authenticator.authenticate({ scope: 'repo' }, cb);
+
+    const url = new URL(navigatedUrl);
+    expect(url.searchParams.has('prompt')).toBe(false);
+  });
+
+  it('includes resource in the authorization URL when provided', () => {
+    const authenticator = makeAuthenticator();
+    const cb = jest.fn();
+
+    authenticator.authenticate({ scope: 'repo', resource: 'some-resource' }, cb);
+
+    const url = new URL(navigatedUrl);
+    expect(url.searchParams.get('resource')).toBe('some-resource');
+  });
+
+  it('does not include resource in the authorization URL when not provided', () => {
+    const authenticator = makeAuthenticator();
+    const cb = jest.fn();
+
+    authenticator.authenticate({ scope: 'repo' }, cb);
+
+    const url = new URL(navigatedUrl);
+    expect(url.searchParams.has('resource')).toBe(false);
+  });
+
+  it('sets state to valid JSON containing a nonce and stores it for later validation', () => {
+    window.sessionStorage.clear();
+    const authenticator = makeAuthenticator();
+    const cb = jest.fn();
+
+    authenticator.authenticate({ scope: 'repo' }, cb);
+
+    const url = new URL(navigatedUrl);
+    const state = JSON.parse(url.searchParams.get('state'));
+    expect(state.auth_type).toBe('implicit');
+    expect(typeof state.nonce).toBe('string');
+    expect(state.nonce.length).toBeGreaterThan(0);
+
+    // createNonce() also persists the nonce to sessionStorage so completeAuth() can validate it later
+    const stored = JSON.parse(window.sessionStorage.getItem(AUTH_NONCE_STORAGE_KEY));
+    expect(stored.nonce).toBe(state.nonce);
+  });
+
+  it('calls cb(Error) and does not navigate when the protocol is insecure', () => {
+    const docImplSym = Object.getOwnPropertySymbols(document)[0];
+    const docImpl = document[docImplSym];
+    const savedHost = docImpl._URL.host;
+    const savedProtocol = docImpl._URL.protocol;
+    docImpl._URL.protocol = 'http:';
+    docImpl._URL.host = 'insecure.example.com';
+
+    try {
+      const authenticator = makeAuthenticator();
+      const cb = jest.fn();
+
+      authenticator.authenticate({ scope: 'repo' }, cb);
+
+      expect(cb).toHaveBeenCalledWith(new Error('Cannot authenticate over insecure protocol!'));
+      expect(navigatedUrl).toBeNull();
+    } finally {
+      docImpl._URL.protocol = savedProtocol;
+      docImpl._URL.host = savedHost;
+    }
+  });
+});
+
 describe('ImplicitAuthenticator.completeAuth', () => {
   beforeEach(() => {
     window.sessionStorage.clear();
