@@ -83,6 +83,13 @@ than a numeric offset, and a `UTC` label is shown next to the input. Source: `Da
   picker_utc: true
 ```
 
+## Deprecated camelCase aliases
+
+`dateFormat`, `timeFormat`, and `pickerUtc` are deprecated aliases for `date_format`,
+`time_format`, and `picker_utc`. They're silently normalized to their snake_case equivalents at
+runtime, so existing configs keep working, but new configs should use the snake_case keys. Source:
+`WIDGET_KEY_MAP`/`setSnakeCaseConfig` in `src/core/actions/config.tsx`.
+
 ## `{{now}}` default
 
 If a field's default value is the literal string `{{now}}`, the widget substitutes the current
