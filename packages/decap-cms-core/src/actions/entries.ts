@@ -990,7 +990,9 @@ export function persistEntry(collection: Collection) {
       // DCMS-1684: surface which top-level field to scroll/focus, regardless
       // of its widget type, so the caller (EditorInterface) can jump the
       // user straight to it instead of leaving focus on the Save button.
-      const fields = selectFields(collection, entryDraft.getIn(['entry', 'slug']));
+      const fields = collection.type
+        ? selectFields(collection, entryDraft.getIn(['entry', 'slug']))
+        : collection.fields;
       const firstInvalidFieldName = getFirstInvalidFieldName(fieldsErrors, fields);
       return Promise.reject(
         new EntryValidationError('Entry has validation errors', firstInvalidFieldName),
