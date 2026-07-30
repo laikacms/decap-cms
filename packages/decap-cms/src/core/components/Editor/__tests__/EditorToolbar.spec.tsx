@@ -163,6 +163,41 @@ describe('EditorToolbar', () => {
       );
       expect(screen.getByRole('button', { name: 'editor.editorToolbar.save' })).toBeEnabled();
     });
+
+    it('disables once a save starts (isPersisting) and re-enables once it settles (DCMS-1763)', () => {
+      const { rerender } = render(
+        <EditorToolbar {...props} hasWorkflow={true} isNewEntry={false} hasChanged={true} isPersisting={false} />,
+      );
+      expect(screen.getByRole('button', { name: 'editor.editorToolbar.save' })).toBeEnabled();
+
+      rerender(
+        <EditorToolbar {...props} hasWorkflow={true} isNewEntry={false} hasChanged={true} isPersisting={true} />,
+      );
+      expect(screen.getByRole('button', { name: /editor.editorToolbar.saving/ })).toBeDisabled();
+
+      // Settles (success resets hasChanged; failure just clears isPersisting).
+      rerender(
+        <EditorToolbar {...props} hasWorkflow={true} isNewEntry={false} hasChanged={false} isPersisting={false} />,
+      );
+      expect(screen.getByRole('button', { name: 'editor.editorToolbar.save' })).toBeDisabled();
+    });
+
+    it('rapid double-click only calls onPersist once, even before isPersisting re-renders (DCMS-1763)', async () => {
+      const user = userEvent.setup({ delay: null });
+      render(
+        <EditorToolbar {...props} hasWorkflow={true} isNewEntry={false} hasChanged={true} isPersisting={false} />,
+      );
+      const button = screen.getByRole('button', { name: 'editor.editorToolbar.save' });
+
+      // Two clicks fired back-to-back before any prop update simulates the
+      // "isPersisting hasn't reached this render yet" window from the real
+      // bug - the ref-based guard in `triggerPersist` must still stop the
+      // second one.
+      await user.click(button);
+      await user.click(button);
+
+      expect(props.onPersist).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('Cmd/Ctrl+S save shortcut (DCMS-NEW-SAVE-SHORTCUT)', () => {

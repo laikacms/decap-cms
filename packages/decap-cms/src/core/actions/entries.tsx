@@ -897,6 +897,15 @@ export function persistEntry(collection: Collection) {
     const fieldsErrors = entryDraft.fieldsErrors;
     const usedSlugs = selectPublishedSlugs(state, collection.name) ?? [];
 
+    // Defense in depth against the double-click Save race (DCMS-1763): the
+    // toolbar's `disabled` prop can't stop a second dispatch that lands
+    // before React commits the `isPersisting` re-render, so re-check the
+    // freshly read store state here too and bail out rather than starting a
+    // second persist (and a second, possibly stale, validation read).
+    if ((entryDraft.entry as { isPersisting?: boolean } | undefined)?.isPersisting) {
+      return Promise.reject();
+    }
+
     if (Object.keys(fieldsErrors ?? {}).length > 0) {
       const hasPresenceErrors = Object.values(fieldsErrors!).some((errors: any) =>
         errors.some((error: any) => error.type && error.type === ValidationErrorTypes.PRESENCE)

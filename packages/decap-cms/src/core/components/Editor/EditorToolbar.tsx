@@ -358,6 +358,28 @@ export function EditorToolbar(props: EditorToolbarProps) {
   // listener, matching `LaikaEditorToolbar`'s `mod+s` registration, so it
   // gets the same modal-suspension/typing-safe handling for free.
   const canSave = hasEditAccess && hasWorkflow && (isNewEntry || !!hasChanged) && !isPersisting;
+
+  // DCMS-1763: `isPersisting` only reaches this component on the *next*
+  // render after `entryPersisting` is dispatched, so a second Save click (or
+  // a click racing the Cmd/Ctrl+S shortcut) that lands before that render
+  // commits would still read the stale `canSave === true` and fire a second
+  // `onPersist`. Gate with a ref too, which flips synchronously in the
+  // click/shortcut handler itself instead of waiting on React - this is what
+  // actually closes the double-click window; the `disabled` prop below only
+  // keeps the button visually/accessibly in sync once the render catches up.
+  const persistInFlightRef = React.useRef(false);
+  React.useEffect(() => {
+    if (!isPersisting) persistInFlightRef.current = false;
+  }, [isPersisting]);
+  const triggerPersist = React.useCallback(
+    (opts?: { createNew?: boolean, duplicate?: boolean }) => {
+      if (persistInFlightRef.current) return;
+      persistInFlightRef.current = true;
+      onPersist(opts);
+    },
+    [onPersist],
+  );
+
   useShortcut({
     id: 'editor.save',
     sequence: 'mod+s',
@@ -366,7 +388,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
     allowInInput: true,
     when: () => hasWorkflow ?? false,
     run: () => {
-      if (canSave) onPersist();
+      if (canSave) triggerPersist();
     },
   });
 
@@ -690,9 +712,14 @@ export function EditorToolbar(props: EditorToolbarProps) {
     // new entry could never be submitted to surface validation errors
     // (#757). New entries must stay saveable regardless of `hasChanged`;
     // existing entries still require a real change first.
-    const canSave = isNewEntry || hasChanged;
+    //
+    // This reuses the component-scope `canSave` (which also factors in
+    // `!isPersisting`) instead of redeclaring its own - a local shadow here
+    // used to omit the `isPersisting` check entirely, so the button never
+    // disabled while a save was in flight and rapid double-clicks could fire
+    // `onPersist` twice (DCMS-1763).
     return [
-      <SaveButton disabled={!canSave} key="save-button" onClick={() => canSave && onPersist()}>
+      <SaveButton disabled={!canSave} key="save-button" onClick={() => canSave && triggerPersist()}>
         {isPersisting ? t('editor.editorToolbar.saving') : t('editor.editorToolbar.save')}
       </SaveButton>,
       currentStatus
