@@ -202,12 +202,16 @@ describe('EditorToolbar', () => {
     });
 
     it('should enable the workflow Save button once isPersisting resolves', () => {
-      render(<EditorToolbar {...props} hasWorkflow={true} hasChanged={true} isPersisting={false} />);
+      render(
+        <EditorToolbar {...props} hasWorkflow={true} hasChanged={true} isPersisting={false} />,
+      );
       expect(screen.getByText('editor.editorToolbar.save')).not.toBeDisabled();
     });
 
     it('should call onPersist once for a single click', () => {
-      render(<EditorToolbar {...props} hasWorkflow={true} hasChanged={true} isPersisting={false} />);
+      render(
+        <EditorToolbar {...props} hasWorkflow={true} hasChanged={true} isPersisting={false} />,
+      );
       fireEvent.click(screen.getByText('editor.editorToolbar.save'));
       expect(props.onPersist).toHaveBeenCalledTimes(1);
     });
@@ -232,8 +236,12 @@ describe('EditorToolbar', () => {
       fireEvent.click(screen.getByText('editor.editorToolbar.save'));
       expect(props.onPersist).toHaveBeenCalledTimes(1);
 
-      rerender(<EditorToolbar {...props} hasWorkflow={true} hasChanged={true} isPersisting={true} />);
-      rerender(<EditorToolbar {...props} hasWorkflow={true} hasChanged={true} isPersisting={false} />);
+      rerender(
+        <EditorToolbar {...props} hasWorkflow={true} hasChanged={true} isPersisting={true} />,
+      );
+      rerender(
+        <EditorToolbar {...props} hasWorkflow={true} hasChanged={true} isPersisting={false} />,
+      );
 
       fireEvent.click(screen.getByText('editor.editorToolbar.save'));
       expect(props.onPersist).toHaveBeenCalledTimes(2);
