@@ -57,6 +57,9 @@ function fieldsConfig(): JSONSchema {
     // the rest of the app ever sees a field, so `group` never coexists with
     // widget-specific properties in practice - see the `oneOf` below.
     group: { type: 'string' },
+    // Field-level steganographic-encoding opt-out, effective once the
+    // collection has opted in via `editor.visualEditing`. See stega.tsx.
+    visualEditing: { type: 'boolean' },
   };
   const field: JSONSchema = {
     // ------- Each field: -------
