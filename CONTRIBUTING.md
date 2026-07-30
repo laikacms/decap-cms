@@ -54,9 +54,15 @@ pnpm test -- -t "name pattern"
 1. Fork the repo and create a branch from `v4.beta`, the active development trunk.
 2. If you have added code that should be tested, add tests. Tests are colocated in `__tests__/`
    directories as `*.spec.tsx` / `*.test.ts`.
-3. Follow [Conventional Commits](https://www.conventionalcommits.org/); commitlint runs on the
-   `commit-msg` hook. House style is `type(scope): subject (DCMS-nnn)` with an area slug scope such
-   as `core`, `app`, or `widget-richtext`.
+3. Follow [Conventional Commits](https://www.conventionalcommits.org/); commitlint enforces this
+   shape on the `commit-msg` hook (see `.husky/commit-msg` and `commitlint.config.cjs`) — a
+   `type: subject` or `type(scope): subject` header, an allowed `type` (`feat`, `fix`, `docs`,
+   `chore`, `refactor`, `test`, `perf`, ...), and a handful of casing/length rules from
+   [`@commitlint/config-conventional`](https://github.com/conventional-changelog/commitlint/tree/master/%40commitlint/config-conventional),
+   which is the only thing `commitlint.config.cjs` extends. Maintainers additionally expect an
+   area-slug scope (`core`, `app`, `widget-richtext`, ...) and a `(DCMS-nnn)` ticket suffix in code
+   review, but **neither is mechanically enforced by commitlint** (no `scope-enum` rule, no
+   ticket-suffix rule) — treat them as house style flagged by reviewers, not a hard commit-msg gate.
 4. If your change should ship in the next release, run `pnpm changeset` (a.k.a. `pnpm changeset add`)
    from the repo root and follow the prompts to add a changeset entry describing the change. This is
    what the release tooling reads to bump versions and generate `CHANGELOG.md` — see
