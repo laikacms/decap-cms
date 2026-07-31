@@ -110,9 +110,10 @@ const WIDGET_KEY_MAP = {
 } as const;
 
 function setSnakeCaseConfig<T extends CmsField>(field: T) {
-  const deprecatedKeys = Object.keys(WIDGET_KEY_MAP).filter(
-    camel => camel in field,
-  ) as ReadonlyArray<keyof typeof WIDGET_KEY_MAP>;
+  const deprecatedKeys = Object.keys(WIDGET_KEY_MAP).filter(camel => {
+    const snake = WIDGET_KEY_MAP[camel as keyof typeof WIDGET_KEY_MAP];
+    return camel in field && !(snake in field);
+  }) as ReadonlyArray<keyof typeof WIDGET_KEY_MAP>;
 
   const snakeValues = deprecatedKeys.map(camel => {
     const snake = WIDGET_KEY_MAP[camel];
