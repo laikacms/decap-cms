@@ -2,10 +2,11 @@ import { history } from '../routing/history';
 import { getCollectionUrl, getNewEntryUrl } from '../lib/urlHelper';
 
 export function searchCollections(query: string, collection: string) {
+  const encodedQuery = encodeURIComponent(query);
   if (collection) {
-    history.push(`/collections/${collection}/search/${query}`);
+    history.push(`/collections/${collection}/search/${encodedQuery}`);
   } else {
-    history.push(`/search/${query}`);
+    history.push(`/search/${encodedQuery}`);
   }
 }
 
