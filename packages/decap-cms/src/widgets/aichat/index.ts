@@ -1,5 +1,6 @@
 import { AiChatControl } from './AiChatControl';
 import { AiChatPreview } from './AiChatPreview';
+import schema from './schema';
 
 import type { AiChatWidgetOptions } from './types';
 
@@ -19,6 +20,7 @@ function Widget(opts: AiChatWidgetOptions = {}) {
     name: 'ai-chat',
     controlComponent: AiChatControl,
     previewComponent: AiChatPreview,
+    schema,
     ...opts,
   };
 }
