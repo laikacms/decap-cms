@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import { translate } from 'react-polyglot';
 import { lengths, components } from 'decap-cms-ui-default';
 
-import { getNewEntryUrl } from '../../lib/urlHelper';
+import { decodeSearchTerm, getNewEntryUrl } from '../../lib/urlHelper';
 import Sidebar from './Sidebar';
 import CollectionTop from './CollectionTop';
 import EntriesCollection from './Entries/EntriesCollection';
@@ -162,7 +162,11 @@ function mapStateToProps(state, ownProps) {
   const { collections } = state;
   const isSearchEnabled = state.config && state.config.search != false;
   const { isSearchResults, match, t } = ownProps;
-  const { name, searchTerm = '', filterTerm = '' } = match.params;
+  const { name, searchTerm: rawSearchTerm = '', filterTerm = '' } = match.params;
+  // DCMS-1792: match.params.searchTerm has already been through history
+  // v4's single `decodeURI` pass, which leaves URI-reserved characters
+  // (`#`, `?`, etc.) as literal `%XX` text; finish decoding those here.
+  const searchTerm = decodeSearchTerm(rawSearchTerm);
   const collection = name ? collections[name] : Object.values(collections)[0];
   const sort = selectEntriesSort(state.entries, collection.name);
   const sortableFields = selectSortableFields(collection, t);

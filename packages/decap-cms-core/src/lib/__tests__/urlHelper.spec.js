@@ -5,6 +5,8 @@ import {
   addParams,
   stripProtocol,
   joinUrlPath,
+  encodeSearchTerm,
+  decodeSearchTerm,
 } from '../urlHelper';
 
 describe('sanitizeURI', () => {
@@ -291,5 +293,46 @@ describe('joinUrlPath', () => {
 
   it('works with relative base paths', () => {
     expect(joinUrlPath('/api', 'v1', 'users')).toBe('/api/v1/users');
+  });
+});
+
+// DCMS-1792: history v4's hash history runs `decodeURI` on the full
+// pathname after every push, which decodes everything except escapes for
+// URI-reserved characters (`; / ? : @ & = + $ , #`). Those arrive at
+// React Router's matched `:searchTerm` param as literal `%XX` text, since
+// nothing decodes them a second time. `decodeSearchTerm` finishes that
+// decode on the consuming side.
+describe('encodeSearchTerm / decodeSearchTerm (DCMS-1792)', () => {
+  it('encodeSearchTerm is a plain encodeURIComponent (DCMS-1788 fix stays intact)', () => {
+    expect(encodeSearchTerm('post # 5')).toBe(encodeURIComponent('post # 5'));
+  });
+
+  it('decodes the reserved-character escapes history v4 leaves behind', () => {
+    // Simulates the string history v4's decodeURI leaves in
+    // location.pathname for `encodeSearchTerm('post # 5')`: everything
+    // except the `#` escape has already been decoded once.
+    expect(decodeSearchTerm('post %23 5')).toBe('post # 5');
+  });
+
+  it('leaves already-decoded text (including a literal %) untouched', () => {
+    // decodeURI has already turned `100%25off` into `100%off`; there is
+    // no further reserved-char escape here for decodeSearchTerm to touch.
+    expect(decodeSearchTerm('100%off')).toBe('100%off');
+  });
+
+  it.each([
+    '50% off',
+    '100%off',
+    'post # 5',
+    'utf8: café',
+    'a?b',
+    'a b%c#d',
+    'a;b/c?d:e@f&g=h+i$j,k#l',
+  ])('round-trips %j through one decodeURI pass + decodeSearchTerm', query => {
+    const encoded = encodeSearchTerm(query);
+    const afterHistoryDecodeURI = decodeURI(`/collections/posts/search/${encoded}`).slice(
+      '/collections/posts/search/'.length,
+    );
+    expect(decodeSearchTerm(afterHistoryDecodeURI)).toBe(query);
   });
 });

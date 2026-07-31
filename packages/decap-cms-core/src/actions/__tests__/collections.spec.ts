@@ -8,6 +8,7 @@ jest.mock('../../routing/history', () => ({
 jest.mock('../../lib/urlHelper', () => ({
   getCollectionUrl: (name: string) => `/collections/${name}`,
   getNewEntryUrl: (name: string) => `/collections/${name}/new`,
+  encodeSearchTerm: (term: string) => encodeURIComponent(term),
 }));
 
 const mockPush = history.push as jest.Mock;

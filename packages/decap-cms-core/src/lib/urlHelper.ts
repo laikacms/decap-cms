@@ -185,3 +185,30 @@ export function sanitizeSlug(str: string, options?: CmsSlug, preserveSlashes?: b
 export function joinUrlPath(base: string, ...path: string[]) {
   return urlJoin(base, ...path);
 }
+
+// DCMS-1792: history v4's hash history runs `decodeURI` on the full
+// pathname after every `history.push`/route change. `decodeURI` decodes
+// every percent-escape EXCEPT the ones whose decoded character is
+// URI-reserved (`; / ? : @ & = + $ , #`) — those are left as literal
+// `%XX` text. React Router's `matchPath` (v5, used here) then reads the
+// matched `:searchTerm` segment as-is, with no second `decodeURIComponent`
+// pass. So a plain `encodeURIComponent(term)` round-trips through the
+// router for every character except the reserved ones, which arrive at
+// the app as literal `%3B`/`%2F`/`%3F`/`%3A`/`%40`/`%26`/`%3D`/`%2B`/`%24`/
+// `%2C`/`%23` text instead of the original character. `decodeSearchTerm`
+// finishes that decode on the consuming side; it must NOT use
+// `decodeURIComponent` on the whole string, since by this point any other
+// `%` characters are already-decoded literal text (e.g. from a search
+// query that itself contained a literal `%`) and may not form valid
+// percent-escapes, which would throw.
+const RESERVED_URI_CHAR_ESCAPES = /%(3B|2F|3F|3A|40|26|3D|2B|24|2C|23)/gi;
+
+export function encodeSearchTerm(term: string): string {
+  return encodeURIComponent(term);
+}
+
+export function decodeSearchTerm(term: string): string {
+  return term.replace(RESERVED_URI_CHAR_ESCAPES, (_match, hex: string) =>
+    String.fromCharCode(parseInt(hex, 16)),
+  );
+}

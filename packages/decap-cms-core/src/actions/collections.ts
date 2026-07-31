@@ -1,8 +1,8 @@
 import { history } from '../routing/history';
-import { getCollectionUrl, getNewEntryUrl } from '../lib/urlHelper';
+import { encodeSearchTerm, getCollectionUrl, getNewEntryUrl } from '../lib/urlHelper';
 
 export function searchCollections(query: string, collection: string) {
-  const encodedQuery = encodeURIComponent(query);
+  const encodedQuery = encodeSearchTerm(query);
   if (collection) {
     history.push(`/collections/${collection}/search/${encodedQuery}`);
   } else {
