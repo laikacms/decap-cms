@@ -142,6 +142,10 @@
         "group": {
           "type": "string",
           "description": "Reusable-field-group reference: expands to `field_groups[group]`'s field list in place of this entry. Mutually exclusive with `name` and all other field properties."
+        },
+        "visualEditing": {
+          "type": "boolean",
+          "description": "Field-level opt-out from steganographic encoding, effective once the collection has opted in via `editor.visualEditing`."
         }
       },
       "oneOf": [{ "required": ["name"] }, { "required": ["group"] }]
