@@ -100,6 +100,33 @@ describe('config', () => {
       }).not.toThrowError();
     });
 
+    it('should throw if backend.name is "laika" and base_url is missing (DCMS-1786)', () => {
+      expect(() => {
+        validateConfig({ ...validConfig, backend: { name: 'laika' } });
+      }).toThrowError("'backend' must have required property 'base_url'");
+    });
+
+    it('should throw if backend.name is "laika" and base_url is an empty string (DCMS-1786)', () => {
+      expect(() => {
+        validateConfig({ ...validConfig, backend: { name: 'laika', base_url: '' } });
+      }).toThrowError();
+    });
+
+    it('should not throw if backend.name is "laika" and base_url is a non-empty string (DCMS-1786)', () => {
+      expect(() => {
+        validateConfig({
+          ...validConfig,
+          backend: { name: 'laika', base_url: 'https://laika.example.com' },
+        });
+      }).not.toThrowError();
+    });
+
+    it('should not require base_url for non-laika backends (DCMS-1786)', () => {
+      expect(() => {
+        validateConfig({ ...validConfig, backend: { name: 'github' } });
+      }).not.toThrowError();
+    });
+
     it('should throw if media_folder is not defined in config', () => {
       expect(() => {
         validateConfig({ foo: 'bar', backend: { name: 'bar' } });
