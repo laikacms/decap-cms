@@ -144,8 +144,18 @@ export function getConfigSchema(): JSONSchema {
           },
           cms_label_prefix: { type: 'string', minLength: 1 },
           open_authoring: { type: 'boolean', examples: [true] },
+          // laika backend only, see below.
+          base_url: { type: 'string' },
+          api_root: { type: 'string' },
+          api_url: { type: 'string' },
+          dev_token: { type: 'string' },
         },
         required: ['name'],
+        // The laika backend needs a `base_url` to reach its API; without it
+        // `laika-backend.ts` fails much later with a cryptic network error
+        // instead of a clear config-time one. See DCMS-1786.
+        if: { properties: { name: { enum: ['laika'] } }, required: ['name'] },
+        then: { required: ['base_url'], properties: { base_url: { minLength: 1 } } },
       },
       local_backend: {
         oneOf: [
