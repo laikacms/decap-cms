@@ -100,6 +100,24 @@ describe('LaikaEditorToolbar', () => {
     expect(getByText('editor.editorToolbar.save').closest('button')).not.toBeDisabled();
   });
 
+  it('exposes the unsaved-changes indicator as a role="status" live region (DCMS-1782)', () => {
+    const { getByRole } = render(
+      <MemoryRouter>
+        <LaikaEditorToolbar {...baseProps} isNewEntry={false} hasChanged />
+      </MemoryRouter>,
+    );
+    expect(getByRole('status')).toHaveTextContent('editor.editorToolbar.unsavedChanges');
+  });
+
+  it('exposes the changes-saved indicator as a role="status" live region (DCMS-1782)', () => {
+    const { getByRole } = render(
+      <MemoryRouter>
+        <LaikaEditorToolbar {...baseProps} isNewEntry={false} hasChanged={false} />
+      </MemoryRouter>,
+    );
+    expect(getByRole('status')).toHaveTextContent('editor.editorToolbar.changesSaved');
+  });
+
   it('fires onPersist when Save is clicked', () => {
     const onPersist = vi.fn();
     const { getByText } = render(

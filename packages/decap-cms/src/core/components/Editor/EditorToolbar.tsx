@@ -736,10 +736,18 @@ export function EditorToolbar(props: EditorToolbarProps) {
             {t('editor.editorToolbar.backCollection', { collectionLabel: collection.label })}
           </BackCollection>
           {hasChanged
-            ? <BackStatusChanged>{t('editor.editorToolbar.unsavedChanges')}</BackStatusChanged>
+            ? (
+              <BackStatusChanged role="status">
+                {t('editor.editorToolbar.unsavedChanges')}
+              </BackStatusChanged>
+            )
             : isNewEntry
             ? null
-            : <BackStatusUnchanged>{t('editor.editorToolbar.changesSaved')}</BackStatusUnchanged>}
+            : (
+              <BackStatusUnchanged role="status">
+                {t('editor.editorToolbar.changesSaved')}
+              </BackStatusUnchanged>
+            )}
         </div>
       </ToolbarSectionBackLink>
       <ToolbarSectionMain>
