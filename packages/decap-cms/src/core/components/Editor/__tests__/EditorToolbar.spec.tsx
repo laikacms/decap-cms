@@ -120,6 +120,26 @@ describe('EditorToolbar', () => {
       render(<EditorToolbar {...props} isNewEntry={false} hasChanged={true} />);
       expect(screen.getByText('editor.editorToolbar.unsavedChanges')).toBeInTheDocument();
     });
+
+    it('exposes the "unsavedChanges" indicator as a role="status" live region (DCMS-1782)', () => {
+      render(<EditorToolbar {...props} isNewEntry={false} hasChanged={true} />);
+      expect(screen.getByRole('status')).toHaveTextContent('editor.editorToolbar.unsavedChanges');
+    });
+
+    it('exposes the "changesSaved" indicator as a role="status" live region (DCMS-1782)', () => {
+      render(<EditorToolbar {...props} isNewEntry={false} hasChanged={false} />);
+      expect(screen.getByRole('status')).toHaveTextContent('editor.editorToolbar.changesSaved');
+    });
+
+    it('keeps the same status live region across a dirty <-> clean transition (DCMS-1782)', () => {
+      const { rerender } = render(
+        <EditorToolbar {...props} isNewEntry={false} hasChanged={true} />,
+      );
+      expect(screen.getByRole('status')).toHaveTextContent('editor.editorToolbar.unsavedChanges');
+
+      rerender(<EditorToolbar {...props} isNewEntry={false} hasChanged={false} />);
+      expect(screen.getByRole('status')).toHaveTextContent('editor.editorToolbar.changesSaved');
+    });
   });
 
   describe('Save button (editorial workflow)', () => {

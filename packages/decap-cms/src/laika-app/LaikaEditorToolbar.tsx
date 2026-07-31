@@ -332,7 +332,7 @@ function LaikaEditorToolbar({
           {saveLabel}
         </LaikaButton>
 
-        <ChangesIndicator $changed={!!hasChanged}>
+        <ChangesIndicator $changed={!!hasChanged} role="status">
           {hasChanged
             ? t('editor.editorToolbar.unsavedChanges')
             : t('editor.editorToolbar.changesSaved')}
