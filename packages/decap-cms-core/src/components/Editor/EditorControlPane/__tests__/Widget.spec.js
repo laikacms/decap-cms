@@ -1,3 +1,5 @@
+import React, { Component } from 'react';
+import { act, render } from '@testing-library/react';
 import { fromJS, List } from 'immutable';
 import { z } from 'zod';
 
@@ -64,6 +66,100 @@ describe('Widget', () => {
       const result = mismatchWidget.validatePattern(field, mismatchWidget.getValidateValue());
       expect(result.error).toBeTruthy();
       expect(result.error.type).toBe(ValidationErrorTypes.PATTERN);
+    });
+  });
+
+  describe('shouldComponentUpdate delegation into wrapped controls (DCMS-1693)', () => {
+    // Regression test for the DCMS-1689 follow-up: Widget.shouldComponentUpdate
+    // used to delegate to a wrapped control's own `shouldComponentUpdate` by
+    // splicing in Widget's *own* `nextState` (always `null`, since Widget never
+    // calls `setState`) instead of the wrapped control's. Any wrapped control
+    // whose own `shouldComponentUpdate` reads `nextState` (e.g.
+    // decap-cms-widget-relation's RelationControl, DCMS-1421's `quickAdd` local
+    // state) crashed reading a property off `null`.
+    //
+    // This renders a real Widget wrapping a plain React.Component control - the
+    // same shape RelationControl has - whose own `shouldComponentUpdate` reads
+    // `nextState.quickAdd` and throws if `nextState` isn't its own state object.
+    // Updating a prop on Widget (mirroring typing into an unrelated sibling
+    // field re-rendering the entry form) must not crash, and the wrapped
+    // control's `shouldComponentUpdate` must observe its own next state, not
+    // Widget's.
+    class WrappedControl extends Component {
+      constructor(props) {
+        super(props);
+        this.state = { quickAdd: false };
+      }
+
+      shouldComponentUpdate(nextProps, nextState) {
+        // Pre-fix, Widget delegated its own (always-null) nextState here,
+        // which threw reading `.quickAdd` off it - exactly like
+        // RelationControl.shouldComponentUpdate did in production.
+        return nextState.quickAdd !== this.state.quickAdd || nextProps.value !== this.props.value;
+      }
+
+      render() {
+        return <div data-testid="wrapped">{`${this.props.value}:${this.state.quickAdd}`}</div>;
+      }
+    }
+
+    it("uses the wrapped control's own nextState, not Widget's, when React updates it", () => {
+      const scuSpy = jest.spyOn(WrappedControl.prototype, 'shouldComponentUpdate');
+
+      const field = fromJS({ name: 'title' });
+      const baseProps = {
+        field,
+        controlComponent: WrappedControl,
+        classNameWrapper: '',
+        classNameWidget: '',
+        classNameWidgetActive: '',
+        classNameLabel: '',
+        classNameLabelActive: '',
+        mediaPaths: fromJS({}),
+        entry: fromJS({}),
+        widget: {},
+        resolveWidget: () => {},
+        getEditorComponents: () => {},
+        query: () => {},
+        clearSearch: () => {},
+        clearFieldErrors: () => {},
+        editorControl: 'div',
+        uniqueFieldId: 'title-field',
+        loadEntry: () => {},
+        t: key => key,
+        onChange: () => {},
+        onOpenMediaLibrary: () => {},
+        onClearMediaControl: () => {},
+        onRemoveMediaControl: () => {},
+        onPersistMedia: () => {},
+        onAddAsset: () => {},
+        onRemoveInsertedMedia: () => {},
+        getAsset: () => {},
+        setActiveStyle: () => {},
+        setInactiveStyle: () => {},
+      };
+
+      const { rerender } = render(<Widget {...baseProps} value="a" />);
+
+      scuSpy.mockClear();
+
+      // Mirrors the repro: an unrelated sibling field's edit re-renders the
+      // entry form, changing this Widget's `value` prop while the wrapped
+      // control's own state (`quickAdd`) is untouched.
+      expect(() => {
+        act(() => {
+          rerender(<Widget {...baseProps} value="b" />);
+        });
+      }).not.toThrow();
+
+      expect(scuSpy).toHaveBeenCalledTimes(1);
+      const [nextProps, nextState] = scuSpy.mock.calls[0];
+      expect(nextProps.value).toBe('b');
+      // The wrapped control's own next state, not Widget's (which is always
+      // `null` - Widget never calls setState).
+      expect(nextState).toEqual({ quickAdd: false });
+
+      scuSpy.mockRestore();
     });
   });
 

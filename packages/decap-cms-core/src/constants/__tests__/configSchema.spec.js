@@ -400,6 +400,26 @@ describe('config', () => {
       }).not.toThrow();
     });
 
+    it('should throw if collections search_fields is not a string array', () => {
+      expect(() => {
+        validateConfig(merge({}, validConfig, { collections: [{ search_fields: 'title' }] }));
+      }).toThrowError("'collections[0].search_fields' must be array");
+    });
+
+    it('should allow search_fields to be a string array', () => {
+      expect(() => {
+        validateConfig(
+          merge({}, validConfig, { collections: [{ search_fields: ['title', 'body'] }] }),
+        );
+      }).not.toThrow();
+    });
+
+    it('should allow search_fields to be an empty array', () => {
+      expect(() => {
+        validateConfig(merge({}, validConfig, { collections: [{ search_fields: [] }] }));
+      }).not.toThrow();
+    });
+
     it('should allow sortableFields instead of sortable_fields', () => {
       expect(() => {
         validateConfig(merge({}, validConfig, { collections: [{ sortableFields: [] }] }));
@@ -1086,6 +1106,38 @@ describe('config', () => {
             merge({}, validConfig, { collections: [{ editor: { visualEditing: 'yes' } }] }),
           );
         }).toThrowError("'collections[0].editor.visualEditing' must be boolean");
+      });
+    });
+
+    describe('top-level editor', () => {
+      it('should not throw when editor is absent', () => {
+        expect(() => {
+          validateConfig(merge({}, validConfig));
+        }).not.toThrow();
+      });
+
+      it('should not throw when editor.preview is true', () => {
+        expect(() => {
+          validateConfig(merge({}, validConfig, { editor: { preview: true } }));
+        }).not.toThrow();
+      });
+
+      it('should not throw when editor.visualEditing is true', () => {
+        expect(() => {
+          validateConfig(merge({}, validConfig, { editor: { visualEditing: true } }));
+        }).not.toThrow();
+      });
+
+      it('should not throw when editor.visualEditing is false', () => {
+        expect(() => {
+          validateConfig(merge({}, validConfig, { editor: { visualEditing: false } }));
+        }).not.toThrow();
+      });
+
+      it('should throw when editor.visualEditing is not a boolean', () => {
+        expect(() => {
+          validateConfig(merge({}, validConfig, { editor: { visualEditing: 'yes' } }));
+        }).toThrowError("'editor.visualEditing' must be boolean");
       });
     });
 

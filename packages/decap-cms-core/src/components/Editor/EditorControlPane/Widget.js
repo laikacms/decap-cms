@@ -63,6 +63,7 @@ export default class Widget extends Component {
     editorControl: PropTypes.elementType.isRequired,
     uniqueFieldId: PropTypes.string.isRequired,
     loadEntry: PropTypes.func.isRequired,
+    onQuickCreateEntry: PropTypes.func,
     t: PropTypes.func.isRequired,
     onValidateObject: PropTypes.func,
     isEditorComponent: PropTypes.bool,
@@ -86,11 +87,23 @@ export default class Widget extends Component {
      */
     if (this.props.isLoadingAsset && nextProps.isLoadingAsset) return false;
     /**
-     * Allow widgets to provide their own `shouldComponentUpdate` method.
+     * DCMS-1691/DCMS-1693: this used to delegate to the wrapped control's own
+     * `shouldComponentUpdate` (e.g. decap-cms-widget-relation's quick-add
+     * modal, DCMS-1421) as a manual optimization, splicing this `Widget`
+     * wrapper's own `nextState`/`nextContext` into the call. That's unsound:
+     * `nextState` there is `Widget`'s own next state - always `null`, since
+     * `Widget` never calls `setState` - not the wrapped control's, so any
+     * wrapped control whose `shouldComponentUpdate` reads `nextState` (like
+     * `RelationControl`) crashed reading off `null`/`undefined`.
+     *
+     * The wrapped control is a real `React.Component` rendered as a child
+     * (see `render()` below), so React already calls its own
+     * `shouldComponentUpdate` with its own correct `nextState` whenever it
+     * needs to update - no manual delegation required. Falling through to
+     * the default comparison below just decides whether `Widget` itself
+     * bails out early; it no longer needs to (and must not) speak for the
+     * wrapped control.
      */
-    if (this.wrappedControlShouldComponentUpdate) {
-      return this.wrappedControlShouldComponentUpdate(nextProps);
-    }
     return (
       this.props.value !== nextProps.value ||
       this.props.classNameWrapper !== nextProps.classNameWrapper ||
@@ -110,13 +123,6 @@ export default class Widget extends Component {
     this.innerWrappedControl = ref.getWrappedInstance ? ref.getWrappedInstance() : ref;
 
     this.wrappedControlValid = this.innerWrappedControl.isValid || truthy;
-
-    /**
-     * Get the `shouldComponentUpdate` method from the wrapped control, and
-     * provide the control instance is the `this` binding.
-     */
-    const { shouldComponentUpdate: scu } = this.innerWrappedControl;
-    this.wrappedControlShouldComponentUpdate = scu && scu.bind(this.innerWrappedControl);
 
     // Call the control ref if provided, passing this Widget instance
     if (this.props.controlRef) {
@@ -178,6 +184,7 @@ export default class Widget extends Component {
         issues.map(issue => ({
           type: ValidationErrorTypes.CUSTOM,
           parentIds,
+          fieldName: field.get('name'),
           message: issue.message,
         })),
       );
@@ -190,6 +197,7 @@ export default class Widget extends Component {
         {
           type: ValidationErrorTypes.CUSTOM,
           parentIds,
+          fieldName: field.get('name'),
           message: t('editor.editorControlPane.widget.processing', {
             fieldLabel: field.get('label', field.get('name')),
           }),
@@ -200,6 +208,7 @@ export default class Widget extends Component {
           {
             type: ValidationErrorTypes.CUSTOM,
             parentIds,
+            fieldName: field.get('name'),
             message: `${field.get('label', field.get('name'))} - ${err}.`,
           },
         ]);
@@ -251,6 +260,7 @@ export default class Widget extends Component {
       const error = {
         type: ValidationErrorTypes.PRESENCE,
         parentIds,
+        fieldName: field.get('name'),
         message: t('editor.editorControlPane.widget.required', {
           fieldLabel: field.get('label', field.get('name')),
         }),
@@ -273,6 +283,7 @@ export default class Widget extends Component {
       const error = {
         type: ValidationErrorTypes.PATTERN,
         parentIds,
+        fieldName: field.get('name'),
         message: t('editor.editorControlPane.widget.regexPattern', {
           fieldLabel: field.get('label', field.get('name')),
           pattern: pattern.last(),
@@ -390,6 +401,7 @@ export default class Widget extends Component {
       clearFieldErrors,
       isFetching,
       loadEntry,
+      onQuickCreateEntry,
       fieldsErrors,
       controlRef,
       isEditorComponent,
@@ -447,6 +459,7 @@ export default class Widget extends Component {
       clearFieldErrors,
       isFetching,
       loadEntry,
+      onQuickCreateEntry,
       isEditorComponent,
       isNewEditorComponent,
       fieldsErrors,

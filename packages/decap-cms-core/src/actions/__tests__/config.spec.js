@@ -639,6 +639,30 @@ describe('config', () => {
       expect(field.enableAlpha).toBe(true);
     });
 
+    test('should keep explicit snake_case value when both camelCase and snake_case are set (DCMS-1789)', () => {
+      const result = applyDefaults(
+        normalizeConfig({
+          collections: [
+            {
+              folder: 'src',
+              fields: [
+                {
+                  name: 'bg',
+                  widget: 'color',
+                  allow_input: true,
+                  allowInput: false,
+                },
+              ],
+            },
+          ],
+        }),
+      );
+      const field = result.collections[0].fields[0];
+      // explicit snake_case value wins over the deprecated camelCase alias
+      expect(field.allow_input).toBe(true);
+      expect(field.allowInput).toBe(false);
+    });
+
     describe('i18n', () => {
       it('should set root i18n on collection when collection i18n is set to true', () => {
         expect(

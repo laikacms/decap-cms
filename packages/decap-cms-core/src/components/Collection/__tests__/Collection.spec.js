@@ -28,25 +28,25 @@ describe('Collection', () => {
     sortable_fields: [],
     view_filters: [],
     view_groups: [],
-  });
+  }).toObject();
   const props = {
-    collections: fromJS([collection]).toOrderedMap(),
+    collections: { [collection.name]: collection },
     collection,
-    collectionName: collection.get('name'),
+    collectionName: collection.name,
     t: jest.fn(key => key),
     onSortClick: jest.fn(),
   };
 
   it('should render with collection without create url', () => {
     const { asFragment } = render(
-      <Collection {...props} collection={collection.set('create', false)} />,
+      <Collection {...props} collection={{ ...collection, create: false }} />,
     );
 
     expect(asFragment()).toMatchSnapshot();
   });
   it('should render with collection with create url', () => {
     const { asFragment } = render(
-      <Collection {...props} collection={collection.set('create', true)} />,
+      <Collection {...props} collection={{ ...collection, create: true }} />,
     );
 
     expect(asFragment()).toMatchSnapshot();
@@ -54,7 +54,7 @@ describe('Collection', () => {
 
   it('should render with collection with create url and path', () => {
     const { asFragment } = render(
-      <Collection {...props} collection={collection.set('create', true)} filterTerm="dir1/dir2" />,
+      <Collection {...props} collection={{ ...collection, create: true }} filterTerm="dir1/dir2" />,
     );
 
     expect(asFragment()).toMatchSnapshot();

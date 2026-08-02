@@ -20,6 +20,9 @@ import {
   updateUnpublishedEntryStatus,
   publishUnpublishedEntry,
   deleteUnpublishedEntry,
+  scheduleUnpublishedEntryPublish,
+  unscheduleUnpublishedEntryPublish,
+  checkScheduledPublishes,
 } from '../../actions/editorialWorkflow';
 import { selectUnpublishedEntriesGroupedByStatus } from '../../reducers';
 import { EDITORIAL_WORKFLOW } from '../../constants/publishModes';
@@ -53,7 +56,7 @@ const WorkflowTopDescription = styled.p`
 
 class Workflow extends Component {
   static propTypes = {
-    collections: ImmutablePropTypes.map.isRequired,
+    collections: PropTypes.object.isRequired,
     isEditorialWorkflow: PropTypes.bool.isRequired,
     isOpenAuthoring: PropTypes.bool,
     isFetching: PropTypes.bool,
@@ -62,16 +65,36 @@ class Workflow extends Component {
     updateUnpublishedEntryStatus: PropTypes.func.isRequired,
     publishUnpublishedEntry: PropTypes.func.isRequired,
     deleteUnpublishedEntry: PropTypes.func.isRequired,
+    scheduleUnpublishedEntryPublish: PropTypes.func.isRequired,
+    unscheduleUnpublishedEntryPublish: PropTypes.func.isRequired,
+    checkScheduledPublishes: PropTypes.func.isRequired,
     t: PropTypes.func.isRequired,
   };
+
+  // How often to check whether any "Ready" entry's scheduled publish time has
+  // arrived. This only runs while the board is mounted in a browser tab; see the
+  // doc comment on checkScheduledPublishes in actions/editorialWorkflow.ts.
+  static SCHEDULED_PUBLISH_POLL_INTERVAL = 30000;
 
   componentDidMount() {
     // Manually validate PropTypes - React 19 breaking change
     PropTypes.checkPropTypes(Workflow.propTypes, this.props, 'prop', 'Workflow');
 
-    const { loadUnpublishedEntries, isEditorialWorkflow, collections } = this.props;
+    const { loadUnpublishedEntries, isEditorialWorkflow, collections, checkScheduledPublishes } =
+      this.props;
     if (isEditorialWorkflow) {
       loadUnpublishedEntries(collections);
+      checkScheduledPublishes();
+      this.scheduledPublishInterval = setInterval(
+        checkScheduledPublishes,
+        Workflow.SCHEDULED_PUBLISH_POLL_INTERVAL,
+      );
+    }
+  }
+
+  componentWillUnmount() {
+    if (this.scheduledPublishInterval) {
+      clearInterval(this.scheduledPublishInterval);
     }
   }
 
@@ -84,6 +107,8 @@ class Workflow extends Component {
       updateUnpublishedEntryStatus,
       publishUnpublishedEntry,
       deleteUnpublishedEntry,
+      scheduleUnpublishedEntryPublish,
+      unscheduleUnpublishedEntryPublish,
       collections,
       t,
     } = this.props;
@@ -106,14 +131,13 @@ class Workflow extends Component {
                 <StyledDropdownButton>{t('workflow.workflow.newPost')}</StyledDropdownButton>
               )}
             >
-              {collections
-                .filter(collection => collection.get('create'))
-                .toList()
+              {Object.values(collections)
+                .filter(collection => collection.create)
                 .map(collection => (
                   <DropdownItem
-                    key={collection.get('name')}
-                    label={collection.get('label')}
-                    onClick={() => createNewEntry(collection.get('name'))}
+                    key={collection.name}
+                    label={collection.label}
+                    onClick={() => createNewEntry(collection.name)}
                   />
                 ))}
             </Dropdown>
@@ -130,6 +154,8 @@ class Workflow extends Component {
           handleChangeStatus={updateUnpublishedEntryStatus}
           handlePublish={publishUnpublishedEntry}
           handleDelete={deleteUnpublishedEntry}
+          handleSchedulePublish={scheduleUnpublishedEntryPublish}
+          handleUnschedulePublish={unscheduleUnpublishedEntryPublish}
           isOpenAuthoring={isOpenAuthoring}
           collections={collections}
         />
@@ -163,4 +189,7 @@ export default connect(mapStateToProps, {
   updateUnpublishedEntryStatus,
   publishUnpublishedEntry,
   deleteUnpublishedEntry,
+  scheduleUnpublishedEntryPublish,
+  unscheduleUnpublishedEntryPublish,
+  checkScheduledPublishes,
 })(translate()(Workflow));

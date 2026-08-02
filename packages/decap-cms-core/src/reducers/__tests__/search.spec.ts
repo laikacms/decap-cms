@@ -11,6 +11,8 @@ import {
 } from '../../actions/search';
 
 import type { Search } from '../search';
+import type { SearchAction } from '../../actions/search';
+import type { EntryValue } from '../../valueObjects/Entry';
 
 const defaultState: Search = {
   isFetching: false,
@@ -24,12 +26,12 @@ const defaultState: Search = {
 };
 
 function makeEntry(collection: string, slug: string) {
-  return { collection, slug } as any;
+  return { collection, slug } as EntryValue;
 }
 
 describe('search reducer', () => {
   it('should return the default state for unknown actions', () => {
-    const result = search(undefined, { type: 'UNKNOWN' } as any);
+    const result = search(undefined, { type: 'UNKNOWN' } as unknown as SearchAction);
     expect(result).toEqual(defaultState);
   });
 

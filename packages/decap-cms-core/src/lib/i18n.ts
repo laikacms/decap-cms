@@ -23,7 +23,7 @@ export enum I18N_FIELD {
 }
 
 export function hasI18n(collection: Collection) {
-  return collection.has(I18N);
+  return collection[I18N] !== undefined;
 }
 
 export type I18nInfo = {
@@ -36,7 +36,7 @@ export function getI18nInfo(collection: Collection) {
   if (!hasI18n(collection)) {
     return {};
   }
-  const { structure, locales, default_locale: defaultLocale } = collection.get(I18N).toJS();
+  const { structure, locales, default_locale: defaultLocale } = collection[I18N].toJS();
   return { structure, locales, defaultLocale } as I18nInfo;
 }
 
@@ -229,10 +229,10 @@ function applyDefaultI18nValues(
   value: EntryValue,
   defaultLocaleValue: EntryValue,
 ) {
-  if (collection.get('fields') === undefined) {
+  if (collection.fields === undefined) {
     return;
   }
-  collection.get('fields').forEach(field => {
+  collection.fields.forEach(field => {
     if (field && field.get(I18N) === I18N_FIELD.DUPLICATE) {
       const data = value.data[field.get('name')];
       if (!data) {

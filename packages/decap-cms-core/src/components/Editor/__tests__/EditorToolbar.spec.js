@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { fromJS } from 'immutable';
 
 import { EditorToolbar } from '../EditorToolbar';
@@ -83,6 +83,35 @@ describe('EditorToolbar', () => {
     it('should enable the save button for a pristine new entry with workflow controls', () => {
       render(<EditorToolbar {...props} hasWorkflow={true} isNewEntry={true} hasChanged={false} />);
       expect(screen.getByText('editor.editorToolbar.save')).not.toBeDisabled();
+    });
+  });
+
+  describe('DCMS-1774: dirty-state indicator is announced to screen readers', () => {
+    it('should expose the "unsavedChanges" indicator as a role="status" live region', () => {
+      render(<EditorToolbar {...props} isNewEntry={false} hasChanged={true} />);
+      const indicator = screen.getByRole('status');
+      expect(indicator).toHaveTextContent('editor.editorToolbar.unsavedChanges');
+    });
+
+    it('should expose the "changesSaved" indicator as a role="status" live region', () => {
+      render(<EditorToolbar {...props} isNewEntry={false} hasChanged={false} />);
+      const indicator = screen.getByRole('status');
+      expect(indicator).toHaveTextContent('editor.editorToolbar.changesSaved');
+    });
+
+    it('should re-announce via the same live region when transitioning from dirty back to clean', () => {
+      const { rerender } = render(
+        <EditorToolbar {...props} isNewEntry={false} hasChanged={true} />,
+      );
+      expect(screen.getByRole('status')).toHaveTextContent('editor.editorToolbar.unsavedChanges');
+
+      rerender(<EditorToolbar {...props} isNewEntry={false} hasChanged={false} />);
+      expect(screen.getByRole('status')).toHaveTextContent('editor.editorToolbar.changesSaved');
+    });
+
+    it('should not render a status live region for a pristine new entry (nothing to announce)', () => {
+      render(<EditorToolbar {...props} isNewEntry={true} hasChanged={false} />);
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
     });
   });
 
@@ -192,6 +221,59 @@ describe('EditorToolbar', () => {
       expect(firstSignal.aborted).toBe(true);
       const secondSignal = props.loadDeployPreview.mock.calls[1][0].signal;
       expect(secondSignal.aborted).toBe(false);
+    });
+  });
+
+  describe('DCMS-1763: disable Save while in-flight / double-click race', () => {
+    it('should disable the workflow Save button while isPersisting is true', () => {
+      render(<EditorToolbar {...props} hasWorkflow={true} hasChanged={true} isPersisting={true} />);
+      expect(screen.getByText('editor.editorToolbar.saving')).toBeDisabled();
+    });
+
+    it('should enable the workflow Save button once isPersisting resolves', () => {
+      render(
+        <EditorToolbar {...props} hasWorkflow={true} hasChanged={true} isPersisting={false} />,
+      );
+      expect(screen.getByText('editor.editorToolbar.save')).not.toBeDisabled();
+    });
+
+    it('should call onPersist once for a single click', () => {
+      render(
+        <EditorToolbar {...props} hasWorkflow={true} hasChanged={true} isPersisting={false} />,
+      );
+      fireEvent.click(screen.getByText('editor.editorToolbar.save'));
+      expect(props.onPersist).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not double-dispatch onPersist on a rapid double-click before isPersisting re-renders', () => {
+      const { container } = render(
+        <EditorToolbar {...props} hasWorkflow={true} hasChanged={true} isPersisting={false} />,
+      );
+      const saveButton = screen.getByText('editor.editorToolbar.save');
+      // Two clicks land back-to-back, before any prop update from the store
+      // (the button's `disabled` prop is still stale `false` for both).
+      fireEvent.click(saveButton);
+      fireEvent.click(saveButton);
+      expect(props.onPersist).toHaveBeenCalledTimes(1);
+      expect(container).toBeTruthy();
+    });
+
+    it('should re-arm the double-click guard once a completed persist resolves', () => {
+      const { rerender } = render(
+        <EditorToolbar {...props} hasWorkflow={true} hasChanged={true} isPersisting={false} />,
+      );
+      fireEvent.click(screen.getByText('editor.editorToolbar.save'));
+      expect(props.onPersist).toHaveBeenCalledTimes(1);
+
+      rerender(
+        <EditorToolbar {...props} hasWorkflow={true} hasChanged={true} isPersisting={true} />,
+      );
+      rerender(
+        <EditorToolbar {...props} hasWorkflow={true} hasChanged={true} isPersisting={false} />,
+      );
+
+      fireEvent.click(screen.getByText('editor.editorToolbar.save'));
+      expect(props.onPersist).toHaveBeenCalledTimes(2);
     });
   });
 });

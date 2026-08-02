@@ -18,6 +18,8 @@ import {
   UNPUBLISHED_ENTRY_PUBLISH_SUCCESS,
   UNPUBLISHED_ENTRY_PUBLISH_FAILURE,
   UNPUBLISHED_ENTRY_DELETE_SUCCESS,
+  UNPUBLISHED_ENTRY_PUBLISH_SCHEDULE_SUCCESS,
+  UNPUBLISHED_ENTRY_PUBLISH_UNSCHEDULE_SUCCESS,
 } from '../../actions/editorialWorkflow';
 
 import type { EditorialWorkflowAction } from '../../types/redux';
@@ -261,6 +263,50 @@ describe('editorialWorkflow reducer', () => {
         action(UNPUBLISHED_ENTRY_PUBLISH_FAILURE, { collection: 'posts', slug: 'my-post' }),
       );
       expect(result).toBe(initial);
+    });
+  });
+
+  describe('UNPUBLISHED_ENTRY_PUBLISH_SCHEDULE_SUCCESS', () => {
+    it('sets publishAt for the given collection.slug entity', () => {
+      const initial = Map({
+        entities: Map({ 'posts.my-post': fromJS({ slug: 'my-post', status: 'pending_publish' }) }),
+        pages: Map(),
+      });
+      const result = reducer(
+        initial,
+        action(UNPUBLISHED_ENTRY_PUBLISH_SCHEDULE_SUCCESS, {
+          collection: 'posts',
+          slug: 'my-post',
+          publishAt: '2026-08-01T00:00:00.000Z',
+        }),
+      );
+      expect(result.getIn(['entities', 'posts.my-post', 'publishAt'])).toBe(
+        '2026-08-01T00:00:00.000Z',
+      );
+    });
+  });
+
+  describe('UNPUBLISHED_ENTRY_PUBLISH_UNSCHEDULE_SUCCESS', () => {
+    it('removes publishAt from the given collection.slug entity', () => {
+      const initial = Map({
+        entities: Map({
+          'posts.my-post': fromJS({
+            slug: 'my-post',
+            status: 'pending_publish',
+            publishAt: '2026-08-01T00:00:00.000Z',
+          }),
+        }),
+        pages: Map(),
+      });
+      const result = reducer(
+        initial,
+        action(UNPUBLISHED_ENTRY_PUBLISH_UNSCHEDULE_SUCCESS, {
+          collection: 'posts',
+          slug: 'my-post',
+        }),
+      );
+      expect(result.getIn(['entities', 'posts.my-post', 'publishAt'])).toBeUndefined();
+      expect(result.getIn(['entities', 'posts.my-post', 'slug'])).toBe('my-post');
     });
   });
 

@@ -89,7 +89,9 @@ describe('github backend implementation', () => {
   describe('persistMedia', () => {
     const persistFiles = jest.fn();
     const mockAPI = {
+      repo: 'owner/repo',
       persistFiles,
+      readFile: jest.fn().mockRejectedValue({ status: 404 }),
     };
 
     persistFiles.mockImplementation((_, files) => {

@@ -46,10 +46,10 @@ const ErrorCodeBlock = styled.pre`
   line-height: 1.5;
 `;
 
-function getDefaultPath(collections) {
-  const first = collections.filter(collection => collection.get('hide') !== true).first();
+export function getDefaultPath(collections) {
+  const first = Object.values(collections).find(collection => collection.hide !== true);
   if (first) {
-    return `/collections/${first.get('name')}`;
+    return `/collections/${first.name}`;
   } else {
     throw new Error('Could not find a non hidden collection');
   }
@@ -111,7 +111,7 @@ export function isEditorRoute(pathname, collections) {
   return (
     base === 'collections' &&
     (view === 'entries' || view === 'new') &&
-    Boolean(collections.get(collectionName))
+    Boolean(collections[collectionName])
   );
 }
 
@@ -122,7 +122,7 @@ export function RouteInCollection({ collections, render, t, ...props }) {
       {...props}
       render={routeProps => {
         const { name } = routeProps.match.params;
-        const collectionExists = collections.get(name);
+        const collectionExists = collections[name];
         return collectionExists ? (
           render(routeProps)
         ) : (

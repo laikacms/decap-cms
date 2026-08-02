@@ -15,7 +15,9 @@ const initialState = OrderedMap({
 describe('entries', () => {
   describe('reducer', () => {
     it('should mark entries as fetching', () => {
-      expect(reducer(initialState, actions.entriesLoading(fromJS({ name: 'posts' })))).toEqual(
+      expect(
+        reducer(initialState, actions.entriesLoading(fromJS({ name: 'posts' }).toObject())),
+      ).toEqual(
         OrderedMap(
           fromJS({
             posts: { name: 'posts' },
@@ -33,7 +35,10 @@ describe('entries', () => {
         { slug: 'b', title: 'B' },
       ];
       expect(
-        reducer(initialState, actions.entriesLoaded(fromJS({ name: 'posts' }), entries, 0)),
+        reducer(
+          initialState,
+          actions.entriesLoaded(fromJS({ name: 'posts' }).toObject(), entries, 0),
+        ),
       ).toEqual(
         OrderedMap(
           fromJS({
@@ -55,7 +60,9 @@ describe('entries', () => {
 
     it('should handle loaded entry', () => {
       const entry = { slug: 'a', path: '' };
-      expect(reducer(initialState, actions.entryLoaded(fromJS({ name: 'posts' }), entry))).toEqual(
+      expect(
+        reducer(initialState, actions.entryLoaded(fromJS({ name: 'posts' }).toObject(), entry)),
+      ).toEqual(
         OrderedMap(
           fromJS({
             posts: { name: 'posts' },
@@ -78,7 +85,7 @@ describe('entries', () => {
       expect(
         selectMediaFolder(
           { media_folder: 'static/media' },
-          fromJS({ name: 'posts' }),
+          fromJS({ name: 'posts' }).toObject(),
           undefined,
           undefined,
         ),
@@ -89,7 +96,7 @@ describe('entries', () => {
       expect(
         selectMediaFolder(
           { media_folder: 'static/media' },
-          fromJS({ name: 'posts', folder: 'posts', media_folder: '' }),
+          fromJS({ name: 'posts', folder: 'posts', media_folder: '' }).toObject(),
           undefined,
           undefined,
         ),
@@ -100,7 +107,7 @@ describe('entries', () => {
       expect(
         selectMediaFolder(
           { media_folder: 'static/media' },
-          fromJS({ name: 'posts', folder: 'posts', media_folder: '' }),
+          fromJS({ name: 'posts', folder: 'posts', media_folder: '' }).toObject(),
           fromJS({ path: 'posts/title/index.md' }),
           undefined,
         ),
@@ -110,8 +117,8 @@ describe('entries', () => {
     it('should resolve collection relative media folder', () => {
       expect(
         selectMediaFolder(
-          fromJS({ media_folder: 'static/media' }),
-          fromJS({ name: 'posts', folder: 'posts', media_folder: '../' }),
+          { media_folder: 'static/media' },
+          fromJS({ name: 'posts', folder: 'posts', media_folder: '../' }).toObject(),
           fromJS({ path: 'posts/title/index.md' }),
           undefined,
         ),
@@ -128,7 +135,7 @@ describe('entries', () => {
             folder: 'other',
             fields: [field],
             media_folder: '../',
-          }),
+          }).toObject(),
           fromJS({ path: 'src/other/other.md', data: {} }),
           field,
         ),
@@ -143,7 +150,7 @@ describe('entries', () => {
             name: 'getting-started',
             folder: 'src/docs/getting-started',
             media_folder: '/static/images/docs/getting-started',
-          }),
+          }).toObject(),
           fromJS({}),
           undefined,
         ),
@@ -166,7 +173,7 @@ describe('entries', () => {
         folder: 'content',
         media_folder: '../../../{{media_folder}}/{{category}}/{{slug}}',
         fields: [{ name: 'title', widget: 'string' }],
-      });
+      }).toObject();
 
       expect(
         selectMediaFolder(
@@ -193,7 +200,7 @@ describe('entries', () => {
         folder: 'src/docs/extending',
         media_folder: '{{media_folder}}/docs/extending',
         fields: [{ name: 'title', widget: 'string' }],
-      });
+      }).toObject();
 
       expect(
         selectMediaFolder(
@@ -226,14 +233,14 @@ describe('entries', () => {
             media_folder: '../../../{{media_folder}}/{{category}}/{{slug}}',
           },
         ],
-      });
+      }).toObject();
 
       expect(
         selectMediaFolder(
           { media_folder: 'static/media', slug: slugConfig },
           collection,
           entry,
-          collection.get('fields').get(0),
+          collection.fields.get(0),
         ),
       ).toEqual('static/media/hosting-and-deployment/deployment-with-nanobox');
     });
@@ -255,7 +262,7 @@ describe('entries', () => {
         folder: 'content',
         media_folder: '{{media_folder}}/blog',
         fields: [{ name: 'title', widget: 'string' }],
-      });
+      }).toObject();
 
       expect(
         selectMediaFolder(
@@ -280,7 +287,10 @@ describe('entries', () => {
       expect(
         selectMediaFolder(
           { media_folder: 'static/media' },
-          fromJS({ name: 'posts', files: [{ name: 'index', media_folder: '/static/images/' }] }),
+          fromJS({
+            name: 'posts',
+            files: [{ name: 'index', media_folder: '/static/images/' }],
+          }).toObject(),
           fromJS({ path: 'posts/title/index.md', slug: 'index' }),
           undefined,
         ),
@@ -318,7 +328,7 @@ describe('entries', () => {
               ],
             },
           ],
-        }),
+        }).toObject(),
         fromJS({ path: 'src/customers/customers.md', slug: 'customers', data: { title: 'title' } }),
       ];
 
@@ -347,7 +357,7 @@ describe('entries', () => {
       expect(
         selectMediaFilePath(
           { media_folder: 'static/media' },
-          fromJS({ name: 'posts', folder: 'posts' }),
+          fromJS({ name: 'posts', folder: 'posts' }).toObject(),
           undefined,
           'image.png',
           undefined,
@@ -359,7 +369,7 @@ describe('entries', () => {
       expect(
         selectMediaFilePath(
           { media_folder: 'static/media' },
-          fromJS({ name: 'posts', folder: 'posts', media_folder: '' }),
+          fromJS({ name: 'posts', folder: 'posts', media_folder: '' }).toObject(),
           undefined,
           'image.png',
           undefined,
@@ -371,7 +381,11 @@ describe('entries', () => {
       expect(
         selectMediaFilePath(
           { media_folder: 'static/media' },
-          fromJS({ name: 'posts', folder: 'posts', media_folder: '../../static/media/' }),
+          fromJS({
+            name: 'posts',
+            folder: 'posts',
+            media_folder: '../../static/media/',
+          }).toObject(),
           fromJS({ path: 'posts/title/index.md' }),
           'image.png',
           undefined,
@@ -384,7 +398,7 @@ describe('entries', () => {
       expect(
         selectMediaFilePath(
           { media_folder: 'static/media' },
-          fromJS({ name: 'posts', folder: 'posts', fields: [field] }),
+          fromJS({ name: 'posts', folder: 'posts', fields: [field] }).toObject(),
           fromJS({ path: 'posts/title/index.md' }),
           'image.png',
           field,
@@ -416,7 +430,7 @@ describe('entries', () => {
       expect(
         selectMediaFilePublicPath(
           { public_folder: '/media' },
-          fromJS({ name: 'posts', folder: 'posts', public_folder: '' }),
+          fromJS({ name: 'posts', folder: 'posts', public_folder: '' }).toObject(),
           'image.png',
           undefined,
           undefined,
@@ -428,7 +442,11 @@ describe('entries', () => {
       expect(
         selectMediaFilePublicPath(
           { public_folder: '/media' },
-          fromJS({ name: 'posts', folder: 'posts', public_folder: '../../static/media/' }),
+          fromJS({
+            name: 'posts',
+            folder: 'posts',
+            public_folder: '../../static/media/',
+          }).toObject(),
           'image.png',
           undefined,
           undefined,
@@ -444,7 +462,7 @@ describe('entries', () => {
             name: 'posts',
             folder: 'posts',
             public_folder: 'https://www.netlify.com/media',
-          }),
+          }).toObject(),
           'image.png',
           undefined,
           undefined,
@@ -468,7 +486,7 @@ describe('entries', () => {
         folder: 'content',
         public_folder: '/{{public_folder}}/{{category}}/{{slug}}',
         fields: [{ name: 'title', widget: 'string' }],
-      });
+      }).toObject();
 
       expect(
         selectMediaFilePublicPath(
@@ -502,7 +520,7 @@ describe('entries', () => {
         name: 'posts',
         folder: 'content',
         fields: [field],
-      });
+      }).toObject();
 
       expect(
         selectMediaFilePublicPath(
@@ -536,7 +554,7 @@ describe('entries', () => {
         name: 'posts',
         folder: 'content',
         fields: [field],
-      });
+      }).toObject();
 
       expect(
         selectMediaFilePublicPath(
@@ -564,7 +582,7 @@ describe('entries', () => {
             fields: [{ name: 'title', widget: 'string' }],
           },
         ],
-      });
+      }).toObject();
 
       expect(
         selectMediaFilePublicPath(
@@ -591,7 +609,7 @@ describe('entries', () => {
       });
       const collection = fromJS({
         name: 'posts',
-      });
+      }).toObject();
 
       expect(selectEntries(state, collection)).toEqual(
         fromJS([{ slug: '1' }, { slug: '2' }, { slug: '3' }, { slug: '4' }]),
@@ -612,7 +630,7 @@ describe('entries', () => {
     });
     const collection = fromJS({
       name: 'posts',
-    });
+    }).toObject();
 
     expect(selectEntries(state, collection)).toEqual(
       fromJS([
@@ -637,7 +655,7 @@ describe('entries', () => {
     });
     const collection = fromJS({
       name: 'posts',
-    });
+    }).toObject();
 
     expect(selectEntries(state, collection)).toEqual(
       fromJS([
@@ -662,7 +680,7 @@ describe('entries', () => {
     });
     const collection = fromJS({
       name: 'posts',
-    });
+    }).toObject();
 
     expect(selectEntries(state, collection)).toEqual(fromJS([{ slug: '4', data: { title: '4' } }]));
   });
@@ -682,7 +700,7 @@ describe('entries', () => {
     });
     const collection = fromJS({
       name: 'posts',
-    });
+    }).toObject();
 
     expect(selectEntries(state, collection)).toEqual(
       fromJS([
@@ -703,7 +721,7 @@ describe('entries', () => {
         posts: { title__true: { field: 'title', pattern: true, active: true } },
       },
     });
-    const collection = fromJS({ name: 'posts' });
+    const collection = fromJS({ name: 'posts' }).toObject();
 
     expect(selectEntries(state, collection)).toEqual(fromJS([]));
   });
@@ -719,7 +737,7 @@ describe('entries', () => {
         posts: { title__false: { field: 'title', pattern: false, active: true } },
       },
     });
-    const collection = fromJS({ name: 'posts' });
+    const collection = fromJS({ name: 'posts' }).toObject();
 
     expect(selectEntries(state, collection)).toEqual(fromJS([]));
   });
@@ -735,7 +753,7 @@ describe('entries', () => {
         posts: { draft__true: { field: 'draft', pattern: true, active: true } },
       },
     });
-    const collection = fromJS({ name: 'posts' });
+    const collection = fromJS({ name: 'posts' }).toObject();
 
     expect(selectEntries(state, collection)).toEqual(
       fromJS([{ slug: '1', data: { title: '1', draft: true } }]),
@@ -753,7 +771,7 @@ describe('entries', () => {
         posts: { draft__false: { field: 'draft', pattern: false, active: true } },
       },
     });
-    const collection = fromJS({ name: 'posts' });
+    const collection = fromJS({ name: 'posts' }).toObject();
 
     expect(selectEntries(state, collection)).toEqual(
       fromJS([{ slug: '2', data: { title: '2', draft: false } }]),

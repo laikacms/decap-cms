@@ -77,7 +77,7 @@ export interface CmsFieldBase {
   label?: string;
   required?: boolean;
   hint?: string;
-  pattern?: [string, string];
+  pattern?: [string | RegExp, string];
   i18n?: boolean | 'translate' | 'duplicate' | 'none';
   media_folder?: string;
   public_folder?: string;
@@ -417,6 +417,14 @@ export interface CmsCollection {
   i18n?: boolean | CmsI18nConfig;
 
   /**
+   * Explicit list of field names searched by the sidebar search box and the
+   * `search`/`query` backend methods. When omitted, search fields are
+   * inferred from `summary`/`title`/`shortTitle`/`author` (or, for `files`
+   * collections, all top-level fields).
+   */
+  search_fields?: string[];
+
+  /**
    * @deprecated Use sortable_fields instead
    */
   sortableFields?: (string | SortableField)[];
@@ -449,6 +457,7 @@ export interface CmsSlug {
   encoding?: CmsSlugEncoding;
   clean_accents?: boolean;
   sanitize_replacement?: string;
+  max_length?: number;
 }
 
 export interface CmsLocalBackend {
@@ -612,6 +621,11 @@ export type EntryObject = {
   author?: string;
   updatedOn?: string;
   status: string;
+  publishAt?: string;
+  isFetching?: boolean;
+  isPersisting?: boolean;
+  isPublishing?: boolean;
+  isUpdatingStatus?: boolean;
   meta: StaticallyTypedRecord<{ path: string }>;
 };
 
@@ -619,7 +633,9 @@ export type EntryMap = StaticallyTypedRecord<EntryObject>;
 
 export type Entry = EntryMap & EntryObject;
 
-export type FieldsErrors = StaticallyTypedRecord<{ [field: string]: { type: string }[] }>;
+export type FieldsErrors = StaticallyTypedRecord<{
+  [field: string]: { type: string; message?: string; parentIds?: string[]; fieldName?: string }[];
+}>;
 
 export type EntryDraft = StaticallyTypedRecord<{
   entry: Entry;
@@ -710,6 +726,7 @@ type CollectionObject = {
   label_singular?: string;
   label: string;
   sortable_fields: List<StaticallyTypedRecord<SortableField>>;
+  search_fields?: List<string>;
   view_filters: List<StaticallyTypedRecord<ViewFilter>>;
   view_groups: List<StaticallyTypedRecord<ViewGroup>>;
   nested?: Nested;
@@ -717,9 +734,9 @@ type CollectionObject = {
   i18n: i18n;
 };
 
-export type Collection = StaticallyTypedRecord<CollectionObject>;
+export type Collection = CollectionObject;
 
-export type Collections = StaticallyTypedRecord<{ [path: string]: Collection & CollectionObject }>;
+export type Collections = { [path: string]: Collection };
 
 export interface MediaLibraryInstance {
   show: (args: {
@@ -769,9 +786,10 @@ export type MediaLibrary = StaticallyTypedRecord<{
 
 export type Hook = string | boolean;
 
-export type Integrations = StaticallyTypedRecord<{
+export type Integrations = {
+  providers: Record<string, {}>;
   hooks: { [collectionOrHook: string]: string | Record<string, string> };
-}>;
+};
 
 export interface Cursors {
   cursorsByType: {
@@ -901,5 +919,9 @@ export interface EditorialWorkflowAction extends Action<string> {
     collection: string;
     slug: string;
     newStatus: string;
+  } & {
+    collection: string;
+    slug: string;
+    publishAt?: string;
   };
 }

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import { render } from '@testing-library/react';
-import { fromJS, OrderedMap } from 'immutable';
+import { fromJS } from 'immutable';
 
 import withWorkflow from '../withWorkflow';
 import { EDITORIAL_WORKFLOW, SIMPLE } from '../../../constants/publishModes';
@@ -35,7 +35,7 @@ function createFakeStore(state) {
 function createState({ publishMode, collection, unpublishedEntries = {} }) {
   return {
     config: { publish_mode: publishMode },
-    collections: OrderedMap({ posts: fromJS(collection) }),
+    collections: { posts: fromJS(collection).toObject() },
     editorialWorkflow: fromJS({ entities: unpublishedEntries }),
   };
 }

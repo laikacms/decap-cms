@@ -17,6 +17,7 @@ import {
   clearFieldErrors,
   tryLoadEntry,
   validateMetaField as validateMetaFieldAction,
+  persistQuickCreateEntry,
 } from '../../../actions/entries';
 import { addAsset, boundGetAsset } from '../../../actions/media';
 import { selectIsLoadingAsset } from '../../../reducers/medias';
@@ -161,12 +162,13 @@ class EditorControl extends React.Component {
     clearSearch: PropTypes.func.isRequired,
     clearFieldErrors: PropTypes.func.isRequired,
     loadEntry: PropTypes.func.isRequired,
+    quickCreateEntry: PropTypes.func.isRequired,
     t: PropTypes.func.isRequired,
     isEditorComponent: PropTypes.bool,
     isNewEditorComponent: PropTypes.bool,
     parentIds: PropTypes.arrayOf(PropTypes.string),
     entry: ImmutablePropTypes.map.isRequired,
-    collection: ImmutablePropTypes.map.isRequired,
+    collection: PropTypes.object.isRequired,
     isDisabled: PropTypes.bool,
     isHidden: PropTypes.bool,
     isFieldDuplicate: PropTypes.func,
@@ -273,6 +275,7 @@ class EditorControl extends React.Component {
       clearSearch,
       clearFieldErrors,
       loadEntry,
+      quickCreateEntry,
       className,
       isSelected,
       isEditorComponent,
@@ -395,6 +398,7 @@ class EditorControl extends React.Component {
               editorControl={ConnectedEditorControl}
               query={query}
               loadEntry={loadEntry}
+              onQuickCreateEntry={quickCreateEntry}
               queryHits={queryHits[this.uniqueFieldId] || []}
               clearSearch={clearSearch}
               clearFieldErrors={clearFieldErrors}
@@ -444,7 +448,7 @@ class EditorControl extends React.Component {
 function mapStateToProps(state) {
   const { collections, entryDraft } = state;
   const entry = entryDraft.get('entry');
-  const collection = collections.get(entryDraft.getIn(['entry', 'collection']));
+  const collection = collections[entryDraft.getIn(['entry', 'collection'])];
   const isLoadingAsset = selectIsLoadingAsset(state.medias);
 
   return {
@@ -500,11 +504,20 @@ function mapDispatchToProps(dispatch) {
     loadEntry: (collectionName, slug) =>
       dispatch((_dispatch, getState) => {
         const state = getState();
-        const targetCollection = state.collections.get(collectionName);
+        const targetCollection = state.collections[collectionName];
         if (targetCollection) {
           return tryLoadEntry(state, targetCollection, slug);
         }
         throw new Error(`Can't find collection '${collectionName}'`);
+      }),
+    quickCreateEntry: (collectionName, data) =>
+      dispatch((dispatchInner, getState) => {
+        const state = getState();
+        const targetCollection = state.collections[collectionName];
+        if (!targetCollection) {
+          throw new Error(`Can't find collection '${collectionName}'`);
+        }
+        return dispatchInner(persistQuickCreateEntry(targetCollection, data));
       }),
     validateMetaField: (collection, field, value, t) =>
       dispatch((_dispatch, getState) =>

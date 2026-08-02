@@ -21,6 +21,7 @@ const en = {
       workflow: 'Workflow',
       media: 'Media',
       quickAdd: 'Quick add',
+      offline: 'Offline',
     },
     app: {
       errorHeader: 'Error loading the CMS configuration',
@@ -122,10 +123,14 @@ const en = {
       confirmLoadBackup: 'A local backup was recovered for this entry, would you like to use it?',
       entryNotFoundHeader: 'Entry Not Found',
     },
+    editorFieldNavigator: {
+      title: 'Field outline',
+    },
     editorInterface: {
       toggleI18n: 'Toggle i18n',
       togglePreview: 'Toggle preview',
       toggleScrollSync: 'Sync scrolling',
+      toggleFieldNavigator: 'Toggle field outline',
     },
     editorToolbar: {
       publishing: 'Publishing...',
@@ -298,6 +303,9 @@ const en = {
       onFailToPublishEntry: 'Failed to publish: %{details}',
       onFailToUnpublishEntry: 'Failed to unpublish entry: %{details}',
       entryUpdated: 'Entry status updated',
+      entryScheduled: 'Publish scheduled',
+      entryUnscheduled: 'Scheduled publish cancelled',
+      invalidScheduleDate: 'Please choose a future date and time to schedule publishing',
       onDeleteUnpublishedChanges: 'Unpublished changes deleted',
       onFailToAuth: '%{details}',
       onLoggedOut: 'You have been logged out, please back up any data and login again',
@@ -322,6 +330,11 @@ const en = {
       deleteNewEntry: 'Delete new entry',
       publishChanges: 'Publish changes',
       publishNewEntry: 'Publish new entry',
+      schedulePublish: 'Schedule publish',
+      confirmSchedule: 'Schedule',
+      cancelSchedule: 'Cancel',
+      scheduledFor: 'Scheduled for %{date}',
+      unschedule: 'Cancel scheduled publish',
     },
     workflowList: {
       onDeleteEntry: 'Are you sure you want to delete this entry?',
@@ -332,6 +345,16 @@ const en = {
       inReviewHeader: 'In Review',
       readyHeader: 'Ready',
       currentEntries: '%{smart_count} entry |||| %{smart_count} entries',
+    },
+  },
+  widget: {
+    relation: {
+      quickAdd: {
+        action: '+ Create new %{collection}',
+        title: 'Create new %{collection}',
+        save: 'Save',
+        cancel: 'Cancel',
+      },
     },
   },
 };

@@ -12,7 +12,7 @@ import { vercelStegaDecode } from '@vercel/stega';
 class PreviewContent extends React.Component {
   handleClick = e => {
     const { previewProps, onFieldClick } = this.props;
-    const visualEditing = previewProps?.collection?.getIn(['editor', 'visualEditing'], false);
+    const visualEditing = previewProps?.collection?.editor?.visualEditing ?? false;
 
     if (!visualEditing) {
       return;
@@ -51,7 +51,7 @@ class PreviewContent extends React.Component {
 
   render() {
     const { previewProps } = this.props;
-    const visualEditing = previewProps?.collection?.getIn(['editor', 'visualEditing'], false);
+    const visualEditing = previewProps?.collection?.editor?.visualEditing ?? false;
     const showScrollSync = !visualEditing;
 
     return (

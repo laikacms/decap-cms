@@ -1,4 +1,3 @@
-import { fromJS } from 'immutable';
 import { unsentRequest } from 'decap-cms-lib-util';
 
 import Algolia from '../implementation';
@@ -10,13 +9,11 @@ jest.mock('decap-cms-lib-util', () => ({
 }));
 
 function createAlgolia(config = {}) {
-  return new Algolia(
-    fromJS({
-      applicationID: 'app-id',
-      apiKey: 'api-key',
-      ...config,
-    }),
-  );
+  return new Algolia({
+    applicationID: 'app-id',
+    apiKey: 'api-key',
+    ...config,
+  });
 }
 
 describe('Algolia integration', () => {

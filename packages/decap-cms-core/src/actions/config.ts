@@ -26,6 +26,7 @@ import type {
   CmsI18nConfig,
   CmsPublishMode,
   CmsLocalBackend,
+  Collection,
   State,
 } from '../types/redux';
 
@@ -109,9 +110,10 @@ const WIDGET_KEY_MAP = {
 } as const;
 
 function setSnakeCaseConfig<T extends CmsField>(field: T) {
-  const deprecatedKeys = Object.keys(WIDGET_KEY_MAP).filter(
-    camel => camel in field,
-  ) as ReadonlyArray<keyof typeof WIDGET_KEY_MAP>;
+  const deprecatedKeys = Object.keys(WIDGET_KEY_MAP).filter(camel => {
+    const snake = WIDGET_KEY_MAP[camel as keyof typeof WIDGET_KEY_MAP];
+    return camel in field && !(snake in field);
+  }) as ReadonlyArray<keyof typeof WIDGET_KEY_MAP>;
 
   const snakeValues = deprecatedKeys.map(camel => {
     const snake = WIDGET_KEY_MAP[camel];
@@ -182,8 +184,7 @@ function throwOnMissingDefaultLocale(i18n?: CmsI18nConfig) {
 }
 
 function hasIntegration(config: CmsConfig, collection: CmsCollection) {
-  // TODO remove fromJS when Immutable is removed from the integrations state slice
-  const integrations = getIntegrations(fromJS(config));
+  const integrations = getIntegrations(config);
   const integration = selectIntegration(integrations, collection.name, 'listEntries');
   return !!integration;
 }
@@ -375,8 +376,10 @@ export function applyDefaults(originalConfig: CmsConfig) {
 
       if (!collection.sortable_fields) {
         collection.sortable_fields = selectDefaultSortableFields(
-          // TODO remove fromJS when Immutable is removed from the collections state slice
-          fromJS(collection),
+          // Collection itself is a plain object (DCMS-1667); only its `fields` are
+          // still Immutable (EntryField migration is out of scope for DCMS-1667 —
+          // EntryField is shared across the whole form/widget system).
+          { ...collection, fields: fromJS(collection.fields || []) } as unknown as Collection,
           backend,
           hasIntegration(config, collection),
         );

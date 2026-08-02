@@ -18,7 +18,7 @@ class EntriesSearch extends React.Component {
     searchEntries: PropTypes.func.isRequired,
     clearSearch: PropTypes.func.isRequired,
     searchTerm: PropTypes.string.isRequired,
-    collections: ImmutablePropTypes.seq,
+    collections: PropTypes.array,
     collectionNames: PropTypes.array,
     entries: ImmutablePropTypes.list,
     page: PropTypes.number,
@@ -80,8 +80,8 @@ class EntriesSearch extends React.Component {
 
 function mapStateToProps(state, ownProps) {
   const { searchTerm } = ownProps;
-  const collections = ownProps.collections.toIndexedSeq();
-  const collectionNames = ownProps.collections.keySeq().toArray();
+  const collections = Object.values(ownProps.collections);
+  const collectionNames = Object.keys(ownProps.collections);
   const isFetching = state.search.isFetching;
   const page = state.search.page;
   const entries = selectSearchedEntries(state, collectionNames);

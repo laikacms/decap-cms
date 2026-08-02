@@ -23,6 +23,12 @@ describe('getChangedProps', () => {
     const next = { a: 99, b: 2 };
     expect(getChangedProps(previous, next, ['b'])).toBeUndefined();
   });
+
+  it('detects a key present in next but absent from previous (no explicit keys arg)', () => {
+    const previous = { a: 1 };
+    const next = { a: 1, b: 2 };
+    expect(getChangedProps(previous, next)).toEqual({ b: 2 });
+  });
 });
 
 describe('valueToOption', () => {

@@ -1,4 +1,4 @@
-import { fromJS, Map } from 'immutable';
+import { fromJS } from 'immutable';
 
 import { configLoaded } from '../../actions/config';
 import collections, {
@@ -25,30 +25,26 @@ import { COMMIT_DATE, COMMIT_AUTHOR } from '../../constants/commitProps';
 
 describe('collections', () => {
   it('should handle an empty state', () => {
-    expect(collections(undefined, {})).toEqual(Map());
+    expect(collections(undefined, {})).toEqual({});
   });
 
   it('should load the collections from the config', () => {
-    expect(
-      collections(
-        undefined,
-        configLoaded({
-          collections: [
-            {
-              name: 'posts',
-              folder: '_posts',
-              fields: [{ name: 'title', widget: 'string' }],
-            },
-          ],
-        }),
-      ).toJS(),
-    ).toEqual({
-      posts: {
-        name: 'posts',
-        folder: '_posts',
-        fields: [{ name: 'title', widget: 'string' }],
-      },
-    });
+    const result = collections(
+      undefined,
+      configLoaded({
+        collections: [
+          {
+            name: 'posts',
+            folder: '_posts',
+            fields: [{ name: 'title', widget: 'string' }],
+          },
+        ],
+      }),
+    );
+    expect(Object.keys(result)).toEqual(['posts']);
+    expect(result.posts.name).toBe('posts');
+    expect(result.posts.folder).toBe('_posts');
+    expect(result.posts.fields.toJS()).toEqual([{ name: 'title', widget: 'string' }]);
   });
 
   it('should maintain config collections order', () => {
@@ -64,7 +60,7 @@ describe('collections', () => {
         collections: collectionsData,
       }),
     );
-    const keyArray = newState.keySeq().toArray();
+    const keyArray = Object.keys(newState);
     expect(keyArray).toEqual(collectionsData.map(({ name }) => name));
   });
 
@@ -75,7 +71,7 @@ describe('collections', () => {
           fromJS({
             name: 'pages',
             type: FILES,
-          }),
+          }).toObject(),
         ),
       ).toBe(false);
     });
@@ -88,7 +84,7 @@ describe('collections', () => {
           fromJS({
             type: FOLDER,
             folder: 'posts',
-          }),
+          }).toObject(),
           'dir1/dir2/slug',
         ),
       ).toBe('posts/dir1/dir2/slug.md');
@@ -102,7 +98,7 @@ describe('collections', () => {
         selectEntryPath(
           fromJS({
             type: FOLDER,
-          }),
+          }).toObject(),
           'slug',
         ),
       ).toBeUndefined();
@@ -116,7 +112,7 @@ describe('collections', () => {
           fromJS({
             type: FOLDER,
             folder: 'posts',
-          }),
+          }).toObject(),
           'posts/dir1/dir2/slug.md',
         ),
       ).toBe('dir1/dir2/slug');
@@ -130,7 +126,7 @@ describe('collections', () => {
         selectEntrySlug(
           fromJS({
             type: FOLDER,
-          }),
+          }).toObject(),
           'posts/dir1/dir2/slug.md',
         ),
       ).toBeUndefined();
@@ -139,7 +135,7 @@ describe('collections', () => {
 
   describe('selectFieldsMediaFolders', () => {
     it('should return empty array for invalid collection', () => {
-      expect(selectFieldsWithMediaFolders(fromJS({}))).toEqual([]);
+      expect(selectFieldsWithMediaFolders(fromJS({}).toObject())).toEqual([]);
     });
 
     it('should return configs for folder collection', () => {
@@ -182,7 +178,7 @@ describe('collections', () => {
                 ],
               },
             ],
-          }),
+          }).toObject(),
         ),
       ).toEqual([
         fromJS({
@@ -261,7 +257,7 @@ describe('collections', () => {
                 ],
               },
             ],
-          }),
+          }).toObject(),
           'file4',
         ),
       ).toEqual([
@@ -302,7 +298,7 @@ describe('collections', () => {
                 types: [{ name: 'widget', media_folder: '{{media_folder}}/widgets' }],
               },
             ],
-          }),
+          }).toObject(),
           fromJS({ slug: 'name', path: 'src/post/post1.md', data: {} }),
         ),
       ).toEqual([
@@ -335,7 +331,7 @@ describe('collections', () => {
                 ],
               },
             ],
-          }),
+          }).toObject(),
           fromJS({ slug: 'name', path: 'src/post/post1.md', data: {} }),
         ),
       ).toEqual([
@@ -351,8 +347,8 @@ describe('collections', () => {
     it('should get flat fields names', () => {
       const collection = fromJS({
         fields: [{ name: 'en' }, { name: 'es' }],
-      });
-      expect(getFieldsNames(collection.get('fields').toArray())).toEqual(['en', 'es']);
+      }).toObject();
+      expect(getFieldsNames(collection.fields.toArray())).toEqual(['en', 'es']);
     });
 
     it('should get nested fields names', () => {
@@ -366,8 +362,8 @@ describe('collections', () => {
             fields: [{ name: 'title', widget: 'list', types: [{ name: 'variableType' }] }],
           },
         ],
-      });
-      expect(getFieldsNames(collection.get('fields').toArray())).toEqual([
+      }).toObject();
+      expect(getFieldsNames(collection.fields.toArray())).toEqual([
         'en',
         'es',
         'it',
@@ -388,8 +384,8 @@ describe('collections', () => {
     it('should return top field by key', () => {
       const collection = fromJS({
         fields: [{ name: 'en' }, { name: 'es' }],
-      });
-      expect(selectField(collection, 'en')).toBe(collection.get('fields').get(0));
+      }).toObject();
+      expect(selectField(collection, 'en')).toBe(collection.fields.get(0));
     });
 
     it('should return nested field by key', () => {
@@ -403,18 +399,18 @@ describe('collections', () => {
             fields: [{ name: 'title', widget: 'list', types: [{ name: 'variableType' }] }],
           },
         ],
-      });
+      }).toObject();
 
       expect(selectField(collection, 'en.title')).toBe(
-        collection.get('fields').get(0).get('fields').get(0),
+        collection.fields.get(0).get('fields').get(0),
       );
 
       expect(selectField(collection, 'it.title.subTitle')).toBe(
-        collection.get('fields').get(2).get('field').get('fields').get(0),
+        collection.fields.get(2).get('field').get('fields').get(0),
       );
 
       expect(selectField(collection, 'fr.title.variableType')).toBe(
-        collection.get('fields').get(3).get('fields').get(0).get('types').get(0),
+        collection.fields.get(3).get('fields').get(0).get('types').get(0),
       );
     });
   });
@@ -427,7 +423,7 @@ describe('collections', () => {
     it('should return the entry title if set', () => {
       const collection = fromJS({
         fields: [{ name: 'title' }, { name: 'otherField' }],
-      });
+      }).toObject();
 
       expect(selectEntryCollectionTitle(collection, entry)).toEqual('entry title');
     });
@@ -438,7 +434,7 @@ describe('collections', () => {
       });
       const collection = fromJS({
         fields: [{ name: 'headline' }, { name: 'otherField' }],
-      });
+      }).toObject();
 
       expect(selectEntryCollectionTitle(collection, headlineEntry)).toEqual('entry headline');
     });
@@ -447,7 +443,7 @@ describe('collections', () => {
       const collection = fromJS({
         identifier_field: 'otherField',
         fields: [{ name: 'title' }, { name: 'otherField' }],
-      });
+      }).toObject();
 
       expect(selectEntryCollectionTitle(collection, entry)).toEqual('other field');
     });
@@ -456,7 +452,7 @@ describe('collections', () => {
       const collection = fromJS({
         identifier_field: 'missingLinkTitle',
         fields: [{ name: 'title' }, { name: 'otherField' }],
-      });
+      }).toObject();
 
       expect(selectEntryCollectionTitle(collection, entry)).toEqual('entry title');
     });
@@ -465,7 +461,7 @@ describe('collections', () => {
       const collection = fromJS({
         identifier_field: 'emptyLinkTitle',
         fields: [{ name: 'title' }, { name: 'otherField' }, { name: 'emptyLinkTitle' }],
-      });
+      }).toObject();
 
       expect(selectEntryCollectionTitle(collection, entry)).toEqual('entry title');
     });
@@ -483,7 +479,7 @@ describe('collections', () => {
             label: 'entry label',
           },
         ],
-      });
+      }).toObject();
 
       expect(selectEntryCollectionTitle(collection, labelEntry)).toEqual('entry label');
     });
@@ -493,7 +489,7 @@ describe('collections', () => {
         summary: '{{title}} -- {{otherField}}',
         identifier_field: 'otherField',
         fields: [{ name: 'title' }, { name: 'otherField' }],
-      });
+      }).toObject();
 
       expect(selectEntryCollectionTitle(collection, entry)).toEqual('entry title -- other field');
     });
@@ -513,7 +509,7 @@ describe('collections', () => {
           { name: 'body' },
           { name: 'widgetList', types: [{ name: 'widget' }] },
         ],
-      });
+      }).toObject();
 
       function updater(field) {
         return field.set('default', 'default');
@@ -533,7 +529,7 @@ describe('collections', () => {
             { name: 'body' },
             { name: 'widgetList', types: [{ name: 'widget' }] },
           ],
-        }),
+        }).toObject(),
       );
       expect(updateFieldByKey(collection, 'object.title', updater)).toEqual(
         fromJS({
@@ -551,7 +547,7 @@ describe('collections', () => {
             { name: 'body' },
             { name: 'widgetList', types: [{ name: 'widget' }] },
           ],
-        }),
+        }).toObject(),
       );
 
       expect(updateFieldByKey(collection, 'object.gallery.image', updater)).toEqual(
@@ -570,7 +566,7 @@ describe('collections', () => {
             { name: 'body' },
             { name: 'widgetList', types: [{ name: 'widget' }] },
           ],
-        }),
+        }).toObject(),
       );
       expect(updateFieldByKey(collection, 'list.image', updater)).toEqual(
         fromJS({
@@ -585,7 +581,7 @@ describe('collections', () => {
             { name: 'body' },
             { name: 'widgetList', types: [{ name: 'widget' }] },
           ],
-        }),
+        }).toObject(),
       );
 
       expect(updateFieldByKey(collection, 'widgetList.widget', updater)).toEqual(
@@ -601,7 +597,7 @@ describe('collections', () => {
             { name: 'body' },
             { name: 'widgetList', types: [{ name: 'widget', default: 'default' }] },
           ],
-        }),
+        }).toObject(),
       );
     });
   });
@@ -610,7 +606,7 @@ describe('collections', () => {
     it('should return publishDate if set', () => {
       const collection = fromJS({
         fields: [{ name: 'title' }, { name: 'publishDate', widget: 'datetime' }],
-      });
+      }).toObject();
 
       expect(selectInferredField(collection, 'date')).toEqual('publishDate');
     });
@@ -618,7 +614,7 @@ describe('collections', () => {
     it('should return publish_date if set', () => {
       const collection = fromJS({
         fields: [{ name: 'title' }, { name: 'publish_date', widget: 'datetime' }],
-      });
+      }).toObject();
 
       expect(selectInferredField(collection, 'date')).toEqual('publish_date');
     });
@@ -626,7 +622,7 @@ describe('collections', () => {
     it('should return date if set', () => {
       const collection = fromJS({
         fields: [{ name: 'title' }, { name: 'date', widget: 'datetime' }],
-      });
+      }).toObject();
 
       expect(selectInferredField(collection, 'date')).toEqual('date');
     });
@@ -638,9 +634,48 @@ describe('collections', () => {
           { name: 'publishDate', widget: 'datetime' },
           { name: 'date', widget: 'datetime' },
         ],
-      });
+      }).toObject();
 
       expect(selectInferredField(collection, 'date')).toEqual('publishDate');
+    });
+  });
+
+  describe("selectInferredField(collection, 'title')", () => {
+    it('should not call consoleError for a files-collection with no title synonym field', () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+
+      const collection = fromJS({
+        name: 'settings',
+        type: FILES,
+        fields: [
+          { name: 'site_title', widget: 'markdown' },
+          { name: 'posts', widget: 'list' },
+          { name: 'authors', widget: 'list' },
+        ],
+      }).toObject();
+
+      expect(selectInferredField(collection, 'title')).toBeNull();
+      expect(consoleErrorSpy).not.toHaveBeenCalled();
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should still call consoleError for a folder-collection with no title synonym field', () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+
+      const collection = fromJS({
+        name: 'posts',
+        type: FOLDER,
+        fields: [
+          { name: 'site_title', widget: 'markdown' },
+          { name: 'authors', widget: 'list' },
+        ],
+      }).toObject();
+
+      expect(selectInferredField(collection, 'title')).toBeNull();
+      expect(consoleErrorSpy).toHaveBeenCalled();
+
+      consoleErrorSpy.mockRestore();
     });
   });
 
@@ -649,7 +684,7 @@ describe('collections', () => {
       const collection = fromJS({
         identifier_field: 'name',
         fields: [{ name: 'name' }, { name: 'title' }],
-      });
+      }).toObject();
 
       expect(selectIdentifier(collection)).toEqual('name');
     });
@@ -657,7 +692,7 @@ describe('collections', () => {
     it('should return title if identifier_field is not set', () => {
       const collection = fromJS({
         fields: [{ name: 'title' }, { name: 'path' }],
-      });
+      }).toObject();
 
       expect(selectIdentifier(collection)).toEqual('title');
     });
@@ -665,7 +700,7 @@ describe('collections', () => {
     it('should fall back to a field named path if there is no title and no identifier_field', () => {
       const collection = fromJS({
         fields: [{ name: 'path' }, { name: 'body' }],
-      });
+      }).toObject();
 
       expect(selectIdentifier(collection)).toEqual('path');
     });
@@ -674,7 +709,7 @@ describe('collections', () => {
       const collection = fromJS({
         identifier_field: 'name',
         fields: [{ name: 'path' }, { name: 'body' }],
-      });
+      }).toObject();
 
       expect(selectIdentifier(collection)).toEqual('path');
     });
@@ -682,7 +717,7 @@ describe('collections', () => {
     it('should return undefined if no title, identifier_field, or path field is present', () => {
       const collection = fromJS({
         fields: [{ name: 'body' }],
-      });
+      }).toObject();
 
       expect(selectIdentifier(collection)).toEqual(undefined);
     });
@@ -697,7 +732,7 @@ describe('collections', () => {
       const collection = fromJS({
         sortable_fields: [{ field: COMMIT_DATE }],
         fields: [],
-      });
+      }).toObject();
       const result = selectSortableFields(collection, t);
       expect(result).toHaveLength(1);
       expect(result[0].key).toBe(COMMIT_DATE);
@@ -709,7 +744,7 @@ describe('collections', () => {
       const collection = fromJS({
         sortable_fields: [{ field: COMMIT_DATE, label: 'Modified' }],
         fields: [],
-      });
+      }).toObject();
       const result = selectSortableFields(collection, t);
       expect(result[0].label).toBe('Modified');
     });
@@ -718,7 +753,7 @@ describe('collections', () => {
       const collection = fromJS({
         sortable_fields: [{ field: COMMIT_AUTHOR }],
         fields: [],
-      });
+      }).toObject();
       const result = selectSortableFields(collection, t);
       expect(result).toHaveLength(1);
       expect(result[0].key).toBe(COMMIT_AUTHOR);
@@ -729,7 +764,7 @@ describe('collections', () => {
       const collection = fromJS({
         sortable_fields: [{ field: COMMIT_AUTHOR, label: 'Writer' }],
         fields: [],
-      });
+      }).toObject();
       const result = selectSortableFields(collection, t);
       expect(result[0].label).toBe('Writer');
     });
@@ -738,7 +773,7 @@ describe('collections', () => {
       const collection = fromJS({
         sortable_fields: [{ field: 'title', label: 'Headline' }],
         fields: [{ name: 'title', label: 'Title', widget: 'string' }],
-      });
+      }).toObject();
       const result = selectSortableFields(collection, t);
       expect(result[0].label).toBe('Headline');
     });
@@ -747,7 +782,7 @@ describe('collections', () => {
       const collection = fromJS({
         sortable_fields: [{ field: 'nonexistent' }],
         fields: [{ name: 'title', widget: 'string' }],
-      });
+      }).toObject();
       const result = selectSortableFields(collection, t);
       expect(result).toHaveLength(0);
     });
@@ -756,7 +791,7 @@ describe('collections', () => {
       const collection = fromJS({
         sortable_fields: [{ field: COMMIT_DATE }, { field: 'title' }],
         fields: [{ name: 'title', label: 'Title', widget: 'string' }],
-      });
+      }).toObject();
       const result = selectSortableFields(collection, t);
       expect(result).toHaveLength(2);
       expect(result[0].key).toBe(COMMIT_DATE);
@@ -768,14 +803,14 @@ describe('collections', () => {
     it('should return null when no field has default_sort set', () => {
       const collection = fromJS({
         sortable_fields: [{ field: 'title' }, { field: COMMIT_DATE }],
-      });
+      }).toObject();
       expect(selectDefaultSortField(collection)).toBeNull();
     });
 
     it('should return field and direction "desc" when default_sort is "desc"', () => {
       const collection = fromJS({
         sortable_fields: [{ field: 'title', default_sort: 'desc' }],
-      });
+      }).toObject();
       const result = selectDefaultSortField(collection);
       expect(result).toEqual({ field: 'title', direction: 'desc' });
     });
@@ -783,7 +818,7 @@ describe('collections', () => {
     it('should return direction "asc" when default_sort is "asc"', () => {
       const collection = fromJS({
         sortable_fields: [{ field: 'title', default_sort: 'asc' }],
-      });
+      }).toObject();
       const result = selectDefaultSortField(collection);
       expect(result).toEqual({ field: 'title', direction: 'asc' });
     });
@@ -791,7 +826,7 @@ describe('collections', () => {
     it('should return null when default_sort is true (boolean values do not activate sort)', () => {
       const collection = fromJS({
         sortable_fields: [{ field: 'title', default_sort: true }],
-      });
+      }).toObject();
       const result = selectDefaultSortField(collection);
       expect(result).toBeNull();
     });
@@ -799,7 +834,7 @@ describe('collections', () => {
     it('should return null when default_sort is false (boolean values do not activate sort)', () => {
       const collection = fromJS({
         sortable_fields: [{ field: 'title', default_sort: false }],
-      });
+      }).toObject();
       const result = selectDefaultSortField(collection);
       expect(result).toBeNull();
     });
@@ -810,7 +845,7 @@ describe('collections', () => {
           { field: 'title', default_sort: 'asc' },
           { field: 'date', default_sort: 'desc' },
         ],
-      });
+      }).toObject();
       const result = selectDefaultSortField(collection);
       expect(result).toEqual({ field: 'title', direction: 'asc' });
     });
@@ -819,7 +854,7 @@ describe('collections', () => {
   describe('selectSortDataPath', () => {
     const collection = fromJS({
       fields: [{ name: 'title', widget: 'string' }],
-    });
+    }).toObject();
 
     it('should return "updatedOn" for COMMIT_DATE key', () => {
       expect(selectSortDataPath(collection, COMMIT_DATE)).toBe('updatedOn');
@@ -836,7 +871,7 @@ describe('collections', () => {
     it('should return "data.<key>" for COMMIT_AUTHOR when an author field exists in the collection', () => {
       const collectionWithAuthor = fromJS({
         fields: [{ name: COMMIT_AUTHOR, widget: 'string' }],
-      });
+      }).toObject();
       expect(selectSortDataPath(collectionWithAuthor, COMMIT_AUTHOR)).toBe(`data.${COMMIT_AUTHOR}`);
     });
   });
@@ -845,7 +880,7 @@ describe('collections', () => {
     it('should return an empty array when view_filters is empty', () => {
       const collection = fromJS({
         view_filters: [],
-      });
+      }).toObject();
       expect(selectViewFilters(collection)).toEqual([]);
     });
 
@@ -855,7 +890,7 @@ describe('collections', () => {
           { label: 'Drafts', field: 'draft', pattern: true },
           { label: 'Published', field: 'draft', pattern: false },
         ],
-      });
+      }).toObject();
       const result = selectViewFilters(collection);
       expect(result).toEqual([
         { label: 'Drafts', field: 'draft', pattern: true },
@@ -868,7 +903,7 @@ describe('collections', () => {
     it('should return an empty array when view_groups is empty', () => {
       const collection = fromJS({
         view_groups: [],
-      });
+      }).toObject();
       expect(selectViewGroups(collection)).toEqual([]);
     });
 
@@ -878,7 +913,7 @@ describe('collections', () => {
           { label: 'Year', field: 'date', pattern: '\\d{4}' },
           { label: 'Drafts', field: 'draft' },
         ],
-      });
+      }).toObject();
       const result = selectViewGroups(collection);
       expect(result).toEqual([
         { label: 'Year', field: 'date', pattern: '\\d{4}' },
@@ -894,7 +929,7 @@ describe('collections', () => {
         type: FOLDER,
         meta: { path: { label: 'Path', widget: 'string', index_file: 'index' } },
         fields: [],
-      });
+      }).toObject();
       expect(selectHasMetaPath(collection)).toBe(true);
     });
 
@@ -903,7 +938,7 @@ describe('collections', () => {
         folder: '_posts',
         type: FOLDER,
         fields: [],
-      });
+      }).toObject();
       expect(selectHasMetaPath(collection)).toBeFalsy();
     });
 
@@ -913,7 +948,7 @@ describe('collections', () => {
         type: FOLDER,
         meta: { other: 'value' },
         fields: [],
-      });
+      }).toObject();
       expect(selectHasMetaPath(collection)).toBeFalsy();
     });
 
@@ -922,7 +957,7 @@ describe('collections', () => {
         type: FILES,
         files: [],
         meta: { path: { label: 'Path' } },
-      });
+      }).toObject();
       expect(selectHasMetaPath(collection)).toBeFalsy();
     });
   });

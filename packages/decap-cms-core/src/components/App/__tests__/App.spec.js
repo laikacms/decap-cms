@@ -9,7 +9,6 @@
  * away instead when search is disabled.
  */
 import React from 'react';
-import { fromJS } from 'immutable';
 import { Router, Switch, Route } from 'react-router-dom';
 import { createMemoryHistory } from 'history';
 import { render, act } from '@testing-library/react';
@@ -20,6 +19,7 @@ import {
   getEditorKey,
   isEditorRoute,
   shouldCloseMediaLibraryOnLocationChange,
+  getDefaultPath,
 } from '../App';
 
 describe('isSearchDisabled', () => {
@@ -37,6 +37,40 @@ describe('isSearchDisabled', () => {
 
   it('is enabled when config is undefined', () => {
     expect(isSearchDisabled(undefined)).toBe(false);
+  });
+});
+
+// Regression tests for DCMS-1674: the `collections` state slice was migrated
+// from an Immutable.OrderedMap to a plain object by DCMS-1667 (PR #1672), but
+// getDefaultPath (and the App.js consumers below) kept calling Immutable APIs
+// (.filter/.first/.get) against it, throwing `TypeError: e.filter is not a
+// function` on every collection route. getDefaultPath must work against the
+// real plain-object shape.
+describe('getDefaultPath', () => {
+  it('returns the route for the first non-hidden collection in a plain-object slice', () => {
+    const collections = {
+      posts: { name: 'posts' },
+      pages: { name: 'pages' },
+    };
+
+    expect(getDefaultPath(collections)).toBe('/collections/posts');
+  });
+
+  it('skips hidden collections', () => {
+    const collections = {
+      posts: { name: 'posts', hide: true },
+      pages: { name: 'pages' },
+    };
+
+    expect(getDefaultPath(collections)).toBe('/collections/pages');
+  });
+
+  it('throws when every collection is hidden', () => {
+    const collections = {
+      posts: { name: 'posts', hide: true },
+    };
+
+    expect(() => getDefaultPath(collections)).toThrow('Could not find a non hidden collection');
   });
 });
 
@@ -58,9 +92,9 @@ function t(key, options) {
 // DCMS-503: that NotFoundPage must also echo the unknown collection name, not
 // just a generic "Not Found" header, so a stale/renamed/typo'd URL is obvious.
 describe('RouteInCollection', () => {
-  const collections = fromJS({
+  const collections = {
     posts: { name: 'posts' },
-  });
+  };
 
   it('renders NotFoundPage naming the unknown collection without redirecting', () => {
     const history = createMemoryHistory({ initialEntries: ['/collections/BOGUS-xyz'] });
@@ -109,9 +143,9 @@ describe('RouteInCollection', () => {
 // doesn't exist, because RouteInCollection falls back to NotFoundPage in that
 // case and the user would otherwise be stranded with only a "Back to home" link.
 describe('isEditorRoute', () => {
-  const collections = fromJS({
+  const collections = {
     posts: { name: 'posts' },
-  });
+  };
 
   it('is true for a /new route on an existing collection', () => {
     expect(isEditorRoute('/collections/posts/new', collections)).toBe(true);

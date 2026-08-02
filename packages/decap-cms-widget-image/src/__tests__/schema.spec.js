@@ -34,6 +34,45 @@ describe('image widget schema', () => {
     });
   });
 
+  describe('private', () => {
+    it('is defined as a boolean top-level property in the schema', () => {
+      expect(schema.properties.private).toEqual({ type: 'boolean' });
+    });
+
+    it('accepts true as a valid value', () => {
+      const valid = ajv.validate(widgetSchema, { private: true });
+      expect(valid).toBe(true);
+    });
+
+    it('accepts false as a valid value', () => {
+      const valid = ajv.validate(widgetSchema, { private: false });
+      expect(valid).toBe(true);
+    });
+
+    it('rejects a number value (wrong type)', () => {
+      const valid = ajv.validate(widgetSchema, { private: 1 });
+      expect(valid).toBe(false);
+      expect(ajv.errors.some(e => e.instancePath === '/private')).toBe(true);
+    });
+  });
+
+  describe('tagname', () => {
+    it('is defined as a string top-level property in the schema', () => {
+      expect(schema.properties.tagname).toEqual({ type: 'string' });
+    });
+
+    it('accepts a string value', () => {
+      const valid = ajv.validate(widgetSchema, { tagname: 'figure' });
+      expect(valid).toBe(true);
+    });
+
+    it('rejects a boolean value (wrong type)', () => {
+      const valid = ajv.validate(widgetSchema, { tagname: true });
+      expect(valid).toBe(false);
+      expect(ajv.errors.some(e => e.instancePath === '/tagname')).toBe(true);
+    });
+  });
+
   describe('media_library.allow_multiple', () => {
     it('is defined as a boolean under media_library in the schema', () => {
       expect(schema.properties.media_library).toBeDefined();

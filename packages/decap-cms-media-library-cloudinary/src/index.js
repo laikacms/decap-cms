@@ -21,7 +21,7 @@ const defaultConfig = {
   multiple: false,
 };
 
-function getAssetUrl(asset, { use_secure_url, use_transformations, output_filename_only }) {
+export function getAssetUrl(asset, { use_secure_url, use_transformations, output_filename_only }) {
   /**
    * Allow output of the file name only, in which case the rest of the url (including)
    * transformations) can be handled by the static site generator.

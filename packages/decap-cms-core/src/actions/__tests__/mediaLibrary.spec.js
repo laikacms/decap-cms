@@ -145,7 +145,7 @@ describe('mediaLibrary', () => {
         collections: Map({
           posts: Map({ name: 'posts' }),
         }),
-        integrations: Map(),
+        integrations: {},
         mediaLibrary: Map({
           files: List(),
         }),
@@ -196,7 +196,7 @@ describe('mediaLibrary', () => {
         collections: Map({
           posts: Map({ name: 'posts' }),
         }),
-        integrations: Map(),
+        integrations: {},
         mediaLibrary: Map({
           files: List(),
         }),
@@ -250,7 +250,7 @@ describe('mediaLibrary', () => {
         collections: Map({
           posts: Map({ name: 'posts' }),
         }),
-        integrations: Map(),
+        integrations: {},
         mediaLibrary: Map({
           files: List(),
         }),
@@ -304,7 +304,7 @@ describe('mediaLibrary', () => {
           publish_mode: 'editorial_workflow',
         },
         collections: Map(),
-        integrations: Map(),
+        integrations: {},
         mediaLibrary: Map({
           files: List(),
         }),
@@ -347,7 +347,7 @@ describe('mediaLibrary', () => {
           publish_mode: 'editorial_workflow',
         },
         collections: Map(),
-        integrations: Map(),
+        integrations: {},
         mediaLibrary: Map({
           files: List(),
         }),

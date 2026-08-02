@@ -7,6 +7,12 @@ export default {
     multiple: { type: 'boolean' },
     display_fields: { type: 'array', minItems: 1, items: { type: 'string' } },
     options_length: { type: 'integer' },
+    // Deprecated camelCase aliases — normalised to snake_case at runtime
+    // (see RelationControl.js) and documented in the README's "camelCase
+    // aliases" section.
+    valueField: { type: 'string' },
+    searchFields: { type: 'array', minItems: 1, items: { type: 'string' } },
+    displayFields: { type: 'array', minItems: 1, items: { type: 'string' } },
     optionsLength: { type: 'integer' },
     filters: {
       type: 'array',

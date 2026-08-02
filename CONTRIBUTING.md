@@ -114,6 +114,29 @@ Decap CMS uses the [Forking Workflow](https://www.atlassian.com/git/tutorials/co
 7. PR's must be rebased before merge (feel free to ask for help).
 8. PR should be reviewed by two maintainers prior to merging.
 
+### Commit messages
+
+Commit messages are linted by [commitlint](https://commitlint.js.org/) via a `commit-msg` git
+hook (see `.husky/commit-msg` and `commitlint.config.js`). The config only extends
+[`@commitlint/config-conventional`](https://github.com/conventional-changelog/commitlint/tree/master/%40commitlint/config-conventional),
+so what's actually enforced mechanically is [Conventional Commits](https://www.conventionalcommits.org/)
+shape: a `type: subject` or `type(scope): subject` header, an allowed `type` (`feat`, `fix`,
+`docs`, `chore`, `refactor`, `test`, `perf`, ...), and a handful of casing/length rules.
+
+Maintainers additionally use these conventions in code review, but **they are not enforced by
+commitlint** (there is no `scope-enum` rule and no rule requiring a ticket suffix):
+
+- **Scope**: when a scope is used, it's conventionally an area slug matching the touched package
+  or subsystem, e.g. `core`, `app`, `widget-richtext`, `backend-github`. Because nothing enforces
+  this, commit history has plenty of inconsistent scopes (`types` vs `core-types`, `gitlab` vs
+  `backend-gitlab`, etc.) — treat the scope as a hint for reviewers, not a strict taxonomy.
+- **Ticket suffix**: when a commit closes a tracked ticket, maintainers append `(DCMS-nnn)` to the
+  subject. A meaningful share of commits (dependency bumps, small fixes with no filed ticket,
+  etc.) legitimately have no suffix, so don't invent a ticket number just to satisfy this.
+
+If you're unsure what to use, match the pattern of recent commits touching the same area
+(`git log --oneline -- <path>`) and let your reviewer flag anything that should change.
+
 ## Debugging
 
 `npm run start` spawns a development server and uses `dev-test/config.yml` and `dev-test/index.html` to serve the CMS.

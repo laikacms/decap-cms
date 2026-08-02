@@ -152,7 +152,7 @@ export class EntriesCollection extends React.Component {
           collections={collection}
           entries={entries}
           isFetching={isFetching}
-          collectionName={collection.get('label')}
+          collectionName={collection.label}
           viewStyle={viewStyle}
           cursor={cursor}
           handleCursorActions={partial(this.handleCursorActions, cursor)}
@@ -200,26 +200,26 @@ export function filterNestedEntries(path, collectionFolder, entries, subfolders)
 
 function mapStateToProps(state, ownProps) {
   const { collection, viewStyle, filterTerm } = ownProps;
-  const page = state.entries.getIn(['pages', collection.get('name'), 'page']);
+  const page = state.entries.getIn(['pages', collection.name, 'page']);
 
   const collections = state.collections;
 
   let entries = selectEntries(state.entries, collection);
   const groups = selectGroups(state.entries, collection);
 
-  if (collection.has('nested')) {
-    const collectionFolder = collection.get('folder');
+  if (collection.nested !== undefined) {
+    const collectionFolder = collection.folder;
     entries = filterNestedEntries(
       filterTerm || '',
       collectionFolder,
       entries,
-      collection.get('nested').get('subfolders') !== false,
+      collection.nested.get('subfolders') !== false,
     );
   }
-  const entriesLoaded = selectEntriesLoaded(state.entries, collection.get('name'));
-  const isFetching = selectIsFetching(state.entries, collection.get('name'));
+  const entriesLoaded = selectEntriesLoaded(state.entries, collection.name);
+  const isFetching = selectIsFetching(state.entries, collection.name);
 
-  const rawCursor = selectCollectionEntriesCursor(state.cursors, collection.get('name'));
+  const rawCursor = selectCollectionEntriesCursor(state.cursors, collection.name);
   const cursor = Cursor.create(rawCursor).clearData();
 
   const isEditorialWorkflowEnabled = state.config?.publish_mode === 'editorial_workflow';

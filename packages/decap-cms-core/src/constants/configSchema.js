@@ -234,6 +234,7 @@ function getConfigSchema() {
           encoding: { type: 'string', enum: ['unicode', 'ascii'] },
           clean_accents: { type: 'boolean' },
           sanitize_replacement: { type: 'string' },
+          max_length: { type: 'number', examples: [100] },
         },
       },
       issue_reports: {
@@ -356,6 +357,10 @@ function getConfigSchema() {
                 ],
               },
             },
+            search_fields: {
+              type: 'array',
+              items: { type: 'string' },
+            },
             view_filters: viewFilters,
             view_groups: viewGroups,
             nested: {
@@ -465,6 +470,7 @@ function getConfigSchema() {
         type: 'object',
         properties: {
           preview: { type: 'boolean' },
+          visualEditing: { type: 'boolean' },
         },
       },
       search: { type: 'boolean' },

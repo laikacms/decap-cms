@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { translate } from 'react-polyglot';
@@ -284,7 +283,7 @@ export class EditorToolbar extends React.Component {
     user: PropTypes.object,
     hasChanged: PropTypes.bool,
     displayUrl: PropTypes.string,
-    collection: ImmutablePropTypes.map.isRequired,
+    collection: PropTypes.object.isRequired,
     hasWorkflow: PropTypes.bool,
     useOpenAuthoring: PropTypes.bool,
     hasUnpublishedChanges: PropTypes.bool,
@@ -315,6 +314,11 @@ export class EditorToolbar extends React.Component {
 
   componentDidUpdate(prevProps) {
     const { isNewEntry, isPersisting, loadDeployPreview } = this.props;
+    if (prevProps.isPersisting && !isPersisting) {
+      // Re-arm the Save button once the in-flight persist actually resolves
+      // (success or failure) so the next real click isn't swallowed.
+      this._persistInFlight = false;
+    }
     if (!isNewEntry && prevProps.isPersisting && !isPersisting) {
       // Abort any in-flight poll before starting a new one.
       this._pollController?.abort();
@@ -326,13 +330,29 @@ export class EditorToolbar extends React.Component {
     }
   }
 
+  // DCMS-1763: `isPersisting` only reaches this component on the *next*
+  // render after the persist action dispatches, so a rapid second click
+  // that lands before that render commits would still see the stale
+  // `disabled={false}` and fire a second `onPersist`, racing the widgets'
+  // pre-serialize state and triggering a spurious "field is required"
+  // validation error. `_persistInFlight` flips synchronously in the click
+  // handler itself, closing that window; the `disabled` prop below only
+  // keeps the button visually/accessibly in sync once the render catches up.
+  _persistInFlight = false;
+
+  triggerPersist = onPersist => {
+    if (this._persistInFlight) return;
+    this._persistInFlight = true;
+    onPersist();
+  };
+
   componentWillUnmount() {
     this._pollController?.abort();
   }
 
   renderSimpleControls = () => {
     const { collection, hasChanged, isNewEntry, showDelete, onDelete, t } = this.props;
-    const canCreate = collection.get('create');
+    const canCreate = collection.create;
 
     return (
       <>
@@ -612,9 +632,9 @@ export class EditorToolbar extends React.Component {
       t,
     } = this.props;
 
-    const canCreate = collection.get('create');
-    const canPublish = collection.get('publish') && !useOpenAuthoring;
-    const canDelete = collection.get('delete', true);
+    const canCreate = collection.create;
+    const canPublish = collection.publish && !useOpenAuthoring;
+    const canDelete = collection.delete ?? true;
 
     const deleteLabel =
       (hasUnpublishedChanges &&
@@ -627,9 +647,11 @@ export class EditorToolbar extends React.Component {
 
     return [
       <SaveButton
-        disabled={!hasChanged && !isNewEntry}
+        disabled={(!hasChanged && !isNewEntry) || isPersisting}
         key="save-button"
-        onClick={() => (hasChanged || isNewEntry) && onPersist()}
+        onClick={() =>
+          (hasChanged || isNewEntry) && !isPersisting && this.triggerPersist(onPersist)
+        }
       >
         {isPersisting ? t('editor.editorToolbar.saving') : t('editor.editorToolbar.save')}
       </SaveButton>,
@@ -695,7 +717,7 @@ export class EditorToolbar extends React.Component {
           <div>
             <BackCollection>
               {t('editor.editorToolbar.backCollection', {
-                collectionLabel: collection.get('label'),
+                collectionLabel: collection.label,
               })}
             </BackCollection>
             {/*
@@ -709,10 +731,21 @@ export class EditorToolbar extends React.Component {
               persisted though, so it must not claim "changesSaved" either
               (DCMS-292) - render nothing for that cell (DCMS-547).
             */}
+            {/*
+              role="status" (an implicit aria-live="polite" region) announces
+              the dirty <-> clean transition to screen readers, mirroring the
+              role="alert" already used for the "missed a required field"
+              toast (Notifications.tsx) - "status" rather than "alert" since
+              this isn't an error and shouldn't interrupt (DCMS-1774).
+            */}
             {hasChanged ? (
-              <BackStatusChanged>{t('editor.editorToolbar.unsavedChanges')}</BackStatusChanged>
+              <BackStatusChanged role="status">
+                {t('editor.editorToolbar.unsavedChanges')}
+              </BackStatusChanged>
             ) : isNewEntry ? null : (
-              <BackStatusUnchanged>{t('editor.editorToolbar.changesSaved')}</BackStatusUnchanged>
+              <BackStatusUnchanged role="status">
+                {t('editor.editorToolbar.changesSaved')}
+              </BackStatusUnchanged>
             )}
           </div>
         </ToolbarSectionBackLink>

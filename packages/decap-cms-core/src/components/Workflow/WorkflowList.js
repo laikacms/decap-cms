@@ -134,6 +134,8 @@ class WorkflowList extends React.Component {
     handleChangeStatus: PropTypes.func.isRequired,
     handlePublish: PropTypes.func.isRequired,
     handleDelete: PropTypes.func.isRequired,
+    handleSchedulePublish: PropTypes.func.isRequired,
+    handleUnschedulePublish: PropTypes.func.isRequired,
     t: PropTypes.func.isRequired,
     isOpenAuthoring: PropTypes.bool,
     collections: ImmutablePropTypes.map.isRequired,
@@ -169,6 +171,14 @@ class WorkflowList extends React.Component {
       return;
     }
     this.props.handlePublish(collection, slug);
+  };
+
+  requestSchedulePublish = (collection, slug, publishAt) => {
+    this.props.handleSchedulePublish(collection, slug, publishAt);
+  };
+
+  requestUnschedulePublish = (collection, slug) => {
+    this.props.handleUnschedulePublish(collection, slug);
   };
 
   renderColumns(entries, column) {
@@ -218,15 +228,16 @@ class WorkflowList extends React.Component {
           const collectionName = entry.get('collection');
           const editLink = `collections/${collectionName}/entries/${slug}?ref=workflow`;
           const ownStatus = entry.get('status');
-          const collection = collections.find(
-            collection => collection.get('name') === collectionName,
+          const collection = Object.values(collections).find(
+            collection => collection.name === collectionName,
           );
-          const collectionLabel = collection?.get('label');
+          const collectionLabel = collection?.label;
           const isModification = entry.get('isModification');
 
-          const allowPublish = collection?.get('publish');
+          const allowPublish = collection?.publish;
           const canPublish = ownStatus === status.last() && !entry.get('isPersisting', false);
           const postAuthor = entry.get('author');
+          const publishAt = entry.get('publishAt');
 
           return (
             <DragSource
@@ -251,6 +262,17 @@ class WorkflowList extends React.Component {
                       allowPublish={allowPublish}
                       canPublish={canPublish}
                       onPublish={this.requestPublish.bind(this, collectionName, slug, ownStatus)}
+                      publishAt={publishAt}
+                      onSchedulePublish={this.requestSchedulePublish.bind(
+                        this,
+                        collectionName,
+                        slug,
+                      )}
+                      onUnschedulePublish={this.requestUnschedulePublish.bind(
+                        this,
+                        collectionName,
+                        slug,
+                      )}
                       postAuthor={postAuthor}
                     />
                   </div>,

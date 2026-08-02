@@ -72,4 +72,46 @@ describe('editor component image', () => {
   it('should match markdown with quoted title', () => {
     expect(`![alt](/image "\\"ti\\"tle\\"")`).toMatch(component.pattern);
   });
+
+  it('should parse a matching string into an object via fromBlock', () => {
+    const match = component.pattern.exec(`![alt](/image "title")`);
+    expect(component.fromBlock(match)).toEqual({
+      image: '/image',
+      alt: 'alt',
+      title: 'title',
+    });
+  });
+
+  it('should parse a matching string with no alt or title via fromBlock', () => {
+    const match = component.pattern.exec(`![](/image)`);
+    expect(component.fromBlock(match)).toEqual({
+      image: '/image',
+      alt: '',
+      title: undefined,
+    });
+  });
+
+  it('should return a falsy value from fromBlock when there is no match', () => {
+    const match = component.pattern.exec('not a markdown image');
+    expect(match).toBeNull();
+    expect(component.fromBlock(match)).toBeFalsy();
+  });
+
+  it('should round-trip toBlock(fromBlock(match)) for path, alt, and title', () => {
+    const markdown = `![alt](/image "title")`;
+    const match = component.pattern.exec(markdown);
+    expect(component.toBlock(component.fromBlock(match))).toEqual(markdown);
+  });
+
+  it('should round-trip toBlock(fromBlock(match)) for path only', () => {
+    const markdown = `![](/image)`;
+    const match = component.pattern.exec(markdown);
+    expect(component.toBlock(component.fromBlock(match))).toEqual(markdown);
+  });
+
+  it('should round-trip toBlock(fromBlock(match)) for a quoted title', () => {
+    const markdown = `![alt](/image "\\"ti\\"tle\\"")`;
+    const match = component.pattern.exec(markdown);
+    expect(component.toBlock(component.fromBlock(match))).toEqual(markdown);
+  });
 });

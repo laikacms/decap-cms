@@ -337,7 +337,7 @@ class RelationController extends React.Component {
   }
 }
 
-function setup({ field, value }) {
+function setup({ field, value, onQuickCreateEntry, t }) {
   let renderArgs;
   const setActiveSpy = jest.fn();
   const setInactiveSpy = jest.fn();
@@ -357,6 +357,8 @@ function setup({ field, value }) {
             classNameWrapper=""
             setActiveStyle={setActiveSpy}
             setInactiveStyle={setInactiveSpy}
+            onQuickCreateEntry={onQuickCreateEntry}
+            t={t}
           />
         );
       }}
@@ -897,6 +899,88 @@ describe('Relation widget', () => {
         expect(() => getAllByText(/^Post # (\d{1,2}) post-number-\1$/)).toThrow(Error);
         expect(getAllByText('Deeply nested post post-deeply-nested')).toHaveLength(1);
       });
+    });
+  });
+
+  describe('quick add (DCMS-1421)', () => {
+    it('does not render a quick-add button when onQuickCreateEntry is not supplied', () => {
+      const field = fromJS(fieldConfig);
+      const { queryByText } = setup({ field });
+
+      expect(queryByText('+ Create new posts')).not.toBeInTheDocument();
+    });
+
+    it('renders a quick-add button naming the target collection when onQuickCreateEntry is supplied', () => {
+      const field = fromJS(fieldConfig);
+      const { getByText } = setup({ field, onQuickCreateEntry: jest.fn() });
+
+      expect(getByText('+ Create new posts')).toBeInTheDocument();
+    });
+
+    it('opens a modal with one input per value_field/display_fields entry on click', () => {
+      const field = fromJS(fieldConfig);
+      const { getByText, getByLabelText } = setup({ field, onQuickCreateEntry: jest.fn() });
+
+      fireEvent.click(getByText('+ Create new posts'));
+
+      expect(getByText('Create new posts')).toBeInTheDocument();
+      expect(getByLabelText('title')).toBeInTheDocument();
+      expect(getByLabelText('slug')).toBeInTheDocument();
+    });
+
+    it('closes the modal without creating an entry when cancel is clicked', () => {
+      const onQuickCreateEntry = jest.fn();
+      const field = fromJS(fieldConfig);
+      const { getByText, queryByLabelText } = setup({ field, onQuickCreateEntry });
+
+      fireEvent.click(getByText('+ Create new posts'));
+      fireEvent.click(getByText('Cancel'));
+
+      expect(queryByLabelText('title')).not.toBeInTheDocument();
+      expect(onQuickCreateEntry).not.toHaveBeenCalled();
+    });
+
+    it('persists the new entry via onQuickCreateEntry and selects it in place on save', async () => {
+      const createdEntry = { title: 'Quick post', slug: 'quick-post' };
+      const onQuickCreateEntry = jest.fn().mockResolvedValue(createdEntry);
+      const field = fromJS(fieldConfig);
+      const { getByText, getByLabelText, onChangeSpy } = setup({ field, onQuickCreateEntry });
+
+      fireEvent.click(getByText('+ Create new posts'));
+      fireEvent.change(getByLabelText('title'), { target: { value: 'Quick post' } });
+      fireEvent.change(getByLabelText('slug'), { target: { value: 'quick-post' } });
+      fireEvent.click(getByText('Save'));
+
+      expect(onQuickCreateEntry).toHaveBeenCalledWith('posts', {
+        title: 'Quick post',
+        slug: 'quick-post',
+      });
+
+      await waitFor(() => {
+        expect(onChangeSpy).toHaveBeenCalledWith('Quick post', {
+          post: { posts: { 'Quick post': createdEntry } },
+        });
+      });
+
+      // The modal closes once the new entry is selected.
+      expect(() => getByLabelText('title')).toThrow(Error);
+    });
+
+    it('shows an error message and keeps the modal open when onQuickCreateEntry rejects', async () => {
+      const onQuickCreateEntry = jest.fn().mockRejectedValue(new Error('validation failed'));
+      const field = fromJS(fieldConfig);
+      const { getByText, getByLabelText } = setup({ field, onQuickCreateEntry });
+
+      fireEvent.click(getByText('+ Create new posts'));
+      fireEvent.change(getByLabelText('title'), { target: { value: 'Quick post' } });
+      fireEvent.click(getByText('Save'));
+
+      await waitFor(() => {
+        expect(getByText('validation failed')).toBeInTheDocument();
+      });
+
+      // The form stays open with the entered values so the user can retry.
+      expect(getByLabelText('title')).toHaveValue('Quick post');
     });
   });
 });

@@ -40,7 +40,7 @@ describe('NestedCollection', () => {
     nested: {
       subfolders: true,
     },
-  });
+  }).toObject();
 
   it('should render correctly with no entries', () => {
     const entries = fromJS([]);
@@ -239,11 +239,11 @@ describe('NestedCollection', () => {
     ];
     const entries = entriesArray.reduce(
       (acc, entry) => {
-        acc.entities[`${collection.get('name')}.${entry.slug}`] = entry;
-        acc.pages[collection.get('name')].ids.push(entry.slug);
+        acc.entities[`${collection.name}.${entry.slug}`] = entry;
+        acc.pages[collection.name].ids.push(entry.slug);
         return acc;
       },
-      { pages: { [collection.get('name')]: { ids: [] } }, entities: {} },
+      { pages: { [collection.name]: { ids: [] } }, entities: {} },
     );
 
     const store = mockStore({ entries: fromJS(entries) });
@@ -375,7 +375,7 @@ describe('NestedCollection', () => {
       const entries = fromJS([{ path: 'src/pages/index.md', data: { title: 'Root' } }]);
 
       const treeData = getTreeData(
-        collection.setIn(['nested', 'summary'], '{{filename}}'),
+        { ...collection, nested: collection.nested.set('summary', '{{filename}}') },
         entries,
       );
 
