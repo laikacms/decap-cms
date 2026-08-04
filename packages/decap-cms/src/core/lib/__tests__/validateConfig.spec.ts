@@ -639,6 +639,26 @@ describe('config', () => {
       }).not.toThrow();
     });
 
+    it('should throw if collection editor.visualEditing is not a boolean', () => {
+      expect(() => {
+        validateConfig(
+          merge({}, validConfig, {
+            collections: [{ editor: { visualEditing: 'not-a-bool' } }],
+          }),
+        );
+      }).toThrowError("'collections[0].editor.visualEditing' must be boolean");
+    });
+
+    it('should allow collection editor.visualEditing to be a boolean', () => {
+      expect(() => {
+        validateConfig(
+          merge({}, validConfig, {
+            collections: [{ editor: { visualEditing: false } }],
+          }),
+        );
+      }).not.toThrow();
+    });
+
     describe('collection.nested schema (docs pinning, DCMS-1101)', () => {
       // Pins the `nested` JSON schema against packages/decap-cms/src/core/README.md's
       // `collection.nested` section: if this test breaks, the schema changed and the
