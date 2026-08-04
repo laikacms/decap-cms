@@ -307,6 +307,7 @@ export function getConfigSchema(): JSONSchema {
               type: 'object',
               properties: {
                 preview: { type: 'boolean' },
+                visualEditing: { type: 'boolean' },
               },
             },
             format: { type: 'string' },
