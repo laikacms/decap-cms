@@ -13,6 +13,11 @@ export function createNonce(): string {
 export function validateNonce(check: string): boolean {
   const auth: string | null = window.sessionStorage.getItem('decap-cms-auth');
   const valid: string | null = auth && (JSON.parse(auth) as AuthStorage).nonce;
+  // The nonce lives in sessionStorage (see createNonce), so clearing only
+  // localStorage left the real entry in place and a replayed callback URL kept
+  // validating. Clear both: sessionStorage makes the nonce genuinely
+  // single-use, localStorage stays for the legacy key older versions wrote.
+  window.sessionStorage.removeItem('decap-cms-auth');
   window.localStorage.removeItem('decap-cms-auth');
   return check === valid;
 }

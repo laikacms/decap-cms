@@ -51,21 +51,44 @@ class PKCEAuthenticationPage extends Component<PKCEAuthPageProps, PKCEAuthPageSt
       auth_token_endpoint = 'oauth2/token',
       auth_token_endpoint_content_type = 'application/x-www-form-urlencoded; charset=utf-8',
       use_oidc = false,
-    } = this.props.config?.backend || {};
+      redirect_uri,
+      return_to,
+    } = (this.props.config?.backend || {}) as {
+      base_url?: string,
+      app_id?: string,
+      auth_endpoint?: string,
+      auth_token_endpoint?: string,
+      auth_token_endpoint_content_type?: string,
+      use_oidc?: boolean,
+      redirect_uri?: string,
+      return_to?: string,
+    };
 
     if (!base_url || !app_id) {
       this.setState({ loginError: 'Missing required configuration: base_url and app_id are required' });
       return;
     }
 
-    this.auth = new PkceAuthenticator({
-      base_url,
-      auth_endpoint,
-      app_id,
-      auth_token_endpoint,
-      auth_token_endpoint_content_type,
-      use_oidc,
-    });
+    // `redirect_uri` / `return_to` are what let the embedded CMS live on a
+    // per-project route: Cognito matches redirect URIs exactly, so the flow
+    // lands on one fixed callback and `return_to` says which project route to
+    // bounce back to. Omitted everywhere else, where the current page URL is
+    // the right redirect target.
+    try {
+      this.auth = new PkceAuthenticator({
+        base_url,
+        auth_endpoint,
+        app_id,
+        auth_token_endpoint,
+        auth_token_endpoint_content_type,
+        use_oidc,
+        redirect_uri,
+        return_to,
+      });
+    } catch (err: unknown) {
+      this.setState({ loginError: (err as Error).message });
+      return;
+    }
 
     this.auth.completeAuth((err: Error | null, data: unknown) => {
       if (err) {
@@ -73,8 +96,10 @@ class PKCEAuthenticationPage extends Component<PKCEAuthPageProps, PKCEAuthPageSt
         return;
       }
       if (data && typeof data === 'object') {
-        const tokenData = data as { token?: string, id_token?: string };
-        tokenData.token = tokenData.id_token; // Force usage of id_token as token
+        // The API bearer is the Cognito ACCESS token: the management server
+        // resolves the user by `sub` and validates `token_use: 'access'`, so an
+        // id_token is rejected outright (ADR-0033). `completeAuth`/`authenticate`
+        // already set `token` to `access_token`; leave it alone.
         this.props.onLogin(data);
       }
     });
@@ -96,8 +121,10 @@ class PKCEAuthenticationPage extends Component<PKCEAuthPageProps, PKCEAuthPageSt
         return;
       }
       if (data && typeof data === 'object') {
-        const tokenData = data as { token?: string, id_token?: string };
-        tokenData.token = tokenData.id_token; // Force usage of id_token as token
+        // The API bearer is the Cognito ACCESS token: the management server
+        // resolves the user by `sub` and validates `token_use: 'access'`, so an
+        // id_token is rejected outright (ADR-0033). `completeAuth`/`authenticate`
+        // already set `token` to `access_token`; leave it alone.
         this.props.onLogin(data);
       }
     });
