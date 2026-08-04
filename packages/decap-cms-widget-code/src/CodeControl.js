@@ -4,7 +4,6 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import { ClassNames } from '@emotion/react';
 import { Map } from 'immutable';
 import isEqual from 'lodash/isEqual';
-import { v4 as uuid } from 'uuid';
 import { UnControlled as ReactCodeMirror } from 'react-codemirror2';
 import CodeMirror from 'codemirror';
 import 'codemirror/keymap/vim';
@@ -63,7 +62,7 @@ export default class CodeControl extends React.Component {
     lang: '',
     keyMap: localStorage.getItem(settingsPersistKeys['keyMap']) || 'default',
     settingsVisible: false,
-    codeMirrorKey: uuid(),
+    codeMirrorKey: crypto.randomUUID(),
     theme: localStorage.getItem(settingsPersistKeys['theme']) || themes[themes.length - 1],
     lastKnownValue: this.valueIsMap() ? this.props.value?.get(this.keys.code) : this.props.value,
   };
@@ -203,7 +202,7 @@ export default class CodeControl extends React.Component {
     if (this.cm) {
       const cursor = this.cm.doc.getCursor();
       const selections = this.cm.doc.listSelections();
-      this.setState({ codeMirrorKey: uuid() }, () => {
+      this.setState({ codeMirrorKey: crypto.randomUUID() }, () => {
         this.cm.doc.setCursor(cursor);
         this.cm.doc.setSelections(selections);
       });

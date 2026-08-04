@@ -33,7 +33,6 @@ import {
 import { SortableContext, horizontalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 import { CSS } from '@dnd-kit/utilities';
-import { v4 as uuid } from 'uuid';
 
 import relationCache from './RelationCache';
 
@@ -313,7 +312,7 @@ export function convertToSortableOption(raw) {
     ...option,
     data: {
       ...option.data,
-      id: uuid(),
+      id: crypto.randomUUID(),
     },
   };
 }

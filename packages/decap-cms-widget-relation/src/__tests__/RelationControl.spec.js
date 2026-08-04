@@ -12,8 +12,6 @@ import RelationControl, {
   uniqOptions,
 } from '../RelationControl';
 
-jest.mock('uuid');
-
 describe('normalizeField', () => {
   it('coalesces camelCase keys into their snake_case equivalents', () => {
     const field = fromJS({
@@ -185,9 +183,8 @@ describe('getSelectedValue', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    const uuid = require('uuid');
     let id = 0;
-    uuid.v4.mockImplementation(() => `uuid-${id++}`);
+    jest.spyOn(crypto, 'randomUUID').mockImplementation(() => `uuid-${id++}`);
   });
 
   describe('when isMultiple is false', () => {
@@ -239,8 +236,7 @@ describe('getSelectedValue', () => {
 describe('convertToSortableOption', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    const uuid = require('uuid');
-    uuid.v4.mockImplementation(() => 'generated-id');
+    jest.spyOn(crypto, 'randomUUID').mockImplementation(() => 'generated-id');
   });
 
   it('wraps a converted option with a generated id in its data', () => {
