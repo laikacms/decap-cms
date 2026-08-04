@@ -400,18 +400,22 @@ export default class ListControl extends React.Component {
     const min = field.get('min');
     const max = field.get('max');
     const required = field.get('required', true);
+    const fieldLabel = field.get('label', field.get('name'));
 
     if (!required && !value?.size) {
       return [];
     }
 
-    const error = validations.validateMinMax(
-      t,
-      field.get('label', field.get('name')),
-      value,
-      min,
-      max,
-    );
+    if (required && !value?.size) {
+      return [
+        {
+          type: 'PRESENCE',
+          message: t('editor.editorControlPane.widget.required', { fieldLabel }),
+        },
+      ];
+    }
+
+    const error = validations.validateMinMax(t, fieldLabel, value, min, max);
 
     return error ? [error] : [];
   };

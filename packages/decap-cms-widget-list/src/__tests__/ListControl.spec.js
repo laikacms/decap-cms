@@ -790,6 +790,49 @@ describe('ListControl', () => {
     expect(props.onValidateObject).toHaveBeenCalledWith('forID', []);
   });
 
+  it('should give validation error if no elements, no min/max, and required defaults to true (DCMS-1806)', () => {
+    const field = fromJS({
+      name: 'authors',
+      label: 'Authors',
+      collapsed: false,
+      minimize_collapsed: true,
+      fields: [{ label: 'String', name: 'string', widget: 'string' }],
+    });
+    const listControl = new ListControl({
+      ...props,
+      field,
+      value: fromJS([]),
+    });
+
+    const errors = listControl.validateSize();
+    expect(errors).toHaveLength(1);
+    expect(errors).toEqual([
+      {
+        type: 'PRESENCE',
+        message: 'editor.editorControlPane.widget.required',
+      },
+    ]);
+  });
+
+  it('should give validation error if value is absent, no min/max, and required defaults to true (DCMS-1806)', () => {
+    const field = fromJS({
+      name: 'authors',
+      label: 'Authors',
+      collapsed: false,
+      minimize_collapsed: true,
+      fields: [{ label: 'String', name: 'string', widget: 'string' }],
+    });
+    const listControl = new ListControl({
+      ...props,
+      field,
+      value: undefined,
+    });
+
+    const errors = listControl.validateSize();
+    expect(errors).toHaveLength(1);
+    expect(errors[0].type).toEqual('PRESENCE');
+  });
+
   describe('heading pluralization (DCMS-526)', () => {
     // The heading is only rendered by renderListControl(), which requires a
     // nested `field`/`fields`/`types` schema (see getValueType()); a bare
