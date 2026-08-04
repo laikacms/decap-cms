@@ -53,6 +53,19 @@ export interface PkceAuthenticatorConfig {
   auth_token_endpoint?: string;
   auth_token_endpoint_content_type?: string;
   app_id?: string;
+  /**
+   * Exact redirect URI to send to the provider, instead of assuming the
+   * current page URL. Cognito matches redirect URIs exactly, so a CMS mounted
+   * on a per-project route (`/projects/:id/decap/embedded`) cannot use the
+   * current URL - every project would need its own registered URI. Point this
+   * at one fixed callback route and use `returnTo` to get back.
+   */
+  redirect_uri?: string;
+  /**
+   * Same-origin path to return to after the fixed callback route completes the
+   * exchange. Carried in the OAuth `state` alongside the CSRF nonce.
+   */
+  return_to?: string;
 }
 
 export interface PkceAuthenticateOptions {
@@ -75,6 +88,16 @@ interface OidcConfiguration {
 interface StatePayload {
   auth_type: string;
   nonce: string;
+  returnTo?: string;
+}
+
+/**
+ * A `returnTo` must be a same-origin *path*, so the callback route can only
+ * ever bounce back inside this app. Rejects absolute URLs, protocol-relative
+ * `//host`, and the backslash variants browsers normalise to `//`.
+ */
+export function isSameOriginPath(path: string): boolean {
+  return path.startsWith('/') && !path.startsWith('//') && !path.startsWith('/\\');
 }
 
 interface TokenRequestParams {
@@ -99,6 +122,8 @@ export default class PkceAuthenticator {
   auth_token_url?: string;
   auth_token_endpoint_content_type: string | undefined;
   appID: string;
+  redirectUri: string | undefined;
+  returnTo: string | undefined;
 
   constructor(config: PkceAuthenticatorConfig = {}) {
     const useOidc: boolean | undefined = config.use_oidc;
@@ -121,6 +146,24 @@ export default class PkceAuthenticator {
     }
     this.auth_token_endpoint_content_type = config.auth_token_endpoint_content_type;
     this.appID = config.app_id || '';
+    this.redirectUri = config.redirect_uri;
+    if (config.return_to !== undefined && !isSameOriginPath(config.return_to)) {
+      throw new Error(
+        'PkceAuthenticator: `return_to` must be a same-origin path beginning with a '
+          + 'single "/" - an absolute or protocol-relative value would make the '
+          + 'callback route an open redirect.',
+      );
+    }
+    this.returnTo = config.return_to;
+  }
+
+  /**
+   * The exact `redirect_uri` sent to the provider and replayed on the token
+   * exchange. Defaults to the current page URL, which is what every non-embedded
+   * backend wants; the embedded CMS overrides it with a fixed callback route.
+   */
+  private _redirectUri(): string {
+    return this.redirectUri ?? document.location.origin + document.location.pathname;
   }
 
   async _loadOidcConfig(): Promise<void> {
@@ -145,6 +188,31 @@ export default class PkceAuthenticator {
     this.auth_token_url = json.token_endpoint;
   }
 
+  /**
+   * Build the provider authorization URL, minting the CSRF nonce and the PKCE
+   * verifier as a side effect. Separated from `authenticate` so the URL - and
+   * therefore the redirect_uri and state contract - is assertable without
+   * navigating, which jsdom cannot do.
+   */
+  async buildAuthorizationUrl(options: PkceAuthenticateOptions): Promise<URL> {
+    const authURL = new URL(this.auth_url!);
+    authURL.searchParams.set('client_id', this.appID);
+    authURL.searchParams.set('redirect_uri', this._redirectUri());
+    authURL.searchParams.set('response_type', 'code');
+    authURL.searchParams.set('scope', options.scope);
+
+    const statePayload: StatePayload = { auth_type: 'pkce', nonce: createNonce() };
+    if (this.returnTo !== undefined) {
+      statePayload.returnTo = this.returnTo;
+    }
+    authURL.searchParams.set('state', JSON.stringify(statePayload));
+
+    authURL.searchParams.set('code_challenge_method', 'S256');
+    const codeVerifier: string = createCodeVerifier();
+    authURL.searchParams.set('code_challenge', await createCodeChallenge(codeVerifier));
+    return authURL;
+  }
+
   async authenticate(options: PkceAuthenticateOptions, cb: PkceAuthCallback): Promise<void> {
     if (isInsecureProtocol()) {
       return cb(new Error('Cannot authenticate over insecure protocol!'));
@@ -155,20 +223,7 @@ export default class PkceAuthenticator {
       return cb(err as Error);
     }
 
-    const authURL = new URL(this.auth_url!);
-    authURL.searchParams.set('client_id', this.appID);
-    authURL.searchParams.set('redirect_uri', document.location.origin + document.location.pathname);
-    authURL.searchParams.set('response_type', 'code');
-    authURL.searchParams.set('scope', options.scope);
-
-    const state: string = JSON.stringify({ auth_type: 'pkce', nonce: createNonce() });
-
-    authURL.searchParams.set('state', state);
-
-    authURL.searchParams.set('code_challenge_method', 'S256');
-    const codeVerifier: string = createCodeVerifier();
-    const codeChallenge: string = await createCodeChallenge(codeVerifier);
-    authURL.searchParams.set('code_challenge', codeChallenge);
+    const authURL = await this.buildAuthorizationUrl(options);
 
     // The provider redirects back to a hash-less `redirect_uri`, so the hash
     // route the user is on right now would be lost. Stash it for
@@ -214,18 +269,30 @@ export default class PkceAuthenticator {
       window.location.replace(returnHash);
     }
 
-    let nonce: string;
+    let state: StatePayload;
     const stateParam: string | null = params.get('state');
     if (!stateParam) {
       return cb(new Error('Missing state parameter'));
     }
     try {
-      nonce = (JSON.parse(stateParam) as StatePayload).nonce;
+      state = JSON.parse(stateParam) as StatePayload;
     } catch {
-      nonce = (JSON.parse(stateParam.replace(/\\"/g, '"')) as StatePayload).nonce;
+      try {
+        state = JSON.parse(stateParam.replace(/\\"/g, '"')) as StatePayload;
+      } catch {
+        return cb(new Error('Invalid state parameter'));
+      }
     }
 
-    const validNonce: boolean = validateNonce(nonce);
+    // A `returnTo` that is not a same-origin path is rejected before the nonce
+    // is consumed, so a tampered state can never become a redirect target.
+    if (state.returnTo !== undefined && !isSameOriginPath(state.returnTo)) {
+      return cb(new Error('Invalid return path'));
+    }
+
+    // Single-use: validateNonce consumes the stored nonce, so a replayed
+    // callback URL fails here rather than exchanging the code twice.
+    const validNonce: boolean = validateNonce(state.nonce);
     if (!validNonce) {
       return cb(new Error('Invalid nonce'));
     }
@@ -249,7 +316,7 @@ export default class PkceAuthenticator {
           client_id: this.appID,
           code,
           grant_type: 'authorization_code',
-          redirect_uri: document.location.origin + document.location.pathname,
+          redirect_uri: this._redirectUri(),
           code_verifier: getCodeVerifier(),
         });
       } catch (err: unknown) {
@@ -277,7 +344,7 @@ export default class PkceAuthenticator {
     const data = await this._requestToken({
       client_id: this.appID,
       grant_type: 'refresh_token',
-      redirect_uri: document.location.origin + document.location.pathname,
+      redirect_uri: this._redirectUri(),
       refresh_token,
     });
 

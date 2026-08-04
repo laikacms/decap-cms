@@ -52,6 +52,17 @@ describe('validateNonce', () => {
     expect(validateNonce('any-nonce')).toBe(false);
   });
 
+  it('consumes the stored nonce so a replayed check cannot validate twice', () => {
+    // laika-cloud#1735: validateNonce used to clear only localStorage, while
+    // createNonce writes to sessionStorage - so the nonce survived validation
+    // and a replayed OAuth callback URL validated again.
+    const nonce = createNonce();
+
+    expect(validateNonce(nonce)).toBe(true);
+    expect(validateNonce(nonce)).toBe(false);
+    expect(window.sessionStorage.getItem('decap-cms-auth')).toBeNull();
+  });
+
   it('clears the decap-cms-auth key from localStorage as a side effect', () => {
     window.localStorage.setItem('decap-cms-auth', JSON.stringify({ nonce: 'leftover' }));
     const nonce = createNonce();

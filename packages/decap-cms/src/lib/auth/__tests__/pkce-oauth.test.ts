@@ -257,3 +257,144 @@ describe('PkceAuthenticator', () => {
     });
   });
 });
+
+describe('laika-cloud#1735: explicit redirect_uri and returnTo state', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    window.history.replaceState(null, '', '/');
+    window.sessionStorage.clear();
+  });
+
+  const FIXED_CALLBACK = 'https://app.example.com/decap/callback';
+  const EMBEDDED_ROUTE = '/projects/p1/decap/embedded';
+
+  function authenticator(overrides: Record<string, unknown> = {}) {
+    return new PkceAuthenticator({
+      base_url: 'https://provider.example.com',
+      auth_endpoint: 'oauth2/authorize',
+      auth_token_endpoint: 'oauth2/token',
+      app_id: 'client-id',
+      redirect_uri: FIXED_CALLBACK,
+      return_to: EMBEDDED_ROUTE,
+      ...overrides,
+    });
+  }
+
+  function landOnCallback(state: unknown): void {
+    window.history.pushState(
+      null,
+      '',
+      `/?code=auth-code&state=${encodeURIComponent(JSON.stringify(state))}`,
+    );
+  }
+
+  it('sends the configured redirect_uri to the provider instead of the current URL', async () => {
+    const url = await authenticator().buildAuthorizationUrl({ scope: 'openid' });
+
+    expect(url.searchParams.get('redirect_uri')).toBe(FIXED_CALLBACK);
+    expect(url.searchParams.get('code_challenge_method')).toBe('S256');
+  });
+
+  it('round-trips returnTo through the state alongside the nonce', async () => {
+    const url = await authenticator().buildAuthorizationUrl({ scope: 'openid' });
+
+    const state = JSON.parse(url.searchParams.get('state') as string) as {
+      auth_type: string,
+      nonce: string,
+      returnTo: string,
+    };
+    expect(state.auth_type).toBe('pkce');
+    expect(state.returnTo).toBe(EMBEDDED_ROUTE);
+    expect(state.nonce).toEqual(expect.any(String));
+
+    // The nonce the provider will echo back is the one held in sessionStorage.
+    const stored = JSON.parse(
+      window.sessionStorage.getItem('decap-cms-auth') as string,
+    ) as { nonce: string };
+    expect(stored.nonce).toBe(state.nonce);
+  });
+
+  it('replays the configured redirect_uri on the token exchange', async () => {
+    const nonce = createNonce();
+    landOnCallback({ auth_type: 'pkce', nonce, returnTo: EMBEDDED_ROUTE });
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response(JSON.stringify({ access_token: 'access-token' })));
+
+    await new Promise<void>((resolve, reject) => {
+      void authenticator().completeAuth(err => (err ? reject(err) : resolve()));
+    });
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(init.body as string)).toMatchObject({ redirect_uri: FIXED_CALLBACK });
+  });
+
+  it('resolves the API token from the access token, never the id token', async () => {
+    const nonce = createNonce();
+    landOnCallback({ auth_type: 'pkce', nonce, returnTo: EMBEDDED_ROUTE });
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ access_token: 'access-token', id_token: 'id-token' })),
+    );
+
+    const result = await new Promise<Record<string, unknown>>((resolve, reject) => {
+      void authenticator().completeAuth((err, data) =>
+        err ? reject(err) : resolve(data as unknown as Record<string, unknown>),
+      );
+    });
+
+    expect(result.token).toBe('access-token');
+    expect(result.token).not.toBe('id-token');
+  });
+
+  it('rejects a replayed callback: the nonce is consumed on first use', async () => {
+    const nonce = createNonce();
+    const state = { auth_type: 'pkce', nonce, returnTo: EMBEDDED_ROUTE };
+    landOnCallback(state);
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ access_token: 'access-token' })),
+    );
+
+    await new Promise<void>((resolve, reject) => {
+      void authenticator().completeAuth(err => (err ? reject(err) : resolve()));
+    });
+
+    // Same URL again - the stored nonce is gone, so no second exchange happens.
+    landOnCallback(state);
+    const replayError = await new Promise<Error | null>(resolve => {
+      void authenticator().completeAuth(err => resolve(err));
+    });
+    expect(replayError?.message).toMatch(/nonce/i);
+  });
+
+  it('rejects a mismatched nonce', async () => {
+    createNonce();
+    landOnCallback({ auth_type: 'pkce', nonce: 'not-the-stored-nonce', returnTo: EMBEDDED_ROUTE });
+
+    const error = await new Promise<Error | null>(resolve => {
+      void authenticator().completeAuth(err => resolve(err));
+    });
+    expect(error?.message).toMatch(/nonce/i);
+  });
+
+  it.each([
+    '//evil.example.com',
+    'https://evil.example.com/steal',
+    '/\\evil.example.com',
+  ])('rejects a returnTo that escapes the app origin: %s', async returnTo => {
+    const nonce = createNonce();
+    landOnCallback({ auth_type: 'pkce', nonce, returnTo });
+    const fetchMock = vi.spyOn(globalThis, 'fetch');
+
+    const error = await new Promise<Error | null>(resolve => {
+      void authenticator().completeAuth(err => resolve(err));
+    });
+
+    expect(error?.message).toMatch(/return path/i);
+    // Rejected before any token exchange, and before the nonce was consumed.
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('refuses to construct with an off-origin return_to', () => {
+    expect(() => authenticator({ return_to: 'https://evil.example.com' })).toThrow(/return_to/);
+  });
+});
