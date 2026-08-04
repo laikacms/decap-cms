@@ -1,6 +1,7 @@
 import { registerCommonMiddlewares } from './middlewares/common';
 import { registerMiddleware as localGit } from './middlewares/localGit';
 import { registerMiddleware as localFs } from './middlewares/localFs';
+import { registerMiddleware as credentials } from './middlewares/credentials';
 import { createLogger } from './logger';
 
 import type express from 'express';
@@ -18,11 +19,13 @@ function createOptions(options: Options) {
 export async function registerLocalGit(app: express.Express, options: Options = {}) {
   const opts = createOptions(options);
   registerCommonMiddlewares(app, opts);
+  credentials(app, opts);
   await localGit(app, opts);
 }
 
 export async function registerLocalFs(app: express.Express, options: Options = {}) {
   const opts = createOptions(options);
   registerCommonMiddlewares(app, opts);
+  credentials(app, opts);
   await localFs(app, opts);
 }

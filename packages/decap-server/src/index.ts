@@ -4,6 +4,7 @@ import express from 'express';
 import { registerCommonMiddlewares } from './middlewares/common';
 import { registerMiddleware as registerLocalGit } from './middlewares/localGit';
 import { registerMiddleware as registerLocalFs } from './middlewares/localFs';
+import { registerMiddleware as registerCredentials } from './middlewares/credentials';
 import { createLogger } from './logger';
 
 const app = express();
@@ -18,6 +19,7 @@ const level = process.env.LOG_LEVEL || 'info';
   };
 
   registerCommonMiddlewares(app, options);
+  registerCredentials(app, options);
 
   try {
     const mode = process.env.MODE || 'fs';
