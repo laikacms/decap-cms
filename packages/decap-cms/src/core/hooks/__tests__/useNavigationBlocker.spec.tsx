@@ -1,9 +1,10 @@
-import { act, renderHook } from '@testing-library/react';
+import { act, render, renderHook, screen, waitFor, within } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useNavigationBlocker } from '@/core/hooks/useNavigationBlocker';
 import { RouterProvider } from '@/core/routing/context';
+import { ConfirmDialogHost } from '@/ui';
 
 import type { Router, RouterBlocker, RouterTransition, RouterUpdate } from '@/core/routing/router';
 
@@ -320,5 +321,77 @@ describe('useNavigationBlocker', () => {
     });
 
     expect(unblock).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('useNavigationBlocker confirmDialog cleanup (DCMS-1804)', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('caller unmounts while the "Unsaved changes" prompt is open: the prompt drains and the AlertDialog unmounts', async () => {
+    resetFakeRouter();
+    // `ConfirmDialogHost` is a module-singleton queue consumer; mounting it
+    // makes `confirmDialog(...)` queue a real (pending, unanswered) dialog
+    // instead of the synchronous `window.confirm` fallback used by the rest
+    // of this file's tests (DCMS-658).
+    render(<ConfirmDialogHost />);
+
+    const router = buildFakeRouter(true);
+    const { result } = renderNavigationBlocker({ shouldBlock: () => true, message: 'Unsaved!' }, router);
+
+    let cleanup = () => {};
+    act(() => {
+      cleanup = result.current.setupBlocker();
+    });
+
+    // Trigger a blocked navigation. Deliberately not awaited: the real repro
+    // is the user pressing browser Back *before* answering Cancel/OK, so the
+    // confirm must still be pending when we simulate that below.
+    act(() => {
+      router.push('/collections/other');
+    });
+
+    const dialog = await screen.findByRole('alertdialog');
+    expect(dialog).toHaveTextContent('Unsaved!');
+
+    // Simulate the caller being abandoned mid-prompt by a subsequent
+    // navigation (e.g. `useEditor`'s route-change subscribe firing `cleanup`
+    // on browser Back) or an outright unmount, before the user answers.
+    act(() => {
+      cleanup();
+    });
+
+    // Without the DCMS-1804 fix, the confirm promise never settles,
+    // `ConfirmDialogHost` keeps rendering the AlertDialog at the app root,
+    // and its backdrop leaks and intercepts all subsequent clicks.
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+  });
+
+  it('cancel-path behavior is unchanged: answering Cancel still settles the prompt without needing cleanup()', async () => {
+    resetFakeRouter();
+    render(<ConfirmDialogHost />);
+
+    const router = buildFakeRouter(true);
+    const { result } = renderNavigationBlocker({ shouldBlock: () => true, message: 'Unsaved!' }, router);
+
+    act(() => {
+      result.current.setupBlocker();
+    });
+
+    act(() => {
+      router.push('/collections/other');
+    });
+
+    const dialog = await screen.findByRole('alertdialog');
+    const cancelButton = within(dialog).getByRole('button', { name: /cancel/i });
+
+    act(() => {
+      cancelButton.click();
+    });
+
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    // Cancelling must not have advanced the route.
+    expect(fakeLocation.pathname).toBe('/collections/posts');
   });
 });

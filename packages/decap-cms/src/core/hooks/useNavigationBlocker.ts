@@ -39,8 +39,18 @@ export function useNavigationBlocker({
   const router = useRouter();
   const unblockRef = useRef<(() => void) | null>(null);
   const unlistenRef = useRef<(() => void) | null>(null);
+  // Aborts any confirm dialog queued by this armed session's navigationBlocker
+  // when setupBlocker's cleanup runs (caller unmounted or a subsequent route
+  // change abandons the still-pending prompt), so it auto-settles as `false`
+  // and drains from `ConfirmDialogHost`'s queue instead of leaving a
+  // dangling, click-blocking `AlertDialog` mounted at the app root forever
+  // (DCMS-1063/DCMS-1804).
+  const confirmAbortControllerRef = useRef<AbortController | null>(null);
 
   const setupBlocker = useCallback(() => {
+    const confirmAbortController = new AbortController();
+    confirmAbortControllerRef.current = confirmAbortController;
+
     // Browser close/refresh blocker
     const exitBlocker = (event: BeforeUnloadEvent) => {
       if (shouldBlock()) {
@@ -66,8 +76,11 @@ export function useNavigationBlocker({
 
       if (shouldBlock()) {
         // Block by not calling tx.retry()
-        // Show confirmation via the AlertDialog-backed confirm (DCMS-658)
-        if (await confirmDialog(message, { title })) {
+        // Show confirmation via the AlertDialog-backed confirm (DCMS-658),
+        // scoped to this armed session's AbortSignal so a second navigation
+        // that abandons this prompt (DCMS-1804) settles it instead of
+        // leaking the dialog.
+        if (await confirmDialog(message, { title }, confirmAbortController.signal)) {
           unblockRef.current?.();
           tx.retry();
         }
@@ -107,6 +120,13 @@ export function useNavigationBlocker({
     unlistenRef.current?.();
     unblockRef.current = null;
     unlistenRef.current = null;
+    // Auto-settle any confirmDialog left pending by an abandoned transition
+    // (e.g. a second navigation, such as browser back, landing while the
+    // "Unsaved changes" prompt is still open) so it resolves `false` and
+    // ConfirmDialogHost unmounts its AlertDialog instead of leaking the
+    // backdrop (DCMS-1804). A no-op if the prompt already settled normally.
+    confirmAbortControllerRef.current?.abort();
+    confirmAbortControllerRef.current = null;
   }, []);
 
   return {

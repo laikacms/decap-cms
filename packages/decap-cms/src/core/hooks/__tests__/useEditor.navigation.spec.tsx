@@ -1,4 +1,4 @@
-import { act, renderHook } from '@testing-library/react';
+import { act, render, renderHook, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { Provider } from 'react-redux';
 import { applyMiddleware, combineReducers, legacy_createStore as createStore } from 'redux';
@@ -10,6 +10,7 @@ import { useEditor } from '@/core/hooks/useEditor';
 import { I18n } from '@/core/i18n';
 import reducers from '@/core/reducers';
 import { RouterProvider } from '@/core/routing/context';
+import { ConfirmDialogHost } from '@/ui';
 
 import type * as AuthActions from '@/core/actions/auth';
 import type * as DeploysActions from '@/core/actions/deploys';
@@ -300,5 +301,109 @@ describe('useEditor dirty-navigation guard (DCMS-567)', () => {
 
     expect(confirmSpy).toHaveBeenCalledTimes(1);
     expect(fakeLocation.pathname).toBe('/collections/other');
+  });
+});
+
+describe('useEditor dirty-navigation guard: confirmDialog cleanup on abandonment (DCMS-1804)', () => {
+  afterEach(() => {
+    resetFakeRouter();
+    vi.restoreAllMocks();
+  });
+
+  function buildStore() {
+    return createStore(
+      combineReducers(reducers as any),
+      {
+        config: { publish_mode: 'simple', display_url: '' },
+        collections: {
+          posts: {
+            name: 'posts',
+            label: 'Posts',
+            fields: [],
+            type: 'folder_based_collection',
+            folder: '_posts',
+          },
+        },
+      } as any,
+      applyMiddleware(thunk),
+    );
+  }
+
+  it('caller unmounts while the "Unsaved changes" prompt (browser-back leave guard) is open: prompt drains and the AlertDialog unmounts (mirrors DCMS-1063)', async () => {
+    // `ConfirmDialogHost` is a module-singleton queue consumer; mounting it
+    // makes `confirmDialog(...)` queue a real, pending AlertDialog instead of
+    // falling back to the synchronous `window.confirm` the sibling describe
+    // block above spies on (DCMS-658).
+    render(<ConfirmDialogHost />);
+
+    const store = buildStore();
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <Provider store={store}>
+        <RouterProvider router={fakeRouter}>
+          <I18n locale="en" messages={{ 'editor.editor.onLeavePage': 'You have unsaved changes.' }}>
+            {children}
+          </I18n>
+        </RouterProvider>
+      </Provider>
+    );
+
+    const { result, rerender, unmount } = renderHook(
+      () =>
+        useEditor({
+          collectionName: 'posts',
+          newEntry: true,
+          locationSearch: '',
+          locationPathname: '/collections/posts/new',
+        }),
+      { wrapper },
+    );
+
+    act(() => {
+      store.dispatch({ type: 'DRAFT_CREATE_EMPTY', payload: { data: {} } } as any);
+    });
+    rerender();
+
+    act(() => {
+      result.current.setup();
+    });
+    rerender();
+
+    act(() => {
+      store.dispatch(
+        changeDraftField({
+          field: { name: 'title' } as any,
+          value: 'hello',
+          metadata: {},
+          entries: [],
+        }) as any,
+      );
+    });
+    rerender();
+    expect(result.current.hasChanged).toBe(true);
+
+    // Trigger a blocked POP (browser back), deliberately not awaited: the
+    // real repro is the user pressing browser Back *again* before answering
+    // Cancel/OK on the first prompt, so it must still be pending below.
+    act(() => {
+      simulatePop('/collections/posts');
+    });
+
+    const dialog = await screen.findByRole('alertdialog');
+    expect(dialog).toHaveTextContent('You have unsaved changes.');
+
+    // Simulate the real repro: the `<Editor>` component itself tears down
+    // (React unmount) as the abandoned browser-back navigation lands, before
+    // the user answers Cancel/OK. This fires the unmount effect that aborts
+    // `unmountControllerRef` (the DCMS-1063/DCMS-1804 mechanism), not just
+    // the router-teardown `setup().cleanup`.
+    act(() => {
+      unmount();
+    });
+
+    // Without the DCMS-1804 fix, the confirm promise threaded through
+    // `navigationBlocker` never settles, so `ConfirmDialogHost` keeps
+    // rendering the AlertDialog (and its click-intercepting backdrop) at the
+    // app root forever.
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
   });
 });

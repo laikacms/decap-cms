@@ -290,7 +290,13 @@ export function useEditor({
 
       // Block navigation if there are unsaved changes (unless user confirms)
       if (draft?.hasChanged) {
-        if (await confirmDialog(leaveMessage, { title: t('editor.editor.onLeavePageTitle') })) {
+        if (
+          await confirmDialog(
+            leaveMessage,
+            { title: t('editor.editor.onLeavePageTitle') },
+            unmountControllerRef.current.signal,
+          )
+        ) {
           unblockRef.current?.();
           tx.retry();
         }
