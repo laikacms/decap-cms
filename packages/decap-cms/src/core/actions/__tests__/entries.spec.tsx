@@ -9,6 +9,7 @@ import {
   persistLocalBackup,
   retrieveLocalBackup,
   validateMetaField,
+  withDefaultsBackfilled,
 } from '@/core/actions/entries';
 import * as backendModule from '@/core/backend';
 import * as entriesReducer from '@/core/reducers/entries';
@@ -350,6 +351,81 @@ describe('entries', () => {
       expect(createEmptyDraftData(fields)).toEqual({
         names: [{ object: { first: 'first', second: 'second' } }],
       });
+    });
+
+    // DCMS-1802
+    it('should backfill a missing key from baseData with the field default', () => {
+      const fields = [{ name: 'draft', widget: 'boolean', default: false }];
+      expect(createEmptyDraftData(fields, undefined, {})).toEqual({ draft: false });
+    });
+
+    // DCMS-1802
+    it('should not overwrite an explicit false value already present in baseData', () => {
+      const fields = [{ name: 'draft', widget: 'boolean', default: true }];
+      expect(createEmptyDraftData(fields, undefined, { draft: false })).toEqual({ draft: false });
+    });
+
+    // DCMS-1802
+    it('should not overwrite any explicit value already present in baseData', () => {
+      const fields = [{ name: 'subtitle', widget: 'text', default: 'fallback' }];
+      expect(createEmptyDraftData(fields, undefined, { subtitle: 'existing' })).toEqual({
+        subtitle: 'existing',
+      });
+    });
+
+    // DCMS-1802
+    it('should preserve baseData keys not covered by any field', () => {
+      const fields = [{ name: 'draft', widget: 'boolean', default: false }];
+      expect(createEmptyDraftData(fields, undefined, { title: 'existing' })).toEqual({
+        title: 'existing',
+        draft: false,
+      });
+    });
+  });
+
+  describe('withDefaultsBackfilled', () => {
+    it('should fill in a missing boolean key using the field default, without flagging it required-empty', () => {
+      const collection = {
+        name: 'posts',
+        type: 'folder_based_collection',
+        folder: '_posts',
+        fields: [
+          { name: 'title', widget: 'string' },
+          { name: 'draft', widget: 'boolean', default: false },
+        ],
+      };
+      const entry = { slug: 'legacy-post', data: { title: 'A legacy post' } };
+
+      const result = withDefaultsBackfilled(collection as any, entry as any);
+
+      expect(result.data).toEqual({ title: 'A legacy post', draft: false });
+    });
+
+    it('should not overwrite an entry that already has an explicit value for the field', () => {
+      const collection = {
+        name: 'posts',
+        type: 'folder_based_collection',
+        folder: '_posts',
+        fields: [{ name: 'draft', widget: 'boolean', default: false }],
+      };
+      const entry = { slug: 'a-post', data: { draft: true } };
+
+      const result = withDefaultsBackfilled(collection as any, entry as any);
+
+      expect(result.data).toEqual({ draft: true });
+    });
+
+    it('should return the entry untouched when the collection is malformed (missing type)', () => {
+      const collection = {
+        name: 'posts',
+        folder: '_posts',
+        fields: [{ name: 'draft', widget: 'boolean', default: false }],
+      };
+      const entry = { slug: 'a-post', data: { title: 'A legacy post' } };
+
+      const result = withDefaultsBackfilled(collection as any, entry as any);
+
+      expect(result).toBe(entry);
     });
   });
 
