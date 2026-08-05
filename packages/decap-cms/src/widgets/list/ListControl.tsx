@@ -349,6 +349,17 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
         return [];
       }
 
+      if (required && !value?.length) {
+        return [
+          {
+            type: 'PRESENCE',
+            message: t('editor.editorControlPane.widget.required', {
+              fieldLabel: field.label ?? field.name,
+            }),
+          },
+        ];
+      }
+
       const error = validations.validateMinMax(
         t as (key: string, options: unknown) => string,
         field.label ?? field.name,
