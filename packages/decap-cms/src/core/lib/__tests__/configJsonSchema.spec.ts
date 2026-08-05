@@ -222,5 +222,22 @@ describe('shipped config.schema.json (DCMS-1402)', () => {
       expect(errors.length).toBeGreaterThan(0);
       expect(errors.some(error => error.keyword === 'required')).toBe(true);
     });
+
+    it('rejects a proxy backend config missing proxy_url (DCMS-1848)', () => {
+      const invalidConfig = { ...validConfig, backend: { name: 'proxy' } };
+      const errors = validateJSONSchema(schema, invalidConfig);
+      expect(errors.length).toBeGreaterThan(0);
+      expect(
+        errors.some(error => error.keyword === 'required' && error.params.missingProperty === 'proxy_url'),
+      ).toBe(true);
+    });
+
+    it('accepts a proxy backend config with a valid proxy_url (DCMS-1848)', () => {
+      const configWithProxyUrl = {
+        ...validConfig,
+        backend: { name: 'proxy', proxy_url: 'https://proxy.example.com' },
+      };
+      expect(validateJSONSchema(schema, configWithProxyUrl)).toEqual([]);
+    });
   });
 });

@@ -149,6 +149,8 @@ export function getConfigSchema(): JSONSchema {
           api_root: { type: 'string' },
           api_url: { type: 'string' },
           dev_token: { type: 'string' },
+          // proxy backend only, see below.
+          proxy_url: { type: 'string' },
         },
         required: ['name'],
         // The laika backend needs a `base_url` to reach its API; without it
@@ -156,6 +158,20 @@ export function getConfigSchema(): JSONSchema {
         // instead of a clear config-time one. See DCMS-1786.
         if: { properties: { name: { enum: ['laika'] } }, required: ['name'] },
         then: { required: ['base_url'], properties: { base_url: { minLength: 1 } } },
+        // The proxy backend needs a `proxy_url` to reach its API; without it
+        // `proxy/implementation.tsx` fails much later, at `ProxyBackend`
+        // construction, with a cryptic runtime error instead of a clear
+        // config-time one. Same failure mode as `base_url` above (DCMS-1786),
+        // ported for the proxy backend. See DCMS-1848. The interpreter only
+        // supports one `if`/`then`/`else` per schema, so the proxy check is
+        // nested in `else` alongside the laika check above.
+        else: {
+          if: { properties: { name: { enum: ['proxy'] } }, required: ['name'] },
+          then: {
+            required: ['proxy_url'],
+            properties: { proxy_url: { minLength: 1, pattern: '^(https?://.+|/(?!/).*)$' } },
+          },
+        },
       },
       local_backend: {
         oneOf: [

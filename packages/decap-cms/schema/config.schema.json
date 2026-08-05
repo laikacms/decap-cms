@@ -309,7 +309,11 @@
         "base_url": { "type": "string", "description": "Required when `name` is `laika`." },
         "api_root": { "type": "string" },
         "api_url": { "type": "string" },
-        "dev_token": { "type": "string" }
+        "dev_token": { "type": "string" },
+        "proxy_url": {
+          "type": "string",
+          "description": "Required when `name` is `proxy`. Must be an http(s) or root-relative URL."
+        }
       },
       "required": ["name"],
       "if": {
@@ -319,6 +323,16 @@
       "then": {
         "required": ["base_url"],
         "properties": { "base_url": { "minLength": 1 } }
+      },
+      "else": {
+        "if": {
+          "properties": { "name": { "enum": ["proxy"] } },
+          "required": ["name"]
+        },
+        "then": {
+          "required": ["proxy_url"],
+          "properties": { "proxy_url": { "minLength": 1, "pattern": "^(https?://.+|/(?!/).*)$" } }
+        }
       }
     },
     "local_backend": {
