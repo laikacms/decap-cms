@@ -153,6 +153,7 @@ const it = {
       inReview: 'In revisione',
       ready: 'Pronto',
       publishNow: 'Pubblica ora',
+      publishChanges: 'Pubblica modifiche',
       deployPreviewPendingButtonLabel: "Controlla l'anteprima",
       deployPreviewButtonLabel: "Visualizza l'anteprima",
       deployButtonLabel: 'Guarda Live',

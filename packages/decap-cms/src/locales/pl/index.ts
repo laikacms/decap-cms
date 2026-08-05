@@ -151,6 +151,7 @@ const pl = {
       inReview: 'W recenzji',
       ready: 'Gotowe',
       publishNow: 'Opublikuj teraz',
+      publishChanges: 'Opublikuj zmiany',
       deployPreviewPendingButtonLabel: 'Sprawdź, czy istnieje podgląd',
       deployPreviewButtonLabel: 'Zobacz podgląd',
       deployButtonLabel: 'Zobacz na żywo',

@@ -157,6 +157,7 @@ const sr_Cyrl = {
       inReview: 'На прегледу',
       ready: 'Спремно',
       publishNow: 'Објави одмах',
+      publishChanges: 'Објави измене',
       deployPreviewPendingButtonLabel: 'Провери за преглед',
       deployPreviewButtonLabel: 'Погледај преглед',
       deployButtonLabel: 'Погледај уживо',

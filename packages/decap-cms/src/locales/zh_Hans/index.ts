@@ -146,6 +146,7 @@ const zh_Hans = {
       inReview: '审核中',
       ready: '就绪',
       publishNow: '立即发布',
+      publishChanges: '发布修改',
       deployPreviewPendingButtonLabel: '点击以预览',
       deployPreviewButtonLabel: '查看预览',
       deployButtonLabel: '查看发布',

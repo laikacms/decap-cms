@@ -95,6 +95,7 @@ const hu = {
       inReview: 'Felülvizsgálat alatt',
       ready: 'Kész',
       publishNow: 'Publikálás most',
+      publishChanges: 'Változtatások publikálása',
       deployPreviewPendingButtonLabel: 'Előnézet ellenörzése',
       deployPreviewButtonLabel: 'Előnézet megtekintése',
       deployButtonLabel: 'Élő megtekintése',

@@ -147,6 +147,7 @@ const bg = {
       inReview: 'В ревю',
       ready: 'Готово',
       publishNow: 'Публикувай сега',
+      publishChanges: 'Публикуване на промени',
       deployPreviewPendingButtonLabel: 'Проверете  визуализацията',
       deployPreviewButtonLabel: 'Визуализация',
       deployButtonLabel: 'Изглед',

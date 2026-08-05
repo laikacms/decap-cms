@@ -147,6 +147,7 @@ const ro = {
       inReview: 'În revizuire',
       ready: 'Gata',
       publishNow: 'Publicare',
+      publishChanges: 'Publicare modificări',
       deployPreviewPendingButtonLabel: 'Verifică publicare',
       deployPreviewButtonLabel: 'Previzualizare',
       deployButtonLabel: 'Vezi publicarea',

@@ -113,6 +113,7 @@ const gr = {
       inReview: 'Σε επανεξέταση',
       ready: 'Έτοιμα',
       publishNow: 'Δημοσίευση τώρα',
+      publishChanges: 'Δημοσίευση αλλαγών',
       deployPreviewPendingButtonLabel: 'Έλεγχος για προεπισκόπηση',
       deployPreviewButtonLabel: 'Προβολή προεπισκόπησης',
       deployButtonLabel: 'Προβολή Live',

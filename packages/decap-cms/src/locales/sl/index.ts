@@ -151,6 +151,7 @@ const sl = {
       inReview: 'V pregledu',
       ready: 'Pripravljen',
       publishNow: 'Objavi zdaj',
+      publishChanges: 'Objavi spremembe',
       deployPreviewPendingButtonLabel: 'Preveri za predogled',
       deployPreviewButtonLabel: 'Ogled predogleda',
       deployButtonLabel: 'Pogled v živo',

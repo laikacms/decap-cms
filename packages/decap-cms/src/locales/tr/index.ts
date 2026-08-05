@@ -153,6 +153,7 @@ const tr = {
       inReview: 'İncelemede',
       ready: 'Hazır',
       publishNow: 'Şimdi yayımla',
+      publishChanges: 'Değişiklikleri yayınla',
       deployPreviewPendingButtonLabel: 'Önizlemeyi Denetle',
       deployPreviewButtonLabel: 'Önizlemeyi Görüntüle',
       deployButtonLabel: 'Canlı Görüntüle',

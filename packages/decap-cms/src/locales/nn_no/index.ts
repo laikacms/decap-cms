@@ -127,6 +127,7 @@ const nn_no = {
       inReview: 'Til godkjenning',
       ready: 'Klar',
       publishNow: 'Publiser no',
+      publishChanges: 'Publiser endringar',
       deployPreviewPendingButtonLabel: 'Kontroller førehandsvisning',
       deployPreviewButtonLabel: 'Sjå førehandsvisning',
       deployButtonLabel: 'Sjå i produksjon',

@@ -157,6 +157,7 @@ const hr = {
       inReview: 'Osvrt',
       ready: 'Spremno',
       publishNow: 'Objavi sad',
+      publishChanges: 'Objavi promjene',
       deployPreviewPendingButtonLabel: 'Provjeri za osvrt',
       deployPreviewButtonLabel: 'Pogledaj osvrt',
       deployButtonLabel: 'Pogledaj na produkciji',

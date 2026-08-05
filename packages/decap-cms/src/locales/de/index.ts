@@ -155,6 +155,7 @@ const de = {
       inReview: 'Zur Überprüfung',
       ready: 'Abgeschlossen',
       publishNow: 'Jetzt veröffentlichen',
+      publishChanges: 'Veröffentliche Änderungen',
       deployPreviewPendingButtonLabel: 'Überprüfen ob eine Vorschau vorhanden ist',
       deployPreviewButtonLabel: 'Vorschau anzeigen',
       deployButtonLabel: 'Live ansehen',

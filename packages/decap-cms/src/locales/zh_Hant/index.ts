@@ -134,6 +134,7 @@ const zh_Hant = {
       inReview: '正在審核',
       ready: '預備發布',
       publishNow: '立即發布',
+      publishChanges: '發布變更',
       deployPreviewPendingButtonLabel: '點擊來進行預覽',
       deployPreviewButtonLabel: '進行預覽',
       deployButtonLabel: '觀看已發布的內容',

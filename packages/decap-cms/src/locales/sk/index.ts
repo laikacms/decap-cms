@@ -156,6 +156,7 @@ const sk = {
       inReview: 'Na posúdenie',
       ready: 'Pripravené',
       publishNow: 'Publikovať teraz',
+      publishChanges: 'Publikovať zmeny',
       deployPreviewPendingButtonLabel: 'Skontrolovať náhľad',
       deployPreviewButtonLabel: 'Zobraziť náhľad',
       deployButtonLabel: 'Zobraziť ostrú verziu',

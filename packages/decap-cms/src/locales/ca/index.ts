@@ -145,6 +145,7 @@ const ca = {
       inReview: 'En revisió',
       ready: 'Llest',
       publishNow: 'Publicar ara',
+      publishChanges: 'Publicar canvis',
       deployPreviewPendingButtonLabel: 'Comprovar Vista Prèvia',
       deployPreviewButtonLabel: 'Veure Vista Prèvia',
       deployButtonLabel: 'Veure publicació',

@@ -22,6 +22,10 @@ const CRITICAL_KEYS = [
   'mediaLibrary.mediaLibraryBreadcrumbs.rootLabel',
   'mediaLibrary.mediaLibraryBreadcrumbs.regionLabel',
   'mediaLibrary.mediaLibraryFolders.regionLabel',
+  // DCMS-1844: LaikaEditorToolbar publish button falls back to the raw key
+  // in every locale (including en) because it was never added anywhere;
+  // the sibling workflow.workflowCard.publishChanges key is unaffected.
+  'editor.editorToolbar.publishChanges',
 ];
 
 describe('locale packs', () => {

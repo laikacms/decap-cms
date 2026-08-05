@@ -140,6 +140,7 @@ const fa = {
       inReview: 'در بررسی',
       ready: 'آماده',
       publishNow: 'اکنون منتشر کنید',
+      publishChanges: 'انتشار تغییرات',
       deployPreviewPendingButtonLabel: 'پیش نمایش را بررسی کنید',
       deployPreviewButtonLabel: 'مشاهده پیش نمایش',
       deployButtonLabel: 'مشاهده زنده',

@@ -149,6 +149,7 @@ const ja = {
       inReview: 'レビュー中',
       ready: '準備完了',
       publishNow: '公開する',
+      publishChanges: '変更を公開',
       deployPreviewPendingButtonLabel: 'プレビューのチェック',
       deployPreviewButtonLabel: 'プレビューを見る',
       deployButtonLabel: 'ライブで見る',
