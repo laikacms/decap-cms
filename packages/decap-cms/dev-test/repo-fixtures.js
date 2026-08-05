@@ -43,7 +43,7 @@ window.repoFiles = {
   },
   _data: {
     'settings.json': {
-      content: '{"site_title": "CMS Demo"}',
+      content: '{"site_title": "CMS Demo", "posts": {"front_limit": 3, "author": "Mathias"}}',
     },
     'authors.yml': {
       content:
