@@ -6,9 +6,11 @@ import { selectEntriesLoaded } from '@/core/reducers/entries';
 import queryCore, { collectionTag, MEDIA_TAG, UNPUBLISHED_TAG } from '@/lib/util/queryCore';
 
 import type { Backend } from '@/core/backend';
+import type { AppDispatch } from '@/core/redux';
+import type { CmsCollectionFileState, CmsCollections } from '@/lib/util/index';
 
 type State = any;
-type Dispatch = (action: any) => any;
+type Dispatch = AppDispatch;
 
 export interface FreshnessControllerOptions {
   getState: () => State;
@@ -94,7 +96,7 @@ export function createFreshnessController(options: FreshnessControllerOptions) {
 
     // Re-read state after the awaits above; loaded flags may have moved.
     const freshState = getState();
-    const collections: Record<string, any> = freshState.collections ?? state.collections ?? {};
+    const collections: CmsCollections = freshState.collections ?? state.collections ?? {};
     const staleNames = affected ?? new Set(Object.keys(collections));
 
     for (const name of staleNames) {
@@ -117,7 +119,7 @@ export function createFreshnessController(options: FreshnessControllerOptions) {
       freshState.config.publish_mode === EDITORIAL_WORKFLOW
       && freshState.editorialWorkflow?.pages?.ids
     ) {
-      dispatch(loadUnpublishedEntries(collections as any));
+      dispatch(loadUnpublishedEntries(collections));
     }
   }
 
@@ -172,7 +174,7 @@ export function matchCollectionsByPath(
           found = true;
         }
       } else if (Array.isArray(collection.files)) {
-        if (collection.files.some((file: any) => file?.file === path)) {
+        if (collection.files.some((file: CmsCollectionFileState) => file?.file === path)) {
           matched.add(name);
           found = true;
         }
