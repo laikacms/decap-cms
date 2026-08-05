@@ -83,6 +83,76 @@ describe('AlertDialog modality (DCMS-1632)', () => {
   });
 });
 
+describe('AlertDialog stays a11y-visible while open (DCMS-1820)', () => {
+  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+  it('self-heals aria-hidden/data-base-ui-inert if Base UI (mis)applies them to the popup subtree itself', async () => {
+    const user = userEvent.setup();
+    render(<ConfirmDialogHost />);
+
+    confirmDialog('A local backup was recovered for this entry, would you like to use it?', {
+      title: 'Restore backup',
+    });
+
+    const dialog = await screen.findByRole('alertdialog', { name: 'Restore backup' });
+    const backdrop = document.querySelector('[data-slot="alert-dialog-backdrop"]') as HTMLElement;
+    expect(backdrop).not.toBeNull();
+
+    // Simulate Base UI's `markOthers` (floating-ui-react/utils/markOthers.js)
+    // wrongly targeting this popup's own nodes instead of only the sibling
+    // app root — the exact failure this regression covers. Re-apply at
+    // several points across a 200ms-3s window (compressed for test speed)
+    // to prove the guard isn't a one-shot fix that only catches the very
+    // first application.
+    const samplesMs = [0, 25, 120, 260];
+    for (const delay of samplesMs) {
+      if (delay > 0) await sleep(delay);
+
+      dialog.setAttribute('aria-hidden', 'true');
+      dialog.setAttribute('data-base-ui-inert', '');
+      backdrop.setAttribute('aria-hidden', 'true');
+      backdrop.setAttribute('data-base-ui-inert', '');
+
+      await waitFor(() => {
+        expect(dialog).not.toHaveAttribute('aria-hidden', 'true');
+        expect(dialog).not.toHaveAttribute('data-base-ui-inert');
+        expect(backdrop).not.toHaveAttribute('aria-hidden', 'true');
+        expect(backdrop).not.toHaveAttribute('data-base-ui-inert');
+      });
+    }
+
+    // Screen readers/Playwright locate the dialog by its accessible name —
+    // only possible if nothing in its ancestor chain is aria-hidden.
+    expect(screen.getByRole('alertdialog', { name: 'Restore backup' })).toBe(dialog);
+    expect(
+      within(dialog).getByRole('button', { name: 'Cancel' }),
+    ).toBeVisible();
+    expect(within(dialog).getByRole('button', { name: 'OK' })).toBeVisible();
+
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+  });
+
+  it('never marks the popup/backdrop hidden across the whole open lifetime on a clean run', async () => {
+    render(<ConfirmDialogHost />);
+
+    confirmDialog('Just checking', { title: 'Restore backup' });
+
+    const dialog = await screen.findByRole('alertdialog', { name: 'Restore backup' });
+    const backdrop = document.querySelector('[data-slot="alert-dialog-backdrop"]') as HTMLElement;
+
+    for (const delay of [0, 25, 120, 260]) {
+      if (delay > 0) await sleep(delay);
+      expect(dialog).not.toHaveAttribute('aria-hidden', 'true');
+      expect(dialog).not.toHaveAttribute('data-base-ui-inert');
+      expect(backdrop).not.toHaveAttribute('aria-hidden', 'true');
+      expect(backdrop).not.toHaveAttribute('data-base-ui-inert');
+    }
+
+    await userEvent.setup().click(within(dialog).getByRole('button', { name: 'Cancel' }));
+  });
+});
+
 describe('ConfirmDialog imperative host (Base UI), DCMS-658', () => {
   it('resolves true when the confirm action is clicked', async () => {
     const user = userEvent.setup();
