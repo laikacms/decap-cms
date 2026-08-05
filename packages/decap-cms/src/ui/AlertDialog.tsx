@@ -53,15 +53,79 @@ const popupClass = css`
   }
 `;
 
+/**
+ * Base UI's Floating UI aria-hiding pass (`markOthers` in
+ * `floating-ui-react/utils/markOthers.js`) is the mechanism that hides the
+ * rest of the page from assistive tech while a modal popup is open; it walks
+ * the DOM from `<body>` and marks every node outside the popup's own subtree
+ * as `aria-hidden="true"` / `data-base-ui-inert`. That module keeps its
+ * hidden/marked-element bookkeeping (`counters`, `markerCounterMap`,
+ * `lockCount`) at module scope, shared by every Base UI popup in the app —
+ * so a second popup's pass (or a fast open/settle/reopen cycle, which is
+ * exactly what the local-backup restore prompt does: it fires from an async
+ * effect the moment `localBackup` first resolves, DCMS-1820) can compute its
+ * "outside" set from a DOM snapshot that's stale relative to this popup,
+ * and mark this popup's own backdrop/content nodes as hidden instead of
+ * only the sibling app root (`#nc-root`) the marking is meant to target.
+ * Once that happens there's no further Base UI effect run to correct it —
+ * the dialog stays visibly on screen but invisible to the accessibility
+ * tree and unreachable by role-based automation for as long as it's open.
+ *
+ * Self-heal by stripping `aria-hidden`/`data-base-ui-inert` off the node
+ * whenever Base UI (mis)applies them, without touching Base UI's own
+ * focus-trap/Escape/outside-page-hiding behavior for `#nc-root`.
+ */
+function useNeverInertSelf<T extends HTMLElement>(): React.RefCallback<T> {
+  const observerRef = React.useRef<MutationObserver | null>(null);
+
+  // A callback ref, not `useRef` + `useEffect([])`: `AlertDialogPrimitive.Portal`
+  // doesn't render its children on the commit the popup/backdrop first mount
+  // in — `mounted` flips from false to true asynchronously inside Base UI's
+  // own dialog store — so a plain `useEffect` with an empty dependency array
+  // fires once while the ref is still null and never re-attaches once the
+  // real node shows up. The callback ref runs exactly when React attaches
+  // (and detaches) the node, whenever that happens.
+  return React.useCallback((node: T | null) => {
+    observerRef.current?.disconnect();
+    observerRef.current = null;
+    if (!node) return;
+
+    const strip = () => {
+      if (node.getAttribute('aria-hidden') === 'true') {
+        node.removeAttribute('aria-hidden');
+      }
+      if (node.hasAttribute('data-base-ui-inert')) {
+        node.removeAttribute('data-base-ui-inert');
+      }
+    };
+    strip();
+
+    const observer = new MutationObserver(strip);
+    observer.observe(node, {
+      attributes: true,
+      attributeFilter: ['aria-hidden', 'data-base-ui-inert'],
+    });
+    observerRef.current = observer;
+  }, []);
+}
+
 export function AlertDialogContent({
   className,
   children,
   ...props
 }: WithClassName<React.ComponentProps<typeof AlertDialogPrimitive.Popup>>): React.ReactNode {
+  const backdropRef = useNeverInertSelf<HTMLDivElement>();
+  const popupRef = useNeverInertSelf<HTMLDivElement>();
+
   return (
     <AlertDialogPrimitive.Portal>
-      <AlertDialogPrimitive.Backdrop data-slot="alert-dialog-backdrop" css={backdropClass} />
+      <AlertDialogPrimitive.Backdrop
+        ref={backdropRef}
+        data-slot="alert-dialog-backdrop"
+        css={backdropClass}
+      />
       <AlertDialogPrimitive.Popup
+        ref={popupRef}
         data-slot="alert-dialog-content"
         aria-modal="true"
         css={popupClass}
