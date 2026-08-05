@@ -11,14 +11,14 @@ fork is, how it differs from upstream, and how to use it.
 
 ```
 packages/
-  decap-cms/   the published @laikacms/decap-cms package (source, tests, demo, build)
-docs/          repo-level design and verification docs
+  decap-cms/           the published @laikacms/decap-cms package (source, tests, demo, build)
+  decap-cms-lib-pat/   scoped Personal Access Token minting/hashing/verification for Decap CMS servers
+docs/                  repo-level design and verification docs
 ```
 
-There is deliberately only one package right now. The workspace shape exists so future sibling
-packages (plugins, tooling, server pieces) can be added under `packages/` without another
-restructure, mirroring the layout of the `laikacms/laikacms` repo. The reasoning is documented in
-[RESTRUCTURE.md](RESTRUCTURE.md).
+The workspace shape lets sibling packages (plugins, tooling, server pieces) live under `packages/`
+alongside the main CMS package without another restructure, mirroring the layout of the
+`laikacms/laikacms` repo. The reasoning is documented in [RESTRUCTURE.md](RESTRUCTURE.md).
 
 ## Working in this repo
 
