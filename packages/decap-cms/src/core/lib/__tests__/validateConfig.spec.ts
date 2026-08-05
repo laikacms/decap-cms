@@ -127,6 +127,45 @@ describe('config', () => {
       }).not.toThrowError();
     });
 
+    it('should throw if backend.name is "proxy" and proxy_url is missing (DCMS-1848)', () => {
+      expect(() => {
+        validateConfig({ ...validConfig, backend: { name: 'proxy' } });
+      }).toThrowError("'backend' must have required property 'proxy_url'");
+    });
+
+    it('should throw if backend.name is "proxy" and proxy_url is an empty string (DCMS-1848)', () => {
+      expect(() => {
+        validateConfig({ ...validConfig, backend: { name: 'proxy', proxy_url: '' } });
+      }).toThrowError();
+    });
+
+    it('should throw if backend.name is "proxy" and proxy_url is not http(s) or root-relative (DCMS-1848)', () => {
+      expect(() => {
+        validateConfig({ ...validConfig, backend: { name: 'proxy', proxy_url: 'not-a-url' } });
+      }).toThrowError();
+    });
+
+    it('should not throw if backend.name is "proxy" and proxy_url is an http(s) URL (DCMS-1848)', () => {
+      expect(() => {
+        validateConfig({
+          ...validConfig,
+          backend: { name: 'proxy', proxy_url: 'https://proxy.example.com' },
+        });
+      }).not.toThrowError();
+    });
+
+    it('should not throw if backend.name is "proxy" and proxy_url is root-relative (DCMS-1848)', () => {
+      expect(() => {
+        validateConfig({ ...validConfig, backend: { name: 'proxy', proxy_url: '/api/v1' } });
+      }).not.toThrowError();
+    });
+
+    it('should not require proxy_url for non-proxy backends (DCMS-1848)', () => {
+      expect(() => {
+        validateConfig({ ...validConfig, backend: { name: 'github' } });
+      }).not.toThrowError();
+    });
+
     it('should throw if media_folder is not defined in config', () => {
       expect(() => {
         validateConfig({ foo: 'bar', backend: { name: 'bar' } });
