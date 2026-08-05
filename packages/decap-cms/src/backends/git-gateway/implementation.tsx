@@ -53,7 +53,6 @@ type AuthClient = {
   logout: () => void,
   currentUser: () => unknown,
   login?(email: string, password: string, remember?: boolean): Promise<unknown>,
-  clearStore: () => void,
 };
 
 const localHosts: Record<string, boolean> = {
@@ -225,14 +224,6 @@ export default class GitGateway implements Implementation {
       this.authClient = {
         logout: () => window.netlifyIdentity?.logout(),
         currentUser: () => window.netlifyIdentity?.currentUser(),
-        clearStore: () => {
-          const store = window.netlifyIdentity?.store;
-          if (store) {
-            store.user = null;
-            store.modal.page = 'login';
-            store.saving = false;
-          }
-        },
       };
     } else {
       const goTrue = new GoTrue({ APIUrl: this.apiUrl });
@@ -245,7 +236,6 @@ export default class GitGateway implements Implementation {
         },
         currentUser: () => goTrue.currentUser(),
         login: goTrue.login.bind(goTrue),
-        clearStore: () => undefined,
       };
     }
     return this.authClient;
@@ -380,12 +370,7 @@ export default class GitGateway implements Implementation {
 
   async logout() {
     const client = await this.getAuthClient();
-    try {
-      client.logout();
-    } catch (e: unknown) {
-      // due to a bug in the identity widget the store is not reset if logout fails
-      client.clearStore();
-    }
+    client.logout();
   }
   getToken() {
     return this.tokenPromise!();
