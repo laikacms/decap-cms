@@ -1,9 +1,30 @@
-# Docs coming soon!
+# decap-cms-editor-component-image
 
-Decap CMS was converted from a single npm package to a "monorepo" of over 20 packages.
-We haven't created a README for this package yet, but you can:
+An editor component that registers the `image` markdown-embed syntax, letting editors insert
+images directly in the Markdown widget's editor via a toolbar shortcut instead of hand-writing
+Markdown image syntax.
 
-1. Check out the [main readme](https://github.com/decaporg/decap-cms/#readme) or the [documentation
-   site](https://www.decapcms.org) for more info.
-2. Reach out to the [community chat](https://decapcms.org/chat/) if you need help.
-3. Help out and [write the readme yourself](https://github.com/decaporg/decap-cms/edit/main/packages/decap-cms-editor-component-image/README.md)!
+It's registered with `CMS.registerEditorComponent` and exposed to consumers as
+`editorComponents`.
+
+## Markdown pattern
+
+The component matches (and serializes to) standard Markdown image syntax with an optional title:
+
+```md
+![alt](src "title")
+```
+
+## Fields
+
+| Name    | Widget  | Description                                                                        |
+| ------- | ------- | ----------------------------------------------------------------------------------- |
+| `image` | `image` | The image asset, selected via the image widget's media library (single asset only) |
+| `alt`   | string  | The image's alt text                                                                |
+| `title` | string  | The image's title attribute                                                         |
+
+## Learn more
+
+Check out the [main readme](https://github.com/decaporg/decap-cms/#readme) or the
+[documentation site](https://www.decapcms.org) for more info, and reach out to the
+[community chat](https://decapcms.org/chat/) if you need help.
