@@ -7,7 +7,6 @@ import {
   loadDirectoryHandle,
   saveDirectoryHandle,
 } from '@/backends/local-fs/directoryHandleStore';
-
 import { buildFakeTree } from './fakeFileSystem';
 
 function asHandle<T>(value: T) {
