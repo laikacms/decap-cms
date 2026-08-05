@@ -263,6 +263,12 @@ const ObjectControl = React.forwardRef<ObjectControlHandle, ObjectControlProps>(
             );
           }
 
+          // Explicit, known panel id: Base UI's Collapsible.Trigger only
+          // emits `aria-controls` when `open` is true (upstream gap, see
+          // DCMS-1725), so we own the id and backfill `aria-controls` on the
+          // trigger ourselves in ObjectWidgetTopBar regardless of state.
+          const panelId = `${forID}-panel`;
+
           return (
             <Collapsible.Root
               id={forID}
@@ -272,11 +278,13 @@ const ObjectControl = React.forwardRef<ObjectControlHandle, ObjectControlProps>(
             >
               <ObjectWidgetTopBar
                 collapsibleTrigger
+                panelId={panelId}
                 collapsed={renderedCollapsed}
                 heading={renderedCollapsed && objectLabel()}
                 t={t}
               />
               <Collapsible.Panel
+                id={panelId}
                 keepMounted
                 className={css`
                   &[hidden] {
