@@ -1,0 +1,38 @@
+{
+  "name": "decap-cms-lib-pat",
+  "description": "CMS-issued scoped Personal Access Token (PAT) minting, hashing and bearer verification for Decap CMS-based servers.",
+  "version": "0.1.0",
+  "repository": "https://github.com/laikacms/decap-cms/tree/v4.beta/packages/decap-cms-lib-pat",
+  "bugs": "https://github.com/laikacms/decap-cms/issues",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "src/",
+    "dist/"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "decap-cms",
+    "auth",
+    "pat"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "rimraf dist && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "rimraf": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

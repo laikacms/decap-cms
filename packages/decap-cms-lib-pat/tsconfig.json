@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "module": "nodenext",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2022",
+    "moduleResolution": "nodenext",
+    "outDir": "dist",
+    "declaration": true,
+    "allowJs": false,
+    "strict": true,
+    "noImplicitAny": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "sourceMap": true,
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
