@@ -20,6 +20,7 @@ export * from './ScrollArea';
 export * from './ScrollSync';
 export * from './Select';
 export * from './Separator';
+export * from './ShadcnTokens';
 export * from './styled';
 export * from './Tabs';
 export * from './Toggle';
