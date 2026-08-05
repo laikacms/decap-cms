@@ -192,6 +192,13 @@ export const defaultRoutingTable: RoutingTable = {
       return {};
     },
   },
+  configEditor: {
+    create: () => `/admin/config`,
+    get: path => {
+      if (path !== '/admin/config') throw new Error(`Invalid config editor path: ${path}`);
+      return {};
+    },
+  },
 };
 
 /**
