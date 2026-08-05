@@ -29,9 +29,11 @@ interface NotFoundPageProps {
   /**
    * An in-app escape hatch back to the collection the failed route belongs to
    * (DCMS-445) — without it, a failed entry load has no click path back to
-   * the collection list.
+   * the collection list. Omitting `label` (e.g. for an unknown-collection
+   * deep-link, where there's no known collection to name) renders a generic
+   * "Back to home" link instead of "Back to <label>" (DCMS-1837).
    */
-  backLink?: { to: string, label: string };
+  backLink?: { to: string, label?: string };
 }
 
 function NotFoundPage({ t, collectionName, message, backLink }: NotFoundPageProps) {
@@ -43,7 +45,9 @@ function NotFoundPage({ t, collectionName, message, backLink }: NotFoundPageProp
       {backLink && (
         <p>
           <Link to={backLink.to}>
-            {t('app.notFoundPage.backToCollection', { name: backLink.label })}
+            {backLink.label
+              ? t('app.notFoundPage.backToCollection', { name: backLink.label })
+              : t('app.notFoundPage.backToHome')}
           </Link>
         </p>
       )}

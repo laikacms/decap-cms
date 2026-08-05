@@ -36,6 +36,7 @@ const en = {
       header: 'Not Found',
       collectionNotFound: 'Collection "%{name}" not found',
       backToCollection: 'Back to %{name}',
+      backToHome: 'Back to home',
     },
   },
   collection: {
