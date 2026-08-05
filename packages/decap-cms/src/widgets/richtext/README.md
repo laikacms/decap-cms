@@ -80,7 +80,7 @@ interface BlockDefinition<TData extends Record<string, unknown> = Record<string,
   id: string; // PT `_type` and stable id — see reserved ids below
   label?: string;
   icon?: ReactNode; // slash menu / toolbar / block chrome
-  inline?: boolean; // inline object (child of a text block) instead of block-level
+  inline?: boolean; // inline object (child of a text block) instead of block-level — markdown parsing unsupported, see note below
   fields: BlockFieldConfig[]; // decap fields editing the block data; [] = no editable props
   defaultData?: TData | (() => TData);
   keywords?: string[]; // extra slash-menu search keywords
@@ -92,6 +92,11 @@ interface BlockDefinition<TData extends Record<string, unknown> = Record<string,
 
 `BlockFieldConfig` is `{ name: string; label?: string; widget?: string; [key: string]: unknown }` —
 a decap field config passed through to the widget resolver untyped.
+
+**`inline: true` blocks are markdown-serialize-only.** A `formats.markdown` codec's `serialize`
+runs for inline blocks, but `pattern`/`fromMatch` do not — parsing markdown back into an inline
+block is unsupported. In the editor, inline blocks render as read-only chips (delete only, no
+in-place edit). Round-tripping an inline block through markdown save/load will lose it on reload.
 
 ### Reserved block ids
 
