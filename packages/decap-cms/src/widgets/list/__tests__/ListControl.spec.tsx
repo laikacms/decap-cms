@@ -824,4 +824,39 @@ describe('ListControl', () => {
     renderAndValidate(field, []);
     expect(props.onValidateObject).toHaveBeenCalledWith('forID', []);
   });
+
+  it('should give presence validation error if no elements and required with no min/max (DCMS-1816)', () => {
+    const field = {
+      name: 'list',
+      label: 'List',
+      collapsed: false,
+      minimize_collapsed: true,
+      required: true,
+      fields: [{ label: 'String', name: 'string', widget: 'string' }],
+    };
+    renderAndValidate(field, []);
+    expect(props.onValidateObject).toHaveBeenCalledWith('forID', [
+      {
+        message: 'editor.editorControlPane.widget.required',
+        type: 'PRESENCE',
+      },
+    ]);
+  });
+
+  it('should give presence validation error if no elements and required (default) with no min/max (DCMS-1816)', () => {
+    const field = {
+      name: 'list',
+      label: 'List',
+      collapsed: false,
+      minimize_collapsed: true,
+      fields: [{ label: 'String', name: 'string', widget: 'string' }],
+    };
+    renderAndValidate(field, []);
+    expect(props.onValidateObject).toHaveBeenCalledWith('forID', [
+      {
+        message: 'editor.editorControlPane.widget.required',
+        type: 'PRESENCE',
+      },
+    ]);
+  });
 });
