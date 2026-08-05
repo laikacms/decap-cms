@@ -150,6 +150,7 @@ const da = {
       inReview: 'Til gennemsyn',
       ready: 'Klar',
       publishNow: 'Publicer nu',
+      publishChanges: 'Publicer ændringer',
       deployPreviewPendingButtonLabel: 'Lav preview',
       deployPreviewButtonLabel: 'Vis preview',
       deployButtonLabel: 'Vis live',

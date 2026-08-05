@@ -128,6 +128,7 @@ const es = {
       inReview: 'En revisión',
       ready: 'Listo',
       publishNow: 'Publicar ahora',
+      publishChanges: 'Publicar cambios',
       deployPreviewPendingButtonLabel: 'Comprobar Vista Previa',
       deployPreviewButtonLabel: 'Ver Vista Previa',
       deployButtonLabel: 'Ver publicación',

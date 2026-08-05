@@ -135,6 +135,7 @@ const uk = {
       inReview: 'На розгляді',
       ready: 'Готово',
       publishNow: 'Опублікувати',
+      publishChanges: 'Опублікувати зміни',
       deployPreviewPendingButtonLabel: 'Перевірити оновлення',
       deployPreviewButtonLabel: 'Попередній перегляд',
       deployButtonLabel: 'Переглянути наживо',

@@ -153,6 +153,7 @@ const mk = {
       inReview: 'Во рецензија',
       ready: 'Спремно',
       publishNow: 'Објави сега',
+      publishChanges: 'Објави промени',
       deployPreviewPendingButtonLabel: 'Проверете ја верзијата во рецензија',
       deployPreviewButtonLabel: 'Прикажи рецензија',
       deployButtonLabel: 'Прикажи во живо',

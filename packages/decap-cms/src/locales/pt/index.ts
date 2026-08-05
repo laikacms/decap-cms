@@ -151,6 +151,7 @@ const pt = {
       inReview: 'Em revisão',
       ready: 'Pronto',
       publishNow: 'Publicar agora',
+      publishChanges: 'Publicar alterações',
       deployPreviewPendingButtonLabel: 'Verificar se há Pré-visualização',
       deployPreviewButtonLabel: 'Ver Pré-visualização',
       deployButtonLabel: 'Ver em Produção',

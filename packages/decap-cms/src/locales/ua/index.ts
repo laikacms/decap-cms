@@ -141,6 +141,7 @@ const ua = {
       inReview: 'На розгляді',
       ready: 'Готово до публікації',
       publishNow: 'Опублікувати зараз',
+      publishChanges: 'Опублікувати зміни',
       deployPreviewPendingButtonLabel: 'Перевірити попередній перегляд',
       deployPreviewButtonLabel: 'Попередній перегляд',
       deployButtonLabel: 'Перегляд',

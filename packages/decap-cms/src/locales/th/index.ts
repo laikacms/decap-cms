@@ -150,6 +150,7 @@ const th = {
       inReview: 'อยู่ระหว่างการตรวจสอบ',
       ready: 'พร้อม',
       publishNow: 'เผยแพร่ตอนนี้',
+      publishChanges: 'เผยแพร่การเปลี่ยนแปลง',
       deployPreviewPendingButtonLabel: 'ตรวจสอบตัวอย่าง',
       deployPreviewButtonLabel: 'ดูตัวอย่าง',
       deployButtonLabel: 'ดูตัวอย่างจากหน้าจริง',

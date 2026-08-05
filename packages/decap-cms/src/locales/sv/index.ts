@@ -146,6 +146,7 @@ const sv = {
       inReview: 'Under granskning',
       ready: 'Redo',
       publishNow: 'Publicera nu',
+      publishChanges: 'Publicera ändringar',
       deployPreviewPendingButtonLabel: 'Kontrollera förhandsvisning',
       deployPreviewButtonLabel: 'Visa förhandsvisning',
       deployButtonLabel: 'Visa Live',

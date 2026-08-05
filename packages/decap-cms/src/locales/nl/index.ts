@@ -148,6 +148,7 @@ const nl = {
       inReview: 'Wordt beoordeeld',
       ready: 'Klaar',
       publishNow: 'Publiceer nu',
+      publishChanges: 'Publiceer wijzigingen',
       deployPreviewPendingButtonLabel: 'Controleer of voorvertoning geladen is',
       deployPreviewButtonLabel: 'Bekijk voorvertoning',
       deployButtonLabel: 'Bekijk Live',

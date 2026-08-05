@@ -153,6 +153,7 @@ const cs = {
       inReview: 'V revizi',
       ready: 'Připraveno',
       publishNow: 'Publikovat teď',
+      publishChanges: 'Publikovat změny',
       deployPreviewPendingButtonLabel: 'Zkontrolovat náhled',
       deployPreviewButtonLabel: 'Zobrazit náhled',
       deployButtonLabel: 'Zobrazit na webu',

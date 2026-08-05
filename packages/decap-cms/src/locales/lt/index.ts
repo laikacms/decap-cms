@@ -140,6 +140,7 @@ const lt = {
       inReview: 'Peržiūrima redakcijoje',
       ready: 'Paruošta',
       publishNow: 'Skelbti naują',
+      publishChanges: 'Publikuoti keitimus',
       deployPreviewPendingButtonLabel: 'Tikrinti, ar yra demonstracija',
       deployPreviewButtonLabel: 'Žiūrėti demonstraciją (netiesiogiai)',
       deployButtonLabel: 'Žiūrėti tiesiogiai tinklalapyje',

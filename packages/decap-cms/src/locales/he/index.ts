@@ -148,6 +148,7 @@ const he = {
       inReview: 'ממתין לאישור',
       ready: 'מוכן לפרסום',
       publishNow: 'פרסום מיידי',
+      publishChanges: 'פרסום השינויים',
       deployPreviewPendingButtonLabel: 'בדיקת תצוגה מקדימה',
       deployPreviewButtonLabel: 'צפייה בתצוגה מקדימה',
       deployButtonLabel: 'צפייה באתר',

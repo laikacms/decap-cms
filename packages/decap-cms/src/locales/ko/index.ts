@@ -147,6 +147,7 @@ const ko = {
       inReview: '검토중',
       ready: '준비됨',
       publishNow: '지금 게시',
+      publishChanges: '변경사항 게시',
       deployPreviewPendingButtonLabel: '미리보기 확인',
       deployPreviewButtonLabel: '미리보기 보기',
       deployButtonLabel: '라이브 보기',

@@ -147,6 +147,7 @@ const fr = {
       inReview: 'En cours de révision',
       ready: 'Prêt',
       publishNow: 'Publier maintenant',
+      publishChanges: 'Publier les modifications',
       deployPreviewPendingButtonLabel: "Vérifier l'aperçu",
       deployPreviewButtonLabel: "Voir l'aperçu",
       deployButtonLabel: 'Voir en direct',

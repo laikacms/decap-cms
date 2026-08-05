@@ -134,6 +134,7 @@ const vi = {
       inReview: 'Đang xét duyệt',
       ready: 'Sẵn sàng',
       publishNow: 'Công bố ngay',
+      publishChanges: 'Công bố thay đổi',
       deployPreviewPendingButtonLabel: 'Kiểm tra Xem trước',
       deployPreviewButtonLabel: 'Xem trước',
       deployButtonLabel: 'Xem bản hoàn chỉnh',

@@ -150,6 +150,7 @@ const ru = {
       inReview: 'На рассмотрении',
       ready: 'Одобрен',
       publishNow: 'Опубликовать сейчас',
+      publishChanges: 'Опубликовать изменения',
       deployPreviewPendingButtonLabel: 'Проверить предварительный просмотр',
       deployPreviewButtonLabel: 'Предварительный просмотр',
       deployButtonLabel: 'Просмотр',

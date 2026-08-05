@@ -187,6 +187,7 @@ const en = {
       inReview: 'In review',
       ready: 'Ready',
       publishNow: 'Publish now',
+      publishChanges: 'Publish changes',
       deployPreviewPendingButtonLabel: 'Check for Preview',
       deployPreviewButtonLabel: 'View Preview',
       deployButtonLabel: 'View Live',
