@@ -25,6 +25,7 @@ import { registerCoreWidgets } from '@/core/components/EditorWidgets/index';
 import { connectMediaLibrary } from '@/core/mediaLibrary';
 import { AlertDialogHost, ConfirmDialogHost, PromptDialogHost } from '@/ui';
 import { DefaultTokensGlobalStyle, GlobalStyles, themeToCssVars } from '@/ui/default/index';
+import { ShadcnTokensGlobalStyle } from '@/ui/ShadcnTokens';
 
 import type { DecapCmsContext, DecapCmsProviderProps, DecapNavigate, DecapParams } from '@/core/contexts/decap';
 import type { AppDispatch } from '@/core/redux';
@@ -192,6 +193,7 @@ export function DecapCmsProvider({
       <DirectionProvider direction={direction}>
         <GlobalStyles />
         <DefaultTokensGlobalStyle />
+        <ShadcnTokensGlobalStyle />
         {theme ? <Global styles={{ ':root': themeToCssVars(theme) }} /> : null}
         <ConfigLoader config={config} />
         <FreshnessLoader />

@@ -1,5 +1,6 @@
 import { css, Global } from '@emotion/react';
 
+import { shadcnTokensCss } from '@/ui/ShadcnTokens';
 import { editorThemeStyles } from './editor-theme';
 import { utilityStyles } from './utility-styles';
 
@@ -12,30 +13,19 @@ import type { ReactNode } from 'react';
  * Here those are provided as emotion global styles: a set of CSS custom properties
  * (light + `.dark`) and the editor's structural CSS (code blocks, tables,
  * syntax-highlight token colours, collapsible containers).
+ *
+ * The shadcn-style token set (`--popover`, `--foreground`, `--border`, …)
+ * that the Base UI-primitive popups in `src/ui` also consume is declared
+ * once in `shadcnTokensCss` (see `@/ui/ShadcnTokens`) and interpolated here
+ * rather than redeclared, so this block only adds the editor-only
+ * `--editor-*` tokens on top of it (DCMS-1851). `DecapCmsProvider` mounts
+ * `shadcnTokensCss` separately at the app root so it's available even when
+ * the rich-text editor isn't mounted anywhere in the tree.
  */
 const globalStyles = css`
-  :root {
-    --background: #ffffff;
-    --foreground: #020817;
-    --card: #ffffff;
-    --card-foreground: #020817;
-    --popover: #ffffff;
-    --popover-foreground: #020817;
-    --primary: #0f172a;
-    --primary-foreground: #f8fafc;
-    --secondary: #f1f5f9;
-    --secondary-foreground: #0f172a;
-    --muted: #f1f5f9;
-    --muted-foreground: #64748b;
-    --accent: #f1f5f9;
-    --accent-foreground: #0f172a;
-    --destructive: #ef4444;
-    --destructive-foreground: #f8fafc;
-    --border: #e2e8f0;
-    --input: #e2e8f0;
-    --ring: #0f172a;
-    --radius: 0.5rem;
+  ${shadcnTokensCss}
 
+  :root {
     /*
      * Editor content colours: link, inline highlight, and the prism
      * syntax-highlight tokens. Kept as variables so the dark block can
@@ -56,32 +46,11 @@ const globalStyles = css`
   }
 
   /*
-   * Dark tokens aligned with the laika dark palette (see laikaThemes.ts) so
-   * the editor surface matches the rest of the shell rather than shadcn
-   * near-black defaults. Activated by the dark class that LaikaThemeProvider
+   * Dark editor-content tokens aligned with the laika dark palette (see
+   * laikaThemes.ts). Activated by the dark class that LaikaThemeProvider
    * toggles on the document element.
    */
   .dark {
-    --background: #11141a;
-    --foreground: #c8ced8;
-    --card: #1c1f26;
-    --card-foreground: #c8ced8;
-    --popover: #1c1f26;
-    --popover-foreground: #c8ced8;
-    --primary: #f3f4f6;
-    --primary-foreground: #11141a;
-    --secondary: #1c1f26;
-    --secondary-foreground: #f3f4f6;
-    --muted: #1c1f26;
-    --muted-foreground: #9aa3b2;
-    --accent: #1d2a4a;
-    --accent-foreground: #f3f4f6;
-    --destructive: #ff8a8a;
-    --destructive-foreground: #11141a;
-    --border: #2a2f3a;
-    --input: #2a2f3a;
-    --ring: #6ea1ff;
-
     --editor-link: #6ea1ff;
     --editor-highlight: #fef08a;
     --editor-syntax-comment: #7d8799;
