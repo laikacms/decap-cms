@@ -40,6 +40,19 @@ describe('NotFoundPage', () => {
     expect(container.querySelectorAll('h2')).toHaveLength(0);
   });
 
+  it('renders a "Back to home" link for an unknown collection route (DCMS-1837)', () => {
+    const { getByRole, getByText } = render(
+      <RouterProvider router={createDefaultRouter()}>
+        <NotFoundPage collectionName="does-not-exist" backLink={{ to: '/' }} />
+      </RouterProvider>,
+    );
+
+    expect(getByText('app.notFoundPage.collectionNotFound')).toBeInTheDocument();
+    const link = getByRole('link', { name: 'app.notFoundPage.backToHome' });
+    expect(link).toBeInTheDocument();
+    expect(link.getAttribute('href')).toBe('#/');
+  });
+
   it('renders a single h1 for an unknown entry route', () => {
     const { container, getByRole, getByText } = render(
       <RouterProvider router={createDefaultRouter()}>

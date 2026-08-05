@@ -63,6 +63,8 @@ vi.mock('@/core/backend', () => ({
 import { AppContent } from '@/app/components/App';
 import { context } from '@/core/contexts/decap';
 import { defaultRoutingTable } from '@/core/routing/router';
+import { RouterProvider as InAppRouterProvider } from '@/core/routing/context';
+import { createDefaultRouter } from '@/core/routing/defaultRouter';
 
 import type { AppLayoutRenderProps } from '@/app/components/App';
 import type * as UIModule from '@/core/components/UI';
@@ -104,7 +106,19 @@ function renderAppContentAt(
     ...render(
       <Provider store={mockStore(state)}>
         <context.Provider value={decapValue}>
-          <AppContent {...props} />
+          {/*
+            The not-found page's "Back to home" link (DCMS-1837, like the
+            DCMS-445 entry-not-found link before it) renders via the in-house
+            `<Link>`, which reads `@/core/routing/context`'s `RouterProvider`
+            — a *different* context than the `decap` one stubbed above. In the
+            real app `DecapCmsProvider` supplies it; here we give it its own
+            router purely so `<Link>` doesn't throw. Route matching itself
+            still runs off `decapValue.path`, not this router's location, so
+            it doesn't affect which page renders.
+          */}
+          <InAppRouterProvider router={createDefaultRouter()}>
+            <AppContent {...props} />
+          </InAppRouterProvider>
         </context.Provider>
       </Provider>,
     ),
@@ -244,6 +258,14 @@ describe('AppContent - DCMS-432 unknown-collection deep-link', () => {
 
     expect(getByTestId('collection-view')).toBeInTheDocument();
     expect(queryByText('app.notFoundPage.header')).not.toBeInTheDocument();
+  });
+
+  it('renders a "Back to home" link on the not-found page for an unknown collection (DCMS-1837)', () => {
+    const { getByRole } = renderAppContentAt('/collections/nonexistent_collection');
+
+    const link = getByRole('link', { name: 'app.notFoundPage.backToHome' });
+    expect(link).toBeInTheDocument();
+    expect(link.getAttribute('href')).toBe('#/');
   });
 
   it('honours a custom renderNotFound for an unknown collection', () => {

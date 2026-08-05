@@ -312,7 +312,14 @@ function CollectionGuard({
 }) {
   const exists = name ? collections[name] : undefined;
   if (!exists) {
-    return renderNotFound ? <>{renderNotFound()}</> : <NotFoundPage collectionName={name} />;
+    // Without a `backLink` here, an unknown-collection deep-link (DCMS-432)
+    // strands the user on the not-found page with no click path back into
+    // the app — unlike the entry-not-found case (DCMS-445), which already
+    // gets one. Route to `/` (home), since there's no known collection to
+    // link back to (DCMS-1837).
+    return renderNotFound ? <>{renderNotFound()}</> : (
+      <NotFoundPage collectionName={name} backLink={{ to: '/' }} />
+    );
   }
   return <>{children}</>;
 }
