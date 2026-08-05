@@ -100,6 +100,23 @@ describe('shipped config.schema.json (DCMS-1402)', () => {
     expect(items.properties?.filename_template).toBeDefined();
   });
 
+  it('has a collection-level sortableFields property mirroring getConfigSchema() (DCMS-1847)', () => {
+    const definitions = rawSchema.definitions as Record<string, JSONSchema>;
+    const collection = definitions.collection;
+    expect(collection).toBeDefined();
+
+    const sortableFields = collection.properties?.sortableFields as JSONSchema | undefined;
+    expect(sortableFields).toBeDefined();
+    expect(sortableFields?.type).toBe('array');
+    expect((sortableFields?.items as JSONSchema)?.type).toBe('string');
+
+    // sortable_fields / sortableFields are mutually exclusive at runtime
+    // (validateConfig.ts), so the shipped schema must statically enforce it too.
+    expect(collection.not).toEqual({
+      required: ['sortable_fields', 'sortableFields'],
+    });
+  });
+
   it('every $ref points at a declared definition', () => {
     const definitions = rawSchema.definitions as Record<string, JSONSchema>;
     expect(Object.keys(definitions).length).toBeGreaterThan(0);
@@ -238,6 +255,41 @@ describe('shipped config.schema.json (DCMS-1402)', () => {
         backend: { name: 'proxy', proxy_url: 'https://proxy.example.com' },
       };
       expect(validateJSONSchema(schema, configWithProxyUrl)).toEqual([]);
+    });
+
+    it('accepts a collection using the deprecated sortableFields alias (DCMS-1847)', () => {
+      const configWithSortableFields = {
+        ...validConfig,
+        collections: [
+          {
+            name: 'posts',
+            label: 'Posts',
+            folder: '_posts',
+            fields: validConfig.collections[0].fields,
+            sortableFields: ['title'],
+          },
+        ],
+      };
+      expect(validateJSONSchema(schema, configWithSortableFields)).toEqual([]);
+    });
+
+    it('rejects a collection setting both sortable_fields and sortableFields (DCMS-1847)', () => {
+      const invalidConfig = {
+        ...validConfig,
+        collections: [
+          {
+            name: 'posts',
+            label: 'Posts',
+            folder: '_posts',
+            fields: validConfig.collections[0].fields,
+            sortable_fields: ['title'],
+            sortableFields: ['title'],
+          },
+        ],
+      };
+      const errors = validateJSONSchema(schema, invalidConfig);
+      expect(errors.length).toBeGreaterThan(0);
+      expect(errors.some(error => error.keyword === 'not')).toBe(true);
     });
   });
 });

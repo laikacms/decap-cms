@@ -256,6 +256,11 @@
           "items": { "type": "string", "minLength": 1 },
           "uniqueItems": true
         },
+        "sortableFields": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Deprecated camelCase alias for `sortable_fields`, auto-migrated at load time. Mutually exclusive with `sortable_fields`."
+        },
         "view_filters": { "$ref": "#/definitions/viewFilters" },
         "view_groups": { "$ref": "#/definitions/viewGroups" },
         "nested": {
@@ -291,7 +296,10 @@
       "oneOf": [
         { "required": ["files"] },
         { "required": ["folder", "fields"] }
-      ]
+      ],
+      "not": {
+        "required": ["sortable_fields", "sortableFields"]
+      }
     }
   },
   "properties": {
