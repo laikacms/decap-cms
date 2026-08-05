@@ -262,6 +262,92 @@ describe('convertToSortableOption', () => {
   });
 });
 
+describe('RelationControl#parseHitOptions', () => {
+  function t(key) {
+    return key;
+  }
+
+  // README-documented `filters` semantics: an entry must match *every*
+  // filter to be selectable, and a filter `field` path that doesn't exist
+  // on the entry's data is treated as not matching (excluded), rather than
+  // throwing or being skipped.
+  const field = fromJS({
+    name: 'related',
+    collection: 'posts',
+    value_field: 'slug',
+    display_fields: ['title'],
+    filters: [
+      { field: 'status', values: ['published'] },
+      { field: 'meta.lang', values: ['en'] },
+    ],
+  });
+
+  function makeControl() {
+    return new RelationControl({ field, t });
+  }
+
+  it('includes an entry that matches every filter', () => {
+    const control = makeControl();
+    const hits = [{ data: { slug: 'a', title: 'A', status: 'published', meta: { lang: 'en' } } }];
+
+    expect(control.parseHitOptions(hits)).toEqual([{ data: hits[0].data, value: 'a', label: 'A' }]);
+  });
+
+  it('excludes an entry that matches only some filters (AND semantics)', () => {
+    const control = makeControl();
+    const hits = [
+      // matches `status` but not `meta.lang`
+      { data: { slug: 'b', title: 'B', status: 'published', meta: { lang: 'fr' } } },
+    ];
+
+    expect(control.parseHitOptions(hits)).toEqual([]);
+  });
+
+  it('excludes an entry whose filter field path does not exist on its data', () => {
+    const control = makeControl();
+    const hits = [
+      // `meta` is missing entirely, so the `meta.lang` filter path can't be resolved
+      { data: { slug: 'c', title: 'C', status: 'published' } },
+    ];
+
+    expect(control.parseHitOptions(hits)).toEqual([]);
+  });
+
+  it('resolves a nested (dot-separated) filter field path correctly', () => {
+    const control = new RelationControl({
+      field: fromJS({
+        name: 'related',
+        collection: 'posts',
+        value_field: 'slug',
+        display_fields: ['title'],
+        filters: [{ field: 'meta.region.code', values: ['nl'] }],
+      }),
+      t,
+    });
+    const hits = [
+      { data: { slug: 'd', title: 'D', meta: { region: { code: 'nl' } } } },
+      { data: { slug: 'e', title: 'E', meta: { region: { code: 'be' } } } },
+    ];
+
+    expect(control.parseHitOptions(hits)).toEqual([{ data: hits[0].data, value: 'd', label: 'D' }]);
+  });
+
+  it('includes every hit when no filters are configured', () => {
+    const control = new RelationControl({
+      field: fromJS({
+        name: 'related',
+        collection: 'posts',
+        value_field: 'slug',
+        display_fields: ['title'],
+      }),
+      t,
+    });
+    const hits = [{ data: { slug: 'f', title: 'F' } }];
+
+    expect(control.parseHitOptions(hits)).toEqual([{ data: hits[0].data, value: 'f', label: 'F' }]);
+  });
+});
+
 describe('RelationControl#isValid', () => {
   function t(key) {
     return key;
