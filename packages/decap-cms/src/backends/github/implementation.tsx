@@ -184,12 +184,13 @@ export default class GitHub implements CmsImplementation {
     return { auth: { status: auth }, api: { status: api, statusPage: STATUS_PAGE } };
   }
 
+  private wrappedAuthComponent = Object.assign(
+    (props: AuthenticationPageProps) => <AuthenticationPage {...props} backend={this} />,
+    { displayName: 'AuthenticationPage' },
+  );
+
   authComponent() {
-    const wrappedAuthenticationPage = (props: AuthenticationPageProps) => (
-      <AuthenticationPage {...props} backend={this} />
-    );
-    wrappedAuthenticationPage.displayName = 'AuthenticationPage';
-    return wrappedAuthenticationPage;
+    return this.wrappedAuthComponent;
   }
 
   restoreUser(user: CmsUser) {
