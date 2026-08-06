@@ -15,6 +15,7 @@ import React from 'react';
 import { AccessTokenError, APIError, Cursor, CURSOR_COMPATIBILITY_SYMBOL, unsentRequest } from '@/lib/util/index';
 import PKCEAuthenticationPage from './AuthenticationPage.js';
 import DevAuthenticationPage from './DevAuthenticationPage.js';
+import { requestQrTransferCode } from './qrLogin.js';
 
 import type {
   CmsAssetProxy as AssetProxy,
@@ -37,6 +38,7 @@ import type { Asset, AssetCreate, AssetsRepository, Resource } from 'laikacms/as
 import type { ErrorCode, LaikaResult, LaikaStream, LaikaTask } from 'laikacms/core';
 import type { Pagination } from 'laikacms/core';
 import type { DocumentsRepository } from 'laikacms/documents';
+import type { QrTransferCode } from './qrLogin.js';
 
 /**
  * The default recoverable-warning handler: log to console.warn so devtools
@@ -850,6 +852,18 @@ export default function createLaikaBackend(
         throw new AccessTokenError('Not authenticated');
       }
       return this.tokenPromise();
+    }
+
+    /**
+     * Mint a short-lived, single-use QR login transfer code for the CURRENT
+     * session (DCMS-1401 — "quick mobile access"). Used by laika-app's
+     * settings UI to render a QR code that a second device scans to open an
+     * already-authenticated session without a full PKCE re-login. See
+     * `backends/laika/qrLogin.ts` for the full client/server contract.
+     */
+    async createQrLoginTransfer(): Promise<QrTransferCode> {
+      const token = await this.ensureActiveToken();
+      return requestQrTransferCode(this.apiUrl, token);
     }
 
     /**
