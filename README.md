@@ -10,6 +10,14 @@
 [![commit activity](https://img.shields.io/github/commit-activity/m/laikacms/decap-cms)](https://github.com/laikacms/decap-cms/commits)
 [![dependencies](https://img.shields.io/librariesio/github/laikacms/decap-cms?label=dependencies)](https://libraries.io/github/laikacms/decap-cms)
 
+Decap CMS v4, rewritten: two years of work, the last six months with a 24/7 pool of Claude agents
+in different roles - 825 commits, 190k lines of strict TypeScript, 3,600 tests, and $948.94 in
+tokens. One package instead of 41, Vite instead of webpack + Babel, Vitest + Playwright instead of
+Jest + Cypress, Lexical with Portable Text instead of Slate, Immutable.js gone, 100% strict
+TypeScript, pure ESM. A drop-in replacement, assemblable down to 267 kB gzip through subpath
+exports. MIT licensed, and it stays MIT. The full story:
+[Rewriting Decap with less than $1K in Claude tokens](https://sem-postma.com/blog/rewriting-decap-with-less-than-1k-in-claude-tokens/).
+
 This repository is a pnpm workspace. The actual CMS - **`@laikacms/decap-cms`**, a single-package
 fork of [Decap CMS](https://decapcms.org/) - lives in
 [`packages/decap-cms`](packages/decap-cms/README.md), which has the full README covering what the
