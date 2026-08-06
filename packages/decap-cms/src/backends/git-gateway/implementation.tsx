@@ -589,8 +589,9 @@ export default class GitGateway implements Implementation {
             };
           }
         }
-        // eslint-disable-next-line no-empty
-      } catch (e: unknown) {}
+      } catch (e: unknown) {
+        console.warn('Failed to fetch deploy preview from Netlify API', e);
+      }
     }
     return preview;
   }
