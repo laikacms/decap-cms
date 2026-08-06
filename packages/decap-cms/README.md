@@ -31,8 +31,8 @@ decade of groundwork goes to the Decap CMS team; see [Credits](#credits) below.
   [src/widgets/aichat/README.md](./src/widgets/aichat/README.md) for widget setup. The server side
   is powered by `decapAi()` from the `@laikacms/decap-cms/ai` subpath export, which bundles the
   Vercel AI SDK (model provider factories, `tool`/`jsonSchema` re-exports) so consumers share one
-  `ai` runtime instead of installing it themselves; see
-  [src/ai/index.ts](./src/ai/index.ts) for usage.
+  `ai` runtime instead of installing it themselves; see [src/ai/index.ts](./src/ai/index.ts) for
+  usage.
 
 ## Installation
 
@@ -47,16 +47,22 @@ For configuration, content modeling, and backend setup, the upstream
 [Decap CMS documentation](https://www.decapcms.org/docs/intro/) applies to this fork unless noted in
 [BREAKING_CHANGES_V4_BETA.md](../../BREAKING_CHANGES_V4_BETA.md).
 
-If you use the `laika` backend, read
-[src/backends/laika/README.md](./src/backends/laika/README.md) first — it diverges from the upstream
-backend docs in two ways that aren't obvious from the standard config reference:
+If you use the `laika` backend, read [src/backends/laika/README.md](./src/backends/laika/README.md)
+first — it diverges from the upstream backend docs in three ways that aren't obvious from the
+standard config reference:
 
+- **It requires the `laika-app` entry point, not the root import above.** The root export
+  (`@laikacms/decap-cms`, what plain `npm install @laikacms/decap-cms` gives you) never calls
+  `CMS.registerBackend('laika', …)`, so setting `backend: { name: laika }` against it fails silently
+  at runtime (no registered backend, no editor). Import `@laikacms/decap-cms/laika-app` instead (or
+  `@laikacms/decap-cms/laika-app/bare` to register only the pieces you use) — see
+  [src/backends/laika/README.md#usage](./src/backends/laika/README.md#usage) for the exact import.
 - **Only `format: json` collections are supported.** Decap's default (markdown-frontmatter) is not
   yet supported; omitting `format:` now fails fast client-side with an actionable error before any
   request reaches the server.
 - **Entry locking is not yet implemented.** The advisory "Being edited by X" locking that Decap core
-  supports (`getEntryLock`/`acquireEntryLock`/`releaseEntryLock`/`refreshEntryLock`) has no effect on
-  this backend yet.
+  supports (`getEntryLock`/`acquireEntryLock`/`releaseEntryLock`/`refreshEntryLock`) has no effect
+  on this backend yet.
 
 ## JSON Schema (editor autocompletion)
 
