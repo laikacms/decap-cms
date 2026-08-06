@@ -25,6 +25,14 @@ describe('github backend implementation', () => {
     vi.clearAllMocks();
   });
 
+  describe('authComponent', () => {
+    it('should return the same component reference across calls', () => {
+      const gitHubImplementation = new GitHubImplementation(config);
+
+      expect(gitHubImplementation.authComponent()).toBe(gitHubImplementation.authComponent());
+    });
+  });
+
   describe('forkExists', () => {
     it('should return true when repo is fork and parent matches originRepo', async () => {
       const gitHubImplementation = new GitHubImplementation(config);
