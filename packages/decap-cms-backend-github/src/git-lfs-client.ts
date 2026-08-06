@@ -1,4 +1,4 @@
-import minimatch from 'minimatch';
+import minimatchFn from 'minimatch';
 import { unsentRequest } from 'decap-cms-lib-util';
 
 import type { ApiRequest, PointerFile } from 'decap-cms-lib-util';
@@ -65,7 +65,7 @@ export class GitLfsClient {
   ) {}
 
   matchPath(path: string) {
-    return this.patterns.some(pattern => minimatch(path, pattern, { matchBase: true }));
+    return this.patterns.some(pattern => minimatchFn(path, pattern, { matchBase: true }));
   }
 
   async uploadResource(pointer: PointerFile, resource: Blob): Promise<string> {
