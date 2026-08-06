@@ -88,6 +88,25 @@ function getRoot() {
   return newRoot;
 }
 
+// Cache the React root per mount container so calling `init()` twice (the
+// `/app` entry's own auto-init on script load, followed by a consumer's
+// explicit `CMS.init(...)` without setting `window.CMS_MANUAL_INIT`; also
+// HMR / dynamic config swaps / tests that re-mount) updates the existing
+// root instead of calling `createRoot` again. A second `createRoot` on the
+// same container leaves two independent React roots reconciling overlapping
+// DOM, which surfaces as a `NotFoundError: removeChild` from one root
+// deleting a node the other has already detached, caught by the top-level
+// `ErrorBoundary` (DCMS-1896). Mirrors `laika-app/bare.ts`'s `ensureRoot`.
+const rootRegistry = new WeakMap<Element, ReturnType<typeof createRoot>>();
+
+function ensureRoot(container: Element): ReturnType<typeof createRoot> {
+  const existing = rootRegistry.get(container);
+  if (existing) return existing;
+  const root = createRoot(container);
+  rootRegistry.set(container, root);
+  return root;
+}
+
 /**
  * Compose the default Decap CMS app — `DecapCmsProvider` wrapping the default
  * `App` — and render it into the DOM. This "tie it together" step previously
@@ -97,10 +116,13 @@ function getRoot() {
  * When using `/bare`, you are responsible for registering backends, widgets,
  * and entry-file formats via `CMS.registerBackend()` / `CMS.registerWidget()`
  * / `CMS.registerEntryCodec()` before calling `init`.
+ *
+ * Calling `init()` more than once reuses the same React root and re-renders,
+ * so dynamic config swaps and HMR are safe.
  */
 export function init(opts: { config?: CmsConfig } = {}) {
   const { config } = opts;
-  const root = createRoot(getRoot());
+  const root = ensureRoot(getRoot());
   root.render(
     createElement(
       StrictMode,
