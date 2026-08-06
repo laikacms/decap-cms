@@ -620,6 +620,111 @@ describe('Backend', () => {
     });
   });
 
+  // DCMS-1884: local-draft backups are keyed by collection/slug, not by user, so
+  // leaving them around after logout lets the next person who logs in on a shared
+  // workstation get a "Restore backup" prompt hydrating the previous user's draft.
+  describe('logout', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('purges every local-draft backup key after the implementation logs out', async () => {
+      const implementation = {
+        init: vi.fn(() => implementation),
+        logout: vi.fn().mockResolvedValue(undefined),
+      };
+      const authStore = { logout: vi.fn() };
+
+      const backend = new Backend(implementation, { config: {}, backendName: 'github', authStore });
+      // The constructor itself fires a `deleteAnonymousBackup()` cleanup call
+      // (`localForage.removeItem('backup')`); reset so only `logout()`'s calls count.
+      vi.clearAllMocks();
+
+      localForage.keys.mockResolvedValue([
+        'backup',
+        'backup.posts',
+        'backup.posts.slug-a',
+        'backup.posts.slug-b',
+        'gh.meta.some-cache-key',
+      ]);
+
+      await backend.logout();
+
+      expect(implementation.logout).toHaveBeenCalledTimes(1);
+      expect(authStore.logout).toHaveBeenCalledTimes(1);
+      expect(localForage.removeItem).toHaveBeenCalledTimes(4);
+      expect(localForage.removeItem).toHaveBeenCalledWith('backup');
+      expect(localForage.removeItem).toHaveBeenCalledWith('backup.posts');
+      expect(localForage.removeItem).toHaveBeenCalledWith('backup.posts.slug-a');
+      expect(localForage.removeItem).toHaveBeenCalledWith('backup.posts.slug-b');
+      expect(localForage.removeItem).not.toHaveBeenCalledWith('gh.meta.some-cache-key');
+    });
+
+    it('still purges local-draft backups when the implementation logout call fails', async () => {
+      const implementation = {
+        init: vi.fn(() => implementation),
+        logout: vi.fn().mockRejectedValue(new Error('network down')),
+      };
+
+      const backend = new Backend(implementation, { config: {}, backendName: 'github' });
+      vi.clearAllMocks();
+
+      localForage.keys.mockResolvedValue(['backup.posts.slug']);
+
+      await backend.logout();
+
+      expect(localForage.removeItem).toHaveBeenCalledWith('backup.posts.slug');
+    });
+
+    it('two-persona flow: a draft persisted by user A is unreachable after logout, so user B opening the same new-entry slot gets no restore-backup hydration', async () => {
+      (asyncLock as ReturnType<typeof vi.fn>).mockImplementation(() => ({
+        acquire: vi.fn(),
+        release: vi.fn(),
+      }));
+
+      const implementation = {
+        init: vi.fn(() => implementation),
+        logout: vi.fn().mockResolvedValue(undefined),
+      };
+
+      const backend = new Backend(implementation, { config: {}, backendName: 'github' });
+      backend.entryToRaw = vi.fn().mockReturnValue('user A private draft content');
+      vi.clearAllMocks();
+
+      const collection = { name: 'posts' };
+      const slug = 'new-entry-slug';
+      const entryFromUserA = { slug, path: 'content/posts/entry.md', mediaFiles: [] };
+
+      // User A types an unsaved draft; the entry editor autosaves it as a local backup.
+      const store: Record<string, unknown> = {};
+      localForage.setItem.mockImplementation((key: string, value: unknown) => {
+        store[key] = value;
+        return Promise.resolve(value);
+      });
+      await backend.persistLocalDraftBackup(entryFromUserA, collection);
+      expect(store[`backup.${collection.name}.${slug}`]).toBeDefined();
+
+      // User A logs out. The keys() call reflects everything still in the (fake) store.
+      localForage.keys.mockResolvedValue(Object.keys(store));
+      localForage.removeItem.mockImplementation((key: string) => {
+        delete store[key];
+        return Promise.resolve();
+      });
+      await backend.logout();
+
+      // User B logs in and opens `.../collections/posts/new` for the same slug. The
+      // entry editor asks the backend for a local draft backup before deciding whether
+      // to show the "Restore backup" dialog.
+      localForage.getItem.mockImplementation((key: string) => Promise.resolve(store[key] ?? null));
+      const result = await backend.getLocalDraftBackup(collection, slug);
+
+      // No backup survives logout, so there is nothing to hydrate into user B's editor
+      // and no "Restore backup" dialog is triggered.
+      expect(result).toEqual({});
+      expect(store[`backup.${collection.name}.${slug}`]).toBeUndefined();
+    });
+  });
+
   describe('persistEntry', () => {
     it('should update the draft with the new entry returned by preSave event', async () => {
       const implementation = {
