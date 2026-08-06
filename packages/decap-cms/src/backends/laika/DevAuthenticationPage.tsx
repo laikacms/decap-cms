@@ -15,10 +15,16 @@ export interface DevAuthPageProps {
   inProgress?: boolean;
   // The backend wires this via a factory wrapper; not provided by Decap.
   devToken?: string;
+  // Set by the parent when a previous auth attempt with this token failed.
+  error?: string;
 }
 
 class DevAuthenticationPage extends Component<DevAuthPageProps> {
   componentDidMount() {
+    if (this.props.error) {
+      return;
+    }
+
     const token = this.props.devToken ?? '';
     if (!token) {
       console.warn(
