@@ -551,6 +551,32 @@ describe('Relation widget', () => {
     });
   });
 
+  it('resolves display fields and options length from a camelCase config (displayFields/optionsLength, DCMS-1903)', async () => {
+    const camelCaseFieldConfig = {
+      name: 'post',
+      collection: 'posts',
+      value_field: 'title',
+      search_fields: ['title', 'body'],
+      displayFields: ['title', 'slug'],
+      optionsLength: 10,
+    };
+
+    const field = camelCaseFieldConfig;
+    const { getAllByText, getByText, input, onChangeSpy } = setup({ field });
+
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    await waitFor(() => {
+      expect(getAllByText(/^Post # (\d{1,2}) post-number-\1$/)).toHaveLength(10);
+    });
+
+    fireEvent.click(getByText('Post # 1 post-number-1'));
+    expect(onChangeSpy).toHaveBeenCalledWith('Post # 1', {
+      post: {
+        posts: { 'Post # 1': { title: 'Post # 1', draft: true, num: 1, slug: 'post-number-1' } },
+      },
+    });
+  });
+
   it('should default display_fields to value_field', async () => {
     const { display_fields: _d, ...fieldConfigWithoutDisplay } = fieldConfig;
     const field = fieldConfigWithoutDisplay;

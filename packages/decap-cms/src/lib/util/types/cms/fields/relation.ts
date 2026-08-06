@@ -17,9 +17,14 @@ export interface CmsFieldRelation {
   search_fields?: string[];
   searchFields?: string[];
   file?: string;
+  // `display_fields`/`options_length` and their camelCase equivalents are
+  // equally valid per the JSON schema's `oneOf` (schema.ts) and README, same
+  // as `value_field`/`search_fields` above (DCMS-1903).
   display_fields?: string[];
+  displayFields?: string[];
   multiple?: boolean;
   options_length?: number;
+  optionsLength?: number;
 
   // Min, max amount of selected relations
   min?: number | undefined;

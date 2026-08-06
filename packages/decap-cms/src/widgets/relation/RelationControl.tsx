@@ -102,6 +102,17 @@ function getSearchFieldsArray(field: CmsFieldRelation & CmsFieldBase): string[] 
   return getFieldArray(field.search_fields ?? field.searchFields);
 }
 
+// `display_fields`/`options_length` and their camelCase equivalents
+// (`displayFields`/`optionsLength`) are both accepted by schema.ts's `oneOf`,
+// same as `value_field`/`search_fields` above (DCMS-1903).
+function getDisplayFields(field: CmsFieldRelation & CmsFieldBase, valueField: string): string[] {
+  return (field.display_fields ?? field.displayFields ?? [valueField]) as string[];
+}
+
+function getOptionsLength(field: CmsFieldRelation & CmsFieldBase): number {
+  return (field.options_length ?? field.optionsLength ?? 20) as number;
+}
+
 function relationOptionsKey(
   collection: string,
   searchFields: string[],
@@ -210,7 +221,7 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
 
     function parseHitOptions(hits: Hit[]): RelationOption[] {
       const valueField = getValueField(field);
-      const displayField = (field.display_fields || [valueField]) as string[];
+      const displayField = getDisplayFields(field, valueField);
       const filters = getFieldArray(field.filters);
 
       return hits.reduce((acc: RelationOption[], hit: Hit) => {
@@ -458,7 +469,7 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
               const queryResult = result as QueryResult;
               const hits = queryResult.payload.hits || [];
               const options = pho(hits);
-              const optionsLength = (f.options_length || 20) as number;
+              const optionsLength = getOptionsLength(f);
               const uniq = uniqOptions(io, options).slice(0, optionsLength);
               setSearchOptions(uniq);
               setIsLoading(false);
