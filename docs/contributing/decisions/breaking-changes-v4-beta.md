@@ -119,9 +119,9 @@ markdown-it and the Lexical editor into the bundle. The bundled formats moved to
 `format-packs/markdown`, `format-packs/html`, `format-packs/plaintext` (mdx is not a format pack yet
 — `src/format-packs/mdx/` only has parse/attribute helpers, no `FormatPack` export, and
 `./format-packs/mdx` is explicitly blocked in `package.json#exports` until it lands) — and the
-Lexical bindings (PT<->Lexical bridge, block nodes, `LexicalRichtextValue`)
-moved to `lib/richtext/lexical`. The richtext widget also stopped auto-registering the markdown
-format at import; it only registers the zero-cost `portableText` identity mapper. The fat `/app` and
+Lexical bindings (PT<->Lexical bridge, block nodes, `LexicalRichtextValue`) moved to
+`lib/richtext/lexical`. The richtext widget also stopped auto-registering the markdown format at
+import; it only registers the zero-cost `portableText` identity mapper. The fat `/app` and
 `/laika-app` entries register markdown for you, so full-app consumers are unaffected.
 
 **Migration:** Only if you compose from `/laika-app/bare` (or register widgets manually) and use
@@ -168,8 +168,9 @@ is now inert (see the richtext widget README's "Accepted-but-inert legacy keys")
 
 `registerBlock` throws if `id` collides with a reserved Portable Text type (`block`, `span`, `link`,
 `code`, `image`, `html`, `table`, `callout`, `list`, `horizontal-rule`, `unknown`). See the richtext
-widget README's [Custom blocks](packages/decap-cms/src/widgets/richtext/README.md#custom-blocks)
-section for the full `BlockDefinition` shape and the boot-time registration contract.
+widget README's
+[Custom blocks](../../../packages/decap-cms/src/widgets/richtext/README.md#custom-blocks) section
+for the full `BlockDefinition` shape and the boot-time registration contract.
 
 ## No import-time side effects — all registration is explicit
 

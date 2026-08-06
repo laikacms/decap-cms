@@ -9,7 +9,7 @@ bridge that already round-trips unknown PT `_type`s generically as
 is unwired: `registerBlockComponent`/`BlocksProvider` have zero call sites (custom blocks render
 `null`), there is no way to insert or edit blocks, `Editor.tsx` has no extension points, and the
 legacy `registerEditorComponent` API is threaded through props but never consumed by the new editor.
-TECH_DEBT.md already calls for playground nodes (tweet/youtube/layout — currently _dropped at
+tech-debt.md already calls for playground nodes (tweet/youtube/layout — currently _dropped at
 persist_, i.e. data loss) to become config-defined blocks.
 
 Goal: users can "fork" the markdown format — register custom formats (MDX as the proof) and custom
@@ -277,7 +277,7 @@ Phase 4 shipped with these follow-ups parked on gated files:
 1. `package.json`: remove the `./editor-component-image` export subpath, then delete
    `src/editor-component-image/` (kept on disk so the export stays buildable meanwhile; nothing
    imports it anymore and its type is inlined).
-2. `BREAKING_CHANGES_V4_BETA.md` (constitutional doc): add the entry below.
+2. `breaking-changes-v4-beta.md` (constitutional doc): add the entry below.
 
    > ### `registerEditorComponent` / `editor_components` removed
    >

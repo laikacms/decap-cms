@@ -10,11 +10,11 @@ as the laikacms/laikacms repo.
 
 Inside the package the former monorepo is flattened: `packages/decap-cms-<name>/src` became
 `src/<name>/`, each exposed as a subpath export in `package.json#exports`. The root export is the
-`src/app` bootstrap. Background and rationale in RESTRUCTURE.md.
+`src/app` bootstrap. Background and rationale in `docs/contributing/decisions/restructure.md`.
 
 ## Commands
 
-- `pnpm install` (pnpm only, v9, see `packageManager`; Node >= 20)
+- `pnpm install` (pnpm only, v9, see `packageManager`; Node >= 24)
 - `pnpm typecheck`: `tsc --noEmit` (tests excluded from the project)
 - `pnpm lint` / `pnpm format`
 - `pnpm test`: Vitest, single run; `pnpm test:watch` for watch mode
@@ -77,10 +77,25 @@ Paths below (and in most other docs) are relative to `packages/decap-cms/`.
 Per OPERATOR-QUEUE.md, do not change without explicit approval from Sem: `package.json` (root and
 `packages/*/package.json`), `pnpm-workspace.yaml`, `pnpm-lock.yaml`, `.github/`,
 `eslint.config.mjs`, `tsconfig*.json`, `vite.config.*` (all under `packages/decap-cms/`), and the
-constitutional docs (`RESTRUCTURE.md`, `BREAKING_CHANGES_V4_BETA.md`, `SECURITY.md`).
+constitutional docs (`docs/contributing/decisions/restructure.md`,
+`docs/contributing/decisions/breaking-changes-v4-beta.md`, root `SECURITY.md`).
 
 ## Other docs
 
-- `CONTRIBUTING.md`: setup, PR process, release
-- `BREAKING_CHANGES_V4_BETA.md`: v4 breaking changes (e.g. `markdown` widget renamed `richtext`)
-- `TECH_DEBT.md`: remaining debt checklist
+Repo-level design and process docs live under `docs/contributing/` (index at
+`docs/contributing/index.md`), split into two buckets:
+
+- `docs/contributing/decisions/`: why the repo is shaped the way it is.
+  - `restructure.md`: single-package-with-subpath-exports rationale
+  - `breaking-changes-v4-beta.md`: v4 breaking changes (e.g. `markdown` widget renamed `richtext`)
+  - `two-seam-model.md`: Laika protocol vs. CMS adapters
+  - `architecture.md`: technology-choice rationales (Emotion, Effect, `yaml`, ...)
+  - `format-packs-plan.md`: forkable richtext formats and PT-native component blocks
+- `docs/contributing/learnings/`: things verified or discovered while working on the repo.
+  - `tech-debt.md`: remaining debt checklist
+  - `dcb-001-pnpm-install.md`: `pnpm install` peer-dep verification record
+
+Component/API notes live closer to the code: Base UI primitive notes in `docs/base-ui/`, core-engine
+notes in `docs/core/`, and per-area READMEs alongside their `src/` folders.
+
+- `CONTRIBUTING.md` (repo root): setup, PR process, release

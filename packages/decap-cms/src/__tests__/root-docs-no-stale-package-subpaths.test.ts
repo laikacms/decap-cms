@@ -4,10 +4,10 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 // `docs-no-stale-package-imports.test.ts` only scans `docs/`, so it never
-// sees the root-level `*.md` files (README.md, RESTRUCTURE.md, etc.) or the
+// sees the root-level `*.md` files (README.md, restructure.md, etc.) or the
 // `dev-test/*.html` demo pages, even though those are just as reader-facing.
 // This test covers that gap for stale `@laikacms/decap-cms` subpath imports
-// that prior versions of RESTRUCTURE.md / `laika-bare.html` got wrong:
+// that prior versions of restructure.md / `laika-bare.html` got wrong:
 //
 //   1. Importing `App` from `@laikacms/decap-cms/core` — `App` is exported
 //      from `@laikacms/decap-cms/app` (see `packages/decap-cms/src/app/index.ts`);
@@ -30,9 +30,10 @@ const REPO_ROOT = path.resolve(HERE, '../../../..');
 
 const ROOT_DOC_FILES = [
   'README.md',
-  'RESTRUCTURE.md',
   'CONTRIBUTING.md',
-  'BREAKING_CHANGES_V4_BETA.md',
+  // Relocated under docs/contributing/ but still scanned for stale subpath imports.
+  'docs/contributing/decisions/restructure.md',
+  'docs/contributing/decisions/breaking-changes-v4-beta.md',
 ];
 
 function listDevTestHtmlFiles(): string[] {
@@ -61,8 +62,7 @@ const STALE_WIDGET_STRING_SUBPATH = /from\s+['"]@laikacms\/decap-cms\/widget-str
 // `@laikacms/decap-cms/backend-<name>` or `@laikacms/decap-cms/widget-<name>`
 // subpath. The package only ever exports the plural, slashed wildcards
 // `./backends/*` and `./widgets/*` — a dashed singular subpath never exists.
-const STALE_DASHED_BACKEND_OR_WIDGET_SUBPATH =
-  /['"]@laikacms\/decap-cms\/(backend|widget)-([\w-]+)['"]/g;
+const STALE_DASHED_BACKEND_OR_WIDGET_SUBPATH = /['"]@laikacms\/decap-cms\/(backend|widget)-([\w-]+)['"]/g;
 
 describe('root docs / dev-test pages: no stale @laikacms/decap-cms subpath imports (DCMS-1151)', () => {
   it('never imports `App` from `@laikacms/decap-cms/core`', () => {

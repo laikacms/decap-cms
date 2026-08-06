@@ -1,5 +1,12 @@
 # AI Chat widget
 
+> **Deprecated.** The `ai-chat` widget is a client-side stopgap and is being phased out in favor of
+> the laikacms MCP server (`/mcp`). It exists only because server-side MCP has no access to the open
+> entry's client-side draft state, so it cannot edit an entry that is currently open in the editor.
+> The widget stays fully functional for now and will be removed once a client bridge lets MCP reach
+> the open entry. Prefer the MCP integration for AI-assisted editing; use this widget only if you
+> specifically need in-editor, draft-scoped chat today.
+
 The AI Chat widget (`ai-chat`) renders a document-scoped chat panel backed by the
 [Vercel AI SDK](https://sdk.vercel.ai/) (`useChat` from `@ai-sdk/react`, re-exported from this
 package). It talks to a server adapter under a configurable base path, streams assistant replies,

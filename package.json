@@ -1,6 +1,6 @@
 {
   "private": true,
-  "description": "Workspace root for the laikacms/decap-cms repo. The published package lives in packages/decap-cms; this root only carries repo-wide tooling (formatting, git hooks, commit linting) and delegates everything else. See RESTRUCTURE.md for why the repo is laid out this way.",
+  "description": "Workspace root for the laikacms/decap-cms repo. The published package lives in packages/decap-cms; this root only carries repo-wide tooling (formatting, git hooks, commit linting) and delegates everything else. See restructure.md for why the repo is laid out this way.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -39,6 +39,6 @@
   },
   "packageManager": "pnpm@9.15.9",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=24 <25"
   }
 }

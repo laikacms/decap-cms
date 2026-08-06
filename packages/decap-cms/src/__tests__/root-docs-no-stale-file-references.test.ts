@@ -19,15 +19,37 @@ const REPO_ROOT = path.resolve(HERE, '../../../..');
 
 const ROOT_DOC_FILES = [
   'README.md',
-  'RESTRUCTURE.md',
   'CONTRIBUTING.md',
-  'BREAKING_CHANGES_V4_BETA.md',
   'AGENTS.md',
+  // Relocated under docs/contributing/ but still scanned for stale doc-to-doc refs.
+  'docs/contributing/decisions/restructure.md',
+  'docs/contributing/decisions/breaking-changes-v4-beta.md',
 ];
+
+// Doc basenames a backtick reference may legitimately point at: the repo-root
+// `*.md` files plus every `*.md` under `docs/` (recursively). Docs like
+// restructure.md and breaking-changes-v4-beta.md moved under docs/contributing/,
+// so a bare `` `restructure.md` `` reference resolves there, not at the root.
+function collectKnownDocNames(): Set<string> {
+  const names = new Set<string>();
+  for (const entry of fs.readdirSync(REPO_ROOT, { withFileTypes: true })) {
+    if (entry.isFile() && entry.name.endsWith('.md')) names.add(entry.name);
+  }
+  const walkDocs = (dir: string) => {
+    if (!fs.existsSync(dir)) return;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) walkDocs(full);
+      else if (entry.isFile() && entry.name.endsWith('.md')) names.add(entry.name);
+    }
+  };
+  walkDocs(path.join(REPO_ROOT, 'docs'));
+  return names;
+}
 
 // Matches a backtick-quoted root-level markdown doc reference, e.g.
 // `` `WORKLIST.md` ``. Scoped to `.md` (rather than also `.json`/`.ts`/etc.)
-// because non-doc root docs like RESTRUCTURE.md and CONTRIBUTING.md legitimately
+// because non-doc root docs like restructure.md and CONTRIBUTING.md legitimately
 // mention historical/example/nested filenames (deleted configs, demo bundles,
 // per-package files) by basename in prose — those aren't "this repo's root doc
 // set" references and would be false positives here. `.md` doc-to-doc
@@ -36,7 +58,7 @@ const ROOT_FILE_REFERENCE = /`([A-Za-z0-9_.-]+\.md)`/g;
 
 // Filenames that are legitimately referenced without existing as literal
 // root-level files today (deleted-in-the-past files named in historical
-// narrative, e.g. RESTRUCTURE.md's "what changed" table).
+// narrative, e.g. restructure.md's "what changed" table).
 const IGNORED_REFERENCES = new Set(['CHANGELOG.md']);
 
 function listScannedFiles(): string[] {
@@ -48,6 +70,7 @@ describe('root docs: no stale root-level file references (DCMS-1209)', () => {
     const files = listScannedFiles();
     expect(files.length).toBeGreaterThan(0);
 
+    const knownDocNames = collectKnownDocNames();
     const offenders: string[] = [];
     for (const file of files) {
       const contents = fs.readFileSync(file, 'utf8');
@@ -57,9 +80,9 @@ describe('root docs: no stale root-level file references (DCMS-1209)', () => {
         const referenced = match[1];
         if (IGNORED_REFERENCES.has(referenced)) continue;
 
-        const referencedPath = path.join(REPO_ROOT, referenced);
-        if (!fs.existsSync(referencedPath)) {
-          offenders.push(`${relPath}: references nonexistent root file \`${referenced}\``);
+        const existsAtRoot = fs.existsSync(path.join(REPO_ROOT, referenced));
+        if (!existsAtRoot && !knownDocNames.has(referenced)) {
+          offenders.push(`${relPath}: references nonexistent file \`${referenced}\``);
         }
       }
     }

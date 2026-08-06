@@ -8,7 +8,7 @@
 // bindings live behind `@/lib/richtext/lexical`; the bundled formats
 // (markdown, html, plaintext, mdx) are packs under `@/format-packs/*`. Keeping
 // this entry lean is what lets `/laika-app/bare` consumers tree-shake the
-// whole editor + parser stack (see FORMAT_PACKS_PLAN.md).
+// whole editor + parser stack (see format-packs-plan.md).
 
 // Portable Text — the canonical interchange format.
 export * from './portable-text';

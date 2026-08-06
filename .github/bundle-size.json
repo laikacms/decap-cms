@@ -1,28 +1,33 @@
 {
   "schemaVersion": 1,
   "label": "bundle size",
-  "message": "1.57 MB min+gzip",
+  "message": "1.62 MB min+gzip",
   "color": "informational",
   "entries": {
     ".": {
-      "minified": 5088453,
-      "gzip": 1568884,
-      "pretty": "5.09 MB min / 1.57 MB gzip"
+      "minified": 5288901,
+      "gzip": 1624045,
+      "pretty": "5.29 MB min / 1.62 MB gzip"
+    },
+    "./app/bare": {
+      "minified": 822428,
+      "gzip": 267149,
+      "pretty": "822 kB min / 267 kB gzip"
     },
     "./laika-app": {
-      "minified": 5292734,
-      "gzip": 1634246,
-      "pretty": "5.29 MB min / 1.63 MB gzip"
+      "minified": 5657230,
+      "gzip": 1739401,
+      "pretty": "5.66 MB min / 1.74 MB gzip"
     },
     "./laika-app/bare": {
-      "minified": 1297010,
-      "gzip": 421046,
-      "pretty": "1.30 MB min / 421 kB gzip"
+      "minified": 1047058,
+      "gzip": 337234,
+      "pretty": "1.05 MB min / 337 kB gzip"
     }
   },
   "install": {
-    "bytes": 111358588,
-    "packages": 349,
-    "pretty": "111 MB"
+    "bytes": 138125413,
+    "packages": 374,
+    "pretty": "138 MB"
   }
 }

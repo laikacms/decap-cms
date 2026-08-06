@@ -33,7 +33,7 @@ export interface MdastToPortableTextOptions {
  * Convert an MDX mdast tree to Portable Text in the SAME dialect (including
  * `_key` generation order) as the markdown mapper's `@portabletext/markdown`
  * parse — pinned by the golden parity tests. On top of that dialect, MDX
- * constructs map per FORMAT_PACKS_PLAN.md:
+ * constructs map per format-packs-plan.md:
  *
  * - Capitalized JSX (`<YouTube id="x"/>`) -> `{_type: 'YouTube', _key, id}`;
  *   JSX children -> a nested PT array on the `children` prop.

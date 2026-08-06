@@ -1,9 +1,12 @@
-![Decap CMS](/.github/decap.svg)
+![Decap CMS](https://raw.githubusercontent.com/laikacms/decap-cms/v4.beta/.github/decap.svg)
 
 # @laikacms/decap-cms
 
 [![npm version](https://img.shields.io/npm/v/@laikacms/decap-cms.svg?style=flat)](https://www.npmjs.com/package/@laikacms/decap-cms)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/laikacms/decap-cms/blob/main/LICENSE)
+[![core size](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Flaikacms%2Fdecap-cms%2Fv4.beta%2F.github%2Fbundle-size.json&query=%24.entries%5B%27.%2Fapp%2Fbare%27%5D.pretty&label=core%20size&color=informational)](./scripts/analyze.mjs)
+[![last commit](https://img.shields.io/github/last-commit/laikacms/decap-cms?branch=v4.beta)](https://github.com/laikacms/decap-cms/commits/v4.beta)
+[![dependencies](https://img.shields.io/librariesio/github/laikacms/decap-cms?label=dependencies)](https://libraries.io/github/laikacms/decap-cms)
 
 A single-package fork of [Decap CMS](https://decapcms.org/), the open-source, Git-based CMS for
 static site generators. It presents a clean UI for editing content stored in a Git repository: you
@@ -17,14 +20,17 @@ decade of groundwork goes to the Decap CMS team; see [Credits](#credits) below.
 
 - **One package instead of a monorepo.** The former `decap-cms-*` packages live in a single
   `@laikacms/decap-cms` package. Each former package is exposed as a subpath export (see
-  `package.json#exports`); the root export is the classic app bootstrap.
+  `package.json#exports`); the root export is the classic app bootstrap. Where possible,
+  dependencies are declared as optional peer dependencies so you only install what your build
+  actually uses, keeping install size down.
 - **The Laika UI.** Alongside the classic Decap app shell there is a new shell with a dashboard,
   command palette, and mobile support.
 - **A modernized stack.** Base UI primitives for interactive behavior, Emotion for styling, Vitest
   and Playwright for testing, plain objects instead of Immutable.js, and an ongoing
   dependency-reduction effort.
 - **Richtext on Portable Text.** The `markdown` widget is replaced by a `richtext` widget backed by
-  the Portable Text editor. See [BREAKING_CHANGES_V4_BETA.md](../../BREAKING_CHANGES_V4_BETA.md) for
+  the Portable Text editor. See
+  [breaking-changes-v4-beta.md](../../docs/contributing/decisions/breaking-changes-v4-beta.md) for
   the full list of breaking changes.
 - **AI chat.** A document-scoped `ai-chat` widget streams assistant replies and can apply proposed
   edits back onto the current entry's draft fields; see
@@ -45,7 +51,7 @@ primitives) are importable through subpath exports so you can assemble your own 
 
 For configuration, content modeling, and backend setup, the upstream
 [Decap CMS documentation](https://www.decapcms.org/docs/intro/) applies to this fork unless noted in
-[BREAKING_CHANGES_V4_BETA.md](../../BREAKING_CHANGES_V4_BETA.md).
+[breaking-changes-v4-beta.md](../../docs/contributing/decisions/breaking-changes-v4-beta.md).
 
 If you use the `laika` backend, read [src/backends/laika/README.md](./src/backends/laika/README.md)
 first — it diverges from the upstream backend docs in three ways that aren't obvious from the
@@ -57,9 +63,10 @@ standard config reference:
   at runtime (no registered backend, no editor). Import `@laikacms/decap-cms/laika-app` instead (or
   `@laikacms/decap-cms/laika-app/bare` to register only the pieces you use) — see
   [src/backends/laika/README.md#usage](./src/backends/laika/README.md#usage) for the exact import.
-- **Only `format: json` collections are supported.** Decap's default (markdown-frontmatter) is not
-  yet supported; omitting `format:` now fails fast client-side with an actionable error before any
-  request reaches the server.
+- **Only `format: json` collections are supported.** This setting is only needed for backwards
+  compatibility with Decap's format handling; Laika parses any format itself. Decap's default
+  (markdown-frontmatter) is not yet supported; omitting `format:` now fails fast client-side with an
+  actionable error before any request reaches the server.
 - **Entry locking is not yet implemented.** The advisory "Being edited by X" locking that Decap core
   supports (`getEntryLock`/`acquireEntryLock`/`releaseEntryLock`/`refreshEntryLock`) has no effect
   on this backend yet.
@@ -140,7 +147,7 @@ widget types are likewise left untouched by the encoder.
 ## Development
 
 ```sh
-pnpm install        # Node >= 20, pnpm 9
+pnpm install        # Node >= 24, pnpm 9
 pnpm test:ci        # lint + typecheck + unit tests
 pnpm build:dev-test && pnpm serve:dev-test   # demo app on http://localhost:5174, Laika UI on /laika.html
 ```

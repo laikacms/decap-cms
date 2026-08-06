@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 /**
- * `docs/verification/dcb-001-pnpm-install.md` (DCMS-1557) documents the
+ * `docs/contributing/learnings/dcb-001-pnpm-install.md` (DCMS-1557) documents the
  * `peerDependencies` / `peerDependenciesMeta` block of
  * `packages/decap-cms/package.json` as of a pinned commit, with a lifecycle
  * note that it must be re-verified whenever that block changes. Nothing
@@ -13,7 +13,7 @@ import { describe, expect, it } from 'vitest';
  * future change to either block fails CI instead of silently going stale.
  *
  * When this test fails: update the peer set below, re-run the `pnpm install`
- * verification, and refresh `docs/verification/dcb-001-pnpm-install.md`
+ * verification, and refresh `docs/contributing/learnings/dcb-001-pnpm-install.md`
  * (Verified on date/commit + peer table) to match.
  */
 
@@ -22,8 +22,8 @@ const packageJsonPath = path.resolve(
   '../../../../../package.json',
 );
 const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as {
-  peerDependencies?: Record<string, string>;
-  peerDependenciesMeta?: Record<string, { optional?: boolean }>;
+  peerDependencies?: Record<string, string>,
+  peerDependenciesMeta?: Record<string, { optional?: boolean }>,
 };
 
 const expectedRequiredPeers = ['@emotion/react', '@emotion/styled', 'react', 'react-dom'].sort();

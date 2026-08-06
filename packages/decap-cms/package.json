@@ -1,7 +1,7 @@
 {
   "name": "@laikacms/decap-cms",
-  "version": "4.1.0-alpha.5",
-  "description": "Single-package fork of Decap CMS v4.beta. Same components as the original monorepo, exposed through one package with subpath exports. Root export is the decap-cms-app bootstrap. See RESTRUCTURE.md.",
+  "version": "4.1.0",
+  "description": "Single-package fork of Decap CMS v4.beta. Same components as the original monorepo, exposed through one package with subpath exports. Root export is the decap-cms-app bootstrap. See restructure.md.",
   "license": "MIT",
   "author": "Sem Postma <sem@laikacms.com> (based on Decap CMS by Netlify and contributors)",
   "homepage": "https://github.com/laikacms/decap-cms",
@@ -26,7 +26,7 @@
     "access": "public"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=24 <25"
   },
   "files": [
     "dist",
@@ -297,6 +297,10 @@
     "./app": {
       "types": "./dist/app/index.d.ts",
       "import": "./dist/app/index.js"
+    },
+    "./app/bare": {
+      "types": "./dist/app/bare.d.ts",
+      "import": "./dist/app/bare.js"
     },
     "./config-types": {
       "types": "./dist/config-types/index.d.ts",

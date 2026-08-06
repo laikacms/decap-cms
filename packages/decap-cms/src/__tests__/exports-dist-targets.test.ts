@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import packageJson from '../../package.json';
 
-// `pnpm build` (tsc, not tsup — see RESTRUCTURE.md "What needs verification
+// `pnpm build` (tsc, not tsup — see restructure.md "What needs verification
 // before merge") mirrors `src/**` into `dist/**` file-by-file. Nothing checks
 // at build time that every `package.json#exports` subpath actually resolves
 // to a compiled file: a bad subpath (typo'd name, deleted `src/<name>/`,

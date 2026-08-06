@@ -32,7 +32,10 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 
-const root = fileURLToPath(new URL('../../..', import.meta.url));
+// The package (its package.json, dist/, node_modules) lives at packages/decap-cms;
+// the committed badge artifact and gitignored .temp/ live at the repo root.
+const root = fileURLToPath(new URL('..', import.meta.url));
+const repoRoot = fileURLToPath(new URL('../../..', import.meta.url));
 const explore = process.argv.includes('--explore');
 const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 
@@ -48,6 +51,7 @@ const external = [
 // everything) drives the badge; add entries here to track more subpaths.
 const entries = [
   { subpath: '.', slug: 'app', entry: 'dist/app/index.js' },
+  { subpath: './app/bare', slug: 'app-bare', entry: 'dist/app/bare.js' },
   { subpath: './laika-app', slug: 'laika-app', entry: 'dist/laika-app/index.js' },
   { subpath: './laika-app/bare', slug: 'laika-app-bare', entry: 'dist/laika-app/bare.js' },
 ];
@@ -85,8 +89,9 @@ function dirSize(dir) {
   return total;
 }
 
-// Size of the production install: transitive `dependencies` (plus resolvable
-// `optionalDependencies`), deduped by real path. Peer deps excluded.
+// Size of the production install: transitive `dependencies` only, deduped by
+// real path. Peer deps and optional deps excluded (the consumer supplies peers,
+// and optionals may or may not install).
 function measureInstall() {
   const seen = new Set();
   let bytes = 0;
@@ -98,7 +103,7 @@ function measureInstall() {
     seen.add(dir);
     bytes += dirSize(dir);
     const depPkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'));
-    for (const dep of Object.keys({ ...depPkg.dependencies, ...depPkg.optionalDependencies })) {
+    for (const dep of Object.keys(depPkg.dependencies ?? {})) {
       queue.push({ name: dep, fromDir: dir });
     }
   }
@@ -155,7 +160,7 @@ function cleanMetafile(metafile) {
 
 // Render an interactive treemap for a metafile into .temp/ and open it.
 function explorer(slug, metafile) {
-  const tempDir = join(root, '.temp');
+  const tempDir = join(repoRoot, '.temp');
   mkdirSync(tempDir, { recursive: true });
   const metaPath = join(tempDir, `metafile-${slug}.json`);
   const htmlPath = join(tempDir, `bundle-explorer-${slug}.html`);
@@ -203,5 +208,5 @@ const badge = {
   install,
 };
 
-writeFileSync(join(root, '.github', 'bundle-size.json'), `${JSON.stringify(badge, null, 2)}\n`);
+writeFileSync(join(repoRoot, '.github', 'bundle-size.json'), `${JSON.stringify(badge, null, 2)}\n`);
 console.log(`[analyze] wrote .github/bundle-size.json (badge: ${badge.message})`);

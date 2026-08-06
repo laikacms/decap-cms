@@ -20,7 +20,7 @@ function listMarkdownFiles(dir: string): string[] {
   });
 }
 
-// Pre-restructure (see RESTRUCTURE.md) package names followed this shape:
+// Pre-restructure (see restructure.md) package names followed this shape:
 // `decap-cms-<name>` (e.g. `decap-cms-app`, `decap-cms-core`,
 // `decap-cms-widget-string`) plus `decap-server`. None of those are real,
 // importable packages anymore — the whole repo is the single
@@ -29,6 +29,14 @@ function listMarkdownFiles(dir: string): string[] {
 // that imports from the old flat name gives readers a module-not-found error.
 const STALE_IMPORT_SOURCE = /\bfrom\s+['"](decap-cms-[\w-]*|decap-server)(\/[^'"]*)?['"]/g;
 const STALE_REQUIRE_SOURCE = /\brequire\(\s*['"](decap-cms-[\w-]*|decap-server)(\/[^'"]*)?['"]\s*\)/g;
+
+// restructure.md is the canonical record of the restructure itself: its "what
+// changed" table deliberately quotes the old `from 'decap-cms-core'` /
+// `from 'decap-cms-lib-util/...'` import shapes to describe what was rewritten.
+// Those are historical narrative, not live examples, so exclude it from the
+// scan (every other doc should only ever show importable `@laikacms/decap-cms`
+// specifiers).
+const EXCLUDED_RELATIVE_PATHS = new Set(['docs/contributing/decisions/restructure.md']);
 
 describe('docs/ no stale pre-restructure package-name imports (DCMS-1152)', () => {
   it('never imports from a pre-restructure `decap-cms-<name>` / `decap-server` package name', () => {
@@ -40,8 +48,9 @@ describe('docs/ no stale pre-restructure package-name imports (DCMS-1152)', () =
     const offenders: string[] = [];
 
     for (const file of files) {
-      const contents = fs.readFileSync(file, 'utf8');
       const relPath = path.relative(REPO_ROOT, file);
+      if (EXCLUDED_RELATIVE_PATHS.has(relPath.split(path.sep).join('/'))) continue;
+      const contents = fs.readFileSync(file, 'utf8');
 
       for (const match of contents.matchAll(STALE_IMPORT_SOURCE)) {
         offenders.push(`${relPath}: import from '${match[1]}${match[2] ?? ''}'`);

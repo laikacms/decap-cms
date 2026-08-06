@@ -1,5 +1,8 @@
 {
   "recommendations": [
+    "redhat.vscode-yaml",
+    "dprint.dprint",
+    "dbaeumer.vscode-eslint",
     "stylelint.vscode-stylelint",
     "styled-components.vscode-styled-components",
     "esbenp.prettier-vscode"

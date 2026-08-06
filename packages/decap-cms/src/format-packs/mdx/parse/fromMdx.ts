@@ -12,7 +12,7 @@ import type { Root } from 'mdast';
 /**
  * Parse MDX source into an mdast tree.
  *
- * Deliberately NO acorn and NO ESM micromark extension (FORMAT_PACKS_PLAN.md
+ * Deliberately NO acorn and NO ESM micromark extension (format-packs-plan.md
  * Phase 7): attribute/flow expressions stay opaque source strings (never
  * evaluated, never parsed as JS), and `import`/`export` lines surface as
  * plain paragraphs that `mdastToPortableText` post-passes into opaque

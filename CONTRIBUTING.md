@@ -8,11 +8,11 @@ This repository is a pnpm workspace. The published `@laikacms/decap-cms` fork of
 [README.md](README.md#repository-layout) for the current list of workspace packages under
 `packages/`. The root only carries repo-wide tooling and delegates every script into the packages,
 so all commands below run from the repo root. Background on the restructure and the workspace
-layout is in [RESTRUCTURE.md](RESTRUCTURE.md).
+layout is in [restructure.md](docs/contributing/decisions/restructure.md).
 
 ## Setup
 
-> Install [Node.js](https://nodejs.org/) 20 or later. The repo uses pnpm 9 (see `packageManager` in
+> Install [Node.js](https://nodejs.org/) 24 or later. The repo uses pnpm 9 (see `packageManager` in
 > `package.json`; `corepack enable` sets it up).
 
 ```sh
@@ -64,10 +64,10 @@ pnpm test -- -t "name pattern"
    area-slug scope (`core`, `app`, `widget-richtext`, ...) and a `(DCMS-nnn)` ticket suffix in code
    review, but **neither is mechanically enforced by commitlint** (no `scope-enum` rule, no
    ticket-suffix rule) — treat them as house style flagged by reviewers, not a hard commit-msg gate.
-4. If your change should ship in the next release, run `pnpm changeset` (a.k.a. `pnpm changeset add`)
-   from the repo root and follow the prompts to add a changeset entry describing the change. This is
-   what the release tooling reads to bump versions and generate `CHANGELOG.md` — see
-   [Releasing](#releasing).
+4. If your change should ship in the next release, run `pnpm changeset` (a.k.a.
+   `pnpm changeset add`) from the repo root and follow the prompts to add a changeset entry
+   describing the change. This is what the release tooling reads to bump versions and generate
+   `CHANGELOG.md` — see [Releasing](#releasing).
 5. Run `pnpm test:ci` and make sure it passes.
 6. A maintainer reviews and merges; PRs should be rebased on `v4.beta` before merge.
 
@@ -89,19 +89,20 @@ Then rebuild the demo (`pnpm build:demo`) and reload http://localhost:5174.
 Releases are managed by [changesets](https://github.com/changesets/changesets) via the root
 `package.json` scripts, not a manual version bump:
 
-1. Every PR that should ship in the next release adds a changeset entry with `pnpm changeset`
-   (see [Pull requests](#pull-requests) above); this is stored as a markdown file under
-   `.changeset/` and describes the bump type (patch/minor/major) and a changelog blurb.
-2. When it's time to release, a maintainer runs `pnpm version-packages` from the repo root
-   (root `package.json`'s `version-packages` script, currently `changeset version`) to consume the
-   pending `.changeset/*.md` files, bump `packages/decap-cms/package.json`'s `version`, and update
+1. Every PR that should ship in the next release adds a changeset entry with `pnpm changeset` (see
+   [Pull requests](#pull-requests) above); this is stored as a markdown file under `.changeset/` and
+   describes the bump type (patch/minor/major) and a changelog blurb.
+2. When it's time to release, a maintainer runs `pnpm version-packages` from the repo root (root
+   `package.json`'s `version-packages` script, currently `changeset version`) to consume the pending
+   `.changeset/*.md` files, bump `packages/decap-cms/package.json`'s `version`, and update
    `CHANGELOG.md` — then commits the result.
 3. Run `pnpm test:ci` and make sure it passes.
 4. A maintainer runs `pnpm release` from the repo root (root `package.json`'s `release` script,
    currently `node scripts/assert-release-branch.mjs && changeset publish`) to publish to npm.
-   `scripts/assert-release-branch.mjs` guards this so it only runs from `v4.beta`; `changeset
-   publish` also tags the published version and reads the changelog straight from the changeset
-   entries consumed in step 2, so there's no hand-written GitHub release notes step.
+   `scripts/assert-release-branch.mjs` guards this so it only runs from `v4.beta`;
+   `changeset
+   publish` also tags the published version and reads the changelog straight from the
+   changeset entries consumed in step 2, so there's no hand-written GitHub release notes step.
 
 ## License
 

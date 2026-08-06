@@ -9,9 +9,9 @@ Custom Decap CMS backend for Laika CMS.
 ## Role in the architecture
 
 This backend is the Decap **adapter** in Laika's two-seam model (see
-[`docs/architecture/two-seam-model.md`](../../../../../docs/architecture/two-seam-model.md) at the
-repo root). The laikacms protocol (repositories) stays CMS-agnostic and treats content as opaque
-JSON; this adapter owns every Decap-specific opinion:
+[`docs/contributing/decisions/two-seam-model.md`](../../../../../docs/contributing/decisions/two-seam-model.md)
+at the repo root). The laikacms protocol (repositories) stays CMS-agnostic and treats content as
+opaque JSON; this adapter owns every Decap-specific opinion:
 
 - which fields and shapes Decap expects from documents and assets
 - editorial workflow mapping (draft/review/publish onto unpublished/publish)

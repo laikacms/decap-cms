@@ -42,7 +42,7 @@
 # Richtext / Portable Text bridge
 
 - [x] tweet/youtube converted to registry blocks (`widgets/richtext/blocks/`) with hugo-shortcode
-      markdown codecs; their persist data loss is fixed (FORMAT_PACKS_PLAN.md Phase 5). Tables now
+      markdown codecs; their persist data loss is fixed (format-packs-plan.md Phase 5). Tables now
       round-trip too: structured PT `table` blocks (markdown mapper opt-in matcher + bridge cases
       both directions, Phase 6). REMAINING: `layout` (should become a `columns` block with nested
       richtext fields; its insert entries are removed for now, nodes stay registered for hydration).
@@ -51,7 +51,7 @@
 - [x] Custom block types now serialize through registered `formats.markdown` codecs
       (`resolveBlockCodecs`); only blocks WITHOUT a codec fall back to a warned ```json fence.
       Per-format encodings are the `BlockFormatCodec` / `FormatPack.blockSupport` API
-      (FORMAT_PACKS_PLAN.md Phase 1).
+      (format-packs-plan.md Phase 1).
 - [x] Block prop edits create per-change undo entries (plain `editor.update`; `history-merge` is
       invisible to OnChangePlugin). Fixed (DCMS-1489): `BlockComponent.updateData` tags rapid
       successive edits to the same block within a coalescing window with `HISTORY_MERGE_TAG` +
