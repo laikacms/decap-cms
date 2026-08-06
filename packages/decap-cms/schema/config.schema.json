@@ -306,7 +306,11 @@
     "backend": {
       "type": "object",
       "properties": {
-        "name": { "type": "string", "examples": ["git-gateway", "github", "gitlab", "test-repo", "laika"] },
+        "name": {
+          "type": "string",
+          "examples": ["git-gateway", "github", "gitlab", "test-repo", "laika"],
+          "description": "`laika` requires importing `@laikacms/decap-cms/laika-app` (or `/laika-app/bare` with a manual `CMS.registerBackend('laika', ...)` call) instead of the package root — the root entry point never registers this backend. See src/backends/laika/README.md."
+        },
         "auth_scope": {
           "type": "string",
           "enum": ["repo", "public_repo"],
