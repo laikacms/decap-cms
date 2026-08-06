@@ -32,13 +32,14 @@ decade of groundwork goes to the Decap CMS team; see [Credits](#credits) below.
   the Portable Text editor. See
   [breaking-changes-v4-beta.md](../../docs/contributing/decisions/breaking-changes-v4-beta.md) for
   the full list of breaking changes.
-- **AI chat.** A document-scoped `ai-chat` widget streams assistant replies and can apply proposed
-  edits back onto the current entry's draft fields; see
-  [src/widgets/aichat/README.md](./src/widgets/aichat/README.md) for widget setup. The server side
-  is powered by `decapAi()` from the `@laikacms/decap-cms/ai` subpath export, which bundles the
-  Vercel AI SDK (model provider factories, `tool`/`jsonSchema` re-exports) so consumers share one
-  `ai` runtime instead of installing it themselves; see [src/ai/index.ts](./src/ai/index.ts) for
-  usage.
+- **AI chat (deprecated).** A document-scoped `ai-chat` widget streams assistant replies and can
+  apply proposed edits back onto the current entry's draft fields; see
+  [src/widgets/aichat/README.md](./src/widgets/aichat/README.md) for widget setup. **This widget is
+  deprecated** in favor of the laikacms MCP server (`/mcp`) and is being phased out — see the
+  widget's own README for details on the replacement and migration path. The server side is powered
+  by `decapAi()` from the `@laikacms/decap-cms/ai` subpath export, which bundles the Vercel AI SDK
+  (model provider factories, `tool`/`jsonSchema` re-exports) so consumers share one `ai` runtime
+  instead of installing it themselves; see [src/ai/index.ts](./src/ai/index.ts) for usage.
 
 ## Installation
 
