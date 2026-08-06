@@ -556,11 +556,22 @@ function AppContent({
       : false
   );
 
+  // A `entryNew` (`/new`) deep-link naming a collection that doesn't exist
+  // (DCMS-1905, regression of DCMS-535) never mounts `Editor` either —
+  // `CollectionGuard` in `AppRoutes` renders `NotFoundPage` instead, same as
+  // the `entryLoadFailed` case above.
+  const entryNewParams = routeMatch?.key === 'entryNew'
+    ? (routeMatch.params as { collectionName: string })
+    : undefined;
+  const entryNewUnknownCollection = entryNewParams
+    ? !collections?.[entryNewParams.collectionName]
+    : false;
+
   // Drives whether the app-shell header mounts at all (DCMS-431) — see
   // `isEditorRouteKey`.
   const isEditorRoute = useMemo(
-    () => isEditorRouteKey(routeMatch?.key) && !entryLoadFailed,
-    [routeMatch, entryLoadFailed],
+    () => isEditorRouteKey(routeMatch?.key) && !entryLoadFailed && !entryNewUnknownCollection,
+    [routeMatch, entryLoadFailed, entryNewUnknownCollection],
   );
 
   // Derived state

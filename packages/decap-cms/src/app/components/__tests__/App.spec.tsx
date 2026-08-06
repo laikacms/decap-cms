@@ -278,6 +278,44 @@ describe('AppContent - DCMS-432 unknown-collection deep-link', () => {
     expect(getByTestId('custom-not-found')).toBeInTheDocument();
     expect(queryByText('app.notFoundPage.header')).not.toBeInTheDocument();
   });
+
+  // DCMS-1905: `entryNew` (the `/new` route) is one of the two routes
+  // `isEditorRouteKey` unmounts the app-shell header for (DCMS-431), but that
+  // suppression must not apply when the deep-linked collection doesn't exist —
+  // `Editor` never mounts in that case, `CollectionGuard` renders `NotFoundPage`
+  // instead, which (like the DCMS-445 entry-load-failed case) expects the
+  // normal app chrome around it. Regression of DCMS-535 (#606 / PR #609)
+  // reintroduced when the v4.beta -> main promotion collapsed the old
+  // `decap-cms-core` App.js into this file without carrying the check.
+  it('mounts the app-shell header for an unknown-collection /new route (DCMS-1905)', () => {
+    const { getByTestId, queryByTestId, getByText } = renderAppContentAt(
+      '/collections/nonexistent_collection/new',
+    );
+
+    expect(getByTestId('app-header')).toBeInTheDocument();
+    expect(getByText('app.notFoundPage.header')).toBeInTheDocument();
+    expect(getByText('app.notFoundPage.collectionNotFound')).toBeInTheDocument();
+    expect(queryByTestId('editor-view')).not.toBeInTheDocument();
+  });
+
+  it('reports isEditorRoute: false to a custom renderLayout for an unknown-collection /new route (DCMS-1905)', () => {
+    const seen: boolean[] = [];
+    const renderLayout = (renderProps: AppLayoutRenderProps) => {
+      seen.push(renderProps.isEditorRoute);
+      return <div data-testid="layout">{renderProps.main}</div>;
+    };
+
+    renderAppContentAt('/collections/nonexistent_collection/new', { renderLayout });
+
+    expect(seen).toEqual([false]);
+  });
+
+  it('still hides the app-shell header for a known collection new-entry route (no regression, DCMS-431)', () => {
+    const { getByTestId, queryByTestId } = renderAppContentAt('/collections/posts/new');
+
+    expect(getByTestId('editor-view')).toBeInTheDocument();
+    expect(queryByTestId('app-header')).not.toBeInTheDocument();
+  });
 });
 
 describe('AppContent - session-expired re-auth overlay', () => {
