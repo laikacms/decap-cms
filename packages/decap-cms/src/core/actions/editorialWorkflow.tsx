@@ -250,8 +250,9 @@ export function loadUnpublishedEntry(collection: Collection, slug: string) {
           Object.values(state.collections) as any,
         );
         dispatch(unpublishedEntriesLoaded(entries, pagination));
-        // eslint-disable-next-line no-empty
-      } catch (e: unknown) {}
+      } catch (e: unknown) {
+        console.error('Failed to load unpublished entries', e);
+      }
     }
 
     dispatch(unpublishedEntryLoading(collection, slug));
