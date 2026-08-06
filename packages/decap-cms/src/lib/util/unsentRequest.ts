@@ -62,7 +62,7 @@ function fromURL(wholeURL: string): RequestObject {
 function fromFetchArguments(wholeURL: string, options?: RequestInit): RequestObject {
   const base = fromURL(wholeURL);
   if (!options) return base;
-  const { url: _url, params: _params, ...rest } = options as any;
+  const { url: _url, params: _params, ...rest } = options as Record<string, unknown>;
   return { ...base, ...rest };
 }
 
