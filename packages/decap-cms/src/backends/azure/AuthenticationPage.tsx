@@ -3,7 +3,7 @@ import React from 'react';
 
 import { ImplicitAuthenticator } from '@/lib/auth/index';
 import { showAlert } from '@/ui';
-import { AuthenticationPage, Icon } from '@/ui/default/index';
+import { AuthenticationPage, Icon, PatLoginForm } from '@/ui/default/index';
 
 import type { ImplicitAuthResult } from '@/lib/auth/index';
 import type { TranslateFunction } from '@/ui/default/index';
@@ -19,7 +19,7 @@ interface AzureAuthenticationPageProps {
   siteId?: string;
   authEndpoint?: string;
   config: {
-    backend: { tenant_id?: string, app_id?: string },
+    backend: { tenant_id?: string, app_id?: string, pat_auth?: boolean },
     logo_url?: string,
     logo?: { src?: string, show_in_header?: boolean },
   };
@@ -77,11 +77,31 @@ export default function AzureAuthenticationPage({
     );
   }
 
+  function handlePatLogin(token: string) {
+    // Azure DevOps' REST API authenticates a PAT via HTTP Basic auth with an
+    // empty username (see API.tsx `withHeaders`), not `Bearer` like the OAuth
+    // flow above - encode it here so the rest of the pipeline (implementation
+    // `authenticate`, `API` constructor) stays untouched.
+    onLogin({ token: `Basic ${btoa(`:${token}`)}` } as ImplicitAuthResult);
+  }
+
   return (
     <AuthenticationPage
       onLogin={handleLogin}
       loginDisabled={inProgress}
       loginErrorMessage={loginError}
+      renderPageContent={
+        config.backend.pat_auth
+          ? () => (
+            <PatLoginForm
+              onSubmit={handlePatLogin}
+              disabled={inProgress}
+              t={t}
+              placeholder="Azure DevOps personal access token"
+            />
+          )
+          : undefined
+      }
       renderButtonContent={() => (
         <React.Fragment>
           <LoginButtonIcon type="azure" />

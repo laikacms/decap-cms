@@ -2,7 +2,7 @@ import styled from '@emotion/styled';
 import React from 'react';
 
 import { ImplicitAuthenticator, NetlifyAuthenticator, PkceAuthenticator } from '@/lib/auth/index';
-import { AuthenticationPage, Icon } from '@/ui/default/index';
+import { AuthenticationPage, Icon, PatLoginForm } from '@/ui/default/index';
 
 import type { ImplicitAuthResult, NetlifyAuthResult, PkceAuthResult } from '@/lib/auth/index';
 import type { TranslateFunction } from '@/ui/default/index';
@@ -65,6 +65,7 @@ interface GitLabAuthenticationPageProps {
       base_url?: string,
       auth_endpoint?: string,
       app_id?: string,
+      pat_auth?: boolean,
     },
     logo_url?: string,
     logo?: { src?: string, show_in_header?: boolean },
@@ -146,12 +147,21 @@ export default function GitLabAuthenticationPage({
     );
   }
 
+  function handlePatLogin(token: string) {
+    onLogin({ token } as AuthResult);
+  }
+
   return (
     <AuthenticationPage
       onLogin={handleLogin}
       loginDisabled={inProgress}
       loginErrorMessage={loginError}
       siteUrl={config.site_url}
+      renderPageContent={
+        config.backend.pat_auth
+          ? () => <PatLoginForm onSubmit={handlePatLogin} disabled={inProgress} t={t} />
+          : undefined
+      }
       renderButtonContent={() => (
         <React.Fragment>
           <LoginButtonIcon type="gitlab" /> {inProgress ? t('auth.loggingIn') : t('auth.loginWithGitLab')}
