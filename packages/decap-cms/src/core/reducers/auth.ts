@@ -63,17 +63,27 @@ export const loginUser = createAsyncThunk<User, CmsCredentials, { state: State }
       }
       return user;
     } catch (error) {
-      console.error(error);
-      dispatch(
-        addNotification({
-          message: {
-            details: (error as Error).message,
-            key: 'ui.toast.onFailToAuth',
-          },
-          type: 'error',
-          dismissAfter: 8000,
-        }),
-      );
+      // Backends that authenticate via a native browser picker (e.g.
+      // `local-fs`'s `window.showDirectoryPicker`) reject with a DOMException
+      // named `AbortError` when the user simply dismisses the picker. That's
+      // an ordinary cancel, not a failure - surfacing it as a red toast with
+      // raw browser-internals text ("The user aborted a request.") would be
+      // misleading. Still reject the thunk so callers don't treat it as a
+      // successful login, just skip the notification.
+      const isUserCancelled = (error as { name?: string } | null)?.name === 'AbortError';
+      if (!isUserCancelled) {
+        console.error(error);
+        dispatch(
+          addNotification({
+            message: {
+              details: (error as Error).message,
+              key: 'ui.toast.onFailToAuth',
+            },
+            type: 'error',
+            dismissAfter: 8000,
+          }),
+        );
+      }
       throw error;
     }
   },
