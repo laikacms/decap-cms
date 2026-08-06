@@ -35,3 +35,24 @@ if (missing.length > 0) {
 }
 
 console.log(`README.md "Repository layout" lists all ${packageDirs.length} packages/* directories.`);
+
+// Root `test:ci` fans out via `pnpm -r run test:ci`, which silently no-ops on
+// any workspace package that doesn't define the script (no error, no
+// warning). That let decap-cms-lib-pat's lint + test:ci coverage go missing
+// undetected (DCMS-1868). Pin it: every packages/* directory must define its
+// own `test:ci` script, or the root aggregate is lying about its coverage.
+const packagesMissingTestCi = packageDirs.filter(name => {
+  const pkgJsonPath = new URL(`../packages/${name}/package.json`, import.meta.url);
+  const pkgJson = JSON.parse(readFileSync(pkgJsonPath, 'utf8'));
+  return typeof pkgJson.scripts?.['test:ci'] !== 'string';
+});
+
+if (packagesMissingTestCi.length > 0) {
+  throw new Error(
+    `Root "test:ci" runs "pnpm -r run test:ci", which silently skips any package missing that script. ${packagesMissingTestCi.length} package(s) have no "test:ci" script: ${
+      packagesMissingTestCi.join(', ')
+    }. Add one (mirroring packages/decap-cms's "pnpm run lint && pnpm run typecheck && pnpm run test") so the root gate actually covers it.`,
+  );
+}
+
+console.log(`Every packages/* directory (${packageDirs.length}) defines its own "test:ci" script.`);
