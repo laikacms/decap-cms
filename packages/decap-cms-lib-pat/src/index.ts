@@ -20,7 +20,7 @@ export {
 } from './token.js';
 export type { MintPatDeps, MintPatInput, MintPatResult } from './token.js';
 
-export { resolveBearer } from './verifyBearer.js';
+export { UnauthorizedError, resolveBearer } from './verifyBearer.js';
 export type { ResolveBearerDeps } from './verifyBearer.js';
 
 export { InsufficientScopeError, hasRequiredScope, requireScope } from './requireScope.js';

@@ -34,7 +34,12 @@ grant to a single `admin`).
 ## Usage
 
 ```ts
-import { mintPersonalAccessToken, resolveBearer, requireScope } from 'decap-cms-lib-pat';
+import {
+  mintPersonalAccessToken,
+  resolveBearer,
+  requireScope,
+  UnauthorizedError,
+} from 'decap-cms-lib-pat';
 
 // Minting (e.g. from an admin "create token" action)
 const { token, record } = mintPersonalAccessToken(

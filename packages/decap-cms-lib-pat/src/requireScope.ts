@@ -18,6 +18,8 @@ export class InsufficientScopeError extends Error {
  * unless `ctx.scopes` (from `resolveBearer`) satisfies `required`.
  *
  * @example
+ *   import { UnauthorizedError, resolveBearer } from 'decap-cms-lib-pat';
+ *
  *   const ctx = await resolveBearer(bearer, deps);
  *   if (!ctx) throw new UnauthorizedError();
  *   requireScope(ctx, 'content:write');
