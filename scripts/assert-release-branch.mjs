@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 
-const expectedBranch = 'v4.beta';
+const expectedBranch = 'main';
 const currentBranch = process.env.GITHUB_REF_NAME
   ?? execFileSync('git', ['branch', '--show-current'], { encoding: 'utf8' }).trim();
 

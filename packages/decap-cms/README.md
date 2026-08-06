@@ -1,11 +1,11 @@
-![Decap CMS](https://raw.githubusercontent.com/laikacms/decap-cms/v4.beta/.github/decap.svg)
+![Decap CMS](https://raw.githubusercontent.com/laikacms/decap-cms/main/.github/decap.svg)
 
 # @laikacms/decap-cms
 
 [![npm version](https://img.shields.io/npm/v/@laikacms/decap-cms.svg?style=flat)](https://www.npmjs.com/package/@laikacms/decap-cms)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/laikacms/decap-cms/blob/main/LICENSE)
-[![core size](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Flaikacms%2Fdecap-cms%2Fv4.beta%2F.github%2Fbundle-size.json&query=%24.entries%5B%27.%2Fapp%2Fbare%27%5D.pretty&label=core%20size&color=informational)](./scripts/analyze.mjs)
-[![last commit](https://img.shields.io/github/last-commit/laikacms/decap-cms?branch=v4.beta)](https://github.com/laikacms/decap-cms/commits/v4.beta)
+[![core size](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Flaikacms%2Fdecap-cms%2Fmain%2F.github%2Fbundle-size.json&query=%24.entries%5B%27.%2Fapp%2Fbare%27%5D.pretty&label=core%20size&color=informational)](./scripts/analyze.mjs)
+[![last commit](https://img.shields.io/github/last-commit/laikacms/decap-cms?branch=main)](https://github.com/laikacms/decap-cms/commits/main)
 [![dependencies](https://img.shields.io/librariesio/github/laikacms/decap-cms?label=dependencies)](https://libraries.io/github/laikacms/decap-cms)
 
 A single-package fork of [Decap CMS](https://decapcms.org/), the open-source, Git-based CMS for

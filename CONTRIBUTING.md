@@ -52,7 +52,7 @@ pnpm test -- -t "name pattern"
 
 ## Pull requests
 
-1. Fork the repo and create a branch from `v4.beta`, the active development trunk.
+1. Fork the repo and create a branch from `main`, the active development trunk.
 2. If you have added code that should be tested, add tests. Tests are colocated in `__tests__/`
    directories as `*.spec.tsx` / `*.test.ts`.
 3. Follow [Conventional Commits](https://www.conventionalcommits.org/); commitlint enforces this
@@ -69,7 +69,7 @@ pnpm test -- -t "name pattern"
    describing the change. This is what the release tooling reads to bump versions and generate
    `CHANGELOG.md` — see [Releasing](#releasing).
 5. Run `pnpm test:ci` and make sure it passes.
-6. A maintainer reviews and merges; PRs should be rebased on `v4.beta` before merge.
+6. A maintainer reviews and merges; PRs should be rebased on `main` before merge.
 
 ## Debugging against a real backend
 
@@ -99,7 +99,7 @@ Releases are managed by [changesets](https://github.com/changesets/changesets) v
 3. Run `pnpm test:ci` and make sure it passes.
 4. A maintainer runs `pnpm release` from the repo root (root `package.json`'s `release` script,
    currently `node scripts/assert-release-branch.mjs && changeset publish`) to publish to npm.
-   `scripts/assert-release-branch.mjs` guards this so it only runs from `v4.beta`;
+   `scripts/assert-release-branch.mjs` guards this so it only runs from `main`;
    `changeset
    publish` also tags the published version and reads the changelog straight from the
    changeset entries consumed in step 2, so there's no hand-written GitHub release notes step.
