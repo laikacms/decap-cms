@@ -3,11 +3,12 @@
 Contributions are always welcome, no matter how large or small. Before contributing, please read the
 [code of conduct](CODE_OF_CONDUCT.md).
 
-This repository is a pnpm workspace with a single self-named package: the published
-`@laikacms/decap-cms` fork of Decap CMS lives in `packages/decap-cms/`, where the former monorepo
-packages live under `src/`. The root only carries repo-wide tooling and delegates every script into
-the package, so all commands below run from the repo root. Background on the restructure and the
-workspace layout is in [RESTRUCTURE.md](RESTRUCTURE.md).
+This repository is a pnpm workspace. The published `@laikacms/decap-cms` fork of Decap CMS lives in
+`packages/decap-cms/`, where the former monorepo packages live under `src/`; see the root
+[README.md](README.md#repository-layout) for the current list of workspace packages under
+`packages/`. The root only carries repo-wide tooling and delegates every script into the packages,
+so all commands below run from the repo root. Background on the restructure and the workspace
+layout is in [RESTRUCTURE.md](RESTRUCTURE.md).
 
 ## Setup
 
