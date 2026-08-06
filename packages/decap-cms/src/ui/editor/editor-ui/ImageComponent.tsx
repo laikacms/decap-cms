@@ -31,6 +31,10 @@ const imageCache = new Map<string, Promise<ImageStatus> | ImageStatus>();
 
 export const RIGHT_CLICK_IMAGE_COMMAND: LexicalCommand<MouseEvent> = createCommand('RIGHT_CLICK_IMAGE_COMMAND');
 
+export function isFirefox(): boolean {
+  return typeof navigator !== 'undefined' && /firefox/i.test(navigator.userAgent);
+}
+
 function useSuspenseImage(src: string): ImageStatus {
   let cached = imageCache.get(src);
   if (cached && 'error' in cached && typeof cached.error === 'boolean') {
@@ -332,9 +336,12 @@ export default function ImageComponent({
         DRAGSTART_COMMAND,
         event => {
           if (event.target === imageRef.current) {
-            // TODO This is just a temporary workaround for FF to behave like other browsers.
-            // Ideally, this handles drag & drop too (and all browsers).
-            event.preventDefault();
+            // Firefox natively drags the <img> element itself, which conflicts with
+            // Lexical's own node dragging. Suppress only there; Chrome/Safari/other
+            // browsers keep native image drag & drop.
+            if (isFirefox()) {
+              event.preventDefault();
+            }
             return true;
           }
           return false;
