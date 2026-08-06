@@ -65,8 +65,9 @@ MyControl.propTypes = { value: PropTypes.string };
 
 The Portable-Text-backed `markdown` widget is now registered as `richtext`. Persist-time
 serialization still emits a markdown string, so on-disk content is unaffected. A back-compat alias
-`markdown` remains registered (DCMS-483) for one minor version; a runtime deprecation warning fires
-once per session the first time a `markdown` field is resolved.
+`markdown` remains registered (DCMS-483) as an indefinite compatibility shim with no scheduled
+removal date; a runtime deprecation warning fires once per session the first time a `markdown`
+field is resolved.
 
 **Migration:** Rename widget names in your `config.yml`:
 
