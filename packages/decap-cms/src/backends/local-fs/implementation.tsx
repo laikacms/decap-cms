@@ -18,9 +18,12 @@ import type {
 
 /**
  * True when the browser exposes the (still Chromium-only) File System Access
- * API this backend needs. Callers should feature-detect with this before
- * registering/selecting the `local-fs` backend and fall back to `proxy`
- * otherwise — see `packages/decap-cms/src/backends/local-fs/README.md`.
+ * API this backend needs. Nothing currently calls this to pre-check support
+ * before offering `local-fs` as a backend choice — the `LocalFsBackend`
+ * constructor is the only runtime caller, and it throws a
+ * `ConfigurationError` (rather than falling back to `proxy`) when this
+ * returns `false` — see
+ * `packages/decap-cms/src/backends/local-fs/README.md`.
  */
 export function isLocalFsSupported(target: Window = window): boolean {
   return typeof target !== 'undefined' && typeof target.showDirectoryPicker === 'function';

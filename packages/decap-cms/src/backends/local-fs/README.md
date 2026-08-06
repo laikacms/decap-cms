@@ -9,12 +9,16 @@ Sveltia CMS's "Local-First" editing mode (DCMS-1399).
 
 The File System Access API's directory-picker + permission-query surface is Chromium-only today
 (Chrome, Edge, Opera, ...); Firefox and Safari don't implement it. `isLocalFsSupported()` (exported
-from `index.ts`) feature-detects `window.showDirectoryPicker` — check it before offering `local-fs`
-as a backend choice, and fall back to the `proxy` backend (which needs a running
+from `index.ts`) feature-detects `window.showDirectoryPicker`. Today it has exactly one runtime
+caller — the `LocalFsBackend` constructor itself — which throws a `ConfigurationError` when it
+returns `false`, rather than falling back to another backend. Nothing pre-checks
+`isLocalFsSupported()` before offering `local-fs` as a config choice, so configs that select it
+unconditionally will surface that thrown error (not a graceful fallback) on unsupported browsers.
+If your config needs to work on Firefox/Safari too, select the `proxy` backend (which needs a
+running
 [`decap-server`](https://github.com/decaporg/decap-cms/tree/main/packages/decap-server)-style
-process but works everywhere) when it returns `false`. This backend's constructor also throws a
-`ConfigurationError` on unsupported browsers as a second line of defense for configs that select it
-unconditionally.
+process but works everywhere) there instead, or call `isLocalFsSupported()` yourself before
+deciding which backend to configure.
 
 ## Code structure
 
