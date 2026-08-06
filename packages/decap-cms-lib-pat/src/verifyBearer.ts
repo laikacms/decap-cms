@@ -3,6 +3,20 @@ import { hashToken, isPatToken } from './token.js';
 
 import type { AuthContext, PatRecord, SessionVerificationResult } from './types.js';
 
+/**
+ * Convenience error for callers to throw when `resolveBearer` returns
+ * `null` (missing, invalid, revoked, or expired bearer). `resolveBearer`
+ * itself never throws this -- it's provided so consumers have a ready-made
+ * 401 to raise from their own authorize/middleware seam instead of rolling
+ * their own.
+ */
+export class UnauthorizedError extends Error {
+  constructor(message = 'Unauthorized') {
+    super(message);
+    this.name = 'UnauthorizedError';
+  }
+}
+
 export interface ResolveBearerDeps {
   /**
    * Validates a non-PAT bearer against the existing OAuth session-token
