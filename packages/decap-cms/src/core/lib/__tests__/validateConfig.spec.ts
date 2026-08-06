@@ -9,6 +9,8 @@ import { jsonEntryCodec, jsonFrontmatterCodec } from '@/entry-codecs/json/index'
 import { createMarkdownEntryCodec } from '@/entry-codecs/markdown/index';
 import { tomlEntryCodec, tomlFrontmatterCodec } from '@/entry-codecs/toml/index';
 import { yamlEntryCodec, yamlFrontmatterCodec } from '@/entry-codecs/yaml/index';
+import fileSchema from '@/widgets/file/schema';
+import imageSchema from '@/widgets/image/schema';
 
 // The registry is automocked; give the entry-format getters the state the fat
 // entries produce at runtime (all three built-in packs registered).
@@ -968,7 +970,66 @@ describe('config', () => {
         }).not.toThrow();
       });
 
-      it('still throws if a field has neither name nor group', () => {
+      describe('file/image media_library schema (DCMS-1875)', () => {
+      it('throws if file widget media_library.allow_multiple is not a boolean', () => {
+        vi.mocked(getWidgets).mockImplementation(() => [
+          { name: 'file', schema: fileSchema },
+        ]);
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [
+                {
+                  fields: [
+                    { name: 'x', widget: 'file', media_library: { allow_multiple: 'yes' } },
+                  ],
+                },
+              ],
+            }),
+          );
+        }).toThrowError("'collections[0].fields[0].media_library.allow_multiple' must be boolean");
+      });
+
+      it('does not throw if file widget media_library.allow_multiple is a boolean', () => {
+        vi.mocked(getWidgets).mockImplementation(() => [
+          { name: 'file', schema: fileSchema },
+        ]);
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [
+                {
+                  fields: [
+                    { name: 'x', widget: 'file', media_library: { allow_multiple: true } },
+                  ],
+                },
+              ],
+            }),
+          );
+        }).not.toThrow();
+      });
+
+      it('throws if image widget media_library.allow_multiple is not a boolean', () => {
+        vi.mocked(getWidgets).mockImplementation(() => [
+          { name: 'image', schema: imageSchema },
+        ]);
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [
+                {
+                  fields: [
+                    { name: 'x', widget: 'image', media_library: { allow_multiple: 'yes' } },
+                  ],
+                },
+              ],
+            }),
+          );
+        }).toThrowError("'collections[0].fields[0].media_library.allow_multiple' must be boolean");
+      });
+    });
+
+    it('still throws if a field has neither name nor group', () => {
         expect(() => {
           validateConfig({
             ...validConfig,
