@@ -5,6 +5,15 @@ Discovered while comparing `decap-cms-lib-pat` (this repo) against `decap-oauth2
 overlap and what the permission model should be. Records the judgement call so we do not relitigate
 it when wiring PATs into the live API or when a consumer needs custom scopes.
 
+> **Status update (2026-08-06): the "reduce `decap-cms-lib-pat` to types-only" step was ABANDONED.**
+> The autonomous fleet is actively hardening `decap-cms-lib-pat` as the full implementation
+> (DCMS-1894 added `UnauthorizedError` + a README pinning test), so `lib-pat` stays a complete
+> implementation in this repo. The scope/PAT mechanism was still added to `laikacms/auth` in the
+> `laika-cms` repo (the laika-side server graph, including the planned `laikacms/mcp` core subpath,
+> cannot import back into `decap-cms`), so the implementation now lives in BOTH places by choice, not
+> as debt to collapse. Do NOT gut `lib-pat` without coordinating with the fleet first. The reasoning
+> below stands; only the single-implementation goal did not.
+
 ## The three packages are three layers, not duplicates
 
 - `decap-oauth2` is an **authorization server**: it issues credentials (PKCE OAuth flow,
