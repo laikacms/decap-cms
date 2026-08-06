@@ -20,16 +20,35 @@ describe('resolveBearer', () => {
     expect(ctx).toBeNull();
   });
 
-  it('resolves a session token to full (admin-expanded) scopes', async () => {
+  it('resolves a scopeless session token to a single admin grant (not enumerated)', async () => {
     const ctx = await resolveBearer('session-token-abc', {
       verifySessionToken: async bearer =>
         bearer === 'session-token-abc' ? { user: { id: 'u1' } } : null,
       lookupPatByHash: async () => null,
     });
 
+    // A session that omits scopes is full-admin. With an open vocabulary we
+    // cannot enumerate "every scope", so it resolves to the single `admin`
+    // grant; hasScope treats that as satisfying anything.
     expect(ctx).toEqual({
       user: { id: 'u1' },
-      scopes: expect.arrayContaining(['admin', 'content:read', 'content:write']),
+      scopes: ['admin'],
+      tokenType: 'session',
+    });
+  });
+
+  it('passes through explicit session scopes, including consumer namespaces', async () => {
+    const ctx = await resolveBearer('session-token-scoped', {
+      verifySessionToken: async () => ({
+        user: { id: 'u2' },
+        scopes: ['content:read', 'shipping:write'],
+      }),
+      lookupPatByHash: async () => null,
+    });
+
+    expect(ctx).toEqual({
+      user: { id: 'u2' },
+      scopes: ['content:read', 'shipping:write'],
       tokenType: 'session',
     });
   });

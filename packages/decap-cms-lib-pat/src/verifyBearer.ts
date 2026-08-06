@@ -1,4 +1,4 @@
-import { ADMIN_SCOPE, expandScopes } from './scopes.js';
+import { ADMIN_SCOPE, normalizeScopes } from './scopes.js';
 import { hashToken, isPatToken } from './token.js';
 
 import type { AuthContext, PatRecord, SessionVerificationResult } from './types.js';
@@ -58,7 +58,7 @@ export async function resolveBearer(
 
     return {
       user: { id: record.userId },
-      scopes: expandScopes(record.scopes),
+      scopes: normalizeScopes(record.scopes),
       tokenType: 'pat',
       patId: record.id,
     };
@@ -71,7 +71,7 @@ export async function resolveBearer(
 
   return {
     user: result.user,
-    scopes: expandScopes(result.scopes ?? [ADMIN_SCOPE]),
+    scopes: normalizeScopes(result.scopes ?? [ADMIN_SCOPE]),
     tokenType: 'session',
   };
 }

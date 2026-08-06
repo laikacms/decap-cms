@@ -1,6 +1,6 @@
 import { randomBytes, createHash, timingSafeEqual } from 'crypto';
 
-import { ADMIN_SCOPE, expandScopes } from './scopes.js';
+import { normalizeScopes } from './scopes.js';
 
 import type { Scope } from './scopes.js';
 import type { PatRecord } from './types.js';
@@ -94,9 +94,7 @@ export function mintPersonalAccessToken(input: MintPatInput, deps: MintPatDeps):
     userId: input.userId,
     tokenHash: hashToken(token),
     tokenPreview: tokenPreview(token),
-    scopes: expandScopes(input.scopes).includes(ADMIN_SCOPE)
-      ? [ADMIN_SCOPE]
-      : [...new Set(input.scopes)],
+    scopes: normalizeScopes(input.scopes),
     name: input.name,
     createdAt: now.toISOString(),
     expiresAt: input.expiresAt ?? null,

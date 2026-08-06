@@ -17,6 +17,14 @@ describe('requireScope', () => {
     expect(() => requireScope(ctx(['admin']), 'config:read')).not.toThrow();
   });
 
+  it('honours resource wildcards and consumer namespaces', () => {
+    expect(() => requireScope(ctx(['content:*']), 'content:write')).not.toThrow();
+    expect(() => requireScope(ctx(['shipping:read']), 'shipping:read')).not.toThrow();
+    expect(() => requireScope(ctx(['shipping:read']), 'shipping:write')).toThrow(
+      InsufficientScopeError,
+    );
+  });
+
   it('throws InsufficientScopeError when the scope is missing', () => {
     expect(() => requireScope(ctx(['content:read']), 'content:write')).toThrow(
       InsufficientScopeError,

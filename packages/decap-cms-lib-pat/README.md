@@ -10,8 +10,26 @@ function and get back a single seam that resolves any bearer string to
 
 ## Scope vocabulary
 
-`content:read` | `content:write` | `media:read` | `media:write` |
-`config:read` | `admin` (implies all of the above).
+Scopes follow a `resource:action` convention and are an **open vocabulary**.
+The CMS ships these well-known defaults:
+
+`content:read` | `content:write` | `media:read` | `media:write` | `config:read`
+
+Consumers building custom dashboards (Decap CMS supports injected React
+components) or fronting a non-CMS surface (e.g. a B2B shop) may grant their own
+namespaced scopes, such as `shipping:read` or `orders:write` -- this library
+validates the `resource:action` shape, it does not restrict the vocabulary.
+
+Wildcards:
+
+- `admin` (or the equivalent `*`) grants every scope.
+- `resource:*` grants every action on that resource (e.g. `content:*` grants
+  both `content:read` and `content:write`).
+
+Wildcard membership is resolved at check time by `hasScope`; stored scope sets
+are never expanded (an open vocabulary has no enumerable "all"). Use
+`normalizeScopes` to canonicalize a set for storage (dedupe; collapse a global
+grant to a single `admin`).
 
 ## Usage
 

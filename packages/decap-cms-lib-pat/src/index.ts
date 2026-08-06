@@ -2,9 +2,10 @@ export {
   ADMIN_SCOPE,
   ALL_SCOPES,
   GRANULAR_SCOPES,
-  expandScopes,
+  WILDCARD_SCOPE,
   hasScope,
   isScope,
+  normalizeScopes,
 } from './scopes.js';
 export type { GranularScope, Scope } from './scopes.js';
 
