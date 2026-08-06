@@ -681,6 +681,29 @@ export class Backend {
       if (this.authStore) {
         this.authStore.logout();
       }
+      // DCMS-1884: local-draft backups (localForage `backup*` entries, backed by
+      // `decap-cms:backup*` localStorage keys) are keyed by collection/slug only,
+      // not by user. On a shared workstation, leaving them around lets the next
+      // person to log in and open an entry get a "Restore backup" prompt that
+      // hydrates the previous, still-logged-out user's private draft content.
+      await this.purgeAllLocalDraftBackups();
+    }
+  }
+
+  // DCMS-1884: remove every local-draft backup for every collection/slug, not just
+  // the one the current editor session happens to be looking at. Scoped to the
+  // `backup`-prefixed localForage keys so unrelated caches (e.g. GitHub API
+  // response caches) are left alone.
+  async purgeAllLocalDraftBackups() {
+    try {
+      const keys = await localForage.keys();
+      await Promise.all(
+        keys
+          .filter(key => key === 'backup' || key.startsWith('backup.'))
+          .map(key => localForage.removeItem(key)),
+      );
+    } catch (e: unknown) {
+      console.warn('purgeAllLocalDraftBackups', (e as Error).message);
     }
   }
 

@@ -3,6 +3,7 @@ export interface LocalForage {
   setItem<T>(key: string, value: T): Promise<T>;
   removeItem(key: string): Promise<void>;
   clear(): Promise<void>;
+  keys(): Promise<string[]>;
 }
 
 const PREFIX = 'decap-cms:';
@@ -44,6 +45,21 @@ function removeItem(key: string): Promise<void> {
   });
 }
 
+function keys(): Promise<string[]> {
+  return new Promise<string[]>((resolve, reject) => {
+    try {
+      const result: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k?.startsWith(PREFIX)) result.push(k.slice(PREFIX.length));
+      }
+      resolve(result);
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
 function clear(): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     try {
@@ -60,7 +76,7 @@ function clear(): Promise<void> {
   });
 }
 
-const localForage: LocalForage = { setItem, getItem, removeItem, clear };
+const localForage: LocalForage = { setItem, getItem, removeItem, clear, keys };
 
 localForage
   .setItem('localForageTest', { expires: Date.now() + 300000 })
