@@ -1,7 +1,7 @@
 vi.mock('../registry');
 
 import { merge } from 'lodash-es';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { getEntryCodec, getEntryCodecs, getWidgets } from '@/core/lib/registry';
 import { getConfigSchema, validateConfig } from '@/core/lib/validateConfig';
@@ -9,6 +9,7 @@ import { jsonEntryCodec, jsonFrontmatterCodec } from '@/entry-codecs/json/index'
 import { createMarkdownEntryCodec } from '@/entry-codecs/markdown/index';
 import { tomlEntryCodec, tomlFrontmatterCodec } from '@/entry-codecs/toml/index';
 import { yamlEntryCodec, yamlFrontmatterCodec } from '@/entry-codecs/yaml/index';
+import booleanSchema from '@/widgets/boolean/schema';
 import fileSchema from '@/widgets/file/schema';
 import imageSchema from '@/widgets/image/schema';
 
@@ -605,6 +606,44 @@ describe('config', () => {
                       ],
                     },
                   ],
+                },
+              ],
+            }),
+          );
+        }).not.toThrow();
+      });
+    });
+
+    describe('boolean widget schema (DCMS-1874)', () => {
+      beforeEach(() => {
+        vi.mocked(getWidgets).mockImplementation(() => [{ name: 'boolean', schema: booleanSchema }]);
+      });
+
+      afterEach(() => {
+        vi.mocked(getWidgets).mockImplementation(() => [{}]);
+      });
+
+      it('should throw if boolean field default is not a boolean', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [
+                {
+                  fields: [{ name: 'x', label: 'x', widget: 'boolean', default: 'not-a-bool' }],
+                },
+              ],
+            }),
+          );
+        }).toThrowError("'collections[0].fields[0].default' must be boolean");
+      });
+
+      it('should not throw if boolean field default is a boolean', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [
+                {
+                  fields: [{ name: 'x', label: 'x', widget: 'boolean', default: true }],
                 },
               ],
             }),

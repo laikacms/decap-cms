@@ -1,9 +1,11 @@
 import controlComponent from './BooleanControl';
+import schema from './schema';
 
 function Widget(opts = {}) {
   return {
     name: 'boolean',
     controlComponent,
+    schema,
     ...opts,
   };
 }
