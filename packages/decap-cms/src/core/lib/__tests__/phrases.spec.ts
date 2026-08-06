@@ -115,4 +115,34 @@ describe('defaultPhrases', () => {
 
     expect(result === locales['en']).toBe(false);
   });
+
+  it('should warn when no locale is loaded at all', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.mocked(getLocale).mockReturnValue(undefined);
+
+    expect(getPhrases('de')).toEqual({});
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('No locale loaded'));
+
+    warn.mockRestore();
+  });
+
+  it('should not warn when the en fallback is loaded', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const locales = {
+      en: {
+        app: {
+          header: {
+            content: 'Contents',
+          },
+        },
+      },
+    };
+    vi.mocked(getLocale).mockImplementation(locale => locales[locale]);
+
+    getPhrases('de');
+    expect(warn).not.toHaveBeenCalled();
+
+    warn.mockRestore();
+  });
 });
