@@ -273,6 +273,26 @@ describe('shipped config.schema.json (DCMS-1402)', () => {
       expect(validateJSONSchema(schema, configWithSortableFields)).toEqual([]);
     });
 
+    it('rejects a local-fs backend config with publish_mode editorial_workflow (DCMS-1860)', () => {
+      const invalidConfig = {
+        ...validConfig,
+        backend: { name: 'local-fs' },
+        publish_mode: 'editorial_workflow',
+      };
+      const errors = validateJSONSchema(schema, invalidConfig);
+      expect(errors.length).toBeGreaterThan(0);
+      expect(errors.some(error => error.keyword === 'not')).toBe(true);
+    });
+
+    it('accepts a local-fs backend config with publish_mode simple (DCMS-1860)', () => {
+      const configWithLocalFsSimple = {
+        ...validConfig,
+        backend: { name: 'local-fs' },
+        publish_mode: 'simple',
+      };
+      expect(validateJSONSchema(schema, configWithLocalFsSimple)).toEqual([]);
+    });
+
     it('rejects a collection setting both sortable_fields and sortableFields (DCMS-1847)', () => {
       const invalidConfig = {
         ...validConfig,

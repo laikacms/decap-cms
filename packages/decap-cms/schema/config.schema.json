@@ -449,5 +449,16 @@
   "anyOf": [
     { "required": ["media_folder"] },
     { "required": ["media_library"] }
-  ]
+  ],
+  "not": {
+    "$comment": "The local-fs backend has no git/PR layer to stage unpublished drafts against, so publish_mode: editorial_workflow always fails at runtime. See validateConfig.ts's matching post-schema check (DCMS-1860) for the enforced, user-facing error.",
+    "properties": {
+      "backend": {
+        "properties": { "name": { "enum": ["local-fs"] } },
+        "required": ["name"]
+      },
+      "publish_mode": { "enum": ["editorial_workflow"] }
+    },
+    "required": ["backend", "publish_mode"]
+  }
 }

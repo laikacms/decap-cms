@@ -56,6 +56,12 @@ Out of scope for this first pass: there's no git/PR layer under this backend to 
 drafts against, so the `unpublishedEntry*`/`publishUnpublishedEntry`/`updateUnpublishedEntryStatus`
 methods reject. `publish_mode: simple` (the default) never calls them.
 
+`validateConfig()` rejects `backend.name: local-fs` combined with `publish_mode:
+editorial_workflow` at config-load time (DCMS-1860), so the unsupported combo is caught before the
+user picks a directory and grants permission, rather than surfacing as a runtime
+`EditorialWorkflowError` later. Use `publish_mode: simple` (or omit `publish_mode`, which defaults
+to it) with this backend.
+
 ## `backend:` config keys
 
 None beyond the standard `name: local-fs`. `media_folder` is read the same way the `proxy` backend
