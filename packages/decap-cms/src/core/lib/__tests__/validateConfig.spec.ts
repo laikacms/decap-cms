@@ -166,6 +166,44 @@ describe('config', () => {
       }).not.toThrowError();
     });
 
+    it('throws on publish_mode editorial_workflow for backend name local-fs (DCMS-1860)', () => {
+      expect(() => {
+        validateConfig({
+          ...validConfig,
+          backend: { name: 'local-fs' },
+          publish_mode: 'editorial_workflow',
+        });
+      }).toThrowError(
+        "backend 'local-fs' does not support publish_mode 'editorial_workflow' - use publish_mode: simple (or omit it) or choose a git-based backend",
+      );
+    });
+
+    it('accepts publish_mode simple for local-fs (DCMS-1860)', () => {
+      expect(() => {
+        validateConfig({
+          ...validConfig,
+          backend: { name: 'local-fs' },
+          publish_mode: 'simple',
+        });
+      }).not.toThrowError();
+    });
+
+    it('does not require a publish_mode at all for local-fs (DCMS-1860)', () => {
+      expect(() => {
+        validateConfig({ ...validConfig, backend: { name: 'local-fs' } });
+      }).not.toThrowError();
+    });
+
+    it('does not reject editorial_workflow for non-local-fs backends (DCMS-1860)', () => {
+      expect(() => {
+        validateConfig({
+          ...validConfig,
+          backend: { name: 'github' },
+          publish_mode: 'editorial_workflow',
+        });
+      }).not.toThrowError();
+    });
+
     it('should throw if media_folder is not defined in config', () => {
       expect(() => {
         validateConfig({ foo: 'bar', backend: { name: 'bar' } });

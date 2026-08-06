@@ -535,4 +535,29 @@ export function validateConfig(config: Record<string, unknown>) {
       },
     );
   }
+
+  // Custom validation: the local-fs backend has no git/PR layer to stage
+  // unpublished drafts against, so every unpublishedEntry*/
+  // publishUnpublishedEntry/updateUnpublishedEntryStatus method rejects at
+  // runtime (see local-fs/implementation.tsx and its README's "Editorial
+  // workflow" section). Catching the combo here, at config-load time, saves
+  // the user from picking a directory and granting permission before hitting
+  // that wall later. See DCMS-1860.
+  if (
+    config.backend
+    && typeof config.backend === 'object'
+    && (config.backend as Record<string, unknown>).name === 'local-fs'
+    && config.publish_mode === 'editorial_workflow'
+  ) {
+    const error: SchemaError = {
+      instancePath: '',
+      message:
+        "backend 'local-fs' does not support publish_mode 'editorial_workflow' - use publish_mode: simple (or omit it) or choose a git-based backend",
+      keyword: '',
+      params: {},
+      schemaPath: '',
+    };
+    console.error('Config Errors', [error]);
+    throw new ConfigError([error]);
+  }
 }
