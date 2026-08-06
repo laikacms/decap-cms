@@ -21,6 +21,7 @@ import { GitGatewayBackend } from '@/backends/git-gateway/index';
 import { GiteaBackend } from '@/backends/gitea/index';
 import { GitHubBackend } from '@/backends/github/index';
 import { GitLabBackend } from '@/backends/gitlab/index';
+import { LocalFsBackend } from '@/backends/local-fs/index';
 import { ProxyBackend } from '@/backends/proxy/index';
 import { TestBackend } from '@/backends/test/index';
 // Widgets
@@ -69,6 +70,7 @@ export const registerExtensions = once(function registerExtensions(): void {
   CMS.registerBackend('bitbucket', BitbucketBackend);
   CMS.registerBackend('test-repo', TestBackend);
   CMS.registerBackend('proxy', ProxyBackend);
+  CMS.registerBackend('local-fs', LocalFsBackend);
   [
     DecapCmsWidgetString.Widget(),
     DecapCmsWidgetNumber.Widget(),

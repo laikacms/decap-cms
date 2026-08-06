@@ -27,7 +27,8 @@ export type CmsBackendType =
   | 'forgejo'
   | 'bitbucket'
   | 'test-repo'
-  | 'proxy';
+  | 'proxy'
+  | 'local-fs';
 
 export interface CmsBackend {
   name: CmsBackendType;
