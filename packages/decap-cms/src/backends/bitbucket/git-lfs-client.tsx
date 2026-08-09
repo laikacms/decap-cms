@@ -8,7 +8,7 @@ type MakeAuthorizedRequest = (req: ApiRequest) => Promise<Response>;
 
 interface LfsBatchAction {
   href: string;
-  header?: { [key: string]: string };
+  header?: { [key: string]: string } | undefined;
   expires_in?: number;
   expires_at?: string;
 }
@@ -69,7 +69,7 @@ export class GitLfsClient {
     await unsentRequest.fetchWithTimeout(decodeURI(upload.href), {
       method: 'PUT',
       body: resource,
-      headers: upload.header,
+      ...(upload.header === undefined ? {} : { headers: upload.header }),
     });
   }
   private async doVerify(verify: LfsBatchAction, object: LfsBatchObject) {

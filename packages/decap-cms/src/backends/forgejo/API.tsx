@@ -47,14 +47,16 @@ export const API_NAME = 'Forgejo';
 /** Sentinel PR number for a branch that is under editorial workflow but has no PR yet. */
 export const MOCK_PULL_REQUEST = -1;
 
+// Members are forwarded straight from `config.backend`, where an unset key
+// reads as `undefined`; the constructor defaults each one.
 export interface Config {
-  apiRoot?: string;
-  token?: string;
-  branch?: string;
-  repo?: string;
-  originRepo?: string;
-  cmsLabelPrefix?: string;
-  initialWorkflowStatus?: string;
+  apiRoot?: string | undefined;
+  token?: string | undefined;
+  branch?: string | undefined;
+  repo?: string | undefined;
+  originRepo?: string | undefined;
+  cmsLabelPrefix?: string | undefined;
+  initialWorkflowStatus?: string | undefined;
 }
 
 enum FileOperation {
@@ -551,9 +553,7 @@ export default class API {
 
   async getBranchPullRequest(branchName: string): Promise<ForgejoPullRequest> {
     const pullRequests = await this.getPullRequests('open', `${this.repoOwner}:${branchName}`);
-    const cmsPullRequests = pullRequests.filter(pr =>
-      pr.labels.some(l => isCMSLabel(l.name, this.cmsLabelPrefix))
-    );
+    const cmsPullRequests = pullRequests.filter(pr => pr.labels.some(l => isCMSLabel(l.name, this.cmsLabelPrefix)));
     if (cmsPullRequests.length > 0) {
       return cmsPullRequests[0];
     }

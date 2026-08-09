@@ -46,13 +46,15 @@ function clearCodeVerifier(): void {
   window.sessionStorage.removeItem(CODE_VERIFIER_STORAGE_KEY);
 }
 
+// Every member is forwarded straight from `config.backend`, where an unset key
+// reads as `undefined`, so absence is spelled as an explicit `undefined`.
 export interface PkceAuthenticatorConfig {
-  use_oidc?: boolean;
-  base_url?: string;
-  auth_endpoint?: string;
-  auth_token_endpoint?: string;
-  auth_token_endpoint_content_type?: string;
-  app_id?: string;
+  use_oidc?: boolean | undefined;
+  base_url?: string | undefined;
+  auth_endpoint?: string | undefined;
+  auth_token_endpoint?: string | undefined;
+  auth_token_endpoint_content_type?: string | undefined;
+  app_id?: string | undefined;
   /**
    * Exact redirect URI to send to the provider, instead of assuming the
    * current page URL. Cognito matches redirect URIs exactly, so a CMS mounted
@@ -60,12 +62,12 @@ export interface PkceAuthenticatorConfig {
    * current URL - every project would need its own registered URI. Point this
    * at one fixed callback route and use `returnTo` to get back.
    */
-  redirect_uri?: string;
+  redirect_uri?: string | undefined;
   /**
    * Same-origin path to return to after the fixed callback route completes the
    * exchange. Carried in the OAuth `state` alongside the CSRF nonce.
    */
-  return_to?: string;
+  return_to?: string | undefined;
 }
 
 export interface PkceAuthenticateOptions {

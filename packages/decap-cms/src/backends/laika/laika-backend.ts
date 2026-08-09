@@ -96,12 +96,11 @@ interface TokenState {
  * OAuth token-endpoint fields it round-trips through `restoreUser`.
  */
 type LaikaCredentials = Credentials & {
-  access_token?: string,
-  refresh_token?: string,
+  access_token?: string | undefined,
   /** Lifetime in seconds, as returned by a fresh token-endpoint response. */
-  expires_in?: number,
+  expires_in?: number | undefined,
   /** Absolute expiry in epoch ms, as stored by `persistTokenState`. */
-  token_expires_at?: number,
+  token_expires_at?: number | undefined,
 };
 
 /**
@@ -1740,9 +1739,9 @@ export default function createLaikaBackend(
       collection,
       slug,
     }: {
-      id?: string,
-      collection?: string,
-      slug?: string,
+      id?: string | undefined,
+      collection?: string | undefined,
+      slug?: string | undefined,
     }): Promise<UnpublishedEntry> {
       // Determine the key - id takes precedence, then construct from collection/slug
       // Normalize to remove file extensions

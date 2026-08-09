@@ -439,15 +439,15 @@ export default class Forgejo implements CmsImplementation {
       return [];
     }
     const listEntriesKeys = () =>
-      this.api!.listUnpublishedBranches().then(branches =>
-        branches.map(branch => contentKeyFromBranch(branch))
-      );
+      this.api!.listUnpublishedBranches().then(branches => branches.map(branch => contentKeyFromBranch(branch)));
 
     const ids = await unpublishedEntries(listEntriesKeys);
     return ids;
   }
 
-  async unpublishedEntry(args: { id?: string, collection?: string, slug?: string }) {
+  async unpublishedEntry(
+    args: { id?: string | undefined, collection?: string | undefined, slug?: string | undefined },
+  ) {
     const { id, collection, slug } = args;
     if (id) {
       return this.api!.retrieveUnpublishedEntryData(id);

@@ -170,16 +170,22 @@ export interface CmsSortableField {
   default_sort?: boolean | 'asc' | 'desc';
 }
 
-export type CmsCredentials = { token: string | Record<string, unknown>, refresh_token?: string };
+export type CmsCredentials = {
+  token: string | Record<string, unknown>,
+  refresh_token?: string | undefined,
+};
 
+// Assembled from a provider's user payload, where any of these may simply not
+// be reported, so the optionals carry an explicit `undefined` rather than
+// forcing every backend to build the object key by key.
 export type CmsUser = CmsCredentials & {
-  backendName?: string,
-  login?: string,
-  email?: string,
+  backendName?: string | undefined,
+  login?: string | undefined,
+  email?: string | undefined,
   name: string,
-  avatar_url?: string,
-  scopes?: string[],
-  useOpenAuthoring?: boolean,
+  avatar_url?: string | undefined,
+  scopes?: string[] | undefined,
+  useOpenAuthoring?: boolean | undefined,
 };
 
 export type CmsAssetProxy = {

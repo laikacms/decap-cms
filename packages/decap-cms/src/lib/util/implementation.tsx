@@ -281,7 +281,7 @@ type AllEntriesByFolderArgs =
     isShaExistsInBranch: (branch: string, sha: string) => Promise<boolean>,
     apiName: string,
     localForage: LocalForage,
-    customFetch?: CustomFetchFunc,
+    customFetch?: CustomFetchFunc | undefined,
   };
 
 export async function allEntriesByFolder({

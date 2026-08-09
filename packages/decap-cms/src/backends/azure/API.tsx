@@ -494,7 +494,7 @@ export default class API {
       status,
       diffs: diffsWithIds,
       updatedAt,
-      pullRequestAuthor,
+      ...(pullRequestAuthor === undefined ? {} : { pullRequestAuthor }),
     };
   }
 

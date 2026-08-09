@@ -106,7 +106,7 @@ export default class API {
   token: string;
   tokenKeyword: string;
   branch: string;
-  useOpenAuthoring?: boolean;
+  useOpenAuthoring: boolean | undefined;
   repo: string;
   originRepo: string;
   repoOwner: string;
@@ -118,7 +118,7 @@ export default class API {
   mergeMethod: string;
   initialWorkflowStatus: string;
   cmsLabelPrefix: string;
-  baseUrl?: string;
+  baseUrl: string | undefined;
   getUser: ({ token }: { token: string }) => Promise<GitHubUser>;
   _userPromise?: Promise<GitHubUser>;
   _metadataSemaphore?: Semaphore;
@@ -160,7 +160,7 @@ export default class API {
     return this._userPromise.then(user => ({
       name: user.name || 'Unknown',
       login: user.login,
-      email: user.email ?? undefined,
+      ...(user.email == null ? {} : { email: user.email }),
     }));
   }
 
@@ -542,7 +542,7 @@ export default class API {
       status,
       diffs: diffs.map(d => ({ path: d.path, newFile: d.newFile, id: d.sha })),
       updatedAt,
-      pullRequestAuthor,
+      ...(pullRequestAuthor === undefined ? {} : { pullRequestAuthor }),
     };
   }
 
@@ -1023,10 +1023,18 @@ export default class API {
         tree.sha,
         [baseCommit.sha],
         author
-          ? { name: author.name || '', email: author.email || '', date: author.date }
+          ? {
+            name: author.name || '',
+            email: author.email || '',
+            ...(author.date === undefined ? {} : { date: author.date }),
+          }
           : undefined,
         committer
-          ? { name: committer.name || '', email: committer.email || '', date: committer.date }
+          ? {
+            name: committer.name || '',
+            email: committer.email || '',
+            ...(committer.date === undefined ? {} : { date: committer.date }),
+          }
           : undefined,
       );
       return newCommit as unknown as GitHubCompareCommit;

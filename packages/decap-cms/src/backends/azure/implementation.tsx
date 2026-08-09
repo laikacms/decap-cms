@@ -304,9 +304,9 @@ export default class Azure implements CmsImplementation {
     collection,
     slug,
   }: {
-    id?: string,
-    collection?: string,
-    slug?: string,
+    id?: string | undefined,
+    collection?: string | undefined,
+    slug?: string | undefined,
   }) {
     if (id) {
       const data = await this.api!.retrieveUnpublishedEntryData(id);

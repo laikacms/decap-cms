@@ -257,9 +257,9 @@ export interface CmsImplementation {
 
   unpublishedEntries: () => Promise<string[]>;
   unpublishedEntry: (args: {
-    id?: string,
-    collection?: string,
-    slug?: string,
+    id?: string | undefined,
+    collection?: string | undefined,
+    slug?: string | undefined,
   }) => Promise<CmsUnpublishedEntry>;
   unpublishedEntryDataFile: (
     collection: string,

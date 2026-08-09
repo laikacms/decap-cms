@@ -72,11 +72,11 @@ export function registerGraphQLAPI(
 export default class GitLab implements CmsImplementation {
   lock: AsyncLock;
   api: API | null;
-  updateUserCredentials: (args: { token: string, refresh_token?: string }) => Promise<null>;
+  updateUserCredentials: (args: { token: string, refresh_token?: string | undefined }) => Promise<null>;
   options: {
     proxied: boolean,
     API: API | null,
-    updateUserCredentials: (args: { token: string, refresh_token?: string }) => Promise<null>,
+    updateUserCredentials: (args: { token: string, refresh_token?: string | undefined }) => Promise<null>,
     initialWorkflowStatus: string,
   };
   repo: string;
@@ -94,8 +94,8 @@ export default class GitLab implements CmsImplementation {
   baseUrl: string;
   authEndpoint: string;
   appID: string;
-  refreshToken?: string;
-  refreshedTokenPromise?: Promise<string>;
+  refreshToken: string | undefined;
+  refreshedTokenPromise: Promise<string> | undefined;
   authenticator?: PkceAuthenticator;
 
   _mediaDisplayURLSem?: Semaphore;
@@ -515,9 +515,9 @@ export default class GitLab implements CmsImplementation {
     collection,
     slug,
   }: {
-    id?: string,
-    collection?: string,
-    slug?: string,
+    id?: string | undefined,
+    collection?: string | undefined,
+    slug?: string | undefined,
   }) {
     if (id) {
       const data = await this.api!.retrieveUnpublishedEntryData(id);

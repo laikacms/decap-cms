@@ -33,7 +33,7 @@ type RepoTree = { [key: string]: RepoFile | RepoTree };
 
 type Diff = {
   id: string,
-  originalPath?: string,
+  originalPath?: string | undefined,
   path: string,
   newFile: boolean,
   status: string,
@@ -222,7 +222,10 @@ export default class TestBackend implements CmsImplementation {
   // same dev-test profile can sign in as different identities and
   // reproduce a lock conflict (see `dev-test/config.yml`).
   authenticate(
-    credentials?: { token?: string | Record<string, unknown>, login?: string, name?: string } | null,
+    credentials?:
+      | { token?: string | Record<string, unknown>, login?: string | undefined, name?: string | undefined }
+      | null
+      | undefined,
   ) {
     const login = credentials?.login?.trim() || 'test-user';
     const name = credentials?.name?.trim() || login;
@@ -306,7 +309,9 @@ export default class TestBackend implements CmsImplementation {
     return Promise.resolve(Object.keys(window.repoFilesUnpublished));
   }
 
-  unpublishedEntry({ id, collection, slug }: { id?: string, collection?: string, slug?: string }) {
+  unpublishedEntry(
+    { id, collection, slug }: { id?: string | undefined, collection?: string | undefined, slug?: string | undefined },
+  ) {
     if (id) {
       const parts = id.split('/');
       collection = parts[0];

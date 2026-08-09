@@ -79,7 +79,7 @@ export default class ProxyBackend implements CmsImplementation {
   mediaFolder: string | undefined;
   options: { initialWorkflowStatus?: string };
   branch: string;
-  cmsLabelPrefix?: string;
+  cmsLabelPrefix: string | undefined;
 
   constructor(config: CmsConfig, options = {}) {
     if (!config.backend.proxy_url) {
@@ -176,9 +176,9 @@ export default class ProxyBackend implements CmsImplementation {
     collection,
     slug,
   }: {
-    id?: string,
-    collection?: string,
-    slug?: string,
+    id?: string | undefined,
+    collection?: string | undefined,
+    slug?: string | undefined,
   }) {
     try {
       const entry: CmsUnpublishedEntry = await this.request({

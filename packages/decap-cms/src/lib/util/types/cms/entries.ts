@@ -62,12 +62,18 @@ export type CmsEntryValue = {
 
 export type CmsImplementationEntry = {
   data: string,
-  file: { path: string, label?: string, id?: string | null, author?: string, updatedOn?: string },
+  file: {
+    path: string,
+    label?: string | undefined,
+    id?: string | null | undefined,
+    author?: string | undefined,
+    updatedOn?: string | undefined,
+  },
 };
 
 export type CmsImplementationFile = {
   id?: string | null | undefined,
-  label?: string,
+  label?: string | undefined,
   path: string,
 };
 

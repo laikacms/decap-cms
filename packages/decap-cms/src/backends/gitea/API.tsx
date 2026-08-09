@@ -31,12 +31,14 @@ import type {
 
 export const API_NAME = 'Gitea';
 
+// Members are forwarded straight from `config.backend`, where an unset key
+// reads as `undefined`; the constructor defaults each one.
 export interface Config {
-  apiRoot?: string;
-  token?: string;
-  branch?: string;
-  repo?: string;
-  originRepo?: string;
+  apiRoot?: string | undefined;
+  token?: string | undefined;
+  branch?: string | undefined;
+  repo?: string | undefined;
+  originRepo?: string | undefined;
 }
 
 enum FileOperation {

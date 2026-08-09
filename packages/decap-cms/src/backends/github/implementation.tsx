@@ -85,9 +85,9 @@ export default class GitHub implements CmsImplementation {
   };
   originRepo: string;
   isBranchConfigured: boolean;
-  repo?: string;
+  repo: string | undefined;
   openAuthoringEnabled: boolean;
-  useOpenAuthoring?: boolean;
+  useOpenAuthoring: boolean | undefined;
   alwaysForkEnabled: boolean;
   branch: string;
   apiRoot: string;
@@ -98,7 +98,7 @@ export default class GitHub implements CmsImplementation {
   squashMerges: boolean;
   cmsLabelPrefix: string;
   useGraphql: boolean;
-  baseUrl?: string;
+  baseUrl: string | undefined;
   bypassWriteAccessCheckForAppTokens = false;
   _currentUserPromise?: Promise<GitHubUser>;
   _userIsOriginMaintainerPromises?: {
@@ -403,7 +403,11 @@ export default class GitHub implements CmsImplementation {
     // }
 
     // Authorized user
-    return { ...user, token: state.token as string, useOpenAuthoring: this.useOpenAuthoring };
+    return {
+      ...user,
+      token: state.token as string,
+      ...(this.useOpenAuthoring === undefined ? {} : { useOpenAuthoring: this.useOpenAuthoring }),
+    };
   }
 
   logout() {
@@ -665,9 +669,9 @@ export default class GitHub implements CmsImplementation {
     collection,
     slug,
   }: {
-    id?: string,
-    collection?: string,
-    slug?: string,
+    id?: string | undefined,
+    collection?: string | undefined,
+    slug?: string | undefined,
   }) {
     if (id) {
       const data = await this.api!.retrieveUnpublishedEntryData(id);

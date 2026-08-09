@@ -49,11 +49,11 @@ const Divider = styled.div`
 
 export interface PatLoginFormProps {
   onSubmit: (token: string) => void;
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   t: TranslateFunction;
   /** Placeholder text override, e.g. "ghp_..." or a provider-specific hint. */
-  placeholder?: string;
-  showDivider?: boolean;
+  placeholder?: string | undefined;
+  showDivider?: boolean | undefined;
 }
 
 function PatLoginForm({

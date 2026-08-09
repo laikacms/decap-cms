@@ -417,7 +417,9 @@ export default class Gitea implements CmsImplementation {
     return [];
   }
 
-  async unpublishedEntry(_args: { id?: string, collection?: string, slug?: string }) {
+  async unpublishedEntry(
+    _args: { id?: string | undefined, collection?: string | undefined, slug?: string | undefined },
+  ) {
     return { slug: '', collection: '', status: '', diffs: [], updatedAt: '' };
   }
 

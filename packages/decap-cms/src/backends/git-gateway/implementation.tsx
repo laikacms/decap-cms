@@ -598,7 +598,9 @@ export default class GitGateway implements Implementation {
   unpublishedEntries() {
     return this.backend!.unpublishedEntries();
   }
-  unpublishedEntry({ id, collection, slug }: { id?: string, collection?: string, slug?: string }) {
+  unpublishedEntry(
+    { id, collection, slug }: { id?: string | undefined, collection?: string | undefined, slug?: string | undefined },
+  ) {
     return this.backend!.unpublishedEntry({ id, collection, slug });
   }
   updateUnpublishedEntryStatus(collection: string, slug: string, newStatus: string) {

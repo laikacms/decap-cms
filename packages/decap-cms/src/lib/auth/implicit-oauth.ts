@@ -2,11 +2,13 @@ import { trim, trimEnd } from 'lodash-es';
 
 import { createNonce, isInsecureProtocol, validateNonce } from './utils';
 
+// Every member is forwarded straight from `config.backend`, where an unset key
+// reads as `undefined`, so absence is spelled as an explicit `undefined`.
 export interface ImplicitAuthenticatorConfig {
-  base_url?: string;
-  auth_endpoint?: string;
-  app_id?: string;
-  clearHash?: () => void;
+  base_url?: string | undefined;
+  auth_endpoint?: string | undefined;
+  app_id?: string | undefined;
+  clearHash?: (() => void) | undefined;
 }
 
 export interface ImplicitAuthenticateOptions {

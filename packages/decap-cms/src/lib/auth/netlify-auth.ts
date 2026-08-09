@@ -45,10 +45,12 @@ const PROVIDERS: Record<ProviderName, ProviderConfig> = {
   },
 };
 
+// Every member is forwarded straight from `config.backend`, where an unset key
+// reads as `undefined`, so absence is spelled as an explicit `undefined`.
 export interface NetlifyAuthenticatorConfig {
-  site_id?: string | null;
-  base_url?: string;
-  auth_endpoint?: string;
+  site_id?: string | null | undefined;
+  base_url?: string | undefined;
+  auth_endpoint?: string | undefined;
 }
 
 export interface NetlifyAuthenticateOptions {

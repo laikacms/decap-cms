@@ -59,14 +59,14 @@ export type CmsMediaFileMap = CmsMediaFile;
 export type CmsImplementationMediaFile = {
   name: string,
   id: string,
-  size?: number,
-  displayURL?: CmsDisplayURL,
+  size?: number | undefined,
+  displayURL?: CmsDisplayURL | undefined,
   path: string,
-  draft?: boolean,
-  url?: string,
-  file?: File,
+  draft?: boolean | undefined,
+  url?: string | undefined,
+  file?: File | undefined,
   /** See `CmsBackendMediaFile.isDirectory`. */
-  isDirectory?: boolean,
+  isDirectory?: boolean | undefined,
 };
 
 /**

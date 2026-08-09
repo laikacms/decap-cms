@@ -37,18 +37,22 @@ export type GitHubLabel =
   >
   & { description: string };
 
+// The optional members are forwarded straight from `config.backend`, where an
+// unset key reads as `undefined`; the constructor defaults each one. Hence
+// `| undefined` rather than plain `?:` - "explicitly not configured" is a
+// value callers pass, not a key they omit.
 export interface Config {
-  apiRoot?: string;
-  token?: string;
-  tokenKeyword?: string;
-  branch?: string;
-  useOpenAuthoring?: boolean;
-  repo?: string;
-  originRepo?: string;
+  apiRoot?: string | undefined;
+  token?: string | undefined;
+  tokenKeyword?: string | undefined;
+  branch?: string | undefined;
+  useOpenAuthoring?: boolean | undefined;
+  repo?: string | undefined;
+  originRepo?: string | undefined;
   squashMerges: boolean;
   initialWorkflowStatus: string;
   cmsLabelPrefix: string;
-  baseUrl?: string;
+  baseUrl?: string | undefined;
   getUser: ({ token }: { token: string }) => Promise<GitHubUser>;
 }
 

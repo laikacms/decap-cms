@@ -31,15 +31,15 @@ import type { ApiRequest, CmsAssetProxy, CmsDataFile, CmsPersistOptions, FetchEr
 export const API_NAME = 'GitLab';
 
 export interface Config {
-  apiRoot?: string;
-  graphQLAPIRoot?: string;
-  token?: string;
-  branch?: string;
-  repo?: string;
+  apiRoot?: string | undefined;
+  graphQLAPIRoot?: string | undefined;
+  token?: string | undefined;
+  branch?: string | undefined;
+  repo?: string | undefined;
   squashMerges: boolean;
   initialWorkflowStatus: string;
   cmsLabelPrefix: string;
-  requestFunction?: (req: ApiRequest) => Promise<Response>;
+  requestFunction?: ((req: ApiRequest) => Promise<Response>) | undefined;
 }
 
 export interface CommitAuthor {
@@ -55,9 +55,9 @@ enum CommitAction {
 }
 
 type CommitItem = {
-  base64Content?: string,
+  base64Content?: string | undefined,
   path: string,
-  oldPath?: string,
+  oldPath?: string | undefined,
   action: CommitAction,
 };
 
@@ -192,7 +192,7 @@ export default class API {
   squashMerges: boolean;
   initialWorkflowStatus: string;
   cmsLabelPrefix: string;
-  requestFunction?: (req: ApiRequest) => Promise<Response>;
+  requestFunction: ((req: ApiRequest) => Promise<Response>) | undefined;
 
   constructor(config: Config) {
     this.apiRoot = config.apiRoot || 'https://gitlab.com/api/v4';
