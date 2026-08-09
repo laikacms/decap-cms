@@ -305,6 +305,19 @@ export default function createLaikaBackend(
   };
 
   /**
+   * Build an implementation entry from a protocol record. Every construction
+   * site identifies the entry the same way: by the record's opaque
+   * content-version token, falling back to the key for repositories that
+   * predate `version`.
+   */
+  const recordToImplementationEntry = (
+    record: { key: string, content: unknown },
+  ): ImplementationEntry => ({
+    file: { path: record.key, id: recordVersion(record) ?? record.key },
+    data: contentToRawString(record.content),
+  });
+
+  /**
    * The content-sync surface added to DocumentsRepository by newer laikacms
    * versions, expressed structurally for the same version-skew reason. Support
    * is verified via `getCapabilities()` before either method is called.
@@ -903,12 +916,7 @@ export default function createLaikaBackend(
 
         for (const record of result.success) {
           if (record.type === 'published') {
-            const entry: ImplementationEntry = {
-              // `version` is the protocol's opaque content-version token; older
-              // repositories do not send one, so fall back to the key.
-              file: { path: record.key, id: recordVersion(record) ?? record.key },
-              data: contentToRawString(record.content),
-            };
+            const entry = recordToImplementationEntry(record);
             entries.push(entry);
             this.entryCache.set(record.key, entry);
           }
@@ -1006,13 +1014,7 @@ export default function createLaikaBackend(
         const result = await firstResult(repo.getDocument(key));
 
         if (Result.isSuccess(result)) {
-          return {
-            file: {
-              path: result.success.key,
-              id: recordVersion(result.success) ?? result.success.key,
-            },
-            data: contentToRawString(result.success.content),
-          };
+          return recordToImplementationEntry(result.success);
         } else {
           failedResults.push(result.failure);
         }
@@ -1021,13 +1023,7 @@ export default function createLaikaBackend(
           const unpublishedResult = await firstResult(repo.getUnpublished(key));
 
           if (Result.isSuccess(unpublishedResult)) {
-            return {
-              file: {
-                path: unpublishedResult.success.key,
-                id: recordVersion(unpublishedResult.success) ?? unpublishedResult.success.key,
-              },
-              data: contentToRawString(unpublishedResult.success.content),
-            };
+            return recordToImplementationEntry(unpublishedResult.success);
           } else {
             failedResults.push(unpublishedResult.failure);
           }
@@ -1774,11 +1770,7 @@ export default function createLaikaBackend(
               };
               this.unpublishedEntryCache.set(unpub.key, unpublishedEntry);
 
-              const entry: ImplementationEntry = {
-                file: { path: unpub.key, id: unpub.key },
-                data: contentToRawString(unpub.content),
-              };
-              this.entryCache.set(unpub.key, entry);
+              this.entryCache.set(unpub.key, recordToImplementationEntry(unpub));
             }
 
             if (result.success.length < pageSize) break;
