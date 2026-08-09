@@ -105,13 +105,17 @@ export interface PageContentRenderProps {
   showAbortButton: boolean;
 }
 
+// Props a caller forwards straight from its own optional state (an error
+// message that may not exist yet, a config field that may be unset) are
+// declared `| undefined`: JSX has no way to omit an attribute conditionally,
+// so an explicitly-undefined attribute is how absence is spelled here.
 export interface AuthenticationPageProps {
   onLogin?: (e: any) => void;
-  loginDisabled?: boolean;
-  loginErrorMessage?: React.ReactNode;
-  renderButtonContent?: () => React.ReactNode;
-  renderPageContent?: (props: PageContentRenderProps) => React.ReactNode;
-  siteUrl?: string;
+  loginDisabled?: boolean | undefined;
+  loginErrorMessage?: React.ReactNode | undefined;
+  renderButtonContent?: (() => React.ReactNode) | undefined;
+  renderPageContent?: ((props: PageContentRenderProps) => React.ReactNode) | undefined;
+  siteUrl?: string | undefined;
   t: TranslateFunction;
 }
 

@@ -22,6 +22,7 @@ import type {
   CmsAssetProxy as AssetProxy,
   CmsConfig as Config,
   CmsCredentials as Credentials,
+  CmsDataFile as DataFile,
   CmsDisplayURL as DisplayURL,
   CmsFileEntry as Entry,
   CmsGetMediaPageOptions,
@@ -34,6 +35,7 @@ import type {
   CmsPersistOptions as PersistOptions,
   CmsUnpublishedEntry as UnpublishedEntry,
   CmsUser as User,
+  CursorCompatibleEntries,
 } from '@/lib/util/index';
 import type { Asset, AssetCreate, AssetsRepository, Resource } from 'laikacms/assets';
 import type { ErrorCode, LaikaResult, LaikaStream, LaikaTask } from 'laikacms/core';
@@ -62,6 +64,45 @@ export interface LaikaBackendConfig {
   /** Allowed roles for access control */
   acceptRoles?: string[];
 }
+
+/**
+ * The `backend:` block fields this backend reads. Core's `CmsBackend` covers
+ * the git-backend vocabulary only, so the laika-specific fields are declared
+ * here; every member is optional, which makes a `CmsBackend` assignable to
+ * the intersection without a cast.
+ */
+interface LaikaBackendSettings {
+  /** Accepted alias for `api_root`, for starter templates that predate it. */
+  api_url?: string;
+  auth_token_endpoint_content_type?: string;
+  /** See {@link LaikaBackend.devToken}. */
+  dev_token?: string;
+}
+
+/** Init options core passes to `Implementation.init` (see core/backend.tsx). */
+interface LaikaBackendInitOptions {
+  onSessionExpired?: () => void;
+}
+
+/** The access/refresh pair plus the access token's absolute expiry (epoch ms). */
+interface TokenState {
+  accessToken: string;
+  refreshToken?: string;
+  expiresAt?: number;
+}
+
+/**
+ * Credentials as this backend exchanges them: core's `CmsCredentials` plus the
+ * OAuth token-endpoint fields it round-trips through `restoreUser`.
+ */
+type LaikaCredentials = Credentials & {
+  access_token?: string,
+  refresh_token?: string,
+  /** Lifetime in seconds, as returned by a fresh token-endpoint response. */
+  expires_in?: number,
+  /** Absolute expiry in epoch ms, as stored by `persistTokenState`. */
+  token_expires_at?: number,
+};
 
 /**
  * Options for getting a documents repository
@@ -211,6 +252,55 @@ export default function createLaikaBackend(
   };
 
   /**
+   * The document content to persist for one of an entry's data files.
+   *
+   * `dataFile.path` is NOT a reliable format signal on every call: on create
+   * it comes from selectEntryPath and carries the collection's extension
+   * (e.g. "posts/slug.json"), but on update Decap's core takes it straight
+   * from the entry it fetched back — and this backend's own getEntry/list
+   * calls set that `path` to the storage-repo record key, which normalizeKey
+   * stores WITHOUT an extension. So `/\.json$/.test(dataFile.path)` is true
+   * on the create-time POST but false on the update-time PATCH for the exact
+   * same JSON-format entry (DCMS-1062); `parseJsonEntryContent` sniffs the
+   * payload shape when the extension check is inconclusive.
+   *
+   * The documents API rejects non-object content outright (DCMS-1254), and
+   * markdown/YAML/TOML (frontmatter — Decap's default when no `format:` is
+   * set) never parses into one. Surface that as an actionable client-side
+   * error instead of letting the raw string reach the server, where it would
+   * 400 with an opaque "content must be a plain object" the user cannot act on.
+   */
+  const toDocumentContent = (dataFile: DataFile, collectionName?: string): Record<string, unknown> => {
+    const content = parseJsonEntryContent(dataFile.raw, /\.json$/i.test(dataFile.path));
+    if (!isPlainRecord(content)) {
+      throw new APIError(
+        `Laika backend currently only supports JSON-format collections; `
+          + `set \`format: json\` on collection \`${collectionName ?? dataFile.path.split('/')[0]}\`.`,
+        400,
+        'Laika Backend',
+      );
+    }
+    return content;
+  };
+
+  /**
+   * Every protocol failure reaches core as an APIError carrying the laika
+   * error's status, prefixed with what the backend was trying to do.
+   */
+  const apiError = (context: string) => (error: LaikaError): APIError =>
+    new APIError(`${context}: ${error.message}`, ErrorCodeToStatusMap[error.code], 'Laika Backend');
+
+  /** Drain a task to its value, or throw `context: <protocol message>`. */
+  const runTask = async <T>(task: LaikaTask.LaikaTask<T>, context: string): Promise<T> =>
+    Result.getOrThrowWith(await firstResult(task), apiError(context));
+
+  /** Drain a stream to its items, or throw `context: <protocol message>`. */
+  const runStream = async <A>(
+    stream: LaikaStream.LaikaStream<A>,
+    context: string,
+  ): Promise<ReadonlyArray<A>> => Result.getOrThrowWith(await collectStream(stream), apiError(context));
+
+  /**
    * Default factory for DocumentsRepository using JSON:API proxy
    * Uses baseUrl/documents pattern (collection is passed via filter[folder])
    */
@@ -265,16 +355,19 @@ export default function createLaikaBackend(
     return result;
   };
 
+  const isPlainRecord = (value: unknown): value is Record<string, unknown> =>
+    typeof value === 'object' && value !== null && !Array.isArray(value);
+
   /**
    * The inverse of `contentToRawString` for `persistEntry`: turns a data
    * file's raw serialized text back into the object shape the documents API
    * expects for JSON-format entries. `pathLooksJson` (a `.json`-extension
    * check on `dataFile.path`) is a reliable signal on the create path, but
-   * NOT on update — see the comment at the persistEntry call site for why.
-   * When the extension check is inconclusive, fall back to sniffing the raw
-   * text itself: only parse it as JSON if it actually looks like a JSON
-   * object/array, so markdown/frontmatter/YAML raw text (which won't look
-   * like JSON and would fail to parse anyway) is safely left as a string.
+   * NOT on update — see {@link toDocumentContent} for why. When the extension
+   * check is inconclusive, fall back to sniffing the raw text itself: only
+   * parse it as JSON if it actually looks like a JSON object/array, so
+   * markdown/frontmatter/YAML raw text (which won't look like JSON and would
+   * fail to parse anyway) is safely left as a string.
    */
   const parseJsonEntryContent = (raw: string, pathLooksJson: boolean): unknown => {
     if (pathLooksJson) {
@@ -406,10 +499,10 @@ export default function createLaikaBackend(
     publicFolder: string;
     apiUrl: string;
     acceptRoles?: string[];
-    tokenPromise?: () => Promise<string>;
+    tokenPromise: (() => Promise<string>) | undefined;
     baseUrl: string;
     /** OAuth client_id — the token endpoint validates it on every grant, including refresh. */
-    appId?: string;
+    appId: string | undefined;
     tokenUrl: string;
     tokenContentType: string;
 
@@ -418,20 +511,20 @@ export default function createLaikaBackend(
      * page left open past the access token's lifetime transparently refreshes
      * instead of replaying a stale closure-captured token forever.
      */
-    private tokenState?: { accessToken: string, refreshToken?: string, expiresAt?: number };
+    private tokenState: TokenState | undefined;
     /**
      * The server ROTATES the pair on refresh (the old session is revoked
      * server-side), so concurrent callers must share one in-flight refresh —
      * a second request with the same refresh token is an invalid_grant.
      */
-    private refreshInFlight?: Promise<string>;
-    private onSessionExpired?: () => void;
+    private refreshInFlight: Promise<string> | undefined;
+    private onSessionExpired: (() => void) | undefined;
 
-    assetsRepository?: AssetsRepository;
-    documentsRepository?: DocumentsRepository;
+    assetsRepository: AssetsRepository | undefined;
+    documentsRepository: DocumentsRepository | undefined;
 
     // Resolved once per session; reset on logout.
-    changesSupport?: Promise<ChangesSupport>;
+    changesSupport: Promise<ChangesSupport> | undefined;
 
     // Caches to reduce duplicate requests
     entryCache = new DedupeCache<ImplementationEntry>();
@@ -449,35 +542,28 @@ export default function createLaikaBackend(
      * The embedded server must be configured to accept the same token —
      * see `createEmbeddedLaika({ auth: { mode: 'dev', devToken } })`.
      */
-    devToken?: string;
+    devToken: string | undefined;
 
-    constructor(config: Config, options: Record<string, unknown> = {}) {
+    constructor(config: Config, options: LaikaBackendInitOptions = {}) {
       this.config = config;
-      // Core's `ImplementationInitOptions.onSessionExpired` — how we report
-      // an unrecoverable session expiry (dead refresh grant) upward so the
-      // app can log the user out.
-      this.onSessionExpired = options.onSessionExpired as (() => void) | undefined;
+      // How we report an unrecoverable session expiry (dead refresh grant)
+      // upward, so the app can log the user out.
+      this.onSessionExpired = options.onSessionExpired;
       this.mediaFolder = config.media_folder ?? '';
-      // IMPORTANT
-      // public_folder is used for the path that appears in content
-      // When not set, we use media_folder so paths match what Decap CMS expects
-      this.publicFolder = (config as Config & { public_folder?: string }).public_folder ?? this.mediaFolder;
+      // public_folder is used for the path that appears in content. When not
+      // set, we use media_folder so paths match what Decap CMS expects.
+      this.publicFolder = config.public_folder ?? this.mediaFolder;
 
-      this.baseUrl = Url.normalize(config.backend.base_url);
-      // api_root is the canonical field; api_url is accepted as an alias for
-      // compatibility with starter templates that pre-date this field name.
-      const backendExt = config.backend as unknown as Record<string, unknown>;
-      const apiPath = (backendExt.api_root ?? backendExt.api_url) as string | undefined;
-      this.apiUrl = Url.combine(this.baseUrl, apiPath);
-      this.devToken = (config.backend as { dev_token?: unknown }).dev_token as string | undefined;
+      const backend: typeof config.backend & LaikaBackendSettings = config.backend;
+      this.baseUrl = Url.normalize(backend.base_url);
+      // api_root is the canonical field; api_url is the accepted alias.
+      this.apiUrl = Url.combine(this.baseUrl, backend.api_root ?? backend.api_url);
+      this.devToken = backend.dev_token;
       // Same fields/defaults as PKCEAuthenticationPage, so the refresh grant
       // hits the endpoint the login grant used.
-      this.appId = backendExt.app_id as string | undefined;
-      this.tokenUrl = Url.combine(
-        this.baseUrl,
-        (backendExt.auth_token_endpoint as string | undefined) ?? 'oauth2/token',
-      );
-      this.tokenContentType = (backendExt.auth_token_endpoint_content_type as string | undefined)
+      this.appId = backend.app_id;
+      this.tokenUrl = Url.combine(this.baseUrl, backend.auth_token_endpoint ?? 'oauth2/token');
+      this.tokenContentType = backend.auth_token_endpoint_content_type
         ?? 'application/x-www-form-urlencoded; charset=utf-8';
     }
 
@@ -566,21 +652,21 @@ export default function createLaikaBackend(
     /** Refresh this long before actual expiry so in-flight requests don't race the deadline. */
     private static TOKEN_REFRESH_SKEW_MS = 60_000;
 
-    private loadStoredTokenState(): { accessToken: string, refreshToken?: string, expiresAt?: number } | null {
+    private loadStoredTokenState(): TokenState | null {
       if (typeof sessionStorage === 'undefined') return null;
       const accessToken = sessionStorage.getItem(LaikaBackend.SESSION_TOKEN_KEY);
       if (!accessToken) return null;
-      const refreshToken = sessionStorage.getItem(LaikaBackend.REFRESH_TOKEN_KEY) ?? undefined;
+      const refreshToken = sessionStorage.getItem(LaikaBackend.REFRESH_TOKEN_KEY);
       const rawExpiresAt = sessionStorage.getItem(LaikaBackend.TOKEN_EXPIRES_AT_KEY);
       const parsedExpiresAt = rawExpiresAt === null ? NaN : Number(rawExpiresAt);
       return {
         accessToken,
-        refreshToken,
-        expiresAt: Number.isFinite(parsedExpiresAt) ? parsedExpiresAt : undefined,
+        ...(refreshToken === null ? {} : { refreshToken }),
+        ...(Number.isFinite(parsedExpiresAt) ? { expiresAt: parsedExpiresAt } : {}),
       };
     }
 
-    private persistTokenState(state: { accessToken: string, refreshToken?: string, expiresAt?: number }) {
+    private persistTokenState(state: TokenState) {
       if (typeof sessionStorage === 'undefined') return;
       // SESSION_TOKEN_KEY is a public contract: host apps read it directly to
       // authorize their own API calls, so a refresh must rewrite it in place.
@@ -689,12 +775,12 @@ export default function createLaikaBackend(
         refresh_token?: string,
         expires_in?: number,
       };
-      const next = {
+      const next: TokenState = {
         accessToken: data.access_token,
         refreshToken: data.refresh_token ?? refreshToken,
-        expiresAt: typeof data.expires_in === 'number'
-          ? Date.now() + data.expires_in * 1000
-          : undefined,
+        ...(typeof data.expires_in === 'number'
+          ? { expiresAt: Date.now() + data.expires_in * 1000 }
+          : {}),
       };
       this.tokenState = next;
       this.persistTokenState(next);
@@ -705,7 +791,7 @@ export default function createLaikaBackend(
       // Dev mode: always use the dev token — ignore whatever happens to be
       // in sessionStorage from a previous (real) login.
       if (this.devToken) {
-        return this.authenticate({ token: this.devToken } as Credentials);
+        return this.authenticate({ token: this.devToken });
       }
       // Try to restore user from session storage
       const stored = this.loadStoredTokenState();
@@ -718,33 +804,35 @@ export default function createLaikaBackend(
 
       // Re-authenticate with the stored triple; authenticate() refreshes
       // first when the access token already sat out its lifetime.
-      return this.authenticate({
+      const credentials: LaikaCredentials = {
         token: stored.accessToken,
-        refresh_token: stored.refreshToken,
-        token_expires_at: stored.expiresAt,
-      } as unknown as Credentials);
+        ...(stored.refreshToken === undefined ? {} : { refresh_token: stored.refreshToken }),
+        ...(stored.expiresAt === undefined ? {} : { token_expires_at: stored.expiresAt }),
+      };
+      return this.authenticate(credentials);
     }
 
     async authenticate(credentials: Credentials) {
-      const user = credentials as Credentials & {
-        access_token?: string,
-        refresh_token?: string,
-        expires_in?: number,
-        token_expires_at?: number,
-      };
+      const user: LaikaCredentials = credentials;
       const token = user.token || user.access_token;
 
       if (!token) {
         throw new AccessTokenError('No access token provided');
       }
+      if (typeof token !== 'string') {
+        // Core's `CmsCredentials.token` also allows an object (git backends
+        // carry structured credentials); this backend sends a bearer token.
+        throw new AccessTokenError('Expected a bearer access token string');
+      }
 
       // `expires_in` (seconds) comes from a fresh token-endpoint response;
       // `token_expires_at` (epoch ms) from restoreUser's stored state.
+      const expiresAt = user.token_expires_at
+        ?? (typeof user.expires_in === 'number' ? Date.now() + user.expires_in * 1000 : undefined);
       this.tokenState = {
-        accessToken: token as string,
-        refreshToken: user.refresh_token,
-        expiresAt: user.token_expires_at
-          ?? (typeof user.expires_in === 'number' ? Date.now() + user.expires_in * 1000 : undefined),
+        accessToken: token,
+        ...(user.refresh_token === undefined ? {} : { refreshToken: user.refresh_token }),
+        ...(expiresAt === undefined ? {} : { expiresAt }),
       };
       this.tokenPromise = () => this.ensureActiveToken();
 
@@ -806,14 +894,17 @@ export default function createLaikaBackend(
           baseUrl: this.apiUrl,
         });
 
-        const authUser = {
+        // Deliberately without `token`, which core's `CmsUser` declares as
+        // required: the returned user is handed to the app's auth store,
+        // and this backend keeps its tokens in sessionStorage only (see
+        // persistTokenState). `restoreUser` re-reads them from there rather
+        // than from the stored user, so nothing needs the token here.
+        return {
           name: userData.name,
           login: userData.email,
           avatar_url: userData.avatar_url,
           scopes: userData.scopes,
-        } as unknown as User;
-
-        return authUser;
+        } as User;
       } catch (error) {
         console.error(error);
         if (error instanceof APIError) {
@@ -940,8 +1031,7 @@ export default function createLaikaBackend(
 
       const { cursor, pageEntries } = this._buildPageCursor(folder, allEntries, 1);
       // Attach cursor so Decap's Backend can track pagination position.
-
-      (pageEntries as any)[CURSOR_COMPATIBILITY_SYMBOL] = cursor;
+      (pageEntries as CursorCompatibleEntries<ImplementationEntry>)[CURSOR_COMPATIBILITY_SYMBOL] = cursor;
       return pageEntries;
     }
 
@@ -1105,28 +1195,20 @@ export default function createLaikaBackend(
     // unpublished: true
     // useWorkflow: true
     async persistEntry(entry: Entry, options: PersistOptions): Promise<void> {
-      // Fail fast, before any network request, if any data file for this entry
-      // is not JSON-format (DCMS-1638). This mirrors the format check further
-      // down (guarding the actual content persist) but must run BEFORE the
-      // asset-upload loop below: uploading an asset for an entry whose content
-      // persist is doomed to fail orphans that asset server-side and
-      // contradicts this backend's README promise that no request reaches the
-      // server before the format check.
-      for (const dataFile of entry.dataFiles) {
-        const isJsonFile = /\.json$/i.test(dataFile.path);
-        const content: any = typeof dataFile.raw === 'string'
-          ? parseJsonEntryContent(dataFile.raw, isJsonFile)
-          : dataFile.raw ?? {};
-        if (typeof content === 'string') {
-          const collectionName = options.collectionName ?? dataFile.path.split('/')[0];
-          throw new APIError(
-            `Laika backend currently only supports JSON-format collections; `
-              + `set \`format: json\` on collection \`${collectionName}\`.`,
-            400,
-            'Laika Backend',
-          );
-        }
-      }
+      // Convert every data file up front, before any network request: the
+      // conversion is what rejects non-JSON collections (DCMS-1638), and it
+      // must run BEFORE the asset-upload loop below, because uploading an
+      // asset for an entry whose content persist is doomed to fail orphans
+      // that asset server-side and contradicts this backend's README promise
+      // that no request reaches the server before the format check.
+      //
+      // ALL data files are persisted, which matters for i18n with the
+      // multiple_folders structure: each locale gets its own file
+      // (e.g. pages/en/index.json, pages/nl/index.json).
+      const documents = entry.dataFiles.map(dataFile => ({
+        key: normalizeKey(dataFile.path),
+        content: toDocumentContent(dataFile, options.collectionName),
+      }));
 
       // First, persist any assets (images, files) that are part of this entry
       // These are AssetProxy objects that need to be uploaded before the entry is saved
@@ -1143,124 +1225,54 @@ export default function createLaikaBackend(
 
       const repo = this.getDocumentsRepo();
 
-      // Process ALL data files - important for i18n with multiple_folders structure
-      // Each locale gets its own file (e.g., pages/en/index.json, pages/nl/index.json)
-      for (const dataFile of entry.dataFiles) {
-        // dataFile.raw is the serialized file content as Decap produced it:
-        // - JSON collections: a JSON string that should be parsed back to an object
-        // - Markdown/YAML/TOML collections: the raw file text, passed through as-is
-        //
-        // dataFile.path is NOT a reliable signal for this on every call: on
-        // create it comes from selectEntryPath and carries the collection's
-        // extension (e.g. "posts/slug.json"), but on update Decap's core
-        // (core/backend.tsx persistEntry-caller) takes it straight from the
-        // entry it fetched back — and this backend's own getEntry/list calls
-        // set that `path` to the storage-repo record key, which normalizeKey
-        // below stores WITHOUT an extension. So `/\.json$/.test(dataFile.path)`
-        // is true on the create-time POST but false on the update-time PATCH
-        // for the exact same JSON-format entry, leaving `content` as a raw
-        // stringified-JSON string on update (DCMS-1062). Sniff the payload
-        // shape instead of trusting the path: only object/array-looking raw
-        // text is a JSON.parse candidate, and anything that fails to parse
-        // (markdown/frontmatter, YAML) falls through as the raw string.
-        const isJsonFile = /\.json$/i.test(dataFile.path);
-
-        const content: any = typeof dataFile.raw === 'string'
-          ? parseJsonEntryContent(dataFile.raw, isJsonFile)
-          : dataFile.raw ?? {};
-
-        // The documents API rejects non-object `content` outright (DCMS-1254).
-        // `parseJsonEntryContent` only produces an object for JSON-format
-        // collections; markdown/YAML/TOML (frontmatter — Decap's default when
-        // no `format:` is set) fall through and land here as a raw string.
-        // Surface that as an actionable client-side error instead of letting
-        // the raw string reach the server, where it would 400 with an opaque
-        // "content must be a plain object; got string" message the Decap user
-        // has no way to act on.
-        if (typeof content === 'string') {
-          const collectionName = options.collectionName ?? dataFile.path.split('/')[0];
-          throw new APIError(
-            `Laika backend currently only supports JSON-format collections; `
-              + `set \`format: json\` on collection \`${collectionName}\`.`,
-            400,
-            'Laika Backend',
-          );
-        }
-
-        const entryKey = normalizeKey(dataFile.path);
-        const language: string = typeof content === 'object' && content !== null
-          ? (content as Record<string, unknown>).language as string | undefined ?? 'und'
-          : 'und';
+      for (const { key: entryKey, content } of documents) {
+        const language = typeof content['language'] === 'string' ? content['language'] : 'und';
 
         if (options.useWorkflow && typeof options.status === 'string' && options.status !== 'published') {
           const newEntry = options.newEntry || options.unpublished === false;
           if (newEntry) {
-            const r = await firstResult(repo.createUnpublished({
-              type: 'unpublished',
-              status: options.status || 'draft',
-              key: entryKey,
-              language,
-              content,
-            }));
-            if (Result.isFailure(r)) {
-              throw new APIError(
-                `Failed to persist new unpublished entry: ${r.failure.message}`,
-                ErrorCodeToStatusMap[r.failure.code as ErrorCode],
-                'Laika Backend',
-              );
-            }
+            await runTask(
+              repo.createUnpublished({
+                type: 'unpublished',
+                status: options.status || 'draft',
+                key: entryKey,
+                language,
+                content,
+              }),
+              'Failed to persist new unpublished entry',
+            );
           } else {
-            const r = await firstResult(repo.updateUnpublished({
-              key: entryKey,
-              content,
-              status: options.status,
-            }));
-            if (Result.isFailure(r)) {
-              throw new APIError(
-                `Failed to update unpublished entry: ${r.failure.message}`,
-                ErrorCodeToStatusMap[r.failure.code as ErrorCode],
-                'Laika Backend',
-              );
-            }
+            await runTask(
+              repo.updateUnpublished({ key: entryKey, content, status: options.status }),
+              'Failed to update unpublished entry',
+            );
           }
         } else {
           // Published document
           if (options.newEntry) {
-            const r = await firstResult(repo.createDocument({
-              type: 'published',
-              status: 'published',
-              key: entryKey,
-              language,
-              content,
-            }));
-            if (Result.isFailure(r)) {
-              throw new APIError(
-                `Failed to persist new entry: ${r.failure.message}`,
-                ErrorCodeToStatusMap[r.failure.code as ErrorCode],
-                'Laika Backend',
-              );
-            }
+            await runTask(
+              repo.createDocument({
+                type: 'published',
+                status: 'published',
+                key: entryKey,
+                language,
+                content,
+              }),
+              'Failed to persist new entry',
+            );
           } else {
-            const r = await firstResult(repo.updateDocument({
-              key: entryKey,
-              content,
-            }));
-            if (Result.isFailure(r)) {
-              throw new APIError(
-                `Failed to update entry: ${r.failure.message}`,
-                ErrorCodeToStatusMap[r.failure.code as ErrorCode],
-                'Laika Backend',
-              );
-            }
+            await runTask(
+              repo.updateDocument({ key: entryKey, content }),
+              'Failed to update entry',
+            );
           }
         }
       }
 
       // Invalidate caches for all persisted entries
-      for (const dataFile of entry.dataFiles) {
-        const entryKey = normalizeKey(dataFile.path);
-        this.entryCache.invalidate(entryKey);
-        this.unpublishedEntryCache.invalidate(entryKey);
+      for (const { key } of documents) {
+        this.entryCache.invalidate(key);
+        this.unpublishedEntryCache.invalidate(key);
       }
       this.unpublishedEntriesListCache.clear();
     }
@@ -1297,14 +1309,10 @@ export default function createLaikaBackend(
 
       const assetsRepo = this.getAssetsRepo();
       for (const path of mediaPaths) {
-        const result = await firstResult(assetsRepo.deleteAsset(this.getStorageKey(path)));
-        if (Result.isFailure(result)) {
-          throw new APIError(
-            `Failed to delete media ${path}: ${result.failure.message}`,
-            ErrorCodeToStatusMap[result.failure.code as ErrorCode],
-            'Laika Backend',
-          );
-        }
+        await runTask(
+          assetsRepo.deleteAsset(this.getStorageKey(path)),
+          `Failed to delete media ${path}`,
+        );
       }
     }
 
@@ -1369,26 +1377,15 @@ export default function createLaikaBackend(
         }),
       );
       if (Result.isFailure(result)) {
-        throw new APIError(
-          `Failed to list media: ${result.failure.message}`,
-          ErrorCodeToStatusMap[result.failure.code as ErrorCode],
-          'Laika Backend',
-        );
+        throw apiError('Failed to list media')(result.failure);
       }
 
       const assets = result.success.data.filter((r: Resource): r is Asset => r.type === 'asset');
 
       // One batched URL resolution for the whole page; the listing's
       // `urls` hint already primed the proxy's cache, so this is local.
-      const urlsResult = await collectStream(repo.getUrls(assets));
-      if (Result.isFailure(urlsResult)) {
-        throw new APIError(
-          `Failed to get media URLs: ${urlsResult.failure.message}`,
-          ErrorCodeToStatusMap[urlsResult.failure.code as ErrorCode],
-          'Laika Backend',
-        );
-      }
-      const urlByKey = new Map(urlsResult.success.map(u => [u.key, u.url]));
+      const urls = await runStream(repo.getUrls(assets), 'Failed to get media URLs');
+      const urlByKey = new Map(urls.map(u => [u.key, u.url]));
 
       const files = assets.map((resource): ImplementationMediaFile => {
         const displayUrl = urlByKey.get(resource.key);
@@ -1570,9 +1567,12 @@ export default function createLaikaBackend(
         // Convert public path to storage key
         const storageKey = this.getStorageKey(path);
 
-        const asset = Result.getOrThrow(await firstResult(repo.getAsset(storageKey)));
-        const [{ metadata }] = Result.getOrThrow(await collectStream(repo.getMetadata([asset])));
-        const [{ url }] = Result.getOrThrow(await collectStream(repo.getUrls([asset])));
+        const asset = await runTask(repo.getAsset(storageKey), 'Failed to get media asset');
+        const [{ metadata }] = await runStream(
+          repo.getMetadata([asset]),
+          'Failed to get media metadata',
+        );
+        const [{ url }] = await runStream(repo.getUrls([asset]), 'Failed to get media URL');
 
         if (!url) {
           throw new APIError(`No URL available for asset: ${asset.key}`, 500, 'Laika Backend');
@@ -1650,24 +1650,10 @@ export default function createLaikaBackend(
         filename: originalFilename,
       };
 
-      const newAsset = Result.getOrThrowWith(
-        await firstResult(repo.createAsset(createData)),
-        error =>
-          new APIError(
-            `Failed to persist media: ${error.message}`,
-            ErrorCodeToStatusMap[error.code as ErrorCode],
-            'Laika Backend',
-          ),
-      );
-
-      const [urlResult] = Result.getOrThrowWith(
-        await collectStream(repo.getUrls([newAsset])),
-        error =>
-          new APIError(
-            `Failed to get media URL: ${error.message}`,
-            ErrorCodeToStatusMap[error.code as ErrorCode],
-            'Laika Backend',
-          ),
+      const newAsset = await runTask(repo.createAsset(createData), 'Failed to persist media');
+      const [urlResult] = await runStream(
+        repo.getUrls([newAsset]),
+        'Failed to get media URL',
       );
 
       if (!urlResult.url) {
@@ -1697,15 +1683,13 @@ export default function createLaikaBackend(
     async unpublishedEntries(): Promise<string[]> {
       // Use cache with a fixed key since this returns all unpublished entries
       return this.unpublishedEntriesListCache.getOrFetch('all', async () => {
-        // Get all collections from config and list unpublished entries
-        const collections = (this.config as unknown as { collections?: Array<{ name: string } | string> }).collections
-          || [];
         const entries: string[] = [];
         const repo = this.getDocumentsRepo();
         const pageSize = 100;
 
-        for (const collection of collections) {
-          const collectionName = typeof collection === 'string' ? collection : collection.name;
+        // Unpublished records are stored per collection folder, so the listing
+        // is driven by the configured collections.
+        for (const { name: collectionName } of this.config.collections ?? []) {
           let offset = 0;
 
           while (true) {
@@ -1778,14 +1762,9 @@ export default function createLaikaBackend(
       // Use getOrFetch for request deduplication
       return this.unpublishedEntryCache.getOrFetch(key, async () => {
         const repo = this.getDocumentsRepo();
-        const unpub = Result.getOrThrowWith(
-          await firstResult(repo.getUnpublished(key)),
-          error =>
-            new APIError(
-              `Failed to get unpublished entry: ${error.message}`,
-              ErrorCodeToStatusMap[error.code as ErrorCode],
-              'Laika Backend',
-            ),
+        const unpub = await runTask(
+          repo.getUnpublished(key),
+          'Failed to get unpublished entry',
         );
 
         // Extract collection and slug from the key if not provided
@@ -1816,14 +1795,9 @@ export default function createLaikaBackend(
       // Normalize all possible key sources
       const key = normalizeKey(id || path || `${collection}/${slug}`);
 
-      const result = Result.getOrThrowWith(
-        await firstResult(repo.getUnpublished(key)),
-        error =>
-          new APIError(
-            `Failed to get unpublished entry data: ${error.message}`,
-            ErrorCodeToStatusMap[error.code as ErrorCode],
-            'Laika Backend',
-          ),
+      const result = await runTask(
+        repo.getUnpublished(key),
+        'Failed to get unpublished entry data',
       );
 
       return contentToRawString(result.content);
@@ -1847,45 +1821,21 @@ export default function createLaikaBackend(
       const repo = this.getDocumentsRepo();
       const key = normalizeKey(`${collection}/${slug}`);
 
-      Result.getOrThrowWith(
-        await firstResult(repo.updateUnpublished({ key, status: newStatus })),
-        error =>
-          new APIError(
-            `Failed to update status: ${error.message}`,
-            ErrorCodeToStatusMap[error.code as ErrorCode],
-            'Laika Backend',
-          ),
-      );
+      await runTask(repo.updateUnpublished({ key, status: newStatus }), 'Failed to update status');
     }
 
     async deleteUnpublishedEntry(collection: string, slug: string): Promise<void> {
       const repo = this.getDocumentsRepo();
       const key = normalizeKey(`${collection}/${slug}`);
 
-      Result.getOrThrowWith(
-        await firstResult(repo.deleteUnpublished(key)),
-        error =>
-          new APIError(
-            `Failed to delete unpublished entry: ${error.message}`,
-            ErrorCodeToStatusMap[error.code as ErrorCode],
-            'Laika Backend',
-          ),
-      );
+      await runTask(repo.deleteUnpublished(key), 'Failed to delete unpublished entry');
     }
 
     async publishUnpublishedEntry(collection: string, slug: string): Promise<void> {
       const repo = this.getDocumentsRepo();
       const key = normalizeKey(`${collection}/${slug}`);
 
-      Result.getOrThrowWith(
-        await firstResult(repo.publish(key)),
-        error =>
-          new APIError(
-            `Failed to publish entry: ${error.message}`,
-            ErrorCodeToStatusMap[error.code as ErrorCode],
-            'Laika Backend',
-          ),
-      );
+      await runTask(repo.publish(key), 'Failed to publish entry');
     }
 
     // ===== CURSOR/PAGINATION =====

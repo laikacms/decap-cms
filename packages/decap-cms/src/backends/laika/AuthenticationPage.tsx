@@ -82,8 +82,8 @@ class PKCEAuthenticationPage extends Component<PKCEAuthPageProps, PKCEAuthPageSt
         auth_token_endpoint,
         auth_token_endpoint_content_type,
         use_oidc,
-        redirect_uri,
-        return_to,
+        ...(redirect_uri === undefined ? {} : { redirect_uri }),
+        ...(return_to === undefined ? {} : { return_to }),
       });
     } catch (err: unknown) {
       this.setState({ loginError: (err as Error).message });
@@ -145,7 +145,6 @@ class PKCEAuthenticationPage extends Component<PKCEAuthPageProps, PKCEAuthPageSt
             <Icon type="link" /> {inProgress ? t('auth.loggingIn') : t('auth.login')}
           </React.Fragment>
         )}
-        renderPageContent={undefined}
         t={t}
       />
     );
