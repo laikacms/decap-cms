@@ -10,6 +10,7 @@ import {
   Url,
 } from 'laikacms/core';
 import { DocumentsJsonApiProxyRepository } from 'laikacms/documents/jsonapi-proxy';
+import { SyncToken } from 'laikacms/storage';
 import React from 'react';
 
 import { AccessTokenError, APIError, Cursor, CURSOR_COMPATIBILITY_SYMBOL, unsentRequest } from '@/lib/util/index';
@@ -295,42 +296,21 @@ export default function createLaikaBackend(
   };
 
   /**
-   * Reads the protocol's opaque per-record content-version token. Typed
-   * structurally because repositories built against older laikacms versions
-   * (which predate the `version` field) are still valid injections here.
-   */
-  const recordVersion = (record: unknown): string | undefined => {
-    const version = (record as { version?: unknown }).version;
-    return typeof version === 'string' && version.length > 0 ? version : undefined;
-  };
-
-  /**
    * Build an implementation entry from a protocol record. Every construction
    * site identifies the entry the same way: by the record's opaque
-   * content-version token, falling back to the key for repositories that
-   * predate `version`.
+   * content-version token, falling back to the key for repositories that do
+   * not advertise `versionTracking`.
    */
   const recordToImplementationEntry = (
-    record: { key: string, content: unknown },
+    record: { key: string, content: unknown, version?: string | undefined },
   ): ImplementationEntry => ({
-    file: { path: record.key, id: recordVersion(record) ?? record.key },
+    file: { path: record.key, id: record.version || record.key },
     data: contentToRawString(record.content),
   });
 
-  /**
-   * The content-sync surface added to DocumentsRepository by newer laikacms
-   * versions, expressed structurally for the same version-skew reason. Support
-   * is verified via `getCapabilities()` before either method is called.
-   */
-  type SyncCapableDocumentsRepository = DocumentsRepository & {
-    getSyncToken?: (options?: { folder?: string }) => LaikaTask.LaikaTask<string>,
-    listChanges?: (options: {
-      since: string,
-      folder?: string,
-    }) => LaikaStream.LaikaStream<{ key: string, version?: string, deleted: boolean }>,
-  };
-
   type ChangesSupport = { syncToken: boolean, changeFeed: boolean };
+
+  const NO_CHANGES_SUPPORT: ChangesSupport = { syncToken: false, changeFeed: false };
 
   /**
    * Request deduplication cache to reduce duplicate requests
@@ -1048,31 +1028,20 @@ export default function createLaikaBackend(
     // ===== CONTENT SYNC (capability-gated; powers core's freshness polling) =====
 
     private _getChangesSupport(): Promise<ChangesSupport> {
-      const repo = this.documentsRepository as SyncCapableDocumentsRepository | undefined;
-      if (!repo) return Promise.resolve({ syncToken: false, changeFeed: false });
+      const repo = this.documentsRepository;
+      if (!repo) return Promise.resolve(NO_CHANGES_SUPPORT);
 
-      if (!this.changesSupport) {
-        this.changesSupport = (async () => {
-          if (typeof repo.getSyncToken !== 'function') {
-            return { syncToken: false, changeFeed: false };
-          }
-          const result = await firstResult(repo.getCapabilities());
-          if (Result.isFailure(result)) {
-            handleRecoverableWarning(result.failure);
-            return { syncToken: false, changeFeed: false };
-          }
-          const changes = (result.success as {
-            changes?: { supported?: boolean, syncToken?: boolean, changeFeed?: boolean },
-          }).changes;
-          if (!changes?.supported) {
-            return { syncToken: false, changeFeed: false };
-          }
-          return {
-            syncToken: changes.syncToken === true,
-            changeFeed: changes.changeFeed === true && typeof repo.listChanges === 'function',
-          };
-        })();
-      }
+      this.changesSupport ??= (async () => {
+        const result = await firstResult(repo.getCapabilities());
+        if (Result.isFailure(result)) {
+          handleRecoverableWarning(result.failure);
+          return NO_CHANGES_SUPPORT;
+        }
+        const { changes } = result.success;
+        return changes.supported
+          ? { syncToken: changes.syncToken, changeFeed: changes.changeFeed }
+          : NO_CHANGES_SUPPORT;
+      })();
       return this.changesSupport;
     }
 
@@ -1084,13 +1053,12 @@ export default function createLaikaBackend(
       const support = await this._getChangesSupport();
       if (!support.syncToken) return null;
 
-      const repo = this.getDocumentsRepo() as SyncCapableDocumentsRepository;
-      const result = await firstResult(repo.getSyncToken!());
+      const result = await firstResult(this.getDocumentsRepo().getSyncToken());
       if (Result.isFailure(result)) {
         handleRecoverableWarning(result.failure);
         return null;
       }
-      return String(result.success);
+      return result.success;
     }
 
     /**
@@ -1103,8 +1071,11 @@ export default function createLaikaBackend(
       const support = await this._getChangesSupport();
       if (!support.changeFeed) return null;
 
-      const repo = this.getDocumentsRepo() as SyncCapableDocumentsRepository;
-      const result = await collectStream(repo.listChanges!({ since }));
+      // Core round-trips the token as an opaque string (it never parses one),
+      // so re-apply the protocol's brand on the way back in.
+      const result = await collectStream(
+        this.getDocumentsRepo().listChanges({ since: SyncToken.make(since) }),
+      );
       if (Result.isFailure(result)) throw result.failure;
 
       const changes = result.success.map(change => ({
@@ -1359,9 +1330,9 @@ export default function createLaikaBackend(
     /**
      * Paginated media surface (see CmsImplementation). Pagination requires
      * the assets backend to support cursor listing; dynamic search requires
-     * a declared `search` filter. When the deployed assets API predates
-     * either capability this reports false and the media library falls back
-     * to the legacy full `getMedia()` load.
+     * a declared `search` filter. When the deployed assets API advertises
+     * neither, this reports false and the media library falls back to the
+     * full `getMedia()` load.
      */
     async getMediaCapabilities(): Promise<CmsMediaCapabilities> {
       const repo = this.getAssetsRepo();
@@ -1369,14 +1340,12 @@ export default function createLaikaBackend(
       if (Result.isFailure(caps)) {
         return { pagination: false, dynamicSearch: false };
       }
-      const pagination = caps.success.pagination.supported && caps.success.pagination.styles.cursor;
-      // `filtering` is not yet declared on AssetsCapabilities in the pinned
-      // laikacms version; structural read keeps dynamicSearch off today and
-      // flips it on automatically once the assets API advertises it.
-      const filtering =
-        (caps.success as { filtering?: { supported?: boolean, filters?: ReadonlyArray<{ name: string }> } }).filtering;
-      const dynamicSearch = !!(filtering?.supported && filtering.filters?.some(f => f.name === 'search'));
-      return { pagination: !!pagination, dynamicSearch };
+      const { pagination, filtering } = caps.success;
+      return {
+        pagination: pagination.supported && pagination.styles.cursor,
+        dynamicSearch: filtering?.supported === true
+          && filtering.filters.some(filter => filter.name === 'search'),
+      };
     }
 
     /**

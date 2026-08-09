@@ -144,8 +144,19 @@ function empty<T>(): LaikaStream.LaikaStream<T, object> {
 // Minimal mock factory for DocumentsRepository
 // ---------------------------------------------------------------------------
 
+/** Capabilities of a repository that tracks nothing optional. */
+const MINIMAL_CAPABILITIES = {
+  compatibilityDate: '2026-07-16',
+  pagination: { supported: false, description: '' },
+  versionTracking: { supported: false, description: '' },
+  changes: { supported: false, description: '' },
+};
+
 function makeMockDocumentsRepository() {
   return {
+    getCapabilities: vi.fn(() => succeed(MINIMAL_CAPABILITIES)),
+    getSyncToken: vi.fn(),
+    listChanges: vi.fn(),
     listRecords: vi.fn(),
     listRecordSummaries: vi.fn(),
     getDocument: vi.fn(),
@@ -2815,14 +2826,17 @@ describe('LaikaBackend content sync', () => {
     changes: { supported: true, description: '', syncToken: true, changeFeed: true },
   };
 
-  it('getSyncToken() returns null for repositories without the sync surface', async () => {
-    const { backend } = makeSyncBackend({});
-    await expect(backend.getSyncToken()).resolves.toBeNull();
-  });
-
   it('getSyncToken() returns null when capabilities do not advertise changes', async () => {
     const { backend, mockDocRepo } = makeSyncBackend({
-      getCapabilities: vi.fn(() => succeed({ compatibilityDate: '2026-07-16' })),
+      getSyncToken: vi.fn(() => succeed('sync-1')),
+    });
+    await expect(backend.getSyncToken()).resolves.toBeNull();
+    expect((mockDocRepo as any).getSyncToken).not.toHaveBeenCalled();
+  });
+
+  it('getSyncToken() returns null when the capability probe fails', async () => {
+    const { backend, mockDocRepo } = makeSyncBackend({
+      getCapabilities: vi.fn(() => fail(new NotFoundError('no capabilities endpoint'))),
       getSyncToken: vi.fn(() => succeed('sync-1')),
     });
     await expect(backend.getSyncToken()).resolves.toBeNull();
