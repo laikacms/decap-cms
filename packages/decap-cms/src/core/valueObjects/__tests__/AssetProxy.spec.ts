@@ -103,5 +103,50 @@ describe('AssetProxy', () => {
 
       await expect(asset.toBase64()).resolves.toEqual('Zm9v');
     });
+
+    it('fetches and reads the asset only once across repeated calls', async () => {
+      const blob = { size: 4 } as Blob;
+      const fetchSpy = vi.fn().mockResolvedValue({ blob: () => Promise.resolve(blob) });
+      vi.stubGlobal('fetch', fetchSpy);
+
+      const readAsDataURL = vi.fn();
+      class MockFileReader {
+        onload: ((event: { target: { result: string } }) => void) | null = null;
+        readAsDataURL(): void {
+          readAsDataURL();
+          this.onload?.({ target: { result: 'data:image/png;base64,Zm9v' } });
+        }
+      }
+      vi.stubGlobal('FileReader', MockFileReader);
+
+      const asset = createAssetProxy({ url: 'https://example.com/foo.png', path: 'foo.png' });
+
+      const [first, second] = await Promise.all([asset.toBase64(), asset.toBase64()]);
+      const third = await asset.toBase64();
+
+      expect([first, second, third]).toEqual(['Zm9v', 'Zm9v', 'Zm9v']);
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(readAsDataURL).toHaveBeenCalledTimes(1);
+    });
+
+    it('reads the constructor file without fetching the object url', async () => {
+      const fetchSpy = vi.fn();
+      vi.stubGlobal('fetch', fetchSpy);
+      vi.spyOn(window.URL, 'createObjectURL').mockReturnValue('blob:mock-object-url');
+
+      class MockFileReader {
+        onload: ((event: { target: { result: string } }) => void) | null = null;
+        readAsDataURL(): void {
+          this.onload?.({ target: { result: 'data:image/png;base64,Zm9v' } });
+        }
+      }
+      vi.stubGlobal('FileReader', MockFileReader);
+
+      const file = new File(['content'], 'foo.png', { type: 'image/png' });
+      const asset = createAssetProxy({ file, path: 'foo.png' });
+
+      await expect(asset.toBase64()).resolves.toEqual('Zm9v');
+      expect(fetchSpy).not.toHaveBeenCalled();
+    });
   });
 });
