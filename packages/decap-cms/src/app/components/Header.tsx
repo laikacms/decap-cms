@@ -4,6 +4,7 @@ import React from 'react';
 
 import { checkBackendStatus } from '@/core/actions/status';
 import { SettingsDropdown } from '@/core/components/UI';
+import { useCurrentUserScopes } from '@/core/hooks/useCurrentUserScopes';
 import { useAppDispatch } from '@/core/hooks/useRedux';
 import { translate } from '@/core/i18n';
 import { canEditCollection } from '@/core/lib/collectionAccess';
@@ -227,8 +228,9 @@ function Header({
     }
   }
 
+  const userScopes = useCurrentUserScopes();
   const creatableCollections = Object.values(collections).filter(
-    (collection: Collection) => !!collection.create && canEditCollection(collection, user.scopes),
+    (collection: Collection) => !!collection.create && canEditCollection(collection, userScopes),
   );
 
   const shouldShowLogo = logo?.show_in_header && logo?.src;

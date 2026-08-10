@@ -6,6 +6,7 @@ import { EDITORIAL_WORKFLOW } from '@/core/constants/publishModes';
 import { canEditCollection } from '@/core/lib/collectionAccess';
 import { selectUnpublishedEntry } from '@/core/reducers';
 import { selectAllowDeletion } from '@/core/reducers/collections';
+import { useCurrentUserScopes } from './useCurrentUserScopes';
 import { useAppDispatch, useAppSelector } from './useRedux';
 
 import type { CmsCollectionState } from '@/lib/util/index';
@@ -30,7 +31,7 @@ export function useWorkflow({ collectionName, slug, newEntry }: UseWorkflowOptio
   const unpublishedEntry = useAppSelector(state =>
     isEditorialWorkflow && slug ? selectUnpublishedEntry(state, collectionName, slug) : null
   );
-  const userScopes = useAppSelector(state => state.auth?.user?.scopes);
+  const userScopes = useCurrentUserScopes();
 
   const showDelete = useMemo(() => {
     if (!collection) return false;

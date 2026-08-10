@@ -5,6 +5,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { searchCollections } from '@/core/actions/collections';
 import { openMediaLibrary as openMediaLibraryAction } from '@/core/actions/mediaLibrary';
+import { useCurrentUserScopes } from '@/core/hooks/useCurrentUserScopes';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 import { useShortcut } from '@/core/hooks/useShortcut';
 import { isCollectionVisible } from '@/core/lib/collectionAccess';
@@ -172,7 +173,7 @@ function LaikaCommandPalette() {
   const location = useLocation();
   const params = useParams();
   const collections = useAppSelector(state => state.collections) as CmsCollections | undefined;
-  const userScopes = useAppSelector(state => state.auth?.user?.scopes);
+  const userScopes = useCurrentUserScopes();
   const hasWorkflow = useAppSelector(state => state.config?.publish_mode === 'editorial_workflow');
   const showMediaButton = useAppSelector(state => state.mediaLibrary?.showMediaButton);
   const isSearchEnabled = useAppSelector(state => state.config?.search !== false);

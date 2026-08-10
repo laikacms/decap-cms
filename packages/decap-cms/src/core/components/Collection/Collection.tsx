@@ -2,6 +2,7 @@ import styled from '@emotion/styled';
 import React, { useCallback, useMemo, useState } from 'react';
 
 import { changeViewStyle, filterByField, groupByField, sortByField } from '@/core/actions/entries';
+import { useCurrentUserScopes } from '@/core/hooks/useCurrentUserScopes';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 import { useTranslate } from '@/core/i18n';
 import { canEditCollection } from '@/core/lib/collectionAccess';
@@ -87,7 +88,7 @@ function CmsCollection({
   const collections = useAppSelector(state => state.collections) as CmsCollections;
   const entries = useAppSelector(state => state.entries);
   const isSearchEnabled = useAppSelector(state => state.config?.search !== false);
-  const userScopes = useAppSelector(state => state.auth?.user?.scopes);
+  const userScopes = useCurrentUserScopes();
 
   // Get the collection
   const collection = useMemo(() => {

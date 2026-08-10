@@ -1081,9 +1081,34 @@ either setting is absent or empty, that access remains unrestricted for backward
 `view_scopes` filters collection navigation in the classic and Laika shells. `edit_scopes` hides or
 disables create, save, publish, status-change, and delete affordances. These checks are UX guidance
 only. They are not an authorization boundary, because a caller can invoke the API without using the
-CMS interface. Server-side enforcement must be configured independently through the decap API
-authorization work tracked by `laikacms/laikacms#793` and the tenant policy tracked by
-`sempostma/superstar.nl#1019`.
+CMS interface.
+
+### Top-level `roles`
+
+A top-level `roles` map assigns scopes through configuration: each key is a role name, each value a
+list of scope strings. A user whose backend payload carries a matching `role` gets those scopes in
+addition to any `scopes` the payload itself reports (`resolveUserScopes` in
+`src/core/lib/collectionAccess.ts`, read everywhere through the `useCurrentUserScopes` hook). Role
+names and their scope lists are consumer data; the CMS ships no built-in roles. A user `role` that
+is not defined in `roles` grants nothing and logs a one-time console warning, since it is usually a
+config typo or a renamed role.
+
+```yaml
+roles:
+  admin: [admin]
+  editor: [content:read, content:write, media:read, media:write]
+  contributor: [content:read]
+
+collections:
+  - name: posts
+    view_scopes: [content:read]
+    edit_scopes: [content:write]
+```
+
+Role values are checked during config normalization (`normalizeConfig` in
+`src/core/actions/config.tsx`); a role whose value is not a list of strings fails config loading.
+Role resolution shares the scope checks' caveat above: it is UX guidance, not an authorization
+boundary.
 
 ### Top-level `field_groups`
 

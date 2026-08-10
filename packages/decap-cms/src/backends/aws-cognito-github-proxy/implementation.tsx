@@ -36,7 +36,11 @@ export default class AwsCognitoGitHubProxyBackend extends GitHubBackend {
           return Promise.reject('Token expired');
         }
         const userInfo = await res.json();
-        const owner = this.originRepo.split('/')[1];
+        // Cognito authenticates the person but knows nothing about GitHub, so
+        // the acting identity is the repo's owner: `originRepo` is
+        // `<owner>/<repo>`, and github.com/<name>.png only resolves an avatar
+        // for an account, never for a repository.
+        const [owner] = this.originRepo.split('/');
         return {
           name: userInfo.email,
           login: owner,

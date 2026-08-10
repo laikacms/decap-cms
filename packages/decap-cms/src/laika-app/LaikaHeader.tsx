@@ -6,6 +6,7 @@ import { NavLink } from 'react-router-dom';
 
 import { checkBackendStatus } from '@/core/actions/status';
 import { SettingsDropdown } from '@/core/components/UI';
+import { useCurrentUserScopes } from '@/core/hooks/useCurrentUserScopes';
 import { useAppDispatch } from '@/core/hooks/useRedux';
 import { translate } from '@/core/i18n';
 import { canEditCollection } from '@/core/lib/collectionAccess';
@@ -293,8 +294,9 @@ function LaikaHeader({
     return () => clearInterval(id);
   }, [dispatch]);
 
+  const userScopes = useCurrentUserScopes();
   const creatableCollections = Object.values(collections).filter(
-    c => !!c.create && canEditCollection(c, user.scopes),
+    c => !!c.create && canEditCollection(c, userScopes),
   );
   const brandLogo = logo?.show_in_header && (logo?.src || logoUrl);
 

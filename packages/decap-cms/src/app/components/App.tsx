@@ -12,6 +12,7 @@ import NotFoundPage from '@/core/components/NotFoundPage';
 import { ErrorBoundary, Notifications } from '@/core/components/UI';
 import Workflow from '@/core/components/Workflow/Workflow';
 import { EDITORIAL_WORKFLOW } from '@/core/constants/publishModes';
+import { useCurrentUserScopes } from '@/core/hooks/useCurrentUserScopes';
 import { useDecap } from '@/core/hooks/useDecap';
 import { useNavigate } from '@/core/hooks/useNavigate';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
@@ -574,14 +575,15 @@ function AppContent({
 
   // Derived state
   const user = auth.user;
+  const userScopes = useCurrentUserScopes();
   const visibleCollections = useMemo(
     () =>
       Object.fromEntries(
         Object.entries((collections ?? {}) as Collections).filter(([, collection]) =>
-          isCollectionVisible(collection, user?.scopes)
+          isCollectionVisible(collection, userScopes)
         ),
       ) as Collections,
-    [collections, user?.scopes],
+    [collections, userScopes],
   );
   const publishMode = config?.publish_mode;
   const useMediaLibraryFlag = !mediaLibrary.externalLibrary;

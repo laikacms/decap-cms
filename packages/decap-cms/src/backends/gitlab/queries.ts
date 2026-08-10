@@ -32,6 +32,7 @@ export const blobs = gql`
         blobs(ref: $branch, paths: $paths) {
           nodes {
             id
+            path
             data: rawBlob
           }
         }

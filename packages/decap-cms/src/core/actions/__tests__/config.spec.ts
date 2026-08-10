@@ -791,6 +791,53 @@ describe('config', () => {
     });
   });
 
+  describe('normalizeConfig roles', () => {
+    const baseConfig = {
+      backend: { name: 'test-repo' },
+      collections: [
+        {
+          name: 'posts',
+          label: 'Posts',
+          folder: 'posts',
+          fields: [{ name: 'title', widget: 'string' }],
+        },
+      ],
+    };
+
+    it('accepts a role map of scope lists', () => {
+      const config = normalizeConfig({
+        ...baseConfig,
+        roles: {
+          admin: ['admin'],
+          editor: ['content:read', 'content:write', 'media:read', 'media:write'],
+          contributor: ['content:read'],
+        },
+      } as any);
+
+      expect(config.roles).toEqual({
+        admin: ['admin'],
+        editor: ['content:read', 'content:write', 'media:read', 'media:write'],
+        contributor: ['content:read'],
+      });
+    });
+
+    it('throws a clear error when a role value is not a list of strings', () => {
+      expect(() =>
+        normalizeConfig({
+          ...baseConfig,
+          roles: { editor: 'content:write' },
+        } as any)
+      ).toThrow(/Role 'editor' in 'roles' must be a list of scope strings/);
+
+      expect(() =>
+        normalizeConfig({
+          ...baseConfig,
+          roles: { editor: [{ scope: 'content:write' }] },
+        } as any)
+      ).toThrow(/Role 'editor' in 'roles' must be a list of scope strings/);
+    });
+  });
+
   describe('normalizeConfig field_groups', () => {
     it('expands a top-level group reference into the group fields', () => {
       const config = normalizeConfig({

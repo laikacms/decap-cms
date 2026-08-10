@@ -9,6 +9,7 @@ import {
   updateUnpublishedEntryStatus,
 } from '@/core/actions/editorialWorkflow';
 import { EDITORIAL_WORKFLOW } from '@/core/constants/publishModes';
+import { useCurrentUserScopes } from '@/core/hooks/useCurrentUserScopes';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 import { translate } from '@/core/i18n';
 import { canEditCollection } from '@/core/lib/collectionAccess';
@@ -68,7 +69,7 @@ function Workflow({ t }: WorkflowProps) {
     (state: any) => state.config.publish_mode === EDITORIAL_WORKFLOW,
   );
   const isOpenAuthoring = useAppSelector((state: any) => state.globalUI.useOpenAuthoring);
-  const userScopes = useAppSelector((state: any) => state.auth?.user?.scopes);
+  const userScopes = useCurrentUserScopes();
   const isFetching = useAppSelector((state: any) =>
     isEditorialWorkflow ? (state.editorialWorkflow?.pages?.isFetching ?? false) : false
   );

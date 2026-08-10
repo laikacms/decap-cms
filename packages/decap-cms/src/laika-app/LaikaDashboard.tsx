@@ -2,6 +2,7 @@ import styled from '@emotion/styled';
 import React from 'react';
 
 import { createNewEntry } from '@/core/actions/collections';
+import { useCurrentUserScopes } from '@/core/hooks/useCurrentUserScopes';
 import { useAppSelector } from '@/core/hooks/useRedux';
 import { translate } from '@/core/i18n';
 import { canEditCollection, isCollectionVisible } from '@/core/lib/collectionAccess';
@@ -93,13 +94,14 @@ function LaikaDashboard({ t }: LaikaDashboardProps) {
   const collections = useAppSelector(state => state.collections) as CmsCollections | undefined;
   const user = useAppSelector(state => state.auth?.user);
   const config = useAppSelector(state => state.config);
+  const userScopes = useCurrentUserScopes();
 
   const visibleCollections = React.useMemo<CmsCollectionState[]>(
     () =>
       Object.values((collections ?? {}) as CmsCollections).filter(
-        c => isCollectionVisible(c, user?.scopes),
+        c => isCollectionVisible(c, userScopes),
       ),
-    [collections, user?.scopes],
+    [collections, userScopes],
   );
 
   const greeting = user?.name ? `Welcome back, ${user.name}` : 'Welcome';
@@ -148,7 +150,7 @@ function LaikaDashboard({ t }: LaikaDashboardProps) {
                 >
                   Browse
                 </LaikaButton>
-                {collection.create && canEditCollection(collection, user?.scopes)
+                {collection.create && canEditCollection(collection, userScopes)
                   ? (
                     <LaikaButton onClick={() => createNewEntry(collection.name)}>
                       {t('app.header.quickAdd')}

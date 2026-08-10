@@ -1,7 +1,15 @@
 import { act, fireEvent, render } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+// The toolbar reads the user's effective scopes from the store through
+// useCurrentUserScopes; substitute a controllable value so these stay
+// prop-driven unit tests without a Redux Provider.
+const mockUserScopes = vi.hoisted(() => ({ current: [] as string[] }));
+vi.mock('@/core/hooks/useCurrentUserScopes', () => ({
+  useCurrentUserScopes: () => mockUserScopes.current,
+}));
 
 vi.mock('@/core/i18n', () => ({
   translate: () => (Component: React.ComponentType<any>) => {
@@ -53,6 +61,10 @@ const baseProps = {
 };
 
 describe('LaikaEditorToolbar', () => {
+  beforeEach(() => {
+    mockUserScopes.current = [];
+  });
+
   it('renders the breadcrumb with collection label + back link', () => {
     const { getByText, getByLabelText } = render(
       <MemoryRouter>
@@ -162,6 +174,7 @@ describe('LaikaEditorToolbar', () => {
   });
 
   it('disables save and hides mutation actions when the user lacks the collection edit scope', () => {
+    mockUserScopes.current = ['content:read'];
     const { getByLabelText, getByText, queryByText } = render(
       <MemoryRouter>
         <LaikaEditorToolbar
@@ -170,7 +183,6 @@ describe('LaikaEditorToolbar', () => {
             ...baseProps.collection,
             edit_scopes: ['content:write'],
           }}
-          user={{ ...baseProps.user, token: '', scopes: ['content:read'] }}
           hasChanged
         />
       </MemoryRouter>,

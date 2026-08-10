@@ -6,6 +6,7 @@ import React from 'react';
 
 import { SettingsDropdown } from '@/core/components/UI';
 import { status } from '@/core/constants/publishModes';
+import { useCurrentUserScopes } from '@/core/hooks/useCurrentUserScopes';
 import { useShortcut } from '@/core/hooks/useShortcut';
 import { translate } from '@/core/i18n';
 import { canEditCollection } from '@/core/lib/collectionAccess';
@@ -342,7 +343,8 @@ export function EditorToolbar(props: EditorToolbarProps) {
     editorBackLink,
     t,
   } = props;
-  const hasEditAccess = canEditCollection(collection, user?.scopes);
+  const userScopes = useCurrentUserScopes();
+  const hasEditAccess = canEditCollection(collection, userScopes);
 
   const pollControllerRef = React.useRef<AbortController | null>(null);
   const isPersistingRef = React.useRef(isPersisting);
