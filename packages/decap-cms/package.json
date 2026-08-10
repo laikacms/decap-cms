@@ -329,6 +329,14 @@
       "types": "./dist/lib/auth/index.d.ts",
       "import": "./dist/lib/auth/index.js"
     },
+    "./lib/backend": {
+      "types": "./dist/lib/backend/index.d.ts",
+      "import": "./dist/lib/backend/index.js"
+    },
+    "./lib/domain": {
+      "types": "./dist/lib/domain/index.d.ts",
+      "import": "./dist/lib/domain/index.js"
+    },
     "./lib/richtext": {
       "types": "./dist/lib/richtext/index.d.ts",
       "import": "./dist/lib/richtext/index.js"

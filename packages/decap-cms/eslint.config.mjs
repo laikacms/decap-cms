@@ -49,6 +49,21 @@ function componentLayerOf(srcRelativePath) {
   return COMPONENT_LAYERS.find(layer => srcRelativePath.startsWith(layer.prefix));
 }
 
+// Published, dependency-free modules (see src/lib/domain/README.md and
+// src/lib/backend/README.md). They sit below every component layer: `allows`
+// lists the only import prefixes each may reach for, so `lib/domain` imports
+// nothing at all and `lib/backend` reaches only into `lib/domain`. Anything
+// else - including bare package specifiers - is an error unless listed as a
+// tracked exception in the rule's `grandfathered` option.
+const PURE_LAYERS = [
+  { name: 'lib/domain', prefix: 'lib/domain/', allows: [] },
+  { name: 'lib/backend', prefix: 'lib/backend/', allows: ['lib/domain/'] },
+];
+
+function pureLayerOf(srcRelativePath) {
+  return PURE_LAYERS.find(layer => srcRelativePath.startsWith(layer.prefix));
+}
+
 // Local plugin: rewrite parent-relative imports (`../…`) that point inside
 // `src/` to the `@/…` alias (mirrors tsconfig `paths` + the vite / tsc-alias
 // config). Same-folder imports (`./x`) are intentionally left alone. Ships a
@@ -80,6 +95,8 @@ const localImportAliasPlugin = {
             "Layer '{{from}}' (rank {{fromRank}}) must not import from higher layer '{{to}}' (rank {{toRank}}). Dependency order: ui → ui/default → widgets → core/app/laika components.",
           siblingImport:
             "'{{from}}' and '{{to}}' are sibling component realms (rank 4) and must not import each other. Move the shared component down into ui/, ui/default/, or widgets/.",
+          impureImport:
+            "'{{from}}' is a published dependency-free module and must not import '{{to}}'. It may only import: {{allows}}.",
         },
       },
       create(context) {
@@ -89,12 +106,64 @@ const localImportAliasPlugin = {
         const fileAbs = path.resolve(filename);
         if (!fileAbs.startsWith(srcDir + path.sep)) return {};
         const fileRel = path.relative(srcDir, fileAbs).split(path.sep).join('/');
-        const fromLayer = componentLayerOf(fileRel);
-        if (!fromLayer) return {};
         const exempted = new Set([
           ...(context.options[0]?.allowed ?? []),
           ...(context.options[0]?.grandfathered ?? []),
         ]);
+
+        // The import target as a `from>to` pair name: the module's first two
+        // path segments for in-repo imports, the package name for bare ones.
+        function targetName(value) {
+          if (value.startsWith('@/')) return value.slice(2).split('/').slice(0, 2).join('/');
+          if (value.startsWith('./') || value.startsWith('../')) {
+            const abs = path.resolve(path.dirname(fileAbs), value);
+            if (!abs.startsWith(srcDir + path.sep)) return value;
+            return path.relative(srcDir, abs).split(path.sep).slice(0, 2).join('/');
+          }
+          return value.startsWith('@') ? value.split('/').slice(0, 2).join('/') : value.split('/')[0];
+        }
+
+        function purityChecks(layer) {
+          function checkPurity(node) {
+            const source = node.source;
+            if (!source || typeof source.value !== 'string') return;
+            const value = source.value;
+            let targetRel = null;
+            if (value.startsWith('@/')) {
+              targetRel = value.slice(2);
+            } else if (value.startsWith('./') || value.startsWith('../')) {
+              const abs = path.resolve(path.dirname(fileAbs), value);
+              targetRel = abs.startsWith(srcDir + path.sep)
+                ? path.relative(srcDir, abs).split(path.sep).join('/')
+                : null;
+            }
+            // Imports within the module itself are fine.
+            if (targetRel !== null && targetRel.startsWith(layer.prefix)) return;
+            if (targetRel !== null && layer.allows.some(prefix => targetRel.startsWith(prefix))) return;
+            if (exempted.has(`${layer.name}>${targetName(value)}`)) return;
+            context.report({
+              node: source,
+              messageId: 'impureImport',
+              data: {
+                from: layer.name,
+                to: value,
+                allows: layer.allows.length ? layer.allows.join(', ') : 'nothing',
+              },
+            });
+          }
+          return {
+            ImportDeclaration: checkPurity,
+            ExportNamedDeclaration: checkPurity,
+            ExportAllDeclaration: checkPurity,
+            ImportExpression: checkPurity,
+          };
+        }
+
+        const pureLayer = pureLayerOf(fileRel);
+        if (pureLayer) return purityChecks(pureLayer);
+
+        const fromLayer = componentLayerOf(fileRel);
+        if (!fromLayer) return {};
 
         function check(node) {
           const source = node.source;
@@ -310,11 +379,20 @@ export default tseslint.config(
       // layering was adopted (laika-app wraps the app shell and core pages) -
       // shrink that list by moving shared components down the stack; NEVER add
       // new edges to it.
+      // The same rule also pins the published dependency-free modules:
+      // `lib/domain` imports nothing, `lib/backend` only `lib/domain`. Its one
+      // exception is grandfathered below: `lib/backend` re-exports the config
+      // types and implementer helpers that still physically live in
+      // `lib/util`, which is tracked debt, not a licence for new edges.
       'local/layer-deps': [
         'error',
         {
           allowed: ['app/components>core/components'],
-          grandfathered: ['laika-app>app/components', 'laika-app>core/components'],
+          grandfathered: [
+            'laika-app>app/components',
+            'laika-app>core/components',
+            'lib/backend>lib/util',
+          ],
         },
       ],
       'import/order': [
