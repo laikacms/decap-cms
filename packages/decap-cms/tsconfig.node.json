@@ -7,6 +7,7 @@
     "playwright.config.ts",
     "vitest.config.ts",
     "vitest.setup.ts",
+    "vite.config.cdn.ts",
     "vite.config.demo.ts",
     "vite.config.laika-demo.ts",
     "vite.config.laika-bare-demo.ts"

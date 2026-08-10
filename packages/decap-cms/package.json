@@ -22,6 +22,8 @@
     "jamstack"
   ],
   "type": "module",
+  "unpkg": "dist/cdn/decap-cms.js",
+  "jsdelivr": "dist/cdn/decap-cms.js",
   "publishConfig": {
     "access": "public"
   },
@@ -39,7 +41,8 @@
     "build": "rimraf dist && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json && pnpm copy:assets",
     "analyze": "node ./scripts/analyze.mjs",
     "analyze:demo": "ANALYZE=1 pnpm build:dev-test && open dev-test/dist/bundle-report-decap-cms.html dev-test/dist/bundle-report-laika-cms.html dev-test/dist/bundle-report-laika-cms-bare.html",
-    "prepack": "pnpm build",
+    "build:cdn": "rimraf dist/cdn && CDN_ENTRY=app vite build --config vite.config.cdn.ts && CDN_ENTRY=laika-app vite build --config vite.config.cdn.ts",
+    "prepack": "pnpm build && pnpm build:cdn",
     "build:demo": "vite build --config vite.config.demo.ts",
     "build:demo-graphql": "vite build --config vite.config.demo-graphql.ts",
     "build:laika-demo": "vite build --config vite.config.laika-demo.ts",

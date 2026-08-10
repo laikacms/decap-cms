@@ -72,6 +72,49 @@ standard config reference:
   supports (`getEntryLock`/`acquireEntryLock`/`releaseEntryLock`/`refreshEntryLock`) has no effect
   on this backend yet.
 
+## CDN builds (no bundler)
+
+Both full app shells ship as prebuilt, self-contained browser bundles under `dist/cdn/`, so unpkg
+and jsdelivr serve them straight off npm. Nothing else is needed: React, the backends, the widgets
+and the styles are all inlined, and the bundle registers everything and calls `init()` on load.
+
+```html
+<!-- classic Decap shell -->
+<script src="https://cdn.jsdelivr.net/npm/@laikacms/decap-cms@4/dist/cdn/decap-cms.js"></script>
+
+<!-- or the Laika shell (this is the one with the `laika` backend registered) -->
+<script src="https://cdn.jsdelivr.net/npm/@laikacms/decap-cms@4/dist/cdn/laika-cms.js"></script>
+```
+
+The classic bundle exposes a `DecapCms` global (and the usual `window.CMS` / `window.h`); the Laika
+bundle exposes `LaikaCms`. Set `window.CMS_MANUAL_INIT = true` before the script tag if you want to
+register your own widgets or preview templates before the app boots, then call `window.initCMS()`.
+
+An ES module build sits next to each one for `<script type="module">`:
+
+```html
+<script type="module">
+  import { init, CMS } from 'https://cdn.jsdelivr.net/npm/@laikacms/decap-cms@4/dist/cdn/decap-cms.esm.js';
+</script>
+```
+
+| URL path                    | Entry point                     | IIFE global |
+| --------------------------- | ------------------------------- | ----------- |
+| `dist/cdn/decap-cms.js`     | `@laikacms/decap-cms/app`       | `DecapCms`  |
+| `dist/cdn/decap-cms.esm.js` | `@laikacms/decap-cms/app`       | -           |
+| `dist/cdn/laika-cms.js`     | `@laikacms/decap-cms/laika-app` | `LaikaCms`  |
+| `dist/cdn/laika-cms.esm.js` | `@laikacms/decap-cms/laika-app` | -           |
+
+Pin a version (`@4.1.0`) rather than a range for production. These bundles are ~5.5 MB raw and ~1.8
+MB gzipped, because a script tag can't tree-shake: every backend, widget, locale and the whole
+richtext editor is included. If that matters, install the package and build against the `bare`
+entries (`/app/bare`, `/laika-app/bare`) instead, registering only what you use. The `bare` entries
+deliberately have no CDN build, since a prebuilt file can't be shaken down.
+
+Build them locally with `pnpm build:cdn`; `prepack` runs it so every published version has them. Add
+`CDN_SOURCEMAP=1` for a debuggable build (the sourcemaps are ~20 MB each, so they are not
+published).
+
 ## JSON Schema (editor autocompletion)
 
 The package ships a [JSON Schema](./schema/config.schema.json) for `config.yml` at
