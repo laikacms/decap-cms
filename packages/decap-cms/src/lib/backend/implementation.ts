@@ -168,7 +168,7 @@ export interface BackendImplementation {
     path: string,
     owner: CmsEntryLockOwner,
     opts?: { force?: boolean },
-  ) => Promise<CmsEntryLock>;
+  ) => Promise<CmsEntryLock | null>;
   /**
    * Release the lock for `path`, but only if currently held by `owner`: a
    * release from a stale tab that lost a force-override race must not evict
@@ -179,7 +179,7 @@ export interface BackendImplementation {
    * Extend the lock's TTL. Called periodically by the editor while an entry
    * stays open, so a long editing session doesn't go stale mid-edit.
    */
-  refreshEntryLock?: (path: string, owner: CmsEntryLockOwner) => Promise<CmsEntryLock>;
+  refreshEntryLock?: (path: string, owner: CmsEntryLockOwner) => Promise<CmsEntryLock | null>;
 }
 
 /**

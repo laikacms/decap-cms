@@ -240,25 +240,51 @@ Laika backend currently only supports JSON-format collections; set `format: json
 
 Tracking issue: [DCMS-1254](https://github.com/laikacms/decap-cms/issues/1254).
 
-## Entry locking (not yet implemented)
+## Entry locking
 
-Decap core supports an optional advisory entry-locking capability
-(`getEntryLock`/`acquireEntryLock`/`releaseEntryLock`/`refreshEntryLock` on `CmsImplementation` —
-see `src/lib/util/types/cms/backend.ts`) so the editor can show "Being edited by X" and warn before
-two users clobber each other's changes. `LaikaBackend` does not implement it yet.
+Server-arbitrated advisory locking is implemented (ADR-007 in the `laikacms` repo). When two editors
+open the same entry, the second sees a "Being edited by X" banner, arbitrated by the backend rather
+than by one browser's local state.
 
-This backend is the natural place to add server-arbitrated locking (the issue that motivated the
-capability — DCMS-1414 — calls this out specifically: "Multi-user locking likely lands first on the
-laika backend where a server can arbitrate"), because it already has a real `DocumentsRepository`
-talking to a stateful server, unlike the git-based backends. Implementing it here needs:
+`LaikaBackend` implements the four optional `CmsImplementation` lock methods against
+`@laikacms/server/api`'s `/locks` endpoint, which is itself a thin adapter over the documents
+repository's `acquireLock`/`refreshLock`/ `releaseLock`/`getLock`. The chain is:
 
-- A lock endpoint/resource on the laikacms documents protocol (acquire, release, refresh, get) that
-  this adapter's `LaikaBackend` class can call the same way it calls
-  `repo.getDocument`/`repo.updateDocument` today.
-- Wiring those calls into the four `CmsImplementation` lock methods, following the same
-  `firstResult`/`APIError` conventions already used throughout this file for every other repository
-  call.
+```
+LaikaBackend.acquireEntryLock
+  -> POST {apiUrl}/locks/{path}          (@laikacms/server/api)
+  -> documents.acquireLock(key, owner)   (laikacms DocumentsRepository)
+  -> the backend's own atomic primitive
+```
 
-Until that protocol surface exists, `src/lib/util/entryLockManager.ts` (used by the `test-repo`
-backend) is a reference _local_ implementation only — useful for exercising the editor UI, but not a
-substitute for real server-side arbitration across different browsers/users.
+Two details worth knowing:
+
+- **The owner is never sent.** The server derives the lock owner from the authenticated principal,
+  so a client cannot take a lock as somebody else. The `owner` argument these methods receive is
+  therefore unused here.
+- **The client holds a token.** Acquire returns an opaque bearer token, kept in memory per path and
+  replayed on refresh and release; the server authorises on the token, not on identity. Tokens are
+  dropped on `logout()`. `getEntryLock` never returns one, so polling to render the banner cannot
+  confer the ability to steal or release a lock.
+
+### Degradation
+
+| Server response | Behaviour                                                                               |
+| --------------- | --------------------------------------------------------------------------------------- |
+| `423 Locked`    | Rejects, so core fetches the holder and raises the conflict banner                      |
+| `501`           | Resolves `null`: this deployment's backend cannot lock, so the editor hides the lock UI |
+| network failure | Resolves `null`/void, same as above                                                     |
+
+The distinction matters: a rejection means "someone else genuinely holds this", and anything else
+means "we cannot arbitrate right now". Collapsing the two would either false-alarm a conflict or
+block an edit that should be allowed.
+
+Locks are advisory: nothing blocks a write. Enforcement-on-write (ADR-007's `precondition` ladder)
+is deferred.
+
+### Multi-node deployments
+
+Check `documents.getCapabilities().locks.scope`. The bundled `InProcessLockManager`
+(`laikacms/locks/in-process`) reports `'in-process'`: correct for a single node and for tests, but
+each node holds its own map, so locks are invisible across nodes. A multi-node deployment needs a
+repository whose datasource has a real conditional write, reporting `'shared'`.

@@ -341,7 +341,13 @@ export interface CmsImplementation {
     path: string,
     owner: CmsEntryLockOwner,
     opts?: { force?: boolean },
-  ) => Promise<CmsEntryLock>;
+  ) => Promise<CmsEntryLock | null>;
+  // `null` means "this backend cannot arbitrate locks right now" (the server
+  // has no lock support, or the request could not be made). Core reads it as
+  // ENTRY_LOCK_UNSUPPORTED and hides the lock UI. A *rejection*, by contrast,
+  // means the lock is genuinely held by someone else, and raises the conflict
+  // banner. Keeping both in the type is what lets an implementation degrade
+  // without lying about a conflict.
   /**
    * Release the lock for `path`, but only if currently held by `owner` — a
    * release from a stale tab that lost a force-override race must not evict
@@ -352,5 +358,5 @@ export interface CmsImplementation {
    * Extend the lock's TTL. Called periodically by the editor while an entry
    * stays open, so a long editing session doesn't go stale mid-edit.
    */
-  refreshEntryLock?: (path: string, owner: CmsEntryLockOwner) => Promise<CmsEntryLock>;
+  refreshEntryLock?: (path: string, owner: CmsEntryLockOwner) => Promise<CmsEntryLock | null>;
 }

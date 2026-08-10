@@ -19,12 +19,15 @@ import PKCEAuthenticationPage from './AuthenticationPage.js';
 import DevAuthenticationPage from './DevAuthenticationPage.js';
 import { requestQrTransferCode } from './qrLogin.js';
 
+import type { BackendEntry, BackendEntryContent } from '@/lib/backend/index';
 import type {
   CmsAssetProxy as AssetProxy,
   CmsConfig as Config,
   CmsCredentials as Credentials,
   CmsDataFile as DataFile,
   CmsDisplayURL as DisplayURL,
+  CmsEntryLock,
+  CmsEntryLockOwner,
   CmsFileEntry as Entry,
   CmsGetMediaPageOptions,
   CmsImplementation as Implementation,
@@ -37,7 +40,6 @@ import type {
   CmsUser as User,
   CursorCompatibleEntries,
 } from '@/lib/util/index';
-import type { BackendEntry, BackendEntryContent } from '@/lib/backend/index';
 import type { Asset, AssetCreate, AssetsRepository, Resource } from 'laikacms/assets';
 import type { ErrorCode, LaikaResult, LaikaStream, LaikaTask } from 'laikacms/core';
 import type { Pagination } from 'laikacms/core';
@@ -400,8 +402,7 @@ export default function createLaikaBackend(
    * the engine parses with the collection's format. Documents become their
    * JSON text; records already stored as text pass through untouched.
    */
-  const contentAsText = (content: unknown): string =>
-    typeof content === 'string' ? content : JSON.stringify(content);
+  const contentAsText = (content: unknown): string => typeof content === 'string' ? content : JSON.stringify(content);
 
   /**
    * Build a seam entry from a protocol record. Every construction site
@@ -508,6 +509,18 @@ export default function createLaikaBackend(
    * Uses DocumentsRepository for all document operations (entries, unpublished, etc.)
    * and StorageRepository for media file operations.
    */
+  /**
+   * The wire shape of a lock from `@laikacms/server/api`'s `/locks` endpoint.
+   * `token` is present only on acquire/refresh responses, never on a read.
+   */
+  interface LockResponseData {
+    key: string;
+    owner: { id: string, name: string };
+    acquiredAt: string;
+    expiresAt: string;
+    token?: string;
+  }
+
   return class LaikaBackend implements Implementation {
     config: Config;
     mediaFolder: string;
@@ -547,6 +560,15 @@ export default function createLaikaBackend(
     unpublishedEntriesListCache = new DedupeCache<string[]>();
     // Full entry lists keyed by folder — populated by entriesByFolder, read by traverseCursor
     allEntriesCache = new Map<string, BackendEntry[]>();
+    /**
+     * Lock tokens for entries this session currently holds, keyed by path.
+     *
+     * The server authorises refresh and release on the opaque token, not on
+     * identity, so the client has to keep it. `CmsImplementation` deliberately
+     * knows nothing about tokens: they are a detail of this backend's protocol,
+     * not of the editor's lock model.
+     */
+    private entryLockTokens = new Map<string, string>();
 
     /**
      * Optional pre-shared token for local-dev / same-origin embedded setups.
@@ -941,6 +963,7 @@ export default function createLaikaBackend(
       this.assetsRepository = undefined;
       this.documentsRepository = undefined;
       this.changesSupport = undefined;
+      this.entryLockTokens.clear();
       this.entryCache.clear();
       this.unpublishedEntryCache.clear();
       this.unpublishedEntriesListCache.clear();
@@ -1893,6 +1916,122 @@ export default function createLaikaBackend(
 
       const { cursor: newCursor, pageEntries } = this._buildPageCursor(folder, allEntries, nextPage);
       return { entries: pageEntries, cursor: newCursor };
+    }
+
+    // ===== ADVISORY ENTRY LOCKING (ADR-007) =====
+    //
+    // Server-arbitrated, so two different browsers see the same lock. This is
+    // the reason locking moved server-side at all: the bundled
+    // `EntryLockManager` only ever shared locks between tabs of one browser.
+    //
+    // Degradation contract, matching what core does with each outcome:
+    // - a **423** rejects, so core fetches the holder and raises the conflict
+    //   banner. That is the one case the editor must be told about.
+    // - **501** (this deployment's backend cannot lock) and transport failures
+    //   resolve `null`/void, so locking silently degrades to "unsupported"
+    //   rather than false-alarming a conflict or blocking the edit.
+
+    private lockEndpoint(path: string): string {
+      return `${this.apiUrl}/locks/${encodeURIComponent(path)}`;
+    }
+
+    private async lockRequest(
+      path: string,
+      init: { method: string, body?: unknown, suffix?: string },
+    ): Promise<Response | null> {
+      try {
+        const token = await this.getToken();
+        return await fetch(`${this.lockEndpoint(path)}${init.suffix ?? ''}`, {
+          method: init.method,
+          headers: {
+            Authorization: `Bearer ${token}`,
+            ...(init.body === undefined ? {} : { 'Content-Type': 'application/json' }),
+          },
+          ...(init.body === undefined ? {} : { body: JSON.stringify(init.body) }),
+        });
+      } catch {
+        // Offline, auth not resolved, CORS: all "cannot arbitrate right now".
+        return null;
+      }
+    }
+
+    /** Map the wire lock shape onto the editor's `CmsEntryLock`. */
+    private toCmsLock(data: LockResponseData): CmsEntryLock {
+      return {
+        path: data.key,
+        owner: { id: data.owner.id, name: data.owner.name },
+        acquiredAt: data.acquiredAt,
+        expiresAt: data.expiresAt,
+      };
+    }
+
+    private async readLockBody(res: Response): Promise<{ data?: LockResponseData | null } | null> {
+      try {
+        return await res.json() as { data?: LockResponseData | null };
+      } catch {
+        return null;
+      }
+    }
+
+    async getEntryLock(path: string): Promise<CmsEntryLock | null> {
+      const res = await this.lockRequest(path, { method: 'GET' });
+      if (!res || !res.ok) return null;
+      const body = await this.readLockBody(res);
+      return body?.data ? this.toCmsLock(body.data) : null;
+    }
+
+    async acquireEntryLock(
+      path: string,
+      _owner: CmsEntryLockOwner,
+      opts?: { force?: boolean },
+    ): Promise<CmsEntryLock | null> {
+      // `owner` is intentionally unused: the server derives the lock owner from
+      // the authenticated principal, so a client cannot lock as someone else.
+      const res = await this.lockRequest(path, {
+        method: 'POST',
+        body: { force: opts?.force ?? false },
+      });
+      if (!res) return null;
+      if (res.status === 423) {
+        throw new APIError('Entry is locked by another user', 423, 'Laika Backend');
+      }
+      if (!res.ok) return null;
+
+      const body = await this.readLockBody(res);
+      if (!body?.data) return null;
+      if (body.data.token) this.entryLockTokens.set(path, body.data.token);
+      return this.toCmsLock(body.data);
+    }
+
+    async refreshEntryLock(path: string, owner: CmsEntryLockOwner): Promise<CmsEntryLock | null> {
+      const token = this.entryLockTokens.get(path);
+      // No token means this session never acquired the lock (a reload, say).
+      // Re-acquiring is the honest recovery: it succeeds if the entry is free
+      // or already ours, and conflicts if somebody else took it meanwhile.
+      if (!token) return this.acquireEntryLock(path, owner);
+
+      const res = await this.lockRequest(path, { method: 'POST', suffix: '/refresh', body: { token } });
+      if (!res) return null;
+      if (res.status === 423) {
+        this.entryLockTokens.delete(path);
+        throw new APIError('Entry lock was taken by another user', 423, 'Laika Backend');
+      }
+      if (!res.ok) return null;
+
+      const body = await this.readLockBody(res);
+      if (!body?.data) return null;
+      if (body.data.token) this.entryLockTokens.set(path, body.data.token);
+      return this.toCmsLock(body.data);
+    }
+
+    async releaseEntryLock(path: string, _owner: CmsEntryLockOwner): Promise<void> {
+      const token = this.entryLockTokens.get(path);
+      // Nothing to release, and without a token the server would refuse anyway.
+      if (!token) return;
+      this.entryLockTokens.delete(path);
+      // Best effort: the server only evicts a lock we still hold, and a failed
+      // release just lets the lock lapse via its TTL.
+      await this.lockRequest(path, { method: 'DELETE', body: { token } });
     }
 
     // ===== DEPLOY PREVIEW =====
