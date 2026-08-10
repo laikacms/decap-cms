@@ -1,5 +1,6 @@
 import { trim, trimStart } from 'lodash-es';
 
+import { rawContent } from '@/lib/backend/index';
 import { createSemaphore } from '@/lib/util/index';
 import {
   asyncLock,
@@ -186,7 +187,7 @@ export default class Azure implements CmsImplementation {
     const data = (await this.api!.readFile(path)) as string;
     return {
       file: { path },
-      data,
+      content: rawContent(data),
     };
   }
 

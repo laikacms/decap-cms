@@ -13,6 +13,7 @@ import { DocumentsJsonApiProxyRepository } from 'laikacms/documents/jsonapi-prox
 import { SyncToken } from 'laikacms/storage';
 import React from 'react';
 
+import { parsedContent, rawContent } from '@/lib/backend/index';
 import { AccessTokenError, APIError, Cursor, CURSOR_COMPATIBILITY_SYMBOL, unsentRequest } from '@/lib/util/index';
 import PKCEAuthenticationPage from './AuthenticationPage.js';
 import DevAuthenticationPage from './DevAuthenticationPage.js';
@@ -27,7 +28,6 @@ import type {
   CmsFileEntry as Entry,
   CmsGetMediaPageOptions,
   CmsImplementation as Implementation,
-  CmsImplementationEntry as ImplementationEntry,
   CmsImplementationFile as ImplementationFile,
   CmsImplementationMediaFile as ImplementationMediaFile,
   CmsMediaCapabilities,
@@ -37,6 +37,7 @@ import type {
   CmsUser as User,
   CursorCompatibleEntries,
 } from '@/lib/util/index';
+import type { BackendEntry, BackendEntryContent } from '@/lib/backend/index';
 import type { Asset, AssetCreate, AssetsRepository, Resource } from 'laikacms/assets';
 import type { ErrorCode, LaikaResult, LaikaStream, LaikaTask } from 'laikacms/core';
 import type { Pagination } from 'laikacms/core';
@@ -340,18 +341,24 @@ export default function createLaikaBackend(
   };
 
   /**
-   * Convert content to raw string format for Decap CMS
-   * Decap CMS expects the `data` field to be a raw string (the file content as stored on disk)
-   * For JSON files, this is the JSON string; for YAML/frontmatter files, it's the raw text
+   * A record's content as it crosses the CMS seam. Documents are stored
+   * structured, so they are handed over as `parsed` and reach the entry by
+   * reference: no stringifying a document just so the engine can parse it
+   * straight back, and no entry codec needed for JSON collections.
+   *
+   * Records whose content is text (markdown and friends, stored as a string)
+   * stay `raw`, so the engine parses them with the collection's format as
+   * before. Anything else - an array, a number - has no field shape, so it is
+   * carried as its JSON text and left to the collection's format to reject.
    */
-  const contentToRawString = (content: unknown): string => {
+  const recordContent = (content: unknown): BackendEntryContent => {
     if (typeof content === 'string') {
-      // Content is already a string (e.g., raw file content)
-      return content;
+      return rawContent(content);
     }
-    // Content is an object, stringify it for JSON format
-    const result = JSON.stringify(content);
-    return result;
+    if (isPlainRecord(content)) {
+      return parsedContent(content);
+    }
+    return rawContent(JSON.stringify(content));
   };
 
   const isPlainRecord = (value: unknown): value is Record<string, unknown> =>
@@ -388,16 +395,25 @@ export default function createLaikaBackend(
   };
 
   /**
-   * Build an implementation entry from a protocol record. Every construction
-   * site identifies the entry the same way: by the record's opaque
-   * content-version token, falling back to the key for repositories that do
-   * not advertise `versionTracking`.
+   * Serialize a record's content for the workflow read path, which still
+   * crosses the seam as text: `unpublishedEntryDataFile` returns a string that
+   * the engine parses with the collection's format. Documents become their
+   * JSON text; records already stored as text pass through untouched.
    */
-  const recordToImplementationEntry = (
+  const contentAsText = (content: unknown): string =>
+    typeof content === 'string' ? content : JSON.stringify(content);
+
+  /**
+   * Build a seam entry from a protocol record. Every construction site
+   * identifies the entry the same way: by the record's opaque content-version
+   * token, falling back to the key for repositories that do not advertise
+   * `versionTracking`.
+   */
+  const recordToBackendEntry = (
     record: { key: string, content: unknown, version?: string | undefined },
-  ): ImplementationEntry => ({
+  ): BackendEntry => ({
     file: { path: record.key, id: record.version || record.key },
-    data: contentToRawString(record.content),
+    content: recordContent(record.content),
   });
 
   type ChangesSupport = { syncToken: boolean, changeFeed: boolean };
@@ -526,11 +542,11 @@ export default function createLaikaBackend(
     changesSupport: Promise<ChangesSupport> | undefined;
 
     // Caches to reduce duplicate requests
-    entryCache = new DedupeCache<ImplementationEntry>();
+    entryCache = new DedupeCache<BackendEntry>();
     unpublishedEntryCache = new DedupeCache<UnpublishedEntry>();
     unpublishedEntriesListCache = new DedupeCache<string[]>();
     // Full entry lists keyed by folder — populated by entriesByFolder, read by traverseCursor
-    allEntriesCache = new Map<string, ImplementationEntry[]>();
+    allEntriesCache = new Map<string, BackendEntry[]>();
 
     /**
      * Optional pre-shared token for local-dev / same-origin embedded setups.
@@ -971,9 +987,9 @@ export default function createLaikaBackend(
 
     // ===== ENTRY OPERATIONS (using DocumentsRepository) =====
 
-    private async _fetchAllEntriesFromRepo(folder: string): Promise<ImplementationEntry[]> {
+    private async _fetchAllEntriesFromRepo(folder: string): Promise<BackendEntry[]> {
       const repo = this.getDocumentsRepo();
-      const entries: ImplementationEntry[] = [];
+      const entries: BackendEntry[] = [];
       const repoPageSize = 100;
       let offset = 0;
 
@@ -986,7 +1002,7 @@ export default function createLaikaBackend(
 
         for (const record of result.success) {
           if (record.type === 'published') {
-            const entry = recordToImplementationEntry(record);
+            const entry = recordToBackendEntry(record);
             entries.push(entry);
             this.entryCache.set(record.key, entry);
           }
@@ -999,9 +1015,9 @@ export default function createLaikaBackend(
       return entries;
     }
 
-    private _buildPageCursor(folder: string, allEntries: ImplementationEntry[], page: number): {
+    private _buildPageCursor(folder: string, allEntries: BackendEntry[], page: number): {
       cursor: Cursor,
-      pageEntries: ImplementationEntry[],
+      pageEntries: BackendEntry[],
     } {
       const pageCount = Math.max(1, Math.ceil(allEntries.length / ENTRIES_PAGE_SIZE));
       const clampedPage = Math.max(1, Math.min(page, pageCount));
@@ -1024,13 +1040,13 @@ export default function createLaikaBackend(
       return { cursor, pageEntries };
     }
 
-    async entriesByFolder(folder: string, _extension: string, _depth: number): Promise<ImplementationEntry[]> {
+    async entriesByFolder(folder: string, _extension: string, _depth: number): Promise<BackendEntry[]> {
       const allEntries = await this._fetchAllEntriesFromRepo(folder);
       this.allEntriesCache.set(folder, allEntries);
 
       const { cursor, pageEntries } = this._buildPageCursor(folder, allEntries, 1);
       // Attach cursor so Decap's Backend can track pagination position.
-      (pageEntries as CursorCompatibleEntries<ImplementationEntry>)[CURSOR_COMPATIBILITY_SYMBOL] = cursor;
+      (pageEntries as CursorCompatibleEntries<BackendEntry>)[CURSOR_COMPATIBILITY_SYMBOL] = cursor;
       return pageEntries;
     }
 
@@ -1039,7 +1055,7 @@ export default function createLaikaBackend(
       _extension: string,
       _depth: number,
       pathRegex?: RegExp,
-    ): Promise<ImplementationEntry[]> {
+    ): Promise<BackendEntry[]> {
       const entries = await this._fetchAllEntriesFromRepo(folder);
 
       if (pathRegex) {
@@ -1049,8 +1065,8 @@ export default function createLaikaBackend(
       return entries;
     }
 
-    async entriesByFiles(files: ImplementationFile[]): Promise<ImplementationEntry[]> {
-      const entries: ImplementationEntry[] = [];
+    async entriesByFiles(files: ImplementationFile[]): Promise<BackendEntry[]> {
+      const entries: BackendEntry[] = [];
 
       for (const file of files) {
         try {
@@ -1071,7 +1087,7 @@ export default function createLaikaBackend(
     // the collection's real editorial-workflow flag, so it can skip the
     // `getUnpublished` probe for non-workflow collections, where an unpublished
     // record can never exist (DCMS-1663).
-    async getEntry(path: string, useWorkflow = true): Promise<ImplementationEntry> {
+    async getEntry(path: string, useWorkflow = true): Promise<BackendEntry> {
       const key = normalizeKey(path);
 
       // Use getOrFetch for request deduplication
@@ -1083,7 +1099,7 @@ export default function createLaikaBackend(
         const result = await firstResult(repo.getDocument(key));
 
         if (Result.isSuccess(result)) {
-          return recordToImplementationEntry(result.success);
+          return recordToBackendEntry(result.success);
         } else {
           failedResults.push(result.failure);
         }
@@ -1092,7 +1108,7 @@ export default function createLaikaBackend(
           const unpublishedResult = await firstResult(repo.getUnpublished(key));
 
           if (Result.isSuccess(unpublishedResult)) {
-            return recordToImplementationEntry(unpublishedResult.success);
+            return recordToBackendEntry(unpublishedResult.success);
           } else {
             failedResults.push(unpublishedResult.failure);
           }
@@ -1722,7 +1738,7 @@ export default function createLaikaBackend(
               };
               this.unpublishedEntryCache.set(unpub.key, unpublishedEntry);
 
-              this.entryCache.set(unpub.key, recordToImplementationEntry(unpub));
+              this.entryCache.set(unpub.key, recordToBackendEntry(unpub));
             }
 
             if (result.success.length < pageSize) break;
@@ -1799,7 +1815,7 @@ export default function createLaikaBackend(
         'Failed to get unpublished entry data',
       );
 
-      return contentToRawString(result.content);
+      return contentAsText(result.content);
     }
 
     async unpublishedEntryMediaFile(
@@ -1840,7 +1856,7 @@ export default function createLaikaBackend(
     // ===== CURSOR/PAGINATION =====
 
     async traverseCursor(cursor: Cursor, action: string): Promise<{
-      entries: ImplementationEntry[],
+      entries: BackendEntry[],
       cursor: Cursor,
     }> {
       const folder = cursor.data?.['folder'] as string | undefined;

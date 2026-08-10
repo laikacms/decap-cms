@@ -1,15 +1,16 @@
+import { rawContent } from '@/lib/backend/index';
 import { basename, blobToFileObj, ConfigurationError, EditorialWorkflowError } from '@/lib/util/index';
 import AuthenticationPage from './AuthenticationPage';
 import { clearDirectoryHandle, loadDirectoryHandle, saveDirectoryHandle } from './directoryHandleStore';
 import { deleteEntry, listFiles, readFile, readFileAsString, requestPermission, writeFile } from './fsUtils';
 import './types';
 
+import type { BackendEntry } from '@/lib/backend/index';
 import type {
   CmsAssetProxy,
   CmsConfig,
   CmsFileEntry,
   CmsImplementation,
-  CmsImplementationEntry,
   CmsImplementationFile,
   CmsImplementationMediaFile,
   CmsPersistOptions,
@@ -119,18 +120,18 @@ export default class LocalFsBackend implements CmsImplementation {
     folder: string,
     extension: string,
     depth: number,
-  ): Promise<CmsImplementationEntry[]> {
+  ): Promise<BackendEntry[]> {
     const paths = await listFiles(this.handle, folder, extension, depth);
     return Promise.all(paths.map(path => this.getEntry(path)));
   }
 
-  entriesByFiles(files: CmsImplementationFile[]): Promise<CmsImplementationEntry[]> {
+  entriesByFiles(files: CmsImplementationFile[]): Promise<BackendEntry[]> {
     return Promise.all(files.map(file => this.getEntry(file.path)));
   }
 
-  async getEntry(path: string): Promise<CmsImplementationEntry> {
+  async getEntry(path: string): Promise<BackendEntry> {
     const data = await readFileAsString(this.handle, path);
-    return { file: { path, id: path }, data };
+    return { file: { path, id: path }, content: rawContent(data) };
   }
 
   // Editorial workflow needs a place to hold drafts that isn't just "the

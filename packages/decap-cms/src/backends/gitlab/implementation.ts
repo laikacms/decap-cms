@@ -1,5 +1,6 @@
 import { trim, trimStart } from 'lodash-es';
 
+import { rawContent } from '@/lib/backend/index';
 import { PkceAuthenticator } from '@/lib/auth/index';
 import { stripIndent } from '@/lib/util/index';
 import {
@@ -29,6 +30,7 @@ import {
 import API, { API_NAME } from './API';
 import AuthenticationPage from './AuthenticationPage';
 
+import type { BackendEntry } from '@/lib/backend/index';
 import type {
   ApiRequest,
   AsyncLock,
@@ -38,7 +40,6 @@ import type {
   CmsDisplayURL,
   CmsFileEntry,
   CmsImplementation,
-  CmsImplementationEntry,
   CmsImplementationFile,
   CmsPersistOptions,
   CmsUnpublishedEntryMediaFile,
@@ -51,7 +52,7 @@ import type {
 const MAX_CONCURRENT_DOWNLOADS = 10;
 
 type GraphQLAPIInstance = API & {
-  readFilesGraphQL: (files: CmsImplementationFile[]) => Promise<CmsImplementationEntry[]>,
+  readFilesGraphQL: (files: CmsImplementationFile[]) => Promise<BackendEntry[]>,
 };
 
 let registeredGraphQLAPI:
@@ -323,7 +324,7 @@ export default class GitLab implements CmsImplementation {
       API_NAME,
     );
 
-    (files as CursorCompatibleEntries<CmsImplementationEntry>)[CURSOR_COMPATIBILITY_SYMBOL] = cursor!;
+    (files as CursorCompatibleEntries<BackendEntry>)[CURSOR_COMPATIBILITY_SYMBOL] = cursor!;
     return files;
   }
 
@@ -370,7 +371,7 @@ export default class GitLab implements CmsImplementation {
   getEntry(path: string) {
     return this.api!.readFile(path).then(data => ({
       file: { path, id: null },
-      data: data as string,
+      content: rawContent(data as string),
     }));
   }
 

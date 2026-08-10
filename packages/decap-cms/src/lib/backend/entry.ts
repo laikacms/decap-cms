@@ -1,11 +1,15 @@
 import type { Author } from '@/lib/domain/index';
-import type { CmsAssetProxy, CmsDataFile, CmsImplementationMediaFile } from '@/lib/util/index';
 import type { BackendEntryContent } from './content';
 
 /**
  * Where an entry came from, plus whatever revision metadata the backend can
  * attest to. No display label: presentation is derived from collection config
  * by the engine, so implementations carry no presentation concerns.
+ *
+ * The optional fields admit an explicit `undefined` (unlike the domain types,
+ * which require the key to be absent): implementations assemble these from
+ * API responses where a field is simply missing, and should not have to spread
+ * conditionally to say so.
  */
 export type BackendEntryFile = {
   /** Where the entry is stored, relative to the repository or storage root. */
@@ -15,11 +19,11 @@ export type BackendEntryFile = {
    * one. `null` is an explicit "this backend does not version content", which
    * is why it is distinct from the field being absent.
    */
-  id?: string | null,
+  id?: string | null | undefined,
   /** Who last changed the entry. Backend-attested only; never fabricated. */
-  author?: Author,
+  author?: Author | undefined,
   /** ISO-8601 timestamp of the revision. */
-  updatedOn?: string,
+  updatedOn?: string | undefined,
 };
 
 /** One entry as it crosses the backend seam. */
@@ -32,30 +36,6 @@ export type BackendEntry = {
    * `kind`.
    */
   content: BackendEntryContent,
-};
-
-/**
- * One file of an entry to write, as produced by the engine from a draft.
- * Physically still defined in `lib/util`; see the module README for the
- * relocation debt.
- */
-export type DataFile = CmsDataFile;
-
-/** A media file to write alongside an entry. */
-export type Asset = CmsAssetProxy;
-
-/** A media file as listed or returned by a backend. */
-export type MediaFile = CmsImplementationMediaFile;
-
-/**
- * Everything one persist writes: the entry's data files (one per locale for
- * i18n collections) and the media uploaded with it. Formerly `CmsFileEntry`.
- */
-export type PersistPayload = {
-  /** The entry itself, serialized: one file per locale for i18n collections. */
-  dataFiles: DataFile[],
-  /** Media uploaded while editing, to be written in the same operation. */
-  assets: Asset[],
 };
 
 /** One file changed by an unpublished (editorial workflow) entry. */

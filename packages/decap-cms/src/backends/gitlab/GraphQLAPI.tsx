@@ -1,9 +1,11 @@
 import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
 import { SetContextLink } from '@apollo/client/link/context';
 
+import { rawContent } from '@/lib/backend/index';
 import API from './API';
 import * as queries from './queries';
 
+import type { BackendEntry } from '@/lib/backend/index';
 import type { CmsImplementationFile } from '@/lib/util/index';
 import type { Config, FileEntry } from './API';
 
@@ -134,13 +136,21 @@ export default class GraphQLAPI extends API {
 
     const blobs = blobsResults.flat().map(result => result.data) as string[];
     const metadata = commitsResults.flat().map(({ author, authoredDate, authorName }) => ({
-      author: author ? author.name || author.username || author.publicEmail : authorName,
+      author: {
+        name: author?.name || author?.username || author?.publicEmail || authorName,
+        // GitLab usernames are stable, display names are not.
+        ...(author?.username === undefined ? {} : { id: author.username }),
+      },
       updatedOn: authoredDate,
     }));
 
-    const filesWithData = files.map((file, index) => ({
-      file: { ...file, ...metadata[index] },
-      data: blobs[index],
+    const filesWithData: BackendEntry[] = files.map((file, index) => ({
+      file: {
+        path: file.path,
+        ...(file.id === undefined ? {} : { id: file.id }),
+        ...metadata[index],
+      },
+      content: rawContent(blobs[index]),
     }));
     return filesWithData;
   };

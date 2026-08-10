@@ -1,6 +1,8 @@
+
 import { trimStart } from 'lodash-es';
 import * as React from 'react';
 
+import { rawContent } from '@/lib/backend/index';
 import { stripIndent } from '@/lib/util/index';
 import {
   asyncLock,
@@ -25,6 +27,7 @@ import {
 import API, { API_NAME } from './API';
 import AuthenticationPage from './AuthenticationPage';
 
+import type { BackendEntry } from '@/lib/backend/index';
 import type {
   AsyncLock,
   CmsAssetProxy,
@@ -34,7 +37,6 @@ import type {
   CmsEntry,
   CmsFileEntry,
   CmsImplementation,
-  CmsImplementationEntry,
   CmsImplementationFile,
   CmsPersistOptions,
   CmsUnpublishedEntryMediaFile,
@@ -471,7 +473,7 @@ export default class GitHub implements CmsImplementation {
       API_NAME,
     );
 
-    (files as CursorCompatibleEntries<CmsImplementationEntry>)[CURSOR_COMPATIBILITY_SYMBOL] = cursor!;
+    (files as CursorCompatibleEntries<BackendEntry>)[CURSOR_COMPATIBILITY_SYMBOL] = cursor!;
     return files;
   }
 
@@ -516,9 +518,12 @@ export default class GitHub implements CmsImplementation {
     return this.api!.readFile(path, null, { repoURL })
       .then(data => ({
         file: { path, id: null },
-        data: data as string,
+        content: rawContent(data as string),
       }))
-      .catch(() => ({ file: { path, id: null }, data: '' }));
+      // A read failure is reported as empty content, which `contentExists`
+      // reads as "no entry here". Long-standing behavior the slug-uniqueness
+      // check depends on.
+      .catch(() => ({ file: { path, id: null }, content: rawContent('') }));
   }
 
   getMedia(mediaFolder = this.mediaFolder, folderSupport?: boolean) {

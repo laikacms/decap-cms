@@ -11,7 +11,8 @@ import type {
   CmsPersistOptions,
   CmsUser,
 } from '@/lib/util/index';
-import type { Asset, BackendEntry, MediaFile, PersistPayload, UnpublishedEntry } from './entry';
+import type { BackendEntry, UnpublishedEntry } from './entry';
+import type { Asset, MediaFile, PersistPayload } from './persist';
 
 /**
  * What a backend implementation must provide. Instantiated by the engine

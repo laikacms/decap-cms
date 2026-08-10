@@ -6,12 +6,11 @@ vi.mock('@/backends/local-fs/directoryHandleStore', () => ({
   clearDirectoryHandle: vi.fn(),
 }));
 
-import LocalFsBackend, { isLocalFsSupported } from '@/backends/local-fs/implementation';
 import * as directoryHandleStore from '@/backends/local-fs/directoryHandleStore';
+import LocalFsBackend, { isLocalFsSupported } from '@/backends/local-fs/implementation';
 import { buildFakeTree, FakeDirectoryHandle } from './fakeFileSystem';
 
 import type { CmsConfig } from '@/lib/util/index';
-
 
 function makeConfig(overrides: Record<string, unknown> = {}): CmsConfig {
   return {
@@ -130,10 +129,10 @@ describe('LocalFsBackend', () => {
 
     const entries = await backend.entriesByFolder('content/posts', 'md', 5);
 
-    expect(entries.map(e => e.data).sort()).toEqual(['# One', '# Two']);
+    expect(entries.map(e => e.content.raw).sort()).toEqual(['# One', '# Two']);
     expect(await backend.getEntry('content/posts/one.md')).toEqual({
       file: { path: 'content/posts/one.md', id: 'content/posts/one.md' },
-      data: '# One',
+      content: { kind: 'raw', raw: '# One' },
     });
   });
 
@@ -148,7 +147,9 @@ describe('LocalFsBackend', () => {
       {} as never,
     );
 
-    expect(await backend.getEntry('content/posts/new.md')).toMatchObject({ data: '# New' });
+    expect(await backend.getEntry('content/posts/new.md')).toMatchObject({
+      content: { kind: 'raw', raw: '# New' },
+    });
     expect(root.children.has('content')).toBe(true);
   });
 

@@ -20,6 +20,7 @@ import {
 import API, { API_NAME } from './API';
 import AuthenticationPage from './AuthenticationPage';
 
+import type { BackendEntry } from '@/lib/backend/index';
 import type {
   AsyncLock,
   CmsAssetProxy,
@@ -28,7 +29,6 @@ import type {
   CmsDisplayURL,
   CmsFileEntry,
   CmsImplementation,
-  CmsImplementationEntry,
   CmsImplementationFile,
   CmsPersistOptions,
   CmsUser,
@@ -251,7 +251,7 @@ export default class Gitea implements CmsImplementation {
       API_NAME,
     );
 
-    (files as CursorCompatibleEntries<CmsImplementationEntry>)[CURSOR_COMPATIBILITY_SYMBOL] = cursor!;
+    (files as CursorCompatibleEntries<BackendEntry>)[CURSOR_COMPATIBILITY_SYMBOL] = cursor!;
     return files;
   }
 

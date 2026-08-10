@@ -1,5 +1,6 @@
 import { attempt, isEmpty, isError, take, unset } from 'lodash-es';
 
+import { rawContent } from '@/lib/backend/index';
 import {
   basename,
   ConfigurationError,
@@ -13,6 +14,7 @@ import {
 } from '@/lib/util/index';
 import AuthenticationPage from './AuthenticationPage';
 
+import type { BackendEntry } from '@/lib/backend/index';
 import type {
   CmsAssetProxy,
   CmsConfig,
@@ -20,7 +22,6 @@ import type {
   CmsEntry,
   CmsEntryLockOwner,
   CmsImplementation,
-  CmsImplementationEntry,
   CmsImplementationFile,
   CmsPersistOptions,
   CmsUser,
@@ -117,7 +118,7 @@ function isFolderCursorData(data: unknown): data is FolderCursorData {
 function getCursor(
   folder: string,
   extension: string,
-  entries: CmsImplementationEntry[],
+  entries: BackendEntry[],
   index: number,
   depth: number,
 ) {
@@ -264,7 +265,7 @@ export default class TestBackend implements CmsImplementation {
     })();
     const allFiles = getFolderFiles(window.repoFiles, folder, extension, depth);
     const allEntries = allFiles.map(f => ({
-      data: f.content as string,
+      content: rawContent(f.content as string),
       file: { path: f.path, id: f.path },
     }));
     const entries = allEntries.slice(newIndex * pageSize, newIndex * pageSize + pageSize);
@@ -275,13 +276,13 @@ export default class TestBackend implements CmsImplementation {
   entriesByFolder(folder: string, extension: string, depth: number) {
     const files = folder ? getFolderFiles(window.repoFiles, folder, extension, depth) : [];
     const entries = files.map(f => ({
-      data: f.content as string,
+      content: rawContent(f.content as string),
       file: { path: f.path, id: f.path },
     }));
     const cursor = getCursor(folder, extension, entries, 0, depth);
     const ret = take(entries, pageSize);
 
-    (ret as CursorCompatibleEntries<CmsImplementationEntry>)[CURSOR_COMPATIBILITY_SYMBOL] = cursor;
+    (ret as CursorCompatibleEntries<BackendEntry>)[CURSOR_COMPATIBILITY_SYMBOL] = cursor;
     return Promise.resolve(ret);
   }
 
@@ -289,7 +290,7 @@ export default class TestBackend implements CmsImplementation {
     return Promise.all(
       files.map(file => ({
         file,
-        data: getFile(file.path, window.repoFiles).content as string,
+        content: rawContent(getFile(file.path, window.repoFiles).content as string),
       })),
     );
   }
@@ -301,7 +302,7 @@ export default class TestBackend implements CmsImplementation {
     }
     return Promise.resolve({
       file: { path, id: null },
-      data: file.content as string,
+      content: rawContent(file.content as string),
     });
   }
 

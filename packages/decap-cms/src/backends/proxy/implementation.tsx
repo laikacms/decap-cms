@@ -1,8 +1,10 @@
 import { isError } from 'lodash-es';
 
+import { rawContent } from '@/lib/backend/index';
 import { APIError, blobToFileObj, EditorialWorkflowError, unsentRequest } from '@/lib/util/index';
 import AuthenticationPage from './AuthenticationPage';
 
+import type { BackendEntry } from '@/lib/backend/index';
 import type {
   CmsAssetProxy,
   CmsConfig,
@@ -37,6 +39,28 @@ function normalizeProxyUrl(proxyUrl: string) {
   } catch {
     return null;
   }
+}
+
+/**
+ * An entry as the proxy server sends it. The wire format is the CMS's
+ * pre-DCMS-1907 entry shape and stays that way: it is a protocol shared with
+ * `decap-server`, which this backend does not get to change unilaterally.
+ */
+type ProxyEntry = {
+  file: { path: string, id?: string | null, label?: string, author?: string, updatedOn?: string },
+  data: string,
+};
+
+function toBackendEntry({ file, data }: ProxyEntry): BackendEntry {
+  return {
+    file: {
+      path: file.path,
+      id: file.id,
+      ...(file.author ? { author: { name: file.author } } : {}),
+      updatedOn: file.updatedOn,
+    },
+    content: rawContent(data),
+  };
 }
 
 async function serializeAsset(assetProxy: CmsAssetProxy) {
@@ -143,25 +167,28 @@ export default class ProxyBackend implements CmsImplementation {
     }
   }
 
-  entriesByFolder(folder: string, extension: string, depth: number) {
-    return this.request({
+  async entriesByFolder(folder: string, extension: string, depth: number) {
+    const entries: ProxyEntry[] = await this.request({
       action: 'entriesByFolder',
       params: { branch: this.branch, folder, extension, depth },
     });
+    return entries.map(toBackendEntry);
   }
 
-  entriesByFiles(files: CmsImplementationFile[]) {
-    return this.request({
+  async entriesByFiles(files: CmsImplementationFile[]) {
+    const entries: ProxyEntry[] = await this.request({
       action: 'entriesByFiles',
       params: { branch: this.branch, files },
     });
+    return entries.map(toBackendEntry);
   }
 
-  getEntry(path: string) {
-    return this.request({
+  async getEntry(path: string) {
+    const entry: ProxyEntry = await this.request({
       action: 'getEntry',
       params: { branch: this.branch, path },
     });
+    return toBackendEntry(entry);
   }
 
   unpublishedEntries() {

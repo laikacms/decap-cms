@@ -183,7 +183,7 @@ describe('forgejo backend implementation', () => {
 
       const expectedEntries = files
         .slice(0, 20)
-        .map(({ id, path }) => ({ data: id, file: { path, id, author: '', updatedOn: '' } }));
+        .map(({ id, path }) => ({ content: { kind: 'raw', raw: id }, file: { path, id, updatedOn: '' } }));
 
       const expectedCursor = Cursor.create({
         actions: ['next', 'last'],

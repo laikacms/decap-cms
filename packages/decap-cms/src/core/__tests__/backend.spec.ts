@@ -980,7 +980,10 @@ describe('Backend', () => {
         getEntry: vi.fn(),
       };
 
-      implementation.getEntry.mockResolvedValueOnce({ data: 'data' });
+      implementation.getEntry.mockResolvedValueOnce({
+        file: { path: 'sub_dir/some-post-title' },
+        content: { kind: 'raw', raw: 'data' },
+      });
       implementation.getEntry.mockResolvedValueOnce();
 
       const collection = {

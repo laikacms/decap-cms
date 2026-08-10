@@ -11,15 +11,12 @@ export { assertNeverContent, parsedContent, rawContent } from './content';
 export type { BackendEntryContent, ParsedContent, RawContent } from './content';
 
 export type {
-  Asset,
   BackendEntry,
   BackendEntryFile,
-  DataFile,
-  MediaFile,
-  PersistPayload,
   UnpublishedEntry,
   UnpublishedEntryDiff,
 } from './entry';
+export type { Asset, DataFile, MediaFile, PersistPayload } from './persist';
 
 export type { BackendClass, BackendImplementation } from './implementation';
 

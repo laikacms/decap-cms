@@ -145,8 +145,8 @@ conditionally).
 0. Revert the interim seam diff, salvaging its design-independent pieces; sweep
    `exactOptionalPropertyTypes`. **Shipped.**
 1. Create `lib/domain` and `lib/backend`, unconsumed. **Shipped.**
-2. Engine adopts `Entry`.
-3. All backends adopt `BackendEntry`.
+2. Engine adopts `Entry`. **Shipped.**
+3. All backends adopt `BackendEntry`. **Shipped.**
 4. Media-off-entry and workflow composition, as separate PRs.
 5. Deletions (`CmsEntryValue`, `EntryValue` and its variants and creators, `CmsEntry`), docs,
    downstream consumers, optional no-`as` lint rule.
@@ -157,7 +157,9 @@ The staging is the point: main never carries a half-migrated type system.
 
 - **The seam break is loud and downstream.** Backends written against `CmsImplementation` stop
   compiling at stage 3 rather than misbehaving at runtime. Adapter migration for downstream
-  consumers becomes a checklist; the break is recorded in `breaking-changes-v4-beta.md`.
+  consumers becomes a checklist; the break is recorded in `breaking-changes-v4-beta.md`. In-tree
+  backends migrated at stage 3; out-of-tree ones keep running on a normalizing compatibility branch
+  in the engine until stage 5 removes it.
 - **Structured backends get faster and more faithful.** The parsed path adds zero serialize/parse
   round trips: content passes from backend to domain entry by reference. The raw path keeps today's
   single parse per entry.

@@ -32,7 +32,7 @@ describe('test backend implementation', () => {
 
       await expect(backend.getEntry('posts/some-post.md')).resolves.toEqual({
         file: { path: 'posts/some-post.md', id: null },
-        data: 'post content',
+        content: { kind: 'raw', raw: 'post content' },
       });
     });
 
@@ -53,7 +53,7 @@ describe('test backend implementation', () => {
 
       await expect(backend.getEntry('posts/dir1/dir2/some-post.md')).resolves.toEqual({
         file: { path: 'posts/dir1/dir2/some-post.md', id: null },
-        data: 'post content',
+        content: { kind: 'raw', raw: 'post content' },
       });
     });
 

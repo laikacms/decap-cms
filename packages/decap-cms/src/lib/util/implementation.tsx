@@ -1,13 +1,15 @@
 import { sortBy, unionBy } from 'lodash-es';
 
+import { rawContent } from '@/lib/backend/content';
 import { basename } from './core-utils/path.js';
 import createSemaphore from './semaphore';
 
+import type { BackendEntry } from '@/lib/backend/entry';
 import type { FileMetadata } from './API';
 import type { AsyncLock } from './asyncLock';
 import type { LocalForage } from './localForage';
 import type { Semaphore } from './semaphore';
-import type { CmsDisplayURL, CmsDisplayURLObject, CmsImplementationEntry, CmsImplementationFile } from './types/cms';
+import type { CmsDisplayURL, CmsDisplayURLObject, CmsImplementationFile } from './types/cms';
 
 const MAX_CONCURRENT_DOWNLOADS = 10;
 
@@ -19,8 +21,13 @@ type ReadFile = (
 
 type ReadFileMetadata = (path: string, id: string | null | undefined) => Promise<FileMetadata>;
 
-type CustomFetchFunc = (files: CmsImplementationFile[]) => Promise<CmsImplementationEntry[]>;
+type CustomFetchFunc = (files: CmsImplementationFile[]) => Promise<BackendEntry[]>;
 
+/**
+ * File-backed backends read text, so their entries always cross the seam as
+ * raw content for the collection's format to parse. `file.label` is not carried
+ * over: it is collection config the engine already has.
+ */
 async function fetchFiles(
   files: CmsImplementationFile[],
   readFile: ReadFile,
@@ -28,7 +35,7 @@ async function fetchFiles(
   apiName: string,
 ) {
   const sem = createSemaphore(MAX_CONCURRENT_DOWNLOADS);
-  const promises = [] as Promise<CmsImplementationEntry | { error: boolean }>[];
+  const promises = [] as Promise<BackendEntry | { error: boolean }>[];
   files.forEach(file => {
     promises.push(
       new Promise(resolve =>
@@ -38,7 +45,17 @@ async function fetchFiles(
               readFile(file.path, file.id, { parseText: true }),
               readFileMetadata(file.path, file.id),
             ]);
-            resolve({ file: { ...file, ...fileMetadata }, data: data as string });
+            resolve({
+              file: {
+                path: file.path,
+                id: file.id,
+                // An empty author string is "the backend didn't say", not an
+                // author whose name is blank.
+                ...(fileMetadata.author ? { author: { name: fileMetadata.author } } : {}),
+                updatedOn: fileMetadata.updatedOn,
+              },
+              content: rawContent(data as string),
+            });
             sem.leave();
           } catch (error: unknown) {
             sem.leave();
@@ -51,7 +68,7 @@ async function fetchFiles(
   });
   return Promise.all(promises).then(loadedEntries =>
     loadedEntries.filter(loadedEntry => !(loadedEntry as { error: boolean }).error)
-  ) as Promise<CmsImplementationEntry[]>;
+  ) as Promise<BackendEntry[]>;
 }
 
 export async function entriesByFolder(

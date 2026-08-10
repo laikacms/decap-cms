@@ -488,7 +488,8 @@ export default class GitGateway implements Implementation {
       'Git-Gateway',
     );
     const entry = items[0];
-    const pointerFile = parsePointerFile(entry.data);
+    // Large-media pointers are files like any other, so they arrive as raw text.
+    const pointerFile = parsePointerFile(entry.content.kind === 'raw' ? entry.content.raw : '');
     if (!pointerFile.sha) {
       console.warn(`Failed parsing pointer file ${path}`);
       return { url: path, blob: new Blob() };

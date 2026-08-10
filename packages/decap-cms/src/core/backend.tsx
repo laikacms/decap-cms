@@ -21,7 +21,7 @@ import { stringTemplate } from '@/lib/widgets/index';
 import { FILES, FOLDER } from './constants/collectionTypes';
 import { status } from './constants/publishModes';
 import { resolveFormat } from './formats/formats';
-import { entryDataFromContent, legacyRaw, toBackendEntry } from './lib/backendEntry';
+import { contentExists, entryDataFromContent, legacyRaw, toBackendEntry } from './lib/backendEntry';
 import { commitMessageFormatter, previewUrlFormatter, slugFormatter } from './lib/formatters';
 import {
   formatI18nBackup,
@@ -75,12 +75,13 @@ import type {
   CmsEntryLock,
   CmsEntryLockOwner,
   CmsGetMediaPageOptions,
-  CmsImplementationEntry,
+  CmsLoadedEntry,
   CmsUnpublishedEntry,
   CmsUnpublishedEntryDiff,
   CmsUser,
   CursorCompatibleEntries,
 } from '@/lib/util/index';
+import type { BackendEntryContent } from '@/lib/backend/index';
 import type { I18nInfo } from './lib/i18n';
 import type { EntryDraft } from './reducers/entryDraft';
 import type AssetProxy from './valueObjects/AssetProxy';
@@ -734,10 +735,8 @@ export class Backend {
 
     const publishedEntry = await this.implementation
       .getEntry(path, useWorkflow)
-      .then(({ data }) => data)
-      .catch(() => {
-        return Promise.resolve(false);
-      });
+      .then(loaded => contentExists(toBackendEntry(loaded).content))
+      .catch(() => false);
 
     return publishedEntry;
   }
@@ -774,7 +773,7 @@ export class Backend {
     return uniqueSlug;
   }
 
-  processEntries(loadedEntries: CmsImplementationEntry[], collection: CmsCollectionState) {
+  processEntries(loadedEntries: CmsLoadedEntry[], collection: CmsCollectionState) {
     const formattedEntries = loadedEntries.map(loadedEntry => {
       const { file, content } = toBackendEntry(loadedEntry);
       const slug = selectEntrySlug(collection, file.path) ?? '';
@@ -804,7 +803,7 @@ export class Backend {
 
   async listEntries(collection: CmsCollectionState) {
     const extension = selectFolderEntryExtension(collection);
-    let listMethod: () => Promise<CmsImplementationEntry[]>;
+    let listMethod: () => Promise<CmsLoadedEntry[]>;
     const collectionType = collection.type;
     if (collectionType === FOLDER) {
       listMethod = () => {
@@ -828,7 +827,7 @@ export class Backend {
         */
 
     const cursor = Cursor.create(
-      (loadedEntries as CursorCompatibleEntries<CmsImplementationEntry>)[
+      (loadedEntries as CursorCompatibleEntries<CmsLoadedEntry>)[
         CURSOR_COMPATIBILITY_SYMBOL
       ],
     ).wrapData({
@@ -1203,10 +1202,10 @@ export class Backend {
       f => f.path.length,
     );
 
-    const formatData = (raw: string, path: string, newFile: boolean) => {
+    const formatData = (content: BackendEntryContent, path: string, newFile: boolean) => {
       return createEntry(collection.name, slug, path, {
-        raw,
-        data: entryDataFromContent(collection, path, rawContent(raw)),
+        raw: legacyRaw(content),
+        data: entryDataFromContent(collection, path, content),
         isModification: !newFile,
         label: collection && selectFileEntryLabel(collection, slug),
         mediaFiles,
@@ -1224,7 +1223,7 @@ export class Backend {
         dataFile.path,
         dataFile.id,
       );
-      const entryWithFormat = formatData(data, dataFile.path, dataFile.newFile);
+      const entryWithFormat = formatData(rawContent(data), dataFile.path, dataFile.newFile);
       return entryWithFormat;
     };
 
@@ -1233,7 +1232,8 @@ export class Backend {
       const loadedEntry = await this.implementation.getEntry(
         selectEntryPath(collection, slug) as string,
       );
-      return formatData(loadedEntry.data, loadedEntry.file.path, false);
+      const { file, content } = toBackendEntry(loadedEntry);
+      return formatData(content, file.path, false);
     } else if (hasI18n(collection)) {
       // we need to read all locales files and not just the changes
       const path = selectEntryPath(collection, slug) as string;

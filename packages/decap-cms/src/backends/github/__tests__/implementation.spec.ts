@@ -214,7 +214,7 @@ describe('github backend implementation', () => {
 
       const expectedEntries = files
         .slice(0, 20)
-        .map(({ id, path }) => ({ data: id, file: { path, id, author: '', updatedOn: '' } }));
+        .map(({ id, path }) => ({ content: { kind: 'raw', raw: id }, file: { path, id, updatedOn: '' } }));
 
       const expectedCursor = Cursor.create({
         actions: ['next', 'last'],
@@ -267,7 +267,7 @@ describe('github backend implementation', () => {
 
       const expectedEntries = files
         .slice(20, 40)
-        .map(({ id, path }) => ({ data: id, file: { path, id } }));
+        .map(({ id, path }) => ({ content: { kind: 'raw', raw: id }, file: { path, id } }));
 
       const expectedCursor = Cursor.create({
         actions: ['prev', 'first', 'next', 'last'],
@@ -295,7 +295,7 @@ describe('github backend implementation', () => {
 
       const expectedEntries = files
         .slice(0, 20)
-        .map(({ id, path }) => ({ data: id, file: { path, id } }));
+        .map(({ id, path }) => ({ content: { kind: 'raw', raw: id }, file: { path, id } }));
 
       const expectedCursor = Cursor.create({
         actions: ['next', 'last'],
@@ -323,7 +323,7 @@ describe('github backend implementation', () => {
 
       const expectedEntries = files
         .slice(1500)
-        .map(({ id, path }) => ({ data: id, file: { path, id } }));
+        .map(({ id, path }) => ({ content: { kind: 'raw', raw: id }, file: { path, id } }));
 
       const expectedCursor = Cursor.create({
         actions: ['prev', 'first'],
@@ -351,7 +351,7 @@ describe('github backend implementation', () => {
 
       const expectedEntries = files
         .slice(0, 20)
-        .map(({ id, path }) => ({ data: id, file: { path, id } }));
+        .map(({ id, path }) => ({ content: { kind: 'raw', raw: id }, file: { path, id } }));
 
       const expectedCursor = Cursor.create({
         actions: ['next', 'last'],

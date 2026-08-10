@@ -1,5 +1,6 @@
 import { trimStart } from 'lodash-es';
 
+import { rawContent } from '@/lib/backend/index';
 import { NetlifyAuthenticator } from '@/lib/auth/index';
 import { stripIndent } from '@/lib/util/index';
 import {
@@ -33,6 +34,7 @@ import AuthenticationPage from './AuthenticationPage';
 import { GitLfsClient } from './git-lfs-client';
 
 import type { NetlifyAuthResult } from '@/lib/auth/index';
+import type { BackendEntry } from '@/lib/backend/index';
 import type {
   ApiRequest,
   AsyncLock,
@@ -42,7 +44,6 @@ import type {
   CmsDisplayURL,
   CmsFileEntry,
   CmsImplementation,
-  CmsImplementationEntry,
   CmsImplementationFile,
   CmsPersistOptions,
   CmsUser,
@@ -349,7 +350,7 @@ export default class BitbucketBackend implements CmsImplementation {
       API_NAME,
     );
 
-    (files as CursorCompatibleEntries<CmsImplementationEntry>)[CURSOR_COMPATIBILITY_SYMBOL] = cursor!;
+    (files as CursorCompatibleEntries<BackendEntry>)[CURSOR_COMPATIBILITY_SYMBOL] = cursor!;
     return files;
   }
 
@@ -397,7 +398,7 @@ export default class BitbucketBackend implements CmsImplementation {
   getEntry(path: string) {
     return this.api!.readFile(path).then(data => ({
       file: { path, id: null },
-      data: data as string,
+      content: rawContent(data as string),
     }));
   }
 

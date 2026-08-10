@@ -14,9 +14,10 @@ import type { CmsCollectionState, CmsImplementationEntry } from '@/lib/util/inde
 
 /**
  * Normalizes what an implementation returned to the seam shape. Backends that
- * already produce `BackendEntry` are passed through untouched, so they can
- * move over one at a time in stage 3; the legacy `{ data: string }` branch and
- * this function with it go away once the last one has.
+ * already produce `BackendEntry` are passed through untouched. Every backend
+ * shipped in this package does, so the legacy `{ data: string }` branch exists
+ * only for third-party implementations written against the pre-DCMS-1907
+ * contract; it goes away with `CmsImplementationEntry` in stage 5.
  *
  * `file.label` is deliberately dropped from the legacy shape: the label is
  * collection config, which the engine already has, so it does not need to be
@@ -78,4 +79,25 @@ export function entryDataFromContent(
  */
 export function legacyRaw(content: BackendEntryContent): string {
   return content.kind === 'raw' ? content.raw : '';
+}
+
+/**
+ * Whether content that was fetched successfully means "an entry lives here",
+ * for the duplicate-slug check. Content shape must not change the answer:
+ *
+ * - raw: non-empty text. Backends that report a missing file by resolving with
+ *   empty text rather than rejecting (github does) depend on this, and
+ *   `generateUniqueSlug` loops forever if a missing entry reads as existing.
+ * - parsed: always. A record the backend returned exists, even when it has no
+ *   fields yet; there is no empty-string sentinel to confuse it with.
+ */
+export function contentExists(content: BackendEntryContent): boolean {
+  switch (content.kind) {
+    case 'raw':
+      return Boolean(content.raw);
+    case 'parsed':
+      return true;
+    default:
+      return assertNeverContent(content);
+  }
 }

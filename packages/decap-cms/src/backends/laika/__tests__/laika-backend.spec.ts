@@ -308,7 +308,7 @@ describe('LaikaBackend.getEntry()', () => {
     (backend as any).tokenPromise = () => Promise.resolve('fake-token');
   });
 
-  it('returns an ImplementationEntry when the document exists', async () => {
+  it('returns a BackendEntry when the document exists', async () => {
     const doc = { key: 'articles/hello', content: { title: 'Hello' }, type: 'published' };
     mockDocRepo.getDocument.mockReturnValue(succeed(doc));
 
@@ -316,8 +316,8 @@ describe('LaikaBackend.getEntry()', () => {
 
     expect(entry).toMatchObject({
       file: { path: 'articles/hello', id: 'articles/hello' },
+      content: { kind: 'parsed', data: { title: 'Hello' } },
     });
-    expect(typeof entry.data).toBe('string');
   });
 
   it('strips .json extension from the key before querying', async () => {
@@ -454,23 +454,35 @@ describe('LaikaBackend.getEntry()', () => {
     expect(mockDocRepo.getDocument).toHaveBeenCalledTimes(1);
   });
 
-  it('serialises object content to JSON string', async () => {
-    const doc = { key: 'articles/obj', content: { foo: 'bar' }, type: 'published' };
+  it('hands document content over structured, by reference', async () => {
+    const content = { foo: 'bar' };
+    const doc = { key: 'articles/obj', content, type: 'published' };
     mockDocRepo.getDocument.mockReturnValue(succeed(doc));
 
     const entry = await backend.getEntry('articles/obj');
 
-    expect(entry.data).toBe(JSON.stringify({ foo: 'bar' }));
+    // The whole point of the parsed variant: no stringify/parse round trip.
+    expect(entry.content).toEqual({ kind: 'parsed', data: content });
+    expect((entry.content as { data: unknown }).data).toBe(content);
   });
 
-  it('preserves string content as-is', async () => {
+  it('carries text content as raw, for the collection format to parse', async () => {
     const raw = '# Markdown content\n\nHello world.';
     const doc = { key: 'articles/raw', content: raw, type: 'published' };
     mockDocRepo.getDocument.mockReturnValue(succeed(doc));
 
     const entry = await backend.getEntry('articles/raw');
 
-    expect(entry.data).toBe(raw);
+    expect(entry.content).toEqual({ kind: 'raw', raw });
+  });
+
+  it('falls back to JSON text for content that has no field shape', async () => {
+    const doc = { key: 'articles/list', content: [1, 2, 3], type: 'published' };
+    mockDocRepo.getDocument.mockReturnValue(succeed(doc));
+
+    const entry = await backend.getEntry('articles/list');
+
+    expect(entry.content).toEqual({ kind: 'raw', raw: '[1,2,3]' });
   });
 
   it('logs a recoverableError emitted by the repo via console.warn while still returning the entry', async () => {
