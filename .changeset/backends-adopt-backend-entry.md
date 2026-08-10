@@ -12,6 +12,10 @@ display label is no longer echoed back (it comes from collection config).
 The shared `entriesByFolder` / `entriesByFiles` / `allEntriesByFolder` helpers exported from
 `@laikacms/decap-cms/lib/backend` return `BackendEntry[]` as a result.
 
+A commit that names nobody now yields no author at all, rather than an author whose name is the
+empty string. The shared helpers already worked this way; GitLab's GraphQL read path did not, and
+now matches.
+
 **Breaking:** `{ data: string, file }` is no longer accepted anywhere, and the
 `CmsImplementationEntry` type is removed. A custom backend must return `content: rawContent(text)`
 (file storage) or `content: parsedContent(data)` (document storage) from `getEntry`,

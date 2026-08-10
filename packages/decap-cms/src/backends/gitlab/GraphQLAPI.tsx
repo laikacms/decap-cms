@@ -135,14 +135,24 @@ export default class GraphQLAPI extends API {
     ]);
 
     const blobs = blobsResults.flat().map(result => result.data) as string[];
-    const metadata = commitsResults.flat().map(({ author, authoredDate, authorName }) => ({
-      author: {
-        name: author?.name || author?.username || author?.publicEmail || authorName,
-        // GitLab usernames are stable, display names are not.
-        ...(author?.username === undefined ? {} : { id: author.username }),
-      },
-      updatedOn: authoredDate,
-    }));
+    const metadata = commitsResults.flat().map(({ author, authoredDate, authorName }) => {
+      const name = author?.name || author?.username || author?.publicEmail || authorName;
+      return {
+        // A commit GitLab can name nobody for yields no author at all, rather
+        // than one whose name is blank: absent is what the seam says for
+        // "the backend didn't attest to this".
+        ...(name
+          ? {
+            author: {
+              name,
+              // GitLab usernames are stable, display names are not.
+              ...(author?.username ? { id: author.username } : {}),
+            },
+          }
+          : {}),
+        updatedOn: authoredDate,
+      };
+    });
 
     const filesWithData: BackendEntry[] = files.map((file, index) => ({
       file: {
