@@ -32,16 +32,19 @@ export interface CmsMediaLibrary {
   allow_multiple?: boolean | undefined;
 }
 
+// Mirrors `MediaFile` in `src/core/backend.tsx`: assembled from backend media
+// payloads that report these fields inconsistently, so an explicit `undefined`
+// means "not reported".
 export interface CmsBackendMediaFile {
   name: string;
   id: string;
-  size?: number;
-  displayURL?: CmsDisplayURL;
+  size?: number | undefined;
+  displayURL?: CmsDisplayURL | undefined;
   path: string;
-  draft?: boolean;
-  url?: string;
-  file?: File;
-  field?: CmsEntryField;
+  draft?: boolean | undefined;
+  url?: string | undefined;
+  file?: File | undefined;
+  field?: CmsEntryField | undefined;
   /**
    * Set when this entry represents a folder rather than an asset. Only
    * populated when `folderSupport` was requested from a backend that can
@@ -49,10 +52,10 @@ export interface CmsBackendMediaFile {
    * without `folderSupport`) simply never set it, so consumers should treat
    * its absence the same as `false`.
    */
-  isDirectory?: boolean;
+  isDirectory?: boolean | undefined;
 }
 
-export type CmsMediaFile = CmsBackendMediaFile & { key?: string };
+export type CmsMediaFile = CmsBackendMediaFile & { key?: string | undefined };
 
 export type CmsMediaFileMap = CmsMediaFile;
 

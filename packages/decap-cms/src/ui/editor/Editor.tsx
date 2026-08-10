@@ -177,7 +177,7 @@ export function Editor({
   ariaDescribedBy,
 }: {
   editorState?: EditorState,
-  editorSerializedState?: SerializedEditorState,
+  editorSerializedState?: SerializedEditorState | undefined,
   /**
    * Mapper id of the field's storage format (see `lib/richtext` registry).
    * Drives the source-view toggle; the editor itself only speaks Portable
@@ -192,7 +192,7 @@ export function Editor({
    * referentially stable across renders: node registration happens at
    * composer mount, so a new identity remounts the editor.
    */
-  extensions?: FormatLexicalExtras,
+  extensions?: FormatLexicalExtras | undefined,
   /**
    * Custom-block context for this instance: the per-field block map plus the
    * inline prop-form renderer injected by the widget layer. The default
@@ -209,20 +209,20 @@ export function Editor({
   /** Empty-state placeholder text shown in the editable region. Threaded
    * down from the Decap field's `placeholder` config; falls back to the
    * built-in default when unset. */
-  placeholder?: string,
+  placeholder?: string | undefined,
   /** Threaded down from the Decap widget layer's validation state onto the
    * editable region so screen readers can identify a failed-save required
    * field (WCAG 2.1 3.3.1 / 3.3.3). */
   ariaRequired?: boolean,
-  ariaInvalid?: boolean,
-  ariaErrorMessage?: string,
+  ariaInvalid?: boolean | undefined,
+  ariaErrorMessage?: string | undefined,
   /** Accessible name for the editable `role="textbox"` div, since `<label
    * htmlFor>` silently fails to associate with non-labelable elements like
    * `<div>` (WCAG 4.1.2 / DCMS-1275). */
   ariaLabel?: string,
   /** Id of the field's hint text, threaded onto the editable region via
    * `aria-describedby` (DCMS-1298). */
-  ariaDescribedBy?: string,
+  ariaDescribedBy?: string | undefined,
 }) {
   const {
     toolbarItems: rawToolbarItems,

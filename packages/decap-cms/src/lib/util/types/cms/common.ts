@@ -118,7 +118,7 @@ export type CmsEntryCodec = {
    */
   getFormatter?(
     name: string,
-    opts?: { customDelimiter?: CmsEntryCodecDelimiter },
+    opts?: { customDelimiter?: CmsEntryCodecDelimiter | undefined },
   ): CmsFormatterFunctions,
   /** Format names (of this codec) that accept `frontmatter_delimiter`. */
   frontmatterFormats?: string[],
@@ -151,7 +151,7 @@ export type CmsFrontmatterCodec = {
    */
   stringify?(
     metadata: object,
-    opts?: { sortedKeys?: string[], comments?: Record<string, string> },
+    opts?: { sortedKeys?: string[] | undefined, comments?: Record<string, string> | undefined },
   ): string,
 };
 
@@ -190,28 +190,29 @@ export type CmsUser = CmsCredentials & {
 
 export type CmsAssetProxy = {
   path: string,
-  url?: string,
-  fileObj?: File,
+  url?: string | undefined,
+  fileObj?: File | undefined,
   toBase64: () => Promise<string>,
-  sha?: string | null, // For git-based backends
+  sha?: string | null | undefined, // For git-based backends
 };
 
 export type CmsDataFile = {
   path: string,
   slug: string,
   raw: string,
-  newPath?: string,
-  sha?: string | null, // For git-based backends
+  // Set only when the entry moved; carried through as-is from the caller.
+  newPath?: string | undefined,
+  sha?: string | null | undefined, // For git-based backends
 };
 
 export type CmsPersistOptions = {
-  newEntry?: boolean,
+  newEntry?: boolean | undefined,
   commitMessage: string,
-  collectionName?: string,
-  useWorkflow?: boolean,
-  unpublished?: boolean,
-  status?: string,
-  hasSubfolders?: boolean,
+  collectionName?: string | undefined,
+  useWorkflow?: boolean | undefined,
+  unpublished?: boolean | undefined,
+  status?: string | undefined,
+  hasSubfolders?: boolean | undefined,
 };
 
 export type CmsDeleteOptions = Record<string, unknown>;

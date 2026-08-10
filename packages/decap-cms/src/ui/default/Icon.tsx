@@ -65,7 +65,7 @@ const sizes: Record<IconSize, string> = {
 
 export interface IconProps {
   type: IconName;
-  direction?: IconDirection;
+  direction?: IconDirection | undefined;
   size?: IconSize | string;
   className?: string;
 }

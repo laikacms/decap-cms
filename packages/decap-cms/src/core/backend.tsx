@@ -381,16 +381,19 @@ interface BackendOptions {
   authStore?: AuthStore;
 }
 
+// Assembled from backend media payloads, which report these fields
+// inconsistently, so an explicitly-`undefined` field is "not reported" rather
+// than a key the producer must omit.
 export interface MediaFile {
   name: string;
   id: string;
-  size?: number;
-  displayURL?: CmsDisplayURL;
+  size?: number | undefined;
+  displayURL?: CmsDisplayURL | undefined;
   path: string;
-  draft?: boolean;
-  url?: string;
-  file?: File;
-  field?: CmsEntryField;
+  draft?: boolean | undefined;
+  url?: string | undefined;
+  file?: File | undefined;
+  field?: CmsEntryField | undefined;
 }
 
 interface BackupEntry {
@@ -417,10 +420,10 @@ interface SerializedFile {
 
 function isSerializedFile(value: unknown): value is SerializedFile {
   return (
-    !!value &&
-    typeof value === 'object' &&
-    (value as Partial<SerializedFile>).__type === SERIALIZED_FILE_TYPE &&
-    typeof (value as Partial<SerializedFile>).base64 === 'string'
+    !!value
+    && typeof value === 'object'
+    && (value as Partial<SerializedFile>).__type === SERIALIZED_FILE_TYPE
+    && typeof (value as Partial<SerializedFile>).base64 === 'string'
   );
 }
 
@@ -554,7 +557,7 @@ export class Backend {
   implementation: Implementation;
   backendName: string;
   config: CmsConfig;
-  authStore?: AuthStore;
+  authStore: AuthStore | undefined;
   user?: CmsUser | null;
   backupSync: AsyncLock;
 

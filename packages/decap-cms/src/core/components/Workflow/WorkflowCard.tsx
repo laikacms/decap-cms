@@ -161,7 +161,7 @@ const CardDate = translate()(({
 }: {
   t: TranslateFunction,
   date?: string,
-  author?: string,
+  author?: string | undefined,
 }) => {
   const key = lastChangePhraseKey(date, author);
   if (key) {
@@ -172,7 +172,7 @@ const CardDate = translate()(({
 
 interface WorkflowCardProps {
   collectionLabel: string;
-  title?: string;
+  title?: string | undefined;
   authorLastChange?: string;
   body?: string;
   isModification?: boolean;

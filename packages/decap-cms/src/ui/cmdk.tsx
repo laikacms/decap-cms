@@ -148,7 +148,7 @@ type Context = {
 type State = {
   search: string,
   value: string,
-  selectedItemId?: string,
+  selectedItemId?: string | undefined,
   filtered: { count: number, items: Map<string, number>, groups: Set<string> },
 };
 type Store = {
@@ -159,7 +159,7 @@ type Store = {
 };
 type Group = {
   id: string,
-  forceMount?: boolean,
+  forceMount?: boolean | undefined,
 };
 
 const GROUP_SELECTOR = `[cmdk-group=""]`;
@@ -196,7 +196,7 @@ const Command = React.forwardRef<HTMLDivElement, CommandProps>((props, forwarded
   }));
   const allItems = useLazyRef<Set<string>>(() => new Set()); // [...itemIds]
   const allGroups = useLazyRef<Map<string, Set<string>>>(() => new Map()); // groupId -> [...itemIds]
-  const ids = useLazyRef<Map<string, { value: string, keywords?: string[] }>>(() => new Map()); // id -> { value, keywords }
+  const ids = useLazyRef<Map<string, { value: string, keywords?: string[] | undefined }>>(() => new Map()); // id -> { value, keywords }
   const listeners = useLazyRef<Set<() => void>>(() => new Set()); // [...rerenders]
   const propsRef = useAsRef(props);
   const {

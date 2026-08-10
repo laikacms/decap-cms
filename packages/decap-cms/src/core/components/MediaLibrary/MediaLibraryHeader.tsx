@@ -39,7 +39,7 @@ const CloseButton = styled.button`
   }
 `;
 
-const LibraryTitle = styled.h1<{ $isPrivate?: boolean }>`
+const LibraryTitle = styled.h1<{ $isPrivate?: boolean | undefined }>`
   font-size: 18px;
   line-height: 28px;
   text-align: left;
@@ -56,7 +56,7 @@ const LibraryTitle = styled.h1<{ $isPrivate?: boolean }>`
 interface MediaLibraryHeaderProps {
   onClose: () => void;
   title: string;
-  isPrivate?: boolean;
+  isPrivate?: boolean | undefined;
   t: TranslateFunction;
 }
 

@@ -31,7 +31,7 @@ const stateColors: StateColorsMap = {
 
 export interface FieldLabelStateProps {
   $isActive?: boolean;
-  $hasErrors?: boolean;
+  $hasErrors?: boolean | undefined;
 }
 
 function getStateColors({ $isActive, $hasErrors }: FieldLabelStateProps): StateColors {

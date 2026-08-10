@@ -235,7 +235,7 @@ export interface LaikaNavSection {
 export interface LaikaSidebarProps {
   collections: CmsCollections;
   /** Authenticated user's scopes, used to omit inaccessible collections. */
-  userScopes?: string[];
+  userScopes?: string[] | undefined;
   /**
    * Optional click handler. The default behavior (navigation via `NavLink`)
    * still runs; this fires alongside for analytics or custom side-effects.
@@ -291,7 +291,7 @@ function LaikaSidebar({ collections, userScopes, onCollectionClick, extraNavSect
 
   const renderNavItem = (item: LaikaNavItem) => (
     <SidebarListItem key={item.to}>
-      <SidebarLink to={item.to} end={item.end}>
+      <SidebarLink to={item.to} end={item.end ?? false}>
         <Icon type={item.icon ?? 'page'} />
         <SidebarLinkLabel>{item.label}</SidebarLinkLabel>
         {item.badge != null ? <SidebarLinkBadge>{item.badge}</SidebarLinkBadge> : null}

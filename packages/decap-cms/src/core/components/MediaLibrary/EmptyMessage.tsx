@@ -3,7 +3,7 @@ import React from 'react';
 
 import { colors } from '@/ui/default/index';
 
-const EmptyMessageContainer = styled.div<{ $isPrivate?: boolean }>`
+const EmptyMessageContainer = styled.div<{ $isPrivate?: boolean | undefined }>`
   height: 100%;
   width: 100%;
   display: flex;
@@ -22,7 +22,7 @@ const EmptyMessageText = styled.p`
 
 interface EmptyMessageProps {
   content: string;
-  isPrivate?: boolean;
+  isPrivate?: boolean | undefined;
 }
 
 function EmptyMessage({ content, isPrivate }: EmptyMessageProps) {

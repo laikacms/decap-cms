@@ -70,10 +70,10 @@ export type DocumentContext = {
   data: unknown, // Document data for the active locale
   '$dataTruncatedToMaxLength'?: number, // Indicates if the data was truncated
   slug: string,
-  collection?: string,
+  collection?: string | undefined,
   schema?: string, // JSON string of the collection schema, truncated if necessary
   '$schemaTruncatedToMaxLength'?: number, // Indicates if the schema was truncated
-  locale?: string, // Current locale being edited (for i18n support)
+  locale?: string | undefined, // Current locale being edited (for i18n support)
 };
 
 /**

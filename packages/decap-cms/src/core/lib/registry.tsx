@@ -33,12 +33,14 @@ interface CmsRegistryBackend {
   init: (config: CmsConfig, opts?: Record<string, unknown>) => CmsImplementation;
 }
 
+// Registry entries are stored as-provided, so an explicitly-passed `undefined`
+// is a value the registry holds rather than an absent key.
 interface CmsWidget {
   control: unknown;
   preview?: unknown;
   globalStyles?: unknown;
   schema?: unknown;
-  allowMapValue?: boolean;
+  allowMapValue?: boolean | undefined;
   [key: string]: unknown;
 }
 
@@ -49,7 +51,7 @@ interface Registry {
   widgets: Record<string, CmsWidget>;
   remarkPlugins: unknown[];
   widgetValueSerializers: Record<string, CmsWidgetValueSerializer>;
-  mediaLibraries: (CmsMediaLibrary & { options?: CmsMediaLibraryOptions })[];
+  mediaLibraries: (CmsMediaLibrary & { options?: CmsMediaLibraryOptions | undefined })[];
   locales: Record<string, CmsLocalePhrases>;
   eventHandlers: Record<CmsAllowedEvent, EventHandler[]>;
   formats: Record<string, CmsFormatter>;

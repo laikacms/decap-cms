@@ -22,7 +22,7 @@ const sizeMap: Record<LaikaIconButtonSize, { box: string, icon: string }> = {
 const Button = styled('button', { shouldForwardProp: laikaShouldForwardProp })<{
   $size: LaikaIconButtonSize,
   $intent: LaikaIconButtonIntent,
-  $active?: boolean,
+  $active?: boolean | undefined,
 }>`
   display: inline-flex;
   align-items: center;

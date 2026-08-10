@@ -53,7 +53,7 @@ const ENTRY_LOCK_REFRESH_INTERVAL_MS = 60_000;
 
 interface UseEditorOptions {
   collectionName: string;
-  slug?: string;
+  slug?: string | undefined;
   newEntry: boolean;
   locationSearch: string;
   locationPathname: string;

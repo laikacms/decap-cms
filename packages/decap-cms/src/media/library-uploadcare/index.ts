@@ -61,7 +61,8 @@ function openDialog({
   files: unknown,
   config: Record<string, unknown>,
   handleInsert: (value: string | string[]) => void,
-  settings?: Settings,
+  // Defaulted above, so an explicitly-passed `undefined` selects the default.
+  settings?: Settings | undefined,
 }) {
   if (settings.defaultOperations && !settings.defaultOperations.startsWith('/')) {
     console.warn(

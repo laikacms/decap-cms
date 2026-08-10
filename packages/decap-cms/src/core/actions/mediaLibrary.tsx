@@ -612,21 +612,24 @@ export function mediaLoading(page: number) {
   } as const;
 }
 
+// Spread verbatim into the action payload, so an explicitly-`undefined` field
+// (read off config or a backend response) is passed through rather than
+// forcing every call site to build the bag key by key.
 interface MediaOptions {
-  privateUpload?: boolean;
-  field?: EntryField;
-  page?: number;
-  canPaginate?: boolean;
-  dynamicSearch?: boolean;
-  dynamicSearchQuery?: string;
+  privateUpload?: boolean | undefined;
+  field?: EntryField | undefined;
+  page?: number | undefined;
+  canPaginate?: boolean | undefined;
+  dynamicSearch?: boolean | undefined;
+  dynamicSearchQuery?: string | undefined;
   /**
    * Authoritative "more pages exist" signal from a cursor-paginated backend.
    * When absent the reducer falls back to the legacy heuristic
    * (`canPaginate && files.length > 0`).
    */
-  hasNextPage?: boolean;
+  hasNextPage?: boolean | undefined;
   /** Continuation cursor for the next `loadMedia` page; absent when exhausted. */
-  cursor?: string;
+  cursor?: string | undefined;
 }
 
 export function mediaLoaded(files: MediaFile[], opts: MediaOptions = {}) {

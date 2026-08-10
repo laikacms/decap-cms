@@ -36,8 +36,8 @@ const DragIconContainer = styled(TopBarButtonSpan)`
 `;
 
 interface DragHandleProps {
-  Wrapper: React.ComponentType<{ id?: string, children: React.ReactNode }>;
-  id?: string;
+  Wrapper: React.ComponentType<{ id?: string | undefined, children: React.ReactNode }>;
+  id?: string | undefined;
 }
 
 function DragHandle({ Wrapper, id }: DragHandleProps): React.ReactElement {
@@ -61,10 +61,10 @@ export interface ListItemTopBarProps {
   // pointed at the panel even while collapsed (Base UI only emits
   // `aria-controls` when `open`, see DCMS-1725).
   panelId?: string;
-  onCollapseToggle?: () => void;
+  onCollapseToggle?: (() => void) | undefined;
   onRemove?: () => void;
   allowRemove?: boolean;
-  dragHandle?: React.ComponentType<{ id?: string, children: React.ReactNode }>;
+  dragHandle?: React.ComponentType<{ id?: string | undefined, children: React.ReactNode }> | undefined;
   allowReorder?: boolean;
   id?: string;
 }

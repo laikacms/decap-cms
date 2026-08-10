@@ -16,11 +16,11 @@ import type { CmsConfig } from '@/lib/util/index';
 export interface ConfigEditorValidationResult {
   valid: boolean;
   /** The parsed config, only set when `valid` is `true`. */
-  config?: CmsConfig;
+  config?: CmsConfig | undefined;
   /** Human-readable error lines to show in the editor; empty when valid. */
   errors: string[];
   /** Present only for schema-validation failures (not YAML parse errors). */
-  schemaErrors?: SchemaError[];
+  schemaErrors?: SchemaError[] | undefined;
 }
 
 function messageFromUnknown(error: unknown): string {

@@ -55,10 +55,10 @@ export interface ObjectControlProps {
   clearFieldErrors: (fieldId: string) => void;
   validationKey?: string;
   fieldsErrors?: Record<string, unknown>;
-  metadata?: Record<string, unknown>;
-  hasError?: boolean;
+  metadata?: Record<string, unknown> | undefined;
+  hasError?: boolean | undefined;
   t: TranslateFunction;
-  locale?: string;
+  locale?: string | undefined;
   collapsed?: boolean;
   parentIds?: string[];
   isFieldDuplicate?: (field: CmsField) => boolean;
@@ -71,7 +71,7 @@ export interface ObjectControlHandle {
   // Exposed so a parent ListControl can key this item's ref by the same
   // identifier it passed in. The imperative handle is a plain object with no
   // `.props`, so the key has to travel on the handle itself.
-  validationKey?: string;
+  validationKey?: string | undefined;
 }
 
 const ObjectControl = React.forwardRef<ObjectControlHandle, ObjectControlProps>(

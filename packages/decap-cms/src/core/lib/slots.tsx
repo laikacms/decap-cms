@@ -38,7 +38,7 @@ export interface CollectionTopRenderProps {
 
 export interface CollectionSidebarRenderProps {
   collections: CmsCollections;
-  collection?: CmsCollectionState;
+  collection?: CmsCollectionState | undefined;
   isSearchEnabled?: boolean;
   searchTerm?: string;
   filterTerm?: string;
@@ -50,13 +50,13 @@ export interface CollectionControlsRenderProps {
   onChangeViewStyle: (style: string) => void;
   sortableFields: { key: string, label?: string }[];
   onSortClick: (key: string, direction: CmsSortDirection) => void;
-  sort?: Record<string, unknown>;
-  viewFilters?: CmsViewFilter[];
-  viewGroups?: CmsViewGroup[];
+  sort?: Record<string, unknown> | undefined;
+  viewFilters?: CmsViewFilter[] | undefined;
+  viewGroups?: CmsViewGroup[] | undefined;
   onFilterClick: (filter: CmsViewFilter) => void;
   onGroupClick: (group: CmsViewGroup) => void;
-  filter?: Record<string, unknown>;
-  group?: Record<string, unknown>;
+  filter?: Record<string, unknown> | undefined;
+  group?: Record<string, unknown> | undefined;
   /** Current free-text entry search query, lifted from `Collection`. */
   searchQuery?: string;
   /** Omit to hide the search field entirely (e.g. no searchable entries). */
@@ -78,16 +78,16 @@ export interface EntryListEmptyRenderProps {
    * The collection being browsed, when the listing is scoped to one.
    * `undefined` for cross-collection search results pages.
    */
-  collection?: CmsCollectionState;
+  collection?: CmsCollectionState | undefined;
 }
 
 export interface EntryCardRenderProps {
   collection: CmsCollectionState;
   entry: CmsEntry;
-  inferredFields: { imageField?: string | null, [key: string]: unknown };
+  inferredFields: { imageField?: string | null | undefined, [key: string]: unknown };
   collectionLabel?: string | false;
-  viewStyle?: string;
-  workflowStatus?: string | null;
+  viewStyle?: string | undefined;
+  workflowStatus?: string | null | undefined;
 }
 
 export interface EditorToolbarRenderProps {
@@ -137,21 +137,21 @@ export interface EditorViewControlsRenderProps {
 
 export interface MediaLibraryTopRenderProps {
   onClose: () => void;
-  privateUpload?: boolean;
-  forImage?: boolean;
+  privateUpload?: boolean | undefined;
+  forImage?: boolean | undefined;
   onDownload: () => void;
   onUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  query?: string;
+  query?: string | undefined;
   onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onSearchKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   searchDisabled: boolean;
   onDelete: () => void;
-  canInsert?: boolean;
+  canInsert?: boolean | undefined;
   onInsert: () => void;
   hasSelection: boolean;
-  isPersisting?: boolean;
-  isDeleting?: boolean;
-  selectedFile?: { path: string, draft: boolean, name: string } | Record<string, never>;
+  isPersisting?: boolean | undefined;
+  isDeleting?: boolean | undefined;
+  selectedFile?: { path: string, draft: boolean, name: string } | Record<string, never> | undefined;
 }
 
 export interface MediaLibraryCardRenderProps {
@@ -163,16 +163,16 @@ export interface MediaLibraryCardRenderProps {
   width: string;
   height: string;
   margin: string;
-  isPrivate?: boolean;
+  isPrivate?: boolean | undefined;
   type?: string;
   isViewableImage: boolean;
   loadDisplayURL: () => void;
-  isDraft?: boolean;
+  isDraft?: boolean | undefined;
 }
 
 export interface WorkflowCardRenderProps {
   collectionLabel: string;
-  title?: string;
+  title?: string | undefined;
   authorLastChange?: string;
   body?: string;
   isModification?: boolean;
@@ -267,7 +267,7 @@ const EMPTY_SLOTS: CmsSlots = {};
 const CmsSlotsContext = createContext<CmsSlots>(EMPTY_SLOTS);
 
 export interface CmsSlotsProviderProps {
-  slots?: CmsSlots;
+  slots?: CmsSlots | undefined;
   children?: React.ReactNode;
 }
 

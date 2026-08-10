@@ -16,8 +16,8 @@ import type { MediaLibraryCardRenderProps } from '@/app/components/index';
  */
 
 const Card = styled('button', { shouldForwardProp: laikaShouldForwardProp })<{
-  $isSelected?: boolean,
-  $isPrivate?: boolean,
+  $isSelected?: boolean | undefined,
+  $isPrivate?: boolean | undefined,
 }>`
   position: relative;
   display: flex;

@@ -91,7 +91,7 @@ const DropdownList = styled(Menu.Popup, {
 `;
 
 interface StyledMenuItemWrapperProps {
-  $isActive?: boolean;
+  $isActive?: boolean | undefined;
   $isCheckedItem?: boolean;
 }
 
@@ -137,11 +137,11 @@ interface DropdownContextValue {
 const DropdownContext = React.createContext<DropdownContextValue>({ closeOnSelection: true });
 
 interface StyledMenuItemProps {
-  isActive?: boolean;
+  isActive?: boolean | undefined;
   isCheckedItem?: boolean;
-  className?: string;
+  className?: string | undefined;
   children?: React.ReactNode;
-  onClick?: () => void;
+  onClick?: (() => void) | undefined;
 }
 
 function StyledMenuItem({
@@ -161,7 +161,7 @@ function StyledMenuItem({
 }
 
 interface MenuItemIconContainerProps {
-  iconSmall?: boolean;
+  iconSmall?: boolean | undefined;
 }
 
 const MenuItemIconContainer = styled.div<MenuItemIconContainerProps>`
@@ -234,7 +234,7 @@ function Dropdown({
 }
 
 export interface DropdownItemProps {
-  label?: string;
+  label?: string | undefined;
   icon?: IconName;
   iconDirection?: IconDirection;
   iconSmall?: boolean;

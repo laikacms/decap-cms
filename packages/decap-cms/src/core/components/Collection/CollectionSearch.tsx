@@ -90,7 +90,7 @@ const SuggestionDivider = styled.div`
 
 interface CollectionSearchProps {
   collections: CmsCollections;
-  collection?: CmsCollectionState;
+  collection?: CmsCollectionState | undefined;
   searchTerm: string;
   onSubmit: (query: string, collection?: string) => void;
   t: TranslateFunction;

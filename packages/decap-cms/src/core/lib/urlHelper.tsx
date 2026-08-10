@@ -56,7 +56,7 @@ export function getCharReplacer(
   encoding: string,
   options: {
     replacement: NonNullable<CmsSlug['sanitize_replacement']>,
-    preserveSlashes?: boolean,
+    preserveSlashes?: boolean | undefined,
   },
 ) {
   const { replacement, preserveSlashes } = options;

@@ -64,14 +64,14 @@ interface CollectionControlsProps {
   onChangeViewStyle: (style: string) => void;
   sortableFields: { key: string, label?: string }[];
   onSortClick: (key: string, direction: CmsSortDirection) => void;
-  sort?: Record<string, unknown>;
-  viewFilters?: CmsViewFilter[];
-  viewGroups?: CmsViewGroup[];
+  sort?: Record<string, unknown> | undefined;
+  viewFilters?: CmsViewFilter[] | undefined;
+  viewGroups?: CmsViewGroup[] | undefined;
   onFilterClick: (filter: CmsViewFilter) => void;
   onGroupClick: (group: CmsViewGroup) => void;
   t: TranslateFunction;
-  filter?: Record<string, unknown>;
-  group?: Record<string, unknown>;
+  filter?: Record<string, unknown> | undefined;
+  group?: Record<string, unknown> | undefined;
   searchQuery?: string;
   /** Omit to hide the search field entirely (e.g. no searchable entries). */
   onSearchChange?: (query: string) => void;

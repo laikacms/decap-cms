@@ -138,7 +138,7 @@ export function SortableItem({ index, withHandle = false, children }: SortableIt
 }
 
 export interface SortableHandleProps {
-  id?: string;
+  id?: string | undefined;
   children: React.ReactNode;
 }
 

@@ -40,25 +40,25 @@ interface CodeMirrorEditorProps {
   value: string;
   onChange: (value: string) => void;
   extensions?: Extension[];
-  theme?: Extension;
+  theme?: Extension | undefined;
   lineNumbers?: boolean;
   minHeight?: string;
-  autoFocus?: boolean;
+  autoFocus?: boolean | undefined;
   className?: string;
   /** Id applied to the editable `.cm-content` element so the "focus first
    * invalid control" heuristic and `aria-errormessage` (below) can locate it
    * (WCAG 2.1 3.3.1 / 3.3.3). */
-  id?: string;
-  ariaRequired?: boolean;
-  ariaInvalid?: boolean;
-  ariaErrorMessage?: string;
+  id?: string | undefined;
+  ariaRequired?: boolean | undefined;
+  ariaInvalid?: boolean | undefined;
+  ariaErrorMessage?: string | undefined;
   /** Accessible name for the `.cm-content` editable div, since `<label
    * htmlFor>` silently fails to associate with non-labelable elements like
    * `<div>` (WCAG 4.1.2 / DCMS-1275). */
-  ariaLabel?: string;
+  ariaLabel?: string | undefined;
   /** Id of the field's hint text, threaded onto `.cm-content` via
    * `aria-describedby` (DCMS-1298). */
-  ariaDescribedBy?: string;
+  ariaDescribedBy?: string | undefined;
 }
 
 function buildContentAttributes({
@@ -68,7 +68,10 @@ function buildContentAttributes({
   ariaErrorMessage,
   ariaLabel,
   ariaDescribedBy,
-}: Pick<CodeMirrorEditorProps, 'id' | 'ariaRequired' | 'ariaInvalid' | 'ariaErrorMessage' | 'ariaLabel' | 'ariaDescribedBy'>) {
+}: Pick<
+  CodeMirrorEditorProps,
+  'id' | 'ariaRequired' | 'ariaInvalid' | 'ariaErrorMessage' | 'ariaLabel' | 'ariaDescribedBy'
+>) {
   const attrs: Record<string, string> = {};
   if (id) attrs.id = id;
   if (ariaLabel) attrs['aria-label'] = ariaLabel;
@@ -175,8 +178,9 @@ const CodeMirrorEditor = React.forwardRef<CodeMirrorEditorRef, CodeMirrorEditorP
 
     React.useEffect(() => {
       const initial = initialConfigRef.current;
+      const parent = containerRef.current;
       const view = new EditorView({
-        parent: containerRef.current ?? undefined,
+        ...(parent === null ? {} : { parent }),
         state: EditorState.create({
           doc: valueRef.current,
           extensions: [

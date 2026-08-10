@@ -101,7 +101,11 @@ class Converter {
   }
 
   /** Verbatim source slice for an mdast node. */
-  private slice(node: { position?: { start: { offset?: number }, end: { offset?: number } } }): string {
+  private slice(
+    node: {
+      position?: { start: { offset?: number | undefined }, end: { offset?: number | undefined } } | undefined,
+    },
+  ): string {
     const start = node.position?.start.offset ?? 0;
     const end = node.position?.end.offset ?? start;
     return this.source.slice(start, end);

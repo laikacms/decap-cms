@@ -47,7 +47,9 @@ export type EntryDraft = {
   fieldsErrors?: Record<string, unknown>,
   hasChanged: boolean,
   key: string,
-  localBackup?: Omit<EntryDraft, 'localBackup'>,
+  // Carried over verbatim across draft resets, including when it is still
+  // undecided (undefined); see DCMS-1157 below.
+  localBackup?: Omit<EntryDraft, 'localBackup'> | undefined,
 };
 
 const initialState: EntryDraft = {
@@ -198,9 +200,8 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
         // still hold the pre-save value. Diffing against that stale
         // snapshot made an identical rewrite look like a real edit and
         // flipped `hasChanged` back to `true` immediately after save.
-        const isNoOpWrite =
-          JSON.stringify(newData) === JSON.stringify(previousData) &&
-          JSON.stringify(newMeta) === JSON.stringify(previousMeta);
+        const isNoOpWrite = JSON.stringify(newData) === JSON.stringify(previousData)
+          && JSON.stringify(newMeta) === JSON.stringify(previousMeta);
 
         if (!isNoOpWrite) {
           state.hasChanged = !entries.some((e: any) => {

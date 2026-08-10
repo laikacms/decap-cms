@@ -306,7 +306,7 @@ function normalizeSortableFields(
 ) {
   return sortableFields.map(field => {
     if (typeof field === 'string') {
-      return { field, default_sort: undefined };
+      return { field };
     }
     return field;
   });
@@ -688,8 +688,9 @@ export async function handleLocalBackend(originalConfig: CmsConfig) {
     config.backend.name = 'proxy';
     config.backend.proxy_url = proxyUrl;
 
-    if (config.publish_mode) {
-      config.publish_mode = getPublishMode(config, publishModes, backendType);
+    const publishMode = config.publish_mode && getPublishMode(config, publishModes, backendType);
+    if (publishMode) {
+      config.publish_mode = publishMode;
     }
   });
 }

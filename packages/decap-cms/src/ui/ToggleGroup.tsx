@@ -19,8 +19,8 @@ const groupClass = css`
 `;
 
 const ToggleGroupContext = React.createContext<{
-  size?: ToggleSize,
-  variant?: ToggleVariant,
+  size?: ToggleSize | undefined,
+  variant?: ToggleVariant | undefined,
 }>({
   variant: 'default',
   size: 'default',

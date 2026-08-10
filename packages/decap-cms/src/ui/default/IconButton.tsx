@@ -16,7 +16,7 @@ const sizes: Record<IconButtonSize, string> = {
 
 interface ButtonRoundProps {
   size: IconButtonSize;
-  $isActive?: boolean;
+  $isActive?: boolean | undefined;
 }
 
 const ButtonRound = styled('button', { shouldForwardProp: laikaShouldForwardProp })<ButtonRoundProps>`

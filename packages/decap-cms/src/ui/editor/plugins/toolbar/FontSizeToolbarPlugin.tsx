@@ -8,10 +8,29 @@ import { useToolbarContext } from '@/ui/editor/context/ToolbarContext';
 import { useUpdateToolbarHandler } from '@/ui/editor/editor-hooks/useUpdateToolbar';
 import { Minus, Plus } from '@/ui/icons/index';
 import { Input } from '@/ui/Input';
+import { css } from '@/ui/styled';
 
 const DEFAULT_FONT_SIZE = 16;
 const MIN_FONT_SIZE = 1;
 const MAX_FONT_SIZE = 72;
+
+/*
+ * The size input needs a fixed box: `ButtonGroup` gives its direct `input`
+ * children `flex: 1` (basis 0), so in the toolbar - which is horizontally
+ * scrollable and squeezes its groups - the field collapsed to zero content
+ * width and the number was clipped out of sight entirely. Doubling the
+ * selector (`&&`) is what lets a single class outrank the group's
+ * `& > input` rule; a plain `width` declaration loses to it.
+ */
+const fontSizeInputClass = css`
+  && {
+    flex: 0 0 auto;
+    width: 3rem;
+    height: 2rem;
+    padding-inline: 0.25rem;
+    text-align: center;
+  }
+`;
 
 export function FontSizeToolbarPlugin() {
   const style = 'font-size';
@@ -63,7 +82,7 @@ export function FontSizeToolbarPlugin() {
       <Input
         value={fontSize}
         onChange={e => updateFontSize(parseInt(e.target.value) || DEFAULT_FONT_SIZE)}
-        className="w-12 text-center h-8"
+        css={fontSizeInputClass}
         min={MIN_FONT_SIZE}
         max={MAX_FONT_SIZE}
         aria-label="Font size"

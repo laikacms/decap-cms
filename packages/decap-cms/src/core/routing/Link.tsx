@@ -59,8 +59,8 @@ export const Link = forwardRef<HTMLAnchorElement, LinkProps>(function Link(
 
 export interface NavLinkProps extends Omit<LinkProps, 'className' | 'style' | 'children'> {
   /** Match `to` exactly instead of also matching sub-paths. */
-  end?: boolean;
-  className?: string | ((props: { isActive: boolean }) => string);
+  end?: boolean | undefined;
+  className?: string | ((props: { isActive: boolean }) => string) | undefined;
   style?: React.CSSProperties | ((props: { isActive: boolean }) => React.CSSProperties);
   children?: React.ReactNode | ((props: { isActive: boolean }) => React.ReactNode);
 }

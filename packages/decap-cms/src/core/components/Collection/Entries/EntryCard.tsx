@@ -136,12 +136,12 @@ interface EntryCardProps {
   collection: CmsCollectionState;
   entry: CmsEntry;
   inferredFields: {
-    imageField?: string | null,
+    imageField?: string | null | undefined,
     [key: string]: unknown,
   };
   collectionLabel?: string | false;
-  viewStyle?: string;
-  workflowStatus?: string | null;
+  viewStyle?: string | undefined;
+  workflowStatus?: string | null | undefined;
 }
 
 export default function EntryCard({

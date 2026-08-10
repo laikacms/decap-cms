@@ -14,7 +14,7 @@
 
 export interface SanitizeOptions {
   /** Character(s) to substitute for unsafe characters. Defaults to empty string (removal). */
-  replacement?: string;
+  replacement?: string | undefined;
 }
 
 /** Characters that are not allowed in filenames on major operating systems. */

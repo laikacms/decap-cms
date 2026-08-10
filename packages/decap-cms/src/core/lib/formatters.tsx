@@ -32,13 +32,15 @@ const commitMessageTemplates = {
 
 const variableRegex = /\{\{([^}]+)\}\}/g;
 
+// The author fields come straight off the current user, who may not report
+// them, so callers pass them through as-is.
 type Options = {
-  slug?: string,
-  path?: string,
-  collection?: Collection,
-  authorLogin?: string,
-  authorName?: string,
-  authorEmail?: string,
+  slug?: string | undefined,
+  path?: string | undefined,
+  collection?: Collection | undefined,
+  authorLogin?: string | undefined,
+  authorName?: string | undefined,
+  authorEmail?: string | undefined,
 };
 
 export function commitMessageFormatter(

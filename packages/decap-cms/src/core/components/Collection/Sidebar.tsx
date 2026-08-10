@@ -76,7 +76,7 @@ const SidebarNavLink = styled(NavLink)`
 
 interface SidebarProps {
   collections: CmsCollections;
-  collection?: CmsCollectionState;
+  collection?: CmsCollectionState | undefined;
   isSearchEnabled?: boolean;
   searchTerm?: string;
   filterTerm?: string;

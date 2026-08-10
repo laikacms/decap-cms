@@ -5,12 +5,12 @@ import { type JSX } from 'react';
 export class ComponentPickerOption extends MenuOption {
   // What shows up in the editor
   title: string;
-  // Icon for display
-  icon?: JSX.Element;
+  // `icon` is inherited from `MenuOption`; it stays absent (rather than set to
+  // undefined) for options without one.
   // For extra searching.
   keywords: Array<string>;
   // TBD
-  keyboardShortcut?: string;
+  keyboardShortcut: string | undefined;
   // What happens when you select this option?
   onSelect: (
     queryString: string,
@@ -24,7 +24,7 @@ export class ComponentPickerOption extends MenuOption {
   constructor(
     title: string,
     options: {
-      icon?: JSX.Element,
+      icon?: JSX.Element | undefined,
       keywords?: Array<string>,
       keyboardShortcut?: string,
       onSelect: (
@@ -40,7 +40,9 @@ export class ComponentPickerOption extends MenuOption {
     super(title);
     this.title = title;
     this.keywords = options.keywords || [];
-    this.icon = options.icon;
+    if (options.icon !== undefined) {
+      this.icon = options.icon;
+    }
     this.keyboardShortcut = options.keyboardShortcut;
     this.onSelect = options.onSelect.bind(this);
   }

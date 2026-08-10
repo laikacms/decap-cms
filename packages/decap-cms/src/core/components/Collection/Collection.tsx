@@ -51,13 +51,13 @@ const SearchResultHeading = styled.h1`
 interface CollectionProps {
   match: {
     params: {
-      name?: string,
-      searchTerm?: string,
-      filterTerm?: string,
+      name?: string | undefined,
+      searchTerm?: string | undefined,
+      filterTerm?: string | undefined,
     },
   };
-  isSearchResults?: boolean;
-  isSingleSearchResult?: boolean;
+  isSearchResults?: boolean | undefined;
+  isSingleSearchResult?: boolean | undefined;
 }
 
 /**

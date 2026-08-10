@@ -66,9 +66,9 @@ class StockPhotoModal {
   private resultsEl: HTMLDivElement;
   private statusEl: HTMLDivElement;
   private provider: StockPhotoProvider;
-  private apiKey?: string;
+  private apiKey: string | undefined;
   private perPage: number;
-  private handleInsert?: (value: string | string[]) => void;
+  private handleInsert: ((value: string | string[]) => void) | undefined;
   private currentQuery = '';
 
   constructor(provider: StockPhotoProvider, apiKey: string | undefined, perPage: number) {

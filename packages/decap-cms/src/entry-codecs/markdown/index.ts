@@ -46,7 +46,7 @@ interface FrontmatterLanguage {
   parse(input: string): unknown;
   stringify(
     metadata: object,
-    opts?: { sortedKeys?: string[], comments?: Record<string, string> },
+    opts?: { sortedKeys?: string[] | undefined, comments?: Record<string, string> | undefined },
   ): string;
 }
 
@@ -135,8 +135,8 @@ function splitFrontmatter(
 
 export class FrontmatterFormatter implements CmsFormatterFunctions {
   languages: FrontmatterLanguage[];
-  format?: string;
-  customDelimiter?: Delimiter;
+  format: string | undefined;
+  customDelimiter: Delimiter | undefined;
 
   constructor(languages: FrontmatterLanguage[], format?: string, customDelimiter?: Delimiter) {
     this.languages = languages;

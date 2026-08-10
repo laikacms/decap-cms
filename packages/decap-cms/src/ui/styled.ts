@@ -76,4 +76,4 @@ export function laikaShouldForwardProp(prop: string): boolean {
  * Narrows a Base UI component's `className` (which may also be a state
  * callback) to a plain string so it can be merged with `cx`.
  */
-export type WithClassName<P> = Omit<P, 'className'> & { className?: string };
+export type WithClassName<P> = Omit<P, 'className'> & { className?: string | undefined };

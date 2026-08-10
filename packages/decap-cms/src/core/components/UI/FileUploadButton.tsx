@@ -2,7 +2,7 @@ import React from 'react';
 export interface FileUploadButtonProps {
   className?: string;
   label: string;
-  imagesOnly?: boolean;
+  imagesOnly?: boolean | undefined;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   disabled?: boolean;
 }

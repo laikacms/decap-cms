@@ -13,7 +13,7 @@ import type { FrameContextProps } from 'react-frame-component';
 interface PreviewContentProps {
   previewComponent: React.ComponentType<Record<string, unknown>> | React.ReactElement;
   previewProps?: Record<string, any>;
-  onFieldClick?: (fieldName: string) => void;
+  onFieldClick?: ((fieldName: string) => void) | undefined;
 }
 
 function PreviewContent({ previewComponent, previewProps, onFieldClick }: PreviewContentProps) {

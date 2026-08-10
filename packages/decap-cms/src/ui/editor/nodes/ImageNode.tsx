@@ -20,12 +20,12 @@ const ImageComponent = React.lazy(() => import('@/ui/editor/editor-ui/ImageCompo
 
 export interface ImagePayload {
   altText: string;
-  height?: number;
+  height?: number | undefined;
   key?: NodeKey;
   maxWidth?: number;
-  requiresConsent?: boolean;
+  requiresConsent?: boolean | undefined;
   src: string;
-  width?: number;
+  width?: number | undefined;
 }
 
 function isGoogleDocCheckboxImg(img: HTMLImageElement): boolean {

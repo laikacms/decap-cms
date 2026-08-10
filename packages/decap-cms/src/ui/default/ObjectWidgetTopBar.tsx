@@ -75,7 +75,7 @@ export interface ObjectWidgetTopBarProps {
   // pointed at the panel even while collapsed (Base UI only emits
   // `aria-controls` when `open`, see DCMS-1725).
   panelId?: string;
-  collapsed?: boolean;
+  collapsed?: boolean | undefined;
   heading?: React.ReactNode;
   label?: string;
   t: TranslateFunction;

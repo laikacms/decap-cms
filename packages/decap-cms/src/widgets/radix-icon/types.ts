@@ -1,3 +1,3 @@
 export interface IconWidgetOptions {
-  filter?: RegExp | ((id: string) => boolean);
+  filter?: RegExp | ((id: string) => boolean) | undefined;
 }

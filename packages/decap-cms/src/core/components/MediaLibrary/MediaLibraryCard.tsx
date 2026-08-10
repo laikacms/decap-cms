@@ -8,8 +8,8 @@ const IMAGE_HEIGHT = 160;
 interface CardStyleProps {
   $height: string;
   $margin: string;
-  $isSelected?: boolean;
-  $isPrivate?: boolean;
+  $isSelected?: boolean | undefined;
+  $isPrivate?: boolean | undefined;
 }
 
 const Card = styled.div<CardStyleProps>`
@@ -80,11 +80,11 @@ interface MediaLibraryCardProps {
   width: string;
   height: string;
   margin: string;
-  isPrivate?: boolean;
+  isPrivate?: boolean | undefined;
   type?: string;
   isViewableImage: boolean;
   loadDisplayURL: () => void;
-  isDraft?: boolean;
+  isDraft?: boolean | undefined;
 }
 
 function MediaLibraryCard({

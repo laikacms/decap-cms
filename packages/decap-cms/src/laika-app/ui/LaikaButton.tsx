@@ -104,7 +104,7 @@ const buttonCss = ({
 }: {
   variant?: LaikaButtonVariant,
   buttonSize?: LaikaButtonSize,
-  $fullWidth?: boolean,
+  $fullWidth?: boolean | undefined,
 }) =>
   css`
   ${baseStyles};
@@ -122,7 +122,7 @@ const buttonCss = ({
 const StyledButton = styled('button', { shouldForwardProp: laikaShouldForwardProp })<{
   variant?: LaikaButtonVariant,
   buttonSize?: LaikaButtonSize,
-  $fullWidth?: boolean,
+  $fullWidth?: boolean | undefined,
 }>`
   ${props => buttonCss(props)};
 `;
@@ -132,7 +132,7 @@ const StyledLink = styled(Link, {
 })<{
   variant?: LaikaButtonVariant,
   buttonSize?: LaikaButtonSize,
-  $fullWidth?: boolean,
+  $fullWidth?: boolean | undefined,
 }>`
   ${props => buttonCss(props)};
 `;

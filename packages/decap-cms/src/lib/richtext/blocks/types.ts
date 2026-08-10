@@ -38,7 +38,7 @@ export interface BlockFormatCodec<TData extends BlockData = BlockData> {
 export interface BlockPreviewProps<TData extends BlockData = BlockData> {
   data: TData;
   definition: BlockDefinition<TData>;
-  getAsset?: GetAssetFn;
+  getAsset?: GetAssetFn | undefined;
   /** True when rendered as a PT inline object. */
   inline?: boolean;
 }
@@ -103,12 +103,12 @@ export interface BlockChromeProps {
 export interface BlocksConfig {
   /** Blocks available in this editor instance (already per-field filtered). */
   blocks?: Record<string, BlockDefinition>;
-  getAsset?: GetAssetFn;
+  getAsset?: GetAssetFn | undefined;
   /**
    * Renders the inline prop-editing form. Injected by the widget layer so
    * `ui/editor` never imports widgets/core (layering).
    */
-  renderBlockForm?: (props: BlockFormRenderProps) => ReactNode;
+  renderBlockForm?: ((props: BlockFormRenderProps) => ReactNode) | undefined;
   /** Chrome override; `ui/editor` supplies the default. */
   renderBlockChrome?: (props: BlockChromeProps) => ReactNode;
 }

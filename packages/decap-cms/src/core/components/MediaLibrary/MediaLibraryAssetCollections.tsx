@@ -34,7 +34,7 @@ const SectionChip = styled.button<{ $isActive?: boolean }>`
 
 interface MediaLibraryAssetCollectionsProps {
   assetCollections: CmsAssetCollection[];
-  activeCollectionName?: string;
+  activeCollectionName?: string | undefined;
   onSelect: (assetCollection: CmsAssetCollection) => void;
 }
 

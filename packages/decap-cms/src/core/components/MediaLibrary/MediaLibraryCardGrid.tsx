@@ -30,15 +30,15 @@ function MediaCardSlot(props: MediaLibraryCardRenderProps) {
 }
 
 interface MediaItem {
-  displayURL?: string | Record<string, unknown>;
+  displayURL?: string | Record<string, unknown> | undefined;
   id: string;
   key: string;
   name: string;
   type: string;
-  draft?: boolean;
-  url?: string;
-  isViewableImage?: boolean;
-  isDirectory?: boolean;
+  draft?: boolean | undefined;
+  url?: string | undefined;
+  isViewableImage?: boolean | undefined;
+  isDirectory?: boolean | undefined;
 }
 
 interface CardCellProps {
@@ -49,14 +49,14 @@ interface CardCellProps {
     name: string,
     id: string,
     type: string,
-    draft?: boolean,
+    draft?: boolean | undefined,
   }) => void;
   cardDraftText: string;
   cardWidth: string;
   cardHeight: string;
-  isPrivate?: boolean;
+  isPrivate?: boolean | undefined;
   displayURLs: Record<string, unknown>;
-  loadDisplayURL: (file: { id: string, url?: string }) => void;
+  loadDisplayURL: (file: { id: string, url?: string | undefined }) => void;
   columnCount: number;
   gutter: number;
   activeIndex: number;
@@ -190,8 +190,7 @@ function VirtualizedGrid(props: MediaLibraryCardGridProps) {
   const columnCount = Math.max(1, Math.floor((width ?? 0) / columnWidth));
   const rowCount = Math.ceil(mediaItems.length / columnCount);
 
-  const clampedActiveIndex =
-    mediaItems.length === 0 ? 0 : Math.max(0, Math.min(activeIndex, mediaItems.length - 1));
+  const clampedActiveIndex = mediaItems.length === 0 ? 0 : Math.max(0, Math.min(activeIndex, mediaItems.length - 1));
 
   const registerCellRef = useCallback((index: number, node: HTMLDivElement | null) => {
     if (node) {
@@ -352,7 +351,7 @@ const CardGridContainer = styled.div`
   overflow-x: hidden;
 `;
 
-const PaginatingMessage = styled.h1<{ $isPrivate?: boolean }>`
+const PaginatingMessage = styled.h1<{ $isPrivate?: boolean | undefined }>`
   color: ${props => props.$isPrivate && colors.textFieldBorder};
 `;
 
@@ -365,18 +364,18 @@ interface MediaLibraryCardGridProps {
     name: string,
     id: string,
     type: string,
-    draft?: boolean,
+    draft?: boolean | undefined,
   }) => void;
-  canLoadMore?: boolean;
+  canLoadMore?: boolean | undefined;
   onLoadMore: () => void;
-  isPaginating?: boolean;
+  isPaginating?: boolean | undefined;
   paginatingMessage?: string;
   cardDraftText: string;
   cardWidth: string;
   cardHeight: string;
   cardMargin: string;
-  loadDisplayURL: (file: { id: string, url?: string }) => void;
-  isPrivate?: boolean;
+  loadDisplayURL: (file: { id: string, url?: string | undefined }) => void;
+  isPrivate?: boolean | undefined;
   displayURLs: Record<string, unknown>;
 }
 

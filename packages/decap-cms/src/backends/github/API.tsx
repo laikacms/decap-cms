@@ -1350,7 +1350,7 @@ export default class API {
     return Promise.resolve(btoa(str));
   }
 
-  async uploadBlob(item: { raw?: string, sha?: string | null, toBase64?: () => Promise<string> }) {
+  async uploadBlob(item: { raw?: string, sha?: string | null | undefined, toBase64?: () => Promise<string> }) {
     const contentBase64 = await result(
       item,
       'toBase64',
@@ -1369,7 +1369,7 @@ export default class API {
 
   async updateTree(
     baseSha: string,
-    files: { path: string, sha: string | null, newPath?: string }[],
+    files: { path: string, sha: string | null, newPath?: string | undefined }[],
     branch = this.branch,
     hasSubfolders = true,
   ) {

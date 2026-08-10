@@ -394,7 +394,7 @@ export default class API {
     })) as FilesResponse;
   }
 
-  async getChangeFileOperations(files: { path: string, newPath?: string }[], branch: string) {
+  async getChangeFileOperations(files: { path: string, newPath?: string | undefined }[], branch: string) {
     const items: ChangeFileOperation[] = await Promise.all(
       files.map(async file => {
         const content = await result(

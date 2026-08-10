@@ -67,7 +67,7 @@ const AppHeaderTestRepoIndicator = styled.a`
 `;
 
 interface AvatarProps {
-  imageUrl?: string;
+  imageUrl?: string | undefined;
 }
 
 function Avatar({ imageUrl }: AvatarProps) {
@@ -75,9 +75,9 @@ function Avatar({ imageUrl }: AvatarProps) {
 }
 
 interface SettingsDropdownProps {
-  displayUrl?: string;
-  isTestRepo?: boolean;
-  imageUrl?: string;
+  displayUrl?: string | undefined;
+  isTestRepo?: boolean | undefined;
+  imageUrl?: string | undefined;
   onLogoutClick: () => void;
   t: TranslateFunction;
 }

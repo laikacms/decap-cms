@@ -7,8 +7,9 @@ import type { DeploysAction } from '@/core/actions/deploys';
 export type Deploys = {
   [key: string]: {
     isFetching: boolean,
-    url?: string,
-    status?: string,
+    // Cleared back to undefined when a preview lookup fails.
+    url?: string | undefined,
+    status?: string | undefined,
   },
 };
 

@@ -103,7 +103,7 @@ export interface DocumentContext {
   /** Document slug/path */
   slug: string;
   /** Document collection name */
-  collection?: string;
+  collection?: string | undefined;
   /** Document schema (field definitions) */
   schema?: Record<string, unknown>;
 }
@@ -236,7 +236,7 @@ export interface ChatRequest {
 export interface SessionListResponse {
   sessions: Array<{
     id: string,
-    title?: string,
+    title?: string | undefined,
     documentSlug: string,
     messageCount: number,
     createdAt: number,

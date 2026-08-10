@@ -21,19 +21,19 @@ const NoEntriesMessage = styled(PaginationMessage)`
 
 interface EntriesProps {
   collections: CmsCollectionState;
-  entries?: CmsEntry[];
-  page?: number;
+  entries?: CmsEntry[] | undefined;
+  page?: number | undefined;
   isFetching?: boolean;
-  viewStyle?: string;
+  viewStyle?: string | undefined;
   cursor: Cursor;
   handleCursorActions: (action: string) => void;
   t: TranslateFunction;
   getWorkflowStatus?: (collectionName: string, slug: string) => string | null;
   getUnpublishedEntries?: (collectionName: string) => CmsEntry[];
-  filterTerm?: string;
-  sortFields?: CmsSortObject[];
-  showPublishedEntries?: boolean;
-  showUnpublishedEntries?: boolean;
+  filterTerm?: string | undefined;
+  sortFields?: CmsSortObject[] | undefined;
+  showPublishedEntries?: boolean | undefined;
+  showUnpublishedEntries?: boolean | undefined;
 }
 
 function Entries({

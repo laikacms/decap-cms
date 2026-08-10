@@ -7,7 +7,7 @@ import { Switch } from '@/ui/Toggle';
 import { colors, colorsRaw, shadows, transitions } from './styles';
 
 export interface ToggleActiveProps {
-  $isActive?: boolean;
+  $isActive?: boolean | undefined;
 }
 
 const ToggleContainer = styled.button`
@@ -56,7 +56,7 @@ export type ToggleBackgroundComponent = typeof ToggleBackground;
 export type ToggleHandleComponent = typeof ToggleHandle;
 
 export interface ToggleProps {
-  id?: string;
+  id?: string | undefined;
   active?: boolean;
   onChange?: (isActive: boolean) => void;
   onFocus?: React.FocusEventHandler<HTMLButtonElement>;
@@ -68,9 +68,9 @@ export interface ToggleProps {
   /** Threaded from the Decap widget layer's validation state onto the
    * underlying switch button (WCAG 2.1 3.3.1 / 3.3.3). */
   ariaRequired?: boolean;
-  ariaInvalid?: boolean;
-  ariaErrorMessage?: string;
-  ariaDescribedBy?: string;
+  ariaInvalid?: boolean | undefined;
+  ariaErrorMessage?: string | undefined;
+  ariaDescribedBy?: string | undefined;
 }
 
 /**

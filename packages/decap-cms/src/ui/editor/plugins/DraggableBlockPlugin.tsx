@@ -37,11 +37,13 @@ export function DraggableBlockPlugin({
 }: {
   anchorElem: HTMLElement | null,
   baseOptions?: Array<ComponentPickerOption>,
-  dynamicOptionsFn?: ({
-    queryString,
-  }: {
-    queryString: string,
-  }) => Array<ComponentPickerOption>,
+  dynamicOptionsFn?:
+    | (({
+      queryString,
+    }: {
+      queryString: string,
+    }) => Array<ComponentPickerOption>)
+    | undefined,
 }): JSX.Element | null {
   const [editor] = useLexicalComposerContext();
   const [modal, showModal] = useEditorModal();

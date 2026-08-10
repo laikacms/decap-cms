@@ -52,12 +52,14 @@ type MediaLibrary = {
   controlID?: string,
   page?: number,
   config: Record<string, unknown>,
-  field?: CmsEntryField,
+  // Fields the reducer clears by assigning undefined when the library closes
+  // or a listing is exhausted.
+  field?: CmsEntryField | undefined,
   value?: string | string[],
   replaceIndex?: number | boolean,
   forImage?: boolean,
   canInsert?: boolean,
-  privateUpload?: boolean,
+  privateUpload?: boolean | undefined,
   isPersisting?: boolean,
   isDeleting?: boolean,
   hasNextPage?: boolean,
@@ -66,7 +68,7 @@ type MediaLibrary = {
   dynamicSearchActive?: boolean,
   dynamicSearchQuery?: string,
   /** Continuation cursor from a paginated backend; absent when exhausted. */
-  cursor?: string,
+  cursor?: string | undefined,
 };
 
 type Integrations = {
@@ -299,7 +301,7 @@ export function selectMediaFileByPath(state: State, path: string) {
  * `getMedia(folder, folderSupport: true)`) contribute entries to `folders`;
  * everywhere else it's simply empty and the UI shows breadcrumbs only.
  */
-export function selectMediaFolderEntries<T extends { isDirectory?: boolean }>(files: T[]) {
+export function selectMediaFolderEntries<T extends { isDirectory?: boolean | undefined }>(files: T[]) {
   const folders: T[] = [];
   const regularFiles: T[] = [];
   for (const file of files) {

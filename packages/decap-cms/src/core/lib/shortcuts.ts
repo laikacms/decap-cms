@@ -42,20 +42,20 @@ export interface Shortcut {
   /** Human label for help surfaces ("Go to dashboard"). */
   label: string;
   /** Section heading in help surfaces ("Navigation", "Editor", ...). */
-  group?: string;
+  group?: string | undefined;
   /** Extra enablement gate evaluated per keystroke. */
   when?: () => boolean;
   /**
    * Run even while focus is in an input/textarea/contenteditable. Defaults
    * to true when every keystroke carries `mod`, false otherwise.
    */
-  allowInInput?: boolean;
+  allowInInput?: boolean | undefined;
   /**
    * Run even while shortcuts are suspended or focus is inside a modal.
    * Reserved for toggles that must work from within their own dialog
    * (the command palette's `mod+k`).
    */
-  allowWhileSuspended?: boolean;
+  allowWhileSuspended?: boolean | undefined;
   run: (event: KeyboardEvent) => void;
 }
 

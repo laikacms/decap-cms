@@ -8,7 +8,7 @@ import type { TranslateFunction } from '@/ui/default/index';
 // Local type definitions
 interface ValidationError {
   type: string;
-  parentIds?: string[];
+  parentIds?: string[] | undefined;
   message: string;
 }
 

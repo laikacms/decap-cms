@@ -8,7 +8,7 @@ export interface RichtextValueOptions {
    * The field's `format` property: the desired output format and the
    * tie-breaker for input-format detection.
    */
-  hint?: string;
+  hint?: string | undefined;
   /**
    * Explicit output format. Defaults to `hint`, then to the detected input
    * format.

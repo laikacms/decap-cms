@@ -273,9 +273,9 @@ interface EditorInterfaceProps {
   hasUnpublishedChanges?: boolean;
   isNewEntry?: boolean;
   isModification?: boolean;
-  currentStatus?: string;
+  currentStatus?: string | undefined;
   onLogoutClick: () => void;
-  deployPreview?: { url?: string, status?: string, [key: string]: unknown };
+  deployPreview?: { url?: string | undefined, status?: string | undefined, [key: string]: unknown };
   loadDeployPreview: (...args: unknown[]) => void;
   draftKey: string;
   t: TranslateFunction;

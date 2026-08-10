@@ -432,7 +432,7 @@ export default class API {
   };
 
   async uploadFiles(
-    files: { path: string, newPath?: string, delete?: boolean }[],
+    files: { path: string, newPath?: string | undefined, delete?: boolean | undefined }[],
     {
       commitMessage,
       branch,

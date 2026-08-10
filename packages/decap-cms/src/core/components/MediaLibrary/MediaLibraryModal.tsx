@@ -5,8 +5,8 @@ import React from 'react';
 import { Modal } from '@/core/components/UI';
 import { translate } from '@/core/i18n';
 import { useCmsSlots } from '@/core/lib/slots';
-import { basename } from '@/lib/util/index';
 import { selectMediaFolderEntries } from '@/core/reducers/mediaLibrary';
+import { basename } from '@/lib/util/index';
 import { colors } from '@/ui/default/index';
 import EmptyMessage from './EmptyMessage';
 import MediaLibraryAssetCollections from './MediaLibraryAssetCollections';
@@ -33,7 +33,7 @@ const cardMargin = `10px`;
  */
 const cardOutsideWidth = `300px`;
 
-const StyledModal = styled(Modal)<{ $isPrivate?: boolean }>`
+const StyledModal = styled(Modal)<{ $isPrivate?: boolean | undefined }>`
   display: grid;
   /*
    * Explicit row per top-level child (Top | AssetCollections | Breadcrumbs |
@@ -90,32 +90,34 @@ interface MediaFile {
   isDirectory?: boolean;
 }
 
+// The optionals mirror the media-library slice, which leaves them undefined
+// until the library has been opened/loaded at least once.
 interface MediaLibraryModalProps {
-  isVisible?: boolean;
-  canInsert?: boolean;
+  isVisible?: boolean | undefined;
+  canInsert?: boolean | undefined;
   files: MediaFile[];
-  dynamicSearch?: boolean;
-  dynamicSearchActive?: boolean;
-  forImage?: boolean;
-  isLoading?: boolean;
-  isPersisting?: boolean;
-  isDeleting?: boolean;
-  hasNextPage?: boolean;
-  isPaginating?: boolean;
-  privateUpload?: boolean;
-  query?: string;
-  selectedFile?: MediaFile | Record<string, never>;
+  dynamicSearch?: boolean | undefined;
+  dynamicSearchActive?: boolean | undefined;
+  forImage?: boolean | undefined;
+  isLoading?: boolean | undefined;
+  isPersisting?: boolean | undefined;
+  isDeleting?: boolean | undefined;
+  hasNextPage?: boolean | undefined;
+  isPaginating?: boolean | undefined;
+  privateUpload?: boolean | undefined;
+  query?: string | undefined;
+  selectedFile?: MediaFile | Record<string, never> | undefined;
   handleFilter: (files: MediaFile[]) => MediaFile[];
   handleQuery: (query: string, files: MediaFile[]) => MediaFile[];
   toTableData: (files: MediaFile[]) => {
-    displayURL?: string | Record<string, unknown>,
+    displayURL?: string | Record<string, unknown> | undefined,
     id: string,
     key: string,
     name: string,
     type: string,
-    draft?: boolean,
-    url?: string,
-    isViewableImage?: boolean,
+    draft?: boolean | undefined,
+    url?: string | undefined,
+    isViewableImage?: boolean | undefined,
   }[];
   handleClose: () => void;
   handleSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -123,18 +125,18 @@ interface MediaLibraryModalProps {
   handlePersist: (event: React.ChangeEvent<HTMLInputElement>) => void;
   handleDelete: () => void;
   handleInsert: () => void;
-  handleDownload?: () => void;
+  handleDownload?: (() => void) | undefined;
   setScrollContainerRef: (ref: HTMLDivElement | null) => void;
   handleAssetClick: (asset: MediaFile) => void;
   handleLoadMore: () => void;
   loadDisplayURL: (file: MediaFile) => void;
   t: TranslateFunction;
   displayURLs: Record<string, unknown>;
-  breadcrumbs?: MediaFolderBreadcrumb[];
-  onNavigateFolder?: (path: string) => void;
-  assetCollections?: CmsAssetCollection[];
-  activeAssetCollectionName?: string;
-  onSelectAssetCollection?: (assetCollection: CmsAssetCollection) => void;
+  breadcrumbs?: MediaFolderBreadcrumb[] | undefined;
+  onNavigateFolder?: ((path: string) => void) | undefined;
+  assetCollections?: CmsAssetCollection[] | undefined;
+  activeAssetCollectionName?: string | undefined;
+  onSelectAssetCollection?: ((assetCollection: CmsAssetCollection) => void) | undefined;
 }
 
 function MediaLibraryModal({
@@ -247,9 +249,7 @@ function MediaLibraryModal({
         )}
       {!onNavigateFolder || !breadcrumbs
         ? null
-        : (
-          <MediaLibraryBreadcrumbs breadcrumbs={breadcrumbs} onNavigate={onNavigateFolder} />
-        )}
+        : <MediaLibraryBreadcrumbs breadcrumbs={breadcrumbs} onNavigate={onNavigateFolder} />}
       {!onNavigateFolder
         ? null
         : <MediaLibraryFolders folders={folderItems} onNavigate={onNavigateFolder} />}
@@ -263,7 +263,7 @@ function MediaLibraryModal({
           name: string,
           id: string,
           type: string,
-          draft?: boolean,
+          draft?: boolean | undefined,
         }) => void}
         canLoadMore={hasNextPage}
         onLoadMore={handleLoadMore}
@@ -274,7 +274,7 @@ function MediaLibraryModal({
         cardHeight={cardHeight}
         cardMargin={cardMargin}
         isPrivate={privateUpload}
-        loadDisplayURL={loadDisplayURL as (file: { id: string, url?: string }) => void}
+        loadDisplayURL={loadDisplayURL as (file: { id: string, url?: string | undefined }) => void}
         displayURLs={displayURLs}
       />
     </StyledModal>

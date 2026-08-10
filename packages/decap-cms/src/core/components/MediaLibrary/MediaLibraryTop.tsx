@@ -27,21 +27,21 @@ const ButtonsContainer = styled.div`
 interface MediaLibraryTopProps {
   t: TranslateFunction;
   onClose: () => void;
-  privateUpload?: boolean;
-  forImage?: boolean;
+  privateUpload?: boolean | undefined;
+  forImage?: boolean | undefined;
   onDownload: () => void;
   onUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  query?: string;
+  query?: string | undefined;
   onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onSearchKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   searchDisabled: boolean;
   onDelete: () => void;
-  canInsert?: boolean;
+  canInsert?: boolean | undefined;
   onInsert: () => void;
   hasSelection: boolean;
-  isPersisting?: boolean;
-  isDeleting?: boolean;
-  selectedFile?: { path: string, draft: boolean, name: string } | Record<string, never>;
+  isPersisting?: boolean | undefined;
+  isDeleting?: boolean | undefined;
+  selectedFile?: { path: string, draft: boolean, name: string } | Record<string, never> | undefined;
 }
 
 function MediaLibraryTop({

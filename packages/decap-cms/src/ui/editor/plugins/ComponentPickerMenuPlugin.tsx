@@ -88,11 +88,13 @@ export function ComponentPickerMenuPlugin({
   dynamicOptionsFn,
 }: {
   baseOptions?: Array<ComponentPickerOption>,
-  dynamicOptionsFn?: ({
-    queryString,
-  }: {
-    queryString: string,
-  }) => Array<ComponentPickerOption>,
+  dynamicOptionsFn?:
+    | (({
+      queryString,
+    }: {
+      queryString: string,
+    }) => Array<ComponentPickerOption>)
+    | undefined,
 }): JSX.Element {
   const [editor] = useLexicalComposerContext();
   const [modal, showModal] = useEditorModal();

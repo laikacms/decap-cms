@@ -233,7 +233,7 @@ const PreviewButtonContainer = styled.div`
   }
 `;
 
-const RefreshPreviewButton = styled.button<{ $spinning?: boolean }>`
+const RefreshPreviewButton = styled.button<{ $spinning?: boolean | undefined }>`
   background: none;
   border: 0;
   cursor: pointer;
@@ -500,7 +500,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
     canCreate,
     canPublish,
   }: {
-    canCreate?: boolean,
+    canCreate?: boolean | undefined,
     canPublish?: boolean,
   }) {
     return canPublish
@@ -550,7 +550,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
     canPublish,
     canDelete,
   }: {
-    canCreate?: boolean,
+    canCreate?: boolean | undefined,
     canPublish?: boolean,
     canDelete?: boolean,
   }) {
@@ -590,7 +590,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
       );
   }
 
-  function renderExistingEntrySimplePublishControls({ canCreate }: { canCreate?: boolean }) {
+  function renderExistingEntrySimplePublishControls({ canCreate }: { canCreate?: boolean | undefined }) {
     return canCreate
       ? (
         <ToolbarDropdown
@@ -608,7 +608,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
       : <PublishedButton>{t('editor.editorToolbar.published')}</PublishedButton>;
   }
 
-  function renderNewEntrySimplePublishControls({ canCreate }: { canCreate?: boolean }) {
+  function renderNewEntrySimplePublishControls({ canCreate }: { canCreate?: boolean | undefined }) {
     return (
       <div>
         <ToolbarDropdown

@@ -100,7 +100,7 @@ interface TreeNodeProps {
   depth?: number;
   treeData: TreeNodeData[];
   onToggle: (args: { node: TreeNodeData, expanded: boolean }) => void;
-  'data-testid'?: string;
+  'data-testid'?: string | undefined;
 }
 
 function TreeNode(props: TreeNodeProps): React.ReactNode {
@@ -290,8 +290,8 @@ export function updateNode(
 interface NestedCollectionProps {
   collection: CmsCollectionState;
   entries: CmsEntry[];
-  filterTerm?: string;
-  'data-testid'?: string;
+  filterTerm?: string | undefined;
+  'data-testid'?: string | undefined;
 }
 
 function shallowArrayEqual(a: unknown[], b: unknown[]): boolean {

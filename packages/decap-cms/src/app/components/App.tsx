@@ -118,64 +118,64 @@ export interface AppContentProps {
    * same props the built-in `Header` consumes — auth user, collections, the
    * media/quick-add/logout handlers, etc. Omit to use the default header.
    */
-  renderHeader?: (props: AppHeaderRenderProps) => React.ReactNode;
+  renderHeader?: ((props: AppHeaderRenderProps) => React.ReactNode) | undefined;
   /**
    * Wrap the routed main content (everything below the header) in a custom
    * layout — e.g. add a left sidebar, change the container width, inject a
    * dashboard. Receives the already-composed routed content as `main`. Omit
    * to use the default centered container.
    */
-  renderLayout?: (props: AppLayoutRenderProps) => React.ReactNode;
+  renderLayout?: ((props: AppLayoutRenderProps) => React.ReactNode) | undefined;
   /**
    * Render a custom authentication page (or a wrapper around the backend's
    * built-in one). Receives the backend's `AuthComponent` plus the standard
    * login handlers. When `AuthComponent` is `null` the backend is still being
    * resolved — show a waiting state or fall back. Omit for the default page.
    */
-  renderAuth?: (props: AppAuthRenderProps) => React.ReactNode;
+  renderAuth?: ((props: AppAuthRenderProps) => React.ReactNode) | undefined;
   /**
    * Replace the element rendered at `/`. By default, `/` redirects to the
    * first non-hidden collection. Supply this to render a dashboard, an
    * onboarding screen, or any other home view instead.
    */
-  renderRoot?: () => React.ReactNode;
+  renderRoot?: (() => React.ReactNode) | undefined;
   /**
    * Inject additional routes, matched (by exact path) after the built-in
    * routes and before the catch-all not-found page. Use to add custom pages
    * (settings, analytics, docs).
    */
-  extraRoutes?: ExtraRoute[];
+  extraRoutes?: ExtraRoute[] | undefined;
   /**
    * Render-slot overrides for deeper components (Collection, Editor,
    * MediaLibrary, …). See `CmsSlots`. Omit to use the defaults everywhere.
    */
-  slots?: CmsSlots;
+  slots?: CmsSlots | undefined;
   /**
    * Replace the toast notifications surface. Called from both the auth and
    * post-login render paths, so a single override re-skins notifications
    * everywhere. Omit to use the default `Notifications` component.
    */
-  renderNotifications?: () => React.ReactNode;
+  renderNotifications?: (() => React.ReactNode) | undefined;
   /**
    * Replace the 404 / not-found page rendered for unmatched routes. Omit to
    * use the default `NotFoundPage`.
    */
-  renderNotFound?: () => React.ReactNode;
+  renderNotFound?: (() => React.ReactNode) | undefined;
   /**
    * Render a footer below the routed content (still inside the layout, so
    * `renderLayout` controls the surrounding chrome). Omit for no footer.
    */
-  renderFooter?: () => React.ReactNode;
+  renderFooter?: (() => React.ReactNode) | undefined;
   /**
    * Replace the screen shown while the CMS config is being loaded. Omit to
    * use the default `Loader` component.
    */
-  renderConfigLoading?: () => React.ReactNode;
+  renderConfigLoading?: (() => React.ReactNode) | undefined;
   /**
    * Replace the screen shown when the CMS config has an error. Receives the
    * raw error message string. Omit for the default error block.
    */
-  renderConfigError?: (props: { error: string }) => React.ReactNode;
+  renderConfigError?: ((props: { error: string }) => React.ReactNode) | undefined;
   /**
    * Replace the crash-fallback screen rendered by the root `ErrorBoundary`.
    * Receives the error title, full message/stack, a pre-built Github issue
@@ -249,7 +249,7 @@ function getDefaultCollectionName(collections: Collections): string | undefined 
  * history entry. Renders nothing; the navigation happens in an effect so it
  * does not run during render. A no-op when there is no default collection.
  */
-function RedirectToCollection({ collectionName }: { collectionName?: string }) {
+function RedirectToCollection({ collectionName }: { collectionName?: string | undefined }) {
   const navigate = useNavigate();
   useEffect(() => {
     if (collectionName) {
@@ -267,7 +267,7 @@ function RedirectToCollection({ collectionName }: { collectionName?: string }) {
  * router-subscribe effect), so dispatching `openMediaLibrary` first
  * would have that same navigation immediately close the modal it just opened.
  */
-function OpenMediaLibraryAndRedirect({ collectionName }: { collectionName?: string }) {
+function OpenMediaLibraryAndRedirect({ collectionName }: { collectionName?: string | undefined }) {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   useEffect(() => {
@@ -307,7 +307,7 @@ function CollectionGuard({
 }: {
   name: string,
   collections: Collections,
-  renderNotFound?: () => React.ReactNode,
+  renderNotFound?: (() => React.ReactNode) | undefined,
   children: React.ReactNode,
 }) {
   const exists = name ? collections[name] : undefined;
@@ -317,9 +317,7 @@ function CollectionGuard({
     // the app — unlike the entry-not-found case (DCMS-445), which already
     // gets one. Route to `/` (home), since there's no known collection to
     // link back to (DCMS-1837).
-    return renderNotFound ? <>{renderNotFound()}</> : (
-      <NotFoundPage collectionName={name} backLink={{ to: '/' }} />
-    );
+    return renderNotFound ? <>{renderNotFound()}</> : <NotFoundPage collectionName={name} backLink={{ to: '/' }} />;
   }
   return <>{children}</>;
 }
@@ -366,10 +364,10 @@ function AppRoutes({
 }: {
   collections: Collections,
   hasWorkflow: boolean,
-  renderRoot?: () => React.ReactNode,
-  renderNotFound?: () => React.ReactNode,
-  extraRoutes?: ExtraRoute[],
-  defaultCollectionName?: string,
+  renderRoot?: (() => React.ReactNode) | undefined,
+  renderNotFound?: (() => React.ReactNode) | undefined,
+  extraRoutes?: ExtraRoute[] | undefined,
+  defaultCollectionName?: string | undefined,
 }) {
   const { routing, path } = useDecap();
 

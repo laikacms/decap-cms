@@ -143,7 +143,7 @@ export interface ErrorBoundaryRenderProps {
   /** Pre-built Github issue URL for this error and config. */
   issueUrl: string;
   /** Recovered draft JSON, if any. Only populated when `showBackup` is on. */
-  backup?: string;
+  backup?: string | undefined;
 }
 
 interface ErrorBoundaryProps {
@@ -156,7 +156,7 @@ interface ErrorBoundaryProps {
    * and the boundary has caught an error, this is rendered in place of the
    * default `<ErrorBoundaryContainer>` layout.
    */
-  renderError?: (props: ErrorBoundaryRenderProps) => React.ReactNode;
+  renderError?: ((props: ErrorBoundaryRenderProps) => React.ReactNode) | undefined;
 }
 
 export class ErrorBoundary extends React.Component<ErrorBoundaryProps> {

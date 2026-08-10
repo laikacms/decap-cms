@@ -53,7 +53,7 @@ const StyledListItemTopBar = styled(ListItemTopBar)`
 
 interface NestedObjectLabelProps {
   collapsed?: boolean;
-  error?: boolean;
+  error?: boolean | undefined;
 }
 
 const NestedObjectLabel = styled.div<NestedObjectLabelProps>`

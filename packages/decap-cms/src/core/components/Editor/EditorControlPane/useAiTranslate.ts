@@ -22,8 +22,8 @@ import { buildTranslatePrompt, extractTranslatedFields, type TranslatableFieldVa
 
 export interface UseAiTranslateOptions {
   /** Base path for the AI endpoints, matches the aichat widget default. */
-  apiBasePath?: string;
-  fetch?: typeof fetch;
+  apiBasePath?: string | undefined;
+  fetch?: typeof fetch | undefined;
 }
 
 export interface TranslateParams {

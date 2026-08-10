@@ -78,9 +78,9 @@ export const DownloadButton = ActionButton;
 
 interface CopyToClipBoardButtonProps {
   disabled: boolean;
-  draft?: boolean;
-  path?: string;
-  name?: string;
+  draft?: boolean | undefined;
+  path?: string | undefined;
+  name?: string | undefined;
   t: TranslateFunction;
 }
 

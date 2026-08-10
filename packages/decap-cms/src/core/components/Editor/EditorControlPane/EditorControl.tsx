@@ -480,7 +480,7 @@ interface ConnectedEditorControlProps {
   isHidden?: boolean;
   isFieldDuplicate?: (field: EntryField) => boolean;
   isFieldHidden?: (field: EntryField) => boolean;
-  locale?: string;
+  locale?: string | undefined;
   isParentListCollapsed?: boolean;
   className?: string;
   isSelected?: boolean;

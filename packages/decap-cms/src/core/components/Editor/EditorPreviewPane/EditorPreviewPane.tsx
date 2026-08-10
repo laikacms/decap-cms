@@ -61,7 +61,7 @@ type InferableFieldValue = (typeof INFERABLE_FIELDS)[keyof typeof INFERABLE_FIEL
  * shortcut — most noticeably mod+S, which falls through to the browser's
  * native "save page as" instead of saving the entry.
  */
-function PreviewShortcutBridge({ frameWindow }: { frameWindow?: Window | null }) {
+function PreviewShortcutBridge({ frameWindow }: { frameWindow?: Window | null | undefined }) {
   React.useEffect(() => {
     if (!frameWindow) return undefined;
     return attachShortcutTarget(frameWindow);
@@ -325,9 +325,7 @@ export function PreviewPane(props: PreviewPaneProps) {
   // DCMS-1230: no `CMS.registerPreviewTemplate` call for this collection —
   // render an inline empty state instead of an iframe with nothing in it.
   if (!previewComponent) {
-    return (
-      <NoPreviewMessage>{t('editor.editorInterface.noPreviewRegistered')}</NoPreviewMessage>
-    );
+    return <NoPreviewMessage>{t('editor.editorInterface.noPreviewRegistered')}</NoPreviewMessage>;
   }
 
   const visualEditing = (collection as any)?.editor?.visualEditing ?? false;

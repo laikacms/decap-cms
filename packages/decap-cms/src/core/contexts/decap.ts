@@ -58,18 +58,18 @@ export interface DecapCmsProviderProps {
    * Optional config object. Merged into `config.yml` if one is present; any
    * conflicting portion is overwritten by this object.
    */
-  config?: CmsConfig;
+  config?: CmsConfig | undefined;
   /**
    * Optional routing table. Overrides the default URL scheme; must keep
    * `create`/`get` inverse per entry. See `RoutingTable`.
    */
-  routing?: RoutingTable;
+  routing?: RoutingTable | undefined;
   /**
    * Optional theme. Overrides design tokens (currently colors) by emitting the
    * corresponding `--decap-*` CSS variables, so every component that reads a
    * token is re-themed. Omitted tokens keep their default.
    */
-  theme?: DecapTheme;
+  theme?: DecapTheme | undefined;
   /**
    * Override the router — e.g. to route through a host app's own router or
    * the History API instead of hash URLs. Must satisfy the (primitive)
@@ -77,6 +77,6 @@ export interface DecapCmsProviderProps {
    * When omitted, the provider creates its own hash router
    * (`createDefaultRouter`). The router is fixed for the provider's lifetime.
    */
-  router?: Router;
+  router?: Router | undefined;
   children?: ReactNode;
 }

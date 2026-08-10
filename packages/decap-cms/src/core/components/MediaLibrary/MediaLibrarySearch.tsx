@@ -40,7 +40,7 @@ const SearchIcon = styled(Icon)`
 `;
 
 interface MediaLibrarySearchProps {
-  value?: string;
+  value?: string | undefined;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   placeholder: string;

@@ -47,7 +47,7 @@ interface CommandItem {
   icon: 'page' | 'write' | 'workflow' | 'media-alt' | 'home' | 'search' | 'settings' | 'info-circle';
   badge?: { intent: LaikaBadgeIntent, text: string };
   /** Global shortcut sequence for this command, shown as a kbd hint. */
-  shortcut?: string;
+  shortcut?: string | undefined;
   run: () => void;
 }
 

@@ -40,15 +40,15 @@ const SectionHeading = styled.h2`
 
 interface EntryListingProps {
   collections: CmsCollectionState | CmsCollections;
-  entries?: CmsEntry[];
-  viewStyle?: string;
+  entries?: CmsEntry[] | undefined;
+  viewStyle?: string | undefined;
   cursor: Cursor;
   handleCursorActions: (action: string) => void;
-  page?: number;
-  getUnpublishedEntries?: (collectionName: string) => CmsEntry[];
-  getWorkflowStatus?: (collectionName: string, slug: string) => string | null;
-  filterTerm?: string;
-  sortFields?: CmsSortObject[];
+  page?: number | undefined;
+  getUnpublishedEntries?: ((collectionName: string) => CmsEntry[]) | undefined;
+  getWorkflowStatus?: ((collectionName: string, slug: string) => string | null) | undefined;
+  filterTerm?: string | undefined;
+  sortFields?: CmsSortObject[] | undefined;
   showPublishedEntries?: boolean;
   showUnpublishedEntries?: boolean;
 }

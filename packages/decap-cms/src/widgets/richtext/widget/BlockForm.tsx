@@ -17,8 +17,8 @@ export interface BlockFormDeps {
   resolveWidget: (name: string) => Record<string, unknown>;
   clearFieldErrors: (uniqueFieldId: string) => void;
   t: ObjectControlProps['t'];
-  locale?: string;
-  classNameWrapper?: string;
+  locale?: string | undefined;
+  classNameWrapper?: string | undefined;
   /**
    * Threaded from `EditorControlPane/Widget.tsx` down through the richtext
    * field's own `onValidateObject`; forwarded to the block's `ObjectControl`

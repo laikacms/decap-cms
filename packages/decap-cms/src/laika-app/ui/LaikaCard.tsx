@@ -11,8 +11,8 @@ import { laikaShouldForwardProp } from '@/ui/styled';
  */
 
 const Surface = styled('article', { shouldForwardProp: laikaShouldForwardProp })<{
-  $interactive?: boolean,
-  $padding?: string,
+  $interactive?: boolean | undefined,
+  $padding?: string | undefined,
 }>`
   display: flex;
   flex-direction: column;

@@ -51,19 +51,23 @@ export const unsplashProvider: StockPhotoProvider = {
 
     return {
       totalPages: data.total_pages,
-      results: (data.results ?? []).map(photo => ({
-        id: photo.id,
-        thumbUrl: photo.urls.thumb,
-        fullUrl: photo.urls.regular,
-        downloadUrl: photo.urls.full,
-        description: photo.description ?? photo.alt_description ?? undefined,
-        photographerName: photo.user?.name ?? 'Unknown photographer',
-        photographerUrl: photo.user?.links?.html,
-        providerName: 'Unsplash',
-        providerUrl: photo.links?.html ?? 'https://unsplash.com',
-        width: photo.width,
-        height: photo.height,
-      })),
+      results: (data.results ?? []).map(photo => {
+        const description = photo.description ?? photo.alt_description;
+        const photographerUrl = photo.user?.links?.html;
+        return {
+          id: photo.id,
+          thumbUrl: photo.urls.thumb,
+          fullUrl: photo.urls.regular,
+          downloadUrl: photo.urls.full,
+          ...(description === null || description === undefined ? {} : { description }),
+          photographerName: photo.user?.name ?? 'Unknown photographer',
+          ...(photographerUrl === undefined ? {} : { photographerUrl }),
+          providerName: 'Unsplash',
+          providerUrl: photo.links?.html ?? 'https://unsplash.com',
+          width: photo.width,
+          height: photo.height,
+        };
+      }),
     };
   },
 };

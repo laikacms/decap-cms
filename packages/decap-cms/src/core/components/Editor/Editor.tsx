@@ -20,7 +20,7 @@ interface EditorProps {
    * bypasses the app-shell chrome entirely otherwise, dead-ending the user
    * with no way back to the collection list.
    */
-  renderNotFound?: () => React.ReactNode;
+  renderNotFound?: (() => React.ReactNode) | undefined;
 }
 
 function Editor({ newRecord = false, collectionName, slug, renderNotFound }: EditorProps) {

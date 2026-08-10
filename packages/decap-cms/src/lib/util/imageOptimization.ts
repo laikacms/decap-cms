@@ -136,7 +136,7 @@ async function canvasToBlob(
   quality: number | undefined,
 ): Promise<Blob> {
   if (canvas.convertToBlob) {
-    return canvas.convertToBlob({ type: mimeType, quality });
+    return canvas.convertToBlob({ type: mimeType, ...(quality === undefined ? {} : { quality }) });
   }
   if (canvas.toBlob) {
     return new Promise<Blob>((resolve, reject) => {

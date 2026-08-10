@@ -525,7 +525,7 @@ export default class API {
   }
 
   async getCommitItems(
-    files: { path: string, newPath?: string }[],
+    files: { path: string, newPath?: string | undefined }[],
     branch: string,
     hasSubfolders = true,
   ) {

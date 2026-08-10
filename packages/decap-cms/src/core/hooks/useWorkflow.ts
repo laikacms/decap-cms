@@ -14,7 +14,7 @@ type Collection = CmsCollectionState;
 
 interface UseWorkflowOptions {
   collectionName: string;
-  slug?: string;
+  slug?: string | undefined;
   newEntry: boolean;
 }
 

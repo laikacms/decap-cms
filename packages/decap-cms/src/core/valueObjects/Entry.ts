@@ -2,21 +2,24 @@ import { isBoolean } from 'lodash-es';
 
 import type { MediaFile } from '@/core/backend';
 
+// Every field is defaulted below, so callers may pass an explicit `undefined`
+// (a value they read off a partially-populated backend payload) to mean
+// "use the default".
 interface Options {
-  partial?: boolean;
-  raw?: string;
+  partial?: boolean | undefined;
+  raw?: string | undefined;
 
   data?: any;
-  label?: string | null;
-  isModification?: boolean | null;
-  mediaFiles?: MediaFile[] | null;
-  author?: string;
-  updatedOn?: string;
-  status?: string;
-  meta?: { path?: string };
+  label?: string | null | undefined;
+  isModification?: boolean | null | undefined;
+  mediaFiles?: MediaFile[] | null | undefined;
+  author?: string | undefined;
+  updatedOn?: string | undefined;
+  status?: string | undefined;
+  meta?: { path?: string | undefined } | undefined;
   i18n?: {
     [locale: string]: any,
-  };
+  } | undefined;
 }
 
 export interface EntryValue {
@@ -33,7 +36,7 @@ export interface EntryValue {
   author: string;
   updatedOn: string;
   status?: string;
-  meta: { path?: string };
+  meta: { path?: string | undefined };
   i18n?: {
     [locale: string]: any,
   };

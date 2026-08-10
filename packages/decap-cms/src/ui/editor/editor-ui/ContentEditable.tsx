@@ -19,16 +19,16 @@ interface Props {
   hasDragGutter?: boolean;
   /** Applied to the editable `role="textbox"` element so failed-validation
    * state is programmatically discoverable (WCAG 2.1 3.3.1 / 3.3.3). */
-  ariaRequired?: boolean;
-  ariaInvalid?: boolean;
-  ariaErrorMessage?: string;
+  ariaRequired?: boolean | undefined;
+  ariaInvalid?: boolean | undefined;
+  ariaErrorMessage?: string | undefined;
   /** Accessible name for the `role="textbox"` div, since `<label htmlFor>`
    * silently fails to associate with non-labelable elements like `<div>`
    * (WCAG 4.1.2 / DCMS-1275). */
-  ariaLabel?: string;
+  ariaLabel?: string | undefined;
   /** Id of the field's hint text, wired to the editable `role="textbox"` div
    * via `aria-describedby` (DCMS-1298). */
-  ariaDescribedBy?: string;
+  ariaDescribedBy?: string | undefined;
 }
 
 const rootClass = css`

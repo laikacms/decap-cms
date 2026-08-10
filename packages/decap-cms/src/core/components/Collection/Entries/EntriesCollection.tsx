@@ -8,12 +8,7 @@ import {
   loadEntries as actionLoadEntries,
   traverseCollectionCursor as actionTraverseCollectionCursor,
 } from '@/core/actions/entries';
-import {
-  extractSearchFields,
-  getCollectionSearchFields,
-  matchesSearchClauses,
-  parseSearchTerm,
-} from '@/core/backend';
+import { extractSearchFields, getCollectionSearchFields, matchesSearchClauses, parseSearchTerm } from '@/core/backend';
 import { useTranslate } from '@/core/i18n';
 import { selectUnpublishedEntriesByStatus, selectUnpublishedEntry } from '@/core/reducers';
 import { selectEntryCollectionTitle } from '@/core/reducers/collections';
@@ -168,18 +163,18 @@ function shallowArrayEqual<T>(a: T[] | undefined, b: T[] | undefined): boolean {
 interface EntriesCollectionProps {
   collection: CmsCollectionState;
   collections?: CmsCollections;
-  page?: number;
+  page?: number | undefined;
   entries?: CmsEntry[];
   groups?: CmsGroupOfEntries[];
   isFetching: boolean;
-  viewStyle?: string;
+  viewStyle?: string | undefined;
   cursor: Cursor;
   loadEntries: (collection: CmsCollectionState) => void;
   traverseCollectionCursor: (collection: CmsCollectionState, action: string) => void;
   entriesLoaded?: boolean;
   loadUnpublishedEntries: (collections: CmsCollections | undefined) => void;
   isEditorialWorkflowEnabled?: boolean;
-  filterTerm?: string;
+  filterTerm?: string | undefined;
   t: TranslateFunction;
   getWorkflowStatus: (collectionName: string, slug: string) => string | null;
   getUnpublishedEntries: (collectionName: string) => CmsEntry[];

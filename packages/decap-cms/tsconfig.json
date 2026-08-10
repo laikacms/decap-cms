@@ -8,6 +8,7 @@
     "esModuleInterop": true,
     "noEmit": true,
     "strict": true,
+    "exactOptionalPropertyTypes": true,
     "isolatedModules": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,

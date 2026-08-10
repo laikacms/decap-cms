@@ -22,8 +22,9 @@ export type EntryLockStatus =
 
 export type EntryLockEntry = {
   status: EntryLockStatus,
-  lock?: CmsEntryLock,
-  error?: string,
+  // A conflicting lock the backend did not describe stays undefined.
+  lock?: CmsEntryLock | undefined,
+  error?: string | undefined,
 };
 
 export type EntryLockState = {

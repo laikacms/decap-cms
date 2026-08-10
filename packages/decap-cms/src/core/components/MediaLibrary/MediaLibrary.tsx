@@ -81,15 +81,15 @@ interface MediaLibraryProps {
   config?: Record<string, unknown>;
   loadMedia: (opts?: {
     delay?: number,
-    query?: string,
+    query?: string | undefined,
     page?: number,
-    privateUpload?: boolean,
+    privateUpload?: boolean | undefined,
     folder?: string,
   }) => void;
   dynamicSearchQuery?: string;
   page?: number;
-  persistMedia: (file: File, opts?: { privateUpload?: boolean, field?: unknown }) => void;
-  deleteMedia: (file: MediaFile | undefined, opts?: { privateUpload?: boolean }) => Promise<void>;
+  persistMedia: (file: File, opts?: { privateUpload?: boolean | undefined, field?: unknown }) => void;
+  deleteMedia: (file: MediaFile | undefined, opts?: { privateUpload?: boolean | undefined }) => Promise<void>;
   insertMedia: (mediaPath: string | string[], field?: unknown) => void;
   closeMediaLibrary: () => void;
   field?: unknown;

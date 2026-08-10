@@ -6,7 +6,7 @@ import { laikaFieldStyles } from './fieldStyles';
 
 interface FormFieldContextValue {
   controlId: string;
-  describedBy?: string;
+  describedBy?: string | undefined;
   invalid: boolean;
 }
 
@@ -48,8 +48,8 @@ export interface LaikaFormFieldProps extends React.HTMLAttributes<HTMLDivElement
 
 function useFormControlProps<
   T extends {
-    id?: string,
-    'aria-describedby'?: string,
+    id?: string | undefined,
+    'aria-describedby'?: string | undefined,
     'aria-invalid'?: React.AriaAttributes['aria-invalid'],
   },
 >(props: T): T {

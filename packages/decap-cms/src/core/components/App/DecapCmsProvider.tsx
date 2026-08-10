@@ -38,7 +38,7 @@ export type { DecapCmsProviderProps } from '@/core/contexts/decap';
  * Dispatches `loadConfig` (and `authenticateUser` once config is ready) exactly
  * once. Kept as a child component so it runs inside the Redux `Provider`.
  */
-function ConfigLoader({ config }: { config?: CmsConfig }) {
+function ConfigLoader({ config }: { config?: CmsConfig | undefined }) {
   const dispatch = useAppDispatch();
   const loadedRef = useRef(false);
 

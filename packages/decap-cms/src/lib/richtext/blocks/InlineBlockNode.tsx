@@ -35,7 +35,7 @@ export class InlineBlockNode extends DecoratorNode<ReactNode> {
   __componentId: string;
   __data: BlockData;
   /** The Portable Text `_key` this object arrived with, if any. */
-  __blockKey?: string;
+  __blockKey: string | undefined;
 
   constructor(componentId: string, data: BlockData = {}, blockKey?: string, key?: NodeKey) {
     super(key);

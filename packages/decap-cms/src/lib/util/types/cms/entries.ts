@@ -12,7 +12,7 @@ export type CmsEntry = {
   author?: string,
   updatedOn?: string,
   status?: string,
-  meta: { path?: string },
+  meta: { path?: string | undefined },
   error?: string,
   isFetching?: boolean,
   isPersisting?: boolean,
@@ -56,7 +56,7 @@ export type CmsEntryValue = {
   author: string,
   updatedOn: string,
   status?: string,
-  meta: { path?: string },
+  meta: { path?: string | undefined },
   i18n?: Record<string, unknown>,
 };
 

@@ -10,7 +10,7 @@ export interface FetchError extends Error {
 }
 
 interface API {
-  rateLimiter?: AsyncLock;
+  rateLimiter?: AsyncLock | undefined;
   buildRequest: (req: ApiRequest) => ApiRequest | Promise<ApiRequest>;
   requestFunction?: ((req: ApiRequest) => Promise<Response>) | undefined;
 }
@@ -144,7 +144,7 @@ type RequestConfig =
   & HeaderConfig
   & {
     backend: Backend,
-    apiRoot?: string,
+    apiRoot?: string | undefined,
     params?: ParamObject,
   };
 
