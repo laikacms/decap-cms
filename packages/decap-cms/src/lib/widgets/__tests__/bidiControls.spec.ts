@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  BIDI_CONTROL_NAMES,
   containsBidiControls,
   LRO,
   RLO,
@@ -12,6 +13,10 @@ import {
 // "admin<RLO>txt.exe" built the same way the widget input would receive it
 // from a paste of the DCMS-415 / DCMS-429 repro string.
 const TROJAN_TITLE = `admin${RLO}txt.exe`;
+
+// All 10 controls (ALM, LRE, RLE, PDF, LRO, RLO, LRI, RLI, FSI, PDI), read
+// straight from the source's own name map rather than re-hardcoded here.
+const ALL_CONTROLS = Object.entries(BIDI_CONTROL_NAMES);
 
 describe('containsBidiControls', () => {
   it('returns false for plain strings', () => {
@@ -57,6 +62,16 @@ describe('splitOnBidiControls', () => {
       { text: 'mid' },
     ]);
   });
+
+  it('isolates each bidi control (ALM, LRE, RLE, PDF, LRO, RLO, LRI, RLI, FSI, PDI) into its own named segment', () => {
+    ALL_CONTROLS.forEach(([ch, name]) => {
+      expect(splitOnBidiControls(`a${ch}b`)).toEqual([
+        { text: 'a' },
+        { text: ch, control: name },
+        { text: 'b' },
+      ]);
+    });
+  });
 });
 
 describe('visualizeBidiControls', () => {
@@ -67,6 +82,12 @@ describe('visualizeBidiControls', () => {
   it('leaves plain strings untouched', () => {
     expect(visualizeBidiControls('admin.txt.exe')).toBe('admin.txt.exe');
   });
+
+  it('replaces each bidi control (ALM, LRE, RLE, PDF, LRO, RLO, LRI, RLI, FSI, PDI) with its named form', () => {
+    ALL_CONTROLS.forEach(([ch, name]) => {
+      expect(visualizeBidiControls(`a${ch}b`)).toBe(`a<${name}>b`);
+    });
+  });
 });
 
 describe('stripBidiControls', () => {
@@ -76,5 +97,11 @@ describe('stripBidiControls', () => {
 
   it('leaves plain strings untouched', () => {
     expect(stripBidiControls('admin.txt.exe')).toBe('admin.txt.exe');
+  });
+
+  it('removes each bidi control (ALM, LRE, RLE, PDF, LRO, RLO, LRI, RLI, FSI, PDI) entirely', () => {
+    ALL_CONTROLS.forEach(([ch]) => {
+      expect(stripBidiControls(`a${ch}b`)).toBe('ab');
+    });
   });
 });
