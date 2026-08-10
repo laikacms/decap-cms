@@ -31,6 +31,26 @@ The union is open. Producers are unaffected when a kind is added; consumers
 switch exhaustively and end the switch with `assertNeverContent(content)`, so a
 new kind is a compile error at every site that has to handle it.
 
+### `file`
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `path` | `string` | Where the entry is stored, relative to the repository or storage root. |
+| `id?` | `string \| null` | Revision identifier (blob sha, document version, ...). `null` is an explicit "this backend does not version content", which is why it differs from the field being absent. |
+| `author?` | `Author` | Who last changed the entry. Backend-attested only; never fabricated. |
+| `updatedOn?` | `string` | ISO-8601 timestamp of the revision. |
+
+Report only what you actually know: omit a field rather than filling it with a
+placeholder. `exactOptionalPropertyTypes` is on, so absence and an explicit
+`undefined` are different things here.
+
+### `content`
+
+| Variant | Fields | When to use it |
+| --- | --- | --- |
+| `RawContent` | `kind: 'raw'`, `raw: string` | Storage is files. `raw` is the text exactly as stored; the engine parses it with the collection's format. |
+| `ParsedContent` | `kind: 'parsed'`, `data: Record<string, unknown>` | Storage is documents. `data` is the entry's fields in the shape the format would have produced, taken by reference. |
+
 ## What changed from `CmsImplementation`
 
 | Before | Now |

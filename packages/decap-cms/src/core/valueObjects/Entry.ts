@@ -45,7 +45,13 @@ interface EntryValueBase {
  * engine's transitional stand-in for `lib/domain`'s `CompleteEntry`; the two
  * converge when the store adopts the domain type (DCMS-1907, stage 4).
  */
-export type CompleteEntryValue = EntryValueBase & { projected: false };
+export type CompleteEntryValue = EntryValueBase & {
+  /**
+   * Discriminates {@link EntryValue}. `false` means the entry was loaded in
+   * full, so writing it back cannot lose fields.
+   */
+  projected: false,
+};
 
 /**
  * An entry that came from a projection - a search index returning only the
@@ -53,8 +59,16 @@ export type CompleteEntryValue = EntryValueBase & { projected: false };
  * `CompleteEntryValue`, so reaching one of those with a projection is a
  * compile error whose fix is a refetch, never a cast.
  */
-export type ProjectedEntryValue = EntryValueBase & { projected: true };
+export type ProjectedEntryValue = EntryValueBase & {
+  /**
+   * Discriminates {@link EntryValue}. `true` means `data` holds only the
+   * fields the source projected, so the entry is safe to display and unsafe
+   * to save. Resolve it by refetching, never by casting.
+   */
+  projected: true,
+};
 
+/** An entry, which either was loaded in full or came from a projection. */
 export type EntryValue = CompleteEntryValue | ProjectedEntryValue;
 
 function entryFields(collection: string, slug: string, path: string, options: Options) {

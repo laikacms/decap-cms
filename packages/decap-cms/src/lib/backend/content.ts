@@ -14,22 +14,33 @@
 
 /** Entry content as stored text, to be parsed with the collection's format. */
 export type RawContent = {
+  /** Discriminates {@link BackendEntryContent}: this content needs parsing. */
   kind: 'raw',
+  /** The file's text, exactly as stored. */
   raw: string,
 };
 
 /** Entry content the backend already holds as structured fields. */
 export type ParsedContent = {
+  /** Discriminates {@link BackendEntryContent}: this content is ready to use. */
   kind: 'parsed',
+  /**
+   * The entry's field values, keyed by field name, in the same shape the
+   * collection's format would have produced. Taken by reference: the engine
+   * does not copy, serialize or re-parse it.
+   */
   data: Record<string, unknown>,
 };
 
+/** How a backend carries an entry's content. Exactly one variant, tagged by `kind`. */
 export type BackendEntryContent = RawContent | ParsedContent;
 
+/** Wraps stored text for a backend whose storage is files. */
 export function rawContent(raw: string): RawContent {
   return { kind: 'raw', raw };
 }
 
+/** Wraps structured fields for a backend whose storage is documents. */
 export function parsedContent(data: Record<string, unknown>): ParsedContent {
   return { kind: 'parsed', data };
 }
