@@ -3,6 +3,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { SettingsDropdown } from '@/core/components/UI';
+import { useCurrentUserScopes } from '@/core/hooks/useCurrentUserScopes';
 import { useShortcut } from '@/core/hooks/useShortcut';
 import { translate } from '@/core/i18n';
 import { canEditCollection } from '@/core/lib/collectionAccess';
@@ -234,7 +235,8 @@ function LaikaEditorToolbar({
     }
   }, [deployPreview, loadDeployPreview]);
 
-  const hasEditAccess = canEditCollection(collection, user?.scopes);
+  const userScopes = useCurrentUserScopes();
+  const hasEditAccess = canEditCollection(collection, userScopes);
   const canPublish = hasEditAccess && !!hasChanged === false && (!hasWorkflow || currentStatus === 'pending_publish');
   const showStatusControls = hasEditAccess && hasWorkflow && !isNewEntry;
   const showPublish = hasEditAccess && (!hasWorkflow || (canPublish && !isNewEntry));

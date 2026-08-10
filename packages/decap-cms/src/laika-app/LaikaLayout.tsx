@@ -1,6 +1,7 @@
 import styled from '@emotion/styled';
 import React from 'react';
 
+import { useCurrentUserScopes } from '@/core/hooks/useCurrentUserScopes';
 import LaikaCommandPalette from './LaikaCommandPalette';
 import { LAIKA_BREAKPOINT_MOBILE } from './LaikaShellContext';
 import LaikaShortcutHelp from './LaikaShortcutHelp';
@@ -39,6 +40,7 @@ const MainArea = styled.div`
 `;
 
 function LaikaLayout({ main, headerProps, isEditorRoute }: AppLayoutRenderProps) {
+  const userScopes = useCurrentUserScopes();
   return (
     <>
       <LayoutRow>
@@ -55,9 +57,7 @@ function LaikaLayout({ main, headerProps, isEditorRoute }: AppLayoutRenderProps)
             a z-index/pointer-events patch on top of it, matching how the
             app-shell header is already unmounted for editor routes. */
         }
-        {!isEditorRoute && (
-          <LaikaSidebar collections={headerProps.collections} userScopes={headerProps.user.scopes} />
-        )}
+        {!isEditorRoute && <LaikaSidebar collections={headerProps.collections} userScopes={userScopes} />}
         <MainArea>{main}</MainArea>
       </LayoutRow>
       <LaikaCommandPalette />

@@ -265,6 +265,12 @@ export function getConfigSchema(): JSONSchema {
       // is checked here; unknown-group and per-field errors surface from
       // `expandFieldGroups` in `core/actions/config.tsx` instead.
       field_groups: { type: 'object' },
+      // Role name -> scope list, granted to users whose backend payload
+      // carries the matching `role`. Same validator limitation as
+      // `field_groups` (no per-property schema for unknown key names), so
+      // only the container shape is checked here; per-role validation
+      // happens in `normalizeConfig`.
+      roles: { type: 'object' },
       collections: {
         type: 'array',
         minItems: 1,

@@ -18,6 +18,12 @@ vi.mock('../LaikaShortcutHelp', () => ({
   default: () => <div data-testid="laika-shortcut-help" />,
 }));
 
+// The layout resolves the sidebar's user scopes from the store through
+// useCurrentUserScopes; stub it so no Redux Provider is needed here.
+vi.mock('../../core/hooks/useCurrentUserScopes', () => ({
+  useCurrentUserScopes: () => [],
+}));
+
 import LaikaLayout from '@/laika-app/LaikaLayout';
 
 describe('LaikaLayout', () => {

@@ -14,6 +14,12 @@ vi.mock('@/core/hooks/useRedux', () => ({
   useAppDispatch: () => () => undefined,
 }));
 
+// Effective user scopes come from the store through useCurrentUserScopes;
+// none of these tests restrict collections by scope.
+vi.mock('@/core/hooks/useCurrentUserScopes', () => ({
+  useCurrentUserScopes: () => [],
+}));
+
 vi.mock('@/core/actions/status', () => ({
   checkBackendStatus: vi.fn(),
 }));

@@ -1,7 +1,6 @@
 import type { ComponentType } from '@/lib/util/types/core';
 import type { CmsBackend, CmsBackendClass, CmsLocalBackend, CmsRegistryBackend } from './backend';
 import type { CmsCollection } from './collections';
-import type { CmsField } from './field';
 import type {
   CmsAllowedEvent,
   CmsEntryCodec,
@@ -15,6 +14,7 @@ import type {
   CmsPublishMode,
   CmsSlug,
 } from './common';
+import type { CmsField } from './field';
 import type { CmsFieldBase } from './fields/base';
 import type { CmsI18nConfig } from './i18n';
 import type { CmsAssetCollection, CmsMediaLibrary, CmsMediaLibraryOptions } from './media';
@@ -66,6 +66,13 @@ export interface CmsConfig<Backend extends CmsBackend = CmsBackend> {
    * only ever sees plain expanded fields.
    */
   field_groups?: Record<string, CmsField[]>;
+  /**
+   * Named, config-defined roles: role name to list of scopes. A user whose
+   * backend payload carries a matching `role` gets these scopes in addition
+   * to any `scopes` the payload itself reports. Role names and their scope
+   * lists are consumer data; the CMS ships no built-in roles.
+   */
+  roles?: Record<string, string[]>;
   issue_reports?: CmsIssueReports;
   local_backend?: boolean | CmsLocalBackend;
   editor?: {

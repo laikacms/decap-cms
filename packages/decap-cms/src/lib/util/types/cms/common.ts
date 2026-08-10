@@ -185,6 +185,8 @@ export type CmsUser = CmsCredentials & {
   name: string,
   avatar_url?: string | undefined,
   scopes?: string[] | undefined,
+  /** Name of a config-defined role (`config.roles`) granting additional scopes. */
+  role?: string | undefined,
   useOpenAuthoring?: boolean | undefined,
 };
 

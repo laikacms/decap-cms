@@ -292,6 +292,20 @@ function throwOnMissingDefaultLocale(i18n?: CmsI18nConfig) {
   }
 }
 
+// The schema validator can't express per-property validation for objects
+// with unknown key names (see the `roles` entry in `validateConfig.ts`), so
+// the role -> scope-list shape is checked here instead.
+function throwOnInvalidRoles(roles?: CmsConfig['roles']) {
+  if (!roles) {
+    return;
+  }
+  for (const [name, scopes] of Object.entries(roles)) {
+    if (!Array.isArray(scopes) || scopes.some(scope => typeof scope !== 'string')) {
+      throw new Error(`Role '${name}' in 'roles' must be a list of scope strings`);
+    }
+  }
+}
+
 function hasIntegration(config: CmsConfig, collection: CmsCollection) {
   const integrations = getIntegrations(config);
   const integration = selectIntegration(integrations, collection.name, 'listEntries');
@@ -314,6 +328,8 @@ function normalizeSortableFields(
 
 export function normalizeConfig(config: CmsConfig) {
   const { collections = [], field_groups: fieldGroups = {} } = config;
+
+  throwOnInvalidRoles(config.roles);
 
   const normalizedCollections = collections.map(collection => {
     const { fields, files } = collection;

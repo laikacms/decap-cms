@@ -9,6 +9,13 @@ import { status } from '@/core/constants/publishModes';
 import type { CmsCollectionState } from '@/lib/util/index';
 import type { TranslateFunction } from '@/ui/default/index';
 
+// The toolbar reads the user's effective scopes from the store through
+// useCurrentUserScopes; substitute a controllable value so these stay
+// prop-driven unit tests without a Redux Provider.
+const mockUserScopes = vi.hoisted(() => ({ current: [] as string[] }));
+vi.mock('@/core/hooks/useCurrentUserScopes', () => ({
+  useCurrentUserScopes: () => mockUserScopes.current,
+}));
 vi.mock('../../UI', () => ({
   SettingsDropdown: (props: Record<string, unknown>) => <div data-testid="settings-dropdown" {...props} />,
 }));
@@ -51,6 +58,7 @@ describe('EditorToolbar', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUserScopes.current = [];
   });
 
   describe('deploy preview polling', () => {
@@ -144,6 +152,7 @@ describe('EditorToolbar', () => {
 
   describe('Save button (editorial workflow)', () => {
     it('hides mutation controls when the user lacks the collection edit scope', () => {
+      mockUserScopes.current = ['content:read'];
       render(
         <EditorToolbar
           {...props}
@@ -152,7 +161,7 @@ describe('EditorToolbar', () => {
             create: true,
             edit_scopes: ['content:write'],
           }}
-          user={{ name: 'Viewer', token: '', scopes: ['content:read'] }}
+          user={{ name: 'Viewer', token: '' }}
           hasWorkflow={false}
           isNewEntry={false}
           hasChanged
