@@ -69,11 +69,19 @@ export default class GraphQLAPI extends API {
     return files;
   };
 
+  /**
+   * Content and authorship come from two independent batched queries, and
+   * neither response can be trusted to line up positionally with the files
+   * that were asked for: GitLab omits blobs it cannot resolve, and a tree can
+   * report a null `lastCommit`. Joining by array index therefore slides every
+   * later file onto the previous one's content or author. Both halves are
+   * keyed by path instead, which is what actually identifies a file.
+   */
   readFilesGraphQL = async (files: CmsImplementationFile[]) => {
     const paths = files.map(({ path }) => path);
 
     type BlobResult = {
-      project: { repository: { blobs: { nodes: { id: string, data: string }[] } } },
+      project: { repository: { blobs: { nodes: { id: string, path: string, data: string }[] } } },
     };
 
     const blobPromises: Promise<ApolloClient.QueryResult<BlobResult>>[] = [];
@@ -104,13 +112,22 @@ export default class GraphQLAPI extends API {
     };
 
     type CommitResult = {
-      project: { repository: { [tree: string]: { lastCommit: LastCommit } } },
+      project: {
+        repository: Record<string, { lastCommit: LastCommit | null } | null>,
+      },
     };
 
-    const commitPromises: Promise<ApolloClient.QueryResult<CommitResult>>[] = [];
+    // `lastCommits` aliases one `tree<n>` field per path in the slice, so the
+    // slice is what maps an alias back to its path. Keep them together rather
+    // than reading the response in object-key order.
+    const commitBatches: {
+      paths: string[],
+      response: Promise<ApolloClient.QueryResult<CommitResult>>,
+    }[] = [];
     batch(paths, 8, slice => {
-      commitPromises.push(
-        this.graphQLClient.query<CommitResult>({
+      commitBatches.push({
+        paths: slice,
+        response: this.graphQLClient.query<CommitResult>({
           query: queries.lastCommits(slice),
           variables: {
             repo: this.repo,
@@ -119,49 +136,63 @@ export default class GraphQLAPI extends API {
           fetchPolicy: 'cache-first',
           errorPolicy: 'all',
         }),
-      );
+      });
     });
 
     const [blobsResults, commitsResults] = await Promise.all([
-      (await Promise.all(blobPromises)).map(
-        (result: ApolloClient.QueryResult<BlobResult>) => result.data!.project.repository.blobs.nodes,
-      ),
-      (await Promise.all(commitPromises)).map(
-        (result: ApolloClient.QueryResult<CommitResult>) =>
-          Object.values(result.data!.project.repository)
-            .map(({ lastCommit }: any) => lastCommit)
-            .filter(Boolean) as LastCommit[],
-      ),
+      Promise.all(blobPromises),
+      Promise.all(commitBatches.map(({ response }) => response)),
     ]);
 
-    const blobs = blobsResults.flat().map(result => result.data) as string[];
-    const metadata = commitsResults.flat().map(({ author, authoredDate, authorName }) => {
-      const name = author?.name || author?.username || author?.publicEmail || authorName;
-      return {
-        // A commit GitLab can name nobody for yields no author at all, rather
-        // than one whose name is blank: absent is what the seam says for
-        // "the backend didn't attest to this".
-        ...(name
-          ? {
-            author: {
-              name,
-              // GitLab usernames are stable, display names are not.
-              ...(author?.username ? { id: author.username } : {}),
-            },
-          }
-          : {}),
-        updatedOn: authoredDate,
-      };
+    const blobsByPath = new Map<string, string>();
+    for (const result of blobsResults) {
+      for (const node of result.data?.project?.repository?.blobs?.nodes ?? []) {
+        blobsByPath.set(node.path, node.data);
+      }
+    }
+
+    const metadataByPath = new Map<string, Partial<BackendEntry['file']>>();
+    commitBatches.forEach(({ paths: batchPaths }, batchIndex) => {
+      const repository = commitsResults[batchIndex]?.data?.project?.repository;
+      batchPaths.forEach((path, index) => {
+        const lastCommit = repository?.[`tree${index}`]?.lastCommit;
+        if (!lastCommit) {
+          return;
+        }
+        const { author, authoredDate, authorName } = lastCommit;
+        const name = author?.name || author?.username || author?.publicEmail || authorName;
+        metadataByPath.set(path, {
+          // A commit GitLab can name nobody for yields no author at all, rather
+          // than one whose name is blank: absent is what the seam says for
+          // "the backend didn't attest to this".
+          ...(name
+            ? {
+              author: {
+                name,
+                // GitLab usernames are stable, display names are not.
+                ...(author?.username ? { id: author.username } : {}),
+              },
+            }
+            : {}),
+          updatedOn: authoredDate,
+        });
+      });
     });
 
-    const filesWithData: BackendEntry[] = files.map((file, index) => ({
-      file: {
-        path: file.path,
-        ...(file.id === undefined ? {} : { id: file.id }),
-        ...metadata[index],
-      },
-      content: rawContent(blobs[index]),
-    }));
+    const filesWithData: BackendEntry[] = files.map(file => {
+      const data = blobsByPath.get(file.path);
+      if (data === undefined) {
+        console.warn(`GitLab returned no blob for '${file.path}'; treating it as empty`);
+      }
+      return {
+        file: {
+          path: file.path,
+          ...(file.id === undefined ? {} : { id: file.id }),
+          ...metadataByPath.get(file.path),
+        },
+        content: rawContent(data ?? ''),
+      };
+    });
     return filesWithData;
   };
 

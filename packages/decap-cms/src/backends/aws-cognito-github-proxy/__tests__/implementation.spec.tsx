@@ -63,10 +63,8 @@ describe('aws-cognito-github-proxy backend', () => {
   });
 
   describe('currentUser', () => {
-    // Cognito knows the email and nothing else about GitHub, so login and
-    // avatar are derived from the configured repo. Note the derivation takes
-    // the second path segment ('owner/repo' -> 'repo'), so `login` is the
-    // repository name rather than its owner.
+    // Cognito knows the email and nothing else about GitHub, so the acting
+    // identity is derived from the configured repo's owner.
     it('reads the identity from the Cognito userInfo endpoint', async () => {
       const backend = new AwsCognitoGitHubProxyBackend(makeConfig());
       global.fetch = vi.fn(() =>
@@ -75,13 +73,25 @@ describe('aws-cognito-github-proxy backend', () => {
 
       await expect(backend.currentUser({ token: 'cognito-token' })).resolves.toEqual({
         name: 'ada@example.com',
-        login: 'repo',
-        avatar_url: 'https://github.com/repo.png',
+        login: 'owner',
+        avatar_url: 'https://github.com/owner.png',
       });
 
       expect(global.fetch).toHaveBeenCalledWith('https://auth.example.com/oauth2/userInfo', {
         headers: { Authorization: 'Bearer cognito-token' },
       });
+    });
+
+    it('names the repo owner, not the repo, as the acting account', async () => {
+      const backend = new AwsCognitoGitHubProxyBackend(makeConfig({ repo: 'acme-org/website' }));
+      global.fetch = vi.fn(() =>
+        Promise.resolve({ status: 200, json: () => Promise.resolve({ email: 'ada@example.com' }) })
+      ) as never;
+
+      const user = await backend.currentUser({ token: 'cognito-token' });
+
+      expect(user.login).toBe('acme-org');
+      expect(user.avatar_url).toBe('https://github.com/acme-org.png');
     });
 
     it('logs out and rejects when the token has expired', async () => {
