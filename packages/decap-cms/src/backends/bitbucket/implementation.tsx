@@ -1,7 +1,8 @@
 import { trimStart } from 'lodash-es';
 
-import { rawContent } from '@/lib/backend/index';
 import { NetlifyAuthenticator } from '@/lib/auth/index';
+import { rawContent } from '@/lib/backend/index';
+import { GitLfsClient } from '@/lib/util/git-lfs-client';
 import { stripIndent } from '@/lib/util/index';
 import {
   AccessTokenError,
@@ -31,7 +32,6 @@ import {
 } from '@/lib/util/index';
 import API, { API_NAME } from './API';
 import AuthenticationPage from './AuthenticationPage';
-import { GitLfsClient } from './git-lfs-client';
 
 import type { NetlifyAuthResult } from '@/lib/auth/index';
 import type { BackendEntry } from '@/lib/backend/index';

@@ -87,6 +87,11 @@ describe('github backend implementation', () => {
     const persistFiles = vi.fn();
     const mockAPI = {
       persistFiles,
+      // `persistMedia` resolves the Git LFS client first, which reads
+      // `.gitattributes`. These cases cover the non-LFS path, so report the
+      // repo as having no `.gitattributes` at all (see git-lfs.spec.ts for
+      // the LFS paths).
+      readFile: vi.fn(() => Promise.reject(Object.assign(new Error('Not Found'), { status: 404 }))),
     };
 
     persistFiles.mockImplementation((_, files) => {

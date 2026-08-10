@@ -12,8 +12,8 @@ uses pull request comments to track unpublished entries statuses.
 
 `API.tsx` - A wrapper for the Bitbucket REST API.
 
-`git-lfs-client.tsx` - A client for fetching Git LFS pointer file contents from a Large Media
-server.
+Git LFS support comes from the shared `@/lib/util/git-lfs-client` client, pointed at Bitbucket's own
+LFS batch endpoint. The GitHub backend uses the same client.
 
 `AuthenticationPage.tsx` - A component that facilitates OAuth and implicit authentication.
 
