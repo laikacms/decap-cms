@@ -13,6 +13,12 @@ export type CmsEntry = {
   updatedOn?: string,
   status?: string,
   meta: { path?: string | undefined },
+  /**
+   * Set when this entry came from a projection (a search index returning only
+   * the fields it stores) rather than a full load. Such an entry may be
+   * displayed but never edited or written back; see `selectCompleteEntry`.
+   */
+  projected?: boolean,
   error?: string,
   isFetching?: boolean,
   isPersisting?: boolean,

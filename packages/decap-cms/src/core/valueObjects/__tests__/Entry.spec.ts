@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { createEntry } from '@/core/valueObjects/Entry';
+import { createEntry, createProjectedEntry } from '@/core/valueObjects/Entry';
 
 describe('createEntry', () => {
   it('defaults all optional fields when options is omitted', () => {
@@ -8,7 +8,7 @@ describe('createEntry', () => {
       collection: 'posts',
       slug: '',
       path: '',
-      partial: false,
+      projected: false,
       raw: '',
       data: {},
       label: null,
@@ -29,9 +29,8 @@ describe('createEntry', () => {
     expect(entry.path).toEqual('content/posts/my-slug.md');
   });
 
-  it('overrides partial when explicitly set', () => {
-    expect(createEntry('posts', '', '', { partial: true }).partial).toBe(true);
-    expect(createEntry('posts', '', '', { partial: false }).partial).toBe(false);
+  it('marks the entry as fully loaded', () => {
+    expect(createEntry('posts').projected).toBe(false);
   });
 
   it('overrides raw when provided', () => {
@@ -114,5 +113,26 @@ describe('createEntry', () => {
       const i18n = { en: { title: 'Hello' }, fr: { title: 'Bonjour' } };
       expect(createEntry('posts', '', '', { i18n }).i18n).toBe(i18n);
     });
+  });
+});
+
+describe('createProjectedEntry', () => {
+  it('marks the entry as a projection', () => {
+    expect(createProjectedEntry('posts', 'my-slug', 'content/posts/my-slug.md').projected).toBe(
+      true,
+    );
+  });
+
+  it('builds the same fields as a complete entry otherwise', () => {
+    const options = { data: { title: 'Hello' } };
+    const { projected: _complete, ...complete } = createEntry('posts', 'a', 'a.md', options);
+    const { projected: _projection, ...projection } = createProjectedEntry(
+      'posts',
+      'a',
+      'a.md',
+      options,
+    );
+
+    expect(projection).toEqual(complete);
   });
 });

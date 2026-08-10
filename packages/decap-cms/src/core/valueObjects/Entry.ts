@@ -6,7 +6,6 @@ import type { MediaFile } from '@/core/backend';
 // (a value they read off a partially-populated backend payload) to mean
 // "use the default".
 interface Options {
-  partial?: boolean | undefined;
   raw?: string | undefined;
 
   data?: any;
@@ -22,11 +21,10 @@ interface Options {
   } | undefined;
 }
 
-export interface EntryValue {
+interface EntryValueBase {
   collection: string;
   slug: string;
   path: string;
-  partial: boolean;
   raw: string;
 
   data: any;
@@ -42,12 +40,28 @@ export interface EntryValue {
   };
 }
 
-export function createEntry(collection: string, slug = '', path = '', options: Options = {}) {
-  const returnObj: EntryValue = {
+/**
+ * An entry loaded in full, so it is safe to edit, persist and publish. The
+ * engine's transitional stand-in for `lib/domain`'s `CompleteEntry`; the two
+ * converge when the store adopts the domain type (DCMS-1907, stage 4).
+ */
+export type CompleteEntryValue = EntryValueBase & { projected: false };
+
+/**
+ * An entry that came from a projection - a search index returning only the
+ * fields it stores. Displayable, never writable: everything that writes takes
+ * `CompleteEntryValue`, so reaching one of those with a projection is a
+ * compile error whose fix is a refetch, never a cast.
+ */
+export type ProjectedEntryValue = EntryValueBase & { projected: true };
+
+export type EntryValue = CompleteEntryValue | ProjectedEntryValue;
+
+function entryFields(collection: string, slug: string, path: string, options: Options) {
+  return {
     collection,
     slug,
     path,
-    partial: options.partial || false,
     raw: options.raw || '',
     data: options.data || {},
     label: options.label || null,
@@ -59,6 +73,28 @@ export function createEntry(collection: string, slug = '', path = '', options: O
     meta: options.meta || {},
     i18n: options.i18n || {},
   };
+}
 
-  return returnObj;
+/** Builds a fully loaded entry. */
+export function createEntry(
+  collection: string,
+  slug = '',
+  path = '',
+  options: Options = {},
+): CompleteEntryValue {
+  return { ...entryFields(collection, slug, path, options), projected: false };
+}
+
+/** Builds an entry from a projection; see {@link ProjectedEntryValue}. */
+export function createProjectedEntry(
+  collection: string,
+  slug = '',
+  path = '',
+  options: Options = {},
+): ProjectedEntryValue {
+  return { ...entryFields(collection, slug, path, options), projected: true };
+}
+
+export function isProjectedEntry(entry: { projected?: boolean }): boolean {
+  return entry.projected === true;
 }

@@ -2,7 +2,7 @@ import { escapeRegExp, get, groupBy, set } from 'lodash-es';
 
 import { selectEntrySlug } from '@/core/reducers/collections';
 
-import type { EntryValue } from '@/core/valueObjects/Entry';
+import type { CompleteEntryValue } from '@/core/valueObjects/Entry';
 import type { CmsCollectionState, CmsEntry, CmsEntryField } from '@/lib/util/index';
 
 type Collection = CmsCollectionState;
@@ -225,7 +225,7 @@ export function getI18nBackup(
 
 export function formatI18nBackup(
   i18nBackup: Record<string, { raw: string }>,
-  formatRawData: (raw: string) => EntryValue,
+  formatRawData: (raw: string) => CompleteEntryValue,
 ) {
   const i18n = Object.entries(i18nBackup).reduce((acc, [locale, { raw }]) => {
     const entry = formatRawData(raw);
@@ -237,8 +237,8 @@ export function formatI18nBackup(
 
 function applyDefaultI18nValues(
   collection: Collection,
-  value: EntryValue,
-  defaultLocaleValue: EntryValue,
+  value: CompleteEntryValue,
+  defaultLocaleValue: CompleteEntryValue,
 ) {
   if (collection.fields === undefined) {
     return;
@@ -257,7 +257,7 @@ function mergeValues(
   collection: Collection,
   structure: I18N_STRUCTURE,
   defaultLocale: string,
-  values: { locale: string, value: EntryValue }[],
+  values: { locale: string, value: CompleteEntryValue }[],
 ) {
   let defaultEntry = values.find(e => e.locale === defaultLocale);
   if (!defaultEntry) {
@@ -276,7 +276,7 @@ function mergeValues(
 
   const path = normalizeFilePath(structure, defaultEntry.value.path, defaultLocale);
   const slug = selectEntrySlug(collection, path) as string;
-  const entryValue: EntryValue = {
+  const entryValue: CompleteEntryValue = {
     ...defaultEntry.value,
     raw: '',
     ...i18n,
@@ -288,10 +288,10 @@ function mergeValues(
 }
 
 function mergeSingleFileValue(
-  entryValue: EntryValue,
+  entryValue: CompleteEntryValue,
   defaultLocale: string,
   locales: string[],
-): EntryValue {
+): CompleteEntryValue {
   const data = entryValue.data[defaultLocale] || {};
   const i18n = locales
     .filter(l => l !== defaultLocale)
@@ -314,11 +314,11 @@ export async function getI18nEntry(
   extension: string,
   path: string,
   slug: string,
-  getEntryValue: (path: string) => Promise<EntryValue>,
+  getEntryValue: (path: string) => Promise<CompleteEntryValue>,
 ) {
   const { structure, locales, defaultLocale } = getI18nInfo(collection) as I18nInfo;
 
-  let entryValue: EntryValue;
+  let entryValue: CompleteEntryValue;
   if (structure === I18N_STRUCTURE.SINGLE_FILE) {
     entryValue = mergeSingleFileValue(await getEntryValue(path), defaultLocale, locales);
   } else {
@@ -332,7 +332,7 @@ export async function getI18nEntry(
 
     const nonNullValues = entryValuesResults
       .map(e => (e.status === 'fulfilled' ? e.value : undefined))
-      .filter((e): e is { value: EntryValue, locale: string } => e !== undefined);
+      .filter((e): e is { value: CompleteEntryValue, locale: string } => e !== undefined);
 
     if (nonNullValues.length === 0) {
       // mergeValues will throw on an empty list, and show the error messages.
@@ -349,7 +349,11 @@ export async function getI18nEntry(
   return entryValue;
 }
 
-export function groupEntries(collection: Collection, extension: string, entries: EntryValue[]) {
+export function groupEntries(
+  collection: Collection,
+  extension: string,
+  entries: CompleteEntryValue[],
+) {
   const { structure, defaultLocale, locales } = getI18nInfo(collection) as I18nInfo;
   if (structure === I18N_STRUCTURE.SINGLE_FILE) {
     return entries.map(e => mergeSingleFileValue(e, defaultLocale, locales));
@@ -368,7 +372,7 @@ export function groupEntries(collection: Collection, extension: string, entries:
   const groupedEntries = Object.values(grouped).reduce((acc, values) => {
     const entryValue = mergeValues(collection, structure, defaultLocale, values);
     return [...acc, entryValue];
-  }, [] as EntryValue[]);
+  }, [] as CompleteEntryValue[]);
 
   return groupedEntries;
 }

@@ -9,6 +9,7 @@ import { serializeValues } from '@/core/lib/serializeEntryValues';
 import { selectDefaultSortField, selectField, selectFields, updateFieldByKey } from '@/core/reducers/collections';
 import { selectCollectionEntriesCursor } from '@/core/reducers/cursors';
 import {
+  isCompleteEntry,
   selectEntriesLoaded,
   selectEntriesSortFields,
   selectEntry,
@@ -31,7 +32,7 @@ import { waitUntil } from './waitUntil';
 import type { Backend } from '@/core/backend';
 import type Algolia from '@/core/integrations/providers/algolia/implementation';
 import type AssetProxy from '@/core/valueObjects/AssetProxy';
-import type { EntryValue } from '@/core/valueObjects/Entry';
+import type { CompleteEntryValue, EntryValue } from '@/core/valueObjects/Entry';
 import type {
   CmsBackendMediaFile,
   CmsCollectionState,
@@ -352,7 +353,15 @@ export function emptyDraftCreated(entry: EntryValue) {
   };
 }
 
-export function createDraftFromEntry(entry: EntryValue) {
+/**
+ * Opens an entry for editing. Takes a complete entry on purpose: a projection
+ * (a search hit carrying only indexed fields) would be saved back over the
+ * real entry, dropping everything the index does not store. Callers holding an
+ * entry of unknown provenance refetch instead of casting.
+ */
+export function createDraftFromEntry(
+  entry: CompleteEntryValue | (CmsEntry & { projected?: false }),
+) {
   return {
     type: DRAFT_CREATE_FROM_ENTRY,
     payload: { entry },
@@ -518,8 +527,15 @@ export function loadEntry(collection: Collection, slug: string) {
     const queryKey = `entry/${collection.name}/${slug}`;
     const entriesState = getState().entries;
     const existing = entriesState ? selectEntry(entriesState, collection.name, slug) : undefined;
-    if (existing && !existing.error && !existing.isFetching && queryCore.isFresh(queryKey)) {
-      dispatch(createDraftFromEntry(existing as unknown as EntryValue));
+    // A cached entry is only good enough to edit when it was loaded in full.
+    // A search result overwrites the cache entry with whatever the index
+    // stores (DCMS-1907), so an entry that is fresh by query key can still be
+    // a projection; that one gets refetched below rather than opened.
+    if (
+      existing && !existing.error && !existing.isFetching && isCompleteEntry(existing)
+      && queryCore.isFresh(queryKey)
+    ) {
+      dispatch(createDraftFromEntry(existing));
       return;
     }
 
@@ -570,7 +586,10 @@ export async function tryLoadEntry(state: State, collection: Collection, slug: s
 // DCMS-1802: fills in defaults for any data field the loaded entry doesn't
 // already have a key for, without touching fields the entry already has an
 // explicit (possibly empty-looking) value for. See `createEmptyDraftData`.
-export function withDefaultsBackfilled(collection: Collection, entry: EntryValue): EntryValue {
+export function withDefaultsBackfilled(
+  collection: Collection,
+  entry: CompleteEntryValue,
+): CompleteEntryValue {
   // `type` (folder vs. files collection) drives `selectFields`; callers
   // that pass a partial/malformed collection (e.g. missing config) have no
   // safe way to resolve fields, so leave the entry as loaded rather than

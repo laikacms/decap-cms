@@ -383,6 +383,16 @@ export function selectEntry(
   return state.entities[`${collection}.${slug}`];
 }
 
+/**
+ * Narrows a cached entry to one that is safe to edit. Search results overwrite
+ * the cache with whatever the index stores, so "present in the store" does not
+ * mean "loaded in full"; anything that opens a draft goes through this guard
+ * and refetches when it fails (DCMS-1907).
+ */
+export function isCompleteEntry(entry: CmsEntry): entry is CmsEntry & { projected?: false } {
+  return entry.projected !== true;
+}
+
 export function selectPublishedSlugs(state: Entries, collection: string): string[] | undefined {
   return state.pages[collection]?.ids;
 }

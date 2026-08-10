@@ -258,7 +258,7 @@ export function loadUnpublishedEntry(collection: Collection, slug: string) {
     dispatch(unpublishedEntryLoading(collection, slug));
 
     try {
-      const entry = (await backend.unpublishedEntry(state, collection, slug)) as EntryValue;
+      const entry = await backend.unpublishedEntry(state, collection, slug);
       const assetProxies = await Promise.all(
         entry.mediaFiles
           .filter(file => file.draft)

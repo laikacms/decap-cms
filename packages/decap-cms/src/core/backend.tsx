@@ -84,7 +84,7 @@ import type {
 import type { I18nInfo } from './lib/i18n';
 import type { EntryDraft } from './reducers/entryDraft';
 import type AssetProxy from './valueObjects/AssetProxy';
-import type { EntryValue } from './valueObjects/Entry';
+import type { CompleteEntryValue, EntryValue } from './valueObjects/Entry';
 
 // State type used in this file - represents the Redux store shape
 interface State {
@@ -1123,7 +1123,7 @@ export class Backend {
       return this.processEntry(state, collection, entry);
     };
 
-    let entryValue: EntryValue;
+    let entryValue: CompleteEntryValue;
     if (hasI18n(collection)) {
       entryValue = await getI18nEntry(collection, extension, path, slug, getEntryValue);
     } else {
@@ -1242,7 +1242,7 @@ export class Backend {
         i18nFiles.map(dataFile => readAndFormatDataFile(dataFile).catch(() => null)),
       );
       entries = entries.filter(Boolean);
-      const grouped = await groupEntries(collection, extension, entries as EntryValue[]);
+      const grouped = groupEntries(collection, extension, entries.filter(entry => entry !== null));
       return grouped[0];
     } else {
       const entryWithFormat = await readAndFormatDataFile(dataFiles[0]);
@@ -1323,7 +1323,13 @@ export class Backend {
     return this.implementation.refreshEntryLock(path, owner);
   }
 
-  async processEntry(state: State, collection: CmsCollectionState, entry: EntryValue) {
+  // Generic so it hands back the same entry variant it was given: attaching
+  // media files says nothing about whether the entry was fully loaded.
+  async processEntry<T extends EntryValue>(
+    state: State,
+    collection: CmsCollectionState,
+    entry: T,
+  ): Promise<T> {
     const integration = selectIntegration(state.integrations as any, null, 'assetStore');
     const mediaFolders = selectMediaFolders(state.config, collection, entry);
     if (mediaFolders.length > 0 && !integration) {
@@ -1716,7 +1722,7 @@ export class Backend {
     return (file.fields || []).map((f: CmsEntryField) => f.name);
   }
 
-  filterEntries(collection: { entries: EntryValue[] }, filterRule: CmsFilterRule) {
+  filterEntries<T extends EntryValue>(collection: { entries: T[] }, filterRule: CmsFilterRule) {
     return collection.entries.filter(entry => {
       const fieldValue = entry.data[filterRule.field];
       if (Array.isArray(fieldValue)) {

@@ -1,7 +1,7 @@
 import { flatten } from 'lodash-es';
 
 import { selectEntrySlug } from '@/core/reducers/collections';
-import { createEntry } from '@/core/valueObjects/Entry';
+import { createProjectedEntry } from '@/core/valueObjects/Entry';
 import { unsentRequest } from '@/lib/util/index';
 
 import type { EntryValue } from '@/core/valueObjects/Entry';
@@ -149,7 +149,7 @@ export default class Algolia {
       const entries = typedResponse.results.map((result, index) =>
         result.hits.map(hit => {
           const slug = getSlug(hit.path);
-          return createEntry(collections[index], slug, hit.path, { data: hit.data, partial: true });
+          return createProjectedEntry(collections[index], slug, hit.path, { data: hit.data });
         })
       );
 
@@ -179,9 +179,8 @@ export default class Algolia {
         const typedResponse = response as AlgoliaSearchResult;
         const entries = typedResponse.hits.map(hit => {
           const slug = selectEntrySlug(collection, hit.path);
-          return createEntry(collection.name, slug, hit.path, {
+          return createProjectedEntry(collection.name, slug, hit.path, {
             data: hit.data,
-            partial: true,
           });
         });
         this.entriesCache = { collection, pagination: typedResponse.page, page, entries };
@@ -212,9 +211,8 @@ export default class Algolia {
     }
     const entries = hits.map(hit => {
       const slug = selectEntrySlug(collection, hit.path);
-      return createEntry(collection.name, slug, hit.path, {
+      return createProjectedEntry(collection.name, slug, hit.path, {
         data: hit.data,
-        partial: true,
       });
     });
 
@@ -224,9 +222,8 @@ export default class Algolia {
   getEntry(collection: Collection, slug: string): Promise<EntryValue> {
     return this.searchBy('slug', collection.name, slug).then(response => {
       const entry = response.hits.filter(hit => hit.slug === slug)[0];
-      return createEntry(collection.name, slug, entry.path, {
+      return createProjectedEntry(collection.name, slug, entry.path, {
         data: entry.data,
-        partial: true,
       });
     });
   }
