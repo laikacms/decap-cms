@@ -1,5 +1,6 @@
-import { attempt, flatten, get, isError, set, sortBy, trim, uniq } from 'lodash-es';
+import { flatten, get, set, sortBy, trim, uniq } from 'lodash-es';
 
+import { rawContent } from '@/lib/backend/index';
 import {
   asyncLock,
   basename,
@@ -20,6 +21,7 @@ import { stringTemplate } from '@/lib/widgets/index';
 import { FILES, FOLDER } from './constants/collectionTypes';
 import { status } from './constants/publishModes';
 import { resolveFormat } from './formats/formats';
+import { entryDataFromContent, legacyRaw, toBackendEntry } from './lib/backendEntry';
 import { commitMessageFormatter, previewUrlFormatter, slugFormatter } from './lib/formatters';
 import {
   formatI18nBackup,
@@ -773,21 +775,18 @@ export class Backend {
   }
 
   processEntries(loadedEntries: CmsImplementationEntry[], collection: CmsCollectionState) {
-    const entries = loadedEntries.map(loadedEntry =>
-      createEntry(
-        collection.name,
-        selectEntrySlug(collection, loadedEntry.file.path),
-        loadedEntry.file.path,
-        {
-          raw: loadedEntry.data || '',
-          label: loadedEntry.file.label,
-          author: loadedEntry.file.author,
-          updatedOn: loadedEntry.file.updatedOn,
-          meta: { path: prepareMetaPath(loadedEntry.file.path, collection) },
-        },
-      )
-    );
-    const formattedEntries = entries.map(this.entryWithFormat(collection));
+    const formattedEntries = loadedEntries.map(loadedEntry => {
+      const { file, content } = toBackendEntry(loadedEntry);
+      const slug = selectEntrySlug(collection, file.path) ?? '';
+      return createEntry(collection.name, slug, file.path, {
+        raw: legacyRaw(content),
+        data: entryDataFromContent(collection, file.path, content),
+        label: selectFileEntryLabel(collection, slug),
+        author: file.author?.name,
+        updatedOn: file.updatedOn,
+        meta: { path: prepareMetaPath(file.path, collection) },
+      });
+    });
     // If this collection has a "filter" property, filter entries accordingly
     const collectionFilter = collection.filter;
     const filteredEntries = collectionFilter
@@ -1015,14 +1014,13 @@ export class Backend {
 
     const formatRawData = (raw: string) => {
       const metaPath = prepareMetaPath(path, collection);
-      return this.entryWithFormat(collection)(
-        createEntry(collection.name, slug, path, {
-          raw,
-          label,
-          mediaFiles,
-          meta: metaPath ? { path: metaPath } : {},
-        }),
-      );
+      return createEntry(collection.name, slug, path, {
+        raw,
+        data: entryDataFromContent(collection, path, rawContent(raw)),
+        label,
+        mediaFiles,
+        meta: metaPath ? { path: metaPath } : {},
+      });
     };
 
     const entry: EntryValue = formatRawData(raw);
@@ -1113,18 +1111,16 @@ export class Backend {
     const extension = selectFolderEntryExtension(collection);
 
     const getEntryValue = async (path: string) => {
-      const loadedEntry = await this.implementation.getEntry(path);
-      let entry = createEntry(collection.name, slug, loadedEntry.file.path, {
-        raw: loadedEntry.data,
+      const { file, content } = toBackendEntry(await this.implementation.getEntry(path));
+      const entry = createEntry(collection.name, slug, file.path, {
+        raw: legacyRaw(content),
+        data: entryDataFromContent(collection, file.path, content),
         label,
         mediaFiles: [],
-        meta: { path: prepareMetaPath(loadedEntry.file.path, collection) },
+        meta: { path: prepareMetaPath(file.path, collection) },
       });
 
-      entry = this.entryWithFormat(collection)(entry);
-      entry = await this.processEntry(state, collection, entry);
-
-      return entry;
+      return this.processEntry(state, collection, entry);
     };
 
     let entryValue: EntryValue;
@@ -1179,19 +1175,6 @@ export class Backend {
     return Promise.reject(err);
   }
 
-  entryWithFormat(collection: CmsCollectionState) {
-    return (entry: EntryValue): EntryValue => {
-      const format = resolveFormat(collection, entry);
-      if (entry && entry.raw !== undefined) {
-        const data = (format && attempt(format.fromFile.bind(format, entry.raw))) || {};
-        if (isError(data)) console.error(data);
-        return Object.assign(entry, { data: isError(data) ? {} : data });
-      }
-      // Legacy path: hand the whole entry through the formatter unchanged.
-      return format.fromFile(entry as unknown as string) as EntryValue;
-    };
-  }
-
   async processUnpublishedEntry(
     collection: CmsCollectionState,
     entryData: CmsUnpublishedEntry,
@@ -1220,9 +1203,10 @@ export class Backend {
       f => f.path.length,
     );
 
-    const formatData = (data: string, path: string, newFile: boolean) => {
-      const entry = createEntry(collection.name, slug, path, {
-        raw: data,
+    const formatData = (raw: string, path: string, newFile: boolean) => {
+      return createEntry(collection.name, slug, path, {
+        raw,
+        data: entryDataFromContent(collection, path, rawContent(raw)),
         isModification: !newFile,
         label: collection && selectFileEntryLabel(collection, slug),
         mediaFiles,
@@ -1231,9 +1215,6 @@ export class Backend {
         status: entryData.status,
         meta: { path: prepareMetaPath(path, collection) },
       });
-
-      const entryWithFormat = this.entryWithFormat(collection)(entry);
-      return entryWithFormat;
     };
 
     const readAndFormatDataFile = async (dataFile: CmsUnpublishedEntryDiff) => {
