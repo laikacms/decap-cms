@@ -1,5 +1,176 @@
 # Changelog
 
+## 4.2.0
+
+### Minor Changes
+
+- d094b7e: Add a tree-shakeable `@laikacms/decap-cms/app/bare` entry point for the classic
+  (non-laika) app shell, mirroring `@laikacms/decap-cms/laika-app/bare`. Like the
+  laika bare entry, it exposes the same public API as `/app` but skips the eager
+  `registerExtensions()` and the auto-init at module load, so consumers can
+  register only the backends/widgets/entry-codecs they use and let the bundler
+  tree-shake the rest. `./app/bare` is now tracked in the bundle-size badge
+  (`.github/bundle-size.json`).
+- 72ef4c7: Every bundled backend now returns entries as `BackendEntry`. GitHub, GitLab, Gitea, Forgejo,
+  Bitbucket, Azure, Git Gateway, proxy, local FS and the test backend carry raw file text as
+  `rawContent(text)`; the Laika backend hands its stored documents over as `parsedContent(data)`, so
+  structured content no longer makes a round trip through JSON just for the engine to parse it back.
+  File authorship crosses the seam as an `Author` object rather than a bare name string, and the
+  display label is no longer echoed back (it comes from collection config).
+
+  The shared `entriesByFolder` / `entriesByFiles` / `allEntriesByFolder` helpers exported from
+  `@laikacms/decap-cms/lib/backend` return `BackendEntry[]` as a result.
+
+  A commit that names nobody now yields no author at all, rather than an author whose name is the
+  empty string. The shared helpers already worked this way; GitLab's GraphQL read path did not, and
+  now matches.
+
+  **Breaking:** `{ data: string, file }` is no longer accepted anywhere, and the
+  `CmsImplementationEntry` type is removed. A custom backend must return `content: rawContent(text)`
+  (file storage) or `content: parsedContent(data)` (document storage) from `getEntry`,
+  `entriesByFolder`, `entriesByFiles`, `allEntriesByFolder` and `traverseCursor`. File authorship is
+  `file.author?: Author` rather than a name string, and `file.label` is no longer read.
+
+- 19c3d5a: Update the `laikacms` dependency from `^2.0.0` to `^3.1.0`, used by the `laika` backend and the
+  laika app shell.
+- bb91e4c: Ship prebuilt CDN bundles for the two full app shells. `pnpm build:cdn` (run by `prepack`) emits
+  `dist/cdn/decap-cms.js` and `dist/cdn/laika-cms.js` as self-contained minified IIFE bundles exposing
+  `DecapCms` / `LaikaCms` globals, plus `*.esm.js` siblings for `<script type="module">`. Everything
+  is inlined, so unpkg and jsdelivr serve a working CMS off a single URL with no bundler and no peer
+  installs. The `unpkg`/`jsdelivr` fields point at the classic bundle. These are raw tarball paths,
+  not subpath exports, so `package.json#exports` is unchanged.
+
+  Only the full `app` and `laika-app` entries get a CDN build: the `bare` entries exist so a bundler
+  can tree-shake, which a prebuilt script tag cannot do.
+
+- 55fb7c8: Add path, validation and diff helpers for the in-CMS config editor, groundwork for editing
+  `config.yml` from inside the CMS.
+- d094b7e: Deprecate the `ai-chat` widget. It was a client-side stopgap for AI-assisted editing of an open
+  entry, which the server-side laikacms MCP (`/mcp`) cannot reach because it has no access to the
+  editor's client-side draft state. The widget remains fully functional and its `ai`/`ai/*` server
+  adapter (also used by the AI-translate editor feature) is unchanged, but `DecapCmsWidgetAiChat.Widget()`
+  now logs a one-time deprecation warning on registration and the exports carry `@deprecated` JSDoc.
+  Prefer the MCP integration for AI-assisted editing; the widget will be removed once a client bridge
+  lets MCP edit an open entry.
+- 1a1853f: The engine now reads entries through the `BackendEntry` seam. A backend may return an entry whose
+  `content` is `rawContent(text)` or `parsedContent(data)` instead of the old `data: string` field,
+  and structured content is carried into the entry by reference: no parse round trip, and no
+  registered entry codec needed. Backends returning the old shape keep working unchanged, so
+  implementations can move over one at a time.
+- e991f66: Drop the `laika` backend's tolerance for pre-3.1 `laikacms` repositories. The content-sync surface
+  (`getSyncToken` / `listChanges`), the per-record `version` token, and the documents/assets capability
+  documents are now read through their declared types instead of structural probes; change support is
+  gated on `getCapabilities().changes` alone. Injecting a `DocumentsRepository` built against an older
+  `laikacms` is no longer supported.
+- 2e8f194: Implement server-arbitrated entry locking in the `laika` backend.
+
+  `LaikaBackend` now implements the four optional `CmsImplementation` lock methods
+  (`getEntryLock`/`acquireEntryLock`/`releaseEntryLock`/`refreshEntryLock`) against
+  `@laikacms/server/api`'s `/locks` endpoint, which is itself an adapter over the documents
+  repository's lock methods (ADR-007 in the `laikacms` repo). Two editors on different browsers now
+  see the same "Being edited by X" banner; previously the only implementation was `EntryLockManager`,
+  which shares locks between tabs of one browser and cannot arbitrate between users.
+
+  The client keeps the opaque lock token returned by acquire and replays it on refresh and release,
+  since the server authorises on the token rather than on identity. Tokens are dropped on `logout()`.
+  The owner is never sent: the server derives it from the authenticated principal, so a client cannot
+  take a lock as someone else.
+
+  Degradation is explicit: a `423` rejects so core raises the conflict banner, while a `501` (backend
+  cannot lock) or a transport failure resolves `null` so the editor hides the lock UI instead of
+  false-alarming a conflict or blocking the edit.
+
+  `CmsImplementation.acquireEntryLock` and `refreshEntryLock` are now typed
+  `Promise<CmsEntryLock | null>` rather than `Promise<CmsEntryLock>`. `Backend` already returned
+  `| null` and core already treated `null` as ENTRY_LOCK_UNSUPPORTED; the implementation signature was
+  the only place that claimed otherwise, which forced implementors into a cast to degrade.
+
+- 6f3b573: Add two public subpath exports: `@laikacms/decap-cms/lib/domain` (the domain entry types and
+  factories, importable with zero dependencies) and `@laikacms/decap-cms/lib/backend` (the backend
+  contract, the `BackendEntry` seam with its tagged `raw`/`parsed` content union, `PersistPayload`,
+  `UnpublishedEntry`, and the implementer helpers). Nothing consumes them yet: the engine and the
+  shipped backends still run on `CmsImplementation`, so this release changes no behavior.
+- 55fb7c8: Add a `local-fs` backend for local-first editing via the File System Access API (Chromium only).
+  Pick a directory once and edit content straight on disk, no proxy server needed; the picked
+  directory handle is persisted in IndexedDB across reloads. Config validation rejects the
+  unsupported `local-fs` + `editorial_workflow` combination at config time, and cancelling the folder
+  picker is a no-op instead of surfacing an AbortError.
+- 55fb7c8: Add personal access token (PAT) login for the git backends. The login screen for github, gitlab,
+  gitea, bitbucket and azure now offers a token form next to OAuth, so a backend works without an
+  OAuth app or auth server. The entered token is preserved across a failed login attempt instead of
+  clearing the field.
+- 55fb7c8: Add QR code login to the laika app shell: scan a code from an authenticated desktop session to log
+  in on a mobile device without retyping credentials.
+- 5977754: Add `resolveLaikaBackend({ local, remote })` to `@laikacms/decap-cms/backends/laika`, which picks
+  the Decap `backend:` block for the current build: the local JSON:API that `@laikacms/vite-plugin`
+  mounts while `vite dev` runs, and the remote OAuth backend everywhere else. One admin config now
+  targets both without manual switching.
+
+  Selection reads `import.meta.env.DEV`, and fails safe to `remote` whenever that flag is not truthy,
+  so a production build, a standalone admin or `vite preview` never targets a phantom local endpoint.
+  Local mode therefore only engages when the admin config itself is bundled by Vite. Tests can pass
+  `dev` explicitly to exercise both branches.
+
+  `DEFAULT_LOCAL_BACKEND_BASE_PATH` (`/__laika`) and `DEFAULT_LOCAL_BACKEND_DEV_TOKEN` are exported
+  alongside it; `createLaikaBackend` and `DevAuthenticationPage` stay public, so hand-wiring a custom
+  local/remote arrangement instead of using the helper is still possible.
+
+### Patch Changes
+
+- 55fb7c8: Accessibility fixes: `Collapsible.Trigger` keeps `aria-controls` set while closed, and the
+  restore-backup dialog is no longer inert when it opens.
+- c97c860: Fix two ways a backend could attribute an entry to the wrong thing.
+
+  GitLab's GraphQL read path fetched file content and authorship as two independently batched queries
+  and joined both back to the requested files by array index. Neither response is positionally
+  reliable: GitLab omits blobs for paths it cannot resolve, and a tree can report a null `lastCommit`.
+  Either one shifted every later file onto its predecessor's content or author. Both halves are now
+  keyed by path, which means the `blobs` query also selects `path`. A file GitLab returns no blob for
+  is reported as empty and warned about, rather than silently taking the next file's content.
+
+  The AWS Cognito GitHub proxy backend derived the acting account from the second segment of
+  `backend.repo`, so it reported the repository name where a GitHub login belongs (and built an avatar
+  URL, `github.com/<name>.png`, that only resolves for an account). It now uses the repo's owner.
+
+- 55fb7c8: Restore the "Back to home" link on the collection not-found page in the classic app shell.
+- 55fb7c8: Fix `config.schema.json`: pin the `sortableFields` alias alongside `sortable_fields`, and remove
+  the nonexistent `icon-picker` value from the widget enum (the shipped widgets are `lucide-icon` and
+  `radix-icon`).
+- 55fb7c8: Log the underlying error when loading unpublished entries fails in the editorial workflow, instead
+  of failing silently.
+- 5d1b447: Turn on `exactOptionalPropertyTypes` and adjust the type surface accordingly.
+  Optional properties that may legitimately carry an explicit `undefined` (backend
+  payload shapes like `CmsUser` and `MediaFile`, callee-defaulted option bags, and
+  React props forwarded through JSX) are now declared `?: T | undefined`;
+  properties that are genuinely absent stay `?:` and are built by omission.
+  Consumers compiling against these types with `exactOptionalPropertyTypes` off
+  are unaffected.
+- 55fb7c8: Scope the richtext editor's image `DRAGSTART_COMMAND` preventDefault workaround to Firefox only,
+  restoring native image drag behavior in other browsers.
+- 55fb7c8: git-gateway: log Netlify deploy-preview fallback errors instead of swallowing them, and remove a
+  stale gotrue-js logout workaround.
+- 55fb7c8: Add the missing `editor.editorToolbar.publishChanges` i18n key in the laika app shell.
+- 55fb7c8: Purge local-draft backup entries on logout. Previously `Backend.logout()` left
+  `decap-cms:backup*` entries in localForage, so on a shared workstation the next user could get a
+  "Restore backup" prompt that hydrated the previous user's unsaved draft content. Logout now always
+  drops local drafts; reload-restore for a still-logged-in user is unaffected.
+- 55fb7c8: Warn in the console when no locale is registered instead of failing silently, which mainly bites
+  custom builds assembled from the bare entry points.
+- 55fb7c8: Declare the shadcn popover CSS tokens at the app root instead of only inside the editor, fixing
+  unstyled popovers rendered outside the editor tree.
+- a093ecf: Never open a search projection for editing. Entries coming from a search index carry only the fields
+  that index stores, and a search result overwrites the cached entry for that slug, so an entry could
+  be fresh in the store and still be a projection. Opening one for editing would save it back over the
+  real entry, dropping every field the index does not keep. Such entries are now marked `projected`
+  (replacing the unenforced `partial` flag the Algolia integration set), everything that opens a draft
+  requires a complete entry at the type level, and a cached projection is refetched instead.
+- 55fb7c8: Reject a `proxy` backend config without `proxy_url` at config time instead of failing later at
+  runtime.
+- 55fb7c8: Tighten widget config validation: the boolean widget now has a config schema, and the file/image
+  widget schemas validate their `media_library` config instead of accepting anything.
+- 55fb7c8: A required list field now fails validation when its value is empty, matching the behavior of the
+  other widgets.
+
 ## 4.1.0
 
 ### Minor Changes
