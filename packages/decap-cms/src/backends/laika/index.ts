@@ -11,6 +11,16 @@ export type {
   GetDocumentsRepositoryOptions,
   LaikaBackendConfig,
 } from './laika-backend.js';
+export type {
+  LaikaBackendModuleConfig,
+  LocalLaikaBackendOptions,
+  ResolveLaikaBackendOptions,
+} from './resolve-laika-backend.js';
+export {
+  DEFAULT_LOCAL_BACKEND_BASE_PATH,
+  DEFAULT_LOCAL_BACKEND_DEV_TOKEN,
+  resolveLaikaBackend,
+} from './resolve-laika-backend.js';
 
 // Laika CMS backend with dependency injection
 export const DecapCmsBackendLaika: {
