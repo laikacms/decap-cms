@@ -53,27 +53,7 @@ beforeEach(() => {
 const state = { config, integrations: {}, mediaLibrary: { files: [] }, entries: {} };
 
 describe('read path: raw content', () => {
-  it('parses a legacy `{ data: string }` entry with the collection format', async () => {
-    const backend = makeBackend({
-      entriesByFolder: () =>
-        Promise.resolve([
-          { file: { path: 'content/posts/hello.yml', id: 'sha1' }, data: 'title: Hello\n' },
-        ]),
-    });
-
-    const { entries } = await backend.listEntries(collection as never);
-
-    expect(entries).toHaveLength(1);
-    expect(entries[0]).toMatchObject({
-      collection: 'posts',
-      slug: 'hello',
-      path: 'content/posts/hello.yml',
-      data: { title: 'Hello' },
-      raw: 'title: Hello\n',
-    });
-  });
-
-  it('parses a `content: raw` entry the same way', async () => {
+  it('parses raw content with the collection format', async () => {
     const backend = makeBackend({
       entriesByFolder: () =>
         Promise.resolve([
@@ -98,7 +78,10 @@ describe('read path: raw content', () => {
     const backend = makeBackend({
       entriesByFolder: () =>
         Promise.resolve([
-          { file: { path: 'content/posts/broken.yml' }, data: 'title: "unterminated\n' },
+          {
+            file: { path: 'content/posts/broken.yml' },
+            content: rawContent('title: "unterminated\n'),
+          },
         ]),
     });
 

@@ -1,43 +1,16 @@
 import { attempt, isError } from 'lodash-es';
 
 import { resolveFormat } from '@/core/formats/formats';
-import { assertNeverContent, rawContent } from '@/lib/backend/index';
+import { assertNeverContent } from '@/lib/backend/index';
 
-import type { BackendEntry, BackendEntryContent } from '@/lib/backend/index';
-import type { CmsCollectionState, CmsImplementationEntry } from '@/lib/util/index';
+import type { BackendEntryContent } from '@/lib/backend/index';
+import type { CmsCollectionState } from '@/lib/util/index';
 
 /**
  * The engine's side of the backend seam (DCMS-1907): everything that turns
  * "what a backend handed us" into "the fields of an entry" lives here, so
  * there is exactly one place that knows how content is carried.
  */
-
-/**
- * Normalizes what an implementation returned to the seam shape. Backends that
- * already produce `BackendEntry` are passed through untouched. Every backend
- * shipped in this package does, so the legacy `{ data: string }` branch exists
- * only for third-party implementations written against the pre-DCMS-1907
- * contract; it goes away with `CmsImplementationEntry` in stage 5.
- *
- * `file.label` is deliberately dropped from the legacy shape: the label is
- * collection config, which the engine already has, so it does not need to be
- * echoed back through the seam.
- */
-export function toBackendEntry(loaded: CmsImplementationEntry | BackendEntry): BackendEntry {
-  if ('content' in loaded) {
-    return loaded;
-  }
-  const { path, id, author, updatedOn } = loaded.file;
-  return {
-    file: {
-      path,
-      ...(id === undefined ? {} : { id }),
-      ...(author === undefined ? {} : { author: { name: author } }),
-      ...(updatedOn === undefined ? {} : { updatedOn }),
-    },
-    content: rawContent(loaded.data ?? ''),
-  };
-}
 
 /**
  * An entry's fields, however the backend chose to carry its content: raw text

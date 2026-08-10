@@ -1,3 +1,4 @@
+import type { BackendEntry } from '@/lib/backend/entry';
 import type Cursor from '@/lib/util/Cursor.js';
 import type { CmsConfig } from './cms.js';
 import type {
@@ -10,12 +11,7 @@ import type {
   CmsPersistOptions,
   CmsUser,
 } from './common.js';
-import type {
-  CmsFileEntry,
-  CmsImplementationFile,
-  CmsLoadedEntry,
-  CmsUnpublishedEntry,
-} from './entries.js';
+import type { CmsFileEntry, CmsImplementationFile, CmsUnpublishedEntry } from './entries.js';
 import type {
   CmsGetMediaPageOptions,
   CmsImplementationMediaFile,
@@ -217,13 +213,13 @@ export interface CmsImplementation {
    * be skipped. Implementations that don't distinguish published/unpublished
    * storage may ignore it.
    */
-  getEntry: (path: string, useWorkflow?: boolean) => Promise<CmsLoadedEntry>;
+  getEntry: (path: string, useWorkflow?: boolean) => Promise<BackendEntry>;
   entriesByFolder: (
     folder: string,
     extension: string,
     depth: number,
-  ) => Promise<CmsLoadedEntry[]>;
-  entriesByFiles: (files: CmsImplementationFile[]) => Promise<CmsLoadedEntry[]>;
+  ) => Promise<BackendEntry[]>;
+  entriesByFiles: (files: CmsImplementationFile[]) => Promise<BackendEntry[]>;
 
   getMediaDisplayURL?: (displayURL: CmsDisplayURL) => Promise<string>;
   /**
@@ -295,11 +291,11 @@ export interface CmsImplementation {
     extension: string,
     depth: number,
     pathRegex?: RegExp,
-  ) => Promise<CmsLoadedEntry[]>;
+  ) => Promise<BackendEntry[]>;
   traverseCursor?: (
     cursor: Cursor,
     action: string,
-  ) => Promise<{ entries: CmsLoadedEntry[], cursor: Cursor }>;
+  ) => Promise<{ entries: BackendEntry[], cursor: Cursor }>;
 
   isGitBackend?: () => boolean;
   status: () => Promise<{

@@ -157,9 +157,11 @@ The staging is the point: main never carries a half-migrated type system.
 
 - **The seam break is loud and downstream.** Backends written against `CmsImplementation` stop
   compiling at stage 3 rather than misbehaving at runtime. Adapter migration for downstream
-  consumers becomes a checklist; the break is recorded in `breaking-changes-v4-beta.md`. In-tree
-  backends migrated at stage 3; out-of-tree ones keep running on a normalizing compatibility branch
-  in the engine until stage 5 removes it.
+  consumers becomes a checklist; the break is recorded in `breaking-changes-v4-beta.md`. No
+  compatibility path was kept: `CmsImplementationEntry` and the engine's normalizing branch were
+  deleted with stage 3 rather than deprecated, because a shim that accepts both shapes hides
+  backends that were never migrated (two in-tree `getEntry` implementations had in fact been missed,
+  and only surfaced once the union was removed).
 - **Structured backends get faster and more faithful.** The parsed path adds zero serialize/parse
   round trips: content passes from backend to domain entry by reference. The raw path keeps today's
   single parse per entry.

@@ -1,5 +1,6 @@
 import { trimStart } from 'lodash-es';
 
+import { rawContent } from '@/lib/backend/index';
 import { stripIndent } from '@/lib/util/index';
 import {
   asyncLock,
@@ -292,9 +293,12 @@ export default class Gitea implements CmsImplementation {
     return this.api!.readFile(path, null, { repoURL })
       .then(data => ({
         file: { path, id: null },
-        data: data as string,
+        content: rawContent(data as string),
       }))
-      .catch(() => ({ file: { path, id: null }, data: '' }));
+      // A read failure is reported as empty content, which `contentExists`
+      // reads as "no entry here". Long-standing behavior the slug-uniqueness
+      // check depends on.
+      .catch(() => ({ file: { path, id: null }, content: rawContent('') }));
   }
 
   async getMedia(mediaFolder = this.mediaFolder, folderSupport?: boolean) {

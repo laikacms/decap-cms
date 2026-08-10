@@ -58,10 +58,11 @@ straight out of an API response can be passed along without a conditional spread
 | `CmsFileEntry`                                | `PersistPayload`                                                    |
 | `UnpublishedEntry.pullRequestAuthor?: string` | `UnpublishedEntry.author?: Author`                                  |
 
-Every backend in this package produces `BackendEntry`. The engine still accepts the old
-`{ data: string }` shape from third-party implementations and normalizes it, so an out-of-tree
-backend keeps working until that compatibility branch is removed in stage 5 of DCMS-1907. The seam
-break is listed in `docs/contributing/decisions/breaking-changes-v4-beta.md`.
+`BackendEntry` is the only shape the engine accepts: there is no compatibility path for the old
+`{ data: string }` entry, and `CmsImplementationEntry` is gone. A backend written against it stops
+compiling, which is the intent. The seam break belongs in
+`docs/contributing/decisions/breaking-changes-v4-beta.md` (that doc needs operator approval, so the
+entry is still pending).
 
 `entriesByFolder` / `entriesByFiles` (the helpers below) already return `BackendEntry`, so a
 file-backed backend that builds its listings with them gets the seam shape for free and only has to

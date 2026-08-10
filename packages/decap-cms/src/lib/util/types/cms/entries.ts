@@ -1,4 +1,3 @@
-import type { BackendEntry } from '@/lib/backend/entry';
 import type { CmsAssetProxy, CmsDataFile } from './common.js';
 import type { CmsMediaFileMap } from './media.js';
 
@@ -66,33 +65,6 @@ export type CmsEntryValue = {
   meta: { path?: string | undefined },
   i18n?: Record<string, unknown>,
 };
-
-/**
- * The pre-DCMS-1907 entry shape. No backend in this package produces it any
- * more; it survives so third-party implementations written against the old
- * contract keep working, and is removed in stage 5. New backends implement
- * `BackendImplementation` from `@laikacms/decap-cms/lib/backend`.
- *
- * @deprecated Use `BackendEntry`.
- */
-export type CmsImplementationEntry = {
-  data: string,
-  file: {
-    path: string,
-    label?: string | undefined,
-    id?: string | null | undefined,
-    author?: string | undefined,
-    updatedOn?: string | undefined,
-  },
-};
-
-/**
- * What an implementation may hand back for an entry: the `BackendEntry` seam
- * shape, or the deprecated `{ data: string }` one a third-party backend may
- * still produce. The engine normalizes both via `toBackendEntry`; nothing else
- * reads these directly.
- */
-export type CmsLoadedEntry = CmsImplementationEntry | BackendEntry;
 
 export type CmsImplementationFile = {
   id?: string | null | undefined,
