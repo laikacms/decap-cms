@@ -38,7 +38,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "rimraf dist && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json && pnpm copy:assets",
+    "build": "rimraf dist && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json && node ./scripts/postbuild-emotion.mjs && pnpm copy:assets",
     "analyze": "node ./scripts/analyze.mjs",
     "analyze:demo": "ANALYZE=1 pnpm build:dev-test && open dev-test/dist/bundle-report-decap-cms.html dev-test/dist/bundle-report-laika-cms.html dev-test/dist/bundle-report-laika-cms-bare.html",
     "build:cdn": "rimraf dist/cdn && CDN_ENTRY=app vite build --config vite.config.cdn.ts && CDN_ENTRY=laika-app vite build --config vite.config.cdn.ts",
@@ -202,6 +202,8 @@
   },
   "devDependencies": {
     "@apollo/client": "catalog:",
+    "@babel/core": "catalog:",
+    "@emotion/babel-plugin": "catalog:",
     "@emotion/eslint-plugin": "catalog:",
     "@eslint/js": "catalog:",
     "@hono/node-server": "catalog:",
