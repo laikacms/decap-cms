@@ -2,8 +2,8 @@
 
 `src/core/` is the framework-agnostic engine: Redux store, config/entry processing, the backend
 abstraction, and the extension `Registry`. It has no opinion on layout or routing — the routed `App`
-/ `AppContent` layer (and the `CmsSlots` render-slot surface) lives in `@laikacms/decap/app`, built
-on top of this package (DCMS-251).
+/ `AppContent` layer (and the `CmsSlots` render-slot surface) lives in `@laikacms/decap-cms/app`,
+built on top of this package (DCMS-251).
 
 This document covers the public **extension registration API** exposed from
 `src/core/lib/registry.tsx` and re-exported from [`src/core/index.ts`](./index.ts) as `Registry`
@@ -1114,8 +1114,9 @@ collections:
 [`src/core/actions/config.tsx`](./actions/config.tsx) as part of `normalizeConfig`, before any other
 config normalization runs — nothing downstream of that point ever sees a group reference. Expansion
 is recursive: a `{ group: ... }` entry is resolved wherever it appears in a collection's or file's
-top-level `fields`, and also inside the `fields` of nested `object` widgets and the `field`/`fields`/
-`types` of `list` widgets, so groups can be reused arbitrarily deep in the field tree.
+top-level `fields`, and also inside the `fields` of nested `object` widgets and the
+`field`/`fields`/ `types` of `list` widgets, so groups can be reused arbitrarily deep in the field
+tree.
 
 Each expansion deep-clones the group's field definitions (`cloneDeep(group)`,
 `src/core/actions/config.tsx:112`), so multiple uses of the same group — across different

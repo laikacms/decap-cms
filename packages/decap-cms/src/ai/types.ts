@@ -121,7 +121,7 @@ export interface Logger {
 export interface DecapAiConfig {
   /**
    * Authenticate a Bearer access token and return the user.
-   * This should be the same callback used in decap-api.
+   * This should be the same callback used in `@laikacms/server/api`.
    */
   authenticateAccessToken: (rawToken: string) => Promise<User>;
 

@@ -21,7 +21,7 @@ Repo-level design and process docs for `@laikacms/decap-cms`, split into two buc
   - [dcb-001-pnpm-install.md](./learnings/dcb-001-pnpm-install.md) - `pnpm install` peer-dep
     verification record.
   - [dcb-002-authorization-model.md](./learnings/dcb-002-authorization-model.md) - open-scope +
-    consumer-policy authorization model across lib-pat / decap-oauth2 / decap-api.
+    consumer-policy authorization model across lib-pat / @laikacms/server oauth2 + api.
 
 Other docs live where they are closest to the code they describe: Base UI primitive notes in
 [`../base-ui/`](../base-ui/), core-engine notes in [`../core/`](../core/), and per-area READMEs

@@ -1,34 +1,36 @@
 # dcb-002: authorization model for CMS-issued credentials
 
-Discovered while comparing `decap-cms-lib-pat` (this repo) against `decap-oauth2` and `decap-api`
-(the `@laikacms/decap` packages in the `laikacms/laika-cms` repo), to decide whether the three
-overlap and what the permission model should be. Records the judgement call so we do not relitigate
-it when wiring PATs into the live API or when a consumer needs custom scopes.
+Discovered while comparing `decap-cms-lib-pat` (this repo) against the OAuth2 and API modules of
+`@laikacms/server` in the `laikacms/laika-cms` repo, to decide whether the three overlap and what
+the permission model should be. Records the judgement call so we do not relitigate it when wiring
+PATs into the live API or when a consumer needs custom scopes.
 
 > **Status update (2026-08-06): the "reduce `decap-cms-lib-pat` to types-only" step was ABANDONED.**
 > The autonomous fleet is actively hardening `decap-cms-lib-pat` as the full implementation
 > (DCMS-1894 added `UnauthorizedError` + a README pinning test), so `lib-pat` stays a complete
 > implementation in this repo. The scope/PAT mechanism was still added to `laikacms/auth` in the
 > `laika-cms` repo (the laika-side server graph, including the planned `laikacms/mcp` core subpath,
-> cannot import back into `decap-cms`), so the implementation now lives in BOTH places by choice, not
-> as debt to collapse. Do NOT gut `lib-pat` without coordinating with the fleet first. The reasoning
-> below stands; only the single-implementation goal did not.
+> cannot import back into `decap-cms`), so the implementation now lives in BOTH places by choice,
+> not as debt to collapse. Do NOT gut `lib-pat` without coordinating with the fleet first. The
+> reasoning below stands; only the single-implementation goal did not.
 
 ## The three packages are three layers, not duplicates
 
-- `decap-oauth2` is an **authorization server**: it issues credentials (PKCE OAuth flow,
+- `@laikacms/server/oauth2` is an **authorization server**: it issues credentials (PKCE OAuth flow,
   email/password, passkey, TOTP, password reset). It proves identity and mints session + refresh
   tokens. It is self-contained and does not need the CMS API to exist.
-- `decap-api` is a **resource server**: the Decap REST backend (`/documents`, `/storage`,
-  `/assets`, `/session`, `/locks`). It consumes credentials via injected `authenticateAccessToken` /
-  `authenticateApiToken`, then runs a single `authorize(ctx)` gate. Its `feat(decap)!: split
-  authentication from authorization` commit made `authorize(ctx) => boolean` the only access
-  decision and left `User` module-augmentable.
+- `@laikacms/server/api` is a **resource server**: the JSON:API composition router (`/documents`,
+  `/storage`, `/assets`, `/session`, `/locks`). It consumes credentials via injected
+  `authenticateAccessToken` / `authenticateApiToken`, then runs a single `authorize(ctx)` gate. Its
+  `feat(decap)!: split
+  authentication from authorization` commit made `authorize(ctx) => boolean`
+  the only access decision and left `User` module-augmentable.
 - `decap-cms-lib-pat` is neither. It is a **credential + scope library**: mint scoped, hashed,
   revocable PATs, plus `resolveBearer(bearer) => { user, scopes }` and `requireScope` enforcement.
   For non-PAT bearers it delegates to an injected `verifySessionToken` (which is where
-  `decap-oauth2` plugs in), so it sits on top of oauth2, it does not reimplement it. A PAT is
-  effectively a scoped, hashed, revocable version of `decap-api`'s existing (unscoped) API-key hook.
+  `@laikacms/server/oauth2` plugs in), so it sits on top of oauth2, it does not reimplement it. A
+  PAT is effectively a scoped, hashed, revocable version of `@laikacms/server/api`'s existing
+  (unscoped) API-key hook.
 
 ## RBAC vs scopes is a false dichotomy
 
@@ -54,20 +56,20 @@ Scope-based on the wire, **open vocabulary**, policy-function enforcement, RBAC 
   sense; '30% of the editor role' does not, which is why lib-pat models 'PAT scopes are a subset of
   the user's scopes'), and agent/MCP tokens want fine-grained capability grants.
 - The scope vocabulary must be **open**, not a closed enum. `decap-cms` is now a fork that supports
-  custom dashboards and injected React components, and `decap-oauth2` may front non-CMS surfaces
-  (for example a B2B shop). A closed union like `Scope = 'content:read' | ... | 'admin'` cannot name
-  `shipping:read`. Treat scopes as a `resource:action` string convention with the CMS scopes shipped
-  as well-known constants, keep `admin` as a well-known wildcard, and support `resource:*` / `*` so
-  custom namespaces get the same admin-implies-all ergonomics.
+  custom dashboards and injected React components, and `@laikacms/server/oauth2` may front non-CMS
+  surfaces (for example a B2B shop). A closed union like `Scope = 'content:read' | ... | 'admin'`
+  cannot name `shipping:read`. Treat scopes as a `resource:action` string convention with the CMS
+  scopes shipped as well-known constants, keep `admin` as a well-known wildcard, and support
+  `resource:*` / `*` so custom namespaces get the same admin-implies-all ergonomics.
 
 ## What each layer must (and must not) do
 
-- `decap-oauth2`: authenticate and **carry consumer claims opaquely**. No role or permission
-  semantics in the protocol engine. But it must let the consumer stamp arbitrary claims (scopes,
-  roles, org, tenant) at `createSession` and surface them at `getSessionByAccessToken`, or scopes
-  never reach the enforcement point. The current `SessionVerificationResult.scopes?` defaulting to
-  full-admin is the thing to fix, not the delegation model.
-- `decap-api`: keep `authorize(ctx)` as the consumer policy. Optionally ship a
+- `@laikacms/server/oauth2`: authenticate and **carry consumer claims opaquely**. No role or
+  permission semantics in the protocol engine. But it must let the consumer stamp arbitrary claims
+  (scopes, roles, org, tenant) at `createSession` and surface them at `getSessionByAccessToken`, or
+  scopes never reach the enforcement point. The current `SessionVerificationResult.scopes?`
+  defaulting to full-admin is the thing to fix, not the delegation model.
+- `@laikacms/server/api`: keep `authorize(ctx)` as the consumer policy. Optionally ship a
   `requiredScopeFor(domain, operation)` helper plus a `hasScope`-based default policy as opt-in
   convenience for the plain-CMS case.
 - `decap-cms-lib-pat`: open the `Scope` type, keep CMS scopes as exported constants, add wildcard
@@ -96,7 +98,7 @@ get it subtly wrong and fail open). Split it:
 - **Ship an optional, separable preset**: a default `(domain, operation) -> scope` table and a
   `createScopePolicy()` that drops into `authorize` in one line, living outside the auth engine. The
   B2B shop ignores it and writes its own; the blog adopts it. A light RBAC-over-scopes convenience
-  (role to scope map as data) can live here, never as an enum inside the oauth2 or decap-api core.
+  (role to scope map as data) can live here, never as an enum inside the oauth2 or api core.
 
 ## Related
 
@@ -106,6 +108,8 @@ get it subtly wrong and fail open). Split it:
   of the features still to be ported forward (see issue #1882).
 - PAT primitives: [DCMS-1409](https://github.com/laikacms/decap-cms/issues/1409) and
   `packages/decap-cms-lib-pat/README.md`.
-- Cross-repo: `decap-api` and `decap-oauth2` currently live in `laikacms/laika-cms`; per the EmDash
-  plan, packages are meant to converge into `decap-cms`, at which point the wired-together auth story
+- Cross-repo: the API and OAuth2 modules live in `laikacms/laika-cms` as `@laikacms/server/api` and
+  `@laikacms/server/oauth2` (renamed August 2026 from `@laikacms/decap/decap-api` and
+  `@laikacms/decap/decap-oauth2`, since neither was ever Decap-specific); per the EmDash plan,
+  packages are meant to converge into `decap-cms`, at which point the wired-together auth story
   (open scopes + claim transport + optional default policy) should land here.

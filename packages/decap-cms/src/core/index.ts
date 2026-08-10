@@ -19,7 +19,7 @@ export type { DecapTheme } from '@/ui/default/index';
 /**
  * Building blocks for assembling a custom layout. The routed `App` /
  * `AppContent` layer — plus the `CmsSlots` render-slot surface it wires up —
- * lives in `@laikacms/decap/app`, not here; `core` is the headless engine
+ * lives in `@laikacms/decap-cms/app`, not here; `core` is the headless engine
  * they're built on (DCMS-251).
  */
 export { default as Collection } from './components/Collection/Collection';
