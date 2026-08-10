@@ -36,7 +36,7 @@ export type Content = {
 };
 
 export const isContent = (data: unknown): data is Content => {
-  return typeof data === 'object' && data !== null;
+  return typeof data === 'object' && data !== null && !Array.isArray(data);
 };
 
 /** A resolved frontmatter language: a `CmsFrontmatterCodec` with defaults applied. */
