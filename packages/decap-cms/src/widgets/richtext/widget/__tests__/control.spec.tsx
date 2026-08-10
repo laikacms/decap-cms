@@ -1,4 +1,5 @@
-import { render } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
+import { useState } from 'react';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { markdownFormat } from '@/format-packs/markdown';
@@ -16,6 +17,7 @@ import { Editor } from '@/ui/editor';
 import { LexicalControl } from '@/widgets/richtext/widget/control';
 
 import type { BlockDefinition } from '@/lib/richtext';
+import type { RichtextValue } from '@/lib/richtext/RichtextValue';
 import type { CmsFieldBase } from '@/lib/util/index';
 import type { CmsFieldRichtext } from '@/lib/util/types/cms/fields/richtext';
 import type { SerializedEditorState } from 'lexical';
@@ -233,6 +235,79 @@ describe('LexicalControl', () => {
         unregisterBlock('note');
         unregisterBlock('aside');
       }
+    });
+  });
+
+  // DCMS-1770 / DCMS-1743: the old `RichtextControl` kept a `valueSync`
+  // change guard because every keystroke emitted a new value, the store
+  // pushed it back down as a new prop, and the control fed that back into
+  // the editor as its *initial* state, re-emitting on the way. That loop hit
+  // React's update-depth limit (the "React #185" crash) and was patched by
+  // deferring the emit behind `setTimeout`.
+  //
+  // This rewrite closes the loop structurally instead: the `RichtextValue`
+  // proxy is created once and mutated in place, and `initialState` is
+  // memoized with an empty dep list, so a value pushed back from the store
+  // can never re-enter the editor. These tests pin that, so nobody
+  // reintroduces the loop (or the `setTimeout` band-aid it needed).
+  describe('store feedback loop (DCMS-1770)', () => {
+    it('never re-feeds a store round-tripped value back in as initial editor state', () => {
+      function StoreRoundTrip() {
+        const [stored, setStored] = useState<string | RichtextValue>('Initial content');
+        return (
+          <LexicalControl
+            value={stored}
+            field={baseField}
+            onChange={next => setStored(next)}
+          />
+        );
+      }
+
+      render(<StoreRoundTrip />);
+      const firstState = lastEditorProps().editorSerializedState;
+
+      // Three "keystrokes", each emitting through onChange and so re-rendering
+      // the control with the new stored value.
+      for (let i = 0; i < 3; i += 1) {
+        const nextState = {
+          root: { children: [{ text: `edit ${i}` }] },
+        } as unknown as SerializedEditorState;
+        act(() => {
+          lastEditorProps().onSerializedChange?.(nextState);
+        });
+      }
+
+      // Same object identity as the very first render: the live state never
+      // becomes the initial state, so the editor is never reset mid-edit and
+      // no re-emit is triggered.
+      expect(lastEditorProps().editorSerializedState).toBe(firstState);
+    });
+
+    it('settles after a bounded number of renders instead of running away', () => {
+      function StoreRoundTrip() {
+        const [stored, setStored] = useState<string | RichtextValue>('Initial content');
+        return (
+          <LexicalControl
+            value={stored}
+            field={baseField}
+            onChange={next => setStored(next)}
+          />
+        );
+      }
+
+      render(<StoreRoundTrip />);
+      const rendersAfterMount = vi.mocked(Editor).mock.calls.length;
+
+      act(() => {
+        lastEditorProps().onSerializedChange?.(
+          { root: { children: [] } } as unknown as SerializedEditorState,
+        );
+      });
+
+      // One emit costs one re-render. A feedback loop would show up here as
+      // an unbounded count (or React throwing "Maximum update depth
+      // exceeded" before the assertion is ever reached).
+      expect(vi.mocked(Editor).mock.calls.length).toBe(rendersAfterMount + 1);
     });
   });
 });
