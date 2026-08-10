@@ -1,6 +1,7 @@
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import GitGateway from '@/backends/git-gateway/implementation';
+import { Cursor } from '@/lib/util/index';
 
 import type { CmsConfig as Config } from '@/lib/util/index';
 
@@ -156,5 +157,76 @@ describe('git-gateway backend implementation config keys', () => {
 
       expect(backend.backendType).toBeNull();
     });
+  });
+});
+
+/**
+ * Git Gateway owns no storage: it proxies reads to the github/gitlab/bitbucket
+ * backend it wraps. What matters at the seam is that entries pass through
+ * untouched, so a `BackendEntry` produced by the delegate is what the engine
+ * sees.
+ */
+describe('git-gateway entry reads delegate to the wrapped backend', () => {
+  const entry = {
+    file: {
+      path: 'posts/a.md',
+      id: 'sha-a',
+      author: { name: 'Ada Lovelace' },
+      updatedOn: '2026-01-02T03:04:05Z',
+    },
+    content: { kind: 'raw' as const, raw: '# A' },
+  };
+
+  function gatewayWithDelegate() {
+    const backend = new GitGateway(makeConfig());
+    const delegate = {
+      entriesByFolder: vi.fn(() => Promise.resolve([entry])),
+      allEntriesByFolder: vi.fn(() => Promise.resolve([entry])),
+      entriesByFiles: vi.fn(() => Promise.resolve([entry])),
+      getEntry: vi.fn(() => Promise.resolve(entry)),
+      traverseCursor: vi.fn(() => Promise.resolve({ entries: [entry], cursor: Cursor.create({ actions: ['prev'] }) })),
+    };
+    backend.backend = delegate as never;
+    return { backend, delegate };
+  }
+
+  test('entriesByFolder passes the folder query through and returns the entries as given', async () => {
+    const { backend, delegate } = gatewayWithDelegate();
+
+    await expect(backend.entriesByFolder('posts', 'md', 1)).resolves.toEqual([entry]);
+    expect(delegate.entriesByFolder).toHaveBeenCalledWith('posts', 'md', 1);
+  });
+
+  test('allEntriesByFolder passes the path filter through', async () => {
+    const { backend, delegate } = gatewayWithDelegate();
+    const pathRegex = /posts\/.*/;
+
+    await expect(backend.allEntriesByFolder('posts', 'md', 1, pathRegex)).resolves.toEqual([entry]);
+    expect(delegate.allEntriesByFolder).toHaveBeenCalledWith('posts', 'md', 1, pathRegex);
+  });
+
+  test('entriesByFiles passes the file list through', async () => {
+    const { backend, delegate } = gatewayWithDelegate();
+    const files = [{ path: 'pages/about.md', id: 'sha-about' }];
+
+    await expect(backend.entriesByFiles(files)).resolves.toEqual([entry]);
+    expect(delegate.entriesByFiles).toHaveBeenCalledWith(files);
+  });
+
+  test('getEntry returns the delegate entry unchanged', async () => {
+    const { backend, delegate } = gatewayWithDelegate();
+
+    await expect(backend.getEntry('posts/a.md')).resolves.toBe(entry);
+    expect(delegate.getEntry).toHaveBeenCalledWith('posts/a.md');
+  });
+
+  test('traverseCursor passes the cursor and action through', async () => {
+    const { backend, delegate } = gatewayWithDelegate();
+    const cursor = Cursor.create({ actions: ['next'] });
+
+    const result = await backend.traverseCursor(cursor, 'next');
+
+    expect(result.entries).toEqual([entry]);
+    expect(delegate.traverseCursor).toHaveBeenCalledWith(cursor, 'next');
   });
 });
