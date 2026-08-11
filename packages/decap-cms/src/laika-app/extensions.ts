@@ -33,7 +33,6 @@ import DecapCmsWidgetDatetime from '@/widgets/datetime/index';
 import DecapCmsWidgetFile from '@/widgets/file/index';
 import DecapCmsWidgetImage from '@/widgets/image/index';
 import DecapCmsWidgetList from '@/widgets/list/index';
-import DecapCmsWidgetMap from '@/widgets/map/index';
 import DecapCmsWidgetNumber from '@/widgets/number/index';
 import DecapCmsWidgetObject from '@/widgets/object/index';
 import DecapCmsWidgetRelation from '@/widgets/relation/index';
@@ -83,7 +82,6 @@ export const registerExtensions = once(function registerExtensions(): void {
     DecapCmsWidgetObject.Widget(),
     DecapCmsWidgetRelation.Widget(),
     DecapCmsWidgetBoolean.Widget(),
-    DecapCmsWidgetMap.Widget(),
     DecapCmsWidgetDatetime.Widget(),
     DecapCmsWidgetCode.Widget(),
     DecapCmsWidgetColorString.Widget(),

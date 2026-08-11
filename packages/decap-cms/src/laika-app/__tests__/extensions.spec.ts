@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { getBackend } from '@/core/lib/registry';
+import { getBackend, getWidget } from '@/core/lib/registry';
 import { registerExtensions } from '@/laika-app/extensions';
 
 describe('laika-app extensions', () => {
@@ -26,5 +26,14 @@ describe('laika-app extensions', () => {
     ]) {
       expect(getBackend(name)).toBeDefined();
     }
+  });
+
+  it('does not register the map widget by default (DCMS-1971)', () => {
+    registerExtensions();
+
+    // `ol` (OpenLayers) is an optional peer dependency of the map widget.
+    // Consumers who need it opt in via `registerMapWidget()` from
+    // `@laikacms/decap-cms/widgets/map`.
+    expect(getWidget('map')).toBeUndefined();
   });
 });

@@ -405,6 +405,10 @@
       "types": "./dist/laika-app/bare.d.ts",
       "import": "./dist/laika-app/bare.js"
     },
+    "./widgets/map": {
+      "types": "./dist/widgets/map/register.d.ts",
+      "import": "./dist/widgets/map/register.js"
+    },
     "./widgets/*": {
       "types": "./dist/widgets/*/index.d.ts",
       "import": "./dist/widgets/*/index.js"
