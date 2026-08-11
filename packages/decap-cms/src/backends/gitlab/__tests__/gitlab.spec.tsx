@@ -8,6 +8,7 @@ import nock from 'nock';
 
 import AuthenticationPage from '@/backends/gitlab/AuthenticationPage';
 import Gitlab from '@/backends/gitlab/implementation';
+import { FOLDER } from '@/core/constants/collectionTypes';
 import { registerEntryCodec } from '@/core/lib/registry';
 import { jsonEntryCodec, jsonFrontmatterCodec } from '@/entry-codecs/json/index';
 import { createMarkdownEntryCodec } from '@/entry-codecs/markdown/index';
@@ -155,17 +156,13 @@ describe('gitlab backend', () => {
     name: 'foo',
     folder: 'content',
     fields: [{ name: 'title' }],
-    // TODO: folder_based_collection is an internal string, we should not
-    // be depending on it here
-    type: 'folder_based_collection',
+    type: FOLDER,
   };
   const collectionManyEntriesConfig = {
     name: 'foo',
     folder: 'many-entries',
     fields: [{ name: 'title' }],
-    // TODO: folder_based_collection is an internal string, we should not
-    // be depending on it here
-    type: 'folder_based_collection',
+    type: FOLDER,
   };
   const collectionFilesConfig = {
     name: 'foo',
