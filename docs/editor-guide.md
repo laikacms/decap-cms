@@ -105,9 +105,12 @@ if the site owner has added a media manager link to the UI.
 - **Upload** - click Upload and choose one or more files from your computer.
 - **Insert into your entry** - select an asset and confirm ("Choose selected") to insert it into the
   field you opened the library from.
-- **Copy a reference** - from an asset's card menu you can copy its URL, its repository path, or
-  just its filename, useful when you need to reference the asset manually (for example, inside a
-  Rich Text field instead of an Image field).
+- **Copy a reference** - select an asset and use the "Copy" button in the toolbar at the top of the
+  media library to copy a reference to your clipboard, useful when you need to reference the asset
+  manually (for example, inside a Rich Text field instead of an Image field). The button copies a
+  single value that it picks for you automatically, not a choice you make: the asset's URL if it
+  resolves to an absolute URL, otherwise its filename if you're editing an unsaved draft entry,
+  otherwise its repository path.
 - **Delete** - select one or more assets and use "Delete selected" to remove them. This only removes
   the file from the media library; it won't automatically update entries that already reference it.
 - **Private media** - some sites configure a separate, non-public media library (e.g. for
