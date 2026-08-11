@@ -7,6 +7,7 @@
  */
 
 import { convertToModelMessages, generateId, streamText, type ToolSet } from 'ai';
+import { hasScope, type Scope } from 'decap-cms-lib-pat';
 
 import en from './i18n/en.js';
 import { documentTools } from './tools/document-tools.js';
@@ -42,6 +43,10 @@ const securityHeaders = () => ({
 function errorResponse(error: string, status: number = 400): Response {
   return new Response(JSON.stringify({ error }), { status, headers: securityHeaders() });
 }
+
+// AI chat can edit documents via the `updateDocument` tool, so the default
+// required scope is the write scope, not merely "authenticated".
+const DEFAULT_REQUIRED_SCOPE: Scope = 'content:write';
 
 function normalizePath(path: string): string {
   let normalized = path.replace(/\/+$/, '');
@@ -91,15 +96,31 @@ export function decapAi(config: DecapAiConfig): DecapAi {
   const chatEndpoint = `${basePath}/chat`;
   const sessionsEndpoint = `${basePath}/sessions`;
   const sessionDetailPattern = new RegExp(`^${basePath}/sessions/([^/]+)$`);
+  const requiredScope = config.requiredScope ?? DEFAULT_REQUIRED_SCOPE;
 
+  /**
+   * Routes bearer verification through the `resolveBearer` -> `{ user, scopes }`
+   * seam: `config.authenticateAccessToken` is expected to spread a
+   * `resolveBearer` result (`{ ...ctx.user, scopes: ctx.scopes }`), and this
+   * enforces `requiredScope` via `hasScope` instead of treating any
+   * authenticated user as fully authorized. A `user.scopes` of `undefined`
+   * (a `resolveBearer` session with no `scopes`) keeps today's full-access
+   * behaviour, matching `resolveBearer`'s own "omitted means full admin"
+   * convention.
+   */
   async function authenticateRequest(request: Request): Promise<User | Response> {
     const token = extractAuthorizationBearerToken(request.headers.get('Authorization'));
     if (!token) return errorResponse(t.errors.missingAuthHeader, 401);
+    let user: User;
     try {
-      return await config.authenticateAccessToken(token);
+      user = await config.authenticateAccessToken(token);
     } catch {
       return errorResponse(t.errors.authenticationFailed, 401);
     }
+    if (user.scopes && !hasScope(user.scopes, requiredScope)) {
+      return errorResponse(t.errors.insufficientScope, 403);
+    }
+    return user;
   }
 
   /**

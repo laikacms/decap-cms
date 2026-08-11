@@ -164,6 +164,7 @@
     "@vercel/stega": "catalog:",
     "ai": "catalog:",
     "dayjs": "catalog:",
+    "decap-cms-lib-pat": "workspace:^",
     "dnd-core": "catalog:",
     "effect": "catalog:",
     "fast-json-patch": "catalog:",

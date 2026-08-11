@@ -6,6 +6,7 @@ export const en = {
   errors: {
     missingAuthHeader: 'Missing or invalid Authorization header',
     authenticationFailed: 'Authentication failed',
+    insufficientScope: 'Insufficient scope for this request',
     methodNotAllowed: 'Method not allowed',
     invalidJsonBody: 'Invalid JSON body',
     missingOrInvalidMessage: 'Missing or invalid message',
