@@ -112,6 +112,13 @@ function CollectionSearch(props: CollectionSearchProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only when collection identity changes
   }, [collection]);
 
+  React.useEffect(() => {
+    // Rehydrate the input when the URL/redux searchTerm changes without a
+    // remount (SPA hashchange between search routes, or navigating away from
+    // one) — a plain useState(searchTerm) only captures the initial value.
+    setQuery(searchTerm);
+  }, [searchTerm]);
+
   function submitSearch(idx = selectedCollectionIdx) {
     setSuggestionsVisible(false);
     if (idx !== -1) {
