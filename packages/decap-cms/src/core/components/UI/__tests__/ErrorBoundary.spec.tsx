@@ -60,4 +60,14 @@ describe('Editor', () => {
         `,
     );
   });
+
+  it('DCMS-1955: does not log a PropTypes "Failed prop type" warning when rendering valid ReactNode children', () => {
+    render(
+      <ErrorBoundary {...props}>
+        <div>fine</div>
+      </ErrorBoundary>,
+    );
+
+    expect(console.error).not.toHaveBeenCalledWith(expect.stringContaining('Failed prop type'));
+  });
 });
