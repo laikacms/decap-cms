@@ -35,11 +35,12 @@ SEO panel, etc.) and is also reused internally as the item shell for single-fiel
   resolved with `stringTemplate.compileStringTemplate`, so it supports the same `{{fields.<name>}}`
   placeholders as other summary templates (for example the list widget's `summary`), interpolated
   against the object's current value.
-- `i18n` (optional, default `false`) — declared as a `boolean` in `schema.ts` for the object widget
-  itself. Note this widget-level flag is distinct from the generic per-nested-field `i18n` key (see
-  below), which is what most collection authors will reach for; setting `i18n` on the object field's
-  nested `fields` entries (`'translate'`, `'duplicate'`, or `'none'`) is what actually drives
-  per-locale translate/duplicate/hide behavior for those nested values (`core/lib/i18n.tsx`).
+- `i18n` (optional) — the standard field-level `i18n` key (`'translate' | 'duplicate' | 'none'`, or
+  `true`/`false`), applied to the object field itself the same way it applies to any other field
+  (`core/lib/i18n.tsx`). `schema.ts` previously declared a widget-specific `i18n: { type: 'boolean' }`
+  here, which was never read by `ObjectControl.tsx` and rejected the string values above as an ajv
+  type mismatch (DCMS-1952); that declaration has been removed, so this key now goes through the
+  same generic field-level validation and behavior as `fields`' nested `i18n` entries below.
 
 Like every widget, nested `fields` entries also accept the standard field-level `i18n` key
 (`'translate' | 'duplicate' | 'none'`, or `true`/`false`) to control how that specific nested value
