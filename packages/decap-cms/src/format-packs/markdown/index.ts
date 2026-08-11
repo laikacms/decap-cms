@@ -92,6 +92,15 @@ function findBlockMatches(
 function parseOptions(keyGenerator: () => string) {
   return {
     keyGenerator,
+    // `@portabletext/markdown` defaults inline HTML (`html.inline`) to
+    // `'skip'`, silently dropping angle-bracket sequences typed as plain
+    // text (e.g. `<script>`, `a<b c>d`) with no warning — DCMS-1975. This
+    // widget has no raw-HTML rendering path for inline content anyway, so
+    // the safe behavior is to keep the source text verbatim rather than
+    // discard it.
+    html: {
+      inline: 'text' as const,
+    },
     types: {
       table: ({ context, value }: { context: { keyGenerator(): string }, value: object }) => ({
         _type: 'table',
