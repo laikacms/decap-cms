@@ -17,6 +17,35 @@ describe('APIUtils', () => {
         slug: 'dir1/dir2/post-title',
       });
     });
+
+    it('should round-trip with generateContentKey', () => {
+      const contentKey = apiUtils.generateContentKey('posts', 'dir1/dir2/post-title');
+      expect(apiUtils.parseContentKey(contentKey)).toEqual({
+        collection: 'posts',
+        slug: 'dir1/dir2/post-title',
+      });
+    });
+  });
+
+  describe('branchFromContentKey / contentKeyFromBranch', () => {
+    it('should prefix the content key with the cms/ branch prefix', () => {
+      expect(apiUtils.branchFromContentKey('posts/dir1/dir2/post-title')).toBe(
+        'cms/posts/dir1/dir2/post-title',
+      );
+    });
+
+    it('should strip the cms/ branch prefix back off', () => {
+      expect(apiUtils.contentKeyFromBranch('cms/posts/dir1/dir2/post-title')).toBe(
+        'posts/dir1/dir2/post-title',
+      );
+    });
+
+    it('should round-trip a content key through branchFromContentKey and contentKeyFromBranch', () => {
+      const contentKey = apiUtils.generateContentKey('posts', 'dir1/dir2/post-title');
+      const branch = apiUtils.branchFromContentKey(contentKey);
+      expect(branch.startsWith(`${apiUtils.CMS_BRANCH_PREFIX}/`)).toBe(true);
+      expect(apiUtils.contentKeyFromBranch(branch)).toBe(contentKey);
+    });
   });
 
   describe('isCMSLabel', () => {
