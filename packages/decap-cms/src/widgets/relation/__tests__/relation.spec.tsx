@@ -41,6 +41,15 @@ const fieldConfig = {
   value_field: 'title',
 };
 
+const quickAddFieldConfig = {
+  name: 'post',
+  collection: 'posts',
+  display_fields: ['title', 'slug'],
+  search_fields: ['title', 'body'],
+  value_field: 'title',
+  allow_quick_add: true,
+};
+
 const customizedOptionsLengthConfig = {
   name: 'post',
   collection: 'posts',
@@ -310,7 +319,7 @@ class RelationController extends React.Component {
   }
 }
 
-function setup({ field, value, hasErrors, errorListId }) {
+function setup({ field, value, hasErrors, errorListId, onQuickCreateEntry, t }) {
   let renderArgs;
   const setActiveSpy = vi.fn();
   const setInactiveSpy = vi.fn();
@@ -337,6 +346,8 @@ function setup({ field, value, hasErrors, errorListId }) {
             setInactiveStyle={setInactiveSpy}
             hasErrors={hasErrors}
             errorListId={errorListId}
+            onQuickCreateEntry={onQuickCreateEntry}
+            t={t}
           />
         );
       }}
@@ -880,6 +891,111 @@ describe('Relation widget', () => {
       const input = container.querySelector('input');
       expect(input).toHaveAttribute('aria-invalid', 'true');
       expect(input).toHaveAttribute('aria-errormessage', 'post-field-1-errors');
+    });
+  });
+
+  // Inline "create new entry from a relation field" (DCMS-1421): a
+  // "+ Create new" affordance, opt-in per field via `allow_quick_add`, that
+  // opens a minimal-fields form for the target collection and, on save,
+  // creates the entry and selects it as this field's value.
+  describe('RelationControl quick-add entry creation (DCMS-1421)', () => {
+    it('does not render the quick-add button when allow_quick_add is unset', () => {
+      const { queryByText } = setup({
+        field: fieldConfig,
+        onQuickCreateEntry: vi.fn(),
+      });
+      expect(queryByText(/Create new/i)).not.toBeInTheDocument();
+    });
+
+    it('does not render the quick-add button when no onQuickCreateEntry is wired up', () => {
+      const { queryByText } = setup({ field: quickAddFieldConfig });
+      expect(queryByText(/Create new/i)).not.toBeInTheDocument();
+    });
+
+    it('renders the quick-add button when both allow_quick_add and onQuickCreateEntry are set', () => {
+      const { getByText } = setup({
+        field: quickAddFieldConfig,
+        onQuickCreateEntry: vi.fn(),
+      });
+      expect(getByText('+ Create new posts')).toBeInTheDocument();
+    });
+
+    it('opens a form with one input per value_field/display_fields field on click', async () => {
+      const user = userEvent.setup();
+      const { getByText, getByLabelText } = setup({
+        field: quickAddFieldConfig,
+        onQuickCreateEntry: vi.fn(),
+      });
+
+      await user.click(getByText('+ Create new posts'));
+
+      expect(getByText('Create new posts')).toBeInTheDocument();
+      expect(getByLabelText('title')).toBeInTheDocument();
+      expect(getByLabelText('slug')).toBeInTheDocument();
+    });
+
+    it('closes the form without creating an entry on cancel', async () => {
+      const user = userEvent.setup();
+      const onQuickCreateEntry = vi.fn();
+      const { getByText, queryByText } = setup({
+        field: quickAddFieldConfig,
+        onQuickCreateEntry,
+      });
+
+      await user.click(getByText('+ Create new posts'));
+      await user.click(getByText('Cancel'));
+
+      expect(queryByText('Create new posts')).not.toBeInTheDocument();
+      expect(onQuickCreateEntry).not.toHaveBeenCalled();
+    });
+
+    it('creates the entry, selects it, and closes the form on save', async () => {
+      const user = userEvent.setup();
+      const created = { title: 'Quick post', slug: 'quick-post' };
+      const onQuickCreateEntry = vi.fn().mockResolvedValue(created);
+      const { getByText, getByLabelText, queryByText, onChangeSpy } = setup({
+        field: quickAddFieldConfig,
+        onQuickCreateEntry,
+      });
+
+      await user.click(getByText('+ Create new posts'));
+      await user.type(getByLabelText('title'), 'Quick post');
+      await user.type(getByLabelText('slug'), 'quick-post');
+      await user.click(getByText('Save'));
+
+      await waitFor(() => {
+        expect(onQuickCreateEntry).toHaveBeenCalledWith('posts', {
+          title: 'Quick post',
+          slug: 'quick-post',
+        });
+      });
+      await waitFor(() => {
+        expect(queryByText('Create new posts')).not.toBeInTheDocument();
+      });
+      expect(onChangeSpy).toHaveBeenCalledWith(
+        'Quick post',
+        expect.objectContaining({
+          post: { posts: { 'Quick post': created } },
+        }),
+      );
+    });
+
+    it('shows an error and keeps the form open when creation fails', async () => {
+      const user = userEvent.setup();
+      const onQuickCreateEntry = vi.fn().mockRejectedValue(new Error('Not allowed to create new entries in this collection'));
+      const { getByText, getByLabelText } = setup({
+        field: quickAddFieldConfig,
+        onQuickCreateEntry,
+      });
+
+      await user.click(getByText('+ Create new posts'));
+      await user.type(getByLabelText('title'), 'Quick post');
+      await user.click(getByText('Save'));
+
+      await waitFor(() => {
+        expect(getByText('Not allowed to create new entries in this collection')).toBeInTheDocument();
+      });
+      expect(getByText('Create new posts')).toBeInTheDocument();
     });
   });
 });

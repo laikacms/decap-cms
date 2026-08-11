@@ -21,6 +21,15 @@ collection live and letting the editor pick a result.
 - `options_length` (optional, **default `20`**) — maximum number of options shown per search. Set
   this higher if a collection has many entries that share similar search terms and the default cuts
   off relevant results.
+- `allow_quick_add` / `allowQuickAdd` (optional, **default `false`**) — when `true`, shows a
+  "+ Create new" button under the field. Clicking it opens a minimal form (one input per
+  `value_field` and `display_fields` entry, restricted to plain top-level field names — templated or
+  dotted paths are skipped) for `collection`, and on save creates the entry via the same
+  create/persist path as the main editor and selects it as this field's value, without leaving the
+  current entry. Requires both the host app to wire up entry creation (`onQuickCreateEntry`, passed
+  down from `EditorControl`/`Widget`) and the target collection to allow new entries
+  (`selectAllowNewEntries`); the button is hidden unless both are true, and `persistQuickCreateEntry`
+  (`src/core/actions/entries.tsx`) throws if the collection disallows creation regardless.
 
 Both `value_field` and `display_fields` are string templates and support `{{ field | filter }}` pipe
 syntax (`upper`, `lower`, `date()`, `default()`, `ternary()`, `truncate()`) - see

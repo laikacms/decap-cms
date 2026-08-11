@@ -31,4 +31,11 @@ export interface CmsFieldRelation {
   max?: number | undefined;
 
   filters?: CmsFilter | CmsFilterObj[] | undefined;
+
+  // Opt-in "quick add" (DCMS-1421): when set, the relation control offers a
+  // "+ Create new" affordance that opens a minimal-fields form for
+  // `collection` and, on save, creates the entry and selects it as this
+  // field's value - without leaving the current editor. Off by default.
+  allow_quick_add?: boolean;
+  allowQuickAdd?: boolean;
 }

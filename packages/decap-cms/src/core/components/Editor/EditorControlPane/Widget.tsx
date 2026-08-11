@@ -68,6 +68,10 @@ interface WidgetProps<T = unknown> {
    * has a `hint`. Widgets point `aria-describedby` at it. */
   hintId?: string;
   loadEntry: (collectionName: string, slug: string) => void;
+  onQuickCreateEntry?: (
+    collectionName: string,
+    data: Record<string, unknown>,
+  ) => Promise<Record<string, unknown>>;
   t: TranslateFunction;
   onValidateObject?: (errors: { type: string, message: string }[]) => void;
   isEditorComponent?: boolean;
@@ -447,6 +451,7 @@ export default class Widget extends Component<WidgetProps> {
       clearFieldErrors,
       isFetching,
       loadEntry,
+      onQuickCreateEntry,
       fieldsErrors,
       controlRef,
       isEditorComponent,
@@ -502,6 +507,7 @@ export default class Widget extends Component<WidgetProps> {
       clearFieldErrors,
       isFetching,
       loadEntry,
+      onQuickCreateEntry,
       isEditorComponent,
       isNewEditorComponent,
       fieldsErrors,

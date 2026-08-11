@@ -5,15 +5,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createEmptyDraft,
   createEmptyDraftData,
+  createQuickCreateEntryData,
   getMediaAssets,
   persistEntry,
   persistLocalBackup,
+  persistQuickCreateEntry,
   retrieveLocalBackup,
   validateMetaField,
   withDefaultsBackfilled,
 } from '@/core/actions/entries';
-import * as backendModule from '@/core/backend';
 import { FOLDER } from '@/core/constants/collectionTypes';
+import * as backendModule from '@/core/backend';
 import * as entriesReducer from '@/core/reducers/entries';
 import * as entryDraftReducer from '@/core/reducers/entryDraft';
 import AssetProxy from '@/core/valueObjects/AssetProxy';
@@ -782,6 +784,103 @@ describe('entries', () => {
       ).toEqual({
         error: false,
       });
+    });
+  });
+
+  // Inline "create new entry from a relation field" (DCMS-1421). Runs
+  // entirely outside `state.entryDraft` so it can't clobber whatever entry
+  // the user is currently editing.
+  describe('createQuickCreateEntryData', () => {
+    it('backfills unset fields with their defaults and overlays the given data', () => {
+      const collection = {
+        name: 'posts',
+        type: FOLDER,
+        fields: [
+          { name: 'title' },
+          { name: 'draft', default: false },
+        ],
+      };
+
+      const entry = createQuickCreateEntryData(collection, { title: 'Quick post' });
+
+      expect(entry.collection).toEqual('posts');
+      expect(entry.data).toEqual({ title: 'Quick post', draft: false });
+      expect(entry.slug).toEqual('');
+    });
+  });
+
+  describe('persistQuickCreateEntry', () => {
+    const currentBackend = vi.mocked(backendModule.currentBackend);
+
+    const collection = {
+      name: 'posts',
+      type: FOLDER,
+      create: true,
+      fields: [{ name: 'title' }, { name: 'slug' }],
+    };
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('rejects when the target collection does not allow new entries', async () => {
+      const store = mockStore({ config: {}, entries: {} });
+      const readOnlyCollection = { ...collection, create: false };
+
+      await expect(
+        store.dispatch(persistQuickCreateEntry(readOnlyCollection, { title: 'Quick post' })),
+      ).rejects.toThrow('Not allowed to create new entries in this collection');
+    });
+
+    it('persists a brand-new entry outside state.entryDraft and dispatches ENTRY_PERSIST_SUCCESS', async () => {
+      const backend = {
+        processEntry: vi.fn((_state, _collection, entry) => Promise.resolve(entry)),
+        persistEntry: vi.fn(() => Promise.resolve('quick-post')),
+      };
+      currentBackend.mockReturnValue(backend);
+
+      const store = mockStore({
+        config: { backend: {} },
+        entries: {},
+        entryDraft: { entry: { collection: 'other', slug: 'unrelated-in-progress-draft' } },
+      });
+
+      const data = await store.dispatch(
+        persistQuickCreateEntry(collection, { title: 'Quick post', slug: 'quick-post' }),
+      );
+
+      expect(data).toEqual({ title: 'Quick post', slug: 'quick-post' });
+
+      expect(backend.persistEntry).toHaveBeenCalledTimes(1);
+      const [[persistArgs]] = backend.persistEntry.mock.calls;
+      // The synthetic draft must carry only the new entry, never the entry
+      // the user is currently editing (`state.entryDraft`).
+      expect(persistArgs.entryDraft.entry.collection).toEqual('posts');
+      expect(persistArgs.entryDraft.entry.newRecord).toBe(true);
+
+      const actions = store.getActions();
+      expect(actions).toEqual([
+        expect.objectContaining({
+          type: 'ENTRY_PERSIST_SUCCESS',
+          payload: expect.objectContaining({ collectionName: 'posts', slug: 'quick-post' }),
+        }),
+      ]);
+    });
+
+    it('propagates a persist failure without dispatching success', async () => {
+      const backend = {
+        processEntry: vi.fn((_state, _collection, entry) => Promise.resolve(entry)),
+        persistEntry: vi.fn(() => Promise.reject(new Error('network down'))),
+      };
+      currentBackend.mockReturnValue(backend);
+
+      const store = mockStore({ config: {}, entries: {}, entryDraft: { entry: {} } });
+
+      await expect(
+        store.dispatch(persistQuickCreateEntry(collection, { title: 'Quick post' })),
+      ).rejects.toThrow('network down');
+
+      expect(store.getActions()).toEqual([]);
     });
   });
 });
