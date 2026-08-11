@@ -214,7 +214,6 @@ const WIDGET_KEY_MAP = {
   dateFormat: 'date_format',
   timeFormat: 'time_format',
   pickerUtc: 'picker_utc',
-  editorComponents: 'editor_components',
   valueType: 'value_type',
   valueField: 'value_field',
   searchFields: 'search_fields',

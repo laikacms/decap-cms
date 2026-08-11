@@ -485,7 +485,6 @@ describe('config', () => {
                     fields: [
                       {
                         widget: 'richtext',
-                        editorComponents: ['code'],
                       },
                       {
                         widget: 'relation',
@@ -538,8 +537,6 @@ describe('config', () => {
                 fields: [
                   {
                     widget: 'richtext',
-                    editor_components: ['code'],
-                    editorComponents: ['code'],
                   },
                   {
                     widget: 'relation',
