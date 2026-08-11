@@ -114,6 +114,19 @@ describe('widget config schema wiring', () => {
     ).not.toEqual([]);
   });
 
+  it('list: accepts the field-level i18n string enum (DCMS-1952)', () => {
+    const schema = fieldSchemaFor('list', listWidgetSchema);
+
+    expect(
+      validateJSONSchema(schema, { name: 'items', widget: 'list', i18n: 'duplicate' }),
+    ).toEqual([]);
+    expect(
+      validateJSONSchema(schema, { name: 'items', widget: 'list', i18n: 'translate' }),
+    ).toEqual([]);
+    expect(validateJSONSchema(schema, { name: 'items', widget: 'list', i18n: 'none' })).toEqual([]);
+    expect(validateJSONSchema(schema, { name: 'items', widget: 'list', i18n: false })).toEqual([]);
+  });
+
   it('map: accepts valid and rejects wrongly typed properties', () => {
     const schema = fieldSchemaFor('map', mapWidgetSchema);
 
@@ -148,6 +161,19 @@ describe('widget config schema wiring', () => {
     expect(
       validateJSONSchema(schema, { name: 'meta', widget: 'object', collapsed: 'yes' }),
     ).not.toEqual([]);
+  });
+
+  it('object: accepts the field-level i18n string enum (DCMS-1952)', () => {
+    const schema = fieldSchemaFor('object', objectWidgetSchema);
+
+    expect(
+      validateJSONSchema(schema, { name: 'meta', widget: 'object', i18n: 'duplicate' }),
+    ).toEqual([]);
+    expect(
+      validateJSONSchema(schema, { name: 'meta', widget: 'object', i18n: 'translate' }),
+    ).toEqual([]);
+    expect(validateJSONSchema(schema, { name: 'meta', widget: 'object', i18n: 'none' })).toEqual([]);
+    expect(validateJSONSchema(schema, { name: 'meta', widget: 'object', i18n: false })).toEqual([]);
   });
 
   it('relation: accepts valid and rejects wrongly typed properties', () => {
