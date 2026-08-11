@@ -73,8 +73,16 @@
       (reproduced in Chrome; root-caused via composition bisect in source-toggle work). Thread a
       real per-field character limit through the widget config if wanted, and fix/report the
       overflow-vs-code-highlight loop upstream first.
-- [ ] `table-transformer.ts` still uses `$convertTo/FromMarkdownString` for cell content (markdown
-      typing shortcuts only; serialization no longer touches it).
+- [x] `table-transformer.ts` still uses `$convertTo/FromMarkdownString` for cell content. Confirmed
+      (DCMS-1987) narrow-and-document is the right call, not a migration: this file is wired ONLY
+      into the Lexical `MarkdownShortcutsExtension` transformer list (live typing shortcuts in the
+      contentEditable) — `lib/richtext/bridge/{lexicalToPortableText,portableTextToLexical}.ts`
+      already convert tables through the normal PT `table` block shape, which goes through the same
+      `formats.markdown` codec system (`resolveBlockCodecs`/`BlockFormatCodec`) as every other block.
+      `BlockFormatCodec` maps PT block data to/from a markdown string for the whole-document mapper;
+      it has no hook into Lexical's transformer-list API for converting a live node subtree
+      mid-keystroke, so the legacy `$convertTo/FromMarkdownString` calls stay for cell content
+      (comment added in table-transformer.ts explaining this).
 
 # Ideas
 
