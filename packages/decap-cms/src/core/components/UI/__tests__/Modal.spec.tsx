@@ -201,4 +201,18 @@ describe('Modal', () => {
       root.remove();
     }
   });
+
+  it('DCMS-1955: does not log a PropTypes "Failed prop type" warning when rendering valid ReactNode children', () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => ({}));
+    try {
+      render(
+        <Modal isOpen onClose={vi.fn()}>
+          <div>modal content</div>
+        </Modal>,
+      );
+      expect(errorSpy).not.toHaveBeenCalledWith(expect.stringContaining('Failed prop type'));
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
 });
