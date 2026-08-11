@@ -28,6 +28,31 @@ import { IMAGE } from './image-transformer';
 
 // import { TWEET } from "@/registry/new-york-v4/editor/transformers/markdown-tweet-transformer"
 
+// This file is registered ONLY as a Lexical `MarkdownShortcutsExtension`
+// transformer (see Editor.tsx's `withTables` branch) — it drives live
+// markdown-typing shortcuts inside the contentEditable (e.g. typing
+// `| a | b |` + Enter). It is NOT part of the document persistence path:
+// `lib/richtext/bridge/{lexicalToPortableText,portableTextToLexical}.ts`
+// convert Lexical tables to/from the PT `{_type:'table', ...}` shape using
+// the same `textBlockToLexical`/`convertBlock` machinery as every other
+// block, which in turn is what round-trips through the registered
+// `formats.markdown` codecs (`resolveBlockCodecs`/`BlockFormatCodec`). This
+// confirms the tech-debt.md note: this file's `$convertTo/FromMarkdownString`
+// calls are typing-shortcut-only and no longer touch serialization.
+//
+// `$convertToMarkdownString`/`$convertFromMarkdownString` remain here (cell
+// content only) because `BlockFormatCodec` operates one layer up — it maps a
+// Portable Text block's *data* to/from a markdown *string* for the whole
+// document mapper (`markdown-mapper.ts`), not a live Lexical node subtree
+// mid-keystroke. There is no codec hook into the Lexical
+// `MarkdownShortcutsExtension` transformer pipeline itself, so converting a
+// table cell's Lexical children to a markdown string (for export) or parsing
+// typed markdown into cell children (for replace) has to go through
+// Lexical's own transformer-list API, same as every other
+// `ElementTransformer` in this directory (HR, IMAGE, CHECK_LIST, ...).
+// Migrating this would require a wider redesign of the markdown-shortcut
+// pipeline to be codec-aware, not just a table-transformer change.
+
 // Very primitive table setup
 const TABLE_ROW_REG_EXP = /^(?:\|)(.+)(?:\|)\s?$/;
 const TABLE_ROW_DIVIDER_REG_EXP = /^(\| ?:?-*:? ?)+\|\s?$/;
