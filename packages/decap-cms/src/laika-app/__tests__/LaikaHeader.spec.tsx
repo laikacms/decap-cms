@@ -29,6 +29,7 @@ vi.mock('../../core/actions/status', () => ({
 // Stub the core SettingsDropdown — just renders a marker so tests can
 // confirm it's present without exercising its real implementation.
 vi.mock('../../core/components/UI', () => ({
+  OfflineIndicator: () => null,
   SettingsDropdown: () => <div data-testid="settings-dropdown" />,
 }));
 
