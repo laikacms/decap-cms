@@ -77,22 +77,25 @@ navigating away.
 Each entry carries a status: **Draft**, **In review**, or **Ready**. You move an entry through these
 statuses using the status control in the entry toolbar (a tooltip explains what each status means) -
 set it to "In review" once you're done drafting, and to "Ready" once it's been reviewed and
-approved. Only entries with **Ready** status can be published.
+approved.
 
 Outside the entry editor, the **Editorial Workflow** view (usually reachable from the main
 navigation) shows all in-progress entries as cards on a board with three columns - **Drafts**, **In
 Review**, and **Ready** - and a summary count of how many entries are waiting for review versus
 ready to go live. You can drag a card between columns to change its status, or work from inside the
-entry editor. From a card (or the entry toolbar) you can:
+entry editor. From a card you can:
 
-- **Publish changes** / **Publish now** - go live immediately (only enabled once the entry is
-  Ready).
+- **Publish changes** - go live immediately. On the board, this is only enabled once the card is
+  Ready.
 - **Delete** the draft, the unpublished changes, or (for already-live entries) the published entry
   itself.
 - **Unpublish** an already-live entry, taking it back out of the published site.
 
-If you try to publish an entry that isn't marked Ready, or that has unsaved edits, you'll be
-prompted to fix that first rather than losing anything silently.
+Inside the entry editor itself, the **Publish now** button is *not* currently gated by status: it's
+available as soon as you have edit access, regardless of whether the entry is Draft, In review, or
+Ready, so double-check the status control before publishing from there if you want reviews to
+actually happen first. What the entry editor does enforce is unsaved changes - Publish now is hidden
+whenever you have edits that haven't been saved yet, so save your work before publishing.
 
 ## Using the media library
 

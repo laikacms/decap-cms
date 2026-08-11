@@ -324,4 +324,49 @@ describe('EditorToolbar', () => {
       expect(props.onChangeStatus).toHaveBeenCalledWith('PENDING_REVIEW');
     });
   });
+
+  describe('Publish button status gate (DCMS-1956)', () => {
+    // Pinning test: docs/editor-guide.md ("With editorial workflow") used to promise that "only
+    // entries with Ready status can be published" and that publishing a non-Ready entry would
+    // prompt you to fix that first. The entry editor's own Publish button has never enforced
+    // that - `canPublish` only checks `collection.publish` / open-authoring, never
+    // `currentStatus` - so a Draft entry can be published directly from here with no block and
+    // no prompt. The doc has been corrected to describe this; this test pins the actual
+    // (unguarded) behavior so a future status-gate change is a deliberate, visible diff here
+    // rather than a silent drift back into a doc/code mismatch.
+    it('renders an enabled Publish control for a Draft-status entry with no confirmation prompt', () => {
+      render(
+        <EditorToolbar
+          {...props}
+          hasWorkflow={true}
+          isNewEntry={false}
+          hasChanged={false}
+          currentStatus={status.DRAFT}
+          collection={{ ...props.collection, publish: true } as unknown as CmsCollectionState}
+        />,
+      );
+
+      const publishButton = screen.getByRole('button', { name: 'editor.editorToolbar.publish' });
+      expect(publishButton).toBeEnabled();
+    });
+
+    it('calls onPublish directly for a Draft-status entry with no intermediate status check', async () => {
+      const user = userEvent.setup();
+      render(
+        <EditorToolbar
+          {...props}
+          hasWorkflow={true}
+          isNewEntry={false}
+          hasChanged={false}
+          currentStatus={status.DRAFT}
+          collection={{ ...props.collection, publish: true } as unknown as CmsCollectionState}
+        />,
+      );
+
+      await user.click(screen.getByRole('button', { name: 'editor.editorToolbar.publish' }));
+      await user.click(await screen.findByText('editor.editorToolbar.publishNow'));
+
+      expect(props.onPublish).toHaveBeenCalledTimes(1);
+    });
+  });
 });
