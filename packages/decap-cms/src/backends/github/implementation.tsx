@@ -31,7 +31,7 @@ import {
 import API, { API_NAME } from './API';
 import AuthenticationPage from './AuthenticationPage';
 
-import type { BackendEntry } from '@/lib/backend/index';
+import type { BackendEntry, BackendFileRef, BackendImplementation, PersistPayload } from '@/lib/backend/index';
 import type {
   AsyncLock,
   CmsAssetProxy,
@@ -39,9 +39,6 @@ import type {
   CmsCredentials,
   CmsDisplayURL,
   CmsEntry,
-  CmsFileEntry,
-  CmsImplementation,
-  CmsImplementationFile,
   CmsPersistOptions,
   CmsUnpublishedEntryMediaFile,
   CmsUser,
@@ -89,7 +86,7 @@ export function registerGraphQLAPI(graphQLAPI: typeof API) {
   registeredGraphQLAPI = graphQLAPI;
 }
 
-export default class GitHub implements CmsImplementation {
+export default class GitHub implements BackendImplementation {
   lock: AsyncLock;
   api: API | null;
   config: CmsConfig;
@@ -617,7 +614,7 @@ export default class GitHub implements CmsImplementation {
     return files;
   }
 
-  entriesByFiles(files: CmsImplementationFile[]) {
+  entriesByFiles(files: BackendFileRef[]) {
     const repoURL = this.useOpenAuthoring ? this.api!.originRepoURL : this.api!.repoURL;
 
     const readFile = (path: string, id: string | null | undefined) =>
@@ -676,7 +673,7 @@ export default class GitHub implements CmsImplementation {
     return getMediaDisplayURL(displayURL, readFile, this._mediaDisplayURLSem);
   }
 
-  async persistEntry(entry: CmsFileEntry, options: CmsPersistOptions) {
+  async persistEntry(entry: PersistPayload, options: CmsPersistOptions) {
     const client = await this.getLargeMediaClient();
     // persistEntry is a transactional operation
     return runWithLock(

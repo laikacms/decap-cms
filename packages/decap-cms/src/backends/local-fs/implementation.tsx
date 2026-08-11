@@ -5,17 +5,14 @@ import { clearDirectoryHandle, loadDirectoryHandle, saveDirectoryHandle } from '
 import { deleteEntry, listFiles, readFile, readFileAsString, requestPermission, writeFile } from './fsUtils';
 import './types';
 
-import type { BackendEntry } from '@/lib/backend/index';
 import type {
-  CmsAssetProxy,
-  CmsConfig,
-  CmsFileEntry,
-  CmsImplementation,
-  CmsImplementationFile,
-  CmsImplementationMediaFile,
-  CmsPersistOptions,
-  CmsUser,
-} from '@/lib/util/index';
+  BackendEntry,
+  BackendFileRef,
+  BackendImplementation,
+  MediaFile,
+  PersistPayload,
+} from '@/lib/backend/index';
+import type { CmsAssetProxy, CmsConfig, CmsPersistOptions, CmsUser } from '@/lib/util/index';
 
 /**
  * True when the browser exposes the (still Chromium-only) File System Access
@@ -30,7 +27,7 @@ export function isLocalFsSupported(target: Window = window): boolean {
   return typeof target !== 'undefined' && typeof target.showDirectoryPicker === 'function';
 }
 
-export default class LocalFsBackend implements CmsImplementation {
+export default class LocalFsBackend implements BackendImplementation {
   mediaFolder: string;
   options: { initialWorkflowStatus?: string };
   directoryHandle: FileSystemDirectoryHandle | null = null;
@@ -125,7 +122,7 @@ export default class LocalFsBackend implements CmsImplementation {
     return Promise.all(paths.map(path => this.getEntry(path)));
   }
 
-  entriesByFiles(files: CmsImplementationFile[]): Promise<BackendEntry[]> {
+  entriesByFiles(files: BackendFileRef[]): Promise<BackendEntry[]> {
     return Promise.all(files.map(file => this.getEntry(file.path)));
   }
 
@@ -168,7 +165,7 @@ export default class LocalFsBackend implements CmsImplementation {
     return Promise.resolve();
   }
 
-  async persistEntry(entry: CmsFileEntry, _options: CmsPersistOptions): Promise<void> {
+  async persistEntry(entry: PersistPayload, _options: CmsPersistOptions): Promise<void> {
     await Promise.all(entry.dataFiles.map(dataFile => writeFile(this.handle, dataFile.path, dataFile.raw)));
     await Promise.all(entry.assets.map(asset => this.writeAsset(asset)));
   }
@@ -190,7 +187,7 @@ export default class LocalFsBackend implements CmsImplementation {
   async persistMedia(
     assetProxy: CmsAssetProxy,
     _options: CmsPersistOptions,
-  ): Promise<CmsImplementationMediaFile> {
+  ): Promise<MediaFile> {
     await this.writeAsset(assetProxy);
     return this.getMediaFile(assetProxy.path);
   }
@@ -199,12 +196,12 @@ export default class LocalFsBackend implements CmsImplementation {
     return Promise.all(paths.map(path => deleteEntry(this.handle, path))).then(() => undefined);
   }
 
-  async getMedia(mediaFolder = this.mediaFolder): Promise<CmsImplementationMediaFile[]> {
+  async getMedia(mediaFolder = this.mediaFolder): Promise<MediaFile[]> {
     const paths = await listFiles(this.handle, mediaFolder, '', 1);
     return Promise.all(paths.map(path => this.getMediaFile(path)));
   }
 
-  async getMediaFile(path: string): Promise<CmsImplementationMediaFile> {
+  async getMediaFile(path: string): Promise<MediaFile> {
     const file = await readFile(this.handle, path);
     const fileObj = blobToFileObj(basename(path), file);
     const url = URL.createObjectURL(fileObj);

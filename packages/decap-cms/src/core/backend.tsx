@@ -56,7 +56,13 @@ import { selectCustomPath } from './reducers/entryDraft';
 import { selectIntegration } from './reducers/integrations';
 import { createEntry } from './valueObjects/Entry';
 
-import type { BackendEntry, BackendEntryContent } from '@/lib/backend/index';
+import type {
+  BackendEntry,
+  BackendEntryContent,
+  BackendImplementation,
+  UnpublishedEntry,
+  UnpublishedEntryDiff,
+} from '@/lib/backend/index';
 import type {
   CmsCollectionFile,
   CmsCollectionFileState,
@@ -65,7 +71,6 @@ import type {
   CmsEntry,
   CmsEntryField,
   CmsFilterRule,
-  CmsImplementation as BackendImplementation,
   FuzzyFilterResult,
 } from '@/lib/util/index';
 import type {
@@ -76,8 +81,6 @@ import type {
   CmsEntryLock,
   CmsEntryLockOwner,
   CmsGetMediaPageOptions,
-  CmsUnpublishedEntry,
-  CmsUnpublishedEntryDiff,
   CmsUser,
   CursorCompatibleEntries,
 } from '@/lib/util/index';
@@ -809,9 +812,10 @@ export class Backend {
         return this.implementation.entriesByFolder(collection.folder as string, extension, depth);
       };
     } else if (collectionType === FILES) {
+      // Only the path: the entry's label is collection config the engine
+      // already has, so it never crosses the seam.
       const files = (collection.files || []).map((collectionFile: CmsCollectionFileState) => ({
         path: collectionFile.file,
-        label: collectionFile.label,
       }));
       listMethod = () => this.implementation.entriesByFiles(files);
     } else {
@@ -1174,7 +1178,7 @@ export class Backend {
 
   async processUnpublishedEntry(
     collection: CmsCollectionState,
-    entryData: CmsUnpublishedEntry,
+    entryData: UnpublishedEntry,
     withMediaFiles: boolean,
   ) {
     const { slug } = entryData;
@@ -1208,13 +1212,13 @@ export class Backend {
         label: collection && selectFileEntryLabel(collection, slug),
         mediaFiles,
         updatedOn: entryData.updatedAt,
-        author: entryData.pullRequestAuthor,
+        author: entryData.author?.name,
         status: entryData.status,
         meta: { path: prepareMetaPath(path, collection) },
       });
     };
 
-    const readAndFormatDataFile = async (dataFile: CmsUnpublishedEntryDiff) => {
+    const readAndFormatDataFile = async (dataFile: UnpublishedEntryDiff) => {
       const data = await this.implementation.unpublishedEntryDataFile(
         collection.name,
         entryData.slug,
@@ -1287,7 +1291,7 @@ export class Backend {
   }
 
   /**
-   * Advisory entry-locking surface (optional). See the `CmsImplementation`
+   * Advisory entry-locking surface (optional). See the `BackendImplementation`
    * lock methods for the contract; this class only feature-detects and
    * forwards, so backends without lock support (the default) leave every
    * one of these inert and the editor never surfaces lock UI for them.

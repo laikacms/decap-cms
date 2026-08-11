@@ -7,7 +7,7 @@ routing CMS requests through a custom backend service.
 
 ## Code structure
 
-`implementation.tsx` - `ProxyBackend`, a `CmsImplementation` that forwards every read/write
+`implementation.tsx` - `ProxyBackend`, a `BackendImplementation` that forwards every read/write
 operation as a JSON request to `proxy_url`, and handles media as base64-encoded payloads.
 
 `AuthenticationPage.tsx` - A minimal login screen; the proxy backend doesn't perform real

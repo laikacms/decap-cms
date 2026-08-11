@@ -1,7 +1,7 @@
 import { trim, trimStart } from 'lodash-es';
 
-import { rawContent } from '@/lib/backend/index';
 import { PkceAuthenticator } from '@/lib/auth/index';
+import { rawContent } from '@/lib/backend/index';
 import { stripIndent } from '@/lib/util/index';
 import {
   AccessTokenError,
@@ -30,7 +30,7 @@ import {
 import API, { API_NAME } from './API';
 import AuthenticationPage from './AuthenticationPage';
 
-import type { BackendEntry } from '@/lib/backend/index';
+import type { BackendEntry, BackendFileRef, BackendImplementation, PersistPayload } from '@/lib/backend/index';
 import type {
   ApiRequest,
   AsyncLock,
@@ -38,9 +38,6 @@ import type {
   CmsBackendInitConfig,
   CmsCredentials,
   CmsDisplayURL,
-  CmsFileEntry,
-  CmsImplementation,
-  CmsImplementationFile,
   CmsPersistOptions,
   CmsUnpublishedEntryMediaFile,
   CmsUser,
@@ -52,7 +49,7 @@ import type {
 const MAX_CONCURRENT_DOWNLOADS = 10;
 
 type GraphQLAPIInstance = API & {
-  readFilesGraphQL: (files: CmsImplementationFile[]) => Promise<BackendEntry[]>,
+  readFilesGraphQL: (files: BackendFileRef[]) => Promise<BackendEntry[]>,
 };
 
 let registeredGraphQLAPI:
@@ -70,7 +67,7 @@ export function registerGraphQLAPI(
   registeredGraphQLAPI = graphQLAPI;
 }
 
-export default class GitLab implements CmsImplementation {
+export default class GitLab implements BackendImplementation {
   lock: AsyncLock;
   api: API | null;
   updateUserCredentials: (args: { token: string, refresh_token?: string | undefined }) => Promise<null>;
@@ -358,7 +355,7 @@ export default class GitLab implements CmsImplementation {
     return files;
   }
 
-  entriesByFiles(files: CmsImplementationFile[]) {
+  entriesByFiles(files: BackendFileRef[]) {
     return entriesByFiles(
       files,
       this.api!.readFile.bind(this.api!),
@@ -417,7 +414,7 @@ export default class GitLab implements CmsImplementation {
     };
   }
 
-  async persistEntry(entry: CmsFileEntry, options: CmsPersistOptions) {
+  async persistEntry(entry: PersistPayload, options: CmsPersistOptions) {
     // persistEntry is a transactional operation
     return runWithLock(
       this.lock,

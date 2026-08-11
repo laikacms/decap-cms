@@ -29,6 +29,7 @@ import {
 import { showAlert } from '@/ui';
 import { GithubCommitStatusState, PullRequestState } from './types/api';
 
+import type { Author } from '@/lib/backend/index';
 import type {
   ApiRequest,
   CmsAssetProxy,
@@ -509,14 +510,14 @@ export default class API {
     }
   }
 
-  async getPullRequestAuthor(pullRequest: GitHubPull) {
+  async getPullRequestAuthor(pullRequest: GitHubPull): Promise<Author | undefined> {
     if (!pullRequest.user?.login) {
       return;
     }
 
     try {
       const user: GitHubUser = await this.request(`/users/${pullRequest.user.login}`);
-      return user.name || user.login;
+      return { name: user.name || user.login };
     } catch {
       return;
     }
@@ -526,7 +527,7 @@ export default class API {
     const { collection, slug } = this.parseContentKey(contentKey);
     const branch = branchFromContentKey(contentKey);
     const pullRequest = await this.getBranchPullRequest(branch);
-    const [{ files }, pullRequestAuthor] = await Promise.all([
+    const [{ files }, author] = await Promise.all([
       this.getDifferences(this.branch, pullRequest.head.sha),
       this.getPullRequestAuthor(pullRequest),
     ]);
@@ -542,7 +543,7 @@ export default class API {
       status,
       diffs: diffs.map(d => ({ path: d.path, newFile: d.newFile, id: d.sha })),
       updatedAt,
-      ...(pullRequestAuthor === undefined ? {} : { pullRequestAuthor }),
+      ...(author === undefined ? {} : { author }),
     };
   }
 

@@ -8,7 +8,7 @@ commit `1b52b90d3`).
 
 ## Code structure
 
-`implementation.tsx` - `Forgejo` implementation of `CmsImplementation`, based on `API`. Supports
+`implementation.tsx` - `Forgejo` implementation of `BackendImplementation`, based on `API`. Supports
 `publish_mode: editorial_workflow`.
 
 `API.tsx` - A wrapper for the Forgejo (Gitea-compatible) REST API, including branch and pull request

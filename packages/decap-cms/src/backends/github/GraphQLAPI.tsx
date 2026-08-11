@@ -17,6 +17,7 @@ import * as mutations from './mutations';
 import * as queries from './queries';
 import { type BlobArgs, type Config, PullRequestState } from './types/api';
 
+import type { Author } from '@/lib/backend/index';
 import type { OperationVariables } from '@apollo/client';
 import type { Endpoints } from '@octokit/types';
 import type { GraphQLFormattedError } from 'graphql';
@@ -263,9 +264,10 @@ export default class GraphQLAPI extends API {
     }
   }
 
-  async getPullRequestAuthor(pullRequest: GitHubPull) {
+  async getPullRequestAuthor(pullRequest: GitHubPull): Promise<Author | undefined> {
     const user = pullRequest.user as unknown as GraphQLPullsListResponseItemUser;
-    return user?.name || user?.login;
+    const name = user?.name || user?.login;
+    return name ? { name } : undefined;
   }
 
   async getPullRequests(

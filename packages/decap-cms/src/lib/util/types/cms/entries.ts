@@ -1,4 +1,3 @@
-import type { CmsAssetProxy, CmsDataFile } from './common.js';
 import type { CmsMediaFileMap } from './media.js';
 
 export type CmsEntry = {
@@ -49,33 +48,7 @@ export type CmsEntryField = {
 
 export type CmsEntryFields = CmsEntryField[];
 
-export type CmsImplementationFile = {
-  id?: string | null | undefined,
-  label?: string | undefined,
-  path: string,
-};
-
-export type CmsFileEntry = {
-  dataFiles: CmsDataFile[],
-  assets: CmsAssetProxy[],
-};
-
-export type CmsUnpublishedEntryDiff = {
-  id: string,
-  path: string,
-  newFile: boolean,
-};
-
 export type CmsUnpublishedEntryMediaFile = {
   id: string,
   path: string,
-};
-
-export type CmsUnpublishedEntry = {
-  pullRequestAuthor?: string,
-  slug: string,
-  collection: string,
-  status: string,
-  diffs: CmsUnpublishedEntryDiff[],
-  updatedAt: string,
 };

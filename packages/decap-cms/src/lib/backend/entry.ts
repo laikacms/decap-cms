@@ -26,6 +26,18 @@ export type BackendEntryFile = {
   updatedOn?: string | undefined,
 };
 
+/**
+ * How the engine names a file it wants read: a path, plus the revision id when
+ * it already has one. No display label - labels come from collection config,
+ * so implementations carry no presentation concerns.
+ */
+export type BackendFileRef = {
+  /** Where the file is stored, relative to the repository or storage root. */
+  path: string,
+  /** Revision identifier, when the caller knows it (see {@link BackendEntryFile}). */
+  id?: string | null | undefined,
+};
+
 /** One entry as it crosses the backend seam. */
 export type BackendEntry = {
   /** Where the entry came from, and what the backend knows about the revision. */

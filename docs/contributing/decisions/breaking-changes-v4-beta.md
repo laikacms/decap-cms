@@ -218,9 +218,8 @@ No compatibility path was kept: the engine's `toBackendEntry` normalizing branch
 so an unmigrated third-party backend fails to compile instead of being silently normalized at
 runtime. All in-tree backends (github, gitlab, gitea, forgejo, bitbucket, azure, git-gateway, proxy,
 local-fs, test-repo) were migrated as part of this stage. A `BackendImplementation` contract (also
-published from `lib/backend`) mirrors the same shape for new backend authors going forward;
-`registerBackend` still instantiates against `CmsImplementation` today, and folding the two together
-is tracked as follow-up work.
+published from `lib/backend`) mirrored the same shape for new backend authors going forward; the two
+have since been folded together, see the next section.
 
 **Migration:** if you maintain an out-of-tree backend, change any method that returns entries to
 construct a tagged `content` union instead of a bare string:
@@ -235,3 +234,59 @@ construct a tagged `content` union instead of a bare string:
 
 If your backend stores structured content natively, skip the serialize/parse round trip and return
 `{ kind: 'parsed', data }` directly — the engine skips its format parser for that content.
+
+## `CmsImplementation` removed; `BackendImplementation` is the only backend contract
+
+The backend seam had two interfaces describing the same thing: `CmsImplementation` (in
+`lib/util/types/cms/backend`), which `registerBackend` actually instantiated against, and
+`BackendImplementation` (published from `lib/backend`), which the entry redesign introduced as the
+forward-looking contract. `CmsImplementation` and its `CmsBackendClass` constructor type are now
+deleted, `registerBackend` takes `BackendClass`, and every in-tree backend declares
+`implements BackendImplementation` (DCMS-1973).
+
+This lands in 4.0 deliberately. Stage 3 above already forced a shim-less break on out-of-tree
+backend authors; folding the interfaces later would have broken the same authors a second time, on
+the same seam, for a change that was already known when the first break shipped.
+
+The mirror had drifted from the live interface, so these signatures change on top of the rename:
+
+| `CmsImplementation`                                        | `BackendImplementation`                               |
+| ---------------------------------------------------------- | ----------------------------------------------------- |
+| `unpublishedEntry` returns `pullRequestAuthor?: string`    | returns `author?: Author` (`lib/domain`, re-exported) |
+| `entriesByFiles(files: CmsImplementationFile[])`           | `entriesByFiles(files: BackendFileRef[])`, no `label` |
+| `persistEntry(entry: CmsFileEntry, …)`                     | `persistEntry(payload: PersistPayload, …)`            |
+| `getMedia`/`persistMedia` use `CmsImplementationMediaFile` | use `MediaFile`                                       |
+| `authComponent(): React.ComponentType<any>`                | `authComponent(): AuthComponent`                      |
+
+`PersistPayload` and `MediaFile` are the same shapes under published names, so those two are a
+rename only. `CmsFileEntry`, `CmsImplementationFile`, `CmsUnpublishedEntry` and
+`CmsUnpublishedEntryDiff` are deleted along with `CmsImplementation`.
+
+**Migration:** import the contract from `@laikacms/decap-cms/lib/backend` and fix the three
+signatures that changed shape.
+
+```diff
+- import type { CmsImplementation, CmsFileEntry, CmsImplementationFile } from '@laikacms/decap-cms/lib/util';
++ import type { BackendImplementation, PersistPayload, BackendFileRef } from '@laikacms/decap-cms/lib/backend';
+
+- export default class MyBackend implements CmsImplementation {
++ export default class MyBackend implements BackendImplementation {
+
+-   entriesByFiles(files: CmsImplementationFile[]) { … }
++   entriesByFiles(files: BackendFileRef[]) { … }
+
+-   persistEntry(entry: CmsFileEntry, opts) { … }
++   persistEntry(payload: PersistPayload, opts) { … }
+
+    async unpublishedEntry({ collection, slug }) {
+      const pr = await this.api.getPullRequest(collection, slug);
+-     return { …, pullRequestAuthor: pr.author.name };
++     return { …, author: { name: pr.author.name } };
+    }
+  }
+```
+
+`Author` carries an optional `id` and `avatarUrl` alongside the required `name`; report them if your
+API gives them to you, and omit them otherwise. Nothing else moved: `authComponent` implementations
+returning a real React component already satisfy `AuthComponent`, which is a structural stand-in so
+that `lib/backend` stays react-free.

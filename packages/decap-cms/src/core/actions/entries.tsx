@@ -656,8 +656,8 @@ export function loadEntries(collection: Collection, page = 0) {
         try {
           const loadAllEntries = collection.nested != null || hasI18n(collection as any);
 
-          let response: {
-            cursor: Cursor,
+          const response: {
+            cursor?: Cursor,
             pagination: number,
             entries: EntryValue[],
           } = await (loadAllEntries
@@ -666,25 +666,14 @@ export function loadEntries(collection: Collection, page = 0) {
               .then((entries: EntryValue[]) => ({ entries }))
             : (provider as any).listEntries(collection, page));
 
-          response = {
-            ...response,
-            cursor: integration
-              ? Cursor.create({
-                actions: ['next'],
-                meta: { usingOldPaginationAPI: true },
-                data: { nextPage: page + 1 },
-              })
-              : Cursor.create(response.cursor),
-          };
+          const cursor = Cursor.create(response.cursor);
 
           dispatch(
             entriesLoaded(
               collection,
-              response.cursor.meta?.usingOldPaginationAPI
-                ? response.entries.reverse()
-                : response.entries,
+              response.entries,
               response.pagination,
-              addAppendActionsToCursor(response.cursor),
+              addAppendActionsToCursor(cursor),
               append,
             ),
           );
@@ -723,8 +712,12 @@ export function traverseCollectionCursor(collection: Collection, action: string)
 
     const cursor = selectCollectionEntriesCursor(state.cursors as any, collectionName);
 
-    if (cursor.meta?.usingOldPaginationAPI) {
-      return dispatch(loadEntries(collection, cursor.data?.nextPage as number));
+    // Integration providers (Algolia) page by page number rather than by link,
+    // and have no `traverseCursor` of their own: re-request through loadEntries,
+    // which routes back to the provider with the next page number.
+    if (selectIntegration(state, collectionName, 'listEntries')) {
+      const currentPage = (cursor.meta?.page as number | undefined) ?? 0;
+      return dispatch(loadEntries(collection, currentPage + 1));
     }
 
     try {

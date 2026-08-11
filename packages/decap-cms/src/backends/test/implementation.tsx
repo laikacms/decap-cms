@@ -14,20 +14,23 @@ import {
 } from '@/lib/util/index';
 import AuthenticationPage from './AuthenticationPage';
 
-import type { BackendEntry } from '@/lib/backend/index';
+import type {
+  BackendEntry,
+  BackendFileRef,
+  BackendImplementation,
+  MediaFile,
+  PersistPayload,
+} from '@/lib/backend/index';
 import type {
   CmsAssetProxy,
   CmsConfig,
   CmsDataFile,
   CmsEntry,
   CmsEntryLockOwner,
-  CmsImplementation,
-  CmsImplementationFile,
   CmsPersistOptions,
   CmsUser,
   CursorCompatibleEntries,
 } from '@/lib/util/index';
-import type { CmsFileEntry, CmsImplementationMediaFile } from '@/lib/util/index';
 
 type RepoFile = { path: string, content: string | CmsAssetProxy };
 type RepoTree = { [key: string]: RepoFile | RepoTree };
@@ -183,7 +186,7 @@ export function getFolderChildren(tree: RepoTree, folder: string) {
   });
 }
 
-export default class TestBackend implements CmsImplementation {
+export default class TestBackend implements BackendImplementation {
   mediaFolder: string;
   options: { initialWorkflowStatus?: string };
 
@@ -286,7 +289,7 @@ export default class TestBackend implements CmsImplementation {
     return Promise.resolve(ret);
   }
 
-  entriesByFiles(files: CmsImplementationFile[]) {
+  entriesByFiles(files: BackendFileRef[]) {
     return Promise.all(
       files.map(file => ({
         file,
@@ -386,7 +389,7 @@ export default class TestBackend implements CmsImplementation {
     };
   }
 
-  async persistEntry(entry: CmsFileEntry, options: CmsPersistOptions) {
+  async persistEntry(entry: PersistPayload, options: CmsPersistOptions) {
     if (!('dataFiles' in entry)) throw new Error('Expected entry to have dataFiles property');
     if (options.useWorkflow) {
       const slug = entry.dataFiles[0].slug;
@@ -493,7 +496,7 @@ export default class TestBackend implements CmsImplementation {
     };
   }
 
-  normalizeAsset(assetProxy: CmsAssetProxy): CmsImplementationMediaFile & CmsAssetProxy {
+  normalizeAsset(assetProxy: CmsAssetProxy): MediaFile & CmsAssetProxy {
     const fileObj = assetProxy.fileObj as File;
     const { name, size } = fileObj;
     const objectUrl = attempt(window.URL.createObjectURL, fileObj);

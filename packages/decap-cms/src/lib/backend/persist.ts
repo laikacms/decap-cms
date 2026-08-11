@@ -15,7 +15,7 @@ export type MediaFile = CmsImplementationMediaFile;
 
 /**
  * Everything one persist writes: the entry's data files (one per locale for
- * i18n collections) and the media uploaded with it. Formerly `CmsFileEntry`.
+ * i18n collections) and the media uploaded with it.
  */
 export type PersistPayload = {
   /** The entry itself, serialized: one file per locale for i18n collections. */

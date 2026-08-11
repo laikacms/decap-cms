@@ -4,12 +4,12 @@ import { rawContent } from '@/lib/backend/content';
 import { basename } from './core-utils/path.js';
 import createSemaphore from './semaphore';
 
-import type { BackendEntry } from '@/lib/backend/entry';
+import type { BackendEntry, BackendFileRef } from '@/lib/backend/entry';
 import type { FileMetadata } from './API';
 import type { AsyncLock } from './asyncLock';
 import type { LocalForage } from './localForage';
 import type { Semaphore } from './semaphore';
-import type { CmsDisplayURL, CmsDisplayURLObject, CmsImplementationFile } from './types/cms';
+import type { CmsDisplayURL, CmsDisplayURLObject } from './types/cms';
 
 const MAX_CONCURRENT_DOWNLOADS = 10;
 
@@ -21,7 +21,7 @@ type ReadFile = (
 
 type ReadFileMetadata = (path: string, id: string | null | undefined) => Promise<FileMetadata>;
 
-type CustomFetchFunc = (files: CmsImplementationFile[]) => Promise<BackendEntry[]>;
+type CustomFetchFunc = (files: BackendFileRef[]) => Promise<BackendEntry[]>;
 
 /**
  * File-backed backends read text, so their entries always cross the seam as
@@ -29,7 +29,7 @@ type CustomFetchFunc = (files: CmsImplementationFile[]) => Promise<BackendEntry[
  * over: it is collection config the engine already has.
  */
 async function fetchFiles(
-  files: CmsImplementationFile[],
+  files: BackendFileRef[],
   readFile: ReadFile,
   readFileMetadata: ReadFileMetadata,
   apiName: string,
@@ -72,7 +72,7 @@ async function fetchFiles(
 }
 
 export async function entriesByFolder(
-  listFiles: () => Promise<CmsImplementationFile[]>,
+  listFiles: () => Promise<BackendFileRef[]>,
   readFile: ReadFile,
   readFileMetadata: ReadFileMetadata,
   apiName: string,
@@ -82,7 +82,7 @@ export async function entriesByFolder(
 }
 
 export async function entriesByFiles(
-  files: CmsImplementationFile[],
+  files: BackendFileRef[],
   readFile: ReadFile,
   readFileMetadata: ReadFileMetadata,
   apiName: string,
@@ -291,7 +291,7 @@ type AllEntriesByFolderArgs =
       folder: string,
       extension: string,
       depth: number,
-    ) => Promise<CmsImplementationFile[]>,
+    ) => Promise<BackendFileRef[]>,
     readFile: ReadFile,
     readFileMetadata: ReadFileMetadata,
     getDefaultBranch: () => Promise<{ name: string, sha: string }>,

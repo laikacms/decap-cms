@@ -2,7 +2,7 @@ import { flatten } from 'lodash-es';
 
 import { selectEntrySlug } from '@/core/reducers/collections';
 import { createProjectedEntry } from '@/core/valueObjects/Entry';
-import { unsentRequest } from '@/lib/util/index';
+import { Cursor, unsentRequest } from '@/lib/util/index';
 
 import type { EntryValue } from '@/core/valueObjects/Entry';
 import type { CmsCollectionState } from '@/lib/util/index';
@@ -39,6 +39,7 @@ interface EntriesCache {
   page: number | null;
   pagination?: number;
   entries: EntryValue[];
+  cursor: Cursor;
 }
 
 interface RequestOptions {
@@ -83,6 +84,7 @@ export default class Algolia {
       collection: null,
       page: null,
       entries: [],
+      cursor: Cursor.create(),
     };
   }
 
@@ -169,9 +171,13 @@ export default class Algolia {
   listEntries(
     collection: Collection,
     page: number,
-  ): Promise<{ page?: number, pagination?: number, entries: EntryValue[] }> {
+  ): Promise<{ page?: number, pagination?: number, entries: EntryValue[], cursor: Cursor }> {
     if (this.entriesCache.collection === collection && this.entriesCache.page === page) {
-      return Promise.resolve({ page: this.entriesCache.page, entries: this.entriesCache.entries });
+      return Promise.resolve({
+        page: this.entriesCache.page,
+        entries: this.entriesCache.entries,
+        cursor: this.entriesCache.cursor,
+      });
     } else {
       return this.request(`${this.searchURL}/indexes/${this.indexPrefix}${collection.name}`, {
         params: { page },
@@ -183,8 +189,19 @@ export default class Algolia {
             data: hit.data,
           });
         });
-        this.entriesCache = { collection, pagination: typedResponse.page, page, entries };
-        return { entries, pagination: typedResponse.page };
+        // Algolia pages are zero-based, so the last page index is nbPages - 1.
+        // Without nbPages we cannot tell whether more pages exist; assume a full
+        // page means there is more, an empty one means the end.
+        const { nbPages } = typedResponse;
+        const hasNextPage = nbPages === undefined
+          ? entries.length > 0
+          : typedResponse.page + 1 < nbPages;
+        const cursor = Cursor.create({
+          actions: hasNextPage ? ['next'] : [],
+          meta: { page: typedResponse.page, ...(nbPages === undefined ? {} : { pageCount: nbPages }) },
+        });
+        this.entriesCache = { collection, pagination: typedResponse.page, page, entries, cursor };
+        return { entries, pagination: typedResponse.page, cursor };
       });
     }
   }

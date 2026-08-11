@@ -12,7 +12,6 @@ const knownMetaKeys = new Set([
   'count',
   'pageSize',
   'pageCount',
-  'usingOldPaginationAPI',
   'extension',
   'folder',
   'depth',

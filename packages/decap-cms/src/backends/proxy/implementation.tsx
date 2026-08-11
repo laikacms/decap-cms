@@ -4,19 +4,14 @@ import { rawContent } from '@/lib/backend/index';
 import { APIError, blobToFileObj, EditorialWorkflowError, unsentRequest } from '@/lib/util/index';
 import AuthenticationPage from './AuthenticationPage';
 
-import type { BackendEntry } from '@/lib/backend/index';
 import type {
-  CmsAssetProxy,
-  CmsConfig,
-  CmsDataFile,
-  CmsEntry,
-  CmsFileEntry,
-  CmsImplementation,
-  CmsImplementationFile,
-  CmsPersistOptions,
-  CmsUnpublishedEntry,
-  CmsUser,
-} from '@/lib/util/index';
+  BackendEntry,
+  BackendFileRef,
+  BackendImplementation,
+  PersistPayload,
+  UnpublishedEntry,
+} from '@/lib/backend/index';
+import type { CmsAssetProxy, CmsConfig, CmsDataFile, CmsEntry, CmsPersistOptions, CmsUser } from '@/lib/util/index';
 
 function normalizeProxyUrl(proxyUrl: string) {
   const normalizedProxyUrl = proxyUrl.trim();
@@ -98,7 +93,7 @@ function deserializeMediaFile({ id, content, encoding, path, name, isDirectory }
   return { id, name, path, file, size: file.size, url, displayURL: url, isDirectory };
 }
 
-export default class ProxyBackend implements CmsImplementation {
+export default class ProxyBackend implements BackendImplementation {
   proxyUrl: string;
   mediaFolder: string | undefined;
   options: { initialWorkflowStatus?: string };
@@ -175,7 +170,7 @@ export default class ProxyBackend implements CmsImplementation {
     return entries.map(toBackendEntry);
   }
 
-  async entriesByFiles(files: CmsImplementationFile[]) {
+  async entriesByFiles(files: BackendFileRef[]) {
     const entries: ProxyEntry[] = await this.request({
       action: 'entriesByFiles',
       params: { branch: this.branch, files },
@@ -208,7 +203,7 @@ export default class ProxyBackend implements CmsImplementation {
     slug?: string | undefined,
   }) {
     try {
-      const entry: CmsUnpublishedEntry = await this.request({
+      const entry: UnpublishedEntry = await this.request({
         action: 'unpublishedEntry',
         params: { branch: this.branch, id, collection, slug, cmsLabelPrefix: this.cmsLabelPrefix },
       });

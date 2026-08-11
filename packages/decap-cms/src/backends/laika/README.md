@@ -247,7 +247,7 @@ Server-arbitrated advisory locking is implemented (ADR-007 in the `laikacms` rep
 open the same entry, the second sees a "Being edited by X" banner, arbitrated by the backend rather
 than by one browser's local state.
 
-`LaikaBackend` implements the four optional `CmsImplementation` lock methods against
+`LaikaBackend` implements the four optional `BackendImplementation` lock methods against
 `@laikacms/server/api`'s `/locks` endpoint, which is itself a thin adapter over the documents
 repository's `acquireLock`/`refreshLock`/ `releaseLock`/`getLock`. The chain is:
 

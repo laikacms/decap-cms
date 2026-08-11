@@ -21,16 +21,13 @@ import {
 import API, { API_NAME } from './API';
 import AuthenticationPage from './AuthenticationPage';
 
-import type { BackendEntry } from '@/lib/backend/index';
+import type { BackendEntry, BackendFileRef, BackendImplementation, PersistPayload } from '@/lib/backend/index';
 import type {
   AsyncLock,
   CmsAssetProxy,
   CmsBackendInitConfig,
   CmsCredentials,
   CmsDisplayURL,
-  CmsFileEntry,
-  CmsImplementation,
-  CmsImplementationFile,
   CmsPersistOptions,
   CmsUser,
   CursorCompatibleEntries,
@@ -44,7 +41,7 @@ type ApiFile = { id: string, type: string, name: string, path: string, size: num
 
 const { fetchWithTimeout: fetch } = unsentRequest;
 
-export default class Gitea implements CmsImplementation {
+export default class Gitea implements BackendImplementation {
   lock: AsyncLock;
   api: API | null;
   options: {
@@ -278,7 +275,7 @@ export default class Gitea implements CmsImplementation {
     return files;
   }
 
-  entriesByFiles(files: CmsImplementationFile[]) {
+  entriesByFiles(files: BackendFileRef[]) {
     const repoURL = this.api!.repoURL;
 
     const readFile = (path: string, id: string | null | undefined) =>
@@ -340,7 +337,7 @@ export default class Gitea implements CmsImplementation {
     );
   }
 
-  persistEntry(entry: CmsFileEntry, options: CmsPersistOptions) {
+  persistEntry(entry: PersistPayload, options: CmsPersistOptions) {
     // persistEntry is a transactional operation
     return runWithLock(
       this.lock,

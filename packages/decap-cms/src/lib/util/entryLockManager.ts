@@ -75,7 +75,7 @@ export class EntryLockConflictError extends Error {
 /**
  * A reusable advisory-lock state machine: acquire/release/refresh/list,
  * TTL-based stale expiry, and force-override. Backend implementations wire
- * this into the four optional `CmsImplementation` lock methods
+ * this into the four optional `BackendImplementation` lock methods
  * (`getEntryLock`/`acquireEntryLock`/`releaseEntryLock`/`refreshEntryLock`)
  * — see `src/backends/test/implementation.tsx` for the reference wiring.
  *

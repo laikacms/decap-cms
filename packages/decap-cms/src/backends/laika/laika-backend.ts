@@ -19,7 +19,15 @@ import PKCEAuthenticationPage from './AuthenticationPage.js';
 import DevAuthenticationPage from './DevAuthenticationPage.js';
 import { requestQrTransferCode } from './qrLogin.js';
 
-import type { BackendEntry, BackendEntryContent } from '@/lib/backend/index';
+import type {
+  BackendEntry,
+  BackendEntryContent,
+  BackendFileRef as ImplementationFile,
+  BackendImplementation as Implementation,
+  MediaFile as ImplementationMediaFile,
+  PersistPayload as Entry,
+  UnpublishedEntry,
+} from '@/lib/backend/index';
 import type {
   CmsAssetProxy as AssetProxy,
   CmsConfig as Config,
@@ -28,15 +36,10 @@ import type {
   CmsDisplayURL as DisplayURL,
   CmsEntryLock,
   CmsEntryLockOwner,
-  CmsFileEntry as Entry,
   CmsGetMediaPageOptions,
-  CmsImplementation as Implementation,
-  CmsImplementationFile as ImplementationFile,
-  CmsImplementationMediaFile as ImplementationMediaFile,
   CmsMediaCapabilities,
   CmsMediaPage,
   CmsPersistOptions as PersistOptions,
-  CmsUnpublishedEntry as UnpublishedEntry,
   CmsUser as User,
   CursorCompatibleEntries,
 } from '@/lib/util/index';
@@ -564,7 +567,7 @@ export default function createLaikaBackend(
      * Lock tokens for entries this session currently holds, keyed by path.
      *
      * The server authorises refresh and release on the opaque token, not on
-     * identity, so the client has to keep it. `CmsImplementation` deliberately
+     * identity, so the client has to keep it. `BackendImplementation` deliberately
      * knows nothing about tokens: they are a detail of this backend's protocol,
      * not of the editor's lock model.
      */
@@ -766,7 +769,7 @@ export default function createLaikaBackend(
     }
 
     /**
-     * `CmsImplementation.ensureFreshSession`: refresh now (instead of on the
+     * `BackendImplementation.ensureFreshSession`: refresh now (instead of on the
      * next request) when the token is at/near expiry. Resolves without a
      * network call while the token is fresh. A dead refresh grant surfaces
      * through `dropExpiredSession` -> `onSessionExpired` inside
@@ -1374,7 +1377,7 @@ export default function createLaikaBackend(
     }
 
     /**
-     * Paginated media surface (see CmsImplementation). Pagination requires
+     * Paginated media surface (see BackendImplementation). Pagination requires
      * the assets backend to support cursor listing; dynamic search requires
      * a declared `search` filter. When the deployed assets API advertises
      * neither, this reports false and the media library falls back to the

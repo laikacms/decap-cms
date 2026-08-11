@@ -1,5 +1,6 @@
+import type { BackendClass } from '@/lib/backend/implementation';
 import type { ComponentType } from '@/lib/util/types/core';
-import type { CmsBackend, CmsBackendClass, CmsLocalBackend, CmsRegistryBackend } from './backend';
+import type { CmsBackend, CmsLocalBackend, CmsRegistryBackend } from './backend';
 import type { CmsCollection } from './collections';
 import type {
   CmsAllowedEvent,
@@ -214,7 +215,7 @@ export interface CmsCMS {
   getWidget: (name: string) => CmsWidget | undefined;
   getWidgetValueSerializer: (widgetName: string) => CmsWidgetValueSerializer | undefined;
   init: (options?: CmsInitOptions) => void;
-  registerBackend: (name: string, backendClass: CmsBackendClass) => void;
+  registerBackend: (name: string, backendClass: BackendClass) => void;
   // PT-native custom blocks and richtext format packs (the replacement for
   // the removed `registerEditorComponent` API). Structural shapes live in
   // `@/lib/richtext` (`BlockDefinition`, `FormatPack`); typed loosely here to

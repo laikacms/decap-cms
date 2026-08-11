@@ -11,30 +11,28 @@ import type {
   CmsPersistOptions,
   CmsUser,
 } from '@/lib/util/index';
-import type { BackendEntry, UnpublishedEntry } from './entry';
+import type { BackendEntry, BackendFileRef, UnpublishedEntry } from './entry';
 import type { Asset, MediaFile, PersistPayload } from './persist';
 
 /**
  * Structural stand-in for `React.ComponentType<any>`: this module is a
  * published dependency-free layer and must not import `react`, but every
  * real implementation's `authComponent()` returns a function or class
- * component (see backends/*\/implementation.ts*), never `void`.
+ * component (see backends/*\/implementation.ts*), never `void`. Props stay
+ * open because the engine picks the prop set it renders the auth page with.
  */
-type AnyComponentType = (props: never) => unknown;
+export type AuthComponent = ((props: any) => any) | (new(props: any) => any);
 
 /**
  * What a backend implementation must provide. Instantiated by the engine
- * through `registerBackend(name, BackendClass)`.
- *
- * This is the contract the entry redesign publishes; the engine still runs on
- * the legacy `CmsImplementation` until backends are migrated over (stage 3 of
- * DCMS-1907). The differences are: entries cross the seam as {@link BackendEntry}
- * with a tagged `content` union instead of `{ data: string }`, authorship is a
- * structured `Author` instead of a name string, display labels are no longer
- * echoed back, and the persist payload is {@link PersistPayload}.
+ * through `registerBackend(name, BackendClass)`, and the only backend
+ * contract there is: entries cross the seam as {@link BackendEntry} with a
+ * tagged `content` union, authorship is a structured `Author`, display labels
+ * come from collection config rather than the backend, and the persist
+ * payload is {@link PersistPayload}.
  */
 export interface BackendImplementation {
-  authComponent: () => AnyComponentType;
+  authComponent: () => AuthComponent;
   restoreUser: (user: CmsUser) => Promise<CmsUser>;
 
   authenticate: (credentials: CmsCredentials) => Promise<CmsUser>;
@@ -60,7 +58,7 @@ export interface BackendImplementation {
    */
   getEntry: (path: string, useWorkflow?: boolean) => Promise<BackendEntry>;
   entriesByFolder: (folder: string, extension: string, depth: number) => Promise<BackendEntry[]>;
-  entriesByFiles: (files: { path: string, id?: string | null }[]) => Promise<BackendEntry[]>;
+  entriesByFiles: (files: BackendFileRef[]) => Promise<BackendEntry[]>;
 
   getMediaDisplayURL?: (displayURL: CmsDisplayURL) => Promise<string>;
   /**
