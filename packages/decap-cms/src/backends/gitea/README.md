@@ -4,7 +4,7 @@ An abstraction layer between the CMS and a [Gitea](https://gitea.io/) instance's
 
 ## Code structure
 
-`implementation.tsx` - `Gitea` implementation of `CmsImplementation`, based on `API`. Does not
+`implementation.tsx` - `Gitea` implementation of `BackendImplementation`, based on `API`. Does not
 support the editorial workflow (constructor throws if `useWorkflow` is set).
 
 `API.tsx` - A wrapper for the Gitea REST API.

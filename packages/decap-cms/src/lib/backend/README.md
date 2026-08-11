@@ -39,7 +39,8 @@ that has to handle it.
 
 Report only what you actually know: omit a field rather than filling it with a placeholder. Unlike
 the domain types, the optional fields here also accept an explicit `undefined`, so a value read
-straight out of an API response can be passed along without a conditional spread.
+straight out of an API response can be passed along without a conditional spread. `Author` is a
+`lib/domain` type, re-exported here so an implementation still imports this module and nothing else.
 
 ### `content`
 
@@ -57,12 +58,21 @@ straight out of an API response can be passed along without a conditional spread
 | `file.label?: string` echoed back             | dropped - labels come from collection config                        |
 | `CmsFileEntry`                                | `PersistPayload`                                                    |
 | `UnpublishedEntry.pullRequestAuthor?: string` | `UnpublishedEntry.author?: Author`                                  |
+| `CmsImplementationFile`                       | `BackendFileRef` (`{ path, id? }`, no `label`)                      |
+| `CmsImplementation`                           | `BackendImplementation` (this module)                               |
 
-`BackendEntry` is the only shape the engine accepts: there is no compatibility path for the old
-`{ data: string }` entry, and `CmsImplementationEntry` is gone. A backend written against it stops
-compiling, which is the intent. The seam break belongs in
-`docs/contributing/decisions/breaking-changes-v4-beta.md` (that doc needs operator approval, so the
-entry is still pending).
+`BackendImplementation` is the whole contract: `CmsImplementation`, the interface the engine used to
+instantiate against, is gone rather than deprecated, so a backend written against it stops
+compiling. That is the intent, and it is why the fold landed in 4.0 alongside the entry break
+instead of after it - one migration for out-of-tree authors, not two. Both breaks are recorded in
+`docs/contributing/decisions/breaking-changes-v4-beta.md`.
+
+`BackendEntry` is likewise the only entry shape the engine accepts: there is no compatibility path
+for the old `{ data: string }` entry, and `CmsImplementationEntry` is gone.
+
+`authComponent()` returns `AuthComponent`, a structural stand-in for React's `ComponentType` that
+covers function and class components alike. This module publishes no react dependency, so the type
+is written out rather than imported; returning a real component satisfies it.
 
 `entriesByFolder` / `entriesByFiles` (the helpers below) already return `BackendEntry`, so a
 file-backed backend that builds its listings with them gets the seam shape for free and only has to

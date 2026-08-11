@@ -178,7 +178,7 @@ registerPreviewStyle('body { font-family: sans-serif; }', { raw: true });
 ```ts
 function registerBackend(
   name: string,
-  BackendClass: new(config: CmsConfig, opts?: Record<string, unknown>) => CmsImplementation,
+  BackendClass: new(config: CmsConfig, opts?: Record<string, unknown>) => BackendImplementation,
 ): void;
 ```
 
@@ -189,6 +189,9 @@ config). `BackendClass` is a class — not an instance — constructed lazily as
 `name` twice is also rejected with a logged error (`Backend [<name>]
 already registered.`) — the
 first registration wins.
+
+`BackendImplementation` (and the `BackendClass` constructor type above) is published from
+`@laikacms/decap-cms/lib/backend`; see `src/lib/backend/README.md` for the seam it defines.
 
 ```ts
 import { registerBackend } from '@laikacms/decap-cms/core';

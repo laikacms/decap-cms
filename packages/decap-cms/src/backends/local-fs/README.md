@@ -22,7 +22,7 @@ deciding which backend to configure.
 
 ## Code structure
 
-`implementation.tsx` - `LocalFsBackend`, a `CmsImplementation` that reads/writes files directly
+`implementation.tsx` - `LocalFsBackend`, a `BackendImplementation` that reads/writes files directly
 against a `FileSystemDirectoryHandle` using the helpers in `fsUtils.ts`.
 
 `fsUtils.ts` - Path-based helpers (`readFileAsString`, `writeFile`, `listFiles`, `deleteEntry`, ...)
