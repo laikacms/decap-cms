@@ -20,6 +20,15 @@ export interface CmsFieldBase {
    */
   validate?: StandardSchemaV1<unknown, unknown>;
 
+  /**
+   * When set, this field's value must be unique across every other entry in
+   * the same collection (the entry being saved is excluded from the
+   * comparison). Checked at save time, in addition to (not in place of) the
+   * `required`/`pattern`/`validate` checks. Widget-agnostic - doesn't require
+   * the `slug`/`meta` field machinery. See DCMS-1422 (partial).
+   */
+  unique?: boolean;
+
   // For nested fields
   allow_remove?: boolean;
   allow_reorder?: boolean;

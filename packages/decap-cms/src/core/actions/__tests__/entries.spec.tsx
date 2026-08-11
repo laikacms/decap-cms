@@ -6,12 +6,14 @@ import {
   createEmptyDraft,
   createEmptyDraftData,
   getMediaAssets,
+  persistEntry,
   persistLocalBackup,
   retrieveLocalBackup,
   validateMetaField,
   withDefaultsBackfilled,
 } from '@/core/actions/entries';
 import * as backendModule from '@/core/backend';
+import { FOLDER } from '@/core/constants/collectionTypes';
 import * as entriesReducer from '@/core/reducers/entries';
 import * as entryDraftReducer from '@/core/reducers/entryDraft';
 import AssetProxy from '@/core/valueObjects/AssetProxy';
@@ -519,6 +521,101 @@ describe('entries', () => {
 
       const entry = { mediaFiles };
       expect(getMediaAssets({ entry })).toEqual([new AssetProxy({ path: 'path2' })]);
+    });
+  });
+
+  // DCMS-1422 (partial): `unique: true` field option validated at save time.
+  describe('persistEntry - unique field validation', () => {
+    const collection = {
+      name: 'posts',
+      type: FOLDER,
+      folder: '_posts',
+      fields: [
+        { name: 'title', label: 'Title', widget: 'string' },
+        { name: 'email', label: 'Email', widget: 'string', unique: true },
+      ],
+    };
+
+    const currentBackend = vi.mocked(backendModule.currentBackend);
+    const selectEntries = vi.mocked(entriesReducer.selectEntries);
+    const selectPublishedSlugs = vi.mocked(entriesReducer.selectPublishedSlugs);
+
+    let backend: { persistEntry: ReturnType<typeof vi.fn> };
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+      backend = { persistEntry: vi.fn(() => Promise.resolve('post-c')) };
+      currentBackend.mockReturnValue(backend as never);
+      selectPublishedSlugs.mockReturnValue([]);
+    });
+
+    function makeState(entryDraft: Record<string, unknown>) {
+      return {
+        config: {},
+        entries: {},
+        entryDraft,
+      };
+    }
+
+    it('rejects and does not persist when another entry already has the value', async () => {
+      selectEntries.mockReturnValue([
+        { slug: 'post-a', data: { title: 'A', email: 'shared@example.com' }, mediaFiles: [] },
+        { slug: 'post-b', data: { title: 'B', email: 'b@example.com' }, mediaFiles: [] },
+      ] as never);
+
+      const store = mockStore(
+        makeState({
+          fieldsErrors: {},
+          entry: { slug: 'post-c', data: { title: 'C', email: 'shared@example.com' }, mediaFiles: [] },
+        }),
+      );
+
+      await expect(store.dispatch(persistEntry(collection as never) as never)).rejects.toBeUndefined();
+
+      expect(backend.persistEntry).not.toHaveBeenCalled();
+      const actions = store.getActions();
+      expect(
+        actions.some(
+          (action: any) =>
+            action.type === 'NOTIFICATION_SEND' && action.payload?.message?.key === 'ui.toast.notUniqueField',
+        ),
+      ).toBe(true);
+    });
+
+    it('persists when no other entry has the value', async () => {
+      selectEntries.mockReturnValue([
+        { slug: 'post-a', data: { title: 'A', email: 'a@example.com' }, mediaFiles: [] },
+      ] as never);
+
+      const store = mockStore(
+        makeState({
+          fieldsErrors: {},
+          entry: { slug: 'post-c', data: { title: 'C', email: 'c@example.com' }, mediaFiles: [] },
+        }),
+      );
+
+      await store.dispatch(persistEntry(collection as never) as never);
+
+      expect(backend.persistEntry).toHaveBeenCalled();
+    });
+
+    it('excludes the entry being saved from its own conflict check', async () => {
+      selectEntries.mockReturnValue([
+        { slug: 'post-a', data: { title: 'A', email: 'a@example.com' }, mediaFiles: [] },
+      ] as never);
+
+      backend.persistEntry.mockReturnValue(Promise.resolve('post-a'));
+
+      const store = mockStore(
+        makeState({
+          fieldsErrors: {},
+          entry: { slug: 'post-a', data: { title: 'A (edited)', email: 'a@example.com' }, mediaFiles: [] },
+        }),
+      );
+
+      await store.dispatch(persistEntry(collection as never) as never);
+
+      expect(backend.persistEntry).toHaveBeenCalled();
     });
   });
 

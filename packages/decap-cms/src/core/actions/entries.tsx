@@ -6,6 +6,7 @@ import { getIntegrationProvider } from '@/core/integrations';
 import { getProcessSegment } from '@/core/lib/formatters';
 import { duplicateDefaultI18nFields, hasI18n, I18N, I18N_FIELD, serializeI18n } from '@/core/lib/i18n';
 import { serializeValues } from '@/core/lib/serializeEntryValues';
+import { findUniqueFieldConflicts } from '@/core/lib/validateUniqueFields';
 import { selectDefaultSortField, selectField, selectFields, updateFieldByKey } from '@/core/reducers/collections';
 import { selectCollectionEntriesCursor } from '@/core/reducers/cursors';
 import {
@@ -17,7 +18,7 @@ import {
   selectIsFetching,
 } from '@/core/reducers/entries';
 import { selectCustomPath } from '@/core/reducers/entryDraft';
-import { selectIntegration, selectPublishedSlugs } from '@/core/reducers/selectors';
+import { selectEntries, selectIntegration, selectPublishedSlugs } from '@/core/reducers/selectors';
 import { navigateToEntry } from '@/core/routing/navigation';
 import { createAssetProxy } from '@/core/valueObjects/AssetProxy';
 import { createEntry } from '@/core/valueObjects/Entry';
@@ -969,6 +970,32 @@ export function persistEntry(collection: Collection) {
         }),
       );
 
+      return Promise.reject();
+    }
+
+    // DCMS-1422 (partial): `unique: true` fields must not collide with any
+    // other entry already known to the collection. This runs after the
+    // per-field `fieldsErrors` check above because it needs cross-entry
+    // state that individual field widgets don't have access to.
+    const uniqueConflicts = findUniqueFieldConflicts(
+      collection,
+      entryDraft.entry.slug,
+      entryDraft.entry.data,
+      selectEntries(state, collection),
+    );
+    if (uniqueConflicts.length > 0) {
+      dispatch(
+        addNotification({
+          message: {
+            key: 'ui.toast.notUniqueField',
+            details: uniqueConflicts
+              .map(conflict => String(conflict.field.label ?? conflict.field.name))
+              .join(', '),
+          },
+          type: 'error',
+          dismissAfter: 8000,
+        }),
+      );
       return Promise.reject();
     }
 

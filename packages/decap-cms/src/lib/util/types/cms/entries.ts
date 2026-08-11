@@ -44,6 +44,8 @@ export type CmsEntryField = {
   public_folder?: string,
   comment?: string,
   meta?: boolean,
+  /** DCMS-1422 (partial): validated against the collection's other entries at save time. */
+  unique?: boolean,
   i18n: 'translate' | 'duplicate' | 'none',
   [key: string]: unknown,
 };
