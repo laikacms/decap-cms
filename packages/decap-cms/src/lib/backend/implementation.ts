@@ -15,6 +15,14 @@ import type { BackendEntry, UnpublishedEntry } from './entry';
 import type { Asset, MediaFile, PersistPayload } from './persist';
 
 /**
+ * Structural stand-in for `React.ComponentType<any>`: this module is a
+ * published dependency-free layer and must not import `react`, but every
+ * real implementation's `authComponent()` returns a function or class
+ * component (see backends/*\/implementation.ts*), never `void`.
+ */
+type AnyComponentType = (props: never) => unknown;
+
+/**
  * What a backend implementation must provide. Instantiated by the engine
  * through `registerBackend(name, BackendClass)`.
  *
@@ -26,7 +34,7 @@ import type { Asset, MediaFile, PersistPayload } from './persist';
  * echoed back, and the persist payload is {@link PersistPayload}.
  */
 export interface BackendImplementation {
-  authComponent: () => void;
+  authComponent: () => AnyComponentType;
   restoreUser: (user: CmsUser) => Promise<CmsUser>;
 
   authenticate: (credentials: CmsCredentials) => Promise<CmsUser>;
