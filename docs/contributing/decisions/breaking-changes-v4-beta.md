@@ -27,13 +27,13 @@ custom widgets or editor components.
 The Sublime Text keymap (`keyMap: "sublime"`) is no longer bundled with the CodeMirror editor
 integration.
 
-**Migration:** Use the **VS Code** keymap instead. The VS Code keymap is now the default and does
-not require additional configuration. If you were explicitly setting the keymap, update your
-configuration:
+**Migration:** If you want VS Code-style bindings, explicitly set `keyMap: vscode`. Removing the
+`keyMap: sublime` setting entirely (or setting `keyMap: default`) does **not** get you the VS Code
+keymap — it falls back to CodeMirror's own built-in keymap:
 
 ```diff
 - keymap: sublime
-+ keymap: default   # VS Code keymap is used by default
++ keymap: vscode   # explicitly opt in to VS Code-style bindings
 ```
 
 ## Removed `PropTypes` from default exports

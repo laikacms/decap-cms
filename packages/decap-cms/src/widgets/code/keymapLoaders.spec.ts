@@ -33,4 +33,20 @@ describe('getKeymapExtension', () => {
   it('returns null for unknown keymaps', async () => {
     await expect(getKeymapExtension('sublime')).resolves.toBeNull();
   });
+
+  // Pin: 'default' does NOT resolve to the vscode keymap. The two must stay
+  // distinct so a change that quietly aliases 'default' to vscode (or a docs
+  // fix removing the false "VS Code is the default" claim) is required to
+  // touch this test. See docs/contributing/decisions/breaking-changes-v4-beta.md,
+  // "Removed Sublime Text keymap for CodeMirror".
+  it('resolves "default" and "vscode" to distinct, non-equivalent results', async () => {
+    const [defaultResult, vscodeResult] = await Promise.all([
+      getKeymapExtension('default'),
+      getKeymapExtension('vscode'),
+    ]);
+
+    expect(defaultResult).toBeNull();
+    expect(vscodeResult).not.toBeNull();
+    expect(defaultResult).not.toEqual(vscodeResult);
+  });
 });
