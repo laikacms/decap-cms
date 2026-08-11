@@ -12,7 +12,9 @@ import {
   UNPUBLISHED_ENTRY_PERSIST_SUCCESS,
   UNPUBLISHED_ENTRY_PUBLISH_FAILURE,
   UNPUBLISHED_ENTRY_PUBLISH_REQUEST,
+  UNPUBLISHED_ENTRY_PUBLISH_SCHEDULE_SUCCESS,
   UNPUBLISHED_ENTRY_PUBLISH_SUCCESS,
+  UNPUBLISHED_ENTRY_PUBLISH_UNSCHEDULE_SUCCESS,
   UNPUBLISHED_ENTRY_REDIRECT,
   UNPUBLISHED_ENTRY_REQUEST,
   UNPUBLISHED_ENTRY_STATUS_CHANGE_FAILURE,
@@ -32,6 +34,9 @@ export type WorkflowEntry = {
   isPersisting?: boolean,
   isUpdatingStatus?: boolean,
   isPublishing?: boolean,
+  // ISO-8601 timestamp; presence means the entry is scheduled to auto-publish
+  // once due (DCMS-1991). Client-side only - see core/lib/scheduledPublish.
+  publishAt?: string,
   [key: string]: unknown,
 };
 
@@ -156,6 +161,24 @@ const unpublishedEntries = produce((state: EditorialWorkflow, action: AnyAction)
     case UNPUBLISHED_ENTRY_DELETE_SUCCESS: {
       const key = `${action.payload.collection}.${action.payload.slug}`;
       delete state.entities[key];
+      break;
+    }
+
+    case UNPUBLISHED_ENTRY_PUBLISH_SCHEDULE_SUCCESS: {
+      const key = `${action.payload.collection}.${action.payload.slug}`;
+      if (state.entities[key]) {
+        state.entities[key] = { ...state.entities[key], publishAt: action.payload.publishAt };
+      }
+      break;
+    }
+
+    case UNPUBLISHED_ENTRY_PUBLISH_UNSCHEDULE_SUCCESS: {
+      const key = `${action.payload.collection}.${action.payload.slug}`;
+      if (state.entities[key]) {
+        const nextEntity = { ...state.entities[key] };
+        delete nextEntity.publishAt;
+        state.entities[key] = nextEntity;
+      }
       break;
     }
 

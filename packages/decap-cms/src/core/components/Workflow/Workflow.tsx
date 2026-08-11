@@ -3,6 +3,7 @@ import React from 'react';
 
 import { createNewEntry } from '@/core/actions/collections';
 import {
+  checkScheduledPublishes,
   deleteUnpublishedEntry,
   loadUnpublishedEntries,
   publishUnpublishedEntry,
@@ -83,6 +84,21 @@ function Workflow({ t }: WorkflowProps) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- match prior componentDidMount semantics
   }, []);
+
+  // DCMS-1991: scheduled publishing has no server-side cron - a scheduled
+  // entry only actually publishes while a tab has the Workflow board
+  // mounted, checked here on mount and every minute after. If nobody has
+  // the CMS open when the scheduled time arrives, it publishes the next
+  // time someone does. This is a deliberate best-effort limitation, not a
+  // bug - see the doc comment on `checkScheduledPublishes`.
+  React.useEffect(() => {
+    if (!isEditorialWorkflow) return;
+    dispatch(checkScheduledPublishes() as any);
+    const interval = setInterval(() => {
+      dispatch(checkScheduledPublishes() as any);
+    }, 60_000);
+    return () => clearInterval(interval);
+  }, [isEditorialWorkflow, dispatch]);
 
   if (!isEditorialWorkflow) return null;
   if (isFetching) {

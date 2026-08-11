@@ -2,6 +2,7 @@ import { Menu } from '@base-ui/react/menu';
 import { Tooltip } from '@base-ui/react/tooltip';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
+import dayjs from 'dayjs';
 import React from 'react';
 
 import { SettingsDropdown } from '@/core/components/UI';
@@ -292,6 +293,10 @@ interface EditorToolbarProps {
   onDuplicate: () => void;
   onPublishAndNew: () => void;
   onPublishAndDuplicate: () => void;
+  /** ISO-8601 timestamp if this entry has a pending scheduled publish (DCMS-1991). */
+  scheduledPublishAt?: string;
+  onSchedulePublish?: () => void;
+  onCancelSchedulePublish?: () => void;
   user?: CmsUser;
   hasChanged?: boolean;
   displayUrl?: string;
@@ -328,6 +333,9 @@ export function EditorToolbar(props: EditorToolbarProps) {
     onPublish,
     onPublishAndNew,
     onPublishAndDuplicate,
+    scheduledPublishAt,
+    onSchedulePublish,
+    onCancelSchedulePublish,
     onChangeStatus,
     onDelete,
     onDeleteUnpublishedChanges,
@@ -540,6 +548,26 @@ export function EditorToolbar(props: EditorToolbarProps) {
               </>
             )
             : null}
+          {(onSchedulePublish || onCancelSchedulePublish)
+            && (scheduledPublishAt
+              ? (
+                <PublishDropDownItem
+                  label={`${
+                    t('editor.editorToolbar.scheduledFor', {
+                      date: dayjs(scheduledPublishAt).format('MMM D, YYYY HH:mm'),
+                    })
+                  } - ${t('editor.editorToolbar.cancelScheduledPublish')}`}
+                  icon="close"
+                  onClick={() => onCancelSchedulePublish?.()}
+                />
+              )
+              : (
+                <PublishDropDownItem
+                  label={t('editor.editorToolbar.schedulePublish')}
+                  icon="write"
+                  onClick={() => onSchedulePublish?.()}
+                />
+              ))}
         </ToolbarDropdown>
       )
       : (

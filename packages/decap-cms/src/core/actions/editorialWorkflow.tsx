@@ -3,6 +3,12 @@ import { get } from 'lodash-es';
 import { currentBackend, slugFromCustomPath } from '@/core/backend';
 import { EDITORIAL_WORKFLOW, status } from '@/core/constants/publishModes';
 import ValidationErrorTypes from '@/core/constants/validationErrorTypes';
+import {
+  clearScheduledPublishAt,
+  getScheduledPublishAt,
+  isPublishAtDue,
+  setScheduledPublishAt,
+} from '@/core/lib/scheduledPublish';
 import { selectEditingDraft } from '@/core/reducers/entries';
 import {
   selectEntry,
@@ -27,6 +33,7 @@ import { loadMedia } from './mediaLibrary';
 import { addNotification } from './notifications';
 
 import type { Status } from '@/core/constants/publishModes';
+import type { WorkflowEntry } from '@/core/reducers/editorialWorkflow';
 import type { EntryDraft } from '@/core/reducers/entryDraft';
 import type { EntryValue } from '@/core/valueObjects/Entry';
 import type { CmsCollections, CmsCollectionState, CmsEntry, CmsMediaFile } from '@/lib/util/index';
@@ -67,6 +74,11 @@ export const UNPUBLISHED_ENTRY_DELETE_REQUEST = 'UNPUBLISHED_ENTRY_DELETE_REQUES
 export const UNPUBLISHED_ENTRY_DELETE_SUCCESS = 'UNPUBLISHED_ENTRY_DELETE_SUCCESS';
 export const UNPUBLISHED_ENTRY_DELETE_FAILURE = 'UNPUBLISHED_ENTRY_DELETE_FAILURE';
 
+export const UNPUBLISHED_ENTRY_PUBLISH_SCHEDULE_SUCCESS =
+  'UNPUBLISHED_ENTRY_PUBLISH_SCHEDULE_SUCCESS';
+export const UNPUBLISHED_ENTRY_PUBLISH_UNSCHEDULE_SUCCESS =
+  'UNPUBLISHED_ENTRY_PUBLISH_UNSCHEDULE_SUCCESS';
+
 /*
  * Simple Action Creators (Internal)
  */
@@ -81,6 +93,18 @@ function unpublishedEntryLoading(collection: Collection, slug: string) {
   };
 }
 
+// Backends don't natively persist a scheduled publish time (see
+// core/lib/scheduledPublish), so it's re-attached from local storage
+// whenever an unpublished entry is (re)loaded. Only touches the object when
+// a schedule actually exists, so entries without one are returned as-is.
+function withScheduledPublishAt<T extends { slug: string }>(
+  collectionName: string,
+  entry: T,
+): T & { publishAt?: string } {
+  const publishAt = getScheduledPublishAt(collectionName, entry.slug);
+  return publishAt ? { ...entry, publishAt } : entry;
+}
+
 function unpublishedEntryLoaded(
   collection: Collection,
   entry: EntryValue & { mediaFiles: MediaFile[] },
@@ -89,7 +113,7 @@ function unpublishedEntryLoaded(
     type: UNPUBLISHED_ENTRY_SUCCESS,
     payload: {
       collection: collection.name,
-      entry,
+      entry: withScheduledPublishAt(collection.name, entry),
     },
   };
 }
@@ -114,7 +138,7 @@ function unpublishedEntriesLoaded(entries: EntryValue[], pagination: number) {
   return {
     type: UNPUBLISHED_ENTRIES_SUCCESS,
     payload: {
-      entries,
+      entries: entries.map(entry => withScheduledPublishAt(entry.collection, entry)),
       pages: pagination,
     },
   };
@@ -230,6 +254,20 @@ function unpublishedEntryDeleted(collection: string, slug: string) {
 function unpublishedEntryDeleteError(collection: string, slug: string) {
   return {
     type: UNPUBLISHED_ENTRY_DELETE_FAILURE,
+    payload: { collection, slug },
+  };
+}
+
+function unpublishedEntryPublishScheduled(collection: string, slug: string, publishAt: string) {
+  return {
+    type: UNPUBLISHED_ENTRY_PUBLISH_SCHEDULE_SUCCESS,
+    payload: { collection, slug, publishAt },
+  };
+}
+
+function unpublishedEntryPublishUnscheduled(collection: string, slug: string) {
+  return {
+    type: UNPUBLISHED_ENTRY_PUBLISH_UNSCHEDULE_SUCCESS,
     payload: { collection, slug },
   };
 }
@@ -505,6 +543,9 @@ export function deleteUnpublishedEntry(collection: string, slug: string) {
           }),
         );
         dispatch(unpublishedEntryDeleted(collection, slug));
+        // A re-created entry with the same slug shouldn't inherit a stale
+        // schedule from the deleted one.
+        clearScheduledPublishAt(collection, slug);
         queryCore.invalidateTags([collectionTag(collection)]);
       })
       .catch((error: Error) => {
@@ -539,6 +580,11 @@ export function publishUnpublishedEntry(collectionName: string, slug: string) {
         }),
       );
       dispatch(unpublishedEntryPublished(collectionName, slug));
+      // The entry is gone from the editorial workflow once published, so
+      // drop any leftover schedule (whether it published via the schedule
+      // or via a manual "Publish now") to avoid a re-created entry with the
+      // same slug inheriting it.
+      clearScheduledPublishAt(collectionName, slug);
       // Also refreshes relation widget search results, which share the
       // collection tag (DCMS-606).
       queryCore.invalidateTags([
@@ -566,6 +612,96 @@ export function publishUnpublishedEntry(collectionName: string, slug: string) {
       );
       dispatch(unpublishedEntryPublishError(collectionName, slug));
     }
+  };
+}
+
+/*
+ * Scheduled publishing (DCMS-1991).
+ *
+ * Storing and surfacing a "publish at" time is backend-agnostic: it lives in
+ * the editorial workflow redux state (backed by localStorage, see
+ * core/lib/scheduledPublish) rather than in any particular backend's
+ * PR/MR/commit metadata. Actually publishing once the scheduled time
+ * arrives still goes through the regular, real `publishUnpublishedEntry`
+ * backend call below via `checkScheduledPublishes` - there is no
+ * fake/stubbed execution path.
+ *
+ * What is NOT implemented, and cannot be without a server component this
+ * project doesn't have: unattended execution while nobody has the CMS open
+ * in a browser tab. `checkScheduledPublishes` only fires on app load and on
+ * an interval while the Workflow board is mounted (see
+ * `core/components/Workflow/Workflow.tsx`); a due entry publishes the next
+ * time a tab opens the CMS after its scheduled time, not necessarily at
+ * that exact moment. Treat this as best-effort client-side scheduling, not
+ * a guaranteed server-side cron.
+ */
+export function scheduleUnpublishedEntryPublish(
+  collectionName: string,
+  slug: string,
+  publishAt: string,
+) {
+  return (dispatch: ThunkDispatch<State, {}, AnyAction>) => {
+    const parsed = new Date(publishAt);
+    if (Number.isNaN(parsed.getTime()) || parsed.getTime() <= Date.now()) {
+      dispatch(
+        addNotification({
+          message: { key: 'ui.toast.invalidScheduleDate' },
+          type: 'error',
+          dismissAfter: 8000,
+        }),
+      );
+      return;
+    }
+
+    const isoPublishAt = parsed.toISOString();
+    setScheduledPublishAt(collectionName, slug, isoPublishAt);
+    dispatch(unpublishedEntryPublishScheduled(collectionName, slug, isoPublishAt));
+    dispatch(
+      addNotification({
+        message: { key: 'ui.toast.entryScheduled' },
+        type: 'success',
+        dismissAfter: 4000,
+      }),
+    );
+  };
+}
+
+export function unscheduleUnpublishedEntryPublish(collectionName: string, slug: string) {
+  return (dispatch: ThunkDispatch<State, {}, AnyAction>) => {
+    clearScheduledPublishAt(collectionName, slug);
+    dispatch(unpublishedEntryPublishUnscheduled(collectionName, slug));
+    dispatch(
+      addNotification({
+        message: { key: 'ui.toast.entryUnscheduled' },
+        type: 'success',
+        dismissAfter: 4000,
+      }),
+    );
+  };
+}
+
+// Called on load and on a polling interval by the Workflow board: publishes
+// any "Ready" entry whose scheduled time has passed. This only runs while
+// the CMS is open in a browser tab - see the module doc comment above for
+// what's deliberately not implemented.
+export function checkScheduledPublishes() {
+  return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+    const state = getState();
+    const entities = state.editorialWorkflow?.entities as
+      | Record<string, WorkflowEntry>
+      | undefined;
+    if (!entities) return;
+
+    Object.values(entities).forEach(entry => {
+      if (!entry) return;
+      if (
+        entry.status === status.PENDING_PUBLISH
+        && !entry.isPublishing
+        && isPublishAtDue(entry.publishAt)
+      ) {
+        dispatch(publishUnpublishedEntry(entry.collection, entry.slug) as unknown as AnyAction);
+      }
+    });
   };
 }
 

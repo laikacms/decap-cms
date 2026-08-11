@@ -262,6 +262,9 @@ interface EditorInterfaceProps {
   onDelete: () => void;
   onDeleteUnpublishedChanges: () => void;
   onPublish: (opts?: { createNew?: boolean, duplicate?: boolean }) => void;
+  onSchedulePublish?: (() => void) | undefined;
+  onCancelSchedulePublish?: (() => void) | undefined;
+  scheduledPublishAt?: string | undefined;
   unPublish: () => void;
   onDuplicate: () => void;
   onChangeStatus: (newStatus: string) => void;
@@ -299,6 +302,9 @@ function EditorInterface(props: EditorInterfaceProps) {
     onDeleteUnpublishedChanges,
     onChangeStatus,
     onPublish,
+    onSchedulePublish,
+    onCancelSchedulePublish,
+    scheduledPublishAt,
     unPublish,
     onDuplicate,
     onValidate,
@@ -601,6 +607,9 @@ function EditorInterface(props: EditorInterfaceProps) {
     onChangeStatus,
     showDelete,
     onPublish,
+    onSchedulePublish,
+    onCancelSchedulePublish,
+    scheduledPublishAt,
     unPublish,
     onDuplicate,
     onPublishAndNew: () => handleOnPublish({ createNew: true }),

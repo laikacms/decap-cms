@@ -491,6 +491,14 @@ export interface PromptOptions {
   placeholder?: string;
   /** Initial value of the text input. */
   defaultValue?: string;
+  /**
+   * Native input `type`, e.g. `'datetime-local'` for a browser date/time
+   * picker instead of free text (used by scheduled publishing, DCMS-1991).
+   * Defaults to `'text'`.
+   */
+  inputType?: string;
+  /** Passed through to the input's `min` attribute (e.g. to block past dates/times). */
+  min?: string;
 }
 
 interface PendingPrompt extends PromptOptions {
@@ -590,6 +598,8 @@ export function PromptDialogHost(): React.ReactNode {
         </AlertDialogHeader>
         <Input
           autoFocus
+          type={current.inputType ?? 'text'}
+          min={current.min}
           value={value}
           placeholder={current.placeholder}
           aria-labelledby={descriptionId}

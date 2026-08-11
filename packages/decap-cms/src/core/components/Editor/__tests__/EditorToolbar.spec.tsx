@@ -369,4 +369,76 @@ describe('EditorToolbar', () => {
       expect(props.onPublish).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('Schedule publish (DCMS-1991)', () => {
+    it('offers "Schedule publish" in the publish menu when the entry has no schedule yet', async () => {
+      const user = userEvent.setup();
+      const onSchedulePublish = vi.fn();
+      render(
+        <EditorToolbar
+          {...props}
+          hasWorkflow={true}
+          isNewEntry={false}
+          hasChanged={false}
+          currentStatus={status.PENDING_PUBLISH}
+          collection={{ ...props.collection, publish: true } as unknown as CmsCollectionState}
+          onSchedulePublish={onSchedulePublish}
+        />,
+      );
+
+      await user.click(screen.getByRole('button', { name: 'editor.editorToolbar.publish' }));
+      await user.click(await screen.findByText('editor.editorToolbar.schedulePublish'));
+
+      expect(onSchedulePublish).toHaveBeenCalledTimes(1);
+      expect(
+        screen.queryByText('editor.editorToolbar.cancelScheduledPublish', { exact: false }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('offers "Cancel scheduled publish" instead once the entry is scheduled', async () => {
+      const user = userEvent.setup();
+      const onCancelSchedulePublish = vi.fn();
+      render(
+        <EditorToolbar
+          {...props}
+          hasWorkflow={true}
+          isNewEntry={false}
+          hasChanged={false}
+          currentStatus={status.PENDING_PUBLISH}
+          collection={{ ...props.collection, publish: true } as unknown as CmsCollectionState}
+          scheduledPublishAt="2026-09-01T12:00:00.000Z"
+          onCancelSchedulePublish={onCancelSchedulePublish}
+        />,
+      );
+
+      await user.click(screen.getByRole('button', { name: 'editor.editorToolbar.publish' }));
+
+      expect(screen.queryByText('editor.editorToolbar.schedulePublish')).not.toBeInTheDocument();
+      const cancelItem = await screen.findByText(
+        /editor.editorToolbar.cancelScheduledPublish/,
+      );
+      await user.click(cancelItem);
+
+      expect(onCancelSchedulePublish).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders no schedule affordance when onSchedulePublish is not provided (simple mode/no handler wired)', async () => {
+      const user = userEvent.setup();
+      render(
+        <EditorToolbar
+          {...props}
+          hasWorkflow={true}
+          isNewEntry={false}
+          hasChanged={false}
+          currentStatus={status.PENDING_PUBLISH}
+          collection={{ ...props.collection, publish: true } as unknown as CmsCollectionState}
+        />,
+      );
+
+      await user.click(screen.getByRole('button', { name: 'editor.editorToolbar.publish' }));
+
+      expect(await screen.findByText('editor.editorToolbar.publishNow')).toBeInTheDocument();
+      expect(screen.queryByText('editor.editorToolbar.schedulePublish')).not.toBeInTheDocument();
+    });
+  });
 });

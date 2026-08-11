@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { UNPUBLISHED_ENTRIES_SUCCESS } from '@/core/actions/editorialWorkflow';
+import {
+  UNPUBLISHED_ENTRIES_SUCCESS,
+  UNPUBLISHED_ENTRY_PUBLISH_SCHEDULE_SUCCESS,
+  UNPUBLISHED_ENTRY_PUBLISH_UNSCHEDULE_SUCCESS,
+} from '@/core/actions/editorialWorkflow';
 import { status as statusValues } from '@/core/constants/publishModes';
 import unpublishedEntries, {
   selectUnpublishedEntriesByStatus,
@@ -175,6 +179,79 @@ describe('unpublishedEntries reducer', () => {
       expect(
         selectUnpublishedSlugs({ entities: undefined } as unknown as EditorialWorkflow, 'posts'),
       ).toBeNull();
+    });
+  });
+
+  describe('UNPUBLISHED_ENTRY_PUBLISH_SCHEDULE_SUCCESS', () => {
+    it('sets publishAt on the matching entity', () => {
+      const initialState: EditorialWorkflow = {
+        entities: {
+          'posts.my-post': { collection: 'posts', slug: 'my-post', status: 'pending_publish' },
+        },
+        pages: {},
+      };
+
+      const result = unpublishedEntries(initialState, {
+        type: UNPUBLISHED_ENTRY_PUBLISH_SCHEDULE_SUCCESS,
+        payload: { collection: 'posts', slug: 'my-post', publishAt: '2026-09-01T00:00:00.000Z' },
+      });
+
+      expect(result.entities['posts.my-post']).toEqual({
+        collection: 'posts',
+        slug: 'my-post',
+        status: 'pending_publish',
+        publishAt: '2026-09-01T00:00:00.000Z',
+      });
+    });
+
+    it('is a no-op when the entity is not loaded', () => {
+      const initialState: EditorialWorkflow = { entities: {}, pages: {} };
+
+      const result = unpublishedEntries(initialState, {
+        type: UNPUBLISHED_ENTRY_PUBLISH_SCHEDULE_SUCCESS,
+        payload: { collection: 'posts', slug: 'missing', publishAt: '2026-09-01T00:00:00.000Z' },
+      });
+
+      expect(result.entities).toEqual({});
+    });
+  });
+
+  describe('UNPUBLISHED_ENTRY_PUBLISH_UNSCHEDULE_SUCCESS', () => {
+    it('removes publishAt from the matching entity', () => {
+      const initialState: EditorialWorkflow = {
+        entities: {
+          'posts.my-post': {
+            collection: 'posts',
+            slug: 'my-post',
+            status: 'pending_publish',
+            publishAt: '2026-09-01T00:00:00.000Z',
+          },
+        },
+        pages: {},
+      };
+
+      const result = unpublishedEntries(initialState, {
+        type: UNPUBLISHED_ENTRY_PUBLISH_UNSCHEDULE_SUCCESS,
+        payload: { collection: 'posts', slug: 'my-post' },
+      });
+
+      expect(result.entities['posts.my-post']).toEqual({
+        collection: 'posts',
+        slug: 'my-post',
+        status: 'pending_publish',
+      });
+      expect(result.entities['posts.my-post']).not.toHaveProperty('publishAt');
+    });
+
+    it('is a no-op when the entity is not loaded', () => {
+      const initialState: EditorialWorkflow = { entities: {}, pages: {} };
+
+      const result = unpublishedEntries(initialState, {
+        type: UNPUBLISHED_ENTRY_PUBLISH_UNSCHEDULE_SUCCESS,
+        payload: { collection: 'posts', slug: 'missing' },
+      });
+
+      expect(result.entities).toEqual({});
     });
   });
 });
