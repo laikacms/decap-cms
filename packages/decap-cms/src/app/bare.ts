@@ -2,6 +2,7 @@ import React, { createElement, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { DecapCmsCore as CMS, DecapCmsProvider } from '@/core/index';
+import { registerAppShellServiceWorker } from '@/core/serviceWorker/registerServiceWorker';
 import { App, AppContent } from './components/index';
 
 import type { CmsConfig } from '@/core/index';
@@ -130,6 +131,7 @@ export function init(opts: { config?: CmsConfig } = {}) {
       createElement(DecapCmsProvider, { config }, createElement(App)),
     ),
   );
+  registerAppShellServiceWorker();
 }
 
 // Expose React.createElement as `h` for custom preview templates

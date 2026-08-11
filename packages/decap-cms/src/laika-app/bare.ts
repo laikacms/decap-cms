@@ -2,6 +2,7 @@ import React, { createElement, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { DecapCmsCore as CMS } from '@/core/index';
+import { registerAppShellServiceWorker } from '@/core/serviceWorker/registerServiceWorker';
 import LaikaApp from './LaikaApp';
 import LaikaProvider from './LaikaProvider';
 
@@ -90,6 +91,7 @@ export function init(opts: { config?: CmsConfig } = {}) {
       createElement(LaikaProvider, { config }, createElement(LaikaApp)),
     ),
   );
+  registerAppShellServiceWorker();
 }
 
 export const h = createElement;
