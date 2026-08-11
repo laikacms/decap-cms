@@ -58,8 +58,13 @@
       a `BLOCK_HISTORY_MERGE_TAG` marker; `Editor.tsx`'s `OnChangePlugin` handler lets the marked
       updates through to persist while still ignoring other history-merge-tagged updates (composer
       init, autocomplete ghost text).
-- [ ] URL-paste auto-embed was removed with AutoEmbedPlugin (it targeted the deleted
-      TweetNode/YouTubeNode). Re-implement it to insert registry blocks from pasted URLs.
+- [x] `AutoEmbedPlugin`/`TwitterPlugin`/`YoutubePlugin`/`EmbedsPickerPlugin`/`InsertEmbeds` deleted
+      (DCMS-1994): they were orphaned leftovers of the pre-registry-block embed system, still
+      targeting the hardcoded `TweetNode`/`YoutubeNode` persist-data-loss path (see above) that
+      `tweetBlock`/`youtubeBlock` already replaced — not previously deleted as the old note claimed,
+      just unmounted and unreferenced. URL-paste-to-embed was never wired up against the registry
+      blocks; if wanted, it needs a new plugin that matches pasted URLs and dispatches the standard
+      block-insert path (`InsertBlock`/`blocksConfig.blocks`), not a resurrection of these files.
 - [x] Block-field validation does not gate entry save yet (EditorControl self-validates per field
       only). Fixed: `BlockForm`/`LexicalControl` now thread `onValidateObject` into the block's
       `ObjectControl` so a `required` sub-field left empty registers against the entry-level
