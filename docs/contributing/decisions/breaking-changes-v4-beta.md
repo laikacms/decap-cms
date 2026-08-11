@@ -190,3 +190,15 @@ load) and the dev server CLI. Concretely:
 
 **Migration:** if you imported a module purely for its registration side effect, call its exported
 `register*()` function instead.
+
+## `CmsEntryValue` removed from `lib/util`
+
+`CmsEntryValue` (in `lib/util/types/cms/entries`) was a dead public mirror: nothing in the package
+ever produced a value of that shape. It is the first deletion of the entry/domain type redesign
+(DCMS-1907, see `entry-type-redesign.md`); the live entry types are `Entry`/`CompleteEntry` from the
+new `lib/domain` subpath and `BackendEntry` from `lib/backend`.
+
+**Migration:** if you imported `CmsEntryValue` for typing, switch to `Entry` (`lib/domain`) for
+domain-level entry data or `BackendEntry` (`lib/backend`) for the backend seam. `EntryValue` and
+`CmsEntry` (the internal engine/store types) are unaffected by this change and remain in place until
+a later stage of DCMS-1907.

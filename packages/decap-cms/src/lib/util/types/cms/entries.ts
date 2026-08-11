@@ -49,23 +49,6 @@ export type CmsEntryField = {
 
 export type CmsEntryFields = CmsEntryField[];
 
-export type CmsEntryValue = {
-  collection: string,
-  slug: string,
-  path: string,
-  partial: boolean,
-  raw: string,
-  data: unknown,
-  label: string | null,
-  isModification: boolean | null,
-  mediaFiles: CmsMediaFileMap[],
-  author: string,
-  updatedOn: string,
-  status?: string,
-  meta: { path?: string | undefined },
-  i18n?: Record<string, unknown>,
-};
-
 export type CmsImplementationFile = {
   id?: string | null | undefined,
   label?: string | undefined,

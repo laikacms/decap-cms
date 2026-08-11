@@ -1,7 +1,10 @@
 # Entry/domain type redesign: `lib/domain` + `lib/backend`, and the `BackendEntry` content union
 
 **Status: Accepted.** Decided 2026-08-09 (grilling session), recorded 2026-08-10. Tracked as
-DCMS-1907; the migration lands in six staged PRs, of which stages 0 and 1 have shipped.
+DCMS-1907; the migration lands in six staged PRs, of which stages 0 through 3 have shipped and stage
+5's `CmsEntryValue` deletion has landed early (it was already unreferenced). Stage 4 (media-off-entry,
+workflow composition) and the remainder of stage 5 (`EntryValue`/`CmsEntry` consolidation, downstream
+docs, optional no-`as` lint) are tracked as follow-up.
 
 ## The problem
 
@@ -149,7 +152,8 @@ conditionally).
 3. All backends adopt `BackendEntry`. **Shipped.**
 4. Media-off-entry and workflow composition, as separate PRs.
 5. Deletions (`CmsEntryValue`, `EntryValue` and its variants and creators, `CmsEntry`), docs,
-   downstream consumers, optional no-`as` lint rule.
+   downstream consumers, optional no-`as` lint rule. `CmsEntryValue` deleted (DCMS-1907); the rest is
+   follow-up.
 
 The staging is the point: main never carries a half-migrated type system.
 
