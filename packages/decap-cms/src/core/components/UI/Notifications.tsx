@@ -141,6 +141,74 @@ const closeStyles = css`
   }
 `;
 
+interface NotificationToastProps {
+  toastItem: ReturnType<typeof Toast.useToastManager>['toasts'][number];
+  onDismiss: () => void;
+}
+
+/**
+ * Base UI's `Toast.Close` internally sets `aria-hidden` to
+ * `!expanded && !hasFocus`, where `expanded` comes from hovering/focusing
+ * the whole toast viewport - a mechanism meant for a collapsed-stack UI
+ * (hover to reveal each toast's own controls). This app doesn't render a
+ * `Toast.Positioner`/collapsed stack, so every toast is always fully
+ * visible, yet the Close button still gets `aria-hidden="true"` whenever
+ * the toast isn't hovered/focused - while remaining a real, `tabindex="0"`,
+ * `pointer-events: auto` `<button>`. That's a WCAG 4.1.2 "hidden focusable"
+ * trap: focusable/clickable but invisible to assistive tech, and its click
+ * capture can steal clicks meant for overlapping controls (e.g. the top-right
+ * toolbar) during the auto-dismiss window (DCMS-2007).
+ *
+ * Fix: track hover/focus on the toast ourselves and force `aria-hidden`,
+ * `tabIndex`, and `pointer-events` to agree, overriding Base UI's internal
+ * (caller props win - see `mergeProps`). While inert, clicks over the Close
+ * button's area fall through to `Toast.Root`'s own `onClick`, so the toast
+ * stays dismissable by clicking anywhere on it.
+ */
+function NotificationToast({ toastItem, onDismiss }: NotificationToastProps) {
+  const [hovered, setHovered] = React.useState(false);
+  const [focused, setFocused] = React.useState(false);
+  const interactive = hovered || focused;
+
+  return (
+    <Toast.Root
+      toast={toastItem}
+      className="notif__toast"
+      css={toastStyles(toastItem.type)}
+      onClick={onDismiss}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocus={() => setFocused(true)}
+      onBlur={event => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          setFocused(false);
+        }
+      }}
+      // DCMS-809: high-priority (error) toasts are already announced by
+      // Base UI's own hidden ToastViewport announcer (role="alert"),
+      // which only mounts for priority: 'high'. Overriding role here
+      // too would mount a second role="alert" region with identical
+      // text, so only non-high-priority toasts get the role="status"
+      // override (DCMS-659); high-priority ones fall back to Base UI's
+      // default (role="alertdialog"), which isn't a live region and
+      // won't duplicate the announcement.
+      role={toastItem.priority === 'high' ? undefined : 'status'}
+      aria-hidden={false}
+    >
+      <Toast.Title css={titleStyles} />
+      <Toast.Close
+        aria-label={'Close notification'}
+        css={closeStyles}
+        aria-hidden={interactive ? undefined : true}
+        tabIndex={interactive ? 0 : -1}
+        style={{ pointerEvents: interactive ? undefined : 'none' }}
+      >
+        {'×'}
+      </Toast.Close>
+    </Toast.Root>
+  );
+}
+
 function NotificationsBridge() {
   const t = useTranslate();
   const dispatch = useAppDispatch();
@@ -206,28 +274,11 @@ function NotificationsBridge() {
     <Toast.Portal>
       <Toast.Viewport className="notif__container" css={viewportStyles}>
         {toasts.map(toastItem => (
-          <Toast.Root
+          <NotificationToast
             key={toastItem.id}
-            toast={toastItem}
-            className="notif__toast"
-            css={toastStyles(toastItem.type)}
-            onClick={() => close(toastItem.id)}
-            // DCMS-809: high-priority (error) toasts are already announced by
-            // Base UI's own hidden ToastViewport announcer (role="alert"),
-            // which only mounts for priority: 'high'. Overriding role here
-            // too would mount a second role="alert" region with identical
-            // text, so only non-high-priority toasts get the role="status"
-            // override (DCMS-659); high-priority ones fall back to Base UI's
-            // default (role="alertdialog"), which isn't a live region and
-            // won't duplicate the announcement.
-            role={toastItem.priority === 'high' ? undefined : 'status'}
-            aria-hidden={false}
-          >
-            <Toast.Title css={titleStyles} />
-            <Toast.Close aria-label={'Close notification'} css={closeStyles}>
-              {'×'}
-            </Toast.Close>
-          </Toast.Root>
+            toastItem={toastItem}
+            onDismiss={() => close(toastItem.id)}
+          />
         ))}
       </Toast.Viewport>
     </Toast.Portal>
