@@ -52,7 +52,6 @@ packages/
   decap-cms-lib-pat/   scoped Personal Access Token minting/hashing/verification for Decap CMS servers
 docs/
   contributing/  design decisions and learnings (see docs/contributing/index.md)
-  base-ui/       Base UI primitive notes
   core/          core-engine notes
   editor-guide.md  end-user guide for content editors
 ```

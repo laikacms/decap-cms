@@ -24,5 +24,5 @@ Repo-level design and process docs for `@laikacms/decap-cms`, split into two buc
     consumer-policy authorization model across lib-pat / @laikacms/server oauth2 + api.
 
 Other docs live where they are closest to the code they describe: Base UI primitive notes in
-[`../base-ui/`](../base-ui/), core-engine notes in [`../core/`](../core/), and per-area READMEs
-alongside their `src/` folders.
+[`packages/decap-cms/src/ui/README.md`](../../packages/decap-cms/src/ui/README.md), core-engine
+notes in [`../core/`](../core/), and per-area READMEs alongside their `src/` folders.
