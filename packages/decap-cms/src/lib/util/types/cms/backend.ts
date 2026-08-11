@@ -1,3 +1,4 @@
+import type React from 'react';
 import type { BackendEntry } from '@/lib/backend/entry';
 import type Cursor from '@/lib/util/Cursor.js';
 import type { CmsConfig } from './cms.js';
@@ -188,7 +189,7 @@ export type CmsBackendInitConfig = {
 };
 
 export interface CmsImplementation {
-  authComponent: () => void;
+  authComponent: () => React.ComponentType<any>;
   restoreUser: (user: CmsUser) => Promise<CmsUser>;
 
   authenticate: (credentials: CmsCredentials) => Promise<CmsUser>;

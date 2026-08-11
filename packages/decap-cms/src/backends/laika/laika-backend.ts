@@ -667,7 +667,7 @@ export default function createLaikaBackend(
       }
     }
 
-    authComponent(): unknown {
+    authComponent(): React.ComponentType<any> {
       if (this.devToken) {
         const devToken = this.devToken;
         // Closure-captured dev token so the auth component doesn't need

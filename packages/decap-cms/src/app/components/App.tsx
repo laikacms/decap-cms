@@ -651,9 +651,7 @@ function AppContent({
   // set, app mounted underneath).
   const renderAuthPage = useCallback((expired: boolean) => {
     const backend = currentBackend(config);
-    const AuthComponent = backend == null
-      ? null
-      : (backend.authComponent() as any as React.ComponentType<Record<string, unknown>>);
+    const AuthComponent = backend == null ? null : backend.authComponent();
 
     if (renderAuth) {
       return renderAuth({
