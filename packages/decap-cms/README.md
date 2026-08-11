@@ -55,8 +55,8 @@ For configuration, content modeling, and backend setup, the upstream
 [breaking-changes-v4-beta.md](../../docs/contributing/decisions/breaking-changes-v4-beta.md).
 
 If you use the `laika` backend, read [src/backends/laika/README.md](./src/backends/laika/README.md)
-first — it diverges from the upstream backend docs in three ways that aren't obvious from the
-standard config reference:
+first — it diverges from the upstream backend docs in ways that aren't obvious from the standard
+config reference:
 
 - **It requires the `laika-app` entry point, not the root import above.** The root export
   (`@laikacms/decap-cms`, what plain `npm install @laikacms/decap-cms` gives you) never calls
@@ -68,9 +68,11 @@ standard config reference:
   compatibility with Decap's format handling; Laika parses any format itself. Decap's default
   (markdown-frontmatter) is not yet supported; omitting `format:` now fails fast client-side with an
   actionable error before any request reaches the server.
-- **Entry locking is not yet implemented.** The advisory "Being edited by X" locking that Decap core
-  supports (`getEntryLock`/`acquireEntryLock`/`releaseEntryLock`/`refreshEntryLock`) has no effect
-  on this backend yet.
+- **Entry locking is server-arbitrated, not the bundled per-browser manager.** The advisory
+  "Being edited by X" locking Decap core exposes (`getEntryLock`/`acquireEntryLock`/
+  `releaseEntryLock`/`refreshEntryLock`) is implemented against this backend's `/locks` endpoint —
+  see [src/backends/laika/README.md#entry-locking](./src/backends/laika/README.md#entry-locking)
+  for the wire contract and degradation behavior.
 
 ## CDN builds (no bundler)
 
