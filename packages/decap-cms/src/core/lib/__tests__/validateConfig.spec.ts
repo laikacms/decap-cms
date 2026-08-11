@@ -1084,5 +1084,85 @@ describe('config', () => {
         }).toThrowError(/must match exactly one schema in oneOf/);
       });
     });
+
+    // DCMS-1974: `editor_components`/`editorComponents` configured the
+    // pre-Lexical markdown widget's custom-block API, which was removed.
+    // Neither key is declared in the richtext widget schema and
+    // `additionalProperties: false` is deliberately not set anywhere (see
+    // the issue's "out of scope"), so schema validation alone can't reject
+    // them - `checkRichtextFieldKeys` in `validateConfig.ts` does it as a
+    // dedicated custom check, same pattern as the local-fs check above.
+    describe('richtext removed/inert keys (DCMS-1974)', () => {
+      const richtextConfig = (extra: Record<string, unknown>) =>
+        merge({}, validConfig, {
+          collections: [
+            {
+              fields: [{ name: 'body', widget: 'richtext', ...extra }],
+            },
+          ],
+        });
+
+      it('throws when a richtext field sets editor_components', () => {
+        expect(() => {
+          validateConfig(richtextConfig({ editor_components: ['image'] }));
+        }).toThrowError(
+          "richtext field 'body' sets 'editor_components', which was removed in v4. Register custom "
+            + 'blocks with CMS.registerBlock(...) before init().',
+        );
+      });
+
+      it('throws when a richtext field sets the camelCase editorComponents alias', () => {
+        expect(() => {
+          validateConfig(richtextConfig({ editorComponents: ['image'] }));
+        }).toThrowError(
+          "richtext field 'body' sets 'editorComponents', which was removed in v4. Register custom "
+            + 'blocks with CMS.registerBlock(...) before init().',
+        );
+      });
+
+      it('does not throw for a richtext field without editor_components', () => {
+        expect(() => {
+          validateConfig(richtextConfig({ format: 'markdown' }));
+        }).not.toThrow();
+      });
+
+      it('does not throw when a non-richtext field sets editor_components', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [
+                {
+                  fields: [{ name: 'body', widget: 'string', editor_components: ['image'] }],
+                },
+              ],
+            }),
+          );
+        }).not.toThrow();
+      });
+
+      it('warns once per inert key (minimal, buttons, modes, sanitize_preview)', () => {
+        const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        try {
+          validateConfig(
+            richtextConfig({ minimal: true, buttons: ['bold'], modes: ['rich_text'], sanitize_preview: false }),
+          );
+          const messages = warnSpy.mock.calls.map(call => String(call[0]));
+          expect(messages.some(m => m.includes("'minimal'"))).toBe(true);
+          expect(messages.some(m => m.includes("'buttons'"))).toBe(true);
+          expect(messages.some(m => m.includes("'modes'"))).toBe(true);
+          expect(messages.some(m => m.includes('sanitize_preview'))).toBe(true);
+        } finally {
+          warnSpy.mockRestore();
+        }
+      });
+
+      it('does not throw for the inert-but-declared keys', () => {
+        expect(() => {
+          validateConfig(
+            richtextConfig({ minimal: true, buttons: ['bold'], modes: ['rich_text'], sanitize_preview: false }),
+          );
+        }).not.toThrow();
+      });
+    });
   });
 });

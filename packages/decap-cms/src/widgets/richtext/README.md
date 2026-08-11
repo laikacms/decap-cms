@@ -166,10 +166,15 @@ the config key still does what it did in `decap-cms-widget-markdown`.
 ### Removed keys
 
 `editor_components` (and its `editorComponents` camelCase alias) isn't declared in `schema.ts` at
-all — the legacy editor-components API it configured was removed along with it. Like the inert keys
-above, neither the base field schema nor the richtext widget schema sets
-`additionalProperties: false`, so setting either key on a field config is accepted-but-unused:
-schema validation does not reject it, it simply has no reader (`registry.tsx` never looks at it), so
-it's silently ignored at runtime. In the old widget this registered custom Markdown block
-components; that role is now filled by `CMS.registerBlock(...)` plus the `blocks` allowlist
-documented in [Config](#config) above.
+all — the legacy editor-components API it configured was removed along with it. In the old widget
+this registered custom Markdown block components; that role is now filled by
+`CMS.registerBlock(...)` plus the `blocks` allowlist documented in [Config](#config) above.
+
+Unlike the inert keys above, setting either key on a `richtext` field is a **hard config error**,
+not a silent no-op: `validateConfig` (`src/core/lib/validateConfig.ts`) rejects it before the CMS
+mounts, naming `CMS.registerBlock(...)` as the replacement. This is deliberately not expressed via
+`additionalProperties: false` on the schema — that would reject every unknown key on every widget,
+including keys legitimate third-party widgets read, which is out of scope here. `editorComponents`
+was also dropped from the camelCase→snake_case `WIDGET_KEY_MAP` in `core/actions/config.tsx`, so
+the deprecation-warning normalizer no longer advises renaming to a key that only errors. See
+DCMS-1974.

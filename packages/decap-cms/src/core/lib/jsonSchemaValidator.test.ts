@@ -187,14 +187,22 @@ describe('validateJSONSchema, edge cases', () => {
     expect(validateJSONSchema(schema, {})).toEqual([]);
   });
 
-  // DCMS-1161: the richtext README's "Removed keys" section implied
-  // `editor_components`/`editorComponents` are actively rejected by config
-  // validation, distinct from the "inert" keys documented just above it.
-  // Neither the field schema below nor `lexicalEditorWidgetSchema` (see
-  // `widgets/richtext/widget/schema.ts`) sets `additionalProperties: false`,
-  // so an unknown key is accepted silently, same as the inert keys. This
-  // pins that behavior so the README claim can't silently regress either way.
-  it('accepts a richtext field config with an unknown editor_components key (DCMS-1161)', () => {
+  // DCMS-1161 pinned this file's schema-fragment-only view of
+  // `editor_components`/`editorComponents`: with no `additionalProperties:
+  // false` anywhere, the bare JSON-schema interpreter accepts the key
+  // silently, same as the genuinely inert keys documented next to it in the
+  // richtext README. DCMS-1974 reversed the *end-to-end* outcome - a richtext
+  // field that sets either key is now a hard config error - but not by
+  // changing this interpreter or adding `additionalProperties: false` (that
+  // remains out of scope; see DCMS-1974's "explicitly out of scope"). The
+  // enforcement is a dedicated custom check, `checkRichtextFieldKeys` in
+  // `validateConfig.ts` (pinned by `__tests__/validateConfig.spec.ts`'s
+  // "richtext removed/inert keys (DCMS-1974)" suite), because it needs to
+  // know the field's `widget` is specifically `'richtext'` and produce a
+  // message naming the replacement API - neither is expressible as a schema
+  // fragment here. So this test still holds: in isolation, this generic
+  // interpreter has no opinion on `editor_components` at all.
+  it('accepts a richtext field config with an unknown editor_components key at the schema-interpreter level (DCMS-1161, DCMS-1974)', () => {
     const richtextWidgetSchema: JSONSchema = {
       properties: {
         format: { type: 'string' },

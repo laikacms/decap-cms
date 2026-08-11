@@ -143,8 +143,9 @@ Fields with `format: portableText` need no pack. If you imported Lexical helpers
 instead.
 
 If your config also used `editor_components` to register custom Markdown block components, that key
-is now inert (see the richtext widget README's "Accepted-but-inert legacy keys"). Its replacement is
-`CMS.registerBlock`, which — like `registerRichtextFormat` — must run before `init()`:
+is now a hard config error (DCMS-1974 — see "`editor_components` is now a hard config error, not a
+silent no-op" below). Its replacement is `CMS.registerBlock`, which — like `registerRichtextFormat`
+— must run before `init()`:
 
 ```diff
   import { init, CMS } from '@laikacms/decap-cms/laika-app/bare';
@@ -290,3 +291,32 @@ signatures that changed shape.
 API gives them to you, and omit them otherwise. Nothing else moved: `authComponent` implementations
 returning a real React component already satisfy `AuthComponent`, which is a structural stand-in so
 that `lib/backend` stays react-free.
+
+## `editor_components` is now a hard config error, not a silent no-op
+
+Earlier in the beta (DCMS-1161), `editor_components` (and its `editorComponents` camelCase alias)
+on a `richtext` field passed schema validation with no reader — `registry.tsx` never looked at it —
+so it was silently ignored at runtime, and `setSnakeCaseConfig`'s deprecation warning for the
+camelCase alias actively told users to rename to the dead snake_case key. A user migrating from
+`decap-cms-widget-markdown` who followed that warning got no error and their custom Markdown block
+components silently stopped existing (DCMS-1974).
+
+`validateConfig` (`src/core/lib/validateConfig.ts`) now rejects either key on a `richtext` field
+before the CMS mounts, naming `CMS.registerBlock(...)` as the replacement. `editorComponents` was
+also dropped from the camelCase→snake_case `WIDGET_KEY_MAP` in `core/actions/config.tsx`, so the
+normalizer no longer advises renaming to a key that only errors. This is a hard-error path, not
+`additionalProperties: false` on the schema — that would reject every unknown key across every
+widget, including keys legitimate third-party widgets read, which stays out of scope.
+
+The four other legacy keys carried over from `decap-cms-widget-markdown` — `minimal`, `buttons`,
+`modes`, `sanitize_preview` — remain accepted and inert (no runtime effect), but now each logs a
+one-time console warning when set, since silently doing nothing is still surprising even though no
+content is lost. See the richtext widget README's
+[Accepted-but-inert legacy keys](../../../packages/decap-cms/src/widgets/richtext/README.md#accepted-but-inert-legacy-keys)
+and [Removed keys](../../../packages/decap-cms/src/widgets/richtext/README.md#removed-keys)
+sections.
+
+**Migration:** if your config sets `editor_components` or `editorComponents` on a richtext field,
+remove it and register the equivalent block(s) with `CMS.registerBlock(...)` before `init()` — see
+the [Custom blocks](../../../packages/decap-cms/src/widgets/richtext/README.md#custom-blocks)
+section above for the full `BlockDefinition` shape.
