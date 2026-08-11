@@ -1,6 +1,6 @@
 /* eslint-disable import/order -- vi.mock calls must precede imports that depend on them */
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import React from 'react';
 
@@ -337,6 +337,83 @@ describe('EditorInterface', () => {
       await nextFrame();
 
       expect(document.activeElement).toBe(saveTrigger);
+    });
+  });
+
+  // DCMS-1992: field navigator sidebar panel — lists top-level fields with
+  // click-to-jump, and keeps a "current field" highlight in sync as the
+  // user clicks, focuses, or scrolls. `title`/`body` here reuse the same
+  // `data-field-name` wrappers the mocked `EditorControlPane` above renders.
+  describe('field navigator (DCMS-1992)', () => {
+    const navProps = {
+      ...props,
+      fields: [{ name: 'title', widget: 'string' }, { name: 'body', widget: 'markdown' }] as any,
+    };
+    const toggleButtonName = 'editor.editorInterface.toggleFieldNavigator';
+
+    function nextFrame() {
+      return act(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
+    }
+
+    afterEach(() => {
+      localStorage.removeItem('cms.field-navigator-visible');
+    });
+
+    it('is hidden by default and toggles open/closed via the toolbar button', () => {
+      render(<EditorInterface {...navProps} />);
+
+      expect(screen.queryByText('title')).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: toggleButtonName }));
+      expect(screen.getByText('title')).toBeInTheDocument();
+      expect(screen.getByText('body')).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: toggleButtonName }));
+      expect(screen.queryByText('title')).not.toBeInTheDocument();
+    });
+
+    it('jumps to and marks the clicked field as current', () => {
+      render(<EditorInterface {...navProps} />);
+      fireEvent.click(screen.getByRole('button', { name: toggleButtonName }));
+
+      const bodyNavItem = screen.getByText('body');
+      fireEvent.click(bodyNavItem);
+
+      expect(bodyNavItem).toHaveAttribute('aria-current', 'true');
+      expect(screen.getByText('title')).not.toHaveAttribute('aria-current');
+    });
+
+    it('marks the field as current when focus moves into it (highlight-on-focus)', async () => {
+      render(<EditorInterface {...navProps} />);
+      fireEvent.click(screen.getByRole('button', { name: toggleButtonName }));
+      await nextFrame();
+
+      fireEvent.focusIn(screen.getByTestId('body-input'));
+
+      expect(screen.getByText('body')).toHaveAttribute('aria-current', 'true');
+      expect(screen.getByText('title')).not.toHaveAttribute('aria-current');
+    });
+
+    it('marks the field nearest the top of the pane as current on scroll (highlight-on-scroll)', async () => {
+      render(<EditorInterface {...navProps} />);
+      fireEvent.click(screen.getByRole('button', { name: toggleButtonName }));
+      await nextFrame();
+
+      const titleField = screen.getByTestId('title-input').closest('[data-field-name]') as HTMLElement;
+      const bodyField = screen.getByTestId('body-input').closest('[data-field-name]') as HTMLElement;
+      const scrollContainer = screen.getByTestId('control-pane').parentElement as HTMLElement;
+
+      scrollContainer.getBoundingClientRect = () => ({ top: 100 }) as unknown as DOMRect;
+      // Scrolled past: bottom above the pane's visible top.
+      titleField.getBoundingClientRect = () => ({ top: -50, bottom: -10 }) as unknown as DOMRect;
+      // Nearest below the pane's visible top.
+      bodyField.getBoundingClientRect = () => ({ top: 105, bottom: 200 }) as unknown as DOMRect;
+
+      fireEvent.scroll(scrollContainer);
+      await nextFrame();
+
+      expect(screen.getByText('body')).toHaveAttribute('aria-current', 'true');
+      expect(screen.getByText('title')).not.toHaveAttribute('aria-current');
     });
   });
 });
