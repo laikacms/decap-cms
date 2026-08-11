@@ -1,12 +1,19 @@
 /**
  * Source for the app-shell-caching service worker (DCMS-1993), kept as a
- * plain string rather than a separate build entry: the CMS is embedded via a
- * script tag or bundled into a host app's own build, so there's no fixed
- * `dist/` path a consumer's server is guaranteed to serve a `.js` file from.
- * `registerServiceWorker.ts` turns this into a `Blob` and registers it with
- * `navigator.serviceWorker.register()`, which needs no new build output, no
- * new npm `exports` entry, and no consumer-facing config option — it "just
- * works" for any page that calls `init()`.
+ * plain string that is both the single source of truth and the build input:
+ * `scripts/generate-service-worker-asset.mjs` writes it out as a real static
+ * `decap-cms-sw.js` file next to `dev-test/index.html` (the demo) and at the
+ * root of the published package's `dist/` (for consumers to serve next to
+ * their own page), and `registerServiceWorker.ts` registers that same-origin
+ * sibling-of-the-page URL with `navigator.serviceWorker.register()`.
+ *
+ * An earlier version of this registered an in-page `Blob` URL instead, to
+ * avoid any new build output or npm `exports` entry — but every browser
+ * rejects `blob:` script URLs for service worker registration per spec, so
+ * that path silently never activated (DCMS-2002). No new npm `exports` entry
+ * or consumer-facing config option is needed for the static-file approach
+ * either: the asset just needs to be served next to the consumer's page (a
+ * plain static-file serving concern, same as the bundle itself).
  *
  * Strategy, deliberately simple for an MVP:
  *  - Navigation requests (the app-shell HTML): network-first, falling back
