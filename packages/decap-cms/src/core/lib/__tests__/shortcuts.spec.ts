@@ -4,6 +4,7 @@ import {
   attachShortcutTarget,
   formatSequence,
   getRegisteredShortcuts,
+  isEditableTarget,
   parseSequence,
   registerShortcut,
   resetShortcutsForTests,
@@ -48,6 +49,34 @@ describe('formatSequence', () => {
     expect(formatSequence('mod+s')).toEqual(['Ctrl S']);
     expect(formatSequence('escape')).toEqual(['Esc']);
     expect(formatSequence('arrowup')).toEqual(['↑']);
+  });
+});
+
+describe('isEditableTarget', () => {
+  it('treats INPUT elements as editable', () => {
+    expect(isEditableTarget(document.createElement('input'))).toBe(true);
+  });
+
+  it('treats TEXTAREA elements as editable', () => {
+    expect(isEditableTarget(document.createElement('textarea'))).toBe(true);
+  });
+
+  it('treats SELECT elements as editable', () => {
+    expect(isEditableTarget(document.createElement('select'))).toBe(true);
+  });
+
+  it('treats contentEditable elements as editable', () => {
+    const el = document.createElement('div');
+    Object.defineProperty(el, 'isContentEditable', { value: true });
+    expect(isEditableTarget(el)).toBe(true);
+  });
+
+  it('treats a plain div as non-editable', () => {
+    expect(isEditableTarget(document.createElement('div'))).toBe(false);
+  });
+
+  it('treats a null target as non-editable', () => {
+    expect(isEditableTarget(null)).toBe(false);
   });
 });
 
