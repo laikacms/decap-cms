@@ -309,5 +309,50 @@ describe('LexicalControl', () => {
       // exceeded" before the assertion is ever reached).
       expect(vi.mocked(Editor).mock.calls.length).toBe(rendersAfterMount + 1);
     });
+
+    // DCMS-1770 residual report: a 0-delay, plain-text (non-autoformat)
+    // burst of ≥60 synchronous keystrokes was claimed to still trip React
+    // #185 even after the tests above. Simulate that burst directly: N
+    // `onSerializedChange` calls fired back-to-back inside a single `act`,
+    // i.e. all within the same tick/frame rather than one keystroke per
+    // `act` call. If the value-sync chain ever re-entered `initialState`
+    // (or otherwise recursed on its own emit), this would either throw
+    // React's "Maximum update depth exceeded" or blow past a 1-render-per-
+    // emit bound.
+    it('never trips an unbounded update chain on a synchronous multi-update burst', () => {
+      function StoreRoundTrip() {
+        const [stored, setStored] = useState<string | RichtextValue>('');
+        return (
+          <LexicalControl
+            value={stored}
+            field={baseField}
+            onChange={next => setStored(next)}
+          />
+        );
+      }
+
+      render(<StoreRoundTrip />);
+      const rendersAfterMount = vi.mocked(Editor).mock.calls.length;
+      const burst = 'the quick brown fox jumps over the lazy dog the quick brown '; // 60 chars
+
+      expect(() => {
+        act(() => {
+          for (let i = 0; i < burst.length; i += 1) {
+            lastEditorProps().onSerializedChange?.(
+              { root: { children: [{ text: burst.slice(0, i + 1) }] } } as unknown as SerializedEditorState,
+            );
+          }
+        });
+      }).not.toThrow();
+
+      // React 18 automatic batching folds every emit inside the single
+      // `act` into one commit, so the render count stays flat regardless of
+      // burst length — the opposite of a feedback loop, which would grow
+      // without bound (or throw before this assertion is reached). Assert
+      // the count stays far below the burst length rather than pinning an
+      // exact number, so this isn't coupled to React's internal batching
+      // heuristics.
+      expect(vi.mocked(Editor).mock.calls.length).toBeLessThan(rendersAfterMount + burst.length / 2);
+    });
   });
 });
