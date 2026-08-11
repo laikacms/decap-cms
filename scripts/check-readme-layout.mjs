@@ -1,4 +1,5 @@
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repoRoot = fileURLToPath(new URL('..', import.meta.url));
@@ -56,3 +57,64 @@ if (packagesMissingTestCi.length > 0) {
 }
 
 console.log(`Every packages/* directory (${packageDirs.length}) defines its own "test:ci" script.`);
+
+// DCMS-1961: README.md and docs/contributing/index.md both linked a docs/base-ui/ directory
+// that never existed on disk (or was removed without updating the references). Pin every
+// directory the README's "Repository layout" block names, and every relative doc-to-doc link
+// in docs/contributing/index.md, to something that actually exists.
+const layoutEntries = [];
+let currentTopDir = null;
+for (const rawLine of layoutBlock.split('\n')) {
+  if (rawLine.trim() === '') continue;
+  if (!/^\s/.test(rawLine)) {
+    currentTopDir = rawLine.trim();
+    continue;
+  }
+  if (!currentTopDir) continue;
+  const name = rawLine.trim().split(/\s+/)[0];
+  layoutEntries.push(currentTopDir + name);
+}
+
+const missingLayoutEntries = layoutEntries.filter(entry => !existsSync(join(repoRoot, entry)));
+
+if (missingLayoutEntries.length > 0) {
+  throw new Error(
+    `README.md "Repository layout" fenced code block names ${missingLayoutEntries.length} path(s) that don't exist on disk: ${
+      missingLayoutEntries.join(', ')
+    }. Fix or remove the reference.`,
+  );
+}
+
+console.log(`README.md "Repository layout" block: all ${layoutEntries.length} named paths exist on disk.`);
+
+const contributingIndexUrl = new URL('../docs/contributing/index.md', import.meta.url);
+const contributingIndexPath = fileURLToPath(contributingIndexUrl);
+const contributingIndexDir = dirname(contributingIndexPath);
+const contributingIndexText = readFileSync(contributingIndexUrl, 'utf8');
+
+const linkPattern = /\[[^\]]*\]\(([^)]+)\)/g;
+const missingContributingLinks = [];
+let linkMatch;
+while ((linkMatch = linkPattern.exec(contributingIndexText)) !== null) {
+  const target = linkMatch[1];
+  if (/^[a-z]+:/i.test(target) || target.startsWith('#')) {
+    // absolute URL (http:, mailto:, etc.) or in-page anchor - not a doc-to-doc link
+    continue;
+  }
+  const [pathPart] = target.split('#');
+  if (!pathPart) continue;
+  const resolvedPath = resolve(contributingIndexDir, pathPart);
+  if (!existsSync(resolvedPath)) {
+    missingContributingLinks.push(`${target} (resolved to ${resolvedPath})`);
+  }
+}
+
+if (missingContributingLinks.length > 0) {
+  throw new Error(
+    `docs/contributing/index.md links ${missingContributingLinks.length} relative path(s) that don't exist: ${
+      missingContributingLinks.join(', ')
+    }. Fix or remove the link.`,
+  );
+}
+
+console.log('docs/contributing/index.md: all relative doc-to-doc links resolve on disk.');

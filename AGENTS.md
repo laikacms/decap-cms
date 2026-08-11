@@ -95,7 +95,8 @@ Repo-level design and process docs live under `docs/contributing/` (index at
   - `tech-debt.md`: remaining debt checklist
   - `dcb-001-pnpm-install.md`: `pnpm install` peer-dep verification record
 
-Component/API notes live closer to the code: Base UI primitive notes in `docs/base-ui/`, core-engine
-notes in `docs/core/`, and per-area READMEs alongside their `src/` folders.
+Component/API notes live closer to the code: Base UI primitive notes in
+`packages/decap-cms/src/ui/README.md`, core-engine notes in `docs/core/`, and per-area READMEs
+alongside their `src/` folders.
 
 - `CONTRIBUTING.md` (repo root): setup, PR process, release
