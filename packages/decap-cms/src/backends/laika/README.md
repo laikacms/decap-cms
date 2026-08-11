@@ -15,8 +15,8 @@ opaque JSON; this adapter owns every Decap-specific opinion:
 
 - which fields and shapes Decap expects from documents and assets
 - editorial workflow mapping (draft/review/publish onto unpublished/publish)
-- commit messages and authors (adapter concerns, never protocol ones); deploy previews are
-  **not** implemented — `getDeployPreview` unconditionally returns `null`
+- commit messages and authors (adapter concerns, never protocol ones); deploy previews are **not**
+  implemented — `getDeployPreview` unconditionally returns `null`
 - translating protocol capabilities (pagination, version tracking, change signals) into Decap's
   fetching and caching behavior
 
@@ -80,6 +80,88 @@ backend:
 | `api_root`  | `string` | no       | Path appended to `base_url` to form the API root (e.g. `/api`).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `api_url`   | `string` | no       | **Legacy alias for `api_root`.** Honored only when `api_root` is absent; prefer `api_root` in new configs.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `dev_token` | `string` | no       | **Dev/embedded-only. Do not set in production.** A pre-shared bearer token that bypasses the PKCE OAuth flow entirely: `authComponent()` swaps in an auto-login dev auth page instead of the real login page, and `restoreUser()` always authenticates with this static token — on every page load, ignoring any real session in `sessionStorage`. Intended for local-dev / same-origin embedded setups paired with a server started via `createEmbeddedLaika({ auth: { mode: 'dev', devToken } })`, whose token must match. Setting this in production disables real authentication for the CMS. |
+
+## Local/remote backend resolution — `resolveLaikaBackend()`
+
+`resolveLaikaBackend({ local, remote, dev })` picks the `backend:` config block for you, so a single
+admin config can target the local Vite-dev JSON:API (served by `@laikacms/vite-plugin`) while
+developing and the remote OAuth backend (`createLaikaBackend`, see [Config](#config) above)
+everywhere else — no manual switching between environments.
+
+It is re-exported from the package root alongside `createLaikaBackend` and `DevAuthenticationPage`:
+
+```typescript
+import { resolveLaikaBackend } from '@laikacms/decap-cms/backends/laika';
+```
+
+Selection is based on `import.meta.env.DEV`, read directly unless the `dev` option overrides it:
+
+- **Truthy** (running under `vite dev`) → returns a local-mode config pointing at the local
+  JSON:API.
+- **Falsy, or `import.meta.env` is not defined at all** (production build, standalone admin,
+  `vite
+  preview`, non-Vite bundling) → returns `remote` unchanged. This is a deliberate fail-safe:
+  an admin loaded outside a Vite-bundled dev context never targets a phantom local endpoint.
+
+Local mode only engages when the admin config itself is bundled by Vite — an admin config authored
+as static YAML/JSON and loaded outside a Vite build never sees `import.meta.env.DEV` substituted, so
+it always falls back to `remote`.
+
+### Options (`ResolveLaikaBackendOptions`)
+
+| Option   | Type                       | Required | Description                                                                                                                                              |
+| -------- | -------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `remote` | `LaikaBackendModuleConfig` | yes      | The `backend:` block for the OAuth flow, returned as-is whenever the dev flag is not truthy.                                                             |
+| `local`  | `LocalLaikaBackendOptions` | no       | Local-mode overrides, applied only when the dev flag is truthy. Omit to use the defaults below.                                                          |
+| `dev`    | `boolean`                  | no       | Override for `import.meta.env.DEV`. Real call sites should omit this; it exists so tests can exercise both branches deterministically without a bundler. |
+
+`local` accepts:
+
+| Key        | Type     | Default                                               | Description                                                                                                                                  |
+| ---------- | -------- | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `basePath` | `string` | `/__laika` (`DEFAULT_LOCAL_BACKEND_BASE_PATH`)        | Base path the local JSON:API is mounted at. Must match the `localApi.basePath` configured on `@laikacms/vite-plugin` (or its default).       |
+| `devToken` | `string` | `laika-local-dev` (`DEFAULT_LOCAL_BACKEND_DEV_TOKEN`) | Dummy token `DevAuthenticationPage` submits. Local mode performs no real auth, so this only needs to be non-empty and stable across reloads. |
+
+`DEFAULT_LOCAL_BACKEND_BASE_PATH` and `DEFAULT_LOCAL_BACKEND_DEV_TOKEN` are also re-exported
+directly, so callers can reuse them (e.g. to configure `@laikacms/vite-plugin`'s `localApi.basePath`
+to match).
+
+### Usage
+
+```typescript
+import { resolveLaikaBackend } from '@laikacms/decap-cms/backends/laika';
+
+const backend = resolveLaikaBackend({
+  remote: {
+    name: 'laika',
+    base_url: 'https://api.example.com',
+    api_root: '/api',
+  },
+  // Optional — omit to use the /__laika + laika-local-dev defaults.
+  local: {
+    basePath: '/__laika',
+    devToken: 'laika-local-dev',
+  },
+});
+```
+
+`resolveLaikaBackend()` returns a plain config object, not a function — call it from your admin's
+TypeScript entry point (not `config.yml`, which has no access to `import.meta.env`) and pass the
+result as the `backend` field of the config handed to `CMS.init`:
+
+```typescript
+import { resolveLaikaBackend } from '@laikacms/decap-cms/backends/laika';
+import { CMS, init } from '@laikacms/decap-cms/laika-app/bare';
+
+init({
+  config: {
+    backend: resolveLaikaBackend({
+      remote: { name: 'laika', base_url: 'https://api.example.com', api_root: '/api' },
+    }),
+    // ...rest of config.yml equivalent
+  },
+});
+```
 
 ## Options
 

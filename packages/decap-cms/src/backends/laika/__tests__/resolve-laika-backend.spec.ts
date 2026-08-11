@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -56,5 +57,30 @@ describe('resolveLaikaBackend()', () => {
     const backend = resolveLaikaBackend({ remote });
 
     expect(backend).toMatchObject({ name: 'laika', base_url: DEFAULT_LOCAL_BACKEND_BASE_PATH });
+  });
+});
+
+describe('README documents resolveLaikaBackend()', () => {
+  // Pinning test (DCMS-1980): resolveLaikaBackend() and its public exports were
+  // added without any README coverage. Fails if the docs regress again.
+  // `node:path` is off-limits under src/backends/ (DCMS-1223: backends must
+  // stay browser-bundle-safe), and `import.meta.url` isn't a `file:` URL
+  // under vitest's jsdom environment — so resolve off `process.cwd()`
+  // (vitest always runs from the package root) with plain string concat.
+  const readme = readFileSync(`${process.cwd()}/src/backends/laika/README.md`, 'utf-8');
+
+  it.each([
+    'resolveLaikaBackend',
+    'LocalLaikaBackendOptions',
+    'ResolveLaikaBackendOptions',
+    'DEFAULT_LOCAL_BACKEND_BASE_PATH',
+    'DEFAULT_LOCAL_BACKEND_DEV_TOKEN',
+  ])('mentions %s', name => {
+    expect(readme).toContain(name);
+  });
+
+  it('documents the local defaults', () => {
+    expect(readme).toContain(DEFAULT_LOCAL_BACKEND_BASE_PATH);
+    expect(readme).toContain(DEFAULT_LOCAL_BACKEND_DEV_TOKEN);
   });
 });
