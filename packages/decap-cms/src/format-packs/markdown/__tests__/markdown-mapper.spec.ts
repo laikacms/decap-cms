@@ -50,4 +50,22 @@ describe('markdownMapper round-trips', () => {
     const out = markdownMapper.fromPortableText([{ _type: 'horizontal-rule', _key: 'h1' }]);
     expect(out.trim()).toBe('---');
   });
+
+  /**
+   * DCMS-1975: angle-bracket sequences typed as plain prose (not intended as
+   * markup) must survive a markdown round-trip verbatim instead of being
+   * silently parsed as inline HTML and dropped.
+   */
+  describe('DCMS-1975: literal angle brackets in plain-text runs', () => {
+    it.each([
+      ['X <script>alert(1)</script> Y', 'script tag'],
+      ['X <div>hi</div> Y', 'div tag'],
+      ['X <em>hi</em> Y', 'em tag'],
+      ['X <foo>hi</foo> Y', 'unknown tag'],
+      ['X <iframe src="x"></iframe> Y', 'iframe with attribute'],
+      ['X a<b c>d Y', 'ambiguous inline angle brackets'],
+    ])('round-trips %s (%s)', input => {
+      expect(roundTrip(input).trim()).toBe(input);
+    });
+  });
 });
