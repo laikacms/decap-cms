@@ -501,6 +501,13 @@ function collectFieldArrays(config: Record<string, unknown>): unknown[][] {
 
 const REMOVED_RICHTEXT_KEYS = ['editor_components', 'editorComponents'] as const;
 
+// `markdown` is a back-compat alias registered onto the same richtext control
+// (see `app/extensions.ts`: `{ ...RichtextWidget(), name: 'markdown' }`), so it
+// must be guarded identically to `richtext` - otherwise `editor_components` on
+// a `markdown` field passes validation silently and is then dropped at render
+// time with no error.
+const RICHTEXT_FAMILY_WIDGETS = ['richtext', 'markdown'] as const;
+
 // `minimal`/`buttons`/`modes`/`sanitize_preview` pass schema validation
 // (`widgets/richtext/widget/schema.ts`) and have no reader anywhere in the
 // widget - see that file and the richtext README's "Accepted-but-inert
@@ -535,16 +542,17 @@ function warnInertRichtextKey(key: (typeof INERT_RICHTEXT_KEYS)[number]) {
  * `additionalProperties: false` (deliberately - see DCMS-1974's "out of
  * scope"), so schema validation alone accepts the key silently. This walks
  * the raw (pre-normalize) config directly so a user who sets either key on a
- * `richtext` field gets a clear error instead of quietly losing their custom
- * blocks. Also fires the inert-key warnings above while it's already
- * walking every richtext field.
+ * `richtext` field (or its `markdown` back-compat alias, which renders
+ * through the same control) gets a clear error instead of quietly losing
+ * their custom blocks. Also fires the inert-key warnings above while it's
+ * already walking every richtext-family field.
  */
 function checkRichtextFieldKeys(config: Record<string, unknown>): SchemaError[] {
   const errors: SchemaError[] = [];
 
   for (const fieldArray of collectFieldArrays(config)) {
     forEachField(fieldArray, field => {
-      if (field.widget !== 'richtext') return;
+      if (!RICHTEXT_FAMILY_WIDGETS.includes(field.widget as typeof RICHTEXT_FAMILY_WIDGETS[number])) return;
 
       const removedKey = REMOVED_RICHTEXT_KEYS.find(key => key in field);
       if (removedKey) {
@@ -555,8 +563,8 @@ function checkRichtextFieldKeys(config: Record<string, unknown>): SchemaError[] 
           keyword: '',
           params: { field: fieldName, key: removedKey },
           message:
-            `richtext field '${fieldName}' sets '${removedKey}', which was removed in v4. Register `
-            + 'custom blocks with CMS.registerBlock(...) before init(). See '
+            `${String(field.widget)} field '${fieldName}' sets '${removedKey}', which was removed in `
+            + 'v4. Register custom blocks with CMS.registerBlock(...) before init(). See '
             + "widgets/richtext/README.md, 'Custom blocks'.",
         });
       }

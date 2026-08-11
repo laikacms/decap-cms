@@ -1163,6 +1163,28 @@ describe('config', () => {
           );
         }).not.toThrow();
       });
+
+      // DCMS-1996: `markdown` is a back-compat alias registered onto the same
+      // richtext control (`app/extensions.ts`: `{ ...RichtextWidget(), name:
+      // 'markdown' }`), so it must be guarded identically to `richtext` -
+      // otherwise `editor_components` on a `markdown` field silently drops
+      // the user's custom blocks at render time instead of erroring here.
+      it('throws when a markdown (richtext alias) field sets editor_components', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [
+                {
+                  fields: [{ name: 'body', widget: 'markdown', editor_components: ['image'] }],
+                },
+              ],
+            }),
+          );
+        }).toThrowError(
+          "markdown field 'body' sets 'editor_components', which was removed in v4. Register custom "
+            + 'blocks with CMS.registerBlock(...) before init().',
+        );
+      });
     });
   });
 });
