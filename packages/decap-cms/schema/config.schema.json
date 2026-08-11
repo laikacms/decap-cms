@@ -437,6 +437,10 @@
       "description": "Named, reusable field lists referenced from collection/file/nested fields via `{ group: '<name>' }`. Keys are group names, values are regular field arrays. Expanded in place during config normalization.",
       "additionalProperties": { "$ref": "#/definitions/fields" }
     },
+    "roles": {
+      "type": "object",
+      "description": "Role name -> scope list, granted to users whose backend payload carries the matching `role`. Per-role validation happens in `normalizeConfig`."
+    },
     "collections": {
       "type": "array",
       "minItems": 1,

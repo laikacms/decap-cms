@@ -100,6 +100,12 @@ describe('shipped config.schema.json (DCMS-1402)', () => {
     expect(items.properties?.filename_template).toBeDefined();
   });
 
+  it('has a top-level roles property mirroring getConfigSchema() (DCMS-1941)', () => {
+    const roles = rawSchema.properties?.roles as JSONSchema | undefined;
+    expect(roles).toBeDefined();
+    expect(roles?.type).toBe('object');
+  });
+
   it('has a collection-level sortableFields property mirroring getConfigSchema() (DCMS-1847)', () => {
     const definitions = rawSchema.definitions as Record<string, JSONSchema>;
     const collection = definitions.collection;
@@ -218,6 +224,16 @@ describe('shipped config.schema.json (DCMS-1402)', () => {
         ],
       };
       expect(validateJSONSchema(schema, configWithFieldGroups)).toEqual([]);
+    });
+
+    it('accepts a top-level roles map (DCMS-1941)', () => {
+      const configWithRoles = {
+        ...validConfig,
+        roles: {
+          admin: ['content:*'],
+        },
+      };
+      expect(validateJSONSchema(schema, configWithRoles)).toEqual([]);
     });
 
     it('accepts a top-level asset_collections array (DCMS-1626)', () => {
