@@ -10,6 +10,7 @@ import { getFileFromSlug, selectEntryCollectionTitle } from '@/core/reducers/col
 import { ScrollSync, ScrollSyncPane } from '@/ui';
 import { colors, colorsRaw, components, IconButton, transitions, zIndex } from '@/ui/default/index';
 import EditorControlPane, { type ControlPaneHandle } from './EditorControlPane/EditorControlPane';
+import EditorFieldNavigator, { flattenNavigableFields } from './EditorFieldNavigator/EditorFieldNavigator';
 import EditorPreviewPane from './EditorPreviewPane/EditorPreviewPane';
 import EditorToolbar from './EditorToolbar';
 import EntryLockBanner from './EntryLockBanner';
@@ -27,6 +28,7 @@ const PREVIEW_VISIBLE = 'cms.preview-visible';
 const SCROLL_SYNC_ENABLED = 'cms.scroll-sync-enabled';
 const SPLIT_PANE_POSITION = 'cms.split-pane-position';
 const I18N_VISIBLE = 'cms.i18n-visible';
+const FIELD_NAVIGATOR_VISIBLE = 'cms.field-navigator-visible';
 
 // Below this width the side-by-side split leaves each pane too narrow to use
 // (DCMS-642); stack the panes vertically instead so each gets the full
@@ -152,6 +154,25 @@ const Editor = styled.div`
   position: relative;
 `;
 
+const EditorLayout = styled.div`
+  display: flex;
+  height: 100%;
+`;
+
+const FieldNavigatorContainer = styled.div`
+  width: 240px;
+  min-width: 240px;
+  height: 100%;
+  overflow-y: auto;
+  border-right: 1px solid ${colors.textFieldBorder};
+`;
+
+const EditorContentContainer = styled.div`
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+`;
+
 // Screen-reader-only page title. The toolbar's `<BackCollection>` already
 // shows "Writing in %{collectionLabel} collection" visually, so a redesign
 // isn't warranted here (DCMS-1370) — this just gives every entry-editor
@@ -239,6 +260,25 @@ function EditorContent({
  * initial-focus and focus-restore behavior below.
  */
 const FOCUSABLE_FIELD_SELECTOR = 'input:not([type="hidden"]), textarea, select, [contenteditable="true"]';
+
+/**
+ * Walks a `[data-field-name]` element up through its `[data-field-name]`
+ * ancestors (object-widget nesting renders one wrapper per nested field, see
+ * EditorControl) and joins the names into the same dotted path
+ * `buildFieldPath`/the field navigator and `ControlPaneHandle.focus(path)`
+ * use, so scroll/focus tracking can match a DOM node back to a nav entry.
+ */
+function getFieldPathFromElement(fieldElement: HTMLElement, container: HTMLElement): string {
+  const names: string[] = [];
+  let current: HTMLElement | null = fieldElement;
+  while (current && container.contains(current)) {
+    const name = current.getAttribute('data-field-name');
+    if (name) names.unshift(name);
+    const parent: HTMLElement | null = current.parentElement;
+    current = parent?.closest<HTMLElement>('[data-field-name]') ?? null;
+  }
+  return names.join('.');
+}
 
 function isPreviewEnabled(collection: Collection, entry: EntryMap) {
   if (collection.type === FILES) {
@@ -341,12 +381,22 @@ function EditorInterface(props: EditorInterfaceProps) {
   const [i18nVisibleState, setI18nVisibleState] = React.useState(
     () => localStorage.getItem(I18N_VISIBLE) !== 'false',
   );
+  const [fieldNavigatorVisible, setFieldNavigatorVisible] = React.useState(
+    () => localStorage.getItem(FIELD_NAVIGATOR_VISIBLE) === 'true',
+  );
+  // Which top-level (dotted-path for nested object fields) field is
+  // currently "current" for the field navigator's highlight state — kept in
+  // sync both by focus (see handleEditorBodyFocus) and by scroll (see the
+  // effect below), matching deliverable #2 of DCMS-1423's field navigator.
+  const [activeFieldPath, setActiveFieldPath] = React.useState<string | undefined>(undefined);
+  const controlPaneScrollRef = React.useRef<HTMLDivElement | null>(null);
   const [leftPanelLocaleState, setLeftPanelLocale] = React.useState<string | undefined>(undefined);
   const isNarrowSplitPaneViewport = useIsNarrowSplitPaneViewport();
   const splitPaneDirection = isNarrowSplitPaneViewport ? 'vertical' : 'horizontal';
 
   function handleFieldClick(path: string) {
     controlPaneRef.current?.focus(path);
+    setActiveFieldPath(path);
   }
 
   // Remember where focus is whenever it lands inside the editor body, keyed
@@ -361,6 +411,7 @@ function EditorInterface(props: EditorInterfaceProps) {
       name: wrapper.getAttribute('data-field-name') ?? '',
       index: Math.max(0, focusables.indexOf(target)),
     };
+    setActiveFieldPath(getFieldPathFromElement(wrapper as HTMLElement, event.currentTarget));
   }
 
   // Keyboard focus across the editor body's lifecycle: on first mount (e.g.
@@ -492,6 +543,59 @@ function EditorInterface(props: EditorInterfaceProps) {
     });
   }
 
+  function handleToggleFieldNavigator() {
+    setFieldNavigatorVisible(prev => {
+      const next = !prev;
+      localStorage.setItem(FIELD_NAVIGATOR_VISIBLE, String(next));
+      return next;
+    });
+  }
+
+  // Highlight-current-field state (deliverable #2): while the navigator is
+  // open, track which navigable field's control is nearest the top of the
+  // scrollable control pane and mark it active, so the panel's selection
+  // follows the user scrolling through the form (not just clicking a nav
+  // item or focusing a control, which `handleFieldClick`/
+  // `handleEditorBodyFocus` already cover).
+  React.useEffect(() => {
+    if (!fieldNavigatorVisible) return undefined;
+    const container = controlPaneScrollRef.current;
+    if (!container) return undefined;
+
+    const navigablePaths = new Set(flattenNavigableFields(fields as EntryField[]).map(f => f.path));
+
+    function updateActiveField() {
+      if (!container) return;
+      const fieldElements = Array.from(container.querySelectorAll<HTMLElement>('[data-field-name]'));
+      const containerTop = container.getBoundingClientRect().top;
+      let closestPath: string | undefined;
+      let closestDistance = Infinity;
+      for (const el of fieldElements) {
+        const path = getFieldPathFromElement(el, container);
+        if (!navigablePaths.has(path)) continue;
+        const rect = el.getBoundingClientRect();
+        if (rect.bottom < containerTop) continue;
+        const distance = Math.abs(rect.top - containerTop);
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestPath = path;
+        }
+      }
+      if (closestPath) setActiveFieldPath(closestPath);
+    }
+
+    let frame = requestAnimationFrame(updateActiveField);
+    function onScroll() {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(updateActiveField);
+    }
+    container.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      container.removeEventListener('scroll', onScroll);
+    };
+  }, [fieldNavigatorVisible, fields]);
+
   const previewEnabled = isPreviewEnabled(collection, entry);
 
   const i18nInfo = getI18nInfo(collection) as I18nInfo;
@@ -510,7 +614,7 @@ function EditorInterface(props: EditorInterfaceProps) {
 
   const leftPanelLocale = leftPanelLocaleState || locales?.[0];
   const editor = (
-    <ControlPaneContainer $overFlow $blockEntry={showEventBlocker}>
+    <ControlPaneContainer $overFlow $blockEntry={showEventBlocker} ref={controlPaneScrollRef}>
       <EditorControlPane
         {...editorProps}
         ref={(c: ControlPaneRef | null) => {
@@ -655,6 +759,14 @@ function EditorInterface(props: EditorInterfaceProps) {
           }
           return (
             <ViewControls>
+              <EditorToggle
+                isActive={fieldNavigatorVisible}
+                isToggle
+                onClick={handleToggleFieldNavigator}
+                size="large"
+                type="list-bulleted"
+                title={t('editor.editorInterface.toggleFieldNavigator')}
+              />
               {collectionI18nEnabled && (
                 <EditorToggle
                   isActive={i18nVisible}
@@ -688,13 +800,27 @@ function EditorInterface(props: EditorInterfaceProps) {
             </ViewControls>
           );
         })()}
-        <EditorContent
-          i18nVisible={!!i18nVisible}
-          previewVisible={!!previewVisibleResolved}
-          editor={editor}
-          editorWithEditor={editorWithEditor}
-          editorWithPreview={editorWithPreview}
-        />
+        <EditorLayout>
+          {fieldNavigatorVisible && (
+            <FieldNavigatorContainer>
+              <EditorFieldNavigator
+                fields={fields as EntryField[]}
+                activeFieldPath={activeFieldPath}
+                onFieldClick={handleFieldClick}
+                t={t}
+              />
+            </FieldNavigatorContainer>
+          )}
+          <EditorContentContainer>
+            <EditorContent
+              i18nVisible={!!i18nVisible}
+              previewVisible={!!previewVisibleResolved}
+              editor={editor}
+              editorWithEditor={editorWithEditor}
+              editorWithPreview={editorWithPreview}
+            />
+          </EditorContentContainer>
+        </EditorLayout>
       </Editor>
     </EditorContainer>
   );

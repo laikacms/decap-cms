@@ -151,10 +151,14 @@ const en = {
       lockedByUnknown: 'another user',
       lockOverride: 'Edit anyway',
     },
+    editorFieldNavigator: {
+      title: 'Field outline',
+    },
     editorInterface: {
       toggleI18n: 'Toggle i18n',
       togglePreview: 'Toggle preview',
       toggleScrollSync: 'Sync scrolling',
+      toggleFieldNavigator: 'Toggle field outline',
       noPreviewRegistered: 'No preview available for this collection. Register one with CMS.registerPreviewTemplate().',
       previewPaneTitle: 'Preview pane',
       newEntryTitle: 'New - %{collectionLabel}',
