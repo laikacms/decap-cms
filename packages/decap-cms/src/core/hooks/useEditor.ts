@@ -6,7 +6,9 @@ import { loadDeployPreview } from '@/core/actions/deploys';
 import {
   deleteUnpublishedEntry,
   publishUnpublishedEntry,
+  scheduleUnpublishedEntryPublish,
   unpublishPublishedEntry,
+  unscheduleUnpublishedEntryPublish,
   updateUnpublishedEntryStatus,
 } from '@/core/actions/editorialWorkflow';
 import {
@@ -30,7 +32,7 @@ import { selectDeployPreview, selectEntry, selectUnpublishedEntry } from '@/core
 import { selectFields } from '@/core/reducers/collections';
 import { useRouter } from '@/core/routing/context';
 import { navigateToCollection, navigateToNewEntry } from '@/core/routing/navigation';
-import { confirmDialog, showAlert } from '@/ui';
+import { confirmDialog, promptDialog, showAlert } from '@/ui';
 import { useAppDispatch, useAppSelector } from './useRedux';
 import { useTranslate } from './useTranslate';
 import { useWorkflow } from './useWorkflow';
@@ -156,6 +158,7 @@ export function useEditor({
   const localBackup = entryDraft?.localBackup;
   const draftKey = entryDraft?.key;
   const currentStatus = unPublishedEntry?.status as Status | undefined;
+  const scheduledPublishAt = unPublishedEntry?.publishAt as string | undefined;
 
   const fields = useMemo(() => {
     if (!collection) return null;
@@ -562,6 +565,45 @@ export function useEditor({
     [collection, slug, hasWorkflow, currentStatus, entryDraft, t, dispatch, deleteBackup, handlePersistEntry],
   );
 
+  // DCMS-1991: pick a future date/time and store it (client-side, see
+  // core/lib/scheduledPublish) so the Workflow board can auto-publish the
+  // entry once it's due. Same "must be Ready and saved" gate as manual
+  // publish, since scheduling is just a deferred publish.
+  const handleSchedulePublish = useCallback(async () => {
+    if (!collection || !slug || !hasWorkflow) return;
+
+    if (currentStatus !== Object.values(status).pop()) {
+      showAlert(t('editor.editor.onPublishingNotReady'), {
+        title: t('editor.editor.onPublishingNotReadyTitle'),
+      });
+      return;
+    }
+    if (entryDraft?.hasChanged) {
+      showAlert(t('editor.editor.onPublishingWithUnsavedChanges'), {
+        title: t('editor.editor.onPublishingWithUnsavedChangesTitle'),
+      });
+      return;
+    }
+
+    // A minute of slack so "now" doesn't fail the picker's own min bound.
+    const minValue = new Date(Date.now() + 60_000).toISOString().slice(0, 16);
+    const value = await promptDialog(t('editor.editorToolbar.schedulePublishPrompt'), {
+      title: t('editor.editorToolbar.schedulePublish'),
+      confirmLabel: t('editor.editorToolbar.schedule'),
+      inputType: 'datetime-local',
+      min: minValue,
+      defaultValue: minValue,
+    });
+    if (!value) return;
+
+    dispatch(scheduleUnpublishedEntryPublish(collection.name, slug, value) as any);
+  }, [collection, slug, hasWorkflow, currentStatus, entryDraft, t, dispatch]);
+
+  const handleCancelSchedulePublish = useCallback(() => {
+    if (!collection || !slug) return;
+    dispatch(unscheduleUnpublishedEntryPublish(collection.name, slug) as any);
+  }, [collection, slug, dispatch]);
+
   const handleUnpublishEntry = useCallback(async () => {
     if (!collection || !slug) return;
 
@@ -685,6 +727,7 @@ export function useEditor({
     useOpenAuthoring,
     isModification,
     currentStatus,
+    scheduledPublishAt,
     deployPreview,
     localBackup,
     draftKey,
@@ -705,6 +748,8 @@ export function useEditor({
     handleChangeStatus,
     handlePersistEntry,
     handlePublishEntry,
+    handleSchedulePublish,
+    handleCancelSchedulePublish,
     handleUnpublishEntry,
     handleDuplicateEntry,
     handleDeleteEntry,

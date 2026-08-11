@@ -57,6 +57,7 @@ function Editor({ newRecord = false, collectionName, slug, renderNotFound }: Edi
     useOpenAuthoring,
     isModification,
     currentStatus,
+    scheduledPublishAt,
     deployPreview,
     localBackup,
     draftKey,
@@ -71,6 +72,8 @@ function Editor({ newRecord = false, collectionName, slug, renderNotFound }: Edi
     handleChangeStatus,
     handlePersistEntry,
     handlePublishEntry,
+    handleSchedulePublish,
+    handleCancelSchedulePublish,
     handleUnpublishEntry,
     handleDuplicateEntry,
     handleDeleteEntry,
@@ -197,6 +200,9 @@ function Editor({ newRecord = false, collectionName, slug, renderNotFound }: Edi
       onDeleteUnpublishedChanges={handleDeleteUnpublishedChanges}
       onChangeStatus={handleChangeStatus}
       onPublish={handlePublishEntry}
+      onSchedulePublish={handleSchedulePublish}
+      onCancelSchedulePublish={handleCancelSchedulePublish}
+      scheduledPublishAt={scheduledPublishAt}
       unPublish={handleUnpublishEntry}
       onDuplicate={handleDuplicateEntry}
       showDelete={showDelete ?? false}

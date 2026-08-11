@@ -97,6 +97,15 @@ Ready, so double-check the status control before publishing from there if you wa
 actually happen first. What the entry editor does enforce is unsaved changes - Publish now is hidden
 whenever you have edits that haven't been saved yet, so save your work before publishing.
 
+Once an entry is Ready and saved, the entry editor's publish menu also offers **Schedule publish** -
+pick a future date and time and the entry publishes automatically once that time arrives, instead of
+right away. A scheduled entry can be cancelled ("Cancel scheduled publish") from the same menu before
+it fires. This is client-side only: there is no server-side cron behind it, so the entry actually
+publishes the next time someone has the CMS open in a browser tab at or after the scheduled time
+(checked on load and about once a minute while the Editorial Workflow board is open) - not
+necessarily at the exact moment you picked. Don't rely on it for publishes that must go live to the
+second with nobody watching.
+
 ## Using the media library
 
 Any Image or File field opens the media library when you click it, and it's also reachable directly
