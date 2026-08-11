@@ -734,7 +734,6 @@ export default class API {
     const label = await this.getPullRequestLabel(pullRequest.id);
     const status = labelToStatus(label, this.cmsLabelPrefix);
     const updatedAt = pullRequest.updated_on;
-    const pullRequestAuthor = pullRequest.author.display_name;
     const branchSha = await this.branchCommitSha(branch);
     return {
       collection,
@@ -747,7 +746,7 @@ export default class API {
         .filter(d => d.status !== 'deleted')
         .map(d => ({ path: d.path, newFile: d.newFile, id: this.getFileId(branchSha, d.path) })),
       updatedAt,
-      pullRequestAuthor,
+      author: { name: pullRequest.author.display_name },
     };
   }
 

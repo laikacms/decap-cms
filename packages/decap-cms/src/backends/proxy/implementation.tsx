@@ -4,7 +4,7 @@ import { rawContent } from '@/lib/backend/index';
 import { APIError, blobToFileObj, EditorialWorkflowError, unsentRequest } from '@/lib/util/index';
 import AuthenticationPage from './AuthenticationPage';
 
-import type { BackendEntry } from '@/lib/backend/index';
+import type { BackendEntry, UnpublishedEntry } from '@/lib/backend/index';
 import type {
   CmsAssetProxy,
   CmsConfig,
@@ -14,7 +14,6 @@ import type {
   CmsImplementation,
   CmsImplementationFile,
   CmsPersistOptions,
-  CmsUnpublishedEntry,
   CmsUser,
 } from '@/lib/util/index';
 
@@ -208,7 +207,7 @@ export default class ProxyBackend implements CmsImplementation {
     slug?: string | undefined,
   }) {
     try {
-      const entry: CmsUnpublishedEntry = await this.request({
+      const entry: UnpublishedEntry = await this.request({
         action: 'unpublishedEntry',
         params: { branch: this.branch, id, collection, slug, cmsLabelPrefix: this.cmsLabelPrefix },
       });

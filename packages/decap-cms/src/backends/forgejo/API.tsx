@@ -713,7 +713,7 @@ export default class API {
       status,
       diffs,
       updatedAt: pullRequest.updated_at || new Date().toISOString(),
-      pullRequestAuthor: pullRequest.user?.login || 'Unknown',
+      author: { name: pullRequest.user?.login || 'Unknown' },
     };
   }
 

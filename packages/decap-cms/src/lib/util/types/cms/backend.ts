@@ -1,6 +1,6 @@
-import type React from 'react';
-import type { BackendEntry } from '@/lib/backend/entry';
+import type { BackendEntry, UnpublishedEntry } from '@/lib/backend/entry';
 import type Cursor from '@/lib/util/Cursor.js';
+import type React from 'react';
 import type { CmsConfig } from './cms.js';
 import type {
   CmsAssetProxy,
@@ -12,7 +12,7 @@ import type {
   CmsPersistOptions,
   CmsUser,
 } from './common.js';
-import type { CmsFileEntry, CmsImplementationFile, CmsUnpublishedEntry } from './entries.js';
+import type { CmsFileEntry, CmsImplementationFile } from './entries.js';
 import type {
   CmsGetMediaPageOptions,
   CmsImplementationMediaFile,
@@ -262,7 +262,7 @@ export interface CmsImplementation {
     id?: string | undefined,
     collection?: string | undefined,
     slug?: string | undefined,
-  }) => Promise<CmsUnpublishedEntry>;
+  }) => Promise<UnpublishedEntry>;
   unpublishedEntryDataFile: (
     collection: string,
     slug: string,

@@ -56,7 +56,7 @@ import { selectCustomPath } from './reducers/entryDraft';
 import { selectIntegration } from './reducers/integrations';
 import { createEntry } from './valueObjects/Entry';
 
-import type { BackendEntry, BackendEntryContent } from '@/lib/backend/index';
+import type { BackendEntry, BackendEntryContent, UnpublishedEntry, UnpublishedEntryDiff } from '@/lib/backend/index';
 import type {
   CmsCollectionFile,
   CmsCollectionFileState,
@@ -76,8 +76,6 @@ import type {
   CmsEntryLock,
   CmsEntryLockOwner,
   CmsGetMediaPageOptions,
-  CmsUnpublishedEntry,
-  CmsUnpublishedEntryDiff,
   CmsUser,
   CursorCompatibleEntries,
 } from '@/lib/util/index';
@@ -1174,7 +1172,7 @@ export class Backend {
 
   async processUnpublishedEntry(
     collection: CmsCollectionState,
-    entryData: CmsUnpublishedEntry,
+    entryData: UnpublishedEntry,
     withMediaFiles: boolean,
   ) {
     const { slug } = entryData;
@@ -1208,13 +1206,13 @@ export class Backend {
         label: collection && selectFileEntryLabel(collection, slug),
         mediaFiles,
         updatedOn: entryData.updatedAt,
-        author: entryData.pullRequestAuthor,
+        author: entryData.author?.name,
         status: entryData.status,
         meta: { path: prepareMetaPath(path, collection) },
       });
     };
 
-    const readAndFormatDataFile = async (dataFile: CmsUnpublishedEntryDiff) => {
+    const readAndFormatDataFile = async (dataFile: UnpublishedEntryDiff) => {
       const data = await this.implementation.unpublishedEntryDataFile(
         collection.name,
         entryData.slug,

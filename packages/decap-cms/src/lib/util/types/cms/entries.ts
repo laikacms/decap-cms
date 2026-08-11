@@ -60,22 +60,7 @@ export type CmsFileEntry = {
   assets: CmsAssetProxy[],
 };
 
-export type CmsUnpublishedEntryDiff = {
-  id: string,
-  path: string,
-  newFile: boolean,
-};
-
 export type CmsUnpublishedEntryMediaFile = {
   id: string,
   path: string,
-};
-
-export type CmsUnpublishedEntry = {
-  pullRequestAuthor?: string,
-  slug: string,
-  collection: string,
-  status: string,
-  diffs: CmsUnpublishedEntryDiff[],
-  updatedAt: string,
 };

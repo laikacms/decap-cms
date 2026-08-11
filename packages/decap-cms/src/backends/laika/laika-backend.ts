@@ -19,7 +19,7 @@ import PKCEAuthenticationPage from './AuthenticationPage.js';
 import DevAuthenticationPage from './DevAuthenticationPage.js';
 import { requestQrTransferCode } from './qrLogin.js';
 
-import type { BackendEntry, BackendEntryContent } from '@/lib/backend/index';
+import type { BackendEntry, BackendEntryContent, UnpublishedEntry } from '@/lib/backend/index';
 import type {
   CmsAssetProxy as AssetProxy,
   CmsConfig as Config,
@@ -36,7 +36,6 @@ import type {
   CmsMediaCapabilities,
   CmsMediaPage,
   CmsPersistOptions as PersistOptions,
-  CmsUnpublishedEntry as UnpublishedEntry,
   CmsUser as User,
   CursorCompatibleEntries,
 } from '@/lib/util/index';

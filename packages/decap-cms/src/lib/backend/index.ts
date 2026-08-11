@@ -10,12 +10,10 @@
 export { assertNeverContent, parsedContent, rawContent } from './content';
 export type { BackendEntryContent, ParsedContent, RawContent } from './content';
 
-export type {
-  BackendEntry,
-  BackendEntryFile,
-  UnpublishedEntry,
-  UnpublishedEntryDiff,
-} from './entry';
+export type { BackendEntry, BackendEntryFile, UnpublishedEntry, UnpublishedEntryDiff } from './entry';
+
+// The one domain type the seam carries: who authored a revision.
+export type { Author } from '@/lib/domain/index';
 export type { Asset, DataFile, MediaFile, PersistPayload } from './persist';
 
 export type { BackendClass, BackendImplementation } from './implementation';
