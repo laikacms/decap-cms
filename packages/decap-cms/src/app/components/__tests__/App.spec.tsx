@@ -318,6 +318,27 @@ describe('AppContent - DCMS-432 unknown-collection deep-link', () => {
   });
 });
 
+describe('AppContent - DCMS-1918 unmatched top-level route', () => {
+  it('renders a "Back to home" link on the not-found page for a completely unmatched route (DCMS-1920)', () => {
+    const { getByRole, getByText } = renderAppContentAt('/completely/bogus/path');
+
+    expect(getByText('app.notFoundPage.header')).toBeInTheDocument();
+    const link = getByRole('link', { name: 'app.notFoundPage.backToHome' });
+    expect(link).toBeInTheDocument();
+    expect(link.getAttribute('href')).toBe('#/');
+  });
+
+  it('honours a custom renderNotFound for a completely unmatched route', () => {
+    const renderNotFound = vi.fn(() => <div data-testid="custom-not-found" />);
+    const { getByTestId, queryByText } = renderAppContentAt('/completely/bogus/path', {
+      renderNotFound,
+    });
+
+    expect(getByTestId('custom-not-found')).toBeInTheDocument();
+    expect(queryByText('app.notFoundPage.header')).not.toBeInTheDocument();
+  });
+});
+
 describe('AppContent - session-expired re-auth overlay', () => {
   it('keeps the app mounted and renders a blocking overlay when the session expired', () => {
     const state = baseState({

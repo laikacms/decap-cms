@@ -394,7 +394,7 @@ function AppRoutes({
       const { element } = extra.route;
       return <>{typeof element === 'function' ? element(extra.params) : element}</>;
     }
-    return renderNotFound ? <>{renderNotFound()}</> : <NotFoundPage />;
+    return renderNotFound ? <>{renderNotFound()}</> : <NotFoundPage backLink={{ to: '/' }} />;
   }
 
   switch (match.key) {
@@ -486,7 +486,7 @@ function AppRoutes({
     case 'media':
       return <OpenMediaLibraryAndRedirect collectionName={defaultCollectionName} />;
     default:
-      return renderNotFound ? <>{renderNotFound()}</> : <NotFoundPage />;
+      return renderNotFound ? <>{renderNotFound()}</> : <NotFoundPage backLink={{ to: '/' }} />;
   }
 }
 
