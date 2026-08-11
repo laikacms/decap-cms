@@ -8,6 +8,7 @@ export const nl: Translation = {
   errors: {
     missingAuthHeader: 'Ontbrekende of ongeldige Authorization header',
     authenticationFailed: 'Authenticatie mislukt',
+    insufficientScope: 'Onvoldoende rechten (scope) voor dit verzoek',
     methodNotAllowed: 'Methode niet toegestaan',
     invalidJsonBody: 'Ongeldige JSON body',
     missingOrInvalidMessage: 'Ontbrekend of ongeldig bericht',

@@ -11,6 +11,12 @@
  * import { decapAi, jsonSchema, tool } from '@laikacms/decap-cms/ai';
  * import { anthropic } from '@laikacms/decap-cms/ai/providers';
  *
+ * // authenticateAccessToken should route through the resolveBearer seam
+ * // (decap-cms-lib-pat's resolveBearer, or the equivalent laikacms/auth
+ * // implementation server-side) and forward its scopes:
+ * //   const ctx = await resolveBearer(token, { verifySessionToken, lookupPatByHash });
+ * //   if (!ctx) throw new Error('Unauthorized');
+ * //   return { ...ctx.user, email: ctx.user.email, scopes: ctx.scopes };
  * const ai = decapAi({
  *   authenticateAccessToken: async (token) => ({ id: '1', email: 'u@x' }),
  *   model: anthropic('claude-3-5-sonnet-20241022'),
@@ -49,6 +55,23 @@ export type {
 export { documentTools } from './tools/index.js';
 
 export type { Translation, TranslationKey } from './i18n/types.js';
+
+// ---------------------------------------------------------------------------
+// Re-export the resolveBearer -> { user, scopes } seam from decap-cms-lib-pat
+// so `authenticateAccessToken` implementations and `requiredScope` can be
+// built without a separate dependency on decap-cms-lib-pat.
+// ---------------------------------------------------------------------------
+
+export {
+  ADMIN_SCOPE,
+  hasScope,
+  InsufficientScopeError,
+  requireScope,
+  resolveBearer,
+  UnauthorizedError,
+} from 'decap-cms-lib-pat';
+
+export type { AuthContext, Scope } from 'decap-cms-lib-pat';
 
 // ---------------------------------------------------------------------------
 // Re-exports from the AI SDK runtime so consumers do not import `ai` or

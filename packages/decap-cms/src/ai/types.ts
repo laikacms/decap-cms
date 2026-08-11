@@ -3,6 +3,7 @@
  */
 
 import type { LanguageModel, ToolSet } from 'ai';
+import type { Scope } from 'decap-cms-lib-pat';
 import type { Translation } from './i18n/types.js';
 
 /**
@@ -23,6 +24,17 @@ export interface User {
   id: string;
   email: string;
   name?: string;
+  /**
+   * Scopes granted to the credential that authenticated this request, in the
+   * `resolveBearer` shape from `decap-cms-lib-pat` (`{ user, scopes }`): a
+   * session token yields its full/granted scopes, a PAT yields its granted
+   * subset. `authenticateAccessToken` should spread its `resolveBearer`
+   * result as `{ ...ctx.user, scopes: ctx.scopes }` rather than treating
+   * "authenticated" as "full admin". Omitted (matching a `resolveBearer`
+   * session with no `scopes`) is treated as full access, for backwards
+   * compatibility with consumers that do not scope AI access yet.
+   */
+  scopes?: Scope[];
 }
 
 /**
@@ -121,9 +133,23 @@ export interface Logger {
 export interface DecapAiConfig {
   /**
    * Authenticate a Bearer access token and return the user.
-   * This should be the same callback used in `@laikacms/server/api`.
+   * This should be the same callback used in `@laikacms/server/api`, backed
+   * by the same `resolveBearer` seam (`decap-cms-lib-pat`'s `resolveBearer`,
+   * or the parallel `laikacms/auth` implementation on the server side):
+   * `{ ...ctx.user, scopes: ctx.scopes }`. Returning `scopes` lets `decapAi`
+   * enforce `requiredScope` instead of granting every authenticated user
+   * full AI/document access.
    */
   authenticateAccessToken: (rawToken: string) => Promise<User>;
+
+  /**
+   * Scope required to use the AI endpoints (chat + sessions), checked via
+   * `hasScope` against `user.scopes` when `authenticateAccessToken` returns
+   * one. Users with no `scopes` (legacy/full-admin sessions per the
+   * `resolveBearer` convention) are always allowed. Defaults to
+   * `'content:write'` since the AI can edit documents via `updateDocument`.
+   */
+  requiredScope?: Scope;
 
   /**
    * LLM model to use (from Vercel AI SDK)

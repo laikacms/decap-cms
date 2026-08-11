@@ -593,6 +593,9 @@ importers:
       dayjs:
         specifier: 'catalog:'
         version: 1.11.21
+      decap-cms-lib-pat:
+        specifier: workspace:^
+        version: link:../decap-cms-lib-pat
       dnd-core:
         specifier: 'catalog:'
         version: 16.0.1

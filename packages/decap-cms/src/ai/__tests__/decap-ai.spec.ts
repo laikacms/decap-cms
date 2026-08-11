@@ -138,6 +138,68 @@ describe('decapAi()', () => {
     });
   });
 
+  // Bearer verification routes through the `resolveBearer` -> { user, scopes }
+  // seam: `authenticateAccessToken` returns `user.scopes`, and decapAi
+  // enforces `requiredScope` via `hasScope` instead of admin-or-nothing.
+  describe('scope enforcement (resolveBearer seam)', () => {
+    it('allows a user with no scopes (legacy full-access resolveBearer session)', async () => {
+      const adapter = decapAi(makeConfig({
+        authenticateAccessToken: async () => USER_A,
+      }));
+      const req = makeRequest('/ai/sessions?documentSlug=posts/hello');
+      const res = await adapter.fetch(req);
+      expect(res.status).toBe(200);
+    });
+
+    it('allows a user whose scopes satisfy the default content:write scope', async () => {
+      const adapter = decapAi(makeConfig({
+        authenticateAccessToken: async () => ({ ...USER_A, scopes: ['content:write'] }),
+      }));
+      const req = makeRequest('/ai/sessions?documentSlug=posts/hello');
+      const res = await adapter.fetch(req);
+      expect(res.status).toBe(200);
+    });
+
+    it('allows a user whose scopes satisfy the default via a resource wildcard', async () => {
+      const adapter = decapAi(makeConfig({
+        authenticateAccessToken: async () => ({ ...USER_A, scopes: ['content:*'] }),
+      }));
+      const req = makeRequest('/ai/sessions?documentSlug=posts/hello');
+      const res = await adapter.fetch(req);
+      expect(res.status).toBe(200);
+    });
+
+    it('allows a user whose scopes include the admin wildcard', async () => {
+      const adapter = decapAi(makeConfig({
+        authenticateAccessToken: async () => ({ ...USER_A, scopes: ['admin'] }),
+      }));
+      const req = makeRequest('/ai/sessions?documentSlug=posts/hello');
+      const res = await adapter.fetch(req);
+      expect(res.status).toBe(200);
+    });
+
+    it('returns 403 when a scoped PAT lacks the required scope', async () => {
+      const adapter = decapAi(makeConfig({
+        authenticateAccessToken: async () => ({ ...USER_A, scopes: ['content:read'] }),
+      }));
+      const req = makeRequest('/ai/sessions?documentSlug=posts/hello');
+      const res = await adapter.fetch(req);
+      expect(res.status).toBe(403);
+      const body = await res.json() as { error: string };
+      expect(body.error).toMatch(/scope/i);
+    });
+
+    it('honors a custom requiredScope', async () => {
+      const adapter = decapAi(makeConfig({
+        requiredScope: 'ai:chat',
+        authenticateAccessToken: async () => ({ ...USER_A, scopes: ['content:write'] }),
+      }));
+      const req = makeRequest('/ai/sessions?documentSlug=posts/hello');
+      const res = await adapter.fetch(req);
+      expect(res.status).toBe(403);
+    });
+  });
+
   describe('health check', () => {
     it('GET {basePath}/health returns 200 without auth', async () => {
       const adapter = decapAi(makeConfig());
