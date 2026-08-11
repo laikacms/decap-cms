@@ -26,13 +26,15 @@ widget's own schema plus the image-specific rendering/interaction differences.
   be saved.
 - `hint` (optional) — helper text rendered alongside the field label.
 
-This widget's own JSON-schema (`schema.ts`) declares exactly two properties:
+This widget's own JSON-schema (`schema.ts`) declares three scalar properties, plus `media_library`
+(covered in its own section below):
 
 ```ts
 export default {
   properties: {
     allow_multiple: { type: 'boolean' },
     choose_url: { type: 'boolean' },
+    private: { type: 'boolean' },
   },
 };
 ```
@@ -48,12 +50,11 @@ export default {
   multi-image behavior is driven entirely by nested `field.media_library` keys instead (see
   "media_library overrides" below). A bare top-level `allow_multiple: true` on an `image` field has
   no effect on the control by itself.
-
-Unlike `file/schema.ts`, this widget's schema does **not** declare `private`, even though
-`CmsFieldImage` (`src/lib/util/types/cms/fields/image.ts`) types it and `withFileControl.tsx`
-forwards `field.private` as `privateUpload` regardless of widget. In practice `private` still works
-on an `image` field — it just isn't validated by this widget's own JSON-schema the way it is for
-`file`.
+- `private` (optional) — like `file/schema.ts`, this widget's schema also declares
+  `private: { type: 'boolean' }`, matching `CmsFieldImage`'s typing
+  (`src/lib/util/types/cms/fields/image.ts`) and the `field.private` forwarding in
+  `withFileControl.tsx` (as `privateUpload`, regardless of widget). Validation behaviour for
+  `private` on an `image` field is therefore the same as it is for `file`.
 
 ## `media_library` overrides — two separate "multiple" switches
 
