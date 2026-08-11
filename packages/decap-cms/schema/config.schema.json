@@ -113,6 +113,10 @@
           ]
         },
         "required": { "type": "boolean" },
+        "unique": {
+          "type": "boolean",
+          "description": "Validated against the collection's other entries at save time (DCMS-1422, partial)."
+        },
         "i18n": { "$ref": "#/definitions/i18nField" },
         "hint": { "type": "string" },
         "pattern": {

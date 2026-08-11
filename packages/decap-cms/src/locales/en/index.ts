@@ -344,6 +344,7 @@ const en = {
       onFailToPersistLocalBackup: 'Failed to save local draft backup: %{details}',
       missingRequiredField: "Oops, you've missed a required field. Please complete before saving.",
       invalidField: 'Oops, one or more fields are invalid. Please fix them before saving.',
+      notUniqueField: 'Oops, this value must be unique but is already used by another entry: %{details}',
       entrySaved: 'Entry saved',
       entryPublished: 'Entry published',
       entryUnpublished: 'Entry unpublished',

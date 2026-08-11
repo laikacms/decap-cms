@@ -45,6 +45,9 @@ function fieldsConfig(): JSONSchema {
     label: { type: 'string' },
     widget: { type: 'string' },
     required: { type: 'boolean' },
+    // DCMS-1422 (partial): validated against the collection's other entries
+    // at save time, see validateUniqueFields.ts.
+    unique: { type: 'boolean' },
     i18n: i18nField,
     hint: { type: 'string' },
     pattern: {
