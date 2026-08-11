@@ -66,8 +66,8 @@ MyControl.propTypes = { value: PropTypes.string };
 The Portable-Text-backed `markdown` widget is now registered as `richtext`. Persist-time
 serialization still emits a markdown string, so on-disk content is unaffected. A back-compat alias
 `markdown` remains registered (DCMS-483) as an indefinite compatibility shim with no scheduled
-removal date; a runtime deprecation warning fires once per session the first time a `markdown`
-field is resolved.
+removal date; a runtime deprecation warning fires once per session the first time a `markdown` field
+is resolved.
 
 **Migration:** Rename widget names in your `config.yml`:
 
@@ -202,3 +202,36 @@ new `lib/domain` subpath and `BackendEntry` from `lib/backend`.
 domain-level entry data or `BackendEntry` (`lib/backend`) for the backend seam. `EntryValue` and
 `CmsEntry` (the internal engine/store types) are unaffected by this change and remain in place until
 a later stage of DCMS-1907.
+
+## Backend implementations must return `BackendEntry`, not the legacy `{ data: string }` shape
+
+`CmsImplementation`'s entry-returning methods — `getEntry`, `entriesByFolder`, `entriesByFiles`,
+`allEntriesByFolder`, `traverseCursor` — now return `BackendEntry` (`lib/backend`) instead of the
+old `{ data: string, file: {...} }` shape (formerly typed as `CmsImplementationEntry`). This is
+stage 3 of the entry/domain type redesign (DCMS-1907, see `entry-type-redesign.md`).
+`BackendEntry.content` is a tagged union in place of the single `data` string:
+`{ kind: 'raw', raw }` for text-based backends, or `{ kind: 'parsed', data }` (structured,
+`Record<string, unknown>`) for backends with structured storage.
+
+No compatibility path was kept: the engine's `toBackendEntry` normalizing branch and the
+`CmsImplementationEntry`/`CmsLoadedEntry` types were deleted with this stage rather than deprecated,
+so an unmigrated third-party backend fails to compile instead of being silently normalized at
+runtime. All in-tree backends (github, gitlab, gitea, forgejo, bitbucket, azure, git-gateway, proxy,
+local-fs, test-repo) were migrated as part of this stage. A `BackendImplementation` contract (also
+published from `lib/backend`) mirrors the same shape for new backend authors going forward;
+`registerBackend` still instantiates against `CmsImplementation` today, and folding the two together
+is tracked as follow-up work.
+
+**Migration:** if you maintain an out-of-tree backend, change any method that returns entries to
+construct a tagged `content` union instead of a bare string:
+
+```diff
+  getEntry(path) {
+    const raw = await fetchFile(path);
+-   return { data: raw, file: { path } };
++   return { content: { kind: 'raw', raw }, file: { path } };
+  }
+```
+
+If your backend stores structured content natively, skip the serialize/parse round trip and return
+`{ kind: 'parsed', data }` directly — the engine skips its format parser for that content.
