@@ -201,6 +201,51 @@ describe('Notifications (Base UI bridge)', () => {
     expect(dispatchMock).not.toHaveBeenCalled();
   });
 
+  it('keeps the Close button internally consistent (no hidden-focusable trap) for a high-priority error toast (DCMS-2007)', () => {
+    notificationsState = [
+      { id: 'validation-toast', message: 'Please complete before saving.', type: 'error' },
+    ];
+    render(<Notifications />);
+
+    const closeButton = screen.getByLabelText('Close notification');
+    const ariaHidden = closeButton.getAttribute('aria-hidden');
+    const tabIndex = closeButton.getAttribute('tabindex');
+    const pointerEvents = window.getComputedStyle(closeButton).pointerEvents;
+
+    if (ariaHidden === 'true') {
+      // Fully out of the a11y tree: not tab-reachable and not
+      // pointer-hittable either, so it can't intercept clicks meant for
+      // overlapping controls during the auto-dismiss window.
+      expect(tabIndex).toBe('-1');
+      expect(pointerEvents).toBe('none');
+    } else {
+      // Fully in the a11y tree: a real, reachable, clickable control.
+      expect(ariaHidden).not.toBe('true');
+      expect(tabIndex).toBe('0');
+      expect(pointerEvents).not.toBe('none');
+    }
+
+    // The toast must still be dismissable by clicking anywhere on it,
+    // regardless of the Close button's own interactive state.
+    const toastRoot = closeButton.closest('.notif__toast') as HTMLElement;
+    fireEvent.click(toastRoot);
+    expect(dispatchMock).toHaveBeenCalledWith({ type: 'NOTIFICATION_DISMISS', id: 'validation-toast' });
+  });
+
+  it('makes the Close button fully interactive once hovered or focused', () => {
+    notificationsState = [{ id: 'e1', message: 'boom', type: 'error' }];
+    render(<Notifications />);
+
+    const closeButton = screen.getByLabelText('Close notification');
+    const toastRoot = closeButton.closest('.notif__toast') as HTMLElement;
+
+    fireEvent.mouseEnter(toastRoot);
+
+    expect(closeButton).not.toHaveAttribute('aria-hidden', 'true');
+    expect(closeButton).toHaveAttribute('tabindex', '0');
+    expect(window.getComputedStyle(closeButton).pointerEvents).not.toBe('none');
+  });
+
   it('unsubscribes from the router when unmounted', () => {
     const { unmount } = render(<Notifications />);
     expect(routerListeners).toHaveLength(1);

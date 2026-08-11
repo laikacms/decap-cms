@@ -130,6 +130,86 @@ const closeStyles = css`
   }
 `;
 
+interface NotificationToastProps {
+  toastItem: ReturnType<typeof Toast.useToastManager>['toasts'][number];
+  onDismiss: () => void;
+  resolvedMode: 'light' | 'dark';
+}
+
+/**
+ * Base UI's `Toast.Close` internally sets `aria-hidden` to
+ * `!expanded && !hasFocus`, where `expanded` comes from hovering/focusing
+ * the whole toast viewport - a mechanism meant for a collapsed-stack UI
+ * (hover to reveal each toast's own controls). This app doesn't render a
+ * `Toast.Positioner`/collapsed stack, so every toast is always fully
+ * visible, yet the Close button still gets `aria-hidden="true"` whenever
+ * the toast isn't hovered/focused - while remaining a real, `tabindex="0"`,
+ * `pointer-events: auto` `<button>`. That's a WCAG 4.1.2 "hidden focusable"
+ * trap: focusable/clickable but invisible to assistive tech, and its click
+ * capture can steal clicks meant for overlapping controls (e.g. the
+ * account-options dropdown) during the auto-dismiss window (DCMS-2007).
+ *
+ * Fix: track hover/focus on the toast ourselves and force `aria-hidden`,
+ * `tabIndex`, and `pointer-events` to agree, overriding Base UI's internal
+ * defaults (caller props win - see `mergeProps`). While inert, clicks over
+ * the Close button's area fall through to `Toast.Root`'s own `onClick`, so
+ * the toast stays dismissable by clicking anywhere on it.
+ */
+function NotificationToast({ toastItem, onDismiss, resolvedMode }: NotificationToastProps) {
+  const [hovered, setHovered] = React.useState(false);
+  const [focused, setFocused] = React.useState(false);
+  const interactive = hovered || focused;
+
+  return (
+    <Toast.Root
+      toast={toastItem}
+      className="laika-notif__toast"
+      css={toastStyles(resolvedMode, toastItem.type)}
+      onClick={onDismiss}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocus={() => setFocused(true)}
+      onBlur={event => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          setFocused(false);
+        }
+      }}
+      // Base UI's default is role="alertdialog" (high priority) or
+      // role="dialog" (low priority) — neither matches the DCMS-546
+      // a11y contract (role="status" for non-errors) that the previous
+      // react-toastify implementation satisfied. Overriding here wins
+      // because Toast.Root merges caller props after its internal
+      // defaults.
+      //
+      // DCMS-809: high-priority (error) toasts are NOT given a
+      // role="alert" override here — Base UI's ToastViewport already
+      // mounts its own hidden role="alert" announcer for every
+      // priority: 'high' toast. Overriding role on the visible node
+      // too produced two role="alert" regions with identical text,
+      // double-announcing errors to screen readers. Falling back to
+      // Base UI's default (role="alertdialog") avoids the collision;
+      // it isn't a live region, so it doesn't announce on its own.
+      role={toastItem.priority === 'high' ? undefined : 'status'}
+      // Base UI also hides high-priority (error) toasts from the
+      // accessibility tree via aria-hidden until they receive focus,
+      // since alertdialog semantics assume a focused modal. Live
+      // regions (alert/status) must stay exposed to be announced.
+      aria-hidden={false}
+    >
+      <Toast.Title css={titleStyles} />
+      <Toast.Close
+        aria-label={'Close notification'}
+        css={closeStyles}
+        aria-hidden={interactive ? undefined : true}
+        tabIndex={interactive ? 0 : -1}
+        style={{ pointerEvents: interactive ? undefined : 'none' }}
+      >
+        {'×'}
+      </Toast.Close>
+    </Toast.Root>
+  );
+}
+
 function LaikaToastBridge() {
   const t = useTranslate();
   const dispatch = useAppDispatch();
@@ -178,39 +258,12 @@ function LaikaToastBridge() {
     <Toast.Portal>
       <Toast.Viewport className="laika-notif__container" css={viewportStyles}>
         {toasts.map(toastItem => (
-          <Toast.Root
+          <NotificationToast
             key={toastItem.id}
-            toast={toastItem}
-            className="laika-notif__toast"
-            css={toastStyles(resolvedMode, toastItem.type)}
-            onClick={() => close(toastItem.id)}
-            // Base UI's default is role="alertdialog" (high priority) or
-            // role="dialog" (low priority) — neither matches the DCMS-546
-            // a11y contract (role="status" for non-errors) that the previous
-            // react-toastify implementation satisfied. Overriding here wins
-            // because Toast.Root merges caller props after its internal
-            // defaults.
-            //
-            // DCMS-809: high-priority (error) toasts are NOT given a
-            // role="alert" override here — Base UI's ToastViewport already
-            // mounts its own hidden role="alert" announcer for every
-            // priority: 'high' toast. Overriding role on the visible node
-            // too produced two role="alert" regions with identical text,
-            // double-announcing errors to screen readers. Falling back to
-            // Base UI's default (role="alertdialog") avoids the collision;
-            // it isn't a live region, so it doesn't announce on its own.
-            role={toastItem.priority === 'high' ? undefined : 'status'}
-            // Base UI also hides high-priority (error) toasts from the
-            // accessibility tree via aria-hidden until they receive focus,
-            // since alertdialog semantics assume a focused modal. Live
-            // regions (alert/status) must stay exposed to be announced.
-            aria-hidden={false}
-          >
-            <Toast.Title css={titleStyles} />
-            <Toast.Close aria-label={'Close notification'} css={closeStyles}>
-              {'×'}
-            </Toast.Close>
-          </Toast.Root>
+            toastItem={toastItem}
+            onDismiss={() => close(toastItem.id)}
+            resolvedMode={resolvedMode}
+          />
         ))}
       </Toast.Viewport>
     </Toast.Portal>
