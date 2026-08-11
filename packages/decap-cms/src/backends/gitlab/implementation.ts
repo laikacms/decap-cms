@@ -30,7 +30,7 @@ import {
 import API, { API_NAME } from './API';
 import AuthenticationPage from './AuthenticationPage';
 
-import type { BackendEntry, BackendFileRef } from '@/lib/backend/index';
+import type { BackendEntry, BackendFileRef, BackendImplementation, PersistPayload } from '@/lib/backend/index';
 import type {
   ApiRequest,
   AsyncLock,
@@ -38,8 +38,6 @@ import type {
   CmsBackendInitConfig,
   CmsCredentials,
   CmsDisplayURL,
-  CmsFileEntry,
-  CmsImplementation,
   CmsPersistOptions,
   CmsUnpublishedEntryMediaFile,
   CmsUser,
@@ -69,7 +67,7 @@ export function registerGraphQLAPI(
   registeredGraphQLAPI = graphQLAPI;
 }
 
-export default class GitLab implements CmsImplementation {
+export default class GitLab implements BackendImplementation {
   lock: AsyncLock;
   api: API | null;
   updateUserCredentials: (args: { token: string, refresh_token?: string | undefined }) => Promise<null>;
@@ -416,7 +414,7 @@ export default class GitLab implements CmsImplementation {
     };
   }
 
-  async persistEntry(entry: CmsFileEntry, options: CmsPersistOptions) {
+  async persistEntry(entry: PersistPayload, options: CmsPersistOptions) {
     // persistEntry is a transactional operation
     return runWithLock(
       this.lock,

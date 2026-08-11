@@ -16,7 +16,7 @@ export type { BackendEntry, BackendEntryFile, BackendFileRef, UnpublishedEntry, 
 export type { Author } from '@/lib/domain/index';
 export type { Asset, DataFile, MediaFile, PersistPayload } from './persist';
 
-export type { BackendClass, BackendImplementation } from './implementation';
+export type { AuthComponent, BackendClass, BackendImplementation } from './implementation';
 
 // -- Config and collection types the contract references ---------------------
 

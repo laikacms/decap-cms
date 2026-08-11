@@ -5,6 +5,7 @@ import {
 } from '@/lib/richtext';
 import { oneLine } from '@/lib/util/index';
 
+import type { BackendClass } from '@/lib/backend/index';
 import type { BlockDefinition, BlockPreviewProps, FormatPack } from '@/lib/richtext';
 import type {
   CmsAllowedEvent,
@@ -12,10 +13,10 @@ import type {
   CmsEntryCodec,
   CmsFormatter,
   CmsFormatterFunctions,
-  CmsImplementation,
   CmsLocalePhrases,
   CmsMediaLibrary,
   CmsMediaLibraryOptions,
+  CmsRegistryBackend,
   CmsWidgetParam,
   CmsWidgetValueSerializer,
 } from '@/lib/util/index';
@@ -27,10 +28,6 @@ type CmsPreviewStyle = { raw?: boolean, value: string };
 interface EventHandler {
   handler: Function;
   options: Record<string, unknown>;
-}
-
-interface CmsRegistryBackend {
-  init: (config: CmsConfig, opts?: Record<string, unknown>) => CmsImplementation;
 }
 
 // Registry entries are stored as-provided, so an explicitly-passed `undefined`
@@ -279,10 +276,7 @@ export function getWidgetValueSerializer(widgetName: string) {
  * Backend API
  */
 
-export function registerBackend(
-  name: string,
-  BackendClass: new(config: CmsConfig, opts?: Record<string, unknown>) => CmsImplementation,
-) {
+export function registerBackend(name: string, BackendClass: BackendClass) {
   if (!name || !BackendClass) {
     console.error(
       "Backend parameters invalid. example: CMS.registerBackend('myBackend', BackendClass)",

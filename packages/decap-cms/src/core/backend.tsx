@@ -56,7 +56,13 @@ import { selectCustomPath } from './reducers/entryDraft';
 import { selectIntegration } from './reducers/integrations';
 import { createEntry } from './valueObjects/Entry';
 
-import type { BackendEntry, BackendEntryContent, UnpublishedEntry, UnpublishedEntryDiff } from '@/lib/backend/index';
+import type {
+  BackendEntry,
+  BackendEntryContent,
+  BackendImplementation,
+  UnpublishedEntry,
+  UnpublishedEntryDiff,
+} from '@/lib/backend/index';
 import type {
   CmsCollectionFile,
   CmsCollectionFileState,
@@ -65,7 +71,6 @@ import type {
   CmsEntry,
   CmsEntryField,
   CmsFilterRule,
-  CmsImplementation as BackendImplementation,
   FuzzyFilterResult,
 } from '@/lib/util/index';
 import type {
@@ -1286,7 +1291,7 @@ export class Backend {
   }
 
   /**
-   * Advisory entry-locking surface (optional). See the `CmsImplementation`
+   * Advisory entry-locking surface (optional). See the `BackendImplementation`
    * lock methods for the contract; this class only feature-detects and
    * forwards, so backends without lock support (the default) leave every
    * one of these inert and the editor never surfaces lock UI for them.

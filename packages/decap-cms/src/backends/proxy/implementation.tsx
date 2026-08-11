@@ -4,17 +4,14 @@ import { rawContent } from '@/lib/backend/index';
 import { APIError, blobToFileObj, EditorialWorkflowError, unsentRequest } from '@/lib/util/index';
 import AuthenticationPage from './AuthenticationPage';
 
-import type { BackendEntry, BackendFileRef, UnpublishedEntry } from '@/lib/backend/index';
 import type {
-  CmsAssetProxy,
-  CmsConfig,
-  CmsDataFile,
-  CmsEntry,
-  CmsFileEntry,
-  CmsImplementation,
-  CmsPersistOptions,
-  CmsUser,
-} from '@/lib/util/index';
+  BackendEntry,
+  BackendFileRef,
+  BackendImplementation,
+  PersistPayload,
+  UnpublishedEntry,
+} from '@/lib/backend/index';
+import type { CmsAssetProxy, CmsConfig, CmsDataFile, CmsEntry, CmsPersistOptions, CmsUser } from '@/lib/util/index';
 
 function normalizeProxyUrl(proxyUrl: string) {
   const normalizedProxyUrl = proxyUrl.trim();
@@ -96,7 +93,7 @@ function deserializeMediaFile({ id, content, encoding, path, name, isDirectory }
   return { id, name, path, file, size: file.size, url, displayURL: url, isDirectory };
 }
 
-export default class ProxyBackend implements CmsImplementation {
+export default class ProxyBackend implements BackendImplementation {
   proxyUrl: string;
   mediaFolder: string | undefined;
   options: { initialWorkflowStatus?: string };

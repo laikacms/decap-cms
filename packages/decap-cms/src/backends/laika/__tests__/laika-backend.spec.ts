@@ -37,7 +37,6 @@ const { Cursor, CURSOR_COMPATIBILITY_SYMBOL, API_ERROR, ACCESS_TOKEN_ERROR } = v
     'count',
     'pageSize',
     'pageCount',
-    'usingOldPaginationAPI',
     'extension',
     'folder',
     'depth',

@@ -1,4 +1,3 @@
-import type { CmsAssetProxy, CmsDataFile } from './common.js';
 import type { CmsMediaFileMap } from './media.js';
 
 export type CmsEntry = {
@@ -48,11 +47,6 @@ export type CmsEntryField = {
 };
 
 export type CmsEntryFields = CmsEntryField[];
-
-export type CmsFileEntry = {
-  dataFiles: CmsDataFile[],
-  assets: CmsAssetProxy[],
-};
 
 export type CmsUnpublishedEntryMediaFile = {
   id: string,

@@ -24,15 +24,13 @@ import {
 import API, { API_NAME } from './API';
 import AuthenticationPage from './AuthenticationPage';
 
-import type { BackendEntry, BackendFileRef } from '@/lib/backend/index';
+import type { BackendEntry, BackendFileRef, BackendImplementation, PersistPayload } from '@/lib/backend/index';
 import type {
   AsyncLock,
   CmsAssetProxy,
   CmsBackendInitConfig,
   CmsCredentials,
   CmsDisplayURL,
-  CmsFileEntry,
-  CmsImplementation,
   CmsPersistOptions,
   CmsUser,
   CursorCompatibleEntries,
@@ -46,7 +44,7 @@ type ApiFile = { id: string, type: string, name: string, path: string, size: num
 
 const { fetchWithTimeout: fetch } = unsentRequest;
 
-export default class Forgejo implements CmsImplementation {
+export default class Forgejo implements BackendImplementation {
   lock: AsyncLock;
   api: API | null;
   options: {
@@ -352,7 +350,7 @@ export default class Forgejo implements CmsImplementation {
     );
   }
 
-  persistEntry(entry: CmsFileEntry, options: CmsPersistOptions) {
+  persistEntry(entry: PersistPayload, options: CmsPersistOptions) {
     // persistEntry is a transactional operation
     return runWithLock(
       this.lock,

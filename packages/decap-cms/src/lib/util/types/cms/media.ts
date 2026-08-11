@@ -74,7 +74,7 @@ export type CmsImplementationMediaFile = {
 
 /**
  * What a backend's paginated media surface supports. Returned by
- * `CmsImplementation.getMediaCapabilities`; only consulted when the backend
+ * `BackendImplementation.getMediaCapabilities`; only consulted when the backend
  * also implements `getMediaPage`.
  */
 export type CmsMediaCapabilities = {
@@ -97,7 +97,7 @@ export type CmsGetMediaPageOptions = {
   /**
    * When true, backends that distinguish files from directories should
    * surface directory entries (`isDirectory: true`) instead of flattening
-   * them, mirroring `CmsImplementation.getMedia`'s `folderSupport` param.
+   * them, mirroring `BackendImplementation.getMedia`'s `folderSupport` param.
    * Backends that don't support this keep their current flattened behavior.
    */
   folderSupport?: boolean,

@@ -23,7 +23,11 @@ import GitLabAPI from './GitLabAPI';
 import GoTrue from './GoTrue';
 import { getClient } from './netlify-lfs-client';
 
-import type { BackendFileRef as ImplementationFile } from '@/lib/backend/index';
+import type {
+  BackendFileRef as ImplementationFile,
+  BackendImplementation as Implementation,
+  PersistPayload,
+} from '@/lib/backend/index';
 import type {
   ApiRequest,
   CmsAssetProxy as AssetProxy,
@@ -32,8 +36,6 @@ import type {
   CmsDisplayURL as DisplayURL,
   CmsDisplayURLObject as DisplayURLObject,
   CmsEntry as Entry,
-  CmsFileEntry,
-  CmsImplementation as Implementation,
   CmsPersistOptions as PersistOptions,
   CmsUser as User,
   Cursor,
@@ -532,7 +534,7 @@ export default class GitGateway implements Implementation {
     return this.backend!.getMediaFile(path);
   }
 
-  async persistEntry(entry: CmsFileEntry, options: PersistOptions) {
+  async persistEntry(entry: PersistPayload, options: PersistOptions) {
     const client = await this.getLargeMediaClient();
     if (client.enabled) {
       const assets = await getLargeMediaFilteredMediaFiles(client, entry.assets);

@@ -34,7 +34,7 @@ import API, { API_NAME } from './API';
 import AuthenticationPage from './AuthenticationPage';
 
 import type { NetlifyAuthResult } from '@/lib/auth/index';
-import type { BackendEntry, BackendFileRef } from '@/lib/backend/index';
+import type { BackendEntry, BackendFileRef, BackendImplementation, PersistPayload } from '@/lib/backend/index';
 import type {
   ApiRequest,
   AsyncLock,
@@ -42,8 +42,6 @@ import type {
   CmsBackendInitConfig,
   CmsCredentials,
   CmsDisplayURL,
-  CmsFileEntry,
-  CmsImplementation,
   CmsPersistOptions,
   CmsUser,
   Cursor,
@@ -66,7 +64,7 @@ type BitbucketStatusComponent = {
 const { fetchWithTimeout: fetch } = unsentRequest;
 
 // Implementation wrapper class
-export default class BitbucketBackend implements CmsImplementation {
+export default class BitbucketBackend implements BackendImplementation {
   lock: AsyncLock;
   api: API | null;
   updateUserCredentials: (args: { token: string, refresh_token: string }) => Promise<null>;
@@ -462,7 +460,7 @@ export default class BitbucketBackend implements CmsImplementation {
     };
   }
 
-  async persistEntry(entry: CmsFileEntry, options: CmsPersistOptions) {
+  async persistEntry(entry: PersistPayload, options: CmsPersistOptions) {
     const client = await this.getLargeMediaClient();
     // persistEntry is a transactional operation
     return runWithLock(

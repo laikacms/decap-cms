@@ -21,8 +21,8 @@ import {
 import API, { API_NAME } from './API';
 import AuthenticationPage from './AuthenticationPage';
 
-import type { BackendFileRef } from '@/lib/backend/index';
-import type { CmsBackend, CmsFileEntry, Semaphore } from '@/lib/util/index';
+import type { BackendFileRef, BackendImplementation, MediaFile, PersistPayload } from '@/lib/backend/index';
+import type { CmsBackend, Semaphore } from '@/lib/util/index';
 import type {
   AsyncLock,
   CmsAssetProxy,
@@ -30,8 +30,6 @@ import type {
   CmsCredentials,
   CmsDisplayURL,
   CmsEntry,
-  CmsImplementation,
-  CmsImplementationMediaFile,
   CmsPersistOptions,
   CmsUnpublishedEntryMediaFile,
   CmsUser,
@@ -59,7 +57,7 @@ function parseAzureRepo(config: CmsConfig) {
   };
 }
 
-export default class Azure implements CmsImplementation {
+export default class Azure implements BackendImplementation {
   lock: AsyncLock;
   api?: API;
   options: {
@@ -232,7 +230,7 @@ export default class Azure implements CmsImplementation {
     };
   }
 
-  async persistEntry(entry: CmsFileEntry, options: CmsPersistOptions): Promise<void> {
+  async persistEntry(entry: PersistPayload, options: CmsPersistOptions): Promise<void> {
     const mediaFiles = entry.assets;
     await this.api!.persistFiles(entry.dataFiles, mediaFiles, options);
   }
@@ -240,7 +238,7 @@ export default class Azure implements CmsImplementation {
   async persistMedia(
     mediaFile: CmsAssetProxy,
     options: CmsPersistOptions,
-  ): Promise<CmsImplementationMediaFile> {
+  ): Promise<MediaFile> {
     const fileObj = mediaFile.fileObj as File;
 
     const [id] = await Promise.all([
