@@ -10,7 +10,7 @@ import { useEditor } from '@/core/hooks/useEditor';
 import { I18n } from '@/core/i18n';
 import reducers from '@/core/reducers';
 import { RouterProvider } from '@/core/routing/context';
-import { ConfirmDialogHost } from '@/ui';
+import { AlertDialogHost, ConfirmDialogHost } from '@/ui';
 
 import type * as AuthActions from '@/core/actions/auth';
 import type * as DeploysActions from '@/core/actions/deploys';
@@ -404,6 +404,104 @@ describe('useEditor dirty-navigation guard: confirmDialog cleanup on abandonment
     // `navigationBlocker` never settles, so `ConfirmDialogHost` keeps
     // rendering the AlertDialog (and its click-intercepting backdrop) at the
     // app root forever.
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+  });
+});
+
+describe('useEditor "Publish blocked" alert drains on route change (DCMS-2000)', () => {
+  afterEach(() => {
+    resetFakeRouter();
+    vi.restoreAllMocks();
+  });
+
+  function buildEditorialWorkflowStore() {
+    return createStore(
+      combineReducers(reducers as any),
+      {
+        config: { publish_mode: 'editorial_workflow', display_url: '' },
+        collections: {
+          posts: {
+            name: 'posts',
+            label: 'Posts',
+            fields: [],
+            type: 'folder_based_collection',
+            folder: '_posts',
+          },
+        },
+        editorialWorkflow: {
+          entities: {
+            // Draft status is not the terminal ("Ready") status, so
+            // `handlePublishEntry` takes the "Publish blocked" branch below
+            // instead of actually publishing.
+            'posts.first-post': { collection: 'posts', slug: 'first-post', status: 'draft' },
+          },
+          pages: {},
+        },
+      } as any,
+      applyMiddleware(thunk),
+    );
+  }
+
+  it('hash-nav away while the "Publish blocked" alert is open drains it instead of stacking it over the next route (repro: #2003)', async () => {
+    // `AlertDialogHost` is a module-singleton queue consumer, mirroring
+    // `ConfirmDialogHost` above (DCMS-658): mounting it makes `showAlert(...)`
+    // queue a real, pending `AlertDialog` instead of falling back to
+    // synchronous `window.alert`.
+    render(<AlertDialogHost />);
+
+    const store = buildEditorialWorkflowStore();
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <Provider store={store}>
+        <RouterProvider router={fakeRouter}>
+          <I18n
+            locale="en"
+            messages={{
+              'editor.editor.onPublishingNotReady':
+                'Please update status to "Ready" before publishing.',
+              'editor.editor.onPublishingNotReadyTitle': 'Publish blocked',
+            }}
+          >
+            {children}
+          </I18n>
+        </RouterProvider>
+      </Provider>
+    );
+
+    const { result, unmount } = renderHook(
+      () =>
+        useEditor({
+          collectionName: 'posts',
+          slug: 'first-post',
+          newEntry: false,
+          locationSearch: '',
+          locationPathname: '/collections/posts/first-post',
+        }),
+      { wrapper },
+    );
+
+    expect(result.current.currentStatus).toBe('draft');
+
+    // Click "Publish now" on a Draft-status entry: blocked, since editorial
+    // workflow requires "Ready" before publishing.
+    act(() => {
+      result.current.handlePublishEntry();
+    });
+
+    const dialog = await screen.findByRole('alertdialog');
+    expect(dialog).toHaveTextContent('Please update status to "Ready" before publishing.');
+
+    // Hash-navigate away without clicking OK — e.g. `window.location.hash =
+    // '#/media'` in the real repro — which unmounts the entry-edit route's
+    // `<Editor>` (and this hook instance) without ever settling the alert.
+    act(() => {
+      unmount();
+    });
+
+    // Without threading `unmountControllerRef.current.signal` into the
+    // `showAlert` call, the alert promise never settles, `AlertDialogHost`
+    // keeps rendering the "Publish blocked" `AlertDialog` at the app root,
+    // and it stacks over whatever the next route (media library, workflow
+    // board, etc.) renders.
     await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
   });
 });

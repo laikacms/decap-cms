@@ -471,9 +471,11 @@ export function useEditor({
       if (!collection || !slug || !currentStatus) return;
 
       if (entryDraft?.hasChanged) {
-        showAlert(t('editor.editor.onUpdatingWithUnsavedChanges'), {
-          title: t('editor.editor.onUpdatingWithUnsavedChangesTitle'),
-        });
+        showAlert(
+          t('editor.editor.onUpdatingWithUnsavedChanges'),
+          { title: t('editor.editor.onUpdatingWithUnsavedChangesTitle') },
+          unmountControllerRef.current.signal,
+        );
         return;
       }
       const newStatus = (status as unknown as Record<string, string>)[newStatusName] as
@@ -534,19 +536,29 @@ export function useEditor({
       if (!slug) return;
 
       if (currentStatus !== Object.values(status).pop()) {
-        showAlert(t('editor.editor.onPublishingNotReady'), {
-          title: t('editor.editor.onPublishingNotReadyTitle'),
-        });
+        // DCMS-2000: threading the unmount signal means navigating away
+        // (hash-nav, router.push) while this alert is still open drains it
+        // instead of leaving it stacked over whatever the next route renders
+        // — mirrors the DCMS-1063 fix for the local-backup confirm below.
+        showAlert(
+          t('editor.editor.onPublishingNotReady'),
+          { title: t('editor.editor.onPublishingNotReadyTitle') },
+          unmountControllerRef.current.signal,
+        );
         return;
       } else if (entryDraft?.hasChanged) {
-        showAlert(t('editor.editor.onPublishingWithUnsavedChanges'), {
-          title: t('editor.editor.onPublishingWithUnsavedChangesTitle'),
-        });
+        showAlert(
+          t('editor.editor.onPublishingWithUnsavedChanges'),
+          { title: t('editor.editor.onPublishingWithUnsavedChangesTitle') },
+          unmountControllerRef.current.signal,
+        );
         return;
       } else if (
-        !(await confirmDialog(t('editor.editor.onPublishing'), {
-          title: t('editor.editor.onPublishingTitle'),
-        }))
+        !(await confirmDialog(
+          t('editor.editor.onPublishing'),
+          { title: t('editor.editor.onPublishingTitle') },
+          unmountControllerRef.current.signal,
+        ))
       ) {
         return;
       }
@@ -573,27 +585,35 @@ export function useEditor({
     if (!collection || !slug || !hasWorkflow) return;
 
     if (currentStatus !== Object.values(status).pop()) {
-      showAlert(t('editor.editor.onPublishingNotReady'), {
-        title: t('editor.editor.onPublishingNotReadyTitle'),
-      });
+      showAlert(
+        t('editor.editor.onPublishingNotReady'),
+        { title: t('editor.editor.onPublishingNotReadyTitle') },
+        unmountControllerRef.current.signal,
+      );
       return;
     }
     if (entryDraft?.hasChanged) {
-      showAlert(t('editor.editor.onPublishingWithUnsavedChanges'), {
-        title: t('editor.editor.onPublishingWithUnsavedChangesTitle'),
-      });
+      showAlert(
+        t('editor.editor.onPublishingWithUnsavedChanges'),
+        { title: t('editor.editor.onPublishingWithUnsavedChangesTitle') },
+        unmountControllerRef.current.signal,
+      );
       return;
     }
 
     // A minute of slack so "now" doesn't fail the picker's own min bound.
     const minValue = new Date(Date.now() + 60_000).toISOString().slice(0, 16);
-    const value = await promptDialog(t('editor.editorToolbar.schedulePublishPrompt'), {
-      title: t('editor.editorToolbar.schedulePublish'),
-      confirmLabel: t('editor.editorToolbar.schedule'),
-      inputType: 'datetime-local',
-      min: minValue,
-      defaultValue: minValue,
-    });
+    const value = await promptDialog(
+      t('editor.editorToolbar.schedulePublishPrompt'),
+      {
+        title: t('editor.editorToolbar.schedulePublish'),
+        confirmLabel: t('editor.editorToolbar.schedule'),
+        inputType: 'datetime-local',
+        min: minValue,
+        defaultValue: minValue,
+      },
+      unmountControllerRef.current.signal,
+    );
     if (!value) return;
 
     dispatch(scheduleUnpublishedEntryPublish(collection.name, slug, value) as any);
@@ -608,10 +628,11 @@ export function useEditor({
     if (!collection || !slug) return;
 
     if (
-      !(await confirmDialog(t('editor.editor.onUnpublishing'), {
-        destructive: true,
-        title: t('editor.editor.onUnpublishingTitle'),
-      }))
+      !(await confirmDialog(
+        t('editor.editor.onUnpublishing'),
+        { destructive: true, title: t('editor.editor.onUnpublishingTitle') },
+        unmountControllerRef.current.signal,
+      ))
     ) return;
 
     await dispatch(unpublishPublishedEntry(collection, slug) as any);
@@ -631,18 +652,20 @@ export function useEditor({
 
     if (entryDraft?.hasChanged) {
       if (
-        !(await confirmDialog(t('editor.editor.onDeleteWithUnsavedChanges'), {
-          destructive: true,
-          title: t('editor.editor.onDeleteWithUnsavedChangesTitle'),
-        }))
+        !(await confirmDialog(
+          t('editor.editor.onDeleteWithUnsavedChanges'),
+          { destructive: true, title: t('editor.editor.onDeleteWithUnsavedChangesTitle') },
+          unmountControllerRef.current.signal,
+        ))
       ) {
         return;
       }
     } else if (
-      !(await confirmDialog(t('editor.editor.onDeletePublishedEntry'), {
-        destructive: true,
-        title: t('editor.editor.onDeletePublishedEntryTitle'),
-      }))
+      !(await confirmDialog(
+        t('editor.editor.onDeletePublishedEntry'),
+        { destructive: true, title: t('editor.editor.onDeletePublishedEntryTitle') },
+        unmountControllerRef.current.signal,
+      ))
     ) {
       return;
     }
@@ -665,17 +688,22 @@ export function useEditor({
 
     if (
       entryDraft?.hasChanged
-      && !(await confirmDialog(t('editor.editor.onDeleteUnpublishedChangesWithUnsavedChanges'), {
-        destructive: true,
-        title: t('editor.editor.onDeleteUnpublishedChangesWithUnsavedChangesTitle'),
-      }))
+      && !(await confirmDialog(
+        t('editor.editor.onDeleteUnpublishedChangesWithUnsavedChanges'),
+        {
+          destructive: true,
+          title: t('editor.editor.onDeleteUnpublishedChangesWithUnsavedChangesTitle'),
+        },
+        unmountControllerRef.current.signal,
+      ))
     ) {
       return;
     } else if (
-      !(await confirmDialog(t('editor.editor.onDeleteUnpublishedChanges'), {
-        destructive: true,
-        title: t('editor.editor.onDeleteUnpublishedChangesTitle'),
-      }))
+      !(await confirmDialog(
+        t('editor.editor.onDeleteUnpublishedChanges'),
+        { destructive: true, title: t('editor.editor.onDeleteUnpublishedChangesTitle') },
+        unmountControllerRef.current.signal,
+      ))
     ) {
       return;
     }

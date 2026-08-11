@@ -273,18 +273,37 @@ function emitAlertsChanged() {
  * (actions, backend APIs). Queues the message on the nearest mounted
  * `AlertDialogHost` and resolves once the user dismisses it. Falls back to
  * `window.alert` when no host is mounted so messages are never dropped.
+ *
+ * Accepts an optional `signal`, mirroring {@link confirmDialog} (DCMS-1063):
+ * callers that fire an alert from an entry-scoped handler (e.g. `useEditor`'s
+ * "Publish blocked" check) can pass the same `AbortController` they abort on
+ * unmount, so an alert whose caller has since unmounted (route changed away
+ * before the user clicked OK) auto-settles and drains out of the queue
+ * instead of leaving a dangling, click-blocking `AlertDialog` mounted at the
+ * app root and stacking over whatever the next route renders (DCMS-2000).
  */
-export function showAlert(message: string, options: AlertOptions = {}): Promise<void> {
+export function showAlert(
+  message: string,
+  options: AlertOptions = {},
+  signal?: AbortSignal,
+): Promise<void> {
   if (alertListeners.size === 0) {
     window.alert(message);
     return Promise.resolve();
   }
+  if (signal?.aborted) {
+    return Promise.resolve();
+  }
   const triggerElement = captureTriggerElement();
   return new Promise(resolve => {
-    pendingAlerts = [
-      ...pendingAlerts,
-      { id: nextAlertId++, message, resolve, triggerElement, ...options },
-    ];
+    const id = nextAlertId++;
+    const settle = () => {
+      pendingAlerts = pendingAlerts.filter(pending => pending.id !== id);
+      emitAlertsChanged();
+      resolve();
+    };
+    signal?.addEventListener('abort', settle, { once: true });
+    pendingAlerts = [...pendingAlerts, { id, message, resolve: settle, triggerElement, ...options }];
     emitAlertsChanged();
   });
 }
@@ -535,17 +554,33 @@ function emitPromptsChanged() {
  * resolves with the entered text, or `null` if cancelled/dismissed. Falls
  * back to `window.prompt` when no host is mounted so callers (including
  * tests that don't render the host) keep working.
+ *
+ * Accepts an optional `signal`, mirroring {@link confirmDialog} (DCMS-1063):
+ * a caller that unmounts (route change) while its prompt is still pending
+ * settles it as `null` and drains it from the queue instead of leaking a
+ * dangling `AlertDialog` (DCMS-2000).
  */
-export function promptDialog(message: string, options: PromptOptions = {}): Promise<string | null> {
+export function promptDialog(
+  message: string,
+  options: PromptOptions = {},
+  signal?: AbortSignal,
+): Promise<string | null> {
   if (promptListeners.size === 0) {
     return Promise.resolve(window.prompt(message, options.defaultValue));
   }
+  if (signal?.aborted) {
+    return Promise.resolve(null);
+  }
   const triggerElement = captureTriggerElement();
   return new Promise(resolve => {
-    pendingPrompts = [
-      ...pendingPrompts,
-      { id: nextPromptId++, message, resolve, triggerElement, ...options },
-    ];
+    const id = nextPromptId++;
+    const settle = (value: string | null) => {
+      pendingPrompts = pendingPrompts.filter(pending => pending.id !== id);
+      emitPromptsChanged();
+      resolve(value);
+    };
+    signal?.addEventListener('abort', () => settle(null), { once: true });
+    pendingPrompts = [...pendingPrompts, { id, message, resolve: settle, triggerElement, ...options }];
     emitPromptsChanged();
   });
 }
