@@ -5,7 +5,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 
 import { checkBackendStatus } from '@/core/actions/status';
-import { SettingsDropdown } from '@/core/components/UI';
+import { OfflineIndicator, SettingsDropdown } from '@/core/components/UI';
 import { useCurrentUserScopes } from '@/core/hooks/useCurrentUserScopes';
 import { useAppDispatch } from '@/core/hooks/useRedux';
 import { translate } from '@/core/i18n';
@@ -353,6 +353,7 @@ function LaikaHeader({
         </Brand>
 
         <Actions>
+          <OfflineIndicator />
           {creatableCollections.length > 0
             ? (
               <Menu.Root>

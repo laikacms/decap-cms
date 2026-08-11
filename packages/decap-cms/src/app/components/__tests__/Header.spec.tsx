@@ -25,6 +25,7 @@ vi.mock('@/core/actions/status', () => ({
 }));
 
 vi.mock('@/core/components/UI', () => ({
+  OfflineIndicator: () => null,
   SettingsDropdown: () => <div data-testid="settings-dropdown" />,
 }));
 

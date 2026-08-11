@@ -3,7 +3,7 @@ import styled from '@emotion/styled';
 import React from 'react';
 
 import { checkBackendStatus } from '@/core/actions/status';
-import { SettingsDropdown } from '@/core/components/UI';
+import { OfflineIndicator, SettingsDropdown } from '@/core/components/UI';
 import { useCurrentUserScopes } from '@/core/hooks/useCurrentUserScopes';
 import { useAppDispatch } from '@/core/hooks/useRedux';
 import { translate } from '@/core/i18n';
@@ -132,6 +132,7 @@ const AppHeaderNavLink = AppHeaderButton.withComponent(NavLink);
 const AppHeaderActions = styled.div`
   display: inline-flex;
   align-items: center;
+  gap: 8px;
 
   @media (max-width: ${MOBILE_BREAKPOINT}px) {
     /* "Test Backend" and the site-URL link are informational shortcuts,
@@ -280,6 +281,7 @@ function Header({
           </AppHeaderNavList>
         </nav>
         <AppHeaderActions>
+          <OfflineIndicator />
           {creatableCollections.length > 0 && (
             <Dropdown
               renderButton={() => <AppHeaderQuickNewButton>{t('app.header.quickAdd')}</AppHeaderQuickNewButton>}
