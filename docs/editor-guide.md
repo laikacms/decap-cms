@@ -87,9 +87,6 @@ entry editor. From a card (or the entry toolbar) you can:
 
 - **Publish changes** / **Publish now** - go live immediately (only enabled once the entry is
   Ready).
-- **Schedule publish** - set a future date/time for the entry to go live automatically, instead of
-  publishing immediately. A scheduled entry can be cancelled ("Cancel scheduled publish") before it
-  fires.
 - **Delete** the draft, the unpublished changes, or (for already-live entries) the published entry
   itself.
 - **Unpublish** an already-live entry, taking it back out of the published site.
