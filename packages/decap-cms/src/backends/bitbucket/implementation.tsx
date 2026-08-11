@@ -34,7 +34,7 @@ import API, { API_NAME } from './API';
 import AuthenticationPage from './AuthenticationPage';
 
 import type { NetlifyAuthResult } from '@/lib/auth/index';
-import type { BackendEntry } from '@/lib/backend/index';
+import type { BackendEntry, BackendFileRef } from '@/lib/backend/index';
 import type {
   ApiRequest,
   AsyncLock,
@@ -44,7 +44,6 @@ import type {
   CmsDisplayURL,
   CmsFileEntry,
   CmsImplementation,
-  CmsImplementationFile,
   CmsPersistOptions,
   CmsUser,
   Cursor,
@@ -386,7 +385,7 @@ export default class BitbucketBackend implements CmsImplementation {
     return files;
   }
 
-  async entriesByFiles(files: CmsImplementationFile[]) {
+  async entriesByFiles(files: BackendFileRef[]) {
     const head = await this.api!.defaultBranchCommitSha();
     const readFile = (path: string, id: string | null | undefined) => {
       return this.api!.readFile(path, id, { head }) as Promise<string>;

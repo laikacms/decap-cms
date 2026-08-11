@@ -21,6 +21,7 @@ import {
 import API, { API_NAME } from './API';
 import AuthenticationPage from './AuthenticationPage';
 
+import type { BackendFileRef } from '@/lib/backend/index';
 import type { CmsBackend, CmsFileEntry, Semaphore } from '@/lib/util/index';
 import type {
   AsyncLock,
@@ -30,7 +31,6 @@ import type {
   CmsDisplayURL,
   CmsEntry,
   CmsImplementation,
-  CmsImplementationFile,
   CmsImplementationMediaFile,
   CmsPersistOptions,
   CmsUnpublishedEntryMediaFile,
@@ -174,7 +174,7 @@ export default class Azure implements CmsImplementation {
     return entries;
   }
 
-  entriesByFiles(files: CmsImplementationFile[]) {
+  entriesByFiles(files: BackendFileRef[]) {
     return entriesByFiles(
       files,
       this.api!.readFile.bind(this.api!),

@@ -49,12 +49,6 @@ export type CmsEntryField = {
 
 export type CmsEntryFields = CmsEntryField[];
 
-export type CmsImplementationFile = {
-  id?: string | null | undefined,
-  label?: string | undefined,
-  path: string,
-};
-
 export type CmsFileEntry = {
   dataFiles: CmsDataFile[],
   assets: CmsAssetProxy[],

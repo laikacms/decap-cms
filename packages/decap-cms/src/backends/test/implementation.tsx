@@ -14,7 +14,7 @@ import {
 } from '@/lib/util/index';
 import AuthenticationPage from './AuthenticationPage';
 
-import type { BackendEntry } from '@/lib/backend/index';
+import type { BackendEntry, BackendFileRef } from '@/lib/backend/index';
 import type {
   CmsAssetProxy,
   CmsConfig,
@@ -22,7 +22,6 @@ import type {
   CmsEntry,
   CmsEntryLockOwner,
   CmsImplementation,
-  CmsImplementationFile,
   CmsPersistOptions,
   CmsUser,
   CursorCompatibleEntries,
@@ -286,7 +285,7 @@ export default class TestBackend implements CmsImplementation {
     return Promise.resolve(ret);
   }
 
-  entriesByFiles(files: CmsImplementationFile[]) {
+  entriesByFiles(files: BackendFileRef[]) {
     return Promise.all(
       files.map(file => ({
         file,

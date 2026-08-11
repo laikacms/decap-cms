@@ -1,4 +1,4 @@
-import type { BackendEntry, UnpublishedEntry } from '@/lib/backend/entry';
+import type { BackendEntry, BackendFileRef, UnpublishedEntry } from '@/lib/backend/entry';
 import type Cursor from '@/lib/util/Cursor.js';
 import type React from 'react';
 import type { CmsConfig } from './cms.js';
@@ -12,7 +12,7 @@ import type {
   CmsPersistOptions,
   CmsUser,
 } from './common.js';
-import type { CmsFileEntry, CmsImplementationFile } from './entries.js';
+import type { CmsFileEntry } from './entries.js';
 import type {
   CmsGetMediaPageOptions,
   CmsImplementationMediaFile,
@@ -220,7 +220,7 @@ export interface CmsImplementation {
     extension: string,
     depth: number,
   ) => Promise<BackendEntry[]>;
-  entriesByFiles: (files: CmsImplementationFile[]) => Promise<BackendEntry[]>;
+  entriesByFiles: (files: BackendFileRef[]) => Promise<BackendEntry[]>;
 
   getMediaDisplayURL?: (displayURL: CmsDisplayURL) => Promise<string>;
   /**

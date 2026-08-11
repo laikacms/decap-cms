@@ -5,13 +5,12 @@ import { clearDirectoryHandle, loadDirectoryHandle, saveDirectoryHandle } from '
 import { deleteEntry, listFiles, readFile, readFileAsString, requestPermission, writeFile } from './fsUtils';
 import './types';
 
-import type { BackendEntry } from '@/lib/backend/index';
+import type { BackendEntry, BackendFileRef } from '@/lib/backend/index';
 import type {
   CmsAssetProxy,
   CmsConfig,
   CmsFileEntry,
   CmsImplementation,
-  CmsImplementationFile,
   CmsImplementationMediaFile,
   CmsPersistOptions,
   CmsUser,
@@ -125,7 +124,7 @@ export default class LocalFsBackend implements CmsImplementation {
     return Promise.all(paths.map(path => this.getEntry(path)));
   }
 
-  entriesByFiles(files: CmsImplementationFile[]): Promise<BackendEntry[]> {
+  entriesByFiles(files: BackendFileRef[]): Promise<BackendEntry[]> {
     return Promise.all(files.map(file => this.getEntry(file.path)));
   }
 

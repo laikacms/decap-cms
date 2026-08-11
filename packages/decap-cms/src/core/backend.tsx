@@ -807,9 +807,10 @@ export class Backend {
         return this.implementation.entriesByFolder(collection.folder as string, extension, depth);
       };
     } else if (collectionType === FILES) {
+      // Only the path: the entry's label is collection config the engine
+      // already has, so it never crosses the seam.
       const files = (collection.files || []).map((collectionFile: CmsCollectionFileState) => ({
         path: collectionFile.file,
-        label: collectionFile.label,
       }));
       listMethod = () => this.implementation.entriesByFiles(files);
     } else {

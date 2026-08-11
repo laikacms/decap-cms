@@ -4,7 +4,7 @@ import { rawContent } from '@/lib/backend/index';
 import { APIError, blobToFileObj, EditorialWorkflowError, unsentRequest } from '@/lib/util/index';
 import AuthenticationPage from './AuthenticationPage';
 
-import type { BackendEntry, UnpublishedEntry } from '@/lib/backend/index';
+import type { BackendEntry, BackendFileRef, UnpublishedEntry } from '@/lib/backend/index';
 import type {
   CmsAssetProxy,
   CmsConfig,
@@ -12,7 +12,6 @@ import type {
   CmsEntry,
   CmsFileEntry,
   CmsImplementation,
-  CmsImplementationFile,
   CmsPersistOptions,
   CmsUser,
 } from '@/lib/util/index';
@@ -174,7 +173,7 @@ export default class ProxyBackend implements CmsImplementation {
     return entries.map(toBackendEntry);
   }
 
-  async entriesByFiles(files: CmsImplementationFile[]) {
+  async entriesByFiles(files: BackendFileRef[]) {
     const entries: ProxyEntry[] = await this.request({
       action: 'entriesByFiles',
       params: { branch: this.branch, files },

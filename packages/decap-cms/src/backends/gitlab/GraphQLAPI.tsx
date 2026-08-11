@@ -5,8 +5,7 @@ import { rawContent } from '@/lib/backend/index';
 import API from './API';
 import * as queries from './queries';
 
-import type { BackendEntry } from '@/lib/backend/index';
-import type { CmsImplementationFile } from '@/lib/util/index';
+import type { BackendEntry, BackendFileRef } from '@/lib/backend/index';
 import type { Config, FileEntry } from './API';
 
 const NO_CACHE = 'no-cache';
@@ -77,7 +76,7 @@ export default class GraphQLAPI extends API {
    * later file onto the previous one's content or author. Both halves are
    * keyed by path instead, which is what actually identifies a file.
    */
-  readFilesGraphQL = async (files: CmsImplementationFile[]) => {
+  readFilesGraphQL = async (files: BackendFileRef[]) => {
     const paths = files.map(({ path }) => path);
 
     type BlobResult = {

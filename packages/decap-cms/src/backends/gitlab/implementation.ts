@@ -1,7 +1,7 @@
 import { trim, trimStart } from 'lodash-es';
 
-import { rawContent } from '@/lib/backend/index';
 import { PkceAuthenticator } from '@/lib/auth/index';
+import { rawContent } from '@/lib/backend/index';
 import { stripIndent } from '@/lib/util/index';
 import {
   AccessTokenError,
@@ -30,7 +30,7 @@ import {
 import API, { API_NAME } from './API';
 import AuthenticationPage from './AuthenticationPage';
 
-import type { BackendEntry } from '@/lib/backend/index';
+import type { BackendEntry, BackendFileRef } from '@/lib/backend/index';
 import type {
   ApiRequest,
   AsyncLock,
@@ -40,7 +40,6 @@ import type {
   CmsDisplayURL,
   CmsFileEntry,
   CmsImplementation,
-  CmsImplementationFile,
   CmsPersistOptions,
   CmsUnpublishedEntryMediaFile,
   CmsUser,
@@ -52,7 +51,7 @@ import type {
 const MAX_CONCURRENT_DOWNLOADS = 10;
 
 type GraphQLAPIInstance = API & {
-  readFilesGraphQL: (files: CmsImplementationFile[]) => Promise<BackendEntry[]>,
+  readFilesGraphQL: (files: BackendFileRef[]) => Promise<BackendEntry[]>,
 };
 
 let registeredGraphQLAPI:
@@ -358,7 +357,7 @@ export default class GitLab implements CmsImplementation {
     return files;
   }
 
-  entriesByFiles(files: CmsImplementationFile[]) {
+  entriesByFiles(files: BackendFileRef[]) {
     return entriesByFiles(
       files,
       this.api!.readFile.bind(this.api!),

@@ -23,6 +23,7 @@ import GitLabAPI from './GitLabAPI';
 import GoTrue from './GoTrue';
 import { getClient } from './netlify-lfs-client';
 
+import type { BackendFileRef as ImplementationFile } from '@/lib/backend/index';
 import type {
   ApiRequest,
   CmsAssetProxy as AssetProxy,
@@ -33,7 +34,6 @@ import type {
   CmsEntry as Entry,
   CmsFileEntry,
   CmsImplementation as Implementation,
-  CmsImplementationFile as ImplementationFile,
   CmsPersistOptions as PersistOptions,
   CmsUser as User,
   Cursor,

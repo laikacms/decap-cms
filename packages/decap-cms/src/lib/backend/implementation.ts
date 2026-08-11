@@ -11,7 +11,7 @@ import type {
   CmsPersistOptions,
   CmsUser,
 } from '@/lib/util/index';
-import type { BackendEntry, UnpublishedEntry } from './entry';
+import type { BackendEntry, BackendFileRef, UnpublishedEntry } from './entry';
 import type { Asset, MediaFile, PersistPayload } from './persist';
 
 /**
@@ -60,7 +60,7 @@ export interface BackendImplementation {
    */
   getEntry: (path: string, useWorkflow?: boolean) => Promise<BackendEntry>;
   entriesByFolder: (folder: string, extension: string, depth: number) => Promise<BackendEntry[]>;
-  entriesByFiles: (files: { path: string, id?: string | null }[]) => Promise<BackendEntry[]>;
+  entriesByFiles: (files: BackendFileRef[]) => Promise<BackendEntry[]>;
 
   getMediaDisplayURL?: (displayURL: CmsDisplayURL) => Promise<string>;
   /**

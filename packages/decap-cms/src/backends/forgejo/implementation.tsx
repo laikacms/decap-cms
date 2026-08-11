@@ -24,7 +24,7 @@ import {
 import API, { API_NAME } from './API';
 import AuthenticationPage from './AuthenticationPage';
 
-import type { BackendEntry } from '@/lib/backend/index';
+import type { BackendEntry, BackendFileRef } from '@/lib/backend/index';
 import type {
   AsyncLock,
   CmsAssetProxy,
@@ -33,7 +33,6 @@ import type {
   CmsDisplayURL,
   CmsFileEntry,
   CmsImplementation,
-  CmsImplementationFile,
   CmsPersistOptions,
   CmsUser,
   CursorCompatibleEntries,
@@ -291,7 +290,7 @@ export default class Forgejo implements CmsImplementation {
     return files;
   }
 
-  entriesByFiles(files: CmsImplementationFile[]) {
+  entriesByFiles(files: BackendFileRef[]) {
     const repoURL = this.api!.repoURL;
 
     const readFile = (path: string, id: string | null | undefined) =>
