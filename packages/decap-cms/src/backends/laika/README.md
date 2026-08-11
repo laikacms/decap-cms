@@ -15,7 +15,8 @@ opaque JSON; this adapter owns every Decap-specific opinion:
 
 - which fields and shapes Decap expects from documents and assets
 - editorial workflow mapping (draft/review/publish onto unpublished/publish)
-- deploy previews, commit messages and authors (adapter concerns, never protocol ones)
+- commit messages and authors (adapter concerns, never protocol ones); deploy previews are
+  **not** implemented — `getDeployPreview` unconditionally returns `null`
 - translating protocol capabilities (pagination, version tracking, change signals) into Decap's
   fetching and caching behavior
 
