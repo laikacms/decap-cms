@@ -1,0 +1,17 @@
+import { describe, expect, it } from 'vitest';
+
+import { registerExtensions } from '@/app/extensions';
+import { getWidget } from '@/core/lib/registry';
+
+describe('app extensions', () => {
+  it('does not register the map widget by default (DCMS-1971)', () => {
+    registerExtensions();
+
+    // `ol` (OpenLayers) is an optional peer dependency of the map widget.
+    // The default app entry must not register it — consumers who need it
+    // opt in via `registerMapWidget()` from `@laikacms/decap-cms/widgets/map`.
+    expect(getWidget('map')).toBeUndefined();
+    // Sanity check that registration otherwise ran.
+    expect(getWidget('string')).toBeDefined();
+  });
+});

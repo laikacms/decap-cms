@@ -107,10 +107,19 @@ pnpm add @apollo/client graphql graphql-tag
 the Uploadcare media library (already an opt-in subpath export). Neither is installed with the
 package anymore.
 
-**Migration:** If your config uses the `map` widget, install `ol` yourself (`pnpm add ol`). Note the
-map widget is still registered by the default app entry, so builds that bundle the root export
-currently require `ol` to be installed. If you use the Uploadcare media library, install
-`uploadcare-widget` and `uploadcare-widget-tab-effects`.
+**Migration:** If your config uses the `map` widget, install `ol` yourself (`pnpm add ol`) and
+register the widget explicitly (DCMS-1971) — it is no longer registered by the default app entry, so
+builds that bundle the root export do not require `ol` unless they opt in:
+
+```diff
++ import { registerMapWidget } from '@laikacms/decap-cms/widgets/map';
+  import CMS from '@laikacms/decap-cms';
++
++ registerMapWidget();
+```
+
+If you use the Uploadcare media library, install `uploadcare-widget` and
+`uploadcare-widget-tab-effects`.
 
 ## Richtext output formats are now opt-in format packs
 

@@ -3,6 +3,21 @@
 The map widget renders an interactive [OpenLayers](https://openlayers.org/) map for drawing a single
 geometry (point, line, or polygon) and stores the result as a GeoJSON string.
 
+## Registration
+
+`ol` is an optional peer dependency (DCMS-1971), and the map widget is opt-in — it is not registered
+by the default app entry. Install `ol` and register it explicitly before `init()`:
+
+```diff
++ import { registerMapWidget } from '@laikacms/decap-cms/widgets/map';
+  import CMS from '@laikacms/decap-cms';
++
++ registerMapWidget();
+```
+
+`registerMapWidget()` is idempotent. Importing `@laikacms/decap-cms/widgets/map` on its own has no
+side effects — only calling `registerMapWidget()` registers the widget.
+
 ## Config
 
 ```yaml
