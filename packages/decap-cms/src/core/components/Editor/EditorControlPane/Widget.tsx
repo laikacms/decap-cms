@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import ValidationErrorTypes from '@/core/constants/validationErrorTypes';
 import { getRemarkPlugins } from '@/core/lib/registry';
 
+import type { StandardSchemaV1, StandardSchemaV1Result } from '@/lib/util/types/cms/standardSchema';
 import type { TranslateFunction } from '@/ui/default/index';
 
 // Local type definitions
@@ -199,9 +200,76 @@ export default class Widget extends Component<WidgetProps> {
     return value;
   };
 
-  validate = (skipWrapped: ValidationResult | boolean = false) => {
+  // DCMS-458: a Standard Schema-compliant validator (zod/valibot/arktype/effect
+  // Schema/...) set as `field.validate` takes over as the sole source of field
+  // errors for this field, in place of the built-in required/pattern checks -
+  // see `~standard.validate` at https://github.com/standard-schema/standard-schema.
+  // Fields without `validate` are unaffected and keep running the checks below.
+  getStandardSchema = (field: Record<string, unknown>): StandardSchemaV1<unknown, unknown> | undefined => {
+    const schema = field.validate as StandardSchemaV1<unknown, unknown> | undefined;
+    if (schema && schema['~standard'] && typeof schema['~standard'].validate === 'function') {
+      return schema;
+    }
+    return undefined;
+  };
+
+  validateStandardSchema = (standardSchema: StandardSchemaV1<unknown, unknown>) => {
+    const { t, field, parentIds } = this.props;
     const value = this.getValidateValue();
+    const result = standardSchema['~standard'].validate(value);
+
+    const applyResult = (resolved: StandardSchemaV1Result<unknown>) => {
+      const issues = resolved && resolved.issues;
+      if (!issues || issues.length === 0) {
+        this.props.onValidate?.([]);
+        return;
+      }
+      this.props.onValidate?.(
+        issues.map(issue => ({
+          type: ValidationErrorTypes.CUSTOM,
+          parentIds,
+          message: issue.message,
+        })),
+      );
+    };
+
+    if (result instanceof Promise) {
+      // Surface a transient "processing" error while the async validator
+      // resolves, mirroring `validateWrappedControl`'s async handling below.
+      this.props.onValidate?.([
+        {
+          type: ValidationErrorTypes.CUSTOM,
+          parentIds,
+          message: t('editor.editorControlPane.widget.processing', {
+            fieldLabel: (field.label || field.name) as string,
+          }),
+        },
+      ]);
+      result.then(applyResult, (err: unknown) => {
+        this.props.onValidate?.([
+          {
+            type: ValidationErrorTypes.CUSTOM,
+            parentIds,
+            message: `${(field.label || field.name) as string} - ${err}.`,
+          },
+        ]);
+      });
+      return;
+    }
+
+    applyResult(result);
+  };
+
+  validate = (skipWrapped: ValidationResult | boolean = false) => {
     const field = this.props.field;
+
+    const standardSchema = this.getStandardSchema(field);
+    if (standardSchema) {
+      this.validateStandardSchema(standardSchema);
+      return;
+    }
+
+    const value = this.getValidateValue();
     const errors: (ValidationError | false)[] = [];
     const validations: ((
       field: Record<string, unknown>,
