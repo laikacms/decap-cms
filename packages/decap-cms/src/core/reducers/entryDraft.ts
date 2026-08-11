@@ -34,7 +34,7 @@ import { sanitizeSlug } from '@/core/lib/urlHelper';
 import { basename, getNestedValue, join, randomUUID } from '@/lib/util/index';
 import { selectFolderEntryExtension, selectHasMetaPath } from './collections';
 
-import type { CmsCollectionState, CmsEntry, CmsEntryField } from '@/lib/util/index';
+import type { CmsCollectionState, CmsEntry, CmsEntryField, CmsMediaFileMap } from '@/lib/util/index';
 import type { AnyAction } from 'redux';
 
 type Collection = CmsCollectionState;
@@ -60,33 +60,43 @@ const initialState: EntryDraft = {
   key: '',
 };
 
-function deepMerge(target: any, source: any): any {
+function deepMerge<T extends Record<string, unknown>>(target: T, source: Partial<T>): T {
   if (source == null) return target;
   const result = { ...target };
-  for (const key of Object.keys(source)) {
-    if (typeof source[key] === 'object' && source[key] !== null && !Array.isArray(source[key])) {
-      result[key] = deepMerge(target[key] ?? {}, source[key]);
+  for (const key of Object.keys(source) as (keyof T)[]) {
+    const sourceValue = source[key];
+    if (typeof sourceValue === 'object' && sourceValue !== null && !Array.isArray(sourceValue)) {
+      result[key] = deepMerge(
+        (target[key] ?? {}) as Record<string, unknown>,
+        sourceValue as Record<string, unknown>,
+      ) as T[keyof T];
     } else {
-      result[key] = source[key];
+      result[key] = sourceValue as T[keyof T];
     }
   }
   return result;
 }
 
-function setNestedValue(obj: any, path: string[], value: any): any {
-  if (path.length === 0) return value;
+function setNestedValue<T>(obj: Record<string, unknown> | undefined, path: string[], value: unknown): T {
+  if (path.length === 0) return value as T;
   const [head, ...rest] = path;
-  return { ...obj, [head]: setNestedValue(obj?.[head] ?? {}, rest, value) };
+  return {
+    ...obj,
+    [head]: setNestedValue(obj?.[head] as Record<string, unknown> | undefined, rest, value),
+  } as T;
 }
 
-function deleteNestedKey(obj: any, path: string[]): any {
-  if (path.length === 0) return obj;
+function deleteNestedKey<T>(obj: Record<string, unknown> | undefined, path: string[]): T {
+  if (path.length === 0) return obj as T;
   if (path.length === 1) {
     const { [path[0]]: _, ...rest } = obj ?? {};
-    return rest;
+    return rest as T;
   }
   const [head, ...rest] = path;
-  return { ...obj, [head]: deleteNestedKey(obj?.[head], rest) };
+  return {
+    ...obj,
+    [head]: deleteNestedKey(obj?.[head] as Record<string, unknown> | undefined, rest),
+  } as T;
 }
 
 const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryDraft | void => {
@@ -121,11 +131,11 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
       };
 
     case DRAFT_CREATE_FROM_LOCAL_BACKUP: {
-      const backupEntry = state.localBackup?.entry;
-      const { localBackup: _, ...rest } = state as any;
+      const backupEntry = state.localBackup?.entry ?? initialState.entry;
+      const { localBackup: _, ...rest } = state;
       return {
         ...rest,
-        entry: { ...backupEntry, newRecord: !backupEntry?.path },
+        entry: { ...backupEntry, newRecord: !backupEntry.path },
         fieldsMetaData: {},
         fieldsErrors: {},
         hasChanged: true,
@@ -173,23 +183,26 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
       // anything (DCMS-416). The flag itself is not real field metadata, so
       // it's stripped before merging into fieldsMetaData.
       const { fromDefault, ...restMetadata } = metadata ?? {};
-      const isNewRecord = (state.entry as any).newRecord;
+      const isNewRecord = state.entry.newRecord;
       const previousData = getNestedValue(state.entry, dataPath);
-      const previousMeta = (state.entry as any).meta;
+      const previousMeta = state.entry.meta;
 
       if (meta) {
-        state.entry = setNestedValue(state.entry, ['meta', name as string], value) as EntryMap;
+        state.entry = setNestedValue<EntryMap>(state.entry, ['meta', name as string], value);
       } else {
-        state.entry = setNestedValue(state.entry, [...dataPath, name as string], value) as EntryMap;
+        state.entry = setNestedValue<EntryMap>(state.entry, [...dataPath, name as string], value);
         if (i18n) {
-          duplicateI18nFields(state as any, field, i18n.locales, i18n.defaultLocale);
+          // Immer's WritableDraft<EntryDraft> is structurally compatible with
+          // the plain EntryDraft that duplicateI18nFields expects, but Immer's
+          // draft typing isn't directly assignable without this cast.
+          duplicateI18nFields(state as EntryDraft, field, i18n.locales, i18n.defaultLocale);
         }
       }
       state.fieldsMetaData = deepMerge(state.fieldsMetaData ?? {}, restMetadata);
 
       if (!(fromDefault && isNewRecord)) {
         const newData = getNestedValue(state.entry, dataPath);
-        const newMeta = (state.entry as any).meta;
+        const newMeta = state.entry.meta;
 
         // A write that reproduces exactly what's already in the draft is a
         // no-op regardless of what the (possibly stale) `entries` baseline
@@ -204,10 +217,10 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
           && JSON.stringify(newMeta) === JSON.stringify(previousMeta);
 
         if (!isNoOpWrite) {
-          state.hasChanged = !entries.some((e: any) => {
+          state.hasChanged = !entries.some((e: EntryMap) => {
             const eData = getNestedValue(e, dataPath);
             return JSON.stringify(newData) === JSON.stringify(eData);
-          }) || !entries.some((e: any) => JSON.stringify(newMeta) === JSON.stringify(e.meta));
+          }) || !entries.some((e: EntryMap) => JSON.stringify(newMeta) === JSON.stringify(e.meta));
         }
       }
       break;
@@ -239,36 +252,36 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
 
     case ENTRY_PERSIST_FAILURE:
     case UNPUBLISHED_ENTRY_PERSIST_FAILURE: {
-      const { isPersisting: _, ...rest } = state.entry as any;
+      const { isPersisting: _, ...rest } = state.entry;
       state.entry = rest;
       break;
     }
 
     case UNPUBLISHED_ENTRY_STATUS_CHANGE_REQUEST:
-      state.entry = { ...state.entry, isUpdatingStatus: true } as any;
+      state.entry = { ...state.entry, isUpdatingStatus: true };
       break;
 
     case UNPUBLISHED_ENTRY_STATUS_CHANGE_FAILURE:
     case UNPUBLISHED_ENTRY_STATUS_CHANGE_SUCCESS: {
-      const { isUpdatingStatus: _, ...rest } = state.entry as any;
+      const { isUpdatingStatus: _, ...rest } = state.entry;
       state.entry = rest;
       break;
     }
 
     case UNPUBLISHED_ENTRY_PUBLISH_REQUEST:
-      state.entry = { ...state.entry, isPublishing: true } as any;
+      state.entry = { ...state.entry, isPublishing: true };
       break;
 
     case UNPUBLISHED_ENTRY_PUBLISH_SUCCESS:
     case UNPUBLISHED_ENTRY_PUBLISH_FAILURE: {
-      const { isPublishing: _, ...rest } = state.entry as any;
+      const { isPublishing: _, ...rest } = state.entry;
       state.entry = rest;
       break;
     }
 
     case ENTRY_PERSIST_SUCCESS:
     case UNPUBLISHED_ENTRY_PERSIST_SUCCESS: {
-      const { isPersisting: _, ...rest } = state.entry as any;
+      const { isPersisting: _, ...rest } = state.entry;
       state.entry = rest;
       state.hasChanged = false;
       if (!state.entry.slug) {
@@ -278,7 +291,7 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
     }
 
     case ENTRY_DELETE_SUCCESS: {
-      const { isPersisting: _, ...rest } = state.entry as any;
+      const { isPersisting: _, ...rest } = state.entry;
       state.entry = rest;
       state.hasChanged = false;
       break;
@@ -286,7 +299,7 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
 
     case ADD_DRAFT_ENTRY_MEDIA_FILE: {
       const mediaFiles = (state.entry.mediaFiles ?? []).filter(
-        (file: any) => file.id !== action.payload.id,
+        (file: CmsMediaFileMap) => file.id !== action.payload.id,
       );
       state.entry = { ...state.entry, mediaFiles: [action.payload, ...mediaFiles] };
       state.hasChanged = true;
@@ -297,7 +310,7 @@ const entryDraftReducer = produce((state: EntryDraft, action: AnyAction): EntryD
       state.entry = {
         ...state.entry,
         mediaFiles: (state.entry.mediaFiles ?? []).filter(
-          (file: any) => file.id !== action.payload.id,
+          (file: CmsMediaFileMap) => file.id !== action.payload.id,
         ),
       };
       state.hasChanged = true;

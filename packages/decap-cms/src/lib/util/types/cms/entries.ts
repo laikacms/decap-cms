@@ -21,6 +21,8 @@ export type CmsEntry = {
   error?: string,
   isFetching?: boolean,
   isPersisting?: boolean,
+  isUpdatingStatus?: boolean,
+  isPublishing?: boolean,
   isModification?: boolean | null,
 };
 
