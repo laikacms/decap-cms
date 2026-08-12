@@ -17,6 +17,42 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/Tooltip';
 
 import type { LexicalCommand, LexicalEditor, RangeSelection } from 'lexical';
 
+// Minimal Web Speech API surface used by this file. Not part of the DOM lib types,
+// so we declare just enough of the non-standard `window.SpeechRecognition` /
+// `window.webkitSpeechRecognition` globals to avoid suppressing the type-checker.
+interface SpeechRecognitionResultItem {
+  isFinal: boolean;
+  item(index: number): { transcript: string };
+}
+
+interface SpeechRecognitionResultList {
+  item(index: number): SpeechRecognitionResultItem;
+}
+
+interface SpeechRecognitionEvent {
+  resultIndex: number;
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionInstance {
+  continuous: boolean;
+  interimResults: boolean;
+  start(): void;
+  stop(): void;
+  addEventListener(type: 'result', listener: (event: SpeechRecognitionEvent) => void): void;
+}
+
+interface SpeechRecognitionConstructor {
+  new (): SpeechRecognitionInstance;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition?: SpeechRecognitionConstructor;
+    webkitSpeechRecognition?: SpeechRecognitionConstructor;
+  }
+}
+
 export const SPEECH_TO_TEXT_COMMAND: LexicalCommand<boolean> = createCommand('SPEECH_TO_TEXT_COMMAND');
 
 const VOICE_COMMANDS: Readonly<
@@ -40,18 +76,20 @@ function SpeechToTextPluginImpl() {
   const [editor] = useLexicalComposerContext();
   const [isEnabled, setIsEnabled] = useState<boolean>(false);
   const [isSpeechToText, setIsSpeechToText] = useState(false);
-  const SpeechRecognition =
-    // @ts-expect-error missing type
-    window.SpeechRecognition || window.webkitSpeechRecognition;
-  const recognition = useRef<typeof SpeechRecognition | null>(null);
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const recognition = useRef<SpeechRecognitionInstance | null>(null);
   const report = useReport();
 
   useEffect(() => {
+    if (!SpeechRecognition) {
+      return;
+    }
+
     if (isEnabled && recognition.current === null) {
       recognition.current = new SpeechRecognition();
       recognition.current.continuous = true;
       recognition.current.interimResults = true;
-      recognition.current.addEventListener('result', (event: typeof SpeechRecognition) => {
+      recognition.current.addEventListener('result', (event: SpeechRecognitionEvent) => {
         const resultItem = event.results.item(event.resultIndex);
         const { transcript } = resultItem.item(0);
         report(transcript);
