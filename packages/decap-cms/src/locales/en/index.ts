@@ -147,6 +147,8 @@ const en = {
       loadingEntry: 'Loading entry...',
       confirmLoadBackup: 'A local backup was recovered for this entry, would you like to use it?',
       confirmLoadBackupTitle: 'Restore backup',
+      confirmLoadBackupConfirm: 'Restore draft',
+      confirmLoadBackupCancel: 'Ignore backup',
       lockedByOther: 'Being edited by %{name}. Your changes may be overwritten if you continue.',
       lockedByUnknown: 'another user',
       lockOverride: 'Edit anyway',
