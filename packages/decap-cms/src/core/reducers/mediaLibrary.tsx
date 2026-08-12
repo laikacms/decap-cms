@@ -34,6 +34,7 @@ import type {
   CmsMediaFileMap,
   CmsMediaLibraryInstance,
 } from '@/lib/util/index';
+import type { Integrations } from './integrations';
 
 type DisplayURLState = {
   isFetching: boolean,
@@ -69,11 +70,6 @@ type MediaLibrary = {
   dynamicSearchQuery?: string,
   /** Continuation cursor from a paginated backend; absent when exhausted. */
   cursor?: string | undefined,
-};
-
-type Integrations = {
-  hooks: { [collectionOrHook: string]: any },
-  providers?: Record<string, unknown>,
 };
 
 type EntryDraft = {
