@@ -50,6 +50,24 @@ const quickAddFieldConfig = {
   allow_quick_add: true,
 };
 
+// Target-collection config for the quick-add dialog (DCMS-2055): `title` is
+// required with a human `label`; `slug` is optional and carries a `hint`.
+// Threaded into `RelationControl` the same way `EditorControl.tsx` threads
+// `config` down through `Widget.tsx`.
+const postsCollectionConfig = {
+  collections: [
+    {
+      name: 'posts',
+      label: 'Posts',
+      folder: 'posts',
+      fields: [
+        { name: 'title', label: 'Title', widget: 'string', required: true },
+        { name: 'slug', label: 'Slug', widget: 'string', required: false, hint: 'Used in the URL' },
+      ],
+    },
+  ],
+};
+
 const customizedOptionsLengthConfig = {
   name: 'post',
   collection: 'posts',
@@ -319,7 +337,7 @@ class RelationController extends React.Component {
   }
 }
 
-function setup({ field, value, hasErrors, errorListId, onQuickCreateEntry, t }) {
+function setup({ field, value, hasErrors, errorListId, onQuickCreateEntry, t, config }) {
   let renderArgs;
   const setActiveSpy = vi.fn();
   const setInactiveSpy = vi.fn();
@@ -347,6 +365,7 @@ function setup({ field, value, hasErrors, errorListId, onQuickCreateEntry, t }) 
             hasErrors={hasErrors}
             errorListId={errorListId}
             onQuickCreateEntry={onQuickCreateEntry}
+            config={config}
             t={t}
           />
         );
@@ -996,6 +1015,85 @@ describe('Relation widget', () => {
         expect(getByText('Not allowed to create new entries in this collection')).toBeInTheDocument();
       });
       expect(getByText('Create new posts')).toBeInTheDocument();
+    });
+
+    // DCMS-2055: the quick-add dialog used to render each field's raw
+    // `Object.keys(quickAdd.values)` key as its label (e.g. `title`), had no
+    // required-field marker/validation, and lacked the hint/a11y wiring
+    // (`hasErrors`/`errorListId`/`hintId`/`aria-describedby`/`aria-invalid`)
+    // PR #2048 applied to `uuid`/`lucide-icon`/`radix-icon`.
+    describe('a11y labels, required validation, and hint wiring (DCMS-2055)', () => {
+      it("renders each field's label as the target collection field's label, not the raw field key", async () => {
+        const user = userEvent.setup();
+        const { getByText, getByLabelText, queryByLabelText } = setup({
+          field: quickAddFieldConfig,
+          onQuickCreateEntry: vi.fn(),
+          config: postsCollectionConfig,
+        });
+
+        await user.click(getByText('+ Create new posts'));
+
+        expect(getByLabelText(/^Title/)).toBeInTheDocument();
+        expect(getByLabelText(/^Slug/)).toBeInTheDocument();
+        expect(queryByLabelText('title')).not.toBeInTheDocument();
+        expect(queryByLabelText('slug')).not.toBeInTheDocument();
+      });
+
+      it('blocks Save and shows an inline error when a required target field is left empty', async () => {
+        const user = userEvent.setup();
+        const onQuickCreateEntry = vi.fn().mockResolvedValue({ title: 'Quick post', slug: 'quick-post' });
+        const { getByText, getByLabelText } = setup({
+          field: quickAddFieldConfig,
+          onQuickCreateEntry,
+          config: postsCollectionConfig,
+        });
+
+        await user.click(getByText('+ Create new posts'));
+        // `title` (required) left empty; only fill the optional `slug`.
+        await user.type(getByLabelText(/^Slug/), 'quick-post');
+        await user.click(getByText('Save'));
+
+        await waitFor(() => {
+          expect(getByText('Title is required.')).toBeInTheDocument();
+        });
+        expect(onQuickCreateEntry).not.toHaveBeenCalled();
+        expect(getByText('Create new posts')).toBeInTheDocument();
+
+        const titleInput = getByLabelText(/^Title/);
+        expect(titleInput).toHaveAttribute('aria-invalid', 'true');
+
+        // Filling the field in and re-submitting clears the inline error and
+        // proceeds with the save.
+        await user.type(titleInput, 'Quick post');
+        await user.click(getByText('Save'));
+
+        await waitFor(() => {
+          expect(onQuickCreateEntry).toHaveBeenCalledWith('posts', {
+            title: 'Quick post',
+            slug: 'quick-post',
+          });
+        });
+      });
+
+      it('wires aria-describedby to the hint id when the target field defines a hint', async () => {
+        const user = userEvent.setup();
+        const { getByText, getByLabelText } = setup({
+          field: quickAddFieldConfig,
+          onQuickCreateEntry: vi.fn(),
+          config: postsCollectionConfig,
+        });
+
+        await user.click(getByText('+ Create new posts'));
+
+        const slugInput = getByLabelText(/^Slug/);
+        const describedBy = slugInput.getAttribute('aria-describedby');
+        expect(describedBy).toBeTruthy();
+        expect(document.getElementById(describedBy).textContent).toBe('Used in the URL');
+
+        // `title` has no configured hint, so it gets no aria-describedby.
+        const titleInput = getByLabelText(/^Title/);
+        expect(titleInput).not.toHaveAttribute('aria-describedby');
+      });
     });
   });
 });

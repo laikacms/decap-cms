@@ -30,7 +30,7 @@ import {
 } from '@/ui';
 import { SortableArea, SortableHandle, SortableItem } from '@/ui/default/index';
 
-import type { CmsFieldBase, CmsFieldRelation } from '@/lib/util/index';
+import type { CmsConfig, CmsFieldBase, CmsFieldRelation } from '@/lib/util/index';
 
 interface RelationOption {
   label: string;
@@ -220,6 +220,14 @@ export interface RelationControlProps {
   hasErrors?: boolean;
   errorListId?: string;
   hintId?: string;
+  /**
+   * Threaded down from `EditorControl` via `Widget` (see `config={config}` in
+   * `EditorControl.tsx`) so the quick-add dialog can look up the *target*
+   * collection's own field definitions (`config.collections`) - a different
+   * collection than the one this relation field lives in - for their
+   * `label`/`required`/`hint`, mirroring `LabelComponent` (DCMS-2055).
+   */
+  config?: CmsConfig;
 }
 
 export interface RelationControlHandle {
@@ -243,6 +251,7 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
       errorListId,
       hintId,
       onQuickCreateEntry,
+      config,
       t,
     } = props;
 
@@ -253,6 +262,7 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
       values: Record<string, string>,
       submitting: boolean,
       error: string | null,
+      errors: Record<string, string>,
     } | null>(null);
     const mountedRef = React.useRef(false);
 
@@ -579,12 +589,51 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
     // instances or older host apps may not).
     const canQuickAdd = Boolean(onQuickCreateEntry) && Boolean(field.allow_quick_add ?? field.allowQuickAdd);
 
+    // Looks up the *target* collection's (`field.collection`) own field
+    // definition for a quick-add form field, so the dialog can mirror
+    // `label`/`required`/`hint` the way `LabelComponent`
+    // (`EditorControl.tsx:145-153`) does for the normal editor pane
+    // (DCMS-2055). Returns `undefined` when `config` wasn't threaded down
+    // (e.g. some embedding host apps / older tests) or the target
+    // collection/field can't be found - callers fall back to the raw quick-add
+    // field key in that case.
+    function getTargetField(name: string): CmsFieldBase | undefined {
+      const targetCollection = config?.collections?.find(c => c.name === field.collection);
+      return targetCollection?.fields?.find(f => f.name === name) as CmsFieldBase | undefined;
+    }
+
+    function getQuickAddFieldLabel(name: string): string {
+      return getTargetField(name)?.label || name;
+    }
+
+    // Matches `EditorControl.tsx`'s `isFieldRequired = field.required !== false`
+    // default-to-required convention, but only once we actually have the
+    // target field's own definition to check - without it there's no basis to
+    // treat a field as required (DCMS-2055).
+    function isQuickAddFieldRequired(name: string): boolean {
+      const targetField = getTargetField(name);
+      return targetField ? targetField.required !== false : false;
+    }
+
+    function validateQuickAddValues(values: Record<string, string>): Record<string, string> {
+      const errors: Record<string, string> = {};
+      Object.keys(values).forEach(name => {
+        if (isQuickAddFieldRequired(name) && !values[name]?.trim()) {
+          const fieldLabel = getQuickAddFieldLabel(name);
+          errors[name] = t
+            ? t('editor.editorControlPane.widget.required', { fieldLabel })
+            : `${fieldLabel} is required.`;
+        }
+      });
+      return errors;
+    }
+
     function openQuickAdd() {
       const values: Record<string, string> = {};
       getQuickAddFieldNames(field).forEach(name => {
         values[name] = '';
       });
-      setQuickAdd({ values, submitting: false, error: null });
+      setQuickAdd({ values, submitting: false, error: null, errors: {} });
     }
 
     function closeQuickAdd() {
@@ -592,7 +641,11 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
     }
 
     function updateQuickAddValue(name: string, fieldValue: string) {
-      setQuickAdd(state => (state ? { ...state, values: { ...state.values, [name]: fieldValue } } : state));
+      setQuickAdd(state => {
+        if (!state) return state;
+        const { [name]: _removedError, ...remainingErrors } = state.errors;
+        return { ...state, values: { ...state.values, [name]: fieldValue }, errors: remainingErrors };
+      });
     }
 
     // Selects a freshly quick-added entry in place, reusing the normal
@@ -615,7 +668,17 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
         return;
       }
 
-      setQuickAdd(state => (state ? { ...state, submitting: true, error: null } : state));
+      // Required-field gate (DCMS-2055): `value_field`/`display_fields` must
+      // be non-empty for `buildQuickAddOption` to produce a usable
+      // `{ value, label }`, so block Save + surface an inline error instead
+      // of silently creating a nameless option.
+      const fieldErrors = validateQuickAddValues(quickAdd.values);
+      if (Object.keys(fieldErrors).length > 0) {
+        setQuickAdd(state => (state ? { ...state, errors: fieldErrors } : state));
+        return;
+      }
+
+      setQuickAdd(state => (state ? { ...state, submitting: true, error: null, errors: {} } : state));
 
       try {
         const data = await onQuickCreateEntry(field.collection, quickAdd.values);
@@ -713,18 +776,46 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
                       : `Create new ${field.collection}`}
                   </DialogTitle>
                 </DialogHeader>
-                {Object.keys(quickAdd.values).map(name => (
-                  <div key={name}>
-                    <Label htmlFor={`quick-add-${forID}-${name}`}>{name}</Label>
-                    <Input
-                      id={`quick-add-${forID}-${name}`}
-                      value={quickAdd.values[name]}
-                      disabled={quickAdd.submitting}
-                      onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                        updateQuickAddValue(name, event.target.value)}
-                    />
-                  </div>
-                ))}
+                {Object.keys(quickAdd.values).map(name => {
+                  const inputId = `quick-add-${forID}-${name}`;
+                  const fieldLabel = getQuickAddFieldLabel(name);
+                  const isRequired = isQuickAddFieldRequired(name);
+                  const fieldHint = getTargetField(name)?.hint;
+                  const fieldError = quickAdd.errors[name];
+                  const fieldHasErrors = !!fieldError;
+                  const fieldErrorListId = fieldHasErrors ? `${inputId}-errors` : undefined;
+                  const fieldHintId = fieldHint ? `${inputId}-hint` : undefined;
+
+                  return (
+                    <div key={name}>
+                      <Label htmlFor={inputId}>
+                        {fieldLabel}
+                        {isRequired && (
+                          <span aria-hidden="true" title={t ? t('editor.editorControl.field.required') : 'required'}>
+                            {' *'}
+                          </span>
+                        )}
+                      </Label>
+                      <Input
+                        id={inputId}
+                        value={quickAdd.values[name]}
+                        disabled={quickAdd.submitting}
+                        onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                          updateQuickAddValue(name, event.target.value)}
+                        aria-required={isRequired}
+                        aria-invalid={fieldHasErrors || undefined}
+                        aria-errormessage={fieldHasErrors ? fieldErrorListId : undefined}
+                        aria-describedby={fieldHintId}
+                      />
+                      {fieldHint && <p id={fieldHintId}>{fieldHint}</p>}
+                      {fieldHasErrors && (
+                        <p role="alert" id={fieldErrorListId}>
+                          {fieldError}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
                 {quickAdd.error && <p role="alert">{quickAdd.error}</p>}
                 <DialogFooter>
                   <Button type="button" variant="outline" onClick={closeQuickAdd} disabled={quickAdd.submitting}>
