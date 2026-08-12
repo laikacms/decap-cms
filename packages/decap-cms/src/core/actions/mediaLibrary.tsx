@@ -22,6 +22,7 @@ import { addAsset, removeAsset } from './media';
 import { addNotification } from './notifications';
 import { waitUntilWithTimeout } from './waitUntil';
 
+import type AssetStore from '@/core/integrations/providers/assetStore/implementation';
 import type AssetProxy from '@/core/valueObjects/AssetProxy';
 import type {
   CmsEntryField,
@@ -196,11 +197,13 @@ export function loadMedia(
       }
     }
     if (integration) {
-      const provider: any = getIntegrationProvider(
+      // `integration` is the resolved provider for the 'assetStore' hook, so
+      // the map lookup always yields an AssetStore instance here.
+      const provider = getIntegrationProvider(
         state.integrations,
-        backend.getToken as any,
+        backend.getToken,
         integration,
-      );
+      ) as AssetStore;
       dispatch(mediaLoading(page));
       try {
         const files = await provider.retrieve(query, page, privateUpload);
@@ -423,11 +426,13 @@ export function persistMedia(file: File, opts: MediaOptions = {}) {
       let assetProxy: AssetProxy;
       if (integration) {
         try {
-          const provider: any = getIntegrationProvider(
+          // `integration` is the resolved provider for the 'assetStore' hook, so
+          // the map lookup always yields an AssetStore instance here.
+          const provider = getIntegrationProvider(
             state.integrations,
-            backend.getToken as any,
+            backend.getToken,
             integration,
-          );
+          ) as AssetStore;
           const response = await provider.upload(file, privateUpload);
           assetProxy = createAssetProxy({
             url: response.asset.url,
@@ -500,11 +505,13 @@ export function deleteMedia(file: MediaFile, opts: MediaOptions = {}) {
     const backend = currentBackend(state.config);
     const integration = selectIntegration(state, null, 'assetStore');
     if (integration) {
-      const provider: any = getIntegrationProvider(
+      // `integration` is the resolved provider for the 'assetStore' hook, so
+      // the map lookup always yields an AssetStore instance here.
+      const provider = getIntegrationProvider(
         state.integrations,
-        backend.getToken as any,
+        backend.getToken,
         integration,
-      );
+      ) as AssetStore;
       dispatch(mediaDeleting());
 
       try {

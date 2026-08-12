@@ -54,7 +54,9 @@ interface FileData {
   visibility?: string;
 }
 
-type GetTokenFn = () => Promise<string>;
+// Matches `BackendImplementation.getToken` (`@/lib/backend/implementation`):
+// the token can be `null` when the backend has no live session.
+type GetTokenFn = () => Promise<string | null>;
 
 export default class AssetStore {
   config: AssetStoreConfig;
@@ -128,7 +130,7 @@ export default class AssetStore {
   async retrieve(
     query: string | undefined,
     page: number | undefined,
-    privateUpload: boolean,
+    privateUpload: boolean | undefined,
   ): Promise<AssetFile[]> {
     const params = pickBy(
       { search: query, page, filter: privateUpload ? 'private' : 'public' },
