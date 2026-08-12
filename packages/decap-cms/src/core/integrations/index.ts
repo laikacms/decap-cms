@@ -8,7 +8,10 @@ import type { AssetStoreConfig } from './providers/assetStore/implementation';
 
 type Integrations = any;
 
-type GetTokenFn = () => Promise<string>;
+// Matches `BackendImplementation.getToken` (`@/lib/backend/implementation`),
+// which callers pass in directly (e.g. `backend.getToken`); the token can be
+// `null` when the backend has no live session.
+export type GetTokenFn = () => Promise<string | null>;
 
 type IntegrationProvider = Algolia | AssetStore;
 
