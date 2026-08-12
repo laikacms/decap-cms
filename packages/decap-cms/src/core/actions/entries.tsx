@@ -919,8 +919,8 @@ function createEmptyDraftI18nData(collection: Collection, dataFields: EntryField
 export function getMediaAssets({ entry }: { entry: EntryMap }) {
   const filesArray = entry.mediaFiles ?? [];
   const assets = filesArray
-    .filter((file: any) => file.draft)
-    .map((file: any) =>
+    .filter(file => file.draft)
+    .map(file =>
       createAssetProxy({
         path: file.path,
         file: file.file,
