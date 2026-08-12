@@ -83,6 +83,8 @@ interface LaikaBackendSettings {
   auth_token_endpoint_content_type?: string;
   /** See {@link LaikaBackend.devToken}. */
   dev_token?: string;
+  /** See {@link LaikaBackend.acceptRoles}. */
+  acceptRoles?: string[];
 }
 
 /** Init options core passes to `Implementation.init` (see core/backend.tsx). */
@@ -529,6 +531,13 @@ export default function createLaikaBackend(
     mediaFolder: string;
     publicFolder: string;
     apiUrl: string;
+    /**
+     * When set (via `config.backend.acceptRoles`), `authenticate()` denies
+     * access to any session whose `/session` response `role` attribute is
+     * not in this list — see the role check in `authenticate()` below. Unset
+     * (the default) admits any authenticated session, same as before this
+     * option existed.
+     */
     acceptRoles?: string[];
     tokenPromise: (() => Promise<string>) | undefined;
     baseUrl: string;
@@ -599,6 +608,9 @@ export default function createLaikaBackend(
       // api_root is the canonical field; api_url is the accepted alias.
       this.apiUrl = Url.combine(this.baseUrl, backend.api_root ?? backend.api_url);
       this.devToken = backend.dev_token;
+      if (backend.acceptRoles !== undefined) {
+        this.acceptRoles = backend.acceptRoles;
+      }
       // Same fields/defaults as PKCEAuthenticationPage, so the refresh grant
       // hits the endpoint the login grant used.
       this.appId = backend.app_id;
@@ -902,6 +914,7 @@ export default function createLaikaBackend(
         const sessionData = await sessionResponse.json();
         const userAttributes = sessionData.data?.attributes || sessionData;
         const rawScopes = userAttributes.scopes ?? userAttributes.scope;
+        const role = typeof userAttributes.role === 'string' ? userAttributes.role : undefined;
 
         // Extract user data from session response
         const userData = {
@@ -913,8 +926,25 @@ export default function createLaikaBackend(
             : typeof rawScopes === 'string'
             ? rawScopes.split(/\s+/).filter(Boolean)
             : [],
+          role,
           metadata: {},
         };
+
+        // `config.backend.acceptRoles`, when set, is an allowlist: a session
+        // whose role isn't in it never gets a repository or a persisted
+        // session — this is the only enforcement point, so nothing past this
+        // check can be reached by a rejected role.
+        if (this.acceptRoles && this.acceptRoles.length > 0 && !this.acceptRoles.includes(role ?? '')) {
+          this.tokenState = undefined;
+          this.clearStoredTokenState();
+          throw new APIError(
+            role
+              ? `Access denied: role '${role}' is not permitted (allowed: ${this.acceptRoles.join(', ')})`
+              : 'Access denied: session has no role, and acceptRoles is configured',
+            403,
+            'Laika Backend',
+          );
+        }
 
         // Persist the full triple for restoreUser (ensureActiveToken may
         // have rotated it above, in which case this is already stored —
@@ -944,6 +974,7 @@ export default function createLaikaBackend(
           login: userData.email,
           avatar_url: userData.avatar_url,
           scopes: userData.scopes,
+          role: userData.role,
         } as User;
       } catch (error) {
         console.error(error);

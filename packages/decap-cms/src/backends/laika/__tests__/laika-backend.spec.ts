@@ -2591,6 +2591,141 @@ describe('LaikaBackend.authenticate()', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Suite: authenticate() acceptRoles enforcement (DCMS-2012)
+// ---------------------------------------------------------------------------
+
+describe('LaikaBackend.authenticate() acceptRoles enforcement (DCMS-2012)', () => {
+  let mockDocRepo: ReturnType<typeof makeMockDocumentsRepository>;
+  let mockAssetsRepo: ReturnType<typeof makeMockAssetsRepository>;
+  let sessionStorageMock: ReturnType<typeof makeSessionStorageMock>;
+
+  function makeBackendWithAcceptRoles(acceptRoles: string[]) {
+    mockDocRepo = makeMockDocumentsRepository();
+    mockAssetsRepo = makeMockAssetsRepository();
+    const LaikaBackend = createLaikaBackend({
+      getDocumentsRepository: () => mockDocRepo as any,
+      getAssetsRepository: () => mockAssetsRepo as any,
+    });
+    return new LaikaBackend(makeConfig({
+      backend: {
+        name: 'laika',
+        base_url: 'https://api.example.com',
+        api_root: '',
+        acceptRoles,
+      },
+    })) as any;
+  }
+
+  beforeEach(() => {
+    sessionStorageMock = makeSessionStorageMock();
+    (globalThis as any).sessionStorage = sessionStorageMock;
+    vi.mocked(unsentRequest.fetchWithTimeout).mockReset();
+  });
+
+  afterEach(() => {
+    delete (globalThis as any).sessionStorage;
+  });
+
+  it('denies access when the session role is not in acceptRoles', async () => {
+    const backend = makeBackendWithAcceptRoles(['editor']);
+    vi.mocked(unsentRequest.fetchWithTimeout).mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          data: {
+            attributes: {
+              name: 'Mallory',
+              email: 'mallory@example.com',
+              role: 'viewer',
+              scopes: ['content:read'],
+            },
+          },
+        }),
+    } as any);
+
+    await expect(backend.authenticate({ token: 'valid-token-abc' })).rejects.toMatchObject({
+      name: API_ERROR,
+      status: 403,
+    });
+
+    // No repositories, no persisted session — the rejected role never gets
+    // past the check in authenticate().
+    expect(() => backend.getDocumentsRepo()).toThrow();
+    expect(() => backend.getAssetsRepo()).toThrow();
+    expect(sessionStorageMock.getItem('laika_access_token')).toBeNull();
+  });
+
+  it('denies access when acceptRoles is configured but the session has no role', async () => {
+    const backend = makeBackendWithAcceptRoles(['editor']);
+    vi.mocked(unsentRequest.fetchWithTimeout).mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          data: {
+            attributes: {
+              name: 'Mallory',
+              email: 'mallory@example.com',
+              scopes: ['content:read'],
+            },
+          },
+        }),
+    } as any);
+
+    await expect(backend.authenticate({ token: 'valid-token-abc' })).rejects.toMatchObject({
+      name: API_ERROR,
+      status: 403,
+    });
+  });
+
+  it('admits access when the session role is in acceptRoles', async () => {
+    const backend = makeBackendWithAcceptRoles(['editor', 'admin']);
+    vi.mocked(unsentRequest.fetchWithTimeout).mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          data: {
+            attributes: {
+              name: 'Alice',
+              email: 'alice@example.com',
+              role: 'editor',
+              scopes: ['content:read', 'content:write'],
+            },
+          },
+        }),
+    } as any);
+
+    const user = await backend.authenticate({ token: 'valid-token-abc' });
+
+    expect(user).toMatchObject({ name: 'Alice', role: 'editor' });
+    expect(() => backend.getDocumentsRepo()).not.toThrow();
+    expect(sessionStorageMock.getItem('laika_access_token')).toBe('valid-token-abc');
+  });
+
+  it('admits any role when acceptRoles is not configured (no behavior change)', async () => {
+    mockDocRepo = makeMockDocumentsRepository();
+    mockAssetsRepo = makeMockAssetsRepository();
+    const LaikaBackend = createLaikaBackend({
+      getDocumentsRepository: () => mockDocRepo as any,
+      getAssetsRepository: () => mockAssetsRepo as any,
+    });
+    const backend = new LaikaBackend(makeConfig()) as any;
+
+    vi.mocked(unsentRequest.fetchWithTimeout).mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          data: {
+            attributes: { name: 'Anyone', email: 'anyone@example.com', role: 'anything' },
+          },
+        }),
+    } as any);
+
+    const user = await backend.authenticate({ token: 'valid-token-abc' });
+    expect(user).toMatchObject({ name: 'Anyone', role: 'anything' });
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Suite: restoreUser()
 // ---------------------------------------------------------------------------
 
