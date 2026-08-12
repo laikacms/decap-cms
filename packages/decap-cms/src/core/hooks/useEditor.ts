@@ -296,7 +296,11 @@ export function useEditor({
         if (
           await confirmDialog(
             leaveMessage,
-            { title: t('editor.editor.onLeavePageTitle') },
+            {
+              title: t('editor.editor.onLeavePageTitle'),
+              confirmLabel: t('editor.editor.onLeavePageConfirm'),
+              cancelLabel: t('editor.editor.onLeavePageCancel'),
+            },
             unmountControllerRef.current.signal,
           )
         ) {

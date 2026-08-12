@@ -12,6 +12,16 @@ interface UseNavigationBlockerOptions {
   message: string;
   /** Confirm dialog heading; defaults to "Unsaved changes" (DCMS-1471) */
   title?: string;
+  /**
+   * Label for the affirmative ("leave anyway") button; falls back to the
+   * generic `confirmDialog` default ("OK") when omitted (DCMS-2031).
+   */
+  confirmLabel?: string;
+  /**
+   * Label for the negative ("stay on this page") button; falls back to the
+   * generic `confirmDialog` default ("Cancel") when omitted (DCMS-2031).
+   */
+  cancelLabel?: string;
   /** Callback when navigation is allowed (unblocked) */
   onNavigate?: () => void;
   /** Paths that should not trigger the blocker */
@@ -33,6 +43,8 @@ export function useNavigationBlocker({
   shouldBlock,
   message,
   title = 'Unsaved changes',
+  confirmLabel,
+  cancelLabel,
   onNavigate,
   allowedPaths = [],
 }: UseNavigationBlockerOptions) {
@@ -80,7 +92,17 @@ export function useNavigationBlocker({
         // scoped to this armed session's AbortSignal so a second navigation
         // that abandons this prompt (DCMS-1804) settles it instead of
         // leaking the dialog.
-        if (await confirmDialog(message, { title }, confirmAbortController.signal)) {
+        if (
+          await confirmDialog(
+            message,
+            {
+              title,
+              ...(confirmLabel !== undefined ? { confirmLabel } : {}),
+              ...(cancelLabel !== undefined ? { cancelLabel } : {}),
+            },
+            confirmAbortController.signal,
+          )
+        ) {
           unblockRef.current?.();
           tx.retry();
         }
@@ -113,7 +135,7 @@ export function useNavigationBlocker({
       cleanup();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `cleanup` is defined below and itself depends only on stable refs
-  }, [shouldBlock, message, title, onNavigate, allowedPaths, router]);
+  }, [shouldBlock, message, title, confirmLabel, cancelLabel, onNavigate, allowedPaths, router]);
 
   const cleanup = useCallback(() => {
     unblockRef.current?.();

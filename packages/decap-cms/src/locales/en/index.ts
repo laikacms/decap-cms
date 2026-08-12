@@ -124,6 +124,8 @@ const en = {
     editor: {
       onLeavePage: 'Are you sure you want to leave this page?',
       onLeavePageTitle: 'Unsaved changes',
+      onLeavePageConfirm: 'Leave page',
+      onLeavePageCancel: 'Stay on this page',
       onUpdatingWithUnsavedChanges: 'You have unsaved changes, please save before updating status.',
       onUpdatingWithUnsavedChangesTitle: 'Unsaved changes',
       onPublishingNotReady: 'Please update status to "Ready" before publishing.',
