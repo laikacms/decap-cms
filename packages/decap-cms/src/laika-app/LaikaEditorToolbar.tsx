@@ -1,4 +1,5 @@
 import styled from '@emotion/styled';
+import dayjs from 'dayjs';
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -213,6 +214,9 @@ function LaikaEditorToolbar({
   onPublish,
   onPublishAndNew,
   onPublishAndDuplicate,
+  onSchedulePublish,
+  onCancelSchedulePublish,
+  scheduledPublishAt,
   onChangeStatus,
   unPublish,
   onDuplicate,
@@ -433,6 +437,27 @@ function LaikaEditorToolbar({
                 label={t('editor.editorToolbar.publishAndDuplicate')}
                 onClick={onPublishAndDuplicate}
               />
+            )
+            : null}
+          {hasWorkflow && showPublish && (onSchedulePublish || onCancelSchedulePublish)
+            ? (
+              scheduledPublishAt
+                ? (
+                  <DropdownItem
+                    label={`${
+                      t('editor.editorToolbar.scheduledFor', {
+                        date: dayjs(scheduledPublishAt).format('MMM D, YYYY HH:mm'),
+                      })
+                    } - ${t('editor.editorToolbar.cancelScheduledPublish')}`}
+                    onClick={() => onCancelSchedulePublish?.()}
+                  />
+                )
+                : (
+                  <DropdownItem
+                    label={t('editor.editorToolbar.schedulePublish')}
+                    onClick={() => onSchedulePublish?.()}
+                  />
+                )
             )
             : null}
           {hasEditAccess && hasUnpublishedChanges && hasWorkflow

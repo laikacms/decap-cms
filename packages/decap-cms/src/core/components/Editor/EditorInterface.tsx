@@ -739,7 +739,7 @@ function EditorInterface(props: EditorInterfaceProps) {
       <PageTitle>{getEditorPageTitle(t, collection, entry, isNewEntry)}</PageTitle>
       {!isNewEntry && entry.slug && <EntryLockBanner collection={collection} slug={entry.slug} />}
       {renderEditorToolbar
-        ? renderEditorToolbar(toolbarProps as any)
+        ? renderEditorToolbar(toolbarProps)
         : React.createElement(EditorToolbar as any, { ...toolbarProps, t })}
       <Editor key={draftKey} ref={editorBodyRef} onFocus={handleEditorBodyFocus}>
         {(() => {
