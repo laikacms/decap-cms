@@ -13,7 +13,7 @@ this repo's own bundled widgets (`@laikacms/decap-cms/widgets/*`):
 
 ```ts
 import CMS from '@laikacms/decap-cms';
-import MyWidget from 'decap-cms-widget-example';
+import MyWidget from 'my-decap-widget-example';
 
 CMS.registerWidget(MyWidget.Widget());
 ```
