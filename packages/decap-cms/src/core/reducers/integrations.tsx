@@ -5,8 +5,8 @@ import { CONFIG_SUCCESS } from '@/core/actions/config';
 import type { ConfigAction } from '@/core/actions/config';
 import type { CmsConfig } from '@/lib/util/index';
 
-type Integrations = {
-  hooks: { [collectionOrHook: string]: any },
+export type Integrations = {
+  hooks: Record<string, string | Record<string, string>>,
   providers?: Record<string, unknown>,
 };
 
