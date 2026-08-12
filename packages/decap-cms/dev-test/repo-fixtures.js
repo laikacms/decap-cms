@@ -20,7 +20,7 @@ window.repoFiles = {
   _restaurants: {
     'code-cafe.md': {
       content:
-        "---\ntitle: Code Cafe\nsnippet:\n  code: |-\n    function fouc() {\n      return 'gone'; // trick\n    }\n  lang: javascript\n---\n\nA restaurant fixture with code widget content, used to verify syntax\nhighlighting is present from the editor's very first paint.\n",
+        "---\ntitle: Code Cafe\ndate: 2026-01-15T09:00:00.000Z\nsnippet:\n  code: |-\n    function fouc() {\n      return 'gone'; // trick\n    }\n  lang: javascript\n---\n\nA restaurant fixture with code widget content, used to verify syntax\nhighlighting is present from the editor's very first paint.\n",
     },
   },
   _faqs: {

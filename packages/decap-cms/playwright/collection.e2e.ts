@@ -48,3 +48,22 @@ test.describe('Laika collection controls', () => {
     await expect(page.getByLabel('Title').first()).toBeVisible();
   });
 });
+
+test.describe('Laika restaurants collection', () => {
+  test.beforeEach(async ({ page }) => {
+    await gotoRoute(page, '/collections/restaurants');
+  });
+
+  // Regression guard for DCMS-2084 (#2086): the `summary`/`slug` templates
+  // reference {{year}}/{{month}}/{{day}} tokens that silently drop when the
+  // collection has no `date` field, rendering the literal separator with two
+  // empty segments instead of a real date.
+  test('code-cafe row renders a populated summary, not empty date tokens', async ({ page }) => {
+    const row = page.getByRole('link', { name: /Code Cafe/i });
+    await expect(row).toBeVisible();
+
+    const summary = (await row.textContent()) ?? '';
+    expect(summary).not.toContain('-- //');
+    expect(summary.trim()).not.toMatch(/--\s*$/);
+  });
+});
