@@ -560,7 +560,11 @@ export function useEditor({
       } else if (
         !(await confirmDialog(
           t('editor.editor.onPublishing'),
-          { title: t('editor.editor.onPublishingTitle') },
+          {
+            title: t('editor.editor.onPublishingTitle'),
+            confirmLabel: t('editor.editor.onPublishingConfirm'),
+            cancelLabel: t('editor.editor.onPublishingCancel'),
+          },
           unmountControllerRef.current.signal,
         ))
       ) {
@@ -634,7 +638,12 @@ export function useEditor({
     if (
       !(await confirmDialog(
         t('editor.editor.onUnpublishing'),
-        { destructive: true, title: t('editor.editor.onUnpublishingTitle') },
+        {
+          destructive: true,
+          title: t('editor.editor.onUnpublishingTitle'),
+          confirmLabel: t('editor.editor.onUnpublishingConfirm'),
+          cancelLabel: t('editor.editor.onUnpublishingCancel'),
+        },
         unmountControllerRef.current.signal,
       ))
     ) return;
@@ -658,7 +667,12 @@ export function useEditor({
       if (
         !(await confirmDialog(
           t('editor.editor.onDeleteWithUnsavedChanges'),
-          { destructive: true, title: t('editor.editor.onDeleteWithUnsavedChangesTitle') },
+          {
+            destructive: true,
+            title: t('editor.editor.onDeleteWithUnsavedChangesTitle'),
+            confirmLabel: t('editor.editor.onDeleteWithUnsavedChangesConfirm'),
+            cancelLabel: t('editor.editor.onDeleteWithUnsavedChangesCancel'),
+          },
           unmountControllerRef.current.signal,
         ))
       ) {
@@ -667,7 +681,12 @@ export function useEditor({
     } else if (
       !(await confirmDialog(
         t('editor.editor.onDeletePublishedEntry'),
-        { destructive: true, title: t('editor.editor.onDeletePublishedEntryTitle') },
+        {
+          destructive: true,
+          title: t('editor.editor.onDeletePublishedEntryTitle'),
+          confirmLabel: t('editor.editor.onDeletePublishedEntryConfirm'),
+          cancelLabel: t('editor.editor.onDeletePublishedEntryCancel'),
+        },
         unmountControllerRef.current.signal,
       ))
     ) {
@@ -697,6 +716,8 @@ export function useEditor({
         {
           destructive: true,
           title: t('editor.editor.onDeleteUnpublishedChangesWithUnsavedChangesTitle'),
+          confirmLabel: t('editor.editor.onDeleteUnpublishedChangesWithUnsavedChangesConfirm'),
+          cancelLabel: t('editor.editor.onDeleteUnpublishedChangesWithUnsavedChangesCancel'),
         },
         unmountControllerRef.current.signal,
       ))
@@ -705,7 +726,12 @@ export function useEditor({
     } else if (
       !(await confirmDialog(
         t('editor.editor.onDeleteUnpublishedChanges'),
-        { destructive: true, title: t('editor.editor.onDeleteUnpublishedChangesTitle') },
+        {
+          destructive: true,
+          title: t('editor.editor.onDeleteUnpublishedChangesTitle'),
+          confirmLabel: t('editor.editor.onDeleteUnpublishedChangesConfirm'),
+          cancelLabel: t('editor.editor.onDeleteUnpublishedChangesCancel'),
+        },
         unmountControllerRef.current.signal,
       ))
     ) {
