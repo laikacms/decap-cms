@@ -118,7 +118,9 @@ collections: # A list of collections the CMS should be able to edit
         value_field: 'title'
       - { label: 'Title', name: 'title', widget: 'string' }
       - { label: 'Boolean', name: 'boolean', widget: 'boolean', default: true }
-      - { label: 'Map', name: 'map', widget: 'map' }
+      # The `map` widget field was removed here: it's opt-in (DCMS-1971) and
+      # the default demo bundle doesn't call `registerMapWidget()`, so it has
+      # no control and blocks Save while required. See dev-test/README.md.
       - { label: 'Text', name: 'text', widget: 'text', hint: 'Plain text, not markdown' }
       - { label: 'Number', name: 'number', widget: 'number', hint: 'To infinity and beyond!' }
       - { label: 'Markdown', name: 'markdown', widget: 'text' }
