@@ -38,6 +38,20 @@
 
     function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+    // Polls `getValue` every `intervalMs` until it satisfies `predicate` or
+    // `timeoutMs` elapses; returns the last observed value. Needed for
+    // Base UI popovers/menus that update ARIA state after an open
+    // transition rather than synchronously on click (DCMS-2076).
+    async function pollUntil(getValue, predicate, timeoutMs = 300, intervalMs = 50) {
+      const deadline = Date.now() + timeoutMs;
+      let value = getValue();
+      while (!predicate(value) && Date.now() < deadline) {
+        await sleep(intervalMs);
+        value = getValue();
+      }
+      return value;
+    }
+
     // Rendered text of `root`, excluding the source of any SCRIPT/STYLE
     // elements. `textContent` walks those nodes too, which makes it match
     // strings that only exist in embedded script/preview-template source —
@@ -175,7 +189,9 @@
       await sleep(800);
       const settingsH1 = idoc.querySelector('h1')?.textContent?.trim();
       settingsH1 === 'Settings' ? pass('navigated to Settings') : fail(`expected 'Settings' h1, got '${settingsH1}'`);
-      const sysSwitch = idoc.querySelector('input[role="switch"]');
+      // Base UI's Switch.Root renders `role="switch"` on a <span>, not an
+      // <input> — broaden past the old input-only selector (DCMS-2076).
+      const sysSwitch = idoc.querySelector('[role="switch"]');
       sysSwitch ? pass('Match-system toggle present') : fail('Match-system toggle missing');
 
       // === Test 10: Light vs Dark theme changes the CSS var ===
@@ -183,7 +199,9 @@
       // light or dark depending on the host OS pref. Compare Light vs Dark
       // explicitly so the assertion is robust to whatever 'system' resolves to.
       if (sysSwitch) {
-        if (sysSwitch.checked) {
+        // Base UI's <span role="switch"> has no .checked property — read the
+        // ARIA state it actually exposes instead (DCMS-2076).
+        if (sysSwitch.getAttribute('aria-checked') === 'true') {
           sysSwitch.click();
           await sleep(400);
         }
@@ -220,7 +238,10 @@
       dialog2 = idoc.querySelector('[role="dialog"]');
       dialog2 ? pass('palette re-opens after navigation') : fail('palette did not re-open');
       if (dialog2) {
-        const paletteInput = dialog2.querySelector('input[type="search"]');
+        // The command palette's Autocomplete.Input renders as
+        // <input type="text" aria-label="Command palette">, not type="search"
+        // (DCMS-2076).
+        const paletteInput = dialog2.querySelector('input[aria-label="Command palette"], input[type="text"], input[type="search"]');
         if (paletteInput) {
           // Use React's native value setter so the controlled-input state updates
           const setter = Object.getOwnPropertyDescriptor(iwin.HTMLInputElement.prototype, 'value').set;
@@ -260,6 +281,12 @@
           ? pass(`Quick add dropdown shows ${dropdownItems.length} items`)
           : fail('Quick add dropdown opened but has no items');
         info('items: ' + JSON.stringify(dropdownItems.slice(0, 3).map(i => i.textContent?.trim().slice(0, 30))));
+        // Close it back so it doesn't leak open into Test 14.47's
+        // aria-expanded toggle assertion (DCMS-2076).
+        if (quickAddBtn.getAttribute('aria-expanded') === 'true') {
+          quickAddBtn.click();
+          await sleep(200);
+        }
       } else {
         fail('Quick add trigger missing from header');
       }
@@ -389,10 +416,18 @@
       if (qaTrigger) {
         const expBefore = qaTrigger.getAttribute('aria-expanded');
         qaTrigger.click();
-        await sleep(300);
+        // Base UI's Menu updates aria-expanded after the popover open
+        // transition, not synchronously on click — poll instead of a single
+        // read right after the click (DCMS-2076).
+        const findTrigger = () =>
+          Array.from(idoc.querySelectorAll('[role="button"], button'))
+            .find(b => /^Quick add$/.test((b.textContent || '').trim()));
+        await pollUntil(
+          () => findTrigger()?.getAttribute('aria-expanded'),
+          value => value === 'true',
+        );
         // Re-query — the trigger element may be re-rendered
-        const qaTrigger2 = Array.from(idoc.querySelectorAll('[role="button"], button'))
-          .find(b => /^Quick add$/.test((b.textContent || '').trim()));
+        const qaTrigger2 = findTrigger();
         const expAfter = qaTrigger2?.getAttribute('aria-expanded');
         (expBefore === 'false' || expBefore === null) && expAfter === 'true'
           ? pass(`Quick add aria-expanded toggles: ${expBefore} → ${expAfter}`)
@@ -605,7 +640,11 @@
         const backBtn = idoc.querySelector('a[aria-label="Back"]');
         backBtn ? pass('editor back-arrow link present') : fail('editor back-arrow missing');
         const titleInput = idoc.querySelector('input[id="title"], input[name="title"]');
-        const anyInput = idoc.querySelector('main input, [class*="ControlPane"] input');
+        // Editor form fields render inside LaikaEditor's own layout, not
+        // <main>, and no descendant classname starts with "ControlPane"
+        // anymore — match by id like Test 19.3 already does successfully,
+        // instead of assuming a DOM ancestor (DCMS-2076).
+        const anyInput = idoc.querySelector('input[id], [class*="LaikaEditor"] input, [class*="LaikaEditor"] textarea');
         const anyTextarea = idoc.querySelectorAll('textarea').length;
         (anyInput || anyTextarea > 0)
           ? pass(`editor has form widgets rendered (textareas: ${anyTextarea})`)
@@ -653,7 +692,9 @@
         const focusedTag = idoc.activeElement?.tagName;
         const focusedType = idoc.activeElement?.getAttribute('type');
         const focusedInDialog = dialog3.contains(idoc.activeElement);
-        focusedInDialog && focusedTag === 'INPUT' && focusedType === 'search'
+        // Autocomplete.Input renders type="text" by default, not "search"
+        // (DCMS-2076).
+        focusedInDialog && focusedTag === 'INPUT' && (focusedType === 'search' || focusedType === 'text')
           ? pass('palette auto-focuses the search input on open')
           : fail(`palette focus is on ${focusedTag}[type=${focusedType}], inside dialog: ${focusedInDialog}`);
       }
@@ -662,8 +703,8 @@
       // Set theme to dark + check the body background visibly changed
       iwin.location.hash = '#/settings';
       await sleep(500);
-      const sysSwitch2 = idoc.querySelector('input[role="switch"]');
-      if (sysSwitch2 && sysSwitch2.checked) {
+      const sysSwitch2 = idoc.querySelector('[role="switch"]');
+      if (sysSwitch2 && sysSwitch2.getAttribute('aria-checked') === 'true') {
         sysSwitch2.click();
         await sleep(300);
       }
