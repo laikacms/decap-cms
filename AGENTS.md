@@ -74,11 +74,12 @@ Paths below (and in most other docs) are relative to `packages/decap-cms/`.
 
 ## Gated paths: operator approval required
 
-Per OPERATOR-QUEUE.md, do not change without explicit approval from Sem: `package.json` (root and
+Do not change without explicit approval from Sem: `package.json` (root and
 `packages/*/package.json`), `pnpm-workspace.yaml`, `pnpm-lock.yaml`, `.github/`,
 `eslint.config.mjs`, `tsconfig*.json`, `vite.config.*` (all under `packages/decap-cms/`), and the
 constitutional docs (`docs/contributing/decisions/restructure.md`,
-`docs/contributing/decisions/breaking-changes-v4-beta.md`, root `SECURITY.md`).
+`docs/contributing/decisions/breaking-changes-v4-beta.md`, root `SECURITY.md`). This list is the
+sole source of truth; there is no separate queue file.
 
 ## Other docs
 
