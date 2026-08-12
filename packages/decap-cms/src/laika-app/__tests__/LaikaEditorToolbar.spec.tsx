@@ -294,6 +294,64 @@ describe('LaikaEditorToolbar', () => {
     expect(queryByText('editor.editorToolbar.publishAndCreateNew')).not.toBeInTheDocument();
   });
 
+  // Pinning tests for DCMS-2067: `EditorToolbarRenderProps` now declares
+  // `onSchedulePublish` / `onCancelSchedulePublish` / `scheduledPublishAt`,
+  // so `renderEditorToolbar` (the slot LaikaEditorToolbar is registered
+  // against) can pass them without an `as any` cast. These assert the slot
+  // actually receives and acts on them, not just that the type compiles.
+  describe('schedule publish (DCMS-2067)', () => {
+    const workflowReadyProps = {
+      ...baseProps,
+      hasWorkflow: true,
+      isNewEntry: false,
+      hasChanged: false,
+      currentStatus: 'pending_publish',
+    };
+
+    it('offers "Schedule publish" in More actions when onSchedulePublish is provided and nothing is scheduled yet', () => {
+      const onSchedulePublish = vi.fn();
+      const { getByLabelText, getByText } = render(
+        <MemoryRouter>
+          <LaikaEditorToolbar {...workflowReadyProps} onSchedulePublish={onSchedulePublish} />
+        </MemoryRouter>,
+      );
+
+      fireEvent.click(getByLabelText('More actions'));
+      fireEvent.click(getByText('editor.editorToolbar.schedulePublish'));
+      expect(onSchedulePublish).toHaveBeenCalledTimes(1);
+    });
+
+    it('offers "Cancel scheduled publish" instead once scheduledPublishAt is set', () => {
+      const onCancelSchedulePublish = vi.fn();
+      const { getByLabelText, getByText, queryByText } = render(
+        <MemoryRouter>
+          <LaikaEditorToolbar
+            {...workflowReadyProps}
+            scheduledPublishAt="2026-09-01T12:00:00.000Z"
+            onCancelSchedulePublish={onCancelSchedulePublish}
+          />
+        </MemoryRouter>,
+      );
+
+      fireEvent.click(getByLabelText('More actions'));
+      expect(queryByText('editor.editorToolbar.schedulePublish')).not.toBeInTheDocument();
+      fireEvent.click(getByText(/editor.editorToolbar.scheduledFor/));
+      expect(onCancelSchedulePublish).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not render schedule-publish controls when neither handler is provided', () => {
+      const { getByLabelText, queryByText } = render(
+        <MemoryRouter>
+          <LaikaEditorToolbar {...workflowReadyProps} />
+        </MemoryRouter>,
+      );
+
+      fireEvent.click(getByLabelText('More actions'));
+      expect(queryByText('editor.editorToolbar.schedulePublish')).not.toBeInTheDocument();
+      expect(queryByText(/editor.editorToolbar.scheduledFor/)).not.toBeInTheDocument();
+    });
+  });
+
   describe('keyboard shortcuts', () => {
     function press(key: string, init: Partial<KeyboardEventInit> = {}) {
       act(() => {

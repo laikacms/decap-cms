@@ -5,7 +5,6 @@ import type {
   CmsCollectionState,
   CmsEntry,
   CmsSortDirection,
-  CmsUser,
   CmsViewFilter,
   CmsViewGroup,
 } from '@/lib/util/index';
@@ -91,10 +90,10 @@ export interface EntryCardRenderProps {
 }
 
 export interface EditorToolbarRenderProps {
-  isPersisting?: boolean;
-  isPublishing?: boolean;
-  isUpdatingStatus?: boolean;
-  isDeleting?: boolean;
+  isPersisting?: boolean | undefined;
+  isPublishing?: boolean | undefined;
+  isUpdatingStatus?: boolean | undefined;
+  isDeleting?: boolean | undefined;
   onPersist: (opts?: { createNew?: boolean, duplicate?: boolean }) => void;
   onPersistAndNew: () => void;
   onPersistAndDuplicate: () => void;
@@ -103,22 +102,30 @@ export interface EditorToolbarRenderProps {
   onDeleteUnpublishedChanges: () => void;
   onChangeStatus: (newStatus: string) => void;
   onPublish: (opts?: { createNew?: boolean, duplicate?: boolean }) => void;
+  onSchedulePublish?: (() => void) | undefined;
+  onCancelSchedulePublish?: (() => void) | undefined;
+  scheduledPublishAt?: string | undefined;
   unPublish: () => void;
   onDuplicate: () => void;
   onPublishAndNew: () => void;
   onPublishAndDuplicate: () => void;
-  user?: CmsUser;
-  hasChanged?: boolean;
-  displayUrl?: string;
+  // Not `CmsUser` (which requires auth `token`/credentials): the toolbar
+  // only reads this for display (name/avatar), and `EditorInterface` passes
+  // the looser display-only shape it receives as its own `user` prop.
+  user?: { login?: string, name?: string, avatar_url?: string, [key: string]: unknown } | undefined;
+  hasChanged?: boolean | undefined;
+  displayUrl?: string | undefined;
   collection: CmsCollectionState;
-  hasWorkflow?: boolean;
-  useOpenAuthoring?: boolean;
-  hasUnpublishedChanges?: boolean;
-  isNewEntry?: boolean;
-  isModification?: boolean;
-  currentStatus?: string;
+  hasWorkflow?: boolean | undefined;
+  useOpenAuthoring?: boolean | undefined;
+  hasUnpublishedChanges?: boolean | undefined;
+  isNewEntry?: boolean | undefined;
+  isModification?: boolean | undefined;
+  currentStatus?: string | undefined;
   onLogoutClick: () => void;
-  deployPreview?: { url?: string, status?: string, isFetching?: boolean };
+  deployPreview?:
+    | { url?: string | undefined, status?: string | undefined, isFetching?: boolean | undefined }
+    | undefined;
   loadDeployPreview: (opts?: { maxAttempts?: number, signal?: AbortSignal }) => void;
   editorBackLink: string;
 }
