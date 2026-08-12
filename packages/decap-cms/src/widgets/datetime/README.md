@@ -86,9 +86,11 @@ than a numeric offset, and a `UTC` label is shown next to the input. Source: `Da
 ## Deprecated camelCase aliases
 
 `dateFormat`, `timeFormat`, and `pickerUtc` are deprecated aliases for `date_format`,
-`time_format`, and `picker_utc`. They're silently normalized to their snake_case equivalents at
-runtime, so existing configs keep working, but new configs should use the snake_case keys. Source:
-`WIDGET_KEY_MAP`/`setSnakeCaseConfig` in `src/core/actions/config.tsx`.
+`time_format`, and `picker_utc`. They are **not** inert: config normalization
+(`normalizeConfig`/`setSnakeCaseConfig`/`WIDGET_KEY_MAP` in `src/core/actions/config.tsx`) copies
+any present camelCase key onto its snake_case counterpart for every field at config-load time,
+logging a `console.warn` deprecation notice for each one, before `DateTimeControl` ever reads the
+field. So existing configs keep working, but new configs should use the snake_case keys.
 
 ## `{{now}}` default
 
