@@ -7,7 +7,13 @@ import { getProcessSegment } from '@/core/lib/formatters';
 import { duplicateDefaultI18nFields, hasI18n, I18N, I18N_FIELD, serializeI18n } from '@/core/lib/i18n';
 import { serializeValues } from '@/core/lib/serializeEntryValues';
 import { findUniqueFieldConflicts } from '@/core/lib/validateUniqueFields';
-import { selectDefaultSortField, selectField, selectFields, updateFieldByKey } from '@/core/reducers/collections';
+import {
+  selectAllowNewEntries,
+  selectDefaultSortField,
+  selectField,
+  selectFields,
+  updateFieldByKey,
+} from '@/core/reducers/collections';
 import { selectCollectionEntriesCursor } from '@/core/reducers/cursors';
 import {
   isCompleteEntry,
@@ -30,6 +36,7 @@ import { loadMedia, waitForMediaLibraryToLoad } from './mediaLibrary';
 import { addNotification } from './notifications';
 import { waitUntil } from './waitUntil';
 
+import type { EntryDraft as EntryDraftState } from '@/core/reducers/entryDraft';
 import type { Backend } from '@/core/backend';
 import type Algolia from '@/core/integrations/providers/algolia/implementation';
 import type AssetProxy from '@/core/valueObjects/AssetProxy';
@@ -1052,6 +1059,76 @@ export function persistEntry(collection: Collection) {
         );
         return Promise.reject(dispatch(entryPersistFail(collection, serializedEntry, error)));
       });
+  };
+}
+
+/**
+ * Builds a brand-new `EntryValue` for `collection`, backfilling any field
+ * not present in `data` with the same defaulting logic `createEmptyDraft`
+ * uses, then overlaying the caller-supplied `data` on top. Used by the
+ * relation widget's "quick add" flow (DCMS-1421) to seed a new entry from
+ * only the handful of fields it collected in its minimal-fields form.
+ */
+export function createQuickCreateEntryData(
+  collection: Collection,
+  data: Record<string, unknown>,
+): CompleteEntryValue {
+  const fields = (collection.fields ?? []) as EntryField[];
+  const dataFields = getDataFields(fields);
+  const defaultData = createEmptyDraftData(dataFields);
+  return createEntry(collection.name, '', '', {
+    data: { ...defaultData, ...data },
+  });
+}
+
+/**
+ * Persists a new entry for `collection` built from `data`, entirely outside
+ * of `state.entryDraft` (DCMS-1421). The main editor keeps exactly one
+ * in-flight draft in that slice; reusing it here (as `persistEntry` above
+ * does) would clobber whatever entry the user is currently editing when
+ * they quick-add a referenced entry from a relation field without leaving
+ * the page. Instead this builds a throwaway `entryDraft`-shaped object with
+ * just the `entry` key `backend.persistEntry` actually reads, so the real
+ * editing session is untouched.
+ */
+export function persistQuickCreateEntry(collection: Collection, data: Record<string, unknown>) {
+  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+    if (!selectAllowNewEntries(collection)) {
+      throw new Error('Not allowed to create new entries in this collection');
+    }
+
+    const state = getState();
+    const backend = currentBackend(state.config);
+
+    const entryValue = createQuickCreateEntryData(collection, data);
+    const processedEntry = (await backend.processEntry(
+      state,
+      collection,
+      entryValue,
+    )) as CompleteEntryValue;
+
+    const rawEntry = { ...processedEntry, newRecord: true } as unknown as EntryMap;
+    const serializedEntry = getSerializedEntry(collection, rawEntry);
+    const usedSlugs = selectPublishedSlugs(state, collection.name) ?? [];
+    const syntheticDraft: EntryDraftState = {
+      entry: serializedEntry,
+      fieldsErrors: {},
+      hasChanged: true,
+      key: '',
+    };
+
+    const newSlug = await backend.persistEntry({
+      config: state.config,
+      collection,
+      entryDraft: syntheticDraft,
+      assetProxies: [],
+      usedSlugs,
+    });
+
+    dispatch(entryPersisted(collection, serializedEntry, newSlug));
+    queryCore.invalidateTags([collectionTag(collection.name)]);
+
+    return (serializedEntry.data ?? {}) as Record<string, unknown>;
   };
 }
 

@@ -13,6 +13,8 @@ export default {
     displayFields: { type: 'array', minItems: 1, items: { type: 'string' } },
     options_length: { type: 'integer' },
     optionsLength: { type: 'integer' },
+    allow_quick_add: { type: 'boolean' },
+    allowQuickAdd: { type: 'boolean' },
     filters: {
       type: 'array',
       items: {

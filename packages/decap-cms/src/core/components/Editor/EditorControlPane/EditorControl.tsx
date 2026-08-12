@@ -3,7 +3,12 @@ import styled from '@emotion/styled';
 import { memoize, partial, uniqueId } from 'lodash-es';
 import React from 'react';
 
-import { clearFieldErrors, tryLoadEntry, validateMetaField } from '@/core/actions/entries';
+import {
+  clearFieldErrors,
+  persistQuickCreateEntry,
+  tryLoadEntry,
+  validateMetaField,
+} from '@/core/actions/entries';
 import { addAsset, boundGetAsset } from '@/core/actions/media';
 import {
   clearMediaControl,
@@ -184,6 +189,10 @@ interface EditorControlProps {
   clearSearch: () => void;
   clearFieldErrors: (uniqueFieldId: string) => void;
   loadEntry: (collectionName: string, slug: string) => Promise<EntryMap>;
+  onQuickCreateEntry?: (
+    collectionName: string,
+    data: Record<string, unknown>,
+  ) => Promise<Record<string, unknown>>;
   getEntry: () => EntryMap;
   t: TranslateFunction;
   isEditorComponent?: boolean;
@@ -235,6 +244,7 @@ function EditorControl(props: EditorControlProps) {
     clearSearch,
     clearFieldErrors,
     loadEntry,
+    onQuickCreateEntry,
     className,
     isSelected,
     isEditorComponent,
@@ -405,6 +415,7 @@ function EditorControl(props: EditorControlProps) {
             editorControl={ConnectedEditorControl}
             query={query}
             loadEntry={loadEntry}
+            onQuickCreateEntry={onQuickCreateEntry}
             getEntry={getEntry}
             queryHits={(queryHits || {})[uniqueFieldId] || []}
             clearSearch={clearSearch}
@@ -446,6 +457,21 @@ const stable = {
     } else {
       throw new Error(`Can't find collection '${collectionName}'`);
     }
+  },
+
+  quickCreateEntry: async function stable_quickCreateEntry(
+    collectionName: string,
+    data: Record<string, unknown>,
+  ) {
+    const state = store.getState() as State;
+    const { collections } = state;
+    const targetCollection = collections[collectionName];
+    if (!targetCollection) {
+      throw new Error(`Can't find collection '${collectionName}'`);
+    }
+    return store.dispatch(persistQuickCreateEntry(targetCollection, data) as never) as unknown as Promise<
+      Record<string, unknown>
+    >;
   },
 
   // Will return the same function instance for the same collection.
@@ -524,6 +550,7 @@ export default function ConnectedEditorControl(props: ConnectedEditorControlProp
       isLoadingAsset={isLoadingAsset}
       getEntry={stable.getEntry}
       loadEntry={stable.loadEntry}
+      onQuickCreateEntry={stable.quickCreateEntry}
       validateMetaField={validateMetaFieldFn}
       boundGetAsset={boundGetAssetForEntry}
       openMediaLibrary={(opts: any) => dispatch(openMediaLibrary(opts))}

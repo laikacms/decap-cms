@@ -418,6 +418,16 @@ const en = {
       movedAnnouncement: 'Card %{slug} moved to %{status}',
     },
   },
+  widget: {
+    relation: {
+      quickAdd: {
+        action: '+ Create new %{collection}',
+        title: 'Create new %{collection}',
+        save: 'Save',
+        cancel: 'Cancel',
+      },
+    },
+  },
 };
 
 export default en;

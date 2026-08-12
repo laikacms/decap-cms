@@ -4,6 +4,7 @@ import React from 'react';
 import queryCore, { collectionTag } from '@/lib/util/queryCore';
 import { stringTemplate, validations } from '@/lib/widgets/index';
 import {
+  Button,
   Combobox,
   ComboboxChip,
   ComboboxChipRemove,
@@ -19,6 +20,13 @@ import {
   ComboboxPortal,
   ComboboxPositioner,
   ComboboxStatus,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Label,
 } from '@/ui';
 import { SortableArea, SortableHandle, SortableItem } from '@/ui/default/index';
 
@@ -113,6 +121,51 @@ function getOptionsLength(field: CmsFieldRelation & CmsFieldBase): number {
   return (field.options_length ?? field.optionsLength ?? 20) as number;
 }
 
+/**
+ * Field keys usable in the quick-add minimal-fields form (DCMS-1421): plain
+ * top-level field names only. Templated (`{{...}}`) or dotted/nested paths
+ * can't be mapped back to a single input the way `value_field`/
+ * `display_fields` can be resolved for an existing, already-saved hit, so
+ * they're left out here.
+ */
+function isSimpleFieldKey(key: string): boolean {
+  return typeof key === 'string' && key.length > 0 && !key.includes('.') && !key.includes('{{');
+}
+
+/**
+ * The set of field names the quick-add form should collect: the relation's
+ * `value_field` plus its `display_fields`, deduplicated, restricted to
+ * `isSimpleFieldKey`. Exported for testing.
+ */
+export function getQuickAddFieldNames(field: CmsFieldRelation & CmsFieldBase): string[] {
+  const valueField = getValueField(field);
+  const displayFields = getDisplayFields(field, valueField);
+  const candidates = [valueField, ...displayFields].filter(isSimpleFieldKey);
+  return Array.from(new Set(candidates));
+}
+
+/**
+ * Turns the plain `data` object returned by a successful quick-add persist
+ * into the same `{ label, value, data }` option shape hits from search
+ * results carry, so it can be selected via the normal `handleChange` path.
+ * Restricted to `isSimpleFieldKey`-eligible fields (see
+ * `getQuickAddFieldNames`), so a direct property read is sufficient - no
+ * template expansion needed.
+ */
+export function buildQuickAddOption(
+  field: CmsFieldRelation & CmsFieldBase,
+  data: Record<string, unknown>,
+): RelationOption {
+  const valueField = getValueField(field);
+  const displayFields = getDisplayFields(field, valueField);
+  const value = String(data[valueField] ?? '');
+  const label = displayFields
+    .map(key => String(data[key] ?? ''))
+    .join(' ')
+    .trim() || value;
+  return { data, value, label };
+}
+
 function relationOptionsKey(
   collection: string,
   searchFields: string[],
@@ -153,6 +206,10 @@ export interface RelationControlProps {
   value?: unknown | unknown[];
   field: CmsFieldRelation & CmsFieldBase;
   query: (...args: unknown[]) => Promise<QueryResult>;
+  onQuickCreateEntry?: (
+    collectionName: string,
+    data: Record<string, unknown>,
+  ) => Promise<Record<string, unknown>>;
   queryHits?: Hit[];
   classNameWrapper: string;
   setActiveStyle: () => void;
@@ -185,11 +242,18 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
       hasErrors,
       errorListId,
       hintId,
+      onQuickCreateEntry,
+      t,
     } = props;
 
     const [initialOptions, setInitialOptions] = React.useState<RelationOption[]>([]);
     const [searchOptions, setSearchOptions] = React.useState<RelationOption[] | null>(null);
     const [isLoading, setIsLoading] = React.useState(false);
+    const [quickAdd, setQuickAdd] = React.useState<{
+      values: Record<string, string>,
+      submitting: boolean,
+      error: string | null,
+    } | null>(null);
     const mountedRef = React.useRef(false);
 
     function isMultiple(): boolean {
@@ -509,6 +573,63 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
       loadOptions(inputValue);
     }
 
+    // Opt-in "create new entry inline" (DCMS-1421). Gated on both the
+    // field's `allow_quick_add`/`allowQuickAdd` config and the caller
+    // actually wiring up `onQuickCreateEntry` (nested/object-list relation
+    // instances or older host apps may not).
+    const canQuickAdd = Boolean(onQuickCreateEntry) && Boolean(field.allow_quick_add ?? field.allowQuickAdd);
+
+    function openQuickAdd() {
+      const values: Record<string, string> = {};
+      getQuickAddFieldNames(field).forEach(name => {
+        values[name] = '';
+      });
+      setQuickAdd({ values, submitting: false, error: null });
+    }
+
+    function closeQuickAdd() {
+      setQuickAdd(null);
+    }
+
+    function updateQuickAddValue(name: string, fieldValue: string) {
+      setQuickAdd(state => (state ? { ...state, values: { ...state.values, [name]: fieldValue } } : state));
+    }
+
+    // Selects a freshly quick-added entry in place, reusing the normal
+    // `handleChange` path so metadata/onChange behave exactly as they would
+    // for a search result the user picked from the dropdown.
+    function selectQuickAddOption(option: RelationOption) {
+      if (isMultiple()) {
+        const pool = uniqOptions(initialOptions, [option]);
+        const currentSelected
+          = (getSelectedValue({ options: pool, value, isMultiple: true }) as RelationOption[] | null) ?? [];
+        handleChange([...currentSelected, option]);
+      } else {
+        handleChange(option);
+      }
+    }
+
+    async function submitQuickAdd(event: React.FormEvent) {
+      event.preventDefault();
+      if (!onQuickCreateEntry || !quickAdd || quickAdd.submitting) {
+        return;
+      }
+
+      setQuickAdd(state => (state ? { ...state, submitting: true, error: null } : state));
+
+      try {
+        const data = await onQuickCreateEntry(field.collection, quickAdd.values);
+        if (!mountedRef.current) return;
+        const option = buildQuickAddOption(field, data);
+        selectQuickAddOption(option);
+        setQuickAdd(null);
+      } catch (error) {
+        if (!mountedRef.current) return;
+        const message = error instanceof Error ? error.message : String(error);
+        setQuickAdd(state => (state ? { ...state, submitting: false, error: message } : state));
+      }
+    }
+
     const chipList = (
       <>
         {selectedList.map((option, index) => (
@@ -529,7 +650,8 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
     );
 
     return (
-      <div className={classNameWrapper}>
+      <>
+        <div className={classNameWrapper}>
         <Combobox<RelationOption, boolean>
           multiple={isMulti}
           items={options}
@@ -567,7 +689,56 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
             </ComboboxPositioner>
           </ComboboxPortal>
         </Combobox>
-      </div>
+        </div>
+        {canQuickAdd && (
+          <Button type="button" variant="outline" size="sm" onClick={openQuickAdd} css={{ marginTop: 8 }}>
+            {t
+              ? t('widget.relation.quickAdd.action', { collection: field.collection })
+              : `+ Create new ${field.collection}`}
+          </Button>
+        )}
+        {quickAdd && (
+          <Dialog
+            open
+            onOpenChange={open => {
+              if (!open) closeQuickAdd();
+            }}
+          >
+            <DialogContent>
+              <form onSubmit={submitQuickAdd}>
+                <DialogHeader>
+                  <DialogTitle>
+                    {t
+                      ? t('widget.relation.quickAdd.title', { collection: field.collection })
+                      : `Create new ${field.collection}`}
+                  </DialogTitle>
+                </DialogHeader>
+                {Object.keys(quickAdd.values).map(name => (
+                  <div key={name}>
+                    <Label htmlFor={`quick-add-${forID}-${name}`}>{name}</Label>
+                    <Input
+                      id={`quick-add-${forID}-${name}`}
+                      value={quickAdd.values[name]}
+                      disabled={quickAdd.submitting}
+                      onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                        updateQuickAddValue(name, event.target.value)}
+                    />
+                  </div>
+                ))}
+                {quickAdd.error && <p role="alert">{quickAdd.error}</p>}
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={closeQuickAdd} disabled={quickAdd.submitting}>
+                    {t ? t('widget.relation.quickAdd.cancel') : 'Cancel'}
+                  </Button>
+                  <Button type="submit" disabled={quickAdd.submitting}>
+                    {t ? t('widget.relation.quickAdd.save') : 'Save'}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        )}
+      </>
     );
   },
 );
