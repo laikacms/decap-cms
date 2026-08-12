@@ -222,6 +222,10 @@ const pt = {
     },
     mediaLibrary: {
       onDelete: 'Tem certeza de que deseja excluir a mídia selecionada?',
+      onReplace: '"%{name}" já existe. Deseja substituí-lo?',
+      onReplaceTitle: 'Substituir "%{name}"?',
+      onReplaceConfirm: 'Substituir',
+      onReplaceCancel: 'Cancelar',
       fileTooLarge: 'Arquivo muito grande.\nConfigurado para não permitir arquivos maiores que %{size} kB.',
     },
     mediaLibraryModal: {

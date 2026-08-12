@@ -226,6 +226,10 @@ const de = {
     },
     mediaLibrary: {
       onDelete: 'Soll das ausgewählte Medium wirklich gelöscht werden?',
+      onReplace: '"%{name}" existiert bereits. Möchten Sie sie ersetzen?',
+      onReplaceTitle: '"%{name}" ersetzen?',
+      onReplaceConfirm: 'Ersetzen',
+      onReplaceCancel: 'Abbrechen',
       fileTooLarge: 'Datei zu groß.\nErlaubt sind nur Dateien bis %{size} kB.',
     },
     mediaLibraryModal: {

@@ -297,6 +297,10 @@ const en = {
     mediaLibrary: {
       onDelete: 'Are you sure you want to delete selected media?',
       onDeleteTitle: 'Delete media',
+      onReplace: '"%{name}" already exists. Do you want to replace it?',
+      onReplaceTitle: 'Replace "%{name}"?',
+      onReplaceConfirm: 'Replace',
+      onReplaceCancel: 'Cancel',
       fileTooLarge: 'File too large.\nConfigured to not allow files greater than %{size} kB.',
       fileTooLargeTitle: 'File too large',
     },

@@ -218,6 +218,10 @@ const nl = {
     },
     mediaLibrary: {
       onDelete: 'Weet u zeker dat u de geselecteerde media wilt verwijderen?',
+      onReplace: '"%{name}" bestaat al. Wilt u het vervangen?',
+      onReplaceTitle: '"%{name}" vervangen?',
+      onReplaceConfirm: 'Vervangen',
+      onReplaceCancel: 'Annuleren',
       fileTooLarge: 'Het bestand is te groot.\n De instellingen staan geen bestanden toe groter dan %{size} kB.',
     },
     mediaLibraryModal: {

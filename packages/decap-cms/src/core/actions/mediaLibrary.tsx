@@ -1,7 +1,9 @@
 import { currentBackend } from '@/core/backend';
+import { createTranslator } from '@/core/i18n';
 import { getIntegrationProvider } from '@/core/integrations';
 import { selectAssetCollectionForFolder } from '@/core/lib/assetCollections';
 import { assetFilenameFormatter } from '@/core/lib/formatters';
+import { getPhrases } from '@/core/lib/phrases';
 import { sanitizeSlug } from '@/core/lib/urlHelper';
 import {
   selectEditingDraft,
@@ -9,6 +11,7 @@ import {
   selectMediaFilePublicPath,
   selectMediaFolder,
 } from '@/core/reducers/entries';
+import { selectLocale } from '@/core/reducers/config';
 import { selectMediaDisplayURL, selectMediaFiles } from '@/core/reducers/mediaLibrary';
 import { selectIntegration } from '@/core/reducers/selectors';
 import { createAssetProxy } from '@/core/valueObjects/AssetProxy';
@@ -393,10 +396,18 @@ export function persistMedia(file: File, opts: MediaOptions = {}) {
      * may not be unique, so we forego this check.
      */
     if (!integration && existingFile) {
+      const locale = selectLocale(state.config);
+      const t = createTranslator(locale, getPhrases(locale));
       if (
-        !(await confirmDialog(`${existingFile.name} already exists. Do you want to replace it?`, {
-          title: `Replace ${existingFile.name}?`,
-        }))
+        !(await confirmDialog(
+          t('mediaLibrary.mediaLibrary.onReplace', { name: existingFile.name }),
+          {
+            title: t('mediaLibrary.mediaLibrary.onReplaceTitle', { name: existingFile.name }),
+            confirmLabel: t('mediaLibrary.mediaLibrary.onReplaceConfirm'),
+            cancelLabel: t('mediaLibrary.mediaLibrary.onReplaceCancel'),
+            destructive: true,
+          },
+        ))
       ) {
         return;
       } else {
