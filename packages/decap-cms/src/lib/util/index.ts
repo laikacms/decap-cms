@@ -74,6 +74,15 @@ export {
 } from './imageOptimization.js';
 export type { TargetDimensions } from './imageOptimization.js';
 export {
+  clampCropRect,
+  constrainCropRectToAspectRatio,
+  cropImageFile,
+  initialCropRect,
+  isCroppableImage,
+  isImageCropEnabled,
+} from './imageCrop.js';
+export type { CropRect } from './imageCrop.js';
+export {
   allEntriesByFolder,
   blobToFileObj,
   entriesByFiles,

@@ -14,11 +14,12 @@ import { useTranslate } from '@/core/i18n';
 import { selectAssetCollectionForFolder } from '@/core/lib/assetCollections';
 import { getMediaFolderBreadcrumbs, selectMediaFiles } from '@/core/reducers/mediaLibrary';
 import { useRouter } from '@/core/routing/context';
-import { fileExtension, fuzzyFilter } from '@/lib/util/index';
+import { fileExtension, fuzzyFilter, isCroppableImage, isImageCropEnabled } from '@/lib/util/index';
 import { confirmDialog, showAlert } from '@/ui';
+import ImageCropDialog from './ImageCropDialog';
 import MediaLibraryModal from './MediaLibraryModal';
 
-import type { CmsAssetCollection, CmsConfig } from '@/lib/util/index';
+import type { CmsAssetCollection, CmsConfig, CmsImageCropConfig } from '@/lib/util/index';
 import type { TranslateFunction } from '@/ui/default/index';
 
 /**
@@ -79,6 +80,12 @@ interface MediaLibraryProps {
   isPaginating?: boolean;
   privateUpload?: boolean;
   config?: Record<string, unknown>;
+  /**
+   * Effective (field-over-site-default) `media_library.config.crop` for this
+   * upload session; resolved by `ConnectedMediaLibrary`, mirroring how
+   * `optimizeImageFile`'s config is resolved in `actions/mediaLibrary.tsx`.
+   */
+  cropConfig?: CmsImageCropConfig;
   loadMedia: (opts?: {
     delay?: number,
     query?: string | undefined,
@@ -130,6 +137,7 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
     displayURLs,
     page,
     config,
+    cropConfig,
     field,
     rootFolder,
     assetCollections = [],
@@ -143,6 +151,7 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
   } = props;
 
   const [selectedFile, setSelectedFile] = React.useState<MediaFile | Record<string, never>>({});
+  const [pendingCropFile, setPendingCropFile] = React.useState<File | null>(null);
   const [query, setQuery] = React.useState('');
   const [isPersisted, setIsPersisted] = React.useState(false);
   const [sortFields] = React.useState<SortField[] | undefined>(undefined);
@@ -295,6 +304,11 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
         }),
         { title: t('mediaLibrary.mediaLibrary.fileTooLargeTitle') },
       );
+    } else if (forImage && isCroppableImage(file) && isImageCropEnabled(cropConfig)) {
+      // DCMS-2011: hand off to the interactive crop dialog instead of
+      // persisting immediately; handleCropConfirm/handleCropCancel below
+      // resume (or abandon) the upload once the user has chosen a region.
+      setPendingCropFile(file);
     } else {
       await persistMedia(file, { privateUpload, field });
       setIsPersisted(true);
@@ -302,6 +316,17 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
     }
 
     event.target.value = '';
+  }
+
+  async function handleCropConfirm(croppedFile: File) {
+    await persistMedia(croppedFile, { privateUpload, field });
+    setIsPersisted(true);
+    scrollToTop();
+    setPendingCropFile(null);
+  }
+
+  function handleCropCancel() {
+    setPendingCropFile(null);
   }
 
   function handleInsert() {
@@ -376,48 +401,61 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
   }
 
   return (
-    <MediaLibraryModal
-      isVisible={isVisible}
-      canInsert={canInsert}
-      files={files!}
-      dynamicSearch={dynamicSearch}
-      dynamicSearchActive={dynamicSearchActive}
-      forImage={forImage}
-      isLoading={isLoading}
-      isPersisting={isPersisting}
-      isDeleting={isDeleting}
-      hasNextPage={hasNextPage}
-      isPaginating={isPaginating}
-      privateUpload={privateUpload}
-      query={query}
-      selectedFile={selectedFile}
-      handleFilter={filterImages}
-      handleQuery={queryFilter}
-      toTableData={toTableData}
-      handleClose={handleClose}
-      handleSearchChange={handleSearchChange}
-      handleSearchKeyDown={handleSearchKeyDown}
-      handlePersist={handlePersist as (event: React.ChangeEvent<HTMLInputElement>) => void}
-      handleDelete={handleDelete}
-      handleInsert={handleInsert}
-      handleDownload={handleDownload}
-      setScrollContainerRef={(ref: HTMLDivElement | null) => {
-        scrollContainerRef.current = ref;
-      }}
-      handleAssetClick={handleAssetClick}
-      handleLoadMore={handleLoadMore}
-      displayURLs={displayURLs as any}
-      loadDisplayURL={loadDisplayURL}
-      breadcrumbs={getMediaFolderBreadcrumbs(
-        rootFolder,
-        currentFolder,
-        t('mediaLibrary.mediaLibraryBreadcrumbs.rootLabel'),
-      )}
-      onNavigateFolder={handleNavigateFolder}
-      assetCollections={assetCollections}
-      activeAssetCollectionName={activeAssetCollection?.name}
-      onSelectAssetCollection={handleSelectAssetCollection}
-    />
+    <>
+      {pendingCropFile
+        ? (
+          <ImageCropDialog
+            file={pendingCropFile}
+            aspectRatio={cropConfig?.aspect_ratio}
+            onConfirm={file => void handleCropConfirm(file)}
+            onCancel={handleCropCancel}
+            t={t}
+          />
+        )
+        : null}
+      <MediaLibraryModal
+        isVisible={isVisible}
+        canInsert={canInsert}
+        files={files!}
+        dynamicSearch={dynamicSearch}
+        dynamicSearchActive={dynamicSearchActive}
+        forImage={forImage}
+        isLoading={isLoading}
+        isPersisting={isPersisting}
+        isDeleting={isDeleting}
+        hasNextPage={hasNextPage}
+        isPaginating={isPaginating}
+        privateUpload={privateUpload}
+        query={query}
+        selectedFile={selectedFile}
+        handleFilter={filterImages}
+        handleQuery={queryFilter}
+        toTableData={toTableData}
+        handleClose={handleClose}
+        handleSearchChange={handleSearchChange}
+        handleSearchKeyDown={handleSearchKeyDown}
+        handlePersist={handlePersist as (event: React.ChangeEvent<HTMLInputElement>) => void}
+        handleDelete={handleDelete}
+        handleInsert={handleInsert}
+        handleDownload={handleDownload}
+        setScrollContainerRef={(ref: HTMLDivElement | null) => {
+          scrollContainerRef.current = ref;
+        }}
+        handleAssetClick={handleAssetClick}
+        handleLoadMore={handleLoadMore}
+        displayURLs={displayURLs as any}
+        loadDisplayURL={loadDisplayURL}
+        breadcrumbs={getMediaFolderBreadcrumbs(
+          rootFolder,
+          currentFolder,
+          t('mediaLibrary.mediaLibraryBreadcrumbs.rootLabel'),
+        )}
+        onNavigateFolder={handleNavigateFolder}
+        assetCollections={assetCollections}
+        activeAssetCollectionName={activeAssetCollection?.name}
+        onSelectAssetCollection={handleSelectAssetCollection}
+      />
+    </>
   );
 }
 
@@ -437,6 +475,10 @@ export default function ConnectedMediaLibrary() {
   const assetCollections = useAppSelector((state: any) =>
     Array.isArray(state.config?.asset_collections) ? state.config.asset_collections : []
   );
+  // Field-level `media_library.config.crop` wins over the site-wide default,
+  // mirroring `selectImageOptimizationConfig` in `actions/mediaLibrary.tsx`.
+  const siteCropConfig = useAppSelector((state: any) => state.config?.media_library?.config?.crop);
+  const cropConfig = mediaLibrary.config?.crop ?? siteCropConfig;
 
   const props: any = {
     isVisible: mediaLibrary.isVisible,
@@ -452,6 +494,7 @@ export default function ConnectedMediaLibrary() {
     isDeleting: mediaLibrary.isDeleting,
     privateUpload: mediaLibrary.privateUpload,
     config: mediaLibrary.config,
+    cropConfig,
     page: mediaLibrary.page,
     hasNextPage: mediaLibrary.hasNextPage,
     isPaginating: mediaLibrary.isPaginating,
