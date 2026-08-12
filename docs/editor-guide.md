@@ -94,11 +94,18 @@ entry editor. From a card you can:
   itself.
 - **Unpublish** an already-live entry, taking it back out of the published site.
 
-Inside the entry editor itself, the **Publish now** button is *not* currently gated by status: it's
-available as soon as you have edit access, regardless of whether the entry is Draft, In review, or
-Ready, so double-check the status control before publishing from there if you want reviews to
-actually happen first. What the entry editor does enforce is unsaved changes - Publish now is hidden
-whenever you have edits that haven't been saved yet, so save your work before publishing.
+Inside the entry editor itself, whether the **Publish now** button is gated by status depends on
+which shell the site runs:
+
+- **Classic shell:** Publish now is *not* gated by status - it's available as soon as you have edit
+  access, regardless of whether the entry is Draft, In review, or Ready, so double-check the status
+  control before publishing from there if you want reviews to actually happen first.
+- **Laika shell:** Publish now *is* gated by status - the button only appears once the entry's status
+  is Ready, so there's no way to publish a Draft or In review entry from the editor; move it to Ready
+  first (via the status control or the Editorial Workflow board).
+
+Both shells enforce unsaved changes the same way: Publish now is hidden whenever you have edits that
+haven't been saved yet, so save your work before publishing.
 
 Once an entry is Ready and saved, the entry editor's publish menu also offers **Schedule publish** -
 pick a future date and time and the entry publishes automatically once that time arrives, instead of

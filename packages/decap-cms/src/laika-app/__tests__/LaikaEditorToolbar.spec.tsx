@@ -205,6 +205,48 @@ describe('LaikaEditorToolbar', () => {
     expect(queryByText('editor.editorToolbar.publishNow')).not.toBeInTheDocument();
   });
 
+  it('hides Publish for an existing draft entry under editorial workflow (DCMS-2050): unlike the classic shell, the Laika shell gates Publish on status', () => {
+    const { queryByText } = render(
+      <MemoryRouter>
+        <LaikaEditorToolbar
+          {...baseProps}
+          hasWorkflow
+          isNewEntry={false}
+          currentStatus="draft"
+        />
+      </MemoryRouter>,
+    );
+    expect(queryByText('editor.editorToolbar.publishNow')).not.toBeInTheDocument();
+  });
+
+  it('hides Publish for an existing pending_review entry under editorial workflow (DCMS-2050)', () => {
+    const { queryByText } = render(
+      <MemoryRouter>
+        <LaikaEditorToolbar
+          {...baseProps}
+          hasWorkflow
+          isNewEntry={false}
+          currentStatus="pending_review"
+        />
+      </MemoryRouter>,
+    );
+    expect(queryByText('editor.editorToolbar.publishNow')).not.toBeInTheDocument();
+  });
+
+  it('shows Publish for a pending_publish (Ready) entry under editorial workflow (DCMS-2050)', () => {
+    const { getByText } = render(
+      <MemoryRouter>
+        <LaikaEditorToolbar
+          {...baseProps}
+          hasWorkflow
+          isNewEntry={false}
+          currentStatus="pending_publish"
+        />
+      </MemoryRouter>,
+    );
+    expect(getByText('editor.editorToolbar.publishNow')).toBeInTheDocument();
+  });
+
   it('wires the chain-create actions into the More actions menu when collection.create is on (DCMS-511)', () => {
     const onPersistAndNew = vi.fn();
     const onPersistAndDuplicate = vi.fn();
