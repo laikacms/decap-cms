@@ -21,7 +21,7 @@ function filterUnknownMetaKeys(meta: Record<string, unknown>): Record<string, un
   return Object.fromEntries(Object.entries(meta).filter(([k]) => knownMetaKeys.has(k)));
 }
 
-function createStore(...args: any[]): CursorStoreData {
+function createStore(...args: unknown[]): CursorStoreData {
   let actions: Iterable<string>;
   let data: Record<string, unknown>;
   let meta: Record<string, unknown>;
@@ -65,11 +65,11 @@ export default class Cursor {
     return this.store.meta;
   }
 
-  static create(...args: any[]) {
+  static create(...args: unknown[]) {
     return new Cursor(...args);
   }
 
-  constructor(...args: any[]) {
+  constructor(...args: unknown[]) {
     if (args[0] instanceof Cursor) {
       return args[0];
     }
