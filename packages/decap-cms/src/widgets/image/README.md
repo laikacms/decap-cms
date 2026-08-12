@@ -93,9 +93,9 @@ without letting the media library dialog select more than one asset per open:
 `field.media_library.config` (the whole object, not just `multiple`) is also forwarded to
 `onOpenMediaLibrary` as `config`, for media-library-specific settings (e.g. `max_file_size`).
 
-There is a second, older override path — `field.options.media_library` — referenced only in an
-unused `warnDeprecatedOptions` helper left over from before the v4.beta rewrite; it's never invoked,
-so `field.options.media_library` is dead code here too, same as in the `file` widget.
+A second, older override path, `field.options.media_library`, along with its unused
+`warnDeprecatedOptions` helper left over from before the v4.beta rewrite, has been removed (see
+DCMS-2071), same as in the `file` widget.
 
 ## Selection, replace, remove, and reorder
 

@@ -1,9 +1,7 @@
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
-import { once } from 'lodash-es';
 import React, { useEffect, useState } from 'react';
 
-import { oneLine } from '@/lib/util/index';
 import { basename } from '@/lib/util/index';
 import { randomUUID } from '@/lib/util/index';
 import { promptDialog, showAlert } from '@/ui';
@@ -288,16 +286,6 @@ function valueListToSortableArray(value: FileValue): SortableItem[] | FileValue 
 
   return valueArray;
 }
-
-const warnDeprecatedOptions = once((field: FileControlField) =>
-  console.warn(oneLine`
-  Decap CMS config: ${field.name} field: property "options" has been deprecated for the
-  ${field.widget} widget and will be removed in the next major release. Rather than
-  \`field.options.media_library\`, apply media library options for this widget under
-  \`field.media_library\`.
-`)
-);
-void warnDeprecatedOptions;
 
 export interface FileControlProps {
   field: FileControlField;
