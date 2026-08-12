@@ -13,14 +13,14 @@ collection live and letting the editor pick a result.
 - `value_field` / `valueField` (required) — the field of the matched entry stored on this entry.
 - `search_fields` / `searchFields` (required, non-empty array) — the fields of the target collection
   matched against the search term.
-- `display_fields` (optional) — fields shown in the option list; defaults to `value_field` when
-  omitted.
+- `display_fields` / `displayFields` (optional) — fields shown in the option list; defaults to
+  `value_field` when omitted.
 - `file` (optional) — restrict the search to a single file (file collections).
 - `filters` (optional) — `[{ field, values }]` pairs the results must match.
 - `multiple`, `min`, `max` — standard multi-value controls.
-- `options_length` (optional, **default `20`**) — maximum number of options shown per search. Set
-  this higher if a collection has many entries that share similar search terms and the default cuts
-  off relevant results.
+- `options_length` / `optionsLength` (optional, **default `20`**) — maximum number of options shown
+  per search. Set this higher if a collection has many entries that share similar search terms and
+  the default cuts off relevant results.
 - `allow_quick_add` / `allowQuickAdd` (optional, **default `false`**) — when `true`, shows a
   "+ Create new" button under the field. Clicking it opens a minimal form (one input per
   `value_field` and `display_fields` entry, restricted to plain top-level field names — templated or
@@ -34,6 +34,17 @@ collection live and letting the editor pick a result.
 Both `value_field` and `display_fields` are string templates and support `{{ field | filter }}` pipe
 syntax (`upper`, `lower`, `date()`, `default()`, `ternary()`, `truncate()`) - see
 [`src/lib/widgets/README.md#template-filters`](../../lib/widgets/README.md#template-filters).
+
+### Deprecated camelCase aliases
+
+`valueField`, `searchFields`, `displayFields`, and `optionsLength` are deprecated camelCase aliases
+for `value_field`, `search_fields`, `display_fields`, and `options_length` respectively. They are
+**not** inert: config normalization (`normalizeConfig`/`setSnakeCaseConfig`/`WIDGET_KEY_MAP` in
+`src/core/actions/config.tsx`) copies any present camelCase key onto its snake_case counterpart for
+every field at config-load time, logging a `console.warn` deprecation notice for each one, before
+`RelationControl` ever reads the field. So `{ widget: 'relation', valueField: 'name', searchFields:
+['name'] }` behaves identically to `{ widget: 'relation', value_field: 'name', search_fields: ['name']
+}` — same lookup and search paths. Prefer the snake_case keys in new configs.
 
 ## Search behavior
 
