@@ -47,11 +47,9 @@ sub-keys are consumed here:
 - `field.media_library.config` — forwarded to `onOpenMediaLibrary` as `config`, for
   media-library-specific settings (e.g. `max_file_size`).
 
-There is a second, older override path — `field.options.media_library` — referenced only in an
-unused `warnDeprecatedOptions` deprecation-warning helper left over from before the v4.beta rewrite.
-That helper is never invoked anywhere in this file (or elsewhere), so `field.options.media_library`
-is not currently read by this widget at all; treat it as dead code, not a supported second
-mechanism. Configure media-library overrides via `field.media_library` only.
+A second, older override path, `field.options.media_library`, along with its unused
+`warnDeprecatedOptions` deprecation-warning helper left over from before the v4.beta rewrite, has
+been removed (see DCMS-2071). Configure media-library overrides via `field.media_library` only.
 
 For the shape and behavior of the media library itself (global collection/registered media
 libraries, `config`, upload flow), see `src/core/mediaLibrary.ts` and
