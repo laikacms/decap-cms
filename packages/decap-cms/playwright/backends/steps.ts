@@ -171,13 +171,24 @@ export async function createPost(page: Page, entry: Entry): Promise<void> {
 }
 
 /**
- * Clicks OK on the `AlertDialog`-backed confirm (DCMS-658) that replaced
- * `window.confirm` at most call sites — delete/publish/leave-page prompts
- * all render this real DOM modal rather than a native dialog, so Playwright's
- * `page.on('dialog', ...)` auto-accept handler never sees them.
+ * Clicks the confirm button on the `AlertDialog`-backed confirm (DCMS-658)
+ * that replaced `window.confirm` at most call sites — delete/publish/
+ * leave-page prompts all render this real DOM modal rather than a native
+ * dialog, so Playwright's `page.on('dialog', ...)` auto-accept handler never
+ * sees them.
+ *
+ * `confirmLabel` must match the dialog's actual confirm-button copy
+ * (`ConfirmDialogHost` in `src/ui/AlertDialog.tsx` falls back to `'OK'` only
+ * when the caller passes no `confirmLabel` option — most call sites do, per
+ * DCMS-1471's per-dialog copy in `src/locales/en/index.ts`, e.g.
+ * `onDeleteUnpublishedChangesConfirm: 'Discard changes'`).
  */
-export async function confirmAlertDialog(page: Page, name = 'Confirm'): Promise<void> {
-  await page.getByRole('alertdialog', { name }).getByRole('button', { name: 'OK' }).click();
+export async function confirmAlertDialog(
+  page: Page,
+  name: string,
+  confirmLabel: string,
+): Promise<void> {
+  await page.getByRole('alertdialog', { name }).getByRole('button', { name: confirmLabel }).click();
 }
 
 /**
@@ -185,14 +196,18 @@ export async function confirmAlertDialog(page: Page, name = 'Confirm'): Promise<
  * conditionally (e.g. the leave-page guard only fires when there are unsaved
  * changes) — waits briefly for the dialog and no-ops if it never shows up.
  */
-export async function confirmAlertDialogIfPresent(page: Page, name = 'Confirm'): Promise<void> {
+export async function confirmAlertDialogIfPresent(
+  page: Page,
+  name: string,
+  confirmLabel: string,
+): Promise<void> {
   const dialog = page.getByRole('alertdialog', { name });
   try {
     await dialog.waitFor({ state: 'visible', timeout: 2_000 });
   } catch {
     return;
   }
-  await dialog.getByRole('button', { name: 'OK' }).click();
+  await dialog.getByRole('button', { name: confirmLabel }).click();
 }
 
 export async function exitEditor(page: Page): Promise<void> {
@@ -201,8 +216,9 @@ export async function exitEditor(page: Page): Promise<void> {
   // (useEditor.ts's navigation blocker, DCMS-658's AlertDialog migration) —
   // only when there are actually unsaved changes, so this is a no-op
   // otherwise. Its title is `editor.editor.onLeavePageTitle` ("Unsaved
-  // changes", DCMS-1471), not the generic "Confirm" default.
-  await confirmAlertDialogIfPresent(page, 'Unsaved changes');
+  // changes") and its confirm button is `editor.editor.onLeavePageConfirm`
+  // ("Leave page", DCMS-1471), not the generic "Confirm"/"OK" defaults.
+  await confirmAlertDialogIfPresent(page, 'Unsaved changes', 'Leave page');
 }
 
 export async function createPostAndExit(page: Page, entry: Entry): Promise<void> {
@@ -252,9 +268,11 @@ export async function publishWorkflowEntry(page: Page, { title }: Entry): Promis
   await card.getByRole('button', { name: 'Publish new entry' }).click({ force: true });
   // Publish confirm is the AlertDialog-backed confirm (DCMS-658), not a
   // native dialog — must be dismissed explicitly. Its title is
-  // `workflow.workflowList.onPublishEntryTitle` ("Publish entry", DCMS-1471),
-  // not the generic "Confirm" default.
-  await confirmAlertDialog(page, 'Publish entry');
+  // `workflow.workflowList.onPublishEntryTitle` ("Publish entry", DCMS-1471).
+  // Unlike the editor's delete/leave-page confirms, `WorkflowList.tsx`'s
+  // `requestPublish` calls `confirmDialog` without a `confirmLabel` option,
+  // so this one genuinely falls back to `ConfirmDialogHost`'s "OK" default.
+  await confirmAlertDialog(page, 'Publish entry', 'OK');
 }
 
 export async function updateExistingPostAndExit(
@@ -299,8 +317,10 @@ export async function deleteEntryInEditor(page: Page): Promise<void> {
   // than `handleDeleteEntry`. Delete confirm is the AlertDialog-backed
   // confirm (DCMS-658), not a native dialog — must be dismissed explicitly.
   // Its title is `editor.editor.onDeleteUnpublishedChangesTitle` ("Delete
-  // unpublished changes", DCMS-1471), not the generic "Confirm" default.
-  await confirmAlertDialog(page, 'Delete unpublished changes');
+  // unpublished changes") and its confirm button is
+  // `editor.editor.onDeleteUnpublishedChangesConfirm` ("Discard changes",
+  // DCMS-1471), not the generic "Confirm"/"OK" defaults.
+  await confirmAlertDialog(page, 'Delete unpublished changes', 'Discard changes');
   await assertNotification(page, notifications.deletedUnpublished);
 }
 
