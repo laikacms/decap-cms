@@ -1,6 +1,8 @@
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import configureMockStore from 'redux-mock-store';
 import { thunk } from 'redux-thunk';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   deleteMedia,
@@ -10,7 +12,10 @@ import {
   persistMedia,
 } from '@/core/actions/mediaLibrary';
 import * as backendModule from '@/core/backend';
+import { registerLocale } from '@/core/lib/registry';
 import * as libUtil from '@/lib/util/index';
+import { en } from '@/locales/index';
+import { ConfirmDialogHost } from '@/ui';
 
 vi.mock('../../backend');
 vi.mock('../waitUntil');
@@ -314,6 +319,106 @@ describe('mediaLibrary', () => {
         .finally(() => {
           vi.unstubAllGlobals();
         });
+    });
+  });
+
+  // DCMS-2037: the "replace existing file?" confirm shown on re-upload must
+  // read from locales/*/index.ts (not hardcoded English) and use explicit
+  // Replace/Cancel labels since confirming deletes the existing file.
+  describe('persistMedia replace-confirm (DCMS-2037)', () => {
+    beforeAll(() => {
+      registerLocale('en', en);
+    });
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    function createStoreWithExistingFile() {
+      return mockStore({
+        config: {
+          locale: 'en',
+          media_folder: 'static/media',
+          slug: {
+            encoding: 'unicode',
+            clean_accents: false,
+            sanitize_replacement: '-',
+          },
+        },
+        collections: {
+          posts: { name: 'posts' },
+        },
+        integrations: { providers: {}, hooks: {} },
+        mediaLibrary: {
+          files: [{ name: 'name.png', id: 'existing-id', path: 'static/media/name.png' }],
+        },
+        entryDraft: {
+          entry: {},
+        },
+      });
+    }
+
+    it('opens the confirm dialog with translated title/body containing the filename', async () => {
+      render(<ConfirmDialogHost />);
+      const store = createStoreWithExistingFile();
+      const file = new File([''], 'name.png');
+
+      store.dispatch(persistMedia(file));
+
+      const dialog = await screen.findByRole('alertdialog', { name: 'Replace "name.png"?' });
+      expect(dialog).toHaveTextContent('"name.png" already exists. Do you want to replace it?');
+
+      await userEvent.setup().click(screen.getByRole('button', { name: 'Cancel' }));
+      await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    });
+
+    it('renders translated Replace/Cancel button labels', async () => {
+      render(<ConfirmDialogHost />);
+      const store = createStoreWithExistingFile();
+      const file = new File([''], 'name.png');
+
+      store.dispatch(persistMedia(file));
+
+      await screen.findByRole('alertdialog', { name: 'Replace "name.png"?' });
+      expect(screen.getByRole('button', { name: 'Replace' })).toBeVisible();
+      expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
+
+      await userEvent.setup().click(screen.getByRole('button', { name: 'Cancel' }));
+      await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    });
+
+    it('dispatches deleteMedia(existingFile, ...) when the replace is confirmed', async () => {
+      render(<ConfirmDialogHost />);
+      const store = createStoreWithExistingFile();
+      const file = new File([''], 'name.png');
+
+      const dispatched = store.dispatch(persistMedia(file));
+
+      await screen.findByRole('alertdialog', { name: 'Replace "name.png"?' });
+      await userEvent.setup().click(screen.getByRole('button', { name: 'Replace' }));
+      await dispatched;
+
+      expect(backend.deleteMedia).toHaveBeenCalledTimes(1);
+      expect(backend.deleteMedia).toHaveBeenCalledWith(
+        store.getState().config,
+        'static/media/name.png',
+      );
+      expect(backend.persistMedia).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not dispatch deleteMedia when the replace is cancelled', async () => {
+      render(<ConfirmDialogHost />);
+      const store = createStoreWithExistingFile();
+      const file = new File([''], 'name.png');
+
+      const dispatched = store.dispatch(persistMedia(file));
+
+      await screen.findByRole('alertdialog', { name: 'Replace "name.png"?' });
+      await userEvent.setup().click(screen.getByRole('button', { name: 'Cancel' }));
+      await dispatched;
+
+      expect(backend.deleteMedia).not.toHaveBeenCalled();
+      expect(backend.persistMedia).not.toHaveBeenCalled();
     });
   });
 

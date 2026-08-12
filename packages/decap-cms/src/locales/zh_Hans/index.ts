@@ -216,6 +216,10 @@ const zh_Hans = {
     },
     mediaLibrary: {
       onDelete: '你确定要删除此媒体项目吗？',
+      onReplace: '"%{name}" 已存在。是否要替换它？',
+      onReplaceTitle: '替换 "%{name}"？',
+      onReplaceConfirm: '替换',
+      onReplaceCancel: '取消',
       fileTooLarge: '文件体积过大\n目前的配置中不允许文件体积超过 %{size} kB',
     },
     mediaLibraryModal: {

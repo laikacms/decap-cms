@@ -174,6 +174,10 @@ const es = {
     },
     mediaLibrary: {
       onDelete: '¿Está seguro de que desea eliminar el archivo seleccionado?',
+      onReplace: '"%{name}" ya existe. ¿Desea reemplazarlo?',
+      onReplaceTitle: '¿Reemplazar "%{name}"?',
+      onReplaceConfirm: 'Reemplazar',
+      onReplaceCancel: 'Cancelar',
       fileTooLarge: 'Archivo muy pesado.\nConfigurado para no permitir archivos más pesados que %{size} kB.',
     },
     mediaLibraryModal: {

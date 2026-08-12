@@ -218,6 +218,10 @@ const fr = {
     },
     mediaLibrary: {
       onDelete: 'Voulez-vous vraiment supprimer la ressource sélectionné ?',
+      onReplace: '"%{name}" existe déjà. Voulez-vous le remplacer ?',
+      onReplaceTitle: 'Remplacer "%{name}" ?',
+      onReplaceConfirm: 'Remplacer',
+      onReplaceCancel: 'Annuler',
       fileTooLarge:
         "Le fichier est trop volumineux.\nL'instance est configurée pour bloquer les envois de plus de %{size} kB.",
     },
