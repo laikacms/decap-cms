@@ -51,17 +51,18 @@ this common set of controls:
 | List      | A repeatable list of values or sub-fields (add/remove items).                                                                                                                                                                                                                              |
 | Object    | A group of related fields nested together, optionally collapsible.                                                                                                                                                                                                                         |
 | Relation  | Search for and link to an entry in another collection (e.g. picking an "Author" from an Authors collection).                                                                                                                                                                               |
-| Map       | Draw a point, line, or polygon on a map.                                                                                                                                                                                                                                                   |
 | Code      | A syntax-highlighted code editor.                                                                                                                                                                                                                                                          |
 | Color     | A swatch that opens a color picker, plus a text input for the raw value.                                                                                                                                                                                                                   |
 | UUID      | A generated unique id, filled in automatically the first time the field appears. Usually left alone.                                                                                                                                                                                       |
 
 Some sites also enable optional widgets that aren't part of the default set - most commonly an
-**icon picker** (browse and select an icon from an icon library) and an **AI chat** panel for
-drafting content inside the editor. **The AI chat panel is deprecated** and being phased out in
-favor of the laikacms MCP server (`/mcp`); prefer the MCP integration for AI-assisted editing and
-use the in-editor panel only if a site still has it enabled. If you see a field that isn't in the
-table above, it's one of these or a custom widget built for that site.
+**icon picker** (browse and select an icon from an icon library), a **map** widget (draw a point,
+line, or polygon on a map; requires the site to install the optional `ol` peer dependency and call
+`registerMapWidget()`), and an **AI chat** panel for drafting content inside the editor. **The AI
+chat panel is deprecated** and being phased out in favor of the laikacms MCP server (`/mcp`);
+prefer the MCP integration for AI-assisted editing and use the in-editor panel only if a site still
+has it enabled. If you see a field that isn't in the table above, it's one of these or a custom
+widget built for that site.
 
 ## Saving, publishing, and the editorial workflow
 
