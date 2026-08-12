@@ -583,22 +583,36 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
       loadOptions(inputValue);
     }
 
-    // Opt-in "create new entry inline" (DCMS-1421). Gated on both the
-    // field's `allow_quick_add`/`allowQuickAdd` config and the caller
-    // actually wiring up `onQuickCreateEntry` (nested/object-list relation
-    // instances or older host apps may not).
-    const canQuickAdd = Boolean(onQuickCreateEntry) && Boolean(field.allow_quick_add ?? field.allowQuickAdd);
+    // The *target* collection (`field.collection`) - a different collection
+    // than the one this relation field lives in - looked up from `config`
+    // (threaded down via `Widget.tsx`/`EditorControl.tsx`, see the `config`
+    // prop doc above). `undefined` when `config` wasn't threaded down (e.g.
+    // some embedding host apps / older tests) or the collection isn't found;
+    // callers fall back to permissive defaults in that case.
+    const targetCollection = config?.collections?.find(c => c.name === field.collection);
 
-    // Looks up the *target* collection's (`field.collection`) own field
-    // definition for a quick-add form field, so the dialog can mirror
-    // `label`/`required`/`hint` the way `LabelComponent`
-    // (`EditorControl.tsx:145-153`) does for the normal editor pane
-    // (DCMS-2055). Returns `undefined` when `config` wasn't threaded down
-    // (e.g. some embedding host apps / older tests) or the target
-    // collection/field can't be found - callers fall back to the raw quick-add
-    // field key in that case.
+    // Opt-in "create new entry inline" (DCMS-1421). Gated on the field's
+    // `allow_quick_add`/`allowQuickAdd` config, the caller actually wiring
+    // up `onQuickCreateEntry` (nested/object-list relation instances or
+    // older host apps may not), and the *target* collection actually
+    // allowing new entries (`create`, mirrors `selectAllowNewEntries` in
+    // `core/reducers/collections.tsx`) - otherwise the button renders but
+    // `persistQuickCreateEntry` (`core/actions/entries.tsx`) always throws
+    // on save (README.md:31, DCMS-2059). `create` is treated as opt-out
+    // (`!== false`) rather than opt-in so relation fields against
+    // collections/tests that don't set `create` at all keep working; only an
+    // explicit `create: false` hides the button.
+    const canQuickAdd = Boolean(onQuickCreateEntry) &&
+      Boolean(field.allow_quick_add ?? field.allowQuickAdd) &&
+      targetCollection?.create !== false;
+
+    // Looks up the *target* collection's own field definition for a
+    // quick-add form field, so the dialog can mirror `label`/`required`/
+    // `hint` the way `LabelComponent` (`EditorControl.tsx:145-153`) does for
+    // the normal editor pane (DCMS-2055). Returns `undefined` when
+    // `targetCollection` is unknown or the field can't be found - callers
+    // fall back to the raw quick-add field key in that case.
     function getTargetField(name: string): CmsFieldBase | undefined {
-      const targetCollection = config?.collections?.find(c => c.name === field.collection);
       return targetCollection?.fields?.find(f => f.name === name) as CmsFieldBase | undefined;
     }
 

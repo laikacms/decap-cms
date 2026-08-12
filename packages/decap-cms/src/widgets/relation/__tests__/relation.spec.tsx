@@ -68,6 +68,22 @@ const postsCollectionConfig = {
   ],
 };
 
+// Target-collection config (DCMS-2059) where the `posts` collection
+// explicitly disallows new entries (`create: false`) - the quick-add button
+// must stay hidden even though the field itself opts in via
+// `allow_quick_add`, matching README.md:31's `selectAllowNewEntries` gating.
+const noCreateCollectionConfig = {
+  collections: [
+    {
+      name: 'posts',
+      label: 'Posts',
+      folder: 'posts',
+      create: false,
+      fields: [{ name: 'title', label: 'Title', widget: 'string' }],
+    },
+  ],
+};
+
 const customizedOptionsLengthConfig = {
   name: 'post',
   collection: 'posts',
@@ -937,6 +953,19 @@ describe('Relation widget', () => {
         onQuickCreateEntry: vi.fn(),
       });
       expect(getByText('+ Create new posts')).toBeInTheDocument();
+    });
+
+    // DCMS-2059: `allow_quick_add`/`onQuickCreateEntry` only cover the host
+    // wiring side of the README.md:31 gate - the *target* collection must
+    // also allow new entries, otherwise the button used to render and then
+    // reject on save via `persistQuickCreateEntry`.
+    it('does not render the quick-add button when the target collection disallows new entries', () => {
+      const { queryByText } = setup({
+        field: quickAddFieldConfig,
+        onQuickCreateEntry: vi.fn(),
+        config: noCreateCollectionConfig,
+      });
+      expect(queryByText(/Create new/i)).not.toBeInTheDocument();
     });
 
     it('opens a form with one input per value_field/display_fields field on click', async () => {
