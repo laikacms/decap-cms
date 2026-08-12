@@ -420,7 +420,11 @@ export function useEditor({
       if (!prevLocalBackup && localBackup) {
         const confirmLoadBackup = await confirmDialog(
           t('editor.editor.confirmLoadBackup'),
-          { title: t('editor.editor.confirmLoadBackupTitle') },
+          {
+            title: t('editor.editor.confirmLoadBackupTitle'),
+            confirmLabel: t('editor.editor.confirmLoadBackupConfirm'),
+            cancelLabel: t('editor.editor.confirmLoadBackupCancel'),
+          },
           unmountControllerRef.current.signal,
         );
         if (confirmLoadBackup) {
