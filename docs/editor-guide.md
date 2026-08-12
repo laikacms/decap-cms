@@ -58,8 +58,10 @@ this common set of controls:
 
 Some sites also enable optional widgets that aren't part of the default set - most commonly an
 **icon picker** (browse and select an icon from an icon library) and an **AI chat** panel for
-drafting content inside the editor. If you see a field that isn't in the table above, it's one of
-these or a custom widget built for that site.
+drafting content inside the editor. **The AI chat panel is deprecated** and being phased out in
+favor of the laikacms MCP server (`/mcp`); prefer the MCP integration for AI-assisted editing and
+use the in-editor panel only if a site still has it enabled. If you see a field that isn't in the
+table above, it's one of these or a custom widget built for that site.
 
 ## Saving, publishing, and the editorial workflow
 
