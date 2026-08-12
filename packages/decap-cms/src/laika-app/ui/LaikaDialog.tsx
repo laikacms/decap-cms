@@ -135,6 +135,7 @@ function LaikaDialog({
             css={[popupStyles, { maxWidth: width }]}
             className={className}
             aria-label={!title && ariaLabel ? ariaLabel : undefined}
+            aria-modal="true"
           >
             {title || showCloseButton
               ? (

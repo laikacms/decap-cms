@@ -73,4 +73,15 @@ describe('LaikaDialog', () => {
     const dialog = getByRole('dialog');
     expect(dialog).toHaveAttribute('aria-labelledby', getByText('Confirm delete').id);
   });
+
+  it('exposes aria-modal="true" so assistive tech treats it as a true modal (DCMS-2075)', () => {
+    const { getByRole } = render(
+      <LaikaDialog isOpen onClose={vi.fn()} ariaLabel="Command palette" showCloseButton={false}>
+        <div>body</div>
+      </LaikaDialog>,
+    );
+    const dialog = getByRole('dialog');
+    expect(dialog).toHaveAttribute('role', 'dialog');
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+  });
 });
