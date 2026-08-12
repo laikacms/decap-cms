@@ -20,6 +20,22 @@ vi.mock('@/ui', async () => {
   };
 });
 
+// Isolate the MediaLibrary <-> crop-dialog wiring from the dialog's own
+// canvas/pointer-drag internals (covered separately in
+// ImageCropDialog.spec.tsx): stand in a fake with Confirm/Cancel buttons
+// that call straight through to the props MediaLibrary passed it.
+vi.mock('@/core/components/MediaLibrary/ImageCropDialog', () => ({
+  default: ({ file, onConfirm, onCancel }: any) => (
+    <div data-testid="fake-crop-dialog">
+      <span>{file.name}</span>
+      <button onClick={() => onConfirm(new File(['cropped'], file.name, { type: file.type }))}>
+        confirm-crop
+      </button>
+      <button onClick={onCancel}>cancel-crop</button>
+    </div>
+  ),
+}));
+
 import { MediaLibrary } from '@/core/components/MediaLibrary/MediaLibrary';
 import { RouterProvider } from '@/core/routing/context';
 import { showAlert } from '@/ui';
@@ -168,6 +184,90 @@ describe('MediaLibrary', () => {
       selectFile(largeFile);
 
       expect(showAlert).not.toHaveBeenCalled();
+      expect(props.persistMedia).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('crop before upload (DCMS-2011)', () => {
+    function selectFile(file: File) {
+      const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+      Object.defineProperty(input, 'files', { value: [file], configurable: true });
+      fireEvent.change(input);
+    }
+
+    it('opens the crop dialog instead of persisting immediately when crop is enabled for an image upload', () => {
+      const { props } = renderMediaLibrary({
+        isVisible: true,
+        forImage: true,
+        cropConfig: { enabled: true },
+      });
+
+      selectFile(new File(['x'], 'photo.png', { type: 'image/png' }));
+
+      expect(props.persistMedia).not.toHaveBeenCalled();
+      expect(document.querySelector('[data-testid="fake-crop-dialog"]')).not.toBeNull();
+    });
+
+    it('persists the cropped file once the dialog is confirmed', () => {
+      const { props } = renderMediaLibrary({
+        isVisible: true,
+        forImage: true,
+        cropConfig: { enabled: true },
+      });
+
+      selectFile(new File(['x'], 'photo.png', { type: 'image/png' }));
+
+      const confirmButton = Array.from(document.querySelectorAll('button')).find(
+        button => button.textContent === 'confirm-crop',
+      ) as HTMLButtonElement;
+      fireEvent.click(confirmButton);
+
+      expect(props.persistMedia).toHaveBeenCalledTimes(1);
+      const [persistedFile] = (props.persistMedia as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(persistedFile.name).toBe('photo.png');
+    });
+
+    it('drops the pending upload without persisting when the dialog is cancelled', () => {
+      const { props } = renderMediaLibrary({
+        isVisible: true,
+        forImage: true,
+        cropConfig: { enabled: true },
+      });
+
+      selectFile(new File(['x'], 'photo.png', { type: 'image/png' }));
+
+      const cancelButton = Array.from(document.querySelectorAll('button')).find(
+        button => button.textContent === 'cancel-crop',
+      ) as HTMLButtonElement;
+      fireEvent.click(cancelButton);
+
+      expect(props.persistMedia).not.toHaveBeenCalled();
+      expect(document.querySelector('[data-testid="fake-crop-dialog"]')).toBeNull();
+    });
+
+    it('persists directly, bypassing the crop dialog, when crop is disabled', () => {
+      const { props } = renderMediaLibrary({
+        isVisible: true,
+        forImage: true,
+        cropConfig: { enabled: false },
+      });
+
+      selectFile(new File(['x'], 'photo.png', { type: 'image/png' }));
+
+      expect(document.querySelector('[data-testid="fake-crop-dialog"]')).toBeNull();
+      expect(props.persistMedia).toHaveBeenCalledTimes(1);
+    });
+
+    it('persists directly for non-image widgets even when crop is enabled', () => {
+      const { props } = renderMediaLibrary({
+        isVisible: true,
+        forImage: false,
+        cropConfig: { enabled: true },
+      });
+
+      selectFile(new File(['x'], 'doc.pdf', { type: 'application/pdf' }));
+
+      expect(document.querySelector('[data-testid="fake-crop-dialog"]')).toBeNull();
       expect(props.persistMedia).toHaveBeenCalledTimes(1);
     });
   });

@@ -322,6 +322,12 @@ const en = {
     mediaLibraryFolders: {
       regionLabel: 'Subfolders',
     },
+    cropDialog: {
+      title: 'Crop image',
+      cancel: 'Cancel',
+      confirm: 'Crop & upload',
+      loadError: 'This image could not be loaded for cropping.',
+    },
   },
   ui: {
     default: {

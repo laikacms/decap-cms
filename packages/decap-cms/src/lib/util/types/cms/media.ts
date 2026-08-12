@@ -20,10 +20,30 @@ export type CmsImageOptimizationConfig = {
   quality?: number | undefined,
 };
 
+/**
+ * Opt-in interactive crop/resize step shown before an uploaded raster image
+ * is handed to the backend (DCMS-2011, split from the on-upload
+ * *automatic* optimization in `CmsImageOptimizationConfig`/DCMS-1397: that
+ * one silently downscales every upload, this one lets the user pick the
+ * crop region themselves). Resolution order matches
+ * `CmsImageOptimizationConfig`: field-level `media_library.config.crop`
+ * wins over the site-wide `media_library.config.crop` default.
+ */
+export type CmsImageCropConfig = {
+  /** Master switch; defaults to `false` (opt-in). */
+  enabled?: boolean | undefined,
+  /**
+   * Locks the crop selection to this width/height ratio (e.g. `1` for a
+   * square, `16 / 9` for widescreen). Omitted means free-form cropping.
+   */
+  aspect_ratio?: number | undefined,
+};
+
 export type CmsMediaLibraryOptions = {
   multiple?: boolean | undefined,
   max_file_size?: number | undefined,
   image_optimization?: CmsImageOptimizationConfig | undefined,
+  crop?: CmsImageCropConfig | undefined,
 };
 
 export interface CmsMediaLibrary {
