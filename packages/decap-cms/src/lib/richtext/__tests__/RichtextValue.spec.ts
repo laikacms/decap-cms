@@ -203,6 +203,23 @@ describe('RichtextValue', () => {
     });
   });
 
+  describe('unregistered output format (pinning test, issue #2045)', () => {
+    it('throws "no mapper registered" when toString() runs against a format nobody registered', () => {
+      // Mirrors the real-world failure: a collection sets `format: html` (or
+      // `plainText`) on a richtext field, but the site never called
+      // `CMS.registerRichtextFormat(htmlFormat)` — only markdown is
+      // registered automatically (`src/app/extensions.ts`). Saving throws
+      // instead of silently switching format. See
+      // `src/widgets/richtext/README.md#format-packs` and
+      // `docs/editor-guide.md`.
+      const raw = 'hello   ';
+      const value = new RichtextValue(raw, { hint: 'fmt-a' });
+      value.setOutputFormat('html');
+      value.setPortableText(block('goodbye')); // leave "pristine" so toString() must go through the mapper
+      expect(() => value.toString()).toThrow(/no mapper registered for id "html"/);
+    });
+  });
+
   describe('primePristineBaseline', () => {
     it('sets the comparison baseline only while still pristine', () => {
       const raw = 'hello   ';
