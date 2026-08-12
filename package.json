@@ -12,7 +12,7 @@
     "lint": "pnpm -r run lint",
     "test": "pnpm -r run test",
     "test:watch": "pnpm --filter @laikacms/decap-cms run test:watch",
-    "test:ci": "node scripts/check-readme-layout.mjs && pnpm -r run test:ci",
+    "test:ci": "node scripts/check-readme-layout.mjs && node scripts/check-contributing-typecheck-count.mjs && pnpm -r run test:ci",
     "test:e2e": "pnpm --filter @laikacms/decap-cms run test:e2e",
     "dev": "pnpm --filter @laikacms/decap-cms run dev",
     "dev:lib": "pnpm --filter @laikacms/decap-cms run dev:lib",
