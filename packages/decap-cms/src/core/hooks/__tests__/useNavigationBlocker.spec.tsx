@@ -78,6 +78,8 @@ function renderNavigationBlocker(
   options: {
     shouldBlock?: () => boolean,
     message?: string,
+    confirmLabel?: string,
+    cancelLabel?: string,
     onNavigate?: () => void,
     allowedPaths?: string[],
   },
@@ -93,6 +95,8 @@ function renderNavigationBlocker(
       useNavigationBlocker({
         shouldBlock,
         message,
+        confirmLabel: options.confirmLabel,
+        cancelLabel: options.cancelLabel,
         onNavigate: options.onNavigate,
         allowedPaths: options.allowedPaths,
       }),
@@ -321,6 +325,75 @@ describe('useNavigationBlocker', () => {
     });
 
     expect(unblock).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('useNavigationBlocker confirmLabel/cancelLabel passthrough (DCMS-2031)', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('renders the caller-supplied labels instead of the generic OK/Cancel defaults when provided', async () => {
+    resetFakeRouter();
+    render(<ConfirmDialogHost />);
+
+    const router = buildFakeRouter(true);
+    const { result } = renderNavigationBlocker(
+      {
+        shouldBlock: () => true,
+        message: 'Unsaved!',
+        confirmLabel: 'Leave page',
+        cancelLabel: 'Stay on this page',
+      },
+      router,
+    );
+
+    act(() => {
+      result.current.setupBlocker();
+    });
+
+    act(() => {
+      router.push('/collections/other');
+    });
+
+    await screen.findByRole('alertdialog');
+
+    expect(screen.getByRole('button', { name: 'Leave page' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Stay on this page' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'OK' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument();
+
+    // Settle the prompt so it drains from `ConfirmDialogHost`'s module-scoped
+    // queue instead of leaking into a later test in this file.
+    act(() => {
+      screen.getByRole('button', { name: 'Stay on this page' }).click();
+    });
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+  });
+
+  it('falls back to the generic OK/Cancel defaults when no labels are supplied (unchanged behaviour)', async () => {
+    resetFakeRouter();
+    render(<ConfirmDialogHost />);
+
+    const router = buildFakeRouter(true);
+    const { result } = renderNavigationBlocker({ shouldBlock: () => true, message: 'Unsaved!' }, router);
+
+    act(() => {
+      result.current.setupBlocker();
+    });
+
+    act(() => {
+      router.push('/collections/other');
+    });
+
+    const dialog = await screen.findByRole('alertdialog');
+    expect(within(dialog).getByRole('button', { name: 'OK' })).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
+
+    act(() => {
+      within(dialog).getByRole('button', { name: 'Cancel' }).click();
+    });
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
   });
 });
 
