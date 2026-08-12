@@ -47,6 +47,26 @@ describe('parsePointerFile', () => {
 
     expect(Number.isNaN(parsePointerFile(pointer).size)).toBe(true);
   });
+
+  it('ignores blank lines and surrounding whitespace between fields', () => {
+    const pointer = [
+      '',
+      '  version https://git-lfs.github.com/spec/v1  ',
+      '',
+      '   ',
+      'oid sha256:4d7a214614ab2935c943f9e0ff69d22eadbb8f32b1258daaa5e2ca24d17e2fa',
+      '',
+      'size 12345',
+      '',
+      '',
+    ].join('\n');
+
+    expect(parsePointerFile(pointer)).toEqual({
+      size: 12345,
+      sha: '4d7a214614ab2935c943f9e0ff69d22eadbb8f32b1258daaa5e2ca24d17e2fa',
+      version: 'https://git-lfs.github.com/spec/v1',
+    });
+  });
 });
 
 describe('createPointerFile', () => {
@@ -117,6 +137,14 @@ describe('getLargeMediaPatternsFromGitAttributesFile', () => {
 
   it('treats a negated (leading hyphen) attribute as false and excludes the pattern', () => {
     const gitattributes = '*.psd filter=lfs diff=lfs -merge -text';
+
+    expect(getLargeMediaPatternsFromGitAttributesFile(gitattributes)).toEqual([]);
+  });
+
+  it('treats a bare attribute (no value, no leading hyphen) as boolean true, not the string "lfs"', () => {
+    // `filter` with no `=lfs` parses to boolean `true`, which must not satisfy the
+    // `attributes.filter === 'lfs'` check even though the key is truthy.
+    const gitattributes = '*.psd filter diff=lfs merge=lfs -text';
 
     expect(getLargeMediaPatternsFromGitAttributesFile(gitattributes)).toEqual([]);
   });
