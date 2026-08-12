@@ -43,7 +43,7 @@ its row.
 | _No community widgets listed yet — be the first!_ |             |             |      |
 
 Looking for widget examples in the meantime? This repo ships several bundled, opt-in widgets under
-`@laikacms/decap-cms/widgets/*` (e.g. `radix-icon`, `lucide-icon`, `icon-picker`, `map`, `aichat`) —
+`@laikacms/decap-cms/widgets/*` (e.g. `radix-icon`, `lucide-icon`, `map`, `aichat`) —
 each has its own README under
 [`packages/decap-cms/src/widgets/`](../packages/decap-cms/src/widgets/) and is registered the same
 way (`CMS.registerWidget(Widget.Widget())`), useful as reference implementations even though they
