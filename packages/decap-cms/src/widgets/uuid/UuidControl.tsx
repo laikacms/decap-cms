@@ -17,6 +17,9 @@ interface UuidControlProps {
   // every control by `core/components/Editor/EditorControlPane/Widget.tsx`.
   collection?: { i18n?: boolean | CmsI18nConfig } | undefined;
   locale?: string | undefined;
+  hasErrors?: boolean;
+  errorListId?: string;
+  hintId?: string;
 }
 
 // NOTE: Tracking the selection manually prevents the cursor from jumping to
@@ -32,6 +35,9 @@ export default function UuidControl({
   setInactiveStyle,
   collection,
   locale,
+  hasErrors,
+  errorListId,
+  hintId,
 }: UuidControlProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const pendingSelection = useRef<number | null>(null);
@@ -85,6 +91,10 @@ export default function UuidControl({
       onChange={handleChange}
       onFocus={setActiveStyle}
       onBlur={setInactiveStyle}
+      aria-required={field.required !== false}
+      aria-invalid={hasErrors || undefined}
+      aria-errormessage={hasErrors ? errorListId : undefined}
+      aria-describedby={hintId}
     />
   );
 }

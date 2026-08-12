@@ -34,6 +34,9 @@ export const IconControl: React.FC<IconControlProps> = props => {
     setInactiveStyle,
     t,
     filter,
+    hasErrors,
+    errorListId,
+    hintId,
   } = props;
 
   const [search, setSearch] = React.useState('');
@@ -111,6 +114,9 @@ export const IconControl: React.FC<IconControlProps> = props => {
             onFocus={onFocus}
             onBlur={onBlur}
             autoComplete="off"
+            aria-invalid={hasErrors || undefined}
+            aria-errormessage={hasErrors ? errorListId : undefined}
+            aria-describedby={hintId}
             style={{
               width: '100%',
               backgroundColor: colors.inputBackground,

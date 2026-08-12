@@ -124,6 +124,9 @@ export interface CmsWidgetControlProps<T = unknown, F = CmsFieldBase> {
   setActiveStyle: () => void;
   setInactiveStyle: () => void;
   t: CmsWidgetTranslate;
+  hasErrors?: boolean;
+  errorListId?: string;
+  hintId?: string;
 }
 
 /**
