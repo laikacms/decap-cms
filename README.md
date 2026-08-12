@@ -33,6 +33,8 @@ Schema.
   config JSON Schema
 - [Editor guide](docs/editor-guide.md) - for content editors: writing entries, the widget set, the
   editorial workflow, and the media library
+- [Community widgets](docs/community-widgets.md) - curated list of third-party `registerWidget`
+  packages, and how to list your own
 - [Decap CMS documentation](https://www.decapcms.org/docs/intro/) - configuration, content modeling,
   and backend setup; applies to this fork unless noted below
 - [Breaking changes in v4.beta](docs/contributing/decisions/breaking-changes-v4-beta.md) - how this
@@ -54,6 +56,7 @@ docs/
   contributing/  design decisions and learnings (see docs/contributing/index.md)
   core/          core-engine notes
   editor-guide.md  end-user guide for content editors
+  community-widgets.md  curated list of third-party registerWidget packages
 ```
 
 The workspace shape lets sibling packages (plugins, tooling, server pieces) live under `packages/`
