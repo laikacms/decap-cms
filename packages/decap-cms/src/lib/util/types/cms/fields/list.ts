@@ -19,4 +19,5 @@ export interface CmsFieldList {
   min?: number;
   add_to_top?: boolean;
   types?: (CmsFieldBase & CmsFieldObject)[];
+  typeKey?: string;
 }
