@@ -124,12 +124,12 @@ import { CMS } from '@laikacms/decap-cms/laika-app/bare';
 CMS.registerBlock({
   id: 'youtube',
   label: 'YouTube',
-  fields: [{ name: 'videoId', label: 'Video ID', widget: 'string' }],
+  fields: [{ name: 'id', label: 'Video ID', widget: 'string' }],
   formats: {
     markdown: {
       pattern: /^{{< youtube (\S+) >}}/,
-      fromMatch: match => ({ videoId: match[1] }),
-      serialize: data => `{{< youtube ${data.videoId} >}}`,
+      fromMatch: match => ({ id: match[1] }),
+      serialize: data => `{{< youtube ${data.id} >}}`,
     },
   },
 });
