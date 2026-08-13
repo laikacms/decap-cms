@@ -183,6 +183,12 @@ widget README's
 [Custom blocks](../../../packages/decap-cms/src/widgets/richtext/README.md#custom-blocks) section
 for the full `BlockDefinition` shape and the boot-time registration contract.
 
+**Known limitation:** blocks registered with `inline: true` are markdown-serialize-only — a
+`formats.markdown` codec's `serialize` runs for them, but `pattern`/`fromMatch` do not, so parsing
+an inline block back out of markdown is unsupported and it is silently lost on the next load. See
+[`BlockDefinition` shape](../../../packages/decap-cms/src/widgets/richtext/README.md#blockdefinition-shape)
+for details.
+
 ## No import-time side effects — all registration is explicit
 
 No module in the package registers anything at import time anymore; the only side-effect modules
