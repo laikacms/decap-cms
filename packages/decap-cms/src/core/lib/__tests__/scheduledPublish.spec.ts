@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import {
@@ -82,5 +83,24 @@ describe('core/lib/scheduledPublish', () => {
       expect(isPublishAtDue('2026-07-31T00:00:00.000Z', now)).toBe(true);
       expect(isPublishAtDue('2026-08-01T12:00:00.000Z', now)).toBe(true);
     });
+  });
+});
+
+describe('editor-guide documents the per-browser localStorage scoping (DCMS-2106)', () => {
+  // Pinning test: the editor-guide's Schedule publish paragraph must spell out that
+  // the scheduled time lives in the browser's own localStorage (see the module
+  // docstring above `STORAGE_KEY` in `scheduledPublish.ts`), not on the server and
+  // not synced across devices/teammates - otherwise an editor coordinating with a
+  // colleague could reasonably read the doc as "any editor with the CMS open
+  // triggers it." Fails if a future edit silently drops the caveat again.
+  const editorGuide = readFileSync(`${process.cwd()}/../../docs/editor-guide.md`, 'utf-8');
+
+  it('clarifies the schedule is stored in that browser\'s local storage only', () => {
+    expect(editorGuide).toContain('local storage');
+  });
+
+  it('clarifies the publish only fires from the same browser, not a teammate\'s', () => {
+    expect(editorGuide).toContain('*same browser*');
+    expect(editorGuide).toContain('not synced anywhere');
   });
 });
