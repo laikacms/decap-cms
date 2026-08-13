@@ -114,7 +114,11 @@ it fires. This is client-side only: there is no server-side cron behind it, so t
 publishes the next time someone has the CMS open in a browser tab at or after the scheduled time
 (checked on load and about once a minute while the Editorial Workflow board is open) - not
 necessarily at the exact moment you picked. Don't rely on it for publishes that must go live to the
-second with nobody watching.
+second with nobody watching. The scheduled time itself is stored in that browser's local storage
+only, not synced anywhere - so the publish fires only when the *same browser* (not a teammate's
+browser or another device) has the CMS open at or after the scheduled time; if you schedule a
+publish and then close the tab for good, ask a colleague to open the CMS in the same browser
+profile, not just "any browser," to make sure it actually fires.
 
 ## Using the media library
 
