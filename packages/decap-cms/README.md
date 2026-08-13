@@ -31,7 +31,11 @@ decade of groundwork goes to the Decap CMS team; see [Credits](#credits) below.
 - **Richtext on Portable Text.** The `markdown` widget is replaced by a `richtext` widget backed by
   the Portable Text editor. See
   [breaking-changes-v4-beta.md](../../docs/contributing/decisions/breaking-changes-v4-beta.md) for
-  the full list of breaking changes.
+  the full list of breaking changes. **Known limitation:** custom blocks registered with
+  `inline: true` round-trip through markdown save/reload only one-way — serialization works but
+  parsing an inline block back out of markdown is not supported, so it is silently lost on reload.
+  See [src/widgets/richtext/README.md](./src/widgets/richtext/README.md#blockdefinition-shape)
+  for details.
 - **AI chat (deprecated).** A document-scoped `ai-chat` widget streams assistant replies and can
   apply proposed edits back onto the current entry's draft fields; see
   [src/widgets/aichat/README.md](./src/widgets/aichat/README.md) for widget setup. **This widget is

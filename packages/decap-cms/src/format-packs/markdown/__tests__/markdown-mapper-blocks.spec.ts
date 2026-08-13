@@ -4,6 +4,7 @@ import { createMarkdownMapper, markdownMapper } from '@/format-packs/markdown';
 import { registerBlock, unregisterBlock } from '@/lib/richtext/blocks/registry';
 
 import type { BlockDefinition, BlockFormatCodec } from '@/lib/richtext/blocks/types';
+import type { PortableTextDocument } from '@/lib/richtext/portable-text';
 
 const youtubeCodec: BlockFormatCodec = {
   pattern: /^{{<\s?youtube (\S+)\s?>}}/,
@@ -127,6 +128,63 @@ describe('markdown mapper with block codecs', () => {
       unregisterBlock('youtube');
     }
   });
+
+  it(
+    // DCMS-2111 pinning test: `inline: true` blocks are markdown-serialize-only
+    // (see packages/decap-cms/src/widgets/richtext/README.md, "Accepted-but-inert
+    // legacy keys"). `findBlockMatches` only recognizes a codec pattern at the
+    // start of the document or of a line, so an inline object embedded mid-line
+    // by `serialize` can never be recovered by `fromMatch` on the next parse.
+    // This documents the CURRENT lossy behavior; it is not a fix.
+    'loses an inline block on markdown save/reload (known limitation, DCMS-2111)',
+    () => {
+      const mentionCodec: BlockFormatCodec = {
+        pattern: /@(\w+)/,
+        fromMatch: match => ({ handle: match[1] }),
+        serialize: data => `@${String(data.handle)}`,
+      };
+      const definition: BlockDefinition = {
+        id: 'mention',
+        inline: true,
+        fields: [{ name: 'handle' }],
+        formats: { markdown: mentionCodec },
+      };
+
+      registerBlock(definition);
+      try {
+        const original: PortableTextDocument = [
+          {
+            _type: 'block',
+            _key: 'k0',
+            style: 'normal',
+            markDefs: [],
+            children: [
+              { _type: 'span', _key: 's0', text: 'Check out ', marks: [] },
+              { _type: 'mention', _key: 'm0', handle: 'sem' },
+              { _type: 'span', _key: 's1', text: ", it's cool.", marks: [] },
+            ],
+          },
+        ];
+
+        // Serialization succeeds and the mention's data is present in the markdown.
+        const markdown = markdownMapper.fromPortableText(original);
+        expect(markdown).toContain('@sem');
+
+        // But re-parsing it back never recovers the typed inline object: the
+        // pattern only matches at document/line start, so `@sem` mid-sentence
+        // is left to the plain-markdown parser and comes back as inert text.
+        const reparsed = markdownMapper.toPortableText(markdown);
+        const reparsedTypes = reparsed.flatMap(node =>
+          Array.isArray((node as { children?: unknown[] }).children)
+            ? (node as { children: { _type: string }[] }).children.map(child => child._type)
+            : [node._type]
+        );
+        expect(reparsedTypes).not.toContain('mention');
+      } finally {
+        unregisterBlock('mention');
+      }
+    },
+  );
 
   it('caps detection when unambiguous MDX constructs are present', () => {
     const mapper = createMarkdownMapper();
