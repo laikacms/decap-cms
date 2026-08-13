@@ -4,8 +4,10 @@ import {
   allEntriesByFolder,
   entriesByFiles,
   entriesByFolder,
+  getLocalTree,
   getMediaAsBlob,
   getMediaDisplayURL,
+  persistLocalTree,
 } from '@/lib/util/implementation.js';
 
 import type { LocalForage } from '@/lib/util/localForage';
@@ -189,6 +191,121 @@ describe('implementation', () => {
       ).resolves.toEqual([]);
 
       expect(readFile).not.toHaveBeenCalled();
+    });
+  });
+
+  /**
+   * `persistLocalTree`/`getLocalTree` are the localForage-backed cache that lets
+   * `allEntriesByFolder` skip re-listing a folder when its branch head hasn't
+   * moved. Exercised indirectly above via `allEntriesByFolder`; here they're
+   * covered directly against the key-computation and round-trip contract.
+   */
+  describe('persistLocalTree / getLocalTree', () => {
+    function fakeLocalForage() {
+      const store = new Map<string, unknown>();
+      return {
+        getItem: vi.fn((key: string) => Promise.resolve(store.get(key) ?? null)),
+        setItem: vi.fn((key: string, value: unknown) => {
+          store.set(key, value);
+          return Promise.resolve(value);
+        }),
+      } as unknown as LocalForage;
+    }
+
+    const localTree = {
+      head: 'head-sha',
+      files: [{ id: 'sha-a', path: 'posts/a.md', name: 'a.md' }],
+    };
+
+    it('writes to the key computed from branch/folder/extension/depth', async () => {
+      const localForage = fakeLocalForage();
+
+      await persistLocalTree({
+        localForage,
+        localTree,
+        branch: 'main',
+        folder: 'posts',
+        extension: 'md',
+        depth: 1,
+      });
+
+      expect(localForage.setItem).toHaveBeenCalledWith('git.local.main.posts.md.1', localTree);
+    });
+
+    it('reads back the tree written to that same computed key', async () => {
+      const localForage = fakeLocalForage();
+
+      await persistLocalTree({
+        localForage,
+        localTree,
+        branch: 'main',
+        folder: 'posts',
+        extension: 'md',
+        depth: 1,
+      });
+
+      await expect(
+        getLocalTree({ localForage, branch: 'main', folder: 'posts', extension: 'md', depth: 1 }),
+      ).resolves.toEqual(localTree);
+    });
+
+    it('returns null when nothing has been persisted for that key', async () => {
+      const localForage = fakeLocalForage();
+
+      await expect(
+        getLocalTree({ localForage, branch: 'main', folder: 'posts', extension: 'md', depth: 1 }),
+      ).resolves.toBeNull();
+    });
+
+    it('does not leak a value stored for a different key namespace', async () => {
+      const localForage = fakeLocalForage();
+
+      await persistLocalTree({
+        localForage,
+        localTree,
+        branch: 'main',
+        folder: 'posts',
+        extension: 'md',
+        depth: 1,
+      });
+
+      // Same args except a different branch, folder, extension, and depth in turn:
+      // none should see the tree persisted for `main/posts/md/1`.
+      await expect(
+        getLocalTree({ localForage, branch: 'develop', folder: 'posts', extension: 'md', depth: 1 }),
+      ).resolves.toBeNull();
+      await expect(
+        getLocalTree({ localForage, branch: 'main', folder: 'pages', extension: 'md', depth: 1 }),
+      ).resolves.toBeNull();
+      await expect(
+        getLocalTree({ localForage, branch: 'main', folder: 'posts', extension: 'mdx', depth: 1 }),
+      ).resolves.toBeNull();
+      await expect(
+        getLocalTree({ localForage, branch: 'main', folder: 'posts', extension: 'md', depth: 2 }),
+      ).resolves.toBeNull();
+    });
+
+    it('overwrites a previous value for the same key rather than merging', async () => {
+      const localForage = fakeLocalForage();
+      const args = { localForage, branch: 'main', folder: 'posts', extension: 'md', depth: 1 };
+
+      await persistLocalTree({ ...args, localTree });
+
+      const updatedTree = { head: 'new-head-sha', files: [] };
+      await persistLocalTree({ ...args, localTree: updatedTree });
+
+      await expect(getLocalTree(args)).resolves.toEqual(updatedTree);
+    });
+
+    it('propagates a rejection from a corrupt/unavailable localForage backend', async () => {
+      const localForage = {
+        getItem: vi.fn(() => Promise.reject(new Error('storage unavailable'))),
+        setItem: vi.fn(),
+      } as unknown as LocalForage;
+
+      await expect(
+        getLocalTree({ localForage, branch: 'main', folder: 'posts', extension: 'md', depth: 1 }),
+      ).rejects.toThrow('storage unavailable');
     });
   });
 
