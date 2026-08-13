@@ -58,10 +58,20 @@ export function useNavigationBlocker({
   // dangling, click-blocking `AlertDialog` mounted at the app root forever
   // (DCMS-1063/DCMS-1804).
   const confirmAbortControllerRef = useRef<AbortController | null>(null);
+  // The `confirmDialog` promise for a still-open "Unsaved changes" prompt
+  // raised by this armed session's `navigationBlocker`, if any. A second
+  // blocked transition arriving while the first prompt is still awaiting an
+  // answer (e.g. two rapid nav attempts, or browser back fired twice)
+  // coalesces onto this instead of calling `confirmDialog` again, which
+  // would otherwise stack a second identical `AlertDialog` behind the first
+  // in `ConfirmDialogHost`'s queue and require an extra "Stay" click to
+  // drain (DCMS-2099).
+  const pendingConfirmRef = useRef<Promise<boolean> | null>(null);
 
   const setupBlocker = useCallback(() => {
     const confirmAbortController = new AbortController();
     confirmAbortControllerRef.current = confirmAbortController;
+    pendingConfirmRef.current = null;
 
     // Browser close/refresh blocker
     const exitBlocker = (event: BeforeUnloadEvent) => {
@@ -91,9 +101,15 @@ export function useNavigationBlocker({
         // Show confirmation via the AlertDialog-backed confirm (DCMS-658),
         // scoped to this armed session's AbortSignal so a second navigation
         // that abandons this prompt (DCMS-1804) settles it instead of
-        // leaking the dialog.
-        if (
-          await confirmDialog(
+        // leaking the dialog. If a confirm from this same session is
+        // already in flight, reuse it instead of raising a second one
+        // (DCMS-2099) — whichever transition's `tx.retry()` runs once the
+        // shared answer resolves "leave" wins the actual navigation.
+        let confirmed: boolean;
+        if (pendingConfirmRef.current) {
+          confirmed = await pendingConfirmRef.current;
+        } else {
+          const confirmPromise = confirmDialog(
             message,
             {
               title,
@@ -101,8 +117,17 @@ export function useNavigationBlocker({
               ...(cancelLabel !== undefined ? { cancelLabel } : {}),
             },
             confirmAbortController.signal,
-          )
-        ) {
+          );
+          pendingConfirmRef.current = confirmPromise;
+          try {
+            confirmed = await confirmPromise;
+          } finally {
+            if (pendingConfirmRef.current === confirmPromise) {
+              pendingConfirmRef.current = null;
+            }
+          }
+        }
+        if (confirmed) {
           unblockRef.current?.();
           tx.retry();
         }
@@ -149,6 +174,7 @@ export function useNavigationBlocker({
     // backdrop (DCMS-1804). A no-op if the prompt already settled normally.
     confirmAbortControllerRef.current?.abort();
     confirmAbortControllerRef.current = null;
+    pendingConfirmRef.current = null;
   }, []);
 
   return {
