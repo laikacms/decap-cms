@@ -24,9 +24,7 @@
           h('small', {}, "Written " + entry.data.date)
         ),
         h('h2', {}, "Richtext Widget"),
-        h('div', {"className": "text"}, props.widgetFor('body')),
-        h('h2', {}, "Markdown Widget"),
-        h('div', {"className": "text"}, props.widgetFor('bodyold'))
+        h('div', {"className": "text"}, props.widgetFor('body'))
       );
     };
 
