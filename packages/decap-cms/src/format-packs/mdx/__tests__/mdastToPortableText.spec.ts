@@ -471,4 +471,21 @@ describe('fromMdx (parseMdx): opaque paragraph / ESM post-pass', () => {
     const paragraph = root.children[0] as { children: Array<{ type: string }> };
     expect(paragraph.children.some(child => child.type === 'delete')).toBe(true);
   });
+
+  it('throws a real exception on an unclosed JSX tag (documented syntax-error contract)', () => {
+    // Regression pin for the contract documented on parseMdx: "Throws on MDX
+    // syntax errors (e.g. unclosed JSX tags) — callers must handle." A
+    // silent switch from throw to lenient parse (e.g. via a micromark/
+    // mdast-util version bump) must fail this test, not just log a warning.
+    expect(() => parseMdx('<Foo>\n\nbody\n')).toThrow();
+
+    try {
+      parseMdx('<Foo>\n\nbody\n');
+      throw new Error('expected parseMdx to throw');
+    } catch (error) {
+      // Confirm a real Error (with a message), not a swallowed/return-value warning.
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).message.length).toBeGreaterThan(0);
+    }
+  });
 });
