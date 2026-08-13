@@ -1,6 +1,11 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { createInMemoryStore, EntryLockConflictError, EntryLockManager } from '@/lib/util/entryLockManager.js';
+import {
+  createInMemoryStore,
+  createLocalStorageStore,
+  EntryLockConflictError,
+  EntryLockManager,
+} from '@/lib/util/entryLockManager.js';
 
 const alice = { id: 'alice', name: 'Alice' };
 const bob = { id: 'bob', name: 'Bob' };
@@ -118,5 +123,106 @@ describe('EntryLockManager', () => {
     const active = await manager.list();
     expect(active).toHaveLength(1);
     expect(active[0].path).toBe('posts/b.json');
+  });
+});
+
+describe('createLocalStorageStore', () => {
+  const prefix = 'decap-cms.entry-lock.';
+
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+  });
+
+  it('round-trips get/set/remove through localStorage under the given prefix', () => {
+    const store = createLocalStorageStore(prefix);
+
+    expect(store.get('posts/hello-world.md')).toBeNull();
+
+    store.set('posts/hello-world.md', 'lock-payload');
+
+    // The value is actually written to the real localStorage under the
+    // prefixed key, not just held in memory by the store instance.
+    expect(localStorage.getItem(`${prefix}posts/hello-world.md`)).toBe('lock-payload');
+    expect(store.get('posts/hello-world.md')).toBe('lock-payload');
+
+    store.set('posts/hello-world.md', 'updated-payload');
+    expect(store.get('posts/hello-world.md')).toBe('updated-payload');
+
+    store.remove('posts/hello-world.md');
+    expect(store.get('posts/hello-world.md')).toBeNull();
+    expect(localStorage.getItem(`${prefix}posts/hello-world.md`)).toBeNull();
+  });
+
+  it('keys() returns only prefixed keys with the prefix stripped, ignoring unrelated entries', () => {
+    const store = createLocalStorageStore(prefix);
+
+    store.set('posts/a.md', 'lock-a');
+    store.set('posts/b.md', 'lock-b');
+    // Unrelated localStorage entries (written by other app code / other
+    // stores) must not leak into this store's key listing.
+    localStorage.setItem('some-other-app-key', 'unrelated');
+    localStorage.setItem('decap-cms.other-namespace.thing', 'also-unrelated');
+
+    const keys = store.keys();
+
+    expect(keys.sort()).toEqual(['posts/a.md', 'posts/b.md']);
+  });
+
+  it('keys() reflects removals', () => {
+    const store = createLocalStorageStore(prefix);
+
+    store.set('posts/a.md', 'lock-a');
+    store.set('posts/b.md', 'lock-b');
+    store.remove('posts/a.md');
+
+    expect(store.keys()).toEqual(['posts/b.md']);
+  });
+
+  it('falls back to an in-memory store when localStorage is undefined (SSR)', () => {
+    const originalLocalStorage = globalThis.localStorage;
+    // Simulate an SSR / non-browser environment where the `localStorage`
+    // global is not defined at all.
+    // @ts-expect-error -- intentionally deleting a required global to
+    // exercise the SSR fallback branch.
+    delete globalThis.localStorage;
+
+    try {
+      expect(typeof globalThis.localStorage).toBe('undefined');
+
+      const store = createLocalStorageStore(prefix);
+
+      expect(store.get('posts/hello-world.md')).toBeNull();
+      store.set('posts/hello-world.md', 'lock-payload');
+      expect(store.get('posts/hello-world.md')).toBe('lock-payload');
+      expect(store.keys()).toEqual(['posts/hello-world.md']);
+
+      store.remove('posts/hello-world.md');
+      expect(store.get('posts/hello-world.md')).toBeNull();
+      expect(store.keys()).toEqual([]);
+    } finally {
+      globalThis.localStorage = originalLocalStorage;
+    }
+  });
+
+  it('in-memory fallback instances do not share state with each other or with real localStorage', () => {
+    const originalLocalStorage = globalThis.localStorage;
+    // @ts-expect-error -- intentionally deleting a required global to
+    // exercise the SSR fallback branch.
+    delete globalThis.localStorage;
+
+    try {
+      const storeA = createLocalStorageStore(prefix);
+      const storeB = createLocalStorageStore(prefix);
+
+      storeA.set('posts/a.md', 'lock-a');
+
+      expect(storeB.get('posts/a.md')).toBeNull();
+    } finally {
+      globalThis.localStorage = originalLocalStorage;
+    }
   });
 });
