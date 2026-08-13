@@ -468,3 +468,107 @@ describe('useNavigationBlocker confirmDialog cleanup (DCMS-1804)', () => {
     expect(fakeLocation.pathname).toBe('/collections/posts');
   });
 });
+
+describe('useNavigationBlocker duplicate confirm coalescing (DCMS-2099)', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('a second blocked navigation while the first prompt is open does not stack a duplicate dialog; one Cancel click fully drains it', async () => {
+    resetFakeRouter();
+    render(<ConfirmDialogHost />);
+
+    const router = buildFakeRouter(true);
+    const { result } = renderNavigationBlocker({ shouldBlock: () => true, message: 'Unsaved!' }, router);
+
+    act(() => {
+      result.current.setupBlocker();
+    });
+
+    // First blocked navigation raises the "Unsaved changes" prompt.
+    act(() => {
+      router.push('/collections/other');
+    });
+    const dialog = await screen.findByRole('alertdialog');
+
+    // A second blocked navigation arrives (e.g. a second click, or browser
+    // Back) while the first prompt is still unanswered. Without the fix this
+    // pushes a second `PendingConfirm` into `pendingConfirms`, which would
+    // surface as a fresh dialog once the first is dismissed.
+    act(() => {
+      router.push('/collections/third');
+    });
+
+    // Still exactly one dialog on screen, not two stacked.
+    expect(screen.getAllByRole('alertdialog')).toHaveLength(1);
+
+    const cancelButton = within(dialog).getByRole('button', { name: /cancel/i });
+    act(() => {
+      cancelButton.click();
+    });
+
+    // A single "Stay" click must drain the queue completely — no leftover
+    // duplicate dialog (and therefore no leftover click-blocking backdrop).
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    // Cancelling either coalesced navigation must not have advanced the route.
+    expect(fakeLocation.pathname).toBe('/collections/posts');
+  });
+
+  it('a single "Leave page" click resolves both coalesced navigations cleanly, landing on the latest destination with no stale trailing dialog', async () => {
+    resetFakeRouter();
+    render(<ConfirmDialogHost />);
+
+    const router = buildFakeRouter(true);
+    const { result } = renderNavigationBlocker({ shouldBlock: () => true, message: 'Unsaved!' }, router);
+
+    act(() => {
+      result.current.setupBlocker();
+    });
+
+    act(() => {
+      router.push('/collections/other');
+    });
+    const dialog = await screen.findByRole('alertdialog');
+
+    act(() => {
+      router.push('/collections/third');
+    });
+    expect(screen.getAllByRole('alertdialog')).toHaveLength(1);
+
+    const confirmButton = within(dialog).getByRole('button', { name: 'OK' });
+    await act(async () => {
+      confirmButton.click();
+    });
+
+    // Both coalesced transitions retry off the single answer; the most
+    // recent one lands, and no stale dialog is left mounted on the
+    // destination route.
+    await waitFor(() => expect(fakeLocation.pathname).toBe('/collections/third'));
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  });
+
+  it('baseline single-blocked-navigation path is unchanged: one Stay click is enough', async () => {
+    resetFakeRouter();
+    render(<ConfirmDialogHost />);
+
+    const router = buildFakeRouter(true);
+    const { result } = renderNavigationBlocker({ shouldBlock: () => true, message: 'Unsaved!' }, router);
+
+    act(() => {
+      result.current.setupBlocker();
+    });
+
+    act(() => {
+      router.push('/collections/other');
+    });
+    const dialog = await screen.findByRole('alertdialog');
+
+    const cancelButton = within(dialog).getByRole('button', { name: /cancel/i });
+    act(() => {
+      cancelButton.click();
+    });
+
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    expect(fakeLocation.pathname).toBe('/collections/posts');
+  });
+});
