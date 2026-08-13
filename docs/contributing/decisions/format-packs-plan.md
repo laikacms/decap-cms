@@ -1,5 +1,15 @@
 # Plan: Forkable richtext formats + PT-native component blocks (MDX-ready)
 
+**Status (2026-08-13, DCMS-2099/#2110): Phases 1-6 shipped. Phase 7 (MDX format pack) is
+SHELVED, not available for use.** Only the parse direction exists
+(`src/format-packs/mdx/{attributes,parse/fromMdx,parse/mdastToPortableText}.ts`, with tests) — there
+is no `serialize/toMdx`/`serialize/emitJsx`, no `index.ts` assembling a `FormatPack`, and no
+`fromPortableText` implementation, so the `Mapper` contract (which requires both directions) cannot
+be satisfied yet. `packages/decap-cms/package.json#exports` intentionally nulls
+`"./format-packs/mdx"` — see `restructure.md` and `breaking-changes-v4-beta.md`. Do not register
+`format: mdx` on a richtext field; there is nothing to register. Re-opening Phase 7 needs the
+serialize-side work below plus the listed operator approvals (new deps, subpath export).
+
 ## Context
 
 The richtext stack is Portable Text (PT)-centric: `src/lib/richtext` has a `Mapper` registry
