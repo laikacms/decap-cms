@@ -84,13 +84,6 @@ collections: # A list of collections the CMS should be able to edit
       visualEditing: true
     fields: # The fields each document in this collection have
       - { label: 'Title', name: 'title', widget: 'string', tagname: 'h1' }
-      - {
-          label: 'Date',
-          name: 'date',
-          widget: 'datetime',
-          format: 'YYYY-MM-DD HH:mm',
-          default: '{{now}}',
-        }
       - { label: 'Body', name: 'body', widget: 'richtext', hint: 'Main content goes here.' }
       - { name: 'gallery', widget: 'image', choose_url: true, media_library: {config: {multiple: true, max_files: 999}}}
       - { name: 'post', widget: relation, collection: posts, multiple: true, search_fields: [ "title" ], display_fields: [ "title" ], value_field: "{{slug}}", filters: [ {field: "draft", values: [false]} ] }
@@ -170,9 +163,9 @@ collections: # A list of collections the CMS should be able to edit
         value_field: 'title'
       - { label: 'Title', name: 'title', widget: 'string' }
       - { label: 'Boolean', name: 'boolean', widget: 'boolean', default: true }
-      # The `map` widget field was removed here: it's opt-in (DCMS-1971) and
-      # the default demo bundle doesn't call `registerMapWidget()`, so it has
-      # no control and blocks Save while required. See dev-test/README.md.
+      # No 'map' field here: the map widget is opt-in (DCMS-1971) and the classic demo
+      # loads a prebuilt IIFE bundle, so it cannot register opt-in widgets. Same reason
+      # 'ai-chat', 'lucide-icon' and 'radix-icon' are absent from this kitchen sink.
       - { label: 'Text', name: 'text', widget: 'text', hint: 'Plain text, not markdown' }
       - { label: 'Number', name: 'number', widget: 'number', hint: 'To infinity and beyond!' }
       - { label: 'Markdown', name: 'markdown', widget: 'richtext' }

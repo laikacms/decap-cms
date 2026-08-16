@@ -6,5 +6,6 @@ export * from './entries.js';
 export * from './field.js';
 export * from './fields';
 export * from './i18n.js';
+export * from './llm.js';
 export * from './media.js';
 export * from './standardSchema.js';

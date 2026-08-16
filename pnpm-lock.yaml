@@ -456,6 +456,378 @@ importers:
         specifier: 'catalog:'
         version: 6.1.3
 
+  extensions/editor/ai-translate:
+    dependencies:
+      '@ai-sdk/react':
+        specifier: 'catalog:'
+        version: 4.0.34(react@19.2.7)(zod@4.4.3)
+      '@emotion/react':
+        specifier: ^11.14.0
+        version: 11.14.0(@types/react@19.2.17)(react@19.2.7)
+      '@emotion/styled':
+        specifier: ^11.14.1
+        version: 11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7)
+      ai:
+        specifier: 'catalog:'
+        version: 7.0.31(zod@4.4.3)
+      react:
+        specifier: ^19.0.0
+        version: 19.2.7
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.7(react@19.2.7)
+    devDependencies:
+      '@eslint/js':
+        specifier: 'catalog:'
+        version: 10.0.1(eslint@10.7.0(jiti@2.6.1))
+      '@laikacms/decap-cms':
+        specifier: workspace:*
+        version: link:../../../packages/decap-cms
+      '@testing-library/jest-dom':
+        specifier: 'catalog:'
+        version: 6.9.1
+      '@testing-library/react':
+        specifier: 'catalog:'
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.17)
+      '@vitejs/plugin-react':
+        specifier: 'catalog:'
+        version: 6.0.3(vite@8.1.5(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))
+      eslint:
+        specifier: 'catalog:'
+        version: 10.7.0(jiti@2.6.1)
+      eslint-config-prettier:
+        specifier: 'catalog:'
+        version: 10.1.8(eslint@10.7.0(jiti@2.6.1))
+      globals:
+        specifier: 'catalog:'
+        version: 17.7.0
+      jsdom:
+        specifier: 'catalog:'
+        version: 29.1.1
+      rimraf:
+        specifier: 'catalog:'
+        version: 6.1.3
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      typescript-eslint:
+        specifier: 'catalog:'
+        version: 8.64.0(eslint@10.7.0(jiti@2.6.1))(typescript@6.0.3)
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(happy-dom@20.11.0)(jsdom@29.1.1)(vite@8.1.5(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))
+
+  extensions/llm/dulla:
+    dependencies:
+      ai:
+        specifier: 'catalog:'
+        version: 7.0.31(zod@4.4.3)
+    devDependencies:
+      '@eslint/js':
+        specifier: 'catalog:'
+        version: 10.0.1(eslint@10.7.0(jiti@2.6.1))
+      '@laikacms/decap-cms':
+        specifier: workspace:*
+        version: link:../../../packages/decap-cms
+      eslint:
+        specifier: 'catalog:'
+        version: 10.7.0(jiti@2.6.1)
+      eslint-config-prettier:
+        specifier: 'catalog:'
+        version: 10.1.8(eslint@10.7.0(jiti@2.6.1))
+      globals:
+        specifier: 'catalog:'
+        version: 17.7.0
+      jsdom:
+        specifier: 'catalog:'
+        version: 29.1.1
+      rimraf:
+        specifier: 'catalog:'
+        version: 6.1.3
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      typescript-eslint:
+        specifier: 'catalog:'
+        version: 8.64.0(eslint@10.7.0(jiti@2.6.1))(typescript@6.0.3)
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(happy-dom@20.11.0)(jsdom@29.1.1)(vite@8.1.5(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))
+
+  extensions/widgets/aichat:
+    dependencies:
+      '@ai-sdk/react':
+        specifier: 'catalog:'
+        version: 4.0.34(react@19.2.7)(zod@4.4.3)
+      '@emotion/react':
+        specifier: ^11.14.0
+        version: 11.14.0(@types/react@19.2.17)(react@19.2.7)
+      '@emotion/styled':
+        specifier: ^11.14.1
+        version: 11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7)
+      ai:
+        specifier: 'catalog:'
+        version: 7.0.31(zod@4.4.3)
+      fast-json-patch:
+        specifier: 'catalog:'
+        version: 3.1.1
+      react:
+        specifier: ^19.0.0
+        version: 19.2.7
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.7(react@19.2.7)
+      react-redux:
+        specifier: ^9.0.0
+        version: 9.3.0(@types/react@19.2.17)(react@19.2.7)(redux@5.0.1)
+    devDependencies:
+      '@eslint/js':
+        specifier: 'catalog:'
+        version: 10.0.1(eslint@10.7.0(jiti@2.6.1))
+      '@laikacms/decap-cms':
+        specifier: workspace:*
+        version: link:../../../packages/decap-cms
+      '@testing-library/jest-dom':
+        specifier: 'catalog:'
+        version: 6.9.1
+      '@testing-library/react':
+        specifier: 'catalog:'
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@testing-library/user-event':
+        specifier: 'catalog:'
+        version: 14.6.1(@testing-library/dom@10.4.1)
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.17)
+      '@vitejs/plugin-react':
+        specifier: 'catalog:'
+        version: 6.0.3(vite@8.1.5(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))
+      eslint:
+        specifier: 'catalog:'
+        version: 10.7.0(jiti@2.6.1)
+      eslint-config-prettier:
+        specifier: 'catalog:'
+        version: 10.1.8(eslint@10.7.0(jiti@2.6.1))
+      globals:
+        specifier: 'catalog:'
+        version: 17.7.0
+      jsdom:
+        specifier: 'catalog:'
+        version: 29.1.1
+      rimraf:
+        specifier: 'catalog:'
+        version: 6.1.3
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      typescript-eslint:
+        specifier: 'catalog:'
+        version: 8.64.0(eslint@10.7.0(jiti@2.6.1))(typescript@6.0.3)
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(happy-dom@20.11.0)(jsdom@29.1.1)(vite@8.1.5(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))
+
+  extensions/widgets/lucide-icon:
+    dependencies:
+      '@emotion/react':
+        specifier: ^11.14.0
+        version: 11.14.0(@types/react@19.2.17)(react@19.2.7)
+      '@emotion/styled':
+        specifier: ^11.14.1
+        version: 11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7)
+      lucide-react:
+        specifier: 'catalog:'
+        version: 1.25.0(react@19.2.7)
+      react:
+        specifier: ^19.0.0
+        version: 19.2.7
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.7(react@19.2.7)
+    devDependencies:
+      '@eslint/js':
+        specifier: 'catalog:'
+        version: 10.0.1(eslint@10.7.0(jiti@2.6.1))
+      '@laikacms/decap-cms':
+        specifier: workspace:*
+        version: link:../../../packages/decap-cms
+      '@testing-library/jest-dom':
+        specifier: 'catalog:'
+        version: 6.9.1
+      '@testing-library/react':
+        specifier: 'catalog:'
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.17)
+      '@vitejs/plugin-react':
+        specifier: 'catalog:'
+        version: 6.0.3(vite@8.1.5(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))
+      eslint:
+        specifier: 'catalog:'
+        version: 10.7.0(jiti@2.6.1)
+      eslint-config-prettier:
+        specifier: 'catalog:'
+        version: 10.1.8(eslint@10.7.0(jiti@2.6.1))
+      globals:
+        specifier: 'catalog:'
+        version: 17.7.0
+      jsdom:
+        specifier: 'catalog:'
+        version: 29.1.1
+      rimraf:
+        specifier: 'catalog:'
+        version: 6.1.3
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      typescript-eslint:
+        specifier: 'catalog:'
+        version: 8.64.0(eslint@10.7.0(jiti@2.6.1))(typescript@6.0.3)
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(happy-dom@20.11.0)(jsdom@29.1.1)(vite@8.1.5(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))
+
+  extensions/widgets/map:
+    dependencies:
+      '@emotion/react':
+        specifier: ^11.14.0
+        version: 11.14.0(@types/react@19.2.17)(react@19.2.7)
+      '@emotion/styled':
+        specifier: ^11.14.1
+        version: 11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7)
+      ol:
+        specifier: 'catalog:'
+        version: 10.9.0
+      react:
+        specifier: ^19.0.0
+        version: 19.2.7
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.7(react@19.2.7)
+    devDependencies:
+      '@eslint/js':
+        specifier: 'catalog:'
+        version: 10.0.1(eslint@10.7.0(jiti@2.6.1))
+      '@laikacms/decap-cms':
+        specifier: workspace:*
+        version: link:../../../packages/decap-cms
+      '@testing-library/jest-dom':
+        specifier: 'catalog:'
+        version: 6.9.1
+      '@testing-library/react':
+        specifier: 'catalog:'
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.17)
+      '@vitejs/plugin-react':
+        specifier: 'catalog:'
+        version: 6.0.3(vite@8.1.5(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))
+      eslint:
+        specifier: 'catalog:'
+        version: 10.7.0(jiti@2.6.1)
+      eslint-config-prettier:
+        specifier: 'catalog:'
+        version: 10.1.8(eslint@10.7.0(jiti@2.6.1))
+      globals:
+        specifier: 'catalog:'
+        version: 17.7.0
+      jsdom:
+        specifier: 'catalog:'
+        version: 29.1.1
+      rimraf:
+        specifier: 'catalog:'
+        version: 6.1.3
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      typescript-eslint:
+        specifier: 'catalog:'
+        version: 8.64.0(eslint@10.7.0(jiti@2.6.1))(typescript@6.0.3)
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(happy-dom@20.11.0)(jsdom@29.1.1)(vite@8.1.5(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))
+
+  extensions/widgets/radix-icon:
+    dependencies:
+      '@emotion/react':
+        specifier: ^11.14.0
+        version: 11.14.0(@types/react@19.2.17)(react@19.2.7)
+      '@emotion/styled':
+        specifier: ^11.14.1
+        version: 11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7)
+      '@radix-ui/react-icons':
+        specifier: 'catalog:'
+        version: 1.3.2(react@19.2.7)
+      react:
+        specifier: ^19.0.0
+        version: 19.2.7
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.7(react@19.2.7)
+    devDependencies:
+      '@eslint/js':
+        specifier: 'catalog:'
+        version: 10.0.1(eslint@10.7.0(jiti@2.6.1))
+      '@laikacms/decap-cms':
+        specifier: workspace:*
+        version: link:../../../packages/decap-cms
+      '@testing-library/jest-dom':
+        specifier: 'catalog:'
+        version: 6.9.1
+      '@testing-library/react':
+        specifier: 'catalog:'
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.17)
+      '@vitejs/plugin-react':
+        specifier: 'catalog:'
+        version: 6.0.3(vite@8.1.5(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))
+      eslint:
+        specifier: 'catalog:'
+        version: 10.7.0(jiti@2.6.1)
+      eslint-config-prettier:
+        specifier: 'catalog:'
+        version: 10.1.8(eslint@10.7.0(jiti@2.6.1))
+      globals:
+        specifier: 'catalog:'
+        version: 17.7.0
+      jsdom:
+        specifier: 'catalog:'
+        version: 29.1.1
+      rimraf:
+        specifier: 'catalog:'
+        version: 6.1.3
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      typescript-eslint:
+        specifier: 'catalog:'
+        version: 8.64.0(eslint@10.7.0(jiti@2.6.1))(typescript@6.0.3)
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(happy-dom@20.11.0)(jsdom@29.1.1)(vite@8.1.5(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))
+
   packages/decap-cms:
     dependencies:
       '@ai-sdk/anthropic':
@@ -464,9 +836,6 @@ importers:
       '@ai-sdk/openai':
         specifier: 'catalog:'
         version: 4.0.16(zod@4.4.3)
-      '@ai-sdk/react':
-        specifier: 'catalog:'
-        version: 4.0.34(react@19.2.7)(zod@4.4.3)
       '@base-ui/react':
         specifier: 'catalog:'
         version: 1.6.0(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -602,9 +971,6 @@ importers:
       effect:
         specifier: 'catalog:'
         version: 4.0.0-beta.66
-      fast-json-patch:
-        specifier: 'catalog:'
-        version: 3.1.1
       immer:
         specifier: 'catalog:'
         version: 11.1.15
@@ -735,9 +1101,6 @@ importers:
       '@playwright/test':
         specifier: 'catalog:'
         version: 1.61.1
-      '@radix-ui/react-icons':
-        specifier: 'catalog:'
-        version: 1.3.2(react@19.2.7)
       '@storybook/addon-a11y':
         specifier: 'catalog:'
         version: 10.5.2(storybook@10.5.2(@types/react@19.2.17)(prettier@3.9.5)(react@19.2.7))
@@ -840,15 +1203,9 @@ importers:
       jsdom:
         specifier: 'catalog:'
         version: 29.1.1
-      lucide-react:
-        specifier: 'catalog:'
-        version: 1.25.0(react@19.2.7)
       nock:
         specifier: 'catalog:'
         version: 14.0.16
-      ol:
-        specifier: 'catalog:'
-        version: 10.9.0
       prettier:
         specifier: 'catalog:'
         version: 3.9.5

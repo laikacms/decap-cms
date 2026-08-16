@@ -11,6 +11,8 @@ Repo-level design and process docs for `@laikacms/decap-cms`, split into two buc
   - [two-seam-model.md](./decisions/two-seam-model.md) - Laika protocol vs. CMS adapters.
   - [entry-type-redesign.md](./decisions/entry-type-redesign.md) - the `lib/domain` + `lib/backend`
     public surfaces, the `BackendEntry` content union, and the projected-entry rule.
+  - [llm-seam.md](./decisions/llm-seam.md) - why the CMS ships AI UI and no AI: `LlmTransport`, the
+    document bridge, and where the server went.
   - [architecture.md](./decisions/architecture.md) - assorted technology-choice rationales
     (single-package repo, Emotion, Effect, `yaml`).
   - [format-packs-plan.md](./decisions/format-packs-plan.md) - forkable richtext formats and

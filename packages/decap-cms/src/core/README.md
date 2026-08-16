@@ -353,7 +353,9 @@ Registers a UI translation pack under `locale` (an i18n locale code, e.g. `'de'`
 the CMS `locale` config option). `phrases` is a nested object of translation strings, keyed the same
 way as the built-in packs under `src/locales/`. Both arguments are required — a missing `locale` or
 `phrases` logs an error instead of throwing, and nothing is registered. Registering the same
-`locale` twice keeps the last registration.
+`locale` twice **deep-merges** into what is already there, so an extension package can contribute
+its own strings without wiping the CMS's (or another extension's). Conflicting keys take the last
+registration.
 
 ```ts
 import { registerLocale } from '@laikacms/decap-cms/core';
@@ -363,19 +365,75 @@ registerLocale('de', {
 });
 ```
 
+## `registerLocaleAction`
+
+```ts
+function registerLocaleAction(action: {
+  name: string,
+  isAvailable?: (props: {
+    collection: CmsCollectionState,
+    sourceLocale: string,
+    targetLocale: string,
+    locales: string[],
+  }) => boolean,
+  render: (props: CmsLocaleActionRenderProps) => React.ReactNode,
+}): void;
+```
+
+Adds a control to the i18n locale row at the top of the entry editor, alongside the built-in
+"writing in locale" and "copy from locale" dropdowns. Registering the same `name` twice, or an
+action without a `name`/`render`, throws.
+
+The editor resolves the i18n context and passes it to `render`, so the action stays Redux-free:
+`collection`, `entry`, `sourceLocale`, `targetLocale`, `locales`, a
+`getTranslatableFields(source,
+target)` reader returning `{ name, field, value }[]` for the fields
+that are actually translatable and non-empty, an `applyValue(fieldName, value)` writer that goes
+through the same draft-change path as "copy from locale", and the bound `t`. `isAvailable` hides the
+action for a given locale pair; omit it to always render.
+
+This is the seam `@laikacms/decap-cms-ai-translate` plugs into — the AI translate button used to be
+hardcoded in `EditorControlPane` (DCMS-1395). Pair with `unregisterLocaleAction(name)`.
+
+## `registerSlot`
+
+```ts
+function registerSlot<K extends keyof CmsSlots>(name: K, render: NonNullable<CmsSlots[K]>): void;
+```
+
+Registers a render slot from an installed package. The `CmsSlots` surface (documented in
+[`src/core/lib/slots.tsx`](./lib/slots.tsx)) is normally supplied by the host app through
+`CmsSlotsProvider`; this is the same surface, registered instead of wired, so an extension can
+contribute UI the app never has to know about.
+
+Precedence: **app-supplied slots win**. `useCmsSlots()` merges the registry under the provider's
+object, so a deployment can always override what one of its dependencies renders. Registering the
+same slot twice warns and keeps the last renderer. Pair with `unregisterSlot(name)`; `getSlots()`
+returns a copy of the current registrations.
+
+```ts
+import { registerSlot } from '@laikacms/decap-cms/core';
+
+registerSlot('renderEntryCard', props => <MyCard {...props} />);
+```
+
 ## `registerEventListener`
 
 ```ts
 function registerEventListener(
-  config: { name: CmsAllowedEvent, handler: Function },
+  config: { name: CmsEventName, handler: Function },
   options?: Record<string, unknown>,
 ): void;
 ```
 
-Subscribes `handler` to one of a hardcoded list of allowed lifecycle events (`allowedEvents` in
-`src/core/lib/registry.tsx`). Registering with any other `name` throws `Invalid event name '<name>'`
-— there is no mechanism to add custom event names. The full list, in the order each pair fires
-around its corresponding `Backend` operation (`src/core/backend.tsx`):
+Subscribes `handler` to one of a hardcoded list of events. Registering with any other `name` throws
+`Invalid event name '<name>'` — there is no mechanism to add custom event names. There are two
+kinds, differing in whether the handler can change anything.
+
+### Transform events
+
+`allowedEvents` in `src/core/lib/registry.tsx`. Each pair fires around its corresponding `Backend`
+operation (`src/core/backend.tsx`), in this order:
 
 | Event           | Fires                          |
 | --------------- | ------------------------------ |
@@ -389,9 +447,8 @@ around its corresponding `Backend` operation (`src/core/backend.tsx`):
 Multiple handlers may be registered for the same event; they run in registration order via
 `invokeEvent`, each receiving `(data, options)` where `data.entry` is the entry being processed — a
 handler may return a new entry `data` object, which replaces `data.entry.data` for the next handler
-in the chain (this is how `preSave` handlers commonly mutate the entry before it's written). Pair
-with `removeEventListener({ name, handler })` to unregister a specific handler (or all handlers for
-that event, if `handler` is omitted).
+in the chain (this is how `preSave` handlers commonly mutate the entry before it's written). These
+handlers are awaited, and a throwing handler fails the operation.
 
 ```ts
 import { registerEventListener } from '@laikacms/decap-cms/core';
@@ -403,6 +460,38 @@ registerEventListener({
   },
 });
 ```
+
+### Notification events
+
+`notificationEvents` in `src/core/lib/registry.tsx`. These are the editor lifecycle events, emitted
+from the store by `src/core/redux/middleware/extensionEvents.ts` after the reducers have run — so
+they fire for any origin (the editor UI, an extension dispatching one of the published action
+creators, a cross-tab replay), and a handler reading `store.getState()` sees the post-action state.
+
+| Event               | Fires                             | `data`                          |
+| ------------------- | --------------------------------- | ------------------------------- |
+| `entryDraftOpen`    | an entry is opened for editing    | `{ entry }`                     |
+| `entryDraftChange`  | a field in the open draft changes | `{ field, value, i18n }`        |
+| `entryDraftDiscard` | the open draft is discarded       | `{}`                            |
+| `postDelete`        | an entry is deleted               | `{ collectionName, entrySlug }` |
+
+Notification handlers are observational: the return value is ignored, they are not awaited, and a
+throw (or a rejected promise) is logged rather than propagated, so a broken extension cannot break
+editing. Use the transform events, or dispatch an action, to actually change something.
+
+```ts
+import { registerEventListener } from '@laikacms/decap-cms/core';
+
+registerEventListener({
+  name: 'entryDraftChange',
+  handler: ({ field, value }) => {
+    console.log(`${field?.name} is now`, value);
+  },
+});
+```
+
+Pair either kind with `removeEventListener({ name, handler })` to unregister a specific handler (or
+all handlers for that event, if `handler` is omitted).
 
 ## `registerCustomFormat`
 
@@ -517,6 +606,77 @@ registerEntryCodec({
   },
 });
 ```
+
+## `registerPanel`
+
+```ts
+function registerPanel(panel: {
+  id: string,
+  label: string,
+  isAvailable?: (props: { collection: CmsCollectionState, entry: CmsEntry }) => boolean,
+  render: (props: EditorPanelRenderProps) => React.ReactNode,
+}): void;
+```
+
+Adds a panel beside the entry form, shown in a drawer. **Additive**, unlike `registerSlot`: a second
+panel becomes a second tab rather than replacing the first, so two extensions do not fight over the
+region. Registering the same `id` twice throws. `render` receives `collection`, `entry`, the
+`locale` being edited, and an `onClose` that closes the drawer.
+
+With no panels installed the drawer renders nothing at all — no toggle, no DOM. The prop-based
+equivalent is `slots.editorPanels`, and the two are concatenated (app-supplied first). Pair with
+`unregisterPanel(id)`; `getPanels()` returns a copy.
+
+## `registerLlmTransport`
+
+```ts
+function registerLlmTransport(transport: LlmTransport): void;
+```
+
+Supplies the LLM connection the CMS's AI UI talks to — the chat panel and the "translate from
+&lt;locale&gt;" action in the locale row. The CMS ships neither a model nor a transport, so with
+none configured (the default) no AI UI renders anywhere.
+
+Prefer `DecapCmsProvider`'s `llm` prop; this registration is for injecting a transport into an
+already-compiled bundle, and the prop wins when both are present. See
+`src/lib/util/types/cms/llm.ts` for the interface and `docs/contributing/decisions/architecture.md`
+for why the line falls where it does.
+
+```ts
+CMS.registerLlmTransport({
+  openSession(document) {
+    // `document` is the CMS's `LlmDocumentBridge`: read(), applyPatch(), fields().
+    // Execute the model's document tool calls against it; touch nothing else.
+    return mySession(document);
+  },
+});
+```
+
+Credentials are the transport's own business — an AI endpoint need not trust the same issuer as the
+git backend, so the CMS lends no token. A transport whose endpoint does trust the backend's token
+asks for it explicitly (`currentBackend(store.getState().config).getToken()`, both exported here and
+refresh-aware). `@laikacms/decap-cms-llm-dulla` is a worked implementation; see
+[docs/core/llm.md](../../../../docs/core/llm.md).
+
+## Dispatching entry actions
+
+The Redux `store` has always been exported, but the vocabulary for driving it was not, so an
+extension had to reverse-engineer reducer contracts and hand-roll raw action objects. These action
+creators are published from `@laikacms/decap-cms/core` as supported API:
+
+`loadEntries`, `loadEntry`, `persistEntry`, `deleteEntry`, `createEmptyDraft`,
+`createDraftDuplicateFromEntry`, `discardDraft`, `changeDraftField`, `changeDraftFieldValidation`,
+`clearFieldErrors`, `addDraftEntryMediaFile`, `removeDraftEntryMediaFile`.
+
+```ts
+import { changeDraftField, store } from '@laikacms/decap-cms/core';
+
+store.dispatch(changeDraftField({ field, value, metadata: {}, entries: [] }));
+```
+
+Anything not in that list stays internal and may change without a major version. Dispatching one of
+these fires the matching [notification event](#registereventlistener), so other extensions observe
+the change the same way they observe the editor UI.
 
 ## Keyboard shortcuts
 

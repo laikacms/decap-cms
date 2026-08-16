@@ -9,6 +9,7 @@ import { context } from '@/core/contexts/decap';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 import { I18n } from '@/core/i18n';
 import { createFreshnessController } from '@/core/lib/freshness';
+import { LlmTransportProvider } from '@/core/lib/llm';
 import { getPhrases } from '@/core/lib/phrases';
 import { detectTextDirection } from '@/core/lib/textDirection';
 import { selectLocale } from '@/core/reducers/config';
@@ -171,6 +172,7 @@ export function DecapCmsProvider({
   children,
   routing,
   router,
+  llm,
 }: DecapCmsProviderProps) {
   // Idempotent (lodash `once`) — safe across re-renders and multiple
   // providers. Must run before any child resolves widgets.
@@ -201,11 +203,13 @@ export function DecapCmsProvider({
         <ConfirmDialogHost />
         <PromptDialogHost />
         <I18nProvider>
-          <RouterProvider router={resolvedRouter}>
-            <RoutingProvider routing={routing} theme={theme}>
-              {children}
-            </RoutingProvider>
-          </RouterProvider>
+          <LlmTransportProvider llm={llm}>
+            <RouterProvider router={resolvedRouter}>
+              <RoutingProvider routing={routing} theme={theme}>
+                {children}
+              </RoutingProvider>
+            </RouterProvider>
+          </LlmTransportProvider>
         </I18nProvider>
       </DirectionProvider>
     </Provider>

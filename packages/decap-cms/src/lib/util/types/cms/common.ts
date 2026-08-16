@@ -54,6 +54,10 @@ export interface CmsFilterObj {
   values: unknown[];
 }
 
+/**
+ * Entry-transform events. Handlers run in a chain around a `Backend`
+ * operation and may return replacement entry data (see `invokeEvent`).
+ */
 export type CmsAllowedEvent =
   | 'prePublish'
   | 'postPublish'
@@ -62,15 +66,41 @@ export type CmsAllowedEvent =
   | 'preSave'
   | 'postSave';
 
+/**
+ * Editor lifecycle events. Notification only: handlers observe, and their
+ * return value is ignored. Emitted from the store, so they fire for any
+ * origin (UI, an extension dispatching an action, cross-tab sync).
+ */
+export type CmsNotificationEvent =
+  | 'entryDraftOpen'
+  | 'entryDraftChange'
+  | 'entryDraftDiscard'
+  | 'postDelete';
+
+export type CmsEventName = CmsAllowedEvent | CmsNotificationEvent;
+
+/** Payload shape for the notification events, keyed by event name. */
+export interface CmsNotificationEventData {
+  entryDraftOpen: { entry?: Record<string, unknown> | undefined };
+  entryDraftChange: {
+    field?: Record<string, unknown> | undefined,
+    value?: unknown,
+    i18n?: { currentLocale: string, defaultLocale: string, locales: string[] } | undefined,
+  };
+  entryDraftDiscard: Record<string, never>;
+  postDelete: { collectionName?: string | undefined, entrySlug?: string | undefined };
+}
+
 export interface CmsEventListener {
-  name: CmsAllowedEvent;
-  handler: ({
-    entry,
-    author,
-  }: {
-    entry: Record<string, unknown>,
-    author: { login: string, name: string },
-  }) => unknown;
+  name: CmsEventName;
+  handler: (
+    data: {
+      entry?: Record<string, unknown>,
+      author?: { login: string, name: string },
+      [key: string]: unknown,
+    },
+    options?: Record<string, unknown>,
+  ) => unknown;
 }
 
 export type CmsEventListenerOptions = Record<string, unknown>;

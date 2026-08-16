@@ -90,6 +90,7 @@ Repo-level design and process docs live under `docs/contributing/` (index at
   - `restructure.md`: single-package-with-subpath-exports rationale
   - `breaking-changes-v4-beta.md`: v4 breaking changes (e.g. `markdown` widget renamed `richtext`)
   - `two-seam-model.md`: Laika protocol vs. CMS adapters
+  - `llm-seam.md`: why the CMS ships AI UI and no AI (`LlmTransport`, document bridge, Dulla)
   - `architecture.md`: technology-choice rationales (Emotion, Effect, `yaml`, ...)
   - `format-packs-plan.md`: forkable richtext formats and PT-native component blocks
 - `docs/contributing/learnings/`: things verified or discovered while working on the repo.

@@ -128,7 +128,7 @@ edit form. The full prop bundle is pre-resolved so the renderer stays presentati
 - Props: `EditorToolbarRenderProps` (persist/publish/delete state and handlers, `user?`,
   `hasChanged?`, `displayUrl?`, `collection`, `hasWorkflow?`, `useOpenAuthoring?`, and more — see
   the interface in `slots.tsx`)
-- Consumer: `packages/decap-cms/src/core/components/Editor/EditorInterface.tsx:331`
+- Consumer: `packages/decap-cms/src/core/components/Editor/EditorInterface.tsx:333`
 
 ### `renderEditorViewControls`
 
@@ -139,7 +139,7 @@ pane, and scroll-sync. Each toggle arrives as `<feature>Enabled` (should it rend
 - Props: `EditorViewControlsRenderProps` (`i18nEnabled`, `i18nVisible`, `onToggleI18n`,
   `previewEnabled`, `previewVisible`, `onTogglePreview`, `scrollSyncEnabled`, `scrollSyncVisible`,
   `onToggleScrollSync`)
-- Consumer: `packages/decap-cms/src/core/components/Editor/EditorInterface.tsx:331`
+- Consumer: `packages/decap-cms/src/core/components/Editor/EditorInterface.tsx:333`
 
 ### `renderMediaLibraryCard`
 
@@ -163,6 +163,37 @@ delete/insert buttons. All click and search-input handlers are pre-resolved.
   `canInsert?`, `onInsert`, `hasSelection`, `isPersisting?`, `isDeleting?`, `selectedFile?`)
 - Consumer: `packages/decap-cms/src/core/components/MediaLibrary/MediaLibraryModal.tsx:179`
 
+### `editorPanels`
+
+**Additive, unlike every slot above.** Panels are extra UI docked beside the entry form in a drawer,
+and several can coexist: the array supplied here is concatenated with any panels installed through
+`CMS.registerPanel` (app-supplied first) and shown as tabs, rather than one replacing the other.
+
+With no panels installed the drawer renders nothing at all — no toggle and no DOM — so the editor is
+byte-identical for a deployment that has none.
+
+```tsx
+<CmsSlotsProvider
+  slots={{
+    editorPanels: [
+      {
+        id: 'seo',
+        label: 'SEO',
+        isAvailable: ({ collection }) => collection.name === 'posts',
+        render: ({ entry, onClose }) => <SeoPanel entry={entry} onClose={onClose} />,
+      },
+    ],
+  }}
+>
+```
+
+The CMS's own assistant (`AiChatPanel`) is one of these, added automatically when an `LlmTransport`
+is configured — see `docs/contributing/decisions/architecture.md`.
+
+- Props: `EditorPanel[]`, each rendering with `EditorPanelRenderProps` (`collection`, `entry`,
+  `locale?`, `onClose`)
+- Consumer: `packages/decap-cms/src/core/components/Editor/EditorPanels.tsx:95`
+
 ## Adding a new slot
 
 Add a typed field to the `CmsSlots` interface in `slots.tsx` (e.g. `renderMyThing`) plus its
@@ -170,6 +201,10 @@ render-props interface. The consuming component should call `useCmsSlots()`, bra
 slot is set, and fall back to the default rendering when it's omitted — that keeps default Decap CMS
 behavior unchanged for anyone who doesn't supply a `CmsSlotsProvider`. Add both a pinning test in
 `src/core/lib/__tests__/slots.spec.tsx` and an entry in this doc for the new key.
+
+A slot that should _accumulate_ rather than replace (like `editorPanels`) needs one extra step:
+merge it explicitly in `useCmsSlots`, which otherwise lets the app-supplied value shadow the
+registered one.
 
 ## Provider wiring
 

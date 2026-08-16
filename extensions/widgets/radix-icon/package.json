@@ -1,0 +1,67 @@
+{
+  "name": "@laikacms/decap-cms-widget-radix-icon",
+  "description": "Icon-picker widget for Decap CMS backed by the Radix UI icon set.",
+  "version": "4.2.0",
+  "repository": "https://github.com/laikacms/decap-cms/tree/main/extensions/widgets/radix-icon",
+  "bugs": "https://github.com/laikacms/decap-cms/issues",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src/",
+    "dist/"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "decap-cms",
+    "widget",
+    "icon",
+    "radix"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "rimraf dist && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint --color \"src/**/*.{ts,tsx}\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ci": "pnpm run lint && pnpm run typecheck && pnpm run test"
+  },
+  "dependencies": {
+    "@radix-ui/react-icons": "catalog:"
+  },
+  "peerDependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@laikacms/decap-cms": "^4.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "catalog:",
+    "@laikacms/decap-cms": "workspace:*",
+    "@testing-library/jest-dom": "catalog:",
+    "@testing-library/react": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "eslint": "catalog:",
+    "eslint-config-prettier": "catalog:",
+    "globals": "catalog:",
+    "jsdom": "catalog:",
+    "rimraf": "catalog:",
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:",
+    "vitest": "catalog:"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -5,12 +5,14 @@ import { Pane, SplitPane } from 'react-split-pane';
 
 import { FILES } from '@/core/constants/collectionTypes';
 import { getI18nInfo, getPreviewEntry, hasI18n } from '@/core/lib/i18n';
+import { LlmSessionProvider } from '@/core/lib/llmSession';
 import { useCmsSlots } from '@/core/lib/slots';
 import { getFileFromSlug, selectEntryCollectionTitle } from '@/core/reducers/collections';
 import { ScrollSync, ScrollSyncPane } from '@/ui';
 import { colors, colorsRaw, components, IconButton, transitions, zIndex } from '@/ui/default/index';
 import EditorControlPane, { type ControlPaneHandle } from './EditorControlPane/EditorControlPane';
 import EditorFieldNavigator, { flattenNavigableFields } from './EditorFieldNavigator/EditorFieldNavigator';
+import EditorPanels from './EditorPanels';
 import EditorPreviewPane from './EditorPreviewPane/EditorPreviewPane';
 import EditorToolbar from './EditorToolbar';
 import EntryLockBanner from './EntryLockBanner';
@@ -735,94 +737,108 @@ function EditorInterface(props: EditorInterfaceProps) {
   };
 
   return (
-    <EditorContainer>
-      <PageTitle>{getEditorPageTitle(t, collection, entry, isNewEntry)}</PageTitle>
-      {!isNewEntry && entry.slug && <EntryLockBanner collection={collection} slug={entry.slug} />}
-      {renderEditorToolbar
-        ? renderEditorToolbar(toolbarProps)
-        : React.createElement(EditorToolbar as any, { ...toolbarProps, t })}
-      <Editor key={draftKey} ref={editorBodyRef} onFocus={handleEditorBodyFocus}>
-        {(() => {
-          const viewControlsProps = {
-            i18nEnabled: !!collectionI18nEnabled,
-            i18nVisible: !!i18nVisible,
-            onToggleI18n: handleToggleI18n,
-            previewEnabled: !!previewEnabled,
-            previewVisible: !!previewVisibleResolved,
-            onTogglePreview: handleTogglePreview,
-            scrollSyncEnabled: !!scrollSyncEnabled,
-            scrollSyncVisible: !!scrollSyncVisible && !(collection as any).editor?.visualEditing,
-            onToggleScrollSync: handleToggleScrollSync,
-          };
-          if (renderEditorViewControls) {
-            return renderEditorViewControls(viewControlsProps);
-          }
-          return (
-            <ViewControls>
-              <EditorToggle
-                isActive={fieldNavigatorVisible}
-                isToggle
-                onClick={handleToggleFieldNavigator}
-                size="large"
-                type="list-bulleted"
-                title={t('editor.editorInterface.toggleFieldNavigator')}
+    <LlmSessionProvider
+      collection={collection}
+      entry={entry}
+      {...(leftPanelLocale ? { locale: leftPanelLocale } : {})}
+    >
+      <EditorContainer>
+        <PageTitle>{getEditorPageTitle(t, collection, entry, isNewEntry)}</PageTitle>
+        {!isNewEntry && entry.slug && <EntryLockBanner collection={collection} slug={entry.slug} />}
+        {renderEditorToolbar
+          ? renderEditorToolbar(toolbarProps)
+          : React.createElement(EditorToolbar as any, { ...toolbarProps, t })}
+        <Editor key={draftKey} ref={editorBodyRef} onFocus={handleEditorBodyFocus}>
+          {(() => {
+            const viewControlsProps = {
+              i18nEnabled: !!collectionI18nEnabled,
+              i18nVisible: !!i18nVisible,
+              onToggleI18n: handleToggleI18n,
+              previewEnabled: !!previewEnabled,
+              previewVisible: !!previewVisibleResolved,
+              onTogglePreview: handleTogglePreview,
+              scrollSyncEnabled: !!scrollSyncEnabled,
+              scrollSyncVisible: !!scrollSyncVisible && !(collection as any).editor?.visualEditing,
+              onToggleScrollSync: handleToggleScrollSync,
+            };
+            if (renderEditorViewControls) {
+              return renderEditorViewControls(viewControlsProps);
+            }
+            return (
+              <ViewControls>
+                <EditorToggle
+                  isActive={fieldNavigatorVisible}
+                  isToggle
+                  onClick={handleToggleFieldNavigator}
+                  size="large"
+                  type="list-bulleted"
+                  title={t('editor.editorInterface.toggleFieldNavigator')}
+                />
+                {collectionI18nEnabled && (
+                  <EditorToggle
+                    isActive={i18nVisible}
+                    isToggle
+                    onClick={handleToggleI18n}
+                    size="large"
+                    type="page"
+                    title={t('editor.editorInterface.toggleI18n')}
+                  />
+                )}
+                {previewEnabled && (
+                  <EditorToggle
+                    isActive={previewVisibleResolved}
+                    isToggle
+                    onClick={handleTogglePreview}
+                    size="large"
+                    type="eye"
+                    title={t('editor.editorInterface.togglePreview')}
+                  />
+                )}
+                {scrollSyncVisible && !(collection as any).editor?.visualEditing && (
+                  <EditorToggle
+                    isActive={scrollSyncEnabled}
+                    isToggle
+                    onClick={handleToggleScrollSync}
+                    size="large"
+                    type="scroll"
+                    title={t('editor.editorInterface.toggleScrollSync')}
+                  />
+                )}
+              </ViewControls>
+            );
+          })()}
+          <EditorLayout>
+            {fieldNavigatorVisible && (
+              <FieldNavigatorContainer>
+                <EditorFieldNavigator
+                  fields={fields as EntryField[]}
+                  activeFieldPath={activeFieldPath}
+                  onFieldClick={handleFieldClick}
+                  t={t}
+                />
+              </FieldNavigatorContainer>
+            )}
+            <EditorContentContainer>
+              <EditorContent
+                i18nVisible={!!i18nVisible}
+                previewVisible={!!previewVisibleResolved}
+                editor={editor}
+                editorWithEditor={editorWithEditor}
+                editorWithPreview={editorWithPreview}
               />
-              {collectionI18nEnabled && (
-                <EditorToggle
-                  isActive={i18nVisible}
-                  isToggle
-                  onClick={handleToggleI18n}
-                  size="large"
-                  type="page"
-                  title={t('editor.editorInterface.toggleI18n')}
-                />
-              )}
-              {previewEnabled && (
-                <EditorToggle
-                  isActive={previewVisibleResolved}
-                  isToggle
-                  onClick={handleTogglePreview}
-                  size="large"
-                  type="eye"
-                  title={t('editor.editorInterface.togglePreview')}
-                />
-              )}
-              {scrollSyncVisible && !(collection as any).editor?.visualEditing && (
-                <EditorToggle
-                  isActive={scrollSyncEnabled}
-                  isToggle
-                  onClick={handleToggleScrollSync}
-                  size="large"
-                  type="scroll"
-                  title={t('editor.editorInterface.toggleScrollSync')}
-                />
-              )}
-            </ViewControls>
-          );
-        })()}
-        <EditorLayout>
-          {fieldNavigatorVisible && (
-            <FieldNavigatorContainer>
-              <EditorFieldNavigator
-                fields={fields as EntryField[]}
-                activeFieldPath={activeFieldPath}
-                onFieldClick={handleFieldClick}
-                t={t}
-              />
-            </FieldNavigatorContainer>
-          )}
-          <EditorContentContainer>
-            <EditorContent
-              i18nVisible={!!i18nVisible}
-              previewVisible={!!previewVisibleResolved}
-              editor={editor}
-              editorWithEditor={editorWithEditor}
-              editorWithPreview={editorWithPreview}
-            />
-          </EditorContentContainer>
-        </EditorLayout>
-      </Editor>
-    </EditorContainer>
+            </EditorContentContainer>
+          </EditorLayout>
+          <EditorPanels
+            panelProps={{
+              collection,
+              entry,
+              ...(leftPanelLocale ? { locale: leftPanelLocale } : {}),
+            }}
+            t={t}
+          />
+        </Editor>
+      </EditorContainer>
+    </LlmSessionProvider>
   );
 }
 

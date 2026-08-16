@@ -62,13 +62,7 @@ const gr = {
         min: 'Το %{fieldLabel} πρέπει να είναι τουλάχιστον %{minValue}.',
         max: 'Το %{fieldLabel} πρέπει να είναι %{maxValue} ή μικρότερο.',
       },
-      i18n: {
-        translateFromDefault: 'Μετάφραση από %{locale}',
-        translatingFromDefault: 'Μετάφραση σε εξέλιξη…',
-        translateFromDefaultConfirm:
-          'Θέλετε να συμπληρώσετε το %{locale} χρησιμοποιώντας μετάφραση AI;\nΌλο το υπάρχον περιεχόμενο θα αντικατασταθεί.',
-        translateFromDefaultConfirmTitle: 'Μετάφραση από την προεπιλεγμένη γλώσσα',
-      },
+      i18n: {},
     },
     editor: {
       onLeavePage: 'Είστε βέβαιοι ότι θέλετε να αφήσετε αυτήν τη σελίδα;',
@@ -123,6 +117,11 @@ const gr = {
         choose: 'Επιλέξτε μια εικόνα',
         chooseDifferent: 'Επιλέξτε διαφορετική εικόνα',
         remove: 'Αφαιρέστε την εικόνα',
+        translateFromDefault: 'Μετάφραση από %{locale}',
+        translatingFromDefault: 'Μετάφραση σε εξέλιξη…',
+        translateFromDefaultConfirm:
+          'Θέλετε να συμπληρώσετε το %{locale} χρησιμοποιώντας μετάφραση AI;\nΌλο το υπάρχον περιεχόμενο θα αντικατασταθεί.',
+        translateFromDefaultConfirmTitle: 'Μετάφραση από την προεπιλεγμένη γλώσσα',
       },
       file: {
         choose: 'Επιλέξτε ένα αρχείο',

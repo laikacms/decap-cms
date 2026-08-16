@@ -82,11 +82,8 @@
     "@apollo/client": "^4.2.7",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@radix-ui/react-icons": "^1.3.2",
     "graphql": "^16.13.2 || ^17.0.0",
     "graphql-tag": "^2.12.6",
-    "lucide-react": "^1.7.0",
-    "ol": "^6.9.0 || ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "uploadcare-widget": "^3.23.4",
@@ -97,19 +94,10 @@
     "@apollo/client": {
       "optional": true
     },
-    "@radix-ui/react-icons": {
-      "optional": true
-    },
     "graphql": {
       "optional": true
     },
     "graphql-tag": {
-      "optional": true
-    },
-    "lucide-react": {
-      "optional": true
-    },
-    "ol": {
       "optional": true
     },
     "uploadcare-widget": {
@@ -123,9 +111,6 @@
     }
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "catalog:",
-    "@ai-sdk/openai": "catalog:",
-    "@ai-sdk/react": "catalog:",
     "@base-ui/react": "catalog:",
     "@codemirror/autocomplete": "catalog:",
     "@codemirror/commands": "catalog:",
@@ -164,12 +149,9 @@
     "@replit/codemirror-vim": "catalog:",
     "@replit/codemirror-vscode-keymap": "catalog:",
     "@vercel/stega": "catalog:",
-    "ai": "catalog:",
     "dayjs": "catalog:",
-    "decap-cms-lib-pat": "workspace:^",
     "dnd-core": "catalog:",
     "effect": "catalog:",
-    "fast-json-patch": "catalog:",
     "immer": "catalog:",
     "ini": "catalog:",
     "jwt-decode": "catalog:",
@@ -213,7 +195,6 @@
     "@octokit/rest": "catalog:",
     "@octokit/types": "catalog:",
     "@playwright/test": "catalog:",
-    "@radix-ui/react-icons": "catalog:",
     "@storybook/addon-a11y": "catalog:",
     "@storybook/react": "catalog:",
     "@storybook/react-vite": "catalog:",
@@ -248,9 +229,7 @@
     "graphql": "catalog:",
     "graphql-tag": "catalog:",
     "jsdom": "catalog:",
-    "lucide-react": "catalog:",
     "nock": "catalog:",
-    "ol": "catalog:",
     "prettier": "catalog:",
     "redux-mock-store": "catalog:",
     "rimraf": "catalog:",
@@ -279,30 +258,6 @@
       "types": "./dist/app/index.d.ts",
       "import": "./dist/app/index.js",
       "default": "./dist/app/index.js"
-    },
-    "./ai": {
-      "types": "./dist/ai/index.d.ts",
-      "import": "./dist/ai/index.js"
-    },
-    "./ai/providers": {
-      "types": "./dist/ai/providers/index.d.ts",
-      "import": "./dist/ai/providers/index.js"
-    },
-    "./ai/tools": {
-      "types": "./dist/ai/tools/index.d.ts",
-      "import": "./dist/ai/tools/index.js"
-    },
-    "./ai/i18n/en": {
-      "types": "./dist/ai/i18n/en.d.ts",
-      "import": "./dist/ai/i18n/en.js"
-    },
-    "./ai/i18n/nl": {
-      "types": "./dist/ai/i18n/nl.d.ts",
-      "import": "./dist/ai/i18n/nl.js"
-    },
-    "./ai/i18n/types": {
-      "types": "./dist/ai/i18n/types.d.ts",
-      "import": "./dist/ai/i18n/types.js"
     },
     "./app": {
       "types": "./dist/app/index.d.ts",
@@ -405,25 +360,9 @@
       "types": "./dist/laika-app/bare.d.ts",
       "import": "./dist/laika-app/bare.js"
     },
-    "./widgets/map": {
-      "types": "./dist/widgets/map/register.d.ts",
-      "import": "./dist/widgets/map/register.js"
-    },
     "./widgets/*": {
       "types": "./dist/widgets/*/index.d.ts",
       "import": "./dist/widgets/*/index.js"
-    },
-    "./widgets/aichat/i18n/en": {
-      "types": "./dist/widgets/aichat/i18n/en.d.ts",
-      "import": "./dist/widgets/aichat/i18n/en.js"
-    },
-    "./widgets/aichat/i18n/nl": {
-      "types": "./dist/widgets/aichat/i18n/nl.d.ts",
-      "import": "./dist/widgets/aichat/i18n/nl.js"
-    },
-    "./widgets/aichat/i18n/types": {
-      "types": "./dist/widgets/aichat/i18n/types.d.ts",
-      "import": "./dist/widgets/aichat/i18n/types.js"
     },
     "./package.json": "./package.json",
     "./schema/*": "./schema/*"

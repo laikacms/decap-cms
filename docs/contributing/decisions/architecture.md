@@ -34,7 +34,51 @@ project:
 
 ## Why `yaml` over `js-yaml` or `yamljs`
 
-Because YAML is already used in `decap-cms` to parse YAML comments, something js-yaml or yamljs don't do.
+Because YAML is already used in `decap-cms` to parse YAML comments, something js-yaml or yamljs
+don't do.
 
 We might as well reuse a dependency that's already used.
 
+## Why the CMS ships AI UI but no AI
+
+The CMS contains a chat panel and a "translate from <locale>" action, and no model, endpoint,
+prompt-transport or streaming library. Everything on the far side of `LlmTransport`
+(`src/lib/util/types/cms/llm.ts`) is supplied by the host, through `DecapCmsProvider`'s `llm` prop
+or `CMS.registerLlmTransport`. With no transport configured, none of that UI renders at all.
+
+The line falls there because of where the _document_ lives. The entry being edited is client-side
+Redux state, so a model that edits it must have its tool calls executed in the browser. That is a
+job only the CMS can do, and it is the one thing the CMS therefore has to own: `LlmDocumentBridge`
+(`src/core/lib/llmDocumentBridge.ts`) is the entire surface a transport gets — read the draft, patch
+the draft, list the fields. Writes go through the published `changeDraftField` action, so an AI edit
+is indistinguishable from a keystroke: same reducer, same dirty-state diffing, same
+`entryDraftChange` event to any other extension listening.
+
+Everything on the other side of that line is somebody else's opinion:
+
+- **Which model, and who pays.** Not a CMS concern in any deployment we can foresee.
+- **Authentication.** An AI endpoint is not the git backend and need not trust the same issuer, so
+  there is no CMS token that would be the right one to lend. The transport is a closure the host
+  constructs, so it carries whatever credentials it likes; one whose endpoint does happen to trust
+  the backend's token asks for it explicitly (`currentBackend(store.getState().config).getToken()` —
+  exported, and refresh-aware, which is why it is borrowed rather than re-read from storage).
+  `LlmTransport` therefore has no `isAuthenticated`/`signIn`, and will not grow them until a
+  separate identity has to surface in the CMS's own UI.
+- **Conversation persistence.** Optional (`listSessions`/`resumeSession`); a transport that omits
+  them simply gets no history UI.
+
+The session is shared rather than per-component (`src/core/lib/llmSession.tsx`): the translate
+action sends a hidden prompt into the same conversation the chat panel renders, so a translation is
+a turn the user can follow up on ("make that less formal") instead of a dead end. It is created
+lazily — opening an entry is not consent to start a possibly-billed session.
+
+This replaces an earlier arrangement where the CMS shipped `decapAi()`, a server-side chat adapter,
+and the chat lived in an `ai-chat` _widget_ — which only existed because a widget was the sole
+injection point in v3, though a conversation about an entry was never a field of that entry. The
+server moved out to laika as `@laikacms/server/ai`, and the widget became a panel
+(`slots.editorPanels`).
+
+The client half of that server ships as `extensions/llm/dulla` — `createDullaTransport()`, which
+implements `LlmTransport` over those endpoints, executes the two document tools against the bridge,
+and is where the `ai` dependency now lives. It is an extension like any other: written against the
+published exports only, and entirely optional.

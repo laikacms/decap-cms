@@ -78,13 +78,7 @@ const nn_no = {
         rangeMin: '%{fieldLabel} må minst ha %{minCount} element.',
         rangeMax: '%{fieldLabel} må ha %{maxCount} eller færre element.',
       },
-      i18n: {
-        translateFromDefault: 'Set om frå %{locale}',
-        translatingFromDefault: 'Set om…',
-        translateFromDefaultConfirm:
-          'Vil du fylle ut %{locale} ved hjelp av ei AI-omsetjing?\nAlt eksisterande innhald vil bli overskrive.',
-        translateFromDefaultConfirmTitle: 'Set om frå standardspråk',
-      },
+      i18n: {},
     },
     editor: {
       onLeavePage: 'Er du sikker på at du vil navigere bort frå denne sida?',
@@ -136,6 +130,11 @@ const nn_no = {
       richtext: {
         richText: 'Rik-tekst',
         markdown: 'Markdown',
+        translateFromDefault: 'Set om frå %{locale}',
+        translatingFromDefault: 'Set om…',
+        translateFromDefaultConfirm:
+          'Vil du fylle ut %{locale} ved hjelp av ei AI-omsetjing?\nAlt eksisterande innhald vil bli overskrive.',
+        translateFromDefaultConfirmTitle: 'Set om frå standardspråk',
       },
       image: {
         choose: 'Vel bilete',

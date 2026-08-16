@@ -78,13 +78,7 @@ const nb_no = {
         rangeMin: '%{fieldLabel} må minst ha %{minCount} element(er).',
         rangeMax: '%{fieldLabel} må ha %{maxCount} eller færre element(er).',
       },
-      i18n: {
-        translateFromDefault: 'Oversett fra %{locale}',
-        translatingFromDefault: 'Oversetter…',
-        translateFromDefaultConfirm:
-          'Vil du fylle ut %{locale} ved hjelp av en AI-oversettelse?\nAlt eksisterende innhold vil bli overskrevet.',
-        translateFromDefaultConfirmTitle: 'Oversett fra standardspråk',
-      },
+      i18n: {},
     },
     editor: {
       onLeavePage: 'Er du sikker på du vil navigere bort fra denne siden?',
@@ -137,6 +131,11 @@ const nb_no = {
       richtext: {
         richText: 'Rik-tekst',
         markdown: 'Markdown',
+        translateFromDefault: 'Oversett fra %{locale}',
+        translatingFromDefault: 'Oversetter…',
+        translateFromDefaultConfirm:
+          'Vil du fylle ut %{locale} ved hjelp av en AI-oversettelse?\nAlt eksisterende innhold vil bli overskrevet.',
+        translateFromDefaultConfirmTitle: 'Oversett fra standardspråk',
       },
       image: {
         choose: 'Velg et bilde',

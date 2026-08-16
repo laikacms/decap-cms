@@ -4,6 +4,17 @@
 # restructure - same layout as the laikacms/laikacms repo. See restructure.md.
 packages:
   - 'packages/*'
+  # Extension packages: widgets and backends built the way a third-party author
+  # would build them, against the published `@laikacms/decap-cms` subpath
+  # exports only (enforced by the import-boundary lint rule). Their optional
+  # peers (ol, lucide-react, ...) are plain dependencies here, so the core
+  # package does not carry them. See restructure.md.
+  - 'extensions/widgets/*'
+  - 'extensions/editor/*'
+  # LLM transports: implementations of the CMS's `LlmTransport` seam. The CMS
+  # ships the AI *UI* and none of the transport, so these are where a model,
+  # an endpoint and its auth actually live. See docs/core/llm.md.
+  - 'extensions/llm/*'
 
 overrides:
   jsdom: "^29.1.1"

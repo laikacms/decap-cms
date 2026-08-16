@@ -34,16 +34,19 @@ decade of groundwork goes to the Decap CMS team; see [Credits](#credits) below.
   the full list of breaking changes. **Known limitation:** custom blocks registered with
   `inline: true` round-trip through markdown save/reload only one-way — serialization works but
   parsing an inline block back out of markdown is not supported, so it is silently lost on reload.
-  See [src/widgets/richtext/README.md](./src/widgets/richtext/README.md#blockdefinition-shape)
-  for details.
-- **AI chat (deprecated).** A document-scoped `ai-chat` widget streams assistant replies and can
-  apply proposed edits back onto the current entry's draft fields; see
-  [src/widgets/aichat/README.md](./src/widgets/aichat/README.md) for widget setup. **This widget is
-  deprecated** in favor of the laikacms MCP server (`/mcp`) and is being phased out — see the
-  widget's own README for details on the replacement and migration path. The server side is powered
-  by `decapAi()` from the `@laikacms/decap-cms/ai` subpath export, which bundles the Vercel AI SDK
-  (model provider factories, `tool`/`jsonSchema` re-exports) so consumers share one `ai` runtime
-  instead of installing it themselves; see [src/ai/index.ts](./src/ai/index.ts) for usage.
+  See [src/widgets/richtext/README.md](./src/widgets/richtext/README.md#blockdefinition-shape) for
+  details.
+- **AI UI, and no AI.** The editor has an assistant panel and a "translate from &lt;locale&gt;"
+  action, and the package carries no model, endpoint or AI SDK. Both render only once a host
+  supplies an `LlmTransport`, through `DecapCmsProvider`'s `llm` prop or `CMS.registerLlmTransport`.
+  A transport can read and patch the open draft through `LlmDocumentBridge` and nothing else. See
+  [docs/contributing/decisions/architecture.md](../../docs/contributing/decisions/architecture.md)
+  for where the line falls and why.
+  - `@laikacms/decap-cms-llm-dulla` ([extensions/llm/dulla](../../extensions/llm/dulla/README.md))
+    is the reference transport, speaking to `@laikacms/server/ai`.
+  - The older `ai-chat` widget (`@laikacms/decap-cms-widget-aichat`) and standalone translate action
+    (`@laikacms/decap-cms-ai-translate`) predate this and are **deprecated**; the panel and the
+    locale-row action in the CMS replace them.
 
 ## Installation
 
@@ -72,11 +75,11 @@ config reference:
   compatibility with Decap's format handling; Laika parses any format itself. Decap's default
   (markdown-frontmatter) is not yet supported; omitting `format:` now fails fast client-side with an
   actionable error before any request reaches the server.
-- **Entry locking is server-arbitrated, not the bundled per-browser manager.** The advisory
-  "Being edited by X" locking Decap core exposes (`getEntryLock`/`acquireEntryLock`/
+- **Entry locking is server-arbitrated, not the bundled per-browser manager.** The advisory "Being
+  edited by X" locking Decap core exposes (`getEntryLock`/`acquireEntryLock`/
   `releaseEntryLock`/`refreshEntryLock`) is implemented against this backend's `/locks` endpoint —
-  see [src/backends/laika/README.md#entry-locking](./src/backends/laika/README.md#entry-locking)
-  for the wire contract and degradation behavior.
+  see [src/backends/laika/README.md#entry-locking](./src/backends/laika/README.md#entry-locking) for
+  the wire contract and degradation behavior.
 
 ## CDN builds (no bundler)
 

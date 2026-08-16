@@ -78,13 +78,7 @@ const es = {
         rangeMin: '%{fieldLabel} debe ser por lo menos %{minCount} elemento(s).',
         rangeMax: '%{fieldLabel} debe ser %{maxCount} o menos elemento(s).',
       },
-      i18n: {
-        translateFromDefault: 'Traducir desde %{locale}',
-        translatingFromDefault: 'Traduciendo…',
-        translateFromDefaultConfirm:
-          '¿Quieres rellenar %{locale} usando una traducción por IA?\nSe sobrescribirá todo el contenido existente.',
-        translateFromDefaultConfirmTitle: 'Traducir desde el idioma predeterminado',
-      },
+      i18n: {},
     },
     editor: {
       onLeavePage: '¿Estás seguro de que quieres dejar esta página?',
@@ -137,6 +131,11 @@ const es = {
       richtext: {
         richText: 'Texto enriquecido',
         markdown: 'Markdown',
+        translateFromDefault: 'Traducir desde %{locale}',
+        translatingFromDefault: 'Traduciendo…',
+        translateFromDefaultConfirm:
+          '¿Quieres rellenar %{locale} usando una traducción por IA?\nSe sobrescribirá todo el contenido existente.',
+        translateFromDefaultConfirmTitle: 'Traducir desde el idioma predeterminado',
       },
       image: {
         choose: 'Elige una imagen',

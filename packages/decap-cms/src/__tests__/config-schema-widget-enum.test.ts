@@ -3,11 +3,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { registerCoreWidgets } from '@/core/components/EditorWidgets';
-import { getWidget, getWidgets, registerWidget } from '@/core/lib/registry';
-import DecapCmsWidgetAiChat from '@/widgets/aichat';
-import DecapCmsWidgetLucideIcon from '@/widgets/lucide-icon';
-import { registerMapWidget } from '@/widgets/map/register';
-import DecapCmsWidgetRadixIcon from '@/widgets/radix-icon';
+import { getWidget, getWidgets } from '@/core/lib/registry';
 
 // `schema/config.schema.json`'s `field.widget` enum/examples is hand-maintained
 // (it exists only for editor autocompletion — see the schema's own
@@ -17,18 +13,21 @@ import DecapCmsWidgetRadixIcon from '@/widgets/radix-icon';
 //   1. Every widget name the default app bootstrap paths
 //      (`src/app/extensions.ts`, `src/laika-app/extensions.ts`) register on
 //      the Registry via `CMS.registerWidget`.
-//   2. Widgets that are opt-in (not registered by the default bootstrap, so
-//      not covered by (1)) but documented as valid `{ widget: '<name>' }`
-//      values: `ai-chat` (README.md "AI chat" + src/widgets/aichat/README.md),
-//      `lucide-icon` and `radix-icon` (their own widget READMEs), and `map`
-//      (src/widgets/map/README.md — opt-in via `registerMapWidget()` since
-//      DCMS-1971, because `ol` is an optional peer dependency).
+//   2. Widget names this package does not ship but the schema still documents,
+//      because they ship as their own packages under `extensions/widgets/*`.
 //
 // `ai-chat` was missing from the enum (DCMS-1710) even though it is a
 // documented, real widget name — this test fails without it.
 const schemaPath = path.resolve(__dirname, '../../schema/config.schema.json');
 
-const OPT_IN_DOCUMENTED_WIDGETS = ['ai-chat', 'lucide-icon', 'radix-icon', 'map'];
+// Widgets that live in `extensions/widgets/*` (DCMS-1971). Their names stay in
+// the schema enum because they remain valid `widget:` values, but this package
+// cannot resolve them: it does not depend on the extension packages, and must
+// not, since they depend on it. Each extension package asserts its own name
+// against this same schema file, reached through the `./schema/*` export.
+const EXTENSION_PACKAGE_WIDGETS = ['map', 'lucide-icon', 'radix-icon', 'ai-chat'];
+
+const IMPORT_BOOTSTRAP_TIMEOUT_MS = 30_000;
 
 function loadWidgetEnum(): string[] {
   const schema = JSON.parse(readFileSync(schemaPath, 'utf8'));
@@ -58,13 +57,15 @@ describe('schema/config.schema.json widget enum/examples (DCMS-1710)', () => {
       expect(enumValues, `widget "${name}" is registered but missing from the schema's widget enum`)
         .toContain(name);
     }
-  });
+    // Importing both bootstrap paths pulls in the whole app module graph, which
+    // can exceed the 5s default when the full suite is running in parallel.
+  }, IMPORT_BOOTSTRAP_TIMEOUT_MS);
 
-  it('includes the documented opt-in widgets not covered by default bootstrap', () => {
+  it('includes the widget names that ship as extension packages', () => {
     const enumValues = loadWidgetEnum();
 
-    for (const name of OPT_IN_DOCUMENTED_WIDGETS) {
-      expect(enumValues, `documented opt-in widget "${name}" is missing from the schema's widget enum`)
+    for (const name of EXTENSION_PACKAGE_WIDGETS) {
+      expect(enumValues, `extension-package widget "${name}" is missing from the schema's widget enum`)
         .toContain(name);
     }
   });
@@ -72,8 +73,10 @@ describe('schema/config.schema.json widget enum/examples (DCMS-1710)', () => {
   // `hidden` is special-cased by EditorControlPane (it short-circuits before
   // widget resolution — see `field.widget === 'hidden'` in
   // EditorControlPane.tsx) and never goes through `registerWidget`/`getWidget`.
-  // It's the one legitimate widget-enum entry with no Registry entry.
-  const NON_REGISTRY_WIDGET_NAMES = new Set(['hidden']);
+  // The extension-package widgets are unresolvable here for a different reason:
+  // their controls live in packages this one cannot import. Both are legitimate
+  // enum entries with no Registry entry in this package.
+  const NON_REGISTRY_WIDGET_NAMES = new Set(['hidden', ...EXTENSION_PACKAGE_WIDGETS]);
 
   it('lists no widget name that fails to resolve against the Registry (DCMS-1823)', async () => {
     const { registerExtensions: registerAppExtensions } = await import('@/app/extensions');
@@ -81,13 +84,6 @@ describe('schema/config.schema.json widget enum/examples (DCMS-1710)', () => {
     registerAppExtensions();
     registerLaikaAppExtensions();
     registerCoreWidgets();
-    // Opt-in widgets (see OPT_IN_DOCUMENTED_WIDGETS above) aren't registered
-    // by default bootstrap; register them here so the schema may legitimately
-    // document their names.
-    registerWidget(DecapCmsWidgetAiChat.Widget());
-    registerWidget(DecapCmsWidgetLucideIcon.Widget());
-    registerWidget(DecapCmsWidgetRadixIcon.Widget());
-    registerMapWidget();
 
     const enumValues = loadWidgetEnum();
     expect(enumValues.length).toBeGreaterThan(0);
@@ -96,10 +92,10 @@ describe('schema/config.schema.json widget enum/examples (DCMS-1710)', () => {
       if (NON_REGISTRY_WIDGET_NAMES.has(name)) continue;
       expect(
         getWidget(name),
-        `widget "${name}" is listed in the schema's widget enum but has no registered ` +
-          `control, meaning the enum has drifted from the real Widget Registry (e.g. a widget ` +
-          `was removed, or the name was never a real widget to begin with).`,
+        `widget "${name}" is listed in the schema's widget enum but has no registered `
+          + `control, meaning the enum has drifted from the real Widget Registry (e.g. a widget `
+          + `was removed, or the name was never a real widget to begin with).`,
       ).toBeDefined();
     }
-  });
+  }, IMPORT_BOOTSTRAP_TIMEOUT_MS);
 });

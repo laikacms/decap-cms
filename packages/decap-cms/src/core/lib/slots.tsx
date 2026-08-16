@@ -1,4 +1,6 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
+
+import { getSlots } from './registry';
 
 import type {
   CmsCollections,
@@ -193,7 +195,38 @@ export interface WorkflowCardRenderProps {
   postAuthor?: string;
 }
 
+export interface EditorPanelRenderProps {
+  collection: CmsCollectionState;
+  entry: CmsEntry;
+  /** Locale being edited, for collections with i18n enabled. */
+  locale?: string | undefined;
+  /** Closes the drawer, e.g. after the panel completes an action. */
+  onClose: () => void;
+}
+
+/**
+ * A panel docked beside the entry form. Unlike the render slots below, panels
+ * are *additive*: several can be installed and the editor shows them as tabs,
+ * so two extensions do not fight over one region.
+ */
+export interface EditorPanel {
+  /** Unique; also the tab's React key. */
+  id: string;
+  /** Tab label, and the toggle's label when this is the only panel. */
+  label: string;
+  /** Hide the panel for entries it does not apply to. */
+  isAvailable?: (props: { collection: CmsCollectionState, entry: CmsEntry }) => boolean;
+  render: (props: EditorPanelRenderProps) => React.ReactNode;
+}
+
 export interface CmsSlots {
+  /**
+   * Panels docked beside the entry form, rendered in a drawer. Additive: the
+   * array from `CmsSlotsProvider` and any panels installed with
+   * `CMS.registerPanel` are concatenated (app-supplied first) rather than one
+   * replacing the other. With none, the editor renders exactly as before.
+   */
+  editorPanels?: EditorPanel[];
   /**
    * Replace the heading + "new entry" button rendered above a collection's
    * entry listing. Receives the collection and optional new-entry URL.
@@ -282,6 +315,38 @@ export function CmsSlotsProvider({ slots, children }: CmsSlotsProviderProps) {
   return <CmsSlotsContext.Provider value={slots ?? EMPTY_SLOTS}>{children}</CmsSlotsContext.Provider>;
 }
 
+/**
+ * Reads the slot renderers in effect. Two sources are merged:
+ *
+ *  1. Slots registered by an installed package (`CMS.registerSlot`), so an
+ *     extension can contribute UI without the host app wiring it through.
+ *  2. Slots supplied by the host app via `CmsSlotsProvider`.
+ *
+ * The app wins on conflict: a deployment must always be able to override what
+ * one of its dependencies renders.
+ */
 export function useCmsSlots(): CmsSlots {
-  return useContext(CmsSlotsContext);
+  const appSlots = useContext(CmsSlotsContext);
+  const registeredSlots = getSlots();
+
+  return useMemo(
+    () => {
+      if (Object.keys(registeredSlots).length === 0) return appSlots;
+
+      const merged: CmsSlots = { ...registeredSlots, ...appSlots };
+      // `editorPanels` is additive rather than replace-only: two sources of
+      // panels should both show up as tabs, not silently shadow each other.
+      // App-supplied panels come first so the deployment controls the order.
+      const panels = [...(appSlots.editorPanels ?? []), ...(registeredSlots.editorPanels ?? [])];
+      if (panels.length > 0) {
+        merged.editorPanels = panels;
+      }
+      return merged;
+    },
+    // `registeredSlots` is a fresh object each render; registration happens at
+    // boot, so its identity is not a useful dependency. Key off the slot names
+    // actually present instead.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [appSlots, Object.keys(registeredSlots).join(',')],
+  );
 }

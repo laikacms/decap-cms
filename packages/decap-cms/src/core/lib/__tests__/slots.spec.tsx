@@ -1,7 +1,8 @@
 import { render } from '@testing-library/react';
 import React from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { getSlots, registerSlot, unregisterSlot } from '@/core/lib/registry';
 import { CmsSlotsProvider, useCmsSlots } from '@/core/lib/slots';
 
 import type { CmsSlots } from '@/core/lib/slots';
@@ -19,6 +20,13 @@ function SlotsProbe({ onSlots }: { onSlots: (slots: CmsSlots) => void }) {
 }
 
 describe('slots', () => {
+  afterEach(() => {
+    // The registry is module state shared across this file's tests.
+    for (const name of Object.keys(getSlots()) as (keyof CmsSlots)[]) {
+      unregisterSlot(name);
+    }
+  });
+
   describe('useCmsSlots', () => {
     it('returns an object with every slot undefined when no CmsSlotsProvider is present', () => {
       let captured: CmsSlots | undefined;
@@ -104,6 +112,83 @@ describe('slots', () => {
 
       expect(captured?.renderLoader).toBe(outerLoader);
       expect(captured?.renderEntryCard).toBe(innerEntryCard);
+    });
+  });
+
+  describe('registerSlot', () => {
+    it('rejects a missing name or a non-function renderer', () => {
+      expect(() => registerSlot('' as keyof CmsSlots, () => null)).toThrow(
+        /Slot parameters invalid/,
+      );
+      expect(() => registerSlot('renderLoader', undefined as never)).toThrow(
+        /Slot parameters invalid/,
+      );
+    });
+
+    it('makes a registered slot visible to useCmsSlots with no provider in the tree', () => {
+      const renderLoader = () => <div>extension loader</div>;
+      registerSlot('renderLoader', renderLoader);
+
+      let captured: CmsSlots | undefined;
+      render(<SlotsProbe onSlots={slots => (captured = slots)} />);
+
+      expect(captured?.renderLoader).toBe(renderLoader);
+    });
+
+    it('lets the app override a registered slot, while non-overridden ones still resolve', () => {
+      const extensionLoader = () => <div>extension loader</div>;
+      const extensionEntryCard = () => <div>extension entry card</div>;
+      const appLoader = () => <div>app loader</div>;
+      registerSlot('renderLoader', extensionLoader);
+      registerSlot('renderEntryCard', extensionEntryCard);
+
+      let captured: CmsSlots | undefined;
+      render(
+        <CmsSlotsProvider slots={{ renderLoader: appLoader }}>
+          <SlotsProbe onSlots={slots => (captured = slots)} />
+        </CmsSlotsProvider>,
+      );
+
+      // The app wins on conflict: a deployment must be able to override what
+      // one of its dependencies renders.
+      expect(captured?.renderLoader).toBe(appLoader);
+      expect(captured?.renderEntryCard).toBe(extensionEntryCard);
+    });
+
+    it('warns and keeps the last renderer when a slot is registered twice', () => {
+      const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const first = () => <div>first</div>;
+      const second = () => <div>second</div>;
+
+      registerSlot('renderEntryCard', first);
+      registerSlot('renderEntryCard', second);
+
+      expect(consoleWarn).toHaveBeenCalledWith(
+        expect.stringContaining('Multiple renderers registered for slot "renderEntryCard"'),
+      );
+      expect(getSlots().renderEntryCard).toBe(second);
+
+      consoleWarn.mockRestore();
+    });
+
+    it('unregisterSlot removes it again', () => {
+      registerSlot('renderLoader', () => <div>extension loader</div>);
+      unregisterSlot('renderLoader');
+
+      let captured: CmsSlots | undefined;
+      render(<SlotsProbe onSlots={slots => (captured = slots)} />);
+
+      expect(captured).toEqual({});
+    });
+
+    it('getSlots returns a copy, so mutating it does not touch the registry', () => {
+      const renderLoader = () => <div>extension loader</div>;
+      registerSlot('renderLoader', renderLoader);
+
+      const slots = getSlots();
+      delete slots.renderLoader;
+
+      expect(getSlots().renderLoader).toBe(renderLoader);
     });
   });
 
@@ -562,7 +647,8 @@ describe('slots', () => {
         default: () => <div data-testid="preview-pane" />,
       }));
       vi.doMock('@/core/components/Editor/EntryLockBanner', () => ({ default: () => null }));
-      vi.doMock('@/core/lib/i18n', () => ({
+      vi.doMock('@/core/lib/i18n', async importOriginal => ({
+        ...(await importOriginal<Record<string, unknown>>()),
         hasI18n: () => false,
         getI18nInfo: () => ({ locales: [], defaultLocale: '' }),
         getPreviewEntry: (entry: unknown) => entry,
@@ -648,7 +734,8 @@ describe('slots', () => {
         default: () => <div data-testid="toolbar" />,
       }));
       vi.doMock('@/core/components/Editor/EntryLockBanner', () => ({ default: () => null }));
-      vi.doMock('@/core/lib/i18n', () => ({
+      vi.doMock('@/core/lib/i18n', async importOriginal => ({
+        ...(await importOriginal<Record<string, unknown>>()),
         hasI18n: () => false,
         getI18nInfo: () => ({ locales: [], defaultLocale: '' }),
         getPreviewEntry: (entry: unknown) => entry,

@@ -399,14 +399,18 @@ export function changeDraftField({
   i18n,
 }: {
   field: EntryField,
-  value: string,
+  // Not narrowed to `string`: list/object widgets change to arrays and
+  // objects, and the reducer stores whatever it is given.
+  value: unknown,
   metadata: Record<string, unknown>,
   entries: EntryMap[],
+  // Explicit `| undefined`: callers under `exactOptionalPropertyTypes` build
+  // the i18n context conditionally and pass it through as-is.
   i18n?: {
     currentLocale: string,
     defaultLocale: string,
     locales: string[],
-  },
+  } | undefined,
 }) {
   return {
     type: DRAFT_CHANGE_FIELD,

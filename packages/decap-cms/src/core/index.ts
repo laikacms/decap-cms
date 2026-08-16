@@ -79,6 +79,36 @@ export { store } from './redux';
 export type { AppDispatch, RootState } from './redux';
 
 /**
+ * Supported action creators for reading and mutating entries and the open
+ * draft. The store above has always been public, but the vocabulary for
+ * driving it was not: an extension had to reverse-engineer reducer contracts
+ * and hand-roll raw action objects. Dispatch these instead.
+ *
+ * ```ts
+ * import { changeDraftField, store } from '@laikacms/decap-cms/core';
+ *
+ * store.dispatch(changeDraftField({ field, value, metadata: {}, entries: [] }));
+ * ```
+ *
+ * These are the entry/draft actions the CMS itself uses; anything not listed
+ * here stays internal and may change without a major version.
+ */
+export {
+  addDraftEntryMediaFile,
+  changeDraftField,
+  changeDraftFieldValidation,
+  clearFieldErrors,
+  createDraftDuplicateFromEntry,
+  createEmptyDraft,
+  deleteEntry,
+  discardDraft,
+  loadEntries,
+  loadEntry,
+  persistEntry,
+  removeDraftEntryMediaFile,
+} from './actions/entries';
+
+/**
  * The (singleton) Backend wrapper for the configured backend. Hosts that make
  * their own API calls with the CMS identity should get the token through
  * `currentBackend(store.getState().config).getToken()` rather than reading
@@ -92,6 +122,26 @@ export { currentBackend } from './backend';
  * The extension registry (`registerWidget`, `registerBackend`, …).
  */
 export { Registry };
+
+/**
+ * The LLM seam. The CMS ships AI UI (chat panel, translate action) and no
+ * transport: supply one through `DecapCmsProvider`'s `llm` prop, or
+ * `Registry.registerLlmTransport` when props cannot reach (injecting into an
+ * already-compiled bundle). With no transport, no AI UI renders.
+ *
+ * `useLlmTransport` is exported so host-supplied UI can drive the same
+ * conversation the built-in panel does.
+ */
+export { useLlmTransport } from './lib/llm';
+
+/**
+ * The JSON Schema validator the engine runs a widget's `schema` through when
+ * validating a config. Public so an extension author shipping a widget schema
+ * can assert it against the same validator the CMS will use, rather than a
+ * hand-rolled approximation.
+ */
+export { validateJSONSchema } from './lib/jsonSchemaValidator';
+export type { JSONSchema, SchemaError } from './lib/jsonSchemaValidator';
 
 export const DecapCmsCore = {
   ...Registry,

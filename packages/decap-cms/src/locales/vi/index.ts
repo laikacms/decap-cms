@@ -85,13 +85,7 @@ const vi = {
         invalidPath: `Đường dẫn '%{path}' không hợp lệ`,
         pathExists: `Đường dẫn '%{path}' đã tồn tại`,
       },
-      i18n: {
-        translateFromDefault: 'Dịch từ %{locale}',
-        translatingFromDefault: 'Đang dịch…',
-        translateFromDefaultConfirm:
-          'Bạn có muốn điền %{locale} bằng cách sử dụng bản dịch AI không?\nToàn bộ nội dung hiện có sẽ bị ghi đè.',
-        translateFromDefaultConfirmTitle: 'Dịch từ ngôn ngữ mặc định',
-      },
+      i18n: {},
     },
     editor: {
       onLeavePage: 'Bạn có chắc rằng bạn muốn rời khỏi trang này?',
@@ -143,6 +137,11 @@ const vi = {
       richtext: {
         richText: 'Văn bản định dạng',
         markdown: 'Markdown',
+        translateFromDefault: 'Dịch từ %{locale}',
+        translatingFromDefault: 'Đang dịch…',
+        translateFromDefaultConfirm:
+          'Bạn có muốn điền %{locale} bằng cách sử dụng bản dịch AI không?\nToàn bộ nội dung hiện có sẽ bị ghi đè.',
+        translateFromDefaultConfirmTitle: 'Dịch từ ngôn ngữ mặc định',
       },
       image: {
         choose: 'Chọn một hình',

@@ -6,7 +6,6 @@ import datetimeWidgetSchema from '@/widgets/datetime/schema';
 import fileWidgetSchema from '@/widgets/file/schema';
 import imageWidgetSchema from '@/widgets/image/schema';
 import listWidgetSchema from '@/widgets/list/schema';
-import mapWidgetSchema from '@/widgets/map/schema';
 import numberWidgetSchema from '@/widgets/number/schema';
 import objectWidgetSchema from '@/widgets/object/schema';
 import relationWidgetSchema from '@/widgets/relation/schema';
@@ -125,18 +124,6 @@ describe('widget config schema wiring', () => {
     ).toEqual([]);
     expect(validateJSONSchema(schema, { name: 'items', widget: 'list', i18n: 'none' })).toEqual([]);
     expect(validateJSONSchema(schema, { name: 'items', widget: 'list', i18n: false })).toEqual([]);
-  });
-
-  it('map: accepts valid and rejects wrongly typed properties', () => {
-    const schema = fieldSchemaFor('map', mapWidgetSchema);
-
-    expect(
-      validateJSONSchema(schema, { name: 'location', widget: 'map', decimals: 2, type: 'Point' }),
-    ).toEqual([]);
-
-    expect(
-      validateJSONSchema(schema, { name: 'location', widget: 'map', decimals: 'two' }),
-    ).not.toEqual([]);
   });
 
   it('number: accepts valid and rejects wrongly typed properties', () => {

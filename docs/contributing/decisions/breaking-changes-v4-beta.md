@@ -101,25 +101,75 @@ pnpm add @apollo/client graphql graphql-tag
 + registerGitLabGraphQL(); // for the GitLab backend
 ```
 
-## `ol` (OpenLayers) and the Uploadcare packages are now optional peer dependencies
+## The `map`, `lucide-icon`, `radix-icon` and `ai-chat` widgets ship as their own packages
 
-`ol` is only used by the map widget, and `uploadcare-widget`/`uploadcare-widget-tab-effects` only by
-the Uploadcare media library (already an opt-in subpath export). Neither is installed with the
-package anymore.
+These four widgets are the only ones that needed a dependency the CMS itself has no use for (`ol`,
+`lucide-react`, `@radix-ui/react-icons`, the Vercel AI SDK). Declaring those as optional peer
+dependencies made them the consumer's problem to install and version-match, and the map widget was
+still registered by the default app entry, so "optional" was not true in practice (DCMS-1971).
 
-**Migration:** If your config uses the `map` widget, install `ol` yourself (`pnpm add ol`) and
-register the widget explicitly (DCMS-1971) — it is no longer registered by the default app entry, so
-builds that bundle the root export do not require `ol` unless they opt in:
+They now live in `extensions/widgets/*` and publish separately, each carrying its own dependency:
+
+| Widget        | Package                                  |
+| ------------- | ---------------------------------------- |
+| `map`         | `@laikacms/decap-cms-widget-map`         |
+| `lucide-icon` | `@laikacms/decap-cms-widget-lucide-icon` |
+| `radix-icon`  | `@laikacms/decap-cms-widget-radix-icon`  |
+| `ai-chat`     | `@laikacms/decap-cms-widget-aichat`      |
+
+They are written against the published `@laikacms/decap-cms` subpath exports, exactly as any
+third-party extension is, and a lint rule keeps them that way.
+
+**Migration:** install the package for each of these widgets your config uses, and register it. No
+separate `ol` / `lucide-react` / `@radix-ui/react-icons` install is needed anymore:
 
 ```diff
-+ import { registerMapWidget } from '@laikacms/decap-cms/widgets/map';
+- // ol was installed by hand and the widget came for free
++ import DecapCmsWidgetMap from '@laikacms/decap-cms-widget-map';
   import CMS from '@laikacms/decap-cms';
 +
-+ registerMapWidget();
++ CMS.registerWidget(DecapCmsWidgetMap.Widget());
 ```
 
-If you use the Uploadcare media library, install `uploadcare-widget` and
-`uploadcare-widget-tab-effects`.
+The `ai-chat` widget stays deprecated in favour of the laikacms MCP server (`/mcp`); the package
+split does not change that, it only makes the deprecation easier to act on.
+
+## The AI "Translate from &lt;locale&gt;" button ships as its own package
+
+The editor's one-click AI translation (DCMS-1395) is no longer built into the CMS. It was the last
+`@ai-sdk/react` consumer in the package, and it rendered for every i18n user whose selected locale
+differed from the default, posting to `/api/ai/chat` whether or not `decapAi()` was ever mounted.
+
+It now ships as `@laikacms/decap-cms-ai-translate` and installs itself through a new generic
+extension point, `CMS.registerLocaleAction`, which renders actions in the editor's locale row. The
+CMS resolves the i18n context (translatable fields, source values, a write-back callback) and hands
+it over; the action owns its UI, its dependencies and its phrases. Any locale action can use it - a
+glossary lookup or translation-memory prefill needs no further CMS change.
+
+`CMS.registerLocale` now merges into whatever is already registered for a locale instead of
+replacing it, so an extension can contribute phrases without wiping the CMS's own. Reads already
+merged (`getPhrases` layers the `en` fallback), so this only aligns the write side.
+
+**Migration:** if you used the translate button, install and register the package:
+
+```diff
++ import { registerAiTranslate } from '@laikacms/decap-cms-ai-translate';
+  import CMS from '@laikacms/decap-cms';
++
++ registerAiTranslate(); // pass { apiBasePath } if decapAi() is not at /api/ai
+```
+
+Everyone else loses a button that was calling an endpoint they had not mounted, and the CMS drops
+`@ai-sdk/react` from its dependencies. The unused `aiTranslateApi` / `aiTranslateFetch` props on the
+editor control pane are gone; pass those to `registerAiTranslate()` instead.
+
+## The Uploadcare packages are optional peer dependencies
+
+`uploadcare-widget`/`uploadcare-widget-tab-effects` are used only by the Uploadcare media library
+(already an opt-in subpath export) and are not installed with the package.
+
+**Migration:** if you use the Uploadcare media library, install `uploadcare-widget` and
+`uploadcare-widget-tab-effects` yourself.
 
 ## Richtext output formats are now opt-in format packs
 
@@ -309,10 +359,10 @@ that `lib/backend` stays react-free.
 
 ## `editor_components` is now a hard config error, not a silent no-op
 
-Earlier in the beta (DCMS-1161), `editor_components` (and its `editorComponents` camelCase alias)
-on a `richtext` field passed schema validation with no reader — `registry.tsx` never looked at it —
-so it was silently ignored at runtime, and `setSnakeCaseConfig`'s deprecation warning for the
-camelCase alias actively told users to rename to the dead snake_case key. A user migrating from
+Earlier in the beta (DCMS-1161), `editor_components` (and its `editorComponents` camelCase alias) on
+a `richtext` field passed schema validation with no reader — `registry.tsx` never looked at it — so
+it was silently ignored at runtime, and `setSnakeCaseConfig`'s deprecation warning for the camelCase
+alias actively told users to rename to the dead snake_case key. A user migrating from
 `decap-cms-widget-markdown` who followed that warning got no error and their custom Markdown block
 components silently stopped existing (DCMS-1974).
 

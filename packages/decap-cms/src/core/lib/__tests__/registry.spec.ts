@@ -46,7 +46,49 @@ describe('registry', () => {
 
       registerLocale('de', phrases);
 
-      expect(getLocale('de')).toBe(phrases);
+      // Value equality, not identity: registerLocale merges into whatever is
+      // already registered for the locale, so the stored object is a new one.
+      expect(getLocale('de')).toEqual(phrases);
+    });
+
+    it('merges into phrases already registered for the same locale', async () => {
+      const { registerLocale, getLocale } = await import('@/core/lib/registry');
+
+      registerLocale('nl', { app: { header: { content: 'Inhoud' } } });
+      registerLocale('nl', { editor: { editorControlPane: { i18n: { copyFromLocale: 'Kopieer' } } } });
+
+      expect(getLocale('nl')).toEqual({
+        app: { header: { content: 'Inhoud' } },
+        editor: { editorControlPane: { i18n: { copyFromLocale: 'Kopieer' } } },
+      });
+    });
+  });
+
+  describe('registerLocaleAction', () => {
+    it('registers, reads back and unregisters an action', async () => {
+      const { registerLocaleAction, getLocaleActions, unregisterLocaleAction } = await import(
+        '@/core/lib/registry'
+      );
+      const action = { name: 'probe', render: () => null };
+
+      registerLocaleAction(action);
+      expect(getLocaleActions().find(a => a.name === 'probe')).toBe(action);
+
+      unregisterLocaleAction('probe');
+      expect(getLocaleActions().find(a => a.name === 'probe')).toBeUndefined();
+    });
+
+    it('rejects a duplicate name and an action without a render function', async () => {
+      const { registerLocaleAction, unregisterLocaleAction } = await import('@/core/lib/registry');
+
+      registerLocaleAction({ name: 'dupe', render: () => null });
+
+      expect(() => registerLocaleAction({ name: 'dupe', render: () => null })).toThrow(
+        /already been registered/,
+      );
+      expect(() => registerLocaleAction({ name: 'broken' } as never)).toThrow(/parameters invalid/);
+
+      unregisterLocaleAction('dupe');
     });
   });
 
@@ -168,6 +210,13 @@ describe('registry', () => {
       'postSave',
     ];
 
+    const notifications = [
+      'entryDraftOpen',
+      'entryDraftChange',
+      'entryDraftDiscard',
+      'postDelete',
+    ];
+
     describe('registerEventListener', () => {
       it('should throw error on invalid event', async () => {
         const { registerEventListener } = await import('@/core/lib/registry');
@@ -177,7 +226,7 @@ describe('registry', () => {
         );
       });
 
-      events.forEach(name => {
+      [...events, ...notifications].forEach(name => {
         it(`should register '${name}' event`, async () => {
           const { registerEventListener, getEventListeners } = await import('@/core/lib/registry');
 
@@ -343,24 +392,138 @@ describe('registry', () => {
         expect(handler2).toHaveBeenCalledWith(data, options);
         expect(result).toEqual(data.entry);
       });
+
+      it('rejects a notification event name', async () => {
+        const { invokeEvent } = await import('@/core/lib/registry');
+
+        await expect(invokeEvent({ name: 'entryDraftChange', data: {} })).rejects.toThrow(
+          "'entryDraftChange' is a notification event",
+        );
+      });
+    });
+
+    describe('invokeNotificationEvent', () => {
+      it('should throw error on invalid event', async () => {
+        const { invokeNotificationEvent } = await import('@/core/lib/registry');
+
+        expect(() => invokeNotificationEvent('unknown', {})).toThrow(
+          new Error("Invalid event name 'unknown'"),
+        );
+      });
+
+      it('rejects a transform event name', async () => {
+        const { invokeNotificationEvent } = await import('@/core/lib/registry');
+
+        expect(() => invokeNotificationEvent('preSave', {})).toThrow(
+          "'preSave' is a transform event",
+        );
+      });
+
+      notifications.forEach(name => {
+        it(`should invoke '${name}' handlers in registration order with data`, async () => {
+          const { registerEventListener, invokeNotificationEvent } = await import('@/core/lib/registry');
+
+          const calls: string[] = [];
+          const options = { hello: 'world' };
+          const handler1 = vi.fn(() => calls.push('first'));
+          const handler2 = vi.fn(() => calls.push('second'));
+
+          registerEventListener({ name, handler: handler1 }, options);
+          registerEventListener({ name, handler: handler2 });
+
+          const data = { entry: { data: {} } };
+          invokeNotificationEvent(name, data);
+
+          expect(handler1).toHaveBeenCalledWith(data, options);
+          expect(handler2).toHaveBeenCalledWith(data, {});
+          expect(calls).toEqual(['first', 'second']);
+        });
+      });
+
+      it('ignores handler return values', async () => {
+        const { registerEventListener, invokeNotificationEvent } = await import('@/core/lib/registry');
+
+        const handler = vi.fn(() => ({ replaced: true }));
+        registerEventListener({ name: 'entryDraftChange', handler });
+
+        expect(invokeNotificationEvent('entryDraftChange', { value: 'x' })).toBeUndefined();
+      });
+
+      it('logs and continues when a handler throws', async () => {
+        const { registerEventListener, invokeNotificationEvent } = await import('@/core/lib/registry');
+
+        const thrower = vi.fn(() => {
+          throw new Error('handler failed!');
+        });
+        const after = vi.fn();
+
+        registerEventListener({ name: 'postDelete', handler: thrower });
+        registerEventListener({ name: 'postDelete', handler: after });
+
+        expect(() => invokeNotificationEvent('postDelete', { entrySlug: 'a' })).not.toThrow();
+        expect(after).toHaveBeenCalledTimes(1);
+        expect(console.error).toHaveBeenCalledWith(
+          "Error in 'postDelete' event handler",
+          expect.any(Error),
+        );
+      });
+
+      it('logs a rejected promise without unhandled rejection', async () => {
+        const { registerEventListener, invokeNotificationEvent } = await import('@/core/lib/registry');
+
+        registerEventListener({
+          name: 'entryDraftDiscard',
+          handler: () => Promise.reject(new Error('async failure')),
+        });
+
+        invokeNotificationEvent('entryDraftDiscard', {});
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(console.error).toHaveBeenCalledWith(
+          "Error in 'entryDraftDiscard' event handler",
+          expect.any(Error),
+        );
+      });
     });
   });
 
   describe('README event documentation pinning (DCMS-529)', () => {
-    it('documents exactly the events in `allowedEvents`, in firing order', async () => {
-      const { allowedEvents } = await import('@/core/lib/registry');
-
+    function readCoreReadme() {
       const readmePath = path.resolve(
         path.dirname(fileURLToPath(import.meta.url)),
         '../../README.md',
       );
-      const readme = readFileSync(readmePath, 'utf-8');
+      return readFileSync(readmePath, 'utf-8');
+    }
 
-      // Pull the `| Event | Fires |` table rows out of the
-      // `registerEventListener` section of src/core/README.md.
-      const tableRows = [...readme.matchAll(/^\| `(\w+)`\s+\| .+ \|$/gm)].map(match => match[1]);
+    /**
+     * Pulls the `| \`event\` | ... |` rows out of one `###` section of
+     * src/core/README.md, so the two event tables are pinned independently.
+     */
+    function eventRowsInSection(readme: string, heading: string) {
+      const marker = `### ${heading}`;
+      const start = readme.indexOf(marker);
+      expect(start).toBeGreaterThan(-1);
+      const rest = readme.slice(start + marker.length);
+      const end = rest.search(/^#{1,3} /m);
+      const section = end === -1 ? rest : rest.slice(0, end);
 
-      expect(tableRows).toEqual(allowedEvents);
+      return [...section.matchAll(/^\| `(\w+)`\s+\| .+ \|$/gm)].map(match => match[1]);
+    }
+
+    it('documents exactly the events in `allowedEvents`, in firing order', async () => {
+      const { allowedEvents } = await import('@/core/lib/registry');
+
+      expect(eventRowsInSection(readCoreReadme(), 'Transform events')).toEqual(allowedEvents);
+    });
+
+    it('documents exactly the events in `notificationEvents`', async () => {
+      const { notificationEvents } = await import('@/core/lib/registry');
+
+      expect(eventRowsInSection(readCoreReadme(), 'Notification events')).toEqual(
+        notificationEvents,
+      );
     });
   });
 });

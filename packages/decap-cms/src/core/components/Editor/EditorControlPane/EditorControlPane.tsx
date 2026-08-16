@@ -11,13 +11,20 @@ import {
   isFieldHidden,
   isFieldTranslatable,
 } from '@/core/lib/i18n';
+import { getLocaleActions } from '@/core/lib/registry';
 import { confirmDialog } from '@/ui';
 import { buttons, colors, Dropdown, DropdownItem, StyledDropdownButton, text } from '@/ui/default/index';
+import AiTranslateAction from './AiTranslateAction';
 import EditorControl from './EditorControl';
-import { useAiTranslate } from './useAiTranslate';
 
 import type { I18nInfo } from '@/core/lib/i18n';
-import type { CmsCollectionState, CmsEntry, CmsEntryField } from '@/lib/util/index';
+import type {
+  CmsCollectionState,
+  CmsEntry,
+  CmsEntryField,
+  CmsLocaleAction,
+  CmsTranslatableField,
+} from '@/lib/util/index';
 
 type Collection = CmsCollectionState;
 type EntryMap = CmsEntry;
@@ -55,22 +62,6 @@ const StyledDropdown = styled(Dropdown)`
   margin-top: 20px;
   margin-bottom: 20px;
   margin-right: 20px;
-`;
-
-const TranslateButton = styled.button`
-  ${buttons.button};
-  ${buttons.medium};
-  color: ${colors.controlLabel};
-  background: ${colors.textFieldBorder};
-  width: max-content;
-  margin-top: 20px;
-  margin-bottom: 20px;
-  margin-right: 20px;
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
 `;
 
 interface LocaleDropdownProps {
@@ -136,13 +127,6 @@ interface ControlPaneProps {
   onLocaleChange?: (locale: string) => void;
   locale?: string;
   t: (key: string, options?: Record<string, string>) => string;
-  /**
-   * Base path for the AI translation endpoint (DCMS-1395), matches the
-   * aichat widget's default ('/api/ai'). Override when decapAi() is mounted
-   * at a non-default path.
-   */
-  aiTranslateApi?: string;
-  aiTranslateFetch?: typeof fetch;
 }
 
 export interface ControlPaneHandle {
@@ -217,52 +201,42 @@ const ControlPane = React.forwardRef<ControlPaneHandle, ControlPaneProps>(
       });
     };
 
-    const { translate, isTranslating, error: translateError } = useAiTranslate({
-      apiBasePath: props.aiTranslateApi,
-      fetch: props.aiTranslateFetch,
-    });
-
-    async function translateFromDefaultLocale() {
-      const { locales, defaultLocale } = getI18nInfo(collection) as I18nInfo;
-      if (!selectedLocale || selectedLocale === defaultLocale) return;
-
-      if (
-        !(await confirmDialog(
-          t('editor.editorControlPane.i18n.translateFromDefaultConfirm', {
-            locale: selectedLocale.toUpperCase(),
-          }),
-          { title: t('editor.editorControlPane.i18n.translateFromDefaultConfirmTitle') },
-        ))
-      ) {
-        return;
-      }
-
-      const targetLocale = selectedLocale;
-      const sourceFields = props.fields
+    // Locale-row extension point (DCMS-1395 moved out of core here): the
+    // editor resolves the i18n context, registered actions own their own UI.
+    function getTranslatableFields(
+      sourceLocale: string,
+      targetLocale: string,
+    ): CmsTranslatableField[] {
+      const { defaultLocale } = getI18nInfo(collection) as I18nInfo;
+      return props.fields
         .filter((field): field is EntryField =>
-          Boolean(field) && isFieldTranslatable(field, targetLocale, defaultLocale)
+          Boolean(field) && isFieldTranslatable(field, targetLocale, sourceLocale)
         )
         .map(field => ({
           name: field.name,
-          value: getFieldValue({ field, entry, locale: defaultLocale, isTranslatable: false }),
+          field,
+          // Values for the default locale live at the entry root; every other
+          // locale is nested under its own data path.
+          value: getFieldValue({
+            field,
+            entry,
+            locale: sourceLocale,
+            isTranslatable: sourceLocale !== defaultLocale,
+          }),
         }))
         .filter(f => f.value !== undefined && f.value !== null && f.value !== '');
+    }
 
-      if (sourceFields.length === 0) return;
-
+    function applyLocaleActionValue(
+      targetLocale: string,
+      fieldName: string,
+      value: unknown,
+    ) {
+      const { locales, defaultLocale } = getI18nInfo(collection) as I18nInfo;
+      const field = props.fields.find(f => f?.name === fieldName);
+      if (!field) return;
       const i18n = locales && { currentLocale: targetLocale, locales, defaultLocale };
-
-      await translate({
-        sourceLocale: defaultLocale,
-        targetLocale,
-        slug: entry.slug,
-        collection: collection.name,
-        fields: sourceFields,
-        onFieldTranslated: (fieldName, value) => {
-          const field = props.fields.find(f => f?.name === fieldName);
-          if (field) props.onChange(field, value, undefined, i18n);
-        },
-      });
+      props.onChange(field, value, undefined, i18n);
     }
 
     React.useImperativeHandle(
@@ -358,25 +332,40 @@ const ControlPane = React.forwardRef<ControlPaneHandle, ControlPaneProps>(
               dropdownText={t('editor.editorControlPane.i18n.copyFromLocale')}
               onLocaleChange={copyFromOtherLocale({ targetLocale: locale ?? '', t })}
             />
-            {locale !== defaultLocale && (
-              <TranslateButton
-                type="button"
-                disabled={isTranslating}
-                onClick={translateFromDefaultLocale}
-              >
-                {isTranslating
-                  ? t('editor.editorControlPane.i18n.translatingFromDefault')
-                  : t('editor.editorControlPane.i18n.translateFromDefault', {
-                    locale: defaultLocale.toUpperCase(),
+            {[
+              // The built-in translate action rides the same list as any
+              // registered one: it renders through the same render-props
+              // contract, so the seam is dogfooded rather than special-cased.
+              {
+                name: 'ai-translate',
+                render: AiTranslateAction,
+              } as CmsLocaleAction,
+              ...getLocaleActions(),
+            ]
+              .filter(action =>
+                action.isAvailable?.({
+                  sourceLocale: defaultLocale,
+                  targetLocale: locale ?? defaultLocale,
+                  locales,
+                  collection,
+                }) ?? true
+              )
+              .map(action => (
+                <React.Fragment key={action.name}>
+                  {action.render({
+                    collection,
+                    entry,
+                    sourceLocale: defaultLocale,
+                    targetLocale: locale ?? defaultLocale,
+                    locales,
+                    getTranslatableFields: (source, target) =>
+                      getTranslatableFields(source ?? defaultLocale, target ?? locale ?? defaultLocale),
+                    applyValue: (fieldName, value) => applyLocaleActionValue(locale ?? defaultLocale, fieldName, value),
+                    t,
                   })}
-              </TranslateButton>
-            )}
+                </React.Fragment>
+              ))}
           </LocaleRowWrapper>
-        )}
-        {translateError && (
-          <div css={css`color: ${colors.errorText}; margin-bottom: 16px;`}>
-            {t('editor.editorControlPane.i18n.translateFailed', { error: translateError })}
-          </div>
         )}
         {fields
           .filter(f => f.widget !== 'hidden')

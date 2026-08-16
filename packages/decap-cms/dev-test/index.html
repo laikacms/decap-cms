@@ -105,6 +105,57 @@
       }
     `;
 
+    // A stub LlmTransport, so the demo exercises the AI seam without any model
+    // or network. A real one (laika's) streams from a server; this one answers
+    // locally and calls the document tool the same way.
+    CMS.registerLlmTransport({
+      openSession: function (document) {
+        var listeners = [];
+        var session = {
+          messages: [],
+          status: 'idle',
+          subscribe: function (listener) {
+            listeners.push(listener);
+            return function () {
+              listeners = listeners.filter(function (l) { return l !== listener; });
+            };
+          },
+          sendPrompt: function (text, options) {
+            var visible = !options || options.visible !== false;
+            if (visible) {
+              session.messages.push({ id: 'u' + session.messages.length, role: 'user', text: text });
+            }
+            session.status = 'streaming';
+            listeners.forEach(function (l) { l(); });
+
+            return new Promise(function (resolve) {
+              setTimeout(function () {
+                // What a real transport does when the model calls updateDocument.
+                var result = document.applyPatch([
+                  { op: 'replace', path: '/title', value: 'Demo title from the assistant' },
+                ]);
+                session.messages.push({
+                  id: 'a' + session.messages.length,
+                  role: 'assistant',
+                  text: 'Updated the entry for you.',
+                  toolCalls: [{
+                    id: 't' + session.messages.length,
+                    name: 'updateDocument',
+                    status: 'done',
+                    summary: 'updated ' + result.changed.join(', '),
+                  }],
+                });
+                session.status = 'idle';
+                listeners.forEach(function (l) { l(); });
+                resolve();
+              }, 300);
+            });
+          },
+        };
+        return session;
+      },
+    });
+
     CMS.registerPreviewTemplate("posts", PostPreview);
     CMS.registerPreviewTemplate("general", GeneralPreview);
     CMS.registerPreviewTemplate("authors", AuthorsPreview);

@@ -51,7 +51,10 @@ vi.mock('../EntryLockBanner', () => ({
 vi.mock('../../../lib/slots', () => ({
   useCmsSlots: () => ({}),
 }));
-vi.mock('../../../lib/i18n', () => ({
+// Partial: the editor now also mounts `LlmSessionProvider`, whose bridge
+// reaches the real module for `I18N_STRUCTURE` via the actions graph.
+vi.mock('../../../lib/i18n', async importOriginal => ({
+  ...(await importOriginal<Record<string, unknown>>()),
   hasI18n: () => false,
   getI18nInfo: () => ({ locales: [], defaultLocale: '' }),
   getPreviewEntry: (entry: unknown) => entry,

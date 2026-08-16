@@ -28,13 +28,14 @@ const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as {
 
 const expectedRequiredPeers = ['@emotion/react', '@emotion/styled', 'react', 'react-dom'].sort();
 
+// `ol`, `lucide-react` and `@radix-ui/react-icons` left this set in DCMS-1971:
+// the widgets that needed them (map, lucide-icon, radix-icon) moved to
+// `extensions/widgets/*` and carry them as ordinary dependencies, so this
+// package neither imports nor declares them.
 const expectedOptionalPeers = [
   '@apollo/client',
-  '@radix-ui/react-icons',
   'graphql',
   'graphql-tag',
-  'lucide-react',
-  'ol',
   'uploadcare-widget',
   'uploadcare-widget-tab-effects',
   'zod',

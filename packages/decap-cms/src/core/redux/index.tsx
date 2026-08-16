@@ -2,6 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 
 import createRootReducer from '@/core/reducers/combinedReducer';
 import { createCrossTabSyncMiddleware } from './middleware/crossTabSync';
+import { createExtensionEventsMiddleware } from './middleware/extensionEvents';
 import { sessionListener } from './middleware/sessionListener';
 import { waitUntilAction } from './middleware/waitUntilAction';
 
@@ -30,7 +31,10 @@ const store = configureStore({
       .concat(waitUntilAction as unknown as Middleware)
       // Mirrors durable data mutations and auth session events to other tabs
       // over a BroadcastChannel (no-op where unsupported).
-      .concat(createCrossTabSyncMiddleware()),
+      .concat(createCrossTabSyncMiddleware())
+      // Fires the editor lifecycle events extensions subscribe to. Last in the
+      // chain so handlers observing state see it after every other middleware.
+      .concat(createExtensionEventsMiddleware()),
 });
 
 // Export types for typed hooks

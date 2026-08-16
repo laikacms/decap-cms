@@ -2,7 +2,7 @@ import { createContext } from 'react';
 
 import type { Router } from '@/core/routing/router';
 import type { RoutingTable } from '@/core/routing/table';
-import type { CmsConfig } from '@/lib/util';
+import type { CmsConfig, LlmTransport } from '@/lib/util';
 import type { DecapTheme } from '@/ui/default';
 import type { ReactNode } from 'react';
 
@@ -78,5 +78,14 @@ export interface DecapCmsProviderProps {
    * (`createDefaultRouter`). The router is fixed for the provider's lifetime.
    */
   router?: Router | undefined;
+  /**
+   * The LLM connection the CMS's AI UI talks to (chat panel, translate
+   * action). The CMS ships no transport of its own, so omitting this — the
+   * default — means no AI UI renders at all. See `LlmTransport`.
+   *
+   * Prefer this over `CMS.registerLlmTransport`, which exists for injecting a
+   * transport into an already-compiled bundle; this prop wins over that.
+   */
+  llm?: LlmTransport | undefined;
   children?: ReactNode;
 }
