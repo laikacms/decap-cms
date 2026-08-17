@@ -52,6 +52,10 @@ Schema.
 packages/
   decap-cms/           the published @laikacms/decap-cms package (source, tests, demo, build)
   decap-cms-lib-pat/   scoped Personal Access Token minting/hashing/verification for Decap CMS servers
+extensions/
+  widgets/  registerWidget packages (map, lucide-icon, radix-icon, aichat)
+  editor/   editor-shell plugins (e.g. ai-translate)
+  llm/      LlmTransport implementations (dulla is the reference transport, see docs/core/llm.md)
 docs/
   contributing/  design decisions and learnings (see docs/contributing/index.md)
   core/          core-engine notes
@@ -61,7 +65,10 @@ docs/
 
 The workspace shape lets sibling packages (plugins, tooling, server pieces) live under `packages/`
 alongside the main CMS package without another restructure, mirroring the layout of the
-`laikacms/laikacms` repo. The reasoning is documented in
+`laikacms/laikacms` repo. `extensions/` is a second, sibling root for packages that may only depend
+on `@laikacms/decap-cms` through its published subpath exports (no reach into
+`packages/decap-cms/src`) - widgets, editor plugins, and LLM transports fall here rather than under
+`packages/`. The reasoning for both roots is documented in
 [restructure.md](docs/contributing/decisions/restructure.md).
 
 ## Working in this repo
