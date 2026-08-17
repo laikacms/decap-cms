@@ -31,9 +31,9 @@ describe('laika-app extensions', () => {
   it('does not register the map widget by default (DCMS-1971)', () => {
     registerExtensions();
 
-    // `ol` (OpenLayers) is an optional peer dependency of the map widget.
-    // Consumers who need it opt in via `registerMapWidget()` from
-    // `@laikacms/decap-cms/widgets/map`.
+    // The map widget ships as the standalone `@laikacms/decap-cms-widget-map`
+    // package (extensions/widgets/map). Consumers who need it opt in via
+    // `CMS.registerWidget(DecapCmsWidgetMap.Widget())`.
     expect(getWidget('map')).toBeUndefined();
   });
 });
