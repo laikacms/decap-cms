@@ -47,7 +47,7 @@ test.describe('Laika entry editor', () => {
     await page.getByRole('button', { name: 'Save', exact: true }).click();
 
     await expect(page.getByRole('region', { name: /notification/i })).toContainText(
-      /missed a required field/i,
+      /missed \d+ required fields?/i,
     );
   });
 });
