@@ -349,7 +349,13 @@ export default class GitGateway implements Implementation {
         this.backend = new BitbucketBackend(this.config, { ...this.options, API: this.api });
       }
 
-      if (!(await this.api!.hasWriteAccess())) {
+      if (!this.backendType || !this.api) {
+        throw new Error(
+          'Git Gateway has no enabled backends. Enable github_enabled, gitlab_enabled, or bitbucket_enabled in Netlify site settings.',
+        );
+      }
+
+      if (!(await this.api.hasWriteAccess())) {
         throw new Error("You don't have sufficient permissions to access Decap CMS");
       }
       return {
