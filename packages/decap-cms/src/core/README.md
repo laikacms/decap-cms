@@ -332,9 +332,11 @@ media_library:
 `media_library.config.max_file_size` caps uploads through the built-in media library at a size in
 **bytes**. Selecting or dropping a file larger than the configured value rejects the upload before
 it is persisted (`persistMedia` is never called) and shows the user an alert stating the limit in
-kB. Omitting `max_file_size` (or setting it to `0`/`undefined`) applies no limit — this is the
-default. The check only applies to the default upload flow in `MediaLibrary.tsx`; a custom
-`registerMediaLibrary` integration is responsible for enforcing its own limit if it wants one.
+kB. Omitting `max_file_size` applies a default cap of **25 MB** (`25 * 1024 * 1024` bytes,
+`DEFAULT_MAX_FILE_SIZE` in `MediaLibrary.tsx`) — set it explicitly to opt into a different limit,
+or to `0` to disable the cap entirely (no limit). The check only applies to the default upload flow
+in `MediaLibrary.tsx`; a custom `registerMediaLibrary` integration is responsible for enforcing its
+own limit if it wants one.
 
 ```yaml
 # config.yml

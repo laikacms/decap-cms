@@ -177,10 +177,37 @@ describe('MediaLibrary', () => {
       expect(props.persistMedia).toHaveBeenCalledTimes(1);
     });
 
-    it('applies no limit when max_file_size is not set', () => {
+    it('applies the default 25 MB cap when max_file_size is not set', () => {
       const { props } = renderMediaLibrary({ isVisible: true, config: {} });
 
-      const largeFile = new File(['a'.repeat(50_000)], 'unbounded.txt', { type: 'text/plain' });
+      const smallFile = new File(['a'.repeat(50_000)], 'fine.txt', { type: 'text/plain' });
+      selectFile(smallFile);
+
+      expect(showAlert).not.toHaveBeenCalled();
+      expect(props.persistMedia).toHaveBeenCalledTimes(1);
+    });
+
+    // DCMS-2174: no cap previously meant a 30 MB placeholder upload (as filed
+    // in the issue) went through silently; a permissive default now rejects
+    // anything over 25 MB unless the user configures their own limit.
+    it('rejects a 26 MB upload against the default cap when max_file_size is not set', () => {
+      const { props } = renderMediaLibrary({ isVisible: true, config: {} });
+
+      const oversizedFile = new File([new Uint8Array(26 * 1024 * 1024)], 'qa-huge.png', {
+        type: 'image/png',
+      });
+      selectFile(oversizedFile);
+
+      expect(props.persistMedia).not.toHaveBeenCalled();
+      expect(showAlert).toHaveBeenCalledTimes(1);
+    });
+
+    it('lets an explicit max_file_size of 0 disable the default cap', () => {
+      const { props } = renderMediaLibrary({ isVisible: true, config: { max_file_size: 0 } });
+
+      const largeFile = new File([new Uint8Array(26 * 1024 * 1024)], 'unbounded.png', {
+        type: 'image/png',
+      });
       selectFile(largeFile);
 
       expect(showAlert).not.toHaveBeenCalled();

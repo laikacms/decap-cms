@@ -63,6 +63,13 @@ const CardText = styled.p`
   line-height: 1.3 !important;
 `;
 
+const CardFileSize = styled.p`
+  color: ${colors.controlLabel};
+  padding: 0 8px 8px;
+  margin: -12px 0 0;
+  font-size: 12px;
+`;
+
 const DraftText = styled.p`
   color: ${colors.mediaDraftText};
   background-color: ${colors.mediaDraftBackground};
@@ -70,6 +77,32 @@ const DraftText = styled.p`
   padding: 8px;
   border-radius: ${lengths.borderRadius} 0 ${lengths.borderRadius} 0;
 `;
+
+/**
+ * DCMS-2174: renders a byte count as a short human-readable string (e.g.
+ * `92 KB`, `30.0 MB`) so a media card can hint at asset weight without the
+ * operator having to download or inspect the file. `undefined`/`NaN` sizes
+ * (unknown yet, still loading) render nothing.
+ */
+export function formatFileSize(bytes: number | undefined): string | undefined {
+  if (bytes === undefined || Number.isNaN(bytes) || bytes < 0) {
+    return undefined;
+  }
+  if (bytes < 1000) {
+    return `${bytes} B`;
+  }
+  const units = ['KB', 'MB', 'GB', 'TB'];
+  let value = bytes / 1000;
+  let unitIndex = 0;
+  while (value >= 1000 && unitIndex < units.length - 1) {
+    value /= 1000;
+    unitIndex += 1;
+  }
+  // KB renders as a whole number (e.g. "92 KB"); MB and above keep one
+  // decimal place (e.g. "30.0 MB") since whole units are coarser there.
+  const decimals = unitIndex === 0 ? 0 : 1;
+  return `${value.toFixed(decimals)} ${units[unitIndex]}`;
+}
 
 interface MediaLibraryCardProps {
   isSelected?: boolean;
@@ -82,6 +115,7 @@ interface MediaLibraryCardProps {
   margin: string;
   isPrivate?: boolean | undefined;
   type?: string;
+  size?: number | undefined;
   isViewableImage: boolean;
   loadDisplayURL: () => void;
   isDraft?: boolean | undefined;
@@ -97,11 +131,13 @@ function MediaLibraryCard({
   margin,
   isPrivate,
   type,
+  size,
   isViewableImage,
   loadDisplayURL,
   isDraft,
 }: MediaLibraryCardProps) {
   const url = displayURL['url'] as string | undefined;
+  const formattedSize = formatFileSize(size);
 
   React.useEffect(() => {
     if (!displayURL['url']) {
@@ -126,6 +162,7 @@ function MediaLibraryCard({
           : <CardFileIcon data-testid="card-file-icon">{type}</CardFileIcon>}
       </CardImageWrapper>
       <CardText>{text}</CardText>
+      {formattedSize ? <CardFileSize data-testid="card-file-size">{formattedSize}</CardFileSize> : null}
     </Card>
   );
 }

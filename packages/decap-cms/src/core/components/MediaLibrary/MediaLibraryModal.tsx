@@ -115,6 +115,7 @@ interface MediaLibraryModalProps {
     key: string,
     name: string,
     type: string,
+    size?: number | undefined,
     draft?: boolean | undefined,
     url?: string | undefined,
     isViewableImage?: boolean | undefined,

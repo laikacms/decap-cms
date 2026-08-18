@@ -174,6 +174,7 @@ export interface MediaLibraryCardRenderProps {
   margin: string;
   isPrivate?: boolean | undefined;
   type?: string;
+  size?: number | undefined;
   isViewableImage: boolean;
   loadDisplayURL: () => void;
   isDraft?: boolean | undefined;
