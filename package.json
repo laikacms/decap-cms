@@ -8,8 +8,10 @@
   },
   "scripts": {
     "build": "pnpm -r run build",
+    "pretypecheck": "test -d packages/decap-cms/dist || pnpm --filter @laikacms/decap-cms run build",
     "typecheck": "pnpm -r run typecheck",
     "lint": "pnpm -r run lint",
+    "pretest": "test -d packages/decap-cms/dist || pnpm --filter @laikacms/decap-cms run build",
     "test": "pnpm -r run test",
     "test:watch": "pnpm --filter @laikacms/decap-cms run test:watch",
     "test:ci": "node scripts/check-readme-layout.mjs && node scripts/check-contributing-typecheck-count.mjs && pnpm -r run test:ci",
