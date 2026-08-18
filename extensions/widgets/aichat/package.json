@@ -40,8 +40,10 @@
   "sideEffects": false,
   "scripts": {
     "build": "rimraf dist && tsc -p tsconfig.build.json",
+    "pretypecheck": "test -d ../../../packages/decap-cms/dist || pnpm --filter @laikacms/decap-cms run build",
     "typecheck": "tsc --noEmit",
     "lint": "eslint --color \"src/**/*.{ts,tsx}\"",
+    "pretest": "test -d ../../../packages/decap-cms/dist || pnpm --filter @laikacms/decap-cms run build",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ci": "pnpm run lint && pnpm run typecheck && pnpm run test"
