@@ -227,11 +227,15 @@ const Command = React.forwardRef<HTMLDivElement, CommandProps>((props, forwarded
       state.current.value = v;
       store.emit();
     }
+    // `store` is omitted: it's created once below via `useMemo(..., [])`, so
+    // its identity never changes and including it would be a no-op.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
   useLayoutEffect(() => {
     schedule(6, scrollSelectedIntoView);
+    // Runs once on mount only, to scroll the initially-selected item into
+    // view; `schedule`/`scrollSelectedIntoView` are stable across renders.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -290,6 +294,10 @@ const Command = React.forwardRef<HTMLDivElement, CommandProps>((props, forwarded
         listeners.current.forEach(l => l());
       },
     };
+    // Deliberately built once (`[]`): this store object's identity must stay
+    // stable for the lifetime of the component. It only closes over refs
+    // (`listeners`, `state`, `propsRef`) and stable functions, which are read
+    // through `.current`/closures rather than needing to be dependencies.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -377,6 +385,9 @@ const Command = React.forwardRef<HTMLDivElement, CommandProps>((props, forwarded
       labelId,
       listInnerRef,
     }),
+    // Same reasoning as the `store` memo above: this context object must keep
+    // a stable identity, and everything it closes over is a ref or a stable
+    // function, not a value that needs to trigger a rebuild.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
@@ -711,6 +722,9 @@ const Item = React.forwardRef<HTMLDivElement, ItemProps>((props, forwardedRef) =
     if (!forceMount) {
       return context.item(id, groupContext?.id ?? '');
     }
+    // `context` is a stable context value (see the `useMemo(..., [])` in
+    // `Command` above) and `id`/`groupContext?.id` don't change for the
+    // lifetime of this item, so only `forceMount` needs to retrigger this.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [forceMount]);
 
@@ -733,6 +747,11 @@ const Item = React.forwardRef<HTMLDivElement, ItemProps>((props, forwardedRef) =
     if (!element || props.disabled) return;
     element.addEventListener(SELECT_EVENT, onSelect);
     return () => element.removeEventListener(SELECT_EVENT, onSelect);
+    // `onSelect` (the local function below) is omitted on purpose: it reads
+    // `props.onSelect`/`value`/`store` through `propsRef.current`/refs, so a
+    // fresh `onSelect` closure each render never needs to retrigger this
+    // effect. `props.onSelect` and `props.disabled` are listed explicitly
+    // since they're read directly inside `onSelect`'s definition.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [render, props.onSelect, props.disabled]);
 
@@ -799,6 +818,9 @@ const Group = React.forwardRef<HTMLDivElement, GroupProps>((props, forwardedRef)
 
   useLayoutEffect(() => {
     return context.group(id);
+    // Registers this group once on mount and unregisters on unmount; `id`
+    // (from `useId`) is stable for the component's lifetime and `context` is
+    // a stable memoized value, so there's nothing else to depend on.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -856,6 +878,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>((props, forwardedRe
     if (props.value != null) {
       store.setState('search', props.value);
     }
+    // `store` is omitted: it comes from context and its identity is stable
+    // for the component's lifetime (see the `Command` store `useMemo`).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.value]);
 
@@ -1076,6 +1100,9 @@ const useScheduleLayoutEffect = () => {
   useLayoutEffect(() => {
     fns.current.forEach(f => f());
     fns.current = new Map();
+    // `fns` is omitted: it's a lazy ref with a stable identity, so it never
+    // needs to trigger a re-run. `s` is the intentional trigger — it's bumped
+    // by the returned callback purely to schedule this effect to fire again.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [s]);
 
