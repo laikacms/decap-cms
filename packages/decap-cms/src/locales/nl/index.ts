@@ -173,6 +173,8 @@ const nl = {
         chooseUrl: 'Voeg toe via URL',
         replaceUrl: 'Vervang met URL',
         promptUrl: 'Voer de URL van de afbeelding in',
+        promptUrlTitle: 'Afbeelding-URL invoegen',
+        promptUrlConfirm: 'Invoegen',
         chooseDifferent: 'Kies een andere afbeelding',
         remove: 'Verwijder afbeelding',
       },
@@ -181,6 +183,8 @@ const nl = {
         chooseUrl: 'Voeg toe via URL',
         replaceUrl: 'Vervang met URL',
         promptUrl: 'Voer de URL van het bestand in',
+        promptUrlTitle: 'Bestand-URL invoegen',
+        promptUrlConfirm: 'Invoegen',
         chooseDifferent: 'Kies een ander bestand',
         remove: 'Verwijder bestand',
       },
@@ -255,6 +259,13 @@ const nl = {
   ui: {
     default: {
       goBackToSite: 'Ga terug naar site',
+    },
+    prompt: {
+      title: 'Prompt',
+    },
+    confirm: {
+      cancel: 'Annuleren',
+      ok: 'OK',
     },
     errorBoundary: {
       title: 'Fout',

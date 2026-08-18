@@ -139,11 +139,15 @@ const es = {
       },
       image: {
         choose: 'Elige una imagen',
+        promptUrlTitle: 'Insertar URL de la imagen',
+        promptUrlConfirm: 'Insertar',
         chooseDifferent: 'Elige una imagen diferente',
         remove: 'Quita la imagen',
       },
       file: {
         choose: 'Escoge un archivo',
+        promptUrlTitle: 'Insertar URL del archivo',
+        promptUrlConfirm: 'Insertar',
         chooseDifferent: 'Elige un archivo diferente',
         remove: 'Remover archivo',
       },
@@ -210,6 +214,13 @@ const es = {
   ui: {
     default: {
       goBackToSite: 'Regresar al sitio',
+    },
+    prompt: {
+      title: 'Solicitud',
+    },
+    confirm: {
+      cancel: 'Cancelar',
+      ok: 'Aceptar',
     },
     errorBoundary: {
       title: 'Error',

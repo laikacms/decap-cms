@@ -180,6 +180,8 @@ const de = {
         chooseUrl: 'Von URL hinzufügen',
         replaceUrl: 'Von URL ersetzen',
         promptUrl: 'Bild-URL eingeben',
+        promptUrlTitle: 'Bild-URL einfügen',
+        promptUrlConfirm: 'Einfügen',
         chooseDifferent: 'Wähle ein anderes Bild',
         remove: 'Entferne Bild',
       },
@@ -188,6 +190,8 @@ const de = {
         chooseUrl: 'Von URL hinzufügen',
         replaceUrl: 'Von URL ersetzen',
         promptUrl: 'Datei-URL eingeben',
+        promptUrlTitle: 'Datei-URL einfügen',
+        promptUrlConfirm: 'Einfügen',
         chooseDifferent: 'Wählen Sie eine andere Datei',
         remove: 'Datei löschen',
       },
@@ -263,6 +267,13 @@ const de = {
   ui: {
     default: {
       goBackToSite: 'Zurück zur Seite',
+    },
+    prompt: {
+      title: 'Eingabeaufforderung',
+    },
+    confirm: {
+      cancel: 'Abbrechen',
+      ok: 'OK',
     },
     errorBoundary: {
       title: 'Fehler',

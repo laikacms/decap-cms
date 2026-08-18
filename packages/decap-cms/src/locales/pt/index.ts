@@ -176,6 +176,8 @@ const pt = {
         chooseUrl: 'Inserir de uma URL',
         replaceUrl: 'Substituir com uma URL',
         promptUrl: 'Insira a URL da imagem',
+        promptUrlTitle: 'Inserir URL da imagem',
+        promptUrlConfirm: 'Inserir',
         chooseDifferent: 'Escolha uma imagem diferente',
         remove: 'Remover imagem',
       },
@@ -184,6 +186,8 @@ const pt = {
         chooseUrl: 'Inserir de uma URL',
         replaceUrl: 'Substituir com uma URL',
         promptUrl: 'Insira a URL do arquivo',
+        promptUrlTitle: 'Inserir URL do arquivo',
+        promptUrlConfirm: 'Inserir',
         chooseDifferent: 'Escolha um arquivo diferente',
         remove: 'Remover arquivo',
       },
@@ -259,6 +263,13 @@ const pt = {
   ui: {
     default: {
       goBackToSite: 'Voltar ao site',
+    },
+    prompt: {
+      title: 'Prompt',
+    },
+    confirm: {
+      cancel: 'Cancelar',
+      ok: 'OK',
     },
     errorBoundary: {
       title: 'Erro',

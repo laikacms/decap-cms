@@ -585,12 +585,24 @@ export function promptDialog(
   });
 }
 
+export interface PromptDialogHostProps {
+  /**
+   * The ambient `t` function (from `@/core/i18n`'s `useTranslate`/
+   * `createTranslator`), used to translate the title/cancel/confirm labels
+   * when a `promptDialog()` caller doesn't pass its own (DCMS-2161).
+   * `DecapCmsProvider` supplies this; standalone renders (Storybook, tests
+   * that don't care about i18n) can omit it and get the untranslated
+   * English default instead of a runtime error.
+   */
+  t?: (key: string) => string;
+}
+
 /**
  * Renders the queue fed by `promptDialog`, one prompt at a time. Mount
  * exactly once, near the app root (`DecapCmsProvider` does this alongside
  * `AlertDialogHost`/`ConfirmDialogHost`).
  */
-export function PromptDialogHost(): React.ReactNode {
+export function PromptDialogHost({ t }: PromptDialogHostProps = {}): React.ReactNode {
   const queue = React.useSyncExternalStore(subscribeToPrompts, getPendingPrompts, getPendingPrompts);
   const current = queue[0];
   const [value, setValue] = React.useState(current?.defaultValue ?? '');
@@ -628,7 +640,7 @@ export function PromptDialogHost(): React.ReactNode {
     >
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{current.title ?? 'Prompt'}</AlertDialogTitle>
+          <AlertDialogTitle>{current.title ?? t?.('ui.prompt.title') ?? 'Prompt'}</AlertDialogTitle>
           <AlertDialogDescription id={descriptionId}>{current.message}</AlertDialogDescription>
         </AlertDialogHeader>
         <Input
@@ -645,10 +657,10 @@ export function PromptDialogHost(): React.ReactNode {
         />
         <AlertDialogFooter>
           <Button variant="outline" onClick={() => settle(null)}>
-            {current.cancelLabel ?? 'Cancel'}
+            {current.cancelLabel ?? t?.('ui.confirm.cancel') ?? 'Cancel'}
           </Button>
           <Button variant="default" onClick={() => settle(value)}>
-            {current.confirmLabel ?? 'OK'}
+            {current.confirmLabel ?? t?.('ui.confirm.ok') ?? 'OK'}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

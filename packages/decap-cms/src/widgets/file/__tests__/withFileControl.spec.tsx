@@ -20,7 +20,7 @@
  *    independently of whether the current value happens to be an array
  */
 
-import { render } from '@testing-library/react';
+import { act, fireEvent, render } from '@testing-library/react';
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -28,7 +28,22 @@ import withFileControl from '@/widgets/file/withFileControl';
 
 import type { CmsFieldBase, CmsFieldFile } from '@/lib/util/index';
 import type { CmsFieldImage } from '@/lib/util/types/cms/fields/image';
+import type * as UiModule from '@/ui';
 import type { FileControlProps } from '@/widgets/file/withFileControl';
+
+// DCMS-2161: assert `handleUrl`'s `promptDialog()` call is wired up with the
+// per-caller options (title/confirmLabel/inputType/signal) it was missing —
+// mock `@/ui` directly so this doesn't depend on `window.prompt`'s no-host
+// fallback (used by the other `handleUrl` tests in withFileControl.test.tsx)
+// silently swallowing options it doesn't ask about.
+const promptDialogMock = vi.fn().mockResolvedValue(null);
+vi.mock('@/ui', async importOriginal => {
+  const actual = await importOriginal<typeof UiModule>();
+  return {
+    ...actual,
+    promptDialog: (...args: Parameters<typeof actual.promptDialog>) => promptDialogMock(...args),
+  };
+});
 
 const FileControl = withFileControl();
 const ImageControl = withFileControl({ forImage: true });
@@ -203,4 +218,48 @@ describe('withFileControl (image mode, forImage: true)', () => {
       button => button.textContent === 'editor.editorWidgets.image.removeAll',
     );
   }
+});
+
+describe('handleUrl "Insert from URL" promptDialog call (DCMS-2161)', () => {
+  it('passes title/confirmLabel/inputType: url/signal for the file subject', async () => {
+    promptDialogMock.mockClear();
+    const field = { name: 'file', widget: 'file' } as CmsFieldFile & CmsFieldBase;
+    const { getByText } = render(<FileControl {...baseProps({ field })} />);
+
+    await act(async () => {
+      fireEvent.click(getByText('editor.editorWidgets.file.chooseUrl'));
+    });
+
+    expect(promptDialogMock).toHaveBeenCalledTimes(1);
+    expect(promptDialogMock).toHaveBeenCalledWith(
+      'editor.editorWidgets.file.promptUrl',
+      {
+        title: 'editor.editorWidgets.file.promptUrlTitle',
+        confirmLabel: 'editor.editorWidgets.file.promptUrlConfirm',
+        inputType: 'url',
+      },
+      expect.any(AbortSignal),
+    );
+  });
+
+  it('passes title/confirmLabel/inputType: url/signal for the image subject', async () => {
+    promptDialogMock.mockClear();
+    const field = { name: 'image', widget: 'image' } as CmsFieldImage & CmsFieldBase;
+    const { getByText } = render(<ImageControl {...baseProps({ field })} />);
+
+    await act(async () => {
+      fireEvent.click(getByText('editor.editorWidgets.image.chooseUrl'));
+    });
+
+    expect(promptDialogMock).toHaveBeenCalledTimes(1);
+    expect(promptDialogMock).toHaveBeenCalledWith(
+      'editor.editorWidgets.image.promptUrl',
+      {
+        title: 'editor.editorWidgets.image.promptUrlTitle',
+        confirmLabel: 'editor.editorWidgets.image.promptUrlConfirm',
+        inputType: 'url',
+      },
+      expect.any(AbortSignal),
+    );
+  });
 });

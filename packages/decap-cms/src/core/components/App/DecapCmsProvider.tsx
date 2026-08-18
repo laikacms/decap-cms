@@ -7,7 +7,7 @@ import { authenticateUser } from '@/core/actions/auth';
 import { loadConfig } from '@/core/actions/config';
 import { context } from '@/core/contexts/decap';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
-import { I18n } from '@/core/i18n';
+import { createTranslator, I18n } from '@/core/i18n';
 import { createFreshnessController } from '@/core/lib/freshness';
 import { LlmTransportProvider } from '@/core/lib/llm';
 import { getPhrases } from '@/core/lib/phrases';
@@ -90,6 +90,21 @@ function I18nProvider({ children }: { children?: React.ReactNode }) {
       {children as React.ReactElement}
     </I18n>
   );
+}
+
+/**
+ * `PromptDialogHost` mounts outside `I18nProvider` (alongside
+ * `AlertDialogHost`/`ConfirmDialogHost`) so it can queue/settle prompts
+ * before the rest of the app tree exists, but that means it can't read `t`
+ * via `useTranslate()`'s context. Derive the same translator `I18nProvider`
+ * builds directly from the store instead, so the generic "Prompt"/"Cancel"/
+ * "OK" fallback strings a caller doesn't override are still locale-aware
+ * (DCMS-2161).
+ */
+function TranslatedPromptDialogHost() {
+  const locale = useAppSelector((state: any) => selectLocale(state.config));
+  const t = useMemo(() => createTranslator(locale, getPhrases(locale)), [locale]);
+  return <PromptDialogHost t={t} />;
 }
 
 /**
@@ -201,7 +216,7 @@ export function DecapCmsProvider({
         <FreshnessLoader />
         <AlertDialogHost />
         <ConfirmDialogHost />
-        <PromptDialogHost />
+        <TranslatedPromptDialogHost />
         <I18nProvider>
           <LlmTransportProvider llm={llm}>
             <RouterProvider router={resolvedRouter}>

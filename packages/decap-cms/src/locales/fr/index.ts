@@ -172,6 +172,8 @@ const fr = {
         chooseUrl: 'Insérer depuis une adresse web',
         replaceUrl: 'Remplacer depuis une adresse web',
         promptUrl: "Entrer l'adresse web de l'image",
+        promptUrlTitle: "Insérer l'URL de l'image",
+        promptUrlConfirm: 'Insérer',
         chooseDifferent: 'Choisir une image différente',
         remove: "Supprimer l'image",
       },
@@ -180,6 +182,8 @@ const fr = {
         chooseUrl: 'Insérer depuis une adresse web',
         replaceUrl: 'Remplacer depuis une adresse web',
         promptUrl: "Entrer l'adresse web du fichier",
+        promptUrlTitle: "Insérer l'URL du fichier",
+        promptUrlConfirm: 'Insérer',
         chooseDifferent: 'Choisir un fichier différent',
         remove: 'Effacer le fichier',
       },
@@ -256,6 +260,13 @@ const fr = {
   ui: {
     default: {
       goBackToSite: 'Retourner sur le site',
+    },
+    prompt: {
+      title: 'Invite',
+    },
+    confirm: {
+      cancel: 'Annuler',
+      ok: 'OK',
     },
     errorBoundary: {
       title: 'Erreur',
