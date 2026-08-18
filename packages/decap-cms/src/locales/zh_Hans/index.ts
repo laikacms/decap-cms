@@ -171,6 +171,8 @@ const zh_Hans = {
         chooseUrl: '从 URL 插入',
         replaceUrl: '用 URL 替代',
         promptUrl: '输入图片的 URL',
+        promptUrlTitle: '插入图片 URL',
+        promptUrlConfirm: '插入',
         chooseDifferent: '选择其他图片',
         remove: '移除图片',
       },
@@ -179,6 +181,8 @@ const zh_Hans = {
         chooseUrl: '从 URL 插入',
         replaceUrl: '用 URL 替代',
         promptUrl: '输入文件的 URL',
+        promptUrlTitle: '插入文件 URL',
+        promptUrlConfirm: '插入',
         chooseDifferent: '选择其他文件',
         remove: '移除文件',
       },
@@ -253,6 +257,13 @@ const zh_Hans = {
   ui: {
     default: {
       goBackToSite: '返回主页',
+    },
+    prompt: {
+      title: '提示',
+    },
+    confirm: {
+      cancel: '取消',
+      ok: '确定',
     },
     errorBoundary: {
       title: '错误',

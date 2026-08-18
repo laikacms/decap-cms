@@ -391,6 +391,21 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
       };
     }, [controlID]);
 
+    // Aborts the "Insert from URL" prompt below if this control unmounts
+    // (e.g. the field is removed, or the entry editor closes) while it's
+    // still open, so navigating away settles it as cancelled and drains it
+    // from `PromptDialogHost`'s queue instead of leaving a dangling dialog
+    // mounted after its caller is gone (DCMS-2000, mirroring the same fix
+    // on `useEditor`'s schedule-publish prompt).
+    const unmountControllerRef = React.useRef<AbortController>(new AbortController());
+    React.useEffect(() => {
+      if (unmountControllerRef.current.signal.aborted) {
+        unmountControllerRef.current = new AbortController();
+      }
+      const controller = unmountControllerRef.current;
+      return () => controller.abort();
+    }, []);
+
     function getMediaLibraryFieldOptions() {
       return field.media_library;
     }
@@ -418,7 +433,15 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
       return (e: React.MouseEvent) => {
         e.preventDefault();
         void (async () => {
-          const url = await promptDialog(t(`editor.editorWidgets.${subject}.promptUrl`));
+          const url = await promptDialog(
+            t(`editor.editorWidgets.${subject}.promptUrl`),
+            {
+              title: t(`editor.editorWidgets.${subject}.promptUrlTitle`),
+              confirmLabel: t(`editor.editorWidgets.${subject}.promptUrlConfirm`),
+              inputType: 'url',
+            },
+            unmountControllerRef.current.signal,
+          );
           if (!url) {
             return;
           }

@@ -267,6 +267,8 @@ const en = {
         chooseUrl: 'Insert from URL',
         replaceUrl: 'Replace with URL',
         promptUrl: 'Enter the URL of the image',
+        promptUrlTitle: 'Insert image URL',
+        promptUrlConfirm: 'Insert',
         invalidUrl: 'This URL is not valid. Only http:// and https:// URLs are allowed.',
         invalidUrlTitle: 'Invalid URL',
         chooseDifferent: 'Choose different image',
@@ -280,6 +282,8 @@ const en = {
         chooseMultiple: 'Choose files',
         replaceUrl: 'Replace with URL',
         promptUrl: 'Enter the URL of the file',
+        promptUrlTitle: 'Insert file URL',
+        promptUrlConfirm: 'Insert',
         invalidUrl: 'This URL is not valid. Only http:// and https:// URLs are allowed.',
         invalidUrlTitle: 'Invalid URL',
         chooseDifferent: 'Choose different file',
@@ -376,6 +380,13 @@ const en = {
   ui: {
     default: {
       goBackToSite: 'Go back to site',
+    },
+    prompt: {
+      title: 'Prompt',
+    },
+    confirm: {
+      cancel: 'Cancel',
+      ok: 'OK',
     },
     errorBoundary: {
       title: 'Error',

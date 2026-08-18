@@ -381,4 +381,50 @@ describe('PromptDialog imperative host (Base UI), DCMS-658/DCMS-674', () => {
     await waitFor(() => expect(resolved).toHaveBeenCalledWith('https://example.com/dog.png'));
     expect(document.activeElement).toBe(trigger);
   });
+
+  // DCMS-2161: a caller that omits title/cancelLabel/confirmLabel used to
+  // get hardcoded English ("Prompt"/"Cancel"/"OK") baked into the JSX
+  // regardless of locale. `PromptDialogHost` now routes those fallbacks
+  // through the `t` prop `DecapCmsProvider` feeds it, so a non-English
+  // locale's translator produces non-English chrome even when the caller
+  // itself only translated the message.
+  it('falls back to the `t` prop, not a hardcoded English literal, when a caller omits title/cancelLabel/confirmLabel', async () => {
+    const t = vi.fn((key: string) => {
+      const translations: Record<string, string> = {
+        'ui.prompt.title': 'Eingabeaufforderung',
+        'ui.confirm.cancel': 'Abbrechen',
+        'ui.confirm.ok': 'Bestätigen',
+      };
+      return translations[key] ?? key;
+    });
+
+    render(<PromptDialogHost t={t} />);
+    promptDialog('Enter the URL of the image');
+
+    const dialog = await screen.findByRole('alertdialog');
+    expect(within(dialog).getByText('Eingabeaufforderung')).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'Abbrechen' })).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'Bestätigen' })).toBeInTheDocument();
+    expect(within(dialog).queryByText('Prompt')).not.toBeInTheDocument();
+    expect(within(dialog).queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument();
+    expect(within(dialog).queryByRole('button', { name: 'OK' })).not.toBeInTheDocument();
+
+    expect(t).toHaveBeenCalledWith('ui.prompt.title');
+    expect(t).toHaveBeenCalledWith('ui.confirm.cancel');
+    expect(t).toHaveBeenCalledWith('ui.confirm.ok');
+
+    await userEvent.setup().click(within(dialog).getByRole('button', { name: 'Abbrechen' }));
+  });
+
+  it('still falls back to the untranslated English literal when no `t` prop is supplied (e.g. Storybook)', async () => {
+    render(<PromptDialogHost />);
+    promptDialog('Enter the URL of the image');
+
+    const dialog = await screen.findByRole('alertdialog');
+    expect(within(dialog).getByText('Prompt')).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'OK' })).toBeInTheDocument();
+
+    await userEvent.setup().click(within(dialog).getByRole('button', { name: 'Cancel' }));
+  });
 });
