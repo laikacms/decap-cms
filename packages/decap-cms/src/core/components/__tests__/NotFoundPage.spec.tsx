@@ -53,6 +53,28 @@ describe('NotFoundPage', () => {
     expect(link.getAttribute('href')).toBe('#/');
   });
 
+  it('renders visibly-styled back links, not plain text, for both variants (DCMS-2169)', () => {
+    const { getByRole, rerender } = render(
+      <RouterProvider router={createDefaultRouter()}>
+        <NotFoundPage backLink={{ to: '/' }} />
+      </RouterProvider>,
+    );
+    const homeLink = getByRole('link', { name: 'app.notFoundPage.backToHome' });
+    expect(homeLink.className).not.toBe('');
+
+    rerender(
+      <RouterProvider router={createDefaultRouter()}>
+        <NotFoundPage backLink={{ to: '/collections/posts', label: 'posts' }} />
+      </RouterProvider>,
+    );
+    const collectionLink = getByRole('link', {
+      name: 'app.notFoundPage.backToCollection',
+    });
+    expect(collectionLink.className).not.toBe('');
+    // Both variants must share the same styling treatment (same emotion class).
+    expect(collectionLink.className).toBe(homeLink.className);
+  });
+
   it('renders a single h1 for an unknown entry route', () => {
     const { container, getByRole, getByText } = render(
       <RouterProvider router={createDefaultRouter()}>
