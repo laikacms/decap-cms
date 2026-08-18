@@ -1,5 +1,11 @@
 # AI translate
 
+> **Deprecated.** This standalone package is deprecated in favor of the built-in
+> `AiTranslateAction` locale-row action shipped with the CMS core
+> (`src/core/components/Editor/EditorControlPane/AiTranslateAction.tsx`). Registering
+> `registerAiTranslate()` still works and logs a runtime deprecation warning, but new consumers
+> should use the in-core action instead of installing this package.
+
 One-click AI translation of an entry's fields from the collection's default locale into the locale
 being edited. Adds a "Translate from &lt;locale&gt;" button to the editor's locale row, next to the
 built-in locale dropdowns.

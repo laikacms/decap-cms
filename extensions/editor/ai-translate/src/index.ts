@@ -34,12 +34,30 @@ export interface RegisterAiTranslateOptions {
 export const AI_TRANSLATE_ACTION_NAME = 'ai-translate';
 
 let registered = false;
+let deprecationWarned = false;
+
+function warnDeprecated() {
+  if (deprecationWarned || typeof console === 'undefined') return;
+  deprecationWarned = true;
+  console.warn(
+    '[decap-cms] The standalone `@laikacms/decap-cms-ai-translate` package is deprecated. '
+      + 'Use the built-in `AiTranslateAction` locale-row action shipped with the CMS core '
+      + '(src/core/components/Editor/EditorControlPane/AiTranslateAction.tsx) instead. '
+      + 'See extensions/editor/ai-translate/README.md.',
+  );
+}
 
 /**
  * Idempotent: safe to call from multiple entry points. Follows the
  * `registerGitHubGraphQL` precedent for opt-in registration.
+ *
+ * @deprecated The standalone `@laikacms/decap-cms-ai-translate` package is deprecated in favor
+ * of the built-in `AiTranslateAction` locale-row action shipped with the CMS core
+ * (`src/core/components/Editor/EditorControlPane/AiTranslateAction.tsx`). See
+ * `extensions/editor/ai-translate/README.md`.
  */
 export function registerAiTranslate(options: RegisterAiTranslateOptions = {}) {
+  warnDeprecated();
   if (registered) return;
   registered = true;
 
