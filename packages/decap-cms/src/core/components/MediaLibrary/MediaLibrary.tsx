@@ -14,7 +14,13 @@ import { useTranslate } from '@/core/i18n';
 import { selectAssetCollectionForFolder } from '@/core/lib/assetCollections';
 import { getMediaFolderBreadcrumbs, selectMediaFiles } from '@/core/reducers/mediaLibrary';
 import { useRouter } from '@/core/routing/context';
-import { fileExtension, fuzzyFilter, isCroppableImage, isImageCropEnabled } from '@/lib/util/index';
+import {
+  fileExtension,
+  fuzzyFilter,
+  isCroppableImage,
+  isImageCropEnabled,
+  isRecognizedImageFile,
+} from '@/lib/util/index';
 import { confirmDialog, showAlert } from '@/ui';
 import ImageCropDialog from './ImageCropDialog';
 import MediaLibraryModal from './MediaLibraryModal';
@@ -304,6 +310,15 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
         }),
         { title: t('mediaLibrary.mediaLibrary.fileTooLargeTitle') },
       );
+    } else if (forImage && !(await isRecognizedImageFile(file))) {
+      // DCMS-2173: the image-scoped picker only ever binds into image
+      // fields, so content that isn't actually a raster image or SVG (e.g.
+      // a text file renamed with a .png extension) must be rejected before
+      // it reaches persistMedia and leaks a blob URL into the grid. The
+      // standalone /media route (forImage === false) stays lenient.
+      showAlert(t('mediaLibrary.mediaLibrary.invalidImageFile', { name: file.name }), {
+        title: t('mediaLibrary.mediaLibrary.invalidImageFileTitle'),
+      });
     } else if (forImage && isCroppableImage(file) && isImageCropEnabled(cropConfig)) {
       // DCMS-2011: hand off to the interactive crop dialog instead of
       // persisting immediately; handleCropConfirm/handleCropCancel below

@@ -82,6 +82,7 @@ export {
   isImageCropEnabled,
 } from './imageCrop.js';
 export type { CropRect } from './imageCrop.js';
+export { isRecognizedImageFile } from './imageContentValidation.js';
 export {
   allEntriesByFolder,
   blobToFileObj,

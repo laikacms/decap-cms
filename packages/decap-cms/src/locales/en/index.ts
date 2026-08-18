@@ -341,6 +341,8 @@ const en = {
       onReplaceCancel: 'Cancel',
       fileTooLarge: 'File too large.\nConfigured to not allow files greater than %{size} kB.',
       fileTooLargeTitle: 'File too large',
+      invalidImageFile: '"%{name}" is not a valid image file and cannot be used here.',
+      invalidImageFileTitle: 'Invalid image file',
     },
     mediaLibraryModal: {
       loading: 'Loading...',
