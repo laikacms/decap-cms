@@ -244,11 +244,39 @@ type ComboboxPositionerProps = WithClassName<
   React.ComponentProps<typeof ComboboxPrimitive.Positioner>
 >;
 
+// The `Positioner` is `position: absolute` (or `fixed`) with `z-index: auto`,
+// so despite `ComboboxPopup` below setting `z-index: 50` on itself, that
+// value only wins against the Positioner's OWN siblings - it does nothing
+// for stacking against unrelated trees elsewhere in the document. Per the
+// CSS painting-order algorithm (CSS 2.1 Appendix E §6), a positioned
+// descendant with `z-index: auto` is painted in the SAME step as any other
+// `z-index: auto`/`0` stacking context in its nearest ancestor stacking
+// context (here, the document root, since neither the Combobox's own portal
+// container nor the app shell establishes one) - ordered by tree/DOM
+// position, not visual nesting. A sibling `position: sticky` element with an
+// explicit `z-index` anywhere else in the document (e.g. the richtext
+// widget's sticky toolbar, `z-10`) creates its own such stacking context and
+// can end up painted after (i.e. on top of) this one purely because of where
+// it sits in the DOM, regardless of the popup's own z-index (DCMS-2138). An
+// explicit z-index directly on the Positioner promotes the whole floating
+// tree into the "positive z-index" painting step, which always wins over
+// z-index:auto content irrespective of DOM order.
+const positionerClass = css`
+  z-index: 9999;
+`;
+
 export function ComboboxPositioner({
   className,
   ...props
 }: ComboboxPositionerProps): React.ReactNode {
-  return <ComboboxPrimitive.Positioner data-slot="combobox-positioner" className={className} {...props} />;
+  return (
+    <ComboboxPrimitive.Positioner
+      data-slot="combobox-positioner"
+      css={positionerClass}
+      className={className}
+      {...props}
+    />
+  );
 }
 
 const popupClass = css`
