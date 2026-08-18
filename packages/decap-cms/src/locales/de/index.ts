@@ -286,7 +286,7 @@ const de = {
       onFailToPersist: 'Beitrag speichern fehlgeschlagen: %{details}',
       onFailToDelete: 'Beitrag löschen fehlgeschlagen: %{details}',
       onFailToUpdateStatus: 'Status aktualisieren fehlgeschlagen: %{details}',
-      missingRequiredField: 'Oops, einige zwingend erforderliche Felder sind nicht ausgefüllt.',
+      missingRequiredField: 'Oops, einige zwingend erforderliche Felder sind nicht ausgefüllt. |||| Oops, einige zwingend erforderliche Felder sind nicht ausgefüllt.',
       entrySaved: 'Beitrag gespeichert',
       entryPublished: 'Beitrag veröffentlicht',
       entryUnpublished: 'Beitrag nicht mehr öffentlich',

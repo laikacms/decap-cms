@@ -228,7 +228,7 @@ const nn_no = {
       onFailToPersist: 'Kunne ikkje lagre: %{details}',
       onFailToDelete: 'Kunne ikkje slette: %{details}',
       onFailToUpdateStatus: 'Kunne ikkje laste opp: %{details}',
-      missingRequiredField: 'Oisann, gløymte du noko? Alle påkrevde felt må fyllast ut før du kan halde fram',
+      missingRequiredField: 'Oisann, gløymte du noko? Alle påkrevde felt må fyllast ut før du kan halde fram |||| Oisann, gløymte du noko? Alle påkrevde felt må fyllast ut før du kan halde fram',
       entrySaved: 'Innlegg lagra',
       entryPublished: 'Innlegg publisert',
       entryUnpublished: 'Innlegg avpublisert',

@@ -269,7 +269,7 @@ const sv = {
       onFailToPersist: 'Kunde inte spara inlägg: %{details}',
       onFailToDelete: 'Kunde inte radera inlägg: %{details}',
       onFailToUpdateStatus: 'Kunde inte uppdatera status: %{details}',
-      missingRequiredField: 'Oops, du har missat ett obligatoriskt fält. Vänligen fyll i det innan du sparar.',
+      missingRequiredField: 'Oops, du har missat ett obligatoriskt fält. Vänligen fyll i det innan du sparar. |||| Oops, du har missat ett obligatoriskt fält. Vänligen fyll i det innan du sparar.',
       entrySaved: 'Inlägg sparat',
       entryPublished: 'Inlägg publicerat',
       entryUnpublished: 'Inlägg avpublicerat',

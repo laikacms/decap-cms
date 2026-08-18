@@ -7,6 +7,10 @@ export type NotificationType = 'info' | 'success' | 'warning' | 'error' | 'defau
 export interface NotificationMessage {
   details?: unknown;
   key: string;
+  // Selects the plural form for `||||`-delimited locale phrases (e.g.
+  // `ui.toast.missingRequiredField`) and is interpolated as `%{smart_count}`
+  // - see `src/core/i18n/polyglot.ts`.
+  smart_count?: number;
 }
 
 export interface NotificationPayload {

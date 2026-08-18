@@ -283,7 +283,7 @@ const da = {
       onFailToPersist: 'Dokumentet kunne ikke gemmes: %{details}',
       onFailToDelete: 'Dokumentet kunne ikke slettes: %{details}',
       onFailToUpdateStatus: 'Status kunne ikke opdateres: %{details}',
-      missingRequiredField: 'Ups, du mangler et påkrævet felt. Udfyld de påkrævede felter før dokumentet gemmes.',
+      missingRequiredField: 'Ups, du mangler et påkrævet felt. Udfyld de påkrævede felter før dokumentet gemmes. |||| Ups, du mangler et påkrævet felt. Udfyld de påkrævede felter før dokumentet gemmes.',
       entrySaved: 'Dokumentet er gemt',
       entryPublished: 'Dokumentet er publiceret ',
       entryUnpublished: 'Dokumentet er afpubliceret',

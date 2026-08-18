@@ -265,7 +265,7 @@ const ca = {
       onFailToPersist: "No s'ha pogut guardar l'entrada: %{details}",
       onFailToDelete: "No s'ha pogut eliminar l'entrada: %{details}",
       onFailToUpdateStatus: "No s'ha pogut actualitzar l'estat: %{details}",
-      missingRequiredField: "Ups, no ha omplert un camp obligatori. Si us plau,  ompli'l abans de guardar.",
+      missingRequiredField: "Ups, no ha omplert un camp obligatori. Si us plau,  ompli'l abans de guardar. |||| Ups, no ha omplert un camp obligatori. Si us plau,  ompli'l abans de guardar.",
       entrySaved: 'Entrada guardada',
       entryPublished: 'Entrada publicada',
       entryUnpublished: 'Entrada despublicada',

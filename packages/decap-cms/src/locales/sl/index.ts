@@ -284,7 +284,7 @@ const sl = {
       onFailToPersist: 'Ni uspelo vztrajati: %{details}',
       onFailToDelete: 'Ni uspelo izbrisati vnosa: %{details}',
       onFailToUpdateStatus: 'Ni uspelo posodobiti stanja: %{details}',
-      missingRequiredField: 'Ups, zgrešili ste obvezno polje. Pred shranjevanjem izpolnite.',
+      missingRequiredField: 'Ups, zgrešili ste obvezno polje. Pred shranjevanjem izpolnite. |||| Ups, zgrešili ste obvezno polje. Pred shranjevanjem izpolnite.',
       entrySaved: 'Vnos shranjen',
       entryPublished: 'Vnos objavljen',
       entryUnpublished: 'Objava vnosa preklicana',

@@ -401,7 +401,8 @@ const en = {
       onFailToDelete: 'Failed to delete entry: %{details}',
       onFailToUpdateStatus: 'Failed to update status: %{details}',
       onFailToPersistLocalBackup: 'Failed to save local draft backup: %{details}',
-      missingRequiredField: "Oops, you've missed a required field. Please complete before saving.",
+      missingRequiredField:
+        "Oops, you've missed a required field. Please complete before saving. |||| Oops, you've missed %{smart_count} required fields. Please complete before saving.",
       invalidField: 'Oops, one or more fields are invalid. Please fix them before saving.',
       notUniqueField: 'Oops, this value must be unique but is already used by another entry: %{details}',
       entrySaved: 'Entry saved',

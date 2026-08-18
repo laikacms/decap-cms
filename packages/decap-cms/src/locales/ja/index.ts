@@ -272,7 +272,7 @@ const ja = {
       onFailToPersist: 'エントリの保存に失敗しました。%{details}',
       onFailToDelete: 'エントリの削除に失敗しました。%{details}',
       onFailToUpdateStatus: 'エントリのステータス更新に失敗しました。%{details}',
-      missingRequiredField: 'すべての必須項目を入力してください。',
+      missingRequiredField: 'すべての必須項目を入力してください。 |||| すべての必須項目を入力してください。',
       entrySaved: '保存しました。',
       entryPublished: '公開しました。',
       entryUnpublished: '未公開にしました。',

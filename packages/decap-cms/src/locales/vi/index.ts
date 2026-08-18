@@ -235,7 +235,7 @@ const vi = {
       onFailToPersist: 'Không thể giữ lại mục: %{details}',
       onFailToDelete: 'Không thể xoá mục: %{details}',
       onFailToUpdateStatus: 'Không thể cập nhật trạng thái: %{details}',
-      missingRequiredField: 'Bạn còn thiếu vài thông tin bắt buộc. Hãy hoàn thành trước khi lưu.',
+      missingRequiredField: 'Bạn còn thiếu vài thông tin bắt buộc. Hãy hoàn thành trước khi lưu. |||| Bạn còn thiếu vài thông tin bắt buộc. Hãy hoàn thành trước khi lưu.',
       entrySaved: 'Mục đã được lưu',
       entryPublished: 'Mục đã được công bố',
       entryUnpublished: 'Mục đã ngừng công bố',

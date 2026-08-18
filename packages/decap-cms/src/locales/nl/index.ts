@@ -278,7 +278,7 @@ const nl = {
       onFailToPersist: 'Kan item niet opslaan: %{details}',
       onFailToDelete: 'Kan item niet verwijderen: %{details}',
       onFailToUpdateStatus: 'Kan status niet updaten: %{details}',
-      missingRequiredField: 'Oeps, sommige verplichte velden zijn niet ingevuld.',
+      missingRequiredField: 'Oeps, sommige verplichte velden zijn niet ingevuld. |||| Oeps, sommige verplichte velden zijn niet ingevuld.',
       entrySaved: 'Item opgeslagen',
       entryPublished: 'Item gepubliceerd',
       entryUnpublished: 'Publicatie teruggetrokken',

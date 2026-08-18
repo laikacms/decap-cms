@@ -248,7 +248,7 @@ const zh_Hant = {
       onFailToPersist: '無法暫存內容： %{details}',
       onFailToDelete: '無法刪除內容： %{details}',
       onFailToUpdateStatus: '無法更新狀態： %{details}',
-      missingRequiredField: '糟了！你漏填了一個必須填入的欄位，在儲存前請先填完所有內容',
+      missingRequiredField: '糟了！你漏填了一個必須填入的欄位，在儲存前請先填完所有內容 |||| 糟了！你漏填了一個必須填入的欄位，在儲存前請先填完所有內容',
       entrySaved: '已儲存內容',
       entryPublished: '已發布內容',
       entryUnpublished: '已取消發布內容',

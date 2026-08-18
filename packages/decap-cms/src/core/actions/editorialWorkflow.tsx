@@ -396,9 +396,10 @@ export function persistUnpublishedEntry(collection: Collection, existingUnpublis
 
     // Early return if draft contains validation errors
     if (fieldsErrors && Object.keys(fieldsErrors).length > 0) {
-      const hasPresenceErrors = Object.values(fieldsErrors).some((errors: any) =>
+      const presenceErrorFieldsCount = Object.values(fieldsErrors).filter((errors: any) =>
         errors.some((error: any) => error.type && error.type === ValidationErrorTypes.PRESENCE)
-      );
+      ).length;
+      const hasPresenceErrors = presenceErrorFieldsCount > 0;
 
       // See entries.tsx `persistEntry` (DCMS-484): notify on any validation
       // failure, not just missing-required-field, so Save never silently
@@ -407,6 +408,10 @@ export function persistUnpublishedEntry(collection: Collection, existingUnpublis
         addNotification({
           message: {
             key: hasPresenceErrors ? 'ui.toast.missingRequiredField' : 'ui.toast.invalidField',
+            // Selects the plural locale phrase when 2+ fields are missing
+            // (DCMS-2151); `transformPhrase` falls back to the single
+            // existing string for any locale without a plural variant.
+            ...(hasPresenceErrors ? { smart_count: presenceErrorFieldsCount } : {}),
           },
           type: 'error',
           dismissAfter: 8000,

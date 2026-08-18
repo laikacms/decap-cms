@@ -621,6 +621,85 @@ describe('entries', () => {
     });
   });
 
+  describe('persistEntry - missing required field notification (DCMS-2151)', () => {
+    const collection = {
+      name: 'posts',
+      type: FOLDER,
+      folder: '_posts',
+      fields: [
+        { name: 'title', label: 'Title', widget: 'string' },
+        { name: 'summary', label: 'Summary', widget: 'string' },
+      ],
+    };
+
+    const currentBackend = vi.mocked(backendModule.currentBackend);
+
+    function makeState(fieldsErrors: Record<string, unknown>) {
+      return {
+        config: {},
+        entries: {},
+        entryDraft: {
+          fieldsErrors,
+          entry: { slug: 'post-c', data: {}, mediaFiles: [] },
+        },
+      };
+    }
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+      currentBackend.mockReturnValue({ persistEntry: vi.fn() } as never);
+    });
+
+    it('uses smart_count 1 when a single required field is missing', async () => {
+      const store = mockStore(
+        makeState({
+          title: [{ type: 'PRESENCE', message: 'Title is required' }],
+        }),
+      );
+
+      await expect(store.dispatch(persistEntry(collection as never) as never)).rejects.toBeUndefined();
+
+      const actions = store.getActions();
+      const notification = actions.find((action: any) => action.type === 'NOTIFICATION_SEND');
+      expect(notification.payload.message).toEqual({
+        key: 'ui.toast.missingRequiredField',
+        smart_count: 1,
+      });
+    });
+
+    it('uses smart_count matching the number of missing required fields when 2+ are missing', async () => {
+      const store = mockStore(
+        makeState({
+          title: [{ type: 'PRESENCE', message: 'Title is required' }],
+          summary: [{ type: 'PRESENCE', message: 'Summary is required' }],
+        }),
+      );
+
+      await expect(store.dispatch(persistEntry(collection as never) as never)).rejects.toBeUndefined();
+
+      const actions = store.getActions();
+      const notification = actions.find((action: any) => action.type === 'NOTIFICATION_SEND');
+      expect(notification.payload.message).toEqual({
+        key: 'ui.toast.missingRequiredField',
+        smart_count: 2,
+      });
+    });
+
+    it('omits smart_count for non-presence validation errors', async () => {
+      const store = mockStore(
+        makeState({
+          title: [{ type: 'PATTERN', message: 'Title is invalid' }],
+        }),
+      );
+
+      await expect(store.dispatch(persistEntry(collection as never) as never)).rejects.toBeUndefined();
+
+      const actions = store.getActions();
+      const notification = actions.find((action: any) => action.type === 'NOTIFICATION_SEND');
+      expect(notification.payload.message).toEqual({ key: 'ui.toast.invalidField' });
+    });
+  });
+
   describe('validateMetaField', () => {
     const state = {
       config: {

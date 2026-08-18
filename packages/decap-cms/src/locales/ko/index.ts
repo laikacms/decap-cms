@@ -280,7 +280,7 @@ const ko = {
       onFailToPersist: '항목 저장 실패: %{details}',
       onFailToDelete: '항목 삭제 실패: %{details}',
       onFailToUpdateStatus: '상태 업데이트 실패: %{details}',
-      missingRequiredField: '이런! 필수 필드를 놓치셨습니다. 저장하기 전에 먼저 채우세요.',
+      missingRequiredField: '이런! 필수 필드를 놓치셨습니다. 저장하기 전에 먼저 채우세요. |||| 이런! 필수 필드를 놓치셨습니다. 저장하기 전에 먼저 채우세요.',
       entrySaved: '항목 저장됨',
       entryPublished: '항목 게시됨',
       entryUnpublished: '항목 게시 철회됨',
