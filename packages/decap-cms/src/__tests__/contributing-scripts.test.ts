@@ -123,6 +123,43 @@ describe('CONTRIBUTING.md#scripts', () => {
     expect(devServerRow).not.toMatch(/`pnpm build:demo &&/);
   });
 
+  it('describes `pnpm test:ci` as running a build, not just lint/typecheck/test (#2145)', () => {
+    // Root `test:ci` delegates to `pnpm -r run test:ci`, and each workspace
+    // package's own `test:ci` runs `pnpm run build` before lint/typecheck/test.
+    // The docs previously said "lint + typecheck + unit tests", which omits
+    // the build step (so a pure build break was a surprise `test:ci` failure)
+    // and the root doc-consistency guard scripts. Assert both underlying
+    // scripts still run a build, and that the doc row says so.
+    const contributing = fs.readFileSync(CONTRIBUTING_PATH, 'utf8');
+    const rootPackageJson = JSON.parse(fs.readFileSync(ROOT_PACKAGE_JSON_PATH, 'utf8')) as {
+      scripts?: Record<string, string>,
+    };
+    const rootTestCiScript = rootPackageJson.scripts?.['test:ci'] ?? '';
+    expect(rootTestCiScript).toContain('pnpm -r run test:ci');
+
+    const decapCmsPackageJson = JSON.parse(
+      fs.readFileSync(DECAP_CMS_PACKAGE_JSON_PATH, 'utf8'),
+    ) as { scripts?: Record<string, string> };
+    const decapCmsTestCiScript = decapCmsPackageJson.scripts?.['test:ci'] ?? '';
+    expect(decapCmsTestCiScript).toContain('pnpm run build');
+
+    const libPatPackageJson = JSON.parse(
+      fs.readFileSync(LIB_PAT_PACKAGE_JSON_PATH, 'utf8'),
+    ) as { scripts?: Record<string, string> };
+    const libPatTestCiScript = libPatPackageJson.scripts?.['test:ci'] ?? '';
+    expect(libPatTestCiScript).toContain('pnpm run build');
+
+    const testCiRow = contributing
+      .split('\n')
+      .find(line => line.startsWith('| `pnpm test:ci`'));
+    expect(testCiRow).toBeDefined();
+
+    // If this fails, the `pnpm test:ci` row stopped mentioning "build" —
+    // update the wording so it accurately reflects the build step each
+    // workspace package's test:ci runs before lint/typecheck/test.
+    expect(testCiRow?.toLowerCase()).toContain('build');
+  });
+
   it('documents the root `release` script in the Releasing section (#1350)', () => {
     // Root package.json#scripts.release is the only wired publish command in
     // the workspace, but the "Releasing" section used to tell contributors to
