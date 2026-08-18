@@ -1,4 +1,4 @@
-import { fireEvent, render } from '@testing-library/react';
+import { fireEvent, render, waitFor } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -42,6 +42,11 @@ import { showAlert } from '@/ui';
 
 import type { Router, RouterUpdate } from '@/core/routing/router';
 import type * as UiModule from '@/ui';
+
+// Real PNG magic bytes (89 50 4E 47 0D 0A 1A 0A) so files built with this
+// content pass the DCMS-2173 content sniff in handlePersist regardless of
+// their declared name/type.
+const PNG_MAGIC_BYTES = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
 
 const routerListeners: Array<(update: RouterUpdate) => void> = [];
 
@@ -195,31 +200,37 @@ describe('MediaLibrary', () => {
       fireEvent.change(input);
     }
 
-    it('opens the crop dialog instead of persisting immediately when crop is enabled for an image upload', () => {
+    it('opens the crop dialog instead of persisting immediately when crop is enabled for an image upload', async () => {
       const { props } = renderMediaLibrary({
         isVisible: true,
         forImage: true,
         cropConfig: { enabled: true },
       });
 
-      selectFile(new File(['x'], 'photo.png', { type: 'image/png' }));
+      selectFile(new File([PNG_MAGIC_BYTES], 'photo.png', { type: 'image/png' }));
 
+      await waitFor(() =>
+        expect(document.querySelector('[data-testid="fake-crop-dialog"]')).not.toBeNull(),
+      );
       expect(props.persistMedia).not.toHaveBeenCalled();
-      expect(document.querySelector('[data-testid="fake-crop-dialog"]')).not.toBeNull();
     });
 
-    it('persists the cropped file once the dialog is confirmed', () => {
+    it('persists the cropped file once the dialog is confirmed', async () => {
       const { props } = renderMediaLibrary({
         isVisible: true,
         forImage: true,
         cropConfig: { enabled: true },
       });
 
-      selectFile(new File(['x'], 'photo.png', { type: 'image/png' }));
+      selectFile(new File([PNG_MAGIC_BYTES], 'photo.png', { type: 'image/png' }));
 
-      const confirmButton = Array.from(document.querySelectorAll('button')).find(
-        button => button.textContent === 'confirm-crop',
-      ) as HTMLButtonElement;
+      const confirmButton = await waitFor(() => {
+        const button = Array.from(document.querySelectorAll('button')).find(
+          candidate => candidate.textContent === 'confirm-crop',
+        );
+        expect(button).not.toBeUndefined();
+        return button as HTMLButtonElement;
+      });
       fireEvent.click(confirmButton);
 
       expect(props.persistMedia).toHaveBeenCalledTimes(1);
@@ -227,35 +238,39 @@ describe('MediaLibrary', () => {
       expect(persistedFile.name).toBe('photo.png');
     });
 
-    it('drops the pending upload without persisting when the dialog is cancelled', () => {
+    it('drops the pending upload without persisting when the dialog is cancelled', async () => {
       const { props } = renderMediaLibrary({
         isVisible: true,
         forImage: true,
         cropConfig: { enabled: true },
       });
 
-      selectFile(new File(['x'], 'photo.png', { type: 'image/png' }));
+      selectFile(new File([PNG_MAGIC_BYTES], 'photo.png', { type: 'image/png' }));
 
-      const cancelButton = Array.from(document.querySelectorAll('button')).find(
-        button => button.textContent === 'cancel-crop',
-      ) as HTMLButtonElement;
+      const cancelButton = await waitFor(() => {
+        const button = Array.from(document.querySelectorAll('button')).find(
+          candidate => candidate.textContent === 'cancel-crop',
+        );
+        expect(button).not.toBeUndefined();
+        return button as HTMLButtonElement;
+      });
       fireEvent.click(cancelButton);
 
       expect(props.persistMedia).not.toHaveBeenCalled();
       expect(document.querySelector('[data-testid="fake-crop-dialog"]')).toBeNull();
     });
 
-    it('persists directly, bypassing the crop dialog, when crop is disabled', () => {
+    it('persists directly, bypassing the crop dialog, when crop is disabled', async () => {
       const { props } = renderMediaLibrary({
         isVisible: true,
         forImage: true,
         cropConfig: { enabled: false },
       });
 
-      selectFile(new File(['x'], 'photo.png', { type: 'image/png' }));
+      selectFile(new File([PNG_MAGIC_BYTES], 'photo.png', { type: 'image/png' }));
 
+      await waitFor(() => expect(props.persistMedia).toHaveBeenCalledTimes(1));
       expect(document.querySelector('[data-testid="fake-crop-dialog"]')).toBeNull();
-      expect(props.persistMedia).toHaveBeenCalledTimes(1);
     });
 
     it('persists directly for non-image widgets even when crop is enabled', () => {
@@ -269,6 +284,58 @@ describe('MediaLibrary', () => {
 
       expect(document.querySelector('[data-testid="fake-crop-dialog"]')).toBeNull();
       expect(props.persistMedia).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('image content validation (DCMS-2173)', () => {
+    function selectFile(file: File) {
+      const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+      Object.defineProperty(input, 'files', { value: [file], configurable: true });
+      fireEvent.change(input);
+    }
+
+    beforeEach(() => {
+      vi.mocked(showAlert).mockClear();
+    });
+
+    it('rejects a text file renamed with a .png extension in the image-scoped picker', async () => {
+      const { props } = renderMediaLibrary({
+        isVisible: true,
+        forImage: true,
+      });
+
+      const fakePng = new File(['a'.repeat(20)], 'qa-bad.png', { type: 'image/png' });
+      selectFile(fakePng);
+
+      await waitFor(() => expect(showAlert).toHaveBeenCalledTimes(1));
+      expect(props.persistMedia).not.toHaveBeenCalled();
+      expect(document.querySelector('img[alt="qa-bad.png"]')).toBeNull();
+    });
+
+    it('accepts a real PNG whose extension has been renamed to .jpg (content sniff, not extension)', async () => {
+      const { props } = renderMediaLibrary({
+        isVisible: true,
+        forImage: true,
+      });
+
+      const renamedPng = new File([PNG_MAGIC_BYTES], 'photo.jpg', { type: 'image/jpeg' });
+      selectFile(renamedPng);
+
+      await waitFor(() => expect(props.persistMedia).toHaveBeenCalledTimes(1));
+      expect(showAlert).not.toHaveBeenCalled();
+    });
+
+    it('does not gate the standalone /media route (forImage === false)', async () => {
+      const { props } = renderMediaLibrary({
+        isVisible: true,
+        forImage: false,
+      });
+
+      const notAnImage = new File(['a'.repeat(20)], 'notes.png', { type: 'image/png' });
+      selectFile(notAnImage);
+
+      expect(props.persistMedia).toHaveBeenCalledTimes(1);
+      expect(showAlert).not.toHaveBeenCalled();
     });
   });
 });
