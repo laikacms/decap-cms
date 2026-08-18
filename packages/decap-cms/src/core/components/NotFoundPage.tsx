@@ -3,12 +3,22 @@ import React from 'react';
 
 import { translate } from '@/core/i18n';
 import { Link } from '@/core/routing/Link';
-import { lengths } from '@/ui/default/index';
+import { colors, lengths } from '@/ui/default/index';
 
 import type { TranslateFunction } from '@/ui/default/index';
 
 const NotFoundContainer = styled.div`
   margin: ${lengths.pageMargin};
+`;
+
+const BackLink = styled(Link)`
+  color: ${colors.active};
+  text-decoration: underline;
+
+  &:focus-visible {
+    outline: 2px solid ${colors.active};
+    outline-offset: 2px;
+  }
 `;
 
 interface NotFoundPageProps {
@@ -44,11 +54,11 @@ function NotFoundPage({ t, collectionName, message, backLink }: NotFoundPageProp
       {message && <p>{message}</p>}
       {backLink && (
         <p>
-          <Link to={backLink.to}>
+          <BackLink to={backLink.to}>
             {backLink.label
               ? t('app.notFoundPage.backToCollection', { name: backLink.label })
               : t('app.notFoundPage.backToHome')}
-          </Link>
+          </BackLink>
         </p>
       )}
     </NotFoundContainer>
