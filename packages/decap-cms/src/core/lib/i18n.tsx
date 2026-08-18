@@ -404,7 +404,10 @@ export function getI18nDataFiles(
   return dataFiles;
 }
 
-export function duplicateDefaultI18nFields(collection: Collection, dataFields: any) {
+export function duplicateDefaultI18nFields(
+  collection: Collection,
+  dataFields: Record<string, unknown>,
+) {
   const { locales, defaultLocale } = getI18nInfo(collection) as I18nInfo;
 
   const i18nFields = Object.fromEntries(
@@ -463,7 +466,7 @@ export function getPreviewEntry(entry: EntryMap, locale: string, defaultLocale: 
 export function serializeI18n(
   collection: Collection,
   entry: EntryMap,
-  serializeValues: (data: any) => any,
+  serializeValues: (data: Record<string, unknown>) => Record<string, unknown>,
 ) {
   const { locales, defaultLocale } = getI18nInfo(collection) as I18nInfo;
 
