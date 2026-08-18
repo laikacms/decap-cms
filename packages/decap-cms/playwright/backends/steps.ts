@@ -29,7 +29,7 @@ import type { ReplayHandle } from './replay';
  */
 
 export const workflowStatus = { draft: 'Drafts', review: 'In Review', ready: 'Ready' } as const;
-export const editorStatus = { draft: 'Draft', review: 'In review', ready: 'Ready' } as const;
+export const editorStatus = { draft: 'Draft', review: 'In Review', ready: 'Ready' } as const;
 
 export const notifications = {
   saved: 'Entry saved',

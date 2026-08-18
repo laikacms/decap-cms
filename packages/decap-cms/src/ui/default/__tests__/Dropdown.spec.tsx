@@ -128,7 +128,7 @@ describe('Dropdown', () => {
           <Menu.RadioGroup value={selected}>
             <DropdownRadioItem label="Draft" value="draft" onClick={() => setSelected('draft')} />
             <DropdownRadioItem
-              label="In review"
+              label="In Review"
               value="pending_review"
               onClick={() => setSelected('pending_review')}
             />
@@ -147,7 +147,7 @@ describe('Dropdown', () => {
     await user.click(screen.getByRole('button', { name: 'Status' }));
 
     const draft = await screen.findByRole('menuitemradio', { name: 'Draft' });
-    const inReview = screen.getByRole('menuitemradio', { name: 'In review' });
+    const inReview = screen.getByRole('menuitemradio', { name: 'In Review' });
     const ready = screen.getByRole('menuitemradio', { name: 'Ready' });
 
     expect(draft).toHaveAttribute('aria-checked', 'true');
@@ -157,7 +157,7 @@ describe('Dropdown', () => {
     await user.click(inReview);
 
     expect(
-      await screen.findByRole('menuitemradio', { name: 'In review', checked: true }),
+      await screen.findByRole('menuitemradio', { name: 'In Review', checked: true }),
     ).toBeInTheDocument();
     expect(screen.getByRole('menuitemradio', { name: 'Draft' })).toHaveAttribute(
       'aria-checked',
