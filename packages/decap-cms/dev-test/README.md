@@ -7,16 +7,16 @@ Reference demo served from this directory (`pnpm build:demo` / `pnpm build:dev-t
 
 ## Map widget is opt-in (DCMS-1971)
 
-The map widget isn't in the default `@laikacms/decap-cms` app bundle — `ol` (OpenLayers) is an
-optional peer dependency, so the demo doesn't register it out of the box (see
-`packages/decap-cms/src/widgets/map/README.md`). The Kitchen Sink collection's `map` field was
-removed from `config.yml` and `backends/test/config.yml` for this reason (DCMS-2019): a
-`widget: map` field with no registered control renders "No control for widget 'map'." and, if
-required, permanently blocks Save.
+The map widget isn't in the default `@laikacms/decap-cms` app bundle — it ships as the standalone
+`@laikacms/decap-cms-widget-map` package (source at `extensions/widgets/map`), so the demo doesn't
+register it out of the box. The Kitchen Sink collection's `map` field was removed from
+`config.yml` and `backends/test/config.yml` for this reason (DCMS-2019): a `widget: map` field
+with no registered control renders "No control for widget 'map'." and, if required, permanently
+blocks Save.
 
-To try the map widget in this demo yourself, register it before `CMS.init()` runs (see
-`packages/decap-cms/src/widgets/map/README.md` for the `registerMapWidget()` API) and re-add the
-field to the config(s) above.
+To try the map widget in this demo yourself, install `@laikacms/decap-cms-widget-map` and call
+`CMS.registerWidget(DecapCmsWidgetMap.Widget())` before `CMS.init()` runs (see
+`extensions/widgets/map/README.md`) and re-add the field to the config(s) above.
 
 ## `laika-test-runner.html` is a release gate (DCMS-2076)
 
