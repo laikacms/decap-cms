@@ -287,7 +287,7 @@ const it = {
       onFailToPersist: 'Salvataggio della voce non riuscito: %{details}',
       onFailToDelete: 'Cancellazione della voce non riuscita: %{details}',
       onFailToUpdateStatus: 'Aggiornamento dello stato non riuscito: %{details}',
-      missingRequiredField: 'Oops, hai saltato un campo obbligatorio. Per favore completalo prima di salvare.',
+      missingRequiredField: 'Oops, hai saltato un campo obbligatorio. Per favore completalo prima di salvare. |||| Oops, hai saltato un campo obbligatorio. Per favore completalo prima di salvare.',
       entrySaved: 'Voce salvata',
       entryPublished: 'Voce pubblicata',
       entryUnpublished: 'Voce rimossa dalla pubblicazione',

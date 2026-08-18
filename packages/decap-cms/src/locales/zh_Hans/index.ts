@@ -275,7 +275,7 @@ const zh_Hans = {
       onFailToPersist: '保存内容失败: %{details}',
       onFailToDelete: '删除内容失败: %{details}',
       onFailToUpdateStatus: '更新状态失败: %{details}',
-      missingRequiredField: '你漏掉了一个必填项，请在保存之前将它填写好',
+      missingRequiredField: '你漏掉了一个必填项，请在保存之前将它填写好 |||| 你漏掉了一个必填项，请在保存之前将它填写好',
       entrySaved: '内容已保存',
       entryPublished: '内容已发布',
       entryUnpublished: '内容已撤销发布',

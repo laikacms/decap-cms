@@ -270,7 +270,7 @@ const ro = {
       onFailToPersist: 'A eșuat persistarea intrării: %{details}',
       onFailToDelete: 'A eșuat ștergerea intrării: %{details}',
       onFailToUpdateStatus: 'A eșuat actualizarea status-ului: %{details}',
-      missingRequiredField: 'Oops, ai ratat un câmp obligatoriu. Completează-l pentru a salva.',
+      missingRequiredField: 'Oops, ai ratat un câmp obligatoriu. Completează-l pentru a salva. |||| Oops, ai ratat un câmp obligatoriu. Completează-l pentru a salva.',
       entrySaved: 'Intrare salvată',
       entryPublished: 'Intrare publicată',
       entryUnpublished: 'Publicare anulată',

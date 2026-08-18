@@ -266,7 +266,7 @@ const fa = {
       onFailToPersist: 'ادامه ورود ناموفق بود: %{details}',
       onFailToDelete: 'ورودی حذف نشد: %{details}',
       onFailToUpdateStatus: 'وضعیت به‌روزرسانی نشد: %{details}',
-      missingRequiredField: 'اوه، شما یک قسمت الزامی را از دست داده اید. لطفاً قبل از ذخیره تکمیل کنید.',
+      missingRequiredField: 'اوه، شما یک قسمت الزامی را از دست داده اید. لطفاً قبل از ذخیره تکمیل کنید. |||| اوه، شما یک قسمت الزامی را از دست داده اید. لطفاً قبل از ذخیره تکمیل کنید.',
       entrySaved: 'ورودی ذخیره شد',
       entryPublished: 'مدخل منتشر شد',
       entryUnpublished: 'ورودی منتشر نشده است',

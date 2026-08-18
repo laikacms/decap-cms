@@ -301,7 +301,7 @@ const sk = {
       onFailToPersist: 'Nepodarilo sa uložiť záznam: %{details}',
       onFailToDelete: 'Nepodarilo sa vymazať záznam: %{details}',
       onFailToUpdateStatus: 'Nepodarilo sa aktualizovať stav: %{details}',
-      missingRequiredField: 'Vynechali ste povinné pole. Pred uložením ho prosím vyplňte.',
+      missingRequiredField: 'Vynechali ste povinné pole. Pred uložením ho prosím vyplňte. |||| Vynechali ste povinné pole. Pred uložením ho prosím vyplňte.',
       entrySaved: 'Záznam uložený',
       entryPublished: 'Záznam publikovaný',
       entryUnpublished: 'Publikovanie záznamu zrušené',

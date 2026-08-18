@@ -302,7 +302,7 @@ const hr = {
       onFailToPersist: 'Neuspjelo spremanje unosa: %{details}',
       onFailToDelete: 'Neuspjelo brisanje unosa: %{details}',
       onFailToUpdateStatus: 'Neuspjelo ažuriranje statusa: %{details}',
-      missingRequiredField: 'Uups, preskočili ste obvezno polje. Molimo popunite prije spremanja.',
+      missingRequiredField: 'Uups, preskočili ste obvezno polje. Molimo popunite prije spremanja. |||| Uups, preskočili ste obvezno polje. Molimo popunite prije spremanja.',
       entrySaved: 'Unos spremljen',
       entryPublished: 'Unos objavljen',
       entryUnpublished: 'Unos obrisan',

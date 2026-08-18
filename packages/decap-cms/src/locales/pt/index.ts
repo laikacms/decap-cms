@@ -282,7 +282,7 @@ const pt = {
       onFailToPersist: 'Falha ao persistir na entrada: %{details}',
       onFailToDelete: 'Falha ao excluir a entrada: %{details}',
       onFailToUpdateStatus: 'Falha ao atualizar status: %{details}',
-      missingRequiredField: 'Ops, você perdeu um campo obrigatório. Por favor, preencha antes de salvar.',
+      missingRequiredField: 'Ops, você perdeu um campo obrigatório. Por favor, preencha antes de salvar. |||| Ops, você perdeu um campo obrigatório. Por favor, preencha antes de salvar.',
       entrySaved: 'Entrada salva',
       entryPublished: 'Entrada publicada',
       entryUnpublished: 'Entrada despublicada',

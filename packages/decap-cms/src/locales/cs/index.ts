@@ -286,7 +286,7 @@ const cs = {
       onFailToPersist: 'Chyba při ukládání položky: %{details}',
       onFailToDelete: 'Chyba při vymazávání položky: %{details}',
       onFailToUpdateStatus: 'Chyba při změně stavu položky: %{details}',
-      missingRequiredField: 'Vynechali jste povinné pole. Prosím vyplňte ho.',
+      missingRequiredField: 'Vynechali jste povinné pole. Prosím vyplňte ho. |||| Vynechali jste povinné pole. Prosím vyplňte ho.',
       entrySaved: 'Položka uložena',
       entryPublished: 'Položka publikována',
       entryUnpublished: 'Publikování položky zrušeno',

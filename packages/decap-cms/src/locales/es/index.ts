@@ -233,7 +233,7 @@ const es = {
       onFailToPersist: 'No se ha podido guardar la entrada: %{details}',
       onFailToDelete: 'No se ha podido borrar la entrada: %{details}',
       onFailToUpdateStatus: 'No se ha podido actualizar el estado: %{details}',
-      missingRequiredField: 'Oops, no ha rellenado un campo obligatorio. Por favor, rellénelo antes de guardar.',
+      missingRequiredField: 'Oops, no ha rellenado un campo obligatorio. Por favor, rellénelo antes de guardar. |||| Oops, no ha rellenado un campo obligatorio. Por favor, rellénelo antes de guardar.',
       entrySaved: 'Entrada guardada',
       entryPublished: 'Entrada publicada',
       entryUnpublished: 'Entrada retirada',

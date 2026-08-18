@@ -275,7 +275,7 @@ const he = {
       onFailToPersist: 'אחסון האייטם %{details} נכשל',
       onFailToDelete: 'מחיקת האייטם %{details} נכשלה',
       onFailToUpdateStatus: 'עדכון מצב האייטם %{details} נכשל',
-      missingRequiredField: 'אופס, שכחת למלא שדה חובה. נא להשלים את המידע החסר לפני השמירה',
+      missingRequiredField: 'אופס, שכחת למלא שדה חובה. נא להשלים את המידע החסר לפני השמירה |||| אופס, שכחת למלא שדה חובה. נא להשלים את המידע החסר לפני השמירה',
       entrySaved: 'האייטם נשמר',
       entryPublished: 'האייטם פורסם',
       entryUnpublished: 'האייטם הועבר לטיוטות',

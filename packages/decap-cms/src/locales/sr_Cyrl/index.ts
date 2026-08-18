@@ -302,7 +302,7 @@ const sr_Cyrl = {
       onFailToPersist: 'Неуспело чување уноса: %{details}',
       onFailToDelete: 'Неуспело брисање уноса: %{details}',
       onFailToUpdateStatus: 'Неуспело ажурирање статуса: %{details}',
-      missingRequiredField: 'Упс, прескочили сте обавезно поље. Молимо попуните пре чувања.',
+      missingRequiredField: 'Упс, прескочили сте обавезно поље. Молимо попуните пре чувања. |||| Упс, прескочили сте обавезно поље. Молимо попуните пре чувања.',
       entrySaved: 'Унос сачуван',
       entryPublished: 'Унос објављен',
       entryUnpublished: 'Унос уклоњен из објава',

@@ -229,7 +229,7 @@ const nb_no = {
       onFailToPersist: 'Kunne ikke lagre: %{details}',
       onFailToDelete: 'Kunne ikke slette: %{details}',
       onFailToUpdateStatus: 'Kunne ikke laste opp: %{details}',
-      missingRequiredField: 'Oisann, ser ut som du glemte et påkrevd felt. Du må fylle det ut før du kan fortsette.',
+      missingRequiredField: 'Oisann, ser ut som du glemte et påkrevd felt. Du må fylle det ut før du kan fortsette. |||| Oisann, ser ut som du glemte et påkrevd felt. Du må fylle det ut før du kan fortsette.',
       entrySaved: 'Innlegg lagret',
       entryPublished: 'Innlegg publisert',
       entryUnpublished: 'Innlegg avpublisert',

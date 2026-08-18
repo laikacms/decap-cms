@@ -279,7 +279,7 @@ const fr = {
       onFailToPersist: "Échec de l'enregistrement de l'entrée : %{details}",
       onFailToDelete: "Échec de la suppression de l'entrée : %{details}",
       onFailToUpdateStatus: 'Échec de la mise à jour du statut : %{details}',
-      missingRequiredField: 'Oops, il manque un champ requis. Veuillez le renseigner avant de soumettre.',
+      missingRequiredField: 'Oops, il manque un champ requis. Veuillez le renseigner avant de soumettre. |||| Oops, il manque un champ requis. Veuillez le renseigner avant de soumettre.',
       entrySaved: 'Entrée enregistrée',
       entryPublished: 'Entrée publiée',
       entryUnpublished: 'Entrée dépubliée',

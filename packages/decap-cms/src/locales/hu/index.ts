@@ -181,7 +181,7 @@ const hu = {
       onFailToPersist: 'Bejegyzés megtartása sikertelen: %{details}',
       onFailToDelete: 'A bejegyzés törlése sikertelen: %{details}',
       onFailToUpdateStatus: 'Az állapot frissítése nem sikerült: %{details}',
-      missingRequiredField: 'Hoppá, kihagytál egy kötelező mezőt. Mentés előtt töltsd ki.',
+      missingRequiredField: 'Hoppá, kihagytál egy kötelező mezőt. Mentés előtt töltsd ki. |||| Hoppá, kihagytál egy kötelező mezőt. Mentés előtt töltsd ki.',
       entrySaved: 'Bejegyzés elmentve',
       entryPublished: 'Bejegyzés publikálva',
       entryUnpublished: 'Bejegyzés publikálása visszavonva',

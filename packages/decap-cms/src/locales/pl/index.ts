@@ -278,7 +278,7 @@ const pl = {
       onFailToPersist: 'Nie udało się zapisać pozycji: %{details}',
       onFailToDelete: 'Nie udało się usunąć pozycji: %{details}',
       onFailToUpdateStatus: 'Nie udało się zaktualizować statusu: %{details}',
-      missingRequiredField: 'Ups, przegapiłeś wymagane pole. Proszę uzupełnij przed zapisaniem.',
+      missingRequiredField: 'Ups, przegapiłeś wymagane pole. Proszę uzupełnij przed zapisaniem. |||| Ups, przegapiłeś wymagane pole. Proszę uzupełnij przed zapisaniem.',
       entrySaved: 'Pozycja zapisana',
       entryPublished: 'Pozycja opublikowana',
       entryUnpublished: 'Cofnięto publikację pozycji',

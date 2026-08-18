@@ -962,9 +962,10 @@ export function persistEntry(collection: Collection) {
     const usedSlugs = selectPublishedSlugs(state, collection.name) ?? [];
 
     if (Object.keys(fieldsErrors ?? {}).length > 0) {
-      const hasPresenceErrors = Object.values(fieldsErrors!).some((errors: any) =>
+      const presenceErrorFieldsCount = Object.values(fieldsErrors!).filter((errors: any) =>
         errors.some((error: any) => error.type && error.type === ValidationErrorTypes.PRESENCE)
-      );
+      ).length;
+      const hasPresenceErrors = presenceErrorFieldsCount > 0;
 
       // Always surface a notification when validation blocks the save - not
       // just for missing-required-field errors. Without this, Save/Publish
@@ -975,6 +976,10 @@ export function persistEntry(collection: Collection) {
         addNotification({
           message: {
             key: hasPresenceErrors ? 'ui.toast.missingRequiredField' : 'ui.toast.invalidField',
+            // Selects the plural locale phrase when 2+ fields are missing
+            // (DCMS-2151); `transformPhrase` falls back to the single
+            // existing string for any locale without a plural variant.
+            ...(hasPresenceErrors ? { smart_count: presenceErrorFieldsCount } : {}),
           },
           type: 'error',
           dismissAfter: 8000,
