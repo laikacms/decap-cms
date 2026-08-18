@@ -160,6 +160,10 @@ const nn_no = {
         headingFive: 'Overskrift 5',
         headingSix: 'Overskrift 6',
       },
+      colorstring: {
+        clearColorValue: 'Clear color value',
+        openColorPicker: 'Open color picker',
+      },
       datetime: {
         now: 'No',
         clear: 'Nullstill',

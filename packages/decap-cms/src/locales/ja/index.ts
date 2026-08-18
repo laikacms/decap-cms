@@ -199,6 +199,10 @@ const ja = {
         headingFive: '見出し 5',
         headingSix: '見出し 6',
       },
+      colorstring: {
+        clearColorValue: 'Clear color value',
+        openColorPicker: 'Open color picker',
+      },
       datetime: {
         now: '現時刻',
         clear: 'クリア',

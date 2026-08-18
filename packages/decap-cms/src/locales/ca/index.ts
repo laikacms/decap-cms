@@ -194,6 +194,10 @@ const ca = {
         headingFive: 'Encapçalament 5',
         headingSix: 'Encapçalament 6',
       },
+      colorstring: {
+        clearColorValue: 'Clear color value',
+        openColorPicker: 'Open color picker',
+      },
       datetime: {
         now: 'Ara',
         clear: 'Netejar',

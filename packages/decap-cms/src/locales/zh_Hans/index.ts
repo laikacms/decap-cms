@@ -196,6 +196,10 @@ const zh_Hans = {
         headingFive: '标题 5',
         headingSix: '标题 6',
       },
+      colorstring: {
+        clearColorValue: 'Clear color value',
+        openColorPicker: 'Open color picker',
+      },
       datetime: {
         now: '现在',
         clear: '清除',

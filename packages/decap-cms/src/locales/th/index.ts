@@ -206,6 +206,10 @@ const th = {
         headingFive: 'หัวข้อ 5',
         headingSix: 'หัวข้อ 6',
       },
+      colorstring: {
+        clearColorValue: 'Clear color value',
+        openColorPicker: 'Open color picker',
+      },
       datetime: {
         now: 'เวลาตอนนี้',
         clear: 'ล้าง',

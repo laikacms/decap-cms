@@ -184,6 +184,10 @@ const lt = {
         headingFive: 'Antraštė 5',
         headingSix: 'Antraštė 6',
       },
+      colorstring: {
+        clearColorValue: 'Clear color value',
+        openColorPicker: 'Open color picker',
+      },
       datetime: {
         now: 'Dabar',
         clear: 'Išvalyti',

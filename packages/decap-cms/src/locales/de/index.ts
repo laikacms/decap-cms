@@ -205,6 +205,10 @@ const de = {
         headingFive: 'Überschrift 5',
         headingSix: 'Überschrift 6',
       },
+      colorstring: {
+        clearColorValue: 'Clear color value',
+        openColorPicker: 'Open color picker',
+      },
       datetime: {
         now: 'Jetzt',
         clear: 'Löschen',

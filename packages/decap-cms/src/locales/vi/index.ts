@@ -167,6 +167,10 @@ const vi = {
         headingFive: 'Tiêu đề cấp 5',
         headingSix: 'Tiêu đề cấp 6',
       },
+      colorstring: {
+        clearColorValue: 'Clear color value',
+        openColorPicker: 'Open color picker',
+      },
       datetime: {
         now: 'Ngay lúc này',
         clear: 'Xóa',

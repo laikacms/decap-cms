@@ -197,6 +197,10 @@ const ro = {
         headingFive: 'Titlu 5',
         headingSix: 'Titlu 6',
       },
+      colorstring: {
+        clearColorValue: 'Clear color value',
+        openColorPicker: 'Open color picker',
+      },
       datetime: {
         now: 'Acum',
         clear: 'Șterge',

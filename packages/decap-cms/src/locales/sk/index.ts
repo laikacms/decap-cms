@@ -217,6 +217,10 @@ const sk = {
         headingFive: 'Nadpis 5',
         headingSix: 'Nadpis 6',
       },
+      colorstring: {
+        clearColorValue: 'Clear color value',
+        openColorPicker: 'Open color picker',
+      },
       datetime: {
         now: 'Teraz',
         clear: 'Vymazať',

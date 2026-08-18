@@ -161,6 +161,10 @@ const es = {
         headingFive: 'Encabezado 5',
         headingSix: 'Encabezado 6',
       },
+      colorstring: {
+        clearColorValue: 'Clear color value',
+        openColorPicker: 'Open color picker',
+      },
       datetime: {
         now: 'Ahora',
         clear: 'Limpiar',

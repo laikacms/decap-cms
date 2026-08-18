@@ -209,6 +209,10 @@ const it = {
         headingFive: 'Intestazione 5',
         headingSix: 'Intestazione 6',
       },
+      colorstring: {
+        clearColorValue: 'Clear color value',
+        openColorPicker: 'Open color picker',
+      },
       datetime: {
         now: 'Adesso',
         clear: 'Pulisci',

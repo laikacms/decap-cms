@@ -201,6 +201,10 @@ const pt = {
         headingFive: 'Título nível 5',
         headingSix: 'Título nível 6',
       },
+      colorstring: {
+        clearColorValue: 'Clear color value',
+        openColorPicker: 'Open color picker',
+      },
       datetime: {
         now: 'Agora',
         clear: 'Limpar',

@@ -196,6 +196,10 @@ const fa = {
         headingFive: 'سرفصل 5',
         headingSix: 'سرفصل 6',
       },
+      colorstring: {
+        clearColorValue: 'Clear color value',
+        openColorPicker: 'Open color picker',
+      },
       datetime: { now: 'اکنون' },
       list: {
         add: 'این مورد را اضافه کنید}',
