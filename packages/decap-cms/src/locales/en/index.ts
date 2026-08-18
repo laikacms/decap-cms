@@ -218,7 +218,7 @@ const en = {
       saving: 'Saving...',
       save: 'Save',
       statusInfoTooltipDraft:
-        'Entry status is set to draft. To finalize and submit it for review, set the status to ‘In review’',
+        'Entry status is set to draft. To finalize and submit it for review, set the status to ‘In Review’',
       statusInfoTooltipInReview:
         'Entry is being reviewed, no further actions are required. However, you can still make additional changes while it is being reviewed.',
       deleting: 'Deleting...',
@@ -228,7 +228,7 @@ const en = {
       unsavedChanges: 'Unsaved Changes',
       changesSaved: 'Changes saved',
       draft: 'Draft',
-      inReview: 'In review',
+      inReview: 'In Review',
       ready: 'Ready',
       publishNow: 'Publish now',
       publishChanges: 'Publish changes',
