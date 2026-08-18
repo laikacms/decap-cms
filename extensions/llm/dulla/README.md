@@ -32,13 +32,18 @@ const llm = createDullaTransport({
 <DecapCmsProvider llm={llm}>…</DecapCmsProvider>;
 ```
 
-Or register it, for a `<script>` tag against an already-built `decap-cms.js`:
+Or, when props can't reach the call site (e.g. the CMS is configured before your app code runs),
+register it instead:
 
-```html
-<script>
-  DecapCmsLlmDulla.registerDulla({ apiBasePath: '/api/ai' });
-</script>
+```ts
+import { registerDulla } from '@laikacms/decap-cms-llm-dulla';
+
+registerDulla({ apiBasePath: '/api/ai' });
 ```
+
+This package ships plain ES modules (`"type": "module"`, `tsc`-built, no bundler) — there is no
+`<script>`-tag / global-variable route. Both `createDullaTransport` and `registerDulla` are only
+reachable via the ESM import above.
 
 With a transport configured, an **Assistant** panel appears in the editor, and the locale row gains
 a translate action for i18n collections. With none, neither renders.

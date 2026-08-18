@@ -20,8 +20,9 @@ let registered = false;
  *
  * Prefer passing the transport as a prop when you control the app
  * (`<DecapCmsProvider llm={createDullaTransport()}>`); this exists for the case
- * props cannot reach — a `<script>` tag against an already-built
- * `decap-cms.js`.
+ * props cannot reach, e.g. the CMS is configured before your app code runs.
+ * This package ships plain ES modules only — there is no bundled/global
+ * variant, so this is still called via a normal import, not a `<script>` tag.
  */
 export function registerDulla(options: DullaTransportOptions = {}) {
   if (registered) return;
