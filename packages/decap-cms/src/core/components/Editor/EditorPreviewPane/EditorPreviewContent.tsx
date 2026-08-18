@@ -14,9 +14,19 @@ interface PreviewContentProps {
   previewComponent: React.ComponentType<Record<string, unknown>> | React.ReactElement;
   previewProps?: Record<string, any>;
   onFieldClick?: ((fieldName: string) => void) | undefined;
+  /**
+   * DCMS-2134: footprint (CSS px) of the view-controls icon row + assistant
+   * pill that float over this pane's top-right corner, measured by
+   * `EditorInterface`. Rendered as a right-floated, zero-content spacer
+   * ahead of the actual preview markup so the browser's own text-wrap
+   * algorithm reserves that corner — the same way text wraps around a
+   * floated image — instead of the chrome painting over content that
+   * doesn't know it's there.
+   */
+  chromeReserve?: { width: number, height: number } | undefined;
 }
 
-function PreviewContent({ previewComponent, previewProps, onFieldClick }: PreviewContentProps) {
+function PreviewContent({ previewComponent, previewProps, onFieldClick, chromeReserve }: PreviewContentProps) {
   const visualEditing = (previewProps?.collection as any)?.editor?.visualEditing ?? false;
 
   function handleClick(e: React.MouseEvent<HTMLDivElement>) {
@@ -54,6 +64,18 @@ function PreviewContent({ previewComponent, previewProps, onFieldClick }: Previe
         // wrapper too rather than relying solely on inheritance.
         style={{ maxWidth: '100%', overflowWrap: 'anywhere', wordBreak: 'break-word' }}
       >
+        {chromeReserve && chromeReserve.width > 0 && chromeReserve.height > 0 && (
+          <div
+            aria-hidden="true"
+            data-testid="preview-chrome-reserve"
+            style={{
+              float: 'right',
+              width: chromeReserve.width,
+              height: chromeReserve.height,
+              pointerEvents: 'none',
+            }}
+          />
+        )}
         {React.isValidElement(previewComponent)
           ? React.cloneElement(previewComponent, previewProps)
           : React.createElement(

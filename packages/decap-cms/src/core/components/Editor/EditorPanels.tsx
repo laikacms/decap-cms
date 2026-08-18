@@ -89,13 +89,20 @@ export interface EditorPanelsProps {
   /** `onClose` is supplied by the drawer itself, so callers do not pass one. */
   panelProps: Omit<EditorPanelRenderProps, 'onClose'>;
   t: TranslateFunction;
+  /**
+   * DCMS-2134: reports the collapsed toggle button's viewport rect (or
+   * `null` once it unmounts) so the preview pane can reserve space instead
+   * of letting the pill float over wrapped preview content.
+   */
+  onToggleRectChange?: (rect: DOMRect | null) => void;
 }
 
-function EditorPanels({ panelProps, t }: EditorPanelsProps) {
+function EditorPanels({ panelProps, t, onToggleRectChange }: EditorPanelsProps) {
   const { editorPanels } = useCmsSlots();
   const transport = useLlmTransport();
   const [isOpen, setIsOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | undefined>(undefined);
+  const toggleRef = React.useRef<HTMLButtonElement | null>(null);
 
   const available = useMemo(
     () => {
@@ -116,6 +123,28 @@ function EditorPanels({ panelProps, t }: EditorPanelsProps) {
     [editorPanels, transport, t, panelProps.collection, panelProps.entry],
   );
 
+  // DCMS-2134: report the collapsed pill's rect (and clear it on unmount, on
+  // `available` dropping to zero, or on layout changes) so the preview pane
+  // can reserve space for it instead of it floating over wrapped content.
+  React.useLayoutEffect(() => {
+    if (!onToggleRectChange) return undefined;
+    const el = toggleRef.current;
+    if (!el) {
+      onToggleRectChange(null);
+      return undefined;
+    }
+    const report = () => onToggleRectChange(el.getBoundingClientRect());
+    report();
+    const resizeObserver = new ResizeObserver(report);
+    resizeObserver.observe(el);
+    window.addEventListener('resize', report);
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', report);
+      onToggleRectChange(null);
+    };
+  }, [onToggleRectChange, available.length, isOpen]);
+
   if (available.length === 0) {
     return null;
   }
@@ -125,6 +154,7 @@ function EditorPanels({ panelProps, t }: EditorPanelsProps) {
   return (
     <>
       <ToggleButton
+        ref={toggleRef}
         type="button"
         $open={isOpen}
         onClick={() => setIsOpen(open => !open)}

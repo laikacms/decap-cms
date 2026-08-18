@@ -80,6 +80,14 @@ interface PreviewPaneProps {
   state: State;
   isLoadingAsset: boolean;
   boundGetAsset: (collection: Collection, entry: EntryMap) => unknown;
+  /**
+   * DCMS-2134: the measured footprint (in CSS pixels) of the view-controls
+   * icon row and the assistant pill that float, absolutely positioned, over
+   * this pane's top-right corner. Reserved as dead space inside the preview
+   * iframe so wrapped preview content (e.g. a long entry title's `<h1>`)
+   * never renders underneath — and is thereby clipped by — that chrome.
+   */
+  previewChromeReserve?: { width: number, height: number };
 }
 
 function inferFieldsForCollection(collection: Collection): Record<string, InferableFieldValue> {
@@ -142,7 +150,7 @@ export function getWidget(
 }
 
 export function PreviewPane(props: PreviewPaneProps) {
-  const { entry, collection, config, onFieldClick } = props;
+  const { entry, collection, config, onFieldClick, previewChromeReserve } = props;
   const t = useTranslate();
 
   const inferredFields = inferFieldsForCollection(collection);
@@ -399,6 +407,7 @@ export function PreviewPane(props: PreviewPaneProps) {
                 previewComponent={previewComponent}
                 previewProps={{ ...previewProps, document, window }}
                 onFieldClick={onFieldClick}
+                chromeReserve={previewChromeReserve}
               />
             </>
           )}
@@ -415,6 +424,7 @@ interface ConnectedPreviewPaneProps {
   fieldsMetaData: Record<string, unknown>;
   onFieldClick?: (fieldName: string) => void;
   locale?: string;
+  previewChromeReserve?: { width: number, height: number };
 }
 
 export default function ConnectedPreviewPane(props: ConnectedPreviewPaneProps) {

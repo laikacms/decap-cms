@@ -369,6 +369,17 @@ function EditorInterface(props: EditorInterfaceProps) {
 
   const controlPaneRef = React.useRef<ControlPaneRef | null>(null);
   const editorBodyRef = React.useRef<HTMLDivElement | null>(null);
+  // DCMS-2134: `viewControlsRef` + `assistantToggleRect` track the two
+  // floating overlays (the field-navigator/i18n/preview/scroll-sync icon
+  // row and the collapsed AI-assistant pill) that sit absolutely positioned
+  // in the top-right corner of `Editor`. Both were previously invisible to
+  // layout — they painted on top of whatever the preview iframe rendered
+  // there, clipping the last few characters of any preview content that
+  // wrapped into that corner (e.g. a long entry title's `<h1>`). Measuring
+  // their real footprint here lets the preview reserve that space instead.
+  const viewControlsRef = React.useRef<HTMLDivElement | null>(null);
+  const [assistantToggleRect, setAssistantToggleRect] = React.useState<DOMRect | null>(null);
+  const [previewChromeReserve, setPreviewChromeReserve] = React.useState({ width: 0, height: 0 });
   // Which field (and which focusable within it) last held focus. Lives here,
   // OUTSIDE the `key={draftKey}` subtree, so it survives the remount that a
   // save triggers (persist success re-creates the draft with a new key).
@@ -665,6 +676,7 @@ function EditorInterface(props: EditorInterfaceProps) {
                 fieldsMetaData={fieldsMetaData}
                 locale={leftPanelLocale}
                 onFieldClick={handleFieldClick}
+                previewChromeReserve={previewChromeReserve}
               />
             </PreviewPaneContainer>
           </Pane>
@@ -699,6 +711,27 @@ function EditorInterface(props: EditorInterfaceProps) {
   const i18nVisible = collectionI18nEnabled && i18nVisibleState;
   const previewVisibleResolved = previewEnabled && previewVisible;
   const scrollSyncVisible = i18nVisible || previewVisibleResolved;
+
+  // DCMS-2134: recompute the union of the view-controls icon row and the
+  // (separately measured) assistant pill, expressed as the space to reserve
+  // from the preview's top-right corner, whenever either overlay's contents
+  // or the layout that positions them changes.
+  React.useLayoutEffect(() => {
+    const editorRect = editorBodyRef.current?.getBoundingClientRect();
+    if (!editorRect) return;
+    const rects: (DOMRect | null)[] = [
+      viewControlsRef.current?.getBoundingClientRect() ?? null,
+      assistantToggleRect,
+    ];
+    let width = 0;
+    let height = 0;
+    for (const rect of rects) {
+      if (!rect || (rect.width === 0 && rect.height === 0)) continue;
+      width = Math.max(width, editorRect.right - rect.left);
+      height = Math.max(height, rect.bottom - editorRect.top);
+    }
+    setPreviewChromeReserve(prev => (prev.width === width && prev.height === height ? prev : { width, height }));
+  }, [assistantToggleRect, fieldNavigatorVisible, collectionI18nEnabled, previewEnabled, scrollSyncVisible, previewVisibleResolved]);
 
   const toolbarProps = {
     isPersisting: entry.isPersisting,
@@ -765,7 +798,7 @@ function EditorInterface(props: EditorInterfaceProps) {
               return renderEditorViewControls(viewControlsProps);
             }
             return (
-              <ViewControls>
+              <ViewControls ref={viewControlsRef}>
                 <EditorToggle
                   isActive={fieldNavigatorVisible}
                   isToggle
@@ -835,6 +868,7 @@ function EditorInterface(props: EditorInterfaceProps) {
               ...(leftPanelLocale ? { locale: leftPanelLocale } : {}),
             }}
             t={t}
+            onToggleRectChange={setAssistantToggleRect}
           />
         </Editor>
       </EditorContainer>
