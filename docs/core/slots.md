@@ -192,7 +192,7 @@ is configured — see `docs/contributing/decisions/architecture.md`.
 
 - Props: `EditorPanel[]`, each rendering with `EditorPanelRenderProps` (`collection`, `entry`,
   `locale?`, `onClose`)
-- Consumer: `packages/decap-cms/src/core/components/Editor/EditorPanels.tsx:95`
+- Consumer: `packages/decap-cms/src/core/components/Editor/EditorPanels.tsx:101`
 
 ## Adding a new slot
 
