@@ -87,6 +87,7 @@ interface ColorControlProps {
   hasErrors?: boolean;
   errorListId?: string;
   hintId?: string;
+  t: (key: string, options?: Record<string, unknown>) => string;
 }
 
 export default function ColorControl({
@@ -100,6 +101,7 @@ export default function ColorControl({
   hasErrors,
   errorListId,
   hintId,
+  t,
 }: ColorControlProps) {
   const [showColorPicker, setShowColorPicker] = React.useState(false);
 
@@ -149,7 +151,7 @@ export default function ColorControl({
           <ClearButton
             role="button"
             tabIndex={0}
-            aria-label="Clear color value"
+            aria-label={t('editor.editorWidgets.colorstring.clearColorValue')}
             onClick={handleClear}
             onKeyDown={event => {
               if (event.key === 'Enter' || event.key === ' ') {
@@ -168,7 +170,7 @@ export default function ColorControl({
         color={parsedValue ? 'rgba(255, 255, 255, 0)' : 'rgb(223, 223, 227)'}
         role="button"
         tabIndex={0}
-        aria-label="Open color picker"
+        aria-label={t('editor.editorWidgets.colorstring.openColorPicker')}
         onClick={handleClick}
         onKeyDown={event => {
           if (event.key === 'Enter' || event.key === ' ') {

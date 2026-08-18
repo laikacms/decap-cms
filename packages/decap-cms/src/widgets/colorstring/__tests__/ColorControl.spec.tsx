@@ -31,6 +31,7 @@ function setup(propsOverrides: Record<string, unknown> = {}) {
     setInactiveStyle: vi.fn(),
     value: '',
     field: {},
+    t: (key: string) => key,
     ...propsOverrides,
   };
 
@@ -40,7 +41,7 @@ function setup(propsOverrides: Record<string, unknown> = {}) {
 }
 
 function openPicker(utils: ReturnType<typeof setup>) {
-  fireEvent.click(utils.getByRole('button', { name: 'Open color picker' }));
+  fireEvent.click(utils.getByRole('button', { name: 'editor.editorWidgets.colorstring.openColorPicker' }));
 }
 
 describe('ColorControl', () => {
@@ -76,22 +77,23 @@ describe('ColorControl', () => {
   describe('showClearButton', () => {
     it('does not render the clear button when allowInput is true', () => {
       const utils = setup({ field: { allowInput: true }, value: '#ffffff' });
-      expect(utils.queryByRole('button', { name: 'Clear color value' })).toBeNull();
+      expect(utils.queryByRole('button', { name: 'editor.editorWidgets.colorstring.clearColorValue' })).toBeNull();
     });
 
     it('does not render the clear button when value is empty', () => {
       const utils = setup({ field: { allowInput: false }, value: '' });
-      expect(utils.queryByRole('button', { name: 'Clear color value' })).toBeNull();
+      expect(utils.queryByRole('button', { name: 'editor.editorWidgets.colorstring.clearColorValue' })).toBeNull();
     });
 
     it('renders the clear button when allowInput is false and value is set', () => {
       const utils = setup({ field: { allowInput: false }, value: '#ffffff' });
-      expect(utils.getByRole('button', { name: 'Clear color value' })).toBeInTheDocument();
+      expect(utils.getByRole('button', { name: 'editor.editorWidgets.colorstring.clearColorValue' }))
+        .toBeInTheDocument();
     });
 
     it('calls onChange with an empty string when the clear button is clicked', () => {
       const utils = setup({ field: { allowInput: false }, value: '#ffffff' });
-      fireEvent.click(utils.getByRole('button', { name: 'Clear color value' }));
+      fireEvent.click(utils.getByRole('button', { name: 'editor.editorWidgets.colorstring.clearColorValue' }));
       expect(utils.props.onChange).toHaveBeenCalledWith('');
     });
   });

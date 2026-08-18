@@ -203,6 +203,10 @@ const tr = {
         headingFive: 'Başlık 5',
         headingSix: 'Başlık 6',
       },
+      colorstring: {
+        clearColorValue: 'Clear color value',
+        openColorPicker: 'Open color picker',
+      },
       datetime: {
         now: 'Şimdi',
         clear: 'Temizle',

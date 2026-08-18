@@ -197,6 +197,10 @@ const fr = {
         headingFive: 'Titre 5',
         headingSix: 'Titre 6',
       },
+      colorstring: {
+        clearColorValue: 'Clear color value',
+        openColorPicker: 'Open color picker',
+      },
       datetime: {
         now: 'Maintenant',
         clear: 'Effacer',

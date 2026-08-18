@@ -198,6 +198,10 @@ const he = {
         headingFive: 'כותרת 5',
         headingSix: 'כותרת 6',
       },
+      colorstring: {
+        clearColorValue: 'Clear color value',
+        openColorPicker: 'Open color picker',
+      },
       datetime: {
         now: 'עכשיו',
         clear: 'ניקוי',

@@ -218,6 +218,10 @@ const sr_Cyrl = {
         headingFive: 'Наслов 5',
         headingSix: 'Наслов 6',
       },
+      colorstring: {
+        clearColorValue: 'Clear color value',
+        openColorPicker: 'Open color picker',
+      },
       datetime: {
         now: 'Сада',
         clear: 'Обриши',

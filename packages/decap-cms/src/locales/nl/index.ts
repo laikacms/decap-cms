@@ -198,6 +198,10 @@ const nl = {
         headingFive: 'Heading 5',
         headingSix: 'Heading 6',
       },
+      colorstring: {
+        clearColorValue: 'Clear color value',
+        openColorPicker: 'Open color picker',
+      },
       datetime: {
         now: 'Nu',
         clear: 'Wissen',

@@ -196,6 +196,10 @@ const sv = {
         headingFive: 'Rubrik 5',
         headingSix: 'Rubrik 6',
       },
+      colorstring: {
+        clearColorValue: 'Clear color value',
+        openColorPicker: 'Open color picker',
+      },
       datetime: {
         now: 'Nu',
         clear: 'Rensa',

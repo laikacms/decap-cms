@@ -203,6 +203,10 @@ const ko = {
         headingFive: '제목 5',
         headingSix: '제목 6',
       },
+      colorstring: {
+        clearColorValue: 'Clear color value',
+        openColorPicker: 'Open color picker',
+      },
       datetime: {
         now: '현재시각',
         clear: '지우기',

@@ -178,6 +178,10 @@ const zh_Hant = {
         headingFive: '標題 5',
         headingSix: '標題 6',
       },
+      colorstring: {
+        clearColorValue: 'Clear color value',
+        openColorPicker: 'Open color picker',
+      },
       datetime: {
         now: '現在',
         clear: '清除',

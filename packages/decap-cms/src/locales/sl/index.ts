@@ -207,6 +207,10 @@ const sl = {
         headingFive: 'Naslov 5',
         headingSix: 'Naslov 6',
       },
+      colorstring: {
+        clearColorValue: 'Clear color value',
+        openColorPicker: 'Open color picker',
+      },
       datetime: {
         now: 'Zdaj',
         clear: 'Počisti',
