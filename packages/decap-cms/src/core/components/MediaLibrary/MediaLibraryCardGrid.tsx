@@ -35,6 +35,7 @@ interface MediaItem {
   key: string;
   name: string;
   type: string;
+  size?: number | undefined;
   draft?: boolean | undefined;
   url?: string | undefined;
   isViewableImage?: boolean | undefined;
@@ -149,6 +150,7 @@ function CardWrapper(
         displayURL={(displayURLs[file.id] || (file.url ? { url: file.url } : {})) as any}
         loadDisplayURL={() => loadDisplayURL(file)}
         type={file.type}
+        size={file.size}
         isViewableImage={file.isViewableImage ?? false}
       />
     </div>

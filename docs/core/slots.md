@@ -149,7 +149,7 @@ display-URL loader, so consumers can re-skin without re-implementing async asset
 selection wiring.
 
 - Props: `MediaLibraryCardRenderProps` (`isSelected?`, `displayURL`, `text`, `onClick`, `draftText`,
-  `width`, `height`, `margin`, `isPrivate?`, `type?`, `isViewableImage`, `loadDisplayURL`,
+  `width`, `height`, `margin`, `isPrivate?`, `type?`, `size?`, `isViewableImage`, `loadDisplayURL`,
   `isDraft?`)
 - Consumer: `packages/decap-cms/src/core/components/MediaLibrary/MediaLibraryCardGrid.tsx:25`
 
@@ -161,7 +161,7 @@ delete/insert buttons. All click and search-input handlers are pre-resolved.
 - Props: `MediaLibraryTopRenderProps` (`onClose`, `privateUpload?`, `forImage?`, `onDownload`,
   `onUpload`, `query?`, `onSearchChange`, `onSearchKeyDown`, `searchDisabled`, `onDelete`,
   `canInsert?`, `onInsert`, `hasSelection`, `isPersisting?`, `isDeleting?`, `selectedFile?`)
-- Consumer: `packages/decap-cms/src/core/components/MediaLibrary/MediaLibraryModal.tsx:179`
+- Consumer: `packages/decap-cms/src/core/components/MediaLibrary/MediaLibraryModal.tsx:180`
 
 ### `editorPanels`
 

@@ -2,7 +2,7 @@ import { render } from '@testing-library/react';
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-import MediaLibraryCard from '@/core/components/MediaLibrary/MediaLibraryCard';
+import MediaLibraryCard, { formatFileSize } from '@/core/components/MediaLibrary/MediaLibraryCard';
 
 describe('MediaLibraryCard', () => {
   const props = {
@@ -50,5 +50,47 @@ describe('MediaLibraryCard', () => {
 
     expect(img).not.toBeNull();
     expect(img).toHaveAttribute('alt', props.text);
+  });
+
+  // DCMS-2174: the card renders asset weight so bloated uploads (e.g. a
+  // 30 MB placeholder) are visually distinguishable from KB-scale assets.
+  describe('file size (DCMS-2174)', () => {
+    it('renders a human-readable size for a File with a known size', () => {
+      const file = new File(['a'.repeat(1000)], 'photo.png', { type: 'image/png' });
+      const { getByTestId } = render(<MediaLibraryCard {...props} size={file.size} />);
+
+      expect(getByTestId('card-file-size')).toHaveTextContent('1 KB');
+    });
+
+    it('renders a megabyte-scale size with one decimal place', () => {
+      const thirtyMb = 30 * 1000 * 1000;
+      const { getByTestId } = render(<MediaLibraryCard {...props} size={thirtyMb} />);
+
+      expect(getByTestId('card-file-size')).toHaveTextContent('30.0 MB');
+    });
+
+    it('renders nothing when size is unknown', () => {
+      const { queryByTestId } = render(<MediaLibraryCard {...props} size={undefined} />);
+
+      expect(queryByTestId('card-file-size')).toBeNull();
+    });
+  });
+});
+
+describe('formatFileSize', () => {
+  it('formats bytes under 1000 as B', () => {
+    expect(formatFileSize(512)).toBe('512 B');
+  });
+
+  it('formats kilobyte-scale sizes as a whole number', () => {
+    expect(formatFileSize(92_000)).toBe('92 KB');
+  });
+
+  it('formats megabyte-scale sizes with one decimal place', () => {
+    expect(formatFileSize(30_000_000)).toBe('30.0 MB');
+  });
+
+  it('returns undefined for an unknown size', () => {
+    expect(formatFileSize(undefined)).toBeUndefined();
   });
 });

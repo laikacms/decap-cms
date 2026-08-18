@@ -45,6 +45,15 @@ const IMAGE_EXTENSIONS_VIEWABLE = [
 ];
 const IMAGE_EXTENSIONS = [...IMAGE_EXTENSIONS_VIEWABLE];
 
+/**
+ * DCMS-2174: applied when `media_library.config.max_file_size` is unset, so
+ * uploads through the built-in media library have a sane ceiling by default
+ * instead of silently accepting arbitrarily large files. An explicit
+ * `max_file_size` (including `0`, which means "no limit") in config always
+ * wins over this default.
+ */
+export const DEFAULT_MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB, in bytes
+
 interface MediaFile {
   id: string;
   name: string;
@@ -299,9 +308,13 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
     const { files: fileList } = event.dataTransfer || event.target;
     const allFiles = [...(fileList as FileList)];
     const file = allFiles[0];
-    const maxFileSize = (config as Record<string, unknown> | undefined)?.max_file_size as
+    const configuredMaxFileSize = (config as Record<string, unknown> | undefined)?.max_file_size as
       | number
       | undefined;
+    // DCMS-2174: fall back to DEFAULT_MAX_FILE_SIZE only when max_file_size is
+    // unset; an explicit 0 still means "no limit" (see DEFAULT_MAX_FILE_SIZE).
+    const maxFileSize =
+      configuredMaxFileSize === undefined ? DEFAULT_MAX_FILE_SIZE : configuredMaxFileSize;
 
     if (maxFileSize && file.size > maxFileSize) {
       showAlert(
