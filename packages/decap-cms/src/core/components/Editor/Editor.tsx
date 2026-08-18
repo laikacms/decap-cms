@@ -112,6 +112,9 @@ function Editor({ newRecord = false, collectionName, slug, renderNotFound }: Edi
     }
     const result = setup();
     return result.cleanup;
+    // Intentionally keyed on `editKey` only, not `setup`/`collection`: see the
+    // comment above for why depending on `setup`'s identity would break the
+    // once-per-entry semantics this effect relies on.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editKey]);
 
