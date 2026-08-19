@@ -1,9 +1,10 @@
-import { render } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { getSlots, registerSlot, unregisterSlot } from '@/core/lib/registry';
+import { getSlots, registerPanel, registerSlot, unregisterSlot } from '@/core/lib/registry';
 import { CmsSlotsProvider, useCmsSlots } from '@/core/lib/slots';
+import EditorPanels from '@/core/components/Editor/EditorPanels';
 
 import type { CmsSlots } from '@/core/lib/slots';
 
@@ -189,6 +190,42 @@ describe('slots', () => {
       delete slots.renderLoader;
 
       expect(getSlots().renderLoader).toBe(renderLoader);
+    });
+  });
+
+  describe('editorPanels', () => {
+    const panelProps = {
+      collection: { name: 'posts', label: 'Posts' } as any,
+      entry: { slug: 'hello-world', collection: 'posts', data: {} } as any,
+    };
+    const t = ((key: string) => key) as any;
+
+    it('concatenates app-supplied and CMS.registerPanel-registered panels, app-supplied first', () => {
+      const appPanel = { id: 'app-panel', label: 'App Panel', render: () => <div>app panel body</div> };
+      const registeredPanel = {
+        id: 'registered-panel',
+        label: 'Registered Panel',
+        render: () => <div>registered panel body</div>,
+      };
+      registerPanel(registeredPanel);
+
+      const { getByRole, getAllByRole } = render(
+        <CmsSlotsProvider slots={{ editorPanels: [appPanel] }}>
+          <EditorPanels panelProps={panelProps} t={t} />
+        </CmsSlotsProvider>,
+      );
+
+      fireEvent.click(getByRole('button', { name: 'editor.editorInterface.openPanels' }));
+
+      const tabs = getAllByRole('tab');
+      expect(tabs.map(tab => tab.textContent)).toEqual(['App Panel', 'Registered Panel']);
+    });
+
+    it('renders nothing when no panels are installed from either source', () => {
+      const { container, queryByRole } = render(<EditorPanels panelProps={panelProps} t={t} />);
+
+      expect(container).toBeEmptyDOMElement();
+      expect(queryByRole('button')).toBeNull();
     });
   });
 
