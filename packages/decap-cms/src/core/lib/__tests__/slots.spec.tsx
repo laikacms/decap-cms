@@ -558,6 +558,137 @@ describe('slots', () => {
       vi.doUnmock('@/core/lib/slots');
       vi.resetModules();
     });
+
+    it('receives a "workflow" context when invoked from Workflow.tsx', async () => {
+      vi.resetModules();
+
+      vi.doMock('@/core/hooks/useRedux', () => ({
+        useAppDispatch: () => vi.fn(),
+        useAppSelector: (selector: (state: any) => any) =>
+          selector({
+            auth: {},
+            collections: {},
+            config: { publish_mode: 'editorial_workflow', roles: [] },
+            globalUI: { useOpenAuthoring: false },
+            editorialWorkflow: { pages: { isFetching: true } },
+          }),
+      }));
+
+      vi.doMock('@/core/i18n', () => ({
+        translate: () => (Component: React.ComponentType<any>) => {
+          return function Translated(props: any) {
+            return <Component {...props} t={(key: string) => key} />;
+          };
+        },
+      }));
+
+      vi.doMock('@/core/reducers', () => ({
+        selectUnpublishedEntriesGroupedByStatus: () => undefined,
+      }));
+
+      const renderLoader = vi.fn(() => null);
+      vi.doMock('@/core/lib/slots', () => ({
+        useCmsSlots: () => ({ renderLoader }),
+      }));
+
+      const { default: Workflow } = await import('@/core/components/Workflow/Workflow');
+
+      render(<Workflow />);
+
+      expect(renderLoader).toHaveBeenCalledWith(
+        expect.objectContaining({
+          label: 'workflow.workflow.loading',
+          context: 'workflow',
+        }),
+      );
+
+      vi.doUnmock('@/core/hooks/useRedux');
+      vi.doUnmock('@/core/i18n');
+      vi.doUnmock('@/core/reducers');
+      vi.doUnmock('@/core/lib/slots');
+      vi.resetModules();
+    });
+
+    it('receives an "entry" context when invoked from Editor.tsx', async () => {
+      vi.resetModules();
+
+      vi.doMock('@/core/hooks/useEditor', () => ({
+        useEditor: () => ({
+          collection: undefined,
+          entry: undefined,
+          entryDraft: null,
+          fields: [],
+          user: undefined,
+          hasChanged: false,
+          displayUrl: undefined,
+          hasWorkflow: false,
+          useOpenAuthoring: false,
+          isModification: false,
+          currentStatus: undefined,
+          scheduledPublishAt: undefined,
+          deployPreview: undefined,
+          localBackup: undefined,
+          draftKey: 'draft',
+          editorBackLink: '/collections/posts',
+          unpublishedEntry: false,
+          showDelete: false,
+          setup: () => ({ cleanup: () => {} }),
+          handleLocalBackupCheck: vi.fn(),
+          handleBackupOnChange: vi.fn(),
+          handleEntryChange: vi.fn(),
+          handleChangeDraftField: vi.fn(),
+          handlePersistEntry: vi.fn(),
+          handlePublishEntry: vi.fn(),
+          handleSchedulePublish: vi.fn(),
+          handleCancelSchedulePublish: vi.fn(),
+          handleUnpublishEntry: vi.fn(),
+          handleDuplicateEntry: vi.fn(),
+          handleDeleteEntry: vi.fn(),
+          handleDeleteUnpublishedChanges: vi.fn(),
+          handleLogout: vi.fn(),
+          handleLoadDeployPreview: vi.fn(),
+          handleValidate: vi.fn(),
+          t: (key: string) => key,
+        }),
+      }));
+
+      vi.doMock('@/core/components/Editor/EditorInterface', () => ({ default: () => null }));
+
+      const renderLoader = vi.fn(() => null);
+      vi.doMock('@/core/lib/slots', () => ({
+        useCmsSlots: () => ({ renderLoader }),
+      }));
+
+      const { default: Editor } = await import('@/core/components/Editor/Editor');
+      const { RouterProvider } = await import('@/core/routing/context');
+
+      const router = {
+        location: () => ({ pathname: '/collections/posts/entries/hello-world', search: '' }),
+        push: vi.fn(),
+        replace: vi.fn(),
+        href: (path: string) => `#${path}`,
+        subscribe: vi.fn(() => () => {}),
+        block: vi.fn(() => () => {}),
+      };
+
+      render(
+        <RouterProvider router={router as any}>
+          <Editor collectionName="posts" slug="hello-world" />
+        </RouterProvider>,
+      );
+
+      expect(renderLoader).toHaveBeenCalledWith(
+        expect.objectContaining({
+          label: 'editor.editor.loadingEntry',
+          context: 'entry',
+        }),
+      );
+
+      vi.doUnmock('@/core/hooks/useEditor');
+      vi.doUnmock('@/core/components/Editor/EditorInterface');
+      vi.doUnmock('@/core/lib/slots');
+      vi.resetModules();
+    });
   });
 
   describe('renderWorkflowCard', () => {
