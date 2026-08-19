@@ -30,6 +30,8 @@ import {
 } from '@codemirror/view';
 import React from 'react';
 
+import { smartBracketOvertype } from '@/widgets/code/smartBracketOvertype';
+
 import type { Extension } from '@codemirror/state';
 
 export interface CodeMirrorEditorRef {
@@ -97,6 +99,11 @@ const baseExtensions: Extension = [
   indentOnInput(),
   syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
   bracketMatching(),
+  // Must run before `closeBrackets()` so its type-over check sees the typed
+  // closing character first; `closeBrackets()`'s own skip-over only fires
+  // while the cursor stays adjacent to the auto-inserted bracket, which
+  // Enter (moving the closer to its own line) breaks (DCMS-2186).
+  smartBracketOvertype(),
   closeBrackets(),
   autocompletion(),
   rectangularSelection(),
