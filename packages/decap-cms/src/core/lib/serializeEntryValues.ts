@@ -46,7 +46,7 @@ function runSerializer(values: ValuesMap, fields: FieldList, method: SerializerM
       return {
         ...acc,
 
-        [fieldName]: value.map((val: any) => runSerializer(val, nestedFields, method)),
+        [fieldName]: value.map((val: ValuesMap) => runSerializer(val, nestedFields, method)),
       };
     }
 
