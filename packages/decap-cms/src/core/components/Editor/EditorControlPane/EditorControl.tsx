@@ -23,7 +23,7 @@ import { useTranslate } from '@/core/i18n';
 import { resolveWidget } from '@/core/lib/registry';
 import { selectIsLoadingAsset } from '@/core/reducers/medias';
 import { store } from '@/core/redux';
-import { borders, colors, FieldLabel, lengths, transitions } from '@/ui/default/index';
+import { borders, colors, colorsRaw, FieldLabel, lengths, transitions } from '@/ui/default/index';
 import HintMarkdown from './HintMarkdown';
 import Widget from './Widget';
 
@@ -119,8 +119,8 @@ export const ControlHint = styled.p<{ active?: boolean, error?: boolean }>`
   transition: color ${transitions.main};
 `;
 
-const RequiredFieldMarker = styled.span`
-  color: ${colors.errorText};
+const RequiredFieldMarker = styled.span<{ $hasErrors?: boolean }>`
+  color: ${props => (props.$hasErrors ? colorsRaw.white : colors.errorText)};
   margin-left: 2px;
 `;
 
@@ -146,7 +146,11 @@ export function LabelComponent({
     <FieldLabel $isActive={isActive} $hasErrors={hasErrors} htmlFor={uniqueFieldId}>
       {label}
       {isFieldRequired && (
-        <RequiredFieldMarker aria-hidden="true" title={t('editor.editorControl.field.required')}>
+        <RequiredFieldMarker
+          $hasErrors={hasErrors}
+          aria-hidden="true"
+          title={t('editor.editorControl.field.required')}
+        >
           {' *'}
         </RequiredFieldMarker>
       )}

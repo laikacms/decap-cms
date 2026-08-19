@@ -3,7 +3,7 @@ import React from 'react';
 import { describe, expect, it } from 'vitest';
 
 import { LabelComponent, styleStrings } from '@/core/components/Editor/EditorControlPane/EditorControl';
-import { colors } from '@/ui/default/index';
+import { colors, colorsRaw } from '@/ui/default/index';
 
 import type { CmsEntryField } from '@/lib/util/index';
 
@@ -80,5 +80,55 @@ describe('EditorControl LabelComponent - required field marker (DCMS-1499)', () 
 
     expect(screen.queryByText('*', { exact: false })).not.toBeInTheDocument();
     expect(screen.queryByText(/optional/i)).not.toBeInTheDocument();
+  });
+});
+
+/**
+ * Regression test for DCMS-2188: `FieldLabel` sets its background to
+ * `colors.errorText` and its text to `colorsRaw.white` when `$hasErrors`,
+ * but `RequiredFieldMarker` was hardcoded to `color: colors.errorText`
+ * regardless of parent state. In the error state the marker color equaled
+ * the label background color, so the "*" became invisible (red on red).
+ */
+describe('EditorControl LabelComponent - required marker contrast in error state (DCMS-2188)', () => {
+  const t = (key: string) => key;
+  const requiredField = { name: 'body', label: 'Body' } as unknown as CmsEntryField;
+
+  it('marker color differs from the label background when hasErrors is true', () => {
+    render(
+      <LabelComponent
+        field={requiredField}
+        isActive={false}
+        hasErrors
+        uniqueFieldId="body-field-1"
+        isFieldRequired
+        t={t}
+      />,
+    );
+
+    const marker = screen.getByTitle('editor.editorControl.field.required');
+
+    expect(marker).toHaveStyle({ color: colorsRaw.white });
+    expect(getComputedStyle(marker).color.toLowerCase()).not.toBe(
+      colors.errorText.toLowerCase(),
+    );
+  });
+
+  it('preserves the default errorText marker color when hasErrors is false', () => {
+    render(
+      <LabelComponent
+        field={requiredField}
+        isActive={false}
+        hasErrors={false}
+        uniqueFieldId="body-field-2"
+        isFieldRequired
+        t={t}
+      />,
+    );
+
+    const marker = screen.getByTitle('editor.editorControl.field.required');
+
+    expect(getComputedStyle(marker).color.toLowerCase()).toBe(colors.errorText.toLowerCase());
+    expect(marker).not.toHaveStyle({ color: colorsRaw.white });
   });
 });
