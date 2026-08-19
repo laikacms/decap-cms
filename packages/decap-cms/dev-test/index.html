@@ -20,7 +20,7 @@
           h('h1', {}, entry.data.title),
           props.widgetFor('image'),
         ),
-        h('p', {},
+        entry.data.date && h('p', {},
           h('small', {}, "Written " + entry.data.date)
         ),
         h('h2', {}, "Richtext Widget"),
