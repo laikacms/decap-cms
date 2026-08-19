@@ -80,8 +80,10 @@ function deserializeMediaFile({ id, content, encoding, path, name, isDirectory }
   let byteArray = new Uint8Array(0);
   if (encoding !== 'base64') {
     console.error(`Unsupported encoding '${encoding}' for file '${path}'`);
+  } else if (content == null) {
+    console.error(`Missing content for base64-encoded file '${path}'`);
   } else {
-    const decodedContent = atob(content!);
+    const decodedContent = atob(content);
     byteArray = new Uint8Array(decodedContent.length);
     for (let i = 0; i < decodedContent.length; i++) {
       byteArray[i] = decodedContent.charCodeAt(i);

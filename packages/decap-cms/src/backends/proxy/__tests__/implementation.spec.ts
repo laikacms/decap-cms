@@ -171,3 +171,39 @@ describe('proxy backend entry reads', () => {
     });
   });
 });
+
+describe('proxy backend media file deserialization', () => {
+  test('decodes a base64-encoded media file', async () => {
+    const { backend } = backendWithResponse({
+      id: 'sha-a',
+      path: 'media/a.png',
+      name: 'a.png',
+      content: btoa('hello'),
+      encoding: 'base64',
+    });
+
+    const file = await backend.getMediaFile('media/a.png');
+
+    expect(file.size).toBe('hello'.length);
+  });
+
+  test('falls back to an empty file and logs an error when base64 content is missing', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { backend } = backendWithResponse({
+      id: 'sha-a',
+      path: 'media/a.png',
+      name: 'a.png',
+      content: undefined,
+      encoding: 'base64',
+    });
+
+    const file = await backend.getMediaFile('media/a.png');
+
+    expect(file.size).toBe(0);
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Missing content for base64-encoded file 'media/a.png'"),
+    );
+
+    consoleErrorSpy.mockRestore();
+  });
+});
