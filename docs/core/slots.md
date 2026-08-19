@@ -103,7 +103,7 @@ Replaces the generic `<Loader>` shown while collection entries, an individual en
 board is loading. Receives the already-translated label and a `context` hint identifying where the
 loader is being shown. Omit to keep the default `<Loader>`.
 
-- Props: `LoaderRenderProps` (`label?`, `context?: 'config' | 'entries' | 'entry' | 'workflow'`)
+- Props: `LoaderRenderProps` (`label?`, `context?: 'entries' | 'entry' | 'workflow'`)
 - Consumers:
   - `packages/decap-cms/src/core/components/Collection/Entries/Entries.tsx:55`
   - `packages/decap-cms/src/core/components/Workflow/Workflow.tsx:66`
