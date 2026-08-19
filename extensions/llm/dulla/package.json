@@ -45,6 +45,7 @@
     "@laikacms/decap-cms": "workspace:*",
     "eslint": "catalog:",
     "eslint-config-prettier": "catalog:",
+    "jsdom": "catalog:",
     "globals": "catalog:",
     "rimraf": "catalog:",
     "typescript": "catalog:",
