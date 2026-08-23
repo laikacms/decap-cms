@@ -17,6 +17,9 @@ Repo-level design and process docs for `@laikacms/decap-cms`, split into two buc
     (single-package repo, Emotion, Effect, `yaml`).
   - [format-packs-plan.md](./decisions/format-packs-plan.md) - forkable richtext formats and
     PT-native component blocks.
+  - [decaporg-v4-merge-plan.md](./decisions/decaporg-v4-merge-plan.md) - contributing this fork's
+    core back to `decaporg/decap-cms` as a breaking v4: history convergence, the `v4-beta` strip,
+    and the parity contract.
 - **[learnings/](./learnings/)** - things verified or discovered while working on the repo:
   verification records and the tech-debt checklist.
   - [tech-debt.md](./learnings/tech-debt.md) - remaining debt checklist.
