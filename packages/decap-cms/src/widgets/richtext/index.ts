@@ -14,6 +14,10 @@ export interface RichtextWidgetDefinition {
   controlComponent: typeof controlComponent;
   previewComponent: typeof previewComponent;
   schema: typeof schema;
+  // `registerWidget` takes a `WidgetRegistrationOptions`, which carries an
+  // index signature so widgets can pass extra registration keys. Without one
+  // here the closed interface is not assignable to it.
+  [key: string]: unknown;
 }
 
 export function Widget(opts: Partial<RichtextWidgetDefinition> = {}): RichtextWidgetDefinition {
