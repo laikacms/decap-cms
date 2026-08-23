@@ -3,7 +3,6 @@
   "version": "4.0.0-beta.0",
   "description": "Decap CMS: a single package exposing the whole CMS through subpath exports. The root export is the app bootstrap. See restructure.md.",
   "license": "MIT",
-  "author": "Sem Postma <sem@laikacms.com> (based on Decap CMS by Netlify and contributors)",
   "homepage": "https://github.com/decaporg/decap-cms",
   "repository": {
     "type": "git",
