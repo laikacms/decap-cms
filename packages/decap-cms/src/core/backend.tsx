@@ -1744,12 +1744,8 @@ export function resolveBackend(config: CmsConfig) {
 
   const backend = getBackend(name);
   if (!backend) {
-    const hint = (name as string) === 'laika'
-      ? ' The laika backend is not registered by default - register it before'
-        + ' init() via CMS.registerBackend("laika", createLaikaBackend()) using'
-        + ' the default export from @laikacms/decap-cms/backends/laika.'
-      : ' Make sure the backend is registered with CMS.registerBackend() before'
-        + ' the CMS initialises.';
+    const hint = ' Make sure the backend is registered with CMS.registerBackend() before'
+      + ' the CMS initialises.';
     throw new Error(`Backend not found: ${name}.${hint}`);
   } else {
     // `getBackend` returns a registry entry with only `init`; the rest of

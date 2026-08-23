@@ -2,7 +2,7 @@ import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import React from 'react';
 
-import { laikaShouldForwardProp } from '@/ui/styled';
+import { defaultShouldForwardProp } from '@/ui/styled';
 import { Switch } from '@/ui/Toggle';
 import { colors, colorsRaw, shadows, transitions } from './styles';
 
@@ -24,7 +24,7 @@ const ToggleContainer = styled.button`
   background: transparent;
 `;
 
-const ToggleHandle = styled('span', { shouldForwardProp: laikaShouldForwardProp })<ToggleActiveProps>`
+const ToggleHandle = styled('span', { shouldForwardProp: defaultShouldForwardProp })<ToggleActiveProps>`
   ${shadows.dropDeep};
   position: absolute;
   left: 0;
@@ -43,7 +43,7 @@ const ToggleHandle = styled('span', { shouldForwardProp: laikaShouldForwardProp 
 `;
 
 const ToggleBackground = styled('span', {
-  shouldForwardProp: laikaShouldForwardProp,
+  shouldForwardProp: defaultShouldForwardProp,
 })<ToggleActiveProps>`
   width: 34px;
   height: 14px;

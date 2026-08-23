@@ -8,8 +8,8 @@ used as Decap CMS's asset picker instead of the built-in media library.
 ## Usage
 
 ```ts
-import { registerMediaLibrary } from '@laikacms/decap-cms/core';
-import uploadcareMediaLibrary from '@laikacms/decap-cms/media/library-uploadcare';
+import { registerMediaLibrary } from 'decap-cms/core';
+import uploadcareMediaLibrary from 'decap-cms/media/library-uploadcare';
 
 registerMediaLibrary(uploadcareMediaLibrary);
 ```

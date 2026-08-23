@@ -8,7 +8,7 @@ import { App, AppContent } from './components/index';
 import type { CmsConfig } from '@/core/index';
 
 /**
- * `@laikacms/decap-cms/app/bare` — the same public API as `/app` (and the `.`
+ * `decap-cms/app/bare` — the same public API as `/app` (and the `.`
  * root export) **without** the eager import of `./extensions.js` and
  * **without** the auto-init at module load.
  *
@@ -19,18 +19,17 @@ import type { CmsConfig } from '@/core/index';
  * collections + a handful of widgets — that's a lot of wasted bytes. Importing
  * from `/bare` and calling `CMS.registerBackend(…)` / `CMS.registerWidget(…)` /
  * `CMS.registerEntryCodec(…)` only for the surfaces actually needed lets the
- * bundler tree-shake everything else. This mirrors `/laika-app/bare` for the
- * classic (non-laika) app shell.
+ * bundler tree-shake everything else.
  *
  * Usage:
  *
  *     import {
  *       init,
  *       DecapCmsApp,
- *     } from '@laikacms/decap-cms/app/bare';
- *     import { GitHubBackend } from '@laikacms/decap-cms/backends/github';
- *     import { jsonEntryCodec } from '@laikacms/decap-cms/entry-codecs/json';
- *     import widgetString from '@laikacms/decap-cms/widgets/string';
+ *     } from 'decap-cms/app/bare';
+ *     import { GitHubBackend } from 'decap-cms/backends/github';
+ *     import { jsonEntryCodec } from 'decap-cms/entry-codecs/json';
+ *     import widgetString from 'decap-cms/widgets/string';
  *
  *     DecapCmsApp.registerBackend('github', GitHubBackend);
  *     DecapCmsApp.registerEntryCodec(jsonEntryCodec);
@@ -97,7 +96,7 @@ function getRoot() {
 // same container leaves two independent React roots reconciling overlapping
 // DOM, which surfaces as a `NotFoundError: removeChild` from one root
 // deleting a node the other has already detached, caught by the top-level
-// `ErrorBoundary` (DCMS-1896). Mirrors `laika-app/bare.ts`'s `ensureRoot`.
+// `ErrorBoundary` (DCMS-1896).
 const rootRegistry = new WeakMap<Element, ReturnType<typeof createRoot>>();
 
 function ensureRoot(container: Element): ReturnType<typeof createRoot> {

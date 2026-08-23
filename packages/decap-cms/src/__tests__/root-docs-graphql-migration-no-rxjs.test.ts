@@ -24,7 +24,7 @@ const REPO_ROOT = path.resolve(HERE, '../../../..');
 const PACKAGE_JSON_PATH = path.join(REPO_ROOT, 'packages/decap-cms/package.json');
 const BREAKING_CHANGES_DOC_PATH = path.join(REPO_ROOT, 'docs/contributing/decisions/breaking-changes-v4-beta.md');
 
-describe('rxjs is not part of the @laikacms/decap-cms GraphQL contract (DCMS-1233)', () => {
+describe('rxjs is not part of the decap-cms GraphQL contract (DCMS-1233)', () => {
   it('is absent from packages/decap-cms/package.json dependency fields', () => {
     const pkg = JSON.parse(fs.readFileSync(PACKAGE_JSON_PATH, 'utf8'));
 

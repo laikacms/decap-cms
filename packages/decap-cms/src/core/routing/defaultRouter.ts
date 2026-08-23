@@ -13,7 +13,7 @@ import type { Router, RouterBlocker } from './router';
 export interface DefaultRouter extends Router {
   /**
    * The underlying hash history instance. Exposed so a shell that keeps its
-   * own react-router bridge (laika's `unstable_HistoryRouter`) can bind it to
+   * own react-router bridge (`unstable_HistoryRouter`) can bind it to
    * the same instance this router drives, keeping both in sync. The object is
    * shape-compatible with what react-router v7 needs from a history.
    */

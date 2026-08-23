@@ -15,7 +15,7 @@ import type { ReactNode } from 'react';
  *    `DecapCmsProvider` — required so popups triggered outside the
  *    rich-text editor (the "Unsaved changes" confirm, any Base UI select,
  *    etc.) resolve these variables at all (DCMS-1851).
- *  - `src/ui/editor/themes/GlobalStyles.tsx`, which interpolates
+ *  - the app-level global styles, which interpolate
  *    `shadcnTokensCss` into its own `:root`/`.dark` block alongside the
  *    editor-only `--editor-*` tokens, so the editor subtree keeps working
  *    the same way if it's ever mounted without `DecapCmsProvider` (e.g. in
@@ -46,10 +46,9 @@ export const shadcnTokensCss = css`
   }
 
   /*
-   * Dark tokens aligned with the laika dark palette (see laikaThemes.ts) so
-   * popups match the rest of the shell rather than shadcn near-black
-   * defaults. Activated by the dark class that LaikaThemeProvider toggles
-   * on the document element.
+   * Dark tokens aligned with the app's dark palette so popups match the rest
+   * of the shell rather than shadcn near-black defaults. Activated by the
+   * .dark class an app shell toggles on the document element.
    */
   .dark {
     --background: #11141a;

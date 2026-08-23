@@ -10,7 +10,7 @@ import type { Node, Pair, YAMLMap, YAMLSeq } from 'yaml';
 import type { CreateNodeContext } from 'yaml/util';
 
 /**
- * `@laikacms/decap-cms/entry-codecs/yaml` — the YAML entry codec
+ * `decap-cms/entry-codecs/yaml` — the YAML entry codec
  * (`format: yml`/`yaml`, `.yml`/`.yaml` files). Register with
  * `CMS.registerEntryCodec(yamlEntryCodec)`; the fat `/app` and `/laika-app`
  * entries do so out of the box. To use YAML as a frontmatter language, pass

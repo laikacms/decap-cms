@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest';
  * breaking-changes-v4-beta.md's `markdown` → `richtext` section (DCMS-483)
  * used to promise the `markdown` back-compat alias "remains registered ...
  * for one minor version". The alias (`app/extensions.ts`,
- * `laika-app/extensions.ts`, `core/lib/registry.tsx`'s `resolveWidget`) has
+ * `core/lib/registry.tsx`'s `resolveWidget`) has
  * no expiry logic — it's wired in unconditionally, with only a one-time
  * console.warn — so the doc's removal-timeline promise had gone stale well
  * past one minor version (DCMS-1886). This pins the doc to accurate,

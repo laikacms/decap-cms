@@ -1,7 +1,7 @@
 # `lib/domain`
 
-The CMS domain types, published as `@laikacms/decap-cms/lib/domain`. Every layer may import this
-module; it imports nothing itself, so a type-only import pulls in no UI, store, or engine code.
+The CMS domain types, published as `decap-cms/lib/domain`. Every layer may import this module; it
+imports nothing itself, so a type-only import pulls in no UI, store, or engine code.
 
 The purity rule is enforced by the `local/layer-deps` ESLint rule, not by convention: a single
 import here is a lint error.

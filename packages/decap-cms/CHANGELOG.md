@@ -4,8 +4,8 @@
 
 ### Minor Changes
 
-- d094b7e: Add a tree-shakeable `@laikacms/decap-cms/app/bare` entry point for the classic
-  (non-laika) app shell, mirroring `@laikacms/decap-cms/laika-app/bare`. Like the
+- d094b7e: Add a tree-shakeable `decap-cms/app/bare` entry point for the classic
+  (non-laika) app shell, mirroring `decap-cms/laika-app/bare`. Like the
   laika bare entry, it exposes the same public API as `/app` but skips the eager
   `registerExtensions()` and the auto-init at module load, so consumers can
   register only the backends/widgets/entry-codecs they use and let the bundler
@@ -19,7 +19,7 @@
   display label is no longer echoed back (it comes from collection config).
 
   The shared `entriesByFolder` / `entriesByFiles` / `allEntriesByFolder` helpers exported from
-  `@laikacms/decap-cms/lib/backend` return `BackendEntry[]` as a result.
+  `decap-cms/lib/backend` return `BackendEntry[]` as a result.
 
   A commit that names nobody now yields no author at all, rather than an author whose name is the
   empty string. The shared helpers already worked this way; GitLab's GraphQL read path did not, and
@@ -85,8 +85,8 @@
   `| null` and core already treated `null` as ENTRY_LOCK_UNSUPPORTED; the implementation signature was
   the only place that claimed otherwise, which forced implementors into a cast to degrade.
 
-- 6f3b573: Add two public subpath exports: `@laikacms/decap-cms/lib/domain` (the domain entry types and
-  factories, importable with zero dependencies) and `@laikacms/decap-cms/lib/backend` (the backend
+- 6f3b573: Add two public subpath exports: `decap-cms/lib/domain` (the domain entry types and
+  factories, importable with zero dependencies) and `decap-cms/lib/backend` (the backend
   contract, the `BackendEntry` seam with its tagged `raw`/`parsed` content union, `PersistPayload`,
   `UnpublishedEntry`, and the implementer helpers). Nothing consumes them yet: the engine and the
   shipped backends still run on `CmsImplementation`, so this release changes no behavior.
@@ -101,7 +101,7 @@
   clearing the field.
 - 55fb7c8: Add QR code login to the laika app shell: scan a code from an authenticated desktop session to log
   in on a mobile device without retyping credentials.
-- 5977754: Add `resolveLaikaBackend({ local, remote })` to `@laikacms/decap-cms/backends/laika`, which picks
+- 5977754: Add `resolveLaikaBackend({ local, remote })` to `decap-cms/backends/laika`, which picks
   the Decap `backend:` block for the current build: the local JSON:API that `@laikacms/vite-plugin`
   mounts while `vite dev` runs, and the remote OAuth backend everywhere else. One admin config now
   targets both without manual switching.
@@ -515,7 +515,7 @@
   The repository itself is now a pnpm workspace: the package moved from the repo root to
   `packages/decap-cms` with no change to the published package layout.
 
-Releases of `@laikacms/decap-cms` are documented on the GitHub
+Releases of `decap-cms` are documented on the GitHub
 [Releases](https://github.com/laikacms/decap-cms/releases) page.
 
 This package is a fork of Decap CMS. Pre-fork history lives in the per-package changelogs of

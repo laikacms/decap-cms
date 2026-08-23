@@ -138,7 +138,7 @@ export interface LlmSession {
  * token to lend that would be right in general. Whoever builds the transport
  * supplies its credentials — from their own auth, or by asking the CMS for the
  * backend's token (`currentBackend(store.getState().config).getToken()`, both
- * exported from `@laikacms/decap-cms/core`) when their endpoint happens to
+ * exported from `decap-cms/core`) when their endpoint happens to
  * trust that one. Either way the decision is the implementor's, not the CMS's.
  *
  * If a separate identity ever has to surface in the CMS's own UI, this is where

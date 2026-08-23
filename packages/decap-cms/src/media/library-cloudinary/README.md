@@ -9,8 +9,8 @@ instead of the built-in media library.
 ## Usage
 
 ```ts
-import { registerMediaLibrary } from '@laikacms/decap-cms/core';
-import cloudinaryMediaLibrary from '@laikacms/decap-cms/media/library-cloudinary';
+import { registerMediaLibrary } from 'decap-cms/core';
+import cloudinaryMediaLibrary from 'decap-cms/media/library-cloudinary';
 
 registerMediaLibrary(cloudinaryMediaLibrary);
 ```

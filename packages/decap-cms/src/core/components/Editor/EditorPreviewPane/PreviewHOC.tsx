@@ -25,16 +25,14 @@ function PreviewHOCInner({ previewComponent, ...props }: PreviewHOCProps) {
 }
 
 /**
- * Only re-render on value change, but always re-render objects, lists, and
- * richtext.
+ * Only re-render on value change, but always re-render container widgets.
  *
  * Object/list widgets are excluded because their child widgets are each also
  * wrapped with this component and will only be updated on their own value
- * change. Richtext is excluded because its value is a `RichtextValue` proxy
- * (see `src/lib/richtext/RichtextValue.ts`) that keeps a stable identity
- * across renders and only mutates its internal `portableText`/`editorState`
- * in place — `prev.value === next.value` is therefore always true while the
- * user types, and without this bypass the preview would never re-render.
+ * change. Any widget whose value is a mutable instance with a stable identity
+ * (mutated in place rather than replaced) belongs here too: for those
+ * `prev.value === next.value` stays true while the user types, and without the
+ * bypass the preview would never re-render.
  */
 const ALWAYS_RERENDER_WIDGETS = ['object', 'list', 'richtext'];
 

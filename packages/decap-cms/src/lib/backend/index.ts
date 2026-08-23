@@ -1,5 +1,5 @@
 /**
- * `@laikacms/decap-cms/lib/backend`: everything needed to write a backend.
+ * `decap-cms/lib/backend`: everything needed to write a backend.
  *
  * The seam types are defined here; the config/collection types the contract
  * references and the implementer helpers are re-exported from `lib/util` for

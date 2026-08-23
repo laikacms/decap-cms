@@ -1,15 +1,9 @@
 import { merge } from 'lodash-es';
 
-import {
-  registerBlock as registerRichtextBlock,
-  registerFormat as registerRichtextFormatPack,
-  unregisterBlock as unregisterRichtextBlock,
-} from '@/lib/richtext';
 import { oneLine } from '@/lib/util/index';
 
 import type { CmsSlots, EditorPanel } from '@/core/lib/slots';
 import type { BackendClass } from '@/lib/backend/index';
-import type { BlockDefinition, BlockPreviewProps, FormatPack } from '@/lib/richtext';
 import type {
   CmsAllowedEvent,
   CmsConfig,
@@ -28,7 +22,6 @@ import type {
   CmsWidgetValueSerializer,
   LlmTransport,
 } from '@/lib/util/index';
-import type { ComponentType } from 'react';
 import type { Pluggable } from 'unified';
 
 type CmsPreviewStyle = { raw?: boolean, value: string };
@@ -129,10 +122,6 @@ export default {
   getWidget,
   getWidgets,
   resolveWidget,
-  registerBlock,
-  unregisterBlock,
-  registerRichtextFormat,
-  registerBlockComponents,
   registerRemarkPlugin,
   getRemarkPlugins,
   registerWidgetValueSerializer,
@@ -252,42 +241,6 @@ export function resolveWidget(name: string | undefined) {
     `);
   }
   return getWidget(name || 'string') || getWidget('unknown');
-}
-
-/**
- * Richtext custom blocks and format packs (PT-native replacement for the
- * removed `registerEditorComponent` API; see breaking-changes-v4-beta.md).
- * Register at boot, before entries load.
- */
-export function registerBlock<TData extends Record<string, unknown>>(
-  definition: BlockDefinition<TData>,
-) {
-  registerRichtextBlock(definition);
-}
-export function unregisterBlock(id: string) {
-  unregisterRichtextBlock(id);
-}
-export function registerRichtextFormat(pack: FormatPack) {
-  registerRichtextFormatPack(pack);
-}
-
-let warnedBlockComponentsReserved = false;
-/**
- * Reserved: site-supplied React components rendered for blocks in place of
- * their previews ("blocks are components"). Lands with the visual editor;
- * calling it today has no effect.
- */
-export function registerBlockComponents(
-  components: Record<string, ComponentType<BlockPreviewProps>>,
-) {
-  void components;
-  if (!warnedBlockComponentsReserved) {
-    warnedBlockComponentsReserved = true;
-    console.warn(oneLine`
-      CMS.registerBlockComponents is reserved for the upcoming visual editor and has no
-      effect yet. Use the \`preview\` property of a registered block instead.
-    `);
-  }
 }
 
 /**
@@ -631,12 +584,11 @@ export function getFormatter(name: string) {
 }
 
 /**
- * Entry codecs (yaml/toml/json — `src/entry-codecs/*`): whole-entry-file
- * encodings, distinct from richtext format packs. Nothing is registered by
- * default; the fat `/app` and `/laika-app` entries register all three,
- * `/bare` consumers register only what their collections use. Registration
- * order matters: the inferring `frontmatter` format tries fence languages in
- * this order.
+ * Entry codecs (yaml/toml/json, `src/entry-codecs/*`): whole-entry-file
+ * encodings. Nothing is registered by default; the fat app entry points
+ * register all three, `/bare` consumers register only what their collections
+ * use. Registration order matters: the inferring `frontmatter` format tries
+ * fence languages in this order.
  */
 export function registerEntryCodec(pack: CmsEntryCodec) {
   if (!pack || !pack.name || !pack.formatter) {

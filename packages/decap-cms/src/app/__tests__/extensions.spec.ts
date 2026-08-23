@@ -7,7 +7,7 @@ describe('app extensions', () => {
   it('does not register the map widget by default (DCMS-1971)', () => {
     registerExtensions();
 
-    // The map widget ships as the standalone `@laikacms/decap-cms-widget-map`
+    // The map widget ships as the standalone `decap-cms-widget-map`
     // package (extensions/widgets/map). The default app entry must not
     // register it — consumers who need it opt in via
     // `CMS.registerWidget(DecapCmsWidgetMap.Widget())`.

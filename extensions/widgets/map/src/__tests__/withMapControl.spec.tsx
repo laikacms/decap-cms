@@ -227,7 +227,7 @@ describe('withMapControl', () => {
   });
 
   // DCMS-430: DCMS-428's hasLayout() re-check inside the rAF fallback still
-  // let a cold deep-link into the v4.beta laika demo (React running in dev
+  // let a cold deep-link into the demo app (React running in dev
   // mode, StrictMode double-invoking the mount effect) construct the OL Map
   // twice, warning twice. Render under React.StrictMode - which double-invokes
   // mount effects in dev builds - and assert the OL Map is constructed exactly

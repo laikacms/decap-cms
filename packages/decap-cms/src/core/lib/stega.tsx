@@ -47,9 +47,9 @@ function getNestedFields(f?: CmsField): CmsField[] {
 /**
  * Encode a string value by appending steganographic data.
  *
- * `richtext` (and its deprecated `markdown` alias) fields are deliberately
+ * Rich-text fields (`richtext` and its `markdown` alias) are deliberately
  * excluded (DCMS-1325): their raw string is markdown source that still has
- * to pass through the markdown -> Portable Text -> preview-HTML pipeline.
+ * to pass through the markdown -> preview-HTML pipeline.
  * Appending a stega block per paragraph, as used to happen here, survives
  * that pipeline as literal zero-width characters (ZWSP/ZWNJ/ZWJ/BOM) sitting
  * inside the rendered preview's flowing prose text nodes, invisible on

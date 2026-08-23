@@ -142,8 +142,8 @@ describe('sanitizeSlug', () => {
   });
 
   // DCMS-1669 / DCMS-1939: a 3,000+ char title must not produce an equally
-  // long slug (real backends reject it — GitHub 422, filesystem ENAMETOOLONG,
-  // Laika backend 400 "Key or path segment too long").
+  // long slug (real backends reject it: GitHub 422, filesystem ENAMETOOLONG,
+  // API backends with a 400 "Key or path segment too long").
   describe('max_length (DCMS-1669)', () => {
     it('applies the default 100 char cap when max_length is unset', () => {
       const longTitle = 'a'.repeat(3000);

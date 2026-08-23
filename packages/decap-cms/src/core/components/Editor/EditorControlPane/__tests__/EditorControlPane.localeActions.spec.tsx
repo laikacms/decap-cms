@@ -30,7 +30,7 @@ import type {
 } from '@/lib/util/index';
 
 // The AI translate action that used to live in this package now ships as
-// `@laikacms/decap-cms-ai-translate` (DCMS-1395). What this package still owns
+// `decap-cms-ai-translate` (DCMS-1395). What this package still owns
 // is the seam: resolving the i18n context and handing it to registered
 // actions. That contract is what these tests pin.
 

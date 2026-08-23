@@ -1,7 +1,7 @@
 import type { CmsEntryCodec, CmsFormatterFunctions, CmsFrontmatterCodec } from '@/lib/util/index';
 
 /**
- * `@laikacms/decap-cms/entry-codecs/json` — the JSON entry codec
+ * `decap-cms/entry-codecs/json` — the JSON entry codec
  * (`format: json`, `.json` files). This is the identity codec for
  * laika-backend apps (entries are already objects) and typically the only
  * one a laika `/bare` setup registers. Register with

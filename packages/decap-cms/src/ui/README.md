@@ -22,16 +22,15 @@ upward. Enforced by the `local/layer-deps` ESLint rule in `eslint.config.mjs`:
 1. `src/ui/` (including `src/ui/editor/`)
 2. `src/ui/default/`, `src/ui/auth/`
 3. `src/widgets/`
-4. `src/core/components/` | `src/app/components/` | `src/laika-app/` — siblings; they must not
-   import each other's components. A component two of them need belongs in layers 1-3. One
-   sanctioned exception: the app shell (`app/components`) may compose `core/components` pages (the
-   `allowed` edge in the rule config).
+4. `src/core/components/` | `src/app/components/` - siblings; they must not import each other's
+   components. A component two of them need belongs in layers 1-3. One sanctioned exception: the app
+   shell (`app/components`) may compose `core/components` pages (the `allowed` edge in the rule
+   config).
 
 Every layer should build on Base UI (via the layer-1 primitives) and on the layers below it rather
 than hand-rolling behavior. Non-component infrastructure (`core/actions`, `core/hooks`, `core/i18n`,
-`lib/`, `backends/`, …) sits outside this model. The pre-existing edges where laika-app wraps the
-app shell and core pages are grandfathered in the rule config as tracked debt - shrink that list,
-never grow it.
+`lib/`, `backends/`, …) sits outside this model. Any pre-existing cross-layer edges are
+grandfathered in the rule config as tracked debt - shrink that list, never grow it.
 
 ## Folder layout
 
@@ -116,9 +115,7 @@ real implementations, moved up from the editor's old `ui/` subfolder): `alert-di
 `@base-ui/react/combobox` and is the searchable/async/multi-select primitive used by
 `widgets/select` and `widgets/relation` (#631/DCMS-545) — reach for it instead of `select` whenever
 typeahead filtering, chip-based multi-select, or async option loading is needed. `avatar` and
-laika-app's `LaikaTooltip` consumers were deduped onto these canonical implementations in
-#630/DCMS-544 — `src/laika-app/ui/LaikaTooltip.tsx` and `LaikaAvatar.tsx` are now thin
-backwards-compatible aliases, not separate Base UI wrappers.
+`tooltip` consumers were deduped onto these canonical implementations in #630/DCMS-544.
 
 `src/ui/editor/` (the Lexical editor) is a _consumer_ of these primitives — it imports them from
 `@/ui/<name>` like everyone else and holds no primitive implementations of its own.

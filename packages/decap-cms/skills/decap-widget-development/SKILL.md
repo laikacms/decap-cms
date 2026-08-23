@@ -1,13 +1,13 @@
 ---
 name: decap-widget-development
-description: Build custom field widgets and editor components for Decap CMS (@laikacms/decap-cms). Use when creating or modifying a widget control/preview, adding field validation, or registering a rich-text editor component in a site repo.
+description: Build custom field widgets and editor components for Decap CMS (decap-cms). Use when creating or modifying a widget control/preview, adding field validation, or registering a rich-text editor component in a site repo.
 ---
 
 # Decap CMS widget development
 
-`@laikacms/decap-cms` is a single package with subpath exports (one per `src/<name>/`). Widget
-values are **plain JS objects/arrays/primitives**; Immutable.js is gone, do not reintroduce it or
-its access patterns (`value.get(...)`). Styling is Emotion only.
+`decap-cms` is a single package with subpath exports (one per `src/<name>/`). Widget values are
+**plain JS objects/arrays/primitives**; Immutable.js is gone, do not reintroduce it or its access
+patterns (`value.get(...)`). Styling is Emotion only.
 
 ## Widget anatomy
 
@@ -30,7 +30,7 @@ export default { Widget, controlComponent, previewComponent };
 Register it once during CMS setup:
 
 ```ts
-import { DecapCmsCore as CMS } from '@laikacms/decap-cms/core';
+import { DecapCmsCore as CMS } from 'decap-cms/core';
 import * as MyWidget from './widgets/mywidget';
 
 CMS.registerWidget(MyWidget.Widget());
@@ -38,13 +38,13 @@ CMS.registerWidget(MyWidget.Widget());
 
 `controlComponent` is required (registration throws without it); `previewComponent` and `schema` are
 optional. Registering the same `name` twice warns and the last one wins. Built-in widgets are
-importable from subpaths (`@laikacms/decap-cms/widgets/string`, `.../widgets/richtext`, etc.) and
+importable from subpaths (`decap-cms/widgets/string`, `.../widgets/richtext`, etc.) and
 re-registerable with overrides via their own `Widget(opts)`.
 
 ## Control component contract
 
 ```tsx
-import type { CmsWidgetControlProps } from '@laikacms/decap-cms/lib/util';
+import type { CmsWidgetControlProps } from 'decap-cms/lib/util';
 import React from 'react';
 
 export default function MyWidgetControl({
@@ -110,7 +110,7 @@ Props: `{ value, field, entry, getAsset }`. Most previews only need `value`. Wra
 shared container:
 
 ```tsx
-import { WidgetPreviewContainer } from '@laikacms/decap-cms/ui/default';
+import { WidgetPreviewContainer } from 'decap-cms/ui/default';
 import React from 'react';
 
 export default function MyWidgetPreview({ value }: { value?: React.ReactNode }) {
@@ -129,8 +129,7 @@ the `richtext` widget instead — a PT-native (Portable Text) mechanism, not a `
 `toBlock`/`toPreview` shortcode. Full docs: `src/widgets/richtext/README.md` ("Custom blocks").
 
 ```ts
-import { markdownFormat } from '@laikacms/decap-cms/format-packs/markdown';
-import { CMS } from '@laikacms/decap-cms/laika-app/bare';
+import { markdownFormat } from 'decap-cms/format-packs/markdown';
 
 CMS.registerBlock({
   id: 'youtube',
@@ -158,19 +157,17 @@ CMS.registerRichtextFormat(markdownFormat);
 
 - **Emotion only** (`@emotion/styled`, `css`). No Tailwind, no CSS Modules, no inline style objects
   for themable values.
-- Design tokens and shared widget chrome come from `@laikacms/decap-cms/ui/default`: `colors`,
-  `lengths`, `zIndex`, `shadows`, `transitions`, plus `WidgetPreviewContainer`, `FieldLabel`,
+- Design tokens and shared widget chrome come from `decap-cms/ui/default`: `colors`, `lengths`,
+  `zIndex`, `shadows`, `transitions`, plus `WidgetPreviewContainer`, `FieldLabel`,
   `ObjectWidgetTopBar`, `Toggle`, `Icon`. Do not hardcode colors/sizes.
-- Interactive primitives (dialogs, popovers, selects, tooltips) come from `@laikacms/decap-cms/ui`
-  (Base UI wrappers); do not hand-roll them.
+- Interactive primitives (dialogs, popovers, selects, tooltips) come from `decap-cms/ui` (Base UI
+  wrappers); do not hand-roll them.
 - Layer order is `ui` then `ui/default` then `widgets` then app/core: a widget may import from `ui`
-  and `ui/default` but never from `core`, `app`, or `laika-app` internals.
 - No em dashes in string/JSX literals (lint-enforced).
 
 ## Working inside the decap-cms repo itself
 
 Same contracts, different import style: use the `@/` alias (`@/lib/util/index`,
 `@/ui/default/index`), add the widget under `src/widgets/<name>/` with colocated `__tests__/`, and
-register it in the arrays in `src/app/extensions.ts` and `src/laika-app/extensions.ts`. Adding a new
 subpath export touches `package.json`, which is operator-gated: queue it rather than editing
 directly. Verify with `pnpm test:ci`, and end-to-end via the demo app (`pnpm build:demo`).

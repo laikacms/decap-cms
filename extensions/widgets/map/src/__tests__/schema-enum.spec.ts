@@ -9,7 +9,7 @@ import Widget from '../index';
 // `./schema/*` export. If this package's widget name drifts from the schema, or
 // the name is dropped from the enum, this fails.
 const require = createRequire(import.meta.url);
-const schema = require('@laikacms/decap-cms/schema/config.schema.json');
+const schema = require('decap-cms/schema/config.schema.json');
 
 const WIDGET_NAME = 'map';
 

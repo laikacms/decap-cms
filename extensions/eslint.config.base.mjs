@@ -12,7 +12,7 @@ import { fileURLToPath } from 'url';
  * testing anything.
  *
  * Anything an extension needs and cannot reach through a published subpath is
- * a gap in `@laikacms/decap-cms`'s `exports` map, and the fix belongs there,
+ * a gap in `decap-cms`'s `exports` map, and the fix belongs there,
  * not here.
  *
  * `extensions/` is not itself a package, so this file cannot resolve eslint
@@ -71,12 +71,12 @@ export default function extensionConfig({ configUrl, eslint, tseslint, globals, 
               {
                 group: ['@/*'],
                 message:
-                  "Extension packages cannot use the CMS package's internal `@/` alias. Import from a published subpath, e.g. `@laikacms/decap-cms/lib/util`.",
+                  "Extension packages cannot use the CMS package's internal `@/` alias. Import from a published subpath, e.g. `decap-cms/lib/util`.",
               },
               {
-                group: ['@laikacms/decap-cms/src/*', '@laikacms/decap-cms/dist/*'],
+                group: ['decap-cms/src/*', 'decap-cms/dist/*'],
                 message:
-                  'Import the published subpath (`@laikacms/decap-cms/<name>`), not a path inside the package. If what you need has no subpath, add one to its `exports` map.',
+                  'Import the published subpath (`decap-cms/<name>`), not a path inside the package. If what you need has no subpath, add one to its `exports` map.',
               },
               {
                 group: ['**/packages/decap-cms/**'],

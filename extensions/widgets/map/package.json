@@ -1,9 +1,9 @@
 {
-  "name": "@laikacms/decap-cms-widget-map",
+  "name": "decap-cms-widget-map",
   "description": "OpenLayers map widget for Decap CMS: draws a point, line or polygon and stores it as GeoJSON.",
   "version": "4.2.0",
-  "repository": "https://github.com/laikacms/decap-cms/tree/main/extensions/widgets/map",
-  "bugs": "https://github.com/laikacms/decap-cms/issues",
+  "repository": "https://github.com/decaporg/decap-cms/tree/main/extensions/widgets/map",
+  "bugs": "https://github.com/decaporg/decap-cms/issues",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -40,13 +40,13 @@
   "peerDependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@laikacms/decap-cms": "^4.0.0",
+    "decap-cms": "^4.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@eslint/js": "catalog:",
-    "@laikacms/decap-cms": "workspace:*",
+    "decap-cms": "workspace:*",
     "@testing-library/jest-dom": "catalog:",
     "@testing-library/react": "catalog:",
     "@types/react": "catalog:",

@@ -68,8 +68,8 @@ function formatByName(name: Format, customDelimiter?: Delimiter): FormatterFunct
   throw new Error(
     `No formatter available with name: ${name}. Registered entry codecs: ${registered.join(', ') || '(none)'}. `
       + `Register one via CMS.registerEntryCodec (e.g. import { yamlEntryCodec } from `
-      + `'@laikacms/decap-cms/entry-codecs/yaml'; markdown/frontmatter entries come from `
-      + `createMarkdownEntryCodec in '@laikacms/decap-cms/entry-codecs/markdown').`,
+      + `'decap-cms/entry-codecs/yaml'; markdown/frontmatter entries come from `
+      + `createMarkdownEntryCodec in 'decap-cms/entry-codecs/markdown').`,
   );
 }
 

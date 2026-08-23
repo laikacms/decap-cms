@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
 import React from 'react';
 
-import { laikaShouldForwardProp } from '@/ui/styled';
+import { defaultShouldForwardProp } from '@/ui/styled';
 import Icon from './Icon';
 import { buttons, colors, colorsRaw, shadows } from './styles';
 
@@ -19,7 +19,7 @@ interface ButtonRoundProps {
   $isActive?: boolean | undefined;
 }
 
-const ButtonRound = styled('button', { shouldForwardProp: laikaShouldForwardProp })<ButtonRoundProps>`
+const ButtonRound = styled('button', { shouldForwardProp: defaultShouldForwardProp })<ButtonRoundProps>`
   ${buttons.button};
   ${shadows.dropMiddle};
   background-color: ${colorsRaw.white};

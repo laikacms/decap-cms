@@ -1,12 +1,12 @@
-![Decap CMS](https://raw.githubusercontent.com/laikacms/decap-cms/main/.github/decap.svg)
+![Decap CMS](https://raw.githubusercontent.com/decaporg/decap-cms/main/.github/decap.svg)
 
-# @laikacms/decap-cms
+# decap-cms
 
-[![npm version](https://img.shields.io/npm/v/@laikacms/decap-cms.svg?style=flat)](https://www.npmjs.com/package/@laikacms/decap-cms)
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/laikacms/decap-cms/blob/main/LICENSE)
-[![core size](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Flaikacms%2Fdecap-cms%2Fmain%2F.github%2Fbundle-size.json&query=%24.entries%5B%27.%2Fapp%2Fbare%27%5D.pretty&label=core%20size&color=informational)](./scripts/analyze.mjs)
-[![last commit](https://img.shields.io/github/last-commit/laikacms/decap-cms?branch=main)](https://github.com/laikacms/decap-cms/commits/main)
-[![dependencies](https://img.shields.io/librariesio/github/laikacms/decap-cms?label=dependencies)](https://libraries.io/github/laikacms/decap-cms)
+[![npm version](https://img.shields.io/npm/v/decap-cms.svg?style=flat)](https://www.npmjs.com/package/decap-cms)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/decaporg/decap-cms/blob/main/LICENSE)
+[![core size](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fdecaporg%2Fdecap-cms%2Fmain%2F.github%2Fbundle-size.json&query=%24.entries%5B%27.%2Fapp%2Fbare%27%5D.pretty&label=core%20size&color=informational)](./scripts/analyze.mjs)
+[![last commit](https://img.shields.io/github/last-commit/decaporg/decap-cms?branch=main)](https://github.com/decaporg/decap-cms/commits/main)
+[![dependencies](https://img.shields.io/librariesio/github/decaporg/decap-cms?label=dependencies)](https://libraries.io/github/decaporg/decap-cms)
 
 A single-package fork of [Decap CMS](https://decapcms.org/), the open-source, Git-based CMS for
 static site generators. It presents a clean UI for editing content stored in a Git repository: you
@@ -19,39 +19,31 @@ decade of groundwork goes to the Decap CMS team; see [Credits](#credits) below.
 ## What is different from upstream
 
 - **One package instead of a monorepo.** The former `decap-cms-*` packages live in a single
-  `@laikacms/decap-cms` package. Each former package is exposed as a subpath export (see
+  `decap-cms` package. Each former package is exposed as a subpath export (see
   `package.json#exports`); the root export is the classic app bootstrap. Where possible,
   dependencies are declared as optional peer dependencies so you only install what your build
   actually uses, keeping install size down.
-- **The Laika UI.** Alongside the classic Decap app shell there is a new shell with a dashboard,
-  command palette, and mobile support.
+
 - **A modernized stack.** Base UI primitives for interactive behavior, Emotion for styling, Vitest
   and Playwright for testing, plain objects instead of Immutable.js, and an ongoing
   dependency-reduction effort.
-- **Richtext on Portable Text.** The `markdown` widget is replaced by a `richtext` widget backed by
-  the Portable Text editor. See
+- **Richtext.** The `markdown` widget is also available under the name `richtext`. See
   [breaking-changes-v4-beta.md](../../docs/contributing/decisions/breaking-changes-v4-beta.md) for
-  the full list of breaking changes. **Known limitation:** custom blocks registered with
-  `inline: true` round-trip through markdown save/reload only one-way — serialization works but
-  parsing an inline block back out of markdown is not supported, so it is silently lost on reload.
-  See [src/widgets/richtext/README.md](./src/widgets/richtext/README.md#blockdefinition-shape) for
-  details.
+  the full list of breaking changes.
 - **AI UI, and no AI.** The editor has an assistant panel and a "translate from &lt;locale&gt;"
   action, and the package carries no model, endpoint or AI SDK. Both render only once a host
   supplies an `LlmTransport`, through `DecapCmsProvider`'s `llm` prop or `CMS.registerLlmTransport`.
   A transport can read and patch the open draft through `LlmDocumentBridge` and nothing else. See
   [docs/contributing/decisions/architecture.md](../../docs/contributing/decisions/architecture.md)
   for where the line falls and why.
-  - `@laikacms/decap-cms-llm-dulla` ([extensions/llm/dulla](../../extensions/llm/dulla/README.md))
-    is the reference transport, speaking to `@laikacms/server/ai`.
-  - The older `ai-chat` widget (`@laikacms/decap-cms-widget-aichat`) and standalone translate action
-    (`@laikacms/decap-cms-ai-translate`) predate this and are **deprecated**; the panel and the
-    locale-row action in the CMS replace them.
+  - The older `ai-chat` widget (`decap-cms-widget-aichat`) and standalone translate action
+    (`decap-cms-ai-translate`) predate this and are **deprecated**; the panel and the locale-row
+    action in the CMS replace them.
 
 ## Installation
 
 ```sh
-npm install @laikacms/decap-cms
+npm install decap-cms
 ```
 
 The root export bootstraps the classic app. Individual parts (backends, widgets, the core engine, UI
@@ -61,64 +53,44 @@ For configuration, content modeling, and backend setup, the upstream
 [Decap CMS documentation](https://www.decapcms.org/docs/intro/) applies to this fork unless noted in
 [breaking-changes-v4-beta.md](../../docs/contributing/decisions/breaking-changes-v4-beta.md).
 
-If you use the `laika` backend, read [src/backends/laika/README.md](./src/backends/laika/README.md)
-first — it diverges from the upstream backend docs in ways that aren't obvious from the standard
-config reference:
-
-- **It requires the `laika-app` entry point, not the root import above.** The root export
-  (`@laikacms/decap-cms`, what plain `npm install @laikacms/decap-cms` gives you) never calls
-  `CMS.registerBackend('laika', …)`, so setting `backend: { name: laika }` against it fails silently
-  at runtime (no registered backend, no editor). Import `@laikacms/decap-cms/laika-app` instead (or
-  `@laikacms/decap-cms/laika-app/bare` to register only the pieces you use) — see
-  [src/backends/laika/README.md#usage](./src/backends/laika/README.md#usage) for the exact import.
-- **Only `format: json` collections are supported.** This setting is only needed for backwards
-  compatibility with Decap's format handling; Laika parses any format itself. Decap's default
-  (markdown-frontmatter) is not yet supported; omitting `format:` now fails fast client-side with an
-  actionable error before any request reaches the server.
-- **Entry locking is server-arbitrated, not the bundled per-browser manager.** The advisory "Being
-  edited by X" locking Decap core exposes (`getEntryLock`/`acquireEntryLock`/
-  `releaseEntryLock`/`refreshEntryLock`) is implemented against this backend's `/locks` endpoint —
-  see [src/backends/laika/README.md#entry-locking](./src/backends/laika/README.md#entry-locking) for
-  the wire contract and degradation behavior.
-
 ## CDN builds (no bundler)
 
-Both full app shells ship as prebuilt, self-contained browser bundles under `dist/cdn/`, so unpkg
-and jsdelivr serve them straight off npm. Nothing else is needed: React, the backends, the widgets
-and the styles are all inlined, and the bundle registers everything and calls `init()` on load.
+The full app ships as a prebuilt, self-contained browser bundle at `dist/decap-cms.js`, the same
+path v3 published, so unpkg and jsdelivr serve it straight off npm and existing `admin/index.html`
+script tags keep resolving. Nothing else is needed: React, the backends, the widgets and the styles
+are all inlined, and the bundle registers everything and calls `init()` on load.
 
 ```html
-<!-- classic Decap shell -->
-<script src="https://cdn.jsdelivr.net/npm/@laikacms/decap-cms@4/dist/cdn/decap-cms.js"></script>
-
-<!-- or the Laika shell (this is the one with the `laika` backend registered) -->
-<script src="https://cdn.jsdelivr.net/npm/@laikacms/decap-cms@4/dist/cdn/laika-cms.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/decap-cms@4/dist/decap-cms.js"></script>
 ```
 
-The classic bundle exposes a `DecapCms` global (and the usual `window.CMS` / `window.h`); the Laika
-bundle exposes `LaikaCms`. Set `window.CMS_MANUAL_INIT = true` before the script tag if you want to
-register your own widgets or preview templates before the app boots, then call `window.initCMS()`.
+The bundle is UMD, so it exposes a `DecapCms` global (and the usual `window.CMS` / `window.h`) in a
+script tag and still satisfies `require('decap-cms')` in CommonJS. To register your own widgets or
+preview templates before the app boots, set `window.CMS_MANUAL_INIT` to `true` before the script
+tag, then call `window.initCMS()`.
 
-An ES module build sits next to each one for `<script type="module">`:
+An ES module build sits next to it for `<script type="module">`:
 
 ```html
 <script type="module">
-  import { init, CMS } from 'https://cdn.jsdelivr.net/npm/@laikacms/decap-cms@4/dist/cdn/decap-cms.esm.js';
+  import { init, CMS } from 'https://cdn.jsdelivr.net/npm/decap-cms@4/dist/decap-cms.esm.js';
 </script>
 ```
 
-| URL path                    | Entry point                     | IIFE global |
-| --------------------------- | ------------------------------- | ----------- |
-| `dist/cdn/decap-cms.js`     | `@laikacms/decap-cms/app`       | `DecapCms`  |
-| `dist/cdn/decap-cms.esm.js` | `@laikacms/decap-cms/app`       | -           |
-| `dist/cdn/laika-cms.js`     | `@laikacms/decap-cms/laika-app` | `LaikaCms`  |
-| `dist/cdn/laika-cms.esm.js` | `@laikacms/decap-cms/laika-app` | -           |
+| URL path                | Entry point     | UMD global |
+| ----------------------- | --------------- | ---------- |
+| `dist/decap-cms.js`     | `decap-cms/app` | `DecapCms` |
+| `dist/decap-cms.esm.js` | `decap-cms/app` | -          |
 
-Pin a version (`@4.1.0`) rather than a range for production. These bundles are ~5.5 MB raw and ~1.8
-MB gzipped, because a script tag can't tree-shake: every backend, widget, locale and the whole
-richtext editor is included. If that matters, install the package and build against the `bare`
-entries (`/app/bare`, `/laika-app/bare`) instead, registering only what you use. The `bare` entries
-deliberately have no CDN build, since a prebuilt file can't be shaken down.
+`dist/decap-cms.cjs` is the same UMD build under the extension Node always reads as CommonJS (this
+package is `"type": "module"`, so a `.js` file would be parsed as ESM). It is what `package.json`
+points `main` and the `require` condition at; it is not meant to be fetched from a CDN.
+
+Pin a version (`@4.0.0`) rather than a range for production. The bundle is ~5.2 MB raw and ~1.6 MB
+gzipped, because a script tag can't tree-shake: every backend, widget, locale and the whole richtext
+editor is included. If that matters, install the package and build against the `bare` entry
+(`/app/bare`) instead, registering only what you use. The `bare` entry deliberately has no CDN
+build, since a prebuilt file can't be shaken down.
 
 Build them locally with `pnpm build:cdn`; `prepack` runs it so every published version has them. Add
 `CDN_SOURCEMAP=1` for a debuggable build (the sourcemaps are ~20 MB each, so they are not
@@ -127,14 +99,14 @@ published).
 ## JSON Schema (editor autocompletion)
 
 The package ships a [JSON Schema](./schema/config.schema.json) for `config.yml` at
-`@laikacms/decap-cms/schema/config.schema.json`, so editors with
+`decap-cms/schema/config.schema.json`, so editors with
 [yaml-language-server](https://github.com/redhat-developer/yaml-language-server) support (VS Code's
 [YAML extension](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml), most
 JetBrains IDEs, etc.) can offer autocompletion and inline validation while you write `config.yml`.
 Point at it with the `$schema` comment convention at the top of the file:
 
 ```yaml
-# yaml-language-server: $schema=./node_modules/@laikacms/decap-cms/schema/config.schema.json
+# yaml-language-server: $schema=./node_modules/decap-cms/schema/config.schema.json
 backend:
   name: git-gateway
 collections:
@@ -148,7 +120,7 @@ collections:
 A CDN URL works too, if you'd rather not depend on the path to `node_modules`:
 
 ```yaml
-# yaml-language-server: $schema=https://unpkg.com/@laikacms/decap-cms/schema/config.schema.json
+# yaml-language-server: $schema=https://unpkg.com/decap-cms/schema/config.schema.json
 ```
 
 This schema is hand-maintained to mirror the structural shape of the runtime validator
@@ -189,20 +161,20 @@ collections:
       - { label: Internal Note, name: note, widget: string, visualEditing: false }
 ```
 
-Only `string` and `text` widgets are encoded. `richtext` fields (including their legacy `markdown`
-alias) are deliberately excluded and never encoded, regardless of the collection- or field-level
-settings above: their raw value is markdown source that still has to pass through the markdown ->
-Portable Text -> preview-HTML pipeline, and appending a stega block per paragraph would survive that
-pipeline as literal zero-width characters sitting inside the rendered preview's prose text nodes —
-poisoning copy-paste out of the preview and diverging from what a reader actually sees. All other
-widget types are likewise left untouched by the encoder.
+Only `string` and `text` widgets are encoded. Rich-text fields (`markdown`/`richtext`) are
+deliberately excluded and never encoded, regardless of the collection- or field-level settings
+above: their raw value is markdown source that still has to pass through the markdown ->
+preview-HTML pipeline, and appending a stega block per paragraph would survive that pipeline as
+literal zero-width characters sitting inside the rendered preview's prose text nodes, poisoning
+copy-paste out of the preview and diverging from what a reader actually sees. All other widget types
+are likewise left untouched by the encoder.
 
 ## Development
 
 ```sh
 pnpm install        # Node >= 24, pnpm 9
 pnpm test:ci        # lint + typecheck + unit tests
-pnpm build:dev-test && pnpm serve:dev-test   # demo app on http://localhost:5174, Laika UI on /laika.html
+pnpm build:dev-test && pnpm serve:dev-test   # demo app on http://localhost:5174
 ```
 
 See [CONTRIBUTING.md](../../CONTRIBUTING.md) for the full workflow.
@@ -221,7 +193,7 @@ this fork upstream.
 ## Change log
 
 This project adheres to [Semantic Versioning](http://semver.org/). Every release is documented on
-the GitHub [Releases](https://github.com/laikacms/decap-cms/releases) page.
+the GitHub [Releases](https://github.com/decaporg/decap-cms/releases) page.
 
 ## License
 

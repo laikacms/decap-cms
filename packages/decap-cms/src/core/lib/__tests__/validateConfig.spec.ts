@@ -103,28 +103,7 @@ describe('config', () => {
       }).not.toThrowError();
     });
 
-    it('should throw if backend.name is "laika" and base_url is missing (DCMS-1786)', () => {
-      expect(() => {
-        validateConfig({ ...validConfig, backend: { name: 'laika' } });
-      }).toThrowError("'backend' must have required property 'base_url'");
-    });
-
-    it('should throw if backend.name is "laika" and base_url is an empty string (DCMS-1786)', () => {
-      expect(() => {
-        validateConfig({ ...validConfig, backend: { name: 'laika', base_url: '' } });
-      }).toThrowError();
-    });
-
-    it('should not throw if backend.name is "laika" and base_url is a non-empty string (DCMS-1786)', () => {
-      expect(() => {
-        validateConfig({
-          ...validConfig,
-          backend: { name: 'laika', base_url: 'https://laika.example.com' },
-        });
-      }).not.toThrowError();
-    });
-
-    it('should not require base_url for non-laika backends (DCMS-1786)', () => {
+    it('should not require base_url for backends that do not declare it', () => {
       expect(() => {
         validateConfig({ ...validConfig, backend: { name: 'github' } });
       }).not.toThrowError();
@@ -900,7 +879,7 @@ describe('config', () => {
               ],
             }),
           );
-        }).toThrowError("'asset_collections' must pass \"uniqueItemProperties\" keyword validation");
+        }).toThrowError('\'asset_collections\' must pass "uniqueItemProperties" keyword validation');
       });
 
       it('is optional: config without asset_collections still validates', () => {
@@ -1010,65 +989,65 @@ describe('config', () => {
       });
 
       describe('file/image media_library schema (DCMS-1875)', () => {
-      it('throws if file widget media_library.allow_multiple is not a boolean', () => {
-        vi.mocked(getWidgets).mockImplementation(() => [
-          { name: 'file', schema: fileSchema },
-        ]);
-        expect(() => {
-          validateConfig(
-            merge({}, validConfig, {
-              collections: [
-                {
-                  fields: [
-                    { name: 'x', widget: 'file', media_library: { allow_multiple: 'yes' } },
-                  ],
-                },
-              ],
-            }),
-          );
-        }).toThrowError("'collections[0].fields[0].media_library.allow_multiple' must be boolean");
+        it('throws if file widget media_library.allow_multiple is not a boolean', () => {
+          vi.mocked(getWidgets).mockImplementation(() => [
+            { name: 'file', schema: fileSchema },
+          ]);
+          expect(() => {
+            validateConfig(
+              merge({}, validConfig, {
+                collections: [
+                  {
+                    fields: [
+                      { name: 'x', widget: 'file', media_library: { allow_multiple: 'yes' } },
+                    ],
+                  },
+                ],
+              }),
+            );
+          }).toThrowError("'collections[0].fields[0].media_library.allow_multiple' must be boolean");
+        });
+
+        it('does not throw if file widget media_library.allow_multiple is a boolean', () => {
+          vi.mocked(getWidgets).mockImplementation(() => [
+            { name: 'file', schema: fileSchema },
+          ]);
+          expect(() => {
+            validateConfig(
+              merge({}, validConfig, {
+                collections: [
+                  {
+                    fields: [
+                      { name: 'x', widget: 'file', media_library: { allow_multiple: true } },
+                    ],
+                  },
+                ],
+              }),
+            );
+          }).not.toThrow();
+        });
+
+        it('throws if image widget media_library.allow_multiple is not a boolean', () => {
+          vi.mocked(getWidgets).mockImplementation(() => [
+            { name: 'image', schema: imageSchema },
+          ]);
+          expect(() => {
+            validateConfig(
+              merge({}, validConfig, {
+                collections: [
+                  {
+                    fields: [
+                      { name: 'x', widget: 'image', media_library: { allow_multiple: 'yes' } },
+                    ],
+                  },
+                ],
+              }),
+            );
+          }).toThrowError("'collections[0].fields[0].media_library.allow_multiple' must be boolean");
+        });
       });
 
-      it('does not throw if file widget media_library.allow_multiple is a boolean', () => {
-        vi.mocked(getWidgets).mockImplementation(() => [
-          { name: 'file', schema: fileSchema },
-        ]);
-        expect(() => {
-          validateConfig(
-            merge({}, validConfig, {
-              collections: [
-                {
-                  fields: [
-                    { name: 'x', widget: 'file', media_library: { allow_multiple: true } },
-                  ],
-                },
-              ],
-            }),
-          );
-        }).not.toThrow();
-      });
-
-      it('throws if image widget media_library.allow_multiple is not a boolean', () => {
-        vi.mocked(getWidgets).mockImplementation(() => [
-          { name: 'image', schema: imageSchema },
-        ]);
-        expect(() => {
-          validateConfig(
-            merge({}, validConfig, {
-              collections: [
-                {
-                  fields: [
-                    { name: 'x', widget: 'image', media_library: { allow_multiple: 'yes' } },
-                  ],
-                },
-              ],
-            }),
-          );
-        }).toThrowError("'collections[0].fields[0].media_library.allow_multiple' must be boolean");
-      });
-    });
-
-    it('still throws if a field has neither name nor group', () => {
+      it('still throws if a field has neither name nor group', () => {
         expect(() => {
           validateConfig({
             ...validConfig,
@@ -1085,15 +1064,13 @@ describe('config', () => {
       });
     });
 
-    // DCMS-1974: `editor_components`/`editorComponents` configured the
-    // pre-Lexical markdown widget's custom-block API, which was removed.
-    // Neither key is declared in the richtext widget schema and
-    // `additionalProperties: false` is deliberately not set anywhere (see
-    // the issue's "out of scope"), so schema validation alone can't reject
-    // them - `checkRichtextFieldKeys` in `validateConfig.ts` does it as a
-    // dedicated custom check, same pattern as the local-fs check above.
-    describe('richtext removed/inert keys (DCMS-1974)', () => {
-      const richtextConfig = (extra: Record<string, unknown>) =>
+    // Upstream's `editor_components` field key (a list of registered editor
+    // component ids for the rich-text widget) is a valid config key. It is not
+    // declared in the base field schema, and `additionalProperties: false` is
+    // deliberately not set on `field` (unrecognized keys are widget-specific,
+    // not typos), so it simply passes through to the widget.
+    describe('editor_components', () => {
+      const fieldConfig = (extra: Record<string, unknown>) =>
         merge({}, validConfig, {
           collections: [
             {
@@ -1102,31 +1079,27 @@ describe('config', () => {
           ],
         });
 
-      it('throws when a richtext field sets editor_components', () => {
+      it('accepts editor_components on a rich-text field', () => {
         expect(() => {
-          validateConfig(richtextConfig({ editor_components: ['image'] }));
-        }).toThrowError(
-          "richtext field 'body' sets 'editor_components', which was removed in v4. Register custom "
-            + 'blocks with CMS.registerBlock(...) before init().',
-        );
-      });
-
-      it('throws when a richtext field sets the camelCase editorComponents alias', () => {
-        expect(() => {
-          validateConfig(richtextConfig({ editorComponents: ['image'] }));
-        }).toThrowError(
-          "richtext field 'body' sets 'editorComponents', which was removed in v4. Register custom "
-            + 'blocks with CMS.registerBlock(...) before init().',
-        );
-      });
-
-      it('does not throw for a richtext field without editor_components', () => {
-        expect(() => {
-          validateConfig(richtextConfig({ format: 'markdown' }));
+          validateConfig(fieldConfig({ editor_components: ['image', 'code-block'] }));
         }).not.toThrow();
       });
 
-      it('does not throw when a non-richtext field sets editor_components', () => {
+      it('accepts editor_components on a markdown field', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [
+                {
+                  fields: [{ name: 'body', widget: 'markdown', editor_components: ['image'] }],
+                },
+              ],
+            }),
+          );
+        }).not.toThrow();
+      });
+
+      it('accepts editor_components on any other widget', () => {
         expect(() => {
           validateConfig(
             merge({}, validConfig, {
@@ -1138,52 +1111,6 @@ describe('config', () => {
             }),
           );
         }).not.toThrow();
-      });
-
-      it('warns once per inert key (minimal, buttons, modes, sanitize_preview)', () => {
-        const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-        try {
-          validateConfig(
-            richtextConfig({ minimal: true, buttons: ['bold'], modes: ['rich_text'], sanitize_preview: false }),
-          );
-          const messages = warnSpy.mock.calls.map(call => String(call[0]));
-          expect(messages.some(m => m.includes("'minimal'"))).toBe(true);
-          expect(messages.some(m => m.includes("'buttons'"))).toBe(true);
-          expect(messages.some(m => m.includes("'modes'"))).toBe(true);
-          expect(messages.some(m => m.includes('sanitize_preview'))).toBe(true);
-        } finally {
-          warnSpy.mockRestore();
-        }
-      });
-
-      it('does not throw for the inert-but-declared keys', () => {
-        expect(() => {
-          validateConfig(
-            richtextConfig({ minimal: true, buttons: ['bold'], modes: ['rich_text'], sanitize_preview: false }),
-          );
-        }).not.toThrow();
-      });
-
-      // DCMS-1996: `markdown` is a back-compat alias registered onto the same
-      // richtext control (`app/extensions.ts`: `{ ...RichtextWidget(), name:
-      // 'markdown' }`), so it must be guarded identically to `richtext` -
-      // otherwise `editor_components` on a `markdown` field silently drops
-      // the user's custom blocks at render time instead of erroring here.
-      it('throws when a markdown (richtext alias) field sets editor_components', () => {
-        expect(() => {
-          validateConfig(
-            merge({}, validConfig, {
-              collections: [
-                {
-                  fields: [{ name: 'body', widget: 'markdown', editor_components: ['image'] }],
-                },
-              ],
-            }),
-          );
-        }).toThrowError(
-          "markdown field 'body' sets 'editor_components', which was removed in v4. Register custom "
-            + 'blocks with CMS.registerBlock(...) before init().',
-        );
       });
     });
   });

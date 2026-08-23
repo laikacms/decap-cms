@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 
-import { laikaShouldForwardProp } from '@/ui/styled';
+import { defaultShouldForwardProp } from '@/ui/styled';
 import { colors, colorsRaw, text, transitions } from './styles';
 
 interface StateColors {
@@ -40,7 +40,7 @@ function getStateColors({ $isActive, $hasErrors }: FieldLabelStateProps): StateC
   return stateColors.default;
 }
 
-const FieldLabel = styled('label', { shouldForwardProp: laikaShouldForwardProp })<FieldLabelStateProps>`
+const FieldLabel = styled('label', { shouldForwardProp: defaultShouldForwardProp })<FieldLabelStateProps>`
   ${text.fieldLabel};
   color: ${(props: FieldLabelStateProps) => getStateColors(props).text};
   background-color: ${(props: FieldLabelStateProps) => getStateColors(props).background};

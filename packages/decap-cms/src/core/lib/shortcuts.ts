@@ -1,6 +1,6 @@
 /**
- * Global keyboard shortcut engine. App shells (laika-app, host apps) register
- * shortcuts here and the engine owns the single window keydown listener,
+ * Global keyboard shortcut engine. App shells (the default app, host apps)
+ * register shortcuts here and the engine owns the single window keydown listener,
  * multi-key chord state ('g' then 'd'), typing suppression, and modal
  * coordination. Mirrors the extension-registry pattern in `./registry`: core
  * owns the mechanism, apps own the policy.
@@ -12,7 +12,7 @@
  *
  * Coordination seams:
  * - `suspendShortcuts()` pauses everything while a modal surface is open
- *   (LaikaDialog calls it automatically); shortcuts registered with
+ *   (dialog components call it automatically); shortcuts registered with
  *   `allowWhileSuspended` (e.g. the palette toggle itself) keep working.
  * - Keystrokes originating inside `[role="dialog"]` / `[aria-modal]` are
  *   ignored even without an explicit suspension, so modals that don't know

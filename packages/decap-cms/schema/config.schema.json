@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://unpkg.com/@laikacms/decap-cms/schema/config.schema.json",
-  "title": "Decap CMS (LaikaCMS fork) config.yml",
+  "$id": "https://unpkg.com/decap-cms/schema/config.schema.json",
+  "title": "Decap CMS config.yml",
   "description": "IDE-facing JSON Schema for a Decap CMS `config.yml`. Hand-maintained to mirror the structural shape of the runtime schema in `src/core/lib/validateConfig.ts` (`getConfigSchema()`) as of this file's last update — that TypeScript file remains the single source of truth for actual validation; this schema exists only to give editors (VS Code + yaml-language-server, JetBrains, etc.) autocompletion and inline hints. See packages/decap-cms/README.md#json-schema-editor-autocompletion for usage.",
   "$comment": "Deliberately omits keywords the runtime validator supports but that only make sense with a live widget/backend/entry-codec registry: the custom `widgets` dispatch keyword (per-widget field property schemas, resolved from `registerWidget({ schema })` calls at app-bootstrap time), the custom `instanceof` keyword (`pattern: [RegExp, string]`), the custom `uniqueItemProperties` keyword (ajv-keywords-style; not part of standard JSON Schema), and the `extension`/`frontmatter_delimiter` -> `format` inference rules driven by `getExtensionFormatters()`/`getFrontmatterFormats()`. None of that is enforceable statically without importing the whole app, and the runtime validator still catches all of it at CMS startup. `field` objects intentionally have no `additionalProperties: false` for this reason -- unrecognized keys are widget-specific, not typos.",
   "type": "object",
@@ -312,8 +312,7 @@
       "properties": {
         "name": {
           "type": "string",
-          "examples": ["git-gateway", "github", "gitlab", "test-repo", "laika"],
-          "description": "`laika` requires importing `@laikacms/decap-cms/laika-app` (or `/laika-app/bare` with a manual `CMS.registerBackend('laika', ...)` call) instead of the package root — the root entry point never registers this backend. See src/backends/laika/README.md."
+          "examples": ["git-gateway", "github", "gitlab", "test-repo"]
         },
         "auth_scope": {
           "type": "string",
@@ -322,7 +321,7 @@
         },
         "cms_label_prefix": { "type": "string", "minLength": 1 },
         "open_authoring": { "type": "boolean", "examples": [true] },
-        "base_url": { "type": "string", "description": "Required when `name` is `laika`." },
+        "base_url": { "type": "string" },
         "api_root": { "type": "string" },
         "api_url": { "type": "string" },
         "dev_token": { "type": "string" },
@@ -333,22 +332,12 @@
       },
       "required": ["name"],
       "if": {
-        "properties": { "name": { "enum": ["laika"] } },
+        "properties": { "name": { "enum": ["proxy"] } },
         "required": ["name"]
       },
       "then": {
-        "required": ["base_url"],
-        "properties": { "base_url": { "minLength": 1 } }
-      },
-      "else": {
-        "if": {
-          "properties": { "name": { "enum": ["proxy"] } },
-          "required": ["name"]
-        },
-        "then": {
-          "required": ["proxy_url"],
-          "properties": { "proxy_url": { "minLength": 1, "pattern": "^(https?://.+|/(?!/).*)$" } }
-        }
+        "required": ["proxy_url"],
+        "properties": { "proxy_url": { "minLength": 1, "pattern": "^(https?://.+|/(?!/).*)$" } }
       }
     },
     "local_backend": {

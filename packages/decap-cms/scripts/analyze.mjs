@@ -52,8 +52,6 @@ const external = [
 const entries = [
   { subpath: '.', slug: 'app', entry: 'dist/app/index.js' },
   { subpath: './app/bare', slug: 'app-bare', entry: 'dist/app/bare.js' },
-  { subpath: './laika-app', slug: 'laika-app', entry: 'dist/laika-app/index.js' },
-  { subpath: './laika-app/bare', slug: 'laika-app-bare', entry: 'dist/laika-app/bare.js' },
 ];
 
 function pretty(bytes) {

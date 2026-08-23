@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest';
 // ("refactor(repo): delete superseded root-layout tree, finish workspace
 // move") and never restored. Nothing caught the dangling reference because
 // `root-docs-no-stale-package-subpaths.test.ts` only scans for stale
-// `@laikacms/decap-cms` subpath imports, and its `ROOT_DOC_FILES` list didn't
+// `decap-cms` subpath imports, and its `ROOT_DOC_FILES` list didn't
 // include `AGENTS.md` at all.
 //
 // This test scans root `*.md` files for backtick-quoted references to other

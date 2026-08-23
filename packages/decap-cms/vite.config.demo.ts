@@ -19,15 +19,15 @@ export default defineConfig({
     outDir: 'dev-test/dist',
     // Don't empty the dir on (re)build: emptyOutDir deletes decap-cms.js for the
     // duration of a build, which 404s the dev server during `pnpm dev`, and it
-    // would also wipe the sibling laika-cms*.js bundles in the same dir.
+    // would also wipe the sibling bundles in the same dir.
     emptyOutDir: false,
     lib: {
       entry: path.resolve(__dirname, 'src/app/index.ts'),
       name: 'DecapCms',
       fileName: () => 'decap-cms.js',
-      // Distinct CSS name so it doesn't collide with the laika bundles' CSS in
-      // the shared `dev-test/dist` outDir (Vite otherwise derives `decap.css`
-      // from the package name for every lib build).
+      // Distinct CSS name so it doesn't collide with the sibling bundles' CSS
+      // in the shared `dev-test/dist` outDir (Vite otherwise derives
+      // `decap.css` from the package name for every lib build).
       cssFileName: 'decap-cms',
       formats: ['iife'],
     },

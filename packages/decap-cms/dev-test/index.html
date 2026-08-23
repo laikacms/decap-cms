@@ -106,8 +106,8 @@
     `;
 
     // A stub LlmTransport, so the demo exercises the AI seam without any model
-    // or network. A real one (laika's) streams from a server; this one answers
-    // locally and calls the document tool the same way.
+    // or network. A real one streams from a server; this one answers locally
+    // and calls the document tool the same way.
     CMS.registerLlmTransport({
       openSession: function (document) {
         var listeners = [];

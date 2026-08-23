@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-// DCMS-1971 split the map widget out of `@laikacms/decap-cms` and into the
-// standalone `extensions/widgets/map` package (`@laikacms/decap-cms-widget-map`).
+// DCMS-1971 split the map widget out of `decap-cms` and into the
+// standalone `extensions/widgets/map` package (`decap-cms-widget-map`).
 // `docs/editor-guide.md` and `packages/decap-cms/dev-test/README.md` still
 // described the pre-split API: install the optional `ol` peer dependency and
 // call a `registerMapWidget()` function that no longer exists anywhere in the

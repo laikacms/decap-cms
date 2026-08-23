@@ -6,24 +6,24 @@ import { describe, expect, it } from 'vitest';
 // `docs-no-stale-package-imports.test.ts` only scans `docs/`, so it never
 // sees the root-level `*.md` files (README.md, restructure.md, etc.) or the
 // `dev-test/*.html` demo pages, even though those are just as reader-facing.
-// This test covers that gap for stale `@laikacms/decap-cms` subpath imports
-// that prior versions of restructure.md / `laika-bare.html` got wrong:
+// This test covers that gap for stale `decap-cms` subpath imports
+// that prior versions of restructure.md / the demo pages got wrong:
 //
-//   1. Importing `App` from `@laikacms/decap-cms/core` — `App` is exported
-//      from `@laikacms/decap-cms/app` (see `packages/decap-cms/src/app/index.ts`);
+//   1. Importing `App` from `decap-cms/core` — `App` is exported
+//      from `decap-cms/app` (see `packages/decap-cms/src/app/index.ts`);
 //      `core`'s own doc comment says the routed App layer lives in `app`, not
 //      `core`.
-//   2. Importing from `@laikacms/decap-cms/widget-string` (DCMS-1151) — there
+//   2. Importing from `decap-cms/widget-string` (DCMS-1151) — there
 //      is no such subpath export. Widgets are only exposed via the wildcard
 //      `./widgets/*` (see `packages/decap-cms/package.json#exports`), so the
-//      real subpath is `@laikacms/decap-cms/widgets/string`, exporting
+//      real subpath is `decap-cms/widgets/string`, exporting
 //      `DecapCmsWidgetString` (see `packages/decap-cms/src/widgets/string/index.ts`),
 //      not `widget` / `stringWidget`.
-//   3. Any other dashed `@laikacms/decap-cms/backend-<name>` or
-//      `@laikacms/decap-cms/widget-<name>` subpath (DCMS-1222) — the package
+//   3. Any other dashed `decap-cms/backend-<name>` or
+//      `decap-cms/widget-<name>` subpath (DCMS-1222) — the package
 //      only ever exports the plural, slashed wildcards `./backends/*` and
 //      `./widgets/*` (see `packages/decap-cms/package.json#exports`), never a
-//      singular dashed form. `laika-bare.html` previously used
+//      singular dashed form. A demo page previously used
 //      `/backend-github` and `/widget-richtext`, neither of which resolves.
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../../../..');
@@ -49,7 +49,7 @@ function listScannedFiles(): string[] {
   return [...rootDocs, ...listDevTestHtmlFiles()];
 }
 
-// Matches any `import { ... } from '@laikacms/decap-cms/core'` (or `"..."`)
+// Matches any `import { ... } from 'decap-cms/core'` (or `"..."`)
 // statement whose named-import clause includes the bare identifier `App`
 // (not `AppContent`, `AppLayoutRenderProps`, etc.).
 const STALE_CORE_APP_IMPORT = /import\s*\{([^}]*)\}\s*from\s+['"]@laikacms\/decap-cms\/core['"]/g;
@@ -59,13 +59,13 @@ const STALE_CORE_APP_IMPORT = /import\s*\{([^}]*)\}\s*from\s+['"]@laikacms\/deca
 const STALE_WIDGET_STRING_SUBPATH = /from\s+['"]@laikacms\/decap-cms\/widget-string['"]/g;
 
 // Matches an import (or bare specifier reference) from any singular, dashed
-// `@laikacms/decap-cms/backend-<name>` or `@laikacms/decap-cms/widget-<name>`
+// `decap-cms/backend-<name>` or `decap-cms/widget-<name>`
 // subpath. The package only ever exports the plural, slashed wildcards
 // `./backends/*` and `./widgets/*` — a dashed singular subpath never exists.
 const STALE_DASHED_BACKEND_OR_WIDGET_SUBPATH = /['"]@laikacms\/decap-cms\/(backend|widget)-([\w-]+)['"]/g;
 
-describe('root docs / dev-test pages: no stale @laikacms/decap-cms subpath imports (DCMS-1151)', () => {
-  it('never imports `App` from `@laikacms/decap-cms/core`', () => {
+describe('root docs / dev-test pages: no stale decap-cms subpath imports (DCMS-1151)', () => {
+  it('never imports `App` from `decap-cms/core`', () => {
     const files = listScannedFiles();
     expect(files.length).toBeGreaterThan(0);
 
@@ -77,18 +77,18 @@ describe('root docs / dev-test pages: no stale @laikacms/decap-cms subpath impor
       for (const match of contents.matchAll(STALE_CORE_APP_IMPORT)) {
         const namedImports = match[1].split(',').map(name => name.trim());
         if (namedImports.some(name => name === 'App' || name.startsWith('App '))) {
-          offenders.push(`${relPath}: imports App from '@laikacms/decap-cms/core'`);
+          offenders.push(`${relPath}: imports App from 'decap-cms/core'`);
         }
       }
     }
 
     // If this fails, a doc/demo example imports `App` from `/core`. `App` is
-    // exported from `@laikacms/decap-cms/app`, not `/core` — fix the import
+    // exported from `decap-cms/app`, not `/core` — fix the import
     // to use the `/app` subpath.
     expect(offenders).toEqual([]);
   });
 
-  it("never imports from the nonexistent '@laikacms/decap-cms/widget-string' subpath", () => {
+  it("never imports from the nonexistent 'decap-cms/widget-string' subpath", () => {
     const files = listScannedFiles();
     expect(files.length).toBeGreaterThan(0);
 
@@ -98,7 +98,7 @@ describe('root docs / dev-test pages: no stale @laikacms/decap-cms subpath impor
       const relPath = path.relative(REPO_ROOT, file);
 
       for (const _match of contents.matchAll(STALE_WIDGET_STRING_SUBPATH)) {
-        offenders.push(`${relPath}: imports from '@laikacms/decap-cms/widget-string'`);
+        offenders.push(`${relPath}: imports from 'decap-cms/widget-string'`);
       }
     }
 
@@ -109,7 +109,7 @@ describe('root docs / dev-test pages: no stale @laikacms/decap-cms subpath impor
     expect(offenders).toEqual([]);
   });
 
-  it('never references a dashed @laikacms/decap-cms/backend-<name> or /widget-<name> subpath (DCMS-1222)', () => {
+  it('never references a dashed decap-cms/backend-<name> or /widget-<name> subpath (DCMS-1222)', () => {
     const files = listScannedFiles();
     expect(files.length).toBeGreaterThan(0);
 
@@ -119,7 +119,7 @@ describe('root docs / dev-test pages: no stale @laikacms/decap-cms subpath impor
       const relPath = path.relative(REPO_ROOT, file);
 
       for (const match of contents.matchAll(STALE_DASHED_BACKEND_OR_WIDGET_SUBPATH)) {
-        offenders.push(`${relPath}: references '@laikacms/decap-cms/${match[1]}-${match[2]}'`);
+        offenders.push(`${relPath}: references 'decap-cms/${match[1]}-${match[2]}'`);
       }
     }
 

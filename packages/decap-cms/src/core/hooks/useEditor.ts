@@ -50,7 +50,7 @@ type EntryDraft = any;
 // Comfortably inside the reference implementation's default TTL
 // (`DEFAULT_ENTRY_LOCK_TTL_MS`, 5 minutes) so a normal editing session never
 // goes stale; a backend with a shorter TTL should document that in its own
-// README (see `LaikaBackend`'s for the server-arbitrated follow-up notes).
+// README.
 const ENTRY_LOCK_REFRESH_INTERVAL_MS = 60_000;
 
 interface UseEditorOptions {

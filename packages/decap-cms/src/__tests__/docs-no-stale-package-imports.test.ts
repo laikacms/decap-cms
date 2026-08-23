@@ -24,8 +24,8 @@ function listMarkdownFiles(dir: string): string[] {
 // `decap-cms-<name>` (e.g. `decap-cms-app`, `decap-cms-core`,
 // `decap-cms-widget-string`) plus `decap-server`. None of those are real,
 // importable packages anymore — the whole repo is the single
-// `@laikacms/decap-cms` package with subpath exports (`@laikacms/decap-cms`,
-// `@laikacms/decap-cms/app`, `@laikacms/decap-cms/core`, etc). A doc example
+// `decap-cms` package with subpath exports (`decap-cms`,
+// `decap-cms/app`, `decap-cms/core`, etc). A doc example
 // that imports from the old flat name gives readers a module-not-found error.
 const STALE_IMPORT_SOURCE = /\bfrom\s+['"](decap-cms-[\w-]*|decap-server)(\/[^'"]*)?['"]/g;
 const STALE_REQUIRE_SOURCE = /\brequire\(\s*['"](decap-cms-[\w-]*|decap-server)(\/[^'"]*)?['"]\s*\)/g;
@@ -34,7 +34,7 @@ const STALE_REQUIRE_SOURCE = /\brequire\(\s*['"](decap-cms-[\w-]*|decap-server)(
 // changed" table deliberately quotes the old `from 'decap-cms-core'` /
 // `from 'decap-cms-lib-util/...'` import shapes to describe what was rewritten.
 // Those are historical narrative, not live examples, so exclude it from the
-// scan (every other doc should only ever show importable `@laikacms/decap-cms`
+// scan (every other doc should only ever show importable `decap-cms`
 // specifiers).
 const EXCLUDED_RELATIVE_PATHS = new Set(['docs/contributing/decisions/restructure.md']);
 
@@ -61,8 +61,8 @@ describe('docs/ no stale pre-restructure package-name imports (DCMS-1152)', () =
     }
 
     // If this fails, a doc example still imports from a pre-restructure
-    // package name. Rewrite it to `@laikacms/decap-cms` (or the matching
-    // `@laikacms/decap-cms/<subpath>` export) instead.
+    // package name. Rewrite it to `decap-cms` (or the matching
+    // `decap-cms/<subpath>` export) instead.
     expect(offenders).toEqual([]);
   });
 });

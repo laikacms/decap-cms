@@ -187,28 +187,17 @@ describe('validateJSONSchema, edge cases', () => {
     expect(validateJSONSchema(schema, {})).toEqual([]);
   });
 
-  // DCMS-1161 pinned this file's schema-fragment-only view of
-  // `editor_components`/`editorComponents`: with no `additionalProperties:
-  // false` anywhere, the bare JSON-schema interpreter accepts the key
-  // silently, same as the genuinely inert keys documented next to it in the
-  // richtext README. DCMS-1974 reversed the *end-to-end* outcome - a richtext
-  // field that sets either key is now a hard config error - but not by
-  // changing this interpreter or adding `additionalProperties: false` (that
-  // remains out of scope; see DCMS-1974's "explicitly out of scope"). The
-  // enforcement is a dedicated custom check, `checkRichtextFieldKeys` in
-  // `validateConfig.ts` (pinned by `__tests__/validateConfig.spec.ts`'s
-  // "richtext removed/inert keys (DCMS-1974)" suite), because it needs to
-  // know the field's `widget` is specifically `'richtext'` and produce a
-  // message naming the replacement API - neither is expressible as a schema
-  // fragment here. So this test still holds: in isolation, this generic
-  // interpreter has no opinion on `editor_components` at all.
-  it('accepts a richtext field config with an unknown editor_components key at the schema-interpreter level (DCMS-1161, DCMS-1974)', () => {
+  // DCMS-1161: `editor_components` is a rich-text field key listing the ids of
+  // editor components registered with `CMS.registerEditorComponent(...)`. A
+  // widget that declares it in its own schema fragment gets it validated
+  // through the `widgets` dispatch keyword; a widget that does not declare it
+  // still accepts it, because nothing sets `additionalProperties: false` here
+  // (unrecognized field keys are widget-specific, not typos).
+  it('validates editor_components through the widget schema, and accepts it when undeclared (DCMS-1161)', () => {
     const richtextWidgetSchema: JSONSchema = {
       properties: {
         format: { type: 'string' },
-        minimal: { type: 'boolean' },
-        buttons: { type: 'array', items: { type: 'string' } },
-        modes: { type: 'array', items: { type: 'string', enum: ['rich_text', 'raw'] } },
+        editor_components: { type: 'array', items: { type: 'string' } },
       },
     };
     const fieldSchema: JSONSchema = {
@@ -221,20 +210,29 @@ describe('validateJSONSchema, edge cases', () => {
       widgets: { richtext: richtextWidgetSchema },
     };
 
-    const fieldConfig = {
+    expect(
+      validateJSONSchema(fieldSchema, {
+        name: 'body',
+        widget: 'richtext',
+        editor_components: ['image', 'code-block'],
+      }),
+    ).toEqual([]);
+
+    const errors = validateJSONSchema(fieldSchema, {
       name: 'body',
       widget: 'richtext',
-      editor_components: ['image', 'code-block'],
-    };
+      editor_components: 'image',
+    });
+    expect(errors).toHaveLength(1);
+    expect(errors[0].instancePath).toBe('/editor_components');
 
-    expect(validateJSONSchema(fieldSchema, fieldConfig)).toEqual([]);
-
-    const camelCaseFieldConfig = {
-      name: 'body',
-      widget: 'richtext',
-      editorComponents: ['image', 'code-block'],
-    };
-
-    expect(validateJSONSchema(fieldSchema, camelCaseFieldConfig)).toEqual([]);
+    // Undeclared keys pass through untouched.
+    expect(
+      validateJSONSchema(fieldSchema, {
+        name: 'body',
+        widget: 'richtext',
+        editorComponents: ['image', 'code-block'],
+      }),
+    ).toEqual([]);
   });
 });

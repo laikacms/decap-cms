@@ -12,7 +12,7 @@ import * as locales from '@/locales';
 const CRITICAL_KEYS = [
   'editor.editorControl.field.required',
   // The AI translate keys that DCMS-1556 added here moved out with the feature
-  // (DCMS-1395): they now ship in `@laikacms/decap-cms-ai-translate`, whose own
+  // (DCMS-1395): they now ship in `decap-cms-ai-translate`, whose own
   // parity spec enforces the same rule across the same locale set.
   // DCMS-1555: MediaLibrary folder-nav aria-labels (DCMS-1398 / #1552)
   // shipped hardcoded English; without these keys every non-en locale falls back.

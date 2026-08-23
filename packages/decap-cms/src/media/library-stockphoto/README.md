@@ -15,8 +15,8 @@ plus one working provider. Pexels and Pixabay are **deferred** — add them unde
 ## Usage
 
 ```ts
-import { registerMediaLibrary } from '@laikacms/decap-cms/core';
-import stockPhotoMediaLibrary from '@laikacms/decap-cms/media/library-stockphoto';
+import { registerMediaLibrary } from 'decap-cms/core';
+import stockPhotoMediaLibrary from 'decap-cms/media/library-stockphoto';
 
 registerMediaLibrary(stockPhotoMediaLibrary);
 ```
@@ -40,15 +40,15 @@ to the core `MediaLibrary` component and is out of scope here (noted as follow-u
 
 - `provider` (optional, default `'unsplash'`) — which registered `StockPhotoProvider` to use.
 - `apiKey` (required) — the API key/access token for the chosen provider. Read from CMS config at
-  runtime; this repo does not ship, fetch, or hardcode a real key. If omitted, the search UI shows an
-  inline message instead of calling the provider.
+  runtime; this repo does not ship, fetch, or hardcode a real key. If omitted, the search UI shows
+  an inline message instead of calling the provider.
 - `perPage` (optional, default `20`) — results requested per search.
 
 ## Behavior
 
 - `show()` opens a modal with a search box and a results grid; `hide()` closes it.
-- Selecting a result downloads the provider's full-resolution image (`fetch` + `blob()`), wraps it in
-  a `File`, and dispatches the core `persistMedia` thunk (`@/core/actions/mediaLibrary`) so it's
+- Selecting a result downloads the provider's full-resolution image (`fetch` + `blob()`), wraps it
+  in a `File`, and dispatches the core `persistMedia` thunk (`@/core/actions/mediaLibrary`) so it's
   written into the configured media folder like any other upload. The resulting asset path is then
   passed to `handleInsert`, same as the built-in browser's insert action.
 - Each result card shows `Photo by <photographer> on <provider>` attribution beneath the thumbnail.

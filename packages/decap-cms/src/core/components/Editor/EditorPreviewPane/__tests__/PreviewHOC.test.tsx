@@ -6,12 +6,12 @@ import PreviewHOC from '@/core/components/Editor/EditorPreviewPane/PreviewHOC';
 
 import type { CmsEntryField } from '@/lib/util/index';
 
-// Regression test for DCMS-633: a `RichtextValue` proxy (see
-// `src/lib/richtext/RichtextValue.ts`) keeps a stable object identity across
-// renders and only mutates its internal `portableText`/`editorState` in
-// place. `PreviewHOC`'s memo comparator used to short-circuit purely on
-// `prev.value === next.value`, so the richtext preview never re-rendered
-// after the first keystroke even though the proxy's contents had changed.
+// Regression test for DCMS-633: a widget whose value is a mutable instance
+// with a stable object identity (mutated in place rather than replaced) never
+// changes reference across renders. `PreviewHOC`'s memo comparator used to
+// short-circuit purely on `prev.value === next.value`, so such a preview never
+// re-rendered after the first keystroke even though the value's contents had
+// changed.
 
 function TextValuePreview({ value }: { value?: { text: string } }) {
   return <div data-testid="preview">{value?.text}</div>;
@@ -20,8 +20,8 @@ function TextValuePreview({ value }: { value?: { text: string } }) {
 describe('PreviewHOC', () => {
   it('re-renders on every update for the richtext widget, even when the value reference is unchanged', () => {
     const field = { name: 'body', widget: 'richtext' } as CmsEntryField;
-    // Simulate the richtext control's stable proxy: same reference, mutated
-    // in place, exactly like `LexicalRichtextValue`/`RichtextValue` does.
+    // Simulate a control holding a stable instance: same reference, mutated
+    // in place on every keystroke.
     const stableProxy: { text: string } = { text: 'first' };
 
     const { getByTestId, rerender } = render(

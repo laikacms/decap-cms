@@ -3,22 +3,22 @@
 The map widget renders an interactive [OpenLayers](https://openlayers.org/) map for drawing a single
 geometry (point, line, or polygon) and stores the result as a GeoJSON string.
 
-It ships as its own package, `@laikacms/decap-cms-widget-map`, so `ol` (which only this widget
+It ships as its own package, `decap-cms-widget-map`, so `ol` (which only this widget
 needs) is an ordinary dependency of the widget rather than something every CMS install carries. The
 CMS does not register it for you.
 
 ## Install and register
 
 ```sh
-npm install @laikacms/decap-cms-widget-map
+npm install decap-cms-widget-map
 ```
 
 `ol` comes with it. Call `CMS.registerWidget` once during Decap CMS initialisation, before the
 editor mounts:
 
 ```ts
-import CMS from '@laikacms/decap-cms';
-import DecapCmsWidgetMap from '@laikacms/decap-cms-widget-map';
+import CMS from 'decap-cms';
+import DecapCmsWidgetMap from 'decap-cms-widget-map';
 
 CMS.registerWidget(DecapCmsWidgetMap.Widget());
 ```

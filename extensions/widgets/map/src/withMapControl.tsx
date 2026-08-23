@@ -10,8 +10,8 @@ import VectorSource from 'ol/source/Vector.js';
 import View from 'ol/View.js';
 import React from 'react';
 
-import type { CmsFieldBase, CmsFieldMap } from '@laikacms/decap-cms/lib/util';
-import type { TranslateFunction } from '@laikacms/decap-cms/ui-default';
+import type { CmsFieldBase, CmsFieldMap } from 'decap-cms/lib/util';
+import type { TranslateFunction } from 'decap-cms/ui-default';
 
 const formatOptions = {
   dataProjection: 'EPSG:4326',

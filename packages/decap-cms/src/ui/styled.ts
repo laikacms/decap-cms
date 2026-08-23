@@ -66,7 +66,7 @@ export function cx(...classNames: Array<string | false | null | undefined>): str
  * - Standard HTML attributes (`type`, `disabled`, `aria-*`, `data-*`, etc.)
  *   still flow through.
  */
-export function laikaShouldForwardProp(prop: string): boolean {
+export function defaultShouldForwardProp(prop: string): boolean {
   if (typeof prop !== 'string') return true;
   if (prop.startsWith('$')) return false;
   return isPropValid(prop);

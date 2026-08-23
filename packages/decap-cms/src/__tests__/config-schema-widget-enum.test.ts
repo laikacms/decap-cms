@@ -10,9 +10,9 @@ import { getWidget, getWidgets } from '@/core/lib/registry';
 // `description`/`$comment`) and can drift from the widgets the package
 // actually ships. This pins it against two sources of truth:
 //
-//   1. Every widget name the default app bootstrap paths
-//      (`src/app/extensions.ts`, `src/laika-app/extensions.ts`) register on
-//      the Registry via `CMS.registerWidget`.
+//   1. Every widget name the default app bootstrap path
+//      (`src/app/extensions.ts`) registers on the Registry via
+//      `CMS.registerWidget`.
 //   2. Widget names this package does not ship but the schema still documents,
 //      because they ship as their own packages under `extensions/widgets/*`.
 //
@@ -42,11 +42,9 @@ function loadWidgetEnum(): string[] {
 }
 
 describe('schema/config.schema.json widget enum/examples (DCMS-1710)', () => {
-  it('includes every widget registered by the default app bootstrap paths', async () => {
+  it('includes every widget registered by the default app bootstrap path', async () => {
     const { registerExtensions: registerAppExtensions } = await import('@/app/extensions');
-    const { registerExtensions: registerLaikaAppExtensions } = await import('@/laika-app/extensions');
     registerAppExtensions();
-    registerLaikaAppExtensions();
 
     const registeredWidgetNames = getWidgets().map(widget => widget.name);
     expect(registeredWidgetNames.length).toBeGreaterThan(0);
@@ -57,7 +55,7 @@ describe('schema/config.schema.json widget enum/examples (DCMS-1710)', () => {
       expect(enumValues, `widget "${name}" is registered but missing from the schema's widget enum`)
         .toContain(name);
     }
-    // Importing both bootstrap paths pulls in the whole app module graph, which
+    // Importing the bootstrap path pulls in the whole app module graph, which
     // can exceed the 5s default when the full suite is running in parallel.
   }, IMPORT_BOOTSTRAP_TIMEOUT_MS);
 
@@ -80,9 +78,7 @@ describe('schema/config.schema.json widget enum/examples (DCMS-1710)', () => {
 
   it('lists no widget name that fails to resolve against the Registry (DCMS-1823)', async () => {
     const { registerExtensions: registerAppExtensions } = await import('@/app/extensions');
-    const { registerExtensions: registerLaikaAppExtensions } = await import('@/laika-app/extensions');
     registerAppExtensions();
-    registerLaikaAppExtensions();
     registerCoreWidgets();
 
     const enumValues = loadWidgetEnum();

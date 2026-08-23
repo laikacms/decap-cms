@@ -3,10 +3,10 @@ import { describe, expect, it } from 'vitest';
 
 // README.md ("JSON Schema (editor autocompletion)") advertises the config.yml
 // JSON Schema as importable at the package subpath
-// `@laikacms/decap-cms/schema/config.schema.json`. Node's `exports` map,
+// `decap-cms/schema/config.schema.json`. Node's `exports` map,
 // once present in package.json, blocks resolution of any subpath that isn't
 // explicitly listed there — without a `./schema/*` (or equivalent) entry,
-// `require.resolve('@laikacms/decap-cms/schema/config.schema.json')` /
+// `require.resolve('decap-cms/schema/config.schema.json')` /
 // `import(...)` throws `ERR_PACKAGE_PATH_NOT_EXPORTED`, contradicting the
 // README's promise (DCMS-1647).
 //
@@ -17,7 +17,7 @@ import { describe, expect, it } from 'vitest';
 const require = createRequire(import.meta.url);
 
 describe('package.json#exports "./schema/*" (DCMS-1649)', () => {
-  it('resolves @laikacms/decap-cms/schema/config.schema.json without throwing', () => {
-    expect(() => require.resolve('@laikacms/decap-cms/schema/config.schema.json')).not.toThrow();
+  it('resolves decap-cms/schema/config.schema.json without throwing', () => {
+    expect(() => require.resolve('decap-cms/schema/config.schema.json')).not.toThrow();
   });
 });

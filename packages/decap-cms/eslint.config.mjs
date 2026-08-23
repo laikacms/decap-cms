@@ -31,7 +31,7 @@ const packages = (fs.existsSync(srcDir) ? fs.readdirSync(srcDir, { withFileTypes
 //   1. ui             (src/ui, incl. src/ui/editor)
 //   2. ui/default, ui/auth
 //   3. widgets
-//   4. core/components | app/components | laika-app
+//   4. core/components | app/components
 // Non-component infrastructure (core/actions, core/hooks, core/i18n, lib,
 // backends, …) sits outside the model and is unrestricted. Order matters:
 // longest prefix must come first so `ui/default` wins over `ui`.
@@ -42,7 +42,6 @@ const COMPONENT_LAYERS = [
   { name: 'widgets', prefix: 'widgets/', rank: 3 },
   { name: 'core/components', prefix: 'core/components/', rank: 4 },
   { name: 'app/components', prefix: 'app/components/', rank: 4 },
-  { name: 'laika-app', prefix: 'laika-app/', rank: 4 },
 ];
 
 function componentLayerOf(srcRelativePath) {
@@ -92,7 +91,7 @@ const localImportAliasPlugin = {
         ],
         messages: {
           upwardImport:
-            "Layer '{{from}}' (rank {{fromRank}}) must not import from higher layer '{{to}}' (rank {{toRank}}). Dependency order: ui → ui/default → widgets → core/app/laika components.",
+            "Layer '{{from}}' (rank {{fromRank}}) must not import from higher layer '{{to}}' (rank {{toRank}}). Dependency order: ui → ui/default → widgets → core/app components.",
           siblingImport:
             "'{{from}}' and '{{to}}' are sibling component realms (rank 4) and must not import each other. Move the shared component down into ui/, ui/default/, or widgets/.",
           impureImport:
@@ -373,10 +372,10 @@ export default tseslint.config(
       // Import rules
       'import/no-named-as-default': 'off',
       // Enforce the component dependency order (ui → ui/default → widgets →
-      // core/app/laika components; rank-4 realms must not cross-import).
+      // core/app components; rank-4 realms must not cross-import).
       // `allowed`: the app shell composing core/components pages is sanctioned
       // architecture. `grandfathered`: pre-existing debt from before the
-      // layering was adopted (laika-app wraps the app shell and core pages) -
+      // layering was adopted -
       // shrink that list by moving shared components down the stack; NEVER add
       // new edges to it.
       // The same rule also pins the published dependency-free modules:
@@ -389,8 +388,6 @@ export default tseslint.config(
         {
           allowed: ['app/components>core/components'],
           grandfathered: [
-            'laika-app>app/components',
-            'laika-app>core/components',
             'lib/backend>lib/util',
           ],
         },

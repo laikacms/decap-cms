@@ -6,7 +6,7 @@ import type {
 } from '@/lib/util/index';
 
 /**
- * `@laikacms/decap-cms/entry-codecs/markdown` — the markdown entry codec:
+ * `decap-cms/entry-codecs/markdown` — the markdown entry codec:
  * entries stored as a frontmatter block plus an opaque text body, parsed to
  * `{ ...frontmatter, body: 'raw text' }` and reassembled on write. Kept for
  * backwards compatibility with git backends; laika-backend apps never need it
@@ -18,8 +18,8 @@ import type {
  * embedding rules (fence delimiters, optional parse/stringify overrides).
  * Every codec module exports a ready-made config:
  *
- *     import { createMarkdownEntryCodec } from '@laikacms/decap-cms/entry-codecs/markdown';
- *     import { yamlEntryCodec, yamlFrontmatterCodec } from '@laikacms/decap-cms/entry-codecs/yaml';
+ *     import { createMarkdownEntryCodec } from 'decap-cms/entry-codecs/markdown';
+ *     import { yamlEntryCodec, yamlFrontmatterCodec } from 'decap-cms/entry-codecs/yaml';
  *
  *     CMS.registerEntryCodec(yamlEntryCodec);
  *     CMS.registerEntryCodec(createMarkdownEntryCodec({ frontmatter: [yamlFrontmatterCodec] }));

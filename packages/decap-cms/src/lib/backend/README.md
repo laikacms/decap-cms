@@ -1,8 +1,8 @@
 # `lib/backend`
 
-The backend contract, published as `@laikacms/decap-cms/lib/backend`. An implementation should
-import this module and nothing else from the CMS: the seam types live here, and the config types the
-contract references plus the helpers implementations share are re-exported.
+The backend contract, published as `decap-cms/lib/backend`. An implementation should import this
+module and nothing else from the CMS: the seam types live here, and the config types the contract
+references plus the helpers implementations share are re-exported.
 
 `lib/backend` may import `lib/domain` and nothing else; the `lib/util` re-exports below are the one
 tracked exception, until those definitions move here physically.

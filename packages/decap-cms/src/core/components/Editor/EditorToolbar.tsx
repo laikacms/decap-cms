@@ -365,8 +365,8 @@ export function EditorToolbar(props: EditorToolbarProps) {
   // render a dedicated Save button, so that's the only case Cmd/Ctrl+S maps
   // to `onPersist` (DCMS-NEW-SAVE-SHORTCUT). Registered on core's shared
   // shortcut engine (`@/core/lib/shortcuts`) rather than a bare `keydown`
-  // listener, matching `LaikaEditorToolbar`'s `mod+s` registration, so it
-  // gets the same modal-suspension/typing-safe handling for free.
+  // listener, so it gets the same modal-suspension/typing-safe handling for
+  // free.
   const canSave = hasEditAccess && hasWorkflow && (isNewEntry || !!hasChanged) && !isPersisting;
   useShortcut({
     id: 'editor.save',

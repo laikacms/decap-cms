@@ -609,8 +609,8 @@ function AppContent({
     dispatch(logoutUser());
   }, [dispatch]);
 
-  // Backends report unrecoverable session expiry (e.g. the laika backend's
-  // refresh grant came back invalid_grant) through the Backend subscription.
+  // Backends report unrecoverable session expiry (e.g. a refresh grant that
+  // came back invalid_grant) through the Backend subscription.
   // Without it the store keeps its stale user and every failed load renders
   // as a 404. Deliberately NOT a logout: `sessionExpired` keeps the user in
   // the store so the app tree (and any editor holding unsaved work) stays

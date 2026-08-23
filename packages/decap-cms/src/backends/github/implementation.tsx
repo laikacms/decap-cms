@@ -79,7 +79,7 @@ let registeredGraphQLAPI: typeof API | null = null;
 
 /**
  * Registers the API class used when the backend has `use_graphql` enabled. Wired up by
- * importing '@laikacms/decap-cms/backends/github/graphql', which is a separate entry so
+ * importing 'decap-cms/backends/github/graphql', which is a separate entry so
  * the GraphQL client libraries stay optional peer dependencies.
  */
 export function registerGraphQLAPI(graphQLAPI: typeof API) {
@@ -374,7 +374,7 @@ export default class GitHub implements BackendImplementation {
     if (this.useGraphql && !registeredGraphQLAPI) {
       throw new Error(
         'The GitHub backend has `use_graphql` enabled, but no GraphQL API is registered. '
-          + "Import '@laikacms/decap-cms/backends/github/graphql' and install the optional "
+          + "Import 'decap-cms/backends/github/graphql' and install the optional "
           + 'GraphQL peer dependencies to use it.',
       );
     }

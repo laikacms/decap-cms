@@ -124,12 +124,10 @@ export type CmsFormatter = {
 
 /**
  * An entry codec (`src/entry-codecs/{yaml,toml,json}`): the encoding of a
- * whole entry file, registered via `CMS.registerEntryCodec`. Distinct from
- * richtext format packs (`registerRichtextFormat`), which serialize a single
- * richtext field's body. Nothing is registered by default: the fat `/app` +
- * `/laika-app` entries register all three built-ins; `/bare` consumers
- * register only the codecs their collections use (laika-backend apps
- * typically just JSON).
+ * whole entry file, registered via `CMS.registerEntryCodec`. Nothing is
+ * registered by default: the fat app entry points register all three
+ * built-ins; `/bare` consumers register only the codecs their collections
+ * use.
  */
 export type CmsEntryCodecDelimiter = string | [string, string];
 

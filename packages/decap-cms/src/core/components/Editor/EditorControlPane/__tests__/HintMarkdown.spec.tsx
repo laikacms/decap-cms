@@ -1,27 +1,15 @@
 import { render } from '@testing-library/react';
 import React from 'react';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import HintMarkdown from '@/core/components/Editor/EditorControlPane/HintMarkdown';
-import { markdownFormat } from '@/format-packs/markdown/index';
-import { registerFormat, unregisterFormat } from '@/lib/richtext';
 
 /**
  * HintMarkdown replaces react-markdown for field hints (dependency
- * reduction). Hints are parsed with the registered markdown format pack's
- * own mapper — core bundles no markdown parser. With the pack registered
- * it must keep the old behavior: only inline a/strong/em/del are rendered,
- * all other markdown is unwrapped to text, raw HTML is dropped, and links
- * open in a new tab. Without the pack the hint renders as plain text.
+ * reduction). Only inline a/strong/em/del are rendered, all other markdown is
+ * unwrapped to text, raw HTML is dropped, and links open in a new tab.
  */
-describe('HintMarkdown with the markdown format pack registered', () => {
-  beforeAll(() => {
-    registerFormat(markdownFormat);
-  });
-
-  afterAll(() => {
-    unregisterFormat('markdown');
-  });
+describe('HintMarkdown', () => {
   it('renders plain text', () => {
     const { container } = render(<HintMarkdown source="Just a hint" />);
     expect(container).toHaveTextContent('Just a hint');
@@ -73,14 +61,5 @@ describe('HintMarkdown with the markdown format pack registered', () => {
     const { container } = render(<HintMarkdown source="[**bold link**](https://example.com)" />);
     const link = container.querySelector('a');
     expect(link?.querySelector('strong')).toHaveTextContent('bold link');
-  });
-});
-
-describe('HintMarkdown without the markdown format pack', () => {
-  it('renders the hint as plain text, markdown syntax included', () => {
-    const source = 'See [the docs](https://example.com) for **bold** ideas';
-    const { container } = render(<HintMarkdown source={source} />);
-    expect(container.querySelector('a, strong, em, del')).toBeNull();
-    expect(container.textContent).toBe(source);
   });
 });

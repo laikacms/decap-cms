@@ -36,10 +36,10 @@ class MockResizeObserver implements ResizeObserver {
 }
 globalThis.ResizeObserver ??= MockResizeObserver;
 
-// jsdom's Range lacks getClientRects; Lexical's selection code calls it from
+// jsdom's Range lacks getClientRects; the rich text editor's selection code calls it from
 // a MutationObserver after document edits, crashing as an unhandled error
 // outside any test. Layout is meaningless in jsdom, so empty rects suffice.
-// (Deliberately NOT stubbing Range#getBoundingClientRect: some Lexical
+// (Deliberately NOT stubbing Range#getBoundingClientRect: some the rich text editor
 // positioning code spins forever when it returns all-zero rects.)
 if (typeof Range !== 'undefined') {
   Range.prototype.getClientRects ??= () =>

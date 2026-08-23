@@ -329,19 +329,11 @@ describe('Backend', () => {
       );
     });
 
-    it('throws with the generic registerBackend hint for an unregistered non-laika backend', () => {
+    it('throws with the registerBackend hint for an unregistered backend', () => {
       (getBackend as ReturnType<typeof vi.fn>).mockReturnValue(undefined);
 
       expect(() => resolveBackend({ backend: { name: 'some-unregistered-backend' } })).toThrowError(
         /Backend not found: some-unregistered-backend\..*Make sure the backend is registered with CMS\.registerBackend\(\) before/,
-      );
-    });
-
-    it('throws with the laika-specific hint when config.backend.name is "laika" and unregistered', () => {
-      (getBackend as ReturnType<typeof vi.fn>).mockReturnValue(undefined);
-
-      expect(() => resolveBackend({ backend: { name: 'laika' } })).toThrowError(
-        /Backend not found: laika\..*register it before init\(\) via CMS\.registerBackend\("laika", createLaikaBackend\(\)\).*@laikacms\/decap-cms\/backends\/laika/,
       );
     });
   });

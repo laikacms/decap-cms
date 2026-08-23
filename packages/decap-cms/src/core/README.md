@@ -2,8 +2,8 @@
 
 `src/core/` is the framework-agnostic engine: Redux store, config/entry processing, the backend
 abstraction, and the extension `Registry`. It has no opinion on layout or routing — the routed `App`
-/ `AppContent` layer (and the `CmsSlots` render-slot surface) lives in `@laikacms/decap-cms/app`,
-built on top of this package (DCMS-251).
+/ `AppContent` layer (and the `CmsSlots` render-slot surface) lives in `decap-cms/app`, built on top
+of this package (DCMS-251).
 
 This document covers the public **extension registration API** exposed from
 `src/core/lib/registry.tsx` and re-exported from [`src/core/index.ts`](./index.ts) as `Registry`
@@ -12,8 +12,8 @@ for collection/top-level `config.yml` keys that are implemented here but not doc
 else in the repo:
 
 ```ts
-import { Registry } from '@laikacms/decap-cms/core';
-// or: import DecapCmsCore from '@laikacms/decap-cms/core';
+import { Registry } from 'decap-cms/core';
+// or: import DecapCmsCore from 'decap-cms/core';
 
 Registry.registerWidget(/* ... */);
 ```
@@ -29,8 +29,8 @@ The CMS's design tokens (currently colors) are resolved through CSS custom prope
 without touching component code. Two ways to plug in a theme:
 
 ```tsx
-import { DecapCmsProvider } from '@laikacms/decap-cms/core';
-import type { DecapTheme } from '@laikacms/decap-cms/core';
+import { DecapCmsProvider } from 'decap-cms/core';
+import type { DecapTheme } from 'decap-cms/core';
 
 const theme: DecapTheme = {
   colors: {
@@ -58,14 +58,13 @@ const theme: DecapTheme = {
   CSS variables internally (`<Global styles={{ ':root': themeToCssVars(theme) }} />`) and applies
   them on top of the default token baseline, which is always emitted first so every token has a
   defined value on first paint.
-- **`themeToCssVars(theme: DecapTheme): Record<string, string>`** — exported from
-  `@laikacms/decap-cms/core` (re-exported from
-  [`src/ui/default/styles.tsx`](../ui/default/styles.tsx)) for consumers who want to emit the
-  `--decap-*` variables themselves instead of going through the `theme` prop — e.g. to merge them
-  into a host app's own stylesheet or theming system, as `laika-app` does for its light/dark themes
-  (`laikaThemes.ts`, `LaikaThemeContext.tsx`). Only string values are emitted; non-string values on
-  the theme object are silently dropped. Naming convention: `theme.colors.active` becomes
-  `--decap-color-active`, `theme.colorsRaw.blue` becomes `--decap-color-raw-blue`.
+- **`themeToCssVars(theme: DecapTheme): Record<string, string>`** — exported from `decap-cms/core`
+  (re-exported from [`src/ui/default/styles.tsx`](../ui/default/styles.tsx)) for consumers who want
+  to emit the `--decap-*` variables themselves instead of going through the `theme` prop — e.g. to
+  merge them into a host app's own stylesheet or theming system, for example to drive its own
+  light/dark themes. Only string values are emitted; non-string values on the theme object are
+  silently dropped. Naming convention: `theme.colors.active` becomes `--decap-color-active`,
+  `theme.colorsRaw.blue` becomes `--decap-color-raw-blue`.
   ```ts
   themeToCssVars({ colors: { active: '#e91e63' } });
   // => { '--decap-color-active': '#e91e63' }
@@ -124,7 +123,7 @@ registration and logs a warning. `previewComponent` is optional and must be a co
 object — anything else is dropped with a warning and the widget falls back to no preview.
 
 ```ts
-import { registerWidget } from '@laikacms/decap-cms/core';
+import { registerWidget } from 'decap-cms/core';
 import { RatingControl, RatingPreview } from './rating-widget';
 
 registerWidget({
@@ -149,7 +148,7 @@ rendered in the entry editor's preview pane instead of the default field-by-fiel
 Registering the same collection name twice keeps the last registration — no warning is logged.
 
 ```ts
-import { registerPreviewTemplate } from '@laikacms/decap-cms/core';
+import { registerPreviewTemplate } from 'decap-cms/core';
 import PostPreview from './PostPreview';
 
 registerPreviewTemplate('posts', PostPreview);
@@ -167,7 +166,7 @@ accumulate — every call appends another entry returned by `getPreviewStyles()`
 de-duplication.
 
 ```ts
-import { registerPreviewStyle } from '@laikacms/decap-cms/core';
+import { registerPreviewStyle } from 'decap-cms/core';
 
 registerPreviewStyle('/preview.css');
 registerPreviewStyle('body { font-family: sans-serif; }', { raw: true });
@@ -191,10 +190,10 @@ already registered.`) — the
 first registration wins.
 
 `BackendImplementation` (and the `BackendClass` constructor type above) is published from
-`@laikacms/decap-cms/lib/backend`; see `src/lib/backend/README.md` for the seam it defines.
+`decap-cms/lib/backend`; see `src/lib/backend/README.md` for the seam it defines.
 
 ```ts
-import { registerBackend } from '@laikacms/decap-cms/core';
+import { registerBackend } from 'decap-cms/core';
 import MyBackend from './my-backend';
 
 registerBackend('my-backend', MyBackend);
@@ -204,51 +203,6 @@ registerBackend('my-backend', MyBackend);
 # config.yml
 backend:
   name: my-backend
-```
-
-## `registerBlock`
-
-`registerEditorComponent` was removed; custom richtext embeds/shortcodes are now registered as
-**blocks** — a PT-native (Portable Text) replacement documented in full at
-`src/widgets/richtext/README.md` ("Custom blocks"). See `breaking-changes-v4-beta.md` for the
-removal context.
-
-```ts
-interface BlockDefinition<TData extends Record<string, unknown> = Record<string, unknown>> {
-  id: string; // PT `_type` and stable id — reserved ids are rejected on register
-  label?: string;
-  icon?: ReactNode; // slash menu / toolbar / block chrome
-  inline?: boolean; // inline object (child of a text block) instead of block-level
-  fields: BlockFieldConfig[]; // decap fields editing the block data; [] = no editable props
-  defaultData?: TData | (() => TData);
-  keywords?: string[]; // extra slash-menu search keywords
-  preview?: ComponentType<BlockPreviewProps<TData>>; // editor AND preview pane; fallback chrome if absent
-  editableRegions?: string[]; // reserved for the visual editor; currently unused
-  formats?: { markdown?: BlockFormatCodec<TData>, [formatId: string]: unknown }; // per-format serialization
-}
-```
-
-`registerBlock` — and `unregisterBlock` — are public methods on the `CMS` object; the implementation
-lives in `src/core/lib/registry.tsx` and delegates to `src/lib/richtext/blocks/registry.ts`.
-Register at boot, before any entry is parsed.
-
-```ts
-import { markdownFormat } from '@laikacms/decap-cms/format-packs/markdown';
-import { CMS } from '@laikacms/decap-cms/laika-app/bare';
-
-CMS.registerBlock({
-  id: 'youtube',
-  label: 'YouTube',
-  fields: [{ name: 'videoId', label: 'Video ID', widget: 'string' }],
-  formats: {
-    markdown: {
-      pattern: /^{{< youtube (\S+) >}}/,
-      fromMatch: match => ({ videoId: match[1] }),
-      serialize: data => `{{< youtube ${data.videoId} >}}`,
-    },
-  },
-});
-CMS.registerRichtextFormat(markdownFormat);
 ```
 
 ## `registerRemarkPlugin`
@@ -261,13 +215,12 @@ Registers a [remark](https://github.com/remarkjs/remark) plugin in an internal l
 `getRemarkPlugins()`. `plugin` is whatever `remark().use()` accepts (a plugin function, or a
 `[plugin, options]` tuple). Plugins accumulate in registration order; there is no de-duplication.
 
-**This API is currently unused / a no-op.** The richtext widget in this package is built on Portable
-Text, not a remark/markdown pipeline, and no shipped widget (richtext or otherwise) reads
-`getRemarkPlugins()` to configure a markdown processor. Calling `registerRemarkPlugin` records the
-plugin but has no observable effect on any widget's rendering or parsing today.
+**This API is currently unused / a no-op.** No shipped widget reads `getRemarkPlugins()` to
+configure a markdown processor, so calling `registerRemarkPlugin` records the plugin but has no
+observable effect on any widget's rendering or parsing today.
 
 ```ts
-import { registerRemarkPlugin } from '@laikacms/decap-cms/core';
+import { registerRemarkPlugin } from 'decap-cms/core';
 
 // Currently has no effect on any widget; the registered plugin is never consumed.
 registerRemarkPlugin(myRemarkPlugin);
@@ -290,7 +243,7 @@ value is transformed between the in-editor representation and the value persiste
 Registering the same `widgetName` twice keeps the last registration.
 
 ```ts
-import { registerWidgetValueSerializer } from '@laikacms/decap-cms/core';
+import { registerWidgetValueSerializer } from 'decap-cms/core';
 
 registerWidgetValueSerializer('rating', {
   serialize: value => String(value),
@@ -318,7 +271,7 @@ been registered.` — unlike most other `register*`
 functions, this one is not last-write-wins.
 
 ```ts
-import { registerMediaLibrary } from '@laikacms/decap-cms/core';
+import { registerMediaLibrary } from 'decap-cms/core';
 
 registerMediaLibrary({ name: 'my-media-library' });
 ```
@@ -333,10 +286,10 @@ media_library:
 **bytes**. Selecting or dropping a file larger than the configured value rejects the upload before
 it is persisted (`persistMedia` is never called) and shows the user an alert stating the limit in
 kB. Omitting `max_file_size` applies a default cap of **25 MB** (`25 * 1024 * 1024` bytes,
-`DEFAULT_MAX_FILE_SIZE` in `MediaLibrary.tsx`) — set it explicitly to opt into a different limit,
-or to `0` to disable the cap entirely (no limit). The check only applies to the default upload flow
-in `MediaLibrary.tsx`; a custom `registerMediaLibrary` integration is responsible for enforcing its
-own limit if it wants one.
+`DEFAULT_MAX_FILE_SIZE` in `MediaLibrary.tsx`) — set it explicitly to opt into a different limit, or
+to `0` to disable the cap entirely (no limit). The check only applies to the default upload flow in
+`MediaLibrary.tsx`; a custom `registerMediaLibrary` integration is responsible for enforcing its own
+limit if it wants one.
 
 ```yaml
 # config.yml
@@ -360,7 +313,7 @@ its own strings without wiping the CMS's (or another extension's). Conflicting k
 registration.
 
 ```ts
-import { registerLocale } from '@laikacms/decap-cms/core';
+import { registerLocale } from 'decap-cms/core';
 
 registerLocale('de', {
   app: { header: { content: 'Inhalt' } },
@@ -394,8 +347,8 @@ that are actually translatable and non-empty, an `applyValue(fieldName, value)` 
 through the same draft-change path as "copy from locale", and the bound `t`. `isAvailable` hides the
 action for a given locale pair; omit it to always render.
 
-This is the seam `@laikacms/decap-cms-ai-translate` plugs into — the AI translate button used to be
-hardcoded in `EditorControlPane` (DCMS-1395). Pair with `unregisterLocaleAction(name)`.
+This is the seam `decap-cms-ai-translate` plugs into — the AI translate button used to be hardcoded
+in `EditorControlPane` (DCMS-1395). Pair with `unregisterLocaleAction(name)`.
 
 ## `registerSlot`
 
@@ -414,7 +367,7 @@ same slot twice warns and keeps the last renderer. Pair with `unregisterSlot(nam
 returns a copy of the current registrations.
 
 ```ts
-import { registerSlot } from '@laikacms/decap-cms/core';
+import { registerSlot } from 'decap-cms/core';
 
 registerSlot('renderEntryCard', props => <MyCard {...props} />);
 ```
@@ -453,7 +406,7 @@ in the chain (this is how `preSave` handlers commonly mutate the entry before it
 handlers are awaited, and a throwing handler fails the operation.
 
 ```ts
-import { registerEventListener } from '@laikacms/decap-cms/core';
+import { registerEventListener } from 'decap-cms/core';
 
 registerEventListener({
   name: 'preSave',
@@ -482,7 +435,7 @@ throw (or a rejected promise) is logged rather than propagated, so a broken exte
 editing. Use the transform events, or dispatch an action, to actually change something.
 
 ```ts
-import { registerEventListener } from '@laikacms/decap-cms/core';
+import { registerEventListener } from 'decap-cms/core';
 
 registerEventListener({
   name: 'entryDraftChange',
@@ -514,7 +467,7 @@ associating it with a file `extension` and a `formatter` that parses (`fromFile`
 previous registration.
 
 ```ts
-import { registerCustomFormat } from '@laikacms/decap-cms/core';
+import { registerCustomFormat } from 'decap-cms/core';
 
 registerCustomFormat('my-format', 'myext', {
   fromFile: content => JSON.parse(content),
@@ -532,9 +485,9 @@ Registers a whole-entry-file encoding (as opposed to `registerCustomFormat`, whi
 single-formatter shortcut for the same concept, or `registerRemarkPlugin`, which operates on a
 single richtext field's body). Entry codecs are what `collection.format` names resolve to, and what
 a file's extension is matched against to infer a format when `collection.format` isn't set. Nothing
-is registered by default — the fat `@laikacms/decap-cms/app` and `@laikacms/decap-cms/laika-app`
-entries register the three built-ins (`yaml`, `toml`, `json`) plus a markdown codec on startup;
-`bare` consumers register only the codecs their collections actually use.
+is registered by default — the fat `decap-cms/app` entry registers the three built-ins (`yaml`,
+`toml`, `json`) plus a markdown codec on startup; `bare` consumers register only the codecs their
+collections actually use.
 
 ```ts
 type CmsEntryCodec = {
@@ -573,14 +526,14 @@ frontmatter fence language in registration order, and the first one registered b
 language used when writing a new file.
 
 ```ts
-import { registerEntryCodec } from '@laikacms/decap-cms/core';
-import { jsonEntryCodec } from '@laikacms/decap-cms/entry-codecs/json';
-import { jsonFrontmatterCodec } from '@laikacms/decap-cms/entry-codecs/json';
-import { createMarkdownEntryCodec } from '@laikacms/decap-cms/entry-codecs/markdown';
-import { tomlEntryCodec } from '@laikacms/decap-cms/entry-codecs/toml';
-import { tomlFrontmatterCodec } from '@laikacms/decap-cms/entry-codecs/toml';
-import { yamlEntryCodec } from '@laikacms/decap-cms/entry-codecs/yaml';
-import { yamlFrontmatterCodec } from '@laikacms/decap-cms/entry-codecs/yaml';
+import { registerEntryCodec } from 'decap-cms/core';
+import { jsonEntryCodec } from 'decap-cms/entry-codecs/json';
+import { jsonFrontmatterCodec } from 'decap-cms/entry-codecs/json';
+import { createMarkdownEntryCodec } from 'decap-cms/entry-codecs/markdown';
+import { tomlEntryCodec } from 'decap-cms/entry-codecs/toml';
+import { tomlFrontmatterCodec } from 'decap-cms/entry-codecs/toml';
+import { yamlEntryCodec } from 'decap-cms/entry-codecs/yaml';
+import { yamlFrontmatterCodec } from 'decap-cms/entry-codecs/yaml';
 
 registerEntryCodec(yamlEntryCodec);
 registerEntryCodec(tomlEntryCodec);
@@ -657,21 +610,21 @@ CMS.registerLlmTransport({
 Credentials are the transport's own business — an AI endpoint need not trust the same issuer as the
 git backend, so the CMS lends no token. A transport whose endpoint does trust the backend's token
 asks for it explicitly (`currentBackend(store.getState().config).getToken()`, both exported here and
-refresh-aware). `@laikacms/decap-cms-llm-dulla` is a worked implementation; see
+refresh-aware). `decap-cms-llm-dulla` is a worked implementation; see
 [docs/core/llm.md](../../../../docs/core/llm.md).
 
 ## Dispatching entry actions
 
 The Redux `store` has always been exported, but the vocabulary for driving it was not, so an
 extension had to reverse-engineer reducer contracts and hand-roll raw action objects. These action
-creators are published from `@laikacms/decap-cms/core` as supported API:
+creators are published from `decap-cms/core` as supported API:
 
 `loadEntries`, `loadEntry`, `persistEntry`, `deleteEntry`, `createEmptyDraft`,
 `createDraftDuplicateFromEntry`, `discardDraft`, `changeDraftField`, `changeDraftFieldValidation`,
 `clearFieldErrors`, `addDraftEntryMediaFile`, `removeDraftEntryMediaFile`.
 
 ```ts
-import { changeDraftField, store } from '@laikacms/decap-cms/core';
+import { changeDraftField, store } from 'decap-cms/core';
 
 store.dispatch(changeDraftField({ field, value, metadata: {}, entries: [] }));
 ```
@@ -702,11 +655,10 @@ interface Shortcut {
 }
 ```
 
-The global keyboard-shortcut engine, in `src/core/lib/shortcuts.ts`. App shells (`laika-app`, host
-apps) register shortcuts here and the engine owns the single `window` `keydown` listener, multi-key
-chord state, typing suppression, and modal coordination — core owns the mechanism, apps own the
-policy. It's what `laika-app`'s command palette and shortcut-help dialog (`LaikaShortcuts.tsx`,
-`LaikaShortcutHelp.tsx`) are built on.
+The global keyboard-shortcut engine, in `src/core/lib/shortcuts.ts`. App shells (the default app,
+host apps) register shortcuts here and the engine owns the single `window` `keydown` listener,
+multi-key chord state, typing suppression, and modal coordination — core owns the mechanism, apps
+own the policy. It's what command palettes and shortcut-help dialogs are built on.
 
 React consumers should reach for the hooks in
 [`src/core/hooks/useShortcut.ts`](./hooks/useShortcut.ts) instead of calling `registerShortcut`
@@ -719,7 +671,7 @@ function useSuspendShortcuts(active: boolean): void;
 ```
 
 ```tsx
-import { useShortcut } from '@laikacms/decap-cms/core';
+import { useShortcut } from 'decap-cms/core';
 
 function SaveButton({ onSave, disabled }: { onSave: () => void, disabled: boolean }) {
   useShortcut({
@@ -771,10 +723,10 @@ modifiers and a key, parsed by `parseSequence`:
   engine (e.g. core's media library) are still safe.
 - **`suspendShortcuts()`** pauses every shortcut except ones with `allowWhileSuspended: true` until
   the returned release function is called; it's re-entrant (each suspension must be released
-  independently, and `suspendCount` tracks nesting). `LaikaDialog` calls this automatically for
-  laika-app dialogs; the `useSuspendShortcuts(active)` hook wraps it for other modal surfaces.
-  `allowWhileSuspended` is for toggles that must keep working from within their own dialog (e.g. the
-  command palette's `mod+k` to close itself).
+  independently, and `suspendCount` tracks nesting). Dialog components call this automatically; the
+  `useSuspendShortcuts(active)` hook wraps it for other modal surfaces. `allowWhileSuspended` is for
+  toggles that must keep working from within their own dialog (e.g. the command palette's `mod+k` to
+  close itself).
 - **`when`** is an extra per-keystroke enablement gate evaluated on every matching keydown, checked
   after the suspension/input checks.
 - **Conflicts and overrides**: registering a shortcut with an `id` that's already registered
@@ -1243,10 +1195,10 @@ Collections may declare `view_scopes` and `edit_scopes` as arrays of OAuth-style
 Every configured scope is required. A user with the `admin` scope satisfies every requirement. When
 either setting is absent or empty, that access remains unrestricted for backwards compatibility.
 
-`view_scopes` filters collection navigation in the classic and Laika shells. `edit_scopes` hides or
-disables create, save, publish, status-change, and delete affordances. These checks are UX guidance
-only. They are not an authorization boundary, because a caller can invoke the API without using the
-CMS interface.
+`view_scopes` filters collection navigation in the app shell. `edit_scopes` hides or disables
+create, save, publish, status-change, and delete affordances. These checks are UX guidance only.
+They are not an authorization boundary, because a caller can invoke the API without using the CMS
+interface.
 
 ### Top-level `roles`
 

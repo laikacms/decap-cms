@@ -40,9 +40,9 @@ describe.skipIf(!distExists)('package.json#exports dist targets (post `pnpm buil
   for (const key of subpaths) {
     const target = exportsMap[key];
 
-    // `null` targets (e.g. "./format-packs/mdx") are explicit blocks that
-    // override a wildcard sibling — Node refuses to resolve them on
-    // purpose, there's no dist file to check for.
+    // `null` targets are explicit blocks that override a wildcard sibling:
+    // Node refuses to resolve them on purpose, there's no dist file to check
+    // for.
     if (target === null) continue;
 
     if (!key.includes('*')) {

@@ -1,16 +1,16 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Playwright end-to-end tests for the Laika shell (`src/laika-app`).
+ * Playwright end-to-end tests for the app shell (`src/app`).
  *
- * These drive the real IIFE bundle exactly as a consumer would: the
- * `laika-cms.js` build is dropped into `dev-test/laika.html` and served as a
- * static page, backed entirely by the in-memory `test-repo` backend (no
- * network, no real git). See `dev-test/config.yml` + `dev-test/repo-fixtures.js`
- * for the seeded content.
+ * These drive the real bundle exactly as a consumer would: the `decap-cms.js`
+ * build is dropped into `dev-test/index.html` and served as a static page,
+ * backed entirely by the in-memory `test-repo` backend (no network, no real
+ * git). See `dev-test/config.yml` + `dev-test/repo-fixtures.js` for the seeded
+ * content.
  *
- * The `webServer` block builds the laika demo bundle and serves `dev-test/`
- * on :5174 — the same command pair used by `pnpm build:laika-demo` +
+ * The `webServer` block builds the demo bundles and serves `dev-test/` on
+ * :5174, the same command pair used by `pnpm build:demo` +
  * `pnpm serve:dev-test`. Run with `pnpm test:e2e`.
  */
 
@@ -20,7 +20,7 @@ const baseURL = `http://localhost:${PORT}`;
 export default defineConfig({
   testDir: './playwright',
   // Only *.e2e.ts here so Playwright never tries to run the vitest `*.spec.tsx`
-  // component tests under `src/laika-app/__tests__`.
+  // component tests under `src/**/__tests__`.
   testMatch: /.*\.e2e\.ts/,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
@@ -64,15 +64,13 @@ export default defineConfig({
     },
   ],
   webServer: {
-    // Build the laika + classic IIFE bundles into dev-test/dist, then serve
-    // dev-test/. (The classic decap-cms.js bundle is what the backend replay
-    // specs drive.) The `&&` keeps `serve` as the long-lived foreground
-    // process Playwright waits on. The demo bundles build as production React
-    // (vite build default), which the consume-once replay fixtures require:
-    // StrictMode's dev-only double-invoked effects would desync them (see
+    // Build the demo bundles into dev-test/dist, then serve dev-test/. The
+    // `&&` keeps `serve` as the long-lived foreground process Playwright waits
+    // on. The demo bundles build as production React (vite build default),
+    // which the consume-once replay fixtures require: StrictMode's dev-only
+    // double-invoked effects would desync them (see
     // playwright/backends/replay.ts).
-    command:
-      'pnpm run build:laika-demo && pnpm run build:demo && pnpm run build:demo-graphql && npx --yes serve dev-test -l '
+    command: 'pnpm run build:demo && pnpm run build:demo-graphql && npx --yes serve dev-test -l '
       + PORT,
     url: `${baseURL}/config.yml`,
     reuseExistingServer: !process.env.CI,

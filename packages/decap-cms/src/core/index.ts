@@ -19,7 +19,7 @@ export type { DecapTheme } from '@/ui/default/index';
 /**
  * Building blocks for assembling a custom layout. The routed `App` /
  * `AppContent` layer — plus the `CmsSlots` render-slot surface it wires up —
- * lives in `@laikacms/decap-cms/app`, not here; `core` is the headless engine
+ * lives in `decap-cms/app`, not here; `core` is the headless engine
  * they're built on (DCMS-251).
  */
 export { default as Collection } from './components/Collection/Collection';
@@ -33,7 +33,7 @@ export { default as Workflow } from './components/Workflow/Workflow';
  * Routing — the `Router` port a consumer can implement to drive navigation
  * through their own history mechanics (the URL scheme is the separate
  * `routing` table axis), and `createDefaultRouter` for composing the default
- * hash router explicitly (as the laika shell does).
+ * hash router explicitly (as a custom shell does).
  */
 export { createDefaultRouter } from './routing/defaultRouter';
 export type { DefaultRouter } from './routing/defaultRouter';
@@ -85,7 +85,7 @@ export type { AppDispatch, RootState } from './redux';
  * and hand-roll raw action objects. Dispatch these instead.
  *
  * ```ts
- * import { changeDraftField, store } from '@laikacms/decap-cms/core';
+ * import { changeDraftField, store } from 'decap-cms/core';
  *
  * store.dispatch(changeDraftField({ field, value, metadata: {}, entries: [] }));
  * ```

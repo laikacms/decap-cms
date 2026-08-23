@@ -12,7 +12,7 @@ import type { TranslateFunction } from './GoBackButton';
  * content, the login button, and the go-back link. It never renders page
  * chrome (brand logo, Decap credit, full-page centering) — that belongs to
  * whatever hosts it: `StandaloneAuthPage` below on the default `app` path,
- * or a custom `renderAuth` shell like laika-app's auth card.
+ * or a custom `renderAuth` shell supplied by the host app.
  */
 const StyledAuthenticationPage = styled.section`
   display: flex;

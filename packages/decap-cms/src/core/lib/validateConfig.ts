@@ -147,7 +147,6 @@ export function getConfigSchema(): JSONSchema {
           },
           cms_label_prefix: { type: 'string', minLength: 1 },
           open_authoring: { type: 'boolean', examples: [true] },
-          // laika backend only, see below.
           base_url: { type: 'string' },
           api_root: { type: 'string' },
           api_url: { type: 'string' },
@@ -156,24 +155,14 @@ export function getConfigSchema(): JSONSchema {
           proxy_url: { type: 'string' },
         },
         required: ['name'],
-        // The laika backend needs a `base_url` to reach its API; without it
-        // `laika-backend.ts` fails much later with a cryptic network error
-        // instead of a clear config-time one. See DCMS-1786.
-        if: { properties: { name: { enum: ['laika'] } }, required: ['name'] },
-        then: { required: ['base_url'], properties: { base_url: { minLength: 1 } } },
         // The proxy backend needs a `proxy_url` to reach its API; without it
         // `proxy/implementation.tsx` fails much later, at `ProxyBackend`
         // construction, with a cryptic runtime error instead of a clear
-        // config-time one. Same failure mode as `base_url` above (DCMS-1786),
-        // ported for the proxy backend. See DCMS-1848. The interpreter only
-        // supports one `if`/`then`/`else` per schema, so the proxy check is
-        // nested in `else` alongside the laika check above.
-        else: {
-          if: { properties: { name: { enum: ['proxy'] } }, required: ['name'] },
-          then: {
-            required: ['proxy_url'],
-            properties: { proxy_url: { minLength: 1, pattern: '^(https?://.+|/(?!/).*)$' } },
-          },
+        // config-time one. See DCMS-1848.
+        if: { properties: { name: { enum: ['proxy'] } }, required: ['name'] },
+        then: {
+          required: ['proxy_url'],
+          properties: { proxy_url: { minLength: 1, pattern: '^(https?://.+|/(?!/).*)$' } },
         },
       },
       local_backend: {
@@ -452,132 +441,6 @@ function getWidgetSchemas(): Record<string, JSONSchema | undefined> {
   return Object.assign({}, ...schemas);
 }
 
-function isPlainRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-/**
- * Walks a field array plus its nested `fields`/`field`/`types` (mirrors the
- * shapes `traverseFieldsJS` in `core/actions/config.tsx` recurses into),
- * calling `visit` on every field object found. Runs before
- * `expandFieldGroups`, so `{ group: '<name>' }` references aren't expanded
- * here - `field_groups` definitions are walked separately by the caller.
- */
-function forEachField(fields: unknown, visit: (field: Record<string, unknown>) => void): void {
-  if (!Array.isArray(fields)) return;
-  for (const field of fields) {
-    if (!isPlainRecord(field)) continue;
-    visit(field);
-    if (Array.isArray(field.fields)) forEachField(field.fields, visit);
-    if (isPlainRecord(field.field)) forEachField([field.field], visit);
-    if (Array.isArray(field.types)) forEachField(field.types, visit);
-  }
-}
-
-/** Every field array reachable from the raw (pre-normalize) config. */
-function collectFieldArrays(config: Record<string, unknown>): unknown[][] {
-  const arrays: unknown[][] = [];
-
-  if (Array.isArray(config.collections)) {
-    for (const collection of config.collections) {
-      if (!isPlainRecord(collection)) continue;
-      if (Array.isArray(collection.fields)) arrays.push(collection.fields);
-      if (Array.isArray(collection.files)) {
-        for (const file of collection.files) {
-          if (isPlainRecord(file) && Array.isArray(file.fields)) arrays.push(file.fields);
-        }
-      }
-    }
-  }
-
-  if (isPlainRecord(config.field_groups)) {
-    for (const groupFields of Object.values(config.field_groups)) {
-      if (Array.isArray(groupFields)) arrays.push(groupFields);
-    }
-  }
-
-  return arrays;
-}
-
-const REMOVED_RICHTEXT_KEYS = ['editor_components', 'editorComponents'] as const;
-
-// `markdown` is a back-compat alias registered onto the same richtext control
-// (see `app/extensions.ts`: `{ ...RichtextWidget(), name: 'markdown' }`), so it
-// must be guarded identically to `richtext` - otherwise `editor_components` on
-// a `markdown` field passes validation silently and is then dropped at render
-// time with no error.
-const RICHTEXT_FAMILY_WIDGETS = ['richtext', 'markdown'] as const;
-
-// `minimal`/`buttons`/`modes`/`sanitize_preview` pass schema validation
-// (`widgets/richtext/widget/schema.ts`) and have no reader anywhere in the
-// widget - see that file and the richtext README's "Accepted-but-inert
-// legacy keys" section. Unlike `editor_components` they don't lose content,
-// so a one-time console warning is enough; a hard error would be overkill.
-const INERT_RICHTEXT_KEYS = ['minimal', 'buttons', 'modes', 'sanitize_preview'] as const;
-const warnedInertRichtextKeys = new Set<string>();
-
-function warnInertRichtextKey(key: (typeof INERT_RICHTEXT_KEYS)[number]) {
-  if (warnedInertRichtextKeys.has(key)) return;
-  warnedInertRichtextKeys.add(key);
-  if (key === 'sanitize_preview') {
-    console.warn(
-      "Richtext field config key 'sanitize_preview' has no effect: there is no sanitizer call "
-        + 'anywhere in the widget, so setting it (including to `false`) does not control anything. '
-        + "See widgets/richtext/README.md, 'Accepted-but-inert legacy keys'.",
-    );
-    return;
-  }
-  console.warn(
-    `Richtext field config key '${key}' has no effect in the current (Lexical) widget - it's `
-      + "accepted only for backward compatibility with the old decap-cms-widget-markdown config "
-      + "surface. See widgets/richtext/README.md, 'Accepted-but-inert legacy keys'.",
-  );
-}
-
-/**
- * `editor_components`/`editorComponents` configured custom Markdown block
- * components in the pre-Lexical markdown widget. That API was removed along
- * with the widget, nothing reads either key anymore, and neither the base
- * field schema nor the richtext widget schema declares
- * `additionalProperties: false` (deliberately - see DCMS-1974's "out of
- * scope"), so schema validation alone accepts the key silently. This walks
- * the raw (pre-normalize) config directly so a user who sets either key on a
- * `richtext` field (or its `markdown` back-compat alias, which renders
- * through the same control) gets a clear error instead of quietly losing
- * their custom blocks. Also fires the inert-key warnings above while it's
- * already walking every richtext-family field.
- */
-function checkRichtextFieldKeys(config: Record<string, unknown>): SchemaError[] {
-  const errors: SchemaError[] = [];
-
-  for (const fieldArray of collectFieldArrays(config)) {
-    forEachField(fieldArray, field => {
-      if (!RICHTEXT_FAMILY_WIDGETS.includes(field.widget as typeof RICHTEXT_FAMILY_WIDGETS[number])) return;
-
-      const removedKey = REMOVED_RICHTEXT_KEYS.find(key => key in field);
-      if (removedKey) {
-        const fieldName = typeof field.name === 'string' ? field.name : '<unnamed>';
-        errors.push({
-          instancePath: '',
-          schemaPath: '',
-          keyword: '',
-          params: { field: fieldName, key: removedKey },
-          message:
-            `${String(field.widget)} field '${fieldName}' sets '${removedKey}', which was removed in `
-            + 'v4. Register custom blocks with CMS.registerBlock(...) before init(). See '
-            + "widgets/richtext/README.md, 'Custom blocks'.",
-        });
-      }
-
-      for (const inertKey of INERT_RICHTEXT_KEYS) {
-        if (inertKey in field) warnInertRichtextKey(inertKey);
-      }
-    });
-  }
-
-  return errors;
-}
-
 class ConfigError extends Error {
   errors: SchemaError[];
 
@@ -642,13 +505,6 @@ export function validateConfig(config: Record<string, unknown>) {
     });
     console.error('Config Errors', errors);
     throw new ConfigError(errors);
-  }
-
-  // Custom validation: reject removed richtext config keys, warn on inert ones.
-  const richtextFieldKeyErrors = checkRichtextFieldKeys(config);
-  if (richtextFieldKeyErrors.length > 0) {
-    console.error('Config Errors', richtextFieldKeyErrors);
-    throw new ConfigError(richtextFieldKeyErrors);
   }
 
   // Custom validation: only one sortable field can have default_sort property

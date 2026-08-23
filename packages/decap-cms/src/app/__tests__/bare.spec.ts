@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-describe('@laikacms/decap-cms/app/bare', () => {
+describe('decap-cms/app/bare', () => {
   beforeEach(() => {
     vi.resetModules();
   });

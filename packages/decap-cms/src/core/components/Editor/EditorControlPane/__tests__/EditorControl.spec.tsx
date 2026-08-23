@@ -12,14 +12,14 @@ import type { CmsEntryField } from '@/lib/util/index';
  * hardcoded to `#444a57` in `styleStrings.widget` instead of resolving
  * through the themeable `colors` token layer. Every other token in the
  * same style block (`colors.inputBackground`, `borders.textField`, etc.)
- * already followed the theme, so on the laika-app dark theme the typed
+ * already followed the theme, so on a dark theme the typed
  * value rendered at ~1.66:1 contrast against the dark input background -
  * a WCAG AA (4.5:1) failure.
  *
  * `colors.textLead` is used (rather than `colors.text`) because it is the
  * only token of the two that clears 4.5:1 against `colors.inputBackground`
  * on both the default light theme (white input, ~11.2:1) and the
- * laika-app dark theme override (~15:1), while `colors.text` only reaches
+ * a dark theme override (~15:1), while `colors.text` only reaches
  * ~3.9:1 on light and fails AA there.
  */
 describe('EditorControl styleStrings - widget text theming (DCMS-421)', () => {

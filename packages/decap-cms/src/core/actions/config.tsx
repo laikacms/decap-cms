@@ -531,8 +531,8 @@ export function applyDefaults(originalConfig: CmsConfig) {
 
 // Config is TypeScript-first: pass a config object to `CMS.init({ config })`
 // (or set `window.CMS_CONFIG`). Loading YAML, JSON, or TOML config files
-// requires the matching entry codec to be registered. The fat `/app` and
-// `/laika-app` entries register all three out of the box.
+// requires the matching entry codec to be registered. The fat `/app` entry
+// registers all three out of the box.
 
 function getConfigCodec(format: ConfigFormat) {
   return getEntryCodec(format);
@@ -542,7 +542,7 @@ function missingConfigCodecError(format: ConfigFormat) {
   return new Error(
     `Loading a ${format.toUpperCase()} config requires the ${format} entry codec, and none is registered. `
       + `Either pass a config object to CMS.init({ config }) or register the codec: `
-      + `import { ${format}EntryCodec } from '@laikacms/decap-cms/entry-codecs/${format}'; `
+      + `import { ${format}EntryCodec } from 'decap-cms/entry-codecs/${format}'; `
       + `CMS.registerEntryCodec(${format}EntryCodec).`,
   );
 }

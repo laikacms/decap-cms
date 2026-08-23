@@ -11,7 +11,7 @@ import { colors } from '@/ui/default/styles';
  * wordmark ("Decap") from `Icon/images/decap.svg`. The wordmark paths used
  * to be hard-locked to `fill="black"` via the `no-fill` class, which opts a
  * path out of the shared `IconWrapper` rule that resolves fill to
- * `currentColor`. On a dark login card (e.g. Laika's dark theme, which sets
+ * `currentColor`. On a dark login card (e.g. a dark theme, which sets
  * `--decap-color-textLead` to a light value) that left the wordmark a fixed
  * near-black, unreadable against the dark background - while the pink "D"
  * mark (intentionally `no-fill`, to preserve the brand color) stayed

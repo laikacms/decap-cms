@@ -1,17 +1,10 @@
 ---
 name: decap-api-driving
-description: Drive a Laika/Decap CMS instance through the documents and assets JSON:API (the protocol behind the MCP api_request tool and the laika backend). Use when an agent needs to find, read, edit, publish, or unpublish entries, or upload media, against a running CMS instance rather than editing files in a git checkout.
 ---
 
 # Driving a CMS instance via the API
 
-This skill documents the **laikacms documents/assets protocol** (`laikacms/api/documents-api`,
-`laikacms/api/assets-api`, see `laikacms` on npm), the JSON:API surface the `laika` Decap backend
-(`src/backends/laika/laika-backend.ts`) talks to, and the same surface an MCP `api_request` tool
 passes through. It is written for an agent that has API/MCP access but no repo checkout: every claim
-below is read from the installed `laikacms` package's routes and schemas
-(`node_modules/laikacms/dist/api/documents-api/server.js`,
-`node_modules/laikacms/dist/domain/documents/**`), not guessed.
 
 If you have `read_api_spec`, fetch `GET {basePath}/openapi.json` on the documents API and the assets
 API separately; the two are independent OpenAPI 3.1 documents. This skill tells you which endpoints
@@ -19,7 +12,6 @@ to combine and in which order; the spec tells you the exact request/response sch
 
 ## Two APIs, two base paths
 
-A Laika-backed CMS exposes two independent JSON:API services, normally mounted at different paths
 under one origin (`base_url` in the site's `backend:` config, e.g. `/api/documents` and
 `/api/assets`):
 
@@ -51,7 +43,6 @@ saved through this backend. Check the collection's config before writing.
 
 - `filter[folder]` scopes to a collection (or subfolder); omit for the whole store.
 - `filter[depth]` controls how many path segments deep to recurse (Decap's own list calls typically
-  use `depth: 10` for i18n folder structures, see `unpublishedEntries()` in `laika-backend.ts`).
 - `filter[type]` defaults to `published`; pass `all` to see both published and
   draft/review/publish-queue entries in one call. Unpublished results include their `status` string.
 - Pagination: `page[number]`/`page[size]`, `page[offset]`/`page[limit]`, or `page[after]`/
@@ -78,11 +69,11 @@ Both return `data.attributes.content`, a plain JSON object. This **is** the entr
 
 Status values (`src/core/constants/publishModes.ts`, `Statuses`):
 
-| value             | meaning                |
-| ----------------- | ----------------------- |
-| `draft`            | being written           |
-| `pending_review`   | waiting for review       |
-| `pending_publish`  | approved, waiting to go live |
+| value             | meaning                      |
+| ----------------- | ---------------------------- |
+| `draft`           | being written                |
+| `pending_review`  | waiting for review           |
+| `pending_publish` | approved, waiting to go live |
 
 These are the values you pass as `status` when creating/updating an **unpublished** record; a
 collection's own `unpublishedStatuses` config can use different literal strings, but `draft` /
@@ -102,6 +93,7 @@ POST /unpublished
   }
 }
 ```
+
 `data.id` is the key; it is required (400 without it).
 
 ### Edit an existing draft
@@ -110,9 +102,9 @@ POST /unpublished
 PATCH /unpublished/{key}
 { "data": { "type": "unpublished", "attributes": { "content": { ...merged fields... } } } }
 ```
+
 `content` on update replaces the whole object; there is no field-level PATCH. Read the current
 `content` first (`GET /unpublished/{key}`), modify it client-side, and send the full merged object
-back. This mirrors what the laika Decap backend itself does in `persistEntry`.
 
 ### Move status forward (review, approve)
 
@@ -120,6 +112,7 @@ back. This mirrors what the laika Decap backend itself does in `persistEntry`.
 PATCH /unpublished/{key}
 { "data": { "type": "unpublished", "attributes": { "status": "pending_review" } } }
 ```
+
 Same endpoint as content edits; status and content can be updated independently or together.
 
 ### Publish
@@ -127,6 +120,7 @@ Same endpoint as content edits; status and content can be updated independently 
 ```
 POST /unpublished/{key}/publish
 ```
+
 No body. This is the state transition that promotes the unpublished record to `/published/{key}` and
 removes it from the unpublished side. There is no separate "merge draft into published" step; this
 one call does it.
@@ -137,6 +131,7 @@ one call does it.
 POST /published/{key}/unpublish
 { "data": { "type": "unpublished", "attributes": { "status": "draft" } } }
 ```
+
 `attributes.status` is required and becomes the new unpublished record's status.
 
 ### Editing an already-published entry directly (no workflow)
@@ -145,6 +140,7 @@ POST /published/{key}/unpublish
 PATCH /published/{key}
 { "data": { "type": "published", "attributes": { "content": { ...merged fields... } } } }
 ```
+
 Only valid when the site is not using the draft/review/publish workflow for that write (Decap's
 `simple` publish mode). It skips drafts entirely and edits the live document in place.
 
@@ -155,19 +151,21 @@ Only valid when the site is not using the draft/review/publish workflow for that
 
 ### Revisions
 
-`POST /revisions` (`data.id` = key, `data.attributes` = revision payload) to snapshot; `GET
+`POST /revisions` (`data.id` = key, `data.attributes` = revision payload) to snapshot;
+`GET
 /revisions/{key}` to list summaries (paginated); `GET /revisions/{key}/{revisionId}` to read one
 snapshot's full `content`. Revisions are separate from the unpublished/published split: they are a
 history mechanism, not a workflow state.
 
 ### Batch operations
 
-`POST /operations` accepts an array of JSON:API-Patch-style `{ op: 'add' | 'update' | 'remove', ... }`
-entries and applies them as one request, still one entry at a time server-side (not a transaction
-across entries). Prefer the single-resource endpoints above unless you specifically need to bundle
-several independent creates/updates/deletes into one HTTP round trip; malformed shape in any one
-operation 400s the whole batch before any writes happen (pre-flight validated), but a mid-batch
-failure after that point does not roll back earlier successful operations.
+`POST /operations` accepts an array of JSON:API-Patch-style
+`{ op: 'add' | 'update' | 'remove', ... }` entries and applies them as one request, still one entry
+at a time server-side (not a transaction across entries). Prefer the single-resource endpoints above
+unless you specifically need to bundle several independent creates/updates/deletes into one HTTP
+round trip; malformed shape in any one operation 400s the whole batch before any writes happen
+(pre-flight validated), but a mid-batch failure after that point does not roll back earlier
+successful operations.
 
 ## The `content` JSON codec
 
@@ -180,26 +178,28 @@ does.
 
 ### Portable Text richtext fields
 
-If a field is `widget: richtext` with `format: portableText`, that field's *value* (not the whole
+If a field is `widget: richtext` with `format: portableText`, that field's _value_ (not the whole
 entry) is a Portable Text document: a JSON array of block objects. See the companion skill
-`decap-portable-text` (`skills/decap-portable-text/SKILL.md`) for the full block/mark/list/custom-block
-shape and pitfall checklist before writing to a richtext field; do not invent Portable Text shapes,
-that skill is the source of truth and is validated against `src/lib/richtext/` directly.
+`decap-portable-text` (`skills/decap-portable-text/SKILL.md`) for the full
+block/mark/list/custom-block shape and pitfall checklist before writing to a richtext field; do not
+invent Portable Text shapes, that skill is the source of truth and is validated against
+`src/lib/richtext/` directly.
 
-If `format:` is omitted or `markdown` (the default), the richtext field's value is a markdown string,
-not a Portable Text array. Check the field's `format:` in the collection config before deciding
-which shape to write.
+If `format:` is omitted or `markdown` (the default), the richtext field's value is a markdown
+string, not a Portable Text array. Check the field's `format:` in the collection config before
+deciding which shape to write.
 
 ## Media upload
 
-`POST {assetsBasePath}/resources`, `multipart/form-data`, field `file` = the binary. Optional fields:
-`key` (defaults to the uploaded filename), `mimeType` (defaults to the file's own MIME type),
-`filename`, `cacheControl`, `customMetadata` (JSON string of arbitrary key/value pairs), or pass all
-of the above except the binary as a single `metadata` form field containing JSON; individual fields
-win over `metadata` JSON, which wins over the file's own properties. Response is `201` with the
-created asset resource.
+`POST {assetsBasePath}/resources`, `multipart/form-data`, field `file` = the binary. Optional
+fields: `key` (defaults to the uploaded filename), `mimeType` (defaults to the file's own MIME
+type), `filename`, `cacheControl`, `customMetadata` (JSON string of arbitrary key/value pairs), or
+pass all of the above except the binary as a single `metadata` form field containing JSON;
+individual fields win over `metadata` JSON, which wins over the file's own properties. Response is
+`201` with the created asset resource.
 
 JSON (non-multipart) upload is also accepted for base64-encoded content:
+
 ```
 POST {assetsBasePath}/resources
 Content-Type: application/vnd.api+json
@@ -208,7 +208,6 @@ Content-Type: application/vnd.api+json
 
 After upload, reference the asset from an entry's `content` the way the field widget expects (a
 `string` field storing a path/URL for `widget: image`/`file`, or an embedded block inside a richtext
-Portable Text document, see the portable-text skill's "custom blocks" section). The laika Decap
 backend stores assets by bare filename (stripped of any path Decap's UI sent) under a public-folder
 prefix (`public_folder` in `config.yml`); reproduce that convention if you are constructing the
 reference by hand instead of letting Decap's own picker do it: build the field value from
@@ -219,8 +218,8 @@ pagination and capability-gated cursor rules as `/record-summaries`.
 
 ## Errors and idempotency
 
-- Every failure is `{ errors: [{ status, title, detail, source? }] }`; `source.pointer` points at the
-  JSON:API attribute path when the error is about a specific field.
+- Every failure is `{ errors: [{ status, title, detail, source? }] }`; `source.pointer` points at
+  the JSON:API attribute path when the error is about a specific field.
 - Creates (`POST /published`, `POST /unpublished`, `POST {assetsBasePath}/resources`) 400 if the
   content is not a plain object (or, for assets, if the file is missing); there is no silent
   coercion.
@@ -235,8 +234,8 @@ pagination and capability-gated cursor rules as `/record-summaries`.
 1. `GET /record-summaries?filter[folder]=<collection>&filter[type]=all` (or search by known key) to
    find the entry's key.
 2. `GET /unpublished/{key}` if it exists, else `GET /published/{key}`, to get the current `content`.
-3. Modify the target field in `content` client-side (richtext fields: follow the `decap-portable-text`
-   skill).
+3. Modify the target field in `content` client-side (richtext fields: follow the
+   `decap-portable-text` skill).
 4. If no unpublished draft existed yet: `POST /unpublished` with the merged `content` and
    `status: "draft"`. If one existed: `PATCH /unpublished/{key}` with the merged `content`.
 5. `POST /unpublished/{key}/publish`.
@@ -248,6 +247,5 @@ draft/review/publish workflow.
 
 - No MCP `read_skill`/`list_skills` tool exists yet to serve this file over the MCP connection
   itself (tracked as a follow-up on DCMS-1410). For now this skill is only reachable by an agent
-  with repo access (`.claude/skills`) or the `laika skills install` CLI eject.
-- `read_api_spec` still returns the full OpenAPI 3.1 document in one call; trimming/segmenting it per
-  task is a separate follow-up, not implemented here.
+- `read_api_spec` still returns the full OpenAPI 3.1 document in one call; trimming/segmenting it
+  per task is a separate follow-up, not implemented here.

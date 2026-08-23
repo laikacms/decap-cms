@@ -9,7 +9,7 @@ import type { CmsEntryCodec, CmsFormatterFunctions, CmsFrontmatterCodec } from '
 import type { Dayjs } from 'dayjs';
 
 /**
- * `@laikacms/decap-cms/entry-codecs/toml` — the TOML entry codec
+ * `decap-cms/entry-codecs/toml` — the TOML entry codec
  * (`format: toml`, `.toml` files). Register with
  * `CMS.registerEntryCodec(tomlEntryCodec)`; the fat `/app` and `/laika-app`
  * entries do so out of the box. To use TOML as a frontmatter language, pass

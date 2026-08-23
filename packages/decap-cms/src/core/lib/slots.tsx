@@ -18,7 +18,7 @@ import type {
  * through `AppContentProps` as direct props. But components nested inside
  * the router — Collection, Editor, MediaLibrary — can't be customized via
  * props without invasive prop drilling. This context is the alternative:
- * laika-app (or any other app) supplies a `CmsSlots` object once at the
+ * an app shell supplies a `CmsSlots` object once at the
  * `AppContent` boundary, and any descendant component can read its own
  * slot via `useCmsSlots()`.
  *

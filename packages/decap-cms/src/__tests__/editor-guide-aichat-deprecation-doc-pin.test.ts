@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 // DCMS-2027: docs/editor-guide.md's "Writing and editing an entry" section
 // listed the "AI chat" panel as a plain, actively supported optional widget,
 // with no hint that it's deprecated. The widget's own README already opens
-// with a deprecation callout pointing at the laikacms MCP server (`/mcp`) as
+// with a deprecation callout pointing at an MCP server (`/mcp`) as
 // the replacement (packages/decap-cms/src/widgets/aichat/README.md:3), and
 // DCMS-1892 already carried the same callout into the package README
 // (pinned by aichat-readme-deprecation-doc-pin.test.ts). editor-guide.md is

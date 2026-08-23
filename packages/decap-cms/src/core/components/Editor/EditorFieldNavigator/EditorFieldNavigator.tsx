@@ -1,8 +1,8 @@
 import styled from '@emotion/styled';
 import React from 'react';
 
-import { laikaShouldForwardProp } from '@/ui/styled';
 import { colors, text } from '@/ui/default/index';
+import { defaultShouldForwardProp } from '@/ui/styled';
 
 import type { CmsEntryField } from '@/lib/util/index';
 import type { TranslateFunction } from '@/ui/default/index';
@@ -80,7 +80,7 @@ interface NavItemButtonProps {
   $active: boolean;
 }
 
-const NavItemButton = styled('button', { shouldForwardProp: laikaShouldForwardProp })<NavItemButtonProps>`
+const NavItemButton = styled('button', { shouldForwardProp: defaultShouldForwardProp })<NavItemButtonProps>`
   display: block;
   width: 100%;
   text-align: left;

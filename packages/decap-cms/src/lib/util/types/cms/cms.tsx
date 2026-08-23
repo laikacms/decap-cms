@@ -219,15 +219,6 @@ export interface CmsCMS {
   getWidgetValueSerializer: (widgetName: string) => CmsWidgetValueSerializer | undefined;
   init: (options?: CmsInitOptions) => void;
   registerBackend: (name: string, backendClass: BackendClass) => void;
-  // PT-native custom blocks and richtext format packs (the replacement for
-  // the removed `registerEditorComponent` API). Structural shapes live in
-  // `@/lib/richtext` (`BlockDefinition`, `FormatPack`); typed loosely here to
-  // keep `lib/util` types self-contained.
-  registerBlock: (definition: Record<string, unknown>) => void;
-  unregisterBlock: (id: string) => void;
-  registerRichtextFormat: (pack: Record<string, unknown>) => void;
-  /** Reserved for the visual editor; currently a warning no-op. */
-  registerBlockComponents: (components: Record<string, ComponentType<unknown>>) => void;
   registerRemarkPlugin: (plugin: unknown) => void;
   registerEventListener: (
     eventListener: CmsEventListener,

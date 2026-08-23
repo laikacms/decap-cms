@@ -4,28 +4,28 @@
 (the headless engine) to a concrete UI shell, registers every built-in backend, widget, entry codec,
 format pack, and locale, and mounts itself into the DOM.
 
-It is the **default export of the package**. `@laikacms/decap-cms` (the `.` subpath) resolves to
+It is the **default export of the package**. `decap-cms` (the `.` subpath) resolves to
 `src/app/index.ts`, so anyone who does not want to build their own app gets this one:
 
 ```html
-<!-- The CDN build (`unpkg`/`jsdelivr` fields -> dist/cdn/decap-cms.js) bundles this entry. -->
-<script src="https://cdn.jsdelivr.net/npm/@laikacms/decap-cms@4/dist/cdn/decap-cms.js"></script>
+<!-- The CDN build (`unpkg`/`jsdelivr` fields -> dist/decap-cms.js) bundles this entry. -->
+<script src="https://cdn.jsdelivr.net/npm/decap-cms@4/dist/decap-cms.js"></script>
 ```
 
 ```ts
 // Same thing, bundled: importing the package for its side effect boots the CMS.
-import '@laikacms/decap-cms';
+import 'decap-cms';
 ```
 
-Everything else in the package (`core`, `ui`, `widgets`, `backends`, `entry-codecs`, `format-packs`)
-is a library you compose yourself. `src/app/` is the one place that makes choices on your behalf.
+Everything else in the package (`core`, `ui`, `widgets`, `backends`, `entry-codecs`) is a library
+you compose yourself. `src/app/` is the one place that makes choices on your behalf.
 
 ## Entry points
 
-| Import                            | What you get                                                                            |
-| --------------------------------- | --------------------------------------------------------------------------------------- |
-| `@laikacms/decap-cms` / `.../app` | [`index.ts`](./index.ts): `registerExtensions()` + auto-`init()` + `window.CMS` globals |
-| `@laikacms/decap-cms/app/bare`    | [`bare.ts`](./bare.ts): the same public API, no registrations, no auto-mount            |
+| Import                  | What you get                                                                            |
+| ----------------------- | --------------------------------------------------------------------------------------- |
+| `decap-cms` / `.../app` | [`index.ts`](./index.ts): `registerExtensions()` + auto-`init()` + `window.CMS` globals |
+| `decap-cms/app/bare`    | [`bare.ts`](./bare.ts): the same public API, no registrations, no auto-mount            |
 
 `/app` is `/app/bare` plus two side effects: it calls `registerExtensions()` (see
 [`extensions.ts`](./extensions.ts)) and, in a browser, calls `init()` unless
@@ -33,9 +33,6 @@ is a library you compose yourself. `src/app/` is the one place that makes choice
 JSON + five widgets) and want the bundler to tree-shake the other ~10 backends and ~17 widgets;
 register what you need via `CMS.registerBackend()` / `registerWidget()` / `registerEntryCodec()`,
 then call `init()`.
-
-`src/laika-app/` is the sibling v4.beta "Laika" shell with the same `index.ts` / `bare.ts` split.
-The two shells are peers: they must not import each other's components.
 
 ## What lives here
 
@@ -73,7 +70,7 @@ The consumer-facing contract is stable either way. Pass a `DecapTheme` to `Decap
 or emit the CSS variables yourself:
 
 ```ts
-import { themeToCssVars } from '@laikacms/decap-cms/core';
+import { themeToCssVars } from 'decap-cms/core';
 
 for (const [name, value] of Object.entries(themeToCssVars({ colors: { active: '#e91e63' } }))) {
   document.documentElement.style.setProperty(name, value);
@@ -87,10 +84,9 @@ not off `--decap-color-*`.
 
 ## Conventions
 
-- This folder and `src/laika-app/` are the **only** modules allowed to run registrations at load.
-  Keep side effects in `index.ts` / `extensions.ts`; `bare.ts` and `components/` stay pure.
+- This folder is the **only** module allowed to run registrations at load. Keep side effects in
+  `index.ts` / `extensions.ts`; `bare.ts` and `components/` stay pure.
 - The app shell may compose `core/components` pages (the one sanctioned cross-layer edge, see
-  [`src/ui/README.md`](../ui/README.md#component-layering)). It must not import from
-  `src/laika-app/`.
+  [`src/ui/README.md`](../ui/README.md#component-layering)).
 - New built-ins get registered in `extensions.ts` and nowhere else, so `/app/bare` consumers keep a
   complete, greppable list of what the fat entry costs them.

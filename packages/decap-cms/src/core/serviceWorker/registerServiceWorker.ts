@@ -52,7 +52,7 @@ export function resolveServiceWorkerScope(scriptUrl: string): string {
 
 /**
  * Self-registers the app-shell caching service worker (DCMS-1993). Called
- * from the `app`/`laika-app` `init()` entry points so any consumer that
+ * from the `app` `init()` entry point so any consumer that
  * mounts the CMS gets offline app-shell caching for free, provided the
  * `decap-cms-sw.js` static asset (from `dist/` — see `resolveServiceWorkerUrl`)
  * is served next to their page.

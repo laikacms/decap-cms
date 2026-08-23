@@ -2,15 +2,15 @@ import { fireEvent, render } from '@testing-library/react';
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import EditorPanels from '@/core/components/Editor/EditorPanels';
 import { getSlots, registerPanel, registerSlot, unregisterSlot } from '@/core/lib/registry';
 import { CmsSlotsProvider, useCmsSlots } from '@/core/lib/slots';
-import EditorPanels from '@/core/components/Editor/EditorPanels';
 
 import type { CmsSlots } from '@/core/lib/slots';
 
 /**
  * Pinning tests for DCMS-NEW-SLOTS: the `CmsSlots` render-slot context is a
- * public, load-bearing extension surface (used by laika-app and 9 internal
+ * public, load-bearing extension surface (used by app shells and 9 internal
  * consumers) but previously shipped with zero unit tests. These pin the
  * contract described in the `slots.tsx` JSDoc.
  */

@@ -11,8 +11,8 @@ uses merge request labels to track unpublished entries statuses.
 `API.tsx` - A wrapper for the GitLab REST API.
 
 `GraphQLAPI.tsx` - An optional GraphQL-backed variant of the API, used when `use_graphql` is enabled
-(see below). Wired up via the separate `@laikacms/decap-cms/backends/gitlab/graphql` entry point so
-the GraphQL client libraries stay optional peer dependencies.
+(see below). Wired up via the separate `decap-cms/backends/gitlab/graphql` entry point so the
+GraphQL client libraries stay optional peer dependencies.
 
 `AuthenticationPage.tsx` - A component that facilitates OAuth, PKCE and implicit authentication.
 
@@ -44,8 +44,8 @@ the main decapcms.org docs:
   against common deploy-preview provider names instead of an exact context match.
 - `use_graphql` (boolean, default `false`): when `true`, the backend batches file reads through
   GitLab's GraphQL API instead of the REST API. Requires importing
-  `@laikacms/decap-cms/backends/gitlab/graphql` (which calls `registerGraphQLAPI`) and installing
-  its optional GraphQL peer dependencies; otherwise `authenticate()` throws.
+  `decap-cms/backends/gitlab/graphql` (which calls `registerGraphQLAPI`) and installing its optional
+  GraphQL peer dependencies; otherwise `authenticate()` throws.
 - `graphql_api_root` (string, default `'https://gitlab.com/api/graphql'`): the GraphQL endpoint used
   when `use_graphql` is enabled. Passed to the GraphQL API constructor alongside the usual
   `apiRoot`/token/repo options.

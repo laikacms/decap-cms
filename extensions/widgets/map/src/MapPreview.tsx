@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { WidgetPreviewContainer } from '@laikacms/decap-cms/ui-default';
+import { WidgetPreviewContainer } from 'decap-cms/ui-default';
 
 interface MapPreviewProps {
   value?: string;

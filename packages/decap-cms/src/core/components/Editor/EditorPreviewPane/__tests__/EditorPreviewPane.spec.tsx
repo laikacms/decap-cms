@@ -2,13 +2,9 @@ import { describe, expect, it } from 'vitest';
 
 import { getWidget } from '@/core/components/Editor/EditorPreviewPane/EditorPreviewPane';
 import { registerWidget } from '@/core/lib/registry';
-import { markdownMapper } from '@/format-packs/markdown';
-import { createRichtextValue, registerMapper, RichtextValue } from '@/lib/richtext/index';
 
 import type { CmsEntryField } from '@/lib/util/index';
 import type React from 'react';
-
-registerMapper(markdownMapper);
 
 function NoopControl() {
   return null;
@@ -22,26 +18,29 @@ function NoopPreview() {
  * DCMS-455: `EditorPreviewPane.getWidget`'s `valueIsInMap` heuristic treats
  * any non-array object value as a nested-fields map and unwraps it to
  * `value[field.name]`, unless the widget opts out via `allowMapValue: true`.
- * A `RichtextValue` class instance is an object, so widgets holding one
- * (markdown, code) must set `allowMapValue: true` or their preview receives
- * `undefined` instead of the instance.
+ * A class instance is an object, so a widget whose value is one must set
+ * `allowMapValue: true` or its preview receives `undefined` instead.
  */
+class DocumentValue {
+  constructor(public readonly source: string) {}
+}
+
 describe('EditorPreviewPane.getWidget valueIsInMap heuristic', () => {
   const baseProps = {
     getAsset: () => ({ url: '', path: '' }),
     entry: {} as any,
   } as any;
 
-  it('passes a RichtextValue instance through unchanged when the widget sets allowMapValue: true', () => {
+  it('passes a class instance through unchanged when the widget sets allowMapValue: true', () => {
     registerWidget({
-      name: 'richtext-test-allow-map',
+      name: 'dcms-455-allow-map',
       controlComponent: NoopControl,
       previewComponent: NoopPreview,
       allowMapValue: true,
     });
 
-    const field = { name: 'body', widget: 'richtext-test-allow-map' } as CmsEntryField;
-    const value = createRichtextValue('# Hello', { hint: 'markdown' });
+    const field = { name: 'body', widget: 'dcms-455-allow-map' } as CmsEntryField;
+    const value = new DocumentValue('# Hello');
 
     const element = getWidget(field, value, {}, baseProps) as React.ReactElement<{
       value: unknown,
@@ -49,18 +48,18 @@ describe('EditorPreviewPane.getWidget valueIsInMap heuristic', () => {
 
     expect(element).not.toBeNull();
     expect(element!.props.value).toBe(value);
-    expect(element!.props.value).toBeInstanceOf(RichtextValue);
+    expect(element!.props.value).toBeInstanceOf(DocumentValue);
   });
 
-  it('unwraps the value to undefined for a plain-object-holding widget without allowMapValue (regression guard)', () => {
+  it('unwraps the value to undefined for a class-instance-holding widget without allowMapValue (regression guard)', () => {
     registerWidget({
-      name: 'richtext-test-no-allow-map',
+      name: 'dcms-455-no-allow-map',
       controlComponent: NoopControl,
       previewComponent: NoopPreview,
     });
 
-    const field = { name: 'body', widget: 'richtext-test-no-allow-map' } as CmsEntryField;
-    const value = createRichtextValue('# Hello', { hint: 'markdown' });
+    const field = { name: 'body', widget: 'dcms-455-no-allow-map' } as CmsEntryField;
+    const value = new DocumentValue('# Hello');
 
     const element = getWidget(field, value, {}, baseProps) as React.ReactElement<{
       value: unknown,
@@ -69,7 +68,7 @@ describe('EditorPreviewPane.getWidget valueIsInMap heuristic', () => {
     expect(element).not.toBeNull();
     // Reproduces the bug: without `allowMapValue`, a class instance is
     // misclassified as a nested-fields map and stripped to
-    // `value[field.name]`, which is `undefined` on a RichtextValue.
+    // `value[field.name]`, which is `undefined` here.
     expect(element!.props.value).toBeUndefined();
   });
 });

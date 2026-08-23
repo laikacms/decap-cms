@@ -12,7 +12,7 @@ import { ShadcnTokensGlobalStyle } from '@/ui/ShadcnTokens';
 // `AlertDialog.tsx`/`Popover.tsx`/`Select.tsx` (and their siblings) style
 // their popups with `var(--popover)`, `var(--foreground)`, etc. Before this
 // fix those tokens were declared only inside the rich-text editor's
-// `EditorGlobalStyles` (`src/ui/editor/themes/GlobalStyles.tsx`), so any
+// the app-level global styles, so any
 // popup rendered without the editor mounted anywhere in the tree resolved
 // them to nothing — transparent background, no border, no backdrop.
 //
@@ -74,7 +74,7 @@ describe('shadcn popover tokens are declared at the app root (DCMS-1851)', () =>
     expect(rootStyle.getPropertyValue('--foreground').trim()).toBe('#020817');
   });
 
-  it('overrides the light tokens under .dark (matches the primitives\' `.dark`-scoped selector)', () => {
+  it("overrides the light tokens under .dark (matches the primitives' `.dark`-scoped selector)", () => {
     render(<ShadcnTokensGlobalStyle />);
     document.documentElement.classList.add('dark');
 

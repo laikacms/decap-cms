@@ -13,7 +13,6 @@ const REPO_ROOT = path.resolve(HERE, '../../../..');
 const CONTRIBUTING_PATH = path.join(REPO_ROOT, 'CONTRIBUTING.md');
 const ROOT_PACKAGE_JSON_PATH = path.join(REPO_ROOT, 'package.json');
 const DECAP_CMS_PACKAGE_JSON_PATH = path.join(REPO_ROOT, 'packages/decap-cms/package.json');
-const LIB_PAT_PACKAGE_JSON_PATH = path.join(REPO_ROOT, 'packages/decap-cms-lib-pat/package.json');
 
 // CLI subcommands that follow `pnpm` but aren't scripts declared in
 // package.json (e.g. `pnpm install`, `pnpm 9` in a version reference).
@@ -51,9 +50,8 @@ describe('CONTRIBUTING.md#scripts', () => {
     // workspace package's own `typecheck` script, not just decap-cms's.
     // CONTRIBUTING.md's "Available scripts" table must mention every tsconfig
     // decap-cms covers, and its total `tsc` invocation count must sum across
-    // all packages/* (decap-cms-lib-pat included), so the docs can't
-    // silently undersell the scope again (DCMS-2033: the count previously
-    // only reflected decap-cms's own script).
+    // all packages/*, so the docs can't silently undersell the scope again
+    // (DCMS-2033: the count previously only reflected one package's script).
     const contributing = fs.readFileSync(CONTRIBUTING_PATH, 'utf8');
     const decapCmsPackageJson = JSON.parse(
       fs.readFileSync(DECAP_CMS_PACKAGE_JSON_PATH, 'utf8'),
@@ -61,15 +59,8 @@ describe('CONTRIBUTING.md#scripts', () => {
     const typecheckScript = decapCmsPackageJson.scripts?.typecheck ?? '';
     expect(typecheckScript.length).toBeGreaterThan(0);
 
-    const libPatPackageJson = JSON.parse(
-      fs.readFileSync(LIB_PAT_PACKAGE_JSON_PATH, 'utf8'),
-    ) as { scripts?: Record<string, string> };
-    const libPatTypecheckScript = libPatPackageJson.scripts?.typecheck ?? '';
-    expect(libPatTypecheckScript.length).toBeGreaterThan(0);
-
     const decapCmsInvocationCount = typecheckScript.split('&&').filter(part => part.includes('tsc')).length;
-    const libPatInvocationCount = libPatTypecheckScript.split('&&').filter(part => part.includes('tsc')).length;
-    const invocationCount = decapCmsInvocationCount + libPatInvocationCount;
+    const invocationCount = decapCmsInvocationCount;
     // Every `-p <path>` project flag after the first bare `tsc --noEmit`
     // invocation names a tsconfig the doc row should call out.
     const projectConfigs = [...typecheckScript.matchAll(/tsc\s+-p\s+(\S+)/g)].map(match => match[1]);
@@ -101,13 +92,11 @@ describe('CONTRIBUTING.md#scripts', () => {
   it('documents `build:dev-test` (not bare `build:demo`) as the dev-server build step (DCMS-1117, #1145)', () => {
     // `pnpm build:demo && pnpm serve:dev-test` was the documented dev workflow
     // across README.md / packages/decap-cms/README.md / CONTRIBUTING.md, but
-    // `build:demo` alone never builds the Laika UI bundle
-    // (`dev-test/dist/laika-cms.js`, produced by `build:laika-demo`), so pages
-    // like `dev-test/laika.html` 404. `build:dev-test` is the combined script
-    // that already builds every bundle the served `dev-test/` pages load —
-    // assert the docs point at it instead of the classic-only command, and
-    // that the script itself still covers the laika bundle so this can't
-    // silently drift back apart.
+    // `build:demo` alone never builds every asset the served `dev-test/` pages
+    // load (the service-worker asset, for one). `build:dev-test` is the
+    // combined script that does - assert the docs point at it instead of the
+    // partial command, and that the script itself still covers the demo bundle
+    // so this can't silently drift back apart.
     const contributing = fs.readFileSync(CONTRIBUTING_PATH, 'utf8');
     const decapCmsPackageJson = JSON.parse(
       fs.readFileSync(DECAP_CMS_PACKAGE_JSON_PATH, 'utf8'),
@@ -115,7 +104,7 @@ describe('CONTRIBUTING.md#scripts', () => {
     const devTestScript = decapCmsPackageJson.scripts?.['build:dev-test'] ?? '';
 
     expect(devTestScript).toContain('build:demo');
-    expect(devTestScript).toContain('build:laika-demo');
+    expect(devTestScript).toContain('generate-service-worker-asset');
 
     const devServerRow = contributing.split('\n').find(line => line.includes('serve:dev-test'));
     expect(devServerRow).toBeDefined();
@@ -142,12 +131,6 @@ describe('CONTRIBUTING.md#scripts', () => {
     ) as { scripts?: Record<string, string> };
     const decapCmsTestCiScript = decapCmsPackageJson.scripts?.['test:ci'] ?? '';
     expect(decapCmsTestCiScript).toContain('pnpm run build');
-
-    const libPatPackageJson = JSON.parse(
-      fs.readFileSync(LIB_PAT_PACKAGE_JSON_PATH, 'utf8'),
-    ) as { scripts?: Record<string, string> };
-    const libPatTestCiScript = libPatPackageJson.scripts?.['test:ci'] ?? '';
-    expect(libPatTestCiScript).toContain('pnpm run build');
 
     const testCiRow = contributing
       .split('\n')
