@@ -4,7 +4,7 @@ import { authedTest as test, expect, gotoRoute } from './fixtures';
  * dev-test/config.yml sets `publish_mode: editorial_workflow`, so the shell
  * exposes the workflow board at #/workflow.
  */
-test.describe('Laika editorial workflow', () => {
+test.describe('editorial workflow', () => {
   test('renders the workflow board with its status columns', async ({ page }) => {
     await gotoRoute(page, '/workflow');
 

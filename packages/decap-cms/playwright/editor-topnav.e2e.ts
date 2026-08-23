@@ -13,7 +13,7 @@ import { authedTest as test, expect, gotoRoute } from './fixtures';
  * gone from the DOM (not just hidden) whenever the editor toolbar is up, and
  * comes back the moment the editor is left.
  */
-test.describe('Laika editor route - app top-nav suppression', () => {
+test.describe('editor route - app top-nav suppression', () => {
   test('opening an existing entry removes the app header, not just covers it', async ({ page }) => {
     await gotoRoute(page, '/collections/posts');
 
@@ -42,14 +42,14 @@ test.describe('Laika editor route - app top-nav suppression', () => {
   /**
    * DCMS-1651 — the editor toolbar's own `Posts / Editing` breadcrumb has
    * the same problem `editorBackLink` (the "Back" icon, above) already
-   * solves for the app-shell header: the Laika sidebar (an `<aside
-   * aria-label="Collections">`, rendered by `LaikaLayout` regardless of
+   * solves for the app-shell header: the sidebar (an `<aside
+   * aria-label="Collections">`, rendered by the app layout regardless of
    * route) used to stay mounted underneath the editor's full-bleed toolbar,
    * occupying the same top-left screen region as the breadcrumb's
    * `Posts` link and intercepting its clicks — visually invisible (the
    * editor toolbar painted over it) but still in the DOM and hit-testable.
    * Fixed by unmounting the sidebar for editor routes too (mirroring the
-   * header's DCMS-431 fix above), via the `isEditorRoute` flag `LaikaLayout`
+   * header's DCMS-431 fix above), via the layout's `isEditorRoute` flag
    * receives from `renderLayout`.
    */
   test('the breadcrumb "Posts" link survives a save and navigates back to the collection', async ({ page }) => {

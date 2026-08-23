@@ -20,7 +20,7 @@
  * The object this returns is also shape-compatible with what react-router
  * v7's `unstable_HistoryRouter` needs from a history (`action`, `location`,
  * `listen`, and the `createHref`/`push`/`replace`/`go` navigator methods), so
- * laika's react-router bridge can bind to the same instance.
+ * a host app's react-router bridge can bind to the same instance.
  *
  * Unlike history@5, `block()` does NOT auto-register a `beforeunload` guard;
  * page-unload prompts are the caller's concern (the editor hooks install

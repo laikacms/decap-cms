@@ -1,6 +1,6 @@
 # Community widgets
 
-`@laikacms/decap-cms` supports custom field widgets registered through `Registry.registerWidget`
+`decap-cms` supports custom field widgets registered through `Registry.registerWidget`
 (re-exported as `CMS.registerWidget`) — see
 [`packages/decap-cms/src/core/README.md`](../packages/decap-cms/src/core/README.md) for the
 extension registration API and
@@ -9,10 +9,10 @@ for how to build one (control component, preview component, optional schema/valu
 
 A widget package typically exports a `Widget(opts?)` factory (so a consumer can override fields like
 `name` or `schema`) plus the raw `controlComponent`/`previewComponent`, matching the shape used by
-this repo's own bundled widgets (`@laikacms/decap-cms/widgets/*`):
+this repo's own bundled widgets (`decap-cms/widgets/*`):
 
 ```ts
-import CMS from '@laikacms/decap-cms';
+import CMS from 'decap-cms';
 import MyWidget from 'my-decap-widget-example';
 
 CMS.registerWidget(MyWidget.Widget());
@@ -20,7 +20,7 @@ CMS.registerWidget(MyWidget.Widget());
 
 This page is a curated, community-maintained list of third-party `registerWidget` packages. It is
 the first, smallest slice of the ecosystem work tracked in
-[#1426](https://github.com/laikacms/decap-cms/issues/1426) — a hosted demo, first-party starter
+[#1426](https://github.com/decaporg/decap-cms/issues/1426) — a hosted demo, first-party starter
 templates, and expanded end-user docs are separate, not-yet-built follow-ons.
 
 ## How to list your widget here
@@ -43,12 +43,12 @@ its row.
 | _No community widgets listed yet — be the first!_ |             |             |      |
 
 Looking for widget examples in the meantime? Start with the ones that ship as their own npm packages
-under [`extensions/widgets/`](../extensions/widgets/): `@laikacms/decap-cms-widget-map`,
-`@laikacms/decap-cms-widget-lucide-icon`, `@laikacms/decap-cms-widget-radix-icon` and
-`@laikacms/decap-cms-widget-aichat`. They are built the way your widget would be - against the
-published `@laikacms/decap-cms` subpath exports only - so they are the closest thing to a template.
+under [`extensions/widgets/`](../extensions/widgets/): `decap-cms-widget-map`,
+`decap-cms-widget-lucide-icon`, `decap-cms-widget-radix-icon` and
+`decap-cms-widget-aichat`. They are built the way your widget would be - against the
+published `decap-cms` subpath exports only - so they are the closest thing to a template.
 
-This repo ships several bundled, opt-in widgets under `@laikacms/decap-cms/widgets/*` (e.g.
+This repo ships several bundled, opt-in widgets under `decap-cms/widgets/*` (e.g.
 `relation`, `uuid`, `colorstring`, `code`) — each has its own README under
 [`packages/decap-cms/src/widgets/`](../packages/decap-cms/src/widgets/) and is registered the same
 way (`CMS.registerWidget(Widget.Widget())`), useful as reference implementations even though they

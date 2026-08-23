@@ -169,7 +169,7 @@ export function getFolderFiles(
 // without recursively flattening deeper descendants the way `getFolderFiles`
 // does. Backs `getMedia(folder, folderSupport: true)`, mirroring the
 // single-folder listing contract azure/bitbucket/git-gateway/github/gitlab/
-// laika/proxy/dev-server all emit after PR #1554 (DCMS-1573).
+// proxy/dev-server both emit after PR #1554 (DCMS-1573).
 export function getFolderChildren(tree: RepoTree, folder: string) {
   const segments = folder ? folder.split('/') : [];
   let node: RepoTree = tree;
@@ -542,7 +542,7 @@ export default class TestBackend implements BackendImplementation {
   // therefore visible across every same-origin tab of this dev-test/demo
   // instance, which is enough to demo/exercise "being edited by X" and
   // stale-lock expiry without a server. A real multi-user backend needs a
-  // server-arbitrated store instead (see `LaikaBackend`'s README) so two
+  // server-arbitrated store instead so two
   // different *browsers*, not only two tabs of one, see the same lock.
 
   async getEntryLock(path: string) {

@@ -18,7 +18,7 @@ const WIDGETS_DIR = path.join(REPO_ROOT, 'packages/decap-cms/src/widgets');
 // backtick span in the file, so unrelated inline code (subpath examples,
 // the registerWidget snippet) doesn't get swept in.
 const BUNDLED_WIDGETS_SENTENCE =
-  /This repo ships several bundled, opt-in widgets under\s*\n?`@laikacms\/decap-cms\/widgets\/\*`\s*\(e\.g\.\s*([^)]+)\)/;
+  /This repo ships several bundled, opt-in widgets under\s*\n?`decap-cms\/widgets\/\*`\s*\(e\.g\.\s*([^)]+)\)/;
 
 function extractBundledWidgetNames(docContents: string): string[] {
   const match = docContents.match(BUNDLED_WIDGETS_SENTENCE);

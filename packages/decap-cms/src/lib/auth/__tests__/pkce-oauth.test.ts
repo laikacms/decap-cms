@@ -258,7 +258,7 @@ describe('PkceAuthenticator', () => {
   });
 });
 
-describe('laika-cloud#1735: explicit redirect_uri and returnTo state', () => {
+describe('#1735: explicit redirect_uri and returnTo state', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     window.history.replaceState(null, '', '/');

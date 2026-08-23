@@ -53,7 +53,7 @@ describe('validateNonce', () => {
   });
 
   it('consumes the stored nonce so a replayed check cannot validate twice', () => {
-    // laika-cloud#1735: validateNonce used to clear only localStorage, while
+    // #1735: validateNonce used to clear only localStorage, while
     // createNonce writes to sessionStorage - so the nonce survived validation
     // and a replayed OAuth callback URL validated again.
     const nonce = createNonce();

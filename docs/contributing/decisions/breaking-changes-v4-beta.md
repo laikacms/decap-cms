@@ -93,9 +93,9 @@ pnpm add @apollo/client graphql graphql-tag
 ```
 
 ```diff
-+ import { registerGitHubGraphQL } from '@laikacms/decap-cms/backends/github/graphql';
-+ import { registerGitLabGraphQL } from '@laikacms/decap-cms/backends/gitlab/graphql';
-  import CMS from '@laikacms/decap-cms';
++ import { registerGitHubGraphQL } from 'decap-cms/backends/github/graphql';
++ import { registerGitLabGraphQL } from 'decap-cms/backends/gitlab/graphql';
+  import CMS from 'decap-cms';
 +
 + registerGitHubGraphQL(); // for the GitHub backend
 + registerGitLabGraphQL(); // for the GitLab backend
@@ -110,58 +110,29 @@ still registered by the default app entry, so "optional" was not true in practic
 
 They now live in `extensions/widgets/*` and publish separately, each carrying its own dependency:
 
-| Widget        | Package                                  |
-| ------------- | ---------------------------------------- |
-| `map`         | `@laikacms/decap-cms-widget-map`         |
-| `lucide-icon` | `@laikacms/decap-cms-widget-lucide-icon` |
-| `radix-icon`  | `@laikacms/decap-cms-widget-radix-icon`  |
-| `ai-chat`     | `@laikacms/decap-cms-widget-aichat`      |
+| Widget        | Package                        |
+| ------------- | ------------------------------ |
+| `map`         | `decap-cms-widget-map`         |
+| `lucide-icon` | `decap-cms-widget-lucide-icon` |
+| `radix-icon`  | `decap-cms-widget-radix-icon`  |
+| `ai-chat`     | `decap-cms-widget-aichat`      |
 
-They are written against the published `@laikacms/decap-cms` subpath exports, exactly as any
-third-party extension is, and a lint rule keeps them that way.
+They are written against the published `decap-cms` subpath exports, exactly as any third-party
+extension is, and a lint rule keeps them that way.
 
 **Migration:** install the package for each of these widgets your config uses, and register it. No
 separate `ol` / `lucide-react` / `@radix-ui/react-icons` install is needed anymore:
 
 ```diff
 - // ol was installed by hand and the widget came for free
-+ import DecapCmsWidgetMap from '@laikacms/decap-cms-widget-map';
-  import CMS from '@laikacms/decap-cms';
++ import DecapCmsWidgetMap from 'decap-cms-widget-map';
+  import CMS from 'decap-cms';
 +
 + CMS.registerWidget(DecapCmsWidgetMap.Widget());
 ```
 
-The `ai-chat` widget stays deprecated in favour of the laikacms MCP server (`/mcp`); the package
+The `ai-chat` widget stays deprecated in favour of an external MCP server (`/mcp`); the package
 split does not change that, it only makes the deprecation easier to act on.
-
-## The AI "Translate from &lt;locale&gt;" button ships as its own package
-
-The editor's one-click AI translation (DCMS-1395) is no longer built into the CMS. It was the last
-`@ai-sdk/react` consumer in the package, and it rendered for every i18n user whose selected locale
-differed from the default, posting to `/api/ai/chat` whether or not `decapAi()` was ever mounted.
-
-It now ships as `@laikacms/decap-cms-ai-translate` and installs itself through a new generic
-extension point, `CMS.registerLocaleAction`, which renders actions in the editor's locale row. The
-CMS resolves the i18n context (translatable fields, source values, a write-back callback) and hands
-it over; the action owns its UI, its dependencies and its phrases. Any locale action can use it - a
-glossary lookup or translation-memory prefill needs no further CMS change.
-
-`CMS.registerLocale` now merges into whatever is already registered for a locale instead of
-replacing it, so an extension can contribute phrases without wiping the CMS's own. Reads already
-merged (`getPhrases` layers the `en` fallback), so this only aligns the write side.
-
-**Migration:** if you used the translate button, install and register the package:
-
-```diff
-+ import { registerAiTranslate } from '@laikacms/decap-cms-ai-translate';
-  import CMS from '@laikacms/decap-cms';
-+
-+ registerAiTranslate(); // pass { apiBasePath } if decapAi() is not at /api/ai
-```
-
-Everyone else loses a button that was calling an endpoint they had not mounted, and the CMS drops
-`@ai-sdk/react` from its dependencies. The unused `aiTranslateApi` / `aiTranslateFetch` props on the
-editor control pane are gone; pass those to `registerAiTranslate()` instead.
 
 ## The Uploadcare packages are optional peer dependencies
 
@@ -174,32 +145,31 @@ editor control pane are gone; pass those to `registerAiTranslate()` instead.
 ## Richtext output formats are now opt-in format packs
 
 The `@/lib/richtext` barrel is Portable Text-only: it no longer exports the markdown/html/plaintext
-mappers or any Lexical bindings, so importing `core` (as `/laika-app/bare` does) no longer drags
+mappers or any Lexical bindings, so importing `core` (as `/app/bare` does) no longer drags
 markdown-it and the Lexical editor into the bundle. The bundled formats moved to pack entry points —
 `format-packs/markdown`, `format-packs/html`, `format-packs/plaintext` (mdx is not a format pack yet
 — `src/format-packs/mdx/` only has parse/attribute helpers, no `FormatPack` export, and
 `./format-packs/mdx` is explicitly blocked in `package.json#exports` until it lands) — and the
 Lexical bindings (PT<->Lexical bridge, block nodes, `LexicalRichtextValue`) moved to
 `lib/richtext/lexical`. The richtext widget also stopped auto-registering the markdown format at
-import; it only registers the zero-cost `portableText` identity mapper. The fat `/app` and
-`/laika-app` entries register markdown for you, so full-app consumers are unaffected.
+import; it only registers the zero-cost `portableText` identity mapper. The fat `/app` and `/app`
+entries register markdown for you, so full-app consumers are unaffected.
 
-**Migration:** Only if you compose from `/laika-app/bare` (or register widgets manually) and use
-richtext fields with a serialized output format — register the format pack(s) your fields use before
+**Migration:** Only if you compose from `/app/bare` (or register widgets manually) and use richtext
+fields with a serialized output format — register the format pack(s) your fields use before
 `init()`:
 
 ```diff
-  import { init, CMS } from '@laikacms/decap-cms/laika-app/bare';
-  import richtextWidget from '@laikacms/decap-cms/widgets/richtext';
-+ import { markdownFormat } from '@laikacms/decap-cms/format-packs/markdown';
+  import { init, CMS } from 'decap-cms/app/bare';
+  import richtextWidget from 'decap-cms/widgets/richtext';
++ import { markdownFormat } from 'decap-cms/format-packs/markdown';
 
   CMS.registerWidget(richtextWidget.Widget());
 + CMS.registerRichtextFormat(markdownFormat);
 ```
 
 Fields with `format: portableText` need no pack. If you imported Lexical helpers from
-`@laikacms/decap-cms/lib/richtext`, import them from `@laikacms/decap-cms/lib/richtext/lexical`
-instead.
+`decap-cms/lib/richtext`, import them from `decap-cms/lib/richtext/lexical` instead.
 
 If your config also used `editor_components` to register custom Markdown block components, that key
 is now a hard config error (DCMS-1974 — see "`editor_components` is now a hard config error, not a
@@ -207,9 +177,9 @@ silent no-op" below). Its replacement is `CMS.registerBlock`, which — like `re
 — must run before `init()`:
 
 ```diff
-  import { init, CMS } from '@laikacms/decap-cms/laika-app/bare';
-  import richtextWidget from '@laikacms/decap-cms/widgets/richtext';
-  import { markdownFormat } from '@laikacms/decap-cms/format-packs/markdown';
+  import { init, CMS } from 'decap-cms/app/bare';
+  import richtextWidget from 'decap-cms/widgets/richtext';
+  import { markdownFormat } from 'decap-cms/format-packs/markdown';
 
   CMS.registerWidget(richtextWidget.Widget());
   CMS.registerRichtextFormat(markdownFormat);
@@ -242,11 +212,11 @@ for details.
 ## No import-time side effects — all registration is explicit
 
 No module in the package registers anything at import time anymore; the only side-effect modules
-left are the two composition roots (`/app` and `/laika-app` entries, which register + auto-init on
-load) and the dev server CLI. Concretely:
+left are the two composition roots (the `/app` entry, which registers + auto-init on load) and the
+dev server CLI. Concretely:
 
-- `app/extensions` and `laika-app/extensions` export `registerExtensions()` (idempotent) instead of
-  registering on import; the fat entries call it.
+- `app/extensions` exports `registerExtensions()` (idempotent) instead of registering on import; the
+  fat entries call it.
 - The backend GraphQL entries export `registerGitHubGraphQL()` / `registerGitLabGraphQL()` —
   importing the module alone no longer registers the API class (see the updated migration above).
 - The richtext widget registers the `portableText` identity mapper when you call `Widget()`, not
@@ -328,12 +298,12 @@ The mirror had drifted from the live interface, so these signatures change on to
 rename only. `CmsFileEntry`, `CmsImplementationFile`, `CmsUnpublishedEntry` and
 `CmsUnpublishedEntryDiff` are deleted along with `CmsImplementation`.
 
-**Migration:** import the contract from `@laikacms/decap-cms/lib/backend` and fix the three
-signatures that changed shape.
+**Migration:** import the contract from `decap-cms/lib/backend` and fix the three signatures that
+changed shape.
 
 ```diff
-- import type { CmsImplementation, CmsFileEntry, CmsImplementationFile } from '@laikacms/decap-cms/lib/util';
-+ import type { BackendImplementation, PersistPayload, BackendFileRef } from '@laikacms/decap-cms/lib/backend';
+- import type { CmsImplementation, CmsFileEntry, CmsImplementationFile } from 'decap-cms/lib/util';
++ import type { BackendImplementation, PersistPayload, BackendFileRef } from 'decap-cms/lib/backend';
 
 - export default class MyBackend implements CmsImplementation {
 + export default class MyBackend implements BackendImplementation {

@@ -1,6 +1,6 @@
 import { authedTest as test, expect, gotoRoute } from './fixtures';
 
-test.describe('Laika media library', () => {
+test.describe('media library', () => {
   test('opens from the header and closes again', async ({ page }) => {
     await gotoRoute(page, '/');
 

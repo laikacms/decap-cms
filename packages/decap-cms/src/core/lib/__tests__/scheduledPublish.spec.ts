@@ -95,12 +95,14 @@ describe('editor-guide documents the per-browser localStorage scoping (DCMS-2106
   // triggers it." Fails if a future edit silently drops the caveat again.
   const editorGuide = readFileSync(`${process.cwd()}/../../docs/editor-guide.md`, 'utf-8');
 
-  it('clarifies the schedule is stored in that browser\'s local storage only', () => {
+  it("clarifies the schedule is stored in that browser's local storage only", () => {
     expect(editorGuide).toContain('local storage');
   });
 
-  it('clarifies the publish only fires from the same browser, not a teammate\'s', () => {
-    expect(editorGuide).toContain('*same browser*');
+  it("clarifies the publish only fires from the same browser, not a teammate's", () => {
+    // dprint normalises markdown emphasis to underscores, so match either
+    // marker rather than pinning the formatter's current preference.
+    expect(editorGuide).toMatch(/[*_]same browser[*_]/);
     expect(editorGuide).toContain('not synced anywhere');
   });
 });

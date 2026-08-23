@@ -1,6 +1,6 @@
 import { authedTest as test, expect, gotoRoute } from './fixtures';
 
-test.describe('Laika collection controls', () => {
+test.describe('collection controls', () => {
   test.beforeEach(async ({ page }) => {
     await gotoRoute(page, '/collections/posts');
   });
@@ -49,7 +49,7 @@ test.describe('Laika collection controls', () => {
   });
 });
 
-test.describe('Laika restaurants collection', () => {
+test.describe('restaurants collection', () => {
   test.beforeEach(async ({ page }) => {
     await gotoRoute(page, '/collections/restaurants');
   });

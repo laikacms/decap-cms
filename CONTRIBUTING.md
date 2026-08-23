@@ -3,7 +3,7 @@
 Contributions are always welcome, no matter how large or small. Before contributing, please read the
 [code of conduct](CODE_OF_CONDUCT.md).
 
-This repository is a pnpm workspace. The published `@laikacms/decap-cms` fork of Decap CMS lives in
+This repository is a pnpm workspace. The published `decap-cms` fork of Decap CMS lives in
 `packages/decap-cms/`, where the former monorepo packages live under `src/`; see the root
 [README.md](README.md#repository-layout) for the current list of workspace packages under
 `packages/`. The root only carries repo-wide tooling and delegates every script into the packages,
@@ -16,7 +16,7 @@ is in [restructure.md](docs/contributing/decisions/restructure.md).
 > `package.json`; `corepack enable` sets it up).
 
 ```sh
-git clone https://github.com/laikacms/decap-cms
+git clone https://github.com/decaporg/decap-cms
 cd decap-cms
 pnpm install
 ```
@@ -39,8 +39,7 @@ The demo app uses the in-memory `test-repo` backend with fixtures from
 provider.
 
 `build:dev-test` builds every `dev-test/dist/*.js` bundle the served pages load (`decap-cms.js`,
-`laika-cms.js`, `laika-cms-bare.js`) — running only `pnpm build:demo` builds the classic bundle and
-leaves the Laika UI pages (e.g. `/laika.html`) 404ing on the missing `laika-cms.js`.
+`pnpm build:demo` builds the classic bundle used by the demo pages.
 
 To run a single test file, pass a path filter to Vitest (from `packages/decap-cms/`):
 

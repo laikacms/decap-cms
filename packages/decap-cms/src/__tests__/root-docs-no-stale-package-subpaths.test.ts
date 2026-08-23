@@ -52,17 +52,17 @@ function listScannedFiles(): string[] {
 // Matches any `import { ... } from 'decap-cms/core'` (or `"..."`)
 // statement whose named-import clause includes the bare identifier `App`
 // (not `AppContent`, `AppLayoutRenderProps`, etc.).
-const STALE_CORE_APP_IMPORT = /import\s*\{([^}]*)\}\s*from\s+['"]@laikacms\/decap-cms\/core['"]/g;
+const STALE_CORE_APP_IMPORT = /import\s*\{([^}]*)\}\s*from\s+['"]decap-cms\/core['"]/g;
 
 // Matches an import from the nonexistent `/widget-string` subpath (correct
 // subpath is the plural `/widgets/string`).
-const STALE_WIDGET_STRING_SUBPATH = /from\s+['"]@laikacms\/decap-cms\/widget-string['"]/g;
+const STALE_WIDGET_STRING_SUBPATH = /from\s+['"]decap-cms\/widget-string['"]/g;
 
 // Matches an import (or bare specifier reference) from any singular, dashed
 // `decap-cms/backend-<name>` or `decap-cms/widget-<name>`
 // subpath. The package only ever exports the plural, slashed wildcards
 // `./backends/*` and `./widgets/*` — a dashed singular subpath never exists.
-const STALE_DASHED_BACKEND_OR_WIDGET_SUBPATH = /['"]@laikacms\/decap-cms\/(backend|widget)-([\w-]+)['"]/g;
+const STALE_DASHED_BACKEND_OR_WIDGET_SUBPATH = /['"]decap-cms\/(backend|widget)-([\w-]+)['"]/g;
 
 describe('root docs / dev-test pages: no stale decap-cms subpath imports (DCMS-1151)', () => {
   it('never imports `App` from `decap-cms/core`', () => {

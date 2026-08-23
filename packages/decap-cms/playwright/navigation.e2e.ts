@@ -1,6 +1,6 @@
 import { authedTest as test, expect, gotoRoute, sidebar } from './fixtures';
 
-test.describe('Laika navigation', () => {
+test.describe('navigation', () => {
   test('sidebar link opens a collection entry list', async ({ page }) => {
     await gotoRoute(page, '/');
 

@@ -1,8 +1,8 @@
 # `CmsSlots` render-slot extension API
 
 `CmsSlots` is a React context (`packages/decap-cms/src/core/lib/slots.tsx`) that lets a host app —
-laika-app or any other app embedding this package — replace individual, deeply nested pieces of the
-CMS UI without prop-drilling or forking the component tree.
+any app embedding this package — replace individual, deeply nested pieces of the CMS UI without
+prop-drilling or forking the component tree.
 
 Top-level layout slots (header, layout, auth page, dashboard root) are already customizable via
 direct props on `AppContentProps`. `CmsSlots` covers everything below that boundary: components
@@ -17,7 +17,7 @@ nested inside the collection/editor/media-library routes that a top-level prop c
    nothing about default behavior.
 
 ```tsx
-import { CmsSlotsProvider } from '@laikacms/decap-cms/app';
+import { CmsSlotsProvider } from 'decap-cms/app';
 
 function renderCollectionTop({ collection, newEntryUrl }) {
   return <MyCustomCollectionHeader collection={collection} newEntryUrl={newEntryUrl} />;

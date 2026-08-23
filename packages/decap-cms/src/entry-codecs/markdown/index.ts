@@ -9,7 +9,7 @@ import type {
  * `decap-cms/entry-codecs/markdown` — the markdown entry codec:
  * entries stored as a frontmatter block plus an opaque text body, parsed to
  * `{ ...frontmatter, body: 'raw text' }` and reassembled on write. Kept for
- * backwards compatibility with git backends; laika-backend apps never need it
+ * backwards compatibility with git backends; API-backed apps never need it
  * (their entries are plain JSON objects already).
  *
  * The codec is built by a factory so it only carries the frontmatter

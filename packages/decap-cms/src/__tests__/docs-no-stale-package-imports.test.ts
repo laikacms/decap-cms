@@ -38,6 +38,12 @@ const STALE_REQUIRE_SOURCE = /\brequire\(\s*['"](decap-cms-[\w-]*|decap-server)(
 // specifiers).
 const EXCLUDED_RELATIVE_PATHS = new Set(['docs/contributing/decisions/restructure.md']);
 
+// Extension packages under `extensions/` are published on their own and share
+// the `decap-cms-<name>` shape by design (that is the convention a third-party
+// widget author follows). They are real and importable, so the stale-name
+// pattern must not flag them.
+const LIVE_SIBLING_PACKAGES = new Set(['decap-cms-widget-map']);
+
 describe('docs/ no stale pre-restructure package-name imports (DCMS-1152)', () => {
   it('never imports from a pre-restructure `decap-cms-<name>` / `decap-server` package name', () => {
     const files = listMarkdownFiles(DOCS_DIR);
@@ -53,9 +59,11 @@ describe('docs/ no stale pre-restructure package-name imports (DCMS-1152)', () =
       const contents = fs.readFileSync(file, 'utf8');
 
       for (const match of contents.matchAll(STALE_IMPORT_SOURCE)) {
+        if (LIVE_SIBLING_PACKAGES.has(match[1])) continue;
         offenders.push(`${relPath}: import from '${match[1]}${match[2] ?? ''}'`);
       }
       for (const match of contents.matchAll(STALE_REQUIRE_SOURCE)) {
+        if (LIVE_SIBLING_PACKAGES.has(match[1])) continue;
         offenders.push(`${relPath}: require('${match[1]}${match[2] ?? ''}')`);
       }
     }

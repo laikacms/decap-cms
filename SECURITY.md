@@ -10,12 +10,12 @@ Security updates are provided for:
 | Version           | Status                | Lifecycle              |
 | ----------------- | --------------------- | ---------------------- |
 | 4.x               | ✅ Actively Supported | Current stable release |
-| 3.x               | ❌ Unsupported        | Legacy - no updates    |
+| 3.x               | ⚠️ Security fixes only | Previous major         |
 | 2.x (Netlify CMS) | ❌ Unsupported        | Legacy - no updates    |
 | 1.x (Netlify CMS) | ❌ Unsupported        | Legacy - no updates    |
 
-**Note:** Decap CMS was renamed from Netlify CMS in February 2023. Versions 1.x, 2.x, and 3.x are no
-longer maintained. We recommend upgrading to version 4.x for security updates and new features.
+**Note:** Decap CMS was renamed from Netlify CMS in February 2023. Versions 1.x and 2.x are no
+longer maintained. We recommend upgrading to version 3.x for security updates and new features.
 
 ## Reporting a Vulnerability
 
@@ -23,7 +23,7 @@ If you discover a security vulnerability in Decap CMS, please report it **confid
 GitHub Security Advisories. This allows us to investigate and address the issue without exposing it
 to the public until a fix is ready.
 
-**Submit your report at:** https://github.com/laikacms/decap-cms/security/advisories/new
+**Submit your report at:** https://github.com/decaporg/decap-cms/security/advisories/new
 
 ### What NOT to Do
 
@@ -41,9 +41,7 @@ This project follows a 90-day disclosure timeline.
 - Dependabot is enabled for automated security update checks
 - All code changes are tested in CI, including linting
 - End-to-end tests provide coverage of critical functionality
-- Pull requests are expected to be reviewed by a maintainer before merging; this is a contributor
-  convention, not a GitHub branch-protection rule (`main` currently has no required-review or
-  required-status-check protection configured)
+- All pull requests require code review before merging
 - Passwords are not stored by Decap CMS; authentication is delegated to providers
 
 ## Known Limitations

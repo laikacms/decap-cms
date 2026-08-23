@@ -17,7 +17,7 @@
  * `zod` is a genuinely optional peer dependency (see package.json): only
  * import `toZodSchema`/`toZodMiniSchema` from an app that actually installed
  * it. `effect` is already a mandatory dependency of this package (used by the
- * Laika backend), so `toEffectSchema` carries no extra install cost.
+ * some backends), so `toEffectSchema` carries no extra install cost.
  *
  * These are plain static ESM imports, same as the existing optional peers
  * (e.g. `lucide-react` in `src/widgets/lucide-icon/*`) - opting out of the

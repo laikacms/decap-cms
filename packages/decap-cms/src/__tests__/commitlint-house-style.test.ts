@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 
 /**
  * Pins the enforcement gap described in
- * https://github.com/laikacms/decap-cms/issues/1759 (DCMS-1759, follow-up to
+ * https://github.com/decaporg/decap-cms/issues/1759 (DCMS-1759, follow-up to
  * DCMS-1671/#1675 which fixed the equivalent claim on `main`):
  *
  * CONTRIBUTING.md documents an area-slug scope and a `(DCMS-nnn)` ticket

@@ -15,7 +15,7 @@ write a transport.
 Props first, registry as the escape hatch — the same rule as [slots](./slots.md):
 
 ```tsx
-import { createDullaTransport } from '@laikacms/decap-cms-llm-dulla';
+import { createDullaTransport } from 'an LlmTransport package';
 
 <DecapCmsProvider llm={createDullaTransport({ apiBasePath: '/api/ai' })}>…</DecapCmsProvider>;
 ```
@@ -97,7 +97,7 @@ issuer, so there is no CMS token that is right to lend in general. A transport c
 credentials it likes; when its endpoint _does_ trust the CMS's backend, it asks explicitly:
 
 ```ts
-import { currentBackend, store } from '@laikacms/decap-cms/core';
+import { currentBackend, store } from 'decap-cms/core';
 
 const token = await currentBackend(store.getState().config).getToken();
 ```
@@ -119,7 +119,7 @@ the token pair, so a second independent refresher would revoke the backend's ses
 
 ## Reference implementation
 
-`extensions/llm/dulla` (`@laikacms/decap-cms-llm-dulla`) implements all of the above against
-`@laikacms/server/ai`, using the Vercel AI SDK for the wire. Like every package under `extensions/`,
-it is written against the published subpath exports only, so it doubles as proof that this seam is
+`extensions/llm/dulla` (`an LlmTransport package`) implements all of the above against an external
+AI service, using the Vercel AI SDK for the wire. Like every package under `extensions/`, it is
+written against the published subpath exports only, so it doubles as proof that this seam is
 sufficient from outside.

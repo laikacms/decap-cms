@@ -1,6 +1,6 @@
 import { authedTest as test, expect, gotoRoute } from './fixtures';
 
-test.describe('Laika interactions', () => {
+test.describe('interactions', () => {
   test('theme toggle flips between light and dark', async ({ page }) => {
     await gotoRoute(page, '/');
 

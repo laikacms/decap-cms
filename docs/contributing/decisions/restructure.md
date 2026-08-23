@@ -1,21 +1,20 @@
 # Single-package restructure (`feat/single-package-restructure`)
 
 This branch converts the Decap CMS v4.beta monorepo into a single published package —
-**`@laikacms/decap-cms`** — that exposes every former workspace package through a subpath export.
-The root export is the old `decap-cms-app` bootstrap (not a barrel re-export).
+**`decap-cms`** — that exposes every former workspace package through a subpath export. The root
+export is the old `decap-cms-app` bootstrap (not a barrel re-export).
 
-The goal is so a downstream consumer (e.g. `laikacms/laikacms`'s forthcoming `laika-cms-app`) can
-do:
+The goal is so a downstream consumer can do:
 
 ```ts
-import { App } from '@laikacms/decap-cms/app';
-import { DecapCmsCore, DecapCmsProvider } from '@laikacms/decap-cms/core';
-import { DecapCmsWidgetString } from '@laikacms/decap-cms/widgets/string';
+import { App } from 'decap-cms/app';
+import { DecapCmsCore, DecapCmsProvider } from 'decap-cms/core';
+import { DecapCmsWidgetString } from 'decap-cms/widgets/string';
 // ...etc — same shape as the old `decap-cms-app/src/extensions.ts`,
 // minus the multi-package workspace.
 ```
 
-and assemble its own `App` without taking on `@laikacms/decap-cms` as a barrel.
+and assemble its own `App` without taking on `decap-cms` as a barrel.
 
 ## Update (2026-07): workspace revival - `packages/decap-cms`
 
@@ -25,7 +24,7 @@ build and test configs, the publishable `package.json`) now lives in a single se
 
 ```
 packages/
-  decap-cms/    @laikacms/decap-cms - the whole former repo root
+  decap-cms/    decap-cms - the whole former repo root
 ```
 
 ### Why
@@ -35,21 +34,20 @@ packages/
   exactly one package forever. Sibling packages are coming (see the AI-native plan: MCP server, CLI,
   skills packaging), and adding them to a flat root would have meant doing this move later under
   pressure. The `packages/` folder exists so a second package is a `mkdir`, not a migration.
-- **Same layout as `laikacms/laikacms`.** The sister repo is a pnpm workspace with self-named
-  packages under `packages/` (`packages/laikacms`, `packages/decap`, ...). Contributors and agents
-  move between the two repos; one mental model for both.
+- **Same layout as its sister repo.** That repo is a pnpm workspace with self-named packages under
+  `packages/`. Contributors and agents move between the two repos; one mental model for both.
 - **One package != one flat repo.** The "single package, many subpath exports" design is unchanged
-  (see "What changed" below for the current count) - `@laikacms/decap-cms` is still the CMS itself,
-  and nothing about its `exports` map, build, or consumer-facing shape moved. Only the _repo_ gained
-  a level of indirection. (It was also the only published artifact at the time; see the 2026-08
-  update below.)
+  (see "What changed" below for the current count) - `decap-cms` is still the CMS itself, and
+  nothing about its `exports` map, build, or consumer-facing shape moved. Only the _repo_ gained a
+  level of indirection. (It was also the only published artifact at the time; see the 2026-08 update
+  below.)
 
 ### Who owns what
 
 - **Root** owns repo-wide concerns only: `pnpm-workspace.yaml` (workspace members + the dependency
   catalogs), formatting (`dprint.json`), git hooks (husky + commitlint), CI (`.github/`), and the
   repo docs. The root `package.json` is private and just delegates (`pnpm -r run ...` /
-  `pnpm --filter @laikacms/decap-cms ...`), so every command still works from the repo root.
+  `pnpm --filter decap-cms ...`), so every command still works from the repo root.
 - **`packages/decap-cms`** is self-contained: its own `package.json`, `tsconfig*.json`,
   `eslint.config.mjs` (the layer-deps and prefer-alias rules are package-specific, so the config
   lives with the package), vitest + Playwright + Storybook setups, `dev-test/` demo, and `scripts/`.
@@ -67,18 +65,18 @@ The repo now publishes six packages, not one:
 
 ```
 packages/
-  decap-cms/              @laikacms/decap-cms - the CMS
+  decap-cms/              decap-cms - the CMS
   decap-cms-lib-pat/      decap-cms-lib-pat - scoped PAT minting/verification
 extensions/
   widgets/
-    map/                  @laikacms/decap-cms-widget-map
-    lucide-icon/          @laikacms/decap-cms-widget-lucide-icon
-    radix-icon/           @laikacms/decap-cms-widget-radix-icon
-    aichat/               @laikacms/decap-cms-widget-aichat
+    map/                  decap-cms-widget-map
+    lucide-icon/          decap-cms-widget-lucide-icon
+    radix-icon/           decap-cms-widget-radix-icon
+    aichat/               decap-cms-widget-aichat
   editor/
-    ai-translate/         @laikacms/decap-cms-ai-translate
+    ai-translate/         decap-cms-ai-translate
   llm/
-    dulla/                @laikacms/decap-cms-llm-dulla
+    dulla/                decap-cms-llm-dulla
 ```
 
 `extensions/` is categorised by what an extension plugs into, not by what it does: `widgets/*`
@@ -95,8 +93,8 @@ package cannot import what it does not depend on, so the split makes that class 
 structurally impossible rather than merely documented.
 
 `extensions/` is a separate root because these packages are held to a rule `packages/*` is not: they
-may only import `@laikacms/decap-cms` through its published subpath exports. No `@/` alias, no reach
-into `packages/decap-cms/src`. That is enforced by `no-restricted-imports` in
+may only import `decap-cms` through its published subpath exports. No `@/` alias, no reach into
+`packages/decap-cms/src`. That is enforced by `no-restricted-imports` in
 `extensions/eslint.config.base.mjs`, and their vitest configs deliberately have no alias back into
 source, so the CMS must be built before extension tests run - exactly what a third-party author
 faces. They are the worked example of a third-party extension, which is only worth anything if they
@@ -114,7 +112,7 @@ Writing the widgets as outsiders surfaced two holes in the published API, both n
   (the existing `./widgets/*` wildcard already covered the subpath).
 - `validateJSONSchema` and its `JSONSchema`/`SchemaError` types were internal, so a widget author
   could not test their own widget schema against the validator the CMS actually runs. Now exported
-  from `@laikacms/decap-cms/core`.
+  from `decap-cms/core`.
 
 Extracting the AI translate feature (DCMS-1395) then forced two more, both structural rather than
 cosmetic:
@@ -137,9 +135,8 @@ without a fork and without reverse-engineering internals.
 - **The entry/draft action creators are published API.** The store was already exported but the
   vocabulary to drive it was not, and the aichat widget proved the cost: it shipped a hand-rolled
   copy of `changeDraftField` with the raw `'DRAFT_CHANGE_FIELD'` type string, a private reducer
-  contract duplicated in another package. `@laikacms/decap-cms/core` now exports the twelve
-  entry/draft actions (`loadEntries`, `persistEntry`, `changeDraftField`, ...), and aichat imports
-  the real one.
+  contract duplicated in another package. `decap-cms/core` now exports the twelve entry/draft
+  actions (`loadEntries`, `persistEntry`, `changeDraftField`, ...), and aichat imports the real one.
 - **Slots are registerable, not just providable.** `CmsSlots` could only be supplied by the host app
   through `CmsSlotsProvider`, so an extension needed the app's cooperation to render anything.
   `CMS.registerSlot` puts the same surface behind the registry; `useCmsSlots` merges registry under
@@ -159,8 +156,8 @@ without a fork and without reverse-engineering internals.
 
 The last thing in `src/` that was not the CMS was the AI server: `src/ai/`, a `fetch` handler that
 called a model and persisted chat sessions, plus the `ai` and `@ai-sdk/*` dependencies it dragged
-along. Nothing in `src/` imported it. It has moved to `@laikacms/server/ai`, where server code
-belongs, and the six `./ai*` entries in the export map went with it.
+along. Nothing in `src/` imported it. It has moved to a separate service, where server code belongs,
+and the six `./ai*` entries in the export map went with it.
 
 What stayed is the client half, because that half genuinely is the CMS's: an `LlmTransport`
 interface, a chat panel, a translate action, and the `LlmDocumentBridge` that lets a transport read
@@ -178,10 +175,10 @@ so the tools run on the client, against the bridge.
 ### Cost accepted
 
 Releasing is manual and is now five publishes rather than one, and the extension packages must be
-version-matched to the CMS (`@laikacms/decap-cms` is a peer, `^4.0.0`). Extension typecheck and
-tests require `pnpm --filter @laikacms/decap-cms build` first, the same build-order footgun
-`decap-cms-lib-pat` already has. This was weighed against aliasing subpaths to `src` in dev, and
-fidelity won: an alias would test a resolution path no consumer ever uses.
+version-matched to the CMS (`decap-cms` is a peer, `^4.0.0`). Extension typecheck and tests require
+`pnpm --filter decap-cms build` first, the same build-order footgun `decap-cms-lib-pat` already has.
+This was weighed against aliasing subpaths to `src` in dev, and fidelity won: an alias would test a
+resolution path no consumer ever uses.
 
 ## What changed
 
@@ -273,11 +270,11 @@ Not blocking the restructure, but they belong in the next pass:
 
 ## Why this shape
 
-- **One package, many exports.** Consumers depend on one name (`@laikacms/decap-cms`) and pick the
-  bits they want by subpath. Versioning is one cursor instead of 38.
-- **Root export = `app`, not a barrel.** Importing `@laikacms/decap-cms` gives you the default
-  bootstrap (`init({ config })`). Importing `@laikacms/decap-cms/core` gives you the raw building
-  blocks, in the same shape the old `decap-cms-app/src/extensions.ts` consumed them.
+- **One package, many exports.** Consumers depend on one name (`decap-cms`) and pick the bits they
+  want by subpath. Versioning is one cursor instead of 38.
+- **Root export = `app`, not a barrel.** Importing `decap-cms` gives you the default bootstrap
+  (`init({ config })`). Importing `decap-cms/core` gives you the raw building blocks, in the same
+  shape the old `decap-cms-app/src/extensions.ts` consumed them.
 - **Relative imports in `src/`.** No `tsconfig#paths` indirection, no self-references, no bundler
   magic — what you read is what runs. Required to keep this readable as a single tree.
 - **Catalogs preserved.** The single biggest win of the workspace was the pnpm catalogs (~150 deps

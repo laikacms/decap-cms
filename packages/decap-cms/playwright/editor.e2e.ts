@@ -1,6 +1,6 @@
 import { authedTest as test, expect, gotoRoute } from './fixtures';
 
-test.describe('Laika entry editor', () => {
+test.describe('entry editor', () => {
   test('opens an entry and exposes editable fields', async ({ page }) => {
     await gotoRoute(page, '/collections/posts');
 

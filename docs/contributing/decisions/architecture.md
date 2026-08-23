@@ -10,9 +10,9 @@ Because Decap's original emotion setup is actually pretty good. Even though its 
 nowadays, it doesnt force you to bundle it a certain way. Because emotion smartly interacts with
 typescript's jsxImportSource propery, no additional bundling is needed. I found vanilla-extract has
 a nice "zero-runtime" feature but is not ideal for libraries since it forces opiniated bundling. We
-don't want to force users of Laika CMS to use a specific technology. Tailwind CSS: While I use it
-for almost all of my apps, for a library, it's not the right tool for obvious reasons. CSS Modules:
-The best candidate next to @emotion. It needs custom bundling but support is very good. It doesnt
+don't want to force users of this CMS to use a specific technology. Tailwind CSS: While I use it for
+almost all of my apps, for a library, it's not the right tool for obvious reasons. CSS Modules: The
+best candidate next to @emotion. It needs custom bundling but support is very good. It doesnt
 provide the advantages that @emotion provides and a rewrite would take a considerable amount of
 time.
 
@@ -21,16 +21,15 @@ time.
 There are very good reasonos to use effect but also a lot of reasonos to not use it for this
 project:
 
-- Learning curve: Unlike Laika Code, any dev should be able to easily look at, and change the
-  decap-cms source code, and FP is not something all or even most dev's are acustomed with.
+- Learning curve: any dev should be able to easily look at, and change, the decap-cms source code,
+  and FP is not something all or even most dev's are acustomed with.
 - Types: Effect relies on the Typescript compiler a lot. Decap-CMS's interfaces would leak these
   types (there are ways to not do this but it would kind of defeat the purpose of having Effect
   since) and small changes per version means that type errors when things feel like they should just
   work, happen. There are libraries that started of with effect but have had to completely remove it
   from their code because of these issues.
 - Fit: We are dealing mostly with UI and state. The place where Effect-ts would shine the most is
-  for CRUD. Which is mostly done by [laikacms](https://github.com/laikacms/laikacms) code, which
-  already uses Effect-TS.
+  for CRUD. Which is mostly done by the backend service, which already uses Effect-TS.
 
 ## Why `yaml` over `js-yaml` or `yamljs`
 
@@ -75,8 +74,7 @@ lazily — opening an entry is not consent to start a possibly-billed session.
 This replaces an earlier arrangement where the CMS shipped `decapAi()`, a server-side chat adapter,
 and the chat lived in an `ai-chat` _widget_ — which only existed because a widget was the sole
 injection point in v3, though a conversation about an entry was never a field of that entry. The
-server moved out to laika as `@laikacms/server/ai`, and the widget became a panel
-(`slots.editorPanels`).
+server moved out to a separate service, and the widget became a panel (`slots.editorPanels`).
 
 The client half of that server ships as `extensions/llm/dulla` — `createDullaTransport()`, which
 implements `LlmTransport` over those endpoints, executes the two document tools against the bridge,

@@ -1,12 +1,12 @@
 # AGENTS.md
 
-Agent instructions for `@laikacms/decap-cms`, a single-package fork of Decap CMS v4.beta. The repo
-is a pnpm workspace with (for now) one self-named package: **everything package-level lives in
+Agent instructions for `decap-cms`, a single-package fork of Decap CMS v4.beta. The repo is a pnpm
+workspace with (for now) one self-named package: **everything package-level lives in
 `packages/decap-cms/`** (source, tests, demo, tsconfigs, eslint config, vite/vitest/ playwright
 configs). The root is a thin workspace shell (workspace + catalogs, dprint, husky, commitlint, CI)
 whose scripts delegate into the package, so all commands below work from the repo root. The
 `packages/` folder exists so sibling packages can be added later without a restructure - same layout
-as the laikacms/laikacms repo.
+as a sibling workspace repo.
 
 Inside the package the former monorepo is flattened: `packages/decap-cms-<name>/src` became
 `src/<name>/`, each exposed as a subpath export in `package.json#exports`. The root export is the
@@ -31,14 +31,13 @@ Inside the package the former monorepo is flattened: `packages/decap-cms-<name>/
 Paths below (and in most other docs) are relative to `packages/decap-cms/`.
 
 - `app/`: classic Decap app shell + `extensions.ts` (widget/backend registration)
-- `laika-app/`: new v4.beta "Laika" UI shell (dashboard, command palette, mobile)
 - `core/`: engine, with `actions/`, `reducers/`, `redux/`, `hooks/`, `components/`, `formats/`,
   `lib/` (registry, validateConfig, i18n), `routing/` (custom router), `types/`
 - `backends/`: github, gitlab, gitea, bitbucket, azure, git-gateway, proxy, test, ...
 - `widgets/`: field widgets (string, richtext, list, object, relation, lucide-icon, radix-icon,
   aichat, ...)
 - `ai/`: server-side AI chat adapter (fetch handler, providers, tools); widget half lives in
-  `widgets/aichat/` (moved here from `@laikacms/decap-ai`, DCMS-492)
+  `widgets/aichat/`
 - `config-types/`: TS utility types deriving entry shapes from a const-asserted Decap config
 - `ui/`: design-system primitives (layering documented in `src/ui/README.md`)
 - `lib/`: shared libs: auth, richtext, util, widgets
@@ -54,7 +53,7 @@ Paths below (and in most other docs) are relative to `packages/decap-cms/`.
   `local/prefer-alias`, autofixable). `./sibling` imports stay relative. `import/order` is enforced
   with blank lines between groups; use `import type` for types (`consistent-type-imports`).
 - **Layering** (custom ESLint rule `local/layer-deps`): `ui` -> `ui/default`/`ui/auth` -> `widgets`
-  -> `core`/`app`/`laika-app` components. Do not add new cross-layer edges; a few legacy edges are
+  -> `core`/`app` components. Do not add new cross-layer edges; a few legacy edges are
   grandfathered. Details in `src/ui/README.md`.
 - **No em dashes** anywhere: banned in string/JSX literals by ESLint (`no-restricted-syntax`), and
   by convention in prose and docs too.
@@ -89,10 +88,7 @@ Repo-level design and process docs live under `docs/contributing/` (index at
 - `docs/contributing/decisions/`: why the repo is shaped the way it is.
   - `restructure.md`: single-package-with-subpath-exports rationale
   - `breaking-changes-v4-beta.md`: v4 breaking changes (e.g. `markdown` widget renamed `richtext`)
-  - `two-seam-model.md`: Laika protocol vs. CMS adapters
-  - `llm-seam.md`: why the CMS ships AI UI and no AI (`LlmTransport`, document bridge, Dulla)
   - `architecture.md`: technology-choice rationales (Emotion, Effect, `yaml`, ...)
-  - `format-packs-plan.md`: forkable richtext formats and PT-native component blocks
 - `docs/contributing/learnings/`: things verified or discovered while working on the repo.
   - `tech-debt.md`: remaining debt checklist
   - `dcb-001-pnpm-install.md`: `pnpm install` peer-dep verification record

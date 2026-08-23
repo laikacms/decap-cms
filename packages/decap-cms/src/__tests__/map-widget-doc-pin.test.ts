@@ -26,7 +26,7 @@ describe('map widget doc pin (DCMS-2123)', () => {
   it("docs/editor-guide.md's map widget bullet names the real package", () => {
     const doc = readFileSync(editorGuidePath, 'utf8');
 
-    expect(doc).toMatch(/@laikacms\/decap-cms-widget-map|extensions\/widgets\/map/);
+    expect(doc).toMatch(/decap-cms-widget-map|extensions\/widgets\/map/);
   });
 
   it('packages/decap-cms/dev-test/README.md does not reference the removed registerMapWidget() API or path', () => {
