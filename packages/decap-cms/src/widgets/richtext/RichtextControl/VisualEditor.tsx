@@ -151,14 +151,50 @@ export default function VisualEditor(props: VisualEditorProps) {
     },
     plugins: [
       ParagraphPlugin,
+      // The handlers below need `void` block bodies, not expression bodies.
+      // `editor` is being initialised by this very call, so an expression
+      // body makes its return type depend on `editor`'s type, which depends
+      // on this argument: a circular inference. TypeScript 7 reports that as
+      // TS7022; TypeScript 6.0.3, which this repo pins, crashes on it with
+      // "Debug Failure. No error for last overload signature".
       HeadingPlugin.configure({
         shortcuts: {
-          h1: { keys: 'mod+1', handler: () => editor.tf.toggleBlock('h1') },
-          h2: { keys: 'mod+2', handler: () => editor.tf.toggleBlock('h2') },
-          h3: { keys: 'mod+3', handler: () => editor.tf.toggleBlock('h3') },
-          h4: { keys: 'mod+4', handler: () => editor.tf.toggleBlock('h4') },
-          h5: { keys: 'mod+5', handler: () => editor.tf.toggleBlock('h5') },
-          h6: { keys: 'mod+6', handler: () => editor.tf.toggleBlock('h6') },
+          h1: {
+            keys: 'mod+1',
+            handler: (): void => {
+              editor.tf.toggleBlock('h1');
+            },
+          },
+          h2: {
+            keys: 'mod+2',
+            handler: (): void => {
+              editor.tf.toggleBlock('h2');
+            },
+          },
+          h3: {
+            keys: 'mod+3',
+            handler: (): void => {
+              editor.tf.toggleBlock('h3');
+            },
+          },
+          h4: {
+            keys: 'mod+4',
+            handler: (): void => {
+              editor.tf.toggleBlock('h4');
+            },
+          },
+          h5: {
+            keys: 'mod+5',
+            handler: (): void => {
+              editor.tf.toggleBlock('h5');
+            },
+          },
+          h6: {
+            keys: 'mod+6',
+            handler: (): void => {
+              editor.tf.toggleBlock('h6');
+            },
+          },
         },
       }),
       BoldPlugin,
