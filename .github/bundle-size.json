@@ -13,16 +13,6 @@
       "minified": 767200,
       "gzip": 256314,
       "pretty": "767 kB min / 256 kB gzip"
-    },
-    "./laika-app": {
-      "minified": 5644914,
-      "gzip": 1744688,
-      "pretty": "5.64 MB min / 1.74 MB gzip"
-    },
-    "./laika-app/bare": {
-      "minified": 1019812,
-      "gzip": 337759,
-      "pretty": "1.02 MB min / 338 kB gzip"
     }
   },
   "install": {

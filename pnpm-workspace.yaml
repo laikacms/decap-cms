@@ -1,20 +1,18 @@
 # pnpm workspace with a single (for now) self-named package: the published
-# `@laikacms/decap-cms` package lives in packages/decap-cms. The `packages/`
+# The `decap-cms` package lives in packages/decap-cms. The `packages/`
 # folder exists so sibling packages can be added later without another
-# restructure - same layout as the laikacms/laikacms repo. See restructure.md.
+# restructure. See restructure.md.
 packages:
   - 'packages/*'
   # Extension packages: widgets and backends built the way a third-party author
-  # would build them, against the published `@laikacms/decap-cms` subpath
+  # would build them, against the published `decap-cms` subpath
   # exports only (enforced by the import-boundary lint rule). Their optional
   # peers (ol, lucide-react, ...) are plain dependencies here, so the core
   # package does not carry them. See restructure.md.
   - 'extensions/widgets/*'
-  - 'extensions/editor/*'
   # LLM transports: implementations of the CMS's `LlmTransport` seam. The CMS
   # ships the AI *UI* and none of the transport, so these are where a model,
   # an endpoint and its auth actually live. See docs/core/llm.md.
-  - 'extensions/llm/*'
 
 overrides:
   jsdom: "^29.1.1"
@@ -68,11 +66,6 @@ catalog:
   '@octokit/rest': '^22.0.1'
   '@octokit/types': '^16.0.0'
   '@playwright/test': '^1.61.1'
-  '@portabletext/html': '^1.1.1'
-  '@portabletext/markdown': '^1.4.4'
-  '@portabletext/react': '^6.2.0'
-  '@portabletext/to-html': '^5.0.2'
-  '@portabletext/types': '^4.0.2'
   '@radix-ui/react-icons': '^1.3.2'
   '@reduxjs/toolkit': '^2.12.0'
   '@replit/codemirror-emacs': '^6.1.0'
@@ -87,7 +80,6 @@ catalog:
   '@testing-library/user-event': '^14.6.1'
   '@types/hast': '^3.0.5'
   '@types/lodash-es': '^4.17.12'
-  '@types/mdast': '^4.0.4'
   '@types/node': '^24.13.3'
   '@types/qrcode': '^1.5.5'
   '@types/react': '^19.2.17'
@@ -121,18 +113,9 @@ catalog:
   'ini': '^7.0.0'
   'jsdom': '^29.1.1'
   'jwt-decode': '^4.0.0'
-  'laikacms': '^3.1.0'
   'lexical': '^0.48.0'
   'lodash-es': '^4.18.1'
   'lucide-react': '^1.25.0'
-  'mdast-util-from-markdown': '^2.0.3'
-  'mdast-util-gfm': '^3.1.0'
-  'mdast-util-mdx-expression': '^2.0.1'
-  'mdast-util-mdx-jsx': '^3.2.0'
-  'micromark-extension-gfm': '^3.0.0'
-  'micromark-extension-mdx-expression': '^3.0.1'
-  'micromark-extension-mdx-jsx': '^3.0.2'
-  'micromark-extension-mdx-md': '^2.0.0'
   'minimatch': '^10.2.5'
   'nock': '^14.0.16'
   'ol': '^10.9.0'
@@ -163,7 +146,6 @@ catalog:
   # ships TS 7 support.
   'typescript': '^6.0.3'
   'typescript-eslint': '^8.64.0'
-  'unified': '^11.0.5'
   'uploadcare-widget': '^3.24.0'
   'uploadcare-widget-tab-effects': '^1.7.2'
   'vite': '^8.1.5'

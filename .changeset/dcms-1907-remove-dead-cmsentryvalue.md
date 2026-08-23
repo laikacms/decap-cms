@@ -1,5 +1,5 @@
 ---
-'@laikacms/decap-cms': minor
+'decap-cms': minor
 ---
 
 Remove `CmsEntryValue` from `lib/util/types/cms/entries` (DCMS-1907). It was a dead public mirror

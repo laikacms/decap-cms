@@ -1,29 +1,29 @@
 {
-  "name": "@laikacms/decap-cms",
-  "version": "4.2.0",
-  "description": "Single-package fork of Decap CMS v4.beta. Same components as the original monorepo, exposed through one package with subpath exports. Root export is the decap-cms-app bootstrap. See restructure.md.",
+  "name": "decap-cms",
+  "version": "4.0.0-beta.0",
+  "description": "Decap CMS: a single package exposing the whole CMS through subpath exports. The root export is the app bootstrap. See restructure.md.",
   "license": "MIT",
   "author": "Sem Postma <sem@laikacms.com> (based on Decap CMS by Netlify and contributors)",
-  "homepage": "https://github.com/laikacms/decap-cms",
+  "homepage": "https://github.com/decaporg/decap-cms",
   "repository": {
     "type": "git",
-    "url": "https://github.com/laikacms/decap-cms.git"
+    "url": "https://github.com/decaporg/decap-cms.git"
   },
   "bugs": {
-    "url": "https://github.com/laikacms/decap-cms/issues"
+    "url": "https://github.com/decaporg/decap-cms/issues"
   },
   "keywords": [
     "cms",
     "decap",
-    "laikacms",
     "headless-cms",
     "content-management",
     "git-based-cms",
     "jamstack"
   ],
   "type": "module",
-  "unpkg": "dist/cdn/decap-cms.js",
-  "jsdelivr": "dist/cdn/decap-cms.js",
+  "main": "dist/decap-cms.cjs",
+  "unpkg": "dist/decap-cms.js",
+  "jsdelivr": "dist/decap-cms.js",
   "publishConfig": {
     "access": "public"
   },
@@ -40,26 +40,22 @@
   "scripts": {
     "build": "rimraf dist && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json && node ./scripts/postbuild-emotion.mjs && pnpm copy:assets && node ./scripts/generate-service-worker-asset.mjs dist/decap-cms-sw.js",
     "analyze": "node ./scripts/analyze.mjs",
-    "analyze:demo": "ANALYZE=1 pnpm build:dev-test && open dev-test/dist/bundle-report-decap-cms.html dev-test/dist/bundle-report-laika-cms.html dev-test/dist/bundle-report-laika-cms-bare.html",
-    "build:cdn": "rimraf dist/cdn && CDN_ENTRY=app vite build --config vite.config.cdn.ts && CDN_ENTRY=laika-app vite build --config vite.config.cdn.ts",
+    "analyze:demo": "ANALYZE=1 pnpm build:dev-test && open dev-test/dist/bundle-report-decap-cms.html",
+    "build:cdn": "rimraf dist/decap-cms.js dist/decap-cms.esm.js dist/decap-cms.cjs && CDN_ENTRY=app vite build --config vite.config.cdn.ts && cp dist/decap-cms.js dist/decap-cms.cjs",
     "prepack": "pnpm build && pnpm build:cdn",
     "build:demo": "vite build --config vite.config.demo.ts",
     "build:demo-graphql": "vite build --config vite.config.demo-graphql.ts",
-    "build:laika-demo": "vite build --config vite.config.laika-demo.ts",
-    "build:laika-bare-demo": "vite build --config vite.config.laika-bare-demo.ts",
-    "build:dev-test": "pnpm build:demo && pnpm build:laika-demo && pnpm build:laika-bare-demo && node ./scripts/generate-service-worker-asset.mjs dev-test/decap-cms-sw.js",
+    "build:dev-test": "pnpm build:demo && node ./scripts/generate-service-worker-asset.mjs dev-test/decap-cms-sw.js",
     "serve:dev-test": "npx --yes serve dev-test -l 5174",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build -o storybook-static",
-    "dev": "vite build --config vite.config.demo.ts && vite build --config vite.config.laika-demo.ts && vite build --config vite.config.laika-bare-demo.ts && (vite build --config vite.config.demo.ts --watch & BUILD_PID=$!; trap 'kill $BUILD_PID 2>/dev/null' EXIT INT TERM; npx --yes serve dev-test -l 5174)",
+    "dev": "vite build --config vite.config.demo.ts && (vite build --config vite.config.demo.ts --watch & BUILD_PID=$!; trap 'kill $BUILD_PID 2>/dev/null' EXIT INT TERM; npx --yes serve dev-test -l 5174)",
     "dev:lib": "pnpm copy:assets && (tsc-alias -p tsconfig.build.json --watch & tsc -p tsconfig.build.json --watch)",
     "copy:assets": "mkdir -p dist/widgets/code/data && cp src/widgets/code/data/languages.json dist/widgets/code/data/languages.json",
-    "pretypecheck": "pnpm --filter decap-cms-lib-pat run build",
     "typecheck": "tsc --noEmit && tsc -p playwright --noEmit && tsc -p .storybook --noEmit && tsc -p tsconfig.node.json --noEmit",
     "lint": "eslint --color \"src/**/*.{ts,tsx,js,mjs}\"",
     "format": "dprint fmt",
     "format:check": "dprint check",
-    "pretest": "pnpm --filter decap-cms-lib-pat run build",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -121,29 +117,10 @@
     "@codemirror/state": "catalog:",
     "@codemirror/view": "catalog:",
     "@emotion/is-prop-valid": "catalog:",
-    "@lexical/code": "catalog:",
-    "@lexical/code-prism": "catalog:",
-    "@lexical/extension": "catalog:",
-    "@lexical/file": "catalog:",
-    "@lexical/hashtag": "catalog:",
-    "@lexical/headless": "catalog:",
-    "@lexical/history": "catalog:",
-    "@lexical/link": "catalog:",
-    "@lexical/list": "catalog:",
-    "@lexical/markdown": "catalog:",
-    "@lexical/overflow": "catalog:",
-    "@lexical/react": "catalog:",
-    "@lexical/rich-text": "catalog:",
-    "@lexical/selection": "catalog:",
-    "@lexical/table": "catalog:",
-    "@lexical/text": "catalog:",
-    "@lexical/utils": "catalog:",
     "@lezer/highlight": "catalog:",
-    "@portabletext/html": "catalog:",
-    "@portabletext/markdown": "catalog:",
-    "@portabletext/react": "catalog:",
-    "@portabletext/to-html": "catalog:",
-    "@portabletext/types": "catalog:",
+    "@platejs/basic-nodes": "^49.0.0",
+    "@platejs/link": "^50.2.7",
+    "@platejs/list-classic": "^49.1.0",
     "@reduxjs/toolkit": "catalog:",
     "@replit/codemirror-emacs": "catalog:",
     "@replit/codemirror-vim": "catalog:",
@@ -151,22 +128,16 @@
     "@vercel/stega": "catalog:",
     "dayjs": "catalog:",
     "dnd-core": "catalog:",
+    "dompurify": "^3.4.13",
     "effect": "catalog:",
     "immer": "catalog:",
     "ini": "catalog:",
     "jwt-decode": "catalog:",
-    "laikacms": "catalog:",
-    "lexical": "catalog:",
     "lodash-es": "catalog:",
-    "mdast-util-from-markdown": "catalog:",
-    "mdast-util-gfm": "catalog:",
-    "mdast-util-mdx-expression": "catalog:",
-    "mdast-util-mdx-jsx": "catalog:",
-    "micromark-extension-gfm": "catalog:",
-    "micromark-extension-mdx-expression": "catalog:",
-    "micromark-extension-mdx-jsx": "catalog:",
-    "micromark-extension-mdx-md": "catalog:",
+    "mdast-util-definitions": "^1.2.3",
+    "mdast-util-to-string": "^2.0.0",
     "minimatch": "catalog:",
+    "platejs": "^49.2.21",
     "prismjs": "catalog:",
     "qrcode": "catalog:",
     "react-colorful": "catalog:",
@@ -180,9 +151,19 @@
     "react-window": "catalog:",
     "redux": "catalog:",
     "redux-thunk": "catalog:",
+    "rehype-parse": "^6.0.0",
+    "rehype-remark": "^8.0.0",
+    "rehype-remove-comments": "^4.0.2",
+    "rehype-stringify": "^7.0.0",
+    "remark-parse": "^6.0.3",
+    "remark-rehype": "^4.0.0",
+    "remark-stringify": "^6.0.4",
     "sanitize-html": "catalog:",
+    "slate": "^0.118.1",
     "smol-toml": "catalog:",
-    "unified": "catalog:",
+    "unified": "^9.0.0",
+    "unist-builder": "^1.0.3",
+    "unist-util-visit-parents": "^2.0.1",
     "yaml": "catalog:"
   },
   "devDependencies": {
@@ -204,7 +185,6 @@
     "@testing-library/user-event": "catalog:",
     "@types/hast": "catalog:",
     "@types/lodash-es": "catalog:",
-    "@types/mdast": "catalog:",
     "@types/node": "catalog:",
     "@types/qrcode": "catalog:",
     "@types/react": "catalog:",
@@ -239,6 +219,7 @@
     "tsc-alias": "catalog:",
     "typescript": "catalog:",
     "typescript-eslint": "catalog:",
+    "unist-util-visit": "^2.0.3",
     "uploadcare-widget": "catalog:",
     "uploadcare-widget-tab-effects": "catalog:",
     "vite": "catalog:",
@@ -247,16 +228,15 @@
   },
   "sideEffects": [
     "./dist/app/index.js",
-    "./dist/laika-app/index.js",
     "./dist/dev-server/**",
     "./src/app/index.ts",
-    "./src/laika-app/index.ts",
     "./src/dev-server/**"
   ],
   "exports": {
     ".": {
       "types": "./dist/app/index.d.ts",
       "import": "./dist/app/index.js",
+      "require": "./dist/decap-cms.cjs",
       "default": "./dist/app/index.js"
     },
     "./app": {
@@ -283,11 +263,6 @@
       "types": "./dist/entry-codecs/*/index.d.ts",
       "import": "./dist/entry-codecs/*/index.js"
     },
-    "./format-packs/*": {
-      "types": "./dist/format-packs/*/index.d.ts",
-      "import": "./dist/format-packs/*/index.js"
-    },
-    "./format-packs/mdx": null,
     "./lib/auth": {
       "types": "./dist/lib/auth/index.d.ts",
       "import": "./dist/lib/auth/index.js"
@@ -300,14 +275,6 @@
       "types": "./dist/lib/domain/index.d.ts",
       "import": "./dist/lib/domain/index.js"
     },
-    "./lib/richtext": {
-      "types": "./dist/lib/richtext/index.d.ts",
-      "import": "./dist/lib/richtext/index.js"
-    },
-    "./lib/richtext/lexical": {
-      "types": "./dist/lib/richtext/lexical/index.d.ts",
-      "import": "./dist/lib/richtext/lexical/index.js"
-    },
     "./lib/util": {
       "types": "./dist/lib/util/index.d.ts",
       "import": "./dist/lib/util/index.js"
@@ -315,10 +282,6 @@
     "./lib/widgets": {
       "types": "./dist/lib/widgets/index.d.ts",
       "import": "./dist/lib/widgets/index.js"
-    },
-    "./ui/editor": {
-      "types": "./dist/ui/editor/index.d.ts",
-      "import": "./dist/ui/editor/index.js"
     },
     "./locales": {
       "types": "./dist/locales/index.d.ts",
@@ -351,14 +314,6 @@
     "./ui-auth": {
       "types": "./dist/ui/auth/index.d.ts",
       "import": "./dist/ui/auth/index.js"
-    },
-    "./laika-app": {
-      "types": "./dist/laika-app/index.d.ts",
-      "import": "./dist/laika-app/index.js"
-    },
-    "./laika-app/bare": {
-      "types": "./dist/laika-app/bare.d.ts",
-      "import": "./dist/laika-app/bare.js"
     },
     "./widgets/*": {
       "types": "./dist/widgets/*/index.d.ts",

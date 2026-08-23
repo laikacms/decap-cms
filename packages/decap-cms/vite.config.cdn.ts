@@ -1,27 +1,38 @@
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import { defineConfig } from 'vite';
+
 import type { Plugin } from 'vite';
 
 /**
  * Vite config for the published CDN bundles (`pnpm build:cdn`).
  *
- * These are the drop-in-a-script-tag builds of the two full apps, shipped
- * inside `dist/cdn/` so unpkg and jsdelivr serve them straight off npm:
+ * This is the drop-in-a-script-tag build of the full app, written straight into
+ * `dist/` so unpkg and jsdelivr serve it off npm at the URL v3 documented:
  *
- *   <script src="https://cdn.jsdelivr.net/npm/@laikacms/decap-cms@4/dist/cdn/decap-cms.js"></script>
+ *   <script src="https://cdn.jsdelivr.net/npm/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+ *
+ * That path is load-bearing: it is in every v3 tutorial and in `admin/index.html`
+ * of countless sites, so the artifact has to keep landing at `dist/decap-cms.js`
+ * rather than a nested `dist/cdn/`.
  *
  * Unlike the `vite.config.*-demo.ts` builds (unminified, sourcemapped, written
- * to the gitignored `dev-test/dist/` for local dev and e2e), these are minified,
- * self-contained, and part of the npm tarball. Only the *full* app entries get a
- * CDN bundle: the `bare` entries exist so bundler users can shrink their build,
- * which is meaningless for a prebuilt script tag.
+ * to the gitignored `dev-test/dist/` for local dev and e2e), this one is
+ * minified, self-contained, and part of the npm tarball. Only the *full* app
+ * entry gets a CDN bundle: the `bare` entry exists so bundler users can shrink
+ * their build, which is meaningless for a prebuilt script tag.
  *
- * One config, two entries, selected by the `CDN_ENTRY` env var so the entry
- * table below stays the single source of truth. Each entry builds both formats
- * in one pass:
- *   - `iife` -> `<name>.js`, exposing the `globalName` global
- *   - `es`   -> `<name>.esm.js`, for `<script type="module">`
+ * The entry is selected by the `CDN_ENTRY` env var so the entry table below
+ * stays the single source of truth. It builds both formats in one pass:
+ *   - `umd` -> `<name>.js`, exposing the `globalName` global
+ *   - `es`  -> `<name>.esm.js`, for `<script type="module">`
+ *
+ * UMD, not IIFE: an IIFE bundle only ever assigns a global, so it can never be
+ * the package's CommonJS `main`. UMD satisfies both a `<script>` tag and
+ * `require()`. Because this package is `"type": "module"`, Node reads a `.js`
+ * file as ESM, so `pnpm build:cdn` copies the UMD output to
+ * `dist/decap-cms.cjs` (the extension Node always reads as CommonJS) and
+ * `package.json#main` / the `require` condition point there.
  *
  * Sourcemaps are off by default: they run ~20MB per bundle and would dominate
  * the npm tarball. Set `CDN_SOURCEMAP=1` to emit them for a debugging build.
@@ -30,15 +41,14 @@ import type { Plugin } from 'vite';
 type CdnEntry = {
   /** Source entry, relative to the package root. */
   entry: string,
-  /** Output basename: `<name>.js` (iife) and `<name>.esm.js` (es). */
+  /** Output basename: `<name>.js` (umd) and `<name>.esm.js` (es). */
   name: string,
-  /** IIFE global the bundle assigns itself to. */
+  /** UMD global the bundle assigns itself to. */
   globalName: string,
 };
 
 const ENTRIES: Record<string, CdnEntry> = {
   app: { entry: 'src/app/index.ts', name: 'decap-cms', globalName: 'DecapCms' },
-  'laika-app': { entry: 'src/laika-app/index.ts', name: 'laika-cms', globalName: 'LaikaCms' },
 };
 
 const requested = process.env.CDN_ENTRY ?? '';
@@ -70,7 +80,7 @@ const sourcemap = Boolean(process.env.CDN_SOURCEMAP);
  */
 function inlineCss(styleId: string): Plugin {
   return {
-    name: 'laika-cdn-inline-css',
+    name: 'decap-cdn-inline-css',
     enforce: 'post',
     generateBundle(_options, bundle) {
       let css = '';
@@ -84,8 +94,8 @@ function inlineCss(styleId: string): Plugin {
       if (!css) return;
 
       const injector = `(function(){try{if(typeof document==="undefined")return;`
-        + `if(document.querySelector('style[data-laika-cdn="${styleId}"]'))return;`
-        + `var s=document.createElement("style");s.setAttribute("data-laika-cdn","${styleId}");`
+        + `if(document.querySelector('style[data-decap-cdn="${styleId}"]'))return;`
+        + `var s=document.createElement("style");s.setAttribute("data-decap-cdn","${styleId}");`
         + `s.textContent=${JSON.stringify(css)};document.head.appendChild(s);}`
         + `catch(e){console.error("[${styleId}] failed to inject bundled styles",e);}})();`;
 
@@ -101,18 +111,18 @@ function inlineCss(styleId: string): Plugin {
 export default defineConfig({
   plugins: [react(), inlineCss(selected.name)],
   build: {
-    outDir: 'dist/cdn',
-    // Both entries write into the same directory, so neither may empty it.
-    // `pnpm build:cdn` clears `dist/cdn` once before running them.
+    // `dist/` also holds the tsc output, so this build must never empty it;
+    // `pnpm build:cdn` removes just the three artifacts it owns beforehand.
+    outDir: 'dist',
     emptyOutDir: false,
     lib: {
       entry: path.resolve(__dirname, selected.entry),
       name: selected.globalName,
-      fileName: format => (format === 'iife' ? `${selected.name}.js` : `${selected.name}.esm.js`),
-      // Distinct name so the two entries' CSS can't collide in the shared
-      // outDir before `inlineCss` folds it away.
+      fileName: format => (format === 'umd' ? `${selected.name}.js` : `${selected.name}.esm.js`),
+      // Entry-specific name so CSS can never collide with the tsc output that
+      // shares this directory, before `inlineCss` folds it away.
       cssFileName: selected.name,
-      formats: ['iife', 'es'],
+      formats: ['umd', 'es'],
     },
     sourcemap,
     // Vite 8 keys its whole minify pipeline off the literal string 'oxc' (its
@@ -120,13 +130,13 @@ export default defineConfig({
     minify: 'oxc',
     rollupOptions: {
       output: {
-        // The entries have both named exports and a default; emit named exports
-        // (the default stays reachable as `.default` on the IIFE global).
+        // The entry has both named exports and a default; emit named exports.
+        // The default stays reachable as `.default` on the UMD global and on
+        // the object `require('decap-cms')` returns.
         exports: 'named',
-        // One file per entry per format. Vite already defaults this to false for
-        // `iife`; the `es` build otherwise fans out into ~140 hashed chunks that
-        // both entries duplicate into the shared outDir, turning a one-URL
-        // drop-in into a directory the consumer has to host intact.
+        // One file per format. Vite already defaults this to false for `umd`;
+        // the `es` build otherwise fans out into ~140 hashed chunks, turning a
+        // one-URL drop-in into a directory the consumer has to host intact.
         codeSplitting: false,
         // For lib+`es` Vite defaults to `{compress, mangle, codegen: false}`:
         // compressed and mangled but still pretty-printed, on the assumption a

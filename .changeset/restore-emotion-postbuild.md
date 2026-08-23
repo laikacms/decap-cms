@@ -1,5 +1,5 @@
 ---
-'@laikacms/decap-cms': patch
+'decap-cms': patch
 ---
 
 Restore the `@emotion/babel-plugin` post-build pass on `dist/` (DCMS-1909). The package builds with
