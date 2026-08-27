@@ -11,7 +11,7 @@ import Toolbar from './components/Toolbar/index';
 import defaultEmptyBlock from './defaultEmptyBlock';
 
 import type { CmsWidgetTranslate } from '@/lib/util/index';
-import type { RichtextField, SlateNode } from '@/widgets/richtext/types';
+import type { RichtextField, RichTextValue } from '@/widgets/richtext/types';
 
 function editorStyles({ minimal }: { minimal?: boolean | undefined }) {
   return css`
@@ -64,12 +64,17 @@ export default function RawEditor(props: RawEditorProps) {
     props.onMode('rich_text');
   }
 
-  function handleChange({ value }: { value: SlateNode[] }) {
-    onChange(value.map(line => line.children?.[0]?.text ?? '').join('\n'));
+  function handleChange({ value }: { value: RichTextValue }) {
+    onChange(
+      value.map(line => {
+        const firstChild = line.children[0];
+        return firstChild && 'text' in firstChild ? firstChild.text : '';
+      }).join('\n'),
+    );
   }
 
   return (
-    <Plate editor={editor} value={initialValue} initialValue={initialValue} onChange={handleChange}>
+    <Plate editor={editor} onChange={handleChange}>
       <ClassNames>
         {({ cx, css }) => (
           <div

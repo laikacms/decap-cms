@@ -19,9 +19,8 @@ export default function Editor({ isDisabled, onPaste }: EditorProps) {
             outline: none;
           `}
           disableDefaultStyles
-          readOnly={isDisabled}
-          aria-disabled={isDisabled}
-          onPaste={onPaste}
+          {...(isDisabled === undefined ? {} : { readOnly: isDisabled, 'aria-disabled': isDisabled })}
+          {...(onPaste === undefined ? {} : { onPaste })}
         />
       )}
     </ClassNames>

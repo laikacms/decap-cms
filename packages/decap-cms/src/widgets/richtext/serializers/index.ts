@@ -28,6 +28,7 @@ import type {
   MdastNode,
   MdastRoot,
   ResolveWidgetFunction,
+  RichTextValue,
   SlateNode,
 } from '@/widgets/richtext/types';
 import type { Pluggable, PluggableList, Processor } from 'unified';
@@ -262,7 +263,7 @@ export function markdownToSlate(
     remarkPlugins = [],
     editorComponents = emptyEditorComponents,
   }: MarkdownToSlateOptions = {},
-): SlateNode[] {
+): RichTextValue {
   const mdast = markdownToRemark(markdown, remarkPlugins, editorComponents);
 
   const slateRaw = unified()
@@ -270,7 +271,9 @@ export function markdownToSlate(
     .use(remarkToSlate, { voidCodeBlock })
     .runSync<SlateNode>(mdast);
 
-  return slateRaw.children ?? [];
+  // The remark-to-Slate transform constructs complete editor elements even
+  // though its working type permits partially-built nodes while traversing.
+  return (slateRaw.children ?? []) as RichTextValue;
 }
 
 interface SlateToMarkdownOptions {

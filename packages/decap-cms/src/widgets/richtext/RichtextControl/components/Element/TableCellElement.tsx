@@ -8,9 +8,9 @@ const StyledTd = styled.td`
   text-align: left;
 `;
 
-export default function TableCellElement({ children, attributes, nodeProps }: PlateElementProps) {
+export default function TableCellElement({ children, attributes }: PlateElementProps) {
   return (
-    <StyledTd {...attributes} {...nodeProps}>
+    <StyledTd {...attributes}>
       {children}
     </StyledTd>
   );

@@ -1,6 +1,6 @@
 import { PlateElement } from 'platejs/react';
 
-import type { GetAssetFunction } from '@/widgets/richtext/types';
+import type { GetAssetFunction, RichTextElement } from '@/widgets/richtext/types';
 import type { PlateElementProps } from 'platejs/react';
 
 function isAbsoluteAssetUrl(url: string) {
@@ -24,13 +24,14 @@ function resolveImageSource(
   return asset === null || asset === undefined ? '' : String(asset);
 }
 
-interface ImageElementProps extends PlateElementProps {
+interface ImageElementProps extends PlateElementProps<RichTextElement> {
   getAsset?: GetAssetFunction | undefined;
   field?: unknown | undefined;
 }
 
 export default function ImageElement({
   children,
+  attributes,
   element,
   getAsset,
   field,
@@ -46,7 +47,7 @@ export default function ImageElement({
     <PlateElement
       as="span"
       element={element}
-      contentEditable={false}
+      attributes={{ ...attributes, contentEditable: false }}
       style={{ display: 'inline-block' }}
       {...props}
     >

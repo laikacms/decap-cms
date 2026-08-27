@@ -30,7 +30,12 @@ import { TableCellPlugin, TablePlugin, TableRowPlugin } from './plugins/TablePlu
 import withProps from './withProps';
 
 import type { CmsWidgetTranslate } from '@/lib/util/index';
-import type { EditorComponentsRegistry, GetAssetFunction, RichtextField, SlateNode } from '@/widgets/richtext/types';
+import type {
+  EditorComponentsRegistry,
+  GetAssetFunction,
+  RichtextField,
+  RichTextValue,
+} from '@/widgets/richtext/types';
 import type { ClipboardEvent } from 'react';
 import type { PluggableList } from 'unified';
 
@@ -106,7 +111,7 @@ export default function VisualEditor(props: VisualEditorProps) {
     onMode('raw');
   }
 
-  function handleChange({ value }: { value: SlateNode[] }) {
+  function handleChange({ value }: { value: RichTextValue }) {
     onChange(
       slateToMarkdown(
         value,

@@ -8,8 +8,8 @@ import { Range } from 'slate';
 import { zIndex } from '@/ui/default/index';
 import { useEditorContext } from '@/widgets/richtext/RichtextControl/editorContext';
 
-import type { ShortcodeData } from '@/widgets/richtext/types';
-import type { PlateElementProps } from 'platejs/react';
+import type { RichTextElement, RichTextValue, ShortcodeData } from '@/widgets/richtext/types';
+import type { PlateElementProps, TPlateEditor } from 'platejs/react';
 import type { HTMLAttributes } from 'react';
 
 const StyledDiv = styled.div``;
@@ -32,7 +32,7 @@ function InsertionPoint(props: HTMLAttributes<HTMLDivElement>) {
 /** Editor component properties that are behaviour, not editable fields. */
 const behaviourKeys = ['id', 'fromBlock', 'toBlock', 'toPreview', 'pattern', 'icon'];
 
-interface ShortcodeElementProps extends PlateElementProps {
+interface ShortcodeElementProps extends PlateElementProps<RichTextElement> {
   /** Which key of `element.data` holds the component's field values. */
   dataKey?: string | undefined;
 }
@@ -42,9 +42,9 @@ function isShortcodeData(value: unknown): value is ShortcodeData {
 }
 
 export default function ShortcodeElement(props: ShortcodeElementProps) {
-  const editor = useEditorRef();
-  const editorState = useEditorState();
-  const { attributes, element, dataKey = 'shortcodeData', children } = props;
+  const editor = useEditorRef<TPlateEditor<RichTextValue>>();
+  const editorState = useEditorState<TPlateEditor<RichTextValue>>();
+  const { attributes, element, dataKey = 'shortcodeData', children, ...plateProps } = props;
   const { editorControl: EditorControl, editorComponents } = useEditorContext();
 
   const shortcodeId = typeof element.data?.shortcode === 'string' ? element.data.shortcode : '';
@@ -62,7 +62,7 @@ export default function ShortcodeElement(props: ShortcodeElementProps) {
   const insertBefore = path?.[0] === 0;
   const insertAfter = path !== undefined
     && (path[0] === editorState.children.length - 1
-      || editor.isVoid(editorState.children[path[0] + 1]));
+      || editor.api.isVoid(editorState.children[path[0] + 1]));
 
   function handleChange(_fieldName: string, nextValue: ShortcodeData, metadata?: unknown) {
     if (!path) return;
@@ -102,9 +102,9 @@ export default function ShortcodeElement(props: ShortcodeElementProps) {
   const field = plugin ? omit(plugin, behaviourKeys) : undefined;
 
   return (
-    <PlateElement asChild {...props}>
+    <PlateElement as="div" attributes={attributes} element={element} {...plateProps}>
       {insertBefore && <InsertionPoint onClick={handleInsertBefore} />}
-      <StyledDiv {...attributes} contentEditable={false}>
+      <StyledDiv contentEditable={false}>
         {EditorControl && field && (
           <EditorControl
             css={css`

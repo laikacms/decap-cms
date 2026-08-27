@@ -5,7 +5,7 @@ import { colors, lengths } from '@/ui/default/index';
 
 import type { PlateLeafProps } from 'platejs/react';
 
-const StyledCode = styled.code`
+const StyledCode = styled(PlateLeaf)`
   background-color: ${colors.background};
   border-radius: ${lengths.borderRadius};
   padding: 0 2px;
@@ -13,9 +13,5 @@ const StyledCode = styled.code`
 `;
 
 export default function CodeLeaf({ children, ...props }: PlateLeafProps) {
-  return (
-    <PlateLeaf asChild {...props}>
-      <StyledCode>{children}</StyledCode>
-    </PlateLeaf>
-  );
+  return <StyledCode as="code" {...props}>{children}</StyledCode>;
 }

@@ -10,7 +10,7 @@ interface MarkToolbarButtonProps extends Omit<ToolbarButtonProps, 'onClick' | 'i
 }
 
 export default function MarkToolbarButton({ clear, nodeType, ...rest }: MarkToolbarButtonProps) {
-  const state = useMarkToolbarButtonState({ clear, nodeType });
+  const state = useMarkToolbarButtonState({ nodeType, ...(clear === undefined ? {} : { clear }) });
   const {
     props: { pressed, onClick },
   } = useMarkToolbarButton(state);

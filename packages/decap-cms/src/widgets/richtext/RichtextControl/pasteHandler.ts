@@ -1,6 +1,6 @@
 import { htmlToSlate } from '@/widgets/richtext/serializers/index';
 
-import type { SlateNode } from '@/widgets/richtext/types';
+import type { RichTextDescendant, SlateNode } from '@/widgets/richtext/types';
 
 type Deserialize = (html: string) => SlateNode;
 
@@ -10,15 +10,15 @@ type Deserialize = (html: string) => SlateNode;
  */
 export interface FragmentInsertingEditor {
   tf?: {
-    insertFragment?: (fragment: SlateNode[]) => void,
-    insertNodes?: (nodes: SlateNode[]) => void,
+    insertFragment?: (fragment: RichTextDescendant[]) => void,
+    insertNodes?: (nodes: RichTextDescendant[]) => void,
   };
 }
 
 export function getHtmlFragment(
   html: string,
   deserialize: Deserialize = htmlToSlate,
-): SlateNode[] | null {
+): RichTextDescendant[] | null {
   if (!html) {
     return null;
   }
@@ -30,7 +30,9 @@ export function getHtmlFragment(
     return null;
   }
 
-  return fragment;
+  // HTML deserialization uses the permissive serializer working type, but a
+  // returned fragment contains complete descendants at the Plate boundary.
+  return fragment as RichTextDescendant[];
 }
 
 /**
@@ -65,7 +67,7 @@ export function handlePasteHtml({
     return false;
   }
 
-  let fragment: SlateNode[] | null;
+  let fragment: RichTextDescendant[] | null;
 
   try {
     fragment = getHtmlFragment(html, deserialize);

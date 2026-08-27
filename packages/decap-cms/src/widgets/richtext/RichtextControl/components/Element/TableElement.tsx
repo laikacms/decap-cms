@@ -8,9 +8,9 @@ const StyledTable = styled.table`
   width: 100%;
 `;
 
-export default function TableElement({ children, attributes, nodeProps }: PlateElementProps) {
+export default function TableElement({ children, attributes }: PlateElementProps) {
   return (
-    <StyledTable {...attributes} {...nodeProps}>
+    <StyledTable {...attributes}>
       <tbody>{children}</tbody>
     </StyledTable>
   );

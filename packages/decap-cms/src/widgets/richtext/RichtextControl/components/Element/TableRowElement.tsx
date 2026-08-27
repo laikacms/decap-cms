@@ -1,8 +1,8 @@
 import type { PlateElementProps } from 'platejs/react';
 
-export default function TableRowElement({ children, attributes, nodeProps }: PlateElementProps) {
+export default function TableRowElement({ children, attributes }: PlateElementProps) {
   return (
-    <tr {...attributes} {...nodeProps}>
+    <tr {...attributes}>
       {children}
     </tr>
   );

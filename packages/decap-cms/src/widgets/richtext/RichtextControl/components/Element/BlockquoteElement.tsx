@@ -7,7 +7,7 @@ import type { PlateElementProps } from 'platejs/react';
 
 const bottomMargin = '16px';
 
-const StyledBlockQuote = styled.blockquote`
+const StyledBlockQuote = styled(PlateElement)`
   padding-left: 16px;
   border-left: 3px solid ${colors.background};
   margin-left: 0;
@@ -16,9 +16,5 @@ const StyledBlockQuote = styled.blockquote`
 `;
 
 export default function BlockquoteElement({ children, ...props }: PlateElementProps) {
-  return (
-    <PlateElement asChild {...props}>
-      <StyledBlockQuote>{children}</StyledBlockQuote>
-    </PlateElement>
-  );
+  return <StyledBlockQuote as="blockquote" {...props}>{children}</StyledBlockQuote>;
 }

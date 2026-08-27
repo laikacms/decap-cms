@@ -19,7 +19,7 @@ interface StyledHeadingProps {
   isFirstBlock: boolean;
 }
 
-const StyledHeading = styled.h1<StyledHeadingProps>`
+const StyledHeading = styled(PlateElement)<StyledHeadingProps>`
   font-weight: 700;
   line-height: 1;
   margin-top: ${props => (props.isFirstBlock ? '0' : headingVariants[props.variant].marginTop)};
@@ -39,10 +39,8 @@ export default function HeadingElement({
   const isFirstBlock = element === editor.children[0];
 
   return (
-    <PlateElement asChild {...props}>
-      <StyledHeading as={variant} variant={variant} isFirstBlock={isFirstBlock}>
-        {children}
-      </StyledHeading>
-    </PlateElement>
+    <StyledHeading as={variant} variant={variant} isFirstBlock={isFirstBlock} {...props}>
+      {children}
+    </StyledHeading>
   );
 }

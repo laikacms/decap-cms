@@ -106,6 +106,22 @@ export interface SlateNode {
   title?: string | null | undefined;
 }
 
+/** A complete text node accepted by Plate. */
+export interface RichTextText extends Omit<SlateNode, 'children' | 'text' | 'type'> {
+  text: string;
+  [key: string]: unknown;
+}
+
+/** A complete element node accepted by Plate. */
+export interface RichTextElement extends Omit<SlateNode, 'children' | 'text' | 'type'> {
+  type: string;
+  children: RichTextDescendant[];
+  [key: string]: unknown;
+}
+
+export type RichTextDescendant = RichTextElement | RichTextText;
+export type RichTextValue = RichTextElement[];
+
 export interface SlateNodeData {
   shortcode?: string | undefined;
   shortcodeData?: ShortcodeData | undefined;
