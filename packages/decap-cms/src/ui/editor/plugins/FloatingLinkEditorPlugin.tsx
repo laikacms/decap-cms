@@ -21,7 +21,7 @@ import { createPortal } from 'react-dom';
 import { Button } from '@/ui/Button';
 import { getSelectedNode } from '@/ui/editor/utils/get-selected-node';
 import { setFloatingElemPositionForLinkEditor } from '@/ui/editor/utils/set-floating-elem-position-for-link-editor';
-import { sanitizeUrl } from '@/ui/editor/utils/url';
+import { sanitizeUrl, validateUrl } from '@/ui/editor/utils/url';
 import { Check, Pencil, Trash, X } from '@/ui/icons/index';
 import { Input } from '@/ui/Input';
 
@@ -180,7 +180,7 @@ function FloatingLinkEditor({
 
   const handleLinkSubmission = () => {
     if (lastSelection !== null) {
-      if (linkUrl !== '') {
+      if (linkUrl !== '' && validateUrl(editedLinkUrl)) {
         editor.dispatchCommand(TOGGLE_LINK_COMMAND, sanitizeUrl(editedLinkUrl));
         editor.update(() => {
           const selection = $getSelection();
@@ -230,6 +230,7 @@ function FloatingLinkEditor({
             <Button
               size="icon"
               onClick={handleLinkSubmission}
+              disabled={!validateUrl(editedLinkUrl)}
               className="shrink-0"
             >
               <Check className="h-4 w-4" />
