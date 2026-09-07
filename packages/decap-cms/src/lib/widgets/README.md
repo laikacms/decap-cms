@@ -39,6 +39,11 @@ All of the above are compiled through `compileStringTemplate` in
 - `field` — a dot/bracket path into the entry data (e.g. `title`, `fields.slug`, `author.name`), or
   one of the built-in placeholders (`year`, `month`, `day`, `hour`, `minute`, `second`, `slug`)
   resolved against the identifier/date passed to `compileStringTemplate`.
+  - `year`, `month`, `day`, `hour`, `minute`, and `second` resolve in the **browser's local time
+    zone**, not UTC (`dateParsers` in [`stringTemplate.ts`](./stringTemplate.ts) uses
+    `Date.prototype.getFullYear`/`getMonth`/etc., not the `getUTC*` equivalents). This means a new
+    entry saved just after local midnight gets a slug/summary dated to the author's current
+    calendar day, even when that instant is still the previous day in UTC.
 - `| filterName(...)` is optional. When present, exactly **one** filter is applied to the
   stringified replacement value — filters cannot be chained (`{{ field | upper | lower }}` does not
   apply either filter, because the filter pattern is matched against the _entire_ text after the

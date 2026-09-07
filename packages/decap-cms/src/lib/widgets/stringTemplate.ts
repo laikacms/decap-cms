@@ -54,13 +54,16 @@ function formatDate(date: number) {
   return `0${date}`.slice(-2);
 }
 
+// Resolved in the browser's local time zone (not UTC) so a slug/summary
+// reflects the calendar day the author sees on their own clock. See
+// docs/beta-features/slug.md.
 export const dateParsers: Record<string, (date: Date) => string> = {
-  year: (date: Date) => `${date.getUTCFullYear()}`,
-  month: (date: Date) => formatDate(date.getUTCMonth() + 1),
-  day: (date: Date) => formatDate(date.getUTCDate()),
-  hour: (date: Date) => formatDate(date.getUTCHours()),
-  minute: (date: Date) => formatDate(date.getUTCMinutes()),
-  second: (date: Date) => formatDate(date.getUTCSeconds()),
+  year: (date: Date) => `${date.getFullYear()}`,
+  month: (date: Date) => formatDate(date.getMonth() + 1),
+  day: (date: Date) => formatDate(date.getDate()),
+  hour: (date: Date) => formatDate(date.getHours()),
+  minute: (date: Date) => formatDate(date.getMinutes()),
+  second: (date: Date) => formatDate(date.getSeconds()),
 };
 
 export function parseDateFromEntry(

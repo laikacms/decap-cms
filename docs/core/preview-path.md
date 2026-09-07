@@ -16,7 +16,10 @@ collections:
 URL falls back to whatever the backend provides.
 
 `preview_path_date_field` names the entry field used to resolve date variables (`{{year}}`,
-`{{month}}`, ...) in the template. If omitted, the collection's inferred date field is used.
+`{{month}}`, ...) in the template. If omitted, the collection's inferred date field is used. These
+date variables (`{{year}}`, `{{month}}`, `{{day}}`, `{{hour}}`, `{{minute}}`, `{{second}}`) resolve
+in the browser's local time zone, not UTC — see
+[`src/lib/widgets/README.md`](../../packages/decap-cms/src/lib/widgets/README.md).
 
 Both keys can be set at the collection level, or overridden per file for `files`-type collections
 via `files[].preview_path` / `files[].preview_path_date_field`.

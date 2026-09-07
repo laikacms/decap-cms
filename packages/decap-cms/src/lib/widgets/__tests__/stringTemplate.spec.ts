@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import {
   compileStringTemplate,
@@ -65,6 +65,19 @@ describe('stringTemplate', () => {
 
   describe('compileStringTemplate', () => {
     const date = new Date('2020-01-02T13:28:27.679Z');
+
+    // `dateParsers` resolves in the local time zone (DCMS-2216), so pin TZ to
+    // UTC for these fixtures: the literal above and its expectations below
+    // are written as UTC wall-clock components.
+    let originalTz: string | undefined;
+    beforeAll(() => {
+      originalTz = process.env.TZ;
+      process.env.TZ = 'UTC';
+    });
+    afterAll(() => {
+      process.env.TZ = originalTz;
+    });
+
     it('should compile year variable', () => {
       expect(compileStringTemplate('{{year}}', date)).toBe('2020');
     });
@@ -209,6 +222,30 @@ describe('stringTemplate', () => {
           { count: 0 },
         ),
       ).toBe('0');
+    });
+
+    describe('DCMS-2216, local time zone not UTC', () => {
+      // `dateParsers` (year/month/day/hour/minute/second) must resolve
+      // against the browser's local time zone. Regression test for a slug
+      // dated a day earlier than the author's wall clock when the UTC day
+      // still lags the local day (e.g. shortly after local midnight, east
+      // of UTC).
+      let originalTz: string | undefined;
+      beforeEach(() => {
+        originalTz = process.env.TZ;
+        process.env.TZ = 'Europe/Amsterdam';
+      });
+      afterEach(() => {
+        process.env.TZ = originalTz;
+      });
+
+      it('renders {{year}}-{{month}}-{{day}} as the local calendar day, not the UTC day', () => {
+        // 2026-09-07T22:57:00Z is already 2026-09-08 00:57 in Europe/Amsterdam (CEST, UTC+2).
+        const localMidnightDate = new Date('2026-09-07T22:57:00Z');
+        expect(compileStringTemplate('{{year}}-{{month}}-{{day}}', localMidnightDate)).toBe(
+          '2026-09-08',
+        );
+      });
     });
   });
 
