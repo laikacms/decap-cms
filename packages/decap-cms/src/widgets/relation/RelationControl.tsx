@@ -1,6 +1,7 @@
 import { debounce, find, get, isEmpty, last, uniqBy } from 'lodash-es';
 import React from 'react';
 
+import { selectAllowNewEntries } from '@/core/reducers/collections';
 import queryCore, { collectionTag } from '@/lib/util/queryCore';
 import { stringTemplate, validations } from '@/lib/widgets/index';
 import {
@@ -30,7 +31,7 @@ import {
 } from '@/ui';
 import { SortableArea, SortableHandle, SortableItem } from '@/ui/default/index';
 
-import type { CmsConfig, CmsFieldBase, CmsFieldRelation } from '@/lib/util/index';
+import type { CmsCollectionState, CmsConfig, CmsFieldBase, CmsFieldRelation } from '@/lib/util/index';
 
 interface RelationOption {
   label: string;
@@ -595,16 +596,26 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
     // `allow_quick_add`/`allowQuickAdd` config, the caller actually wiring
     // up `onQuickCreateEntry` (nested/object-list relation instances or
     // older host apps may not), and the *target* collection actually
-    // allowing new entries (`create`, mirrors `selectAllowNewEntries` in
-    // `core/reducers/collections.tsx`) - otherwise the button renders but
-    // `persistQuickCreateEntry` (`core/actions/entries.tsx`) always throws
-    // on save (README.md:31, DCMS-2059). `create` is treated as opt-out
-    // (`!== false`) rather than opt-in so relation fields against
-    // collections/tests that don't set `create` at all keep working; only an
-    // explicit `create: false` hides the button.
+    // allowing new entries. That last check calls `selectAllowNewEntries`
+    // (`core/reducers/collections.tsx`) - the same selector
+    // `persistQuickCreateEntry` (`core/actions/entries.tsx`) enforces on
+    // save - rather than reimplementing it here, since it dispatches on
+    // collection type: folder collections opt out via `create: false`, but
+    // files collections never allow new entries regardless of `create`
+    // (DCMS-2202: `targetCollection?.create !== false` used to treat an
+    // unset `create` on a *files* collection as permissive, rendering a
+    // button that always threw on save). When `targetCollection` itself is
+    // unknown (config wasn't threaded down, see the `config` prop doc
+    // above), fall back to permissive, matching prior behavior.
+    // `targetCollection` is config-shaped (`CmsConfig`) rather than the
+    // normalized redux `CmsCollectionState` `selectAllowNewEntries` expects,
+    // but by the time it reaches a mounted field config has already been
+    // normalized in place (`core/actions/config.tsx`) with `type` set, so
+    // the cast is safe; `state.collections` (which callers like
+    // `EditorControl.tsx` use) is the same object.
     const canQuickAdd = Boolean(onQuickCreateEntry) &&
       Boolean(field.allow_quick_add ?? field.allowQuickAdd) &&
-      targetCollection?.create !== false;
+      (!targetCollection || selectAllowNewEntries(targetCollection as unknown as CmsCollectionState));
 
     // Looks up the *target* collection's own field definition for a
     // quick-add form field, so the dialog can mirror `label`/`required`/
