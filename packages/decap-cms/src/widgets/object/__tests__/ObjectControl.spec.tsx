@@ -200,4 +200,34 @@ describe('ObjectControl', () => {
     expect(getByText('No field(s) defined for this widget')).toBeInTheDocument();
     expect(() => handle!.validate()).not.toThrow();
   });
+
+  it('renders the field label in the top bar while expanded, not just while collapsed (DCMS-2205)', () => {
+    // Pins DCMS-2205: `heading` used to be `renderedCollapsed && objectLabel()`,
+    // so the expanded top bar rendered as a bare chevron in an otherwise-empty
+    // full-width gray strip. The label must be visible in both states.
+    const field = {
+      name: 'author',
+      widget: 'object',
+      label: 'Author Details',
+      collapsed: false,
+      fields: [{ name: 'first_name', widget: 'string' }],
+    };
+
+    const { getByTestId, getByText } = render(
+      <ObjectControl
+        {...(baseProps as any)}
+        field={field}
+        value={{ first_name: 'hello' }}
+        editorControl={createMockEditorControl(vi.fn())}
+      />,
+    );
+
+    const expandButton = getByTestId('expand-button');
+    expect(expandButton).toHaveAttribute('aria-expanded', 'true');
+    expect(getByText('Author Details')).toBeInTheDocument();
+
+    fireEvent.click(expandButton);
+    expect(expandButton).toHaveAttribute('aria-expanded', 'false');
+    expect(getByText('Author Details')).toBeInTheDocument();
+  });
 });

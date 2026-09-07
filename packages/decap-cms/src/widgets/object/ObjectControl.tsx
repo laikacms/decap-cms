@@ -280,7 +280,11 @@ const ObjectControl = React.forwardRef<ObjectControlHandle, ObjectControlProps>(
                 collapsibleTrigger
                 panelId={panelId}
                 collapsed={renderedCollapsed}
-                heading={renderedCollapsed && objectLabel()}
+                // Show the label in both states: previously this was
+                // `renderedCollapsed && objectLabel()`, so the expanded state
+                // rendered a bare chevron in an otherwise-empty full-width
+                // gray strip (DCMS-2205).
+                heading={objectLabel()}
                 t={t}
               />
               <Collapsible.Panel
