@@ -240,13 +240,72 @@ describe('createLlmDocumentBridge', () => {
       );
     });
 
-    it('throws and dispatches nothing when an operation is inapplicable', () => {
+    it('still throws when an operation is inapplicable for reasons other than a missing top-level field', () => {
       const { bridge, dispatch } = setup();
 
-      expect(() => bridge.applyPatch([{ op: 'replace', path: '/missing', value: 'x' }])).toThrow(
+      // `title` exists but is a string, not a container: this is a real
+      // mistake inside a field that does exist, not a guessed field name.
+      expect(() => bridge.applyPatch([{ op: 'replace', path: '/title/nested', value: 'x' }])).toThrow(
         JsonPatchError,
       );
       expect(dispatch).not.toHaveBeenCalled();
+    });
+
+    it('does not throw, and applies the value, for `replace` on a real field the entry has never set', () => {
+      const collection = makeCollection({
+        fields: [...fields, { name: 'subtitle', widget: 'string' }],
+      } as Partial<CmsCollectionState>);
+      const { bridge, dispatch } = setup({ collection });
+
+      const result = bridge.applyPatch([{ op: 'replace', path: '/subtitle', value: 'x' }]);
+
+      expect(result).toEqual({ changed: ['subtitle'] });
+      expect(dispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          payload: expect.objectContaining({
+            field: { name: 'subtitle', widget: 'string' },
+            value: 'x',
+          }),
+        }),
+      );
+    });
+
+    it('does not throw, and skips silently, for `replace` on a name that is not a schema field at all', () => {
+      const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const { bridge, dispatch } = setup();
+
+      const result = bridge.applyPatch([{ op: 'replace', path: '/notAField', value: 'x' }]);
+
+      expect(result).toEqual({ changed: [] });
+      expect(dispatch).not.toHaveBeenCalled();
+      expect(consoleWarn).toHaveBeenCalledWith(expect.stringContaining('notAField'));
+
+      consoleWarn.mockRestore();
+    });
+
+    it('does not throw, and is a no-op, for `remove` on a real field the entry has never set', () => {
+      const collection = makeCollection({
+        fields: [...fields, { name: 'subtitle', widget: 'string' }],
+      } as Partial<CmsCollectionState>);
+      const { bridge, dispatch } = setup({ collection });
+
+      const result = bridge.applyPatch([{ op: 'remove', path: '/subtitle' }]);
+
+      expect(result).toEqual({ changed: [] });
+      expect(dispatch).not.toHaveBeenCalled();
+    });
+
+    it('does not throw, and skips silently, for `remove` on a name that is not a schema field at all', () => {
+      const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const { bridge, dispatch } = setup();
+
+      const result = bridge.applyPatch([{ op: 'remove', path: '/notAField' }]);
+
+      expect(result).toEqual({ changed: [] });
+      expect(dispatch).not.toHaveBeenCalled();
+      expect(consoleWarn).toHaveBeenCalledWith(expect.stringContaining('notAField'));
+
+      consoleWarn.mockRestore();
     });
 
     it('does not mutate the entry data in place', () => {
