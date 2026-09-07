@@ -31,6 +31,7 @@ Beyond `name`, `repo` and `branch`, the `backend:` block also supports the follo
 | `preview_context`  | string  | `''`                                    | Context string used to look up the deploy preview status/link shown in the editorial workflow.                                                                                                                |
 | `api_root`         | string  | `'https://api.bitbucket.org/2.0'`       | Base URL for the Bitbucket REST API. Passed to the `Api` constructor and used to fetch repository info (e.g. default branch resolution). Override for self-hosted or region-specific Bitbucket API endpoints. |
 | `auth_type`        | string  | `''`                                    | Authentication flow used by `AuthenticationPage`. When set to `'implicit'`, the backend skips refresh-token handling and treats the access token as non-renewable.                                            |
+| `pat_auth`         | boolean | `false`                                 | Renders a personal-access-token login form alongside the OAuth button when `true`.                                                                                                                             |
 
 ## Branch resolution
 

@@ -54,3 +54,5 @@ the main decapcms.org docs:
   of gitlab.com.
 - `cms_label_prefix` (string, default `''`): a prefix prepended to the editorial workflow merge
   request labels the backend creates and looks up to track unpublished entry statuses.
+- `pat_auth` (boolean, default `false`): renders a personal-access-token login form alongside the
+  OAuth button when `true`.
