@@ -58,6 +58,16 @@ describe('config', () => {
       }).not.toThrowError();
     });
 
+    it('should not throw when media_folder_relative is set (removed field, silently ignored as extra property) (DCMS-2135)', () => {
+      // media_folder_relative was removed in DCMS-080 and reintroduced by the
+      // 2026-08-11 monorepo restructure without the fix. It's a no-op that was
+      // never read anywhere in the implementation. The top-level schema has no
+      // additionalProperties:false so it passes through without error.
+      expect(() => {
+        validateConfig({ ...validConfig, media_folder_relative: true });
+      }).not.toThrowError();
+    });
+
     it('should throw if backend is not defined in config', () => {
       expect(() => {
         validateConfig({ foo: 'bar' });

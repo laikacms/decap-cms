@@ -43,7 +43,6 @@ export interface CmsConfig<Backend extends CmsBackend = CmsBackend> {
   public_folder?: string;
   base_url?: string;
   site_id?: string;
-  media_folder_relative?: boolean;
   media_library?: CmsMediaLibrary;
   /** Named, config-defined asset groupings surfaced as sections in the media library. */
   asset_collections?: CmsAssetCollection[];

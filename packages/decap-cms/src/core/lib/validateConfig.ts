@@ -208,7 +208,6 @@ export function getConfigSchema(): JSONSchema {
       show_preview_links: { type: 'boolean' },
       media_folder: { type: 'string', examples: ['assets/uploads'] },
       public_folder: { type: 'string', examples: ['/uploads'] },
-      media_folder_relative: { type: 'boolean' },
       media_library: {
         type: 'object',
         properties: {
