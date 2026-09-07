@@ -71,7 +71,7 @@ export interface LoaderRenderProps {
    */
   label?: React.ReactNode;
   /** Where the loader is being shown — useful for picking layout/spacing. */
-  context?: 'config' | 'entries' | 'entry' | 'workflow';
+  context?: 'entries' | 'entry' | 'workflow';
 }
 
 export interface EntryListEmptyRenderProps {
