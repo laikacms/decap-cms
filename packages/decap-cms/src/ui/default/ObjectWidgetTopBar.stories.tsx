@@ -39,3 +39,15 @@ export const WithHeading: Story = {
     onCollapseToggle: () => {},
   },
 };
+
+// Pins DCMS-2205: the top bar used to be called with `heading={false}` while
+// expanded (no `types`/`allowAdd` either), producing a full-width gray strip
+// whose only visible content was the chevron. The heading must render here
+// too so the bar isn't an empty band.
+export const ExpandedNoAddUI: Story = {
+  args: {
+    heading: 'Author',
+    collapsed: false,
+    onCollapseToggle: () => {},
+  },
+};
