@@ -112,9 +112,13 @@ export {
  * The (singleton) Backend wrapper for the configured backend. Hosts that make
  * their own API calls with the CMS identity should get the token through
  * `currentBackend(store.getState().config).getToken()` rather than reading
- * stored tokens directly — `getToken()` is refresh-aware, and refresh grants
+ * stored tokens directly. Whether `getToken()` is refresh-aware is
+ * backend-specific, not universal: `gitlab`, `bitbucket`, `git-gateway`, and
+ * `laika` refresh an expired token before returning it (refresh grants
  * ROTATE the token pair, so a second independent refresher would revoke the
- * backend's session (and vice versa).
+ * backend's session, and vice versa); `github`, `azure`, `gitea`, `forgejo`,
+ * and `local-fs` are plain accessors that return whatever token was last set,
+ * with no refresh.
  */
 export { currentBackend } from './backend';
 

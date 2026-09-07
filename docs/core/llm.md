@@ -102,8 +102,15 @@ import { currentBackend, store } from '@laikacms/decap-cms/core';
 const token = await currentBackend(store.getState().config).getToken();
 ```
 
-Use `getToken()` rather than reading a stored token: it is refresh-aware, and refresh grants rotate
-the token pair, so a second independent refresher would revoke the backend's session.
+Use `getToken()` rather than reading a stored token. Whether it is refresh-aware is
+backend-specific, not a universal property of `Backend.getToken()`:
+
+- `gitlab`, `bitbucket`, `git-gateway`, and `laika` refresh an expired token before
+  returning it (and dedupe concurrent calls), so a second independent refresher would
+  rotate the token pair out from under this call and revoke the backend's session.
+- `github`, `azure`, `gitea`, `forgejo`, and `local-fs` are plain accessors: they return
+  whatever token was last set at auth time, with no refresh. A stale/expired token from
+  one of these backends is returned as-is.
 
 ## Where the UI lives
 
