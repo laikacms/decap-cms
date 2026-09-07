@@ -158,6 +158,42 @@ describe('git-gateway backend implementation config keys', () => {
       expect(backend.backendType).toBeNull();
     });
   });
+
+  describe('authenticate with no backend enabled', () => {
+    const originalFetch = global.fetch;
+
+    afterEach(() => {
+      global.fetch = originalFetch;
+    });
+
+    test('throws a clear Error, not a TypeError, when /settings reports no enabled backends', async () => {
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'Content-Type': 'application/json' }),
+        json: () =>
+          Promise.resolve({
+            github_enabled: false,
+            gitlab_enabled: false,
+            bitbucket_enabled: false,
+          }),
+      } as unknown as Response);
+
+      const backend = new GitGateway(
+        makeConfig({ gateway_url: 'https://example.com/.netlify/git' }),
+      );
+      const user = {
+        jwt: () => Promise.resolve('a-token'),
+        email: 'user@example.com',
+        user_metadata: { full_name: 'Some User', avatar_url: '' },
+      };
+
+      await expect(backend.authenticate(user as never)).rejects.toThrow(
+        'Git Gateway has no enabled backends. Enable github_enabled, gitlab_enabled, or bitbucket_enabled in Netlify site settings.',
+      );
+      await expect(backend.authenticate(user as never)).rejects.not.toBeInstanceOf(TypeError);
+    });
+  });
 });
 
 /**
