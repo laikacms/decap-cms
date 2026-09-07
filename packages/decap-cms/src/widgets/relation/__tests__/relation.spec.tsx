@@ -53,13 +53,21 @@ const quickAddFieldConfig = {
 // Target-collection config for the quick-add dialog (DCMS-2055): `title` is
 // required with a human `label`; `slug` is optional and carries a `hint`.
 // Threaded into `RelationControl` the same way `EditorControl.tsx` threads
-// `config` down through `Widget.tsx`.
+// `config` down through `Widget.tsx`. `type` mirrors the normalization
+// `core/actions/config.tsx` performs in place on the real config before any
+// field mounts (folder-based here, since `folder` is set). `create: true` is
+// explicit because `selectAllowNewEntries` (DCMS-2202) requires it for
+// folder collections too - same as the main "New entry" button
+// (`Collection.tsx`'s `!collection?.create` check) and `persistEntry`'s
+// gate on save.
 const postsCollectionConfig = {
   collections: [
     {
       name: 'posts',
       label: 'Posts',
       folder: 'posts',
+      type: 'folder_based_collection',
+      create: true,
       fields: [
         { name: 'title', label: 'Title', widget: 'string', required: true },
         { name: 'slug', label: 'Slug', widget: 'string', required: false, hint: 'Used in the URL' },
@@ -78,8 +86,28 @@ const noCreateCollectionConfig = {
       name: 'posts',
       label: 'Posts',
       folder: 'posts',
+      type: 'folder_based_collection',
       create: false,
       fields: [{ name: 'title', label: 'Title', widget: 'string' }],
+    },
+  ],
+};
+
+// Target-collection config (DCMS-2202) where `posts` is a *files* collection
+// (`files`, not `folder`) - `selectAllowNewEntries` unconditionally returns
+// `false` for files collections regardless of any `create` key, so the
+// quick-add button must stay hidden even though nothing sets `create: false`
+// explicitly (the bug: `targetCollection?.create !== false` treated the
+// unset `create` as permissive).
+const filesCollectionConfig = {
+  collections: [
+    {
+      name: 'posts',
+      label: 'Posts',
+      type: 'file_based_collection',
+      files: [
+        { name: 'posts', label: 'Posts', file: 'posts.json', fields: [{ name: 'title', widget: 'string' }] },
+      ],
     },
   ],
 };
@@ -964,6 +992,21 @@ describe('Relation widget', () => {
         field: quickAddFieldConfig,
         onQuickCreateEntry: vi.fn(),
         config: noCreateCollectionConfig,
+      });
+      expect(queryByText(/Create new/i)).not.toBeInTheDocument();
+    });
+
+    // DCMS-2202: files collections never allow new entries
+    // (`selectAllowNewEntries` returns `false` unconditionally for them,
+    // `core/reducers/collections.tsx`), regardless of any `create` key -
+    // unlike the `noCreateCollectionConfig` case above, nothing here sets
+    // `create: false` explicitly, so the old `targetCollection?.create !==
+    // false` check incorrectly rendered the button.
+    it('does not render the quick-add button when the target collection is a files collection', () => {
+      const { queryByText } = setup({
+        field: quickAddFieldConfig,
+        onQuickCreateEntry: vi.fn(),
+        config: filesCollectionConfig,
       });
       expect(queryByText(/Create new/i)).not.toBeInTheDocument();
     });
