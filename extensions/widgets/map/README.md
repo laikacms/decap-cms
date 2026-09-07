@@ -9,12 +9,30 @@ CMS does not register it for you.
 
 ## Install and register
 
+**`@laikacms/decap-cms-widget-map` is not published to npm** (tracked in
+[#2213](https://github.com/laikacms/decap-cms/issues/2213)). Vendor the source into your own project
+instead of installing it as a registry dependency:
+
 ```sh
-npm install @laikacms/decap-cms-widget-map
+# from a checkout of this repo
+cp -R extensions/widgets/map path/to/your-project/vendor/decap-cms-widget-map
 ```
 
-`ol` comes with it. Call `CMS.registerWidget` once during Decap CMS initialisation, before the
-editor mounts:
+If your project is itself a pnpm/npm/yarn workspace that includes a checkout of this repo (e.g. as a
+git submodule), you can reference it as a local workspace dependency instead, e.g. in your
+`package.json`:
+
+```json
+{
+  "dependencies": {
+    "@laikacms/decap-cms-widget-map": "workspace:*"
+  }
+}
+```
+
+Add `ol` to your own `package.json` if you vendor the source directly (see `package.json` in
+`extensions/widgets/map` for the version this widget was built against). Call `CMS.registerWidget`
+once during Decap CMS initialisation, before the editor mounts:
 
 ```ts
 import CMS from '@laikacms/decap-cms';

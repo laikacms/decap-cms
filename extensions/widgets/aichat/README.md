@@ -17,6 +17,26 @@ they're passed when registering the widget, as the `AiChatWidgetOptions` argumen
 `DecapCmsWidgetAiChat.Widget(opts)` (`index.ts`), and are exposed to `AiChatControl` as the `widget`
 prop.
 
+**`@laikacms/decap-cms-widget-aichat` is not published to npm** (tracked in
+[#2213](https://github.com/laikacms/decap-cms/issues/2213)). Vendor the source into your own project
+instead of installing it as a registry dependency:
+
+```sh
+# from a checkout of this repo
+cp -R extensions/widgets/aichat path/to/your-project/vendor/decap-cms-widget-aichat
+```
+
+Or, if your project is itself a pnpm/npm/yarn workspace that includes a checkout of this repo,
+reference it as a local workspace dependency instead, e.g. in your `package.json`:
+
+```json
+{
+  "dependencies": {
+    "@laikacms/decap-cms-widget-aichat": "workspace:*"
+  }
+}
+```
+
 ## Config
 
 ```ts

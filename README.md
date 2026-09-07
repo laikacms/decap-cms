@@ -71,6 +71,11 @@ on `@laikacms/decap-cms` through its published subpath exports (no reach into
 `packages/`. The reasoning for both roots is documented in
 [restructure.md](docs/contributing/decisions/restructure.md).
 
+`@laikacms/decap-cms` (`packages/decap-cms`) is the only package in this repo published to npm.
+Everything else under `packages/` and `extensions/` is source-only for now - see each package's own
+README for how to vendor it into your project
+([#2213](https://github.com/laikacms/decap-cms/issues/2213)).
+
 ## Working in this repo
 
 Everything runs from the root through pnpm:
