@@ -25,6 +25,7 @@ Look at tests or types for more info.
 | `api_root` | string | `'https://try.gitea.io/api/v1'` | Base URL for the Gitea REST API. Override for self-hosted Gitea instances.                                                                                                                                                                                |
 | `base_url` | string | `'https://try.gitea.io'`        | Base URL of the Gitea instance used for the OAuth (PKCE) login flow (`AuthenticationPage.tsx`). Override for self-hosted Gitea instances alongside `api_root`.                                                                                            |
 | `app_id`   | string | `''`                            | OAuth application (client) ID used for the PKCE login flow.                                                                                                                                                                                               |
+| `pat_auth` | boolean | `false`                        | Renders a personal-access-token login form alongside the OAuth button when `true`.                                                                                                                                                                        |
 
 ## Other config keys
 

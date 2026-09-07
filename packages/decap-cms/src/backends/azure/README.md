@@ -30,6 +30,7 @@ Beyond `name` and `branch`, the `backend:` block also supports the following opt
 | `squash_merges`    | boolean | no              | `false`                   | When `true`, pull requests created for the editorial workflow are completed with `mergeStrategy: 'squash'` instead of `'noFastForward'`.                     |
 | `cms_label_prefix` | string  | no              | `''`                      | Prefix added to the pull request labels the CMS uses to track editorial workflow status.                                                                     |
 | `preview_context`  | string  | no              | `''`                      | Context string used to look up the deploy preview status/link shown in the editorial workflow.                                                               |
+| `pat_auth`         | boolean | no              | `false`                   | Renders a personal-access-token login form alongside the OAuth button when `true`.                                                                           |
 
 ## Branch resolution
 
