@@ -42,10 +42,12 @@ its row.
 | ------------------------------------------------- | ----------- | ----------- | ---- |
 | _No community widgets listed yet — be the first!_ |             |             |      |
 
-Looking for widget examples in the meantime? Start with the ones that ship as their own npm packages
+Looking for widget examples in the meantime? Start with the ones that live as standalone packages
 under [`extensions/widgets/`](../extensions/widgets/): `@laikacms/decap-cms-widget-map`,
 `@laikacms/decap-cms-widget-lucide-icon`, `@laikacms/decap-cms-widget-radix-icon` and
-`@laikacms/decap-cms-widget-aichat`. They are built the way your widget would be - against the
+`@laikacms/decap-cms-widget-aichat`. **None of these are published to npm** (see
+[#2213](https://github.com/laikacms/decap-cms/issues/2213)) - each package's README explains how to
+vendor its source into your own project. They are built the way your widget would be - against the
 published `@laikacms/decap-cms` subpath exports only - so they are the closest thing to a template.
 
 This repo ships several bundled, opt-in widgets under `@laikacms/decap-cms/widgets/*` (e.g.

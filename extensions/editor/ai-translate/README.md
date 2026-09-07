@@ -1,7 +1,7 @@
 # AI translate
 
-> **Deprecated.** This standalone package is deprecated in favor of the built-in
-> `AiTranslateAction` locale-row action shipped with the CMS core
+> **Deprecated.** This standalone package is deprecated in favor of the built-in `AiTranslateAction`
+> locale-row action shipped with the CMS core
 > (`src/core/components/Editor/EditorControlPane/AiTranslateAction.tsx`). Registering
 > `registerAiTranslate()` still works and logs a runtime deprecation warning, but new consumers
 > should use the in-core action instead of installing this package.
@@ -20,9 +20,28 @@ an install that never calls `registerAiTranslate()` ships no AI client code and 
 
 ## Install and register
 
+**`@laikacms/decap-cms-ai-translate` is not published to npm** (tracked in
+[#2213](https://github.com/laikacms/decap-cms/issues/2213)). Vendor the source into your own project
+instead of installing it as a registry dependency:
+
 ```sh
-npm install @laikacms/decap-cms-ai-translate
+# from a checkout of this repo
+cp -R extensions/editor/ai-translate path/to/your-project/vendor/decap-cms-ai-translate
 ```
+
+Or, if your project is itself a pnpm/npm/yarn workspace that includes a checkout of this repo,
+reference it as a local workspace dependency instead, e.g. in your `package.json`:
+
+```json
+{
+  "dependencies": {
+    "@laikacms/decap-cms-ai-translate": "workspace:*"
+  }
+}
+```
+
+That said, this standalone package is deprecated (see the note above) — prefer the in-core
+`AiTranslateAction`, which ships with `@laikacms/decap-cms` and needs no separate install.
 
 ```ts
 import CMS from '@laikacms/decap-cms';

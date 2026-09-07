@@ -1,43 +1,64 @@
 # decap-cms-lib-pat
 
-CMS-issued scoped Personal Access Token (PAT) primitives for Decap CMS-based
-servers: minting, hashing at rest, and bearer verification.
+CMS-issued scoped Personal Access Token (PAT) primitives for Decap CMS-based servers: minting,
+hashing at rest, and bearer verification.
 
-This library is server-side only (Node `crypto`). It does not touch storage
-or transport -- callers inject a `lookupPatByHash` and a `verifySessionToken`
-function and get back a single seam that resolves any bearer string to
-`{ user, scopes }`.
+This library is server-side only (Node `crypto`). It does not touch storage or transport -- callers
+inject a `lookupPatByHash` and a `verifySessionToken` function and get back a single seam that
+resolves any bearer string to `{ user, scopes }`.
+
+## Install
+
+**This package is not published to npm** (tracked in
+[#2213](https://github.com/laikacms/decap-cms/issues/2213)). The `Usage` example below imports from
+the bare package name (`decap-cms-lib-pat`) as it is consumed from within this pnpm workspace.
+Outside this repo, vendor the source instead:
+
+```sh
+# from a checkout of this repo
+cp -R packages/decap-cms-lib-pat path/to/your-project/vendor/decap-cms-lib-pat
+```
+
+Or, if your project is itself a pnpm/npm/yarn workspace that includes a checkout of this repo,
+reference it as a local workspace dependency instead, e.g. in your `package.json`:
+
+```json
+{
+  "dependencies": {
+    "decap-cms-lib-pat": "workspace:*"
+  }
+}
+```
 
 ## Scope vocabulary
 
-Scopes follow a `resource:action` convention and are an **open vocabulary**.
-The CMS ships these well-known defaults:
+Scopes follow a `resource:action` convention and are an **open vocabulary**. The CMS ships these
+well-known defaults:
 
 `content:read` | `content:write` | `media:read` | `media:write` | `config:read`
 
-Consumers building custom dashboards (Decap CMS supports injected React
-components) or fronting a non-CMS surface (e.g. a B2B shop) may grant their own
-namespaced scopes, such as `shipping:read` or `orders:write` -- this library
-validates the `resource:action` shape, it does not restrict the vocabulary.
+Consumers building custom dashboards (Decap CMS supports injected React components) or fronting a
+non-CMS surface (e.g. a B2B shop) may grant their own namespaced scopes, such as `shipping:read` or
+`orders:write` -- this library validates the `resource:action` shape, it does not restrict the
+vocabulary.
 
 Wildcards:
 
 - `admin` (or the equivalent `*`) grants every scope.
-- `resource:*` grants every action on that resource (e.g. `content:*` grants
-  both `content:read` and `content:write`).
+- `resource:*` grants every action on that resource (e.g. `content:*` grants both `content:read` and
+  `content:write`).
 
-Wildcard membership is resolved at check time by `hasScope`; stored scope sets
-are never expanded (an open vocabulary has no enumerable "all"). Use
-`normalizeScopes` to canonicalize a set for storage (dedupe; collapse a global
-grant to a single `admin`).
+Wildcard membership is resolved at check time by `hasScope`; stored scope sets are never expanded
+(an open vocabulary has no enumerable "all"). Use `normalizeScopes` to canonicalize a set for
+storage (dedupe; collapse a global grant to a single `admin`).
 
 ## Usage
 
 ```ts
 import {
   mintPersonalAccessToken,
-  resolveBearer,
   requireScope,
+  resolveBearer,
   UnauthorizedError,
 } from 'decap-cms-lib-pat';
 
@@ -62,15 +83,13 @@ requireScope(ctx, 'content:write'); // throws InsufficientScopeError if not gran
 
 ## What's deferred
 
-This package ships token minting, hashing, the `{user, scopes}` bearer
-resolution seam, and scope enforcement -- fully tested. It does **not**
-include:
+This package ships token minting, hashing, the `{user, scopes}` bearer resolution seam, and scope
+enforcement -- fully tested. It does **not** include:
 
-- Wiring `resolveBearer` into the live `decap-api authorize(ctx)` hook
-  (that seam lives in `laikacms/laikacms`, a separate private repo).
-- Storage adapters (SQL/DynamoDB) for `PatRecord` -- consumers bring their
-  own; the shape is storage-agnostic on purpose.
-- The admin management UI (create with scope picker, show-once, list,
-  revoke).
+- Wiring `resolveBearer` into the live `decap-api authorize(ctx)` hook (that seam lives in
+  `laikacms/laikacms`, a separate private repo).
+- Storage adapters (SQL/DynamoDB) for `PatRecord` -- consumers bring their own; the shape is
+  storage-agnostic on purpose.
+- The admin management UI (create with scope picker, show-once, list, revoke).
 
 See [DCMS-1409](https://github.com/laikacms/decap-cms/issues/1409).
