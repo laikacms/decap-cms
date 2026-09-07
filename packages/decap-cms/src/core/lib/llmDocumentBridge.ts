@@ -28,6 +28,18 @@ import type {
  * to any other extension listening.
  */
 
+/**
+ * The field name a `replace`/`remove` addresses, but only when the path is a
+ * single top-level segment. Deeper paths are left alone: a typo inside a
+ * field that genuinely exists should still throw, only a field-name-shaped
+ * miss at the root is what the model can plausibly invent.
+ */
+function topLevelField(operation: LlmPatchOperation): string | undefined {
+  if (operation.op !== 'replace' && operation.op !== 'remove') return undefined;
+  if (!operation.path.startsWith('/') || operation.path.slice(1).includes('/')) return undefined;
+  return operation.path.slice(1).replace(/~1/g, '/').replace(/~0/g, '~');
+}
+
 /** Data for the locale being edited; the default locale lives at the entry root. */
 function readLocaleData(
   entry: CmsEntry | undefined,
@@ -112,12 +124,41 @@ export function createLlmDocumentBridge({
     applyPatch(operations: LlmPatchOperation[]) {
       const entry = getEntry();
       const current = readLocaleData(entry, locale, defaultLocale);
+      const fields = currentFields();
+
+      // `applyJsonPatch` throws when a `replace`/`remove` targets a key
+      // `current` doesn't have — correct for a typo inside a field that
+      // genuinely exists, wrong for a top-level field name: `current` only
+      // holds keys the entry has actually been given a value for, so a real
+      // but never-touched optional field looks identical to one the model
+      // invented. Resolve that here, before `applyJsonPatch` ever sees it, so
+      // that module can stay ignorant of the collection schema.
+      const applicableOperations: LlmPatchOperation[] = [];
+      for (const operation of operations) {
+        const field = topLevelField(operation);
+        if (field === undefined || Object.prototype.hasOwnProperty.call(current, field)) {
+          applicableOperations.push(operation);
+          continue;
+        }
+        if (!fields.some(candidate => candidate?.name === field)) {
+          // Same outcome as an unknown field reaching `add` below: skip it,
+          // the rest of the patch still lands.
+          console.warn(`Field "${field}" is not in the collection schema; skipping AI update.`);
+          continue;
+        }
+        if (operation.op === 'remove') {
+          continue; // Nothing to remove.
+        }
+        // A real, valid field the entry has simply never had a value for.
+        // `replace` is what a model reaches for either way; honour the
+        // intent by treating it as the field's first value.
+        applicableOperations.push({ ...operation, op: 'add' });
+      }
 
       // Throws `JsonPatchError` on a malformed or inapplicable operation,
       // leaving the draft untouched; the transport reports that to the model.
-      const patched = applyJsonPatch(current, operations);
+      const patched = applyJsonPatch(current, applicableOperations);
 
-      const fields = currentFields();
       const entries = selectOriginalEntries(getState(), collection.name, currentSlug());
       const i18n = i18nInfo && locale
         ? { currentLocale: locale, defaultLocale: i18nInfo.defaultLocale, locales: i18nInfo.locales }
