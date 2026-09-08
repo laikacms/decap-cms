@@ -7,7 +7,7 @@ import { $createSpecialTextNode, SpecialTextNode } from '@/ui/editor/nodes/Speci
 import type { LexicalEditor } from 'lexical';
 import type { JSX } from 'react';
 
-const BRACKETED_TEXT_REGEX = /\[([^\[\]]+)\]/; // eslint-disable-line
+const BRACKETED_TEXT_REGEX = /\[([^\[\]]+)\]/; // eslint-disable-line no-useless-escape
 
 function $findAndTransformText(node: TextNode): null | TextNode {
   const text = node.getTextContent();
