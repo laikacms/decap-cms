@@ -59,12 +59,20 @@ Some sites also enable optional widgets that aren't part of the default set - mo
 **icon picker** (browse and select an icon from an icon library), a **map** widget (draw a point,
 line, or polygon on a map; requires the site to install the standalone
 `@laikacms/decap-cms-widget-map` package and register it with `CMS.registerWidget(...)` before
-`CMS.init()` runs — see [`extensions/widgets/map`](../extensions/widgets/map)), and an **AI chat**
-panel for drafting content inside the editor. **The AI
-chat panel is deprecated** and being phased out in favor of the laikacms MCP server (`/mcp`);
-prefer the MCP integration for AI-assisted editing and use the in-editor panel only if a site still
-has it enabled. If you see a field that isn't in the table above, it's one of these or a custom
-widget built for that site.
+`CMS.init()` runs — see [`extensions/widgets/map`](../extensions/widgets/map)), and an **`ai-chat`
+widget** (a document-scoped chat field a site can add with `{ widget: 'ai-chat' }`, requiring the
+standalone `@laikacms/decap-cms-widget-aichat` package — see
+[`extensions/widgets/aichat`](../extensions/widgets/aichat)). **The `ai-chat` widget is
+deprecated** and being phased out in favor of the laikacms MCP server (`/mcp`); prefer the MCP
+integration for AI-assisted editing and use this widget only if a site still has it enabled. If
+you see a field that isn't in the table above, it's one of these or a custom widget built for that
+site.
+
+This is a different feature from the **built-in AI assistant panel** that some sites show
+alongside the editor (not a field/widget at all): it's wired through the CMS's `LlmTransport` seam
+and appears whenever a host supplies one — see [`docs/core/llm.md`](./core/llm.md). That panel is
+current and **not deprecated**; it is the supported replacement direction, and it is not the same
+thing as the MCP server.
 
 ## Saving, publishing, and the editorial workflow
 
