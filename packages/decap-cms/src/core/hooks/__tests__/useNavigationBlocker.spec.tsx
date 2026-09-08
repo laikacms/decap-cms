@@ -611,7 +611,7 @@ describe('useNavigationBlocker vs. the Insert-URL prompt (DCMS-2253)', () => {
       const promptResolved = vi.fn();
       promptDialog('Enter the URL of the image', { title: 'Insert image URL' }).then(promptResolved);
 
-      const promptEl = await screen.findByRole('alertdialog', { name: 'Insert image URL' });
+      const promptEl = await screen.findByRole('dialog', { name: 'Insert image URL' });
       expect(promptEl).toBeInTheDocument();
 
       // Step 5: drive a hash-route change without closing the prompt first.
@@ -624,7 +624,7 @@ describe('useNavigationBlocker vs. the Insert-URL prompt (DCMS-2253)', () => {
       await waitFor(() => expect(screen.getAllByRole('alertdialog')).toHaveLength(1));
       const remaining = screen.getByRole('alertdialog');
       expect(remaining).toHaveTextContent('Unsaved!');
-      expect(screen.queryByRole('alertdialog', { name: 'Insert image URL' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('dialog', { name: 'Insert image URL' })).not.toBeInTheDocument();
       await waitFor(() => expect(promptResolved).toHaveBeenCalledWith(null));
 
       // The remaining "Unsaved changes" dialog is unaffected by the prompt's

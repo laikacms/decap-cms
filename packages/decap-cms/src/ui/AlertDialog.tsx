@@ -247,20 +247,31 @@ export function PromptDialogContent({
 }: WithClassName<React.ComponentProps<typeof DialogPrimitive.Popup>>): React.ReactNode {
   const backdropRef = useNeverInertSelf<HTMLDivElement>();
   const popupRef = useNeverInertSelf<HTMLDivElement>();
+  const stackId = React.useId();
+  const { recencyIndex, depthFromTop, isTopMost } = useDialogStackPosition(stackId);
+  const offset = depthFromTop * stackOffsetPx;
 
   return (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Backdrop
-        ref={backdropRef}
-        data-slot="dialog-backdrop"
-        css={backdropClass}
-      />
+      {isTopMost && (
+        <DialogPrimitive.Backdrop
+          ref={backdropRef}
+          data-slot="dialog-backdrop"
+          css={backdropClass}
+        />
+      )}
       <DialogPrimitive.Popup
         ref={popupRef}
         data-slot="dialog-content"
         aria-modal="true"
+        inert={!isTopMost}
+        data-dialog-depth={depthFromTop}
         css={popupClass}
         className={className}
+        style={{
+          zIndex: modalZIndex + recencyIndex,
+          transform: `translate(calc(-50% + ${offset}px), calc(-50% + ${offset}px))`,
+        }}
         {...props}
       >
         {children}

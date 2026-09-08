@@ -64,7 +64,7 @@ function setup(overrides: Partial<FileControlProps> = {}) {
 
 async function openInsertFromUrl(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByText('editor.editorWidgets.image.chooseUrl'));
-  return screen.findByRole('alertdialog');
+  return screen.findByRole('dialog');
 }
 
 describe('image widget "Insert from URL" (DCMS-2252)', () => {
@@ -85,7 +85,7 @@ describe('image widget "Insert from URL" (DCMS-2252)', () => {
     await user.type(screen.getByRole('textbox'), 'https://example.com/foo.png');
     await user.click(screen.getByRole('button', { name: 'editor.editorWidgets.image.promptUrlConfirm' }));
 
-    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(onChange).toHaveBeenCalledWith('https://example.com/foo.png');
     expect(fetchMock).toHaveBeenCalledWith(
       'https://example.com/foo.png',
@@ -163,7 +163,7 @@ describe('image widget "Insert from URL" (DCMS-2252)', () => {
     await user.type(input, 'https://example.com/fixed.jpg');
     await user.click(screen.getByRole('button', { name: 'editor.editorWidgets.image.promptUrlConfirm' }));
 
-    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith('https://example.com/fixed.jpg');
   });
