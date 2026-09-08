@@ -1,3 +1,17 @@
+/**
+ * HTML `<a>` attributes applied to every link created by the richtext
+ * editor, whether via the toolbar "Toggle link" seed path
+ * ({@link LinkToolbarPlugin} / {@link FloatingTextFormatToolbarPlugin}) or
+ * via `@lexical/link`'s `LinkExtension` config in `Editor.tsx`. Kept as a
+ * single shared constant so the two paths (seeding via `$toggleLink`
+ * directly vs. the extension's own `TOGGLE_LINK_COMMAND` handler) can never
+ * drift apart.
+ */
+export const LINK_ATTRIBUTES = {
+  rel: 'noopener noreferrer',
+  target: '_blank',
+} as const;
+
 const SUPPORTED_URL_PROTOCOLS = new Set([
   'http:',
   'https:',

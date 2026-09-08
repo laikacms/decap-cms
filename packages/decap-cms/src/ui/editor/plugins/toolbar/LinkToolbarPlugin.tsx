@@ -1,4 +1,4 @@
-import { $isLinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
+import { $isLinkNode, $toggleLink, TOGGLE_LINK_COMMAND } from '@lexical/link';
 import {
   $isRangeSelection,
   // COMMAND_PRIORITY_NORMAL,
@@ -10,7 +10,7 @@ import { useCallback, useState } from 'react';
 import { useToolbarContext } from '@/ui/editor/context/ToolbarContext';
 import { useUpdateToolbarHandler } from '@/ui/editor/editor-hooks/useUpdateToolbar';
 import { getSelectedNode } from '@/ui/editor/utils/get-selected-node';
-import { sanitizeUrl } from '@/ui/editor/utils/url';
+import { LINK_ATTRIBUTES } from '@/ui/editor/utils/url';
 import { LinkIcon } from '@/ui/icons/index';
 import { Toggle } from '@/ui/Toggle';
 
@@ -64,10 +64,16 @@ export function LinkToolbarPlugin({
   const insertLink = useCallback(() => {
     if (!isLink) {
       setIsLinkEditMode(true);
-      activeEditor.dispatchCommand(
-        TOGGLE_LINK_COMMAND,
-        sanitizeUrl('https://'),
-      );
+      // Seed a placeholder LinkNode via `$toggleLink` directly rather than
+      // `TOGGLE_LINK_COMMAND`: the command is guarded by the editor's
+      // strict `validateUrl` (see Editor.tsx's `LinkExtension` config),
+      // which rejects the `https://` placeholder and silently no-ops.
+      // `$toggleLink` performs the same node creation without that guard;
+      // the FloatingLinkEditor's own Check-button `validateUrl` gate still
+      // enforces a real URL before the link is committed (DCMS-2227).
+      activeEditor.update(() => {
+        $toggleLink('https://', LINK_ATTRIBUTES);
+      });
     } else {
       setIsLinkEditMode(false);
       activeEditor.dispatchCommand(TOGGLE_LINK_COMMAND, null);

@@ -1,5 +1,5 @@
 import { $isCodeHighlightNode } from '@lexical/code';
-import { $isLinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
+import { $isLinkNode, $toggleLink, TOGGLE_LINK_COMMAND } from '@lexical/link';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { mergeRegister } from '@lexical/utils';
 import {
@@ -18,6 +18,7 @@ import { createPortal } from 'react-dom';
 import { getDOMRangeRect } from '@/ui/editor/utils/get-dom-range-rect';
 import { getSelectedNode } from '@/ui/editor/utils/get-selected-node';
 import { setFloatingElemPosition } from '@/ui/editor/utils/set-floating-elem-position';
+import { LINK_ATTRIBUTES } from '@/ui/editor/utils/url';
 import {
   BoldIcon,
   CodeIcon,
@@ -61,7 +62,13 @@ function TextFormatFloatingToolbar({
   const insertLink = useCallback(() => {
     if (!isLink) {
       setIsLinkEditMode(true);
-      editor.dispatchCommand(TOGGLE_LINK_COMMAND, 'https://');
+      // See LinkToolbarPlugin's insertLink for why this seeds via
+      // `$toggleLink` instead of `TOGGLE_LINK_COMMAND`: the command is
+      // guarded by the editor's strict `validateUrl`, which rejects the
+      // `https://` placeholder (DCMS-2227).
+      editor.update(() => {
+        $toggleLink('https://', LINK_ATTRIBUTES);
+      });
     } else {
       setIsLinkEditMode(false);
       editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
