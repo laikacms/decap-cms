@@ -116,7 +116,7 @@ import { EMOJI } from './transformers/emoji-transformer';
 import { HR } from './transformers/hr-transformer';
 import { IMAGE } from './transformers/image-transformer';
 import { TABLE } from './transformers/table-transformer';
-import { validateUrl } from './utils/url';
+import { LINK_ATTRIBUTES, validateUrl } from './utils/url';
 
 const defaultPlaceholder = 'Press / for commands...';
 const maxLength = 30;
@@ -326,10 +326,7 @@ export function Editor({
           EmojisExtension,
           configExtension(LinkExtension, {
             validateUrl,
-            attributes: {
-              rel: 'noopener noreferrer',
-              target: '_blank',
-            },
+            attributes: LINK_ATTRIBUTES,
           }),
           AutoLinkExtension,
           ClickableLinkExtension,
