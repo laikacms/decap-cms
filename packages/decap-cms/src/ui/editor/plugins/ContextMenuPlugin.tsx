@@ -61,7 +61,6 @@ export function ContextMenuPlugin(): JSX.Element {
             const item = readClipboardItems[0];
 
             const permission = await navigator.permissions.query({
-              // @ts-expect-error These types are incorrect.
               name: 'clipboard-read',
             });
             if (permission.state === 'denied') {
@@ -88,7 +87,6 @@ export function ContextMenuPlugin(): JSX.Element {
         $onSelect: () => {
           navigator.clipboard.read().then(async function(..._args) {
             const permission = await navigator.permissions.query({
-              // @ts-expect-error These types are incorrect.
               name: 'clipboard-read',
             });
 
