@@ -76,6 +76,8 @@ function LaikaMediaLibraryTop({
   forImage,
   onDownload,
   onUpload,
+  onOpenCamera,
+  onOpenScreenCapture,
   query,
   onSearchChange,
   onSearchKeyDown,
@@ -142,6 +144,28 @@ function LaikaMediaLibraryTop({
           >
             {downloadLabel}
           </LaikaButton>
+          {!onOpenCamera ? null : (
+            <LaikaButton
+              variant="ghost"
+              size="sm"
+              disabled={uploadDisabled}
+              aria-disabled={uploadDisabled}
+              onClick={onOpenCamera}
+            >
+              {t('mediaLibrary.mediaLibraryModal.captureCamera')}
+            </LaikaButton>
+          )}
+          {!onOpenScreenCapture ? null : (
+            <LaikaButton
+              variant="ghost"
+              size="sm"
+              disabled={uploadDisabled}
+              aria-disabled={uploadDisabled}
+              onClick={onOpenScreenCapture}
+            >
+              {t('mediaLibrary.mediaLibraryModal.captureScreen')}
+            </LaikaButton>
+          )}
           <LaikaButton
             variant="danger"
             size="sm"

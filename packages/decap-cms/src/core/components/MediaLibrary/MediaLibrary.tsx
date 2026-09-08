@@ -22,9 +22,11 @@ import {
   isRecognizedImageFile,
 } from '@/lib/util/index';
 import { confirmDialog, showAlert } from '@/ui';
+import CaptureDialog from './CaptureDialog';
 import ImageCropDialog from './ImageCropDialog';
 import MediaLibraryModal from './MediaLibraryModal';
 
+import type { CaptureMode } from './CaptureDialog';
 import type { CmsAssetCollection, CmsConfig, CmsImageCropConfig } from '@/lib/util/index';
 import type { TranslateFunction } from '@/ui/default/index';
 
@@ -167,6 +169,7 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
 
   const [selectedFile, setSelectedFile] = React.useState<MediaFile | Record<string, never>>({});
   const [pendingCropFile, setPendingCropFile] = React.useState<File | null>(null);
+  const [captureMode, setCaptureMode] = React.useState<CaptureMode | null>(null);
   const [query, setQuery] = React.useState('');
   const [isPersisted, setIsPersisted] = React.useState(false);
   const [sortFields] = React.useState<SortField[] | undefined>(undefined);
@@ -299,15 +302,13 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
     setSelectedFile(prev => ('key' in prev && (prev as MediaFile).key === asset.key ? {} : asset));
   }
 
-  async function handlePersist(
-    event: React.ChangeEvent<HTMLInputElement> & { dataTransfer?: DataTransfer },
-  ) {
-    event.persist();
-    event.stopPropagation();
-    event.preventDefault();
-    const { files: fileList } = event.dataTransfer || event.target;
-    const allFiles = [...(fileList as FileList)];
-    const file = allFiles[0];
+  /**
+   * Shared by `handlePersist` (file picker/drag-drop) and
+   * `handleCaptureConfirm` (DCMS-2011 camera/screen capture): validates a
+   * candidate `File` and either routes it to the interactive crop dialog or
+   * persists it directly.
+   */
+  async function processUpload(file: File) {
     const configuredMaxFileSize = (config as Record<string, unknown> | undefined)?.max_file_size as
       | number
       | undefined;
@@ -342,6 +343,19 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
       setIsPersisted(true);
       scrollToTop();
     }
+  }
+
+  async function handlePersist(
+    event: React.ChangeEvent<HTMLInputElement> & { dataTransfer?: DataTransfer },
+  ) {
+    event.persist();
+    event.stopPropagation();
+    event.preventDefault();
+    const { files: fileList } = event.dataTransfer || event.target;
+    const allFiles = [...(fileList as FileList)];
+    const file = allFiles[0];
+
+    await processUpload(file);
 
     event.target.value = '';
   }
@@ -355,6 +369,23 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
 
   function handleCropCancel() {
     setPendingCropFile(null);
+  }
+
+  function handleOpenCamera() {
+    setCaptureMode('camera');
+  }
+
+  function handleOpenScreenCapture() {
+    setCaptureMode('screen');
+  }
+
+  async function handleCaptureConfirm(file: File) {
+    setCaptureMode(null);
+    await processUpload(file);
+  }
+
+  function handleCaptureCancel() {
+    setCaptureMode(null);
   }
 
   function handleInsert() {
@@ -428,6 +459,14 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
     });
   }
 
+  // DCMS-2011: camera/screen capture only makes sense for the image picker,
+  // and only when the browser actually exposes the underlying API (e.g. not
+  // in insecure contexts, older browsers, or non-browser test environments).
+  // Buttons are omitted entirely rather than shown disabled in that case.
+  const mediaDevices = typeof navigator !== 'undefined' ? navigator.mediaDevices : undefined;
+  const cameraSupported = Boolean(forImage && typeof mediaDevices?.getUserMedia === 'function');
+  const screenCaptureSupported = Boolean(forImage && typeof mediaDevices?.getDisplayMedia === 'function');
+
   return (
     <>
       {pendingCropFile
@@ -441,6 +480,16 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
           />
         )
         : null}
+      {!captureMode
+        ? null
+        : (
+          <CaptureDialog
+            mode={captureMode}
+            onConfirm={file => void handleCaptureConfirm(file)}
+            onCancel={handleCaptureCancel}
+            t={t}
+          />
+        )}
       <MediaLibraryModal
         isVisible={isVisible}
         canInsert={canInsert}
@@ -463,6 +512,8 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
         handleSearchChange={handleSearchChange}
         handleSearchKeyDown={handleSearchKeyDown}
         handlePersist={handlePersist as (event: React.ChangeEvent<HTMLInputElement>) => void}
+        onOpenCamera={cameraSupported ? handleOpenCamera : undefined}
+        onOpenScreenCapture={screenCaptureSupported ? handleOpenScreenCapture : undefined}
         handleDelete={handleDelete}
         handleInsert={handleInsert}
         handleDownload={handleDownload}

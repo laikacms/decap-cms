@@ -1,6 +1,6 @@
-import { fireEvent, render, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/core/i18n', () => ({
   useTranslate: () => (key: string) => key,
@@ -35,6 +35,27 @@ vi.mock('@/core/components/MediaLibrary/ImageCropDialog', () => ({
     </div>
   ),
 }));
+
+// Isolate the MediaLibrary <-> capture-dialog wiring (DCMS-2011 camera/screen
+// capture) from CaptureDialog's own getUserMedia/canvas internals, which are
+// covered separately in CaptureDialog.spec.tsx.
+vi.mock('@/core/components/MediaLibrary/CaptureDialog', () => {
+  // Real PNG magic bytes so the captured File passes the DCMS-2173 content
+  // sniff, same as PNG_MAGIC_BYTES below (kept local: vi.mock factories run
+  // before this module's own top-level const initializers).
+  const pngMagicBytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
+  return {
+    default: ({ mode, onConfirm, onCancel }: any) => (
+      <div data-testid="fake-capture-dialog">
+        <span>{mode}</span>
+        <button onClick={() => onConfirm(new File([pngMagicBytes], `${mode}-capture.png`, { type: 'image/png' }))}>
+          confirm-capture
+        </button>
+        <button onClick={onCancel}>cancel-capture</button>
+      </div>
+    ),
+  };
+});
 
 import { MediaLibrary } from '@/core/components/MediaLibrary/MediaLibrary';
 import { RouterProvider } from '@/core/routing/context';
@@ -363,6 +384,102 @@ describe('MediaLibrary', () => {
 
       expect(props.persistMedia).toHaveBeenCalledTimes(1);
       expect(showAlert).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('camera/screen capture (DCMS-2011)', () => {
+    const originalMediaDevices = Object.getOwnPropertyDescriptor(window.navigator, 'mediaDevices');
+
+    function stubMediaDevices(value: Partial<MediaDevices> | undefined) {
+      Object.defineProperty(window.navigator, 'mediaDevices', {
+        value,
+        configurable: true,
+      });
+    }
+
+    afterEach(() => {
+      if (originalMediaDevices) {
+        Object.defineProperty(window.navigator, 'mediaDevices', originalMediaDevices);
+      }
+    });
+
+    it('does not show capture buttons for the standalone /media route', () => {
+      stubMediaDevices({ getUserMedia: vi.fn(), getDisplayMedia: vi.fn() } as any);
+
+      renderMediaLibrary({ isVisible: true, forImage: false });
+
+      expect(screen.queryByText('mediaLibrary.mediaLibraryModal.captureCamera')).toBeNull();
+      expect(screen.queryByText('mediaLibrary.mediaLibraryModal.captureScreen')).toBeNull();
+    });
+
+    it('does not show capture buttons when the browser has no mediaDevices support', () => {
+      stubMediaDevices(undefined);
+
+      renderMediaLibrary({ isVisible: true, forImage: true });
+
+      expect(screen.queryByText('mediaLibrary.mediaLibraryModal.captureCamera')).toBeNull();
+      expect(screen.queryByText('mediaLibrary.mediaLibraryModal.captureScreen')).toBeNull();
+    });
+
+    it('shows only the camera button when getDisplayMedia is unsupported', () => {
+      stubMediaDevices({ getUserMedia: vi.fn() } as any);
+
+      renderMediaLibrary({ isVisible: true, forImage: true });
+
+      expect(screen.queryByText('mediaLibrary.mediaLibraryModal.captureCamera')).not.toBeNull();
+      expect(screen.queryByText('mediaLibrary.mediaLibraryModal.captureScreen')).toBeNull();
+    });
+
+    it('opens the camera capture dialog and persists the captured file on confirm', async () => {
+      stubMediaDevices({ getUserMedia: vi.fn(), getDisplayMedia: vi.fn() } as any);
+
+      const { props } = renderMediaLibrary({ isVisible: true, forImage: true });
+
+      fireEvent.click(screen.getByText('mediaLibrary.mediaLibraryModal.captureCamera'));
+
+      const dialog = await screen.findByTestId('fake-capture-dialog');
+      expect(dialog.textContent).toContain('camera');
+
+      fireEvent.click(screen.getByText('confirm-capture'));
+
+      await waitFor(() => expect(props.persistMedia).toHaveBeenCalledTimes(1));
+      const [persistedFile] = (props.persistMedia as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(persistedFile.name).toBe('camera-capture.png');
+      expect(screen.queryByTestId('fake-capture-dialog')).toBeNull();
+    });
+
+    it('opens the screen capture dialog and closes without persisting on cancel', async () => {
+      stubMediaDevices({ getUserMedia: vi.fn(), getDisplayMedia: vi.fn() } as any);
+
+      const { props } = renderMediaLibrary({ isVisible: true, forImage: true });
+
+      fireEvent.click(screen.getByText('mediaLibrary.mediaLibraryModal.captureScreen'));
+
+      const dialog = await screen.findByTestId('fake-capture-dialog');
+      expect(dialog.textContent).toContain('screen');
+
+      fireEvent.click(screen.getByText('cancel-capture'));
+
+      expect(props.persistMedia).not.toHaveBeenCalled();
+      expect(screen.queryByTestId('fake-capture-dialog')).toBeNull();
+    });
+
+    it('routes a captured image through the crop dialog when crop is enabled', async () => {
+      stubMediaDevices({ getUserMedia: vi.fn(), getDisplayMedia: vi.fn() } as any);
+
+      const { props } = renderMediaLibrary({
+        isVisible: true,
+        forImage: true,
+        cropConfig: { enabled: true },
+      });
+
+      fireEvent.click(screen.getByText('mediaLibrary.mediaLibraryModal.captureCamera'));
+      fireEvent.click(await screen.findByText('confirm-capture'));
+
+      await waitFor(() =>
+        expect(document.querySelector('[data-testid="fake-crop-dialog"]')).not.toBeNull(),
+      );
+      expect(props.persistMedia).not.toHaveBeenCalled();
     });
   });
 });
