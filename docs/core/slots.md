@@ -162,6 +162,11 @@ delete/insert buttons. All click and search-input handlers are pre-resolved.
   `onUpload`, `onOpenCamera?`, `onOpenScreenCapture?`, `query?`, `onSearchChange`,
   `onSearchKeyDown`, `searchDisabled`, `onDelete`, `canInsert?`, `onInsert`, `hasSelection`,
   `isPersisting?`, `isDeleting?`, `selectedFile?`)
+- `onOpenCamera`/`onOpenScreenCapture` (DCMS-2011) are `undefined` unless BOTH `forImage` is true
+  AND the browser supports the corresponding capture API (`getUserMedia`/`getDisplayMedia`). Camera
+  and screen capture only make sense for the image picker, so these are always `undefined` for the
+  plain `file` widget, regardless of capture API support — omit the button entirely rather than
+  render it disabled when either handler is `undefined`.
 - Consumer: `packages/decap-cms/src/core/components/MediaLibrary/MediaLibraryModal.tsx:184`
 
 ### `editorPanels`

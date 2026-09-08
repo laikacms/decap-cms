@@ -151,9 +151,12 @@ export interface MediaLibraryTopRenderProps {
   onDownload: () => void;
   onUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   /**
-   * DCMS-2011 camera/screen capture: undefined when the running browser
-   * doesn't support the corresponding API, in which case the consumer
-   * should omit the button entirely rather than render it disabled.
+   * DCMS-2011 camera/screen capture: undefined unless `forImage` is true
+   * AND the running browser supports the corresponding API. Camera/screen
+   * capture only makes sense for the image picker, so this is always
+   * undefined for the plain `file` widget regardless of API support; the
+   * consumer should omit the button entirely rather than render it
+   * disabled in either case.
    */
   onOpenCamera?: (() => void) | undefined;
   onOpenScreenCapture?: (() => void) | undefined;
