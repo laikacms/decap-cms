@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { createEntry, createProjectedEntry } from '@/core/valueObjects/Entry';
+import { createEntry, createProjectedEntry, isProjectedEntry } from '@/core/valueObjects/Entry';
 
 describe('createEntry', () => {
   it('defaults all optional fields when options is omitted', () => {
@@ -134,5 +134,19 @@ describe('createProjectedEntry', () => {
     );
 
     expect(projection).toEqual(complete);
+  });
+});
+
+describe('isProjectedEntry', () => {
+  it('returns true for a projected entry', () => {
+    expect(isProjectedEntry(createProjectedEntry('posts'))).toBe(true);
+  });
+
+  it('returns false for a fully loaded entry', () => {
+    expect(isProjectedEntry(createEntry('posts'))).toBe(false);
+  });
+
+  it('returns false when projected is undefined', () => {
+    expect(isProjectedEntry({})).toBe(false);
   });
 });
