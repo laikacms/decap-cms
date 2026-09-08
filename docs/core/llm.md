@@ -105,12 +105,19 @@ const token = await currentBackend(store.getState().config).getToken();
 Use `getToken()` rather than reading a stored token. Whether it is refresh-aware is
 backend-specific, not a universal property of `Backend.getToken()`:
 
-- `gitlab`, `bitbucket`, `git-gateway`, and `laika` refresh an expired token before
-  returning it (and dedupe concurrent calls), so a second independent refresher would
-  rotate the token pair out from under this call and revoke the backend's session.
-- `github`, `azure`, `gitea`, `forgejo`, and `local-fs` are plain accessors: they return
-  whatever token was last set at auth time, with no refresh. A stale/expired token from
-  one of these backends is returned as-is.
+- `gitlab`, `bitbucket`, and `laika` refresh an expired token before returning it (and dedupe
+  concurrent calls), so a second independent refresher would rotate the token pair out from under
+  this call and revoke the backend's session.
+- `github`, `azure`, `gitea`, `forgejo`, and `local-fs` are plain accessors: they return whatever
+  token was last set at auth time, with no refresh. A stale/expired token from one of these backends
+  is returned as-is.
+- `git-gateway` splits by auth mode, decided once in `authenticate()`: in Netlify Identity mode
+  (credentials carry a `jwt`) it delegates to the Identity widget's refreshing function, same
+  guarantee as the refresh-and-dedupe group above. In OAuth mode (a plain `token`, no `jwt` — e.g.
+  GitHub/GitLab/Bitbucket via git-gateway's proxy path) it installs a static accessor with no
+  refresh and no dedupe, identical to the plain-accessor group. `git-gateway` also does not
+  implement the optional `ensureFreshSession` hook (only `laika` does), so OAuth mode has no
+  periodic-refresh fallback either — a stale token is returned as-is there too.
 
 ## Where the UI lives
 
