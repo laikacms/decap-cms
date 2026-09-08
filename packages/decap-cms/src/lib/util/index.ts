@@ -74,14 +74,16 @@ export {
 } from './imageOptimization.js';
 export type { TargetDimensions } from './imageOptimization.js';
 export {
+  canvasToBlob,
   clampCropRect,
   constrainCropRectToAspectRatio,
+  createCanvas,
   cropImageFile,
   initialCropRect,
   isCroppableImage,
   isImageCropEnabled,
 } from './imageCrop.js';
-export type { CropRect } from './imageCrop.js';
+export type { CanvasLike, CropRect } from './imageCrop.js';
 export { isRecognizedImageFile } from './imageContentValidation.js';
 export {
   allEntriesByFolder,

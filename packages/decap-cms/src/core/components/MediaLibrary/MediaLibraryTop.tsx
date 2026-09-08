@@ -1,7 +1,15 @@
 import styled from '@emotion/styled';
 import React from 'react';
 
-import { CopyToClipBoardButton, DeleteButton, DownloadButton, InsertButton, UploadButton } from './MediaLibraryButtons';
+import {
+  CameraCaptureButton,
+  CopyToClipBoardButton,
+  DeleteButton,
+  DownloadButton,
+  InsertButton,
+  ScreenCaptureButton,
+  UploadButton,
+} from './MediaLibraryButtons';
 import MediaLibraryHeader from './MediaLibraryHeader';
 import MediaLibrarySearch from './MediaLibrarySearch';
 
@@ -31,6 +39,15 @@ interface MediaLibraryTopProps {
   forImage?: boolean | undefined;
   onDownload: () => void;
   onUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  /**
+   * Undefined when the current environment doesn't support the
+   * corresponding capture API (e.g. `getUserMedia`/`getDisplayMedia`
+   * missing, or a non-browser/test environment); the button is hidden
+   * rather than shown-disabled in that case, mirroring how other
+   * capability-gated UI in this app behaves.
+   */
+  onOpenCamera?: (() => void) | undefined;
+  onOpenScreenCapture?: (() => void) | undefined;
   query?: string | undefined;
   onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onSearchKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
@@ -51,6 +68,8 @@ function MediaLibraryTop({
   forImage,
   onDownload,
   onUpload,
+  onOpenCamera,
+  onOpenScreenCapture,
   query,
   onSearchChange,
   onSearchKeyDown,
@@ -100,6 +119,20 @@ function MediaLibraryTop({
           <DownloadButton onClick={onDownload} disabled={!hasSelection} aria-disabled={!hasSelection}>
             {downloadButtonLabel}
           </DownloadButton>
+          {!onOpenCamera ? null : (
+            <CameraCaptureButton onClick={onOpenCamera} disabled={!uploadEnabled} aria-disabled={!uploadEnabled}>
+              {t('mediaLibrary.mediaLibraryModal.captureCamera')}
+            </CameraCaptureButton>
+          )}
+          {!onOpenScreenCapture ? null : (
+            <ScreenCaptureButton
+              onClick={onOpenScreenCapture}
+              disabled={!uploadEnabled}
+              aria-disabled={!uploadEnabled}
+            >
+              {t('mediaLibrary.mediaLibraryModal.captureScreen')}
+            </ScreenCaptureButton>
+          )}
           <UploadButton
             label={uploadButtonLabel}
             imagesOnly={forImage}

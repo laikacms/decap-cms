@@ -113,10 +113,15 @@ async function loadImageBitmap(file: File): Promise<ImageBitmap> {
   return createImageBitmap(file);
 }
 
-type CanvasLike = {
+/**
+ * `CanvasImageSource` (not just `ImageBitmap`) so this also covers drawing
+ * from a live `<video>` element, which is what `CaptureDialog` (DCMS-2011
+ * camera/screen capture) needs `createCanvas`/`canvasToBlob` for.
+ */
+export type CanvasLike = {
   getContext: (contextId: '2d') => {
     drawImage: (
-      image: ImageBitmap,
+      image: CanvasImageSource,
       sx: number,
       sy: number,
       sw: number,
@@ -135,7 +140,7 @@ type CanvasLike = {
   ) => void,
 };
 
-function createCanvas(width: number, height: number): CanvasLike {
+export function createCanvas(width: number, height: number): CanvasLike {
   if (typeof OffscreenCanvas !== 'undefined') {
     return new OffscreenCanvas(width, height) as unknown as CanvasLike;
   }
@@ -145,7 +150,7 @@ function createCanvas(width: number, height: number): CanvasLike {
   return canvas as unknown as CanvasLike;
 }
 
-async function canvasToBlob(
+export async function canvasToBlob(
   canvas: CanvasLike,
   mimeType: string,
   quality: number | undefined,

@@ -70,4 +70,31 @@ describe('LaikaMediaLibraryTop', () => {
     const { queryByText } = render(<LaikaMediaLibraryTop {...baseProps} canInsert={false} />);
     expect(queryByText('mediaLibrary.mediaLibraryModal.chooseSelected')).toBeNull();
   });
+
+  describe('camera/screen capture (DCMS-2011)', () => {
+    it('omits both capture buttons when neither handler is supplied', () => {
+      const { queryByText } = render(<LaikaMediaLibraryTop {...baseProps} />);
+      expect(queryByText('mediaLibrary.mediaLibraryModal.captureCamera')).toBeNull();
+      expect(queryByText('mediaLibrary.mediaLibraryModal.captureScreen')).toBeNull();
+    });
+
+    it('renders and wires the camera button when onOpenCamera is supplied', () => {
+      const onOpenCamera = vi.fn();
+      const { getByText, queryByText } = render(
+        <LaikaMediaLibraryTop {...baseProps} onOpenCamera={onOpenCamera} />,
+      );
+      fireEvent.click(getByText('mediaLibrary.mediaLibraryModal.captureCamera'));
+      expect(onOpenCamera).toHaveBeenCalledTimes(1);
+      expect(queryByText('mediaLibrary.mediaLibraryModal.captureScreen')).toBeNull();
+    });
+
+    it('renders and wires the screen capture button when onOpenScreenCapture is supplied', () => {
+      const onOpenScreenCapture = vi.fn();
+      const { getByText } = render(
+        <LaikaMediaLibraryTop {...baseProps} onOpenScreenCapture={onOpenScreenCapture} />,
+      );
+      fireEvent.click(getByText('mediaLibrary.mediaLibraryModal.captureScreen'));
+      expect(onOpenScreenCapture).toHaveBeenCalledTimes(1);
+    });
+  });
 });

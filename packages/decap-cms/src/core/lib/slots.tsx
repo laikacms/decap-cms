@@ -150,6 +150,13 @@ export interface MediaLibraryTopRenderProps {
   forImage?: boolean | undefined;
   onDownload: () => void;
   onUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  /**
+   * DCMS-2011 camera/screen capture: undefined when the running browser
+   * doesn't support the corresponding API, in which case the consumer
+   * should omit the button entirely rather than render it disabled.
+   */
+  onOpenCamera?: (() => void) | undefined;
+  onOpenScreenCapture?: (() => void) | undefined;
   query?: string | undefined;
   onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onSearchKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;

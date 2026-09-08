@@ -124,6 +124,8 @@ interface MediaLibraryModalProps {
   handleSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   handleSearchKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   handlePersist: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onOpenCamera?: (() => void) | undefined;
+  onOpenScreenCapture?: (() => void) | undefined;
   handleDelete: () => void;
   handleInsert: () => void;
   handleDownload?: (() => void) | undefined;
@@ -162,6 +164,8 @@ function MediaLibraryModal({
   handleSearchChange,
   handleSearchKeyDown,
   handlePersist,
+  onOpenCamera,
+  onOpenScreenCapture,
   handleDelete,
   handleInsert,
   handleDownload,
@@ -218,6 +222,8 @@ function MediaLibraryModal({
           forImage,
           onDownload: handleDownload ?? (() => {}),
           onUpload: handlePersist,
+          onOpenCamera,
+          onOpenScreenCapture,
           query,
           onSearchChange: handleSearchChange,
           onSearchKeyDown: handleSearchKeyDown,
