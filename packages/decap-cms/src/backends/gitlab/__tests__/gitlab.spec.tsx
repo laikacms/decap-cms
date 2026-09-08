@@ -518,6 +518,23 @@ describe('gitlab backend', () => {
         "Can't refresh access token when using implicit auth",
       );
     });
+
+    it('getToken() does not proactively refresh an expired token with no preceding request', async () => {
+      backend = resolveBackend(pkceConfig);
+      interceptAuth(backend);
+      await backend.authenticate(pkceCredentials);
+
+      backend.implementation.authenticator = {
+        refresh: vi
+          .fn()
+          .mockResolvedValue({ token: 'NEW_TOKEN', refresh_token: 'NEW_REFRESH_TOKEN' }),
+      };
+
+      const token = await backend.getToken();
+
+      expect(token).toEqual('EXPIRED_TOKEN');
+      expect(backend.implementation.authenticator.refresh).not.toHaveBeenCalled();
+    });
   });
 
   describe('currentUser', () => {

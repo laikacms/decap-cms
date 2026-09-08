@@ -41,6 +41,21 @@ describe('bitbucket backend implementation config keys', () => {
   });
 });
 
+describe('bitbucket backend implementation getToken', () => {
+  test('does not proactively refresh an expired token with no preceding request', async () => {
+    const backend = new BitbucketBackend(makeConfig({ auth_type: 'pkce' }));
+    backend.token = 'EXPIRED_TOKEN';
+    backend.refreshToken = 'REFRESH_TOKEN';
+    const refresh = vi.fn();
+    backend.authenticator = { refresh } as never;
+
+    const token = await backend.getToken();
+
+    expect(token).toEqual('EXPIRED_TOKEN');
+    expect(refresh).not.toHaveBeenCalled();
+  });
+});
+
 /**
  * Stubs the API surface the read path uses, so the seam shape is asserted
  * without going near Bitbucket HTTP.
