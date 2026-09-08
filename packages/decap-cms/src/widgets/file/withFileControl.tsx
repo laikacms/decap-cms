@@ -259,6 +259,77 @@ export function isSafeUrl(url: string): boolean {
   return ALLOWED_URL_SCHEMES.has(parsed.protocol);
 }
 
+// DCMS-2252: unlike `isSafeUrl` above (used by the `file` widget, where a
+// same-origin relative path like `/downloads/report.pdf` is a legitimate
+// target), the image widget's "Insert from URL" prompt only ever means
+// "fetch exactly this absolute URL". `isSafeUrl` resolves its input against
+// `window.location.href`, so a bare non-URL string like `notaurl` silently
+// becomes a same-origin path and passes; this rejects anything that isn't
+// already an absolute http(s) URL (protocol-relative `//host/path` excepted,
+// since that's unambiguous - it always resolves to the page's own scheme).
+export function isAbsoluteImageUrl(url: string): boolean {
+  if (!url) {
+    return false;
+  }
+
+  const candidate = /^\/\//.test(url) ? `https:${url}` : url;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(candidate);
+  } catch {
+    return false;
+  }
+
+  return ALLOWED_URL_SCHEMES.has(parsed.protocol) && parsed.host !== '';
+}
+
+export type ImageUrlCheckError = 'invalid-url' | 'http-error' | 'not-an-image';
+
+export interface ImageUrlCheckResult {
+  ok: boolean;
+  error?: ImageUrlCheckError;
+  /** HTTP status (for `http-error`) or the offending Content-Type (for `not-an-image`). */
+  detail?: string;
+}
+
+// DCMS-2252: the second half of the "Insert from URL" fix. Being an absolute
+// URL isn't enough - a URL that 404s, or one that resolves but serves HTML
+// (e.g. a share/landing page instead of the raw asset), must not be accepted
+// either. Fetches the URL and checks both the HTTP status and Content-Type
+// before the caller is allowed to store it as the field value.
+export async function checkImageUrl(
+  url: string,
+  options: { signal?: AbortSignal, fetchImpl?: typeof fetch } = {},
+): Promise<ImageUrlCheckResult> {
+  if (!isAbsoluteImageUrl(url)) {
+    return { ok: false, error: 'invalid-url' };
+  }
+
+  const doFetch = options.fetchImpl ?? fetch;
+  const requestInit: RequestInit = options.signal
+    ? { method: 'GET', signal: options.signal }
+    : { method: 'GET' };
+
+  let response: Response;
+  try {
+    response = await doFetch(url, requestInit);
+  } catch {
+    return { ok: false, error: 'http-error' };
+  }
+
+  if (!response.ok) {
+    return { ok: false, error: 'http-error', detail: String(response.status) };
+  }
+
+  const contentType = response.headers.get('content-type') ?? '';
+  if (!contentType.toLowerCase().startsWith('image/')) {
+    return { ok: false, error: 'not-an-image', detail: contentType };
+  }
+
+  return { ok: true };
+}
+
 // DCMS-1292: exported for direct unit testing, see arrayMove above.
 export function sizeOfValue(value: FileValue): number {
   if (Array.isArray(value)) {
@@ -429,6 +500,24 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
       });
     }
 
+    async function validateImageUrl(subject: string, candidate: string): Promise<string | undefined> {
+      const result = await checkImageUrl(candidate, {
+        signal: unmountControllerRef.current.signal,
+      });
+      if (result.ok) {
+        return undefined;
+      }
+      if (result.error === 'not-an-image') {
+        return t(`editor.editorWidgets.${subject}.notAnImage`);
+      }
+      if (result.error === 'http-error') {
+        return result.detail
+          ? `${t(`editor.editorWidgets.${subject}.urlFetchError`)} (HTTP ${result.detail})`
+          : t(`editor.editorWidgets.${subject}.urlFetchError`);
+      }
+      return t(`editor.editorWidgets.${subject}.invalidUrl`);
+    }
+
     function handleUrl(subject: string) {
       return (e: React.MouseEvent) => {
         e.preventDefault();
@@ -439,6 +528,16 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
               title: t(`editor.editorWidgets.${subject}.promptUrlTitle`),
               confirmLabel: t(`editor.editorWidgets.${subject}.promptUrlConfirm`),
               inputType: 'url',
+              // DCMS-2252: the image widget validates on submit so the
+              // dialog can stay open with an inline error instead of
+              // closing and losing the input (the old isSafeUrl + showAlert
+              // flow below, still used by the file widget, does the
+              // opposite: it always closes the dialog first). Checks that
+              // the input is an absolute http(s) URL *and* that fetching it
+              // yields a 2xx image/* response before accepting it.
+              ...(forImage
+                ? { validate: (candidate: string) => validateImageUrl(subject, candidate) }
+                : {}),
             },
             unmountControllerRef.current.signal,
           );
@@ -446,7 +545,11 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
             return;
           }
 
-          if (!isSafeUrl(url)) {
+          // The image widget's validator above already confirmed the URL
+          // both parses as absolute and resolves to real image content, so
+          // skip the (weaker, scheme-only) isSafeUrl re-check that would
+          // otherwise fire a redundant showAlert here.
+          if (!forImage && !isSafeUrl(url)) {
             await showAlert(t(`editor.editorWidgets.${subject}.invalidUrl`), {
               title: t(`editor.editorWidgets.${subject}.invalidUrlTitle`),
             });

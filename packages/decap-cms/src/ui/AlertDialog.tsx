@@ -691,6 +691,15 @@ export interface PromptOptions {
   inputType?: string;
   /** Passed through to the input's `min` attribute (e.g. to block past dates/times). */
   min?: string;
+  /**
+   * Optional async validator run when the user submits (Enter or the confirm
+   * button). Return an error message to keep the dialog open and show it
+   * inline, or `undefined`/`null`/`''` to accept the value and resolve the
+   * prompt normally. Used by the image widget's "Insert from URL" flow
+   * (DCMS-2252) to reject non-URL input and non-image responses without
+   * closing the dialog.
+   */
+  validate?: (value: string) => string | null | undefined | Promise<string | null | undefined>;
 }
 
 interface PendingPrompt extends PromptOptions {
@@ -803,15 +812,24 @@ export function PromptDialogHost({ t }: PromptDialogHostProps = {}): React.React
   const queue = React.useSyncExternalStore(subscribeToPrompts, getPendingPrompts, getPendingPrompts);
   const current = queue[0];
   const [value, setValue] = React.useState(current?.defaultValue ?? '');
+  // DCMS-2252: holds the message from a rejected `validate()` call so the
+  // dialog can stay open and show it inline instead of settling the prompt.
+  const [validationError, setValidationError] = React.useState<string | null>(null);
+  // DCMS-2252: `validate()` can be async (e.g. fetching a URL to confirm it
+  // resolves to an image) - block re-submitting while one is in flight.
+  const [isValidating, setIsValidating] = React.useState(false);
   // DCMS-1333: the `<Input>` below has no `<label>`/placeholder/name of its
   // own, so screen readers announced it as bare "edit". The description
   // already carries the caller's message (e.g. "Enter the URL of the
   // image"), so point the input's accessible name at it via
   // `aria-labelledby` rather than duplicating the text as a visible label.
   const descriptionId = React.useId();
+  const errorId = React.useId();
 
   React.useEffect(() => {
     setValue(current?.defaultValue ?? '');
+    setValidationError(null);
+    setIsValidating(false);
     // Reset only when a new prompt is queued, not on every keystroke.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current?.id]);
@@ -823,6 +841,32 @@ export function PromptDialogHost({ t }: PromptDialogHostProps = {}): React.React
     pendingPrompts = pendingPrompts.filter(pending => pending.id !== current.id);
     emitPromptsChanged();
     current.resolve(result);
+  };
+
+  // DCMS-2252: runs the caller's `validate()` (if any) before settling the
+  // prompt with the affirmative value. A rejected candidate keeps the dialog
+  // mounted and surfaces the returned message inline, rather than closing
+  // the dialog and losing the user's input the way a post-hoc `showAlert()`
+  // did previously.
+  const submit = async (candidate: string) => {
+    if (!current.validate) {
+      settle(candidate);
+      return;
+    }
+    setIsValidating(true);
+    setValidationError(null);
+    let message: string | null | undefined;
+    try {
+      message = await current.validate(candidate);
+    } catch (e: unknown) {
+      message = e instanceof Error ? e.message : String(e);
+    }
+    setIsValidating(false);
+    if (message) {
+      setValidationError(message);
+      return;
+    }
+    settle(candidate);
   };
 
   return (
@@ -847,16 +891,29 @@ export function PromptDialogHost({ t }: PromptDialogHostProps = {}): React.React
           value={value}
           placeholder={current.placeholder}
           aria-labelledby={descriptionId}
-          onChange={e => setValue(e.target.value)}
+          aria-invalid={validationError ? true : undefined}
+          aria-errormessage={validationError ? errorId : undefined}
+          disabled={isValidating}
+          onChange={e => {
+            setValue(e.target.value);
+            if (validationError) setValidationError(null);
+          }}
           onKeyDown={e => {
-            if (e.key === 'Enter') settle(value);
+            if (e.key === 'Enter') void submit(value);
           }}
         />
+        {validationError
+          ? (
+            <p id={errorId} role="alert" css={css`margin: 0; font-size: 0.8125rem; color: var(--destructive, #dc2626);`}>
+              {validationError}
+            </p>
+          )
+          : null}
         <PromptDialogFooter>
-          <Button variant="outline" onClick={() => settle(null)}>
+          <Button variant="outline" onClick={() => settle(null)} disabled={isValidating}>
             {current.cancelLabel ?? t?.('ui.confirm.cancel') ?? 'Cancel'}
           </Button>
-          <Button variant="default" onClick={() => settle(value)}>
+          <Button variant="default" onClick={() => void submit(value)} disabled={isValidating}>
             {current.confirmLabel ?? t?.('ui.confirm.ok') ?? 'OK'}
           </Button>
         </PromptDialogFooter>

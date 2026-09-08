@@ -498,3 +498,85 @@ describe('PromptDialog imperative host (Base UI), DCMS-658/DCMS-674', () => {
     await userEvent.setup().click(within(dialog).getByRole('button', { name: 'Cancel' }));
   });
 });
+
+// DCMS-2252: `validate` lets a caller (the image widget's "Insert from URL"
+// flow) reject a submitted value without the dialog closing, showing an
+// inline error instead of the previous post-hoc showAlert()-then-close
+// pattern that lost the user's input.
+describe('PromptDialog validate option (DCMS-2252)', () => {
+  it('keeps the dialog open and shows the validator message when validate rejects', async () => {
+    const user = userEvent.setup();
+    render(<PromptDialogHost />);
+
+    const resolved = vi.fn();
+    promptDialog('Insert image URL', { validate: () => 'Not a valid URL.' }).then(resolved);
+
+    const dialog = await screen.findByRole('alertdialog');
+    await user.type(screen.getByRole('textbox'), 'notaurl');
+    await user.click(screen.getByRole('button', { name: 'OK' }));
+
+    await screen.findByText('Not a valid URL.');
+    expect(dialog).toBeInTheDocument();
+    expect(resolved).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    await waitFor(() => expect(resolved).toHaveBeenCalledWith(null));
+  });
+
+  it('settles with the value once validate accepts it', async () => {
+    const user = userEvent.setup();
+    render(<PromptDialogHost />);
+
+    const validate = vi.fn(async (value: string) => (value.startsWith('https://') ? undefined : 'Invalid'));
+    const resolved = vi.fn();
+    promptDialog('Insert image URL', { validate }).then(resolved);
+
+    await screen.findByRole('alertdialog');
+    await user.type(screen.getByRole('textbox'), 'https://example.com/cat.png');
+    await user.click(screen.getByRole('button', { name: 'OK' }));
+
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    await waitFor(() => expect(resolved).toHaveBeenCalledWith('https://example.com/cat.png'));
+    expect(validate).toHaveBeenCalledWith('https://example.com/cat.png');
+  });
+
+  it('clears a previous error as soon as the user edits the input again', async () => {
+    const user = userEvent.setup();
+    render(<PromptDialogHost />);
+
+    promptDialog('Insert image URL', { validate: () => 'Not a valid URL.' });
+
+    await screen.findByRole('alertdialog');
+    const input = screen.getByRole('textbox');
+    await user.type(input, 'notaurl');
+    await user.click(screen.getByRole('button', { name: 'OK' }));
+    await screen.findByText('Not a valid URL.');
+
+    await user.type(input, 'x');
+    expect(screen.queryByText('Not a valid URL.')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+  });
+
+  it('an async validator that rejects with an Error surfaces the error message inline', async () => {
+    const user = userEvent.setup();
+    render(<PromptDialogHost />);
+
+    const resolved = vi.fn();
+    promptDialog('Insert image URL', {
+      validate: async () => {
+        throw new Error('Network error.');
+      },
+    }).then(resolved);
+
+    await screen.findByRole('alertdialog');
+    await user.type(screen.getByRole('textbox'), 'https://example.com/cat.png');
+    await user.click(screen.getByRole('button', { name: 'OK' }));
+
+    await screen.findByText('Network error.');
+    expect(resolved).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    await waitFor(() => expect(resolved).toHaveBeenCalledWith(null));
+  });
+});

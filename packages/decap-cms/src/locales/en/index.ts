@@ -271,6 +271,8 @@ const en = {
         promptUrlConfirm: 'Insert',
         invalidUrl: 'This URL is not valid. Only http:// and https:// URLs are allowed.',
         invalidUrlTitle: 'Invalid URL',
+        notAnImage: 'This URL does not point to an image.',
+        urlFetchError: 'Could not load this URL.',
         chooseDifferent: 'Choose different image',
         addMore: 'Add more images',
         remove: 'Remove image',
