@@ -98,6 +98,7 @@ export {
 export { default as loadScript } from './loadScript.js';
 export { default as localForage } from './localForage.js';
 export type { LocalForage as LocalForageType } from './localForage.js';
+export { naturalOrderBy } from './naturalOrderBy.js';
 export { flowAsync, onlySuccessfulPromises, thenP as promiseThen } from './promise.js';
 export { default as unsentRequest } from './unsentRequest.js';
 export { randomUUID } from './uuid.js';

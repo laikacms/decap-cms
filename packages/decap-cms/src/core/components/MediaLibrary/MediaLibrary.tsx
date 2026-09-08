@@ -1,4 +1,4 @@
-import { map, orderBy } from 'lodash-es';
+import { map } from 'lodash-es';
 import React from 'react';
 
 import {
@@ -20,6 +20,7 @@ import {
   isCroppableImage,
   isImageCropEnabled,
   isRecognizedImageFile,
+  naturalOrderBy,
 } from '@/lib/util/index';
 import { confirmDialog, showAlert } from '@/ui';
 import CaptureDialog from './CaptureDialog';
@@ -291,7 +292,7 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
       });
     const fieldNames = map(sortFields, 'fieldName').concat('queryOrder');
     const directions = map(sortFields, 'direction').concat('asc') as ('asc' | 'desc')[];
-    return orderBy(tableData, fieldNames, directions);
+    return naturalOrderBy(tableData, fieldNames, directions);
   }
 
   function handleClose() {
