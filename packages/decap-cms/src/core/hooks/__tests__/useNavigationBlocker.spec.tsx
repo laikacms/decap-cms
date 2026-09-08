@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useNavigationBlocker } from '@/core/hooks/useNavigationBlocker';
 import { RouterProvider } from '@/core/routing/context';
-import { ConfirmDialogHost } from '@/ui';
+import { ConfirmDialogHost, promptDialog, PromptDialogHost } from '@/ui';
 
 import type { Router, RouterBlocker, RouterTransition, RouterUpdate } from '@/core/routing/router';
 
@@ -571,4 +571,70 @@ describe('useNavigationBlocker duplicate confirm coalescing (DCMS-2099)', () => 
     await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
     expect(fakeLocation.pathname).toBe('/collections/posts');
   });
+});
+
+describe('useNavigationBlocker vs. the Insert-URL prompt (DCMS-2253)', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it(
+    'dismisses an open "Insert from URL" prompt and shows only the "Unsaved changes" dialog when a hash ' +
+      'navigation is triggered while the prompt is open and the form is dirty',
+    async () => {
+      resetFakeRouter();
+      // Both hosts mounted, as they are in the real app shell
+      // (`DecapCmsProvider`): the image widget's "Insert from URL" prompt
+      // (`PromptDialogHost`) and the nav-guard's "Unsaved changes" confirm
+      // (`ConfirmDialogHost`) are independent module-scoped queues that can
+      // both have something open at once.
+      render(
+        <>
+          <PromptDialogHost />
+          <ConfirmDialogHost />
+        </>,
+      );
+
+      const router = buildFakeRouter(true);
+      // shouldBlock() === true models a dirtied entry form (TITLE typed
+      // into, per the issue repro).
+      const { result } = renderNavigationBlocker(
+        { shouldBlock: () => true, message: 'Unsaved!' },
+        router,
+      );
+
+      act(() => {
+        result.current.setupBlocker();
+      });
+
+      // Step 4 of the repro: click "Insert from URL" under COVER IMAGE.
+      const promptResolved = vi.fn();
+      promptDialog('Enter the URL of the image', { title: 'Insert image URL' }).then(promptResolved);
+
+      const promptEl = await screen.findByRole('alertdialog', { name: 'Insert image URL' });
+      expect(promptEl).toBeInTheDocument();
+
+      // Step 5: drive a hash-route change without closing the prompt first.
+      act(() => {
+        router.push('/media');
+      });
+
+      // Only one dialog is on screen: the nav-guard's confirm. The prompt
+      // was dismissed rather than rendered stacked underneath it.
+      await waitFor(() => expect(screen.getAllByRole('alertdialog')).toHaveLength(1));
+      const remaining = screen.getByRole('alertdialog');
+      expect(remaining).toHaveTextContent('Unsaved!');
+      expect(screen.queryByRole('alertdialog', { name: 'Insert image URL' })).not.toBeInTheDocument();
+      await waitFor(() => expect(promptResolved).toHaveBeenCalledWith(null));
+
+      // The remaining "Unsaved changes" dialog is unaffected by the prompt's
+      // dismissal: still gates the actual navigation.
+      const cancelButton = within(remaining).getByRole('button', { name: /cancel/i });
+      act(() => {
+        cancelButton.click();
+      });
+      await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+      expect(fakeLocation.pathname).toBe('/collections/posts');
+    },
+  );
 });

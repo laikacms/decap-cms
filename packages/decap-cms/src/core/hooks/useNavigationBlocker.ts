@@ -1,7 +1,7 @@
 import { useCallback, useRef } from 'react';
 
 import { useRouter } from '@/core/routing/context';
-import { confirmDialog } from '@/ui';
+import { confirmDialog, dismissPendingPrompts } from '@/ui';
 
 import type { RouterTransition, RouterUpdate } from '@/core/routing/router';
 
@@ -98,6 +98,13 @@ export function useNavigationBlocker({
 
       if (shouldBlock()) {
         // Block by not calling tx.retry()
+        // DCMS-2253: a widget-level `promptDialog()` (e.g. the image widget's
+        // "Insert from URL" prompt) may still be open when this transition
+        // fires. Dismiss it before raising our own confirm below, so the two
+        // never render as separate `alertdialog` portals stacked at the same
+        // coordinates — the nav-guard's confirm always wins and is the only
+        // dialog left on screen.
+        dismissPendingPrompts();
         // Show confirmation via the AlertDialog-backed confirm (DCMS-658),
         // scoped to this armed session's AbortSignal so a second navigation
         // that abandons this prompt (DCMS-1804) settles it instead of

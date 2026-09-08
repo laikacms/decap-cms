@@ -153,6 +153,59 @@ describe('AlertDialog stays a11y-visible while open (DCMS-1820)', () => {
   });
 });
 
+describe('AlertDialog stacking (DCMS-2253)', () => {
+  it('when two dialogs are open at once, only the most-recently-opened is interactive and offset from the older one', async () => {
+    render(
+      <>
+        <PromptDialogHost />
+        <ConfirmDialogHost />
+      </>,
+    );
+
+    promptDialog('Insert image URL');
+    const promptDialogEl = await screen.findByRole('alertdialog');
+    expect(promptDialogEl).not.toHaveAttribute('inert');
+
+    // A second, unrelated dialog opens while the prompt is still up (the
+    // exact DCMS-2253 shape: nav-guard confirm arriving while the
+    // "Insert from URL" prompt is open).
+    const resolved = vi.fn();
+    confirmDialog('You have unsaved changes.', { title: 'Unsaved changes' }).then(resolved);
+
+    // `getByRole` excludes `inert` elements from the accessibility tree by
+    // default (correctly — that's the whole point of `inert`), so querying
+    // for both requires `{ hidden: true }` here.
+    await waitFor(() => expect(screen.getAllByRole('alertdialog', { hidden: true })).toHaveLength(2));
+    const dialogs = screen.getAllByRole('alertdialog', { hidden: true });
+    const confirmDialogEl = dialogs.find(d => d !== promptDialogEl)!;
+
+    // Only the top-most (the just-opened confirm) is focusable/interactive,
+    // and reachable via the default (non-hidden) role query.
+    expect(confirmDialogEl).not.toHaveAttribute('inert');
+    expect(screen.getByRole('alertdialog')).toBe(confirmDialogEl);
+    expect(promptDialogEl).toHaveAttribute('inert', '');
+
+    // Visible z-offset: the top-most sits exactly centered (offset 0), the
+    // older one behind it is shifted and rendered at a lower stacking order.
+    const topStyle = getComputedStyle(confirmDialogEl);
+    const backStyle = getComputedStyle(promptDialogEl);
+    expect(topStyle.transform).not.toBe(backStyle.transform);
+    expect(Number(topStyle.zIndex)).toBeGreaterThan(Number(backStyle.zIndex));
+
+    // Only one backdrop is rendered (the top-most dialog's), so the older
+    // dialog's darkened area doesn't compound into an extra layer.
+    expect(document.querySelectorAll('[data-slot="alert-dialog-backdrop"]')).toHaveLength(1);
+
+    await userEvent.setup().click(within(confirmDialogEl).getByRole('button', { name: 'OK' }));
+    await waitFor(() => expect(resolved).toHaveBeenCalledWith(true));
+
+    // Once the top-most dialog settles, the previously-stacked prompt
+    // becomes top-most again and regains interactivity.
+    await waitFor(() => expect(promptDialogEl).not.toHaveAttribute('inert'));
+    await userEvent.setup().click(within(promptDialogEl).getByRole('button', { name: 'Cancel' }));
+  });
+});
+
 describe('ConfirmDialog imperative host (Base UI), DCMS-658', () => {
   it('resolves true when the confirm action is clicked', async () => {
     const user = userEvent.setup();
