@@ -258,6 +258,10 @@ describe('handleUrl "Insert from URL" promptDialog call (DCMS-2161)', () => {
         title: 'editor.editorWidgets.image.promptUrlTitle',
         confirmLabel: 'editor.editorWidgets.image.promptUrlConfirm',
         inputType: 'url',
+        // DCMS-2252: the image subject additionally validates on submit
+        // (parses as an absolute URL + fetches to confirm image/* content)
+        // instead of the file subject's post-hoc isSafeUrl + showAlert check.
+        validate: expect.any(Function),
       },
       expect.any(AbortSignal),
     );

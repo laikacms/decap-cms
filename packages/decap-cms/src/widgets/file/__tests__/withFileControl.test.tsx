@@ -3,7 +3,14 @@ import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { DecapCmsWidgetFile } from '@/widgets/file/index';
-import { arrayMove, isSafeUrl, sizeOfValue, valueListToArray } from '@/widgets/file/withFileControl';
+import {
+  arrayMove,
+  checkImageUrl,
+  isAbsoluteImageUrl,
+  isSafeUrl,
+  sizeOfValue,
+  valueListToArray,
+} from '@/widgets/file/withFileControl';
 
 import type { CmsFieldBase, CmsFieldFile } from '@/lib/util/index';
 
@@ -159,6 +166,114 @@ describe('isSafeUrl', () => {
 
   it('rejects empty input', () => {
     expect(isSafeUrl('')).toBe(false);
+  });
+});
+
+// DCMS-2252: unlike isSafeUrl (relative paths intentionally allowed, since
+// the file widget can point at a same-origin path), the image widget's
+// "Insert from URL" prompt only accepts a URL that's already absolute.
+describe('isAbsoluteImageUrl', () => {
+  it('allows http URLs', () => {
+    expect(isAbsoluteImageUrl('http://example.com/image.png')).toBe(true);
+  });
+
+  it('allows https URLs', () => {
+    expect(isAbsoluteImageUrl('https://example.com/image.png')).toBe(true);
+  });
+
+  it('allows protocol-relative URLs', () => {
+    expect(isAbsoluteImageUrl('//example.com/image.png')).toBe(true);
+  });
+
+  it('rejects a bare non-URL string with no scheme or host', () => {
+    expect(isAbsoluteImageUrl('notaurl')).toBe(false);
+  });
+
+  it('rejects a same-origin relative path', () => {
+    expect(isAbsoluteImageUrl('/images/foo.png')).toBe(false);
+  });
+
+  it('rejects javascript: URLs', () => {
+    expect(isAbsoluteImageUrl('javascript:alert(document.cookie)')).toBe(false);
+  });
+
+  it('rejects schemes outside the http(s) allowlist, e.g. ftp:', () => {
+    expect(isAbsoluteImageUrl('ftp://example.com/image.png')).toBe(false);
+  });
+
+  it('rejects empty input', () => {
+    expect(isAbsoluteImageUrl('')).toBe(false);
+  });
+});
+
+// DCMS-2252: the fetch-and-verify half of the "Insert from URL" fix - being
+// an absolute URL isn't sufficient, the response must also be a 2xx
+// image/* payload.
+describe('checkImageUrl', () => {
+  function fakeResponse(init: { ok: boolean, status?: number, contentType?: string | null }) {
+    return {
+      ok: init.ok,
+      status: init.status ?? (init.ok ? 200 : 500),
+      headers: { get: () => init.contentType ?? null },
+    } as Response;
+  }
+
+  it('accepts a URL whose response is 2xx with an image/* Content-Type', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(fakeResponse({ ok: true, contentType: 'image/png' }));
+
+    await expect(checkImageUrl('https://example.com/foo.png', { fetchImpl })).resolves.toEqual({ ok: true });
+    expect(fetchImpl).toHaveBeenCalledWith(
+      'https://example.com/foo.png',
+      expect.objectContaining({ method: 'GET' }),
+    );
+  });
+
+  it('rejects a non-URL string without calling fetch', async () => {
+    const fetchImpl = vi.fn();
+
+    await expect(checkImageUrl('notaurl', { fetchImpl })).resolves.toEqual({ ok: false, error: 'invalid-url' });
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it('rejects a URL that 404s', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(fakeResponse({ ok: false, status: 404 }));
+
+    await expect(checkImageUrl('https://example.com/missing.png', { fetchImpl })).resolves.toEqual({
+      ok: false,
+      error: 'http-error',
+      detail: '404',
+    });
+  });
+
+  it('rejects a URL that resolves but returns HTML instead of image content', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      fakeResponse({ ok: true, contentType: 'text/html; charset=utf-8' }),
+    );
+
+    await expect(checkImageUrl('https://example.com/page.html', { fetchImpl })).resolves.toEqual({
+      ok: false,
+      error: 'not-an-image',
+      detail: 'text/html; charset=utf-8',
+    });
+  });
+
+  it('rejects a URL that resolves with no Content-Type at all', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(fakeResponse({ ok: true, contentType: null }));
+
+    await expect(checkImageUrl('https://example.com/mystery', { fetchImpl })).resolves.toEqual({
+      ok: false,
+      error: 'not-an-image',
+      detail: '',
+    });
+  });
+
+  it('treats a network failure as an http-error rather than throwing', async () => {
+    const fetchImpl = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
+
+    await expect(checkImageUrl('https://example.com/foo.png', { fetchImpl })).resolves.toEqual({
+      ok: false,
+      error: 'http-error',
+    });
   });
 });
 
