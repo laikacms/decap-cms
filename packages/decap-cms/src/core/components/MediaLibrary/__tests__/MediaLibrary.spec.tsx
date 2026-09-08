@@ -57,12 +57,28 @@ vi.mock('@/core/components/MediaLibrary/CaptureDialog', () => {
   };
 });
 
+// Wraps the real MediaLibraryModal to record the props MediaLibrary computes
+// for it (DCMS-2247), specifically onOpenCamera/onOpenScreenCapture — these
+// are internal to MediaLibrary and not otherwise observable from outside it.
+let lastMediaLibraryModalProps: Record<string, unknown> | undefined;
+vi.mock('@/core/components/MediaLibrary/MediaLibraryModal', async importOriginal => {
+  const actual = await importOriginal<typeof MediaLibraryModalModule>();
+  return {
+    ...actual,
+    default: (props: Record<string, unknown>) => {
+      lastMediaLibraryModalProps = props;
+      return actual.default(props as any);
+    },
+  };
+});
+
 import { MediaLibrary } from '@/core/components/MediaLibrary/MediaLibrary';
 import { RouterProvider } from '@/core/routing/context';
 import { showAlert } from '@/ui';
 
 import type { Router, RouterUpdate } from '@/core/routing/router';
 import type * as UiModule from '@/ui';
+import type * as MediaLibraryModalModule from '@/core/components/MediaLibrary/MediaLibraryModal';
 
 // Real PNG magic bytes (89 50 4E 47 0D 0A 1A 0A) so files built with this
 // content pass the DCMS-2173 content sniff in handlePersist regardless of
@@ -408,6 +424,21 @@ describe('MediaLibrary', () => {
 
       renderMediaLibrary({ isVisible: true, forImage: false });
 
+      expect(screen.queryByText('mediaLibrary.mediaLibraryModal.captureCamera')).toBeNull();
+      expect(screen.queryByText('mediaLibrary.mediaLibraryModal.captureScreen')).toBeNull();
+    });
+
+    // DCMS-2247: capability support alone is not sufficient — forImage must
+    // also be true. Pins the gate documented on MediaLibraryTopRenderProps/
+    // MediaLibraryTopProps against a browser that fully supports both
+    // capture APIs.
+    it('keeps onOpenCamera/onOpenScreenCapture undefined for forImage: false even when the browser fully supports capture APIs', () => {
+      stubMediaDevices({ getUserMedia: vi.fn(), getDisplayMedia: vi.fn() } as any);
+
+      renderMediaLibrary({ isVisible: true, forImage: false });
+
+      expect(lastMediaLibraryModalProps?.onOpenCamera).toBeUndefined();
+      expect(lastMediaLibraryModalProps?.onOpenScreenCapture).toBeUndefined();
       expect(screen.queryByText('mediaLibrary.mediaLibraryModal.captureCamera')).toBeNull();
       expect(screen.queryByText('mediaLibrary.mediaLibraryModal.captureScreen')).toBeNull();
     });

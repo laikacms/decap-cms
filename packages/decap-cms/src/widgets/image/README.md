@@ -15,6 +15,14 @@ in that file) and switches the button labels/media-library call to the `image` l
 `media_library` shape, URL-scheme allowlist, etc.) — this README covers the two properties in this
 widget's own schema plus the image-specific rendering/interaction differences.
 
+The media library modal opened from this widget also offers camera/screen-capture buttons
+(DCMS-2011), letting the editor take a photo or grab a screenshot instead of uploading a file. These
+buttons are `image`-widget-only — the underlying `MediaLibrary` component gates them on `forImage`
+as well as on browser support for `navigator.mediaDevices.getUserMedia`/`getDisplayMedia`, so the
+plain `file` widget never shows them even when the browser supports the capture APIs (see
+`packages/decap-cms/src/core/components/MediaLibrary/MediaLibrary.tsx`). When the browser lacks one
+of the two APIs, only the supported button is shown.
+
 ## Config
 
 ```yaml

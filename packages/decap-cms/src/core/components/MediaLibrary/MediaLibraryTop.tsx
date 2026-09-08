@@ -40,11 +40,14 @@ interface MediaLibraryTopProps {
   onDownload: () => void;
   onUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   /**
-   * Undefined when the current environment doesn't support the
-   * corresponding capture API (e.g. `getUserMedia`/`getDisplayMedia`
-   * missing, or a non-browser/test environment); the button is hidden
-   * rather than shown-disabled in that case, mirroring how other
-   * capability-gated UI in this app behaves.
+   * Undefined unless `forImage` is true AND the current environment
+   * supports the corresponding capture API (e.g. `getUserMedia`/
+   * `getDisplayMedia` missing, or a non-browser/test environment, both
+   * count as unsupported); the button is hidden rather than
+   * shown-disabled in that case, mirroring how other capability-gated UI
+   * in this app behaves. Camera/screen capture only makes sense for the
+   * image picker, so it is always undefined for the plain `file` widget
+   * regardless of capture API support (see `MediaLibrary.tsx`, DCMS-2011).
    */
   onOpenCamera?: (() => void) | undefined;
   onOpenScreenCapture?: (() => void) | undefined;
