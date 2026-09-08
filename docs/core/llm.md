@@ -105,9 +105,15 @@ const token = await currentBackend(store.getState().config).getToken();
 Use `getToken()` rather than reading a stored token. Whether it is refresh-aware is
 backend-specific, not a universal property of `Backend.getToken()`:
 
-- `gitlab`, `bitbucket`, and `laika` refresh an expired token before returning it (and dedupe
-  concurrent calls), so a second independent refresher would rotate the token pair out from under
-  this call and revoke the backend's session.
+- `laika` refreshes an expired token before returning it (and dedupes concurrent calls), so a
+  second independent refresher would rotate the token pair out from under this call and revoke the
+  backend's session.
+- `gitlab` and `bitbucket` only dedupe an already in-flight refresh: if a refresh triggered by a
+  prior 401 is still running, `getToken()` returns that same promise; otherwise it returns whatever
+  token is currently stored, expired or not. `getToken()` itself never checks expiry or starts a
+  refresh — the refresh is only kicked off reactively, from inside the API request wrapper, after a
+  real request comes back `401`/`invalid_token`. Calling `getToken()` directly with no preceding
+  request returns a stale token unchanged.
 - `github`, `azure`, `gitea`, `forgejo`, and `local-fs` are plain accessors: they return whatever
   token was last set at auth time, with no refresh. A stale/expired token from one of these backends
   is returned as-is.
