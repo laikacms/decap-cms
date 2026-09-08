@@ -254,6 +254,23 @@ describe('ConfirmDialog imperative host (Base UI), DCMS-658', () => {
   });
 });
 
+describe('PromptDialog a11y semantics (DCMS-2251)', () => {
+  it('renders the "Insert image URL" prompt with role="dialog", not "alertdialog", and keeps aria-modal', async () => {
+    render(<PromptDialogHost />);
+
+    promptDialog('Insert image URL');
+
+    // The prompt is a routine form input, not an alert/confirmation
+    // requiring an immediate response — role="alertdialog" gives assistive
+    // tech the wrong signal (DCMS-2251), same class of bug as DCMS-659.
+    const dialog = await screen.findByRole('dialog', { name: 'Prompt' });
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+
+    await userEvent.setup().click(within(dialog).getByRole('button', { name: 'Cancel' }));
+  });
+});
+
 describe('PromptDialog imperative host (Base UI), DCMS-658/DCMS-674', () => {
   it('resolves with the entered value when OK is clicked', async () => {
     const user = userEvent.setup();
@@ -262,14 +279,14 @@ describe('PromptDialog imperative host (Base UI), DCMS-658/DCMS-674', () => {
     const resolved = vi.fn();
     promptDialog('Insert image URL').then(resolved);
 
-    const dialog = await screen.findByRole('alertdialog');
+    const dialog = await screen.findByRole('dialog');
     expect(dialog).toHaveTextContent('Insert image URL');
 
     await user.click(screen.getByRole('textbox'));
     await user.type(screen.getByRole('textbox'), 'https://example.com/cat.png');
     await user.click(screen.getByRole('button', { name: 'OK' }));
 
-    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     await waitFor(() => expect(resolved).toHaveBeenCalledWith('https://example.com/cat.png'));
   });
 
@@ -280,7 +297,7 @@ describe('PromptDialog imperative host (Base UI), DCMS-658/DCMS-674', () => {
     const resolved = vi.fn();
     promptDialog('Enter the URL of the image').then(resolved);
 
-    const dialog = await screen.findByRole('alertdialog');
+    const dialog = await screen.findByRole('dialog');
     const input = within(dialog).getByRole('textbox', { name: 'Enter the URL of the image' });
     expect(input).toBeInTheDocument();
 
@@ -297,10 +314,10 @@ describe('PromptDialog imperative host (Base UI), DCMS-658/DCMS-674', () => {
     const resolved = vi.fn();
     promptDialog('Insert image URL').then(resolved);
 
-    await screen.findByRole('alertdialog');
+    await screen.findByRole('dialog');
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
 
-    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     await waitFor(() => expect(resolved).toHaveBeenCalledWith(null));
   });
 
@@ -334,7 +351,7 @@ describe('PromptDialog imperative host (Base UI), DCMS-658/DCMS-674', () => {
 
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
 
-    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(document.activeElement).toBe(trigger);
   });
 
@@ -355,7 +372,7 @@ describe('PromptDialog imperative host (Base UI), DCMS-658/DCMS-674', () => {
 
     await user.keyboard('{Escape}');
 
-    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(document.activeElement).toBe(trigger);
   });
 
@@ -377,7 +394,7 @@ describe('PromptDialog imperative host (Base UI), DCMS-658/DCMS-674', () => {
 
     await user.type(screen.getByRole('textbox'), 'https://example.com/dog.png{Enter}');
 
-    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     await waitFor(() => expect(resolved).toHaveBeenCalledWith('https://example.com/dog.png'));
     expect(document.activeElement).toBe(trigger);
   });
@@ -401,7 +418,7 @@ describe('PromptDialog imperative host (Base UI), DCMS-658/DCMS-674', () => {
     render(<PromptDialogHost t={t} />);
     promptDialog('Enter the URL of the image');
 
-    const dialog = await screen.findByRole('alertdialog');
+    const dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByText('Eingabeaufforderung')).toBeInTheDocument();
     expect(within(dialog).getByRole('button', { name: 'Abbrechen' })).toBeInTheDocument();
     expect(within(dialog).getByRole('button', { name: 'Bestätigen' })).toBeInTheDocument();
@@ -420,7 +437,7 @@ describe('PromptDialog imperative host (Base UI), DCMS-658/DCMS-674', () => {
     render(<PromptDialogHost />);
     promptDialog('Enter the URL of the image');
 
-    const dialog = await screen.findByRole('alertdialog');
+    const dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByText('Prompt')).toBeInTheDocument();
     expect(within(dialog).getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
     expect(within(dialog).getByRole('button', { name: 'OK' })).toBeInTheDocument();
