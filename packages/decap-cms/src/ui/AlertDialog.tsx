@@ -1,4 +1,5 @@
 import { AlertDialog as AlertDialogPrimitive } from '@base-ui/react/alert-dialog';
+import { Dialog as DialogPrimitive } from '@base-ui/react/dialog';
 import * as React from 'react';
 
 import { Button, buttonVariants } from './Button';
@@ -138,11 +139,64 @@ export function AlertDialogContent({
   );
 }
 
+/**
+ * DCMS-2251: a non-alert form prompt (e.g. `PromptDialogHost`'s "Insert
+ * image URL") isn't an alert/confirmation, so WAI-ARIA `role="alertdialog"`
+ * (reserved for messages requiring an immediate response to something
+ * important/destructive) is the wrong signal for assistive tech. These
+ * mirror `AlertDialog`/`AlertDialogContent` 1:1 — same backdrop/popup
+ * styling, same DCMS-1632 stacking z-index, same DCMS-1820
+ * `useNeverInertSelf` self-heal — but are backed by Base UI's plain
+ * `Dialog` primitive, which renders `role="dialog"` instead of
+ * `role="alertdialog"`.
+ */
+export function PromptDialog(
+  props: React.ComponentProps<typeof DialogPrimitive.Root>,
+): React.ReactNode {
+  return <DialogPrimitive.Root {...props} />;
+}
+
+export function PromptDialogContent({
+  className,
+  children,
+  ...props
+}: WithClassName<React.ComponentProps<typeof DialogPrimitive.Popup>>): React.ReactNode {
+  const backdropRef = useNeverInertSelf<HTMLDivElement>();
+  const popupRef = useNeverInertSelf<HTMLDivElement>();
+
+  return (
+    <DialogPrimitive.Portal>
+      <DialogPrimitive.Backdrop
+        ref={backdropRef}
+        data-slot="dialog-backdrop"
+        css={backdropClass}
+      />
+      <DialogPrimitive.Popup
+        ref={popupRef}
+        data-slot="dialog-content"
+        aria-modal="true"
+        css={popupClass}
+        className={className}
+        {...props}
+      >
+        {children}
+      </DialogPrimitive.Popup>
+    </DialogPrimitive.Portal>
+  );
+}
+
 const headerClass = css`
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 `;
+
+export function PromptDialogHeader({
+  className,
+  ...props
+}: React.ComponentProps<'div'>): React.ReactNode {
+  return <div data-slot="dialog-header" css={headerClass} className={className} {...props} />;
+}
 
 export function AlertDialogHeader({
   className,
@@ -166,6 +220,13 @@ export function AlertDialogFooter({
   ...props
 }: React.ComponentProps<'div'>): React.ReactNode {
   return <div data-slot="alert-dialog-footer" css={footerClass} className={className} {...props} />;
+}
+
+export function PromptDialogFooter({
+  className,
+  ...props
+}: React.ComponentProps<'div'>): React.ReactNode {
+  return <div data-slot="dialog-footer" css={footerClass} className={className} {...props} />;
 }
 
 const titleClass = css`
@@ -202,6 +263,34 @@ export function AlertDialogDescription({
   return (
     <AlertDialogPrimitive.Description
       data-slot="alert-dialog-description"
+      css={descriptionClass}
+      className={className}
+      {...props}
+    />
+  );
+}
+
+export function PromptDialogTitle({
+  className,
+  ...props
+}: WithClassName<React.ComponentProps<typeof DialogPrimitive.Title>>): React.ReactNode {
+  return (
+    <DialogPrimitive.Title
+      data-slot="dialog-title"
+      css={titleClass}
+      className={className}
+      {...props}
+    />
+  );
+}
+
+export function PromptDialogDescription({
+  className,
+  ...props
+}: WithClassName<React.ComponentProps<typeof DialogPrimitive.Description>>): React.ReactNode {
+  return (
+    <DialogPrimitive.Description
+      data-slot="dialog-description"
       css={descriptionClass}
       className={className}
       {...props}
@@ -629,7 +718,7 @@ export function PromptDialogHost({ t }: PromptDialogHostProps = {}): React.React
   };
 
   return (
-    <AlertDialog
+    <PromptDialog
       key={current.id}
       open
       onOpenChange={open => {
@@ -638,11 +727,11 @@ export function PromptDialogHost({ t }: PromptDialogHostProps = {}): React.React
         if (!open) settle(null);
       }}
     >
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{current.title ?? t?.('ui.prompt.title') ?? 'Prompt'}</AlertDialogTitle>
-          <AlertDialogDescription id={descriptionId}>{current.message}</AlertDialogDescription>
-        </AlertDialogHeader>
+      <PromptDialogContent>
+        <PromptDialogHeader>
+          <PromptDialogTitle>{current.title ?? t?.('ui.prompt.title') ?? 'Prompt'}</PromptDialogTitle>
+          <PromptDialogDescription id={descriptionId}>{current.message}</PromptDialogDescription>
+        </PromptDialogHeader>
         <Input
           autoFocus
           type={current.inputType ?? 'text'}
@@ -655,15 +744,15 @@ export function PromptDialogHost({ t }: PromptDialogHostProps = {}): React.React
             if (e.key === 'Enter') settle(value);
           }}
         />
-        <AlertDialogFooter>
+        <PromptDialogFooter>
           <Button variant="outline" onClick={() => settle(null)}>
             {current.cancelLabel ?? t?.('ui.confirm.cancel') ?? 'Cancel'}
           </Button>
           <Button variant="default" onClick={() => settle(value)}>
             {current.confirmLabel ?? t?.('ui.confirm.ok') ?? 'OK'}
           </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+        </PromptDialogFooter>
+      </PromptDialogContent>
+    </PromptDialog>
   );
 }
