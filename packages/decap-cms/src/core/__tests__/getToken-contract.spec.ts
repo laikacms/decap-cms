@@ -15,6 +15,16 @@
  * (config, API clients, auth stores, …) isn't needed to observe it, so this
  * keeps the test hermetic and focused on the one method in question.
  *
+ * `git-gateway`'s "delegates entirely to tokenPromise" case above only proves
+ * `getToken()` reads whatever `tokenPromise` was last assigned; it says
+ * nothing about which `tokenPromise` `authenticate()` actually picks. The
+ * `git-gateway: real authenticate() decides the tokenPromise per auth mode`
+ * describe block below (DCMS-2220) closes that gap by calling the real
+ * `authenticate()` with OAuth-shaped credentials (no `jwt`) and pinning that
+ * it installs a static, non-refreshing accessor — the same "no refresh, no
+ * dedupe" behavior as `github`/`azure`/`gitea`/`forgejo`, contradicting a
+ * prior doc claim that `git-gateway` unconditionally refreshes.
+ *
  * `laika` is exercised through its own full-harness spec instead of here:
  * see `packages/decap-cms/src/backends/laika/__tests__/laika-backend.spec.ts`
  * `getToken() returns the current token while it is still fresh` (refresh
@@ -30,15 +40,15 @@ import { describe, expect, it } from 'vitest';
 import Azure from '@/backends/azure/implementation';
 import Bitbucket from '@/backends/bitbucket/implementation';
 import Forgejo from '@/backends/forgejo/implementation';
-import Gitea from '@/backends/gitea/implementation';
 import GitGateway from '@/backends/git-gateway/implementation';
+import Gitea from '@/backends/gitea/implementation';
 import GitHub from '@/backends/github/implementation';
 import GitLab from '@/backends/gitlab/implementation';
 import LocalFsBackend from '@/backends/local-fs/implementation';
 
 // test-only helper to bypass heavyweight constructors: only Ctor.prototype is
 // read, so an unknown-args/unknown-instance constructor shape is sufficient.
-type AnyConstructor = abstract new (...args: never[]) => unknown;
+type AnyConstructor = abstract new(...args: never[]) => unknown;
 
 function instantiate<T extends AnyConstructor>(Ctor: T): InstanceType<T> {
   return Object.create(Ctor.prototype) as InstanceType<T>;
@@ -119,6 +129,21 @@ describe('getToken() contract (DCMS-2211 pinning test)', () => {
       backend.tokenPromise = async () => 'refreshed-via-identity-widget';
 
       await expect(backend.getToken()).resolves.toBe('refreshed-via-identity-widget');
+    });
+  });
+
+  describe('git-gateway: real authenticate() decides the tokenPromise per auth mode (DCMS-2220)', () => {
+    it('OAuth credentials (no jwt): authenticate() assigns a static, non-refreshing accessor', async () => {
+      const backend = instantiate(GitGateway);
+
+      // authenticate() synchronously picks the tokenPromise branch (jwt vs.
+      // OAuth) before it goes on to do async, network-dependent setup (fetch
+      // gateway settings, resolve backendType, ...). That async tail has no
+      // real gateway to talk to here and is expected to reject; only the
+      // synchronous branch choice, and getToken()'s use of it, is under test.
+      backend.authenticate({ token: 'stale-oauth-token' } as never).catch(() => {});
+
+      await expect(backend.getToken()).resolves.toBe('stale-oauth-token');
     });
   });
 });
