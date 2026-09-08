@@ -86,7 +86,7 @@ editorial workflow is enabled.
 
 - Props: `EntryCardRenderProps` (`collection`, `entry`, `inferredFields`, `collectionLabel?`,
   `viewStyle?`, `workflowStatus?`)
-- Consumer: `packages/decap-cms/src/core/components/Collection/Entries/EntryListing.tsx:105`
+- Consumer: `packages/decap-cms/src/core/components/Collection/Entries/EntryListing.tsx:104`
 
 ### `renderEntryListEmpty`
 
@@ -95,7 +95,7 @@ empty `<CardsGrid>`. Fires only once the cards array is fully resolved and empty
 loading.
 
 - Props: `EntryListEmptyRenderProps` (`collection?`)
-- Consumer: `packages/decap-cms/src/core/components/Collection/Entries/EntryListing.tsx:105`
+- Consumer: `packages/decap-cms/src/core/components/Collection/Entries/EntryListing.tsx:104`
 
 ### `renderLoader`
 

@@ -1,11 +1,10 @@
 import styled from '@emotion/styled';
-import { orderBy } from 'lodash-es';
 import React from 'react';
 
 import { useTranslate } from '@/core/i18n';
 import { useCmsSlots } from '@/core/lib/slots';
 import { selectFields, selectInferredField, selectSortDataPath } from '@/core/reducers/collections';
-import { CmsSortDirection } from '@/lib/util/index';
+import { CmsSortDirection, naturalOrderBy } from '@/lib/util/index';
 import { colors } from '@/ui/default/index';
 import InViewTrigger from '@/ui/default/InViewTrigger';
 import { filterNestedEntries } from './EntriesCollection';
@@ -84,7 +83,7 @@ function sortEntries(
 
   const keys = sortFields.map(v => selectSortDataPath(collection, v.key));
   const orders = sortFields.map(v => v.direction === CmsSortDirection.Ascending ? 'asc' : 'desc');
-  return orderBy(entries, keys, orders);
+  return naturalOrderBy(entries, keys, orders);
 }
 
 function EntryListing({

@@ -648,6 +648,75 @@ describe('entries', () => {
     ]);
   });
 
+  it('should return entries sorted in natural/numeric order by string field, not lexicographic (dcms-2236)', () => {
+    const state = {
+      entities: {
+        'posts.1': { slug: '1', data: { title: 'This is post # 1' } },
+        'posts.2': { slug: '2', data: { title: 'This is post # 2' } },
+        'posts.10': { slug: '10', data: { title: 'This is post # 10' } },
+        'posts.11': { slug: '11', data: { title: 'This is post # 11' } },
+        'posts.20': { slug: '20', data: { title: 'This is post # 20' } },
+      },
+      pages: { posts: { ids: ['1', '2', '10', '11', '20'] } },
+      sort: { posts: { title: { key: 'title', direction: 'Ascending' } } },
+    };
+    const collection = {
+      name: 'posts',
+    };
+
+    expect(selectEntries(state, collection)).toEqual([
+      { slug: '1', data: { title: 'This is post # 1' } },
+      { slug: '2', data: { title: 'This is post # 2' } },
+      { slug: '10', data: { title: 'This is post # 10' } },
+      { slug: '11', data: { title: 'This is post # 11' } },
+      { slug: '20', data: { title: 'This is post # 20' } },
+    ]);
+  });
+
+  it('should keep numeric fields sorted purely numerically when sorting (no regression)', () => {
+    const state = {
+      entities: {
+        'posts.1': { slug: '1', data: { title: '1', order: 10 } },
+        'posts.2': { slug: '2', data: { title: '2', order: 2 } },
+        'posts.3': { slug: '3', data: { title: '3', order: 1 } },
+        'posts.4': { slug: '4', data: { title: '4', order: 20 } },
+      },
+      pages: { posts: { ids: ['1', '2', '3', '4'] } },
+      sort: { posts: { order: { key: 'order', direction: 'Ascending' } } },
+    };
+    const collection = {
+      name: 'posts',
+    };
+
+    expect(selectEntries(state, collection)).toEqual([
+      { slug: '3', data: { title: '3', order: 1 } },
+      { slug: '2', data: { title: '2', order: 2 } },
+      { slug: '1', data: { title: '1', order: 10 } },
+      { slug: '4', data: { title: '4', order: 20 } },
+    ]);
+  });
+
+  it('should keep date fields sorted chronologically when sorting (no regression)', () => {
+    const state = {
+      entities: {
+        'posts.1': { slug: '1', data: { title: '1', publishedOn: '2026-01-05T00:00:00.000Z' } },
+        'posts.2': { slug: '2', data: { title: '2', publishedOn: '2025-12-25T00:00:00.000Z' } },
+        'posts.3': { slug: '3', data: { title: '3', publishedOn: '2026-02-01T00:00:00.000Z' } },
+      },
+      pages: { posts: { ids: ['1', '2', '3'] } },
+      sort: { posts: { publishedOn: { key: 'publishedOn', direction: 'Ascending' } } },
+    };
+    const collection = {
+      name: 'posts',
+    };
+
+    expect(selectEntries(state, collection)).toEqual([
+      { slug: '2', data: { title: '2', publishedOn: '2025-12-25T00:00:00.000Z' } },
+      { slug: '1', data: { title: '1', publishedOn: '2026-01-05T00:00:00.000Z' } },
+      { slug: '3', data: { title: '3', publishedOn: '2026-02-01T00:00:00.000Z' } },
+    ]);
+  });
+
   it('should return filtered entries entries by field', () => {
     const state = {
       entities: {

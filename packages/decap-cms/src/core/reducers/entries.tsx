@@ -1,5 +1,5 @@
 import { produce } from 'immer';
-import { groupBy, once, orderBy, set, sortBy, trim } from 'lodash-es';
+import { groupBy, once, set, sortBy, trim } from 'lodash-es';
 
 import {
   CHANGE_VIEW_STYLE,
@@ -25,7 +25,14 @@ import { SEARCH_ENTRIES_SUCCESS } from '@/core/actions/search';
 import { VIEW_STYLE_LIST } from '@/core/constants/collectionViews';
 import { folderFormatter } from '@/core/lib/formatters';
 import { joinUrlPath } from '@/core/lib/urlHelper';
-import { basename, dirname, getNestedValue, isAbsolutePath, join } from '@/lib/util/index';
+import {
+  basename,
+  dirname,
+  getNestedValue,
+  isAbsolutePath,
+  join,
+  naturalOrderBy,
+} from '@/lib/util/index';
 import { CmsSortDirection as SortDirection } from '@/lib/util/index';
 import { stringTemplate } from '@/lib/widgets/index';
 import { selectSortDataPath } from './collections';
@@ -415,7 +422,7 @@ export function selectEntries(state: Entries, collection: CmsCollectionState) {
   if (sortFields && sortFields.length > 0) {
     const keys = sortFields.map(v => selectSortDataPath(collection, v.key));
     const orders = sortFields.map(v => (v.direction === SortDirection.Ascending ? 'asc' : 'desc'));
-    entries = orderBy(entries, keys, orders);
+    entries = naturalOrderBy(entries, keys, orders);
   }
 
   const filters = selectEntriesFilterFields(state, collectionName);
