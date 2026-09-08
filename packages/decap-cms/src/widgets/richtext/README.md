@@ -95,8 +95,11 @@ a decap field config passed through to the widget resolver untyped.
 
 **`inline: true` blocks are markdown-serialize-only.** A `formats.markdown` codec's `serialize`
 runs for inline blocks, but `pattern`/`fromMatch` do not — parsing markdown back into an inline
-block is unsupported. In the editor, inline blocks render as read-only chips (delete only, no
-in-place edit). Round-tripping an inline block through markdown save/load will lose it on reload.
+block is unsupported, no matter where in the source the pattern would match (mid-line, or at the
+start of a line or the document; `findBlockMatches` in `src/format-packs/markdown/index.ts` skips
+`inline: true` blocks entirely, DCMS-2244). In the editor, inline blocks render as read-only chips
+(delete only, no in-place edit). Round-tripping an inline block through markdown save/load will
+lose it on reload.
 
 ### Reserved block ids
 
