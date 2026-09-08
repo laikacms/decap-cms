@@ -94,6 +94,13 @@ interface MediaFile {
 // until the library has been opened/loaded at least once.
 interface MediaLibraryModalProps {
   isVisible?: boolean | undefined;
+  /**
+   * DCMS-2246: renders without the blocking Base UI modal chrome (backdrop,
+   * focus trap) — passed through from `openMediaLibrary({ nonModal: true })`
+   * for the `/media` deep link, which is the app's primary view rather than
+   * a picker popped up over other work.
+   */
+  nonModal?: boolean | undefined;
   canInsert?: boolean | undefined;
   files: MediaFile[];
   dynamicSearch?: boolean | undefined;
@@ -144,6 +151,7 @@ interface MediaLibraryModalProps {
 
 function MediaLibraryModal({
   isVisible,
+  nonModal,
   canInsert,
   files,
   dynamicSearch,
@@ -211,6 +219,7 @@ function MediaLibraryModal({
   return (
     <StyledModal
       isOpen={!!isVisible}
+      modal={!nonModal}
       onClose={handleClose}
       $isPrivate={privateUpload}
       ariaLabel={modalAriaLabel}

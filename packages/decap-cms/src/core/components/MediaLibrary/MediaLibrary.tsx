@@ -84,6 +84,12 @@ interface MediaLibraryState {
 
 interface MediaLibraryProps {
   isVisible?: boolean;
+  /**
+   * DCMS-2246: skip the blocking Base UI modal chrome (backdrop, focus
+   * trap) when the library is the app's primary view (the `/media` deep
+   * link) rather than a picker popped up over other work.
+   */
+  nonModal?: boolean;
   loadMediaDisplayURL?: (file: MediaFile) => void;
   displayURLs?: Record<string, unknown>;
   canInsert?: boolean;
@@ -141,6 +147,7 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
   const props = { ...rest, files };
   const {
     isVisible,
+    nonModal,
     canInsert,
     dynamicSearch,
     dynamicSearchActive,
@@ -493,6 +500,7 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
         )}
       <MediaLibraryModal
         isVisible={isVisible}
+        nonModal={nonModal}
         canInsert={canInsert}
         files={files!}
         dynamicSearch={dynamicSearch}
@@ -562,6 +570,7 @@ export default function ConnectedMediaLibrary() {
 
   const props: any = {
     isVisible: mediaLibrary.isVisible,
+    nonModal: mediaLibrary.nonModal,
     canInsert: mediaLibrary.canInsert,
     files,
     displayURLs: mediaLibrary.displayURLs,

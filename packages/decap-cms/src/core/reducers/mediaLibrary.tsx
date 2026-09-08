@@ -48,6 +48,13 @@ type MediaLibrary = {
   displayURLs: Record<string, DisplayURLState>,
   isLoading: boolean,
   isVisible: boolean,
+  /**
+   * DCMS-2246: true when the library was opened as the primary `/media`
+   * view rather than as a picker atop other work — rendered without the
+   * blocking Base UI modal chrome (backdrop/focus-trap) so the app shell
+   * (header, Quick add) stays interactive underneath.
+   */
+  nonModal: boolean,
   showMediaButton: boolean,
   controlMedia: Record<string, string | string[]>,
   controlID?: string,
@@ -90,6 +97,7 @@ type State = {
 
 const defaultState: MediaLibrary = {
   isVisible: false,
+  nonModal: false,
   showMediaButton: true,
   controlMedia: {},
   displayURLs: {},
@@ -106,13 +114,15 @@ const mediaLibrary = produce((state: MediaLibrary, action: MediaLibraryAction) =
       break;
 
     case MEDIA_LIBRARY_OPEN: {
-      const { controlID, forImage, privateUpload, config, field, value, replaceIndex } = action.payload;
+      const { controlID, forImage, privateUpload, config, field, value, replaceIndex, nonModal } =
+        action.payload;
       const libConfig = config ?? {};
       const privateUploadChanged = state.privateUpload !== privateUpload;
       if (privateUploadChanged) {
         return {
           ...defaultState,
           isVisible: true,
+          nonModal: nonModal ?? false,
           forImage,
           controlID,
           canInsert: !!controlID,
@@ -124,6 +134,7 @@ const mediaLibrary = produce((state: MediaLibrary, action: MediaLibraryAction) =
         };
       }
       state.isVisible = true;
+      state.nonModal = nonModal ?? false;
       state.forImage = forImage ?? false;
       state.controlID = controlID ?? '';
       state.canInsert = !!controlID;
@@ -137,6 +148,7 @@ const mediaLibrary = produce((state: MediaLibrary, action: MediaLibraryAction) =
 
     case MEDIA_LIBRARY_CLOSE:
       state.isVisible = false;
+      state.nonModal = false;
       break;
 
     case MEDIA_INSERT: {

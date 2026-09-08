@@ -275,7 +275,11 @@ function OpenMediaLibraryAndRedirect({ collectionName }: { collectionName?: stri
     if (collectionName) {
       navigate('collection', { collectionName }, { replace: true });
     }
-    dispatch(openMediaLibrary());
+    // DCMS-2246: this deep link is the app's primary view, not a picker
+    // popped up over other work — open non-modally so the header (Quick
+    // add, nav) stays interactive instead of trapped behind a blocking
+    // full-viewport backdrop.
+    dispatch(openMediaLibrary({ nonModal: true }));
   }, [navigate, dispatch, collectionName]);
   return null;
 }
