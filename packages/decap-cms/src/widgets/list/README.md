@@ -27,12 +27,12 @@ when a `fields` (or single-field `field`) option is given.
   `label`.
 - `i18n` (optional) — whether this field is translatable.
 - `add_to_top` (optional, default `false`) — whether new items are inserted at the top of the list
-  instead of the bottom. Source: `field.add_to_top ?? false` (`ListControl.tsx:475`).
+  instead of the bottom. Source: `field.add_to_top ?? false` (`ListControl.tsx:495`).
 
 ## Structural modes: `field`, `fields`, `types`
 
 The list widget has four mutually-exclusive structural modes, resolved in this order by
-`getValueType()` (`ListControl.tsx:326-330`):
+`getValueType()` (`ListControl.tsx:335-339`):
 
 1. `fields` set → **multiple** — each item is an object holding the given fields.
 2. else `field` set → **single** — each item holds a single value described by one field.
@@ -63,7 +63,7 @@ configured.
 
 Each item holds a single value, validated and rendered using the nested `field` definition instead
 of a plain string. A new item's default comes from that field's own `default`, or `null` if it has
-none (`singleDefault()`, `ListControl.tsx:459-461`).
+none (`singleDefault()`, `ListControl.tsx:478-480`).
 
 ### `fields` — multi-field (object) items
 
@@ -78,9 +78,9 @@ none (`singleDefault()`, `ListControl.tsx:459-461`).
 
 Each item is an object holding all of the given `fields`. A new item's default is built from each
 field's own `default` (`multipleDefault()` / `getFieldsDefault()`,
-`ListControl.tsx:249-280,
-463-464`); the collapsed-item label falls back to the first field's value
-(`objectLabel()`, `ListControl.tsx:630-638`).
+`ListControl.tsx:482-484,
+255-287`); the collapsed-item label falls back to the first field's value
+(`objectLabel()`, `ListControl.tsx:635-643`).
 
 ### `types` — variable-types (mixed) items
 
@@ -102,7 +102,7 @@ field's own `default` (`multipleDefault()` / `getFieldsDefault()`,
 Each item can be one of several shapes, picked from the `types` list when the item is added. The
 "Add" button becomes a dropdown listing each type's `label` (or `name`); adding one seeds a default
 object tagged with a type key so existing items can be matched back to their type (`handleAddType()`
-/ `mixedDefault()`, `ListControl.tsx:466-472, 494-495`).
+/ `mixedDefault()`, `ListControl.tsx:514-516, 486-492`).
 
 The tag key stored on each item defaults to `type`, but can be overridden per-list with `typeKey`
 (`resolveFieldKeyType()`, `typedListHelpers.ts`):
@@ -117,7 +117,7 @@ The tag key stored on each item defaults to `type`, but can be overridden per-li
 
 An item whose tag value doesn't match any entry in `types` (or that isn't an object at all) is
 rendered as an error placeholder rather than crashing (`renderErroneousTypedItem()`,
-`ListControl.tsx:763-786`).
+`ListControl.tsx:797-821`).
 
 ### `min` and `max` are independently optional
 
