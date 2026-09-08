@@ -110,6 +110,75 @@ function useNeverInertSelf<T extends HTMLElement>(): React.RefCallback<T> {
   }, []);
 }
 
+let dialogStack: string[] = [];
+const dialogStackListeners = new Set<() => void>();
+
+function subscribeToDialogStack(listener: () => void) {
+  dialogStackListeners.add(listener);
+  return () => {
+    dialogStackListeners.delete(listener);
+  };
+}
+
+function getDialogStackSnapshot() {
+  return dialogStack;
+}
+
+function emitDialogStackChanged() {
+  for (const listener of dialogStackListeners) listener();
+}
+
+/**
+ * App-wide stack of currently-mounted `AlertDialogContent` instances, keyed
+ * by a stable per-instance id (`React.useId()`). Every dialog built on this
+ * primitive — the imperative alert/confirm/prompt hosts below, and any
+ * widget-authored `AlertDialog` (e.g. media library upload dialogs) —
+ * registers itself here on mount and unregisters on unmount, in open order.
+ *
+ * DCMS-2253: `AlertDialogHost`/`ConfirmDialogHost`/`PromptDialogHost` are
+ * independent module-scoped queues, so it's possible for e.g. the image
+ * widget's "Insert from URL" prompt and the nav-guard's "Unsaved changes"
+ * confirm to both be open at once. Without this, both render their
+ * `AlertDialogContent` at the exact same fixed coordinates with the same
+ * z-index, so the later one fully occludes the earlier one. This stack lets
+ * every dialog past the first render with a growing visual offset and only
+ * the most-recently-opened one interactive (its backdrop shown, the rest
+ * `inert`), instead of a silent, click-blocking pile-up.
+ */
+function useDialogStackPosition(key: string): { recencyIndex: number; depthFromTop: number; isTopMost: boolean } {
+  const stack = React.useSyncExternalStore(
+    subscribeToDialogStack,
+    getDialogStackSnapshot,
+    getDialogStackSnapshot,
+  );
+
+  React.useEffect(() => {
+    dialogStack = [...dialogStack, key];
+    emitDialogStackChanged();
+    return () => {
+      dialogStack = dialogStack.filter(stacked => stacked !== key);
+      emitDialogStackChanged();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `key` is stable for the mounted lifetime of this dialog (React.useId())
+  }, []);
+
+  const index = stack.indexOf(key);
+  // Not registered yet (first render, before the effect above runs): treat
+  // it as the (tentative) top of the stack rather than the bottom, so a
+  // dialog opened after others already exist doesn't briefly flash unoffset.
+  const recencyIndex = index === -1 ? stack.length : index;
+  const isTopMost = index === -1 || index === stack.length - 1;
+  const total = index === -1 ? stack.length + 1 : stack.length;
+  const depthFromTop = total - 1 - recencyIndex;
+  return { recencyIndex, depthFromTop, isTopMost };
+}
+
+// Purely visual per-depth offset (DCMS-2253 acceptance criterion: "visible
+// z-offset"), not a semantic unit — a dialog stacked two deep behind the
+// top-most one shifts by 2x this many pixels. The top-most dialog itself
+// always stays centered (offset 0); older dialogs behind it shift back.
+const stackOffsetPx = 16;
+
 export function AlertDialogContent({
   className,
   children,
@@ -117,20 +186,35 @@ export function AlertDialogContent({
 }: WithClassName<React.ComponentProps<typeof AlertDialogPrimitive.Popup>>): React.ReactNode {
   const backdropRef = useNeverInertSelf<HTMLDivElement>();
   const popupRef = useNeverInertSelf<HTMLDivElement>();
+  const stackId = React.useId();
+  const { recencyIndex, depthFromTop, isTopMost } = useDialogStackPosition(stackId);
+  const offset = depthFromTop * stackOffsetPx;
 
   return (
     <AlertDialogPrimitive.Portal>
-      <AlertDialogPrimitive.Backdrop
-        ref={backdropRef}
-        data-slot="alert-dialog-backdrop"
-        css={backdropClass}
-      />
+      {isTopMost && (
+        <AlertDialogPrimitive.Backdrop
+          ref={backdropRef}
+          data-slot="alert-dialog-backdrop"
+          css={backdropClass}
+        />
+      )}
       <AlertDialogPrimitive.Popup
         ref={popupRef}
         data-slot="alert-dialog-content"
         aria-modal="true"
+        // Only the top-most dialog in the stack should be reachable by
+        // keyboard/pointer/assistive tech; everything stacked behind it is
+        // `inert` (DCMS-2253 acceptance criterion 2) so a click or Tab can't
+        // land on a dialog the user can't fully see.
+        inert={!isTopMost}
+        data-dialog-depth={depthFromTop}
         css={popupClass}
         className={className}
+        style={{
+          zIndex: modalZIndex + recencyIndex,
+          transform: `translate(calc(-50% + ${offset}px), calc(-50% + ${offset}px))`,
+        }}
         {...props}
       >
         {children}
@@ -672,6 +756,30 @@ export function promptDialog(
     pendingPrompts = [...pendingPrompts, { id, message, resolve: settle, triggerElement, ...options }];
     emitPromptsChanged();
   });
+}
+
+/**
+ * Settles every currently-queued `promptDialog()` call as cancelled (`null`)
+ * and drains the queue, so `PromptDialogHost` unmounts whatever it's
+ * currently showing.
+ *
+ * DCMS-2253: a route change is a stronger signal than "user dismissed the
+ * prompt" — if the "Insert from URL" prompt (or any other `promptDialog`) is
+ * still open when in-app navigation is attempted, closing it first (rather
+ * than leaving it open behind whatever the navigation itself needs to show,
+ * e.g. the nav-guard's "Unsaved changes" confirm) avoids two `alertdialog`
+ * portals ever rendering at the same coordinates for that specific,
+ * reproducible case. `useNavigationBlocker` calls this before raising its
+ * own confirm.
+ */
+export function dismissPendingPrompts(): void {
+  if (pendingPrompts.length === 0) return;
+  const toSettle = pendingPrompts;
+  pendingPrompts = [];
+  emitPromptsChanged();
+  for (const pending of toSettle) {
+    pending.resolve(null);
+  }
 }
 
 export interface PromptDialogHostProps {
