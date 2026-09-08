@@ -3,7 +3,10 @@ import { describe, expect, it } from 'vitest';
 import {
   BIDI_CONTROL_NAMES,
   containsBidiControls,
+  getBidiControlRegex,
   LRO,
+  PDF,
+  RLE,
   RLO,
   splitOnBidiControls,
   stripBidiControls,
@@ -17,6 +20,33 @@ const TROJAN_TITLE = `admin${RLO}txt.exe`;
 // All 10 controls (ALM, LRE, RLE, PDF, LRO, RLO, LRI, RLI, FSI, PDI), read
 // straight from the source's own name map rather than re-hardcoded here.
 const ALL_CONTROLS = Object.entries(BIDI_CONTROL_NAMES);
+
+describe('getBidiControlRegex', () => {
+  it('matches known bidi control characters (RLE, LRO, PDF)', () => {
+    expect(getBidiControlRegex().test(RLE)).toBe(true);
+    expect(getBidiControlRegex().test(LRO)).toBe(true);
+    expect(getBidiControlRegex().test(PDF)).toBe(true);
+  });
+
+  it('matches each bidi control (ALM, LRE, RLE, PDF, LRO, RLO, LRI, RLI, FSI, PDI)', () => {
+    ALL_CONTROLS.forEach(([ch]) => {
+      expect(getBidiControlRegex().test(ch)).toBe(true);
+    });
+  });
+
+  it('does not match plain ASCII', () => {
+    expect(getBidiControlRegex().test('admin.txt.exe')).toBe(false);
+    expect(getBidiControlRegex().test('The quick brown fox jumps over 123')).toBe(false);
+    expect(getBidiControlRegex().test('')).toBe(false);
+  });
+
+  it('returns a fresh RegExp instance per call so global-flag lastIndex state is never shared', () => {
+    const first = getBidiControlRegex();
+    const second = getBidiControlRegex();
+    expect(first).not.toBe(second);
+    expect(first.global).toBe(true);
+  });
+});
 
 describe('containsBidiControls', () => {
   it('returns false for plain strings', () => {
