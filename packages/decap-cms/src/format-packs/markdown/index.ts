@@ -8,7 +8,7 @@ import {
   portableTextToMarkdown,
 } from '@portabletext/markdown';
 
-import { createKeyGenerator, resolveBlockCodecs } from '@/lib/richtext';
+import { createKeyGenerator, getBlock, resolveBlockCodecs } from '@/lib/richtext';
 
 import type { BlockData, BlockFormatCodec, FormatPack, Mapper, PortableTextDocument } from '@/lib/richtext';
 import type { PortableTextTypeRenderer } from '@portabletext/markdown';
@@ -56,6 +56,15 @@ function findBlockMatches(
 ): LocatedBlockMatch[] {
   const all: LocatedBlockMatch[] = [];
   for (const [id, codec] of codecs) {
+    // `inline: true` blocks are markdown-serialize-only (DCMS-2244; see the
+    // README's "Accepted-but-inert legacy keys" section): `serialize` runs,
+    // but a match is never recovered on parse, regardless of where in the
+    // source it falls. Without this check, a pattern that happened to land
+    // at a document/line start (as opposed to mid-line, the case
+    // DCMS-2111 already pins) was recovered via `fromMatch` and pushed to
+    // the document root as a block-level node instead of staying "lost" —
+    // a type-confusion bug, not the documented data loss.
+    if (getBlock(id)?.inline) continue;
     // Normalize to global + multiline so `^`-anchored patterns match at any
     // line start and we can scan the whole source.
     let flags = codec.pattern.flags;

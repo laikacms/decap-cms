@@ -186,6 +186,39 @@ describe('markdown mapper with block codecs', () => {
     },
   );
 
+  it(
+    // DCMS-2244 pinning test: `findBlockMatches` had no `inline` check, so when
+    // an `inline: true` block's pattern happened to match at a line/document
+    // start (not just mid-line), `fromMatch` recovered it and `toPortableText`
+    // pushed it straight into the document root instead of leaving it lost
+    // (the documented behavior, pinned mid-line by DCMS-2111 above) or nesting
+    // it inside a text block's `children` (the shape the Lexical bridge's
+    // `decap-inline-block` handling expects). Assert the "always lost"
+    // contract holds for this position too: no root-level node of this type.
+    'never recovers an inline block even when its pattern matches at a line start (DCMS-2244)',
+    () => {
+      const mentionCodec: BlockFormatCodec = {
+        pattern: /^@(\w+)/,
+        fromMatch: match => ({ handle: match[1] }),
+        serialize: data => `@${String(data.handle)}`,
+      };
+      const definition: BlockDefinition = {
+        id: 'mention',
+        inline: true,
+        fields: [{ name: 'handle' }],
+        formats: { markdown: mentionCodec },
+      };
+
+      registerBlock(definition);
+      try {
+        const doc = markdownMapper.toPortableText('@sem is cool.\n');
+        expect(doc.map(node => node._type)).not.toContain('mention');
+      } finally {
+        unregisterBlock('mention');
+      }
+    },
+  );
+
   it('caps detection when unambiguous MDX constructs are present', () => {
     const mapper = createMarkdownMapper();
     const markdownOnly = '# Title\n\n- a\n- b\n\n**bold** [x](y)\n\n```\ncode\n```\n';
