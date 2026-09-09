@@ -134,34 +134,27 @@ separate `ol` / `lucide-react` / `@radix-ui/react-icons` install is needed anymo
 The `ai-chat` widget stays deprecated in favour of the laikacms MCP server (`/mcp`); the package
 split does not change that, it only makes the deprecation easier to act on.
 
-## The AI "Translate from &lt;locale&gt;" button ships as its own package
+## The AI "Translate from &lt;locale&gt;" button is built into the CMS core (DCMS-2268)
 
-The editor's one-click AI translation (DCMS-1395) is no longer built into the CMS. It was the last
-`@ai-sdk/react` consumer in the package, and it rendered for every i18n user whose selected locale
-differed from the default, posting to `/api/ai/chat` whether or not `decapAi()` was ever mounted.
+The editor's one-click AI translation (DCMS-1395) was briefly extracted into a standalone package,
+`@laikacms/decap-cms-ai-translate`, installed through a new generic extension point,
+`CMS.registerLocaleAction`. That extraction has since been reverted: the action now ships built into
+the CMS core again, as `AiTranslateAction`
+(`packages/decap-cms/src/core/components/Editor/EditorControlPane/AiTranslateAction.tsx`), wired
+directly into the locale row from `EditorControlPane.tsx`. No install or registration step is
+required — it renders for every i18n user whose selected locale differs from the default, driving
+the shared `LlmTransport`/`LlmSession` (see `docs/core/llm.md`).
 
-It now ships as `@laikacms/decap-cms-ai-translate` and installs itself through a new generic
-extension point, `CMS.registerLocaleAction`, which renders actions in the editor's locale row. The
-CMS resolves the i18n context (translatable fields, source values, a write-back callback) and hands
-it over; the action owns its UI, its dependencies and its phrases. Any locale action can use it - a
-glossary lookup or translation-memory prefill needs no further CMS change.
+The standalone `@laikacms/decap-cms-ai-translate` package still exists but is now **deprecated** in
+favour of the in-core action: `registerAiTranslate()` logs a runtime deprecation warning pointing at
+`AiTranslateAction`, and its README carries the same deprecation callout (see
+`extensions/editor/ai-translate/src/index.ts` and `extensions/editor/ai-translate/README.md`). New
+consumers should rely on the built-in action; `registerAiTranslate()` remains available only for
+existing installs and logs the deprecation warning until they migrate off it.
 
-`CMS.registerLocale` now merges into whatever is already registered for a locale instead of
-replacing it, so an extension can contribute phrases without wiping the CMS's own. Reads already
+`CMS.registerLocale` still merges into whatever is already registered for a locale instead of
+replacing it, so a locale action can contribute phrases without wiping the CMS's own. Reads already
 merged (`getPhrases` layers the `en` fallback), so this only aligns the write side.
-
-**Migration:** if you used the translate button, install and register the package:
-
-```diff
-+ import { registerAiTranslate } from '@laikacms/decap-cms-ai-translate';
-  import CMS from '@laikacms/decap-cms';
-+
-+ registerAiTranslate(); // pass { apiBasePath } if decapAi() is not at /api/ai
-```
-
-Everyone else loses a button that was calling an endpoint they had not mounted, and the CMS drops
-`@ai-sdk/react` from its dependencies. The unused `aiTranslateApi` / `aiTranslateFetch` props on the
-editor control pane are gone; pass those to `registerAiTranslate()` instead.
 
 ## The Uploadcare packages are optional peer dependencies
 
