@@ -87,7 +87,7 @@ import type {
 import type { I18nInfo } from './lib/i18n';
 import type { EntryDraft } from './reducers/entryDraft';
 import type AssetProxy from './valueObjects/AssetProxy';
-import type { CompleteEntryValue, EntryValue } from './valueObjects/Entry';
+import type { CompleteEntryValue, EntryValue, EntryWorkflowState } from './valueObjects/Entry';
 
 // State type used in this file - represents the Redux store shape
 interface State {
@@ -1180,7 +1180,7 @@ export class Backend {
     collection: CmsCollectionState,
     entryData: UnpublishedEntry,
     withMediaFiles: boolean,
-  ) {
+  ): Promise<{ entry: CompleteEntryValue, workflow: EntryWorkflowState }> {
     const { slug } = entryData;
     let extension: string;
     if (collection.type === FILES) {
@@ -1204,16 +1204,23 @@ export class Backend {
       f => f.path.length,
     );
 
-    const formatData = (content: BackendEntryContent, path: string, newFile: boolean) => {
+    // Workflow state is derived from the diffs themselves, not any one
+    // formatted entry, so it is computed once here rather than threaded
+    // through `formatData` (DCMS-1907 stage 4: entries stop carrying
+    // workflow filler, callers compose `{ entry, workflow }`).
+    const workflow: EntryWorkflowState = {
+      status: entryData.status,
+      isModification: dataFiles.length > 0 ? dataFiles.some(f => !f.newFile) : true,
+    };
+
+    const formatData = (content: BackendEntryContent, path: string) => {
       return createEntry(collection.name, slug, path, {
         raw: legacyRaw(content),
         data: entryDataFromContent(collection, path, content),
-        isModification: !newFile,
         label: collection && selectFileEntryLabel(collection, slug),
         mediaFiles,
         updatedOn: entryData.updatedAt,
         author: entryData.author?.name,
-        status: entryData.status,
         meta: { path: prepareMetaPath(path, collection) },
       });
     };
@@ -1225,7 +1232,7 @@ export class Backend {
         dataFile.path,
         dataFile.id,
       );
-      const entryWithFormat = formatData(rawContent(data), dataFile.path, dataFile.newFile);
+      const entryWithFormat = formatData(rawContent(data), dataFile.path);
       return entryWithFormat;
     };
 
@@ -1234,7 +1241,7 @@ export class Backend {
       const { file, content } = await this.implementation.getEntry(
         selectEntryPath(collection, slug) as string,
       );
-      return formatData(content, file.path, false);
+      return { entry: formatData(content, file.path), workflow };
     } else if (hasI18n(collection)) {
       // we need to read all locales files and not just the changes
       const path = selectEntryPath(collection, slug) as string;
@@ -1244,14 +1251,16 @@ export class Backend {
       );
       entries = entries.filter(Boolean);
       const grouped = groupEntries(collection, extension, entries.filter(entry => entry !== null));
-      return grouped[0];
+      return { entry: grouped[0], workflow };
     } else {
       const entryWithFormat = await readAndFormatDataFile(dataFiles[0]);
-      return entryWithFormat;
+      return { entry: entryWithFormat, workflow };
     }
   }
 
-  async unpublishedEntries(collections: CmsCollectionState[]) {
+  async unpublishedEntries(
+    collections: CmsCollectionState[],
+  ): Promise<{ pagination: number, entries: { entry: CompleteEntryValue, workflow: EntryWorkflowState }[] }> {
     const ids = await this.implementation.unpublishedEntries!();
     const entries = (
       await Promise.all(
@@ -1263,11 +1272,10 @@ export class Backend {
             console.warn(`Missing collection '${collectionName}' for unpublished entry '${id}'`);
             return null;
           }
-          const entry = await this.processUnpublishedEntry(collection, entryData, false);
-          return entry;
+          return this.processUnpublishedEntry(collection, entryData, false);
         }),
       )
-    ).filter(Boolean) as EntryValue[];
+    ).filter(Boolean) as { entry: CompleteEntryValue, workflow: EntryWorkflowState }[];
 
     return { pagination: 0, entries };
   }
@@ -1353,15 +1361,18 @@ export class Backend {
     return entry;
   }
 
-  async unpublishedEntry(state: State, collection: CmsCollectionState, slug: string) {
+  async unpublishedEntry(
+    state: State,
+    collection: CmsCollectionState,
+    slug: string,
+  ): Promise<{ entry: CompleteEntryValue, workflow: EntryWorkflowState }> {
     const entryData = await this.implementation!.unpublishedEntry!({
       collection: collection.name as string,
       slug,
     });
 
-    let entry = await this.processUnpublishedEntry(collection, entryData, true);
-    entry = await this.processEntry(state, collection, entry);
-    return entry;
+    const { entry, workflow } = await this.processUnpublishedEntry(collection, entryData, true);
+    return { entry: await this.processEntry(state, collection, entry), workflow };
   }
 
   /**

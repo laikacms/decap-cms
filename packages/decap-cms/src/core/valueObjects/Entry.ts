@@ -1,5 +1,3 @@
-import { isBoolean } from 'lodash-es';
-
 import type { MediaFile } from '@/core/backend';
 
 // Every field is defaulted below, so callers may pass an explicit `undefined`
@@ -10,15 +8,24 @@ interface Options {
 
   data?: any;
   label?: string | null | undefined;
-  isModification?: boolean | null | undefined;
   mediaFiles?: MediaFile[] | null | undefined;
   author?: string | undefined;
   updatedOn?: string | undefined;
-  status?: string | undefined;
   meta?: { path?: string | undefined } | undefined;
   i18n?: {
     [locale: string]: any,
   } | undefined;
+}
+
+/**
+ * Workflow status/modification-state for an unpublished entry. Deliberately
+ * not a field of {@link EntryValue}: DCMS-1907 stage 4 stopped stuffing
+ * workflow filler onto the entry - callers that need both compose
+ * `{ entry, workflow }` instead (see `Backend#processUnpublishedEntry`).
+ */
+export interface EntryWorkflowState {
+  status?: string;
+  isModification: boolean;
 }
 
 interface EntryValueBase {
@@ -29,11 +36,9 @@ interface EntryValueBase {
 
   data: any;
   label: string | null;
-  isModification: boolean | null;
   mediaFiles: MediaFile[];
   author: string;
   updatedOn: string;
-  status?: string;
   meta: { path?: string | undefined };
   i18n?: {
     [locale: string]: any,
@@ -79,11 +84,9 @@ function entryFields(collection: string, slug: string, path: string, options: Op
     raw: options.raw || '',
     data: options.data || {},
     label: options.label || null,
-    isModification: isBoolean(options.isModification) ? options.isModification : null,
     mediaFiles: options.mediaFiles || [],
     author: options.author || '',
     updatedOn: options.updatedOn || '',
-    status: options.status || '',
     meta: options.meta || {},
     i18n: options.i18n || {},
   };

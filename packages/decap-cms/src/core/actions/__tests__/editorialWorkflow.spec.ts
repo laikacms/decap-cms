@@ -27,8 +27,9 @@ describe('editorialWorkflow actions', () => {
 
       const assetProxy = { name: 'name', path: 'path' };
       const entry = { mediaFiles: [{ file: { name: 'name' }, id: '1', draft: true }] };
+      const workflow = { status: 'draft', isModification: true };
       const backend = {
-        unpublishedEntry: vi.fn().mockResolvedValue(entry),
+        unpublishedEntry: vi.fn().mockResolvedValue({ entry, workflow }),
       };
 
       const store = mockStore({
@@ -65,13 +66,17 @@ describe('editorialWorkflow actions', () => {
           type: 'UNPUBLISHED_ENTRY_SUCCESS',
           payload: {
             collection: 'posts',
-            entry: { ...entry, mediaFiles: [{ file: { name: 'name' }, id: '1', draft: true }] },
+            entry: {
+              ...entry,
+              ...workflow,
+              mediaFiles: [{ file: { name: 'name' }, id: '1', draft: true }],
+            },
           },
         });
         expect(actions[3]).toEqual({
           type: 'DRAFT_CREATE_FROM_ENTRY',
           payload: {
-            entry,
+            entry: { ...entry, isModification: workflow.isModification },
           },
         });
       });
