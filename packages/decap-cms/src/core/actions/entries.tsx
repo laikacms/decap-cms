@@ -6,6 +6,7 @@ import { getIntegrationProvider } from '@/core/integrations';
 import { getProcessSegment } from '@/core/lib/formatters';
 import { duplicateDefaultI18nFields, hasI18n, I18N, I18N_FIELD, serializeI18n } from '@/core/lib/i18n';
 import { serializeValues } from '@/core/lib/serializeEntryValues';
+import { clearReferencesOnEntry, findCascadeDeleteReferences } from '@/core/lib/cascadeDeleteRelations';
 import { findUniqueFieldConflicts } from '@/core/lib/validateUniqueFields';
 import {
   selectAllowNewEntries,
@@ -36,6 +37,7 @@ import { loadMedia, waitForMediaLibraryToLoad } from './mediaLibrary';
 import { addNotification } from './notifications';
 import { waitUntil } from './waitUntil';
 
+import type { CascadeDeleteReference } from '@/core/lib/cascadeDeleteRelations';
 import type { EntryDraft as EntryDraftState } from '@/core/reducers/entryDraft';
 import type { Backend } from '@/core/backend';
 import type Algolia from '@/core/integrations/providers/algolia/implementation';
@@ -1146,15 +1148,38 @@ export function deleteEntry(collection: Collection, slug: string) {
     const state = getState();
     const backend = currentBackend(state.config);
 
+    // DCMS-1422 (partial - cascade delete): snapshot the entry being deleted
+    // and any relation fields elsewhere in the store that reference it
+    // *before* the optimistic `entryDeleting` reducer can drop it from
+    // `state.entries` - the cascade below (which runs after the backend
+    // confirms the delete) still needs the value being removed to compare
+    // against.
+    const deletedEntry = selectEntry(state.entries, collection.name, slug);
+    const cascadeReferences = deletedEntry
+      ? findCascadeDeleteReferences(
+        state.collections,
+        collection.name,
+        deletedEntry,
+        (collectionName: string) => {
+          const referencingCollection = state.collections[collectionName];
+          return referencingCollection ? selectEntries(state, referencingCollection) : [];
+        },
+      )
+      : [];
+
     dispatch(entryDeleting(collection, slug));
     return backend
       .deleteEntry(state, collection, slug)
-      .then(() => {
+      .then(async () => {
         dispatch(entryDeleted(collection, slug));
         queryCore.invalidateTags([
           collectionTag(collection.name),
           entryTag(collection.name, slug),
         ]);
+
+        if (cascadeReferences.length > 0) {
+          await dispatch(applyCascadeDeleteReferences(cascadeReferences));
+        }
       })
       .catch((error: Error) => {
         dispatch(
@@ -1167,6 +1192,71 @@ export function deleteEntry(collection: Collection, slug: string) {
         console.error(error);
         return Promise.reject(dispatch(entryDeleteFail(collection, slug, error)));
       });
+  };
+}
+
+/**
+ * DCMS-1422 (partial - cascade delete): persists the updated (referencing
+ * relation fields cleared) version of every entry `findCascadeDeleteReferences`
+ * found, one `backend.persistEntry` call per referencing entry - grouped by
+ * entry so one that references the deleted entry through more than one
+ * relation field (or more than one value in a `multiple` field) is only
+ * saved once. Runs after the delete has already succeeded, so a failure to
+ * persist a given cascade update is surfaced via its own notification and
+ * doesn't roll back the delete or block the remaining cascade updates.
+ */
+export function applyCascadeDeleteReferences(references: CascadeDeleteReference[]) {
+  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+    const state = getState();
+    const backend = currentBackend(state.config);
+
+    const referencesByEntry = new Map<string, CascadeDeleteReference[]>();
+    for (const reference of references) {
+      const key = `${reference.collectionName}.${reference.entry.slug}`;
+      const existing = referencesByEntry.get(key);
+      if (existing) existing.push(reference);
+      else referencesByEntry.set(key, [reference]);
+    }
+
+    for (const entryReferences of referencesByEntry.values()) {
+      const { collectionName, entry } = entryReferences[0];
+      const referencingCollection = state.collections[collectionName];
+      if (!referencingCollection) continue;
+
+      const updatedEntry = clearReferencesOnEntry(entry, entryReferences);
+      const serializedEntry = getSerializedEntry(referencingCollection, updatedEntry);
+      const usedSlugs = selectPublishedSlugs(state, collectionName) ?? [];
+      const syntheticDraft: EntryDraftState = {
+        entry: serializedEntry,
+        fieldsErrors: {},
+        hasChanged: true,
+        key: '',
+      };
+
+      try {
+        await backend.persistEntry({
+          config: state.config,
+          collection: referencingCollection,
+          entryDraft: syntheticDraft,
+          assetProxies: [],
+          usedSlugs,
+        });
+        dispatch(entryPersisted(referencingCollection, serializedEntry, entry.slug));
+        queryCore.invalidateTags([
+          collectionTag(collectionName),
+          entryTag(collectionName, entry.slug),
+        ]);
+      } catch (error) {
+        console.error(error);
+        dispatch(
+          addNotification({
+            message: { details: error as Error, key: 'ui.toast.onFailToPersist' },
+            type: 'error',
+            dismissAfter: 8000,
+          }),
+        );
+      }
+    }
   };
 }
 
