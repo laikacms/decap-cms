@@ -6,6 +6,7 @@ import {
   createEmptyDraft,
   createEmptyDraftData,
   createQuickCreateEntryData,
+  deleteEntry,
   getMediaAssets,
   persistEntry,
   persistLocalBackup,
@@ -618,6 +619,109 @@ describe('entries', () => {
       await store.dispatch(persistEntry(collection as never) as never);
 
       expect(backend.persistEntry).toHaveBeenCalled();
+    });
+  });
+
+  // DCMS-1422 (partial): cascade delete of referencing relation fields.
+  describe('deleteEntry - cascade delete of referencing relation fields', () => {
+    const authorsCollection = {
+      name: 'authors',
+      type: FOLDER,
+      folder: '_authors',
+      fields: [
+        { name: 'name', label: 'Name', widget: 'string' },
+        { name: 'slug', label: 'Slug', widget: 'string' },
+      ],
+    };
+
+    const postsCollection = {
+      name: 'posts',
+      type: FOLDER,
+      folder: '_posts',
+      fields: [
+        { name: 'title', label: 'Title', widget: 'string' },
+        {
+          name: 'author',
+          label: 'Author',
+          widget: 'relation',
+          collection: 'authors',
+          value_field: 'slug',
+        },
+      ],
+    };
+
+    const currentBackend = vi.mocked(backendModule.currentBackend);
+    const selectEntry = vi.mocked(entriesReducer.selectEntry);
+    const selectEntries = vi.mocked(entriesReducer.selectEntries);
+    const selectPublishedSlugs = vi.mocked(entriesReducer.selectPublishedSlugs);
+
+    let backend: { deleteEntry: ReturnType<typeof vi.fn>, persistEntry: ReturnType<typeof vi.fn> };
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+      backend = {
+        deleteEntry: vi.fn(() => Promise.resolve()),
+        persistEntry: vi.fn(() => Promise.resolve('post-a')),
+      };
+      currentBackend.mockReturnValue(backend as never);
+      selectPublishedSlugs.mockReturnValue([]);
+    });
+
+    function makeState() {
+      return {
+        config: {},
+        entries: {},
+        collections: { authors: authorsCollection, posts: postsCollection },
+      };
+    }
+
+    it('clears and re-persists an entry that references the deleted entry', async () => {
+      selectEntry.mockReturnValue({
+        slug: 'author-jane',
+        collection: 'authors',
+        data: { name: 'Jane', slug: 'jane' },
+        mediaFiles: [],
+      } as never);
+      selectEntries.mockImplementation((_state: unknown, collection: { name: string }) => {
+        if (collection.name === 'posts') {
+          return [
+            { slug: 'post-a', collection: 'posts', data: { title: 'A', author: 'jane' }, mediaFiles: [] },
+          ] as never;
+        }
+        return [] as never;
+      });
+
+      const store = mockStore(makeState());
+
+      await store.dispatch(deleteEntry(authorsCollection as never, 'author-jane') as never);
+
+      expect(backend.deleteEntry).toHaveBeenCalled();
+      expect(backend.persistEntry).toHaveBeenCalledTimes(1);
+      const persistCall = backend.persistEntry.mock.calls[0][0];
+      expect(persistCall.collection).toBe(postsCollection);
+      expect(persistCall.entryDraft.entry.data.author).toBeUndefined();
+      expect(persistCall.entryDraft.entry.data.title).toBe('A');
+
+      const actions = store.getActions();
+      expect(actions.some((action: any) => action.type === 'ENTRY_DELETE_SUCCESS')).toBe(true);
+      expect(actions.some((action: any) => action.type === 'ENTRY_PERSIST_SUCCESS')).toBe(true);
+    });
+
+    it('does not call persistEntry when no other entry references the deleted entry', async () => {
+      selectEntry.mockReturnValue({
+        slug: 'author-jane',
+        collection: 'authors',
+        data: { name: 'Jane', slug: 'jane' },
+        mediaFiles: [],
+      } as never);
+      selectEntries.mockReturnValue([] as never);
+
+      const store = mockStore(makeState());
+
+      await store.dispatch(deleteEntry(authorsCollection as never, 'author-jane') as never);
+
+      expect(backend.deleteEntry).toHaveBeenCalled();
+      expect(backend.persistEntry).not.toHaveBeenCalled();
     });
   });
 
