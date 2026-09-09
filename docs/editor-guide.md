@@ -56,7 +56,12 @@ this common set of controls:
 | UUID      | A generated unique id, filled in automatically the first time the field appears. Usually left alone.                                                                                                                                                                                       |
 
 Some sites also enable optional widgets that aren't part of the default set - most commonly an
-**icon picker** (browse and select an icon from an icon library), a **map** widget (draw a point,
+**icon picker** (browse and select an icon from an icon library; requires the site to install one
+of the standalone `@laikacms/decap-cms-widget-lucide-icon` (see
+[`extensions/widgets/lucide-icon`](../extensions/widgets/lucide-icon)) or
+`@laikacms/decap-cms-widget-radix-icon` (see
+[`extensions/widgets/radix-icon`](../extensions/widgets/radix-icon)) packages and register it with
+`CMS.registerWidget(...)` before `CMS.init()` runs), a **map** widget (draw a point,
 line, or polygon on a map; requires the site to install the standalone
 `@laikacms/decap-cms-widget-map` package and register it with `CMS.registerWidget(...)` before
 `CMS.init()` runs — see [`extensions/widgets/map`](../extensions/widgets/map)), and an **`ai-chat`
