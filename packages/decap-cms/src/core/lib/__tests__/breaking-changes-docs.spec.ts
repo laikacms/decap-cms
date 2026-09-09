@@ -37,3 +37,35 @@ describe('breaking-changes-v4-beta.md markdown alias section (DCMS-1886)', () =>
     );
   });
 });
+
+/**
+ * breaking-changes-v4-beta.md's AI translate section used to promise the
+ * button "ships as its own package" (`@laikacms/decap-cms-ai-translate`,
+ * `CMS.registerLocaleAction`). That extraction was reverted:
+ * `AiTranslateAction` is back in CMS core
+ * (`packages/decap-cms/src/core/components/Editor/EditorControlPane/AiTranslateAction.tsx`,
+ * wired from `EditorControlPane.tsx`), and the standalone package is now the
+ * deprecated one (`registerAiTranslate()` warns at runtime; see
+ * `extensions/editor/ai-translate/src/index.ts` and its README). This pins
+ * the doc to that reality so it can't silently drift back to describing the
+ * reverted extraction (DCMS-2268).
+ *
+ * When this test fails because the feature really was extracted again:
+ * update the doc to describe the new shape, then update this test to match.
+ */
+describe('breaking-changes-v4-beta.md AI translate section (DCMS-2268)', () => {
+  it('does not claim the AI translate button ships as its own package', () => {
+    expect(breakingChangesDoc).not.toMatch(/ships as its own package/i);
+  });
+
+  it('describes AiTranslateAction as built into the CMS core', () => {
+    expect(breakingChangesDoc).toMatch(/AiTranslateAction/);
+    expect(breakingChangesDoc).toMatch(/built into the CMS core/i);
+  });
+
+  it('describes the standalone ai-translate package as deprecated', () => {
+    expect(breakingChangesDoc).toMatch(
+      /`@laikacms\/decap-cms-ai-translate` package still exists but is now \*\*deprecated\*\*/,
+    );
+  });
+});
