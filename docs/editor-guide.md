@@ -121,14 +121,15 @@ Once an entry is Ready and saved, the entry editor's publish menu also offers **
 pick a future date and time and the entry publishes automatically once that time arrives, instead of
 right away. A scheduled entry can be cancelled ("Cancel scheduled publish") from the same menu before
 it fires. This is client-side only: there is no server-side cron behind it, so the entry actually
-publishes the next time someone has the CMS open in a browser tab at or after the scheduled time
-(checked on load and about once a minute while the Editorial Workflow board is open) - not
-necessarily at the exact moment you picked. Don't rely on it for publishes that must go live to the
-second with nobody watching. The scheduled time itself is stored in that browser's local storage
-only, not synced anywhere - so the publish fires only when the *same browser* (not a teammate's
-browser or another device) has the CMS open at or after the scheduled time; if you schedule a
-publish and then close the tab for good, ask a colleague to open the CMS in the same browser
-profile, not just "any browser," to make sure it actually fires.
+publishes the next time that browser has the Editorial Workflow board open at or after the scheduled
+time (checked when the board mounts and about once a minute while it stays open) - simply having an
+entry editor open elsewhere in the CMS does not trigger it. Don't rely on it for publishes that must
+go live to the second with nobody watching the Workflow board. The scheduled time itself is stored
+in that browser's local storage only, not synced anywhere - so the publish fires only when the
+*same browser* (not a teammate's browser or another device) has the Editorial Workflow board open
+at or after the scheduled time; if you schedule a publish and then close the tab for good, ask a
+colleague to open the Editorial Workflow board in the same browser profile, not just "any browser,"
+to make sure it actually fires.
 
 ## Using the media library
 
