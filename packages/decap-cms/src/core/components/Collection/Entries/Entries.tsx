@@ -59,7 +59,7 @@ function Entries({
     t('collection.entries.longerLoading'),
   ];
 
-  if (showPublishedEntries && isFetching && page === undefined) {
+  if (isFetching && page === undefined) {
     return renderLoader
       ? <>{renderLoader({ label: loadingMessages, context: 'entries' })}</>
       : <Loader active>{loadingMessages}</Loader>;
