@@ -2079,27 +2079,62 @@ describe('LaikaBackend.getMedia()', () => {
     );
   });
 
-  // DCMS-1063: the assets domain 400s on an unscoped '' folderKey ("missing
-  // a collection prefix"). getMedia must scope the listing to the configured
-  // media_folder instead of always querying the bare root.
-  it('scopes listResources to the configured media_folder by default (DCMS-1063)', async () => {
+  // persistMedia stores the bare filename and getStorageKey strips the public
+  // folder before every lookup and delete, so the storage space is
+  // root-relative. Listing must use that same space or it asks for a prefix no
+  // asset this backend wrote can ever carry. Supersedes the DCMS-1063
+  // media_folder scoping, which the assets domain no longer needs: an unscoped
+  // folder key returns an empty list instead of the old 400.
+  it('lists from the storage folder behind media_folder by default', async () => {
     mockAssetsRepo.listResources.mockReturnValue(LaikaStream.empty({ total: 0 }));
 
     await backend.getMedia();
 
     expect(mockAssetsRepo.listResources).toHaveBeenCalledWith(
-      'assets/uploads',
+      '',
       expect.anything(),
     );
   });
 
-  it('scopes listResources to an explicitly passed folder (DCMS-1063)', async () => {
+  it('keeps a folder that is not below media_folder as the storage folder key', async () => {
     mockAssetsRepo.listResources.mockReturnValue(LaikaStream.empty({ total: 0 }));
 
     await backend.getMedia('posts/media');
 
     expect(mockAssetsRepo.listResources).toHaveBeenCalledWith(
       'posts/media',
+      expect.anything(),
+    );
+  });
+
+  it('maps a sub-folder of media_folder onto its relative storage key', async () => {
+    mockAssetsRepo.listResources.mockReturnValue(LaikaStream.empty({ total: 0 }));
+
+    await backend.getMedia('assets/uploads/logos');
+
+    expect(mockAssetsRepo.listResources).toHaveBeenCalledWith(
+      'logos',
+      expect.anything(),
+    );
+  });
+
+  it('strips public_folder when it differs from media_folder', async () => {
+    const localMockAssetsRepo = makeMockAssetsRepository();
+    const LaikaBackend = createLaikaBackend({
+      getDocumentsRepository: () => makeMockDocumentsRepository() as any,
+      getAssetsRepository: () => localMockAssetsRepo as any,
+    });
+    const localBackend: any = new LaikaBackend(
+      makeConfig({ media_folder: 'static/img', public_folder: '/img' }),
+    );
+    localBackend.assetsRepository = localMockAssetsRepo;
+    localBackend.tokenPromise = () => Promise.resolve('fake-token');
+    localMockAssetsRepo.listResources.mockReturnValue(LaikaStream.empty({ total: 0 }));
+
+    await localBackend.getMedia('/img/logos');
+
+    expect(localMockAssetsRepo.listResources).toHaveBeenCalledWith(
+      'logos',
       expect.anything(),
     );
   });
@@ -2155,9 +2190,9 @@ describe('LaikaBackend.getMediaPage()', () => {
     (backend as any).tokenPromise = () => Promise.resolve('fake-token');
   });
 
-  // DCMS-1063: same unscoped-folderKey 400 as getMedia — the dashboard/media
-  // modal prefetch must not query the bare root.
-  it('scopes listResources to the configured media_folder (DCMS-1063)', async () => {
+  // Same storage-space rule as getMedia: the paginated surface lists where
+  // persistMedia writes, not under the presentational media_folder.
+  it('lists from the storage folder behind media_folder', async () => {
     mockAssetsRepo.listResources.mockReturnValue(
       LaikaStream.succeedMany([], { pagination: {} }),
     );
@@ -2166,7 +2201,7 @@ describe('LaikaBackend.getMediaPage()', () => {
     await backend.getMediaPage({ perPage: 100 });
 
     expect(mockAssetsRepo.listResources).toHaveBeenCalledWith(
-      'assets/uploads',
+      '',
       expect.objectContaining({ depth: Infinity }),
     );
   });
