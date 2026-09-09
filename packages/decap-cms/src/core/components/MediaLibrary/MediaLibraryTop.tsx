@@ -7,6 +7,7 @@ import {
   DeleteButton,
   DownloadButton,
   InsertButton,
+  QrScanButton,
   ScreenCaptureButton,
   UploadButton,
 } from './MediaLibraryButtons';
@@ -51,6 +52,15 @@ interface MediaLibraryTopProps {
    */
   onOpenCamera?: (() => void) | undefined;
   onOpenScreenCapture?: (() => void) | undefined;
+  /**
+   * DCMS-2229 QR-code scan: undefined-means-hide-the-button, same as
+   * `onOpenCamera`/`onOpenScreenCapture` — always undefined for the plain
+   * `file` widget. Unlike those two, this isn't further gated on
+   * `getUserMedia` support: the dialog also supports decoding from an
+   * uploaded image, which works with no camera API at all (the live-scan
+   * half just shows an inline "camera unavailable" message in that case).
+   */
+  onOpenQrScan?: (() => void) | undefined;
   query?: string | undefined;
   onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onSearchKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
@@ -73,6 +83,7 @@ function MediaLibraryTop({
   onUpload,
   onOpenCamera,
   onOpenScreenCapture,
+  onOpenQrScan,
   query,
   onSearchChange,
   onSearchKeyDown,
@@ -135,6 +146,11 @@ function MediaLibraryTop({
             >
               {t('mediaLibrary.mediaLibraryModal.captureScreen')}
             </ScreenCaptureButton>
+          )}
+          {!onOpenQrScan ? null : (
+            <QrScanButton onClick={onOpenQrScan} disabled={!uploadEnabled} aria-disabled={!uploadEnabled}>
+              {t('mediaLibrary.mediaLibraryModal.scanQrCode')}
+            </QrScanButton>
           )}
           <UploadButton
             label={uploadButtonLabel}

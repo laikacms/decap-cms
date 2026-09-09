@@ -23,9 +23,11 @@ import {
   naturalOrderBy,
 } from '@/lib/util/index';
 import { confirmDialog, showAlert } from '@/ui';
+import { isAbsoluteImageUrl } from '@/widgets/file/withFileControl';
 import CaptureDialog from './CaptureDialog';
 import ImageCropDialog from './ImageCropDialog';
 import MediaLibraryModal from './MediaLibraryModal';
+import QrScanDialog from './QrScanDialog';
 
 import type { CaptureMode } from './CaptureDialog';
 import type { CmsAssetCollection, CmsConfig, CmsImageCropConfig } from '@/lib/util/index';
@@ -178,6 +180,7 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
   const [selectedFile, setSelectedFile] = React.useState<MediaFile | Record<string, never>>({});
   const [pendingCropFile, setPendingCropFile] = React.useState<File | null>(null);
   const [captureMode, setCaptureMode] = React.useState<CaptureMode | null>(null);
+  const [isQrScanOpen, setIsQrScanOpen] = React.useState(false);
   const [query, setQuery] = React.useState('');
   const [isPersisted, setIsPersisted] = React.useState(false);
   const [sortFields] = React.useState<SortField[] | undefined>(undefined);
@@ -396,6 +399,38 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
     setCaptureMode(null);
   }
 
+  function handleOpenQrScan() {
+    setIsQrScanOpen(true);
+  }
+
+  function handleQrScanCancel() {
+    setIsQrScanOpen(false);
+  }
+
+  /**
+   * DCMS-2229: a scanned QR code decodes to text, not a `File`, so it
+   * doesn't go through `processUpload` like the camera/screen captures
+   * above do. Instead it's treated the same as the image widget's
+   * "Insert from URL" flow (`withFileControl.tsx`'s `handleUrl`) — the
+   * decoded text is only useful here if it's already an absolute http(s)
+   * URL — same `isAbsoluteImageUrl` check the "Insert from URL" prompt
+   * validates against (DCMS-2252), not the looser `isSafeUrl` the `file`
+   * widget uses, which would silently resolve a non-URL scan result (e.g.
+   * a QR code that just encodes plain text) against the current page and
+   * "succeed" with a bogus same-origin path.
+   */
+  function handleQrScanConfirm(decodedText: string) {
+    setIsQrScanOpen(false);
+    if (!isAbsoluteImageUrl(decodedText)) {
+      showAlert(t('mediaLibrary.mediaLibrary.qrScanInvalidUrl', { text: decodedText }), {
+        title: t('mediaLibrary.mediaLibrary.qrScanInvalidUrlTitle'),
+      });
+      return;
+    }
+    insertMedia(decodedText, field);
+    handleClose();
+  }
+
   function handleInsert() {
     const path = 'path' in selectedFile ? (selectedFile as MediaFile).path : undefined;
     if (path) {
@@ -474,6 +509,10 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
   const mediaDevices = typeof navigator !== 'undefined' ? navigator.mediaDevices : undefined;
   const cameraSupported = Boolean(forImage && typeof mediaDevices?.getUserMedia === 'function');
   const screenCaptureSupported = Boolean(forImage && typeof mediaDevices?.getDisplayMedia === 'function');
+  // DCMS-2229: unlike camera/screen capture, QR scan also works with no
+  // `getUserMedia` at all (decode-from-uploaded-image still works), so
+  // it's only gated on `forImage` — see MediaLibraryTop's onOpenQrScan doc.
+  const qrScanSupported = Boolean(forImage);
 
   return (
     <>
@@ -495,6 +534,15 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
             mode={captureMode}
             onConfirm={file => void handleCaptureConfirm(file)}
             onCancel={handleCaptureCancel}
+            t={t}
+          />
+        )}
+      {!isQrScanOpen
+        ? null
+        : (
+          <QrScanDialog
+            onConfirm={handleQrScanConfirm}
+            onCancel={handleQrScanCancel}
             t={t}
           />
         )}
@@ -523,6 +571,7 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
         handlePersist={handlePersist as (event: React.ChangeEvent<HTMLInputElement>) => void}
         onOpenCamera={cameraSupported ? handleOpenCamera : undefined}
         onOpenScreenCapture={screenCaptureSupported ? handleOpenScreenCapture : undefined}
+        onOpenQrScan={qrScanSupported ? handleOpenQrScan : undefined}
         handleDelete={handleDelete}
         handleInsert={handleInsert}
         handleDownload={handleDownload}

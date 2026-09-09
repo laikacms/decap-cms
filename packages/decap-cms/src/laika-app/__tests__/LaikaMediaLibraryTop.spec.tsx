@@ -97,4 +97,20 @@ describe('LaikaMediaLibraryTop', () => {
       expect(onOpenScreenCapture).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('QR-code scan (DCMS-2229)', () => {
+    it('omits the scan button when onOpenQrScan is not supplied', () => {
+      const { queryByText } = render(<LaikaMediaLibraryTop {...baseProps} />);
+      expect(queryByText('mediaLibrary.mediaLibraryModal.scanQrCode')).toBeNull();
+    });
+
+    it('renders and wires the scan button when onOpenQrScan is supplied', () => {
+      const onOpenQrScan = vi.fn();
+      const { getByText } = render(
+        <LaikaMediaLibraryTop {...baseProps} onOpenQrScan={onOpenQrScan} />,
+      );
+      fireEvent.click(getByText('mediaLibrary.mediaLibraryModal.scanQrCode'));
+      expect(onOpenQrScan).toHaveBeenCalledTimes(1);
+    });
+  });
 });

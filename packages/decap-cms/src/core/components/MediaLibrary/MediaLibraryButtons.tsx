@@ -77,6 +77,7 @@ const ActionButton = styled.button`
 export const DownloadButton = ActionButton;
 export const CameraCaptureButton = ActionButton;
 export const ScreenCaptureButton = ActionButton;
+export const QrScanButton = ActionButton;
 
 interface CopyToClipBoardButtonProps {
   disabled: boolean;
