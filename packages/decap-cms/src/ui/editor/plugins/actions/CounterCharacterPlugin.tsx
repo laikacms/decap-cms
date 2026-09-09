@@ -32,12 +32,21 @@ interface CounterCharacterPluginProps {
   charset?: 'UTF-8' | 'UTF-16';
 }
 
+// English singular/plural selection for a count-prefixed noun, e.g.
+// `pluralize(1, 'character')` -> 'character', `pluralize(2, 'character')` ->
+// 'characters'. Same "count === 1 is the only singular case" convention as
+// the widget-list heading fix (DCMS-526) and the required-fields toast fix
+// (DCMS-2141), scoped locally since this footer isn't wired into i18n.
+function pluralize(count: number, word: string) {
+  return count === 1 ? word : `${word}s`;
+}
+
 const strlen = (text: string, charset: 'UTF-8' | 'UTF-16') => {
   if (charset === 'UTF-8') {
     return utf8Length(text);
-  } else if (charset === 'UTF-16') {
-    return text.length;
   }
+
+  return text.length;
 };
 
 const countWords = (text: string) => {
@@ -78,7 +87,13 @@ export function CounterCharacterPlugin({
 
   return (
     <div className="flex gap-2 text-xs whitespace-nowrap text-gray-500">
-      <p>{stats.characters} characters</p>|<p>{stats.words} words</p>
+      <p>
+        {stats.characters} {pluralize(stats.characters, 'character')}
+      </p>
+      |
+      <p>
+        {stats.words} {pluralize(stats.words, 'word')}
+      </p>
     </div>
   );
 }
