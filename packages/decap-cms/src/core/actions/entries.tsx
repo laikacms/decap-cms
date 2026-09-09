@@ -7,6 +7,7 @@ import { getProcessSegment } from '@/core/lib/formatters';
 import { duplicateDefaultI18nFields, hasI18n, I18N, I18N_FIELD, serializeI18n } from '@/core/lib/i18n';
 import { serializeValues } from '@/core/lib/serializeEntryValues';
 import { clearReferencesOnEntry, findCascadeDeleteReferences } from '@/core/lib/cascadeDeleteRelations';
+import { computeAutoincrementValues, hasAutoincrementFields } from '@/core/lib/computeAutoincrementValues';
 import { findUniqueFieldConflicts } from '@/core/lib/validateUniqueFields';
 import {
   selectAllowNewEntries,
@@ -806,6 +807,20 @@ export function createEmptyDraft(collection: Collection, search: string) {
 
     const state = getState();
     const backend = currentBackend(state.config);
+
+    // DCMS-1422 (partial): `autoincrement` fields get their value computed
+    // once here, at entry-creation time - max value already used for that
+    // field across the collection's other entries, plus 1. This needs
+    // cross-entry state individual field widgets don't have access to (same
+    // rationale as the `unique: true` check in `persistEntry`), so it can't
+    // live in the widget's control component the way e.g. the `uuid` widget
+    // generates its own value on mount.
+    if (hasAutoincrementFields(dataFields as EntryField[])) {
+      Object.assign(
+        data,
+        computeAutoincrementValues(dataFields as EntryField[], selectEntries(state, collection)),
+      );
+    }
 
     if (!collection.media_folder) {
       await waitForMediaLibraryToLoad(dispatch, getState());

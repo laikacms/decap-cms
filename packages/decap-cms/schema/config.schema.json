@@ -89,6 +89,7 @@
           "description": "Built-in widgets shipped by this package plus any custom widgets registered with `CMS.registerWidget`.",
           "examples": [
             "ai-chat",
+            "autoincrement",
             "boolean",
             "code",
             "color",

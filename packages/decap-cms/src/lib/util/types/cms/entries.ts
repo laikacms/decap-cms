@@ -46,6 +46,8 @@ export type CmsEntryField = {
   meta?: boolean,
   /** DCMS-1422 (partial): validated against the collection's other entries at save time. */
   unique?: boolean,
+  /** DCMS-1422 (partial): `autoincrement` widget - value assigned to the first entry when no other entry has one yet. */
+  start?: number,
   i18n: 'translate' | 'duplicate' | 'none',
   [key: string]: unknown,
 };

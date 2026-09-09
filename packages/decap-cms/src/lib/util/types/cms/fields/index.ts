@@ -1,3 +1,4 @@
+export * from './autoincrement.js';
 export * from './base.js';
 export * from './boolean.js';
 export * from './code.js';

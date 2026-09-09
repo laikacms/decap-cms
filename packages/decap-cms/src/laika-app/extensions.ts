@@ -26,6 +26,7 @@ import { LocalFsBackend } from '@/backends/local-fs/index';
 import { ProxyBackend } from '@/backends/proxy/index';
 import { TestBackend } from '@/backends/test/index';
 // Widgets
+import DecapCmsWidgetAutoincrement from '@/widgets/autoincrement/index';
 import DecapCmsWidgetBoolean from '@/widgets/boolean/index';
 import DecapCmsWidgetCode from '@/widgets/code/index';
 import DecapCmsWidgetColorString from '@/widgets/colorstring/index';
@@ -72,6 +73,7 @@ export const registerExtensions = once(function registerExtensions(): void {
   CMS.registerBackend('local-fs', LocalFsBackend);
   CMS.registerBackend('laika', createLaikaBackend());
   [
+    DecapCmsWidgetAutoincrement.Widget(),
     DecapCmsWidgetString.Widget(),
     DecapCmsWidgetNumber.Widget(),
     DecapCmsWidgetText.Widget(),
