@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   UNPUBLISHED_ENTRIES_SUCCESS,
+  UNPUBLISHED_ENTRY_PERSIST_SUCCESS,
   UNPUBLISHED_ENTRY_PUBLISH_SCHEDULE_SUCCESS,
   UNPUBLISHED_ENTRY_PUBLISH_UNSCHEDULE_SUCCESS,
 } from '@/core/actions/editorialWorkflow';
@@ -179,6 +180,84 @@ describe('unpublishedEntries reducer', () => {
       expect(
         selectUnpublishedSlugs({ entities: undefined } as unknown as EditorialWorkflow, 'posts'),
       ).toBeNull();
+    });
+  });
+
+  describe('UNPUBLISHED_ENTRY_PERSIST_SUCCESS', () => {
+    it('preserves the existing status when the persisted entry omits it (DCMS-2266)', () => {
+      // The persisted payload is the plain draft entry the editor saved -
+      // it never carries `status` (kept off EntryValue by design, see
+      // DCMS-1907). Updating an existing workflow entry must not lose the
+      // status it already had, or it drops out of every column.
+      const initialState: EditorialWorkflow = {
+        entities: {
+          'posts.my-post': {
+            collection: 'posts',
+            slug: 'my-post',
+            status: 'pending_review',
+            title: 'first title',
+          },
+        },
+        pages: { posts: { ids: ['my-post'] } },
+      };
+
+      const result = unpublishedEntries(initialState, {
+        type: UNPUBLISHED_ENTRY_PERSIST_SUCCESS,
+        payload: {
+          collection: 'posts',
+          entry: { collection: 'posts', slug: 'my-post', title: 'second title' },
+        },
+      });
+
+      expect(result.entities['posts.my-post']).toEqual({
+        collection: 'posts',
+        slug: 'my-post',
+        status: 'pending_review',
+        title: 'second title',
+        isPersisting: undefined,
+      });
+    });
+
+    it('defaults a brand-new entry to draft status', () => {
+      const initialState: EditorialWorkflow = { entities: {}, pages: {} };
+
+      const result = unpublishedEntries(initialState, {
+        type: UNPUBLISHED_ENTRY_PERSIST_SUCCESS,
+        payload: {
+          collection: 'posts',
+          entry: { collection: 'posts', slug: 'new-post', title: 'first title' },
+        },
+      });
+
+      expect(result.entities['posts.new-post']).toEqual({
+        collection: 'posts',
+        slug: 'new-post',
+        title: 'first title',
+        status: statusValues.DRAFT,
+        isPersisting: undefined,
+      });
+    });
+
+    it('keeps the entry visible under its new title after grouping by status', () => {
+      const initialState: EditorialWorkflow = {
+        entities: {
+          'posts.my-post': { collection: 'posts', slug: 'my-post', status: 'draft', title: 'first title' },
+        },
+        pages: {},
+      };
+
+      const result = unpublishedEntries(initialState, {
+        type: UNPUBLISHED_ENTRY_PERSIST_SUCCESS,
+        payload: {
+          collection: 'posts',
+          entry: { collection: 'posts', slug: 'my-post', title: 'second title' },
+        },
+      });
+
+      const grouped = selectUnpublishedEntriesGroupedByStatus(result);
+      expect(grouped[statusValues.DRAFT]).toEqual([
+        { collection: 'posts', slug: 'my-post', status: 'draft', title: 'second title', isPersisting: undefined },
+      ]);
     });
   });
 
