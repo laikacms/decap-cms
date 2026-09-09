@@ -428,8 +428,6 @@ describe('Backend', () => {
           meta: {},
           i18n: {},
           label: null,
-          isModification: null,
-          status: '',
           updatedOn: '',
         },
       });
@@ -469,8 +467,6 @@ describe('Backend', () => {
           meta: {},
           i18n: {},
           label: null,
-          isModification: null,
-          status: '',
           updatedOn: '',
         },
       });
@@ -915,20 +911,24 @@ describe('Backend', () => {
 
       const result = await backend.unpublishedEntry(state, collection, slug);
       expect(result).toEqual({
-        author: '',
-        collection: 'posts',
-        slug: '',
-        path: 'src/posts/index.md',
-        projected: false,
-        raw: '---\ntitle: "Hello World"\n---\n',
-        data: { title: 'Hello World' },
-        meta: { path: 'src/posts/index.md' },
-        i18n: {},
-        label: null,
-        isModification: true,
-        mediaFiles: [{ id: '1', draft: true }],
-        status: '',
-        updatedOn: '',
+        entry: {
+          author: '',
+          collection: 'posts',
+          slug: '',
+          path: 'src/posts/index.md',
+          projected: false,
+          raw: '---\ntitle: "Hello World"\n---\n',
+          data: { title: 'Hello World' },
+          meta: { path: 'src/posts/index.md' },
+          i18n: {},
+          label: null,
+          mediaFiles: [{ id: '1', draft: true }],
+          updatedOn: '',
+        },
+        workflow: {
+          status: undefined,
+          isModification: true,
+        },
       });
     });
   });

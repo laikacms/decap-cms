@@ -35,7 +35,7 @@ import { addNotification } from './notifications';
 import type { Status } from '@/core/constants/publishModes';
 import type { WorkflowEntry } from '@/core/reducers/editorialWorkflow';
 import type { EntryDraft } from '@/core/reducers/entryDraft';
-import type { EntryValue } from '@/core/valueObjects/Entry';
+import type { EntryValue, EntryWorkflowState } from '@/core/valueObjects/Entry';
 import type { CmsCollections, CmsCollectionState, CmsEntry, CmsMediaFile } from '@/lib/util/index';
 import type { AnyAction } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
@@ -107,13 +107,13 @@ function withScheduledPublishAt<T extends { slug: string }>(
 
 function unpublishedEntryLoaded(
   collection: Collection,
-  entry: EntryValue & { mediaFiles: MediaFile[] },
+  { entry, workflow }: { entry: EntryValue & { mediaFiles: MediaFile[] }, workflow: EntryWorkflowState },
 ) {
   return {
     type: UNPUBLISHED_ENTRY_SUCCESS,
     payload: {
       collection: collection.name,
-      entry: withScheduledPublishAt(collection.name, entry),
+      entry: withScheduledPublishAt(collection.name, { ...entry, ...workflow }),
     },
   };
 }
@@ -134,11 +134,16 @@ function unpublishedEntriesLoading() {
   };
 }
 
-function unpublishedEntriesLoaded(entries: EntryValue[], pagination: number) {
+function unpublishedEntriesLoaded(
+  entries: { entry: EntryValue, workflow: EntryWorkflowState }[],
+  pagination: number,
+) {
   return {
     type: UNPUBLISHED_ENTRIES_SUCCESS,
     payload: {
-      entries: entries.map(entry => withScheduledPublishAt(entry.collection, entry)),
+      entries: entries.map(({ entry, workflow }) =>
+        withScheduledPublishAt(entry.collection, { ...entry, ...workflow })
+      ),
       pages: pagination,
     },
   };
@@ -296,7 +301,7 @@ export function loadUnpublishedEntry(collection: Collection, slug: string) {
     dispatch(unpublishedEntryLoading(collection, slug));
 
     try {
-      const entry = await backend.unpublishedEntry(state, collection, slug);
+      const { entry, workflow } = await backend.unpublishedEntry(state, collection, slug);
       const assetProxies = await Promise.all(
         entry.mediaFiles
           .filter(file => file.draft)
@@ -309,8 +314,12 @@ export function loadUnpublishedEntry(collection: Collection, slug: string) {
           ),
       );
       dispatch(addAssets(assetProxies));
-      dispatch(unpublishedEntryLoaded(collection, entry));
-      dispatch(createDraftFromEntry(entry));
+      dispatch(unpublishedEntryLoaded(collection, { entry, workflow }));
+      // The editor's draft entry is still `CmsEntry` (DCMS-1907 stage 5,
+      // unconsolidated), which keeps its own `isModification` field - carry
+      // the workflow-derived value onto it here at the seam, rather than
+      // reintroducing it onto `EntryValue`.
+      dispatch(createDraftFromEntry({ ...entry, isModification: workflow.isModification }));
     } catch (error: unknown) {
       if (
         error instanceof Error

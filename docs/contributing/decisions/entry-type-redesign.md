@@ -2,9 +2,12 @@
 
 **Status: Accepted.** Decided 2026-08-09 (grilling session), recorded 2026-08-10. Tracked as
 DCMS-1907; the migration lands in six staged PRs, of which stages 0 through 3 have shipped and stage
-5's `CmsEntryValue` deletion has landed early (it was already unreferenced). Stage 4 (media-off-entry,
-workflow composition) and the remainder of stage 5 (`EntryValue`/`CmsEntry` consolidation, downstream
-docs, optional no-`as` lint) are tracked as follow-up.
+5's `CmsEntryValue` deletion has landed early (it was already unreferenced). Stage 4's
+workflow-composition half has also landed: `EntryValue` (`core/valueObjects/Entry.ts`) no longer
+accepts `status`/`isModification`; `Backend#processUnpublishedEntry` composes them as a separate
+`EntryWorkflowState` and callers assemble `{ entry, workflow }` explicitly (DCMS-1932). Media-off-entry
+(`mediaFiles` still lives on `EntryValue`) and the remainder of stage 5 (`EntryValue`/`CmsEntry`
+consolidation, downstream docs, optional no-`as` lint) are tracked as follow-up.
 
 ## The problem
 
@@ -150,7 +153,9 @@ conditionally).
 1. Create `lib/domain` and `lib/backend`, unconsumed. **Shipped.**
 2. Engine adopts `Entry`. **Shipped.**
 3. All backends adopt `BackendEntry`. **Shipped.**
-4. Media-off-entry and workflow composition, as separate PRs.
+4. Media-off-entry and workflow composition, as separate PRs. Workflow composition (`status`/
+   `isModification` off `EntryValue`) **shipped** (DCMS-1932); media-off-entry (`mediaFiles`) is
+   still outstanding.
 5. Deletions (`CmsEntryValue`, `EntryValue` and its variants and creators, `CmsEntry`), docs,
    downstream consumers, optional no-`as` lint rule. `CmsEntryValue` deleted (DCMS-1907); the rest is
    follow-up.

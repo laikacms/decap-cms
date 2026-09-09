@@ -12,11 +12,9 @@ describe('createEntry', () => {
       raw: '',
       data: {},
       label: null,
-      isModification: null,
       mediaFiles: [],
       author: '',
       updatedOn: '',
-      status: '',
       meta: {},
       i18n: {},
     });
@@ -56,26 +54,19 @@ describe('createEntry', () => {
     );
   });
 
-  it('overrides status when provided', () => {
-    expect(createEntry('posts', '', '', { status: 'draft' }).status).toEqual('draft');
-  });
-
-  describe('isModification tri-state', () => {
-    it('defaults to null when omitted', () => {
-      expect(createEntry('posts').isModification).toBeNull();
+  // `status`/`isModification` were removed from `EntryValue` in DCMS-1907
+  // stage 4: workflow views compose `{ entry, workflow }` (see
+  // `Backend#processUnpublishedEntry`) instead of the entry carrying
+  // workflow filler fields.
+  it('does not accept status or isModification as entry fields', () => {
+    const entry = createEntry('posts', '', '', {
+      // @ts-expect-error - status is not part of Options anymore
+      status: 'draft',
+      // @ts-expect-error - isModification is not part of Options anymore
+      isModification: true,
     });
-
-    it('preserves true', () => {
-      expect(createEntry('posts', '', '', { isModification: true }).isModification).toBe(true);
-    });
-
-    it('preserves false', () => {
-      expect(createEntry('posts', '', '', { isModification: false }).isModification).toBe(false);
-    });
-
-    it('falls back to null when explicitly passed null', () => {
-      expect(createEntry('posts', '', '', { isModification: null }).isModification).toBeNull();
-    });
+    expect(entry).not.toHaveProperty('status');
+    expect(entry).not.toHaveProperty('isModification');
   });
 
   describe('mediaFiles default', () => {
