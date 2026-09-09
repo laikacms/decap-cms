@@ -105,7 +105,19 @@ const unpublishedEntries = produce((state: EditorialWorkflow, action: AnyAction)
     case UNPUBLISHED_ENTRY_PERSIST_SUCCESS: {
       const slug = action.payload.entry.slug;
       const key = `${action.payload.collection}.${slug}`;
-      state.entities[key] = { ...action.payload.entry, isPersisting: undefined };
+      // The persisted payload is the plain entry the editor just saved, not a
+      // WorkflowEntry - it never carries `status`/`isModification` (those are
+      // deliberately kept off EntryValue, see DCMS-1907). Merge onto the
+      // previous entity (falling back to DRAFT for a brand-new one) instead of
+      // replacing it outright, or an update wipes the entry's workflow status
+      // and it vanishes from every column on the board (DCMS-2266).
+      const previous = state.entities[key];
+      state.entities[key] = {
+        ...previous,
+        ...action.payload.entry,
+        status: action.payload.entry.status ?? previous?.status ?? statusValues.DRAFT,
+        isPersisting: undefined,
+      };
       const page = state.pages[action.payload.collection] as WorkflowPage | undefined;
       if (page?.ids && !page.ids.includes(slug)) {
         (state.pages[action.payload.collection] as WorkflowPage).ids = [...page.ids, slug];
