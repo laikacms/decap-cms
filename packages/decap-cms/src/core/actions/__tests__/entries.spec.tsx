@@ -170,6 +170,60 @@ describe('entries', () => {
           });
         });
     });
+
+    // DCMS-1422 (partial): `autoincrement` fields get their value computed
+    // once here, at entry-creation time.
+    it('computes max(existing values) + 1 for an autoincrement field', () => {
+      const selectEntries = vi.mocked(entriesReducer.selectEntries);
+      selectEntries.mockReturnValue([
+        { slug: 'post-a', data: { ticketId: 3 }, mediaFiles: [] },
+        { slug: 'post-b', data: { ticketId: 7 }, mediaFiles: [] },
+      ] as never);
+
+      const store = mockStore({ mediaLibrary: { files: [] }, entries: {} });
+
+      const collection = {
+        name: 'posts',
+        fields: [{ name: 'title' }, { name: 'ticketId', widget: 'autoincrement' }],
+      };
+
+      return store.dispatch(createEmptyDraft(collection, '')).then(() => {
+        const actions = store.getActions();
+        expect(actions).toHaveLength(1);
+        expect((actions[0] as any).payload.data).toEqual({ ticketId: 8 });
+      });
+    });
+
+    it('uses the configured start value for an autoincrement field when the collection has no entries yet', () => {
+      const selectEntries = vi.mocked(entriesReducer.selectEntries);
+      selectEntries.mockReturnValue([]);
+
+      const store = mockStore({ mediaLibrary: { files: [] }, entries: {} });
+
+      const collection = {
+        name: 'posts',
+        fields: [{ name: 'ticketId', widget: 'autoincrement', start: 1000 }],
+      };
+
+      return store.dispatch(createEmptyDraft(collection, '')).then(() => {
+        const actions = store.getActions();
+        expect((actions[0] as any).payload.data).toEqual({ ticketId: 1000 });
+      });
+    });
+
+    it('does not touch entries state for a collection without any autoincrement field', () => {
+      // No `entries` key in the mock store at all - selectEntries would throw
+      // if it were called unconditionally, so this doubles as a regression
+      // check that the lookup is skipped when it isn't needed.
+      const store = mockStore({ mediaLibrary: { files: [] } });
+
+      const collection = { name: 'posts', fields: [{ name: 'title' }] };
+
+      return store.dispatch(createEmptyDraft(collection, '')).then(() => {
+        const actions = store.getActions();
+        expect((actions[0] as any).payload.data).toEqual({});
+      });
+    });
   });
   describe('createEmptyDraftData', () => {
     it('should allow an empty array as list default for a single field list', () => {

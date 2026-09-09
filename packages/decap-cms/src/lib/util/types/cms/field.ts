@@ -1,4 +1,5 @@
 import type {
+  CmsFieldAutoincrement,
   CmsFieldBase,
   CmsFieldBoolean,
   CmsFieldCode,
@@ -24,6 +25,7 @@ export type CmsFieldStringOrText = CmsFieldString | CmsFieldText;
 export type CmsField =
   & CmsFieldBase
   & (
+    | CmsFieldAutoincrement
     | CmsFieldBoolean
     | CmsFieldCode
     | CmsFieldColor
