@@ -1408,6 +1408,37 @@ export default function createLaikaBackend(
     }
 
     /**
+     * Translate a media folder as the CMS knows it (`media_folder` /
+     * `public_folder`, e.g. "assets/uploads") into the folder key the assets
+     * repository stores under.
+     *
+     * The storage space is root-relative: `persistMedia` writes the bare
+     * filename, `getStorageKey` strips the public folder off a path before
+     * `getMediaFile`/`deleteFiles` touch the repository, and `getPublicPath`
+     * re-applies it on the way out. Listing is the one operation that used to
+     * skip this translation and pass `media_folder` through verbatim, so the
+     * media library asked for a prefix that nothing this backend writes can
+     * ever match.
+     *
+     * Sub-folders below the media folder keep their relative key, so callers
+     * that browse into one (folderSupport) still address real storage.
+     */
+    private getStorageFolderKey(folder: string): string {
+      const normalized = folder.replace(/^\/+|\/+$/g, '');
+      if (!normalized || normalized === '.') return '';
+
+      for (const base of [this.publicFolder, this.mediaFolder]) {
+        const trimmed = (base ?? '').replace(/^\/+|\/+$/g, '');
+        if (!trimmed || trimmed === '.') continue;
+        if (normalized === trimmed) return '';
+        if (normalized.startsWith(`${trimmed}/`)) return normalized.slice(trimmed.length + 1);
+      }
+
+      // Not below a configured media folder: already a storage folder key.
+      return normalized;
+    }
+
+    /**
      * Paginated media surface (see BackendImplementation). Pagination requires
      * the assets backend to support cursor listing; dynamic search requires
      * a declared `search` filter. When the deployed assets API advertises
@@ -1431,17 +1462,17 @@ export default function createLaikaBackend(
     /**
      * Fetch one page of media via the assets repo's cursor pagination: one
      * listing request per page (plus cached URL resolution), instead of the
-     * legacy drain-everything loop in getMedia. The server's assets domain
-     * requires the folder key to carry a collection prefix (DCMS-1063), so
-     * the listing is scoped to the configured `media_folder` rather than the
-     * bare root; `path` carries the public_folder-prefixed public path.
+     * legacy drain-everything loop in getMedia. The listing is scoped to the
+     * storage folder behind `media_folder` (see getStorageFolderKey), which is
+     * the space persistMedia writes into; `path` carries the
+     * public_folder-prefixed public path.
      */
     async getMediaPage(opts: CmsGetMediaPageOptions): Promise<CmsMediaPage> {
       const repo = this.getAssetsRepo();
       const { cursor, query, perPage = 100, folderSupport } = opts;
 
       const result = await collectStreamWithDone(
-        repo.listResources(this.mediaFolder, {
+        repo.listResources(this.getStorageFolderKey(this.mediaFolder), {
           depth: Infinity,
           pagination: { after: cursor, perPage },
           hints: { urls: true },
@@ -1517,12 +1548,11 @@ export default function createLaikaBackend(
           const pagination: Pagination = { limit: repoPageSize, offset };
           let totalItemsThisPage = 0;
 
-          // The server's assets domain requires the folder key to carry a
-          // collection prefix (DCMS-1063: an unscoped '' folderKey 400s with
-          // "missing a collection prefix"), so the listing is scoped to the
-          // configured media_folder rather than the bare root.
+          // Listing is scoped to the storage folder behind the requested media
+          // folder (see getStorageFolderKey), which is the space persistMedia
+          // writes into.
           for await (
-            const chunk of repo.listResources(mediaFolder, {
+            const chunk of repo.listResources(this.getStorageFolderKey(mediaFolder), {
               depth: Infinity,
               pagination,
               hints: { urls: true },
