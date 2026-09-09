@@ -44,3 +44,38 @@ describe('CounterCharacterPlugin hydration (DCMS-1237)', () => {
     });
   });
 });
+
+describe('CounterCharacterPlugin pluralization (DCMS-2275)', () => {
+  it('uses the singular form for a count of exactly 1', async () => {
+    const initial = sourceToEditorState('a', 'markdown');
+
+    render(<Editor editorSerializedState={initial} format="markdown" />);
+
+    await waitFor(() => {
+      expect(counterText()).toContain('1 character');
+      expect(counterText()).not.toContain('1 characters');
+      expect(counterText()).toContain('1 word');
+      expect(counterText()).not.toContain('1 words');
+    });
+  });
+
+  it('uses the plural form for a count of 2', async () => {
+    const initial = sourceToEditorState('ab cd', 'markdown');
+
+    render(<Editor editorSerializedState={initial} format="markdown" />);
+
+    await waitFor(() => {
+      expect(counterText()).toContain('5 characters');
+      expect(counterText()).toContain('2 words');
+    });
+  });
+
+  it('uses the plural form for a count of 0', async () => {
+    render(<Editor format="markdown" />);
+
+    await waitFor(() => {
+      expect(counterText()).toContain('0 characters');
+      expect(counterText()).toContain('0 words');
+    });
+  });
+});
