@@ -576,4 +576,38 @@ describe('PromptDialog validate option (DCMS-2252)', () => {
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
     await waitFor(() => expect(resolved).toHaveBeenCalledWith(null));
   });
+
+  it('disables the confirm button (and no-ops Enter) while validationError is set, and re-enables once the input changes (DCMS-2260)', async () => {
+    const user = userEvent.setup();
+    render(<PromptDialogHost />);
+
+    const validate = vi.fn(() => 'This URL is not valid.');
+    const resolved = vi.fn();
+    promptDialog('Insert image URL', { validate }).then(resolved);
+
+    await screen.findByRole('dialog');
+    const input = screen.getByRole('textbox');
+    await user.type(input, 'notaurl');
+    await user.click(screen.getByRole('button', { name: 'OK' }));
+    await screen.findByText('This URL is not valid.');
+
+    const confirmButton = screen.getByRole('button', { name: 'OK' });
+    expect(confirmButton).toBeDisabled();
+    expect(confirmButton).toHaveAttribute('aria-disabled', 'true');
+    expect(validate).toHaveBeenCalledTimes(1);
+
+    // Pressing Enter while the error is still showing must not re-run
+    // validate() - the button is inert, and submit() itself no-ops.
+    await user.type(input, '{Enter}');
+    expect(validate).toHaveBeenCalledTimes(1);
+    expect(resolved).not.toHaveBeenCalled();
+
+    // Editing the input clears the error and re-enables the button.
+    await user.type(input, 'x');
+    expect(screen.queryByText('This URL is not valid.')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'OK' })).toBeEnabled();
+
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    await waitFor(() => expect(resolved).toHaveBeenCalledWith(null));
+  });
 });

@@ -860,6 +860,12 @@ export function PromptDialogHost({ t }: PromptDialogHostProps = {}): React.React
   // the dialog and losing the user's input the way a post-hoc `showAlert()`
   // did previously.
   const submit = async (candidate: string) => {
+    // DCMS-2260: a truthy `validationError` means the input hasn't changed
+    // since it was rejected - re-running `validate()` would resolve to the
+    // same message, which React fast-paths as a no-op (no re-render), so the
+    // user gets no feedback from a repeated click/Enter. The button is also
+    // disabled in this state; this guard covers the Enter-key path too.
+    if (validationError) return;
     if (!current.validate) {
       settle(candidate);
       return;
@@ -924,7 +930,12 @@ export function PromptDialogHost({ t }: PromptDialogHostProps = {}): React.React
           <Button variant="outline" onClick={() => settle(null)} disabled={isValidating}>
             {current.cancelLabel ?? t?.('ui.confirm.cancel') ?? 'Cancel'}
           </Button>
-          <Button variant="default" onClick={() => void submit(value)} disabled={isValidating}>
+          <Button
+            variant="default"
+            onClick={() => void submit(value)}
+            disabled={isValidating || Boolean(validationError)}
+            aria-disabled={isValidating || Boolean(validationError) ? true : undefined}
+          >
             {current.confirmLabel ?? t?.('ui.confirm.ok') ?? 'OK'}
           </Button>
         </PromptDialogFooter>
