@@ -1,1 +1,17 @@
 npx --no-install commitlint --edit $1
+
+# Fleet rule (issue #2280): GitHub Actions billing is frozen. Block commits that
+# add a new .github/workflows/*.yml file unless the owner explicitly approved it.
+new_workflows=$(git diff --cached --name-status --diff-filter=A | awk '{print $2}' | grep -E '^\.github/workflows/.*\.ya?ml$' || true)
+if [ -n "$new_workflows" ]; then
+  if ! grep -q '\[owner-approved-workflow\]' "$1"; then
+    echo "ERROR: commit adds new GitHub Actions workflow file(s):"
+    echo "$new_workflows"
+    echo ""
+    echo "Fleet policy (issue #2280): GitHub Actions billing is frozen fleet-wide."
+    echo "New checks belong in husky hooks / package.json scripts, not workflows."
+    echo "If the owner explicitly approved this workflow, include the literal"
+    echo "string [owner-approved-workflow] in the commit message."
+    exit 1
+  fi
+fi

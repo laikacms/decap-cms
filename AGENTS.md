@@ -72,6 +72,17 @@ Paths below (and in most other docs) are relative to `packages/decap-cms/`.
 - Playwright is the e2e suite (`playwright/*.e2e.ts`); recorded backend fixtures live in
   `playwright/fixtures/`.
 
+## CI policy: no GitHub Actions workflows
+
+GitHub Actions billing is frozen fleet-wide. Agents (worker, planner, ci-fixer) must not add
+`.github/workflows/*.yml` files. New checks belong in husky hooks (`.husky/`) or `package.json`
+scripts wired into husky, not GitHub Actions. Existing workflows are grandfathered; do not delete
+them without owner approval. The `commit-msg` husky hook enforces this: a commit that adds a new
+`.github/workflows/*.yml` file is rejected unless the commit message contains the literal string
+`[owner-approved-workflow]`, which only the owner should direct an agent to add. Reviewers must
+reject any PR that introduces a new workflow file and ask the worker to move the check into husky
+instead.
+
 ## Gated paths: operator approval required
 
 Do not change without explicit approval from Sem: `package.json` (root and

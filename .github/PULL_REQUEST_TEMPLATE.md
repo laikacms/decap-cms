@@ -31,5 +31,7 @@ Please add a `x` inside each checkbox:
 
 - [ ] I have read the
       [contribution guidelines](https://github.com/laikacms/decap-cms/blob/main/CONTRIBUTING.md).
+- [ ] This PR does not add a new `.github/workflows/*.yml` file (GitHub Actions billing is frozen;
+      new checks go in husky/`package.json` instead, see `AGENTS.md`).
 
 **A picture of a cute animal (not mandatory but encouraged)**
