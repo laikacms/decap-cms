@@ -10,7 +10,7 @@ import { render } from '@testing-library/react';
 import React from 'react';
 import { describe, expect, it } from 'vitest';
 
-import MapPreview from '../MapPreview';
+import MapPreview from '@/widgets/map/MapPreview';
 
 describe('MapPreview (map)', () => {
   it('renders an empty container when value is undefined', () => {

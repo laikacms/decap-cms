@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { validateJSONSchema } from 'decap-cms/core';
-import mapSchema from '../schema';
+import { validateJSONSchema } from '@/core/index';
+import mapSchema from '@/widgets/map/schema';
 
-import type { JSONSchema } from 'decap-cms/core';
+import type { JSONSchema } from '@/core/index';
 
 describe('map widget schema', () => {
   const fieldSchema: JSONSchema = {

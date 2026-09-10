@@ -3,28 +3,21 @@
 The map widget renders an interactive [OpenLayers](https://openlayers.org/) map for drawing a single
 geometry (point, line, or polygon) and stores the result as a GeoJSON string.
 
-It ships as its own package, `decap-cms-widget-map`, so `ol` (which only this widget
-needs) is an ordinary dependency of the widget rather than something every CMS install carries. The
-CMS does not register it for you.
+It is bundled and registered by the default app entry (`src/app/extensions.ts`), as it was in v3, so
+a `widget: 'map'` field works with no install and no registration call.
 
-## Install and register
+`ol` is an ordinary dependency of this package rather than an optional peer. DCMS-1971 briefly made
+it optional and split the widget into `extensions/widgets/map`; that was reversed, because a widget
+the default entry registers cannot honestly call its own dependency optional, and the split broke v3
+configs at runtime in the editor rather than at build time.
 
-```sh
-npm install decap-cms-widget-map
-```
+## Stylesheet
 
-`ol` comes with it. Call `CMS.registerWidget` once during Decap CMS initialisation, before the
-editor mounts:
-
-```ts
-import CMS from 'decap-cms';
-import DecapCmsWidgetMap from 'decap-cms-widget-map';
-
-CMS.registerWidget(DecapCmsWidgetMap.Widget());
-```
-
-Without that call, a `widget: 'map'` field has no registered control and the editor cannot render
-it.
+OpenLayers ships its control styles as `ol/ol.css`. This package builds with plain `tsc` and has no
+CSS imports anywhere in `src/`, so the stylesheet is vendored as a string in `olStyles.ts` and fed
+through Emotion's `css` helper, which also scopes it to the widget's own element instead of
+injecting it globally. `__tests__/olStyles.spec.ts` fails if the vendored copy drifts from the
+installed `ol`; regenerate it rather than editing by hand.
 
 ## Config
 

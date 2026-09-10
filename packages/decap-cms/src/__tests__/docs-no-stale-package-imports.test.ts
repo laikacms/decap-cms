@@ -38,11 +38,11 @@ const STALE_REQUIRE_SOURCE = /\brequire\(\s*['"](decap-cms-[\w-]*|decap-server)(
 // specifiers).
 const EXCLUDED_RELATIVE_PATHS = new Set(['docs/contributing/decisions/restructure.md']);
 
-// Extension packages under `extensions/` are published on their own and share
-// the `decap-cms-<name>` shape by design (that is the convention a third-party
-// widget author follows). They are real and importable, so the stale-name
-// pattern must not flag them.
-const LIVE_SIBLING_PACKAGES = new Set(['decap-cms-widget-map']);
+// Sibling packages published on their own share the `decap-cms-<name>` shape
+// by design (that is the convention a third-party widget author follows), so
+// the stale-name pattern must not flag them. Empty for now: the map widget was
+// the last one, and it moved back into this package.
+const LIVE_SIBLING_PACKAGES = new Set<string>([]);
 
 describe('docs/ no stale pre-restructure package-name imports (DCMS-1152)', () => {
   it('never imports from a pre-restructure `decap-cms-<name>` / `decap-server` package name', () => {

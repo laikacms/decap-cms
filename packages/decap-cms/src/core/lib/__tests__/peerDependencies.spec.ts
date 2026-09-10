@@ -28,10 +28,12 @@ const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as {
 
 const expectedRequiredPeers = ['@emotion/react', '@emotion/styled', 'react', 'react-dom'].sort();
 
-// `ol`, `lucide-react` and `@radix-ui/react-icons` left this set in DCMS-1971:
-// the widgets that needed them (map, lucide-icon, radix-icon) moved to
-// `extensions/widgets/*` and carry them as ordinary dependencies, so this
-// package neither imports nor declares them.
+// `ol`, `lucide-react` and `@radix-ui/react-icons` left this set in DCMS-1971.
+// `lucide-react` and `@radix-ui/react-icons` stayed gone with their widgets.
+// `ol` is back, but as an ordinary dependency rather than an optional peer:
+// the map widget is bundled and registered by default, so "optional" would not
+// be true in practice (which is what made it a bad optional peer the first
+// time round).
 const expectedOptionalPeers = [
   '@apollo/client',
   'graphql',

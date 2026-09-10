@@ -4,14 +4,15 @@ import Draw from 'ol/interaction/Draw.js';
 import TileLayer from 'ol/layer/Tile.js';
 import VectorLayer from 'ol/layer/Vector.js';
 import Map from 'ol/Map.js';
-import olStyles from 'ol/ol.css?inline';
 import OSMSource from 'ol/source/OSM.js';
 import VectorSource from 'ol/source/Vector.js';
 import View from 'ol/View.js';
 import React from 'react';
 
-import type { CmsFieldBase, CmsFieldMap } from 'decap-cms/lib/util';
-import type { TranslateFunction } from 'decap-cms/ui-default';
+import { olStyles } from './olStyles';
+
+import type { CmsFieldBase, CmsFieldMap } from '@/lib/util/index';
+import type { TranslateFunction } from '@/ui/default/index';
 
 const formatOptions = {
   dataProjection: 'EPSG:4326',
@@ -193,11 +194,9 @@ export default function withMapControl({ getFormat, getMap }: WithMapControlOpti
             id={forID}
             role="application"
             tabIndex={-1}
-            aria-label={
-              field.required !== false
-                ? `${field.label || field.name} (${t('editor.editorControl.field.required')})`
-                : `${field.label || field.name}`
-            }
+            aria-label={field.required !== false
+              ? `${field.label || field.name} (${t('editor.editorControl.field.required')})`
+              : `${field.label || field.name}`}
             aria-invalid={hasErrors || undefined}
             aria-errormessage={hasErrors ? errorListId : undefined}
             aria-describedby={hintId}

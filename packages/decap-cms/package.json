@@ -136,6 +136,7 @@
     "mdast-util-definitions": "^1.2.3",
     "mdast-util-to-string": "^2.0.0",
     "minimatch": "catalog:",
+    "ol": "catalog:",
     "platejs": "^49.2.21",
     "prismjs": "catalog:",
     "qrcode": "catalog:",

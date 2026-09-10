@@ -2,7 +2,7 @@ import { render } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
-import withMapControl from '../withMapControl';
+import withMapControl from '@/widgets/map/withMapControl';
 
 // Mirrors the real OpenLayers behavior this test is guarding against: OL's
 // internal `hasArea()` probe runs synchronously on `new Map({ target })` and
