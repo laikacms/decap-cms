@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 
 import { DecapCmsCore as CMS, DecapCmsProvider } from '@/core/index';
 import { registerAppShellServiceWorker } from '@/core/serviceWorker/registerServiceWorker';
+import { registerEditorComponent, unregisterEditorComponent } from '@/widgets/richtext/editorComponents';
 import { App, AppContent } from './components/index';
 
 import type { CmsConfig } from '@/core/index';
@@ -12,8 +13,8 @@ import type { CmsConfig } from '@/core/index';
  * root export) **without** the eager import of `./extensions.js` and
  * **without** the auto-init at module load.
  *
- * Why this entry exists: the default `/app` bundles every backend (10), every
- * widget (17), every entry codec, the markdown format pack, and every locale
+ * Why this entry exists: the default `/app` bundles every backend, every
+ * widget, every entry codec, and every locale
  * eagerly because Decap's Registry pattern needs them registered at import
  * time. For consumers deploying with a known subset — say, just GitHub + JSON
  * collections + a handful of widgets — that's a lot of wasted bytes. Importing
@@ -142,6 +143,15 @@ export { CMS };
 export const DecapCmsApp = {
   ...CMS,
   init,
+  // v3 exposed the editor-component (shortcode) registry on `window.CMS`, and
+  // every published shortcode snippet calls it that way. The registry itself
+  // belongs to the `richtext` widget (core must not depend on a widget), so
+  // this composition root is where the two meet: the app object forwards to
+  // the widget's registry. Imported from the leaf module rather than the
+  // widget barrel so `/bare` does not pull the Plate editor into a bundle that
+  // never registers the widget.
+  registerEditorComponent,
+  unregisterEditorComponent,
 };
 
 export default DecapCmsApp;
