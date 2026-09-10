@@ -2,6 +2,7 @@ import React from 'react';
 
 import { getEditorComponents } from './editorComponents';
 import { EditorProvider } from './RichtextControl/editorContext';
+import { filterEditorComponents } from './RichtextControl/filterEditorComponents';
 import RawEditor from './RichtextControl/RawEditor';
 import VisualEditor from './RichtextControl/VisualEditor';
 
@@ -105,7 +106,9 @@ export default class RichtextControl extends React.Component<RichtextControlProp
 
     const isShowModeToggle = this.getAllowedModes().length > 1 && !isEditorComponent;
     const { mode, pendingFocus } = this.state;
-    const editorComponents = getEditorComponents();
+    // `editor_components` narrows the registry to the ids this field lists;
+    // without it the field offers everything registered.
+    const editorComponents = filterEditorComponents(getEditorComponents(), field.editor_components);
     const remarkPlugins = getRemarkPlugins ? getRemarkPlugins() : [];
 
     if (mode === 'rich_text') {
