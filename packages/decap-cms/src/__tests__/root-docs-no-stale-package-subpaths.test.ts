@@ -54,10 +54,6 @@ function listScannedFiles(): string[] {
 // (not `AppContent`, `AppLayoutRenderProps`, etc.).
 const STALE_CORE_APP_IMPORT = /import\s*\{([^}]*)\}\s*from\s+['"]decap-cms\/core['"]/g;
 
-// Matches an import from the nonexistent `/widget-string` subpath (correct
-// subpath is the plural `/widgets/string`).
-const STALE_WIDGET_STRING_SUBPATH = /from\s+['"]decap-cms\/widget-string['"]/g;
-
 // Matches an import (or bare specifier reference) from any singular, dashed
 // `decap-cms/backend-<name>` or `decap-cms/widget-<name>`
 // subpath. The package only ever exports the plural, slashed wildcards
@@ -85,27 +81,6 @@ describe('root docs / dev-test pages: no stale decap-cms subpath imports (DCMS-1
     // If this fails, a doc/demo example imports `App` from `/core`. `App` is
     // exported from `decap-cms/app`, not `/core` — fix the import
     // to use the `/app` subpath.
-    expect(offenders).toEqual([]);
-  });
-
-  it("never imports from the nonexistent 'decap-cms/widget-string' subpath", () => {
-    const files = listScannedFiles();
-    expect(files.length).toBeGreaterThan(0);
-
-    const offenders: string[] = [];
-    for (const file of files) {
-      const contents = fs.readFileSync(file, 'utf8');
-      const relPath = path.relative(REPO_ROOT, file);
-
-      for (const _match of contents.matchAll(STALE_WIDGET_STRING_SUBPATH)) {
-        offenders.push(`${relPath}: imports from 'decap-cms/widget-string'`);
-      }
-    }
-
-    // If this fails, a doc/demo example imports from the nonexistent
-    // `/widget-string` subpath. The real subpath is the plural
-    // `/widgets/string`, exporting `DecapCmsWidgetString` (not `widget` /
-    // `stringWidget`).
     expect(offenders).toEqual([]);
   });
 
