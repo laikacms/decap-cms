@@ -92,6 +92,18 @@ export function useEditor({
   const unmountControllerRef = useRef<AbortController>(new AbortController());
   const lockRefreshIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pageHideHandlerRef = useRef<(() => void) | null>(null);
+  // Tracks which collection the *current* `entryDraft` actually belongs to,
+  // updated only when `entryDraft.key` itself changes (a fresh draft was
+  // created/loaded) -- never on every render. `collectionName` and
+  // `entryDraft` come from separate selectors with no atomic-update
+  // guarantee: navigating from collection A's new-entry route to collection
+  // B lands a transitional render where `collectionName`/`collection` has
+  // already flipped to B but `entryDraft` is still A's (the `discardDraft()`
+  // dispatch that clears it only happens later, from the `setup()` cleanup
+  // effect). `handleBackupOnChange` below uses this ref to detect that
+  // mismatch and drop the stale draft instead of persisting it under B's
+  // backup key (DCMS-2270).
+  const draftCollectionNameRef = useRef<string | null>(null);
   // Guards against releasing the lock twice (once from `pagehide`, once from
   // the React cleanup effect) -- harmless either way since the backend
   // release is a no-op once we no longer hold the lock, but avoids a
@@ -133,6 +145,18 @@ export function useEditor({
   useEffect(() => {
     entryDraftRef.current = entryDraft;
   }, [entryDraft]);
+
+  // Record which collection owns the current draft the moment its `key`
+  // changes (a fresh draft was created/loaded for `collectionName`) -- done
+  // synchronously during render, not in a `useEffect`, so the transitional
+  // render described above (new `collectionName`, still-old `entryDraft`)
+  // never overwrites it with the wrong collection. See
+  // `draftCollectionNameRef`'s declaration for the full DCMS-2270 story.
+  const lastDraftKeyRef = useRef<string | undefined>(undefined);
+  if (entryDraft?.key !== lastDraftKeyRef.current) {
+    lastDraftKeyRef.current = entryDraft?.key;
+    draftCollectionNameRef.current = collectionName;
+  }
   const user = useAppSelector(state => state.auth.user);
   const displayUrl = useAppSelector(state => state.config.display_url);
   const hasWorkflow = useAppSelector(state => state.config.publish_mode === EDITORIAL_WORKFLOW);
@@ -448,6 +472,16 @@ export function useEditor({
   // Handle backup creation when changed
   const handleBackupOnChange = useCallback(() => {
     if (hasChanged && entryDraft && collection) {
+      // `entryDraft` was created for `draftCollectionNameRef.current`, not
+      // necessarily today's `collection` -- see the ref's declaration
+      // (DCMS-2270). On the transitional render where they disagree, the
+      // draft is stale leftover from the collection just navigated away
+      // from: drop any queued write instead of persisting it under the new
+      // collection's backup key.
+      if (draftCollectionNameRef.current !== null && draftCollectionNameRef.current !== collection.name) {
+        createBackup.cancel();
+        return;
+      }
       createBackup(entryDraft.entry, collection);
     }
   }, [hasChanged, entryDraft, collection, createBackup]);
