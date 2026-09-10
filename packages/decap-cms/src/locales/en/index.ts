@@ -291,9 +291,6 @@ const en = {
         clear: 'Clear',
         setToNow: 'Set %{fieldLabel} to now',
       },
-      iconPicker: {
-        toggle: 'Toggle icon picker',
-      },
       list: {
         add: 'Add %{item}',
         addType: 'Add %{item}',
