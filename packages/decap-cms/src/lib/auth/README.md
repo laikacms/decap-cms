@@ -20,8 +20,6 @@ Used by backends that authenticate via OAuth2 Authorization Code + PKCE:
 - **`gitea`** — always uses PKCE (`src/backends/gitea/AuthenticationPage.tsx`).
 - **`gitlab`** — uses PKCE only when `backend.auth_type: pkce` is set; otherwise it falls back to
   Netlify-proxied implicit auth (`src/backends/gitlab/AuthenticationPage.tsx`).
-- **`aws-cognito-github-proxy`** — always uses PKCE
-  (`src/backends/aws-cognito-github-proxy/AuthenticationPage.tsx`).
 
 `bitbucket`'s `AuthenticationPage.tsx` shares the `auth_endpoint`/`app_id` config shape but
 currently wires up `implicit`/Netlify auth, not PKCE — don't use it as a PKCE example.

@@ -8,7 +8,6 @@ import { createMarkdownEntryCodec } from '@/entry-codecs/markdown/index';
 import { tomlEntryCodec, tomlFrontmatterCodec } from '@/entry-codecs/toml/index';
 import { yamlEntryCodec, yamlFrontmatterCodec } from '@/entry-codecs/yaml/index';
 // Backends
-import { AwsCognitoGitHubProxyBackend } from '@/backends/aws-cognito-github-proxy/index';
 import { AzureBackend } from '@/backends/azure/index';
 import { BitbucketBackend } from '@/backends/bitbucket/index';
 import { ForgejoBackend } from '@/backends/forgejo/index';
@@ -50,7 +49,6 @@ export const registerExtensions = once(function registerExtensions(): void {
   // Register all the things
   CMS.registerBackend('git-gateway', GitGatewayBackend);
   CMS.registerBackend('azure', AzureBackend);
-  CMS.registerBackend('aws-cognito-github-proxy', AwsCognitoGitHubProxyBackend);
   CMS.registerBackend('github', GitHubBackend);
   CMS.registerBackend('gitlab', GitLabBackend);
   CMS.registerBackend('gitea', GiteaBackend);
