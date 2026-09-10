@@ -10,9 +10,6 @@ packages:
   # peers (ol, lucide-react, ...) are plain dependencies here, so the core
   # package does not carry them. See restructure.md.
   - 'extensions/widgets/*'
-  # LLM transports: implementations of the CMS's `LlmTransport` seam. The CMS
-  # ships the AI *UI* and none of the transport, so these are where a model,
-  # an endpoint and its auth actually live. See docs/core/llm.md.
 
 overrides:
   jsdom: "^29.1.1"

@@ -1,6 +1,42 @@
-# Breaking Changes — Decap CMS v2.0 (Beta)
+# Breaking Changes - Decap CMS v4.0 (Beta)
 
-This document lists breaking changes introduced in the Decap CMS v2.0 beta release.
+This document lists breaking changes introduced in the Decap CMS v4.0 beta release.
+
+## Immutable.js is gone: every value handed to your code is a plain object
+
+This is the widest break in v4 and the one most likely to surface as a puzzling runtime error rather
+than a clear failure. v3 passed Immutable structures across every extension point: a preview
+template got an `entry` you read with `entry.getIn(['data', 'title'])`, a custom widget got a
+`field` you read with `field.get('name')`, and collections/fields arrived as `Map`s and `List`s. v4
+uses plain objects and arrays throughout. `CmsPreviewTemplateComponentProps.entry` and
+`CmsWidgetControlProps.field` are ordinary JavaScript values.
+
+There is no compatibility shim and no runtime detection: `.get()`, `.getIn()`, `.toJS()` and
+`.setIn()` simply do not exist on the values you receive, so the failure lands as
+`TypeError: entry.getIn is not a function` inside your own code, naming your call site rather than
+the change that caused it. A codemod is not offered either - `.get()` on a plain object is
+indistinguishable from `.get()` on a `Map` without type information.
+
+**Migration:** read properties directly, and treat lists as arrays:
+
+```diff
+- const title = entry.getIn(['data', 'title']);
++ const title = entry.data.title;
+
+- const name = field.get('name');
++ const name = field.name;
+
+- const values = entry.get('data').toJS();
++ const values = entry.data;
+
+- field.get('fields').map(f => f.get('name'));
++ field.fields.map(f => f.name);
+```
+
+The rest of the Immutable API has plain equivalents: `size` is `.length`, `first()` is `[0]`,
+`getIn`/`setIn` are optional chaining and object spread. If you maintain a third-party widget, note
+that this break stacks with the package rename and the import-path change - see the sections below,
+and expect to touch every one of them in the same pass.
 
 ## Removed `window.createClass` support
 
@@ -63,11 +99,10 @@ MyControl.propTypes = { value: PropTypes.string };
 
 ## `markdown` widget renamed to `richtext`
 
-The Portable-Text-backed `markdown` widget is now registered as `richtext`. Persist-time
-serialization still emits a markdown string, so on-disk content is unaffected. A back-compat alias
-`markdown` remains registered (DCMS-483) as an indefinite compatibility shim with no scheduled
-removal date; a runtime deprecation warning fires once per session the first time a `markdown` field
-is resolved.
+The `markdown` widget is now registered as `richtext`. The Plate/Slate editor reads and writes a
+markdown string, so on-disk content is unaffected. A back-compat alias `markdown` remains registered
+(DCMS-483) as an indefinite compatibility shim with no scheduled removal date; a runtime deprecation
+warning fires once per session the first time a `markdown` field is resolved.
 
 **Migration:** Rename widget names in your `config.yml`:
 
@@ -101,38 +136,66 @@ pnpm add @apollo/client graphql graphql-tag
 + registerGitLabGraphQL(); // for the GitLab backend
 ```
 
-## The `map`, `lucide-icon`, `radix-icon` and `ai-chat` widgets ship as their own packages
+## The AI seam is gone: no `llm` prop, no `registerLlmTransport`, no chat panel
 
-These four widgets are the only ones that needed a dependency the CMS itself has no use for (`ol`,
-`lucide-react`, `@radix-ui/react-icons`, the Vercel AI SDK). Declaring those as optional peer
-dependencies made them the consumer's problem to install and version-match, and the map widget was
-still registered by the default app entry, so "optional" was not true in practice (DCMS-1971).
+v4.beta briefly shipped AI _UI_ and no AI: an in-editor chat panel and a "translate from
+&lt;locale&gt;" action in the locale row, both dormant until a host supplied an `LlmTransport`. All
+of it has been removed from the base package. Gone with it:
 
-They now live in `extensions/widgets/*` and publish separately, each carrying its own dependency:
+- `DecapCmsProvider`'s `llm` prop
+- `CMS.registerLlmTransport` / `getLlmTransport` / `unregisterLlmTransport`
+- the `useLlmTransport` hook exported from `decap-cms/core`
+- the `LlmTransport`, `LlmSession` and `LlmDocumentBridge` types from `decap-cms/lib/util`
+- the built-in `ai-chat` editor panel and `ai-translate` locale action
+- the `editor.aiChat.*` and `editor.editorControlPane.i18n.translate*` locale keys
 
-| Widget        | Package                        |
-| ------------- | ------------------------------ |
-| `map`         | `decap-cms-widget-map`         |
-| `lucide-icon` | `decap-cms-widget-lucide-icon` |
-| `radix-icon`  | `decap-cms-widget-radix-icon`  |
-| `ai-chat`     | `decap-cms-widget-aichat`      |
+The reason is what a base release owes the people building on it. The package carried the client
+half of an integration whose other half it did not ship, so every adopter paid for it and none could
+use it as delivered.
 
-They are written against the published `decap-cms` subpath exports, exactly as any third-party
-extension is, and a lint rule keeps them that way.
+The two seams the feature rode are unchanged and still public, which is the whole point: an AI panel
+is now added exactly the way any other panel is.
 
-**Migration:** install the package for each of these widgets your config uses, and register it. No
-separate `ol` / `lucide-react` / `@radix-ui/react-icons` install is needed anymore:
+- `CMS.registerPanel({ id, label, render })` (or `slots.editorPanels`) for the chat panel
+- `CMS.registerLocaleAction({ name, render })` for the translate action, which still receives the
+  resolved i18n context: `getTranslatableFields(source, target)` and `applyValue(field, value)`
+
+**Migration:** if you passed a transport, delete the wiring and register a panel instead. Writes go
+through the published `changeDraftField` action creator (exported from `decap-cms/core`), which is
+the same path the old document bridge used, so an AI edit stays indistinguishable from a keystroke:
 
 ```diff
-- // ol was installed by hand and the widget came for free
-+ import DecapCmsWidgetMap from 'decap-cms-widget-map';
-  import CMS from 'decap-cms';
-+
-+ CMS.registerWidget(DecapCmsWidgetMap.Widget());
+- <DecapCmsProvider config={config} llm={createMyTransport({ apiBasePath: '/api/ai' })}>
++ <DecapCmsProvider config={config}>
 ```
 
-The `ai-chat` widget stays deprecated in favour of an external MCP server (`/mcp`); the package
-split does not change that, it only makes the deprecation easier to act on.
+```diff
++ CMS.registerPanel({
++   id: 'assistant',
++   label: 'Assistant',
++   render: ({ collection, entry, onClose }) => <MyChatPanel entry={entry} onClose={onClose} />,
++ });
+```
+
+## `decap-cms/widgets/icon-picker` no longer exists
+
+The subpath exported one hook, `useRovingIconFocus` (arrow-key roving focus over a grid of icons),
+for the `lucide-icon` and `radix-icon` widgets. Those widgets left the repo in DCMS-1971, and the
+subpath was never a widget: there is no `icon-picker` you can put in a config, and there never was.
+
+**Migration:** if you imported the hook, copy it into your own widget. It is about forty lines with
+no CMS dependencies. Config files are unaffected, since `widget: icon-picker` was never valid.
+
+## The `aws-cognito-github-proxy` backend is no longer bundled
+
+It encoded one organisation's auth topology (Cognito in front of a GitHub proxy) rather than a git
+host, so it does not belong in the set every adopter installs. The PKCE machinery it used is
+untouched and still public in `lib/auth`, and `backend.auth_type: pkce` still works on the backends
+that support it.
+
+**Migration:** if your config sets `backend.name: aws-cognito-github-proxy`, you now register the
+backend yourself with `CMS.registerBackend('aws-cognito-github-proxy', YourBackend)` before
+`CMS.init()`. `local-fs`, `proxy`, `git-gateway` and every git host backend are unchanged.
 
 ## The Uploadcare packages are optional peer dependencies
 
@@ -141,73 +204,6 @@ split does not change that, it only makes the deprecation easier to act on.
 
 **Migration:** if you use the Uploadcare media library, install `uploadcare-widget` and
 `uploadcare-widget-tab-effects` yourself.
-
-## Richtext output formats are now opt-in format packs
-
-The `@/lib/richtext` barrel is Portable Text-only: it no longer exports the markdown/html/plaintext
-mappers or any Lexical bindings, so importing `core` (as `/app/bare` does) no longer drags
-markdown-it and the Lexical editor into the bundle. The bundled formats moved to pack entry points —
-`format-packs/markdown`, `format-packs/html`, `format-packs/plaintext` (mdx is not a format pack yet
-— `src/format-packs/mdx/` only has parse/attribute helpers, no `FormatPack` export, and
-`./format-packs/mdx` is explicitly blocked in `package.json#exports` until it lands) — and the
-Lexical bindings (PT<->Lexical bridge, block nodes, `LexicalRichtextValue`) moved to
-`lib/richtext/lexical`. The richtext widget also stopped auto-registering the markdown format at
-import; it only registers the zero-cost `portableText` identity mapper. The fat `/app` and `/app`
-entries register markdown for you, so full-app consumers are unaffected.
-
-**Migration:** Only if you compose from `/app/bare` (or register widgets manually) and use richtext
-fields with a serialized output format — register the format pack(s) your fields use before
-`init()`:
-
-```diff
-  import { init, CMS } from 'decap-cms/app/bare';
-  import richtextWidget from 'decap-cms/widgets/richtext';
-+ import { markdownFormat } from 'decap-cms/format-packs/markdown';
-
-  CMS.registerWidget(richtextWidget.Widget());
-+ CMS.registerRichtextFormat(markdownFormat);
-```
-
-Fields with `format: portableText` need no pack. If you imported Lexical helpers from
-`decap-cms/lib/richtext`, import them from `decap-cms/lib/richtext/lexical` instead.
-
-If your config also used `editor_components` to register custom Markdown block components, that key
-is now a hard config error (DCMS-1974 — see "`editor_components` is now a hard config error, not a
-silent no-op" below). Its replacement is `CMS.registerBlock`, which — like `registerRichtextFormat`
-— must run before `init()`:
-
-```diff
-  import { init, CMS } from 'decap-cms/app/bare';
-  import richtextWidget from 'decap-cms/widgets/richtext';
-  import { markdownFormat } from 'decap-cms/format-packs/markdown';
-
-  CMS.registerWidget(richtextWidget.Widget());
-  CMS.registerRichtextFormat(markdownFormat);
-+ CMS.registerBlock({
-+   id: 'youtube',
-+   label: 'YouTube',
-+   fields: [{ name: 'videoId', label: 'Video ID', widget: 'string' }],
-+   formats: {
-+     markdown: {
-+       pattern: /^{{< youtube (\S+) >}}/,
-+       fromMatch: match => ({ videoId: match[1] }),
-+       serialize: data => `{{< youtube ${data.videoId} >}}`,
-+     },
-+   },
-+ });
-```
-
-`registerBlock` throws if `id` collides with a reserved Portable Text type (`block`, `span`, `link`,
-`code`, `image`, `html`, `table`, `callout`, `list`, `horizontal-rule`, `unknown`). See the richtext
-widget README's
-[Custom blocks](../../../packages/decap-cms/src/widgets/richtext/README.md#custom-blocks) section
-for the full `BlockDefinition` shape and the boot-time registration contract.
-
-**Known limitation:** blocks registered with `inline: true` are markdown-serialize-only — a
-`formats.markdown` codec's `serialize` runs for them, but `pattern`/`fromMatch` do not, so parsing
-an inline block back out of markdown is unsupported and it is silently lost on the next load. See
-[`BlockDefinition` shape](../../../packages/decap-cms/src/widgets/richtext/README.md#blockdefinition-shape)
-for details.
 
 ## No import-time side effects — all registration is explicit
 
@@ -219,8 +215,9 @@ dev server CLI. Concretely:
   fat entries call it.
 - The backend GraphQL entries export `registerGitHubGraphQL()` / `registerGitLabGraphQL()` —
   importing the module alone no longer registers the API class (see the updated migration above).
-- The richtext widget registers the `portableText` identity mapper when you call `Widget()`, not
-  when you import the module.
+- The richtext widget's editor-component (shortcode) registry starts empty: importing the widget
+  registers nothing, and components appear only through explicit `registerEditorComponent(...)`
+  calls.
 - `package.json#sideEffects` now lists only the composition roots, so bundlers can tree-shake
   everything else aggressively.
 
@@ -327,31 +324,36 @@ API gives them to you, and omit them otherwise. Nothing else moved: `authCompone
 returning a real React component already satisfy `AuthComponent`, which is a structural stand-in so
 that `lib/backend` stays react-free.
 
-## `editor_components` is now a hard config error, not a silent no-op
+## `registerEditorComponent` is owned by the `richtext` widget, not core
 
-Earlier in the beta (DCMS-1161), `editor_components` (and its `editorComponents` camelCase alias) on
-a `richtext` field passed schema validation with no reader — `registry.tsx` never looked at it — so
-it was silently ignored at runtime, and `setSnakeCaseConfig`'s deprecation warning for the camelCase
-alias actively told users to rename to the dead snake_case key. A user migrating from
-`decap-cms-widget-markdown` who followed that warning got no error and their custom Markdown block
-components silently stopped existing (DCMS-1974).
+v3 kept the editor-component (shortcode) registry in core: `CMS.registerEditorComponent(...)` wrote
+to it and `decap-cms-widget-markdown` read it back. In v4 the registry belongs to the only thing
+that consumes it. `createEditorComponent`, `registerEditorComponent`, `unregisterEditorComponent`,
+`getEditorComponent` and `getEditorComponents` are exported from `decap-cms/widgets/richtext`; core
+neither owns nor re-exports them, because core must not depend on a widget.
 
-`validateConfig` (`src/core/lib/validateConfig.ts`) now rejects either key on a `richtext` field
-before the CMS mounts, naming `CMS.registerBlock(...)` as the replacement. `editorComponents` was
-also dropped from the camelCase→snake_case `WIDGET_KEY_MAP` in `core/actions/config.tsx`, so the
-normalizer no longer advises renaming to a key that only errors. This is a hard-error path, not
-`additionalProperties: false` on the schema — that would reject every unknown key across every
-widget, including keys legitimate third-party widgets read, which stays out of scope.
+`window.CMS.registerEditorComponent(...)` still works: the app composition root (`app/bare`, which
+`/app` and the CDN bundle both build on) forwards it to the widget's registry, so a v3 script-tag
+shortcode registration needs no change. Only code importing the function from a module path has to
+move.
 
-The four other legacy keys carried over from `decap-cms-widget-markdown` — `minimal`, `buttons`,
-`modes`, `sanitize_preview` — remain accepted and inert (no runtime effect), but now each logs a
-one-time console warning when set, since silently doing nothing is still surprising even though no
-content is lost. See the richtext widget README's
-[Accepted-but-inert legacy keys](../../../packages/decap-cms/src/widgets/richtext/README.md#accepted-but-inert-legacy-keys)
-and [Removed keys](../../../packages/decap-cms/src/widgets/richtext/README.md#removed-keys)
-sections.
+**Migration:** none for `window.CMS` users. If you imported it:
 
-**Migration:** if your config sets `editor_components` or `editorComponents` on a richtext field,
-remove it and register the equivalent block(s) with `CMS.registerBlock(...)` before `init()` — see
-the [Custom blocks](../../../packages/decap-cms/src/widgets/richtext/README.md#custom-blocks)
-section above for the full `BlockDefinition` shape.
+```diff
+- import CMS from 'decap-cms';
+- CMS.registerEditorComponent({ id: 'youtube', /* … */ });
++ import { registerEditorComponent } from 'decap-cms/widgets/richtext';
++
++ registerEditorComponent({ id: 'youtube', /* … */ });
+```
+
+The component config is unchanged (`id`, `label`, `icon`, `type`, `widget`, `pattern`, `fields`,
+`fromBlock`, `toBlock`, `toPreview`) except that it is a plain object rather than an
+Immutable-backed value object: `fields` is an array and `fromBlock` receives a plain match array.
+Registration can still happen after `init()`; the registry is handed out by reference, so an
+already-mounted editor picks up a late registration.
+
+Field keys carried over from `decap-cms-widget-markdown` behave as they did in v3: `minimal`,
+`buttons`, `modes` and `editor_components` are all honored, the last one narrowing a field to the
+component ids it names. `sanitize_preview` is not part of the widget schema and has no effect; like
+any unknown key it passes validation silently.

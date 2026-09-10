@@ -1,7 +1,7 @@
 # Community widgets
 
-`decap-cms` supports custom field widgets registered through `Registry.registerWidget`
-(re-exported as `CMS.registerWidget`) — see
+`decap-cms` supports custom field widgets registered through `Registry.registerWidget` (re-exported
+as `CMS.registerWidget`) — see
 [`packages/decap-cms/src/core/README.md`](../packages/decap-cms/src/core/README.md) for the
 extension registration API and
 [`packages/decap-cms/skills/decap-widget-development/SKILL.md`](../packages/decap-cms/skills/decap-widget-development/SKILL.md)
@@ -42,14 +42,8 @@ its row.
 | ------------------------------------------------- | ----------- | ----------- | ---- |
 | _No community widgets listed yet — be the first!_ |             |             |      |
 
-Looking for widget examples in the meantime? Start with the ones that ship as their own npm packages
-under [`extensions/widgets/`](../extensions/widgets/): `decap-cms-widget-map`,
-`decap-cms-widget-lucide-icon`, `decap-cms-widget-radix-icon` and
-`decap-cms-widget-aichat`. They are built the way your widget would be - against the
-published `decap-cms` subpath exports only - so they are the closest thing to a template.
-
-This repo ships several bundled, opt-in widgets under `decap-cms/widgets/*` (e.g.
-`relation`, `uuid`, `colorstring`, `code`) — each has its own README under
+This repo ships several bundled, opt-in widgets under `decap-cms/widgets/*` (e.g. `relation`,
+`uuid`, `colorstring`, `code`) — each has its own README under
 [`packages/decap-cms/src/widgets/`](../packages/decap-cms/src/widgets/) and is registered the same
 way (`CMS.registerWidget(Widget.Widget())`), useful as reference implementations even though they
 ship in-tree rather than as standalone npm packages.

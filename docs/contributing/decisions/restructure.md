@@ -61,31 +61,26 @@ this branch) — releasing is a manual process (see `CONTRIBUTING.md`'s "Releasi
 
 ## Update (2026-08): `extensions/` and the end of one-artifact (DCMS-1971)
 
-The repo now publishes six packages, not one:
+The repo publishes one package again:
 
 ```
 packages/
   decap-cms/              decap-cms - the CMS
-  decap-cms-lib-pat/      decap-cms-lib-pat - scoped PAT minting/verification
-extensions/
-  widgets/
-    map/                  decap-cms-widget-map
-    lucide-icon/          decap-cms-widget-lucide-icon
-    radix-icon/           decap-cms-widget-radix-icon
-    aichat/               decap-cms-widget-aichat
-  editor/
-    ai-translate/         decap-cms-ai-translate
-  llm/
-    dulla/                decap-cms-llm-dulla
+extensions/               (scaffolding only; no packages currently)
 ```
 
-`extensions/` is categorised by what an extension plugs into, not by what it does: `widgets/*`
-register through the widget registry, `editor/*` extend the editor shell, `llm/*` implement the
-`LlmTransport` seam. A new category is a new glob in `pnpm-workspace.yaml` and nothing else.
+`extensions/` was categorised by what an extension plugs into, not by what it does: `widgets/*`
+register through the widget registry, and a new category is a new glob in `pnpm-workspace.yaml` and
+nothing else. The root, its glob and its shared eslint base config are kept for the next extension
+that earns the treatment; the rule they enforce (import `decap-cms` only through its published
+subpath exports, no `@/` alias, no reach into `src/`) is the durable part and is unchanged.
+
+Everything that lived here has since left, in both directions - see
+[The trim (2026-09)](#the-trim-2026-09) at the end of this update.
 
 ### Why a second root, and why not `packages/`
 
-These four widgets were the only ones needing a dependency the CMS itself has no use for (`ol`,
+The extracted widgets were the only ones needing a dependency the CMS itself has no use for (`ol`,
 `lucide-react`, `@radix-ui/react-icons`, the Vercel AI SDK). Optional peer dependencies were the
 previous answer, and DCMS-1971 is the proof they don't hold: the map widget was registered by the
 default app entry, so its "optional" peer was mandatory for anyone bundling the root export. A
@@ -106,13 +101,15 @@ promise here. It stays available for the day genuinely outside-maintained packag
 
 ### What it caught immediately
 
-Writing the widgets as outsiders surfaced two holes in the published API, both now filled:
+Writing the widgets as outsiders surfaced two holes in the published API:
 
-- `useRovingIconFocus` had no public entry point. `src/widgets/icon-picker/index.ts` now exports it
-  (the existing `./widgets/*` wildcard already covered the subpath).
 - `validateJSONSchema` and its `JSONSchema`/`SchemaError` types were internal, so a widget author
   could not test their own widget schema against the validator the CMS actually runs. Now exported
   from `decap-cms/core`.
+- `useRovingIconFocus` had no public entry point, so `src/widgets/icon-picker/index.ts` was added to
+  export it. That export is gone again as of the 2026-09 trim below: it was a shared hook behind a
+  widget-shaped subpath, with no widget under it, and the icon widgets that used it no longer live
+  in this repo.
 
 Extracting the AI translate feature (DCMS-1395) then forced two more, both structural rather than
 cosmetic:
@@ -136,7 +133,8 @@ without a fork and without reverse-engineering internals.
   vocabulary to drive it was not, and the aichat widget proved the cost: it shipped a hand-rolled
   copy of `changeDraftField` with the raw `'DRAFT_CHANGE_FIELD'` type string, a private reducer
   contract duplicated in another package. `decap-cms/core` now exports the twelve entry/draft
-  actions (`loadEntries`, `persistEntry`, `changeDraftField`, ...), and aichat imports the real one.
+  actions (`loadEntries`, `persistEntry`, `changeDraftField`, ...), so no extension has to guess at
+  a reducer contract again.
 - **Slots are registerable, not just providable.** `CmsSlots` could only be supplied by the host app
   through `CmsSlotsProvider`, so an extension needed the app's cooperation to render anything.
   `CMS.registerSlot` puts the same surface behind the registry; `useCmsSlots` merges registry under
@@ -159,26 +157,63 @@ called a model and persisted chat sessions, plus the `ai` and `@ai-sdk/*` depend
 along. Nothing in `src/` imported it. It has moved to a separate service, where server code belongs,
 and the six `./ai*` entries in the export map went with it.
 
-What stayed is the client half, because that half genuinely is the CMS's: an `LlmTransport`
-interface, a chat panel, a translate action, and the `LlmDocumentBridge` that lets a transport read
-and patch the open draft without touching the store. The transport itself - which model, which
-endpoint, which credentials - is supplied by the host, either as a prop or through
-`CMS.registerLlmTransport`. `extensions/llm/dulla` is the first implementation and, like the widget
-packages, is written against the published exports only.
+What stayed at the time was the client half: an `LlmTransport` interface, a chat panel, a translate
+action, and an `LlmDocumentBridge` that let a transport read and patch the open draft without
+touching the store. That half has since left too - see the trim below.
 
-Two things are deliberately _not_ in the interface. There is no `signIn`/`isAuthenticated`: an AI
-endpoint need not trust the same issuer as the git backend, so the CMS has no token to lend that
-would be right in general, and credentials are the transport implementor's business. And there is no
-`execute` for the document tools server-side: the entry being edited lives in the browser's store,
-so the tools run on the client, against the bridge.
+### The trim (2026-09)
+
+`v4-beta` is the branch decaporg takes as the v4 base, so the question stopped being "is this good?"
+and became "does a v4 adopter need it?". Three things did not survive that question. All were
+self-contained, and each came out whole rather than being left half-wired.
+
+- **The LLM seam.** `LlmTransport`, `llmSession`, `LlmDocumentBridge`, `jsonPatch`, the chat panel,
+  the translate action, `DecapCmsProvider`'s `llm` prop and `CMS.registerLlmTransport`. Nothing in
+  the repo supplied a transport, so it shipped as dormant extension surface: every adopter paid for
+  it in bundle and API area, none of them could use it without writing the missing half. The two
+  seams it rode - `slots.editorPanels` and `CMS.registerLocaleAction` - stay, and are now unoccupied
+  rather than shipping a privileged first tenant. That is the better proof they work: an AI panel is
+  now exactly as easy to add as anyone else's panel, and no easier.
+- **`widgets/icon-picker`.** Never a widget - a subpath exporting one shared hook,
+  `useRovingIconFocus`, for the icon widgets that left in DCMS-1971. With those gone it exported a
+  hook with no caller, from a path shaped like a widget that did not exist.
+- **The `aws-cognito-github-proxy` backend.** Deployment-specific in a way the other backends are
+  not: it encodes one organisation's auth topology, not a git host. `local-fs` stayed - local
+  development is everyone's problem.
+
+None of this is a judgement that the features were wrong; the LLM seam in particular is a design
+worth returning to. It is a judgement about what belongs in a base other people build on. The
+history above is left standing precisely so the reasoning is recoverable when it does return.
+
+The same question sent the `map` widget the other way. DCMS-1971 extracted it to
+`extensions/widgets/map` on the reasoning above: `ol` is a dependency nothing else in the CMS uses,
+and an optional peer that the default entry registers anyway is not optional. That reasoning is
+still right about `ol`, and still wrong about the outcome. v3 bundled `map` and registered it by
+default (`decap-cms-app/src/extensions.js`), so every v3 site using `widget: map` breaks on upgrade
+with an unknown-widget error - at runtime, in the editor, not at build time. For a release whose
+whole job is to be the version people upgrade _to_, that trade is the wrong way round: a few hundred
+KB in the default bundle against a silent break in the one place a content editor cannot route
+around.
+
+So `map` moved back into `src/widgets/map/` and is registered by the default app entry again, with
+`ol` as an ordinary dependency rather than an optional peer - which is the honest declaration for a
+widget the entry point registers. Its one build-tool dependency came out in the move: the widget
+imported `ol/ol.css?inline`, a Vite-only specifier that survived into its published `dist/`, so the
+stylesheet is now vendored as a string (`olStyles.ts`) with a test pinning it to the installed `ol`.
+
+That left `extensions/` empty. The root stays, because the argument for it never depended on which
+packages happened to live there: an extension written against the published exports only, with the
+boundary enforced rather than documented, is the only way to know the published surface is
+sufficient. It caught two real holes when it was populated (above). It is waiting for the next
+package that should be built that way, not deprecated.
 
 ### Cost accepted
 
-Releasing is manual and is now five publishes rather than one, and the extension packages must be
-version-matched to the CMS (`decap-cms` is a peer, `^4.0.0`). Extension typecheck and tests require
-`pnpm --filter decap-cms build` first, the same build-order footgun `decap-cms-lib-pat` already has.
-This was weighed against aliasing subpaths to `src` in dev, and fidelity won: an alias would test a
-resolution path no consumer ever uses.
+Releasing is manual and is now one publish per package rather than one overall, and the extension
+packages must be version-matched to the CMS (`decap-cms` is a peer, `^4.0.0`). Extension typecheck
+and tests require `pnpm --filter decap-cms build` first, the same build-order footgun
+`decap-cms-lib-pat` already has. This was weighed against aliasing subpaths to `src` in dev, and
+fidelity won: an alias would test a resolution path no consumer ever uses.
 
 ## What changed
 

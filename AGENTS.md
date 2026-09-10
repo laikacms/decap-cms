@@ -33,16 +33,15 @@ Paths below (and in most other docs) are relative to `packages/decap-cms/`.
 - `app/`: classic Decap app shell + `extensions.ts` (widget/backend registration)
 - `core/`: engine, with `actions/`, `reducers/`, `redux/`, `hooks/`, `components/`, `formats/`,
   `lib/` (registry, validateConfig, i18n), `routing/` (custom router), `types/`
-- `backends/`: github, gitlab, gitea, bitbucket, azure, git-gateway, proxy, test, ...
-- `widgets/`: field widgets (string, richtext, list, object, relation, lucide-icon, radix-icon,
-  aichat, ...)
-- `ai/`: server-side AI chat adapter (fetch handler, providers, tools); widget half lives in
-  `widgets/aichat/`
+- `backends/`: github, gitlab, gitea, forgejo, bitbucket, azure, git-gateway, proxy, test, ...
+- `widgets/`: field widgets (string, richtext, list, object, relation, code, datetime, uuid, ...).
+  The `richtext` widget is the Plate/Slate editor over markdown; `markdown` is a back-compat alias
+  for it.
+- `entry-codecs/`: whole-entry-file encodings (yaml, toml, json, markdown + frontmatter)
 - `config-types/`: TS utility types deriving entry shapes from a const-asserted Decap config
 - `ui/`: design-system primitives (layering documented in `src/ui/README.md`)
-- `lib/`: shared libs: auth, richtext, util, widgets
-- `locales/`, `media/`, `dev-server/`, `editor-component-image/`,
-  `editor-component-embedded-entry/`, `default-exports/`
+- `lib/`: shared libs: auth, backend, domain, routing, util, widgets
+- `locales/`, `media/`, `dev-server/`
 
 ## Conventions
 
