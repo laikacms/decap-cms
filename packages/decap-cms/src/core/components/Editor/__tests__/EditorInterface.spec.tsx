@@ -51,8 +51,8 @@ vi.mock('../EntryLockBanner', () => ({
 vi.mock('../../../lib/slots', () => ({
   useCmsSlots: () => ({}),
 }));
-// Partial: the editor now also mounts `LlmSessionProvider`, whose bridge
-// reaches the real module for `I18N_STRUCTURE` via the actions graph.
+// Partial: the real module is reached for `I18N_STRUCTURE` via the actions
+// graph, so only the i18n readers this suite drives are overridden.
 vi.mock('../../../lib/i18n', async importOriginal => ({
   ...(await importOriginal<Record<string, unknown>>()),
   hasI18n: () => false,

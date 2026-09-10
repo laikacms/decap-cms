@@ -124,17 +124,6 @@ export { currentBackend } from './backend';
 export { Registry };
 
 /**
- * The LLM seam. The CMS ships AI UI (chat panel, translate action) and no
- * transport: supply one through `DecapCmsProvider`'s `llm` prop, or
- * `Registry.registerLlmTransport` when props cannot reach (injecting into an
- * already-compiled bundle). With no transport, no AI UI renders.
- *
- * `useLlmTransport` is exported so host-supplied UI can drive the same
- * conversation the built-in panel does.
- */
-export { useLlmTransport } from './lib/llm';
-
-/**
  * The JSON Schema validator the engine runs a widget's `schema` through when
  * validating a config. Public so an extension author shipping a widget schema
  * can assert it against the same validator the CMS will use, rather than a

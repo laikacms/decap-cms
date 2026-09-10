@@ -20,7 +20,6 @@ import type {
   CmsRegistryBackend,
   CmsWidgetParam,
   CmsWidgetValueSerializer,
-  LlmTransport,
 } from '@/lib/util/index';
 import type { Pluggable } from 'unified';
 
@@ -53,7 +52,6 @@ interface Registry {
   locales: Record<string, CmsLocalePhrases>;
   localeActions: CmsLocaleAction[];
   slots: Partial<CmsSlots>;
-  llmTransport: LlmTransport | undefined;
   eventHandlers: Record<CmsEventName, EventHandler[]>;
   formats: Record<string, CmsFormatter>;
   entryCodecs: CmsEntryCodec[];
@@ -107,7 +105,6 @@ const registry: Registry = {
   locales: {},
   localeActions: [],
   slots: {},
-  llmTransport: undefined,
   eventHandlers,
   formats: {},
   entryCodecs: [],
@@ -141,9 +138,6 @@ export default {
   registerPanel,
   getPanels,
   unregisterPanel,
-  registerLlmTransport,
-  getLlmTransport,
-  unregisterLlmTransport,
   registerEventListener,
   removeEventListener,
   getEventListeners,
@@ -520,39 +514,6 @@ export function getPanels(): EditorPanel[] {
 /** Removes a registered panel by id. No-op when it is not registered. */
 export function unregisterPanel(id: string) {
   registry.slots.editorPanels = (registry.slots.editorPanels ?? []).filter(panel => panel.id !== id);
-}
-
-/**
- * LLM transport
- *
- * The CMS ships AI *UI* (a chat panel, a translate action) and no transport;
- * `LlmTransport` is the seam a host fills in. Prefer the `llm` prop on
- * `DecapCmsProvider` — this registration exists for the case props cannot
- * reach, i.e. injecting a transport into an already-compiled bundle. The prop
- * wins when both are present (`useLlmTransport`).
- */
-export function registerLlmTransport(transport: LlmTransport) {
-  if (typeof transport?.openSession !== 'function') {
-    throw new Error(
-      'LLM transport invalid. example: CMS.registerLlmTransport({ openSession: document => session })',
-    );
-  }
-  if (registry.llmTransport) {
-    console.warn(oneLine`
-      An LLM transport was already registered; the last registration wins. A transport passed to
-      DecapCmsProvider's \`llm\` prop takes precedence over both.
-    `);
-  }
-  registry.llmTransport = transport;
-}
-
-export function getLlmTransport(): LlmTransport | undefined {
-  return registry.llmTransport;
-}
-
-/** Removes the registered transport. No-op when none is registered. */
-export function unregisterLlmTransport() {
-  registry.llmTransport = undefined;
 }
 
 export function registerCustomFormat(

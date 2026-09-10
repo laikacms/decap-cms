@@ -347,8 +347,9 @@ that are actually translatable and non-empty, an `applyValue(fieldName, value)` 
 through the same draft-change path as "copy from locale", and the bound `t`. `isAvailable` hides the
 action for a given locale pair; omit it to always render.
 
-This is the seam `decap-cms-ai-translate` plugs into — the AI translate button used to be hardcoded
-in `EditorControlPane` (DCMS-1395). Pair with `unregisterLocaleAction(name)`.
+The built-in "translate from &lt;locale&gt;" button used to be hardcoded in `EditorControlPane`; it
+moved out to this seam (DCMS-1395) and then out of the package entirely, so every locale-row action
+is now a registration. Pair with `unregisterLocaleAction(name)`.
 
 ## `registerSlot`
 
@@ -581,37 +582,6 @@ region. Registering the same `id` twice throws. `render` receives `collection`, 
 With no panels installed the drawer renders nothing at all — no toggle, no DOM. The prop-based
 equivalent is `slots.editorPanels`, and the two are concatenated (app-supplied first). Pair with
 `unregisterPanel(id)`; `getPanels()` returns a copy.
-
-## `registerLlmTransport`
-
-```ts
-function registerLlmTransport(transport: LlmTransport): void;
-```
-
-Supplies the LLM connection the CMS's AI UI talks to — the chat panel and the "translate from
-&lt;locale&gt;" action in the locale row. The CMS ships neither a model nor a transport, so with
-none configured (the default) no AI UI renders anywhere.
-
-Prefer `DecapCmsProvider`'s `llm` prop; this registration is for injecting a transport into an
-already-compiled bundle, and the prop wins when both are present. See
-`src/lib/util/types/cms/llm.ts` for the interface and `docs/contributing/decisions/architecture.md`
-for why the line falls where it does.
-
-```ts
-CMS.registerLlmTransport({
-  openSession(document) {
-    // `document` is the CMS's `LlmDocumentBridge`: read(), applyPatch(), fields().
-    // Execute the model's document tool calls against it; touch nothing else.
-    return mySession(document);
-  },
-});
-```
-
-Credentials are the transport's own business — an AI endpoint need not trust the same issuer as the
-git backend, so the CMS lends no token. A transport whose endpoint does trust the backend's token
-asks for it explicitly (`currentBackend(store.getState().config).getToken()`, both exported here and
-refresh-aware). `decap-cms-llm-dulla` is a worked implementation; see
-[docs/core/llm.md](../../../../docs/core/llm.md).
 
 ## Dispatching entry actions
 

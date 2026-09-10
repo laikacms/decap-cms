@@ -14,7 +14,6 @@ import {
 import { getLocaleActions } from '@/core/lib/registry';
 import { confirmDialog } from '@/ui';
 import { buttons, colors, Dropdown, DropdownItem, StyledDropdownButton, text } from '@/ui/default/index';
-import AiTranslateAction from './AiTranslateAction';
 import EditorControl from './EditorControl';
 
 import type { I18nInfo } from '@/core/lib/i18n';
@@ -332,16 +331,7 @@ const ControlPane = React.forwardRef<ControlPaneHandle, ControlPaneProps>(
               dropdownText={t('editor.editorControlPane.i18n.copyFromLocale')}
               onLocaleChange={copyFromOtherLocale({ targetLocale: locale ?? '', t })}
             />
-            {[
-              // The built-in translate action rides the same list as any
-              // registered one: it renders through the same render-props
-              // contract, so the seam is dogfooded rather than special-cased.
-              {
-                name: 'ai-translate',
-                render: AiTranslateAction,
-              } as CmsLocaleAction,
-              ...getLocaleActions(),
-            ]
+            {getLocaleActions()
               .filter(action =>
                 action.isAvailable?.({
                   sourceLocale: defaultLocale,

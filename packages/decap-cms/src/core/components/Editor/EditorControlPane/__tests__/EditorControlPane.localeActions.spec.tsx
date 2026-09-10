@@ -29,10 +29,10 @@ import type {
   CmsLocaleActionRenderProps,
 } from '@/lib/util/index';
 
-// The AI translate action that used to live in this package now ships as
-// `decap-cms-ai-translate` (DCMS-1395). What this package still owns
-// is the seam: resolving the i18n context and handing it to registered
-// actions. That contract is what these tests pin.
+// The translate action that used to be hardcoded in this pane is gone
+// (DCMS-1395); what this package owns is the seam: resolving the i18n
+// context and handing it to registered actions. That contract is what
+// these tests pin.
 
 const fields = [
   { name: 'title', widget: 'string', i18n: 'translate' },

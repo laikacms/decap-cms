@@ -30,15 +30,6 @@ decade of groundwork goes to the Decap CMS team; see [Credits](#credits) below.
 - **Richtext.** The `markdown` widget is also available under the name `richtext`. See
   [breaking-changes-v4-beta.md](../../docs/contributing/decisions/breaking-changes-v4-beta.md) for
   the full list of breaking changes.
-- **AI UI, and no AI.** The editor has an assistant panel and a "translate from &lt;locale&gt;"
-  action, and the package carries no model, endpoint or AI SDK. Both render only once a host
-  supplies an `LlmTransport`, through `DecapCmsProvider`'s `llm` prop or `CMS.registerLlmTransport`.
-  A transport can read and patch the open draft through `LlmDocumentBridge` and nothing else. See
-  [docs/contributing/decisions/architecture.md](../../docs/contributing/decisions/architecture.md)
-  for where the line falls and why.
-  - The older `ai-chat` widget (`decap-cms-widget-aichat`) and standalone translate action
-    (`decap-cms-ai-translate`) predate this and are **deprecated**; the panel and the locale-row
-    action in the CMS replace them.
 
 ## Installation
 

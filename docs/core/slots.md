@@ -128,7 +128,7 @@ edit form. The full prop bundle is pre-resolved so the renderer stays presentati
 - Props: `EditorToolbarRenderProps` (persist/publish/delete state and handlers, `user?`,
   `hasChanged?`, `displayUrl?`, `collection`, `hasWorkflow?`, `useOpenAuthoring?`, and more — see
   the interface in `slots.tsx`)
-- Consumer: `packages/decap-cms/src/core/components/Editor/EditorInterface.tsx:333`
+- Consumer: `packages/decap-cms/src/core/components/Editor/EditorInterface.tsx:332`
 
 ### `renderEditorViewControls`
 
@@ -139,7 +139,7 @@ pane, and scroll-sync. Each toggle arrives as `<feature>Enabled` (should it rend
 - Props: `EditorViewControlsRenderProps` (`i18nEnabled`, `i18nVisible`, `onToggleI18n`,
   `previewEnabled`, `previewVisible`, `onTogglePreview`, `scrollSyncEnabled`, `scrollSyncVisible`,
   `onToggleScrollSync`)
-- Consumer: `packages/decap-cms/src/core/components/Editor/EditorInterface.tsx:333`
+- Consumer: `packages/decap-cms/src/core/components/Editor/EditorInterface.tsx:332`
 
 ### `renderMediaLibraryCard`
 
@@ -187,12 +187,9 @@ byte-identical for a deployment that has none.
 >
 ```
 
-The CMS's own assistant (`AiChatPanel`) is one of these, added automatically when an `LlmTransport`
-is configured — see `docs/contributing/decisions/architecture.md`.
-
 - Props: `EditorPanel[]`, each rendering with `EditorPanelRenderProps` (`collection`, `entry`,
   `locale?`, `onClose`)
-- Consumer: `packages/decap-cms/src/core/components/Editor/EditorPanels.tsx:101`
+- Consumer: `packages/decap-cms/src/core/components/Editor/EditorPanels.tsx:99`
 
 ## Adding a new slot
 

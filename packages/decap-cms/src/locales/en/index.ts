@@ -113,12 +113,6 @@ const en = {
         copyFromLocaleConfirm:
           'Do you want to fill in data from %{locale} locale?\nAll existing content will be overwritten.',
         copyFromLocaleConfirmTitle: 'Copy from locale',
-        translateFromDefault: 'Translate from %{locale}',
-        translatingFromDefault: 'Translating…',
-        translateFromDefaultConfirm:
-          'Do you want to fill in %{locale} using AI translation?\nAll existing content will be overwritten.',
-        translateFromDefaultConfirmTitle: 'Translate from default locale',
-        translateFailed: 'AI translation failed: %{error}',
       },
     },
     editor: {
@@ -182,23 +176,6 @@ const en = {
       previewPaneTitle: 'Preview pane',
       newEntryTitle: 'New - %{collectionLabel}',
       untitledEntryTitle: 'Untitled - %{collectionLabel}',
-    },
-    aiChat: {
-      title: 'Assistant',
-      welcome: 'Ask the assistant about this entry, or ask it to make a change.',
-      placeholder: 'Ask the assistant...',
-      send: 'Send',
-      thinking: 'Thinking...',
-      sendFailed: 'Failed to send the message',
-      conversations: 'Conversations',
-      conversation: 'Conversation',
-      newConversation: 'New conversation',
-      newButton: '+ New',
-      toolCall: {
-        pending: 'Running %{name}...',
-        done: 'Ran %{name}',
-        error: '%{name} failed',
-      },
     },
     editorToolbar: {
       publishing: 'Publishing...',

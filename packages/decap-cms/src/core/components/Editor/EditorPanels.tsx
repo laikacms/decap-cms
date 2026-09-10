@@ -1,10 +1,8 @@
 import styled from '@emotion/styled';
 import React, { useMemo, useState } from 'react';
 
-import { useLlmTransport } from '@/core/lib/llm';
 import { useCmsSlots } from '@/core/lib/slots';
 import { colors, Icon, lengths, shadows, zIndex } from '@/ui/default/index';
-import AiChatPanel from './AiChatPanel/AiChatPanel';
 
 import type { EditorPanel, EditorPanelRenderProps } from '@/core/lib/slots';
 import type { TranslateFunction } from '@/ui/default/index';
@@ -99,28 +97,16 @@ export interface EditorPanelsProps {
 
 function EditorPanels({ panelProps, t, onToggleRectChange }: EditorPanelsProps) {
   const { editorPanels } = useCmsSlots();
-  const transport = useLlmTransport();
   const [isOpen, setIsOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | undefined>(undefined);
   const toggleRef = React.useRef<HTMLButtonElement | null>(null);
 
   const available = useMemo(
-    () => {
-      // The built-in assistant is a panel like any other, and appears only
-      // when the deployment configured an `LlmTransport`.
-      const builtIn: EditorPanel[] = transport
-        ? [{
-          id: 'ai-chat',
-          label: t('editor.aiChat.title'),
-          render: props => <AiChatPanel {...props} />,
-        }]
-        : [];
-
-      return [...builtIn, ...(editorPanels ?? [])].filter((panel: EditorPanel) =>
+    () =>
+      (editorPanels ?? []).filter((panel: EditorPanel) =>
         panel.isAvailable?.({ collection: panelProps.collection, entry: panelProps.entry }) ?? true
-      );
-    },
-    [editorPanels, transport, t, panelProps.collection, panelProps.entry],
+      ),
+    [editorPanels, panelProps.collection, panelProps.entry],
   );
 
   // DCMS-2134: report the collapsed pill's rect (and clear it on unmount, on
