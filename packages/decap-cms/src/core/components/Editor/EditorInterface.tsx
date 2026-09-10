@@ -169,10 +169,12 @@ const FieldNavigatorContainer = styled.div`
   border-right: 1px solid ${colors.textFieldBorder};
 `;
 
-const EditorContentContainer = styled.div`
+const EditorContentContainer = styled.div<{ $drawerReserve: number }>`
   flex: 1 1 auto;
   min-width: 0;
   height: 100%;
+  padding-right: ${(props: { $drawerReserve: number }) => props.$drawerReserve}px;
+  transition: padding-right 0.2s ease;
 `;
 
 // Screen-reader-only page title. The toolbar's `<BackCollection>` already
@@ -380,6 +382,12 @@ function EditorInterface(props: EditorInterfaceProps) {
   const viewControlsRef = React.useRef<HTMLDivElement | null>(null);
   const [assistantToggleRect, setAssistantToggleRect] = React.useState<DOMRect | null>(null);
   const [previewChromeReserve, setPreviewChromeReserve] = React.useState({ width: 0, height: 0 });
+  // DCMS-2281: the assistant drawer (`EditorPanels`) is `position: absolute`
+  // over the right edge of `Editor`, so opening it used to overlay the
+  // preview column instead of displacing it. `EditorContentContainer` below
+  // reserves this much space on its right so the split-pane area (and the
+  // no-preview / dual-editor layouts) shrink to sit beside the open drawer.
+  const [assistantDrawerWidth, setAssistantDrawerWidth] = React.useState<number | null>(null);
   // Which field (and which focusable within it) last held focus. Lives here,
   // OUTSIDE the `key={draftKey}` subtree, so it survives the remount that a
   // save triggers (persist success re-creates the draft with a new key).
@@ -851,7 +859,10 @@ function EditorInterface(props: EditorInterfaceProps) {
                 />
               </FieldNavigatorContainer>
             )}
-            <EditorContentContainer>
+            <EditorContentContainer
+              data-testid="editor-content-container"
+              $drawerReserve={assistantDrawerWidth ?? 0}
+            >
               <EditorContent
                 i18nVisible={!!i18nVisible}
                 previewVisible={!!previewVisibleResolved}
@@ -869,6 +880,7 @@ function EditorInterface(props: EditorInterfaceProps) {
             }}
             t={t}
             onToggleRectChange={setAssistantToggleRect}
+            onDrawerWidthChange={setAssistantDrawerWidth}
           />
         </Editor>
       </EditorContainer>

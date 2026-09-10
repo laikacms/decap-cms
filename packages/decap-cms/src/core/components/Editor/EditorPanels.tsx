@@ -95,14 +95,21 @@ export interface EditorPanelsProps {
    * of letting the pill float over wrapped preview content.
    */
   onToggleRectChange?: (rect: DOMRect | null) => void;
+  /**
+   * DCMS-2281: reports the open drawer's rendered width in CSS px (or `null`
+   * once it closes/unmounts) so the editor layout can shrink the split-pane
+   * area beside it instead of letting the drawer overlay on top of it.
+   */
+  onDrawerWidthChange?: (width: number | null) => void;
 }
 
-function EditorPanels({ panelProps, t, onToggleRectChange }: EditorPanelsProps) {
+function EditorPanels({ panelProps, t, onToggleRectChange, onDrawerWidthChange }: EditorPanelsProps) {
   const { editorPanels } = useCmsSlots();
   const transport = useLlmTransport();
   const [isOpen, setIsOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | undefined>(undefined);
   const toggleRef = React.useRef<HTMLButtonElement | null>(null);
+  const drawerRef = React.useRef<HTMLElement | null>(null);
 
   const available = useMemo(
     () => {
@@ -145,6 +152,29 @@ function EditorPanels({ panelProps, t, onToggleRectChange }: EditorPanelsProps) 
     };
   }, [onToggleRectChange, available.length, isOpen]);
 
+  // DCMS-2281: report the open drawer's width (and clear it on close/unmount)
+  // so `EditorInterface` can shrink the split-pane region beside it — the
+  // drawer is `position: absolute`, so without this the preview column kept
+  // its pre-open width and the drawer simply painted over its right edge.
+  React.useLayoutEffect(() => {
+    if (!onDrawerWidthChange) return undefined;
+    const el = drawerRef.current;
+    if (!el) {
+      onDrawerWidthChange(null);
+      return undefined;
+    }
+    const report = () => onDrawerWidthChange(el.getBoundingClientRect().width);
+    report();
+    const resizeObserver = new ResizeObserver(report);
+    resizeObserver.observe(el);
+    window.addEventListener('resize', report);
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', report);
+      onDrawerWidthChange(null);
+    };
+  }, [onDrawerWidthChange, isOpen]);
+
   if (available.length === 0) {
     return null;
   }
@@ -167,7 +197,7 @@ function EditorPanels({ panelProps, t, onToggleRectChange }: EditorPanelsProps) 
         {!isOpen && available.length === 1 ? available[0].label : null}
       </ToggleButton>
       {isOpen && (
-        <Drawer aria-label={t('editor.editorInterface.panels')}>
+        <Drawer ref={drawerRef} aria-label={t('editor.editorInterface.panels')}>
           {available.length > 1 && (
             <TabList role="tablist">
               {available.map(panel => (
