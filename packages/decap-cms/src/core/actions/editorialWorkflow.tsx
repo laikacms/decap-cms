@@ -460,7 +460,20 @@ export function persistUnpublishedEntry(collection: Collection, existingUnpublis
           dismissAfter: 4000,
         }),
       );
-      dispatch(unpublishedEntryPersisted(collection, serializedEntry));
+      // `serializedEntry.slug` is the pre-save draft slug, which is still
+      // empty/placeholder for a brand-new entry - the real slug only comes
+      // back as `newSlug` (assigned by the backend during persist). Notifying
+      // the workflow store with a stale slug would key the entity under the
+      // wrong (often empty) `${collection}.${slug}` string, creating a
+      // phantom board entry with a broken edit link (DCMS-2266 follow-up).
+      // Only dispatch here for the same-slug case (editing an existing
+      // entry in place, where the reducer merges onto the previous entity
+      // and preserves its workflow status); when the slug changed, the
+      // `loadUnpublishedEntry`/`navigateToEntry` call below already
+      // refetches and stores the entry under its real, final slug.
+      if (entry.slug === newSlug) {
+        dispatch(unpublishedEntryPersisted(collection, serializedEntry));
+      }
       // Also refreshes relation widget search results, which share the
       // collection tag (DCMS-606). UNPUBLISHED_TAG is deliberately NOT
       // invalidated on local writes: the persist/publish/delete reducers apply
