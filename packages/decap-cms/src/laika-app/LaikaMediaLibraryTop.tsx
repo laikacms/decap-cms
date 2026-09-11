@@ -78,6 +78,7 @@ function LaikaMediaLibraryTop({
   onUpload,
   onOpenCamera,
   onOpenScreenCapture,
+  onOpenQrScan,
   query,
   onSearchChange,
   onSearchKeyDown,
@@ -164,6 +165,17 @@ function LaikaMediaLibraryTop({
               onClick={onOpenScreenCapture}
             >
               {t('mediaLibrary.mediaLibraryModal.captureScreen')}
+            </LaikaButton>
+          )}
+          {!onOpenQrScan ? null : (
+            <LaikaButton
+              variant="ghost"
+              size="sm"
+              disabled={uploadDisabled}
+              aria-disabled={uploadDisabled}
+              onClick={onOpenQrScan}
+            >
+              {t('mediaLibrary.mediaLibraryModal.scanQrCode')}
             </LaikaButton>
           )}
           <LaikaButton

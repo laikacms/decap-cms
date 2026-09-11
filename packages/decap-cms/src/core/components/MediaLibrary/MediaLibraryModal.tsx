@@ -133,6 +133,7 @@ interface MediaLibraryModalProps {
   handlePersist: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onOpenCamera?: (() => void) | undefined;
   onOpenScreenCapture?: (() => void) | undefined;
+  onOpenQrScan?: (() => void) | undefined;
   handleDelete: () => void;
   handleInsert: () => void;
   handleDownload?: (() => void) | undefined;
@@ -174,6 +175,7 @@ function MediaLibraryModal({
   handlePersist,
   onOpenCamera,
   onOpenScreenCapture,
+  onOpenQrScan,
   handleDelete,
   handleInsert,
   handleDownload,
@@ -233,6 +235,7 @@ function MediaLibraryModal({
           onUpload: handlePersist,
           onOpenCamera,
           onOpenScreenCapture,
+          onOpenQrScan,
           query,
           onSearchChange: handleSearchChange,
           onSearchKeyDown: handleSearchKeyDown,

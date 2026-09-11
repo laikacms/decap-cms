@@ -23,6 +23,14 @@ plain `file` widget never shows them even when the browser supports the capture 
 `packages/decap-cms/src/core/components/MediaLibrary/MediaLibrary.tsx`). When the browser lacks one
 of the two APIs, only the supported button is shown.
 
+The media library modal also offers a "Scan QR code" button (DCMS-2229), which decodes either a
+live camera stream or an uploaded image and inserts the decoded text directly as the field value —
+a shortcut for typing a URL by hand via "Insert from URL", not another way to upload a file. It's
+gated on `forImage` only (not on `getUserMedia` support), since decoding from an uploaded image
+still works with no camera API at all; see `QrScanDialog.tsx` and `qrScan.ts` (the pure decode
+helpers, built on the `jsqr` pure-JS decoder, lazy-loaded on first use) in
+`packages/decap-cms/src/core/components/MediaLibrary/`.
+
 ## Config
 
 ```yaml

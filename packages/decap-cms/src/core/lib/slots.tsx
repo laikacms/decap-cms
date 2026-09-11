@@ -160,6 +160,8 @@ export interface MediaLibraryTopRenderProps {
    */
   onOpenCamera?: (() => void) | undefined;
   onOpenScreenCapture?: (() => void) | undefined;
+  /** DCMS-2229 QR-code scan; see MediaLibraryTop's onOpenQrScan for the gating rules. */
+  onOpenQrScan?: (() => void) | undefined;
   query?: string | undefined;
   onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onSearchKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;

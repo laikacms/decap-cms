@@ -57,6 +57,19 @@ vi.mock('@/core/components/MediaLibrary/CaptureDialog', () => {
   };
 });
 
+// Isolate the MediaLibrary <-> QR-scan-dialog wiring (DCMS-2229) from
+// QrScanDialog's own getUserMedia/canvas/decode internals, which are
+// covered separately in QrScanDialog.spec.tsx.
+vi.mock('@/core/components/MediaLibrary/QrScanDialog', () => ({
+  default: ({ onConfirm, onCancel }: any) => (
+    <div data-testid="fake-qr-scan-dialog">
+      <button onClick={() => onConfirm('https://example.com/scanned.png')}>confirm-qr-scan</button>
+      <button onClick={() => onConfirm('not a url')}>confirm-qr-scan-invalid</button>
+      <button onClick={onCancel}>cancel-qr-scan</button>
+    </div>
+  ),
+}));
+
 // Wraps the real MediaLibraryModal to record the props MediaLibrary computes
 // for it (DCMS-2247), specifically onOpenCamera/onOpenScreenCapture — these
 // are internal to MediaLibrary and not otherwise observable from outside it.
@@ -511,6 +524,74 @@ describe('MediaLibrary', () => {
         expect(document.querySelector('[data-testid="fake-crop-dialog"]')).not.toBeNull(),
       );
       expect(props.persistMedia).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('QR-code scan (DCMS-2229)', () => {
+    it('does not show the scan button for the standalone /media route', () => {
+      renderMediaLibrary({ isVisible: true, forImage: false });
+
+      expect(screen.queryByText('mediaLibrary.mediaLibraryModal.scanQrCode')).toBeNull();
+      expect(lastMediaLibraryModalProps?.onOpenQrScan).toBeUndefined();
+    });
+
+    // Unlike camera/screen capture, the scan button isn't gated on
+    // getUserMedia support: decoding from an uploaded image still works
+    // with no camera API at all (see MediaLibraryTop's onOpenQrScan doc).
+    it('still shows the scan button for the image picker when the browser has no mediaDevices support', () => {
+      const originalMediaDevices = Object.getOwnPropertyDescriptor(window.navigator, 'mediaDevices');
+      Object.defineProperty(window.navigator, 'mediaDevices', { value: undefined, configurable: true });
+
+      try {
+        renderMediaLibrary({ isVisible: true, forImage: true });
+        expect(screen.queryByText('mediaLibrary.mediaLibraryModal.scanQrCode')).not.toBeNull();
+      } finally {
+        if (originalMediaDevices) {
+          Object.defineProperty(window.navigator, 'mediaDevices', originalMediaDevices);
+        }
+      }
+    });
+
+    it('opens the scan dialog and inserts the decoded URL directly on confirm, without persisting an asset', async () => {
+      const { props } = renderMediaLibrary({ isVisible: true, forImage: true });
+
+      fireEvent.click(screen.getByText('mediaLibrary.mediaLibraryModal.scanQrCode'));
+      await screen.findByTestId('fake-qr-scan-dialog');
+
+      fireEvent.click(screen.getByText('confirm-qr-scan'));
+
+      expect(props.insertMedia).toHaveBeenCalledTimes(1);
+      expect(props.insertMedia).toHaveBeenCalledWith('https://example.com/scanned.png', undefined);
+      expect(props.persistMedia).not.toHaveBeenCalled();
+      expect(props.closeMediaLibrary).toHaveBeenCalledTimes(1);
+      expect(screen.queryByTestId('fake-qr-scan-dialog')).toBeNull();
+    });
+
+    it('shows an alert and does not insert when the decoded text is not a safe URL', async () => {
+      vi.mocked(showAlert).mockClear();
+      const { props } = renderMediaLibrary({ isVisible: true, forImage: true });
+
+      fireEvent.click(screen.getByText('mediaLibrary.mediaLibraryModal.scanQrCode'));
+      await screen.findByTestId('fake-qr-scan-dialog');
+
+      fireEvent.click(screen.getByText('confirm-qr-scan-invalid'));
+
+      expect(showAlert).toHaveBeenCalledTimes(1);
+      expect(props.insertMedia).not.toHaveBeenCalled();
+      expect(props.closeMediaLibrary).not.toHaveBeenCalled();
+    });
+
+    it('closes without inserting when the scan dialog is cancelled', async () => {
+      const { props } = renderMediaLibrary({ isVisible: true, forImage: true });
+
+      fireEvent.click(screen.getByText('mediaLibrary.mediaLibraryModal.scanQrCode'));
+      await screen.findByTestId('fake-qr-scan-dialog');
+
+      fireEvent.click(screen.getByText('cancel-qr-scan'));
+
+      expect(props.insertMedia).not.toHaveBeenCalled();
+      expect(props.closeMediaLibrary).not.toHaveBeenCalled();
+      expect(screen.queryByTestId('fake-qr-scan-dialog')).toBeNull();
     });
   });
 });

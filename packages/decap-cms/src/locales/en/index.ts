@@ -349,6 +349,8 @@ const en = {
       fileTooLargeTitle: 'File too large',
       invalidImageFile: '"%{name}" is not a valid image file and cannot be used here.',
       invalidImageFileTitle: 'Invalid image file',
+      qrScanInvalidUrl: '"%{text}" is not a valid URL and cannot be inserted.',
+      qrScanInvalidUrlTitle: 'Invalid QR code content',
     },
     mediaLibraryModal: {
       loading: 'Loading...',
@@ -365,6 +367,7 @@ const en = {
       download: 'Download',
       captureCamera: 'Take photo',
       captureScreen: 'Capture screen',
+      scanQrCode: 'Scan QR code',
       deleting: 'Deleting...',
       deleteSelected: 'Delete selected',
       chooseSelected: 'Choose selected',
@@ -390,6 +393,17 @@ const en = {
       unsupported: 'This browser does not support this capture method.',
       permissionError: 'Could not access the camera or screen. Please check permissions and try again.',
       captureError: 'Capturing the image failed. Please try again.',
+    },
+    qrScanDialog: {
+      title: 'Scan a QR code',
+      hint: 'Point the camera at a QR code, or upload an image containing one.',
+      cancel: 'Cancel',
+      uploadLabel: 'Upload image to scan',
+      uploadDecoding: 'Scanning...',
+      cameraUnsupported: 'This browser does not support the camera. You can still upload an image to scan.',
+      permissionError:
+        'Could not access the camera. Please check permissions and try again, or upload an image to scan.',
+      decodeError: 'No QR code was found in that image. Please try a different one.',
     },
   },
   ui: {
