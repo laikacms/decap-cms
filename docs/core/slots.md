@@ -42,7 +42,33 @@ and `app/index.ts`, so they're available from the package's top-level entry poin
 Nesting `CmsSlotsProvider`s is supported: the nearest provider's `slots` object is what
 `useCmsSlots()` resolves. It replaces the whole object rather than merging with an outer provider,
 so a key omitted by the inner provider only inherits the outer value if the inner provider passes
-that key through explicitly (or supplies the same value).
+that key through explicitly (or supplies the same value). This "replace" behavior is specific to
+nesting `CmsSlotsProvider`s — it does not describe how provider slots interact with
+package-registered slots; see the next section.
+
+## Package-registered slots
+
+`CmsSlotsProvider` isn't the only slot source. An installed extension package can contribute a slot
+without the host app wiring it through the provider at all, via the registry APIs exported from
+`packages/decap-cms/src/core/lib/registry.tsx`:
+
+```ts
+import CMS from '@laikacms/decap-cms/core';
+
+CMS.registerSlot('renderEntryCard', props => <MyExtensionEntryCard {...props} />);
+CMS.unregisterSlot('renderEntryCard');
+```
+
+`useCmsSlots()` (`packages/decap-cms/src/core/lib/slots.tsx`) merges both sources: the
+package-registered slots (via `getSlots()`) and the app's `CmsSlotsProvider` slots. **The app wins on
+key conflicts** — `{ ...registeredSlots, ...appSlots }` — so a deployment can always override
+whatever a dependency renders, and a component that finds its slot `undefined` in both sources still
+falls back to the default rendering as described above.
+
+`editorPanels` is additive within a single `CmsSlots` object (see below), and that additivity
+extends across *both* sources here too: panels from `CmsSlotsProvider` and panels registered via
+`CMS.registerPanel` are concatenated rather than one replacing the other, with the app-supplied
+panels ordered first.
 
 ## Slot keys
 
@@ -173,7 +199,10 @@ delete/insert buttons. All click and search-input handlers are pre-resolved.
 
 **Additive, unlike every slot above.** Panels are extra UI docked beside the entry form in a drawer,
 and several can coexist: the array supplied here is concatenated with any panels installed through
-`CMS.registerPanel` (app-supplied first) and shown as tabs, rather than one replacing the other.
+`CMS.registerPanel` (app-supplied first) and shown as tabs, rather than one replacing the other. This
+additive merge also applies across the two slot sources described in
+[Package-registered slots](#package-registered-slots) — panels from `CmsSlotsProvider` and panels
+from `CMS.registerPanel` both end up as tabs.
 
 With no panels installed the drawer renders nothing at all — no toggle and no DOM — so the editor is
 byte-identical for a deployment that has none.
