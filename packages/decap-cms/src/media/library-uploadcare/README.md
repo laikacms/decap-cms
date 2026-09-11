@@ -28,11 +28,11 @@ media_library:
 ## `media_library.config`
 
 - `publicKey` (required) — your Uploadcare project's public key. Set as
-  `window.UPLOADCARE_PUBLIC_KEY` on `init()` (`index.ts:112,115`); the widget will not authenticate
+  `window.UPLOADCARE_PUBLIC_KEY` on `init()` (`index.ts:116`); the widget will not authenticate
   without it.
 - All other keys under `config` are passed through unmodified as the
   [Uploadcare widget's own config object](https://uploadcare.com/docs/uploads/file-uploader/#configuration)
-  (`index.ts:112-113`, `globalConfig`), merged over a fixed `defaultConfig` of
+  (`index.ts:113-114`, `globalConfig`), merged over a fixed `defaultConfig` of
   `{ previewStep: true, integration: 'DecapCMS-Uploadcare-MediaLibrary' }` (`index.ts:10-13`) — both
   of which can be overridden by the config. Notably, `config.multiple` controls whether the widget
   allows selecting more than one file (subject to the `allowMultiple` override below).
@@ -47,7 +47,7 @@ top of the raw Uploadcare widget — `index.ts:44-47`, `Settings`:
 
 | Key                 | Type    | Default | Description                                                                                                                                                                                                                                                                                                                                                 |
 | ------------------- | ------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `defaultOperations` | string  | none    | A [CDN operations](https://uploadcare.com/docs/transformations/image/) string appended to the CDN URL of inserted **images** only (`isImage` must be `true`), e.g. `'/preview/-/resize/800x/'`. Must start with `/` — if it doesn't, a `console.warn` is logged at `index.ts:66-69` (the value is still used as-is; the widget does not throw or strip it). |
+| `defaultOperations` | string  | none    | A [CDN operations](https://uploadcare.com/docs/transformations/image/) string appended to the CDN URL of inserted **images** only (`isImage` must be `true`), e.g. `'/preview/-/resize/800x/'`. Must start with `/` — if it doesn't, a `console.warn` is logged at `index.ts:68-70` (the value is still used as-is; the widget does not throw or strip it). |
 | `autoFilename`      | boolean | `false` | When `true` and the resulting URL has no filename segment (i.e. it ends in `/`), appends the original file's name to the URL. Applied after `defaultOperations`, so the filename lands after the operations path.                                                                                                                                           |
 
 ```yaml
