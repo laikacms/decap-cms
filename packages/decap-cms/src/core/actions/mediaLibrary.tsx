@@ -98,6 +98,18 @@ export function openMediaLibrary(
     allowMultiple?: boolean,
     config?: Record<string, unknown>,
     field?: EntryField,
+    /**
+     * DCMS-2246: the `/media` deep-link opens the library as the primary
+     * view rather than as a picker atop other work (no `controlID`/`field`
+     * to insert into). Rendering it as a blocking Base UI modal there traps
+     * the whole app shell — including the header's Quick add menu — behind
+     * a full-viewport, always-on `pointer-events: auto` layer even though
+     * the trigger itself reports `aria-expanded="false"`. Callers that open
+     * the library as a true picker (widgets, the header's Media button)
+     * should leave this unset to keep the existing modal (blocking)
+     * behavior.
+     */
+    nonModal?: boolean,
   } = {},
 ) {
   return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
@@ -611,6 +623,7 @@ function mediaLibraryOpened(payload: {
   allowMultiple?: boolean,
   config?: Record<string, unknown>,
   field?: EntryField,
+  nonModal?: boolean,
 }) {
   return { type: MEDIA_LIBRARY_OPEN, payload } as const;
 }

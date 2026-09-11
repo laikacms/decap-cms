@@ -73,6 +73,13 @@ interface ModalProps {
    */
   ariaLabel?: string;
   ariaLabelledby?: string;
+  /**
+   * DCMS-2246: forwarded to Base UI's `Dialog.Root`. Defaults to `true`
+   * (the historical behavior — backdrop + focus trap). Callers that render
+   * the dialog as a primary view rather than a picker popped over other
+   * work (e.g. the `/media` deep link) pass `false` to skip the backdrop.
+   */
+  modal?: boolean;
 }
 
 /**
@@ -116,12 +123,21 @@ export function replayOutsidePress(eventDetails: DialogRoot.ChangeEventDetails) 
   });
 }
 
-export function Modal({ isOpen, children, className, onClose, ariaLabel, ariaLabelledby }: ModalProps) {
+export function Modal({
+  isOpen,
+  children,
+  className,
+  onClose,
+  ariaLabel,
+  ariaLabelledby,
+  modal = true,
+}: ModalProps) {
   const container = typeof document !== 'undefined' ? (document.getElementById(ROOT_ID) ?? undefined) : undefined;
 
   return (
     <Dialog.Root
       open={isOpen}
+      modal={modal}
       onOpenChange={(open, eventDetails) => {
         if (!open) {
           onClose();
