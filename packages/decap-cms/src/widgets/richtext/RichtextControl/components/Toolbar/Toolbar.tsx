@@ -89,7 +89,7 @@ export default function Toolbar({
           <MarkToolbarButton
             type="bold"
             nodeType={BoldPlugin.key}
-            label={t('editor.editorWidgets.markdown.bold')}
+            label={t('editor.editorWidgets.richtext.bold')}
             icon="bold"
             disabled={disabled}
           />
@@ -98,7 +98,7 @@ export default function Toolbar({
           <MarkToolbarButton
             type="italic"
             nodeType={ItalicPlugin.key}
-            label={t('editor.editorWidgets.markdown.italic')}
+            label={t('editor.editorWidgets.richtext.italic')}
             icon="italic"
             disabled={disabled}
           />
@@ -107,7 +107,7 @@ export default function Toolbar({
           <MarkToolbarButton
             type="strikethrough"
             nodeType={StrikethroughPlugin.key}
-            label={t('editor.editorWidgets.markdown.strikethrough')}
+            label={t('editor.editorWidgets.richtext.strikethrough')}
             icon="strikethrough"
             disabled={disabled}
           />
@@ -116,7 +116,7 @@ export default function Toolbar({
           <MarkToolbarButton
             type="code"
             nodeType={CodePlugin.key}
-            label={t('editor.editorWidgets.markdown.code')}
+            label={t('editor.editorWidgets.richtext.code')}
             icon="code"
             disabled={disabled}
           />
@@ -124,7 +124,7 @@ export default function Toolbar({
         {isVisible('link') && (
           <LinkToolbarButton
             type="link"
-            label={t('editor.editorWidgets.markdown.link')}
+            label={t('editor.editorWidgets.richtext.link')}
             icon="link"
             disabled={disabled}
             t={t}
@@ -134,7 +134,7 @@ export default function Toolbar({
         {isVisible('quote') && (
           <BlockquoteToolbarButton
             type="quote"
-            label={t('editor.editorWidgets.markdown.quote')}
+            label={t('editor.editorWidgets.richtext.quote')}
             icon="quote"
             disabled={disabled}
           />
@@ -142,7 +142,7 @@ export default function Toolbar({
         {isVisible('bulleted-list') && (
           <ListToolbarButton
             type="ul"
-            label={t('editor.editorWidgets.markdown.bulletedList')}
+            label={t('editor.editorWidgets.richtext.bulletedList')}
             icon="list-bulleted"
             disabled={disabled}
           />
@@ -150,7 +150,7 @@ export default function Toolbar({
         {isVisible('numbered-list') && (
           <ListToolbarButton
             type="ol"
-            label={t('editor.editorWidgets.markdown.numberedList')}
+            label={t('editor.editorWidgets.richtext.numberedList')}
             icon="list-numbered"
             disabled={disabled}
           />
@@ -165,11 +165,11 @@ export default function Toolbar({
       {isShowModeToggle && (
         <ToolbarToggle>
           <ToolbarToggleLabel isActive={!rawMode} offPosition>
-            {t('editor.editorWidgets.markdown.richText')}
+            {t('editor.editorWidgets.richtext.richText')}
           </ToolbarToggleLabel>
           <StyledToggle active={!!rawMode} onChange={onToggleMode} />
           <ToolbarToggleLabel isActive={rawMode}>
-            {t('editor.editorWidgets.markdown.markdown')}
+            {t('editor.editorWidgets.richtext.markdown')}
           </ToolbarToggleLabel>
         </ToolbarToggle>
       )}

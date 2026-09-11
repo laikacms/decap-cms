@@ -72,7 +72,7 @@ export default function EditorComponentsToolbarButton({
           <DropdownButton>
             <ToolbarButton
               type="headings"
-              label={t('editor.editorWidgets.markdown.addComponent')}
+              label={t('editor.editorWidgets.richtext.addComponent')}
               icon="add-with"
               disabled={disabled}
               isActive={false}

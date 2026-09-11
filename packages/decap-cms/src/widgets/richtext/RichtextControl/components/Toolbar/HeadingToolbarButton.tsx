@@ -95,7 +95,7 @@ export default function HeadingToolbarButton({
           <DropdownButton>
             <ToolbarButton
               type="headings"
-              label={t('editor.editorWidgets.markdown.headings')}
+              label={t('editor.editorWidgets.richtext.headings')}
               icon="h-options"
               disabled={disabled}
               isActive={!disabled && blockTypeToButton[value] !== undefined}

@@ -9,7 +9,7 @@ interface LinkClickArgs {
 }
 
 export function handleLinkClick({ editor, t }: LinkClickArgs) {
-  const url = window.prompt(t('editor.editorWidgets.markdown.linkPrompt'), '');
+  const url = window.prompt(t('editor.editorWidgets.richtext.linkPrompt'), '');
   if (url) {
     upsertLink(editor, { url, skipValidation: true });
   } else if (url === '') {
