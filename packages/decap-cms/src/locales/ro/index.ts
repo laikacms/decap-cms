@@ -218,7 +218,7 @@ const ro = {
     },
     mediaLibrary: {
       onDelete: 'Ești sigur/ă că dorești să ștergi fișierul selectat?',
-      fileTooLarge: 'Fișier prea mare.\nConfigurarea nu permite fișiere mai mari de %{size} KB.',
+      fileTooLarge: 'Fișier prea mare.\nConfigurarea nu permite fișiere mai mari de %{size} MiB.',
     },
     mediaLibraryModal: {
       loading: 'Se încarcă...',

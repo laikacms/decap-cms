@@ -238,7 +238,7 @@ const de = {
       onReplaceTitle: '"%{name}" ersetzen?',
       onReplaceConfirm: 'Ersetzen',
       onReplaceCancel: 'Abbrechen',
-      fileTooLarge: 'Datei zu groß.\nErlaubt sind nur Dateien bis %{size} kB.',
+      fileTooLarge: 'Datei zu groß.\nErlaubt sind nur Dateien bis %{size} MiB.',
     },
     mediaLibraryModal: {
       loading: 'Laden...',

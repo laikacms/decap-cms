@@ -223,7 +223,7 @@ const he = {
     },
     mediaLibrary: {
       onDelete: 'האם ברצונך למחוק את פריט המדיה הזה?',
-      fileTooLarge: 'הקובץ גדול מדי.\nמוגדר לא לאפשר העלאת קבצים גדולים מ-%{size} קילובייט.',
+      fileTooLarge: 'הקובץ גדול מדי.\nמוגדר לא לאפשר העלאת קבצים גדולים מ-%{size} MiB.',
     },
     mediaLibraryModal: {
       loading: 'טעינה...',

@@ -228,7 +228,7 @@ const ko = {
     },
     mediaLibrary: {
       onDelete: '선택하신 미디어를 삭제하시겠습니까?',
-      fileTooLarge: '파일이 너무 큽니다.\n%{size} kB 보다 큰 파일을 허용하지 않도록 구성되어 있습니다.',
+      fileTooLarge: '파일이 너무 큽니다.\n%{size} MiB 보다 큰 파일을 허용하지 않도록 구성되어 있습니다.',
     },
     mediaLibraryModal: {
       loading: '불러오는 중...',

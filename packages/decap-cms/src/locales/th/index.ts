@@ -231,7 +231,7 @@ const th = {
     },
     mediaLibrary: {
       onDelete: 'คุณแน่ใจหรือว่าจะลบไฟล์สื่อที่ถูกเลือก?',
-      fileTooLarge: 'ไฟล์ใหญ่เกินไป\n ค่าที่ตั้งไว้ไม่ยอมรับไฟล์ที่ใหญ่กว่า %{size} kB.',
+      fileTooLarge: 'ไฟล์ใหญ่เกินไป\n ค่าที่ตั้งไว้ไม่ยอมรับไฟล์ที่ใหญ่กว่า %{size} MiB.',
     },
     mediaLibraryModal: {
       loading: 'กำลังโหลด...',

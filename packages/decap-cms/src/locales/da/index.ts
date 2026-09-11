@@ -231,7 +231,7 @@ const da = {
     },
     mediaLibrary: {
       onDelete: 'Er du sikker på at du vil slette det valgte medie?',
-      fileTooLarge: 'Filen er for stor.\nOpsætningen tillader ikke filer større end %{size} kB.',
+      fileTooLarge: 'Filen er for stor.\nOpsætningen tillader ikke filer større end %{size} MiB.',
     },
     mediaLibraryModal: {
       loading: 'Indlæser...',

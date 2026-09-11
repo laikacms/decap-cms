@@ -232,7 +232,7 @@ const sl = {
     },
     mediaLibrary: {
       onDelete: 'Ste prepričani, da želite izbrisati izbrane medije?',
-      fileTooLarge: 'Datoteka je prevelika.\n Ne sme biti večja od %{size} kb.',
+      fileTooLarge: 'Datoteka je prevelika.\n Ne sme biti večja od %{size} MiB.',
     },
     mediaLibraryModal: {
       loading: 'Nalaganje...',

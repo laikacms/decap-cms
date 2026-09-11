@@ -228,7 +228,7 @@ const zh_Hans = {
       onReplaceTitle: '替换 "%{name}"？',
       onReplaceConfirm: '替换',
       onReplaceCancel: '取消',
-      fileTooLarge: '文件体积过大\n目前的配置中不允许文件体积超过 %{size} kB',
+      fileTooLarge: '文件体积过大\n目前的配置中不允许文件体积超过 %{size} MiB',
     },
     mediaLibraryModal: {
       loading: '正在加载...',

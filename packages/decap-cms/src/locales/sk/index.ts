@@ -247,7 +247,7 @@ const sk = {
     },
     mediaLibrary: {
       onDelete: 'Naozaj chcete vymazať vybrané médiá?',
-      fileTooLarge: 'Súbor je príliš veľký.\nNastavenia nedovoľujú súbory väčšie ako %{size} kB.',
+      fileTooLarge: 'Súbor je príliš veľký.\nNastavenia nedovoľujú súbory väčšie ako %{size} MiB.',
     },
     mediaLibraryModal: {
       loading: 'Načítava sa...',

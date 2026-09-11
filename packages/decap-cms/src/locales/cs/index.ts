@@ -234,7 +234,7 @@ const cs = {
     },
     mediaLibrary: {
       onDelete: 'Chcete skutečně vymazat označená média?',
-      fileTooLarge: 'Soubor je příliš velký.\nSoubor musí být menší než %{size} kB.',
+      fileTooLarge: 'Soubor je příliš velký.\nSoubor musí být menší než %{size} MiB.',
     },
     mediaLibraryModal: {
       loading: 'Načítání…',

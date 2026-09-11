@@ -235,7 +235,7 @@ const it = {
     mediaLibrary: {
       onDelete: 'Vuoi davvero cancellare il media selezionato?',
       fileTooLarge:
-        'File troppo grande.\nLa configurazione non permette il caricamento di file piú grandi di %{size} kB.',
+        'File troppo grande.\nLa configurazione non permette il caricamento di file piú grandi di %{size} MiB.',
     },
     mediaLibraryModal: {
       loading: 'Caricamento...',

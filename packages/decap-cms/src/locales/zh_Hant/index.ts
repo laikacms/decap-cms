@@ -197,7 +197,7 @@ const zh_Hant = {
     },
     mediaLibrary: {
       onDelete: '你確定要刪除已選擇的媒體嗎？',
-      fileTooLarge: '檔案太大。\n已設定不允許大於 %{size} kB 的檔案。',
+      fileTooLarge: '檔案太大。\n已設定不允許大於 %{size} MiB 的檔案。',
     },
     mediaLibraryModal: {
       loading: '載入中...',

@@ -183,7 +183,7 @@ const vi = {
     },
     mediaLibrary: {
       onDelete: 'Bạn có chắc rằng bạn muốn xoá tập tin này?',
-      fileTooLarge: 'Tập tin quá lớn.\nCấu hình không cho phép những tập tin lớn hơn %{size} kB.',
+      fileTooLarge: 'Tập tin quá lớn.\nCấu hình không cho phép những tập tin lớn hơn %{size} MiB.',
     },
     mediaLibraryModal: {
       loading: 'Đang tải...',

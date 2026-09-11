@@ -217,7 +217,7 @@ const sv = {
     },
     mediaLibrary: {
       onDelete: 'Är du säker på att du vill radera valt mediaobjekt?',
-      fileTooLarge: 'Maximal filstorlek överskriden.\nKonfigurerad att inte tillåta filer större än %{size} kB.',
+      fileTooLarge: 'Maximal filstorlek överskriden.\nKonfigurerad att inte tillåta filer större än %{size} MiB.',
     },
     mediaLibraryModal: {
       loading: 'Hämtar...',

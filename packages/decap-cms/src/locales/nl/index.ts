@@ -230,7 +230,7 @@ const nl = {
       onReplaceTitle: '"%{name}" vervangen?',
       onReplaceConfirm: 'Vervangen',
       onReplaceCancel: 'Annuleren',
-      fileTooLarge: 'Het bestand is te groot.\n De instellingen staan geen bestanden toe groter dan %{size} kB.',
+      fileTooLarge: 'Het bestand is te groot.\n De instellingen staan geen bestanden toe groter dan %{size} MiB.',
     },
     mediaLibraryModal: {
       loading: 'Laden...',

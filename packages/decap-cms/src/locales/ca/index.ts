@@ -215,7 +215,7 @@ const ca = {
     },
     mediaLibrary: {
       onDelete: 'Està segur de que vol eliminar el mitjà seleccionat?',
-      fileTooLarge: 'El fitxer és massa gran.\nLa configuració no permet fitxers més grans de %{size} kB.',
+      fileTooLarge: 'El fitxer és massa gran.\nLa configuració no permet fitxers més grans de %{size} MiB.',
     },
     mediaLibraryModal: {
       loading: 'Carregant...',
