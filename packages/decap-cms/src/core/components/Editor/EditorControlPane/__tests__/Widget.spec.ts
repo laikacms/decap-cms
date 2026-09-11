@@ -154,3 +154,35 @@ describe('Widget validate (DCMS-458 Standard Schema field validation)', () => {
     expect(errors[0].message).toBe('Must be at least 3 characters (async)');
   });
 });
+
+describe('Widget validatePattern (DCMS-2274)', () => {
+  it('passes when the value matches the field pattern', () => {
+    const field = { name: 'title', pattern: ['^\\d+$', 'numbers only'] };
+    const widget = createWidget({ field });
+
+    const result = widget.validatePattern(field, '12345', widget.props.t);
+
+    expect(result.error).toBe(false);
+  });
+
+  it('fails with the regex pattern error message when the value does not match', () => {
+    const field = { name: 'title', label: 'Title', pattern: ['^\\d+$', 'numbers only'] };
+    const widget = createWidget({ field });
+
+    const result = widget.validatePattern(field, 'not-a-number', widget.props.t);
+
+    expect(result.error).not.toBe(false);
+    const error = result.error as { type: string; message: string };
+    expect(error.type).toBe(ValidationErrorTypes.PATTERN);
+    expect(error.message).toBe('editor.editorControlPane.widget.regexPattern:numbers only');
+  });
+
+  it('skips pattern validation for empty values', () => {
+    const field = { name: 'title', pattern: ['^\\d+$', 'numbers only'] };
+    const widget = createWidget({ field });
+
+    const result = widget.validatePattern(field, '', widget.props.t);
+
+    expect(result.error).toBe(false);
+  });
+});
