@@ -71,7 +71,8 @@ export function registerAiTranslate(options: RegisterAiTranslateOptions = {}) {
     name: AI_TRANSLATE_ACTION_NAME,
     // Translating a locale into itself is a no-op, so the action hides while
     // the default locale is selected.
-    isAvailable: ({ sourceLocale, targetLocale }) => sourceLocale !== targetLocale,
+    isAvailable: ({ sourceLocale, targetLocale }: Pick<CmsLocaleActionRenderProps, 'sourceLocale' | 'targetLocale'>) =>
+      sourceLocale !== targetLocale,
     render: (props: CmsLocaleActionRenderProps) =>
       React.createElement(TranslateAction, {
         ...props,

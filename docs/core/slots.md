@@ -193,7 +193,7 @@ delete/insert buttons. All click and search-input handlers are pre-resolved.
   and screen capture only make sense for the image picker, so these are always `undefined` for the
   plain `file` widget, regardless of capture API support — omit the button entirely rather than
   render it disabled when either handler is `undefined`.
-- Consumer: `packages/decap-cms/src/core/components/MediaLibrary/MediaLibraryModal.tsx:184`
+- Consumer: `packages/decap-cms/src/core/components/MediaLibrary/MediaLibraryModal.tsx:192`
 
 ### `editorPanels`
 
