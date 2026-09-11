@@ -220,7 +220,7 @@ const ja = {
     },
     mediaLibrary: {
       onDelete: '選択しているデータを削除しますか？',
-      fileTooLarge: 'ファイルサイズが大きすぎます。\n%{size} kB 以下にしてください。',
+      fileTooLarge: 'ファイルサイズが大きすぎます。\n%{size} MiB 以下にしてください。',
     },
     mediaLibraryModal: {
       loading: '読込中...',

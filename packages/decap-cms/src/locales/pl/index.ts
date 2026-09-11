@@ -226,7 +226,7 @@ const pl = {
     },
     mediaLibrary: {
       onDelete: 'Czy na pewno chcesz usunąć zaznaczone multimedia?',
-      fileTooLarge: 'Plik jest za duży.\nUstawiony maksymalny rozmiar pliku: %{size} kB.',
+      fileTooLarge: 'Plik jest za duży.\nUstawiony maksymalny rozmiar pliku: %{size} MiB.',
     },
     mediaLibraryModal: {
       loading: 'Ładowanie...',

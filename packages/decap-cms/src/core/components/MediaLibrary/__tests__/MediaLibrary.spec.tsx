@@ -2,12 +2,20 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+// DCMS-2297: fileTooLarge interpolates a `size` param, so the mock echoes it
+// back (`key|{"size":N}`) instead of discarding it, letting tests assert the
+// unit the alert is built with without needing the real locale strings.
+// vi.hoisted keeps this safe under vi.mock's hoisting to the top of the file.
+const { mockTranslate } = vi.hoisted(() => ({
+  mockTranslate: (key: string, params?: Record<string, unknown>) =>
+    params ? `${key}|${JSON.stringify(params)}` : key,
+}));
 vi.mock('@/core/i18n', () => ({
-  useTranslate: () => (key: string) => key,
+  useTranslate: () => mockTranslate,
   translate: () => (Component: React.ComponentType<any>) => (props: any) => (
     <Component
       {...props}
-      t={(key: string) => key}
+      t={mockTranslate}
     />
   ),
 }));
@@ -132,7 +140,7 @@ function renderMediaLibrary(overrides: Partial<React.ComponentProps<typeof Media
     deleteMedia: vi.fn(),
     insertMedia: vi.fn(),
     closeMediaLibrary: vi.fn(),
-    t: ((key: string) => key) as any,
+    t: mockTranslate as any,
     ...overrides,
   };
 
@@ -255,6 +263,23 @@ describe('MediaLibrary', () => {
 
       expect(props.persistMedia).not.toHaveBeenCalled();
       expect(showAlert).toHaveBeenCalledTimes(1);
+    });
+
+    // DCMS-2297: DEFAULT_MAX_FILE_SIZE (25 * 1024 * 1024 bytes) is a binary
+    // MiB value; the fileTooLarge alert must quote that same unit (MiB) and
+    // number (25) instead of the old kB-divided figure (26214).
+    it('renders the fileTooLarge alert size in MiB, matching the DEFAULT_MAX_FILE_SIZE unit', () => {
+      renderMediaLibrary({ isVisible: true, config: {} });
+
+      const oversizedFile = new File([new Uint8Array(26 * 1024 * 1024)], 'qa-huge.png', {
+        type: 'image/png',
+      });
+      selectFile(oversizedFile);
+
+      expect(showAlert).toHaveBeenCalledWith(
+        'mediaLibrary.mediaLibrary.fileTooLarge|{"size":25}',
+        { title: 'mediaLibrary.mediaLibrary.fileTooLargeTitle' },
+      );
     });
 
     it('lets an explicit max_file_size of 0 disable the default cap', () => {

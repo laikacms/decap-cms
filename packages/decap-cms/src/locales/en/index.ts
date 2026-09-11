@@ -345,7 +345,7 @@ const en = {
       onReplaceTitle: 'Replace "%{name}"?',
       onReplaceConfirm: 'Replace',
       onReplaceCancel: 'Cancel',
-      fileTooLarge: 'File too large.\nConfigured to not allow files greater than %{size} kB.',
+      fileTooLarge: 'File too large.\nConfigured to not allow files greater than %{size} MiB.',
       fileTooLargeTitle: 'File too large',
       invalidImageFile: '"%{name}" is not a valid image file and cannot be used here.',
       invalidImageFileTitle: 'Invalid image file',

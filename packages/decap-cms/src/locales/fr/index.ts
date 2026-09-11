@@ -231,7 +231,7 @@ const fr = {
       onReplaceConfirm: 'Remplacer',
       onReplaceCancel: 'Annuler',
       fileTooLarge:
-        "Le fichier est trop volumineux.\nL'instance est configurée pour bloquer les envois de plus de %{size} kB.",
+        "Le fichier est trop volumineux.\nL'instance est configurée pour bloquer les envois de plus de %{size} MiB.",
     },
     mediaLibraryModal: {
       loading: 'Chargement...',

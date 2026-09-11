@@ -177,7 +177,7 @@ const nb_no = {
     },
     mediaLibrary: {
       onDelete: 'Er du sikker på at du vil slette markert element?',
-      fileTooLarge: 'Filen er for stor.\nMaksimal konfiguert filstørrelse er %{size} kB.',
+      fileTooLarge: 'Filen er for stor.\nMaksimal konfiguert filstørrelse er %{size} MiB.',
     },
     mediaLibraryModal: {
       loading: 'Laster...',

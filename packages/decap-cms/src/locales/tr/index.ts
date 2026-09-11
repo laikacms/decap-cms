@@ -228,7 +228,7 @@ const tr = {
     },
     mediaLibrary: {
       onDelete: 'Seçilen medyayı silmek istediğinize emin misiniz?',
-      fileTooLarge: 'Dosya çok büyük.\n%{size} kilobaytdan daha büyük dosyaların yüklenmemesi için ayarlanmış.',
+      fileTooLarge: "Dosya çok büyük.\n%{size} MiB'tan daha büyük dosyaların yüklenmemesi için ayarlanmış.",
     },
     mediaLibraryModal: {
       loading: 'Yükleniyor...',

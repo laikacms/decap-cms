@@ -234,7 +234,7 @@ const pt = {
       onReplaceTitle: 'Substituir "%{name}"?',
       onReplaceConfirm: 'Substituir',
       onReplaceCancel: 'Cancelar',
-      fileTooLarge: 'Arquivo muito grande.\nConfigurado para não permitir arquivos maiores que %{size} kB.',
+      fileTooLarge: 'Arquivo muito grande.\nConfigurado para não permitir arquivos maiores que %{size} MiB.',
     },
     mediaLibraryModal: {
       loading: 'Carregando...',

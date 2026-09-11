@@ -185,7 +185,7 @@ const es = {
       onReplaceTitle: '¿Reemplazar "%{name}"?',
       onReplaceConfirm: 'Reemplazar',
       onReplaceCancel: 'Cancelar',
-      fileTooLarge: 'Archivo muy pesado.\nConfigurado para no permitir archivos más pesados que %{size} kB.',
+      fileTooLarge: 'Archivo muy pesado.\nConfigurado para no permitir archivos más pesados que %{size} MiB.',
     },
     mediaLibraryModal: {
       loading: 'Cargando...',

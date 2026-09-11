@@ -57,7 +57,7 @@ const IMAGE_EXTENSIONS = [...IMAGE_EXTENSIONS_VIEWABLE];
  * `max_file_size` (including `0`, which means "no limit") in config always
  * wins over this default.
  */
-export const DEFAULT_MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB, in bytes
+export const DEFAULT_MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MiB, in bytes
 
 interface MediaFile {
   id: string;
@@ -331,7 +331,7 @@ export function MediaLibrary({ files = [], ...rest }: MediaLibraryProps) {
     if (maxFileSize && file.size > maxFileSize) {
       showAlert(
         t('mediaLibrary.mediaLibrary.fileTooLarge', {
-          size: Math.floor(maxFileSize / 1000),
+          size: Math.floor(maxFileSize / (1024 * 1024)),
         }),
         { title: t('mediaLibrary.mediaLibrary.fileTooLargeTitle') },
       );

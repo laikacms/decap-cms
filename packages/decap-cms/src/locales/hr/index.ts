@@ -248,7 +248,7 @@ const hr = {
     },
     mediaLibrary: {
       onDelete: 'Jeste li sigurni da želite obrisati odabrane medijske datoteke?',
-      fileTooLarge: 'Datoteka prevelika.\nKonfigurirano da ne podržava datoteke veće od %{size} kB.',
+      fileTooLarge: 'Datoteka prevelika.\nKonfigurirano da ne podržava datoteke veće od %{size} MiB.',
     },
     mediaLibraryModal: {
       loading: 'Učitavanje...',

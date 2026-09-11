@@ -201,7 +201,7 @@ const lt = {
     mediaLibrary: {
       onDelete: 'Ar jūs tikrai norite ištrinti pasirinktą mediją?',
       fileTooLarge:
-        'Failas per didelis.\nNustatymuose (konfigūracijoje) nurodyta, kad failai negali viršyti %{size} kB.',
+        'Failas per didelis.\nNustatymuose (konfigūracijoje) nurodyta, kad failai negali viršyti %{size} MiB.',
     },
     mediaLibraryModal: {
       loading: 'Kraunama...',
