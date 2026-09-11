@@ -185,7 +185,7 @@ Replaces the top header of the MediaLibrary modal — title, search box, and upl
 delete/insert buttons. All click and search-input handlers are pre-resolved.
 
 - Props: `MediaLibraryTopRenderProps` (`onClose`, `privateUpload?`, `forImage?`, `onDownload`,
-  `onUpload`, `onOpenCamera?`, `onOpenScreenCapture?`, `query?`, `onSearchChange`,
+  `onUpload`, `onOpenCamera?`, `onOpenScreenCapture?`, `onOpenQrScan?`, `query?`, `onSearchChange`,
   `onSearchKeyDown`, `searchDisabled`, `onDelete`, `canInsert?`, `onInsert`, `hasSelection`,
   `isPersisting?`, `isDeleting?`, `selectedFile?`)
 - `onOpenCamera`/`onOpenScreenCapture` (DCMS-2011) are `undefined` unless BOTH `forImage` is true
@@ -193,7 +193,10 @@ delete/insert buttons. All click and search-input handlers are pre-resolved.
   and screen capture only make sense for the image picker, so these are always `undefined` for the
   plain `file` widget, regardless of capture API support — omit the button entirely rather than
   render it disabled when either handler is `undefined`.
-- Consumer: `packages/decap-cms/src/core/components/MediaLibrary/MediaLibraryModal.tsx:192`
+- `onOpenQrScan` (DCMS-2229) is `undefined` unless `forImage` is true, but unlike the two above it's
+  not further gated on `getUserMedia` support — decoding from an uploaded image still works with no
+  camera API at all.
+- Consumer: `packages/decap-cms/src/core/components/MediaLibrary/MediaLibraryModal.tsx:194`
 
 ### `editorPanels`
 
