@@ -893,6 +893,104 @@ describe('LaikaBackend.deleteFiles()', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Suite: unpublishEntry (DCMS-2299)
+// ---------------------------------------------------------------------------
+
+describe('LaikaBackend.unpublishEntry()', () => {
+  let mockDocRepo: ReturnType<typeof makeMockDocumentsRepository>;
+  let mockAssetsRepo: ReturnType<typeof makeMockAssetsRepository>;
+  let backend: any;
+
+  beforeEach(() => {
+    mockDocRepo = makeMockDocumentsRepository();
+    mockAssetsRepo = makeMockAssetsRepository();
+    const LaikaBackend = createLaikaBackend({
+      getDocumentsRepository: () => mockDocRepo as any,
+      getAssetsRepository: () => mockAssetsRepo as any,
+    });
+    backend = new LaikaBackend(makeConfig());
+    (backend as any).documentsRepository = mockDocRepo;
+    (backend as any).assetsRepository = mockAssetsRepo;
+    (backend as any).tokenPromise = () => Promise.resolve('fake-token');
+  });
+
+  it('calls the native unpublish transition instead of deleting the document', async () => {
+    mockDocRepo.unpublish.mockImplementation(() => succeed({ type: 'unpublished', status: 'draft', key: 'articles/bye', language: 'und', content: { title: 'Bye' } }));
+
+    await backend.unpublishEntry(['articles/bye.json'], 'draft', 'Unpublish bye');
+
+    expect(mockDocRepo.unpublish).toHaveBeenCalledWith('articles/bye', 'draft');
+    expect(mockDocRepo.deleteDocument).not.toHaveBeenCalled();
+    expect(mockDocRepo.deleteUnpublished).not.toHaveBeenCalled();
+  });
+
+  it('strips the file extension before calling unpublish', async () => {
+    mockDocRepo.unpublish.mockImplementation(() => succeed({ type: 'unpublished', status: 'draft', key: 'pages/home', language: 'und', content: {} }));
+
+    await backend.unpublishEntry(['pages/home.md'], 'draft', 'Unpublish home');
+
+    expect(mockDocRepo.unpublish).toHaveBeenCalledWith('pages/home', 'draft');
+  });
+
+  it('handles multiple paths (i18n data files)', async () => {
+    mockDocRepo.unpublish.mockImplementation(() => succeed({ type: 'unpublished', status: 'draft', key: 'articles/a', language: 'und', content: {} }));
+
+    await backend.unpublishEntry(['articles/a.en.json', 'articles/a.nl.json'], 'draft', 'Unpublish multi');
+
+    expect(mockDocRepo.unpublish).toHaveBeenCalledTimes(2);
+    expect(mockDocRepo.unpublish).toHaveBeenCalledWith('articles/a.en', 'draft');
+    expect(mockDocRepo.unpublish).toHaveBeenCalledWith('articles/a.nl', 'draft');
+  });
+
+  it('throws instead of silently succeeding when the transition fails', async () => {
+    mockDocRepo.unpublish.mockImplementation(() => fail({ message: 'Not found' }));
+
+    await expect(
+      backend.unpublishEntry(['articles/ghost.json'], 'draft', 'Unpublish ghost'),
+    ).rejects.toThrow(/Failed to unpublish entry articles\/ghost/);
+  });
+
+  it('pinning: entry content survives unpublish and is retrievable via getUnpublished', async () => {
+    // The whole point of DCMS-2299: unpublish must not be equivalent to
+    // delete. After unpublishEntry() resolves, the same key must still be
+    // readable from unpublished storage with its content and a demoted
+    // (non-published) status — not gone entirely.
+    const preservedContent = { title: 'Still here', body: 'Not deleted' };
+    mockDocRepo.unpublish.mockImplementation(() =>
+      succeed({
+        type: 'unpublished',
+        status: 'draft',
+        key: 'articles/keep-me',
+        language: 'und',
+        content: preservedContent,
+      })
+    );
+    mockDocRepo.getUnpublished.mockImplementation(() =>
+      succeed({
+        type: 'unpublished',
+        status: 'draft',
+        key: 'articles/keep-me',
+        language: 'und',
+        content: preservedContent,
+      })
+    );
+
+    await backend.unpublishEntry(['articles/keep-me.json'], 'draft', 'Unpublish keep-me');
+
+    // deleteDocument/deleteUnpublished were never invoked: no delete happened.
+    expect(mockDocRepo.deleteDocument).not.toHaveBeenCalled();
+    expect(mockDocRepo.deleteUnpublished).not.toHaveBeenCalled();
+
+    const result = await LaikaTask.runPromiseResult(mockDocRepo.getUnpublished('articles/keep-me'));
+    expect(Result.isSuccess(result)).toBe(true);
+    if (Result.isSuccess(result)) {
+      expect(result.success.status).not.toBe('published');
+      expect(result.success.content).toEqual(preservedContent);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Suite: logout
 // ---------------------------------------------------------------------------
 

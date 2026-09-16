@@ -89,6 +89,16 @@ export interface BackendImplementation {
   persistEntry: (payload: PersistPayload, opts: CmsPersistOptions) => Promise<void>;
   persistMedia: (file: Asset, opts: CmsPersistOptions) => Promise<MediaFile>;
   deleteFiles: (paths: string[], commitMessage: string) => Promise<void>;
+  /**
+   * Native "take a live entry back to draft" transition (optional). When
+   * present, the engine calls this instead of `deleteFiles` for the
+   * Unpublish action, so implementations that can transition a published
+   * record to an unpublished/draft status server-side (rather than deleting
+   * it and hoping a subsequent persist recreates it) should implement this
+   * to keep the entry's content intact. `status` is the target unpublished
+   * workflow status (e.g. the collection's default draft status).
+   */
+  unpublishEntry?: (paths: string[], status: string, commitMessage: string) => Promise<void>;
 
   unpublishedEntries: () => Promise<string[]>;
   unpublishedEntry: (args: {

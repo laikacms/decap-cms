@@ -1667,6 +1667,58 @@ export class Backend {
     await this.invokePostUnpublishEvent(entry);
   }
 
+  /**
+   * Whether the implementation exposes a native unpublish transition
+   * (`implementation.unpublishEntry`) instead of requiring the generic
+   * delete-then-recreate dance. Backends without one (e.g. git-based
+   * backends) have no dedicated "take this live entry back to draft"
+   * endpoint, so callers fall back to `deleteEntry` + `persistEntry`.
+   */
+  hasNativeUnpublish(): boolean {
+    return typeof this.implementation.unpublishEntry === 'function';
+  }
+
+  /**
+   * Take a published entry back to draft/unpublished status via the
+   * implementation's native transition, preserving its content instead of
+   * deleting it. Only call when {@link hasNativeUnpublish} is true.
+   */
+  async unpublishEntry(
+    state: State,
+    collection: CmsCollectionState,
+    slug: string,
+    targetStatus: string,
+  ) {
+    const config = state.config;
+    const path = selectEntryPath(collection, slug) as string;
+    const extension = selectFolderEntryExtension(collection) as string;
+
+    const user = (await this.currentUser()) as CmsUser;
+    const commitMessage = commitMessageFormatter(
+      'unpublish',
+      config,
+      {
+        collection,
+        slug,
+        path,
+        authorLogin: user.login,
+        authorName: user.name,
+        authorEmail: user.email,
+      },
+      user.useOpenAuthoring,
+    );
+
+    const entry = selectEntry(state.entries as any, collection.name, slug) as CmsEntry;
+    await this.invokePreUnpublishEvent(entry);
+    let paths = [path];
+    if (hasI18n(collection)) {
+      paths = getFilePaths(collection, extension, path, slug);
+    }
+    await this.implementation.unpublishEntry!(paths, targetStatus, commitMessage);
+
+    await this.invokePostUnpublishEvent(entry);
+  }
+
   async deleteMedia(config: CmsConfig, path: string) {
     const user = (await this.currentUser()) as CmsUser;
     const commitMessage = commitMessageFormatter(

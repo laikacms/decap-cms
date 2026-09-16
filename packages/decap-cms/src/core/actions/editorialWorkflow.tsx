@@ -739,18 +739,26 @@ export function unpublishPublishedEntry(collection: Collection, slug: string) {
     const entry = selectEntry(state, collection.name, slug) as EntryMap;
     const entryDraft = { entry } as unknown as EntryDraft;
     dispatch(unpublishedEntryPersisting(collection, slug));
-    return backend
-      .deleteEntry(state, collection, slug)
-      .then(() =>
-        backend.persistEntry({
-          config: state.config,
-          collection,
-          entryDraft,
-          assetProxies: [],
-          usedSlugs: [],
-          status: status.PENDING_PUBLISH,
-        })
-      )
+    // Backends that can transition a live entry back to draft server-side
+    // (e.g. the laika backend's `/published/{key}/unpublish`) use that
+    // native transition so the entry's content is preserved. Backends
+    // without one (git-based backends) have no such endpoint, so they fall
+    // back to deleting the published file and recreating it as a draft.
+    const transition = backend.hasNativeUnpublish()
+      ? backend.unpublishEntry(state, collection, slug, status.PENDING_PUBLISH)
+      : backend
+        .deleteEntry(state, collection, slug)
+        .then(() =>
+          backend.persistEntry({
+            config: state.config,
+            collection,
+            entryDraft,
+            assetProxies: [],
+            usedSlugs: [],
+            status: status.PENDING_PUBLISH,
+          })
+        );
+    return transition
       .then(() => {
         dispatch(unpublishedEntryPersisted(collection, entry));
         dispatch(entryDeleted(collection, slug));
