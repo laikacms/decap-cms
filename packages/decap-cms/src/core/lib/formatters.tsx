@@ -25,6 +25,7 @@ const commitMessageTemplates = {
   create: 'Create {{collection}} "{{slug}}"',
   update: 'Update {{collection}} "{{slug}}"',
   delete: 'Delete {{collection}} "{{slug}}"',
+  unpublish: 'Unpublish {{collection}} "{{slug}}"',
   uploadMedia: 'Upload "{{path}}"',
   deleteMedia: 'Delete "{{path}}"',
   openAuthoring: '{{message}}',

@@ -1388,6 +1388,29 @@ export default function createLaikaBackend(
       }
     }
 
+    /**
+     * Native "take a live entry back to draft" transition (DCMS-2299). Unlike
+     * `deleteFiles`, this does not remove the record: it calls the
+     * documented `POST /published/{key}/unpublish` endpoint (`repo.unpublish`),
+     * which demotes the published document to an unpublished/draft record
+     * server-side, in one call, preserving its content. Engine-level
+     * feature-detects this method (see `BackendImplementation.unpublishEntry`)
+     * and prefers it over `deleteFiles` for the Unpublish action; `deleteFiles`
+     * itself is left untouched for genuine deletes (discarding a draft,
+     * deleting a collection entry outright).
+     */
+    async unpublishEntry(paths: string[], targetStatus: string, _commitMessage: string): Promise<void> {
+      const repo = this.getDocumentsRepo();
+
+      for (const path of paths) {
+        const key = normalizeKey(path);
+        await runTask(repo.unpublish(key, targetStatus), `Failed to unpublish entry ${key}`);
+        this.entryCache.invalidate(key);
+        this.unpublishedEntryCache.invalidate(key);
+      }
+      this.unpublishedEntriesListCache.clear();
+    }
+
     // ===== MEDIA OPERATIONS (using AssetsRepository) =====
 
     /**
