@@ -44,10 +44,14 @@ export interface LlmDocumentBridge {
   /** The open draft's data, as a plain object. */
   read(): Record<string, unknown>;
   /**
-   * Apply patch operations to the draft. Operations addressing fields that do
-   * not exist in the collection are skipped rather than throwing — a model can
-   * hallucinate a field name, and that should not break the editor. Returns
-   * the names of the fields that actually changed.
+   * Apply patch operations to the draft. Only `add`/`replace`/`remove`
+   * against a nonexistent top-level field name (a single path segment, no
+   * nesting) are skipped rather than throwing — a model can hallucinate a
+   * field name at that level, and that alone should not break the editor.
+   * Everything else throws `JsonPatchError`: `test`/`move`/`copy` against a
+   * nonexistent top-level field, and any operation against a nonexistent
+   * nested path inside a field that does exist. Returns the names of the
+   * fields that actually changed.
    */
   applyPatch(operations: LlmPatchOperation[]): { changed: string[] };
   /** Field definitions for the open entry, so a transport can describe the schema. */

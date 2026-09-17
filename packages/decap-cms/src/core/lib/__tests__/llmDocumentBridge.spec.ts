@@ -251,6 +251,35 @@ describe('createLlmDocumentBridge', () => {
       expect(dispatch).not.toHaveBeenCalled();
     });
 
+    it('throws for `test`/`move`/`copy` against a nonexistent top-level field: only add/replace/remove skip', () => {
+      const { bridge, dispatch } = setup();
+
+      // The skip-rather-than-throw carve-out in `topLevelField` only covers
+      // `replace`/`remove`; `test` (like `move`/`copy`) always goes straight
+      // through to `applyJsonPatch`, which has no notion of the schema.
+      expect(() => bridge.applyPatch([{ op: 'test', path: '/notARealField', value: 1 }])).toThrow(
+        JsonPatchError,
+      );
+      expect(dispatch).not.toHaveBeenCalled();
+    });
+
+    it('throws for a nonexistent nested key inside a field that genuinely exists', () => {
+      const collection = makeCollection({
+        fields: [...fields, { name: 'meta', widget: 'object' }],
+      } as Partial<CmsCollectionState>);
+      const entry = makeEntry({
+        data: { title: 'Hello', body: 'Body text', tags: ['a'], meta: { author: 'Jane' } },
+      } as Partial<CmsEntry>);
+      const { bridge, dispatch } = setup({ collection, entry });
+
+      // `meta` exists, but `nonexistentNestedKey` under it does not: this is
+      // a typo inside real data, which must still throw rather than skip.
+      expect(() =>
+        bridge.applyPatch([{ op: 'replace', path: '/meta/nonexistentNestedKey', value: 1 }]),
+      ).toThrow(JsonPatchError);
+      expect(dispatch).not.toHaveBeenCalled();
+    });
+
     it('does not throw, and applies the value, for `replace` on a real field the entry has never set', () => {
       const collection = makeCollection({
         fields: [...fields, { name: 'subtitle', widget: 'string' }],

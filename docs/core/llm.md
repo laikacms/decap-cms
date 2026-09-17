@@ -83,9 +83,13 @@ interface LlmDocumentBridge {
 
 No store, no dispatch, no internals. `applyPatch` takes RFC 6902 operations and writes through the
 published `changeDraftField` action, so an AI edit is indistinguishable from a keystroke: same
-reducer, same dirty-state diffing, same `entryDraftChange` event for other extensions. Operations
-addressing fields that do not exist are skipped rather than thrown on — a model can invent a field
-name, and that should not break the editor.
+reducer, same dirty-state diffing, same `entryDraftChange` event for other extensions. Only a narrow
+case is skipped rather than thrown on: `add`/`replace`/`remove` addressing a top-level field name
+(a single path segment, no nesting) that is not in the collection — a model can invent a field
+name at that level, and that alone should not break the editor. Everything else throws
+`JsonPatchError`: `test`/`move`/`copy` against a nonexistent top-level field, and any operation
+against a nonexistent *nested* path inside a field that does exist (a typo inside real data is a
+real error, not a hallucinated field).
 
 **Tool calls are executed by the transport, not the server.** The entry being edited is client-side
 state, so a `updateDocument`-style tool has to run here, against this bridge.
