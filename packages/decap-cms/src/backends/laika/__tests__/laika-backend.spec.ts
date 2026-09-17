@@ -2856,6 +2856,37 @@ describe('LaikaBackend.authenticate() acceptRoles enforcement (DCMS-2012)', () =
     const user = await backend.authenticate({ token: 'valid-token-abc' });
     expect(user).toMatchObject({ name: 'Anyone', role: 'anything' });
   });
+
+  // Pinning test for DCMS-2309: `acceptRoles: []` is truthy but has
+  // `length === 0`, so the `length > 0` guard in authenticate() treats it
+  // identically to `acceptRoles` being unset — no enforcement. This matches
+  // the sibling git-gateway backend's `acceptRoles.length > 0` guard
+  // (implementation.tsx) and is documented as such in README.md. This test
+  // pins that behavior so a future refactor doesn't silently start rejecting
+  // deployments that configure `acceptRoles: []`.
+  it('admits access when acceptRoles is configured as an empty array', async () => {
+    const backend = makeBackendWithAcceptRoles([]);
+    vi.mocked(unsentRequest.fetchWithTimeout).mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          data: {
+            attributes: {
+              name: 'Anyone',
+              email: 'anyone@example.com',
+              role: 'anything',
+              scopes: ['content:read'],
+            },
+          },
+        }),
+    } as any);
+
+    const user = await backend.authenticate({ token: 'valid-token-abc' });
+
+    expect(user).toMatchObject({ name: 'Anyone', role: 'anything' });
+    expect(() => backend.getDocumentsRepo()).not.toThrow();
+    expect(sessionStorageMock.getItem('laika_access_token')).toBe('valid-token-abc');
+  });
 });
 
 // ---------------------------------------------------------------------------
