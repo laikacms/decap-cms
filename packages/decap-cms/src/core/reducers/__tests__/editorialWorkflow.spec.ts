@@ -259,6 +259,60 @@ describe('unpublishedEntries reducer', () => {
         { collection: 'posts', slug: 'my-post', status: 'draft', title: 'second title', isPersisting: undefined },
       ]);
     });
+
+    it('resolves a lazy richtext body to its plain string form on a second persist (DCMS-2305)', () => {
+      // The richtext widget deliberately stores a lazy `RichtextValue` as its
+      // live field value and only resolves it to a string via `toJSON()`/
+      // `toString()` (see packages/decap-cms/src/lib/richtext/RichtextValue.ts).
+      // A second `UNPUBLISHED_ENTRY_PERSIST_SUCCESS` for the same entry
+      // dispatches that live value straight from `entryDraft` - the reducer
+      // must resolve it before storing it, or the workflow board crashes
+      // trying to render the object directly (React error #31).
+      const lazyBody = {
+        raw: 'first paragraph',
+        inputFormat: 'markdown',
+        outputFormat: 'markdown',
+        portableText: [{ _type: 'block', children: [{ _type: 'span', text: 'first paragraph' }] }],
+        editorState: { root: {} },
+        toJSON() {
+          return this.raw;
+        },
+      };
+
+      const initialState: EditorialWorkflow = {
+        entities: {
+          'posts.my-post': {
+            collection: 'posts',
+            slug: 'my-post',
+            status: 'draft',
+            title: 'first title',
+            data: { title: 'first title', body: 'first paragraph' },
+          },
+        },
+        pages: { posts: { ids: ['my-post'] } },
+      };
+
+      const result = unpublishedEntries(initialState, {
+        type: UNPUBLISHED_ENTRY_PERSIST_SUCCESS,
+        payload: {
+          collection: 'posts',
+          entry: {
+            collection: 'posts',
+            slug: 'my-post',
+            title: 'first title',
+            data: { title: 'first title', body: lazyBody },
+          },
+        },
+      });
+
+      expect(result.entities['posts.my-post']?.data).toEqual({
+        title: 'first title',
+        body: 'first paragraph',
+      });
+      expect(typeof (result.entities['posts.my-post']?.data as { body: unknown }).body).toBe(
+        'string',
+      );
+    });
   });
 
   describe('UNPUBLISHED_ENTRY_PUBLISH_SCHEDULE_SUCCESS', () => {
