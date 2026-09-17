@@ -112,10 +112,29 @@ const unpublishedEntries = produce((state: EditorialWorkflow, action: AnyAction)
       // replacing it outright, or an update wipes the entry's workflow status
       // and it vanishes from every column on the board (DCMS-2266).
       const previous = state.entities[key];
+      // `entry.data` can still hold live-editor values for widgets that
+      // intentionally skip stringification on every persist and only resolve
+      // to their final string form lazily, via `toJSON()`/`toString()` (e.g.
+      // the richtext widget's `RichtextValue` - see
+      // packages/decap-cms/src/lib/richtext/RichtextValue.ts and its
+      // passthrough value serializer). `loadUnpublishedEntry(ies)` always
+      // populate `entities` from freshly parsed, plain backend data, but this
+      // persist-success payload is the live entry straight out of
+      // `entryDraft` - the workflow board renders its fields directly
+      // (WorkflowCard's body preview), so it must only ever see resolved,
+      // JSON-plain data. Round-tripping through JSON invokes any `toJSON()`
+      // a field value defines, collapsing lazy wrappers to plain strings.
+      // Without this, a second persist of a richtext-bodied entry leaves
+      // `data.body` as a `{raw, inputFormat, outputFormat, portableText,
+      // editorState}` object, and the board crashes with React error #31
+      // (DCMS-2305).
+      const persistedEntry = action.payload.entry.data == null
+        ? action.payload.entry
+        : { ...action.payload.entry, data: JSON.parse(JSON.stringify(action.payload.entry.data)) };
       state.entities[key] = {
         ...previous,
-        ...action.payload.entry,
-        status: action.payload.entry.status ?? previous?.status ?? statusValues.DRAFT,
+        ...persistedEntry,
+        status: persistedEntry.status ?? previous?.status ?? statusValues.DRAFT,
         isPersisting: undefined,
       };
       const page = state.pages[action.payload.collection] as WorkflowPage | undefined;
