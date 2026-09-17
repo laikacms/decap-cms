@@ -1,12 +1,16 @@
 # icon-picker widget helpers
 
-This directory does not ship a config-driven `widget:` type. Instead it exports a small
-React hook, `useRovingIconFocus`, as a public entry point at
+This directory does not ship a config-driven `widget:` type. `@laikacms/decap-cms` itself
+does not bundle or register any icon-picker control by default. Instead this directory
+exports a small React hook, `useRovingIconFocus`, as a public entry point at
 `@laikacms/decap-cms/widgets/icon-picker` (see the `./widgets/*` export in
-`packages/decap-cms/package.json`). It exists so that an extension author writing their
-own icon picker control gets the same keyboard navigation behaviour as the bundled ones,
-without having to reimplement roving-tabindex arrow-key handling from scratch. Source:
-`index.ts`, `useRovingIconFocus.ts`.
+`packages/decap-cms/package.json`), so that an extension author writing their own icon
+picker control gets the same keyboard navigation behaviour as this repo's own opt-in icon
+widget extensions — `extensions/widgets/lucide-icon` and `extensions/widgets/radix-icon`
+(see `IconControl.tsx` in each) — without having to reimplement roving-tabindex arrow-key
+handling from scratch. Those two extensions are not registered by default and are not
+published to npm; see their own READMEs for how to vendor them. Source: `index.ts`,
+`useRovingIconFocus.ts`.
 
 ## `useRovingIconFocus`
 
@@ -43,7 +47,8 @@ Returns:
   `useRovingIconFocus.ts`.
 - `onArrowKeyDown(event, index)` — keydown handler to attach to each icon button. `index`
   is that button's position in `iconNames`. Handles `ArrowLeft`/`ArrowRight` (±1) and
-  `ArrowUp`/`ArrowDown` (±4, matching the bundled grid's 4-column layout), clamps to the
+  `ArrowUp`/`ArrowDown` (±4, matching the 4-column grid layout used by the icon widgets
+  in `extensions/widgets/lucide-icon` and `extensions/widgets/radix-icon`), clamps to the
   array bounds, calls `event.preventDefault()`, updates `rovingIconName`, and moves DOM
   focus to the target button by reading `event.currentTarget.parentElement.children`. Keys
   other than the four arrow keys are ignored (no-op, no `preventDefault()`). Because it
