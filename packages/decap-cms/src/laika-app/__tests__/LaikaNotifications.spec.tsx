@@ -6,6 +6,16 @@ import LaikaNotifications from '@/laika-app/LaikaNotifications';
 
 const dispatchMock = vi.fn();
 let notificationsState: unknown[] = [];
+let routerListeners: Array<() => void> = [];
+
+const routerMock = {
+  subscribe: vi.fn((listener: () => void) => {
+    routerListeners.push(listener);
+    return () => {
+      routerListeners = routerListeners.filter(l => l !== listener);
+    };
+  }),
+};
 
 vi.mock('@/core/hooks/useRedux', () => ({
   useAppDispatch: () => dispatchMock,
@@ -17,14 +27,24 @@ vi.mock('@/core/i18n', () => ({
   useTranslate: () => (key: string) => `translated:${key}`,
 }));
 
+vi.mock('@/core/routing/context', () => ({
+  useRouter: () => routerMock,
+}));
+
 vi.mock('../LaikaThemeContext', () => ({
   useLaikaTheme: () => ({ resolvedMode: 'light' }),
 }));
 
+function fireRouteChange() {
+  routerListeners.forEach(listener => listener());
+}
+
 describe('LaikaNotifications (Base UI bridge)', () => {
   beforeEach(() => {
     notificationsState = [];
+    routerListeners = [];
     dispatchMock.mockClear();
+    routerMock.subscribe.mockClear();
   });
 
   afterEach(() => {
@@ -115,6 +135,67 @@ describe('LaikaNotifications (Base UI bridge)', () => {
     // carry role="alert" — that would re-introduce the duplicate.
     expect(visibleErrorToast).toHaveAttribute('aria-hidden', 'false');
     expect(visibleErrorToast).not.toHaveAttribute('role', 'alert');
+  });
+
+  it('dismisses the onFailToLoadEntries toast on route change (DCMS-1408)', () => {
+    notificationsState = [
+      {
+        id: 'load-entry-error',
+        message: { key: 'ui.toast.onFailToLoadEntries', details: 'Entry not found: _posts/foo.md' },
+        type: 'error',
+        dismissAfter: 8000,
+      },
+    ];
+    render(<LaikaNotifications />);
+    dispatchMock.mockClear();
+
+    fireRouteChange();
+
+    expect(dispatchMock).toHaveBeenCalledWith({ type: 'NOTIFICATION_DISMISS', id: 'load-entry-error' });
+  });
+
+  it('dismisses the missing-required-field validation toast on route change (DCMS-579)', () => {
+    notificationsState = [
+      {
+        id: 'validation-toast',
+        message: { key: 'ui.toast.missingRequiredField' },
+        type: 'error',
+        dismissAfter: 8000,
+      },
+    ];
+    render(<LaikaNotifications />);
+    dispatchMock.mockClear();
+
+    fireRouteChange();
+
+    expect(dispatchMock).toHaveBeenCalledWith({ type: 'NOTIFICATION_DISMISS', id: 'validation-toast' });
+  });
+
+  it('dismisses the invalid-field validation toast on route change', () => {
+    notificationsState = [
+      {
+        id: 'invalid-field-toast',
+        message: { key: 'ui.toast.invalidField' },
+        type: 'error',
+        dismissAfter: 8000,
+      },
+    ];
+    render(<LaikaNotifications />);
+    dispatchMock.mockClear();
+
+    fireRouteChange();
+
+    expect(dispatchMock).toHaveBeenCalledWith({ type: 'NOTIFICATION_DISMISS', id: 'invalid-field-toast' });
+  });
+
+  it('does not dismiss unrelated toasts on route change', () => {
+    notificationsState = [{ id: 'save-success', message: 'Entry saved', type: 'success' }];
+    render(<LaikaNotifications />);
+    dispatchMock.mockClear();
+
+    fireRouteChange();
+
+    expect(dispatchMock).not.toHaveBeenCalled();
   });
 
   it('keeps the Close button internally consistent (no hidden-focusable trap) for a high-priority error toast (DCMS-2007)', () => {
