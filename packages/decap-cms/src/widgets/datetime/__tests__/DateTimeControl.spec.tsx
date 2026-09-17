@@ -143,3 +143,44 @@ describe('DateTimeControl date_format/time_format: false input-type switching (D
     expect(input).toHaveAttribute('type', 'date');
   });
 });
+
+// DCMS-2314: an explicit `format` must win outright over `date_format: false`
+// / `time_format: false`, per the README's "format overrides both" promise.
+// Before the fix, the trailing false-checks in getFormat() unconditionally
+// flipped inputType even when userFormat was set, producing a mismatched
+// format/inputFormat/inputType combo (Invalid Date / silently wrong values).
+describe('DateTimeControl explicit format overrides date_format/time_format: false (DCMS-2314)', () => {
+  test('format wins over date_format: false (datetime-local input, round-trippable)', () => {
+    const { input, props } = setup({
+      field: { format: 'DD.MM.YYYY HH:mm', date_format: false },
+      value: '15.03.2024 10:30',
+    });
+
+    // Reading a stored value renders it into a datetime-local input, not the
+    // bare time-only input date_format: false would otherwise force.
+    expect(input).toHaveAttribute('type', 'datetime-local');
+    expect(input).toHaveValue('2024-03-15T10:30');
+
+    // Writing a new value round-trips back through the explicit format,
+    // rather than being coerced through the mismatched time-only inputFormat.
+    fireEvent.change(input, { target: { value: '2024-03-15T14:45' } });
+    expect(props.onChange).toHaveBeenCalledWith('15.03.2024 14:45');
+  });
+
+  test('format wins over time_format: false (datetime-local input, round-trippable)', () => {
+    const { input, props } = setup({
+      field: { format: 'DD.MM.YYYY HH:mm', time_format: false },
+      value: '15.03.2024 10:30',
+    });
+
+    // Reading a stored value renders it into a datetime-local input, not the
+    // bare date-only input time_format: false would otherwise force.
+    expect(input).toHaveAttribute('type', 'datetime-local');
+    expect(input).toHaveValue('2024-03-15T10:30');
+
+    // Writing a new value round-trips back through the explicit format,
+    // rather than being coerced through the mismatched date-only inputFormat.
+    fireEvent.change(input, { target: { value: '2024-03-15T14:45' } });
+    expect(props.onChange).toHaveBeenCalledWith('15.03.2024 14:45');
+  });
+});

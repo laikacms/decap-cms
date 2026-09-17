@@ -42,14 +42,15 @@ both. Source: `schema.ts` (`oneOf: [{ type: 'string' }, { type: 'boolean' }]`),
     `datetime-local`.
   - If only one of them resolves to a string, the input renders as just that part (`date` or `time`)
     using that format.
-- `false` — **switches the input type**, independent of any other setting:
+- `false` — **switches the input type**, but only when `format` is not set:
   - `date_format: false` forces the input to render as a bare `time` picker (date portion dropped).
   - `time_format: false` forces the input to render as a bare `date` picker (time portion dropped).
 
-  This `false` → input-type-switch is applied last and always wins, even when `date_format`/
-  `time_format` are otherwise unset. Source: `DateTimeControl.tsx`
-  (`if (dateFormat === false)
-  inputType = 'time'; if (timeFormat === false) inputType = 'date';`).
+  This `false` → input-type-switch always wins when `date_format`/`time_format` are otherwise
+  unset. However, an explicit `format` still overrides it, same as above: the input renders as
+  `datetime-local` and the input-type-switch is skipped. Source: `DateTimeControl.tsx`
+  (`getFormat()` only applies `if (dateFormat === false) inputType = 'time'; if (timeFormat ===
+  false) inputType = 'date';` when `userFormat` is not a string).
 
 ```yaml
 # Date-only field (time input is dropped)

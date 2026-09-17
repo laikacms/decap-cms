@@ -107,8 +107,10 @@ function getFormat(field: CmsFieldDateTime, isUtc: boolean) {
     inputType = 'datetime-local';
   }
 
-  if (dateFormat === false) inputType = 'time';
-  if (timeFormat === false) inputType = 'date';
+  if (typeof userFormat !== 'string') {
+    if (dateFormat === false) inputType = 'time';
+    if (timeFormat === false) inputType = 'date';
+  }
   if (inputType === 'datetime-local') inputFormat = 'YYYY-MM-DDTHH:mm';
   if (inputType === 'date') inputFormat = 'YYYY-MM-DD';
   if (inputType === 'time') inputFormat = 'HH:mm';
