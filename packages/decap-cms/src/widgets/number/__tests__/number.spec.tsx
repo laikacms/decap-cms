@@ -148,15 +148,19 @@ describe('Number widget', () => {
     expect(onChangeSpy).toHaveBeenCalledWith('');
   });
 
-  it('should call onChange with empty string when a non numeric value is set', () => {
+  it('should call onChange with the raw string when a non numeric value is set (DCMS-2311)', () => {
     const field = fieldSettings;
     const { input, onChangeSpy } = setup({ field, defaultValue: 20 });
 
     fireEvent.focus(input);
+    // jsdom's <input type="number"> sanitizes non-numeric text to "" before
+    // the change event fires; flip to type="text" to reproduce what a real
+    // browser delivers (see the badInput guard describe block below).
+    input.setAttribute('type', 'text');
     fireEvent.change(input, { target: { value: 'invalid' } });
 
     expect(onChangeSpy).toHaveBeenCalledTimes(1);
-    expect(onChangeSpy).toHaveBeenCalledWith('');
+    expect(onChangeSpy).toHaveBeenCalledWith('invalid');
   });
 
   it('should parse float numbers as integers', () => {
@@ -383,6 +387,96 @@ describe('Number widget', () => {
       fireEvent.change(input, { target: { value: '3.14' } });
 
       expect(onChangeSpy).toHaveBeenCalledWith(3.14);
+    });
+  });
+
+  describe('bad input guard (DCMS-2311)', () => {
+    const BAD_INPUTS = ['-', 'e', '--1', '.'];
+
+    // jsdom's <input type="number"> value sanitization is stricter than real
+    // browsers: it silently discards syntactically-badInput strings like "-"
+    // or "." at DOM-assignment time, before a change event can ever reach our
+    // handler with that raw value. Flip the input to type="text" first
+    // (parsing behavior is identical; only the DOM's value sanitizer
+    // differs) to reproduce what a real browser's change event delivers,
+    // mirroring the workaround used for the overflow guard above.
+    function fireBadInputChange(input, value) {
+      input.setAttribute('type', 'text');
+      fireEvent.change(input, { target: { value } });
+    }
+
+    it.each(BAD_INPUTS)(
+      'stores the raw string instead of "" for float bad input %j',
+      raw => {
+        const field = { value_type: 'float' };
+        const { input, onChangeSpy } = setup({ field });
+
+        fireBadInputChange(input, raw);
+
+        expect(onChangeSpy).toHaveBeenCalledTimes(1);
+        expect(onChangeSpy).toHaveBeenCalledWith(raw);
+      },
+    );
+
+    it.each(BAD_INPUTS)(
+      'stores the raw string instead of "" for int bad input %j',
+      raw => {
+        const field = { value_type: 'int' };
+        const { input, onChangeSpy } = setup({ field });
+
+        fireBadInputChange(input, raw);
+
+        expect(onChangeSpy).toHaveBeenCalledTimes(1);
+        expect(onChangeSpy).toHaveBeenCalledWith(raw);
+      },
+    );
+
+    it.each(BAD_INPUTS)(
+      'isValid returns a CUSTOM "invalid number" error for stored float bad input %j',
+      raw => {
+        const field = { value_type: 'float' };
+        const { ref } = setup({ field, defaultValue: raw });
+
+        const result = ref().isValid();
+        expect(result).not.toBe(true);
+        expect(result).toHaveProperty('error');
+        expect(result.error.type).toBe('CUSTOM');
+        expect(result.error.message).toMatch(/not a valid number/i);
+      },
+    );
+
+    it.each(BAD_INPUTS)(
+      'isValid returns a CUSTOM "invalid number" error for stored int bad input %j',
+      raw => {
+        const field = { value_type: 'int' };
+        const { ref } = setup({ field, defaultValue: raw });
+
+        const result = ref().isValid();
+        expect(result).not.toBe(true);
+        expect(result).toHaveProperty('error');
+        expect(result.error.type).toBe('CUSTOM');
+        expect(result.error.message).toMatch(/not a valid number/i);
+      },
+    );
+
+    it('clearing the field with backspace still stores "" (no regression)', () => {
+      const field = { value_type: 'float' };
+      const { input, onChangeSpy } = setup({ field });
+
+      // Simulate typing "-" then backspacing it out, mirroring the DCMS-2311
+      // repro: bad input followed by clearing the field.
+      fireBadInputChange(input, '-');
+      fireBadInputChange(input, '');
+
+      expect(onChangeSpy).toHaveBeenCalledTimes(2);
+      expect(onChangeSpy).toHaveBeenLastCalledWith('');
+    });
+
+    it('isValid has no CUSTOM error and falls through to the required check when the value is ""', () => {
+      const field = { value_type: 'float' };
+      const { ref } = setup({ field, defaultValue: '' });
+
+      expect(ref().isValid()).toBe(true);
     });
   });
 
