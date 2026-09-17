@@ -240,7 +240,7 @@ describe('MediaLibrary', () => {
       expect(props.persistMedia).toHaveBeenCalledTimes(1);
     });
 
-    it('applies the default 25 MB cap when max_file_size is not set', () => {
+    it('applies the default 25 MiB cap when max_file_size is not set', () => {
       const { props } = renderMediaLibrary({ isVisible: true, config: {} });
 
       const smallFile = new File(['a'.repeat(50_000)], 'fine.txt', { type: 'text/plain' });
@@ -252,7 +252,7 @@ describe('MediaLibrary', () => {
 
     // DCMS-2174: no cap previously meant a 30 MB placeholder upload (as filed
     // in the issue) went through silently; a permissive default now rejects
-    // anything over 25 MB unless the user configures their own limit.
+    // anything over 25 MiB unless the user configures their own limit.
     it('rejects a 26 MB upload against the default cap when max_file_size is not set', () => {
       const { props } = renderMediaLibrary({ isVisible: true, config: {} });
 
