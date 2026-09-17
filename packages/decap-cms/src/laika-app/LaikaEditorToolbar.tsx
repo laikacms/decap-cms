@@ -338,11 +338,19 @@ function LaikaEditorToolbar({
           {saveLabel}
         </LaikaButton>
 
-        <ChangesIndicator $changed={!!hasChanged} role="status">
-          {hasChanged
-            ? t('editor.editorToolbar.unsavedChanges')
-            : t('editor.editorToolbar.changesSaved')}
-        </ChangesIndicator>
+        {hasChanged
+          ? (
+            <ChangesIndicator $changed role="status">
+              {t('editor.editorToolbar.unsavedChanges')}
+            </ChangesIndicator>
+          )
+          : isNewEntry
+          ? null
+          : (
+            <ChangesIndicator $changed={false} role="status">
+              {t('editor.editorToolbar.changesSaved')}
+            </ChangesIndicator>
+          )}
 
         {showStatusControls
           ? (

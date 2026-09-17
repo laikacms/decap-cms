@@ -130,6 +130,35 @@ describe('LaikaEditorToolbar', () => {
     expect(getByRole('status')).toHaveTextContent('editor.editorToolbar.changesSaved');
   });
 
+  it('does not claim "changes saved" on a pristine new entry (DCMS-547 port, #2312)', () => {
+    const { queryByRole, rerender } = render(
+      <MemoryRouter>
+        <LaikaEditorToolbar {...baseProps} isNewEntry hasChanged={false} />
+      </MemoryRouter>,
+    );
+    // A brand-new, never-saved entry has no changes-saved status to report;
+    // the classic EditorToolbar hides the indicator entirely in this state
+    // (DCMS-547), and the Laika toolbar must match so screen readers don't
+    // announce "Changes saved" for an entry that doesn't exist yet.
+    expect(queryByRole('status')).toBeNull();
+
+    // After typing, the indicator flips to unsaved changes.
+    rerender(
+      <MemoryRouter>
+        <LaikaEditorToolbar {...baseProps} isNewEntry hasChanged />
+      </MemoryRouter>,
+    );
+    expect(queryByRole('status')).toHaveTextContent('editor.editorToolbar.unsavedChanges');
+
+    // After a successful save, the entry is no longer new and shows saved.
+    rerender(
+      <MemoryRouter>
+        <LaikaEditorToolbar {...baseProps} isNewEntry={false} hasChanged={false} />
+      </MemoryRouter>,
+    );
+    expect(queryByRole('status')).toHaveTextContent('editor.editorToolbar.changesSaved');
+  });
+
   it('fires onPersist when Save is clicked', () => {
     const onPersist = vi.fn();
     const { getByText } = render(
