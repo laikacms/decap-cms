@@ -153,6 +153,22 @@ const NumberControl = React.forwardRef<NumberControlHandle, NumberControlProps>(
             }
           }
 
+          // Detect bad input: value is a non-empty string that is only
+          // present because handleChange refused to store the NaN parseInt/
+          // parseFloat result (e.g. "-", "e", ".", "--5"), mirroring the
+          // overflow cases above.
+          if (typeof v === 'string' && v !== '') {
+            const parsed = valueType === 'int' ? parseInt(v, 10) : parseFloat(v);
+            if (isNaN(parsed)) {
+              return {
+                error: {
+                  type: ValidationErrorTypes.CUSTOM,
+                  message: 'Value is not a valid number.',
+                },
+              };
+            }
+          }
+
           const error = validateMinMax(
             v ?? '',
             (f.min ?? false) as number | false,
@@ -176,7 +192,12 @@ const NumberControl = React.forwardRef<NumberControlHandle, NumberControlProps>(
       if (valueType !== 'int') {
         const parsed = parseFloat(raw);
         if (isNaN(parsed)) {
-          onChange('');
+          // Bad input (e.g. "-", "e", ".", "--5") that doesn't parse as a
+          // number at all; store the raw string so isValid() can surface an
+          // "invalid number" error, mirroring the overflow cases below.
+          // Clearing the field (raw === '') must still store '' so the
+          // "required" error path is unaffected.
+          onChange(raw);
           return;
         }
 
@@ -195,7 +216,12 @@ const NumberControl = React.forwardRef<NumberControlHandle, NumberControlProps>(
 
       const parsed = parseInt(raw, 10);
       if (isNaN(parsed)) {
-        onChange('');
+        // Bad input (e.g. "-", "e", ".", "--5") that doesn't parse as a
+        // number at all; store the raw string so isValid() can surface an
+        // "invalid number" error, mirroring the overflow cases below.
+        // Clearing the field (raw === '') must still store '' so the
+        // "required" error path is unaffected.
+        onChange(raw);
         return;
       }
 
