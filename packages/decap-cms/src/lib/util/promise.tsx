@@ -12,10 +12,10 @@ export function onlySuccessfulPromises(promises: Promise<unknown>[]) {
   );
 }
 
-function wrapFlowAsync(fn: Function) {
+function wrapFlowAsync(fn: (arg: unknown) => unknown) {
   return async (arg: unknown) => fn(await arg);
 }
 
-export function flowAsync(fns: Function[]) {
+export function flowAsync(fns: ((arg: unknown) => unknown)[]) {
   return flow(fns.map(fn => wrapFlowAsync(fn)));
 }

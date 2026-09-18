@@ -34,7 +34,7 @@ import type { Pluggable } from 'unified';
 type CmsPreviewStyle = { raw?: boolean, value: string };
 
 interface EventHandler {
-  handler: Function;
+  handler: (data: any, options: Record<string, unknown>) => unknown;
   options: Record<string, unknown>;
 }
 
@@ -382,7 +382,7 @@ export function getEventListeners(name: string) {
 
 interface EventListenerConfig {
   name: CmsEventName;
-  handler: Function;
+  handler: (data: any, options: Record<string, unknown>) => unknown;
 }
 
 export function registerEventListener(
@@ -440,7 +440,7 @@ export function invokeNotificationEvent<K extends CmsNotificationEvent>(
   }
 }
 
-export function removeEventListener({ name, handler }: { name: string, handler?: Function }) {
+export function removeEventListener({ name, handler }: { name: string, handler?: (data: any, options: Record<string, unknown>) => unknown }) {
   validateEventName(name);
   if (handler) {
     registry.eventHandlers[name] = registry.eventHandlers[name].filter(

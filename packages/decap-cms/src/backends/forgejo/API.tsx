@@ -127,7 +127,7 @@ export default class API {
   _userPromise?: Promise<ForgejoUser>;
   _metadataSemaphore?: Semaphore;
 
-  commitAuthor?: {};
+  commitAuthor?: { name: string; email: string };
 
   constructor(config: Config) {
     this.apiRoot = config.apiRoot || 'https://codeberg.org/api/v1';

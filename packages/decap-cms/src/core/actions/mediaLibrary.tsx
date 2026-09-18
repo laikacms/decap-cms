@@ -70,7 +70,7 @@ export function createMediaLibrary(instance: MediaLibraryInstance) {
 }
 
 export function clearMediaControl(id: string) {
-  return (_dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return (_dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const mediaLibrary = state.mediaLibrary.externalLibrary;
     if (mediaLibrary) {
@@ -80,7 +80,7 @@ export function clearMediaControl(id: string) {
 }
 
 export function removeMediaControl(id: string) {
-  return (_dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return (_dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const mediaLibrary = state.mediaLibrary.externalLibrary;
     if (mediaLibrary) {
@@ -112,7 +112,7 @@ export function openMediaLibrary(
     nonModal?: boolean,
   } = {},
 ) {
-  return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const mediaLibrary = state.mediaLibrary.externalLibrary;
     if (mediaLibrary) {
@@ -125,7 +125,7 @@ export function openMediaLibrary(
 }
 
 export function closeMediaLibrary() {
-  return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const mediaLibrary = state.mediaLibrary.externalLibrary;
     if (mediaLibrary) {
@@ -136,7 +136,7 @@ export function closeMediaLibrary() {
 }
 
 export function insertMedia(mediaPath: string | string[], field: EntryField | undefined) {
-  return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const config = state.config;
     const entry = state.entryDraft.entry;
@@ -187,7 +187,7 @@ export function loadMedia(
   } = {},
 ) {
   const { delay = 0, query = '', page = 1, privateUpload, folder } = opts;
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const backend = currentBackend(state.config);
     const integration = selectIntegration(state, null, 'assetStore');
@@ -366,7 +366,7 @@ function selectImageOptimizationConfig(
 
 export function persistMedia(file: File, opts: MediaOptions = {}) {
   const { privateUpload, field } = opts;
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const backend = currentBackend(state.config);
     const integration = selectIntegration(state, null, 'assetStore');
@@ -512,7 +512,7 @@ export function persistMedia(file: File, opts: MediaOptions = {}) {
 
 export function deleteMedia(file: MediaFile, opts: MediaOptions = {}) {
   const { privateUpload } = opts;
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const backend = currentBackend(state.config);
     const integration = selectIntegration(state, null, 'assetStore');
@@ -580,7 +580,7 @@ export async function getMediaFile(state: State, path: string) {
 }
 
 export function loadMediaDisplayURL(file: MediaFile) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const { displayURL, id } = file;
     const state = getState();
     const displayURLState = selectMediaDisplayURL(state, id) as DisplayURLState;
@@ -728,7 +728,7 @@ export function mediaDisplayURLFailure(key: string, err: Error) {
 }
 
 export async function waitForMediaLibraryToLoad(
-  dispatch: ThunkDispatch<State, {}, AnyAction>,
+  dispatch: ThunkDispatch<State, undefined, AnyAction>,
   state: State,
 ) {
   if (state.mediaLibrary.isLoading !== false && !state.mediaLibrary.externalLibrary) {
@@ -740,7 +740,7 @@ export async function waitForMediaLibraryToLoad(
 }
 
 export async function getMediaDisplayURL(
-  dispatch: ThunkDispatch<State, {}, AnyAction>,
+  dispatch: ThunkDispatch<State, undefined, AnyAction>,
   state: State,
   file: MediaFile,
 ) {

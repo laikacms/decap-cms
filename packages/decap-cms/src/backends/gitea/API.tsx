@@ -107,7 +107,7 @@ export default class API {
   _userPromise?: Promise<GiteaUser>;
   _metadataSemaphore?: Semaphore;
 
-  commitAuthor?: {};
+  commitAuthor?: { name: string; email: string };
 
   constructor(config: Config) {
     this.apiRoot = config.apiRoot || 'https://try.gitea.io/api/v1';

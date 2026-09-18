@@ -41,7 +41,7 @@ export function statusFailure(error: Error) {
 }
 
 export function checkBackendStatus() {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     try {
       const state = getState();
       if (state.status.isFetching) {

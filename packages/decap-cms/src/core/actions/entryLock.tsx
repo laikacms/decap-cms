@@ -66,7 +66,7 @@ function entryLockUnsupported(collection: string, slug: string) {
  * signed-in user identity to lock under.
  */
 export function acquireEntryLock(collection: Collection, slug: string, opts: { force?: boolean } = {}) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const backend = currentBackend(state.config);
     const collectionName = collection.name;
@@ -127,7 +127,7 @@ export function overrideEntryLock(collection: Collection, slug: string) {
  * conflict, so the banner reappears.
  */
 export function refreshEntryLock(collection: Collection, slug: string) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const backend = currentBackend(state.config);
     const collectionName = collection.name;
@@ -160,7 +160,7 @@ export function refreshEntryLock(collection: Collection, slug: string) {
 
 /** Release the lock on entry-close. Safe to call even if we never held one. */
 export function releaseEntryLock(collection: Collection, slug: string) {
-  return async (_dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (_dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const backend = currentBackend(state.config);
     const collectionName = collection.name;

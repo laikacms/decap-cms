@@ -25,7 +25,7 @@ describe('waitUntilWithTimeout', () => {
         action.run(vi.fn(), vi.fn(), { type: 'SOME_ACTION' });
       }
       return action;
-    }) as unknown as ThunkDispatch<State, {}, AnyAction>;
+    }) as unknown as ThunkDispatch<State, undefined, AnyAction>;
 
     const waitActionArgs = (resolve: (value?: string) => void): WaitActionArgs => ({
       predicate: () => true,
@@ -41,7 +41,7 @@ describe('waitUntilWithTimeout', () => {
   });
 
   it('resolves to null when the timeout elapses before the predicate succeeds', async () => {
-    const dispatch = vi.fn() as unknown as ThunkDispatch<State, {}, AnyAction>;
+    const dispatch = vi.fn() as unknown as ThunkDispatch<State, undefined, AnyAction>;
 
     const waitActionArgs = (): WaitActionArgs => ({
       predicate: () => false,

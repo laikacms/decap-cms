@@ -14,7 +14,7 @@
  * not a control-flow signal.
  */
 
-interface RootRouteParams {}
+type RootRouteParams = Record<string, never>;
 
 interface CollectionRouteParams {
   collectionName: string;
@@ -48,11 +48,11 @@ interface EditRouteParams {
   slug: string;
 }
 
-interface WorkflowRouteParams {}
+type WorkflowRouteParams = Record<string, never>;
 
-interface MediaRouteParams {}
+type MediaRouteParams = Record<string, never>;
 
-interface ConfigEditorRouteParams {}
+type ConfigEditorRouteParams = Record<string, never>;
 
 export interface RoutingTable {
   /** `/` — home; redirects to the first non-hidden collection (or `renderRoot`). */

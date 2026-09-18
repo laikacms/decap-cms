@@ -11,7 +11,7 @@ type State = any;
 // Re-export types for convenience
 export type RootState = State;
 
-type ThunkExtraArg = {};
+type ThunkExtraArg = undefined;
 
 // AppDispatch that can handle both regular actions and thunk actions
 export type AppDispatch = ThunkDispatch<State, ThunkExtraArg, AnyAction> & Dispatch<AnyAction>;

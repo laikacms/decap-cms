@@ -31,7 +31,7 @@ type State = {
 type GetAssetPayload = Parameters<typeof getAsset>[0];
 
 const middlewares = [thunk];
-const mockStore = configureMockStore<Partial<State>, ThunkDispatch<State, {}, AnyAction>>(
+const mockStore = configureMockStore<Partial<State>, ThunkDispatch<State, undefined, AnyAction>>(
   middlewares,
 );
 const mockedSelectMediaFilePath = selectMediaFilePath as Mock;
@@ -178,7 +178,7 @@ describe('media', () => {
   describe('boundGetAsset', () => {
     it('does not throw when called with a nullish collection (DCMS-313 new-entry mount)', () => {
       const store = mockStore({});
-      const dispatch = store.dispatch as unknown as ThunkDispatch<State, {}, AnyAction>;
+      const dispatch = store.dispatch as unknown as ThunkDispatch<State, undefined, AnyAction>;
 
       expect(() => boundGetAsset(dispatch, undefined as unknown as never, undefined as unknown as never)).not.toThrow();
       expect(() => boundGetAsset(dispatch, null as unknown as never, null as unknown as never)).not.toThrow();
