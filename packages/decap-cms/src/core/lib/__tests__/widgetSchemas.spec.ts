@@ -79,13 +79,13 @@ describe('widget config schema wiring', () => {
       validateJSONSchema(schema, {
         name: 'attachment',
         widget: 'file',
-        allow_multiple: true,
+        media_library: { allow_multiple: true },
         choose_url: false,
       }),
     ).toEqual([]);
 
     expect(
-      validateJSONSchema(schema, { name: 'attachment', widget: 'file', allow_multiple: 'yes' }),
+      validateJSONSchema(schema, { name: 'attachment', widget: 'file', choose_url: 'yes' }),
     ).not.toEqual([]);
   });
 

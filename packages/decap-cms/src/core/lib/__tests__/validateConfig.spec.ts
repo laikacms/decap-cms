@@ -1196,5 +1196,58 @@ describe('config', () => {
         );
       });
     });
+
+    // DCMS-2325: a top-level `allow_multiple` on a `file` field reads like it
+    // should work (it sits next to `choose_url`/`private`), but
+    // `withFileControl.tsx` only ever reads `field.media_library.allow_multiple`
+    // - the top level key was silently ignored. `additionalProperties: false`
+    // isn't set anywhere in the field schema (same reason as the richtext
+    // keys above), so `checkFileFieldTopLevelAllowMultiple` in
+    // `validateConfig.ts` rejects it as a dedicated custom check.
+    describe('file field top-level allow_multiple (DCMS-2325)', () => {
+      const fileConfig = (extra: Record<string, unknown>) =>
+        merge({}, validConfig, {
+          collections: [
+            {
+              fields: [{ name: 'attachment', widget: 'file', ...extra }],
+            },
+          ],
+        });
+
+      it('throws when a file field sets top-level allow_multiple', () => {
+        expect(() => {
+          validateConfig(fileConfig({ allow_multiple: true }));
+        }).toThrowError(
+          "file field 'attachment' sets top-level 'allow_multiple', which has no effect - set "
+            + "'media_library.allow_multiple' instead.",
+        );
+      });
+
+      it('does not throw for a file field without allow_multiple', () => {
+        expect(() => {
+          validateConfig(fileConfig({ choose_url: true }));
+        }).not.toThrow();
+      });
+
+      it('does not throw when a file field sets media_library.allow_multiple', () => {
+        expect(() => {
+          validateConfig(fileConfig({ media_library: { allow_multiple: true } }));
+        }).not.toThrow();
+      });
+
+      it('does not throw when a non-file field sets allow_multiple', () => {
+        expect(() => {
+          validateConfig(
+            merge({}, validConfig, {
+              collections: [
+                {
+                  fields: [{ name: 'attachment', widget: 'string', allow_multiple: true }],
+                },
+              ],
+            }),
+          );
+        }).not.toThrow();
+      });
+    });
   });
 });
