@@ -10,5 +10,6 @@ export default {
     label_singular: { type: 'string' },
     min: { type: 'number' },
     max: { type: 'number' },
+    typeKey: { type: 'string' },
   },
 };
