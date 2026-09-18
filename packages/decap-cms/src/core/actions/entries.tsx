@@ -35,7 +35,7 @@ import { CmsSortDirection } from '@/lib/util/index';
 import queryCore, { collectionTag, entryTag } from '@/lib/util/queryCore';
 import { addAssets, getAsset } from './media';
 import { loadMedia, waitForMediaLibraryToLoad } from './mediaLibrary';
-import { addNotification } from './notifications';
+import { addNotification, dismissNotificationsByMessageKey, VALIDATION_ERROR_MESSAGE_KEYS } from './notifications';
 import { waitUntil } from './waitUntil';
 
 import type { CascadeDeleteReference } from '@/core/lib/cascadeDeleteRelations';
@@ -1047,6 +1047,11 @@ export function persistEntry(collection: Collection) {
         usedSlugs,
       })
       .then(async (newSlug: string) => {
+        // Clear any stale validation-error toast from a prior failed save on
+        // this same route (DCMS-2311) - its 8s dismiss timer otherwise
+        // outlives this success toast's 4s one, leaving a red error toast
+        // next to "Entry saved" for a few seconds.
+        dispatch(dismissNotificationsByMessageKey(VALIDATION_ERROR_MESSAGE_KEYS));
         dispatch(
           addNotification({
             message: { key: 'ui.toast.entrySaved' },

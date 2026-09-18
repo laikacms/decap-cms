@@ -30,7 +30,7 @@ import {
 } from './entries';
 import { addAssets } from './media';
 import { loadMedia } from './mediaLibrary';
-import { addNotification } from './notifications';
+import { addNotification, dismissNotificationsByMessageKey, VALIDATION_ERROR_MESSAGE_KEYS } from './notifications';
 
 import type { Status } from '@/core/constants/publishModes';
 import type { WorkflowEntry } from '@/core/reducers/editorialWorkflow';
@@ -451,6 +451,9 @@ export function persistUnpublishedEntry(collection: Collection, existingUnpublis
         assetProxies,
         usedSlugs,
       });
+      // Clear any stale validation-error toast from a prior failed save on
+      // this same route (DCMS-2311) - see entries.tsx `persistEntry`.
+      dispatch(dismissNotificationsByMessageKey(VALIDATION_ERROR_MESSAGE_KEYS));
       dispatch(
         addNotification({
           message: {

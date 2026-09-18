@@ -2,7 +2,7 @@ import { Toast } from '@base-ui/react/toast';
 import { css } from '@emotion/react';
 import React, { useEffect, useRef } from 'react';
 
-import { dismissNotification } from '@/core/actions/notifications';
+import { dismissNotification, VALIDATION_ERROR_MESSAGE_KEYS } from '@/core/actions/notifications';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 import { useTranslate } from '@/core/i18n';
 import { useRouter } from '@/core/routing/context';
@@ -52,8 +52,7 @@ const NEUTRAL_ACCENT = '#757575';
  * instead (DCMS-579, DCMS-1408).
  */
 const ROUTE_SCOPED_MESSAGE_KEYS = [
-  'ui.toast.missingRequiredField',
-  'ui.toast.invalidField',
+  ...VALIDATION_ERROR_MESSAGE_KEYS,
   'ui.toast.onFailToLoadEntries',
 ];
 
