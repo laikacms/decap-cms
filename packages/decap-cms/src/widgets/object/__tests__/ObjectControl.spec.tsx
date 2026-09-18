@@ -230,4 +230,85 @@ describe('ObjectControl', () => {
     expect(expandButton).toHaveAttribute('aria-expanded', 'false');
     expect(getByText('Author Details')).toBeInTheDocument();
   });
+
+  it('renders the interpolated `summary` template in the top-bar heading instead of the label (DCMS-2321)', () => {
+    const field = {
+      name: 'address',
+      widget: 'object',
+      label: 'Address',
+      summary: '{{fields.city}}, {{fields.zip}}',
+      collapsed: true,
+      fields: [
+        { name: 'city', widget: 'string' },
+        { name: 'zip', widget: 'string' },
+      ],
+    };
+
+    const { getByText, queryByText } = render(
+      <ObjectControl
+        {...(baseProps as any)}
+        field={field}
+        value={{ city: 'Springfield', zip: '12345' }}
+        editorControl={createMockEditorControl(vi.fn())}
+      />,
+    );
+
+    expect(getByText('Springfield, 12345')).toBeInTheDocument();
+    expect(queryByText('Address')).not.toBeInTheDocument();
+  });
+
+  it('falls back to `{}` for a non-object/undefined `value` instead of throwing when resolving `summary` (DCMS-2321)', () => {
+    const field = {
+      name: 'address',
+      widget: 'object',
+      label: 'Address',
+      summary: '{{fields.city}}, {{fields.zip}}',
+      collapsed: true,
+      fields: [
+        { name: 'city', widget: 'string' },
+        { name: 'zip', widget: 'string' },
+      ],
+    };
+
+    let container: HTMLElement;
+    expect(() => {
+      ({ container } = render(
+        <ObjectControl
+          {...(baseProps as any)}
+          field={field}
+          value={undefined}
+          editorControl={createMockEditorControl(vi.fn())}
+        />,
+      ));
+    }).not.toThrow();
+
+    // No fields resolved, so the placeholders interpolate to empty strings,
+    // leaving just the template's own literal punctuation/whitespace, and the
+    // `label` fallback must not be used since `summary` is set.
+    expect(container!.textContent).toContain(', ');
+    expect(container!.textContent).not.toContain('Address');
+  });
+
+  it('prefers `summary` over `label`/`name` when both are configured (DCMS-2321)', () => {
+    const field = {
+      name: 'address',
+      widget: 'object',
+      label: 'Address',
+      summary: 'Summary: {{fields.city}}',
+      collapsed: true,
+      fields: [{ name: 'city', widget: 'string' }],
+    };
+
+    const { getByText, queryByText } = render(
+      <ObjectControl
+        {...(baseProps as any)}
+        field={field}
+        value={{ city: 'Springfield' }}
+        editorControl={createMockEditorControl(vi.fn())}
+      />,
+    );
+
+    expect(getByText('Summary: Springfield')).toBeInTheDocument();
+    expect(queryByText('Address')).not.toBeInTheDocument();
+  });
 });
