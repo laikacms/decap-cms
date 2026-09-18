@@ -850,6 +850,71 @@ describe('entries', () => {
     });
   });
 
+  // DCMS-2311: a successful save must clear any stale validation-error toast
+  // left over from a prior failed save on the same route - its 8s dismiss
+  // timer otherwise outlives the 4s "Entry saved" success toast.
+  describe('persistEntry - clears stale validation notifications on success (DCMS-2311)', () => {
+    const collection = {
+      name: 'posts',
+      type: FOLDER,
+      folder: '_posts',
+      fields: [{ name: 'title', label: 'Title', widget: 'string' }],
+    };
+
+    const currentBackend = vi.mocked(backendModule.currentBackend);
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+      currentBackend.mockReturnValue({ persistEntry: vi.fn(() => Promise.resolve('post-c')) } as never);
+    });
+
+    function makeState(notifications: { id: string, message: { key: string } }[]) {
+      return {
+        config: {},
+        entries: {},
+        entryDraft: {
+          fieldsErrors: {},
+          entry: { slug: 'post-c', data: { title: 'C' }, mediaFiles: [] },
+        },
+        notifications: { notifications },
+      };
+    }
+
+    it('dismisses prior invalidField/missingRequiredField notifications on ENTRY_PERSIST_SUCCESS', async () => {
+      const store = mockStore(
+        makeState([
+          { id: 'stale-invalid', message: { key: 'ui.toast.invalidField' } },
+          { id: 'stale-missing', message: { key: 'ui.toast.missingRequiredField' } },
+          { id: 'unrelated', message: { key: 'ui.toast.notUniqueField' } },
+        ]),
+      );
+
+      await store.dispatch(persistEntry(collection as never) as never);
+
+      const dismissActions = store
+        .getActions()
+        .filter((action: any) => action.type === 'NOTIFICATION_DISMISS');
+      expect(dismissActions.map((action: any) => action.id)).toEqual(
+        expect.arrayContaining(['stale-invalid', 'stale-missing']),
+      );
+      expect(dismissActions.some((action: any) => action.id === 'unrelated')).toBe(false);
+
+      const sendActions = store.getActions().filter((action: any) => action.type === 'NOTIFICATION_SEND');
+      expect(sendActions.some((action: any) => action.payload?.message?.key === 'ui.toast.entrySaved')).toBe(true);
+    });
+
+    it('does not dispatch any dismissal when there is nothing stale to clear', async () => {
+      const store = mockStore(makeState([]));
+
+      await store.dispatch(persistEntry(collection as never) as never);
+
+      const dismissActions = store
+        .getActions()
+        .filter((action: any) => action.type === 'NOTIFICATION_DISMISS');
+      expect(dismissActions).toHaveLength(0);
+    });
+  });
+
   describe('validateMetaField', () => {
     const state = {
       config: {
