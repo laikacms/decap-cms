@@ -22,7 +22,7 @@ import type { LaikaThemeProviderProps } from './LaikaThemeContext';
  * directly around `<LaikaApp />` (or any subset of laika components).
  */
 
-export interface LaikaProviderProps extends LaikaThemeProviderProps {}
+export type LaikaProviderProps = LaikaThemeProviderProps;
 
 export function LaikaProvider({ children, ...themeProps }: LaikaProviderProps) {
   return (

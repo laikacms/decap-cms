@@ -282,7 +282,7 @@ function unpublishedEntryPublishUnscheduled(collection: string, slug: string) {
  */
 
 export function loadUnpublishedEntry(collection: Collection, slug: string) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const backend = currentBackend(state.config);
     const entriesLoaded = get(state.editorialWorkflow, 'pages.ids', false);
@@ -348,7 +348,7 @@ export function loadUnpublishedEntry(collection: Collection, slug: string) {
 const UNPUBLISHED_QUERY_KEY = 'unpublished/all';
 
 export function loadUnpublishedEntries(collections: Collections) {
-  return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const backend = currentBackend(state.config);
 
@@ -391,7 +391,7 @@ export function loadUnpublishedEntries(collections: Collections) {
 }
 
 export function persistUnpublishedEntry(collection: Collection, existingUnpublishedEntry: boolean) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const entryDraft = state.entryDraft;
     const fieldsErrors = entryDraft.fieldsErrors;
@@ -519,7 +519,7 @@ export function updateUnpublishedEntryStatus(
   oldStatus: Status,
   newStatus: Status,
 ) {
-  return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     if (oldStatus === newStatus) return;
     const state = getState();
     const backend = currentBackend(state.config);
@@ -558,7 +558,7 @@ export function updateUnpublishedEntryStatus(
 }
 
 export function deleteUnpublishedEntry(collection: string, slug: string) {
-  return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const backend = currentBackend(state.config);
     dispatch(unpublishedEntryDeleteRequest(collection, slug));
@@ -592,7 +592,7 @@ export function deleteUnpublishedEntry(collection: string, slug: string) {
 }
 
 export function publishUnpublishedEntry(collectionName: string, slug: string) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const collections = state.collections;
     const backend = currentBackend(state.config);
@@ -670,7 +670,7 @@ export function scheduleUnpublishedEntryPublish(
   slug: string,
   publishAt: string,
 ) {
-  return (dispatch: ThunkDispatch<State, {}, AnyAction>) => {
+  return (dispatch: ThunkDispatch<State, undefined, AnyAction>) => {
     const parsed = new Date(publishAt);
     if (Number.isNaN(parsed.getTime()) || parsed.getTime() <= Date.now()) {
       dispatch(
@@ -697,7 +697,7 @@ export function scheduleUnpublishedEntryPublish(
 }
 
 export function unscheduleUnpublishedEntryPublish(collectionName: string, slug: string) {
-  return (dispatch: ThunkDispatch<State, {}, AnyAction>) => {
+  return (dispatch: ThunkDispatch<State, undefined, AnyAction>) => {
     clearScheduledPublishAt(collectionName, slug);
     dispatch(unpublishedEntryPublishUnscheduled(collectionName, slug));
     dispatch(
@@ -715,7 +715,7 @@ export function unscheduleUnpublishedEntryPublish(collectionName: string, slug: 
 // the CMS is open in a browser tab - see the module doc comment above for
 // what's deliberately not implemented.
 export function checkScheduledPublishes() {
-  return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const entities = state.editorialWorkflow?.entities as
       | Record<string, WorkflowEntry>
@@ -736,7 +736,7 @@ export function checkScheduledPublishes() {
 }
 
 export function unpublishPublishedEntry(collection: Collection, slug: string) {
-  return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const backend = currentBackend(state.config);
     const entry = selectEntry(state, collection.name, slug) as EntryMap;

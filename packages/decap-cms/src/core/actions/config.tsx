@@ -714,7 +714,7 @@ export function loadConfig(manualConfig: Partial<CmsConfig> = {}, onLoad: () => 
   if (typeof window !== 'undefined' && 'CMS_CONFIG' in window && window.CMS_CONFIG) {
     return configLoaded(window.CMS_CONFIG as CmsConfig);
   }
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>) => {
+  return async (dispatch: ThunkDispatch<State, undefined, AnyAction>) => {
     dispatch(configLoading());
 
     try {

@@ -206,7 +206,7 @@ export function sortByField(
   key: string,
   direction: SortDirection = SortDirection.Ascending,
 ) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const isFetching = selectIsFetching(state.entries, collection.name);
     dispatch({
@@ -235,7 +235,7 @@ export function sortByField(
 }
 
 export function filterByField(collection: Collection, filter: ViewFilter) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const isFetching = selectIsFetching(state.entries, collection.name);
     dispatch({
@@ -260,7 +260,7 @@ export function filterByField(collection: Collection, filter: ViewFilter) {
 }
 
 export function groupByField(collection: Collection, group: ViewGroup) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const isFetching = selectIsFetching(state.entries, collection.name);
     dispatch({
@@ -460,7 +460,7 @@ export function removeDraftEntryMediaFile({ id }: { id: string }) {
 }
 
 export function persistLocalBackup(entry: EntryMap, collection: Collection) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const backend = currentBackend(state.config);
     try {
@@ -482,7 +482,7 @@ export function persistLocalBackup(entry: EntryMap, collection: Collection) {
 }
 
 export function createDraftDuplicateFromEntry(entry: EntryMap) {
-  return (dispatch: ThunkDispatch<State, {}, AnyAction>) => {
+  return (dispatch: ThunkDispatch<State, undefined, AnyAction>) => {
     dispatch(
       waitUntil({
         predicate: ({ type }) => type === DRAFT_CREATE_EMPTY,
@@ -493,7 +493,7 @@ export function createDraftDuplicateFromEntry(entry: EntryMap) {
 }
 
 export function retrieveLocalBackup(collection: Collection, slug: string) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const backend = currentBackend(state.config);
     const { entry } = await backend.getLocalDraftBackup(collection, slug);
@@ -526,7 +526,7 @@ export function retrieveLocalBackup(collection: Collection, slug: string) {
 }
 
 export function deleteLocalBackup(collection: Collection, slug: string) {
-  return (_dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return (_dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const backend = currentBackend(state.config);
     return backend.deleteLocalDraftBackup(collection, slug);
@@ -538,7 +538,7 @@ export function deleteLocalBackup(collection: Collection, slug: string) {
  */
 
 export function loadEntry(collection: Collection, slug: string) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const queryKey = `entry/${collection.name}/${slug}`;
     const entriesState = getState().entries;
     const existing = entriesState ? selectEntry(entriesState, collection.name, slug) : undefined;
@@ -634,7 +634,7 @@ function addAppendActionsToCursor(cursor: Cursor) {
 }
 
 export function loadEntries(collection: Collection, page = 0) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const sortFields = selectEntriesSortFields(state.entries, collection.name);
 
@@ -717,7 +717,7 @@ function traverseCursor(backend: Backend, cursor: Cursor, action: string) {
 }
 
 export function traverseCollectionCursor(collection: Collection, action: string) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const collectionName = collection.name;
     if (state.entries.pages[collectionName]?.isFetching) return;
@@ -782,7 +782,7 @@ function getMetaFields(fields: EntryFields) {
 }
 
 export function createEmptyDraft(collection: Collection, search: string) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const params = new URLSearchParams(search);
     const uniqueKeys = Array.from(new Set(params.keys()));
 
@@ -972,7 +972,7 @@ export function getSerializedEntry(collection: Collection, entry: EntryMap) {
 }
 
 export function persistEntry(collection: Collection) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const entryDraft = state.entryDraft;
     const fieldsErrors = entryDraft.fieldsErrors;
@@ -1123,7 +1123,7 @@ export function createQuickCreateEntryData(
  * editing session is untouched.
  */
 export function persistQuickCreateEntry(collection: Collection, data: Record<string, unknown>) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     if (!selectAllowNewEntries(collection)) {
       throw new Error('Not allowed to create new entries in this collection');
     }
@@ -1164,7 +1164,7 @@ export function persistQuickCreateEntry(collection: Collection, data: Record<str
 }
 
 export function deleteEntry(collection: Collection, slug: string) {
-  return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const backend = currentBackend(state.config);
 
@@ -1226,7 +1226,7 @@ export function deleteEntry(collection: Collection, slug: string) {
  * doesn't roll back the delete or block the remaining cascade updates.
  */
 export function applyCascadeDeleteReferences(references: CascadeDeleteReference[]) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     const state = getState();
     const backend = currentBackend(state.config);
 

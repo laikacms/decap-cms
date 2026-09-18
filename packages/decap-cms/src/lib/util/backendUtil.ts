@@ -105,7 +105,7 @@ export function parseLinkHeader(header: string | null): Record<string, string> {
 
 export async function getAllResponses(
   url: string,
-  options: { headers?: {} } = {},
+  options: { headers?: HeadersInit } = {},
   linkHeaderRelName: string,
   nextUrlProcessor: (url: string) => string,
 ) {

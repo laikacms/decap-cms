@@ -50,7 +50,7 @@ export function loadAssetFailure(path: string, error: Error) {
 }
 
 export function loadAsset(resolvedPath: string) {
-  return async (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return async (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     try {
       dispatch(loadAssetRequest(resolvedPath));
       // load asset url from backend
@@ -96,7 +96,7 @@ const emptyAsset = createAssetProxy({
 });
 
 function getAssetFactory(
-  dispatch: ThunkDispatch<State, {}, AnyAction>,
+  dispatch: ThunkDispatch<State, undefined, AnyAction>,
   collection: Collection,
   entry: EntryMap,
 ) {
@@ -124,7 +124,7 @@ export const boundGetAsset = memoize(
 boundGetAsset.cache = new Map();
 
 export function getAsset({ collection, entry, path, field }: GetAssetArgs) {
-  return (dispatch: ThunkDispatch<State, {}, AnyAction>, getState: () => State) => {
+  return (dispatch: ThunkDispatch<State, undefined, AnyAction>, getState: () => State) => {
     if (!path) return emptyAsset;
 
     const state = getState();

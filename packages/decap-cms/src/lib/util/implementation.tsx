@@ -134,7 +134,12 @@ export async function getMediaDisplayURL(
   );
 }
 
-export async function runWithLock(lock: AsyncLock, func: Function, message: string) {
+// `any` here (not flagged, no-explicit-any is still deferred - see eslint.config.mjs) is
+// deliberate: callers return heterogeneous payload shapes (void, entries, commit refs) even
+// though `BackendImplementation.persistEntry` is declared `Promise<void>` - pre-existing
+// debt out of scope for this rule fix (see #2325). A generic `<T>` here would make that
+// mismatch a real type error at every call site.
+export async function runWithLock(lock: AsyncLock, func: () => any, message: string) {
   try {
     const acquired = await lock.acquire();
     if (!acquired) {

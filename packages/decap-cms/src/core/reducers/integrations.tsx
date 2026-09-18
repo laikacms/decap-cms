@@ -11,7 +11,7 @@ export type Integrations = {
 };
 
 interface Acc {
-  providers: Record<string, {}>;
+  providers: Record<string, Record<string, unknown>>;
   hooks: Record<string, string | Record<string, string>>;
 }
 

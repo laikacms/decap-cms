@@ -62,7 +62,7 @@ const StyledImage = styled.img`
   object-fit: contain;
 `;
 
-interface ImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {}
+type ImageProps = React.ImgHTMLAttributes<HTMLImageElement>;
 
 function Image(props: ImageProps) {
   return <StyledImage role="presentation" {...props} />;

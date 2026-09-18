@@ -366,7 +366,7 @@ export default class API {
             }
           }),
         ]),
-      promiseThen(([cursor, entries]: [Cursor, {}[]]) => ({ cursor, entries })),
+      promiseThen(([cursor, entries]: [Cursor, FileEntry[]]) => ({ cursor, entries })),
     ])(req);
 
   listFiles = async (path: string, recursive = false, folderSupport?: boolean) => {

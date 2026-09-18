@@ -40,6 +40,6 @@ const store = configureStore({
 // Export types for typed hooks
 export type RootState = State;
 // Using {} for extra argument to match existing thunk actions
-export type AppDispatch = ThunkDispatch<State, {}, AnyAction>;
+export type AppDispatch = ThunkDispatch<State, undefined, AnyAction>;
 
 export { store };
