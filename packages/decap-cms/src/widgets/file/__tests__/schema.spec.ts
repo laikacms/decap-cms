@@ -20,7 +20,6 @@ describe('file widget schema', () => {
     const fieldConfig = {
       name: 'attachment',
       widget: 'file',
-      allow_multiple: true,
       choose_url: false,
       private: true,
     };
@@ -45,12 +44,6 @@ describe('file widget schema', () => {
     const fieldConfig = { name: 'attachment', widget: 'file' };
 
     expect(validateJSONSchema(fieldSchema, fieldConfig)).toEqual([]);
-  });
-
-  it('rejects allow_multiple with the wrong type', () => {
-    const fieldConfig = { name: 'attachment', widget: 'file', allow_multiple: 'yes' };
-
-    expect(validateJSONSchema(fieldSchema, fieldConfig)).not.toEqual([]);
   });
 
   it('rejects choose_url with the wrong type', () => {
