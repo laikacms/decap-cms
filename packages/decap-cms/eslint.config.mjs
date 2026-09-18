@@ -337,7 +337,6 @@ export default tseslint.config(
       'no-console': 'off',
       'require-atomic-updates': 'off',
       'object-shorthand': ['error', 'always'],
-      // 'func-style': ['error', 'declaration'], // TODO: Remove? (feedback please - Sem)
       'prefer-const': ['error', { destructuring: 'all' }],
       'no-duplicate-imports': 'off', // handled by @typescript-eslint
 
