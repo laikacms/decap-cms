@@ -577,21 +577,22 @@ function checkRichtextFieldKeys(config: Record<string, unknown>): SchemaError[] 
   return errors;
 }
 
-const FILE_FAMILY_WIDGETS = ['file'] as const;
+const FILE_FAMILY_WIDGETS = ['file', 'image'] as const;
 
 /**
- * A top-level `allow_multiple` on a `file` field looks like it should work
- * (it reads like the widget's other top-level options, `choose_url`/
- * `private`), but `withFileControl.tsx` only ever reads
- * `field.media_library.allow_multiple` (DCMS-2325) - the top-level key was
- * declared in `widgets/file/schema.ts` and silently ignored. Just removing
- * it from that schema isn't enough to reject it: like the richtext keys
- * above, `additionalProperties: false` isn't set anywhere in the field
- * schema, so an unknown top-level key still passes JSON Schema validation
- * silently. This walks the raw config the same way `checkRichtextFieldKeys`
- * does, to turn it into a clear error instead of a silent no-op. See
- * `widgets/file/README.md` for the supported `media_library.allow_multiple`
- * option.
+ * A top-level `allow_multiple` on a `file` or `image` field looks like it
+ * should work (it reads like the widgets' other top-level options,
+ * `choose_url`/`private`), but `withFileControl.tsx` only ever reads
+ * `field.media_library.allow_multiple` (DCMS-2325, DCMS-2330) - the
+ * top-level key was declared in `widgets/file/schema.ts` and
+ * `widgets/image/schema.ts` and silently ignored. Just removing it from
+ * those schemas isn't enough to reject it: like the richtext keys above,
+ * `additionalProperties: false` isn't set anywhere in the field schema, so
+ * an unknown top-level key still passes JSON Schema validation silently.
+ * This walks the raw config the same way `checkRichtextFieldKeys` does, to
+ * turn it into a clear error instead of a silent no-op. See
+ * `widgets/file/README.md` / `widgets/image/README.md` for the supported
+ * `media_library.allow_multiple` option.
  */
 function checkFileFieldTopLevelAllowMultiple(config: Record<string, unknown>): SchemaError[] {
   const errors: SchemaError[] = [];
@@ -690,7 +691,7 @@ export function validateConfig(config: Record<string, unknown>) {
     throw new ConfigError(richtextFieldKeyErrors);
   }
 
-  // Custom validation: reject the inert top-level `allow_multiple` on file fields.
+  // Custom validation: reject the inert top-level `allow_multiple` on file/image fields.
   const fileFieldAllowMultipleErrors = checkFileFieldTopLevelAllowMultiple(config);
   if (fileFieldAllowMultipleErrors.length > 0) {
     console.error('Config Errors', fileFieldAllowMultipleErrors);
