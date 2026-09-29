@@ -416,8 +416,7 @@ export function AiChatControl(props: AiChatControlProps) {
   const dispatch = useDispatch();
   const reduxStore = useStore();
 
-  // Use widget messages if provided, otherwise the English defaults
-  const t = widget.messages ?? en;
+  const t = useMemo(() => ({ ...en, ...widget.messages }), [widget.messages]);
 
   const i18nInfo = useMemo(() => getI18nInfo(collection), [collection]);
   const defaultLocale = i18nInfo?.defaultLocale;
