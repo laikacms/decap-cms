@@ -528,7 +528,7 @@ function useMentionLookupService(mentionString: string | null) {
   return results;
 }
 
-function checkForAtSignMentions(
+export function checkForAtSignMentions(
   text: string,
   minMatchLength: number,
 ): MenuTextMatch | null {
@@ -555,7 +555,7 @@ function checkForAtSignMentions(
   return null;
 }
 
-function getPossibleQueryMatch(text: string): MenuTextMatch | null {
+export function getPossibleQueryMatch(text: string): MenuTextMatch | null {
   return checkForAtSignMentions(text, 1);
 }
 
