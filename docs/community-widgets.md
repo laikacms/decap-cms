@@ -50,8 +50,11 @@ under [`extensions/widgets/`](../extensions/widgets/): `@laikacms/decap-cms-widg
 vendor its source into your own project. They are built the way your widget would be - against the
 published `@laikacms/decap-cms` subpath exports only - so they are the closest thing to a template.
 
-This repo ships several bundled, opt-in widgets under `@laikacms/decap-cms/widgets/*` (e.g.
-`relation`, `uuid`, `colorstring`, `code`) — each has its own README under
-[`packages/decap-cms/src/widgets/`](../packages/decap-cms/src/widgets/) and is registered the same
-way (`CMS.registerWidget(Widget.Widget())`), useful as reference implementations even though they
-ship in-tree rather than as standalone npm packages.
+This repo ships several bundled widgets under
+`@laikacms/decap-cms/widgets/*` (e.g. `relation`, `uuid`, `colorstring`, `code`). The full app (`@laikacms/decap-cms` / `@laikacms/decap-cms/app`)
+registers them by default, so you do not register them yourself; explicit registration is only
+needed with `@laikacms/decap-cms/app/bare`, where each is registered like any other widget
+(`CMS.registerWidget(Widget.Widget())`, i.e. the default export's `Widget()` factory). Each has its
+own README under [`packages/decap-cms/src/widgets/`](../packages/decap-cms/src/widgets/), and they
+are useful as reference implementations even though they ship in-tree rather than as standalone
+npm packages.

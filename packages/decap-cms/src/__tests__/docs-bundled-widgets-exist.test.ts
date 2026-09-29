@@ -12,19 +12,19 @@ const REPO_ROOT = path.resolve(HERE, '../../../..');
 const DOC_PATH = path.join(REPO_ROOT, 'docs/community-widgets.md');
 const WIDGETS_DIR = path.join(REPO_ROOT, 'packages/decap-cms/src/widgets');
 
-// The doc's "bundled, opt-in widgets" callout names a parenthetical example
+// The doc's "bundled widgets" callout names a parenthetical example
 // list like: `(e.g. `radix-icon`, `lucide-icon`, `map`, `aichat`)`. Extract
 // the backtick-quoted names out of that specific sentence rather than every
 // backtick span in the file, so unrelated inline code (subpath examples,
 // the registerWidget snippet) doesn't get swept in.
 const BUNDLED_WIDGETS_SENTENCE =
-  /This repo ships several bundled, opt-in widgets under\s*\n?`@laikacms\/decap-cms\/widgets\/\*`\s*\(e\.g\.\s*([^)]+)\)/;
+  /This repo ships several bundled widgets under\s*\n?`@laikacms\/decap-cms\/widgets\/\*`\s*\(e\.g\.\s*([^)]+)\)/;
 
 function extractBundledWidgetNames(docContents: string): string[] {
   const match = docContents.match(BUNDLED_WIDGETS_SENTENCE);
   if (!match) {
     throw new Error(
-      `Could not find the "bundled, opt-in widgets" sentence in ${path.relative(REPO_ROOT, DOC_PATH)}. ` +
+      `Could not find the "bundled widgets" sentence in ${path.relative(REPO_ROOT, DOC_PATH)}. ` +
         'Update BUNDLED_WIDGETS_SENTENCE in this test to match the doc\'s current wording.',
     );
   }
