@@ -853,6 +853,44 @@ describe('formatters', () => {
         );
       });
     });
+
+    describe('files[].preview_path_date_field resolution order', () => {
+      const format = (
+        file: Record<string, unknown>,
+        collectionOverrides: Record<string, unknown>,
+      ) => {
+        const fileWithPath = { name: 'about-file', preview_path: '{{year}}/{{slug}}', ...file };
+        vi.mocked(getFileFromSlug).mockReturnValue(fileWithPath);
+        return previewUrlFormatter(
+          'https://www.example.com',
+          { type: 'file_based_collection', files: [fileWithPath], ...collectionOverrides },
+          'backendSlug',
+          {
+            data: {
+              fileDate: new Date('2019-03-04T10:00:00.000Z'),
+              collectionDate: new Date('2021-05-06T10:00:00.000Z'),
+            },
+            slug: 'about-file',
+          },
+          slugConfig,
+        );
+      };
+
+      it('should let file-level date field beat collection-level date field', () => {
+        expect(
+          format(
+            { preview_path_date_field: 'fileDate' },
+            { preview_path_date_field: 'collectionDate' },
+          ),
+        ).toBe('https://www.example.com/2019/backendslug');
+      });
+
+      it('should fall back to collection-level date field when file-level is unset', () => {
+        expect(format({}, { preview_path_date_field: 'collectionDate' })).toBe(
+          'https://www.example.com/2021/backendslug',
+        );
+      });
+    });
   });
 
   describe('summaryFormatter', () => {
