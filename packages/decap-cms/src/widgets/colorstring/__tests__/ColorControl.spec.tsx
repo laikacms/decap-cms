@@ -149,3 +149,73 @@ describe('ColorControl aria validation wiring (DCMS-1083)', () => {
     expect(input).toHaveAttribute('aria-errormessage', 'color-field-1-errors');
   });
 });
+
+// DCMS-2364: README `## allowInput` contract — readOnly text input that opens
+// the picker vs. editable input, swatch keyboard toggle, click-outside close.
+describe('ColorControl allowInput and picker toggling (DCMS-2364)', () => {
+  const OPEN_LABEL = 'editor.editorWidgets.colorstring.openColorPicker';
+
+  it.each([
+    ['unset', {}],
+    ['false', { allowInput: false }],
+  ])('renders a readonly textbox that opens the picker on click when allowInput is %s', (_label, field) => {
+    const utils = setup({ field });
+    const input = utils.getByRole('textbox');
+
+    expect(input).toHaveAttribute('readonly');
+    expect(utils.queryByTestId('hex-picker')).toBeNull();
+
+    fireEvent.click(input);
+
+    expect(utils.getByTestId('hex-picker')).toBeInTheDocument();
+  });
+
+  it('renders an editable textbox that forwards typed text verbatim when allowInput is true', () => {
+    const utils = setup({ field: { allowInput: true } });
+    const input = utils.getByRole('textbox');
+
+    expect(input).not.toHaveAttribute('readonly');
+
+    fireEvent.change(input, { target: { value: '#abc' } });
+
+    expect(utils.props.onChange).toHaveBeenCalledWith('#abc');
+  });
+
+  it('does not open the picker when the editable textbox is clicked', () => {
+    const utils = setup({ field: { allowInput: true } });
+
+    fireEvent.click(utils.getByRole('textbox'));
+
+    expect(utils.queryByTestId('hex-picker')).toBeNull();
+  });
+
+  it.each(['Enter', ' '])('toggles the picker open and closed on swatch %j keydown', key => {
+    const utils = setup();
+    const swatch = utils.getByRole('button', { name: OPEN_LABEL });
+
+    fireEvent.keyDown(swatch, { key });
+    expect(utils.getByTestId('hex-picker')).toBeInTheDocument();
+
+    fireEvent.keyDown(swatch, { key });
+    expect(utils.queryByTestId('hex-picker')).toBeNull();
+  });
+
+  it('ignores other swatch keys', () => {
+    const utils = setup();
+
+    fireEvent.keyDown(utils.getByRole('button', { name: OPEN_LABEL }), { key: 'a' });
+
+    expect(utils.queryByTestId('hex-picker')).toBeNull();
+  });
+
+  it('closes the picker when the click-outside overlay is clicked', () => {
+    const utils = setup();
+    openPicker(utils);
+
+    const overlay = utils.getByTestId('hex-picker').previousElementSibling;
+    expect(overlay).not.toBeNull();
+    fireEvent.click(overlay as Element);
+
+    expect(utils.queryByTestId('hex-picker')).toBeNull();
+  });
+});
