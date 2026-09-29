@@ -82,6 +82,6 @@ on the collection's field config take precedence over `t.defaultPlaceholder` and
 `t.defaultWelcomeMessage` from `messages`/`en`.
 
 - `field.maxHeight` (optional, default `'500px'`) — the max height of the rendered chat panel, as a
-  CSS length. Declared on `AiChatFieldOptions` in `AiChatControl.tsx:261`, read as
-  `field.maxHeight || '500px'` in `AiChatControl.tsx:426`, and applied as an inline style on the
-  chat panel's `Container` in `AiChatControl.tsx:683`.
+  CSS length. Declared on `AiChatFieldOptions` in `src/AiChatControl.tsx:262`, read as
+  `field.maxHeight || '500px'` in `src/AiChatControl.tsx:427`, and applied as an inline style on the
+  chat panel's `Container` in `src/AiChatControl.tsx:684`.
