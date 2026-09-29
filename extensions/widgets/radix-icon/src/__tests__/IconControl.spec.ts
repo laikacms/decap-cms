@@ -219,3 +219,39 @@ describe('IconControl forID target (DCMS-2355)', () => {
     expect(container.querySelectorAll('[id="x"]')).toHaveLength(1);
   });
 });
+
+describe('IconControl stateless RegExp filter (radix-icon, DCMS-2354)', () => {
+  const baseProps = {
+    field: {} as never,
+    classNameWrapper: '',
+    setActiveStyle: () => {},
+    setInactiveStyle: () => {},
+    t: (key: string) => key,
+    onChange: () => {},
+    value: undefined,
+  };
+
+  const renderedIcons = async (filter: RegExp) => {
+    const { container, unmount } = render(React.createElement(IconControl, { ...baseProps, filter }));
+    fireEvent.click(screen.getByRole('button', { name: 'editor.editorWidgets.iconPicker.toggle' }));
+    await waitFor(() => expect(container.querySelectorAll('[role="button"][title]').length).toBeGreaterThan(0));
+    const titles = Array.from(container.querySelectorAll('[role="button"][title]')).map(el => el.getAttribute('title'));
+    unmount();
+    return titles;
+  };
+
+  it('a global-flag RegExp yields the same list as the non-global one', async () => {
+    const expected = await renderedIcons(/^Arrow/);
+    expect(expected.length).toBeGreaterThan(2);
+    expect(await renderedIcons(/^Arrow/g)).toEqual(expected);
+  });
+
+  it('a sticky-flag RegExp yields the same list as the non-sticky one', async () => {
+    expect(await renderedIcons(/^Arrow/y)).toEqual(await renderedIcons(/^Arrow/));
+  });
+
+  it('a reused global RegExp gives the same list across renders', async () => {
+    const filter = /^Arrow/g;
+    expect(await renderedIcons(filter)).toEqual(await renderedIcons(filter));
+  });
+});

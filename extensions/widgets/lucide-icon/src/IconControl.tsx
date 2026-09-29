@@ -37,7 +37,10 @@ export const IconControl: React.FC<IconControlProps> = props => {
   const filteredIcons = useMemo(() => {
     return Object.keys(allIcons).filter(icon => {
       if (!icon.toLowerCase().includes(search.toLowerCase())) return false;
-      if (filter instanceof RegExp) return filter.test(icon);
+      if (filter instanceof RegExp) {
+        filter.lastIndex = 0;
+        return filter.test(icon);
+      }
       if (typeof filter === 'function') return filter(icon);
       return true;
     });
