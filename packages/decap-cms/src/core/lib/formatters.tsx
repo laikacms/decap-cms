@@ -242,7 +242,7 @@ export function previewUrlFormatter(
         Collection "${collection.name}" configuration error:
           \`preview_path_date_field\` must be a field with a valid date. Ignoring \`preview_path\`.
       `);
-      return basePath;
+      return baseUrl;
     }
     throw err;
   }

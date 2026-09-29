@@ -74,3 +74,15 @@ collections:
 Resolution order (most specific wins): `files[].preview_path_preserve_slashes` →
 `collection.preview_path_preserve_slashes` → `true` if `collection.nested` is set, otherwise
 `false`.
+
+## Invalid or missing date
+
+If `preview_path` uses a date variable (`{{year}}`, `{{month}}`, `{{day}}`, `{{hour}}`, `{{minute}}`,
+`{{second}}`) and the entry's date field (`preview_path_date_field`, or the inferred date field) is
+missing or not a valid date, the `preview_path` is ignored rather than failing:
+
+- The preview URL silently falls back to the base URL provided by the backend, with no path appended.
+- An error is logged to the browser console: `` Collection "<name>" configuration error:
+  `preview_path_date_field` must be a field with a valid date. Ignoring `preview_path`. ``
+- The base URL is returned exactly as the backend provided it, including any trailing slash. This is
+  the same form returned when no `preview_path` is configured at all.
