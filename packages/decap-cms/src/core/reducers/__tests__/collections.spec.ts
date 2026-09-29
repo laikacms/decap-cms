@@ -2,10 +2,13 @@ import { describe, expect, it } from 'vitest';
 
 import { configLoaded } from '@/core/actions/config';
 import { FILES, FOLDER } from '@/core/constants/collectionTypes';
+import { COMMIT_AUTHOR, COMMIT_DATE } from '@/core/constants/commitProps';
 import { registerEntryCodec } from '@/core/lib/registry';
 import collections, {
   getFieldsNames,
   selectAllowDeletion,
+  selectDefaultSortableFields,
+  selectDefaultSortField,
   selectEntryCollectionTitle,
   selectEntryPath,
   selectEntrySlug,
@@ -19,6 +22,8 @@ import { jsonEntryCodec, jsonFrontmatterCodec } from '@/entry-codecs/json/index'
 import { createMarkdownEntryCodec } from '@/entry-codecs/markdown/index';
 import { tomlEntryCodec, tomlFrontmatterCodec } from '@/entry-codecs/toml/index';
 import { yamlEntryCodec, yamlFrontmatterCodec } from '@/entry-codecs/yaml/index';
+
+import type { Backend } from '@/core/backend';
 
 // Path/slug selectors resolve entry extensions through the (real) registry;
 // register the built-in entry codecs the fat entries would provide at runtime.
@@ -605,6 +610,111 @@ describe('collections', () => {
       };
 
       expect(selectInferredField(collection, 'date')).toEqual('publishDate');
+    });
+  });
+
+  describe('selectDefaultSortableFields', () => {
+    const gitBackend = { isGitBackend: () => true } as unknown as Backend;
+    const nonGitBackend = { isGitBackend: () => false } as unknown as Backend;
+    const backendWithoutProbe = {} as unknown as Backend;
+
+    const collectionWithAuthor = { fields: [{ name: 'title' }, { name: 'author' }] };
+    const collectionWithoutAuthor = { fields: [{ name: 'title' }] };
+
+    const fieldNames = (
+      collection: object,
+      backend: Backend,
+      hasIntegration: boolean,
+    ) => selectDefaultSortableFields(collection as never, backend, hasIntegration).map(f => f.field);
+
+    it('prepends COMMIT_DATE for a git backend without integration', () => {
+      expect(fieldNames(collectionWithAuthor, gitBackend, false)).toEqual([
+        COMMIT_DATE,
+        'title',
+        'author',
+      ]);
+    });
+
+    it('does not prepend COMMIT_DATE for a non-git backend', () => {
+      expect(fieldNames(collectionWithAuthor, nonGitBackend, false)).toEqual(['title', 'author']);
+    });
+
+    it('does not prepend COMMIT_DATE when the backend has no isGitBackend', () => {
+      expect(fieldNames(collectionWithAuthor, backendWithoutProbe, false)).toEqual([
+        'title',
+        'author',
+      ]);
+    });
+
+    it('does not prepend COMMIT_DATE when an integration is present', () => {
+      expect(fieldNames(collectionWithAuthor, gitBackend, true)).toEqual(['title', 'author']);
+    });
+
+    it('falls back to COMMIT_AUTHOR when there is no author field on a git backend without integration', () => {
+      expect(fieldNames(collectionWithoutAuthor, gitBackend, false)).toEqual([
+        COMMIT_DATE,
+        'title',
+        COMMIT_AUTHOR,
+      ]);
+    });
+
+    it('does not fall back to COMMIT_AUTHOR for non-git backends or with integration', () => {
+      expect(fieldNames(collectionWithoutAuthor, nonGitBackend, false)).toEqual(['title']);
+      expect(fieldNames(collectionWithoutAuthor, gitBackend, true)).toEqual(['title']);
+    });
+
+    it('wraps each field name in an object', () => {
+      expect(
+        selectDefaultSortableFields(collectionWithoutAuthor as never, nonGitBackend, false),
+      ).toEqual([{ field: 'title' }]);
+    });
+  });
+
+  describe('selectDefaultSortField', () => {
+    const withSortable = (sortable_fields?: object[]) => ({ sortable_fields }) as never;
+
+    it('returns null when no sortable field has default_sort', () => {
+      expect(selectDefaultSortField(withSortable([{ field: 'title' }]))).toBeNull();
+    });
+
+    it('returns null when sortable_fields is missing', () => {
+      expect(selectDefaultSortField(withSortable(undefined))).toBeNull();
+    });
+
+    it('maps default_sort true to asc', () => {
+      expect(selectDefaultSortField(withSortable([{ field: 'title', default_sort: true }]))).toEqual({
+        field: 'title',
+        direction: 'asc',
+      });
+    });
+
+    it('maps default_sort asc to asc', () => {
+      expect(selectDefaultSortField(withSortable([{ field: 'title', default_sort: 'asc' }]))).toEqual({
+        field: 'title',
+        direction: 'asc',
+      });
+    });
+
+    it('maps default_sort desc to desc', () => {
+      expect(selectDefaultSortField(withSortable([{ field: 'date', default_sort: 'desc' }]))).toEqual({
+        field: 'date',
+        direction: 'desc',
+      });
+    });
+
+    it('picks the first field that declares default_sort', () => {
+      expect(
+        selectDefaultSortField(
+          withSortable([{ field: 'title' }, { field: 'date', default_sort: 'desc' }, { field: 'x', default_sort: true }]),
+        ),
+      ).toEqual({ field: 'date', direction: 'desc' });
+    });
+
+    it('treats default_sort: false as declared and falls back to asc', () => {
+      expect(selectDefaultSortField(withSortable([{ field: 'title', default_sort: false }]))).toEqual({
+        field: 'title',
+        direction: 'asc',
+      });
     });
   });
 });
