@@ -5,7 +5,7 @@
  * `POST {apiBasePath}/chat`) to translate a set of field values from one
  * locale to another. It reuses the same `useChat` transport + client-side
  * `updateDocument` tool round-trip already implemented by
- * `src/widgets/aichat/AiChatControl.tsx`, so it inherits whatever provider
+ * `extensions/widgets/aichat/src/AiChatControl.tsx`, so it inherits whatever provider
  * (Anthropic/OpenAI/etc.) the consumer configured for `decapAi()` — no new
  * provider mechanism is introduced.
  *

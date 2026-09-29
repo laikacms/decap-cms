@@ -24,7 +24,7 @@ function warnDeprecated() {
     '[decap-cms] The `ai-chat` widget is deprecated. It was a client-side stopgap for editing '
       + 'an open entry, which the server-side laikacms MCP (`/mcp`) cannot reach today. Prefer the '
       + 'MCP integration for AI-assisted editing; the widget stays only until a client bridge lets '
-      + 'MCP edit an open entry. See src/widgets/aichat/README.md.',
+      + 'MCP edit an open entry. See extensions/widgets/aichat/README.md.',
   );
 }
 
@@ -32,7 +32,7 @@ function warnDeprecated() {
  * @deprecated The `ai-chat` widget is a client-side stopgap and is being phased out in favor of
  * the laikacms MCP server (`/mcp`). It exists only because server-side MCP has no access to the
  * open entry's client-side draft state; once a client bridge closes that gap the widget will be
- * removed. Still fully functional for now. See `src/widgets/aichat/README.md`.
+ * removed. Still fully functional for now. See `extensions/widgets/aichat/README.md`.
  */
 function Widget(opts: AiChatWidgetOptions = {}) {
   warnDeprecated();
@@ -47,7 +47,7 @@ function Widget(opts: AiChatWidgetOptions = {}) {
 
 /**
  * @deprecated The `ai-chat` widget is a client-side stopgap and is being phased out in favor of
- * the laikacms MCP server (`/mcp`). See `src/widgets/aichat/README.md`.
+ * the laikacms MCP server (`/mcp`). See `extensions/widgets/aichat/README.md`.
  */
 export const DecapCmsWidgetAiChat = {
   name: 'ai-chat',
