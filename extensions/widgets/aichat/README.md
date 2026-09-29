@@ -72,7 +72,7 @@ CMS.registerWidget(
   `onFinish` handler in `AiChatControl.tsx`.
 - `messages` (optional) — a `Translation` object (see `i18n/types.ts`, shape defined by `en.ts`)
   that overrides the widget's UI strings (button labels, placeholders, error text, etc.) for
-  localization. Read in `AiChatControl.tsx` as `const t = widget.messages ?? en`, falling back to
+  localization. Read in `AiChatControl.tsx` as `{ ...en, ...widget.messages }`, falling back per key to
   the English defaults (`i18n/en.ts`) for any translation not supplied. A Dutch translation ships at
   `i18n/nl.ts` as a reference implementation.
 

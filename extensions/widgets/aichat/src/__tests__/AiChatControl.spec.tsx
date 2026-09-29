@@ -30,8 +30,10 @@ import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AiChatControl } from '../AiChatControl';
+import { en } from '../i18n/en';
 
 import type { CmsCollectionState, CmsEntry, CmsEntryField } from '@laikacms/decap-cms/lib/util';
+import type { Translation } from '../i18n/types';
 import type { AiChatWidgetOptions } from '../types';
 
 const useChatMock = useChat as unknown as ReturnType<typeof vi.fn>;
@@ -133,6 +135,19 @@ describe('AiChatControl render', () => {
     expect(screen.getByText('Hi there')).toBeInTheDocument();
     expect(screen.getByText('Hello! How can I help?')).toBeInTheDocument();
     expect(screen.queryByText('Start a conversation')).not.toBeInTheDocument();
+  });
+});
+
+describe('AiChatControl partial messages override', () => {
+  it('falls back to English defaults per key when messages is partial', () => {
+    const bareField = { name: 'chat', widget: 'ai-chat' } as unknown as CmsEntryField;
+    renderControl({
+      field: bareField,
+      widget: { ...buildWidget(), messages: { aiAssistant: 'Assistent' } as unknown as Translation },
+    });
+
+    expect(screen.getByPlaceholderText(en.defaultPlaceholder)).toBeInTheDocument();
+    expect(screen.getByText(en.defaultWelcomeMessage)).toBeInTheDocument();
   });
 });
 
