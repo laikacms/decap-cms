@@ -652,6 +652,27 @@ describe('formatters', () => {
       );
     });
 
+    it('should return the base URL unmodified in both fallbacks, keeping a trailing slash', () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      const baseUrl = 'https://www.example.com/';
+      const noPreviewPath = previewUrlFormatter(
+        baseUrl,
+        { name: 'posts' },
+        'backendSlug',
+        { data: {} },
+        slugConfig,
+      );
+      const invalidDate = previewUrlFormatter(
+        baseUrl,
+        { name: 'posts', preview_path: '{{year}}', preview_path_date_field: 'date' },
+        'backendSlug',
+        { data: {} },
+        slugConfig,
+      );
+      expect(noPreviewPath).toBe('https://www.example.com/');
+      expect(invalidDate).toBe(noPreviewPath);
+    });
+
     it('should preserve slashes in value when configured', () => {
       expect(
         previewUrlFormatter(
