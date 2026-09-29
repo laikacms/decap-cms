@@ -495,6 +495,13 @@ export function persistMedia(file: File, opts: MediaOptions = {}) {
         mediaFile = await backend.persistMedia(state.config, assetProxy);
       }
 
+      dispatch(
+        addNotification({
+          message: { key: 'ui.toast.mediaUploaded', smart_count: 1 },
+          type: 'success',
+          dismissAfter: 4000,
+        }),
+      );
       return dispatch(mediaPersisted(mediaFile, { privateUpload }));
     } catch (error: unknown) {
       console.error(error);
