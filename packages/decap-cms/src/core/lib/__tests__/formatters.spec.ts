@@ -809,6 +809,50 @@ describe('formatters', () => {
         ),
       ).toBe('https://www.example.com/archive/guides-setup');
     });
+
+    describe('files[].preview_path_preserve_slashes resolution order', () => {
+      const format = (
+        file: Record<string, unknown>,
+        collectionOverrides: Record<string, unknown>,
+      ) => {
+        const fileWithPath = { name: 'about-file', preview_path: 'prefix/{{fields.value}}', ...file };
+        vi.mocked(getFileFromSlug).mockReturnValue(fileWithPath);
+        return previewUrlFormatter(
+          'https://www.example.com',
+          { type: 'file_based_collection', files: [fileWithPath], ...collectionOverrides },
+          'backendSlug',
+          { data: { value: 'nested/value' }, slug: 'about-file' },
+          slugConfig,
+        );
+      };
+
+      it('should let file-level true beat collection-level false', () => {
+        expect(
+          format({ preview_path_preserve_slashes: true }, { preview_path_preserve_slashes: false }),
+        ).toBe('https://www.example.com/prefix/nested/value');
+      });
+
+      it('should let file-level false beat collection-level true', () => {
+        expect(
+          format({ preview_path_preserve_slashes: false }, { preview_path_preserve_slashes: true }),
+        ).toBe('https://www.example.com/prefix/nested-value');
+      });
+
+      it('should let file-level false beat the nested default', () => {
+        expect(
+          format({ preview_path_preserve_slashes: false }, { nested: { depth: 10 } }),
+        ).toBe('https://www.example.com/prefix/nested-value');
+      });
+
+      it('should fall through to collection-level value when file-level is unset', () => {
+        expect(format({}, { preview_path_preserve_slashes: true })).toBe(
+          'https://www.example.com/prefix/nested/value',
+        );
+        expect(format({}, { preview_path_preserve_slashes: false, nested: { depth: 10 } })).toBe(
+          'https://www.example.com/prefix/nested-value',
+        );
+      });
+    });
   });
 
   describe('summaryFormatter', () => {
