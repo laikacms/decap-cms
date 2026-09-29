@@ -101,7 +101,7 @@ export function addSwipeUpListener(
   return addListener(element, (force, e) => {
     const [x, y] = force;
     if (y < 0 && -y > Math.abs(x)) {
-      cb(x, e);
+      cb(y, e);
     }
   });
 }
@@ -113,7 +113,7 @@ export function addSwipeDownListener(
   return addListener(element, (force, e) => {
     const [x, y] = force;
     if (y > 0 && y > Math.abs(x)) {
-      cb(x, e);
+      cb(y, e);
     }
   });
 }

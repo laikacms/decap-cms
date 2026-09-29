@@ -147,13 +147,13 @@ describe('swipe listeners', () => {
     expect(removeSpy).toHaveBeenCalledWith('touchend', expect.any(Function));
   });
 
-  it('documents current behavior: up/down callbacks receive the horizontal delta', () => {
+  it('passes the signed vertical distance for up and down swipes', () => {
     const up = vi.fn();
     const down = vi.fn();
     unsubscribers.push(addSwipeUpListener(element, up), addSwipeDownListener(element, down));
     swipe(element, 7, -80);
     swipe(element, 9, 80);
-    expect(up).toHaveBeenCalledWith(7, expect.anything());
-    expect(down).toHaveBeenCalledWith(9, expect.anything());
+    expect(up).toHaveBeenCalledWith(-80, expect.anything());
+    expect(down).toHaveBeenCalledWith(80, expect.anything());
   });
 });
