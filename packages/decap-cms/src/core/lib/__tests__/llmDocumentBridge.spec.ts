@@ -183,6 +183,38 @@ describe('createLlmDocumentBridge', () => {
       );
     });
 
+    it('does not treat a field whose name is a prefix of the patched one as addressed', () => {
+      const siblingFields = [...fields, { name: 'title_alt', widget: 'string' }];
+      const entry = makeEntry({
+        data: { title: 'Hello', title_alt: 'Alt', body: 'Body text', tags: ['a'] },
+      } as Partial<CmsEntry>);
+      const { bridge, dispatch } = setup({
+        collection: makeCollection({ fields: siblingFields } as Partial<CmsCollectionState>),
+        entry,
+      });
+
+      const result = bridge.applyPatch([{ op: 'replace', path: '/title_alt', value: 'x' }]);
+
+      expect(result).toEqual({ changed: ['title_alt'] });
+      expect(dispatch).toHaveBeenCalledTimes(1);
+    });
+
+    it('still counts a nested path as addressing its top-level field', () => {
+      const siblingFields = [...fields, { name: 'title_alt', widget: 'string' }];
+      const entry = makeEntry({
+        data: { title: ['x'], title_alt: 'Alt', body: 'Body text', tags: ['a'] },
+      } as Partial<CmsEntry>);
+      const { bridge, dispatch } = setup({
+        collection: makeCollection({ fields: siblingFields } as Partial<CmsCollectionState>),
+        entry,
+      });
+
+      const result = bridge.applyPatch([{ op: 'replace', path: '/title/0', value: 'y' }]);
+
+      expect(result).toEqual({ changed: ['title'] });
+      expect(dispatch).toHaveBeenCalledTimes(1);
+    });
+
     it('dispatches once per field for a multi-field patch', () => {
       const { bridge, dispatch } = setup();
 
