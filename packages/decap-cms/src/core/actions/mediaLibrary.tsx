@@ -490,18 +490,14 @@ export function persistMedia(file: File, opts: MediaOptions = {}) {
           assetProxy,
           draft: editingDraft,
         });
-        return dispatch(addDraftEntryMediaFile(mediaFile));
+        dispatch(addDraftEntryMediaFile(mediaFile));
+        dispatch(mediaUploadedNotification());
+        return;
       } else {
         mediaFile = await backend.persistMedia(state.config, assetProxy);
       }
 
-      dispatch(
-        addNotification({
-          message: { key: 'ui.toast.mediaUploaded', smart_count: 1 },
-          type: 'success',
-          dismissAfter: 4000,
-        }),
-      );
+      dispatch(mediaUploadedNotification());
       return dispatch(mediaPersisted(mediaFile, { privateUpload }));
     } catch (error: unknown) {
       console.error(error);
@@ -515,6 +511,14 @@ export function persistMedia(file: File, opts: MediaOptions = {}) {
       return dispatch(mediaPersistFailed({ privateUpload }));
     }
   };
+}
+
+function mediaUploadedNotification() {
+  return addNotification({
+    message: { key: 'ui.toast.mediaUploaded', smart_count: 1 },
+    type: 'success',
+    dismissAfter: 4000,
+  });
 }
 
 export function deleteMedia(file: MediaFile, opts: MediaOptions = {}) {

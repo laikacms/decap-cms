@@ -120,7 +120,7 @@ describe('mediaLibrary', () => {
       return store.dispatch(persistMedia(file)).then(() => {
         const actions = store.getActions();
 
-        expect(actions).toHaveLength(2);
+        expect(actions).toHaveLength(3);
         expect(actions[0].type).toEqual('ADD_ASSET');
         expect(actions[0].payload).toEqual(
           expect.objectContaining({
@@ -135,6 +135,13 @@ describe('mediaLibrary', () => {
             path: 'static/media/name.png',
             size: file.size,
             name: file.name,
+          }),
+        );
+        expect(actions[2].type).toEqual('NOTIFICATION_SEND');
+        expect(actions[2].payload).toEqual(
+          expect.objectContaining({
+            type: 'success',
+            message: { key: 'ui.toast.mediaUploaded', smart_count: 1 },
           }),
         );
 
