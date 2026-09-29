@@ -21,14 +21,14 @@ describe('aichat doc pin (DCMS-2374)', () => {
   it('cited AiChatControl.tsx lines contain the named symbols', () => {
     const lines = read(controlPath).split('\n');
     const readme = read(readmePath);
-    const cite = (n: number) => lines[n - 1];
+    const lineOf = (symbol: string) => lines.findIndex(l => l.includes(symbol)) + 1;
 
     const cites = [...readme.matchAll(/AiChatControl\.tsx:(\d+)/g)].map(m => Number(m[1]));
     expect(cites.length).toBeGreaterThanOrEqual(3);
-    const [decl, read_, applied] = cites;
-    expect(cite(decl)).toContain('maxHeight?: string');
-    expect(cite(read_)).toContain("field.maxHeight || '500px'");
-    expect(cite(applied)).toContain('maxHeight');
-    expect(cite(applied)).toContain('Container');
+    expect(cites.slice(0, 3)).toEqual([
+      lineOf('maxHeight?: string'),
+      lineOf("field.maxHeight || '500px'"),
+      lineOf('<Container style={{ maxHeight }}>'),
+    ]);
   });
 });
