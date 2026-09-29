@@ -303,16 +303,40 @@ describe('Number widget', () => {
       expect(ref().isValid()).toBe(true);
     });
 
-    it('unset value_type (defaults to float path, DCMS-478) is not subject to the int guard', () => {
-      const field = {};
+    it.each([
+      ['unset', {}],
+      ['float', { value_type: 'float' }],
+    ])('%s value_type stores the raw string for an unsafe integer instead of a rounded float', (_n, field) => {
+      const HUGE = '9999999999999999999999999';
       const { input, onChangeSpy } = setup({ field });
 
-      fireEvent.change(input, { target: { value: UNSAFE_INT } });
+      fireEvent.change(input, { target: { value: HUGE } });
 
-      // Unset value_type now parses like float (matching the step="any" input
-      // it renders), so large-but-finite magnitudes pass through like the
-      // float case does, rather than being guarded as an unsafe integer.
-      expect(onChangeSpy).toHaveBeenCalledWith(parseFloat(UNSAFE_INT));
+      expect(onChangeSpy).toHaveBeenCalledWith(HUGE);
+      expect(onChangeSpy).not.toHaveBeenCalledWith(1e25);
+    });
+
+    it.each([
+      ['unset', {}],
+      ['float', { value_type: 'float' }],
+    ])('%s value_type isValid returns a CUSTOM error for an unsafe integer string', (_n, field) => {
+      const { ref } = setup({ field, defaultValue: '9999999999999999999999999' });
+
+      const result = ref().isValid();
+      expect(result).not.toBe(true);
+      expect(result.error.type).toBe('CUSTOM');
+      expect(result.error.message).toMatch(/maximum safe integer/i);
+    });
+
+    it('unset value_type still parses safe integers, decimals and exponents as numbers', () => {
+      const { input, onChangeSpy } = setup({ field: {} });
+
+      fireEvent.change(input, { target: { value: String(Number.MAX_SAFE_INTEGER) } });
+      expect(onChangeSpy).toHaveBeenLastCalledWith(Number.MAX_SAFE_INTEGER);
+      fireEvent.change(input, { target: { value: '1.5' } });
+      expect(onChangeSpy).toHaveBeenLastCalledWith(1.5);
+      fireEvent.change(input, { target: { value: '1e20' } });
+      expect(onChangeSpy).toHaveBeenLastCalledWith(1e20);
     });
   });
 

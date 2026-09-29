@@ -21,7 +21,9 @@ or, for values that can't be safely represented as one, the raw string the edito
   - `'float'` / unset — input renders `step="any"`. Typed values are parsed with `parseFloat`,
     preserving decimals. If the parsed value overflows to `Infinity`/`-Infinity` (e.g. `1e309`), the
     raw string is stored instead, and `isValid()` reports a "Value exceeds the maximum representable
-    number." error.
+    number." error. Integer-looking input beyond `Number.MAX_SAFE_INTEGER` (e.g. 25 digits) is
+    likewise stored raw and reported with the "maximum safe integer" error instead of being rounded
+    (`1e+25`).
 - `step` (optional) — overrides the `step` attribute on the `<input>`. When unset, `step` defaults
   to `1` for `value_type: 'int'` and `any` otherwise.
 - `min` / `max` (optional) — numeric bounds. Enforced on save via `validateMinMax`, which emits a

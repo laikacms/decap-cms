@@ -151,6 +151,15 @@ const NumberControl = React.forwardRef<NumberControlHandle, NumberControlProps>(
                 },
               };
             }
+            // Integer-looking digits that parseFloat silently rounded.
+            if (/^-?\d+$/.test(v.trim()) && isFinite(parsed) && !Number.isSafeInteger(parsed)) {
+              return {
+                error: {
+                  type: ValidationErrorTypes.CUSTOM,
+                  message: 'Value exceeds the maximum safe integer. Use a string widget for arbitrary-precision IDs.',
+                },
+              };
+            }
           }
 
           // Detect bad input: value is a non-empty string that is only
@@ -206,6 +215,14 @@ const NumberControl = React.forwardRef<NumberControlHandle, NumberControlProps>(
         // error without silently persisting a non-finite value, mirroring the
         // int path below.
         if (!isFinite(parsed)) {
+          onChange(raw);
+          return;
+        }
+
+        // Integer-looking input beyond the safe range is silently rounded by
+        // parseFloat (e.g. 25 nines -> 1e+25); store the raw string so
+        // isValid() can surface the error, mirroring the int path below.
+        if (/^-?\d+$/.test(raw.trim()) && !Number.isSafeInteger(parsed)) {
           onChange(raw);
           return;
         }
