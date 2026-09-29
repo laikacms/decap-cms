@@ -652,6 +652,29 @@ describe('formatters', () => {
       );
     });
 
+    it('should log error and ignore preview_path when date is present but unparseable', () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      errorSpy.mockClear();
+      expect(
+        previewUrlFormatter(
+          'https://www.example.com',
+          {
+            name: 'posts',
+            preview_path: '{{year}}',
+            preview_path_date_field: 'date',
+          },
+          'backendSlug',
+          { data: { date: 'not-a-date' } },
+          slugConfig,
+        ),
+      ).toBe('https://www.example.com');
+
+      expect(errorSpy).toHaveBeenCalledTimes(1);
+      expect(errorSpy).toHaveBeenCalledWith(
+        'Collection "posts" configuration error:\n  `preview_path_date_field` must be a field with a valid date. Ignoring `preview_path`.',
+      );
+    });
+
     it('should return the base URL unmodified in both fallbacks, keeping a trailing slash', () => {
       vi.spyOn(console, 'error').mockImplementation(() => {});
       const baseUrl = 'https://www.example.com/';
