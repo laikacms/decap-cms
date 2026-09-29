@@ -42,13 +42,12 @@ helpers, built on the `jsqr` pure-JS decoder, lazy-loaded on first use) in
   be saved.
 - `hint` (optional) — helper text rendered alongside the field label.
 
-This widget's own JSON-schema (`schema.ts`) declares three scalar properties, plus `media_library`
+This widget's own JSON-schema (`schema.ts`) declares two scalar properties, plus `media_library`
 (covered in its own section below):
 
 ```ts
 export default {
   properties: {
-    allow_multiple: { type: 'boolean' },
     choose_url: { type: 'boolean' },
     private: { type: 'boolean' },
   },
@@ -61,11 +60,11 @@ export default {
   — the check is against literal `false`, so omitting the key or setting anything other than `false`
   keeps the button enabled. The button is also hidden whenever the field already holds more than one
   image (`chooseUrl && !multi`, see below).
-- `allow_multiple` — declared on this widget's schema (and on `CmsFieldImage`), but
-  **`withFileControl.tsx` never reads this top-level field property**. Like the `file` widget,
-  multi-image behavior is driven entirely by nested `field.media_library` keys instead (see
-  "media_library overrides" below). A bare top-level `allow_multiple: true` on an `image` field has
-  no effect on the control by itself.
+- `allow_multiple` — like the `file` widget (DCMS-2325, DCMS-2330), multi-image behavior is driven
+  entirely by nested `field.media_library` keys, not a top-level field property (see "media_library
+  overrides" below). A bare top-level `allow_multiple` is no longer declared in this widget's schema
+  and is rejected by `checkFileFieldTopLevelAllowMultiple` in `validateConfig.ts` — set
+  `media_library.allow_multiple` instead.
 - `private` (optional) — like `file/schema.ts`, this widget's schema also declares
   `private: { type: 'boolean' }`, matching `CmsFieldImage`'s typing
   (`src/lib/util/types/cms/fields/image.ts`) and the `field.private` forwarding in

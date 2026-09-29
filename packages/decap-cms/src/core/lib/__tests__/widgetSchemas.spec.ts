@@ -93,7 +93,12 @@ describe('widget config schema wiring', () => {
     const schema = fieldSchemaFor('image', imageWidgetSchema);
 
     expect(
-      validateJSONSchema(schema, { name: 'photo', widget: 'image', allow_multiple: true, choose_url: true }),
+      validateJSONSchema(schema, {
+        name: 'photo',
+        widget: 'image',
+        media_library: { allow_multiple: true },
+        choose_url: true,
+      }),
     ).toEqual([]);
 
     expect(

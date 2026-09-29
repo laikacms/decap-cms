@@ -1249,5 +1249,41 @@ describe('config', () => {
         }).not.toThrow();
       });
     });
+
+    // DCMS-2330: same bug as DCMS-2325 above, but for the `image` widget -
+    // it reuses `withFileControl`, which only ever reads
+    // `field.media_library.allow_multiple`, never a top-level
+    // `field.allow_multiple`.
+    describe('image field top-level allow_multiple (DCMS-2330)', () => {
+      const imageConfig = (extra: Record<string, unknown>) =>
+        merge({}, validConfig, {
+          collections: [
+            {
+              fields: [{ name: 'photo', widget: 'image', ...extra }],
+            },
+          ],
+        });
+
+      it('throws when an image field sets top-level allow_multiple', () => {
+        expect(() => {
+          validateConfig(imageConfig({ allow_multiple: true }));
+        }).toThrowError(
+          "image field 'photo' sets top-level 'allow_multiple', which has no effect - set "
+            + "'media_library.allow_multiple' instead.",
+        );
+      });
+
+      it('does not throw for an image field without allow_multiple', () => {
+        expect(() => {
+          validateConfig(imageConfig({ choose_url: true }));
+        }).not.toThrow();
+      });
+
+      it('does not throw when an image field sets media_library.allow_multiple', () => {
+        expect(() => {
+          validateConfig(imageConfig({ media_library: { allow_multiple: true } }));
+        }).not.toThrow();
+      });
+    });
   });
 });
