@@ -76,6 +76,7 @@ export const IconControl: React.FC<IconControlProps> = props => {
           })}
         <button
           type="button"
+          id={isOpen ? undefined : forID}
           aria-label={t('editor.editorWidgets.iconPicker.toggle')}
           onClick={() => setIsOpen(isOpen => !isOpen)}
           style={{

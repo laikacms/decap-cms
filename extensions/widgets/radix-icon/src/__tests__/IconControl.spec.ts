@@ -189,3 +189,33 @@ describe('IconControl keyboard operability (radix-icon, DCMS-1290)', () => {
     expect(options[firstIndex + 5]).toHaveFocus();
   });
 });
+
+describe('IconControl forID target (DCMS-2355)', () => {
+  const props = {
+    field: {} as never,
+    classNameWrapper: '',
+    setActiveStyle: () => {},
+    setInactiveStyle: () => {},
+    t: (key: string) => key,
+    onChange: () => {},
+    value: undefined,
+    forID: 'x',
+  };
+
+  it('keeps exactly one element with id=forID before and after opening', () => {
+    const { container } = render(React.createElement(IconControl, props));
+
+    const closedTarget = document.getElementById('x');
+    expect(closedTarget).not.toBeNull();
+    expect(closedTarget).toBe(
+      screen.getByRole('button', { name: 'editor.editorWidgets.iconPicker.toggle' }),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'editor.editorWidgets.iconPicker.toggle' }));
+
+    const openTarget = document.getElementById('x');
+    expect(openTarget).not.toBeNull();
+    expect(openTarget?.tagName).toBe('INPUT');
+    expect(container.querySelectorAll('[id="x"]')).toHaveLength(1);
+  });
+});
