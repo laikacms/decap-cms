@@ -149,6 +149,44 @@ describe('Select widget', () => {
     expect(onChangeSpy).toHaveBeenCalledWith(numberOptions[0].value);
   });
 
+  describe('with bare number options (DCMS-2349)', () => {
+    const bareNumbers = [0, 1, 2];
+
+    it('renders labels and calls onChange with the number', () => {
+      const { getByText, input, onChangeSpy } = setup({ field: { options: bareNumbers } });
+
+      fireEvent.focus(input);
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      expect(getByText('0')).toBeInTheDocument();
+      expect(getByText('1')).toBeInTheDocument();
+      expect(getByText('2')).toBeInTheDocument();
+      fireEvent.click(getByText('1'));
+
+      expect(onChangeSpy).toHaveBeenCalledTimes(1);
+      expect(onChangeSpy).toHaveBeenCalledWith(1);
+    });
+
+    it('shows an existing numeric value as selected', () => {
+      const { input } = setup({ field: { options: bareNumbers }, defaultValue: 2 });
+
+      expect(input.value).toBe('2');
+    });
+
+    it('supports multiple selection', () => {
+      const { getByText, input, onChangeSpy } = setup({
+        field: { options: bareNumbers, multiple: true },
+      });
+
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      fireEvent.click(getByText('0'));
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      fireEvent.click(getByText('2'));
+
+      expect(onChangeSpy).toHaveBeenCalledWith([0]);
+      expect(onChangeSpy).toHaveBeenCalledWith([0, 2]);
+    });
+  });
+
   describe('with multiple', () => {
     it('should call onChange with correct selectedItem', () => {
       const field = { options, multiple: true };
