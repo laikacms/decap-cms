@@ -40,6 +40,13 @@ function topLevelField(operation: LlmPatchOperation): string | undefined {
   return operation.path.slice(1).replace(/~1/g, '/').replace(/~0/g, '~');
 }
 
+/** Decoded first segment of a JSON Pointer, matched whole so `/title_alt` never addresses `title`. */
+function firstSegment(path: string): string | undefined {
+  if (!path.startsWith('/')) return undefined;
+  const [segment] = path.slice(1).split('/');
+  return segment?.replace(/~1/g, '/').replace(/~0/g, '~');
+}
+
 /** Data for the locale being edited; the default locale lives at the entry root. */
 function readLocaleData(
   entry: CmsEntry | undefined,
@@ -168,7 +175,7 @@ export function createLlmDocumentBridge({
       for (const name of Object.keys(patched)) {
         // Only fields an operation actually addressed: patching one key must
         // not re-dispatch every other field and mark the whole entry dirty.
-        if (!operations.some(operation => operation.path.startsWith(`/${name}`))) {
+        if (!operations.some(operation => firstSegment(operation.path) === name)) {
           continue;
         }
         const field = fields.find(candidate => candidate?.name === name);
