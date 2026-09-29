@@ -446,6 +446,7 @@ const en = {
       invalidField: 'Oops, one or more fields are invalid. Please fix them before saving.',
       notUniqueField: 'Oops, this value must be unique but is already used by another entry: %{details}',
       entrySaved: 'Entry saved',
+      mediaUploaded: '%{smart_count} file uploaded |||| %{smart_count} files uploaded',
       entryPublished: 'Entry published',
       entryUnpublished: 'Entry unpublished',
       onFailToPublishEntry: 'Failed to publish: %{details}',

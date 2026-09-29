@@ -171,9 +171,7 @@ describe('mediaLibrary', () => {
       return store.dispatch(persistMedia(file)).then(() => {
         const actions = store.getActions();
 
-        expect(actions).toHaveLength(3);
-
-        expect(actions).toHaveLength(3);
+        expect(actions).toHaveLength(4);
         expect(actions[0]).toEqual({ type: 'MEDIA_PERSIST_REQUEST' });
         expect(actions[1].type).toEqual('ADD_ASSET');
         expect(actions[1].payload).toEqual(
@@ -181,7 +179,14 @@ describe('mediaLibrary', () => {
             path: 'static/media/name.png',
           }),
         );
-        expect(actions[2]).toEqual({
+        expect(actions[2].type).toEqual('NOTIFICATION_SEND');
+        expect(actions[2].payload).toEqual(
+          expect.objectContaining({
+            type: 'success',
+            message: { key: 'ui.toast.mediaUploaded', smart_count: 1 },
+          }),
+        );
+        expect(actions[3]).toEqual({
           type: 'MEDIA_PERSIST_SUCCESS',
           payload: {
             file: { id: 'id' },
@@ -225,7 +230,7 @@ describe('mediaLibrary', () => {
       return store.dispatch(persistMedia(file)).then(() => {
         const actions = store.getActions();
 
-        expect(actions).toHaveLength(3);
+        expect(actions).toHaveLength(4);
 
         expect(actions[0]).toEqual({ type: 'MEDIA_PERSIST_REQUEST' });
 
@@ -236,7 +241,7 @@ describe('mediaLibrary', () => {
           }),
         );
 
-        expect(actions[2]).toEqual({
+        expect(actions[3]).toEqual({
           type: 'MEDIA_PERSIST_SUCCESS',
           payload: {
             file: { id: 'id' },
