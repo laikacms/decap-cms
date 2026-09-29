@@ -1,4 +1,4 @@
-import { find, isObject } from 'lodash-es';
+import { find } from 'lodash-es';
 import React from 'react';
 
 import { validations } from '@/lib/widgets/index';
@@ -36,7 +36,10 @@ function convertToOption(raw: unknown): SelectOption {
   if (typeof raw === 'string') {
     return { label: raw, value: raw };
   }
-  return isObject(raw) ? (raw as SelectOption) : (raw as SelectOption);
+  if (typeof raw === 'number') {
+    return { label: String(raw), value: raw };
+  }
+  return raw as SelectOption;
 }
 
 function isSameOption(a: SelectOption, b: SelectOption): boolean {
