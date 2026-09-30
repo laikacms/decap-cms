@@ -261,6 +261,8 @@ export function DraggableBlockPlugin({
             <Button
               variant="ghost"
               size="icon-xs"
+              title="Drag to move block"
+              aria-label="Drag to move block"
               className="cursor-grab rounded-sm text-muted-foreground hover:bg-accent hover:text-foreground active:cursor-grabbing"
               tabIndex={-1}
             >
