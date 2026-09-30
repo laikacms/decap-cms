@@ -89,7 +89,8 @@ case is skipped rather than thrown on: `add`/`replace`/`remove` addressing a top
 name at that level, and that alone should not break the editor. Everything else throws
 `JsonPatchError`: `test`/`move`/`copy` against a nonexistent top-level field, and any operation
 against a nonexistent *nested* path inside a field that does exist (a typo inside real data is a
-real error, not a hallucinated field).
+real error, not a hallucinated field). A `remove` of a populated top-level field (and the source of
+a `move`) dispatches `changeDraftField` with an empty (`undefined`) value and is listed in `changed`.
 
 **Tool calls are executed by the transport, not the server.** The entry being edited is client-side
 state, so a `updateDocument`-style tool has to run here, against this bridge.

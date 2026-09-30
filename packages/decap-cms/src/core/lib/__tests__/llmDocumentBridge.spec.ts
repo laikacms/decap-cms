@@ -369,6 +369,47 @@ describe('createLlmDocumentBridge', () => {
       consoleWarn.mockRestore();
     });
 
+    it('dispatches an empty value and reports the field for `remove` on a populated top-level field', () => {
+      const { bridge, dispatch } = setup();
+
+      const result = bridge.applyPatch([{ op: 'remove', path: '/title' }]);
+
+      expect(result).toEqual({ changed: ['title'] });
+      expect(dispatch).toHaveBeenCalledTimes(1);
+      expect(dispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          payload: expect.objectContaining({
+            field: expect.objectContaining({ name: 'title' }),
+            value: undefined,
+          }),
+        }),
+      );
+    });
+
+    it('clears the source and writes the destination for `move` between top-level fields', () => {
+      const { bridge, dispatch } = setup();
+
+      const result = bridge.applyPatch([{ op: 'move', from: '/title', path: '/body' }]);
+
+      expect([...result.changed].sort()).toEqual(['body', 'title']);
+      expect(dispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          payload: expect.objectContaining({
+            field: expect.objectContaining({ name: 'body' }),
+            value: 'Hello',
+          }),
+        }),
+      );
+      expect(dispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          payload: expect.objectContaining({
+            field: expect.objectContaining({ name: 'title' }),
+            value: undefined,
+          }),
+        }),
+      );
+    });
+
     it('does not mutate the entry data in place', () => {
       const entry = makeEntry();
       const before = structuredClone(entry.data);

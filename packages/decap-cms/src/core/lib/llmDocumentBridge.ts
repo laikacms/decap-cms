@@ -172,10 +172,26 @@ export function createLlmDocumentBridge({
         : undefined;
 
       const changed: string[] = [];
-      for (const name of Object.keys(patched)) {
+      // A `remove`, or the source of a `move`, deletes its key from `patched`,
+      // so walking `patched` alone would never visit it and the draft would
+      // keep the old value. Candidates are therefore the addressed names, not
+      // the surviving keys.
+      const addressed = new Set<string>();
+      for (const operation of applicableOperations) {
+        const target = firstSegment(operation.path);
+        if (target !== undefined) addressed.add(target);
+        if (operation.op === 'move' && operation.from !== undefined) {
+          const source = firstSegment(operation.from);
+          if (source !== undefined) addressed.add(source);
+        }
+      }
+
+      for (const name of addressed) {
         // Only fields an operation actually addressed: patching one key must
         // not re-dispatch every other field and mark the whole entry dirty.
-        if (!operations.some(operation => firstSegment(operation.path) === name)) {
+        const survives = Object.prototype.hasOwnProperty.call(patched, name);
+        const wasRemoved = !survives && Object.prototype.hasOwnProperty.call(current, name);
+        if (!survives && !wasRemoved) {
           continue;
         }
         const field = fields.find(candidate => candidate?.name === name);
@@ -187,7 +203,9 @@ export function createLlmDocumentBridge({
         }
         dispatch(changeDraftField({
           field,
-          value: patched[name],
+          // A removed field is written as `undefined`, the same empty value a
+          // cleared widget produces; it drops out of the serialised entry.
+          value: wasRemoved ? undefined : patched[name],
           metadata: {},
           entries,
           i18n,
