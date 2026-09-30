@@ -16,7 +16,7 @@ function textEncoder(): null | TextEncoder {
   return textEncoderInstance;
 }
 
-function utf8Length(text: string) {
+export function utf8Length(text: string) {
   const currentTextEncoder = textEncoder();
 
   if (currentTextEncoder === null) {
@@ -37,11 +37,11 @@ interface CounterCharacterPluginProps {
 // 'characters'. Same "count === 1 is the only singular case" convention as
 // the widget-list heading fix (DCMS-526) and the required-fields toast fix
 // (DCMS-2141), scoped locally since this footer isn't wired into i18n.
-function pluralize(count: number, word: string) {
+export function pluralize(count: number, word: string) {
   return count === 1 ? word : `${word}s`;
 }
 
-const strlen = (text: string, charset: 'UTF-8' | 'UTF-16') => {
+export const strlen = (text: string, charset: 'UTF-8' | 'UTF-16') => {
   if (charset === 'UTF-8') {
     return utf8Length(text);
   }
@@ -49,7 +49,7 @@ const strlen = (text: string, charset: 'UTF-8' | 'UTF-16') => {
   return text.length;
 };
 
-const countWords = (text: string) => {
+export const countWords = (text: string) => {
   return text.split(/\s+/).filter(word => word.length > 0).length;
 };
 
