@@ -121,6 +121,36 @@ describe('config', () => {
     });
   });
   describe('applyDefaults', () => {
+    describe('display_url', () => {
+      const base = { media_folder: 'path/to/media', collections: [] };
+
+      it('should default display_url to site_url when unset', () => {
+        expect(applyDefaults({ ...base, site_url: 'https://example.com' }).display_url).toEqual(
+          'https://example.com',
+        );
+      });
+
+      it('should keep explicit display_url when both are set', () => {
+        expect(
+          applyDefaults({
+            ...base,
+            site_url: 'https://example.com',
+            display_url: 'https://display.example.com',
+          }).display_url,
+        ).toEqual('https://display.example.com');
+      });
+
+      it('should leave display_url undefined when neither is set', () => {
+        expect(applyDefaults(base).display_url).toBeUndefined();
+      });
+
+      it('should default an empty display_url to site_url', () => {
+        expect(
+          applyDefaults({ ...base, site_url: 'https://example.com', display_url: '' }).display_url,
+        ).toEqual('https://example.com');
+      });
+    });
+
     describe('publish_mode', () => {
       it('should set publish_mode if not set', () => {
         const config = {
@@ -644,7 +674,7 @@ describe('config', () => {
                 i18n: true,
               },
             ],
-          })
+          }),
         ).toThrow('i18n configuration for files collections is limited to single_file structure');
       });
 
@@ -663,7 +693,7 @@ describe('config', () => {
                 i18n: true,
               },
             ],
-          })
+          }),
         ).toThrow('i18n configuration for files collections is limited to single_file structure');
       });
 
@@ -682,7 +712,7 @@ describe('config', () => {
                 i18n: true,
               },
             ],
-          })
+          }),
         ).toThrow('i18n configuration for files collections is limited to single_file structure');
       });
 
@@ -762,7 +792,7 @@ describe('config', () => {
                 fields: [{ name: 'title', widget: 'string' }],
               },
             ],
-          })
+          }),
         ).toThrow("i18n locales 'en, de' are missing the default locale fr");
       });
 
@@ -782,7 +812,7 @@ describe('config', () => {
                 fields: [{ name: 'title', widget: 'string' }],
               },
             ],
-          })
+          }),
         ).toThrow("i18n locales 'en, de' are missing the default locale fr");
       });
     });
@@ -823,14 +853,14 @@ describe('config', () => {
         normalizeConfig({
           ...baseConfig,
           roles: { editor: 'content:write' },
-        } as any)
+        } as any),
       ).toThrow(/Role 'editor' in 'roles' must be a list of scope strings/);
 
       expect(() =>
         normalizeConfig({
           ...baseConfig,
           roles: { editor: [{ scope: 'content:write' }] },
-        } as any)
+        } as any),
       ).toThrow(/Role 'editor' in 'roles' must be a list of scope strings/);
     });
   });
@@ -901,7 +931,7 @@ describe('config', () => {
               fields: [{ group: 'missing' }],
             },
           ],
-        } as any)
+        } as any),
       ).toThrow(/Field group 'missing' is referenced but not defined in 'field_groups'/);
     });
 
@@ -1127,9 +1157,7 @@ describe('config', () => {
       // Pinning test (DCMS-1428): malformed URLs log a message distinct from both the
       // scheme-rejection message above and the generic "Proxy Server not detected" message.
       const logCalls = vi.mocked(console.log).mock.calls;
-      expect(logCalls.at(-1)).toEqual([
-        `Decap CMS local_backend url '${url}' is not a valid URL`,
-      ]);
+      expect(logCalls.at(-1)).toEqual([`Decap CMS local_backend url '${url}' is not a valid URL`]);
     });
   });
 
