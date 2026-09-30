@@ -10,6 +10,10 @@ const { createRoot, rootRender } = vi.hoisted(() => {
 
 vi.mock('react-dom/client', () => ({ createRoot }));
 
+// Cold-loading the whole eager app graph takes ~2s alone and >5s when the full
+// suite runs in parallel; the import itself is the slow real work.
+const COLD_APP_IMPORT_TIMEOUT_MS = 30_000;
+
 describe('app entry auto-init followed by explicit init (DCMS-2396)', () => {
   beforeEach(() => {
     vi.resetModules();
@@ -28,5 +32,5 @@ describe('app entry auto-init followed by explicit init (DCMS-2396)', () => {
 
     expect(createRoot).toHaveBeenCalledTimes(1);
     expect(rootRender).toHaveBeenCalledTimes(2);
-  });
+  }, COLD_APP_IMPORT_TIMEOUT_MS);
 });
