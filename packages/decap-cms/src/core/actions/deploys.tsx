@@ -81,9 +81,6 @@ export function loadDeployPreview(
        * `getDeploy` is for published entries, while `getDeployPreview` is for
        * unpublished entries.
        */
-      if ((entry as any).dataFiles) {
-        throw new Error('Deploy previews are not supported for file entries');
-      }
       const deploy = published
         ? backend.getDeploy(collection, slug, entry)
         : await backend.getDeployPreview(collection, slug, entry, opts);
