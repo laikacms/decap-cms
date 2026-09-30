@@ -73,6 +73,17 @@ function ActiveLlmSessionProvider({
   // editor should not pull the whole store module into its import graph.
   const reduxStore = useStore<RootState>();
   const [session, setSession] = useState<LlmSession | undefined>(undefined);
+  // Mirrors `session` synchronously. State only updates on re-render, so two
+  // `ensureSession` calls in one tick would both see `undefined` and each open
+  // a billable session; the ref is what makes the guard idempotent.
+  const sessionRef = useRef<LlmSession | undefined>(undefined);
+
+  const replaceSession = useCallback((next: LlmSession | undefined) => {
+    const previous = sessionRef.current;
+    sessionRef.current = next;
+    setSession(next);
+    if (previous && previous !== next) previous.dispose?.();
+  }, []);
 
   // The bridge reads the entry through this ref rather than closing over it:
   // a session outlives many renders, and a transport holding a stale entry
@@ -96,38 +107,26 @@ function ActiveLlmSessionProvider({
   // and the transport gets the chance to release whatever it was holding.
   const slug = entry?.slug;
   useEffect(() => {
-    return () => {
-      setSession(current => {
-        current?.dispose?.();
-        return undefined;
-      });
-    };
-  }, [collection.name, slug, locale, transport]);
+    return () => replaceSession(undefined);
+  }, [collection.name, slug, locale, transport, replaceSession]);
 
   const ensureSession = useCallback(() => {
-    if (session) return session;
+    if (sessionRef.current) return sessionRef.current;
 
     const opened = transport.openSession(bridge);
+    sessionRef.current = opened;
     setSession(opened);
     return opened;
-  }, [transport, session, bridge]);
+  }, [transport, bridge]);
 
-  const resetSession = useCallback(() => {
-    setSession(current => {
-      current?.dispose?.();
-      return undefined;
-    });
-  }, []);
+  const resetSession = useCallback(() => replaceSession(undefined), [replaceSession]);
 
   const resumeSession = useCallback(async (id: string) => {
     if (!transport?.resumeSession) return;
 
     const resumed = await transport.resumeSession(id, bridge);
-    setSession(current => {
-      if (current !== resumed) current?.dispose?.();
-      return resumed;
-    });
-  }, [transport, bridge]);
+    replaceSession(resumed);
+  }, [transport, bridge, replaceSession]);
 
   const value = useMemo(
     () => ({ session, ensureSession, resetSession, resumeSession }),

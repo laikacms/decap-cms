@@ -113,6 +113,37 @@ describe('LlmSessionProvider', () => {
     expect(captured?.session).toBe(session);
   });
 
+  it('ensureSession is idempotent within a single tick, before any re-render', () => {
+    const session = createFakeSession();
+    const openSession = vi.fn(() => session);
+    const transport: LlmTransport = { openSession };
+    let captured: ReturnType<typeof useLlmSession>;
+
+    render(
+      <Provider store={makeStore()}>
+        <LlmTransportProvider llm={transport}>
+          <LlmSessionProvider collection={collection} entry={entry}>
+            <SessionProbe onResolve={value => (captured = value)} />
+          </LlmSessionProvider>
+        </LlmTransportProvider>
+      </Provider>,
+    );
+
+    let first: LlmSession | undefined;
+    let second: LlmSession | undefined;
+    act(() => {
+      first = captured?.ensureSession();
+      second = captured?.ensureSession();
+    });
+
+    // A second call in the same tick must not open (and orphan) another
+    // billable session.
+    expect(openSession).toHaveBeenCalledTimes(1);
+    expect(first).toBe(session);
+    expect(second).toBe(first);
+    expect(session.dispose).not.toHaveBeenCalled();
+  });
+
   it('resetSession disposes the current session so the next ensureSession starts fresh', () => {
     const first = createFakeSession();
     const second = createFakeSession();
