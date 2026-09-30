@@ -3,7 +3,9 @@ import { thunk } from 'redux-thunk';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DEPLOY_PREVIEW_FAILURE, DEPLOY_PREVIEW_REQUEST, DEPLOY_PREVIEW_SUCCESS, loadDeployPreview } from '@/core/actions/deploys';
-import { NOTIFICATION_SEND } from '@/core/actions/notifications';
+import { FILES } from '@/core/constants/collectionTypes';
+import { previewUrlFormatter } from '@/core/lib/formatters';
+import { createEntry } from '@/core/valueObjects/Entry';
 import * as backendModule from '@/core/backend';
 import * as selectorsModule from '@/core/reducers/selectors';
 
@@ -108,29 +110,35 @@ describe('deploys actions', () => {
       ]);
     });
 
-    it('rejects file entries with a notification and never touches the backend', async () => {
-      const getDeploy = vi.fn();
+    it('builds a preview URL with files[].preview_path for a real files-collection entry', async () => {
+      const filesCollection = {
+        name: 'pages',
+        type: FILES,
+        preview_path: '/default',
+        files: [
+          { name: 'about', file: 'about.md', label: 'About', preview_path: '/about-us' },
+          { name: 'home', file: 'home.md', label: 'Home' },
+        ],
+      } as any;
+      const aboutEntry = createEntry('pages', 'about', 'about.md', { data: { title: 'About' } });
+      const getDeploy = vi.fn((c, slug, e) => ({
+        url: previewUrlFormatter('https://site.example.com', c, slug, e),
+        status: 'SUCCESS',
+      }));
       const getDeployPreview = vi.fn();
       currentBackend.mockReturnValue({ getDeploy, getDeployPreview } as any);
-      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
       const store = mockStore({ config: {} });
 
-      await store.dispatch(loadDeployPreview(collection, 'my-post', { slug: 'my-post', dataFiles: [] } as any, false) as any);
+      await store.dispatch(loadDeployPreview(filesCollection, 'about', aboutEntry as any, true) as any);
 
-      expect(getDeploy).not.toHaveBeenCalled();
-      expect(getDeployPreview).not.toHaveBeenCalled();
-      const actions = store.getActions();
-      expect(actions[0]).toEqual({ type: DEPLOY_PREVIEW_REQUEST, payload: { collection: 'posts', slug: 'my-post' } });
-      const toast = actions.find(a => a.type === NOTIFICATION_SEND);
-      expect(toast.payload.message).toEqual({
-        details: 'Deploy previews are not supported for file entries',
-        key: 'ui.toast.onFailToLoadDeployPreview',
-      });
-      expect(actions[actions.length - 1]).toEqual({
-        type: DEPLOY_PREVIEW_FAILURE,
-        payload: { collection: 'posts', slug: 'my-post' },
-      });
-      consoleError.mockRestore();
+      expect(getDeploy).toHaveBeenCalledWith(filesCollection, 'about', aboutEntry);
+      expect(store.getActions()).toEqual([
+        { type: DEPLOY_PREVIEW_REQUEST, payload: { collection: 'pages', slug: 'about' } },
+        {
+          type: DEPLOY_PREVIEW_SUCCESS,
+          payload: { collection: 'pages', slug: 'about', url: 'https://site.example.com/about-us', status: 'SUCCESS' },
+        },
+      ]);
     });
 
     it('dispatches failure when the backend returns no deploy', async () => {

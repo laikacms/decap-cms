@@ -141,4 +141,5 @@ The preview link source depends on the entry's state
 - In both cases the final URL is built by `previewUrlFormatter` with the collection's
   `preview_path` (see above), so `preview_path` behaves the same for `site_url` and for
   backend-provided URLs.
-- Deploy previews are not supported for file entries (`files` collections).
+- `files` collections get deploy previews like any other collection; `files[].preview_path` (and
+  its `_date_field` / `_preserve_slashes` siblings) override the collection-level values for that file.
