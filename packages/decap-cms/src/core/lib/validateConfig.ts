@@ -250,6 +250,8 @@ export function getConfigSchema(): JSONSchema {
         properties: {
           encoding: { type: 'string', enum: ['unicode', 'ascii'] },
           clean_accents: { type: 'boolean' },
+          sanitize_replacement: { type: 'string' },
+          max_length: { type: 'integer', minimum: 1 },
         },
       },
       issue_reports: {

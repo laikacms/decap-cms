@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { getEntryCodec, getEntryCodecs, getWidgets } from '@/core/lib/registry';
 import { getConfigSchema, validateConfig } from '@/core/lib/validateConfig';
+import configSchemaJson from '../../../../schema/config.schema.json';
 import { jsonEntryCodec, jsonFrontmatterCodec } from '@/entry-codecs/json/index';
 import { createMarkdownEntryCodec } from '@/entry-codecs/markdown/index';
 import { tomlEntryCodec, tomlFrontmatterCodec } from '@/entry-codecs/toml/index';
@@ -1285,5 +1286,43 @@ describe('config', () => {
         }).not.toThrow();
       });
     });
+  });
+});
+
+describe('slug schema', () => {
+  const baseConfig = {
+    backend: { name: 'bar' },
+    media_folder: 'baz',
+    collections: [
+      {
+        name: 'posts',
+        label: 'Posts',
+        folder: '_posts',
+        fields: [{ name: 'title', label: 'title', widget: 'string' }],
+      },
+    ],
+  };
+  const withSlug = (slug: unknown) => ({ ...baseConfig, slug });
+
+  beforeEach(() => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  it('rejects a non-numeric slug.max_length', () => {
+    expect(() => validateConfig(withSlug({ max_length: 'abc' }))).toThrow();
+  });
+
+  it('rejects slug.max_length below 1', () => {
+    expect(() => validateConfig(withSlug({ max_length: 0 }))).toThrow();
+  });
+
+  it('accepts slug.max_length and slug.sanitize_replacement', () => {
+    expect(() => validateConfig(withSlug({ max_length: 50, sanitize_replacement: '_' }))).not.toThrow();
+  });
+
+  it('keeps config.schema.json slug properties in sync with validateConfig', () => {
+    const fromValidator = (getConfigSchema().properties as Record<string, { properties: unknown }>).slug.properties;
+    const fromJson = (configSchemaJson.properties as Record<string, { properties: unknown }>).slug.properties;
+    expect(fromJson).toEqual(fromValidator);
   });
 });

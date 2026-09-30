@@ -79,6 +79,7 @@ slug:
   encoding: unicode # or 'ascii'
   clean_accents: false
   sanitize_replacement: '-'
+  max_length: 100
 ```
 
 This top-level `slug` object controls how entry slugs and media filenames are sanitized — it is
@@ -90,7 +91,7 @@ slug/filename is produced, across every collection. The `collections[].slug` tem
 `truncate()`) — see
 [`src/lib/widgets/README.md#template-filters`](../lib/widgets/README.md#template-filters). Defaults
 are filled in by `applyDefaults` in [`src/core/actions/config.tsx`](./actions/config.tsx), and the
-sanitization itself is implemented in [`src/core/lib/urlHelper.tsx`](./lib/urlHelper.tsx). All three
+sanitization itself is implemented in [`src/core/lib/urlHelper.tsx`](./lib/urlHelper.tsx). All four
 keys are optional:
 
 - **`encoding`** — `'unicode'` (default) or `'ascii'`. `'unicode'` keeps any character allowed in an
@@ -102,6 +103,9 @@ keys are optional:
   replaced.
 - **`sanitize_replacement`** — string, default `'-'`. The character(s) substituted for any character
   disallowed by the `encoding` rule above while sanitizing a slug or filename.
+- **`max_length`** — positive integer, default `100`, hard ceiling `255` (larger values are capped).
+  Maximum length of the generated slug; when slashes are preserved the limit applies to each path
+  segment separately rather than to the whole path.
 
 ## `registerWidget`
 
