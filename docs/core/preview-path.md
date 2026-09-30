@@ -82,7 +82,63 @@ If `preview_path` uses a date variable (`{{year}}`, `{{month}}`, `{{day}}`, `{{h
 missing or not a valid date, the `preview_path` is ignored rather than failing:
 
 - The preview URL silently falls back to the base URL provided by the backend, with no path appended.
-- An error is logged to the browser console: `` Collection "<name>" configuration error:
-  `preview_path_date_field` must be a field with a valid date. Ignoring `preview_path`. ``
+- An error is logged to the browser console: ``Collection "<name>" configuration error:
+`preview_path_date_field` must be a field with a valid date. Ignoring `preview_path`.``
 - The base URL is returned exactly as the backend provided it, including any trailing slash. This is
   the same form returned when no `preview_path` is configured at all.
+
+## `site_url`, `show_preview_links` and `display_url`
+
+`preview_path` only shapes the path of a preview link. Whether a preview link is produced at all,
+and which base URL it is built on, is decided by the top-level `site_url` and `show_preview_links`
+config keys.
+
+```yaml
+site_url: https://example.com
+show_preview_links: true # default
+# display_url: https://example.com # defaults to site_url
+```
+
+### `site_url`
+
+- Type: `string` ([schema](../../packages/decap-cms/schema/config.schema.json#L373))
+- Base URL of the published site. Used as the base for links to _published_ entries, with the
+  collection's `preview_path` appended.
+- Without `site_url` (or with `show_preview_links: false`) there is no preview link for published
+  entries ([`getDeploy`](../../packages/decap-cms/src/core/backend.tsx#L1390)).
+
+### `show_preview_links`
+
+- Type: `boolean` ([schema](../../packages/decap-cms/schema/config.schema.json#L388))
+- Default: `true` (only an explicit `false` disables it)
+- Setting `show_preview_links: false` turns off preview links in both code paths:
+  - [`getDeploy`](../../packages/decap-cms/src/core/backend.tsx#L1390) (published entries) returns
+    nothing.
+  - [`getDeployPreview`](../../packages/decap-cms/src/core/backend.tsx#L1419) (unpublished entries)
+    returns nothing, so the backend is not asked for a deploy preview at all.
+
+### `display_url`
+
+- Type: `string` ([schema](../../packages/decap-cms/schema/config.schema.json#L374))
+- Link target shown for the site in the UI. If `display_url` is not set but `site_url` is, it
+  defaults to `site_url`
+  ([`actions/config.tsx`](../../packages/decap-cms/src/core/actions/config.tsx#L382)). Setting
+  `display_url` explicitly overrides that default.
+
+### How they combine with `preview_path` and `getDeployPreview`
+
+The preview link source depends on the entry's state
+([`actions/deploys.tsx`](../../packages/decap-cms/src/core/actions/deploys.tsx#L88)):
+
+| Entry state | Source of the base URL                                                                                         | `preview_path`                                                   | Disabled by `show_preview_links: false` |
+| ----------- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- | --------------------------------------- |
+| Published   | `site_url` (required)                                                                                          | Appended to `site_url`                                           | Yes                                     |
+| Unpublished | URL returned by the backend's optional `getDeployPreview` (for example a Netlify deploy preview or dev server) | Appended to the backend URL, if configured; otherwise used as-is | Yes                                     |
+
+- If the backend does not implement `getDeployPreview`, unpublished entries get no preview link;
+  `site_url` is not used as a fallback for them
+  ([`getDeployPreview`](../../packages/decap-cms/src/core/backend.tsx#L1419)).
+- In both cases the final URL is built by `previewUrlFormatter` with the collection's
+  `preview_path` (see above), so `preview_path` behaves the same for `site_url` and for
+  backend-provided URLs.
+- Deploy previews are not supported for file entries (`files` collections).
