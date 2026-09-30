@@ -365,12 +365,16 @@ Two details worth knowing:
 | Server response | Behaviour                                                                               |
 | --------------- | --------------------------------------------------------------------------------------- |
 | `423 Locked`    | Rejects, so core fetches the holder and raises the conflict banner                      |
-| `501`           | Resolves `null`: this deployment's backend cannot lock, so the editor hides the lock UI |
+| `501`           | Resolves `null` and is remembered for the page session: this deployment's backend cannot lock (e.g. `storage-fs`), so the lock UI is hidden and `/locks` is not probed again |
 | network failure | Resolves `null`/void, same as above                                                     |
 
 The distinction matters: a rejection means "someone else genuinely holds this", and anything else
 means "we cannot arbitrate right now". Collapsing the two would either false-alarm a conflict or
 block an edit that should be allowed.
+
+A third-party `BackendImplementation` declares lock support by implementing the four lock methods
+(or omits them to opt out); core feature-detects on `acquireEntryLock` and never calls the endpoint
+of a backend without it.
 
 Locks are advisory: nothing blocks a write. Enforcement-on-write (ADR-007's `precondition` ladder)
 is deferred.

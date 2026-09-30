@@ -2016,19 +2016,28 @@ export default function createLaikaBackend(
     //   banner. That is the one case the editor must be told about.
     // - **501** (this deployment's backend cannot lock) and transport failures
     //   resolve `null`/void, so locking silently degrades to "unsupported"
-    //   rather than false-alarming a conflict or blocking the edit.
+    //   rather than false-alarming a conflict or blocking the edit. A 501 is
+    //   remembered, so the unsupported endpoint is probed once, not per entry.
 
     private lockEndpoint(path: string): string {
       return `${this.apiUrl}/locks/${encodeURIComponent(path)}`;
     }
 
+    /**
+     * Set once the server answers 501: the deployment cannot lock at all
+     * (e.g. `storage-fs`), so every further probe would 501 too. Kept for the
+     * page session; a page reload re-probes once.
+     */
+    private entryLockingUnsupported = false;
+
     private async lockRequest(
       path: string,
       init: { method: string, body?: unknown, suffix?: string },
     ): Promise<Response | null> {
+      if (this.entryLockingUnsupported) return null;
       try {
         const token = await this.getToken();
-        return await fetch(`${this.lockEndpoint(path)}${init.suffix ?? ''}`, {
+        const res = await fetch(`${this.lockEndpoint(path)}${init.suffix ?? ''}`, {
           method: init.method,
           headers: {
             Authorization: `Bearer ${token}`,
@@ -2036,6 +2045,8 @@ export default function createLaikaBackend(
           },
           ...(init.body === undefined ? {} : { body: JSON.stringify(init.body) }),
         });
+        if (res.status === 501) this.entryLockingUnsupported = true;
+        return res;
       } catch {
         // Offline, auth not resolved, CORS: all "cannot arbitrate right now".
         return null;
