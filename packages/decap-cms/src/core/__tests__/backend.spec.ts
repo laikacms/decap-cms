@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   Backend,
@@ -23,6 +23,10 @@ import { createMarkdownEntryCodec } from '@/entry-codecs/markdown/index';
 import { tomlEntryCodec, tomlFrontmatterCodec } from '@/entry-codecs/toml/index';
 import { yamlEntryCodec, yamlFrontmatterCodec } from '@/entry-codecs/yaml/index';
 import { asyncLock, localForage } from '@/lib/util/index';
+
+import type * as urlHelper from '@/core/lib/urlHelper';
+
+type UrlHelperModule = typeof urlHelper;
 
 vi.mock('../lib/registry');
 
@@ -1040,6 +1044,222 @@ describe('Backend', () => {
         'Entry not found: settings/unknown-slug',
       );
       expect(implementation.getEntry).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getDeploy', () => {
+    // urlHelper is automocked file-wide; restore the real sanitizer so the preview
+    // URL assertions exercise the real previewUrlFormatter wiring.
+    beforeEach(async () => {
+      const actual = await vi.importActual<UrlHelperModule>(
+        '@/core/lib/urlHelper',
+      );
+      vi.mocked(sanitizeSlug).mockImplementation(actual.sanitizeSlug);
+      vi.mocked(sanitizeChar).mockImplementation(actual.sanitizeChar);
+    });
+
+    const implementation = { init: vi.fn(() => implementation) };
+    const slugConfig = { encoding: 'unicode', clean_accents: false, sanitize_replacement: '-' };
+    const collection = { name: 'posts', type: FOLDER, folder: 'posts', preview_path: 'blog/{{slug}}' };
+    const entry = { slug: 'my-post', path: 'posts/my-post.md', data: { title: 'My Post' } };
+
+    it('returns undefined without site_url', () => {
+      const backend = new Backend(implementation, { config: {}, backendName: 'github' });
+      expect(backend.getDeploy(collection, 'my-post', entry)).toBeUndefined();
+    });
+
+    it('returns undefined when show_preview_links is false', () => {
+      const backend = new Backend(implementation, {
+        config: { site_url: 'https://example.com', show_preview_links: false },
+        backendName: 'github',
+      });
+      expect(backend.getDeploy(collection, 'my-post', entry)).toBeUndefined();
+    });
+
+    it('builds a SUCCESS deploy from site_url and preview_path', () => {
+      const backend = new Backend(implementation, {
+        config: { site_url: 'https://example.com/', show_preview_links: true, slug: slugConfig },
+        backendName: 'github',
+      });
+      expect(backend.getDeploy(collection, 'my-post', entry)).toEqual({
+        url: 'https://example.com/blog/my-post',
+        status: 'SUCCESS',
+      });
+    });
+
+    it('applies config.slug sanitization to the preview path', () => {
+      const backend = new Backend(implementation, {
+        config: { site_url: 'https://example.com', slug: { ...slugConfig, encoding: 'ascii', clean_accents: true } },
+        backendName: 'github',
+      });
+      const titled = { ...collection, preview_path: 'blog/{{title}}' };
+      const result = backend.getDeploy(titled, 'my-post', {
+        ...entry,
+        data: { title: 'Crème Brûlée' },
+      });
+      expect(result?.url).toBe('https://example.com/blog/creme-brulee');
+    });
+
+    it('falls back to site_url when the collection has no preview_path', () => {
+      const backend = new Backend(implementation, {
+        config: { site_url: 'https://example.com', slug: slugConfig },
+        backendName: 'github',
+      });
+      const bare = { name: 'posts', type: FOLDER, folder: 'posts' };
+      expect(backend.getDeploy(bare, 'my-post', entry)).toEqual({
+        url: 'https://example.com',
+        status: 'SUCCESS',
+      });
+    });
+  });
+
+  describe('getDeployPreview', () => {
+    // urlHelper is automocked file-wide; restore the real sanitizer so the preview
+    // URL assertions exercise the real previewUrlFormatter wiring.
+    beforeEach(async () => {
+      const actual = await vi.importActual<UrlHelperModule>(
+        '@/core/lib/urlHelper',
+      );
+      vi.mocked(sanitizeSlug).mockImplementation(actual.sanitizeSlug);
+      vi.mocked(sanitizeChar).mockImplementation(actual.sanitizeChar);
+    });
+
+    const slugConfig = { encoding: 'unicode', clean_accents: false, sanitize_replacement: '-' };
+    const collection = { name: 'posts', type: FOLDER, folder: 'posts', preview_path: 'blog/{{slug}}' };
+    const entry = { slug: 'my-post', path: 'posts/my-post.md', data: { title: 'My Post' } };
+
+    function createBackend(
+      getDeployPreview: unknown,
+      config: Record<string, unknown> = { slug: slugConfig },
+    ) {
+      const implementation: Record<string, unknown> = { init: vi.fn(() => implementation) };
+      if (getDeployPreview) {
+        implementation.getDeployPreview = getDeployPreview;
+      }
+      return new Backend(implementation, { config, backendName: 'github' });
+    }
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('returns undefined when the implementation lacks getDeployPreview', async () => {
+      const backend = createBackend(undefined);
+      await expect(backend.getDeployPreview(collection, 'my-post', entry)).resolves.toBeUndefined();
+    });
+
+    it('returns undefined without calling the backend when show_preview_links is false', async () => {
+      const impl = vi.fn().mockResolvedValue({ url: 'https://deploy.example.com', status: 'success' });
+      const backend = createBackend(impl, { show_preview_links: false, slug: slugConfig });
+      await expect(backend.getDeployPreview(collection, 'my-post', entry)).resolves.toBeUndefined();
+      expect(impl).not.toHaveBeenCalled();
+    });
+
+    it('returns the backend url with preview_path applied and upper-cased status', async () => {
+      const impl = vi.fn().mockResolvedValue({ url: 'https://deploy.example.com', status: 'success' });
+      const backend = createBackend(impl);
+      await expect(backend.getDeployPreview(collection, 'my-post', entry)).resolves.toEqual({
+        url: 'https://deploy.example.com/blog/my-post',
+        status: 'SUCCESS',
+      });
+      expect(impl).toHaveBeenCalledWith('posts', 'my-post');
+    });
+
+    it('uses the backend url as-is when the collection has no preview_path', async () => {
+      const impl = vi.fn().mockResolvedValue({ url: 'https://deploy.example.com/x', status: 'building' });
+      const backend = createBackend(impl);
+      const bare = { name: 'posts', type: FOLDER, folder: 'posts' };
+      await expect(backend.getDeployPreview(bare, 'my-post', entry)).resolves.toEqual({
+        url: 'https://deploy.example.com/x',
+        status: 'BUILDING',
+      });
+    });
+
+    it('returns an empty status string when the backend provides none', async () => {
+      const impl = vi.fn().mockResolvedValue({ url: 'https://deploy.example.com' });
+      const backend = createBackend(impl);
+      const result = await backend.getDeployPreview(collection, 'my-post', entry);
+      expect(result?.status).toBe('');
+    });
+
+    it('does not poll by default and returns undefined when unavailable', async () => {
+      vi.useFakeTimers();
+      const impl = vi.fn().mockResolvedValue(undefined);
+      const backend = createBackend(impl);
+      const promise = backend.getDeployPreview(collection, 'my-post', entry);
+      await vi.advanceTimersByTimeAsync(5000);
+      await expect(promise).resolves.toBeUndefined();
+      expect(impl).toHaveBeenCalledTimes(1);
+    });
+
+    it('polls every interval until the preview becomes available', async () => {
+      vi.useFakeTimers();
+      const impl = vi
+        .fn()
+        .mockResolvedValueOnce(undefined)
+        .mockResolvedValueOnce(undefined)
+        .mockResolvedValueOnce({ url: 'https://deploy.example.com', status: 'success' });
+      const backend = createBackend(impl);
+      const promise = backend.getDeployPreview(collection, 'my-post', entry, {
+        maxAttempts: 5,
+        interval: 1000,
+      });
+
+      await vi.advanceTimersByTimeAsync(0);
+      expect(impl).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(999);
+      expect(impl).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(impl).toHaveBeenCalledTimes(2);
+      await vi.advanceTimersByTimeAsync(1000);
+      expect(impl).toHaveBeenCalledTimes(3);
+
+      await expect(promise).resolves.toEqual({
+        url: 'https://deploy.example.com/blog/my-post',
+        status: 'SUCCESS',
+      });
+    });
+
+    it('stops after maxAttempts and returns undefined when never available', async () => {
+      vi.useFakeTimers();
+      const impl = vi.fn().mockResolvedValue(undefined);
+      const backend = createBackend(impl);
+      const promise = backend.getDeployPreview(collection, 'my-post', entry, {
+        maxAttempts: 3,
+        interval: 1000,
+      });
+      await vi.advanceTimersByTimeAsync(10000);
+      await expect(promise).resolves.toBeUndefined();
+      expect(impl).toHaveBeenCalledTimes(3);
+    });
+
+    it('returns undefined without polling when the signal is already aborted', async () => {
+      const impl = vi.fn().mockResolvedValue({ url: 'https://deploy.example.com', status: 'success' });
+      const backend = createBackend(impl);
+      const controller = new AbortController();
+      controller.abort();
+      await expect(
+        backend.getDeployPreview(collection, 'my-post', entry, { signal: controller.signal }),
+      ).resolves.toBeUndefined();
+      expect(impl).not.toHaveBeenCalled();
+    });
+
+    it('returns early when aborted between polling attempts', async () => {
+      vi.useFakeTimers();
+      const impl = vi.fn().mockResolvedValue(undefined);
+      const backend = createBackend(impl);
+      const controller = new AbortController();
+      const promise = backend.getDeployPreview(collection, 'my-post', entry, {
+        maxAttempts: 5,
+        interval: 1000,
+        signal: controller.signal,
+      });
+      await vi.advanceTimersByTimeAsync(0);
+      expect(impl).toHaveBeenCalledTimes(1);
+      controller.abort();
+      await vi.advanceTimersByTimeAsync(1000);
+      await expect(promise).resolves.toBeUndefined();
+      expect(impl).toHaveBeenCalledTimes(1);
     });
   });
 
