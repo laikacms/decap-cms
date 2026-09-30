@@ -13,9 +13,12 @@ import collections, {
   selectEntryPath,
   selectEntrySlug,
   selectField,
+  selectFieldsComments,
   selectFieldsWithMediaFolders,
+  selectHasMetaPath,
   selectInferredField,
   selectMediaFolders,
+  traverseFields,
   updateFieldByKey,
 } from '@/core/reducers/collections';
 import { jsonEntryCodec, jsonFrontmatterCodec } from '@/entry-codecs/json/index';
@@ -715,6 +718,116 @@ describe('collections', () => {
         field: 'title',
         direction: 'asc',
       });
+    });
+  });
+
+  describe('selectFieldsComments', () => {
+    const entry = (slug: string) => ({ slug }) as never;
+
+    it('returns comments for top-level and nested fields of a folder collection, omitting uncommented ones', () => {
+      const collection = {
+        folder: 'posts',
+        fields: [
+          { name: 'title', comment: 'The title' },
+          { name: 'plain' },
+          { name: 'meta', fields: [{ name: 'author', comment: 'Author name' }, { name: 'skip' }] },
+          { name: 'single', field: { name: 'inner', comment: 'Inner comment' } },
+          { name: 'blocks', types: [{ name: 'hero', comment: 'Hero block' }] },
+        ],
+      };
+      expect(selectFieldsComments(collection as never, entry('any'))).toEqual({
+        title: 'The title',
+        'meta.author': 'Author name',
+        'single.inner': 'Inner comment',
+        'blocks.hero': 'Hero block',
+      });
+    });
+
+    it('returns an empty object for a folder collection without commented fields', () => {
+      const collection = { folder: 'posts', fields: [{ name: 'title' }] };
+      expect(selectFieldsComments(collection as never, entry('x'))).toEqual({});
+    });
+
+    it('returns an empty object for a files collection when the slug matches no file', () => {
+      const collection = {
+        files: [{ name: 'about', fields: [{ name: 'title', comment: 'c' }] }],
+        fields: [{ name: 'title', comment: 'c' }],
+      };
+      expect(selectFieldsComments(collection as never, entry('unknown'))).toEqual({});
+    });
+
+    it('resolves comments through the file matching entry.slug for a files collection', () => {
+      // Field names come from the matched file, but comments are looked up via
+      // selectField on collection.fields, so the collection must expose them too.
+      const collection = {
+        files: [
+          { name: 'about', fields: [{ name: 'title' }] },
+          { name: 'contact', fields: [{ name: 'email' }] },
+        ],
+        fields: [{ name: 'title', comment: 'About title' }, { name: 'email', comment: 'Mail' }],
+      };
+      expect(selectFieldsComments(collection as never, entry('about'))).toEqual({ title: 'About title' });
+      expect(selectFieldsComments(collection as never, entry('contact'))).toEqual({ email: 'Mail' });
+    });
+  });
+
+  describe('selectHasMetaPath', () => {
+    it('is truthy for a folder collection with meta.path', () => {
+      const collection = { folder: 'posts', type: FOLDER, meta: { path: { label: 'Path', widget: 'string', index_file: 'index' } } };
+      expect(selectHasMetaPath(collection as never)).toBeTruthy();
+    });
+
+    it('is falsy for a files collection', () => {
+      const collection = { files: [], type: FILES, meta: { path: {} } };
+      expect(selectHasMetaPath(collection as never)).toBeFalsy();
+    });
+
+    it('is falsy when meta is missing', () => {
+      expect(selectHasMetaPath({ folder: 'posts', type: FOLDER } as never)).toBeFalsy();
+    });
+
+    it('is falsy when meta has no path', () => {
+      expect(selectHasMetaPath({ folder: 'posts', type: FOLDER, meta: {} } as never)).toBeFalsy();
+    });
+  });
+
+  describe('traverseFields', () => {
+    const tree = () => [
+      { name: 'a', fields: [{ name: 'a1' }, { name: 'a2' }] },
+      { name: 'b', field: { name: 'b1', fields: [{ name: 'b2' }] } },
+      { name: 'c', types: [{ name: 'c1' }] },
+    ];
+    const tag = (f: { name: string }) => ({ ...f, tagged: true });
+
+    it('applies the updater to nested fields, field and types', () => {
+      const result = traverseFields(tree() as never, tag as never) as never as Array<Record<string, any>>;
+      expect(result.map(f => f.tagged)).toEqual([true, true, true]);
+      expect(result[0].fields.map((f: any) => f.tagged)).toEqual([true, true]);
+      expect(result[1].field.tagged).toBe(true);
+      expect(result[1].field.fields[0].tagged).toBe(true);
+      expect(result[2].types[0].tagged).toBe(true);
+    });
+
+    it('stops descending once done() returns true', () => {
+      const visited: string[] = [];
+      const updater = (f: { name: string }) => {
+        visited.push(f.name);
+        return f;
+      };
+      traverseFields(tree() as never, updater as never, () => visited.includes('a'));
+      // siblings still get the updater (map continues) but no nested field is descended into
+      expect(visited).toEqual(['a', 'b', 'c']);
+    });
+
+    it('returns the input untouched when done() is initially true', () => {
+      const input = tree();
+      let called = false;
+      const result = traverseFields(input as never, ((f: unknown) => {
+        called = true;
+        return f;
+      }) as never, () => true);
+      expect(result).toBe(input);
+      expect(called).toBe(false);
     });
   });
 });
