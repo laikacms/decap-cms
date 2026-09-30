@@ -253,6 +253,36 @@ describe('laika backend entry locking', () => {
     });
   });
 
+  describe('501 capability caching', () => {
+    it('stops probing every lock endpoint after the first 501', async () => {
+      fetchMock.mockResolvedValueOnce(jsonResponse(501, { errors: [{ status: '501' }] }));
+
+      expect(await backend.getEntryLock(PATH)).toBeNull();
+      expect(await backend.getEntryLock('posts/other')).toBeNull();
+      expect(await backend.acquireEntryLock(PATH, OWNER)).toBeNull();
+      expect(await backend.refreshEntryLock(PATH, OWNER)).toBeNull();
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps locking for a backend that does not answer 501', async () => {
+      fetchMock.mockResolvedValue(jsonResponse(200, lockBody({ token: 'tok-1' })));
+
+      await backend.acquireEntryLock(PATH, OWNER);
+      await backend.acquireEntryLock(PATH, OWNER);
+
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not treat a transport failure as unsupported', async () => {
+      fetchMock.mockRejectedValueOnce(new Error('offline'));
+      await backend.getEntryLock(PATH);
+
+      fetchMock.mockResolvedValueOnce(jsonResponse(200, lockBody()));
+      expect(await backend.getEntryLock(PATH)).not.toBeNull();
+    });
+  });
+
   describe('logout', () => {
     it('drops held lock tokens, so a new session cannot reuse them', async () => {
       fetchMock.mockResolvedValueOnce(jsonResponse(200, lockBody({ token: 'tok-1' })));
