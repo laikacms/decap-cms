@@ -301,3 +301,34 @@ describe('shortcut engine', () => {
     expect(run).not.toHaveBeenCalled();
   });
 });
+
+describe('open modal suppression (DCMS-2426)', () => {
+  beforeEach(() => resetShortcutsForTests());
+  afterEach(() => {
+    resetShortcutsForTests();
+    document.body.innerHTML = '';
+  });
+
+  it('ignores mod+s from an underlying field while an aria-modal surface is mounted', () => {
+    const run = vi.fn();
+    registerShortcut({ id: 'save', sequence: 'mod+s', label: 'Save', run });
+    const field = document.createElement('input');
+    document.body.appendChild(field);
+
+    press('s', { metaKey: true }, field);
+    expect(run).toHaveBeenCalledTimes(1);
+
+    const modal = document.createElement('div');
+    modal.setAttribute('role', 'alertdialog');
+    modal.setAttribute('aria-modal', 'true');
+    document.body.appendChild(modal);
+
+    press('s', { metaKey: true }, field);
+    press('s', { ctrlKey: true }, field);
+    expect(run).toHaveBeenCalledTimes(1);
+
+    modal.remove();
+    press('s', { ctrlKey: true }, field);
+    expect(run).toHaveBeenCalledTimes(2);
+  });
+});

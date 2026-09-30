@@ -611,3 +611,31 @@ describe('PromptDialog validate option (DCMS-2252)', () => {
     await waitFor(() => expect(resolved).toHaveBeenCalledWith(null));
   });
 });
+
+describe('AlertDialog isolates the app root (DCMS-2426)', () => {
+  it('makes #nc-root inert while open and restores it on close', async () => {
+    const user = userEvent.setup();
+    const root = document.createElement('div');
+    root.id = 'nc-root';
+    root.innerHTML = '<input aria-label="underlying" />';
+    document.body.appendChild(root);
+    try {
+      render(<AlertDialogHost />);
+      expect(root.hasAttribute('inert')).toBe(false);
+
+      showAlert('Stop right there.');
+      await screen.findByRole('alertdialog');
+      expect(root.hasAttribute('inert')).toBe(true);
+
+      await user.tab();
+      await user.tab();
+      await user.tab();
+      expect(root.contains(document.activeElement)).toBe(false);
+
+      await user.click(screen.getByRole('button', { name: 'OK' }));
+      await waitFor(() => expect(root.hasAttribute('inert')).toBe(false));
+    } finally {
+      root.remove();
+    }
+  });
+});

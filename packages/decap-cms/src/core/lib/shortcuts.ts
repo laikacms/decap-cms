@@ -14,8 +14,9 @@
  * - `suspendShortcuts()` pauses everything while a modal surface is open
  *   (LaikaDialog calls it automatically); shortcuts registered with
  *   `allowWhileSuspended` (e.g. the palette toggle itself) keep working.
- * - Keystrokes originating inside `[role="dialog"]` / `[aria-modal]` are
- *   ignored even without an explicit suspension, so modals that don't know
+ * - Keystrokes are ignored while any `[aria-modal="true"]` surface is
+ *   mounted, or when they originate inside `[role="dialog"]`, even without
+ *   an explicit suspension, so modals that don't know
  *   about this engine (core's media library) are still safe.
  * - Registering a shortcut with an existing `id` replaces it, letting hosts
  *   override an app-shell default without coordinating removal.
@@ -163,6 +164,17 @@ function isInsideModal(target: EventTarget | null): boolean {
   return el.closest('[role="dialog"], [aria-modal="true"], dialog') !== null;
 }
 
+/**
+ * True while any modal surface is mounted, wherever focus currently is: a
+ * dialog that opens over a focused form field (e.g. the local-backup restore
+ * prompt) leaves the keystroke target outside the dialog, so target-based
+ * detection alone would let `mod+s` save the entry underneath it.
+ */
+function hasOpenModal(target: EventTarget | null): boolean {
+  const docs = [(target as Node | null)?.ownerDocument, typeof document === 'undefined' ? null : document];
+  return docs.some(doc => doc?.querySelector('[aria-modal="true"]') != null);
+}
+
 function defaultAllowInInput(shortcut: Shortcut): boolean {
   return parseSequence(shortcut.sequence).every(ks => ks.mod);
 }
@@ -208,7 +220,7 @@ function onKeyDown(event: KeyboardEvent) {
   // Bare modifier presses never advance or break a chord.
   if (event.key === 'Shift' || event.key === 'Meta' || event.key === 'Control' || event.key === 'Alt') return;
 
-  const suppressed = suspendCount > 0 || isInsideModal(event.target);
+  const suppressed = suspendCount > 0 || isInsideModal(event.target) || hasOpenModal(event.target);
   const inInput = isEditableTarget(event.target);
   const eligible = getRegisteredShortcuts().filter(s => isEligible(s, suppressed, inInput));
   if (eligible.length === 0) {
