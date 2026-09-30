@@ -241,4 +241,91 @@ describe('LlmSessionProvider', () => {
 
     expect(captured?.session).toBe(session);
   });
+
+  describe('disposal', () => {
+    function mountWithOpenSession(session: LlmSession, extra: Partial<LlmTransport> = {}) {
+      const transport: LlmTransport = { openSession: () => session, ...extra };
+      let captured: ReturnType<typeof useLlmSession>;
+      const tree = (props: { entry: CmsEntry; locale?: string }) => (
+        <Provider store={makeStore()}>
+          <LlmTransportProvider llm={transport}>
+            <LlmSessionProvider collection={collection} entry={props.entry} locale={props.locale}>
+              <SessionProbe onResolve={value => (captured = value)} />
+            </LlmSessionProvider>
+          </LlmTransportProvider>
+        </Provider>
+      );
+      const utils = render(tree({ entry, locale: 'en' }));
+      act(() => {
+        captured?.ensureSession();
+      });
+      return { ...utils, tree, get captured() { return captured; } };
+    }
+
+    it('disposes the session and clears it when entry.slug changes', () => {
+      const session = createFakeSession();
+      const mounted = mountWithOpenSession(session);
+      expect(mounted.captured?.session).toBe(session);
+
+      mounted.rerender(mounted.tree({ entry: { ...entry, slug: 'other' } as CmsEntry, locale: 'en' }));
+
+      expect(session.dispose).toHaveBeenCalledTimes(1);
+      expect(mounted.captured?.session).toBeUndefined();
+    });
+
+    it('disposes the session and clears it when locale changes', () => {
+      const session = createFakeSession();
+      const mounted = mountWithOpenSession(session);
+
+      mounted.rerender(mounted.tree({ entry, locale: 'nl' }));
+
+      expect(session.dispose).toHaveBeenCalledTimes(1);
+      expect(mounted.captured?.session).toBeUndefined();
+    });
+
+    it('does not dispose when the entry and locale are unchanged across re-renders', () => {
+      const session = createFakeSession();
+      const mounted = mountWithOpenSession(session);
+
+      mounted.rerender(mounted.tree({ entry: { ...entry, data: { title: 'Edited' } } as CmsEntry, locale: 'en' }));
+
+      expect(session.dispose).not.toHaveBeenCalled();
+      expect(mounted.captured?.session).toBe(session);
+    });
+
+    it('disposes the session on unmount', () => {
+      const session = createFakeSession();
+      const mounted = mountWithOpenSession(session);
+
+      mounted.unmount();
+
+      expect(session.dispose).toHaveBeenCalledTimes(1);
+    });
+
+    it('disposes the old session when resumeSession returns a different one', async () => {
+      const original = createFakeSession();
+      const resumed = createFakeSession();
+      const mounted = mountWithOpenSession(original, { resumeSession: async () => resumed });
+
+      await act(async () => {
+        await mounted.captured?.resumeSession('persisted-id');
+      });
+
+      expect(original.dispose).toHaveBeenCalledTimes(1);
+      expect(resumed.dispose).not.toHaveBeenCalled();
+      expect(mounted.captured?.session).toBe(resumed);
+    });
+
+    it('does not dispose when resumeSession returns the same instance', async () => {
+      const session = createFakeSession();
+      const mounted = mountWithOpenSession(session, { resumeSession: async () => session });
+
+      await act(async () => {
+        await mounted.captured?.resumeSession('persisted-id');
+      });
+
+      expect(session.dispose).not.toHaveBeenCalled();
+      expect(mounted.captured?.session).toBe(session);
+    });
+  });
 });
