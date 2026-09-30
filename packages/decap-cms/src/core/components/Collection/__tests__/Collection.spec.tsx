@@ -1,6 +1,6 @@
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/core/hooks/useRedux', () => ({
   useAppDispatch: () => vi.fn(),
@@ -38,15 +38,16 @@ vi.mock('@/core/reducers/entries', () => ({
   selectViewStyle: () => 'list',
 }));
 
-vi.mock('../Sidebar', () => ({ default: () => null }));
+vi.mock('../Sidebar', () => ({ default: () => <aside data-testid="default-sidebar" /> }));
 vi.mock('../CollectionTop', () => ({ default: () => null }));
 vi.mock('../CollectionControls', () => ({ default: () => null }));
 vi.mock('../Entries/EntriesCollection', () => ({ default: () => null }));
 vi.mock('../Entries/EntriesSearch', () => ({ default: () => null }));
 
 const renderCollectionTop = vi.fn(() => null);
+let renderCollectionSidebar: (() => React.ReactNode) | undefined;
 vi.mock('@/core/lib/slots', () => ({
-  useCmsSlots: () => ({ renderCollectionTop }),
+  useCmsSlots: () => ({ renderCollectionTop, renderCollectionSidebar }),
 }));
 
 import CmsCollection from '@/core/components/Collection/Collection';
@@ -69,5 +70,41 @@ describe('Collection', () => {
     expect(renderCollectionTop).toHaveBeenCalledWith(
       expect.objectContaining({ newEntryUrl: '' }),
     );
+  });
+
+  describe('renderCollectionSidebar layout', () => {
+    const mainPaddingLeft = (container: HTMLElement) => {
+      const main = container.querySelector('main');
+      expect(main).not.toBeNull();
+      return getComputedStyle(main as HTMLElement).paddingLeft;
+    };
+
+    afterEach(() => {
+      renderCollectionSidebar = undefined;
+    });
+
+    it('drops the main pane padding-left and the default sidebar when the slot returns null', () => {
+      renderCollectionSidebar = () => null;
+      const { container } = render(<CmsCollection match={{ params: { name: 'shop' } }} />);
+
+      expect(mainPaddingLeft(container)).toBe('0px');
+      expect(screen.queryByTestId('default-sidebar')).toBeNull();
+    });
+
+    it('keeps the 280px gutter when the slot returns a node', () => {
+      renderCollectionSidebar = () => <aside data-testid="custom-sidebar" />;
+      const { container } = render(<CmsCollection match={{ params: { name: 'shop' } }} />);
+
+      expect(mainPaddingLeft(container)).toBe('280px');
+      expect(screen.getByTestId('custom-sidebar')).toBeTruthy();
+      expect(screen.queryByTestId('default-sidebar')).toBeNull();
+    });
+
+    it('falls back to the default sidebar with a 280px gutter when the slot is omitted', () => {
+      const { container } = render(<CmsCollection match={{ params: { name: 'shop' } }} />);
+
+      expect(mainPaddingLeft(container)).toBe('280px');
+      expect(screen.getByTestId('default-sidebar')).toBeTruthy();
+    });
   });
 });
