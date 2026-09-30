@@ -56,7 +56,8 @@ function formatDate(date: number) {
 
 // Resolved in the browser's local time zone (not UTC) so a slug/summary
 // reflects the calendar day the author sees on their own clock. See
-// docs/beta-features/slug.md.
+// docs/core/preview-path.md and
+// packages/decap-cms/src/lib/widgets/README.md.
 export const dateParsers: Record<string, (date: Date) => string> = {
   year: (date: Date) => `${date.getFullYear()}`,
   month: (date: Date) => formatDate(date.getMonth() + 1),
