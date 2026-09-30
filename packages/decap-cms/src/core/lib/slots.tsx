@@ -350,7 +350,18 @@ export function useCmsSlots(): CmsSlots {
       // `editorPanels` is additive rather than replace-only: two sources of
       // panels should both show up as tabs, not silently shadow each other.
       // App-supplied panels come first so the deployment controls the order.
-      const panels = [...(appSlots.editorPanels ?? []), ...(registeredSlots.editorPanels ?? [])];
+      // Ids must be unique (they are the tab's React key and active-tab
+      // lookup), so on a cross-source collision the app-supplied panel wins.
+      const appPanels = appSlots.editorPanels ?? [];
+      const appPanelIds = new Set(appPanels.map(panel => panel.id));
+      const registeredPanels = (registeredSlots.editorPanels ?? []).filter(panel => {
+        if (!appPanelIds.has(panel.id)) return true;
+        console.warn(
+          `Editor panel id "${panel.id}" is supplied by both CmsSlotsProvider and CMS.registerPanel; the app-supplied panel wins and the registered one is ignored.`,
+        );
+        return false;
+      });
+      const panels = [...appPanels, ...registeredPanels];
       if (panels.length > 0) {
         merged.editorPanels = panels;
       }

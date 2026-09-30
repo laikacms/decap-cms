@@ -207,6 +207,12 @@ additive merge also applies across the two slot sources described in
 [Package-registered slots](#package-registered-slots) — panels from `CmsSlotsProvider` and panels
 from `CMS.registerPanel` both end up as tabs.
 
+Panel `id`s must be unique across both sources (the id is the tab's React key and how the active tab
+is looked up). If an app-supplied panel and a `CMS.registerPanel` panel share an id, **the app-supplied
+panel wins**: the registered one is dropped and a `console.warn` names the id. This matches the
+"app wins" rule for the render slots. Registering the same id twice through `CMS.registerPanel` still
+throws.
+
 With no panels installed the drawer renders nothing at all — no toggle and no DOM — so the editor is
 byte-identical for a deployment that has none.
 

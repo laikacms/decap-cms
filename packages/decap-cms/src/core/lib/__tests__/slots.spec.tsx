@@ -221,6 +221,32 @@ describe('slots', () => {
       expect(tabs.map(tab => tab.textContent)).toEqual(['App Panel', 'Registered Panel']);
     });
 
+    it('lets the app-supplied panel win when both sources use the same id, with a console.warn and no duplicate key', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+      registerPanel({ id: 'seo-collision', label: 'Registered SEO', render: () => <div>registered body</div> });
+
+      const { getByRole, queryByRole, queryByText, getByText } = render(
+        <CmsSlotsProvider
+          slots={{
+            editorPanels: [{ id: 'seo-collision', label: 'App SEO', render: () => <div>app body</div> }],
+          }}
+        >
+          <EditorPanels panelProps={panelProps} t={t} />
+        </CmsSlotsProvider>,
+      );
+
+      fireEvent.click(getByRole('button', { name: 'editor.editorInterface.openPanels' }));
+
+      expect(queryByRole('tab')).toBeNull();
+      expect(getByText('app body')).toBeInTheDocument();
+      expect(queryByText('registered body')).toBeNull();
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('seo-collision'));
+      expect(error.mock.calls.flat().join(' ')).not.toContain('same key');
+      warn.mockRestore();
+      error.mockRestore();
+    });
+
     it('renders nothing when no panels are installed from either source', () => {
       const { container, queryByRole } = render(<EditorPanels panelProps={panelProps} t={t} />);
 
