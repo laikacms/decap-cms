@@ -110,6 +110,47 @@ function useNeverInertSelf<T extends HTMLElement>(): React.RefCallback<T> {
   }, []);
 }
 
+const APP_ROOT_ID = 'nc-root';
+let appRootInertHolds = 0;
+
+/**
+ * Base UI only marks the rest of the page `aria-hidden` while a modal popup
+ * is open; that hides it from assistive tech but leaves it focusable, so Tab
+ * escapes the dialog and typing lands in the underlying form (DCMS-2426).
+ * `inert` on the app root removes it from the tab order and focus entirely.
+ * Ref-counted because several dialogs can be open at once (DCMS-2253); a
+ * popup that itself lives inside the app root is left alone.
+ */
+function useInertAppRoot<T extends HTMLElement>(): React.RefCallback<T> {
+  const releaseRef = React.useRef<(() => void) | null>(null);
+  React.useEffect(() => () => {
+    releaseRef.current?.();
+    releaseRef.current = null;
+  }, []);
+
+  return React.useCallback((node: T | null) => {
+    releaseRef.current?.();
+    releaseRef.current = null;
+    if (!node) return;
+    const root = document.getElementById(APP_ROOT_ID);
+    if (!root || root.contains(node)) return;
+
+    appRootInertHolds += 1;
+    root.setAttribute('inert', '');
+    releaseRef.current = () => {
+      appRootInertHolds -= 1;
+      if (appRootInertHolds === 0) root.removeAttribute('inert');
+    };
+  }, []);
+}
+
+function useMergedRefs<T>(...refs: Array<React.RefCallback<T>>): React.RefCallback<T> {
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- callers pass stable callback refs
+  return React.useCallback((node: T | null) => {
+    for (const ref of refs) ref(node);
+  }, refs);
+}
+
 let dialogStack: string[] = [];
 const dialogStackListeners = new Set<() => void>();
 
@@ -185,7 +226,10 @@ export function AlertDialogContent({
   ...props
 }: WithClassName<React.ComponentProps<typeof AlertDialogPrimitive.Popup>>): React.ReactNode {
   const backdropRef = useNeverInertSelf<HTMLDivElement>();
-  const popupRef = useNeverInertSelf<HTMLDivElement>();
+  const popupRef = useMergedRefs(
+    useNeverInertSelf<HTMLDivElement>(),
+    useInertAppRoot<HTMLDivElement>(),
+  );
   const stackId = React.useId();
   const { recencyIndex, depthFromTop, isTopMost } = useDialogStackPosition(stackId);
   const offset = depthFromTop * stackOffsetPx;
@@ -246,7 +290,10 @@ export function PromptDialogContent({
   ...props
 }: WithClassName<React.ComponentProps<typeof DialogPrimitive.Popup>>): React.ReactNode {
   const backdropRef = useNeverInertSelf<HTMLDivElement>();
-  const popupRef = useNeverInertSelf<HTMLDivElement>();
+  const popupRef = useMergedRefs(
+    useNeverInertSelf<HTMLDivElement>(),
+    useInertAppRoot<HTMLDivElement>(),
+  );
   const stackId = React.useId();
   const { recencyIndex, depthFromTop, isTopMost } = useDialogStackPosition(stackId);
   const offset = depthFromTop * stackOffsetPx;
