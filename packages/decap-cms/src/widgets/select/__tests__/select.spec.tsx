@@ -231,7 +231,7 @@ describe('Select widget', () => {
       expect(onChangeSpy).not.toHaveBeenCalled();
     });
 
-    it('should call onChange with empty list when no item is selected and required is true', () => {
+    it('should call onChange with null when the last item is removed and required is not set', () => {
       const field = { options, multiple: true };
       const { input, onChangeSpy } = setup({
         field,

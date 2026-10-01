@@ -53,8 +53,9 @@ allowed. Source: `schema.ts` (`options.items.oneOf`), `SelectControl.tsx` (`conv
 
 By default (`multiple` unset or `false`) the field holds a single value — one of the values from
 `options` — or `null` when nothing is selected. When `multiple: true`, the field holds an array of
-values from `options` (`[]` when nothing is selected instead of `null`), and the control renders
-selections as removable chips. Source: `SelectControl.tsx` (`getSelectedValue()`, `handleChange()`).
+values from `options`, and the control renders selections as removable chips. When the last chip is
+removed or the selection is cleared, the field holds `[]` if `required: true` and `null` otherwise.
+Source: `SelectControl.tsx` (`getSelectedValue()`, `handleChange()`).
 
 ```yaml
 - label: 'Tags'
