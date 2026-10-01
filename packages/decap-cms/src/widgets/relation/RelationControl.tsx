@@ -306,7 +306,7 @@ const RelationControl = React.forwardRef<RelationControlHandle, RelationControlP
             const fieldKeys = filterObj.field.split('.');
             let v: unknown = hit.data;
             for (let i = 0; i < fieldKeys.length; i++) {
-              if (Object.prototype.hasOwnProperty.call(v, fieldKeys[i])) {
+              if (v != null && typeof v === 'object' && Object.prototype.hasOwnProperty.call(v, fieldKeys[i])) {
                 v = (v as Record<string, unknown>)[fieldKeys[i]];
               } else {
                 return false;
