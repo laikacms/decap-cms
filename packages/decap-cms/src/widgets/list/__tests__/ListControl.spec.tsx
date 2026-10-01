@@ -864,6 +864,28 @@ describe('ListControl', () => {
     expect(props.onValidateObject).toHaveBeenCalledWith('forID', []);
   });
 
+  it('should skip min for an empty optional list but enforce it once an item exists (DCMS-2524)', () => {
+    const field = {
+      name: 'list',
+      label: 'List',
+      collapsed: false,
+      minimize_collapsed: true,
+      required: false,
+      min: 2,
+      fields: [{ label: 'String', name: 'string', widget: 'string' }],
+    };
+    renderAndValidate(field, []);
+    expect(props.onValidateObject).toHaveBeenLastCalledWith('forID', []);
+
+    renderAndValidate(field, [{ string: 'a' }]);
+    expect(props.onValidateObject).toHaveBeenLastCalledWith('forID', [
+      {
+        message: 'editor.editorControlPane.widget.rangeMin',
+        type: 'RANGE',
+      },
+    ]);
+  });
+
   it('should give presence validation error if no elements and required with no min/max (DCMS-1816)', () => {
     const field = {
       name: 'list',
