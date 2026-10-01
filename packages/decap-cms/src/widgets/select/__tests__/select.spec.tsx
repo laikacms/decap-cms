@@ -415,17 +415,26 @@ describe('Select widget', () => {
       };
       expect(validate(opts)).toBeUndefined();
     });
-    it('should not fail for empty field (should work for optional field)', () => {
-      const opts = {
-        field: { options: stringOptions, multiple: true, min: 2 },
-      };
-      const { ref, input, getByText, container } = setup(opts);
+    it('should fail min for an empty multiple field, same as null/undefined/[] (DCMS-2508)', () => {
+      const field = { options: stringOptions, multiple: true, min: 1 };
+      const messages = [undefined, null, []].map(defaultValue =>
+        validate({ field, ...(defaultValue === undefined ? {} : { defaultValue }) }),
+      );
+      expect(messages).toEqual(Array(3).fill('editor.editorControlPane.widget.rangeMin'));
+    });
+    it('should not fail for empty field when min is not set', () => {
+      const { ref } = setup({ field: { options: stringOptions, multiple: true, max: 2 } });
       expect(ref.isValid().error?.message).toBeUndefined();
+    });
+    it('should track min as selections are added and cleared', () => {
+      const opts = { field: { options: stringOptions, multiple: true, min: 1 } };
+      const { ref, input, getByText, container } = setup(opts);
+      expect(ref.isValid().error?.message).toBe('editor.editorControlPane.widget.rangeMin');
       fireEvent.keyDown(input, { key: 'ArrowDown' });
       fireEvent.click(getByText('foo'));
-      expect(ref.isValid().error?.message).toBe('editor.editorControlPane.widget.rangeMin');
-      clickClearButton(container);
       expect(ref.isValid().error?.message).toBeUndefined();
+      clickClearButton(container);
+      expect(ref.isValid().error?.message).toBe('editor.editorControlPane.widget.rangeMin');
     });
   });
 });

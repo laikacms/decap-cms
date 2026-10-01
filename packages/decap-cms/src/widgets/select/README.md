@@ -79,7 +79,7 @@ and no validation error or warning is raised. Source: `SelectControl.tsx` (`isVa
 `min` and `max` do not require each other when `multiple: true` — either one can be set on its own,
 or both can be set together:
 
-- only `min` — at least `min` options must be selected; there's no upper bound.
+- only `min` — at least `min` options must be selected; there's no upper bound. An empty (null, unset, or `[]`) `multiple` selection counts as zero selected, so `min: 1` rejects it even when the field is not `required`.
 - only `max` — at most `max` options may be selected; there's no lower bound.
 - both `min` and `max` — between `min` and `max` options (inclusive) must be selected.
 

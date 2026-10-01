@@ -125,7 +125,7 @@ const SelectControl = React.forwardRef<SelectControlHandle, SelectControlProps>(
           const error = validations.validateMinMax(
             tt,
             f.label ?? f.name,
-            v as (string | number)[] | undefined,
+            (v ?? []) as (string | number)[],
             f.min,
             f.max,
           );
