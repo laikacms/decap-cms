@@ -201,4 +201,58 @@ describe('CodeControl (DCMS-1387)', () => {
     expect(screen.getByRole('combobox', { name: 'Theme' })).toHaveTextContent('material');
     expect(screen.getByRole('combobox', { name: 'KeyMap' })).toHaveTextContent('vim');
   });
+
+  describe('default_language persistence (DCMS-2515)', () => {
+    async function typeCode(code: string) {
+      await screen.findByTestId('codemirror-editor-stub');
+      lastEditorProps().onChange(code);
+    }
+
+    it('includes the seeded default_language in the first code onChange', async () => {
+      const { onChange } = renderControl({ field: baseField({ default_language: 'javascript' }) });
+
+      await typeCode('const a = 1;');
+
+      expect(onChange).toHaveBeenCalledWith({ code: 'const a = 1;', lang: 'javascript' });
+    });
+
+    it('honors custom keys.code / keys.lang', async () => {
+      const { onChange } = renderControl({
+        field: baseField({ default_language: 'javascript', keys: { code: 'body', lang: 'language' } }),
+      });
+
+      await typeCode('x');
+
+      expect(onChange).toHaveBeenCalledWith({ body: 'x', language: 'javascript' });
+    });
+
+    it('keeps the stored lang over default_language', async () => {
+      const { onChange } = renderControl({
+        field: baseField({ default_language: 'javascript' }),
+        value: { code: '', lang: 'python' },
+      });
+
+      await typeCode('x');
+
+      expect(onChange).toHaveBeenCalledWith({ code: 'x', lang: 'python' });
+    });
+
+    it('adds no lang key when there is no default_language', async () => {
+      const { onChange } = renderControl();
+
+      await typeCode('x');
+
+      expect(onChange).toHaveBeenCalledWith({ code: 'x' });
+    });
+
+    it('keeps the raw string payload with output_code_only', async () => {
+      const { onChange } = renderControl({
+        field: baseField({ default_language: 'javascript', output_code_only: true }),
+      });
+
+      await typeCode('x');
+
+      expect(onChange).toHaveBeenCalledWith('x');
+    });
+  });
 });

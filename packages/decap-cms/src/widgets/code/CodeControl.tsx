@@ -136,7 +136,13 @@ export default function CodeControl({
     if (isMap) {
       // Return a new map with the updated key. `value` is undefined for a new
       // entry, so spread defensively rather than mutating it in place.
-      return { ...(value as Record<string, unknown> | undefined), [keys[type]]: val };
+      const next = { ...(value as Record<string, unknown> | undefined), [keys[type]]: val };
+      // Persist the seeded default_language with the first code edit so the
+      // stored lang does not depend on the config at read time.
+      if (type === 'code' && lang && next[keys.lang] === undefined) {
+        next[keys.lang] = lang;
+      }
+      return next;
     }
     return type === 'code' ? val : value;
   }
