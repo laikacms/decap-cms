@@ -147,11 +147,11 @@ describe('widget config schema wiring', () => {
     const schema = fieldSchemaFor('object', objectWidgetSchema);
 
     expect(
-      validateJSONSchema(schema, { name: 'meta', widget: 'object', collapsed: true, i18n: false }),
+      validateJSONSchema(schema, { name: 'meta', widget: 'object', fields: [{ name: 'a' }], collapsed: true, i18n: false }),
     ).toEqual([]);
 
     expect(
-      validateJSONSchema(schema, { name: 'meta', widget: 'object', collapsed: 'yes' }),
+      validateJSONSchema(schema, { name: 'meta', widget: 'object', fields: [{ name: 'a' }], collapsed: 'yes' }),
     ).not.toEqual([]);
   });
 
@@ -159,13 +159,13 @@ describe('widget config schema wiring', () => {
     const schema = fieldSchemaFor('object', objectWidgetSchema);
 
     expect(
-      validateJSONSchema(schema, { name: 'meta', widget: 'object', i18n: 'duplicate' }),
+      validateJSONSchema(schema, { name: 'meta', widget: 'object', fields: [{ name: 'a' }], i18n: 'duplicate' }),
     ).toEqual([]);
     expect(
-      validateJSONSchema(schema, { name: 'meta', widget: 'object', i18n: 'translate' }),
+      validateJSONSchema(schema, { name: 'meta', widget: 'object', fields: [{ name: 'a' }], i18n: 'translate' }),
     ).toEqual([]);
-    expect(validateJSONSchema(schema, { name: 'meta', widget: 'object', i18n: 'none' })).toEqual([]);
-    expect(validateJSONSchema(schema, { name: 'meta', widget: 'object', i18n: false })).toEqual([]);
+    expect(validateJSONSchema(schema, { name: 'meta', widget: 'object', fields: [{ name: 'a' }], i18n: 'none' })).toEqual([]);
+    expect(validateJSONSchema(schema, { name: 'meta', widget: 'object', fields: [{ name: 'a' }], i18n: false })).toEqual([]);
   });
 
   it('relation: accepts valid and rejects wrongly typed properties', () => {
