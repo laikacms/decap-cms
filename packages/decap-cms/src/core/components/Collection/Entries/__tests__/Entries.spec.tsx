@@ -67,3 +67,38 @@ describe('Entries (DCMS-2258)', () => {
     expect(renderEntryListEmpty).toHaveBeenCalled();
   });
 });
+
+describe('Entries empty published collection (DCMS-2510)', () => {
+  function renderPublishedEmpty(renderEntryListEmpty?: () => React.ReactNode) {
+    return render(
+      <I18n locale="en" messages={messages}>
+        <CmsSlotsProvider slots={renderEntryListEmpty ? { renderEntryListEmpty } : {}}>
+          <Entries
+            collections={collection}
+            entries={[]}
+            isFetching={false}
+            cursor={new Cursor()}
+            handleCursorActions={() => {}}
+            getUnpublishedEntries={() => []}
+          />
+        </CmsSlotsProvider>
+      </I18n>,
+    );
+  }
+
+  it('renders the renderEntryListEmpty slot instead of NoEntriesMessage when supplied', () => {
+    const renderEntryListEmpty = vi.fn(() => <div>empty state</div>);
+
+    const { queryByText } = renderPublishedEmpty(renderEntryListEmpty);
+
+    expect(renderEntryListEmpty).toHaveBeenCalled();
+    expect(queryByText('empty state')).not.toBeNull();
+    expect(queryByText('No entries')).toBeNull();
+  });
+
+  it('keeps NoEntriesMessage when no slot is supplied', () => {
+    const { queryByText } = renderPublishedEmpty();
+
+    expect(queryByText('No entries')).not.toBeNull();
+  });
+});
