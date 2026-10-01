@@ -42,6 +42,18 @@ describe('number widget schema', () => {
     expect(validateJSONSchema(fieldSchema, fieldConfig)).not.toEqual([]);
   });
 
+  it.each(['int', 'float'])('accepts value_type %s', valueType => {
+    const fieldConfig = { name: 'quantity', widget: 'number', value_type: valueType };
+
+    expect(validateJSONSchema(fieldSchema, fieldConfig)).toEqual([]);
+  });
+
+  it.each(['integer', 'Int', 'number'])('rejects value_type %s', valueType => {
+    const fieldConfig = { name: 'quantity', widget: 'number', value_type: valueType };
+
+    expect(validateJSONSchema(fieldSchema, fieldConfig)).not.toEqual([]);
+  });
+
   it('rejects min with the wrong type', () => {
     const fieldConfig = { name: 'quantity', widget: 'number', min: 'zero' };
 
