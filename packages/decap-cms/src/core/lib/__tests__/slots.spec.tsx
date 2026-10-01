@@ -1,8 +1,8 @@
-import { fireEvent, render } from '@testing-library/react';
+import { act, fireEvent, render } from '@testing-library/react';
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { getSlots, registerPanel, registerSlot, unregisterSlot } from '@/core/lib/registry';
+import { getSlots, registerPanel, registerSlot, unregisterPanel, unregisterSlot } from '@/core/lib/registry';
 import { CmsSlotsProvider, useCmsSlots } from '@/core/lib/slots';
 import EditorPanels from '@/core/components/Editor/EditorPanels';
 
@@ -170,6 +170,35 @@ describe('slots', () => {
       expect(getSlots().renderEntryCard).toBe(second);
 
       consoleWarn.mockRestore();
+    });
+
+    it('re-renders a mounted consumer when a slot is re-registered under the same key', () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const first = () => <div>first</div>;
+      const second = () => <div>second</div>;
+      registerSlot('renderLoader', first);
+
+      let captured: CmsSlots | undefined;
+      render(<SlotsProbe onSlots={slots => (captured = slots)} />);
+      expect(captured?.renderLoader).toBe(first);
+
+      act(() => registerSlot('renderLoader', second));
+      expect(captured?.renderLoader).toBe(second);
+      vi.restoreAllMocks();
+    });
+
+    it('re-renders a mounted consumer when panels are added or removed', () => {
+      registerPanel({ id: 'p1', label: 'P1', render: () => <div>p1</div> });
+
+      let captured: CmsSlots | undefined;
+      render(<SlotsProbe onSlots={slots => (captured = slots)} />);
+      expect(captured?.editorPanels?.map(p => p.id)).toEqual(['p1']);
+
+      act(() => registerPanel({ id: 'p2', label: 'P2', render: () => <div>p2</div> }));
+      expect(captured?.editorPanels?.map(p => p.id)).toEqual(['p1', 'p2']);
+
+      act(() => unregisterPanel('p1'));
+      expect(captured?.editorPanels?.map(p => p.id)).toEqual(['p2']);
     });
 
     it('unregisterSlot removes it again', () => {

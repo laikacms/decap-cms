@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { createContext, useContext, useMemo, useSyncExternalStore } from 'react';
 
-import { getSlots } from './registry';
+import { getSlots, getSlotsVersion, subscribeSlots } from './registry';
 
 import type {
   CmsCollections,
@@ -340,10 +340,11 @@ export function CmsSlotsProvider({ slots, children }: CmsSlotsProviderProps) {
  */
 export function useCmsSlots(): CmsSlots {
   const appSlots = useContext(CmsSlotsContext);
-  const registeredSlots = getSlots();
+  const registryVersion = useSyncExternalStore(subscribeSlots, getSlotsVersion, getSlotsVersion);
 
   return useMemo(
     () => {
+      const registeredSlots = getSlots();
       if (Object.keys(registeredSlots).length === 0) return appSlots;
 
       const merged: CmsSlots = { ...registeredSlots, ...appSlots };
@@ -367,10 +368,7 @@ export function useCmsSlots(): CmsSlots {
       }
       return merged;
     },
-    // `registeredSlots` is a fresh object each render; registration happens at
-    // boot, so its identity is not a useful dependency. Key off the slot names
-    // actually present instead.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [appSlots, Object.keys(registeredSlots).join(',')],
+    // `registryVersion` is bumped by every register/unregister call.
+    [appSlots, registryVersion],
   );
 }

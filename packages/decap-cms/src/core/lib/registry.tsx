@@ -516,6 +516,26 @@ export function unregisterLocaleAction(name: string) {
  * App-supplied slots win over registered ones: the deployment has the final
  * say over anything a dependency provides.
  */
+let slotsVersion = 0;
+const slotListeners = new Set<() => void>();
+
+function notifySlotsChanged() {
+  slotsVersion += 1;
+  slotListeners.forEach(listener => listener());
+}
+
+/** `useSyncExternalStore` subscription to registerSlot/unregisterSlot/registerPanel/unregisterPanel. */
+export function subscribeSlots(listener: () => void) {
+  slotListeners.add(listener);
+  return () => {
+    slotListeners.delete(listener);
+  };
+}
+
+export function getSlotsVersion() {
+  return slotsVersion;
+}
+
 export function registerSlot<K extends keyof CmsSlots>(name: K, render: NonNullable<CmsSlots[K]>) {
   if (!name || typeof render !== 'function') {
     throw new Error(
@@ -529,6 +549,7 @@ export function registerSlot<K extends keyof CmsSlots>(name: K, render: NonNulla
     `);
   }
   registry.slots[name] = render;
+  notifySlotsChanged();
 }
 
 export function getSlots(): Partial<CmsSlots> {
@@ -538,6 +559,7 @@ export function getSlots(): Partial<CmsSlots> {
 /** Removes a registered slot renderer. No-op when the slot is unset. */
 export function unregisterSlot(name: keyof CmsSlots) {
   delete registry.slots[name];
+  notifySlotsChanged();
 }
 
 /**
@@ -558,6 +580,7 @@ export function registerPanel(panel: EditorPanel) {
     throw new Error(`A panel with id ${panel.id} has already been registered.`);
   }
   registry.slots.editorPanels = [...panels, panel];
+  notifySlotsChanged();
 }
 
 export function getPanels(): EditorPanel[] {
@@ -567,6 +590,7 @@ export function getPanels(): EditorPanel[] {
 /** Removes a registered panel by id. No-op when it is not registered. */
 export function unregisterPanel(id: string) {
   registry.slots.editorPanels = (registry.slots.editorPanels ?? []).filter(panel => panel.id !== id);
+  notifySlotsChanged();
 }
 
 /**
