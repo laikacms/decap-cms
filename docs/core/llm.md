@@ -39,8 +39,9 @@ interface LlmTransport {
 session may be billable. The returned session is shared by every piece of AI UI on that screen, so a
 translation lands in the same conversation the panel renders and can be followed up on.
 
-`listSessions` / `resumeSession` are optional. A transport that omits them gets no history dropdown,
-and everything else still works.
+`listSessions` / `resumeSession` are optional, but the history dropdown needs both: a transport that
+omits either gets no dropdown, and everything else still works. If `resumeSession` rejects, the panel
+shows the error and keeps the current conversation.
 
 ### `LlmSession`
 

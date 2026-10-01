@@ -247,6 +247,37 @@ describe('AiChatPanel', () => {
     expect(transport.resumeSession).toHaveBeenCalledWith('abc12345', expect.any(Object));
   });
 
+  it('hides the conversation bar when the transport can list but not resume sessions', async () => {
+    const listSessions = vi.fn(async () => [{ id: 'abc12345', title: 'Yesterday' }]);
+    renderPanel({ openSession: () => createFakeSession().session, listSessions });
+
+    await waitFor(() => expect(listSessions).not.toHaveBeenCalled());
+    expect(screen.queryByLabelText(en.editor.aiChat.conversations)).not.toBeInTheDocument();
+  });
+
+  it('shows a failed resume as an error and keeps the current session', async () => {
+    const user = userEvent.setup();
+    const first = createFakeSession();
+    renderPanel({
+      openSession: () => first.session,
+      listSessions: async () => [{ id: 'abc12345', title: 'Yesterday' }],
+      resumeSession: async () => {
+        throw new Error('session expired');
+      },
+    });
+
+    await user.type(screen.getByLabelText(en.editor.aiChat.placeholder), 'Hi');
+    await user.click(screen.getByRole('button', { name: en.editor.aiChat.send }));
+    (first.session.messages as LlmMessage[]).push({ id: '1', role: 'assistant', text: 'Still here' });
+    first.notify();
+
+    await user.selectOptions(await screen.findByLabelText(en.editor.aiChat.conversations), 'abc12345');
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('session expired');
+    expect(screen.getByText('Still here')).toBeInTheDocument();
+    expect(first.session.dispose).not.toHaveBeenCalled();
+  });
+
   it('hides the conversation bar when the transport does not persist sessions', () => {
     renderPanel({ openSession: () => createFakeSession().session });
 
