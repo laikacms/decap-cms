@@ -116,6 +116,22 @@ describe('slots', () => {
     });
   });
 
+  describe('app slot explicitly undefined', () => {
+    it('keeps the registered slot instead of erasing it', () => {
+      const registered = () => <div>registered loader</div>;
+      registerSlot('renderLoader', registered);
+
+      let captured: CmsSlots | undefined;
+      render(
+        <CmsSlotsProvider slots={{ renderLoader: undefined }}>
+          <SlotsProbe onSlots={slots => (captured = slots)} />
+        </CmsSlotsProvider>,
+      );
+
+      expect(captured?.renderLoader).toBe(registered);
+    });
+  });
+
   describe('registerSlot', () => {
     it('rejects a missing name or a non-function renderer', () => {
       expect(() => registerSlot('' as keyof CmsSlots, () => null)).toThrow(
