@@ -404,6 +404,42 @@ describe('entries', () => {
       });
     });
 
+    // DCMS-2500
+    it('should seed false for a boolean field without a default', () => {
+      const fields = [{ name: 'featured', widget: 'boolean' }];
+      expect(createEmptyDraftData(fields)).toEqual({ featured: false });
+    });
+
+    // DCMS-2500
+    it('should seed false for a boolean without a default inside an object', () => {
+      const fields = [
+        { name: 'seo', widget: 'object', fields: [{ name: 'noindex', widget: 'boolean' }] },
+      ];
+      expect(createEmptyDraftData(fields)).toEqual({ seo: { noindex: false } });
+    });
+
+    // DCMS-2500
+    it('should keep a configured boolean default and an existing explicit value', () => {
+      const fields = [{ name: 'featured', widget: 'boolean', default: true }];
+      expect(createEmptyDraftData(fields)).toEqual({ featured: true });
+      expect(
+        createEmptyDraftData([{ name: 'featured', widget: 'boolean' }], undefined, {
+          featured: true,
+        }),
+      ).toEqual({ featured: true });
+    });
+
+    // DCMS-2500
+    it('should let a required boolean without a default pass presence validation untouched', async () => {
+      const { default: Widget } = await import(
+        '@/core/components/Editor/EditorControlPane/Widget'
+      );
+      const field = { name: 'featured', widget: 'boolean' };
+      const data = createEmptyDraftData([field]) as Record<string, unknown>;
+      const widget = new (Widget as any)({ t: (k: string) => k, parentIds: [] });
+      expect(widget.validatePresence(field, data.featured)).toEqual({ error: false });
+    });
+
     // DCMS-1802
     it('should backfill a missing key from baseData with the field default', () => {
       const fields = [{ name: 'draft', widget: 'boolean', default: false }];

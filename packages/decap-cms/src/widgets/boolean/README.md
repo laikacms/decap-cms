@@ -14,14 +14,16 @@ The boolean widget renders a single on/off toggle switch for a true/false value.
   `aria-required` (see below).
 - `hint` (optional) — helper text rendered alongside the field label.
 
-## Unset value falls back to `false`
+## Unset value is seeded as `false`
 
-Source: `BooleanControl.tsx`.
+Source: `createEmptyDraftData` in `src/core/actions/entries.tsx`, `BooleanControl.tsx`.
 
-`BooleanControl` destructures its `value` prop with a `false` default (`value = false`). If a field
-has no `default:` key in its config and the entry has no saved value for it, the control receives
-`undefined` for `value` and renders **unchecked** — not blank or indeterminate. There is no
-three-state ("unset") rendering for this widget: the toggle is always either on or off.
+If a field has no `default:` key in its config, `createEmptyDraftData` seeds `false` into the draft
+(for new entries, nested object/list items, and as a backfill for existing entries that lack the
+key). The toggle therefore renders **unchecked** and the draft really holds `false`, so a
+required-by-default boolean passes the presence validator when saved untouched. `BooleanControl`
+keeps its `value = false` render default as a safety net. There is no three-state ("unset")
+rendering: the toggle is always either on or off. An explicit `default:` always wins over the seed.
 
 ## Toggle UI
 

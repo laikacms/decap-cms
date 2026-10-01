@@ -916,6 +916,11 @@ export function createEmptyDraftData(
 
       if (defaultValue !== null) {
         (acc as any)[name] = defaultValue;
+      } else if (item.widget === 'boolean') {
+        // DCMS-2500: BooleanControl renders an unset value as OFF, so the draft
+        // must hold that `false` or the required-by-default presence validator
+        // rejects an untouched toggle on save.
+        (acc as any)[name] = false;
       }
 
       return acc;
