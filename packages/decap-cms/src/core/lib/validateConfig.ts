@@ -52,7 +52,8 @@ function fieldsConfig(): JSONSchema {
     hint: { type: 'string' },
     pattern: {
       type: 'array',
-      minItems: 2,
+      minItems: 1,
+      maxItems: 2,
       items: [{ oneOf: [{ type: 'string' }, { instanceof: 'RegExp' }] }, { type: 'string' }],
     },
     // Reusable-field-group reference shorthand, e.g. `{ group: 'seo' }` in

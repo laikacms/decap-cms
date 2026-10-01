@@ -663,6 +663,49 @@ describe('config', () => {
       });
     });
 
+    describe('field pattern (DCMS-2530)', () => {
+      const withPattern = (pattern: unknown) =>
+        merge({}, validConfig, {
+          collections: [{ fields: [{ name: 'x', label: 'x', widget: 'string', pattern }] }],
+        });
+
+      it('should throw if pattern is a string instead of an array', () => {
+        expect(() => validateConfig(withPattern('^[a-z]+$'))).toThrowError(
+          "'collections[0].fields[0].pattern' must be array",
+        );
+      });
+
+      it('should throw if pattern is an empty array', () => {
+        expect(() => validateConfig(withPattern([]))).toThrowError(
+          "'collections[0].fields[0].pattern'",
+        );
+      });
+
+      it('should throw if pattern has more than 2 items', () => {
+        expect(() => validateConfig(withPattern(['^a', 'msg', 'extra']))).toThrowError(
+          "'collections[0].fields[0].pattern'",
+        );
+      });
+
+      it('should throw if pattern message is not a string', () => {
+        expect(() => validateConfig(withPattern(['^a', 5]))).toThrowError(
+          "'collections[0].fields[0].pattern[1]' must be string",
+        );
+      });
+
+      it('should accept [regex, message]', () => {
+        expect(() => validateConfig(withPattern(['^a', 'msg']))).not.toThrow();
+      });
+
+      it('should accept a RegExp first element', () => {
+        expect(() => validateConfig(withPattern([/^a/, 'msg']))).not.toThrow();
+      });
+
+      it('should accept a single-item [regex] pattern', () => {
+        expect(() => validateConfig(withPattern(['^a']))).not.toThrow();
+      });
+    });
+
     it('should throw if collection meta is not a plain object', () => {
       expect(() => {
         validateConfig(merge({}, validConfig, { collections: [{ meta: [] }] }));
