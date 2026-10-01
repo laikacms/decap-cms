@@ -229,14 +229,14 @@ const Command = React.forwardRef<HTMLDivElement, CommandProps>((props, forwarded
     }
     // `store` is omitted: it's created once below via `useMemo(..., [])`, so
     // its identity never changes and including it would be a no-op.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `store` is created once via useMemo([]), identity never changes
   }, [value]);
 
   useLayoutEffect(() => {
     schedule(6, scrollSelectedIntoView);
     // Runs once on mount only, to scroll the initially-selected item into
     // view; `schedule`/`scrollSelectedIntoView` are stable across renders.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only initial scroll; `schedule`/`scrollSelectedIntoView` are stable
   }, []);
 
   const store: Store = React.useMemo(() => {
@@ -298,7 +298,7 @@ const Command = React.forwardRef<HTMLDivElement, CommandProps>((props, forwarded
     // stable for the lifetime of the component. It only closes over refs
     // (`listeners`, `state`, `propsRef`) and stable functions, which are read
     // through `.current`/closures rather than needing to be dependencies.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- store is built once and only closes over refs and stable functions read via .current
   }, []);
 
   const context: Context = React.useMemo(
@@ -388,7 +388,7 @@ const Command = React.forwardRef<HTMLDivElement, CommandProps>((props, forwarded
     // Same reasoning as the `store` memo above: this context object must keep
     // a stable identity, and everything it closes over is a ref or a stable
     // function, not a value that needs to trigger a rebuild.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- context is built once and only closes over refs and stable functions
     [],
   );
 
@@ -725,7 +725,7 @@ const Item = React.forwardRef<HTMLDivElement, ItemProps>((props, forwardedRef) =
     // `context` is a stable context value (see the `useMemo(..., [])` in
     // `Command` above) and `id`/`groupContext?.id` don't change for the
     // lifetime of this item, so only `forceMount` needs to retrigger this.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `context` is stable and `id`/`groupContext?.id` never change; only `forceMount` retriggers
   }, [forceMount]);
 
   const value = useValue(id, ref, [props.value, props.children, ref], props.keywords);
@@ -752,7 +752,7 @@ const Item = React.forwardRef<HTMLDivElement, ItemProps>((props, forwardedRef) =
     // fresh `onSelect` closure each render never needs to retrigger this
     // effect. `props.onSelect` and `props.disabled` are listed explicitly
     // since they're read directly inside `onSelect`'s definition.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `onSelect` reads props/store via refs, so a fresh closure need not re-attach the listener
   }, [render, props.onSelect, props.disabled]);
 
   function onSelect() {
@@ -821,7 +821,7 @@ const Group = React.forwardRef<HTMLDivElement, GroupProps>((props, forwardedRef)
     // Registers this group once on mount and unregisters on unmount; `id`
     // (from `useId`) is stable for the component's lifetime and `context` is
     // a stable memoized value, so there's nothing else to depend on.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- registers once on mount; `id` from useId and memoized `context` are stable
   }, []);
 
   useValue(id, ref, [props.value, props.heading, headingRef]);
@@ -880,7 +880,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>((props, forwardedRe
     }
     // `store` is omitted: it comes from context and its identity is stable
     // for the component's lifetime (see the `Command` store `useMemo`).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `store` comes from context with stable identity
   }, [props.value]);
 
   return (
@@ -1103,7 +1103,7 @@ const useScheduleLayoutEffect = () => {
     // `fns` is omitted: it's a lazy ref with a stable identity, so it never
     // needs to trigger a re-run. `s` is the intentional trigger — it's bumped
     // by the returned callback purely to schedule this effect to fire again.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `fns` is a lazy ref with stable identity; `s` is the intentional trigger
   }, [s]);
 
   return (id: string | number, cb: () => void) => {
