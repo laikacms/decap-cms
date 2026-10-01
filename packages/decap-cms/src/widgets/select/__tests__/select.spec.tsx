@@ -265,6 +265,18 @@ describe('Select widget', () => {
       expect(onChangeSpy).toHaveBeenCalledWith([options[1].value]);
     });
 
+    it('should wrap a scalar 0 option value in a list on mount when required and multiple', () => {
+      const field = { options: [0, 1, 2], multiple: true, required: true };
+      const { onChangeSpy } = setup({ field, defaultValue: 0 });
+      expect(onChangeSpy).toHaveBeenCalledWith([0]);
+    });
+
+    it('should call onChange with empty list on mount when value is unset, required and multiple', () => {
+      const field = { options: [0, 1, 2], multiple: true, required: true };
+      const { onChangeSpy } = setup({ field, defaultValue: undefined });
+      expect(onChangeSpy).toHaveBeenCalledWith([]);
+    });
+
     it('should call onChange with empty list when selection is cleared and required is true', () => {
       const field = { options, multiple: true, required: true };
       const { container, onChangeSpy } = setup({
