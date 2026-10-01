@@ -889,7 +889,7 @@ export function PromptDialogHost({ t }: PromptDialogHostProps = {}): React.React
     setValidationError(null);
     setIsValidating(false);
     // Reset only when a new prompt is queued, not on every keystroke.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reset only when a new prompt is queued (`current?.id`), not when `current.defaultValue` or other fields change
   }, [current?.id]);
 
   if (!current) return null;
