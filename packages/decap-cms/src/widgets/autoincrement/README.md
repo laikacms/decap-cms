@@ -18,6 +18,13 @@ that shouldn't be hand-typed.
 - `read_only` (optional, default `true`) — renders the input `readOnly` so editors can't hand-edit
   the assigned value. Set to `false` to allow manual overrides.
 
+## Which existing values count
+
+String values (entries edited out-of-band) count only if, after trimming surrounding whitespace,
+they are plain decimal numbers (optional sign, digits, optional fraction). Whitespace-only strings,
+hex/binary/octal (`0x10`, `0b11`, `0o7`) and exponent notation (`1e3`) are ignored as "no value",
+so `start` still applies when no other entry has a usable value.
+
 ## Computation
 
 Source: `core/actions/entries.tsx` (`createEmptyDraft`), `core/lib/computeAutoincrementValues.ts`.
