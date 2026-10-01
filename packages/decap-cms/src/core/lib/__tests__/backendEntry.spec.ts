@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 
-import { entryDataFromContent, legacyRaw } from '@/core/lib/backendEntry';
+import { contentExists, entryDataFromContent, legacyRaw } from '@/core/lib/backendEntry';
 import { registerEntryCodec } from '@/core/lib/registry';
 import { jsonEntryCodec } from '@/entry-codecs/json/index';
 import { parsedContent, rawContent } from '@/lib/backend/index';
@@ -31,5 +31,19 @@ describe('legacyRaw', () => {
 
   it('is empty for structured content, which has no source text', () => {
     expect(legacyRaw(parsedContent({ title: 'Hello' }))).toBe('');
+  });
+});
+
+describe('contentExists', () => {
+  it('treats empty raw text as missing', () => {
+    expect(contentExists(rawContent(''))).toBe(false);
+  });
+
+  it('treats non-empty raw text as existing', () => {
+    expect(contentExists(rawContent('text'))).toBe(true);
+  });
+
+  it('treats parsed content as existing even with no fields', () => {
+    expect(contentExists(parsedContent({}))).toBe(true);
   });
 });
