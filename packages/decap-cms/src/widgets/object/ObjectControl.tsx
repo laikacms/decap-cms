@@ -60,6 +60,7 @@ export interface ObjectControlProps {
   t: TranslateFunction;
   locale?: string | undefined;
   collapsed?: boolean;
+  isParentListCollapsed?: boolean | undefined;
   parentIds?: string[];
   isFieldDuplicate?: (field: CmsField) => boolean;
   isFieldHidden?: (field: CmsField) => boolean;
@@ -152,7 +153,7 @@ const ObjectControl = React.forwardRef<ObjectControlHandle, ObjectControlProps>(
     // Track collapsed in a ref so the imperative handle can branch on it
     // without being recreated on every collapse toggle.
     const collapsedRef = React.useRef(collapsed);
-    collapsedRef.current = forList ? !!props.collapsed : collapsed;
+    collapsedRef.current = (forList ? !!props.collapsed : collapsed) || !!props.isParentListCollapsed;
 
     const getStableParentIds = React.useMemo(
       () =>

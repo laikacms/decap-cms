@@ -230,6 +230,7 @@ export interface ListControlProps {
   getEntry?: () => CmsEntry | undefined;
   t: TranslateFunction;
   parentIds?: string[];
+  isParentListCollapsed?: boolean;
 }
 
 export interface ListControlHandle {
@@ -301,6 +302,7 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
       controlRef,
       resolveWidget,
       parentIds = [],
+      isParentListCollapsed,
       entry,
       getEntry,
       t,
@@ -784,6 +786,7 @@ const ListControl = React.forwardRef<ListControlHandle, ListControlProps>(
                 controlRef={controlRef as any}
                 t={t}
                 collapsed={collapsed}
+                isParentListCollapsed={isParentListCollapsed}
                 data-testid={`object-control-${key}`}
                 hasError={itemHasError}
                 parentIds={getStableParentIds(parentIds, forID, key)}

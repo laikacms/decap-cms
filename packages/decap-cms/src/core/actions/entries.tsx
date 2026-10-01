@@ -2,6 +2,7 @@ import { isEqual } from 'lodash-es';
 
 import { currentBackend } from '@/core/backend';
 import ValidationErrorTypes from '@/core/constants/validationErrorTypes';
+import { countPresenceErrors } from '@/core/lib/countPresenceErrors';
 import { getIntegrationProvider } from '@/core/integrations';
 import { getProcessSegment } from '@/core/lib/formatters';
 import { duplicateDefaultI18nFields, hasI18n, I18N, I18N_FIELD, serializeI18n } from '@/core/lib/i18n';
@@ -984,9 +985,7 @@ export function persistEntry(collection: Collection) {
     const usedSlugs = selectPublishedSlugs(state, collection.name) ?? [];
 
     if (Object.keys(fieldsErrors ?? {}).length > 0) {
-      const presenceErrorFieldsCount = Object.values(fieldsErrors!).filter((errors: any) =>
-        errors.some((error: any) => error.type && error.type === ValidationErrorTypes.PRESENCE)
-      ).length;
+      const presenceErrorFieldsCount = countPresenceErrors(fieldsErrors!);
       const hasPresenceErrors = presenceErrorFieldsCount > 0;
 
       // Always surface a notification when validation blocks the save - not

@@ -2,7 +2,7 @@ import { get } from 'lodash-es';
 
 import { currentBackend, slugFromCustomPath } from '@/core/backend';
 import { EDITORIAL_WORKFLOW, status } from '@/core/constants/publishModes';
-import ValidationErrorTypes from '@/core/constants/validationErrorTypes';
+import { countPresenceErrors } from '@/core/lib/countPresenceErrors';
 import {
   clearScheduledPublishAt,
   getScheduledPublishAt,
@@ -405,9 +405,7 @@ export function persistUnpublishedEntry(collection: Collection, existingUnpublis
 
     // Early return if draft contains validation errors
     if (fieldsErrors && Object.keys(fieldsErrors).length > 0) {
-      const presenceErrorFieldsCount = Object.values(fieldsErrors).filter((errors: any) =>
-        errors.some((error: any) => error.type && error.type === ValidationErrorTypes.PRESENCE)
-      ).length;
+      const presenceErrorFieldsCount = countPresenceErrors(fieldsErrors);
       const hasPresenceErrors = presenceErrorFieldsCount > 0;
 
       // See entries.tsx `persistEntry` (DCMS-484): notify on any validation
