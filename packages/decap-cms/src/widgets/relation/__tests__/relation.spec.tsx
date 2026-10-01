@@ -312,6 +312,17 @@ const numberFieldsHits = [
     },
   },
 ];
+const nullMetaHits = [
+  {
+    collection: 'null_meta_collection',
+    data: { title: 'Null meta post', slug: 'null-meta-post', meta: null },
+  },
+  {
+    collection: 'null_meta_collection',
+    data: { title: 'Live meta post', slug: 'live-meta-post', meta: { status: 'live' } },
+  },
+];
+
 class RelationController extends React.Component {
   state = {
     value: this.props.value,
@@ -349,6 +360,8 @@ class RelationController extends React.Component {
     let hits = queryHits;
     if (collection === 'numbers_collection') {
       hits = numberFieldsHits;
+    } else if (collection === 'null_meta_collection') {
+      hits = nullMetaHits;
     } else if (file === 'nested_file') {
       hits = nestedFileCollectionHits;
     } else if (file === 'simple_file') {
@@ -916,6 +929,29 @@ describe('Relation widget', () => {
         expect(() => getAllByText(/^Post # (\d{1,2}) post-number-\1$/)).toThrow(Error);
         expect(getAllByText('Deeply nested post post-deeply-nested')).toHaveLength(1);
       });
+    });
+  });
+
+  describe('with dotted filter over a null intermediate value (DCMS-2518)', () => {
+    it('excludes the hit with a null parent, shows the matching hit, and logs no error', async () => {
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      const field = {
+        name: 'post',
+        collection: 'null_meta_collection',
+        display_fields: ['title'],
+        search_fields: ['title'],
+        value_field: 'title',
+        filters: [{ field: 'meta.status', values: ['live'] }],
+      };
+      const { getByText, queryByText, input } = setup({ field });
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+
+      await waitFor(() => {
+        expect(getByText('Live meta post')).toBeInTheDocument();
+      });
+      expect(queryByText('Null meta post')).toBeNull();
+      expect(consoleError).not.toHaveBeenCalled();
+      consoleError.mockRestore();
     });
   });
 
