@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -58,5 +58,18 @@ describe('BooleanControl aria validation wiring (DCMS-1086)', () => {
   it('keeps the toggle id wired to forID for the focus-first-invalid heuristic', () => {
     const { container } = render(<BooleanControl {...defaultProps} value={false} />);
     expect(container.querySelector('button')).toHaveAttribute('id', 'published');
+  });
+});
+
+// DCMS-2527: Base UI Switch calls onCheckedChange(checked, eventDetails); the
+// widget contract is onChange(value, metadata?), so eventDetails must not leak
+// as field metadata into draft fieldsMetaData.
+describe('BooleanControl onChange arity (DCMS-2527)', () => {
+  it('calls onChange with exactly the new value and no metadata', () => {
+    const onChange = vi.fn();
+    const { container } = render(<BooleanControl {...defaultProps} onChange={onChange} value={false} />);
+    fireEvent.click(container.querySelector('button')!);
+    expect(onChange).toHaveBeenCalledWith(true);
+    expect(onChange.mock.calls[0]).toHaveLength(1);
   });
 });
