@@ -185,4 +185,18 @@ describe('Widget validatePattern (DCMS-2274)', () => {
 
     expect(result.error).toBe(false);
   });
+
+  it('surfaces the configured message instead of throwing when the regex is invalid (DCMS-2492)', () => {
+    const field = { name: 'title', label: 'Title', pattern: ['[a-', 'letters only'] };
+    const widget = createWidget({ field });
+
+    let result: ReturnType<typeof widget.validatePattern> | undefined;
+    expect(() => {
+      result = widget.validatePattern(field, 'abc', widget.props.t);
+    }).not.toThrow();
+
+    const error = result?.error as { type: string; message: string };
+    expect(error.type).toBe(ValidationErrorTypes.PATTERN);
+    expect(error.message).toBe('editor.editorControlPane.widget.regexPattern:letters only');
+  });
 });
