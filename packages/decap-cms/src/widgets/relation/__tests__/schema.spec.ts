@@ -55,4 +55,22 @@ describe('relation widget schema', () => {
 
     expect(validateJSONSchema(fieldSchema, fieldConfig)).not.toEqual([]);
   });
+
+  describe.each(['options_length', 'optionsLength'])('%s range', key => {
+    const base = { name: 'author', widget: 'relation', collection: 'authors' };
+    const required =
+      key === 'options_length'
+        ? { value_field: 'slug', search_fields: ['name'] }
+        : { valueField: 'slug', searchFields: ['name'] };
+
+    it.each([0, -1])('rejects %i', value => {
+      const config = { ...base, ...required, [key]: value };
+      expect(validateJSONSchema(fieldSchema, config)).not.toEqual([]);
+    });
+
+    it.each([1, 20])('accepts %i', value => {
+      const config = { ...base, ...required, [key]: value };
+      expect(validateJSONSchema(fieldSchema, config)).toEqual([]);
+    });
+  });
 });

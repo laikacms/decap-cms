@@ -11,8 +11,8 @@ export default {
     max: { type: 'integer' },
     display_fields: { type: 'array', minItems: 1, items: { type: 'string' } },
     displayFields: { type: 'array', minItems: 1, items: { type: 'string' } },
-    options_length: { type: 'integer' },
-    optionsLength: { type: 'integer' },
+    options_length: { type: 'integer', minimum: 1 },
+    optionsLength: { type: 'integer', minimum: 1 },
     allow_quick_add: { type: 'boolean' },
     allowQuickAdd: { type: 'boolean' },
     filters: {
