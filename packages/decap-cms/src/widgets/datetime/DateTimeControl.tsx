@@ -70,10 +70,7 @@ interface DateTimeControlProps {
 }
 
 function escapeZ(str: string): string {
-  if (/Z(?![\]])/.test(str)) {
-    return str.replace('Z', '[Z]');
-  }
-  return str;
+  return str.replace(/\[[^\]]*\]|Z/g, match => (match === 'Z' ? '[Z]' : match));
 }
 
 function getFormat(field: CmsFieldDateTime, isUtc: boolean) {
