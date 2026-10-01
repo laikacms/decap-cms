@@ -1,5 +1,7 @@
 import type { CmsEntry, CmsEntryField } from '@/lib/util/index';
 
+const PLAIN_DECIMAL = /^[+-]?(\d+(\.\d*)?|\.\d+)$/;
+
 /**
  * DCMS-1422 (partial): computes the value each top-level field configured
  * with `widget: 'autoincrement'` should get on a brand-new entry - the
@@ -35,8 +37,8 @@ export function computeAutoincrementValues(
       const raw = (entry.data as Record<string, unknown> | undefined)?.[field.name];
       const num = typeof raw === 'number'
         ? raw
-        : typeof raw === 'string' && raw !== ''
-        ? Number(raw)
+        : typeof raw === 'string' && PLAIN_DECIMAL.test(raw.trim())
+        ? Number(raw.trim())
         : NaN;
 
       if (Number.isFinite(num) && (max === undefined || num > max)) {

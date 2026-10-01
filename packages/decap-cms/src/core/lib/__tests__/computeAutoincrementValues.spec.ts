@@ -62,6 +62,39 @@ describe('computeAutoincrementValues', () => {
     expect(values).toEqual({ ticketId: 10 });
   });
 
+  it('treats whitespace-only strings as no value so start still applies', () => {
+    const startFields = [
+      { name: 'ticketId', label: 'Ticket ID', widget: 'autoincrement', start: 1000 },
+    ] as CmsEntryField[];
+    for (const blank of [' ', '\n', '\t ']) {
+      const values = computeAutoincrementValues(startFields, [makeEntry('a', { ticketId: blank })]);
+      expect(values).toEqual({ ticketId: 1000 });
+    }
+  });
+
+  it('ignores hex, binary and octal prefixed strings', () => {
+    for (const raw of ['0x10', '0b11', '0o7']) {
+      const values = computeAutoincrementValues(fields, [
+        makeEntry('a', { ticketId: raw }),
+        makeEntry('b', { ticketId: 3 }),
+      ]);
+      expect(values).toEqual({ ticketId: 4 });
+    }
+  });
+
+  it('ignores exponent notation strings (1e3 is not a plain decimal)', () => {
+    const values = computeAutoincrementValues(fields, [
+      makeEntry('a', { ticketId: '1e3' }),
+      makeEntry('b', { ticketId: 3 }),
+    ]);
+    expect(values).toEqual({ ticketId: 4 });
+  });
+
+  it('accepts surrounding whitespace around a plain decimal string', () => {
+    const values = computeAutoincrementValues(fields, [makeEntry('a', { ticketId: ' 12 ' })]);
+    expect(values).toEqual({ ticketId: 13 });
+  });
+
   it('ignores entries with a missing or non-numeric value for the field', () => {
     const existingEntries = [
       makeEntry('a', { ticketId: undefined }),
