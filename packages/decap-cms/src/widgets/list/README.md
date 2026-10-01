@@ -21,7 +21,10 @@ when a `fields` (or single-field `field`) option is given.
   `{{ field | filter }}` pipe syntax (`upper`, `lower`, `date()`, `default()`, `ternary()`,
   `truncate()`) — see
   [`src/lib/widgets/README.md#template-filters`](../../lib/widgets/README.md#template-filters).
-- `min` (optional) — minimum number of items in the list.
+- `min` (optional) — minimum number of items in the list. For an optional list (`required: false`),
+  `min` only applies once the list has at least one item: an empty optional list skips it (see
+  `validateSize` in `ListControl.tsx`), while a list with fewer than `min` (but more than zero)
+  items errors. Set `required: true` (the default) to enforce `min` on an empty list.
 - `max` (optional) — maximum number of items in the list.
 - `label_singular` (optional) — label to use for an individual item, in place of the field's
   `label`.
