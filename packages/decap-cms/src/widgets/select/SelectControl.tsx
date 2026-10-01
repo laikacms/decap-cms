@@ -137,10 +137,10 @@ const SelectControl = React.forwardRef<SelectControlHandle, SelectControlProps>(
 
     React.useEffect(() => {
       if (field.required && field.multiple) {
-        if (value && !Array.isArray(value)) {
-          onChange([value]);
-        } else if (!value) {
+        if (value == null) {
           onChange([]);
+        } else if (!Array.isArray(value)) {
+          onChange([value]);
         }
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps -- mirror componentDidMount
