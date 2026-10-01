@@ -184,3 +184,20 @@ describe('DateTimeControl explicit format overrides date_format/time_format: fal
     expect(props.onChange).toHaveBeenCalledWith('15.03.2024 14:45');
   });
 });
+
+describe('DateTimeControl picker_utc escapeZ (DCMS-2494)', () => {
+  const testDate = '2024-03-15T10:30:00';
+
+  test.each([
+    ['preserves bracketed Z-prefixed literals', '[Zulu] YYYY-MM-DD', '[Zulu] YYYY-MM-DD'],
+    ['escapes every Z in ZZ', 'YYYY-MM-DD HH:mm ZZ', 'YYYY-MM-DD HH:mm [Z][Z]'],
+    ['leaves already-escaped [Z] alone', 'YYYY [Z]', 'YYYY [Z]'],
+    ['turns an unbracketed Z into a literal Z', 'YYYY-MM-DD Z', 'YYYY-MM-DD [Z]'],
+  ])('%s', (_name, format, expectedFormat) => {
+    const { input, props } = setup({ field: { picker_utc: true, format } });
+
+    fireEvent.change(input, { target: { value: testDate } });
+
+    expect(props.onChange).toHaveBeenCalledWith(dayjs(testDate).format(expectedFormat));
+  });
+});
