@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest';
 
-import { sanitizeChar, sanitizeSlug, sanitizeURI } from '@/core/lib/urlHelper';
+import {
+  addParams,
+  getCharReplacer,
+  getCollectionUrl,
+  getNewEntryUrl,
+  joinUrlPath,
+  sanitizeChar,
+  sanitizeSlug,
+  sanitizeURI,
+  stripProtocol,
+} from '@/core/lib/urlHelper';
 
 describe('sanitizeURI', () => {
   // `sanitizeURI` tests from RFC 3987
@@ -200,5 +210,141 @@ describe('sanitizeChar', () => {
 
   it('should sanitize whitespace with custom replacement', () => {
     expect(sanitizeChar(' ', { ...slugConfig, sanitize_replacement: '_' })).toBe('_');
+  });
+});
+
+describe('getCollectionUrl', () => {
+  it('should not prefix with /# when direct is false or undefined', () => {
+    expect(getCollectionUrl('posts')).toBe('/collections/posts');
+    expect(getCollectionUrl('posts', false)).toBe('/collections/posts');
+  });
+
+  it('should prefix with /# when direct is true', () => {
+    expect(getCollectionUrl('posts', true)).toBe('/#/collections/posts');
+  });
+
+  it('should encode spaces, slashes, hashes and unicode in the collection name', () => {
+    expect(getCollectionUrl('my posts')).toBe('/collections/my%20posts');
+    expect(getCollectionUrl('a/b')).toBe('/collections/a%2Fb');
+    expect(getCollectionUrl('a#b')).toBe('/collections/a%23b');
+    expect(getCollectionUrl('日本語')).toBe(`/collections/${encodeURIComponent('日本語')}`);
+    expect(getCollectionUrl('a b/c#d', true)).toBe('/#/collections/a%20b%2Fc%23d');
+  });
+});
+
+describe('getNewEntryUrl', () => {
+  it('should not prefix with /# when direct is false or undefined', () => {
+    expect(getNewEntryUrl('posts')).toBe('/collections/posts/new');
+    expect(getNewEntryUrl('posts', false)).toBe('/collections/posts/new');
+  });
+
+  it('should prefix with /# when direct is true', () => {
+    expect(getNewEntryUrl('posts', true)).toBe('/#/collections/posts/new');
+  });
+
+  it('should encode spaces, slashes, hashes and unicode in the collection name', () => {
+    expect(getNewEntryUrl('my posts')).toBe('/collections/my%20posts/new');
+    expect(getNewEntryUrl('a/b')).toBe('/collections/a%2Fb/new');
+    expect(getNewEntryUrl('a#b')).toBe('/collections/a%23b/new');
+    expect(getNewEntryUrl('日本語')).toBe(`/collections/${encodeURIComponent('日本語')}/new`);
+  });
+});
+
+describe('addParams', () => {
+  it('should add new params to a url without a query string', () => {
+    expect(addParams('https://example.com/path', { a: '1', b: '2' })).toBe(
+      'https://example.com/path?a=1&b=2',
+    );
+  });
+
+  it('should override existing params with the same name', () => {
+    expect(addParams('https://example.com/path?a=old', { a: 'new' })).toBe(
+      'https://example.com/path?a=new',
+    );
+  });
+
+  it('should preserve existing unrelated params', () => {
+    expect(addParams('https://example.com/path?keep=yes&a=old', { a: 'new', b: '2' })).toBe(
+      'https://example.com/path?keep=yes&a=new&b=2',
+    );
+  });
+
+  it('should encode param values', () => {
+    expect(addParams('https://example.com/', { q: 'a b&c' })).toBe(
+      'https://example.com/?q=a+b%26c',
+    );
+  });
+});
+
+describe('stripProtocol', () => {
+  it('should strip https://', () => {
+    expect(stripProtocol('https://example.com/path')).toBe('example.com/path');
+  });
+
+  it('should strip other protocols', () => {
+    expect(stripProtocol('http://example.com')).toBe('example.com');
+  });
+
+  it('should leave protocol-less strings unchanged', () => {
+    expect(stripProtocol('example.com/path')).toBe('example.com/path');
+    expect(stripProtocol('/relative/path')).toBe('/relative/path');
+  });
+
+  it('should strip everything up to the first // (protocol-relative urls)', () => {
+    expect(stripProtocol('//example.com/path')).toBe('example.com/path');
+  });
+});
+
+describe('joinUrlPath', () => {
+  it('should join base and segments with single slashes', () => {
+    expect(joinUrlPath('https://example.com', 'a', 'b')).toBe('https://example.com/a/b');
+  });
+
+  it('should not duplicate slashes', () => {
+    expect(joinUrlPath('https://example.com/', '/a/', '/b')).toBe('https://example.com/a/b');
+  });
+
+  it('should return the base when there are no segments', () => {
+    expect(joinUrlPath('https://example.com')).toBe('https://example.com');
+  });
+});
+
+describe('getCharReplacer', () => {
+  it('should keep valid chars and replace invalid ones (unicode)', () => {
+    const replace = getCharReplacer('unicode', { replacement: '-' });
+    expect(replace('a')).toBe('a');
+    expect(replace('é')).toBe('é');
+    expect(replace(' ')).toBe('-');
+    expect(replace('!')).toBe('-');
+  });
+
+  it('should replace non-ASCII chars in ascii mode', () => {
+    const replace = getCharReplacer('ascii', { replacement: '_' });
+    expect(replace('a')).toBe('a');
+    expect(replace('é')).toBe('_');
+    expect(replace('日')).toBe('_');
+  });
+
+  it('should replace slashes by default', () => {
+    const replace = getCharReplacer('unicode', { replacement: '-' });
+    expect(replace('/', 1, ['a', '/', 'b'])).toBe('-');
+  });
+
+  it('should keep inner slashes but replace leading/trailing ones when preserveSlashes is set', () => {
+    const replace = getCharReplacer('unicode', { replacement: '-', preserveSlashes: true });
+    const chars = ['/', 'a', '/', 'b', '/'];
+    expect(chars.map(replace).join('')).toBe('-a/b-');
+  });
+
+  it('should throw on an unknown encoding', () => {
+    expect(() => getCharReplacer('latin1', { replacement: '-' })).toThrow(
+      '`options.encoding` must be "unicode" or "ascii".',
+    );
+  });
+
+  it('should throw when the replacement is itself unsafe', () => {
+    expect(() => getCharReplacer('unicode', { replacement: '!' })).toThrow(
+      'The replacement character(s) (options.replacement) is itself unsafe.',
+    );
   });
 });
