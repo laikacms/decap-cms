@@ -143,6 +143,11 @@ export default class Widget extends Component<WidgetProps> {
       || this.props.hasErrors !== nextProps.hasErrors
       || this.props.errorListId !== nextProps.errorListId
       || this.props.hintId !== nextProps.hintId
+      // The media library hands a picked asset back to the invoking control
+      // through `mediaPaths` (keyed by control id); the control commits it
+      // via `onChange` on its next render, so a blocked update here silently
+      // drops "Choose selected" (DCMS-2476).
+      || this.props.mediaPaths !== nextProps.mediaPaths
     );
   }
 
