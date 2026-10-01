@@ -1,9 +1,9 @@
-import { act, render } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { thunk } from 'redux-thunk';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 // Pass-through translate/useTranslate so `AppContent` doesn't need a real
 // `@/core/i18n` `<I18n>` ancestor.
@@ -62,6 +62,7 @@ vi.mock('@/core/backend', () => ({
 
 import { AppContent } from '@/app/components/App';
 import { context } from '@/core/contexts/decap';
+import { resetShortcutsForTests } from '@/core/lib/shortcuts';
 import { defaultRoutingTable } from '@/core/routing/router';
 import { RouterProvider as InAppRouterProvider } from '@/core/routing/context';
 import { createDefaultRouter } from '@/core/routing/defaultRouter';
@@ -451,5 +452,43 @@ describe('AppContent - DCMS-578 /media deep-link', () => {
     );
 
     expect(store.getActions().some(action => action.type === 'MEDIA_LIBRARY_OPEN')).toBe(true);
+  });
+});
+
+describe('AppContent - DCMS-2536 global keyboard shortcuts', () => {
+  const press = (key: string) =>
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+    });
+
+  const state = () =>
+    baseState({
+      collections: {
+        posts: { name: 'posts', label: 'Posts', shortcut: 'p' },
+        pages: { name: 'pages', label: 'Pages' },
+      },
+    });
+
+  afterEach(() => resetShortcutsForTests());
+
+  it("'g' then a configured collection shortcut navigates to that collection", () => {
+    const { navigate } = renderAppContentAt('/collections/pages', {}, state());
+    press('g');
+    press('p');
+    expect(navigate).toHaveBeenCalledWith('collection', { collectionName: 'posts' });
+  });
+
+  it("'g' then a sidebar position falls back to the Nth collection", () => {
+    const { navigate } = renderAppContentAt('/collections/posts', {}, state());
+    press('g');
+    press('2');
+    expect(navigate).toHaveBeenCalledWith('collection', { collectionName: 'pages' });
+  });
+
+  it("'?' opens the shortcut help listing the collection chords", async () => {
+    renderAppContentAt('/collections/posts', {}, state());
+    press('?');
+    expect(await screen.findByText('Keyboard shortcuts')).toBeInTheDocument();
+    expect(screen.getByText('Go to Posts')).toBeInTheDocument();
   });
 });

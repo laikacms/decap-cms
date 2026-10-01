@@ -23,6 +23,7 @@ import { matchExtraRoute } from '@/core/routing/extraRoutes';
 import { matchRoute } from '@/core/routing/router';
 import { Loader, StandaloneAuthPage } from '@/ui/default/index';
 import { TopBarProgress } from '@/ui/TopBarProgress';
+import AppShortcuts from './AppShortcuts';
 import Header from './Header';
 
 import type { ErrorBoundaryRenderProps } from '@/core/components/UI';
@@ -772,6 +773,7 @@ function AppContent({
   return (
     <CmsSlotsProvider slots={slots}>
       {renderNotifications ? renderNotifications() : <Notifications />}
+      <AppShortcuts collections={visibleCollections} hasWorkflow={hasWorkflow} />
       {
         /* The entry editor renders its own full-bleed header/toolbar over the
           same viewport region as the app-shell header (`position: absolute;

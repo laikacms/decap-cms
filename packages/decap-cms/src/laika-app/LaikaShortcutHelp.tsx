@@ -2,12 +2,10 @@ import styled from '@emotion/styled';
 import React from 'react';
 
 import { useRegisteredShortcuts } from '@/core/hooks/useShortcut';
-import { formatSequence } from '@/core/lib/shortcuts';
+import { formatSequence, groupShortcuts } from '@/core/lib/shortcuts';
 import { colors } from '@/ui/default/index';
 import { useLaikaShell } from './LaikaShellContext';
 import { LaikaDialog } from './ui';
-
-import type { Shortcut } from '@/core/lib/shortcuts';
 
 /**
  * "Keyboard shortcuts" dialog, opened with '?' (registered in
@@ -65,22 +63,6 @@ const Kbd = styled.kbd`
   font-weight: 600;
   color: ${colors.controlLabel};
 `;
-
-const FALLBACK_GROUP = 'Other';
-
-function groupShortcuts(shortcuts: Shortcut[]): Array<[string, Shortcut[]]> {
-  const groups = new Map<string, Shortcut[]>();
-  for (const shortcut of shortcuts) {
-    const group = shortcut.group ?? FALLBACK_GROUP;
-    const list = groups.get(group);
-    if (list) {
-      list.push(shortcut);
-    } else {
-      groups.set(group, [shortcut]);
-    }
-  }
-  return Array.from(groups.entries());
-}
 
 function LaikaShortcutHelp() {
   const { isShortcutHelpOpen, closeShortcutHelp } = useLaikaShell();

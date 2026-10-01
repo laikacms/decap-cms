@@ -5,9 +5,9 @@ import { createNewEntry } from '@/core/actions/collections';
 import { openMediaLibrary as openMediaLibraryAction } from '@/core/actions/mediaLibrary';
 import { useCurrentUserScopes } from '@/core/hooks/useCurrentUserScopes';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
+import { useCollectionChordShortcuts } from '@/core/hooks/useCollectionChordShortcuts';
 import { useShortcut } from '@/core/hooks/useShortcut';
 import { isCollectionVisible } from '@/core/lib/collectionAccess';
-import { registerShortcut } from '@/core/lib/shortcuts';
 import { useLaikaShell } from './LaikaShellContext';
 import { focusSiblingNavItem } from './listNav';
 
@@ -31,29 +31,6 @@ export const LAIKA_SHORTCUT_GROUPS = {
   editor: 'Editor',
   help: 'Help',
 } as const;
-
-/**
- * The 'g <key>' chord key for each visible collection, by collection name.
- * A collection with a valid configured `shortcut` (single letter/digit in
- * config.yml) uses that key; the rest fall back to their 1-based sidebar
- * position, first nine only. Configured keys win over app-shell defaults
- * on conflict (they register later, and the engine prefers the last
- * registration), so `shortcut: m` deliberately beats 'g m' media library.
- */
-export function collectionChordKeys(collections: CmsCollectionState[]): Map<string, string> {
-  const keys = new Map<string, string>();
-  collections.forEach((collection, index) => {
-    const configured = typeof collection.shortcut === 'string' && /^[a-zA-Z0-9]$/.test(collection.shortcut)
-      ? collection.shortcut.toLowerCase()
-      : null;
-    if (configured) {
-      keys.set(collection.name, configured);
-    } else if (index < 9) {
-      keys.set(collection.name, String(index + 1));
-    }
-  });
-  return keys;
-}
 
 /** The collection currently scoping the page, based on the route. */
 function useRouteCollection(): CmsCollectionState | undefined {
@@ -163,10 +140,6 @@ function LaikaShortcuts() {
     run: toggleShortcutHelp,
   });
 
-  // Per-collection 'g <key>' chords: a configured `shortcut` key, or the
-  // 1-based sidebar position for the first nine (see collectionChordKeys).
-  // Registered imperatively (not via useShortcut) because the set varies
-  // with config.
   const visibleCollections = React.useMemo<CmsCollectionState[]>(
     () =>
       Object.values((collections ?? {}) as CmsCollections).filter(
@@ -174,21 +147,12 @@ function LaikaShortcuts() {
       ),
     [collections, userScopes],
   );
-  React.useEffect(() => {
-    const chordKeys = collectionChordKeys(visibleCollections);
-    const disposers = visibleCollections
-      .filter(collection => chordKeys.has(collection.name))
-      .map(collection =>
-        registerShortcut({
-          id: `laika.nav.collection.${collection.name}`,
-          sequence: `g ${chordKeys.get(collection.name)}`,
-          label: `Go to ${collection.label}`,
-          group: LAIKA_SHORTCUT_GROUPS.navigation,
-          run: () => navigate(`/collections/${collection.name}`),
-        })
-      );
-    return () => disposers.forEach(dispose => dispose());
-  }, [visibleCollections, navigate]);
+  useCollectionChordShortcuts({
+    collections: visibleCollections,
+    idPrefix: 'laika.nav.collection',
+    group: LAIKA_SHORTCUT_GROUPS.navigation,
+    go: collection => navigate(`/collections/${collection.name}`),
+  });
 
   return null;
 }

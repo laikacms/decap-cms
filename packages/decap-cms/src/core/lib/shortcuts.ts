@@ -86,6 +86,23 @@ export function parseSequence(sequence: string): ShortcutKeystroke[] {
     });
 }
 
+const FALLBACK_GROUP = 'Other';
+
+/** Buckets shortcuts by their `group` (ungrouped ones land in 'Other'), keeping registration order. */
+export function groupShortcuts(shortcuts: Shortcut[]): Array<[string, Shortcut[]]> {
+  const groups = new Map<string, Shortcut[]>();
+  for (const shortcut of shortcuts) {
+    const group = shortcut.group ?? FALLBACK_GROUP;
+    const list = groups.get(group);
+    if (list) {
+      list.push(shortcut);
+    } else {
+      groups.set(group, [shortcut]);
+    }
+  }
+  return Array.from(groups.entries());
+}
+
 /** Presentation chunks for a sequence, one per keystroke: 'mod+s' → ['⌘S']. */
 export function formatSequence(sequence: string): string[] {
   const apple = isApplePlatform();
