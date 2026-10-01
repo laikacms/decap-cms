@@ -190,6 +190,7 @@ const en = {
       send: 'Send',
       thinking: 'Thinking...',
       sendFailed: 'Failed to send the message',
+      resumeFailed: 'Failed to open the conversation',
       conversations: 'Conversations',
       conversation: 'Conversation',
       newConversation: 'New conversation',

@@ -146,9 +146,11 @@ function AiChatPanel({ collection, entry, locale }: AiChatPanelProps) {
 
   const [input, setInput] = useState('');
   const [sessions, setSessions] = useState<LlmSessionSummary[]>([]);
-  const [sendError, setSendError] = useState<string | undefined>(undefined);
+  const [actionError, setActionError] = useState<string | undefined>(undefined);
 
-  const listSessions = transport?.listSessions;
+  // Without `resumeSession` a picked conversation could never open, so the
+  // history bar needs both halves of the persistence contract.
+  const listSessions = transport?.resumeSession ? transport.listSessions : undefined;
   const collectionName = collection.name;
   const slug = entry?.slug ?? '';
   useEffect(() => {
@@ -180,14 +182,23 @@ function AiChatPanel({ collection, entry, locale }: AiChatPanelProps) {
     const active = sessionContext?.ensureSession();
     if (!active) return;
 
-    setSendError(undefined);
+    setActionError(undefined);
     setInput('');
     try {
       await active.sendPrompt(text);
     } catch (error) {
-      setSendError(error instanceof Error ? error.message : t('editor.aiChat.sendFailed'));
+      setActionError(error instanceof Error ? error.message : t('editor.aiChat.sendFailed'));
     }
   }, [input, session?.status, sessionContext, t]);
+
+  const resumeConversation = useCallback(async (id: string) => {
+    setActionError(undefined);
+    try {
+      await sessionContext?.resumeSession(id);
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : t('editor.aiChat.resumeFailed'));
+    }
+  }, [sessionContext, t]);
 
   function handleKeyDown(event: React.KeyboardEvent) {
     if (event.key === 'Enter' && !event.shiftKey) {
@@ -199,7 +210,7 @@ function AiChatPanel({ collection, entry, locale }: AiChatPanelProps) {
 
   const messages = session?.messages ?? [];
   const isStreaming = session?.status === 'streaming';
-  const error = sendError ?? session?.error?.message;
+  const error = actionError ?? session?.error?.message;
 
   return (
     <Container>
@@ -211,9 +222,10 @@ function AiChatPanel({ collection, entry, locale }: AiChatPanelProps) {
             onChange={event => {
               const { value } = event.target;
               if (value === 'new') {
+                setActionError(undefined);
                 sessionContext?.resetSession();
               } else {
-                sessionContext?.resumeSession(value);
+                resumeConversation(value);
               }
             }}
           >

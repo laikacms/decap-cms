@@ -242,6 +242,38 @@ describe('LlmSessionProvider', () => {
     expect(captured?.session).toBe(session);
   });
 
+  it('resumeSession rejects and leaves the current session intact when the transport fails', async () => {
+    const original = createFakeSession();
+    const transport: LlmTransport = {
+      openSession: () => original,
+      resumeSession: async () => {
+        throw new Error('session expired');
+      },
+    };
+    let captured: ReturnType<typeof useLlmSession>;
+
+    render(
+      <Provider store={makeStore()}>
+        <LlmTransportProvider llm={transport}>
+          <LlmSessionProvider collection={collection} entry={entry}>
+            <SessionProbe onResolve={value => (captured = value)} />
+          </LlmSessionProvider>
+        </LlmTransportProvider>
+      </Provider>,
+    );
+
+    act(() => {
+      captured?.ensureSession();
+    });
+
+    await act(async () => {
+      await expect(captured?.resumeSession('gone')).rejects.toThrow('session expired');
+    });
+
+    expect(captured?.session).toBe(original);
+    expect(original.dispose).not.toHaveBeenCalled();
+  });
+
   describe('disposal', () => {
     function mountWithOpenSession(session: LlmSession, extra: Partial<LlmTransport> = {}) {
       const transport: LlmTransport = { openSession: () => session, ...extra };
