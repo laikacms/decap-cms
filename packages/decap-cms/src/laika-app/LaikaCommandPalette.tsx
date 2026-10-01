@@ -9,10 +9,11 @@ import { useCurrentUserScopes } from '@/core/hooks/useCurrentUserScopes';
 import { useAppDispatch, useAppSelector } from '@/core/hooks/useRedux';
 import { useShortcut } from '@/core/hooks/useShortcut';
 import { isCollectionVisible } from '@/core/lib/collectionAccess';
+import { collectionChordKeys } from '@/core/lib/collectionShortcuts';
 import { formatSequence } from '@/core/lib/shortcuts';
 import { colors, Icon } from '@/ui/default/index';
 import { useLaikaShell } from './LaikaShellContext';
-import { collectionChordKeys, LAIKA_SHORTCUT_GROUPS } from './LaikaShortcuts';
+import { LAIKA_SHORTCUT_GROUPS } from './LaikaShortcuts';
 import { LaikaBadge, LaikaDialog, LaikaSearchInput } from './ui';
 
 import type { CmsCollections, CmsCollectionState } from '@/lib/util/index';
