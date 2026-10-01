@@ -277,6 +277,11 @@ class DullaSession implements LlmSession {
     // The SDK takes no per-request signal, so an abort is wired to the same
     // `stop()` the panel's stop button uses.
     const signal = options.signal;
+    // An already-aborted signal never fires `abort`, so honour it up front.
+    if (signal?.aborted) {
+      this.stop();
+      return;
+    }
     const abort = () => this.stop();
     signal?.addEventListener('abort', abort, { once: true });
 

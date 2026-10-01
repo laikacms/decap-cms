@@ -263,6 +263,17 @@ describe('createDullaTransport', () => {
     expect(requestBody(fetchMock, 1).sessionId).toBe('session-42');
   });
 
+  it('sends nothing and stays idle when the signal is already aborted', async () => {
+    fetchMock.mockResolvedValue(textTurn('Should not be requested'));
+    const session = makeTransport().openSession(makeBridge());
+
+    await session.sendPrompt('x', { signal: AbortSignal.abort() });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(session.status).toBe('idle');
+    expect(session.messages).toEqual([]);
+  });
+
   it('rejects when the endpoint fails, and settles into error', async () => {
     fetchMock.mockResolvedValue(new Response('nope', { status: 500 }));
     const session = makeTransport().openSession(makeBridge());
