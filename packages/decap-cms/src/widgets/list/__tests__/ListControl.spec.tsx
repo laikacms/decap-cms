@@ -920,4 +920,20 @@ describe('ListControl', () => {
       },
     ]);
   });
+
+  it('re-splits an item containing a comma into separate items on edit and blur (DCMS-2522)', () => {
+    const field = { name: 'tags', label: 'Tags' };
+    const { container } = render(<ListControl {...props} field={field} value={['a, b']} />);
+    const input = container.querySelector('input') as HTMLInputElement;
+    expect(input.value).toBe('a, b');
+
+    fireEvent.change(input, { target: { value: 'a, bc' } });
+    expect(props.onChange).toHaveBeenLastCalledWith(['a', 'bc']);
+
+    fireEvent.change(input, { target: { value: '1,000' } });
+    expect(props.onChange).toHaveBeenLastCalledWith(['1', '000']);
+
+    fireEvent.blur(input);
+    expect(input.value).toBe('1, 000');
+  });
 });

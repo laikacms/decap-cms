@@ -55,6 +55,12 @@ whichever is checked first in that order wins.
 Each item is a plain string. This is the default when none of `field`, `fields` or `types` are
 configured.
 
+The plain list is edited as a single text input whose value is split on `,` (see `handleChange` and
+`handleBlur` in `ListControl.tsx`) and shown joined as `a, b`. Items are therefore comma-delimited:
+an item that itself contains a comma cannot be represented. A stored value such as `["a, b"]` or
+`["1,000"]` is displayed as `a, b` / `1, 000` and is re-emitted as `["a", "b"]` / `["1", "000"]`
+on the first edit. Use a `field`/`fields` list if items may contain commas.
+
 ### `field` — single-field items
 
 ```yaml
