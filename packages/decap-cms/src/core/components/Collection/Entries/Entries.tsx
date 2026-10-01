@@ -52,7 +52,7 @@ function Entries({
   showPublishedEntries = true,
   showUnpublishedEntries = true,
 }: EntriesProps) {
-  const { renderLoader } = useCmsSlots();
+  const { renderLoader, renderEntryListEmpty } = useCmsSlots();
   const loadingMessages = [
     t('collection.entries.loadingEntries'),
     t('collection.entries.cachingEntries'),
@@ -67,7 +67,7 @@ function Entries({
 
   const hasEntries = showPublishedEntries
     && ((entries && entries.length > 0) || cursor?.actions?.has('append_next'));
-  if (hasEntries || !showPublishedEntries) {
+  if (hasEntries || !showPublishedEntries || renderEntryListEmpty) {
     return (
       <>
         <EntryListing
