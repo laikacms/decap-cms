@@ -101,7 +101,7 @@ function Toggle({
       nativeButton
       id={id}
       checked={active}
-      onCheckedChange={onChange}
+      onCheckedChange={checked => onChange?.(checked)}
       onFocus={event => onFocus?.(event as unknown as React.FocusEvent<HTMLButtonElement>)}
       onBlur={event => onBlur?.(event as unknown as React.FocusEvent<HTMLButtonElement>)}
       className={className}
