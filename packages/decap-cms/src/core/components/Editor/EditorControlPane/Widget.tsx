@@ -115,6 +115,14 @@ export function isEmpty(value: unknown) {
   );
 }
 
+const matchesPattern = (source: string | RegExp, value: string): boolean => {
+  try {
+    return RegExp(source).test(value);
+  } catch {
+    return false;
+  }
+};
+
 export default class Widget extends Component<WidgetProps> {
   innerWrappedControl: any;
   wrappedControlValid: () => unknown = truthy;
@@ -329,7 +337,7 @@ export default class Widget extends Component<WidgetProps> {
       return { error: false };
     }
 
-    if (pattern && Array.isArray(pattern) && !RegExp(pattern[0]).test(value as string)) {
+    if (pattern && Array.isArray(pattern) && !matchesPattern(pattern[0], value as string)) {
       const error: ValidationError = {
         type: ValidationErrorTypes.PATTERN,
         parentIds,
