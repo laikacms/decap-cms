@@ -1,7 +1,17 @@
 # Number widget
 
 The number widget renders a native `<input type="number">` and stores either a JavaScript `number`
-or, for values that can't be safely represented as one, the raw string the editor typed.
+or, for values that can't be safely represented as one, the raw string the editor typed. The raw
+string is stored in three cases, each surfaced by `isValid()` as a custom error:
+
+| Input                                                  | Stored as  | `isValid()` error                                                                          |
+| ------------------------------------------------------ | ---------- | ------------------------------------------------------------------------------------------ |
+| Integer above `Number.MAX_SAFE_INTEGER`                | raw string | `Value exceeds the maximum safe integer. Use a string widget for arbitrary-precision IDs.` |
+| Magnitude that overflows to `Infinity` (e.g. `1e309`)  | raw string | `Value exceeds the maximum representable number.`                                          |
+| Input that doesn't parse at all (`-`, `e`, `.`, `--5`) | raw string | `Value is not a valid number.`                                                             |
+
+Clearing the field stores `''`, which only triggers the `required` error. These three messages are
+hardcoded English and are **not translated** (unlike the `min`/`max` range errors).
 
 ## Config
 
