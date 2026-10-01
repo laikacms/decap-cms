@@ -347,7 +347,12 @@ export function useCmsSlots(): CmsSlots {
       const registeredSlots = getSlots();
       if (Object.keys(registeredSlots).length === 0) return appSlots;
 
-      const merged: CmsSlots = { ...registeredSlots, ...appSlots };
+      const merged: CmsSlots = { ...registeredSlots };
+      // An app key explicitly set to `undefined` means "no override", so it
+      // must not erase a registered slot the way a plain spread would.
+      for (const [key, value] of Object.entries(appSlots)) {
+        if (value !== undefined) (merged as Record<string, unknown>)[key] = value;
+      }
       // `editorPanels` is additive rather than replace-only: two sources of
       // panels should both show up as tabs, not silently shadow each other.
       // App-supplied panels come first so the deployment controls the order.

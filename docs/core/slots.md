@@ -61,7 +61,8 @@ CMS.unregisterSlot('renderEntryCard');
 
 `useCmsSlots()` (`packages/decap-cms/src/core/lib/slots.tsx`) merges both sources: the
 package-registered slots (via `getSlots()`) and the app's `CmsSlotsProvider` slots. **The app wins on
-key conflicts** — `{ ...registeredSlots, ...appSlots }` — so a deployment can always override
+key conflicts** — app values override registered ones, but an app key explicitly set to `undefined`
+counts as omitted and does not erase a registered slot — so a deployment can always override
 whatever a dependency renders, and a component that finds its slot `undefined` in both sources still
 falls back to the default rendering as described above.
 
