@@ -35,7 +35,7 @@ import {
 } from '@/lib/util/index';
 import { CmsSortDirection as SortDirection } from '@/lib/util/index';
 import { stringTemplate } from '@/lib/widgets/index';
-import { selectSortDataPath } from './collections';
+import { selectDefaultSortField, selectSortDataPath } from './collections';
 
 import type {
   CmsCollectionFileState,
@@ -423,6 +423,15 @@ export function selectEntries(state: Entries, collection: CmsCollectionState) {
     const keys = sortFields.map(v => selectSortDataPath(collection, v.key));
     const orders = sortFields.map(v => (v.direction === SortDirection.Ascending ? 'asc' : 'desc'));
     entries = naturalOrderBy(entries, keys, orders);
+  } else {
+    const defaultSort = selectDefaultSortField(collection);
+    if (defaultSort) {
+      entries = naturalOrderBy(
+        entries,
+        [selectSortDataPath(collection, defaultSort.field)],
+        [defaultSort.direction === 'desc' ? 'desc' : 'asc'],
+      );
+    }
   }
 
   const filters = selectEntriesFilterFields(state, collectionName);
