@@ -95,7 +95,7 @@ collections: # A list of collections the CMS should be able to edit
           default: '{{now}}',
         }
       - { label: 'Body', name: 'body', widget: 'richtext', hint: 'Main content goes here.' }
-      - { name: 'gallery', widget: 'image', choose_url: true, media_library: {config: {multiple: true, max_files: 999}}}
+      - { name: 'gallery', widget: 'image', choose_url: true, media_library: {allow_multiple: true, config: {multiple: true, max_files: 999}}}
       - { name: 'post', widget: relation, collection: posts, multiple: true, search_fields: [ "title" ], display_fields: [ "title" ], value_field: "{{slug}}", filters: [ {field: "draft", values: [false]} ] }
       - name: authors
         label: Authors
