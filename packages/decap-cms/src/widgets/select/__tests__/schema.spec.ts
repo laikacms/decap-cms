@@ -93,4 +93,37 @@ describe('select widget schema', () => {
 
     expect(validateJSONSchema(fieldSchema, fieldConfig)).not.toEqual([]);
   });
+
+  describe('duplicate option values', () => {
+    const errorsFor = (options: unknown[]) =>
+      validateJSONSchema(fieldSchema, { name: 'category', widget: 'select', options });
+
+    it('rejects duplicate string options', () => {
+      expect(errorsFor(['a', 'b', 'a'])).not.toEqual([]);
+    });
+
+    it('rejects duplicate object values', () => {
+      expect(
+        errorsFor([
+          { label: 'A', value: 'a' },
+          { label: 'Alt', value: 'a' },
+        ]),
+      ).not.toEqual([]);
+    });
+
+    it('rejects a string option duplicated by an object value', () => {
+      expect(errorsFor(['a', { label: 'Alt', value: 'a' }])).not.toEqual([]);
+    });
+
+    it('accepts distinct values even when labels repeat', () => {
+      expect(
+        errorsFor([
+          { label: 'Same', value: 'a' },
+          { label: 'Same', value: 'b' },
+          'c',
+          1,
+        ]),
+      ).toEqual([]);
+    });
+  });
 });

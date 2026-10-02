@@ -13,7 +13,10 @@ import { isEqual } from 'lodash-es';
  * - numbers: `minimum`, `maximum`
  * - combinators: `oneOf`, `anyOf`, `allOf`, `not`, `if`/`then`/`else`
  *
- * Plus three non-standard keywords:
+ * Plus four non-standard keywords:
+ *
+ * - `uniqueOptionValues`: option lists (bare string/number or `{ value }`
+ *   objects, mixed freely) must not repeat the same effective value
  *
  * - `uniqueItemProperties` (from ajv-keywords): listed properties must be
  *   unique across the array's object items
@@ -40,6 +43,7 @@ export interface JSONSchema {
   maxItems?: number;
   uniqueItems?: boolean;
   uniqueItemProperties?: string[];
+  uniqueOptionValues?: boolean;
   minLength?: number;
   maxLength?: number;
   pattern?: string;
@@ -320,6 +324,21 @@ function validateArray(schema: JSONSchema, arr: unknown[], path: string, errors:
         }
         seen.add(itemValue);
       }
+    }
+  }
+
+  if (schema.uniqueOptionValues === true) {
+    const seen = new Set<unknown>();
+    for (const item of arr) {
+      const optionValue = isPlainObject(item) ? item.value : item;
+      if (optionValue === undefined || typeof optionValue === 'object') continue;
+      if (seen.has(optionValue)) {
+        errors.push(
+          error(path, 'uniqueOptionValues', {}, 'must pass "uniqueOptionValues" keyword validation'),
+        );
+        break;
+      }
+      seen.add(optionValue);
     }
   }
 }
