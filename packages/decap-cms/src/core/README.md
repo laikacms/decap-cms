@@ -1223,8 +1223,10 @@ of the root.
   first, its file is the one new entries are created from, and (for
   `multiple_folders`/`multiple_files`) its on-disk file is the target when other collection features
   (media library base path, slug generation from the entry, etc.) need a single canonical path. Must
-  be one of `locales` — an unlisted value is simply never treated as the default (no validation
-  error).
+  be one of `locales`: an unlisted value makes config load fail with
+  `i18n locales 'en, de' are missing the default locale fr` (listed `locales`, then the offending
+  `default_locale`), so the CMS does not start. This is checked for the root `i18n` block and for
+  each collection/file `i18n` override (after merging with the root block).
 
 **Field-level `i18n`** (`collections[].fields[].i18n`) controls how one field behaves across
 locales, checked by `isFieldTranslatable`/`isFieldDuplicate`/`isFieldHidden` in
