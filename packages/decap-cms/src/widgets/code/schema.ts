@@ -5,7 +5,11 @@ export default {
     output_code_only: { type: 'boolean' },
     keys: {
       type: 'object',
-      properties: { code: { type: 'string' }, lang: { type: 'string' } },
+      properties: {
+        code: { type: 'string', minLength: 1 },
+        lang: { type: 'string', minLength: 1 },
+      },
+      distinctProperties: ['code', 'lang'],
     },
   },
 };

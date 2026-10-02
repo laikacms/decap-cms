@@ -292,6 +292,27 @@ describe('validateJSONSchema', () => {
     });
   });
 
+  describe('distinctProperties', () => {
+    const schema: JSONSchema = { type: 'object', distinctProperties: ['a', 'b'] };
+
+    it('flags properties holding the same value', () => {
+      expect(validateJSONSchema(schema, { a: 'x', b: 'x' })).toEqual([
+        {
+          instancePath: '',
+          schemaPath: '',
+          keyword: 'distinctProperties',
+          params: { distinctProperties: ['a', 'b'] },
+          message: "must NOT have the same value for 'a' and 'b'",
+        },
+      ]);
+    });
+
+    it('accepts distinct or missing properties', () => {
+      expect(validateJSONSchema(schema, { a: 'x', b: 'y' })).toEqual([]);
+      expect(validateJSONSchema(schema, { a: 'x' })).toEqual([]);
+    });
+  });
+
   describe('string keywords', () => {
     it('flags fewer than minLength', () => {
       const schema: JSONSchema = { type: 'string', minLength: 3 };
