@@ -15,6 +15,7 @@ import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import CodeControl from '@/widgets/code/CodeControl';
+import languageData from '@/widgets/code/data/languages.json';
 import { materialTheme } from '@/widgets/code/materialTheme';
 
 import type { CmsFieldBase } from '@/lib/util/index';
@@ -131,6 +132,40 @@ describe('CodeControl (DCMS-1387)', () => {
     // The mode select reflects the newly selected language.
     await waitFor(() => {
       expect(screen.getByRole('combobox', { name: 'Mode' })).toHaveTextContent('JavaScript');
+    });
+  });
+
+  describe('languages without upstream identifiers (DCMS-2609)', () => {
+    const formerlyEmpty = [
+      'Ant Build System',
+      'Cloud Firestore Security Rules',
+      'JSON5',
+      'JavaScript+ERB',
+      'Maven POM',
+    ];
+
+    it.each(formerlyEmpty)('persists a distinct non-empty lang when selecting %s', async label => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      renderControl({ onChange });
+
+      await openSettings(user);
+      await user.click(screen.getByRole('combobox', { name: 'Mode' }));
+      await user.click(await screen.findByRole('option', { name: label }));
+
+      await waitFor(() => expect(onChange).toHaveBeenCalled());
+      const persisted = onChange.mock.calls[0][0].lang;
+      expect(typeof persisted).toBe('string');
+      expect(persisted).not.toBe('');
+      await waitFor(() => {
+        expect(screen.getByRole('combobox', { name: 'Mode' })).toHaveTextContent(label);
+      });
+    });
+
+    it('gives every language a unique non-empty lang value', () => {
+      const names = languageData.map(lang => lang.identifiers[0]);
+      expect(names.every(name => typeof name === 'string' && name !== '')).toBe(true);
+      expect(new Set(names).size).toBe(names.length);
     });
   });
 

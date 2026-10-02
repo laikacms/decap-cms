@@ -27,7 +27,7 @@
   },
   {
     "label": "Ant Build System",
-    "identifiers": [],
+    "identifiers": ["ant"],
     "codemirror_mode": "xml",
     "codemirror_mime_type": "application/xml"
   },
@@ -125,7 +125,7 @@
   },
   {
     "label": "Cloud Firestore Security Rules",
-    "identifiers": [],
+    "identifiers": ["firestore-security-rules"],
     "codemirror_mode": "css",
     "codemirror_mime_type": "text/css"
   },
@@ -464,7 +464,7 @@
     "codemirror_mode": "javascript",
     "codemirror_mime_type": "text/javascript"
   },
-  { "label": "JSON5", "identifiers": [], "codemirror_mode": "javascript", "codemirror_mime_type": "application/json" },
+  { "label": "JSON5", "identifiers": ["json5"], "codemirror_mode": "javascript", "codemirror_mime_type": "application/json" },
   {
     "label": "JSONLD",
     "identifiers": ["jsonld"],
@@ -520,7 +520,7 @@
   },
   {
     "label": "JavaScript+ERB",
-    "identifiers": [],
+    "identifiers": ["javascript+erb"],
     "codemirror_mode": "javascript",
     "codemirror_mime_type": "application/javascript"
   },
@@ -621,7 +621,7 @@
     "codemirror_mode": "mathematica",
     "codemirror_mime_type": "text/x-mathematica"
   },
-  { "label": "Maven POM", "identifiers": [], "codemirror_mode": "xml", "codemirror_mime_type": "text/xml" },
+  { "label": "Maven POM", "identifiers": ["maven-pom"], "codemirror_mode": "xml", "codemirror_mime_type": "text/xml" },
   {
     "label": "Max",
     "identifiers": ["max", "maxmsp", "maxpat", "maxhelp", "maxproj", "mxt", "pat"],
