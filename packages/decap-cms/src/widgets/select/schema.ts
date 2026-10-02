@@ -24,4 +24,6 @@ export default {
     },
   },
   required: ['options'],
+  if: { properties: { multiple: { enum: [true] } }, required: ['multiple'] },
+  then: { countNotExceedingLength: ['min', 'options'] },
 };

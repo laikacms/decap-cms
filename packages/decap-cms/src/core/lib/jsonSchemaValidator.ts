@@ -13,7 +13,7 @@ import { isEqual } from 'lodash-es';
  * - numbers: `minimum`, `maximum`, `exclusiveMinimum`
  * - combinators: `oneOf`, `anyOf`, `allOf`, `not`, `if`/`then`/`else`
  *
- * Plus six non-standard keywords:
+ * Plus seven non-standard keywords:
  *
  * - `uniqueOptionValues`: option lists (bare string/number or `{ value }`
  *   objects, mixed freely) must not repeat the same effective value
@@ -25,6 +25,9 @@ import { isEqual } from 'lodash-es';
  * - `instanceof` (from ajv-keywords): only `'RegExp'` is supported
  * - `orderedProperties`: `[low, high]` property names; when both hold numbers,
  *   `low` must not exceed `high` (e.g. `min` <= `max`)
+ * - `countNotExceedingLength`: `[countProp, arrayProp]` property names; when
+ *   `countProp` is a number and `arrayProp` an array, the count must not exceed
+ *   the array's length (e.g. select `min` <= `options.length`)
  * - `widgets`: map of widget name to schema; an object value with a string
  *   `widget` property is additionally validated against the matching widget
  *   schema (replaces ajv-keywords' `select`/`selectCases` dispatch)
@@ -49,6 +52,7 @@ export interface JSONSchema {
   uniqueItemProperties?: string[];
   uniqueOptionValues?: boolean;
   orderedProperties?: [string, string];
+  countNotExceedingLength?: [string, string];
   distinctProperties?: string[];
   minLength?: number;
   maxLength?: number;
@@ -288,6 +292,22 @@ function validateObject(
           'orderedProperties',
           { low, high },
           `property '${low}' must NOT be greater than property '${high}'`,
+        ),
+      );
+    }
+  }
+
+  if (schema.countNotExceedingLength !== undefined) {
+    const [countProp, arrayProp] = schema.countNotExceedingLength;
+    const count = obj[countProp];
+    const list = obj[arrayProp];
+    if (typeof count === 'number' && Array.isArray(list) && count > list.length) {
+      errors.push(
+        error(
+          path,
+          'countNotExceedingLength',
+          { countProp, arrayProp },
+          `property '${countProp}' must NOT be greater than the length of property '${arrayProp}'`,
         ),
       );
     }

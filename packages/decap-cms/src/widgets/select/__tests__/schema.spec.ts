@@ -156,4 +156,39 @@ describe('select widget schema', () => {
       expect(validateJSONSchema(fieldSchema, withMinMax(2, 2))).toEqual([]);
     });
   });
+
+  describe('min vs options length (multiple: true)', () => {
+    const multi = (min: number, max: number | undefined, options: string[], multiple = true) => ({
+      name: 'category',
+      widget: 'select',
+      multiple,
+      options,
+      min,
+      ...(max === undefined ? {} : { max }),
+    });
+
+    it('rejects min greater than max', () => {
+      expect(validateJSONSchema(fieldSchema, multi(3, 2, ['a', 'b', 'c']))).not.toEqual([]);
+    });
+
+    it('rejects min greater than options length', () => {
+      expect(validateJSONSchema(fieldSchema, multi(5, undefined, ['a', 'b', 'c']))).not.toEqual([]);
+    });
+
+    it('accepts min 0 and max 0', () => {
+      expect(validateJSONSchema(fieldSchema, multi(0, 0, ['a', 'b', 'c']))).toEqual([]);
+    });
+
+    it('accepts min equal to max', () => {
+      expect(validateJSONSchema(fieldSchema, multi(2, 2, ['a', 'b', 'c']))).toEqual([]);
+    });
+
+    it('accepts min equal to options length', () => {
+      expect(validateJSONSchema(fieldSchema, multi(3, undefined, ['a', 'b', 'c']))).toEqual([]);
+    });
+
+    it('does not apply the options-length check without multiple: true', () => {
+      expect(validateJSONSchema(fieldSchema, multi(5, undefined, ['a'], false))).toEqual([]);
+    });
+  });
 });
