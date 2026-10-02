@@ -117,17 +117,32 @@ export function sanitizeChar(char: string, options?: CmsSlug) {
 // NAME_MAX), even though the demo/test-repo backend accepts it silently.
 // 100 matches the value documented on decapcms.org for `slug.max_length`.
 export const DEFAULT_SLUG_MAX_LENGTH = 100;
-// Hard ceiling regardless of `max_length` config, matching the common
-// filesystem NAME_MAX (255 bytes); protects against misconfiguration.
+// Hard ceiling regardless of `max_length` config, in UTF-8 bytes (not
+// characters), matching the common filesystem NAME_MAX (255 bytes); protects
+// against misconfiguration. `max_length` itself counts code points.
 const SLUG_MAX_LENGTH_CEILING = 255;
 
+const utf8Encoder = new TextEncoder();
+
 function truncateSlugSegment(segment: string, maxLength: number, replacement: string | undefined) {
-  if (segment.length <= maxLength) {
+  const kept: string[] = [];
+  let bytes = 0;
+  for (const codePoint of segment) {
+    const codePointBytes = utf8Encoder.encode(codePoint).length;
+    if (kept.length >= maxLength || bytes + codePointBytes > SLUG_MAX_LENGTH_CEILING) {
+      break;
+    }
+    kept.push(codePoint);
+    bytes += codePointBytes;
+  }
+
+  const truncated = kept.join('');
+  if (truncated.length === segment.length) {
     return segment;
   }
 
   const trailingReplacement = new RegExp(`${escapeRegExp(replacement)}+$`);
-  return segment.slice(0, maxLength).replace(trailingReplacement, '');
+  return truncated.replace(trailingReplacement, '');
 }
 
 export function sanitizeSlug(str: string, options?: CmsSlug, preserveSlashes?: boolean) {
@@ -142,7 +157,7 @@ export function sanitizeSlug(str: string, options?: CmsSlug, preserveSlashes?: b
     max_length: maxLength = DEFAULT_SLUG_MAX_LENGTH,
   } = options || {};
 
-  const effectiveMaxLength = Math.min(maxLength, SLUG_MAX_LENGTH_CEILING);
+  const effectiveMaxLength = maxLength;
 
   const sanitizedSlug = flow([
     ...(stripDiacritics ? [remove] : []),

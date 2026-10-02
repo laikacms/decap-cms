@@ -200,6 +200,28 @@ describe('sanitizeSlug', () => {
       expect(result.length).toBeLessThanOrEqual(255);
       expect(result).toEqual('c'.repeat(255));
     });
+
+    it('caps CJK slugs at 255 UTF-8 bytes, not 255 chars (DCMS-2541)', () => {
+      const result = sanitizeSlug('漢'.repeat(300), { ...slugConfig, max_length: 5000 });
+
+      expect(new TextEncoder().encode(result).length).toBeLessThanOrEqual(255);
+      expect(result).toEqual('漢'.repeat(85));
+    });
+
+    it('never splits an astral code point when truncating (DCMS-2541)', () => {
+      const result = sanitizeSlug('😀'.repeat(100), { ...slugConfig, max_length: 5000 });
+
+      expect(result.isWellFormed()).toBe(true);
+      expect(new TextEncoder().encode(result).length).toBeLessThanOrEqual(255);
+      expect(result).toEqual('😀'.repeat(63));
+    });
+
+    it('counts max_length in code points, so astral chars are not halved', () => {
+      const result = sanitizeSlug('😀'.repeat(10), { ...slugConfig, max_length: 5 });
+
+      expect(result.isWellFormed()).toBe(true);
+      expect(result).toEqual('😀'.repeat(5));
+    });
   });
 });
 

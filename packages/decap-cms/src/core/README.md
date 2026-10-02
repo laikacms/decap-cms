@@ -103,7 +103,7 @@ keys are optional:
   replaced.
 - **`sanitize_replacement`** — string, default `'-'`. The character(s) substituted for any character
   disallowed by the `encoding` rule above while sanitizing a slug or filename.
-- **`max_length`** — positive integer, default `100`, hard ceiling `255` (larger values are capped).
+- **`max_length`** — positive integer, default `100`, counted in Unicode code points (not UTF-16 units; a surrogate pair is never split). Independently of `max_length`, slugs are hard-capped at `255` UTF-8 **bytes** (the common filesystem `NAME_MAX` and GitHub's file-name limit), so a CJK character (3 bytes) counts as 3 toward that ceiling.
   Maximum length of the generated slug; when slashes are preserved the limit applies to each path
   segment separately rather than to the whole path.
 
