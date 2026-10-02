@@ -138,3 +138,53 @@ describe('hasAutoincrementFields', () => {
     expect(hasAutoincrementFields(plainFields)).toBe(false);
   });
 });
+
+describe('computeAutoincrementValues - nested object fields (DCMS-2587)', () => {
+  const fields = [
+    {
+      name: 'meta',
+      label: 'Meta',
+      widget: 'object',
+      fields: [
+        { name: 'ticketId', label: 'Ticket', widget: 'autoincrement' },
+        {
+          name: 'inner',
+          label: 'Inner',
+          widget: 'object',
+          fields: [{ name: 'seq', label: 'Seq', widget: 'autoincrement', start: 100 }],
+        },
+      ],
+    },
+  ] as unknown as CmsEntryField[];
+
+  it('detects nested autoincrement fields', () => {
+    expect(hasAutoincrementFields(fields)).toBe(true);
+  });
+
+  it('uses start for nested fields when no entry has a value', () => {
+    expect(computeAutoincrementValues(fields, [])).toEqual({ meta: { ticketId: 1, inner: { seq: 100 } } });
+  });
+
+  it('computes max + 1 per nested field across entries', () => {
+    const entries = [
+      makeEntry('a', { meta: { ticketId: 4, inner: { seq: 101 } } }),
+      makeEntry('b', { meta: { ticketId: 9 } }),
+      makeEntry('c', { meta: 'bogus' }),
+      makeEntry('d', {}),
+    ];
+    expect(computeAutoincrementValues(fields, entries)).toEqual({ meta: { ticketId: 10, inner: { seq: 102 } } });
+  });
+
+  it('does not recurse into list widgets', () => {
+    const listFields = [
+      {
+        name: 'items',
+        label: 'Items',
+        widget: 'list',
+        fields: [{ name: 'n', label: 'N', widget: 'autoincrement' }],
+      },
+    ] as unknown as CmsEntryField[];
+    expect(hasAutoincrementFields(listFields)).toBe(false);
+    expect(computeAutoincrementValues(listFields, [])).toEqual({});
+  });
+});

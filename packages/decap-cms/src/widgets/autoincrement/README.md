@@ -46,6 +46,12 @@ missing keys rather than mutating field semantics after the fact.
 
 ## Known limitation
 
+Autoincrement fields are computed at the top level and inside `object` widgets (any depth); the
+max is taken over the same object field of every other entry. Fields inside a `list` widget are
+**not** supported: list items have no stable identity, so there is no meaningful collection-wide
+max, and such a field is left blank (and, being read-only and required by default, unsaveable).
+Don't put `autoincrement` inside a `list`.
+
 Duplicating an entry (`createDraftDuplicateFromEntry`) copies the source entry's data verbatim,
 including its autoincrement value, rather than recomputing it. Combine the field with `unique: true`
 to have `persistEntry` reject the collision at save time; recomputing on duplicate is out of scope
