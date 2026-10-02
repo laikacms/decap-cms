@@ -157,9 +157,18 @@ describe('NetlifyAuthenticationPage without window.netlifyIdentity', () => {
   it('renders the email/password form', async () => {
     const Page = await loadPage();
     renderPage(Page);
-    expect(screen.getByPlaceholderText('Email')).toBeTruthy();
-    expect(screen.getByPlaceholderText('Password')).toBeTruthy();
+    expect(screen.getByLabelText('auth.emailPlaceholder')).toBeTruthy();
+    expect(screen.getByLabelText('auth.passwordPlaceholder')).toBeTruthy();
     expect(screen.getByText('auth.login')).toBeTruthy();
+  });
+
+  it('uses the translated strings as placeholder and accessible name', async () => {
+    const Page = await loadPage();
+    const dutch: Record<string, string> = { 'auth.emailPlaceholder': 'E-mailadres', 'auth.passwordPlaceholder': 'Wachtwoord' };
+    renderPage(Page, { t: (key: string) => dutch[key] ?? key });
+    expect(screen.getByLabelText('E-mailadres').getAttribute('placeholder')).toBe('E-mailadres');
+    expect(screen.getByLabelText('Wachtwoord').getAttribute('placeholder')).toBe('Wachtwoord');
+    expect(screen.queryByPlaceholderText('Email')).toBeNull();
   });
 
   it('shows the logging-in label while in progress', async () => {
@@ -179,7 +188,7 @@ describe('NetlifyAuthenticationPage without window.netlifyIdentity', () => {
     const authClient = vi.fn();
     Page.authClient = authClient as unknown as typeof Page.authClient;
     const { onLogin } = renderPage(Page);
-    fireEvent.submit(screen.getByPlaceholderText('Email').closest('form')!);
+    fireEvent.submit(screen.getByLabelText('auth.emailPlaceholder').closest('form')!);
     expect(await screen.findByText('auth.errors.email')).toBeTruthy();
     expect(screen.getByText('auth.errors.password')).toBeTruthy();
     expect(authClient).not.toHaveBeenCalled();
@@ -191,9 +200,9 @@ describe('NetlifyAuthenticationPage without window.netlifyIdentity', () => {
     const login = vi.fn().mockResolvedValue(user);
     Page.authClient = (() => Promise.resolve({ login })) as typeof Page.authClient;
     const { onLogin } = renderPage(Page);
-    fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'ada@example.com' } });
-    fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'secret' } });
-    fireEvent.submit(screen.getByPlaceholderText('Email').closest('form')!);
+    fireEvent.change(screen.getByLabelText('auth.emailPlaceholder'), { target: { value: 'ada@example.com' } });
+    fireEvent.change(screen.getByLabelText('auth.passwordPlaceholder'), { target: { value: 'secret' } });
+    fireEvent.submit(screen.getByLabelText('auth.emailPlaceholder').closest('form')!);
     await waitFor(() => expect(onLogin).toHaveBeenCalledWith(user));
     expect(login).toHaveBeenCalledWith('ada@example.com', 'secret', true);
   });
@@ -203,9 +212,9 @@ describe('NetlifyAuthenticationPage without window.netlifyIdentity', () => {
     Page.authClient = (() =>
       Promise.resolve({ login: () => Promise.reject({ description: 'Invalid credentials' }) })) as typeof Page.authClient;
     const { onLogin } = renderPage(Page);
-    fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'ada@example.com' } });
-    fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'nope' } });
-    fireEvent.submit(screen.getByPlaceholderText('Email').closest('form')!);
+    fireEvent.change(screen.getByLabelText('auth.emailPlaceholder'), { target: { value: 'ada@example.com' } });
+    fireEvent.change(screen.getByLabelText('auth.passwordPlaceholder'), { target: { value: 'nope' } });
+    fireEvent.submit(screen.getByLabelText('auth.emailPlaceholder').closest('form')!);
     expect(await screen.findByText('Invalid credentials')).toBeTruthy();
     expect(onLogin).not.toHaveBeenCalled();
   });
@@ -213,9 +222,9 @@ describe('NetlifyAuthenticationPage without window.netlifyIdentity', () => {
   it('falls back to the stringified error when authClient itself rejects', async () => {
     const Page = await loadPage();
     const { onLogin } = renderPage(Page);
-    fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'ada@example.com' } });
-    fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'pw' } });
-    fireEvent.submit(screen.getByPlaceholderText('Email').closest('form')!);
+    fireEvent.change(screen.getByLabelText('auth.emailPlaceholder'), { target: { value: 'ada@example.com' } });
+    fireEvent.change(screen.getByLabelText('auth.passwordPlaceholder'), { target: { value: 'pw' } });
+    fireEvent.submit(screen.getByLabelText('auth.emailPlaceholder').closest('form')!);
     expect(await screen.findByText('Error: authClient not configured')).toBeTruthy();
     expect(onLogin).not.toHaveBeenCalled();
   });

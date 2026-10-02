@@ -187,7 +187,8 @@ function NetlifyAuthenticationPage({
           <AuthInput
             type="text"
             name="email"
-            placeholder="Email"
+            placeholder={t('auth.emailPlaceholder')}
+            aria-label={t('auth.emailPlaceholder')}
             value={email}
             onChange={partial(handleChange, 'email')}
           />
@@ -195,7 +196,8 @@ function NetlifyAuthenticationPage({
           <AuthInput
             type="password"
             name="password"
-            placeholder="Password"
+            placeholder={t('auth.passwordPlaceholder')}
+            aria-label={t('auth.passwordPlaceholder')}
             value={password}
             onChange={partial(handleChange, 'password')}
           />

@@ -9,6 +9,8 @@ const en = {
     loginWithGitLab: 'Login with GitLab',
     loginWithGitea: 'Login with Gitea',
     loginWithForgejo: 'Login with Forgejo',
+    emailPlaceholder: 'Email',
+    passwordPlaceholder: 'Password',
     loginWithPersonalAccessToken: 'Personal access token',
     personalAccessTokenPlaceholder: 'Paste your personal access token',
     loginWithToken: 'Log in with token',
