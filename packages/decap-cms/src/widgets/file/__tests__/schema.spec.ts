@@ -40,6 +40,11 @@ describe('file widget schema', () => {
     expect(validateJSONSchema(fieldSchema, fieldConfig)).toEqual([]);
   });
 
+  it('declares no top-level allow_multiple property', () => {
+    expect(Object.keys(fileSchema.properties)).not.toContain('allow_multiple');
+    expect(Object.keys(fileSchema.properties.media_library.properties)).toContain('allow_multiple');
+  });
+
   it('accepts a field config with no file-specific options', () => {
     const fieldConfig = { name: 'attachment', widget: 'file' };
 
