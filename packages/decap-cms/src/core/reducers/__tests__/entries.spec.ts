@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import * as actions from '@/core/actions/entries';
 import reducer, {
@@ -751,6 +751,19 @@ describe('entries', () => {
     };
 
     expect(selectEntries(state, collection)).toEqual([{ slug: '4', data: { title: '4' } }]);
+  });
+
+  it('should not throw and match nothing when a view filter pattern is an invalid regex', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const state = {
+      entities: { 'posts.1': { slug: '1', data: { title: '1' } } },
+      pages: { posts: { ids: ['1'] } },
+      filter: { posts: { title__1: { field: 'title', pattern: '[', active: true } } },
+    };
+
+    expect(selectEntries(state, { name: 'posts' })).toEqual([]);
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
   });
 
   it('should return filtered entries entries by nested field', () => {
