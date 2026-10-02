@@ -30,10 +30,12 @@ so `start` still applies when no other entry has a usable value.
 Source: `core/actions/entries.tsx` (`createEmptyDraft`), `core/lib/computeAutoincrementValues.ts`.
 
 Unlike most widgets, the value isn't computed by the control component. Finding the current max
-requires scanning every other entry already loaded for the collection — state an individual field
+requires scanning every other entry in the collection — state an individual field
 widget doesn't have access to (the same reason `unique: true` field validation lives in
 `core/actions/entries.tsx` rather than in a widget). Instead, `createEmptyDraft` computes the value
-once, when a brand-new entry's draft is created, and writes it directly into the draft data before
+(from `backend.listAllEntries`, i.e. every page of the collection, independent of what the editor's
+store has loaded — so a cold deep-link to `/new` and paginated collections still get the real
+max + 1) once, when a brand-new entry's draft is created, and writes it directly into the draft data before
 the control ever mounts. `AutoincrementControl` only displays that value (and, when
 `read_only: false`, lets an editor type over it) — it never generates or recomputes a value itself,
 so it won't change on every render or when the user edits an unrelated field.
