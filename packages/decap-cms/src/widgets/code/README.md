@@ -93,6 +93,10 @@ snippet:
   language: 'javascript'
 ```
 
+`keys.code` and `keys.lang` must each be a non-empty string and must be distinct from each other;
+config validation rejects an empty key or `keys.code === keys.lang` (otherwise one property would
+overwrite the other in the persisted map).
+
 `keys` is ignored when the widget is used as an editor component (e.g. an inline code block in the
 Rich Text/Markdown editor) — editor-embedded code blocks always use the default `code` / `lang`
 keys, regardless of the field's `keys` config.

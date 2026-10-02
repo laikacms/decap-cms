@@ -13,13 +13,15 @@ import { isEqual } from 'lodash-es';
  * - numbers: `minimum`, `maximum`, `exclusiveMinimum`
  * - combinators: `oneOf`, `anyOf`, `allOf`, `not`, `if`/`then`/`else`
  *
- * Plus five non-standard keywords:
+ * Plus six non-standard keywords:
  *
  * - `uniqueOptionValues`: option lists (bare string/number or `{ value }`
  *   objects, mixed freely) must not repeat the same effective value
  *
  * - `uniqueItemProperties` (from ajv-keywords): listed properties must be
  *   unique across the array's object items
+ * - `distinctProperties`: on an object, the listed properties must not hold
+ *   the same value when more than one of them is present
  * - `instanceof` (from ajv-keywords): only `'RegExp'` is supported
  * - `orderedProperties`: `[low, high]` property names; when both hold numbers,
  *   `low` must not exceed `high` (e.g. `min` <= `max`)
@@ -47,6 +49,7 @@ export interface JSONSchema {
   uniqueItemProperties?: string[];
   uniqueOptionValues?: boolean;
   orderedProperties?: [string, string];
+  distinctProperties?: string[];
   minLength?: number;
   maxLength?: number;
   pattern?: string;
@@ -238,6 +241,27 @@ function validateObject(
         errors.push(
           error(path, 'additionalProperties', { additionalProperty: key }, 'must NOT have additional properties'),
         );
+      }
+    }
+  }
+
+  if (schema.distinctProperties !== undefined) {
+    const seen = new Map<unknown, string>();
+    for (const prop of schema.distinctProperties) {
+      const propValue = obj[prop];
+      if (propValue === undefined) continue;
+      const first = seen.get(propValue);
+      if (first !== undefined) {
+        errors.push(
+          error(
+            path,
+            'distinctProperties',
+            { distinctProperties: schema.distinctProperties },
+            `must NOT have the same value for '${first}' and '${prop}'`,
+          ),
+        );
+      } else {
+        seen.set(propValue, prop);
       }
     }
   }

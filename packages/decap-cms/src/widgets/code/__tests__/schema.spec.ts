@@ -64,4 +64,45 @@ describe('code widget schema', () => {
 
     expect(validateJSONSchema(fieldSchema, fieldConfig)).not.toEqual([]);
   });
+
+  it('accepts keys with only one of code / lang set', () => {
+    expect(
+      validateJSONSchema(fieldSchema, { name: 's', widget: 'code', keys: { code: 'body' } }),
+    ).toEqual([]);
+    expect(
+      validateJSONSchema(fieldSchema, { name: 's', widget: 'code', keys: { lang: 'language' } }),
+    ).toEqual([]);
+  });
+
+  it('rejects an empty keys.code', () => {
+    const errors = validateJSONSchema(fieldSchema, {
+      name: 's',
+      widget: 'code',
+      keys: { code: '', lang: 'language' },
+    });
+
+    expect(errors.map(e => [e.instancePath, e.keyword])).toEqual([['/keys/code', 'minLength']]);
+  });
+
+  it('rejects an empty keys.lang', () => {
+    const errors = validateJSONSchema(fieldSchema, {
+      name: 's',
+      widget: 'code',
+      keys: { code: 'body', lang: '' },
+    });
+
+    expect(errors.map(e => [e.instancePath, e.keyword])).toEqual([['/keys/lang', 'minLength']]);
+  });
+
+  it('rejects keys.code equal to keys.lang, naming both fields', () => {
+    const errors = validateJSONSchema(fieldSchema, {
+      name: 's',
+      widget: 'code',
+      keys: { code: 'body', lang: 'body' },
+    });
+
+    expect(errors.map(e => [e.instancePath, e.keyword, e.message])).toEqual([
+      ['/keys', 'distinctProperties', "must NOT have the same value for 'code' and 'lang'"],
+    ]);
+  });
 });
