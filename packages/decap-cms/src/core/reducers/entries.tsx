@@ -442,7 +442,13 @@ export function selectEntries(state: Entries, collection: CmsCollectionState) {
         const field = f.field;
         const data = e?.data ?? {};
         const toMatch = getNestedValue(data, keyToPathArray(field));
-        return toMatch !== undefined && new RegExp(String(pattern)).test(String(toMatch));
+        if (toMatch === undefined) return false;
+        try {
+          return new RegExp(String(pattern)).test(String(toMatch));
+        } catch (e) {
+          console.warn(`Invalid view filter pattern '${pattern}' for field '${field}'`, e);
+          return false;
+        }
       });
     });
   }
