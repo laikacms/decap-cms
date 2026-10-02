@@ -621,6 +621,48 @@ function checkFileFieldTopLevelAllowMultiple(config: Record<string, unknown>): S
   return errors;
 }
 
+/**
+ * `withFileControl.tsx` reads two independent nested switches for "multiple":
+ * `media_library.allow_multiple` (dialog selects many) and
+ * `media_library.config.multiple` (widget labels/gallery/URL button). Setting
+ * only one yields a half-multi UI, so a truthy value on exactly one is an
+ * error naming the missing sibling. See `widgets/image/README.md`.
+ */
+function checkFileFieldMultipleSwitchesAgree(config: Record<string, unknown>): SchemaError[] {
+  const errors: SchemaError[] = [];
+
+  for (const fieldArray of collectFieldArrays(config)) {
+    forEachField(fieldArray, field => {
+      if (!FILE_FAMILY_WIDGETS.includes(field.widget as typeof FILE_FAMILY_WIDGETS[number])) return;
+      const mediaLibrary = field.media_library;
+      if (typeof mediaLibrary !== 'object' || mediaLibrary === null) return;
+
+      const lib = mediaLibrary as Record<string, unknown>;
+      const innerConfig = lib.config;
+      const nestedMultiple = typeof innerConfig === 'object' && innerConfig !== null
+        ? Boolean((innerConfig as Record<string, unknown>).multiple)
+        : false;
+      const allowMultiple = Boolean(lib.allow_multiple);
+      if (allowMultiple === nestedMultiple) return;
+
+      const fieldName = typeof field.name === 'string' ? field.name : '<unnamed>';
+      const set = allowMultiple ? 'media_library.allow_multiple' : 'media_library.config.multiple';
+      const missing = allowMultiple ? 'media_library.config.multiple' : 'media_library.allow_multiple';
+      errors.push({
+        instancePath: '',
+        schemaPath: '',
+        keyword: '',
+        params: { field: fieldName, key: missing },
+        message:
+          `${String(field.widget)} field '${fieldName}' sets '${set}' without '${missing}'; both `
+          + 'must be set together for a coherent multi-select UI. See widgets/image/README.md.',
+      });
+    });
+  }
+
+  return errors;
+}
+
 class ConfigError extends Error {
   errors: SchemaError[];
 
@@ -699,6 +741,13 @@ export function validateConfig(config: Record<string, unknown>) {
   if (fileFieldAllowMultipleErrors.length > 0) {
     console.error('Config Errors', fileFieldAllowMultipleErrors);
     throw new ConfigError(fileFieldAllowMultipleErrors);
+  }
+
+  // Custom validation: file/image nested "multiple" switches must agree.
+  const fileFieldMultipleMismatchErrors = checkFileFieldMultipleSwitchesAgree(config);
+  if (fileFieldMultipleMismatchErrors.length > 0) {
+    console.error('Config Errors', fileFieldMultipleMismatchErrors);
+    throw new ConfigError(fileFieldMultipleMismatchErrors);
   }
 
   // Custom validation: only one sortable field can have default_sort property
