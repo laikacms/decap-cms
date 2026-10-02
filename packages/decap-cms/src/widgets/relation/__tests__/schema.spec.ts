@@ -103,4 +103,40 @@ describe('relation widget schema', () => {
       expect(validateJSONSchema(fieldSchema, config)).toEqual([]);
     });
   });
+
+  describe('min / max range', () => {
+    const withRange = (range: { min?: number; max?: number }) => ({
+      name: 'author',
+      widget: 'relation',
+      collection: 'authors',
+      valueField: 'slug',
+      searchFields: ['name'],
+      multiple: true,
+      ...range,
+    });
+
+    it('accepts a valid range', () => {
+      expect(validateJSONSchema(fieldSchema, withRange({ min: 1, max: 5 }))).toEqual([]);
+    });
+
+    it('accepts min equal to max', () => {
+      expect(validateJSONSchema(fieldSchema, withRange({ min: 2, max: 2 }))).toEqual([]);
+    });
+
+    it('accepts zero bounds', () => {
+      expect(validateJSONSchema(fieldSchema, withRange({ min: 0, max: 0 }))).toEqual([]);
+    });
+
+    it('rejects min greater than max', () => {
+      expect(validateJSONSchema(fieldSchema, withRange({ min: 5, max: 2 }))).not.toEqual([]);
+    });
+
+    it('rejects a negative min', () => {
+      expect(validateJSONSchema(fieldSchema, withRange({ min: -1 }))).not.toEqual([]);
+    });
+
+    it('rejects a negative max', () => {
+      expect(validateJSONSchema(fieldSchema, withRange({ max: -1 }))).not.toEqual([]);
+    });
+  });
 });
