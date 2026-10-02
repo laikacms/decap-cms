@@ -127,11 +127,18 @@ Source: `withFileControl.tsx`.
   `[]`.
 - The gallery is drag-sortable (`SortableArea`/`SortableImage`); dropping an item calls `onSortEnd`,
   which reorders the array via `arrayMove` and writes it back with `onChange`.
-- "Insert from URL" prompts for a URL (`promptDialog`) and validates it with `isSafeUrl` before
-  calling `onChange` — only `http:`/`https:` (or protocol-relative `//…`) URLs are accepted, to
-  avoid persisting `javascript:`/`data:`/`vbscript:` values that downstream, non-React renderers of
-  the saved entry have no equivalent guard against (DCMS-577/DCMS-668). An invalid URL shows a
-  translated alert and the value is left unchanged.
+- "Insert from URL" prompts for a URL (`promptDialog`). For the image widget (`forImage`) the dialog
+  validates on submit and stays open with an inline error instead of closing (DCMS-2252): the input
+  must pass `isAbsoluteImageUrl` (absolute `http:`/`https:` or protocol-relative `//host/path`;
+  relative paths such as `/uploads/a.png` and bare strings are rejected), and then `checkImageUrl`
+  runs a `fetch(url)` (default CORS mode) that must return a 2xx response with an `image/*`
+  `Content-Type`. Failures map to `invalidUrl`, `urlFetchError` (HTTP status appended when known) or
+  `notAnImage`. `isSafeUrl` is not used on this path. Because the check is a browser `fetch`, a
+  network failure is a hard reject: a cross-origin host that does not send
+  `Access-Control-Allow-Origin` makes `fetch` throw and is reported as `http-error`, so such a URL
+  cannot be inserted this way. The `file` widget instead still uses `isSafeUrl` (http(s) or
+  protocol-relative, relative paths accepted) with a translated alert and an unchanged value on
+  rejection, to avoid persisting `javascript:`/`data:`/`vbscript:` values (DCMS-577/DCMS-668).
 - "Remove image"/"Remove all images" clears the field's value (`onChange('')`) and releases the
   control's media-library slot (`onClearMediaControl`).
 
