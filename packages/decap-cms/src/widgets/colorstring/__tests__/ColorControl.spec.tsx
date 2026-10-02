@@ -125,6 +125,33 @@ describe('ColorControl', () => {
       openPicker(utils);
       expect(utils.getByTestId('hex-picker')).toHaveAttribute('data-color', '#0000ff');
     });
+
+    it('seeds the hex picker from an hsl() value', () => {
+      const utils = setup({ field: { enableAlpha: false }, value: 'hsl(0, 100%, 50%)' });
+      openPicker(utils);
+      expect(utils.getByTestId('hex-picker')).toHaveAttribute('data-color', '#ff0000');
+    });
+
+    it('seeds the alpha picker from an hsla() value', () => {
+      const utils = setup({ field: { enableAlpha: true }, value: 'hsla(0, 100%, 50%, 0.5)' });
+      openPicker(utils);
+      expect(utils.getByTestId('rgba-picker')).toHaveAttribute('data-color', 'rgba(255, 0, 0, 0.5)');
+    });
+  });
+
+  describe('swatch placeholder', () => {
+    const swatch = (utils: ReturnType<typeof setup>) =>
+      utils.getByRole('button', { name: 'editor.editorWidgets.colorstring.openColorPicker' });
+
+    it('hides the "?" placeholder for a parsable hsl() value', () => {
+      const utils = setup({ value: 'hsl(0, 100%, 50%)' });
+      expect(swatch(utils)).toHaveStyle({ color: 'rgba(255, 255, 255, 0)' });
+    });
+
+    it('shows the "?" placeholder for an unparsable value', () => {
+      const utils = setup({ value: 'hsv(0, 100%, 100%)' });
+      expect(swatch(utils)).toHaveStyle({ color: 'rgb(223, 223, 227)' });
+    });
   });
 });
 

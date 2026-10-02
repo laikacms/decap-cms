@@ -166,7 +166,7 @@ export default function ColorControl({
       )}
       <ColorSwatchBackground />
       <ColorSwatch
-        background={value ?? '#fff'}
+        background={value}
         color={parsedValue ? 'rgba(255, 255, 255, 0)' : 'rgb(223, 223, 227)'}
         role="button"
         tabIndex={0}

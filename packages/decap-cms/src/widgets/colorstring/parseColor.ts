@@ -1,7 +1,9 @@
 /**
  * Minimal CSS color parser for the colorstring widget. Replaces tinycolor2:
- * the widget only ever needs to read hex, rgb()/rgba() and named colors, and
- * to write lowercase hex or rgba() strings back.
+ * reads hex, named colors, `transparent`, and rgb()/rgba()/hsl()/hsla() in
+ * both comma-separated and space-separated (`/ alpha`) syntax, with number or
+ * percent channels. hsv()/hwb()/lab() and friends are not supported. Writes
+ * lowercase hex or rgba() strings back.
  */
 
 export interface RgbaColor {
@@ -65,6 +67,72 @@ function parseHex(hex: string): RgbaColor | null {
   };
 }
 
+const NUMBER = String.raw`[+-]?(?:\d+\.?\d*|\.\d+)`;
+const COMPONENT = new RegExp(`^(${NUMBER})(%|deg)?$`);
+
+function parseComponent(token: string): { value: number, unit: string } | null {
+  const match = token.match(COMPONENT);
+  return match ? { value: Number(match[1]), unit: match[2] ?? '' } : null;
+}
+
+function parseChannel(token: string, max: number): number | null {
+  const component = parseComponent(token);
+  if (!component || component.unit === 'deg') return null;
+  const scaled = component.unit === '%' ? component.value / 100 * max : component.value;
+  return clamp(scaled, max);
+}
+
+function parseAlpha(token: string | undefined): number | null {
+  if (token === undefined) return 1;
+  return parseChannel(token, 1);
+}
+
+function hslToRgb(h: number, s: number, l: number): [number, number, number] {
+  const hue = (((h % 360) + 360) % 360) / 360;
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  const channel = (offset: number) => {
+    const t = (hue + offset + 1) % 1;
+    if (t < 1 / 6) return p + (q - p) * 6 * t;
+    if (t < 1 / 2) return q;
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+    return p;
+  };
+  return [channel(1 / 3), channel(0), channel(-1 / 3)].map(c => Math.round(c * 255)) as [number, number, number];
+}
+
+function parseFunctionalColor(isRgb: boolean, args: string): RgbaColor | null {
+  const trimmed = args.trim();
+  let tokens: string[];
+  if (trimmed.includes(',')) {
+    if (trimmed.includes('/')) return null;
+    tokens = trimmed.split(',').map(token => token.trim());
+  } else {
+    const [channels, alpha, ...rest] = trimmed.split('/').map(part => part.trim());
+    if (rest.length > 0 || (alpha !== undefined && !alpha)) return null;
+    tokens = channels.split(/\s+/);
+    if (alpha !== undefined) tokens.push(alpha);
+  }
+  if (tokens.length !== 3 && tokens.length !== 4) return null;
+
+  const a = parseAlpha(tokens[3]);
+  if (a === null) return null;
+
+  if (isRgb) {
+    const [r, g, b] = tokens.slice(0, 3).map(token => parseChannel(token, 255));
+    if (r === null || g === null || b === null) return null;
+    return { r: Math.round(r), g: Math.round(g), b: Math.round(b), a };
+  }
+
+  const hue = parseComponent(tokens[0]);
+  if (!hue || hue.unit === '%' || !tokens[1].endsWith('%') || !tokens[2].endsWith('%')) return null;
+  const s = parseChannel(tokens[1], 1);
+  const l = parseChannel(tokens[2], 1);
+  if (s === null || l === null) return null;
+  const [r, g, b] = hslToRgb(hue.value, s, l);
+  return { r, g, b, a };
+}
+
 export function parseColor(input: string | undefined): RgbaColor | null {
   const value = input?.trim().toLowerCase();
   if (!value) return null;
@@ -76,17 +144,8 @@ export function parseColor(input: string | undefined): RgbaColor | null {
 
   if (value.startsWith('#')) return parseHex(value.slice(1));
 
-  const rgbMatch = value.match(/^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*(?:,\s*([\d.]+)\s*)?\)$/);
-  if (rgbMatch) {
-    const alpha = rgbMatch[4] === undefined ? 1 : Number(rgbMatch[4]);
-    if (Number.isNaN(alpha)) return null;
-    return {
-      r: clamp(Number(rgbMatch[1]), 255),
-      g: clamp(Number(rgbMatch[2]), 255),
-      b: clamp(Number(rgbMatch[3]), 255),
-      a: clamp(alpha, 1),
-    };
-  }
+  const fn = value.match(/^(rgba?|hsla?)\(([^()]*)\)$/);
+  if (fn) return parseFunctionalColor(fn[1].startsWith('rgb'), fn[2]);
 
   return null;
 }

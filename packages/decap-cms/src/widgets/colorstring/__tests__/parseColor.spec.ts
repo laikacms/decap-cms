@@ -77,7 +77,7 @@ describe('parseColor', () => {
     });
 
     it('clamps out-of-range rgb channels to 255', () => {
-      expect(parseColor('rgb(300, 999, 0)')).toEqual({ r: 255, g: 255, b: 0, a: 1 });
+      expect(parseColor('rgb(300, 1000, 0)')).toEqual({ r: 255, g: 255, b: 0, a: 1 });
     });
 
     it('clamps out-of-range alpha to 1', () => {
@@ -92,14 +92,68 @@ describe('parseColor', () => {
       expect(parseColor('rgb(10, 20)')).toBeNull();
     });
 
-    it('returns null for rgb() with a 4-digit channel', () => {
-      expect(parseColor('rgb(1000, 20, 30)')).toBeNull();
-    });
-
     it('returns null for malformed rgb() syntax', () => {
       expect(parseColor('rgb 10, 20, 30')).toBeNull();
-      expect(parseColor('rgb(10 20 30)')).toBeNull();
       expect(parseColor('rgba(10, 20, 30')).toBeNull();
+      expect(parseColor('rgb(10, 20 30)')).toBeNull();
+      expect(parseColor('rgb(10, 20, 30 / 0.5)')).toBeNull();
+    });
+
+    it('parses percent channels', () => {
+      expect(parseColor('rgb(100%, 0%, 50%)')).toEqual({ r: 255, g: 0, b: 128, a: 1 });
+    });
+
+    it('parses space-separated syntax', () => {
+      expect(parseColor('rgb(10 20 30)')).toEqual({ r: 10, g: 20, b: 30, a: 1 });
+    });
+
+    it('parses space-separated syntax with a number or percent alpha', () => {
+      expect(parseColor('rgb(255 0 0 / 0.5)')).toEqual({ r: 255, g: 0, b: 0, a: 0.5 });
+      expect(parseColor('rgb(255 0 0 / 50%)')).toEqual({ r: 255, g: 0, b: 0, a: 0.5 });
+    });
+
+    it('returns null for a dangling alpha separator', () => {
+      expect(parseColor('rgb(255 0 0 /)')).toBeNull();
+    });
+  });
+
+  describe('hsl()/hsla()', () => {
+    it('parses comma-separated hsl()', () => {
+      expect(parseColor('hsl(0, 100%, 50%)')).toEqual({ r: 255, g: 0, b: 0, a: 1 });
+      expect(parseColor('hsl(120, 100%, 50%)')).toEqual({ r: 0, g: 255, b: 0, a: 1 });
+      expect(parseColor('hsl(240, 100%, 50%)')).toEqual({ r: 0, g: 0, b: 255, a: 1 });
+    });
+
+    it('parses hsla() with alpha', () => {
+      expect(parseColor('hsla(0, 100%, 50%, 0.5)')).toEqual({ r: 255, g: 0, b: 0, a: 0.5 });
+    });
+
+    it('parses space-separated hsl() with a deg hue and alpha', () => {
+      expect(parseColor('hsl(120deg 100% 25% / 50%)')).toEqual({ r: 0, g: 128, b: 0, a: 0.5 });
+    });
+
+    it('wraps hues outside 0-360', () => {
+      expect(parseColor('hsl(360, 100%, 50%)')).toEqual({ r: 255, g: 0, b: 0, a: 1 });
+      expect(parseColor('hsl(-120, 100%, 50%)')).toEqual({ r: 0, g: 0, b: 255, a: 1 });
+    });
+
+    it('parses grayscale when saturation is 0', () => {
+      expect(parseColor('hsl(200, 0%, 50%)')).toEqual({ r: 128, g: 128, b: 128, a: 1 });
+    });
+
+    it('returns null when saturation or lightness lack a percent sign', () => {
+      expect(parseColor('hsl(0, 100, 50)')).toBeNull();
+    });
+
+    it('returns null for a percent hue or malformed hsl()', () => {
+      expect(parseColor('hsl(0%, 100%, 50%)')).toBeNull();
+      expect(parseColor('hsl(0, 100%)')).toBeNull();
+    });
+  });
+
+  describe('unsupported functional syntax', () => {
+    it('returns null for hsv()', () => {
+      expect(parseColor('hsv(0, 100%, 100%)')).toBeNull();
     });
   });
 
