@@ -5,6 +5,7 @@ export default {
     max: { type: 'integer' },
     options: {
       type: 'array',
+      uniqueOptionValues: true,
       items: {
         oneOf: [
           { type: 'string' },
