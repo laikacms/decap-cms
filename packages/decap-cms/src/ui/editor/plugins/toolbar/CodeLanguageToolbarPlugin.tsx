@@ -67,7 +67,7 @@ export function CodeLanguageToolbarPlugin() {
       onValueChange={onCodeLanguageSelect}
       items={CODE_LANGUAGE_ITEMS}
     >
-      <SelectTrigger onMouseDown={e => e.stopPropagation()}>
+      <SelectTrigger aria-label="Code language" onMouseDown={e => e.stopPropagation()}>
         <SelectValue placeholder="Select Language" />
       </SelectTrigger>
       <SelectContent finalFocus={false}>
