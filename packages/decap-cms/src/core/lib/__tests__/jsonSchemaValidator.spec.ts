@@ -555,6 +555,25 @@ describe('validateJSONSchema', () => {
     });
   });
 
+  describe('countNotExceedingLength', () => {
+    const schema: JSONSchema = { type: 'object', countNotExceedingLength: ['min', 'options'] };
+
+    it('reports a count above the array length', () => {
+      const errors = validateJSONSchema(schema, { min: 3, options: ['a', 'b'] });
+      expect(errors).toHaveLength(1);
+      expect(errors[0].keyword).toBe('countNotExceedingLength');
+    });
+
+    it('accepts a count equal to the array length', () => {
+      expect(validateJSONSchema(schema, { min: 2, options: ['a', 'b'] })).toEqual([]);
+    });
+
+    it('ignores missing or non-matching properties', () => {
+      expect(validateJSONSchema(schema, { options: ['a'] })).toEqual([]);
+      expect(validateJSONSchema(schema, { min: 5, options: 'abc' })).toEqual([]);
+    });
+  });
+
   describe('orderedProperties', () => {
     const schema: JSONSchema = { type: 'object', orderedProperties: ['min', 'max'] };
 
