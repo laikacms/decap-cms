@@ -63,4 +63,10 @@ describe('datetime widget schema', () => {
 
     expect(validateJSONSchema(fieldSchema, fieldConfig)).not.toEqual([]);
   });
+
+  it.each(['format', 'date_format', 'time_format'])('rejects empty-string %s', key => {
+    const fieldConfig = { name: 'published', widget: 'datetime', [key]: '' };
+
+    expect(validateJSONSchema(fieldSchema, fieldConfig)).not.toEqual([]);
+  });
 });
