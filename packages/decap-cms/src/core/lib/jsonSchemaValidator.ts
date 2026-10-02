@@ -10,7 +10,7 @@ import { isEqual } from 'lodash-es';
  *   `minProperties`, `dependencies` (schema form)
  * - arrays: `items` (schema or tuple), `minItems`, `maxItems`, `uniqueItems`
  * - strings: `minLength`, `maxLength`, `pattern`
- * - numbers: `minimum`, `maximum`
+ * - numbers: `minimum`, `maximum`, `exclusiveMinimum`
  * - combinators: `oneOf`, `anyOf`, `allOf`, `not`, `if`/`then`/`else`
  *
  * Plus five non-standard keywords:
@@ -52,6 +52,7 @@ export interface JSONSchema {
   pattern?: string;
   minimum?: number;
   maximum?: number;
+  exclusiveMinimum?: number;
   oneOf?: JSONSchema[];
   anyOf?: JSONSchema[];
   allOf?: JSONSchema[];
@@ -399,5 +400,16 @@ function validateNumber(schema: JSONSchema, value: number, path: string, errors:
 
   if (schema.maximum !== undefined && value > schema.maximum) {
     errors.push(error(path, 'maximum', { limit: schema.maximum }, `must be <= ${schema.maximum}`));
+  }
+
+  if (schema.exclusiveMinimum !== undefined && value <= schema.exclusiveMinimum) {
+    errors.push(
+      error(
+        path,
+        'exclusiveMinimum',
+        { limit: schema.exclusiveMinimum },
+        `must be > ${schema.exclusiveMinimum}`,
+      ),
+    );
   }
 }

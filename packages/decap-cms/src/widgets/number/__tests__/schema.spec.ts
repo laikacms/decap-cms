@@ -71,4 +71,20 @@ describe('number widget schema', () => {
 
     expect(validateJSONSchema(fieldSchema, fieldConfig)).not.toEqual([]);
   });
+
+  it.each([
+    { min: 10, max: 5 },
+    { step: 0 },
+    { step: -1 },
+  ])('rejects %j', extra => {
+    const fieldConfig = { name: 'quantity', widget: 'number', ...extra };
+
+    expect(validateJSONSchema(fieldSchema, fieldConfig)).not.toEqual([]);
+  });
+
+  it.each([{ min: 5, max: 5 }, { step: 0.5 }, { min: 1 }, { max: 1 }])('accepts %j', extra => {
+    const fieldConfig = { name: 'quantity', widget: 'number', ...extra };
+
+    expect(validateJSONSchema(fieldSchema, fieldConfig)).toEqual([]);
+  });
 });

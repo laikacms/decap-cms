@@ -549,4 +549,12 @@ describe('validateJSONSchema', () => {
       expect(validateJSONSchema(schema, { min: 5 })).toEqual([]);
     });
   });
+
+  describe('exclusiveMinimum', () => {
+    it('rejects a value equal to exclusiveMinimum', () => {
+      const schema: JSONSchema = { type: 'number', exclusiveMinimum: 0 };
+      expect(validateJSONSchema(schema, 0)).toHaveLength(1);
+      expect(validateJSONSchema(schema, 0.1)).toEqual([]);
+    });
+  });
 });
