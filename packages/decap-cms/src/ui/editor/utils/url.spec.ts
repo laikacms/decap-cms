@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { sanitizeImageSrc, validateUrl } from './url';
+import { sanitizeImageSrc, sanitizeUrl, validateUrl } from './url';
 
 /**
  * Regression coverage for DCMS-639 / GH #841: pasted `<img>` `src` values
@@ -51,6 +51,31 @@ describe('sanitizeImageSrc', () => {
  * as always valid, which let the Lexical link plugin auto-linkify a bare
  * `https://` into an unusable link.
  */
+describe('sanitizeUrl', () => {
+  it.each([
+    'http://example.com/a',
+    'https://example.com/a?b=1#c',
+    'mailto:a@example.com',
+    'sms:+15551234567',
+    'tel:+15551234567',
+  ])('returns allowlisted protocol %s unchanged', url => {
+    expect(sanitizeUrl(url)).toBe(url);
+  });
+
+  it.each([
+    'javascript:alert(1)',
+    'vbscript:msgbox("x")',
+    'data:text/html,<script>alert(1)</script>',
+    'file:///etc/passwd',
+  ])('returns about:blank for %s', url => {
+    expect(sanitizeUrl(url)).toBe('about:blank');
+  });
+
+  it.each(['/foo', 'foo bar', ''])('returns relative/unparseable input %j unchanged', url => {
+    expect(sanitizeUrl(url)).toBe(url);
+  });
+});
+
 describe('validateUrl', () => {
   it('rejects a bare https:// with no host', () => {
     expect(validateUrl('https://')).toBe(false);
