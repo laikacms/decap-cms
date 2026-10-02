@@ -625,6 +625,24 @@ describe('entries', () => {
     ]);
   });
 
+  it('should fall back to default_sort order when the only sort entry is None (dcms-2560)', () => {
+    const state = {
+      entities: {
+        'posts.1': { slug: '1', data: { title: '1', order: 2 } },
+        'posts.2': { slug: '2', data: { title: '2', order: 3 } },
+        'posts.3': { slug: '3', data: { title: '3', order: 1 } },
+      },
+      pages: { posts: { ids: ['3', '2', '1'] } },
+      sort: { posts: { title: { key: 'title', direction: 'None' } } },
+    };
+    const collection = {
+      name: 'posts',
+      sortable_fields: [{ field: 'title' }, { field: 'order', default_sort: 'desc' }],
+    };
+
+    expect(selectEntries(state, collection).map(e => e.slug)).toEqual(['2', '1', '3']);
+  });
+
   it('should return sorted entries entries by nested field', () => {
     const state = {
       entities: {
