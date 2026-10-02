@@ -7,8 +7,8 @@ export default {
     searchFields: { type: 'array', minItems: 1, items: { type: 'string' } },
     file: { type: 'string' },
     multiple: { type: 'boolean' },
-    min: { type: 'integer' },
-    max: { type: 'integer' },
+    min: { type: 'integer', minimum: 0 },
+    max: { type: 'integer', minimum: 0 },
     display_fields: { type: 'array', minItems: 1, items: { type: 'string' } },
     displayFields: { type: 'array', minItems: 1, items: { type: 'string' } },
     options_length: { type: 'integer', minimum: 1 },
@@ -27,6 +27,7 @@ export default {
       },
     },
   },
+  orderedProperties: ['min', 'max'],
   required: ['collection'],
   allOf: [
     {
