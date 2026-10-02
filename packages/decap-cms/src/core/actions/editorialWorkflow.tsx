@@ -410,6 +410,10 @@ export function persistUnpublishedEntry(collection: Collection, existingUnpublis
       ).length;
       const hasPresenceErrors = presenceErrorFieldsCount > 0;
 
+      // DCMS-2574: replace, don't stack, the prior validation toast so the
+      // count always reflects the current fieldsErrors.
+      dispatch(dismissNotificationsByMessageKey(VALIDATION_ERROR_MESSAGE_KEYS));
+
       // See entries.tsx `persistEntry` (DCMS-484): notify on any validation
       // failure, not just missing-required-field, so Save never silently
       // no-ops.

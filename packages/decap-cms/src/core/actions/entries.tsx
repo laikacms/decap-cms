@@ -992,6 +992,10 @@ export function persistEntry(collection: Collection) {
       ).length;
       const hasPresenceErrors = presenceErrorFieldsCount > 0;
 
+      // DCMS-2574: replace, don't stack, the prior validation toast so the
+      // count always reflects the current fieldsErrors.
+      dispatch(dismissNotificationsByMessageKey(VALIDATION_ERROR_MESSAGE_KEYS));
+
       // Always surface a notification when validation blocks the save - not
       // just for missing-required-field errors. Without this, Save/Publish
       // silently no-ops on any other validation failure (pattern mismatch,

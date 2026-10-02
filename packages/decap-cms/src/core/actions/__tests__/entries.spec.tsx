@@ -1,3 +1,4 @@
+import { applyMiddleware, combineReducers, createStore } from 'redux';
 import configureMockStore from 'redux-mock-store';
 import { thunk } from 'redux-thunk';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -19,6 +20,7 @@ import { FOLDER } from '@/core/constants/collectionTypes';
 import * as backendModule from '@/core/backend';
 import * as entriesReducer from '@/core/reducers/entries';
 import * as entryDraftReducer from '@/core/reducers/entryDraft';
+import notificationsReducer from '@/core/reducers/notifications';
 import AssetProxy from '@/core/valueObjects/AssetProxy';
 import * as assetProxyModule from '@/core/valueObjects/AssetProxy';
 
@@ -1255,6 +1257,46 @@ describe('entries', () => {
       ).rejects.toThrow('network down');
 
       expect(store.getActions()).toEqual([]);
+    });
+  });
+
+  describe('persistEntry - re-save refreshes validation toast (DCMS-2574)', () => {
+    const collection = {
+      name: 'posts',
+      type: FOLDER,
+      folder: '_posts',
+      fields: [
+        { name: 'title', label: 'Title', widget: 'string' },
+        { name: 'body', label: 'Body', widget: 'markdown' },
+      ],
+    };
+
+    it('replaces the stale plural toast with the current singular count on re-save', async () => {
+      vi.mocked(backendModule.currentBackend).mockReturnValue({ persistEntry: vi.fn() } as never);
+      let fieldsErrors: Record<string, unknown> = {
+        title: [{ type: 'PRESENCE', message: 'Title is required' }],
+        body: [{ type: 'PRESENCE', message: 'Body is required' }],
+      };
+      const store = createStore(
+        combineReducers({
+          notifications: notificationsReducer,
+          config: () => ({}),
+          entries: () => ({}),
+          entryDraft: () => ({ fieldsErrors, entry: { slug: 'p', data: {}, mediaFiles: [] } }),
+        }),
+        applyMiddleware(thunk),
+      );
+      const toasts = () => (store.getState() as any).notifications.notifications;
+
+      await expect(store.dispatch(persistEntry(collection as never) as never)).rejects.toBeUndefined();
+      expect(toasts()).toHaveLength(1);
+      expect(toasts()[0].message).toEqual({ key: 'ui.toast.missingRequiredField', smart_count: 2 });
+
+      fieldsErrors = { body: [{ type: 'PRESENCE', message: 'Body is required' }] };
+      store.dispatch({ type: 'DRAFT_VALIDATION_ERRORS_SYNC' });
+      await expect(store.dispatch(persistEntry(collection as never) as never)).rejects.toBeUndefined();
+      expect(toasts()).toHaveLength(1);
+      expect(toasts()[0].message).toEqual({ key: 'ui.toast.missingRequiredField', smart_count: 1 });
     });
   });
 });
