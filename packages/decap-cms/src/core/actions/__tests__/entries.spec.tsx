@@ -917,6 +917,41 @@ describe('entries', () => {
       });
     });
 
+    it('excludes presence errors on fields hidden inside collapsed containers from smart_count (DCMS-2504)', async () => {
+      const store = mockStore(
+        makeState({
+          title: [{ type: 'PRESENCE', message: 'Title is required' }],
+          'nested-string': [{ type: 'PRESENCE', message: 'String is required', hidden: true }],
+          'nested-number': [{ type: 'PRESENCE', message: 'Number is required', hidden: true }],
+        }),
+      );
+
+      await expect(store.dispatch(persistEntry(collection as never) as never)).rejects.toBeUndefined();
+
+      const notification = store.getActions().find((action: any) => action.type === 'NOTIFICATION_SEND');
+      expect(notification.payload.message).toEqual({
+        key: 'ui.toast.missingRequiredField',
+        smart_count: 1,
+      });
+    });
+
+    it('falls back to counting hidden presence errors when none are visible (DCMS-2504)', async () => {
+      const store = mockStore(
+        makeState({
+          'nested-string': [{ type: 'PRESENCE', message: 'String is required', hidden: true }],
+          'nested-number': [{ type: 'PRESENCE', message: 'Number is required', hidden: true }],
+        }),
+      );
+
+      await expect(store.dispatch(persistEntry(collection as never) as never)).rejects.toBeUndefined();
+
+      const notification = store.getActions().find((action: any) => action.type === 'NOTIFICATION_SEND');
+      expect(notification.payload.message).toEqual({
+        key: 'ui.toast.missingRequiredField',
+        smart_count: 2,
+      });
+    });
+
     it('omits smart_count for non-presence validation errors', async () => {
       const store = mockStore(
         makeState({

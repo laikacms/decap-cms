@@ -10,6 +10,7 @@ import type { TranslateFunction } from '@/ui/default/index';
 interface ValidationError {
   type: string;
   parentIds?: string[] | undefined;
+  hidden?: boolean;
   message: string;
 }
 
@@ -313,12 +314,13 @@ export default class Widget extends Component<WidgetProps> {
   };
 
   validatePresence = (field: Record<string, unknown>, value: unknown): ValidationResult => {
-    const { t, parentIds } = this.props;
+    const { t, parentIds, isParentListCollapsed } = this.props;
     const isRequired = field.required ?? true;
     if (isRequired && isEmpty(value)) {
       const error: ValidationError = {
         type: ValidationErrorTypes.PRESENCE,
         parentIds,
+        hidden: !!isParentListCollapsed,
         message: t('editor.editorControlPane.widget.required', {
           fieldLabel: (field.label || field.name) as string,
         }),
