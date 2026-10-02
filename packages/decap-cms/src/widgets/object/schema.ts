@@ -3,4 +3,5 @@ export default {
     collapsed: { type: 'boolean' },
     summary: { type: 'string' },
   },
+  anyOf: [{ required: ['fields'] }, { required: ['field'] }],
 };
