@@ -343,6 +343,63 @@ describe('config', () => {
       }).toThrowError("'collections[0].edit_scopes[1]' must be string");
     });
 
+    describe('view_filters / view_groups field resolution (DCMS-2592)', () => {
+      const withViews = (collection: Record<string, unknown>) =>
+        merge({}, validConfig, { collections: [collection] });
+
+      const thrownPaths = (config: Record<string, unknown>) => {
+        try {
+          validateConfig(config);
+        } catch (e) {
+          return (e as { errors?: { instancePath: string }[] }).errors?.map(x => x.instancePath);
+        }
+        return undefined;
+      };
+
+      it('should throw at /collections/N/view_filters/M/field for an unknown field', () => {
+        const config = withViews({ view_filters: [{ label: 'Draft', field: 'drfat', pattern: true }] });
+        expect(() => validateConfig(config)).toThrowError(/drfat/);
+        expect(thrownPaths(config)).toEqual(['/collections/0/view_filters/0/field']);
+      });
+
+      it('should throw for an empty field in view_groups', () => {
+        const config = withViews({ view_groups: [{ label: 'G', field: '' }] });
+        expect(thrownPaths(config)).toEqual(['/collections/0/view_groups/0/field']);
+      });
+
+      it('should pass for a known field', () => {
+        expect(() =>
+          validateConfig(withViews({
+            view_filters: [{ label: 'T', field: 'title', pattern: 'x' }],
+            view_groups: [{ label: 'T', field: 'title' }],
+          }))
+        ).not.toThrow();
+      });
+
+      it('should resolve dotted nested paths and reject bad nested segments', () => {
+        const fields = [
+          { name: 'author', label: 'Author', widget: 'object', fields: [{ name: 'name', label: 'Name', widget: 'string' }] },
+        ];
+        const ok = { fields, view_groups: [{ label: 'A', field: 'author.name' }] };
+        expect(() => validateConfig(withViews(ok))).not.toThrow();
+        const bad = { fields, view_groups: [{ label: 'A', field: 'author.nope' }] };
+        expect(thrownPaths(withViews(bad))).toEqual(['/collections/0/view_groups/0/field']);
+      });
+
+      it('should resolve against files[].fields in file collections', () => {
+        const fileCollection = (field: string) => ({
+          name: 'pages',
+          label: 'Pages',
+          files: [{ name: 'a', label: 'A', file: 'a.md', fields: [{ name: 'hero', label: 'Hero', widget: 'string' }] }],
+          view_groups: [{ label: 'H', field }],
+        });
+        const base = { ...validConfig, collections: [fileCollection('hero')] };
+        expect(() => validateConfig(base)).not.toThrow();
+        const bad = { ...validConfig, collections: [fileCollection('missing')] };
+        expect(thrownPaths(bad)).toEqual(['/collections/0/view_groups/0/field']);
+      });
+    });
+
     it('should throw if collections sortable_fields is not a boolean or a string array', () => {
       expect(() => {
         validateConfig(merge({}, validConfig, { collections: [{ sortable_fields: 'title' }] }));

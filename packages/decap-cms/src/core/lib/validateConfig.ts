@@ -690,6 +690,58 @@ class ConfigError extends Error {
 }
 
 /**
+ * Whether the dotted `path` (as walked by `getNestedValue(keyToPathArray(...))`
+ * at runtime) resolves through `fields`. Descends object `fields`; list/variable
+ * `field`/`types` and unexpanded `{ group }` references can't be resolved
+ * statically, so once the walk reaches one it accepts the remainder.
+ */
+function fieldPathResolves(fields: unknown, path: string[]): boolean {
+  if (path.length === 0) return true;
+  if (!Array.isArray(fields)) return false;
+  const [head, ...rest] = path;
+  for (const field of fields) {
+    if (!isPlainRecord(field)) continue;
+    if (typeof field.group === 'string' && field.name === undefined) return true;
+    if (field.name !== head) continue;
+    if (rest.length === 0) return true;
+    if (Array.isArray(field.fields)) return fieldPathResolves(field.fields, rest);
+    return isPlainRecord(field.field) || Array.isArray(field.types);
+  }
+  return false;
+}
+
+function checkViewFieldsResolve(config: Record<string, unknown>): SchemaError[] {
+  const errors: SchemaError[] = [];
+  if (!Array.isArray(config.collections)) return errors;
+  config.collections.forEach((collection: unknown, index: number) => {
+    if (!isPlainRecord(collection)) return;
+    const fieldSets: unknown[] = Array.isArray(collection.files)
+      ? collection.files.map(file => (isPlainRecord(file) ? file.fields : undefined))
+      : [collection.fields];
+    for (const key of ['view_filters', 'view_groups'] as const) {
+      const entries = collection[key];
+      if (!Array.isArray(entries)) continue;
+      entries.forEach((entry: unknown, entryIndex: number) => {
+        if (!isPlainRecord(entry) || typeof entry.field !== 'string') return;
+        const path = entry.field.split(/[.[\]]+/).filter(Boolean);
+        const resolves = path.length > 0 && fieldSets.some(fields => fieldPathResolves(fields, path));
+        if (resolves) return;
+        errors.push({
+          instancePath: `/collections/${index}/${key}/${entryIndex}/field`,
+          message: entry.field === ''
+            ? `${key} field must not be empty`
+            : `${key} field '${entry.field}' does not match any field of collection '${String(collection.name)}'`,
+          keyword: '',
+          params: {},
+          schemaPath: '',
+        });
+      });
+    }
+  });
+  return errors;
+}
+
+/**
  * `validateConfig` is a pure function. It does not mutate
  * the config that is passed in.
  */
@@ -748,6 +800,13 @@ export function validateConfig(config: Record<string, unknown>) {
   if (fileFieldMultipleMismatchErrors.length > 0) {
     console.error('Config Errors', fileFieldMultipleMismatchErrors);
     throw new ConfigError(fileFieldMultipleMismatchErrors);
+  }
+
+  // Custom validation: view_filters/view_groups `field` must resolve against collection fields.
+  const viewFieldErrors = checkViewFieldsResolve(config);
+  if (viewFieldErrors.length > 0) {
+    console.error('Config Errors', viewFieldErrors);
+    throw new ConfigError(viewFieldErrors);
   }
 
   // Custom validation: only one sortable field can have default_sort property
