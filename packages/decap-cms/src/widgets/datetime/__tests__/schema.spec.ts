@@ -40,6 +40,28 @@ describe('datetime widget schema', () => {
     expect(validateJSONSchema(fieldSchema, fieldConfig)).toEqual([]);
   });
 
+  it('rejects date_format: false combined with time_format: false', () => {
+    const fieldConfig = {
+      name: 'published',
+      widget: 'datetime',
+      date_format: false,
+      time_format: false,
+    };
+
+    expect(validateJSONSchema(fieldSchema, fieldConfig)).not.toEqual([]);
+  });
+
+  it('accepts date_format: false with a string time_format', () => {
+    const fieldConfig = {
+      name: 'published',
+      widget: 'datetime',
+      date_format: false,
+      time_format: 'HH:mm',
+    };
+
+    expect(validateJSONSchema(fieldSchema, fieldConfig)).toEqual([]);
+  });
+
   it('rejects format with the wrong type', () => {
     const fieldConfig = { name: 'published', widget: 'datetime', format: 123 };
 

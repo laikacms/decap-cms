@@ -45,6 +45,7 @@ both. Source: `schema.ts` (`oneOf: [{ type: 'string' }, { type: 'boolean' }]`),
 - `false` — **switches the input type**, but only when `format` is not set:
   - `date_format: false` forces the input to render as a bare `time` picker (date portion dropped).
   - `time_format: false` forces the input to render as a bare `date` picker (time portion dropped).
+  - Setting both to `false` is contradictory and rejected by config validation.
 
   This `false` → input-type-switch always wins when `date_format`/`time_format` are otherwise
   unset. However, an explicit `format` still overrides it, same as above: the input renders as
