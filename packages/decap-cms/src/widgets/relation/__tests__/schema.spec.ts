@@ -30,6 +30,36 @@ describe('relation widget schema', () => {
     expect(validateJSONSchema(fieldSchema, fieldConfig)).toEqual([]);
   });
 
+  describe('mixed snake_case and camelCase aliases', () => {
+    const base = { name: 'author', widget: 'relation', collection: 'authors' };
+
+    it.each([
+      ['value_field + searchFields', { value_field: 'slug', searchFields: ['name'] }],
+      ['valueField + search_fields', { valueField: 'slug', search_fields: ['name'] }],
+      [
+        'all four keys',
+        { value_field: 'slug', valueField: 'slug', search_fields: ['name'], searchFields: ['name'] },
+      ],
+    ])('accepts %s', (_label, keys) => {
+      expect(validateJSONSchema(fieldSchema, { ...base, ...keys })).toEqual([]);
+    });
+
+    it.each([
+      ['value_field', { search_fields: ['name'] }],
+      ['search_fields', { value_field: 'slug' }],
+      ['searchFields only', { searchFields: ['name'] }],
+    ])('rejects when a pair is missing (%s)', (_label, keys) => {
+      expect(validateJSONSchema(fieldSchema, { ...base, ...keys })).not.toEqual([]);
+    });
+
+    it('rejects a missing collection', () => {
+      const { collection: _c, ...noCollection } = base;
+      expect(
+        validateJSONSchema(fieldSchema, { ...noCollection, value_field: 'slug', search_fields: ['a'] }),
+      ).not.toEqual([]);
+    });
+  });
+
   it('rejects displayFields with the wrong type', () => {
     const fieldConfig = {
       name: 'author',

@@ -487,6 +487,23 @@ describe('validateJSONSchema', () => {
     });
   });
 
+  describe('allOf', () => {
+    const schema: JSONSchema = {
+      allOf: [{ required: ['a'] }, { required: ['b'] }],
+    };
+
+    it('accepts a value matching every branch', () => {
+      expect(validateJSONSchema(schema, { a: 1, b: 2 })).toEqual([]);
+    });
+
+    it('flags a value failing any branch', () => {
+      const errors = validateJSONSchema(schema, { a: 1 });
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0].keyword).toBe('required');
+    });
+  });
+
   describe('widgets', () => {
     it('validates an object with a matching widget schema', () => {
       const schema: JSONSchema = {

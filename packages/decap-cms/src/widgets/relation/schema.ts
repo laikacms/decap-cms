@@ -27,12 +27,13 @@ export default {
       },
     },
   },
-  oneOf: [
+  required: ['collection'],
+  allOf: [
     {
-      required: ['collection', 'value_field', 'search_fields'],
+      anyOf: [{ required: ['value_field'] }, { required: ['valueField'] }],
     },
     {
-      required: ['collection', 'valueField', 'searchFields'],
+      anyOf: [{ required: ['search_fields'] }, { required: ['searchFields'] }],
     },
   ],
 };

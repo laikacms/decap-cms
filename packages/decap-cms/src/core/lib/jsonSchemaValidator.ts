@@ -11,7 +11,7 @@ import { isEqual } from 'lodash-es';
  * - arrays: `items` (schema or tuple), `minItems`, `maxItems`, `uniqueItems`
  * - strings: `minLength`, `maxLength`, `pattern`
  * - numbers: `minimum`, `maximum`
- * - combinators: `oneOf`, `anyOf`, `not`, `if`/`then`/`else`
+ * - combinators: `oneOf`, `anyOf`, `allOf`, `not`, `if`/`then`/`else`
  *
  * Plus three non-standard keywords:
  *
@@ -47,6 +47,7 @@ export interface JSONSchema {
   maximum?: number;
   oneOf?: JSONSchema[];
   anyOf?: JSONSchema[];
+  allOf?: JSONSchema[];
   not?: JSONSchema;
   if?: JSONSchema;
   then?: JSONSchema;
@@ -185,6 +186,10 @@ function validate(schema: JSONSchema, value: unknown, path: string, errors: Sche
       errors.push(...failures);
       errors.push(error(path, 'anyOf', {}, 'must match a schema in anyOf'));
     }
+  }
+
+  for (const branch of schema.allOf ?? []) {
+    validate(branch, value, path, errors);
   }
 
   if (schema.widgets !== undefined && isPlainObject(value) && typeof value.widget === 'string') {
