@@ -12,7 +12,7 @@ that shouldn't be hand-typed.
 - { label: 'Ref', name: 'ref', widget: 'autoincrement', read_only: false }
 ```
 
-- `start` (optional, default `1`) — value assigned to the first entry created in the collection,
+- `start` (optional integer, default `1`; negatives allowed) — value assigned to the first entry created in the collection,
   used only while no other entry has a value for this field yet. Once any entry has a value, new
   entries get `max(existing) + 1` regardless of `start`.
 - `read_only` (optional, default `true`) — renders the input `readOnly` so editors can't hand-edit

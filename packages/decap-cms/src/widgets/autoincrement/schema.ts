@@ -1,6 +1,6 @@
 export default {
   properties: {
-    start: { type: 'number' },
+    start: { type: 'integer' },
     read_only: { type: 'boolean' },
   },
 };

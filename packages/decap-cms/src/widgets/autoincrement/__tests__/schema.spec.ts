@@ -44,4 +44,22 @@ describe('autoincrement widget schema', () => {
 
     expect(validateJSONSchema(fieldSchema, fieldConfig)).not.toEqual([]);
   });
+
+  it.each([0, 1, 1000])('accepts integer start %s', start => {
+    const fieldConfig = { name: 'ticketId', widget: 'autoincrement', start };
+
+    expect(validateJSONSchema(fieldSchema, fieldConfig)).toEqual([]);
+  });
+
+  it('accepts a negative integer start', () => {
+    const fieldConfig = { name: 'ticketId', widget: 'autoincrement', start: -5 };
+
+    expect(validateJSONSchema(fieldSchema, fieldConfig)).toEqual([]);
+  });
+
+  it.each([0.5, 1.5, -0.25])('rejects non-integer start %s', start => {
+    const fieldConfig = { name: 'ticketId', widget: 'autoincrement', start };
+
+    expect(validateJSONSchema(fieldSchema, fieldConfig)).not.toEqual([]);
+  });
 });
