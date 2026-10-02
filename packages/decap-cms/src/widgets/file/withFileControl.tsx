@@ -571,8 +571,8 @@ export default function withFileControl({ forImage }: { forImage?: boolean } = {
       return () => {
         const v = valueListToArray(value);
         if (Array.isArray(v)) {
-          v.splice(index, 1);
-          return onChange(sizeOfValue(v) > 0 ? [...v] : null);
+          const next = v.filter((_, i) => i !== index);
+          return onChange(sizeOfValue(next) > 0 ? next : null);
         }
       };
     }

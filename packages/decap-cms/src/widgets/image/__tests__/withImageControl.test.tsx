@@ -192,6 +192,17 @@ describe('gallery reorder/remove/replace (DCMS-1292)', () => {
     expect(onChange).toHaveBeenCalledWith(['a.png', 'c.png']);
   });
 
+  it('onRemoveOne does not mutate the value prop array (works with a frozen value)', () => {
+    const value = Object.freeze(['a.png', 'b.png', 'c.png']) as unknown as string[];
+    const { getAllByRole, onChange } = renderGallery(value);
+
+    const buttons = getAllByRole('button');
+    fireEvent.click(buttons[5]); // item index 1's remove button
+
+    expect(value).toEqual(['a.png', 'b.png', 'c.png']);
+    expect(onChange).toHaveBeenCalledWith(['a.png', 'c.png']);
+  });
+
   it('onRemoveOne calls onChange(null), not [], when removing the last remaining item', () => {
     const value = ['only.png'];
     const { getAllByRole, onChange } = renderGallery(value);
