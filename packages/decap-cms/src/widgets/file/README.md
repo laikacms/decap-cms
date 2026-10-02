@@ -2,7 +2,7 @@
 
 The file widget renders a "Choose a file" button that opens the media library, plus an optional
 "Choose URL" button for pasting a remote/relative URL directly. It stores either a single string
-path/URL, or (with `allow_multiple`) an array of them.
+path/URL, or (with `media_library.allow_multiple`) an array of them.
 
 (`image` is a related widget — `packages/decap-cms/src/widgets/image/` — that shares this same
 control implementation via `withFileControl({ forImage: true })` and renders image thumbnails
@@ -19,10 +19,13 @@ instead of file links.)
   Source: `withFileControl.tsx` — `const chooseUrl = field.choose_url !== false;` — the check is
   against `false`, not truthiness of `true`, so omitting the key or setting anything other than
   literal `false` keeps the button enabled.
-- `allow_multiple` (optional) — allows selecting more than one file for this field; the value
-  becomes an array of paths instead of a single string. This is read from the media-library override
-  object (`field.media_library.allow_multiple`), not a bare top-level `field` property — see
-  "media_library overrides" below.
+- `media_library.allow_multiple` (optional) — allows selecting more than one file for this field;
+  the value becomes an array of paths instead of a single string. Multi-file behavior is driven
+  entirely by the nested `field.media_library` object (see "media_library overrides" below), not a
+  top-level field property. A bare top-level `allow_multiple` is no longer declared in this
+  widget's schema and is rejected as a config error by `checkFileFieldTopLevelAllowMultiple` in
+  `packages/decap-cms/src/core/lib/validateConfig.ts` — set `media_library.allow_multiple` instead
+  (DCMS-2325, DCMS-2330).
 - `private` (optional, boolean) — passed straight through to the configured media library as
   `privateUpload` when opening it (see `handleChange`/`onReplaceOne` in `withFileControl.tsx`), for
   backends that support separate public/private asset storage (e.g. an S3-backed media library with
@@ -40,10 +43,9 @@ Per-widget media-library options are read from a single place: `field.media_libr
 sub-keys are consumed here:
 
 - `field.media_library.allow_multiple` — read as `opts?.allow_multiple` and forwarded to
-  `onOpenMediaLibrary` as `allowMultiple`. This is the field property documented above under
-  `allow_multiple` — despite the schema declaring a top-level `allow_multiple` boolean too, the
-  control only ever reads the nested `media_library.allow_multiple` value when opening the picker;
-  the top-level key is not otherwise consulted by this widget.
+  `onOpenMediaLibrary` as `allowMultiple`. This is the only place the option is declared: the
+  schema has no top-level `allow_multiple`, and `validateConfig.ts`
+  (`checkFileFieldTopLevelAllowMultiple`) throws a config error if one is set.
 - `field.media_library.config` — forwarded to `onOpenMediaLibrary` as `config`, for
   media-library-specific settings (e.g. `max_file_size`).
 
