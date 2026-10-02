@@ -251,6 +251,17 @@ describe('CodeControl (DCMS-1387)', () => {
       expect(onChange).toHaveBeenCalledWith({ code: 'const a = 1;', lang: 'javascript' });
     });
 
+    it('resolves an alias default_language to the canonical mode (DCMS-2608)', async () => {
+      const { onChange } = renderControl({ field: baseField({ default_language: 'js' }) });
+
+      await typeCode('x');
+
+      expect(onChange).toHaveBeenCalledWith({ code: 'x', lang: 'javascript' });
+      await waitFor(() =>
+        expect(lastEditorProps().extensions).toContainEqual({ __mockLanguageExtension: 'javascript' })
+      );
+    });
+
     it('honors custom keys.code / keys.lang', async () => {
       const { onChange } = renderControl({
         field: baseField({ default_language: 'javascript', keys: { code: 'body', lang: 'language' } }),

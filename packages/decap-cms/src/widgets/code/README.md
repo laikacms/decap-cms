@@ -59,6 +59,13 @@ language — for example on a brand-new entry, or any time `output_code_only: tr
 is persisted to read back. It has no effect once a language has been picked or loaded from a stored
 value.
 
+Accepted values are the language identifiers from `data/languages.json`: the canonical name
+(`javascript`) or any alias (`js`, `ts`, `py`, `sh`, `yml`, ...). An alias resolves to its language
+and is normalized to the canonical name, so it selects the right mode/highlighting and is persisted
+as the canonical name (e.g. `default_language: 'js'` stores `lang: javascript`). Unknown values
+(e.g. `javscript`) are rejected by config validation. Source: `schema.ts` (`enum`),
+`CodeControl.tsx` (`getLanguageByName()`).
+
 ## `allow_language_selection`
 
 Controls whether the "Mode" (language) dropdown appears in the widget's settings pane. It defaults
