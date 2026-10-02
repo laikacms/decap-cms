@@ -1,11 +1,14 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import {
+  SLUG_MISSING_REQUIRED_DATE,
+  addFileTemplateFields,
   compileStringTemplate,
   expandPath,
   extractTemplateVars,
   keyToPathArray,
   parseDateFromEntry,
+  parseDateFromEntryData,
 } from '@/lib/widgets/stringTemplate';
 
 describe('stringTemplate', () => {
@@ -308,6 +311,103 @@ describe('stringTemplate', () => {
       const path = 'categories.0.name';
 
       expect(expandPath({ data, path })).toEqual(['categories.0.name']);
+    });
+  });
+
+  describe('parseDateFromEntryData', () => {
+    it('returns a Date for a valid date field', () => {
+      const result = parseDateFromEntryData({ published: '2020-01-02T03:04:05Z' }, 'published');
+      expect(result).toBeInstanceOf(Date);
+      expect(result?.toISOString()).toBe('2020-01-02T03:04:05.000Z');
+    });
+
+    it('accepts Date and numeric timestamp values', () => {
+      const date = new Date('2021-06-07T08:09:10Z');
+      expect(parseDateFromEntryData({ d: date }, 'd')?.getTime()).toBe(date.getTime());
+      expect(parseDateFromEntryData({ d: date.getTime() }, 'd')?.getTime()).toBe(date.getTime());
+    });
+
+    it('returns undefined when the field is missing', () => {
+      expect(parseDateFromEntryData({ title: 'x' }, 'published')).toBeUndefined();
+    });
+
+    it('returns undefined when the field value is falsy', () => {
+      expect(parseDateFromEntryData({ published: '' }, 'published')).toBeUndefined();
+      expect(parseDateFromEntryData({ published: null }, 'published')).toBeUndefined();
+    });
+
+    it('returns undefined when the date value is invalid', () => {
+      expect(parseDateFromEntryData({ published: 'not a date' }, 'published')).toBeUndefined();
+    });
+
+    it('returns undefined when no field name is given', () => {
+      expect(parseDateFromEntryData({ published: '2020-01-02' })).toBeUndefined();
+      expect(parseDateFromEntryData({ published: '2020-01-02' }, null)).toBeUndefined();
+      expect(parseDateFromEntryData({ published: '2020-01-02' }, '')).toBeUndefined();
+    });
+  });
+
+  describe('SLUG_MISSING_REQUIRED_DATE', () => {
+    it('is the error name string', () => {
+      expect(SLUG_MISSING_REQUIRED_DATE).toBe('SLUG_MISSING_REQUIRED_DATE');
+    });
+
+    it('is thrown as the error name when a date placeholder has no date', () => {
+      let error: Error | undefined;
+      try {
+        compileStringTemplate('{{year}}-{{slug}}', undefined, 'hello');
+      } catch (e) {
+        error = e as Error;
+      }
+      expect(error).toBeInstanceOf(Error);
+      expect(error?.name).toBe(SLUG_MISSING_REQUIRED_DATE);
+    });
+
+    it('is not thrown when date processing is disabled with null', () => {
+      expect(compileStringTemplate('{{year}}-{{slug}}', null, 'hello')).toBe('-hello');
+    });
+
+    it('is not thrown when the template needs no date', () => {
+      expect(compileStringTemplate('{{slug}}', undefined, 'hello')).toBe('hello');
+    });
+  });
+
+  describe('addFileTemplateFields', () => {
+    it('adds dirname relative to folder, filename and extension (doc-comment example)', () => {
+      expect(addFileTemplateFields('foo/bar/baz.ext', {}, 'foo')).toEqual({
+        dirname: 'bar',
+        filename: 'baz',
+        extension: 'ext',
+      });
+    });
+
+    it('keeps the full dirname when no folder is given', () => {
+      expect(addFileTemplateFields('foo/bar/baz.ext', {})).toEqual({
+        dirname: 'foo/bar',
+        filename: 'baz',
+        extension: 'ext',
+      });
+    });
+
+    it('returns an empty extension when the file has none', () => {
+      expect(addFileTemplateFields('foo/baz', {}, 'foo')).toEqual({
+        dirname: '',
+        filename: 'baz',
+        extension: '',
+      });
+    });
+
+    it('preserves existing fields and mutates the provided map', () => {
+      const fields: Record<string, string> = { title: 'T' };
+      const result = addFileTemplateFields('a/b.md', fields);
+      expect(result).toBe(fields);
+      expect(fields).toEqual({ title: 'T', dirname: 'a', filename: 'b', extension: 'md' });
+    });
+
+    it('returns fields unchanged for an empty entry path', () => {
+      const fields: Record<string, string> = { title: 'T' };
+      expect(addFileTemplateFields('', fields, 'foo')).toBe(fields);
+      expect(fields).toEqual({ title: 'T' });
     });
   });
 });
