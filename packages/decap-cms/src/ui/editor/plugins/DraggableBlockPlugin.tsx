@@ -205,8 +205,9 @@ export function DraggableBlockPlugin({
               top: pickerPosition.top,
             }}
           >
-            <Command>
+            <Command label="Filter blocks">
               <CommandInput
+                aria-label="Filter blocks"
                 placeholder="Filter blocks..."
                 value={queryString}
                 onValueChange={setQueryString}
