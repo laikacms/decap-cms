@@ -1093,7 +1093,7 @@ describe('config', () => {
               collections: [
                 {
                   fields: [
-                    { name: 'x', widget: 'file', media_library: { allow_multiple: true } },
+                    { name: 'x', widget: 'file', media_library: { allow_multiple: true, config: { multiple: true } } },
                   ],
                 },
               ],
@@ -1275,7 +1275,7 @@ describe('config', () => {
 
       it('does not throw when a file field sets media_library.allow_multiple', () => {
         expect(() => {
-          validateConfig(fileConfig({ media_library: { allow_multiple: true } }));
+          validateConfig(fileConfig({ media_library: { allow_multiple: true, config: { multiple: true } } }));
         }).not.toThrow();
       });
 
@@ -1291,6 +1291,36 @@ describe('config', () => {
             }),
           );
         }).not.toThrow();
+      });
+    });
+
+    describe('file/image nested multiple switches agree (DCMS-2559)', () => {
+      const fieldConfig = (widget: string, media_library: Record<string, unknown>) =>
+        merge({}, validConfig, {
+          collections: [{ fields: [{ name: 'pics', widget, media_library }] }],
+        });
+
+      it.each(['file', 'image'])('throws for %s with only allow_multiple', widget => {
+        expect(() => validateConfig(fieldConfig(widget, { allow_multiple: true }))).toThrowError(
+          `${widget} field 'pics' sets 'media_library.allow_multiple' without 'media_library.config.multiple'`,
+        );
+      });
+
+      it.each(['file', 'image'])('throws for %s with only config.multiple', widget => {
+        expect(() => validateConfig(fieldConfig(widget, { config: { multiple: true } }))).toThrowError(
+          `${widget} field 'pics' sets 'media_library.config.multiple' without 'media_library.allow_multiple'`,
+        );
+      });
+
+      it.each(['file', 'image'])('does not throw for %s with both set', widget => {
+        expect(() =>
+          validateConfig(fieldConfig(widget, { allow_multiple: true, config: { multiple: true } }))
+        ).not.toThrow();
+      });
+
+      it('does not throw with neither set', () => {
+        expect(() => validateConfig(fieldConfig('image', { config: { max_file_size: 10 } }))).not
+          .toThrow();
       });
     });
 
@@ -1325,7 +1355,7 @@ describe('config', () => {
 
       it('does not throw when an image field sets media_library.allow_multiple', () => {
         expect(() => {
-          validateConfig(imageConfig({ media_library: { allow_multiple: true } }));
+          validateConfig(imageConfig({ media_library: { allow_multiple: true, config: { multiple: true } } }));
         }).not.toThrow();
       });
     });

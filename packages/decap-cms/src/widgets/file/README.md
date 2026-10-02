@@ -46,6 +46,8 @@ sub-keys are consumed here:
   `onOpenMediaLibrary` as `allowMultiple`. This is the only place the option is declared: the
   schema has no top-level `allow_multiple`, and `validateConfig.ts`
   (`checkFileFieldTopLevelAllowMultiple`) throws a config error if one is set.
+- `field.media_library.config.multiple` must agree with `allow_multiple`: `checkFileFieldMultipleSwitchesAgree`
+  throws a config error when exactly one of the two is truthy (see `widgets/image/README.md`).
 - `field.media_library.config` — forwarded to `onOpenMediaLibrary` as `config`, for
   media-library-specific settings (e.g. `max_file_size`).
 

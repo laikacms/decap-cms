@@ -90,7 +90,7 @@ switch:
   remove button says "Remove all images" vs "Remove image", and whether the "Insert from URL" button
   is shown at all (it's suppressed once `multi` is true).
 
-Both keys need to be set for a field to behave as a coherent multi-image picker — setting only
+Both keys need to be set together: `validateConfig.ts` (`checkFileFieldMultipleSwitchesAgree`) rejects a field that sets exactly one of them, naming the missing sibling. Otherwise the field would not be a coherent multi-image picker — setting only
 `allow_multiple` lets the media library dialog select several assets but the widget still renders/
 labels itself as single-image, and setting only `config.multiple` renders the multi-image gallery UI
 without letting the media library dialog select more than one asset per open:
