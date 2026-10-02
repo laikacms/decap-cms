@@ -80,6 +80,7 @@ function baseState(overrides: Record<string, unknown> = {}) {
     config: { isFetching: false, error: null, backend: { name: 'test-repo' } },
     collections: {
       posts: { name: 'posts', label: 'Posts', hide: false, create: true },
+      settings: { name: 'settings', label: 'Settings', hide: false, files: [{ name: 'general' }] },
     },
     entries: { entities: {} },
     globalUI: { isFetching: false },
@@ -307,6 +308,28 @@ describe('AppContent - DCMS-432 unknown-collection deep-link', () => {
     };
 
     renderAppContentAt('/collections/nonexistent_collection/new', { renderLayout });
+
+    expect(seen).toEqual([false]);
+  });
+
+  it('renders NotFound instead of an empty editor for a file-collection /new route (DCMS-2554)', () => {
+    const { getByTestId, queryByTestId, getByText } = renderAppContentAt(
+      '/collections/settings/new',
+    );
+
+    expect(getByText('app.notFoundPage.header')).toBeInTheDocument();
+    expect(getByTestId('app-header')).toBeInTheDocument();
+    expect(queryByTestId('editor-view')).not.toBeInTheDocument();
+  });
+
+  it('reports isEditorRoute: false to a custom renderLayout for a file-collection /new route (DCMS-2554)', () => {
+    const seen: boolean[] = [];
+    const renderLayout = (renderProps: AppLayoutRenderProps) => {
+      seen.push(renderProps.isEditorRoute);
+      return <div data-testid="layout">{renderProps.main}</div>;
+    };
+
+    renderAppContentAt('/collections/settings/new', { renderLayout });
 
     expect(seen).toEqual([false]);
   });

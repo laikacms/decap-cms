@@ -188,7 +188,7 @@ const ControlPane = React.forwardRef<ControlPaneHandle, ControlPaneProps>(
         defaultLocale,
       };
 
-      props.fields.forEach(field => {
+      props.fields?.forEach(field => {
         if (field && isFieldTranslatable(field, targetLocale, sourceLocale)) {
           const copyValue = getFieldValue({
             field,
@@ -250,7 +250,7 @@ const ControlPane = React.forwardRef<ControlPaneHandle, ControlPaneProps>(
           }
         },
         validate() {
-          props.fields.forEach(field => {
+          props.fields?.forEach(field => {
             if (!field) return;
             if (field.widget === 'hidden') return;
             const control = childRefs.current[field.name] as Record<string, unknown> | undefined;
