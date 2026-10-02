@@ -36,6 +36,7 @@ describe('entries', () => {
     const currentBackend = vi.mocked(backendModule.currentBackend);
     const backend = {
       processEntry: vi.fn((_state, _collection, entry) => Promise.resolve(entry)),
+      listAllEntries: vi.fn(() => Promise.resolve([] as unknown[])),
     };
 
     currentBackend.mockReturnValue(backend);
@@ -174,11 +175,10 @@ describe('entries', () => {
     // DCMS-1422 (partial): `autoincrement` fields get their value computed
     // once here, at entry-creation time.
     it('computes max(existing values) + 1 for an autoincrement field', () => {
-      const selectEntries = vi.mocked(entriesReducer.selectEntries);
-      selectEntries.mockReturnValue([
+      backend.listAllEntries.mockResolvedValueOnce([
         { slug: 'post-a', data: { ticketId: 3 }, mediaFiles: [] },
         { slug: 'post-b', data: { ticketId: 7 }, mediaFiles: [] },
-      ] as never);
+      ]);
 
       const store = mockStore({ mediaLibrary: { files: [] }, entries: {} });
 
@@ -194,9 +194,52 @@ describe('entries', () => {
       });
     });
 
-    it('uses the configured start value for an autoincrement field when the collection has no entries yet', () => {
+    // DCMS-2553: cold deep-link to `/new` - nothing is in the redux store yet,
+    // but the collection already holds entries, so the value must be max+1,
+    // not `start`.
+    it('uses the backend entries, not the (empty) store, so a cold /new yields max+1 not start', () => {
       const selectEntries = vi.mocked(entriesReducer.selectEntries);
       selectEntries.mockReturnValue([]);
+      backend.listAllEntries.mockResolvedValueOnce([
+        { slug: 'a', data: { ticketId: 1 }, mediaFiles: [] },
+        { slug: 'b', data: { ticketId: 2 }, mediaFiles: [] },
+        { slug: 'c', data: { ticketId: 3 }, mediaFiles: [] },
+      ]);
+
+      const store = mockStore({ mediaLibrary: { files: [] }, entries: {} });
+      const collection = {
+        name: 'posts',
+        fields: [{ name: 'ticketId', widget: 'autoincrement' }],
+      };
+
+      return store.dispatch(createEmptyDraft(collection, '')).then(() => {
+        expect(backend.listAllEntries).toHaveBeenCalledWith(collection);
+        expect((store.getActions()[0] as any).payload.data).toEqual({ ticketId: 4 });
+      });
+    });
+
+    // DCMS-2553: the max may live on a later page than the one in the store.
+    it('considers entries beyond the first page (listAllEntries), not just loaded ones', () => {
+      const selectEntries = vi.mocked(entriesReducer.selectEntries);
+      selectEntries.mockReturnValue([{ slug: 'a', data: { ticketId: 2 }, mediaFiles: [] }] as never);
+      backend.listAllEntries.mockResolvedValueOnce([
+        { slug: 'a', data: { ticketId: 2 }, mediaFiles: [] },
+        { slug: 'z', data: { ticketId: 50 }, mediaFiles: [] },
+      ]);
+
+      const store = mockStore({ mediaLibrary: { files: [] }, entries: {} });
+      const collection = {
+        name: 'posts',
+        fields: [{ name: 'ticketId', widget: 'autoincrement' }],
+      };
+
+      return store.dispatch(createEmptyDraft(collection, '')).then(() => {
+        expect((store.getActions()[0] as any).payload.data).toEqual({ ticketId: 51 });
+      });
+    });
+
+    it('uses the configured start value for an autoincrement field when the collection has no entries yet', () => {
+      backend.listAllEntries.mockResolvedValueOnce([]);
 
       const store = mockStore({ mediaLibrary: { files: [] }, entries: {} });
 
@@ -220,6 +263,7 @@ describe('entries', () => {
       const collection = { name: 'posts', fields: [{ name: 'title' }] };
 
       return store.dispatch(createEmptyDraft(collection, '')).then(() => {
+        expect(backend.listAllEntries).not.toHaveBeenCalled();
         const actions = store.getActions();
         expect((actions[0] as any).payload.data).toEqual({});
       });

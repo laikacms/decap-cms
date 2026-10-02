@@ -815,11 +815,14 @@ export function createEmptyDraft(collection: Collection, search: string) {
     // rationale as the `unique: true` check in `persistEntry`), so it can't
     // live in the widget's control component the way e.g. the `uuid` widget
     // generates its own value on mount.
+    //
+    // DCMS-2553: the redux store can't be trusted as the comparison pool - on
+    // a cold deep-link to `/new` it is still empty, and a paginated
+    // collection only has page 0 in it. Ask the backend for every entry so
+    // the max is the collection's real max.
     if (hasAutoincrementFields(dataFields as EntryField[])) {
-      Object.assign(
-        data,
-        computeAutoincrementValues(dataFields as EntryField[], selectEntries(state, collection)),
-      );
+      const allEntries = (await backend.listAllEntries(collection as any)) as EntryValue[];
+      Object.assign(data, computeAutoincrementValues(dataFields as EntryField[], allEntries as any));
     }
 
     if (!collection.media_folder) {
