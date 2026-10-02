@@ -1,6 +1,10 @@
+import languageData from './data/languages.json';
+
+const languageIdentifiers = languageData.flatMap(lang => lang.identifiers);
+
 export default {
   properties: {
-    default_language: { type: 'string' },
+    default_language: { type: 'string', enum: languageIdentifiers },
     allow_language_selection: { type: 'boolean' },
     output_code_only: { type: 'boolean' },
     keys: {

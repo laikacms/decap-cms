@@ -35,6 +35,11 @@ describe('code widget schema', () => {
     expect(validateJSONSchema(fieldSchema, fieldConfig)).not.toEqual([]);
   });
 
+  it('accepts an alias default_language and rejects an unknown one (DCMS-2608)', () => {
+    expect(validateJSONSchema(fieldSchema, { name: 's', widget: 'code', default_language: 'js' })).toEqual([]);
+    expect(validateJSONSchema(fieldSchema, { name: 's', widget: 'code', default_language: 'javscript' })).not.toEqual([]);
+  });
+
   it('rejects allow_language_selection with the wrong type', () => {
     const fieldConfig = { name: 'snippet', widget: 'code', allow_language_selection: 'yes' };
 

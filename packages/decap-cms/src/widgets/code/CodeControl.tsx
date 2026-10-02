@@ -54,7 +54,7 @@ const settingsPersistKeys: Record<string, string> = {
 };
 
 function getLanguageByName(name: string): LanguageInfo | undefined {
-  return languages.find(lang => lang.name === name);
+  return languages.find(lang => lang.identifiers.includes(name));
 }
 
 function getKeyMapOptions(): SelectOption[] {
@@ -120,7 +120,9 @@ export default function CodeControl({
 
   const initialLang = (isMap && value && (value as Record<string, unknown>)?.[keys.lang]) || field.default_language;
 
-  const [lang, setLang] = React.useState<string>((initialLang as string) || '');
+  const [lang, setLang] = React.useState<string>(
+    () => (initialLang ? getLanguageByName(initialLang as string)?.name ?? (initialLang as string) : ''),
+  );
   const [keyMap, setKeyMap] = React.useState<string>(
     () => localStorage.getItem(settingsPersistKeys['keyMap']) || 'default',
   );
