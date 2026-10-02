@@ -126,4 +126,34 @@ describe('select widget schema', () => {
       ).toEqual([]);
     });
   });
+
+  describe('min/max bounds', () => {
+    const withMinMax = (min?: number, max?: number) => ({
+      name: 'category',
+      widget: 'select',
+      options: ['a', 'b'],
+      ...(min === undefined ? {} : { min }),
+      ...(max === undefined ? {} : { max }),
+    });
+
+    it('rejects a negative min', () => {
+      expect(validateJSONSchema(fieldSchema, withMinMax(-1))).not.toEqual([]);
+    });
+
+    it('rejects a negative max', () => {
+      expect(validateJSONSchema(fieldSchema, withMinMax(undefined, -1))).not.toEqual([]);
+    });
+
+    it('rejects min greater than max', () => {
+      expect(validateJSONSchema(fieldSchema, withMinMax(3, 2))).not.toEqual([]);
+    });
+
+    it('accepts min 0 and max 0', () => {
+      expect(validateJSONSchema(fieldSchema, withMinMax(0, 0))).toEqual([]);
+    });
+
+    it('accepts min equal to max', () => {
+      expect(validateJSONSchema(fieldSchema, withMinMax(2, 2))).toEqual([]);
+    });
+  });
 });
