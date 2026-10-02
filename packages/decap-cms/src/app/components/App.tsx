@@ -235,6 +235,15 @@ const SessionExpiredNotice = styled.div`
   }
 `;
 
+/**
+ * File collections list configured `files`; they have no top-level `fields`
+ * and no "new entry" concept, so a `/new` deep-link into one has nothing to
+ * edit (DCMS-2554).
+ */
+function supportsNewEntry(collection: CmsCollectionState): boolean {
+  return !collection.files;
+}
+
 function getDefaultCollectionName(collections: Collections): string | undefined {
   // First non-hidden collection; used as the home/redirect target.
   for (const key of Object.keys(collections)) {
@@ -309,15 +318,17 @@ function CollectionGuard({
   name,
   collections,
   renderNotFound,
+  isAvailable,
   children,
 }: {
   name: string,
   collections: Collections,
+  isAvailable?: ((collection: CmsCollectionState) => boolean) | undefined,
   renderNotFound?: (() => React.ReactNode) | undefined,
   children: React.ReactNode,
 }) {
   const exists = name ? collections[name] : undefined;
-  if (!exists) {
+  if (!exists || (isAvailable && !isAvailable(exists))) {
     // Without a `backLink` here, an unknown-collection deep-link (DCMS-432)
     // strands the user on the not-found page with no click path back into
     // the app — unlike the entry-not-found case (DCMS-445), which already
@@ -453,6 +464,7 @@ function AppRoutes({
           collections={collections}
           name={match.params.collectionName}
           renderNotFound={renderNotFound}
+          isAvailable={supportsNewEntry}
         >
           <Editor
             newRecord
@@ -567,8 +579,11 @@ function AppContent({
   const entryNewParams = routeMatch?.key === 'entryNew'
     ? (routeMatch.params as { collectionName: string })
     : undefined;
+  const entryNewCollection = entryNewParams
+    ? collections?.[entryNewParams.collectionName]
+    : undefined;
   const entryNewUnknownCollection = entryNewParams
-    ? !collections?.[entryNewParams.collectionName]
+    ? !entryNewCollection || !supportsNewEntry(entryNewCollection)
     : false;
 
   // Drives whether the app-shell header mounts at all (DCMS-431) — see
