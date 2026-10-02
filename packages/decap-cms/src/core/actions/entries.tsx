@@ -1,4 +1,4 @@
-import { isEqual } from 'lodash-es';
+import { isEqual, merge } from 'lodash-es';
 
 import { currentBackend } from '@/core/backend';
 import ValidationErrorTypes from '@/core/constants/validationErrorTypes';
@@ -822,7 +822,7 @@ export function createEmptyDraft(collection: Collection, search: string) {
     // the max is the collection's real max.
     if (hasAutoincrementFields(dataFields as EntryField[])) {
       const allEntries = (await backend.listAllEntries(collection as any)) as EntryValue[];
-      Object.assign(data, computeAutoincrementValues(dataFields as EntryField[], allEntries as any));
+      merge(data, computeAutoincrementValues(dataFields as EntryField[], allEntries as any));
     }
 
     if (!collection.media_folder) {
