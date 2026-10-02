@@ -50,9 +50,17 @@ When `false` (the default):
 When `true`:
 
 - The picker is `RgbaStringColorPicker`.
-- A picked color is re-parsed with `tinycolor`: if its alpha is `< 1` it's stored as an `rgba(...)`
-  string, otherwise it's stored as a hex string. This means a fully-opaque color picked with
-  `enableAlpha: true` still ends up stored as hex, not `rgba(r, g, b, 1)`.
+- A picked color is re-parsed with the local `parseColor.ts`: if its alpha is `< 1` it's stored as
+  an `rgba(...)` string, otherwise it's stored as a hex string. This means a fully-opaque color
+  picked with `enableAlpha: true` still ends up stored as hex, not `rgba(r, g, b, 1)`.
+
+## Supported color syntaxes
+
+`parseColor.ts` reads: hex (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`), CSS named colors,
+`transparent`, and `rgb()`/`rgba()`/`hsl()`/`hsla()` in comma-separated (`hsl(0, 100%, 50%)`) or
+space-separated (`rgb(255 0 0 / 50%)`) form. `rgb()` channels and alpha may be numbers or
+percentages; `hsl()` hue is a number or `deg`, saturation/lightness are percentages. `hsv()`,
+`hwb()`, `lab()` and other color functions are not supported and count as unparsable.
 
 Whichever picker is active also determines the color format shown to seed it: the current value is
 parsed and re-serialized as `rgba(...)` when `enableAlpha` is `true`, or as hex otherwise. An
