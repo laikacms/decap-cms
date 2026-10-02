@@ -480,6 +480,42 @@ describe('formatters', () => {
         ),
       ).toBe('--/dir/post-title.en');
     });
+
+    it('should preserve camelCase field keys in path template', () => {
+      vi.mocked(selectIdentifier).mockReturnValueOnce('title');
+
+      expect(
+        slugFormatter(
+          { slug: '{{slug}}', path: 'posts/{{fields.authorName}}/{{slug}}' },
+          { title: 'Post Title', authorName: 'Jane Doe' },
+          slugConfig,
+        ),
+      ).toBe('posts/jane-doe/post-title');
+    });
+
+    it('should resolve nested dotted keys in path template', () => {
+      vi.mocked(selectIdentifier).mockReturnValueOnce('title');
+
+      expect(
+        slugFormatter(
+          { slug: '{{slug}}', path: '{{author.name}}/{{slug}}' },
+          { title: 'Post Title', author: { name: 'Jane Doe' } },
+          slugConfig,
+        ),
+      ).toBe('jane-doe/post-title');
+    });
+
+    it('should preserve filter argument case in path template', () => {
+      vi.mocked(selectIdentifier).mockReturnValueOnce('title');
+
+      expect(
+        slugFormatter(
+          { slug: '{{slug}}', path: "{{published | date('YYYY')}}/{{slug}}" },
+          { title: 'Post Title', published: '2020-05-06' },
+          slugConfig,
+        ),
+      ).toBe('2020/post-title');
+    });
   });
 
   describe('previewUrlFormatter', () => {

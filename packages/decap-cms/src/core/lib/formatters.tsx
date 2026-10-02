@@ -115,6 +115,13 @@ export function prepareSlug(slug: string) {
   );
 }
 
+function prepareLiteralPathText(template: string) {
+  return template
+    .split(/(\{\{[^}]*\}\})/)
+    .map(part => (part.startsWith('{{') && part.endsWith('}}') ? part : prepareSlug(part)))
+    .join('');
+}
+
 export function getProcessSegment(
   slugConfig?: CmsSlug,
   ignoreKeys?: string[],
@@ -158,7 +165,7 @@ export function slugFormatter(
   if (!collection.path) {
     return slug;
   } else {
-    const pathTemplate = prepareSlug(collection.path as string);
+    const pathTemplate = prepareLiteralPathText(collection.path as string);
     return compileStringTemplate(
       pathTemplate,
       date,
