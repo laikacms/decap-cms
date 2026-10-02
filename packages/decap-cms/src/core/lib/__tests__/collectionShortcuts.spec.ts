@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { collectionChordKeys } from '../collectionShortcuts';
+import { collectionChordKeys } from '@/core/lib/collectionShortcuts';
 
 import type { CmsCollectionState } from '@/lib/util/index';
 
